@@ -105,6 +105,9 @@ public class MapGeometry
             {
                 if (island.ContainsInclusive(subsector.Box))
                 {
+                    if (sectorId != subsector.SectorId && !island.OnRightOfSectorLines(Lines, subsector.SectorId.Value, subsector.Box))
+                        continue;
+
                     if (sectorId == subsector.SectorId)
                         SetIslandFlooded(island);
 
@@ -118,11 +121,7 @@ public class MapGeometry
             }
 
             if (smallestFloodSector != null)
-            {
-                var sector = Sectors[subsector.SectorId.Value];
-                var floodSector = Sectors[smallestFloodSector.Value];
                 IslandGeometry.FloodSectors.Add(smallestFloodSector.Value);
-            }
         }
     }
 

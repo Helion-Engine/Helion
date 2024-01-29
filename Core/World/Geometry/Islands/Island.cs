@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry.Boxes;
 using Helion.World.Bsp;
+using Helion.World.Geometry.Lines;
 using System.Collections.Generic;
 
 namespace Helion.World.Geometry.Islands;
@@ -28,4 +29,24 @@ public class Island
 
     // Box is contained in this island box. Allows inclusive checks where min or max are equal.
     public bool ContainsInclusive(in Box2D box) => Box.ContainsInclusive(box.Min) && Box.ContainsInclusive(box.Max);
+
+    public bool OnRightOfSectorLines(IList<Line> lines, int sectorId, in Box2D box)
+    {
+        for (int i = 0; i < LineIds.Count; i++)
+        {
+            var lineId = LineIds[i];
+            if (lineId < 0 || lineId >= lines.Count)
+                continue;
+
+            var line = lines[lineId];
+            if (line.Back != null && ReferenceEquals(line.Front.Sector, line.Back.Sector))
+                continue;
+
+            bool onRight = line.Front.Sector.Id == sectorId;
+            if (!line.Segment.OnRight(box.Min) != onRight || !line.Segment.OnRight(box.Max))
+                return false;
+        }
+
+        return true;
+    }
 }
