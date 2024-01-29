@@ -1,3 +1,5 @@
+using System;
+
 namespace Helion.World.Geometry.Sectors;
 
 public enum SectorPlaneFace
@@ -6,6 +8,7 @@ public enum SectorPlaneFace
     Ceiling,
 }
 
+[Flags]
 public enum SectorPlanes
 {
     None = 0,

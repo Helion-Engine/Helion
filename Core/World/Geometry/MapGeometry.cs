@@ -8,7 +8,6 @@ using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
-using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using NLog;
 
@@ -43,8 +42,8 @@ public class MapGeometry
 
     public IslandGeometry IslandGeometry = new();
 
-    private readonly Dictionary<int, IList<Sector>> m_tagToSector = new Dictionary<int, IList<Sector>>();
-    private readonly Dictionary<int, IList<Line>> m_idToLine = new Dictionary<int, IList<Line>>();
+    private readonly Dictionary<int, IList<Sector>> m_tagToSector = new();
+    private readonly Dictionary<int, IList<Line>> m_idToLine = new();
 
     internal MapGeometry(IMap map, GeometryBuilder builder, CompactBspTree bspTree, BspTreeNew bspTreeNew)
     {
@@ -78,11 +77,11 @@ public class MapGeometry
                     IslandGeometry.BadSubsectors.Add(subsector.Id);
                     IslandGeometry.FloodSectors.Add(subsector.SectorId.Value);
 
-                    if (!islandFlooded)
-                    {
-                        SetContainingSectorsToFlood(subsector);
-                        islandFlooded = true;
-                    }
+                    if (islandFlooded)
+                        continue;
+                    
+                    SetContainingSectorsToFlood(subsector);
+                    islandFlooded = true;
                 }
             }
         }
@@ -100,20 +99,20 @@ public class MapGeometry
             int? smallestFloodSector = null;
             foreach (var island in islands)
             {
-                if (island.ContainsInclusive(subsector.Box))
+                if (!island.ContainsInclusive(subsector.Box))
+                    continue;
+                
+                if (sectorId != subsector.SectorId && !island.OnRightOfSectorLines(Lines, subsector.SectorId.Value, subsector.Box))
+                    continue;
+
+                if (sectorId == subsector.SectorId)
+                    SetIslandFlooded(island);
+
+                double perimeter = (island.Box.Width + island.Box.Height) * 2;
+                if (smallestFloodPerimeter == null || perimeter < smallestFloodPerimeter)
                 {
-                    if (sectorId != subsector.SectorId && !island.OnRightOfSectorLines(Lines, subsector.SectorId.Value, subsector.Box))
-                        continue;
-
-                    if (sectorId == subsector.SectorId)
-                        SetIslandFlooded(island);
-
-                    double perimeter = (island.Box.Width + island.Box.Height) * 2;
-                    if (smallestFloodPerimeter == null || perimeter < smallestFloodPerimeter)
-                    {
-                        smallestFloodPerimeter = perimeter;
-                        smallestFloodSector = sectorId;
-                    }
+                    smallestFloodPerimeter = perimeter;
+                    smallestFloodSector = sectorId;
                 }
             }
 
@@ -124,8 +123,8 @@ public class MapGeometry
 
     private void SetIslandFlooded(Island floodedIsland)
     {
-        foreach (var subsector in floodedIsland.Subsectors)
-            IslandGeometry.BadSubsectors.Add(subsector.Id);
+        for (int i = 0; i < floodedIsland.Subsectors.Count; i++)
+            IslandGeometry.BadSubsectors.Add(floodedIsland.Subsectors[i].Id);
     }
 
     public IList<Sector> FindBySectorTag(int tag)

@@ -86,7 +86,7 @@ public class FloodFillProgram : RenderProgram
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.NoDist))
     .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
-    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer);
+    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(VertexLightBufferOptions.Default));
 
     protected override string FragmentShader() => @"
         #version 330

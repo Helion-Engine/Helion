@@ -24,6 +24,9 @@ public struct LegacyVertex
     [VertexAttribute]
     public float LightLevelBufferIndex;
 
+    [VertexAttribute]
+    public float LightLevelAdd;
+
     [VertexAttribute("prevPos", size: 3)]
     public float PrevX;
     public float PrevY;

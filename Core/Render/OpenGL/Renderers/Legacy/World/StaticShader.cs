@@ -51,6 +51,7 @@ public class StaticShader : RenderProgram
         layout(location = 2) in float alpha;        
         layout(location = 3) in float addAlpha;
         layout(location = 4) in float lightLevelBufferIndex;
+        layout(location = 5) in float lightLevelAdd;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
@@ -75,7 +76,7 @@ public class StaticShader : RenderProgram
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
     .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
-    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer)
+    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(VertexLightBufferOptions.LightLevelAdd))
     .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"));
 
     protected override string FragmentShader() => @"

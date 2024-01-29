@@ -6,6 +6,12 @@ public enum LightLevelOptions
     NoDist
 }
 
+public enum VertexLightBufferOptions
+{
+    Default = 0,
+    LightLevelAdd
+}
+
 public static class LightLevel
 {
     public static string VertexVariables(LightLevelOptions options) =>
@@ -13,10 +19,10 @@ public static class LightLevel
 
     public static string VertexLightBufferVariables = "uniform samplerBuffer sectorLightTexture;";
 
-    public static string VertexLightBuffer =
+    public static string VertexLightBuffer(VertexLightBufferOptions options) =>
 @"int texBufferIndex = int(lightLevelBufferIndex);
 float lightLevelBufferValue = texelFetch(sectorLightTexture, texBufferIndex).r;
-lightLevelFrag = clamp(lightLevelBufferValue, 0.0, 256.0);";
+lightLevelFrag = clamp(lightLevelBufferValue" + (options.HasFlag(VertexLightBufferOptions.LightLevelAdd) ? " + lightLevelAdd" : "") + ", 0.0, 256.0);";
 
     public static string VertexDist(string posVariable) => $"dist = (mvpNoPitch * {posVariable}).z;";
 

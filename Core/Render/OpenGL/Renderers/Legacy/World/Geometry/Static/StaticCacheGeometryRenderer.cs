@@ -19,19 +19,14 @@ using System;
 using System.Collections.Generic;
 using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
-using NLog;
 using OpenTK.Graphics.OpenGL;
-using Helion.Render.OpenGL.Shared.World;
-using Helion.Resources;
 using Helion.Geometry.Vectors;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
 public class StaticCacheGeometryRenderer : IDisposable
 {
     private const SectorDynamic IgnoreFlags = SectorDynamic.Movement;
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly Sector DefaultSector = Sector.CreateDefault();
 
     private readonly LegacyGLTextureManager m_textureManager;
@@ -71,12 +66,12 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_skyRenderer = new(archiveCollection, textureManager);
     }
 
-    static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
+    private static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
     {
         return x.Index.CompareTo(y.Index);
     }
 
-    static int TransparentGeometryCompare(GeometryData x, GeometryData y)
+    private static int TransparentGeometryCompare(GeometryData x, GeometryData y)
     {
         if (x.Texture.TransparentPixelCount == y.Texture.TransparentPixelCount)
             return x.Texture.TextureId.CompareTo(y.Texture.TextureId);
@@ -246,7 +241,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             for (int i = 0; i < Constants.LightBuffer.ColorMapCount; i++)
                 lightBuffer[Constants.LightBuffer.ColorMapStartIndex + i] = 
-                    256 - ((Constants.LightBuffer.ColorMapCount - i) * 256/ Constants.LightBuffer.ColorMapCount);
+                    256 - ((Constants.LightBuffer.ColorMapCount - i) * 256 / Constants.LightBuffer.ColorMapCount);
 
             for (int i = 0; i < world.Sectors.Count; i++)
             {
@@ -489,7 +484,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 LegacyVertex* v = startVertex + i;
                 staticVertices.Data[staticStartIndex + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V, 
-                    v->Alpha, v->AddAlpha, v->LightLevelBufferIndex);
+                    v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
             }
 
             staticVertices.SetLength(staticVertices.Length + vertices.Length);
@@ -504,7 +499,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 LegacyVertex* v = startVertex + i;
                 staticVertices[index + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
-                    v->Alpha, v->AddAlpha, v->LightLevelBufferIndex);
+                    v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
             }
         }
     }
@@ -658,7 +653,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             var data = m_geometry[i];
             
             GL.ActiveTexture(TextureUnit.Texture0);
-            GLLegacyTexture texture = m_textureManager.GetTexture(data.TextureHandle, (data.Texture.Flags & Texture.TextureFlags.ClampY) == 0);
+            GLLegacyTexture texture = m_textureManager.GetTexture(data.TextureHandle, (data.Texture.Flags & TextureFlags.ClampY) == 0);
             texture.Bind();
             
             data.Vao.Bind();
@@ -728,7 +723,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_bufferLists.Clear();
     }
 
-    private unsafe void UpdateLights()
+    private void UpdateLights()
     {
         if (m_updateLightSectors.Length == 0 || m_lightBuffer == null)
             return;
@@ -991,30 +986,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             plane.Static.Index = geometryData.Vbo.Count;
             plane.Static.Length = vertices.Length;
         }
-    }
-
-    private DynamicArray<StaticGeometryData> GetOrCreateBufferList(GeometryData geometryData)
-    {
-        if ((geometryData.Texture.Flags & TextureFlags.ClampY) == 0)
-            return GetOrCreateBufferList(m_bufferData, geometryData.TextureHandle);
-
-        return GetOrCreateBufferList(m_bufferDataClamp, geometryData.TextureHandle);
-    }
-
-    private DynamicArray<StaticGeometryData> GetOrCreateBufferList(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData, int textureHandle)
-    {
-        if (bufferData.Capacity <= textureHandle)
-            bufferData.Resize(textureHandle + 1024);
-
-        var list = bufferData.Data[textureHandle];
-        if (list == null)
-        {
-            list = new DynamicArray<StaticGeometryData>(32);
-            bufferData.Data[textureHandle] = list;
-        }
-
-        m_bufferLists.Add(list);
-        return list;
     }
 
     private static unsafe void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)

@@ -1,16 +1,6 @@
-﻿using Helion;
-using Helion.Geometry.Vectors;
-using Helion.Render;
-using Helion.Render.OpenGL;
-using Helion.Render.OpenGL.Renderers;
-using Helion.Render.OpenGL.Renderers.Legacy;
-using Helion.Render.OpenGL.Renderers.Legacy.World;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
+﻿using System;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Resources;
 using Helion.Util;
 using Helion.World;
 using Helion.World.Geometry.Islands;
@@ -179,10 +169,11 @@ public class MidTextureHack
                 continue;
 
             m_floodLineSet.Add(line.Id);
-            if (face == SectorPlaneFace.Floor)
-                facingSide.MidTextureFlood |= SectorPlanes.Floor;
-            else if (face == SectorPlaneFace.Ceiling)
-                facingSide.MidTextureFlood |= SectorPlanes.Ceiling;
+            facingSide.MidTextureFlood |= face switch
+            {
+                SectorPlaneFace.Floor => SectorPlanes.Floor,
+                SectorPlaneFace.Ceiling => SectorPlanes.Ceiling,
+            };
         }
     }
 }
