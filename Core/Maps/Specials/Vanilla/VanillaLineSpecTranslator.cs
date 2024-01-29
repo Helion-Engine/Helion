@@ -681,7 +681,6 @@ public static class VanillaLineSpecTranslator
                 return ZDoomLineSpecialType.ScrollTextureModel;
 
             default:
-                Log.Error($"Missing type in VanillaLineSpecTranslator: [{(int)type}]{type}");
                 break;
         }
 
