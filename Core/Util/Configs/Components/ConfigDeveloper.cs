@@ -14,4 +14,7 @@ public class ConfigDeveloperRender
 public class ConfigDeveloper
 {
     public readonly ConfigDeveloperRender Render = new();
+
+    [ConfigInfo("Marks flooded areas on the automap.", save: false)]
+    public readonly ConfigValue<bool> MarkFlood = new(false);
 }

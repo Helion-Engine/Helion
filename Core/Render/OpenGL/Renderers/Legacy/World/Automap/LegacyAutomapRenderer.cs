@@ -224,11 +224,12 @@ public class LegacyAutomapRenderer : IDisposable
 
         bool forceDraw = !world.Config.Render.AutomapBspThread;
         bool markSecrets = world.Config.Game.MarkSecrets;
+        bool markFlood = world.Config.Developer.MarkFlood;
 
         for (int i = 0; i < world.Lines.Count; i++)
         {
             Line line = world.Lines[i];
-            bool markedLine = IsLineMarked(line, markSecrets);
+            bool markedLine = IsLineMarked(line, markSecrets, markFlood);
             if (!forceDraw && !line.Flags.Automap.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
                 continue;
 
@@ -290,7 +291,7 @@ public class LegacyAutomapRenderer : IDisposable
         return AutomapColor.LightBlue;
     }
 
-    private static bool IsLineMarked(Line line, bool markSecrets)
+    private static bool IsLineMarked(Line line, bool markSecrets, bool markFlood)
     {
         if (line.MarkAutomap)
             return true;
@@ -299,6 +300,9 @@ public class LegacyAutomapRenderer : IDisposable
             return true;
 
         if (markSecrets && (line.Front.Sector.Secret || line.Back != null && line.Back.Sector.Secret))
+            return true;
+
+        if (markFlood && (line.Front.Sector.Flood || line.Back != null && line.Back.Sector.Flood))
             return true;
 
         return false;
