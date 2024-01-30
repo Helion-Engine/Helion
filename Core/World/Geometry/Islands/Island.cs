@@ -33,6 +33,9 @@ public class Island
 
     public bool BoxInsideSector(in Box2D box)
     {
+        if (box.Min.X == box.Max.X || box.Min.Y == box.Max.Y)
+            return false;
+
         bool hitBottomLeft = false;
         bool hitBottomRight = false;
         bool hitTopLeft = false;
