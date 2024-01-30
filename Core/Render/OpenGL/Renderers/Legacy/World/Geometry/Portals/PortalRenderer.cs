@@ -25,6 +25,7 @@ public class PortalRenderer : IDisposable
     private readonly SectorPlane m_fakeFloor = new(0, SectorPlaneFace.Floor, 0, 0, 0);
     private readonly SectorPlane m_fakeCeiling = new(0, SectorPlaneFace.Floor, 0, 0, 0);
     private bool m_disposed;
+    private bool m_alwaysFlood;
 
     public PortalRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager)
     {
@@ -44,6 +45,7 @@ public class PortalRenderer : IDisposable
 
     public void UpdateTo(IWorld world)
     {
+        m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats;
         m_floodFillRenderer.UpdateTo(world);
     }
 
@@ -56,14 +58,45 @@ public class PortalRenderer : IDisposable
     public void UpdateStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront) =>
         HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, isFront, true);
 
-    public void AddFloodFillPlane(Side facingSide, Sector floodSector, SectorPlaneFace face, bool isFront) =>
-        HandleFloodFillPlane(facingSide, floodSector, face, isFront, false);
+    public void AddFloodFillPlane(Side facingSide, Sector floodSector, SectorPlanes planes, SectorPlaneFace face, bool isFront) =>
+        HandleFloodFillPlane(facingSide, floodSector, planes, face, isFront, false);
 
-    public void UpdateFloodFillPlane(Side facingSide, Sector floodSector, SectorPlaneFace face, bool isFront) =>
-        HandleFloodFillPlane(facingSide, floodSector, face, isFront, true);
+    public void UpdateFloodFillPlane(Side facingSide, Sector floodSector, SectorPlanes planes, SectorPlaneFace face, bool isFront) =>
+        HandleFloodFillPlane(facingSide, floodSector, planes,face, isFront, true);
 
-    private void HandleFloodFillPlane(Side facingSide, Sector floodSector, SectorPlaneFace face, bool isFront, bool update)
+    private void HandleFloodFillPlane(Side facingSide, Sector floodSector, SectorPlanes planes, SectorPlaneFace face, bool isFront, bool update)
     {
+        var line = facingSide.Line;
+        var saveStart = line.Segment.Start;
+        var saveEnd = line.Segment.End;
+
+        bool flipPush = false;
+        var floodPlanes = facingSide.MidTextureFlood;
+        var otherSide = facingSide.PartnerSide;
+        // The flood plane will clip with an uppper/lower texture. Flag push the line towards in the inside of the sector.
+        if (m_alwaysFlood && face == SectorPlaneFace.Floor && otherSide != null && otherSide.Sector.Ceiling.Z < facingSide.Sector.Floor.Z)
+        {
+            flipPush = true;
+            floodPlanes |= SectorPlanes.Floor;
+        }
+        if (m_alwaysFlood && face == SectorPlaneFace.Ceiling && otherSide != null && otherSide.Sector.Floor.Z > facingSide.Sector.Ceiling.Z)
+        {
+            flipPush = true;
+            floodPlanes |= SectorPlanes.Ceiling;
+        }
+
+        if ((floodPlanes & planes) != 0)
+        {
+            // Push it out to prevent potential z-fighting. Default pushes out from the sector.
+            var angle = facingSide == line.Front ? line.Segment.Start.Angle(line.Segment.End) : line.Segment.End.Angle(line.Segment.Start);
+            if (flipPush)
+                angle += MathHelper.Pi;
+            var unit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * 0.05;
+
+            line.Segment.Start += unit;
+            line.Segment.End += unit;
+        }
+
         if (face == SectorPlaneFace.Floor)
         {
             var top = facingSide.Sector.Floor;
@@ -94,6 +127,9 @@ public class PortalRenderer : IDisposable
             else
                 facingSide.CeilingFloodKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, bottom.Z);
         }
+
+        line.Segment.Start = saveStart;
+        line.Segment.End = saveEnd;
     }
 
     private void HandleStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront, bool update)

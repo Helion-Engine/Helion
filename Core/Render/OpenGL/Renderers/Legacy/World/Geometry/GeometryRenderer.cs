@@ -57,6 +57,7 @@ public class GeometryRenderer : IDisposable
     private bool m_sectorChangedLine;
     private bool m_cacheOverride;
     private bool m_vanillaFlood;
+    private bool m_alwaysFlood;
     private bool m_fakeContrast;
     private Vec3D m_viewPosition;
     private Vec3D m_prevViewPosition;
@@ -109,6 +110,10 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer.Reset();
         m_lineDrawnTracker.UpdateToWorld(world);
         m_viewSector = DefaultSector;
+
+        m_vanillaFlood = world.Config.Render.VanillaFloodFill.Value;
+        m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats.Value;
+
         PreloadAllTextures(world);
 
         for (int i = 0; i < m_subsectors.Length; i++)
@@ -209,10 +214,10 @@ public class GeometryRenderer : IDisposable
         }
 
         foreach (var sector in world.Sectors)
-            sector.Flood = m_vanillaFlood && !sector.MidTextureHack && world.Geometry.IslandGeometry.FloodSectors.Contains(sector.Id);
+            sector.Flood = m_alwaysFlood || (m_vanillaFlood && !sector.MidTextureHack && world.Geometry.IslandGeometry.FloodSectors.Contains(sector.Id));
 
         foreach (var subsector in world.BspTree.Subsectors)
-            subsector.Flood = m_vanillaFlood && !subsector.Sector.MidTextureHack && world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id);
+            subsector.Flood = m_alwaysFlood || (m_vanillaFlood && !subsector.Sector.MidTextureHack && world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id));
 
         for (int i = 0; i < m_subsectors.Length; i++)
         {
@@ -239,7 +244,6 @@ public class GeometryRenderer : IDisposable
         Portals.Clear();
         m_lineDrawnTracker.ClearDrawnLines();
         AlphaSides.Clear();
-        m_vanillaFlood = m_world.Config.Render.VanillaFloodFill.Value;
     }
     public void RenderStaticGeometry() =>
         m_staticCacheGeometryRenderer.Render();
@@ -475,9 +479,9 @@ public class GeometryRenderer : IDisposable
         m_skyOverride = false;
 
         if (side.FloorFloodKey > 0)
-            Portals.UpdateFloodFillPlane(side, side.Sector, SectorPlaneFace.Floor, isFrontSide);
+            Portals.UpdateFloodFillPlane(side, side.Sector, SectorPlanes.Floor, SectorPlaneFace.Floor, isFrontSide);
         if (side.CeilingFloodKey > 0)
-            Portals.UpdateFloodFillPlane(side, side.Sector, SectorPlaneFace.Ceiling, isFrontSide);
+            Portals.UpdateFloodFillPlane(side, side.Sector, SectorPlanes.Ceiling, SectorPlaneFace.Ceiling, isFrontSide);
 
         if (side.IsTwoSided)
             RenderTwoSided(side, isFrontSide);
@@ -1058,6 +1062,13 @@ public class GeometryRenderer : IDisposable
         }
         else
         {
+            if (m_alwaysFlood)
+            {
+                vertices = null;
+                skyVertices = null;
+                return;
+            }
+
             LegacyVertex[] lookupData = GetSectorVertices(subsectors, floor, id, out bool generate);
             if (generate || flatChanged)
             {

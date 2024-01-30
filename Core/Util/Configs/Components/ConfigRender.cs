@@ -115,4 +115,8 @@ public class ConfigRender
     [ConfigInfo("Enable vanilla flat flood filling for self-referencing sectors.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Vanilla flood fill")]
     public readonly ConfigValue<bool> VanillaFloodFill = new(true);
+
+    [ConfigInfo("Enable vanilla flat flood filling for all sectors. Experimental.", mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Always flood fill flats (experimental)")]
+    public readonly ConfigValue<bool> AlwaysFloodFillFlats = new(false);
 }

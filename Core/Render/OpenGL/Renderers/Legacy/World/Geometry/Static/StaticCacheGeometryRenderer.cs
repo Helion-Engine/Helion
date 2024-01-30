@@ -56,6 +56,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     private int m_counter;
     // These are the flags to ignore when setting a side back to static.
     private SectorDynamic m_sideDynamicIgnore;
+    private bool m_vanillaFlood;
+    private bool m_alwaysFlood;
 
     public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
         RenderProgram program, GeometryRenderer geometryRenderer)
@@ -87,6 +89,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     public void UpdateTo(IWorld world, GLBufferTexture lightBuffer)
     {
         m_lightBuffer = lightBuffer;
+        m_vanillaFlood = world.Config.Render.VanillaFloodFill;
+        m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats;
         ClearData();
 
         if (!world.SameAsPreviousMap)
@@ -164,9 +168,9 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void UpdateSectorPlaneFloodFill(Side facingSide, Sector facingSector, bool isFront)
     {
         if (facingSide.FloorFloodKey > 0)
-            m_geometryRenderer.Portals.UpdateFloodFillPlane(facingSide, facingSector, SectorPlaneFace.Floor, isFront);
+            m_geometryRenderer.Portals.UpdateFloodFillPlane(facingSide, facingSector, SectorPlanes.Floor, SectorPlaneFace.Floor, isFront);
         if (facingSide.CeilingFloodKey > 0)
-            m_geometryRenderer.Portals.UpdateFloodFillPlane(facingSide, facingSector, SectorPlaneFace.Ceiling, isFront);
+            m_geometryRenderer.Portals.UpdateFloodFillPlane(facingSide, facingSector, SectorPlanes.Ceiling, SectorPlaneFace.Ceiling, isFront);
     }
 
     public void CheckForFloodFill(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFront)
@@ -315,11 +319,11 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddFloodFillPlane(Side side, Sector sector, bool isFrontSide)
     {
-        if ((!m_world.Config.Render.VanillaFloodFill || !sector.Flood) && side.MidTextureFlood == SectorPlanes.None)
+        if ((!(m_vanillaFlood || m_alwaysFlood) || !sector.Flood) && side.MidTextureFlood == SectorPlanes.None)
             return;
 
         if (side.PartnerSide != null && side.Sector.Id == side.PartnerSide.Sector.Id)
-            return;
+            return;        
 
         bool floodFloor = sector.Flood || side.MidTextureFlood != SectorPlanes.None;
         bool floodCeiling = sector.Flood || side.MidTextureFlood != SectorPlanes.None;
@@ -332,7 +336,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             if (!m_world.ArchiveCollection.TextureManager.IsSkyTexture(sector.Floor.TextureHandle))
             {
-                AddFloodFillPlane(side, sector, SectorPlanes.Floor, SectorPlaneFace.Floor, isFrontSide);
+                m_geometryRenderer.Portals.AddFloodFillPlane(side, sector, SectorPlanes.Floor, SectorPlaneFace.Floor, isFrontSide);
             }
             else
             {
@@ -344,32 +348,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         // Sky ceilings are handled differently
         if (floodCeiling && !skyHack && side.CeilingFloodKey == 0 && !m_world.ArchiveCollection.TextureManager.IsSkyTexture(sector.Ceiling.TextureHandle))
-            AddFloodFillPlane(side, sector, SectorPlanes.Ceiling, SectorPlaneFace.Ceiling, isFrontSide);
-    }
-
-    private void AddFloodFillPlane(Side facingSide, Sector sector, SectorPlanes planes, SectorPlaneFace face, bool isFrontSide)
-    {
-        if ((facingSide.MidTextureFlood & planes) != 0)
-        {
-            var line = facingSide.Line;
-            var saveStart = line.Segment.Start;
-            var saveEnd = line.Segment.End;
-
-            // Push it out to prevent potential z-fighting
-            var angle = facingSide == line.Front ? line.Segment.Start.Angle(line.Segment.End) : line.Segment.End.Angle(line.Segment.Start);
-            var unit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * 0.05;
-
-            line.Segment.Start += unit;
-            line.Segment.End += unit;
-
-            m_geometryRenderer.Portals.AddFloodFillPlane(facingSide, sector, face, isFrontSide);
-
-            line.Segment.Start = saveStart;
-            line.Segment.End = saveEnd;
-            return;
-        }
-
-        m_geometryRenderer.Portals.AddFloodFillPlane(facingSide, sector, face, isFrontSide);
+            m_geometryRenderer.Portals.AddFloodFillPlane(side, sector, SectorPlanes.Ceiling, SectorPlaneFace.Ceiling, isFrontSide);
     }
 
     private void AddSide(Side side, bool isFrontSide, bool update)

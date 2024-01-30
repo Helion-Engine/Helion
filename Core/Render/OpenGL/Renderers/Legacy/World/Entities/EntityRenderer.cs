@@ -97,11 +97,11 @@ public class EntityRenderer : IDisposable
         if (!m_spriteClip)
             return 0;
 
+        if (entity.Sector.Flood || entity.Sector.Floor.NoRender)
+            return offsetAmount;
+
         if (texture.Height < m_spriteClipMin || entity.Definition.IsInventory)
             return 0;
-
-        if (entity.Sector.Floor.NoRender)
-            return offsetAmount;
 
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
