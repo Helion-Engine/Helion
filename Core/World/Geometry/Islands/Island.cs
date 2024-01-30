@@ -2,6 +2,7 @@
 using Helion.Geometry.Segments;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Subsectors;
 using System.Collections.Generic;
 
 namespace Helion.World.Geometry.Islands;
@@ -17,6 +18,7 @@ public class Island
     public readonly List<int> LineIds = new();
     public bool IsMonsterCloset;
     public bool IsVooDooCloset;
+    public bool Flood;
     public int InitialMonsterCount;
     public Box2D Box;
 

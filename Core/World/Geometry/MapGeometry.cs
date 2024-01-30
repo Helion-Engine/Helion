@@ -89,16 +89,21 @@ public class MapGeometry
 
     private void SetContainingSectorsToFlood(BspSubsector subsector)
     {
+        // This could work by sector island instead of the entire sector but it's unlikely to matter and the renderer will need to be aware of this.
+        double? smallestFloodPerimeter = null;
+        int? smallestFloodSector = null;
+
         for (int sectorId = 0; sectorId < IslandGeometry.SectorIslands.Length; sectorId++)
         {
             var islands = IslandGeometry.SectorIslands[sectorId];
             if (islands.Count == 0)
                 continue;
 
-            double? smallestFloodPerimeter = null;
-            int? smallestFloodSector = null;
             foreach (var island in islands)
             {
+                if (island.Flood)
+                    continue;
+
                 if (!island.ContainsInclusive(subsector.Box))
                     continue;
                 
@@ -115,14 +120,15 @@ public class MapGeometry
                     smallestFloodSector = sectorId;
                 }
             }
-
-            if (smallestFloodSector != null)
-                IslandGeometry.FloodSectors.Add(smallestFloodSector.Value);
         }
+
+        if (smallestFloodSector != null)
+            IslandGeometry.FloodSectors.Add(smallestFloodSector.Value);
     }
 
     private void SetIslandFlooded(Island floodedIsland)
     {
+        floodedIsland.Flood = true;
         for (int i = 0; i < floodedIsland.Subsectors.Count; i++)
             IslandGeometry.BadSubsectors.Add(floodedIsland.Subsectors[i].Id);
     }
