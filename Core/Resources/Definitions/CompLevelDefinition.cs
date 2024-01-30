@@ -2,6 +2,7 @@
 using Helion.Util.Configs;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
+using NLog;
 
 namespace Helion.Resources.Definitions;
 
@@ -37,10 +38,12 @@ public class CompLevelDefinition
             CompLevel = CompLevel.Mbf21;
     }
 
-    public void Apply(IConfig config)
+    public void Apply(IConfig config, ILogger log)
     {
         if (CompLevel != CompLevel.Vanilla)
             return;
+
+        log.Info($"Comp level set to {CompLevel}");
 
         var compat = config.Compatibility;
         compat.VanillaMovementPhysics.SetWithNoWriteConfig(true);
