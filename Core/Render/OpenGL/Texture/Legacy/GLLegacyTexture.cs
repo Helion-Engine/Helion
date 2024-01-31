@@ -9,8 +9,9 @@ public class GLLegacyTexture : GLTexture
 {
     public TextureFlags Flags;
 
-    public GLLegacyTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, int transparentPixelCount)
-        : base(textureId, name, dimension, offset, ns, target, transparentPixelCount)
+    public GLLegacyTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, 
+        int transparentPixelCount, int blankRowsFromBottom = 0)
+        : base(textureId, name, dimension, offset, ns, target, transparentPixelCount, blankRowsFromBottom)
     {
     }
 

@@ -29,6 +29,7 @@ public class EntityRenderer : IDisposable
     private bool m_spriteAlpha;
     private bool m_spriteClip;
     private bool m_spriteZCheck;
+    private bool m_alwaysFlood;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
     private bool m_disposed;
@@ -42,12 +43,18 @@ public class EntityRenderer : IDisposable
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteZCheck = m_config.Render.SpriteZCheck;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
+        m_alwaysFlood = m_config.Render.AlwaysFloodFillFlats;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
     }
 
     ~EntityRenderer()
     {
         PerformDispose();
+    }
+
+    public void UpdateTo(IWorld world)
+    {
+        m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats;
     }
     
     public void Clear(IWorld world)
@@ -94,24 +101,25 @@ public class EntityRenderer : IDisposable
         if (offsetAmount >= 0 || entity.Definition.Flags.Missile)
             return offsetAmount;
 
+        if (m_alwaysFlood || entity.Sector.Flood || entity.Sector.Floor.NoRender)
+            return offsetAmount;
+
         if (!m_spriteClip)
             return 0;
-
-        if (entity.Sector.Flood || entity.Sector.Floor.NoRender)
-            return offsetAmount;
 
         if (texture.Height < m_spriteClipMin || entity.Definition.IsInventory)
             return 0;
 
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
-            float maxHeight = texture.Height * m_spriteClipFactorMax;
+            float maxHeight = (texture.Height - texture.BlankRowsFromBottom) * m_spriteClipFactorMax;
             if (-offsetAmount > maxHeight)
-                offsetAmount = -maxHeight;
-            return offsetAmount;
+                offsetAmount = -maxHeight - texture.BlankRowsFromBottom;
+            // Truncate to integer pixel amount. This helps the jumpiness for the stock large torches.
+            return (int)offsetAmount;
         }
 
-        return 0;
+        return offsetAmount;
     }
 
     public unsafe void RenderEntity(Entity entity, in Vec3D position)

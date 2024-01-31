@@ -32,6 +32,8 @@ public class Image
     public int Height => Dimension.Height;
     public Span<uint> Pixels => m_pixels;
 
+    public int BlankRowsFromBottom;
+
     public Image(Dimension dimension, ImageType imageType, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global) :
         this(new uint[dimension.Area], dimension, imageType, offset, ns)
     {
