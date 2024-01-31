@@ -18,7 +18,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 
 public class PortalRenderer : IDisposable
 {
-    const int FakeWallHeight = 16384;
+    const int FakeWallHeight = Constants.MaxTextureHeight;
 
     private readonly FloodFillRenderer m_floodFillRenderer;
     private readonly ArchiveCollection m_archiveCollection;
@@ -108,9 +108,9 @@ public class PortalRenderer : IDisposable
             var wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, isFront);
 
             if (update)
-                m_floodFillRenderer.UpdateStaticWall(facingSide.FloorFloodKey, floodSector.Floor, wall, top.Z, double.MaxValue);
+                m_floodFillRenderer.UpdateStaticWall(facingSide.FloorFloodKey, floodSector.Floor, wall, top.Z, double.MaxValue, isFloodFillPlane: true);
             else
-                facingSide.FloorFloodKey = m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, top.Z, double.MaxValue);
+                facingSide.FloorFloodKey = m_floodFillRenderer.AddStaticWall(floodSector.Floor, wall, top.Z, double.MaxValue, isFloodFillPlane: true);
         }
         else
         {
@@ -123,9 +123,9 @@ public class PortalRenderer : IDisposable
             var wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, m_fakeCeiling, bottom, Vec2F.Zero, isFront);
 
             if (update)
-                m_floodFillRenderer.UpdateStaticWall(facingSide.CeilingFloodKey, floodSector.Ceiling, wall, double.MinValue, bottom.Z);
+                m_floodFillRenderer.UpdateStaticWall(facingSide.CeilingFloodKey, floodSector.Ceiling, wall, double.MinValue, bottom.Z, isFloodFillPlane: true);
             else
-                facingSide.CeilingFloodKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, bottom.Z);
+                facingSide.CeilingFloodKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, bottom.Z, isFloodFillPlane: true);
         }
 
         line.Segment.Start = saveStart;

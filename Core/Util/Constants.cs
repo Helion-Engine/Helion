@@ -254,4 +254,6 @@ public static class Constants
     public const string MenuSelectIconInactive = "M_SKULL2";
 
     public const float DoomVirtualAspectRatio = 1.33333337f;
+
+    public const int MaxTextureHeight = 16384;
 }

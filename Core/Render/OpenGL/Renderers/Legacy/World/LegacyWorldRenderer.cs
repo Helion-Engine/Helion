@@ -104,6 +104,7 @@ public class LegacyWorldRenderer : WorldRenderer
         }
 
         m_geometryRenderer.UpdateTo(world);
+        m_entityRenderer.UpdateTo(world);
         world.OnResetInterpolation += World_OnResetInterpolation;
         m_previousWorld = world;
         m_lastTicker = -1;
