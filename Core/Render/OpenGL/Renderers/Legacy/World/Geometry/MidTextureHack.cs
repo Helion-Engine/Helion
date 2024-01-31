@@ -99,7 +99,8 @@ public class MidTextureHack
 
     private static void SetSectorForMidTextureHack(Sector sector, bool clippedFloor, bool clippedCeiling)
     {
-        sector.MidTextureHack = true;
+        sector.Floor.MidTextureHack = sector.Floor.MidTextureHack || clippedFloor;
+        sector.Ceiling.MidTextureHack = sector.Ceiling.MidTextureHack || clippedCeiling;
         sector.Floor.NoRender = sector.Floor.NoRender || clippedFloor;
         sector.Ceiling.NoRender = sector.Ceiling.NoRender || clippedCeiling;
     }

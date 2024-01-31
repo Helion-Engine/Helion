@@ -18,7 +18,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 
 public class PortalRenderer : IDisposable
 {
-    const int FakeWallHeight = 65536;
+    const int FakeWallHeight = 16384;
 
     private readonly FloodFillRenderer m_floodFillRenderer;
     private readonly ArchiveCollection m_archiveCollection;

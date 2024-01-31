@@ -213,11 +213,12 @@ public class GeometryRenderer : IDisposable
             }
         }
 
+        bool flood = m_alwaysFlood || m_vanillaFlood;
         foreach (var sector in world.Sectors)
-            sector.Flood = m_alwaysFlood || (m_vanillaFlood && !sector.MidTextureHack && world.Geometry.IslandGeometry.FloodSectors.Contains(sector.Id));
+            sector.Flood = flood && world.Geometry.IslandGeometry.FloodSectors.Contains(sector.Id);
 
         foreach (var subsector in world.BspTree.Subsectors)
-            subsector.Flood = m_alwaysFlood || (m_vanillaFlood && !subsector.Sector.MidTextureHack && world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id));
+            subsector.Flood = flood && world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id);
 
         for (int i = 0; i < m_subsectors.Length; i++)
         {
@@ -1037,7 +1038,7 @@ public class GeometryRenderer : IDisposable
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
-                    if (floor && subsector.Flood && !flat.Sector.MidTextureHack)
+                    if (floor && subsector.Flood && !flat.MidTextureHack)
                         continue;
 
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices,
@@ -1078,7 +1079,7 @@ public class GeometryRenderer : IDisposable
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
-                    if (subsector.Flood && !flat.Sector.MidTextureHack)
+                    if (subsector.Flood && !flat.MidTextureHack)
                         continue;
 
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices);

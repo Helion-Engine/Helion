@@ -319,14 +319,15 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddFloodFillPlane(Side side, Sector sector, bool isFrontSide)
     {
-        if ((!(m_vanillaFlood || m_alwaysFlood) || !sector.Flood) && side.MidTextureFlood == SectorPlanes.None)
+        bool flood = m_alwaysFlood|| (m_vanillaFlood && sector.Flood);
+        if (!flood && side.MidTextureFlood == SectorPlanes.None)
             return;
 
         if (side.PartnerSide != null && side.Sector.Id == side.PartnerSide.Sector.Id)
             return;        
 
-        bool floodFloor = sector.Flood || side.MidTextureFlood != SectorPlanes.None;
-        bool floodCeiling = sector.Flood || side.MidTextureFlood != SectorPlanes.None;
+        bool floodFloor = (flood && !sector.Floor.MidTextureHack) || side.MidTextureFlood != SectorPlanes.None;
+        bool floodCeiling = (flood && !sector.Ceiling.MidTextureHack) || side.MidTextureFlood != SectorPlanes.None;
 
         bool skyHack = false;
         if (side.PartnerSide != null)

@@ -29,6 +29,7 @@ public class SectorPlane : ISoundSource
     public SectorDynamic Dynamic;
     public StaticGeometryData Static;
 
+    public bool MidTextureHack;
     public bool NoRender;
 
     private IAudioSource? m_audio;
