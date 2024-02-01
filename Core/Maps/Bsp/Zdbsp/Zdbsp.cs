@@ -58,10 +58,7 @@ namespace Helion.Maps.Bsp.Zdbsp
 
                 outputMap = m_lastBspCollection.FindMap(mapName);
                 if (outputMap != null)
-                {
-                    outputMap.Reject = map.Reject;
                     outputMap.CompatibilityDefinition = map.CompatibilityDefinition;
-                }
 
                 m_stopwatch.Stop();
                 Log.Info($"Completed map load {m_stopwatch.Elapsed}");

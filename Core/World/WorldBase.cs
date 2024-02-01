@@ -178,8 +178,13 @@ public abstract class WorldBase : IWorld
         Geometry = geometry;
         Map = map;
 
-        if (Map.Reject != null)
+        if (Map.Reject != null && Map.Reject.Length > 0)
+        {
+            int rejectSize = (Sectors.Count * Sectors.Count + 7) / 8;
+            if (Map.Reject.Length != rejectSize)
+                Log.Warn($"Expected reject size to be {rejectSize} but read {Map.Reject.Length} bytes");
             m_lineOfSightReject = Map.Reject;
+        }
 
         Blockmap = new BlockMap(Lines, 128);
         RenderBlockmap = new BlockMap(Blockmap.Bounds, 512);
@@ -1487,7 +1492,7 @@ public abstract class WorldBase : IWorld
 
     public virtual bool CheckLineOfSight(Entity from, Entity to)
     {
-        if (IsLineOfSightRejected(from, to))
+        if (m_lineOfSightReject.Length > 0 && IsLineOfSightRejected(from, to))
             return false;
 
         Vec2D start = from.Position.XY;
