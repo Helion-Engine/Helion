@@ -29,6 +29,9 @@ public class SpecialManager : ITickable, IDisposable
     public const double SpeedFactor = 0.125;
     public const double VisualScrollFactor = 0.015625;
 
+    public const int MaxDest = 32000;
+    public const int MinDest = -32000;
+
     private readonly LinkedList<ISpecial> m_specials = new();
     private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new();
     private readonly IRandom m_random;
@@ -346,7 +349,7 @@ public class SpecialManager : ITickable, IDisposable
 
     public ISpecial CreateDoorLockedSpecial(Sector sector, double speed, int delay, int key)
     {
-        double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.NextHighestCeiling) - VanillaConstants.DoorDestOffset;
+        double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
         return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, delay, key);
     }
 
@@ -1686,18 +1689,18 @@ public class SpecialManager : ITickable, IDisposable
     private static double GetHighestFloorDestZ(Sector sector)
     {
         Sector? destSector = sector.GetHighestAdjacentFloor();
-        return destSector?.Floor.Z ?? sector.Floor.Z;
+        return destSector?.Floor.Z ?? MinDest;
     }
 
     private static double GetLowestCeilingDestZ(Sector sector, bool includeThis)
     {
         Sector? destSector = sector.GetLowestAdjacentCeiling(includeThis);
-        return destSector?.Ceiling.Z ?? sector.Ceiling.Z;
+        return destSector?.Ceiling.Z ?? MaxDest;
     }
 
     private static double GetHighestCeilingDestZ(Sector sector)
     {
         Sector? destSector = sector.GetHighestAdjacentCeiling();
-        return destSector?.Ceiling.Z ?? sector.Ceiling.Z;
+        return destSector?.Ceiling.Z ?? MinDest;
     }
 }
