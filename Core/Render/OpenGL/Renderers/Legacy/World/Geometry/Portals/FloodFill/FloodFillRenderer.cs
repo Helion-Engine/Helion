@@ -177,6 +177,7 @@ public class FloodFillRenderer : IDisposable
         vbo.Data[offset++] = bottomLeft;
         vbo.Data[offset++] = bottomRight;
         vbo.Data.SetLength(newLength);
+        vbo.SetNotUploaded();
 
         if (isFloodFillPlane)
             ProjectFloodPlane(vbo, vbo.Data.Length, vertices, minZ, maxZ, planeZ, prevPlaneZ, lightIndex, 
