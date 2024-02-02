@@ -129,6 +129,7 @@ public class FloodFillRenderer : IDisposable
         if (m_textureManager != null && m_textureManager.IsSkyTexture(sectorPlane.TextureHandle))
             return 0;
 
+        int vertexCount = isFloodFillPlane ? (FloodPlaneAddCount + 1) * VerticesPerWall : VerticesPerWall;
         float minZ = (float)minPlaneZ;
         float maxZ = (float)maxPlaneZ;
         float planeZ = (float)sectorPlane.Z;
@@ -140,14 +141,13 @@ public class FloodFillRenderer : IDisposable
 
         for (int i = 0; i < m_freeData.Count; i++)
         {
-            if (m_freeData[i].TextureHandle != sectorPlane.TextureHandle)
+            if (m_freeData[i].TextureHandle != sectorPlane.TextureHandle || m_freeData[i].Vertices != vertexCount)
                 continue;
 
             var data = m_freeData[i];
             m_freeData.RemoveAt(i);
 
-            m_floodGeometry[data.Key - 1] = new(data.Key, data.TextureHandle, lightIndex, data.VboOffset,
-                isFloodFillPlane ? (FloodPlaneAddCount + 1) * VerticesPerWall : VerticesPerWall);
+            m_floodGeometry[data.Key - 1] = new(data.Key, data.TextureHandle, lightIndex, data.VboOffset, data.Vertices);
             UpdateStaticWall(data.Key, sectorPlane, vertices, minPlaneZ, maxPlaneZ);
             return data.Key;
         }
@@ -156,8 +156,7 @@ public class FloodFillRenderer : IDisposable
         int newKey = m_floodGeometry.Length + 1;
         var vbo = floodFillInfo.Vertices.Vbo;
 
-        m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, lightIndex, vbo.Count,
-            isFloodFillPlane ? (FloodPlaneAddCount + 1) * VerticesPerWall : VerticesPerWall));
+        m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, lightIndex, vbo.Count, vertexCount));
 
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z),
             vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
