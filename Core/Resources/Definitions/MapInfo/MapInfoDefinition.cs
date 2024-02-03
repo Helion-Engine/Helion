@@ -368,6 +368,9 @@ public partial class MapInfoDefinition
 
     private List<string> GetClusterText(SimpleParser parser)
     {
+        if (m_legacy)
+            return new List<string>(parser.ConsumeString().Split('\n'));
+
         List<string> textItems = new List<string>();
         while (!ClusterNames.Contains(parser.PeekString()))
         {
