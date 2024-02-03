@@ -138,7 +138,13 @@ public class MusicPlayer : IMusicPlayer
     {
         if (m_disposed)
             return;
+
         m_musicPlayer?.Stop();
-        m_thread?.Join();
+
+        if (m_thread == null)
+            return;
+
+        if (!m_thread.Join(1000))
+            Log.Error($"Music player failed to terminate.");
     }
 }
