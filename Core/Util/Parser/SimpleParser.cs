@@ -89,7 +89,7 @@ public class SimpleParser
 
             for (int i = 0; i < line.Length; i++)
             {
-                if (IsSingleLineComment(line, i))
+                if (!isQuote && IsSingleLineComment(line, i))
                 {
                     if (i > 0)
                         AddToken(startIndex, i, lineCount, false);
@@ -97,7 +97,7 @@ public class SimpleParser
                     break;
                 }
 
-                if (IsStartMultiLineComment(line, ref i))
+                if (!isQuote && IsStartMultiLineComment(line, ref i))
                     multiLineComment = true;
 
                 if (multiLineComment && IsEndMultiLineComment(line, ref i))
@@ -251,7 +251,10 @@ public class SimpleParser
         if (IsDone())
             return false;
 
-        if (char.ToUpperInvariant(GetCharData(m_index)) == char.ToUpperInvariant(c))
+        if (!GetCharData(m_index, out char getChar))
+            return false;
+
+        if (char.ToUpperInvariant(getChar) == char.ToUpperInvariant(c))
             return true;
 
         return false;
@@ -485,9 +488,18 @@ public class SimpleParser
         }
     }
 
-    private char GetCharData(int index)
+    private bool GetCharData(int index, out char c)
     {
         ParserToken token = m_tokens[index];
-        return m_lines[token.Line].Substring(token.Index, 1)[0];
+        var line = m_lines[token.Line];
+
+        if (token.Index >= line.Length)
+        {
+            c = ' ';
+            return false;
+        }
+
+        c = line[token.Index];
+        return true;
     }
 }

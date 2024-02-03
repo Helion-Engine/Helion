@@ -313,4 +313,43 @@ Line2 Data2";
         parser.ConsumeString().Should().Be(";");
         parser.IsDone().Should().Be(true);
     }
+
+    [Fact(DisplayName = "Single line comment inside quotes is ignored")]
+    public void SingleLineCommentInsideQuotesIsIgnored()
+    {
+        string data = @"//comment
+exittext 
+""
+test1
+http://someurl.com
+""";
+        SimpleParser parser = new();
+        parser.Parse(data);
+
+        parser.ConsumeString().Should().Be("exittext");
+        parser.ConsumeString().Should().Be("\ntest1\nhttp://someurl.com\n");
+        parser.IsDone().Should().Be(true);
+    }
+
+    [Fact(DisplayName = "Multi line comment inside quotes is ignored")]
+    public void MultiLineCommentInsideQuotesIsIgnored()
+    {
+        string data = @"/*comment
+here
+*/
+exittext 
+""
+test1
+hello/*notacomment*/
+test2
+""
+test3";
+        SimpleParser parser = new();
+        parser.Parse(data);
+
+        parser.ConsumeString().Should().Be("exittext");
+        parser.ConsumeString().Should().Be("\ntest1\nhello/*notacomment*/\ntest2\n");
+        parser.ConsumeString().Should().Be("test3");
+        parser.IsDone().Should().Be(true);
+    }
 }
