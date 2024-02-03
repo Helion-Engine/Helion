@@ -6,5 +6,6 @@ public struct LineBlockFlags
     public bool Monsters;
     public bool Players;
     public bool Projectiles;
-    public bool LandMonsters;
+    public bool PlayersMbf21;
+    public bool LandMonstersMbf21;
 }

@@ -563,7 +563,7 @@ public class PhysicsManager
 
     private unsafe LineBlock LineBlocksEntity(Entity entity, in Vec2D position, BlockLine* line, TryMoveData? tryMove)
     {
-        if (Line.BlocksEntity(line, entity))
+        if (Line.BlocksEntity(entity, line->OneSided, line->Flags, WorldStatic.Mbf21))
             return LineBlock.BlockStopChecking;
 
         LineOpening opening;
@@ -884,7 +884,7 @@ public class PhysicsManager
                         if (line->Segment.Intersects(box))
                         {
                             // Doomism: Ignore for moving sectors if blocked by flags only.
-                            if (Line.BlocksEntity(line, entity))
+                            if (Line.BlocksEntity(entity, line->OneSided, line->Flags, WorldStatic.Mbf21))
                                 linkToMoveSectors = false;
 
                             if (line->FrontSector.CheckCount != checkCounter)
@@ -1226,7 +1226,7 @@ public class PhysicsManager
 
 
 doneIsPositionValid:
-        if (entity.BlockingLine != null && entity.BlockingLine.BlocksEntity(entity))
+        if (entity.BlockingLine != null && Line.BlocksEntity(entity, entity.BlockingLine.OneSided, entity.BlockingLine.Flags, WorldStatic.Mbf21))
         {
             tryMove.Subsector = null;
             tryMove.Success = false;

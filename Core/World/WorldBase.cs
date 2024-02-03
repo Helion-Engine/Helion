@@ -240,7 +240,8 @@ public abstract class WorldBase : IWorld
         Config.Compatibility.AllowItemDropoff.OnChanged += AllowItemDropoff_OnChanged;
         Config.Compatibility.InfinitelyTallThings.OnChanged += InfinitelyTallThings_OnChanged;
         Config.Compatibility.NoTossDrops.OnChanged += NoTossDrops_OnChanged;
-        Config.Compatibility.VanillaMovementPhysics.OnChanged += VanillaMovementPhysics_OnChanged; 
+        Config.Compatibility.VanillaMovementPhysics.OnChanged += VanillaMovementPhysics_OnChanged;
+        Config.Compatibility.Mbf21.OnChanged += Mbf21_OnChanged;
     }
 
     private void UnRegisterConfigChanges()
@@ -256,6 +257,7 @@ public abstract class WorldBase : IWorld
         Config.Compatibility.InfinitelyTallThings.OnChanged -= InfinitelyTallThings_OnChanged;
         Config.Compatibility.NoTossDrops.OnChanged -= NoTossDrops_OnChanged;
         Config.Compatibility.VanillaMovementPhysics.OnChanged -= VanillaMovementPhysics_OnChanged;
+        Config.Compatibility.Mbf21.OnChanged -= Mbf21_OnChanged;
     }
 
     private void SetWorldStatic()
@@ -285,7 +287,8 @@ public abstract class WorldBase : IWorld
         WorldStatic.AllowItemDropoff = Config.Compatibility.AllowItemDropoff;
         WorldStatic.NoTossDrops = Config.Compatibility.NoTossDrops;
         WorldStatic.VanillaMovementPhysics = Config.Compatibility.VanillaMovementPhysics;
-        WorldStatic.Dehacked = ArchiveCollection.Definitions.DehackedDefinition != null; 
+        WorldStatic.Dehacked = ArchiveCollection.Definitions.DehackedDefinition != null;
+        WorldStatic.Mbf21 = Config.Compatibility.Mbf21;
         WorldStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
@@ -302,6 +305,9 @@ public abstract class WorldBase : IWorld
         WorldStatic.PlasmaBall = EntityManager.DefinitionComposer.GetByName("PlasmaBall");
         WorldStatic.WeaponBfg = EntityManager.DefinitionComposer.GetByName(DehackedDefinition.BFG900Class);
     }
+
+    private void Mbf21_OnChanged(object? sender, bool enabled) =>
+       WorldStatic.Mbf21 = enabled;
     private void VanillaMovementPhysics_OnChanged(object? sender, bool enabled) =>
         WorldStatic.VanillaMovementPhysics = enabled;
     private void NoTossDrops_OnChanged(object? sender, bool enabled) =>
@@ -608,6 +614,9 @@ public abstract class WorldBase : IWorld
 
     public void SectorInstantKillEffect(Entity entity, InstantKillEffect effect)
     {
+        if (!WorldStatic.Mbf21)
+            return;
+
         // Damage rules apply for instant kill sectors. Doom did not apply sector damage to voodoo dolls
         if (entity.IsDead || (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll))
             return;

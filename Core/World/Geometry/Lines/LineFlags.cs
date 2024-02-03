@@ -23,7 +23,8 @@ public struct LineFlags
         Blocking.Hitscan = false;
         Blocking.Monsters = flags.BlockPlayersAndMonsters || flags.BlockMonsters;
         Blocking.Players = flags.BlockPlayersAndMonsters || flags.BlockPlayers;
-        Blocking.LandMonsters = flags.BlockLandMonsters;
+        Blocking.PlayersMbf21 = flags.BlockPlayersMbf21;
+        Blocking.LandMonstersMbf21 = flags.BlockLandMonstersMbf21;
         Blocking.Projectiles = false;
 
         Unpegged.Upper = flags.UpperUnpegged;

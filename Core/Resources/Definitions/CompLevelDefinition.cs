@@ -40,17 +40,36 @@ public class CompLevelDefinition
 
     public void Apply(IConfig config, ILogger log)
     {
-        if (CompLevel != CompLevel.Vanilla)
+        if (CompLevel == CompLevel.Undefined)
             return;
 
-        log.Info($"Comp level set to {CompLevel}");
-
         var compat = config.Compatibility;
-        compat.VanillaMovementPhysics.SetWithNoWriteConfig(true);
-        compat.VanillaSectorPhysics.SetWithNoWriteConfig(true);
-        compat.MissileClip.SetWithNoWriteConfig(true);
-        compat.Stairs.SetWithNoWriteConfig(true);
-        compat.PainElementalLostSoulLimit.SetWithNoWriteConfig(true);
-        compat.AllowItemDropoff.SetWithNoWriteConfig(false);
+        switch (CompLevel)
+        {
+            case CompLevel.Vanilla:
+                compat.VanillaMovementPhysics.SetWithNoWriteConfig(true);
+                compat.VanillaSectorPhysics.SetWithNoWriteConfig(true);
+                compat.MissileClip.SetWithNoWriteConfig(true);
+                compat.Stairs.SetWithNoWriteConfig(true);
+                compat.PainElementalLostSoulLimit.SetWithNoWriteConfig(true);
+                compat.AllowItemDropoff.SetWithNoWriteConfig(false);
+                compat.Mbf21.SetWithNoWriteConfig(false);
+                break;
+            case CompLevel.Boom:
+            case CompLevel.Mbf:
+                compat.AllowItemDropoff.SetWithNoWriteConfig(true);
+                compat.VanillaSectorPhysics.SetWithNoWriteConfig(false);
+                compat.Stairs.SetWithNoWriteConfig(false);
+                compat.Mbf21.SetWithNoWriteConfig(false);
+                break;
+            case CompLevel.Mbf21:
+                compat.AllowItemDropoff.SetWithNoWriteConfig(true);
+                compat.Mbf21.SetWithNoWriteConfig(true);
+                compat.VanillaSectorPhysics.SetWithNoWriteConfig(false);
+                compat.Stairs.SetWithNoWriteConfig(false);
+                break;
+        }
+
+        log.Info($"Comp level set to {CompLevel}");
     }
 }

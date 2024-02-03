@@ -194,38 +194,16 @@ public class Line : IBspUsableLine
         DataChanges |= LineDataTypes.Alpha;
     }
 
-    /// <summary>
-    /// If the line blocks the given entity. Only checks line properties
-    /// and flags. No sector checking.
-    /// </summary>
-    /// <param name="entity">The entity to check.</param>
-    /// <returns>True if the entity is blocked by this line, false
-    /// otherwise.</returns>
-    public bool BlocksEntity(Entity entity)
+    public static bool BlocksEntity(Entity entity, bool oneSided, in LineFlags flags, bool mbf21)
     {
-        if (OneSided)
+        if (oneSided)
             return true;
 
         if (!entity.IsPlayer && !entity.Flags.Missile &&
-            (Flags.Blocking.Monsters || (Flags.Blocking.LandMonsters && !entity.Flags.Float)))
+            (flags.Blocking.Monsters || (mbf21 && flags.Blocking.LandMonstersMbf21 && !entity.Flags.Float)))
             return true;
 
-        if (entity.IsPlayer && Flags.Blocking.Players)
-            return true;
-
-        return false;
-    }
-
-    public static unsafe bool BlocksEntity(BlockLine* line, Entity entity)
-    {
-        if (line->OneSided)
-            return true;
-
-        if (!entity.IsPlayer && !entity.Flags.Missile &&
-            (line->Line.Flags.Blocking.Monsters || (line->Line.Flags.Blocking.LandMonsters && !entity.Flags.Float)))
-            return true;
-
-        if (entity.IsPlayer && line->Flags.Blocking.Players)
+        if (entity.IsPlayer && (flags.Blocking.Players || (mbf21 && flags.Blocking.PlayersMbf21)))
             return true;
 
         return false;

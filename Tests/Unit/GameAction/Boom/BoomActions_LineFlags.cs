@@ -12,9 +12,9 @@ public partial class BoomActions
     {
         var lineBlockFlags = typeof(LineBlockFlags);
         GameActions.AssertFlags(GameActions.GetLine(World, 441).Flags.Blocking,
-            lineBlockFlags.GetField(nameof(LineBlockFlags.LandMonsters)));
+            lineBlockFlags.GetField(nameof(LineBlockFlags.LandMonstersMbf21)));
         GameActions.AssertFlags(GameActions.GetLine(World, 444).Flags.Blocking,
-            lineBlockFlags.GetField(nameof(LineBlockFlags.Players)));
+            lineBlockFlags.GetField(nameof(LineBlockFlags.PlayersMbf21)));
     }
 
     [Fact(DisplayName = "Block land monsters")]

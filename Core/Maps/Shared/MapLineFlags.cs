@@ -23,8 +23,8 @@ public class MapLineFlags
     public const ushort VanillaMask = 0x10FF;
 
     // MBF21 Flags
-    public const ushort BlockLandMonstersMbf21 = 4096;
-    public const ushort BlockPlayersMbf21 = 8192;
+    public const ushort BlockLandMonstersMbf21Flag = 4096;
+    public const ushort BlockPlayersMbf21Flag = 8192;
 
     public bool BlockPlayersAndMonsters;
     public bool BlockMonsters;
@@ -38,7 +38,8 @@ public class MapLineFlags
     public bool RepeatSpecial;
     public bool BlockPlayers;
     public bool BlockEverything;
-    public bool BlockLandMonsters;
+    public bool BlockPlayersMbf21;
+    public bool BlockLandMonstersMbf21;
 
     public LineActivations Activations;
 
@@ -63,8 +64,8 @@ public class MapLineFlags
         return new MapLineFlags(flags)
         {
             PassThrough = (flags & UseThroughMask) == UseThroughMask,
-            BlockPlayers = (flags & BlockPlayersMbf21) == BlockPlayersMbf21,
-            BlockLandMonsters = (flags & BlockLandMonstersMbf21) == BlockLandMonstersMbf21
+            BlockPlayersMbf21 = (flags & BlockPlayersMbf21Flag) == BlockPlayersMbf21Flag,
+            BlockLandMonstersMbf21 = (flags & BlockLandMonstersMbf21Flag) == BlockLandMonstersMbf21Flag
         };
     }
 

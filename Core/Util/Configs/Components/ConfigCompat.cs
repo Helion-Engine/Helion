@@ -45,6 +45,10 @@ public class ConfigCompat
     [OptionMenu(OptionSectionType.Compatibility, "Use bugged stair building")]
     public readonly ConfigValue<bool> Stairs = new(false);
 
+    [ConfigInfo("Enable mbf21 features.", serialize: true, demo: true)]
+    [OptionMenu(OptionSectionType.Compatibility, "Enable mbf21 features")]
+    public readonly ConfigValue<bool> Mbf21 = new(true);
+
     public void ResetToUserValues()
     {
         MissileClip.ResetToUserValue();
