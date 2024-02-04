@@ -94,11 +94,7 @@ public partial class MapInfoDefinition
         if (parseHeader)
         {
             int defLine = parser.GetCurrentLine();
-            mapDef.MapName = parser.ConsumeString();
-            
-            MapInfoDef? existing = MapInfo.GetMap(mapDef.MapName);
-            if (!hasDefaultMap && existing != null)
-                mapDef = existing;
+            mapDef = SetMapDef(mapDef, parser.ConsumeString(), hasDefaultMap);
 
             if (parser.Peek("lookup"))
             {
@@ -185,6 +181,21 @@ public partial class MapInfoDefinition
         }
 
         ConsumeBrace(parser, false);
+        return mapDef;
+    }
+
+    private MapInfoDef SetMapDef(MapInfoDef mapDef, string mapName, bool hasDefaultMap)
+    {
+        mapDef.MapName = mapName;
+        MapInfoDef? existing = MapInfo.GetMap(mapDef.MapName);
+        if (existing == null)
+            return mapDef;
+
+        // Need to carry over the map special. This apparently isn't cleared with defaultmap.
+        if (hasDefaultMap)
+            mapDef.MapSpecial = existing.MapSpecial;
+        else
+            mapDef = existing;
         return mapDef;
     }
 
