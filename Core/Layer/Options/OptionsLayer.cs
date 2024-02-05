@@ -65,6 +65,8 @@ public class OptionsLayer : IGameLayer
 
     public void OnShow()
     {
+        m_messageTicks = 0;
+        m_message = string.Empty;
         if (m_currentSectionIndex < m_sections.Count)
             m_sections[m_currentSectionIndex].OnShow();
     }
