@@ -158,21 +158,55 @@ public class MarkSpecials
 
     private void ConnectLineToSector(IWorld world, Player player, Line line, Sector sector)
     {
-        m_lineMarkColor = ++m_lineMarkColor % TracerColors.Length;
-        Vec3D start = GetActivatedLinePoint(world, line);
-        var box = sector.GetBoundingBox();
-        Vec3D end = new((box.Min.X + box.Max.X) / 2, (box.Min.Y + box.Max.Y) / 2, Math.Min(sector.Floor.Z + 8, sector.Ceiling.Z));
+        if (sector.Id < 0 || sector.Id >= world.Geometry.IslandGeometry.SectorIslands.Length)
+            return;
 
-        // Check if the point is in the sector. The center point of the bounding box may not be in the center if it's a complex concave polygon.
-        if (world.BspTree.ToSector(end).Id != sector.Id)
+        var islands = world.Geometry.IslandGeometry.SectorIslands[sector.Id];
+        for (int i = 0; i < islands.Count; i++)
         {
-            var endLine = sector.Floor.GetClosestLineCenterFrom(player.Position.XY);
-            end = endLine.Segment.FromTime(0.5).To3D(Math.Min(sector.Floor.Z + 8, sector.Ceiling.Z));
-            end += (Vec2D.UnitCircle(start.Angle(end)) * 16).To3D(0);
+            var island = islands[i];
+            m_lineMarkColor = ++m_lineMarkColor % TracerColors.Length;
+            Vec3D start = GetActivatedLinePoint(world, line);
+            var box = island.Box;
+            Vec3D end = new((box.Min.X + box.Max.X) / 2, (box.Min.Y + box.Max.Y) / 2, Math.Min(sector.Floor.Z + 8, sector.Ceiling.Z));
+
+            // Check if the point is in the sector. The center point of the bounding box may not be in the center if it's a complex concave polygon.
+            if (world.BspTree.ToSector(end).Id != sector.Id)
+            {
+                var endLine = GetClosestLineCenterFrom(world, island, player.Position.XY);
+                end = endLine.Segment.FromTime(0.5).To3D(Math.Min(sector.Floor.Z + 8, sector.Ceiling.Z));
+                end += (Vec2D.UnitCircle(start.Angle(end)) * 16).To3D(0);
+            }
+
+            m_playerTracers.Add(player.Tracers.AddTracer(PrimitiveRenderType.Line, (start, end), world.Gametick, TracerColors[m_lineMarkColor],
+                ticks: 0, automapColor: AutomapColors[m_lineMarkColor]));
+        }
+    }
+
+    public Line? GetClosestLineCenterFrom(IWorld world, Island island, in Vec2D point)
+    {
+        double minDist = double.MaxValue;
+        Line? minLine = null;
+
+        for (int i = 0; i < island.LineIds.Count; i++)
+        {
+            var lineId = island.LineIds[i];
+            if (!world.IsLineIdValid(lineId))
+                continue;
+
+            var line = world.Lines[lineId];
+            double dist = line.Segment.FromTime(0.5).Distance(point);
+            if (dist < minDist)
+            {
+                minDist = dist;
+                minLine = line;
+            }
         }
 
-        m_playerTracers.Add(player.Tracers.AddTracer(PrimitiveRenderType.Line, (start, end), world.Gametick, TracerColors[m_lineMarkColor], 
-            ticks: 0, automapColor: AutomapColors[m_lineMarkColor]));
+        if (minLine != null)
+            return minLine;
+
+        return null;
     }
 
     private static bool SectorHasLine(Sector sector, Line line)
