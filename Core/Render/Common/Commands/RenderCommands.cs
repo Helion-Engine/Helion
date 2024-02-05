@@ -22,7 +22,8 @@ public enum RenderCommandType
     Image,
     Text,
     Shape,
-    Viewport
+    Viewport,
+    DrawVirtualFrameBuffer
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -44,6 +45,7 @@ public class RenderCommands
     public readonly IImageDrawInfoProvider ImageDrawInfoProvider;
     public readonly FpsTracker FpsTracker;
     public ResolutionInfo ResolutionInfo { get; private set; }
+    private Dimension m_renderDimensions;
     private Dimension m_windowDimensions;
     private Vec2D m_scale = Vec2D.One;
     private int m_centeringOffsetX;
@@ -55,22 +57,25 @@ public class RenderCommands
     public List<DrawTextCommand> TextCommands = new();
     public List<DrawShapeCommand> ShapeCommands = new();
 
+    public Dimension RenderDimension => m_renderDimensions;
     public Dimension WindowDimension => m_windowDimensions;
 
-    public RenderCommands(IConfig config, Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider,
+    public RenderCommands(IConfig config, Dimension renderDimensions, Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider,
         FpsTracker fpsTracker)
     {
         Config = config;
+        m_renderDimensions = renderDimensions;
         m_windowDimensions = windowDimensions;
-        ResolutionInfo = new ResolutionInfo { VirtualDimensions = windowDimensions };
+        ResolutionInfo = new ResolutionInfo { VirtualDimensions = renderDimensions };
         ImageDrawInfoProvider = imageDrawInfoProvider;
         FpsTracker = fpsTracker;
     }
 
-    public void UpdateRenderDimension(Dimension dimension)
+    public void UpdateRenderDimension(Dimension renderDimension, Dimension windowDimension)
     {
-        m_windowDimensions = dimension;
-        ResolutionInfo = new ResolutionInfo { VirtualDimensions = dimension };
+        m_renderDimensions = renderDimension;
+        m_windowDimensions = windowDimension;
+        ResolutionInfo = new ResolutionInfo { VirtualDimensions = renderDimension };
     }
 
     public void Begin()
@@ -83,7 +88,7 @@ public class RenderCommands
         TextCommands.Clear();
         ShapeCommands.Clear();
 
-        ResolutionInfo = new ResolutionInfo { VirtualDimensions = m_windowDimensions };
+        ResolutionInfo = new ResolutionInfo { VirtualDimensions = RenderDimension };
         m_scale = Vec2D.One;
         m_centeringOffsetX = 0;
     }
@@ -138,6 +143,11 @@ public class RenderCommands
         ViewportCommands.Add(new ViewportCommand(dimension, offset ?? Vec2I.Zero));
     }
 
+    public void DrawVirtualFrameBuffer()
+    {
+        Commands.Add(new RenderCommand(RenderCommandType.DrawVirtualFrameBuffer, 0));
+    }
+
     /// <summary>
     /// Sets a virtual resolution to draw with.
     /// </summary>
@@ -159,9 +169,9 @@ public class RenderCommands
     {
         ResolutionInfo = resolutionInfo;
 
-        double viewWidth = WindowDimension.Height * resolutionInfo.AspectRatio;
+        double viewWidth = RenderDimension.Height * resolutionInfo.AspectRatio;
         double scaleWidth = viewWidth / resolutionInfo.VirtualDimensions.Width;
-        double scaleHeight = WindowDimension.Height / (double)resolutionInfo.VirtualDimensions.Height;
+        double scaleHeight = RenderDimension.Height / (double)resolutionInfo.VirtualDimensions.Height;
         m_scale = new Vec2D(scaleWidth, scaleHeight);
 
         m_centeringOffsetX = 0;
@@ -175,7 +185,7 @@ public class RenderCommands
             // on the side. This can only happen if the virtual dimension
             // has a smaller aspect ratio. We have to exit out if not since
             // it will cause weird overdrawing otherwise.
-            m_centeringOffsetX = (WindowDimension.Width - (int)(resolutionInfo.VirtualDimensions.Width * m_scale.X)) / 2;
+            m_centeringOffsetX = (RenderDimension.Width - (int)(resolutionInfo.VirtualDimensions.Width * m_scale.X)) / 2;
         }
     }
 
@@ -186,7 +196,7 @@ public class RenderCommands
 
     private ImageBox2I TranslateDoomImageDimensions(int x, int y, int width, int height)
     {
-        if (WindowDimension == ResolutionInfo.VirtualDimensions)
+        if (RenderDimension == ResolutionInfo.VirtualDimensions)
             return new ImageBox2I(x, y, x + width, y + height);
 
         ImageBox2I drawLocation = new ImageBox2I(x, y, x + width, y + height);
@@ -196,7 +206,7 @@ public class RenderCommands
 
     private ImageBox2I TranslateDimensions(ImageBox2I drawArea)
     {
-        if (WindowDimension == ResolutionInfo.VirtualDimensions)
+        if (RenderDimension == ResolutionInfo.VirtualDimensions)
             return drawArea;
 
         int offsetX = m_centeringOffsetX;

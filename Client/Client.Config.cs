@@ -30,8 +30,7 @@ public partial class Client
         if (!m_config.Hud.AutoScale)
             return;
 
-        int height = m_config.Window.Virtual.Enable ? m_config.Window.Virtual.Dimension.Value.Height : m_window.Size.Y;
-        int ratio = Math.Clamp((int)Math.Ceiling(height / 799.0), 1, 10);
+        int ratio = Math.Clamp((int)Math.Ceiling(m_window.Size.Y / 799.0), 1, 10);
         m_config.Hud.Scale.Set(ratio);
     }
 

@@ -27,4 +27,7 @@ public interface IRenderableSurface : IDisposable
     /// </summary>
     /// <param name="action">The rendering actions.</param>
     public void Render(Action<IRenderableSurfaceContext> action);
+
+    public void SetOverrideDimension(Dimension dimension);
+    public void ClearOverrideDimension();
 }

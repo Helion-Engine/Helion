@@ -91,7 +91,7 @@ public partial class WorldLayer : IGameLayerParent
         World = world;
         CurrentMap = mapInfoDef;
 
-        m_drawAutomapAndHudAction = new(DrawAutomapAndHudContext);
+        m_drawHudAction = new(DrawHudContext);
         m_renderWorldAction = new(RenderWorld);
         m_virtualDrawFullStatusBarAction = new(VirtualDrawFullStatusBar);
         m_virtualStatusBarBackgroundAction = new(VirtualStatusBarBackground);

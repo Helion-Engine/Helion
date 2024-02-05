@@ -26,7 +26,6 @@ public class GLHudRenderContext : IHudRenderContext
     private readonly ArchiveCollection m_archiveCollection;
     public IRendererTextureManager Textures { get; }
     private HudRenderContext? m_context;
-    public Dimension WindowDimension { get; } = (800, 600);
 
     public Dimension Dimension
     {
@@ -49,6 +48,9 @@ public class GLHudRenderContext : IHudRenderContext
     internal void Begin(HudRenderContext context)
     {
         m_context = context;
+        m_commands.DrawVirtualFrameBuffer();
+        m_commands.Viewport(m_commands.WindowDimension);
+        m_commands.UpdateRenderDimension(m_commands.WindowDimension, m_commands.WindowDimension);
     }
 
     public void Clear(Color color, float alpha)

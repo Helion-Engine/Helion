@@ -180,6 +180,7 @@ public class Renderer : IDisposable
         // also prevents something from going terribly wrong if there is no
         // call to setting the viewport.
         Rectangle viewport = new(0, 0, 800, 600);
+        bool virtualFrameBufferDraw = false;
         for (int i = 0; i < renderCommands.Commands.Count; i++)
         {
             RenderCommand cmd = renderCommands.Commands[i];
@@ -203,6 +204,13 @@ public class Renderer : IDisposable
                 case RenderCommandType.Viewport:
                     HandleViewportCommand(renderCommands.ViewportCommands[cmd.Index], out viewport);
                     break;
+                case RenderCommandType.DrawVirtualFrameBuffer:
+                    if (UseVirtualResolution)
+                    {
+                        virtualFrameBufferDraw = true;
+                        DrawFramebufferOnDefault();
+                    }
+                    break;
                 default:
                     Fail($"Unsupported render command type: {cmd.Type}");
                     break;
@@ -211,7 +219,7 @@ public class Renderer : IDisposable
 
         DrawHudImagesIfAnyQueued(viewport);
 
-        if (UseVirtualResolution)
+        if (!virtualFrameBufferDraw && UseVirtualResolution)
             DrawFramebufferOnDefault();
     }
 

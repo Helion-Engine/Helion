@@ -21,6 +21,7 @@ using Helion.Resources.Definitions.Decorate.States;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Strings;
 using Helion.Util;
+using Helion.Util.Configs.Components;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
@@ -56,6 +57,7 @@ public partial class WorldLayer
     private static readonly string ConsoleFont = "Console";
     private int m_fontHeight = 16;
     private int m_padding = 4;
+    private int m_hudPaddingX = 0;
     private float m_scale = 1.0f;
     private int m_infoFontSize = DebugFontSize;
     private int m_mapHeaderFontSize = MapFontSize;
@@ -113,6 +115,7 @@ public partial class WorldLayer
         m_padding = (int)(4 * m_scale);
         m_fontHeight = (int)(16 * m_scale);
         m_viewport = hud.Dimension;
+        SetHudPadding(hud);
 
         DrawFPS(hud, out int topRightY);
         DrawPosition(hud, ref topRightY);
@@ -126,10 +129,21 @@ public partial class WorldLayer
             DrawMapHeader(hud);
     }
 
+    private void SetHudPadding(IHudRenderContext hud)
+    {
+        m_hudPaddingX = (int)(hud.Dimension.Width * m_config.Hud.HorizontalMargin);
+        if (!m_config.Window.Virtual.Enable || m_config.Window.Virtual.Stretch)
+            return;
+
+        var virtualDim = m_config.Window.Virtual.Dimension.Value;
+        m_hudPaddingX = (int)(virtualDim.Width * m_config.Hud.HorizontalMargin);
+        m_hudPaddingX += Math.Max(0, (int)(hud.Dimension.Height * (hud.Dimension.AspectRatio - virtualDim.AspectRatio)) / 2);
+    }
+
     private void DrawMapHeader(IHudRenderContext hud)
     {
         string text = World.MapInfo.GetDisplayNameWithPrefix(World.ArchiveCollection);
-        Vec2I pos = new((int)(2 * m_scale), (int)(2 * m_scale));
+        Vec2I pos = new((int)(2 * m_scale) + m_hudPaddingX, (int)(2 * m_scale));
         hud.Text(text, SmallHudFont, m_mapHeaderFontSize, pos);
     }
 
@@ -151,7 +165,7 @@ public partial class WorldLayer
         if (!m_config.Hud.ShowStats && !automapVisible)
             return;
 
-        start.X = -m_padding;
+        start.X = -m_padding - m_hudPaddingX;
         Vec2I labelPos = start;
         int maxLabelWidth = 0;
         int maxValueWidth = 0;
@@ -185,7 +199,7 @@ public partial class WorldLayer
             maxValueWidth = Math.Max(RenderableStatValues[i].DrawArea.Width, maxValueWidth);
         }
 
-        labelPos.X = -(maxValueWidth + m_padding);
+        labelPos.X = -(maxValueWidth + m_padding + m_hudPaddingX);
 
         for (int i = 0; i < RenderableStatLabels.Length; i++)
         {
@@ -271,7 +285,7 @@ public partial class WorldLayer
         str.Append((int)Math.Round(fps));
 
         SetRenderableString(str.AsSpan(), renderableString, ConsoleFont, m_infoFontSize, useDoomScale: false);
-        hud.Text(renderableString, (-m_padding, y), both: Align.TopRight);
+        hud.Text(renderableString, (-m_padding - m_hudPaddingX, y), both: Align.TopRight);
 
         y += renderableString.DrawArea.Height + FpsMessageSpacing;
     }
@@ -308,7 +322,7 @@ public partial class WorldLayer
                 hudContext.DrawFuzz = true;
 
             // Doom pushes the gun sprite up when the status bar is showing
-            int yOffset = m_config.Hud.StatusBarSize == StatusBarSizeType.Full ? FullSizeHudOffsetY : 0;
+            int yOffset = m_config.Hud.StatusBarSize == StatusBarSizeType.Full ? HudView.FullSizeHudOffsetY : 0;
             DrawHudWeapon(hud, Player.AnimationWeapon.FrameState, yOffset, flash: false);
             if (Player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
                 DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset, flash: true);
@@ -412,7 +426,7 @@ public partial class WorldLayer
 
     private Vec2D GetDoomScale(IHudRenderContext ctx, out int centeredOffsetX)
     {
-        var dimension = m_config.Window.Virtual.Enable ? m_config.Window.Virtual.Dimension : ctx.Dimension;
+        var dimension = ctx.Dimension;
         var virtualDimensions = new Dimension(320, 200);
         if (dimension == virtualDimensions)
         {
@@ -472,7 +486,7 @@ public partial class WorldLayer
             totalCrosshairLength += 1;
 
         Vec2I center = m_viewport.Vector / 2;
-        center -= GetViewPortOffset(m_viewport);
+        center -= HudView.GetViewPortOffset(m_config.Hud.StatusBarSize, m_viewport);
 
         Vec2I horizontal = center - new Vec2I(crosshairLength, HalfWidth);
         Vec2I vertical = center - new Vec2I(HalfWidth, crosshairLength);
@@ -526,7 +540,7 @@ public partial class WorldLayer
 
         // We will draw the medkit slightly higher so it looks like it
         // aligns with the font.
-        int x = m_padding;
+        int x = m_padding + m_hudPaddingX;
         int y = -m_padding;
 
         bool hasArmorImage = false;
@@ -543,7 +557,7 @@ public partial class WorldLayer
         var medkitDimension = GetDoomScaledImageArea(hud, Medkit);
         int setWidth = Math.Max(armorDimension.Width, medkitDimension.Width);
         setWidth = Math.Max(setWidth, (int)(32 * m_scale));
-        int textStartX = setWidth + m_padding * 2;
+        int textStartX = m_hudPaddingX + setWidth + m_padding * 2;
 
         x += (setWidth - medkitDimension.Width) / 2;
         DrawDoomScaledImage(hud, Medkit, (x, y), out var medkitArea, both: Align.BottomLeft);
@@ -565,7 +579,7 @@ public partial class WorldLayer
 
         if (Player.Armor > 0)
         {
-            x = m_padding + (setWidth - armorDimension.Width) / 2;
+            x = m_hudPaddingX + m_padding + (setWidth - armorDimension.Width) / 2;
             y -= medkitArea.Height + m_padding;
 
             if (armorProp != null && hasArmorImage)
@@ -616,7 +630,7 @@ public partial class WorldLayer
             string icon = key.Definition.Properties.Inventory.Icon;
             if (!hud.Textures.HasImage(icon))
                 continue;
-            DrawDoomScaledImage(hud, icon, (-m_padding, y), out var drawArea, both: Align.TopRight);
+            DrawDoomScaledImage(hud, icon, (-m_padding - m_hudPaddingX, y), out var drawArea, both: Align.TopRight);
             y += drawArea.Height + m_padding;
         }
     }
@@ -631,7 +645,7 @@ public partial class WorldLayer
         if (ammoType.Length == 0)
             return;
 
-        int x = -m_padding;
+        int x = -m_padding - m_hudPaddingX;
         int y = -m_padding;
 
         if (HasTicks)
@@ -890,7 +904,7 @@ public partial class WorldLayer
 
             for (int i = m_messages.Count - 1; i >= 0; i--)
             {
-                hud.Text(m_messages[i].message, SmallHudFont, 8, (LeftOffset, offsetY),
+                hud.Text(m_messages[i].message, SmallHudFont, 8, (LeftOffset + m_hudPaddingX, offsetY),
                     out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: m_messages[i].alpha);
                 offsetY += drawArea.Height + MessageSpacing;
             }

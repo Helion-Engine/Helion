@@ -8,10 +8,11 @@ namespace Helion.Render.OpenGL;
 public class GLSurface : IRenderableSurface
 {
     public string Name => IRenderableSurface.DefaultName;
-    public Dimension Dimension => m_renderer.RenderDimension;
+    public Dimension Dimension => m_overrideDimension.Height > 0 ? m_overrideDimension : m_renderer.RenderDimension;
     private readonly IWindow m_window;
     private readonly Renderer m_renderer;
     private readonly GLRenderableSurfaceContext ctx;
+    private Dimension m_overrideDimension;
 
     public GLSurface(IWindow window, Renderer renderer)
     {
@@ -31,5 +32,15 @@ public class GLSurface : IRenderableSurface
     {
         // Nothing to dispose of.
         GC.SuppressFinalize(this);
+    }
+
+    public void SetOverrideDimension(Dimension dimension)
+    {
+        m_overrideDimension = dimension;
+    }
+
+    public void ClearOverrideDimension()
+    {
+        m_overrideDimension = (0, 0);
     }
 }

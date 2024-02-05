@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Helion.Audio.Sounds;
+using Helion.Geometry.Vectors;
+using Helion.Geometry;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Images;
@@ -25,7 +27,11 @@ using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World.Save;
+using Helion.World.StatusBar;
 using static Helion.Util.Assertion.Assert;
+using Helion.Geometry.Boxes;
+using Helion.Util.Configs.Components;
+using Helion.Render.OpenGL.Shared;
 
 namespace Helion.Layer;
 
@@ -480,14 +486,22 @@ public class GameLayerManager : IGameLayerManager
 
     private void RenderDefault(IRenderableSurfaceContext ctx)
     {
-        m_ctx = ctx;
+        m_ctx = ctx;        
         m_hudContext.Dimension = m_renderer.RenderDimension;
-
         ctx.Viewport(m_renderer.RenderDimension.Box);
         ctx.Clear(Renderer.DefaultBackground, true, true);
 
         if (WorldLayer != null && WorldLayer.ShouldRender)
-            WorldLayer.Render(ctx);
+        {
+            var offset = HudView.GetViewPortOffset(m_config.Hud.StatusBarSize, ctx.Surface.Dimension);
+            if (offset.X != 0 || offset.Y != 0)
+            {
+                var box = new Box2I((offset.X, offset.Y), (ctx.Surface.Dimension.Width + offset.X, ctx.Surface.Dimension.Height + offset.Y));
+                ctx.Viewport(box);
+            }
+
+            WorldLayer.RenderWorld(ctx);
+        }
 
         m_profiler.Render.MiscLayers.Start();
         ctx.Hud(m_hudContext, m_renderHudAction);
@@ -496,6 +510,24 @@ public class GameLayerManager : IGameLayerManager
 
     private void RenderHud(IHudRenderContext hudCtx)
     {
+        // Only use virtual dimensions when drawing the world.
+        // Restore back to window dimensions when drawing anything else so that text etc are not stretched.
+        bool resetViewport = m_ctx.Surface.Dimension != m_renderer.Window.Dimension;
+        if (resetViewport)
+        {
+            m_hudContext.Dimension = m_renderer.Window.Dimension;
+            m_ctx.Surface.SetOverrideDimension(m_renderer.Window.Dimension);
+            m_ctx.Viewport(m_ctx.Surface.Dimension.Box);
+        }
+
+        if (WorldLayer != null && WorldLayer.ShouldRender)
+        {
+            WorldLayer.RenderHud(m_ctx); 
+            WorldLayer.RenderAutomap(m_ctx);
+        }
+        
+        m_ctx.ClearDepth();
+
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
@@ -505,6 +537,7 @@ public class GameLayerManager : IGameLayerManager
         IwadSelectionLayer?.Render(m_ctx, hudCtx);
         LoadingLayer?.Render(m_ctx, hudCtx);
         ConsoleLayer?.Render(m_ctx, hudCtx);
+        m_ctx.Surface.ClearOverrideDimension();
     }
 
     public void Dispose()

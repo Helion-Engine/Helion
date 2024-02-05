@@ -1,9 +1,24 @@
+using Helion.Geometry.Vectors;
+using Helion.Geometry;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.World.StatusBar;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
+
+public static class HudView
+{
+    public const int FullSizeHudOffsetY = 16;
+
+    public static Vec2I GetViewPortOffset(StatusBarSizeType statusBarSize, Dimension viewport)
+    {
+        if (statusBarSize == StatusBarSizeType.Full)
+            return (0, (int)(viewport.Height / 200.0 * FullSizeHudOffsetY));
+        return (0, 0);
+    }
+}
 
 public class ConfigHudAutoMap
 {
@@ -50,5 +65,11 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Hud scale")]
     public readonly ConfigValue<double> Scale = new(2.0, Greater(0.0));
 
+    [ConfigInfo("Horizontal hud margin percentage.")]
+    [OptionMenu(OptionSectionType.Hud, "Horizontal margin percent (0.0 - 1.0)")]
+    public readonly ConfigValue<double> HorizontalMargin = new(0, ClampNormalized);
+
+
     public readonly ConfigHudAutoMap AutoMap = new();
+
 }
