@@ -520,10 +520,12 @@ public class GameLayerManager : IGameLayerManager
             m_ctx.Viewport(m_ctx.Surface.Dimension.Box);
         }
 
+        m_ctx.DrawVirtualFrameBuffer();
+
         if (WorldLayer != null && WorldLayer.ShouldRender)
-        {
-            WorldLayer.RenderHud(m_ctx); 
+        {            
             WorldLayer.RenderAutomap(m_ctx);
+            WorldLayer.RenderHud(m_ctx);
         }
         
         m_ctx.ClearDepth();

@@ -48,7 +48,6 @@ public class GLHudRenderContext : IHudRenderContext
     internal void Begin(HudRenderContext context)
     {
         m_context = context;
-        m_commands.DrawVirtualFrameBuffer();
         m_commands.Viewport(m_commands.WindowDimension);
         m_commands.UpdateRenderDimension(m_commands.WindowDimension, m_commands.WindowDimension);
     }

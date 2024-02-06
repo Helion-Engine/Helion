@@ -75,6 +75,11 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
         // Not part of the old renderer.
     }
 
+    public void DrawVirtualFrameBuffer()
+    {
+        Commands.DrawVirtualFrameBuffer();
+    }
+
     public void Hud(HudRenderContext context, Action<IHudRenderContext> action)
     {
         m_hudRenderContext.Begin(context);
