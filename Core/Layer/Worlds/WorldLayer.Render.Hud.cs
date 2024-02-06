@@ -67,6 +67,7 @@ public partial class WorldLayer
     private int m_healthWidth;
     private string m_weaponSprite = StringBuffer.GetStringExact(6);
     private string m_weaponFlashSprite = StringBuffer.GetStringExact(6);
+    private string m_weaponNumberTexture = StringBuffer.GetString(16);
     private SpanString m_weaponSpriteSpan = new("123456");
     private SpanString m_weaponFlashSpriteSpan = new("123456");
 
@@ -682,14 +683,20 @@ public partial class WorldLayer
 
     private void VirtualDrawFullStatusBar(IHudRenderContext hud)
     {
-        const int FullHudFaceX = 149;
-        const int FullHudFaceY = 170;
         DrawFullHudHealthArmorAmmo(hud);
         DrawFullHudWeaponSlots(hud);
         if (m_statusBarSizeType == StatusBarSizeType.Full)
-            hud.Image(Player.StatusBar.GetFacePatch(), (FullHudFaceX, FullHudFaceY));
+            HudImageWithOffset(hud, Player.StatusBar.GetFacePatch(), (143, 168));
         DrawFullHudKeys(hud);
         DrawFullTotalAmmo(hud);
+    }
+
+    private void HudImageWithOffset(IHudRenderContext hud, string image, Vec2I pos, Align? both = null)
+    {
+        if (!hud.Textures.TryGet(image, out var faceHandle))
+            return;
+        pos += TranslateDoomOffset(faceHandle.Offset);
+        hud.Image(image, pos, both: both);
     }
 
     private readonly record struct HudStatusBarbackground(IHudRenderContext Hud, IRenderableTextureHandle BarHandle, IRenderableTextureHandle BackgroundHandle);
@@ -760,13 +767,11 @@ public partial class WorldLayer
     private void DrawFullHudWeaponSlots(IHudRenderContext hud)
     {
         if (m_statusBarSizeType ==  StatusBarSizeType.Full)
-            hud.Image("STARMS", (104, 0), both: Align.BottomLeft);
+            HudImageWithOffset(hud, "STARMS", (104, 0), both: Align.BottomLeft);
 
         for (int slot = 2; slot <= 7; slot++)
             DrawWeaponNumber(hud, slot);
     }
-
-    private string m_weaponNumberTexture = StringBuffer.GetString(16);
 
     private static readonly string[] HasWeaponImages = new[]
     {
@@ -805,7 +810,7 @@ public partial class WorldLayer
         if (string.IsNullOrEmpty(image))
             return;
 
-        hud.Image(image, slot switch
+        HudImageWithOffset(hud, image, slot switch
         {
             2 => (111, 172),
             3 => (123, 172),
@@ -831,19 +836,19 @@ public partial class WorldLayer
         }
     }
 
-    private static void DrawKeyIfOwned(IHudRenderContext hud, InventoryItem key, string skullKeyName,
+    private void DrawKeyIfOwned(IHudRenderContext hud, InventoryItem key, string skullKeyName,
         string keyName, int x, int y)
     {
         string imageName = key.Definition.Properties.Inventory.Icon;
 
         if (key.Definition.Name.EqualsIgnoreCase(skullKeyName) && hud.Textures.HasImage(imageName))
         {
-            hud.Image(imageName, (x, y));
+            HudImageWithOffset(hud, imageName, (x, y));
             return;
         }
 
         if (key.Definition.Name.EqualsIgnoreCase(keyName) && hud.Textures.HasImage(imageName))
-            hud.Image(imageName, (x, y));
+            HudImageWithOffset(hud, imageName, (x, y));
     }
 
     private void DrawFullTotalAmmo(IHudRenderContext hud)
