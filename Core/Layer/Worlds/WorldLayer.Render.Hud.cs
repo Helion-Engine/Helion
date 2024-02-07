@@ -118,9 +118,10 @@ public partial class WorldLayer
         m_viewport = hud.Dimension;
         SetHudPadding(hud);
 
-        DrawFPS(hud, out int topRightY);
+        int topRightY = m_padding / 2;
+        DrawFPS(hud, ref topRightY);
         DrawPosition(hud, ref topRightY);
-        DrawStatInfo(hud, automapVisible, (0, topRightY + m_padding), ref topRightY);
+        DrawStatInfo(hud, automapVisible, (0, topRightY), ref topRightY);
         DrawBottomHud(hud, topRightY, hudContext);
         DrawHudEffects(hud);
         DrawRecentConsoleMessages(hud);
@@ -261,11 +262,9 @@ public partial class WorldLayer
             hud.Clear(DamageColor, Player.DamageCount * 0.01f);
     }
 
-    private void DrawFPS(IHudRenderContext hud, out int topRightY)
+    private void DrawFPS(IHudRenderContext hud, ref int topRightY)
     {
-        topRightY = 0;
-
-        if (!m_config.Hud.ShowFPS && !m_config.Hud.ShowMinMaxFPS)
+        if (!m_config.Hud.ShowFPS && !m_config.Hud.ShowMinMaxFPS)   
             return;
 
         if (m_config.Hud.ShowFPS)
@@ -276,6 +275,8 @@ public partial class WorldLayer
             DrawFpsValue(hud, "Max ", m_fpsTracker.MaxFramesPerSecond, ref topRightY, m_fpsMaxString, m_renderFpsMaxString);
             DrawFpsValue(hud, "Min ", m_fpsTracker.MinFramesPerSecond, ref topRightY, m_fpsMinString, m_renderFpsMinString);
         }
+
+        topRightY += m_padding;
     }
 
     void DrawFpsValue(IHudRenderContext hud, string prefix, double fps, ref int y, SpanString str, RenderableString renderableString)
@@ -300,12 +301,13 @@ public partial class WorldLayer
         DrawCoordinate(hud, 'Y', Player.Position.Y, ref topRightY);
         DrawCoordinate(hud, 'Z', Player.Position.Z, ref topRightY);
         DrawCoordinate(hud, 'A', Player.AngleRadians * 180 / Math.PI, ref topRightY);
+        topRightY += m_padding;
     }
 
     void DrawCoordinate(IHudRenderContext hud, char axis, double position, ref int y)
     {
         hud.Text($"{axis}: {Math.Round(position, 4)}", ConsoleFont, m_infoFontSize,
-            (-m_padding, y), out Dimension area, TextAlign.Right, both: Align.TopRight,
+            (-m_padding - m_hudPaddingX, y), out Dimension area, TextAlign.Right, both: Align.TopRight,
             color: Color.White);
         y += area.Height + FpsMessageSpacing;
     }
