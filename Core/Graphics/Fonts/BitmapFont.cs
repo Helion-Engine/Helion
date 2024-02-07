@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
+using Helion.Render.Common;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Fonts.Definition;
@@ -36,9 +38,8 @@ public static class BitmapFont
             // we will disallow this. In the future if we want, we can convert
             // it all to ARGB.
             // TODO
-
             AddSpaceGlyphIfMissing(charImages, definition, maxHeight, imageType);
-            var (glyphs, image) = CreateGlyphs(charImages, maxHeight, imageType);
+            var (glyphs, image) = CreateGlyphs(definition, charImages, maxHeight, imageType);
             
             if (definition.Grayscale)
                 image.ConvertToGrayscale(definition.GrayscaleNormalization);
@@ -112,13 +113,15 @@ public static class BitmapFont
         return processedCharImages;
     }
 
-    private static (Dictionary<char, Glyph>, Image) CreateGlyphs(Dictionary<char, Image> charImages,
+    private static (Dictionary<char, Glyph>, Image) CreateGlyphs(FontDefinition definition, Dictionary<char, Image> charImages,
         int maxHeight, ImageType imageType)
     {
         Dictionary<char, Glyph> glyphs = new();
         int offsetX = 0;
         const int padding = 1;
         int width = charImages.Values.Select(i => i.Width).Sum() + padding * charImages.Count * 2;
+        if (definition.FixedWidth != null)
+            width = (charImages.Count * definition.FixedWidth.Value) + (padding * charImages.Count * 2);
 
         Dimension atlasDimension = (width, maxHeight);
         Image atlas = new(width, maxHeight, imageType);
@@ -126,9 +129,17 @@ public static class BitmapFont
         foreach ((char c, Image charImage) in charImages)
         {
             offsetX += padding;
-            charImage.DrawOnTopOf(atlas, (offsetX, 0));
-            glyphs[c] = new Glyph(c, (offsetX, 0), charImage.Dimension, atlasDimension);
-            offsetX += charImage.Width + padding;
+
+            int charWidth = definition.FixedWidth.HasValue ? definition.FixedWidth.Value : charImage.Width;
+            var offset = definition.UseOffset ? RenderDimensions.TranslateDoomOffset(charImage.Offset) : Vec2I.Zero;
+            offset.X += offsetX;
+
+            charImage.DrawOnTopOf(atlas, offset);
+            var glyphDimension = charImage.Dimension;
+            glyphDimension.Width = charWidth;
+            glyphs[c] = new Glyph(c, (offsetX, 0), glyphDimension, atlasDimension);
+
+            offsetX += charWidth + padding;
         }
 
         return (glyphs, atlas);
@@ -145,20 +156,20 @@ public static class BitmapFont
         int startY = 0;
         switch (alignment)
         {
-        case FontAlignment.Top:
-            // We're done, the default value is correct already.
-            break;
-        case FontAlignment.Center:
-            startY = (maxHeight / 2) - (image.Height / 2);
-            break;
-        case FontAlignment.Bottom:
-            startY = maxHeight - image.Height;
-            break;
-        default:
-            throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "Unexpected font alignment in glyph creation");
+            case FontAlignment.Top:
+                // We're done, the default value is correct already.
+                break;
+            case FontAlignment.Center:
+                startY = (maxHeight / 2) - (image.Height / 2);
+                break;
+            case FontAlignment.Bottom:
+                startY = maxHeight - image.Height;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "Unexpected font alignment in glyph creation");
         }
 
-        Image glyphImage = new(image.Width, maxHeight, imageType);
+        Image glyphImage = new(image.Width, maxHeight, imageType, offset: image.Offset);
         image.DrawOnTopOf(glyphImage, (0, startY));
 
         return glyphImage;

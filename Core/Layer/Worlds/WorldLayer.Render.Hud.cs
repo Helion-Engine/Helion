@@ -735,8 +735,10 @@ public partial class WorldLayer
 
     private void DrawFullHudHealthArmorAmmo(IHudRenderContext hud)
     {
+        // Note: This area is already drawn using Doom's stretched scale so useDoomScale needs to be false.
         const int OffsetY = 171;
-        const int FontSize = 15;
+        const int FontSize = 16;
+        const int FixedWidth = 16;
 
         var weapon = Player.AnimationWeapon;
         if (weapon != null && weapon.Definition.Properties.Weapons.AmmoType.Length > 0)
@@ -745,7 +747,7 @@ public partial class WorldLayer
             m_ammoString.Clear();
             m_ammoString.Append(Math.Clamp(ammoAmount, 0, 999));
 
-            SetRenderableString(m_ammoString.AsSpan(), m_renderAmmoString, LargeHudFont, FontSize);
+            SetRenderableString(m_ammoString.AsSpan(), m_renderAmmoString, LargeHudFont, FontSize, useDoomScale: false);
             hud.Text(m_renderAmmoString, (43, OffsetY), anchor: Align.TopRight);
         }
 
@@ -753,15 +755,15 @@ public partial class WorldLayer
         m_healthString.Append(Math.Clamp(Player.Health, 0, 999));
         m_healthString.Append( '%');
 
-        SetRenderableString(m_healthString.AsSpan(), m_renderHealthString, LargeHudFont, FontSize);
-        hud.Text(m_renderHealthString, (102, OffsetY), anchor: Align.TopRight);
+        SetRenderableString(m_healthString.AsSpan(), m_renderHealthString, LargeHudFont, FontSize, useDoomScale: false);
+        hud.Text(m_renderHealthString, (103, OffsetY), anchor: Align.TopRight);
 
         m_armorString.Clear();
         m_armorString.Append(Math.Clamp(Player.Armor, 0, 999));
         m_armorString.Append('%');
 
-        SetRenderableString(m_armorString.AsSpan(), m_renderArmorString, LargeHudFont, FontSize);
-        hud.Text(m_renderArmorString, (233, OffsetY), anchor: Align.TopRight);
+        SetRenderableString(m_armorString.AsSpan(), m_renderArmorString, LargeHudFont, FontSize, useDoomScale: false);
+        hud.Text(m_renderArmorString, (234, OffsetY), anchor: Align.TopRight);
     }
 
     private void DrawFullHudWeaponSlots(IHudRenderContext hud)

@@ -198,8 +198,10 @@ font SmallFontGrayscale
 
 font LargeHudFont
 {
-    space = 12;
+    space = 14;
     align = top;
+    fixedwidth = 14;
+    useOffset = true;
     characters
     {
         "-" STTMINUS align center;
@@ -255,12 +257,13 @@ font HudYellowNumbers
 
 font IntermissionFont
 {
-    space = 12;
+    space = 14;
+    useOffset = true;
     characters
     {
         "-" WIMINUS align center;
-        ":" WICOLON;
-        "%" WIPCNT;
+        ":" WICOLON align top;
+        "%" WIPCNT align top;
         "0" WINUM0 default;
         "1" WINUM1;
         "2" WINUM2;

@@ -14,7 +14,9 @@ public class FontDefinition
     public readonly Dictionary<char, CharDefinition> CharDefinitions = new();
     public bool Grayscale;
     public bool GrayscaleNormalization;
+    public bool UseOffset;
     public int? SpaceWidth;
+    public int? FixedWidth;
     public FontAlignment Alignment = FontAlignment.Bottom;
 
     public FontDefinition(string name)

@@ -118,8 +118,24 @@ public class FontDefinitionParser : ParserBase
         Consume(';');
     }
 
+    private void ConsumeFixedWidth()
+    {
+        Consume('=');
+        CurrentDefinition.FixedWidth = ConsumeInteger();
+        Consume(';');
+    }
+
+    private void ConsumeUseOffset()
+    {
+        Consume('=');
+        CurrentDefinition.UseOffset = ConsumeBoolean();
+        Consume(';');
+    }
+
+
     private void ConsumeFontDefinitionElement()
     {
+
         string identifier = ConsumeString();
         switch (identifier.ToUpper())
         {
@@ -137,6 +153,12 @@ public class FontDefinitionParser : ParserBase
             break;
         case "SPACE":
             ConsumeSpaceDefinition();
+            break;
+        case "FIXEDWIDTH":
+            ConsumeFixedWidth();
+            break;
+        case "USEOFFSET":
+            ConsumeUseOffset();
             break;
         default:
             throw MakeException($"Expecting font definition (ex: 'characters', 'space', ...etc), got {identifier} instead");
