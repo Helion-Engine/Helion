@@ -132,37 +132,42 @@ public partial class IntermissionLayer
     {
         const string FinishedImage = "WIF";
         const string NowEnteringImage = "WIENTER";
-        const int topPaddingY = 6;
+        const int topPaddingY = 5;
         const int topMargin = 2;
 
-        int offsetY = 0;
+        int offsetY = topMargin;
 
         if (IntermissionState >= IntermissionState.NextMap && NextMapInfo != null)
         {
-            hud.Image(NowEnteringImage, (0, topMargin), out HudBox drawArea, both: Align.TopMiddle);
-            offsetY += drawArea.Height + topPaddingY;
-            hud.Image(NextMapInfo.TitlePatch, (0, offsetY), both: Align.TopMiddle);
-            offsetY += drawArea.Height;
-            DrawAuthor(hud, NextMapInfo, topMargin, ref offsetY);
+            hud.Image(NowEnteringImage, (0, offsetY), out HudBox drawArea, both: Align.TopMiddle);
+            offsetY += (5 * drawArea.Height) / 4;
+            DrawMapTitle(hud, NextMapInfo, ref offsetY);
         }
         else
         {
-            hud.Image(CurrentMapInfo.TitlePatch, (0, topMargin), out HudBox drawArea, both: Align.TopMiddle);
-            offsetY += drawArea.Height;
-            DrawAuthor(hud, CurrentMapInfo, topMargin, ref offsetY);
-            hud.Image(FinishedImage, (0, offsetY + topPaddingY), both: Align.TopMiddle);
+            DrawMapTitle(hud, CurrentMapInfo, ref offsetY);
+            hud.Image(FinishedImage, (0, offsetY), both: Align.TopMiddle);
         }
     }
 
-    private static void DrawAuthor(IHudRenderContext hud, MapInfoDef mapInfo, int topMargin, ref int offsetY)
+    private void DrawMapTitle(IHudRenderContext hud, MapInfoDef mapInfo, ref int offsetY)
     {
+        if (!string.IsNullOrEmpty(mapInfo.TitlePatch))
+        {
+            hud.Image(mapInfo.TitlePatch, (0, offsetY), out HudBox drawArea, both: Align.TopMiddle);
+            offsetY += (5 * drawArea.Height) / 4;
+            return;
+        }
+
+        // TODO would look nicer if there was a large font for the level text
+        const int LevelFontSize = 8;
         const int AuthorFontSize = 8;
-        if (string.IsNullOrEmpty(mapInfo.Author))
-            return; 
-        
-        offsetY += topMargin;
-        hud.Text(mapInfo.Author, Constants.Fonts.Small, AuthorFontSize, (0, offsetY), both: Align.TopMiddle);
-        offsetY += hud.MeasureText(mapInfo.Author, Constants.Fonts.Small, AuthorFontSize).Height;
+
+        hud.Text(mapInfo.NiceName, Constants.Fonts.SmallGray, LevelFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
+        offsetY += hud.MeasureText(mapInfo.Author, Constants.Fonts.Small, LevelFontSize).Height;
+
+        hud.Text(mapInfo.Author, Constants.Fonts.SmallGray, AuthorFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
+        offsetY += hud.MeasureText(mapInfo.Author, Constants.Fonts.Small, AuthorFontSize).Height + 1;
     }
 
     private void DrawStatistics(IHudRenderContext hud)
@@ -170,7 +175,8 @@ public partial class IntermissionLayer
         const int LeftOffsetX = 50;
         const int RightOffsetX = 280;
         const int OffsetY = 50;
-        const int RowOffsetY = 18;
+        var fontObject = m_archiveCollection.GetFont(Font);
+        int RowOffsetY = 3 * fontObject.Get('0').Area.Height / 2;
 
         if (IntermissionState >= IntermissionState.NextMap)
             return;
