@@ -319,7 +319,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddFloodFillPlane(Side side, Sector sector, bool isFrontSide)
     {
-        bool flood = m_alwaysFlood|| (m_vanillaFlood && sector.Flood);
+        bool flood = m_alwaysFlood || (m_vanillaFlood && sector.Flood);
         if (!flood && side.MidTextureFlood == SectorPlanes.None)
             return;
 

@@ -1079,7 +1079,8 @@ public class GeometryRenderer : IDisposable
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
-                    if (subsector.Flood && !flat.MidTextureHack)
+                    // Don't ignore transferheights sectors. Flood filling sector flats for transfer heights can't currently be emulated.
+                    if (subsector.Flood && !flat.MidTextureHack && subsector.Sector.TransferHeights == null)
                         continue;
 
                     WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices);
