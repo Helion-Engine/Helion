@@ -914,6 +914,7 @@ public class PhysicsManager
             }
         }
 
+        entity.Subsector = centerSubsector;
         entity.Sector = centerSector;
         entity.IntersectSectors.Add(centerSector);
         entity.IntersectMovementSectors.Add(centerSector);

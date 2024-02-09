@@ -92,8 +92,12 @@ public class SectorPlane : ISoundSource
     public Vec3D GetSoundSource(Entity listener, SectorPlaneFace type)
     {
         Vec2D pos2D = listener.Position.XY;
-        if (listener.Sector.Equals(Sector))
+        // Do not count being in the sector if this is a bad self-referencing subsector. E.g. hr2final map01 sector 160
+        if (ReferenceEquals(listener.Sector, Sector)&&
+            !WorldStatic.World.Geometry.IslandGeometry.BadSubsectors.Contains(listener.Subsector.Id))
+        {
             return pos2D.To3D(type == SectorPlaneFace.Floor ? Sector.ToFloorZ(pos2D) : Sector.ToCeilingZ(pos2D));
+        }
 
         double z = listener.Position.Z;
         pos2D = GetClosestPointFrom(pos2D);
@@ -124,6 +128,8 @@ public class SectorPlane : ISoundSource
         for (int i = 0; i < Sector.Lines.Count; i++)
         {
             var line = Sector.Lines[i];
+            if (line.Back != null && ReferenceEquals(line.Front.Sector, line.Back.Sector))
+                continue;
             double dist = line.Segment.ClosestPoint(point).Distance(point);
             if (dist < minDist)
             {

@@ -2290,7 +2290,10 @@ public abstract class WorldBase : IWorld
             if ((entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0)
                 continue;
 
-            var subsector = Geometry.BspTree.Find(entity.Position);
+            if (entity.Subsector.Id < 0 || entity.Subsector.Id >= Geometry.BspTree.Subsectors.Count)
+                continue;
+
+            var subsector = Geometry.BspTree.Subsectors[entity.Subsector.Id];
             if (subsector.IslandId < 0 || subsector.IslandId >= Geometry.IslandGeometry.Islands.Count)
                 continue;
 

@@ -23,6 +23,7 @@ using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
 using Helion.World.Blockmap;
 using Helion.Resources.Archives.Entries;
+using Helion.World.Geometry.Subsectors;
 
 namespace Helion.World.Entities;
 
@@ -66,6 +67,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public int FrozenTics;
     public int MoveCount;
     public Sector Sector;
+    public Subsector Subsector;
     public Sector HighestFloorSector;
     public Sector LowestCeilingSector;
     // Can be Sector or Entity
@@ -142,7 +144,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         HighestFloorSector = null!;
         LowestCeilingObject = null!;
         LowestCeilingSector = null!;
-        Sector = null!;
+        Sector = Sector.Default;
+        Subsector = Subsector.Default;
         Properties = null!;
     }
 
@@ -941,6 +944,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         BlockingEntity = null;
         BlockingSectorPlane = null;
         Sector = Sector.Default;
+        Subsector = Subsector.Default;
         HighestFloorObject = Sector.Default;
         LowestCeilingObject = Sector.Default;
         HighestFloorSector = Sector.Default;
