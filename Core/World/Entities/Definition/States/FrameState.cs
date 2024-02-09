@@ -47,6 +47,9 @@ public struct FrameState
             m_entity.ClosetFlags |= ClosetFlags.ClosetLook;
         if (Frame.MasterFrameIndex == WorldStatic.ClosetChaseFrameIndex)
             m_entity.ClosetFlags |= ClosetFlags.ClosetChase;
+
+        if ((m_entity.ClosetFlags & (ClosetFlags.ClosetLook | ClosetFlags.ClosetChase)) != 0)
+            m_entity.ClosetFlags |= ClosetFlags.MonsterCloset;
     }
 
     public EntityFrame? GetStateFrame(string label)
