@@ -117,7 +117,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double SaveZ;
     public double PrevSaveZ;
     public bool WasCrushing;
-    public bool InMonsterCloset;
+    public ClosetFlags ClosetFlags;
     public Island? Island;
 
     public double Height;
@@ -225,7 +225,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Alpha = (float)Properties.Alpha;
 
         FrameState = new(this, definition, entityModel.Frame);
-        InMonsterCloset = IsClosetChase || IsClosetLook;
 
         if (entityModel.OnGround.HasValue)
             OnGround = entityModel.OnGround.Value;
@@ -936,7 +935,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         MoveLinked = false;
         Respawn = false;
         WasCrushing = false;
-        InMonsterCloset = false;
+        ClosetFlags = ClosetFlags.None;
         Island = null;
         BlockingLine = null;
         BlockingEntity = null;

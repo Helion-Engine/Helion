@@ -2269,6 +2269,38 @@ public abstract class WorldBase : IWorld
         BlockmapTraverser.EntityTraverse(new Box2D(entity.Position.XY, radius), m_setNewTracerTargetAction);
     }
 
+    public void EntityTeleported(Entity teleportEntity)
+    {
+        teleportEntity.ClearMonsterCloset();
+
+        if (teleportEntity.PlayerObj == null || teleportEntity.PlayerObj.IsVooDooDoll)
+            return;
+
+        var playerSubsector = Geometry.BspTree.Find(teleportEntity.Position);
+        if (playerSubsector.IslandId < 0 || playerSubsector.IslandId >= Geometry.IslandGeometry.Islands.Count)
+            return;
+
+        var island = WorldStatic.World.Geometry.IslandGeometry.Islands[playerSubsector.IslandId];
+        if (!island.IsMonsterCloset)
+            return;
+
+        // Whoops. Player teleported into a monster closet.       
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
+        {
+            if ((entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0)
+                continue;
+
+            var subsector = Geometry.BspTree.Find(entity.Position);
+            if (subsector.IslandId < 0 || subsector.IslandId >= Geometry.IslandGeometry.Islands.Count)
+                continue;
+
+            if (subsector.IslandId != island.Id)
+                continue;
+
+            entity.ClearMonsterCloset();
+        }
+    }
+
     private GridIterationStatus HandleSetNewTracerTarget(Entity checkEntity)
     {
         if (!checkEntity.Flags.Shootable)

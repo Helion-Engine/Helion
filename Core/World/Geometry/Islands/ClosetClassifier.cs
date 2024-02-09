@@ -21,8 +21,9 @@ public static class ClosetClassifier
                 if (subsector.IslandId < 0 || subsector.IslandId >= world.Geometry.IslandGeometry.Islands.Count)
                     continue;
                 var island = world.Geometry.IslandGeometry.Islands[subsector.IslandId];
-                if (island.IsMonsterCloset)
-                    entity.InMonsterCloset = true;
+                // Saved misclassification?
+                if (!island.IsMonsterCloset && entity.ClosetFlags != ClosetFlags.None)
+                    entity.ClearMonsterCloset();
             }
             return;
         }
@@ -40,7 +41,7 @@ public static class ClosetClassifier
             if (island.IsMonsterCloset)
             {
                 foreach (Entity entity in islandToEntities[island.Id])
-                    entity.InMonsterCloset = true;
+                    entity.ClosetFlags |= ClosetFlags.MonsterCloset;
             }
         }
     }

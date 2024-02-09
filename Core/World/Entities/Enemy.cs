@@ -33,8 +33,6 @@ public partial class Entity
     private MoveDir m_direction = MoveDir.None;
 
     public bool BlockFloating;
-    public bool IsClosetLook;
-    public bool IsClosetChase;
 
     public void SetEnemyDirection(MoveDir direction) =>
         m_direction = direction;
@@ -101,6 +99,7 @@ public partial class Entity
 
     public void SetClosetChase()
     {
+        ClosetFlags = ClosetFlags & ~ClosetFlags.ClosetLook;
         FrameState.SetFrameIndex(WorldStatic.World.ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex);
         AddFrameTicks(ClosetChaseCount);
         ClosetChaseCount++;
@@ -115,12 +114,17 @@ public partial class Entity
         FrameState.SetTics((frameTicks + ticks) % frameTicks);
     }
 
-    public void Teleported()
+    public void ClearMonsterCloset()
     {
-        InMonsterCloset = false;
-        if (IsClosetChase)
+        if (ClosetFlags == ClosetFlags.None)
+            return;
+
+        var flags = ClosetFlags;
+        ClosetFlags = ClosetFlags.None;
+
+        if ((flags & ClosetFlags.ClosetLook) != 0)
             SetSeeState();
-        if (IsClosetLook)
+        if ((flags & ClosetFlags.ClosetChase) != 0)
             SetSpawnState();
     }
 
@@ -308,7 +312,7 @@ public partial class Entity
         if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
             return Position.XY;
 
-        double speed = IsClosetChase ? 64 : Math.Clamp(Properties.MonsterMovementSpeed * SlowTickMultiplier, -128, 128);
+        double speed = (ClosetFlags & ClosetFlags.ClosetChase) != 0 ? 64 : Math.Clamp(Properties.MonsterMovementSpeed * SlowTickMultiplier, -128, 128);
         double speedX = Speeds[(int)m_direction] * speed;
         double speedY = Speeds[(int)m_direction + 8] * speed;
 

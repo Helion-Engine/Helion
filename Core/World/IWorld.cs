@@ -159,6 +159,7 @@ public interface IWorld : IDisposable
     void ToggleChaseCameraMode();
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
     void ResetGametick();
+    void EntityTeleported(Entity entity);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

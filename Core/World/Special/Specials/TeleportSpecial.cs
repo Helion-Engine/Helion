@@ -79,7 +79,7 @@ public struct TeleportSpecial
         if (!FindTeleportSpot(entity, out Vec3D pos, out double angle, out double offsetZ))
             return false;
 
-        bool isMonsterCloset = entity.InMonsterCloset;
+        bool isMonsterCloset = (entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0;
         Vec3D oldPosition = entity.Position;
         Vec3D velocity = entity.Velocity;
         if (Teleport(entity, pos, angle, offsetZ))
@@ -153,7 +153,7 @@ public struct TeleportSpecial
         m_world.TelefragBlockingEntities(entity);
         m_world.Link(entity);
         entity.CheckOnGround();
-        entity.Teleported();
+        m_world.EntityTeleported(entity);
 
         return true;
     }

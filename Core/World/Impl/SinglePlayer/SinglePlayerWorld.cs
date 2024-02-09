@@ -113,6 +113,8 @@ public class SinglePlayerWorld : WorldBase
 
         if (config.Game.MonsterCloset.Value)
             ClosetClassifier.Classify(this);
+        else if (worldModel != null)
+            ClearMonsterClosets();
 
         CheatManager.CheatActivationChanged += Instance_CheatActivationChanged;
 
@@ -132,6 +134,16 @@ public class SinglePlayerWorld : WorldBase
         ChaseCamPlayer.Flags.NoSector = true;
 
         m_automapMarker = new AutomapMarker(ArchiveCollection);
+    }
+
+    private void ClearMonsterClosets()
+    {
+        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
+        {
+            if ((entity.ClosetFlags & ClosetFlags.MonsterCloset) == 0)
+                continue;
+            entity.ClearMonsterCloset();
+        }
     }
 
     private void MarkSpecials_OnChanged(object? sender, bool e)

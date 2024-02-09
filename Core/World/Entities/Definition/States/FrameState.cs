@@ -43,6 +43,10 @@ public struct FrameState
         CurrentTick = frameStateModel.Tics;
         m_destroyOnStop = frameStateModel.Destroy;
         Frame = WorldStatic.Frames[FrameIndex];
+        if (Frame.MasterFrameIndex == WorldStatic.ClosetLookFrameIndex)
+            m_entity.ClosetFlags |= ClosetFlags.ClosetLook;
+        if (Frame.MasterFrameIndex == WorldStatic.ClosetChaseFrameIndex)
+            m_entity.ClosetFlags |= ClosetFlags.ClosetChase;
     }
 
     public EntityFrame? GetStateFrame(string label)
@@ -140,8 +144,14 @@ public struct FrameState
     {
         FrameIndex = index;
         Frame = WorldStatic.Frames[FrameIndex];
-        m_entity.IsClosetLook = Frame.MasterFrameIndex == WorldStatic.ClosetLookFrameIndex;
-        m_entity.IsClosetChase = Frame.MasterFrameIndex == WorldStatic.ClosetChaseFrameIndex;
+
+        if (m_entity.ClosetFlags == ClosetFlags.None)
+            return;
+
+        if (Frame.MasterFrameIndex == WorldStatic.ClosetLookFrameIndex)
+            m_entity.ClosetFlags |= ClosetFlags.ClosetLook;
+        if (Frame.MasterFrameIndex == WorldStatic.ClosetChaseFrameIndex)
+            m_entity.ClosetFlags |= ClosetFlags.ClosetChase;
     }
 
     private void SetFrameIndexInternal(int index)
@@ -199,7 +209,7 @@ public struct FrameState
         if (!WorldStatic.SlowTickEnabled || WorldStatic.SlowTickDistance <= 0)
             return;
 
-        if (m_entity.InMonsterCloset || m_entity.IsPlayer)
+        if (m_entity.ClosetFlags != ClosetFlags.None || m_entity.IsPlayer)
             return;
 
         if (CurrentTick > 0 &&
