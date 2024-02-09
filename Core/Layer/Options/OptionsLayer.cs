@@ -360,23 +360,26 @@ public class OptionsLayer : IGameLayer
         FillBackgroundRepeatingImages(ctx, hud);
 
         int fontSize = m_config.Hud.GetMediumFontSize();
+        int largeFontSize = m_config.Hud.GetLargeFontSize();
         int smallPad = m_config.Hud.GetScaled(2);
         hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Fonts.SmallGray, fontSize, (smallPad, smallPad),
             out _, both: Align.TopLeft, color: Color.Red);
 
         m_headerHeight = 0;
         int y = m_scrollOffset;
-        hud.Image("M_OPTION", (0, y), out HudBox titleArea, both: Align.TopMiddle, scale: 3.0f);
+        int titleY = m_scrollOffset;
+        hud.Text("Options", Fonts.SmallGray, largeFontSize, (smallPad, smallPad),
+                   out var titleArea, both: Align.TopMiddle, color: Color.White);
         m_headerHeight += titleArea.Height + m_config.Hud.GetScaled(5);
 
         int padding = m_config.Hud.GetScaled(8);
         if (m_sections.Count > 1)
         {
-            int xOffset = (hud.Dimension.Width - titleArea.Dimension.Width) / 2;
+            int xOffset = (hud.Dimension.Width - titleArea.Width) / 2;
             var arrowSize = hud.MeasureText("<-", Fonts.SmallGray, fontSize);
-            int yOffset = (titleArea.Dimension.Height / 2) - (arrowSize.Height / 2);
-            Vec2I backArrowPos = (xOffset - arrowSize.Width - padding, titleArea.TopLeft.Y + yOffset);
-            Vec2I forwardArrowPos = (xOffset + titleArea.Dimension.Width + padding, titleArea.TopRight.Y + yOffset);
+            int yOffset = titleArea.Height - arrowSize.Height;
+            Vec2I backArrowPos = (xOffset - arrowSize.Width - padding, titleY + yOffset);
+            Vec2I forwardArrowPos = (xOffset + titleArea.Width + padding, titleY + yOffset);
             hud.Text("<-", Fonts.SmallGray, fontSize, backArrowPos, color: Color.White);
             hud.Text("->", Fonts.SmallGray, fontSize, forwardArrowPos, color: Color.White);
 
