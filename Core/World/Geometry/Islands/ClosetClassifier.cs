@@ -11,7 +11,7 @@ public static class ClosetClassifier
 {
     // Assumes entities and geometry have been populated. Should be done as
     // a final post-processing step.
-    public static void Classify(WorldBase world)
+    public static void Classify(WorldBase world, bool isFromSave)
     {
         if (world.SameAsPreviousMap)
         {
@@ -21,6 +21,13 @@ public static class ClosetClassifier
                 if (subsector.IslandId < 0 || subsector.IslandId >= world.Geometry.IslandGeometry.Islands.Count)
                     continue;
                 var island = world.Geometry.IslandGeometry.Islands[subsector.IslandId];
+                if (!isFromSave)
+                {
+                    if (island.IsMonsterCloset)
+                        entity.ClosetFlags |= ClosetFlags.MonsterCloset;
+                    continue;
+                }
+
                 // Saved misclassification?
                 if (!island.IsMonsterCloset && entity.ClosetFlags != ClosetFlags.None)
                     entity.ClearMonsterCloset();

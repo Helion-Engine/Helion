@@ -112,7 +112,7 @@ public class SinglePlayerWorld : WorldBase
         }
 
         if (config.Game.MonsterCloset.Value)
-            ClosetClassifier.Classify(this);
+            ClosetClassifier.Classify(this, worldModel != null);
         else if (worldModel != null)
             ClearMonsterClosets();
 
