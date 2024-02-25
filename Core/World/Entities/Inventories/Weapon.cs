@@ -64,7 +64,9 @@ public class Weapon : InventoryItem, ITickable
 
     public void SetFlashState(int offset = 0)
     {
+        Owner.WeaponFlashState = true;
         FlashState.SetState(Constants.FrameStates.Flash, offset, false);
+        Owner.WeaponFlashState = false;
     }
 
     public void SetReadyState()
@@ -78,7 +80,9 @@ public class Weapon : InventoryItem, ITickable
         ReadyToFire = false;
 
         FrameState.Tick();
+        Owner.WeaponFlashState = true;
         FlashState.Tick();
+        Owner.WeaponFlashState = false;
 
         if (m_tryingToFire && ReadyToFire)
         {

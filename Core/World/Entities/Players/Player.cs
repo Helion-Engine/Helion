@@ -99,6 +99,7 @@ public class Player : Entity
     public bool AttackDown;
     public double DeltaViewHeight;
     public double ViewHeight;
+    public bool WeaponFlashState;
     public override Player? PlayerObj => this;
     public override bool IsPlayer => true;
     public override int ProjectileKickBack => Weapon == null ? WorldStatic.World.GameInfo.DefKickBack : Weapon.KickBack;

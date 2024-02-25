@@ -173,7 +173,7 @@ public struct FrameState
 
             CheckSlowTickDistance();
             // Doom set the offsets only if misc1 wasn't zero. Only was applied through the player sprite code.
-            if (Frame.DehackedMisc1 != 0 && m_entity.PlayerObj != null)
+            if (Frame.DehackedMisc1 != 0 && m_entity.PlayerObj != null && !m_entity.PlayerObj.WeaponFlashState)
             {
                 m_entity.PlayerObj.WeaponOffset.X = Frame.DehackedMisc1;
                 m_entity.PlayerObj.WeaponOffset.Y = Frame.DehackedMisc2;
