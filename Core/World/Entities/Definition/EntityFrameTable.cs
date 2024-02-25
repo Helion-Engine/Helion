@@ -15,6 +15,7 @@ public class EntityFrameTable
     private int m_spriteIndex;
     private bool m_vileHealFrameSet;
     private EntityFrame? m_vileHealFrame;
+    private int m_bloodIndex = -1;
 
     // Lookup for dehacked
     // e.g. key = "zombieman::spawn", "shotgunguy:missile"
@@ -35,6 +36,17 @@ public class EntityFrameTable
         m_vileHealFrameSet = true;
         VanillaFrameMap.TryGetValue((int)ThingState.VILE_HEAL1, out m_vileHealFrame);
         return m_vileHealFrame;
+    }
+
+    public int GetBloodIndex()
+    {
+        if (m_bloodIndex != -1)
+            return m_bloodIndex;
+
+        m_bloodIndex = Constants.NullFrameIndex;
+        if (VanillaFrameMap.TryGetValue((int)ThingState.BLOOD1, out var frame))
+            m_bloodIndex = frame.MasterFrameIndex;
+        return m_bloodIndex;
     }
 
     public int GetSpriteIndex(string spriteName)

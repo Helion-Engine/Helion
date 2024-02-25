@@ -53,6 +53,7 @@ using Helion.Geometry.Grids;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
+using static Helion.Dehacked.DehackedDefinition;
 
 namespace Helion.World;
 
@@ -126,6 +127,7 @@ public abstract class WorldBase : IWorld
     public MapGeometry Geometry { get; }
     public PhysicsManager PhysicsManager { get; private set; }
     public IMap Map { get; private set; }
+    public bool HasDehacked;
 
     protected readonly IAudioSystem AudioSystem;
 
@@ -204,6 +206,8 @@ public abstract class WorldBase : IWorld
         m_lineOfSightEnemyAction = HandleLineOfSightEnemy;
         
         m_teleportFogDef = EntityManager.DefinitionComposer.GetByName("TeleportFog");
+
+        HasDehacked = ArchiveCollection.Definitions.DehackedDefinition != null;
 
         RegisterConfigChanges();
         SetWorldStatic();
@@ -1878,6 +1882,15 @@ public abstract class WorldBase : IWorld
 
         blood.Velocity.Z = 2;
 
+        // Doom had the blood states hardcoded. Supercharged bulletride seems to function differeing in gz vs dsda.
+        // The changed the frame for blood that dsda will ignore because of hardcoded states, but work in gz.
+        if (HasDehacked && entity.Frame.VanillaIndex != (int)ThingState.BLOOD1)
+            return;
+
+        int startIndex = blood.Definition.SpawnState.Value;
+        //if (HasDehacked)
+        //    startIndex = ArchiveCollection.Definitions.EntityFrameTable.GetBloodIndex();
+
         int offset = 0;
         if (damage <= 12 && damage >= 9)
             offset = 1;
@@ -1887,7 +1900,7 @@ public abstract class WorldBase : IWorld
         if (offset == 0)
             blood.SetRandomizeTicks();
         else if (blood.Definition.SpawnState != null)
-            blood.FrameState.SetFrameIndex(blood.Definition.SpawnState.Value + offset);
+            blood.FrameState.SetFrameIndex(startIndex + offset);
     }
 
     private static void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)
