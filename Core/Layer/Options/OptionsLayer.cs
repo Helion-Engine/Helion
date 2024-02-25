@@ -368,7 +368,7 @@ public class OptionsLayer : IGameLayer
         m_headerHeight = 0;
         int y = m_scrollOffset;
         int titleY = m_scrollOffset;
-        hud.Text("Options", Fonts.SmallGray, largeFontSize, (smallPad, smallPad),
+        hud.Text("Options", Fonts.SmallGray, largeFontSize, (smallPad, smallPad + titleY),
                    out var titleArea, both: Align.TopMiddle, color: Color.White);
         m_headerHeight += titleArea.Height + m_config.Hud.GetScaled(5);
 
