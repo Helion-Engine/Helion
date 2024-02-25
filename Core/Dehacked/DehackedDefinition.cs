@@ -17,6 +17,7 @@ namespace Helion.Dehacked;
 public partial class DehackedDefinition
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private static readonly Regex PointerRegex = new(@"^\(\w (\d+)\)");
 
     public readonly List<DehackedThing> Things = new();
     public readonly List<DehackedFrame> Frames = new();
@@ -530,9 +531,13 @@ public partial class DehackedDefinition
         DehackedPointer pointer = new();
         pointer.Number = parser.ConsumeInteger();
 
-        parser.ConsumeString("(Frame");
-        string frame = parser.ConsumeString().Replace(")", string.Empty);
+        var offset = parser.GetCurrentOffset();
+        string text = parser.ConsumeLine();
+        var match = PointerRegex.Match(text);
+        if (!match.Success || match.Groups.Count < 2)
+            throw new ParserException(offset.Line, offset.Char, -1, $"Invalid pointer text: {text}");
 
+        string frame = match.Groups[1].Value;
         if (!int.TryParse(frame, out int frameNumber))
         {
             Log.Warn($"Dehacked: Invalid frame:{frame} line:{parser.GetCurrentLine()}");
