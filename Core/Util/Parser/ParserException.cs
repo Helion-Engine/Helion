@@ -62,14 +62,10 @@ public class ParserException : HelionException
         if (text.Empty())
             return new List<string> { "Cannot parse text when there are no tokens to read" };
 
-        if (CharOffset < 0)
-            return new List<string> { "Unexpected character offset, cannot generate error message (report to a developer)" };
+        List<string> errorMessages = new List<string> { $"Error parsing text on line {LineNumber}, offset {LineCharOffset}. {Message}" };
 
-        if (CharOffset >= text.Length)
-            return new List<string> { "Error occurred past end of file, cannot generate error message (report to a developer)" };
-
-        List<string> errorMessages = new List<string> { $"Error parsing text on line {LineNumber}, offset {LineCharOffset}:" };
-        LogContextualInformation(text, errorMessages);
+        if (CharOffset >= 0 && CharOffset < text.Length)
+            LogContextualInformation(text, errorMessages);
 
         return errorMessages;
     }

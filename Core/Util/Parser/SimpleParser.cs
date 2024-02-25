@@ -5,6 +5,8 @@ using System.Text;
 
 namespace Helion.Util.Parser;
 
+public readonly record struct ParserOffset(int Line, int Char);
+
 public class SimpleParser
 {
     private class ParserToken
@@ -244,6 +246,7 @@ public class SimpleParser
     public int GetCurrentLine() => IsDone() ? - 1 : m_tokens[m_index].Line;
     public int GetCurrentCharOffset() => IsDone() ? -1 : m_tokens[m_index].Index;
 
+    public ParserOffset GetCurrentOffset() => new(GetCurrentLine(), GetCurrentCharOffset());
     public bool IsDone() => m_index >= m_tokens.Count;
 
     public bool Peek(char c)
@@ -315,7 +318,7 @@ public class SimpleParser
         ParserToken token = m_tokens[m_index];
         string data = GetData(m_index);
         if (!data.Equals(str, StringComparison.OrdinalIgnoreCase))
-            throw new ParserException(token.Line, token.Index, 0, $"Expected {str} but got {data}");
+            throw new ParserException(token.Line, token.Index, -1, $"Expected {str} but got {data}");
 
         m_index++;
     }
@@ -360,7 +363,7 @@ public class SimpleParser
             return i;
         }
 
-        throw new ParserException(token.Line, token.Index, 0, $"Could not parse {data} as integer.");
+        throw new ParserException(token.Line, token.Index, -1, $"Could not parse {data} as integer.");
     }
 
     public double ConsumeDouble()
@@ -375,7 +378,7 @@ public class SimpleParser
             return d;
         }
 
-        throw new ParserException(token.Line, token.Index, 0, $"Could not parse {data} as a double.");
+        throw new ParserException(token.Line, token.Index, -1, $"Could not parse {data} as a double.");
     }
 
     public bool ConsumeBool()
@@ -390,7 +393,7 @@ public class SimpleParser
             return b;
         }
 
-        throw new ParserException(token.Line, token.Index, 0, $"Could not parse {data} as a bool.");
+        throw new ParserException(token.Line, token.Index, -1, $"Could not parse {data} as a bool.");
     }
 
     public void Consume(char c)
@@ -400,7 +403,7 @@ public class SimpleParser
         ParserToken token = m_tokens[m_index];
         string data = GetData(m_index);
         if (data.Length != 1 || char.ToUpperInvariant(data[0]) != char.ToUpperInvariant(c))
-            throw new ParserException(token.Line, token.Index, 0, $"Expected {c} but got {data}.");
+            throw new ParserException(token.Line, token.Index, -1, $"Expected {c} but got {data}.");
 
         m_index++;
     }
@@ -452,7 +455,7 @@ public class SimpleParser
         if (IsDone())
         {
             int line = m_tokens.Count == 0 ? 0 : m_tokens[^1].Line;
-            throw new ParserException(line, m_lines[^1].Length - 1, 0, "Hit end of file when expecting data.");
+            throw new ParserException(line, m_lines[^1].Length - 1, -1, "Hit end of file when expecting data.");
         }
     }
 
