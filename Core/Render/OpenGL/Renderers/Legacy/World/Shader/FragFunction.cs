@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 
@@ -36,12 +32,15 @@ public class FragFunction
             return res * res;
         }";
 
+    public const int FuzzDistanceStep = 96;
+
     public static string FuzzFragFunction =>
         @"if (fuzzFrag > 0)
         {
             // The division/floor is to chunk pixels together to make
             // blocks. A larger denominator makes it more blocky.
-            vec2 blockCoordinate = floor(gl_FragCoord.xy);
+            // Dividing by the distance makes the fuzz look more detailed from far away instead of getting gigantic blocks.
+            vec2 blockCoordinate = floor(gl_FragCoord.xy / ceil((fuzzDiv/(max(1, fuzzDist/" + FuzzDistanceStep + @")))));
             fragColor.xyz = vec3(0, 0, 0);
             fragColor.w *= clamp(noise(blockCoordinate * fuzzFrac), 0.2, 0.45);
         }";

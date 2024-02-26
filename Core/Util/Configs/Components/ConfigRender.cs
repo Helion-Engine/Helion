@@ -119,4 +119,8 @@ public class ConfigRender
     [ConfigInfo("Enable vanilla flat flood filling for all sectors. Experimental.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Always flood fill flats (experimental)")]
     public readonly ConfigValue<bool> AlwaysFloodFillFlats = new(false);
+
+    [ConfigInfo("Fuzz amount.")]
+    [OptionMenu(OptionSectionType.Render, "Fuzz amount")]
+    public readonly ConfigValue<double> FuzzAmount = new(1);
 }

@@ -10,17 +10,20 @@ public class LegacyHudShader : RenderProgram
     private readonly int m_boundTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_fuzzFracLocation;
+    private readonly int m_fuzzDivLocation;
 
     public LegacyHudShader() : base("Hud")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_fuzzFracLocation = Uniforms.GetLocation("fuzzFrac");
+        m_fuzzDivLocation = Uniforms.GetLocation("fuzzDiv");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
     public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
     public void FuzzFrac(float frac) => Uniforms.Set(frac, m_fuzzFracLocation);
+    public void FuzzDiv(float div) => Uniforms.Set(div, m_fuzzDivLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -64,6 +67,9 @@ public class LegacyHudShader : RenderProgram
 
         uniform sampler2D boundTexture;
         uniform float fuzzFrac;
+        uniform float fuzzDiv;
+        // Make the hud weapon fuzz a little more detailed.
+        float fuzzDist = " + (FragFunction.FuzzDistanceStep * 1.5) + @";
 
         ${FuzzFunction}
 

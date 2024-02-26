@@ -216,6 +216,7 @@ public class EntityRenderer : IDisposable
         m_program.ViewRightNormal(m_viewRightNormal);
         m_program.DistanceOffset(Renderer.GetDistanceOffset(renderInfo));
         m_program.ColorMix(renderInfo.Uniforms.ColorMix);
+        m_program.FuzzDiv(renderInfo.Uniforms.FuzzDiv);
     }
 
     public void RenderAlpha(RenderInfo renderInfo)

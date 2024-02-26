@@ -12,7 +12,10 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
+using Helion.World;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -25,10 +28,12 @@ public class LegacyHudRenderer : HudRenderer
     private readonly StreamVertexBuffer<HudVertex> m_vbo;
     private readonly LegacyHudShader m_program;
     private readonly HudDrawBuffer m_drawBuffer;
+    private readonly IConfig m_config;
     private float DrawDepth = 1.0f;
 
-    public LegacyHudRenderer(LegacyGLTextureManager textureManager, DataCache dataCache)
+    public LegacyHudRenderer(IConfig config, LegacyGLTextureManager textureManager, DataCache dataCache)
     {
+        m_config = config;
         m_textureManager = textureManager;
         m_vao = new("Hud renderer");
         m_vbo = new("Hud renderer");
@@ -116,6 +121,7 @@ public class LegacyHudRenderer : HudRenderer
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.Mvp(CreateMvp(viewport));
         m_program.FuzzFrac(Renderer.GetTimeFrac());
+        m_program.FuzzDiv(Renderer.GetFuzzDiv(m_config.Render, viewport));
 
         for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)
         {

@@ -13,8 +13,9 @@ public readonly struct ShaderUniforms
     public readonly int ExtraLight;
     public readonly float DistanceOffset;
     public readonly Vec3F ColorMix;
+    public readonly float FuzzDiv;
 
-    public ShaderUniforms(mat4 mvp, mat4 mvpNoPitch, float timeFrac, bool drawInvulnerability, float mix, int extraLight, float distanceOffset, Vec3F colorMix)
+    public ShaderUniforms(mat4 mvp, mat4 mvpNoPitch, float timeFrac, bool drawInvulnerability, float mix, int extraLight, float distanceOffset, Vec3F colorMix, float fuzzDiv)
     {
         Mvp = mvp;
         MvpNoPitch = mvpNoPitch;
@@ -24,5 +25,6 @@ public readonly struct ShaderUniforms
         ExtraLight = extraLight;
         DistanceOffset = distanceOffset;
         ColorMix = colorMix;
+        FuzzDiv = fuzzDiv;
     }
 }

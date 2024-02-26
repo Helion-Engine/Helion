@@ -16,6 +16,7 @@ using Helion.Render.OpenGL.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World;
@@ -65,7 +66,7 @@ public class Renderer : IDisposable
 
         Textures = new LegacyGLTextureManager(config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
-        m_hudRenderer = new LegacyHudRenderer(Textures, archiveCollection.DataCache);
+        m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
         m_framebufferRenderer = new(config, window);
         Default = new(window, this);
 
@@ -92,6 +93,11 @@ public class Renderer : IDisposable
         const int DifferentFrames = 8;
 
         return ((WorldStatic.World.GameTicker / TicksPerFrame) % DifferentFrames) + 1;
+    }
+
+    public static float GetFuzzDiv(ConfigRender config, in Rectangle viewport)
+    {
+        return viewport.Height / 240f * (float)config.FuzzAmount;
     }
 
     public static ShaderUniforms GetShaderUniforms(RenderInfo renderInfo)
@@ -123,7 +129,7 @@ public class Renderer : IDisposable
         return new ShaderUniforms(Renderer.CalculateMvpMatrix(renderInfo),
             Renderer.CalculateMvpMatrix(renderInfo, true),
             GetTimeFrac(), drawInvulnerability, mix, extraLight, Renderer.GetDistanceOffset(renderInfo),
-            colorMix);
+            colorMix, Renderer.GetFuzzDiv(renderInfo.Config, renderInfo.Viewport));
     }
 
     public static Vec3F GetColorMix(Entity viewerEntity, OldCamera camera)

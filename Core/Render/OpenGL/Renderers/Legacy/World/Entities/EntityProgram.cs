@@ -20,6 +20,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_viewRightNormalLocation;
     private readonly int m_distanceOffsetLocation;
     private readonly int m_colorMixLocation;
+    private readonly int m_fuzzDivLocation;
 
     public EntityProgram() : base("Entity")
     {
@@ -34,6 +35,7 @@ public class EntityProgram : RenderProgram
         m_viewRightNormalLocation = Uniforms.GetLocation("viewRightNormal");
         m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
         m_colorMixLocation = Uniforms.GetLocation("colorMix");
+        m_fuzzDivLocation = Uniforms.GetLocation("fuzzDiv");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -47,6 +49,7 @@ public class EntityProgram : RenderProgram
     public void ViewRightNormal(Vec2F viewRightNormal) => Uniforms.Set(viewRightNormal, m_viewRightNormalLocation);
     public void DistanceOffset(float distance) => Uniforms.Set(distance, m_distanceOffsetLocation);
     public void ColorMix(Vec3F color) => Uniforms.Set(color, m_colorMixLocation);
+    public void FuzzDiv(float div) => Uniforms.Set(div, m_fuzzDivLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -88,6 +91,7 @@ public class EntityProgram : RenderProgram
 
         out vec2 uvFrag;
         out float dist;
+        out float fuzzDist;
         flat out float lightLevelFrag;
         flat out float alphaFrag;
         flat out float fuzzFrag;
@@ -96,7 +100,6 @@ public class EntityProgram : RenderProgram
         uniform mat4 mvpNoPitch;
         uniform vec2 viewRightNormal;
         uniform sampler2D boundTexture;
-        uniform float fuzzFrac;
 
         void main()
         {
@@ -114,7 +117,13 @@ public class EntityProgram : RenderProgram
             // We also need to be going counter-clockwise.
             // Also the UV's are inverted, so draw from 1 down to 0 along the Y.
 
-            gl_Position = mvp * vec4(minPos.x, minPos.y, minPos.z, 1);
+            // fuzzDist is going to be the center of min/max.
+            // This keeps the fuzz consistent across the texture.
+            vec4 glPosMin = mvp * vec4(minPos.x, minPos.y, minPos.z, 1);
+            vec4 glPosMax = mvp * vec4(maxPos.x, maxPos.y, maxPos.z, 1);
+            fuzzDist = (glPosMin.z + glPosMax.z) / 2;
+
+            gl_Position = glPosMin;
             dist = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).z;
             uvFrag = vec2(leftU, 1);
             lightLevelFrag = lightLevelOut[0];
@@ -138,7 +147,7 @@ public class EntityProgram : RenderProgram
             fuzzFrag = fuzzOut[0];
             EmitVertex();
 
-            gl_Position = mvp * vec4(maxPos.x, maxPos.y, maxPos.z, 1);
+            gl_Position = glPosMax;
             dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, maxPos.z, 1)).z;
             uvFrag = vec2(rightU, 0);
             lightLevelFrag = lightLevelOut[0];
@@ -155,6 +164,7 @@ public class EntityProgram : RenderProgram
 
         in vec2 uvFrag;
         in float dist;
+        in float fuzzDist;
         flat in float lightLevelFrag;
         flat in float alphaFrag;
         flat in float fuzzFrag;
@@ -168,6 +178,7 @@ public class EntityProgram : RenderProgram
         uniform int extraLight;
         uniform vec3 colorMix;
         uniform float distanceOffset;
+        uniform float fuzzDiv;
 
         ${FuzzFunction}        
         ${LightLevelConstants}
