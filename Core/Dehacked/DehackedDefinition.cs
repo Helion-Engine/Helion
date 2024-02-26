@@ -17,7 +17,7 @@ namespace Helion.Dehacked;
 public partial class DehackedDefinition
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private static readonly Regex PointerRegex = new(@"^\(\w (\d+)\)");
+    private static readonly Regex PointerRegex = new(@"^\(\S+ (\d+)\)");
 
     public readonly List<DehackedThing> Things = new();
     public readonly List<DehackedFrame> Frames = new();
