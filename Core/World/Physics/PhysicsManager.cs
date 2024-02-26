@@ -1005,7 +1005,7 @@ public class PhysicsManager
             }
 
             success = false;
-            if (ShouldClearSlide(entity))
+            if (ShouldClearSlide(entity, TryMoveData))
                 ClearVelocityXY(entity);
             break;
         }
@@ -1174,6 +1174,7 @@ public class PhysicsManager
                         {
                             tryMove.Success = false;
                             entity.BlockingEntity = nextEntity;
+                            tryMove.BlockingEntity = nextEntity;
                             goto doneIsPositionValid;
                         }
                         
@@ -1205,6 +1206,7 @@ public class PhysicsManager
                             if (blockType != LineBlock.NoBlock)
                             {
                                 entity.BlockingLine = line;
+                                tryMove.BlockingLine = line;
                                 tryMove.Success = false;
                                 if (!entity.Flags.NoClip && line.HasSpecial)
                                     tryMove.ImpactSpecialLines.Add(line);
@@ -1331,7 +1333,7 @@ doneIsPositionValid:
 
         // If we cannot find the line or thing that is blocking us, then we
         // are fully done moving horizontally.
-        if (ShouldClearSlide(entity))
+        if (ShouldClearSlide(entity, tryMove))
             ClearVelocityXY(entity);
         stepDelta.X = 0;
         stepDelta.Y = 0;
@@ -1513,7 +1515,7 @@ doneIsPositionValid:
             if (IsPositionValid(entity, nextPosition, tryMove))
             {
                 MoveTo(entity, nextPosition, tryMove);
-                if (ShouldClearSlide(entity))
+                if (ShouldClearSlide(entity, tryMove))
                     entity.Velocity.Y = 0;
                 stepDelta.Y = 0;
                 return true;
@@ -1525,7 +1527,7 @@ doneIsPositionValid:
             if (IsPositionValid(entity, nextPosition, tryMove))
             {
                 MoveTo(entity, nextPosition, tryMove);
-                if (ShouldClearSlide(entity))
+                if (ShouldClearSlide(entity, tryMove))
                     entity.Velocity.X = 0;
                 stepDelta.X = 0;
                 return true;
@@ -1535,9 +1537,13 @@ doneIsPositionValid:
         return false;
     }
 
+    private static bool ShouldClearSlide(Entity entity, TryMoveData tryMove)
+    {
+        if (!WorldStatic.VanillaMovementPhysics)
+            return true;
 
-    private static bool ShouldClearSlide(Entity entity) =>
-        !WorldStatic.VanillaMovementPhysics || (entity.IsBlocked() && entity.BlockingLine != null);
+        return tryMove.BlockingEntity != null && tryMove.BlockingLine == null;
+    }
 
     private void MoveXY(Entity entity)
     {

@@ -18,6 +18,9 @@ public class TryMoveData
     public Entity? DropOffEntity;
     public Subsector? Subsector;
 
+    public Entity? BlockingEntity;
+    public Line? BlockingLine;
+
     public DynamicArray<Entity> IntersectEntities2D = new();
     public DynamicArray<Line> IntersectSpecialLines = new();
     public DynamicArray<Line> ImpactSpecialLines = new();
@@ -33,6 +36,8 @@ public class TryMoveData
         LowestCeilingZ = int.MinValue;
         DropOffEntity = null;
         Subsector = null;
+        BlockingEntity = null;
+        BlockingLine = null;
     }
 
     public void SetIntersectionData(LineOpening opening)
