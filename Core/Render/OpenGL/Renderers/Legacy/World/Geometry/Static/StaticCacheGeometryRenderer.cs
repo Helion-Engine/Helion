@@ -180,43 +180,35 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (previous == facingSide.FloodTextures)
             return;
 
-        if ((previous & SideTexture.Lower) == 0)
-        {
-            if ((facingSide.FloodTextures & SideTexture.Lower) != 0 && facingSide.LowerFloodKey == 0)
-                m_geometryRenderer.Portals.AddStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower, isFront);
-        }
-        else
-        {
-            if ((facingSide.FloodTextures & SideTexture.Lower) == 0 && facingSide.UpperFloodKey == 0)
-            {
-                if (facingSide.LowerFloodKey > 0)
-                    m_geometryRenderer.Portals.ClearStaticWall(facingSide.LowerFloodKey);
-                if (facingSide.LowerFloodKey2 > 0)
-                    m_geometryRenderer.Portals.ClearStaticWall(facingSide.LowerFloodKey2);
+        UpdateFloodFillSideState(facingSide, otherSide, otherSector, isFront, previous, SideTexture.Upper);
+        UpdateFloodFillSideState(facingSide, otherSide, otherSector, isFront, previous, SideTexture.Lower);
+    }
 
-                facingSide.LowerFloodKey = 0;
-                facingSide.LowerFloodKey2 = 0;
-            }
+    private void UpdateFloodFillSideState(Side facingSide, Side otherSide, Sector otherSector, bool isFront, SideTexture previous,
+        SideTexture sideTexture)
+    {
+        bool isUpper = (sideTexture & SideTexture.Upper) != 0;
+        FloodKeys floodKeys = isUpper ? facingSide.UpperFloodKeys : facingSide.LowerFloodKeys;
+
+        if ((previous & sideTexture) == 0)
+        {
+            if ((facingSide.FloodTextures & sideTexture) != 0 && floodKeys.Key1 == 0)
+                m_geometryRenderer.Portals.AddStaticFloodFillSide(facingSide, otherSide, otherSector, sideTexture, isFront);
+            return;
         }
 
-        if ((previous & SideTexture.Upper) == 0 && facingSide.UpperFloodKey == 0)
+        if ((facingSide.FloodTextures & sideTexture) == 0 && floodKeys.Key1 != 0)
         {
-            if ((facingSide.FloodTextures & SideTexture.Upper) != 0)
-                m_geometryRenderer.Portals.AddStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Upper, isFront);
-        }
-        else
-        {
-            if ((facingSide.FloodTextures & SideTexture.Upper) == 0 && facingSide.UpperFloodKey == 0)
-            {
-                if (facingSide.UpperFloodKey > 0)
-                    m_geometryRenderer.Portals.ClearStaticWall(facingSide.UpperFloodKey);
-                if (facingSide.UpperFloodKey2 > 0)
-                    m_geometryRenderer.Portals.ClearStaticWall(facingSide.UpperFloodKey2);
+            if (floodKeys.Key1 > 0)
+                m_geometryRenderer.Portals.ClearStaticWall(floodKeys.Key1);
+            if (floodKeys.Key2 > 0)
+                m_geometryRenderer.Portals.ClearStaticWall(floodKeys.Key2);
 
-                facingSide.UpperFloodKey = 0;
-                facingSide.UpperFloodKey2 = 0;
-            }
-        }
+            if (isUpper)
+                facingSide.UpperFloodKeys = Side.NoFloodKeys;
+            else
+                facingSide.LowerFloodKeys = Side.NoFloodKeys;
+        }  
     }
 
     public static int GetLightBufferIndex(Sector sector, LightBufferType type)
@@ -847,20 +839,23 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_geometryRenderer.SetRenderCeiling(plane);
 
         AddSectorPlane(plane.Sector, floor, true);
+        UpdateSectorFloodFill(plane.Sector);
+    }
 
-        for (int i = 0; i < plane.Sector.Lines.Count; i++)
+    private void UpdateSectorFloodFill(Sector sector)
+    {
+        for (int i = 0; i < sector.Lines.Count; i++)
         {
-            var line = plane.Sector.Lines[i];
+            var line = sector.Lines[i];
             AddLine(line, true);
-
             UpdateSectorPlaneFloodFill(line);
 
             if (line.Back == null)
                 continue;
 
-            CheckForFloodFill(line.Front, line.Back, line.Front.Sector.GetRenderSector(TransferHeightView.Middle), 
+            CheckForFloodFill(line.Front, line.Back, line.Front.Sector.GetRenderSector(TransferHeightView.Middle),
                 line.Back.Sector.GetRenderSector(TransferHeightView.Middle), true);
-            CheckForFloodFill(line.Back, line.Front, line.Back.Sector.GetRenderSector(TransferHeightView.Middle), 
+            CheckForFloodFill(line.Back, line.Front, line.Back.Sector.GetRenderSector(TransferHeightView.Middle),
                 line.Front.Sector.GetRenderSector(TransferHeightView.Middle), true);
         }
     }

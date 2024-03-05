@@ -11,8 +11,12 @@ namespace Helion.World.Geometry.Sides;
 
 public record class SideColormaps(Colormap? Upper, Colormap? Middle, Colormap? Lower);
 
+public record struct FloodKeys(int Key1, int Key2);
+
 public class Side : IRenderObject
 {
+    public static readonly FloodKeys NoFloodKeys = new(0, 0);
+
     public readonly int Id;
     public readonly Sector Sector;
     public readonly Wall Upper;
@@ -41,10 +45,8 @@ public class Side : IRenderObject
     public int LastRenderGametick;
     public int LastRenderGametickAlpha;
     public int BlockmapCount;
-    public int UpperFloodKey;
-    public int LowerFloodKey;
-    public int UpperFloodKey2;
-    public int LowerFloodKey2;
+    public FloodKeys UpperFloodKeys;
+    public FloodKeys LowerFloodKeys;
     public int FloorFloodKey;
     public int CeilingFloodKey;
     public bool BlockmapLinked;

@@ -393,10 +393,10 @@ public class GeometryRenderer : IDisposable
                 CheckFloodFillLine(line.Front, line.Back);
 
             // Need to force render for alternative flood fill from the front side.
-            if (onFront || onBothSides || line.Front.LowerFloodKey2 > 0 || line.Front.UpperFloodKey2 > 0)
+            if (onFront || onBothSides || line.Front.LowerFloodKeys.Key2 > 0 || line.Front.UpperFloodKeys.Key2 > 0)
                 RenderSectorSideWall(sector, line.Front, pos2D, true);
             // Need to force render for alternative flood fill from the back side.
-            if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKey2 > 0 || line.Back.UpperFloodKey2 > 0))
+            if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKeys.Key2 > 0 || line.Back.UpperFloodKeys.Key2 > 0))
                 RenderSectorSideWall(sector, line.Back, pos2D, false);
         }
     }
@@ -586,13 +586,13 @@ public class GeometryRenderer : IDisposable
     public static bool LowerIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
     {
         return facingSector.Floor.Z < otherSector.Floor.Z || facingSector.Floor.PrevZ < otherSector.Floor.PrevZ ||
-            facingSide.LowerFloodKey > 0;
+            facingSide.LowerFloodKeys.Key1 > 0;
     }
 
     public static bool UpperIsVisible(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
     {
         return facingSector.Ceiling.Z > otherSector.Ceiling.Z || facingSector.Ceiling.PrevZ > otherSector.Ceiling.PrevZ ||
-            facingSide.UpperFloodKey > 0;
+            facingSide.UpperFloodKeys.Key1 > 0;
     }
 
     public static bool UpperIsVisibleOrFlood(TextureManager textureManager, Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
@@ -653,7 +653,7 @@ public class GeometryRenderer : IDisposable
         bool isSky = TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
         bool skyRender = isSky && TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle);
 
-        if (facingSide.LowerFloodKey > 0 || facingSide.LowerFloodKey2 > 0)
+        if (facingSide.LowerFloodKeys.Key1 > 0 || facingSide.LowerFloodKeys.Key2 > 0)
         {
             vertices = null;
             skyVertices = null;
@@ -733,7 +733,7 @@ public class GeometryRenderer : IDisposable
         bool isSky = TextureManager.IsSkyTexture(plane.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         Wall upperWall = facingSide.Upper;
 
-        if (facingSide.UpperFloodKey > 0 || facingSide.UpperFloodKey2 > 0)
+        if (facingSide.UpperFloodKeys.Key1 > 0 || facingSide.UpperFloodKeys.Key2 > 0)
         {
             vertices = null;
             skyVertices = null;
