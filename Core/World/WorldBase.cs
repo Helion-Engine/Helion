@@ -2608,6 +2608,9 @@ public abstract class WorldBase : IWorld
     public void SetPlaneTexture(SectorPlane plane, int textureHandle)
     {
         int previousTextureHandle = plane.TextureHandle;
+        if (textureHandle == previousTextureHandle)
+            return;
+
         plane.SetTexture(textureHandle, Gametick);
         PlaneTextureChanged?.Invoke(this, new PlaneTextureEvent(plane, textureHandle, previousTextureHandle));
     }
