@@ -410,7 +410,8 @@ public abstract class WorldBase : IWorld
 
     private GridIterationStatus HandleLineOfSightEnemy(Entity checkEntity)
     {
-        if (m_lineOfSightEnemyData.Entity.Id == checkEntity.Id || checkEntity.IsDead || m_lineOfSightEnemyData.Entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
+        if (m_lineOfSightEnemyData.Entity.Id == checkEntity.Id || checkEntity.IsDead || !checkEntity.Flags.CountKill ||
+            m_lineOfSightEnemyData.Entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
             return GridIterationStatus.Continue;
 
         if (!m_lineOfSightEnemyData.AllAround && !InFieldOfViewOrInMeleeDistance(m_lineOfSightEnemyData.Entity, checkEntity))
