@@ -40,10 +40,13 @@ public sealed class SkyGeometryManager
         m_planeLookup.Clear();
     }
 
-    public void AddSide(ISkyComponent sky, Side side, WallLocation wallLocation, SkyGeometryVertex[]? vertices, int index)
+    public void AddSide(ISkyComponent sky, Side side, WallLocation wallLocation, SkyGeometryVertex[]? vertices)
     {
         if (vertices == null)
             return;
+
+        int index = sky.Vbo.Count;
+        sky.Add(vertices, vertices.Length);
 
         if (!m_sideLookup.TryGetValue(side.Id, out var data))
         {
@@ -69,8 +72,10 @@ public sealed class SkyGeometryManager
         }
     }
 
-    public void AddPlane(ISkyComponent sky, SectorPlane plane, SkyGeometryVertex[] vertices, int index)
+    public void AddPlane(ISkyComponent sky, SectorPlane plane, SkyGeometryVertex[] vertices)
     {
+        int index = sky.Vbo.Count;
+        sky.Add(vertices, vertices.Length);
         m_planeLookup[plane.Id] = new StaticSkyGeometryData(sky.Vbo, index, vertices.Length);
     }
 

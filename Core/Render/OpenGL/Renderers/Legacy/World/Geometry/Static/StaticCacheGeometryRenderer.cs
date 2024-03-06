@@ -431,19 +431,16 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!m_skyRenderer.GetOrCreateSky(sector.SkyTextureHandle, sector.FlipSkyTexture, out var sky))
             return;
 
-        int index = sky.Vbo.Count;
-        sky.Add(vertices, vertices.Length);
-
         if (plane != null && !planeUpdated)
         {
-            m_skyGeometry.AddPlane(sky, plane, vertices, index);
+            m_skyGeometry.AddPlane(sky, plane, vertices);
             return;
         }
 
         if (side == null || sideUpdated)
             return;
 
-        m_skyGeometry.AddSide(sky, side, wallLocation, vertices, index);
+        m_skyGeometry.AddSide(sky, side, wallLocation, vertices);
     }
 
     private static unsafe void AddVertices(DynamicArray<StaticVertex> staticVertices, LegacyVertex[] vertices)
