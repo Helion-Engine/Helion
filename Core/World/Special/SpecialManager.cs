@@ -1665,7 +1665,7 @@ public class SpecialManager : ITickable, IDisposable
     private static double GetNextLowestCeilingDestZ(Sector sector)
     {
         Sector? destSector = sector.GetNextLowestCeiling();
-        return destSector?.Ceiling.Z ?? sector.Floor.Z;
+        return destSector?.Ceiling.Z ?? sector.Ceiling.Z;
     }
 
     private static double GetNextHighestFloorDestZ(Sector sector)
