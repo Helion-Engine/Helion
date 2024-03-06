@@ -765,7 +765,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
         StaticDataApplier.SetSectorDynamic(world, plane.Sector, floor, ceiling, SectorDynamic.Movement);
         ClearGeometryVertices(plane.Static);
-
         m_skyGeometry.ClearGeometryVertices(plane);
 
         for (int i = 0; i < plane.Sector.Lines.Count; i++)
@@ -872,17 +871,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_PlaneTextureChanged(object? sender, PlaneTextureEvent e)
     {
-        ClearGeometryVertices(e.Plane.Static);
-
-        if (m_world.ArchiveCollection.TextureManager.IsSkyTexture(e.PreviousTextureHandle))
-        {
-            m_skyGeometry.ClearGeometryVertices(e.Plane);
-        }
-        else
-        {
-            ClearGeometryVertices(e.Plane.Static);
+        m_skyGeometry.ClearGeometryVertices(e.Plane);
+        if (ClearGeometryVertices(e.Plane.Static))
             m_freeManager.Add(e.PreviousTextureHandle, e.Plane.Static);
-        }
 
         e.Plane.Static.GeometryData = null;
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
@@ -899,12 +890,13 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_updateLightSectors.Add(e);
     }
 
-    private static void ClearGeometryVertices(in StaticGeometryData data)
+    private static bool ClearGeometryVertices(in StaticGeometryData data)
     {
         if (data.GeometryData == null)
-            return;
+            return false;
 
         ClearGeometryVertices(data.GeometryData, data.Index, data.Length);
+        return true;
     }
 
     private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, LegacyVertex[] vertices,
