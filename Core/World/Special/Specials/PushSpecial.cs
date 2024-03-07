@@ -59,7 +59,7 @@ public class PushSpecial : ISpecial
 
     public SpecialTickStatus Tick()
     {
-        if (m_sector.SectorEffect != SectorEffect.WindOrPush)
+        if ((m_sector.SectorEffect & SectorEffect.WindOrPush) == 0)
             return SpecialTickStatus.Continue;
 
         // TODO logic changes when Transfer Heights is implemented
@@ -85,7 +85,7 @@ public class PushSpecial : ISpecial
                     if (!entity.Flags.WindThrust)
                         continue;
 
-                    if (entity.Position.Z != m_sector.ToFloorZ(entity.Position))
+                    if (entity.Position.Z == m_sector.ToFloorZ(entity.Position))
                         pushFactor /= 2;
                 }
                 else if (m_type == PushType.Current)
