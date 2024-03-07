@@ -222,6 +222,8 @@ public class EntityManager : IDisposable
             Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, init: true);
             if (mapThing.Flags.Ambush)
                 entity.Flags.Ambush = mapThing.Flags.Ambush;
+            if (mapThing.Flags.Friendly)
+                entity.Flags.Friendly = mapThing.Flags.Friendly;
 
             if (entity.FrameState.Frame.Ticks > 0)
                 entity.FrameState.SetTics((World.Random.NextByte() % entity.FrameState.Frame.Ticks) + 1);

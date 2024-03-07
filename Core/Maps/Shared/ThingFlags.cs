@@ -11,6 +11,8 @@ public class ThingFlags
         public const ushort MultiPlayerFlag = 0x0010;
         public const ushort NotDeathmatchFlag = 0x0020;
         public const ushort NotCooperativeFlag = 0x0040;
+        public const ushort FriendFlag = 0x00080;
+        public const ushort ReservedFlag = 0x00100;
     }
 
     public static class ZDoomFlags
@@ -61,6 +63,7 @@ public class ThingFlags
 
     public static ThingFlags Doom(ushort flags)
     {
+        bool reserved = (flags & DoomFlags.ReservedFlag) != 0;
         return new ThingFlags
         {
             Easy = (flags & DoomFlags.EasyFlag) == DoomFlags.EasyFlag,
@@ -68,8 +71,9 @@ public class ThingFlags
             Hard = (flags & DoomFlags.HardFlag) == DoomFlags.HardFlag,
             Ambush = (flags & DoomFlags.AmbushFlag) == DoomFlags.AmbushFlag,
             MultiPlayer = (flags & DoomFlags.MultiPlayerFlag) == DoomFlags.MultiPlayerFlag,
-            Deathmatch = (flags & DoomFlags.NotDeathmatchFlag) != DoomFlags.NotDeathmatchFlag,
-            Cooperative = (flags & DoomFlags.NotCooperativeFlag) != DoomFlags.NotCooperativeFlag,
+            Deathmatch = (flags & DoomFlags.NotDeathmatchFlag) == DoomFlags.NotDeathmatchFlag,
+            Cooperative = (flags & DoomFlags.NotCooperativeFlag) == DoomFlags.NotCooperativeFlag,
+            Friendly = !reserved && (flags & DoomFlags.FriendFlag) == DoomFlags.FriendFlag,
         };
     }
 
