@@ -26,7 +26,7 @@ public class PushSpecial : ISpecial
     private readonly PushType m_type;
     private readonly IWorld m_world;
     private readonly Sector m_sector;
-    private readonly Vec3D m_pushFactor;
+    private readonly Vec2D m_pushFactor;
     private readonly double m_magnitude;
     private readonly Entity? m_pusher;
     private readonly Func<Entity, GridIterationStatus> m_pushEntityAction;
@@ -38,7 +38,7 @@ public class PushSpecial : ISpecial
         m_type = type;
         m_world = world;
         m_sector = sector;
-        m_pushFactor = pushFactor.To3D(0);
+        m_pushFactor = pushFactor;
         m_magnitude = pushFactor.Length();
         m_pusher = pusher;
         m_pushEntityAction = new(PushEntity);
@@ -62,7 +62,6 @@ public class PushSpecial : ISpecial
         if ((m_sector.SectorEffect & SectorEffect.WindOrPush) == 0)
             return SpecialTickStatus.Continue;
 
-        // TODO logic changes when Transfer Heights is implemented
         if (m_type == PushType.Push && m_pusher != null)
         {
             Box2D box = new(m_pusher.Position.XY, m_magnitude * 2);
@@ -79,26 +78,63 @@ public class PushSpecial : ISpecial
                 if (ShouldNotPush(entity))
                     continue;
 
-                Vec3D pushFactor = m_pushFactor;
+                Vec2D pushFactor = m_pushFactor;
                 if (m_type == PushType.Wind)
                 {
                     if (!entity.Flags.WindThrust)
                         continue;
 
-                    if (entity.Position.Z == m_sector.ToFloorZ(entity.Position))
-                        pushFactor /= 2;
+                    pushFactor = GetWindPushFactor(entity, pushFactor);
                 }
                 else if (m_type == PushType.Current)
                 {
                     if (entity.Position.Z != m_sector.ToFloorZ(entity.Position))
                         continue;
+
+                    pushFactor = GetCurrentPushFactor(entity, pushFactor);
                 }
 
-                entity.Velocity += pushFactor * PushFactor;
+                entity.Velocity.X += pushFactor.X * PushFactor;
+                entity.Velocity.Y += pushFactor.Y * PushFactor;
             }
         }
 
         return SpecialTickStatus.Continue;
+    }
+
+    private Vec2D GetCurrentPushFactor(Entity entity, Vec2D pushFactor)
+    {
+        if (m_sector.TransferHeights == null)
+        {
+            if (entity.Position.Z > m_sector.ToFloorZ(entity.Position))
+                return Vec2D.Zero;
+
+            return pushFactor;
+        }
+
+        if (entity.Position.Z > m_sector.TransferHeights.ControlSector.Floor.Z)
+            return Vec2D.Zero;
+
+        return pushFactor;
+    }
+
+    private Vec2D GetWindPushFactor(Entity entity, Vec2D pushFactor)
+    {
+        if (m_sector.TransferHeights == null)
+        {
+            if (entity.Position.Z == m_sector.ToFloorZ(entity.Position))
+                return pushFactor / 2;
+
+            return pushFactor;
+        }
+
+        double floorZ = m_sector.TransferHeights.ControlSector.Floor.Z;
+        if (entity.Position.Z > floorZ)
+            return pushFactor;
+        else if (entity.PlayerObj != null && entity.Position.Z + entity.PlayerObj.ViewZ < floorZ)
+            return Vec2D.Zero;
+
+        return pushFactor / 2;
     }
 
     private GridIterationStatus PushEntity(Entity entity)
