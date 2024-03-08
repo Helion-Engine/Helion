@@ -39,10 +39,12 @@ public class PhysicsManager
     private const double MudMoveFactorMed = MudMoveFactorLow * 2;
     private const double MudMoveFactorHigh = MudMoveFactorLow * 4;
 
+    public const double MaxMoveXY = 30;
     public static readonly double LowestPossibleZ = Fixed.Lowest().ToDouble();
 
     public BlockmapTraverser BlockmapTraverser;
     public TryMoveData TryMoveData = new();
+    public bool EnableMaxMoveXY = true;
 
     private readonly IWorld m_world;
     private readonly CompactBspTree m_bspTree;
@@ -1556,6 +1558,14 @@ doneIsPositionValid:
             if (entity.Flags.Skullfly)
                 m_world.HandleEntityHit(entity, entity.Velocity, TryMoveData);
             return;
+        }
+
+        if (EnableMaxMoveXY)
+        {
+            if (entity.Velocity.X > MaxMoveXY || entity.Velocity.X < -MaxMoveXY)
+                entity.Velocity.X = MathHelper.Clamp(entity.Velocity.X, -MaxMoveXY, MaxMoveXY);
+            if (entity.Velocity.Y > MaxMoveXY || entity.Velocity.Y < -MaxMoveXY)
+                entity.Velocity.Y = MathHelper.Clamp(entity.Velocity.Y, -MaxMoveXY, MaxMoveXY);
         }
 
         TryMoveXY(entity, (entity.Position + entity.Velocity).XY);
