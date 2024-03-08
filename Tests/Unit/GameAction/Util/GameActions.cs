@@ -288,10 +288,12 @@ namespace Helion.Tests.Unit.GameAction
 
         public static void MoveEntity(WorldBase world, Entity entity, double distance)
         {
+            world.PhysicsManager.EnableMaxMoveXY = false;
             Vec3D velocity = distance * Vec3D.UnitSphere(entity.AngleRadians, 0);
             entity.Velocity = velocity;
             world.Tick();
             entity.Velocity = Vec3D.Zero;
+            world.PhysicsManager.EnableMaxMoveXY = true;
         }
 
         public static void MoveEntity(WorldBase world, Entity entity, Vec2D pos)

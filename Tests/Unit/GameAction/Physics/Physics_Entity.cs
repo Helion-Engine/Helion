@@ -103,8 +103,8 @@ namespace Helion.Tests.Unit.GameAction
             Vec3D pos2 = pos1 + new Vec3D(32, 0, 0);
             GameActions.CreateEntity(World, "Zombieman", pos1);
             var moveEntity = GameActions.CreateEntity(World, "Zombieman", pos2);
-            GameActions.MoveEntity(World, moveEntity, moveEntity.Position.XY + new Vec2D(32, 0));
-            moveEntity.Position.X.Should().Be(-864);
+            GameActions.MoveEntity(World, moveEntity, moveEntity.Position.XY + new Vec2D(30, 0));
+            moveEntity.Position.X.Should().Be(-866);
             moveEntity.Position.Y.Should().Be(256);
             moveEntity.Position.Z.Should().Be(0);
         }

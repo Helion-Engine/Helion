@@ -26,9 +26,9 @@ public partial class Physics
         Player.Flags.NoGravity = true;
         GameActions.SetEntityPosition(World, Player, new Vec3D(0, 0, 16));
         Player.OnGround.Should().BeFalse();
-        Player.Velocity = new Vec3D(32, 0, 0);
+        Player.Velocity = new Vec3D(16, 0, 0);
         GameActions.TickWorld(World, 1);
-        Player.Velocity.X.Should().Be(32);
+        Player.Velocity.X.Should().Be(16);
         Player.Velocity = Vec3D.Zero;
         Player.Flags.NoGravity = false;
     }

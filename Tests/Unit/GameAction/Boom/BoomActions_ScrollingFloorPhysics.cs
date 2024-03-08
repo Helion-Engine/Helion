@@ -79,4 +79,15 @@ public partial class BoomActions
 
         World.EntityManager.Destroy(rocket);
     }
+
+    [Fact(DisplayName = "Scrolling floor that pushes the velocity past MaxMoveXY")]
+    public void ScrollingFloorHitsMaxMove()
+    {
+        Player.Velocity = Vec3D.Zero;
+        GameActions.SetEntityPosition(World, Player, (-832, -192));
+        GameActions.TickWorld(World, 35);
+        Player.Velocity.Y.Should().Be(31.3125);
+        GameActions.TickWorld(World, 35);
+        Player.Velocity.Y.Should().Be(31.3125);
+    }
 }
