@@ -1300,7 +1300,11 @@ doneIsPositionValid:
             return;
 
         for (int i = tryMove.IntersectSpecialLines.Length - 1; i >= 0 && i < tryMove.IntersectSpecialLines.Length; i--)
+        {
+            if (entity.Flags.Teleported)
+                break;
             CheckLineSpecialActivation(entity, tryMove.IntersectSpecialLines[i], previousPosition);
+        }
     }
 
     private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)
