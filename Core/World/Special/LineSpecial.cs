@@ -1,3 +1,4 @@
+using Helion.Maps.Doom.Components;
 using Helion.Maps.Hexen.Components;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
@@ -102,6 +103,10 @@ public class LineSpecial
         if (entity.Flags.NoTeleport && IsTeleport())
             return false;
 
+        int defId = entity.Definition.Id;
+        bool projectileTrigger = WorldStatic.Doom2ProjectileWalkTriggers && line.Special.LineSpecialCompatibility.CompatibilityType == LineSpecialCompatibilityType.ProjectileTrigger &&
+            (defId == WorldStatic.ArachnotronPlasma?.Id || defId == WorldStatic.FatShot?.Id || defId == WorldStatic.RevenantTracer?.Id);
+
         bool contextSuccess = false;
         LineFlags flags = line.Flags;
         if (context == ActivationContext.HitscanCrossLine || context == ActivationContext.HitscanImpactsWall)
@@ -116,7 +121,7 @@ public class LineSpecial
         }
         else if (entity.Flags.Missile)
         {
-            if ((flags.Activations & LineActivations.Projectile) == 0)
+            if (!projectileTrigger && (flags.Activations & LineActivations.Projectile) == 0)
                 return false;
 
             if (context == ActivationContext.EntityImpactsWall)
@@ -127,7 +132,7 @@ public class LineSpecial
         }
         else if (!entity.IsPlayer)
         {
-            if (line.Flags.Secret || (flags.Activations & LineActivations.Monster) == 0)
+            if (line.Flags.Secret || (!projectileTrigger && (flags.Activations & LineActivations.Monster) == 0))
                 return false;
 
             if (context == ActivationContext.CrossLine)

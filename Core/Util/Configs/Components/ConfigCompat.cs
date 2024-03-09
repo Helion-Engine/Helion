@@ -45,6 +45,10 @@ public class ConfigCompat
     [OptionMenu(OptionSectionType.Compatibility, "Use bugged stair building")]
     public readonly ConfigValue<bool> Stairs = new(false);
 
+    [ConfigInfo("Enable Doom 2 projectiles triggering walk specials", serialize: true, demo: true)]
+    [OptionMenu(OptionSectionType.Compatibility, "Doom 2 projectiles trigger walk specials")]
+    public readonly ConfigValue<bool> Doom2ProjectileWalkTriggers = new(false);
+
     [ConfigInfo("Enable mbf21 features.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Enable mbf21 features")]
     public readonly ConfigValue<bool> Mbf21 = new(true);

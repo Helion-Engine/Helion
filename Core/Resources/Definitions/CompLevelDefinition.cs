@@ -52,6 +52,7 @@ public class CompLevelDefinition
                 compat.MissileClip.SetWithNoWriteConfig(true);
                 compat.Stairs.SetWithNoWriteConfig(true);
                 compat.PainElementalLostSoulLimit.SetWithNoWriteConfig(true);
+                compat.Doom2ProjectileWalkTriggers.SetWithNoWriteConfig(true);
                 compat.AllowItemDropoff.SetWithNoWriteConfig(false);
                 compat.Mbf21.SetWithNoWriteConfig(false);
                 break;

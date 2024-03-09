@@ -4,5 +4,6 @@ public enum LineSpecialCompatibilityType
 {
     None,
     KeyDoor,
-    KeyObject
+    KeyObject,
+    ProjectileTrigger
 }

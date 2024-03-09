@@ -31,6 +31,19 @@ public static class VanillaLineSpecTranslator
 
         switch (type)
         {
+            case VanillaLineSpecialType.W1_DoorOpenClose:
+            case VanillaLineSpecialType.W1_LowerLiftRaise:
+            case VanillaLineSpecialType.W1_Teleport:
+            case VanillaLineSpecialType.WR_LowerLiftRaise:
+            case VanillaLineSpecialType.WR_Teleport:
+            case VanillaLineSpecialType.W1_MonsterTeleport:
+            case VanillaLineSpecialType.WR_MonsterTeleport:
+                compatibility = LineSpecialCompatibility.VanillaProjectileTrigger;
+                break;
+        }
+
+        switch (type)
+        {
             case VanillaLineSpecialType.W1_Teleport:
             case VanillaLineSpecialType.WR_Teleport:
             case VanillaLineSpecialType.W1_MonsterTeleport:
