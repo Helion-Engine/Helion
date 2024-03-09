@@ -447,8 +447,9 @@ public class ListedConfigSection : IOptionSection
             
             if (i == m_currentRowIndex && m_rowIsSelected)
                 attrColor = Color.Yellow;
-            
-            hud.Text(attr.Name, Fonts.SmallGray, fontSize, (-offsetX, y), out Dimension attrArea, window: Align.TopMiddle, 
+
+            string name = GetEllipsesText(hud, attr.Name, Fonts.SmallGray, fontSize, hud.Dimension.Width / 2 - offsetX);
+            hud.Text(name, Fonts.SmallGray, fontSize, (-offsetX, y), out Dimension attrArea, window: Align.TopMiddle, 
                 anchor: Align.TopRight, color: attrColor);
 
             Dimension valueArea;
@@ -495,6 +496,26 @@ public class ListedConfigSection : IOptionSection
             OnRowChanged?.Invoke(this, new(m_currentRowIndex));
             m_updateRow = false;
         }
+    }
+
+    private static string GetEllipsesText(IHudRenderContext hud, string text, string font, int fontSize, int maxWidth)
+    {
+        int nameWidth = hud.MeasureText(text, Fonts.SmallGray, fontSize).Width;
+        if (nameWidth <= maxWidth)
+            return text;
+
+        var textSpan = text.AsSpan();
+        int sub = 1;
+        while (sub < textSpan.Length && hud.MeasureText(textSpan, Fonts.SmallGray, fontSize).Width > maxWidth)
+        {
+            textSpan = text.AsSpan(0, text.Length - sub);
+            sub++;
+        }
+
+        if (textSpan.Length <= 3)
+            return text;
+
+        return text.Substring(0, textSpan.Length - 3) + "...";
     }
 
     private bool IsConfigDisabled(int rowIndex)
