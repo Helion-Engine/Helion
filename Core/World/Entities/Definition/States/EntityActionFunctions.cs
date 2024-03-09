@@ -3112,16 +3112,11 @@ public static class EntityActionFunctions
 
         for (int i = 0; i < bullets; i++)
         {
-            //Entity entity = (Entity)damageParams.Object!;
-            //return damageParams.Arg0 * ((entity.World.Random.NextByte() % damageParams.Arg1) + 1);
             double angle = entity.AngleRadians + (WorldStatic.Random.NextDiff() * spreadAngle / 255);
             double newPitch = pitch + (WorldStatic.Random.NextDiff() * spreadPitch / 255);
             WorldStatic.World.FireHitscan(entity, angle, newPitch, Constants.EntityShootDistance,
                damage * ((WorldStatic.Random.NextByte() % mod) + 1));
         }
-
-        //entity.World.FireHitscanBullets(entity, bullets, spreadAngle, spreadPitch, pitch, Constants.EntityShootDistance, true, DamageAttackFunction,
-        //    new DamageFuncParams(entity, damage, mod));
     }
 
     private static void A_MonsterMeleeAttack(Entity entity)

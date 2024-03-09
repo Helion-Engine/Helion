@@ -31,6 +31,8 @@ public static class Constants
 
     public static readonly int NullCompatibilityTextureIndex = 1;
 
+    public const int HitscanTestDamage = int.MinValue;
+
     /// <summary>
     /// The name of the decorate player class.
     /// </summary>

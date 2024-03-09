@@ -209,7 +209,7 @@ public class SinglePlayerWorld : WorldBase
         if (Config.Game.AutoAim)
             GetAutoAimEntity(Player, Player.HitscanAttackPos, Player.AngleRadians, Constants.EntityShootDistance, out _, out entity);
         else
-            entity = FireHitscan(Player, Player.AngleRadians, Player.PitchRadians, Constants.EntityShootDistance, 0);
+            entity = FireHitscan(Player, Player.AngleRadians, Player.PitchRadians, Constants.EntityShootDistance, Constants.HitscanTestDamage);
 
         return entity != null && !entity.Flags.Friendly && entity.Health > 0;
     }

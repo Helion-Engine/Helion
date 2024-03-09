@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Util;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction;
@@ -15,19 +16,19 @@ public partial class Physics
         var entity = GameActions.CreateEntity(World, "Zombieman", HitscanEnemyPos);
         GameActions.SetEntityPosition(World, Player, HitscanPlayerPos);
         Player.AngleRadians = GameActions.GetAngle(Bearing.North);
-        var hitEntity = World.FireHitscan(Player, Player.AngleRadians, 0, 8192, 0);
+        var hitEntity = World.FireHitscan(Player, Player.AngleRadians, 0, 8192, Constants.HitscanTestDamage);
         hitEntity.Should().Be(entity, "Shootable and solid");
 
         entity.Flags.Solid = false;
-        hitEntity = World.FireHitscan(Player, Player.AngleRadians, 0, 8192, 0);
+        hitEntity = World.FireHitscan(Player, Player.AngleRadians, 0, 8192, Constants.HitscanTestDamage);
         hitEntity.Should().Be(entity, "Shootable and non-solid");
 
         entity.Flags.Shootable = false;
-        hitEntity = World.FireHitscan(Player, Player.AngleRadians, 0, 8192, 0);
+        hitEntity = World.FireHitscan(Player, Player.AngleRadians, 0, 8192, Constants.HitscanTestDamage);
         hitEntity.Should().BeNull("Non-shootable and non-solid");
 
         entity.Flags.Solid = false;
-        hitEntity = World.FireHitscan(Player, Player.AngleRadians, 0, 8192, 0);
+        hitEntity = World.FireHitscan(Player, Player.AngleRadians, 0, 8192, Constants.HitscanTestDamage);
         hitEntity.Should().BeNull("Non-shootable and solid");
     }
 }

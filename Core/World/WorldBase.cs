@@ -1153,7 +1153,7 @@ public abstract class WorldBase : IWorld
             BlockmapIntersect bi = intersections[i];
             if (bi.Line != null)
             {
-                if (damage > 0 && bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.HitscanImpactsWall))
+                if (damage != Constants.HitscanTestDamage && bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.HitscanImpactsWall))
                 {
                     var args = new EntityActivateSpecial(ActivationContext.HitscanImpactsWall, shooter, bi.Line);
                     EntityActivatedSpecial(args);
@@ -1210,7 +1210,7 @@ public abstract class WorldBase : IWorld
             if (bi.Entity != null && shooter.Id != bi.Entity.Id && bi.Entity.BoxIntersects(start, end, ref intersect))
             {
                 returnValue = bi;
-                if (damage > 0)
+                if (damage != Constants.HitscanTestDamage)
                 {
                     DamageEntity(bi.Entity, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
                     CreateBloodOrPulletPuff(bi.Entity, intersect, angle, distance, damage);
