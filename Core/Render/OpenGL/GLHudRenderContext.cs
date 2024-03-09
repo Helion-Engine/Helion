@@ -140,7 +140,7 @@ public class GLHudRenderContext : IHudRenderContext
         Dimension drawDim = (0, 0);
         if (area != null)
             drawDim = area.Value.Dimension;
-        else if (Textures.TryGet(texture, out var handle))
+        else if (Textures.TryGet(texture, out var handle, resourceNamespace))
             drawDim = handle.Dimension;
 
         drawDim.Scale(scale);
