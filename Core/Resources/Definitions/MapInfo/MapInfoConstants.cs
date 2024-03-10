@@ -255,6 +255,7 @@ public partial class MapInfoDefinition
         { "compat_limitpain",       new MapOptionSet { Option = MapOptions.CompatLimitPain, Value = true } },
         { "compat_notossdrops",     new MapOptionSet { Option = MapOptions.CompatNoTossDrops, Value = true } },
         { "compat_stairs",          new MapOptionSet { Option = MapOptions.CompatStairs, Value = true } },
+        { "forcenoskystretch",      new MapOptionSet { Option = MapOptions.ForceNoSkyStretch, Value = true } },
     };
 
     private static readonly HashSet<string> MapOptionsIgnore = new(StringComparer.OrdinalIgnoreCase)

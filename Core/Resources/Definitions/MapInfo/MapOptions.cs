@@ -19,5 +19,6 @@ public enum MapOptions
     CompatNoCrossOver,
     CompatLimitPain,
     CompatNoTossDrops,
-    CompatStairs
+    CompatStairs,
+    ForceNoSkyStretch
 }
