@@ -15,9 +15,9 @@ font SmallFont
         ")" STCFN041;
         "*" STCFN042 align top;
         "+" STCFN043 align center;
-        "," STCFN044;
+        "," STCFN044 align bottom;
         "-" STCFN045 align center;
-        "." STCFN046;
+        "." STCFN046 align bottom;
         "/" STCFN047;
         "0" STCFN048;
         "1" STCFN049;
@@ -66,7 +66,7 @@ font SmallFont
         "\\" STCFN092;
         "]" STCFN093;
         "^" STCFN094 align top;
-        "_" STCFN095;
+        "_" STCFN095 align bottom;
         "a" STCFN065;
         "b" STCFN066;
         "c" STCFN067;
@@ -116,9 +116,9 @@ font SmallFontGrayscale
         ")" STCFN041;
         "*" STCFN042 align top;
         "+" STCFN043 align center;
-        "," STCFN044;
+        "," STCFN044 align bottom;
         "-" STCFN045 align center;
-        "." STCFN046;
+        "." STCFN046 align bottom;
         "/" STCFN047;
         "0" STCFN048;
         "1" STCFN049;
@@ -167,7 +167,7 @@ font SmallFontGrayscale
         "\\" STCFN092;
         "]" STCFN093;
         "^" STCFN094 align top;
-        "_" STCFN095;
+        "_" STCFN095 align bottom;
         "a" STCFN065;
         "b" STCFN066;
         "c" STCFN067;

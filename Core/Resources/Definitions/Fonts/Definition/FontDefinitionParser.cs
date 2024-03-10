@@ -135,7 +135,6 @@ public class FontDefinitionParser : ParserBase
 
     private void ConsumeFontDefinitionElement()
     {
-
         string identifier = ConsumeString();
         switch (identifier.ToUpper())
         {
