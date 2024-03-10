@@ -328,9 +328,9 @@ public partial class MapInfoDefinition
         SkyDef sky = new();
         sky.Name = parser.ConsumeString();
         if (!MapNames.Contains(parser.PeekString()) && parser.PeekInteger(out _))
-            sky.ScrollSpeed = parser.ConsumeInteger();
+            sky.ScrollSpeed = parser.ConsumeDouble();
         else if (parser.ConsumeIf(","))
-            sky.ScrollSpeed = parser.ConsumeInteger();
+            sky.ScrollSpeed = parser.ConsumeDouble();
         return sky;
     }
 
