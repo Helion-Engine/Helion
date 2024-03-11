@@ -125,6 +125,13 @@ public class FontDefinitionParser : ParserBase
         Consume(';');
     }
 
+    private void ConsumeFixedHeight()
+    {
+        Consume('=');
+        CurrentDefinition.FixedHeight = ConsumeInteger();
+        Consume(';');
+    }
+
     private void ConsumeUseOffset()
     {
         Consume('=');
@@ -132,35 +139,37 @@ public class FontDefinitionParser : ParserBase
         Consume(';');
     }
 
-
     private void ConsumeFontDefinitionElement()
     {
         string identifier = ConsumeString();
         switch (identifier.ToUpper())
         {
-        case "ALIGN":
-            ConsumeAlignDefinition();
-            break;
-        case "CHARACTERS":
-            ConsumeCharactersDefinition();
-            break;
-        case "GRAYSCALE":
-            ConsumeGrayscaleDefinition();
-            break;
-        case "GRAYSCALENORMALIZATION":
-            ConsumeGrayscaleNormalizationDefinition();
-            break;
-        case "SPACE":
-            ConsumeSpaceDefinition();
-            break;
-        case "FIXEDWIDTH":
-            ConsumeFixedWidth();
-            break;
-        case "USEOFFSET":
-            ConsumeUseOffset();
-            break;
-        default:
-            throw MakeException($"Expecting font definition (ex: 'characters', 'space', ...etc), got {identifier} instead");
+            case "ALIGN":
+                ConsumeAlignDefinition();
+                break;
+            case "CHARACTERS":
+                ConsumeCharactersDefinition();
+                break;
+            case "GRAYSCALE":
+                ConsumeGrayscaleDefinition();
+                break;
+            case "GRAYSCALENORMALIZATION":
+                ConsumeGrayscaleNormalizationDefinition();
+                break;
+            case "SPACE":
+                ConsumeSpaceDefinition();
+                break;
+            case "FIXEDWIDTH":
+                ConsumeFixedWidth();
+                break;
+            case "FIXEDHEIGHT":
+                ConsumeFixedHeight();
+                break;
+            case "USEOFFSET":
+                ConsumeUseOffset();
+                break;
+            default:
+                throw MakeException($"Expecting font definition (ex: 'characters', 'space', ...etc), got {identifier} instead");
         }
     }
 

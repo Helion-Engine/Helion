@@ -2,6 +2,7 @@ font SmallFont
 {
     space = 4;
     align = top;
+    fixedheight = 7;
     characters
     {
         "!" STCFN033;
@@ -103,6 +104,7 @@ font SmallFontGrayscale
     grayscale = true;
     grayscaleNormalization = true;
     align = top;
+    fixedheight = 7;
     characters
     {
         "!" STCFN033;

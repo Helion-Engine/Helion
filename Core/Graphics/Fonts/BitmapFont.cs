@@ -107,7 +107,7 @@ public static class BitmapFont
         foreach ((char c, Image charImage) in charImages)
         {
             FontAlignment alignment = definition.CharDefinitions[c].Alignment ?? definition.Alignment;
-            processedCharImages[c] = CreateCharImage(charImage, maxHeight, alignment, imageType);
+            processedCharImages[c] = CreateCharImage(charImage, maxHeight, alignment, imageType, definition.FixedHeight);
         }
 
         return processedCharImages;
@@ -146,9 +146,12 @@ public static class BitmapFont
     }
 
     private static Image CreateCharImage(Image image, int maxHeight, FontAlignment alignment,
-        ImageType imageType)
+        ImageType imageType, int? fixedHeight)
     {
         Precondition(maxHeight >= image.Height, "Miscalculated max height when making font");
+
+        if (fixedHeight.HasValue)
+            maxHeight = fixedHeight.Value;
 
         if (image.Height == maxHeight)
             return image;

@@ -17,6 +17,7 @@ public class FontDefinition
     public bool UseOffset;
     public int? SpaceWidth;
     public int? FixedWidth;
+    public int? FixedHeight;
     public FontAlignment Alignment = FontAlignment.Bottom;
 
     public FontDefinition(string name)
