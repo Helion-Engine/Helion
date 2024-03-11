@@ -191,11 +191,19 @@ public partial class MapInfoDefinition
         if (existing == null)
             return mapDef;
 
-        // Need to carry over the map special. This apparently isn't cleared with defaultmap.
+        // Need to cary over some things even with defualt map. Not exactly clear and couldn't find anything in the wiki...
         if (hasDefaultMap)
+        {
             mapDef.MapSpecial = existing.MapSpecial;
+            mapDef.Music = existing.Music;
+            mapDef.TitlePatch = existing.TitlePatch;
+            mapDef.ParTime = existing.ParTime;
+            mapDef.SuckTime = existing.SuckTime;
+        }
         else
+        {
             mapDef = existing;
+        }
         return mapDef;
     }
 
