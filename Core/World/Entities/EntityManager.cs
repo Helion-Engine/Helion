@@ -426,8 +426,10 @@ public class EntityManager : IDisposable
     {
         if (entity.Flags.SpawnCeiling)
         {
+            // Need to always use Doom's old height here.
+            double height = entity.GetMissileClipHeight(true);
             double offset = ZHeightSet(zHeight) ? -zHeight : 0;
-            entity.Position.Z = entity.Sector.ToCeilingZ(entity.Position) - entity.Height + offset;
+            entity.Position.Z = entity.Sector.ToCeilingZ(entity.Position) - height + offset;
         }
 
         if (checkOnGround)
