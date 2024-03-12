@@ -31,6 +31,7 @@ public class StairSpecial : SectorMoveSpecial
 
         public Sector Sector { get; private set; }
         public int Height { get; private set; }
+        public bool Destroyed { get; set; }
     }
 
     public IEnumerable<Sector> GetBuildSectors() => m_stairs.Select(x => x.Sector);
@@ -132,13 +133,11 @@ public class StairSpecial : SectorMoveSpecial
             if (!world.IsSectorIdValid(model.SectorIds[i]))
                 continue;
 
-            m_stairs.Add(new StairMove(world.Sectors[model.SectorIds[i]], model.Heights[i]));
+            var stairSector = world.Sectors[model.SectorIds[i]];
+            m_stairs.Add(new StairMove(stairSector, model.Heights[i]));
 
-            if (i >= m_destroyCount)
-            {
-                m_stairs[i].Sector.ActiveFloorMove = this;
-                CreateMovementSound(m_stairs[i].Sector);
-            }
+            CreateMovementSound(stairSector);
+            stairSector.ActiveFloorMove = this;
         }
     }
 
@@ -160,8 +159,11 @@ public class StairSpecial : SectorMoveSpecial
 
         for (int i = 0; i < m_stairs.Count; i++)
         {
-            sectors.Add(m_stairs[i].Sector.Id);
-            heights.Add(m_stairs[i].Height);
+            var step = m_stairs[i];
+            if (step.Destroyed)
+                continue;
+            sectors.Add(step.Sector.Id);
+            heights.Add(step.Height);
         }
 
         model.SectorIds = sectors;
@@ -209,26 +211,32 @@ public class StairSpecial : SectorMoveSpecial
             return SpecialTickStatus.Continue;
         }
 
-        SpecialTickStatus currentStatus = SpecialTickStatus.Continue;
         double height = 0;
 
         for (int i = 0; i < m_stairs.Count; i++)
         {
+            var currentStatus = SpecialTickStatus.Continue;
+            var step = m_stairs[i];
             IsInitialMove = setInitialMove;
-            height = m_stairs[i].Height;
-            Sector = m_stairs[i].Sector;
+            height = step.Height;
+            Sector = step.Sector;
             SectorPlane = Sector.Floor;
             if (m_resetTics == 0)
                 DestZ = m_startZ;
             else
                 DestZ = m_startZ + height;
-            if (OwnsPlane(Sector))
+
+            if (!step.Destroyed && OwnsPlane(Sector))
                 currentStatus = base.Tick();
 
             if (currentStatus == SpecialTickStatus.Destroy)
             {
                 SectorPlane.PrevZ = SectorPlane.Z;
-                m_destroyCount++;
+                if (!step.Destroyed)
+                {
+                    m_destroyCount++;
+                    step.Destroyed = true;
+                }
                 m_stairDelayTics = m_stairDelay;
             }
 
