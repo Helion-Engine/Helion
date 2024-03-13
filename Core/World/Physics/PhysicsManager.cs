@@ -637,7 +637,7 @@ public class PhysicsManager
 
         if (entity.IsDisposed || entity.Definition.IsBulletPuff)
             return;
-        if (entity.Flags.NoClip && entity.Flags.NoGravity)
+        if (entity.Flags.NoClip && entity.Flags.NoGravity || entity.Flags.SpawnCeiling)
             return;
 
         double prevHighestFloorZ = entity.HighestFloorZ;
