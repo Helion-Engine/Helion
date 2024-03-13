@@ -212,7 +212,6 @@ public class StairSpecial : SectorMoveSpecial
         }
 
         double height = 0;
-
         for (int i = 0; i < m_stairs.Count; i++)
         {
             var currentStatus = SpecialTickStatus.Continue;
@@ -229,14 +228,11 @@ public class StairSpecial : SectorMoveSpecial
             if (!step.Destroyed && OwnsPlane(Sector))
                 currentStatus = base.Tick();
 
-            if (currentStatus == SpecialTickStatus.Destroy)
+            if (currentStatus == SpecialTickStatus.Destroy && !step.Destroyed)
             {
+                step.Destroyed = true;
                 SectorPlane.PrevZ = SectorPlane.Z;
-                if (!step.Destroyed)
-                {
-                    m_destroyCount++;
-                    step.Destroyed = true;
-                }
+                m_destroyCount++;
                 m_stairDelayTics = m_stairDelay;
             }
 

@@ -59,4 +59,23 @@ public class VanillaStairActions
         foreach ((int sectorId, double startingFloorZ) in new[] { (0, 0.0), (10, 48.0) })
             GameActions.GetSector(World, sectorId).Floor.Z.Should().Be(startingFloorZ, $"Sector {sectorId} is not a stair, should not move from starting Z = {startingFloorZ}");
     }
+
+    [Fact(DisplayName = "Stairs that complete out of order")]
+    public void StairOutOfOrderTest()
+    {
+        GameActions.EntityUseLine(World, Player, 70).Should().BeTrue();
+
+        // This tests for a bug that happened when stairs were completed out of order causing the stair special to short out early.
+        int[] sectorStairIds = { 25, 26, 27, 28, 29, 33, 23, 20, 21, 22, 18, 32, 31, 30, 19, 15, 16, 17 };
+        GameActions.TickWorld(World, 35 * 20);
+
+        int stairZ = 24;
+        foreach (var sectorId in sectorStairIds)
+        {
+            var sector = GameActions.GetSector(World, sectorId);
+            sector.ActiveFloorMove.Should().BeNull();
+            sector.Floor.Z.Should().Be(stairZ);
+            stairZ += 8;
+        }
+    }
 }
