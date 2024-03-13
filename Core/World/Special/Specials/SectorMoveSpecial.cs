@@ -290,6 +290,7 @@ public class SectorMoveSpecial : ISectorSpecial
     public virtual void ResetInterpolation()
     {
         SectorPlane.PrevZ = SectorPlane.Z;
+        SectorPlane.LastRenderChangeGametick = m_world.Gametick;
     }
 
     private void CheckPlaySound()
