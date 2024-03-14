@@ -33,7 +33,8 @@ namespace Helion.Tests.Unit.GameAction
 
         public static SinglePlayerWorld LoadMap(string resourceZip, string fileName, string mapName, string testKey, Action<SinglePlayerWorld> onInit,
             IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium, Player? existingPlayer = null, WorldModel? worldModel = null, 
-            bool disposeExistingWorld = true, bool cacheWorld = true)
+            bool disposeExistingWorld = true, bool cacheWorld = true,
+            Action<ArchiveCollection> onBeforeInit = null)
         {
             if (disposeExistingWorld && UseExistingWorld(resourceZip, fileName, mapName, testKey, cacheWorld, out SinglePlayerWorld? existingWorld))
                 return existingWorld;
@@ -66,6 +67,8 @@ namespace Helion.Tests.Unit.GameAction
             Zdbsp zdbsp = new();
             if (!zdbsp.RunZdbsp(map, mapName, mapDef, out var outputMap) || outputMap == null)
                 throw new Exception("Failed to create bsp");
+
+            onBeforeInit?.Invoke(archiveCollection);
 
             DoomRandom random = worldModel == null ? new() : new(worldModel.RandomIndex);
             SinglePlayerWorld? world = WorldLayer.CreateWorldGeometry(new GlobalData(), config, audioSystem, archiveCollection, profiler, mapDef, 
