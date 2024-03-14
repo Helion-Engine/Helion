@@ -106,6 +106,14 @@ public partial class Entity
     public bool OverlapsMissileClipZ(Entity other, bool missileClipCompat) =>
         OverlapsZ(other, other.GetMissileClipHeight(missileClipCompat));
 
+    public double GetClampHeight()
+    {
+        if (Flags.SpawnCeiling)
+            return GetMissileClipHeight(true);
+
+        return Height;
+    }
+
     public double GetMissileClipHeight(bool missileClipCompat)
     {
         int passHeight = Properties.ProjectilePassHeight;

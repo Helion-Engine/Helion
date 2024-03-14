@@ -182,7 +182,7 @@ public class PhysicsManager
             ClampBetweenFloorAndCeiling(entity, entity.IntersectMovementSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
 
             double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
-            if (thingZ + entity.Height > entity.LowestCeilingZ)
+            if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
             {
                 if (moveType == SectorPlaneFace.Ceiling)
                     PushDownBlockingEntities(entity);
@@ -212,7 +212,7 @@ public class PhysicsManager
                 continue;
 
             double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
-            if (thingZ + entity.Height > entity.LowestCeilingZ)
+            if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
             {
                 if (entity.Flags.Dropped)
                 {
@@ -637,7 +637,7 @@ public class PhysicsManager
 
         if (entity.IsDisposed || entity.Definition.IsBulletPuff)
             return;
-        if (entity.Flags.NoClip && entity.Flags.NoGravity || entity.Flags.SpawnCeiling)
+        if (entity.Flags.NoClip && entity.Flags.NoGravity)
             return;
 
         double prevHighestFloorZ = entity.HighestFloorZ;
@@ -652,7 +652,7 @@ public class PhysicsManager
         if (entity.TopZ > lowestCeil || highestFloor <= short.MinValue)
         {
             entity.Velocity.Z = 0;
-            entity.Position.Z = lowestCeil - entity.Height;
+            entity.Position.Z = lowestCeil - entity.GetClampHeight();
 
             if (highestFloor > short.MinValue)
             {
