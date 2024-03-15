@@ -36,4 +36,6 @@ public class WorldModel
     public int KillCount { get; set; }
     public int ItemCount { get; set; }
     public int SecretCount { get; set; }
+
+    public string? MusicName { get; set; }
 }

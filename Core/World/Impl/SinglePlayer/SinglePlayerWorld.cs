@@ -275,7 +275,8 @@ public class SinglePlayerWorld : WorldBase
     public override void Start(WorldModel? worldModel)
     {
         base.Start(worldModel);
-        if (!PlayLevelMusic(Config, AudioSystem, MapInfo.Music, ArchiveCollection))
+        var musicName = worldModel?.MusicName ?? MapInfo.Music;
+        if (!PlayLevelMusic(Config, AudioSystem, musicName, ArchiveCollection))
             AudioSystem.Music.Stop();
 
         m_automapMarker.Start(this);

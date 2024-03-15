@@ -2746,7 +2746,8 @@ public abstract class WorldBase : IWorld
             TotalSecrets = LevelStats.TotalSecrets,
             KillCount = LevelStats.KillCount,
             ItemCount = LevelStats.ItemCount,
-            SecretCount = LevelStats.SecretCount
+            SecretCount = LevelStats.SecretCount,
+            MusicName = m_lastMusicChange == null ? MapInfo.Music : m_lastMusicChange.Name
         };
     }
 
