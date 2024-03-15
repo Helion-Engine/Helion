@@ -41,7 +41,7 @@ public class SkySphereShader : RenderProgram
 
         void main() {
             uvFrag = uv;
-            if (flipU != 0) {
+            if (flipU == 0) {
                 uvFrag.x = -uvFrag.x;
             }
 

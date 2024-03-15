@@ -50,7 +50,7 @@ public class Sector
     public bool Secret => (SectorEffect & SectorEffect.Secret) != 0;
     public int DamageAmount { get; private set; }
     public int? SkyTextureHandle { get; private set; }
-    public bool FlipSkyTexture { get; set; }
+    public bool FlipSkyTexture { get; set; } = true;
     public bool IsFloorStatic => Floor.Dynamic == SectorDynamic.None;
     public bool IsCeilingStatic => Ceiling.Dynamic == SectorDynamic.None;
     public bool AreFlatsStatic => IsFloorStatic && IsCeilingStatic;
