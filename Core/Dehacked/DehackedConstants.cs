@@ -792,10 +792,10 @@ public partial class DehackedDefinition
         { ThingState.BFGLAND5,      new("BFGBall::death",               4) },
         { ThingState.BFGLAND6,      new("BFGBall::death",               5) },
 
-        { ThingState.BFGEXP,        new("BFGBall::spawn",               0) },
-        { ThingState.BFGEXP2,       new("BFGBall::spawn",               1) },
-        { ThingState.BFGEXP3,       new("BFGBall::spawn",               2) },
-        { ThingState.BFGEXP4,       new("BFGBall::spawn",               3) },
+        { ThingState.BFGEXP,        new("BFGExtra::spawn",              0) },
+        { ThingState.BFGEXP2,       new("BFGExtra::spawn",              1) },
+        { ThingState.BFGEXP3,       new("BFGExtra::spawn",              2) },
+        { ThingState.BFGEXP4,       new("BFGExtra::spawn",              3) },
 
         { ThingState.EXPLODE1,      new("Rocket::death",                0) },
         { ThingState.EXPLODE2,      new("Rocket::death",                1) },
