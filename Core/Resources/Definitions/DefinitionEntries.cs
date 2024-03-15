@@ -22,6 +22,7 @@ using Helion.World.Entities.Definition;
 using Helion.Util.Configs.Components;
 using static Helion.Util.Assertion.Assert;
 using Helion.Graphics.Palettes;
+using Helion.Resources.Definitions.MusInfo;
 
 namespace Helion.Resources.Definitions;
 
@@ -49,6 +50,7 @@ public class DefinitionEntries
     public readonly TexturesDefinition TexturesDef = new();
     public readonly Dictionary<string, Colormap> Colormaps = new();
     public readonly CompLevelDefinition CompLevelDefinition = new();
+    public readonly MusInfoDefinition MusInfoDefinition = new();
 
     public DehackedDefinition? DehackedDefinition { get; set; }
 
@@ -92,6 +94,7 @@ public class DefinitionEntries
         m_entryNameToAction["DEHACKED"] = entry => ParseEntry(ParseDehacked, entry);
         m_entryNameToAction["TEXTURES"] = entry => ParseEntry(ParseTextures, entry);
         m_entryNameToAction["COMPLVL"] = entry => ParseEntry(ParseCompLevel, entry);
+        m_entryNameToAction["MUSINFO"] = entry => ParseEntry(ParseMusInfo, entry);
     }
 
     public void ParseDehackedPatch(string data)
@@ -144,6 +147,7 @@ public class DefinitionEntries
     private void ParseLangaugeCompatibility(string text) => Language.ParseCompatibility(text);
     private void ParseZMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text, ShouldParseWeapons);
     private void ParseCompLevel(string data) => CompLevelDefinition.Parse(data);
+    private void ParseMusInfo(string text) => MusInfoDefinition.Parse(text);
 
     private void ParseMapInfo(string text)
     {

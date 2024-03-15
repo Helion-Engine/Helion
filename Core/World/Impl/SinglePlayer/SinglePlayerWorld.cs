@@ -281,6 +281,13 @@ public class SinglePlayerWorld : WorldBase
         m_automapMarker.Start(this);
     }
 
+    public static bool PlayLevelMusic(IConfig config, IAudioSystem audioSystem, byte[] musicData)
+    {
+        bool playingSuccess = audioSystem.Music.Play(musicData);
+        audioSystem.Music.SetVolume((float)config.Audio.MusicVolume.Value);
+        return playingSuccess;
+    }
+
     public static bool PlayLevelMusic(IConfig config, IAudioSystem audioSystem, string entryName, ArchiveCollection archiveCollection)
     {
         if (string.IsNullOrWhiteSpace(entryName))

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
@@ -9,14 +6,18 @@ using Helion.Maps.Shared;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.Entities.Spawn;
 using Helion.World.Geometry.Sectors;
-using NLog;
 using Helion.World.Stats;
+using NLog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.World.Entities;
 
@@ -59,6 +60,7 @@ public class EntityManager : IDisposable
     public readonly EntityDefinitionComposer DefinitionComposer;
     public readonly List<Player> Players = new();
     public readonly List<Player> VoodooDolls = new();
+    public readonly List<Entity> MusicChangers = new();
     private readonly LookupArray<Player?> RealPlayersByNumber = new();
 
     private int m_id;
@@ -198,7 +200,9 @@ public class EntityManager : IDisposable
             if (!ShouldSpawn(mapThing))
                 continue;
 
-            EntityDefinition? definition = DefinitionComposer.GetByID(mapThing.EditorNumber);
+            bool isMusicChanger = EditorIds.IsMusicChanger(mapThing.EditorNumber);
+            EntityDefinition? definition = isMusicChanger ? 
+                DefinitionComposer.GetByName(Constants.MusicChanger) : DefinitionComposer.GetByID(mapThing.EditorNumber);
             if (definition == null)
             {
                 Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.XY);
@@ -230,7 +234,11 @@ public class EntityManager : IDisposable
 
             if (!entity.Flags.ActLikeBridge && ZHeightSet(position.Z))
                 relinkEntities.Add(entity);
+
             PostProcessEntity(entity);
+
+            if (isMusicChanger)
+                entity.ThingId = mapThing.EditorNumber - (int)EditorId.MusicChangerStart;
         }
 
         //Relink entities with a z-height only, this way they can properly stack with other things in the map now that everything exists
@@ -456,6 +464,9 @@ public class EntityManager : IDisposable
 
         if (entity.Definition.Flags.CountKill || entity.Definition.Flags.IsMonster)
             entity.Health = Math.Max((int)(entity.Health * World.SkillDefinition.MonsterHealthFactor), 1);
+
+        if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
+            MusicChangers.Add(entity);
     }
 
     private void PostProcessEntity(Entity entity)

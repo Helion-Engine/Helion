@@ -70,6 +70,8 @@ public static class Constants
 
     public static readonly string TeleportSound = "misc/teleport";
 
+    public static readonly string MusicChanger = "MusicChanger";
+
     public static class MenuSounds
     {
         public static readonly string Activate = "menu/activate";

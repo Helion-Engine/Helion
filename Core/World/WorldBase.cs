@@ -50,10 +50,13 @@ using Helion.World.Entities.Definition.States;
 using Helion.World.Special.Specials;
 using Helion.World.Static;
 using Helion.Geometry.Grids;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using static Helion.Dehacked.DehackedDefinition;
+using Helion.Resources.Definitions.MusInfo;
+using Helion.Util.Extensions;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
+using Helion.Resources.Archives.Entries;
 
 namespace Helion.World;
 
@@ -145,6 +148,9 @@ public abstract class WorldBase : IWorld
     private readonly byte[] m_lineOfSightReject = Array.Empty<byte>();
     private readonly Func<DamageFuncParams, int> m_defaultDamageAction;
     private readonly EntityDefinition? m_teleportFogDef;
+    private readonly Dictionary<int, MusInfoDef> m_sectorToMusicChange = new();
+    private MusInfoDef? m_lastMusicChange;
+    private int m_changeMusicTicks = 0;
 
     private RadiusExplosionData m_radiusExplosion;
     private readonly Action<Entity> m_radiusExplosionAction;
@@ -204,7 +210,7 @@ public abstract class WorldBase : IWorld
         m_healChaseAction = HandleHealChase;
         m_setNewTracerTargetAction = HandleSetNewTracerTarget;
         m_lineOfSightEnemyAction = HandleLineOfSightEnemy;
-        
+
         m_teleportFogDef = EntityManager.DefinitionComposer.GetByName("TeleportFog");
 
         HasDehacked = ArchiveCollection.Definitions.DehackedDefinition != null;
@@ -230,6 +236,44 @@ public abstract class WorldBase : IWorld
             LevelStats.ItemCount = worldModel.ItemCount;
             LevelStats.SecretCount = worldModel.SecretCount;
         }
+    }
+
+    private void SetupMusicChangers()
+    {
+        foreach (var entity in EntityManager.MusicChangers)
+        {
+            if (!GetMusInfoFromEntity(entity, out var musInfo))
+                continue;
+
+            m_sectorToMusicChange[entity.Sector.Id] = musInfo;
+
+            // Cache the entry to prevent stutters
+            Entry? entry = ArchiveCollection.Entries.FindByName(musInfo.Name);
+            if (entry != null)
+                musInfo.MusicData = entry.ReadData();
+        }
+    }
+
+    private bool GetMusInfoFromEntity(Entity entity, [NotNullWhen(true)] out MusInfoDef? musInfo)
+    {
+        musInfo = null;
+        int musicNumber = entity.ThingId;
+        if (musicNumber < 0)
+            return false;
+
+        // Number 0 is the map's default music.
+        if (musicNumber == 0)
+        {
+            musInfo = new MusInfoDef(0, MapInfo.Music);
+            return true;
+        }
+
+        var map = ArchiveCollection.Definitions.MusInfoDefinition.Items.FirstOrDefault(x => x.MapName.EqualsIgnoreCase(MapInfo.MapName));
+        if (map == null)
+            return false;
+
+        musInfo = map.Music.FirstOrDefault(x => x.Number == musicNumber);
+        return musInfo != null;
     }
 
     private void RegisterConfigChanges()
@@ -368,6 +412,7 @@ public abstract class WorldBase : IWorld
     {
         AddMapSpecial();
         InitBossBrainTargets();
+        SetupMusicChangers();
 
         if (worldModel == null)
             SpecialManager.StartInitSpecials(LevelStats);
@@ -520,6 +565,13 @@ public abstract class WorldBase : IWorld
 
             if (WorldState != WorldState.Exit)
             {
+                if (m_changeMusicTicks > 0)
+                {
+                    m_changeMusicTicks--;
+                    if (m_changeMusicTicks == 0 && m_lastMusicChange.MusicData != null)
+                        ChangeMusic(m_lastMusicChange.MusicData);
+                }
+
                 ArchiveCollection.TextureManager.Tick();
                 SoundManager.Tick();
 
@@ -532,6 +584,25 @@ public abstract class WorldBase : IWorld
         GameTicker++;
 
         Profiler.World.Total.Stop();
+    }
+
+    private bool ChangeMusic(string musicName)
+    {
+        if (string.IsNullOrEmpty(musicName))
+            return false;
+
+        if (this is SinglePlayerWorld singlePlayerWorld)
+            return SinglePlayerWorld.PlayLevelMusic(Config, singlePlayerWorld.AudioSystem, musicName, ArchiveCollection);
+
+        return false;
+    }
+
+    private bool ChangeMusic(byte[] musicData)
+    {
+        if (this is SinglePlayerWorld singlePlayerWorld)
+            return SinglePlayerWorld.PlayLevelMusic(Config, singlePlayerWorld.AudioSystem, musicData);
+
+        return false;
     }
 
     private void HandleExitFlags()
@@ -615,6 +686,12 @@ public abstract class WorldBase : IWorld
                 player.Sector.SetSecret(false);
                 LevelStats.SecretCount++;
                 player.SecretsFound++;
+            }
+
+            if (m_sectorToMusicChange.TryGetValue(player.Sector.Id, out var musInfo) && !ReferenceEquals(musInfo, m_lastMusicChange))
+            {
+                m_lastMusicChange = musInfo;
+                m_changeMusicTicks = 30;
             }
         }
 
@@ -1804,16 +1881,10 @@ public abstract class WorldBase : IWorld
 
     protected bool ChangeToMusic(int number)
     {
-        if (this is SinglePlayerWorld singlePlayerWorld)
-        {
-            if (!MapWarp.GetMap(number, ArchiveCollection, out MapInfoDef? mapInfoDef) || mapInfoDef == null)
-                return false;
+        if (!MapWarp.GetMap(number, ArchiveCollection, out MapInfoDef? mapInfoDef) || mapInfoDef == null)
+            return false;
 
-            SinglePlayerWorld.PlayLevelMusic(Config, singlePlayerWorld.AudioSystem, mapInfoDef.Music, ArchiveCollection);
-            return true;
-        }
-
-        return false;
+        return ChangeMusic(mapInfoDef.Music);
     }
 
     protected void ResetLevel(bool loadLastWorldModel)

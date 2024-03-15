@@ -236,3 +236,12 @@ ACTOR ScoreItem : Inventory
   Inventory.Amount 1
   +INVENTORY.ALWAYSPICKUP
 }
+
+actor MusicChanger 14100
+{
+    +DONTSPLASH
+    +INVISIBLE
+    +NOBLOCKMAP
+    +NOSECTOR
+    +NOGRAVITY
+}
