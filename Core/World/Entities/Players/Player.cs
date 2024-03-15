@@ -550,6 +550,7 @@ public class Player : Entity
         base.Tick();
         Inventory.Tick();
         AnimationWeapon?.Tick();
+        StatusBar.Tick();
 
         // Match Boom functionality that continually checks to change weapons in G_BuildTickCmd
         if (AttackDown && !CheckAmmo() && PendingWeapon == null)
@@ -590,8 +591,7 @@ public class Player : Entity
 
         if (IsDead)
             DeathTick();
-
-        StatusBar.Tick();
+        
         m_hasNewWeapon = false;
     }
 
