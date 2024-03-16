@@ -221,7 +221,7 @@ public class PhysicsManager
                 }
 
                 // Need to gib things even when not crushing and do not count as blocking
-                if (entity.Flags.Corpse && !entity.Flags.DontGib)
+                if (entity.Flags.Corpse && !entity.Flags.DontGib && entity.Health <= 0)
                 {
                     SetToGiblets(entity);
                     continue;
