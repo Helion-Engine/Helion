@@ -77,6 +77,7 @@ public abstract class WorldBase : IWorld
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     public event EventHandler<Sector>? SectorLightChanged;
     public event EventHandler<PlayerMessageEvent>? PlayerMessage;
+    public event EventHandler<Entry>? OnMusicChanged;
     public event EventHandler? OnTick;
     public event EventHandler? OnDestroying;
 
@@ -569,7 +570,7 @@ public abstract class WorldBase : IWorld
                 {
                     m_changeMusicTicks--;
                     if (m_changeMusicTicks == 0 && m_lastMusicChange.MusicData != null)
-                        ChangeMusic(m_lastMusicChange.MusicData);
+                        PlayLevelMusic(m_lastMusicChange.Name, m_lastMusicChange.MusicData);
                 }
 
                 ArchiveCollection.TextureManager.Tick();
@@ -586,24 +587,9 @@ public abstract class WorldBase : IWorld
         Profiler.World.Total.Stop();
     }
 
-    private bool ChangeMusic(string musicName)
-    {
-        if (string.IsNullOrEmpty(musicName))
-            return false;
+    public virtual bool PlayLevelMusic(string name, byte[]? data) => true;
 
-        if (this is SinglePlayerWorld singlePlayerWorld)
-            return SinglePlayerWorld.PlayLevelMusic(Config, singlePlayerWorld.AudioSystem, musicName, ArchiveCollection);
-
-        return false;
-    }
-
-    private bool ChangeMusic(byte[] musicData)
-    {
-        if (this is SinglePlayerWorld singlePlayerWorld)
-            return SinglePlayerWorld.PlayLevelMusic(Config, singlePlayerWorld.AudioSystem, musicData);
-
-        return false;
-    }
+    protected void InvokeMusicChange(Entry entry) => OnMusicChanged?.Invoke(this, entry);
 
     private void HandleExitFlags()
     {
@@ -1884,7 +1870,7 @@ public abstract class WorldBase : IWorld
         if (!MapWarp.GetMap(number, ArchiveCollection, out MapInfoDef? mapInfoDef) || mapInfoDef == null)
             return false;
 
-        return ChangeMusic(mapInfoDef.Music);
+        return PlayLevelMusic(mapInfoDef.Music, null);
     }
 
     protected void ResetLevel(bool loadLastWorldModel)

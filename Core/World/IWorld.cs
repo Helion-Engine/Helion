@@ -32,6 +32,7 @@ using Helion.Maps.Specials;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Geometry;
 using Helion.Maps;
+using Helion.Resources.Archives.Entries;
 
 namespace Helion.World;
 
@@ -49,6 +50,7 @@ public interface IWorld : IDisposable
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     event EventHandler<Sector>? SectorLightChanged;
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
+    event EventHandler<Entry>? OnMusicChanged;
     event EventHandler? OnTick;
     event EventHandler? OnDestroying;
 
@@ -160,6 +162,7 @@ public interface IWorld : IDisposable
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
     void ResetGametick();
     void EntityTeleported(Entity entity);
+    bool PlayLevelMusic(string name, byte[]? data);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

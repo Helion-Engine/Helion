@@ -25,6 +25,7 @@ using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Entities.Inventories.Powerups;
+using Helion.Util.Configs.Impl;
 
 namespace Helion.World.Impl.SinglePlayer;
 
@@ -276,26 +277,16 @@ public class SinglePlayerWorld : WorldBase
     {
         base.Start(worldModel);
         var musicName = worldModel?.MusicName ?? MapInfo.Music;
-        if (!PlayLevelMusic(Config, AudioSystem, musicName, ArchiveCollection))
+        if (!PlayLevelMusic(musicName, null))
             AudioSystem.Music.Stop();
 
         m_automapMarker.Start(this);
     }
 
-    public static bool PlayLevelMusic(IConfig config, IAudioSystem audioSystem, byte[] musicData)
+    public override bool PlayLevelMusic(string name, byte[]? data)
     {
-        bool playingSuccess = audioSystem.Music.Play(musicData);
-        audioSystem.Music.SetVolume((float)config.Audio.MusicVolume.Value);
-        return playingSuccess;
-    }
-
-    public static bool PlayLevelMusic(IConfig config, IAudioSystem audioSystem, string entryName, ArchiveCollection archiveCollection)
-    {
-        if (string.IsNullOrWhiteSpace(entryName))
-            return false;
-
-        string lookup = archiveCollection.Definitions.Language.GetMessage(entryName);
-        Entry? entry = archiveCollection.Entries.FindByName(lookup);
+        string lookup = ArchiveCollection.Definitions.Language.GetMessage(name);
+        Entry? entry = ArchiveCollection.Entries.FindByName(lookup);
 
         if (entry == null)
         {
@@ -303,8 +294,17 @@ public class SinglePlayerWorld : WorldBase
             return false;
         }
 
-        bool playingSuccess = audioSystem.Music.Play(entry.ReadData());
-        audioSystem.Music.SetVolume((float)config.Audio.MusicVolume.Value);
+        InvokeMusicChange(entry);
+        if (data != null)
+            return PlayMusic(data);
+
+        return PlayMusic(entry.ReadData());
+    }
+
+    private bool PlayMusic(byte[] data)
+    {
+        bool playingSuccess = AudioSystem.Music.Play(data);
+        AudioSystem.Music.SetVolume((float)Config.Audio.MusicVolume.Value);
         return playingSuccess;
     }
 

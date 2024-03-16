@@ -200,6 +200,10 @@ public class EntityManager : IDisposable
             if (!ShouldSpawn(mapThing))
                 continue;
 
+            // Boom ports appear to ignore 14100
+            if (mapThing.EditorNumber == (int)EditorId.MusicChangerStart)
+                continue;
+
             bool isMusicChanger = EditorIds.IsMusicChanger(mapThing.EditorNumber);
             EntityDefinition? definition = isMusicChanger ? 
                 DefinitionComposer.GetByName(Constants.MusicChanger) : DefinitionComposer.GetByID(mapThing.EditorNumber);
