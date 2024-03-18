@@ -142,7 +142,7 @@ public class CompactBspTree
             while (true)
             {
                 BspNodeCompact* node = startNode + nodeIndex;
-                int next = Convert.ToInt32(node->Splitter.OnRight(point));
+                int next = Convert.ToInt32(node->Splitter.PerpDot(point) < 0);
                 nodeIndex = node->Children[next];
 
                 if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
@@ -159,7 +159,7 @@ public class CompactBspTree
         {
             fixed (BspNodeCompact* node = &Nodes[nodeIndex])
             {
-                int next = Convert.ToInt32(node->Splitter.OnRight(point));
+                int next = Convert.ToInt32(node->Splitter.PerpDot(point) < 0);
                 nodeIndex = node->Children[next];
 
                 if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)

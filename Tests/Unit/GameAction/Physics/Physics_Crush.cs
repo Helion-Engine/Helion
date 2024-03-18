@@ -15,7 +15,7 @@ namespace Helion.Tests.Unit.GameAction
             // The floor should be able to move even though the monster is being crushed (which normally triggers blocking).
             var crushSector = GameActions.GetSectorByTag(World, 8);
             var floorSector = GameActions.GetSectorByTag(World, 7);
-            var monster = GameActions.CreateEntity(World, "BaronOfHell", new Vec3D(-696, 992, 0));
+            var monster = GameActions.CreateEntity(World, "BaronOfHell", new Vec3D(-697, 992, 0));
             GameActions.ActivateLine(World, Player, 52, ActivationContext.UseLine).Should().BeTrue();
             GameActions.ActivateLine(World, Player, 53, ActivationContext.UseLine).Should().BeTrue();
             crushSector.ActiveCeilingMove.Should().NotBeNull();

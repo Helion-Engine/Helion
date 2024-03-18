@@ -92,7 +92,7 @@ namespace Helion.Tests.Unit.GameAction
         {
             GameActions.SetEntityPosition(World, Player, PlayerStepPos);
             Player.Position.Z.Should().Be(0);
-            GameActions.MoveEntity(World, Player, Player.Position.XY + new Vec2D(0, 16));
+            GameActions.MoveEntity(World, Player, Player.Position.XY + new Vec2D(0, 17));
             Player.Position.Z.Should().Be(24);
             Player.Sector.Id.Should().Be(17);
             Player.OnGround.Should().BeTrue();
@@ -316,7 +316,7 @@ namespace Helion.Tests.Unit.GameAction
             Player.DeltaViewHeight.Should().Be(0);
 
             Player.Position.Z.Should().Be(0);
-            GameActions.MoveEntity(World, Player, Player.Position.XY + new Vec2D(0, 16));
+            GameActions.MoveEntity(World, Player, Player.Position.XY + new Vec2D(0, 17));
             Player.Position.Z.Should().Be(24);
             Player.Sector.Id.Should().Be(17);
             Player.OnGround.Should().BeTrue();
