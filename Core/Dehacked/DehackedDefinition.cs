@@ -57,12 +57,8 @@ public partial class DehackedDefinition
     public void Parse(string data)
     {
         data = data.Replace('\0', ' ').StripNonUtf8Chars();
-        SimpleParser parser = new();
-        parser.SetSpecialChars(new char[] { '=' });
-        parser.SetCommentCallback(IsComment);
-        parser.Parse(data, keepEmptyLines: true, parseQuotes: false);
-
-        ParseHeader(parser);
+        SimpleParser parser = CreateDehackedParser(data);
+        parser = ParseHeader(parser, data);
 
         while (!parser.IsDone())
         {
@@ -110,6 +106,15 @@ public partial class DehackedDefinition
             else
                 UnknownWarning(parser, "type", item);
         }
+    }
+
+    private static SimpleParser CreateDehackedParser(string data)
+    {
+        SimpleParser parser = new();
+        parser.SetSpecialChars(new char[] { '=' });
+        parser.SetCommentCallback(IsComment);
+        parser.Parse(data, keepEmptyLines: true, parseQuotes: false);
+        return parser;
     }
 
     private static bool IsUselessLine(string item)
@@ -190,7 +195,7 @@ public partial class DehackedDefinition
         Log.Warn($"Dehacked: Skipping unknown {type}: {line} line:{lineNumber}");
     }
 
-    private void ParseHeader(SimpleParser parser)
+    private SimpleParser ParseHeader(SimpleParser parser, string data)
     {
         DoomVersion = 0;
         PatchFormat = 0;
@@ -210,6 +215,12 @@ public partial class DehackedDefinition
             else
                 parser.ConsumeLine();
         }
+
+        // No header, reset to normal
+        if (parser.IsDone())
+            return CreateDehackedParser(data);
+
+        return parser;
     }
 
     private void ParseThing(SimpleParser parser)
