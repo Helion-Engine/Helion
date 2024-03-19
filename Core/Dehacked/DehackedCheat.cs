@@ -18,5 +18,4 @@ public class DehackedCheat
     public string? Behold { get; set; }
     public string? LevelWarp { get; set; }
     public string? PlayerPos { get; set; }
-    public string? MapCheat { get; set; }
 }

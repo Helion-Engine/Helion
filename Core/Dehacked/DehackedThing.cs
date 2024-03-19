@@ -36,9 +36,4 @@ public class DehackedThing
     public int? ProjectileGroup { get; set; }
     public int? SplashGroup { get; set; }
     public int? GibHealth { get; set; }
-
-    public override string ToString()
-    {
-        return $"[{Number}]{Name}";
-    }
 }

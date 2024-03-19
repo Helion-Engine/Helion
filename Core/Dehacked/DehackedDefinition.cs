@@ -427,8 +427,10 @@ public partial class DehackedDefinition
     private void ParseWeapon(SimpleParser parser)
     {
         DehackedWeapon weapon = new();
+        int lineNumber = parser.GetCurrentLine();
         weapon.WeaponNumber = parser.ConsumeInteger();
-        parser.ConsumeLine();
+        if (parser.GetCurrentLine() == lineNumber)
+            parser.ConsumeLine();
 
         while (!IsBlockComplete(parser))
         {
@@ -462,8 +464,10 @@ public partial class DehackedDefinition
 
     private void ParseCheat(SimpleParser parser)
     {
+        int cheatLine = parser.GetCurrentLine();
         Cheat = new();
-        parser.ConsumeInteger();
+        if (cheatLine == parser.GetCurrentLine())
+            parser.ConsumeLine();
 
         while (!IsBlockComplete(parser))
         {
