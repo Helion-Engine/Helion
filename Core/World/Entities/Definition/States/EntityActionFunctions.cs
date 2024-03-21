@@ -1144,12 +1144,15 @@ public static class EntityActionFunctions
         if (!WorldStatic.World.CheckLineOfSight(entity.Target.Entity, entity.Tracer.Entity))
             return;
 
-        Vec3D newPos = entity.Tracer.Entity.Position;
-        Vec3D unit = Vec3D.UnitSphere(entity.Tracer.Entity.AngleRadians, 0.0);
+        var newPos = entity.Tracer.Entity.Position;
+        var unit = Vec2D.UnitCircle(entity.Tracer.Entity.AngleRadians);
         newPos.X += unit.X * 24;
         newPos.Y += unit.Y * 24;
 
+        entity.UnlinkFromWorld();
         entity.Position = newPos;
+        entity.PrevPosition = newPos;
+        WorldStatic.World.PhysicsManager.LinkToWorld(entity);
     }
 
     private static void A_FireAssaultGun(Entity entity)
@@ -2684,7 +2687,7 @@ public static class EntityActionFunctions
             return;
 
         A_FaceTarget(entity);
-        Entity? fire = WorldStatic.EntityManager.Create("ArchvileFire", entity.Position);
+        Entity? fire = WorldStatic.EntityManager.Create("ArchvileFire", entity.Target.Entity.Position);
         if (fire != null)
         {
             fire.SetOwner(entity);
