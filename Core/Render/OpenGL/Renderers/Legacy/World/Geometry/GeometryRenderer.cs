@@ -142,7 +142,7 @@ public class GeometryRenderer : IDisposable
         m_lightBuffer?.Dispose();
         const int FloatSize = 4;
         m_lightBuffer = new("Sector lights texture buffer",
-            world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize));
+            world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize), true);
 
         for (int i = 0; i < world.Sides.Count; i++)
             m_drawnSides[i] = -1;

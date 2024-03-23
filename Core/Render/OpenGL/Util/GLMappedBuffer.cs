@@ -15,7 +15,7 @@ public readonly unsafe ref struct GLMappedBuffer<T> where T : struct
     {
         m_span = span;
         m_target = target;
-        Pointer = GL.MapBufferRange(target, IntPtr.Zero, span.Length, BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit);
+        Pointer = GL.MapBufferRange(target, IntPtr.Zero, span.Length, BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit | BufferAccessMask.MapPersistentBit);
         m_mappedMemoryPtr = (T*)Pointer.ToPointer();
     }
     

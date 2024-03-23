@@ -14,7 +14,7 @@ public class GLBufferTexture : IDisposable
     private readonly int m_textureName;
     private bool m_disposed;
 
-    public GLBufferTexture(string label, int size)
+    public GLBufferTexture(string label, int size, bool bufferStorage)
     {
         Debug.Assert(size > 0, "Cannot have a buffer texture with no size");
         
@@ -25,7 +25,10 @@ public class GLBufferTexture : IDisposable
         m_data = new float[size];
 
         BindBuffer();
-        GL.BufferData(BufferTarget.TextureBuffer, size, m_data, BufferUsageHint.DynamicDraw);
+        if (bufferStorage)
+            GL.BufferStorage(BufferTarget.TextureBuffer, size, 0, BufferStorageFlags.MapWriteBit | BufferStorageFlags.MapPersistentBit);
+        else
+            GL.BufferData(BufferTarget.TextureBuffer, size, m_data, BufferUsageHint.DynamicDraw);
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, m_name, $"TBO: {label}");
         UnbindBuffer();
     }

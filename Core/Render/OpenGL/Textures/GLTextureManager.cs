@@ -15,8 +15,8 @@ public class GLTextureManager : IDisposable
     
     public readonly GLImageHandle NullHandle;
     public readonly GLImageHandle WhiteHandle;
-    public readonly GLBufferTexture TranslationTableBuffer = new("Translation table", MaxSupportedTextures);
-    public readonly GLBufferTexture TextureHandleBuffer = new("Texture handle", MaxSupportedTextures);
+    public readonly GLBufferTexture TranslationTableBuffer = new("Translation table", MaxSupportedTextures, false);
+    public readonly GLBufferTexture TextureHandleBuffer = new("Texture handle", MaxSupportedTextures, false);
     private readonly IConfig m_config;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly GLTexture2DArrayAtlas m_textures;
