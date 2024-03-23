@@ -210,7 +210,7 @@ public class AutomapMarker
         if (m_occlude && !box.InView(m_occludeViewPos, viewDirection))
             return true;
 
-        (Vec2D first, Vec2D second) = box.GetSpanningEdge(position);
+        box.GetSpanningEdge(position, out var first, out var second);
         return m_viewClipper.InsideAnyRange(first, second);
     }
 }

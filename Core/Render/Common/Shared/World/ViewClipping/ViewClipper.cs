@@ -79,8 +79,8 @@ public class ViewClipper
         // out of the values, because this allows us to see what angles are
         // blocked or not by mapping every position onto a unit circle with
         // 2^32 precision.
-        Vec2D pos = end - start;
-        if (pos == Vec2D.Zero)
+        Vec2D pos = new(end.X - start.X,  end.Y - start.Y);
+        if (pos.X == 0 && pos.Y == 0)
             return 0;
 
         // TODO: Can we fuse two if statements into one statement somehow?

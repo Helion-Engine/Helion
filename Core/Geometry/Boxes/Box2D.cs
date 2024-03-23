@@ -135,8 +135,7 @@ namespace Helion.Geometry.Boxes
         public bool Intersects(Seg2D seg) => seg.Intersects(this);
         public bool Intersects(Segment2D seg) => seg.Intersects(this);
         public bool Intersects<T>(SegmentT2D<T> seg) where T : Vector2D => seg.Intersects(this);
-        public Seg2D GetSpanningEdge(Vector2D position) => GetSpanningEdge(position.Struct);
-        public Seg2D GetSpanningEdge(Vec2D position)
+        public void GetSpanningEdge(Vec2D position, out Vec2D first, out Vec2D second)
         {
             // This is best understood by asking ourselves how we'd classify
             // where we are along a 1D line. Suppose we want to find out which
@@ -177,27 +176,47 @@ namespace Helion.Geometry.Boxes
 
             switch (horizontalBits | (verticalBits << 2))
             {
-            case 0x0: // Bottom left
-                return (TopLeft, BottomRight);
-            case 0x1: // Bottom middle
-                return (BottomLeft, BottomRight);
-            case 0x2: // Bottom right
-                return (BottomLeft, TopRight);
-            case 0x4: // Middle left
-                return (TopLeft, BottomLeft);
-            case 0x5: // Center (this shouldn't be a case via precondition).
-                return (TopLeft, BottomRight);
-            case 0x6: // Middle right
-                return (BottomRight, TopRight);
-            case 0x8: // Top left
-                return (TopRight, BottomLeft);
-            case 0x9: // Top middle
-                return (TopRight, TopLeft);
-            case 0xA: // Top right
-                return (BottomRight, TopLeft);
-            default:
-                Fail("Unexpected spanning edge bit code");
-                return (TopLeft, BottomRight);
+                case 0x0: // Bottom left
+                    first = TopLeft;
+                    second = BottomRight;
+                    return;
+                case 0x1: // Bottom middle
+                    first = BottomLeft;
+                    second = BottomRight;
+                    return;
+                case 0x2: // Bottom right
+                    first = BottomLeft;
+                    second = TopRight;
+                    return;
+                case 0x4: // Middle left
+                    first = TopLeft;
+                    second = BottomLeft;
+                    return;
+                case 0x5: // Center (this shouldn't be a case via precondition).
+                    first = TopLeft;
+                    second = BottomRight;
+                    return;
+                case 0x6: // Middle right
+                    first = BottomRight;
+                    second = TopRight;
+                    return;
+                case 0x8: // Top left
+                    first = TopRight;
+                    second = BottomLeft;
+                    return;
+                case 0x9: // Top middle
+                    first = TopRight;
+                    second = TopLeft;
+                    return;
+                case 0xA: // Top right
+                    first = BottomRight;
+                    second = TopLeft;
+                    return;
+                default:
+                    Fail("Unexpected spanning edge bit code");
+                    first = TopLeft;
+                    second = TopLeft;
+                    return;
             }
         }
 
