@@ -3,30 +3,19 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Util;
 
-// Should only be used if you know what you're doing. Forgetting to dispose is catastrophic.
-public readonly unsafe ref struct GLMappedBuffer<T> where T : struct
+public readonly unsafe struct GLMappedBuffer<T> where T : struct
 {
     public readonly IntPtr Pointer;
-    private readonly Span<T> m_span;
-    private readonly T* m_mappedMemoryPtr;
+    public readonly T[] Data;
+    public readonly T* MappedMemoryPtr;
     private readonly BufferTarget m_target;
     
-    public GLMappedBuffer(Span<T> span, BufferTarget target)
+    public GLMappedBuffer(T[] data, BufferTarget target, BufferAccessMask access)
     {
-        m_span = span;
+        Data = data;
         m_target = target;
-        Pointer = GL.MapBufferRange(target, IntPtr.Zero, span.Length, BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit | BufferAccessMask.MapPersistentBit);
-        m_mappedMemoryPtr = (T*)Pointer.ToPointer();
-    }
-    
-    public T this[int index]
-    {
-        get => m_span[index];
-        set
-        {
-            m_span[index] = value; // We want to write locally so we can debug it.
-            m_mappedMemoryPtr[index] = value; // But our writes are primarily intended to go to the mapped buffer.
-        }
+        Pointer = GL.MapBufferRange(target, IntPtr.Zero, data.Length, access);
+        MappedMemoryPtr = (T*)Pointer.ToPointer();
     }
 
     public void Dispose()

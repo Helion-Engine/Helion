@@ -39,8 +39,8 @@ public class Window : GameWindow, IWindow
     private SpanString m_textInput = new();
     private bool m_disposed;
 
-    public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement) :
-        base(MakeGameWindowSettings(), MakeNativeWindowSettings(config, title))
+    public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement, int glMajor, int glMinor) :
+        base(MakeGameWindowSettings(), MakeNativeWindowSettings(config, title, glMajor, glMinor))
     {
         Log.Debug("Creating client window");
 
@@ -150,14 +150,14 @@ public class Window : GameWindow, IWindow
         };
     }
 
-    private static NativeWindowSettings MakeNativeWindowSettings(IConfig config, string title)
+    public static NativeWindowSettings MakeNativeWindowSettings(IConfig config, string title, int glMajor, int glMinor)
     {
         (int windowWidth, int windowHeight) = config.Window.Dimension.Value;
 
         var settings = new NativeWindowSettings
         {
             Profile = ContextProfile.Core,
-            APIVersion = new Version(3, 3),
+            APIVersion = new Version(glMajor, glMinor),
             Flags = config.Developer.Render.Debug ? ContextFlags.Debug : ContextFlags.Default,
             NumberOfSamples = config.Render.Multisample.Value,
             Size = new Vector2i(windowWidth, windowHeight),
@@ -268,7 +268,7 @@ public class Window : GameWindow, IWindow
 
     private void PerformDispose()
     {
-        if (m_disposed)
+        if (m_disposed || m_config == null)
             return;
 
         KeyDown -= Window_KeyDown;

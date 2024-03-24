@@ -21,6 +21,7 @@ using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Context;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -53,11 +54,13 @@ public class StaticCacheGeometryRenderer : IDisposable
     private bool m_disposed;
     private IWorld? m_world;
     private GLBufferTexture? m_lightBuffer;
+    private GLMappedBuffer<float> m_mappedLightBuffer;
     private int m_counter;
     // These are the flags to ignore when setting a side back to static.
     private SectorDynamic m_sideDynamicIgnore;
     private bool m_vanillaFlood;
     private bool m_alwaysFlood;
+    private bool m_mapPersistent;
 
     public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
         RenderProgram program, GeometryRenderer geometryRenderer)
@@ -66,6 +69,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometryRenderer = geometryRenderer;
         m_program = program;
         m_skyRenderer = new(archiveCollection, textureManager);
+        m_mapPersistent = GlVersion.IsVersionSupported(4, 4);
     }
 
     private static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
@@ -88,7 +92,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void UpdateTo(IWorld world, GLBufferTexture lightBuffer)
     {
-        m_lightBuffer = lightBuffer;
         m_vanillaFlood = world.Config.Render.VanillaFloodFill;
         m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats;
         ClearData();
@@ -156,6 +159,18 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         UpdateLookup(m_updatelightSectorsLookup, world.Sectors.Count);
+
+        if (m_mapPersistent)
+        {
+            if (m_lightBuffer != null)
+                m_mappedLightBuffer.Dispose();
+
+            lightBuffer.BindBuffer();
+            m_mappedLightBuffer = lightBuffer.MapWithDisposable();
+            lightBuffer.UnbindBuffer();
+        }
+
+        m_lightBuffer = lightBuffer;
     }
 
     private void UpdateSectorPlaneFloodFill(Line line)
@@ -692,27 +707,30 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_bufferLists.Clear();
     }
 
-    private void UpdateLights()
+    private unsafe void UpdateLights()
     {
         if (m_updateLightSectors.Length == 0 || m_lightBuffer == null)
             return;
 
         m_lightBuffer.BindBuffer();
-        GLMappedBuffer<float> lightBuffer = m_lightBuffer.MapWithDisposable();
+        // OpenGL 4.4 only feature. If set with MapPersistentBit then it doesn't need to be mapped here.
+        GLMappedBuffer<float> lightBuffer = m_mapPersistent ? m_mappedLightBuffer : m_lightBuffer.MapWithDisposable();
+        float* lightData = lightBuffer.MappedMemoryPtr;
 
         for (int i = 0; i < m_updateLightSectors.Length; i++)
         {
             Sector sector = m_updateLightSectors[i];
             float level = sector.LightLevel;
             int index = sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart;
-            lightBuffer[index + Constants.LightBuffer.FloorOffset] = level;
-            lightBuffer[index + Constants.LightBuffer.CeilingOffset] = level;
-            lightBuffer[index + Constants.LightBuffer.WallOffset] = level;
+            lightData[index + Constants.LightBuffer.FloorOffset] = level;
+            lightData[index + Constants.LightBuffer.CeilingOffset] = level;
+            lightData[index + Constants.LightBuffer.WallOffset] = level;
         }
 
-        lightBuffer.Dispose();
-        m_lightBuffer.UnbindBuffer();
+        if (!m_mapPersistent)
+            lightBuffer.Dispose();
 
+        m_lightBuffer.UnbindBuffer();
         m_updateLightSectors.Clear();
     }
 

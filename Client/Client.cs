@@ -13,6 +13,8 @@ using Helion.Layer;
 using Helion.Layer.IwadSelection;
 using Helion.Layer.Worlds;
 using Helion.Models;
+using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Textures;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
@@ -29,6 +31,7 @@ using Helion.World.Save;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using static Helion.Util.Assertion.Assert;
 
@@ -67,7 +70,20 @@ public partial class Client : IDisposable, IInputManagement
         m_archiveCollection = archiveCollection;
         m_saveGameManager = new SaveGameManager(config);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
-        m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this);
+
+        try
+        {
+            // Test if the version wanted is supported. Required to create an entire window and context...
+            GlVersionTest.Test(Window.MakeNativeWindowSettings(config, string.Empty, GlVersion.Major, GlVersion.Minor));
+        }
+        catch
+        {
+            GlVersion.Major = 3;
+            GlVersion.Minor = 3;
+        }
+
+        m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor);
+
         m_layerManager = new GameLayerManager(config, m_window, console, m_consoleCommands, archiveCollection,
             m_soundManager, m_saveGameManager, m_profiler);
 

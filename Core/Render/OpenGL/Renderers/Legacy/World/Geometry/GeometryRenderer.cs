@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
@@ -15,6 +16,7 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Extensions;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
@@ -142,7 +144,8 @@ public class GeometryRenderer : IDisposable
         m_lightBuffer?.Dispose();
         const int FloatSize = 4;
         m_lightBuffer = new("Sector lights texture buffer",
-            world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize), true);
+            world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize), 
+            GlVersion.IsVersionSupported(4, 4));
 
         for (int i = 0; i < world.Sides.Count; i++)
             m_drawnSides[i] = -1;

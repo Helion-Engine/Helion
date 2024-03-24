@@ -13,8 +13,9 @@ public class GLBufferTexture : IDisposable
     private readonly int m_name;
     private readonly int m_textureName;
     private bool m_disposed;
+    private bool m_persistentBufferStorage;
 
-    public GLBufferTexture(string label, int size, bool bufferStorage)
+    public GLBufferTexture(string label, int size, bool persistentBufferStorage)
     {
         Debug.Assert(size > 0, "Cannot have a buffer texture with no size");
         
@@ -23,12 +24,15 @@ public class GLBufferTexture : IDisposable
         m_textureName = GL.GenTexture();
         
         m_data = new float[size];
+        m_persistentBufferStorage = persistentBufferStorage;
 
         BindBuffer();
-        if (bufferStorage)
+
+        if (persistentBufferStorage)
             GL.BufferStorage(BufferTarget.TextureBuffer, size, 0, BufferStorageFlags.MapWriteBit | BufferStorageFlags.MapPersistentBit);
         else
             GL.BufferData(BufferTarget.TextureBuffer, size, m_data, BufferUsageHint.DynamicDraw);
+        
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, m_name, $"TBO: {label}");
         UnbindBuffer();
     }
@@ -37,14 +41,21 @@ public class GLBufferTexture : IDisposable
     {
         Dispose(false);
     }
-    
+
+    private BufferAccessMask GetAccess()
+    {
+        if (m_persistentBufferStorage)
+            return BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit | BufferAccessMask.MapPersistentBit;
+        return BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit;
+    }
+
     public void Map(Action<IntPtr> action)
     {
         Debug.Assert(!m_disposed, "Trying to use a mapped pointer when it's been disposed");
         
         BindBuffer();
         
-        GLMappedBuffer<float> buffer = new(m_data, BufferTarget.TextureBuffer);
+        GLMappedBuffer<float> buffer = new(m_data, BufferTarget.TextureBuffer, GetAccess());
         action(buffer.Pointer);
         buffer.Dispose();
         
@@ -55,7 +66,7 @@ public class GLBufferTexture : IDisposable
     public GLMappedBuffer<float> MapWithDisposable()
     {
         Debug.Assert(!m_disposed, "Trying to use a mapped pointer when it's been disposed");
-        return new(m_data, BufferTarget.TextureBuffer);
+        return new(m_data, BufferTarget.TextureBuffer, GetAccess());
     }
 
     public void BindBuffer()
