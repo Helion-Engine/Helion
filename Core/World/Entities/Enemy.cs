@@ -304,6 +304,9 @@ public partial class Entity
 
         if (WorldStatic.SlowTickEnabled)
             ChaseFailureSkipCount = WorldStatic.SlowTickChaseFailureSkipCount + (ChaseFailureCount++ & 1);
+
+        // Need to try to use the monster's normal movement speed if stuck. Otherwise they may never move or correctly cross teleport lines.
+        ClosetChaseSpeed = Properties.MonsterMovementSpeed;
         m_direction = MoveDir.None;
     }
 
@@ -312,7 +315,8 @@ public partial class Entity
         if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
             return Position.XY;
 
-        double speed = (ClosetFlags & ClosetFlags.ClosetChase) != 0 ? 64 : Math.Clamp(Properties.MonsterMovementSpeed * SlowTickMultiplier, -128, 128);
+        double speed = (ClosetFlags & ClosetFlags.ClosetChase) != 0 ? ClosetChaseSpeed : 
+            Math.Clamp(Properties.MonsterMovementSpeed * SlowTickMultiplier, -128, 128);
         double speedX = Speeds[(int)m_direction] * speed;
         double speedY = Speeds[(int)m_direction + 8] * speed;
 
@@ -467,6 +471,7 @@ public partial class Entity
             return false;
         }
 
+        ClosetChaseSpeed = DefaultClosetChaseSpeed;
         MoveCount = WorldStatic.Random.NextByte() & 15;
         return true;
     }

@@ -35,6 +35,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     private const double Speed = 47000 / 65536.0;
     private const int ForceGibDamage = ushort.MaxValue;
     private const int KillDamage = ushort.MaxValue - 1;
+    private const int DefaultClosetChaseSpeed = 64;
     public const double FloatSpeed = 4.0;
     public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannel)).Length;
 
@@ -105,6 +106,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double RenderDistanceSquared { get; set; } = double.MaxValue;
     public int SlowTickMultiplier = 1;
     public int ChaseFailureSkipCount;
+    public double ClosetChaseSpeed = DefaultClosetChaseSpeed;
     public RenderObjectType Type => RenderObjectType.Entity;
 
     public virtual SoundChannel WeaponSoundChannel => SoundChannel.Default;
@@ -951,6 +953,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         LowestCeilingSector = Sector.Default;
         SlowTickMultiplier = 1;
         ChaseFailureSkipCount = 0;
+        ClosetChaseSpeed = DefaultClosetChaseSpeed;
     }
 
     private void Unlink()
