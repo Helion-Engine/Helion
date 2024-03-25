@@ -71,12 +71,7 @@ public partial class Client : IDisposable, IInputManagement
         m_saveGameManager = new SaveGameManager(config);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
 
-        try
-        {
-            // Test if the version wanted is supported. Required to create an entire window and context...
-            GlVersionTest.Test(Window.MakeNativeWindowSettings(config, string.Empty, GlVersion.Major, GlVersion.Minor));
-        }
-        catch
+        if (!GlVersionTest.Test(Window.MakeNativeWindowSettings(config, string.Empty, GlVersion.Major, GlVersion.Minor)))
         {
             GlVersion.Major = 3;
             GlVersion.Minor = 3;

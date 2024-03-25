@@ -1,102 +1,98 @@
-﻿using OpenTK.Windowing.Common;
+﻿using OpenTK.Graphics.OpenGL;
+using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
+using System.Reflection;
 
 namespace Helion.Client;
 
 public class GlVersionTest
 {
-    public static unsafe void Test(NativeWindowSettings settings)
+    public static unsafe bool Test(NativeWindowSettings settings)
     {
-        GLFWProvider.EnsureInitialized();
-        switch (settings.WindowBorder)
+        try
         {
-            case WindowBorder.Hidden:
-                GLFW.WindowHint(WindowHintBool.Decorated, value: false);
-                break;
-            case WindowBorder.Resizable:
-                GLFW.WindowHint(WindowHintBool.Resizable, value: true);
-                break;
-            case WindowBorder.Fixed:
-                GLFW.WindowHint(WindowHintBool.Resizable, value: false);
-                break;
-        }
+            GLFWProvider.EnsureInitialized();
 
-        switch (settings.API)
-        {
-            case ContextAPI.NoAPI:
-                GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.NoApi);
-                break;
-            case ContextAPI.OpenGLES:
-                GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.OpenGlEsApi);
-                break;
-            case ContextAPI.OpenGL:
-                GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.OpenGlApi);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+            switch (settings.API)
+            {
+                case ContextAPI.NoAPI:
+                    GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.NoApi);
+                    break;
+                case ContextAPI.OpenGLES:
+                    GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.OpenGlEsApi);
+                    break;
+                case ContextAPI.OpenGL:
+                    GLFW.WindowHint(WindowHintClientApi.ClientApi, ClientApi.OpenGlApi);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
-        GLFW.WindowHint(WindowHintInt.ContextVersionMajor, settings.APIVersion.Major);
-        GLFW.WindowHint(WindowHintInt.ContextVersionMinor, settings.APIVersion.Minor);
-        var APIVersion = settings.APIVersion;
-        var Flags = settings.Flags;
-        if (settings.Flags.HasFlag(ContextFlags.ForwardCompatible))
-        {
+            GLFW.WindowHint(WindowHintInt.ContextVersionMajor, 3);
+            GLFW.WindowHint(WindowHintInt.ContextVersionMinor, 3);
             GLFW.WindowHint(WindowHintBool.OpenGLForwardCompat, value: true);
-        }
 
-        if (settings.Flags.HasFlag(ContextFlags.Debug))
+            GLFW.WindowHint(WindowHintOpenGlProfile.OpenGlProfile, OpenGlProfile.Compat);
+            GLFW.WindowHint(WindowHintBool.Visible, false);
+
+            OpenTK.Windowing.GraphicsLibraryFramework.Window* windowPtr = GLFW.CreateWindow(640, 480, "", null, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)(void*)IntPtr.Zero);
+            GLFW.MakeContextCurrent(windowPtr);
+
+            var assembly = Assembly.Load("OpenTK.Graphics");
+            LoadBindings(assembly, "ES11");
+            LoadBindings(assembly, "ES20");
+            LoadBindings(assembly, "ES30");
+            LoadBindings(assembly, "OpenGL");
+            LoadBindings(assembly, "OpenGL4");
+
+            GetGlVersion(out int major, out int minor);
+            GLFW.DestroyWindow(windowPtr);
+            return IsVersionSupported(major, minor, settings.APIVersion.Major, settings.APIVersion.Minor);
+        }
+        catch
         {
-            GLFW.WindowHint(WindowHintBool.OpenGLDebugContext, value: true);
+            return false;
         }
+    }
 
-        var Profile = settings.Profile;
-        switch (settings.Profile)
+    private static unsafe void GetGlVersion(out int major, out int minor)
+    {
+        var version = GL.GetString(StringName.Version);
+        var split = version.Split('.');
+
+        if (!int.TryParse(split[0], out int parseMajor))
+            parseMajor = -1;
+        if (!int.TryParse(split[1], out int parseMinor))
+            parseMinor = -1;
+
+        if (parseMajor == -1 || parseMinor == -1)
         {
-            case ContextProfile.Any:
-                GLFW.WindowHint(WindowHintOpenGlProfile.OpenGlProfile, OpenGlProfile.Any);
-                break;
-            case ContextProfile.Compatability:
-                GLFW.WindowHint(WindowHintOpenGlProfile.OpenGlProfile, OpenGlProfile.Compat);
-                break;
-            case ContextProfile.Core:
-                GLFW.WindowHint(WindowHintOpenGlProfile.OpenGlProfile, OpenGlProfile.Core);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+            major = -1;
+            minor = -1;
+            return;
         }
 
-        GLFW.WindowHint(WindowHintBool.Focused, settings.StartFocused);
-        GLFW.WindowHint(WindowHintBool.Visible, false);
-        GLFW.WindowHint(WindowHintInt.Samples, settings.NumberOfSamples);
-        GLFW.WindowHint(WindowHintBool.SrgbCapable, settings.SrgbCapable);
-        Monitor* monitor = settings.CurrentMonitor.ToUnsafePtr<Monitor>();
-        VideoMode* videoMode = GLFW.GetVideoMode(monitor);
-        GLFW.WindowHint(WindowHintInt.RedBits, settings.RedBits ?? videoMode->RedBits);
-        GLFW.WindowHint(WindowHintInt.GreenBits, settings.GreenBits ?? videoMode->GreenBits);
-        GLFW.WindowHint(WindowHintInt.BlueBits, settings.BlueBits ?? videoMode->BlueBits);
-        if (settings.AlphaBits.HasValue)
+        major = parseMajor;
+        minor = parseMinor;
+    }
+
+    public static bool IsVersionSupported(int glMajor, int glMinor, int major, int minor)
+    {
+        if (glMajor > major)
+            return true;
+
+        return glMajor == major && glMinor >= minor;
+    }
+
+    static void LoadBindings(Assembly assembly, string typeNamespace)
+    {
+        GLFWBindingsContext provider = new();
+        Type type = assembly.GetType("OpenTK.Graphics." + typeNamespace + ".GL");
+        if (!(type == null))
         {
-            GLFW.WindowHint(WindowHintInt.AlphaBits, settings.AlphaBits.Value);
+            type.GetMethod("LoadBindings").Invoke(null, new object[1] { provider });
         }
-
-        if (settings.DepthBits.HasValue)
-        {
-            GLFW.WindowHint(WindowHintInt.DepthBits, settings.DepthBits.Value);
-        }
-
-        if (settings.StencilBits.HasValue)
-        {
-            GLFW.WindowHint(WindowHintInt.StencilBits, settings.StencilBits.Value);
-        }
-
-        OpenTK.Windowing.GraphicsLibraryFramework.Window* windowPtr;
-        GLFW.WindowHint(WindowHintInt.RefreshRate, videoMode->RefreshRate);
-
-        windowPtr = GLFW.CreateWindow(640, 480, "", null, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)(void*)(settings.SharedContext?.WindowPtr ?? IntPtr.Zero));
-        var context = new GLFWGraphicsContext(windowPtr);
-        GLFW.DestroyWindow(windowPtr);
     }
 }
