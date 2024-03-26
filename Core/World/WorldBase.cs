@@ -237,6 +237,23 @@ public abstract class WorldBase : IWorld
             LevelStats.ItemCount = worldModel.ItemCount;
             LevelStats.SecretCount = worldModel.SecretCount;
         }
+
+        BuildSoundLines();
+    }
+
+    private void BuildSoundLines()
+    {
+        for (int i = 0; i < Sectors.Count; i++)
+        {
+            var sector = Sectors[i];
+            for (int j = 0; j < sector.Lines.Count; j++)
+            {
+                var line = sector.Lines[j];
+                if (line.Back == null)
+                    continue;
+                sector.SoundLines.Add(new SoundLine(line.Front.Sector, line.Back.Sector, line.Flags.BlockSound));
+            }
+        }
     }
 
     private void SetupMusicChangers()
@@ -479,37 +496,42 @@ public abstract class WorldBase : IWorld
     public void NoiseAlert(Entity target, Entity source)
     {
         m_soundCount++;
-        RecursiveSound(target, source.Sector, 0);
+        RecursiveSound(WeakEntity.GetReference(target), source.Sector, 0);
     }
 
-    public void RecursiveSound(Entity target, Sector sector, int block)
+    private unsafe void RecursiveSound(WeakEntity target, Sector sector, int block)
     {
         if (sector.SoundValidationCount == m_soundCount && sector.SoundBlock <= block + 1)
             return;
 
         sector.SoundValidationCount = m_soundCount;
         sector.SoundBlock = block + 1;
-        sector.SetSoundTarget(target);
+        sector.SoundTarget = target;
 
-        for (int i = 0; i < sector.Lines.Count; i++)
+        fixed (SoundLine* startLine = &sector.SoundLines.Data[0])
         {
-            Line line = sector.Lines[i];
-            if (line.Back == null || !LineOpening.IsOpen(line))
-                continue;
+            for (int i = 0; i < sector.SoundLines.Length; i++)
+            {
+                SoundLine* line = startLine + i;
+                double minCeilingZ = line->Front.Ceiling.Z < line->Back.Ceiling.Z ? line->Front.Ceiling.Z : line->Back.Ceiling.Z;
+                double minFloorZ = line->Front.Floor.Z < line->Back.Floor.Z ? line->Front.Floor.Z : line->Back.Floor.Z;
+                if (minCeilingZ - minFloorZ <= 0)
+                    continue;
 
-            Sector other = line.Front.Sector == sector ? line.Back.Sector : line.Front.Sector;
-            if (line.Flags.BlockSound)
-            {
-                // Has to cross two block sound lines to stop. This is how it was designed.
-                if (block == 0)
-                    RecursiveSound(target, other, 1);
-            }
-            else
-            {
-                RecursiveSound(target, other, block);
+                Sector other = line->Front == sector ? line->Back : line->Front;
+                if (line->BlockSound)
+                {
+                    // Has to cross two block sound lines to stop. This is how it was designed.
+                    if (block == 0)
+                        RecursiveSound(target, other, 1);
+                }
+                else
+                {
+                    RecursiveSound(target, other, block);
+                }
             }
         }
-    }
+    }  
 
     public void Link(Entity entity)
     {

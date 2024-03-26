@@ -23,6 +23,21 @@ using Helion.Maps.Doom.Components;
 
 namespace Helion.World.Geometry.Sectors;
 
+public readonly record struct SoundLine
+{
+    public readonly Sector Front;
+    public readonly Sector Back;
+    public readonly bool BlockSound;
+
+    public SoundLine(Sector front, Sector back, bool blockSound)
+    {
+        Front = front;
+        Back = back;
+        BlockSound = blockSound;
+    }
+}
+
+
 public class Sector
 {
     public static readonly Sector Default = CreateDefault();
@@ -34,6 +49,7 @@ public class Sector
     public readonly SectorPlane Floor;
     public readonly SectorPlane Ceiling;
     public readonly List<Line> Lines = new();
+    public readonly DynamicArray<SoundLine> SoundLines = new();
     public readonly LinkableList<Entity> Entities = new();
     public List<LinkableNode<Sector>> BlockmapNodes = new();
     public Island Island = null!;
@@ -67,7 +83,7 @@ public class Sector
     public bool MarkAutomap;
     public bool Flood;
     public int ActivatedByLineId = -1;
-    public WeakEntity SoundTarget { get; private set; } = WeakEntity.Default;
+    public WeakEntity SoundTarget = WeakEntity.Default;
     public InstantKillEffect KillEffect { get; private set; }
     public SectorEffect SectorEffect { get; private set; }
 
