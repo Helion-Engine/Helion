@@ -10,11 +10,9 @@ using Helion.Client.Input;
 using Helion.Client.Music;
 using Helion.Graphics;
 using Helion.Layer;
-using Helion.Layer.IwadSelection;
 using Helion.Layer.Worlds;
 using Helion.Models;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Textures;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Util;
@@ -31,7 +29,6 @@ using Helion.World.Save;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using static Helion.Util.Assertion.Assert;
 
@@ -78,6 +75,7 @@ public partial class Client : IDisposable, IInputManagement
         }
 
         m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor);
+        SetIcon(m_window);
 
         m_layerManager = new GameLayerManager(config, m_window, console, m_consoleCommands, archiveCollection,
             m_soundManager, m_saveGameManager, m_profiler);
@@ -92,6 +90,17 @@ public partial class Client : IDisposable, IInputManagement
         SetMouseRawInput();
         RegisterConfigChanges();
         m_ticker.Start();
+    }
+
+    private static void SetIcon(Window window)
+    {
+        try
+        {
+            int size = (int)Math.Sqrt(HelionIcon.Pixels.Length / 4);
+            var image = new OpenTK.Windowing.Common.Input.Image(size, size, HelionIcon.Pixels);
+            window.Icon = new(new[] { image });
+        }
+        catch { }
     }
 
     private unsafe void SetMouseRawInput()
