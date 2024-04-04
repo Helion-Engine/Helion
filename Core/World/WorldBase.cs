@@ -514,8 +514,8 @@ public abstract class WorldBase : IWorld
             {
                 SoundLine* line = startLine + i;
                 double minCeilingZ = line->Front.Ceiling.Z < line->Back.Ceiling.Z ? line->Front.Ceiling.Z : line->Back.Ceiling.Z;
-                double minFloorZ = line->Front.Floor.Z < line->Back.Floor.Z ? line->Front.Floor.Z : line->Back.Floor.Z;
-                if (minCeilingZ - minFloorZ <= 0)
+                double maxFloorZ = line->Front.Floor.Z < line->Back.Floor.Z ? line->Back.Floor.Z : line->Front.Floor.Z;
+                if (minCeilingZ - maxFloorZ <= 0)
                     continue;
 
                 Sector other = line->Front == sector ? line->Back : line->Front;
