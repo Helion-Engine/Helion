@@ -1548,7 +1548,7 @@ doneIsPositionValid:
         if (!WorldStatic.VanillaMovementPhysics)
             return true;
 
-        return tryMove.BlockingEntity != null && tryMove.BlockingLine == null;
+        return tryMove.BlockingEntity == null;
     }
 
     private void MoveXY(Entity entity)
