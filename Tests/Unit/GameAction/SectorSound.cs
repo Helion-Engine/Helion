@@ -19,6 +19,8 @@ namespace Helion.Tests.Unit.GameAction
             World = WorldAllocator.LoadMap("Resources/sectorsound.zip", "sectorsound.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
             ClearSoundTargets();
             GameActions.GetSector(World, 6).Ceiling.SetZ(0);
+            GameActions.GetSector(World, 8).Ceiling.SetZ(32);
+            GameActions.GetSector(World, 10).Floor.SetZ(64);
             GameActions.DestroyCreatedEntities(World);
         }
 
@@ -47,6 +49,14 @@ namespace Helion.Tests.Unit.GameAction
             // Closed door
             GameActions.GetSector(World, 6).SoundTarget.Entity.Should().BeNull();
             GameActions.GetSector(World, 4).SoundTarget.Entity.Should().BeNull();
+
+            // Closed sector
+            GameActions.GetSector(World, 7).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 8).SoundTarget.Entity.Should().BeNull();
+
+            // Closed sector
+            GameActions.GetSector(World, 10).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 11).SoundTarget.Entity.Should().BeNull();
 
             // Completely separate
             GameActions.GetSector(World, 1).SoundTarget.Entity.Should().BeNull();
@@ -90,6 +100,14 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.GetSector(World, 6).SoundTarget.Entity.Should().BeNull();
             GameActions.GetSector(World, 4).SoundTarget.Entity.Should().BeNull();
 
+            // Closed sector
+            GameActions.GetSector(World, 7).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 8).SoundTarget.Entity.Should().BeNull();
+
+            // Closed sector
+            GameActions.GetSector(World, 10).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 11).SoundTarget.Entity.Should().BeNull();
+
             // Completely separate
             GameActions.GetSector(World, 1).SoundTarget.Entity.Should().BeNull();
         }
@@ -98,6 +116,8 @@ namespace Helion.Tests.Unit.GameAction
         public void SoundOpenDoorSector2()
         {
             GameActions.GetSector(World, 6).Ceiling.SetZ(56);
+            GameActions.GetSector(World, 8).Ceiling.SetZ(56);
+            GameActions.GetSector(World, 10).Floor.SetZ(10);
 
             GameActions.SetEntityPosition(World, Player, new Vec2D(0, 64));
             World.NoiseAlert(Player, Player);
@@ -110,6 +130,14 @@ namespace Helion.Tests.Unit.GameAction
             // Door is now open
             GameActions.GetSector(World, 6).SoundTarget.Entity.Should().Be(Player);
             GameActions.GetSector(World, 4).SoundTarget.Entity.Should().Be(Player);
+
+            // Closed sector is now open
+            GameActions.GetSector(World, 7).SoundTarget.Entity.Should().Be(Player);
+            GameActions.GetSector(World, 8).SoundTarget.Entity.Should().Be(Player);
+
+            // Closed sector is now open
+            GameActions.GetSector(World, 10).SoundTarget.Entity.Should().Be(Player);
+            GameActions.GetSector(World, 11).SoundTarget.Entity.Should().Be(Player);
 
             // Completely separate
             GameActions.GetSector(World, 1).SoundTarget.Entity.Should().BeNull();
@@ -130,6 +158,10 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.GetSector(World, 3).SoundTarget.Entity.Should().BeNull();
             GameActions.GetSector(World, 6).SoundTarget.Entity.Should().BeNull();
             GameActions.GetSector(World, 1).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 7).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 8).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 10).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 11).SoundTarget.Entity.Should().BeNull();
         }
 
         [Fact(DisplayName = "Sound from sector 4 with open door")]
@@ -148,6 +180,10 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.GetSector(World, 6).SoundTarget.Entity.Should().Be(Player);
 
             GameActions.GetSector(World, 1).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 7).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 8).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 10).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 11).SoundTarget.Entity.Should().BeNull();
         }
 
         [Fact(DisplayName = "Sound from sector 1")]
@@ -165,6 +201,10 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.GetSector(World, 4).SoundTarget.Entity.Should().BeNull();
             GameActions.GetSector(World, 5).SoundTarget.Entity.Should().BeNull();
             GameActions.GetSector(World, 6).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 7).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 8).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 10).SoundTarget.Entity.Should().BeNull();
+            GameActions.GetSector(World, 11).SoundTarget.Entity.Should().BeNull();
         }
     }
 }
