@@ -44,7 +44,7 @@ public static class BitmapFont
             if (definition.Grayscale)
                 image.ConvertToGrayscale(definition.GrayscaleNormalization);
             
-            return new Font(definition.Name, glyphs, image);
+            return new Font(definition.Name, glyphs, image, fixedHeight: definition.FixedHeight);
         }
         catch
         {
@@ -122,6 +122,9 @@ public static class BitmapFont
         int width = charImages.Values.Select(i => i.Width).Sum() + padding * charImages.Count * 2;
         if (definition.FixedWidth != null)
             width = (charImages.Count * definition.FixedWidth.Value) + (padding * charImages.Count * 2);
+
+        if (definition.FixedHeight != null)
+            maxHeight = definition.FixedHeight.Value;
 
         Dimension atlasDimension = (width, maxHeight);
         Image atlas = new(width, maxHeight, imageType);

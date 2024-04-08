@@ -15,13 +15,14 @@ public class Font : IEnumerable<(char, Glyph)>
 
     public readonly string Name;
     public readonly int MaxHeight;
+    public readonly int? FixedHeight;
     public readonly Image Image;
     public readonly bool IsTrueTypeFont;
     private readonly Dictionary<char, Glyph> m_glyphs;
     private readonly Glyph m_defaultGlyph;
 
     public Font(string name, Dictionary<char, Glyph> glyphs, Image image, char defaultChar = DefaultChar,
-        bool isTrueTypeFont = false)
+        bool isTrueTypeFont = false, int? fixedHeight = null)
     {
         Name = name;
         m_glyphs = glyphs;
@@ -32,6 +33,8 @@ public class Font : IEnumerable<(char, Glyph)>
 
         if (!glyphs.TryGetValue(defaultChar, out m_defaultGlyph))
             m_defaultGlyph = glyphs.Values.FirstOrDefault();
+
+        FixedHeight = fixedHeight;
     }
 
     public Glyph Get(char c) => TryGet(c, out Glyph result) ? result : m_defaultGlyph;
