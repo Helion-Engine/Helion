@@ -162,7 +162,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Definition = definition;
         Flags = definition.Flags;
         Properties = definition.Properties;
-        Threshold = Properties.Threshold;
+        Threshold = Properties.DefThreshold;
         ReactionTime = Properties.ReactionTime;
 
         AngleRadians = angleRadians;
