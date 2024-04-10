@@ -32,17 +32,17 @@ public readonly struct SaveGameEvent
 public class SaveGameManager
 {
     private readonly IConfig m_config;
-    private readonly CommandLineArgs m_commandLineArgs;
+    private readonly string? m_saveDirCommandLineArg;
 
     public event EventHandler<SaveGameEvent>? GameSaved;
 
-    public SaveGameManager(IConfig config, CommandLineArgs commandLineArgs)
+    public SaveGameManager(IConfig config, string? saveDirCommandLineArg)
     {
         m_config = config;
-        m_commandLineArgs = commandLineArgs;
+        m_saveDirCommandLineArg = saveDirCommandLineArg;
     }
 
-    private string GetSaveDir() => m_commandLineArgs.SaveDir ?? Directory.GetCurrentDirectory();
+    private string GetSaveDir() => m_saveDirCommandLineArg ?? Directory.GetCurrentDirectory();
 
     public bool SaveFileExists(string filename)
     {
