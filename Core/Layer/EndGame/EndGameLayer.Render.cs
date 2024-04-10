@@ -45,7 +45,7 @@ public partial class EndGameLayer
         if (m_drawState <= EndGameDrawState.TextComplete)
         {
             bool showAllText = m_drawState > EndGameDrawState.Text;
-            Draw(m_flatImage, m_displayText, m_ticker, showAllText, hud, ctx);
+            Draw(m_backgroundImage, m_displayText, m_ticker, showAllText, hud, ctx);
         }
         else if (m_drawState == EndGameDrawState.Cast)
         {
@@ -146,12 +146,12 @@ public partial class EndGameLayer
         }
     }
 
-    private void Draw(string flat, IList<string> displayText, Ticker ticker, bool showAllText, IHudRenderContext hud,
+    private void Draw(string image, IList<string> displayText, Ticker ticker, bool showAllText, IHudRenderContext hud,
         IRenderableSurfaceContext ctx)
     {
         ctx.ClearDepth();
         hud.Clear(Color.Black);
-        DrawBackground(flat, hud);
+        DrawBackground(image, hud);
         hud.DoomVirtualResolution(m_virtualDrawText, new HudVirtualText(displayText, ticker, showAllText, hud));
     }
 
@@ -177,12 +177,18 @@ public partial class EndGameLayer
         }
     }
 
-    private static void DrawBackground(string flat, IHudRenderContext hud)
+    private static void DrawBackground(string image, IHudRenderContext hud)
     {
-        if (!hud.Textures.TryGet(flat, out var flatHandle, ResourceNamespace.Flats))
+        if (!hud.Textures.TryGet(image, out var flatHandle, ResourceNamespace.Flats))
             return;
 
         var (width, height) = flatHandle.Dimension;
+        if (width != 64 || height != 64)
+        {
+            hud.RenderFullscreenImage(image);
+            return;
+        }
+
         int repeatX = hud.Dimension.Width / width;
         int repeatY = hud.Dimension.Height / height;
 
@@ -196,7 +202,7 @@ public partial class EndGameLayer
         {
             for (int x = 0; x < repeatX; x++)
             {
-                hud.Image(flat, drawCoordinate);
+                hud.Image(image, drawCoordinate);
                 drawCoordinate.X += width;
             }
 

@@ -58,7 +58,7 @@ public partial class EndGameLayer : IGameLayer
     private readonly ArchiveCollection m_archiveCollection;
     private readonly IMusicPlayer m_musicPlayer;
     private readonly SoundManager m_soundManager;
-    private readonly string m_flatImage;
+    private readonly string m_backgroundImage;
     private readonly IList<string> m_displayText;
     private readonly Ticker m_ticker = new(LettersPerSecond);
     private readonly Action<HudBackgroundImage> m_virtualDrawBackground;
@@ -97,9 +97,9 @@ public partial class EndGameLayer : IGameLayer
         m_archiveCollection = archiveCollection;
         m_musicPlayer = musicPlayer;
         m_soundManager = soundManager;
-        m_flatImage = language.GetMessage(currentCluster.Flat);
-        if (string.IsNullOrEmpty(m_flatImage))
-            m_flatImage = archiveCollection.Definitions.MapInfoDefinition.GameDefinition.FinaleFlat;
+        m_backgroundImage = language.GetMessage(currentCluster.Flat);
+        if (string.IsNullOrEmpty(m_backgroundImage))
+            m_backgroundImage = archiveCollection.Definitions.MapInfoDefinition.GameDefinition.FinaleFlat;
 
         m_displayText = LookUpDisplayText(archiveCollection, language, clusterText);
         m_timespan = GetPageTime();
