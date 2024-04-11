@@ -228,9 +228,6 @@ public class ListedConfigSection : IOptionSection
             return GetEnumDescription(configValue.ObjectValue).ToString();
 
         var doubleValue = Convert.ToDouble(configValue.ObjectValue);
-        if (attr.Scale != 0)
-            doubleValue *= attr.Scale;
-
         if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
             return doubleValue.ToString() + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
 
@@ -311,12 +308,6 @@ public class ListedConfigSection : IOptionSection
 
         (var cfgValue, var attr, var configAttr) = m_configValues[m_currentRowIndex];
         ConfigSetResult result;
-
-        if (attr.Scale != 0 && cfgValue.ValueType.IsAssignableFrom(typeof(double)) &&
-            Parsing.TryParseDouble(newValue, out var doubleValue))
-        {
-            newValue = (doubleValue / attr.Scale).ToString();
-        }
 
         // This is a hack for enums. The string we render for the user may
         // not be a valid enum when setting, so we use the index instead.

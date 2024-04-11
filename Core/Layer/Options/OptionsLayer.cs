@@ -65,8 +65,7 @@ public class OptionsLayer : IGameLayer
 
     public void OnShow()
     {
-        m_messageTicks = 0;
-        m_message = string.Empty;
+        ClearMessage();
         if (m_currentSectionIndex < m_sections.Count)
             m_sections[m_currentSectionIndex].OnShow();
     }
@@ -173,6 +172,12 @@ public class OptionsLayer : IGameLayer
         m_messageTicks = (int)TicksPerSecond * 5;
     }
 
+    private void ClearMessage()
+    {
+        m_message = string.Empty;
+        m_messageTicks = 0;
+    }
+
     private List<IOptionSection> GenerateSections()
     {
         Dictionary<OptionSectionType, IOptionSection> sectionMap = new();
@@ -220,6 +225,9 @@ public class OptionsLayer : IGameLayer
 
     private void OptionSection_OnLockChanged(object? sender, LockEvent e)
     {
+        if (e.Lock == Lock.Locked)
+            ClearMessage();
+
         m_locked = e.Lock == Lock.Locked;
         m_sectionMessage = e.Message;
     }
@@ -328,10 +336,7 @@ public class OptionsLayer : IGameLayer
         {
             m_messageTicks -= tickerInfo.Ticks;
             if (m_messageTicks <= 0)
-            {
-                m_messageTicks = 0;
-                m_message = string.Empty;
-            }
+                ClearMessage();
         }
     }
 
