@@ -47,6 +47,7 @@ public class CompLevelDefinition
         switch (CompLevel)
         {
             case CompLevel.Vanilla:
+                compat.OriginalExplosion.SetWithNoWriteConfig(true);
                 compat.VanillaMovementPhysics.SetWithNoWriteConfig(true);
                 compat.VanillaSectorPhysics.SetWithNoWriteConfig(true);
                 compat.MissileClip.SetWithNoWriteConfig(true);

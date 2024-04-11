@@ -49,6 +49,10 @@ public class ConfigCompat
     [OptionMenu(OptionSectionType.Compatibility, "Doom 2 projectiles trigger walk specials")]
     public readonly ConfigValue<bool> Doom2ProjectileWalkTriggers = new(false);
 
+    [ConfigInfo("Use original doom explosion behavior", serialize: true, demo: true)]
+    [OptionMenu(OptionSectionType.Compatibility, "Use original doom explosion behavior")]
+    public readonly ConfigValue<bool> OriginalExplosion = new(false);   
+
     [ConfigInfo("Enable mbf21 features.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Enable mbf21 features")]
     public readonly ConfigValue<bool> Mbf21 = new(true);
@@ -63,5 +67,7 @@ public class ConfigCompat
         NoTossDrops.ResetToUserValue();
         Stairs.ResetToUserValue();
         VanillaMovementPhysics.ResetToUserValue();
+        Doom2ProjectileWalkTriggers.ResetToUserValue();
+        OriginalExplosion.ResetToUserValue();
     }
 }

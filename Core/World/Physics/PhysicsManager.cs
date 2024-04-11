@@ -32,7 +32,7 @@ public class PhysicsManager
     private const int MaxSlides = 3;
     private const double SlideStepBackTime = 1.0 / 32.0;
     private const double MinMovementThreshold = 0.01;
-    private const double SetEntityToFloorSpeedMax = 9;
+    private const double SetEntityToFloorSpeedMax = 8;
     private const double MinMoveFactor = 32 / 65536.0;
     private const double DefaultMoveFactor = 1.0;
     private const double MudMoveFactorLow = 15000 / 65536.0;
@@ -416,7 +416,7 @@ public class PhysicsManager
     }
 
     private static bool SpeedShouldStickToFloor(double speed) =>
-        -speed < SetEntityToFloorSpeedMax || -speed == SectorMoveData.InstantToggleSpeed;
+        -speed <= SetEntityToFloorSpeedMax || -speed == SectorMoveData.InstantToggleSpeed;
 
     private static bool CheckSectorMoveBlock(Entity entity, SectorPlaneFace moveType)
     {

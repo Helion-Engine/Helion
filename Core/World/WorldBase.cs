@@ -309,6 +309,7 @@ public abstract class WorldBase : IWorld
         Config.Compatibility.VanillaMovementPhysics.OnChanged += VanillaMovementPhysics_OnChanged;
         Config.Compatibility.Mbf21.OnChanged += Mbf21_OnChanged;
         Config.Compatibility.Doom2ProjectileWalkTriggers.OnChanged += Doom2ProjectileWalkTriggers_OnChanged;
+        Config.Compatibility.OriginalExplosion.OnChanged += OriginalExplosion_OnChanged;
     }
 
     private void UnRegisterConfigChanges()
@@ -325,6 +326,7 @@ public abstract class WorldBase : IWorld
         Config.Compatibility.NoTossDrops.OnChanged -= NoTossDrops_OnChanged;
         Config.Compatibility.VanillaMovementPhysics.OnChanged -= VanillaMovementPhysics_OnChanged;
         Config.Compatibility.Mbf21.OnChanged -= Mbf21_OnChanged;
+        Config.Compatibility.OriginalExplosion.OnChanged -= OriginalExplosion_OnChanged;
     }
 
     private void SetWorldStatic()
@@ -357,6 +359,7 @@ public abstract class WorldBase : IWorld
         WorldStatic.Dehacked = ArchiveCollection.Definitions.DehackedDefinition != null;
         WorldStatic.Mbf21 = Config.Compatibility.Mbf21;
         WorldStatic.Doom2ProjectileWalkTriggers = Config.Compatibility.Doom2ProjectileWalkTriggers;
+        WorldStatic.OriginalExplosion = Config.Compatibility.OriginalExplosion;
         WorldStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
@@ -374,6 +377,8 @@ public abstract class WorldBase : IWorld
         WorldStatic.WeaponBfg = EntityManager.DefinitionComposer.GetByName(DehackedDefinition.BFG900Class);
     }
 
+    private void OriginalExplosion_OnChanged(object sender, bool enabled) =>
+        WorldStatic.OriginalExplosion = enabled;
     private void Doom2ProjectileWalkTriggers_OnChanged(object? sender, bool enabled) =>
         WorldStatic.Doom2ProjectileWalkTriggers = enabled;
     private void Mbf21_OnChanged(object? sender, bool enabled) =>
@@ -1689,7 +1694,7 @@ public abstract class WorldBase : IWorld
 
         ApplyExplosionDamageAndThrust(m_radiusExplosion.DamageSource, m_radiusExplosion.AttackSource, entity,
             m_radiusExplosion.Radius, m_radiusExplosion.MaxDamage, m_radiusExplosion.Thrust,
-            m_radiusExplosion.DamageSource.Flags.OldRadiusDmg || entity.Flags.OldRadiusDmg);
+            WorldStatic.OriginalExplosion || m_radiusExplosion.DamageSource.Flags.OldRadiusDmg || entity.Flags.OldRadiusDmg);
     }
 
     private bool ShouldApplyExplosionDamage(Entity entity, Entity damageSource)
