@@ -154,6 +154,7 @@ namespace Helion.Tests.Unit.GameAction
             entity.Flags.QuickToRetaliate = true;
             entity.Properties.MissileMovementSpeed = 0;
             entity.Properties.MonsterMovementSpeed = 0;
+            entity.Threshold = 0;
         }
 
         [Fact(DisplayName = "Monster projectile")]
