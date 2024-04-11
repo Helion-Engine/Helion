@@ -1915,6 +1915,9 @@ public abstract class WorldBase : IWorld
 
     private void CreateBloodOrPulletPuff(Entity? entity, Vec3D intersect, double angle, double attackDistance, int damage, bool ripper = false)
     {
+        if (entity != null && entity.IsDisposed)
+            return;
+
         bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood;
         EntityDefinition? def;
         if (bulletPuff)
