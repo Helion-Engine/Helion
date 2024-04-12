@@ -266,13 +266,13 @@ public partial class Client
     {
         string fileName = args.Args[0];
         Log.Info($"Loading save file {fileName}");
-        if (!File.Exists(fileName))
+        if (!m_saveGameManager.SaveFileExists(fileName))
         {
             LogError($"Save file {fileName} not found.");
             return;
         }
 
-        SaveGame saveGame = new(fileName);
+        SaveGame saveGame = m_saveGameManager.ReadSaveGame(fileName);
         if (saveGame.Model == null)
         {
             LogError("Corrupt save game.");

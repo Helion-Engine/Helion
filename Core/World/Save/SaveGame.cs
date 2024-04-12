@@ -25,21 +25,27 @@ public class SaveGame
 
     public readonly SaveGameModel? Model;
 
+    public readonly string SaveDir;
+
     public readonly string FileName;
 
-    public SaveGame(string filename, SaveGameModel model)
+    public string FilePath => Path.Combine(SaveDir, FileName);
+
+    public SaveGame(string saveDir, string filename, SaveGameModel model)
     {
+        SaveDir = saveDir;
         FileName = filename;
         Model = model;
     }
 
-    public SaveGame(string filename)
+    public SaveGame(string saveDir, string filename)
     {
+        SaveDir = saveDir;
         FileName = filename;
 
         try
         {
-            using ZipArchive zipArchive = ZipFile.Open(FileName, ZipArchiveMode.Read);
+            using ZipArchive zipArchive = ZipFile.Open(FilePath, ZipArchiveMode.Read);
             ZipArchiveEntry? saveDataEntry = zipArchive.Entries.FirstOrDefault(x => x.Name.Equals(SaveDataFile));
             if (saveDataEntry == null)
                 return;
@@ -59,7 +65,7 @@ public class SaveGame
 
         try
         {
-            using ZipArchive zipArchive = ZipFile.Open(FileName, ZipArchiveMode.Read);
+            using ZipArchive zipArchive = ZipFile.Open(FilePath, ZipArchiveMode.Read);
             ZipArchiveEntry? entry = zipArchive.Entries.FirstOrDefault(x => x.Name.Equals(Model.WorldFile));
             if (entry == null)
                 return null;
@@ -72,7 +78,7 @@ public class SaveGame
         }
     }
 
-    public static SaveGameEvent WriteSaveGame(IWorld world, string title, string filename)
+    public static SaveGameEvent WriteSaveGame(IWorld world, string title, string saveDir, string filename)
     {
         SaveGameModel saveGameModel = new()
         {
@@ -100,14 +106,16 @@ public class SaveGame
         }
         catch (Exception ex)
         {
-            return new SaveGameEvent(new SaveGame(filename, saveGameModel), worldModel, filename, false, ex);
+            return new SaveGameEvent(new SaveGame(saveDir, filename, saveGameModel), worldModel, filename, false, ex);
         }
 
-        if (File.Exists(filename))
-            File.Delete(filename);
+        SaveGame saveGame = new(saveDir, filename, saveGameModel);
 
-        File.Copy(saveTempFile, filename);
+        if (File.Exists(saveGame.FilePath))
+            File.Delete(saveGame.FilePath);
 
-        return new SaveGameEvent(new SaveGame(filename, saveGameModel), worldModel, filename, true);
+        File.Copy(saveTempFile, saveGame.FilePath);
+
+        return new SaveGameEvent(saveGame, worldModel, filename, true);
     }
 }

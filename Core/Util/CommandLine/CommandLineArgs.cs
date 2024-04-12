@@ -18,6 +18,7 @@ public class CommandLineArgs
     public string? Iwad { get; set; }
     public string? Map { get; set; }
     public string? ConfigFileName { get; set; }
+    public string? SaveDir { get; set; }
     public string? LogFileName { get; set; }
     public string? LogLevel { get; set; }
     public string? LogProfilerFileName { get; set; }
@@ -40,6 +41,7 @@ public class CommandLineArgs
         "-iwad",
         "-file",
         "-config",
+        "-savedir",
         "-log",
         "-loglevel",
         "-logprofiler",
@@ -93,6 +95,8 @@ public class CommandLineArgs
                 commandLineArgs.Files.AddRange(parsedArg.Values);
             else if (IsArgMatch(parsedArg, "-config"))
                 commandLineArgs.ConfigFileName = GetString(commandLineArgs, parsedArg);
+            else if (IsArgMatch(parsedArg, "-savedir"))
+                commandLineArgs.SaveDir = GetString(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "-log"))
                 commandLineArgs.LogFileName = GetString(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "-loglevel"))

@@ -1,12 +1,13 @@
-using Helion.Util.Configs;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Helion.Util.Extensions;
-using Helion.Resources.Archives.Collection;
-using Helion.World.Util;
 using Helion.Models;
+using Helion.Resources.Archives.Collection;
+using Helion.Util.CommandLine;
+using Helion.Util.Configs;
+using Helion.Util.Extensions;
+using Helion.World.Util;
 
 namespace Helion.World.Save;
 
@@ -31,13 +32,25 @@ public readonly struct SaveGameEvent
 public class SaveGameManager
 {
     private readonly IConfig m_config;
+    private readonly string? m_saveDirCommandLineArg;
 
     public event EventHandler<SaveGameEvent>? GameSaved;
 
-    public SaveGameManager(IConfig config)
+    public SaveGameManager(IConfig config, string? saveDirCommandLineArg)
     {
         m_config = config;
+        m_saveDirCommandLineArg = saveDirCommandLineArg;
     }
+
+    private string GetSaveDir() => m_saveDirCommandLineArg ?? Directory.GetCurrentDirectory();
+
+    public bool SaveFileExists(string filename)
+    {
+        string filePath = Path.Combine(GetSaveDir(), filename);
+        return File.Exists(filePath);
+    }
+
+    public SaveGame ReadSaveGame(string filename) => new SaveGame(GetSaveDir(), filename);
 
     public SaveGameEvent WriteNewSaveGame(IWorld world, string title, bool autoSave = false) =>
         WriteSaveGame(world, title, null, autoSave);
@@ -45,7 +58,7 @@ public class SaveGameManager
     public SaveGameEvent WriteSaveGame(IWorld world, string title, SaveGame? existingSave, bool autoSave = false)
     {
         string filename = existingSave?.FileName ?? GetNewSaveName(autoSave);
-        var saveEvent = SaveGame.WriteSaveGame(world, title, filename);
+        var saveEvent = SaveGame.WriteSaveGame(world, title, GetSaveDir(), filename);
 
         GameSaved?.Invoke(this, saveEvent);
         return saveEvent;
@@ -68,8 +81,8 @@ public class SaveGameManager
 
     public List<SaveGame> GetSaveGames()
     {
-        return Directory.GetFiles(Directory.GetCurrentDirectory(), "*.hsg")
-            .Select(f => new SaveGame(f))
+        return Directory.GetFiles(GetSaveDir(), "*.hsg")
+            .Select(f => new SaveGame(GetSaveDir(), f))
             .OrderByDescending(f => f.Model?.Date)
             .ToList();
     }
@@ -78,8 +91,8 @@ public class SaveGameManager
     {
         try
         {
-            if (File.Exists(saveGame.FileName))
-                File.Delete(saveGame.FileName);
+            if (File.Exists(saveGame.FilePath))
+                File.Delete(saveGame.FilePath);
         }
         catch
         {
@@ -91,7 +104,7 @@ public class SaveGameManager
 
     private string GetNewSaveName(bool autoSave)
     {
-        List<string> files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.hsg")
+        List<string> files = Directory.GetFiles(GetSaveDir(), "*.hsg")
             .Select(Path.GetFileName)
             .WhereNotNull()
             .ToList();
