@@ -1,8 +1,10 @@
 ﻿using FluentAssertions;
 using Helion.Resources.IWad;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
+using System.Threading;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -148,6 +150,21 @@ namespace Helion.Tests.Unit.GameAction
             liftSector.Floor.Z.Should().Be(64);
             imp.Position.Z.Should().Be(64);
             liftSector.ActiveFloorMove.Should().BeNull();
+        }
+
+        [Fact(DisplayName = "Entity sticks to floor on turbo lift")]
+        public void EntitySticksToFloorTurboLift()
+        {
+            var liftSector = GameActions.GetSectorByTag(World, 8);
+            liftSector.Floor.Z.Should().Be(128);
+            GameActions.EntityUseLine(World, Player, 60).Should().BeTrue();
+            GameActions.SetEntityPosition(World, Player, (-320, -832, 128));
+            liftSector.ActiveFloorMove.Should().NotBeNull();
+
+            GameActions.TickWorld(World, () => { return liftSector.ActiveFloorMove != null; }, () =>
+            {
+                Player.Position.Z.Should().Be(liftSector.Floor.Z);
+            });
         }
     }
 }
