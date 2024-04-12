@@ -61,10 +61,6 @@ public partial class Entity
                 newTarget = Sector.SoundTarget.Entity;
             }
         }
-        else if (ValidEnemyTarget(Target.Entity))
-        {
-            newTarget = Target.Entity;
-        }
         else
         {
             newTarget = GetNewTarget(allaround);
