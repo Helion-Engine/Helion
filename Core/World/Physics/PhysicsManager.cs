@@ -60,6 +60,7 @@ public class PhysicsManager
     private readonly Comparison<Entity> m_sectorMoveOrderComparer = new(SectorEntityMoveOrderCompare);
     private readonly DynamicArray<Entity> m_stackCrush = new();
     private readonly int[] m_checkedBlockLines;
+    private readonly bool m_alwaysStickEntitiesToFloor;
 
     private MoveLinkData m_moveLinkData;
     private CanPassData m_canPassData;
@@ -67,7 +68,7 @@ public class PhysicsManager
     private readonly Func<Entity, GridIterationStatus> m_sectorMoveLinkClampAction;
     private readonly Func<Entity, GridIterationStatus> m_stackEntityTraverseAction;
 
-    public PhysicsManager(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random)
+    public PhysicsManager(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random, bool alwaysStickEntitiesToFloor)
     {
         m_world = world;
         m_bspTree = bspTree;
@@ -81,6 +82,7 @@ public class PhysicsManager
         m_sectorMoveLinkClampAction = new(HandleSectorMoveLinkClamp);
         m_stackEntityTraverseAction = new(HandleStackEntityTraverse);
         m_canPassTraverseFunc = new(CanPassTraverse);
+        m_alwaysStickEntitiesToFloor = alwaysStickEntitiesToFloor;
     }
 
     static int SectorEntityMoveOrderCompare(Entity? x, Entity? y)
@@ -167,7 +169,7 @@ public class PhysicsManager
 
             // At slower speeds we need to set entities to the floor
             // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
-            if (moveType == SectorPlaneFace.Floor && startZ > destZ && SpeedShouldStickToFloor(speed) &&
+            if (moveType == SectorPlaneFace.Floor && startZ > destZ && (m_alwaysStickEntitiesToFloor || SpeedShouldStickToFloor(speed)) &&
                 entity.OnGround && entity.HighestFloorSector == sector)
             {
                 double top = destZ;

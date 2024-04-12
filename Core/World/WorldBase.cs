@@ -57,6 +57,7 @@ using Helion.Util.Extensions;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using Helion.Resources.Archives.Entries;
+using Helion.Maps.Doom;
 
 namespace Helion.World;
 
@@ -200,7 +201,7 @@ public abstract class WorldBase : IWorld
 
         SoundManager = new WorldSoundManager(this, audioSystem);
         EntityManager = new EntityManager(this);
-        PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random);
+        PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random, map is DoomMap);
         SpecialManager = new SpecialManager(this, m_random);
 
         WorldStatic.FlushIntersectionReferences();
