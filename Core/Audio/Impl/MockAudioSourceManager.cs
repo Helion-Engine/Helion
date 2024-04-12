@@ -7,6 +7,7 @@ namespace Helion.Audio.Impl
     public class MockAudioSourceManager : IAudioSourceManager
     {
         private readonly LinkedList<MockAudioSource> m_audioSources = new();
+        public bool CreateSound = true;
 
         public void CacheSound(string name)
         {
@@ -15,6 +16,9 @@ namespace Helion.Audio.Impl
 
         public IAudioSource? Create(string sound, in AudioData audioData)
         {
+            if (!CreateSound)
+                return null;
+
             var audioSource = new MockAudioSource(audioData, 35);
             m_audioSources.AddLast(audioSource);
             return audioSource;

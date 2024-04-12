@@ -6,6 +6,7 @@ using Helion.Util.RandomGenerators;
 using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using System;
@@ -155,6 +156,12 @@ namespace Helion.Tests.Unit.GameAction
             entity.Properties.MissileMovementSpeed = 0;
             entity.Properties.MonsterMovementSpeed = 0;
             entity.Threshold = 0;
+        }
+
+        private static void EntityCreateSetSpeeds(Entity entity)
+        {
+            entity.Properties.MissileMovementSpeed = 0;
+            entity.Properties.MonsterMovementSpeed = 0;
         }
 
         [Fact(DisplayName = "Monster projectile")]
@@ -322,6 +329,79 @@ namespace Helion.Tests.Unit.GameAction
             dest.Definition.Properties.PainChance = savePainChance;
         }
 
+        [Fact(DisplayName = "Monster threshold")]
+        public void MonsterThreshold()
+        {
+            // This is a mistake where the pain state is set first. Then the game checked if the monsters was in the spawn state to move to the see state.
+            // If the monster hits the pain chance then it would never advance to the see state.
+            var firstEnemy = GameActions.CreateEntity(World, "ShotgunGuy", new(-256, -64, 0), onCreated: EntityCreateSetSpeeds);
+            var dest = GameActions.CreateEntity(World, "Cacodemon", new(-256, -416, 0), onCreated: EntityCreateSetSpeeds);
+
+            firstEnemy.Threshold.Should().Be(0);
+            dest.Threshold.Should().Be(0);
+
+            int savePainChance = dest.Definition.Properties.PainChance;
+            dest.Definition.Properties.PainChance = 0;
+            firstEnemy.SetTarget(dest);
+            RunMissileState(firstEnemy, dest, MonsterNames.First(x => x.Name == "ShotgunGuy"), false);
+
+            dest.Target.Entity.Should().NotBeNull();
+            dest.Target.Entity.Should().Be(firstEnemy);
+            dest.Threshold.Should().Be(99);
+
+            firstEnemy.Kill(dest);
+            GameActions.TickWorld(World, 10);
+
+            // Threshold resets when target is dead
+            dest.Threshold.Should().Be(0);
+
+            var secondEnemy = GameActions.CreateEntity(World, "ShotgunGuy", new(-256, -64, 0), onCreated: EntityCreateSetSpeeds);
+            var thirdEnemy = GameActions.CreateEntity(World, "ZombieMan", new(-320, -64, 0), onCreated: EntityCreateSetSpeeds);
+            secondEnemy.Threshold.Should().Be(0);
+            thirdEnemy.Threshold.Should().Be(0);
+
+            secondEnemy.SetTarget(dest);
+            thirdEnemy.SetTarget(dest);
+            RunMissileState(secondEnemy, dest, MonsterNames.First(x => x.Name == "ShotgunGuy"), false);
+            
+            dest.Threshold.Should().Be(99);
+            dest.Target.Entity.Should().Be(secondEnemy);
+
+            // Threshold prevents from targeting the third enemy
+            RunMissileState(thirdEnemy, dest, MonsterNames.First(x => x.Name == "ZombieMan"), false, checkTarget: false);
+            dest.Target.Entity.Should().Be(secondEnemy);
+
+            GameActions.TickWorld(World, () => { return dest.Threshold != 0; }, () => { });
+            RunMissileState(thirdEnemy, dest, MonsterNames.First(x => x.Name == "ZombieMan"), false, checkTarget: false);
+            dest.Target.Entity.Should().Be(thirdEnemy);
+
+            dest.Definition.Properties.PainChance = savePainChance;
+        }
+
+        [Fact(DisplayName = "Monster see state plays see sound and going back to spawn does not play see sound")]
+        public void MonsterBackToSpawnState()
+        {
+            GameActions.SetEntityPosition(World, Player, (-320, 64, 0));
+            var source = GameActions.CreateEntity(World, "ShotgunGuy", new(-256, -64, 0), onCreated: EntityCreated);
+            int frameIndex = source.FrameState.Frame.MasterFrameIndex;
+            source.AngleRadians = GameActions.GetAngle(Bearing.South);
+            source.FrozenTics = 0;
+            source.Flags.Friendly = true;
+            var dest = GameActions.CreateEntity(World, "Cacodemon", new(-256, -416, 0), onCreated: EntityCreated);
+
+            GameActions.TickWorld(World, () => { return source.Target.Entity == null; }, () => { });
+            source.Target.Entity.Should().Be(dest);
+
+            GameActions.SetEntityOutOfBounds(World, dest);
+            source.FrameState.SetFrameIndex(frameIndex);
+            GameActions.AssertAnySound(World, source);
+
+            source.Target.Entity.Should().Be(dest);
+            GameActions.TickWorld(World, 10);
+            GameActions.AssertNoSound(World, source);
+            (source.FrameState.Frame.ActionFunction == EntityActionFunctions.A_Look).Should().BeTrue();
+        }
+
         [Fact(DisplayName = "Monster infighting tests")]
         public void MonsterInfight()
         {
@@ -377,10 +457,11 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(World, 35 * 3);
         }
 
-        private void RunMissileState(Entity source, Entity dest, MonsterData sourceData, bool isLikeMelee)
+        private void RunMissileState(Entity source, Entity dest, MonsterData sourceData, bool isLikeMelee, bool checkTarget = true)
         {
             dest.Health = int.MaxValue;
-            dest.SetTarget(null);
+            if (checkTarget)
+                dest.SetTarget(null);
             source.SetMissileState();
 
             int startTicks = World.Gametick;
@@ -414,6 +495,9 @@ namespace Helion.Tests.Unit.GameAction
                 missileVelocity.Y.Should().BeGreaterThan(0);
             }
 
+            if (!checkTarget)
+                return;
+            
             if (sourceData.CanMissileDamage(dest.Definition.Name) || isLikeMelee)
             {
                 // Monsters will not retaliate from archvile attack
