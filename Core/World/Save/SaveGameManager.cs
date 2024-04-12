@@ -8,6 +8,7 @@ using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.World.Util;
+using NLog;
 
 namespace Helion.World.Save;
 
@@ -31,6 +32,7 @@ public readonly struct SaveGameEvent
 
 public class SaveGameManager
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly IConfig m_config;
     private readonly string? m_saveDirCommandLineArg;
 
@@ -42,7 +44,33 @@ public class SaveGameManager
         m_saveDirCommandLineArg = saveDirCommandLineArg;
     }
 
-    private string GetSaveDir() => m_saveDirCommandLineArg ?? Directory.GetCurrentDirectory();
+    private string GetSaveDir()
+    {
+        if (string.IsNullOrEmpty(m_saveDirCommandLineArg))
+            return Directory.GetCurrentDirectory();
+
+        if (!EnsureDirectoryExists(m_saveDirCommandLineArg))
+            return Directory.GetCurrentDirectory();
+
+        return m_saveDirCommandLineArg;
+    }
+
+    private static bool EnsureDirectoryExists(string path)
+    {
+        if (Directory.Exists(path))
+            return true;
+
+        try
+        {
+            Directory.CreateDirectory(path);
+            return true;
+        }
+        catch
+        {
+            Log.Error("Failed to create directory {dir}", path);
+            return false;
+        }
+    }
 
     public bool SaveFileExists(string filename)
     {
