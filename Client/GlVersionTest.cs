@@ -89,10 +89,8 @@ public class GlVersionTest
     static void LoadBindings(Assembly assembly, string typeNamespace)
     {
         GLFWBindingsContext provider = new();
-        Type type = assembly.GetType("OpenTK.Graphics." + typeNamespace + ".GL");
-        if (!(type == null))
-        {
-            type.GetMethod("LoadBindings").Invoke(null, new object[1] { provider });
-        }
+        var type = assembly.GetType("OpenTK.Graphics." + typeNamespace + ".GL");
+        var bindings = (type?.GetMethod("LoadBindings")) ?? throw new Exception("Failed to load OpenTK.Graphics");
+        bindings.Invoke(null, [provider]);
     }
 }

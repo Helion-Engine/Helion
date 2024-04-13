@@ -1,10 +1,8 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
-using Helion.Tests.Unit.GameAction;
 using Helion.Util.RandomGenerators;
 using Helion.World;
-using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Players;
@@ -16,7 +14,7 @@ namespace Helion.Tests.Unit.GameAction;
 [Collection("GameActions")]
 public class Shoot
 {
-    private SinglePlayerWorld World;
+    private readonly SinglePlayerWorld World;
     private Player Player => World.Player;
     private readonly NoRandom Random = new();
 
@@ -34,7 +32,7 @@ public class Shoot
 
     private static int DamageFunc(DamageFuncParams p) => 1;
 
-    private EntityDefinition GetMissileDef() => World.ArchiveCollection.EntityDefinitionComposer.GetByName("PlasmaBall");
+    private EntityDefinition GetMissileDef() => World.ArchiveCollection.EntityDefinitionComposer.GetByName("PlasmaBall")!;
 
     [Fact(DisplayName = "Auto aim hitscan single bullet success")]
     public void AutoAimHitScanSuccess()

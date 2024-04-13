@@ -34,7 +34,7 @@ namespace Helion.Tests.Unit.GameAction
         public static SinglePlayerWorld LoadMap(string resourceZip, string fileName, string mapName, string testKey, Action<SinglePlayerWorld> onInit,
             IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium, Player? existingPlayer = null, WorldModel? worldModel = null, 
             bool disposeExistingWorld = true, bool cacheWorld = true,
-            Action<ArchiveCollection> onBeforeInit = null)
+            Action<ArchiveCollection>? onBeforeInit = null)
         {
             if (disposeExistingWorld && UseExistingWorld(resourceZip, fileName, mapName, testKey, cacheWorld, out SinglePlayerWorld? existingWorld))
                 return existingWorld;
