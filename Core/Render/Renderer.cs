@@ -161,13 +161,17 @@ public class Renderer : IDisposable
 
     private static float GetZNear(RenderInfo renderInfo)
     {
-        // Optimially this should be handled in the shader. Setting this variable and using it for a low zNear is good enough for now.
+        // Optimally this should be handled in the shader. Setting this variable and using it for a low zNear is good enough for now.
         // If we are being crushed or clipped into a line with a middle texture then use a lower zNear.
         float zNear = (float)((renderInfo.ViewerEntity.LowestCeilingZ - renderInfo.ViewerEntity.HighestFloorZ - renderInfo.ViewerEntity.ViewZ) * 0.68);
         if (renderInfo.ViewerEntity.ViewLineClip || renderInfo.ViewerEntity.ViewPlaneClip)
             zNear = ZNearMin;
         if (renderInfo.Config.FieldOfView > 100)
             zNear = Math.Min(zNear, 6);
+
+        float aspectRatio = renderInfo.Viewport.Width / (float)renderInfo.Viewport.Height;
+        if (aspectRatio > 1.78f)
+            zNear = Math.Min(zNear, 2.2f + 2.2f * (3.5555f - aspectRatio));
 
         return MathHelper.Clamp(zNear, ZNearMin, ZNearMax);
     }
