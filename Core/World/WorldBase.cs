@@ -853,7 +853,7 @@ public abstract class WorldBase : IWorld
             if (!int.TryParse(stringIndex, out int index))
                 return actorName;
 
-            return DehackedApplier.GetDehackedActorName(index - 1);
+            return DehackedApplier.GetDehackedActorName(index);
         }
 
         return actorName;
