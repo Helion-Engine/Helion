@@ -714,24 +714,17 @@ public partial class WorldLayer
 
     private void VirtualStatusBarBackground(HudStatusBarbackground hud)
     {
-        // NOTE: This is a terrible hack. The code to convert from
-        // window space into the custom screen space, then figure out
-        // the gutter, then translate back into the window space, can
-        // be solved for all possible cases for the foreseeable future
-        // by overdrawing 1000 pixels (in 320x200 resolution) on each
-        // side. The only way this would become visible is if there
-        // was a widescreen that was like 9280x1280. If this ever is
-        // a thing, a proper fix can be added.
-        const int Overflow = 1000;
-        int xOffset = -Overflow;
+        var aspectRatio = m_viewport.AspectRatio;
         int yOffset = -hud.BarHandle.Dimension.Height + 1;
-        int width = hud.BackgroundHandle.Dimension.Width;
-        int iterations = ((Overflow + 320 + Overflow) / hud.BackgroundHandle.Dimension.Width) + 1;
+        int backgroundHandleWidth = hud.BackgroundHandle.Dimension.Width;
+        int calcWidth = (int)((aspectRatio) / 1.6f * 320) + hud.BarHandle.Dimension.Width;
+        int iterations = (calcWidth / hud.BackgroundHandle.Dimension.Width) + 1;
 
+        int xOffset = 0;
         for (int i = 0; i < iterations; i++)
         {
             hud.Hud.Image(m_config.Hud.BackgroundTexture, (xOffset, yOffset), Align.BottomLeft);
-            xOffset += width;
+            xOffset += backgroundHandleWidth;
         }
     }
 
