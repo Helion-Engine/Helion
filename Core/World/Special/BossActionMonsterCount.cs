@@ -45,10 +45,22 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
 
     private void ExecuteSpecial()
     {
+        ZDoomLineSpecialType specialType = ZDoomLineSpecialType.None;
+        LineActivationType activationType = LineActivationType.Any;
+        LineSpecialCompatibility compat = LineSpecialCompatibility.Default;
         SpecialArgs specialArgs = new();
         var flags = new LineFlags(MapLineFlags.Doom(0));
-        var specialType = VanillaLineSpecTranslator.Translate(ref flags, (VanillaLineSpecialType)m_bossAction.Action,
-            m_bossAction.Tag, ref specialArgs, out LineActivationType activationType, out LineSpecialCompatibility compat);
+
+        if (m_bossAction.Action.HasValue)
+        {
+            specialType = VanillaLineSpecTranslator.Translate(ref flags, (VanillaLineSpecialType)m_bossAction.Action,
+                m_bossAction.Tag, ref specialArgs, out activationType, out compat);
+        }
+        else if (m_bossAction.ZDoomAction.HasValue)
+        {
+            specialType = m_bossAction.ZDoomAction.Value;
+            specialArgs = m_bossAction.ZDoomSpecialArgs;
+        }
 
         if (specialType == ZDoomLineSpecialType.None)
             return;

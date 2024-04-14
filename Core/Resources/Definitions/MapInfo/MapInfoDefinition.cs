@@ -1,5 +1,8 @@
 using Helion.Graphics;
 using Helion.Maps.Shared;
+using Helion.Maps.Specials;
+using Helion.Maps.Specials.Vanilla;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Parser;
@@ -19,7 +22,7 @@ public partial class MapInfoDefinition
     private bool m_legacy;
     private bool m_parseWeapons;
 
-    public void Parse(ArchiveCollection archiveCollection, string data, bool parseWeapons)
+    public void Parse(IPathResolver pathResolver, string data, bool parseWeapons)
     {
         m_legacy = true;
         m_parseWeapons = parseWeapons;
@@ -33,7 +36,7 @@ public partial class MapInfoDefinition
             string item = parser.ConsumeString();
 
             if (item.Equals("include", StringComparison.OrdinalIgnoreCase))
-                ParseInclude(archiveCollection, parser);
+                ParseInclude(pathResolver, parser);
             else if (item.Equals(GameInfoName, StringComparison.OrdinalIgnoreCase))
                 ParseGameInfo(parser, GameDefinition);
             else if (item.Equals(ClearEpisodesName, StringComparison.OrdinalIgnoreCase))
@@ -140,6 +143,8 @@ public partial class MapInfoDefinition
                 mapDef.MapSpecialAction = MapSpecialAction.ExitLevel;
             else if (item.Equals("specialaction_opendoor", StringComparison.OrdinalIgnoreCase))
                 mapDef.MapSpecialAction = MapSpecialAction.OpenDoor;
+            else if (item.Equals("specialaction", StringComparison.OrdinalIgnoreCase))
+                ParseSpecialAction(parser, mapDef);
             else if (item.Equals("ResetHealth"))
                 mapDef.SetOption(MapOptions.ResetHealth, true);
             else if (item.Equals("ResetInventory"))
@@ -184,6 +189,49 @@ public partial class MapInfoDefinition
         return mapDef;
     }
 
+    private void ParseSpecialAction(SimpleParser parser, MapInfoDef mapDef)
+    {
+        int line = parser.GetCurrentLine();
+        parser.ConsumeString("=");
+        string actor = parser.ConsumeString();
+        parser.ConsumeString(",");
+        string action = parser.ConsumeString();
+        List<int> parsedArgs = new();
+        while (parser.GetCurrentLine() == line)
+        {
+            if (!parser.Peek(','))
+                break;
+            parser.ConsumeString(",");
+            parsedArgs.Add(parser.ConsumeInteger());
+        }
+
+        SpecialArgs args = new();
+
+        for (int i = 0; i < parsedArgs.Count; i++)
+        {
+            switch (i)
+            {
+                case 0:
+                    args.Arg0 = parsedArgs[i];
+                    break;
+                case 1:
+                    args.Arg1 = parsedArgs[i];
+                    break;
+                case 2:
+                    args.Arg2 = parsedArgs[i];
+                    break;
+                case 3:
+                    args.Arg3 = parsedArgs[i];
+                    break;
+                case 4:
+                    args.Arg4 = parsedArgs[i];
+                    break;
+            }
+        }
+
+        mapDef.BossActions.Add(new BossAction(actor, ZDoomActions.ParseZDoomAction(action), args));
+    }
+
     private MapInfoDef SetMapDef(MapInfoDef mapDef, string mapName, bool hasDefaultMap)
     {
         mapDef.MapName = mapName;
@@ -191,7 +239,7 @@ public partial class MapInfoDefinition
         if (existing == null)
             return mapDef;
 
-        // Need to cary over some things even with defualt map. Not exactly clear and couldn't find anything in the wiki...
+        // Need to carry over some things even with default map. Not exactly clear and couldn't find anything in the wiki...
         if (hasDefaultMap)
         {
             mapDef.MapSpecial = existing.MapSpecial;
@@ -759,14 +807,14 @@ public partial class MapInfoDefinition
         return items;
     }
 
-    private void ParseInclude(ArchiveCollection archiveCollection, SimpleParser parser)
+    private void ParseInclude(IPathResolver pathResolver, SimpleParser parser)
     {
         string file = parser.ConsumeString();
-        Entry? entry = archiveCollection.Entries.FindByPath(file);
+        Entry? entry = pathResolver.FindEntryByPath(file);
 
         if (entry == null)
             throw new ParserException(parser.GetCurrentLine(), 0, 0, $"Failed to find include file {file}");
 
-        Parse(archiveCollection, entry.ReadDataAsString(), m_parseWeapons);
+        Parse(pathResolver, entry.ReadDataAsString(), m_parseWeapons);
     }
 }

@@ -40,7 +40,7 @@ namespace Helion.Resources.Archives.Collection;
 /// A collection of archives along with the processed results of all their
 /// data.
 /// </summary>
-public class ArchiveCollection : IResources
+public class ArchiveCollection : IResources, IPathResolver
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public static readonly DataCache StaticDataCache = new();
