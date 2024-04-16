@@ -32,11 +32,22 @@ public class FileConfig : Config
         m_filePath = filePath;
 
         ReadConfigFrom(filePath, addDefaultsIfNew);
+        MigrateValues();
 
         // If we read things in, we're going to very likely change things from
         // their default state. This is okay and should not be considered as
         // "changed".
         UnsetChangedFlag();
+    }
+
+    private void MigrateValues()
+    {
+        if (Hud.MoveBob.Value != 1.0)
+        {
+            Hud.ViewBob.Set(Hud.MoveBob.Value);
+            Hud.WeaponBob.Set(Hud.MoveBob.Value);
+            Hud.MoveBob.Set(1.0);
+        }
     }
 
     public static string GetDefaultConfigPath()
@@ -132,7 +143,7 @@ public class FileConfig : Config
 
             KeyDataCollection section = data[EngineSectionName];
             foreach ((string path, ConfigInfoAttribute attr, IConfigValue value) in Components.Values)
-                if (attr.Save && value.WriteToConfig)
+                if (attr.Save && !attr.Legacy && value.WriteToConfig)
                     section[path] = value.ToString();
 
             return true;

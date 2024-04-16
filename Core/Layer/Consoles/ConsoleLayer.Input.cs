@@ -109,44 +109,44 @@ public partial class ConsoleLayer
         m_bestOptionIndex = 0;
 
         foreach ((string command, _) in m_consoleCommands.OrderBy(x => x.command))
-            AssignIfBest(command);
-        foreach (string path in m_config.GetComponents().Keys.OrderBy(x => x))
-            AssignIfBestPath(path);
+            AssignIfBest(input, command);
+        foreach (var component in m_config.GetComponents().Where(x => !x.Value.Attribute.Legacy).OrderBy(x => x.Key))
+            AssignIfBestPath(input, component.Key);
         foreach (ICheat cheat in CheatManager.Cheats.OrderBy(x => x.ConsoleCommand))
             if (cheat.ConsoleCommand != null)
-                AssignIfBest(cheat.ConsoleCommand);
+                AssignIfBest(input, cheat.ConsoleCommand);
 
         if (m_bestOptions.Count > 0)
         {
             m_console.ClearInputText();
             m_console.AddInput(m_bestOptions[0]);
         }
+    }
 
-        void AssignIfBest(string item)
+    void AssignIfBest(string input, string item)
+    {
+        if (!item.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        if (m_bestOptions.Count == 0)
         {
-            if (!item.StartsWith(input, StringComparison.OrdinalIgnoreCase))
-                return;
-
-            if (m_bestOptions.Count == 0)
-            {
-                m_bestOptions.Add(item);
-                return;
-            }
-
             m_bestOptions.Add(item);
+            return;
         }
 
-        void AssignIfBestPath(string path)
-        {
-            if (!path.StartsWith(input, StringComparison.OrdinalIgnoreCase))
-                return;
+        m_bestOptions.Add(item);
+    }
 
-            var partial = GetAutoCompletePathText(input, path);
-            if (m_bestOptions.Count > 0 && m_bestOptions[0].Equals(partial))
-                return;
+    void AssignIfBestPath(string input, string path)
+    {
+        if (!path.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+            return;
 
-            m_bestOptions.Add(partial);
-        }
+        var partial = GetAutoCompletePathText(input, path);
+        if (m_bestOptions.Count > 0 && m_bestOptions[0].Equals(partial))
+            return;
+
+        m_bestOptions.Add(partial);
     }
 
     private void DoAutoCompleteEnumeration()
@@ -189,6 +189,9 @@ public partial class ConsoleLayer
         {
             foreach ((string path, ConfigComponent component) in m_config.GetComponents().OrderBy(x => x.Key))
             {
+                if (component.Attribute.Legacy)
+                    continue;
+
                 if (path.EqualsIgnoreCase(input))
                 {
                     foundAtLeastOne = true;
@@ -232,12 +235,12 @@ public partial class ConsoleLayer
                 }
             }
         }
+    }
 
-        void EmitMessage(params (Color color, string message)[] sentencePieces)
-        {
-            foreach ((Color color, string message) in sentencePieces)
-                m_console.AddMessage(color, message);
-        }
+    void EmitMessage(params (Color color, string message)[] sentencePieces)
+    {
+        foreach ((Color color, string message) in sentencePieces)
+            m_console.AddMessage(color, message);
     }
 
     private string GetAutoCompletePathText(string input, string path)

@@ -507,6 +507,9 @@ public partial class Client
         if (!m_config.TryGetComponent(args.Command, out ConfigComponent? component))
             return false;
 
+        if (component.Attribute.Legacy)
+            return false;
+
         if (args.Args.Empty())
         {
             Log.Info($"{component.Path} is {component.Value}");

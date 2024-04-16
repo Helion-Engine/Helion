@@ -33,9 +33,13 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Crosshair")]
     public readonly ConfigValue<bool> Crosshair = new(true);
 
-    [ConfigInfo("The amount of move bobbing the weapon does. 0.0 is off, 1.0 is normal.")]
-    [OptionMenu(OptionSectionType.Hud, "Move bob")]
-    public readonly ConfigValue<double> MoveBob = new(1.0, ClampNormalized);
+    [ConfigInfo("The amount of view bobbing. 0.0 is off, 1.0 is normal.")]
+    [OptionMenu(OptionSectionType.Hud, "View bob")]
+    public readonly ConfigValue<double> ViewBob = new(1.0, ClampNormalized);
+
+    [ConfigInfo("The amount of weapon bobbing. 0.0 is off, 1.0 is normal.")]
+    [OptionMenu(OptionSectionType.Hud, "Weapon bob")]
+    public readonly ConfigValue<double> WeaponBob = new(1.0, ClampNormalized);
 
     [ConfigInfo("The size of the status bar.")]
     [OptionMenu(OptionSectionType.Hud, "Status bar size", spacer: true)]
@@ -69,7 +73,9 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Horizontal margin percent (0.0 - 1.0)")]
     public readonly ConfigValue<double> HorizontalMargin = new(0, ClampNormalized);
 
-
     public readonly ConfigHudAutoMap AutoMap = new();
 
+    // Legacy stuff
+    [ConfigInfo("The amount of view and weapon bobbing. 0.0 is off, 1.0 is normal.", legacy: true)]
+    public readonly ConfigValue<double> MoveBob = new(1.0, ClampNormalized);
 }

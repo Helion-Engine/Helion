@@ -857,17 +857,21 @@ public class Player : Entity
 
     private void SetBob()
     {
-        m_bob = Math.Min(16, (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) / 4) * WorldStatic.World.Config.Hud.MoveBob;
+        m_bob = CalculateBob(WorldStatic.World.Config.Hud.ViewBob);
         if (Weapon != null && Weapon.ReadyToFire)
         {
             const double WeaponSwayMultiplier = Math.PI / 32;
             double value = WeaponSwayMultiplier * WorldStatic.World.LevelTime;
-            BobOffset = (m_bob * Math.Cos(value % MathHelper.TwoPi), m_bob * Math.Sin(value % MathHelper.Pi));
+            var weaponBob = CalculateBob(WorldStatic.World.Config.Hud.WeaponBob);
+            BobOffset = (weaponBob * Math.Cos(value % MathHelper.TwoPi), weaponBob * Math.Sin(value % MathHelper.Pi));
         }
 
         double angle = MathHelper.TwoPi / 20 * WorldStatic.World.LevelTime % MathHelper.TwoPi;
         m_bob = m_bob / 2 * Math.Sin(angle);
     }
+
+    private double CalculateBob(double bobAmount) => 
+        Math.Min(16, (Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y) / 4) * bobAmount;
 
     public bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
     {
