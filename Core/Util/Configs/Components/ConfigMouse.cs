@@ -32,7 +32,7 @@ public class ConfigMouse
 
     [ConfigInfo("If the mouse should interpolate.")]
     [OptionMenu(OptionSectionType.Mouse, "Interpolate")]
-    public readonly ConfigValue<bool> Interpolate = new(true);
+    public readonly ConfigValue<bool> Interpolate = new(false);
 
     [ConfigInfo("If the mouse should be focused on the window or not.")]
     [OptionMenu(OptionSectionType.Mouse, "Focus")]
