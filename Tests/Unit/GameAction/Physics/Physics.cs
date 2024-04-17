@@ -30,6 +30,8 @@ namespace Helion.Tests.Unit.GameAction
         {
             World = WorldAllocator.LoadMap(ResourceZip, "physics.wad", MapName, GetType().Name, WorldInit, IWadType.Doom2);
             World.Config.Hud.MoveBob.Set(0);
+            World.Config.Hud.ViewBob.Set(0);
+            World.Config.Hud.WeaponBob.Set(0);
         }
 
         public void Dispose()
