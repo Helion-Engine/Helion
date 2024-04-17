@@ -71,7 +71,7 @@ public class Player : Entity
     private bool m_strafeCommand;
     private int m_jumpTics;
     private int m_deathTics;
-    private double m_bob;
+    private double m_viewBob;
     private double m_jumpStartZ = double.MaxValue;
     private WeakEntity m_killer = WeakEntity.Default;
 
@@ -85,8 +85,8 @@ public class Player : Entity
     public int WeaponSubSlot { get; private set; }
     public Vec2D PrevWeaponOffset;
     public Vec2D WeaponOffset;
-    public Vec2D PrevBobOffset;
-    public Vec2D BobOffset;
+    public Vec2D PrevWeaponBobOffset;
+    public Vec2D WeaponBobOffset;
     public WeakEntity Attacker { get; private set; } = WeakEntity.Default;
     public WeakEntity CrosshairTarget { get; private set; } = WeakEntity.Default;
     public PlayerStatusBar StatusBar { get; private set; }
@@ -169,7 +169,6 @@ public class Player : Entity
         ViewHeight = playerModel.ViewHeight;
         m_viewZ = playerModel.ViewZ;
         DeltaViewHeight = playerModel.DeltaViewHeight;
-        m_bob = playerModel.Bob;
         WeaponOffset = (playerModel.WeaponOffsetX, playerModel.WeaponOffsetY);
         PrevWeaponOffset = (playerModel.WeaponOffsetX, playerModel.WeaponOffsetY);
         WeaponSlot = playerModel.WeaponSlot;
@@ -197,6 +196,14 @@ public class Player : Entity
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;
         m_prevViewZ = m_viewZ;
+
+        m_viewBob = playerModel.Bob;
+        if (playerModel.WeaponBobX.HasValue && playerModel.WeaponBobY.HasValue)
+        {
+            WeaponBobOffset.X = playerModel.WeaponBobX.Value;
+            WeaponBobOffset.Y = playerModel.WeaponBobY.Value;
+            PrevWeaponBobOffset = WeaponBobOffset;
+        }    
 
         StatusBar = new PlayerStatusBar(this);
 
@@ -262,7 +269,9 @@ public class Player : Entity
             ViewHeight = ViewHeight,
             ViewZ = ViewZ,
             DeltaViewHeight = DeltaViewHeight,
-            Bob = m_bob,
+            Bob = m_viewBob,
+            WeaponBobX = WeaponBobOffset.X,
+            WeaponBobY = WeaponBobOffset.Y,
             Killer = m_killer.Entity?.Id,
             Attacker = Attacker.Entity?.Id,
             KillCount = KillCount,
@@ -447,7 +456,7 @@ public class Player : Entity
         m_prevPitch = PitchRadians;
         DeltaViewHeight = 0;
         PrevWeaponOffset = WeaponOffset;
-        PrevBobOffset = BobOffset;
+        PrevWeaponBobOffset = WeaponBobOffset;
 
         ViewAngleRadians = 0;
         ViewPitchRadians = 0;
@@ -563,7 +572,7 @@ public class Player : Entity
         m_prevViewZ = m_viewZ;
 
         PrevWeaponOffset = WeaponOffset;
-        PrevBobOffset = BobOffset;
+        PrevWeaponBobOffset = WeaponBobOffset;
 
         if (m_jumpTics > 0)
             m_jumpTics--;
@@ -857,17 +866,17 @@ public class Player : Entity
 
     private void SetBob()
     {
-        m_bob = CalculateBob(WorldStatic.World.Config.Hud.ViewBob);
+        m_viewBob = CalculateBob(WorldStatic.World.Config.Hud.ViewBob);
         if (Weapon != null && Weapon.ReadyToFire)
         {
             const double WeaponSwayMultiplier = Math.PI / 32;
             double value = WeaponSwayMultiplier * WorldStatic.World.LevelTime;
             var weaponBob = CalculateBob(WorldStatic.World.Config.Hud.WeaponBob);
-            BobOffset = (weaponBob * Math.Cos(value % MathHelper.TwoPi), weaponBob * Math.Sin(value % MathHelper.Pi));
+            WeaponBobOffset = (weaponBob * Math.Cos(value % MathHelper.TwoPi), weaponBob * Math.Sin(value % MathHelper.Pi));
         }
 
         double angle = MathHelper.TwoPi / 20 * WorldStatic.World.LevelTime % MathHelper.TwoPi;
-        m_bob = m_bob / 2 * Math.Sin(angle);
+        m_viewBob = m_viewBob / 2 * Math.Sin(angle);
     }
 
     private double CalculateBob(double bobAmount) => 
@@ -1223,14 +1232,14 @@ public class Player : Entity
     {
         WeaponOffset.X = PrevWeaponOffset.X = 0;
         WeaponOffset.Y = PrevWeaponOffset.Y = Constants.WeaponTop;
-        BobOffset = PrevBobOffset = Vec2D.Zero;
+        WeaponBobOffset = PrevWeaponBobOffset = Vec2D.Zero;
     }
 
     private void SetWeaponBottom()
     {
         WeaponOffset.X = PrevWeaponOffset.X = 0;
         WeaponOffset.Y = PrevWeaponOffset.Y = Constants.WeaponBottom;
-        BobOffset = PrevBobOffset = Vec2D.Zero;
+        WeaponBobOffset = PrevWeaponBobOffset = Vec2D.Zero;
     }
 
     public void BringupWeapon()
@@ -1395,7 +1404,7 @@ public class Player : Entity
                 DeltaViewHeight += 0.25;
         }
 
-        m_viewZ = MathHelper.Clamp(ViewHeight + m_bob, ViewHeightMin, LowestCeilingZ - HighestFloorZ - ViewHeightMin);
+        m_viewZ = MathHelper.Clamp(ViewHeight + m_viewBob, ViewHeightMin, LowestCeilingZ - HighestFloorZ - ViewHeightMin);
     }
 
     private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !WorldStatic.World.MapInfo.HasOption(MapOptions.NoJump) && !IsClippedWithEntity();
@@ -1419,7 +1428,7 @@ public class Player : Entity
             player.ViewHeight == ViewHeight &&
             player.m_viewZ == m_viewZ &&
             player.DeltaViewHeight == DeltaViewHeight &&
-            player.m_bob == m_bob &&
+            player.m_viewBob == m_viewBob &&
             player.m_killer.Entity?.Id == m_killer.Entity?.Id;
     }
 

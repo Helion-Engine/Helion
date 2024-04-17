@@ -394,8 +394,8 @@ public partial class WorldLayer
     private HudBox GetInterpolatePlayerWeaponBox(IHudRenderContext hud, IRenderableTextureHandle handle, Vec2I offset)
     {
         Vec2D scale = GetDoomScale(hud, out int centeredOffsetX);
-        var prevWeaponOffset = Player.PrevWeaponOffset + Player.PrevBobOffset;
-        var weaponOffset = Player.WeaponOffset + Player.BobOffset;
+        var prevWeaponOffset = Player.PrevWeaponOffset + Player.PrevWeaponBobOffset;
+        var weaponOffset = Player.WeaponOffset + Player.WeaponBobOffset;
 
         var prevBox = TranslateDoomImageDimensions(offset.X + prevWeaponOffset.X,
             offset.Y + prevWeaponOffset.Y,

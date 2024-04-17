@@ -17,6 +17,8 @@ public class PlayerModel : EntityModel
     public double ViewZ { get; set; }
     public double DeltaViewHeight { get; set; }
     public double Bob { get; set; }
+    public double? WeaponBobX { get; set; }
+    public double? WeaponBobY { get; set; }
     public int? Killer { get; set; }
     public int? Attacker { get; set; }
     public int KillCount { get; set; }
