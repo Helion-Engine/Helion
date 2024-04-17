@@ -144,7 +144,7 @@ public class Config : IConfig
             }
 
             if (component.Value.Set(configModel.Value) == ConfigSetResult.NotSetByBadConversion)
-                Log.Error($"Bad configuartion value '{configModel.Value}' for '{configModel.Key}'.");
+                Log.Error($"Bad configuration value '{configModel.Value}' for '{configModel.Key}'.");
         }
     }
 }
