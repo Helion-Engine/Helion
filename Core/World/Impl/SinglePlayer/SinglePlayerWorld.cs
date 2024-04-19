@@ -26,6 +26,7 @@ using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.Util.Configs.Impl;
+using Helion.Resources.Definitions.SoundInfo;
 
 namespace Helion.World.Impl.SinglePlayer;
 
@@ -124,8 +125,7 @@ public class SinglePlayerWorld : WorldBase
         config.Render.AutomapBspThread.OnChanged += AutomapBspThread_OnChanged;
         config.Game.MarkSpecials.OnChanged += MarkSpecials_OnChanged;
 
-        // Right now lazy loading from zip causes a noticeable delay. Preload to prevent stutter.
-        SoundManager.CacheSound("misc/secret");
+        CacheSounds();
         ChaseCamPlayer = EntityManager.CreateCameraPlayer(Player);
         ChaseCamPlayer.Flags.Invisible = true;
         ChaseCamPlayer.Flags.NoClip = true;
@@ -135,6 +135,14 @@ public class SinglePlayerWorld : WorldBase
         ChaseCamPlayer.Flags.NoSector = true;
 
         m_automapMarker = new AutomapMarker(ArchiveCollection);
+    }
+
+    private void CacheSounds()
+    {
+        List<SoundInfo> sounds = new(256);
+        ArchiveCollection.Definitions.SoundInfo.GetSounds(sounds);
+        foreach (var sound in sounds)
+            SoundManager.CacheSound(sound.Name);
     }
 
     private void ClearMonsterClosets()

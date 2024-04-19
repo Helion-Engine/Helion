@@ -22,6 +22,12 @@ public class SoundInfoDefinition
         return sound;
     }
 
+    public void GetSounds(List<SoundInfo> list)
+    {
+        foreach (var item in m_lookup)
+            list.Add(item.Value);
+    }
+
     public void Add(string name, SoundInfo soundInfo) =>
         m_lookup[name] = soundInfo;
 
