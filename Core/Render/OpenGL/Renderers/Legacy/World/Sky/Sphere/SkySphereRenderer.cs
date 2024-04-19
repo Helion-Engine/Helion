@@ -28,6 +28,7 @@ public class SkySphereRenderer : IDisposable
         m_vbo = new("Sky sphere", HorizontalSpherePoints * VerticalSpherePoints * 6);
         m_program = new();
         m_texture = new(archiveCollection, textureManager, textureHandle);
+        m_texture.LoadTextures();
 
         Attributes.BindAndApply(m_vbo, m_vao, m_program.Attributes);
 

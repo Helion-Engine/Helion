@@ -37,6 +37,12 @@ public class SkySphereTexture : IDisposable
         ReleaseUnmanagedResources();
     }
 
+    public void LoadTextures()
+    {
+        m_loadedTextures = true;
+        InitializeAnimatedTextures();
+    }
+
     public GLLegacyTexture GetTexture()
     {
         if (!m_loadedTextures)
