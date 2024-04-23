@@ -30,11 +30,32 @@ public class ConfigHudAutoMap
 public class ConfigHud
 {
     [ConfigInfo("Shows crosshair.")]
-    [OptionMenu(OptionSectionType.Hud, "Crosshair")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair enabled")]
     public readonly ConfigValue<bool> Crosshair = new(true);
 
+    [ConfigInfo("Crosshair type.")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair")]
+    public readonly ConfigValue<CrosshairStyle> CrosshairType = new(CrosshairStyle.Cross1);
+
+    [ConfigInfo("Crosshair color.")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair color")]
+    public readonly ConfigValue<CrossColor> CrosshairColor = new(CrossColor.Green);
+
+
+    [ConfigInfo("Crosshair target color.")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair target color")]
+    public readonly ConfigValue<CrossColor> CrosshairTargetColor = new(CrossColor.Red);
+
+    [ConfigInfo("Crosshair transparency.")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair transparency")]
+    public readonly ConfigValue<double> CrosshairTransparency = new(0.5, ClampNormalized);
+
+    [ConfigInfo("Crosshair scale.")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair scale")]
+    public readonly ConfigValue<double> CrosshairScale = new(1.0);
+
     [ConfigInfo("The amount of view bobbing. 0.0 is off, 1.0 is normal.")]
-    [OptionMenu(OptionSectionType.Hud, "View bob")]
+    [OptionMenu(OptionSectionType.Hud, "View bob", spacer: true)]
     public readonly ConfigValue<double> ViewBob = new(1.0, ClampNormalized);
 
     [ConfigInfo("The amount of weapon bobbing. 0.0 is off, 1.0 is normal.")]
