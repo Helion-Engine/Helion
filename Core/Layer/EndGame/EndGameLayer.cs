@@ -64,6 +64,7 @@ public partial class EndGameLayer : IGameLayer
     private readonly Action<HudBackgroundImage> m_virtualDrawBackground;
     private readonly Action<IHudRenderContext> m_virtualDrawCast;
     private readonly Action<HudVirtualText> m_virtualDrawText;
+    private readonly Action<HudVirtualBackgroundImage> m_virtualDrawBackgroundImage;
     private EndGameDrawState m_drawState = EndGameDrawState.Text;
     private TimeSpan m_timespan;
     private bool m_shouldScroll;
@@ -107,6 +108,7 @@ public partial class EndGameLayer : IGameLayer
         m_virtualDrawBackground = new(VirtualDrawBackground);
         m_virtualDrawCast = new(VirtualDrawCast);
         m_virtualDrawText = new(VirtualDrawText);
+        m_virtualDrawBackgroundImage = new(VirtualDrawBackgroundImage);
 
         m_ticker.Start();
         string music = currentCluster.Music;

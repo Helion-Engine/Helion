@@ -6,6 +6,7 @@ using Helion.Graphics;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util.Extensions;
@@ -26,6 +27,7 @@ public partial class EndGameLayer
 
     private readonly record struct HudBackgroundImage(IRenderableSurfaceContext Ctx, IHudRenderContext Hud);
     private readonly record struct HudVirtualText(IList<string> displayText, Ticker ticker, bool showAllText, IHudRenderContext hud);
+    private readonly record struct HudVirtualBackgroundImage(string Image, IRenderableTextureHandle FlatHandle, int Width, int Height, IHudRenderContext Hud);
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
@@ -177,7 +179,7 @@ public partial class EndGameLayer
         }
     }
 
-    private static void DrawBackground(string image, IHudRenderContext hud)
+    private void DrawBackground(string image, IHudRenderContext hud)
     {
         if (!hud.Textures.TryGet(image, out var flatHandle, ResourceNamespace.Flats))
             return;
@@ -189,12 +191,17 @@ public partial class EndGameLayer
             return;
         }
 
-        int repeatX = hud.Dimension.Width / width;
-        int repeatY = hud.Dimension.Height / height;
+        hud.DoomVirtualResolution(m_virtualDrawBackgroundImage, new HudVirtualBackgroundImage(image, flatHandle, width, height, hud));
+    }
 
-        if (hud.Dimension.Width % width != 0)
+    private static void VirtualDrawBackgroundImage(HudVirtualBackgroundImage data)
+    {
+        int repeatX = data.Hud.Dimension.Width / data.Width;
+        int repeatY = data.Hud.Dimension.Height / data.Height;
+
+        if (data.Hud.Dimension.Width % data.Width != 0)
             repeatX++;
-        if (hud.Dimension.Height % height != 0)
+        if (data.Hud.Dimension.Height % data.Height != 0)
             repeatY++;
 
         Vec2I drawCoordinate = (0, 0);
@@ -202,12 +209,12 @@ public partial class EndGameLayer
         {
             for (int x = 0; x < repeatX; x++)
             {
-                hud.Image(image, drawCoordinate);
-                drawCoordinate.X += width;
+                data.Hud.Image(data.Image, drawCoordinate);
+                drawCoordinate.X += data.Width;
             }
 
             drawCoordinate.X = 0;
-            drawCoordinate.Y += height;
+            drawCoordinate.Y += data.Height;
         }
     }
 
