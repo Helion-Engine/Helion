@@ -300,13 +300,14 @@ public partial class WorldLayer
         DrawCoordinate(hud, 'X', Player.Position.X, ref topRightY);
         DrawCoordinate(hud, 'Y', Player.Position.Y, ref topRightY);
         DrawCoordinate(hud, 'Z', Player.Position.Z, ref topRightY);
-        DrawCoordinate(hud, 'A', Player.AngleRadians * 180 / Math.PI, ref topRightY);
+        DrawCoordinate(hud, 'A', Player.AngleRadians % Math.PI * 180 / MathHelper.Pi, ref topRightY);
+        DrawCoordinate(hud, 'P', Player.PitchRadians % Math.PI * 180 / MathHelper.Pi, ref topRightY);
         topRightY += m_padding;
     }
 
     void DrawCoordinate(IHudRenderContext hud, char axis, double position, ref int y)
     {
-        hud.Text($"{axis}: {Math.Round(position, 4)}", ConsoleFont, m_infoFontSize,
+        hud.Text($"{axis}: {Math.Floor(position * 10000)/10000}", ConsoleFont, m_infoFontSize,
             (-m_padding - m_hudPaddingX, y), out Dimension area, TextAlign.Right, both: Align.TopRight,
             color: Color.White);
         y += area.Height + FpsMessageSpacing;
