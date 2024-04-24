@@ -21,21 +21,23 @@ public class Camera
     public Vec3F PositionInterpolated;
     public Vec3F Position;
 
+    public const double MaxPitch = MathHelper.HalfPi - 0.05;
+
     public Camera(Vec3F positionInterpolated, float yawRadians, float pitchRadians)
     {
-        PositionInterpolated = positionInterpolated;
-        Direction = Vec3F.UnitSphere(yawRadians, pitchRadians);
-        m_yawRadians = ClampYaw(yawRadians);
         m_pitchRadians = ClampPitch(pitchRadians);
+        PositionInterpolated = positionInterpolated;
+        Direction = Vec3F.UnitSphere(yawRadians, m_pitchRadians);
+        m_yawRadians = ClampYaw(yawRadians);
         Position = positionInterpolated;
     }
 
     public void Set(Vec3F positionInterpolated, Vec3F position, float yawRadians, float pitchRadians)
     {
-        PositionInterpolated = positionInterpolated;
-        Direction = Vec3F.UnitSphere(yawRadians, pitchRadians);
-        m_yawRadians = ClampYaw(yawRadians);
         m_pitchRadians = ClampPitch(pitchRadians);
+        PositionInterpolated = positionInterpolated;
+        Direction = Vec3F.UnitSphere(yawRadians, m_pitchRadians);
+        m_yawRadians = ClampYaw(yawRadians);
         Position = position;
     }
 
@@ -84,6 +86,6 @@ public class Camera
 
     protected static float ClampPitch(double pitchRadians)
     {
-        return (float)MathHelper.Clamp(pitchRadians, -MathHelper.HalfPi, MathHelper.HalfPi);
+        return (float)MathHelper.Clamp(pitchRadians, -MaxPitch, MaxPitch);
     }
 }

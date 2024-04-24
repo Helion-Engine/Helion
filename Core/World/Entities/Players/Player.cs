@@ -2,6 +2,7 @@ using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
+using Helion.Render.Common.World;
 using Helion.Render.OpenGL.Shared;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
@@ -40,7 +41,7 @@ public class Player : Entity
     private const double FastTurnSpeed = 7.03125 / 180 * Math.PI;
     private const int JumpDelayTicks = 7;
     private const int SlowTurnTicks = 6;
-    private const double NotQuiteVertical = MathHelper.HalfPi - 0.005;
+    private const double MaxPitch = Camera.MaxPitch;
     private static readonly PowerupType[] PowerupsWithBrightness = { PowerupType.LightAmp, PowerupType.Invulnerable };
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -502,7 +503,7 @@ public class Player : Entity
 
     private static double AddPitch(double pitch, double delta)
     {        
-        pitch = MathHelper.Clamp(pitch + delta, -NotQuiteVertical, NotQuiteVertical);
+        pitch = MathHelper.Clamp(pitch + delta, -MaxPitch, MaxPitch);
         return pitch;
     }
 
@@ -518,7 +519,7 @@ public class Player : Entity
         if (!m_strafeCommand && !WorldStatic.World.Config.Mouse.Interpolate && !IsMaxFpsTickRate())
         {
             playerAngle += ViewAngleRadians;
-            playerPitch = MathHelper.Clamp(playerPitch + ViewPitchRadians, -NotQuiteVertical, NotQuiteVertical);
+            playerPitch = MathHelper.Clamp(playerPitch + ViewPitchRadians, -MaxPitch, MaxPitch);
         }
 
         // When rendering, we always want the most up-to-date values. We
