@@ -278,10 +278,15 @@ public class LegacyAutomapRenderer : IDisposable
         if (marked)
             return GetMarkedColor(world);
 
-        if (line.HasSpecial && line.Special.IsTeleport())
-            return AutomapColor.Green;
+        if (line.SeenForAutomap)
+        {
+            if (line.HasSpecial && line.Special.IsTeleport())
+                return AutomapColor.Green;
 
-        return AutomapColor.Gray;
+            return AutomapColor.Gray;
+        }
+
+        return AutomapColor.LightBlue;
     }
 
     private static AutomapColor GetMarkedColor(IWorld world)
