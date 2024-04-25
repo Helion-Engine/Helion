@@ -79,7 +79,6 @@ public class RenderableString
     public static List<RenderableSentence> PopulateSentences(DataCache dataCache, ReadOnlySpan<char> str, Font font, int fontSize,
         int maxWidth, Color? drawColor)
     {
-        double scale = (double)fontSize / font.MaxHeight;
         int currentWidth = 0;
         int currentHeight = 0;
 
@@ -98,6 +97,7 @@ public class RenderableString
                 Glyph glyph = font.Get(c);
                 (int glyphW, int glyphH) = glyph.Area.Dimension;
 
+                double scale = (double)fontSize / glyph.Area.Height;
                 int endX = currentWidth + (int)(glyphW * scale);
                 int endY = currentHeight + (int)(glyphH * scale);
 
