@@ -521,7 +521,7 @@ public partial class DehackedDefinition
 
         while (!IsBlockComplete(parser))
         {
-            sb.Append(parser.ConsumeLine());
+            sb.Append(parser.ConsumeLine(keepBeginningSpaces: true));
             sb.Append('\n');
         }
 

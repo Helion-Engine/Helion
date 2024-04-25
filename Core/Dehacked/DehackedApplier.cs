@@ -655,17 +655,31 @@ public class DehackedApplier
         }
     }
 
-    private static readonly HashSet<string> IgnoreTextNames = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly List<string> IgnoreTextNames = new()
     {
-        "The Ultimate DOOM Startup v%i.%i                                                D",
-        "DOOM 2: Hell on Earth v%i.%i                                                    "
+        "The Ultimate DOOM Startup v%i.%i",
+        "DOOM 2: Hell on Earth v%i.%i",
+        "DOOM System Startup v%i.%i",
+        "You cannot -file with the shareware version. Register!",
+        "This is not the registered version.",
+        "ATTENTION:  This version of DOOM has been modified."
     };
+
+    private static bool ShouldIgnoreText(string text)
+    {
+        for (int i = 0; i < IgnoreTextNames.Count; i++)
+        {
+            if (text.Contains(IgnoreTextNames[i], StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
+    }
 
     private static void ApplyText(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, LanguageDefinition language)
     {
         foreach (var text in dehacked.Strings)
         {
-            if (IgnoreTextNames.Contains(text.OldString))
+            if (ShouldIgnoreText(text.OldString))
                 continue;
 
             if (dehacked.SpriteNames.Contains(text.OldString))

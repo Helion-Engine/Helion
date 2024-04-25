@@ -411,7 +411,7 @@ public class SimpleParser
     /// <summary>
     /// Eats the rest of the tokens until the current line is consumed.
     /// </summary>
-    public string ConsumeLine()
+    public string ConsumeLine(bool keepBeginningSpaces = false)
     {
         AssertData();
 
@@ -419,6 +419,9 @@ public class SimpleParser
         int startLine = m_tokens[m_index].Line;
         while (m_index < m_tokens.Count && m_tokens[m_index].Line == startLine)
             m_index++;
+
+        if (keepBeginningSpaces)
+            return m_lines[token.Line];
 
         return m_lines[token.Line][token.Index..];
     }
