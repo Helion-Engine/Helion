@@ -185,6 +185,10 @@ public partial class WorldLayer : IGameLayerParent
             compat.NoTossDrops.SetWithNoWriteConfig(true);
         if (mapInfoDef.HasOption(MapOptions.CompatStairs))
             compat.Stairs.SetWithNoWriteConfig(true);
+        if (mapInfoDef.HasOption(MapOptions.CompatExplosion1) || mapInfoDef.HasOption(MapOptions.CompatExplosion2)) // These aren't separated like ZDoom, but are unlikely to be toggled independently
+            compat.OriginalExplosion.SetWithNoWriteConfig(true);
+        if (mapInfoDef.HasOption(MapOptions.VileGhosts))
+            compat.VileGhosts.SetWithNoWriteConfig(true);
 
         foreach (var mapCompat in MapCompat)
         {

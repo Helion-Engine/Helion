@@ -2349,7 +2349,13 @@ public abstract class WorldBase : IWorld
         if (m_healChaseData.HealSound.Length > 0)
             WorldStatic.SoundManager.CreateSoundOn(entity, m_healChaseData.HealSound, new SoundParams(entity));
 
-        entity.SetRaiseState();
+        entity.SetRaiseState(!Config.Compatibility.VileGhosts);
+        if (Config.Compatibility.VileGhosts)
+        {
+            entity.Flags.Shootable = entity.Definition.Flags.Shootable;
+            entity.Flags.Solid = false;
+            entity.Height = 0;
+        }
         entity.Flags.Friendly = healChaseEntity.Flags.Friendly;
     }
 

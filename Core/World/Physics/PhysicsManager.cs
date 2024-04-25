@@ -7,6 +7,7 @@ using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
@@ -487,7 +488,11 @@ public class PhysicsManager
     private void SetToGiblets(Entity entity)
     {
         if (entity.SetCrushState())
+        {
+            if (m_world.Config.Compatibility.VileGhosts)
+                entity.Radius = 0;
             return;
+        }
 
         m_entityManager.Destroy(entity);
         m_entityManager.Create("REALGIBS", entity.Position);
@@ -533,7 +538,8 @@ public class PhysicsManager
 
     private static int CalculateSteps(Vec2D velocity, double radius)
     {
-        InvariantWarning(radius > 0.5, "Actor radius too small for safe XY physics movement");
+        if (radius < 0.5)
+            return 1; 
 
         // We want to pick some atomic distance to keep moving our bounding
         // box. It can't be bigger than the radius because we could end up

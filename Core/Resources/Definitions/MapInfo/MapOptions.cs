@@ -20,5 +20,8 @@ public enum MapOptions
     CompatLimitPain,
     CompatNoTossDrops,
     CompatStairs,
-    ForceNoSkyStretch
+    ForceNoSkyStretch,
+    CompatExplosion1,
+    CompatExplosion2,
+    VileGhosts
 }

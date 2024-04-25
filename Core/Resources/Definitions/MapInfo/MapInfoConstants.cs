@@ -256,6 +256,9 @@ public partial class MapInfoDefinition
         { "compat_notossdrops",     new MapOptionSet { Option = MapOptions.CompatNoTossDrops, Value = true } },
         { "compat_stairs",          new MapOptionSet { Option = MapOptions.CompatStairs, Value = true } },
         { "forcenoskystretch",      new MapOptionSet { Option = MapOptions.ForceNoSkyStretch, Value = true } },
+        { "compat_explode1",        new MapOptionSet { Option = MapOptions.CompatExplosion1, Value = true } },
+        { "compat_explode2",        new MapOptionSet { Option = MapOptions.CompatExplosion2, Value = true } },
+        { "compat_vileghosts",      new MapOptionSet { Option = MapOptions.VileGhosts, Value = true } },
     };
 
     private static readonly HashSet<string> MapOptionsIgnore = new(StringComparer.OrdinalIgnoreCase)

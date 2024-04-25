@@ -465,7 +465,7 @@ public class Player : Entity
         base.ResetInterpolation();
     }
 
-    public override void SetRaiseState()
+    public override void SetRaiseState(bool restoreFlags = true)
     {
         base.SetRaiseState();
         PendingWeapon = Weapon;

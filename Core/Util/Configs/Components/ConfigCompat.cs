@@ -51,7 +51,11 @@ public class ConfigCompat
 
     [ConfigInfo("Use original doom explosion behavior", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Use original doom explosion behavior")]
-    public readonly ConfigValue<bool> OriginalExplosion = new(false);   
+    public readonly ConfigValue<bool> OriginalExplosion = new(false);
+
+    [ConfigInfo("Enable vile ghosts.", serialize: true, demo: true)]
+    [OptionMenu(OptionSectionType.Compatibility, "Vile ghosts")]
+    public readonly ConfigValue<bool> VileGhosts = new(false);
 
     [ConfigInfo("Enable mbf21 features.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Enable mbf21 features")]

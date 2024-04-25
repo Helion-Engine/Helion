@@ -543,14 +543,15 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return false;
     }
 
-    public virtual void SetRaiseState()
+    public virtual void SetRaiseState(bool restoreFlags = true)
     {        
         if (Definition.RaiseState != null)
         {
             FrameState.SetFrameIndex(Definition.RaiseState.Value);
             Health = Definition.Properties.Health;
             Height = Definition.Properties.Height;
-            Flags = Definition.Flags;
+            if (restoreFlags)
+                Flags = Definition.Flags;
         }
     }
 
