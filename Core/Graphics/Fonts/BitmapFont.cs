@@ -34,10 +34,6 @@ public static class BitmapFont
             if (charImages.Empty())
                 return null;
 
-            // For now, if we have all ARGB and get a Palette, or vice-versa,
-            // we will disallow this. In the future if we want, we can convert
-            // it all to ARGB.
-            // TODO
             AddSpaceGlyphIfMissing(charImages, definition, maxHeight, imageType);
             var (glyphs, image) = CreateGlyphs(definition, charImages, maxHeight, imageType);
             
@@ -70,8 +66,9 @@ public static class BitmapFont
 
         Precondition(definition.SpaceWidth != null, "Invalid definition detected, has no space image nor spacing attribute");
         int width = definition.SpaceWidth ?? 1;
+        int height = definition.FixedHeight ?? maxHeight;
 
-        charImages[' '] = new Image(width, maxHeight, imageType);
+        charImages[' '] = new Image(width, height, imageType);
     }
 
     private static Dictionary<char, Image> GetCharacterImages(FontDefinition definition,
