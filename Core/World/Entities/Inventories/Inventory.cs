@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Models;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Util.Container;
+using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
@@ -26,6 +28,10 @@ public class Inventory
     public static readonly string RadSuitClassName = "RADSUIT";
 
     private static readonly List<string> PowerupEnumStringValues = GetPowerEnumValues();
+
+
+    private readonly List<string> m_addedBaseNames = new();
+    private readonly Comparison<InventoryItem> m_sortKeyCompare = new(CompareKeys);
 
     private static List<string> GetPowerEnumValues()
     {
@@ -163,6 +169,8 @@ public class Inventory
         !string.IsNullOrEmpty(def.Properties.Powerup.Type) ||
         def.IsType("Powerup") ||
         def.IsType("MapRevealer");
+
+    public int ItemCount() => Items.Count;
 
     public bool IsPowerupActive(PowerupType type)
     {
@@ -338,22 +346,40 @@ public class Inventory
 
     private void SetPriorityPowerupEffects()
     {
-        PowerupEffectColor = Powerups.Where(x => x.EffectType == PowerupEffectType.Color && x.DrawEffectActive).OrderBy(y => (int)y.PowerupType).FirstOrDefault();
-        PowerupEffectColorMap = Powerups.Where(x => x.EffectType == PowerupEffectType.ColorMap).OrderBy(y => (int)y.PowerupType).FirstOrDefault();
+        PowerupEffectColor = GetPriorityPowerupColor(PowerupEffectType.Color, checkActive: true);
+        PowerupEffectColorMap = GetPriorityPowerupColor(PowerupEffectType.ColorMap, checkActive: false);
+    }
+
+    private IPowerup? GetPriorityPowerupColor(PowerupEffectType effectType, bool checkActive)
+    {
+        IPowerup? color = null;
+        int type = int.MaxValue;
+        foreach(var powerup in Powerups)
+        {
+            if (powerup.EffectType == effectType && (!checkActive || powerup.DrawEffectActive) && (int)powerup.PowerupType < type)
+            {
+                color = powerup;
+                type = (int)powerup.PowerupType;
+            }
+        }
+        return color;
     }
 
     public void AddBackPackAmmo(EntityDefinitionComposer definitionComposer)
     {
-        HashSet<string> addedBaseNames = new(StringComparer.OrdinalIgnoreCase);
-        List<EntityDefinition> ammoDefinitions = GetAmmoTypes(definitionComposer).Where(x => x.Properties.Ammo.BackpackAmount > 0).ToList();
+        m_addedBaseNames.Clear();
+        var ammoDefinitions = definitionComposer.GetAmmoDefinitions();
         foreach (EntityDefinition ammo in ammoDefinitions)
         {
+            if (ammo.Properties.Ammo.BackpackAmount <= 0)
+                continue;
+
             string baseName = GetBaseInventoryName(ammo);
-            if (addedBaseNames.Contains(baseName))
+            if (m_addedBaseNames.Contains(baseName))
                 continue;
 
             Add(ammo, ammo.Properties.Ammo.BackpackAmount);
-            addedBaseNames.Add(baseName);
+            m_addedBaseNames.Add(baseName);
         }
     }
 
@@ -362,15 +388,23 @@ public class Inventory
         EntityDefinition? backpackDef = definitionComposer.GetByName(BackPackBaseClassName);
         if (backpackDef != null)
             Add(backpackDef, 1);
-        List<EntityDefinition> ammoDefinitions = GetAmmoTypes(definitionComposer).ToList();
-        foreach (EntityDefinition ammo in ammoDefinitions)
+        var ammoDefinitions = definitionComposer.GetAmmoDefinitions();
+        foreach (var ammo in ammoDefinitions)
+        {
+            if (ammo.Name.EqualsIgnoreCase(AmmoClassName))
+                continue;
             Add(ammo, Math.Max(ammo.Properties.Ammo.BackpackMaxAmount, ammo.Properties.Inventory.Amount));
+        }
     }
 
     public void GiveAllKeys(EntityDefinitionComposer definitionComposer)
     {
-        List<EntityDefinition> keys = definitionComposer.GetEntityDefinitions().Where(x => x.IsType(KeyClassName) && x.EditorId.HasValue).ToList();
-        keys.ForEach(x => Add(x, 1));
+        var keys = definitionComposer.GetKeyDefinitions();
+        foreach (var key in keys)
+        {
+            if (key.EditorId.HasValue)
+                Add(key, 1);
+        }
     }
 
     public void ClearKeys()
@@ -455,20 +489,14 @@ public class Inventory
     public List<InventoryItem> GetInventoryItems() => ItemList;
     public List<InventoryItem> GetKeys() => Keys;
 
-    private static IEnumerable<EntityDefinition> GetAmmoTypes(EntityDefinitionComposer definitionComposer)
-    {
-        return definitionComposer.GetEntityDefinitions().Where(x => x.IsType(AmmoClassName));
-    }
+    private void SortKeys() => Keys.Sort(m_sortKeyCompare);
 
-    private void SortKeys()
+    private static int CompareKeys(InventoryItem i1, InventoryItem i2)
     {
-        Keys.Sort((i1, i2) =>
-        {
-            if (!i1.Definition.EditorId.HasValue || !i2.Definition.EditorId.HasValue)
-                return 1;
+        if (!i1.Definition.EditorId.HasValue || !i2.Definition.EditorId.HasValue)
+            return 1;
 
-            return i1.Definition.EditorId.Value.CompareTo(i2.Definition.EditorId.Value);
-        });
+        return i1.Definition.EditorId.Value.CompareTo(i2.Definition.EditorId.Value);
     }
 
     private void RemoveItem(string name)

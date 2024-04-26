@@ -5,6 +5,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Util;
 using Helion.Util.Container;
+using Helion.World.Entities.Inventories;
 using NLog;
 
 namespace Helion.World.Entities.Definition.Composer;
@@ -31,6 +32,8 @@ public class EntityDefinitionComposer
     private readonly AvailableIndexTracker m_indexTracker = new();
     private readonly Dictionary<string, EntityDefinition> m_definitions = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<EntityDefinition> m_listDefinitions = new();
+    private readonly List<EntityDefinition> m_ammoDefinitions = new();
+    private readonly List<EntityDefinition> m_keyDefinitions = new();
     private readonly Dictionary<int, EntityDefinition> m_editorNumToDefinition = new();
     private readonly DefinitionStateApplier m_definitionStateApplier = new();
 
@@ -69,6 +72,11 @@ public class EntityDefinitionComposer
         if (definition == null)
             return null;
 
+        if (definition.IsType(Inventory.AmmoClassName))
+            m_ammoDefinitions.Add(definition);
+        else if (definition.IsType(Inventory.KeyClassName))
+            m_keyDefinitions.Add(definition);
+
         m_listDefinitions.Add(definition);
         if (!string.IsNullOrEmpty(actorDefinition.Replaces))
             m_definitions[actorDefinition.Replaces] = definition;
@@ -96,7 +104,9 @@ public class EntityDefinitionComposer
         m_listDefinitions.Add(definition);
     }
 
-    public IList<EntityDefinition> GetEntityDefinitions() => m_listDefinitions.AsReadOnly();
+    public IList<EntityDefinition> GetEntityDefinitions() => m_listDefinitions;
+    public IList<EntityDefinition> GetAmmoDefinitions() => m_ammoDefinitions;
+    public IList<EntityDefinition> GetKeyDefinitions() => m_keyDefinitions;
 
     public EntityDefinition? GetByID(int id)
     {
