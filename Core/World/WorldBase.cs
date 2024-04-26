@@ -311,6 +311,7 @@ public abstract class WorldBase : IWorld
         Config.Compatibility.Mbf21.OnChanged += Mbf21_OnChanged;
         Config.Compatibility.Doom2ProjectileWalkTriggers.OnChanged += Doom2ProjectileWalkTriggers_OnChanged;
         Config.Compatibility.OriginalExplosion.OnChanged += OriginalExplosion_OnChanged;
+        Config.Compatibility.FinalDoomTeleport.OnChanged += FinalDoomTeleport_OnChanged;
     }
 
     private void UnRegisterConfigChanges()
@@ -328,6 +329,7 @@ public abstract class WorldBase : IWorld
         Config.Compatibility.VanillaMovementPhysics.OnChanged -= VanillaMovementPhysics_OnChanged;
         Config.Compatibility.Mbf21.OnChanged -= Mbf21_OnChanged;
         Config.Compatibility.OriginalExplosion.OnChanged -= OriginalExplosion_OnChanged;
+        Config.Compatibility.FinalDoomTeleport.OnChanged -= FinalDoomTeleport_OnChanged;
     }
 
     private void SetWorldStatic()
@@ -361,6 +363,7 @@ public abstract class WorldBase : IWorld
         WorldStatic.Mbf21 = Config.Compatibility.Mbf21;
         WorldStatic.Doom2ProjectileWalkTriggers = Config.Compatibility.Doom2ProjectileWalkTriggers;
         WorldStatic.OriginalExplosion = Config.Compatibility.OriginalExplosion;
+        WorldStatic.FinalDoomTeleport = Config.Compatibility.FinalDoomTeleport;
         WorldStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
@@ -378,6 +381,8 @@ public abstract class WorldBase : IWorld
         WorldStatic.WeaponBfg = EntityManager.DefinitionComposer.GetByName(DehackedDefinition.BFG900Class);
     }
 
+    private void FinalDoomTeleport_OnChanged(object? sender, bool enabled) =>
+        WorldStatic.FinalDoomTeleport = enabled;
     private void OriginalExplosion_OnChanged(object sender, bool enabled) =>
         WorldStatic.OriginalExplosion = enabled;
     private void Doom2ProjectileWalkTriggers_OnChanged(object? sender, bool enabled) =>

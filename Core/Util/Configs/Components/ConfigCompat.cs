@@ -57,6 +57,10 @@ public class ConfigCompat
     [OptionMenu(OptionSectionType.Compatibility, "Vile ghosts")]
     public readonly ConfigValue<bool> VileGhosts = new(false);
 
+    [ConfigInfo("Enable final doom teleports. Disables forcing to floor.", serialize: true, demo: true)]
+    [OptionMenu(OptionSectionType.Compatibility, "Final Doom teleport")]
+    public readonly ConfigValue<bool> FinalDoomTeleport = new(false);
+
     [ConfigInfo("Enable mbf21 features.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Enable mbf21 features")]
     public readonly ConfigValue<bool> Mbf21 = new(true);
@@ -73,5 +77,7 @@ public class ConfigCompat
         VanillaMovementPhysics.ResetToUserValue();
         Doom2ProjectileWalkTriggers.ResetToUserValue();
         OriginalExplosion.ResetToUserValue();
+        VileGhosts.ResetToUserValue();
+        FinalDoomTeleport.ResetToUserValue();
     }
 }

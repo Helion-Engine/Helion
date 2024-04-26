@@ -79,6 +79,9 @@ public struct TeleportSpecial
         if (!FindTeleportSpot(entity, out Vec3D pos, out double angle, out double offsetZ))
             return false;
 
+        if (WorldStatic.FinalDoomTeleport)
+            pos.Z = entity.Position.Z;
+
         bool isMonsterCloset = (entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0;
         Vec3D oldPosition = entity.Position;
         Vec3D velocity = entity.Velocity;

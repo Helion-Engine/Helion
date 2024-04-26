@@ -37,6 +37,7 @@ public static class WorldStatic
     public static bool Mbf21;
     public static bool Doom2ProjectileWalkTriggers;
     public static bool OriginalExplosion;
+    public static bool FinalDoomTeleport;
     public static int RespawnTimeSeconds;
     public static int ClosetLookFrameIndex;
     public static int ClosetChaseFrameIndex;
