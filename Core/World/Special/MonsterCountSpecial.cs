@@ -38,10 +38,9 @@ public class MonsterCountSpecial : IMonsterCounterSpecial
         return SpecialTickStatus.Continue;
     }
 
-    private void ExecuteSpecial()
+    public void ExecuteSpecial()
     {
-        List<Sector> sectors = m_world.Sectors.Where(x => x.Tag == SectorTag).ToList();
-
+        var sectors = m_world.FindBySectorTag(SectorTag);
         switch (MapSpecialAction)
         {
             case MapSpecialAction.LowerFloor:
