@@ -1,11 +1,8 @@
 ﻿using FluentAssertions;
 using Helion.Resources.IWad;
 using Helion.Tests.Unit.GameAction.Util;
-using Helion.Util;
 using Helion.Util.Extensions;
-using Helion.World;
 using Helion.World.Cheats;
-using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using System;
