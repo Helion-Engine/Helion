@@ -239,7 +239,7 @@ namespace Helion.Tests.Unit.GameAction
 
             player.ChangeWeapon(pistol);
             if (player.Inventory.Amount("CLIP") <= 0)
-                player.Inventory.Add("CLIP", 100);
+                player.Inventory.Add(world.EntityManager.DefinitionComposer.GetByName("CLIP")!, 100);
 
             TickWorld(world, () =>
             {

@@ -8,6 +8,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
@@ -325,7 +326,7 @@ public class Player : Entity
                     Inventory.Add(item.Definition, item.Amount);
             }
 
-            foreach (Weapon weapon in player.Inventory.Weapons.GetWeapons())
+            foreach (Weapon weapon in player.Inventory.Weapons.GetWeaponsInSelectionOrder())
                 GiveWeapon(weapon.Definition, giveDefaultAmmo: false, autoSwitch: false);
 
             if (player.Weapon != null)
@@ -818,11 +819,11 @@ public class Player : Entity
         return TickCommands.None;
     }
 
-    private void ChangePlayerWeaponSlot((int, int) slot)
+    private void ChangePlayerWeaponSlot(WeaponSlot slot)
     {
-        if (slot.Item1 != WeaponSlot || slot.Item2 != WeaponSubSlot)
+        if (slot.Slot != WeaponSlot || slot.SubSlot != WeaponSubSlot)
         {
-            var weapon = Inventory.Weapons.GetWeapon(this, slot.Item1, slot.Item2);
+            var weapon = Inventory.Weapons.GetWeapon(this, slot.Slot, slot.SubSlot);
             if (weapon != null)
                 ChangeWeapon(weapon);
         }
@@ -979,6 +980,18 @@ public class Player : Entity
         return NormalTurnSpeed;
     }
 
+    public void GiveAllWeapons(EntityDefinitionComposer definitionComposer)
+    {
+        foreach (string name in Inventory.Weapons.GetWeaponDefinitionNames())
+        {
+            var weapon = definitionComposer.GetByName(name);
+            if (weapon != null)
+                GiveWeapon(weapon, autoSwitch: false);
+        }
+
+        Inventory.GiveAllAmmo(definitionComposer);
+    }
+
     private EntityDefinition? GetArmorDefinition(EntityDefinition definition)
     {
         bool isArmorBonus = definition.IsType(Inventory.BasicArmorBonusClassName);
@@ -1034,8 +1047,17 @@ public class Player : Entity
             return;
 
         string name = Inventory.GetBaseInventoryName(ammoDef);
-        Weapon? ammoWeapon = GetSelectionOrderedWeapons().FirstOrDefault(x => x.AmmoDefinition != null &&
-            x.AmmoDefinition.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        var weapons = Inventory.Weapons.GetWeaponsInSelectionOrder();
+        Weapon? ammoWeapon = null;
+        foreach (var weapon in weapons)
+        {
+            if (weapon.AmmoDefinition != null && weapon.AmmoDefinition.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+            {
+                ammoWeapon = weapon;
+                break;
+            }
+        }
+
         if (ammoWeapon != null)
         {
             if (CheckAmmo(ammoWeapon, oldCount))
@@ -1070,7 +1092,7 @@ public class Player : Entity
     /// </summary>
     public void TrySwitchWeapon()
     {
-        var weapons = GetSelectionOrderedWeapons();
+        var weapons = Inventory.Weapons.GetWeaponsInSelectionOrder();
         foreach (Weapon weapon in weapons)
         {
             if (weapon != Weapon && CheckAmmo(weapon) &&
@@ -1084,8 +1106,8 @@ public class Player : Entity
 
     public bool ForceSwitchWeapon()
     {
-        var weapons = GetSelectionOrderedWeapons();
-        if (!weapons.Any())
+        var weapons = Inventory.Weapons.GetWeaponsInSelectionOrder();
+        if (weapons.Count == 0)
         {
             ForceLowerWeapon(setTop: false);
             return false;
@@ -1095,11 +1117,9 @@ public class Player : Entity
         return true;
     }
 
-    private IEnumerable<Weapon> GetSelectionOrderedWeapons() => Inventory.Weapons.GetWeapons().OrderBy(x => x.Definition.Properties.Weapons.SelectionOrder);
-
     public bool GiveWeapon(EntityDefinition definition, EntityFlags? flags = null, bool giveDefaultAmmo = true, bool autoSwitch = true)
     {
-        if (IsWeapon(definition) && !Inventory.Weapons.OwnsWeapon(definition.Name))
+        if (IsWeapon(definition) && !Inventory.Weapons.OwnsWeapon(definition))
         {
             Weapon? addedWeapon = Inventory.Weapons.Add(definition, this, WorldStatic.EntityManager);
             if (giveDefaultAmmo)
@@ -1119,13 +1139,13 @@ public class Player : Entity
 
     public void ChangeWeapon(Weapon weapon)
     {
-        if (!Inventory.Weapons.OwnsWeapon(weapon.Definition.Name) || Weapon == weapon || AnimationWeapon == weapon)
+        if (!Inventory.Weapons.OwnsWeapon(weapon.Definition) || Weapon == weapon || AnimationWeapon == weapon)
             return;
 
         bool hadWeapon = Weapon != null;
-        var slot = Inventory.Weapons.GetWeaponSlot(weapon.Definition.Name);
-        WeaponSlot = slot.Item1;
-        WeaponSubSlot = slot.Item2;
+        var slot = Inventory.Weapons.GetWeaponSlot(weapon.Definition);
+        WeaponSlot = slot.Slot;
+        WeaponSubSlot = slot.SubSlot;
 
         if (!hadWeapon && PendingWeapon == null)
         {
@@ -1139,7 +1159,6 @@ public class Player : Entity
         if (!hadWeapon)
             ForceLowerWeapon(setTop: false);
     }
-
 
     public bool FireWeapon()
     {
@@ -1248,7 +1267,7 @@ public class Player : Entity
         if (PendingWeapon == null)
         {
             // The Weapon reference exists on clear inventory while lowering the weapon. Need to clear the reference if no longer owned.
-            if (Weapon != null && !Inventory.Weapons.OwnsWeapon(Weapon.Definition.Name))
+            if (Weapon != null && !Inventory.Weapons.OwnsWeapon(Weapon.Definition))
             {
                 Weapon = null;
                 AnimationWeapon = null;
@@ -1301,8 +1320,11 @@ public class Player : Entity
     {
         if (Weapon == null)
             return;
-
-        Inventory.Add(Weapon.Definition.Properties.Weapons.AmmoType, amount);
+        var weapon = Weapon.Definition.Properties.Weapons;
+        if (weapon.AmmoTypeDef == null)
+            weapon.AmmoTypeDef = WorldStatic.World.EntityManager.DefinitionComposer.GetByName(weapon.AmmoType);
+        if (weapon.AmmoTypeDef != null)
+            Inventory.Add(weapon.AmmoTypeDef, amount);
     }
 
     public override bool Damage(Entity? source, int damage, bool setPainState, DamageType damageType)

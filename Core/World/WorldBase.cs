@@ -2253,11 +2253,11 @@ public abstract class WorldBase : IWorld
                 player.Flags.Invulnerable = isActive;
                 break;
             case CheatType.GiveAllNoKeys:
-                GiveAllWeapons(player);
+                player.GiveAllWeapons(EntityManager.DefinitionComposer);
                 GiveCheatArmor(player, cheat.CheatType);
                 break;
             case CheatType.GiveAll:
-                GiveAllWeapons(player);
+                player.GiveAllWeapons(EntityManager.DefinitionComposer);
                 player.Inventory.GiveAllKeys(EntityManager.DefinitionComposer);
                 GiveCheatArmor(player, cheat.CheatType);
                 break;
@@ -2595,18 +2595,6 @@ public abstract class WorldBase : IWorld
         var chainsaw = EntityManager.DefinitionComposer.GetByName("chainsaw");
         if (chainsaw != null)
             player.GiveWeapon(chainsaw);
-    }
-
-    private void GiveAllWeapons(Player player)
-    {
-        foreach (string name in player.Inventory.Weapons.GetWeaponDefinitionNames())
-        {
-            var weapon = EntityManager.DefinitionComposer.GetByName(name);
-            if (weapon != null)
-                player.GiveWeapon(weapon, autoSwitch: false);
-        }
-
-        player.Inventory.GiveAllAmmo(EntityManager.DefinitionComposer);
     }
 
     private void ApplyVooDooDamage(Player player, int damage, bool setPainState)

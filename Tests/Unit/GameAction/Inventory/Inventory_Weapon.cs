@@ -4,6 +4,7 @@ using Helion.Tests.Unit.GameAction.Util;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities;
+using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using System;
 using Xunit;
@@ -141,7 +142,7 @@ namespace Helion.Tests.Unit.GameAction
             foreach (var weaponData in WeaponDataInfo)
             {
                 Player.Inventory.Clear();
-                Player.Inventory.Weapons.GetWeapons().Count.Should().Be(0);
+                Player.Inventory.Weapons.GetWeaponsInSelectionOrder().Count.Should().Be(0);
 
                 Player.Inventory.Weapons.OwnsWeapon(weaponData.Name).Should().BeFalse();
                 Player.GiveItem(GameActions.GetEntityDefinition(World, weaponData.Name), null);
@@ -497,6 +498,73 @@ namespace Helion.Tests.Unit.GameAction
             clip.Flags.Dropped = true;
             World.PerformItemPickup(Player, clip);
             Player.Inventory.Amount("Clip").Should().Be(65);
+        }
+
+        [Fact(DisplayName = "Cycle weapons forward")]
+        public void CycleWeaponsForward()
+        {
+            Player.GiveAllWeapons(World.EntityManager.DefinitionComposer);
+
+            Player.ChangeWeapon(InventoryUtil.GetWeapon(Player, "Fist"));
+            GameActions.TickWorld(World, 35);
+
+            InventoryUtil.AssertWeapon(Player.Weapon, "Fist");
+            var cycleWeapons = new string[] { "Chainsaw", "Pistol", "Shotgun", "SuperShotgun", "Chaingun", "RocketLauncher", "PlasmaRifle", "BFG9000" };
+
+            foreach (var weapon in cycleWeapons)
+            {
+                var slot = Player.Inventory.Weapons.GetNextSlot(Player, 1);
+                var changeWeapon = Player.Inventory.Weapons.GetWeapon(Player, slot.Slot, slot.SubSlot);
+                changeWeapon.Should().NotBeNull();
+                changeWeapon!.Definition.Name.Equals(weapon, StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+                Player.ChangeWeapon(changeWeapon);
+                GameActions.TickWorld(World, 35);
+            }
+        }
+
+        [Fact(DisplayName = "Cycle weapons backward")]
+        public void CycleWeaponsBackward()
+        {
+            Player.GiveAllWeapons(World.EntityManager.DefinitionComposer);
+
+            Player.ChangeWeapon(InventoryUtil.GetWeapon(Player, "Fist"));
+            GameActions.TickWorld(World, 35);
+
+            InventoryUtil.AssertWeapon(Player.Weapon, "Fist");
+            var cycleWeapons = new string[] { "BFG9000", "PlasmaRifle", "RocketLauncher", "Chaingun", "SuperShotgun", "Shotgun", "Pistol", "Chainsaw" };
+
+            foreach (var weapon in cycleWeapons)
+            {
+                var slot = Player.Inventory.Weapons.GetNextSlot(Player, -1);
+                var changeWeapon = Player.Inventory.Weapons.GetWeapon(Player, slot.Slot, slot.SubSlot   );
+                changeWeapon.Should().NotBeNull();
+                changeWeapon!.Definition.Name.Equals(weapon, StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+                Player.ChangeWeapon(changeWeapon);
+                GameActions.TickWorld(World, 35);
+            }
+        }
+
+        [Fact(DisplayName = "Cycle all weapons forward")]
+        public void CycleAllWeaponsForward()
+        {
+            Player.GiveAllWeapons(World.EntityManager.DefinitionComposer);
+            Player.ChangeWeapon(InventoryUtil.GetWeapon(Player, "Fist"));
+            GameActions.TickWorld(World, 35);
+            var slot = Player.Inventory.Weapons.GetNextSlot(Player, 11);
+            var changeWeapon = Player.Inventory.Weapons.GetWeapon(Player, slot.Slot, slot.SubSlot);
+            changeWeapon!.Definition.Name.Equals("Pistol", StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+        }
+
+
+        [Fact(DisplayName = "Cycle all weapons backward")]
+        public void CycleAllWeaponsBackward()
+        {
+            Player.GiveAllWeapons(World.EntityManager.DefinitionComposer);
+            Player.ChangeWeapon(InventoryUtil.GetWeapon(Player, "Fist"));
+            GameActions.TickWorld(World, 35);
+            var slot = Player.Inventory.Weapons.GetNextSlot(Player, -11);
+            var changeWeapon = Player.Inventory.Weapons.GetWeapon(Player, slot.Slot, slot.SubSlot);
+            changeWeapon!.Definition.Name.Equals("PlasmaRifle", StringComparison.OrdinalIgnoreCase).Should().BeTrue();
         }
 
         private Entity CreateEntity(string name, Vec3D pos)

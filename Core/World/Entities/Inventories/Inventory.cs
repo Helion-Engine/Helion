@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Models;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
+using Helion.Strings;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
@@ -28,7 +29,8 @@ public class Inventory
     public static readonly string RadSuitClassName = "RADSUIT";
 
     private static readonly List<string> PowerupEnumStringValues = GetPowerEnumValues();
-
+    private static readonly Dictionary<string, string> PowerupLookup = new();
+    private static readonly string PowerString = "Power";
 
     private readonly List<string> m_addedBaseNames = new();
     private readonly Comparison<InventoryItem> m_sortKeyCompare = new(CompareKeys);
@@ -67,14 +69,14 @@ public class Inventory
     {
         Owner = owner;
         EntityDefinitionComposer = composer;
-        Weapons = new Weapons(WorldStatic.World.GameInfo.WeaponSlots);
+        Weapons = new Weapons(WorldStatic.World.GameInfo.WeaponSlots, composer);
     }
 
     public Inventory(PlayerModel playerModel, Player owner, EntityDefinitionComposer composer)
     {
         Owner = owner;
         EntityDefinitionComposer = composer;
-        Weapons = new Weapons(WorldStatic.World.GameInfo.WeaponSlots);
+        Weapons = new Weapons(WorldStatic.World.GameInfo.WeaponSlots, composer);
 
         for (int i = 0; i < playerModel.Inventory.Items.Count; i++)
         {
@@ -228,17 +230,6 @@ public class Inventory
             SetPriorityPowerupEffects();
     }
 
-    public bool Add(string name, int amount, EntityFlags? flags = null)
-    {
-        if (amount <= 0)
-            return false;
-
-        if (!Items.TryGetValue(name, out InventoryItem? item))
-            return false;
-
-        return Add(item.Definition, amount, flags);
-    }
-
     public bool Add(EntityDefinition definition, int amount, EntityFlags? flags = null)
     {
         if (amount <= 0)
@@ -271,7 +262,7 @@ public class Inventory
         }
         else
         {
-            EntityDefinition? findDefinition = EntityDefinitionComposer.GetByName(name);
+            var findDefinition = EntityDefinitionComposer.GetByName(name);
             if (findDefinition == null)
                 return false;
 
@@ -299,23 +290,31 @@ public class Inventory
         if (definition.ParentClassNames.Count == 0)
             return;
 
-        EntityDefinition? powerupDef = EntityDefinitionComposer.GetByName(definition.ParentClassNames[^1]);
+        var powerupDef = EntityDefinitionComposer.GetByName(definition.ParentClassNames[^1]);
         if (powerupDef == null)
             return;
 
-        DoGivePowerup(powerupDef, definition.Name.Replace("Power", string.Empty, StringComparison.OrdinalIgnoreCase));
+        int index = definition.Name.StartsWith(PowerString, StringComparison.OrdinalIgnoreCase) ? PowerString.Length : 0;
+        DoGivePowerup(powerupDef, definition.Name.AsSpan(index));
     }
 
     private void AddPowerupGiver(EntityDefinition definition)
     {
-        EntityDefinition? powerupDef = EntityDefinitionComposer.GetByName("Power" + definition.Properties.Powerup.Type);
+        var typeKey = definition.Properties.Powerup.Type;
+        if (!PowerupLookup.TryGetValue(typeKey, out var powerupName))
+        {
+            powerupName = PowerString + typeKey;
+            PowerupLookup[typeKey] = powerupName;
+        }
+
+        var powerupDef = EntityDefinitionComposer.GetByName(powerupName);
         if (powerupDef == null)
             return;
 
-        DoGivePowerup(powerupDef, definition.Properties.Powerup.Type);
+        DoGivePowerup(powerupDef, typeKey);
     }
 
-    private void DoGivePowerup(EntityDefinition powerupDef, string type)
+    private void DoGivePowerup(EntityDefinition powerupDef, ReadOnlySpan<char> type)
     {
         PowerupType powerupType = GetPowerupType(type);
         if (powerupType == PowerupType.None)
@@ -333,11 +332,11 @@ public class Inventory
         SetPriorityPowerupEffects();
     }
 
-    private static PowerupType GetPowerupType(string type)
+    private static PowerupType GetPowerupType(ReadOnlySpan<char> type)
     {
         for (int i = 0; i < PowerupEnumStringValues.Count; i++)
         {
-            if (PowerupEnumStringValues[i].Equals(type, StringComparison.OrdinalIgnoreCase))
+            if (MemoryExtensions.Equals(type, PowerupEnumStringValues[i], StringComparison.OrdinalIgnoreCase))
                 return (PowerupType)i;
         }
 

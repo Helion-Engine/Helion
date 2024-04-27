@@ -93,8 +93,8 @@ namespace Helion.Tests.Unit.GameAction
             Player.WeaponOffset.Y.Should().Be(InventoryUtil.WeaponBottomRaise);
             InventoryUtil.RunWeaponSwitch(World, Player, "Chaingun");
 
-            var existingWeapons = existingPlayer.Inventory.Weapons.GetWeapons();
-            var carryWeapons = Player.Inventory.Weapons.GetWeapons();
+            var existingWeapons = existingPlayer.Inventory.Weapons.GetWeaponsInSelectionOrder();
+            var carryWeapons = Player.Inventory.Weapons.GetWeaponsInSelectionOrder();
 
             existingWeapons.Count.Should().Be(carryWeapons.Count);
             foreach (var existingWeapon in existingWeapons)

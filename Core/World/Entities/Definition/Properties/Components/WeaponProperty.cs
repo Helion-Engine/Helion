@@ -11,6 +11,7 @@ public struct WeaponProperty
     public int AmmoGive;
     public int AmmoGive1;
     public int AmmoGive2;
+    public EntityDefinition? AmmoTypeDef;
     public string AmmoType = string.Empty;
     public string AmmoType1 = string.Empty;
     public string AmmoType2 = string.Empty;
