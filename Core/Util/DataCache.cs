@@ -20,6 +20,7 @@ using Helion.World;
 using Font = Helion.Graphics.Fonts.Font;
 using Helion.Graphics;
 using System;
+using Helion.World.Special;
 
 namespace Helion.Util;
 
@@ -40,6 +41,7 @@ public class DataCache
     private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new();
     private readonly DynamicArray<LinkedListNode<IAudioSource>> m_audioNodes = new();
     private readonly DynamicArray<LinkedListNode<WaitingSound>> m_waitingSoundNodes = new();
+    private readonly DynamicArray<LinkedListNode<ISpecial>> m_specialNodes = new();
     private readonly DynamicArray<LightChangeSpecial> m_lightChanges = new();
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
@@ -293,7 +295,25 @@ public class DataCache
         audio.Value = null!;
         m_audioNodes.Add(audio);
     }
-    
+
+    public LinkedListNode<ISpecial> GetSpecialNode(ISpecial special)
+    {
+        if (m_specialNodes.Length > 0)
+        {
+            var node = m_specialNodes.RemoveLast();
+            node.Value = special;
+            return node;
+        }
+
+        return new LinkedListNode<ISpecial>(special);
+    }
+
+    public void FreeSpecialNode(LinkedListNode<ISpecial> node)
+    {
+        node.Value = null!;
+        m_specialNodes.Add(node);
+    }
+
     public LinkedListNode<WaitingSound> GetWaitingSoundNode(WaitingSound sound)
     {
         if (m_waitingSoundNodes.Length > 0)

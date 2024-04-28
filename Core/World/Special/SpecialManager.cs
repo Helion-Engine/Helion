@@ -198,10 +198,11 @@ public class SpecialManager : ITickable, IDisposable
             var node = m_specials.First;
             while (node != null)
             {
+                var nextNode = node.Next;
                 if (node.Value is SwitchChangeSpecial && node.Value.Tick() == SpecialTickStatus.Destroy)
-                    m_specials.Remove(node);
+                    RemoveSpecialNode(node);
 
-                node = node.Next;
+                node = nextNode;
             }
         }
         else
@@ -213,11 +214,12 @@ public class SpecialManager : ITickable, IDisposable
                 nextNode = node.Next;
                 if (node.Value.Tick() == SpecialTickStatus.Destroy)
                 {
-                    m_specials.Remove(node);
-                    if (node.Value is ISectorSpecial sectorSpecial)
+                    var special = node.Value;
+                    if (special is ISectorSpecial sectorSpecial)
                         m_destroyedMoveSpecials.Add(sectorSpecial);
 
-                    node.Value.Destroy();
+                    special.Destroy();
+                    RemoveSpecialNode(node);
                 }
 
                 node = nextNode;
@@ -262,13 +264,13 @@ public class SpecialManager : ITickable, IDisposable
     public ISpecial AddDelayedSpecial(SectorMoveSpecial special, int delayTics)
     {
         special.SetDelayTics(delayTics);
-        m_specials.AddFirst(special);
+        AddSpecialNode(special);
         return special;
     }
 
     public void AddSpecial(ISpecial special)
     {
-        m_specials.AddFirst(special);
+        m_specials.AddFirst(m_world.DataCache.GetSpecialNode(special));
     }
 
     public ISpecial? FindSpecialBySector(Sector sector)
@@ -303,8 +305,11 @@ public class SpecialManager : ITickable, IDisposable
 
     public bool RemoveSpecial(ISpecial special)
     {
-        if (!m_specials.Remove(special))
+        var node = m_specials.Find(special);
+        if (node == null)
             return false;
+
+        RemoveSpecialNode(node);
 
         if (special is ISectorSpecial sectorSpecial)
         {
@@ -321,7 +326,7 @@ public class SpecialManager : ITickable, IDisposable
         {
             ISpecial? special = specialModels[i].ToWorldSpecial(m_world);
             if (special != null)
-                m_specials.AddFirst(special);
+                AddSpecialNode(special);
         }
     }
 
@@ -1024,8 +1029,8 @@ public class SpecialManager : ITickable, IDisposable
                 sectorSpecial.Sector.Equals(sector))
             {
                 sector.ClearActiveMoveSpecial();
-                m_specials.Remove(specNode);
                 m_destroyedMoveSpecials.Add((ISectorSpecial)specNode.Value);
+                RemoveSpecialNode(specNode);
             }
 
             specNode = nextNode;
@@ -1058,7 +1063,7 @@ public class SpecialManager : ITickable, IDisposable
                 {
                     success = true;
                     sector.ClearActiveMoveSpecial();
-                    m_specials.Remove(specNode);
+                    RemoveSpecialNode(specNode);
                     m_destroyedMoveSpecials.Add(sectorMoveSpecial);
                 }
             }
@@ -1424,9 +1429,9 @@ public class SpecialManager : ITickable, IDisposable
             floor = CreateFloorLowerSpecial(sector, SectorDest.LowestAdjacentFloor, floorSpeed);
 
         if (floor != null)
-            m_specials.AddFirst(floor);
+            AddSpecialNode(floor);
         if (ceiling != null)
-            m_specials.AddFirst(ceiling);
+            AddSpecialNode(ceiling);
 
         return floor != null || ceiling != null;
     }
@@ -1702,5 +1707,16 @@ public class SpecialManager : ITickable, IDisposable
     {
         Sector? destSector = sector.GetHighestAdjacentCeiling();
         return destSector?.Ceiling.Z ?? MinDest;
+    }
+
+    private void AddSpecialNode(ISpecial special)
+    {
+        m_specials.AddFirst(m_world.DataCache.GetSpecialNode(special));
+    }
+
+    private void RemoveSpecialNode(LinkedListNode<ISpecial> node)
+    {
+        m_specials.Remove(node);
+        m_world.DataCache.FreeSpecialNode(node);
     }
 }
