@@ -216,13 +216,13 @@ public class GameLayerManager : IGameLayerManager
         }
         else if (ReferenceEquals(layer, OptionsLayer))
         {
-            OptionsLayer?.Dispose();
             OptionsLayer = null;
         }
         else if (ReferenceEquals(layer, MenuLayer))
         {
             MenuLayer?.Dispose();
             MenuLayer = null;
+            GCUtil.ForceGarbageCollection();
         }
         else if (ReferenceEquals(layer, ReadThisLayer))
         {

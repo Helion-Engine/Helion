@@ -719,15 +719,6 @@ public partial class Client
         return m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skill);
     }
 
-    private static void ForceGarbageCollection()
-    {
-        for (int i = 0; i < 4; i++)
-        {            
-            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
-            GC.WaitForPendingFinalizers();
-        }
-    }
-
     private void RegisterWorldEvents(WorldLayer newLayer)
     {
         newLayer.World.LevelExit += World_LevelExit;

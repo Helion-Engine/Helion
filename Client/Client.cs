@@ -239,7 +239,7 @@ public partial class Client : IDisposable, IInputManagement
 
         CheckLoadMapDemo(newLayer, m_loadCompleteModel);
         m_loadCompleteModel = null;
-        ForceGarbageCollection();
+        GCUtil.ForceGarbageCollection();
 
         // Flag the WorldLayer that it is safe to render now that everything has been loaded
         newLayer.ShouldRender = true;
@@ -441,5 +441,7 @@ public partial class Client : IDisposable, IInputManagement
     {
         if (e.Success)
             m_lastWorldModel = e.WorldModel;
+
+        GCUtil.ForceGarbageCollection();
     }
 }
