@@ -523,6 +523,9 @@ public partial class DehackedDefinition
         {
             sb.Append(parser.ConsumeLine(keepBeginningSpaces: true));
             sb.Append('\n');
+            // Empty strings get eaten by IsBlockComplete
+            if (string.IsNullOrEmpty(parser.PeekString()))
+                sb.Append('\n');
         }
 
         while (sb.Length > 0 && sb[sb.Length - 1] == '\n')
