@@ -395,9 +395,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         BlockingSectorPlane = null;
     }
 
-    /// <summary>
-    /// Runs any tickable logic on the entity.
-    /// </summary>
     public virtual void Tick()
     {
         PrevPosition = Position;

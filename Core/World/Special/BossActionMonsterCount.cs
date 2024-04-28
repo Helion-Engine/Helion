@@ -24,6 +24,7 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
 
     private readonly IWorld m_world;
     private readonly BossAction m_bossAction;
+    private bool m_destroyed;
 
     public BossActionMonsterCount(IWorld world, BossAction bossAction, int entityDefinitionId)
     {
@@ -34,8 +35,12 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
 
     public SpecialTickStatus Tick()
     {
+        if (m_destroyed)
+            return SpecialTickStatus.Destroy;
+
         if (m_world.EntityAliveCount(EntityDefinitionId) == 0)
         {
+            m_destroyed = true;
             ExecuteSpecial();
             return SpecialTickStatus.Destroy;
         }
@@ -46,7 +51,7 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
     private void ExecuteSpecial()
     {
         ZDoomLineSpecialType specialType = ZDoomLineSpecialType.None;
-        LineActivationType activationType = LineActivationType.Any;
+        LineActivationType activationType = LineActivationType.Tag;
         LineSpecialCompatibility compat = LineSpecialCompatibility.Default;
         SpecialArgs specialArgs = new();
         var flags = new LineFlags(MapLineFlags.Doom(0));
@@ -65,6 +70,7 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
         if (specialType == ZDoomLineSpecialType.None)
             return;
 
+        activationType = LineActivationType.Tag;
         LineSpecial lineSpecial = new(specialType, activationType, compat);
         EntityActivateSpecial args = new(ActivationContext.CrossLine, m_world.Player, CreateDummyLine(flags, lineSpecial, specialArgs, m_world.Sectors[0]));
         m_world.SpecialManager.TryAddActivatedLineSpecial(args);

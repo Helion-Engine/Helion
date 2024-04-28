@@ -58,6 +58,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using Helion.Resources.Archives.Entries;
 using Helion.Maps.Doom;
+using Helion.Maps.Specials.Vanilla;
+using Helion.World.Special.SectorMovement;
 
 namespace Helion.World;
 
@@ -838,15 +840,42 @@ public abstract class WorldBase : IWorld
         foreach (var bossAction in MapInfo.BossActions)
         {
             string translatedName = GetTranslatedDehackedName(bossAction.ActorName);
-            var entityDef = EntityManager.DefinitionComposer.GetByName(translatedName);
+            var entityDef = GetEntityDefinitionWithWarning(translatedName, "boss action");
             if (entityDef == null)
-            {                
-                Log.Warn($"Invalid actor name for boss action: {bossAction.ActorName}");
                 continue;
-            }
 
             m_bossDeathSpecials.Add(new BossActionMonsterCount(this, bossAction, entityDef.Id));
         }
+    }
+
+    private EntityDefinition? GetEntityDefinitionWithWarning(string definitionName, object forName)
+    {
+        var definition = EntityManager.DefinitionComposer.GetByName(definitionName);
+        if (definition != null)
+            return definition;
+        Log.Error($"Invalid actor name for ${forName}: {definitionName}");
+        return null;
+    }
+
+    private void AddMonsterCountSpecial(List<IMonsterCounterSpecial> monsterCountSpecials, string monsterName, int sectorTag, MapSpecialAction mapSpecialAction)
+    {
+        var definition = GetEntityDefinitionWithWarning(monsterName, mapSpecialAction);
+        if (definition == null)
+            return;
+
+        var type = mapSpecialAction switch
+        {
+            MapSpecialAction.LowerFloor => VanillaLineSpecialType.S1_LowerFloorToLowestAdjacentFloor,
+            MapSpecialAction.OpenDoor => VanillaLineSpecialType.D1_OpenDoorStay,
+            MapSpecialAction.FloorRaiseByLowestTexture => VanillaLineSpecialType.W1_RaiseFloorByShortestLowerTexture,
+            MapSpecialAction.ExitLevel => VanillaLineSpecialType.S_EndLevel,
+            _ => VanillaLineSpecialType.None,
+        };
+
+        if (type == VanillaLineSpecialType.None)
+            return;
+
+        m_bossDeathSpecials.Add(new BossActionMonsterCount(this, new(definition.Name, type, sectorTag), definition.Id));
     }
 
     private string GetTranslatedDehackedName(string actorName)
@@ -876,18 +905,6 @@ public abstract class WorldBase : IWorld
     {
         foreach (var def in GetEntityDefinitionsByFlag(isMatch))
             AddMonsterCountSpecial(monsterCountSpecials, def.Name, sectorTag, mapSpecialAction);
-    }
-
-    private void AddMonsterCountSpecial(List<IMonsterCounterSpecial> monsterCountSpecials, string monsterName, int sectorTag, MapSpecialAction mapSpecialAction)
-    {
-        EntityDefinition? definition = EntityManager.DefinitionComposer.GetByName(monsterName);
-        if (definition == null)
-        {
-            Log.Error($"Failed to find {monsterName} for {mapSpecialAction}");
-            return;
-        }
-
-        monsterCountSpecials.Add(new MonsterCountSpecial(this, SpecialManager, definition.Id, sectorTag, mapSpecialAction));
     }
 
     private void InitBossBrainTargets()
