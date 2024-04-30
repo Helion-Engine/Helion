@@ -661,7 +661,9 @@ public class GeometryRenderer : IDisposable
             vertices = null;
             skyVertices = null;
             Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower, isFrontSide);
-            return;
+            // Key2 is used for partner side flood. Still may need to draw the lower.
+            if (facingSide.LowerFloodKeys.Key1 > 0)
+                return;
         }
 
         if (lowerWall.TextureHandle == Constants.NoTextureIndex && !skyRender)
@@ -742,7 +744,9 @@ public class GeometryRenderer : IDisposable
             skyVertices = null;
             skyVertices2 = null;
             Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Upper, isFrontSide);
-            return;
+            // Key2 is used for partner side flood. Still may need to draw the upper.
+            if (facingSide.UpperFloodKeys.Key1 > 0)
+                return;
         }
 
         if (!TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
