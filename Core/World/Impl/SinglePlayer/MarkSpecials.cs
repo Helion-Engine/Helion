@@ -30,6 +30,8 @@ public class MarkSpecials
     private readonly Dictionary<int, List<Line>> m_tagToLines = new();
     private bool m_mappedLineTags;
     private int m_lastLineId = -1;
+    private int m_lastGametick = -1;
+    private int m_ignoreGametick = -1;
     private int m_lineMarkColor;
 
     public void Clear(Player player)
@@ -40,24 +42,39 @@ public class MarkSpecials
         m_lastLineId = -1;
     }
 
-    public void Mark(IWorld world, Entity entity, Line line)
+    public void Mark(IWorld world, Entity entity, Line line, int gametick)
     {
         if (!world.Config.Game.MarkSpecials || entity.PlayerObj == null || entity.PlayerObj.IsVooDooDoll)
             return;
 
-        if (line.Id == m_lastLineId)
+        if (line.Id == m_lastLineId || gametick == m_ignoreGametick)
+        {
+            m_ignoreGametick = gametick;
             return;
+        }
 
-        Clear(entity.PlayerObj);
-        m_lastLineId = line.Id;
-        m_lineMarkColor = -1;
+        bool newGametick = false;
+        if (gametick != m_lastGametick)
+        {
+            newGametick = true;
+            m_lastLineId = line.Id;
+            m_lineMarkColor = -1;
+            Clear(entity.PlayerObj);
+        }
+
+        int markedSectors = MarkedSectors.Length;
+        int markedLines = MarkedLines.Length;
 
         MarkSpecialLines(world, line);
         Mark(world, entity, line, true);
 
-        if (MarkedLines.Length > 0 || MarkedSectors.Length > 0)
+        if (MarkedLines.Length != markedLines || MarkedSectors.Length != markedLines)
         {
-            m_lastLineId = line.Id;
+            if (newGametick)
+            {
+                m_lastLineId = line.Id;
+                m_lastGametick = gametick;
+            }
             MarkedLines.Add(line);
             line.MarkAutomap = true;
             return;
@@ -84,7 +101,9 @@ public class MarkSpecials
                         TraverseIslandSpecialLines(world, entity, sector.Island);
                     ConnectLineToSector(world, player, line, sector);
                 }
-                world.DisplayMessage($"Line {line.Id} activates sector: {sector.Id} - {GetLineSpecialDescritpion(line)}");
+
+                if (world.Config.Developer.LogMarkSpecials)
+                    world.DisplayMessage($"Line {line.Id} activates sector: {sector.Id} - {GetLineSpecialDescription(line)}");
             }
         }
 
@@ -97,26 +116,28 @@ public class MarkSpecials
         else if (line.Back != null && line.Back.Sector.Tag != 0)
             markSector = line.Back.Sector;
 
-        if (markSector != null)
+        if (markSector == null)
+            return;
+        
+        for (int i = 0; i < MarkedLines.Length; i++)
         {
-            for (int i = 0; i < MarkedLines.Length; i++)
+            var markLine = MarkedLines[i];
+            markSector.MarkAutomap = true;
+            MarkedSectors.Add(markSector);
+            if (!SectorHasLine(markSector, markLine))
+                ConnectLineToSector(world, player, markLine, markSector);
+
+            if (traverseIsland)
             {
-                var markLine = MarkedLines[i];
-                markSector.MarkAutomap = true;
-                MarkedSectors.Add(markSector);
-                if (!SectorHasLine(markSector, markLine))
-                    ConnectLineToSector(world, player, markLine, markSector);
-
-                if (traverseIsland)
-                {
-                    var lineSectorFront = markLine.Front.Sector;
-                    if (markLine.HasSectorTag && lineSectorFront.Island != player.Sector.Island && lineSectorFront.Island.IsVooDooCloset)
-                        TraverseIslandSpecialSectors(world, entity, lineSectorFront.Island);
-                }         
-
-                world.DisplayMessage($"Sector {markSector.Id} activated by line: {markLine.Id} - {GetLineSpecialDescritpion(markLine)}");
+                var lineSectorFront = markLine.Front.Sector;
+                if (markLine.HasSectorTag && lineSectorFront.Island != player.Sector.Island && lineSectorFront.Island.IsVooDooCloset)
+                    TraverseIslandSpecialSectors(world, entity, lineSectorFront.Island);
             }
-        }        
+
+
+            if (world.Config.Developer.LogMarkSpecials)
+                world.DisplayMessage($"Sector {markSector.Id} activated by line: {markLine.Id} - {GetLineSpecialDescription(markLine)}");
+        }
     }
 
     private static bool IgnoreLineSpecial(Line line) =>
@@ -254,7 +275,7 @@ public class MarkSpecials
         return lineCenter.To3D(Math.Min(line.Front.Sector.Floor.Z + 8, line.Front.Sector.Ceiling.Z));
     }
 
-    private static string GetLineSpecialDescritpion(Line line) =>
+    private static string GetLineSpecialDescription(Line line) =>
         $"[{(int)line.Special.LineSpecialType}]{line.Special.LineSpecialType} - {GetArgs(line)} - {GetActivations(line)} - Activated[{GetIntBool(line.Activated)}] Repeat[{GetIntBool(line.Flags.Repeat)}]";
 
     private static object GetArgs(Line line) =>

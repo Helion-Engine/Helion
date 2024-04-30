@@ -17,4 +17,7 @@ public class ConfigDeveloper
 
     [ConfigInfo("Marks flooded areas on the automap.", save: true)]
     public readonly ConfigValue<bool> MarkFlood = new(false);
+
+    [ConfigInfo("Logs marked special info.", save: true)]
+    public readonly ConfigValue<bool> LogMarkSpecials = new(false);
 }

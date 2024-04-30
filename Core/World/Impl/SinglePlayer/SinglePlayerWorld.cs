@@ -389,13 +389,13 @@ public class SinglePlayerWorld : WorldBase
 
     public override void OnTryEntityUseLine(Entity entity, Line line)
     {
-        MarkSpecials.Mark(this, entity, line);
+        MarkSpecials.Mark(this, entity, line, Gametick);
         base.OnTryEntityUseLine(entity, line);
     }
 
     public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context)
     {
-        MarkSpecials.Mark(this, entity, line);
+        MarkSpecials.Mark(this, entity, line, Gametick);
         return base.ActivateSpecialLine(entity, line, context);
     }
 
