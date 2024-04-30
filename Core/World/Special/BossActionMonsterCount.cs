@@ -81,7 +81,7 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
         var wall = new Wall(0, Constants.NoTextureIndex, WallLocation.Middle);
         var side = new Side(0, Vec2I.Zero, wall, wall, wall, sector);
         var seg = new Seg2D(Vec2D.Zero, Vec2D.One);
-        return new Line(0, 0, seg, side, null, flags, special, args);
+        return new Line(0, seg, side, null, flags, special, args);
     }
 
     public bool Use(Entity entity)

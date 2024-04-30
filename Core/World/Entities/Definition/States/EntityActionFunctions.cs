@@ -2884,7 +2884,7 @@ public static class EntityActionFunctions
         var wall = new Wall(0, Constants.NoTextureIndex, WallLocation.Middle);
         var side = new Side(0, Vec2I.Zero, wall, wall, wall, sector);
         var seg = new Seg2D(Vec2D.Zero, Vec2D.One);
-        return new Line(0, 0, seg, side, null, flags, LineSpecial.Default, args);
+        return new Line(0, seg, side, null, flags, LineSpecial.Default, args);
     }
 
     public static void A_WeaponBulletAttack(Entity entity)

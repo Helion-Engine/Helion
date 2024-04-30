@@ -176,7 +176,7 @@ public static class DoomGeometryBuilder
             else
                 special = new LineSpecial(zdoomType, activationType, compatibility);
 
-            Line line = new(builder.Lines.Count, doomLine.Id, seg, front, back, flags, special, specialArgs);
+            Line line = new(builder.Lines.Count, seg, front, back, flags, special, specialArgs);
             VanillaLineSpecTranslator.FinalizeLine(doomLine, line);
             builder.Lines.Add(line);
         }

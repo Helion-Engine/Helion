@@ -52,11 +52,11 @@ public class PortalRenderer : IDisposable
     public void ClearStaticWall(int floodKey) =>
         m_floodFillRenderer.ClearStaticWall(floodKey);
 
-    public void AddStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront) =>
-        HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, isFront, false);
+    public void AddStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront, FloodFillOptions options = FloodFillOptions.Both) =>
+        HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, isFront, false, options);
 
-    public void UpdateStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront) =>
-        HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, isFront, true);
+    public void UpdateStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront, FloodFillOptions options = FloodFillOptions.Both) =>
+        HandleStaticFloodFillSide(facingSide, otherSide, floodSector, sideTexture, isFront, true, options);
 
     public void AddFloodFillPlane(Side facingSide, Sector floodSector, SectorPlanes planes, SectorPlaneFace face, bool isFront) =>
         HandleFloodFillPlane(facingSide, floodSector, planes, face, isFront, false);
@@ -73,7 +73,7 @@ public class PortalRenderer : IDisposable
         bool flipPush = false;
         var floodPlanes = facingSide.MidTextureFlood;
         var otherSide = facingSide.PartnerSide;
-        // The flood plane will clip with an uppper/lower texture. Flag push the line towards in the inside of the sector.
+        // The flood plane will clip with an upper/lower texture. Flag push the line towards in the inside of the sector.
         if (m_alwaysFlood && face == SectorPlaneFace.Floor && otherSide != null && otherSide.Sector.Ceiling.Z < facingSide.Sector.Floor.Z)
         {
             flipPush = true;
@@ -132,7 +132,7 @@ public class PortalRenderer : IDisposable
         line.Segment.End = saveEnd;
     }
 
-    private void HandleStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront, bool update)
+    private void HandleStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront, bool update, FloodFillOptions options)
     {
         Sector facingSector = facingSide.Sector.GetRenderSector(TransferHeightView.Middle);
         Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
@@ -142,7 +142,7 @@ public class PortalRenderer : IDisposable
             SectorPlane bottom = otherSector.Ceiling;
             WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, Vec2F.Zero, isFront);
             double floodMaxZ = bottom.Z;
-            if (!IsSky(floodSector.Ceiling))
+            if (!IsSky(floodSector.Ceiling) && options == FloodFillOptions.Both)
             {
                 if (update)
                     m_floodFillRenderer.UpdateStaticWall(facingSide.UpperFloodKeys.Key1, floodSector.Ceiling, wall, double.MinValue, floodMaxZ);
@@ -172,7 +172,7 @@ public class PortalRenderer : IDisposable
             SectorPlane bottom = facingSector.Floor;
             WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, Vec2F.Zero, isFront);
             double floodMinZ = top.Z;
-            if (!IsSky(floodSector.Floor))
+            if (!IsSky(floodSector.Floor) && options == FloodFillOptions.Both)
             {
                 if (update)
                     m_floodFillRenderer.UpdateStaticWall(facingSide.LowerFloodKeys.Key1, floodSector.Floor, wall, floodMinZ, double.MaxValue);

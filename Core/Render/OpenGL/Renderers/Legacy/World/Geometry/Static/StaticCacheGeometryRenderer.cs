@@ -22,6 +22,7 @@ using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -43,7 +44,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly LegacySkyRenderer m_skyRenderer;
 
     private readonly DynamicArray<Sector> m_updateLightSectors = new();
-    private readonly DynamicArray<int> m_updatelightSectorsLookup = new();
+    private readonly DynamicArray<int> m_updateLightSectorsLookup = new();
 
     private readonly SkyGeometryManager m_skyGeometry = new();
     private readonly LookupArray<List<Sector>?> m_transferHeightsLookup = new();
@@ -158,7 +159,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             data.Vbo.UploadIfNeeded();
         }
 
-        UpdateLookup(m_updatelightSectorsLookup, world.Sectors.Count);
+        UpdateLookup(m_updateLightSectorsLookup, world.Sectors.Count);
 
         if (m_mapPersistent)
         {
@@ -331,7 +332,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
 
         if (side.PartnerSide != null && side.Sector.Id == side.PartnerSide.Sector.Id)
-            return;        
+            return;
 
         bool floodFloor = (flood && !sector.Floor.MidTextureHack) || side.MidTextureFlood != SectorPlanes.None;
         bool floodCeiling = (flood && !sector.Ceiling.MidTextureHack) || side.MidTextureFlood != SectorPlanes.None;
@@ -394,8 +395,13 @@ public class StaticCacheGeometryRenderer : IDisposable
             SetSideVertices(side, side.Upper, update, sideVertices, upperVisible, true);
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
 
-            if (!update && (side.FloodTextures & SideTexture.Upper) != 0)
-                m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide);
+            if (!update)
+            {
+                if ((side.FloodTextures & SideTexture.Upper) != 0)
+                    m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide);
+                else if (side.PartnerSide.Sector.FloodOpposingCeiling)
+                    m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide, FloodFillOptions.OpposingOnly);
+            }
         }
 
         bool lowerVisible = GeometryRenderer.LowerIsVisible(side, facingSector, otherSector);
@@ -405,8 +411,13 @@ public class StaticCacheGeometryRenderer : IDisposable
             SetSideVertices(side, side.Lower, update, sideVertices, lowerVisible, true);
             AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, side.Sector, update);
 
-            if (!update && skyVertices == null && (side.FloodTextures & SideTexture.Lower) != 0)
-                m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower, isFrontSide);
+            if (!update && skyVertices == null)
+            {
+                if ((side.FloodTextures & SideTexture.Lower) != 0)
+                    m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower, isFrontSide);
+                else if (side.PartnerSide.Sector.FloodOpposingFloor)
+                    m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower, isFrontSide, FloodFillOptions.OpposingOnly);
+            }
         }
 
         if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
@@ -898,10 +909,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_SectorLightChanged(object? sender, Sector e)
     {
-        if (m_updatelightSectorsLookup.Data[e.Id] == m_counter)
+        if (m_updateLightSectorsLookup.Data[e.Id] == m_counter)
             return;
 
-        m_updatelightSectorsLookup.Data[e.Id] = m_counter;
+        m_updateLightSectorsLookup.Data[e.Id] = m_counter;
         m_updateLightSectors.Add(e);
     }
 

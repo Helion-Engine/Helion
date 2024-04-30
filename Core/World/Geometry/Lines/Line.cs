@@ -22,11 +22,9 @@ public class Line : IBspUsableLine
     public const int NoLineId = 0;
 
     public int Id { get; }
-    public int MapId;
     public Seg2D Segment;
     public Side Front;
     public Side? Back;
-    public Island Island = null!;
     public int LineId;
     public SpecialArgs Args;
     public LineFlags Flags;
@@ -58,11 +56,10 @@ public class Line : IBspUsableLine
     public IEnumerable<Side> Sides => GetSides();
     public IEnumerable<Vec2D> Vertices => GetVertices();
 
-    public Line(int id, int mapId, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial,
+    public Line(int id, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial,
         SpecialArgs args)
     {
         Id = id;
-        MapId = mapId;
         Segment = segment;
         Front = front;
         Back = back;

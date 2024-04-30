@@ -22,6 +22,7 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sides;
 using Helion.World.Impl.SinglePlayer;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
@@ -257,8 +258,7 @@ public class LegacyAutomapRenderer : IDisposable
                 continue;
             }
 
-            // TODO: bool floorChanges = line.Front.Sector.Floor.Z != line.Back.Sector.Floor.Z;
-            AddLine(GetTwoSidedColor(world, line, markedLine), start, end);
+            AddLine(GetTwoSidedColor(world, line, forceDraw, markedLine), start, end);
         }
     }
 
@@ -273,12 +273,12 @@ public class LegacyAutomapRenderer : IDisposable
         return AutomapColor.LightBlue;
     }
 
-    private static AutomapColor GetTwoSidedColor(IWorld world, Line line, bool marked)
+    private static AutomapColor GetTwoSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
     {
         if (marked)
             return GetMarkedColor(world);
 
-        if (line.SeenForAutomap)
+        if (line.SeenForAutomap || forceDraw)
         {
             if (line.HasSpecial && line.Special.IsTeleport())
                 return AutomapColor.Green;
@@ -310,6 +310,18 @@ public class LegacyAutomapRenderer : IDisposable
         if (markFlood && (line.Front.Sector.Flood || line.Back != null && line.Back.Sector.Flood))
             return true;
 
+        if (markFlood && line.Back != null && (CheckFloodSide(line.Front) || CheckFloodSide(line.Back)))
+            return true;
+
+        return false;
+    }
+
+    private static bool CheckFloodSide(Side side)
+    {
+        if (side.LowerFloodKeys.Key2 > 0 && side.PartnerSide.Sector.FloodOpposingFloor)
+            return true;
+        if (side.UpperFloodKeys.Key2 > 0 && side.PartnerSide.Sector.FloodOpposingCeiling)
+            return true;
         return false;
     }
 
