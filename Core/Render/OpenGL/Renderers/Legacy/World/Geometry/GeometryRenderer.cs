@@ -666,6 +666,12 @@ public class GeometryRenderer : IDisposable
                 return;
         }
 
+        if (facingSide.Sector.FloodOpposingFloor && otherSide.LowerFloodKeys.Key2 > 0)
+        {
+            Portals.ClearStaticWall(otherSide.LowerFloodKeys.Key2);
+            otherSide.LowerFloodKeys.Key2 = 0;
+        }
+
         if (lowerWall.TextureHandle == Constants.NoTextureIndex && !skyRender)
         {
             vertices = null;
@@ -758,6 +764,12 @@ public class GeometryRenderer : IDisposable
             skyVertices = null;
             skyVertices2 = null;
             return;
+        }
+
+        if (facingSide.Sector.FloodOpposingCeiling && otherSide.UpperFloodKeys.Key2 > 0)
+        {
+            Portals.ClearStaticWall(otherSide.UpperFloodKeys.Key2);
+            otherSide.UpperFloodKeys.Key2 = 0;
         }
 
         GLLegacyTexture texture = m_glTextureManager.GetTexture(upperWall.TextureHandle);

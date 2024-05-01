@@ -22,14 +22,17 @@ public class StaticDataApplier
         for (int i = 0; i < world.Lines.Count; i++)
             DetermineStaticSectorLine(world, world.Lines[i]);
 
-        for (int i = 0; i < world.Lines.Count; i++)
+        if (world.Config.Developer.FloodOpposing)
         {
-            var line = world.Lines[i];
-            if (line.Back == null)
-                continue;
+            for (int i = 0; i < world.Lines.Count; i++)
+            {
+                var line = world.Lines[i];
+                if (line.Back == null)
+                    continue;
 
-            SetOpposingFlood(line.Front);
-            SetOpposingFlood(line.Back);
+                SetOpposingFlood(line.Front);
+                SetOpposingFlood(line.Back);
+            }
         }
 
         foreach (var special in world.SpecialManager.GetSpecials())

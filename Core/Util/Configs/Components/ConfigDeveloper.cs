@@ -20,4 +20,8 @@ public class ConfigDeveloper
 
     [ConfigInfo("Logs marked special info.", save: true)]
     public readonly ConfigValue<bool> LogMarkSpecials = new(false);
+
+    [ConfigInfo("Flood opposing testing.", save: true)]
+
+    public readonly ConfigValue<bool> FloodOpposing = new(false);
 }

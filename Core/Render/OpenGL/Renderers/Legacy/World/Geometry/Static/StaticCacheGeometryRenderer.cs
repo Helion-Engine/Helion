@@ -397,10 +397,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             if (!update)
             {
-                if ((side.FloodTextures & SideTexture.Upper) != 0)
+                if ((side.FloodTextures & SideTexture.Upper) != 0 || side.PartnerSide.Sector.FloodOpposingCeiling)
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide);
-                else if (side.PartnerSide.Sector.FloodOpposingCeiling)
-                    m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide, FloodFillOptions.OpposingOnly);
             }
         }
 
@@ -413,10 +411,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             if (!update && skyVertices == null)
             {
-                if ((side.FloodTextures & SideTexture.Lower) != 0)
+                if ((side.FloodTextures & SideTexture.Lower) != 0 || side.PartnerSide.Sector.FloodOpposingFloor)
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower, isFrontSide);
-                else if (side.PartnerSide.Sector.FloodOpposingFloor)
-                    m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower, isFrontSide, FloodFillOptions.OpposingOnly);
             }
         }
 
