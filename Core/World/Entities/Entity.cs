@@ -24,6 +24,7 @@ using static Helion.Util.Assertion.Assert;
 using Helion.World.Blockmap;
 using Helion.Resources.Archives.Entries;
 using Helion.World.Geometry.Subsectors;
+using Helion.Resources.Definitions;
 
 namespace Helion.World.Entities;
 
@@ -663,7 +664,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         if (damage == ForceGibDamage)
         {
-            Health = -Properties.Health - 1;
+            // Smooth Doom 21 has A_JumpIfHealthBelow that relies on instant kill sectors setting health very negative
+            Health = -10000;
         }
         else if (damage == KillDamage)
         {
