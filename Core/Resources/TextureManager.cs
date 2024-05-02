@@ -12,6 +12,7 @@ using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World;
+using NLog;
 
 namespace Helion.Resources;
 
@@ -19,6 +20,7 @@ public class TextureManager : ITickable
 {
     public const int NoTextureIndex = 0;
     const string ShittyTextureName = "AASHITTY";
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly List<Texture> m_textures;
@@ -35,7 +37,6 @@ public class TextureManager : ITickable
     private readonly bool m_unitTest;
     private readonly bool m_cacheAllSprites;
 
-    public event EventHandler<AnimationEvent>? AnimationChanged;
     public DynamicArray<SpriteDefinition> SpriteDefinitions = new();
 
     public List<Animation> GetAnimations() => m_animations;
@@ -373,7 +374,6 @@ public class TextureManager : ITickable
                 int newTexture = components[anim.AnimationIndex].TextureIndex;
                 m_translations[anim.TranslationIndex] = newTexture;
                 anim.Tics = 0;
-                AnimationChanged?.Invoke(this, new AnimationEvent(anim.TranslationIndex, newTexture));
             }
         }
     }
@@ -439,6 +439,12 @@ public class TextureManager : ITickable
         {
             if (animTexture.Components.Count == 0)
                 continue;
+
+            if (animTexture.Components[0].TextureIndex == Constants.NoTextureIndex)
+            {
+                Log.Warn($"Bad animdefs texture {animTexture.Name}");
+                continue;
+            }
 
             foreach (var component in animTexture.Components)
             {
@@ -507,6 +513,9 @@ public class TextureManager : ITickable
 
     private void CreateComponentAnimations(Animation animation)
     {
+        if (animation.TranslationIndex == Constants.NoTextureIndex)
+            return;
+
         for (int i = 1; i < animation.AnimatedTexture.Components.Count; i++)
         {
             int nextAnimIndex = animation.AnimatedTexture.Components[i].TextureIndex;
