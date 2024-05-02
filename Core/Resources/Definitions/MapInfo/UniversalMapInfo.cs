@@ -183,14 +183,20 @@ public partial class MapInfoDefinition
 
     private void ParseEndCast(SimpleParser parser, MapInfoDef mapDef)
     {
-        if (parser.ConsumeString().EqualsIgnoreCase("true"))
-            mapDef.Next = "EndGameC";
+        if (!parser.ConsumeString().EqualsIgnoreCase("true"))
+            return;
+
+        mapDef.Next = "EndGameC";
+        GetOrCreateClusterDef(mapDef);
     }
 
     private void ParseEndBunny(SimpleParser parser, MapInfoDef mapDef)
     {
-        if (parser.ConsumeString().EqualsIgnoreCase("true"))
-            mapDef.Next = "EndBunny";
+        if (!parser.ConsumeString().EqualsIgnoreCase("true"))
+            return;
+
+        mapDef.Next = "EndBunny";
+        GetOrCreateClusterDef(mapDef);
     }
 
     private void ParseEndGame(SimpleParser parser, MapInfoDef mapDef)
@@ -200,6 +206,7 @@ public partial class MapInfoDefinition
 
         mapDef.SetOption(MapOptions.NoIntermission, true);
         mapDef.Next = "EndGameW";
+        GetOrCreateClusterDef(mapDef);
     }
 
     private static void ParseLabel(SimpleParser parser, MapInfoDef mapDef)
