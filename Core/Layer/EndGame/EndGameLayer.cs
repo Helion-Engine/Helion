@@ -111,6 +111,14 @@ public partial class EndGameLayer : IGameLayer
         m_virtualDrawBackgroundImage = new(VirtualDrawBackgroundImage);
 
         m_ticker.Start();
+
+        if (World.MapInfo.Next.EqualsIgnoreCase("EndGameC") && m_displayText.Count == 0)
+        {
+            m_endGameType = EndGameType.Cast;
+            HandleTextComplete();
+            return;
+        }
+
         string music = currentCluster.Music;
         if (string.IsNullOrEmpty(music))
             music = archiveCollection.Definitions.MapInfoDefinition.GameDefinition.FinaleMusic;
