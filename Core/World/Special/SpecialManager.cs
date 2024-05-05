@@ -81,7 +81,7 @@ public class SpecialManager : ITickable, IDisposable
 
     public List<ISpecialModel> GetSpecialModels()
     {
-        List<ISpecialModel> specials = new();
+        List<ISpecialModel> specials = new(256);
         foreach (var special in m_specials)
         {
             ISpecialModel? specialModel = special.ToSpecialModel();

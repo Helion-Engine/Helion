@@ -2,7 +2,7 @@ using Helion.Geometry.Vectors;
 
 namespace Helion.Models;
 
-public class EntityBoxModel
+public struct EntityBoxModel
 {
     public double CenterX { get; set; }
     public double CenterY { get; set; }

@@ -222,7 +222,6 @@ public class GameLayerManager : IGameLayerManager
         {
             MenuLayer?.Dispose();
             MenuLayer = null;
-            GCUtil.ForceGarbageCollection();
         }
         else if (ReferenceEquals(layer, ReadThisLayer))
         {

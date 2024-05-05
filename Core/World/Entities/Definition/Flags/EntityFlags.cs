@@ -90,20 +90,27 @@ public struct EntityFlags
 
     public EntityFlags(EntityFlagsModel model)
     {
-        Flags1 = model.Bits[0];
-        Flags2 = model.Bits[1];
-        Flags3 = model.Bits[2];
+        if (model.Bits != null)
+        {
+            Flags1 = model.Bits[0];
+            Flags2 = model.Bits[1];
+            Flags3 = model.Bits[2];
+            return;
+        }
+
+        Flags1 = model.Flags1;
+        Flags2 = model.Flags2;
+        Flags3 = model.Flags3;
     }
 
     public EntityFlagsModel ToEntityFlagsModel()
     {
-        EntityFlagsModel entityFlagsModel = new EntityFlagsModel() { Bits = new int[3] };
-
-        entityFlagsModel.Bits[0] = Flags1;
-        entityFlagsModel.Bits[1] = Flags2;
-        entityFlagsModel.Bits[2] = Flags3;
-
-        return entityFlagsModel;
+        return new()
+        {
+            Flags1 = Flags1,
+            Flags2 = Flags2,
+            Flags3 = Flags3,
+        };
     }
 
     public void ClearAll()

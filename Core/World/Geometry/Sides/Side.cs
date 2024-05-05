@@ -13,7 +13,7 @@ public record class SideColormaps(Colormap? Upper, Colormap? Middle, Colormap? L
 
 public record struct FloodKeys(int Key1, int Key2);
 
-public class Side : IRenderObject
+public sealed class Side : IRenderObject
 {
     public static readonly FloodKeys NoFloodKeys = new(0, 0);
 

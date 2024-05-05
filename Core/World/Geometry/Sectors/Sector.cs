@@ -38,7 +38,7 @@ public readonly record struct SoundLine
 }
 
 
-public class Sector
+public sealed class Sector
 {
     public static readonly Sector Default = CreateDefault();
 

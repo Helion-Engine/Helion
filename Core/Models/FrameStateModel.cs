@@ -1,6 +1,6 @@
 namespace Helion.Models;
 
-public class FrameStateModel
+public struct FrameStateModel
 {
     public int FrameIndex;
     public int Tics;

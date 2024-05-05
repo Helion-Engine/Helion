@@ -2,7 +2,12 @@ using System;
 
 namespace Helion.Models;
 
-public class EntityFlagsModel
+public struct EntityFlagsModel
 {
-    public int[] Bits { get; set; } = Array.Empty<int>();
+    // Legacy, FlagsX is used now instead
+    public int[]? Bits { get; set; }
+
+    public int Flags1 { get; set; }
+    public int Flags2 { get; set; }
+    public int Flags3 { get; set; }
 }

@@ -38,12 +38,12 @@ public class Weapon : InventoryItem, ITickable
         if (frameStateModel == null)
             FrameState = new FrameState(owner, definition, false);
         else
-            FrameState = new FrameState(owner, definition, frameStateModel);
+            FrameState = new FrameState(owner, definition, frameStateModel.Value);
 
         if (flashStateModel == null)
             FlashState = new FrameState(owner, definition, false);
         else
-            FlashState = new FrameState(owner, definition, flashStateModel);
+            FlashState = new FrameState(owner, definition, flashStateModel.Value);
 
         AmmoDefinition = WorldStatic.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
         if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue(Constants.FrameStates.Spawn, out int frame))

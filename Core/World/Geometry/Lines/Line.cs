@@ -17,7 +17,7 @@ using Helion.World.Blockmap;
 
 namespace Helion.World.Geometry.Lines;
 
-public class Line : IBspUsableLine
+public sealed class Line
 {
     public const int NoLineId = 0;
 
