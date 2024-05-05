@@ -90,16 +90,19 @@ public class BlockMap
     {
         Assert.Precondition(sector.BlockmapNodes.Empty(), "Forgot to unlink sector from blockmap");
 
-        Box2D box = sector.GetBoundingBox();
-        var it = m_blocks.CreateBoxIteration(box);
-        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
+        var islands = world.Geometry.IslandGeometry.SectorIslands[sector.Id];
+        foreach (var island in islands)
         {
-            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
+            var it = m_blocks.CreateBoxIteration(island.Box);
+            for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
             {
-                Block block = m_blocks[by * it.Width + bx];
-                LinkableNode<Sector> sectorNode = world.DataCache.GetLinkableNodeSector(sector);
-                block.DynamicSectors.Add(sectorNode);
-                sector.BlockmapNodes.Add(sectorNode);
+                for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
+                {
+                    Block block = m_blocks[by * it.Width + bx];
+                    LinkableNode<Sector> sectorNode = world.DataCache.GetLinkableNodeSector(sector);
+                    block.DynamicSectors.Add(sectorNode);
+                    sector.BlockmapNodes.Add(sectorNode);
+                }
             }
         }
     }
