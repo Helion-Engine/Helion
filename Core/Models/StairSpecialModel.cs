@@ -23,6 +23,8 @@ public class StairSpecialModel : ISpecialModel
         if (!world.IsSectorIdValid(MoveSpecial.SectorId))
             return null;
 
-        return new StairSpecial(world, world.Sectors[MoveSpecial.SectorId], this);
+        var spec = world.DataCache.GetStairSpecial();
+        spec.Set(world, world.Sectors[MoveSpecial.SectorId], this);
+        return spec;
     }
 }

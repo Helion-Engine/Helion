@@ -47,6 +47,7 @@ public class DataCache
     private readonly DynamicArray<LightChangeSpecial> m_lightChanges = new();
     private readonly DynamicArray<SectorMoveSpecial> m_sectorMoveSpecials = new();
     private readonly DynamicArray<SwitchChangeSpecial> m_switchSpecials = new();
+    private readonly DynamicArray<StairSpecial> m_stairSpecials = new();
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public bool CacheEntities = true;
@@ -389,10 +390,16 @@ public class DataCache
 
     public void FreeSectorMoveSpecial(SectorMoveSpecial special)
     {
-        if (special.GetType() == typeof(SectorMoveSpecial))
+        var type = special.GetType();
+        if (type == typeof(SectorMoveSpecial))
         {
             special.Free();
             m_sectorMoveSpecials.Add(special);
+        }
+        else if (type == typeof(StairSpecial))
+        {
+            special.Free();
+            m_stairSpecials.Add((StairSpecial)special);
         }
     }
 
@@ -424,5 +431,12 @@ public class DataCache
     {
         special.Free();
         m_switchSpecials.Add(special);
+    }
+
+    public StairSpecial GetStairSpecial()
+    {
+        if (m_stairSpecials.Length > 0)
+            return m_stairSpecials.RemoveLast();
+        return new StairSpecial();
     }
 }

@@ -78,6 +78,21 @@ public class SpecialManager : ITickable, IDisposable
 
     public void Dispose()
     {
+        foreach (var special in m_specials)
+        {
+            if (special is SectorMoveSpecial moveSpecial)
+                m_dataCache.FreeSectorMoveSpecial(moveSpecial);
+            else if (special is LightChangeSpecial lightSpecial)
+                m_dataCache.FreeLightChangeSpecial(lightSpecial);
+        }
+        foreach (var special in m_destroyedMoveSpecials)
+        {
+            if (special is SectorMoveSpecial moveSpecial)
+                m_dataCache.FreeSectorMoveSpecial(moveSpecial);
+            else if (special is LightChangeSpecial lightSpecial)
+                m_dataCache.FreeLightChangeSpecial(lightSpecial);
+        }
+
         m_specials.Clear();
         m_destroyedMoveSpecials.Clear();
         GC.SuppressFinalize(this);
@@ -239,6 +254,8 @@ public class SpecialManager : ITickable, IDisposable
         }
     }
 
+    private readonly SectorMoveSpecial m_dummySpecial = new();
+
     private void TickDestroyedMoveSpecials()
     {
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
@@ -253,24 +270,22 @@ public class SpecialManager : ITickable, IDisposable
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
         {
             ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
-            if (sectorSpecial is not SectorMoveSpecial moveSpecial)
-                continue;
+            var moveSpecial = sectorSpecial as SectorMoveSpecial ?? m_dummySpecial;
 
-            if (!moveSpecial.MultiSector)
+            if (!sectorSpecial.MultiSector)
             {
                 SectorSpecialDestroyed?.Invoke(this, moveSpecial);
-                    m_dataCache.FreeSectorMoveSpecial(moveSpecial);
+                m_dataCache.FreeSectorMoveSpecial(moveSpecial);
                 continue;
             }
 
-            moveSpecial.GetSectors(m_sectorPlanes);
+            sectorSpecial.GetSectors(m_sectorPlanes);
 
             foreach ((Sector sector, SectorPlane plane) in m_sectorPlanes)
             {
                 moveSpecial.Sector = sector;
                 moveSpecial.SectorPlane = plane;
                 SectorSpecialDestroyed?.Invoke(this, moveSpecial);
-                m_dataCache.FreeSectorMoveSpecial(moveSpecial);
             }
 
             m_sectorPlanes.Clear();
@@ -554,7 +569,9 @@ public class SpecialManager : ITickable, IDisposable
 
     public ISpecial CreateStairSpecial(Sector sector, double speed, int height, int delay, bool crush)
     {
-        return new StairSpecial(m_world, sector, speed, height, delay, crush);
+        var spec = m_dataCache.GetStairSpecial();
+        spec.Set(m_world, sector, speed, height, delay, crush, MoveDirection.Up, -1, false);
+        return spec;
     }
 
     public void StartInitSpecials(LevelStats levelStats)
@@ -1557,8 +1574,10 @@ public class SpecialManager : ITickable, IDisposable
             line.DataChanges |= LineDataTypes.Args;
         }
 
-        return new StairSpecial(m_world, sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, 0, false,
+        var spec = m_dataCache.GetStairSpecial();
+        spec.Set(m_world, sector, line.Args.Arg1 * SpeedFactor, line.Args.Arg2, 0, false,
                 direction, line.Args.Arg4, ignoreTexture);
+        return spec;
     }
 
     private static int GetOtics(int value) => value * 35 / 8;

@@ -6,15 +6,16 @@ using Helion.Util;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
+using SixLabors.ImageSharp.Processing;
 
 namespace Helion.World.Special.Specials;
 
 public class StairSpecial : SectorMoveSpecial
 {
-    private readonly int m_stairDelay;
-    private readonly double m_startZ;
     private readonly List<StairMove> m_stairs = new();
-    private readonly bool m_crush;
+    private int m_stairDelay;
+    private double m_startZ;
+    private bool m_crush;
     private int m_destroyCount;
     private int m_stairDelayTics;
     private int m_resetTics;
@@ -36,22 +37,26 @@ public class StairSpecial : SectorMoveSpecial
         }
     }
 
-    public StairSpecial(IWorld world, Sector sector, double speed, int height, int delay, bool crush) :
-        this(world, sector, speed, height, delay, crush, MoveDirection.Up, -1, false)
+    public override void Free()
     {
+        m_stairs.Clear();
+        base.Free();
     }
 
-    public StairSpecial(IWorld world, Sector sector, double speed, int height, int delay, bool crush, MoveDirection direction,
-        int resetTicks, bool ignoreTexture) :
-        base(world, sector, 0, 0, new SectorMoveData(SectorPlaneFace.Floor, direction, MoveRepetition.None, speed, 0),
-            new SectorSoundData(null, null, Constants.PlatStopSound))
+    public StairSpecial() { }
+
+    public void Set(IWorld world, Sector sector, double speed, int height, int delay, bool crush, MoveDirection direction,
+        int resetTicks, bool ignoreTexture)
     {
+        base.Set(world, sector, 0, 0, new SectorMoveData(SectorPlaneFace.Floor, direction, MoveRepetition.None, speed, 0),
+            new SectorSoundData(null, null, Constants.PlatStopSound));
         m_buggedStairs = world.Config.Compatibility.Stairs;
         m_init = true;
         m_stairDelay = delay;
         m_resetTics = resetTicks == 0 ? -1 : resetTicks;
         m_startZ = Sector.Floor.Z;
         m_crush = crush;
+        m_destroyCount = 0;
 
         if (direction == MoveDirection.Down)
             height = -height;
@@ -100,20 +105,21 @@ public class StairSpecial : SectorMoveSpecial
                 sector.ActiveFloorMove = this;
                 m_stairs.Add(new StairMove(sector, height, false));
                 keepBuilding = true;
-                break;                
+                break;
             }
         } while (keepBuilding);
     }
 
-    public StairSpecial(IWorld world, Sector sector, StairSpecialModel model) :
-        base(world, sector, model.MoveSpecial)
+    public void Set(IWorld world, Sector sector, StairSpecialModel model)
     {
+        base.Set(world, sector, model.MoveSpecial);
         m_stairDelay = model.Delay;
         m_startZ = model.StartZ;
         m_destroyCount = model.Destroy;
         m_stairDelayTics = model.DelayTics;
         m_resetTics = model.ResetTics;
         m_crush = model.Crush;
+        m_destroyCount = 0;
 
         for (int i = 0; i < model.SectorIds.Count && i < model.Heights.Count; i++)
         {
@@ -126,7 +132,10 @@ public class StairSpecial : SectorMoveSpecial
             m_stairs.Add(stairMove);
 
             if (destroyed)
+            {
+                m_destroyCount++;
                 continue;
+            }
 
             CreateMovementSound(stairSector);
             stairSector.ActiveFloorMove = this;

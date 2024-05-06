@@ -27,7 +27,7 @@ public class SectorMoveSpecial : ISectorSpecial
     public bool IsCrushing => m_crushing;
     // If this sector started out with the ceiling clipped through the floor
     public bool StartClipped { get; private set; }
-    public bool OverrideEquals => true;
+    public virtual bool OverrideEquals => true;
     public bool IsInitialMove { get; protected set; } = true;
     public virtual bool MultiSector => false;
     public virtual void GetSectors(List<(Sector, SectorPlane)> data) { }
