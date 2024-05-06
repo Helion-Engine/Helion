@@ -195,7 +195,7 @@ public class GameLayerManager : IGameLayerManager
         m_console.SubmitInputText();
     }
 
-    public LinkedList<string> GetConsoleSubmittedInput() => m_console.SubmittedInput;
+    public List<string> GetConsoleSubmittedInput() => m_console.SubmittedInput;
 
     public void ClearAllExcept(params IGameLayer?[] layers)
     {

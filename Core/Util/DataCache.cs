@@ -23,6 +23,7 @@ using System;
 using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Geometry.Lines;
+using Helion.Util.Consoles;
 
 namespace Helion.Util;
 
@@ -48,9 +49,20 @@ public class DataCache
     private readonly DynamicArray<SectorMoveSpecial> m_sectorMoveSpecials = new();
     private readonly DynamicArray<SwitchChangeSpecial> m_switchSpecials = new();
     private readonly DynamicArray<StairSpecial> m_stairSpecials = new();
+    private readonly DynamicArray<ConsoleMessage> m_consoleMessages = new();
+    private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new();
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public bool CacheEntities = true;
+
+    public DataCache()
+    {
+        for (int i = 0; i < 256; i++)
+        {
+            m_consoleMessages.Add(new ConsoleMessage());
+            m_consoleMessageNodes.Add(new LinkedListNode<ConsoleMessage>(null!));
+        }
+    }
 
     // Clear pointers to references that could keep the world around and prevent garbage collection.
     public void FlushReferences()
@@ -438,5 +450,41 @@ public class DataCache
         if (m_stairSpecials.Length > 0)
             return m_stairSpecials.RemoveLast();
         return new StairSpecial();
+    }
+
+    public ConsoleMessage GetConsoleMessage(string message, long timeNanos, Color color)
+    {
+        ConsoleMessage msg;
+        if (m_consoleMessages.Length > 0)
+            msg = m_consoleMessages.RemoveLast();
+        else
+            msg = new ConsoleMessage();
+
+        msg.Set(message, timeNanos, color);
+        return msg;
+    }
+
+    public void FreeConsoleMessage(ConsoleMessage msg)
+    {
+        msg.Message = string.Empty;
+        m_consoleMessages.Add(msg);
+    }
+
+    public LinkedListNode<ConsoleMessage> GetConsoleMessageNode(ConsoleMessage msg)
+    {
+        if (m_consoleMessageNodes.Length > 0)
+        {
+            var node = m_consoleMessageNodes.RemoveLast();
+            node.Value = msg;
+            return node;
+        }
+
+        return new LinkedListNode<ConsoleMessage>(msg);
+    }
+
+    public void FreeConsoleMessageNode(LinkedListNode<ConsoleMessage> node)
+    {
+        node.Value = default;
+        m_consoleMessageNodes.Add(node);
     }
 }

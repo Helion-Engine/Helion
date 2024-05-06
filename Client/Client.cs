@@ -417,7 +417,7 @@ public partial class Client : IDisposable, IInputManagement
         try
         {
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config, ArchiveCollection.StaticDataCache);
-            using HelionConsole console = new(config, commandLineArgs);
+            using HelionConsole console = new(archiveCollection.DataCache, config, commandLineArgs);
             LogClientInfo();
             using IMusicPlayer musicPlayer = new MusicPlayer(config);
             musicPlayer.SetVolume((float)config.Audio.MusicVolume.Value);

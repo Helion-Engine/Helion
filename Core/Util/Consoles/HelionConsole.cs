@@ -44,7 +44,7 @@ public class HelionConsole : Target
     /// get the commands we've sent in the past. The front of the list is
     /// the most recent command.
     /// </summary>
-    public readonly LinkedList<string> SubmittedInput = new();
+    public readonly List<string> SubmittedInput = new();
 
     /// <summary>
     /// The clock epoch in nanoseconds when this was last closed.
@@ -73,14 +73,16 @@ public class HelionConsole : Target
 
     private readonly IConfig? m_config;
     private readonly StringBuilder m_input = new();
+    private readonly DataCache m_dataCache;
     private int m_capacity;
     private bool m_disposed;
 
-    public HelionConsole(IConfig? cfg = null, CommandLineArgs? args = null)
+    public HelionConsole(DataCache dataCache, IConfig? cfg = null, CommandLineArgs? args = null)
     {
         Name = TargetName;
         m_config = cfg;
         m_capacity = m_config?.Console.MaxMessages ?? 128;
+        m_dataCache = dataCache;
 
         if (m_config != null)
         {
@@ -162,7 +164,8 @@ public class HelionConsole : Target
 
         lock (Messages)
         {
-            Messages.AddFirst(new ConsoleMessage(message, Ticker.NanoTime(), color));
+            var node = m_dataCache.GetConsoleMessageNode(m_dataCache.GetConsoleMessage(message, Ticker.NanoTime(), color));
+            Messages.AddFirst(node);
             RemoveExcessMessagesIfAny();
         }
     }
@@ -262,19 +265,24 @@ public class HelionConsole : Target
     private void RemoveExcessMessagesIfAny()
     {
         while (Messages.Count > m_capacity)
+        {
+            var node = Messages.Last;
+            m_dataCache.FreeConsoleMessage(node.Value);
+            m_dataCache.FreeConsoleMessageNode(node);
             Messages.RemoveLast();
+        }
     }
 
     private void CacheSubmittedInput(string inputText)
     {
         RemoveExcessSubmittedInputIfAny();
-        SubmittedInput.AddFirst(inputText);
+        SubmittedInput.Insert(0, inputText);
     }
 
     private void RemoveExcessSubmittedInputIfAny()
     {
         while (SubmittedInput.Count > m_capacity)
-            SubmittedInput.RemoveLast();
+            SubmittedInput.RemoveAt(SubmittedInput.Count - 1);
     }
 
     public new void Dispose()
