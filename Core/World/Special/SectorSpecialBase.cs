@@ -50,5 +50,5 @@ public abstract class SectorSpecialBase : ISectorSpecial
     public virtual bool OverrideEquals => false;
 
     public virtual bool MultiSector => false;
-    public virtual IEnumerable<(Sector, SectorPlane)> GetSectors() => Array.Empty<(Sector, SectorPlane)>();
+    public virtual void GetSectors(List<(Sector, SectorPlane)> data) { }
 }

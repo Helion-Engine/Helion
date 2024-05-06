@@ -35,6 +35,7 @@ public class SpecialManager : ITickable, IDisposable
     private readonly LinkedList<ISpecial> m_specials = new();
     private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new();
     private readonly List<Sector> m_sectorList = new();
+    private readonly List<(Sector, SectorPlane)> m_sectorPlanes = new();
     private readonly IRandom m_random;
     private readonly WorldBase m_world;
     private readonly DataCache m_dataCache;
@@ -248,7 +249,7 @@ public class SpecialManager : ITickable, IDisposable
                 m_world.DataCache.FreeLightChangeSpecial(lightChange);
         }
 
-        // Only invoke after all specials have been destroyed on this tick. Otherwise interpolation values can beo
+        // Only invoke after all specials have been destroyed on this tick. Otherwise interpolation values can be off
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
         {
             ISectorSpecial sectorSpecial = m_destroyedMoveSpecials[i];
@@ -262,13 +263,17 @@ public class SpecialManager : ITickable, IDisposable
                 continue;
             }
 
-            foreach ((Sector sector, SectorPlane plane) in moveSpecial.GetSectors())
+            moveSpecial.GetSectors(m_sectorPlanes);
+
+            foreach ((Sector sector, SectorPlane plane) in m_sectorPlanes)
             {
                 moveSpecial.Sector = sector;
                 moveSpecial.SectorPlane = plane;
                 SectorSpecialDestroyed?.Invoke(this, moveSpecial);
                 m_dataCache.FreeSectorMoveSpecial(moveSpecial);
             }
+
+            m_sectorPlanes.Clear();
         }
 
         m_destroyedMoveSpecials.Clear();

@@ -30,7 +30,7 @@ public class SectorMoveSpecial : ISectorSpecial
     public bool OverrideEquals => true;
     public bool IsInitialMove { get; protected set; } = true;
     public virtual bool MultiSector => false;
-    public virtual IEnumerable<(Sector, SectorPlane)> GetSectors() => Array.Empty<(Sector, SectorPlane)>();
+    public virtual void GetSectors(List<(Sector, SectorPlane)> data) { }
     public double DestZ { get; protected set; }
     public bool IsDoor;
 

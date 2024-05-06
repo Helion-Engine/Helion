@@ -38,14 +38,14 @@ public class StairSpecial : SectorMoveSpecial
 
     public override bool MultiSector => true;
 
-    public override IEnumerable<(Sector, SectorPlane)> GetSectors()
+    public override void GetSectors(List<(Sector, SectorPlane)> data)
     {
         foreach (var stair in m_stairs)
         {
             if (stair.Sector.IsMoving)
                 continue;
 
-            yield return (stair.Sector, stair.Sector.GetSectorPlane(MoveData.SectorMoveType));
+           data.Add((stair.Sector, stair.Sector.GetSectorPlane(MoveData.SectorMoveType)));
         }
     }
 

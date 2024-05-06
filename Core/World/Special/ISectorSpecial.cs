@@ -13,5 +13,5 @@ public interface ISectorSpecial : ISpecial
     void Resume();
     bool IsPaused { get; }
     bool MultiSector { get; }
-    IEnumerable<(Sector, SectorPlane)> GetSectors();
+    void GetSectors(List<(Sector, SectorPlane)> data);
 }

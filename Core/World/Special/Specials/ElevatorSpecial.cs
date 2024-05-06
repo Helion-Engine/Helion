@@ -18,10 +18,10 @@ public class ElevatorSpecial : ISectorSpecial
     public bool OverrideEquals => true;
 
     public virtual bool MultiSector => true;
-    public virtual IEnumerable<(Sector, SectorPlane)> GetSectors()
+    public virtual void GetSectors(List<(Sector, SectorPlane)> data)
     {
-        yield return (m_firstMove.Sector, m_firstMove.SectorPlane);
-        yield return (m_secondMove.Sector, m_secondMove.SectorPlane);
+        data.Add((m_firstMove.Sector, m_firstMove.SectorPlane));
+        data.Add((m_secondMove.Sector, m_secondMove.SectorPlane));
     }
 
     public ElevatorSpecial(IWorld world, Sector sector, double floorDestZ, double speed,
