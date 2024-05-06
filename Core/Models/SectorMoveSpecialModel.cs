@@ -41,12 +41,13 @@ public class SectorMoveSpecialModel : ISpecialModel
     public bool PlayedStartSound { get; set; }
     public bool Paused { get; set; }
     public int? LightTag { get; set; }
+    public bool Door { get; set; }
 
     public virtual ISpecial? ToWorldSpecial(IWorld world)
     {
         if (SectorId < 0 || SectorId >= world.Sectors.Count)
             return null;
 
-        return new SectorMoveSpecial(world, world.Sectors[SectorId], this);
+        return world.DataCache.GetSectorMoveSpecial(world, world.Sectors[SectorId], this);
     }
 }

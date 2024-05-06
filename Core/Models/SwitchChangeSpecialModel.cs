@@ -15,6 +15,6 @@ public class SwitchChangeSpecialModel : ISpecialModel
         if (!world.IsLineIdValid(LineId))
             return null;
 
-        return new SwitchChangeSpecial(world, world.Lines[LineId], this);
+        return world.DataCache.GetSwitchChangeSpecial(world, world.Lines[LineId], this);
     }
 }

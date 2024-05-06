@@ -42,7 +42,7 @@ public class LineEffect
         specials.Count.Should().Be(2);
 
         var liftSpecial = (SectorMoveSpecial)specials.Single(x => x is SectorMoveSpecial special && special.Sector.Tag == 1);
-        var doorSpecial = (DoorOpenCloseSpecial)specials.Single(x => x is DoorOpenCloseSpecial special && special.Sector.Tag == 2);
+        var doorSpecial = (SectorMoveSpecial)specials.Single(x => x is SectorMoveSpecial special && special.Sector.Tag == 2);
 
         liftSpecial.MoveDirection.Should().Be(MoveDirection.Down);
         liftSpecial.DestZ.Should().Be(0);

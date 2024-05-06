@@ -70,7 +70,7 @@ public class Touchy : IDisposable
     {
         var zombieman = GameActions.CreateEntity(World, ZombieMan, (-384, -320, 0));
         var sector = GameActions.GetSector(World, 0);
-        var special = new SectorMoveSpecial(World, sector, sector.Ceiling.Z, 0, new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Down, MoveRepetition.None, 8, 0));
+        var special = new SectorMoveSpecial(World, sector, sector.Ceiling.Z, 0, new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Down, MoveRepetition.None, 8, 0), new SectorSoundData());
         World.MoveSectorZ(8, 0, special);
         zombieman.IsDead.Should().BeTrue();
     }
@@ -80,7 +80,7 @@ public class Touchy : IDisposable
     {
         var zombieman = GameActions.CreateEntity(World, ZombieMan, (-384, -320, 0));
         var sector = GameActions.GetSector(World, 0);
-        var special = new SectorMoveSpecial(World, sector, sector.Floor.Z, 0, new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, 8, 0));
+        var special = new SectorMoveSpecial(World, sector, sector.Floor.Z, 0, new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, 8, 0), new SectorSoundData());
         World.MoveSectorZ(8, 128, special);
         zombieman.IsDead.Should().BeTrue();
     }

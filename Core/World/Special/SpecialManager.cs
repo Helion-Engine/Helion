@@ -34,8 +34,10 @@ public class SpecialManager : ITickable, IDisposable
 
     private readonly LinkedList<ISpecial> m_specials = new();
     private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new();
+    private readonly List<Sector> m_sectorList = new();
     private readonly IRandom m_random;
     private readonly WorldBase m_world;
+    private readonly DataCache m_dataCache;
     private TextureManager TextureManager => m_world.ArchiveCollection.TextureManager;
 
     public static SectorSoundData GetDoorSound(double speed, bool reverse = false)
@@ -70,6 +72,7 @@ public class SpecialManager : ITickable, IDisposable
     {
         m_world = world;
         m_random = random;
+        m_dataCache = m_world.DataCache;
     }
 
     public void Dispose()
@@ -126,8 +129,10 @@ public class SpecialManager : ITickable, IDisposable
             var switchSpecial = GetExistingSwitchSpecial(args.ActivateLineSpecial);
             if (switchSpecial != null)
                 RemoveSpecial(switchSpecial);
-            switchSpecial = new SwitchChangeSpecial(m_world, args.ActivateLineSpecial, GetSwitchType(args.ActivateLineSpecial.Special));
-            if (switchSpecial.Tick() != SpecialTickStatus.Destroy)
+            switchSpecial = m_dataCache.GetSwitchChangeSpecial(m_world, args.ActivateLineSpecial, GetSwitchType(args.ActivateLineSpecial.Special));
+            if (switchSpecial.Tick() == SpecialTickStatus.Destroy)
+                m_dataCache.FreeSwitchChangeSpecial(switchSpecial);
+            else
                 AddSpecial(switchSpecial);
         }
 
@@ -170,14 +175,14 @@ public class SpecialManager : ITickable, IDisposable
     public ISpecial CreateFloorRaiseSpecialMatchTextureAndType(Sector sector, Line line, double amount, double speed)
     {
         TriggerSpecials.PlaneTransferChange(m_world, sector, line, SectorPlaneFace.Floor, PlaneTransferType.Trigger);
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount,
             new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultFloorSound);
     }
 
     public ISpecial CreateFloorRaiseSpecialMatchTexture(Sector sector, Line line, double amount, double speed)
     {
         TriggerSpecials.PlaneTransferChange(m_world, sector, line, SectorPlaneFace.Floor, PlaneTransferType.Trigger, transferSpecial: false);
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount,
             new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultFloorSound);
     }
 
@@ -185,13 +190,13 @@ public class SpecialManager : ITickable, IDisposable
     {
         double destZ = sector.Floor.Z + sector.GetShortestTexture(TextureManager, true, m_world.Config.Compatibility);
         SectorMoveData moveData = new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, DefaultFloorSound);
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, DefaultFloorSound);
     }
 
     public void Tick()
     {
         if (m_destroyedMoveSpecials.Count > 0)
-            TickDestroyedMoveSepcials();
+            TickDestroyedMoveSpecials();
 
         if (m_world.WorldState == WorldState.Exit)
         {
@@ -199,8 +204,11 @@ public class SpecialManager : ITickable, IDisposable
             while (node != null)
             {
                 var nextNode = node.Next;
-                if (node.Value is SwitchChangeSpecial && node.Value.Tick() == SpecialTickStatus.Destroy)
+                if (node.Value is SwitchChangeSpecial switchSpecial && node.Value.Tick() == SpecialTickStatus.Destroy)
+                {
+                    m_dataCache.FreeSwitchChangeSpecial(switchSpecial);
                     RemoveSpecialNode(node);
+                }
 
                 node = nextNode;
             }
@@ -220,6 +228,9 @@ public class SpecialManager : ITickable, IDisposable
 
                     special.Destroy();
                     RemoveSpecialNode(node);
+
+                    if (special is SwitchChangeSpecial switchSpecial)
+                        m_dataCache.FreeSwitchChangeSpecial(switchSpecial);
                 }
 
                 node = nextNode;
@@ -227,7 +238,7 @@ public class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private void TickDestroyedMoveSepcials()
+    private void TickDestroyedMoveSpecials()
     {
         for (int i = 0; i < m_destroyedMoveSpecials.Count; i++)
         {
@@ -247,6 +258,7 @@ public class SpecialManager : ITickable, IDisposable
             if (!moveSpecial.MultiSector)
             {
                 SectorSpecialDestroyed?.Invoke(this, moveSpecial);
+                    m_dataCache.FreeSectorMoveSpecial(moveSpecial);
                 continue;
             }
 
@@ -255,6 +267,7 @@ public class SpecialManager : ITickable, IDisposable
                 moveSpecial.Sector = sector;
                 moveSpecial.SectorPlane = plane;
                 SectorSpecialDestroyed?.Invoke(this, moveSpecial);
+                m_dataCache.FreeSectorMoveSpecial(moveSpecial);
             }
         }
 
@@ -334,40 +347,38 @@ public class SpecialManager : ITickable, IDisposable
         bool liftSound = true)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Floor, dest) + lip;
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
             MoveDirection.Down, MoveRepetition.DelayReturn, speed, delay), liftSound ? LiftSound : PlatSound);
     }
 
-    public SectorMoveSpecial CreateDoorOpenCloseSpecial(Sector sector, double speed, int delay, int lightTag = 0)
+    public SectorMoveSpecial CreateDoorOpenStaySpecial(Sector sector, double speed, int lightTag = 0)
+    {
+        return CreateDoorOpenCloseSpecial(sector, speed, 0, lightTag);
+    }
+
+    private SectorMoveSpecial CreateDoorOpenCloseSpecial(Sector sector, double speed, int delay, int lightTag = 0)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
-        return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, delay, lightTag: lightTag);
+        var spec = m_dataCache.GetEmptySectorMoveSpecial();
+        spec.IsDoor = true;
+        spec.Set(m_world, sector, sector.Floor.Z, destZ,
+              new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Up, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay,
+                flags: SectorMoveFlags.Door, lightTag: lightTag), SpecialManager.GetDoorSound(speed));
+        return spec;
     }
 
     public ISpecial CreateDoorCloseOpenSpecial(Sector sector, double speed, int delay, int lightTag = 0)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Floor);
-        return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
-            MoveDirection.Down, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay, 
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
+            MoveDirection.Down, delay > 0 ? MoveRepetition.DelayReturn : MoveRepetition.None, speed, delay,
             flags: SectorMoveFlags.Door, lightTag: lightTag), GetDoorSound(speed, true));
-    }
-
-    public ISpecial CreateDoorLockedSpecial(Sector sector, double speed, int delay, int key)
-    {
-        double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
-        return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, delay, key);
-    }
-
-    public SectorMoveSpecial CreateDoorOpenStaySpecial(Sector sector, double speed, int lightTag = 0)
-    {
-        double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.LowestAdjacentCeiling) - VanillaConstants.DoorDestOffset;
-        return new DoorOpenCloseSpecial(m_world, sector, destZ, speed, 0, lightTag: lightTag);
     }
 
     public SectorMoveSpecial CreateDoorCloseSpecial(Sector sector, double speed, int lightTag = 0)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Floor);
-        return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
             MoveDirection.Down, MoveRepetition.None, speed, 0, 
             flags: SectorMoveFlags.Door, lightTag: lightTag), GetDoorSound(speed, true));
     }
@@ -381,13 +392,13 @@ public class SpecialManager : ITickable, IDisposable
         else if (adjust != 0)
             destZ = destZ + adjust - 128;
 
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
             MoveDirection.Down, MoveRepetition.None, speed, 0), DefaultFloorSound);
     }
 
     public ISpecial CreateFloorLowerSpecial(Sector sector, double amount, double speed)
     {
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z - amount, new SectorMoveData(SectorPlaneFace.Floor,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z - amount, new SectorMoveData(SectorPlaneFace.Floor,
             MoveDirection.Down, MoveRepetition.None, speed, 0), DefaultFloorSound);
     }
 
@@ -397,7 +408,7 @@ public class SpecialManager : ITickable, IDisposable
         TriggerSpecials.GetNumericModelChange(m_world, sector, SectorPlaneFace.Floor, destZ, sectorDest,
             out var changes);
 
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
             MoveDirection.Down, MoveRepetition.None, speed, 0, floorChangeTextureHandle: changes.Texture,
             damageSpecial: changes.DamageSpecial, sectorEffect: changes.SectorEffect, killEffect: changes.KillEffect),
             DefaultFloorSound);
@@ -442,7 +453,7 @@ public class SpecialManager : ITickable, IDisposable
         if ((flags & ZDoomGenericFlags.Crush) != 0)
             crush = planeType == SectorPlaneFace.Floor ? CrushData.BoomDefaultFloor : CrushData.BoomDefaultCeiling;
 
-        return new SectorMoveSpecial(m_world, sector, startZ, destZ, new SectorMoveData(planeType,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, startZ, destZ, new SectorMoveData(planeType,
             start, MoveRepetition.None, speed, 0, crush: crush,
             floorChangeTextureHandle: planeType == SectorPlaneFace.Floor ? triggerChanges.Texture : null,
             ceilingChangeTextureHandle: planeType == SectorPlaneFace.Ceiling ? triggerChanges.Texture : null,
@@ -458,40 +469,40 @@ public class SpecialManager : ITickable, IDisposable
         // Need to include this sector's height in the check so the floor doesn't run through the ceiling
         double destZ = GetDestZ(sector, SectorPlaneFace.Floor, sectorDest);
         //double destZ = GetDestZ(sector, SectorPlaneFace.Floor, sectorDest, sectorDest == SectorDest.LowestAdjacentCeiling);
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
             MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultFloorSound);
     }
 
     public ISpecial CreateFloorRaiseSpecial(Sector sector, double amount, double speed, int? floorChangeTexture = null, bool clearDamage = false)
     {
         SectorMoveFlags flags = clearDamage ? SectorMoveFlags.ClearDamage : SectorMoveFlags.None;
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, new SectorMoveData(SectorPlaneFace.Floor,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, sector.Floor.Z + amount, new SectorMoveData(SectorPlaneFace.Floor,
             MoveDirection.Up, MoveRepetition.None, speed, 0, floorChangeTextureHandle: floorChangeTexture, flags: flags), DefaultFloorSound);
     }
 
     public ISpecial CreateCeilingLowerSpecial(Sector sector, SectorDest sectorDest, double speed)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, sectorDest);
-        return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
             MoveDirection.Down, MoveRepetition.None, speed, 0), DefaultCeilingSound);
     }
 
     public ISpecial CreateCeilingLowerSpecial(Sector sector, int amount, double speed)
     {
-        return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, sector.Ceiling.Z - amount, new SectorMoveData(SectorPlaneFace.Ceiling,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Ceiling.Z, sector.Ceiling.Z - amount, new SectorMoveData(SectorPlaneFace.Ceiling,
             MoveDirection.Down, MoveRepetition.None, speed, 0), DefaultCeilingSound);
     }
 
     public ISpecial CreateCeilingRaiseSpecial(Sector sector, SectorDest sectorDest, double speed)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, sectorDest);
-        return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling,
             MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultCeilingSound);
     }
 
     public ISpecial CreateCeilingRaiseSpecial(Sector sector, int amount, double speed)
     {
-        return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, sector.Ceiling.Z + amount, new SectorMoveData(SectorPlaneFace.Ceiling,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Ceiling.Z, sector.Ceiling.Z + amount, new SectorMoveData(SectorPlaneFace.Ceiling,
             MoveDirection.Up, MoveRepetition.None, speed, 0), DefaultCeilingSound);
     }
 
@@ -522,7 +533,7 @@ public class SpecialManager : ITickable, IDisposable
             startZ = lowZ;
         }
 
-        return new SectorMoveSpecial(m_world, sector, startZ, destZ, new SectorMoveData(SectorPlaneFace.Floor,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, startZ, destZ, new SectorMoveData(SectorPlaneFace.Floor,
             dir, MoveRepetition.Perpetual, speed, delay), LiftSound);
     }
 
@@ -532,7 +543,7 @@ public class SpecialManager : ITickable, IDisposable
             destZ = -destZ;
 
         MoveDirection dir = destZ > plane.Z ? MoveDirection.Up : MoveDirection.Down;
-        return new SectorMoveSpecial(m_world, sector, plane.Z, destZ, new SectorMoveData(moveType,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, plane.Z, destZ, new SectorMoveData(moveType,
             dir, MoveRepetition.None, speed, 0), DefaultFloorSound);
     }
 
@@ -1154,7 +1165,7 @@ public class SpecialManager : ITickable, IDisposable
                 return true;
 
             case ZDoomLineSpecialType.DoorLockedRaise:
-                sectorSpecial = CreateDoorLockedSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg, line.Args.Arg3);
+                sectorSpecial = CreateDoorOpenCloseSpecial(sector, line.SpeedArg * SpeedFactor, line.DelayArg);
                 return true;
 
             case ZDoomLineSpecialType.LiftDownWaitUpStay:
@@ -1360,15 +1371,15 @@ public class SpecialManager : ITickable, IDisposable
                 return sectorSpecial != null;
 
             case ZDoomLineSpecialType.ElevatorRaiseToNearest:
-                sectorSpecial = CreateEleveatorToNearest(sector, MoveDirection.Up, line.Args.Arg1 * SpeedFactor);
+                sectorSpecial = CreateElevatorToNearest(sector, MoveDirection.Up, line.Args.Arg1 * SpeedFactor);
                 return sectorSpecial != null;
 
             case ZDoomLineSpecialType.ElevatorLowerToNearest:
-                sectorSpecial = CreateEleveatorToNearest(sector, MoveDirection.Down, line.Args.Arg1 * SpeedFactor);
+                sectorSpecial = CreateElevatorToNearest(sector, MoveDirection.Down, line.Args.Arg1 * SpeedFactor);
                 return sectorSpecial != null;
 
             case ZDoomLineSpecialType.ElevatorMoveToFloor:
-                sectorSpecial = CreateEleveatorToFloor(sector, line, line.Args.Arg1 * SpeedFactor);
+                sectorSpecial = CreateElevatorToFloor(sector, line, line.Args.Arg1 * SpeedFactor);
                 return sectorSpecial != null;
         }
 
@@ -1376,14 +1387,14 @@ public class SpecialManager : ITickable, IDisposable
         return false;
     }
 
-    private ISpecial? CreateEleveatorToFloor(Sector sector, Line line, double speed)
+    private ISpecial? CreateElevatorToFloor(Sector sector, Line line, double speed)
     {
         double destZ = line.Front.Sector.Floor.Z;
         MoveDirection direction = destZ < sector.Floor.Z ? MoveDirection.Down : MoveDirection.Up;
         return new ElevatorSpecial(m_world, sector, destZ, speed, direction, PlatSound);
     }
 
-    private ISpecial? CreateEleveatorToNearest(Sector sector, MoveDirection direction, double speed)
+    private ISpecial? CreateElevatorToNearest(Sector sector, MoveDirection direction, double speed)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Floor, direction == MoveDirection.Up ? SectorDest.NextHighestFloor : SectorDest.NextLowestFloor);
         return new ElevatorSpecial(m_world, sector, destZ, speed, direction, PlatSound);
@@ -1414,8 +1425,8 @@ public class SpecialManager : ITickable, IDisposable
     private ISpecial? CreatePlatToggleCeiling(Sector sector)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Ceiling);
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new(SectorPlaneFace.Floor, MoveDirection.Up,
-            MoveRepetition.PerpetualPause, SectorMoveData.InstantToggleSpeed, 0, flags: SectorMoveFlags.EntityBlockMovement));
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new(SectorPlaneFace.Floor, MoveDirection.Up,
+            MoveRepetition.PerpetualPause, SectorMoveData.InstantToggleSpeed, 0, flags: SectorMoveFlags.EntityBlockMovement), new SectorSoundData());
     }
 
     private bool CreateFloorAndCeilingLowerRaise(Sector sector, double floorSpeed, double ceilingSpeed, int boomEmulation)
@@ -1439,7 +1450,7 @@ public class SpecialManager : ITickable, IDisposable
     private ISpecial? CreatePlatUpByValue(Sector sector, double speed, int delay, int height)
     {
         double destZ = sector.Floor.Z + height * 8;
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor,
             MoveDirection.Up, MoveRepetition.DelayReturn, speed, delay), PlatSound);
     }
 
@@ -1520,7 +1531,7 @@ public class SpecialManager : ITickable, IDisposable
         double destZ = sector.Floor.Z + DefaultCrushLip;
         // Note: The vanilla silent crusher still plays a stop sound when it hit it's dest, this is completely silent
         SectorSoundData soundData = silent ? NoSound : CrusherSoundRepeat;
-        return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Down,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Down,
             MoveRepetition.Perpetual, downSpeed, 0, new CrushData(ZDoomCrushMode.DoomWithSlowDown, line.Args.Arg4), returnSpeed: upSpeed),
             soundData);
     }
@@ -1563,13 +1574,13 @@ public class SpecialManager : ITickable, IDisposable
         sector.SectorDamageSpecial = null;
 
         SectorMoveData moveData = new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, speed, 0);
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, DefaultFloorSound);
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, moveData, DefaultFloorSound);
     }
 
     private ISpecial CreateCeilingCrusherSpecial(Sector sector, double dist, double speed, int damage, ZDoomCrushMode crushMode)
     {
         double destZ = sector.Floor.Z + dist;
-        return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Down,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Down,
             MoveRepetition.Perpetual, speed, 0, new CrushData(crushMode, damage)), CrusherSoundRepeat);
     }
 
@@ -1578,30 +1589,32 @@ public class SpecialManager : ITickable, IDisposable
     {
         double destZ = sector.Floor.Z + DefaultCrushLip;
         SectorSoundData sectorSoundData = silent ? SilentCrusherSound : CrusherSoundRepeat;
-        return new SectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Down,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Ceiling.Z, destZ, new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Down,
             repetition, speed, 0, crushData, returnSpeed: returnSpeed), sectorSoundData);
     }
 
     private ISpecial CreateFloorCrusherSpecial(Sector sector, double speed, int damage, ZDoomCrushMode crushMode)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Floor, SectorDest.LowestAdjacentCeiling) - DefaultCrushLip;
-        return new SectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up,
+        return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up,
             MoveRepetition.None, speed, 0, new CrushData(crushMode, damage)), CrusherSoundNoRepeat);
     }
 
     private void HandleFloorDonut(Line line, Sector sector)
     {
-        IList<Sector> donutSectors = DonutSpecial.GetDonutSectors(sector);
-        if (donutSectors.Count < 3)
-            return;
+        DonutSpecial.GetDonutSectors(sector, m_sectorList);
+        if (m_sectorList.Count >= 3)
+        {
 
-        var lowerSector = donutSectors[0];
-        var raiseSector = donutSectors[1];
-        var destSector = donutSectors[2];
+            var lowerSector = m_sectorList[0];
+            var raiseSector = m_sectorList[1];
+            var destSector = m_sectorList[2];
 
-        AddSpecial(CreateFloorLowerSpecial(lowerSector, lowerSector.Floor.Z - destSector.Floor.Z, line.Args.Arg1 * SpeedFactor));
-        AddSpecial(CreateFloorRaiseSpecial(raiseSector, destSector.Floor.Z - raiseSector.Floor.Z, line.Args.Arg2 * SpeedFactor, 
-            floorChangeTexture: destSector.Floor.TextureHandle, clearDamage: true));
+            AddSpecial(CreateFloorLowerSpecial(lowerSector, lowerSector.Floor.Z - destSector.Floor.Z, line.Args.Arg1 * SpeedFactor));
+            AddSpecial(CreateFloorRaiseSpecial(raiseSector, destSector.Floor.Z - raiseSector.Floor.Z, line.Args.Arg2 * SpeedFactor,
+                floorChangeTexture: destSector.Floor.TextureHandle, clearDamage: true));
+        }
+        m_sectorList.Clear();
     }
 
     public SectorList GetSectorsFromSpecialLine(Line line, SectorTagOptions options = SectorTagOptions.Default)

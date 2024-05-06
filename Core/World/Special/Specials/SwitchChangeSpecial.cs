@@ -13,15 +13,20 @@ public class SwitchChangeSpecial : ISpecial
 {
     private const int SwitchDelayTicks = 35;
 
-    private readonly IWorld m_world;
-    public  Line Line { get; private set; }
+    public IWorld World;
+    public Line Line;
     private bool m_init = true;
     private bool m_repeat;
     private int m_switchDelayTics;
 
     public SwitchChangeSpecial(IWorld world, Line line, SwitchType type)
     {
-        m_world = world;
+        Set(world, line, type);
+    }
+
+    public void Set(IWorld world, Line line, SwitchType type)
+    {
+        World = world;
         Line = line;
         m_repeat = line.Flags.Repeat;
 
@@ -39,10 +44,22 @@ public class SwitchChangeSpecial : ISpecial
 
     public SwitchChangeSpecial(IWorld world, Line line, SwitchChangeSpecialModel model)
     {
-        m_world = world;
+        Set(world, line, model);
+    }
+
+    public void Set(IWorld world, Line line, SwitchChangeSpecialModel model)
+    {
+        World = world;
         Line = line;
         m_repeat = model.Repeat;
         m_switchDelayTics = model.Tics;
+    }
+
+    public void Free()
+    {
+        World = null!;
+        m_init = true;
+        m_switchDelayTics = 0;
     }
 
     public ISpecialModel ToSpecialModel()
@@ -68,7 +85,7 @@ public class SwitchChangeSpecial : ISpecial
             return SpecialTickStatus.Continue;
         }
 
-        SwitchManager.SetLineSwitch(m_world, Line, !m_init);
+        SwitchManager.SetLineSwitch(World, Line, !m_init);
 
         if (m_repeat)
         {
@@ -81,7 +98,7 @@ public class SwitchChangeSpecial : ISpecial
         if (Line.Flags.Repeat)
         {
             Line.SetActivated(false);
-            PlaySwitchSound(m_world.SoundManager, Line);
+            PlaySwitchSound(World.SoundManager, Line);
         }
 
         return SpecialTickStatus.Destroy;

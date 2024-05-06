@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
@@ -31,8 +32,9 @@ public class SectorMoveSpecial : ISectorSpecial
     public virtual bool MultiSector => false;
     public virtual IEnumerable<(Sector, SectorPlane)> GetSectors() => Array.Empty<(Sector, SectorPlane)>();
     public double DestZ { get; protected set; }
+    public bool IsDoor;
 
-    protected readonly IWorld m_world;
+    protected IWorld m_world;
 
     private double m_startZ;
     private double m_minZ;
@@ -45,13 +47,18 @@ public class SectorMoveSpecial : ISectorSpecial
     private bool m_playedReturnSound;
     private bool m_playedStartSound;
 
-    public SectorMoveSpecial(IWorld world, Sector sector, double start, double dest,
-        in SectorMoveData specialData)
-        : this(world, sector, start, dest, specialData, new SectorSoundData())
+    public SectorMoveSpecial()
     {
+
     }
 
     public SectorMoveSpecial(IWorld world, Sector sector, double start, double dest,
+        in SectorMoveData specialData, in SectorSoundData soundData)
+    {
+        Set(world, sector, start, dest, specialData, soundData);
+    }
+
+    public void Set(IWorld world, Sector sector, double start, double dest,
         in SectorMoveData specialData, in SectorSoundData soundData)
     {
         Sector = sector;
@@ -75,12 +82,17 @@ public class SectorMoveSpecial : ISectorSpecial
 
     public SectorMoveSpecial(IWorld world, Sector sector, SectorMoveSpecialModel model)
     {
+        Set(world, sector, model);
+    }
+
+    public void Set(IWorld world, Sector sector, SectorMoveSpecialModel model)
+    {
         Sector = sector;
         m_world = world;
         MoveData = new SectorMoveData((SectorPlaneFace)model.MoveType, (MoveDirection)model.StartDirection,
-            (MoveRepetition)model.Repetion, model.Speed, model.Delay,
-            crush: FromCrushDataModel(model.Crush),
-            floorChangeTextureHandle: model.FloorChange,
+        (MoveRepetition)model.Repetion, model.Speed, model.Delay,
+        crush: FromCrushDataModel(model.Crush),
+        floorChangeTextureHandle: model.FloorChange,
             ceilingChangeTextureHandle: model.CeilingChange,
             damageSpecial: model.DamageSpecial?.ToWorldSpecial(world),
             returnSpeed: model.ReturnSpeed,
@@ -169,7 +181,8 @@ public class SectorMoveSpecial : ISectorSpecial
             Paused = IsPaused,
             DamageSpecial = CreateSectorDamageSpecialModel(),
             Crush = CreateCrushDataModel(),
-            LightTag = MoveData.LightTag > 0 ? MoveData.LightTag : null
+            LightTag = MoveData.LightTag > 0 ? MoveData.LightTag : null,
+            Door = IsDoor
         };
     }
 
@@ -338,9 +351,39 @@ public class SectorMoveSpecial : ISectorSpecial
         SectorPlane.PrevZ = SectorPlane.Z;
     }
 
+    public virtual void Free()
+    {
+        Sector = null!;
+        SectorPlane = null!;
+        m_world = null!;
+
+        IsPaused = default;
+        MoveStatus = default;
+        DelayTics = default;
+        m_speed = default;
+        m_crushing = default;
+        StartClipped = default;
+        IsInitialMove = true;
+        DestZ = default;
+        m_crushing = default;
+        m_playedReturnSound = default;
+        m_playedStartSound = default;
+        IsDoor = default;
+    }
+
     public virtual bool Use(Entity entity)
     {
-        return false;
+        if (!IsDoor || MoveData.MoveRepetition == MoveRepetition.None || !entity.IsPlayer)
+            return false;
+
+        // If the delay is zero then flip the door direction. Otherwise we
+        // are in the wait delay and setting the delay back to 0 will
+        // immediately bring it back down. Either way we need to set delay
+        // to 0, because this effect needs to work immediately.
+        if (DelayTics == 0)
+            FlipMovementDirection(false);
+        DelayTics = 0;
+        return true;
     }
 
     public void Pause()

@@ -29,9 +29,9 @@ public class ElevatorSpecial : ISectorSpecial
     {
         Sector = sector;
 
-        var floor = new SectorMoveSpecial(world, sector, Sector.Floor.Z, floorDestZ,
+        var floor = world.DataCache.GetSectorMoveSpecial(world, sector, Sector.Floor.Z, floorDestZ,
             new SectorMoveData(SectorPlaneFace.Floor, moveDirection, MoveRepetition.None, speed, 0), soundData);
-        var ceiling = new SectorMoveSpecial(world, sector, Sector.Ceiling.Z, floorDestZ + sector.Ceiling.Z - sector.Floor.Z,
+        var ceiling = world.DataCache.GetSectorMoveSpecial(world, sector, Sector.Ceiling.Z, floorDestZ + sector.Ceiling.Z - sector.Floor.Z,
             new SectorMoveData(SectorPlaneFace.Ceiling, moveDirection, MoveRepetition.None, speed, 0), soundData);
 
         // Sector plane that can potentially be blocked needs to moved first
@@ -75,6 +75,11 @@ public class ElevatorSpecial : ISectorSpecial
     {
         m_firstMove.FinalizeDestroy();
         m_secondMove.FinalizeDestroy();
+    }
+
+    public void Free()
+    {
+
     }
 
     public void Pause()

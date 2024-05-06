@@ -24,6 +24,11 @@ public abstract class SectorSpecialBase : ISectorSpecial
         // Unused
     }
 
+    public virtual void Free()
+    {
+        // Unused
+    }
+
     public virtual void Pause()
     {
         // Unused

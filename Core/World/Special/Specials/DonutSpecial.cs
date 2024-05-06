@@ -9,9 +9,9 @@ namespace Helion.World.Special.Specials;
 
 public static class DonutSpecial
 {
-    public static IList<Sector> GetDonutSectors(Sector start)
+    public static IList<Sector> GetDonutSectors(Sector start, List<Sector> sectors)
     {
-        List<Sector> sectors = new List<Sector> { start };
+        sectors.Add(start);
 
         Sector? raiseSector = GetRaiseSector(start);
         if (raiseSector == null)

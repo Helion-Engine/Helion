@@ -21,6 +21,8 @@ using Font = Helion.Graphics.Fonts.Font;
 using Helion.Graphics;
 using System;
 using Helion.World.Special;
+using Helion.World.Special.SectorMovement;
+using Helion.World.Geometry.Lines;
 
 namespace Helion.Util;
 
@@ -43,6 +45,8 @@ public class DataCache
     private readonly DynamicArray<LinkedListNode<WaitingSound>> m_waitingSoundNodes = new();
     private readonly DynamicArray<LinkedListNode<ISpecial>> m_specialNodes = new();
     private readonly DynamicArray<LightChangeSpecial> m_lightChanges = new();
+    private readonly DynamicArray<SectorMoveSpecial> m_sectorMoveSpecials = new();
+    private readonly DynamicArray<SwitchChangeSpecial> m_switchSpecials = new();
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public bool CacheEntities = true;
@@ -349,5 +353,76 @@ public class DataCache
         special.World = null!;
         special.Sector = null!;
         m_lightChanges.Add(special);
+    }
+
+    public SectorMoveSpecial GetSectorMoveSpecial(IWorld world, Sector sector, double start, double dest,
+        in SectorMoveData specialData, in SectorSoundData soundData)
+    {
+        if (m_sectorMoveSpecials.Length > 0)
+        {
+            var spec = m_sectorMoveSpecials.RemoveLast();
+            spec.Set(world, sector, start, dest, specialData, soundData);
+            return spec;
+        }
+
+        return new SectorMoveSpecial(world, sector, start, dest, specialData, soundData);
+    }
+
+    public SectorMoveSpecial GetEmptySectorMoveSpecial()
+    {
+        if (m_sectorMoveSpecials.Length > 0)
+            return m_sectorMoveSpecials.RemoveLast();
+        return new SectorMoveSpecial();
+    }
+
+    public SectorMoveSpecial GetSectorMoveSpecial(IWorld world, Sector sector, SectorMoveSpecialModel model)
+    {
+        if (m_sectorMoveSpecials.Length > 0)
+        {
+            var spec = m_sectorMoveSpecials.RemoveLast();
+            spec.Set(world, sector, model);
+            return spec;
+        }
+
+        return new SectorMoveSpecial(world, sector, model);
+    }
+
+    public void FreeSectorMoveSpecial(SectorMoveSpecial special)
+    {
+        if (special.GetType() == typeof(SectorMoveSpecial))
+        {
+            special.Free();
+            m_sectorMoveSpecials.Add(special);
+        }
+    }
+
+    public SwitchChangeSpecial GetSwitchChangeSpecial(IWorld world, Line line, SwitchType type)
+    {
+        if (m_switchSpecials.Length > 0)
+        {
+            var spec = m_switchSpecials.RemoveLast();
+            spec.Set(world, line, type);
+            return spec;
+        }
+
+        return new SwitchChangeSpecial(world, line, type);
+    }
+
+    public SwitchChangeSpecial GetSwitchChangeSpecial(IWorld world, Line line, SwitchChangeSpecialModel model)
+    {
+        if (m_switchSpecials.Length > 0)
+        {
+            var spec = m_switchSpecials.RemoveLast();
+            spec.Set(world, line, model);
+            return spec;
+        }
+
+        return new SwitchChangeSpecial(world, line, model);
+    }
+
+    public void FreeSwitchChangeSpecial(SwitchChangeSpecial special)
+    {
+        special.Free();
+        m_switchSpecials.Add(special);
     }
 }
