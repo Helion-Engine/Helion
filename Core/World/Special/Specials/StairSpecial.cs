@@ -21,20 +21,7 @@ public class StairSpecial : SectorMoveSpecial
     private bool m_init;
     private bool m_buggedStairs;
 
-    private class StairMove
-    {
-        public StairMove(Sector sector, int height)
-        {
-            Sector = sector;
-            Height = height;
-        }
-
-        public Sector Sector { get; private set; }
-        public int Height { get; private set; }
-        public bool Destroyed { get; set; }
-    }
-
-    public IEnumerable<Sector> GetBuildSectors() => m_stairs.Select(x => x.Sector);
+    private record struct StairMove(Sector Sector, int Height, bool Destroyed);
 
     public override bool MultiSector => true;
 
@@ -80,7 +67,7 @@ public class StairSpecial : SectorMoveSpecial
 
         int height = stairHeight;
         sector.ActiveFloorMove = this;
-        m_stairs.Add(new StairMove(sector, height));
+        m_stairs.Add(new StairMove(sector, height, false));
 
         bool keepBuilding = false;
         do
@@ -111,7 +98,7 @@ public class StairSpecial : SectorMoveSpecial
 
                 sector = line.Back.Sector;
                 sector.ActiveFloorMove = this;
-                m_stairs.Add(new StairMove(sector, height));
+                m_stairs.Add(new StairMove(sector, height, false));
                 keepBuilding = true;
                 break;                
             }
@@ -134,7 +121,12 @@ public class StairSpecial : SectorMoveSpecial
                 continue;
 
             var stairSector = world.Sectors[model.SectorIds[i]];
-            m_stairs.Add(new StairMove(stairSector, model.Heights[i]));
+            bool destroyed = stairSector.Floor.Z >= m_startZ + model.Heights[i];
+            var stairMove = new StairMove(stairSector, model.Heights[i], destroyed);
+            m_stairs.Add(stairMove);
+
+            if (destroyed)
+                continue;
 
             CreateMovementSound(stairSector);
             stairSector.ActiveFloorMove = this;
@@ -231,6 +223,7 @@ public class StairSpecial : SectorMoveSpecial
             if (currentStatus == SpecialTickStatus.Destroy && !step.Destroyed)
             {
                 step.Destroyed = true;
+                m_stairs[i] = step;
                 SectorPlane.PrevZ = SectorPlane.Z;
                 m_destroyCount++;
                 m_stairDelayTics = m_stairDelay;
