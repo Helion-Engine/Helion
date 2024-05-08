@@ -2,6 +2,7 @@
 using Helion.Util.Configs;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using NLog;
 
 namespace Helion.Resources.Definitions;
@@ -38,7 +39,7 @@ public class CompLevelDefinition
             CompLevel = CompLevel.Mbf21;
     }
 
-    public void Apply(IConfig config, ILogger log)
+    public void Apply(IConfig config)
     {
         if (CompLevel == CompLevel.Undefined)
             return;
@@ -72,6 +73,6 @@ public class CompLevelDefinition
                 break;
         }
 
-        log.Info($"Comp level set to {CompLevel}");
+        HelionLog.Info($"Comp level set to {CompLevel}");
     }
 }

@@ -23,7 +23,6 @@ using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special;
-using NLog;
 using static Helion.Util.Assertion.Assert;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util.Container;
@@ -60,6 +59,8 @@ using Helion.Resources.Archives.Entries;
 using Helion.Maps.Doom;
 using Helion.Maps.Specials.Vanilla;
 using Helion.World.Special.SectorMovement;
+using Helion.Strings;
+using Helion.Util.Loggers;
 
 namespace Helion.World;
 
@@ -67,8 +68,6 @@ public abstract partial class WorldBase : IWorld
 {
     private const double MaxPitch = 80.0 * Math.PI / 180.0;
     private const double MinPitch = -80.0 * Math.PI / 180.0;
-
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
@@ -195,7 +194,7 @@ public abstract partial class WorldBase : IWorld
         {
             int rejectSize = (Sectors.Count * Sectors.Count + 7) / 8;
             if (Map.Reject.Length != rejectSize)
-                Log.Warn($"Expected reject size to be {rejectSize} but read {Map.Reject.Length} bytes");
+                HelionLog.Warn($"Expected reject size to be {rejectSize} but read {Map.Reject.Length} bytes");
             m_lineOfSightReject = Map.Reject;
         }
 
@@ -854,7 +853,7 @@ public abstract partial class WorldBase : IWorld
         var definition = EntityManager.DefinitionComposer.GetByName(definitionName);
         if (definition != null)
             return definition;
-        Log.Error($"Invalid actor name for ${forName}: {definitionName}");
+        HelionLog.Error($"Invalid actor name for ${forName}: {definitionName}");
         return null;
     }
 
@@ -1826,7 +1825,7 @@ public abstract partial class WorldBase : IWorld
         if (message.Length > 0)
         {
             if (player == null || player.Id == GetCameraPlayer().Id)
-                Log.Info(message);
+                HelionLog.Info(message);
             if (player != null && player.Id == GetCameraPlayer().Id)
                 PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
         }

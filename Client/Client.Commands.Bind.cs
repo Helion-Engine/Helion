@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System;
 using Helion.Util;
+using Helion.Util.Loggers;
 
 namespace Helion.Client;
 
@@ -69,13 +70,13 @@ public partial class Client
         if (args.Args.Count == 1)
         {
             if (!m_config.Keys.Remove(inputKey.Value))
-                Log.Error($"{inputKey} has no commands");
+                HelionLog.Error($"{inputKey} has no commands");
             return;
         }
 
         string command = args.Args[1];
         if (!m_config.Keys.Remove(inputKey.Value, command))
-            Log.Error($"{inputKey} does not have ${command}");
+            HelionLog.Error($"{inputKey} does not have ${command}");
     }
 
     [ConsoleCommand("inputkeys", "List all input keys")]
@@ -92,7 +93,7 @@ public partial class Client
     {
         var inputCommands = GetAvailableInputCommands();
         foreach (var inputCommand in inputCommands)
-            Log.Info(inputCommand);
+            HelionLog.Info(inputCommand);
     }
 
     private static bool GetInputKey(string key, [NotNullWhen(true)] out Key? inputKey)
@@ -100,8 +101,8 @@ public partial class Client
         if (!Enum.TryParse(typeof(Key), key, true, out var parsedKey) || parsedKey == null)
         {
             inputKey = null;
-            Log.Error($"Invalid key: {key}");
-            Log.Info("Use inputkeys to view all available keys");
+            HelionLog.Error($"Invalid key: {key}");
+            HelionLog.Info("Use inputkeys to view all available keys");
             return false;
         }
 
@@ -117,8 +118,8 @@ public partial class Client
 
     private void LogKeyBindings()
     {
-        Log.Info("Key bindings");
+        HelionLog.Info("Key bindings");
         foreach (var item in m_config.Keys.GetKeyMapping())
-            Log.Info($"{item.Key}: {item.Command}");
+            HelionLog.Info($"{item.Key}: {item.Command}");
     }
 }

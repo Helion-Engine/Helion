@@ -6,6 +6,7 @@ using System.Text.Json;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Values;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using Helion.Window.Input;
 using IniParser;
 using IniParser.Model;
@@ -123,13 +124,13 @@ public class FileConfig : Config
                 parser.WriteFile(filePath, iniData);
             }
 
-            Log.Info($"Wrote config file to {filePath}");
+            HelionLog.Info($"Wrote config file to {filePath}");
             return success;
         }
         catch (Exception e)
         {
-            Log.Error($"Unable to write config file to {filePath}");
-            Log.Debug($"Config write failure reason: {e.Message}");
+            HelionLog.Error($"Unable to write config file to {filePath}");
+            HelionLog.Debug($"Config write failure reason: {e.Message}");
             return false;
         }
 
@@ -181,11 +182,11 @@ public class FileConfig : Config
 
     private void ReadConfigFrom(string path, bool addDefaultsIfNew)
     {
-        Log.Info($"Reading config from {path}");
+        HelionLog.Info($"Reading config from {path}");
 
         if (!File.Exists(path))
         {
-            Log.Info($"Config file not found, will generate new config file at {path}");
+            HelionLog.Info($"Config file not found, will generate new config file at {path}");
             m_noFileExistedWhenRead = true;
 
             KeyMapping.AddDefaultsIfMissing();

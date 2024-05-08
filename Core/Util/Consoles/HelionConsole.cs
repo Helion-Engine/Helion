@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Helion.Graphics;
+using Helion.Strings;
 using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
+using Helion.Util.Loggers;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -91,6 +93,8 @@ public class HelionConsole : Target
             m_config.Console.MaxMessages.OnChanged += OnMaxMessagesChanged;
             AddToLogger(args);
         }
+
+        HelionLog.Message += HelionMessageLogger_Message;
     }
 
     ~HelionConsole()
@@ -142,7 +146,7 @@ public class HelionConsole : Target
         if (command.Empty())
             return;
 
-        Log.Info(command);
+        HelionLog.Info(command);
         OnConsoleCommandEvent?.Invoke(this, new ConsoleCommandEventArgs(command));
     }
 
@@ -201,31 +205,47 @@ public class HelionConsole : Target
             AddInput(c);
     }
 
-    protected override void Write(LogEventInfo logEvent)
+    protected override void Write(LogEventInfo logEvent) =>
+        HelionMessageLogger_Message(null, new(logEvent.FormattedMessage, ToMessageLevel(logEvent.Level.Ordinal)));
+
+    private static MessageLevel ToMessageLevel(int logLevel)
     {
-        // We can't switch on this because the values are not a constant.
-        // Therefore we'll provide the most common levels first to avoid
-        // branching evaluations.
-        switch (logEvent.Level.Ordinal)
+        switch (logLevel)
         {
-        case 0:
-            AddMessage(TraceColor, logEvent.FormattedMessage);
-            break;
-        case 1:
-            AddMessage(DebugColor, logEvent.FormattedMessage);
-            break;
-        case 2:
-            AddMessage(Color.White, logEvent.FormattedMessage);
-            break;
-        case 3:
-            AddMessage(Color.Yellow, logEvent.FormattedMessage);
-            break;
-        case >= 4 and <= 6:
-            AddMessage(Color.Red, logEvent.FormattedMessage);
-            break;
-        default:
-            Fail("Unexpected log level detected, outside of NLog ordinal range");
-            break;
+            case 0:
+                return MessageLevel.Trace;
+            case 1:
+                return MessageLevel.Debug;
+            case 2:
+                return MessageLevel.Info;
+            case 3:
+                return MessageLevel.Warning;
+            case >= 4 and <= 6:
+                return MessageLevel.Error;
+        }
+
+        return MessageLevel.Info;
+    }
+
+    private void HelionMessageLogger_Message(object? sender, MessageLogEvent e)
+    {
+        switch (e.Level)
+        {
+            case MessageLevel.Trace:
+                AddMessage(TraceColor, e.Message);
+                break;
+            case MessageLevel.Debug:
+                AddMessage(DebugColor, e.Message);
+                break;
+            case MessageLevel.Info:
+                AddMessage(Color.White, e.Message);
+                break;
+            case MessageLevel.Warning:
+                AddMessage(Color.Yellow, e.Message);
+                break;
+            case MessageLevel.Error:
+                AddMessage(Color.Red, e.Message);
+                break;
         }
     }
 

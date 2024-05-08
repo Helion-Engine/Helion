@@ -30,6 +30,7 @@ using Helion.Util.Bytes;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using NLog;
@@ -42,7 +43,6 @@ namespace Helion.Resources.Archives.Collection;
 /// </summary>
 public class ArchiveCollection : IResources, IPathResolver
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public static readonly DataCache StaticDataCache = new();
 
     public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
@@ -196,7 +196,7 @@ public class ArchiveCollection : IResources, IPathResolver
                     return map;
                 }
 
-                Log.Warn("Unable to use map {0}, it is corrupt", mapName);
+                HelionLog.Warn($"Unable to use map {mapName}, it is corrupt");
                 return null;
             }
         }
@@ -358,7 +358,7 @@ public class ArchiveCollection : IResources, IPathResolver
                 }
                 catch (IOException)
                 {
-                    Log.Error($"Unable to open dehacked patch {dehackedPatch}");
+                    HelionLog.Error($"Unable to open dehacked patch {dehackedPatch}");
                     return false;
                 }
             }
@@ -487,7 +487,7 @@ public class ArchiveCollection : IResources, IPathResolver
         Archive? archive = m_archiveLocator.Locate(filePath);
         if (archive == null)
         {
-            Log.Error("Failure when loading {0}", filePath);
+            HelionLog.Error($"Failure when loading {filePath}");
             return null;
         }
 
@@ -495,7 +495,7 @@ public class ArchiveCollection : IResources, IPathResolver
         if (md5 != null)
             archive.MD5 = md5;
 
-        Log.Info("Loaded {0}", filePath);
+        HelionLog.Info($"Loaded {filePath}");
         return archive;
     }
 

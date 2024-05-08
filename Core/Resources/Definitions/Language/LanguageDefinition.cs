@@ -131,11 +131,20 @@ public class LanguageDefinition
         return message;
     }
 
+    private readonly Dictionary<string, string> m_messageTranslation = new(StringComparer.OrdinalIgnoreCase);
+
     public string GetMessage(Player? player, Player? other, string message)
     {
         if (message.Length > 0 && message[0] == '$')
         {
-            message = LookupMessage(message[1..]);
+            // Until dictionary supports ReadOnlySpan<char>...
+            if (!m_messageTranslation.TryGetValue(message, out var withoutMarker))
+            {
+                withoutMarker = message[1..];
+                m_messageTranslation[message] = withoutMarker;
+            }
+
+            message = LookupMessage(withoutMarker);
             if (player == null)
                 return message;
             return AddMessageParams(player, other, message);

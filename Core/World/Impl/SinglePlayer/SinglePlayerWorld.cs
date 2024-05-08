@@ -402,8 +402,10 @@ public class SinglePlayerWorld : WorldBase
     public override void ToggleChaseCameraMode()
     {       
         m_chaseCamMode = !m_chaseCamMode;
-        string activated = m_chaseCamMode ? "activated" : "deactivated";
-        Log.Info($"Chase camera {activated}.");
+        if (m_chaseCamMode)
+            DisplayMessage("Chase camera activated.");
+        else
+            DisplayMessage("Chase camera deactivated.");
 
         DrawHud = !m_chaseCamMode;
 

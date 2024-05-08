@@ -30,6 +30,7 @@ using NLog;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using Helion.Util.Loggers;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client;
@@ -148,7 +149,7 @@ public partial class Client : IDisposable, IInputManagement
             return;
 
         string path = $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.png";
-        Log.Info($"Saving screenshot to {path}");
+        HelionLog.Info($"Saving screenshot to {path}");
 
         m_takeScreenshot = false;
         GL.Finish();

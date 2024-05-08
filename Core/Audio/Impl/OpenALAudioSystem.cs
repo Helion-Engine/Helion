@@ -6,6 +6,7 @@ using Helion.Audio.Impl.Components;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using NLog;
 using OpenTK.Audio.OpenAL;
 using static Helion.Util.Assertion.Assert;
@@ -90,13 +91,13 @@ public class OpenALAudioSystem : IAudioSystem
         if (PrintedALInfo)
             return;
 
-        Log.Info("OpenAL v{0}", GetString(ALGetString.Version));
-        Log.Info("OpenAL Vendor: {0}", GetString(ALGetString.Vendor));
-        Log.Info("OpenAL Renderer: {0}", GetString(ALGetString.Renderer));
-        Log.Info("OpenAL Extensions: {0}", GetString(ALGetString.Extensions).Count(x => x == ' ') + 1);
+        HelionLog.Info($"OpenAL v{GetString(ALGetString.Version)}");
+        HelionLog.Info($"OpenAL Vendor: {GetString(ALGetString.Vendor)}");
+        HelionLog.Info($"OpenAL Renderer: {GetString(ALGetString.Renderer)}");
+        HelionLog.Info($"OpenAL Extensions: {GetString(ALGetString.Extensions).Count(x => x == ' ') + 1}");
 
         foreach (string device in GetDeviceNames())
-            Log.Info($"Device: {device}");
+            HelionLog.Info($"Device: {device}");
 
         PrintedALInfo = true;
     }

@@ -22,6 +22,7 @@ using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using Helion.Util.Parser;
 using Helion.Util.RandomGenerators;
 using Helion.World;
@@ -90,7 +91,7 @@ public partial class Client
     {
         var commands = GetAllCommands();
         foreach (var command in commands)
-            Log.Info(command);
+            HelionLog.Info(command);
     }
 
     [ConsoleCommand("search", "Lists all available commands.")]
@@ -107,7 +108,7 @@ public partial class Client
         }
 
         foreach (var command in commands)
-            Log.Info(command);
+            HelionLog.Info(command);
     }
 
     private IEnumerable<string> GetAllCommands()
@@ -224,14 +225,14 @@ public partial class Client
         foreach (var monitor in monitors)
         {
             string current = (currentMonitor != null && monitor.Index == currentMonitor.Index ? "[Current]" : string.Empty);
-            Log.Info($"{monitor.Index+1}: {monitor.HorizontalResolution}, {monitor.VerticalResolution}{current}");
+            HelionLog.Info($"{monitor.Index+1}: {monitor.HorizontalResolution}, {monitor.VerticalResolution}{current}");
         }
     }
 
     [ConsoleCommand("audio.device", "The current audio device")]
     private void CommandAudioDevice(ConsoleCommandEventArgs args)
     {
-        Log.Info(m_config.Audio.Device.Value);
+        HelionLog.Info(m_config.Audio.Device.Value);
     }
 
     [ConsoleCommand("audio.setdevice", "Sets a new audio device; can list devices with 'audioDevices'")]
@@ -251,12 +252,12 @@ public partial class Client
         List<string> deviceNames = m_audioSystem.GetDeviceNames().ToList();
         if (deviceIndex < 0 || deviceIndex >= deviceNames.Count)
         {
-            Log.Warn($"Audio device index out of range, must be between 1 and {deviceNames.Count} inclusive");
+            HelionLog.Warn($"Audio device index out of range, must be between 1 and {deviceNames.Count} inclusive");
             return;
         }
 
         string deviceName = deviceNames[deviceIndex];
-        Log.Info($"Setting audio device to {deviceName}");
+        HelionLog.Info($"Setting audio device to {deviceName}");
 
         // TODO: We should poll the device after setting it, and if SetDevice == true, set the config value.
         m_config.Audio.Device.Set(deviceName);
@@ -269,7 +270,7 @@ public partial class Client
     {
         int num = 1;
         foreach (string device in m_audioSystem.GetDeviceNames())
-            Log.Info($"{num++}. {device}");
+            HelionLog.Info($"{num++}. {device}");
     }
 
     [ConsoleCommand("exit", "Exits Helion")]
@@ -283,7 +284,7 @@ public partial class Client
     private async Task CommandLoadGame(ConsoleCommandEventArgs args)
     {
         string fileName = args.Args[0];
-        Log.Info($"Loading save file {fileName}");
+        HelionLog.Info($"Loading save file {fileName}");
         if (!m_saveGameManager.SaveFileExists(fileName))
         {
             LogError($"Save file {fileName} not found.");
@@ -424,7 +425,7 @@ public partial class Client
             return;
         }
 
-        Log.Info($"{option} is {mapInfo.HasOption(option)}");
+        HelionLog.Info($"{option} is {mapInfo.HasOption(option)}");
     }
 
     private void DoInventoryAdd(ConsoleCommandEventArgs args)
@@ -530,7 +531,7 @@ public partial class Client
 
         if (args.Args.Empty())
         {
-            Log.Info($"{component.Path} is {component.Value}");
+            HelionLog.Info($"{component.Path} is {component.Value}");
             return true;
         }
 
@@ -538,7 +539,7 @@ public partial class Client
         {
             if (m_layerManager.WorldLayer.World.PlayingDemo)
             {
-                Log.Warn($"{args.Command} cannot be changed during demo playback");
+                HelionLog.Warn($"{args.Command} cannot be changed during demo playback");
                 return true;
             }
 
@@ -554,30 +555,30 @@ public partial class Client
         switch (result)
         {
             case ConfigSetResult.Set:
-                Log.Info($"Set {args.Command} to {component.Value.ObjectValue}");
+                HelionLog.Info($"Set {args.Command} to {component.Value.ObjectValue}");
                 break;
             case ConfigSetResult.Unchanged:
-                Log.Info($"{args.Command} set to the same value as before");
+                HelionLog.Info($"{args.Command} set to the same value as before");
                 break;
             case ConfigSetResult.Queued:
-                Log.Info($"{args.Command} has been queued up for change: {component.Value.SetFlags}");
+                HelionLog.Info($"{args.Command} has been queued up for change: {component.Value.SetFlags}");
                 break;
             case ConfigSetResult.NotSetByBadConversion:
                 success = false;
-                Log.Warn($"{args.Command} could not be set, incompatible argument");
+                HelionLog.Warn($"{args.Command} could not be set, incompatible argument");
                 break;
             case ConfigSetResult.NotSetByFilter:
                 success = false;
-                Log.Warn($"{args.Command} could not be set, out of range or invalid argument");
+                HelionLog.Warn($"{args.Command} could not be set, out of range or invalid argument");
                 break;
             default:
                 success = false;
-                Log.Error($"{args.Command} unexpected setting result, report to a developer!");
+                HelionLog.Error($"{args.Command} unexpected setting result, report to a developer!");
                 break;
         }
 
         if (success && component.Attribute.GetSetWarningString(out var warning))
-            Log.Warn(warning);
+            HelionLog.Warn(warning);
 
         return true;
     }

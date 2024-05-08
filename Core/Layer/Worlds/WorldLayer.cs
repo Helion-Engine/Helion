@@ -20,6 +20,7 @@ using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using Helion.Util.Profiling;
 using Helion.Util.RandomGenerators;
 using Helion.Util.Timing;
@@ -143,9 +144,9 @@ public partial class WorldLayer : IGameLayerParent
         Player? existingPlayer, WorldModel? worldModel, IRandom? random)
     {
         string displayName = mapInfoDef.GetMapNameWithPrefix(archiveCollection);
-        Log.Info(displayName);
 
-        bool sameAsPreviousMap = mapInfoDef.MapName.EqualsIgnoreCase(LastMapName);
+        bool sameAsPreviousMap = mapInfoDef.MapName.EqualsIgnoreCase(LastMapName); if (!sameAsPreviousMap)
+            HelionLog.Info(displayName);
 
         SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, profiler,
             mapInfoDef, skillDef, map, existingPlayer, worldModel, random, sameAsPreviousMap: sameAsPreviousMap);

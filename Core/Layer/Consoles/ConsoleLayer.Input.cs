@@ -1,8 +1,10 @@
 using Helion.Graphics;
 using Helion.Util;
 using Helion.Util.Configs.Components;
+using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using Helion.Window;
 using Helion.Window.Input;
 using Helion.World.Cheats;
@@ -154,14 +156,14 @@ public partial class ConsoleLayer
     {
         bool foundAtLeastOne = false;
         string input = m_console.Input;
-        Log.Info($"Matching values for: {input}");
+        HelionLog.Info($"Matching values for: {input}");
 
         SearchConsoleCommands();
         SearchConfigValues();
         SearchCheats();
 
         if (!foundAtLeastOne)
-            Log.Info("No matches found");
+            HelionLog.Info("No matches found");
 
         void SearchConsoleCommands()
         {

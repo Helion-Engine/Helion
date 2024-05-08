@@ -8,6 +8,7 @@ using Helion.World.Geometry.Sectors;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry.Boxes;
+using Helion.Util.Loggers;
 
 namespace Helion.Client;
 
@@ -55,19 +56,19 @@ public partial class Client
             count++;
         }
 
-        string stringType = type == ClosetType.Monster ? "monster" : "voodoo"; 
+        string stringType = type == ClosetType.Monster ? "monster" : "voodoo";
 
-        Log.Info($"Total {stringType} closets: {count}");
+        HelionLog.Info($"Total {stringType} closets: {count}");
         if (type == ClosetType.Monster)
-            Log.Info($"Total monsters: {infoList.Sum(x => x.MonsterCount)}");
+            HelionLog.Info($"Total monsters: {infoList.Sum(x => x.MonsterCount)}");
 
         foreach (var info in infoList)
         {
-            Log.Info($"{stringType} closet {info.Id}");
+            HelionLog.Info($"{stringType} closet {info.Id}");
             if (type == ClosetType.Monster)
-                Log.Info($"Monster count: {info.MonsterCount}");
-            Log.Info($"Bounds: {info.Box}");
-            Log.Info($"Sectors: {info.Sectors}");
+                HelionLog.Info($"Monster count: {info.MonsterCount}");
+            HelionLog.Info($"Bounds: {info.Box}");
+            HelionLog.Info($"Sectors: {info.Sectors}");
         }
 
         int CountEntities(Island island)
