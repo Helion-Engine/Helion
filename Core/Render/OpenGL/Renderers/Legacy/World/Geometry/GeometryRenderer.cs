@@ -188,6 +188,40 @@ public class GeometryRenderer : IDisposable
         }
     }
 
+    private void FreeFlatVertices(DynamicArray<LegacyVertex[][]?> data)
+    {
+        for (int i = 0; i < 3; i ++)
+        {
+            var lookup = data[i];
+            if (lookup == null)
+                continue;
+            for (int j = 0; j < lookup.Length; j++)
+            {
+                var array = lookup[j];
+                if (array == null)
+                    continue;
+                m_world.DataCache.FreeFlatVertices(array);
+            }
+        }
+    }
+
+    private void FreeSkyFlatVertices(DynamicArray<SkyGeometryVertex[][]?> data)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            var lookup = data[i];
+            if (lookup == null)
+                continue;
+            for (int j = 0; j < lookup.Length; j++)
+            {
+                var array = lookup[j];
+                if (array == null)
+                    continue;
+                m_world.DataCache.FreeSkyFlatVertices(array);
+            }
+        }
+    }
+
     private void SetRenderCompatibility(IWorld world)
     {
         var def = world.Map.CompatibilityDefinition;
@@ -1195,7 +1229,7 @@ public class GeometryRenderer : IDisposable
         for (int j = 0; j < subsectors.Length; j++)
             count += (subsectors[j].ClockwiseEdges.Count - 2) * 3;
 
-        LegacyVertex[] data = new LegacyVertex[count];
+        var data = WorldStatic.DataCache.GetFlatVertices(count);
         if (floor)
             lookup[id] = data;
         else
@@ -1210,7 +1244,7 @@ public class GeometryRenderer : IDisposable
         for (int j = 0; j < subsectors.Length; j++)
             count += (subsectors[j].ClockwiseEdges.Count - 2) * 3;
 
-        var data = new SkyGeometryVertex[count];
+        var data = WorldStatic.DataCache.GetSkyFlatVertices(count);
         if (floor)
             lookup[id] = data;
         else
@@ -1284,28 +1318,30 @@ public class GeometryRenderer : IDisposable
         return data;
     }
 
-    private static void CreateSkyFlatVertices(DynamicArray<SkyGeometryVertex> vertices, in TriangulatedWorldVertex root, in TriangulatedWorldVertex second, in TriangulatedWorldVertex third)
+    private static unsafe void CreateSkyFlatVertices(DynamicArray<SkyGeometryVertex> vertices, in TriangulatedWorldVertex root, in TriangulatedWorldVertex second, in TriangulatedWorldVertex third)
     {
-        vertices.Add(new SkyGeometryVertex()
-        { 
-            X = root.X,
-            Y = root.Y,
-            Z = root.Z,
-        });
+        int length = vertices.Length;
+        vertices.EnsureCapacity(length + 3);
 
-        vertices.Add(new SkyGeometryVertex()
+        fixed (SkyGeometryVertex* startVertex = &vertices.Data[length])
         {
-            X = second.X,
-            Y = second.Y,
-            Z = second.Z,
-        });
+            SkyGeometryVertex* vertex = startVertex;
+            vertex->X = root.X;
+            vertex->Y = root.Y;
+            vertex->Z = root.Z;
 
-        vertices.Add(new SkyGeometryVertex()
-        {
-            X = third.X,
-            Y = third.Y,
-            Z = third.Z,
-        });
+            vertex++;
+            vertex->X = second.X;
+            vertex->Y = second.Y;
+            vertex->Z = second.Z;
+
+            vertex++;
+            vertex->X = third.X;
+            vertex->Y = third.Y;
+            vertex->Z = third.Z;
+        }
+
+        vertices.SetLength(length + 3);
     }
 
     private static void SetWallVertices(LegacyVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
@@ -1504,56 +1540,56 @@ public class GeometryRenderer : IDisposable
         return data;
     }
 
-    private static void GetFlatVertices(DynamicArray<LegacyVertex> vertices, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third, 
-        int lightLevelBufferIndex)
+    private static unsafe void GetFlatVertices(DynamicArray<LegacyVertex> vertices, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
+int lightLevelBufferIndex)
     {
-        vertices.Add(new LegacyVertex()
+        int length = vertices.Length;
+        vertices.EnsureCapacity(length + 3);
+        fixed (LegacyVertex* startVertex = &vertices.Data[length])
         {
-            X = root.X,
-            Y = root.Y,
-            Z = root.Z,
-            PrevX = root.X,
-            PrevY = root.Y,
-            PrevZ = root.PrevZ,
-            U = root.U,
-            V = root.V,
-            PrevU = root.PrevU,
-            PrevV = root.PrevV,
-            Alpha = 1.0f,
-            LightLevelBufferIndex = lightLevelBufferIndex,
-        });
+            LegacyVertex* vertex = startVertex;
+            vertex->X = root.X;
+            vertex->Y = root.Y;
+            vertex->Z = root.Z;
+            vertex->PrevX = root.X;
+            vertex->PrevY = root.Y;
+            vertex->PrevZ = root.PrevZ;
+            vertex->U = root.U;
+            vertex->V = root.V;
+            vertex->PrevU = root.PrevU;
+            vertex->PrevV = root.PrevV;
+            vertex->Alpha = 1.0f;
+            vertex->LightLevelBufferIndex = lightLevelBufferIndex;
 
-        vertices.Add(new LegacyVertex()
-        {
-            X = second.X,
-            Y = second.Y,
-            Z = second.Z,
-            PrevX = second.X,
-            PrevY = second.Y,
-            PrevZ = second.PrevZ,
-            U = second.U,
-            V = second.V,
-            PrevU = second.PrevU,
-            PrevV = second.PrevV,
-            Alpha = 1.0f,
-            LightLevelBufferIndex = lightLevelBufferIndex,
-        });
+            vertex++;
+            vertex->X = second.X;
+            vertex->Y = second.Y;
+            vertex->Z = second.Z;
+            vertex->PrevX = second.X;
+            vertex->PrevY = second.Y;
+            vertex->PrevZ = second.PrevZ;
+            vertex->U = second.U;
+            vertex->V = second.V;
+            vertex->PrevU = second.PrevU;
+            vertex->PrevV = second.PrevV;
+            vertex->Alpha = 1.0f;
+            vertex->LightLevelBufferIndex = lightLevelBufferIndex;
 
-        vertices.Add(new LegacyVertex()
-        {
-            X = third.X,
-            Y = third.Y,
-            Z = third.Z,
-            PrevX = third.X,
-            PrevY = third.Y,
-            PrevZ = third.PrevZ,
-            U = third.U,
-            V = third.V,
-            PrevU = third.PrevU,
-            PrevV = third.PrevV,
-            Alpha = 1.0f,
-            LightLevelBufferIndex = lightLevelBufferIndex,
-        });
+            vertex++;
+            vertex->X = third.X;
+            vertex->Y = third.Y;
+            vertex->Z = third.Z;
+            vertex->PrevX = third.X;
+            vertex->PrevY = third.Y;
+            vertex->PrevZ = third.PrevZ;
+            vertex->U = third.U;
+            vertex->V = third.V;
+            vertex->PrevU = third.PrevU;
+            vertex->PrevV = third.PrevV;
+            vertex->Alpha = 1.0f;
+            vertex->LightLevelBufferIndex = lightLevelBufferIndex;
+        }
+        vertices.SetLength(length + 3);
     }
 
     private void ReleaseUnmanagedResources()

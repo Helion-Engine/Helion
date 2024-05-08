@@ -56,6 +56,8 @@ public class DataCache
     private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new();
     private readonly DynamicArray<LegacyVertex[]> m_wallVertices = new();
     private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new();
+    private readonly Dictionary<int, DynamicArray<LegacyVertex[]?>> m_flatVertices = new();
+    private readonly Dictionary<int, DynamicArray<SkyGeometryVertex[]?>> m_skyFlatVertices = new();
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public bool CacheEntities = true;
@@ -515,5 +517,47 @@ public class DataCache
     public void FreeSkyWallVertices(SkyGeometryVertex[] vertices)
     {
         m_skyWallVertices.Add(vertices);
+    }
+
+    public LegacyVertex[] GetFlatVertices(int length)
+    {
+        if (m_flatVertices.TryGetValue(length, out var list) && list.Length > 0)
+            return list.RemoveLast();
+
+        return new LegacyVertex[length];
+    }
+
+    public void FreeFlatVertices(LegacyVertex[] vertices)
+    {
+        if (!m_flatVertices.TryGetValue(vertices.Length, out var list))
+        {
+            list = new();
+            m_flatVertices[vertices.Length] = list;
+        }
+        list.Add(vertices);
+    }
+
+    public SkyGeometryVertex[] GetSkyFlatVertices(int length)
+    {
+        if (m_skyFlatVertices.TryGetValue(length, out var list) && list.Length > 0)
+            return list.RemoveLast();
+
+        return new SkyGeometryVertex[length];
+    }
+
+    public void FreeSkyFlatVertices(SkyGeometryVertex[] vertices)
+    {
+        if (!m_skyFlatVertices.TryGetValue(vertices.Length, out var list))
+        {
+            list = new();
+            m_skyFlatVertices[vertices.Length] = list;
+        }
+        list.Add(vertices);
+    }
+
+    public void PurgeFlatVertices()
+    {
+        m_flatVertices.Clear();
+        m_skyFlatVertices.Clear();
     }
 }
