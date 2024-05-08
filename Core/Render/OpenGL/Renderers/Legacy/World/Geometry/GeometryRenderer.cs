@@ -72,13 +72,13 @@ public class GeometryRenderer : IDisposable
     private LegacyVertex[]?[] m_vertexUpperLookup = Array.Empty<LegacyVertex[]>();
     private SkyGeometryVertex[]?[] m_skyWallVertexLowerLookup = Array.Empty<SkyGeometryVertex[]>();
     private SkyGeometryVertex[]?[] m_skyWallVertexUpperLookup = Array.Empty<SkyGeometryVertex[]>();
+    private DynamicArray<LegacyVertex[][]?> m_vertexFloorLookup = new(3);
     private DynamicArray<LegacyVertex[][]?> m_vertexCeilingLookup = new(3);
     private DynamicArray<SkyGeometryVertex[][]?> m_skyFloorVertexLookup = new(3);
     private DynamicArray<SkyGeometryVertex[][]?> m_skyCeilingVertexLookup = new(3);
     // List of each subsector mapped to a sector id
     private DynamicArray<Subsector>[] m_subsectors = Array.Empty<DynamicArray<Subsector>>();
     private int[] m_drawnSides = Array.Empty<int>();
-    private DynamicArray<LegacyVertex[][]?> m_vertexFloorLookup = new(3);
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
@@ -124,6 +124,12 @@ public class GeometryRenderer : IDisposable
             m_subsectors[i].Clear();
         }
 
+        FreeVertexWallLookup(m_vertexLookup);
+        FreeVertexWallLookup(m_vertexLowerLookup);
+        FreeVertexWallLookup(m_vertexUpperLookup);
+        FreeSkyWallLookup(m_skyWallVertexLowerLookup);
+        FreeSkyWallLookup(m_skyWallVertexUpperLookup);
+
         m_vertexLookup = new LegacyVertex[world.Sides.Count][];
         m_vertexLowerLookup = new LegacyVertex[world.Sides.Count][];
         m_vertexUpperLookup = new LegacyVertex[world.Sides.Count][];
@@ -158,6 +164,28 @@ public class GeometryRenderer : IDisposable
 
         Portals.UpdateTo(world);
         m_staticCacheGeometryRenderer.UpdateTo(world, m_lightBuffer);
+    }
+
+    private void FreeVertexWallLookup(LegacyVertex[]?[] vertices)
+    {
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            var data = vertices[i];
+            if (data == null)
+                continue;
+            m_world.DataCache.FreeWallVertices(data);
+        }
+    }
+
+    private void FreeSkyWallLookup(SkyGeometryVertex[]?[] vertices)
+    {
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            var data = vertices[i];
+            if (data == null)
+                continue;
+            m_world.DataCache.FreeSkyWallVertices(data);
+        }
     }
 
     private void SetRenderCompatibility(IWorld world)
@@ -1228,7 +1256,7 @@ public class GeometryRenderer : IDisposable
 
     private static SkyGeometryVertex[] CreateSkyWallVertices(in WallVertices wv)
     {
-        SkyGeometryVertex[] data = new SkyGeometryVertex[6];
+        var data = WorldStatic.DataCache.GetSkyWallVertices();
         data[0].X = wv.TopLeft.X;
         data[0].Y = wv.TopLeft.Y;
         data[0].Z = wv.TopLeft.Z;
@@ -1376,7 +1404,8 @@ public class GeometryRenderer : IDisposable
     private static LegacyVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
-        LegacyVertex[] data = new LegacyVertex[6];
+        var data = WorldStatic.DataCache.GetWallVertices();
+        //LegacyVertex[] data = new LegacyVertex[6];
         // Our triangle is added like:
         //    0--2
         //    | /  3

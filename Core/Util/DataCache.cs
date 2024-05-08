@@ -24,6 +24,9 @@ using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Geometry.Lines;
 using Helion.Util.Consoles;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
+using System.Reflection;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
 namespace Helion.Util;
 
@@ -51,6 +54,8 @@ public class DataCache
     private readonly DynamicArray<StairSpecial> m_stairSpecials = new();
     private readonly DynamicArray<ConsoleMessage> m_consoleMessages = new();
     private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new();
+    private readonly DynamicArray<LegacyVertex[]> m_wallVertices = new();
+    private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new();
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public bool CacheEntities = true;
@@ -486,5 +491,29 @@ public class DataCache
     {
         node.Value = default;
         m_consoleMessageNodes.Add(node);
+    }
+
+    public LegacyVertex[] GetWallVertices()
+    {
+        if (m_wallVertices.Length > 0)
+            return m_wallVertices.RemoveLast();
+        return new LegacyVertex[6];
+    }
+
+    public void FreeWallVertices(LegacyVertex[] vertices)
+    {
+        m_wallVertices.Add(vertices);
+    }
+
+    public SkyGeometryVertex[] GetSkyWallVertices()
+    {
+        if (m_skyWallVertices.Length > 0)
+            return m_skyWallVertices.RemoveLast();
+        return new SkyGeometryVertex[6];
+    }
+
+    public void FreeSkyWallVertices(SkyGeometryVertex[] vertices)
+    {
+        m_skyWallVertices.Add(vertices);
     }
 }
