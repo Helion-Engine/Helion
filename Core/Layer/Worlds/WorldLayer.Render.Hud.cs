@@ -801,7 +801,7 @@ public partial class WorldLayer
     private void DrawFullHudWeaponSlots(IHudRenderContext hud)
     {
         if (m_statusBarSizeType ==  StatusBarSizeType.Full)
-            HudImageWithOffset(hud, "STARMS", (104, 0), both: Align.BottomLeft);
+            HudImageWithOffset(hud, "STARMS", (104, 168), both: Align.TopLeft);
 
         for (int slot = 2; slot <= 7; slot++)
             DrawWeaponNumber(hud, slot);
