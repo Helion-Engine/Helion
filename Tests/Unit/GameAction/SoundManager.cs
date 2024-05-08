@@ -25,7 +25,7 @@ namespace Helion.Tests.Unit.GameAction
 
         private void WorldInit(SinglePlayerWorld world)
         {
-
+            world.SoundManager.SetMaxConcurrentSounds(32);
         }
 
         [Fact(DisplayName = "Looping sector sound")]

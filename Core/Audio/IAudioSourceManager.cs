@@ -48,4 +48,5 @@ public interface IAudioSourceManager : IDisposable
     void PlayGroup(LinkedList<IAudioSource> audioSources);
     void DeviceChanging();
     void Tick();
+    void Clear();
 }

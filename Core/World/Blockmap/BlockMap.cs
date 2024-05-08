@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
@@ -31,6 +32,45 @@ public class BlockMap
         m_blocks = new UniformGrid<Block>(Bounds, blockDimension);
         SetBlockCoordinates();
         AddLinesToBlocks(lines);
+    }
+
+    public unsafe void Remap(IList<Line> lines)
+    {
+        foreach (var block in m_blocks.Blocks)
+        {
+            for (int i = 0; i < block.BlockLines.Length; i++)
+            {
+                fixed (BlockLine* blockLine = &block.BlockLines.Data[i])
+                {
+                    var line = lines[blockLine->LineId];
+                    blockLine->Line = line;
+                    blockLine->FrontSector = line.Front.Sector;
+                    if (line.Back != null)
+                        blockLine->BackSector = line.Back.Sector;
+                    else
+                        blockLine->BackSector = null;
+                }
+            }
+
+            // Note: Entities are unlinked using UnlinkFromWorld. Only need to dump the other data.
+            
+            var sectorNode = block.DynamicSectors.Head;
+            while (sectorNode != null)
+            {
+                var nextNode = sectorNode.Next;
+                sectorNode.Unlink();
+                WorldStatic.DataCache.FreeLinkableNodeSector(sectorNode);
+                sectorNode = nextNode;
+            }
+
+            var sideNode = block.DynamicSides.Head;
+            while (sideNode != null)
+            {
+                var nextNode = sideNode.Next;
+                sideNode.Unlink();
+                sideNode = nextNode;
+            }
+        }
     }
 
     public BlockMap(Box2D bounds, int blockDimension)

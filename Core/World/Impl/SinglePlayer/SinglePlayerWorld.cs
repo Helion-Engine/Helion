@@ -33,6 +33,7 @@ namespace Helion.World.Impl.SinglePlayer;
 public class SinglePlayerWorld : WorldBase
 {
     private static int StaticId;
+    private static bool SoundsCached;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly CheatType[] ChaseCameraCheats = new[] { CheatType.AutoMapModeShowAllLines, CheatType.AutoMapModeShowAllLinesAndThings };
     private readonly AutomapMarker m_automapMarker;
@@ -53,10 +54,8 @@ public class SinglePlayerWorld : WorldBase
     public SinglePlayerWorld(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef,
         IMap map, bool sameAsPreviousMap, Player? existingPlayer = null, WorldModel? worldModel = null, IRandom? random = null)
-        : base(globalData, config, archiveCollection, audioSystem, profiler, geometry, mapDef, skillDef, map, worldModel, random)
+        : base(globalData, config, archiveCollection, audioSystem, profiler, geometry, mapDef, skillDef, map, worldModel, random, sameAsPreviousMap)
     {
-        SameAsPreviousMap = sameAsPreviousMap;
-
         if (worldModel == null)
         {
             EntityManager.PopulateFrom(map, LevelStats);
@@ -124,8 +123,7 @@ public class SinglePlayerWorld : WorldBase
         config.Player.Gender.OnChanged += PlayerGender_OnChanged;
         config.Render.AutomapBspThread.OnChanged += AutomapBspThread_OnChanged;
         config.Game.MarkSpecials.OnChanged += MarkSpecials_OnChanged;
-
-        CacheSounds();
+        
         ChaseCamPlayer = EntityManager.CreateCameraPlayer(Player);
         ChaseCamPlayer.Flags.Invisible = true;
         ChaseCamPlayer.Flags.NoClip = true;
@@ -135,10 +133,15 @@ public class SinglePlayerWorld : WorldBase
         ChaseCamPlayer.Flags.NoSector = true;
 
         m_automapMarker = new AutomapMarker(ArchiveCollection);
+        CacheSounds();
     }
 
     private void CacheSounds()
     {
+        if (SoundsCached)
+            return;
+
+        SoundsCached = true;
         List<SoundInfo> sounds = new(256);
         ArchiveCollection.Definitions.SoundInfo.GetSounds(sounds);
         foreach (var sound in sounds)

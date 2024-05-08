@@ -25,14 +25,14 @@ namespace Helion.World.Geometry.Sectors;
 
 public readonly record struct SoundLine
 {
-    public readonly Sector Front;
-    public readonly Sector Back;
+    public readonly int FrontSectorId;
+    public readonly int BackSectorId;
     public readonly bool BlockSound;
 
-    public SoundLine(Sector front, Sector back, bool blockSound)
+    public SoundLine(int front, int back, bool blockSound)
     {
-        Front = front;
-        Back = back;
+        FrontSectorId = front;
+        BackSectorId = back;
         BlockSound = blockSound;
     }
 }
@@ -49,7 +49,6 @@ public sealed class Sector
     public readonly SectorPlane Floor;
     public readonly SectorPlane Ceiling;
     public readonly List<Line> Lines = new();
-    public readonly DynamicArray<SoundLine> SoundLines = new();
     public readonly LinkableList<Entity> Entities = new();
     public List<LinkableNode<Sector>> BlockmapNodes = new();
     public Island Island = null!;

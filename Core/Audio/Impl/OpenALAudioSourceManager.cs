@@ -38,6 +38,11 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         OpenALDebug.End("Setting distance model");
     }
 
+    public void Clear()
+    {
+
+    }
+
     public void DeviceChanging()
     {
         foreach (var buffer in m_nameToBuffer.Values)

@@ -15,12 +15,19 @@ namespace Helion.World.Sound;
 
 public class WorldSoundManager : SoundManager, ITickable
 {
-    private readonly IWorld m_world;
+    private IWorld m_world;
 
     public WorldSoundManager(IWorld world, IAudioSystem audioSystem) :
         base(audioSystem, world.ArchiveCollection)
     {
         m_world = world;
+    }
+
+    public void UpdateTo(IWorld world)
+    {
+        m_world = world;
+        ClearSounds();
+        AudioManager.Clear();
     }
 
     protected override IRandom GetRandom() => m_world.Random;

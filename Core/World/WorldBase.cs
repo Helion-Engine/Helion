@@ -69,6 +69,11 @@ public abstract partial class WorldBase : IWorld
     private const double MaxPitch = 80.0 * Math.PI / 180.0;
     private const double MinPitch = -80.0 * Math.PI / 180.0;
 
+    private static BlockMap? LastBlockMap;
+    private static BlockMap? LastRenderBlockMap;
+    private static WorldSoundManager? LastWorldSoundManager;
+    private static List<DynamicArray<SoundLine>>? LastSoundLines;
+
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
     public event EventHandler? ClearConsole;
@@ -148,6 +153,7 @@ public abstract partial class WorldBase : IWorld
     private LevelChangeType m_levelChangeType = LevelChangeType.Next;
     private LevelChangeFlags m_levelChangeFlags;
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
+    private readonly List<DynamicArray<SoundLine>> m_soundLines;
     private readonly List<IMonsterCounterSpecial> m_bossDeathSpecials = new();
     private readonly byte[] m_lineOfSightReject = Array.Empty<byte>();
     private readonly Func<DamageFuncParams, int> m_defaultDamageAction;
@@ -172,8 +178,9 @@ public abstract partial class WorldBase : IWorld
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
-        SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null)
+        SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null, bool sameAsPreviousMap = false)
     {
+        SameAsPreviousMap = sameAsPreviousMap;
         m_random = random ?? new DoomRandom();
         m_saveRandom = m_random;
         SecondaryRandom = m_random.Clone();
@@ -198,10 +205,11 @@ public abstract partial class WorldBase : IWorld
             m_lineOfSightReject = Map.Reject;
         }
 
-        Blockmap = new BlockMap(Lines, 128);
-        RenderBlockmap = new BlockMap(Blockmap.Bounds, 512);
+        Blockmap = CreateBlockMap();
+        RenderBlockmap = CreateRenderBlockMap();
+        m_soundLines = CreateSoundLines();
 
-        SoundManager = new WorldSoundManager(this, audioSystem);
+        SoundManager = CreateSoundManager();
         EntityManager = new EntityManager(this);
         PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random, map is DoomMap);
         SpecialManager = new SpecialManager(this, m_random);
@@ -240,23 +248,68 @@ public abstract partial class WorldBase : IWorld
             LevelStats.ItemCount = worldModel.ItemCount;
             LevelStats.SecretCount = worldModel.SecretCount;
         }
-
-        BuildSoundLines();
     }
 
-    private void BuildSoundLines()
+    private WorldSoundManager? CreateSoundManager()
     {
+        if (LastWorldSoundManager != null)
+        {
+            LastWorldSoundManager.UpdateTo(this);
+            return LastWorldSoundManager;
+        }
+
+        LastWorldSoundManager = new WorldSoundManager(this, AudioSystem);
+        return LastWorldSoundManager;
+    }
+
+    private BlockMap CreateBlockMap()
+    {
+        if (SameAsPreviousMap && LastBlockMap != null)
+        {
+            LastBlockMap.Remap(Lines);
+            return LastBlockMap;
+        }
+
+        LastBlockMap = new BlockMap(Lines, 128);
+        return LastBlockMap;
+    }
+
+    private BlockMap CreateRenderBlockMap()
+    {
+        if (SameAsPreviousMap && LastRenderBlockMap != null)
+        {
+            LastRenderBlockMap.Remap(Array.Empty<Line>());
+            return LastBlockMap;
+        }
+
+        LastRenderBlockMap = new BlockMap(Blockmap.Bounds, 512);
+        return LastRenderBlockMap;
+    }
+    private List<DynamicArray<SoundLine>> CreateSoundLines()
+    {
+        if (SameAsPreviousMap && LastSoundLines != null)
+            return LastSoundLines;
+
+        if (LastSoundLines == null)
+            LastSoundLines = new(1024);
+
+        LastSoundLines.Clear();
+
         for (int i = 0; i < Sectors.Count; i++)
         {
+            var soundLines = new DynamicArray<SoundLine>();
+            LastSoundLines.Add(soundLines);
             var sector = Sectors[i];
             for (int j = 0; j < sector.Lines.Count; j++)
             {
                 var line = sector.Lines[j];
                 if (line.Back == null)
                     continue;
-                sector.SoundLines.Add(new SoundLine(line.Front.Sector, line.Back.Sector, line.Flags.BlockSound));
+                soundLines.Add(new SoundLine(line.Front.Sector.Id, line.Back.Sector.Id, line.Flags.BlockSound));
             }
         }
+
+        return LastSoundLines;
     }
 
     private void SetupMusicChangers()
@@ -521,17 +574,20 @@ public abstract partial class WorldBase : IWorld
         sector.SoundBlock = block + 1;
         sector.SoundTarget = target;
 
-        fixed (SoundLine* startLine = &sector.SoundLines.Data[0])
+        var soundLines = m_soundLines[sector.Id];
+        fixed (SoundLine* startLine = &soundLines.Data[0])
         {
-            for (int i = 0; i < sector.SoundLines.Length; i++)
+            for (int i = 0; i < soundLines.Length; i++)
             {
                 SoundLine* line = startLine + i;
-                double minCeilingZ = line->Front.Ceiling.Z < line->Back.Ceiling.Z ? line->Front.Ceiling.Z : line->Back.Ceiling.Z;
-                double maxFloorZ = line->Front.Floor.Z < line->Back.Floor.Z ? line->Back.Floor.Z : line->Front.Floor.Z;
+                var frontSector = Sectors[line->FrontSectorId];
+                var backSector = Sectors[line->BackSectorId];
+                double minCeilingZ = frontSector.Ceiling.Z < backSector.Ceiling.Z ? frontSector.Ceiling.Z : backSector.Ceiling.Z;
+                double maxFloorZ = frontSector.Floor.Z < backSector.Floor.Z ? backSector.Floor.Z : frontSector.Floor.Z;
                 if (minCeilingZ - maxFloorZ <= 0)
                     continue;
 
-                Sector other = line->Front == sector ? line->Back : line->Front;
+                Sector other = frontSector == sector ? backSector : frontSector;
                 if (line->BlockSound)
                 {
                     // Has to cross two block sound lines to stop. This is how it was designed.
@@ -1962,10 +2018,6 @@ public abstract partial class WorldBase : IWorld
         UnRegisterConfigChanges();
         SpecialManager.Dispose();
         EntityManager.Dispose();
-        SoundManager.Dispose();
-
-        Blockmap.Dispose();
-        RenderBlockmap.Dispose();
     }
 
     private void CreateBloodOrPulletPuff(Entity? entity, Vec3D intersect, double angle, double attackDistance, int damage, bool ripper = false)

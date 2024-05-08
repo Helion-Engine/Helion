@@ -9,6 +9,11 @@ namespace Helion.Audio.Impl
         private readonly LinkedList<MockAudioSource> m_audioSources = new();
         public bool CreateSound = true;
 
+        public void Clear()
+        {
+            m_audioSources.Clear();
+        }
+
         public void CacheSound(string name)
         {
             
