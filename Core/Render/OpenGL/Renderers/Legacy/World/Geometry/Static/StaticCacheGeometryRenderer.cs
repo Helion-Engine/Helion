@@ -23,6 +23,8 @@ using OpenTK.Graphics.OpenGL;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
+using System.Diagnostics;
+using Helion.Util.Loggers;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -93,9 +95,11 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void UpdateTo(IWorld world, GLBufferTexture lightBuffer)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         m_vanillaFlood = world.Config.Render.VanillaFloodFill;
         m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats;
-        ClearData();
+        ClearData(world);
 
         if (!world.SameAsPreviousMap)
             m_skyRenderer.Reset();
@@ -172,6 +176,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         m_lightBuffer = lightBuffer;
+        stopwatch.Stop();
+        HelionLog.Info(stopwatch.Elapsed.TotalMilliseconds.ToString());
     }
 
     private void UpdateSectorPlaneFloodFill(Line line)
@@ -533,7 +539,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AllocateGeometryData(int textureHandle, bool repeat, out GeometryData data)
     {
         VertexArrayObject vao = new($"Geometry (handle {textureHandle}, repeat {repeat})");
-        StaticVertexBuffer<StaticVertex> vbo = new($"Geometry (handle {textureHandle}, repeat {repeat})");
+        StaticVertexBuffer<StaticVertex> vbo = new($"Geometry (handle {textureHandle}, repeat {repeat})", 1024);
 
         Attributes.BindAndApply(vbo, vao, m_program.Attributes);
 
@@ -546,8 +552,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_textureToGeometryLookup.Add(textureHandle, repeat, data);
     }
 
-    private void ClearData()
-    {
+    private void ClearData(IWorld world)
+    { 
         if (m_world != null)
         {
             m_world.SectorMoveStart -= World_SectorMoveStart;
@@ -558,11 +564,20 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_world = null;
         }
 
-        foreach (var data in m_geometry)
-            data.Dispose();
 
-        m_geometry.Clear();
-        m_textureToGeometryLookup.Clear();
+        if (world.SameAsPreviousMap)
+        {
+            for (int i = 0; i < m_geometry.Count; i++)
+                m_geometry[i].Vbo.Clear();
+        }
+        else
+        {
+            foreach (var data in m_geometry)
+                data.Dispose();
+            m_geometry.Clear();
+            m_textureToGeometryLookup.Clear();
+        }
+
         m_freeManager.Clear();
         m_skyRenderer.Clear();
         m_skyGeometry.Clear();
