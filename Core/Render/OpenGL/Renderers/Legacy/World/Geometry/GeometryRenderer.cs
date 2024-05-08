@@ -1405,7 +1405,6 @@ public class GeometryRenderer : IDisposable
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
         var data = WorldStatic.DataCache.GetWallVertices();
-        //LegacyVertex[] data = new LegacyVertex[6];
         // Our triangle is added like:
         //    0--2
         //    | /  3
