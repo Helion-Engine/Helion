@@ -37,7 +37,7 @@ public class GameLayerInput
         World = WorldAllocator.LoadMap("Resources/playermovement.zip", "playermovement.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
         InputManager = new InputManager();
         MockWindow window = new(InputManager);
-        HelionConsole console = new(World.Config);
+        HelionConsole console = new(new DataCache(), World.Config);
         SaveGameManager saveGameManager = new(World.Config, null);
         GameLayerManager = new(World.Config, window, console, new(), World.ArchiveCollection, World.SoundManager, saveGameManager, new());
 

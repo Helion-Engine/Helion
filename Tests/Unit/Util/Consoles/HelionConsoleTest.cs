@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Helion.Util;
 using Helion.Util.Consoles;
 using Xunit;
 
@@ -9,7 +10,7 @@ public class HelionConsoleTest
     [Fact(DisplayName = "Can add messages to the console")]
     public void AddMessages()
     {
-        using HelionConsole console = new();
+        using HelionConsole console = new(new DataCache());
 
         console.AddMessage("hello!");
 
@@ -20,7 +21,7 @@ public class HelionConsoleTest
     [Fact(DisplayName = "Add input to console")]
     public void AddInput()
     {
-        using HelionConsole console = new();
+        using HelionConsole console = new(new DataCache());
 
         console.AddInput("yes hi");
 
@@ -30,7 +31,7 @@ public class HelionConsoleTest
     [Fact(DisplayName = "Submit console input with new lines")]
     public void SubmitInputWithNewlines()
     {
-        using HelionConsole console = new();
+        using HelionConsole console = new(new DataCache());
         using var monitor = console.Monitor();
 
         console.AddInput("stuff a b\n");
@@ -49,7 +50,7 @@ public class HelionConsoleTest
     [Fact(DisplayName = "Submit console input manually")]
     public void SubmitInput()
     {
-        using HelionConsole console = new();
+        using HelionConsole console = new(new DataCache());
         using var monitor = console.Monitor();
 
         console.AddInput("stuff a b");
@@ -69,7 +70,7 @@ public class HelionConsoleTest
     [Fact(DisplayName = "Clear console input")]
     public void ClearInput()
     {
-        using HelionConsole console = new();
+        using HelionConsole console = new(new DataCache());
         using var monitor = console.Monitor();
 
         console.AddInput("stuff a b");
