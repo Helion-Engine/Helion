@@ -24,6 +24,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Impl.SinglePlayer;
+using Helion.World.Special;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
@@ -37,7 +38,7 @@ public class LegacyAutomapRenderer : IDisposable
     private readonly AutomapShader m_shader;
     private readonly List<DynamicArray<vec2>> m_colorEnumToLines = new();
     private readonly List<(int start, Vec3F color)> m_vboRanges = new();
-    private readonly DynamicArray<vec2> m_entityPoints = new();
+    private readonly DynamicArray<vec2> m_points = new();
     private float m_offsetX;
     private float m_offsetY;
     private int m_lastOffsetX;
@@ -147,6 +148,7 @@ public class LegacyAutomapRenderer : IDisposable
         PopulateColoredLines(world, player);
         PopulateThings(world, player, renderInfo);
         DrawEntity(player, renderInfo.TickFraction);
+        DrawHighlightAreas(world, renderInfo);
 
         if (world is SinglePlayerWorld singlePlayerWorld)
             DrawAutomapTracers(world, singlePlayerWorld.Player);
@@ -237,19 +239,10 @@ public class LegacyAutomapRenderer : IDisposable
             Vec2D start = line.StartPosition;
             Vec2D end = line.EndPosition;
 
-            if (!markedLine)
+            if (!markedLine && LockSpecialUtil.IsLockSpecial(line, out int key))
             {
-                if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise &&
-                    AddLockedLine(line.Args.Arg3, start, end))
-                    {
-                        continue;
-                    }
-
-                if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorGeneric &&
-                    AddLockedLine(line.Args.Arg4, start, end))
-                {
-                    continue;
-                }
+                AddLockedLine(key, start, end);
+                continue;
             }
 
             if (line.Back == null || line.Flags.Secret || line.Flags.Automap.AlwaysDraw)
@@ -373,22 +366,19 @@ public class LegacyAutomapRenderer : IDisposable
         if (EditorIds.IsPlayerStart(entity.Definition.EditorId) || entity.Definition.EditorId == (int)EditorId.DeathmatchStart)
             return;
 
-        m_entityPoints.Clear();
+        m_points.Clear();
 
         // We start with the arrow facing along the positive X axis direction.
         // This way, our rotation can be easily done.
         var center = entity.PrevPosition.Interpolate(entity.Position, interpolateFrac);
-        var (width, height) = entity.GetBox2D().Sides.Float;
+        var radius = (float)entity.Radius;
         var (centerX, centerY) = center.XY.Float;
-        float halfWidth = width / 2;
-        float halfHeight = height / 2;
-        float quarterWidth = width / 4;
-        float quarterHeight = height / 4;
+        float halfWidth = radius / 2;
+        float halfHeight = radius / 2;
+        float quarterWidth = radius / 4;
+        float quarterHeight = radius / 4;
 
-        mat4 rotate = mat4.Rotate((float)entity.AngleRadians, vec3.UnitZ);
-        mat4 translate = mat4.Translate(centerX, centerY, 0);
-        mat4 transform = translate * rotate;
-
+        mat4 transform = CreateTransform((float)entity.AngleRadians, centerX, centerY);
         AutomapColor color = AutomapColor.Green;
         bool flash = false;
 
@@ -414,52 +404,77 @@ public class LegacyAutomapRenderer : IDisposable
         if (entity.Definition.EditorId == (int)EditorId.TeleportLanding)
         {
             color = AutomapColor.Green;
-            AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight);
+            AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight, transform);
         }
         else if (flash)
         {
             // Draw a square for keys, make it flash
             if (WorldStatic.World.GameTicker / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
-                AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight);
+                AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight, transform);
         }
         else if (entity.IsPlayer)
         {
             color = AutomapColor.Green;
             // Main arrow from middle left to middle right
-            AddLine(-halfWidth, 0, halfWidth, 0);
+            AddLine(-halfWidth, 0, halfWidth, 0, transform);
 
             // Arrow from the right tip to the top middle at 45 degrees. Same
             // for the bottom one.
-            AddLine(halfWidth, 0, quarterWidth, quarterHeight);
-            AddLine(halfWidth, 0, quarterWidth, -quarterHeight);
+            AddLine(halfWidth, 0, quarterWidth, quarterHeight, transform);
+            AddLine(halfWidth, 0, quarterWidth, -quarterHeight, transform);
         }
         else
         {
-            AddLine(-halfWidth, quarterHeight, halfWidth, 0);
-            AddLine(-halfWidth, -quarterHeight, halfWidth, 0);
-            AddLine(-halfWidth, -quarterHeight, -halfWidth, quarterHeight);
+            AddLine(-halfWidth, quarterHeight, halfWidth, 0, transform);
+            AddLine(-halfWidth, -quarterHeight, halfWidth, 0, transform);
+            AddLine(-halfWidth, -quarterHeight, -halfWidth, quarterHeight, transform);
         }
 
         DynamicArray<vec2> array = m_colorEnumToLines[(int)color];
-        for (int i = 0; i < m_entityPoints.Length; i++)
-            array.Add(m_entityPoints[i]);
+        for (int i = 0; i < m_points.Length; i++)
+            array.Add(m_points[i]);
+    }
 
-        void AddSquare(float startX, float startY, float width, float height)
+    private void DrawHighlightAreas(IWorld world, RenderInfo renderInfo)
+    {
+        m_points.Clear();
+
+        foreach (var highlightArea in world.HighlightAreas)
         {
-            AddLine(startX, startY, startX, startY + height);
-            AddLine(startX, startY + height, startX + width, startY + height);
-            AddLine(startX + width, startY + height, startX + halfWidth, startY);
-            AddLine(startX + width, startY, startX, startY);
+            var pos = highlightArea.Position.Float;
+            float area = (float)highlightArea.Area * 1 / (float)renderInfo.AutomapScale;
+            float angle = (float)((world.GameTicker / 4) % MathHelper.HalfPi);
+            var halfWidth = area / 2;
+            AddSquare(-halfWidth, -halfWidth, area, area, CreateTransform(angle, pos.X, pos.Y));
         }
 
-        void AddLine(float startX, float startY, float endX, float endY)
-        {
-            vec4 s = transform * new vec4(startX, startY, 0, 1);
-            vec4 e = transform * new vec4(endX, endY, 0, 1);
+        DynamicArray<vec2> array = m_colorEnumToLines[(int)AutomapColor.Purple];
+        for (int i = 0; i < m_points.Length; i++)
+            array.Add(m_points[i]);
+    }
 
-            m_entityPoints.Add(s.xy);
-            m_entityPoints.Add(e.xy);
-        }
+    private static mat4 CreateTransform(float angleRadians, float centerX, float centerY)
+    {
+        mat4 rotate = mat4.Rotate(angleRadians, vec3.UnitZ);
+        mat4 translate = mat4.Translate(centerX, centerY, 0);
+        mat4 transform = translate * rotate;
+        return transform;
+    }
+
+    void AddSquare(float startX, float startY, float halfWidth, float height, mat4 transform)
+    {
+        AddLine(startX, startY, startX, startY + height, transform);
+        AddLine(startX, startY + height, startX + halfWidth, startY + height, transform);
+        AddLine(startX + halfWidth, startY + height, startX + halfWidth, startY, transform);
+        AddLine(startX + halfWidth, startY, startX, startY, transform);
+    }
+
+    void AddLine(float startX, float startY, float endX, float endY, mat4 transform)
+    {
+        vec4 s = transform * new vec4(startX, startY, 0, 1);
+        vec4 e = transform * new vec4(endX, endY, 0, 1);
+        m_points.Add(s.xy);
+        m_points.Add(e.xy);
     }
 
     private void TransferLineDataIntoBuffer(out Box2F box2F)

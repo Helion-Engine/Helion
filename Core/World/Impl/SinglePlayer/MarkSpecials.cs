@@ -6,6 +6,7 @@ using Helion.Util;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
 using Helion.World.Entities;
+using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
@@ -28,11 +29,14 @@ public class MarkSpecials
     public readonly DynamicArray<Line> MarkedLines = new();
     private readonly DynamicArray<int> m_playerTracers = new();
     private readonly Dictionary<int, List<Line>> m_tagToLines = new();
+    private readonly HashSet<int> m_searchedSectors = new();
     private bool m_mappedLineTags;
     private int m_lastLineId = -1;
     private int m_lastGametick = -1;
     private int m_ignoreGametick = -1;
     private int m_lineMarkColor;
+    private WeakEntity? m_lastKey;
+    private int m_lastKeyLineIndex = -1;
 
     public void Clear(Player player)
     {
@@ -140,10 +144,53 @@ public class MarkSpecials
         }
     }
 
+    public Entity? FindNextKey(IWorld world)
+    {
+        m_lastKeyLineIndex = -1;
+        var node = m_lastKey?.Entity?.Next ?? world.EntityManager.Head;
+        m_lastKey = null;
+        while (node != null)
+        {
+            if (node.Definition.IsType(Inventory.KeyClassName))
+            {
+                m_lastKey = WeakEntity.GetReference(node);
+                break;
+            }
+            node = node.Next;
+        }
+        return m_lastKey?.Entity;
+    }
+
+    public Line? FindNextKeyLine(IWorld world)
+    {
+        m_lastKey = null;
+        int start = m_lastKeyLineIndex + 1;
+        if (start >= world.Lines.Count)
+            start = 0;
+        for (int i = start; i < world.Lines.Count; i++)
+        {
+            var line = world.Lines[i];
+            if (line.Special == null)
+                continue;
+
+            if (LockSpecialUtil.IsLockSpecial(line, out _))
+            {
+                m_lastKeyLineIndex = i;
+                break;
+            }
+        }
+
+        if (m_lastKeyLineIndex == start - 1)
+        {
+            m_lastKeyLineIndex = -1;
+            return null;
+        }
+
+        return world.Lines[m_lastKeyLineIndex];
+    }
+
     private static bool IgnoreLineSpecial(Line line) =>
         !line.HasSpecial || (line.Flags.Activations & LineActivations.LevelStart) != 0;
-
-    private readonly HashSet<int> m_searchedSectors = new();
 
     private void TraverseIslandSpecialSectors(IWorld world, Entity entity, Island island)
     {

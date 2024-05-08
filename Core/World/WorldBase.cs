@@ -103,6 +103,7 @@ public abstract partial class WorldBase : IWorld
     public IList<Side> Sides => Geometry.Sides;
     public IList<Wall> Walls => Geometry.Walls;
     public IList<Sector> Sectors => Geometry.Sectors;
+    public IList<HighlightArea> HighlightAreas { get; } = new List<HighlightArea>();
     public CompactBspTree BspTree => Geometry.CompactBspTree;
     public EntityManager EntityManager { get; }
     public WorldSoundManager SoundManager { get; }
@@ -1879,6 +1880,33 @@ public abstract partial class WorldBase : IWorld
     }
 
     public void ResetGametick() => Gametick = 0;
+
+    public void FindNextKey()
+    {
+        HighlightAreas.Clear();
+        var key = MarkSpecials.FindNextKey(this);
+        if (key == null)
+        {
+            DisplayMessage("No more results");
+            return;
+        }
+
+        HighlightAreas.Add(new HighlightArea(key.Position, 112));
+    }
+
+    public void FindNextKeyLine()
+    {
+        HighlightAreas.Clear();
+        var keyLine = MarkSpecials.FindNextKeyLine(this);
+        if (keyLine == null)
+        {
+            DisplayMessage("No more results");
+            return;
+        }
+
+        var pos = keyLine.Segment.FromTime(0.5).To3D(Math.Max(keyLine.Front.Sector.Floor.Z, keyLine.Back?.Sector.Floor.Z ?? double.MinValue));
+        HighlightAreas.Add(new HighlightArea(pos, 112));
+    }
 
     private void ApplyExplosionDamageAndThrust(Entity source, Entity attackSource, Entity entity, double radius, int maxDamage, Thrust thrust,
         bool approxDistance2D)

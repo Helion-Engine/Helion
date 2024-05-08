@@ -199,6 +199,24 @@ public partial class Client
         }
     }
 
+    [ConsoleCommand("findkey", "Finds the next key in the map.")]
+    private void CommandFindKey(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        m_layerManager.WorldLayer.World.FindNextKey();
+    }
+
+    [ConsoleCommand("findkeyline", "Finds the next locked key line in the map.")]
+    private void CommandFindKeyLine(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        m_layerManager.WorldLayer.World.FindNextKeyLine();
+    }
+
     [ConsoleCommand("listdisplays", "Lists all available displays.")]
     private void CommandListDisplays(ConsoleCommandEventArgs args)
     {

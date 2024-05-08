@@ -66,6 +66,7 @@ public interface IWorld : IDisposable
     IList<Side> Sides { get; }
     IList<Wall> Walls { get; }
     IList<Sector> Sectors { get; }
+    IList<HighlightArea> HighlightAreas { get; }
     CompactBspTree BspTree { get; }
     IRandom Random { get; }
     // Used for randomization that should not affect demos
@@ -163,6 +164,8 @@ public interface IWorld : IDisposable
     void ResetGametick();
     void EntityTeleported(Entity entity);
     bool PlayLevelMusic(string name, byte[]? data);
+    void FindNextKey();
+    void FindNextKeyLine();
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();
