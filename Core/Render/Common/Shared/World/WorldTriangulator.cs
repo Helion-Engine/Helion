@@ -146,7 +146,7 @@ public static class WorldTriangulator
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight, prevTopZ, prevBottomZ);
     }
 
-    public static void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Dimension textureDimension,
+    public static void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Vec2F textureVector,
         DynamicArray<TriangulatedWorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
     {
         Precondition(subsector.ClockwiseEdges.Count >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
@@ -168,8 +168,8 @@ public static class WorldTriangulator
                     z = overrideZ;
 
                 Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
-                Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureDimension, previous: false);
-                Vec2F prevUV = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureDimension, previous: true);
+                Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: false);
+                Vec2F prevUV = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: true);
 
                 verticesToPopulate.Add(new TriangulatedWorldVertex(position, (float)prevZ, uv, prevUV));
             }
@@ -191,8 +191,8 @@ public static class WorldTriangulator
                     z = overrideZ;
 
                 Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
-                Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureDimension, previous: false);
-                Vec2F prevUV = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureDimension, previous: true);
+                Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: false);
+                Vec2F prevUV = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: true);
 
                 verticesToPopulate.Add(new TriangulatedWorldVertex(position, (float)prevZ, uv, prevUV));
             }
@@ -356,9 +356,10 @@ public static class WorldTriangulator
         return new WallUV(new Vec2F(leftU, topV), new Vec2F(rightU, bottomV));
     }
 
-    public static Vec2F CalculateFlatUV(SectorScrollData? scrollData, in Vec2D vertex, in Dimension textureDimension, bool previous)
+    public static Vec2F CalculateFlatUV(SectorScrollData? scrollData, in Vec2D vertex, in Vec2F textureVector, bool previous)
     {
-        Vec2F uv = vertex.Float / textureDimension.Vector.Float;
+        //Vec2F uv = vertex.Float / textureDimension.Vector.Float;
+        Vec2F uv = new((float)vertex.X / textureVector.X, (float)vertex.Y / textureVector.Y);
         if (scrollData != null)
         {
             Vec2F scrollAmount = previous ? scrollData.LastOffset.Float : scrollData.Offset.Float;

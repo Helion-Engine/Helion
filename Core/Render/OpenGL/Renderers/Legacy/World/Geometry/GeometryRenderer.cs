@@ -1047,6 +1047,7 @@ public class GeometryRenderer : IDisposable
         bool flatChanged = FlatChanged(flat);
         int id = subsectors[0].Sector.Id;
         Sector renderSector = subsectors[0].Sector.GetRenderSector(m_transferHeightsView);
+        var textureVector = new Vec2F(texture.Dimension.Vector.X, texture.Dimension.Vector.Y);
 
         if (isSky)
         {
@@ -1060,7 +1061,7 @@ public class GeometryRenderer : IDisposable
                     if (floor && subsector.Flood && !flat.MidTextureHack)
                         continue;
 
-                    WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices,
+                    WorldTriangulator.HandleSubsector(subsector, flat, textureVector, m_subsectorVertices,
                         floor ? flat.Z : MaxSky);
                     TriangulatedWorldVertex root = m_subsectorVertices[0];
                     m_skyVertices.Clear();
@@ -1102,7 +1103,7 @@ public class GeometryRenderer : IDisposable
                     if (subsector.Flood && !flat.MidTextureHack && subsector.Sector.TransferHeights == null)
                         continue;
 
-                    WorldTriangulator.HandleSubsector(subsector, flat, texture.Dimension, m_subsectorVertices);
+                    WorldTriangulator.HandleSubsector(subsector, flat, textureVector, m_subsectorVertices);
 
                     TriangulatedWorldVertex root = m_subsectorVertices[0];
                     m_vertices.Clear();
