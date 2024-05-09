@@ -111,6 +111,7 @@ public class SectorMoveSpecial : ISectorSpecial
         m_playedStartSound = model.PlayedStartSound;
         m_playedReturnSound = model.PlayedReturnSound;
         IsPaused = model.Paused;
+        IsDoor = model.Door;
 
         Sector.SetActiveMoveSpecial(MoveData.SectorMoveType, this);
         InitSpeeds();
