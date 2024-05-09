@@ -84,6 +84,15 @@ public sealed class Side : IRenderObject
         ScrollData = default;
         Colormaps = default;
         Offset = m_initialOffset;
+        LastRenderGametick = default;
+        LastRenderGametickAlpha = default;
+        BlockmapCount = default;
+        UpperFloodKeys = default;
+        LowerFloodKeys = default;
+        FloorFloodKey = default;
+        CeilingFloodKey = default;
+        BlockmapLinked = default;
+        MidTextureFlood = default;
 
         Upper.Reset();
         Middle.Reset();
