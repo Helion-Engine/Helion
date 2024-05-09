@@ -72,7 +72,6 @@ public abstract partial class WorldBase : IWorld
     private static BlockMap? LastBlockMap;
     private static BlockMap? LastRenderBlockMap;
     private static WorldSoundManager? LastWorldSoundManager;
-    private static List<DynamicArray<SoundLine>>? LastSoundLines;
 
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
@@ -207,7 +206,7 @@ public abstract partial class WorldBase : IWorld
 
         Blockmap = CreateBlockMap();
         RenderBlockmap = CreateRenderBlockMap();
-        m_soundLines = CreateSoundLines();
+        BuildSoundLines();
 
         SoundManager = CreateSoundManager();
         EntityManager = new EntityManager(this);
@@ -266,7 +265,7 @@ public abstract partial class WorldBase : IWorld
     {
         if (SameAsPreviousMap && LastBlockMap != null)
         {
-            LastBlockMap.Remap(Lines);
+            LastBlockMap.Clear();
             return LastBlockMap;
         }
 
@@ -278,38 +277,29 @@ public abstract partial class WorldBase : IWorld
     {
         if (SameAsPreviousMap && LastRenderBlockMap != null)
         {
-            LastRenderBlockMap.Remap(Array.Empty<Line>());
+            LastRenderBlockMap.Clear();
             return LastBlockMap;
         }
 
         LastRenderBlockMap = new BlockMap(Blockmap.Bounds, 512);
         return LastRenderBlockMap;
     }
-    private List<DynamicArray<SoundLine>> CreateSoundLines()
+    private void BuildSoundLines()
     {
-        if (SameAsPreviousMap && LastSoundLines != null)
-            return LastSoundLines;
-
-        if (LastSoundLines == null)
-            LastSoundLines = new(1024);
-
-        LastSoundLines.Clear();
+        if (SameAsPreviousMap)
+            return;
 
         for (int i = 0; i < Sectors.Count; i++)
         {
-            var soundLines = new DynamicArray<SoundLine>();
-            LastSoundLines.Add(soundLines);
             var sector = Sectors[i];
             for (int j = 0; j < sector.Lines.Count; j++)
             {
                 var line = sector.Lines[j];
                 if (line.Back == null)
                     continue;
-                soundLines.Add(new SoundLine(line.Front.Sector.Id, line.Back.Sector.Id, line.Flags.BlockSound));
+                sector.SoundLines.Add(new SoundLine(line.Front.Sector, line.Back.Sector, line.Flags.BlockSound));
             }
         }
-
-        return LastSoundLines;
     }
 
     private void SetupMusicChangers()
@@ -574,14 +564,15 @@ public abstract partial class WorldBase : IWorld
         sector.SoundBlock = block + 1;
         sector.SoundTarget = target;
 
-        var soundLines = m_soundLines[sector.Id];
+        //var soundLines = m_soundLines[sector.Id];
+        var soundLines = sector.SoundLines;
         fixed (SoundLine* startLine = &soundLines.Data[0])
         {
             for (int i = 0; i < soundLines.Length; i++)
             {
                 SoundLine* line = startLine + i;
-                var frontSector = Sectors[line->FrontSectorId];
-                var backSector = Sectors[line->BackSectorId];
+                var frontSector = line->Front;
+                var backSector = line->Back;
                 double minCeilingZ = frontSector.Ceiling.Z < backSector.Ceiling.Z ? frontSector.Ceiling.Z : backSector.Ceiling.Z;
                 double maxFloorZ = frontSector.Floor.Z < backSector.Floor.Z ? backSector.Floor.Z : frontSector.Floor.Z;
                 if (minCeilingZ - maxFloorZ <= 0)
@@ -2014,6 +2005,9 @@ public abstract partial class WorldBase : IWorld
 
     protected virtual void PerformDispose()
     {
+        foreach (var sector in Sectors)
+            sector.UnlinkFromWorld(this);
+
         IsDisposed = true;
         UnRegisterConfigChanges();
         SpecialManager.Dispose();

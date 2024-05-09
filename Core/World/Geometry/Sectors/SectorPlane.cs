@@ -35,6 +35,9 @@ public class SectorPlane : ISoundSource
     private IAudioSource? m_audio;
     private SoundInfo? m_soundInfo;
 
+    private readonly double m_initialZ;
+    private readonly int m_initialTextureHandle;
+
     public SectorPlane(int id, SectorPlaneFace facing, double z, int textureHandle, short lightLevel)
     {
         Id = id;
@@ -52,6 +55,21 @@ public class SectorPlane : ISoundSource
         // to a parent object, it will add itself for us. If this can be
         // fixed in the future with non-messy code, go for it.
         Sector = null !;
+        m_initialZ = z;
+        m_initialTextureHandle = textureHandle;
+    }
+
+    public void Reset(short lightLevel)
+    {
+        SetZ(m_initialZ);
+        PrevZ = m_initialZ;
+        m_audio = default;
+        m_soundInfo = default;
+        TextureHandle = m_initialTextureHandle;
+        LightLevel = lightLevel;
+        Dynamic = default;
+        Static = default;
+        SectorScrollData = default;
     }
 
     public void SetZ(double z)

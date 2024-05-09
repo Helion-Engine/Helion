@@ -34,24 +34,10 @@ public class BlockMap
         AddLinesToBlocks(lines);
     }
 
-    public unsafe void Remap(IList<Line> lines)
+    public unsafe void Clear()
     {
         foreach (var block in m_blocks.Blocks)
         {
-            for (int i = 0; i < block.BlockLines.Length; i++)
-            {
-                fixed (BlockLine* blockLine = &block.BlockLines.Data[i])
-                {
-                    var line = lines[blockLine->LineId];
-                    blockLine->Line = line;
-                    blockLine->FrontSector = line.Front.Sector;
-                    if (line.Back != null)
-                        blockLine->BackSector = line.Back.Sector;
-                    else
-                        blockLine->BackSector = null;
-                }
-            }
-
             // Note: Entities are unlinked using UnlinkFromWorld. Only need to dump the other data.
             
             var sectorNode = block.DynamicSectors.Head;

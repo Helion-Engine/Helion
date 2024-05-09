@@ -9,8 +9,8 @@ public class Wall
 {
     public readonly int Id;
     public readonly WallLocation Location;
-    public Side Side { get; internal set; }
-    public int TextureHandle { get; private set; }
+    public Side Side;
+    public int TextureHandle;
 
     public Line Line => Side.Line;
     public SectorDynamic Dynamic;
@@ -31,6 +31,13 @@ public class Wall
         // to a parent object, it will add itself for us. If this can be
         // fixed in the future with non-messy code, go for it.
         Side = null !;
+    }
+
+    public void Reset()
+    {
+        Dynamic = default;
+        Static = default;
+        Sky = default;
     }
 
     public void SetTexture(int texture, SideDataTypes type)

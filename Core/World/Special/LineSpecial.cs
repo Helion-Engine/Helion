@@ -23,7 +23,6 @@ public class LineSpecial
 
     public ZDoomLineSpecialType LineSpecialType { get; private set; }
     public LineSpecialCompatibility LineSpecialCompatibility { get; private set; }
-    public bool Active { get; set; }
     private bool m_moveSpecial;
     private bool m_sectorStopMove;
     private bool m_lightSpecial;
@@ -97,8 +96,6 @@ public class LineSpecial
     public bool CanActivate(Entity entity, Line line, ActivationContext context, LockDefinitions lockDefinitions, out LockDef? lockFail)
     {
         lockFail = null;
-        if (Active)
-            return false;
 
         if (entity.Flags.NoTeleport && IsTeleport())
             return false;

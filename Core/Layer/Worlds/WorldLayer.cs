@@ -42,6 +42,7 @@ public partial class WorldLayer : IGameLayerParent
     private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static string LastMapName = string.Empty;
+    private static MapGeometry? LastMapGeometry;
     private static IslandGeometry LastIslandGeometry = new();
 
     record class MapCompatibility(string Name, string MapName, string MD5, IList<(FieldInfo, bool)> Values);
@@ -227,9 +228,17 @@ public partial class WorldLayer : IGameLayerParent
         Player? existingPlayer, WorldModel? worldModel, IRandom? random, bool unitTest = false, bool sameAsPreviousMap = false)
     {
         archiveCollection.InitTextureManager(mapDef, unitTest);
-        MapGeometry? geometry = GeometryBuilder.Create(map, config, archiveCollection.TextureManager);
+
+        MapGeometry? geometry;
+        if (sameAsPreviousMap && LastMapGeometry != null)
+            geometry = GetGeometryAndReset(LastMapGeometry);
+        else
+            geometry = GeometryBuilder.Create(map, config, archiveCollection.TextureManager);
+
         if (geometry == null)
             return null;
+
+        LastMapGeometry = geometry;
 
         if (sameAsPreviousMap)
         {
@@ -252,6 +261,23 @@ public partial class WorldLayer : IGameLayerParent
         }
 
         return null;
+    }
+
+    private static MapGeometry? GetGeometryAndReset(MapGeometry mapGeometry)
+    {
+        int count = mapGeometry.Lines.Count;
+        for (int i = 0; i < count; i++)
+            mapGeometry.Lines[i].Reset();
+
+        count = mapGeometry.Sides.Count;
+        for (int i = 0; i < count; i++)
+            mapGeometry.Sides[i].Reset();
+
+        count = mapGeometry.Sectors.Count;
+        for (int i = 0; i < count; i++)
+            mapGeometry.Sectors[i].Reset();
+
+        return mapGeometry;
     }
 
     private static IList<(FieldInfo, bool)> GetConfigCompatProperties(params (string, bool)[] items)

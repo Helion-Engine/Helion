@@ -53,6 +53,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferData = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferDataClamp = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
+    private readonly List<Sector> m_initMoveSectors = new();
 
     private bool m_disposed;
     private IWorld? m_world;
@@ -95,8 +96,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void UpdateTo(IWorld world, GLBufferTexture lightBuffer)
     {
-        var stopwatch = Stopwatch.StartNew();
-
         m_vanillaFlood = world.Config.Render.VanillaFloodFill;
         m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats;
         ClearData(world);
@@ -138,24 +137,26 @@ public class StaticCacheGeometryRenderer : IDisposable
                 AddSectorPlane(sector, true);
             if ((sector.Ceiling.Dynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, false);
+
+            if (sector.IsMoving)
+                m_initMoveSectors.Add(sector);
         }
 
         for (int i = 0; i < world.Lines.Count; i++)
             AddLine(world.Lines[i]);
 
-        for (int i = 0; i < world.Sectors.Count; i++)
+        // Sectors can be actively moving loading a save game.
+        WorldBase worldBase = (WorldBase)world;
+        for (int i = 0; i < m_initMoveSectors.Count; i++)
         {
             var sector = world.Sectors[i];
-            // Sectors can be actively moving loading a save game.
-            if (!sector.IsMoving)
-                continue;
-
-            WorldBase worldBase = (WorldBase)world;
             if (sector.ActiveFloorMove != null)
                 HandleSectorMoveStart(worldBase, sector.Floor);
             if (sector.ActiveCeilingMove != null)
                 HandleSectorMoveStart(worldBase, sector.Ceiling);
         }
+
+        m_initMoveSectors.Clear();
 
         foreach (var data in m_geometry)
         {
@@ -176,8 +177,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         m_lightBuffer = lightBuffer;
-        stopwatch.Stop();
-        HelionLog.Info(stopwatch.Elapsed.TotalMilliseconds.ToString());
     }
 
     private void UpdateSectorPlaneFloodFill(Line line)

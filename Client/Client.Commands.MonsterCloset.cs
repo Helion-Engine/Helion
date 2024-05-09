@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry.Boxes;
 using Helion.Util.Loggers;
+using Helion.World;
 
 namespace Helion.Client;
 
@@ -51,7 +52,7 @@ public partial class Client
                 continue;
 
             IEnumerable<Sector> sectors = island.Subsectors.Where(x => x.SectorId != null).Select(x => world.Sectors[x.SectorId!.Value]).Distinct()!;
-            infoList.Add(new(count, CountEntities(island), GetIslandBox(island),
+            infoList.Add(new(count, CountEntities(world, island), island.Box,
                 string.Join(", ", sectors.Select(x => x.Id))));
             count++;
         }
@@ -70,40 +71,18 @@ public partial class Client
             HelionLog.Info($"Bounds: {info.Box}");
             HelionLog.Info($"Sectors: {info.Sectors}");
         }
+    }
 
-        int CountEntities(Island island)
+    static int CountEntities(IWorld world, Island island)
+    {
+        int count = 0;
+        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
-            int count = 0;
-            HashSet<BspSubsector> subsectors = island.Subsectors.ToHashSet();
-
-            for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
-            {
-                BspSubsector subsector = world.Geometry.BspTree.Find(entity.CenterPoint);
-                if (subsectors.Contains(subsector))
-                    count++;
-            }
-            return count;
+            var subsector = world.Geometry.BspTree.Subsectors[entity.Subsector.Id];
+            var findIsland = world.Geometry.IslandGeometry.Islands[subsector.IslandId];
+            if (findIsland.Id == island.Id)
+                count++;
         }
-
-        Box2D GetIslandBox(Island island)
-        {
-            Vec2D min = new(double.MaxValue, double.MaxValue);
-            Vec2D max = new(double.MinValue, double.MinValue);
-
-            foreach (var subsector in island.Subsectors)
-            {
-                if (subsector.Box.Min.X < min.X)
-                    min.X = subsector.Box.Min.X;
-                if (subsector.Box.Min.Y < min.Y)
-                    min.Y = subsector.Box.Min.Y;
-
-                if (subsector.Box.Max.X > max.X)
-                    max.X = subsector.Box.Max.X;
-                if (subsector.Box.Min.Y > max.Y)
-                    max.Y = subsector.Box.Max.Y;
-            }
-
-            return new Box2D(min, max);
-        }
+        return count;
     }
 }

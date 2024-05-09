@@ -33,12 +33,10 @@ public sealed class Line
     public LineDataTypes DataChanges;
     public float Alpha;
     public bool DataChanged => DataChanges > 0;
-    // Rendering hax...
-    public bool Sky;
     public int BlockmapCount;
     public int PhysicsCount;
-    private double? m_length;
     public bool MarkAutomap;
+    private double? m_length;
 
     public Vec2D StartPosition => Segment.Start;
     public Vec2D EndPosition => Segment.End;
@@ -52,9 +50,6 @@ public sealed class Line
     public int DelayArg => Args.Arg2;
     public int AmountArg => Args.Arg2;
     public bool SeenForAutomap => (DataChanges & LineDataTypes.Automap) != 0;
-    public IEnumerable<Sector> Sectors => Sides.Select(s => s.Sector);
-    public IEnumerable<Side> Sides => GetSides();
-    public IEnumerable<Vec2D> Vertices => GetVertices();
 
     public Line(int id, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial,
         SpecialArgs args)
@@ -76,6 +71,16 @@ public sealed class Line
             back.Line = this;
             back.Sector.Lines.Add(this);
         }
+    }
+
+    public void Reset()
+    {
+        Alpha = 1;
+        Activated = default;
+        DataChanges = default;
+        BlockmapCount = default;
+        PhysicsCount = default;
+        MarkAutomap = false;
     }
 
     // Same as Segment.Length, but caches the value.
@@ -209,19 +214,6 @@ public sealed class Line
     public void MarkSeenOnAutomap()
     {
         DataChanges |= LineDataTypes.Automap;
-    }
-
-    private IEnumerable<Vec2D> GetVertices()
-    {
-        yield return Segment.Start;
-        yield return Segment.End;
-}
-
-    private IEnumerable<Side> GetSides()
-    {
-        yield return Front;
-        if (Back != null)
-            yield return Back;
     }
 
     public override string ToString()

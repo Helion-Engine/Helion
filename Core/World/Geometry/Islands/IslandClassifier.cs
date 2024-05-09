@@ -37,6 +37,7 @@ public static class IslandClassifier
 
     public static List<Island> Classify(List<BspSubsector> subsectors, List<Sector> sectors, int sectorId = -1)
     {
+        IslandId = 0;
         List<Island> islands = new();
 
         foreach (BspSubsector subsector in subsectors)

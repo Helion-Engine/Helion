@@ -25,14 +25,14 @@ namespace Helion.World.Geometry.Sectors;
 
 public readonly record struct SoundLine
 {
-    public readonly int FrontSectorId;
-    public readonly int BackSectorId;
+    public readonly Sector Front;
+    public readonly Sector Back;
     public readonly bool BlockSound;
 
-    public SoundLine(int front, int back, bool blockSound)
+    public SoundLine(Sector front, Sector back, bool blockSound)
     {
-        FrontSectorId = front;
-        BackSectorId = back;
+        Front = front;
+        Back = back;
         BlockSound = blockSound;
     }
 }
@@ -51,6 +51,7 @@ public sealed class Sector
     public readonly List<Line> Lines = new();
     public readonly LinkableList<Entity> Entities = new();
     public List<LinkableNode<Sector>> BlockmapNodes = new();
+    public DynamicArray<SoundLine> SoundLines = new();
     public Island Island = null!;
 
     public short LightLevel { get; set; }
@@ -95,6 +96,10 @@ public sealed class Sector
 
     private Box2D? m_boundingBox;
 
+    private readonly short m_initialLightLevel;
+    private readonly SectorEffect m_initialSectorEffect;
+    private readonly InstantKillEffect m_initialKillEffect;
+
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
         ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)
     {
@@ -112,6 +117,33 @@ public sealed class Sector
         ceiling.Sector = this;
         TransferFloorLightSector = this;
         TransferCeilingLightSector = this;
+        m_initialLightLevel = lightLevel;
+        m_initialSectorEffect = SectorEffect;
+        m_initialKillEffect = KillEffect;
+    }
+
+    public void Reset()
+    {
+        DataChanges = default;
+        SoundTarget = WeakEntity.Default;
+        Friction = Constants.DefaultFriction;
+        LightLevel = m_initialLightLevel;
+        SectorEffect = m_initialSectorEffect;
+        KillEffect = m_initialKillEffect;
+        TransferFloorLightSector = this;
+        TransferCeilingLightSector = this;
+        RenderLightChangeGametick = default;
+        LastRenderGametick = default;
+        RenderGametick = default;
+        BlockmapCount = default;
+        SoundValidationCount = default;
+        CheckCount = default;
+        MarkAutomap = default;
+        ActiveFloorMove = default;
+        ActiveCeilingMove = default;
+        ActivatedByLineId = -1;
+        Floor.Reset(m_initialLightLevel);
+        Ceiling.Reset(m_initialLightLevel);
     }
 
     public static Sector CreateDefault() =>

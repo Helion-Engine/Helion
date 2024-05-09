@@ -79,6 +79,7 @@ public class GeometryRenderer : IDisposable
     // List of each subsector mapped to a sector id
     private DynamicArray<Subsector>[] m_subsectors = Array.Empty<DynamicArray<Subsector>>();
     private int[] m_drawnSides = Array.Empty<int>();
+    private float[] m_lightBufferData = Array.Empty<float>();
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
@@ -129,29 +130,35 @@ public class GeometryRenderer : IDisposable
         FreeVertexWallLookup(m_vertexUpperLookup);
         FreeSkyWallLookup(m_skyWallVertexLowerLookup);
         FreeSkyWallLookup(m_skyWallVertexUpperLookup);
+        FreeFlatVertices(m_vertexFloorLookup);
+        FreeFlatVertices(m_vertexCeilingLookup);
+        FreeSkyFlatVertices(m_skyFloorVertexLookup);
+        FreeSkyFlatVertices(m_skyCeilingVertexLookup);
 
-        m_vertexLookup = new LegacyVertex[world.Sides.Count][];
-        m_vertexLowerLookup = new LegacyVertex[world.Sides.Count][];
-        m_vertexUpperLookup = new LegacyVertex[world.Sides.Count][];
-        m_skyWallVertexLowerLookup = new SkyGeometryVertex[world.Sides.Count][];
-        m_skyWallVertexUpperLookup = new SkyGeometryVertex[world.Sides.Count][];
+        if (!world.SameAsPreviousMap)
+        {
+            m_vertexLookup = new LegacyVertex[world.Sides.Count][];
+            m_vertexLowerLookup = new LegacyVertex[world.Sides.Count][];
+            m_vertexUpperLookup = new LegacyVertex[world.Sides.Count][];
+            m_skyWallVertexLowerLookup = new SkyGeometryVertex[world.Sides.Count][];
+            m_skyWallVertexUpperLookup = new SkyGeometryVertex[world.Sides.Count][];
 
-        m_subsectors = new DynamicArray<Subsector>[world.Sectors.Count];
-        for (int i = 0; i < world.Sectors.Count; i++)
-            m_subsectors[i] = new();
+            m_vertexFloorLookup = new(3);
+            m_vertexCeilingLookup = new(3);
+            m_skyFloorVertexLookup = new(3);
+            m_skyCeilingVertexLookup = new(3);
 
-        m_drawnSides = new int[world.Sides.Count];
+            m_subsectors = new DynamicArray<Subsector>[world.Sectors.Count];
+            for (int i = 0; i < world.Sectors.Count; i++)
+                m_subsectors[i] = new();
 
-        m_vertexFloorLookup = new(3);
-        m_vertexCeilingLookup = new(3);
-        m_skyFloorVertexLookup = new(3);
-        m_skyCeilingVertexLookup = new(3);
+            m_drawnSides = new int[world.Sides.Count];
+            const int FloatSize = 4;
+            m_lightBufferData = new float[world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize)];
+        }
 
         m_lightBuffer?.Dispose();
-        const int FloatSize = 4;
-        m_lightBuffer = new("Sector lights texture buffer",
-            world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize), 
-            GlVersion.IsVersionSupported(4, 4));
+        m_lightBuffer = new("Sector lights texture buffer", m_lightBufferData, GlVersion.IsVersionSupported(4, 4));
 
         for (int i = 0; i < world.Sides.Count; i++)
             m_drawnSides[i] = -1;
@@ -174,6 +181,7 @@ public class GeometryRenderer : IDisposable
             if (data == null)
                 continue;
             m_world.DataCache.FreeWallVertices(data);
+            vertices[i] = null;
         }
     }
 
@@ -185,39 +193,42 @@ public class GeometryRenderer : IDisposable
             if (data == null)
                 continue;
             m_world.DataCache.FreeSkyWallVertices(data);
+            vertices[i] = null;
         }
     }
 
     private void FreeFlatVertices(DynamicArray<LegacyVertex[][]?> data)
     {
-        for (int i = 0; i < 3; i ++)
+        for (int i = 0; i < data.Capacity; i ++)
         {
             var lookup = data[i];
             if (lookup == null)
                 continue;
             for (int j = 0; j < lookup.Length; j++)
             {
-                var array = lookup[j];
-                if (array == null)
+                var vertices = lookup[j];
+                if (vertices == null)
                     continue;
-                m_world.DataCache.FreeFlatVertices(array);
+                m_world.DataCache.FreeFlatVertices(vertices);
+                lookup[j] = null;
             }
         }
     }
 
     private void FreeSkyFlatVertices(DynamicArray<SkyGeometryVertex[][]?> data)
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < data.Capacity; i++)
         {
             var lookup = data[i];
             if (lookup == null)
                 continue;
             for (int j = 0; j < lookup.Length; j++)
             {
-                var array = lookup[j];
-                if (array == null)
+                var vertices = lookup[j];
+                if (vertices == null)
                     continue;
-                m_world.DataCache.FreeSkyFlatVertices(array);
+                m_world.DataCache.FreeSkyFlatVertices(vertices);
+                lookup[j] = null;
             }
         }
     }

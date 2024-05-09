@@ -52,6 +52,8 @@ public sealed class Side : IRenderObject
     public bool BlockmapLinked;
     public SectorPlanes MidTextureFlood;
 
+    private readonly Vec2I m_initialOffset;
+
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
     {
         Id = id;
@@ -65,6 +67,8 @@ public sealed class Side : IRenderObject
         middle.Side = this;
         lower.Side = this;
 
+        m_initialOffset = offset;
+
         // We are okay with things blowing up violently if someone forgets
         // to assign it, because that is such a critical error on the part
         // of the developer if this ever happens that it's deserved. Fixing
@@ -72,6 +76,18 @@ public sealed class Side : IRenderObject
         // to a parent object, it will add itself for us. If this can be
         // fixed in the future with non-messy code, go for it.
         Line = null !;
+    }
+
+    public void Reset()
+    {
+        DataChanges = default;
+        ScrollData = default;
+        Colormaps = default;
+        Offset = m_initialOffset;
+
+        Upper.Reset();
+        Middle.Reset();
+        Lower.Reset();
     }
 
     public void SetAllWallsDynamic(SectorDynamic sectorDynamic)

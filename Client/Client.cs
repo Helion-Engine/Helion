@@ -30,7 +30,6 @@ using NLog;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using Helion.Util.Loggers;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client;

@@ -1,9 +1,10 @@
-﻿using Helion.World.Bsp;
+﻿using Helion.Geometry.Vectors;
+using Helion.Util.Loggers;
+using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Helion.World.Geometry.Islands;
 
@@ -17,7 +18,7 @@ public static class ClosetClassifier
         {
             for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
             {
-                var subsector = world.Geometry.BspTree.Find(entity.Position);
+                var subsector = world.Geometry.BspTree.Subsectors[entity.Subsector.Id];
                 if (subsector.IslandId < 0 || subsector.IslandId >= world.Geometry.IslandGeometry.Islands.Count)
                     continue;
                 var island = world.Geometry.IslandGeometry.Islands[subsector.IslandId];
@@ -63,8 +64,8 @@ public static class ClosetClassifier
 
         for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
-            BspSubsector subsector = world.Geometry.BspTree.Find(entity.Position);
-            List<Entity> entities = islandToEntity[subsector.IslandId];
+            var subsector = world.Geometry.BspTree.Subsectors[entity.Subsector.Id];
+            var entities = islandToEntity[subsector.IslandId];
             entities.Add(entity);
             entityToSubsector[entity.Id] = subsector;
         }
@@ -127,6 +128,8 @@ public static class ClosetClassifier
         const int MaxBridgeLines = 6;
 
         HashSet<Sector> bridges = new();
+        HashSet<Vec2D> vertices = new();
+        List<Line> twoSidedLines = new();
 
         foreach (Sector sector in sectors)
         {
@@ -141,10 +144,23 @@ public static class ClosetClassifier
             // (2 two-sided lines), and they must not be touching (which means there are
             // exactly 4 vertices for both two-sided lines, since if they do touch, then
             // they share a vertex, and that means there are 3 unique vertices and not 4).
-            IEnumerable<Line> twoSidedLines = sector.Lines.Where(l => l.TwoSided);
-            if (twoSidedLines.Count() != 2)
+            twoSidedLines.Clear();
+            foreach (var line in sector.Lines)
+            {
+                if (line.Back == null)
+                    twoSidedLines.Add(line);
+            }
+            if (twoSidedLines.Count != 2)
                 continue;
-            if (twoSidedLines.SelectMany(l => l.Vertices).Distinct().Count() != 4)
+
+            vertices.Clear();
+            foreach (var line in twoSidedLines)
+            {
+                vertices.Add(line.Segment.Start);
+                vertices.Add(line.Segment.End);
+            }
+
+            if (vertices.Count != 4)
                 continue;
 
             bridges.Add(sector);
