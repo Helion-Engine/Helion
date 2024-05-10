@@ -50,6 +50,7 @@ public sealed class Side : IRenderObject
     public int FloorFloodKey;
     public int CeilingFloodKey;
     public bool BlockmapLinked;
+    public bool UpperSky;
     public SectorPlanes MidTextureFlood;
 
     private readonly Vec2I m_initialOffset;
@@ -93,6 +94,7 @@ public sealed class Side : IRenderObject
         CeilingFloodKey = default;
         BlockmapLinked = default;
         MidTextureFlood = default;
+        UpperSky = default;
 
         Upper.Reset();
         Middle.Reset();
