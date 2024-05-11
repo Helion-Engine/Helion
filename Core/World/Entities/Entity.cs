@@ -77,8 +77,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public object LowestCeilingObject;
     public double LowestCeilingZ;
     public double HighestFloorZ;
-    public readonly DynamicArray<Sector> IntersectSectors = new();
-    public readonly DynamicArray<Sector> IntersectMovementSectors = new();
+    public DynamicArray<Sector> IntersectSectors = new();
+    public DynamicArray<Sector> IntersectMovementSectors = new();
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
@@ -116,7 +116,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool IsBlocked() => BlockingEntity != null || BlockingLine != null || BlockingSectorPlane != null;
     public readonly DynamicArray<LinkableNode<Entity>> BlockmapNodes = new();
     public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new();
-    public bool IsDisposed { get; private set; }
+    public bool IsDisposed;
 
     // Temporary storage variable for handling PhysicsManager.SectorMoveZ
     public double SaveZ;
@@ -138,7 +138,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
     public double TopZ => Position.Z + Height;
 
-    public readonly IAudioSource?[] SoundChannels = new IAudioSource[MaxSoundChannels];
+    public IAudioSource?[] SoundChannels = new IAudioSource[MaxSoundChannels];
 
     public Entity()
     {
