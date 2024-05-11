@@ -252,8 +252,9 @@ public partial class WorldLayer : IGameLayerParent
 
         try
         {
+            bool reuse = !unitTest;
             return new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, profiler, geometry,
-                mapDef, skillDef, map, sameAsPreviousMap, existingPlayer, worldModel, random);
+                mapDef, skillDef, map, sameAsPreviousMap, existingPlayer, worldModel, random, reuse);
         }
         catch (HelionException e)
         {

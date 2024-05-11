@@ -33,25 +33,24 @@ public class EntityManager : IDisposable
             Entities = entities;
         }
 
-        public readonly IList<Player> Players;
-        public readonly Dictionary<int, EntityModelPair> Entities;
+        public IList<Player> Players;
+        public Dictionary<int, EntityModelPair> Entities;
     }
 
     public const int NoTid = 0;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public Entity? Head;
-    public readonly LinkedList<Entity> TeleportSpots = new();
-    public readonly SpawnLocations SpawnLocations;
-    public IWorld World;
-    
-    private readonly Dictionary<int, ISet<Entity>> TidToEntity = new();
+    public LinkedList<Entity> TeleportSpots = new();
+    public SpawnLocations SpawnLocations;
+    public IWorld World;    
 
-    public readonly EntityDefinitionComposer DefinitionComposer;
-    public readonly List<Player> Players = new();
-    public readonly List<Player> VoodooDolls = new();
-    public readonly List<Entity> MusicChangers = new();
-    private readonly LookupArray<Player?> RealPlayersByNumber = new();
+    public EntityDefinitionComposer DefinitionComposer;
+    public List<Player> Players = new();
+    public List<Player> VoodooDolls = new();
+    public List<Entity> MusicChangers = new();
+    private LookupArray<Player?> RealPlayersByNumber = new();
+    private readonly Dictionary<int, ISet<Entity>> TidToEntity = new();
 
     private int m_id;
 

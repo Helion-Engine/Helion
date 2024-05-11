@@ -55,13 +55,13 @@ public sealed class PhysicsManager
     private EntityManager m_entityManager;
     private IRandom m_random;
     private int[] m_checkedBlockLines;
+    private bool m_alwaysStickEntitiesToFloor;
     private readonly LineOpening m_lineOpening = new();
     private readonly DynamicArray<Entity> m_crushEntities = new();
     private readonly DynamicArray<Entity> m_sectorMoveEntities = new();
     private readonly DynamicArray<Entity> m_onEntities = new();
     private readonly Comparison<Entity> m_sectorMoveOrderComparer = new(SectorEntityMoveOrderCompare);
     private readonly DynamicArray<Entity> m_stackCrush = new();
-    private readonly bool m_alwaysStickEntitiesToFloor;
 
     private MoveLinkData m_moveLinkData;
     private CanPassData m_canPassData;
@@ -95,6 +95,7 @@ public sealed class PhysicsManager
         m_blockmapBlocks = m_blockmapGrid.Blocks;
         m_entityManager = world.EntityManager;
         m_random = random;
+        m_alwaysStickEntitiesToFloor = alwaysStickEntitiesToFloor;
         BlockmapTraverser.UpdateTo(world, blockmap);
         if (world.Lines.Count > m_checkedBlockLines.Length)
             m_checkedBlockLines = new int[m_world.Lines.Count];

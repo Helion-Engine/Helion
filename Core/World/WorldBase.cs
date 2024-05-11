@@ -212,9 +212,9 @@ public abstract partial class WorldBase : IWorld
         BuildSoundLines();
 
         SoundManager = CreateSoundManager();
-        EntityManager = CreateEntityManager();
+        EntityManager = CreateEntityManager(reuse);
         PhysicsManager = CreatePhysicsManager();
-        SpecialManager = CreateSpecialManager();
+        SpecialManager = CreateSpecialManager(reuse);
 
         WorldStatic.FlushIntersectionReferences();
         IsFastMonsters = skillDef.IsFastMonsters(config);
@@ -252,9 +252,9 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    private SpecialManager CreateSpecialManager()
+    private SpecialManager CreateSpecialManager(bool reuse)
     {
-        if (LastSpecialManager != null)
+        if (reuse && LastSpecialManager != null)
         {
             LastSpecialManager.UpdateTo(this, m_random);
             return LastSpecialManager;
@@ -276,9 +276,9 @@ public abstract partial class WorldBase : IWorld
         return LastPhysicManager;
     }
 
-    private EntityManager CreateEntityManager()
+    private EntityManager CreateEntityManager(bool reuse)
     {
-        if (LastEntityManager != null)
+        if (reuse && LastEntityManager != null)
         {
             LastEntityManager.UpdateTo(this);
             return LastEntityManager;

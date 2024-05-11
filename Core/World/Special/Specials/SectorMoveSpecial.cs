@@ -16,22 +16,22 @@ namespace Helion.World.Special.Specials;
 public class SectorMoveSpecial : ISectorSpecial
 {
     public Sector Sector { get; set; }
-    public SectorPlane SectorPlane { get; set; }
-    public SectorMoveData MoveData { get; protected set; }
-    public SectorSoundData SoundData { get; protected set; }
+    public SectorPlane SectorPlane;
+    public SectorMoveData MoveData;
+    public SectorSoundData SoundData;
     public bool IsPaused { get; private set; }
-    public SectorMoveStatus MoveStatus { get; private set; }
-    public MoveDirection MoveDirection => m_direction;
-    public int DelayTics { get; protected set; }
-    public double MoveSpeed => m_speed;
-    public bool IsCrushing => m_crushing;
+    public SectorMoveStatus MoveStatus;
+    public MoveDirection MoveDirection;
+    public int DelayTics;
+    public double MoveSpeed;
+    public bool IsCrushing;
     // If this sector started out with the ceiling clipped through the floor
-    public bool StartClipped { get; private set; }
+    public bool StartClipped;
+    public bool IsInitialMove = true;
     public virtual bool OverrideEquals => true;
-    public bool IsInitialMove { get; protected set; } = true;
     public virtual bool MultiSector => false;
     public virtual void GetSectors(List<(Sector, SectorPlane)> data) { }
-    public double DestZ { get; protected set; }
+    public double DestZ;
     public bool IsDoor;
 
     protected IWorld m_world;
@@ -39,11 +39,8 @@ public class SectorMoveSpecial : ISectorSpecial
     private double m_startZ;
     private double m_minZ;
     private double m_maxZ;
-    private MoveDirection m_direction;
-    private double m_speed;
     private double m_startSpeed;
     private double m_returnSpeed;
-    private bool m_crushing;
     private bool m_playedReturnSound;
     private bool m_playedStartSound;
 
@@ -69,10 +66,10 @@ public class SectorMoveSpecial : ISectorSpecial
         m_startZ = start;
         DestZ = dest;
 
-        m_direction = MoveData.StartDirection;
+        MoveDirection = MoveData.StartDirection;
         InitSpeeds();
         InitStartClip();
-        m_speed = m_startSpeed;
+        MoveSpeed = m_startSpeed;
 
         m_minZ = Math.Min(m_startZ, DestZ);
         m_maxZ = Math.Max(m_startZ, DestZ);
@@ -104,10 +101,10 @@ public class SectorMoveSpecial : ISectorSpecial
         DestZ = model.DestZ;
         m_minZ = model.MinZ;
         m_maxZ = model.MaxZ;
-        m_speed = model.CurrentSpeed;
+        MoveSpeed = model.CurrentSpeed;
         DelayTics = model.DelayTics;
-        m_direction = (MoveDirection)model.Direction;
-        m_crushing = model.Crushing;
+        MoveDirection = (MoveDirection)model.Direction;
+        IsCrushing = model.Crushing;
         m_playedStartSound = model.PlayedStartSound;
         m_playedReturnSound = model.PlayedReturnSound;
         IsPaused = model.Paused;
@@ -123,7 +120,7 @@ public class SectorMoveSpecial : ISectorSpecial
     // If setting the plane to destZ would complete this move.
     public bool IsFinalDestination(double destZ)
     {
-        if (m_direction == MoveDirection.Down)
+        if (MoveDirection == MoveDirection.Down)
             return destZ <= DestZ;
 
         return destZ >= DestZ;
@@ -169,14 +166,14 @@ public class SectorMoveSpecial : ISectorSpecial
             ReturnSound = SoundData.ReturnSound,
             StopSound = SoundData.StopSound,
             MovementSound = SoundData.MovementSound,
-            CurrentSpeed = m_speed,
+            CurrentSpeed = MoveSpeed,
             DestZ = DestZ,
             StartZ = m_startZ,
             MinZ = m_minZ,
             MaxZ = m_maxZ,
             DelayTics = DelayTics,
-            Direction = (int)m_direction,
-            Crushing = m_crushing,
+            Direction = (int)MoveDirection,
+            Crushing = IsCrushing,
             PlayedReturnSound = m_playedReturnSound,
             PlayedStartSound = m_playedStartSound,
             Paused = IsPaused,
@@ -277,7 +274,7 @@ public class SectorMoveSpecial : ISectorSpecial
             return SpecialTickStatus.Destroy;
         }
 
-        if (IsDelayReturn && SectorPlane.Z == m_startZ && m_direction != MoveData.StartDirection)
+        if (IsDelayReturn && SectorPlane.Z == m_startZ && MoveDirection != MoveData.StartDirection)
         {
             StopMovementSound();
             Sector.ClearActiveMoveSpecial(MoveData.SectorMoveType);
@@ -292,7 +289,7 @@ public class SectorMoveSpecial : ISectorSpecial
 
     private bool CheckInstantMove(double destZ)
     {
-        return Math.Abs(destZ - SectorPlane.PrevZ) > Math.Abs(m_speed);
+        return Math.Abs(destZ - SectorPlane.PrevZ) > Math.Abs(MoveSpeed);
     }
 
     private void StopMovementSound()
@@ -328,7 +325,7 @@ public class SectorMoveSpecial : ISectorSpecial
                 CreateSound(SoundData.MovementSound, true);
         }
 
-        if (m_direction != MoveData.StartDirection && !m_playedReturnSound)
+        if (MoveDirection != MoveData.StartDirection && !m_playedReturnSound)
         {
             m_playedReturnSound = true;
             if (SoundData.ReturnSound != null)
@@ -361,12 +358,11 @@ public class SectorMoveSpecial : ISectorSpecial
         IsPaused = default;
         MoveStatus = default;
         DelayTics = default;
-        m_speed = default;
-        m_crushing = default;
+        MoveSpeed = default;
+        IsCrushing = default;
         StartClipped = default;
         IsInitialMove = true;
         DestZ = default;
-        m_crushing = default;
         m_playedReturnSound = default;
         m_playedStartSound = default;
         IsDoor = default;
@@ -406,21 +402,21 @@ public class SectorMoveSpecial : ISectorSpecial
 
     protected void FlipMovementDirection(bool blocked)
     {
-        if (!blocked && (MoveData.MoveRepetition == MoveRepetition.Perpetual || (IsDelayReturn && m_direction == MoveData.StartDirection)))
+        if (!blocked && (MoveData.MoveRepetition == MoveRepetition.Perpetual || (IsDelayReturn && MoveDirection == MoveData.StartDirection)))
             DelayTics = MoveData.Delay;
 
         m_playedReturnSound = false;
 
-        m_direction = m_direction == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;
-        DestZ = m_direction == MoveDirection.Up ? m_maxZ : m_minZ;
+        MoveDirection = MoveDirection == MoveDirection.Up ? MoveDirection.Down : MoveDirection.Up;
+        DestZ = MoveDirection == MoveDirection.Up ? m_maxZ : m_minZ;
 
-        if (m_direction == MoveData.StartDirection && SoundData.StartSound != null)
+        if (MoveDirection == MoveData.StartDirection && SoundData.StartSound != null)
             m_playedStartSound = false;
 
-        if (m_crushing)
-            m_crushing = false;
+        if (IsCrushing)
+            IsCrushing = false;
 
-        m_speed = m_direction == MoveData.StartDirection ? m_startSpeed : m_returnSpeed;
+        MoveSpeed = MoveDirection == MoveData.StartDirection ? m_startSpeed : m_returnSpeed;
 
         if (MoveData.MoveRepetition == MoveRepetition.PerpetualPause)
             IsPaused = true;
@@ -428,15 +424,15 @@ public class SectorMoveSpecial : ISectorSpecial
 
     private double CalculateDestination()
     {
-        double destZ = SectorPlane.Z + m_speed;
+        double destZ = SectorPlane.Z + MoveSpeed;
 
         if ((MoveData.Flags & SectorMoveFlags.Door) != 0 && Sector.Floor.Z != m_minZ)
             UpdateFloorDest();
 
-        if (m_direction == MoveDirection.Down && destZ < DestZ)
-            destZ = m_direction == MoveData.StartDirection ? DestZ : m_startZ;
-        else if (m_direction == MoveDirection.Up && destZ > DestZ)
-            destZ = m_direction == MoveData.StartDirection ? DestZ : m_startZ;
+        if (MoveDirection == MoveDirection.Down && destZ < DestZ)
+            destZ = MoveDirection == MoveData.StartDirection ? DestZ : m_startZ;
+        else if (MoveDirection == MoveDirection.Up && destZ > DestZ)
+            destZ = MoveDirection == MoveData.StartDirection ? DestZ : m_startZ;
 
         return destZ;
     }
@@ -447,13 +443,13 @@ public class SectorMoveSpecial : ISectorSpecial
         m_minZ = Math.Min(m_startZ, DestZ);
         m_maxZ = Math.Max(m_startZ, DestZ);
 
-        if (m_direction != MoveData.StartDirection)
+        if (MoveDirection != MoveData.StartDirection)
             DestZ = m_startZ;
     }
 
     private void PerformAndHandleMoveZ(double destZ)
     {
-        MoveStatus = m_world.MoveSectorZ(m_speed, destZ, this);
+        MoveStatus = m_world.MoveSectorZ(MoveSpeed, destZ, this);
 
         switch (MoveStatus)
         {
@@ -464,9 +460,9 @@ public class SectorMoveSpecial : ISectorSpecial
 
             case SectorMoveStatus.Crush when IsInitCrush:
                 SetSectorDataChange();
-                m_crushing = true;
+                IsCrushing = true;
                 if (MoveData.Crush != null && MoveData.Crush.Value.CrushMode == ZDoomCrushMode.DoomWithSlowDown)
-                    m_speed = m_speed < 0 ? -0.1 : 0.1;
+                    MoveSpeed = MoveSpeed < 0 ? -0.1 : 0.1;
                 break;
 
             case SectorMoveStatus.Success:
@@ -474,8 +470,8 @@ public class SectorMoveSpecial : ISectorSpecial
                 break;
         }
 
-        if (m_crushing && MoveStatus == SectorMoveStatus.Success)
-            m_crushing = false;
+        if (IsCrushing && MoveStatus == SectorMoveStatus.Success)
+            IsCrushing = false;
     }
 
     private void SetSectorDataChange()
@@ -489,7 +485,7 @@ public class SectorMoveSpecial : ISectorSpecial
 
     private bool IsNonRepeat => MoveData.MoveRepetition == MoveRepetition.None || MoveData.MoveRepetition == MoveRepetition.ReturnOnBlock;
     private bool IsDelayReturn => MoveData.MoveRepetition == MoveRepetition.DelayReturn;
-    private bool IsInitCrush => MoveData.Crush != null && m_direction == MoveData.StartDirection && !m_crushing;
+    private bool IsInitCrush => MoveData.Crush != null && MoveDirection == MoveData.StartDirection && !IsCrushing;
 
     public override bool Equals(object? obj)
     {
