@@ -2,12 +2,12 @@ using System.Collections.Generic;
 
 namespace Helion.Resources.Definitions.Animdefs.Textures;
 
-public class AnimatedTexture
+public sealed class AnimatedTexture
 {
-    public readonly string Name;
-    public readonly bool Optional;
-    public readonly ResourceNamespace Namespace;
-    public readonly IList<AnimatedTextureComponent> Components = new List<AnimatedTextureComponent>();
+    public string Name;
+    public bool Optional;
+    public ResourceNamespace Namespace;
+    public IList<AnimatedTextureComponent> Components = new List<AnimatedTextureComponent>();
     public bool AllowDecals;
     public bool Oscillate;
     public bool Random;

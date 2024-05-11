@@ -3,12 +3,12 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Definitions.Animdefs.Textures;
 
-public class AnimatedTextureComponent
+public sealed class AnimatedTextureComponent
 {
-    public readonly string ConfiguredTexture;
-    public readonly int MinTicks;
-    public readonly int MaxTicks;
-    public readonly int ConfiguredTextureIndex;
+    public string ConfiguredTexture;
+    public int MinTicks;
+    public int MaxTicks;
+    public int ConfiguredTextureIndex;
     public int TextureIndex;
     public string Texture;
 

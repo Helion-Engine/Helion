@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Helion.Models;
+using Helion.Util.Loggers;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Players;
@@ -13,10 +14,8 @@ namespace Helion.World.Entities.Inventories;
 /// <summary>
 /// A collection of weapons that a player owns.
 /// </summary>
-public class Weapons
+public sealed class Weapons
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
     private const int MinSlot = 1;
     private const int MaxSlot = 7;
     private static readonly WeaponSlot DefaultSlot = new(-1, -1);
@@ -38,7 +37,7 @@ public class Weapons
                 var weaponDef = composer.GetByName(weapon);
                 if (weaponDef == null)
                 {
-                    Log.Warn($"Failed to find weapon {weapon}");
+                    HelionLog.Warn($"Failed to find weapon {weapon}");
                     continue;
                 }
 

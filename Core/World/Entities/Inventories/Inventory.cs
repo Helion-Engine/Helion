@@ -14,19 +14,19 @@ using Helion.World.Entities.Players;
 
 namespace Helion.World.Entities.Inventories;
 
-public class Inventory
+public sealed class Inventory
 {
-    public static readonly string AmmoClassName = "AMMO";
-    public static readonly string BackPackBaseClassName = "BACKPACKITEM";
-    public static readonly string WeaponClassName = "WEAPON";
-    public static readonly string HealthClassName = "HEALTH";
-    public static readonly string ArmorClassName = "ARMOR";
-    public static readonly string BasicArmorBonusClassName = "BASICARMORBONUS";
-    public static readonly string BasicArmorPickupClassName = "BASICARMORPICKUP";
-    public static readonly string KeyClassName = "KEY";
-    public static readonly string PowerupGiverClassName = "POWERUPGIVER";
-    public static readonly string PowerupClassName = "POWERUP";
-    public static readonly string RadSuitClassName = "RADSUIT";
+    public const string AmmoClassName = "AMMO";
+    public const string BackPackBaseClassName = "BACKPACKITEM";
+    public const string WeaponClassName = "WEAPON";
+    public const string HealthClassName = "HEALTH";
+    public const string ArmorClassName = "ARMOR";
+    public const string BasicArmorBonusClassName = "BASICARMORBONUS";
+    public const string BasicArmorPickupClassName = "BASICARMORPICKUP";
+    public const string KeyClassName = "KEY";
+    public const string PowerupGiverClassName = "POWERUPGIVER";
+    public const string PowerupClassName = "POWERUP";
+    public const string RadSuitClassName = "RADSUIT";
 
     private static readonly List<string> PowerupEnumStringValues = GetPowerEnumValues();
     private static readonly Dictionary<string, string> PowerupLookup = new();
@@ -58,12 +58,12 @@ public class Inventory
     /// <summary>
     /// All of the weapons owned by the player.
     /// </summary>
-    public readonly Weapons Weapons;
+    public Weapons Weapons;
 
-    public readonly List<IPowerup> Powerups = new();
+    public List<IPowerup> Powerups = new();
 
-    public IPowerup? PowerupEffectColor { get; private set; }
-    public IPowerup? PowerupEffectColorMap { get; private set; }
+    public IPowerup? PowerupEffectColor;
+    public IPowerup? PowerupEffectColorMap;
 
     public Inventory(Player owner, EntityDefinitionComposer composer)
     {

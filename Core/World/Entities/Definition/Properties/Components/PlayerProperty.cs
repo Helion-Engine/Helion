@@ -6,7 +6,7 @@ namespace Helion.World.Entities.Definition.Properties.Components;
 
 public class PlayerProperty
 {
-    public static readonly string SoundClassProperty = "player";
+    public const string SoundClassProperty = "player";
 
     public double AirCapacity = 1.0;
     public int AttackZOffset;

@@ -79,21 +79,21 @@ public class Player : Entity
 
     private readonly OldCamera m_camera = new (Vec3F.Zero, Vec3F.Zero, 0, 0);
 
-    public Inventory Inventory { get; private set; }
-    public Weapon? Weapon { get; private set; }
-    public Weapon? PendingWeapon { get; private set; }
-    public Weapon? AnimationWeapon { get; private set; }
-    public int WeaponSlot { get; private set; }
-    public int WeaponSubSlot { get; private set; }
+    public Inventory Inventory;
+    public Weapon? Weapon;
+    public Weapon? PendingWeapon;
+    public Weapon? AnimationWeapon;
+    public int WeaponSlot;
+    public int WeaponSubSlot;
     public Vec2D PrevWeaponOffset;
     public Vec2D WeaponOffset;
     public Vec2D PrevWeaponBobOffset;
     public Vec2D WeaponBobOffset;
-    public WeakEntity Attacker { get; private set; } = WeakEntity.Default;
-    public WeakEntity CrosshairTarget { get; private set; } = WeakEntity.Default;
-    public PlayerStatusBar StatusBar { get; private set; }
-    public PlayerCheats Cheats { get; } = new PlayerCheats();
-    public PlayerInfo Info { get; set; } = new PlayerInfo();
+    public WeakEntity Attacker = WeakEntity.Default;
+    public WeakEntity CrosshairTarget = WeakEntity.Default;
+    public PlayerStatusBar StatusBar;
+    public PlayerCheats Cheats = new PlayerCheats();
+    public PlayerInfo Info = new PlayerInfo();
     public PlayerTracers Tracers = new();
     public bool IsVooDooDoll;
     public bool IsSyncVooDoo;

@@ -7,13 +7,13 @@ namespace Helion.Dehacked;
 
 public partial class DehackedDefinition
 {
-    public static readonly string SoulsphereClass = "Soulsphere";
-    public static readonly string MegasphereHealthClass = "MegasphereHealth";
-    public static readonly string BFG900Class = "BFG9000";
-    public static readonly string ArmorBonusClass = "ArmorBonus";
-    public static readonly string HealthBonusClass = "HealthBonus";
-    public static readonly string GreenArmorClassName = "GreenArmor";
-    public static readonly string BlueArmorClassName = "BlueArmor";
+    public const string SoulsphereClass = "Soulsphere";
+    public const string MegasphereHealthClass = "MegasphereHealth";
+    public const string BFG900Class = "BFG9000";
+    public const string ArmorBonusClass = "ArmorBonus";
+    public const string HealthBonusClass = "HealthBonus";
+    public const string GreenArmorClassName = "GreenArmor";
+    public const string BlueArmorClassName = "BlueArmor";
 
     public const int GreenArmorClassNum = 1;
     public const int BlueArmorClassNum = 2;

@@ -11,6 +11,7 @@ using Helion.Resources.Definitions.Texture;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using Helion.World;
 using NLog;
 
@@ -20,7 +21,6 @@ public class TextureManager : ITickable
 {
     public const int NoTextureIndex = 0;
     const string ShittyTextureName = "AASHITTY";
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly List<Texture> m_textures;
@@ -41,8 +41,8 @@ public class TextureManager : ITickable
 
     public List<Animation> GetAnimations() => m_animations;
 
-    public string SkyTextureName { get; set; }
-    public int NullCompatibilityTextureIndex { get; set; } = Constants.NullCompatibilityTextureIndex;
+    public string SkyTextureName;
+    public int NullCompatibilityTextureIndex = Constants.NullCompatibilityTextureIndex;
 
     public TextureManager(ArchiveCollection archiveCollection)
     {
@@ -442,7 +442,7 @@ public class TextureManager : ITickable
 
             if (animTexture.Components[0].TextureIndex == Constants.NoTextureIndex)
             {
-                Log.Warn($"Bad animdefs texture {animTexture.Name}");
+                HelionLog.Warn($"Bad animdefs texture {animTexture.Name}");
                 continue;
             }
 

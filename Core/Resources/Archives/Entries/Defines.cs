@@ -11,7 +11,7 @@ namespace Helion.Resources.Archives.Entries;
 /// </remarks>
 public class Defines
 {
-    public static readonly string Playpal = "PLAYPAL";
-    public static readonly string Pnames = "PNAMES";
+    public const string Playpal = "PLAYPAL";
+    public const string Pnames = "PNAMES";
     public static readonly string[] TextureDefinitions = new string[] { "TEXTURE1", "TEXTURE2", "TEXTURE3" };
 }

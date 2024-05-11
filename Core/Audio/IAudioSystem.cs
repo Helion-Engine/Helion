@@ -9,7 +9,7 @@ namespace Helion.Audio;
 /// </summary>
 public interface IAudioSystem : IDisposable
 {
-    public static readonly string DefaultAudioDevice = "Default";
+    public const string DefaultAudioDevice = "Default";
 
     /// <summary>
     /// Requests that the subsystem check for any errors, and throw an
