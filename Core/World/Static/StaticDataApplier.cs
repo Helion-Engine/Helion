@@ -10,10 +10,6 @@ namespace Helion.World.Static;
 
 public class StaticDataApplier
 {
-    const SideTexture AllWallTypes = SideTexture.Upper | SideTexture.Middle | SideTexture.Lower;
-    const SideTexture MiddleLower = SideTexture.Middle | SideTexture.Lower;
-    const SideTexture MiddleUpper = SideTexture.Middle | SideTexture.Upper;
-
     private static bool IsLoading;
 
     public static void DetermineStaticData(WorldBase world)
@@ -38,10 +34,7 @@ public class StaticDataApplier
         foreach (var special in world.SpecialManager.GetSpecials())
         {
             if (special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
-            {
-                bool floor = scrollSpecial.SectorPlane.Facing == SectorPlaneFace.Floor;
-                SetSectorDynamic(world, scrollSpecial.SectorPlane.Sector, floor, !floor, SectorDynamic.Scroll);
-            }
+                SetSectorDynamic(world, scrollSpecial.SectorPlane.Sector, scrollSpecial.SectorPlane.Facing.ToSectorPlanes(), SectorDynamic.Scroll);
         }
 
         for (int i = 0; i < world.Sectors.Count; i++)
@@ -57,7 +50,7 @@ public class StaticDataApplier
 
         bool save = IsLoading;
         IsLoading = false;
-        SetSectorDynamic(world, sector, true, true, SectorDynamic.TransferHeights);
+        SetSectorDynamic(world, sector, SectorPlanes.Floor | SectorPlanes.Ceiling, SectorDynamic.TransferHeights);
         IsLoading = save;
     }
 
@@ -67,8 +60,8 @@ public class StaticDataApplier
 
         if (line.Back != null && line.Alpha < 1)
         {
-            line.Front.SetAllWallsDynamic(SectorDynamic.Alpha);
-            line.Back.SetAllWallsDynamic(SectorDynamic.Alpha);
+            line.Front.Dynamic |= SectorDynamic.Alpha;
+            line.Back.Dynamic |= SectorDynamic.Alpha;
             world.RenderBlockmap.LinkDynamicSide(world, line.Front);
             if (line.Front.Sector != line.Back.Sector)
                 world.RenderBlockmap.LinkDynamicSide(world, line.Back);
@@ -77,13 +70,13 @@ public class StaticDataApplier
 
         if (line.Front.ScrollData != null)
         {
-            line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
+            line.Front.Dynamic |= SectorDynamic.Scroll;
             world.RenderBlockmap.LinkDynamicSide(world, line.Front);
         }
 
         if (line.Back != null && line.Back.ScrollData != null)
         {
-            line.Front.SetAllWallsDynamic(SectorDynamic.Scroll);
+            line.Front.Dynamic |= SectorDynamic.Scroll;
             world.RenderBlockmap.LinkDynamicSide(world, line.Back);
         }
     }
@@ -123,21 +116,21 @@ public class StaticDataApplier
             facingSide.FloodTextures &= ~SideTexture.Upper;
     }
 
-    public static void SetSectorDynamic(WorldBase world, Sector sector, bool floor, bool ceiling, SectorDynamic sectorDynamic)
+    public static void SetSectorDynamic(WorldBase world, Sector sector, SectorPlanes face, SectorDynamic sectorDynamic)
     {
         if (IsLoading && sectorDynamic == SectorDynamic.Movement)
             return;
 
-        if (floor)
+        if ((face & SectorPlanes.Floor) != 0)
             sector.Floor.Dynamic |= sectorDynamic;
-        if (ceiling)
+        if ((face & SectorPlanes.Ceiling) != 0)
             sector.Ceiling.Dynamic |= sectorDynamic;
 
         if (sector.BlockmapNodes.Count == 0 && (sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
             world.RenderBlockmap.Link(world, sector);
 
         if (sectorDynamic == SectorDynamic.Movement)
-            SetSectorDynamicMovement(world, sector, floor, ceiling);
+            SetSectorDynamicMovement(world, sector);
         else if (sectorDynamic == SectorDynamic.TransferHeights)
             SetSectorTransferHeights(sector);
     }
@@ -148,19 +141,16 @@ public class StaticDataApplier
         {
             var line = sector.Lines[i];
             if (line.Front.Sector.Id == sector.Id)
-                line.Front.SetAllWallsDynamic(SectorDynamic.TransferHeights);
-            if (line.Back != null && line.Back.Sector.Id == sector.Id)
-                line.Back.SetAllWallsDynamic(SectorDynamic.TransferHeights);
+                line.Front.Dynamic |= SectorDynamic.TransferHeights;
+            if (line.Back != null && line.Back.Sector == sector)
+                line.Back.Dynamic |= SectorDynamic.TransferHeights;
         }
     }
 
-    private static void SetSectorDynamicMovement(WorldBase world, Sector sector, bool floor, bool ceiling)
+    private static void SetSectorDynamicMovement(WorldBase world, Sector sector)
     {
         for (int i = 0; i < sector.Lines.Count; i++)
-        {
-            var line = sector.Lines[i];
-            SetDynamicMovement(world, sector, line, floor, ceiling);
-        }
+            SetDynamicMovement(sector.Lines[i]);
     }
 
     public static void ClearSectorDynamicMovement(IWorld world, SectorPlane plane)
@@ -177,35 +167,18 @@ public class StaticDataApplier
         bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
 
         for (int i = 0; i < plane.Sector.Lines.Count; i++)
-            ClearDynamicMovement(plane.Sector.Lines[i], floor, ceiling);
+            ClearDynamicMovement(plane.Sector.Lines[i]);
     }
 
-    private static bool SetDynamicMovement(WorldBase world, Sector sector, Line line, bool floor, bool ceiling)
+    private static void SetDynamicMovement(Line line)
     {
-        bool isFloorSky = world.TextureManager.IsSkyTexture(sector.Floor.TextureHandle);
-        bool isCeilingSky = world.TextureManager.IsSkyTexture(sector.Ceiling.TextureHandle);
+        if (line.Back != null)
+            line.Back.Dynamic |= SectorDynamic.Movement;
 
-        if (floor && !ceiling)
-        {
-            if (line.Back != null)
-                line.Back.SetWallsDynamic(AllWallTypes, SectorDynamic.Movement);
-
-            line.Front.SetWallsDynamic(AllWallTypes, SectorDynamic.Movement);
-            return true;
-        }
-        else if (!floor && ceiling)
-        {
-            if (line.Back != null)
-                line.Back.SetWallsDynamic(AllWallTypes, SectorDynamic.Movement);
-
-            line.Front.SetWallsDynamic(AllWallTypes, SectorDynamic.Movement);
-            return true;
-        }
-
-        return false;
+        line.Front.Dynamic |= SectorDynamic.Movement;
     }
 
-    private static void ClearDynamicMovement(Line line, bool floor, bool ceiling)
+    private static void ClearDynamicMovement(Line line)
     {
         if (line.Front.Sector.IsMoving)
             return;
@@ -213,19 +186,10 @@ public class StaticDataApplier
         if (line.Back != null && line.Back.Sector.IsMoving)
             return;
 
-        if (floor && !ceiling)
-        {
-            if (line.Back != null && !line.Back.Sector.IsMoving)
-                line.Back.ClearWallsDynamic(AllWallTypes, SectorDynamic.Movement);
+        if (line.Back != null)
+            line.Back.Dynamic &= ~SectorDynamic.Movement;
 
-            line.Front.ClearWallsDynamic(AllWallTypes, SectorDynamic.Movement);
-        }
-        else if (!floor && ceiling)
-        {
-            if (line.Back != null)
-                line.Back.ClearWallsDynamic(AllWallTypes, SectorDynamic.Movement);
+        line.Front.Dynamic &= ~SectorDynamic.Movement;
 
-            line.Front.ClearWallsDynamic(AllWallTypes, SectorDynamic.Movement);
-        }
     }
 }

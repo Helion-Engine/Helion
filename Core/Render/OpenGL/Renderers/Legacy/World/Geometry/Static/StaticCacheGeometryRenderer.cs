@@ -301,7 +301,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (line.OneSided)
         {
-            if ((line.Front.Middle.Dynamic & m_sideDynamicIgnore) != 0)
+            if ((line.Front.Dynamic & m_sideDynamicIgnore) != 0)
                 return;
 
             bool dynamic = line.Front.IsDynamic || line.Front.Sector.IsMoving;
@@ -376,9 +376,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         bool floorDynamic = (side.Sector.Floor.Dynamic & SectorDynamic.Movement) != 0 || (otherSide.Sector.Floor.Dynamic & SectorDynamic.Movement) != 0;
         bool ceilingDynamic = (side.Sector.Ceiling.Dynamic & SectorDynamic.Movement) != 0 || (otherSide.Sector.Ceiling.Dynamic & SectorDynamic.Movement) != 0;
-        bool upper = !(ceilingDynamic && side.Upper.IsDynamic) && (side.Upper.Dynamic & m_sideDynamicIgnore) == 0;
-        bool lower = !(floorDynamic && side.Lower.IsDynamic) && (side.Lower.Dynamic & m_sideDynamicIgnore) == 0;
-        bool middle = !((floorDynamic || ceilingDynamic) && side.Middle.IsDynamic) && (side.Middle.Dynamic & m_sideDynamicIgnore) == 0;
+        bool sideDynamic = (side.Dynamic & m_sideDynamicIgnore) == 0;
+        bool upper = !(ceilingDynamic && side.IsDynamic) && sideDynamic;
+        bool lower = !(floorDynamic && side.IsDynamic) && sideDynamic;
+        bool middle = !((floorDynamic || ceilingDynamic) && side.IsDynamic) && sideDynamic;
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
@@ -797,9 +798,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if ((plane.Dynamic & SectorDynamic.Movement) != 0)
             return;
 
-        bool floor = plane.Facing == SectorPlaneFace.Floor;
-        bool ceiling = plane.Facing == SectorPlaneFace.Ceiling;
-        StaticDataApplier.SetSectorDynamic(world, plane.Sector, floor, ceiling, SectorDynamic.Movement);
+        StaticDataApplier.SetSectorDynamic(world, plane.Sector, plane.Facing.ToSectorPlanes(), SectorDynamic.Movement);
         ClearGeometryVertices(plane.Static);
         m_skyGeometry.ClearGeometryVertices(plane);
 
@@ -808,18 +807,16 @@ public class StaticCacheGeometryRenderer : IDisposable
             var line = plane.Sector.Lines[i];
             UpdateSectorPlaneFloodFill(line);
 
-            if (line.Front.Upper.IsDynamic || line.Front.UpperSky)
+            if (line.Front.IsDynamic || line.Front.UpperSky)
             {
                 ClearGeometryVertices(line.Front.Upper.Static);
                 m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Upper);
             }
-            if (line.Front.Lower.IsDynamic)
+            if (line.Front.IsDynamic)
             {
                 ClearGeometryVertices(line.Front.Lower.Static);
                 m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Lower);
-            }
-            if (line.Front.Middle.IsDynamic)
-            {
+
                 ClearGeometryVertices(line.Front.Middle.Static);
                 m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Middle);
             }
@@ -827,18 +824,16 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (line.Back == null)
                 continue;
 
-            if (line.Back.Upper.IsDynamic || line.Back.UpperSky)
+            if (line.Back.IsDynamic || line.Back.UpperSky)
             {
                 ClearGeometryVertices(line.Back.Upper.Static);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Upper);
             }
-            if (line.Back.Lower.IsDynamic)
+            if (line.Back.IsDynamic)
             {
                 ClearGeometryVertices(line.Back.Lower.Static);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Lower);
-            }
-            if (line.Back.Middle.IsDynamic)
-            {
+
                 ClearGeometryVertices(line.Back.Middle.Static);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Middle);
             }

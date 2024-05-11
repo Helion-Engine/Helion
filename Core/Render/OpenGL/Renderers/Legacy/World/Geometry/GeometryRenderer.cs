@@ -517,7 +517,7 @@ public class GeometryRenderer : IDisposable
             transferHeights = true;
         }
 
-        if (!side.IsStatic)
+        if (side.IsDynamic)
             RenderSide(side, onFrontSide);
 
         // Restore to original sector
@@ -650,12 +650,12 @@ public class GeometryRenderer : IDisposable
 
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
         facingSide.LastRenderGametick = m_world.Gametick;
-        if (facingSide.Lower.IsDynamic && LowerIsVisible(facingSide, facingSector, otherSector))
+        if (facingSide.IsDynamic && LowerIsVisible(facingSide, facingSector, otherSector))
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex && 
-            facingSide.Middle.IsDynamic)
+            facingSide.IsDynamic)
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
-        if (facingSide.Upper.IsDynamic && UpperOrSkySideIsVisible(TextureManager, facingSide, facingSector, otherSector, out _))
+        if (facingSide.IsDynamic && UpperOrSkySideIsVisible(TextureManager, facingSide, facingSector, otherSector, out _))
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
     }
 

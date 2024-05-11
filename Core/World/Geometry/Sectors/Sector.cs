@@ -37,7 +37,6 @@ public readonly record struct SoundLine
     }
 }
 
-
 public sealed class Sector
 {
     public static readonly Sector Default = CreateDefault();
@@ -45,16 +44,16 @@ public sealed class Sector
     public const int NoTag = 0;
 
     public int Id;
-    public readonly int Tag;
-    public readonly SectorPlane Floor;
-    public readonly SectorPlane Ceiling;
-    public readonly List<Line> Lines = new();
-    public readonly LinkableList<Entity> Entities = new();
+    public int Tag;
+    public SectorPlane Floor;
+    public SectorPlane Ceiling;
+    public List<Line> Lines = new();
+    public LinkableList<Entity> Entities = new();
     public List<LinkableNode<Sector>> BlockmapNodes = new();
     public DynamicArray<SoundLine> SoundLines = new();
     public Island Island = null!;
 
-    public short LightLevel { get; set; }
+    public short LightLevel;
     public TransferHeights? TransferHeights;
     public SectorMoveSpecial? ActiveFloorMove;
     public SectorMoveSpecial? ActiveCeilingMove;
@@ -62,11 +61,11 @@ public sealed class Sector
     public int ChangeGametick;
     public int BlockmapCount;
     public SectorPlaneFace LastActivePlaneMove;
-    public ZDoomSectorSpecialType SectorSpecialType { get; private set; }
+    public ZDoomSectorSpecialType SectorSpecialType;
     public bool Secret => (SectorEffect & SectorEffect.Secret) != 0;
-    public int DamageAmount { get; private set; }
-    public int? SkyTextureHandle { get; private set; }
-    public bool FlipSkyTexture { get; set; } = true;
+    public int DamageAmount;
+    public int? SkyTextureHandle;
+    public bool FlipSkyTexture = true;
     public bool IsFloorStatic => Floor.Dynamic == SectorDynamic.None;
     public bool IsCeilingStatic => Ceiling.Dynamic == SectorDynamic.None;
     public bool AreFlatsStatic => IsFloorStatic && IsCeilingStatic;
@@ -86,13 +85,13 @@ public sealed class Sector
     public bool FloodOpposingCeiling;
     public int ActivatedByLineId = -1;
     public WeakEntity SoundTarget = WeakEntity.Default;
-    public InstantKillEffect KillEffect { get; private set; }
-    public SectorEffect SectorEffect { get; private set; }
+    public InstantKillEffect KillEffect;
+    public SectorEffect SectorEffect;
 
     public double Friction = Constants.DefaultFriction;
 
-    public Sector TransferFloorLightSector { get; set; }
-    public Sector TransferCeilingLightSector { get; set; }
+    public Sector TransferFloorLightSector;
+    public Sector TransferCeilingLightSector;
 
     private Box2D? m_boundingBox;
 

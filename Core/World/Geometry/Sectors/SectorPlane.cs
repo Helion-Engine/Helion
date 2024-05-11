@@ -11,16 +11,16 @@ using System;
 
 namespace Helion.World.Geometry.Sectors;
 
-public class SectorPlane : ISoundSource
+public sealed class SectorPlane : ISoundSource
 {
     public readonly int Id;
     public readonly SectorPlaneFace Facing;
     public PlaneD Plane;
-    public Sector Sector { get; internal set; }
+    public Sector Sector;
     public double Z;
     public double PrevZ;
-    public int TextureHandle { get; set; }
-    public short LightLevel { get; set; }
+    public int TextureHandle;
+    public short LightLevel;
     public int LastRenderChangeGametick;
     public int LastRenderGametick;
     public short RenderLightLevel => Facing == SectorPlaneFace.Floor ? Sector.FloorRenderLightLevel : Sector.CeilingRenderLightLevel;

@@ -2769,21 +2769,19 @@ public abstract partial class WorldBase : IWorld
             case WallLocation.Upper:
                 previousTextureHandle = side.Upper.TextureHandle;
                 wall = side.Upper;
-                wall.SetTexture(textureHandle, SideDataTypes.UpperTexture);
                 break;
             case WallLocation.Lower:
                 previousTextureHandle = side.Lower.TextureHandle;
                 wall = side.Lower;
-                wall.SetTexture(textureHandle, SideDataTypes.LowerTexture);
                 break;
             case WallLocation.Middle:
             default:
                 previousTextureHandle = side.Middle.TextureHandle;
                 wall = side.Middle;
-                wall.SetTexture(textureHandle, SideDataTypes.MiddleTexture);
                 break;
         }
 
+        side.SetWallTexture(textureHandle, location);
         SideTextureChanged?.Invoke(this, new SideTextureEvent(side, wall, textureHandle, previousTextureHandle));
     }
 

@@ -17,28 +17,28 @@ public sealed class Side : IRenderObject
 {
     public static readonly FloodKeys NoFloodKeys = new(0, 0);
 
-    public readonly int Id;
-    public readonly Sector Sector;
-    public readonly Wall Upper;
-    public readonly Wall Middle;
-    public readonly Wall Lower;
+    public int Id;
+    public Sector Sector;
+    public Wall Upper;
+    public Wall Middle;
+    public Wall Lower;
     public Vec2I Offset;
-    public Line Line { get; internal set; }
-    public SideDataTypes DataChanges { get; set; }
+    public Line Line;
+    public SideDataTypes DataChanges;
     public bool DataChanged => DataChanges > 0;
     // This is currently just for the renderer to know for scrolling lines to not cache
     public bool OffsetChanged => ScrollData != null;
-    public bool IsStatic => Upper.Dynamic == SectorDynamic.None && Middle.Dynamic == SectorDynamic.None && Lower.Dynamic == SectorDynamic.None;
-    public bool IsDynamic => Upper.Dynamic != SectorDynamic.None || Middle.Dynamic != SectorDynamic.None || Lower.Dynamic != SectorDynamic.None;
+    public SectorDynamic Dynamic;
+    public bool IsDynamic => Dynamic != SectorDynamic.None;
     public SideTexture FloodTextures;
 
     public bool IsFront => ReferenceEquals(this, Line.Front);
     public bool IsTwoSided => Line.Back != null;
     public Side? PartnerSide => IsFront ? Line.Back : Line.Front;
 
-    public SideScrollData? ScrollData { get; set; }
+    public SideScrollData? ScrollData;
 
-    public SideColormaps? Colormaps { get; set; }
+    public SideColormaps? Colormaps;
 
     public double RenderDistanceSquared { get; set; }
     public RenderObjectType Type => RenderObjectType.Side;
@@ -63,10 +63,6 @@ public sealed class Side : IRenderObject
         Upper = upper;
         Middle = middle;
         Lower = lower;
-
-        upper.Side = this;
-        middle.Side = this;
-        lower.Side = this;
 
         m_initialOffset = offset;
 
@@ -101,30 +97,23 @@ public sealed class Side : IRenderObject
         Lower.Reset();
     }
 
-    public void SetAllWallsDynamic(SectorDynamic sectorDynamic)
+    public void SetWallTexture(int texture, WallLocation location)
     {
-        Upper.Dynamic |= sectorDynamic;
-        Lower.Dynamic |= sectorDynamic;
-        Middle.Dynamic |= sectorDynamic;
-    }
-
-    public void SetWallsDynamic(SideTexture types, SectorDynamic sectorDynamic)
-    {
-        if ((types & SideTexture.Upper) != 0)
-            Upper.Dynamic |= sectorDynamic;
-        if ((types & SideTexture.Lower) != 0)
-            Lower.Dynamic |= sectorDynamic;
-        if ((types & SideTexture.Middle) != 0)
-            Middle.Dynamic |= sectorDynamic;
-    }
-
-    public void ClearWallsDynamic(SideTexture types, SectorDynamic sectorDynamic)
-    {
-        if ((types & SideTexture.Upper) != 0)
-            Upper.Dynamic &= ~sectorDynamic;
-        if ((types & SideTexture.Lower) != 0)
-            Lower.Dynamic &= ~sectorDynamic;
-        if ((types & SideTexture.Middle) != 0)
-            Middle.Dynamic &= ~sectorDynamic;
+        switch (location)
+        {
+            case WallLocation.Upper:
+                Upper.TextureHandle = texture;
+                DataChanges |= SideDataTypes.UpperTexture;
+                break;
+            case WallLocation.Lower:
+                Lower.TextureHandle = texture;
+                DataChanges |= SideDataTypes.LowerTexture;
+                break;
+            case WallLocation.Middle:
+                Middle.TextureHandle = texture;
+                DataChanges |= SideDataTypes.MiddleTexture;
+                break;
+        }
+        Line.DataChanges |= LineDataTypes.Texture;
     }
 }

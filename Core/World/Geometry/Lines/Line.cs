@@ -14,6 +14,7 @@ using System.Linq;
 using Helion.Maps.Bsp.Geometry;
 using Helion.World.Geometry.Islands;
 using Helion.World.Blockmap;
+using Helion.World.Geometry.Walls;
 
 namespace Helion.World.Geometry.Lines;
 
@@ -21,7 +22,7 @@ public sealed class Line
 {
     public const int NoLineId = 0;
 
-    public int Id { get; }
+    public int Id;
     public Seg2D Segment;
     public Side Front;
     public Side? Back;
@@ -149,25 +150,25 @@ public sealed class Line
         if ((side.DataChanges & SideDataTypes.UpperTexture) != 0)
         {
             if (sideModel.UpperTex != null)
-                side.Upper.SetTexture(tx.GetTexture(sideModel.UpperTex, ResourceNamespace.Global).Index, SideDataTypes.UpperTexture);
+                side.SetWallTexture(tx.GetTexture(sideModel.UpperTex, ResourceNamespace.Global).Index, WallLocation.Upper);
             else if (sideModel.UpperTexture.HasValue)
-                side.Upper.SetTexture(sideModel.UpperTexture.Value, SideDataTypes.UpperTexture);
+                side.SetWallTexture(sideModel.UpperTexture.Value, WallLocation.Upper);
         }
 
         if ((side.DataChanges & SideDataTypes.MiddleTexture) != 0)
         {
             if(sideModel.MiddelTex != null)
-                side.Middle.SetTexture(tx.GetTexture(sideModel.MiddelTex, ResourceNamespace.Global).Index, SideDataTypes.MiddleTexture);
+                side.SetWallTexture(tx.GetTexture(sideModel.MiddelTex, ResourceNamespace.Global).Index, WallLocation.Middle);
             else if (sideModel.MiddleTexture.HasValue)
-                side.Middle.SetTexture(sideModel.MiddleTexture.Value, SideDataTypes.MiddleTexture);
+                side.SetWallTexture(sideModel.MiddleTexture.Value, WallLocation.Middle);
         }
 
         if ((side.DataChanges & SideDataTypes.LowerTexture) != 0)
         {
             if(sideModel.LowerTex != null)
-                side.Lower.SetTexture(tx.GetTexture(sideModel.LowerTex, ResourceNamespace.Global).Index, SideDataTypes.LowerTexture);
+                side.SetWallTexture(tx.GetTexture(sideModel.LowerTex, ResourceNamespace.Global).Index, WallLocation.Lower);
             else if (sideModel.LowerTexture.HasValue)
-                side.Lower.SetTexture(sideModel.LowerTexture.Value, SideDataTypes.LowerTexture);
+                side.SetWallTexture(sideModel.LowerTexture.Value, WallLocation.Lower);
         }    
     }
 
