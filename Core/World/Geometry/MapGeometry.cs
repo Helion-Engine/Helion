@@ -31,10 +31,8 @@ public struct IslandGeometry
 
 public class MapGeometry
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public readonly List<Line> Lines;
     public readonly List<Side> Sides;
-    public readonly List<Wall> Walls;
     public readonly List<Sector> Sectors;
     public readonly List<SectorPlane> SectorPlanes;
     public readonly BspTreeNew BspTree;
@@ -49,7 +47,6 @@ public class MapGeometry
     {
         Lines = builder.Lines;
         Sides = builder.Sides;
-        Walls = builder.Walls;
         Sectors = builder.Sectors;
         SectorPlanes = builder.SectorPlanes;
         CompactBspTree = bspTree;

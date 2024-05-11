@@ -81,12 +81,9 @@ public static class DoomGeometryBuilder
         var upperTexture = textureManager.GetTexture(doomSide.UpperTexture, ResourceNamespace.Textures);
         var lowerTexture = textureManager.GetTexture(doomSide.LowerTexture, ResourceNamespace.Textures);
 
-        Wall middle = new(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
-        Wall upper = new(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
-        Wall lower = new(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
-        builder.Walls.Add(middle);
-        builder.Walls.Add(upper);
-        builder.Walls.Add(lower);
+        Wall middle = new(middleTexture.Index, WallLocation.Middle);
+        Wall upper = new(upperTexture.Index, WallLocation.Upper);
+        Wall lower = new(lowerTexture.Index, WallLocation.Lower);
 
         Side front = new Side(nextSideId, doomSide.Offset, upper, middle, lower, sector);
         builder.Sides.Add(front);
@@ -124,12 +121,9 @@ public static class DoomGeometryBuilder
         var upperTexture = textureManager.GetTexture(facingSide.UpperTexture, ResourceNamespace.Textures);
         var lowerTexture = textureManager.GetTexture(facingSide.LowerTexture, ResourceNamespace.Textures);
 
-        Wall middle = new(builder.Walls.Count, middleTexture.Index, WallLocation.Middle);
-        Wall upper = new(builder.Walls.Count + 1, upperTexture.Index, WallLocation.Upper);
-        Wall lower = new(builder.Walls.Count + 2, lowerTexture.Index, WallLocation.Lower);
-        builder.Walls.Add(middle);
-        builder.Walls.Add(upper);
-        builder.Walls.Add(lower);
+        Wall middle = new(middleTexture.Index, WallLocation.Middle);
+        Wall upper = new(upperTexture.Index, WallLocation.Upper);
+        Wall lower = new(lowerTexture.Index, WallLocation.Lower);
 
         Side side = new(nextSideId, facingSide.Offset, upper, middle, lower, facingSector);
         builder.Sides.Add(side);

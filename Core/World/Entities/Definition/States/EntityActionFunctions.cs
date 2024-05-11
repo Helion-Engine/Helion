@@ -2882,7 +2882,7 @@ public static class EntityActionFunctions
 
     public static Line CreateDummyLine(LineFlags flags, SpecialArgs args, Sector sector)
     {
-        var wall = new Wall(0, Constants.NoTextureIndex, WallLocation.Middle);
+        var wall = new Wall(Constants.NoTextureIndex, WallLocation.Middle);
         var side = new Side(0, Vec2I.Zero, wall, wall, wall, sector);
         var seg = new Seg2D(Vec2D.Zero, Vec2D.One);
         return new Line(0, seg, side, null, flags, LineSpecial.Default, args);

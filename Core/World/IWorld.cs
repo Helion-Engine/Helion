@@ -64,7 +64,6 @@ public interface IWorld : IDisposable
     WorldState WorldState { get; }
     IList<Line> Lines { get; }
     IList<Side> Sides { get; }
-    IList<Wall> Walls { get; }
     IList<Sector> Sectors { get; }
     IList<HighlightArea> HighlightAreas { get; }
     CompactBspTree BspTree { get; }

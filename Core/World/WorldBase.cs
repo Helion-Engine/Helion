@@ -107,7 +107,6 @@ public abstract partial class WorldBase : IWorld
     public IRandom SecondaryRandom { get; private set; }
     public IList<Line> Lines => Geometry.Lines;
     public IList<Side> Sides => Geometry.Sides;
-    public IList<Wall> Walls => Geometry.Walls;
     public IList<Sector> Sectors => Geometry.Sectors;
     public IList<HighlightArea> HighlightAreas { get; } = new List<HighlightArea>();
     public CompactBspTree BspTree => Geometry.CompactBspTree;

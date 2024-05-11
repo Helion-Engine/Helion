@@ -77,19 +77,15 @@ public static class HexenGeometryBuilder
 
         string middleTexture = facingSide.MiddleTexture;
         int middleTextureHandle = textureManager.GetTexture(middleTexture, ResourceNamespace.Textures).Index;
-        Wall middle = new(builder.Walls.Count,  middleTextureHandle, WallLocation.Middle);
+        Wall middle = new( middleTextureHandle, WallLocation.Middle);
 
         string upperTexture = facingSide.UpperTexture;
         int upperTextureHandle = textureManager.GetTexture(upperTexture, ResourceNamespace.Textures).Index;
-        Wall upper = new(builder.Walls.Count + 1, upperTextureHandle, WallLocation.Upper);
+        Wall upper = new(upperTextureHandle, WallLocation.Upper);
 
         string lowerTexture = facingSide.LowerTexture;
         int lowerTextureHandle = textureManager.GetTexture(lowerTexture, ResourceNamespace.Textures).Index;
-        Wall lower = new(builder.Walls.Count + 2, lowerTextureHandle, WallLocation.Lower);
-
-        builder.Walls.Add(middle);
-        builder.Walls.Add(upper);
-        builder.Walls.Add(lower);
+        Wall lower = new(lowerTextureHandle, WallLocation.Lower);
 
         Side side = new(nextSideId, facingSide.Offset, upper, middle, lower, facingSector);
         builder.Sides.Add(side);
@@ -111,19 +107,15 @@ public static class HexenGeometryBuilder
         Sector sector = builder.Sectors[doomSide.Sector.Id];
         string middleTexture = doomSide.MiddleTexture;
         int middleTextureHandle = textureManager.GetTexture(middleTexture, ResourceNamespace.Textures).Index;
-        Wall middle = new(builder.Walls.Count, middleTextureHandle, WallLocation.Middle);
+        Wall middle = new(middleTextureHandle, WallLocation.Middle);
 
         string upperTexture = doomSide.UpperTexture;
         int upperTextureHandle = textureManager.GetTexture(upperTexture, ResourceNamespace.Textures).Index;
-        Wall upper = new(builder.Walls.Count + 1, upperTextureHandle, WallLocation.Upper);
+        Wall upper = new( upperTextureHandle, WallLocation.Upper);
 
         string lowerTexture = doomSide.LowerTexture;
         int lowerTextureHandle = textureManager.GetTexture(lowerTexture, ResourceNamespace.Textures).Index;
-        Wall lower = new(builder.Walls.Count + 2, lowerTextureHandle, WallLocation.Lower);
-
-        builder.Walls.Add(middle);
-        builder.Walls.Add(upper);
-        builder.Walls.Add(lower);
+        Wall lower = new(lowerTextureHandle, WallLocation.Lower);
 
         Side front = new(nextSideId, doomSide.Offset, upper, middle, lower, sector);
         builder.Sides.Add(front);
