@@ -166,6 +166,7 @@ public interface IWorld : IDisposable
     bool PlayLevelMusic(string name, byte[]? data);
     void FindNextKey();
     void FindNextKeyLine();
+    void FindExit();
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

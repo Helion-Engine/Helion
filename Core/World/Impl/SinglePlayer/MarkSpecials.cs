@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Util;
@@ -11,6 +12,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Special;
 using Helion.World.Special.Switches;
@@ -37,6 +39,8 @@ public class MarkSpecials
     private int m_lineMarkColor;
     private WeakEntity? m_lastKey;
     private int m_lastKeyLineIndex = -1;
+    private int m_lastExitIndex = -1;
+    private object m_lastExitObject;
 
     public void Clear(Player player)
     {
@@ -187,6 +191,46 @@ public class MarkSpecials
         }
 
         return world.Lines[m_lastKeyLineIndex];
+    }
+
+    public object? FindNextExit(IWorld world)
+    {
+        int start = m_lastExitIndex + 1;
+
+        if (m_lastExitObject == null || m_lastExitObject is Line)
+        {
+            for (int i = start; i < world.Lines.Count; i++)
+            {
+                var line = world.Lines[i];
+                if (line.Special.IsExitSpecial())
+                {
+                    m_lastExitObject = line;
+                    m_lastExitIndex = i;
+                    return line;
+                }
+            }
+
+            if (m_lastExitIndex == start - 1)
+                m_lastExitIndex = -1;
+        }
+
+        start = m_lastExitIndex + 1;
+        for (int i = start; i < world.Sectors.Count; i++)
+        {
+            var sec = world.Sectors[i];
+            if (sec.SectorSpecialType == ZDoomSectorSpecialType.DamageEnd || sec.KillEffect == InstantKillEffect.KillAllPlayersExit || sec.KillEffect == InstantKillEffect.KillAllPlayersSecretExit)
+            {
+                m_lastExitObject = sec;
+                m_lastExitIndex = i;
+                return sec;
+            }
+        }
+
+        if (m_lastExitIndex == start - 1)
+            m_lastExitIndex = -1;
+
+        m_lastExitObject = null;
+        return null;
     }
 
     private static bool IgnoreLineSpecial(Line line) =>

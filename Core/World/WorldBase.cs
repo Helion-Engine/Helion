@@ -180,7 +180,7 @@ public abstract partial class WorldBase : IWorld
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
-        SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null, bool sameAsPreviousMap = false)
+        SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null, bool sameAsPreviousMap = false, bool reuse = true)
     {
         SameAsPreviousMap = sameAsPreviousMap;
         m_random = random ?? new DoomRandom();
@@ -1965,6 +1965,8 @@ public abstract partial class WorldBase : IWorld
 
     public void ResetGametick() => Gametick = 0;
 
+    const int HighlightSize = 112;
+
     public void FindNextKey()
     {
         HighlightAreas.Clear();
@@ -1975,21 +1977,53 @@ public abstract partial class WorldBase : IWorld
             return;
         }
 
-        HighlightAreas.Add(new HighlightArea(key.Position, 112));
+        HighlightAreas.Add(new HighlightArea(key.Position, HighlightSize));
     }
 
     public void FindNextKeyLine()
     {
+        HighlightLine(MarkSpecials.FindNextKeyLine(this));
+    }
+
+    public void FindExit()
+    {
         HighlightAreas.Clear();
-        var keyLine = MarkSpecials.FindNextKeyLine(this);
-        if (keyLine == null)
+        var exit = MarkSpecials.FindNextExit(this);
+        if (exit is Line line)
+            HighlightLine(line);
+        else if (exit is Sector sector)
+            HighlightSector(sector);
+        else
+            DisplayMessage("No more results");
+    }
+
+    private void HighlightSector(Sector? sector)
+    {        
+        if (sector == null || sector.Id < 0 || sector.Id >= Geometry.IslandGeometry.SectorIslands.Length)
         {
             DisplayMessage("No more results");
             return;
         }
 
-        var pos = keyLine.Segment.FromTime(0.5).To3D(Math.Max(keyLine.Front.Sector.Floor.Z, keyLine.Back?.Sector.Floor.Z ?? double.MinValue));
-        HighlightAreas.Add(new HighlightArea(pos, 112));
+        var islands = Geometry.IslandGeometry.SectorIslands[sector.Id];
+        if (islands.Count == 0)
+            return;
+        var island = islands[0];
+        var center = island.Box.TopLeft + (island.Box.Width / 2, -island.Box.Height / 2);
+        var pos = center.To3D(Math.Max(sector.Floor.Z, sector.Floor.Z));
+        HighlightAreas.Add(new HighlightArea(pos, HighlightSize));
+    }
+
+    private void HighlightLine(Line? line)
+    {
+        if (line == null)
+        {
+            DisplayMessage("No more results");
+            return;
+        }
+
+        var pos = line.Segment.FromTime(0.5).To3D(Math.Max(line.Front.Sector.Floor.Z, line.Back?.Sector.Floor.Z ?? double.MinValue));
+        HighlightAreas.Add(new HighlightArea(pos, HighlightSize));
     }
 
     private void ApplyExplosionDamageAndThrust(Entity source, Entity attackSource, Entity entity, double radius, int maxDamage, Thrust thrust,

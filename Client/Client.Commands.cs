@@ -218,6 +218,15 @@ public partial class Client
         m_layerManager.WorldLayer.World.FindNextKeyLine();
     }
 
+    [ConsoleCommand("findexit", "Finds the next exit line/sector in the map.")]
+    private void CommandFindExit(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        m_layerManager.WorldLayer.World.FindExit();
+    }
+
     [ConsoleCommand("listdisplays", "Lists all available displays.")]
     private void CommandListDisplays(ConsoleCommandEventArgs args)
     {
