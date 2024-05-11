@@ -28,7 +28,7 @@ namespace Helion.World.Physics;
 /// Responsible for handling all the physics and collision detection in a
 /// world.
 /// </summary>
-public class PhysicsManager
+public sealed class PhysicsManager
 {
     private const int MaxSlides = 3;
     private const double SlideStepBackTime = 1.0 / 32.0;
@@ -47,20 +47,20 @@ public class PhysicsManager
     public TryMoveData TryMoveData = new();
     public bool EnableMaxMoveXY = true;
 
-    private readonly IWorld m_world;
-    private readonly CompactBspTree m_bspTree;
-    private readonly BlockMap m_blockmap;
-    private readonly UniformGrid<Block> m_blockmapGrid;
-    private readonly Block[] m_blockmapBlocks;
-    private readonly EntityManager m_entityManager;
-    private readonly IRandom m_random;
+    private IWorld m_world;
+    private CompactBspTree m_bspTree;
+    private BlockMap m_blockmap;
+    private UniformGrid<Block> m_blockmapGrid;
+    private Block[] m_blockmapBlocks;
+    private EntityManager m_entityManager;
+    private IRandom m_random;
+    private int[] m_checkedBlockLines;
     private readonly LineOpening m_lineOpening = new();
     private readonly DynamicArray<Entity> m_crushEntities = new();
     private readonly DynamicArray<Entity> m_sectorMoveEntities = new();
     private readonly DynamicArray<Entity> m_onEntities = new();
     private readonly Comparison<Entity> m_sectorMoveOrderComparer = new(SectorEntityMoveOrderCompare);
     private readonly DynamicArray<Entity> m_stackCrush = new();
-    private readonly int[] m_checkedBlockLines;
     private readonly bool m_alwaysStickEntitiesToFloor;
 
     private MoveLinkData m_moveLinkData;
@@ -84,6 +84,20 @@ public class PhysicsManager
         m_stackEntityTraverseAction = new(HandleStackEntityTraverse);
         m_canPassTraverseFunc = new(CanPassTraverse);
         m_alwaysStickEntitiesToFloor = alwaysStickEntitiesToFloor;
+    }
+
+    public void UpdateTo(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random, bool alwaysStickEntitiesToFloor)
+    {
+        m_world = world;
+        m_bspTree = bspTree;
+        m_blockmap = blockmap;
+        m_blockmapGrid = blockmap.Blocks;
+        m_blockmapBlocks = m_blockmapGrid.Blocks;
+        m_entityManager = world.EntityManager;
+        m_random = random;
+        BlockmapTraverser.UpdateTo(world, blockmap);
+        if (world.Lines.Count > m_checkedBlockLines.Length)
+            m_checkedBlockLines = new int[m_world.Lines.Count];
     }
 
     static int SectorEntityMoveOrderCompare(Entity? x, Entity? y)

@@ -11,10 +11,10 @@ namespace Helion.World.Physics.Blockmap;
 
 public class BlockmapTraverser
 {
-    private readonly IWorld m_world;
-    private readonly UniformGrid<Block> m_blockmapGrid;
-    private readonly Block[] m_blocks;
-    private readonly int[] m_checkedLines;
+    private IWorld m_world;
+    private UniformGrid<Block> m_blockmapGrid;
+    private Block[] m_blocks;
+    private int[] m_checkedLines;
 
     public BlockmapTraverser(IWorld world, BlockMap blockmap)
     {
@@ -22,6 +22,15 @@ public class BlockmapTraverser
         m_blockmapGrid = blockmap.Blocks;
         m_blocks = blockmap.Blocks.Blocks;
         m_checkedLines = new int[m_world.Lines.Count];
+    }
+
+    public void UpdateTo(IWorld world, BlockMap blockmap)
+    {
+        m_world = world;
+        m_blockmapGrid = blockmap.Blocks;
+        m_blocks = blockmap.Blocks.Blocks;
+        if (world.Lines.Count > m_checkedLines.Length)
+            m_checkedLines = new int[m_world.Lines.Count];
     }
 
     public void GetSolidEntityIntersections2D(Entity sourceEntity, DynamicArray<Entity> entities)

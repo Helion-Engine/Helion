@@ -23,7 +23,7 @@ using Helion.World.Stats;
 
 namespace Helion.World.Special;
 
-public class SpecialManager : ITickable, IDisposable
+public sealed class SpecialManager : ITickable, IDisposable
 { 
     // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
     public const double SpeedFactor = 0.125;
@@ -36,9 +36,9 @@ public class SpecialManager : ITickable, IDisposable
     private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new();
     private readonly List<Sector> m_sectorList = new();
     private readonly List<(Sector, SectorPlane)> m_sectorPlanes = new();
-    private readonly IRandom m_random;
-    private readonly WorldBase m_world;
-    private readonly DataCache m_dataCache;
+    private IRandom m_random;
+    private WorldBase m_world;
+    private DataCache m_dataCache;
     private TextureManager TextureManager => m_world.ArchiveCollection.TextureManager;
 
     public static SectorSoundData GetDoorSound(double speed, bool reverse = false)
@@ -76,7 +76,15 @@ public class SpecialManager : ITickable, IDisposable
         m_dataCache = m_world.DataCache;
     }
 
-    public void Dispose()
+    public void UpdateTo(WorldBase world, IRandom random)
+    {
+        Clear();
+        m_world = world;
+        m_random = random;
+        m_dataCache = m_world.DataCache;
+    }
+
+    public void Clear()
     {
         foreach (var special in m_specials)
         {
@@ -95,6 +103,11 @@ public class SpecialManager : ITickable, IDisposable
 
         m_specials.Clear();
         m_destroyedMoveSpecials.Clear();
+    }
+
+    public void Dispose()
+    {
+        Clear();
         GC.SuppressFinalize(this);
     }
 

@@ -23,17 +23,7 @@ namespace Helion.World.Entities;
 
 public class EntityManager : IDisposable
 {
-    public class EntityModelPair
-    {
-        public EntityModelPair(EntityModel model, Entity entity)
-        {
-            Model = model;
-            Entity = entity;
-        }
-
-        public EntityModel Model { get; set; }
-        public Entity Entity { get; set; }
-    }
+    public record class EntityModelPair(EntityModel Model, Entity Entity);
 
     public class WorldModelPopulateResult
     {
@@ -53,7 +43,7 @@ public class EntityManager : IDisposable
     public Entity? Head;
     public readonly LinkedList<Entity> TeleportSpots = new();
     public readonly SpawnLocations SpawnLocations;
-    public readonly IWorld World;
+    public IWorld World;
     
     private readonly Dictionary<int, ISet<Entity>> TidToEntity = new();
 
@@ -213,7 +203,7 @@ public class EntityManager : IDisposable
                 continue;
             }
 
-            if (!definition.States.Labels.ContainsKey(Constants.FrameStates.Spawn))
+            if (!definition.SpawnState.HasValue)
                 continue;
 
             if (World.Config.Game.NoMonsters && definition.Flags.CountKill)
@@ -506,6 +496,25 @@ public class EntityManager : IDisposable
 
     public void Dispose()
     {
+        ClearEntities();
+        GC.SuppressFinalize(this);
+    }
+
+    public void UpdateTo(IWorld world)
+    {
+        World = world;
+        m_id = 0;
+        ClearEntities();
+        SpawnLocations.Clear();
+        TidToEntity.Clear();
+        Players.Clear();
+        VoodooDolls.Clear();
+        MusicChangers.Clear();
+        RealPlayersByNumber.SetAll(null);
+    }
+
+    private void ClearEntities()
+    {
         var entity = Head;
         Entity? nextEntity;
         while (entity != null)
@@ -514,7 +523,5 @@ public class EntityManager : IDisposable
             entity.Dispose();
             entity = nextEntity;
         }
-
-        GC.SuppressFinalize(this);
     }
 }

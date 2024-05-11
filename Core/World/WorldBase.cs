@@ -72,6 +72,9 @@ public abstract partial class WorldBase : IWorld
     private static BlockMap? LastBlockMap;
     private static BlockMap? LastRenderBlockMap;
     private static WorldSoundManager? LastWorldSoundManager;
+    private static EntityManager? LastEntityManager;
+    private static PhysicsManager? LastPhysicManager;
+    private static SpecialManager? LastSpecialManager;
 
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
@@ -173,7 +176,7 @@ public abstract partial class WorldBase : IWorld
     private LineOfSightEnemyData m_lineOfSightEnemyData;
     private readonly Func<Entity, GridIterationStatus> m_lineOfSightEnemyAction;
 
-    private readonly TryMoveData EmtpyTryMove = new();
+    private readonly TryMoveData EmptyTryMove = new();
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
@@ -209,9 +212,9 @@ public abstract partial class WorldBase : IWorld
         BuildSoundLines();
 
         SoundManager = CreateSoundManager();
-        EntityManager = new EntityManager(this);
-        PhysicsManager = new PhysicsManager(this, BspTree, Blockmap, m_random, map is DoomMap);
-        SpecialManager = new SpecialManager(this, m_random);
+        EntityManager = CreateEntityManager();
+        PhysicsManager = CreatePhysicsManager();
+        SpecialManager = CreateSpecialManager();
 
         WorldStatic.FlushIntersectionReferences();
         IsFastMonsters = skillDef.IsFastMonsters(config);
@@ -249,7 +252,42 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    private WorldSoundManager? CreateSoundManager()
+    private SpecialManager CreateSpecialManager()
+    {
+        if (LastSpecialManager != null)
+        {
+            LastSpecialManager.UpdateTo(this, m_random);
+            return LastSpecialManager;
+        }
+
+        LastSpecialManager = new(this, m_random);
+        return LastSpecialManager;
+    }
+
+    private PhysicsManager CreatePhysicsManager()
+    {
+        if (LastPhysicManager != null)
+        {
+            LastPhysicManager.UpdateTo(this, BspTree, Blockmap, Random, Map is DoomMap);
+            return LastPhysicManager;
+        }
+
+        LastPhysicManager = new(this, BspTree, Blockmap, Random, Map is DoomMap);
+        return LastPhysicManager;
+    }
+
+    private EntityManager CreateEntityManager()
+    {
+        if (LastEntityManager != null)
+        {
+            LastEntityManager.UpdateTo(this);
+            return LastEntityManager;
+        }
+        LastEntityManager = new(this);
+        return LastEntityManager;
+    }
+
+    private WorldSoundManager CreateSoundManager()
     {
         if (LastWorldSoundManager != null)
         {
@@ -1919,7 +1957,7 @@ public abstract partial class WorldBase : IWorld
         if (blocked)
             return true;
 
-        if (!PhysicsManager.IsPositionValid(entity, entity.Position.XY, EmtpyTryMove))
+        if (!PhysicsManager.IsPositionValid(entity, entity.Position.XY, EmptyTryMove))
             return true;
 
         return false;
@@ -2011,7 +2049,6 @@ public abstract partial class WorldBase : IWorld
         IsDisposed = true;
         UnRegisterConfigChanges();
         SpecialManager.Dispose();
-        EntityManager.Dispose();
     }
 
     private void CreateBloodOrPulletPuff(Entity? entity, Vec3D intersect, double angle, double attackDistance, int damage, bool ripper = false)

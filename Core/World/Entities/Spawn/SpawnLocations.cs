@@ -23,6 +23,13 @@ public class SpawnLocations
         m_world = world;
     }
 
+    public void Clear()
+    {
+        m_playerStarts.Clear();
+        m_deathmatchStarts.Clear();
+        m_cooperativeStarts.Clear();
+    }
+
     /// <summary>
     /// Reads the entity and determines if it is a spawn location or not.
     /// If it is, it will track it and utilize it for spawning from.
