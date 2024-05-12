@@ -22,8 +22,8 @@ public class PortalRenderer : IDisposable
 
     private readonly FloodFillRenderer m_floodFillRenderer;
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly SectorPlane m_fakeFloor = new(0, SectorPlaneFace.Floor, 0, 0, 0);
-    private readonly SectorPlane m_fakeCeiling = new(0, SectorPlaneFace.Floor, 0, 0, 0);
+    private readonly SectorPlane m_fakeFloor = new(SectorPlaneFace.Floor, 0, 0, 0);
+    private readonly SectorPlane m_fakeCeiling = new(SectorPlaneFace.Floor, 0, 0, 0);
     private bool m_disposed;
     private bool m_alwaysFlood;
 

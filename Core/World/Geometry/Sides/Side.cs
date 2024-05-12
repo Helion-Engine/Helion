@@ -2,6 +2,7 @@ using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
@@ -39,6 +40,7 @@ public sealed class Side : IRenderObject
     public SideScrollData? ScrollData;
 
     public SideColormaps? Colormaps;
+    public StaticSideSkyData? SkyGeometry;
 
     public double RenderDistanceSquared { get; set; }
     public RenderObjectType Type => RenderObjectType.Side;

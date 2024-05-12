@@ -38,6 +38,4 @@ public interface ISide
     /// </summary>
     /// <returns>The sector this side references.</returns>
     ISector GetSector();
-
-    public SideScrollData? ScrollData { get; set; }
 }

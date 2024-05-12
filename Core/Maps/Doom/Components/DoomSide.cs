@@ -13,8 +13,6 @@ public class DoomSide : ISide
     public string LowerTexture { get; set; }
     public readonly DoomSector Sector;
 
-    public SideScrollData? ScrollData { get; set; }
-
     public DoomSide(int id, Vec2I offset, string upperTexture, string middleTexture, string lowerTexture,
         DoomSector sector)
     {

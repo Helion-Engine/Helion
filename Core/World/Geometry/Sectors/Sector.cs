@@ -95,11 +95,17 @@ public sealed class Sector
 
     private Box2D? m_boundingBox;
 
-    private readonly short m_initialLightLevel;
-    private readonly SectorEffect m_initialSectorEffect;
-    private readonly InstantKillEffect m_initialKillEffect;
+    private short m_initialLightLevel;
+    private SectorEffect m_initialSectorEffect;
+    private InstantKillEffect m_initialKillEffect;
 
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
+        ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)
+    {
+        Set(id, tag, lightLevel, floor, ceiling, sectorSpecial, sectorData);
+    }
+
+    public void Set(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
         ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)
     {
         Id = id;
@@ -147,8 +153,8 @@ public sealed class Sector
 
     public static Sector CreateDefault() =>
         new (0, 0, 0,
-            new SectorPlane(0, SectorPlaneFace.Floor, 0, 0, 0),
-            new SectorPlane(0, SectorPlaneFace.Ceiling, 0, 0, 0),
+            new SectorPlane(SectorPlaneFace.Floor, 0, 0, 0),
+            new SectorPlane(SectorPlaneFace.Ceiling, 0, 0, 0),
             ZDoomSectorSpecialType.None, SectorData.Default);
 
     public Sector GetRenderSector(Sector sector, double viewZ)

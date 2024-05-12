@@ -10,6 +10,7 @@ using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Loggers;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -23,7 +24,6 @@ namespace Helion.World.Geometry.Builder;
 
 public static class DoomGeometryBuilder
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public static MapGeometry? Create(DoomMap map, GeometryBuilder builder, TextureManager textureManager, 
         Func<(CompactBspTree, BspTreeNew)?> createBspTree)
     {
@@ -37,18 +37,13 @@ public static class DoomGeometryBuilder
         return new(map, builder, bspTree.Value.Item1, bspTree.Value.Item2);
     }
 
-    private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes, SectorPlaneFace face,
+    private static SectorPlane CreateSectorPlane(DoomSector doomSector, SectorPlaneFace face,
         TextureManager textureManager)
     {
-        int id = sectorPlanes.Count;
         double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
         string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
         int handle = textureManager.GetTexture(texture, ResourceNamespace.Flats).Index;
-
-        SectorPlane sectorPlane = new(id, face, z, handle, doomSector.LightLevel);
-        sectorPlanes.Add(sectorPlane);
-
-        return sectorPlane;
+        return new SectorPlane(face, z, handle, doomSector.LightLevel);
     }
 
     private static void PopulateSectorData(DoomMap map, GeometryBuilder builder, TextureManager textureManager)
@@ -56,8 +51,8 @@ public static class DoomGeometryBuilder
         SectorData sectorData = new();
         foreach (DoomSector doomSector in map.Sectors)
         {
-            SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor, textureManager);
-            SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling, textureManager);
+            SectorPlane floorPlane = CreateSectorPlane(doomSector, SectorPlaneFace.Floor, textureManager);
+            SectorPlane ceilingPlane = CreateSectorPlane(doomSector, SectorPlaneFace.Ceiling, textureManager);
             ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, sectorData);
 
             Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
@@ -152,7 +147,7 @@ public static class DoomGeometryBuilder
         {
             if (doomLine.Start.Position == doomLine.End.Position)
             {
-                Log.Warn("Zero length linedef pruned (id = {0})", doomLine.Id);
+                HelionLog.Warn($"Zero length linedef pruned (id = {doomLine.Id})");
                 continue;
             }
 

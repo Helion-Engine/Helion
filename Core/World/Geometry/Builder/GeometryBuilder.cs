@@ -25,14 +25,12 @@ public class GeometryBuilder
     public readonly List<Line> Lines;
     public readonly List<Side> Sides;
     public readonly List<Sector> Sectors;
-    public readonly List<SectorPlane> SectorPlanes;
 
     internal GeometryBuilder(IMap map)
     {
         Lines = new(map.GetLines().Count);
         Sides = new(map.GetSides().Count);
         Sectors = new(map.GetSectors().Count);
-        SectorPlanes = new(map.GetSectors().Count * 2);
     }
 
     public static MapGeometry? Create(IMap map, IConfig config, TextureManager textureManager)

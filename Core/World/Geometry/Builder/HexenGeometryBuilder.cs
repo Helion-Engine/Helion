@@ -36,18 +36,13 @@ public static class HexenGeometryBuilder
         return new(map, builder, bspTree.Value.Item1, bspTree.Value.Item2);
     }
 
-    private static SectorPlane CreateAndAddPlane(DoomSector doomSector, List<SectorPlane> sectorPlanes,
+    private static SectorPlane CreateSectorPlane(DoomSector doomSector,
         SectorPlaneFace face, TextureManager textureManager)
     {
-        int id = sectorPlanes.Count;
         double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
         string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
         int textureHandle = textureManager.GetTexture(texture, ResourceNamespace.Flats).Index;
-
-        SectorPlane sectorPlane = new(id, face, z, textureHandle, doomSector.LightLevel);
-        sectorPlanes.Add(sectorPlane);
-
-        return sectorPlane;
+        return new(face, z, textureHandle, doomSector.LightLevel);
     }
 
     private static void PopulateSectorData(HexenMap map, GeometryBuilder builder, TextureManager textureManager)
@@ -55,8 +50,8 @@ public static class HexenGeometryBuilder
         SectorData sectorData = new();
         foreach (DoomSector doomSector in map.Sectors)
         {
-            SectorPlane floorPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Floor, textureManager);
-            SectorPlane ceilingPlane = CreateAndAddPlane(doomSector, builder.SectorPlanes, SectorPlaneFace.Ceiling, textureManager);
+            SectorPlane floorPlane = CreateSectorPlane(doomSector, SectorPlaneFace.Floor, textureManager);
+            SectorPlane ceilingPlane = CreateSectorPlane(doomSector, SectorPlaneFace.Ceiling, textureManager);
             ZDoomSectorSpecialType sectorSpecial = (ZDoomSectorSpecialType)SectorSpecialData.GetType(doomSector.SectorType, SectorDataType.ZDoom);
             SectorSpecialData.SetSectorData(doomSector.SectorType, sectorData, SectorDataType.ZDoom);
 

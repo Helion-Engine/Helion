@@ -34,7 +34,6 @@ public class MapGeometry
     public readonly List<Line> Lines;
     public readonly List<Side> Sides;
     public readonly List<Sector> Sectors;
-    public readonly List<SectorPlane> SectorPlanes;
     public readonly BspTreeNew BspTree;
     public readonly CompactBspTree CompactBspTree;
 
@@ -48,7 +47,6 @@ public class MapGeometry
         Lines = builder.Lines;
         Sides = builder.Sides;
         Sectors = builder.Sectors;
-        SectorPlanes = builder.SectorPlanes;
         CompactBspTree = bspTree;
         BspTree = bspTreeNew;
 

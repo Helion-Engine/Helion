@@ -2,6 +2,7 @@ using Helion.Audio;
 using Helion.Geometry.Planes;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
@@ -13,8 +14,7 @@ namespace Helion.World.Geometry.Sectors;
 
 public sealed class SectorPlane : ISoundSource
 {
-    public readonly int Id;
-    public readonly SectorPlaneFace Facing;
+    public SectorPlaneFace Facing;
     public PlaneD Plane;
     public Sector Sector;
     public double Z;
@@ -23,7 +23,6 @@ public sealed class SectorPlane : ISoundSource
     public short LightLevel;
     public int LastRenderChangeGametick;
     public int LastRenderGametick;
-    public short RenderLightLevel => Facing == SectorPlaneFace.Floor ? Sector.FloorRenderLightLevel : Sector.CeilingRenderLightLevel;
 
     public SectorScrollData? SectorScrollData;
     public SectorDynamic Dynamic;
@@ -31,6 +30,7 @@ public sealed class SectorPlane : ISoundSource
 
     public bool MidTextureHack;
     public bool NoRender;
+    public StaticSkyGeometryData? SkyGeometry;
 
     private IAudioSource? m_audio;
     private SoundInfo? m_soundInfo;
@@ -38,23 +38,14 @@ public sealed class SectorPlane : ISoundSource
     private readonly double m_initialZ;
     private readonly int m_initialTextureHandle;
 
-    public SectorPlane(int id, SectorPlaneFace facing, double z, int textureHandle, short lightLevel)
+    public SectorPlane(SectorPlaneFace facing, double z, int textureHandle, short lightLevel)
     {
-        Id = id;
         Facing = facing;
         Z = z;
         PrevZ = z;
         TextureHandle = textureHandle;
         LightLevel = lightLevel;
         Plane = new PlaneD(0, 0, 1.0, -z);
-
-        // We are okay with things blowing up violently if someone forgets
-        // to assign it, because that is such a critical error on the part
-        // of the developer if this ever happens that it's deserved. Fixing
-        // this would lead to some very messy logic, and when this is added
-        // to a parent object, it will add itself for us. If this can be
-        // fixed in the future with non-messy code, go for it.
-        Sector = null !;
         m_initialZ = z;
         m_initialTextureHandle = textureHandle;
     }

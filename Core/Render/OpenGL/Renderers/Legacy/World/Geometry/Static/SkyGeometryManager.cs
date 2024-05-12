@@ -31,13 +31,8 @@ public class StaticSideSkyData
 
 public sealed class SkyGeometryManager
 {
-    private readonly Dictionary<int, StaticSideSkyData> m_sideLookup  = new();
-    private readonly Dictionary<int, StaticSkyGeometryData> m_planeLookup = new();
-
     public void Clear()
     {
-        m_sideLookup.Clear();
-        m_planeLookup.Clear();
     }
 
     public void AddSide(ISkyComponent sky, Side side, WallLocation wallLocation, SkyGeometryVertex[]? vertices)
@@ -48,11 +43,8 @@ public sealed class SkyGeometryManager
         int index = sky.Vbo.Count;
         sky.Add(vertices, vertices.Length);
 
-        if (!m_sideLookup.TryGetValue(side.Id, out var data))
-        {
-            data = new();
-            m_sideLookup[side.Id] = data;
-        }
+        if (side.SkyGeometry == null)
+            side.SkyGeometry = new();
 
         if (vertices == null)
             return;
@@ -61,13 +53,13 @@ public sealed class SkyGeometryManager
         switch (wallLocation)
         {
             case WallLocation.Upper:
-                data.Upper = geometryData;
+                side.SkyGeometry.Upper = geometryData;
                 break;
             case WallLocation.Lower:
-                data.Lower = geometryData;
+                side.SkyGeometry.Lower = geometryData;
                 break;
             case WallLocation.Middle:
-                data.Middle = geometryData;
+                side.SkyGeometry.Middle = geometryData;
                 break;
         }
     }
@@ -76,7 +68,7 @@ public sealed class SkyGeometryManager
     {
         int index = sky.Vbo.Count;
         sky.Add(vertices, vertices.Length);
-        m_planeLookup[plane.Id] = new StaticSkyGeometryData(sky.Vbo, index, vertices.Length);
+        plane.SkyGeometry = new(sky.Vbo, index, vertices.Length);
     }
 
     public void UpdateSide(Side side, WallLocation wallLocation, SkyGeometryVertex[]? vertices)
@@ -84,17 +76,17 @@ public sealed class SkyGeometryManager
         if (vertices == null)
             return;
 
-        if (!m_sideLookup.TryGetValue(side.Id, out var sideData))
+        if (side.SkyGeometry == null)
             return;
 
-        var data = sideData.Middle;
+        var data = side.SkyGeometry.Middle;
         switch (wallLocation)
         {
             case WallLocation.Upper:
-                data = sideData.Upper;
+                data = side.SkyGeometry.Upper;
                 break;
             case WallLocation.Lower:
-                data = sideData.Lower;
+                data = side.SkyGeometry.Lower;
                 break;
         }
 
@@ -102,42 +94,42 @@ public sealed class SkyGeometryManager
             UpdateSkyGeometry(data, vertices);
     }
 
-    public bool HasPlane(SectorPlane plane) => m_planeLookup.ContainsKey(plane.Id);
-    public bool HasSide(Side side) => m_sideLookup.ContainsKey(side.Id);
+    public bool HasPlane(SectorPlane plane) => plane.SkyGeometry != null;
+    public bool HasSide(Side side) => side.SkyGeometry != null;
 
     public void UpdatePlane(SectorPlane plane, SkyGeometryVertex[] vertices)
     {
-        if (!m_planeLookup.TryGetValue(plane.Id, out var data))
+        if (plane.SkyGeometry == null)
             return;
 
-        UpdateSkyGeometry(data, vertices);
+        UpdateSkyGeometry(plane.SkyGeometry, vertices);
     }
 
     public void ClearGeometryVertices(Side side, WallLocation wallLocation)
     {
-        if (!m_sideLookup.TryGetValue(side.Id, out var sideData))
+        if (side.SkyGeometry == null)
             return;
 
         switch (wallLocation)
         {
             case WallLocation.Upper:
-                ClearSkyGeometry(sideData.Upper);
+                ClearSkyGeometry(side.SkyGeometry.Upper);
                 break;
             case WallLocation.Lower:
-                ClearSkyGeometry(sideData.Lower);
+                ClearSkyGeometry(side.SkyGeometry.Lower);
                 break;
             case WallLocation.Middle:
-                ClearSkyGeometry(sideData.Middle);
+                ClearSkyGeometry(side.SkyGeometry.Middle);
                 break;
         }
     }
 
     public void ClearGeometryVertices(SectorPlane plane)
     {
-        if (!m_planeLookup.TryGetValue(plane.Id, out var data))
+        if (plane.SkyGeometry == null)
             return;
 
-        ClearSkyGeometry(data);
+        ClearSkyGeometry(plane.SkyGeometry);
     }
 
     private static void ClearSkyGeometry(StaticSkyGeometryData? data)
