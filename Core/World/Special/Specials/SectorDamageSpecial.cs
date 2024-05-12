@@ -73,12 +73,14 @@ public class SectorDamageSpecial
             return;
 
         Player player = entity.PlayerObj;
-        if (!player.OnSectorFloorZ(m_sector) || (m_world.LevelTime & 31) != 0 || m_damage == 0)
+        if (!ShouldDamage(player))
             return;
 
         if (m_alwaysDamage || !player.Inventory.IsPowerupActive(PowerupType.IronFeet) || (m_radSuitLeakChance > 0 && m_world.Random.NextByte() < m_radSuitLeakChance))
             m_world.DamageEntity(player, null, m_damage, DamageType.Normal, sectorSource: m_sector);
     }
+
+    protected bool ShouldDamage(Entity entity) => entity.OnSectorFloorZ(m_sector) && (m_world.LevelTime & 31) == 0 && m_damage > 0;
 
     private void CheckInstantKillEffect(Entity entity)
     {

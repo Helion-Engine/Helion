@@ -33,8 +33,11 @@ public class SectorDamageEndSpecial : SectorDamageSpecial
 
         var player = entity.PlayerObj;
         m_world.CheatManager.DeactivateCheat(player, CheatType.God);
-        base.Tick(player);
 
+        if (!ShouldDamage(player))
+            return;
+
+        m_world.DamageEntity(player, null, m_damage, DamageType.Normal, sectorSource: m_sector);
         if (player.Health <= 10)
             m_world.ExitLevel(LevelChangeType.Next);
     }
