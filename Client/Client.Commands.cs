@@ -200,31 +200,31 @@ public partial class Client
         }
     }
 
-    [ConsoleCommand("findkey", "Finds the next key in the map.")]
+    [ConsoleCommand("findkeys", "Finds the next key in the map.")]
     private void CommandFindKey(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer == null)
             return;
 
-        m_layerManager.WorldLayer.World.FindNextKey();
+        m_layerManager.WorldLayer.World.FindKeys();
     }
 
-    [ConsoleCommand("findkeyline", "Finds the next locked key line in the map.")]
+    [ConsoleCommand("findkeylines", "Finds the next locked key line in the map.")]
     private void CommandFindKeyLine(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer == null)
             return;
 
-        m_layerManager.WorldLayer.World.FindNextKeyLine();
+        m_layerManager.WorldLayer.World.FindKeyLines();
     }
 
-    [ConsoleCommand("findexit", "Finds the next exit line/sector in the map.")]
+    [ConsoleCommand("findexits", "Finds the next exit line/sector in the map.")]
     private void CommandFindExit(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer == null)
             return;
 
-        m_layerManager.WorldLayer.World.FindExit();
+        m_layerManager.WorldLayer.World.FindExits();
     }
 
     [ConsoleCommand("listdisplays", "Lists all available displays.")]

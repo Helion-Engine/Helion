@@ -58,6 +58,9 @@ public class DataCache
     private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new();
     private readonly Dictionary<int, DynamicArray<LegacyVertex[]?>> m_flatVertices = new();
     private readonly Dictionary<int, DynamicArray<SkyGeometryVertex[]?>> m_skyFlatVertices = new();
+    private readonly DynamicArray<Line> m_oneSidedLines = new();
+    private readonly DynamicArray<Line> m_twoSidedLines = new();
+    private readonly DynamicArray<Sector> m_sectors = new();
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public bool CacheEntities = true;

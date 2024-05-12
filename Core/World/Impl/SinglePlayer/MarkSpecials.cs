@@ -37,10 +37,6 @@ public class MarkSpecials
     private int m_lastGametick = -1;
     private int m_ignoreGametick = -1;
     private int m_lineMarkColor;
-    private WeakEntity? m_lastKey;
-    private int m_lastKeyLineIndex = -1;
-    private int m_lastExitIndex = -1;
-    private object m_lastExitObject;
 
     public void Clear(Player player)
     {
@@ -148,89 +144,45 @@ public class MarkSpecials
         }
     }
 
-    public Entity? FindNextKey(IWorld world)
+    public void FindKeys(IWorld world, List<object> keys)
     {
-        m_lastKeyLineIndex = -1;
-        var node = m_lastKey?.Entity?.Next ?? world.EntityManager.Head;
-        m_lastKey = null;
+        var node = world.EntityManager.Head;
         while (node != null)
         {
             if (node.Definition.IsType(Inventory.KeyClassName))
-            {
-                m_lastKey = WeakEntity.GetReference(node);
-                break;
-            }
+                keys.Add(node);
             node = node.Next;
         }
-        return m_lastKey?.Entity;
     }
 
-    public Line? FindNextKeyLine(IWorld world)
+    public void FindKeyLines(IWorld world, List<object> lines)
     {
-        m_lastKey = null;
-        int start = m_lastKeyLineIndex + 1;
-        if (start >= world.Lines.Count)
-            start = 0;
-        for (int i = start; i < world.Lines.Count; i++)
+        for (int i = 0; i < world.Lines.Count; i++)
         {
             var line = world.Lines[i];
             if (line.Special == null)
                 continue;
 
             if (LockSpecialUtil.IsLockSpecial(line, out _))
-            {
-                m_lastKeyLineIndex = i;
-                break;
-            }
+                lines.Add(line);
         }
-
-        if (m_lastKeyLineIndex == start - 1)
-        {
-            m_lastKeyLineIndex = -1;
-            return null;
-        }
-
-        return world.Lines[m_lastKeyLineIndex];
     }
 
-    public object? FindNextExit(IWorld world)
+    public void FindExits(IWorld world, List<object> items)
     {
-        int start = m_lastExitIndex + 1;
-
-        if (m_lastExitObject == null || m_lastExitObject is Line)
+        for (int i = 0; i < world.Lines.Count; i++)
         {
-            for (int i = start; i < world.Lines.Count; i++)
-            {
-                var line = world.Lines[i];
-                if (line.Special.IsExitSpecial())
-                {
-                    m_lastExitObject = line;
-                    m_lastExitIndex = i;
-                    return line;
-                }
-            }
-
-            if (m_lastExitIndex == start - 1)
-                m_lastExitIndex = -1;
+            var line = world.Lines[i];
+            if (line.Special.IsExitSpecial())
+                items.Add(line);
         }
 
-        start = m_lastExitIndex + 1;
-        for (int i = start; i < world.Sectors.Count; i++)
+        for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sec = world.Sectors[i];
             if (sec.SectorSpecialType == ZDoomSectorSpecialType.DamageEnd || sec.KillEffect == InstantKillEffect.KillAllPlayersExit || sec.KillEffect == InstantKillEffect.KillAllPlayersSecretExit)
-            {
-                m_lastExitObject = sec;
-                m_lastExitIndex = i;
-                return sec;
-            }
+                items.Add(sec);
         }
-
-        if (m_lastExitIndex == start - 1)
-            m_lastExitIndex = -1;
-
-        m_lastExitObject = null;
-        return null;
     }
 
     private static bool IgnoreLineSpecial(Line line) =>

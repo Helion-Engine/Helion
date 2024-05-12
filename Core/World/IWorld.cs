@@ -163,9 +163,9 @@ public interface IWorld : IDisposable
     void ResetGametick();
     void EntityTeleported(Entity entity);
     bool PlayLevelMusic(string name, byte[]? data);
-    void FindNextKey();
-    void FindNextKeyLine();
-    void FindExit();
+    void FindKeys();
+    void FindKeyLines();
+    void FindExits();
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

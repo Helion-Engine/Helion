@@ -1965,45 +1965,60 @@ public abstract partial class WorldBase : IWorld
     public void ResetGametick() => Gametick = 0;
 
     const int HighlightSize = 112;
+    private List<object> m_findObjects = new();
 
-    public void FindNextKey()
+    public void FindKeys()
     {
         HighlightAreas.Clear();
-        var key = MarkSpecials.FindNextKey(this);
-        if (key == null)
+        m_findObjects.Clear();
+        MarkSpecials.FindKeys(this, m_findObjects);
+        if (m_findObjects.Count == 0)
         {
-            DisplayMessage("No more results");
+            DisplayMessage("No keys found");
             return;
         }
 
-        HighlightAreas.Add(new HighlightArea(key.Position, HighlightSize));
+        for (int i = 0; i < m_findObjects.Count; i++)
+            HighlightAreas.Add(new HighlightArea(((Entity)m_findObjects[i]).Position, HighlightSize));
     }
 
-    public void FindNextKeyLine()
+    public void FindKeyLines()
     {
-        HighlightLine(MarkSpecials.FindNextKeyLine(this));
-    }
-
-    public void FindExit()
-    {
+        m_findObjects.Clear();
         HighlightAreas.Clear();
-        var exit = MarkSpecials.FindNextExit(this);
-        if (exit is Line line)
-            HighlightLine(line);
-        else if (exit is Sector sector)
-            HighlightSector(sector);
-        else
-            DisplayMessage("No more results");
+        MarkSpecials.FindKeyLines(this, m_findObjects);
+        if (m_findObjects.Count == 0)
+        {
+            DisplayMessage("No keys found");
+            return;
+        }
+
+        for (int i = 0; i < m_findObjects.Count; i++)
+            HighlightLine((Line)m_findObjects[i]);
+    }
+
+    public void FindExits()
+    {
+        m_findObjects.Clear();
+        HighlightAreas.Clear();
+        MarkSpecials.FindExits(this, m_findObjects);
+        if (m_findObjects.Count == 0)
+        {
+            DisplayMessage("No exits found");
+            return;
+        }
+
+        foreach (var obj in m_findObjects)
+        {
+            if (obj is Line line)
+                HighlightLine(line);
+            else if (obj is Sector sector)
+                HighlightSector(sector);
+        }
     }
 
     private void HighlightSector(Sector? sector)
     {        
-        if (sector == null || sector.Id < 0 || sector.Id >= Geometry.IslandGeometry.SectorIslands.Length)
-        {
-            DisplayMessage("No more results");
-            return;
-        }
-
         var islands = Geometry.IslandGeometry.SectorIslands[sector.Id];
         if (islands.Count == 0)
             return;
