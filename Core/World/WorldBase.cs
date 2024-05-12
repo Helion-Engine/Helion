@@ -1050,7 +1050,8 @@ public abstract partial class WorldBase : IWorld
     public void TelefragBlockingEntities(Entity entity)
     {
         DynamicArray<Entity> blockingEntities = DataCache.GetEntityList();
-        entity.GetIntersectingEntities3D(entity.Position, blockingEntities, true);
+        WorldStatic.World.BlockmapTraverser.SolidBlockTraverse(entity, entity.Position,
+            !WorldStatic.InfinitelyTallThings && !WorldStatic.FinalDoomTeleport, blockingEntities, true);
         for (int i = 0; i < blockingEntities.Length; i++)
             blockingEntities[i].ForceGib();
         DataCache.FreeEntityList(blockingEntities);

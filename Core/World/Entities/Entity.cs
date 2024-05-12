@@ -735,11 +735,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
     public bool IsFriend(Entity entity) => Flags.Friendly && entity.Flags.Friendly;
 
-    public void GetIntersectingEntities3D(in Vec3D position, DynamicArray<Entity> entities, bool shootable)
-    {
-        WorldStatic.World.BlockmapTraverser.SolidBlockTraverse(this, position, !WorldStatic.World.Config.Compatibility.InfinitelyTallThings, entities, shootable);
-    }
-
     public bool CanBlockEntity(Entity other)
     {
         if (Id == other.Id || Owner.Entity == other || other.Flags.NoClip)

@@ -189,7 +189,7 @@ public struct TeleportSpecial
             return true;
 
         return WorldStatic.World.BlockmapTraverser.SolidBlockTraverse(teleportEntity, pos,
-            !WorldStatic.World.Config.Compatibility.InfinitelyTallThings);
+            !WorldStatic.InfinitelyTallThings && !WorldStatic.FinalDoomTeleport);
     }
 
     public bool Use(Entity entity)
