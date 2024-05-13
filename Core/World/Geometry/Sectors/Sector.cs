@@ -52,6 +52,8 @@ public sealed class Sector
     public List<LinkableNode<Sector>> BlockmapNodes = new();
     public DynamicArray<SoundLine> SoundLines = new();
     public Island Island = null!;
+    public Island? UniqueIsland;
+    public bool SetUniqueIsland;
 
     public short LightLevel;
     public TransferHeights? TransferHeights;
@@ -92,6 +94,8 @@ public sealed class Sector
 
     public Sector TransferFloorLightSector;
     public Sector TransferCeilingLightSector;
+
+    public SectorDamageSpecial? SectorDamageSpecial;
 
     private Box2D? m_boundingBox;
 
@@ -146,6 +150,7 @@ public sealed class Sector
         MarkAutomap = default;
         ActiveFloorMove = default;
         ActiveCeilingMove = default;
+        SectorDamageSpecial = default;
         ActivatedByLineId = -1;
         Floor.Reset(m_initialLightLevel);
         Ceiling.Reset(m_initialLightLevel);
@@ -501,8 +506,6 @@ public sealed class Sector
         else
             ActiveCeilingMove = special;
     }
-
-    public SectorDamageSpecial? SectorDamageSpecial { get; set; }
 
     public Sector? GetLowestAdjacentFloor()
     {
