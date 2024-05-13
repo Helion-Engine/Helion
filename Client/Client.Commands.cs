@@ -13,6 +13,7 @@ using Helion.Maps;
 using Helion.Maps.Bsp.Zdbsp;
 using Helion.Models;
 using Helion.Render.OpenGL.Shared;
+using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
@@ -421,6 +422,35 @@ public partial class Client
     [ConsoleCommand("AllowMonsterTelefrags", "Allows monster telefrags")]
     private void AllowMonsterTelefrags(ConsoleCommandEventArgs args) =>
         ToggleMapOption(MapOptions.AllowMonsterTelefrags, args);
+
+    private readonly List<string> m_compLevelNames = [];
+
+    [ConsoleCommand("CompLvl", "Sets the complvl (vanilla, boom, mbf, or mbf21)")]
+    private void CompLvl(ConsoleCommandEventArgs args)
+    {
+        if (m_compLevelNames.Count == 0)
+        {
+            foreach (CompLevel comp in Enum.GetValues(typeof(CompLevel)))
+                m_compLevelNames.Add(comp.ToString());
+        }
+
+        if (args.Args.Count == 0)
+        {
+            HelionLog.Error("CompLvl requires one argument.");
+            return;
+        }
+
+        for (int i = 0; i <  m_compLevelNames.Count; i++)
+        {
+            if (args.Args[0].EqualsIgnoreCase(m_compLevelNames[i]))
+            {
+                var comp = m_archiveCollection.Definitions.CompLevelDefinition;
+                comp.CompLevel = (CompLevel)i;
+                comp.Apply(m_config);
+                return;
+            }
+        }
+    }
 
     private void ToggleMapOption(MapOptions option, ConsoleCommandEventArgs args)
     {
