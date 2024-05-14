@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.World.Entities;
+using Helion.World.Geometry.Islands;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World
 {
@@ -11,6 +12,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World
         public Vec2D ViewDirection;
         public Vec3D ViewPosInterpolated3D;
         public Vec3D ViewPos3D;
+        public Island ViewIsland;
         public int CheckCount;
         public int MaxDistance;
         public int MaxDistanceSquared;

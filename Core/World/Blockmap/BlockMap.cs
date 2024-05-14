@@ -9,6 +9,7 @@ using Helion.Util.Assertion;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World.Entities;
+using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -45,7 +46,7 @@ public class BlockMap
             {
                 var nextNode = sectorNode.Next;
                 sectorNode.Unlink();
-                WorldStatic.DataCache.FreeLinkableNodeSector(sectorNode);
+                //WorldStatic.DataCache.FreeLinkableNodeSector(sectorNode);
                 sectorNode = nextNode;
             }
 
@@ -117,17 +118,19 @@ public class BlockMap
         Assert.Precondition(sector.BlockmapNodes.Empty(), "Forgot to unlink sector from blockmap");
 
         var islands = world.Geometry.IslandGeometry.SectorIslands[sector.Id];
-        foreach (var island in islands)
+        foreach (var sectorIsland in islands)
         {
-            var it = m_blocks.CreateBoxIteration(island.Box);
+            if (sectorIsland.IsVooDooCloset || sectorIsland.IsMonsterCloset)
+                continue;
+            var it = m_blocks.CreateBoxIteration(sectorIsland.Box);
             for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
             {
                 for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
                 {
                     Block block = m_blocks[by * it.Width + bx];
-                    LinkableNode<Sector> sectorNode = world.DataCache.GetLinkableNodeSector(sector);
-                    block.DynamicSectors.Add(sectorNode);
-                    sector.BlockmapNodes.Add(sectorNode);
+                    var node = world.DataCache.GetLinkableNodeIsland(sectorIsland);
+                    block.DynamicSectors.Add(node);
+                    sector.BlockmapNodes.Add(node);
                 }
             }
         }

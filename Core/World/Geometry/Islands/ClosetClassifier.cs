@@ -5,6 +5,7 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.World.Geometry.Islands;
 
@@ -50,6 +51,34 @@ public static class ClosetClassifier
             {
                 foreach (Entity entity in islandToEntities[island.Id])
                     entity.ClosetFlags |= ClosetFlags.MonsterCloset;
+            }
+
+            if (island.IsMonsterCloset || island.IsVooDooCloset)
+            {
+                foreach (var subsector in island.Subsectors)
+                {
+                    if (!subsector.SectorId.HasValue)
+                        continue;
+                    var sectorIslands = world.Geometry.IslandGeometry.SectorIslands[subsector.SectorId.Value];
+                    foreach (var sectorIsland in sectorIslands)
+                    {
+                        island.IsVooDooCloset = island.IsVooDooCloset;
+                        island.IsMonsterCloset = island.IsMonsterCloset;
+                    }
+                }
+            }
+        }
+
+        var closets = world.Geometry.IslandGeometry.Islands.Where(x => x.IsVooDooCloset).ToList();
+
+        for (int i = 0; i < world.Geometry.IslandGeometry.SectorIslands.Length; i++)
+        {
+            var islands = world.Geometry.IslandGeometry.SectorIslands[i];
+            var sector = world.Sectors[i];
+            foreach (var island in islands)
+            {
+                island.IsVooDooCloset = sector.Island.IsVooDooCloset;
+                island.IsMonsterCloset = sector.Island.IsMonsterCloset;
             }
         }
     }

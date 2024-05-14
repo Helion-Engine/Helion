@@ -38,6 +38,7 @@ public static class IslandClassifier
     public static List<Island> Classify(List<BspSubsector> subsectors, List<Sector> sectors, int sectorId = -1)
     {
         IslandId = 0;
+        SectorIslandId = 0;
         List<Island> islands = new();
 
         foreach (BspSubsector subsector in subsectors)
@@ -45,8 +46,10 @@ public static class IslandClassifier
             if (ProcessedSubsectors.Contains(subsector)) 
                 continue;
 
-            Island island = new(sectorId == -1 ? IslandId++ : SectorIslandId);
+            Island island = new(sectorId == -1 ? IslandId++ : SectorIslandId++);
             islands.Add(island);
+            if (sectorId != -1)
+                island.SectorId = sectorId;
             TraverseSubsectors(subsector, island, ProcessedSubsectors, sectors, sectorId);
         }
 
@@ -89,7 +92,10 @@ public static class IslandClassifier
             processedSubsectors.Add(subsector);
             island.Subsectors.Add(subsector);
             if (sectorId == -1 && subsector.SectorId.HasValue)
-                sectors[subsector.SectorId.Value].Island = island;
+            {
+                var sector = sectors[subsector.SectorId.Value];
+                sector.Island = island;
+            }
 
             if (sectorId == -1)
                 subsector.IslandId = island.Id;

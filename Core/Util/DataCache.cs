@@ -27,6 +27,7 @@ using Helion.Util.Consoles;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
 using System.Reflection;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
+using Helion.World.Geometry.Islands;
 
 namespace Helion.Util;
 
@@ -38,6 +39,7 @@ public class DataCache
     private readonly DynamicArray<Entity> m_entities = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Sector>> m_sectorNodes = new(DefaultLength);
+    private readonly DynamicArray<LinkableNode<Island>> m_islandNodes = new(DefaultLength);
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
     private readonly DynamicArray<DynamicArray<Entity>> m_entityLists = new();
     private readonly DynamicArray<DynamicArray<RenderableGlyph>> m_glyphs = new();
@@ -48,19 +50,16 @@ public class DataCache
     private readonly DynamicArray<LinkedListNode<IAudioSource>> m_audioNodes = new();
     private readonly DynamicArray<LinkedListNode<WaitingSound>> m_waitingSoundNodes = new();
     private readonly DynamicArray<LinkedListNode<ISpecial>> m_specialNodes = new();
+    private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new();
     private readonly DynamicArray<LightChangeSpecial> m_lightChanges = new();
     private readonly DynamicArray<SectorMoveSpecial> m_sectorMoveSpecials = new();
     private readonly DynamicArray<SwitchChangeSpecial> m_switchSpecials = new();
     private readonly DynamicArray<StairSpecial> m_stairSpecials = new();
     private readonly DynamicArray<ConsoleMessage> m_consoleMessages = new();
-    private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new();
-    private readonly DynamicArray<LegacyVertex[]> m_wallVertices = new();
-    private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new();
-    private readonly Dictionary<int, DynamicArray<LegacyVertex[]?>> m_flatVertices = new();
-    private readonly Dictionary<int, DynamicArray<SkyGeometryVertex[]?>> m_skyFlatVertices = new();
-    private readonly DynamicArray<Line> m_oneSidedLines = new();
-    private readonly DynamicArray<Line> m_twoSidedLines = new();
-    private readonly DynamicArray<Sector> m_sectors = new();
+    private readonly DynamicArray<LegacyVertex[]> m_wallVertices = new(DefaultLength);
+    private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new(DefaultLength);
+    private readonly Dictionary<int, DynamicArray<LegacyVertex[]?>> m_flatVertices = new(DefaultLength);
+    private readonly Dictionary<int, DynamicArray<SkyGeometryVertex[]?>> m_skyFlatVertices = new(DefaultLength);
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public bool CacheEntities = true;
@@ -154,10 +153,9 @@ public class DataCache
 
     public LinkableNode<Sector> GetLinkableNodeSector(Sector sector)
     {
-        LinkableNode<Sector> node;
         if (m_sectorNodes.Length > 0)
         {
-            node = m_sectorNodes.RemoveLast();
+            var node = m_sectorNodes.RemoveLast();
             node.Value = sector;
             return node;
         }
@@ -171,6 +169,26 @@ public class DataCache
         node.Next = null;
         node.Value = null!;
         m_sectorNodes.Add(node);
+    }
+
+    public LinkableNode<Island> GetLinkableNodeIsland(Island island)
+    {
+        if (m_islandNodes.Length > 0)
+        {
+            var node = m_islandNodes.RemoveLast();
+            node.Value = island;
+            return node;
+        }
+
+        return new LinkableNode<Island> { Value = island };
+    }
+
+    public void FreeLinkableNodeIsland(LinkableNode<Island> node)
+    {
+        node.Previous = null!;
+        node.Next = null;
+        node.Value = null!;
+        m_islandNodes.Add(node);
     }
 
     public OpenALAudioSource GetAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, in AudioData audioData)

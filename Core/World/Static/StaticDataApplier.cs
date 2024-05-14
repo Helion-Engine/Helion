@@ -126,7 +126,7 @@ public class StaticDataApplier
         if ((face & SectorPlanes.Ceiling) != 0)
             sector.Ceiling.Dynamic |= sectorDynamic;
 
-        if (sector.BlockmapNodes.Count == 0 && (sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
+        if (sector.BlockmapNodes.Length == 0 && (sectorDynamic == SectorDynamic.TransferHeights || sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
             world.RenderBlockmap.Link(world, sector);
 
         if (sectorDynamic == SectorDynamic.Movement)

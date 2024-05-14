@@ -3,6 +3,7 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 using Helion.World.Entities;
+using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -47,7 +48,7 @@ public class Block
     /// All the entities in this block.
     /// </summary>
     public readonly LinkableList<Entity> Entities = new();
-    public readonly LinkableList<Sector> DynamicSectors = new();
+    public readonly LinkableList<Island> DynamicSectors = new();
     public readonly LinkableList<Side> DynamicSides = new();
 
     public Entity? HeadEntity;

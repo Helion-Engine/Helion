@@ -1072,7 +1072,7 @@ public sealed class SpecialManager : ITickable, IDisposable
             nextNode = specNode.Next;
             ISpecial spec = specNode.Value;
             if (spec.SectorBaseSpecialType == SectorBaseSpecialType.Light && spec is ISectorSpecial sectorSpecial &&
-                sectorSpecial.Sector.Equals(sector))
+                sectorSpecial.Sector == sector)
             {
                 sector.ClearActiveMoveSpecial();
                 m_destroyedMoveSpecials.Add((ISectorSpecial)specNode.Value);
@@ -1095,7 +1095,7 @@ public sealed class SpecialManager : ITickable, IDisposable
             nextNode = specNode.Next;
             ISpecial spec = specNode.Value;
             if (spec.SectorBaseSpecialType == SectorBaseSpecialType.Move && spec is SectorMoveSpecial sectorMoveSpecial &&
-                sectorMoveSpecial.Sector.Equals(sector) && IsSectorMoveSpecialMatch(lineSpecial, sectorMoveSpecial))
+                sectorMoveSpecial.Sector == sector && IsSectorMoveSpecialMatch(lineSpecial, sectorMoveSpecial))
             {
                 if (lineSpecial.CanPause())
                 {

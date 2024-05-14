@@ -66,6 +66,7 @@ public class MapGeometry
                 bool islandFlooded = false;
                 foreach (var subsector in island.Subsectors)
                 {
+                    island.ParentIsland = IslandGeometry.Islands[subsector.IslandId];
                     if (subsector.Segments.Count >= 3)
                         continue;
 

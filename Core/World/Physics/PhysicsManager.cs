@@ -1011,7 +1011,8 @@ public sealed class PhysicsManager
                 continue;
             }
 
-            if (entity.Flags.SlidesOnWalls && slidesLeft > 0)
+            //  TODO maybe
+            if (entity.Flags.SlidesOnWalls && slidesLeft > 0 && entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll)
             {
                 // BlockingLine and BlockingEntity will get cleared on HandleSlide(IsPositionValid) calls.
                 // Carry them over so other functions after TryMoveXY can use them for verification.

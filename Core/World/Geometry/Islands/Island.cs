@@ -21,6 +21,10 @@ public class Island
     public bool Flood;
     public int InitialMonsterCount;
     public Box2D Box;
+    public int BlockmapCount;
+    public int CheckCount;
+    public int? SectorId;
+    public Island? ParentIsland;
 
     public Island(int id)
     {

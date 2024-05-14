@@ -49,11 +49,9 @@ public sealed class Sector
     public SectorPlane Ceiling;
     public List<Line> Lines = new();
     public LinkableList<Entity> Entities = new();
-    public List<LinkableNode<Sector>> BlockmapNodes = new();
+    public DynamicArray<LinkableNode<Island>> BlockmapNodes = new();
     public DynamicArray<SoundLine> SoundLines = new();
     public Island Island = null!;
-    public Island? UniqueIsland;
-    public bool SetUniqueIsland;
 
     public short LightLevel;
     public TransferHeights? TransferHeights;
@@ -61,7 +59,6 @@ public sealed class Sector
     public SectorMoveSpecial? ActiveCeilingMove;
     public int RenderGametick;
     public int ChangeGametick;
-    public int BlockmapCount;
     public SectorPlaneFace LastActivePlaneMove;
     public ZDoomSectorSpecialType SectorSpecialType;
     public bool Secret => (SectorEffect & SectorEffect.Secret) != 0;
@@ -144,7 +141,6 @@ public sealed class Sector
         RenderLightChangeGametick = default;
         LastRenderGametick = default;
         RenderGametick = default;
-        BlockmapCount = default;
         SoundValidationCount = default;
         CheckCount = default;
         MarkAutomap = default;
@@ -475,7 +471,7 @@ public sealed class Sector
     /// </summary>
     public ISectorSpecial? GetActiveMoveSpecial(SectorPlane sectorPlane)
     {
-        if (!sectorPlane.Sector.Equals(this))
+        if (sectorPlane.Sector != this)
             return null;
 
         if (sectorPlane.Facing == SectorPlaneFace.Floor)
@@ -832,10 +828,11 @@ public sealed class Sector
 
     public void UnlinkFromWorld(IWorld world)
     {
-        for (int i = 0; i < BlockmapNodes.Count; i++)
+        for (int i = 0; i < BlockmapNodes.Length; i++)
         {
-            BlockmapNodes[i].Unlink();
-            world.DataCache.FreeLinkableNodeSector(BlockmapNodes[i]);
+            var node = BlockmapNodes[i];
+            node.Unlink();
+            world.DataCache.FreeLinkableNodeIsland(node);
         }
 
         BlockmapNodes.Clear();

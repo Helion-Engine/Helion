@@ -135,6 +135,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_renderData.ViewPosInterpolated3D = renderInfo.Camera.PositionInterpolated.Double;
         m_renderData.ViewPos3D = renderInfo.Camera.Position.Double;
         m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
+        m_renderData.ViewIsland = world.Geometry.IslandGeometry.Islands[world.Geometry.BspTree.Subsectors[renderInfo.ViewerEntity.Subsector.Id].IslandId];
         m_viewSector = renderInfo.ViewSector;
 
         m_viewerEntityId = renderInfo.ViewerEntity.Id;
@@ -162,14 +163,21 @@ public class LegacyWorldRenderer : WorldRenderer
                 if (occlude && !block.Box.InView(occluder, m_renderData.ViewDirection))
                     continue;
 
-                for (LinkableNode<Sector>? sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
+                for (var sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
                 {
-                    if (sectorNode.Value.BlockmapCount == m_renderData.CheckCount)
+                    if (sectorNode.Value.BlockmapCount == m_renderData.CheckCount || !sectorNode.Value.SectorId.HasValue)
                         continue;
 
-                    Sector sector = sectorNode.Value;
-                    TransferHeights? transfer = sector.TransferHeights;
-                    sector.BlockmapCount = m_renderData.CheckCount;
+                    var sectorIsland = sectorNode.Value;
+                    if (sectorIsland.CheckCount == m_renderData.CheckCount)
+                        continue;
+
+                    sectorIsland.BlockmapCount = m_renderData.CheckCount;
+                    if (sectorIsland.ParentIsland != null && sectorIsland.ParentIsland != m_renderData.ViewIsland)
+                        continue;
+
+                    var sector = world.Sectors[sectorIsland.SectorId.Value];
+                    var transfer = sector.TransferHeights;
 
                     const SectorDynamic MovementFlags = SectorDynamic.Movement | SectorDynamic.Scroll;
                     // Middle view is in the static renderer. If it's not moving then we don't need to dynamically draw.
@@ -180,11 +188,14 @@ public class LegacyWorldRenderer : WorldRenderer
                         (transfer.ControlSector.Ceiling.Dynamic & MovementFlags) == 0)
                         continue;
 
-                    Box2D sectorBox = sector.GetBoundingBox();
-                    double dx1 = Math.Max(sectorBox.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - sectorBox.Max.X));
-                    double dy1 = Math.Max(sectorBox.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - sectorBox.Max.Y));
+                    var boundingBox = sectorIsland.Box;
+                    double dx1 = Math.Max(boundingBox.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - boundingBox.Max.X));
+                    double dy1 = Math.Max(boundingBox.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - boundingBox.Max.Y));
                     if (dx1 * dx1 + dy1 * dy1 <= m_renderData.MaxDistanceSquared)
-                        RenderSector(sector);
+                    {
+                        m_geometryRenderer.RenderSector(m_viewSector, sector, m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);
+                        sectorIsland.CheckCount = m_renderData.CheckCount;
+                    }
                 }
 
                 for (LinkableNode<Side>? sideNode = block.DynamicSides.Head; sideNode != null; sideNode = sideNode.Next)
@@ -237,15 +248,6 @@ public class LegacyWorldRenderer : WorldRenderer
         }
 
         m_entityRenderer.RenderEntity(entity, m_renderData.ViewPosInterpolated3D);     
-    }
-
-    void RenderSector(Sector sector)
-    {
-        if (sector.CheckCount == m_renderData.CheckCount)
-            return;
-
-        m_geometryRenderer.RenderSector(m_viewSector, sector, m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);
-        sector.CheckCount = m_renderData.CheckCount;
     }
 
     protected override void PerformRender(IWorld world, RenderInfo renderInfo)
