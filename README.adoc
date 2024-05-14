@@ -48,3 +48,22 @@ Scripts/build.sh
 None of the developers have a Mac to test.
 
 You likely can follow the Linux instructions to build.
+
+### All platforms (advanced command-line options)
+
+Once any platform-specific prerequisites are installed, you can build or publish using the `dotnet` commands available with the .NET SDK.  By default, `dotnet build` will build an "any" binary that uses the installed version of the .NET runtime.  However, you can also build versions with a prepackaged runtime for easy installation onto machines that do not have the .NET 8 runtime installed.  
+
+Note that it only makes sense to run the following from the `/Client` subdirectory, as this is the only one that actually builds an executable (and can therefore be published).
+
+Common parameters:
+* `-r <runtimeID>`:  Build an executable for the specific runtime.  Tested choices include `win-x64`, `win-x86`, and `linux-x64`.
+* `--self-contained=true`:  Includes support files for the specified runtime, so that you do not need to install the .NET runtime onto the machine where you're going to run this (helps to make installs more portable)
+* `-p:PublishSingleFile=true`:  Bundles all of the .NET dependencies into a single file, resulting in fewer files in the output directory.  Can be combined with `--self-contained=true`.
+* `-p:EnableCompressionInSingleFile=true`:  When combined with single-file publish, this will also compress the resulting executable file.  This can result in a much smaller file size, but may result in the app taking longer to start. 
+
+Example (making a compressed, self-contained release build for Windows x64):
+```
+cd Client
+dotnet publish -c Release -r win-x64 --self-contained=true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true
+```
+In this example, the output from the build would end up in `Client\bin\Release\net8.0\win-x64\publish`.

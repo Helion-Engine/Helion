@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <HelionRootDir>$(MSBuildThisFileDirectory)</HelionRootDir>
+  </PropertyGroup>
+</Project>
