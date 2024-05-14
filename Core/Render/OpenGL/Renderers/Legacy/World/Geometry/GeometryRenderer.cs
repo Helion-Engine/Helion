@@ -129,6 +129,7 @@ public class GeometryRenderer : IDisposable
 
         if (!world.SameAsPreviousMap)
         {
+            m_world.DataCache.PurgeFlatVertices();
             for (int i = 0; i < m_subsectors.Length; i++)
             {
                 m_subsectors[i].FlushReferences();
@@ -1107,12 +1108,6 @@ public class GeometryRenderer : IDisposable
                 }
             }
 
-            if (indexStart != lookupData.Length)
-            {
-                for (int i = indexStart; i < lookupData.Length; i++)
-                    lookupData[i] = new();
-            }
-
             vertices = null;
             skyVertices = lookupData;
             m_skyRenderer.Add(lookupData, lookupData.Length, subsectors[0].Sector.SkyTextureHandle, subsectors[0].Sector.FlipSkyTexture);
@@ -1149,12 +1144,6 @@ public class GeometryRenderer : IDisposable
                         indexStart += 3;
                     }
                 }
-            }
-
-            if (indexStart != lookupData.Length)
-            {
-                for (int i = indexStart; i < lookupData.Length; i++)
-                    lookupData[i] = new();
             }
 
             skyVertices = null;

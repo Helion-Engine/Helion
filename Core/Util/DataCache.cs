@@ -28,6 +28,11 @@ using Helion.Render.OpenGL.Renderers.Legacy.World;
 using System.Reflection;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.World.Geometry.Islands;
+using System.Runtime.CompilerServices;
+using Helion.Util.Extensions;
+using Newtonsoft.Json.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Runtime.InteropServices;
 
 namespace Helion.Util;
 
@@ -548,12 +553,14 @@ public class DataCache
         return new LegacyVertex[length];
     }
 
-    public void FreeFlatVertices(LegacyVertex[] vertices)
+    public unsafe void FreeFlatVertices(LegacyVertex[] vertices)
     {
         if (!m_flatVertices.TryGetValue(vertices.Length, out var list))
         {
             list = new();
             m_flatVertices[vertices.Length] = list;
+            ref var reference = ref MemoryMarshal.GetArrayDataReference(vertices);
+            Unsafe.InitBlockUnaligned(ref Unsafe.As<LegacyVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<LegacyVertex>() * vertices.Length));
         }
         list.Add(vertices);
     }
@@ -572,6 +579,8 @@ public class DataCache
         {
             list = new();
             m_skyFlatVertices[vertices.Length] = list;
+            ref var reference = ref MemoryMarshal.GetArrayDataReference(vertices);
+            Unsafe.InitBlockUnaligned(ref Unsafe.As<SkyGeometryVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<SkyGeometryVertex>() * vertices.Length));
         }
         list.Add(vertices);
     }
