@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -156,6 +157,9 @@ public static class WorldTriangulator
         verticesToPopulate.EnsureCapacity(edges.Count);
         verticesToPopulate.SetLength(edges.Count);
 
+        double z = overrideZ == int.MaxValue ? sectorPlane.Z : overrideZ;
+        double prevZ = sectorPlane.PrevZ;
+
         fixed (TriangulatedWorldVertex* startVertex = &verticesToPopulate.Data[0])
         {
             TriangulatedWorldVertex* worldVertex = startVertex;
@@ -164,14 +168,6 @@ public static class WorldTriangulator
                 for (int i = 0; i < edges.Count; i++)
                 {
                     Vec2D vertex = edges[i].Start;
-
-                    // TODO: Interpolation and slopes needs a slight change in
-                    //       how we store sector flat plane information.
-                    double z = sectorPlane.Z;
-                    double prevZ = sectorPlane.PrevZ;
-                    if (overrideZ != int.MaxValue)
-                        z = overrideZ;
-
                     Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: false);
                     Vec2F prevUV = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: true);
 
@@ -194,14 +190,6 @@ public static class WorldTriangulator
                 for (int i = edges.Count - 1; i >= 0; i--)
                 {
                     Vec2D vertex = edges[i].End;
-
-                    // TODO: Interpolation and slopes needs a slight change in
-                    //       how we store sector flat plane information.
-                    double z = sectorPlane.Z;
-                    double prevZ = sectorPlane.PrevZ;
-                    if (overrideZ != int.MaxValue)
-                        z = overrideZ;
-
                     Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: false);
                     Vec2F prevUV = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: true);
 
