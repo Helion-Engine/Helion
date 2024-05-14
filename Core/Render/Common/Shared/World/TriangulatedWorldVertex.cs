@@ -4,14 +4,14 @@ namespace Helion.Render.OpenGL.Shared.World;
 
 public struct TriangulatedWorldVertex
 {
-    public readonly float X;
-    public readonly float Y;
-    public readonly float Z;
-    public readonly float U;
-    public readonly float V;
-    public readonly float PrevZ;
-    public readonly float PrevU;
-    public readonly float PrevV;
+    public float X;
+    public float Y;
+    public float Z;
+    public float U;
+    public float V;
+    public float PrevZ;
+    public float PrevU;
+    public float PrevV;
 
     public TriangulatedWorldVertex(float x, float y, float z, float prevZ, float u, float v, float prevU, float prevV)
     {
