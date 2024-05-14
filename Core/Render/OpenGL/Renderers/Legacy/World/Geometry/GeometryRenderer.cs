@@ -43,8 +43,6 @@ public class GeometryRenderer : IDisposable
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
     private readonly StaticCacheGeometryRenderer m_staticCacheGeometryRenderer;
     private readonly DynamicArray<TriangulatedWorldVertex> m_subsectorVertices = new();
-    private readonly DynamicArray<LegacyVertex> m_vertices = new();
-    private readonly DynamicArray<SkyGeometryVertex> m_skyVertices = new();
     private readonly LegacyVertex[] m_wallVertices = new LegacyVertex[6];
     private readonly SkyGeometryVertex[] m_skyWallVertices = new SkyGeometryVertex[6];
     private readonly RenderWorldDataManager m_worldDataManager;
@@ -1071,6 +1069,9 @@ public class GeometryRenderer : IDisposable
         RenderFlat(subsectors, flat, floor, out vertices, out skyVertices);
     }
 
+    private static readonly LegacyVertex EmptyVertex = new();
+    private static readonly SkyGeometryVertex EmptySkyVertex = new();
+
     private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane flat, bool floor, out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
     {
         bool isSky = TextureManager.IsSkyTexture(flat.TextureHandle);
@@ -1081,12 +1082,12 @@ public class GeometryRenderer : IDisposable
         Sector renderSector = subsectors[0].Sector.GetRenderSector(m_transferHeightsView);
         var textureVector = new Vec2F(texture.Dimension.Vector.X, texture.Dimension.Vector.Y);
 
+        int indexStart = 0;
         if (isSky)
         {
             SkyGeometryVertex[] lookupData = GetSkySectorVertices(subsectors, floor, id, out bool generate);
             if (generate || flatChanged)
             {
-                int indexStart = 0;
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
@@ -1096,17 +1097,20 @@ public class GeometryRenderer : IDisposable
                     WorldTriangulator.HandleSubsector(subsector, flat, textureVector, m_subsectorVertices,
                         floor ? flat.Z : MaxSky);
                     TriangulatedWorldVertex root = m_subsectorVertices[0];
-                    m_skyVertices.Clear();
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
                     {
                         TriangulatedWorldVertex second = m_subsectorVertices[i];
                         TriangulatedWorldVertex third = m_subsectorVertices[i + 1];
-                        CreateSkyFlatVertices(m_skyVertices, root, second, third);
+                        CreateSkyFlatVertices(lookupData, indexStart, root, second, third);
+                        indexStart += 3;
                     }
-
-                    Array.Copy(m_skyVertices.Data, 0, lookupData, indexStart, m_skyVertices.Length);
-                    indexStart += m_skyVertices.Length;
                 }
+            }
+
+            if (indexStart != lookupData.Length)
+            {
+                for (int i = indexStart; i < lookupData.Length; i++)
+                    lookupData[i] = new();
             }
 
             vertices = null;
@@ -1125,7 +1129,6 @@ public class GeometryRenderer : IDisposable
             LegacyVertex[] lookupData = GetSectorVertices(subsectors, floor, id, out bool generate);
             if (generate || flatChanged)
             {
-                int indexStart = 0;
                 int lightIndex = floor ? StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Floor) :
                             StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Ceiling);
                 for (int j = 0; j < subsectors.Length; j++)
@@ -1138,17 +1141,20 @@ public class GeometryRenderer : IDisposable
                     WorldTriangulator.HandleSubsector(subsector, flat, textureVector, m_subsectorVertices);
 
                     TriangulatedWorldVertex root = m_subsectorVertices[0];
-                    m_vertices.Clear();
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
                     {
                         TriangulatedWorldVertex second = m_subsectorVertices[i];
                         TriangulatedWorldVertex third = m_subsectorVertices[i + 1];
-                        GetFlatVertices(m_vertices, ref root, ref second, ref third, lightIndex);
+                        GetFlatVertices(lookupData, indexStart, ref root, ref second, ref third, lightIndex);
+                        indexStart += 3;
                     }
-
-                    Array.Copy(m_vertices.Data, 0, lookupData, indexStart, m_vertices.Length);
-                    indexStart += m_vertices.Length;
                 }
+            }
+
+            if (indexStart != lookupData.Length)
+            {
+                for (int i = indexStart; i < lookupData.Length; i++)
+                    lookupData[i] = new();
             }
 
             skyVertices = null;
@@ -1288,12 +1294,9 @@ public class GeometryRenderer : IDisposable
         return data;
     }
 
-    private static unsafe void CreateSkyFlatVertices(DynamicArray<SkyGeometryVertex> vertices, in TriangulatedWorldVertex root, in TriangulatedWorldVertex second, in TriangulatedWorldVertex third)
+    private static unsafe void CreateSkyFlatVertices(SkyGeometryVertex[] vertices, int startIndex, in TriangulatedWorldVertex root, in TriangulatedWorldVertex second, in TriangulatedWorldVertex third)
     {
-        int length = vertices.Length;
-        vertices.EnsureCapacity(length + 3);
-
-        fixed (SkyGeometryVertex* startVertex = &vertices.Data[length])
+        fixed (SkyGeometryVertex* startVertex = &vertices[startIndex])
         {
             SkyGeometryVertex* vertex = startVertex;
             vertex->X = root.X;
@@ -1310,8 +1313,6 @@ public class GeometryRenderer : IDisposable
             vertex->Y = third.Y;
             vertex->Z = third.Z;
         }
-
-        vertices.SetLength(length + 3);
     }
 
     private static void SetWallVertices(LegacyVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
@@ -1510,12 +1511,10 @@ public class GeometryRenderer : IDisposable
         return data;
     }
 
-    private static unsafe void GetFlatVertices(DynamicArray<LegacyVertex> vertices, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
-int lightLevelBufferIndex)
+    private static unsafe void GetFlatVertices(LegacyVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
+        int lightLevelBufferIndex)
     {
-        int length = vertices.Length;
-        vertices.EnsureCapacity(length + 3);
-        fixed (LegacyVertex* startVertex = &vertices.Data[length])
+        fixed (LegacyVertex* startVertex = &vertices[startIndex])
         {
             LegacyVertex* vertex = startVertex;
             vertex->X = root.X;
@@ -1559,7 +1558,6 @@ int lightLevelBufferIndex)
             vertex->Alpha = 1.0f;
             vertex->LightLevelBufferIndex = lightLevelBufferIndex;
         }
-        vertices.SetLength(length + 3);
     }
 
     private void ReleaseUnmanagedResources()
