@@ -11,6 +11,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics;
+using SixLabors.ImageSharp.Processing;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shared.World;
@@ -146,55 +147,74 @@ public static class WorldTriangulator
         return new WallVertices(topLeft, topRight, bottomLeft, bottomRight, prevTopZ, prevBottomZ);
     }
 
-    public static void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Vec2F textureVector,
+    public static unsafe void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Vec2F textureVector,
         DynamicArray<TriangulatedWorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
     {
         Precondition(subsector.ClockwiseEdges.Count >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
 
         List<SubsectorSegment> edges = subsector.ClockwiseEdges;
-        verticesToPopulate.Clear();
+        verticesToPopulate.EnsureCapacity(edges.Count);
+        verticesToPopulate.SetLength(edges.Count);
 
-        if (sectorPlane.Facing == SectorPlaneFace.Ceiling)
+        fixed (TriangulatedWorldVertex* startVertex = &verticesToPopulate.Data[0])
         {
-            for (int i = 0; i < edges.Count; i++)
+            TriangulatedWorldVertex* worldVertex = startVertex;
+            if (sectorPlane.Facing == SectorPlaneFace.Ceiling)
             {
-                Vec2D vertex = edges[i].Start;
+                for (int i = 0; i < edges.Count; i++)
+                {
+                    Vec2D vertex = edges[i].Start;
 
-                // TODO: Interpolation and slopes needs a slight change in
-                //       how we store sector flat plane information.
-                double z = sectorPlane.Z;
-                double prevZ = sectorPlane.PrevZ;
-                if (overrideZ != int.MaxValue)
-                    z = overrideZ;
+                    // TODO: Interpolation and slopes needs a slight change in
+                    //       how we store sector flat plane information.
+                    double z = sectorPlane.Z;
+                    double prevZ = sectorPlane.PrevZ;
+                    if (overrideZ != int.MaxValue)
+                        z = overrideZ;
 
-                Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
-                Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: false);
-                Vec2F prevUV = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: true);
+                    Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: false);
+                    Vec2F prevUV = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: true);
 
-                verticesToPopulate.Add(new TriangulatedWorldVertex(position, (float)prevZ, uv, prevUV));
+                    worldVertex->X = (float)vertex.X;
+                    worldVertex->Y = (float)vertex.Y;
+                    worldVertex->Z = (float)z;
+                    worldVertex->PrevZ = (float)prevZ;
+                    worldVertex->U = uv.U;
+                    worldVertex->V = uv.V;
+                    worldVertex->PrevU = prevUV.U;
+                    worldVertex->PrevV = prevUV.V;
+                    worldVertex++;
+                }
             }
-        }
-        else
-        {
-            // Because the floor is looked at downwards and because it is
-            // clockwise, to get counter-clockwise vertices we reverse the
-            // iteration order and go from the end vertex.
-            for (int i = edges.Count - 1; i >= 0; i--)
+            else
             {
-                Vec2D vertex = edges[i].End;
+                // Because the floor is looked at downwards and because it is
+                // clockwise, to get counter-clockwise vertices we reverse the
+                // iteration order and go from the end vertex.
+                for (int i = edges.Count - 1; i >= 0; i--)
+                {
+                    Vec2D vertex = edges[i].End;
 
-                // TODO: Interpolation and slopes needs a slight change in
-                //       how we store sector flat plane information.
-                double z = sectorPlane.Z;
-                double prevZ = sectorPlane.PrevZ;
-                if (overrideZ != int.MaxValue)
-                    z = overrideZ;
+                    // TODO: Interpolation and slopes needs a slight change in
+                    //       how we store sector flat plane information.
+                    double z = sectorPlane.Z;
+                    double prevZ = sectorPlane.PrevZ;
+                    if (overrideZ != int.MaxValue)
+                        z = overrideZ;
 
-                Vec3F position = ((float)vertex.X, (float)vertex.Y, (float)z);
-                Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: false);
-                Vec2F prevUV = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: true);
+                    Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: false);
+                    Vec2F prevUV = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: true);
 
-                verticesToPopulate.Add(new TriangulatedWorldVertex(position, (float)prevZ, uv, prevUV));
+                    worldVertex->X = (float)vertex.X;
+                    worldVertex->Y = (float)vertex.Y;
+                    worldVertex->Z = (float)z;
+                    worldVertex->PrevZ = (float)prevZ;
+                    worldVertex->U = uv.U;
+                    worldVertex->V = uv.V;
+                    worldVertex->PrevU = prevUV.U;
+                    worldVertex->PrevV = prevUV.V;
+                    worldVertex++;
+                }
             }
         }
     }
@@ -358,7 +378,6 @@ public static class WorldTriangulator
 
     public static Vec2F CalculateFlatUV(SectorScrollData? scrollData, in Vec2D vertex, in Vec2F textureVector, bool previous)
     {
-        //Vec2F uv = vertex.Float / textureDimension.Vector.Float;
         Vec2F uv = new((float)vertex.X / textureVector.X, (float)vertex.Y / textureVector.Y);
         if (scrollData != null)
         {
