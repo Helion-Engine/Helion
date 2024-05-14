@@ -2,29 +2,23 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
     <UseWindowsForms>false</UseWindowsForms>
     <RootNamespace>Helion.Client</RootNamespace>
-    <Nullable>enable</Nullable>
-    <NullableContextOptions>enable</NullableContextOptions>
-    <NullableReferenceTypes>true</NullableReferenceTypes>
-	<TieredCompilation>false</TieredCompilation>
-	<AssemblyName>Helion</AssemblyName>
-	<ApplicationIcon>helion.ico</ApplicationIcon>
-	<AssemblyVersion>0.9.2.9</AssemblyVersion>
-	<FileVersion>0.9.2.9</FileVersion>
-	<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+
+    <TieredCompilation>false</TieredCompilation>
+    <AssemblyName>Helion</AssemblyName>
+    <ApplicationIcon>helion.ico</ApplicationIcon>
+
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <NoWarn>1701;1702;NU1701</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <NoWarn>1701;1702;NU1701</NoWarn>
-    <DocumentationFile></DocumentationFile>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <WarningLevel>0</WarningLevel>
-    <NoWarn>1701;1702;NU1701</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -42,35 +36,31 @@
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="zdbspSharp">
-      <HintPath>Managed\zdbspSharp.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+  <Target Name="GetSupportFiles">
+    <ItemGroup>
+      <SoundFonts Include="$(ProjectDir)SoundFonts\**\*.sf2" />
 
-  <ItemGroup>
-    <None Update="Managed\zdbsp.deps.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Managed\zdbsp.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Managed\zdbsp.exe">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Managed\zdbsp.runtimeconfig.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Managed\zdbspSharp.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+      <!-- Runtime specified, e.g. "-r win-x64"; copy native files into root -->
+      <NativeFiles Include="$(ProjectDir)Unmanaged\win-x64\**\*" Destination="%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+      <NativeFiles Include="$(ProjectDir)Unmanaged\win-x86\**\*" Destination="%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == 'win-x86'" />
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="if not exist $(OutDir)SoundFonts mkdir $(OutDir)SoundFonts&#xA;xcopy /y /d  &quot;$(ProjectDir)SoundFonts\Default.sf2&quot; &quot;$(OutDir)SoundFonts&quot;&#xA;&#xA;xcopy /y /d  &quot;$(ProjectDir)Unmanaged\win-x64\*.*&quot; &quot;$(TargetDir)runtimes\win-x64\native&quot;&#xA;xcopy /y /d  &quot;$(ProjectDir)Unmanaged\win-x86\*.*&quot; &quot;$(TargetDir)runtimes\win-x86\native&quot;&#xA;&#xA;powershell -ExecutionPolicy Bypass -File &quot;$(SolutionDir)Assets/Scripts/ZipAssets.ps1&quot; &quot;$(SolutionDir)Assets/Assets/*&quot; &quot;$(TargetDir)assets.pk3&quot;&#xA;" Condition=" '$(OS)' == 'Windows_NT' " />
-
-    <Exec Command="sh &quot;$(SolutionDir)Scripts/compile_assets.sh&quot; &quot;$(TargetDir)&quot;" Condition=" '$(OS)' != 'Windows_NT' " />
-    <Exec Command="sh &quot;$(SolutionDir)Scripts/copy_soundfont.sh&quot; &quot;$(TargetDir)&quot;" Condition=" '$(OS)' != 'Windows_NT' " />
+      <!-- Runtime unspecified; copy native files into runtimes\(runtimeID)\native  -->
+      <NativeFiles Include="$(ProjectDir)Unmanaged\win-x64\**\*" Destination="runtimes\win-x64\native\%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == ''" />
+      <NativeFiles Include="$(ProjectDir)Unmanaged\win-x64\**\*" Destination="runtimes\win-x86\native\%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == ''" />
+    </ItemGroup>
   </Target>
 
+  <Target Name="CopySupportFilesForBuild" AfterTargets="Build" DependsOnTargets="GetSupportFiles" >
+    <!-- Copy SoundFont for FluidSynth, create assets.pk3 -->
+    <Copy SourceFiles="@(SoundFonts)" DestinationFolder="$(TargetDir)SoundFonts\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(NativeFiles)" DestinationFolder="$(TargetDir)%(Destination)" SkipUnchangedFiles="true" />
+    <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="$(TargetDir)assets.pk3" Overwrite="true" />
+  </Target>
+
+  <Target Name="CopySupportFilesForPublish" AfterTargets="Publish" DependsOnTargets="GetSupportFiles">
+    <!-- The previous steps that copy support files to the target directory do NOT copy on publish, so we have to handle that again. -->
+    <Copy SourceFiles="@(SoundFonts)" DestinationFolder="$(PublishDir)SoundFonts\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(NativeFiles)" DestinationFolder="$(PublishDir)%(Destination)" SkipUnchangedFiles="true" />
+    <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="$(PublishDir)assets.pk3" Overwrite="true" />
+  </Target>
 </Project>
