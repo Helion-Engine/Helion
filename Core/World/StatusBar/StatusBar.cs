@@ -1,5 +1,4 @@
 using Helion.Util;
-using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using System.Collections.Generic;
 
@@ -7,6 +6,9 @@ namespace Helion.World.StatusBar;
 
 public class PlayerStatusBar
 {
+
+    private static readonly List<string> Faces = [];
+
     private const int PainFaces = 5;
     private const int StraightFaces = 3;
     private const int TurnFaces = 2;
@@ -29,7 +31,6 @@ public class PlayerStatusBar
     private const int MuchPain = 20;
 
     private readonly Player m_player;
-    private readonly List<string> m_faces = new();
     private int m_oldHeath;
     private int m_lastPainOffset;
     private int m_priority;
@@ -42,20 +43,23 @@ public class PlayerStatusBar
     {
         m_player = player;
 
-        for (int i = 0; i < PainFaces; i++)
+        if (Faces.Count == 0)
         {
-            for (int j = 0; j < StraightFaces; j++)
-                m_faces.Add($"STFST{i}{j}");
+            for (int i = 0; i < PainFaces; i++)
+            {
+                for (int j = 0; j < StraightFaces; j++)
+                    Faces.Add($"STFST{i}{j}");
 
-            m_faces.Add($"STFTR{i}0");
-            m_faces.Add($"STFTL{i}0");
-            m_faces.Add($"STFOUCH{i}");
-            m_faces.Add($"STFEVL{i}");
-            m_faces.Add($"STFKILL{i}");
+                Faces.Add($"STFTR{i}0");
+                Faces.Add($"STFTL{i}0");
+                Faces.Add($"STFOUCH{i}");
+                Faces.Add($"STFEVL{i}");
+                Faces.Add($"STFKILL{i}");
+            }
+
+            Faces.Add("STFGOD0");
+            Faces.Add("STFDEAD0");
         }
-
-        m_faces.Add("STFGOD0");
-        m_faces.Add("STFDEAD0");
     }
 
     public void Tick()
@@ -68,8 +72,8 @@ public class PlayerStatusBar
 
     public string GetFacePatch()
     {
-        if (m_faceIndex >= 0 && m_faceIndex < m_faces.Count)
-            return m_faces[m_faceIndex];
+        if (m_faceIndex >= 0 && m_faceIndex < Faces.Count)
+            return Faces[m_faceIndex];
 
         return string.Empty;
     }
