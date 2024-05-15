@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -117,15 +118,17 @@ public class GeometryRenderer : IDisposable
 
         PreloadAllTextures(world);
 
-        FreeVertexWallLookup(m_vertexLookup);
-        FreeVertexWallLookup(m_vertexLowerLookup);
-        FreeVertexWallLookup(m_vertexUpperLookup);
-        FreeSkyWallLookup(m_skyWallVertexLowerLookup);
-        FreeSkyWallLookup(m_skyWallVertexUpperLookup);
-        FreeFlatVertices(m_vertexFloorLookup);
-        FreeFlatVertices(m_vertexCeilingLookup);
-        FreeSkyFlatVertices(m_skyFloorVertexLookup);
-        FreeSkyFlatVertices(m_skyCeilingVertexLookup);
+        int sideCount = world.Sides.Count;
+        int sectorCount = world.Sectors.Count;
+        m_vertexLookup = UpdateVertexWallLookup(m_vertexLookup, sideCount);
+        m_vertexLowerLookup = UpdateVertexWallLookup(m_vertexLowerLookup, sideCount);
+        m_vertexUpperLookup = UpdateVertexWallLookup(m_vertexUpperLookup, sideCount);
+        m_skyWallVertexLowerLookup = UpdateSkyWallLookup(m_skyWallVertexLowerLookup, sideCount);
+        m_skyWallVertexUpperLookup = UpdateSkyWallLookup(m_skyWallVertexUpperLookup, sideCount);
+        UpdateFlatVertices(m_vertexFloorLookup, sectorCount);
+        UpdateFlatVertices(m_vertexCeilingLookup, sectorCount);
+        UpdateSkyFlatVertices(m_skyFloorVertexLookup, sectorCount);
+        UpdateSkyFlatVertices(m_skyCeilingVertexLookup, sectorCount);
 
         if (!world.SameAsPreviousMap)
         {
@@ -136,18 +139,9 @@ public class GeometryRenderer : IDisposable
                 m_subsectors[i].Clear();
             }
 
-            m_vertexLookup = new LegacyVertex[world.Sides.Count][];
-            m_vertexLowerLookup = new LegacyVertex[world.Sides.Count][];
-            m_vertexUpperLookup = new LegacyVertex[world.Sides.Count][];
-            m_skyWallVertexLowerLookup = new SkyGeometryVertex[world.Sides.Count][];
-            m_skyWallVertexUpperLookup = new SkyGeometryVertex[world.Sides.Count][];
+            if (m_subsectors.Length < world.Sectors.Count)
+                m_subsectors = new DynamicArray<Subsector>[world.Sectors.Count];
 
-            m_vertexFloorLookup = new(3);
-            m_vertexCeilingLookup = new(3);
-            m_skyFloorVertexLookup = new(3);
-            m_skyCeilingVertexLookup = new(3);
-
-            m_subsectors = new DynamicArray<Subsector>[world.Sectors.Count];
             for (int i = 0; i < world.Sectors.Count; i++)
                 m_subsectors[i] = new();
 
@@ -158,7 +152,9 @@ public class GeometryRenderer : IDisposable
                 subsectors.Add(subsector);
             }
 
-            m_drawnSides = new int[world.Sides.Count];
+            if (m_drawnSides.Length < world.Sides.Count)
+                m_drawnSides = new int[world.Sides.Count];
+
             const int FloatSize = 4;
             m_lightBufferData = new float[world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize)];
         }
@@ -179,7 +175,7 @@ public class GeometryRenderer : IDisposable
         m_staticCacheGeometryRenderer.UpdateTo(world, m_lightBuffer);
     }
 
-    private void FreeVertexWallLookup(LegacyVertex[]?[] vertices)
+    private LegacyVertex[]?[] UpdateVertexWallLookup(LegacyVertex[]?[] vertices, int sideCount)
     {
         for (int i = 0; i < vertices.Length; i++)
         {
@@ -189,9 +185,13 @@ public class GeometryRenderer : IDisposable
             m_world.DataCache.FreeWallVertices(data);
             vertices[i] = null;
         }
+
+        if (vertices.Length < sideCount)
+            return new LegacyVertex[sideCount][];
+        return vertices;
     }
 
-    private void FreeSkyWallLookup(SkyGeometryVertex[]?[] vertices)
+    private SkyGeometryVertex[]?[] UpdateSkyWallLookup(SkyGeometryVertex[]?[] vertices, int sideCount)
     {
         for (int i = 0; i < vertices.Length; i++)
         {
@@ -201,9 +201,13 @@ public class GeometryRenderer : IDisposable
             m_world.DataCache.FreeSkyWallVertices(data);
             vertices[i] = null;
         }
+
+        if (vertices.Length < sideCount)
+            return new SkyGeometryVertex[sideCount][];
+        return vertices;
     }
 
-    private void FreeFlatVertices(DynamicArray<LegacyVertex[][]?> data)
+    private void UpdateFlatVertices(DynamicArray<LegacyVertex[][]?> data, int sectorCount)
     {
         for (int i = 0; i < data.Capacity; i++)
         {
@@ -216,12 +220,15 @@ public class GeometryRenderer : IDisposable
                 if (vertices == null)
                     continue;
                 m_world.DataCache.FreeFlatVertices(vertices);
-                lookup[j] = null;
+                lookup[j] = null!;
             }
+
+            if (lookup.Length < sectorCount)
+                data[i] = new LegacyVertex[sectorCount][];
         }
     }
 
-    private void FreeSkyFlatVertices(DynamicArray<SkyGeometryVertex[][]?> data)
+    private void UpdateSkyFlatVertices(DynamicArray<SkyGeometryVertex[][]?> data, int sectorCount)
     {
         for (int i = 0; i < data.Capacity; i++)
         {
@@ -236,6 +243,9 @@ public class GeometryRenderer : IDisposable
                 m_world.DataCache.FreeSkyFlatVertices(vertices);
                 lookup[j] = null;
             }
+
+            if (lookup.Length < sectorCount)
+                data[i] = new SkyGeometryVertex[sectorCount][];
         }
     }
 
