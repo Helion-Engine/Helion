@@ -169,7 +169,8 @@ namespace Helion.Geometry.Segments
         public bool Intersects(Seg2D other) => Intersection(other, out double t) && (t >= 0 && t <= 1);
         public bool Intersects(Segment2D other) => Intersection(other, out double t) && (t >= 0 && t <= 1);
         public bool Intersects<T>(SegmentT2D<T> other) where T : Vector2D => Intersection(other, out double t) && (t >= 0 && t <= 1);
-        public bool Intersection(in Seg2D seg, out double t)
+
+        public readonly bool Intersection(in Seg2D seg, out double t)
         {
             double startX = Start.X;
             double startY = Start.Y;
@@ -186,9 +187,8 @@ namespace Helion.Geometry.Segments
             {
                 double areaThisStart = ((segStartX - startX) * (segEndY - startY)) - ((segStartY - startY) * (segEndX - startX));
                 double areaThisEnd = ((segStartX - endX) * (segEndY - endY)) - ((segStartY - endY) * (segEndX - endX));
-                double time = areaThisStart / (areaThisStart - areaThisEnd);
-                t = time;
-                return time >= 0 && time <= 1;
+                t = areaThisStart / (areaThisStart - areaThisEnd);
+                return t >= 0 && t <= 1;
             }
 
             t = default;
