@@ -61,39 +61,61 @@ public class BlockmapTraverser
     {
         int checkCounter = ++WorldStatic.CheckCounter;
         hitOneSidedLine = false;
-
+        int length = 0;
+        int capacity = intersections.Capacity;
         BlockmapSegIterator<Block> it = m_blockmapGrid.Iterate(seg);
         var block = it.Next();
-        while (block != null)
+
+        fixed (BlockmapIntersect* startIntersect = &intersections.Data[0])
         {
-            fixed (BlockLine* lineStart = &block.BlockLines.Data[0])
+            BlockmapIntersect* bi = startIntersect;
+            while (block != null)
             {
-                for (int i = 0; i < block.BlockLines.Length; i++)
+                int blockLineCount = block.BlockLines.Length;
+                if (capacity < length + blockLineCount)
                 {
-                    BlockLine* line = lineStart + i;
-                    if (line->Segment.Intersection(seg, out double t))
+                    intersections.EnsureCapacity(length + blockLineCount);
+                    capacity = intersections.Capacity;
+                }
+
+                fixed (BlockLine* lineStart = &block.BlockLines.Data[0])
+                {
+                    BlockLine* line = lineStart;
+                    for (int i = 0; i < blockLineCount; i++, line++)
                     {
-                        if (m_checkedLines[line->LineId] == checkCounter)
-                            continue;
-
-                        m_checkedLines[line->LineId] = checkCounter;
-
-                        if (line->OneSided)
+                        if (line->Segment.Intersection(seg, out double t))
                         {
-                            hitOneSidedLine = true;
-                            goto sightTraverseEndOfLoop;
-                        }
+                            if (m_checkedLines[line->LineId] == checkCounter)
+                                continue;
 
-                        Vec2D intersect = line->Segment.FromTime(t);
-                        intersections.Add(new BlockmapIntersect(line->Line, intersect, intersect.Distance(seg.Start)));
+                            m_checkedLines[line->LineId] = checkCounter;
+
+                            if (line->OneSided)
+                            {
+                                hitOneSidedLine = true;
+                                goto sightTraverseEndOfLoop;
+                            }
+
+                            var intersect = new Vec2D(line->Segment.Start.X + (line->Segment.Delta.X * t), line->Segment.Start.Y + (line->Segment.Delta.Y * t));
+                            var delta = new Vec2D(intersect.X - seg.Start.X, intersect.Y - seg.Start.Y); 
+                            bi->Intersection = intersect;
+                            bi->Line = line->Line;
+                            bi->Entity = null;
+                            bi->Distance2D = Math.Sqrt((delta.X * delta.X) + (delta.Y * delta.Y));
+                            bi++;
+                            length++;
+                        }
                     }
                 }
+                block = it.Next();
             }
-            block = it.Next();
         }
 
-sightTraverseEndOfLoop:
-        
+    sightTraverseEndOfLoop:
+        if (hitOneSidedLine)
+            return;
+
+        intersections.SetLength(length);
         intersections.Sort();
     }
 
@@ -101,44 +123,65 @@ sightTraverseEndOfLoop:
     {
         Vec2D intersect = Vec2D.Zero;
         int checkCounter = ++WorldStatic.CheckCounter;
-        
+        int length = 0;
+        int capacity = intersections.Capacity;
         BlockmapSegIterator<Block> it = m_blockmapGrid.Iterate(seg);
         var block = it.Next();
-        while (block != null)
+
+        fixed (BlockmapIntersect* startIntersect = &intersections.Data[0])
         {
-            fixed (BlockLine* lineStart = &block.BlockLines.Data[0])
+            BlockmapIntersect* bi = startIntersect;
+            while (block != null)
             {
-                for (int i = 0; i < block.BlockLines.Length; i++)
+                fixed (BlockLine* lineStart = &block.BlockLines.Data[0])
                 {
-                    BlockLine* line = lineStart + i;
-                    if (line->Segment.Intersection(seg, out double t))
+                    BlockLine* line = lineStart;
+                    for (int i = 0; i < block.BlockLines.Length; i++, line++)
                     {
-                        if (m_checkedLines[line->LineId] == checkCounter)
-                            continue;
+                        if (line->Segment.Intersection(seg, out double t))
+                        {
+                            if (m_checkedLines[line->LineId] == checkCounter)
+                                continue;
 
-                        m_checkedLines[line->LineId] = checkCounter;
-                        intersect = line->Segment.FromTime(t);
+                            m_checkedLines[line->LineId] = checkCounter;
 
-                        intersections.Add(new BlockmapIntersect(line->Line, intersect, intersect.Distance(seg.Start)));
+                            intersect = new Vec2D(line->Segment.Start.X + (line->Segment.Delta.X * t), line->Segment.Start.Y + (line->Segment.Delta.Y * t));
+                            var delta = new Vec2D(intersect.X - seg.Start.X, intersect.Y - seg.Start.Y); 
+                            bi->Intersection = intersect;
+                            bi->Line = line->Line;
+                            bi->Entity = null;
+                            bi->Distance2D = Math.Sqrt((delta.X * delta.X) + (delta.Y * delta.Y));
+                            bi++;
+                            length++;
+                        }
                     }
                 }
-            }
 
-            for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
-            {
-                Entity entity = entityNode.Value;
-                if (entity.BlockmapCount == checkCounter)
-                    continue;
-                if (!entity.Flags.Shootable)
-                    continue;
+                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                {
+                    Entity entity = entityNode.Value;
+                    if (entity.BlockmapCount == checkCounter)
+                        continue;
+                    if (!entity.Flags.Shootable)
+                        continue;
 
-                entity.BlockmapCount = checkCounter;
-                if (entity.BoxIntersects(seg.Start, seg.End, ref intersect))
-                    intersections.Add(new BlockmapIntersect(entity, intersect, intersect.Distance(seg.Start)));
+                    entity.BlockmapCount = checkCounter;
+                    if (entity.BoxIntersects(seg.Start, seg.End, ref intersect))
+                    {
+                        var delta = new Vec2D(intersect.X - seg.Start.X, intersect.Y - seg.Start.Y);
+                        bi->Intersection = intersect;
+                        bi->Line = null;
+                        bi->Entity = entity;
+                        bi->Distance2D = Math.Sqrt((delta.X * delta.X) + (delta.Y * delta.Y));
+                        bi++;
+                        length++;
+                    }
+                }
+                block = it.Next();
             }
-            block = it.Next();
         }
 
+        intersections.SetLength(length);
         intersections.Sort();
     }
 
