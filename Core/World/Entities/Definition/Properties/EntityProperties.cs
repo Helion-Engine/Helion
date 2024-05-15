@@ -1,17 +1,11 @@
 using System;
-using System.Collections.Generic;
 using Helion.Maps.Specials;
-using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.World.Entities.Definition.Properties.Components;
 
 namespace Helion.World.Entities.Definition.Properties;
 
 public class EntityProperties
 {
-    public const int NoID = -1;
-
-    public int Accuracy;
-    public DecorateSpecialActivationType Activation = DecorateSpecialActivationType.Default;
     public string ActiveSound = string.Empty;
     public string RipSound = String.Empty;
     public double Alpha = 1.0;
@@ -21,45 +15,22 @@ public class EntityProperties
     public string AttackSound = string.Empty;
     public string BloodColor = string.Empty;
     public string BloodType = string.Empty;
-    public int BounceCount = int.MaxValue;
-    public double BounceFactor = 0.7;
-    public string BounceSound = string.Empty;
-    public DecorateBounceType BounceType = DecorateBounceType.None;
-    public double BurnHeight = 20.0 / 4;
-    public int CameraHeight;
-    public int ConversationID = NoID;
-    public string CrushPainSound = string.Empty;
     public DamageRangeProperty Damage;
     public double DamageFactor = 1.0;
-    public string DamageType = string.Empty;
     public double DeathHeight = 20.0 / 4;
     public string DeathSound = string.Empty;
-    public string DeathType = string.Empty;
-    public string Decal = string.Empty;
     public int DefThreshold;
-    public int DesignatedTeam;
-    public string DistanceCheck = string.Empty;
-    public int DontHurtShooter;
     public DropItemProperty? DropItem;
-    public int ExplosionDamage;
-    public int ExplosionRadius;
     public double FastSpeed;
-    public double FloatBobPhase = -1.0;
-    public double FloatBobStrength = -1.0;
     public int FloatSpeed = 4;
     public double Friction = 1.0;
-    public int FriendlySeeBlocks = 10;
-    public string Game = string.Empty;
     public int GibHealth = -1000;
     public double Gravity = 1.0;
     public int Health = 1000;
-    public HealthPickupAutoUse HealthPickupAutoUse = HealthPickupAutoUse.Never;
     public double Height = 16.0;
     public string HitObituary = string.Empty;
-    public string HowlSound = string.Empty;
     public InventoryProperty Inventory = new();
     public double Mass = 100.0;
-    public double MaxDropOffHeight = 24.0;
     public double MaxStepHeight = 24.0;
     public int MaxTargetRange;
     public int MeleeDamage;
@@ -67,57 +38,19 @@ public class EntityProperties
     public string MeleeSound = string.Empty;
     public int MeleeThreshold;
     public int MinMissileChance = 200;
-    public int MissileHeight;
-    public int MissileType;
-    public MorphProjectileProperty MorphProjectile = new();
     public string Obituary = string.Empty;
     public int PainChance;
     public string PainSound = string.Empty;
-    public int PainThreshold;
-    public string PainType = string.Empty;
     public PlayerProperty Player = new();
-    public PoisonDamageProperty? PoisonDamage;
-    public string PoisonDamageType = string.Empty;
     public PowerupProperty Powerup = new();
     public int ProjectileKickBack = 100;
     public int ProjectilePassHeight;
-    public double PushFactor = 0.25;
-    public PuzzleItemProperty PuzzleItem;
     public double Radius = 20.0;
-    public double RadiusDamageFactor;
     public int ReactionTime = 8;
-    public double RenderRadius;
-    public RenderStyle RenderStyle = RenderStyle.None;
-    public int RipLevelMax;
-    public int RipLevelMin;
-    public int RipperLevel;
     public double Scale = 1.0;
     public string SeeSound = string.Empty;
-    public double SelfDamageFactor = 1.0;
-    public int SpawnId = NoID;
-    public string Species = string.Empty;
-    public int SpriteAngle;
-    public int SpriteRotation;
-    public int Stamina;
-    public double StealthAlpha;
-    public int StencilColor;
-    public string Tag = string.Empty;
-    public string TeleFogDestType = string.Empty;
-    public string TeleFogSourceType = string.Empty;
     public int Threshold;
-    public List<string> Translation = new();
-    public int VSpeed;
-    public Range? VisibleAngles;
-    public Range? VisiblePitch;
-    public double WallBounceFactor = 0.75;
-    public string WallBounceSound = string.Empty;
-    public WeaponPiecesProperty? WeaponPieces;
     public WeaponProperty Weapons = new();
-    public int WeaveIndexXY;
-    public int WeaveIndexZ;
-    public int WoundHealth = 6;
-    public double XScale = 1.0;
-    public double YScale = 1.0;
     public HealthProperty? HealthProperty;
     public int? InfightingGroup;
     public int? ProjectileGroup;
@@ -128,81 +61,5 @@ public class EntityProperties
 
     public EntityProperties()
     {
-    }
-
-    // TODO: Temporary for now, we will need only to invoke this under some situations.
-    //       This also obviously doesn't work for the classes since the reference will
-    //       be copied rather than how struct/value copying works.
-    public EntityProperties(EntityProperties properties)
-    {
-        Accuracy = properties.Accuracy;
-        ActiveSound = properties.ActiveSound;
-        RipSound = properties.RipSound;
-        Ammo = properties.Ammo;
-        Args = properties.Args;
-        Armor = properties.Armor;
-        AttackSound = properties.AttackSound;
-        BloodType = properties.BloodType;
-        BounceFactor = properties.BounceFactor;
-        BounceType = properties.BounceType;
-        BurnHeight = properties.BurnHeight;
-        ConversationID = properties.ConversationID;
-        CrushPainSound = properties.CrushPainSound;
-        Damage = properties.Damage;
-        DamageFactor = properties.DamageFactor;
-        DeathHeight = properties.DeathHeight;
-        DeathType = properties.DeathType;
-        DefThreshold = properties.DefThreshold;
-        DistanceCheck = properties.DistanceCheck;
-        DropItem = properties.DropItem;
-        ExplosionRadius = properties.ExplosionRadius;
-        FloatBobPhase = properties.FloatBobPhase;
-        FloatSpeed = properties.FloatSpeed;
-        FriendlySeeBlocks = properties.FriendlySeeBlocks;
-        GibHealth = properties.GibHealth;
-        Health = properties.Health;
-        Height = properties.Height;
-        HowlSound = properties.HowlSound;
-        Mass = properties.Mass;
-        MaxStepHeight = properties.MaxStepHeight;
-        MeleeDamage = properties.MeleeDamage;
-        MeleeSound = properties.MeleeSound;
-        MinMissileChance = properties.MinMissileChance;
-        MaxTargetRange = properties.MaxTargetRange;
-        MeleeThreshold = properties.MeleeThreshold;
-        MissileType = properties.MissileType;
-        Obituary = properties.Obituary;
-        PainChance = properties.PainChance;
-        PainSound = properties.PainSound;
-        PainType = properties.PainType;
-        PoisonDamage = properties.PoisonDamage;
-        Powerup = properties.Powerup;
-        ProjectileKickBack = properties.ProjectileKickBack;
-        PushFactor = properties.PushFactor;
-        Radius = properties.Radius;
-        ReactionTime = properties.ReactionTime;
-        RenderStyle = properties.RenderStyle;
-        RipLevelMax = properties.RipLevelMax;
-        RipperLevel = properties.RipperLevel;
-        SeeSound = properties.SeeSound;
-        SpawnId = properties.SpawnId;
-        Species = properties.Species;
-        SpriteAngle = properties.SpriteAngle;
-        Stamina = properties.Stamina;
-        StencilColor = properties.StencilColor;
-        TeleFogDestType = properties.TeleFogDestType;
-        Threshold = properties.Threshold;
-        VSpeed = properties.VSpeed;
-        VisiblePitch = properties.VisiblePitch;
-        WallBounceSound = properties.WallBounceSound;
-        Weapons = properties.Weapons;
-        WeaveIndexXY = properties.WeaveIndexXY;
-        WoundHealth = properties.WoundHealth;
-        YScale = properties.YScale;
-        InfightingGroup = properties.InfightingGroup;
-        ProjectileGroup = properties.ProjectileGroup;
-        SplashGroup = properties.SplashGroup;
-        MonsterMovementSpeed = properties.MonsterMovementSpeed;
-        MissileMovementSpeed = properties.MissileMovementSpeed;
     }
 }
