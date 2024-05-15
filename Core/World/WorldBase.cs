@@ -2530,8 +2530,9 @@ public abstract partial class WorldBase : IWorld
         if (m_healChaseData.HealSound.Length > 0)
             WorldStatic.SoundManager.CreateSoundOn(entity, m_healChaseData.HealSound, new SoundParams(entity));
 
-        entity.SetRaiseState(!Config.Compatibility.VileGhosts);
-        if (Config.Compatibility.VileGhosts)
+        bool setVileGhost = Config.Compatibility.VileGhosts && entity.Radius == 0;
+        entity.SetRaiseState(!setVileGhost);
+        if (setVileGhost)
         {
             entity.Flags.Shootable = entity.Definition.Flags.Shootable;
             entity.Flags.Solid = false;
