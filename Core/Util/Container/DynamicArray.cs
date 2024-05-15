@@ -19,13 +19,13 @@ public class DynamicArray<T>
     /// <summary>
     /// How many elements are in the array.
     /// </summary>
-    public int Length { get; private set; }
-    
+    public int Length;
+
     /// <summary>
     /// The exposed underlying array of data. This list may be longer than
     /// the number of elements contained, use <see cref="Length"/>.
     /// </summary>
-    public T[] Data { get; private set; }
+    public T[] Data;
 
     /// <summary>
     /// How large the array is. This is not equal to how many elements are
@@ -33,7 +33,7 @@ public class DynamicArray<T>
     /// </summary>
     public int Capacity => Data.Length;
 
-    public int Version { get; private set; }
+    public int Version;
 
     public bool Empty() => Length == 0;
 
