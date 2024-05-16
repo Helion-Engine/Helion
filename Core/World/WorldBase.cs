@@ -1359,7 +1359,7 @@ public abstract partial class WorldBase : IWorld
 
                 intersect.X = bi.Intersection.X;
                 intersect.Y = bi.Intersection.Y;
-                intersect.Z = start.Z + (Math.Tan(pitch) * bi.Distance2D);
+                intersect.Z = start.Z + (Math.Tan(pitch) * bi.SegTime * seg.Length);
 
                 if (bi.Line.Back == null)
                 {
@@ -1422,7 +1422,7 @@ public abstract partial class WorldBase : IWorld
         {
             // Only move closer on a line hit
             if (returnValue.Value.Entity == null && hitSector == null)
-                MoveIntersectCloser(start, ref intersect, angle, returnValue.Value.Distance2D);
+                MoveIntersectCloser(start, ref intersect, angle, returnValue.Value.SegTime * seg.Length);
             CreateBloodOrPulletPuff(returnValue.Value.Entity, intersect, angle, distance, damage);
         }
 
@@ -1734,7 +1734,7 @@ public abstract partial class WorldBase : IWorld
         double topPitch = sightPos.Pitch(to.Position.Z + to.Height, distance2D);
         double bottomPitch = sightPos.Pitch(to.Position.Z, distance2D);
 
-        TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, sightPos, from, topPitch, bottomPitch, out _, out _);
+        var status = GetBlockmapTraversalPitch(intersections, sightPos, from, seg.Length, topPitch, bottomPitch, out _, out _);
         return status != TraversalPitchStatus.Blocked;
     }
 
@@ -2227,7 +2227,7 @@ public abstract partial class WorldBase : IWorld
             intersections.Clear();
             BlockmapTraverser.ShootTraverse(seg, intersections);
 
-            TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, start, shooter, MaxPitch, MinPitch, out pitch, out entity);
+            TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, start, shooter, distance, MaxPitch, MinPitch, out pitch, out entity);
 
             if (status == TraversalPitchStatus.PitchSet)
                 return true;
@@ -2247,7 +2247,7 @@ public abstract partial class WorldBase : IWorld
         PitchNotSet,
     }
 
-    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, double topPitch, double bottomPitch,
+    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, double segLength, double topPitch, double bottomPitch,
         out double pitch, out Entity? entity)
     {
         pitch = 0.0;
@@ -2265,11 +2265,11 @@ public abstract partial class WorldBase : IWorld
                 LineOpening opening = PhysicsManager.GetLineOpening(bi.Line);
                 if (opening.FloorZ < opening.CeilingZ)
                 {
-                    double sectorPitch = start.Pitch(opening.FloorZ, bi.Distance2D);
+                    double sectorPitch = start.Pitch(opening.FloorZ, bi.SegTime * segLength);
                     if (sectorPitch > bottomPitch)
                         bottomPitch = sectorPitch;
 
-                    sectorPitch = start.Pitch(opening.CeilingZ, bi.Distance2D);
+                    sectorPitch = start.Pitch(opening.CeilingZ, bi.SegTime * segLength);
                     if (sectorPitch < topPitch)
                         topPitch = sectorPitch;
 
@@ -2281,13 +2281,13 @@ public abstract partial class WorldBase : IWorld
                     return TraversalPitchStatus.Blocked;
                 }
             }
-            else if (bi.Entity != null && startEntity.Id != bi.Entity.Id)
+            else if (bi.Entity != null && startEntity != bi.Entity)
             {
-                double thingTopPitch = start.Pitch(bi.Entity.TopZ, bi.Distance2D);
+                double thingTopPitch = start.Pitch(bi.Entity.TopZ, bi.SegTime * segLength);
                 if (thingTopPitch < bottomPitch)
                     continue;
 
-                double thingBottomPitch = start.Pitch(bi.Entity.Position.Z, bi.Distance2D);
+                double thingBottomPitch = start.Pitch(bi.Entity.Position.Z, bi.SegTime * segLength);
                 if (thingBottomPitch > topPitch)
                     continue;
 

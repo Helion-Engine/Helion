@@ -10,26 +10,26 @@ public struct BlockmapIntersect : IComparable<BlockmapIntersect>
     public Entity? Entity;
     public Line? Line;
     public Vec2D Intersection;
-    public double Distance2D;
+    public double SegTime;
 
-    public BlockmapIntersect(Entity entity, Vec2D intersection, double distance2D)
+    public BlockmapIntersect(Entity entity, Vec2D intersection, double segTime)
     {
         Entity = entity;
         Line = null;
         Intersection = intersection;
-        Distance2D = distance2D;
+        SegTime = segTime;
     }
 
-    public BlockmapIntersect(Line line, Vec2D intersection, double distance2D)
+    public BlockmapIntersect(Line line, Vec2D intersection, double segTime)
     {
         Entity = null;
         Line = line;
         Intersection = intersection;
-        Distance2D = distance2D;
+        SegTime = segTime;
     }
 
     public int CompareTo(BlockmapIntersect other)
     {
-        return Distance2D.CompareTo(other.Distance2D);
+        return SegTime.CompareTo(other.SegTime);
     }
 }

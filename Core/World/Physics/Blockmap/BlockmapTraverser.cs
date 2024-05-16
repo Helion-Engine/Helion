@@ -56,7 +56,7 @@ public class BlockmapTraverser
             }
         }
     }
-
+       
     public unsafe void SightTraverse(Seg2D seg, DynamicArray<BlockmapIntersect> intersections, out bool hitOneSidedLine)
     {
         int checkCounter = ++WorldStatic.CheckCounter;
@@ -83,7 +83,7 @@ public class BlockmapTraverser
                     BlockLine* line = lineStart;
                     for (int i = 0; i < blockLineCount; i++, line++)
                     {
-                        if (line->Segment.Intersection(seg, out double t))
+                        if (seg.Intersection(line->Segment.Start.X, line->Segment.Start.Y, line->Segment.End.X, line->Segment.End.Y, out double t))
                         {
                             if (m_checkedLines[line->LineId] == checkCounter)
                                 continue;
@@ -96,12 +96,9 @@ public class BlockmapTraverser
                                 goto sightTraverseEndOfLoop;
                             }
 
-                            var intersect = new Vec2D(line->Segment.Start.X + (line->Segment.Delta.X * t), line->Segment.Start.Y + (line->Segment.Delta.Y * t));
-                            var delta = new Vec2D(intersect.X - seg.Start.X, intersect.Y - seg.Start.Y); 
-                            bi->Intersection = intersect;
                             bi->Line = line->Line;
                             bi->Entity = null;
-                            bi->Distance2D = Math.Sqrt((delta.X * delta.X) + (delta.Y * delta.Y));
+                            bi->SegTime = t;
                             bi++;
                             length++;
                         }
@@ -138,19 +135,16 @@ public class BlockmapTraverser
                     BlockLine* line = lineStart;
                     for (int i = 0; i < block.BlockLines.Length; i++, line++)
                     {
-                        if (line->Segment.Intersection(seg, out double t))
+                        if (seg.Intersection(line->Segment.Start.X, line->Segment.Start.Y, line->Segment.End.X, line->Segment.End.Y, out double t))
                         {
                             if (m_checkedLines[line->LineId] == checkCounter)
                                 continue;
 
                             m_checkedLines[line->LineId] = checkCounter;
 
-                            intersect = new Vec2D(line->Segment.Start.X + (line->Segment.Delta.X * t), line->Segment.Start.Y + (line->Segment.Delta.Y * t));
-                            var delta = new Vec2D(intersect.X - seg.Start.X, intersect.Y - seg.Start.Y); 
-                            bi->Intersection = intersect;
                             bi->Line = line->Line;
                             bi->Entity = null;
-                            bi->Distance2D = Math.Sqrt((delta.X * delta.X) + (delta.Y * delta.Y));
+                            bi->SegTime = t;
                             bi++;
                             length++;
                         }
@@ -168,11 +162,10 @@ public class BlockmapTraverser
                     entity.BlockmapCount = checkCounter;
                     if (entity.BoxIntersects(seg.Start, seg.End, ref intersect))
                     {
-                        var delta = new Vec2D(intersect.X - seg.Start.X, intersect.Y - seg.Start.Y);
                         bi->Intersection = intersect;
                         bi->Line = null;
                         bi->Entity = entity;
-                        bi->Distance2D = Math.Sqrt((delta.X * delta.X) + (delta.Y * delta.Y));
+                        bi->SegTime = seg.ToTime(intersect);
                         bi++;
                         length++;
                     }

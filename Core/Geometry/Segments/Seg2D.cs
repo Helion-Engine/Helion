@@ -187,13 +187,43 @@ namespace Helion.Geometry.Segments
             {
                 double areaThisStart = ((segStartX - startX) * (segEndY - startY)) - ((segStartY - startY) * (segEndX - startX));
                 double areaThisEnd = ((segStartX - endX) * (segEndY - endY)) - ((segStartY - endY) * (segEndX - endX));
-                t = areaThisStart / (areaThisStart - areaThisEnd);
-                return t >= 0 && t <= 1;
+
+                if (areaThisStart * areaThisEnd < 0)
+                {
+                    t = areaThisStart / (areaThisStart - areaThisEnd);
+                    return t >= 0 && t <= 1;
+                }
             }
 
             t = default;
             return false;
         }
+
+        public readonly bool Intersection(double segStartX, double segStartY, double segEndX, double segEndY, out double t)
+        {
+            double startX = Start.X;
+            double startY = Start.Y;
+            double endX = End.X;
+            double endY = End.Y;
+            double areaStart = ((startX - segEndX) * (endY - segEndY)) - ((startY - segEndY) * (endX - segEndX));
+            double areaEnd = ((startX - segStartX) * (endY - segStartY)) - ((startY - segStartY) * (endX - segStartX));
+
+            if (areaStart * areaEnd < 0)
+            {
+                double areaThisStart = ((segStartX - startX) * (segEndY - startY)) - ((segStartY - startY) * (segEndX - startX));
+                double areaThisEnd = ((segStartX - endX) * (segEndY - endY)) - ((segStartY - endY) * (segEndX - endX));
+
+                if (areaThisStart * areaThisEnd < 0)
+                {
+                    t = areaThisStart / (areaThisStart - areaThisEnd);
+                    return t >= 0 && t <= 1;
+                }
+            }
+
+            t = default;
+            return false;
+        }
+
         public bool Intersection(Segment2D seg, out double t)
         {
             double areaStart = DoubleTriArea(Start.X, Start.Y, End.X, End.Y, seg.End.X, seg.End.Y);
