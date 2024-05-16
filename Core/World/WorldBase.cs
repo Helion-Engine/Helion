@@ -1711,8 +1711,8 @@ public abstract partial class WorldBase : IWorld
         if (m_lineOfSightReject.Length > 0 && IsLineOfSightRejected(from, to))
             return false;
 
-        Vec2D start = from.Position.XY;
-        Vec2D end = to.Position.XY;
+        var start = new Vec2D(from.Position.X, from.Position.Y);
+        var end = new Vec2D(to.Position.X, to.Position.Y);
 
         if (start == end)
             return true;
@@ -1722,19 +1722,45 @@ public abstract partial class WorldBase : IWorld
         if (to.Sector.TransferHeights != null && TransferHeightsLineOfSightBlocked(to, from, to.Sector.TransferHeights))
             return false;
 
-        Seg2D seg = new(start, end);
+        bool hitOneSidedLine;
+        var seg = new Seg2D(start, end);
         var intersections = WorldStatic.Intersections;
         intersections.Clear();
-        BlockmapTraverser.SightTraverse(seg, intersections, out bool hitOneSidedLine);
+        const int ShortLength = 1024;
+                
+        if (seg.Length <= ShortLength)
+        {
+            BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
+            if (hitOneSidedLine)
+                return false;
+
+            return TestPitch(from, to, seg.Length, intersections);
+        }
+
+        // A lot of LOS checks on large maps will short early. Check the first sorted set, and then rest if it passes.
+        seg = new Seg2D(start, seg.FromTime(ShortLength / seg.Length));
+        BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
         if (hitOneSidedLine)
             return false;
 
-        Vec3D sightPos = new(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
-        double distance2D = start.Distance(end);
-        double topPitch = sightPos.Pitch(to.Position.Z + to.Height, distance2D);
-        double bottomPitch = sightPos.Pitch(to.Position.Z, distance2D);
+        if (!TestPitch(from, to, seg.Length, intersections))
+            return false;
 
-        var status = GetBlockmapTraversalPitch(intersections, sightPos, from, seg.Length, topPitch, bottomPitch, out _, out _);
+        seg = new Seg2D(seg.End, end);
+        BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
+        if (hitOneSidedLine)
+            return false;
+
+        return TestPitch(from, to, seg.Length, intersections);
+    }
+
+    private bool TestPitch(Entity from, Entity to, double segLength, DynamicArray<BlockmapIntersect> intersections)
+    {
+        Vec3D sightPos = new(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
+        double topPitch = sightPos.Pitch(to.Position.Z + to.Height, segLength);
+        double bottomPitch = sightPos.Pitch(to.Position.Z, segLength);
+
+        var status = GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, topPitch, bottomPitch, out _, out _);
         return status != TraversalPitchStatus.Blocked;
     }
 
