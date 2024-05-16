@@ -2,6 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
@@ -87,7 +88,7 @@ namespace Helion.Tests.Unit.GameAction
             World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
         }
 
-        [Fact(DisplayName = "Line of sight obstructed by door")]
+        [Fact(DisplayName = "Line of sight not obstructed by door")]
         public void LineOfSightDoorNotObstructed()
         {
             var sector = GameActions.GetSector(World, 1);
@@ -167,6 +168,75 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.SetEntityPosition(World, Player, new Vec2D(304, -120));
             World.InFieldOfView(SightThing, Player, MathHelper.HalfPi).Should().BeTrue();
+        }
+
+        const int LineOfSightDistanceTest = 128;
+
+
+        [Fact(DisplayName = "Line of sight obstructed by door (los short check)")]
+        public void LineOfSightDoorObstructed_ShortCheck()
+        {
+            World.SetLineOfSightDistance(LineOfSightDistanceTest);
+            GameActions.GetSector(World, 1).Ceiling.SetZ(0);
+            GameActions.SetEntityPosition(World, SightThing, new Vec2D(-96, -128));
+            GameActions.SetEntityPosition(World, Player, new Vec2D(-96, -320));
+            SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
+            Player.AngleRadians = GameActions.GetAngle(Bearing.North);
+
+            World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
+            World.SetLineOfSightDistance(WorldBase.DefaultLineOfSightDistance);
+        }
+
+        [Fact(DisplayName = "Line of sight obstructed by door (los short check)")]
+        public void LineOfSightDoorNotObstructed_ShortCheck()
+        {
+            World.SetLineOfSightDistance(LineOfSightDistanceTest);
+            var sector = GameActions.GetSector(World, 1);
+            GameActions.SetEntityPosition(World, SightThing, new Vec2D(-96, -128));
+            GameActions.SetEntityPosition(World, Player, new Vec2D(-96, -320));
+            SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
+            Player.AngleRadians = GameActions.GetAngle(Bearing.North);
+
+            for (int i = 0; i < 29; i++)
+            {
+                sector.Ceiling.SetZ(i);
+                World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
+            }
+
+            sector.Ceiling.SetZ(29);
+            World.GetLineOfSightPlayer(SightThing, false).Should().Be(Player);
+            World.SetLineOfSightDistance(WorldBase.DefaultLineOfSightDistance);
+        }
+
+        [Fact(DisplayName = "Line of sight obstructed by ledge (los short check)")]
+        public void LineOfSightLedgeObstructedShortCheck()
+        {
+            World.SetLineOfSightDistance(LineOfSightDistanceTest);
+            GameActions.SetEntityPosition(World, SightThing, new Vec2D(384, -32));
+            GameActions.SetEntityPosition(World, Player, new Vec2D(384, -320));
+            SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
+            World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
+            World.SetLineOfSightDistance(WorldBase.DefaultLineOfSightDistance);
+        }
+
+        [Fact(DisplayName = "Line of sight partially obstructed by ledge (los short check)")]
+        public void LineOfSightLedgeShortCheck()
+        {
+            World.SetLineOfSightDistance(LineOfSightDistanceTest);
+            GameActions.SetEntityPosition(World, SightThing, new Vec2D(384, -32));
+            GameActions.SetEntityPosition(World, Player, new Vec2D(384, -320));
+            SightThing.AngleRadians = GameActions.GetAngle(Bearing.South);
+            World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
+
+            for (int i = 0; i < 119; i++)
+            {
+                GameActions.SetEntityPosition(World, Player, new Vec2D(384, -320 - i));
+                World.GetLineOfSightPlayer(SightThing, false).Should().BeNull();
+            }
+
+            GameActions.SetEntityPosition(World, Player, new Vec2D(384, -320 - 119));
+            World.GetLineOfSightPlayer(SightThing, false).Should().Be(Player);
+            World.SetLineOfSightDistance(WorldBase.DefaultLineOfSightDistance);
         }
     }
 }
