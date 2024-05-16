@@ -1344,6 +1344,7 @@ public abstract partial class WorldBase : IWorld
         double floorZ, ceilingZ;
         bool passThrough = (options & HitScanOptions.PassThroughEntities) != 0;
         Seg2D seg = new(start.XY, end.XY);
+        double segLength = seg.Length;
         var intersections = WorldStatic.Intersections;
         intersections.Clear();
         BlockmapTraverser.ShootTraverse(seg, intersections);
@@ -1361,7 +1362,7 @@ public abstract partial class WorldBase : IWorld
 
                 intersect.X = bi.Intersection.X;
                 intersect.Y = bi.Intersection.Y;
-                intersect.Z = start.Z + (Math.Tan(pitch) * bi.SegTime * seg.Length);
+                intersect.Z = start.Z + (Math.Tan(pitch) * bi.SegTime * segLength);
 
                 if (bi.Line.Back == null)
                 {
@@ -1424,7 +1425,7 @@ public abstract partial class WorldBase : IWorld
         {
             // Only move closer on a line hit
             if (returnValue.Value.Entity == null && hitSector == null)
-                MoveIntersectCloser(start, ref intersect, angle, returnValue.Value.SegTime * seg.Length);
+                MoveIntersectCloser(start, ref intersect, angle, returnValue.Value.SegTime * segLength);
             CreateBloodOrPulletPuff(returnValue.Value.Entity, intersect, angle, distance, damage);
         }
 
@@ -2258,7 +2259,7 @@ public abstract partial class WorldBase : IWorld
             BlockmapTraverser.ShootTraverse(seg, intersections);
 
             double max = MaxPitch;
-            double min = MaxPitch;
+            double min = MinPitch;
             var status = GetBlockmapTraversalPitch(intersections, start, shooter, distance, ref max, ref min, out pitch, out entity);
             if (status == TraversalPitchStatus.PitchSet)
                 return true;
