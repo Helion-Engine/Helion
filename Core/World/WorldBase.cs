@@ -66,6 +66,7 @@ namespace Helion.World;
 
 public abstract partial class WorldBase : IWorld
 {
+    public const int DefaultLineOfSightDistance = 1024;
     private const double MaxPitch = 80.0 * Math.PI / 180.0;
     private const double MinPitch = -80.0 * Math.PI / 180.0;
 
@@ -162,6 +163,7 @@ public abstract partial class WorldBase : IWorld
     private readonly Dictionary<int, MusInfoDef> m_sectorToMusicChange = new();
     private MusInfoDef? m_lastMusicChange;
     private int m_changeMusicTicks = 0;
+    private int m_losDistance = DefaultLineOfSightDistance;
 
     private RadiusExplosionData m_radiusExplosion;
     private readonly Action<Entity> m_radiusExplosionAction;
@@ -1706,6 +1708,8 @@ public abstract partial class WorldBase : IWorld
         return true;
     }
 
+    public void SetLineOfSightDistance(int length) => m_losDistance = length;
+
     public virtual bool CheckLineOfSight(Entity from, Entity to)
     {
         if (m_lineOfSightReject.Length > 0 && IsLineOfSightRejected(from, to))
@@ -1724,44 +1728,44 @@ public abstract partial class WorldBase : IWorld
 
         bool hitOneSidedLine;
         var seg = new Seg2D(start, end);
+        var segLength = seg.Length;
         var intersections = WorldStatic.Intersections;
-        intersections.Clear();
-        const int ShortLength = 1024;
-                
-        if (seg.Length <= ShortLength)
+
+        Vec3D sightPos = new(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
+        Vec3D endSightPos = to.Position;
+
+        double topPitch = sightPos.Pitch(endSightPos.Z + to.Height, segLength);
+        double bottomPitch = sightPos.Pitch(endSightPos.Z, segLength);
+
+        if (seg.Length <= m_losDistance)
         {
             BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
             if (hitOneSidedLine)
                 return false;
 
-            return TestPitch(from, to, seg.Length, intersections);
+            return GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
         }
 
         // A lot of LOS checks on large maps will short early. Check the first sorted set, and then rest if it passes.
-        seg = new Seg2D(start, seg.FromTime(ShortLength / seg.Length));
+        double segTime = m_losDistance / segLength;
+        seg = new Seg2D(start, seg.FromTime(segTime));
+        double sliceSegLength = m_losDistance;
         BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
         if (hitOneSidedLine)
             return false;
 
-        if (!TestPitch(from, to, seg.Length, intersections))
+        if (GetBlockmapTraversalPitch(intersections, sightPos, from, sliceSegLength, ref topPitch, ref bottomPitch, out _, out _) == TraversalPitchStatus.Blocked)
             return false;
 
         seg = new Seg2D(seg.End, end);
+        sliceSegLength = segLength - m_losDistance;
         BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
         if (hitOneSidedLine)
             return false;
 
-        return TestPitch(from, to, seg.Length, intersections);
-    }
-
-    private bool TestPitch(Entity from, Entity to, double segLength, DynamicArray<BlockmapIntersect> intersections)
-    {
-        Vec3D sightPos = new(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
-        double topPitch = sightPos.Pitch(to.Position.Z + to.Height, segLength);
-        double bottomPitch = sightPos.Pitch(to.Position.Z, segLength);
-
-        var status = GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, topPitch, bottomPitch, out _, out _);
-        return status != TraversalPitchStatus.Blocked;
+        var slice = new Vec3D(sightPos.X + ((endSightPos.X - sightPos.X) * segTime), sightPos.Y + ((endSightPos.Y - sightPos.Y) * segTime),
+            sightPos.Z + ((endSightPos.Z - sightPos.Z) * segTime));
+        return GetBlockmapTraversalPitch(intersections, slice, from, sliceSegLength, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
     }
 
     private static bool TransferHeightsLineOfSightBlocked(Entity from, Entity to, TransferHeights heights)
@@ -2253,8 +2257,9 @@ public abstract partial class WorldBase : IWorld
             intersections.Clear();
             BlockmapTraverser.ShootTraverse(seg, intersections);
 
-            TraversalPitchStatus status = GetBlockmapTraversalPitch(intersections, start, shooter, distance, MaxPitch, MinPitch, out pitch, out entity);
-
+            double max = MaxPitch;
+            double min = MaxPitch;
+            var status = GetBlockmapTraversalPitch(intersections, start, shooter, distance, ref max, ref min, out pitch, out entity);
             if (status == TraversalPitchStatus.PitchSet)
                 return true;
 
@@ -2273,7 +2278,8 @@ public abstract partial class WorldBase : IWorld
         PitchNotSet,
     }
 
-    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, double segLength, double topPitch, double bottomPitch,
+    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, 
+        double segLength, ref double topPitch, ref double bottomPitch,
         out double pitch, out Entity? entity)
     {
         pitch = 0.0;
