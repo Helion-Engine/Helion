@@ -73,6 +73,7 @@ public class PortalRenderer : IDisposable
         bool flipPush = false;
         var floodPlanes = facingSide.MidTextureFlood;
         var otherSide = facingSide.PartnerSide;
+        WallVertices wall = default;
         // The flood plane will clip with an upper/lower texture. Flag push the line towards in the inside of the sector.
         if (m_alwaysFlood && face == SectorPlaneFace.Floor && otherSide != null && otherSide.Sector.Ceiling.Z < facingSide.Sector.Floor.Z)
         {
@@ -105,7 +106,7 @@ public class PortalRenderer : IDisposable
             m_fakeFloor.PrevZ = facingSide.Sector.Floor.PrevZ - FakeWallHeight;
             m_fakeFloor.LightLevel = floodSector.LightLevel;
 
-            var wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, isFront);
+            WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, isFront, ref wall);
 
             if (update)
                 m_floodFillRenderer.UpdateStaticWall(facingSide.FloorFloodKey, floodSector.Floor, wall, top.Z, double.MaxValue, isFloodFillPlane: true);
@@ -120,7 +121,7 @@ public class PortalRenderer : IDisposable
             m_fakeCeiling.PrevZ = facingSide.Sector.Ceiling.PrevZ + FakeWallHeight;
             m_fakeCeiling.LightLevel = floodSector.LightLevel;
 
-            var wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, m_fakeCeiling, bottom, Vec2F.Zero, isFront);
+            WorldTriangulator.HandleTwoSidedUpper(facingSide, m_fakeCeiling, bottom, Vec2F.Zero, isFront, ref wall);
 
             if (update)
                 m_floodFillRenderer.UpdateStaticWall(facingSide.CeilingFloodKey, floodSector.Ceiling, wall, double.MinValue, bottom.Z, isFloodFillPlane: true);
@@ -134,6 +135,7 @@ public class PortalRenderer : IDisposable
 
     private void HandleStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront, bool update)
     {
+        WallVertices wall = default;
         Sector facingSector = facingSide.Sector.GetRenderSector(TransferHeightView.Middle);
         Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
         if (sideTexture == SideTexture.Upper)
@@ -141,7 +143,7 @@ public class PortalRenderer : IDisposable
             bool floodOpposing = otherSide.Sector.FloodOpposingCeiling;
             SectorPlane top = facingSector.Ceiling;
             SectorPlane bottom = otherSector.Ceiling;
-            WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, Vec2F.Zero, isFront);
+            WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, Vec2F.Zero, isFront, ref wall);
             double floodMaxZ = bottom.Z;
             if (!floodOpposing && !IsSky(floodSector.Ceiling))
             {
@@ -159,7 +161,7 @@ public class PortalRenderer : IDisposable
             m_fakeCeiling.Z = bottom.Z + FakeWallHeight;
             m_fakeCeiling.PrevZ = bottom.Z + FakeWallHeight;
             m_fakeCeiling.LightLevel = floodSector.LightLevel;
-            wall = WorldTriangulator.HandleTwoSidedLower(facingSide, m_fakeCeiling, bottom, Vec2F.Zero, !isFront);
+            WorldTriangulator.HandleTwoSidedLower(facingSide, m_fakeCeiling, bottom, Vec2F.Zero, !isFront, ref wall);
 
             var min = floodOpposing ? double.MinValue : floodMaxZ;
             var max = floodOpposing ? bottom.Z : double.MaxValue;
@@ -175,7 +177,7 @@ public class PortalRenderer : IDisposable
             Debug.Assert(sideTexture == SideTexture.Lower, $"Expected lower floor, got {sideTexture} instead");
             SectorPlane top = otherSector.Floor;
             SectorPlane bottom = facingSector.Floor;
-            WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, Vec2F.Zero, isFront);
+            WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, Vec2F.Zero, isFront, ref wall);
             double floodMinZ = top.Z;
             if (!floodOpposing && !IsSky(floodSector.Floor))
             {
@@ -194,7 +196,7 @@ public class PortalRenderer : IDisposable
             m_fakeFloor.Z = bottom.Z - FakeWallHeight;
             m_fakeFloor.PrevZ = bottom.Z - FakeWallHeight;
             m_fakeFloor.LightLevel = floodSector.LightLevel;
-            wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, !isFront);
+            WorldTriangulator.HandleTwoSidedLower(facingSide, top, m_fakeFloor, Vec2F.Zero, !isFront, ref wall);
 
             var min = floodOpposing ? top.Z : double.MinValue;
             var max = floodOpposing ? double.MaxValue : floodMinZ;

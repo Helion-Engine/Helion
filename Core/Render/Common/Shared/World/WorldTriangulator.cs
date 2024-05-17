@@ -11,6 +11,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
+using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using SixLabors.ImageSharp.Processing;
 using static Helion.Util.Assertion.Assert;
@@ -21,13 +22,13 @@ public static class WorldTriangulator
 {
     public const double NoOverride = double.MaxValue;
 
-    public static WallVertices HandleOneSided(Side side, SectorPlane floor, SectorPlane ceiling, in Vec2F textureUVInverse,
+    public static void HandleOneSided(Side side, SectorPlane floor, SectorPlane ceiling, in Vec2F textureUVInverse, ref WallVertices wall,
         double overrideFloor = NoOverride, double overrideCeiling = NoOverride, bool isFront = true)
     {
         Line line = side.Line;
 
-        Vec2D left = isFront ? line.Segment.Start : line.Segment.End;
-        Vec2D right = isFront ? line.Segment.End : line.Segment.Start;
+        Vec2F left = isFront ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
+        Vec2F right = isFront ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
         double topZ = overrideCeiling == NoOverride ? ceiling.Z : overrideCeiling;
         double bottomZ = overrideFloor == NoOverride ? floor.Z : overrideFloor;
         double prevTopZ = overrideCeiling == NoOverride ? ceiling.PrevZ : overrideCeiling;
@@ -39,25 +40,53 @@ public static class WorldTriangulator
         WallUV uv = CalculateOneSidedWallUV(line, side, length, textureUVInverse, spanZ, previous: false);
         WallUV prevUV = side.ScrollData == null ? uv : CalculateOneSidedWallUV(line, side, length, textureUVInverse, prevSpanZ, previous: true);
 
-        TriangulatedWorldVertex topLeft = new(left.X, left.Y, topZ, prevTopZ, 
-            uv.TopLeft.X, uv.TopLeft.Y, prevUV.TopLeft.X, prevUV.TopLeft.Y);
-        TriangulatedWorldVertex topRight = new(right.X, right.Y, topZ, prevTopZ,
-            uv.BottomRight.X, uv.TopLeft.Y, prevUV.BottomRight.X, prevUV.TopLeft.Y);
-        TriangulatedWorldVertex bottomLeft = new(left.X, left.Y, bottomZ, prevBottomZ, 
-            uv.TopLeft.X, uv.BottomRight.Y, prevUV.TopLeft.X, prevUV.BottomRight.Y);
-        TriangulatedWorldVertex bottomRight = new(right.X, right.Y, bottomZ, prevBottomZ, 
-            uv.BottomRight.X, uv.BottomRight.Y, prevUV.BottomRight.X, prevUV.BottomRight.Y);
+        wall.TopLeft.X = left.X;
+        wall.TopLeft.Y = left.Y;
+        wall.TopLeft.Z = (float)topZ;
+        wall.TopLeft.PrevV = (float)prevTopZ;
+        wall.TopLeft.U = uv.TopLeft.X;
+        wall.TopLeft.V = uv.TopLeft.Y;
+        wall.TopLeft.PrevU = prevUV.TopLeft.X;
+        wall.TopLeft.PrevV = prevUV.TopLeft.Y;
 
-        return new WallVertices(topLeft, topRight, bottomLeft, bottomRight, prevTopZ, prevBottomZ);
+        wall.TopRight.X = right.X;
+        wall.TopRight.Y = right.Y;
+        wall.TopRight.Z = (float)topZ;
+        wall.TopRight.PrevV = (float)prevTopZ;
+        wall.TopRight.U = uv.BottomRight.X;
+        wall.TopRight.V = uv.TopLeft.Y;
+        wall.TopRight.PrevU = prevUV.BottomRight.X;
+        wall.TopRight.PrevV = prevUV.TopLeft.Y;
+
+        wall.BottomLeft.X = left.X;
+        wall.BottomLeft.Y = left.Y;
+        wall.BottomLeft.Z = (float)bottomZ;
+        wall.BottomLeft.PrevV = (float)prevBottomZ;
+        wall.BottomLeft.U = uv.TopLeft.X;
+        wall.BottomLeft.V = uv.BottomRight.Y;
+        wall.BottomLeft.PrevU = prevUV.TopLeft.X;
+        wall.BottomLeft.PrevV = prevUV.BottomRight.Y;
+
+        wall.BottomRight.X = right.X;
+        wall.BottomRight.Y = right.Y;
+        wall.BottomRight.Z = (float)bottomZ;
+        wall.BottomRight.PrevV = (float)prevBottomZ;
+        wall.BottomRight.U = uv.BottomRight.X;
+        wall.BottomRight.V = uv.BottomRight.Y;
+        wall.BottomRight.PrevU = prevUV.BottomRight.X;
+        wall.BottomRight.PrevV = prevUV.BottomRight.Y;
+
+        wall.PrevTopZ = (float)prevTopZ;
+        wall.PrevBottomZ = (float)prevBottomZ;
     }
 
-    public static WallVertices HandleTwoSidedLower(Side facingSide, SectorPlane topFlat, SectorPlane bottomFlat,
-        in Vec2F textureUVInverse, bool isFrontSide)
+    public static void HandleTwoSidedLower(Side facingSide, SectorPlane topFlat, SectorPlane bottomFlat,
+        in Vec2F textureUVInverse, bool isFrontSide, ref WallVertices wall)
     {
         Line line = facingSide.Line;
 
-        Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
-        Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
+        Vec2F left = isFrontSide ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
+        Vec2F right = isFrontSide ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
         double topZ = topFlat.Z;
         double bottomZ = bottomFlat.Z;
         double prevTopZ = topFlat.PrevZ;
@@ -67,26 +96,54 @@ public static class WorldTriangulator
         WallUV uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ, previous: false);
         WallUV prevUV = facingSide.ScrollData == null ? uv : CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, prevTopZ, prevBottomZ, previous: true);
 
-        TriangulatedWorldVertex topLeft = new(left.X, left.Y, topZ, prevTopZ, 
-            uv.TopLeft.X, uv.TopLeft.Y, prevUV.TopLeft.X, prevUV.TopLeft.Y);
-        TriangulatedWorldVertex topRight = new(right.X, right.Y, topZ, prevTopZ, 
-            uv.BottomRight.X, uv.TopLeft.Y, prevUV.BottomRight.X, prevUV.TopLeft.Y);
-        TriangulatedWorldVertex bottomLeft = new(left.X, left.Y, bottomZ, prevBottomZ, 
-            uv.TopLeft.X, uv.BottomRight.Y, prevUV.TopLeft.X, prevUV.BottomRight.Y);
-        TriangulatedWorldVertex bottomRight = new(right.X, right.Y, bottomZ, prevBottomZ, 
-            uv.BottomRight.X, uv.BottomRight.Y, prevUV.BottomRight.X, prevUV.BottomRight.Y);
+        wall.TopLeft.X = left.X;
+        wall.TopLeft.Y = left.Y;
+        wall.TopLeft.Z = (float)topZ;
+        wall.TopLeft.PrevV = (float)prevTopZ;
+        wall.TopLeft.U = uv.TopLeft.X;
+        wall.TopLeft.V = uv.TopLeft.Y;
+        wall.TopLeft.PrevU = prevUV.TopLeft.X;
+        wall.TopLeft.PrevV = prevUV.TopLeft.Y;
 
-        return new WallVertices(topLeft, topRight, bottomLeft, bottomRight, prevTopZ, prevBottomZ);
+        wall.TopRight.X = right.X;
+        wall.TopRight.Y = right.Y;
+        wall.TopRight.Z = (float)topZ;
+        wall.TopRight.PrevV = (float)prevTopZ;
+        wall.TopRight.U = uv.BottomRight.X;
+        wall.TopRight.V = uv.TopLeft.Y;
+        wall.TopRight.PrevU = prevUV.BottomRight.X;
+        wall.TopRight.PrevV = prevUV.TopLeft.Y;
+
+        wall.BottomLeft.X = left.X;
+        wall.BottomLeft.Y = left.Y;
+        wall.BottomLeft.Z = (float)bottomZ;
+        wall.BottomLeft.PrevV = (float)prevBottomZ;
+        wall.BottomLeft.U = uv.TopLeft.X;
+        wall.BottomLeft.V = uv.BottomRight.Y;
+        wall.BottomLeft.PrevU = prevUV.TopLeft.X;
+        wall.BottomLeft.PrevV = prevUV.BottomRight.Y;
+
+        wall.BottomRight.X = right.X;
+        wall.BottomRight.Y = right.Y;
+        wall.BottomRight.Z = (float)bottomZ;
+        wall.BottomRight.PrevV = (float)prevBottomZ;
+        wall.BottomRight.U = uv.BottomRight.X;
+        wall.BottomRight.V = uv.BottomRight.Y;
+        wall.BottomRight.PrevU = prevUV.BottomRight.X;
+        wall.BottomRight.PrevV = prevUV.BottomRight.Y;
+
+        wall.PrevTopZ = (float)prevTopZ;
+        wall.PrevBottomZ = (float)prevBottomZ;
     }
 
-    public static WallVertices HandleTwoSidedMiddle(Side facingSide,
+    public static void HandleTwoSidedMiddle(Side facingSide,
         in Dimension textureDimension, in Vec2F textureUVInverse, double bottomOpeningZ, double topOpeningZ, double prevBottomZ, double prevTopZ,
-        bool isFrontSide, out bool nothingVisible, double offset = 0, double prevOffset = 0)
+        bool isFrontSide, ref WallVertices wall, out bool nothingVisible, double offset = 0, double prevOffset = 0)
     {
         if (LineOpening.IsRenderingBlocked(facingSide.Line))
         {
             nothingVisible = true;
-            return default;
+            return;
         }
 
         Line line = facingSide.Line;
@@ -94,37 +151,68 @@ public static class WorldTriangulator
         if (drawSpan.NotVisible())
         {
             nothingVisible = true;
-            return default;
+            return;
         }
 
-        Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
-        Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
+        Vec2F left = isFrontSide ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
+        Vec2F right = isFrontSide ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
         double length = line.GetLength();
         WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan.TopZ, drawSpan.BottomZ, 
             drawSpan.VisibleTopZ, drawSpan.VisibleBottomZ, textureUVInverse, previous: false);
         WallUV prevUV = facingSide.ScrollData == null ? uv : CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan.PrevTopZ, drawSpan.PrevBottomZ, 
             drawSpan.PrevVisibleTopZ, drawSpan.PrevVisibleBottomZ, textureUVInverse, previous: true);
 
-        TriangulatedWorldVertex topLeft = new(left.X, left.Y, drawSpan.VisibleTopZ, drawSpan.PrevVisibleTopZ, 
-            uv.TopLeft.X, uv.TopLeft.Y, prevUV.TopLeft.X, prevUV.TopLeft.Y);
-        TriangulatedWorldVertex topRight = new(right.X, right.Y, drawSpan.VisibleTopZ, drawSpan.PrevVisibleTopZ, 
-            uv.BottomRight.X, uv.TopLeft.Y, prevUV.BottomRight.X, prevUV.TopLeft.Y);
-        TriangulatedWorldVertex bottomLeft = new(left.X, left.Y, drawSpan.VisibleBottomZ, drawSpan.PrevVisibleBottomZ, 
-            uv.TopLeft.X, uv.BottomRight.Y, prevUV.TopLeft.X, prevUV.BottomRight.Y);
-        TriangulatedWorldVertex bottomRight = new(right.X, right.Y, drawSpan.VisibleBottomZ, drawSpan.PrevVisibleBottomZ, 
-            uv.BottomRight.X, uv.BottomRight.Y, prevUV.BottomRight.X, prevUV.BottomRight.Y);
+        double topZ = drawSpan.TopZ;
+        double bottomZ = drawSpan.BottomZ;
 
+        wall.TopLeft.X = left.X;
+        wall.TopLeft.Y = left.Y;
+        wall.TopLeft.Z = (float)topZ;
+        wall.TopLeft.PrevV = (float)prevTopZ;
+        wall.TopLeft.U = uv.TopLeft.X;
+        wall.TopLeft.V = uv.TopLeft.Y;
+        wall.TopLeft.PrevU = prevUV.TopLeft.X;
+        wall.TopLeft.PrevV = prevUV.TopLeft.Y;
+
+        wall.TopRight.X = right.X;
+        wall.TopRight.Y = right.Y;
+        wall.TopRight.Z = (float)topZ;
+        wall.TopRight.PrevV = (float)prevTopZ;
+        wall.TopRight.U = uv.BottomRight.X;
+        wall.TopRight.V = uv.TopLeft.Y;
+        wall.TopRight.PrevU = prevUV.BottomRight.X;
+        wall.TopRight.PrevV = prevUV.TopLeft.Y;
+
+        wall.BottomLeft.X = left.X;
+        wall.BottomLeft.Y = left.Y;
+        wall.BottomLeft.Z = (float)bottomZ;
+        wall.BottomLeft.PrevV = (float)prevBottomZ;
+        wall.BottomLeft.U = uv.TopLeft.X;
+        wall.BottomLeft.V = uv.BottomRight.Y;
+        wall.BottomLeft.PrevU = prevUV.TopLeft.X;
+        wall.BottomLeft.PrevV = prevUV.BottomRight.Y;
+
+        wall.BottomRight.X = right.X;
+        wall.BottomRight.Y = right.Y;
+        wall.BottomRight.Z = (float)bottomZ;
+        wall.BottomRight.PrevV = (float)prevBottomZ;
+        wall.BottomRight.U = uv.BottomRight.X;
+        wall.BottomRight.V = uv.BottomRight.Y;
+        wall.BottomRight.PrevU = prevUV.BottomRight.X;
+        wall.BottomRight.PrevV = prevUV.BottomRight.Y;
+
+        wall.PrevTopZ = (float)prevTopZ;
+        wall.PrevBottomZ = (float)prevBottomZ;
         nothingVisible = false;
-        return new WallVertices(topLeft, topRight, bottomLeft, bottomRight, drawSpan.PrevVisibleTopZ, drawSpan.PrevVisibleBottomZ);
     }
 
-    public static WallVertices HandleTwoSidedUpper(Side facingSide, SectorPlane topPlane, SectorPlane bottomPlane, in Vec2F textureUVInverse,
-        bool isFrontSide, double overrideTopZ = NoOverride)
+    public static void HandleTwoSidedUpper(Side facingSide, SectorPlane topPlane, SectorPlane bottomPlane, in Vec2F textureUVInverse,
+        bool isFrontSide, ref WallVertices wall, double overrideTopZ = NoOverride)
     {
         Line line = facingSide.Line;
 
-        Vec2D left = isFrontSide ? line.Segment.Start : line.Segment.End;
-        Vec2D right = isFrontSide ? line.Segment.End : line.Segment.Start;
+        Vec2F left = isFrontSide ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
+        Vec2F right = isFrontSide ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
         double topZ = overrideTopZ == NoOverride ? topPlane.Z : overrideTopZ;
         double bottomZ = bottomPlane.Z;
         double prevTopZ = overrideTopZ == NoOverride ? topPlane.PrevZ : overrideTopZ;
@@ -135,17 +223,44 @@ public static class WorldTriangulator
         double prevSpanZ = prevTopZ - prevBottomZ;
         WallUV uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ, previous: false);
         WallUV prevUV = facingSide.ScrollData == null ? uv : CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, prevSpanZ, previous: true);
+        wall.TopLeft.X = left.X;
+        wall.TopLeft.Y = left.Y;
+        wall.TopLeft.Z = (float)topZ;
+        wall.TopLeft.PrevV = (float)prevTopZ;
+        wall.TopLeft.U = uv.TopLeft.X;
+        wall.TopLeft.V = uv.TopLeft.Y;
+        wall.TopLeft.PrevU = prevUV.TopLeft.X;
+        wall.TopLeft.PrevV = prevUV.TopLeft.Y;
 
-        TriangulatedWorldVertex topLeft = new(left.X, left.Y, topZ, prevTopZ, 
-            uv.TopLeft.X, uv.TopLeft.Y, prevUV.TopLeft.X, prevUV.TopLeft.Y);
-        TriangulatedWorldVertex topRight = new(right.X, right.Y, topZ, prevTopZ, 
-            uv.BottomRight.X, uv.TopLeft.Y, prevUV.BottomRight.X, prevUV.TopLeft.Y);
-        TriangulatedWorldVertex bottomLeft = new(left.X, left.Y, bottomZ, prevBottomZ, 
-            uv.TopLeft.X, uv.BottomRight.Y, prevUV.TopLeft.X, prevUV.BottomRight.Y);
-        TriangulatedWorldVertex bottomRight = new(right.X, right.Y, bottomZ, prevBottomZ, 
-            uv.BottomRight.X, uv.BottomRight.Y, prevUV.BottomRight.X, prevUV.BottomRight.Y);
+        wall.TopRight.X = right.X;
+        wall.TopRight.Y = right.Y;
+        wall.TopRight.Z = (float)topZ;
+        wall.TopRight.PrevV = (float)prevTopZ;
+        wall.TopRight.U = uv.BottomRight.X;
+        wall.TopRight.V = uv.TopLeft.Y;
+        wall.TopRight.PrevU = prevUV.BottomRight.X;
+        wall.TopRight.PrevV = prevUV.TopLeft.Y;
 
-        return new WallVertices(topLeft, topRight, bottomLeft, bottomRight, prevTopZ, prevBottomZ);
+        wall.BottomLeft.X = left.X;
+        wall.BottomLeft.Y = left.Y;
+        wall.BottomLeft.Z = (float)bottomZ;
+        wall.BottomLeft.PrevV = (float)prevBottomZ;
+        wall.BottomLeft.U = uv.TopLeft.X;
+        wall.BottomLeft.V = uv.BottomRight.Y;
+        wall.BottomLeft.PrevU = prevUV.TopLeft.X;
+        wall.BottomLeft.PrevV = prevUV.BottomRight.Y;
+
+        wall.BottomRight.X = right.X;
+        wall.BottomRight.Y = right.Y;
+        wall.BottomRight.Z = (float)bottomZ;
+        wall.BottomRight.PrevV = (float)prevBottomZ;
+        wall.BottomRight.U = uv.BottomRight.X;
+        wall.BottomRight.V = uv.BottomRight.Y;
+        wall.BottomRight.PrevU = prevUV.BottomRight.X;
+        wall.BottomRight.PrevV = prevUV.BottomRight.Y;
+
+        wall.PrevTopZ = (float)prevTopZ;
+        wall.PrevBottomZ = (float)prevBottomZ;
     }
 
     public static unsafe void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Vec2F textureVector,

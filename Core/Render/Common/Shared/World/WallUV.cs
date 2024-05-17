@@ -4,8 +4,8 @@ namespace Helion.Render.OpenGL.Shared.World;
 
 public struct WallUV
 {
-    public readonly Vec2F TopLeft;
-    public readonly Vec2F BottomRight;
+    public Vec2F TopLeft;
+    public Vec2F BottomRight;
 
     public WallUV(Vec2F topLeft, Vec2F bottomRight)
     {

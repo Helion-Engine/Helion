@@ -539,6 +539,7 @@ public class GeometryRenderer : IDisposable
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
         side.LastRenderGametick = m_world.Gametick;
 
+        WallVertices wall = default;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(side.Middle.TextureHandle);
         LegacyVertex[]? data = m_vertexLookup[side.Id];
 
@@ -551,7 +552,7 @@ public class GeometryRenderer : IDisposable
         if (side.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
             int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Wall);
-            WallVertices wall = WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse);
+            WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, ref wall);
             if (m_cacheOverride)
             {
                 data = m_wallVertices;
@@ -694,6 +695,7 @@ public class GeometryRenderer : IDisposable
         out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
     {
         Wall lowerWall = facingSide.Lower;
+        WallVertices wall = default;
         bool isSky = TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
         bool skyRender = isSky && TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle);
 
@@ -732,7 +734,7 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
-                WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse, isFrontSide);
+                WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse, isFrontSide, ref wall);
                 if (data == null)
                     data = CreateSkyWallVertices(wall);
                 else
@@ -755,7 +757,7 @@ public class GeometryRenderer : IDisposable
                 if (top.Z > otherSector.Ceiling.Z && !TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                     top = otherSector.Ceiling;
 
-                WallVertices wall = WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse, isFrontSide);
+                WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse, isFrontSide, ref wall);
                 if (m_cacheOverride)
                 {
                     data = m_wallVertices;
@@ -813,6 +815,7 @@ public class GeometryRenderer : IDisposable
             otherSide.UpperFloodKeys.Key2 = 0;
         }
 
+        WallVertices wall = default;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(upperWall.TextureHandle);
         RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
 
@@ -835,8 +838,8 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
-                WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse,
-                    isFrontSide, MaxSky);
+                WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse,
+                    isFrontSide, ref wall, MaxSky);
                 if (data == null)
                     data = CreateSkyWallVertices(wall);
                 else
@@ -864,7 +867,7 @@ public class GeometryRenderer : IDisposable
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
                 int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
-                WallVertices wall = WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse, isFrontSide);
+                WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse, isFrontSide, ref wall);
                 if (m_cacheOverride)
                 {
                     data = m_wallVertices;
@@ -906,16 +909,16 @@ public class GeometryRenderer : IDisposable
         SectorPlane floor = facingSector.Floor;
         SectorPlane ceiling = facingSector.Ceiling;
 
-        WallVertices wall;
+        WallVertices wall = default;
         if (facingSide.IsTwoSided && otherSector != null && LineOpening.IsRenderingBlocked(facingSide.Line) &&
             SkyUpperRenderFromFloorCheck(facingSide, facingSector, otherSector))
         {
-            wall = WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse,
+            WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, ref wall,
                 overrideFloor: facingSide.PartnerSide!.Sector.Floor.Z, overrideCeiling: MaxSky, isFront);
         }
         else
         {
-            wall = WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse,
+            WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, ref wall,
                 overrideFloor: facingSector.Ceiling.Z, overrideCeiling: MaxSky, isFront);
         }
 
@@ -926,15 +929,15 @@ public class GeometryRenderer : IDisposable
 
     public void RenderSkySide(Side facingSide, Sector facingSector, SectorPlaneFace face, bool isFront, out SkyGeometryVertex[]? skyVertices)
     {
-        WallVertices wall;
+        WallVertices wall = default;
         if (face == SectorPlaneFace.Floor)
         {
-            wall = WorldTriangulator.HandleOneSided(facingSide, facingSector.Floor, facingSector.Ceiling, Vec2F.Zero,
+            WorldTriangulator.HandleOneSided(facingSide, facingSector.Floor, facingSector.Ceiling, Vec2F.Zero, ref wall,
                 overrideFloor: facingSector.Floor.Z - MaxSky, overrideCeiling: facingSector.Floor.Z, isFront: isFront);
         }
         else
         {
-            wall = WorldTriangulator.HandleOneSided(facingSide, facingSector.Floor, facingSector.Ceiling, Vec2F.Zero,
+            WorldTriangulator.HandleOneSided(facingSide, facingSector.Floor, facingSector.Ceiling, Vec2F.Zero, ref wall,
                 overrideFloor: facingSector.Ceiling.Z, overrideCeiling: facingSector.Ceiling.Z + MaxSky, isFront: isFront);
         }
 
@@ -978,8 +981,9 @@ public class GeometryRenderer : IDisposable
 
             int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
             // Not going to do anything with out nothingVisible for now
-            WallVertices wall = WorldTriangulator.HandleTwoSidedMiddle(facingSide,
-                texture.Dimension, texture.UVInverse, bottomZ, topZ, prevBottomZ, prevTopZ, isFrontSide, out _, offset, prevOffset);
+            WallVertices wall = default;
+            WorldTriangulator.HandleTwoSidedMiddle(facingSide,
+                texture.Dimension, texture.UVInverse, bottomZ, topZ, prevBottomZ, prevTopZ, isFrontSide, ref wall, out _, offset, prevOffset);
 
             if (m_cacheOverride)
             {

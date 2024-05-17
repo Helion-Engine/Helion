@@ -68,8 +68,9 @@ public class MidTextureHack
             m_midTextureHackLines.Add(line.Id);
             (double bottomZ, double topZ) = GeometryRenderer.FindOpeningFlats(side.Sector, side.PartnerSide!.Sector);
 
-            var wall = WorldTriangulator.HandleTwoSidedMiddle(side,
-                texture.Dimension, texture.UVInverse, bottomZ, topZ, bottomZ, topZ, side.Id == line.Front.Id, out _, 0, 0);
+            WallVertices wall = default;
+            WorldTriangulator.HandleTwoSidedMiddle(side,
+                texture.Dimension, texture.UVInverse, bottomZ, topZ, bottomZ, topZ, side.Id == line.Front.Id, ref wall, out _, 0, 0);
 
             if (wall.BottomLeft.Z < sector.Floor.Z && line.Front.Sector.Floor.Z == line.Back.Sector.Floor.Z)
                 clippedFloor = true;

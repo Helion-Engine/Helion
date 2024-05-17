@@ -1,11 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Helion.Render.OpenGL.Shared.World;
 
 public struct WallVertices
 {
-    public readonly TriangulatedWorldVertex TopLeft;
-    public readonly TriangulatedWorldVertex TopRight;
-    public readonly TriangulatedWorldVertex BottomLeft;
-    public readonly TriangulatedWorldVertex BottomRight;
+    public TriangulatedWorldVertex TopLeft;
+    public TriangulatedWorldVertex TopRight;
+    public TriangulatedWorldVertex BottomLeft;
+    public TriangulatedWorldVertex BottomRight;
     public float PrevTopZ;
     public float PrevBottomZ;
 
