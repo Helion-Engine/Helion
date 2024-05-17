@@ -163,13 +163,10 @@ public class LegacyWorldRenderer : WorldRenderer
                 if (occlude && !block.Box.InView(occluder, m_renderData.ViewDirection))
                     continue;
 
-                for (var sectorNode = block.DynamicSectors.Head; sectorNode != null; sectorNode = sectorNode.Next)
+                for (var islandNode = block.DynamicSectors.Head; islandNode != null; islandNode = islandNode.Next)
                 {
-                    if (sectorNode.Value.BlockmapCount == m_renderData.CheckCount || !sectorNode.Value.SectorId.HasValue)
-                        continue;
-
-                    var sectorIsland = sectorNode.Value;
-                    if (sectorIsland.CheckCount == m_renderData.CheckCount)
+                    var sectorIsland = islandNode.Value;
+                    if (sectorIsland.BlockmapCount == m_renderData.CheckCount || !sectorIsland.SectorId.HasValue)
                         continue;
 
                     sectorIsland.BlockmapCount = m_renderData.CheckCount;
@@ -177,8 +174,10 @@ public class LegacyWorldRenderer : WorldRenderer
                         continue;
 
                     var sector = world.Sectors[sectorIsland.SectorId.Value];
-                    var transfer = sector.TransferHeights;
+                    if (sector.CheckCount == m_renderData.CheckCount)
+                        continue;
 
+                    var transfer = sector.TransferHeights;
                     const SectorDynamic MovementFlags = SectorDynamic.Movement | SectorDynamic.Scroll;
                     // Middle view is in the static renderer. If it's not moving then we don't need to dynamically draw.
                     if (transfer != null && renderInfo.TransferHeightView == TransferHeightView.Middle &&
@@ -188,13 +187,12 @@ public class LegacyWorldRenderer : WorldRenderer
                         (transfer.ControlSector.Ceiling.Dynamic & MovementFlags) == 0)
                         continue;
 
-                    var boundingBox = sectorIsland.Box;
-                    double dx1 = Math.Max(boundingBox.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - boundingBox.Max.X));
-                    double dy1 = Math.Max(boundingBox.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - boundingBox.Max.Y));
+                    double dx1 = Math.Max(sectorIsland.Box.Min.X - m_renderData.ViewPosInterpolated.X, Math.Max(0, m_renderData.ViewPosInterpolated.X - sectorIsland.Box.Max.X));
+                    double dy1 = Math.Max(sectorIsland.Box.Min.Y - m_renderData.ViewPosInterpolated.Y, Math.Max(0, m_renderData.ViewPosInterpolated.Y - sectorIsland.Box.Max.Y));
                     if (dx1 * dx1 + dy1 * dy1 <= m_renderData.MaxDistanceSquared)
-                    {
+                    {                        
                         m_geometryRenderer.RenderSector(m_viewSector, sector, m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);
-                        sectorIsland.CheckCount = m_renderData.CheckCount;
+                        sector.CheckCount = m_renderData.CheckCount;
                     }
                 }
 
