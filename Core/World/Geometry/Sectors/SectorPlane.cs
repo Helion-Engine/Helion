@@ -58,9 +58,14 @@ public sealed class SectorPlane : ISoundSource
         m_soundInfo = default;
         TextureHandle = m_initialTextureHandle;
         LightLevel = lightLevel;
+        LastRenderChangeGametick = default;
+        LastRenderGametick = default;
         Dynamic = default;
         Static = default;
         SectorScrollData = default;
+        MidTextureHack = default;
+        NoRender = default;
+        SkyGeometry = default;
     }
 
     public void SetZ(double z)
