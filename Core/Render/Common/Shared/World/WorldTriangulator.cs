@@ -11,9 +11,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
-using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
-using SixLabors.ImageSharp.Processing;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shared.World;
@@ -38,12 +36,12 @@ public static class WorldTriangulator
         double spanZ = topZ - bottomZ;
         double prevSpanZ = prevTopZ - prevBottomZ;
         WallUV uv = CalculateOneSidedWallUV(line, side, length, textureUVInverse, spanZ, previous: false);
-        WallUV prevUV = side.ScrollData == null ? uv : CalculateOneSidedWallUV(line, side, length, textureUVInverse, prevSpanZ, previous: true);
+        WallUV prevUV = CalculateOneSidedWallUV(line, side, length, textureUVInverse, prevSpanZ, previous: true);
 
         wall.TopLeft.X = left.X;
         wall.TopLeft.Y = left.Y;
         wall.TopLeft.Z = (float)topZ;
-        wall.TopLeft.PrevV = (float)prevTopZ;
+        wall.TopLeft.PrevZ = (float)prevTopZ;
         wall.TopLeft.U = uv.TopLeft.X;
         wall.TopLeft.V = uv.TopLeft.Y;
         wall.TopLeft.PrevU = prevUV.TopLeft.X;
@@ -52,7 +50,7 @@ public static class WorldTriangulator
         wall.TopRight.X = right.X;
         wall.TopRight.Y = right.Y;
         wall.TopRight.Z = (float)topZ;
-        wall.TopRight.PrevV = (float)prevTopZ;
+        wall.TopRight.PrevZ = (float)prevTopZ;
         wall.TopRight.U = uv.BottomRight.X;
         wall.TopRight.V = uv.TopLeft.Y;
         wall.TopRight.PrevU = prevUV.BottomRight.X;
@@ -61,7 +59,7 @@ public static class WorldTriangulator
         wall.BottomLeft.X = left.X;
         wall.BottomLeft.Y = left.Y;
         wall.BottomLeft.Z = (float)bottomZ;
-        wall.BottomLeft.PrevV = (float)prevBottomZ;
+        wall.BottomLeft.PrevZ = (float)prevBottomZ;
         wall.BottomLeft.U = uv.TopLeft.X;
         wall.BottomLeft.V = uv.BottomRight.Y;
         wall.BottomLeft.PrevU = prevUV.TopLeft.X;
@@ -70,7 +68,7 @@ public static class WorldTriangulator
         wall.BottomRight.X = right.X;
         wall.BottomRight.Y = right.Y;
         wall.BottomRight.Z = (float)bottomZ;
-        wall.BottomRight.PrevV = (float)prevBottomZ;
+        wall.BottomRight.PrevZ = (float)prevBottomZ;
         wall.BottomRight.U = uv.BottomRight.X;
         wall.BottomRight.V = uv.BottomRight.Y;
         wall.BottomRight.PrevU = prevUV.BottomRight.X;
@@ -94,12 +92,12 @@ public static class WorldTriangulator
 
         double length = line.GetLength();
         WallUV uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ, previous: false);
-        WallUV prevUV = facingSide.ScrollData == null ? uv : CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, prevTopZ, prevBottomZ, previous: true);
+        WallUV prevUV = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, prevTopZ, prevBottomZ, previous: true);
 
         wall.TopLeft.X = left.X;
         wall.TopLeft.Y = left.Y;
         wall.TopLeft.Z = (float)topZ;
-        wall.TopLeft.PrevV = (float)prevTopZ;
+        wall.TopLeft.PrevZ = (float)prevTopZ;
         wall.TopLeft.U = uv.TopLeft.X;
         wall.TopLeft.V = uv.TopLeft.Y;
         wall.TopLeft.PrevU = prevUV.TopLeft.X;
@@ -108,7 +106,7 @@ public static class WorldTriangulator
         wall.TopRight.X = right.X;
         wall.TopRight.Y = right.Y;
         wall.TopRight.Z = (float)topZ;
-        wall.TopRight.PrevV = (float)prevTopZ;
+        wall.TopRight.PrevZ = (float)prevTopZ;
         wall.TopRight.U = uv.BottomRight.X;
         wall.TopRight.V = uv.TopLeft.Y;
         wall.TopRight.PrevU = prevUV.BottomRight.X;
@@ -117,7 +115,7 @@ public static class WorldTriangulator
         wall.BottomLeft.X = left.X;
         wall.BottomLeft.Y = left.Y;
         wall.BottomLeft.Z = (float)bottomZ;
-        wall.BottomLeft.PrevV = (float)prevBottomZ;
+        wall.BottomLeft.PrevZ = (float)prevBottomZ;
         wall.BottomLeft.U = uv.TopLeft.X;
         wall.BottomLeft.V = uv.BottomRight.Y;
         wall.BottomLeft.PrevU = prevUV.TopLeft.X;
@@ -126,7 +124,7 @@ public static class WorldTriangulator
         wall.BottomRight.X = right.X;
         wall.BottomRight.Y = right.Y;
         wall.BottomRight.Z = (float)bottomZ;
-        wall.BottomRight.PrevV = (float)prevBottomZ;
+        wall.BottomRight.PrevZ = (float)prevBottomZ;
         wall.BottomRight.U = uv.BottomRight.X;
         wall.BottomRight.V = uv.BottomRight.Y;
         wall.BottomRight.PrevU = prevUV.BottomRight.X;
@@ -159,16 +157,13 @@ public static class WorldTriangulator
         double length = line.GetLength();
         WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan.TopZ, drawSpan.BottomZ, 
             drawSpan.VisibleTopZ, drawSpan.VisibleBottomZ, textureUVInverse, previous: false);
-        WallUV prevUV = facingSide.ScrollData == null ? uv : CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan.PrevTopZ, drawSpan.PrevBottomZ, 
+        WallUV prevUV = CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan.PrevTopZ, drawSpan.PrevBottomZ, 
             drawSpan.PrevVisibleTopZ, drawSpan.PrevVisibleBottomZ, textureUVInverse, previous: true);
-
-        double topZ = drawSpan.TopZ;
-        double bottomZ = drawSpan.BottomZ;
 
         wall.TopLeft.X = left.X;
         wall.TopLeft.Y = left.Y;
-        wall.TopLeft.Z = (float)topZ;
-        wall.TopLeft.PrevV = (float)prevTopZ;
+        wall.TopLeft.Z = (float)drawSpan.VisibleTopZ;
+        wall.TopLeft.PrevZ = (float)drawSpan.PrevVisibleTopZ;
         wall.TopLeft.U = uv.TopLeft.X;
         wall.TopLeft.V = uv.TopLeft.Y;
         wall.TopLeft.PrevU = prevUV.TopLeft.X;
@@ -176,8 +171,8 @@ public static class WorldTriangulator
 
         wall.TopRight.X = right.X;
         wall.TopRight.Y = right.Y;
-        wall.TopRight.Z = (float)topZ;
-        wall.TopRight.PrevV = (float)prevTopZ;
+        wall.TopRight.Z = (float)drawSpan.VisibleTopZ;
+        wall.TopRight.PrevZ = (float)drawSpan.PrevVisibleTopZ;
         wall.TopRight.U = uv.BottomRight.X;
         wall.TopRight.V = uv.TopLeft.Y;
         wall.TopRight.PrevU = prevUV.BottomRight.X;
@@ -185,8 +180,8 @@ public static class WorldTriangulator
 
         wall.BottomLeft.X = left.X;
         wall.BottomLeft.Y = left.Y;
-        wall.BottomLeft.Z = (float)bottomZ;
-        wall.BottomLeft.PrevV = (float)prevBottomZ;
+        wall.BottomLeft.Z = (float)drawSpan.VisibleBottomZ;
+        wall.BottomLeft.PrevZ = (float)drawSpan.PrevVisibleBottomZ;
         wall.BottomLeft.U = uv.TopLeft.X;
         wall.BottomLeft.V = uv.BottomRight.Y;
         wall.BottomLeft.PrevU = prevUV.TopLeft.X;
@@ -194,15 +189,15 @@ public static class WorldTriangulator
 
         wall.BottomRight.X = right.X;
         wall.BottomRight.Y = right.Y;
-        wall.BottomRight.Z = (float)bottomZ;
-        wall.BottomRight.PrevV = (float)prevBottomZ;
+        wall.BottomRight.Z = (float)drawSpan.VisibleBottomZ;
+        wall.BottomRight.PrevZ = (float)drawSpan.PrevVisibleBottomZ;
         wall.BottomRight.U = uv.BottomRight.X;
         wall.BottomRight.V = uv.BottomRight.Y;
         wall.BottomRight.PrevU = prevUV.BottomRight.X;
         wall.BottomRight.PrevV = prevUV.BottomRight.Y;
 
-        wall.PrevTopZ = (float)prevTopZ;
-        wall.PrevBottomZ = (float)prevBottomZ;
+        wall.PrevTopZ = (float)drawSpan.PrevVisibleTopZ;
+        wall.PrevBottomZ = (float)drawSpan.PrevVisibleBottomZ;
         nothingVisible = false;
     }
 
@@ -222,11 +217,11 @@ public static class WorldTriangulator
         double spanZ = topZ - bottomZ;
         double prevSpanZ = prevTopZ - prevBottomZ;
         WallUV uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ, previous: false);
-        WallUV prevUV = facingSide.ScrollData == null ? uv : CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, prevSpanZ, previous: true);
+        WallUV prevUV = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, prevSpanZ, previous: true);
         wall.TopLeft.X = left.X;
         wall.TopLeft.Y = left.Y;
         wall.TopLeft.Z = (float)topZ;
-        wall.TopLeft.PrevV = (float)prevTopZ;
+        wall.TopLeft.PrevZ = (float)prevTopZ;
         wall.TopLeft.U = uv.TopLeft.X;
         wall.TopLeft.V = uv.TopLeft.Y;
         wall.TopLeft.PrevU = prevUV.TopLeft.X;
@@ -235,7 +230,7 @@ public static class WorldTriangulator
         wall.TopRight.X = right.X;
         wall.TopRight.Y = right.Y;
         wall.TopRight.Z = (float)topZ;
-        wall.TopRight.PrevV = (float)prevTopZ;
+        wall.TopRight.PrevZ = (float)prevTopZ;
         wall.TopRight.U = uv.BottomRight.X;
         wall.TopRight.V = uv.TopLeft.Y;
         wall.TopRight.PrevU = prevUV.BottomRight.X;
@@ -244,7 +239,7 @@ public static class WorldTriangulator
         wall.BottomLeft.X = left.X;
         wall.BottomLeft.Y = left.Y;
         wall.BottomLeft.Z = (float)bottomZ;
-        wall.BottomLeft.PrevV = (float)prevBottomZ;
+        wall.BottomLeft.PrevZ = (float)prevBottomZ;
         wall.BottomLeft.U = uv.TopLeft.X;
         wall.BottomLeft.V = uv.BottomRight.Y;
         wall.BottomLeft.PrevU = prevUV.TopLeft.X;
@@ -253,7 +248,7 @@ public static class WorldTriangulator
         wall.BottomRight.X = right.X;
         wall.BottomRight.Y = right.Y;
         wall.BottomRight.Z = (float)bottomZ;
-        wall.BottomRight.PrevV = (float)prevBottomZ;
+        wall.BottomRight.PrevZ = (float)prevBottomZ;
         wall.BottomRight.U = uv.BottomRight.X;
         wall.BottomRight.V = uv.BottomRight.Y;
         wall.BottomRight.PrevU = prevUV.BottomRight.X;
@@ -413,6 +408,7 @@ public static class WorldTriangulator
                 offsetUV.Y += (float)side.ScrollData.OffsetLower.V * textureUVInverse.V;
             }
         }
+
         float wallSpanU = (float)length * textureUVInverse.U;
         float spanV = (float)spanZ * textureUVInverse.V;
 
