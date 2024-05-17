@@ -94,9 +94,14 @@ public class IWadLocator
     {
         if (OperatingSystem.IsWindows())
         {
-            return
-                Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string ??
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/");
+            try
+            {
+                return Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
+            }
+            catch (Exception)
+            {
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/");
+            }
         }
 
         if (OperatingSystem.IsLinux())
