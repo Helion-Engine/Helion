@@ -159,48 +159,83 @@ public static class WorldTriangulator
 
         double z = overrideZ == int.MaxValue ? sectorPlane.Z : overrideZ;
         double prevZ = sectorPlane.PrevZ;
-
-        fixed (TriangulatedWorldVertex* startVertex = &verticesToPopulate.Data[0])
+        Vec2D uv = default;
+        Vec2D prevUV = default;
+        if (sectorPlane.Facing == SectorPlaneFace.Ceiling)
         {
-            TriangulatedWorldVertex* worldVertex = startVertex;
-            if (sectorPlane.Facing == SectorPlaneFace.Ceiling)
+            fixed (TriangulatedWorldVertex* startVertex = &verticesToPopulate.Data[0])
             {
+                TriangulatedWorldVertex* worldVertex = startVertex;
                 for (int i = 0; i < edges.Count; i++)
                 {
                     Vec2D vertex = edges[i].Start;
-                    Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: false);
-                    Vec2F prevUV = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: true);
+                    if (sectorPlane.SectorScrollData == null)
+                    {
+                        uv.X = vertex.X / textureVector.X;
+                        uv.Y = -(vertex.Y / textureVector.Y);
+                        prevUV = uv;
+                    }
+                    else
+                    {
+                        uv.X = vertex.X / textureVector.X;
+                        uv.Y = -(vertex.Y / textureVector.Y);
+                        prevUV = uv;
+
+                        uv.X += sectorPlane.SectorScrollData.Offset.X;
+                        uv.Y += sectorPlane.SectorScrollData.Offset.Y;
+                        prevUV.X += sectorPlane.SectorScrollData.LastOffset.X;
+                        prevUV.Y += sectorPlane.SectorScrollData.LastOffset.Y;
+                    }
 
                     worldVertex->X = (float)vertex.X;
                     worldVertex->Y = (float)vertex.Y;
                     worldVertex->Z = (float)z;
                     worldVertex->PrevZ = (float)prevZ;
-                    worldVertex->U = uv.U;
-                    worldVertex->V = uv.V;
-                    worldVertex->PrevU = prevUV.U;
-                    worldVertex->PrevV = prevUV.V;
+                    worldVertex->U = (float)uv.U;
+                    worldVertex->V = (float)uv.V;
+                    worldVertex->PrevU = (float)prevUV.U;
+                    worldVertex->PrevV = (float)prevUV.V;
                     worldVertex++;
                 }
             }
-            else
+        }
+        else
+        {
+            fixed (TriangulatedWorldVertex* startVertex = &verticesToPopulate.Data[0])
             {
+                TriangulatedWorldVertex* worldVertex = startVertex;
                 // Because the floor is looked at downwards and because it is
                 // clockwise, to get counter-clockwise vertices we reverse the
                 // iteration order and go from the end vertex.
                 for (int i = edges.Count - 1; i >= 0; i--)
                 {
                     Vec2D vertex = edges[i].End;
-                    Vec2F uv = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: false);
-                    Vec2F prevUV = CalculateFlatUV(sectorPlane.SectorScrollData, vertex, textureVector, previous: true);
+                    if (sectorPlane.SectorScrollData == null)
+                    {
+                        uv.X = vertex.X / textureVector.X;
+                        uv.Y = -(vertex.Y / textureVector.Y);
+                        prevUV = uv;
+                    }
+                    else
+                    {
+                        uv.X = vertex.X / textureVector.X;
+                        uv.Y = -(vertex.Y / textureVector.Y);
+                        prevUV = uv;
+
+                        uv.X += sectorPlane.SectorScrollData.Offset.X;
+                        uv.Y += sectorPlane.SectorScrollData.Offset.Y;
+                        prevUV.X += sectorPlane.SectorScrollData.LastOffset.X;
+                        prevUV.Y += sectorPlane.SectorScrollData.LastOffset.Y;
+                    }
 
                     worldVertex->X = (float)vertex.X;
                     worldVertex->Y = (float)vertex.Y;
                     worldVertex->Z = (float)z;
                     worldVertex->PrevZ = (float)prevZ;
-                    worldVertex->U = uv.U;
-                    worldVertex->V = uv.V;
-                    worldVertex->PrevU = prevUV.U;
-                    worldVertex->PrevV = prevUV.V;
+                    worldVertex->U = (float)uv.U;
+                    worldVertex->V = (float)uv.V;
+                    worldVertex->PrevU = (float)prevUV.U;
+                    worldVertex->PrevV = (float)prevUV.V;
                     worldVertex++;
                 }
             }
@@ -362,29 +397,5 @@ public static class WorldTriangulator
         }
 
         return new WallUV(new Vec2F(leftU, topV), new Vec2F(rightU, bottomV));
-    }
-
-    public static Vec2F CalculateFlatUV(SectorScrollData? scrollData, in Vec2D vertex, in Vec2F textureVector, bool previous)
-    {
-        Vec2F uv = new((float)vertex.X / textureVector.X, (float)vertex.Y / textureVector.Y);
-        if (scrollData != null)
-        {
-            Vec2F scrollAmount = previous ? scrollData.LastOffset.Float : scrollData.Offset.Float;
-            uv.X += scrollAmount.X;
-            uv.Y -= scrollAmount.Y;
-        }
-
-        // When we map coordinates to their texture coordinates, because
-        // we do division above, a coordinate with Y values of 16 to 32
-        // for a 64-dimension texture gets mapped onto 0.25 and 0.5.
-        // However the textures are drawn from the top down in vanilla
-        // (and all the other ports), which means 16 is effectively 0.75
-        // and 32 is 0.5.
-        //
-        // This means our drawing is inverted along the Y axis, and this is
-        // trivially fixed by inverting letting the shader take care of the
-        // rest when it clamps it to the image.
-        uv.Y = -uv.Y;
-        return uv;
     }
 }
