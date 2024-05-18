@@ -7,6 +7,7 @@ using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util.Configs;
+using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
@@ -21,6 +22,7 @@ public class EntityRenderer : IDisposable
     private readonly EntityProgram m_program = new();
     private readonly RenderDataManager<EntityVertex> m_dataManager;
     private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
+    private DynamicArray<SpriteDefinition> m_spriteDefs = new(1024);
     private SpriteRotation m_nullSpriteRotation;
     private double m_tickFraction;
     private Vec2F m_viewRightNormal;
@@ -142,7 +144,24 @@ public class EntityRenderer : IDisposable
         Vec2D entityPos = centerBottom.XY;
         Vec2D nudgeAmount = Vec2D.Zero;
 
-        SpriteDefinition? spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.SpriteIndex);
+        SpriteDefinition? spriteDef = null;
+        int spriteIndex = entity.Frame.SpriteIndex;
+        if (spriteIndex >= m_spriteDefs.Capacity)
+        {
+            m_spriteDefs.EnsureCapacity(spriteIndex);
+            spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.SpriteIndex);
+            m_spriteDefs.Data[spriteIndex] = spriteDef;
+        }
+        else
+        {
+            spriteDef = m_spriteDefs.Data[spriteIndex];
+            if (spriteDef == null)
+            {
+                spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.SpriteIndex);
+                m_spriteDefs.Data[spriteIndex] = spriteDef;
+            }
+        }
+
         uint rotation = 0;
         if (spriteDef != null && spriteDef.HasRotations)
         {
