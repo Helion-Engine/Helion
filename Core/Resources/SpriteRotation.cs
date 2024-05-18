@@ -2,12 +2,14 @@ namespace Helion.Resources;
 
 public class SpriteRotation
 {
-    public readonly Texture Texture;
-    public readonly bool Mirror;
+    public Texture Texture;
+    public bool Mirror;
+    public float FlipU;
 
     public SpriteRotation(Texture texture, bool mirror)
     {
         Texture = texture;
         Mirror = mirror;
+        FlipU = mirror ? 1 : 0;
     }
 }

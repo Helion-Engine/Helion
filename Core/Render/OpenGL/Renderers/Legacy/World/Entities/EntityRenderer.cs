@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using GlmSharp;
 using Helion.Geometry.Vectors;
-using Helion.Graphics.Palettes;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
@@ -23,6 +21,7 @@ public class EntityRenderer : IDisposable
     private readonly EntityProgram m_program = new();
     private readonly RenderDataManager<EntityVertex> m_dataManager;
     private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
+    private SpriteRotation m_nullSpriteRotation;
     private double m_tickFraction;
     private Vec2F m_viewRightNormal;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
@@ -38,6 +37,7 @@ public class EntityRenderer : IDisposable
     {
         m_config = config;
         m_textureManager = textureManager;
+        m_nullSpriteRotation = m_textureManager.NullSpriteRotation;
         m_dataManager = new(m_program);
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
@@ -152,32 +152,17 @@ public class EntityRenderer : IDisposable
                 m_renderPositions[entityPos] = 1;
             }
         }
-
-        SpriteRotation spriteRotation = m_textureManager.NullSpriteRotation;
-        if (spriteDef != null)
-            spriteRotation = m_textureManager.GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
+        
+        SpriteRotation spriteRotation = spriteDef == null ? m_nullSpriteRotation : m_textureManager.GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
         GLLegacyTexture texture = (spriteRotation.Texture.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
         Sector sector = entity.Sector.GetRenderSector(m_transferHeightView);
 
-        short lightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? (short)255 :
-            (short)((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
-
         int halfTexWidth = texture.Dimension.Width / 2;
         float offsetZ = GetOffsetZ(entity, texture);
-        // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
-        // Doom graphics are drawn left to right and not centered
-        var pos = new Vec3F((float)(entity.Position.X - nudgeAmount.X) - (m_viewRightNormal.X * texture.Offset.X) + (m_viewRightNormal.X * halfTexWidth), 
-            (float)(entity.Position.Y - nudgeAmount.Y) - (m_viewRightNormal.Y * texture.Offset.X) + (m_viewRightNormal.Y * halfTexWidth), (float)entity.Position.Z + offsetZ);
-
-        var prevPos = entity.Position == entity.PrevPosition ? pos : 
-            new Vec3F(pos.X - (float)(entity.Position.X - entity.PrevPosition.X), 
-            pos.Y - (float)(entity.Position.Y - entity.PrevPosition.Y),
-            pos.Z - (float)(entity.Position.Z - entity.PrevPosition.Z));
 
         bool useAlpha = entity.Flags.Shadow || (m_spriteAlpha && entity.Alpha < 1.0f);
         RenderData<EntityVertex> renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
         float alpha = useAlpha ? entity.Alpha : 1.0f;
-        float flipU = spriteRotation.Mirror ? 1.0f : 0.0f;
         float fuzz = 0.0f;
         if (entity.Flags.Shadow)
         {
@@ -191,14 +176,21 @@ public class EntityRenderer : IDisposable
             arrayData.EnsureCapacity(length + 1);
         fixed (EntityVertex* vertex = &arrayData.Data[length])
         {
-            vertex->Pos = pos;
-            vertex->PrevPos = prevPos;
-            vertex->LightLevel = lightLevel;
+            // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
+            // Doom graphics are drawn left to right and not centered
+            vertex->Pos = new Vec3F((float)(entity.Position.X - nudgeAmount.X) - (m_viewRightNormal.X * texture.Offset.X) + (m_viewRightNormal.X * halfTexWidth),
+                (float)(entity.Position.Y - nudgeAmount.Y) - (m_viewRightNormal.Y * texture.Offset.X) + (m_viewRightNormal.Y * halfTexWidth), (float)entity.Position.Z + offsetZ);
+            vertex->PrevPos = entity.Position == entity.PrevPosition ? vertex->Pos :
+                new Vec3F(vertex->Pos.X - (float)(entity.Position.X - entity.PrevPosition.X),
+                vertex->Pos.Y - (float)(entity.Position.Y - entity.PrevPosition.Y),
+                vertex->Pos.Z - (float)(entity.Position.Z - entity.PrevPosition.Z));
+            vertex->LightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? 255 :
+                ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
             vertex->Alpha = alpha;
             vertex->Fuzz = fuzz;
-            vertex->FlipU = flipU;
+            vertex->FlipU = spriteRotation.FlipU;
         }
-        arrayData.SetLength(length + 1);
+        arrayData.Length = length + 1;
     }
 
     private void SetUniforms(RenderInfo renderInfo)
