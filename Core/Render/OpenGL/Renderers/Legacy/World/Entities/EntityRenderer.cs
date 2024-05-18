@@ -185,9 +185,11 @@ public class EntityRenderer : IDisposable
             alpha = 0.99f;
         }
 
-        int newLength = renderData.Vbo.Data.Length + 1;
-        renderData.Vbo.Data.EnsureCapacity(newLength);
-        fixed (EntityVertex* vertex = &renderData.Vbo.Data.Data[renderData.Vbo.Data.Length])
+        var arrayData = renderData.ArrayData;
+        int length = arrayData.Length;
+        if (arrayData.Capacity < length + 1)
+            arrayData.EnsureCapacity(length + 1);
+        fixed (EntityVertex* vertex = &arrayData.Data[length])
         {
             vertex->Pos = pos;
             vertex->PrevPos = prevPos;
@@ -196,7 +198,7 @@ public class EntityRenderer : IDisposable
             vertex->Fuzz = fuzz;
             vertex->FlipU = flipU;
         }
-        renderData.Vbo.Data.SetLength(newLength);
+        arrayData.SetLength(length + 1);
     }
 
     private void SetUniforms(RenderInfo renderInfo)

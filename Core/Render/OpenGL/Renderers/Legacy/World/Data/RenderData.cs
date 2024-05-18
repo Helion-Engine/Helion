@@ -3,15 +3,17 @@ using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
+using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
 public class RenderData<TVertex> : IDisposable where TVertex : struct
 {
-    public readonly DynamicVertexBuffer<TVertex> Vbo;
-    public readonly VertexArrayObject Vao;
-    public readonly GLLegacyTexture Texture;
+    public DynamicVertexBuffer<TVertex> Vbo;
+    public VertexArrayObject Vao;
+    public GLLegacyTexture Texture;
+    public DynamicArray<TVertex> ArrayData;
     public int RenderCount;
     private bool m_disposed;
     
@@ -20,6 +22,7 @@ public class RenderData<TVertex> : IDisposable where TVertex : struct
         Texture = texture;
         Vao = new($"Attributes for {texture.Name}");
         Vbo = new($"Vertices for {texture.Name}");
+        ArrayData = Vbo.Data;
 
         Attributes.BindAndApply(Vbo, Vao, program.Attributes);
     }
