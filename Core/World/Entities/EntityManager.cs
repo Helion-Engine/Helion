@@ -510,6 +510,7 @@ public class EntityManager : IDisposable
         VoodooDolls.Clear();
         MusicChangers.Clear();
         RealPlayersByNumber.SetAll(null);
+        TeleportSpots.Clear();
     }
 
     private void ClearEntities()
