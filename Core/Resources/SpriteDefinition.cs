@@ -8,10 +8,9 @@ public class SpriteDefinition
 {
     public const int MaxFrames = 29;
     public const int MaxRotations = 8;
-    public SpriteRotation?[,] Rotations => m_spriteRotations;
-    public bool HasRotations { get; private set; }
+    public SpriteRotation?[,] Rotations = new SpriteRotation[MaxFrames, MaxRotations];
+    public bool HasRotations;
 
-    private readonly SpriteRotation?[,] m_spriteRotations = new SpriteRotation[MaxFrames, MaxRotations];
     private static readonly Dictionary<string, Texture> SpriteTextureLookup = new();
 
     public SpriteDefinition(IList<Entry> entries, IImageRetriever imageRetriever)
@@ -40,7 +39,7 @@ public class SpriteDefinition
     }
 
     public SpriteRotation? GetSpriteRotation(int frame, uint rotation) =>
-        m_spriteRotations[frame, rotation];
+        Rotations[frame, rotation];
 
     private void CreateRotations(Entry entry, IImageRetriever imageRetriever, int frame, int rotation, bool mirror)
     {
@@ -59,7 +58,7 @@ public class SpriteDefinition
         {
             SpriteRotation sr = new(texture, mirror);
             for (int i = 0; i < 8; i++)
-                m_spriteRotations[frame, i] = sr;
+                Rotations[frame, i] = sr;
         }
         else
         {
@@ -68,7 +67,7 @@ public class SpriteDefinition
             if (rotation < 0 || rotation >= MaxRotations)
                 return;
 
-            m_spriteRotations[frame, rotation] = new SpriteRotation(texture, mirror);
+            Rotations[frame, rotation] = new SpriteRotation(texture, mirror);
         }
     }
 }

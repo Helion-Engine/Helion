@@ -122,6 +122,18 @@ public class EntityRenderer : IDisposable
         return offsetAmount;
     }
 
+    private SpriteRotation GetSpriteRotation(SpriteDefinition spriteDefinition, int frame, uint rotation)
+    {
+        var spriteRotation = spriteDefinition.Rotations[frame, rotation];
+        if (spriteRotation == null)
+            return m_nullSpriteRotation;
+
+        if (spriteRotation.RenderStore != null)
+            return spriteRotation;
+
+        return m_textureManager.GetSpriteRotation(spriteDefinition, frame, rotation);
+    }
+
     public unsafe void RenderEntity(Entity entity, in Vec2D position)
     {
         const double NudgeFactor = 0.0001;
@@ -153,8 +165,8 @@ public class EntityRenderer : IDisposable
             }
         }
         
-        SpriteRotation spriteRotation = spriteDef == null ? m_nullSpriteRotation : m_textureManager.GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
-        GLLegacyTexture texture = (spriteRotation.Texture.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
+        SpriteRotation spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
+        GLLegacyTexture texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
         Sector sector = entity.Sector.GetRenderSector(m_transferHeightView);
 
         int halfTexWidth = texture.Dimension.Width / 2;

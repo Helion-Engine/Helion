@@ -195,8 +195,8 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         if (spriteRotation == null)
             return NullSpriteRotation;
 
-        if (spriteRotation.Texture.RenderStore == null)
-            spriteRotation.Texture.RenderStore = CreateTexture(spriteRotation.Texture.Image, spriteRotation.Texture.Name, ResourceNamespace.Sprites);
+        if (spriteRotation.RenderStore == null)
+            spriteRotation.RenderStore = CreateTexture(spriteRotation.Texture.Image, spriteRotation.Texture.Name, ResourceNamespace.Sprites);
 
         return spriteRotation;
     }

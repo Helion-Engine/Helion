@@ -5,6 +5,7 @@ public class SpriteRotation
     public Texture Texture;
     public bool Mirror;
     public float FlipU;
+    public object? RenderStore;
 
     public SpriteRotation(Texture texture, bool mirror)
     {
