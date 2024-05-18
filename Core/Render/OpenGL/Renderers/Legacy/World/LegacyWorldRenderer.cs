@@ -121,11 +121,8 @@ public class LegacyWorldRenderer : WorldRenderer
         m_automapRenderer.Render(world, renderInfo);
     }
 
-    private int m_entityCount;
-
     private void IterateBlockmap(IWorld world, RenderInfo renderInfo)
     {
-        m_entityCount = 0;
         bool shouldRender = m_lastTicker != world.GameTicker;
         if (!shouldRender)
             return;
@@ -240,8 +237,6 @@ public class LegacyWorldRenderer : WorldRenderer
         if (entity.RenderDistanceSquared > m_renderData.MaxDistanceSquared)
             return;
 
-        m_entityCount++;
-
         entity.LastRenderGametick = world.Gametick;
         if ((m_spriteTransparency && entity.Alpha < 1) || entity.Definition.Flags.Shadow)
         {
@@ -249,7 +244,7 @@ public class LegacyWorldRenderer : WorldRenderer
             return;
         }
 
-        m_entityRenderer.RenderEntity(entity, m_renderData.ViewPosInterpolated3D);     
+        m_entityRenderer.RenderEntity(entity, m_renderData.ViewPosInterpolated);     
     }
 
     protected override void PerformRender(IWorld world, RenderInfo renderInfo)
@@ -338,7 +333,7 @@ public class LegacyWorldRenderer : WorldRenderer
             if (renderObject.Type == RenderObjectType.Entity)
             {
                 Entity entity = (Entity)renderObject;
-                m_entityRenderer.RenderEntity(entity, m_renderData.ViewPosInterpolated3D);
+                m_entityRenderer.RenderEntity(entity, m_renderData.ViewPosInterpolated);
             }
             else if (renderObject.Type == RenderObjectType.Side)
             {

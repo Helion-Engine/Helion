@@ -122,36 +122,34 @@ public class EntityRenderer : IDisposable
         return offsetAmount;
     }
 
-    public unsafe void RenderEntity(Entity entity, in Vec3D position)
+    public unsafe void RenderEntity(Entity entity, in Vec2D position)
     {
         const double NudgeFactor = 0.0001;
         
         Vec3D centerBottom = entity.Position;
         Vec2D entityPos = centerBottom.XY;
-        Vec2D position2D = position.XY;
         Vec2D nudgeAmount = Vec2D.Zero;
 
         SpriteDefinition? spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.SpriteIndex);
         uint rotation = 0;
         if (spriteDef != null && spriteDef.HasRotations)
         {
-            uint viewAngle = ViewClipper.ToDiamondAngle(position2D, entityPos);
+            uint viewAngle = ViewClipper.ToDiamondAngle(position, entityPos);
             uint entityAngle = ViewClipper.DiamondAngleFromRadians(entity.AngleRadians);
             rotation = CalculateRotation(viewAngle, entityAngle);
         }
 
         if (m_spriteZCheck)
         {
-            Vec2D positionLookup = centerBottom.XY;
-            if (m_renderPositions.TryGetValue(positionLookup, out int count))
+            if (m_renderPositions.TryGetValue(entityPos, out int count))
             {
-                double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position2D), NudgeFactor, double.MaxValue);
+                double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position), NudgeFactor, double.MaxValue);
                 nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge * count;
-                m_renderPositions[positionLookup] = count + 1;
+                m_renderPositions[entityPos] = count + 1;
             }
             else
             {
-                m_renderPositions[positionLookup] = 1;
+                m_renderPositions[entityPos] = 1;
             }
         }
 
