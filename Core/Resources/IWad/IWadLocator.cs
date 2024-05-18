@@ -1,3 +1,4 @@
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,9 +29,9 @@ public class IWadLocator
 
     private readonly List<string> m_directories;
 
-    public static IWadLocator CreateDefault()
+    public static IWadLocator CreateDefault(IEnumerable<string> configDirectories)
     {
-        List<string> paths = new() { Directory.GetCurrentDirectory() };
+        List<string> paths = [Directory.GetCurrentDirectory(), .. configDirectories];
 
         var steamPath = GetSteamPath();
 
@@ -92,7 +93,16 @@ public class IWadLocator
     private static string? GetSteamPath()
     {
         if (OperatingSystem.IsWindows())
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/");
+        {
+            try
+            {
+                return Registry.GetValue(@"HKEY_CURRENT_USER\Software\Valve\Steam", "SteamPath", null) as string;
+            }
+            catch (Exception)
+            {
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Steam/");
+            }
+        }
 
         if (OperatingSystem.IsLinux())
         {
