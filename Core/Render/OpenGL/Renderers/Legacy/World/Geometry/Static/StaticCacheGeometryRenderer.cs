@@ -847,18 +847,24 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             for (int i = 0; i < sectors.Count; i++)
             {
-                Sector sector = sectors[i];
-                HandleSectorMoveComplete(world, sector.GetSectorPlane(plane.Facing));
+                var sector = sectors[i];
+                // Ignore if sector controlled by this moving transfer heights sector is still moving.
+                // Movement clearing functions need to be handled when that move is complete.
+                if (plane.Facing == SectorPlaneFace.Floor && sector.ActiveFloorMove != null)
+                    continue;
+                else if (plane.Facing == SectorPlaneFace.Ceiling && sector.ActiveCeilingMove != null)
+                    continue;
+                HandleSectorMoveComplete(world, sector, sector.GetSectorPlane(plane.Facing));
             }
         }
 
-        HandleSectorMoveComplete(world, plane);
+        HandleSectorMoveComplete(world, plane.Sector, plane);
     }
 
-    private void HandleSectorMoveComplete(IWorld world, SectorPlane plane)
+    private void HandleSectorMoveComplete(IWorld world, Sector sector, SectorPlane plane)
     {
-        StaticDataApplier.ClearSectorDynamicMovement(world, plane);
         bool floor = plane.Facing == SectorPlaneFace.Floor;
+        StaticDataApplier.ClearSectorDynamicMovement(world, plane);
         m_geometryRenderer.SetBuffer(false);
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
         m_geometryRenderer.SetViewSector(DefaultSector);
@@ -868,13 +874,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         else
             m_geometryRenderer.SetRenderCeiling(plane);
 
-        AddSectorPlane(plane.Sector, floor, true);
-        UpdateSectorFloodFill(plane.Sector);
-    }
-
-    private void UpdateSectorFloodFill(Sector sector)
-    {
-        for (int i = 0; i < sector.Lines.Count; i++)
+        AddSectorPlane(sector, floor, true);
+        int lineCount = sector.Lines.Count;
+        for (int i = 0; i < lineCount; i++)
         {
             var line = sector.Lines[i];
             AddLine(line, true);
