@@ -2035,7 +2035,8 @@ public static class EntityActionFunctions
                     playerAngle += AngleLarger;
             }
 
-            player.AngleRadians = playerAngle;
+            // Doom used this to move the player forward in the tick function.
+            player.Flags.JustAttacked = true;
         }
     }
 

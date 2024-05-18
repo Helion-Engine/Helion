@@ -559,6 +559,16 @@ public class Player : Entity
     public override void Tick()
     {
         base.Tick();
+
+        // Matching Doom behavior for A_Saw
+        if (Flags.JustAttacked)
+        {
+            TickCommand.AngleTurn = 0;
+            TickCommand.SideMoveSpeed = 0;
+            TickCommand.ForwardMoveSpeed = 3.125;
+            Flags.JustAttacked = false;
+        }
+
         Inventory.Tick();
         AnimationWeapon?.Tick();
         StatusBar.Tick();
