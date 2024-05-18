@@ -31,7 +31,7 @@ public class DynamicArray<T>
     /// How large the array is. This is not equal to how many elements are
     /// in the array.
     /// </summary>
-    public int Capacity => Data.Length;
+    public int Capacity;
 
     public int Version;
 
@@ -50,6 +50,7 @@ public class DynamicArray<T>
     {
         Precondition(capacity > 0, "Must have a positive capacity");
         capacity = Math.Max(1, capacity);
+        Capacity = capacity;
         m_arrayPool = arrayPool;
         if (arrayPool)
             Data = ArrayPool<T>.Shared.Rent(capacity);
@@ -217,6 +218,7 @@ public class DynamicArray<T>
             Array.Copy(Data, newData, Data.Length);
             Data = newData;
         }
+        Capacity = newCapacity;
         Version++;
     }
 }
