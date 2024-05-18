@@ -1,9 +1,6 @@
-﻿using Helion;
-using Helion.Util;
+﻿using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
-using Helion.World;
-using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
@@ -16,9 +13,9 @@ namespace Helion.World;
 public static class WorldStatic
 {
     public static DynamicArray<BlockmapIntersect> Intersections = new(1024);
-    public static IWorld World;
-    public static IRandom Random;
-    public static DataCache DataCache;
+    public static IWorld World = null!;
+    public static IRandom Random = null!;
+    public static DataCache DataCache = null!;
     public static int CheckCounter;
     public static bool SlowTickEnabled;
     public static int SlowTickChaseFailureSkipCount;
@@ -41,9 +38,9 @@ public static class WorldStatic
     public static int RespawnTimeSeconds;
     public static int ClosetLookFrameIndex;
     public static int ClosetChaseFrameIndex;
-    public static EntityManager EntityManager;
-    public static WorldSoundManager SoundManager;
-    public static List<EntityFrame> Frames;
+    public static EntityManager EntityManager = null!;
+    public static WorldSoundManager SoundManager = null!;
+    public static List<EntityFrame> Frames = null!;
 
     public static EntityDefinition? DoomImpBall;
     public static EntityDefinition? ArachnotronPlasma;

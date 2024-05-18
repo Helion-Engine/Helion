@@ -25,6 +25,7 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 using System.Diagnostics;
 using Helion.Util.Loggers;
+using System.Linq;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -56,7 +57,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly List<Sector> m_initMoveSectors = new();
 
     private bool m_disposed;
-    private IWorld? m_world;
+    private IWorld m_world = null!;
     private GLBufferTexture? m_lightBuffer;
     private GLMappedBuffer<float> m_mappedLightBuffer;
     private int m_counter;
@@ -282,16 +283,14 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddTransferSector(Sector sector)
     {
-        if (sector.TransferHeights != null)
-            AddTransferSector(sector, sector.TransferHeights.ControlSector.Id, m_transferHeightsLookup);
-    }
+        if (sector.TransferHeights == null)
+            return;
 
-    private static void AddTransferSector(Sector sector, int controlSectorId, LookupArray<List<Sector>> lookup)
-    {
-        if (!lookup.TryGetValue(controlSectorId, out var sectors))
+        int controlSectorId = sector.TransferHeights.ControlSector.Id;
+        if (!m_transferHeightsLookup.TryGetValue(controlSectorId, out var sectors))
         {
-            sectors = new();
-            lookup.Set(controlSectorId, sectors);
+            sectors = [];
+            m_transferHeightsLookup.Set(controlSectorId, sectors);
         }
 
         sectors.Add(sector);
@@ -403,7 +402,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             if (!update)
             {
-                if ((side.FloodTextures & SideTexture.Upper) != 0 || side.PartnerSide.Sector.FloodOpposingCeiling)
+                if ((side.FloodTextures & SideTexture.Upper) != 0 || side.PartnerSide!.Sector.FloodOpposingCeiling)
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide);
             }
         }
@@ -417,7 +416,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             if (!update && skyVertices == null)
             {
-                if ((side.FloodTextures & SideTexture.Lower) != 0 || side.PartnerSide.Sector.FloodOpposingFloor)
+                if ((side.FloodTextures & SideTexture.Lower) != 0 || side.PartnerSide!.Sector.FloodOpposingFloor)
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower, isFrontSide);
             }
         }
@@ -561,7 +560,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_world.SideTextureChanged -= World_SideTextureChanged;
             m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
             m_world.SectorLightChanged -= World_SectorLightChanged;
-            m_world = null;
+            m_world = null!;
         }
 
 
@@ -602,11 +601,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private static void ClearBufferData(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData)
     {
         for (int i = 0; i < bufferData.Capacity; i++)
-        {
-            var list = bufferData.Data[i];
-            if (list != null)
-                list.FlushStruct();
-        }
+            bufferData.Data[i]?.FlushStruct();
     }
 
     private void AddSectorPlane(Sector sector, bool floor, bool update = false)

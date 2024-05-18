@@ -19,11 +19,19 @@ public class SwitchChangeSpecial : ISpecial
     private bool m_repeat;
     private int m_switchDelayTics;
 
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public SwitchChangeSpecial(IWorld world, Line line, SwitchType type)
     {
         Set(world, line, type);
     }
 
+    public SwitchChangeSpecial(IWorld world, Line line, SwitchChangeSpecialModel model)
+    {
+        Set(world, line, model);
+    }
+
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public void Set(IWorld world, Line line, SwitchType type)
     {
         World = world;
@@ -40,11 +48,6 @@ public class SwitchChangeSpecial : ISpecial
         {
             PlaySwitchSound(world.SoundManager, line);
         }
-    }
-
-    public SwitchChangeSpecial(IWorld world, Line line, SwitchChangeSpecialModel model)
-    {
-        Set(world, line, model);
     }
 
     public void Set(IWorld world, Line line, SwitchChangeSpecialModel model)

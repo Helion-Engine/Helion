@@ -20,7 +20,7 @@ public readonly ref struct SectorList
     public Sector GetSector(int index)
     {
         if (Sectors == null)
-            return Sector;
+            return Sector!;
         return Sectors[index];
     }
 

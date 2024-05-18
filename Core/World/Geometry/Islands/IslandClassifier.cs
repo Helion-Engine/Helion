@@ -19,7 +19,7 @@ public static class IslandClassifier
     public static List<Island>[] ClassifySectors(List<BspSubsector> subsectors, List<Sector> sectors)
     {
         List<Island>[] islands = new List<Island>[sectors.Count];
-        var subsectorLookup = subsectors.Where(x => x.SectorId.HasValue).GroupBy(x => x.SectorId.Value).ToDictionary(x => x.Key, x => x.ToList());
+        var subsectorLookup = subsectors.Where(x => x.SectorId.HasValue).GroupBy(x => x.SectorId!.Value).ToDictionary(x => x.Key, x => x.ToList());
 
         for (int sectorId = 0; sectorId < islands.Length; sectorId++)
         {

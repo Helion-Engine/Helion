@@ -151,7 +151,7 @@ public class OptionsLayer : IGameLayer
     private ListedConfigSection GetOrMakeListedConfigSectionOrThrow(Dictionary<OptionSectionType, IOptionSection> sectionMap, 
         OptionSectionType section)
     {
-        if (sectionMap.TryGetValue(section, out IOptionSection optionSection))
+        if (sectionMap.TryGetValue(section, out var optionSection))
             return optionSection as ListedConfigSection ?? throw new($"Expected a listed config for {optionSection.GetType().FullName}");
 
         ListedConfigSection listedConfigSection = new(m_config, section, m_soundManager);

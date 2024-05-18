@@ -145,17 +145,17 @@ public class PushSpecial : ISpecial
         if (!entity.IsBoomSentient && !entity.Flags.Shootable)
             return GridIterationStatus.Continue;
 
-        if (!m_world.CheckLineOfSight(entity, m_pusher))
+        if (!m_world.CheckLineOfSight(entity, m_pusher!))
             return GridIterationStatus.Continue;
 
-        double distance = entity.Position.ApproximateDistance2D(m_pusher.Position);
+        double distance = entity.Position.ApproximateDistance2D(m_pusher!.Position);
         Vec2D diff = entity.Position.XY - m_pusher.Position.XY;
         double speed = (m_magnitude * 128) / (diff.X * diff.X + diff.Y * diff.Y + 1);
 
         if (speed <= 0)
             return GridIterationStatus.Continue;
 
-        double angle = entity.Position.Angle(m_pusher.Position);
+        double angle = entity.Position.Angle(m_pusher!.Position);
         if (m_pusher.Definition.EditorId == (int)EditorId.PointPusher)
             angle += Math.PI;
 

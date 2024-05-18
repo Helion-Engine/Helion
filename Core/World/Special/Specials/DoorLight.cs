@@ -37,7 +37,7 @@ public static class DoorLight
         }
     }
 
-    private static Sector GetNextSector(Line line, Sector sector)
+    private static Sector? GetNextSector(Line line, Sector sector)
     {
         if (line.Front.Sector == sector)
         {

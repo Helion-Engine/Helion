@@ -155,7 +155,6 @@ public abstract partial class WorldBase : IWorld
     private LevelChangeType m_levelChangeType = LevelChangeType.Next;
     private LevelChangeFlags m_levelChangeFlags;
     private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
-    private readonly List<DynamicArray<SoundLine>> m_soundLines;
     private readonly List<IMonsterCounterSpecial> m_bossDeathSpecials = new();
     private readonly byte[] m_lineOfSightReject = Array.Empty<byte>();
     private readonly Func<DamageFuncParams, int> m_defaultDamageAction;
@@ -317,7 +316,7 @@ public abstract partial class WorldBase : IWorld
         if (SameAsPreviousMap && LastRenderBlockMap != null)
         {
             LastRenderBlockMap.Clear();
-            return LastBlockMap;
+            return LastRenderBlockMap;
         }
 
         LastRenderBlockMap = new BlockMap(Blockmap.Bounds, 512);
@@ -467,7 +466,7 @@ public abstract partial class WorldBase : IWorld
 
     private void FinalDoomTeleport_OnChanged(object? sender, bool enabled) =>
         WorldStatic.FinalDoomTeleport = enabled;
-    private void OriginalExplosion_OnChanged(object sender, bool enabled) =>
+    private void OriginalExplosion_OnChanged(object? sender, bool enabled) =>
         WorldStatic.OriginalExplosion = enabled;
     private void Doom2ProjectileWalkTriggers_OnChanged(object? sender, bool enabled) =>
         WorldStatic.Doom2ProjectileWalkTriggers = enabled;
@@ -603,7 +602,6 @@ public abstract partial class WorldBase : IWorld
         sector.SoundBlock = block + 1;
         sector.SoundTarget = target;
 
-        //var soundLines = m_soundLines[sector.Id];
         var soundLines = sector.SoundLines;
         fixed (SoundLine* startLine = &soundLines.Data[0])
         {
@@ -690,7 +688,7 @@ public abstract partial class WorldBase : IWorld
                 if (m_changeMusicTicks > 0)
                 {
                     m_changeMusicTicks--;
-                    if (m_changeMusicTicks == 0 && m_lastMusicChange.MusicData != null)
+                    if (m_changeMusicTicks == 0 && m_lastMusicChange?.MusicData != null)
                         PlayLevelMusic(m_lastMusicChange.Name, m_lastMusicChange.MusicData);
                 }
 
@@ -1293,7 +1291,7 @@ public abstract partial class WorldBase : IWorld
             }
         }
 
-        if (Config.Developer.Render.Tracers)
+        if (Config.Developer.Render.Tracers && shooter.PlayerObj != null)
         {
             shooter.PlayerObj.Tracers.AddLookPath(shooter.HitscanAttackPos, shooter.AngleRadians, originalPitch, distance, Gametick);
             shooter.PlayerObj.Tracers.AddAutoAimPath(shooter.HitscanAttackPos, shooter.AngleRadians, pitch, distance, Gametick);
@@ -2049,7 +2047,7 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    private void HighlightSector(Sector? sector)
+    private void HighlightSector(Sector sector)
     {        
         var islands = Geometry.IslandGeometry.SectorIslands[sector.Id];
         if (islands.Count == 0)
@@ -2187,14 +2185,10 @@ public abstract partial class WorldBase : IWorld
 
         blood.Velocity.Z = 2;
 
-        // Doom had the blood states hardcoded. Supercharged bulletride seems to function differeing in gz vs dsda.
+        // Doom had the blood states hardcoded. Supercharged bulletride seems to function differing in gz vs dsda.
         // The changed the frame for blood that dsda will ignore because of hardcoded states, but work in gz.
-        if (HasDehacked && entity.Frame.VanillaIndex != (int)ThingState.BLOOD1)
+        if (HasDehacked && entity != null && entity.Frame.VanillaIndex != (int)ThingState.BLOOD1)
             return;
-
-        int startIndex = blood.Definition.SpawnState.Value;
-        //if (HasDehacked)
-        //    startIndex = ArchiveCollection.Definitions.EntityFrameTable.GetBloodIndex();
 
         int offset = 0;
         if (damage <= 12 && damage >= 9)
@@ -2205,7 +2199,7 @@ public abstract partial class WorldBase : IWorld
         if (offset == 0)
             blood.SetRandomizeTicks();
         else if (blood.Definition.SpawnState != null)
-            blood.FrameState.SetFrameIndex(startIndex + offset);
+            blood.FrameState.SetFrameIndex(blood.Definition.SpawnState.Value + offset);
     }
 
     private static void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)

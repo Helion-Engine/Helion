@@ -159,7 +159,7 @@ public partial class DehackedDefinition
         if (index < ActorDefinitions.Length)
         {
             def = ActorDefinitions[index];
-            return true;
+            return def != null;
         }
 
         if (NewThingLookup.TryGetValue(index, out def))

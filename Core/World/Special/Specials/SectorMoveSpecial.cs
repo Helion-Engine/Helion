@@ -44,6 +44,7 @@ public class SectorMoveSpecial : ISectorSpecial
     private bool m_playedReturnSound;
     private bool m_playedStartSound;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public SectorMoveSpecial()
     {
 
@@ -55,8 +56,15 @@ public class SectorMoveSpecial : ISectorSpecial
         Set(world, sector, start, dest, specialData, soundData);
     }
 
+    public SectorMoveSpecial(IWorld world, Sector sector, SectorMoveSpecialModel model)
+
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    {
+        Set(world, sector, model);
+    }
+
     public void Set(IWorld world, Sector sector, double start, double dest,
-        in SectorMoveData specialData, in SectorSoundData soundData)
+    in SectorMoveData specialData, in SectorSoundData soundData)
     {
         Sector = sector;
         m_world = world;
@@ -75,11 +83,6 @@ public class SectorMoveSpecial : ISectorSpecial
         m_maxZ = Math.Max(m_startZ, DestZ);
 
         Sector.SetActiveMoveSpecial(MoveData.SectorMoveType, this);
-    }
-
-    public SectorMoveSpecial(IWorld world, Sector sector, SectorMoveSpecialModel model)
-    {
-        Set(world, sector, model);
     }
 
     public void Set(IWorld world, Sector sector, SectorMoveSpecialModel model)
@@ -519,7 +522,7 @@ public class SectorMoveSpecial : ISectorSpecial
             moveSpecial.DelayTics == DelayTics &&
             moveSpecial.MoveSpeed == MoveSpeed &&
             moveSpecial.IsCrushing == IsCrushing &&
-            moveSpecial.StartClipped == moveSpecial.StartClipped;
+            moveSpecial.StartClipped == StartClipped;
     }
 
     public override int GetHashCode()

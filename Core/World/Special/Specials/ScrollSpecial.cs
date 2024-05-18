@@ -181,7 +181,7 @@ public class ScrollSpecial : ISpecial
         if (Line != null)
             ScrollLine(Line, speed);
         else if (SectorPlane != null)
-            ScrollPlane(SectorPlane, m_planeScroll, speed);
+            ScrollPlane(SectorPlane, m_planeScroll!, speed);
 
         return SpecialTickStatus.Continue;
     }

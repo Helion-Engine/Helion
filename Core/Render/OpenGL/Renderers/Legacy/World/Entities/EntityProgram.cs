@@ -9,7 +9,6 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 public class EntityProgram : RenderProgram
 {
     private readonly int m_boundTextureLocation;
-    private readonly int m_sectorLightTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_timeFracLocation;
     private readonly int m_hasInvulnerabilityLocation;

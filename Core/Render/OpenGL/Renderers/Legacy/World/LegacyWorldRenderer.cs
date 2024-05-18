@@ -46,11 +46,9 @@ public class LegacyWorldRenderer : WorldRenderer
     private int m_lastTicker = -1;
     private int m_renderCount;
     private int m_maxDistance;
-    private int m_viewerEntityId;
+    private Entity? m_viewerEntity;
     private IWorld? m_previousWorld;
     private RenderBlockMapData m_renderData;
-
-    public IWorld? World => m_previousWorld;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
@@ -123,8 +121,11 @@ public class LegacyWorldRenderer : WorldRenderer
         m_automapRenderer.Render(world, renderInfo);
     }
 
+    private int m_entityCount;
+
     private void IterateBlockmap(IWorld world, RenderInfo renderInfo)
     {
+        m_entityCount = 0;
         bool shouldRender = m_lastTicker != world.GameTicker;
         if (!shouldRender)
             return;
@@ -138,7 +139,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_renderData.ViewIsland = world.Geometry.IslandGeometry.Islands[world.Geometry.BspTree.Subsectors[renderInfo.ViewerEntity.Subsector.Id].IslandId];
         m_viewSector = renderInfo.ViewSector;
 
-        m_viewerEntityId = renderInfo.ViewerEntity.Id;
+        m_viewerEntity = renderInfo.ViewerEntity;
         m_geometryRenderer.Clear(renderInfo.TickFraction, true);
         m_renderData.CheckCount = ++WorldStatic.CheckCounter;
 
@@ -166,14 +167,15 @@ public class LegacyWorldRenderer : WorldRenderer
                 for (var islandNode = block.DynamicSectors.Head; islandNode != null; islandNode = islandNode.Next)
                 {
                     var sectorIsland = islandNode.Value;
-                    if (sectorIsland.BlockmapCount == m_renderData.CheckCount || !sectorIsland.SectorId.HasValue)
+
+                    if (sectorIsland.BlockmapCount == m_renderData.CheckCount)
                         continue;
 
                     sectorIsland.BlockmapCount = m_renderData.CheckCount;
                     if (sectorIsland.ParentIsland != null && sectorIsland.ParentIsland != m_renderData.ViewIsland)
                         continue;
 
-                    var sector = world.Sectors[sectorIsland.SectorId.Value];
+                    var sector = world.Sectors[sectorIsland.SectorId];
                     if (sector.CheckCount == m_renderData.CheckCount)
                         continue;
 
@@ -209,7 +211,7 @@ public class LegacyWorldRenderer : WorldRenderer
                 }
 
                 for (var entity = block.HeadEntity; entity != null; entity = entity.RenderBlockNext)
-                    RenderEntity(entity);
+                    RenderEntity(world, entity);
             }
         }
 
@@ -219,9 +221,9 @@ public class LegacyWorldRenderer : WorldRenderer
         m_alphaEntities.Clear();
     }
 
-    void RenderEntity(Entity entity)
+    void RenderEntity(IWorld world, Entity entity)
     {
-        if (entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity.Id == m_viewerEntityId)
+        if (entity.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity == m_viewerEntity)
             return;
 
         // Not in front 180 FOV
@@ -238,7 +240,9 @@ public class LegacyWorldRenderer : WorldRenderer
         if (entity.RenderDistanceSquared > m_renderData.MaxDistanceSquared)
             return;
 
-        entity.LastRenderGametick = World.Gametick;
+        m_entityCount++;
+
+        entity.LastRenderGametick = world.Gametick;
         if ((m_spriteTransparency && entity.Alpha < 1) || entity.Definition.Flags.Shadow)
         {
             m_alphaEntities.Add(entity);

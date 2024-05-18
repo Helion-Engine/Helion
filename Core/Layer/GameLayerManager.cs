@@ -411,7 +411,7 @@ public class GameLayerManager : IGameLayerManager
             CreateMenuLayer();
 
         m_optionsLayer.SetMouseStartPosition();
-        MenuLayer.ShowOptionsMenu();
+        MenuLayer!.ShowOptionsMenu();
     }
 
     public void QuickSave()

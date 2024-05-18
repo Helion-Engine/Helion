@@ -8,7 +8,7 @@
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
 
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NoWarn>1701;1702;NU1701;CS1591;CS8714</NoWarn>
+    <NoWarn>1701;1702;NU1701;CS1591;CS8714;CS8500</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

@@ -29,7 +29,7 @@ public class Colormap
 
     }
 
-    private Colormap(List<Color[]> colormapLayers, Vec3F colorMix, Entry entry)
+    private Colormap(List<Color[]> colormapLayers, Vec3F colorMix, Entry? entry)
     {
         layers = colormapLayers;
         ColorMix = colorMix;

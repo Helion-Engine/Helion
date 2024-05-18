@@ -306,7 +306,9 @@ public partial class ConsoleLayer
     private void AddClipboardToConsole()
     {
         bool resetInputTracking = false;
-        string text = Clipboard.GetText();
+        var text = Clipboard.GetText();
+        if (text == null)
+            return;
 
         if (text.Contains('\n'))
         {

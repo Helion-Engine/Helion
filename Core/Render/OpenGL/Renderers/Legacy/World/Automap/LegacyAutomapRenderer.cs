@@ -311,9 +311,9 @@ public class LegacyAutomapRenderer : IDisposable
 
     private static bool CheckFloodSide(Side side)
     {
-        if (side.LowerFloodKeys.Key2 > 0 && side.PartnerSide.Sector.FloodOpposingFloor)
+        if (side.LowerFloodKeys.Key2 > 0 && side.PartnerSide!.Sector.FloodOpposingFloor)
             return true;
-        if (side.UpperFloodKeys.Key2 > 0 && side.PartnerSide.Sector.FloodOpposingCeiling)
+        if (side.UpperFloodKeys.Key2 > 0 && side.PartnerSide!.Sector.FloodOpposingCeiling)
             return true;
         return false;
     }

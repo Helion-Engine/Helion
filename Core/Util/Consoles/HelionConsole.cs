@@ -287,8 +287,11 @@ public class HelionConsole : Target
         while (Messages.Count > m_capacity)
         {
             var node = Messages.Last;
-            m_dataCache.FreeConsoleMessage(node.Value);
-            m_dataCache.FreeConsoleMessageNode(node);
+            if (node != null)
+            {
+                m_dataCache.FreeConsoleMessage(node.Value);
+                m_dataCache.FreeConsoleMessageNode(node);
+            }
             Messages.RemoveLast();
         }
     }

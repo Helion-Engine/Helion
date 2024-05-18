@@ -63,8 +63,8 @@ public class DataCache
     private readonly DynamicArray<ConsoleMessage> m_consoleMessages = new();
     private readonly DynamicArray<LegacyVertex[]> m_wallVertices = new(DefaultLength);
     private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new(DefaultLength);
-    private readonly Dictionary<int, DynamicArray<LegacyVertex[]?>> m_flatVertices = new(DefaultLength);
-    private readonly Dictionary<int, DynamicArray<SkyGeometryVertex[]?>> m_skyFlatVertices = new(DefaultLength);
+    private readonly Dictionary<int, DynamicArray<LegacyVertex[]>> m_flatVertices = new(DefaultLength);
+    private readonly Dictionary<int, DynamicArray<SkyGeometryVertex[]>> m_skyFlatVertices = new(DefaultLength);
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public bool CacheEntities = true;
@@ -517,7 +517,7 @@ public class DataCache
 
     public void FreeConsoleMessageNode(LinkedListNode<ConsoleMessage> node)
     {
-        node.Value = default;
+        node.Value = default!;
         m_consoleMessageNodes.Add(node);
     }
 

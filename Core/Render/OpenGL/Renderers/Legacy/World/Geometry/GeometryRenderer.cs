@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -17,7 +16,6 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Configs.Extensions;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
@@ -241,7 +239,7 @@ public class GeometryRenderer : IDisposable
                 if (vertices == null)
                     continue;
                 m_world.DataCache.FreeSkyFlatVertices(vertices);
-                lookup[j] = null;
+                lookup[j] = null!;
             }
 
             if (lookup.Length < sectorCount)
@@ -398,15 +396,16 @@ public class GeometryRenderer : IDisposable
         if (world.SameAsPreviousMap)
             return;
 
-        HashSet<int> textures = new();
+        HashSet<int> textures = [];
         for (int i = 0; i < world.Lines.Count; i++)
         {
-            AddSideTextures(textures, world.Lines[i].Front);
+            var line = world.Lines[i];
+            AddSideTextures(textures, line.Front);
 
-            if (world.Lines[i].Back == null)
+            if (line.Back == null)
                 continue;
 
-            AddSideTextures(textures, world.Lines[i].Back);
+            AddSideTextures(textures, line.Back);
         }
 
         for (int i = 0; i < world.Sectors.Count; i++)
@@ -1084,9 +1083,6 @@ public class GeometryRenderer : IDisposable
         RenderFlat(subsectors, flat, floor, out vertices, out skyVertices);
     }
 
-    private static readonly LegacyVertex EmptyVertex = new();
-    private static readonly SkyGeometryVertex EmptySkyVertex = new();
-
     private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane flat, bool floor, out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
     {
         bool isSky = TextureManager.IsSkyTexture(flat.TextureHandle);
@@ -1168,7 +1164,7 @@ public class GeometryRenderer : IDisposable
 
     private LegacyVertex[] GetSectorVertices(DynamicArray<Subsector> subsectors, bool floor, int id, out bool generate)
     {
-        LegacyVertex[]?[]? lookupView = floor ? m_vertexFloorLookup[(int)m_transferHeightsView] : m_vertexCeilingLookup[(int)m_transferHeightsView];
+        LegacyVertex[][]? lookupView = floor ? m_vertexFloorLookup[(int)m_transferHeightsView] : m_vertexCeilingLookup[(int)m_transferHeightsView];
         if (lookupView == null)
         {
             lookupView ??= new LegacyVertex[m_world.Sectors.Count][];
@@ -1186,7 +1182,7 @@ public class GeometryRenderer : IDisposable
 
     private SkyGeometryVertex[] GetSkySectorVertices(DynamicArray<Subsector> subsectors, bool floor, int id, out bool generate)
     {
-        SkyGeometryVertex[]?[]? lookupView = floor ? m_skyFloorVertexLookup[(int)m_transferHeightsView] : m_skyCeilingVertexLookup[(int)m_transferHeightsView];
+        SkyGeometryVertex[][]? lookupView = floor ? m_skyFloorVertexLookup[(int)m_transferHeightsView] : m_skyCeilingVertexLookup[(int)m_transferHeightsView];
         if (lookupView == null)
         {
             lookupView ??= new SkyGeometryVertex[m_world.Sectors.Count][];

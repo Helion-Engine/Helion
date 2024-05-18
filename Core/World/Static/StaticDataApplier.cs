@@ -83,9 +83,9 @@ public class StaticDataApplier
 
     private static void SetOpposingFlood(Side side)
     {
-        if ((side.FloodTextures & SideTexture.Lower) != 0 && !side.PartnerSide.Sector.Flood)
+        if ((side.FloodTextures & SideTexture.Lower) != 0 && !side.PartnerSide!.Sector.Flood)
             side.PartnerSide.Sector.FloodOpposingFloor = true;
-        if ((side.FloodTextures & SideTexture.Upper) != 0 && !side.PartnerSide.Sector.Flood)
+        if ((side.FloodTextures & SideTexture.Upper) != 0 && !side.PartnerSide!.Sector.Flood)
             side.PartnerSide.Sector.FloodOpposingCeiling = true;
     }
 

@@ -5,8 +5,8 @@ namespace Helion.World;
 internal struct CanPassData
 {
     public Entity Entity;
-    public Entity HighestFloorEntity;
-    public Entity LowestCeilingEntity;
+    public Entity? HighestFloorEntity;
+    public Entity? LowestCeilingEntity;
     public double EntityTopZ;
     public double HighestFloorZ;
     public double LowestCeilZ;

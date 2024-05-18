@@ -140,7 +140,7 @@ public class CommandLineArgs
 
     private static double? ParseDouble(string? value)
     {
-        if (!Parsing.TryParseDouble(value, out var dValue))
+        if (value == null || !Parsing.TryParseDouble(value, out var dValue))
             return null;
 
         return dValue;

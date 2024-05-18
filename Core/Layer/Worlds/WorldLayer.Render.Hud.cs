@@ -770,7 +770,6 @@ public partial class WorldLayer
         // Note: This area is already drawn using Doom's stretched scale so useDoomScale needs to be false.
         const int OffsetY = 171;
         const int FontSize = 16;
-        const int FixedWidth = 16;
 
         var weapon = Player.AnimationWeapon;
         if (weapon != null && weapon.Definition.Properties.Weapons.AmmoType.Length > 0)

@@ -10,7 +10,6 @@ public class StaticShader : RenderProgram
 {
     private readonly int m_boundTextureLocation;
     private readonly int m_sectorLightTextureLocation;
-    private readonly int m_cameraLocation;
     private readonly int m_mvpLocation;
     private readonly int m_hasInvulnerabilityLocation;
     private readonly int m_mvpNoPitchLocation;

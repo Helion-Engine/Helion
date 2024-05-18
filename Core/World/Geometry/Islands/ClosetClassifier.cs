@@ -62,8 +62,8 @@ public static class ClosetClassifier
                     var sectorIslands = world.Geometry.IslandGeometry.SectorIslands[subsector.SectorId.Value];
                     foreach (var sectorIsland in sectorIslands)
                     {
-                        island.IsVooDooCloset = island.IsVooDooCloset;
-                        island.IsMonsterCloset = island.IsMonsterCloset;
+                        sectorIsland.IsVooDooCloset = island.IsVooDooCloset;
+                        sectorIsland.IsMonsterCloset = island.IsMonsterCloset;
                     }
                 }
             }

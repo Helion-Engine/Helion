@@ -33,6 +33,7 @@ public class RenderInfo
         Camera = null!;
         Config = null!;
         ViewerEntity = null!;
+        ViewSector = null!;
     }
 
     public void Set(OldCamera camera, float tickFraction, Rectangle viewport, Entity viewerEntity, bool drawAutomap,

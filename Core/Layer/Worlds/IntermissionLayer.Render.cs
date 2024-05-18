@@ -132,7 +132,6 @@ public partial class IntermissionLayer
     {
         const string FinishedImage = "WIF";
         const string NowEnteringImage = "WIENTER";
-        const int topPaddingY = 5;
         const int topMargin = 2;
 
         int offsetY = topMargin;
