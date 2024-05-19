@@ -444,6 +444,7 @@ public partial class Client
         {
             if (args.Args[0].EqualsIgnoreCase(m_compLevelNames[i]))
             {
+                m_config.Compatibility.ResetToUserValues();
                 var comp = m_archiveCollection.Definitions.CompLevelDefinition;
                 comp.CompLevel = (CompLevel)i;
                 comp.Apply(m_config);
