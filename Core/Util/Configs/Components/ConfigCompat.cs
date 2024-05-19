@@ -25,6 +25,10 @@ public class ConfigCompat
     [OptionMenu(OptionSectionType.Compatibility, "Vanilla movement physics")]
     public readonly ConfigValue<bool> VanillaMovementPhysics = new(false);
 
+    [ConfigInfo("Use vanilla sector sound calculation. Sound is calculated from the center of the sectors bounding box.", serialize: true, demo: true)]
+    [OptionMenu(OptionSectionType.Compatibility, "Vanilla sector sound")]
+    public readonly ConfigValue<bool> VanillaSectorSound = new(false);
+
     [ConfigInfo("Emulate vanilla infinitely tall things.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Infinitely tall things")]
     public readonly ConfigValue<bool> InfinitelyTallThings = new(false);
@@ -79,5 +83,7 @@ public class ConfigCompat
         OriginalExplosion.ResetToUserValue();
         VileGhosts.ResetToUserValue();
         FinalDoomTeleport.ResetToUserValue();
+        VanillaSectorSound.ResetToUserValue();
+        Mbf21.ResetToUserValue();
     }
 }

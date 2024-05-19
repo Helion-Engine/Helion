@@ -105,6 +105,12 @@ public sealed class SectorPlane : ISoundSource
 
     public Vec3D GetSoundSource(Entity listener, SectorPlaneFace type)
     {
+        if (WorldStatic.VanillaSectorSound)
+        {
+            var box = Sector.GetBoundingBox();
+            return new Vec3D(box.Min.X + ((box.Max.X - box.Min.X) /2), box.Min.Y + ((box.Max.Y - box.Min.Y) / 2), listener.Position.Z);
+        }
+
         Vec2D pos2D = listener.Position.XY;
         // Do not count being in the sector if this is a bad self-referencing subsector. E.g. hr2final map01 sector 160
         if (ReferenceEquals(listener.Sector, Sector)&&
@@ -142,7 +148,7 @@ public sealed class SectorPlane : ISoundSource
         for (int i = 0; i < Sector.Lines.Count; i++)
         {
             var line = Sector.Lines[i];
-            if (line.Back != null && ReferenceEquals(line.Front.Sector, line.Back.Sector))
+            if (line.Back != null && line.Front.Sector == line.Back.Sector)
                 continue;
             double dist = line.Segment.ClosestPoint(point).Distance(point);
             if (dist < minDist)

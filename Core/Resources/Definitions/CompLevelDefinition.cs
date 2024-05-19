@@ -51,6 +51,7 @@ public class CompLevelDefinition
                 compat.OriginalExplosion.SetWithNoWriteConfig(true);
                 compat.VanillaMovementPhysics.SetWithNoWriteConfig(true);
                 compat.VanillaSectorPhysics.SetWithNoWriteConfig(true);
+                compat.VanillaSectorSound.SetWithNoWriteConfig(true);
                 compat.MissileClip.SetWithNoWriteConfig(true);
                 compat.Stairs.SetWithNoWriteConfig(true);
                 compat.PainElementalLostSoulLimit.SetWithNoWriteConfig(true);
