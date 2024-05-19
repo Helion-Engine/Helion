@@ -120,7 +120,7 @@ map E1M6 lookup "HUSTR_E1M6"
 	sky1 = "SKY1"
 	cluster = 1
 	par = 180
-	music = "$MUSIC_E1M7"
+	music = "$MUSIC_E1M6"
 }
 
 map E1M7 lookup "HUSTR_E1M7"
