@@ -448,6 +448,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         bool gib = Health < -Properties.Health;
         Height = Definition.Properties.Height / 4.0;
+        ClosetFlags = ClosetFlags.None;
 
         if (gib && Definition.XDeathState != null)
             SetXDeathState(source);
