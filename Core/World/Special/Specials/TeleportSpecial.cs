@@ -9,7 +9,6 @@ using Helion.Geometry.Vectors;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.World.Entities.Definition;
 using System;
-using Helion.Resources.Archives.Entries;
 
 namespace Helion.World.Special.Specials;
 
@@ -73,7 +72,7 @@ public struct TeleportSpecial
         m_type = type;
     }
 
-    public bool Teleport()
+    public readonly bool Teleport()
     {
         Entity entity = m_args.Entity;
         if (!FindTeleportSpot(entity, out Vec3D pos, out double angle, out double offsetZ))
@@ -84,7 +83,6 @@ public struct TeleportSpecial
 
         bool isMonsterCloset = (entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0;
         Vec3D oldPosition = entity.Position;
-        Vec3D velocity = entity.Velocity;
         if (Teleport(entity, pos, angle, offsetZ))
         {
             if (!isMonsterCloset && (m_fogFlags & TeleportFog.Source) != 0)
@@ -102,7 +100,7 @@ public struct TeleportSpecial
         return false;
     }
 
-    private bool Teleport(Entity entity, Vec3D pos, double teleportAngle, double offsetZ)
+    private readonly bool Teleport(Entity entity, Vec3D pos, double teleportAngle, double offsetZ)
     {
         pos.Z += offsetZ;
         if (!CanTeleport(entity, pos))
@@ -192,12 +190,7 @@ public struct TeleportSpecial
             !WorldStatic.InfinitelyTallThings && !WorldStatic.FinalDoomTeleport);
     }
 
-    public bool Use(Entity entity)
-    {
-        return false;
-    }
-
-    private bool FindTeleportSpot(Entity teleportEntity, out Vec3D pos, out double angle, out double offsetZ)
+    private readonly bool FindTeleportSpot(Entity teleportEntity, out Vec3D pos, out double angle, out double offsetZ)
     {
         pos = Vec3D.Zero;
         angle = 0;
