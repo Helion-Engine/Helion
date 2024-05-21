@@ -44,24 +44,6 @@ public static class WorldTriangulator
         wall.TopLeft.PrevU = prevUV.TopLeft.X;
         wall.TopLeft.PrevV = prevUV.TopLeft.Y;
 
-        wall.TopRight.X = right.X;
-        wall.TopRight.Y = right.Y;
-        wall.TopRight.Z = (float)topZ;
-        wall.TopRight.PrevZ = (float)prevTopZ;
-        wall.TopRight.U = uv.BottomRight.X;
-        wall.TopRight.V = uv.TopLeft.Y;
-        wall.TopRight.PrevU = prevUV.BottomRight.X;
-        wall.TopRight.PrevV = prevUV.TopLeft.Y;
-
-        wall.BottomLeft.X = left.X;
-        wall.BottomLeft.Y = left.Y;
-        wall.BottomLeft.Z = (float)bottomZ;
-        wall.BottomLeft.PrevZ = (float)prevBottomZ;
-        wall.BottomLeft.U = uv.TopLeft.X;
-        wall.BottomLeft.V = uv.BottomRight.Y;
-        wall.BottomLeft.PrevU = prevUV.TopLeft.X;
-        wall.BottomLeft.PrevV = prevUV.BottomRight.Y;
-
         wall.BottomRight.X = right.X;
         wall.BottomRight.Y = right.Y;
         wall.BottomRight.Z = (float)bottomZ;
@@ -99,24 +81,6 @@ public static class WorldTriangulator
         wall.TopLeft.V = uv.TopLeft.Y;
         wall.TopLeft.PrevU = prevUV.TopLeft.X;
         wall.TopLeft.PrevV = prevUV.TopLeft.Y;
-
-        wall.TopRight.X = right.X;
-        wall.TopRight.Y = right.Y;
-        wall.TopRight.Z = (float)topZ;
-        wall.TopRight.PrevZ = (float)prevTopZ;
-        wall.TopRight.U = uv.BottomRight.X;
-        wall.TopRight.V = uv.TopLeft.Y;
-        wall.TopRight.PrevU = prevUV.BottomRight.X;
-        wall.TopRight.PrevV = prevUV.TopLeft.Y;
-
-        wall.BottomLeft.X = left.X;
-        wall.BottomLeft.Y = left.Y;
-        wall.BottomLeft.Z = (float)bottomZ;
-        wall.BottomLeft.PrevZ = (float)prevBottomZ;
-        wall.BottomLeft.U = uv.TopLeft.X;
-        wall.BottomLeft.V = uv.BottomRight.Y;
-        wall.BottomLeft.PrevU = prevUV.TopLeft.X;
-        wall.BottomLeft.PrevV = prevUV.BottomRight.Y;
 
         wall.BottomRight.X = right.X;
         wall.BottomRight.Y = right.Y;
@@ -166,24 +130,6 @@ public static class WorldTriangulator
         wall.TopLeft.PrevU = prevUV.TopLeft.X;
         wall.TopLeft.PrevV = prevUV.TopLeft.Y;
 
-        wall.TopRight.X = right.X;
-        wall.TopRight.Y = right.Y;
-        wall.TopRight.Z = (float)drawSpan.VisibleTopZ;
-        wall.TopRight.PrevZ = (float)drawSpan.PrevVisibleTopZ;
-        wall.TopRight.U = uv.BottomRight.X;
-        wall.TopRight.V = uv.TopLeft.Y;
-        wall.TopRight.PrevU = prevUV.BottomRight.X;
-        wall.TopRight.PrevV = prevUV.TopLeft.Y;
-
-        wall.BottomLeft.X = left.X;
-        wall.BottomLeft.Y = left.Y;
-        wall.BottomLeft.Z = (float)drawSpan.VisibleBottomZ;
-        wall.BottomLeft.PrevZ = (float)drawSpan.PrevVisibleBottomZ;
-        wall.BottomLeft.U = uv.TopLeft.X;
-        wall.BottomLeft.V = uv.BottomRight.Y;
-        wall.BottomLeft.PrevU = prevUV.TopLeft.X;
-        wall.BottomLeft.PrevV = prevUV.BottomRight.Y;
-
         wall.BottomRight.X = right.X;
         wall.BottomRight.Y = right.Y;
         wall.BottomRight.Z = (float)drawSpan.VisibleBottomZ;
@@ -223,24 +169,6 @@ public static class WorldTriangulator
         wall.TopLeft.V = uv.TopLeft.Y;
         wall.TopLeft.PrevU = prevUV.TopLeft.X;
         wall.TopLeft.PrevV = prevUV.TopLeft.Y;
-
-        wall.TopRight.X = right.X;
-        wall.TopRight.Y = right.Y;
-        wall.TopRight.Z = (float)topZ;
-        wall.TopRight.PrevZ = (float)prevTopZ;
-        wall.TopRight.U = uv.BottomRight.X;
-        wall.TopRight.V = uv.TopLeft.Y;
-        wall.TopRight.PrevU = prevUV.BottomRight.X;
-        wall.TopRight.PrevV = prevUV.TopLeft.Y;
-
-        wall.BottomLeft.X = left.X;
-        wall.BottomLeft.Y = left.Y;
-        wall.BottomLeft.Z = (float)bottomZ;
-        wall.BottomLeft.PrevZ = (float)prevBottomZ;
-        wall.BottomLeft.U = uv.TopLeft.X;
-        wall.BottomLeft.V = uv.BottomRight.Y;
-        wall.BottomLeft.PrevU = prevUV.TopLeft.X;
-        wall.BottomLeft.PrevV = prevUV.BottomRight.Y;
 
         wall.BottomRight.X = right.X;
         wall.BottomRight.Y = right.Y;

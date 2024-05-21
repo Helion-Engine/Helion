@@ -94,15 +94,15 @@ public class FloodFillRenderer : IDisposable
         float prevPlaneZ = (float)floodPlane.PrevZ;
 
         float topZ = vertices.TopLeft.Z;
-        float bottomZ = vertices.BottomLeft.Z;
+        float bottomZ = vertices.BottomRight.Z;
         float prevTopZ = vertices.PrevTopZ;
         float prevBottomZ = vertices.PrevBottomZ;
 
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, topZ),
             prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
-        FloodFillVertex topRight = new((vertices.TopRight.X, vertices.TopRight.Y, topZ),
+        FloodFillVertex topRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, topZ),
             prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
-        FloodFillVertex bottomLeft = new((vertices.BottomLeft.X, vertices.BottomLeft.Y, bottomZ),
+        FloodFillVertex bottomLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, bottomZ),
             prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
         FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, bottomZ),
             prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
@@ -160,12 +160,12 @@ public class FloodFillRenderer : IDisposable
 
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z),
             vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
-        FloodFillVertex topRight = new((vertices.TopRight.X, vertices.TopRight.Y, vertices.TopRight.Z),
+        FloodFillVertex topRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, vertices.TopLeft.Z),
             vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
-        FloodFillVertex bottomLeft = new((vertices.BottomLeft.X, vertices.BottomLeft.Y, vertices.BottomLeft.Z),
-            vertices.BottomLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+        FloodFillVertex bottomLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.BottomRight.Z),
+            vertices.BottomRight.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
         FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, vertices.BottomRight.Z),
-            vertices.BottomLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            vertices.BottomRight.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
 
         int offset = vbo.Data.Length;
         int newLength = vbo.Data.Length + VerticesPerWall;
@@ -197,17 +197,15 @@ public class FloodFillRenderer : IDisposable
         for (int i = 0; i < FloodPlaneAddCount; i++)
         {
             float topLeftZ = vertices.TopLeft.Z + currentAddHeight;
-            float bottomLeftZ = vertices.BottomLeft.Z + currentAddHeight;
-            float topRightZ = vertices.TopRight.Z + currentAddHeight;
             float bottomRightZ = vertices.BottomRight.Z + currentAddHeight;
             float prevTopZ = vertices.PrevTopZ + currentAddHeight;
             float prevBottomZ = vertices.PrevBottomZ + currentAddHeight;
 
             FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, topLeftZ),
                 prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
-            FloodFillVertex topRight = new((vertices.TopRight.X, vertices.TopRight.Y, topRightZ),
+            FloodFillVertex topRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, topLeftZ),
                 prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
-            FloodFillVertex bottomLeft = new((vertices.BottomLeft.X, vertices.BottomLeft.Y, bottomLeftZ),
+            FloodFillVertex bottomLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, bottomRightZ),
                 prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
             FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, bottomRightZ),
                 prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);

@@ -72,7 +72,7 @@ public class MidTextureHack
             WorldTriangulator.HandleTwoSidedMiddle(side,
                 texture.Dimension, texture.UVInverse, bottomZ, topZ, bottomZ, topZ, side.Id == line.Front.Id, ref wall, out _, 0, 0);
 
-            if (wall.BottomLeft.Z < sector.Floor.Z && line.Front.Sector.Floor.Z == line.Back.Sector.Floor.Z)
+            if (wall.BottomRight.Z < sector.Floor.Z && line.Front.Sector.Floor.Z == line.Back.Sector.Floor.Z)
                 clippedFloor = true;
 
             if (wall.TopLeft.Z > sector.Ceiling.Z && line.Front.Sector.Ceiling.Z == line.Back.Sector.Ceiling.Z)

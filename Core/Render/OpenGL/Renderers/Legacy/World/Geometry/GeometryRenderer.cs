@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -1236,59 +1237,77 @@ public class GeometryRenderer : IDisposable
             return m_ceilingChanged;
     }
 
-    private static void SetSkyWallVertices(SkyGeometryVertex[] data, in WallVertices wv)
+    private static unsafe void SetSkyWallVertices(SkyGeometryVertex[] data, in WallVertices wv)
     {
-        data[0].X = wv.TopLeft.X;
-        data[0].Y = wv.TopLeft.Y;
-        data[0].Z = wv.TopLeft.Z;
+        fixed (SkyGeometryVertex* startVertex = &data[0])
+        {
+            SkyGeometryVertex* vertex = startVertex;
+            vertex->X = wv.TopLeft.X;
+            vertex->Y = wv.TopLeft.Y;
+            vertex->Z = wv.TopLeft.Z;
 
-        data[1].X = wv.BottomLeft.X;
-        data[1].Y = wv.BottomLeft.Y;
-        data[1].Z = wv.BottomLeft.Z;
+            vertex++;
+            vertex->X = wv.TopLeft.X;
+            vertex->Y = wv.TopLeft.Y;
+            vertex->Z = wv.BottomRight.Z;
 
-        data[2].X = wv.TopRight.X;
-        data[2].Y = wv.TopRight.Y;
-        data[2].Z = wv.TopRight.Z;
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.TopLeft.Z;
 
-        data[3].X = wv.TopRight.X;
-        data[3].Y = wv.TopRight.Y;
-        data[3].Z = wv.TopRight.Z;
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.TopLeft.Z;
 
-        data[4].X = wv.BottomLeft.X;
-        data[4].Y = wv.BottomLeft.Y;
-        data[4].Z = wv.BottomLeft.Z;
+            vertex++;
+            vertex->X = wv.TopLeft.X;
+            vertex->Y = wv.TopLeft.Y;
+            vertex->Z = wv.BottomRight.Z;
 
-        data[5].X = wv.BottomRight.X;
-        data[5].Y = wv.BottomRight.Y;
-        data[5].Z = wv.BottomRight.Z;
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.BottomRight.Z;
+        }
     }
 
-    private static SkyGeometryVertex[] CreateSkyWallVertices(in WallVertices wv)
+    private static unsafe SkyGeometryVertex[] CreateSkyWallVertices(in WallVertices wv)
     {
         var data = WorldStatic.DataCache.GetSkyWallVertices();
-        data[0].X = wv.TopLeft.X;
-        data[0].Y = wv.TopLeft.Y;
-        data[0].Z = wv.TopLeft.Z;
+        fixed (SkyGeometryVertex* startVertex = &data[0])
+        {
+            SkyGeometryVertex* vertex = startVertex;
+            vertex->X = wv.TopLeft.X;
+            vertex->Y = wv.TopLeft.Y;
+            vertex->Z = wv.TopLeft.Z;
 
-        data[1].X = wv.BottomLeft.X;
-        data[1].Y = wv.BottomLeft.Y;
-        data[1].Z = wv.BottomLeft.Z;
+            vertex++;
+            vertex->X = wv.TopLeft.X;
+            vertex->Y = wv.TopLeft.Y;
+            vertex->Z = wv.BottomRight.Z;
 
-        data[2].X = wv.TopRight.X;
-        data[2].Y = wv.TopRight.Y;
-        data[2].Z = wv.TopRight.Z;
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.TopLeft.Z;
 
-        data[3].X = wv.TopRight.X;
-        data[3].Y = wv.TopRight.Y;
-        data[3].Z = wv.TopRight.Z;
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.TopLeft.Z;
 
-        data[4].X = wv.BottomLeft.X;
-        data[4].Y = wv.BottomLeft.Y;
-        data[4].Z = wv.BottomLeft.Z;
+            vertex++;
+            vertex->X = wv.TopLeft.X;
+            vertex->Y = wv.TopLeft.Y;
+            vertex->Z = wv.BottomRight.Z;
 
-        data[5].X = wv.BottomRight.X;
-        data[5].Y = wv.BottomRight.Y;
-        data[5].Z = wv.BottomRight.Z;
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.BottomRight.Z;
+        }
 
         return data;
     }
@@ -1314,198 +1333,216 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private static void SetWallVertices(LegacyVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
+    private static unsafe void SetWallVertices(LegacyVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
-        data[0].X = wv.TopLeft.X;
-        data[0].Y = wv.TopLeft.Y;
-        data[0].Z = wv.TopLeft.Z;
-        data[0].PrevX = wv.TopLeft.X;
-        data[0].PrevY = wv.TopLeft.Y;
-        data[0].PrevZ = wv.PrevTopZ;
-        data[0].U = wv.TopLeft.U;
-        data[0].V = wv.TopLeft.V;
-        data[0].PrevU = wv.TopLeft.PrevU;
-        data[0].PrevV = wv.TopLeft.PrevV;
-        data[0].Alpha = alpha;
-        data[0].AddAlpha = addAlpha;
-        data[0].LightLevelBufferIndex = lightBufferIndex;
-        data[0].LightLevelAdd = lightLevelAdd;
+        fixed (LegacyVertex* startVertex = &data[0])
+        {
+            LegacyVertex* vertex = startVertex;
+            vertex->X = wv.TopLeft.X;
+            vertex->Y = wv.TopLeft.Y;
+            vertex->Z = wv.TopLeft.Z;
+            vertex->PrevX = wv.TopLeft.X;
+            vertex->PrevY = wv.TopLeft.Y;
+            vertex->PrevZ = wv.PrevTopZ;
+            vertex->U = wv.TopLeft.U;
+            vertex->V = wv.TopLeft.V;
+            vertex->PrevU = wv.TopLeft.PrevU;
+            vertex->PrevV = wv.TopLeft.PrevV;
+            vertex->Alpha = alpha;
+            vertex->AddAlpha = addAlpha;
+            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->LightLevelAdd = lightLevelAdd;
 
-        data[1].X = wv.BottomLeft.X;
-        data[1].Y = wv.BottomLeft.Y;
-        data[1].Z = wv.BottomLeft.Z;
-        data[1].PrevX = wv.BottomLeft.X;
-        data[1].PrevY = wv.BottomLeft.Y;
-        data[1].PrevZ = wv.PrevBottomZ;
-        data[1].U = wv.BottomLeft.U;
-        data[1].V = wv.BottomLeft.V;
-        data[1].PrevU = wv.BottomLeft.PrevU;
-        data[1].PrevV = wv.BottomLeft.PrevV;
-        data[1].Alpha = alpha;
-        data[1].AddAlpha = addAlpha;
-        data[1].LightLevelAdd = lightLevelAdd;
+            vertex++;
+            vertex->X = wv.TopLeft.X;
+            vertex->Y = wv.TopLeft.Y;
+            vertex->Z = wv.BottomRight.Z;
+            vertex->PrevX = wv.TopLeft.X;
+            vertex->PrevY = wv.TopLeft.Y;
+            vertex->PrevZ = wv.PrevBottomZ;
+            vertex->U = wv.TopLeft.U;
+            vertex->V = wv.BottomRight.V;
+            vertex->PrevU = wv.TopLeft.PrevU;
+            vertex->PrevV = wv.BottomRight.PrevV;
+            vertex->Alpha = alpha;
+            vertex->AddAlpha = addAlpha;
+            vertex->LightLevelAdd = lightLevelAdd;
 
-        data[2].X = wv.TopRight.X;
-        data[2].Y = wv.TopRight.Y;
-        data[2].Z = wv.TopRight.Z;
-        data[2].PrevX = wv.TopRight.X;
-        data[2].PrevY = wv.TopRight.Y;
-        data[2].PrevZ = wv.PrevTopZ;
-        data[2].U = wv.TopRight.U;
-        data[2].V = wv.TopRight.V;
-        data[2].PrevU = wv.TopRight.PrevU;
-        data[2].PrevV = wv.TopRight.PrevV;
-        data[2].Alpha = alpha;
-        data[2].AddAlpha = addAlpha;
-        data[2].LightLevelBufferIndex = lightBufferIndex;
-        data[2].LightLevelAdd = lightLevelAdd;
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.TopLeft.Z;
+            vertex->PrevX = wv.BottomRight.X;
+            vertex->PrevY = wv.BottomRight.Y;
+            vertex->PrevZ = wv.PrevTopZ;
+            vertex->U = wv.BottomRight.U;
+            vertex->V = wv.TopLeft.V;
+            vertex->PrevU = wv.BottomRight.PrevU;
+            vertex->PrevV = wv.TopLeft.PrevV;
+            vertex->Alpha = alpha;
+            vertex->AddAlpha = addAlpha;
+            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->LightLevelAdd = lightLevelAdd;
 
-        data[3].X = wv.TopRight.X;
-        data[3].Y = wv.TopRight.Y;
-        data[3].Z = wv.TopRight.Z;
-        data[3].PrevX = wv.TopRight.X;
-        data[3].PrevY = wv.TopRight.Y;
-        data[3].PrevZ = wv.PrevTopZ;
-        data[3].U = wv.TopRight.U;
-        data[3].V = wv.TopRight.V;
-        data[3].PrevU = wv.TopRight.PrevU;
-        data[3].PrevV = wv.TopRight.PrevV;
-        data[3].Alpha = alpha;
-        data[3].AddAlpha = addAlpha;
-        data[3].LightLevelBufferIndex = lightBufferIndex;
-        data[3].LightLevelAdd = lightLevelAdd;
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.TopLeft.Z;
+            vertex->PrevX = wv.BottomRight.X;
+            vertex->PrevY = wv.BottomRight.Y;
+            vertex->PrevZ = wv.PrevTopZ;
+            vertex->U = wv.BottomRight.U;
+            vertex->V = wv.TopLeft.V;
+            vertex->PrevU = wv.BottomRight.PrevU;
+            vertex->PrevV = wv.TopLeft.PrevV;
+            vertex->Alpha = alpha;
+            vertex->AddAlpha = addAlpha;
+            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->LightLevelAdd = lightLevelAdd;
 
-        data[4].X = wv.BottomLeft.X;
-        data[4].Y = wv.BottomLeft.Y;
-        data[4].Z = wv.BottomLeft.Z;
-        data[4].PrevX = wv.BottomLeft.X;
-        data[4].PrevY = wv.BottomLeft.Y;
-        data[4].PrevZ = wv.PrevBottomZ;
-        data[4].U = wv.BottomLeft.U;
-        data[4].V = wv.BottomLeft.V;
-        data[4].PrevU = wv.BottomLeft.PrevU;
-        data[4].PrevV = wv.BottomLeft.PrevV;
-        data[4].Alpha = alpha;
-        data[4].AddAlpha = addAlpha;
-        data[4].LightLevelBufferIndex = lightBufferIndex;
-        data[4].LightLevelAdd = lightLevelAdd;
+            vertex++;
+            vertex->X = wv.TopLeft.X;
+            vertex->Y = wv.TopLeft.Y;
+            vertex->Z = wv.BottomRight.Z;
+            vertex->PrevX = wv.TopLeft.X;
+            vertex->PrevY = wv.TopLeft.Y;
+            vertex->PrevZ = wv.PrevBottomZ;
+            vertex->U = wv.TopLeft.U;
+            vertex->V = wv.BottomRight.V;
+            vertex->PrevU = wv.TopLeft.PrevU;
+            vertex->PrevV = wv.BottomRight.PrevV;
+            vertex->Alpha = alpha;
+            vertex->AddAlpha = addAlpha;
+            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->LightLevelAdd = lightLevelAdd;
 
-        data[5].X = wv.BottomRight.X;
-        data[5].Y = wv.BottomRight.Y;
-        data[5].Z = wv.BottomRight.Z;
-        data[5].PrevX = wv.BottomRight.X;
-        data[5].PrevY = wv.BottomRight.Y;
-        data[5].PrevZ = wv.PrevBottomZ;
-        data[5].U = wv.BottomRight.U;
-        data[5].V = wv.BottomRight.V;
-        data[5].PrevU = wv.BottomRight.PrevU;
-        data[5].PrevV = wv.BottomRight.PrevV;
-        data[5].Alpha = alpha;
-        data[5].AddAlpha = addAlpha;
-        data[5].LightLevelBufferIndex = lightBufferIndex;
-        data[5].LightLevelAdd = lightLevelAdd;
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.BottomRight.Z;
+            vertex->PrevX = wv.BottomRight.X;
+            vertex->PrevY = wv.BottomRight.Y;
+            vertex->PrevZ = wv.PrevBottomZ;
+            vertex->U = wv.BottomRight.U;
+            vertex->V = wv.BottomRight.V;
+            vertex->PrevU = wv.BottomRight.PrevU;
+            vertex->PrevV = wv.BottomRight.PrevV;
+            vertex->Alpha = alpha;
+            vertex->AddAlpha = addAlpha;
+            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->LightLevelAdd = lightLevelAdd;
+        }
     }
 
-    private static LegacyVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
+    private static unsafe LegacyVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
         var data = WorldStatic.DataCache.GetWallVertices();
-        // Our triangle is added like:
-        //    0--2
-        //    | /  3
-        //    |/  /|
-        //    1  / |
-        //      4--5
-        data[0].X = wv.TopLeft.X;
-        data[0].Y = wv.TopLeft.Y;
-        data[0].Z = wv.TopLeft.Z;
-        data[0].PrevX = wv.TopLeft.X;
-        data[0].PrevY = wv.TopLeft.Y;
-        data[0].PrevZ = wv.PrevTopZ;
-        data[0].U = wv.TopLeft.U;
-        data[0].V = wv.TopLeft.V;
-        data[0].PrevU = wv.TopLeft.PrevU;
-        data[0].PrevV = wv.TopLeft.PrevV;
-        data[0].Alpha = alpha;
-        data[0].AddAlpha = addAlpha;
-        data[0].LightLevelBufferIndex = lightBufferIndex;
-        data[0].LightLevelAdd = lightLevelAdd;
+        fixed (LegacyVertex* startVertex = &data[0])
+        {
+            LegacyVertex* vertex = startVertex;
+            // Our triangle is added like:
+            //    0--2
+            //    | /  3
+            //    |/  /|
+            //    1  / |
+            //      4--5
+            vertex->X = wv.TopLeft.X;
+            vertex->Y = wv.TopLeft.Y;
+            vertex->Z = wv.TopLeft.Z;
+            vertex->PrevX = wv.TopLeft.X;
+            vertex->PrevY = wv.TopLeft.Y;
+            vertex->PrevZ = wv.PrevTopZ;
+            vertex->U = wv.TopLeft.U;
+            vertex->V = wv.TopLeft.V;
+            vertex->PrevU = wv.TopLeft.PrevU;
+            vertex->PrevV = wv.TopLeft.PrevV;
+            vertex->Alpha = alpha;
+            vertex->AddAlpha = addAlpha;
+            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->LightLevelAdd = lightLevelAdd;
 
-        data[1].X = wv.BottomLeft.X;
-        data[1].Y = wv.BottomLeft.Y;
-        data[1].Z = wv.BottomLeft.Z;
-        data[1].PrevX = wv.BottomLeft.X;
-        data[1].PrevY = wv.BottomLeft.Y;
-        data[1].PrevZ = wv.PrevBottomZ;
-        data[1].U = wv.BottomLeft.U;
-        data[1].V = wv.BottomLeft.V;
-        data[1].PrevU = wv.BottomLeft.PrevU;
-        data[1].PrevV = wv.BottomLeft.PrevV;
-        data[1].Alpha = alpha;
-        data[1].AddAlpha = addAlpha;
-        data[1].LightLevelBufferIndex = lightBufferIndex;
-        data[1].LightLevelAdd = lightLevelAdd;
+            vertex++;
+            vertex->X = wv.TopLeft.X;
+            vertex->Y = wv.TopLeft.Y;
+            vertex->Z = wv.BottomRight.Z;
+            vertex->PrevX = wv.TopLeft.X;
+            vertex->PrevY = wv.TopLeft.Y;
+            vertex->PrevZ = wv.PrevBottomZ;
+            vertex->U = wv.TopLeft.U;
+            vertex->V = wv.BottomRight.V;
+            vertex->PrevU = wv.TopLeft.PrevU;
+            vertex->PrevV = wv.BottomRight.PrevV;
+            vertex->Alpha = alpha;
+            vertex->AddAlpha = addAlpha;
+            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->LightLevelAdd = lightLevelAdd;
 
-        data[2].X = wv.TopRight.X;
-        data[2].Y = wv.TopRight.Y;
-        data[2].Z = wv.TopRight.Z;
-        data[2].PrevX = wv.TopRight.X;
-        data[2].PrevY = wv.TopRight.Y;
-        data[2].PrevZ = wv.PrevTopZ;
-        data[2].U = wv.TopRight.U;
-        data[2].V = wv.TopRight.V;
-        data[2].PrevU = wv.TopRight.PrevU;
-        data[2].PrevV = wv.TopRight.PrevV;
-        data[2].Alpha = alpha;
-        data[2].AddAlpha = addAlpha;
-        data[2].LightLevelBufferIndex = lightBufferIndex;
-        data[2].LightLevelAdd = lightLevelAdd;
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.TopLeft.Z;
+            vertex->PrevX = wv.BottomRight.X;
+            vertex->PrevY = wv.BottomRight.Y;
+            vertex->PrevZ = wv.PrevTopZ;
+            vertex->U = wv.BottomRight.U;
+            vertex->V = wv.TopLeft.V;
+            vertex->PrevU = wv.BottomRight.PrevU;
+            vertex->PrevV = wv.TopLeft.PrevV;
+            vertex->Alpha = alpha;
+            vertex->AddAlpha = addAlpha;
+            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->LightLevelAdd = lightLevelAdd;
 
-        data[3].X = wv.TopRight.X;
-        data[3].Y = wv.TopRight.Y;
-        data[3].Z = wv.TopRight.Z;
-        data[3].PrevX = wv.TopRight.X;
-        data[3].PrevY = wv.TopRight.Y;
-        data[3].PrevZ = wv.PrevTopZ;
-        data[3].U = wv.TopRight.U;
-        data[3].V = wv.TopRight.V;
-        data[3].PrevU = wv.TopRight.PrevU;
-        data[3].PrevV = wv.TopRight.PrevV;
-        data[3].Alpha = alpha;
-        data[3].AddAlpha = addAlpha;
-        data[3].LightLevelBufferIndex = lightBufferIndex;
-        data[3].LightLevelAdd = lightLevelAdd;
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.TopLeft.Z;
+            vertex->PrevX = wv.BottomRight.X;
+            vertex->PrevY = wv.BottomRight.Y;
+            vertex->PrevZ = wv.PrevTopZ;
+            vertex->U = wv.BottomRight.U;
+            vertex->V = wv.TopLeft.V;
+            vertex->PrevU = wv.BottomRight.PrevU;
+            vertex->PrevV = wv.TopLeft.PrevV;
+            vertex->Alpha = alpha;
+            vertex->AddAlpha = addAlpha;
+            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->LightLevelAdd = lightLevelAdd;
 
-        data[4].X = wv.BottomLeft.X;
-        data[4].Y = wv.BottomLeft.Y;
-        data[4].Z = wv.BottomLeft.Z;
-        data[4].PrevX = wv.BottomLeft.X;
-        data[4].PrevY = wv.BottomLeft.Y;
-        data[4].PrevZ = wv.PrevBottomZ;
-        data[4].U = wv.BottomLeft.U;
-        data[4].V = wv.BottomLeft.V;
-        data[4].PrevU = wv.BottomLeft.PrevU;
-        data[4].PrevV = wv.BottomLeft.PrevV;
-        data[4].Alpha = alpha;
-        data[4].AddAlpha = addAlpha;
-        data[4].LightLevelBufferIndex = lightBufferIndex;
-        data[4].LightLevelAdd = lightLevelAdd;
+            vertex++;
+            vertex->X = wv.TopLeft.X;
+            vertex->Y = wv.TopLeft.Y;
+            vertex->Z = wv.BottomRight.Z;
+            vertex->PrevX = wv.TopLeft.X;
+            vertex->PrevY = wv.TopLeft.Y;
+            vertex->PrevZ = wv.PrevBottomZ;
+            vertex->U = wv.TopLeft.U;
+            vertex->V = wv.BottomRight.V;
+            vertex->PrevU = wv.TopLeft.PrevU;
+            vertex->PrevV = wv.BottomRight.PrevV;
+            vertex->Alpha = alpha;
+            vertex->AddAlpha = addAlpha;
+            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->LightLevelAdd = lightLevelAdd;
 
-        data[5].X = wv.BottomRight.X;
-        data[5].Y = wv.BottomRight.Y;
-        data[5].Z = wv.BottomRight.Z;
-        data[5].PrevX = wv.BottomRight.X;
-        data[5].PrevY = wv.BottomRight.Y;
-        data[5].PrevZ = wv.PrevBottomZ;
-        data[5].U = wv.BottomRight.U;
-        data[5].V = wv.BottomRight.V;
-        data[5].PrevU = wv.BottomRight.PrevU;
-        data[5].PrevV = wv.BottomRight.PrevV;
-        data[5].Alpha = alpha;
-        data[5].AddAlpha = addAlpha;
-        data[5].LightLevelBufferIndex = lightBufferIndex;
-        data[5].LightLevelAdd = lightLevelAdd;
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.BottomRight.Z;
+            vertex->PrevX = wv.BottomRight.X;
+            vertex->PrevY = wv.BottomRight.Y;
+            vertex->PrevZ = wv.PrevBottomZ;
+            vertex->U = wv.BottomRight.U;
+            vertex->V = wv.BottomRight.V;
+            vertex->PrevU = wv.BottomRight.PrevU;
+            vertex->PrevV = wv.BottomRight.PrevV;
+            vertex->Alpha = alpha;
+            vertex->AddAlpha = addAlpha;
+            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->LightLevelAdd = lightLevelAdd;
+        }
 
         return data;
     }
