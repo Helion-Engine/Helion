@@ -21,8 +21,6 @@ namespace Helion.Geometry.Vectors
         public double X;
         public double Y;
 
-        public double U => X;
-        public double V => Y;
         public Vec2I Int => new((int)X, (int)Y);
         public Vec2F Float => new((float)X, (float)Y);
         public Vec2Fixed FixedPoint => new(Fixed.From(X), Fixed.From(Y));

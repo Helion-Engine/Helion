@@ -298,10 +298,10 @@ public static class WorldTriangulator
                     worldVertex->Y = (float)vertex.Y;
                     worldVertex->Z = (float)z;
                     worldVertex->PrevZ = (float)prevZ;
-                    worldVertex->U = (float)uv.U;
-                    worldVertex->V = (float)uv.V;
-                    worldVertex->PrevU = (float)prevUV.U;
-                    worldVertex->PrevV = (float)prevUV.V;
+                    worldVertex->U = (float)uv.X;
+                    worldVertex->V = (float)uv.Y;
+                    worldVertex->PrevU = (float)prevUV.X;
+                    worldVertex->PrevV = (float)prevUV.Y;
                     worldVertex++;
                 }
             }
@@ -339,10 +339,10 @@ public static class WorldTriangulator
                     worldVertex->Y = (float)vertex.Y;
                     worldVertex->Z = (float)z;
                     worldVertex->PrevZ = (float)prevZ;
-                    worldVertex->U = (float)uv.U;
-                    worldVertex->V = (float)uv.V;
-                    worldVertex->PrevU = (float)prevUV.U;
-                    worldVertex->PrevV = (float)prevUV.V;
+                    worldVertex->U = (float)uv.X;
+                    worldVertex->V = (float)uv.Y;
+                    worldVertex->PrevU = (float)prevUV.X;
+                    worldVertex->PrevV = (float)prevUV.Y;
                     worldVertex++;
                 }
             }
@@ -396,13 +396,13 @@ public static class WorldTriangulator
         {
             if (previous)
             {
-                offsetUV.X += (float)side.ScrollData.LastOffsetLower.U * textureUVInverse.U;
-                offsetUV.Y += (float)side.ScrollData.LastOffsetLower.V * textureUVInverse.V;
+                offsetUV.X += (float)side.ScrollData.LastOffsetLower.X * textureUVInverse.U;
+                offsetUV.Y += (float)side.ScrollData.LastOffsetLower.Y * textureUVInverse.V;
             }
             else
             {
-                offsetUV.X += (float)side.ScrollData.OffsetLower.U * textureUVInverse.U;
-                offsetUV.Y += (float)side.ScrollData.OffsetLower.V * textureUVInverse.V;
+                offsetUV.X += (float)side.ScrollData.OffsetLower.X * textureUVInverse.U;
+                offsetUV.Y += (float)side.ScrollData.OffsetLower.Y * textureUVInverse.V;
             }
         }
 
@@ -436,13 +436,13 @@ public static class WorldTriangulator
         {
             if (previous)
             {
-                offsetUV.X += (float)facingSide.ScrollData.LastOffsetLower.U * textureUVInverse.U;
-                offsetUV.Y += (float)facingSide.ScrollData.LastOffsetLower.V * textureUVInverse.V;
+                offsetUV.X += (float)facingSide.ScrollData.LastOffsetLower.X * textureUVInverse.U;
+                offsetUV.Y += (float)facingSide.ScrollData.LastOffsetLower.Y * textureUVInverse.V;
             }
             else
             {
-                offsetUV.X += (float)facingSide.ScrollData.OffsetLower.U * textureUVInverse.U;
-                offsetUV.Y += (float)facingSide.ScrollData.OffsetLower.V * textureUVInverse.V;
+                offsetUV.X += (float)facingSide.ScrollData.OffsetLower.X * textureUVInverse.U;
+                offsetUV.Y += (float)facingSide.ScrollData.OffsetLower.Y * textureUVInverse.V;
             }
         }
 
@@ -478,13 +478,13 @@ public static class WorldTriangulator
         {
             if (previous)
             {
-                offsetUV.X += (float)side.ScrollData.LastOffsetLower.U * textureUVInverse.U;
-                offsetUV.Y += (float)side.ScrollData.LastOffsetLower.V * textureUVInverse.V;
+                offsetUV.X += (float)side.ScrollData.LastOffsetLower.X * textureUVInverse.U;
+                offsetUV.Y += (float)side.ScrollData.LastOffsetLower.Y * textureUVInverse.V;
             }
             else
             {
-                offsetUV.X += (float)side.ScrollData.OffsetLower.U * textureUVInverse.U;
-                offsetUV.Y += (float)side.ScrollData.OffsetLower.V * textureUVInverse.V;
+                offsetUV.X += (float)side.ScrollData.OffsetLower.X * textureUVInverse.U;
+                offsetUV.Y += (float)side.ScrollData.OffsetLower.Y * textureUVInverse.V;
             }
         }
         float wallSpanU = (float)length * textureUVInverse.U;
@@ -512,13 +512,13 @@ public static class WorldTriangulator
         {
             if (previous)
             {
-                offsetUV.X += (float)side.ScrollData.LastOffsetLower.U * textureUVInverse.U;
-                offsetUV.Y += (float)side.ScrollData.LastOffsetLower.V * textureUVInverse.V;
+                offsetUV.X += (float)side.ScrollData.LastOffsetLower.X * textureUVInverse.U;
+                offsetUV.Y += (float)side.ScrollData.LastOffsetLower.Y * textureUVInverse.V;
             }
             else
             {
-                offsetUV.X += (float)side.ScrollData.OffsetLower.U * textureUVInverse.U;
-                offsetUV.Y += (float)side.ScrollData.OffsetLower.V * textureUVInverse.V;
+                offsetUV.X += (float)side.ScrollData.OffsetLower.X * textureUVInverse.U;
+                offsetUV.Y += (float)side.ScrollData.OffsetLower.Y * textureUVInverse.V;
             }
         }
         float wallSpanU = (float)length * textureUVInverse.U;
