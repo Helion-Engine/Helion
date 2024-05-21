@@ -1000,8 +1000,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             int index = startIndex + i;
             fixed (StaticVertex* vertex = &geometryData.Vbo.Data.Data[index])
             {
-                vertex->Alpha = 0;
-                vertex->AddAlpha = 0;
+                vertex->Options = 0;
                 vertex->X = 0;
                 vertex->Y = 0;
                 vertex->Z = 0;

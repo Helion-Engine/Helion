@@ -4,39 +4,20 @@ using System.Runtime.InteropServices;
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct StaticVertex
+public struct StaticVertex(float x, float y, float z, float u, float v, float alpha, float addAlpha, float lightLevelBufferIndex, float lightLevelAdd)
 {
     [VertexAttribute("pos", size: 3)]
-    public float X;
-    public float Y;
-    public float Z;
+    public float X = x;
+    public float Y = y;
+    public float Z = z;
 
     [VertexAttribute("uv", size: 2)]
-    public float U;
-    public float V;
+    public float U = u;
+    public float V = v;
 
     [VertexAttribute]
-    public float Alpha;
+    public float LightLevelAdd = lightLevelAdd;
 
     [VertexAttribute]
-    public float AddAlpha;
-
-    [VertexAttribute]
-    public float LightLevelBufferIndex;
-
-    [VertexAttribute]
-    public float LightLevelAdd;
-
-    public StaticVertex(float x, float y, float z, float u, float v, float alpha, float addAlpha, float lightLevelBufferIndex, float lightLevelAdd)
-    {
-        X = x;
-        Y = y;
-        Z = z;
-        U = u;
-        V = v;
-        Alpha = alpha;
-        AddAlpha = addAlpha;
-        LightLevelBufferIndex = lightLevelBufferIndex;
-        LightLevelAdd = lightLevelAdd;
-    }
+    public float Options = alpha + (addAlpha * 2) + (lightLevelBufferIndex * 4);
 }

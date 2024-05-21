@@ -46,11 +46,9 @@ public class StaticShader : RenderProgram
         #version 330
 
         layout(location = 0) in vec3 pos;
-        layout(location = 1) in vec2 uv;
-        layout(location = 2) in float alpha;        
-        layout(location = 3) in float addAlpha;
-        layout(location = 4) in float lightLevelBufferIndex;
-        layout(location = 5) in float lightLevelAdd;
+        layout(location = 1) in vec2 uv; 
+        layout(location = 2) in float lightLevelAdd;
+        layout(location = 3) in float options;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
@@ -64,8 +62,12 @@ public class StaticShader : RenderProgram
 
         void main() {
             uvFrag = uv;
-            alphaFrag = alpha;
-            addAlphaFrag = addAlpha;
+
+            float splitOptions = options;
+            float lightLevelBufferIndex = trunc(splitOptions / 4);
+            splitOptions -= (lightLevelBufferIndex * 4);
+            addAlphaFrag = trunc(splitOptions / 2);
+            alphaFrag = splitOptions - (addAlphaFrag * 2);            
             
             vec4 mixPos = vec4(pos, 1.0);
             ${VertexLightBuffer}
