@@ -4,6 +4,7 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Render.Common.World;
 using Helion.Render.OpenGL.Shared;
+using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.World.Cheats;
@@ -102,6 +103,9 @@ public class Player : Entity
     public double DeltaViewHeight;
     public double ViewHeight;
     public bool WeaponFlashState;
+    // Possible line with middle texture clipping player's view.
+    public bool ViewLineClip;
+    public bool ViewPlaneClip;
     public override Player? PlayerObj => this;
     public override bool IsPlayer => true;
     public override int ProjectileKickBack => Weapon == null ? WorldStatic.World.GameInfo.DefKickBack : Weapon.KickBack;
@@ -513,6 +517,7 @@ public class Player : Entity
         Vec3D currentPos = GetViewPosition();
         Vec3D prevPos = GetPrevViewPosition();
         Vec3D position = prevPos.Interpolate(currentPos, t);
+        CheckLineClip();
         position = CheckPlaneClip(currentPos, prevPos, position);
         double playerAngle = AngleRadians;
         double playerPitch = PitchRadians;
@@ -554,6 +559,25 @@ public class Player : Entity
         }
 
         return m_camera;
+    }
+
+    private void CheckLineClip()
+    {
+        ViewLineClip = false;
+        for (int i = 0; i < IntersectSectors.Length; i++)
+        {
+            var sector = IntersectSectors[i];
+            for (int j = 0; j < sector.Lines.Count; j++)
+            {
+                var line = sector.Lines[j];
+                if (line.Front.Middle.TextureHandle != Constants.NoTextureIndex ||
+                     (line.Back != null && line.Back.Middle.TextureHandle != Constants.NoTextureIndex))
+                {
+                    ViewLineClip = true;
+                    break;
+                }
+            }
+        }
     }
 
     public override void Tick()

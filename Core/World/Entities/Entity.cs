@@ -82,9 +82,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
-    // Possible line with middle texture clipping player's view.
-    public bool ViewLineClip;
-    public bool ViewPlaneClip;
     public WeakEntity Target = WeakEntity.Default;
     public WeakEntity Tracer = WeakEntity.Default;
     public WeakEntity OnEntity = WeakEntity.Default;
@@ -97,8 +94,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public int ReactionTime;
 
     public bool OnGround;
-    // If clipped with another entity. Value set with last SetEntityBoundsZ and my be stale.
-    public bool ClippedWithEntity;
     public bool MoveLinked;
     public bool Respawn;
     public float Alpha;
@@ -118,12 +113,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new();
     public bool IsDisposed;
 
-    // Temporary storage variable for handling PhysicsManager.SectorMoveZ
-    public double SaveZ;
-    public double PrevSaveZ;
-    public bool WasCrushing;
     public ClosetFlags ClosetFlags;
-    public Island? Island;
 
     public double Height;
     public double Radius;
@@ -136,7 +126,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual Player? PlayerObj => null;
     public virtual bool IsPlayer => false;
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
-    public double TopZ => Position.Z + Height;
 
     public IAudioSource?[] SoundChannels = new IAudioSource[MaxSoundChannels];
 
@@ -829,8 +818,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             Entity entity = tryMove.IntersectEntities2D[i];
             if (!CanBlockEntity(entity) || !entity.Flags.ActLikeBridge)
                 continue;
-            if (entity.TopZ > tryMove.DropOffZ)
-                tryMove.DropOffZ = entity.TopZ;
+            double topZ = entity.Position.Z + entity.Height;
+            if (topZ > tryMove.DropOffZ)
+                tryMove.DropOffZ = topZ;
         }
 
         if (tryMove.IntersectEntities2D.Length == 0 && tryMove.DropOffEntity != null)
@@ -927,16 +917,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         Velocity = Vec3D.Zero;
 
         OnGround = false;
-        ClippedWithEntity = false;
-        SaveZ = 0;
-        PrevSaveZ = 0;
         MoveCount = 0;
         FrozenTics = 0;
         MoveLinked = false;
         Respawn = false;
-        WasCrushing = false;
         ClosetFlags = ClosetFlags.None;
-        Island = null;
         BlockingLine = null;
         BlockingEntity = null;
         BlockingSectorPlane = null;

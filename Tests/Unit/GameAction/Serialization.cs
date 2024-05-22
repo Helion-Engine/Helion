@@ -330,7 +330,6 @@ public class Serialization : IDisposable
             entity.Threshold.Should().Be(newEntity.Threshold);
             entity.ReactionTime.Should().Be(newEntity.ReactionTime);
             entity.OnGround.Should().Be(newEntity.OnGround);
-            entity.ClippedWithEntity.Should().Be(newEntity.ClippedWithEntity);
             entity.MoveLinked.Should().Be(newEntity.MoveLinked);
             entity.Respawn.Should().Be(newEntity.Respawn);
         }

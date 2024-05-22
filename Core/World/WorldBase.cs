@@ -2079,7 +2079,7 @@ public abstract partial class WorldBase : IWorld
         bool approxDistance2D)
     {
         double distance;
-        if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.TopZ))
+        if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.Position.Z + entity.Height))
         {
             Vec3D sourcePos = source.Position;
             Vec3D targetPos = entity.Position;
@@ -2315,7 +2315,7 @@ public abstract partial class WorldBase : IWorld
             }
             else if (bi.Entity != null && startEntity != bi.Entity)
             {
-                double thingTopPitch = start.Pitch(bi.Entity.TopZ, bi.SegTime * segLength);
+                double thingTopPitch = start.Pitch(bi.Entity.Position.Z + bi.Entity.Height, bi.SegTime * segLength);
                 if (thingTopPitch < bottomPitch)
                     continue;
 
