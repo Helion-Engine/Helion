@@ -40,7 +40,7 @@ public class DefaultSoundSource : ISoundSource
 
     public Vec3D? GetSoundPosition(Entity listenerEntity) => m_position;
 
-    public Vec3D? GetSoundVelocity() => Vec3D.Zero;
+    public Vec3D? GetSoundVelocity() => default;
 
     public void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)
     {
@@ -55,4 +55,6 @@ public class DefaultSoundSource : ISoundSource
     }
 
     public bool CanMakeSound() => true;
+
+    public float GetSoundRadius() => 32;
 }

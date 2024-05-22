@@ -14,4 +14,5 @@ public interface ISoundSource
     Vec3D? GetSoundPosition(Entity listenerEntity);
     Vec3D? GetSoundVelocity();
     bool CanMakeSound();
+    float GetSoundRadius();
 }

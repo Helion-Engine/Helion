@@ -45,12 +45,7 @@ public class OpenALAudioSource : IAudioSource
         float rolloffFactor = DefaultRolloff;
         float referenceDistance = DefaultReference;
         float maxDistance = DefaultMaxDistance;
-        float radius = DefaultRadius;
-
-        if (audioData.SoundSource is Entity entity)
-            radius = (float)entity.Radius + 16.0f;
-        else if (audioData.SoundSource is Sector)
-            radius = 128.0f;
+        float radius = audioData.SoundSource.GetSoundRadius();
 
         switch (audioData.Attenuation)
         {

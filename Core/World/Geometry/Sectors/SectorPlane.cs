@@ -198,7 +198,9 @@ public sealed class SectorPlane : ISoundSource
     public Vec3D? GetSoundPosition(Entity listenerEntity) =>
         GetSoundSource(listenerEntity, Sector.LastActivePlaneMove);
 
-    public Vec3D? GetSoundVelocity() => Vec3D.Zero;
+    public Vec3D? GetSoundVelocity() => default;
 
     public bool CanMakeSound() => true;
+
+    public float GetSoundRadius() => 32;
 }

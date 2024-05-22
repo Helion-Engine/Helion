@@ -1015,6 +1015,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public virtual bool CanMakeSound() => true;
 
+    public float GetSoundRadius() => (float)Radius + 16;
+
     private bool WillRetaliateFrom(Entity damageSource)
     {
         if (damageSource.IsPlayer)
