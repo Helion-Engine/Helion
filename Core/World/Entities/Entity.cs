@@ -13,7 +13,6 @@ using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
-using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
@@ -22,9 +21,7 @@ using System;
 using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
 using Helion.World.Blockmap;
-using Helion.Resources.Archives.Entries;
 using Helion.World.Geometry.Subsectors;
-using Helion.Resources.Definitions;
 
 namespace Helion.World.Entities;
 
@@ -126,8 +123,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public virtual Player? PlayerObj => null;
     public virtual bool IsPlayer => false;
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
-
-    public IAudioSource?[] SoundChannels = new IAudioSource[MaxSoundChannels];
 
     public Entity()
     {
@@ -899,9 +894,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         IntersectSectors.Clear();
         IntersectMovementSectors.Clear();
 
-        for (int i = 0; i < SoundChannels.Length; i++)
-            SoundChannels[i] = null!;
-
         Target = WeakEntity.Default;
         Tracer = WeakEntity.Default;
         OnEntity = WeakEntity.Default;
@@ -990,33 +982,25 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         return $"Id:{Id} [{Definition}] [{Position}]";
     }
 
-    public void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)
-    {
-        SoundChannels[(int)channel] = audioSource;
-    }
-
     public double GetDistanceFrom(Entity listenerEntity)
     {
         return Position.Distance(listenerEntity.Position);
     }
 
-    public bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound)
+    public virtual void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)
     {
-        IAudioSource? audioSource = SoundChannels[(int)channel];
-        if (audioSource != null)
-        {
-            clearedSound = audioSource;
-            SoundChannels[(int)channel] = null;
-            return true;
-        }
 
+    }
+
+    public virtual bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound)
+    {
         clearedSound = null;
         return false;
     }
 
-    public void ClearSound(IAudioSource audioSource, SoundChannel channel)
+    public virtual void ClearSound(IAudioSource audioSource, SoundChannel channel)
     {
-        SoundChannels[(int)channel] = null;
+        
     }
 
     public Vec3D? GetSoundPosition(Entity listenerEntity)

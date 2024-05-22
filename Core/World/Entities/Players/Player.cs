@@ -6,6 +6,7 @@ using Helion.Render.Common.World;
 using Helion.Render.OpenGL.Shared;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
@@ -79,6 +80,8 @@ public class Player : Entity
     private WeakEntity m_killer = WeakEntity.Default;
 
     private readonly OldCamera m_camera = new (Vec3F.Zero, Vec3F.Zero, 0, 0);
+
+    public IAudioSource?[] SoundChannels = new IAudioSource[MaxSoundChannels];
 
     public Inventory Inventory;
     public Weapon? Weapon;
@@ -638,6 +641,30 @@ public class Player : Entity
             DeathTick();
         
         m_hasNewWeapon = false;
+    }
+
+    public override void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)
+    {
+        SoundChannels[(int)channel] = audioSource;
+    }
+
+    public override bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound)
+    {
+        IAudioSource? audioSource = SoundChannels[(int)channel];
+        if (audioSource != null)
+        {
+            clearedSound = audioSource;
+            SoundChannels[(int)channel] = null;
+            return true;
+        }
+
+        clearedSound = null;
+        return false;
+    }
+
+    public override void ClearSound(IAudioSource audioSource, SoundChannel channel)
+    {
+        SoundChannels[(int)channel] = null;
     }
 
     private Vec3D CheckPlaneClip(Vec3D pos, Vec3D prevPos, Vec3D interpolatedPos)

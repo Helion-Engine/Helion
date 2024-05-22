@@ -251,7 +251,6 @@ namespace Helion.Tests.Unit.GameAction
             sounds.Count.Should().Be(1);
             AssertSound(sounds, "dsbgsit1");
             AssertSoundSource(sounds.First, entity);
-            entity.SoundChannels[(int)SoundChannel.Default].Should().Be(audioSource);
 
             audioSource = World.SoundManager.CreateSoundOn(entity, "imp/active", new SoundParams(entity));
             audioSource.Should().NotBeNull();
@@ -259,7 +258,6 @@ namespace Helion.Tests.Unit.GameAction
             sounds.Count.Should().Be(1);
             AssertSound(sounds, "dsbgact");
             AssertSoundSource(sounds.First, entity);
-            entity.SoundChannels[(int)SoundChannel.Default].Should().Be(audioSource);
         }
 
         [Fact(DisplayName = "Sound not created because it's too far away")]
