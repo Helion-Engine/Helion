@@ -893,7 +893,7 @@ public sealed class PhysicsManager
         if (tryMove != null && tryMove.Subsector != null && tryMove.Success)
             centerSubsector = tryMove.Subsector;
         else
-            centerSubsector = m_bspTree.ToSubsector(entity.Position);
+            centerSubsector = m_bspTree.Subsectors[m_bspTree.ToSubsectorIndex(entity.Position.X, entity.Position.Y)];
 
         bool linkToMoveSectors = true;
         Sector centerSector = centerSubsector.Sector;
@@ -963,7 +963,7 @@ public sealed class PhysicsManager
 
     public TryMoveData TryMoveXY(Entity entity, Vec2D position)
     {
-        TryMoveData.SetPosition(position);
+        TryMoveData.SetPosition(position.X, position.Y);
         if (entity.Flags.NoClip)
         {
             HandleNoClip(entity, position);
@@ -971,8 +971,8 @@ public sealed class PhysicsManager
             return TryMoveData;
         }
 
-        Vec2D velocity = position - entity.Position.XY;
-        if (velocity == Vec2D.Zero)
+        Vec2D velocity = new(position.X - entity.Position.X, position.Y - entity.Position.Y);
+        if (velocity.X == 0 && velocity.Y == 0)
         {
             TryMoveData.Success = true;
             return TryMoveData;
@@ -989,7 +989,7 @@ public sealed class PhysicsManager
         // entity speed.
         int slidesLeft = MaxSlides;
         int numMoves = CalculateSteps(velocity, entity.Radius);
-        Vec2D stepDelta = velocity / numMoves;
+        Vec2D stepDelta = new(velocity.X / numMoves, velocity.Y / numMoves);
         bool success = true;
         Vec3D saveVelocity = entity.Velocity;
         bool stacked = !WorldStatic.InfinitelyTallThings && (entity.OnEntity.Entity != null || entity.OverEntity.Entity != null);
@@ -998,10 +998,10 @@ public sealed class PhysicsManager
 
         for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
         {
-            if (stepDelta == Vec2D.Zero || m_world.WorldState == WorldState.Exit)
+            if ((stepDelta.X == 0 && stepDelta.Y == 0) || m_world.WorldState == WorldState.Exit)
                 break;
 
-            Vec2D nextPosition = entity.Position.XY + stepDelta;
+            Vec2D nextPosition = new(entity.Position.X + stepDelta.X, entity.Position.Y + stepDelta.Y);
             if (IsPositionValid(entity, nextPosition, TryMoveData))
             {
                 entity.MoveLinked = true;
@@ -1109,37 +1109,33 @@ public sealed class PhysicsManager
     private void HandleNoClip(Entity entity, Vec2D position)
     {
         entity.UnlinkFromWorld();
-        entity.SetXY(position);
+        entity.Position.X = position.X;
+        entity.Position.Y = position.Y;
         LinkToWorld(entity);
     }
 
-    private static readonly int PositionValidFlags = EntityFlags.SpecialFlag | EntityFlags.SolidFlag | EntityFlags.ShootableFlag;
-
-    private int m_tryMoveOverlapEntitiesId = -1;
-    private readonly DynamicArray<Entity> m_tryMoveOverlapEntities = new(128);
+    private const int PositionValidFlags = EntityFlags.SpecialFlag | EntityFlags.SolidFlag | EntityFlags.ShootableFlag;
 
     public unsafe bool IsPositionValid(Entity entity, Vec2D position, TryMoveData tryMove)
     {
         if (!entity.Flags.Float && !entity.IsPlayer && entity.OnEntity.Entity != null && !entity.OnEntity.Entity.Flags.ActLikeBridge)
             return false;
 
-        m_tryMoveOverlapEntitiesId = entity.Id;
         tryMove.Success = true;
         tryMove.LowestCeilingZ = entity.LowestCeilingZ;
         tryMove.Subsector = null;
         if (entity.HighestFloorObject is Entity highFloorEntity)
         {
             tryMove.HighestFloorZ = highFloorEntity.Position.Z + highFloorEntity.Height;
-            tryMove.DropOffZ = entity.Sector.ToFloorZ(position);
+            tryMove.DropOffZ = entity.Sector.Floor.Z;
         }
         else
         {
-            tryMove.Subsector = m_bspTree.ToSubsector(position.To3D(0));
-            tryMove.HighestFloorZ = tryMove.DropOffZ = tryMove.Subsector.Sector.ToFloorZ(position);
-            tryMove.LowestCeilingZ = tryMove.Subsector.Sector.ToCeilingZ(position);
+            tryMove.Subsector = m_bspTree.ToSubsector(position.X, position.Y);
+            tryMove.HighestFloorZ = tryMove.DropOffZ = tryMove.Subsector.Sector.Floor.Z;
+            tryMove.LowestCeilingZ = tryMove.Subsector.Sector.Ceiling.Z;
         }
 
-        Box2D nextBox = new(position, entity.Radius);
         entity.BlockingLine = null;
         entity.BlockingEntity = null;
         int checkCounter = ++WorldStatic.CheckCounter;
@@ -1147,45 +1143,40 @@ public sealed class PhysicsManager
         bool checkEntities = entity.Flags.Solid || entity.Flags.Missile;
         bool canPickup = entity.Flags.Pickup;
         Entity? nextEntity;
+                
+        var boxMinX = position.X - entity.Radius;
+        var boxMaxX = position.X + entity.Radius;
+        var boxMinY = position.Y - entity.Radius;
+        var boxMaxY = position.Y + entity.Radius;
+        int blockStartX = Math.Max(0, (int)((boxMinX - m_blockmapGrid.Bounds.Min.X) / m_blockmapGrid.Dimension));
+        int blockStartY = Math.Max(0, (int)((boxMinY - m_blockmapGrid.Bounds.Min.Y) / m_blockmapGrid.Dimension));
+        int blockEndX = Math.Min((int)((boxMaxX - m_blockmapGrid.Bounds.Min.X) / m_blockmapGrid.Dimension), m_blockmapGrid.Width - 1);
+        int blockEndY = Math.Min((int)((boxMaxY - m_blockmapGrid.Bounds.Min.Y) / m_blockmapGrid.Dimension), m_blockmapGrid.Height - 1);
 
-        var it = m_blockmapGrid.CreateBoxIteration(nextBox);
-        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
+        for (int by = blockStartY; by <= blockEndY; by++)
         {
-            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
+            for (int bx = blockStartX; bx <= blockEndX; bx++)
             {
-                Block block = m_blockmapBlocks[by * it.Width + bx];
+                Block block = m_blockmapBlocks[by * m_blockmapGrid.Width + bx];
                 if (checkEntities)
                 {
-                    var entityNode = block.Entities.Head;
-                    while (entityNode != null)
+                    for (var entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
                     {
                         nextEntity = entityNode.Value;
                         if (nextEntity.BlockmapCount == checkCounter)
-                        {
-                            entityNode = entityNode.Next;
                             continue;
-                        }
+
                         nextEntity.BlockmapCount = checkCounter;
 
                         if ((nextEntity.Flags.Flags1 & PositionValidFlags) == 0)
-                        {
-                            entityNode = entityNode.Next;
                             continue;
-                        }
 
-                        double radius = nextEntity.Radius;
-                        if (nextEntity.Position.X - radius >= nextBox.Max.X || nextEntity.Position.X + radius <= nextBox.Min.X ||
-                            nextEntity.Position.Y - radius >= nextBox.Max.Y || nextEntity.Position.Y + radius <= nextBox.Min.Y)
-                        {
-                            entityNode = entityNode.Next;
+                        var blockDist = nextEntity.Radius + entity.Radius;
+                        if (Math.Abs(nextEntity.Position.X - position.X) >= blockDist || Math.Abs(nextEntity.Position.Y - position.Y) >= blockDist)
                             continue;
-                        }
 
-                        if (entity.Id == nextEntity.Id)
-                        {
-                            entityNode = entityNode.Next;
+                        if (entity == nextEntity)
                             continue;
-                        }
 
                         tryMove.IntersectEntities2D.Add(nextEntity);
                         bool overlapsZ = isMissile ?
@@ -1196,7 +1187,6 @@ public sealed class PhysicsManager
                         if (overlapsZ && canPickup && nextEntity.Flags.Special)
                         {
                             // Set the next node - this pickup can be removed from the list
-                            entityNode = entityNode.Next;
                             m_world.PerformItemPickup(entity, nextEntity);
                             continue;
                         }
@@ -1208,9 +1198,6 @@ public sealed class PhysicsManager
                             tryMove.BlockingEntity = nextEntity;
                             goto doneIsPositionValid;
                         }
-                        
-
-                        entityNode = entityNode.Next;
                     }
                 }
 
@@ -1222,7 +1209,7 @@ public sealed class PhysicsManager
                             continue;
 
                         m_checkedBlockLines[blockLine->LineId] = checkCounter;
-                        if (blockLine->Segment.Intersects(nextBox))
+                        if (blockLine->Segment.Intersects(boxMinX, boxMinY, boxMaxX, boxMaxY))
                         {
                             LineBlock blockType = LineBlocksEntity(entity, position, blockLine, tryMove);
 
@@ -1280,9 +1267,6 @@ doneIsPositionValid:
 
     private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ)
     {
-        if (entity.Id == other.Id)
-            return false;
-
         if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile && !other.Flags.Missile)
             return true;
 
@@ -1314,7 +1298,8 @@ doneIsPositionValid:
         entity.UnlinkFromWorld();
 
         Vec2D previousPosition = entity.Position.XY;
-        entity.SetXY(nextPosition);
+        entity.Position.X = nextPosition.X;
+        entity.Position.Y = nextPosition.Y;
 
         LinkToWorld(entity, tryMove);
 
@@ -1594,7 +1579,7 @@ doneIsPositionValid:
                 entity.Velocity.Y = MathHelper.Clamp(entity.Velocity.Y, -MaxMoveXY, MaxMoveXY);
         }
 
-        TryMoveXY(entity, (entity.Position + entity.Velocity).XY);
+        TryMoveXY(entity, new(entity.Position.X + entity.Velocity.X, entity.Position.Y + entity.Velocity.Y));
         if (entity.ShouldApplyFriction())
             ApplyFriction(entity);
         StopXYMovementIfSmall(entity);

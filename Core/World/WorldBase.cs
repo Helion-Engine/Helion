@@ -1411,7 +1411,7 @@ public abstract partial class WorldBase : IWorld
                 continue;
             }
 
-            if (bi.Entity != null && shooter.Id != bi.Entity.Id && bi.Entity.BoxIntersects(start, end, ref intersect))
+            if (bi.Entity != null && shooter != bi.Entity && bi.Entity.BoxIntersects(start, end, ref intersect))
             {
                 returnValue = bi;
                 if (damage != Constants.HitscanTestDamage)
@@ -1669,10 +1669,10 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
         {
             Entity intersectEntity = tryMove.IntersectEntities2D[i];
-            if (!entity.OverlapsZ(intersectEntity) || entity.Id == intersectEntity.Id)
+            if (!entity.OverlapsZ(intersectEntity) || entity == intersectEntity)
                 continue;
 
-            if (entity.Flags.Ripper && entity.Owner.Entity?.Id != intersectEntity.Id)
+            if (entity.Flags.Ripper && entity.Owner.Entity != intersectEntity)
                 RipDamage(entity, intersectEntity);
             if (intersectEntity.Flags.Touchy && ShouldDieFromTouch(entity, intersectEntity))
                 intersectEntity.Kill(null);
@@ -1918,7 +1918,7 @@ public abstract partial class WorldBase : IWorld
         // If the player killed themself then don't display the obituary message
         // There is probably a special string for this in multiplayer for later
         Entity killer = deathSource.Owner.Entity ?? deathSource;
-        if (player.Id == killer.Id)
+        if (player == killer)
             return;
 
         // Monster obituaries can come from the projectile, while the player obituaries always come from the owner player
@@ -1943,9 +1943,9 @@ public abstract partial class WorldBase : IWorld
         message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message);
         if (message.Length > 0)
         {
-            if (player == null || player.Id == GetCameraPlayer().Id)
+            if (player == null || player == GetCameraPlayer())
                 HelionLog.Info(message);
-            if (player != null && player.Id == GetCameraPlayer().Id)
+            if (player != null && player == GetCameraPlayer())
                 PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
         }
     }

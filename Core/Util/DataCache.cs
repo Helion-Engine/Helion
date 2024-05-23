@@ -151,7 +151,7 @@ public class DataCache
     public void FreeLinkableNodeEntity(LinkableNode<Entity> node)
     {
         node.Previous = null!;
-        node.Next = null;
+        //node.Next = null;
         node.Value = null!;
         m_entityNodes.Add(node);
     }

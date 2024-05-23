@@ -122,27 +122,16 @@ public class CompactBspTree
         return new CompactBspTree(root, builder);
     }
 
-    /// <summary>
-    /// Gets the subsector that maps onto the point provided.
-    /// </summary>
-    /// <param name="point">The point to get the subsector for.</param>
-    /// <returns>The subsector for the provided point.</returns>
-    public Subsector ToSubsector(in Vec3D point)
-    {
-        int index = ToSubsectorIndex(point);
-        return Subsectors[index];
-    }
-
-    public unsafe int ToSubsectorIndex(in Vec3D point)
+    public unsafe int ToSubsectorIndex(double x, double y)
     {
         uint nodeIndex = (uint)Nodes.Length - 1;
-
         fixed (BspNodeCompact* startNode = &Nodes[0])
         {
             while (true)
             {
                 BspNodeCompact* node = startNode + nodeIndex;
-                int next = Convert.ToInt32(node->Splitter.PerpDot(point) < 0);
+                double dot = (node->SplitDelta.X * (y - node->SplitStart.Y)) - (node->SplitDelta.Y * (x - node->SplitStart.X));
+                int next = Convert.ToInt32(dot < 0);
                 nodeIndex = node->Children[next];
 
                 if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
@@ -151,23 +140,17 @@ public class CompactBspTree
         }
     }
 
-    public unsafe Sector ToSector(in Vec3D point)
+    public unsafe Subsector ToSubsector(double x, double y)
     {
-        uint nodeIndex = (uint)Nodes.Length - 1;
-
-        while (true)
-        {
-            fixed (BspNodeCompact* node = &Nodes[nodeIndex])
-            {
-                int next = Convert.ToInt32(node->Splitter.PerpDot(point) < 0);
-                nodeIndex = node->Children[next];
-
-                if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
-                    return Subsectors[(int)(nodeIndex & BspNodeCompact.SubsectorMask)].Sector;
-            }
-        }
+        int index = ToSubsectorIndex(x, y);
+        return Subsectors[index];
     }
 
+    public unsafe Sector ToSector(in Vec3D point)
+    {
+        int index = ToSubsectorIndex(point.X, point.Y);
+        return Subsectors[index].Sector;
+    }
 
     private static Side? GetSideFromEdge(SubsectorEdge edge, GeometryBuilder builder)
     {
@@ -274,7 +257,7 @@ public class CompactBspTree
         BspCreateResultCompact right = RecursivelyCreateComponents(node.Right, builder);
         Box2D bbox = MakeBoundingBoxFrom(left, right);
 
-        BspNodeCompact compactNode = new BspNodeCompact(left.IndexWithBit, right.IndexWithBit, node.Splitter.Struct, bbox);
+        BspNodeCompact compactNode = new BspNodeCompact(left.IndexWithBit, right.IndexWithBit, node.Splitter.Start.Struct, node.Splitter.End.Struct, bbox);
         Nodes[m_nextNodeIndex] = compactNode;
 
         return BspCreateResultCompact.Node(m_nextNodeIndex++);
@@ -291,14 +274,13 @@ public class CompactBspTree
     {
         Subsector subsector = Subsectors[0];
         SubsectorSegment edge = subsector.ClockwiseEdges[0];
-        Seg2D splitter = new Seg2D(edge.Start, edge.End);
         Box2D box = subsector.BoundingBox;
 
         // Because we want index 0 with the subsector bit set, this is just
         // the subsector bit.
         const uint subsectorIndex = BspNodeCompact.IsSubsectorBit;
 
-        BspNodeCompact root = new BspNodeCompact(subsectorIndex, subsectorIndex, splitter, box);
+        BspNodeCompact root = new BspNodeCompact(subsectorIndex, subsectorIndex, edge.Start, edge.End, box);
         Nodes = new[] { root };
     }
 }

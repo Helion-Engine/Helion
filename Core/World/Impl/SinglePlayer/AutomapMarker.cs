@@ -145,7 +145,8 @@ public class AutomapMarker
                 if (Occluded(node->BoundingBox, pos2D, viewDirection))
                     return;
 
-                int front = Convert.ToInt32(node->Splitter.PerpDot(pos2D) < 0);
+                double dot = (node->SplitDelta.X * (position.X - node->SplitStart.Y)) - (node->SplitDelta.Y * (position.Y - node->SplitStart.X));
+                int front = Convert.ToInt32(dot < 0);
                 int back = front ^ 1;
 
                 MarkBspLineClips(node->Children[front], position, viewDirection, world, token);

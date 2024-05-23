@@ -81,7 +81,7 @@ public class Player : Entity
 
     private readonly OldCamera m_camera = new (Vec3F.Zero, Vec3F.Zero, 0, 0);
 
-    public IAudioSource?[] SoundChannels = new IAudioSource[MaxSoundChannels];
+    public IAudioSource?[] SoundChannels = new IAudioSource[Constants.MaxSoundChannels];
 
     public Inventory Inventory;
     public Weapon? Weapon;

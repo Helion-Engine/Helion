@@ -24,24 +24,24 @@ public enum GridIterationStatus
 /// </typeparam>
 public class UniformGrid<T> where T : new()
 {
-    public readonly int Dimension;
+    public int Dimension;
 
     /// <summary>
     /// How many blocks wide the grid is.
     /// </summary>
-    public readonly int Width;
+    public int Width;
 
     /// <summary>
     /// How many blocks tall the grid is.
     /// </summary>
-    public readonly int Height;
+    public int Height;
 
     /// <summary>
     /// The bounds of the grid.
     /// </summary>
-    public readonly Box2D Bounds;
+    public Box2D Bounds;
 
-    public readonly T[] Blocks;
+    public T[] Blocks;
 
     /// <summary>
     /// The origin of the grid.

@@ -373,6 +373,28 @@ namespace Helion.Geometry.Segments
                 return End;
             return FromTime(t);
         }
+        public bool Intersects(double boxMinX, double boxMinY, double boxMaxX, double boxMaxY)
+        {
+            if (Box.Min.X >= boxMaxX || Box.Max.X <= boxMinX || Box.Min.Y >= boxMaxY || Box.Max.Y <= boxMinY)
+                return false;
+
+            double startX = Start.X;
+            double startY = Start.Y;
+            double endX = End.X;
+            double endY = End.Y;
+
+            Vec2D delta = Delta;
+            if ((startX < endX) ^ (startY < endY))
+            {
+                return ((delta.X * (boxMinY - startY)) - (delta.Y * (boxMinX - startX))) < 0 !=
+                    ((delta.X * (boxMaxY - startY)) - (delta.Y * (boxMaxX - startX))) < 0;
+            }
+            else
+            {
+                return ((delta.X * (boxMaxY - startY)) - (delta.Y * (boxMinX - startX))) < 0 !=
+                    ((delta.X * (boxMinY - startY)) - (delta.Y * (boxMaxX - startX))) < 0;
+            }
+        }
         public bool Intersects(in Box2D box)
         {
             if (Box.Min.X >= box.Max.X || Box.Max.X <= box.Min.X || Box.Min.Y >= box.Max.Y || Box.Max.Y <= box.Min.Y)

@@ -1,5 +1,6 @@
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
 using System.Runtime.InteropServices;
 
 namespace Helion.World.Bsp;
@@ -25,7 +26,9 @@ public unsafe struct BspNodeCompact
     /// The splitter that made this line, which is also used for finding
     /// out which side of the line a point is on.
     /// </summary>
-    public Seg2D Splitter;
+    public Vec2D SplitStart;
+    public Vec2D SplitEnd;
+    public Vec2D SplitDelta;
 
     /// <summary>
     /// The bounding box of this node.
@@ -43,9 +46,11 @@ public unsafe struct BspNodeCompact
     /// the children.</param>
     /// <param name="boundingBox">The bounding box for this node, which is
     /// the minimal size needed to contain every child under this.</param>
-    public BspNodeCompact(uint leftChild, uint rightChild, Seg2D splitter, Box2D boundingBox)
+    public BspNodeCompact(uint leftChild, uint rightChild, Vec2D start, Vec2D end, Box2D boundingBox)
     {
-        Splitter = splitter;
+        SplitStart = start;
+        SplitEnd = end;
+        SplitDelta = end - start;
         BoundingBox = boundingBox;
         Children[0] = leftChild;
         Children[1] = rightChild;

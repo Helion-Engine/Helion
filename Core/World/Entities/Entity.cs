@@ -35,7 +35,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     private const int KillDamage = ushort.MaxValue - 1;
     private const int DefaultClosetChaseSpeed = 64;
     public const double FloatSpeed = 4.0;
-    public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannel)).Length;
 
     public Entity? Next;
     public Entity? Previous;
@@ -44,29 +43,36 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public Entity? RenderBlockPrevious;
     public Block? RenderBlock;
 
-    public int Id;
     public int BlockmapCount;
-    public int ThingId;
     public EntityFlags Flags;
-    public EntityDefinition Definition;
-    public EntityProperties Properties;
+    public Subsector Subsector;
     public FrameState FrameState;
     public double AngleRadians;
-    public Vec3D PrevPosition;
     public Vec3D Position;
-    public Vec3D SpawnPoint;
+    public Vec3D Velocity;
+
+    public int Health;
+    public int MoveCount;
+
+    public WeakEntity Target = WeakEntity.Default;
+    public WeakEntity Tracer = WeakEntity.Default;
+    public WeakEntity OnEntity = WeakEntity.Default;
+    public WeakEntity OverEntity = WeakEntity.Default;
+    public WeakEntity Owner = WeakEntity.Default;
+
+    public EntityDefinition Definition;
+    public EntityProperties Properties;
+
+    public Vec3D PrevPosition;
+
     public Vec3D CenterPoint => new(Position.X, Position.Y, Position.Z + (Height / 2));
     public Vec3D ProjectileAttackPos => new(Position.X, Position.Y, Position.Z + 32);
     public Vec3D HitscanAttackPos => new(Position.X, Position.Y, Position.Z + (Height / 2) + 8);
-    public Vec3D Velocity = Vec3D.Zero;
-    public int Health;
     public int Armor;
     public EntityProperties? ArmorProperties => ArmorDefinition?.Properties;
     public EntityDefinition? ArmorDefinition;
     public int FrozenTics;
-    public int MoveCount;
     public Sector Sector;
-    public Subsector Subsector;
     public Sector HighestFloorSector;
     public Sector LowestCeilingSector;
     // Can be Sector or Entity
@@ -76,14 +82,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double HighestFloorZ;
     public DynamicArray<Sector> IntersectSectors = new();
     public DynamicArray<Sector> IntersectMovementSectors = new();
+    public Vec3D SpawnPoint;
+    public int Id;
+    public int ThingId;
     public Line? BlockingLine;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
-    public WeakEntity Target = WeakEntity.Default;
-    public WeakEntity Tracer = WeakEntity.Default;
-    public WeakEntity OnEntity = WeakEntity.Default;
-    public WeakEntity OverEntity  = WeakEntity.Default;
-    public WeakEntity Owner = WeakEntity.Default;
     public Player? PickupPlayer;
 
     // Values that are modified from EntityProperties
@@ -304,16 +308,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         Definition.BloodDefinition = WorldStatic.EntityManager.DefinitionComposer.GetByName("BLOOD");
         return Definition.BloodDefinition;
-    }
-
-    /// <summary>
-    /// Sets the entity to the new X/Y coordinates.
-    /// </summary>
-    /// <param name="position">The new position.</param>
-    public void SetXY(Vec2D position)
-    {
-        Position.X = position.X;
-        Position.Y = position.Y;
     }
 
     /// <summary>
@@ -722,7 +716,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public bool CanBlockEntity(Entity other)
     {
-        if (Id == other.Id || Owner.Entity == other || other.Flags.NoClip)
+        if (this == other || Owner.Entity == other || other.Flags.NoClip)
             return false;
 
         if (Flags.Ripper)

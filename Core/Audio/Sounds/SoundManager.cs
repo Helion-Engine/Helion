@@ -372,7 +372,7 @@ public class SoundManager : IDisposable
     protected IAudioSource? CreateSound(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, string sound,
         SoundParams soundParams, out SoundInfo? soundInfo)
     {
-        Precondition((int)soundParams.Channel < Entity.MaxSoundChannels, "ZDoom extra channel flags unsupported currently");
+        Precondition((int)soundParams.Channel < Constants.MaxSoundChannels, "ZDoom extra channel flags unsupported currently");
         soundInfo = GetSoundInfo(source, sound);
         if (soundInfo == null)
             return null;

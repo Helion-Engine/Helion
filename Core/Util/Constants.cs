@@ -1,3 +1,4 @@
+using Helion.World.Sound;
 using System;
 using System.Collections.Generic;
 
@@ -260,4 +261,6 @@ public static class Constants
     public const float DoomVirtualAspectRatio = 1.33333337f;
 
     public const int MaxTextureHeight = 16384;
+
+    public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannel)).Length;
 }

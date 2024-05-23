@@ -21,13 +21,14 @@ public class TryMoveData
     public Entity? BlockingEntity;
     public Line? BlockingLine;
 
-    public DynamicArray<Entity> IntersectEntities2D = new();
-    public DynamicArray<Line> IntersectSpecialLines = new();
-    public DynamicArray<Line> ImpactSpecialLines = new();
+    public DynamicArray<Entity> IntersectEntities2D = new(128);
+    public DynamicArray<Line> IntersectSpecialLines = new(128);
+    public DynamicArray<Line> ImpactSpecialLines = new(128);
 
-    public void SetPosition(in Vec2D position)
+    public void SetPosition(double x, double y)
     {
-        Position = position;
+        Position.X = x;
+        Position.Y = y;
         CanFloat = false;
         IntersectEntities2D.Clear();
         IntersectSpecialLines.Clear();
