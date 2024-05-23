@@ -945,9 +945,9 @@ public class GeometryRenderer : IDisposable
         skyVertices = m_skyWallVertices;
     }
 
-    private bool SkyUpperRenderFromFloorCheck(Side twoSided, Sector facingSector, Sector otherSector)
+    private bool SkyUpperRenderFromFloorCheck(Side facingSide, Sector facingSector, Sector otherSector)
     {
-        if (twoSided.Upper.TextureHandle == Constants.NoTextureIndex)
+        if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && facingSide.UpperFloodKeys.Key1 == 0)
             return true;
 
         if (TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
