@@ -102,6 +102,10 @@ namespace Helion.Geometry.Segments
         {
             return (Delta.X * (point.Y - Start.Y)) - (Delta.Y * (point.X - Start.X));
         }
+        public double PerpDot(double x, double y)
+        {
+            return (Delta.X * (y - Start.Y)) - (Delta.Y * (x - Start.X));
+        }
         public double PerpDot(Vector3D point) => PerpDot(point.XY);
         public bool OnRight(Vec2D point) => PerpDot(point) <= 0;
         public bool OnRight(Vector2D point) => PerpDot(point) <= 0;

@@ -226,7 +226,7 @@ public sealed class PhysicsManager
             entity.PrevPosition.Z = entityMoveData.PrevSaveZ;
             // This allows the player to pickup items like the original
             if (entity.IsPlayer && !entity.Flags.NoClip)
-                IsPositionValid(entity, entity.Position.XY, TryMoveData);
+                IsPositionValid(entity, entity.Position.X, entity.Position.Y, TryMoveData);
 
             if ((moveType == SectorPlaneFace.Ceiling && startZ < destZ) ||
                 (moveType == SectorPlaneFace.Floor && startZ > destZ))
@@ -578,7 +578,7 @@ public sealed class PhysicsManager
         BlockContinue,
     }
 
-    private unsafe LineBlock LineBlocksEntity(Entity entity, in Vec2D position, BlockLine* line, TryMoveData? tryMove)
+    private unsafe LineBlock LineBlocksEntity(Entity entity, double x, double y, BlockLine* line, TryMoveData? tryMove)
     {
         if (Line.BlocksEntity(entity, line->OneSided, line->Flags, WorldStatic.Mbf21))
             return LineBlock.BlockStopChecking;
@@ -586,7 +586,7 @@ public sealed class PhysicsManager
         LineOpening opening;
         if (tryMove != null)
         {
-            opening = GetLineOpeningWithDropoff(position, line);
+            opening = GetLineOpeningWithDropoff(x, y, line);
             tryMove.SetIntersectionData(opening);
         }
         else
@@ -614,7 +614,7 @@ public sealed class PhysicsManager
         return m_lineOpening;
     }
 
-    public unsafe LineOpening GetLineOpeningWithDropoff(in Vec2D position, BlockLine* line)
+    public unsafe LineOpening GetLineOpeningWithDropoff(double x, double y, BlockLine* line)
     {
         Sector front = line->FrontSector;
         Sector back = line->BackSector!;
@@ -622,7 +622,8 @@ public sealed class PhysicsManager
         m_lineOpening.FloorZ = Math.Max(front.Floor.Z, back.Floor.Z);
         m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
 
-        if (line->Segment.OnRight(position))
+        double dot = (line->Segment.Delta.X * (y - line->Segment.Start.Y)) - (line->Segment.Delta.Y * (x - line->Segment.Start.X));
+        if (dot <= 0)
             m_lineOpening.DropOffZ = back.Floor.Z;
         else
             m_lineOpening.DropOffZ = front.Floor.Z;
@@ -1003,11 +1004,10 @@ public sealed class PhysicsManager
             if ((stepDelta.X == 0 && stepDelta.Y == 0) || m_world.WorldState == WorldState.Exit)
                 break;
 
-            Vec2D nextPosition = new(entity.Position.X + stepDelta.X, entity.Position.Y + stepDelta.Y);
-            if (IsPositionValid(entity, nextPosition, TryMoveData))
+            if (IsPositionValid(entity, entity.Position.X + stepDelta.X, entity.Position.Y + stepDelta.Y, TryMoveData))
             {
                 entity.MoveLinked = true;
-                MoveTo(entity, nextPosition, TryMoveData);
+                MoveTo(entity, entity.Position.X + stepDelta.X, entity.Position.Y + stepDelta.Y, TryMoveData);
                 if (entity.Flags.Teleported)
                     return TryMoveData;
 
@@ -1110,7 +1110,7 @@ public sealed class PhysicsManager
 
     private const int PositionValidFlags = EntityFlags.SpecialFlag | EntityFlags.SolidFlag | EntityFlags.ShootableFlag;
 
-    public unsafe bool IsPositionValid(Entity entity, Vec2D position, TryMoveData tryMove)
+    public unsafe bool IsPositionValid(Entity entity, double x, double y, TryMoveData tryMove)
     {
         if (!entity.Flags.Float && !entity.IsPlayer && entity.OnEntity.Entity != null && !entity.OnEntity.Entity.Flags.ActLikeBridge)
             return false;
@@ -1125,7 +1125,7 @@ public sealed class PhysicsManager
         }
         else
         {
-            tryMove.Subsector = m_bspTree.ToSubsector(position.X, position.Y);
+            tryMove.Subsector = m_bspTree.ToSubsector(x, y);
             tryMove.HighestFloorZ = tryMove.DropOffZ = tryMove.Subsector.Sector.Floor.Z;
             tryMove.LowestCeilingZ = tryMove.Subsector.Sector.Ceiling.Z;
         }
@@ -1138,10 +1138,10 @@ public sealed class PhysicsManager
         bool canPickup = entity.Flags.Pickup;
         Entity? nextEntity;
                 
-        var boxMinX = position.X - entity.Radius;
-        var boxMaxX = position.X + entity.Radius;
-        var boxMinY = position.Y - entity.Radius;
-        var boxMaxY = position.Y + entity.Radius;
+        var boxMinX = x - entity.Radius;
+        var boxMaxX = x + entity.Radius;
+        var boxMinY = y - entity.Radius;
+        var boxMaxY = y + entity.Radius;
         int blockStartX = Math.Max(0, (int)((boxMinX - m_blockmapGrid.Bounds.Min.X) / m_blockmapGrid.Dimension));
         int blockStartY = Math.Max(0, (int)((boxMinY - m_blockmapGrid.Bounds.Min.Y) / m_blockmapGrid.Dimension));
         int blockEndX = Math.Min((int)((boxMaxX - m_blockmapGrid.Bounds.Min.X) / m_blockmapGrid.Dimension), m_blockmapGrid.Width - 1);
@@ -1166,7 +1166,7 @@ public sealed class PhysicsManager
                             continue;
 
                         var blockDist = nextEntity.Radius + entity.Radius;
-                        if (Math.Abs(nextEntity.Position.X - position.X) >= blockDist || Math.Abs(nextEntity.Position.Y - position.Y) >= blockDist)
+                        if (Math.Abs(nextEntity.Position.X - x) >= blockDist || Math.Abs(nextEntity.Position.Y - y) >= blockDist)
                             continue;
 
                         if (entity == nextEntity)
@@ -1205,7 +1205,7 @@ public sealed class PhysicsManager
                         m_checkedBlockLines[blockLine->LineId] = checkCounter;
                         if (blockLine->Segment.Intersects(boxMinX, boxMinY, boxMaxX, boxMaxY))
                         {
-                            LineBlock blockType = LineBlocksEntity(entity, position, blockLine, tryMove);
+                            LineBlock blockType = LineBlocksEntity(entity, x, y, blockLine, tryMove);
 
                             Line line = blockLine->Line;
                             if (blockType != LineBlock.NoBlock)
@@ -1287,13 +1287,14 @@ doneIsPositionValid:
         return !m_lineOpening.CanPassOrStepThrough(entity);
     }
 
-    public void MoveTo(Entity entity, Vec2D nextPosition, TryMoveData tryMove)
+    public void MoveTo(Entity entity, double x, double y, TryMoveData tryMove)
     {
         entity.UnlinkFromWorld();
 
-        Vec2D previousPosition = entity.Position.XY;
-        entity.Position.X = nextPosition.X;
-        entity.Position.Y = nextPosition.Y;
+        double prevX = entity.Position.X;
+        double prevY = entity.Position.Y;
+        entity.Position.X = x;
+        entity.Position.Y = y;
 
         LinkToWorld(entity, tryMove);
 
@@ -1304,22 +1305,19 @@ doneIsPositionValid:
         {
             if (entity.Flags.Teleported)
                 break;
-            CheckLineSpecialActivation(entity, tryMove.IntersectSpecialLines[i], previousPosition);
-        }
-    }
 
-    private void CheckLineSpecialActivation(Entity entity, Line line, Vec2D previousPosition)
-    {
-        if (!m_world.CanActivate(entity, line, ActivationContext.CrossLine))
-            return;
+            var line = tryMove.IntersectSpecialLines[i];
+            if (!m_world.CanActivate(entity, line, ActivationContext.CrossLine))
+                continue;
 
-        bool fromFront = line.Segment.OnRight(previousPosition);
-        if (fromFront != line.Segment.OnRight(entity.Position.XY))
-        {
-            if (line.Special.IsTeleport() && !fromFront)
-                return;
+            bool fromFront = line.Segment.PerpDot(prevX, prevY) <= 0;
+            if (fromFront != (line.Segment.PerpDot(entity.Position.X, entity.Position.Y) <= 0))
+            {
+                if (line.Special.IsTeleport() && !fromFront)
+                    continue;
 
-            m_world.ActivateSpecialLine(entity, line, ActivationContext.CrossLine);
+                m_world.ActivateSpecialLine(entity, line, ActivationContext.CrossLine);
+            }
         }
     }
 
@@ -1393,7 +1391,6 @@ doneIsPositionValid:
         bool hit = false;
         double hitTime = double.MaxValue;
         Line? blockingLine = null;
-        Vec2D position = entity.Position.XY;
         
         BlockmapSegIterator<Block> it = m_blockmap.Iterate(cornerTracer);
         var block = it.Next();
@@ -1404,7 +1401,7 @@ doneIsPositionValid:
                 fixed (BlockLine* line = &block.BlockLines.Data[i])
                 {
                     if (cornerTracer.Intersection(line->Segment, out double time) && time > 0 && time < 1 &&
-                        LineBlocksEntity(entity, position, line, null) != LineBlock.NoBlock &&
+                        LineBlocksEntity(entity, entity.Position.X, entity.Position.Y, line, null) != LineBlock.NoBlock &&
                         time < hitTime)
                     {
                         hit = true;
@@ -1463,9 +1460,9 @@ doneIsPositionValid:
         residualStep = stepDelta - usedStepDelta;
 
         Vec2D closeToLinePosition = entity.Position.XY + usedStepDelta;
-        if (IsPositionValid(entity, closeToLinePosition, tryMove))
+        if (IsPositionValid(entity, closeToLinePosition.X, closeToLinePosition.Y, tryMove))
         {
-            MoveTo(entity, closeToLinePosition, tryMove);
+            MoveTo(entity, closeToLinePosition.X, closeToLinePosition.Y, tryMove);
             return true;
         }
 
@@ -1519,9 +1516,9 @@ doneIsPositionValid:
         if (axis == Axis2D.X)
         {
             Vec2D nextPosition = entity.Position.XY + new Vec2D(stepDelta.X, 0);
-            if (IsPositionValid(entity, nextPosition, tryMove))
+            if (IsPositionValid(entity, nextPosition.X, nextPosition.Y, tryMove))
             {
-                MoveTo(entity, nextPosition, tryMove);
+                MoveTo(entity, nextPosition.X, nextPosition.Y, tryMove);
                 if (ShouldClearSlide(entity, tryMove))
                     entity.Velocity.Y = 0;
                 stepDelta.Y = 0;
@@ -1531,9 +1528,9 @@ doneIsPositionValid:
         else
         {
             Vec2D nextPosition = entity.Position.XY + new Vec2D(0, stepDelta.Y);
-            if (IsPositionValid(entity, nextPosition, tryMove))
+            if (IsPositionValid(entity, nextPosition.X, nextPosition.Y, tryMove))
             {
-                MoveTo(entity, nextPosition, tryMove);
+                MoveTo(entity, nextPosition.X, nextPosition.Y, tryMove);
                 if (ShouldClearSlide(entity, tryMove))
                     entity.Velocity.X = 0;
                 stepDelta.X = 0;

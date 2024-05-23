@@ -1854,7 +1854,7 @@ public abstract partial class WorldBase : IWorld
         => PhysicsManager.TryMoveXY(entity, position.X, position.Y);
 
     public virtual bool IsPositionValid(Entity entity, Vec2D position) =>
-        PhysicsManager.IsPositionValid(entity, position, PhysicsManager.TryMoveData);
+        PhysicsManager.IsPositionValid(entity, position.X, position.Y, PhysicsManager.TryMoveData);
 
     public virtual SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
     {
@@ -1991,7 +1991,7 @@ public abstract partial class WorldBase : IWorld
         if (blocked)
             return true;
 
-        if (!PhysicsManager.IsPositionValid(entity, entity.Position.XY, EmptyTryMove))
+        if (!PhysicsManager.IsPositionValid(entity, entity.Position.X, entity.Position.Y, EmptyTryMove))
             return true;
 
         return false;
