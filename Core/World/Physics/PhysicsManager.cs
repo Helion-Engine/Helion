@@ -1004,10 +1004,12 @@ public sealed class PhysicsManager
             if ((stepDelta.X == 0 && stepDelta.Y == 0) || m_world.WorldState == WorldState.Exit)
                 break;
 
-            if (IsPositionValid(entity, entity.Position.X + stepDelta.X, entity.Position.Y + stepDelta.Y, TryMoveData))
+            double nextX = entity.Position.X + stepDelta.X;
+            double nextY = entity.Position.Y + stepDelta.Y;
+            if (IsPositionValid(entity, nextX, nextY, TryMoveData))
             {
                 entity.MoveLinked = true;
-                MoveTo(entity, entity.Position.X + stepDelta.X, entity.Position.Y + stepDelta.Y, TryMoveData);
+                MoveTo(entity, nextX, nextY, TryMoveData);
                 if (entity.Flags.Teleported)
                     return TryMoveData;
 
@@ -1345,47 +1347,6 @@ doneIsPositionValid:
         movesLeft = 0;
     }
 
-    private static BoxCornerTracers CalculateCornerTracers(Entity entity, Vec2D stepDelta)
-    {
-        Box2D currentBox = entity.GetBox2D();
-        Span<Vec2D> corners = stackalloc Vec2D[3];
-        if (stepDelta.X >= 0)
-        {
-            if (stepDelta.Y >= 0)
-            {
-                corners[0] = currentBox.TopLeft;
-                corners[1] = currentBox.TopRight;
-                corners[2] = currentBox.BottomRight;
-            }
-            else
-            {
-                corners[0] = currentBox.TopRight;
-                corners[1] = currentBox.BottomRight;
-                corners[2] = currentBox.BottomLeft;
-            }
-        }
-        else
-        {
-            if (stepDelta.Y >= 0)
-            {
-                corners[0] = currentBox.TopRight;
-                corners[1] = currentBox.TopLeft;
-                corners[2] = currentBox.BottomLeft;
-            }
-            else
-            {
-                corners[0] = currentBox.TopLeft;
-                corners[1] = currentBox.BottomLeft;
-                corners[2] = currentBox.BottomRight;
-            }
-        }
-
-        Seg2D first = new Seg2D(corners[0], corners[0] + stepDelta);
-        Seg2D second = new Seg2D(corners[1], corners[1] + stepDelta);
-        Seg2D third = new Seg2D(corners[2], corners[2] + stepDelta);
-        return new BoxCornerTracers(first, second, third);
-    }
-
     private unsafe void CheckCornerTracerIntersection(Seg2D cornerTracer, Entity entity, ref MoveInfo moveInfo)
     {
         bool hit = false;
@@ -1432,10 +1393,65 @@ doneIsPositionValid:
         //
         // This obviously can miss things, but this is how vanilla does it
         // and we want to have compatibility with the mods that use.
-        BoxCornerTracers tracers = CalculateCornerTracers(entity, stepDelta);
-        CheckCornerTracerIntersection(tracers.First, entity, ref moveInfo);
-        CheckCornerTracerIntersection(tracers.Second, entity, ref moveInfo);
-        CheckCornerTracerIntersection(tracers.Third, entity, ref moveInfo);
+        Span<Vec2D> corners = stackalloc Vec2D[3];
+        if (stepDelta.X >= 0)
+        {
+            if (stepDelta.Y >= 0)
+            {
+                corners[0].X = entity.Position.X - entity.Radius;
+                corners[0].Y = entity.Position.Y + entity.Radius;
+
+                corners[1].X = entity.Position.X + entity.Radius;
+                corners[1].Y = entity.Position.Y + entity.Radius;
+
+                corners[2].X = entity.Position.X + entity.Radius;
+                corners[2].Y = entity.Position.Y - entity.Radius;
+            }
+            else
+            {
+                corners[0].X = entity.Position.X + entity.Radius;
+                corners[0].Y = entity.Position.Y + entity.Radius;
+
+                corners[1].X = entity.Position.X + entity.Radius;
+                corners[1].Y = entity.Position.Y - entity.Radius;
+
+                corners[2].X = entity.Position.X - entity.Radius;
+                corners[2].Y = entity.Position.Y - entity.Radius;
+            }
+        }
+        else
+        {
+            if (stepDelta.Y >= 0)
+            {
+                corners[0].X = entity.Position.X + entity.Radius;
+                corners[0].Y = entity.Position.Y + entity.Radius;
+
+                corners[1].X = entity.Position.X - entity.Radius;
+                corners[1].Y = entity.Position.Y + entity.Radius;
+
+                corners[2].X = entity.Position.X - entity.Radius;
+                corners[2].Y = entity.Position.Y - entity.Radius;
+            }
+            else
+            {
+                corners[0].X = entity.Position.X - entity.Radius;
+                corners[0].Y = entity.Position.Y + entity.Radius;
+
+                corners[1].X = entity.Position.X - entity.Radius;
+                corners[1].Y = entity.Position.Y - entity.Radius;
+
+                corners[2].X = entity.Position.X + entity.Radius;
+                corners[2].Y = entity.Position.Y - entity.Radius;
+            }
+        }
+
+        Seg2D first = new Seg2D(corners[0], new Vec2D(corners[0].X + stepDelta.X, corners[0].Y + stepDelta.Y));
+        Seg2D second = new Seg2D(corners[1], new Vec2D(corners[1].X + stepDelta.X, corners[1].Y + stepDelta.Y));
+        Seg2D third = new Seg2D(corners[2], new Vec2D(corners[2].X + stepDelta.X, corners[2].Y + stepDelta.Y));
+
+        CheckCornerTracerIntersection(first, entity, ref moveInfo);
+        CheckCornerTracerIntersection(second, entity, ref moveInfo);
+        CheckCornerTracerIntersection(third, entity, ref moveInfo);
 
         return moveInfo.IntersectionFound;
     }
@@ -1515,10 +1531,10 @@ doneIsPositionValid:
     {
         if (axis == Axis2D.X)
         {
-            Vec2D nextPosition = entity.Position.XY + new Vec2D(stepDelta.X, 0);
-            if (IsPositionValid(entity, nextPosition.X, nextPosition.Y, tryMove))
+            double nextX = entity.Position.X + stepDelta.X;
+            if (IsPositionValid(entity, nextX, entity.Position.Y, tryMove))
             {
-                MoveTo(entity, nextPosition.X, nextPosition.Y, tryMove);
+                MoveTo(entity, nextX, entity.Position.Y, tryMove);
                 if (ShouldClearSlide(entity, tryMove))
                     entity.Velocity.Y = 0;
                 stepDelta.Y = 0;
@@ -1527,10 +1543,10 @@ doneIsPositionValid:
         }
         else
         {
-            Vec2D nextPosition = entity.Position.XY + new Vec2D(0, stepDelta.Y);
-            if (IsPositionValid(entity, nextPosition.X, nextPosition.Y, tryMove))
+            double nextY = entity.Position.Y + stepDelta.Y;
+            if (IsPositionValid(entity, entity.Position.X, nextY, tryMove))
             {
-                MoveTo(entity, nextPosition.X, nextPosition.Y, tryMove);
+                MoveTo(entity, entity.Position.X, nextY, tryMove);
                 if (ShouldClearSlide(entity, tryMove))
                     entity.Velocity.X = 0;
                 stepDelta.X = 0;
