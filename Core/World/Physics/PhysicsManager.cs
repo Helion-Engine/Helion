@@ -556,19 +556,6 @@ public sealed class PhysicsManager
             StackedEntityMoveZ(deathEntity);
     }
 
-    private static int CalculateSteps(Vec2D velocity, double radius)
-    {
-        if (radius < 0.5)
-            return 1; 
-
-        // We want to pick some atomic distance to keep moving our bounding
-        // box. It can't be bigger than the radius because we could end up
-        // skipping over a line.
-        double moveDistance = radius - 0.5;
-        double biggerAxis = Math.Max(Math.Abs(velocity.X), Math.Abs(velocity.Y));
-        return (int)(biggerAxis / moveDistance) + 1;
-    }
-
     private static void ApplyFriction(Entity entity)
     {
         double sectorFriction = GetFrictionFromSectors(entity);
@@ -974,8 +961,8 @@ public sealed class PhysicsManager
             return TryMoveData;
         }
 
-        Vec2D velocity = new(x - entity.Position.X, y - entity.Position.Y);
-        if (velocity.X == 0 && velocity.Y == 0)
+        Vec2D stepDelta = new(x - entity.Position.X, y - entity.Position.Y);
+        if (stepDelta.X == 0 && stepDelta.Y == 0)
         {
             TryMoveData.Success = true;
             return TryMoveData;
@@ -991,8 +978,20 @@ public sealed class PhysicsManager
         // the actor so we don't skip over any lines or things due to fast
         // entity speed.
         int slidesLeft = MaxSlides;
-        int numMoves = CalculateSteps(velocity, entity.Radius);
-        Vec2D stepDelta = new(velocity.X / numMoves, velocity.Y / numMoves);
+        int numMoves = 1;
+        if (entity.Radius > 0.5)
+        {
+            double moveDistance = entity.Radius - 0.5;
+            double biggerAxis = Math.Max(Math.Abs(stepDelta.X), Math.Abs(stepDelta.Y));
+            numMoves = (int)(biggerAxis / moveDistance) + 1;
+
+            if (numMoves > 1)
+            {
+                stepDelta.X = stepDelta.X / numMoves;
+                stepDelta.Y = stepDelta.Y / numMoves;
+            }
+        }
+
         bool success = true;
         Vec3D saveVelocity = entity.Velocity;
         bool stacked = !WorldStatic.InfinitelyTallThings && (entity.OnEntity.Entity != null || entity.OverEntity.Entity != null);
