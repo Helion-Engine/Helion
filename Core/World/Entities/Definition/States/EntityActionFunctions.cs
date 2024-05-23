@@ -1698,7 +1698,7 @@ public static class EntityActionFunctions
         // Set the skull barely clipped into the parent
         // Then check if it can move to it's final position (TryMoveXY does step checking and won't skip lines/entities)
         if (!WorldStatic.World.PhysicsManager.IsPositionValid(skull, startPos.XY, WorldStatic.World.PhysicsManager.TryMoveData) || 
-            !WorldStatic.World.PhysicsManager.TryMoveXY(skull, skullPos.XY).Success)
+            !WorldStatic.World.PhysicsManager.TryMoveXY(skull, skullPos.X, skullPos.Y).Success)
         {
             skull.Kill(null);
             entity.Flags.NoClip = wasNoClip;

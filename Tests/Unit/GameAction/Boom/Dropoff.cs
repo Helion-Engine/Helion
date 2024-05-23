@@ -53,7 +53,7 @@ public class Dropoff
     {
         var imp = GameActions.GetEntity(World, 3);
         imp.Position.Should().Be(new Vec3D(-32, 96, 64));
-        var move = World.PhysicsManager.TryMoveXY(imp, new Vec2D(-32, 48));
+        var move = World.PhysicsManager.TryMoveXY(imp, -32, 48);
         move.Success.Should().BeFalse();
         move.HighestFloorZ.Should().Be(64);
         move.DropOffZ.Should().Be(0);
@@ -65,7 +65,7 @@ public class Dropoff
     {
         var lost = GameActions.GetEntity(World, 7);
         lost.Position.Should().Be(new Vec3D(64, 96, 64));
-        var move = World.PhysicsManager.TryMoveXY(lost, new Vec2D(64, 48));
+        var move = World.PhysicsManager.TryMoveXY(lost, 64, 48);
         move.Success.Should().BeTrue();
         move.HighestFloorZ.Should().Be(0);
         move.DropOffZ.Should().Be(0);
@@ -79,7 +79,7 @@ public class Dropoff
         imp.Position.Should().Be(new Vec3D(-32, 96, 64));
         imp.Kill(null);
         imp.IsDead.Should().BeTrue();
-        var move = World.PhysicsManager.TryMoveXY(imp, new Vec2D(-32, 32));
+        var move = World.PhysicsManager.TryMoveXY(imp, -32, 32);
         move.Success.Should().BeTrue();
         move.HighestFloorZ.Should().Be(0);
         move.DropOffZ.Should().Be(0);

@@ -1266,7 +1266,7 @@ public abstract partial class WorldBase : IWorld
 
         // TryMoveXY will use the velocity of the projectile
         // A projectile spawned where it can't fit can cause BlockingSectorPlane or BlockingEntity (IsBlocked = true)
-        if (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.XY).Success)
+        if (!projectile.IsBlocked() && PhysicsManager.TryMoveXY(projectile, testPos.X, testPos.Y).Success)
         {
             projectile.Position = testPos;
             projectile.Velocity = velocity;
@@ -1851,7 +1851,7 @@ public abstract partial class WorldBase : IWorld
     }
 
     public virtual TryMoveData TryMoveXY(Entity entity, Vec2D position)
-        => PhysicsManager.TryMoveXY(entity, position);
+        => PhysicsManager.TryMoveXY(entity, position.X, position.Y);
 
     public virtual bool IsPositionValid(Entity entity, Vec2D position) =>
         PhysicsManager.IsPositionValid(entity, position, PhysicsManager.TryMoveData);
@@ -2540,7 +2540,8 @@ public abstract partial class WorldBase : IWorld
         m_healChaseData.HealState = healState;
         m_healChaseData.HealSound = healSound;
         m_healChaseData.Healed = false;
-        Box2D nextBox = new(entity.GetNextEnemyPos(), entity.Radius);
+        entity.GetEnemySpeed(out var speedX, out var speedY);
+        Box2D nextBox = new(new Vec2D(entity.Position.X + speedX, entity.Position.Y + speedY), entity.Radius);
         BlockmapTraverser.HealTraverse(nextBox, m_healChaseAction);
 
         return m_healChaseData.Healed;

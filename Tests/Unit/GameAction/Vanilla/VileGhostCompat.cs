@@ -38,7 +38,7 @@ public class VileGhostCompat
 
         GameActions.SetEntityPosition(World, imp, (-352, -352));
         // One sided line shouldn't block
-        World.PhysicsManager.TryMoveXY(imp, (-352, -416)).Success.Should().BeTrue();
+        World.PhysicsManager.TryMoveXY(imp, -352, -416).Success.Should().BeTrue();
     }
 
     [Fact(DisplayName = "Monster resurrected as ghost takes splash damage")]
@@ -66,7 +66,7 @@ public class VileGhostCompat
 
         GameActions.SetEntityPosition(World, imp, (-352, -352));
         // One sided should block
-        World.PhysicsManager.TryMoveXY(imp, (-352, -416)).Success.Should().BeFalse();
+        World.PhysicsManager.TryMoveXY(imp, -352, -416).Success.Should().BeFalse();
     }
 
     [Fact(DisplayName = "Monster normal resurrection with vile ghosts on")]
@@ -82,7 +82,7 @@ public class VileGhostCompat
 
         GameActions.SetEntityPosition(World, imp, (-352, -352));
         // One sided should block
-        World.PhysicsManager.TryMoveXY(imp, (-352, -416)).Success.Should().BeFalse();
+        World.PhysicsManager.TryMoveXY(imp, -352, -416).Success.Should().BeFalse();
     }
 
 

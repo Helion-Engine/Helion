@@ -961,17 +961,20 @@ public sealed class PhysicsManager
         entity.Velocity.Y = 0;
     }
 
-    public TryMoveData TryMoveXY(Entity entity, Vec2D position)
+    public TryMoveData TryMoveXY(Entity entity, double x, double y)
     {
-        TryMoveData.SetPosition(position.X, position.Y);
+        TryMoveData.SetPosition(x, y);
         if (entity.Flags.NoClip)
         {
-            HandleNoClip(entity, position);
+            entity.UnlinkFromWorld();
+            entity.Position.X = x;
+            entity.Position.Y = y;
+            LinkToWorld(entity);
             TryMoveData.Success = true;
             return TryMoveData;
         }
 
-        Vec2D velocity = new(position.X - entity.Position.X, position.Y - entity.Position.Y);
+        Vec2D velocity = new(x - entity.Position.X, y - entity.Position.Y);
         if (velocity.X == 0 && velocity.Y == 0)
         {
             TryMoveData.Success = true;
@@ -1104,14 +1107,6 @@ public sealed class PhysicsManager
                 currentOverEntity.SetOverEntity(null);
             currentOverEntity = next;
         }
-    }
-
-    private void HandleNoClip(Entity entity, Vec2D position)
-    {
-        entity.UnlinkFromWorld();
-        entity.Position.X = position.X;
-        entity.Position.Y = position.Y;
-        LinkToWorld(entity);
     }
 
     private const int PositionValidFlags = EntityFlags.SpecialFlag | EntityFlags.SolidFlag | EntityFlags.ShootableFlag;
@@ -1579,7 +1574,7 @@ doneIsPositionValid:
                 entity.Velocity.Y = MathHelper.Clamp(entity.Velocity.Y, -MaxMoveXY, MaxMoveXY);
         }
 
-        TryMoveXY(entity, new(entity.Position.X + entity.Velocity.X, entity.Position.Y + entity.Velocity.Y));
+        TryMoveXY(entity, entity.Position.X + entity.Velocity.X, entity.Position.Y + entity.Velocity.Y);
         if (entity.ShouldApplyFriction())
             ApplyFriction(entity);
         StopXYMovementIfSmall(entity);

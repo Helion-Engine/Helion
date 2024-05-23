@@ -306,17 +306,19 @@ public partial class Entity
         m_direction = MoveDir.None;
     }
 
-    public Vec2D GetNextEnemyPos()
+    public void GetEnemySpeed(out double speedX, out double speedY)
     {
         if (m_direction == MoveDir.None || (!Flags.Float && !OnGround))
-            return Position.XY;
+        {
+            speedX = 0;
+            speedY = 0;
+            return;
+        }
 
-        double speed = (ClosetFlags & ClosetFlags.ClosetChase) != 0 ? ClosetChaseSpeed : 
+        double speed = (ClosetFlags & ClosetFlags.ClosetChase) != 0 ? ClosetChaseSpeed :
             Math.Clamp(Properties.MonsterMovementSpeed * SlowTickMultiplier, -128, 128);
-        double speedX = Speeds[(int)m_direction] * speed;
-        double speedY = Speeds[(int)m_direction + 8] * speed;
-
-        return (Position.X + speedX, Position.Y + speedY);
+        speedX = Speeds[(int)m_direction] * speed;
+        speedY = Speeds[(int)m_direction + 8] * speed;
     }
 
     public bool MoveEnemy(out TryMoveData? tryMove)
@@ -327,10 +329,10 @@ public partial class Entity
             return false;
         }
 
-        Vec2D nextPos = GetNextEnemyPos();
-        bool isMoving = Position.XY != nextPos;
+        GetEnemySpeed(out double speedX, out double speedY);
+        bool isMoving = speedX != 0 || speedY != 0;
         Flags.MonsterMove = true;
-        tryMove = WorldStatic.World.PhysicsManager.TryMoveXY(this, nextPos);
+        tryMove = WorldStatic.World.PhysicsManager.TryMoveXY(this, Position.X + speedX, Position.Y + speedY);
         Flags.MonsterMove = false;
         if (Flags.Teleported)
             return true;
@@ -338,7 +340,7 @@ public partial class Entity
         if (!tryMove.Success && Flags.Float && tryMove.CanFloat)
         {
             BlockFloating = true;
-            Position = (Position.X, Position.Y, Position.Z + (Position.Z < tryMove.HighestFloorZ ? FloatSpeed : -FloatSpeed));
+            Position.Z += Position.Z < tryMove.HighestFloorZ ? FloatSpeed : -FloatSpeed;
             return true;
         }
         else
