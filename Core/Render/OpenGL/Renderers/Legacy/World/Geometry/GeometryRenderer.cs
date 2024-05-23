@@ -786,16 +786,17 @@ public class GeometryRenderer : IDisposable
         SectorPlane plane = otherSector.Ceiling;
         bool isSky = TextureManager.IsSkyTexture(plane.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         Wall upperWall = facingSide.Upper;
+        bool renderSkySideOnly = false;
+        vertices = null;
+        skyVertices = null;
+        skyVertices2 = null;
 
         if (facingSide.UpperFloodKeys.Key1 > 0 || facingSide.UpperFloodKeys.Key2 > 0)
         {
-            vertices = null;
-            skyVertices = null;
-            skyVertices2 = null;
             Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Upper, isFrontSide);
             // Key2 is used for partner side flood. Still may need to draw the upper.
-            if (facingSide.UpperFloodKeys.Key1 > 0)
-                return;
+            // Flood only floods the upper texture portion. If the ceiling is a sky texture then the fake sky side needs to be rendered with RenderSkySide.
+            renderSkySideOnly = facingSide.UpperFloodKeys.Key1 > 0;
         }
 
         if (!TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
@@ -803,9 +804,6 @@ public class GeometryRenderer : IDisposable
         {
             if (TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                 m_skyOverride = true;
-            vertices = null;
-            skyVertices = null;
-            skyVertices2 = null;
             return;
         }
 
@@ -823,6 +821,8 @@ public class GeometryRenderer : IDisposable
         SectorPlane bottom = otherSector.Ceiling;
 
         RenderSkySide(facingSide, facingSector, otherSector, texture, out skyVertices2);
+        if (renderSkySideOnly)
+            return;
 
         if (isSky)
         {
