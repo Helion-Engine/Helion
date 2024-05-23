@@ -1,11 +1,9 @@
 ﻿using Helion.Geometry.Vectors;
-using Helion.Util.Loggers;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Helion.World.Geometry.Islands;
 
@@ -37,7 +35,7 @@ public static class ClosetClassifier
             return;
         }
 
-        PopulateLookups(world, out var islandToEntities, out var entityToSubsector);
+        PopulateLookups(world, out var islandToEntities, out var entityToSubsector, out var sectorToEntities);
 
         for (int i = 0; i < world.Geometry.IslandGeometry.Islands.Count; i++)
         {
@@ -45,57 +43,43 @@ public static class ClosetClassifier
             if (!islandToEntities.TryGetValue(island.Id, out var entities))
                 continue;
 
-            SetCloset(island, world, entities, entityToSubsector);      
+            SetCloset(island, world, entities, entityToSubsector);
 
             if (island.IsMonsterCloset)
             {
                 foreach (Entity entity in islandToEntities[island.Id])
                     entity.ClosetFlags |= ClosetFlags.MonsterCloset;
             }
-
-            if (island.IsMonsterCloset || island.IsVooDooCloset)
-            {
-                foreach (var subsector in island.Subsectors)
-                {
-                    if (!subsector.SectorId.HasValue)
-                        continue;
-                    var sectorIslands = world.Geometry.IslandGeometry.SectorIslands[subsector.SectorId.Value];
-                    foreach (var sectorIsland in sectorIslands)
-                    {
-                        sectorIsland.IsVooDooCloset = island.IsVooDooCloset;
-                        sectorIsland.IsMonsterCloset = island.IsMonsterCloset;
-                    }
-                }
-            }
         }
-
-        var closets = world.Geometry.IslandGeometry.Islands.Where(x => x.IsVooDooCloset).ToList();
 
         for (int i = 0; i < world.Geometry.IslandGeometry.SectorIslands.Length; i++)
         {
             var islands = world.Geometry.IslandGeometry.SectorIslands[i];
-            var sector = world.Sectors[i];
+            if (!sectorToEntities.TryGetValue(i, out var entities))
+                continue;
             foreach (var island in islands)
-            {
-                island.IsVooDooCloset = sector.Island.IsVooDooCloset;
-                island.IsMonsterCloset = sector.Island.IsMonsterCloset;
-            }
+                SetCloset(island, world, entities, entityToSubsector);
         }
     }
 
     private static void PopulateLookups(WorldBase world, out Dictionary<int, List<Entity>> islandToEntity, 
-        out Dictionary<int, BspSubsector> entityToSubsector)
+        out Dictionary<int, BspSubsector> entityToSubsector, out Dictionary<int, List<Entity>> sectorToEntity)
     {
         islandToEntity = new();
         entityToSubsector = new();
+        sectorToEntity = new();
         foreach (Island island in world.Geometry.IslandGeometry.Islands)
             islandToEntity[island.Id] = new();
+
+        foreach (var sector in world.Sectors)
+            sectorToEntity[sector.Id] = new();
 
         for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
             var subsector = world.Geometry.BspTree.Subsectors[entity.Subsector.Id];
-            var entities = islandToEntity[subsector.IslandId];
-            entities.Add(entity);
+            islandToEntity[subsector.IslandId].Add(entity);
+            if (subsector.SectorId.HasValue)
+                sectorToEntity[subsector.SectorId.Value].Add(entity);
             entityToSubsector[entity.Id] = subsector;
         }
     }
