@@ -133,7 +133,7 @@ public sealed class PhysicsManager
         // Needs to be added to the sector list even with NoSector flag.
         // Doom used blockmap to manage things for sector movement.
         LinkToSectors(entity, tryMove);
-        ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: true, clampToLinkedSectors, tryMove?.IntersectEntities2D);
+        ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: true, clampToLinkedSectors, tryMove);
     }
 
     /// <summary>
@@ -331,7 +331,7 @@ public sealed class PhysicsManager
         if (entity.MoveLinked || entity.Flags.NoClip)
             return true;
 
-        GetEntityClampValues(entity, entity.IntersectMovementSectors, true, out Sector highestFloor, out _, out _, out _);
+        GetEntityClampValues(entity, entity.IntersectMovementSectors, true, null, out Sector highestFloor, out _, out _, out _);
 
         if (highestFloor == entity.HighestFloorSector)
             return true;
@@ -647,7 +647,7 @@ public sealed class PhysicsManager
     }
 
     private void ClampBetweenFloorAndCeiling(Entity entity, DynamicArray<Sector> intersectSectors, bool smoothZ, bool clampToLinkedSectors = true,
-        DynamicArray<Entity>? intersectEntities2D = null)
+        TryMoveData? tryMove = null)
     {
         Invariant(ReferenceEquals(entity.IntersectSectors, intersectSectors) || ReferenceEquals(entity.IntersectMovementSectors, intersectSectors),
             $"Intersect sectors not owned by entity.");
@@ -659,7 +659,7 @@ public sealed class PhysicsManager
 
         double prevHighestFloorZ = entity.HighestFloorZ;
         Entity? prevOnEntity = entity.OnEntity.Entity;
-        SetEntityBoundsZ(entity, intersectEntities2D, intersectSectors, clampToLinkedSectors);
+        SetEntityBoundsZ(entity, intersectSectors, clampToLinkedSectors, tryMove);
         entity.SetOnEntity(null);
 
         double lowestCeil = entity.LowestCeilingZ;
@@ -710,14 +710,14 @@ public sealed class PhysicsManager
         m_onEntities.Clear();
     }
 
-    private void SetEntityBoundsZ(Entity entity, DynamicArray<Entity>? intersectEntities2D, DynamicArray<Sector> intersectSectors, bool clampToLinkedSectors)
+    private void SetEntityBoundsZ(Entity entity, DynamicArray<Sector> intersectSectors, bool clampToLinkedSectors, TryMoveData? tryMove)
     {
         Entity? highestFloorEntity = null;
         Entity? lowestCeilingEntity = null;
 
         entity.SetOnEntity(null);
 
-        GetEntityClampValues(entity, intersectSectors, clampToLinkedSectors, out Sector highestFloor, out Sector lowestCeiling, 
+        GetEntityClampValues(entity, intersectSectors, clampToLinkedSectors, tryMove, out Sector highestFloor, out Sector lowestCeiling, 
             out double highestFloorZ, out double lowestCeilZ);
 
         if (WorldStatic.InfinitelyTallThings)
@@ -742,15 +742,15 @@ public sealed class PhysicsManager
             m_canPassData.LowestCeilZ = lowestCeilZ;
             m_canPassData.ClampToLinkedSectors = clampToLinkedSectors;
 
-            if (intersectEntities2D == null)
+            if (tryMove == null)
             {
                 // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
                 m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_canPassTraverseFunc);
             }
             else
             {
-                for (int i = 0; i < intersectEntities2D.Length; i++)
-                    CanPassTraverse(intersectEntities2D[i]);
+                for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
+                    CanPassTraverse(tryMove.IntersectEntities2D[i]);
             }
 
             highestFloorEntity = m_canPassData.HighestFloorEntity;
@@ -836,12 +836,12 @@ public sealed class PhysicsManager
     }
 
     private static void GetEntityClampValues(Entity entity, DynamicArray<Sector> intersectSectors,
-        bool clampToLinkedSectors, out Sector highestFloor, out Sector lowestCeiling, out double highestFloorZ, out double lowestCeilZ)
+        bool clampToLinkedSectors, TryMoveData? tryMove, out Sector highestFloor, out Sector lowestCeiling, out double highestFloorZ, out double lowestCeilZ)
     {
         highestFloor = entity.Sector;
         lowestCeiling = entity.Sector;
-        highestFloorZ = highestFloor.ToFloorZ(entity.Position);
-        lowestCeilZ = lowestCeiling.ToCeilingZ(entity.Position);
+        highestFloorZ = highestFloor.Floor.Z;
+        lowestCeilZ = lowestCeiling.Ceiling.Z;
 
         if (!clampToLinkedSectors)
             return;
@@ -849,7 +849,7 @@ public sealed class PhysicsManager
         for (int i = 0; i < intersectSectors.Length; i++)
         {
             Sector sector = intersectSectors[i];
-            double floorZ = sector.ToFloorZ(entity.Position);
+            double floorZ = sector.Floor.Z;
 
             if (floorZ < short.MinValue)
             {
@@ -863,7 +863,7 @@ public sealed class PhysicsManager
                 highestFloorZ = floorZ;
             }
 
-            double ceilZ = sector.ToCeilingZ(entity.Position);
+            double ceilZ = sector.Ceiling.Z;
             if (ceilZ < lowestCeilZ)
             {
                 lowestCeiling = sector;
@@ -1475,6 +1475,7 @@ doneIsPositionValid:
         Vec2D usedStepDelta = stepDelta * t;
         residualStep = stepDelta - usedStepDelta;
 
+        tryMove.IntersectEntities2D.Length = 0;
         Vec2D closeToLinePosition = entity.Position.XY + usedStepDelta;
         if (IsPositionValid(entity, closeToLinePosition.X, closeToLinePosition.Y, tryMove))
         {
@@ -1529,6 +1530,7 @@ doneIsPositionValid:
 
     private bool AttemptAxisMove(Entity entity, Vec2D stepDelta, Axis2D axis, TryMoveData tryMove)
     {
+        tryMove.IntersectEntities2D.Length = 0;
         if (axis == Axis2D.X)
         {
             double nextX = entity.Position.X + stepDelta.X;
