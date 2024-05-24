@@ -434,23 +434,33 @@ public partial class Client
                 m_compLevelNames.Add(comp.ToString());
         }
 
+        var compLevel = m_archiveCollection.Definitions.CompLevelDefinition;
         if (args.Args.Count == 0)
         {
-            HelionLog.Error("CompLvl requires one argument.");
+            HelionLog.Info($"CompLvl is {compLevel.CompLevel}");
             return;
         }
 
-        for (int i = 0; i <  m_compLevelNames.Count; i++)
+        string arg = args.Args[0];
+        if (arg.EqualsIgnoreCase("none"))
         {
-            if (args.Args[0].EqualsIgnoreCase(m_compLevelNames[i]))
+            compLevel.CompLevel = CompLevel.Undefined;
+            m_config.Compatibility.ResetToUserValues();
+            return;
+        }
+
+        for (int i = 0; i < m_compLevelNames.Count; i++)
+        {
+            if (arg.EqualsIgnoreCase(m_compLevelNames[i]))
             {
                 m_config.Compatibility.ResetToUserValues();
-                var comp = m_archiveCollection.Definitions.CompLevelDefinition;
-                comp.CompLevel = (CompLevel)i;
-                comp.Apply(m_config);
+                compLevel.CompLevel = (CompLevel)i;
+                compLevel.Apply(m_config);
                 return;
             }
         }
+
+        HelionLog.Error("Invalid complvl");
     }
 
     private void ToggleMapOption(MapOptions option, ConsoleCommandEventArgs args)
