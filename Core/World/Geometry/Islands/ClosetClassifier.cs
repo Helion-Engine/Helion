@@ -35,7 +35,7 @@ public static class ClosetClassifier
             return;
         }
 
-        PopulateLookups(world, out var islandToEntities, out var entityToSubsector, out var sectorToEntities);
+        PopulateLookups(world, out var islandToEntities, out var entityToSubsector);
 
         for (int i = 0; i < world.Geometry.IslandGeometry.Islands.Count; i++)
         {
@@ -55,31 +55,26 @@ public static class ClosetClassifier
         for (int i = 0; i < world.Geometry.IslandGeometry.SectorIslands.Length; i++)
         {
             var islands = world.Geometry.IslandGeometry.SectorIslands[i];
-            if (!sectorToEntities.TryGetValue(i, out var entities))
-                continue;
             foreach (var island in islands)
-                SetCloset(island, world, entities, entityToSubsector);
+            {
+                island.IsVooDooCloset = island.ParentIsland.IsVooDooCloset;
+                island.IsMonsterCloset = island.ParentIsland.IsMonsterCloset;
+            }
         }
     }
 
-    private static void PopulateLookups(WorldBase world, out Dictionary<int, List<Entity>> islandToEntity, 
-        out Dictionary<int, BspSubsector> entityToSubsector, out Dictionary<int, List<Entity>> sectorToEntity)
+    private static void PopulateLookups(WorldBase world, out Dictionary<int, List<Entity>> islandToEntity,
+        out Dictionary<int, BspSubsector> entityToSubsector)
     {
         islandToEntity = new();
         entityToSubsector = new();
-        sectorToEntity = new();
         foreach (Island island in world.Geometry.IslandGeometry.Islands)
             islandToEntity[island.Id] = new();
-
-        foreach (var sector in world.Sectors)
-            sectorToEntity[sector.Id] = new();
 
         for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
             var subsector = world.Geometry.BspTree.Subsectors[entity.Subsector.Id];
             islandToEntity[subsector.IslandId].Add(entity);
-            if (subsector.SectorId.HasValue)
-                sectorToEntity[subsector.SectorId.Value].Add(entity);
             entityToSubsector[entity.Id] = subsector;
         }
     }
