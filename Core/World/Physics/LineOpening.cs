@@ -11,34 +11,12 @@ namespace Helion.World.Physics;
 /// </summary>
 public class LineOpening
 {
-    /// <summary>
-    /// The top of the opening. This is not guaranteed to be above the
-    /// ceiling value.
-    /// </summary>
     public double CeilingZ;
-
-    /// <summary>
-    /// The bottom of the opening. This is not guaranteed to be below the
-    /// ceiling value.
-    /// </summary>
     public double FloorZ;
-
-    /// <summary>
-    /// How tall the opening is along the Z axis.
-    /// </summary>
     public double OpeningHeight;
-
     public double DropOffZ;
-
-    public static bool IsOpen(Line line)
-    {
-        Assert.Precondition(line.Back != null, "Cannot create LineOpening with one sided line");
-
-        Sector front = line.Front.Sector;
-        Sector back = line.Back!.Sector;
-
-        return Math.Min(front.Ceiling.Z, back.Ceiling.Z) - Math.Max(front.Floor.Z, back.Floor.Z) > 0;
-    }
+    public Sector? FloorSector;
+    public Sector? CeilingSector;
 
     public static double GetOpeningHeight(Line line)
     {
@@ -76,6 +54,8 @@ public class LineOpening
         FloorZ = 0;
         DropOffZ = 0;
         OpeningHeight = 0;
+        FloorSector = null;
+        CeilingSector = null;
     }
 
     public void Set(Line line)
@@ -84,8 +64,29 @@ public class LineOpening
 
         Sector front = line.Front.Sector;
         Sector back = line.Back!.Sector;
-        CeilingZ = Math.Min(front.Ceiling.Z, back.Ceiling.Z);
-        FloorZ = Math.Max(front.Floor.Z, back.Floor.Z);
+
+        if (front.Ceiling.Z < back.Ceiling.Z)
+        {
+            CeilingZ = front.Ceiling.Z;
+            CeilingSector = front;
+        }
+        else
+        {
+            CeilingZ = back.Ceiling.Z;
+            CeilingSector = back;
+        }
+
+        if (front.Floor.Z > back.Floor.Z)
+        {
+            FloorZ = front.Floor.Z;
+            FloorSector = front;
+        }
+        else
+        {
+            FloorZ = back.Floor.Z;
+            FloorSector = back;
+        }
+
         OpeningHeight = CeilingZ - FloorZ;
     }
 
@@ -96,6 +97,8 @@ public class LineOpening
         FloorZ = other.Position.Z + otherHeight;
         OpeningHeight = CeilingZ - FloorZ;
         DropOffZ = FloorZ;
+        CeilingSector = null;
+        FloorSector = null;
     }
 
     public void SetBottom(TryMoveData tryMove, Entity other)
@@ -104,6 +107,8 @@ public class LineOpening
         FloorZ = tryMove.HighestFloorZ;
         OpeningHeight = CeilingZ - FloorZ;
         DropOffZ = FloorZ;
+        CeilingSector = null;
+        FloorSector = null;
     }
 
     public bool CanStepUpInto(Entity entity)

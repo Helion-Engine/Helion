@@ -2,6 +2,7 @@ using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 
 namespace Helion.World.Physics;
@@ -14,6 +15,9 @@ public class TryMoveData
     public double LowestCeilingZ;
     public double HighestFloorZ;
     public double DropOffZ;
+
+    public Sector? HighestFloor;
+    public Sector? LowestCeiling;
 
     public Entity? DropOffEntity;
     public Subsector? Subsector;
@@ -50,8 +54,14 @@ public class TryMoveData
         }
 
         if (opening.FloorZ > HighestFloorZ)
+        {
             HighestFloorZ = opening.FloorZ;
+            HighestFloor = opening.FloorSector;
+        }
         if (opening.CeilingZ < LowestCeilingZ)
+        {
             LowestCeilingZ = opening.CeilingZ;
+            LowestCeiling = opening.CeilingSector;
+        }
     }
 }

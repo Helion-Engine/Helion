@@ -846,6 +846,15 @@ public sealed class PhysicsManager
         if (!clampToLinkedSectors)
             return;
 
+        if (tryMove != null && tryMove.LowestCeiling != null && tryMove.HighestFloor != null)
+        {
+            highestFloor = tryMove.HighestFloor;
+            lowestCeiling = tryMove.LowestCeiling;
+            highestFloorZ = tryMove.HighestFloorZ;
+            lowestCeilZ = tryMove.LowestCeilingZ;
+            return;
+        }
+
         for (int i = 0; i < intersectSectors.Length; i++)
         {
             Sector sector = intersectSectors[i];
