@@ -646,10 +646,10 @@ public sealed class PhysicsManager
         entity.Velocity.Z = Math.Max(0, entity.Velocity.Z);
     }
 
-    private void ClampBetweenFloorAndCeiling(Entity entity, DynamicArray<Sector> intersectSectors, bool smoothZ, bool clampToLinkedSectors = true,
+    private void ClampBetweenFloorAndCeiling(Entity entity, DynamicArray<Sector>? intersectSectors, bool smoothZ, bool clampToLinkedSectors = true,
         TryMoveData? tryMove = null)
     {
-        Invariant(ReferenceEquals(entity.IntersectSectors, intersectSectors) || ReferenceEquals(entity.IntersectMovementSectors, intersectSectors),
+        Invariant(intersectSectors == null || (ReferenceEquals(entity.IntersectSectors, intersectSectors) || ReferenceEquals(entity.IntersectMovementSectors, intersectSectors)),
             $"Intersect sectors not owned by entity.");
 
         if (entity.IsDisposed || entity.Definition.IsBulletPuff)
@@ -710,7 +710,7 @@ public sealed class PhysicsManager
         m_onEntities.Clear();
     }
 
-    private void SetEntityBoundsZ(Entity entity, DynamicArray<Sector> intersectSectors, bool clampToLinkedSectors, TryMoveData? tryMove)
+    private void SetEntityBoundsZ(Entity entity, DynamicArray<Sector>? intersectSectors, bool clampToLinkedSectors, TryMoveData? tryMove)
     {
         Entity? highestFloorEntity = null;
         Entity? lowestCeilingEntity = null;
@@ -835,7 +835,7 @@ public sealed class PhysicsManager
         return GridIterationStatus.Continue;
     }
 
-    private static void GetEntityClampValues(Entity entity, DynamicArray<Sector> intersectSectors,
+    private static void GetEntityClampValues(Entity entity, DynamicArray<Sector>? intersectSectors,
         bool clampToLinkedSectors, TryMoveData? tryMove, out Sector highestFloor, out Sector lowestCeiling, out double highestFloorZ, out double lowestCeilZ)
     {
         highestFloor = entity.Sector;
@@ -854,6 +854,9 @@ public sealed class PhysicsManager
             lowestCeilZ = tryMove.LowestCeilingZ;
             return;
         }
+
+        if (intersectSectors == null)
+            return;
 
         for (int i = 0; i < intersectSectors.Length; i++)
         {
@@ -1654,7 +1657,7 @@ doneIsPositionValid:
         entity.Position.Z = newZ;
 
         // Passing MoveLinked emulates some vanilla functionality where things are not checked against linked sectors when they haven't moved
-        ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: true, entity.MoveLinked);
+        ClampBetweenFloorAndCeiling(entity, null, smoothZ: true, entity.MoveLinked);
 
         if (entity.IsBlocked())
             m_world.HandleEntityHit(entity, previousVelocity, null);
