@@ -606,20 +606,33 @@ public sealed class PhysicsManager
         return m_lineOpening;
     }
 
-    public unsafe LineOpening GetLineOpening(BlockLine* line)
-    {
-        m_lineOpening.CeilingZ = Math.Min(line->FrontSector.Ceiling.Z, line->BackSector!.Ceiling.Z);
-        m_lineOpening.FloorZ = Math.Max(line->FrontSector.Floor.Z, line->BackSector!.Floor.Z);
-        m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
-        return m_lineOpening;
-    }
 
     public unsafe LineOpening GetLineOpeningWithDropoff(double x, double y, BlockLine* line)
     {
         Sector front = line->FrontSector;
         Sector back = line->BackSector!;
-        m_lineOpening.CeilingZ = Math.Min(front.Ceiling.Z, back.Ceiling.Z);
-        m_lineOpening.FloorZ = Math.Max(front.Floor.Z, back.Floor.Z);
+        if (front.Ceiling.Z < back.Ceiling.Z)
+        {
+            m_lineOpening.CeilingZ = front.Ceiling.Z;
+            m_lineOpening.CeilingSector = front;
+        }
+        else
+        {
+            m_lineOpening.CeilingZ = back.Ceiling.Z;
+            m_lineOpening.CeilingSector = back;
+        }
+
+        if (front.Floor.Z > back.Floor.Z)
+        {
+            m_lineOpening.FloorZ = front.Floor.Z;
+            m_lineOpening.FloorSector = front;
+        }
+        else
+        {
+            m_lineOpening.FloorZ = back.Floor.Z;
+            m_lineOpening.FloorSector = back;
+        }
+
         m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
 
         double dot = (line->Segment.Delta.X * (y - line->Segment.Start.Y)) - (line->Segment.Delta.Y * (x - line->Segment.Start.X));
@@ -1130,6 +1143,8 @@ public sealed class PhysicsManager
             return false;
 
         tryMove.Success = true;
+        tryMove.LowestCeiling = entity.LowestCeilingSector;
+        tryMove.HighestFloor = entity.HighestFloorSector;
         tryMove.LowestCeilingZ = entity.LowestCeilingZ;
         tryMove.Subsector = null;
         if (entity.HighestFloorObject is Entity highFloorEntity)
