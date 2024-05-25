@@ -12,9 +12,13 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Always Run")]
     public readonly ConfigValue<bool> AlwaysRun = new(true);
 
-    [ConfigInfo("Whether vertical autoaiming should be used.", demo: true)]
+    [ConfigInfo("If autoaiming should be used.", demo: true)]
     [OptionMenu(OptionSectionType.General, "Autoaim")]
     public readonly ConfigValue<bool> AutoAim = new(true);
+
+    [ConfigInfo("If horizontal autoaiming should be used for projectiles.", demo: true)]
+    [OptionMenu(OptionSectionType.General, "Horizontal Autoaim")]
+    public readonly ConfigValue<bool> HorizontalAutoAim = new(false);
 
     [ConfigInfo("If the player should automatically use lines when bumping.", demo: true)]
     [OptionMenu(OptionSectionType.General, "Bump Use", spacer: true)]

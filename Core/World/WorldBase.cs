@@ -1235,7 +1235,8 @@ public abstract partial class WorldBase : IWorld
                 out autoAimEntity, tracers: Constants.AutoAimTracers))
         {
             pitch = autoAimPitch;
-            angle = autoAimAngle;
+            if (Config.Game.HorizontalAutoAim)
+                angle = autoAimAngle;
         }
 
         pitch += addPitch;
