@@ -28,6 +28,7 @@ public class TryMoveData
     public DynamicArray<Entity> IntersectEntities2D = new(128);
     public DynamicArray<Line> IntersectSpecialLines = new(128);
     public DynamicArray<Line> ImpactSpecialLines = new(128);
+    public DynamicArray<Sector> IntersectSectors = new();
 
     public void SetPosition(double x, double y)
     {
@@ -37,6 +38,7 @@ public class TryMoveData
         IntersectEntities2D.Clear();
         IntersectSpecialLines.Clear();
         ImpactSpecialLines.Clear();
+        IntersectSectors.Clear();
         HighestFloorZ = int.MinValue;
         LowestCeilingZ = int.MinValue;
         DropOffEntity = null;
