@@ -199,7 +199,7 @@ public sealed class PhysicsManager
                 entity.PrevPosition.Z = entity.Position.Z;
             }
 
-            ClampBetweenFloorAndCeiling(entity, entity.IntersectMovementSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
+            ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
 
             double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
             if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
@@ -221,7 +221,7 @@ public sealed class PhysicsManager
             if (entity.IsDisposed)
                 continue;
 
-            ClampBetweenFloorAndCeiling(entity, entity.IntersectMovementSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
+            ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
             var entityMoveData = m_sectorMoveEntitiesData[i];
             entity.PrevPosition.Z = entityMoveData.PrevSaveZ;
             // This allows the player to pickup items like the original
@@ -331,7 +331,7 @@ public sealed class PhysicsManager
         if (entity.MoveLinked || entity.Flags.NoClip)
             return true;
 
-        GetEntityClampValues(entity, entity.IntersectMovementSectors, true, null, out Sector highestFloor, out _, out _, out _);
+        GetEntityClampValues(entity, entity.IntersectSectors, true, null, out Sector highestFloor, out _, out _, out _);
 
         if (highestFloor == entity.HighestFloorSector)
             return true;
@@ -373,8 +373,8 @@ public sealed class PhysicsManager
 
     private static bool EntityHasMovementSector(Entity entity, Sector sector)
     {
-        for (int i = 0; i < entity.IntersectMovementSectors.Length; i++)
-            if (entity.IntersectMovementSectors[i] == sector)
+        for (int i = 0; i < entity.IntersectSectors.Length; i++)
+            if (entity.IntersectSectors[i] == sector)
                 return true;
 
         return false;
@@ -649,8 +649,7 @@ public sealed class PhysicsManager
     private void ClampBetweenFloorAndCeiling(Entity entity, DynamicArray<Sector> intersectSectors, bool smoothZ, bool clampToLinkedSectors = true,
         TryMoveData? tryMove = null)
     {
-        Invariant(ReferenceEquals(entity.IntersectSectors, intersectSectors) || ReferenceEquals(entity.IntersectMovementSectors, intersectSectors),
-            $"Intersect sectors not owned by entity.");
+        Invariant(ReferenceEquals(entity.IntersectSectors, intersectSectors), $"Intersect sectors not owned by entity.");
 
         if (entity.IsDisposed || entity.Definition.IsBulletPuff)
             return;
@@ -883,52 +882,60 @@ public sealed class PhysicsManager
         else
             centerSubsector = m_bspTree.Subsectors[m_bspTree.ToSubsectorIndex(entity.Position.X, entity.Position.Y)];
 
-        bool linkToMoveSectors = true;
         Sector centerSector = centerSubsector.Sector;
         centerSector.CheckCount = checkCounter;
-
-        Box2D box = entity.GetBox2D();
-        var it = m_blockmapGrid.CreateBoxIteration(box);
-        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
+        if (tryMove != null)
         {
-            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
+            for (int i = 0; i < tryMove.IntersectSectors.Length; i++)
             {
-                Block block = m_blockmapBlocks[by * it.Width + bx];
-                for (int i = 0; i < block.BlockLines.Length; i++)
+                var sector = tryMove.IntersectSectors[i];
+                if (sector.CheckCount == checkCounter)
+                    continue;
+
+                entity.IntersectSectors.Add(sector);
+                entity.SectorNodes.Add(sector.Link(entity));
+            }
+        }
+        else
+        {
+            bool linkToMoveSectors = true;
+            Box2D box = entity.GetBox2D();
+            var it = m_blockmapGrid.CreateBoxIteration(box);
+            for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
+            {
+                for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
                 {
-                    fixed (BlockLine* line = &block.BlockLines.Data[i])
+                    Block block = m_blockmapBlocks[by * it.Width + bx];
+                    for (int i = 0; i < block.BlockLines.Length; i++)
                     {
-                        if (m_checkedBlockLines[line->LineId] == checkCounter)
-                            continue;
-
-                        m_checkedBlockLines[line->LineId] = checkCounter;
-
-                        if (line->Segment.Intersects(box))
+                        fixed (BlockLine* line = &block.BlockLines.Data[i])
                         {
-                            // Doomism: Ignore for moving sectors if blocked by flags only.
-                            if (Line.BlocksEntity(entity, line->OneSided, line->Flags, WorldStatic.Mbf21))
-                                linkToMoveSectors = false;
+                            if (m_checkedBlockLines[line->LineId] == checkCounter)
+                                continue;
 
-                            if (line->FrontSector.CheckCount != checkCounter)
+                            m_checkedBlockLines[line->LineId] = checkCounter;
+
+                            if (line->Segment.Intersects(box))
                             {
-                                Sector sector = line->FrontSector;
-                                sector.CheckCount = checkCounter;
-                                entity.IntersectSectors.Add(sector);
-                                entity.SectorNodes.Add(sector.Link(entity));
+                                // Doomism: Ignore for moving sectors if blocked by flags only.
+                                if (Line.BlocksEntity(entity, line->OneSided, line->Flags, WorldStatic.Mbf21))
+                                    continue;
 
-                                if (linkToMoveSectors)
-                                    entity.IntersectMovementSectors.Add(sector);
-                            }
+                                if (line->FrontSector.CheckCount != checkCounter)
+                                {
+                                    Sector sector = line->FrontSector;
+                                    sector.CheckCount = checkCounter;
+                                    entity.IntersectSectors.Add(sector);
+                                    entity.SectorNodes.Add(sector.Link(entity));
+                                }
 
-                            if (line->BackSector != null && line->BackSector!.CheckCount != checkCounter)
-                            {
-                                Sector sector = line->BackSector!;
-                                sector.CheckCount = checkCounter;
-                                entity.IntersectSectors.Add(sector);
-                                entity.SectorNodes.Add(sector.Link(entity));
-
-                                if (linkToMoveSectors)
-                                    entity.IntersectMovementSectors.Add(sector);
+                                if (line->BackSector != null && line->BackSector!.CheckCount != checkCounter)
+                                {
+                                    Sector sector = line->BackSector!;
+                                    sector.CheckCount = checkCounter;
+                                    entity.IntersectSectors.Add(sector);
+                                    entity.SectorNodes.Add(sector.Link(entity));
+                                }
                             }
                         }
                     }
@@ -939,7 +946,6 @@ public sealed class PhysicsManager
         entity.Subsector = centerSubsector;
         entity.Sector = centerSector;
         entity.IntersectSectors.Add(centerSector);
-        entity.IntersectMovementSectors.Add(centerSector);
         entity.SectorNodes.Add(centerSector.Link(entity));
     }
 
@@ -1207,6 +1213,11 @@ public sealed class PhysicsManager
                         m_checkedBlockLines[blockLine->LineId] = checkCounter;
                         if (blockLine->Segment.Intersects(boxMinX, boxMinY, boxMaxX, boxMaxY))
                         {
+                            if (blockLine->LineId == 90)
+                            {
+                                int lol = 1;
+                            }
+
                             LineBlock blockType = LineBlocksEntity(entity, x, y, blockLine, tryMove);
 
                             Line line = blockLine->Line;
@@ -1228,6 +1239,11 @@ public sealed class PhysicsManager
                                 else
                                     tryMove.ImpactSpecialLines.Add(line);
                             }
+
+
+                            tryMove.IntersectSectors.Add(blockLine->FrontSector);
+                            if (blockLine->BackSector != blockLine->FrontSector)
+                                tryMove.IntersectSectors.Add(blockLine->BackSector!);
                         }
                     }
                 }
