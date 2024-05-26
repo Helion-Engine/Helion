@@ -159,7 +159,7 @@ namespace Helion.Tests.Unit.GameAction
 
             moveEntity.Position.X.Should().Be(-1056);
             moveEntity.Position.Y.Should().Be(256);
-            moveEntity.Position.Z.Should().Be(188);
+            moveEntity.Position.Z.Should().Be(192);
         }
 
         [Fact(DisplayName = "Monster can walk on bridge")]
@@ -363,10 +363,48 @@ namespace Helion.Tests.Unit.GameAction
         public void NonPlayerCantWalkOnNonBridge()
         {
             var def = World.EntityManager.DefinitionComposer.GetByName(Zombieman)!;
-            var startPos = new Vec3D(1056, 800, 56);
+            var startPos = new Vec3D(1072, 800, 56);
             var monster = GameActions.CreateEntity(World, Zombieman, startPos);
             monster.AngleRadians = GameActions.GetAngle(Bearing.East);
-            GameActions.MoveEntity(World, monster, 48);
+            GameActions.MoveEntity(World, monster, 32);
+            monster.Position.Should().Be(startPos);
+        }
+
+        [Fact(DisplayName = "Non-player entity can't walk on non-bridge with top z < entity z")]
+        public void NonPlayerCantWalkOnLowerNonBridge()
+        {
+            var def = World.EntityManager.DefinitionComposer.GetByName(Zombieman)!;
+            var startPos = new Vec3D(1072, 736, 60);
+            var monster = GameActions.CreateEntity(World, Zombieman, startPos);
+            monster.AngleRadians = GameActions.GetAngle(Bearing.East);
+            GameActions.MoveEntity(World, monster, 32);
+            monster.Position.Should().Be(startPos);
+        }
+
+        [Fact(DisplayName = "Non-player entity can't walk on non-bridge with top z = entity z where dropoff would pass")]
+        public void NonPlayerCantWalkOnNonBridgeDropoff()
+        {
+            var sector = GameActions.GetSectorByTag(World, 23);
+            GameActions.GetSectorEntities(World, sector.Id)[0].Height = 16;
+            var def = World.EntityManager.DefinitionComposer.GetByName(Zombieman)!;
+            var startPos = new Vec3D(1072, 672, 16);
+            var monster = GameActions.CreateEntity(World, Zombieman, startPos);
+            monster.AngleRadians = GameActions.GetAngle(Bearing.East);
+            GameActions.MoveEntity(World, monster, 32);
+            monster.Position.Should().Be(startPos);
+        }
+
+        [Fact(DisplayName = "Non-player entity can't walk on non-bridge with top z < entity z where dropoff would pass")]
+        public void NonPlayerCantWalkOnLowerNonBridgeDropoff()
+        {
+            var sector = GameActions.GetSectorByTag(World, 23);
+            GameActions.GetSectorEntities(World, sector.Id)[0].Height = 16;
+            sector.Floor.SetZ(-1);
+            var def = World.EntityManager.DefinitionComposer.GetByName(Zombieman)!;
+            var startPos = new Vec3D(1072, 672, 16);
+            var monster = GameActions.CreateEntity(World, Zombieman, startPos);
+            monster.AngleRadians = GameActions.GetAngle(Bearing.East);
+            GameActions.MoveEntity(World, monster, 32);
             monster.Position.Should().Be(startPos);
         }
     }

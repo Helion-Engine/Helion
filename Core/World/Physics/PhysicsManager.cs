@@ -1120,6 +1120,7 @@ public sealed class PhysicsManager
         tryMove.Success = true;
         tryMove.LowestCeilingZ = entity.LowestCeilingZ;
         tryMove.Subsector = null;
+        tryMove.IntersectEntities2D.Length = 0;
         if (entity.HighestFloorObject is Entity highFloorEntity)
         {
             tryMove.HighestFloorZ = highFloorEntity.Position.Z + highFloorEntity.Height;
@@ -1282,10 +1283,6 @@ doneIsPositionValid:
         bool isPlayer = entity.IsPlayer;
         // If blocking and not a player, do not check step passing below. Non-players can't step onto other things.
         if (overlapsZ && !isPlayer)
-            return true;
-
-        // Check if non player can walk on this thing
-        if (!isPlayer && !entity.Flags.Missile && entity.Position.Z == other.Position.Z + other.Height && !other.Flags.ActLikeBridge)
             return true;
 
         if (!overlapsZ)

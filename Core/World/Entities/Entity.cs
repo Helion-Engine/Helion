@@ -801,16 +801,32 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (tryMove.DropOffEntity != null && !tryMove.DropOffEntity.Flags.ActLikeBridge)
             return false;
 
+        Entity? highestWalk = null;
         // Walking on things test
         for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
         {
             Entity entity = tryMove.IntersectEntities2D[i];
-            if (!CanBlockEntity(entity) || !entity.Flags.ActLikeBridge)
-                continue;
             double topZ = entity.Position.Z + entity.Height;
-            if (topZ > tryMove.DropOffZ)
-                tryMove.DropOffZ = topZ;
+
+            if (!CanBlockEntity(entity))
+                continue;
+            if (topZ >= tryMove.DropOffZ)
+            {
+                // ActLikeBridge takes precedence when z is equal
+                if (topZ == tryMove.DropOffZ && (highestWalk == null || !highestWalk.Flags.ActLikeBridge))
+                    highestWalk = entity;
+                else
+                    highestWalk = entity;
+
+                if (entity.Flags.ActLikeBridge)
+                    tryMove.DropOffZ = topZ;
+            }
         }
+
+        if (highestWalk != null && !highestWalk.Flags.ActLikeBridge &&
+            highestWalk.Position.Z + highestWalk.Height > tryMove.DropOffZ &&
+            highestWalk.Position.Z + highestWalk.Height <= Position.Z)
+            return false;
 
         if (tryMove.IntersectEntities2D.Length == 0 && tryMove.DropOffEntity != null)
             return false;
