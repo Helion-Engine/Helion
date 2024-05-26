@@ -170,7 +170,7 @@ public class Shoot
         var imps = GameActions.GetEntities(World, "DoomImp");
         imps.Count.Should().Be(4);
         GameActions.SetEntityPosition(World, Player, (96, -480, 0));
-        var projectile = World.FireProjectile(Player, 0, 0, 2048, true, GetMissileDef(), out _);
+        var projectile = World.FireProjectile(Player, 1.5707963267948966, 0, 2048, true, GetMissileDef(), out _);
         projectile.Should().NotBeNull();
         projectile!.Flags.Ripper = true;
         projectile!.Definition.Properties.Damage = new DamageRangeProperty { Value = 100, Exact = true };
