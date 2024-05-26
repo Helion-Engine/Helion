@@ -68,6 +68,7 @@ public sealed class PhysicsManager
 
     private MoveLinkData m_moveLinkData;
     private CanPassData m_canPassData;
+    private StackEntityTraverseData m_stackData;
     private readonly Func<Entity, GridIterationStatus> m_canPassTraverseFunc;
     private readonly Func<Entity, GridIterationStatus> m_sectorMoveLinkClampAction;
     private readonly Func<Entity, GridIterationStatus> m_stackEntityTraverseAction;
@@ -1043,15 +1044,11 @@ public sealed class PhysicsManager
 
         if (stacked && entity.Flags.CanPass && !entity.Flags.NoClip)
         {
-            double entityBottomZ = entity.Position.Z;
-            double entityTopZ = entity.Position.Z + entity.Height;
-            for (int i = 0; i < TryMoveData.IntersectEntities2D.Length; i++)
-            {
-                var intersectEntity = TryMoveData.IntersectEntities2D[i];
-                if (intersectEntity.OnEntity.Entity == entity || intersectEntity.OverEntity.Entity == entity ||
-                    intersectEntity.Position.Z == entityTopZ || intersectEntity.Position.Z + intersectEntity.Height == entityBottomZ)
-                    m_stackEntityTraverseAction(intersectEntity);
-            }
+            Box2D previousBox = new(entity.PrevPosition.X, entity.PrevPosition.Y, entity.Properties.Radius);
+            m_stackData.Entity = entity;
+            m_stackData.EntityBottomZ = entity.Position.Z;
+            m_stackData.EntityTopZ = entity.Position.Z + entity.Height;
+            m_world.BlockmapTraverser.EntityTraverse(previousBox, m_stackEntityTraverseAction);
         }
 
         if (!success)
@@ -1072,8 +1069,13 @@ public sealed class PhysicsManager
         if (!entity.Flags.Solid || entity.Flags.Corpse)
             return GridIterationStatus.Continue;
 
-        ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors,
+        if (entity.OnEntity.Entity == m_stackData.Entity || entity.OverEntity.Entity == entity ||
+            entity.Position.Z == m_stackData.EntityTopZ || entity.Position.Z + entity.Height == m_stackData.EntityBottomZ)
+        {
+            ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors,
                 smoothZ: false, clampToLinkedSectors: entity.MoveLinked);
+        }
+
         return GridIterationStatus.Continue;
     }
 

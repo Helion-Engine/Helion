@@ -569,7 +569,7 @@ public abstract partial class WorldBase : IWorld
         m_lineOfSightEnemyData.Entity = entity;
         m_lineOfSightEnemyData.AllAround = allaround;
         m_lineOfSightEnemyData.SightEntity = null;
-        Box2D box = new(entity.Position.XY, 1280);
+        Box2D box = new(entity.Position.X, entity.Position.Y, 1280);
         BlockmapTraverser.EntityTraverse(box, m_lineOfSightEnemyAction);
         return m_lineOfSightEnemyData.SightEntity;
     }
@@ -2542,7 +2542,7 @@ public abstract partial class WorldBase : IWorld
         m_healChaseData.HealSound = healSound;
         m_healChaseData.Healed = false;
         entity.GetEnemySpeed(out var speedX, out var speedY);
-        Box2D nextBox = new(new Vec2D(entity.Position.X + speedX, entity.Position.Y + speedY), entity.Radius);
+        Box2D nextBox = new(entity.Position.X + speedX, entity.Position.Y + speedY, entity.Radius);
         BlockmapTraverser.HealTraverse(nextBox, m_healChaseAction);
 
         return m_healChaseData.Healed;
@@ -2594,7 +2594,7 @@ public abstract partial class WorldBase : IWorld
         m_newTracerTargetData.Entity = entity;
         m_newTracerTargetData.Owner = entity.Owner.Entity ?? entity;
         m_newTracerTargetData.FieldOfViewRadians = fieldOfViewRadians;
-        BlockmapTraverser.EntityTraverse(new Box2D(entity.Position.XY, radius), m_setNewTracerTargetAction);
+        BlockmapTraverser.EntityTraverse(new Box2D(entity.Position.X, entity.Position.Y, radius), m_setNewTracerTargetAction);
     }
 
     public void EntityTeleported(Entity teleportEntity)

@@ -146,7 +146,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_renderData.MaxDistanceSquared = m_renderData.MaxDistance * m_renderData.MaxDistance;
         m_renderData.OccludePos = m_occlude ? m_occludeViewPos : null;
-        Box2D box = new(m_renderData.ViewPosInterpolated, m_renderData.MaxDistance);
+        Box2D box = new(m_renderData.ViewPosInterpolated.X, m_renderData.ViewPosInterpolated.Y, m_renderData.MaxDistance);
 
         Vec2D occluder = m_renderData.OccludePos ?? Vec2D.Zero;
         bool occlude = m_renderData.OccludePos.HasValue;

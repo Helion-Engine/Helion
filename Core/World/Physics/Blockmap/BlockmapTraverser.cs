@@ -265,7 +265,7 @@ public class BlockmapTraverser
     {
         int checkCounter = ++WorldStatic.CheckCounter;
         Box3D box3D = new(position, sourceEntity.Radius, sourceEntity.Height);
-        Box2D box2D = new(position.XY, sourceEntity.Radius);
+        Box2D box2D = new(position.X, position.Y, sourceEntity.Radius);
         var it = m_blockmapGrid.CreateBoxIteration(box2D);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
@@ -296,7 +296,7 @@ public class BlockmapTraverser
     {
         int checkCounter = ++WorldStatic.CheckCounter;
         Box3D box3D = new(position, sourceEntity.Radius, sourceEntity.Height);
-        Box2D box2D = new(position.XY, sourceEntity.Radius);
+        Box2D box2D = new(position.X, position.Y, sourceEntity.Radius);
         var it = m_blockmapGrid.CreateBoxIteration(box2D);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
