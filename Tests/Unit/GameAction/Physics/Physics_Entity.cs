@@ -324,5 +324,50 @@ namespace Helion.Tests.Unit.GameAction
             def.Flags.NoSector = false;
             def.Flags.NoBlockmap = false;
         }
+
+
+        [Fact(DisplayName = "Player entity can walk on bridge with top z = entity z")]
+        public void PlayerWalksOnBridge()
+        {
+            var startPos = new Vec3D(1056, 864, 56);
+            GameActions.SetEntityPosition(World, Player, startPos);
+            Player.AngleRadians = GameActions.GetAngle(Bearing.East);
+            GameActions.MoveEntity(World, Player, 64);
+            Player.Position.ApproxEquals(new Vec3D(1120, 864, 56)).Should().BeTrue();
+            Player.OnEntity.Entity!.Id.Should().Be(71);
+        }
+
+        [Fact(DisplayName = "Player entity can walk on non-bridge with top z = entity z")]
+        public void PlayerCanWalkOnNonBridge()
+        {
+            var startPos = new Vec3D(1056, 800, 56);
+            GameActions.SetEntityPosition(World, Player, startPos);
+            Player.AngleRadians = GameActions.GetAngle(Bearing.East);
+            GameActions.MoveEntity(World, Player, 48);
+            Player.Position.ApproxEquals(new Vec3D(1104, 800, 56)).Should().BeTrue();
+            Player.OnEntity.Entity!.Id.Should().Be(72);
+        }
+
+        [Fact(DisplayName = "Non-player entity can walk on bridge with top z = entity z")]
+        public void NonPlayerWalksOnBridge()
+        {
+            var def = World.EntityManager.DefinitionComposer.GetByName(Zombieman)!;
+            var monster = GameActions.CreateEntity(World, Zombieman, new Vec3D(1056, 864, 56));
+            monster.AngleRadians = GameActions.GetAngle(Bearing.East);
+            GameActions.MoveEntity(World, monster, 64);
+            monster.Position.ApproxEquals(new Vec3D(1120, 864, 56)).Should().BeTrue();
+            monster.OnEntity.Entity!.Id.Should().Be(71);
+        }
+
+        [Fact(DisplayName = "Non-player entity can't walk on non-bridge with top z = entity z")]
+        public void NonPlayerCantWalkOnNonBridge()
+        {
+            var def = World.EntityManager.DefinitionComposer.GetByName(Zombieman)!;
+            var startPos = new Vec3D(1056, 800, 56);
+            var monster = GameActions.CreateEntity(World, Zombieman, startPos);
+            monster.AngleRadians = GameActions.GetAngle(Bearing.East);
+            GameActions.MoveEntity(World, monster, 48);
+            monster.Position.Should().Be(startPos);
+        }
     }
 }

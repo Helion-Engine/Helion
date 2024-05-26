@@ -1279,8 +1279,13 @@ doneIsPositionValid:
 
         tryMove.SetIntersectionData(m_lineOpening);
 
+        bool isPlayer = entity.IsPlayer;
         // If blocking and not a player, do not check step passing below. Non-players can't step onto other things.
-        if (overlapsZ && !entity.IsPlayer)
+        if (overlapsZ && !isPlayer)
+            return true;
+
+        // Check if non player can walk on this thing
+        if (!isPlayer && !entity.Flags.Missile && entity.Position.Z == other.Position.Z + other.Height && !other.Flags.ActLikeBridge)
             return true;
 
         if (!overlapsZ)
