@@ -138,12 +138,11 @@ public class EntityRenderer : IDisposable
 
     public unsafe void RenderEntity(Entity entity, in Vec2D position)
     {
-        const double NudgeFactor = 0.0001;
         const double NudgeFactor = 0.005;
         
         Vec3D centerBottom = entity.Position;
-        Vec2D entityPos = centerBottom.XY;
-        Vec2D nudgeAmount = Vec2D.Zero;
+        Vec2D entityPos = new(centerBottom.X, centerBottom.Y);
+        Vec2D nudgeAmount = default;
 
         SpriteDefinition? spriteDef = null;
         int spriteIndex = entity.Frame.SpriteIndex;
@@ -176,7 +175,9 @@ public class EntityRenderer : IDisposable
             if (m_renderPositions.TryGetValue(entityPos, out int count))
             {
                 double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position), NudgeFactor, double.MaxValue);
-                nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge * count;
+                double angle = Math.Atan2(centerBottom.Y - position.Y, centerBottom.X - position.X);
+                nudgeAmount.X = Math.Cos(angle) * nudge * count;
+                nudgeAmount.Y = Math.Sin(angle) * nudge * count;
                 m_renderPositions[entityPos] = count + 1;
             }
             else

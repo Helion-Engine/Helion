@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -58,6 +59,7 @@ public class ViewClipper
     /// </param>
     /// <returns>The diamond angle for the vertex. This will be zero if the
     /// start and end vertices are the same.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint ToDiamondAngle(in Vec2D start, in Vec2D end)
     {
         // The code below takes some position and finds the vector from the
@@ -79,23 +81,25 @@ public class ViewClipper
         // out of the values, because this allows us to see what angles are
         // blocked or not by mapping every position onto a unit circle with
         // 2^32 precision.
-        Vec2D pos = new(end.X - start.X,  end.Y - start.Y);
-        if (pos.X == 0 && pos.Y == 0)
+        var posX = end.X - start.X;
+        var posY = end.Y - start.Y;
+        if (posX == 0 && posY == 0)
             return 0;
 
         // TODO: Can we fuse two if statements into one statement somehow?
-        if (pos.Y >= 0)
+        if (posY >= 0)
         {
-            if (pos.X >= 0)
-                return (uint)(DiamondScale * (pos.Y / (pos.X + pos.Y)));
-            return (uint)(DiamondScale * (1 - (pos.X / (-pos.X + pos.Y))));
+            if (posX >= 0)
+                return (uint)(DiamondScale * (posY / (posX + posY)));
+            return (uint)(DiamondScale * (1 - (posX / (-posX + posY))));
         }
 
-        if (pos.X < 0)
-            return (uint)(DiamondScale * (2 - (pos.Y / (-pos.X - pos.Y))));
-        return (uint)(DiamondScale * (3 + (pos.X / (pos.X - pos.Y))));
+        if (posX < 0)
+            return (uint)(DiamondScale * (2 - (posY / (-posX - posY))));
+        return (uint)(DiamondScale * (3 + (posX / (posX - posY))));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint DiamondAngleFromRadians(double radians)
     {
         unchecked
