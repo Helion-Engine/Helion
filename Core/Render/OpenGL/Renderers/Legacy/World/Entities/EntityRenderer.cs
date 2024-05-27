@@ -139,6 +139,7 @@ public class EntityRenderer : IDisposable
     public unsafe void RenderEntity(Entity entity, in Vec2D position)
     {
         const double NudgeFactor = 0.0001;
+        const double NudgeFactor = 0.005;
         
         Vec3D centerBottom = entity.Position;
         Vec2D entityPos = centerBottom.XY;
