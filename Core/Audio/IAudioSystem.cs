@@ -30,6 +30,8 @@ public interface IAudioSystem : IDisposable
 
     string GetDeviceName();
 
+    string GetDefaultDeviceName();
+
     /// <summary>
     /// Sets the volume.
     /// </summary>

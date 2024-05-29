@@ -138,7 +138,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
 
     public void Tick()
     {
-
+        m_owner.Tick();
     }
 
     public void Dispose()

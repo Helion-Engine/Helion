@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Helion.Audio.Impl.Components;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
@@ -15,7 +17,6 @@ namespace Helion.Audio.Impl;
 
 public class OpenALAudioSystem : IAudioSystem
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool PrintedALInfo;
 
     public IMusicPlayer Music { get; }
@@ -23,8 +24,11 @@ public class OpenALAudioSystem : IAudioSystem
     private readonly ArchiveCollection m_archiveCollection;
     private readonly HashSet<OpenALAudioSourceManager> m_sourceManagers = new();
     private readonly IConfig m_config;
+    private readonly CancellationTokenSource m_cancelTask = new();
     private OpenALDevice m_alDevice;
     private OpenALContext m_alContext;
+    private string m_changeDeviceName;
+    private string m_lastDeviceName;
 
     public OpenALAudioSystem(IConfig config, ArchiveCollection archiveCollection, IMusicPlayer musicPlayer)
     {
@@ -35,6 +39,10 @@ public class OpenALAudioSystem : IAudioSystem
         Music = musicPlayer;
 
         m_config.Audio.SoundVolume.OnChanged += OnSoundVolumeChange;
+
+        m_lastDeviceName = GetDeviceName();
+        Task.Factory.StartNew(DefaultDeviceChangeTask, m_cancelTask.Token,
+            TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
         PrintOpenALInfo();
     }
@@ -49,6 +57,13 @@ public class OpenALAudioSystem : IAudioSystem
     public string GetDeviceName()
     {
         return m_alDevice.DeviceName;
+    }
+
+    public unsafe string GetDefaultDeviceName()
+    {
+        // It doesn't detect a change unless you call AlcGetStringList.AllDevicesSpecifier...?
+        ALC.GetStringPtr(ALDevice.Null, (AlcGetString)AlcGetStringList.AllDevicesSpecifier);
+        return ALC.GetString(ALDevice.Null, AlcGetString.DefaultAllDevicesSpecifier);
     }
 
     public bool SetDevice(string deviceName)
@@ -73,6 +88,15 @@ public class OpenALAudioSystem : IAudioSystem
     public void ThrowIfErrorCheckFails()
     {
         CheckForErrors("Checking for errors");
+    }
+
+    public void Tick()
+    {
+        if (m_changeDeviceName.Length > 0)
+        {
+            SetDevice(m_changeDeviceName);
+            m_changeDeviceName = string.Empty;
+        }
     }
 
     [Conditional("DEBUG")]
@@ -130,6 +154,7 @@ public class OpenALAudioSystem : IAudioSystem
 
     public void Dispose()
     {
+        m_cancelTask.Cancel();
         GC.SuppressFinalize(this);
         PerformDispose();
     }
@@ -137,6 +162,20 @@ public class OpenALAudioSystem : IAudioSystem
     internal void Unlink(OpenALAudioSourceManager context)
     {
         m_sourceManagers.Remove(context);
+    }
+
+    private void DefaultDeviceChangeTask()
+    {
+        while (true)
+        {
+            var currentDeviceName = GetDefaultDeviceName();
+            if (m_lastDeviceName != currentDeviceName)
+            {
+                m_lastDeviceName = currentDeviceName;
+                m_changeDeviceName = currentDeviceName;
+            }
+            Thread.Sleep(1000);
+        }
     }
 
     private void PerformDispose()
