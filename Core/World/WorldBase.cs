@@ -41,7 +41,6 @@ using Helion.World.Impl.SinglePlayer;
 using Helion.World.Util;
 using Helion.Resources.IWad;
 using Helion.Dehacked;
-using Helion.Resources.Archives;
 using Helion.Util.Profiling;
 using Helion.World.Entities.Inventories;
 using Helion.Maps.Specials;
@@ -58,8 +57,6 @@ using System.Diagnostics;
 using Helion.Resources.Archives.Entries;
 using Helion.Maps.Doom;
 using Helion.Maps.Specials.Vanilla;
-using Helion.World.Special.SectorMovement;
-using Helion.Strings;
 using Helion.Util.Loggers;
 
 namespace Helion.World;
@@ -396,6 +393,7 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.OriginalExplosion.OnChanged += OriginalExplosion_OnChanged;
         Config.Compatibility.FinalDoomTeleport.OnChanged += FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged += VanillaSectorSound_OnChanged;
+        Config.Game.FastMonsters.OnChanged += FastMonsters_OnChanged;
     }
 
     private void UnRegisterConfigChanges()
@@ -415,6 +413,7 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.OriginalExplosion.OnChanged -= OriginalExplosion_OnChanged;
         Config.Compatibility.FinalDoomTeleport.OnChanged -= FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged -= VanillaSectorSound_OnChanged;
+        Config.Game.FastMonsters.OnChanged -= FastMonsters_OnChanged;
     }
 
     private void SetWorldStatic()
@@ -499,6 +498,11 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.SlowTickLookMultiplier = value;
     private void SlowTickTracerMultiplier_OnChanged(object? sender, int value) =>
         WorldStatic.SlowTickTracerMultiplier = value;
+    private void FastMonsters_OnChanged(object? sender, bool enabled)
+    {
+        IsFastMonsters = SkillDefinition.IsFastMonsters(Config);
+        WorldStatic.IsFastMonsters = IsFastMonsters;
+    }
 
     private IList<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
     {
