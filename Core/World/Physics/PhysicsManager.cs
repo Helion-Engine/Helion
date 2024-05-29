@@ -510,8 +510,7 @@ public sealed class PhysicsManager
     {
         if (entity.SetCrushState())
         {
-            if (m_world.Config.Compatibility.VileGhosts)
-                entity.Radius = 0;
+            entity.Flags.CrushGiblets = true;
             return;
         }
 
