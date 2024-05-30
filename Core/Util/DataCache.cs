@@ -343,14 +343,6 @@ public class DataCache
 
     public void FreeAudioNode(LinkedListNode<IAudioSource> audio)
     {
-        for (int i = 0; i < m_audioNodes.Length; i++)
-        {
-            if (audio == m_audioNodes[i])
-            {
-                throw new Exception("Audio node already free");
-            }
-        }
-
         audio.Value = null!;
         m_audioNodes.Add(audio);
     }
