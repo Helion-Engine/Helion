@@ -560,10 +560,10 @@ public class DataCache
         {
             list = new();
             m_flatVertices[vertices.Length] = list;
-            ref var reference = ref MemoryMarshal.GetArrayDataReference(vertices);
-            Unsafe.InitBlockUnaligned(ref Unsafe.As<LegacyVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<LegacyVertex>() * vertices.Length));
         }
         list.Add(vertices);
+        ref var reference = ref MemoryMarshal.GetArrayDataReference(vertices);
+        Unsafe.InitBlockUnaligned(ref Unsafe.As<LegacyVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<LegacyVertex>() * vertices.Length));
     }
 
     public SkyGeometryVertex[] GetSkyFlatVertices(int length)
