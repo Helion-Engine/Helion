@@ -25,19 +25,20 @@ using Helion.World.Special.SectorMovement;
 using Helion.World.Geometry.Lines;
 using Helion.Util.Consoles;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
-using System.Reflection;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.World.Geometry.Islands;
 using System.Runtime.CompilerServices;
-using Helion.Util.Extensions;
-using Newtonsoft.Json.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Runtime.InteropServices;
 
 namespace Helion.Util;
 
 public class DataCache
 {
+    // For Tests only
+    public DynamicArray<LinkedListNode<IAudioSource>> GetAudioNodes() => m_audioNodes;
+    public DynamicArray<IAudioSource> GetAudioSources() => m_audioSources;
+
+
     private const int DefaultLength = 1024;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -209,7 +210,7 @@ public class DataCache
     }
 
     public void FreeAudioSource(IAudioSource audioSource)
-    {
+    {        
         if (audioSource is not OpenALAudioSource)
             return;
 
@@ -342,6 +343,14 @@ public class DataCache
 
     public void FreeAudioNode(LinkedListNode<IAudioSource> audio)
     {
+        for (int i = 0; i < m_audioNodes.Length; i++)
+        {
+            if (audio == m_audioNodes[i])
+            {
+                throw new Exception("Audio node already free");
+            }
+        }
+
         audio.Value = null!;
         m_audioNodes.Add(audio);
     }

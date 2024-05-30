@@ -27,7 +27,7 @@ public class OpenALAudioSystem : IAudioSystem
     private readonly CancellationTokenSource m_cancelTask = new();
     private OpenALDevice m_alDevice;
     private OpenALContext m_alContext;
-    private string m_changeDeviceName;
+    private string m_changeDeviceName = string.Empty;
     private string m_lastDeviceName;
 
     public OpenALAudioSystem(IConfig config, ArchiveCollection archiveCollection, IMusicPlayer musicPlayer)

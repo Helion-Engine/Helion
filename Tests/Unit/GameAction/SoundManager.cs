@@ -20,12 +20,89 @@ namespace Helion.Tests.Unit.GameAction
 
         public SoundManager()
         {
-            World = WorldAllocator.LoadMap("Resources/sound.zip", "sound.wad", "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap("Resources/sound.zip", "sound.wad", "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2, cacheWorld: false);
         }
 
         private void WorldInit(SinglePlayerWorld world)
         {
             world.SoundManager.SetMaxConcurrentSounds(32);
+        }
+
+        [Fact(DisplayName = "Static sound")]
+        public void StaticSound()
+        {
+            World.SoundManager.PlayStaticSound(Constants.MenuSounds.Activate);
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(1);
+
+            // Only one allowed at a time
+            World.SoundManager.PlayStaticSound(Constants.MenuSounds.Backup);
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(1);
+            World.Tick();
+
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(1);
+
+            World.SoundManager.PlayStaticSound(Constants.MenuSounds.Activate);
+
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(1);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
+
+            GameActions.TickWorld(World, 70);
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
+        }
+
+        [Fact(DisplayName = "Check sounds to play and playing sounds counts")]
+        public void PlaySounds()
+        {
+            World.ArchiveCollection.DataCache.GetAudioNodes().Clear();
+
+            for (int i = 0; i < World.Sectors.Count; i++)
+                World.SoundManager.CreateSoundOn(World.Sectors[i].Floor, "plats/pt1_strt", new SoundParams(World.Player));
+
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(World.Sectors.Count);
+
+            World.Tick();
+
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(World.Sectors.Count);
+
+            for (int i = 0; i < World.Sectors.Count; i++)
+                World.SoundManager.CreateSoundOn(World.Sectors[i].Ceiling, "plats/pt1_strt", new SoundParams(World.Player));
+
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(World.Sectors.Count);
+
+            World.Tick();
+
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(World.Sectors.Count * 2);
+
+            GameActions.TickWorld(World, 70);
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
+            World.SoundManager.GetWaitingSounds().Count.Should().Be(0);
+
+            World.ArchiveCollection.DataCache.GetAudioNodes().Length.Should().Be(World.Sectors.Count * 2);
+        }
+
+        [Fact(DisplayName = "Check sounds to play and playing sounds counts")]
+        public void ClearSounds()
+        {
+            World.ArchiveCollection.DataCache.GetAudioNodes().Clear();
+
+            for (int i = 0; i < World.Sectors.Count; i++)
+                World.SoundManager.CreateSoundOn(World.Sectors[i].Floor, "plats/pt1_strt", new SoundParams(World.Player));
+
+            World.Tick();
+
+            for (int i = 0; i < World.Sectors.Count; i++)
+                World.SoundManager.CreateSoundOn(World.Sectors[i].Ceiling, "plats/pt1_strt", new SoundParams(World.Player));
+
+            World.SoundManager.ClearSounds();
+
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
+            World.SoundManager.GetWaitingSounds().Count.Should().Be(0);
+            World.ArchiveCollection.DataCache.GetAudioNodes().Length.Should().Be(World.Sectors.Count * 2);
         }
 
         [Fact(DisplayName = "Looping sector sound")]

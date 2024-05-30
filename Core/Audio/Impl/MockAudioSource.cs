@@ -77,12 +77,12 @@ namespace Helion.Audio.Impl
             m_pitch = pitch;
         }
 
-        public void SetPosition(Vec3F pos)
+        public void SetPosition(float x, float y, float z)
         {
-            m_position = pos;
+            m_position = new(x, y, z);
         }
 
-        public void SetVelocity(Vec3F velocity)
+        public void SetVelocity(float x, float y, float z)
         {
 
         }

@@ -17,10 +17,10 @@ public interface IAudioSource : IDisposable
 {
     public event EventHandler? Completed;
 
-    void SetPosition(Vec3F pos);
+    void SetPosition(float x, float y, float z);
     Vec3F GetPosition();
 
-    void SetVelocity(Vec3F velocity);
+    void SetVelocity(float x, float y, float z);
     Vec3F GetVelocity();
 
     float GetPitch();
