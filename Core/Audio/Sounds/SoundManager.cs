@@ -524,6 +524,8 @@ public class SoundManager : IDisposable
 
     public virtual void Update()
     {
+        AudioManager.Tick();
+
         // Note: We do not set the position here since everything should be
         // attenuated globally.
         UpdateWaitingLoopSounds();
