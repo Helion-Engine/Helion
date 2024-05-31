@@ -168,6 +168,9 @@ public class OpenALAudioSystem : IAudioSystem
     {
         while (true)
         {
+            if (m_cancelTask.IsCancellationRequested)
+                break;
+
             var currentDeviceName = GetDefaultDeviceName();
             if (m_lastDeviceName != currentDeviceName)
             {
