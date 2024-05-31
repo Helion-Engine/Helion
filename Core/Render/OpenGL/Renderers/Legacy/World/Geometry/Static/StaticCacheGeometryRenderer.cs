@@ -20,12 +20,7 @@ using System.Collections.Generic;
 using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
-using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
-using System.Diagnostics;
-using Helion.Util.Loggers;
-using System.Linq;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -124,10 +119,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SectorLightChanged += World_SectorLightChanged;
 
         SetLightBufferData(world, lightBuffer);
-
-        m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
-        m_geometryRenderer.SetViewSector(DefaultSector);
-        m_geometryRenderer.SetBuffer(false);
+        m_geometryRenderer.SetInitRender();
 
         for (int i = 0; i < world.Sectors.Count; i++)
         {
