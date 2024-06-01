@@ -433,12 +433,14 @@ public partial class MapInfoDefinition
         return clusterDef;
     }
 
+    private static readonly string[] TextSplit = ["\\n", "\n"];
+
     private List<string> GetClusterText(SimpleParser parser)
     {
         if (m_legacy)
             return new List<string>(parser.ConsumeString().Split('\n'));
 
-        List<string> textItems = new List<string>();
+        List<string> textItems = [];
         while (!ClusterNames.Contains(parser.PeekString()))
         {
             string text = parser.ConsumeString();
@@ -452,10 +454,7 @@ public partial class MapInfoDefinition
                 break;
             }
 
-            if (text.Contains("\\n"))
-                textItems.AddRange(text.Split("\\n"));
-            else
-                textItems.Add(text);
+            textItems.AddRange(text.Split(TextSplit, StringSplitOptions.None));
 
             if (!hasComma)
                 break;
