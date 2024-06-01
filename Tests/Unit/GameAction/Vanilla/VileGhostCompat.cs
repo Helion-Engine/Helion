@@ -95,10 +95,12 @@ public class VileGhostCompat
         GameActions.TickWorld(World, () => { return crushSector.Ceiling.Z < 100; }, () => { });
         GameActions.ActivateLine(World, Player, 5, ActivationContext.UseLine).Should().BeTrue();
         imp.IsDead.Should().BeTrue();
+        imp.Flags.CrushGiblets.Should().BeTrue();
 
         GameActions.SetEntityPosition(World, Player, (-192, -448));
         World.NoiseAlert(Player, Player);
         GameActions.TickWorld(World, () => { return imp.IsDead; }, () => { });
+        imp.Flags.CrushGiblets.Should().BeFalse();
         return imp;
     }
 

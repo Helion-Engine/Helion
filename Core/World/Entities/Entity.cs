@@ -527,6 +527,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             FrameState.SetFrameIndex(Definition.RaiseState.Value);
             Health = Definition.Properties.Health;
             Height = Definition.Properties.Height;
+            Flags.CrushGiblets = false;
             if (restoreFlags)
                 Flags = Definition.Flags;
         }
