@@ -96,6 +96,7 @@ public partial class MapInfoDefinition
     private static readonly string MapSecretName = "secretnext";
     private static readonly string MapSky1Name = "sky1";
     private static readonly string MapSky2Name = "sky2";
+    private static readonly string MapSkyBoxName = "skybox";
     private static readonly string MapClusterName = "cluster";
     private static readonly string MapParName = "par";
     private static readonly string MapSuckName = "sucktime";
@@ -114,6 +115,7 @@ public partial class MapInfoDefinition
         MapSecretName,
         MapSky1Name,
         MapSky2Name,
+        MapSkyBoxName,
         MapClusterName,
         MapParName,
         MapSuckName,
