@@ -100,12 +100,12 @@ public class LegacyHudRenderer : HudRenderer
                 HudVertex bottomLeft = MakeVertex(left, bottom, uvLeft, uvBottom, glyph, alpha);
                 HudVertex bottomRight = MakeVertex(right, bottom, uvRight, uvBottom, glyph, alpha);
 
-                HudQuad quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
+                HudQuad quad = new(topLeft, topRight, bottomLeft, bottomRight);
                 m_drawBuffer.Add(font.Texture, quad);
+
+                DrawDepth += 1.0f;
             }
         }
-
-        DrawDepth += 1.0f;
     }
 
     private HudVertex MakeVertex(float x, float y, float u, float v, RenderableGlyph glyph, float alpha)
