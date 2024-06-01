@@ -504,6 +504,11 @@ public class GeometryRenderer : IDisposable
         if (m_drawnSides[side.Id] == WorldStatic.CheckCounter)
             return;
 
+        if (side.Line.Id == 27)
+        {
+            int lol = 1;
+        }
+
         m_drawnSides[side.Id] = WorldStatic.CheckCounter;
         if (m_config.Render.TextureTransparency && side.Line.Alpha < 1)
         {
@@ -566,7 +571,7 @@ public class GeometryRenderer : IDisposable
         if (side.CeilingFloodKey > 0)
             Portals.UpdateFloodFillPlane(side, side.Sector, SectorPlanes.Ceiling, SectorPlaneFace.Ceiling, isFrontSide);
 
-        if (side.IsTwoSided)
+        if (side.Line.Flags.TwoSided)
             RenderTwoSided(side, isFrontSide);
         else if (side.IsDynamic)
             RenderOneSided(side, out _, out _);
@@ -586,6 +591,13 @@ public class GeometryRenderer : IDisposable
         SectorPlane floor = renderSector.Floor;
         SectorPlane ceiling = renderSector.Ceiling;
         RenderSkySide(side, renderSector, null, texture, out skyVertices);
+
+        if (side.Middle.TextureHandle <= Constants.NullCompatibilityTextureIndex)
+        {
+            vertices = null;
+            skyVertices = null;
+            return;
+        }
 
         if (side.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
@@ -948,7 +960,7 @@ public class GeometryRenderer : IDisposable
         SectorPlane ceiling = facingSector.Ceiling;
 
         WallVertices wall = default;
-        if (facingSide.IsTwoSided && otherSector != null && LineOpening.IsRenderingBlocked(facingSide.Line) &&
+        if (facingSide.Line.Back != null && otherSector != null && LineOpening.IsRenderingBlocked(facingSide.Line) &&
             SkyUpperRenderFromFloorCheck(facingSide, facingSector, otherSector))
         {
             WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, ref wall,

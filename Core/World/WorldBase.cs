@@ -1638,7 +1638,7 @@ public abstract partial class WorldBase : IWorld
             }
 
             bool skyClip = false;
-            if (entity.BlockingLine != null && !entity.BlockingLine.OneSided)
+            if (entity.BlockingLine != null && entity.BlockingLine.Back != null)
             {
                 GetOrderedSectors(entity.BlockingLine, entity.Position, out Sector front, out Sector back);
                 if (IsSkyClipTwoSided(front, back, entity.Position))

@@ -12,7 +12,8 @@ public struct LineFlags
     public bool BlockSound;
     public bool Repeat;
     public bool PassThrough;
-    public bool Secret => Automap.DrawAsOneSided;
+    public bool TwoSided;
+    public readonly bool Secret => Automap.DrawAsOneSided;
 
     public LineFlags(MapLineFlags flags)
     {
@@ -35,6 +36,7 @@ public struct LineFlags
         Activations = flags.Activations;
         Repeat = flags.RepeatSpecial;
         PassThrough = flags.PassThrough;
+        TwoSided = flags.TwoSided;
     }
 
     public override bool Equals(object? obj)
@@ -48,7 +50,8 @@ public struct LineFlags
             lineFlags.Activations == Activations &&
             lineFlags.BlockSound == BlockSound &&
             lineFlags.Repeat == Repeat &&
-            lineFlags.PassThrough == PassThrough;
+            lineFlags.PassThrough == PassThrough &&
+            lineFlags.TwoSided == TwoSided;
     }
 
     public override int GetHashCode()

@@ -1238,7 +1238,7 @@ public sealed class PhysicsManager
 
 
 doneIsPositionValid:
-        if (entity.BlockingLine != null && Line.BlocksEntity(entity, entity.BlockingLine.OneSided, entity.BlockingLine.Flags, WorldStatic.Mbf21))
+        if (entity.BlockingLine != null && Line.BlocksEntity(entity, entity.BlockingLine.Back == null, entity.BlockingLine.Flags, WorldStatic.Mbf21))
         {
             tryMove.Subsector = null;
             tryMove.Success = false;

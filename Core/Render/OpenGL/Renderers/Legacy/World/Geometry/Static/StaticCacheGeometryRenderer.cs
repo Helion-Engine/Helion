@@ -290,7 +290,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddLine(Line line, bool update = false)
     {
-        if (line.OneSided)
+        if (line.Back == null)
         {
             if ((line.Front.Dynamic & m_sideDynamicIgnore) != 0)
                 return;

@@ -6,14 +6,7 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special;
 using Helion.Geometry.Vectors;
-using Helion.World.Geometry.Sectors;
-using System.Collections.Generic;
 using Helion.Resources;
-using Helion.World.Bsp;
-using System.Linq;
-using Helion.Maps.Bsp.Geometry;
-using Helion.World.Geometry.Islands;
-using Helion.World.Blockmap;
 using Helion.World.Geometry.Walls;
 
 namespace Helion.World.Geometry.Lines;
@@ -41,8 +34,6 @@ public sealed class Line
 
     public Vec2D StartPosition => Segment.Start;
     public Vec2D EndPosition => Segment.End;
-    public bool OneSided => Back == null;
-    public bool TwoSided => !OneSided;
     public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;
     public bool HasSectorTag => SectorTag > 0;
     public int SectorTag => Args.Arg0;

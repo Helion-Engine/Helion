@@ -161,7 +161,7 @@ public class CompactBspTree
         // shared with the instantiated lines.
         Line line = builder.Lines[edge.Line.Id];
 
-        Precondition(!(line.OneSided && !edge.IsFront), "Trying to get a back side for a one sided line");
+        Precondition(!(line.Back == null && !edge.IsFront), "Trying to get a back side for a one sided line");
         return edge.IsFront ? line.Front : line.Back;
     }
 

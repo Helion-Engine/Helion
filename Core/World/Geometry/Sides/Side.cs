@@ -33,8 +33,7 @@ public sealed class Side : IRenderObject
     public bool IsDynamic => Dynamic != SectorDynamic.None;
     public SideTexture FloodTextures;
 
-    public bool IsFront => ReferenceEquals(this, Line.Front);
-    public bool IsTwoSided => Line.Back != null;
+    public bool IsFront => this == Line.Front;
     public Side? PartnerSide => IsFront ? Line.Back : Line.Front;
 
     public SideScrollData? ScrollData;
