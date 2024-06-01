@@ -22,6 +22,7 @@ public interface IInputManager
     bool HasAnyKeyPressed();
     bool HasAnyKeyDown();
     void Clear();
+    void ClearMouse();
     void ProcessedKeys();
     void ProcessedMouseMovement();
     bool IsKeyContinuousHold(Key key);

@@ -217,11 +217,13 @@ public class GameLayerManager : IGameLayerManager
         else if (ReferenceEquals(layer, OptionsLayer))
         {
             OptionsLayer = null;
+            m_window.InputManager.ClearMouse();
         }
         else if (ReferenceEquals(layer, MenuLayer))
         {
             MenuLayer?.Dispose();
             MenuLayer = null;
+            m_window.InputManager.ClearMouse();
         }
         else if (ReferenceEquals(layer, ReadThisLayer))
         {
