@@ -38,8 +38,6 @@ public class OpenALAudioSystem : IAudioSystem
         m_alContext = new OpenALContext(m_alDevice);
         Music = musicPlayer;
 
-        m_config.Audio.SoundVolume.OnChanged += OnSoundVolumeChange;
-
         m_lastDeviceName = GetDeviceName();
         Task.Factory.StartNew(DefaultDeviceChangeTask, m_cancelTask.Token,
             TaskCreationOptions.LongRunning, TaskScheduler.Default);
@@ -140,15 +138,11 @@ public class OpenALAudioSystem : IAudioSystem
         PerformDispose();
     }
 
-    private void OnSoundVolumeChange(object? sender, double newVolume)
-    {
-        SetVolume(newVolume);
-    }
-
     public IAudioSourceManager CreateContext()
     {
         OpenALAudioSourceManager sourceManager = new(this, m_archiveCollection, m_config);
         m_sourceManagers.Add(sourceManager);
+        SetVolume(m_config.Audio.SoundVolume * m_config.Audio.Volume);
         return sourceManager;
     }
 
@@ -188,8 +182,6 @@ public class OpenALAudioSystem : IAudioSystem
         // it.
         m_sourceManagers.ToList().ForEach(srcManager => srcManager.Dispose());
         Invariant(m_sourceManagers.Empty(), "Disposal of AL audio context children should empty out of the context container");
-
-        m_config.Audio.SoundVolume.OnChanged -= OnSoundVolumeChange;
 
         m_alContext.Dispose();
         m_alDevice.Dispose();
