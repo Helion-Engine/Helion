@@ -566,7 +566,7 @@ public class GeometryRenderer : IDisposable
         if (side.CeilingFloodKey > 0)
             Portals.UpdateFloodFillPlane(side, side.Sector, SectorPlanes.Ceiling, SectorPlaneFace.Ceiling, isFrontSide);
 
-        if (side.Line.Flags.TwoSided)
+        if (side.Line.Flags.TwoSided && side.Line.Back != null)
             RenderTwoSided(side, isFrontSide);
         else if (side.IsDynamic)
             RenderOneSided(side, isFrontSide, out _, out _);
