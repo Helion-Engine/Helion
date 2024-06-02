@@ -504,11 +504,6 @@ public class GeometryRenderer : IDisposable
         if (m_drawnSides[side.Id] == WorldStatic.CheckCounter)
             return;
 
-        if (side.Line.Id == 27)
-        {
-            int lol = 1;
-        }
-
         m_drawnSides[side.Id] = WorldStatic.CheckCounter;
         if (m_config.Render.TextureTransparency && side.Line.Alpha < 1)
         {
@@ -574,10 +569,10 @@ public class GeometryRenderer : IDisposable
         if (side.Line.Flags.TwoSided)
             RenderTwoSided(side, isFrontSide);
         else if (side.IsDynamic)
-            RenderOneSided(side, out _, out _);
+            RenderOneSided(side, isFrontSide, out _, out _);
     }
 
-    public void RenderOneSided(Side side, out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
+    public void RenderOneSided(Side side, bool isFront, out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
     {
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
         side.LastRenderGametick = m_world.Gametick;
@@ -602,7 +597,7 @@ public class GeometryRenderer : IDisposable
         if (side.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
             int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Wall);
-            WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, ref wall);
+            WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, ref wall, isFront: isFront);
             if (m_cacheOverride)
             {
                 data = m_wallVertices;
