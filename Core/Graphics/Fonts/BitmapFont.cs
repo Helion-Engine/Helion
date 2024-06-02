@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Render.Common;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Fonts.Definition;
@@ -40,7 +39,7 @@ public static class BitmapFont
             if (definition.Grayscale)
                 image.ConvertToGrayscale(definition.GrayscaleNormalization);
             
-            return new Font(definition.Name, glyphs, image, fixedHeight: definition.FixedHeight);
+            return new Font(definition.Name, glyphs, image, fixedWidth: definition.FixedWidth, fixedHeight: definition.FixedHeight);
         }
         catch
         {
@@ -126,19 +125,24 @@ public static class BitmapFont
         Dimension atlasDimension = (width, maxHeight);
         Image atlas = new(width, maxHeight, imageType);
 
-        foreach ((char c, Image charImage) in charImages)
+        foreach ((char c, Image image) in charImages)
         {
+            var charImage = image;
             offsetX += padding;
 
             int charWidth = definition.FixedWidth.HasValue ? definition.FixedWidth.Value : charImage.Width;
-            var offset = definition.UseOffset ? RenderDimensions.TranslateDoomOffset(charImage.Offset) : Vec2I.Zero;
+            var offset = Vec2I.Zero;
             offset.X += offsetX;
 
             charImage.DrawOnTopOf(atlas, offset);
             var glyphDimension = charImage.Dimension;
             glyphDimension.Width = charWidth;
-            glyphs[c] = new Glyph(c, (offsetX, 0), glyphDimension, atlasDimension);
+            offset = definition.UseOffset ? new Vec2I(charImage.Offset.X, -charImage.Offset.Y) : Vec2I.Zero;
 
+            if (definition.FixedWidth != null && charImage.Width < definition.FixedWidth.Value)
+                offset.X += definition.FixedWidth.Value - charImage.Width;
+            // Offsets need to handled in the renderer as they can be drawn off atlas.
+            glyphs[c] = new Glyph(c, (offsetX, 0), glyphDimension, atlasDimension, offset);
             offsetX += charWidth + padding;
         }
 

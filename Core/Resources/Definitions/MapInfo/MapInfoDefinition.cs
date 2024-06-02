@@ -281,6 +281,8 @@ public partial class MapInfoDefinition
             mapDef.Sky1 = ParseMapSky(parser);
         else if (item.Equals(MapSky2Name, StringComparison.OrdinalIgnoreCase))
             mapDef.Sky2 = ParseMapSky(parser);
+        else if (item.Equals(MapSkyBoxName, StringComparison.OrdinalIgnoreCase))
+            mapDef.Sky1 = new SkyDef() { Name = parser.ConsumeString() };
         else if (item.Equals(MapClusterName, StringComparison.OrdinalIgnoreCase))
             mapDef.Cluster = parser.ConsumeInteger();
         else if (item.Equals(MapParName, StringComparison.OrdinalIgnoreCase))
