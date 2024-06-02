@@ -40,9 +40,15 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.AssertFlags(GameActions.GetLine(World, 1).Flags.Unpegged,
                 unpeggedFlags.GetField(nameof(UnpeggedFlags.Upper)));
 
+            GameActions.AssertFlags(GameActions.GetLine(World, 8).Flags,
+                lineFlags.GetField(nameof(LineFlags.TwoSided)));
+
             GameActions.AssertFlags(GameActions.GetLine(World, 8).Flags.Blocking,
                 lineBlockFlags.GetField(nameof(LineBlockFlags.Players)),
                 lineBlockFlags.GetField(nameof(LineBlockFlags.Monsters)));
+
+            GameActions.AssertFlags(GameActions.GetLine(World, 9).Flags,
+                lineFlags.GetField(nameof(LineFlags.TwoSided)));
 
             GameActions.AssertFlags(GameActions.GetLine(World, 9).Flags.Blocking,
                 lineBlockFlags.GetField(nameof(LineBlockFlags.Monsters)));
