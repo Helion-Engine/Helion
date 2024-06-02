@@ -89,6 +89,7 @@ public partial class Client : IDisposable, IInputManagement
 
         SetMouseRawInput();
         RegisterConfigChanges();
+        UpdateVolume();
         m_ticker.Start();
     }
 
@@ -420,9 +421,7 @@ public partial class Client : IDisposable, IInputManagement
             using HelionConsole console = new(archiveCollection.DataCache, config, commandLineArgs);
             LogClientInfo();
             using IMusicPlayer musicPlayer = new MusicPlayer(config);
-            musicPlayer.SetVolume((float)config.Audio.MusicVolume.Value);
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
-            audioPlayer.SetVolume(config.Audio.SoundVolume.Value);
 
             using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);
             client.Run();

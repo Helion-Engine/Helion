@@ -12,6 +12,7 @@ public partial class Client
     {
         m_config.Audio.MusicVolume.OnChanged += MusicVolume_OnChanged;
         m_config.Audio.SoundVolume.OnChanged += SoundVolume_OnChanged;
+        m_config.Audio.Volume.OnChanged += Volume_OnChanged;
         m_config.Mouse.Look.OnChanged += Look_OnChanged;
 
         m_config.Window.State.OnChanged += WindowState_OnChanged;
@@ -81,9 +82,15 @@ public partial class Client
         m_config.Mouse.Look.OnChanged -= Look_OnChanged;
     }
 
-    private void SoundVolume_OnChanged(object? sender, double volume) =>
-        m_audioSystem.SetVolume(volume);
+    private void SoundVolume_OnChanged(object? sender, double volume) => UpdateVolume();
 
-    private void MusicVolume_OnChanged(object? sender, double volume) =>
-        m_audioSystem.Music.SetVolume((float)volume);
+    private void MusicVolume_OnChanged(object? sender, double volume) => UpdateVolume();
+
+    private void Volume_OnChanged(object? sender, double e) => UpdateVolume();
+
+    private void UpdateVolume()
+    {
+        m_audioSystem.SetVolume(m_config.Audio.SoundVolume * m_config.Audio.Volume);
+        m_audioSystem.Music.SetVolume((float)(m_config.Audio.MusicVolume * m_config.Audio.Volume));
+    }
 }
