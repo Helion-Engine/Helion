@@ -174,11 +174,11 @@ public class EntityRenderer : IDisposable
         {
             if (m_renderPositions.TryGetValue(entityPos, out int count))
             {
-                double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position), NudgeFactor, double.MaxValue);
+                double nudge = Math.Clamp(NudgeFactor * Math.Sqrt(entity.RenderDistanceSquared), NudgeFactor, 2);
                 double angle = Math.Atan2(centerBottom.Y - position.Y, centerBottom.X - position.X);
                 nudgeAmount.X = Math.Cos(angle) * nudge * count;
                 nudgeAmount.Y = Math.Sin(angle) * nudge * count;
-                m_renderPositions[entityPos] = count + 1;
+                m_renderPositions[entityPos] = count + 1;      
             }
             else
             {
