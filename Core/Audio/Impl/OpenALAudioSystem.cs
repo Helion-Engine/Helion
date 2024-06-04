@@ -9,7 +9,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.Util.Loggers;
-using NLog;
 using OpenTK.Audio.OpenAL;
 using static Helion.Util.Assertion.Assert;
 
@@ -29,6 +28,7 @@ public class OpenALAudioSystem : IAudioSystem
     private OpenALContext m_alContext;
     private string m_changeDeviceName = string.Empty;
     private string m_lastDeviceName;
+    private float m_volume = 1;
 
     public OpenALAudioSystem(IConfig config, ArchiveCollection archiveCollection, IMusicPlayer musicPlayer)
     {
@@ -38,7 +38,7 @@ public class OpenALAudioSystem : IAudioSystem
         m_alContext = new OpenALContext(m_alDevice);
         Music = musicPlayer;
 
-        m_lastDeviceName = GetDeviceName();
+        m_lastDeviceName = m_alDevice.OpenALDeviceName;
         Task.Factory.StartNew(DefaultDeviceChangeTask, m_cancelTask.Token,
             TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
@@ -73,6 +73,7 @@ public class OpenALAudioSystem : IAudioSystem
 
         m_alDevice = new OpenALDevice(deviceName);
         m_alContext = new OpenALContext(m_alDevice);
+        SetVolume(m_volume);
 
         // TODO: This assumes we always successfully changed. We should probably limit this.
         return true;
@@ -80,7 +81,8 @@ public class OpenALAudioSystem : IAudioSystem
 
     public void SetVolume(double volume)
     {
-        AL.Listener(ALListenerf.Gain, (float)volume);
+        m_volume = (float)volume;
+        AL.Listener(ALListenerf.Gain, (float)m_volume);
     }
 
     public void ThrowIfErrorCheckFails()
