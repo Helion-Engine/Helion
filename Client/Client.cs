@@ -420,7 +420,7 @@ public partial class Client : IDisposable, IInputManagement
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(archiveCollection.DataCache, config, commandLineArgs);
             LogClientInfo();
-            using IMusicPlayer musicPlayer = new MusicPlayer(config);
+            using IMusicPlayer musicPlayer = new MusicPlayer();
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
 
             using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);
