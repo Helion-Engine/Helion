@@ -91,6 +91,8 @@ public class MusicPlayer : IMusicPlayer
         return false;
     }
 
+    public bool ChangesMasterVolume() => m_musicPlayer is NAudioMusicPlayer;
+
     private static IMusicPlayer CreateFluidSynthPlayer() => 
         new FluidSynthMusicPlayer($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");
 

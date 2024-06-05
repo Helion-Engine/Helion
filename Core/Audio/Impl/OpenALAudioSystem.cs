@@ -82,7 +82,7 @@ public class OpenALAudioSystem : IAudioSystem
     public void SetVolume(double volume)
     {
         m_volume = (float)volume;
-        AL.Listener(ALListenerf.Gain, (float)m_volume);
+        AL.Listener(ALListenerf.Gain, m_volume);
     }
 
     public void ThrowIfErrorCheckFails()

@@ -90,7 +90,23 @@ public partial class Client
 
     private void UpdateVolume()
     {
-        m_audioSystem.SetVolume(m_config.Audio.SoundVolume * m_config.Audio.Volume);
-        m_audioSystem.Music.SetVolume((float)(m_config.Audio.MusicVolume * m_config.Audio.Volume));
+        var musicVolume = (float)(m_config.Audio.MusicVolume * m_config.Audio.Volume);
+        var soundVolume = m_config.Audio.SoundVolume * m_config.Audio.Volume;
+
+        // Hack to work around NAudioChanging the master volume
+        // This isn't really correct and will drift with open al using scaling
+        if (m_audioSystem.Music.ChangesMasterVolume())
+        {
+            if (musicVolume == 0)
+                musicVolume = 0.01f;
+            var diff = (musicVolume - soundVolume);
+            m_audioSystem.Music.SetVolume(musicVolume);
+            m_audioSystem.SetVolume(1 - diff);
+        }
+        else
+        {
+            m_audioSystem.Music.SetVolume(musicVolume);
+            m_audioSystem.SetVolume(soundVolume);
+        }
     }
 }

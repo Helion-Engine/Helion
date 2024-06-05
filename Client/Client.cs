@@ -244,6 +244,7 @@ public partial class Client : IDisposable, IInputManagement
         // Flag the WorldLayer that it is safe to render now that everything has been loaded
         newLayer.ShouldRender = true;
         m_layerManager.LoadingLayer?.SetFadeOut(TimeSpan.FromSeconds(1));
+        UpdateVolume();
     }
 
     /// <summary>

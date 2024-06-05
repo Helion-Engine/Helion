@@ -272,7 +272,6 @@ public partial class Client
         // TODO: We should poll the device after setting it, and if SetDevice == true, set the config value.
         m_config.Audio.Device.Set(deviceName);
         m_audioSystem.SetDevice(deviceName);
-        m_audioSystem.SetVolume(m_config.Audio.Volume);
     }
 
     [ConsoleCommand("audio.devices", "Prints all available audio devices")]
