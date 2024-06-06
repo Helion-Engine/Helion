@@ -24,7 +24,6 @@ public class EntityRenderer : IDisposable
     private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
     private DynamicArray<SpriteDefinition> m_spriteDefs = new(1024);
     private SpriteRotation m_nullSpriteRotation;
-    private double m_tickFraction;
     private Vec2F m_viewRightNormal;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
     private bool m_spriteAlpha;
@@ -69,9 +68,6 @@ public class EntityRenderer : IDisposable
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
     }
-
-    public void SetTickFraction(double tickFraction) =>
-        m_tickFraction = tickFraction;
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
     {
@@ -226,10 +222,14 @@ public class EntityRenderer : IDisposable
         arrayData.Length = length + 1;
     }
 
-    private void SetUniforms(RenderInfo renderInfo)
+    public void Start(RenderInfo renderInfo)
     {
         m_viewRightNormal = renderInfo.Camera.Direction.XY.RotateRight90().Unit();
         m_transferHeightView = renderInfo.TransferHeightView;
+    }
+
+    private void SetUniforms(RenderInfo renderInfo)
+    {
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.ExtraLight(renderInfo.Uniforms.ExtraLight);
         m_program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
@@ -256,7 +256,6 @@ public class EntityRenderer : IDisposable
     
     private void Render(RenderInfo renderInfo, bool alpha)
     {
-        m_tickFraction = renderInfo.TickFraction;
         m_program.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(renderInfo);

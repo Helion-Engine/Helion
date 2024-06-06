@@ -371,11 +371,6 @@ public class Renderer : IDisposable
         if (viewport.Width == 0 || viewport.Height == 0 || cmd.World.IsDisposed)
             return;
 
-        if (cmd.DrawAutomap)
-        {
-            // TODO: If drawing automap, draw black box everywhere.
-        }
-
         DrawHudImagesIfAnyQueued(viewport);
 
         var viewSector = cmd.World.BspTree.ToSector(cmd.Camera.PositionInterpolated.Double);
