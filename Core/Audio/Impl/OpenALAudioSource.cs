@@ -23,6 +23,9 @@ public class OpenALAudioSource : IAudioSource
 
     public AudioData AudioData { get; set; }
     public OpenALAudioSourceManager Owner { get; private set; }
+    public IAudioSource? Previous { get; set; }
+    public IAudioSource? Next { get; set; }
+
     private int m_sourceId;
     private bool m_disposed;
 

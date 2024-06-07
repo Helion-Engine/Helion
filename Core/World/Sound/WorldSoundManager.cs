@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Audio.Sounds;
 using Helion.Resources.Definitions.SoundInfo;
@@ -169,35 +168,30 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
         if (PlayingSounds.Count == 0)
             return;
 
-        LinkedListNode<IAudioSource>? node = PlayingSounds.First;
-        LinkedListNode<IAudioSource>? nextNode;
+        IAudioSource? node = PlayingSounds.Head;
+        IAudioSource? nextNode;
         while (node != null)
         {
             nextNode = node.Next;
-            if (node.Value.IsFinished())
+            if (node.IsFinished())
             {
-                m_world.DataCache.FreeAudioSource(node.Value);
-                PlayingSounds.Remove(node);
-                m_world.DataCache.FreeAudioNode(node);
+                PlayingSounds.RemoveAndFree(node, m_world.DataCache);
                 node = nextNode;
                 continue;
             }
 
-            double distance = node.Value.AudioData.SoundSource.GetDistanceFrom(listener.Entity);
-            if (!CheckDistance(distance, node.Value.AudioData.Attenuation))
+            double distance = node.AudioData.SoundSource.GetDistanceFrom(listener.Entity);
+            if (!CheckDistance(distance, node.AudioData.Attenuation))
             {
-                node.Value.Stop();
-                PlayingSounds.Remove(node);
-
-                AddWaitingSoundFromBumpedSound(node.Value);
-                m_world.DataCache.FreeAudioSource(node.Value);
-                m_world.DataCache.FreeAudioNode(node);
+                node.Stop();
+                PlayingSounds.RemoveAndFree(node, m_world.DataCache);
+                AddWaitingSoundFromBumpedSound(node);
             }
             else
             {
-                var position = node.Value.AudioData.SoundSource.GetSoundPosition(listener.Entity);
+                var position = node.AudioData.SoundSource.GetSoundPosition(listener.Entity);
                 if (position != null)
-                    node.Value.SetPosition((float)position.Value.X, (float)position.Value.Y, (float)position.Value.Z);
+                    node.SetPosition((float)position.Value.X, (float)position.Value.Y, (float)position.Value.Z);
             }
             node = nextNode;
         }

@@ -1,7 +1,8 @@
-﻿using Helion.Util;
+﻿using Helion.Audio.Sounds;
+using Helion.Util;
 using System.Collections.Generic;
 
-namespace Helion.Audio.Sounds;
+namespace Helion.Audio;
 
 public class WaitingSoundList : LinkedList<WaitingSound>
 {

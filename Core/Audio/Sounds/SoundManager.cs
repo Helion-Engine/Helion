@@ -33,8 +33,8 @@ public class SoundManager : IDisposable
 
     // Intended for unit tests only
     public void SetMaxConcurrentSounds(int count) => m_maxConcurrentSounds = count;
-    public LinkedList<IAudioSource> GetPlayingSounds() => PlayingSounds;
-    public LinkedList<IAudioSource> GetSoundsToPlay() => m_soundsToPlay;
+    public LinkedList<IAudioSource> GetPlayingSounds() => PlayingSounds.ToLinkedList();
+    public LinkedList<IAudioSource> GetSoundsToPlay() => m_soundsToPlay.ToLinkedList();
     public LinkedList<WaitingSound> GetWaitingSounds() => m_waitingLoopSounds;
     public bool PlaySound { get; set; } = true;
 
@@ -58,11 +58,11 @@ public class SoundManager : IDisposable
 
     private static IAudioSource? FindBySource(object source, SoundList audioSources)
     {
-        var node = audioSources.First;
+        var node = audioSources.Head;
         while (node != null)
         {
-            if (ReferenceEquals(source, node.Value.AudioData.SoundSource))
-                return node.Value;
+            if (ReferenceEquals(source, node.AudioData.SoundSource))
+                return node;
             node = node.Next;
         }
 
@@ -105,20 +105,20 @@ public class SoundManager : IDisposable
 
     public void Pause()
     {
-        LinkedListNode<IAudioSource>? node = PlayingSounds.First;
+        var node = PlayingSounds.Head;
         while (node != null)
         {
-            node.Value.Pause();
+            node.Pause();
             node = node.Next;
         }
     }
 
     public void Resume()
     {
-        LinkedListNode<IAudioSource>? node = PlayingSounds.First;
+        var node = PlayingSounds.Head;
         while (node != null)
         {
-            node.Value.Play();
+            node.Play();
             node = node.Next;
         }
     }
@@ -139,13 +139,14 @@ public class SoundManager : IDisposable
 
     protected void StopSound(IAudioSource audioSource, SoundList audioSources)
     {
-        LinkedListNode<IAudioSource>? node = audioSources.First;
+        var node = audioSources.Head;
         while (node != null)
         {
-            if (ReferenceEquals(audioSource, node.Value))
+            if (ReferenceEquals(audioSource, node))
             {
-                node.Value.Stop();
-                audioSources.Free(node, ArchiveCollection.DataCache);
+                node.Stop();
+                audioSources.RemoveAndFree(node, ArchiveCollection.DataCache);
+                return;
             }
             node = node.Next;
         }
@@ -214,28 +215,28 @@ public class SoundManager : IDisposable
 
     private void ClearSounds(SoundList audioSources)
     {
-        LinkedListNode<IAudioSource>? node = audioSources.First;
+        var node = audioSources.Head;
         while (node != null)
         {
             var nextNode = node.Next;
-            node.Value.Stop();
-            audioSources.Free(node, ArchiveCollection.DataCache);
+            node.Stop();
+            audioSources.RemoveAndFree(node, ArchiveCollection.DataCache);
             node = nextNode;
         }
     }
 
     protected void PlaySounds()
     {
-        if (m_soundsToPlay.Count == 0)
+        if (m_soundsToPlay.Head == null)
             return;
 
         if (!PlaySound)
         {
-            var clearNode = m_soundsToPlay.First;
+            var clearNode = m_soundsToPlay.Head;
             while (clearNode != null)
             {
-                clearNode.Value.Stop();
-                m_soundsToPlay.Free(clearNode, ArchiveCollection.DataCache);
+                clearNode.Stop();
+                m_soundsToPlay.RemoveAndFree(clearNode, ArchiveCollection.DataCache);
                 clearNode = clearNode.Next;
             }
             return;
@@ -243,12 +244,12 @@ public class SoundManager : IDisposable
 
         AudioManager.PlayGroup(m_soundsToPlay);
 
-        var node = m_soundsToPlay.First;
+        var node = m_soundsToPlay.Head;
         while (node != null)
         {
             var nextNode = node.Next;            
             m_soundsToPlay.Remove(node);
-            PlayingSounds.AddLast(node);
+            PlayingSounds.Add(node);
             node = nextNode;
         }
     }
@@ -272,12 +273,12 @@ public class SoundManager : IDisposable
     {
         bool soundStopped = false;
         int priority = GetPriority(source, soundInfo, soundParams);
-        LinkedListNode<IAudioSource>? node = audioSources.First;
-        LinkedListNode<IAudioSource>? nextNode;
+        var node = audioSources.Head;
+        IAudioSource? nextNode;
         while (node != null)
         {
             nextNode = node.Next;
-            var audioData = node.Value.AudioData;
+            var audioData = node.AudioData;
             if (!ShouldStopSoundBySource(source, priority, soundParams.Channel, sound,
                 audioData.SoundSource, audioData.SoundChannelType, audioData.SoundInfo.Name, audioData.Priority))
             {
@@ -285,8 +286,8 @@ public class SoundManager : IDisposable
                 continue;
             }
 
-            node.Value.Stop();
-            audioSources.Free(node, ArchiveCollection.DataCache);
+            node.Stop();
+            audioSources.RemoveAndFree(node, ArchiveCollection.DataCache);
             soundStopped = true;
             break;
         }
@@ -377,7 +378,7 @@ public class SoundManager : IDisposable
         }
 
         StopSoundsBySource(source, soundInfo, soundParams);
-        m_soundsToPlay.AddLast(ArchiveCollection.DataCache.GetAudioNode(audioSource));
+        m_soundsToPlay.Add(audioSource);
 
         source?.SoundCreated(soundInfo, audioSource, soundParams.Channel);
         return audioSource;
@@ -446,19 +447,19 @@ public class SoundManager : IDisposable
     {
         int lowestPriority = 0;
         double farthestDistance = 0;
-        LinkedListNode<IAudioSource>? lowestPriorityNode = null;
-        LinkedListNode<IAudioSource>? node = audioSources.First;
-        LinkedListNode<IAudioSource>? nextNode;
+        IAudioSource? lowestPriorityNode = null;
+        IAudioSource? node = audioSources.Head;
+        IAudioSource? nextNode;
         while (node != null)
         {
             nextNode = node.Next;
-            if (node.Value.AudioData.Attenuation != Attenuation.None && node.Value.AudioData.Priority > lowestPriority)
+            if (node.AudioData.Attenuation != Attenuation.None && node.AudioData.Priority > lowestPriority)
             {
-                double checkDistance = GetDistance(node.Value.AudioData.SoundSource);
+                double checkDistance = GetDistance(node.AudioData.SoundSource);
                 if (checkDistance > farthestDistance)
                 {
                     lowestPriorityNode = node;
-                    lowestPriority = node.Value.AudioData.Priority;
+                    lowestPriority = node.AudioData.Priority;
                     farthestDistance = checkDistance;
                 }
             }
@@ -468,10 +469,9 @@ public class SoundManager : IDisposable
 
         if (lowestPriorityNode != null && priority <= lowestPriority && (distance < farthestDistance || attenuation == Attenuation.None))
         {
-            lowestPriorityNode.Value.Stop();
-
-            AddWaitingSoundFromBumpedSound(lowestPriorityNode.Value);
-            audioSources.Free(lowestPriorityNode, ArchiveCollection.DataCache);
+            lowestPriorityNode.Stop();
+            audioSources.RemoveAndFree(lowestPriorityNode, ArchiveCollection.DataCache);
+            AddWaitingSoundFromBumpedSound(lowestPriorityNode);
             return true;
         }
 
@@ -509,11 +509,11 @@ public class SoundManager : IDisposable
             return 0;
 
         int count = 0;
-        var node = PlayingSounds.First;
+        var node = PlayingSounds.Head;
 
         while (node != null)
         {
-            if (soundInfo.Equals(node.Value.AudioData.SoundInfo))
+            if (soundInfo.Equals(node.AudioData.SoundInfo))
                 count++;
 
             node = node.Next;
@@ -531,16 +531,16 @@ public class SoundManager : IDisposable
         UpdateWaitingLoopSounds();
         PlaySounds();
 
-        if (PlayingSounds.Empty())
+        if (PlayingSounds.Count == 0)
             return;
 
-        LinkedListNode<IAudioSource>? node = PlayingSounds.First;
-        LinkedListNode<IAudioSource>? nextNode;
+        IAudioSource? node = PlayingSounds.Head;
+        IAudioSource? nextNode;
         while (node != null)
         {
             nextNode = node.Next;
-            if (node.Value.IsFinished())
-                PlayingSounds.Free(node, ArchiveCollection.DataCache);
+            if (node.IsFinished())
+                PlayingSounds.RemoveAndFree(node, ArchiveCollection.DataCache);
             node = nextNode;
         }
     }

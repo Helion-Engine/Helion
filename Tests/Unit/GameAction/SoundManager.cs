@@ -55,8 +55,6 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "Check sounds to play and playing sounds counts")]
         public void PlaySounds()
         {
-            World.ArchiveCollection.DataCache.GetAudioNodes().Clear();
-
             for (int i = 0; i < World.Sectors.Count; i++)
                 World.SoundManager.CreateSoundOn(World.Sectors[i].Floor, "plats/pt1_strt", new SoundParams(World.Player));
 
@@ -80,15 +78,11 @@ namespace Helion.Tests.Unit.GameAction
             World.SoundManager.GetSoundsToPlay().Count.Should().Be(0);
             World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
             World.SoundManager.GetWaitingSounds().Count.Should().Be(0);
-
-            World.ArchiveCollection.DataCache.GetAudioNodes().Length.Should().Be(World.Sectors.Count * 2);
         }
 
-        [Fact(DisplayName = "Check sounds to play and playing sounds counts")]
+        [Fact(DisplayName = "Clear sounds")]
         public void ClearSounds()
         {
-            World.ArchiveCollection.DataCache.GetAudioNodes().Clear();
-
             for (int i = 0; i < World.Sectors.Count; i++)
                 World.SoundManager.CreateSoundOn(World.Sectors[i].Floor, "plats/pt1_strt", new SoundParams(World.Player));
 
@@ -102,20 +96,18 @@ namespace Helion.Tests.Unit.GameAction
             World.SoundManager.GetSoundsToPlay().Count.Should().Be(0);
             World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
             World.SoundManager.GetWaitingSounds().Count.Should().Be(0);
-            World.ArchiveCollection.DataCache.GetAudioNodes().Length.Should().Be(World.Sectors.Count * 2);
         }
 
         [Fact(DisplayName = "Looping sector sound")]
         public void LoopSound()
         {
             World.SoundManager.SetMaxConcurrentSounds(1);
-            var sounds = World.SoundManager.GetPlayingSounds();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
 
             ActivateSpecialLine(2);
 
-            sounds.Count.Should().Be(1);
-            var sound = sounds.First!;
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(1);
+            var sound = World.SoundManager.GetPlayingSounds().First!;
             sound.Should().NotBeNull();
 
             GameActions.TickWorld(World, 35, () =>
@@ -132,15 +124,14 @@ namespace Helion.Tests.Unit.GameAction
         public void LoopSounds()
         {
             World.SoundManager.SetMaxConcurrentSounds(1);
-            var sounds = World.SoundManager.GetPlayingSounds();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
 
             World.SoundManager.SetMaxConcurrentSounds(2);
             ActivateSpecialLine(2);
             ActivateSpecialLine(0);
 
-            sounds.Count.Should().Be(2);
-            var sound = sounds.First!;
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(2);
+            var sound = World.SoundManager.GetPlayingSounds().First!;
             sound.Should().NotBeNull();
 
             var secondSound = sound.Next!;
@@ -165,41 +156,38 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "Sound is stopped when another is created from same source")]
         public void OneSoundPerSource()
         {
-            var sounds = World.SoundManager.GetPlayingSounds();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
 
             ActivateSpecialLine(2);
-           
-            sounds.Count.Should().Be(2);
-            AssertSound(sounds, "dsswtchn");
-            AssertSound(sounds, "dsstnmov");
+
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(2);
+            AssertSound(World.SoundManager.GetPlayingSounds(), "dsswtchn");
+            AssertSound(World.SoundManager.GetPlayingSounds(), "dsstnmov");
 
             var sector = GameActions.GetSectorByTag(World, 1);
             sector.ActiveFloorMove.Should().NotBeNull();
             GameActions.TickWorld(World, () => { return sector.ActiveFloorMove != null; }, () => { }, TimeSpan.FromSeconds(280));
 
-            sounds.Count.Should().Be(1);
-            AssertSound(sounds, "dspstop");
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(1);
+            AssertSound(World.SoundManager.GetPlayingSounds(), "dspstop");
         }
 
         [Fact(DisplayName = "Looping sector sound is bumped by player sound")]
         public void BumpLoopSound()
         {
             World.SoundManager.SetMaxConcurrentSounds(1);
-
-            var sounds = World.SoundManager.GetPlayingSounds();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
 
             ActivateSpecialLine(2);
 
-            sounds.Count.Should().Be(1);
-            AssertSound(sounds, "dsstnmov");
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(1);
+            AssertSound(World.SoundManager.GetPlayingSounds(), "dsstnmov");
 
             // Player sounds are highest priority with no attenuation
             GameActions.PlayerFirePistol(World, World.Player).Should().BeTrue();
 
-            sounds.Count.Should().Be(1);
-            AssertSound(sounds, "dspistol");
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(1);
+            AssertSound(World.SoundManager.GetPlayingSounds(), "dspistol");
 
             // Player firing pistol bumps out moving floor sound
             var waitingSounds = World.SoundManager.GetWaitingSounds();
@@ -209,40 +197,36 @@ namespace Helion.Tests.Unit.GameAction
             // Since the moving floor is a looping sound, it should come back when the pistol completes
             GameActions.TickWorld(World, 70);
             waitingSounds.Count.Should().Be(0);
-            sounds.Count.Should().Be(1);
-            AssertSound(sounds, "dsstnmov");
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(1);
+            AssertSound(World.SoundManager.GetPlayingSounds(), "dsstnmov");
         }
 
         [Fact(DisplayName = "Looping sector sound is bumped by a closer looping sound")]
         public void SoundBumpedByDistance()
         {
             World.SoundManager.SetMaxConcurrentSounds(1);
-
-            var sounds = World.SoundManager.GetPlayingSounds();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
 
             ActivateSpecialLine(2);
 
-            sounds.Count.Should().Be(1);
-            AssertSound(sounds, "dsstnmov");
-            AssertSoundSource(sounds.First, GameActions.GetSectorByTag(World, 1).Floor);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(1);
+            AssertSound(World.SoundManager.GetPlayingSounds(), "dsstnmov");
+            AssertSoundSource(World.SoundManager.GetPlayingSounds().First, GameActions.GetSectorByTag(World, 1).Floor);
 
             // Move closer to sector tag 2 sound
             ActivateSpecialLine(0);
             GameActions.SetEntityPosition(World, World.Player, new Vec2D(-256, -352));
             World.Tick();
 
-            AssertSound(sounds, "dsstnmov");
-            AssertSoundSource(sounds.First, GameActions.GetSectorByTag(World, 2).Floor);
+            AssertSound(World.SoundManager.GetPlayingSounds(), "dsstnmov");
+            AssertSoundSource(World.SoundManager.GetPlayingSounds().First, GameActions.GetSectorByTag(World, 2).Floor);
         }
 
         [Fact(DisplayName = "Sound is not created because of sound limit being hit while other sounds are closer")]
         public void SoundPriority()
         {
             World.SoundManager.SetMaxConcurrentSounds(1);
-
-            var sounds = World.SoundManager.GetPlayingSounds();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
 
             ActivateSpecialLine(2);
 
@@ -256,18 +240,16 @@ namespace Helion.Tests.Unit.GameAction
             audioSource.Should().NotBeNull();
 
             World.Tick();
-            sounds.Count.Should().Be(1);
-            AssertSound(sounds, "dsbgsit1");
-            AssertSoundSource(sounds.First, entity);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(1);
+            AssertSound(World.SoundManager.GetPlayingSounds(), "dsbgsit1");
+            AssertSoundSource(World.SoundManager.GetPlayingSounds().First, entity);
         }
 
         [Fact(DisplayName = "Sound created because no attenuation has higher priority")]
         public void SoundPriorityNoAttenuation()
         {
             World.SoundManager.SetMaxConcurrentSounds(1);
-
-            var sounds = World.SoundManager.GetPlayingSounds();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
 
             ActivateSpecialLine(2);
 
@@ -279,15 +261,14 @@ namespace Helion.Tests.Unit.GameAction
             audioSource = World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, attenuation: Attenuation.None));
             audioSource.Should().NotBeNull();
             World.Tick();
-            AssertSound(sounds, "dsbgsit1");
-            AssertSoundSource(sounds.First, entity);
+            AssertSound(World.SoundManager.GetPlayingSounds(), "dsbgsit1");
+            AssertSoundSource(World.SoundManager.GetPlayingSounds().First, entity);
         }
 
         [Fact(DisplayName = "Players can create multiple sounds on different channels")]
         public void PlayerSoundChannels()
         {
-            var sounds = World.SoundManager.GetPlayingSounds();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
 
             foreach (var sound in World.Player.SoundChannels)
                 sound.Should().BeNull();
@@ -301,15 +282,15 @@ namespace Helion.Tests.Unit.GameAction
             World.Player.SoundChannels[(int)SoundChannel.Weapon].Should().Be(weaponSound);
             World.Player.SoundChannels[(int)SoundChannel.Item].Should().Be(firstPickupSound);
 
-            sounds.Count.Should().Be(2);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(2);
 
             // Second pickup should only overwrite on the item channel
             var secondPickupSound = World.SoundManager.CreateSoundOn(World.Player, "misc/i_pkup", new SoundParams(World.Player, channel: SoundChannel.Item))!;
             secondPickupSound.Should().NotBeNull();
             World.Tick();
-            sounds.Count.Should().Be(2);
-            sounds.Contains(secondPickupSound).Should().BeTrue();
-            sounds.Contains(firstPickupSound).Should().BeFalse();
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(2);
+            World.SoundManager.GetPlayingSounds().Contains(secondPickupSound).Should().BeTrue();
+            World.SoundManager.GetPlayingSounds().Contains(firstPickupSound).Should().BeFalse();
 
             World.Player.SoundChannels[(int)SoundChannel.Weapon].Should().Be(weaponSound);
             World.Player.SoundChannels[(int)SoundChannel.Item].Should().Be(secondPickupSound);
@@ -318,57 +299,54 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "One sound per channel for entity")]
         public void EntitySoundChannels()
         {
-            var sounds = World.SoundManager.GetSoundsToPlay();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(0);
             var entity = GameActions.GetEntity(World, 1);
 
             IAudioSource? audioSource = World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity));
             audioSource.Should().NotBeNull();
 
-            sounds.Count.Should().Be(1);
-            AssertSound(sounds, "dsbgsit1");
-            AssertSoundSource(sounds.First, entity);
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(1);
+            AssertSound(World.SoundManager.GetSoundsToPlay(), "dsbgsit1");
+            AssertSoundSource(World.SoundManager.GetSoundsToPlay().First, entity);
 
             audioSource = World.SoundManager.CreateSoundOn(entity, "imp/active", new SoundParams(entity));
             audioSource.Should().NotBeNull();
 
-            sounds.Count.Should().Be(1);
-            AssertSound(sounds, "dsbgact");
-            AssertSoundSource(sounds.First, entity);
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(1);
+            AssertSound(World.SoundManager.GetSoundsToPlay(), "dsbgact");
+            AssertSoundSource(World.SoundManager.GetSoundsToPlay().First, entity);
         }
 
         [Fact(DisplayName = "Sound not created because it's too far away")]
         public void SoundTooFar()
         {
-            var sounds = World.SoundManager.GetSoundsToPlay();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(0);
             var entity = GameActions.GetEntity(World, 1);
 
             Vec3D pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance + 1;
             entity.Position = pos;
             World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, attenuation: Attenuation.Default)).Should().BeNull();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(0);
 
             pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance;
             entity.Position = pos;
             World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, attenuation: Attenuation.Default)).Should().NotBeNull();
-            sounds.Count.Should().Be(1);
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(1);
         }
 
         [Fact(DisplayName = "Sound with no attenuation is created past max sound distance")]
         public void NoAttenuationPastMaxDistance()
         {
-            var sounds = World.SoundManager.GetSoundsToPlay();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(0);
             var entity = GameActions.GetEntity(World, 1);
 
             Vec3D pos = World.Player.Position;
             pos.X += Constants.MaxSoundDistance;
             entity.Position = pos;
             World.SoundManager.CreateSoundOn(entity, "imp/sight1", new SoundParams(entity, attenuation: Attenuation.Default)).Should().NotBeNull();
-            sounds.Count.Should().Be(1);
+            World.SoundManager.GetSoundsToPlay().Count.Should().Be(1);
         }
 
         [Fact(DisplayName = "Loop sound past max distances is added to wait list")]
@@ -391,47 +369,44 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "Loop sound is stopped when sector movement is paused")]
         public void LoopSoundStoppedOnPause()
         {
-            var sounds = World.SoundManager.GetPlayingSounds();
             var waitingSounds = World.SoundManager.GetWaitingSounds();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
             waitingSounds.Count.Should().Be(0);
 
             ActivateSpecialLine(12);
-            AssertSound(sounds, "dsstnmov");
-            AssertSoundSource(sounds.First, GameActions.GetSectorByTag(World, 3).Ceiling);
+            AssertSound(World.SoundManager.GetPlayingSounds(), "dsstnmov");
+            AssertSoundSource(World.SoundManager.GetPlayingSounds().First, GameActions.GetSectorByTag(World, 3).Ceiling);
 
             ActivateSpecialLine(15);
             // No stop sound is created on pause
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
         }
 
         [Fact(DisplayName = "Sounds are paused and resumed")]
         public void PauseAndResume()
         {
-            var sounds = World.SoundManager.GetPlayingSounds();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
 
             ActivateSpecialLine(2);
             ActivateSpecialLine(0);
 
-            sounds.Count.Should().Be(4);
-            AssertSoundsPlaying(sounds, true);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(4);
+            AssertSoundsPlaying(World.SoundManager.GetPlayingSounds(), true);
 
             World.SoundManager.Pause();
-            sounds.Count.Should().Be(4);
-            AssertSoundsPlaying(sounds, false);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(4);
+            AssertSoundsPlaying(World.SoundManager.GetPlayingSounds(), false);
 
             World.SoundManager.Resume();
-            sounds.Count.Should().Be(4);
-            AssertSoundsPlaying(sounds, true);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(4);
+            AssertSoundsPlaying(World.SoundManager.GetPlayingSounds(), true);
         }
 
         [Fact(DisplayName = "Sounds are paused and resumed")]
         public void SoundsAreCleared()
         {
-            var sounds = World.SoundManager.GetPlayingSounds();
             var waitingSounds = World.SoundManager.GetWaitingSounds();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
             waitingSounds.Count.Should().Be(0);
 
             ActivateSpecialLine(2);
@@ -450,11 +425,11 @@ namespace Helion.Tests.Unit.GameAction
             World.SoundManager.CreateSoundOn(entity2, "imp/sight1", new SoundParams(entity2, loop: true, attenuation: Attenuation.Default)).Should().BeNull();
 
             World.Tick();
-            sounds.Count.Should().Be(6);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(6);
             waitingSounds.Count.Should().Be(1);
 
             World.SoundManager.ClearSounds();
-            sounds.Count.Should().Be(0);
+            World.SoundManager.GetPlayingSounds().Count.Should().Be(0);
             waitingSounds.Count.Should().Be(0);
         }
 
