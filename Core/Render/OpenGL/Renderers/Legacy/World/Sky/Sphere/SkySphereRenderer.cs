@@ -15,6 +15,7 @@ public class SkySphereRenderer : IDisposable
 {
     private const int HorizontalSpherePoints = 64;
     private const int VerticalSpherePoints = 64;
+    private static readonly SphereTable SphereTable = new(HorizontalSpherePoints, VerticalSpherePoints);
     private static readonly vec3 UpOpenGL = new(0, 1, 0);
 
     private readonly StaticVertexBuffer<SkySphereVertex> m_vbo;
@@ -94,8 +95,10 @@ public class SkySphereRenderer : IDisposable
 
     private void GenerateSphereVerticesAndUpload()
     {
-        SphereTable sphereTable = new SphereTable(HorizontalSpherePoints, VerticalSpherePoints);
-
+        int newLength = m_vbo.Data.Length + (VerticalSpherePoints * HorizontalSpherePoints * 6);
+        m_vbo.Data.EnsureCapacity(newLength);
+        int index = m_vbo.Data.Length;
+        var vertices = m_vbo.Data.Data;
         for (int row = 0; row < VerticalSpherePoints; row++)
         {
             for (int col = 0; col < HorizontalSpherePoints; col++)
@@ -104,21 +107,22 @@ public class SkySphereRenderer : IDisposable
                 // out of range because we specifically made sure that the
                 // code adds in one extra vertex for us on both the top row
                 // and the right column.
-                SkySphereVertex bottomLeft = sphereTable.MercatorRectangle[row, col];
-                SkySphereVertex bottomRight = sphereTable.MercatorRectangle[row, col + 1];
-                SkySphereVertex topLeft = sphereTable.MercatorRectangle[row + 1, col];
-                SkySphereVertex topRight = sphereTable.MercatorRectangle[row + 1, col + 1];
+                SkySphereVertex bottomLeft = SphereTable.MercatorRectangle[row, col];
+                SkySphereVertex bottomRight = SphereTable.MercatorRectangle[row, col + 1];
+                SkySphereVertex topLeft = SphereTable.MercatorRectangle[row + 1, col];
+                SkySphereVertex topRight = SphereTable.MercatorRectangle[row + 1, col + 1];
 
-                m_vbo.Add(topLeft);
-                m_vbo.Add(bottomLeft);
-                m_vbo.Add(topRight);
+                vertices[index++] = topLeft;
+                vertices[index++] = bottomLeft;
+                vertices[index++] = topRight;
 
-                m_vbo.Add(topRight);
-                m_vbo.Add(bottomLeft);
-                m_vbo.Add(bottomRight);
+                vertices[index++] = topRight;
+                vertices[index++] = bottomLeft;
+                vertices[index++] = bottomRight;
             }
         }
 
+        m_vbo.Data.Length = newLength;
         m_vbo.UploadIfNeeded();
     }
 

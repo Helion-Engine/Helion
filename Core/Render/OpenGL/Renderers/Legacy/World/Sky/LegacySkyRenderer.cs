@@ -14,6 +14,8 @@ public class LegacySkyRenderer : IDisposable
 {
     private const int MaxSkyTextures = 255;
 
+    public static readonly Dictionary<int, GLLegacyTexture> GeneratedTextures = new();
+
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly Dictionary<int, ISkyComponent> m_skyComponents = new();
@@ -41,6 +43,7 @@ public class LegacySkyRenderer : IDisposable
 
         m_skyComponents.Clear();
         m_skyComponentsList.Clear();
+        GeneratedTextures.Clear();
     }
 
     public void Clear()

@@ -223,8 +223,17 @@ public class SkySphereTexture : IDisposable
             for (int j = 0; j < components.Count; j++)
             {
                 int animatedTextureIndex = components[j].TextureIndex;
+                if (LegacySkyRenderer.GeneratedTextures.TryGetValue(animatedTextureIndex, out var existingSkyTexture))
+                {
+                    m_skyTextures.Add(new (existingSkyTexture, animatedTextureIndex));
+                    continue;
+                }
+ 
                 if (GenerateSkyTextures(animatedTextureIndex, out var skyTexture))
+                {
+                    LegacySkyRenderer.GeneratedTextures[animatedTextureIndex] = skyTexture;
                     m_skyTextures.Add(new(skyTexture, animatedTextureIndex));
+                }
             }
         }
     }
@@ -259,13 +268,14 @@ public class SkySphereTexture : IDisposable
         Color bottomFadeColor = CalculateAverageRowColor(bottomStartY, bottomExclusiveEndY, skyImage);
 
         Image fadedSkyImage = CreateFadedSky(rowsToEvaluate, bottomFadeColor, topFadeColor, skyImage);
+
         return CreateTexture(fadedSkyImage, $"[SKY] {m_archiveCollection.TextureManager.SkyTextureName}");
     }
 
     private GLLegacyTexture CreateTexture(Image fadedSkyImage, string debugName = "")
     {
         int textureId = GL.GenTexture();
-        GLLegacyTexture texture = new(textureId, debugName, fadedSkyImage.Dimension, fadedSkyImage.Offset, fadedSkyImage.Namespace, TextureTarget.Texture2D, fadedSkyImage.TransparentPixelCount());
+        GLLegacyTexture texture = new(textureId, debugName, fadedSkyImage.Dimension, fadedSkyImage.Offset, fadedSkyImage.Namespace, TextureTarget.Texture2D, 0);
 
         m_textureManager.UploadAndSetParameters(texture, fadedSkyImage, debugName, ResourceNamespace.Global, TextureFlags.Default);
         m_textureManager.RegisterTexture(texture);
