@@ -111,7 +111,8 @@ public class GeometryRenderer : IDisposable
     public void UpdateTo(IWorld world)
     {
         m_world = world;
-        m_skyRenderer.Reset();
+        if (!world.SameAsPreviousMap)
+            m_skyRenderer.Reset();
         m_lineDrawnTracker.UpdateToWorld(world);
         m_viewSector = DefaultSector;
 
