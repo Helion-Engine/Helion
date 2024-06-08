@@ -2137,6 +2137,7 @@ public abstract partial class WorldBase : IWorld
         IsDisposed = true;
         UnRegisterConfigChanges();
         SpecialManager.Dispose();
+        SoundManager.ClearSounds();
     }
 
     private void CreateBloodOrPulletPuff(Entity? entity, Vec3D intersect, double angle, double attackDistance, int damage, bool ripper = false)

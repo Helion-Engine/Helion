@@ -1,4 +1,5 @@
 using Helion.Demo;
+using Helion.Layer.IwadSelection;
 using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Cheats;
@@ -188,6 +189,9 @@ public partial class WorldLayer
 
     private void HandlePauseOrResume()
     {
+        if (m_parent.LoadingLayer != null)
+            return;
+
         // If something is on top of our world (such as a menu, or a
         // console) then we should pause it. Likewise, if we're at the
         // top layer, then we should make sure we're not paused (like
