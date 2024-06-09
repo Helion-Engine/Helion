@@ -7,7 +7,7 @@ public class MapLineFlags
 {
     public const ushort BlockPlayersAndMonstersMask = 0x0001;
     public const ushort BlockMonstersMask = 0x0002;
-    // Note: We don't use the TwoSided flag of 0x0004.
+    public const ushort TwoSidedMask = 0x0004;
     public const ushort UpperUnpeggedMask = 0x0008;
     public const ushort LowerUnpeggedMask = 0x0010;
     public const ushort DrawAsOneSidedAutomapMask = 0x0020;
@@ -40,6 +40,7 @@ public class MapLineFlags
     public bool BlockEverything;
     public bool BlockPlayersMbf21;
     public bool BlockLandMonstersMbf21;
+    public bool TwoSided;
 
     public LineActivations Activations;
 
@@ -53,6 +54,7 @@ public class MapLineFlags
         BlockSound = (flags & BlockSoundMask) == BlockSoundMask;
         NoDrawAutomap = (flags & NoDrawAutomapMask) == NoDrawAutomapMask;
         AlwaysDrawAutomap = (flags & AlwaysDrawAutomapMask) == AlwaysDrawAutomapMask;
+        TwoSided = (flags & TwoSidedMask) == TwoSidedMask;
     }
 
     public static MapLineFlags Doom(ushort flags)

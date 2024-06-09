@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
@@ -26,6 +28,7 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Static;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -108,7 +111,8 @@ public class GeometryRenderer : IDisposable
     public void UpdateTo(IWorld world)
     {
         m_world = world;
-        m_skyRenderer.Reset();
+        if (!world.SameAsPreviousMap)
+            m_skyRenderer.Reset();
         m_lineDrawnTracker.UpdateToWorld(world);
         m_viewSector = DefaultSector;
 
@@ -119,19 +123,19 @@ public class GeometryRenderer : IDisposable
 
         int sideCount = world.Sides.Count;
         int sectorCount = world.Sectors.Count;
-        m_vertexLookup = UpdateVertexWallLookup(m_vertexLookup, sideCount);
-        m_vertexLowerLookup = UpdateVertexWallLookup(m_vertexLowerLookup, sideCount);
-        m_vertexUpperLookup = UpdateVertexWallLookup(m_vertexUpperLookup, sideCount);
-        m_skyWallVertexLowerLookup = UpdateSkyWallLookup(m_skyWallVertexLowerLookup, sideCount);
-        m_skyWallVertexUpperLookup = UpdateSkyWallLookup(m_skyWallVertexUpperLookup, sideCount);
-        UpdateFlatVertices(m_vertexFloorLookup, sectorCount);
-        UpdateFlatVertices(m_vertexCeilingLookup, sectorCount);
-        UpdateSkyFlatVertices(m_skyFloorVertexLookup, sectorCount);
-        UpdateSkyFlatVertices(m_skyCeilingVertexLookup, sectorCount);
+        bool freeData = !world.SameAsPreviousMap;
+        m_vertexLookup = UpdateVertexWallLookup(m_vertexLookup, sideCount, freeData);
+        m_vertexLowerLookup = UpdateVertexWallLookup(m_vertexLowerLookup, sideCount, freeData);
+        m_vertexUpperLookup = UpdateVertexWallLookup(m_vertexUpperLookup, sideCount, freeData);
+        m_skyWallVertexLowerLookup = UpdateSkyWallLookup(m_skyWallVertexLowerLookup, sideCount, freeData);
+        m_skyWallVertexUpperLookup = UpdateSkyWallLookup(m_skyWallVertexUpperLookup, sideCount, freeData);
+        UpdateFlatVertices(m_vertexFloorLookup, sectorCount, freeData);
+        UpdateFlatVertices(m_vertexCeilingLookup, sectorCount, freeData);
+        UpdateSkyFlatVertices(m_skyFloorVertexLookup, sectorCount, freeData);
+        UpdateSkyFlatVertices(m_skyCeilingVertexLookup, sectorCount, freeData);
 
         if (!world.SameAsPreviousMap)
         {
-            m_world.DataCache.PurgeFlatVertices();
             for (int i = 0; i < m_subsectors.Length; i++)
             {
                 m_subsectors[i].FlushReferences();
@@ -174,15 +178,28 @@ public class GeometryRenderer : IDisposable
         m_staticCacheGeometryRenderer.UpdateTo(world, m_lightBuffer);
     }
 
-    private LegacyVertex[]?[] UpdateVertexWallLookup(LegacyVertex[]?[] vertices, int sideCount)
+    private static void ZeroArray<T>(T[] array) where T : struct
+    {
+        ref var reference = ref MemoryMarshal.GetArrayDataReference(array);
+        Unsafe.InitBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), 0, (uint)(Marshal.SizeOf<T>() * array.Length));
+    }
+
+    private LegacyVertex[]?[] UpdateVertexWallLookup(LegacyVertex[]?[] vertices, int sideCount, bool free)
     {
         for (int i = 0; i < vertices.Length; i++)
         {
             var data = vertices[i];
             if (data == null)
                 continue;
-            m_world.DataCache.FreeWallVertices(data);
-            vertices[i] = null;
+
+            if (free)
+            {
+                m_world.DataCache.FreeWallVertices(data);
+                vertices[i] = null;
+                continue;
+            }
+
+            ZeroArray(data);
         }
 
         if (vertices.Length < sideCount)
@@ -190,15 +207,22 @@ public class GeometryRenderer : IDisposable
         return vertices;
     }
 
-    private SkyGeometryVertex[]?[] UpdateSkyWallLookup(SkyGeometryVertex[]?[] vertices, int sideCount)
+    private SkyGeometryVertex[]?[] UpdateSkyWallLookup(SkyGeometryVertex[]?[] vertices, int sideCount, bool free)
     {
         for (int i = 0; i < vertices.Length; i++)
         {
             var data = vertices[i];
             if (data == null)
                 continue;
-            m_world.DataCache.FreeSkyWallVertices(data);
-            vertices[i] = null;
+
+            if (free)
+            {
+                m_world.DataCache.FreeSkyWallVertices(data);
+                vertices[i] = null;
+                continue;
+            }
+
+            ZeroArray(data);
         }
 
         if (vertices.Length < sideCount)
@@ -206,7 +230,7 @@ public class GeometryRenderer : IDisposable
         return vertices;
     }
 
-    private void UpdateFlatVertices(DynamicArray<LegacyVertex[][]?> data, int sectorCount)
+    private static void UpdateFlatVertices(DynamicArray<LegacyVertex[][]?> data, int sectorCount, bool free)
     {
         for (int i = 0; i < data.Capacity; i++)
         {
@@ -218,8 +242,14 @@ public class GeometryRenderer : IDisposable
                 var vertices = lookup[j];
                 if (vertices == null)
                     continue;
-                m_world.DataCache.FreeFlatVertices(vertices);
-                lookup[j] = null!;
+
+                if (free)
+                {
+                    lookup[j] = null!;
+                    continue;
+                }
+
+                ZeroArray(vertices);
             }
 
             if (lookup.Length < sectorCount)
@@ -227,7 +257,7 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private void UpdateSkyFlatVertices(DynamicArray<SkyGeometryVertex[][]?> data, int sectorCount)
+    private static void UpdateSkyFlatVertices(DynamicArray<SkyGeometryVertex[][]?> data, int sectorCount, bool free)
     {
         for (int i = 0; i < data.Capacity; i++)
         {
@@ -239,8 +269,14 @@ public class GeometryRenderer : IDisposable
                 var vertices = lookup[j];
                 if (vertices == null)
                     continue;
-                m_world.DataCache.FreeSkyFlatVertices(vertices);
-                lookup[j] = null!;
+
+                if (free)
+                {
+                    lookup[j] = null!;
+                    continue;
+                }
+
+                ZeroArray(vertices);
             }
 
             if (lookup.Length < sectorCount)
@@ -354,10 +390,13 @@ public class GeometryRenderer : IDisposable
         m_cacheOverride = false;
     }
 
-    public void SetPlaneChanged(bool set)
+    public void SetInitRender()
     {
-        m_floorChanged = set;
-        m_ceilingChanged = set;
+        SetTransferHeightView(TransferHeightView.Middle);
+        SetViewSector(DefaultSector);
+        SetBuffer(false);
+        m_floorChanged = true;
+        m_ceilingChanged = true;
     }
 
     // The set sector is optional for the transfer heights control sector.
@@ -528,13 +567,13 @@ public class GeometryRenderer : IDisposable
         if (side.CeilingFloodKey > 0)
             Portals.UpdateFloodFillPlane(side, side.Sector, SectorPlanes.Ceiling, SectorPlaneFace.Ceiling, isFrontSide);
 
-        if (side.IsTwoSided)
+        if (side.Line.Flags.TwoSided && side.Line.Back != null)
             RenderTwoSided(side, isFrontSide);
         else if (side.IsDynamic)
-            RenderOneSided(side, out _, out _);
+            RenderOneSided(side, isFrontSide, out _, out _);
     }
 
-    public void RenderOneSided(Side side, out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
+    public void RenderOneSided(Side side, bool isFront, out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
     {
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
         side.LastRenderGametick = m_world.Gametick;
@@ -549,10 +588,17 @@ public class GeometryRenderer : IDisposable
         SectorPlane ceiling = renderSector.Ceiling;
         RenderSkySide(side, renderSector, null, texture, out skyVertices);
 
+        if (side.Middle.TextureHandle <= Constants.NullCompatibilityTextureIndex)
+        {
+            vertices = null;
+            skyVertices = null;
+            return;
+        }
+
         if (side.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
             int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Wall);
-            WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, ref wall);
+            WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, ref wall, isFront: isFront);
             if (m_cacheOverride)
             {
                 data = m_wallVertices;
@@ -910,7 +956,7 @@ public class GeometryRenderer : IDisposable
         SectorPlane ceiling = facingSector.Ceiling;
 
         WallVertices wall = default;
-        if (facingSide.IsTwoSided && otherSector != null && LineOpening.IsRenderingBlocked(facingSide.Line) &&
+        if (facingSide.Line.Back != null && otherSector != null && LineOpening.IsRenderingBlocked(facingSide.Line) &&
             SkyUpperRenderFromFloorCheck(facingSide, facingSector, otherSector))
         {
             WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, ref wall,
@@ -1205,7 +1251,7 @@ public class GeometryRenderer : IDisposable
         for (int j = 0; j < subsectors.Length; j++)
             count += (subsectors[j].ClockwiseEdges.Count - 2) * 3;
 
-        var data = WorldStatic.DataCache.GetFlatVertices(count);
+        var data = new LegacyVertex[count];
         if (floor)
             lookup[id] = data;
         else
@@ -1220,7 +1266,7 @@ public class GeometryRenderer : IDisposable
         for (int j = 0; j < subsectors.Length; j++)
             count += (subsectors[j].ClockwiseEdges.Count - 2) * 3;
 
-        var data = WorldStatic.DataCache.GetSkyFlatVertices(count);
+        var data = new SkyGeometryVertex[count];
         if (floor)
             lookup[id] = data;
         else

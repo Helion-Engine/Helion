@@ -79,6 +79,12 @@ namespace Helion.Geometry.Boxes
             Max = new(center.X + radius, center.Y + radius);
         }
 
+        public Box2D(double x, double y, double radius)
+        {
+            Min = new(x - radius, y - radius);
+            Max = new(x + radius, y + radius);
+        }
+
         public Box2D(Vector2D center, double radius)
         {
             Precondition(radius >= 0, "Bounding box radius yields min X > max X");

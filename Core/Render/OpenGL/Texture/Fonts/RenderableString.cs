@@ -97,7 +97,8 @@ public class RenderableString
                 Glyph glyph = font.Get(c);
                 (int glyphW, int glyphH) = glyph.Area.Dimension;
 
-                double scale = (double)fontSize / glyph.Area.Height;
+                double scale = (double)fontSize / (glyph.Area.Height);
+                Vec2I offset = new((int)(scale * glyph.Offset.X), (int)(scale * glyph.Offset.Y));
                 int endX = currentWidth + (int)(glyphW * scale);
                 int endY = currentHeight + (int)(glyphH * scale);
 
@@ -109,7 +110,7 @@ public class RenderableString
                 }
 
                 // We use a dummy box temporarily, and calculate it at the end properly (for code clarity reasons).
-                ImageBox2I drawLoc = new(currentWidth, currentHeight, endX, endY);
+                ImageBox2I drawLoc = new(currentWidth + offset.X, currentHeight + offset.Y, endX + offset.X, endY + offset.Y);                
                 ImageBox2D uv = new(glyph.UV.Min.Double, glyph.UV.Max.Double);
 
                 RenderableGlyph renderableGlyph = new(c, drawLoc, ImageBox2D.ZeroToOne, uv, colorRange.Color);

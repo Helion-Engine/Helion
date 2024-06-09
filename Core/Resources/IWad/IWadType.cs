@@ -12,5 +12,7 @@ public enum IWadType
     // ZDoom lanauage stuff doesn't distinguish between doom 1 iwads
     DoomShareware,
     DoomRegistered,
-    NoRestForTheLiving
+    NoRestForTheLiving,
+    FreeDoom1,
+    FreeDoom2,
 }

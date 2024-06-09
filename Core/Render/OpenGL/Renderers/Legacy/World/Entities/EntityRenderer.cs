@@ -24,7 +24,6 @@ public class EntityRenderer : IDisposable
     private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
     private DynamicArray<SpriteDefinition> m_spriteDefs = new(1024);
     private SpriteRotation m_nullSpriteRotation;
-    private double m_tickFraction;
     private Vec2F m_viewRightNormal;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
     private bool m_spriteAlpha;
@@ -69,9 +68,6 @@ public class EntityRenderer : IDisposable
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
     }
-
-    public void SetTickFraction(double tickFraction) =>
-        m_tickFraction = tickFraction;
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
     {
@@ -138,11 +134,11 @@ public class EntityRenderer : IDisposable
 
     public unsafe void RenderEntity(Entity entity, in Vec2D position)
     {
-        const double NudgeFactor = 0.0001;
+        const double NudgeFactor = 0.005;
         
         Vec3D centerBottom = entity.Position;
-        Vec2D entityPos = centerBottom.XY;
-        Vec2D nudgeAmount = Vec2D.Zero;
+        Vec2D entityPos = new(centerBottom.X, centerBottom.Y);
+        Vec2D nudgeAmount = default;
 
         SpriteDefinition? spriteDef = null;
         int spriteIndex = entity.Frame.SpriteIndex;
@@ -174,9 +170,11 @@ public class EntityRenderer : IDisposable
         {
             if (m_renderPositions.TryGetValue(entityPos, out int count))
             {
-                double nudge = Math.Clamp(NudgeFactor * entityPos.Distance(position), NudgeFactor, double.MaxValue);
-                nudgeAmount = Vec2D.UnitCircle(position.Angle(centerBottom)) * nudge * count;
-                m_renderPositions[entityPos] = count + 1;
+                double nudge = Math.Clamp(NudgeFactor * Math.Sqrt(entity.RenderDistanceSquared), NudgeFactor, 2);
+                double angle = Math.Atan2(centerBottom.Y - position.Y, centerBottom.X - position.X);
+                nudgeAmount.X = Math.Cos(angle) * nudge * count;
+                nudgeAmount.Y = Math.Sin(angle) * nudge * count;
+                m_renderPositions[entityPos] = count + 1;      
             }
             else
             {
@@ -224,10 +222,14 @@ public class EntityRenderer : IDisposable
         arrayData.Length = length + 1;
     }
 
-    private void SetUniforms(RenderInfo renderInfo)
+    public void Start(RenderInfo renderInfo)
     {
         m_viewRightNormal = renderInfo.Camera.Direction.XY.RotateRight90().Unit();
         m_transferHeightView = renderInfo.TransferHeightView;
+    }
+
+    private void SetUniforms(RenderInfo renderInfo)
+    {
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.ExtraLight(renderInfo.Uniforms.ExtraLight);
         m_program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
@@ -254,7 +256,6 @@ public class EntityRenderer : IDisposable
     
     private void Render(RenderInfo renderInfo, bool alpha)
     {
-        m_tickFraction = renderInfo.TickFraction;
         m_program.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(renderInfo);

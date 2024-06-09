@@ -26,6 +26,11 @@ namespace Helion.Audio.Impl
             return string.Empty;
         }
 
+        public string GetDefaultDeviceName()
+        {
+            return string.Empty;
+        }
+
         public IEnumerable<string> GetDeviceNames()
         {
             return Array.Empty<string>();

@@ -160,6 +160,11 @@ public class InputManager : IInputManager
         m_processMouseScroll = 0;
     }
 
+    public void ClearMouse()
+    {
+        MouseMove = (0, 0);
+    }
+
     public void ProcessedKeys()
     {
         m_processMouseScroll = 0;

@@ -68,6 +68,7 @@ public sealed class PhysicsManager
 
     private MoveLinkData m_moveLinkData;
     private CanPassData m_canPassData;
+    private StackEntityTraverseData m_stackData;
     private readonly Func<Entity, GridIterationStatus> m_canPassTraverseFunc;
     private readonly Func<Entity, GridIterationStatus> m_sectorMoveLinkClampAction;
     private readonly Func<Entity, GridIterationStatus> m_stackEntityTraverseAction;
@@ -509,8 +510,7 @@ public sealed class PhysicsManager
     {
         if (entity.SetCrushState())
         {
-            if (m_world.Config.Compatibility.VileGhosts)
-                entity.Radius = 0;
+            entity.Flags.CrushGiblets = true;
             return;
         }
 
@@ -1073,15 +1073,11 @@ doneLinkToSectors:
 
         if (stacked && entity.Flags.CanPass && !entity.Flags.NoClip)
         {
-            double entityBottomZ = entity.Position.Z;
-            double entityTopZ = entity.Position.Z + entity.Height;
-            for (int i = 0; i < TryMoveData.IntersectEntities2D.Length; i++)
-            {
-                var intersectEntity = TryMoveData.IntersectEntities2D[i];
-                if (intersectEntity.OnEntity.Entity == entity || intersectEntity.OverEntity.Entity == entity ||
-                    intersectEntity.Position.Z == entityTopZ || intersectEntity.Position.Z + intersectEntity.Height == entityBottomZ)
-                    m_stackEntityTraverseAction(intersectEntity);
-            }
+            Box2D previousBox = new(entity.PrevPosition.X, entity.PrevPosition.Y, entity.Properties.Radius);
+            m_stackData.Entity = entity;
+            m_stackData.EntityBottomZ = entity.Position.Z;
+            m_stackData.EntityTopZ = entity.Position.Z + entity.Height;
+            m_world.BlockmapTraverser.EntityTraverse(previousBox, m_stackEntityTraverseAction);
         }
 
         if (!success)
@@ -1102,8 +1098,13 @@ doneLinkToSectors:
         if (!entity.Flags.Solid || entity.Flags.Corpse)
             return GridIterationStatus.Continue;
 
-        ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors,
+        if (entity.OnEntity.Entity == m_stackData.Entity || entity.OverEntity.Entity == entity ||
+            entity.Position.Z == m_stackData.EntityTopZ || entity.Position.Z + entity.Height == m_stackData.EntityBottomZ)
+        {
+            ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors,
                 smoothZ: false, clampToLinkedSectors: entity.MoveLinked);
+        }
+
         return GridIterationStatus.Continue;
     }
 
@@ -1148,11 +1149,13 @@ doneLinkToSectors:
             return false;
 
         tryMove.Success = true;
-        tryMove.LowestCeiling = entity.LowestCeilingSector;
-        tryMove.HighestFloor = entity.HighestFloorSector;
+        tryMove.LowestCeiling = entity.Sector;
+        tryMove.HighestFloor = entity.Sector;
         tryMove.LowestCeilingZ = entity.LowestCeilingZ;
         tryMove.Subsector = null;
         tryMove.IntersectSectors.Length = 0;
+        tryMove.IntersectEntities2D.Length = 0;
+
         if (entity.HighestFloorObject is Entity highFloorEntity)
         {
             tryMove.HighestFloorZ = highFloorEntity.Position.Z + highFloorEntity.Height;
@@ -1263,7 +1266,6 @@ doneLinkToSectors:
                                     tryMove.ImpactSpecialLines.Add(line);
                             }
 
-
                             tryMove.IntersectSectors.Add(blockLine->FrontSector);
                             if (blockLine->BackSector != blockLine->FrontSector)
                                 tryMove.IntersectSectors.Add(blockLine->BackSector!);
@@ -1275,7 +1277,7 @@ doneLinkToSectors:
 
 
 doneIsPositionValid:
-        if (entity.BlockingLine != null && Line.BlocksEntity(entity, entity.BlockingLine.OneSided, entity.BlockingLine.Flags, WorldStatic.Mbf21))
+        if (entity.BlockingLine != null && Line.BlocksEntity(entity, entity.BlockingLine.Back == null, entity.BlockingLine.Flags, WorldStatic.Mbf21))
         {
             tryMove.Subsector = null;
             tryMove.Success = false;
@@ -1318,8 +1320,9 @@ doneIsPositionValid:
 
         tryMove.SetIntersectionData(m_lineOpening);
 
+        bool isPlayer = entity.IsPlayer;
         // If blocking and not a player, do not check step passing below. Non-players can't step onto other things.
-        if (overlapsZ && !entity.IsPlayer)
+        if (overlapsZ && !isPlayer)
             return true;
 
         if (!overlapsZ)

@@ -11,7 +11,7 @@ public class DehackedThing
     {
         string data = @"Thing 27 (some thing) 
 ID # = 420
-Hit points = 18000
+Hit points = 18000 garbage
 initial frame = 726
 First moving frame = 729
 Reaction time = 1

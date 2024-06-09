@@ -35,6 +35,8 @@ public class IWadInfo
         { IWadType.DoomShareware, new("Doom Shareware", "MapInfo/Doom1.txt", DoomDecorate, "DOOM1.WAD") },
         { IWadType.DoomRegistered, new("Doom", "MapInfo/DoomRegistered.txt", DoomDecorate, string.Empty) },
         { IWadType.NoRestForTheLiving, new("No Rest for the Living", "MapInfo/Doom2.txt", DoomDecorate, string.Empty) },
+        { IWadType.FreeDoom1, new("Free Doom Phase 1", "MapInfo/DoomRegistered.txt", DoomDecorate, "freedoom1.wad") },
+        { IWadType.FreeDoom2, new("Free Doom Phase 2", "MapInfo/Doom2.txt", DoomDecorate, "freedoom2.wad") },
     };
 
     private readonly static Dictionary<string, IWadType> MD5Lookup = new()

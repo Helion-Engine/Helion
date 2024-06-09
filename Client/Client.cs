@@ -89,6 +89,7 @@ public partial class Client : IDisposable, IInputManagement
 
         SetMouseRawInput();
         RegisterConfigChanges();
+        UpdateVolume();
         m_ticker.Start();
     }
 
@@ -243,6 +244,7 @@ public partial class Client : IDisposable, IInputManagement
         // Flag the WorldLayer that it is safe to render now that everything has been loaded
         newLayer.ShouldRender = true;
         m_layerManager.LoadingLayer?.SetFadeOut(TimeSpan.FromSeconds(1));
+        UpdateVolume();
     }
 
     /// <summary>
@@ -419,10 +421,8 @@ public partial class Client : IDisposable, IInputManagement
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(archiveCollection.DataCache, config, commandLineArgs);
             LogClientInfo();
-            using IMusicPlayer musicPlayer = new MusicPlayer(config);
-            musicPlayer.SetVolume((float)config.Audio.MusicVolume.Value);
+            using IMusicPlayer musicPlayer = new MusicPlayer();
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
-            audioPlayer.SetVolume(config.Audio.SoundVolume.Value);
 
             using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);
             client.Run();

@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Helion.Audio.Impl.Components;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.Util.Loggers;
-using NLog;
 using OpenTK.Audio.OpenAL;
 using static Helion.Util.Assertion.Assert;
 
@@ -15,7 +16,6 @@ namespace Helion.Audio.Impl;
 
 public class OpenALAudioSystem : IAudioSystem
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool PrintedALInfo;
 
     public IMusicPlayer Music { get; }
@@ -23,8 +23,12 @@ public class OpenALAudioSystem : IAudioSystem
     private readonly ArchiveCollection m_archiveCollection;
     private readonly HashSet<OpenALAudioSourceManager> m_sourceManagers = new();
     private readonly IConfig m_config;
+    private readonly CancellationTokenSource m_cancelTask = new();
     private OpenALDevice m_alDevice;
     private OpenALContext m_alContext;
+    private string m_changeDeviceName = string.Empty;
+    private string m_lastDeviceName;
+    private float m_volume = 1;
 
     public OpenALAudioSystem(IConfig config, ArchiveCollection archiveCollection, IMusicPlayer musicPlayer)
     {
@@ -34,7 +38,9 @@ public class OpenALAudioSystem : IAudioSystem
         m_alContext = new OpenALContext(m_alDevice);
         Music = musicPlayer;
 
-        m_config.Audio.SoundVolume.OnChanged += OnSoundVolumeChange;
+        m_lastDeviceName = m_alDevice.OpenALDeviceName;
+        Task.Factory.StartNew(DefaultDeviceChangeTask, m_cancelTask.Token,
+            TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
         PrintOpenALInfo();
     }
@@ -51,6 +57,13 @@ public class OpenALAudioSystem : IAudioSystem
         return m_alDevice.DeviceName;
     }
 
+    public unsafe string GetDefaultDeviceName()
+    {
+        // It doesn't detect a change unless you call AlcGetStringList.AllDevicesSpecifier...?
+        ALC.GetStringPtr(ALDevice.Null, (AlcGetString)AlcGetStringList.AllDevicesSpecifier);
+        return ALC.GetString(ALDevice.Null, AlcGetString.DefaultAllDevicesSpecifier);
+    }
+
     public bool SetDevice(string deviceName)
     {
         DeviceChanging?.Invoke(this, EventArgs.Empty);
@@ -60,6 +73,7 @@ public class OpenALAudioSystem : IAudioSystem
 
         m_alDevice = new OpenALDevice(deviceName);
         m_alContext = new OpenALContext(m_alDevice);
+        SetVolume(m_volume);
 
         // TODO: This assumes we always successfully changed. We should probably limit this.
         return true;
@@ -67,12 +81,22 @@ public class OpenALAudioSystem : IAudioSystem
 
     public void SetVolume(double volume)
     {
-        AL.Listener(ALListenerf.Gain, (float)volume);
+        m_volume = (float)volume;
+        AL.Listener(ALListenerf.Gain, m_volume);
     }
 
     public void ThrowIfErrorCheckFails()
     {
         CheckForErrors("Checking for errors");
+    }
+
+    public void Tick()
+    {
+        if (m_changeDeviceName.Length > 0)
+        {
+            SetDevice(m_changeDeviceName);
+            m_changeDeviceName = string.Empty;
+        }
     }
 
     [Conditional("DEBUG")]
@@ -116,20 +140,17 @@ public class OpenALAudioSystem : IAudioSystem
         PerformDispose();
     }
 
-    private void OnSoundVolumeChange(object? sender, double newVolume)
-    {
-        SetVolume(newVolume);
-    }
-
     public IAudioSourceManager CreateContext()
     {
         OpenALAudioSourceManager sourceManager = new(this, m_archiveCollection, m_config);
         m_sourceManagers.Add(sourceManager);
+        SetVolume(m_config.Audio.SoundVolume * m_config.Audio.Volume);
         return sourceManager;
     }
 
     public void Dispose()
     {
+        m_cancelTask.Cancel();
         GC.SuppressFinalize(this);
         PerformDispose();
     }
@@ -139,6 +160,23 @@ public class OpenALAudioSystem : IAudioSystem
         m_sourceManagers.Remove(context);
     }
 
+    private void DefaultDeviceChangeTask()
+    {
+        while (true)
+        {
+            if (m_cancelTask.IsCancellationRequested)
+                break;
+
+            var currentDeviceName = GetDefaultDeviceName();
+            if (m_lastDeviceName != currentDeviceName)
+            {
+                m_lastDeviceName = currentDeviceName;
+                m_changeDeviceName = currentDeviceName;
+            }
+            Thread.Sleep(1000);
+        }
+    }
+
     private void PerformDispose()
     {
         // Since children contexts on disposing unlink themselves from us,
@@ -146,8 +184,6 @@ public class OpenALAudioSystem : IAudioSystem
         // it.
         m_sourceManagers.ToList().ForEach(srcManager => srcManager.Dispose());
         Invariant(m_sourceManagers.Empty(), "Disposal of AL audio context children should empty out of the context container");
-
-        m_config.Audio.SoundVolume.OnChanged -= OnSoundVolumeChange;
 
         m_alContext.Dispose();
         m_alDevice.Dispose();

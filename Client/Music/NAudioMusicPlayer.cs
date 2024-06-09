@@ -17,6 +17,7 @@ public class NAudioMusicPlayer : IMusicPlayer
     private WaveOutEvent? m_waveOut;
     private bool m_stop;
     private bool m_disposed;
+    private float m_volume = 1;
 
     public NAudioMusicPlayer(NAudioMusicType type)
     {
@@ -51,11 +52,12 @@ public class NAudioMusicPlayer : IMusicPlayer
             NAudioMusicType.Mp3 => new Mp3FileReader(stream),
             _ => new NAudio.Vorbis.VorbisWaveReader(stream),
         };
-
+     
         var playStream = options.HasFlag(MusicPlayerOptions.Loop) ? new LoopStream(audioStream) : audioStream;
         m_waveOut = new WaveOutEvent();
         m_waveOut.Stop();
         m_waveOut.Init(playStream);
+        SetVolume(m_volume);
 
         try
         {
@@ -86,6 +88,8 @@ public class NAudioMusicPlayer : IMusicPlayer
 
     public void SetVolume(float volume)
     {
+        m_volume = volume;
+        // This changes the volume of the entire app...
         if (m_waveOut != null)
             m_waveOut.Volume = volume;
     }
@@ -94,6 +98,7 @@ public class NAudioMusicPlayer : IMusicPlayer
     {
         if (m_disposed)
             return;
+        SetVolume(1f);
         m_stop = true;
         m_waveOut?.Stop();
     }

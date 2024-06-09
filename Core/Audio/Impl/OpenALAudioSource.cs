@@ -2,8 +2,6 @@ using System;
 using Helion.Audio.Impl.Components;
 using Helion.Geometry.Vectors;
 using Helion.Util;
-using Helion.World.Entities;
-using Helion.World.Geometry.Sectors;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Mathematics;
 using static Helion.Util.Assertion.Assert;
@@ -25,6 +23,9 @@ public class OpenALAudioSource : IAudioSource
 
     public AudioData AudioData { get; set; }
     public OpenALAudioSourceManager Owner { get; private set; }
+    public IAudioSource? Previous { get; set; }
+    public IAudioSource? Next { get; set; }
+
     private int m_sourceId;
     private bool m_disposed;
 
@@ -77,10 +78,10 @@ public class OpenALAudioSource : IAudioSource
         OpenALDebug.End("Creating new source");
     }
 
-    public void SetPosition(Vec3F pos)
+    public void SetPosition(float x, float y, float z)
     {
         OpenALDebug.Start("Setting sound position");
-        AL.Source(m_sourceId, ALSource3f.Position, pos.X, pos.Y, pos.Z);
+        AL.Source(m_sourceId, ALSource3f.Position, x, y, z);
         OpenALDebug.End("Setting sound position");
     }
 
@@ -108,10 +109,10 @@ public class OpenALAudioSource : IAudioSource
         return new Vec3F(pos.X, pos.Y, pos.Z);
     }
 
-    public void SetVelocity(Vec3F velocity)
+    public void SetVelocity(float x, float y, float z)
     {
         OpenALDebug.Start("Setting sound velocity");
-        AL.Source(m_sourceId, ALSource3f.Velocity, velocity.X, velocity.Y, velocity.Z);
+        AL.Source(m_sourceId, ALSource3f.Velocity, x, y, z);
         OpenALDebug.End("Setting sound velocity");
     }
 

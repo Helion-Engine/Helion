@@ -12,6 +12,7 @@ public partial class Client
     {
         m_config.Audio.MusicVolume.OnChanged += MusicVolume_OnChanged;
         m_config.Audio.SoundVolume.OnChanged += SoundVolume_OnChanged;
+        m_config.Audio.Volume.OnChanged += Volume_OnChanged;
         m_config.Mouse.Look.OnChanged += Look_OnChanged;
 
         m_config.Window.State.OnChanged += WindowState_OnChanged;
@@ -81,9 +82,31 @@ public partial class Client
         m_config.Mouse.Look.OnChanged -= Look_OnChanged;
     }
 
-    private void SoundVolume_OnChanged(object? sender, double volume) =>
-        m_audioSystem.SetVolume(volume);
+    private void SoundVolume_OnChanged(object? sender, double volume) => UpdateVolume();
 
-    private void MusicVolume_OnChanged(object? sender, double volume) =>
-        m_audioSystem.Music.SetVolume((float)volume);
+    private void MusicVolume_OnChanged(object? sender, double volume) => UpdateVolume();
+
+    private void Volume_OnChanged(object? sender, double e) => UpdateVolume();
+
+    private void UpdateVolume()
+    {
+        var musicVolume = (float)(m_config.Audio.MusicVolume * m_config.Audio.Volume);
+        var soundVolume = m_config.Audio.SoundVolume * m_config.Audio.Volume;
+
+        // Hack to work around NAudioChanging the master volume
+        // This isn't really correct and will drift with open al using scaling
+        if (m_audioSystem.Music.ChangesMasterVolume())
+        {
+            if (musicVolume == 0)
+                musicVolume = 0.01f;
+            var diff = (musicVolume - soundVolume);
+            m_audioSystem.Music.SetVolume(musicVolume);
+            m_audioSystem.SetVolume(1 - diff);
+        }
+        else
+        {
+            m_audioSystem.Music.SetVolume(musicVolume);
+            m_audioSystem.SetVolume(soundVolume);
+        }
+    }
 }

@@ -38,6 +38,8 @@ public partial class DehackedDefinition
     public readonly Dictionary<int, EntityFrame> NewEntityFrameLookup = new();
     public readonly EntityDefinition?[] ActorDefinitions;
 
+    private readonly StringBuilder m_sb = new();
+
     public DehackedCheat? Cheat { get; private set; }
     public DehackedMisc? Misc { get; private set; }
     public int DoomVersion { get; private set; }
@@ -92,7 +94,7 @@ public partial class DehackedDefinition
             else if (item.EqualsIgnoreCase(SoundName))
                 ParseSound(parser);
             else if (item.EqualsIgnoreCase(BexStringName))
-                ParseBexText(parser);
+                ParseBexString(parser);
             else if (item.EqualsIgnoreCase(BexPointerName))
                 ParseBexPointer(parser);
             else if (item.EqualsIgnoreCase(BexParName))
@@ -105,13 +107,17 @@ public partial class DehackedDefinition
                 parser.ConsumeLine();
             else
                 UnknownWarning(parser, "type", item);
+
+            ConsumeLine(parser, itemLine);
         }
     }
+
+    private static readonly char[] SpecialChars = ['='];
 
     private static SimpleParser CreateDehackedParser(string data)
     {
         SimpleParser parser = new();
-        parser.SetSpecialChars(new char[] { '=' });
+        parser.SetSpecialChars(SpecialChars);
         parser.SetCommentCallback(IsComment);
         parser.Parse(data, keepEmptyLines: true, parseQuotes: false);
         return parser;
@@ -225,13 +231,16 @@ public partial class DehackedDefinition
 
     private void ParseThing(SimpleParser parser)
     {
+        int lineNumber = parser.GetCurrentLine();
         DehackedThing thing = new();
         thing.Number = parser.ConsumeInteger();
         if (parser.Peek('('))
             thing.Name = parser.ConsumeLine();
+        ConsumeLine(parser, lineNumber);
 
         while (!IsBlockComplete(parser))
         {
+            lineNumber = parser.GetCurrentLine();
             string line = parser.PeekLine();
             if (line.StartsWith(IDNumber, StringComparison.OrdinalIgnoreCase))
                 thing.ID = GetIntProperty(parser, IDNumber);
@@ -299,6 +308,8 @@ public partial class DehackedDefinition
                 thing.MeleeRange = GetIntProperty(parser, MeleeRange);
             else
                 UnknownWarning(parser, "thing type");
+
+            ConsumeLine(parser, lineNumber);
         }
 
         Things.Add(thing);
@@ -306,16 +317,16 @@ public partial class DehackedDefinition
 
     private void ParseFrame(SimpleParser parser)
     {
-        int startLine = parser.GetCurrentLine();
+        int lineNumber = parser.GetCurrentLine();
         DehackedFrame frame = new();
         frame.Frame = parser.ConsumeInteger();
 
         // Sometimes there is text after the frame. eg. Frame 10 (description)
-        if (parser.GetCurrentLine() == startLine)
-            parser.ConsumeLine();
+        ConsumeLine(parser, lineNumber);
 
         while (!IsBlockComplete(parser))
         {
+            lineNumber = parser.GetCurrentLine();
             string line = parser.PeekLine();
             if (line.StartsWith(SpriteNum, StringComparison.OrdinalIgnoreCase))
                 frame.SpriteNumber = GetIntProperty(parser, SpriteNum);
@@ -335,6 +346,8 @@ public partial class DehackedDefinition
                 SetFrameArgs(parser, line, frame);
             else
                 UnknownWarning(parser, "frame type");
+
+            ConsumeLine(parser, lineNumber);
         }
 
         Frames.Add(frame);
@@ -403,15 +416,14 @@ public partial class DehackedDefinition
 
     private void ParseAmmo(SimpleParser parser)
     {
-        int startLine = parser.GetCurrentLine();
+        int lineNumber = parser.GetCurrentLine();
         DehackedAmmo ammo = new();
         ammo.AmmoNumber = parser.ConsumeInteger();
-
-        if (parser.GetCurrentLine() == startLine)
-            parser.ConsumeLine();
+        ConsumeLine(parser, lineNumber);
 
         while (!IsBlockComplete(parser))
         {
+            lineNumber = parser.GetCurrentLine();
             string line = parser.PeekLine();
             if (line.StartsWith(MaxAmmo, StringComparison.OrdinalIgnoreCase))
                 ammo.MaxAmmo = GetIntProperty(parser, MaxAmmo);
@@ -419,6 +431,7 @@ public partial class DehackedDefinition
                 ammo.PerAmmo = GetIntProperty(parser, PerAmmo);
             else
                 UnknownWarning(parser, "ammo type");
+            ConsumeLine(parser, lineNumber);
         }
 
         Ammo.Add(ammo);
@@ -429,11 +442,11 @@ public partial class DehackedDefinition
         DehackedWeapon weapon = new();
         int lineNumber = parser.GetCurrentLine();
         weapon.WeaponNumber = parser.ConsumeInteger();
-        if (parser.GetCurrentLine() == lineNumber)
-            parser.ConsumeLine();
+        ConsumeLine(parser, lineNumber);
 
         while (!IsBlockComplete(parser))
         {
+            lineNumber = parser.GetCurrentLine();
             string line = parser.PeekLine();
             if (line.StartsWith(DeselectFrame, StringComparison.OrdinalIgnoreCase))
                 weapon.DeselectFrame = GetIntProperty(parser, DeselectFrame);
@@ -457,6 +470,8 @@ public partial class DehackedDefinition
                 weapon.Mbf21Bits = GetBits(parser, Mbf21Bits, WeaponPropertyStringsMbf21);
             else
                 UnknownWarning(parser, "weapon type");
+
+            ConsumeLine(parser, lineNumber);
         }
 
         Weapons.Add(weapon);
@@ -464,13 +479,13 @@ public partial class DehackedDefinition
 
     private void ParseCheat(SimpleParser parser)
     {
-        int cheatLine = parser.GetCurrentLine();
+        int lineNumber = parser.GetCurrentLine();
         Cheat = new();
-        if (cheatLine == parser.GetCurrentLine())
-            parser.ConsumeLine();
+        ConsumeLine(parser, lineNumber);
 
         while (!IsBlockComplete(parser))
         {
+            lineNumber = parser.GetCurrentLine();
             string line = parser.PeekLine();
             if (line.StartsWith(ChangeMusic, StringComparison.OrdinalIgnoreCase))
                 Cheat.ChangeMusic = GetStringProperty(parser, ChangeMusic);
@@ -508,6 +523,8 @@ public partial class DehackedDefinition
                 Cheat.Berserk = GetStringProperty(parser, Berserk);
             else
                 UnknownWarning(parser, "cheat type");
+
+            ConsumeLine(parser, lineNumber);
         }
     }
 
@@ -516,28 +533,27 @@ public partial class DehackedDefinition
         DehackedString text = new();
         text.OldSize = parser.ConsumeInteger();
         text.NewSize = parser.ConsumeInteger();
-
-        StringBuilder sb = new();
+        m_sb.Clear();
 
         while (!IsBlockComplete(parser))
         {
-            sb.Append(parser.ConsumeLine(keepBeginningSpaces: true));
-            sb.Append('\n');
+            m_sb.Append(parser.ConsumeLine(keepBeginningSpaces: true));
+            m_sb.Append('\n');
             // Empty strings get eaten by IsBlockComplete
             if (string.IsNullOrEmpty(parser.PeekString()))
-                sb.Append('\n');
+                m_sb.Append('\n');
         }
 
-        while (sb.Length > 0 && sb[sb.Length - 1] == '\n')
-            sb.Length--;
+        while (m_sb.Length > 0 && m_sb[m_sb.Length - 1] == '\n')
+            m_sb.Length--;
 
-        if (text.OldSize > sb.Length)
+        if (text.OldSize > m_sb.Length)
         {
             Log.Warn($"Dehacked: Invalid dehacked string length:{text.OldSize} line:{parser.GetCurrentLine()}");
             return;
         }
 
-        string sbText = sb.ToString();
+        string sbText = m_sb.ToString();
         text.OldString = sbText.Substring(0, text.OldSize);
         text.NewString = sbText.Substring(text.OldSize);
 
@@ -589,6 +605,7 @@ public partial class DehackedDefinition
 
         while (!IsBlockComplete(parser))
         {
+            int lineNumber = parser.GetCurrentLine();
             string item = parser.PeekLine();
 
             if (item.StartsWith(InitialHealth, StringComparison.OrdinalIgnoreCase))
@@ -627,6 +644,8 @@ public partial class DehackedDefinition
                 Misc.MonstersIgnoreEachOther = GetIntProperty(parser, MonstersIgnore) != 0;
             else
                 UnknownWarning(parser, "misc");
+
+            ConsumeLine(parser, lineNumber);
         }
     }
 
@@ -637,6 +656,7 @@ public partial class DehackedDefinition
 
         while (!IsBlockComplete(parser))
         {
+            int lineNumber = parser.GetCurrentLine();
             string line = parser.PeekLine();
             if (IgnoreSoundProperties.Any(x => line.StartsWith(x, StringComparison.OrdinalIgnoreCase)))
             {
@@ -650,12 +670,13 @@ public partial class DehackedDefinition
                 sound.Priority = GetIntProperty(parser, SoundValue);
             else
                 UnknownWarning(parser, "sound");
+            ConsumeLine(parser, lineNumber);
         }
 
         Sounds.Add(sound);
     }
 
-    private void ParseBexText(SimpleParser parser)
+    private void ParseBexString(SimpleParser parser)
     {
         parser.ConsumeString();
 
@@ -664,8 +685,23 @@ public partial class DehackedDefinition
             BexString bexString = new();
             bexString.Mnemonic = parser.ConsumeString();
             parser.ConsumeString("=");
-            bexString.Value = parser.ConsumeLine().Replace("\\n", "\n");
+            bexString.Value = ConsumeBexTextValue(parser);
             BexStrings.Add(bexString);
+        }
+    }
+
+    private string ConsumeBexTextValue(SimpleParser parser)
+    {
+        m_sb.Clear();
+        while (true)
+        {
+            var value = parser.ConsumeLine().Replace("\\n", "\n");
+            if (!value.EndsWith('\\'))
+            {
+                m_sb.Append(value);
+                return m_sb.ToString();
+            }
+            m_sb.Append(value.AsSpan(0, value.Length - 1));
         }
     }
 
@@ -675,11 +711,13 @@ public partial class DehackedDefinition
 
         while (!IsBexPointerBlockComplete(parser))
         {
+            int lineNumber = parser.GetCurrentLine();
             parser.ConsumeString("Frame");
             int frame = parser.ConsumeInteger();
             parser.ConsumeString("=");
             string name = parser.ConsumeString();
             Pointers.Add(new DehackedPointer() { Frame = frame, CodePointerMnemonic = name });
+            ConsumeLine(parser, lineNumber);
         }
     }
 
@@ -689,19 +727,20 @@ public partial class DehackedDefinition
 
         while (!IsBlockComplete(parser, isBex: true))
         {
+            int lineNumber = parser.GetCurrentLine();
             parser.ConsumeString("par");
-            int line = parser.GetCurrentLine();
             int item1 = parser.ConsumeInteger();
             int item2 = parser.ConsumeInteger();
             int? item3 = null;
 
-            if (parser.GetCurrentLine() == line)
-                item3 = parser.ConsumeInteger();
+            if (parser.GetCurrentLine() == lineNumber && parser.PeekInteger(out int peekInt))
+                item3 = peekInt;
 
             if (item3.HasValue)
                 BexPars.Add(new BexPar() { Episode = item1, Map = item2, Par = item3.Value });
             else
                 BexPars.Add(new BexPar() { Map = item1, Par = item2 });
+            ConsumeLine(parser, lineNumber);
         }
     }
 
@@ -711,6 +750,7 @@ public partial class DehackedDefinition
 
         while (!IsBlockComplete(parser, isBex: true))
         {
+            int lineNumber = parser.GetCurrentLine();
             string? mnemonic = null;
             int? index = parser.ConsumeIfInt();
             if (index == null)
@@ -720,7 +760,14 @@ public partial class DehackedDefinition
 
             string entry = parser.ConsumeString();
             items.Add(new BexItem() { Mnemonic = mnemonic, Index = index, EntryName = entry });
+            ConsumeLine(parser, lineNumber);
         }
+    }
+
+    private static void ConsumeLine(SimpleParser parser, int lineNumber)
+    {
+        if (parser.GetCurrentLine() == lineNumber)
+            parser.ConsumeLine();
     }
 
     private static bool IsBexPointerBlockComplete(SimpleParser parser)
@@ -771,10 +818,12 @@ public partial class DehackedDefinition
         return ParseStringBits(parser, lookup);
     }
 
+    private static readonly string[] StringBitsSplit = ["+", "|", ","];
+
     private static uint ParseStringBits(SimpleParser parser, IReadOnlyDictionary<string, uint> lookup)
     {
         uint bits = 0;
-        string[] items = parser.ConsumeLine().Split(new string[] { "+", "|", "," }, StringSplitOptions.RemoveEmptyEntries);
+        string[] items = parser.ConsumeLine().Split(StringBitsSplit, StringSplitOptions.RemoveEmptyEntries);
 
         foreach (string item in items)
         {

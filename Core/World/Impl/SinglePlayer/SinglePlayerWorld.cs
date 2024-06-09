@@ -312,12 +312,7 @@ public class SinglePlayerWorld : WorldBase
         return PlayMusic(entry.ReadData());
     }
 
-    private bool PlayMusic(byte[] data)
-    {
-        bool playingSuccess = AudioSystem.Music.Play(data);
-        AudioSystem.Music.SetVolume((float)Config.Audio.MusicVolume.Value);
-        return playingSuccess;
-    }
+    private bool PlayMusic(byte[] data) => AudioSystem.Music.Play(data);
 
     public void HandleMouseMovement(IConsumableInput input)
     {

@@ -11,15 +11,16 @@ namespace Helion.World.Physics.Blockmap;
 
 public class BlockmapTraverser
 {
+    public UniformGrid<Block> BlockmapGrid;
+
     private IWorld m_world;
-    private UniformGrid<Block> m_blockmapGrid;
     private Block[] m_blocks;
     private int[] m_checkedLines;
 
     public BlockmapTraverser(IWorld world, BlockMap blockmap)
     {
         m_world = world;
-        m_blockmapGrid = blockmap.Blocks;
+        BlockmapGrid = blockmap.Blocks;
         m_blocks = blockmap.Blocks.Blocks;
         m_checkedLines = new int[m_world.Lines.Count];
     }
@@ -27,7 +28,7 @@ public class BlockmapTraverser
     public void UpdateTo(IWorld world, BlockMap blockmap)
     {
         m_world = world;
-        m_blockmapGrid = blockmap.Blocks;
+        BlockmapGrid = blockmap.Blocks;
         m_blocks = blockmap.Blocks.Blocks;
         if (world.Lines.Count > m_checkedLines.Length)
             m_checkedLines = new int[m_world.Lines.Count];
@@ -37,7 +38,7 @@ public class BlockmapTraverser
     {
         int m_checkCounter = ++WorldStatic.CheckCounter;
         var box = sourceEntity.GetBox2D();
-        var it = m_blockmapGrid.CreateBoxIteration(box);
+        var it = BlockmapGrid.CreateBoxIteration(box);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
@@ -63,7 +64,7 @@ public class BlockmapTraverser
         hitOneSidedLine = false;
         int length = 0;
         int capacity = intersections.Capacity;
-        BlockmapSegIterator<Block> it = m_blockmapGrid.Iterate(seg);
+        BlockmapSegIterator<Block> it = BlockmapGrid.Iterate(seg);
         var block = it.Next();
 
         fixed (BlockmapIntersect* startIntersect = &intersections.Data[0])
@@ -122,7 +123,7 @@ public class BlockmapTraverser
         int checkCounter = ++WorldStatic.CheckCounter;
         int length = 0;
         int capacity = intersections.Capacity;
-        BlockmapSegIterator<Block> it = m_blockmapGrid.Iterate(seg);
+        BlockmapSegIterator<Block> it = BlockmapGrid.Iterate(seg);
         var block = it.Next();
 
         fixed (BlockmapIntersect* startIntersect = &intersections.Data[0])
@@ -181,7 +182,7 @@ public class BlockmapTraverser
     public void ExplosionTraverse(Box2D box, Action<Entity> action)
     {
         int checkCounter = ++WorldStatic.CheckCounter;
-        var it = m_blockmapGrid.CreateBoxIteration(box);
+        var it = BlockmapGrid.CreateBoxIteration(box);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
@@ -206,7 +207,7 @@ public class BlockmapTraverser
     public void EntityTraverse(Box2D box, Func<Entity, GridIterationStatus> action)
     {
         int checkCounter = ++WorldStatic.CheckCounter;
-        var it = m_blockmapGrid.CreateBoxIteration(box);
+        var it = BlockmapGrid.CreateBoxIteration(box);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
@@ -232,7 +233,7 @@ public class BlockmapTraverser
     public void HealTraverse(Box2D box, Action<Entity> action)
     {
         int checkCounter = ++WorldStatic.CheckCounter;
-        var it = m_blockmapGrid.CreateBoxIteration(box);
+        var it = BlockmapGrid.CreateBoxIteration(box);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
@@ -265,8 +266,8 @@ public class BlockmapTraverser
     {
         int checkCounter = ++WorldStatic.CheckCounter;
         Box3D box3D = new(position, sourceEntity.Radius, sourceEntity.Height);
-        Box2D box2D = new(position.XY, sourceEntity.Radius);
-        var it = m_blockmapGrid.CreateBoxIteration(box2D);
+        Box2D box2D = new(position.X, position.Y, sourceEntity.Radius);
+        var it = BlockmapGrid.CreateBoxIteration(box2D);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
@@ -296,8 +297,8 @@ public class BlockmapTraverser
     {
         int checkCounter = ++WorldStatic.CheckCounter;
         Box3D box3D = new(position, sourceEntity.Radius, sourceEntity.Height);
-        Box2D box2D = new(position.XY, sourceEntity.Radius);
-        var it = m_blockmapGrid.CreateBoxIteration(box2D);
+        Box2D box2D = new(position.X, position.Y, sourceEntity.Radius);
+        var it = BlockmapGrid.CreateBoxIteration(box2D);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
@@ -343,7 +344,7 @@ public class BlockmapTraverser
     public unsafe void UseTraverse(Seg2D seg, DynamicArray<BlockmapIntersect> intersections)
     {
         int checkCounter = ++WorldStatic.CheckCounter;
-        var it = m_blockmapGrid.Iterate(seg);
+        var it = BlockmapGrid.Iterate(seg);
         var block = it.Next();
         while (block != null)
         {

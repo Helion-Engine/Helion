@@ -1,13 +1,14 @@
 using Helion.Audio;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Render.Common.World;
 using Helion.Render.OpenGL.Shared;
-using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
+using Helion.World.Blockmap;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
@@ -520,8 +521,9 @@ public class Player : Entity
         Vec3D currentPos = GetViewPosition();
         Vec3D prevPos = GetPrevViewPosition();
         Vec3D position = prevPos.Interpolate(currentPos, t);
-        CheckLineClip();
+        CheckLineClip(currentPos);
         position = CheckPlaneClip(currentPos, prevPos, position);
+
         double playerAngle = AngleRadians;
         double playerPitch = PitchRadians;
 
@@ -564,20 +566,32 @@ public class Player : Entity
         return m_camera;
     }
 
-    private void CheckLineClip()
+    private unsafe void CheckLineClip(in Vec3D pos)
     {
         ViewLineClip = false;
-        for (int i = 0; i < IntersectSectors.Length; i++)
+        var box = new Box2D(pos.X, pos.Y, Radius);
+        var grid = WorldStatic.World.BlockmapTraverser.BlockmapGrid;
+        var it = grid.CreateBoxIteration(box);
+        for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
-            var sector = IntersectSectors[i];
-            for (int j = 0; j < sector.Lines.Count; j++)
+            for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                var line = sector.Lines[j];
-                if (line.Front.Middle.TextureHandle != Constants.NoTextureIndex ||
-                     (line.Back != null && line.Back.Middle.TextureHandle != Constants.NoTextureIndex))
+                Block block = grid[by * it.Width + bx];
+                for (int i = 0; i < block.BlockLines.Length; i++)
                 {
-                    ViewLineClip = true;
-                    break;
+                    fixed (BlockLine* blockLine = &block.BlockLines.Data[i])
+                    {
+                        if (!box.Intersects(blockLine->Segment))
+                            continue;
+
+                        var line = blockLine->Line;
+                        if (line.Front.Middle.TextureHandle != Constants.NoTextureIndex ||
+                            (line.Back != null && line.Back.Middle.TextureHandle != Constants.NoTextureIndex))
+                        {
+                            ViewLineClip = true;
+                            return;
+                        }
+                    }
                 }
             }
         }

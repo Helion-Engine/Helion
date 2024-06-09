@@ -1,31 +1,23 @@
 using System;
-using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Audio.Sounds;
-using Helion.Geometry.Vectors;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Configs.Components;
-using Helion.Util.Extensions;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 
 namespace Helion.World.Sound;
 
-public class WorldSoundManager : SoundManager, ITickable
+public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundManager(audioSystem, world.ArchiveCollection), ITickable
 {
-    private IWorld m_world;
-
-    public WorldSoundManager(IWorld world, IAudioSystem audioSystem) :
-        base(audioSystem, world.ArchiveCollection)
-    {
-        m_world = world;
-    }
+    private IWorld m_world = world;
 
     public void UpdateTo(IWorld world)
     {
         m_world = world;
+        ArchiveCollection = world.ArchiveCollection;
         ClearSounds();
         AudioManager.Clear();
     }
@@ -173,38 +165,33 @@ public class WorldSoundManager : SoundManager, ITickable
         PlaySounds();
         AudioManager.Tick();
 
-        if (PlayingSounds.Empty())
+        if (PlayingSounds.Count == 0)
             return;
 
-        LinkedListNode<IAudioSource>? node = PlayingSounds.First;
-        LinkedListNode<IAudioSource>? nextNode;
+        IAudioSource? node = PlayingSounds.Head;
+        IAudioSource? nextNode;
         while (node != null)
         {
             nextNode = node.Next;
-            if (node.Value.IsFinished())
+            if (node.IsFinished())
             {
-                m_world.DataCache.FreeAudioSource(node.Value);
-                PlayingSounds.Remove(node.Value);
-                m_world.DataCache.FreeAudioNode(node);
+                PlayingSounds.RemoveAndFree(node, m_world.DataCache);
                 node = nextNode;
                 continue;
             }
 
-            double distance = node.Value.AudioData.SoundSource.GetDistanceFrom(listener.Entity);
-            if (!CheckDistance(distance, node.Value.AudioData.Attenuation))
+            double distance = node.AudioData.SoundSource.GetDistanceFrom(listener.Entity);
+            if (!CheckDistance(distance, node.AudioData.Attenuation))
             {
-                node.Value.Stop();
-                PlayingSounds.Remove(node);
-
-                AddWaitingSoundFromBumpedSound(node.Value);
-                m_world.DataCache.FreeAudioSource(node.Value);
-                m_world.DataCache.FreeAudioNode(node);
+                node.Stop();
+                PlayingSounds.RemoveAndFree(node, m_world.DataCache);
+                AddWaitingSoundFromBumpedSound(node);
             }
             else
             {
-                Vec3D? position = node.Value.AudioData.SoundSource.GetSoundPosition(listener.Entity);
+                var position = node.AudioData.SoundSource.GetSoundPosition(listener.Entity);
                 if (position != null)
-                    node.Value.SetPosition(position.Value.Float);
+                    node.SetPosition((float)position.Value.X, (float)position.Value.Y, (float)position.Value.Z);
             }
             node = nextNode;
         }

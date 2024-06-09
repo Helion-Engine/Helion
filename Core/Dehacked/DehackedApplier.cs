@@ -1210,7 +1210,7 @@ public class DehackedApplier
 
             MapInfoDef? mapInfo = mapInfoDefinition.MapInfo.GetMap(mapName);
             if (mapInfo == null)
-                Log.Warn($"Failed to find map{mapName} for par.");
+                Log.Warn($"Failed to find map:{mapName} for par.");
             else
                 mapInfo.ParTime = par.Par;
         }

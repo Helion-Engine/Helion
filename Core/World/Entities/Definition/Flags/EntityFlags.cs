@@ -86,6 +86,7 @@ public struct EntityFlags
     public bool MonsterMove { get => (Flags3 & FlagValue.Flag8) != 0; set { if (value) Flags3 |= FlagValue.Flag8; else Flags3 &= FlagValue.InvFlag8; } }
     public bool Fly { get => (Flags3 & FlagValue.Flag9) != 0; set { if (value) Flags3 |= FlagValue.Flag9; else Flags3 &= FlagValue.InvFlag9; } }
     public bool Teleported { get => (Flags3 & FlagValue.Flag10) != 0; set { if (value) Flags3 |= FlagValue.Flag10; else Flags3 &= FlagValue.InvFlag10; } }
+    public bool CrushGiblets { get => (Flags3 & FlagValue.Flag11) != 0; set { if (value) Flags3 |= FlagValue.Flag11; else Flags3 &= FlagValue.InvFlag11; } }
 
     public EntityFlags(EntityFlagsModel model)
     {

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 
 namespace Helion.Audio;
@@ -45,7 +44,7 @@ public interface IAudioSourceManager : IDisposable
 
     void CacheSound(string name);
     void SetListener(Vec3D pos, double angle, double pitch);
-    void PlayGroup(LinkedList<IAudioSource> audioSources);
+    void PlayGroup(SoundList audioSources);
     void DeviceChanging();
     void Tick();
     void Clear();

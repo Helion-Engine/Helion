@@ -39,10 +39,14 @@ namespace Helion.Audio.Impl
             GC.SuppressFinalize(this);
         }
 
-        public void PlayGroup(LinkedList<IAudioSource> audioSources)
+        public void PlayGroup(SoundList audioSources)
         {
-            foreach (var audioSource in audioSources)
-                audioSource.Play();
+            var node = audioSources.Head;
+            while (node != null)
+            {
+                node.Play();
+                node = node.Next;
+            }
         }
 
         public void SetListener(Vec3D pos, double angle, double pitch)

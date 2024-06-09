@@ -25,11 +25,9 @@ using Helion.Util.Profiling;
 using Helion.Util.RandomGenerators;
 using Helion.Util.Timing;
 using Helion.World;
-using Helion.World.Bsp;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
 using Helion.World.Geometry.Builder;
-using Helion.World.Geometry.Islands;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.StatusBar;
 using NLog;
@@ -56,6 +54,7 @@ public partial class WorldLayer : IGameLayerParent
     public IntermissionLayer? Intermission { get; private set; }
     public MapInfoDef CurrentMap { get; }
     public SinglePlayerWorld World { get; }
+
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
     private readonly GameLayerManager m_parent;

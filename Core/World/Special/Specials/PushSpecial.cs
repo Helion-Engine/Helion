@@ -64,7 +64,7 @@ public class PushSpecial : ISpecial
 
         if (m_type == PushType.Push && m_pusher != null)
         {
-            Box2D box = new(m_pusher.Position.XY, m_magnitude * 2);
+            Box2D box = new(m_pusher.Position.X, m_pusher.Position.Y, m_magnitude * 2);
             m_world.BlockmapTraverser.EntityTraverse(box, m_pushEntityAction);
         }
         else

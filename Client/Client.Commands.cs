@@ -272,7 +272,6 @@ public partial class Client
         // TODO: We should poll the device after setting it, and if SetDevice == true, set the config value.
         m_config.Audio.Device.Set(deviceName);
         m_audioSystem.SetDevice(deviceName);
-        m_audioSystem.SetVolume(m_config.Audio.Volume);
     }
 
     [ConsoleCommand("audio.devices", "Prints all available audio devices")]
@@ -323,6 +322,7 @@ public partial class Client
 
         var world = m_layerManager.WorldLayer?.World;
         m_layerManager.LastSave = new(saveGame, worldModel, string.Empty, true);
+        PrepLoadMap();
         await LoadMapAsync(GetMapInfo(worldModel.MapName), worldModel, null,
             showLoadingTitlepic: world == null || !world.MapInfo.MapName.EqualsIgnoreCase(worldModel.MapName));
     }
@@ -636,6 +636,7 @@ public partial class Client
     private async Task NewGame(MapInfoDef mapInfo)
     {
         m_globalData = new();
+        PrepLoadMap();
         await LoadMapAsync(mapInfo, null, null);
         InitializeDemoRecorderFromCommandArgs();
     }
@@ -660,6 +661,12 @@ public partial class Client
         return new DoomRandom();
     }
 
+    private void PrepLoadMap()
+    {
+        m_layerManager.LockInput = true;
+        m_layerManager.WorldLayer?.Stop();
+    }
+
     private async Task LoadMapAsync(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null,
         bool showLoadingTitlepic = true)
     {
@@ -674,13 +681,13 @@ public partial class Client
         loadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
 
         UnRegisterWorldEvents();
-
-        m_layerManager.LockInput = true;
+        
         m_layerManager.ClearAllExcept(loadingLayer);
         m_archiveCollection.DataCache.FlushReferences();
+
         await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
 
-        // Signal the client to finalizing loading on the main thread. OpenGL can't do things off of the main thread.
+        // Signal the client to finalizing loading on the main thread. OpenGL can't do things outside of the main thread.
         m_loadCompleteModel = worldModel;
         m_loadComplete = true;
     }
@@ -845,10 +852,12 @@ public partial class Client
                     break;
 
                 case LevelChangeType.Reset:
+                    PrepLoadMap();
                     await LoadMapAsync(world.MapInfo, null, null, e, showLoadingTitlepic: false);
                     break;
 
                 case LevelChangeType.ResetOrLoadLast:
+                    PrepLoadMap();
                     await LoadMapAsync(world.MapInfo, m_lastWorldModel, null, e, showLoadingTitlepic: false);
                     break;
             }
@@ -939,7 +948,10 @@ public partial class Client
             if (isChangingClusters || world.MapInfo.EndGame != null || EndGameLayer.EndGameMaps.Contains(world.MapInfo.Next))
                 HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
             else if (nextMapInfo != null)
+            {
+                PrepLoadMap();
                 await LoadMapAsync(nextMapInfo, null, world, showLoadingTitlepic: false);
+            }
         }
         catch (Exception e)
         {
@@ -966,7 +978,10 @@ public partial class Client
                 return;
 
             if (endGameLayer.NextMapInfo != null)
+            {
+                PrepLoadMap();
                 await LoadMapAsync(endGameLayer.NextMapInfo, null, endGameLayer.World, showLoadingTitlepic: false);
+            }
         }
         catch(Exception ex)
         {
@@ -985,6 +1000,7 @@ public partial class Client
         if (e.IsCheat)
             world.DisplayMessage("$STSTR_CLEV");
 
+        PrepLoadMap();
         await LoadMapAsync(mapInfoDef, null, null, e);
     }
 

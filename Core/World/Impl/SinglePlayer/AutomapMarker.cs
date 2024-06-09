@@ -175,7 +175,7 @@ public class AutomapMarker
                 continue;
             }
 
-            if (line.OneSided && !line.Segment.OnRight(pos2D))
+            if (line.Back == null && !line.Segment.OnRight(pos2D))
                 continue;
 
             if (m_viewClipper.InsideAnyRange(line.Segment.Start, line.Segment.End))
@@ -197,7 +197,7 @@ public class AutomapMarker
     private void AddLineClip(SubsectorSegment edge)
     {
         var side = m_world.Sides[edge.SideId!.Value];
-        if (side.Line.OneSided)
+        if (side.Line.Back == null)
             m_viewClipper.AddLine(edge.Start, edge.End);
         else if (LineOpening.IsRenderingBlocked(side.Line))
             m_viewClipper.AddLine(edge.Start, edge.End);

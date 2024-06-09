@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Helion.Graphics;
-using Helion.Strings;
 using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;

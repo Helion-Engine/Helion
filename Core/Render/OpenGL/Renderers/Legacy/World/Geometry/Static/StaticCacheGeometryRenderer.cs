@@ -20,12 +20,7 @@ using System.Collections.Generic;
 using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
-using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Context;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
-using System.Diagnostics;
-using Helion.Util.Loggers;
-using System.Linq;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -124,10 +119,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SectorLightChanged += World_SectorLightChanged;
 
         SetLightBufferData(world, lightBuffer);
-
-        m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
-        m_geometryRenderer.SetViewSector(DefaultSector);
-        m_geometryRenderer.SetBuffer(false);
+        m_geometryRenderer.SetInitRender();
 
         for (int i = 0; i < world.Sectors.Count; i++)
         {
@@ -298,35 +290,40 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddLine(Line line, bool update = false)
     {
-        if (line.OneSided)
+        if (line.Flags.TwoSided && line.Back != null)
         {
-            if ((line.Front.Dynamic & m_sideDynamicIgnore) != 0)
-                return;
-
-            bool dynamic = line.Front.IsDynamic || line.Front.Sector.IsMoving;
-            var sector = line.Front.Sector;
-            if (dynamic && (sector.Floor.Dynamic == SectorDynamic.Movement || sector.Ceiling.Dynamic == SectorDynamic.Movement))
-                return;
-
-            m_geometryRenderer.SetRenderOneSided(line.Front);
-            m_geometryRenderer.RenderOneSided(line.Front, out var sideVertices, out var skyVertices);
-
-            AddSkyGeometry(line.Front, WallLocation.Middle, null, skyVertices, line.Front.Sector, update);
-
-            if (sideVertices != null)
-            {
-                AddFloodFillPlane(line.Front, sector, true);
-                var wall = line.Front.Middle;
-                UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices,
-                    null, line.Front, wall, true);
-            }
-
+            AddTwoSided(line.Front, true, update);
+            if (line.Back != null)
+                AddTwoSided(line.Back, false, update);
             return;
         }
 
-        AddSide(line.Front, true, update);
+        AddOneSided(line.Front, true, update);
         if (line.Back != null)
-            AddSide(line.Back, false, update);
+            AddOneSided(line.Back, false, update);
+    }
+
+    private void AddOneSided(Side side, bool isFrontSide, bool update)
+    {
+        if ((side.Dynamic & m_sideDynamicIgnore) != 0)
+            return;
+
+        bool dynamic = side.IsDynamic || side.Sector.IsMoving;
+        var sector = side.Sector;
+        if (dynamic && (sector.Floor.Dynamic == SectorDynamic.Movement || sector.Ceiling.Dynamic == SectorDynamic.Movement))
+            return;
+
+        m_geometryRenderer.SetRenderOneSided(side);
+        m_geometryRenderer.RenderOneSided(side, isFrontSide, out var sideVertices, out var skyVertices);
+
+        AddSkyGeometry(side, WallLocation.Middle, null, skyVertices, side.Sector, update);
+
+        if (sideVertices != null)
+        {
+            AddFloodFillPlane(side, sector, true);
+            var wall = side.Middle;
+            UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices, null, side, wall, true);
+        }
     }
 
     private void AddFloodFillPlane(Side side, Sector sector, bool isFrontSide)
@@ -364,7 +361,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_geometryRenderer.Portals.AddFloodFillPlane(side, sector, SectorPlanes.Ceiling, SectorPlaneFace.Ceiling, isFrontSide);
     }
 
-    private void AddSide(Side side, bool isFrontSide, bool update)
+    private void AddTwoSided(Side side, bool isFrontSide, bool update)
     {
         Side otherSide = side.PartnerSide!;
         if (update && (side.Sector.IsMoving || otherSide.Sector.IsMoving))

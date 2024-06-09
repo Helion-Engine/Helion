@@ -120,7 +120,10 @@ public class ArchiveCollection : IResources, IPathResolver
 
     private void SetTextureManagerSky(MapInfoDef mapInfo)
     {
-        TextureManager.SetSkyTexture(mapInfo.Sky1.Name ?? "SKY1");
+        if (mapInfo.Sky1.Name != null && mapInfo.Sky1.Name.Length > 0)
+            TextureManager.SetSkyTexture(mapInfo.Sky1.Name ?? "SKY1");
+        else
+            TextureManager.SetSkyTexture("SKY1");
     }
 
     public Entry? FindEntry(string name, ResourceNamespace? priorityNamespace = null)

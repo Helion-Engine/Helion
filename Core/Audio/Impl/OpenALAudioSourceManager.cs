@@ -95,12 +95,12 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         return source;
     }
 
-    public void PlayGroup(LinkedList<IAudioSource> audioSources)
+    public void PlayGroup(SoundList audioSources)
     {
-        var node = audioSources.First;
+        var node = audioSources.Head;
         while (node != null)
         {
-            m_playGroup.Add(((OpenALAudioSource)node.Value).ID);
+            m_playGroup.Add(((OpenALAudioSource)node).ID);
             node = node.Next;
         }
 
@@ -138,7 +138,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
 
     public void Tick()
     {
-
+        m_owner.Tick();
     }
 
     public void Dispose()

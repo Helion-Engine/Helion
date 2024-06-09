@@ -16,7 +16,7 @@ public static class LockSpecialUtil
         if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorGeneric)
         {
             key = line.Args.Arg4;
-            return true;
+            return key != 0;
         }
 
         key = -1;

@@ -204,7 +204,7 @@ public struct TeleportSpecial
             Line sourceLine = m_args.ActivateLineSpecial;
             foreach (Line line in m_world.FindByLineId(m_lineId))
             {
-                if (line.Id == sourceLine.Id || !line.TwoSided)
+                if (line.Id == sourceLine.Id || line.Back == null)
                     continue;
 
                 double lineAngle = line.StartPosition.Angle(line.EndPosition) - sourceLine.StartPosition.Angle(sourceLine.EndPosition);

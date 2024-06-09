@@ -13,7 +13,6 @@ namespace Helion.Client.Music;
 public class MusicPlayer : IMusicPlayer
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private readonly IConfig m_config;
     private IMusicPlayer? m_musicPlayer;
     private string m_lastDataHash = string.Empty;
     private float m_volume;
@@ -33,10 +32,9 @@ public class MusicPlayer : IMusicPlayer
         }
     }
 
-    public MusicPlayer(IConfig config)
+    public MusicPlayer()
     {
-        m_config = config;
-        m_config.Audio.MusicVolume.OnChanged += OnMusicVolumeChange;
+
     }
 
     public bool Play(byte[] data, MusicPlayerOptions options)
@@ -93,6 +91,8 @@ public class MusicPlayer : IMusicPlayer
         return false;
     }
 
+    public bool ChangesMasterVolume() => m_musicPlayer is NAudioMusicPlayer;
+
     private static IMusicPlayer CreateFluidSynthPlayer() => 
         new FluidSynthMusicPlayer($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");
 
@@ -104,11 +104,6 @@ public class MusicPlayer : IMusicPlayer
         var playParams = (PlayParams)param!;
         m_musicPlayer.SetVolume(m_volume);
         m_musicPlayer.Play(playParams.Data, playParams.Options);
-    }
-
-    private void OnMusicVolumeChange(object? sender, double newVolume)
-    {
-        SetVolume((float)newVolume);
     }
 
     public void Dispose()
@@ -124,7 +119,6 @@ public class MusicPlayer : IMusicPlayer
 
         Stop();
         m_musicPlayer?.Dispose();
-        m_config.Audio.MusicVolume.OnChanged -= OnMusicVolumeChange;
         m_disposed = true;
     }
 

@@ -747,7 +747,7 @@ public sealed class Sector
         for (int i = 0; i < Lines.Count; i++)
         {
             Line line = Lines[i];
-            if (line.TwoSided)
+            if (line.Back != null)
             {
                 Side side = line.Front;
                 min = GetShortestTextureHeight(textureManager, side, byLowerTx, config.VanillaShortestTexture, min);

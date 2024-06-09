@@ -41,7 +41,6 @@ using Helion.World.Impl.SinglePlayer;
 using Helion.World.Util;
 using Helion.Resources.IWad;
 using Helion.Dehacked;
-using Helion.Resources.Archives;
 using Helion.Util.Profiling;
 using Helion.World.Entities.Inventories;
 using Helion.Maps.Specials;
@@ -58,8 +57,6 @@ using System.Diagnostics;
 using Helion.Resources.Archives.Entries;
 using Helion.Maps.Doom;
 using Helion.Maps.Specials.Vanilla;
-using Helion.World.Special.SectorMovement;
-using Helion.Strings;
 using Helion.Util.Loggers;
 
 namespace Helion.World;
@@ -396,6 +393,7 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.OriginalExplosion.OnChanged += OriginalExplosion_OnChanged;
         Config.Compatibility.FinalDoomTeleport.OnChanged += FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged += VanillaSectorSound_OnChanged;
+        Config.Game.FastMonsters.OnChanged += FastMonsters_OnChanged;
     }
 
     private void UnRegisterConfigChanges()
@@ -415,6 +413,7 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.OriginalExplosion.OnChanged -= OriginalExplosion_OnChanged;
         Config.Compatibility.FinalDoomTeleport.OnChanged -= FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged -= VanillaSectorSound_OnChanged;
+        Config.Game.FastMonsters.OnChanged -= FastMonsters_OnChanged;
     }
 
     private void SetWorldStatic()
@@ -499,6 +498,11 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.SlowTickLookMultiplier = value;
     private void SlowTickTracerMultiplier_OnChanged(object? sender, int value) =>
         WorldStatic.SlowTickTracerMultiplier = value;
+    private void FastMonsters_OnChanged(object? sender, bool enabled)
+    {
+        IsFastMonsters = SkillDefinition.IsFastMonsters(Config);
+        WorldStatic.IsFastMonsters = IsFastMonsters;
+    }
 
     private IList<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
     {
@@ -569,7 +573,7 @@ public abstract partial class WorldBase : IWorld
         m_lineOfSightEnemyData.Entity = entity;
         m_lineOfSightEnemyData.AllAround = allaround;
         m_lineOfSightEnemyData.SightEntity = null;
-        Box2D box = new(entity.Position.XY, 1280);
+        Box2D box = new(entity.Position.X, entity.Position.Y, 1280);
         BlockmapTraverser.EntityTraverse(box, m_lineOfSightEnemyAction);
         return m_lineOfSightEnemyData.SightEntity;
     }
@@ -1235,7 +1239,8 @@ public abstract partial class WorldBase : IWorld
                 out autoAimEntity, tracers: Constants.AutoAimTracers))
         {
             pitch = autoAimPitch;
-            angle = autoAimAngle;
+            if (Config.Game.HorizontalAutoAim)
+                angle = autoAimAngle;
         }
 
         pitch += addPitch;
@@ -1633,7 +1638,7 @@ public abstract partial class WorldBase : IWorld
             }
 
             bool skyClip = false;
-            if (entity.BlockingLine != null && !entity.BlockingLine.OneSided)
+            if (entity.BlockingLine != null && entity.BlockingLine.Back != null)
             {
                 GetOrderedSectors(entity.BlockingLine, entity.Position, out Sector front, out Sector back);
                 if (IsSkyClipTwoSided(front, back, entity.Position))
@@ -2132,6 +2137,7 @@ public abstract partial class WorldBase : IWorld
         IsDisposed = true;
         UnRegisterConfigChanges();
         SpecialManager.Dispose();
+        SoundManager.ClearSounds();
     }
 
     private void CreateBloodOrPulletPuff(Entity? entity, Vec3D intersect, double angle, double attackDistance, int damage, bool ripper = false)
@@ -2541,7 +2547,7 @@ public abstract partial class WorldBase : IWorld
         m_healChaseData.HealSound = healSound;
         m_healChaseData.Healed = false;
         entity.GetEnemySpeed(out var speedX, out var speedY);
-        Box2D nextBox = new(new Vec2D(entity.Position.X + speedX, entity.Position.Y + speedY), entity.Radius);
+        Box2D nextBox = new(entity.Position.X + speedX, entity.Position.Y + speedY, entity.Radius);
         BlockmapTraverser.HealTraverse(nextBox, m_healChaseAction);
 
         return m_healChaseData.Healed;
@@ -2563,13 +2569,14 @@ public abstract partial class WorldBase : IWorld
         if (m_healChaseData.HealSound.Length > 0)
             WorldStatic.SoundManager.CreateSoundOn(entity, m_healChaseData.HealSound, new SoundParams(entity));
 
-        bool setVileGhost = Config.Compatibility.VileGhosts && entity.Radius == 0;
+        bool setVileGhost = Config.Compatibility.VileGhosts && entity.Flags.CrushGiblets;
         entity.SetRaiseState(!setVileGhost);
         if (setVileGhost)
         {
             entity.Flags.Shootable = entity.Definition.Flags.Shootable;
             entity.Flags.Solid = false;
             entity.Height = 0;
+            entity.Radius = 0;
         }
         entity.Flags.Friendly = healChaseEntity.Flags.Friendly;
     }
@@ -2593,7 +2600,7 @@ public abstract partial class WorldBase : IWorld
         m_newTracerTargetData.Entity = entity;
         m_newTracerTargetData.Owner = entity.Owner.Entity ?? entity;
         m_newTracerTargetData.FieldOfViewRadians = fieldOfViewRadians;
-        BlockmapTraverser.EntityTraverse(new Box2D(entity.Position.XY, radius), m_setNewTracerTargetAction);
+        BlockmapTraverser.EntityTraverse(new Box2D(entity.Position.X, entity.Position.Y, radius), m_setNewTracerTargetAction);
     }
 
     public void EntityTeleported(Entity teleportEntity)

@@ -9,8 +9,8 @@ public class DehackedPar
     public void DehackedPars()
     {
         string data = @"[PARS]
-par 1 1 420
-par 2 69";
+par 1 1 420 garbage
+par 2 69 garbage";
         var dehacked = new DehackedDefinition();
         dehacked.Parse(data);
 

@@ -33,4 +33,6 @@ public interface IMusicPlayer : IDisposable
     /// Stops playing the music.
     /// </summary>
     void Stop();
+
+    bool ChangesMasterVolume() => false;
 }

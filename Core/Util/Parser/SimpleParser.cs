@@ -44,10 +44,13 @@ public class SimpleParser
     public static bool TryParseFloat(string text, out float f) =>
         float.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out f);
 
+    private static readonly char[] SpecialChars = ['{', '}', '=', ';', ',', '[', ']'];
+    private static readonly string[] SplitLines = ["\r\n", "\n"];
+
     public SimpleParser(ParseType parseType = ParseType.Normal)
     {
         m_parseType = parseType;
-        SetSpecialChars(new char[] { '{', '}', '=', ';', ',' , '[' ,']'});
+        SetSpecialChars(SpecialChars);
     }
 
     public void SetSpecialChars(IEnumerable<char> special)
@@ -63,8 +66,7 @@ public class SimpleParser
     public void Parse(string data, bool keepEmptyLines = false, bool parseQuotes = true)
     {
         m_index = 0;
-        m_lines = data.Split(new string[] { "\r\n", "\n" },
-            keepEmptyLines ?  StringSplitOptions.None : StringSplitOptions.RemoveEmptyEntries);
+        m_lines = data.Split(SplitLines, keepEmptyLines ?  StringSplitOptions.None : StringSplitOptions.RemoveEmptyEntries);
         bool multiLineComment = false;
         int lineCount = 0;
         int startLine = 0;

@@ -25,14 +25,9 @@ using Helion.World.Special.SectorMovement;
 using Helion.World.Geometry.Lines;
 using Helion.Util.Consoles;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
-using System.Reflection;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.World.Geometry.Islands;
-using System.Runtime.CompilerServices;
-using Helion.Util.Extensions;
-using Newtonsoft.Json.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Helion.Util;
 
@@ -63,8 +58,6 @@ public class DataCache
     private readonly DynamicArray<ConsoleMessage> m_consoleMessages = new();
     private readonly DynamicArray<LegacyVertex[]> m_wallVertices = new(DefaultLength);
     private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new(DefaultLength);
-    private readonly Dictionary<int, DynamicArray<LegacyVertex[]>> m_flatVertices = new(DefaultLength);
-    private readonly Dictionary<int, DynamicArray<SkyGeometryVertex[]>> m_skyFlatVertices = new(DefaultLength);
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
     public bool CacheEntities = true;
@@ -208,7 +201,7 @@ public class DataCache
     }
 
     public void FreeAudioSource(IAudioSource audioSource)
-    {
+    {        
         if (audioSource is not OpenALAudioSource)
             return;
 
@@ -326,25 +319,7 @@ public class DataCache
     {
         m_clipSpans.Add(clipSpan);
     }
-    
-    public LinkedListNode<IAudioSource> GetAudioNode(IAudioSource audio)
-    {
-        if (m_audioNodes.Length > 0)
-        {
-            var node = m_audioNodes.RemoveLast();
-            node.Value = audio;
-            return node;
-        }
-
-        return new LinkedListNode<IAudioSource>(audio);
-    }
-
-    public void FreeAudioNode(LinkedListNode<IAudioSource> audio)
-    {
-        audio.Value = null!;
-        m_audioNodes.Add(audio);
-    }
-
+   
     public LinkedListNode<ISpecial> GetSpecialNode(ISpecial special)
     {
         if (m_specialNodes.Length > 0)
@@ -542,51 +517,5 @@ public class DataCache
     public void FreeSkyWallVertices(SkyGeometryVertex[] vertices)
     {
         m_skyWallVertices.Add(vertices);
-    }
-
-    public LegacyVertex[] GetFlatVertices(int length)
-    {
-        if (m_flatVertices.TryGetValue(length, out var list) && list.Length > 0)
-            return list.RemoveLast();
-
-        return new LegacyVertex[length];
-    }
-
-    public unsafe void FreeFlatVertices(LegacyVertex[] vertices)
-    {
-        if (!m_flatVertices.TryGetValue(vertices.Length, out var list))
-        {
-            list = new();
-            m_flatVertices[vertices.Length] = list;
-            ref var reference = ref MemoryMarshal.GetArrayDataReference(vertices);
-            Unsafe.InitBlockUnaligned(ref Unsafe.As<LegacyVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<LegacyVertex>() * vertices.Length));
-        }
-        list.Add(vertices);
-    }
-
-    public SkyGeometryVertex[] GetSkyFlatVertices(int length)
-    {
-        if (m_skyFlatVertices.TryGetValue(length, out var list) && list.Length > 0)
-            return list.RemoveLast();
-
-        return new SkyGeometryVertex[length];
-    }
-
-    public void FreeSkyFlatVertices(SkyGeometryVertex[] vertices)
-    {
-        if (!m_skyFlatVertices.TryGetValue(vertices.Length, out var list))
-        {
-            list = new();
-            m_skyFlatVertices[vertices.Length] = list;
-            ref var reference = ref MemoryMarshal.GetArrayDataReference(vertices);
-            Unsafe.InitBlockUnaligned(ref Unsafe.As<SkyGeometryVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<SkyGeometryVertex>() * vertices.Length));
-        }
-        list.Add(vertices);
-    }
-
-    public void PurgeFlatVertices()
-    {
-        m_flatVertices.Clear();
-        m_skyFlatVertices.Clear();
     }
 }
