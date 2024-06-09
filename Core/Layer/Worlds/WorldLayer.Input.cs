@@ -117,7 +117,7 @@ public partial class WorldLayer
                 if (cmd.Key != key)
                     continue;
 
-                if (World.Paused && Constants.InGameCommands.Contains(cmd.Command))
+                if ((m_parent.LoadingLayer != null || World.Paused) && Constants.InGameCommands.Contains(cmd.Command))
                     return;
                 m_parent.SubmitConsoleText(cmd.Command);
             }

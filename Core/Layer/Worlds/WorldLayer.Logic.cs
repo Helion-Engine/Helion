@@ -1,5 +1,4 @@
 using Helion.Demo;
-using Helion.Layer.IwadSelection;
 using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Cheats;
@@ -13,6 +12,7 @@ public partial class WorldLayer
     private IDemoRecorder? m_demoRecorder;
     private bool m_recording;
     private bool m_demoEnded;
+    private bool m_stopped;
     private int m_demoSkipTicks;
 
     private bool AnyLayerObscuring => m_parent.ConsoleLayer != null ||
@@ -21,8 +21,17 @@ public partial class WorldLayer
                                       m_parent.IntermissionLayer != null ||
                                       m_parent.ReadThisLayer != null ||
                                       m_parent.LoadingLayer != null;
+
+    public void Stop()
+    {
+        m_stopped = true;
+    }
+
     public void RunLogic(TickerInfo tickerInfo)
     {
+        if (m_stopped)
+            return;
+
         TickWorld(tickerInfo);
         HandlePauseOrResume();
     }
@@ -189,7 +198,7 @@ public partial class WorldLayer
 
     private void HandlePauseOrResume()
     {
-        if (m_parent.LoadingLayer != null)
+        if (m_stopped)
             return;
 
         // If something is on top of our world (such as a menu, or a

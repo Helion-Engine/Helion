@@ -174,6 +174,7 @@ public partial class Client
 
     private async Task LoadMap(string mapName, CommandLineArgs? args = null)
     {
+        PrepLoadMap();
         await LoadMapAsync(GetMapInfo(mapName), null, null);
 
         if (m_layerManager.WorldLayer == null && m_layerManager.ConsoleLayer != null)
