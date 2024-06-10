@@ -591,7 +591,6 @@ public class GeometryRenderer : IDisposable
         if (side.Middle.TextureHandle <= Constants.NullCompatibilityTextureIndex)
         {
             vertices = null;
-            skyVertices = null;
             return;
         }
 
