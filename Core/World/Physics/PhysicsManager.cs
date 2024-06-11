@@ -911,15 +911,21 @@ public sealed class PhysicsManager
         centerSector.CheckCount = checkCounter;
         if (tryMove != null)
         {
+            int intersectSectorLength = 0;
+            entity.IntersectSectors.EnsureCapacity(tryMove.IntersectSectors.Length);
+            entity.SectorNodes.EnsureCapacity(tryMove.IntersectSectors.Length);
             for (int i = 0; i < tryMove.IntersectSectors.Length; i++)
             {
                 var sector = tryMove.IntersectSectors[i];
                 if (sector.CheckCount == checkCounter)
                     continue;
                 sector.CheckCount = checkCounter;
-                entity.IntersectSectors.Add(sector);
-                entity.SectorNodes.Add(sector.Link(entity));
+                entity.IntersectSectors.Data[intersectSectorLength] = sector;
+                entity.SectorNodes.Data[intersectSectorLength++] = sector.Link(entity);
             }
+
+            entity.IntersectSectors.Length = intersectSectorLength;
+            entity.SectorNodes.Length = intersectSectorLength;
         }
         else
         {
@@ -1185,6 +1191,7 @@ doneLinkToSectors:
         int blockStartY = Math.Max(0, (int)((boxMinY - m_blockmapGrid.Bounds.Min.Y) / m_blockmapGrid.Dimension));
         int blockEndX = Math.Min((int)((boxMaxX - m_blockmapGrid.Bounds.Min.X) / m_blockmapGrid.Dimension), m_blockmapGrid.Width - 1);
         int blockEndY = Math.Min((int)((boxMaxY - m_blockmapGrid.Bounds.Min.Y) / m_blockmapGrid.Dimension), m_blockmapGrid.Height - 1);
+        int intersectSectorLength = 0;
 
         for (int by = blockStartY; by <= blockEndY; by++)
         {
@@ -1192,7 +1199,7 @@ doneLinkToSectors:
             {
                 Block block = m_blockmapBlocks[by * m_blockmapGrid.Width + bx];
                 if (checkEntities)
-                {
+                {               
                     for (var entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
                     {
                         nextEntity = entityNode.Value;
@@ -1234,6 +1241,8 @@ doneLinkToSectors:
                     }
                 }
 
+                tryMove.IntersectSectors.EnsureCapacity(tryMove.IntersectSectors.Length + block.BlockLineCount * 2);
+
                 for (int i = 0; i < block.BlockLineCount; i++)
                 {
                     fixed (BlockLine* blockLine = &block.BlockLines[i])
@@ -1266,9 +1275,9 @@ doneLinkToSectors:
                                     tryMove.ImpactSpecialLines.Add(line);
                             }
 
-                            tryMove.IntersectSectors.Add(blockLine->FrontSector);
+                            tryMove.IntersectSectors.Data[intersectSectorLength++] = blockLine->FrontSector;
                             if (blockLine->BackSector != blockLine->FrontSector)
-                                tryMove.IntersectSectors.Add(blockLine->BackSector!);
+                                tryMove.IntersectSectors.Data[intersectSectorLength++] = blockLine->BackSector!;
                         }
                     }
                 }
@@ -1276,7 +1285,9 @@ doneLinkToSectors:
         }
 
 
-doneIsPositionValid:
+    doneIsPositionValid:
+        tryMove.IntersectSectors.Length = intersectSectorLength;
+
         if (entity.BlockingLine != null && Line.BlocksEntity(entity, entity.BlockingLine.Back == null, entity.BlockingLine.Flags, WorldStatic.Mbf21))
         {
             tryMove.Subsector = null;
