@@ -72,14 +72,14 @@ public class BlockmapTraverser
             BlockmapIntersect* bi = startIntersect;
             while (block != null)
             {
-                int blockLineCount = block.BlockLines.Length;
+                int blockLineCount = block.BlockLineCount;
                 if (capacity < length + blockLineCount)
                 {
                     intersections.EnsureCapacity(length + blockLineCount);
                     capacity = intersections.Capacity;
                 }
 
-                fixed (BlockLine* lineStart = &block.BlockLines.Data[0])
+                fixed (BlockLine* lineStart = &block.BlockLines[0])
                 {
                     BlockLine* line = lineStart;
                     for (int i = 0; i < blockLineCount; i++, line++)
@@ -131,10 +131,10 @@ public class BlockmapTraverser
             BlockmapIntersect* bi = startIntersect;
             while (block != null)
             {
-                fixed (BlockLine* lineStart = &block.BlockLines.Data[0])
+                fixed (BlockLine* lineStart = &block.BlockLines[0])
                 {
                     BlockLine* line = lineStart;
-                    for (int i = 0; i < block.BlockLines.Length; i++, line++)
+                    for (int i = 0; i < block.BlockLineCount; i++, line++)
                     {
                         if (seg.Intersection(line->Segment.Start.X, line->Segment.Start.Y, line->Segment.End.X, line->Segment.End.Y, out double t))
                         {
@@ -348,9 +348,9 @@ public class BlockmapTraverser
         var block = it.Next();
         while (block != null)
         {
-            for (int i = 0; i < block.BlockLines.Length; i++)
+            for (int i = 0; i < block.BlockLineCount; i++)
             {
-                fixed (BlockLine* line = &block.BlockLines.Data[i])
+                fixed (BlockLine* line = &block.BlockLines[i])
                 {
                     if (m_checkedLines[line->LineId] == checkCounter)
                         continue;

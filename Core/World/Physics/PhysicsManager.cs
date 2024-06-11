@@ -930,9 +930,9 @@ public sealed class PhysicsManager
                 for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
                 {
                     Block block = m_blockmapBlocks[by * it.Width + bx];
-                    for (int i = 0; i < block.BlockLines.Length; i++)
+                    for (int i = 0; i < block.BlockLineCount; i++)
                     {
-                        fixed (BlockLine* line = &block.BlockLines.Data[i])
+                        fixed (BlockLine* line = &block.BlockLines[i])
                         {
                             if (m_checkedBlockLines[line->LineId] == checkCounter)
                                 continue;
@@ -1234,9 +1234,9 @@ doneLinkToSectors:
                     }
                 }
 
-                for (int i = 0; i < block.BlockLines.Length; i++)
+                for (int i = 0; i < block.BlockLineCount; i++)
                 {
-                    fixed (BlockLine* blockLine = &block.BlockLines.Data[i])
+                    fixed (BlockLine* blockLine = &block.BlockLines[i])
                     {
                         if (m_checkedBlockLines[blockLine->LineId] == checkCounter)
                             continue;
@@ -1399,9 +1399,9 @@ doneIsPositionValid:
         var block = it.Next();
         while (block != null)
         {
-            for (int i = 0; i < block.BlockLines.Length; i++)
+            for (int i = 0; i < block.BlockLineCount; i++)
             {
-                fixed (BlockLine* line = &block.BlockLines.Data[i])
+                fixed (BlockLine* line = &block.BlockLines[i])
                 {
                     if (cornerTracer.Intersection(line->Segment, out double time) && time > 0 && time < 1 &&
                         LineBlocksEntity(entity, entity.Position.X, entity.Position.Y, line, null) != LineBlock.NoBlock &&

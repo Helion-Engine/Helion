@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
@@ -72,7 +73,8 @@ public class BlockMap
         for (int i = 0; i < m_blocks.Blocks.Length; i++)
         {
             var block = m_blocks.Blocks[i];
-            block.BlockLines.FlushStruct();
+            for (int j = 0; j < block.BlockLineCount; j++)
+                block.BlockLines[j] = default;
         }
     }
     
@@ -175,7 +177,14 @@ public class BlockMap
         {
             m_blocks.Iterate(line.Segment, block =>
             {
-                block.BlockLines.Add(new BlockLine(line.Segment, line, line.Back == null, line.Front.Sector, line.Back?.Sector));
+                if (block.BlockLines.Length == block.BlockLineCount)
+                {
+                    var newLines = new BlockLine[block.BlockLines.Length * 2];
+                    Array.Copy(block.BlockLines, newLines, block.BlockLines.Length);
+                    block.BlockLines = newLines;
+                }
+
+                block.BlockLines[block.BlockLineCount++] = new BlockLine(line.Segment, line, line.Back == null, line.Front.Sector, line.Back?.Sector);
                 return GridIterationStatus.Continue;
             });
         }
