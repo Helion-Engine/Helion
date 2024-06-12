@@ -13,7 +13,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
 public class SkySphereTexture : IDisposable
 {
-    record struct SkyTexture(GLLegacyTexture GlTexture, int TextureIndex);
+    record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIndex);
 
     private const int PixelRowsToEvaluate = 24;
     private const int DefaultPaddingDivisor = 3;
@@ -55,7 +55,7 @@ public class SkySphereTexture : IDisposable
         int textureIndex = m_archiveCollection.TextureManager.GetTranslationIndex(m_textureHandleIndex);
         for (int i = 0; i < m_skyTextures.Count; i++)
         {
-            if (m_skyTextures[i].TextureIndex == textureIndex)
+            if (m_skyTextures[i].AnimatedTextureIndex == textureIndex)
                 return m_skyTextures[i].GlTexture;
         }
 
@@ -225,7 +225,7 @@ public class SkySphereTexture : IDisposable
                 int animatedTextureIndex = components[j].TextureIndex;
                 if (LegacySkyRenderer.GeneratedTextures.TryGetValue(animatedTextureIndex, out var existingSkyTexture))
                 {
-                    m_skyTextures.Add(new (existingSkyTexture, animatedTextureIndex));
+                    m_skyTextures.Add(new(existingSkyTexture, animatedTextureIndex));
                     continue;
                 }
  
@@ -240,7 +240,7 @@ public class SkySphereTexture : IDisposable
 
     private bool GenerateSkyTextures(int textureIndex, [NotNullWhen(true)] out GLLegacyTexture? texture)
     {
-        Image? skyImage = m_archiveCollection.TextureManager.GetTexture(textureIndex).Image;
+        Image? skyImage = m_archiveCollection.TextureManager.GetNonAnimatedTexture(textureIndex).Image;
         if (skyImage == null)
         {
             texture = null;

@@ -13,7 +13,6 @@ using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Loggers;
 using Helion.World;
-using NLog;
 
 namespace Helion.Resources;
 
@@ -337,6 +336,11 @@ public class TextureManager : ITickable
         return m_textures[m_translations[index]];
     }
 
+    public Texture GetNonAnimatedTexture(int index)
+    {
+        return m_textures[index];
+    }
+
     public int GetTranslationIndex(int index)
     {
         return m_translations[index];
@@ -385,9 +389,10 @@ public class TextureManager : ITickable
             Animation anim = m_animations[i];
             anim.AnimationIndex = 0;
             anim.Tics = 0;
-
-            m_translations[anim.TranslationIndex] = anim.AnimatedTexture.Components[0].TextureIndex;
         }
+
+        for (int i = 0; i < m_textures.Count; i++)
+            m_translations[i] = i;
     }
 
     private SpriteDefinition? CreateSpriteDefinition(int spriteIndex)
