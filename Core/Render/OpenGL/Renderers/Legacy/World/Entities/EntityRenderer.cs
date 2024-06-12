@@ -25,6 +25,7 @@ public class EntityRenderer : IDisposable
     private DynamicArray<SpriteDefinition> m_spriteDefs = new(1024);
     private SpriteRotation m_nullSpriteRotation;
     private Vec2F m_viewRightNormal;
+    private Vec2F m_prevViewRightNormal;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
     private bool m_spriteAlpha;
     private bool m_spriteClip;
@@ -32,6 +33,7 @@ public class EntityRenderer : IDisposable
     private bool m_alwaysFlood;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
+    private float m_zNear;
     private bool m_disposed;
 
     public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager)
@@ -134,7 +136,7 @@ public class EntityRenderer : IDisposable
 
     public unsafe void RenderEntity(Entity entity, in Vec2D position)
     {
-        const double NudgeFactor = 0.005;
+        const double NudgeFactor = 0.0001;
         
         Vec3D centerBottom = entity.Position;
         Vec2D entityPos = new(centerBottom.X, centerBottom.Y);
@@ -170,10 +172,10 @@ public class EntityRenderer : IDisposable
         {
             if (m_renderPositions.TryGetValue(entityPos, out int count))
             {
-                double nudge = Math.Clamp(NudgeFactor * Math.Sqrt(entity.RenderDistanceSquared), NudgeFactor, 2);
+                double nudge = (NudgeFactor * Renderer.ZNearMax / m_zNear) * count * Math.Sqrt(entity.RenderDistanceSquared);
                 double angle = Math.Atan2(centerBottom.Y - position.Y, centerBottom.X - position.X);
-                nudgeAmount.X = Math.Cos(angle) * nudge * count;
-                nudgeAmount.Y = Math.Sin(angle) * nudge * count;
+                nudgeAmount.X = Math.Cos(angle) * nudge;
+                nudgeAmount.Y = Math.Sin(angle) * nudge;
                 m_renderPositions[entityPos] = count + 1;      
             }
             else
@@ -207,12 +209,22 @@ public class EntityRenderer : IDisposable
         {
             // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
             // Doom graphics are drawn left to right and not centered
-            vertex->Pos = new Vec3F((float)(entity.Position.X - nudgeAmount.X) - (m_viewRightNormal.X * texture.Offset.X) + (m_viewRightNormal.X * halfTexWidth),
-                (float)(entity.Position.Y - nudgeAmount.Y) - (m_viewRightNormal.Y * texture.Offset.X) + (m_viewRightNormal.Y * halfTexWidth), (float)entity.Position.Z + offsetZ);
-            vertex->PrevPos = entity.Position == entity.PrevPosition ? vertex->Pos :
-                new Vec3F(vertex->Pos.X - (float)(entity.Position.X - entity.PrevPosition.X),
-                vertex->Pos.Y - (float)(entity.Position.Y - entity.PrevPosition.Y),
-                vertex->Pos.Z - (float)(entity.Position.Z - entity.PrevPosition.Z));
+            vertex->Pos = new Vec3F(
+                (float)(entity.Position.X - nudgeAmount.X),
+                (float)(entity.Position.Y - nudgeAmount.Y),
+                (float)entity.Position.Z + offsetZ);
+            vertex->PrevPos = new Vec3F(
+                (float)(entity.PrevPosition.X - nudgeAmount.X),
+                (float)(entity.PrevPosition.Y - nudgeAmount.Y),
+                (float)entity.PrevPosition.Z + offsetZ);
+            vertex->Pos = new Vec3F(
+                (float)(entity.Position.X - nudgeAmount.X) - (m_viewRightNormal.X * texture.Offset.X) + (m_viewRightNormal.X * halfTexWidth),
+                (float)(entity.Position.Y - nudgeAmount.Y) - (m_viewRightNormal.Y * texture.Offset.X) + (m_viewRightNormal.Y * halfTexWidth),
+                (float)entity.Position.Z + offsetZ);
+            vertex->PrevPos = new Vec3F(
+                (float)(entity.PrevPosition.X - nudgeAmount.X) - (m_prevViewRightNormal.X * texture.Offset.X) + (m_prevViewRightNormal.X * halfTexWidth),
+                (float)(entity.PrevPosition.Y - nudgeAmount.Y) - (m_prevViewRightNormal.Y * texture.Offset.X) + (m_prevViewRightNormal.Y * halfTexWidth),
+                (float)entity.PrevPosition.Z + offsetZ);
             vertex->LightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? 255 :
                 ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
             vertex->Alpha = alpha;
@@ -224,8 +236,11 @@ public class EntityRenderer : IDisposable
 
     public void Start(RenderInfo renderInfo)
     {
+        m_zNear = Renderer.GetZNear(renderInfo);
+        m_prevViewRightNormal = m_viewRightNormal;
         m_viewRightNormal = renderInfo.Camera.Direction.XY.RotateRight90().Unit();
         m_transferHeightView = renderInfo.TransferHeightView;
+        m_program.ViewRightNormal(m_viewRightNormal);
     }
 
     private void SetUniforms(RenderInfo renderInfo)
@@ -239,6 +254,7 @@ public class EntityRenderer : IDisposable
         m_program.FuzzFrac(renderInfo.Uniforms.TimeFrac);
         m_program.TimeFrac(renderInfo.TickFraction);
         m_program.ViewRightNormal(m_viewRightNormal);
+        m_program.PrevViewRightNormal(m_prevViewRightNormal);
         m_program.DistanceOffset(Renderer.GetDistanceOffset(renderInfo));
         m_program.ColorMix(renderInfo.Uniforms.ColorMix);
         m_program.FuzzDiv(renderInfo.Uniforms.FuzzDiv);

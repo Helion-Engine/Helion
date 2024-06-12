@@ -33,8 +33,8 @@ public record struct FieldOfViewInfo(float Width, float Height, float FovY);
 
 public class Renderer : IDisposable
 {
-    const float ZNearMin = 0.2f;
-    const float ZNearMax = 7.9f;
+    public const float ZNearMin = 0.2f;
+    public const float ZNearMax = 7.9f;
     public static readonly Color DefaultBackground = (16, 16, 16);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool InfoPrinted;
@@ -159,7 +159,7 @@ public class Renderer : IDisposable
         return new(w, h, fovY);
     }
 
-    private static float GetZNear(RenderInfo renderInfo)
+    public static float GetZNear(RenderInfo renderInfo)
     {
         // Optimally this should be handled in the shader. Setting this variable and using it for a low zNear is good enough for now.
         // If we are being crushed or clipped into a line with a middle texture then use a lower zNear.

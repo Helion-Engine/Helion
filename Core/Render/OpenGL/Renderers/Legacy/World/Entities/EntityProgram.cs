@@ -17,6 +17,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_lightLevelMixLocation;
     private readonly int m_extraLightLocation;
     private readonly int m_viewRightNormalLocation;
+    private readonly int m_prevViewRightNormalLocation;
     private readonly int m_distanceOffsetLocation;
     private readonly int m_colorMixLocation;
     private readonly int m_fuzzDivLocation;
@@ -32,6 +33,7 @@ public class EntityProgram : RenderProgram
         m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
         m_extraLightLocation = Uniforms.GetLocation("extraLight");
         m_viewRightNormalLocation = Uniforms.GetLocation("viewRightNormal");
+        m_prevViewRightNormalLocation = Uniforms.GetLocation("prevViewRightNormal");
         m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
         m_colorMixLocation = Uniforms.GetLocation("colorMix");
         m_fuzzDivLocation = Uniforms.GetLocation("fuzzDiv");
@@ -46,6 +48,7 @@ public class EntityProgram : RenderProgram
     public void FuzzFrac(float frac) => Uniforms.Set(frac, m_fuzzFracLocation);
     public void TimeFrac(float frac) => Uniforms.Set(frac, m_timeFracLocation);
     public void ViewRightNormal(Vec2F viewRightNormal) => Uniforms.Set(viewRightNormal, m_viewRightNormalLocation);
+    public void PrevViewRightNormal(Vec2F viewRightNormal) => Uniforms.Set(viewRightNormal, m_prevViewRightNormalLocation);
     public void DistanceOffset(float distance) => Uniforms.Set(distance, m_distanceOffsetLocation);
     public void ColorMix(Vec3F color) => Uniforms.Set(color, m_colorMixLocation);
     public void FuzzDiv(float div) => Uniforms.Set(div, m_fuzzDivLocation);
@@ -98,7 +101,9 @@ public class EntityProgram : RenderProgram
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
         uniform vec2 viewRightNormal;
+        uniform vec2 prevViewRightNormal;
         uniform sampler2D boundTexture;
+        uniform float timeFrac;
 
         void main()
         {
@@ -108,7 +113,7 @@ public class EntityProgram : RenderProgram
             vec3 pos = gl_in[0].gl_Position.xyz;
             ivec2 textureDim = textureSize(boundTexture, 0);
             float halfTexWidth = textureDim.x * 0.5;
-            vec3 posMoveDir = vec3(viewRightNormal, 0);
+            vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
             vec3 minPos = pos - (posMoveDir * halfTexWidth);
             vec3 maxPos = pos + (posMoveDir * halfTexWidth) + (vec3(0, 0, 1) * textureDim.y);
 

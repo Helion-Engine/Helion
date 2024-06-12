@@ -253,15 +253,15 @@ public class LegacyWorldRenderer : WorldRenderer
         m_maxDistance = m_config.Render.MaxDistance;
         Clear(world, renderInfo);
 
-        m_entityRenderer.Start(renderInfo);
+        if (m_lastTicker != world.GameTicker)
+            m_entityRenderer.Start(renderInfo);
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
             ref m_occlude, ref m_occludeViewPos);
         IterateBlockmap(world, renderInfo);
         PopulatePrimitives(world);
 
         m_geometryRenderer.RenderPortalsAndSkies(renderInfo);
-
-        //m_entityRenderer.SetUniforms(renderInfo);
+                
         m_entityRenderer.RenderNonAlpha(renderInfo);
 
         m_interpolationProgram.Bind();
