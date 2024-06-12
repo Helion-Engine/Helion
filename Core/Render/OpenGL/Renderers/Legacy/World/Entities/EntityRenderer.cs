@@ -210,14 +210,6 @@ public class EntityRenderer : IDisposable
             // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
             // Doom graphics are drawn left to right and not centered
             vertex->Pos = new Vec3F(
-                (float)(entity.Position.X - nudgeAmount.X),
-                (float)(entity.Position.Y - nudgeAmount.Y),
-                (float)entity.Position.Z + offsetZ);
-            vertex->PrevPos = new Vec3F(
-                (float)(entity.PrevPosition.X - nudgeAmount.X),
-                (float)(entity.PrevPosition.Y - nudgeAmount.Y),
-                (float)entity.PrevPosition.Z + offsetZ);
-            vertex->Pos = new Vec3F(
                 (float)(entity.Position.X - nudgeAmount.X) - (m_viewRightNormal.X * texture.Offset.X) + (m_viewRightNormal.X * halfTexWidth),
                 (float)(entity.Position.Y - nudgeAmount.Y) - (m_viewRightNormal.Y * texture.Offset.X) + (m_viewRightNormal.Y * halfTexWidth),
                 (float)entity.Position.Z + offsetZ);
