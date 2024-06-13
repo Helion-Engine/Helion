@@ -1111,7 +1111,8 @@ public sealed class PhysicsManager
         }
     }
 
-    private const int PositionValidFlags = EntityFlags.SpecialFlag | EntityFlags.SolidFlag | EntityFlags.ShootableFlag;
+    private const int PositionValidFlags1 = EntityFlags.SpecialFlag | EntityFlags.SolidFlag | EntityFlags.ShootableFlag;
+    private const int PositionValidFlags2 = EntityFlags.TouchyFlag;
 
     public unsafe bool IsPositionValid(Entity entity, double x, double y, TryMoveData tryMove)
     {
@@ -1166,7 +1167,7 @@ public sealed class PhysicsManager
 
                         nextEntity.BlockmapCount = checkCounter;
 
-                        if ((nextEntity.Flags.Flags1 & PositionValidFlags) == 0)
+                        if ((nextEntity.Flags.Flags1 & PositionValidFlags1) == 0 && (nextEntity.Flags.Flags2 & PositionValidFlags2) == 0)
                             continue;
 
                         var blockDist = nextEntity.Radius + entity.Radius;

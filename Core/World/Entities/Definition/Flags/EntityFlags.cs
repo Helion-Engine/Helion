@@ -1,5 +1,4 @@
 using Helion.Models;
-using System;
 
 namespace Helion.World.Entities.Definition.Flags;
 
@@ -8,6 +7,7 @@ public struct EntityFlags
     public const int SpecialFlag = FlagValue.Flag1;
     public const int SolidFlag = FlagValue.Flag2;
     public const int ShootableFlag = FlagValue.Flag3;
+    public const int TouchyFlag = FlagValue.Flag24;
 
     public int Flags1;
     public int Flags2;
