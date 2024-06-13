@@ -128,7 +128,7 @@ public class EntityProgram : RenderProgram
             fuzzDist = (glPosMin.z + glPosMax.z) / 2;
 
             gl_Position = glPosMin;
-            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).z;
+            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).w;
             uvFrag = vec2(leftU, 1);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -136,7 +136,7 @@ public class EntityProgram : RenderProgram
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1);
-            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1)).z;
+            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1)).w;
             uvFrag = vec2(rightU, 1);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -144,7 +144,7 @@ public class EntityProgram : RenderProgram
             EmitVertex();
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
-            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1)).z;
+            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1)).w;
             uvFrag = vec2(leftU, 0);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -152,7 +152,7 @@ public class EntityProgram : RenderProgram
             EmitVertex();
 
             gl_Position = glPosMax;
-            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, maxPos.z, 1)).z;
+            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, maxPos.z, 1)).w;
             uvFrag = vec2(rightU, 0);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];

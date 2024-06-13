@@ -146,8 +146,18 @@ public class Renderer : IDisposable
         mat4 model = mat4.Identity;
         mat4 view = renderInfo.Camera.CalculateViewMatrix(onlyXY);
 
-        mat4 projection = mat4.PerspectiveFov(fovInfo.FovY, fovInfo.Width, fovInfo.Height, GetZNear(renderInfo), 65536.0f);
-        return projection * view * model;
+        mat4 projection = mat4.PerspectiveFov(fovInfo.FovY, fovInfo.Width, fovInfo.Height, 0.2f, 65536);
+        //mat4 projection = mat4.PerspectiveFov(fovInfo.FovY, fovInfo.Width, fovInfo.Height, GetZNear(renderInfo), 65536);
+        double num = Math.Cos((double)fovInfo.FovY / 2.0) / Math.Sin((double)fovInfo.FovY / 2.0);
+        double num2 = num * (double)(fovInfo.Height / fovInfo.Width);
+        mat4 test = new(
+            new vec4((float)num2, 0, 0, 0),
+            new vec4(0, (float)num, 0, 0),
+            new vec4(0, 0, 0, -1),
+            new vec4(0, 0, 0.99f, 0)
+        );
+
+        return test * view * model;
     }
 
     public static FieldOfViewInfo GetFieldOfViewInfo(RenderInfo renderInfo)

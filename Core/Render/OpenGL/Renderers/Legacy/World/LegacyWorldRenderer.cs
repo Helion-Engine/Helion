@@ -249,6 +249,13 @@ public class LegacyWorldRenderer : WorldRenderer
 
     protected override void PerformRender(IWorld world, RenderInfo renderInfo)
     {
+        //GL.DepthRange(1, 0);
+        GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
+        GL.DepthFunc(DepthFunction.Greater);
+
+        GL.ClearDepth(0);
+        GL.Clear(ClearBufferMask.DepthBufferBit);
+        GL.Enable(EnableCap.DepthTest);
         m_spriteTransparency = m_config.Render.SpriteTransparency;
         m_maxDistance = m_config.Render.MaxDistance;
         Clear(world, renderInfo);
@@ -283,8 +290,10 @@ public class LegacyWorldRenderer : WorldRenderer
         SetInterpolationUniforms(renderInfo);
         m_worldDataManager.DrawAlpha();
         m_interpolationProgram.Unbind();
+
         
         m_primitiveRenderer.Render(renderInfo);
+        //GL.DepthFunc(DepthFunction.Less);
     }
 
     public override void ResetInterpolation(IWorld world)
