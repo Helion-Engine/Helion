@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Graphics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -14,7 +15,7 @@ public class LegacySkyRenderer : IDisposable
 {
     private const int MaxSkyTextures = 255;
 
-    public static readonly Dictionary<int, GLLegacyTexture> GeneratedTextures = new();
+    public static readonly Dictionary<int, Image> GeneratedImages = new();
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
@@ -43,7 +44,7 @@ public class LegacySkyRenderer : IDisposable
 
         m_skyComponents.Clear();
         m_skyComponentsList.Clear();
-        GeneratedTextures.Clear();
+        GeneratedImages.Clear();
     }
 
     public void Clear()

@@ -16,14 +16,13 @@ public class SkySphereTexture : IDisposable
     record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIndex);
 
     private const int PixelRowsToEvaluate = 24;
-    private const int DefaultPaddingDivisor = 3;
 
     public float ScaleU = 1.0f;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly int m_textureHandleIndex;
+    private readonly List<SkyTexture> m_skyTextures = new();
     private bool m_loadedTextures;
-    private List<SkyTexture> m_skyTextures = new();
 
     public SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle)
     {
@@ -223,17 +222,9 @@ public class SkySphereTexture : IDisposable
             for (int j = 0; j < components.Count; j++)
             {
                 int animatedTextureIndex = components[j].TextureIndex;
-                if (LegacySkyRenderer.GeneratedTextures.TryGetValue(animatedTextureIndex, out var existingSkyTexture))
-                {
-                    m_skyTextures.Add(new(existingSkyTexture, animatedTextureIndex));
-                    continue;
-                }
  
                 if (GenerateSkyTextures(animatedTextureIndex, out var skyTexture))
-                {
-                    LegacySkyRenderer.GeneratedTextures[animatedTextureIndex] = skyTexture;
                     m_skyTextures.Add(new(skyTexture, animatedTextureIndex));
-                }
             }
         }
     }
@@ -248,12 +239,20 @@ public class SkySphereTexture : IDisposable
         }
 
         ScaleU = CalculateScale(skyImage.Width);
-        texture = CreateSkyTexture(skyImage);
+        texture = CreateSkyTexture(textureIndex, skyImage);
         return true;
     }
 
-    private GLLegacyTexture CreateSkyTexture(Image skyImage)
+    private GLLegacyTexture CreateSkyTexture(int textureIndex, Image skyImage)
     {
+        return CreateTexture(GetFadedSkyImage(textureIndex, skyImage), $"[SKY][{textureIndex}] {m_archiveCollection.TextureManager.SkyTextureName}");
+    }
+
+    private static Image GetFadedSkyImage(int textureIndex, Image skyImage)
+    {
+        if (LegacySkyRenderer.GeneratedImages.TryGetValue(textureIndex, out var existingImage))
+            return existingImage;
+
         // Most (all?) skies are tall enough that we don't have to worry
         // about this, but if we run into a sky that is small then we
         // don't want to consume more than half of it. We also need to
@@ -268,8 +267,8 @@ public class SkySphereTexture : IDisposable
         Color bottomFadeColor = CalculateAverageRowColor(bottomStartY, bottomExclusiveEndY, skyImage);
 
         Image fadedSkyImage = CreateFadedSky(rowsToEvaluate, bottomFadeColor, topFadeColor, skyImage);
-
-        return CreateTexture(fadedSkyImage, $"[SKY] {m_archiveCollection.TextureManager.SkyTextureName}");
+        LegacySkyRenderer.GeneratedImages[textureIndex] = fadedSkyImage;
+        return fadedSkyImage;
     }
 
     private GLLegacyTexture CreateTexture(Image fadedSkyImage, string debugName = "")

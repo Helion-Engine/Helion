@@ -6,7 +6,6 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
-using Helion.Util;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
@@ -15,8 +14,9 @@ public class SkySphereRenderer : IDisposable
 {
     private const int HorizontalSpherePoints = 64;
     private const int VerticalSpherePoints = 64;
-    private static readonly SphereTable SphereTable = new(HorizontalSpherePoints, VerticalSpherePoints);
     private static readonly vec3 UpOpenGL = new(0, 1, 0);
+    private static SkySphereVertex[] SpherePoints = new SkySphereVertex[VerticalSpherePoints * HorizontalSpherePoints * 6];
+    private static bool SphereInitialized;
 
     private readonly StaticVertexBuffer<SkySphereVertex> m_vbo;
     private readonly VertexArrayObject m_vao;
@@ -95,10 +95,22 @@ public class SkySphereRenderer : IDisposable
 
     private void GenerateSphereVerticesAndUpload()
     {
-        int newLength = m_vbo.Data.Length + (VerticalSpherePoints * HorizontalSpherePoints * 6);
-        m_vbo.Data.EnsureCapacity(newLength);
-        int index = m_vbo.Data.Length;
-        var vertices = m_vbo.Data.Data;
+        if (!SphereInitialized)
+        {
+            SphereInitialized = true;
+            InitializeSpherePoints();
+        }
+
+        m_vbo.Data.Data = SpherePoints;
+        m_vbo.Data.Length = SpherePoints.Length;
+        m_vbo.SetNotUploaded();
+        m_vbo.UploadIfNeeded();
+    }
+
+    private static void InitializeSpherePoints()
+    {
+        SphereTable sphereTable = new(HorizontalSpherePoints, VerticalSpherePoints);
+        int index = 0;
         for (int row = 0; row < VerticalSpherePoints; row++)
         {
             for (int col = 0; col < HorizontalSpherePoints; col++)
@@ -107,23 +119,20 @@ public class SkySphereRenderer : IDisposable
                 // out of range because we specifically made sure that the
                 // code adds in one extra vertex for us on both the top row
                 // and the right column.
-                SkySphereVertex bottomLeft = SphereTable.MercatorRectangle[row, col];
-                SkySphereVertex bottomRight = SphereTable.MercatorRectangle[row, col + 1];
-                SkySphereVertex topLeft = SphereTable.MercatorRectangle[row + 1, col];
-                SkySphereVertex topRight = SphereTable.MercatorRectangle[row + 1, col + 1];
+                SkySphereVertex bottomLeft = sphereTable.MercatorRectangle[row, col];
+                SkySphereVertex bottomRight = sphereTable.MercatorRectangle[row, col + 1];
+                SkySphereVertex topLeft = sphereTable.MercatorRectangle[row + 1, col];
+                SkySphereVertex topRight = sphereTable.MercatorRectangle[row + 1, col + 1];
 
-                vertices[index++] = topLeft;
-                vertices[index++] = bottomLeft;
-                vertices[index++] = topRight;
+                SpherePoints[index++] = topLeft;
+                SpherePoints[index++] = bottomLeft;
+                SpherePoints[index++] = topRight;
 
-                vertices[index++] = topRight;
-                vertices[index++] = bottomLeft;
-                vertices[index++] = bottomRight;
+                SpherePoints[index++] = topRight;
+                SpherePoints[index++] = bottomLeft;
+                SpherePoints[index++] = bottomRight;
             }
         }
-
-        m_vbo.Data.Length = newLength;
-        m_vbo.UploadIfNeeded();
     }
 
     private void SetUniforms(RenderInfo renderInfo, bool flipSkyHorizontal)
