@@ -33,8 +33,8 @@ public class EntityRenderer : IDisposable
     private bool m_alwaysFlood;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
-    private float m_zNear;
     private bool m_disposed;
+    private int m_lastViewerEntityId;
 
     public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager)
     {
@@ -58,6 +58,7 @@ public class EntityRenderer : IDisposable
     public void UpdateTo(IWorld world)
     {
         m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats;
+        m_lastViewerEntityId = -1;
     }
     
     public void Clear(IWorld world)
@@ -172,7 +173,7 @@ public class EntityRenderer : IDisposable
         {
             if (m_renderPositions.TryGetValue(entityPos, out int count))
             {
-                double nudge = (NudgeFactor * Renderer.ZNearMax / m_zNear) * count * Math.Sqrt(entity.RenderDistanceSquared);
+                double nudge = NudgeFactor * count * Math.Sqrt(entity.RenderDistanceSquared);
                 double angle = Math.Atan2(centerBottom.Y - position.Y, centerBottom.X - position.X);
                 nudgeAmount.X = Math.Cos(angle) * nudge;
                 nudgeAmount.Y = Math.Sin(angle) * nudge;
@@ -228,11 +229,15 @@ public class EntityRenderer : IDisposable
 
     public void Start(RenderInfo renderInfo)
     {
-        m_zNear = Renderer.GetZNear(renderInfo);
+        m_transferHeightView = renderInfo.TransferHeightView;
         m_prevViewRightNormal = m_viewRightNormal;
         m_viewRightNormal = renderInfo.Camera.Direction.XY.RotateRight90().Unit();
-        m_transferHeightView = renderInfo.TransferHeightView;
+        if (m_lastViewerEntityId != renderInfo.ViewerEntity.Id)
+            m_prevViewRightNormal = m_viewRightNormal;
+
         m_program.ViewRightNormal(m_viewRightNormal);
+        m_program.PrevViewRightNormal(m_prevViewRightNormal);
+        m_lastViewerEntityId = renderInfo.ViewerEntity.Id;
     }
 
     private void SetUniforms(RenderInfo renderInfo)
