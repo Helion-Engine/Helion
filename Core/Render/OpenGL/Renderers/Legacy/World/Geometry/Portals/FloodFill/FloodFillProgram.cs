@@ -117,7 +117,7 @@ public class FloodFillProgram : RenderProgram
 
             uvFrag.y = -uvFrag.y; // Vanilla textures are drawn top-down.
 
-            float dist = (mvpNoPitch * vec4(planePos, 1.0)).w;
+            float dist = (mvpNoPitch * vec4(planePos, 1.0)).${Depth};
             ${LightLevelFragFunction}
             ${FragColorFunction}
         }
@@ -125,5 +125,6 @@ public class FloodFillProgram : RenderProgram
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${LightLevelConstants}", LightLevel.Constants)
     .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.NoDist))
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.None));
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.None))
+    .Replace("${Depth}", ShaderVars.Depth);
 }

@@ -22,6 +22,11 @@ public class ConfigDeveloper
     public readonly ConfigValue<bool> LogMarkSpecials = new(false);
 
     [ConfigInfo("Flood opposing testing.", save: true)]
-
     public readonly ConfigValue<bool> FloodOpposing = new(false);
+
+    [ConfigInfo("If ReversedZ should be used.", save: true, restartRequired: true)]
+    public readonly ConfigValue<bool> UseReversedZ = new(false);
+
+    [ConfigInfo("Forces usage of ReversedZ. Only used if Developer.ReversedZ is set.", save: true, restartRequired: true)]
+    public readonly ConfigValue<bool> ReversedZ = new(false);
 }

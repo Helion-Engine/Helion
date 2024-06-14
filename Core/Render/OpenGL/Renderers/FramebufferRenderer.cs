@@ -115,12 +115,9 @@ public class FramebufferRenderer : IDisposable
     }
 
     public void UpdateToDimensionIfNeeded(Dimension dimension)
-    {
-        if (Framebuffer.Dimension == dimension)
-            return;
-    
+    {   
         Framebuffer.Dispose();
-        Framebuffer = new("Virtual", dimension, 1, RenderbufferStorage.Depth24Stencil8);
+        Framebuffer = new("Virtual", dimension, 1, RenderbufferStorage.Depth32fStencil8);
     }
 
     private mat4 CalculateMvp()

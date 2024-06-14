@@ -9,7 +9,7 @@ namespace Helion.Client;
 
 public class GlVersionTest
 {
-    public static unsafe bool Test(NativeWindowSettings settings)
+    public static unsafe bool Test(NativeWindowSettings settings, Action? onSuccess = null)
     {
         try
         {
@@ -48,6 +48,7 @@ public class GlVersionTest
             LoadBindings(assembly, "OpenGL4");
 
             GetGlVersion(out int major, out int minor);
+            onSuccess?.Invoke();
             GLFW.DestroyWindow(windowPtr);
             return IsVersionSupported(major, minor, settings.APIVersion.Major, settings.APIVersion.Minor);
         }

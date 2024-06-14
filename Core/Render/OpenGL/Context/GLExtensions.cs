@@ -27,6 +27,6 @@ public static class GLExtensions
     {
         int count = GL.GetInteger(GetPName.NumExtensions);
         for (var i = 0; i < count; i++)
-            Extensions.Add(GL.GetString(StringName.Extensions, i));
+            Extensions.Add(GL.GetString(StringNameIndexed.Extensions, i));
     }
 }
