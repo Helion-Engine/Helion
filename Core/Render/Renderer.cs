@@ -9,7 +9,6 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers;
 using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Util;
@@ -126,10 +125,10 @@ public class Renderer : IDisposable
             extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
         }
 
-        return new ShaderUniforms(Renderer.CalculateMvpMatrix(renderInfo),
-            Renderer.CalculateMvpMatrix(renderInfo, true),
-            GetTimeFrac(), drawInvulnerability, mix, extraLight, Renderer.GetDistanceOffset(renderInfo),
-            colorMix, Renderer.GetFuzzDiv(renderInfo.Config, renderInfo.Viewport));
+        return new ShaderUniforms(CalculateMvpMatrix(renderInfo),
+            CalculateMvpMatrix(renderInfo, true),
+            GetTimeFrac(), drawInvulnerability, mix, extraLight, GetDistanceOffset(renderInfo),
+            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport));
     }
 
     public static Vec3F GetColorMix(Entity viewerEntity, OldCamera camera)
@@ -146,18 +145,17 @@ public class Renderer : IDisposable
         mat4 model = mat4.Identity;
         mat4 view = renderInfo.Camera.CalculateViewMatrix(onlyXY);
 
-        mat4 projection = mat4.PerspectiveFov(fovInfo.FovY, fovInfo.Width, fovInfo.Height, 0.2f, 65536);
-        //mat4 projection = mat4.PerspectiveFov(fovInfo.FovY, fovInfo.Width, fovInfo.Height, GetZNear(renderInfo), 65536);
-        double num = Math.Cos((double)fovInfo.FovY / 2.0) / Math.Sin((double)fovInfo.FovY / 2.0);
-        double num2 = num * (double)(fovInfo.Height / fovInfo.Width);
-        mat4 test = new(
-            new vec4((float)num2, 0, 0, 0),
-            new vec4(0, (float)num, 0, 0),
-            new vec4(0, 0, 0, -1),
-            new vec4(0, 0, 0.99f, 0)
-        );
+        const float zNear = 0.99f;
+        var viewFov = Math.Cos((double)fovInfo.FovY / 2.0) / Math.Sin((double)fovInfo.FovY / 2.0);
+        var viewAspect = viewFov * (double)(fovInfo.Height / fovInfo.Width);        
 
-        return test * view * model;
+        mat4 projection = mat4.Zero;
+        projection.m00 = (float)viewAspect;
+        projection.m11 = (float)viewFov;
+        projection.m23 = -1;
+        projection.m32 = zNear;
+
+        return projection * view * model;
     }
 
     public static FieldOfViewInfo GetFieldOfViewInfo(RenderInfo renderInfo)
@@ -388,8 +386,20 @@ public class Renderer : IDisposable
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
             cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
-        m_renderInfo.Uniforms = GetShaderUniforms(m_renderInfo);
+        m_renderInfo.Uniforms = GetShaderUniforms(m_renderInfo);       
+        
+        GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
+        GL.DepthFunc(DepthFunction.Greater);
+        GL.Enable(EnableCap.DepthTest);
+
+        GL.ClearDepth(0.0);
+        GL.Clear(ClearBufferMask.DepthBufferBit);
+
         m_worldRenderer.Render(cmd.World, m_renderInfo);
+
+        GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.NegativeOneToOne);
+        GL.DepthFunc(DepthFunction.Less);
+        GL.Disable(EnableCap.DepthTest);
     }
 
     private void HandleViewportCommand(ViewportCommand viewportCommand, out Rectangle viewport)
