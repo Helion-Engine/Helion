@@ -125,7 +125,7 @@ public class EntityProgram : RenderProgram
             // This keeps the fuzz consistent across the texture.
             vec4 glPosMin = mvp * vec4(minPos.x, minPos.y, minPos.z, 1);
             vec4 glPosMax = mvp * vec4(maxPos.x, maxPos.y, maxPos.z, 1);
-            fuzzDist = (glPosMin.z + glPosMax.z) / 2;
+            fuzzDist = (glPosMin.w + glPosMax.w) / 2;
 
             gl_Position = glPosMin;
             dist = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).w;

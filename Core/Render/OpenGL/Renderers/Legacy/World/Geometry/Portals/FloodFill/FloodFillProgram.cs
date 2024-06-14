@@ -117,7 +117,7 @@ public class FloodFillProgram : RenderProgram
 
             uvFrag.y = -uvFrag.y; // Vanilla textures are drawn top-down.
 
-            float dist = (mvpNoPitch * vec4(planePos, 1.0)).z;
+            float dist = (mvpNoPitch * vec4(planePos, 1.0)).w;
             ${LightLevelFragFunction}
             ${FragColorFunction}
         }
