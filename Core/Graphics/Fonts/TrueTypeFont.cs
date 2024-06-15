@@ -46,19 +46,22 @@ public static class TrueTypeFont
                 string text = ComposeRenderableCharacters();
                 Dictionary<char, Image> charImages = new Dictionary<char, Image>();
 
+                // Use this to compute the maximum height needed for the entire font, so that all of the character
+                // bitmaps can have the same height dimension.
+                FontRectangle fontBounds = TextMeasurer.MeasureBounds(text, richTextOptions);
+
                 foreach (char c in text)
                 {
                     string charString = $"{c}";
-                    // Character advance seems to be the best measurement of the pixel size required to render
-                    // a character, as it measures how far over the image library would need to "move" in order to draw
-                    // the next character in a string.  However, it seems like it doesn't _quite_ capture the height of
-                    // characters that "dangle" under the line, like 'g'.  For now, we're adding a 4px fudge factor, but
-                    // this may need to be revisited.
+                    // To measure the amount of room we need to render each character, we are using character advance
+                    // for the width dimension.  Advance is how far "over" the renderer needs to move before drawing the
+                    // next character.
+                    // For height, we are using the maximum height dimension of the entire font, as computed above.
                     FontRectangle charAdvance = TextMeasurer.MeasureAdvance(charString, richTextOptions);
 
                     using (Image<Rgba32> charImage = new(
                         (int)Math.Ceiling(charAdvance.X + charAdvance.Width),
-                        (int)Math.Ceiling(charAdvance.Y + charAdvance.Height + 4)))
+                        (int)Math.Ceiling(fontBounds.Y + fontBounds.Height)))
                     {
                         charImage.Mutate(ctx =>
                         {
