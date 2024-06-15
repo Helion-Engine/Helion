@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Resources;
@@ -9,9 +5,13 @@ using NLog;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.Primitives;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Helion.Graphics.Fonts;
 
@@ -39,35 +39,43 @@ public static class TrueTypeFont
             FontCollection fontCollection = new();
             using (MemoryStream stream = new(data))
             {
-                FontFamily fontFamily = fontCollection.Install(stream);
+                FontFamily fontFamily = fontCollection.Add(stream);
                 SixLabors.Fonts.Font imageSharpFont = fontFamily.CreateFont(RenderFontSize);
-                RendererOptions rendererOptions = new(imageSharpFont);
+                RichTextOptions richTextOptions = new(imageSharpFont);
 
                 string text = ComposeRenderableCharacters();
+                Dictionary<char, Image> charImages = new Dictionary<char, Image>();
 
-                // The library isn't perfect or the lack of documentation
-                // is enough to make me confused at why I have to do extra
-                // padding, but here we go. I add 10 pixels on the width to
-                // make '~' not get cut off, and then I add a padding of 2
-                // to the top and bottom for some breathing space.
-                var (x, y, w, h) = TextMeasurer.MeasureBounds(text, rendererOptions);
-                int width = (int)(w - x + 10);
-                int height = (int)(h - y + 2 + 2);
-                PointF offset = new PointF(-x, -y + 2);
-
-                using (Image<Rgba32> rgbaImage = new(width, height))
+                foreach (char c in text)
                 {
-                    rgbaImage.Mutate(ctx =>
+                    string charString = $"{c}";
+                    // Character advance seems to be the best measurement of the pixel size required to render
+                    // a character, as it measures how far over the image library would need to "move" in order to draw
+                    // the next character in a string.  However, it seems like it doesn't _quite_ capture the height of
+                    // characters that "dangle" under the line, like 'g'.  For now, we're adding a 4px fudge factor, but
+                    // this may need to be revisited.
+                    FontRectangle charAdvance = TextMeasurer.MeasureAdvance(charString, richTextOptions);
+
+                    using (Image<Rgba32> charImage = new(
+                        (int)Math.Ceiling(charAdvance.X + charAdvance.Width),
+                        (int)Math.Ceiling(charAdvance.Y + charAdvance.Height + 4)))
                     {
-                        ctx.Fill(Color.Transparent.ToImageSharp);
-                        ctx.DrawText(text, imageSharpFont, Color.White.ToImageSharp, offset);
-                    });
+                        charImage.Mutate(ctx =>
+                        {
+                            ctx.Fill(Color.Transparent.ToImageSharp);
+                            ctx.DrawText(richTextOptions, charString, Color.White.ToImageSharp);
+                        });
 
-                    Dictionary<char, Image> charImages = ExtractGlyphs(rgbaImage, height, offset, rendererOptions);
-
-                    var (glyphs, image) = ComposeFontGlyphs(charImages);
-                    return new Font(name, glyphs, image, isTrueTypeFont: true);
+                        charImages[c] = Image.FromArgbBytes(
+                            (charImage.Width, charImage.Height),
+                            ExtractBytesFromRgbaImage(charImage),
+                            Vec2I.Zero,
+                            ResourceNamespace.Fonts)!;
+                    }
                 }
+
+                var (glyphs, image) = ComposeFontGlyphs(charImages);
+                return new Font(name, glyphs, image, isTrueTypeFont: true);
             }
         }
         catch (Exception e)
@@ -83,61 +91,15 @@ public static class TrueTypeFont
         return string.Join("", chars);
     }
 
-    private static Dictionary<char, Image> ExtractGlyphs(Image<Rgba32> rgbaImage, int height, PointF offset,
-        RendererOptions rendererOptions)
+    private static byte[] ExtractBytesFromRgbaImage(Image<Rgba32> rgbaImage)
     {
-        Dictionary<char, Image> glyphs = new();
-
-        for (char c = StartCharacter; c <= EndCharacter; c++)
-        {
-            SizeF size = TextMeasurer.Measure(c.ToString(), rendererOptions);
-            int startX = (int)offset.X;
-            int width = (int)size.Width;
-
-            // This library can draw in the negative range. It sucks but it
-            // is the easiest way to compensate for how the library returns
-            // coordinates. The first character is a space anyways so this
-            // will not be too noticeable, especially with a font size that
-            // is large (like 64+).
-            if (startX < 0)
-            {
-                width += startX;
-                startX = 0;
-                offset.X += startX;
-
-                // And to account for truncation (or the library), add 1...
-                offset.X += 1;
-            }
-
-            // And because the library is making us do weird stuff, we have
-            // to make sure we don't do anything out of bounds. This is not
-            // likely triggered because we pad the glyphs, but is here for
-            // safety reasons.
-            if (startX + width >= rgbaImage.Width)
-                width = rgbaImage.Width - startX - 1;
-
-            ExtractFromRgbaImage(rgbaImage, startX, width, height, out byte[] argb);
-
-            Image? image = Image.FromArgbBytes((width, height), argb, Vec2I.Zero, ResourceNamespace.Fonts);
-            glyphs[c] = image ?? throw new Exception($"Unable to create TTF glyph character: {c}");
-
-            offset.X += size.Width;
-        }
-
-        return glyphs;
-    }
-
-    private static void ExtractFromRgbaImage(Image<Rgba32> rgbaImage, int offsetX, int width, int height,
-        out byte[] bytes)
-    {
-        int endX = offsetX + width;
-        bytes = new byte[width * height * 4];
+        byte[] bytes = new byte[rgbaImage.Width * rgbaImage.Height * 4];
         int bytesOffset = 0;
 
-        for (int y = 0; y < height; y++)
+        for (int y = 0; y < rgbaImage.Height; y++)
         {
-            Span<Rgba32> pixelRow = rgbaImage.GetPixelRowSpan(y);
-            for (int x = offsetX; x < endX; x++)
+            Span<Rgba32> pixelRow = rgbaImage.DangerousGetPixelRowMemory(y).Span;
+            for (int x = 0; x < rgbaImage.Width; x++)
             {
                 Rgba32 rgba = pixelRow[x];
 
@@ -149,6 +111,8 @@ public static class TrueTypeFont
                 bytesOffset += 4;
             }
         }
+
+        return bytes;
     }
 
     private static (Dictionary<char, Glyph>, Image) ComposeFontGlyphs(Dictionary<char, Image> charImages)
