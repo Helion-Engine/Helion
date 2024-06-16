@@ -61,8 +61,8 @@ public partial class Client : IDisposable, IInputManagement
     private static readonly VersionTest[] Versions =
     [
         new VersionTest(4, 5, null),
-        new VersionTest(4, 4, CheckExtensions),
-        new VersionTest(3, 3, CheckExtensions)
+        new VersionTest(4, 4, CheckSupport),
+        new VersionTest(3, 3, CheckSupport)
     ];
 
     private Client(CommandLineArgs commandLineArgs, IConfig config, HelionConsole console, IAudioSystem audioSystem,
@@ -76,7 +76,7 @@ public partial class Client : IDisposable, IInputManagement
         m_saveGameManager = new SaveGameManager(config, commandLineArgs.SaveDir);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
 
-        SetupWindowSettings(config);
+        SetOpenGLVersion(config);
 
         m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor);
         SetIcon(m_window);
@@ -97,11 +97,14 @@ public partial class Client : IDisposable, IInputManagement
         m_ticker.Start();
     }
 
-    private static void SetupWindowSettings(IConfig config)
+    private static void SetOpenGLVersion(IConfig config)
     {
-        for (int i = 0; i < Versions.Length; i++)
+        // Helion supports a minimum of 3.3 but will use features from newer versions / extensions if supported.
+        // Checks for 4.5 / ClipControl extension for reverse-z projection.
+        // Checks for 4.4 to use MapPersistentBit. Specifically required for AMD Vega cards as they do not do this automatically.
+        // AMD used to map persistent automatically, NVIDIA apparently always does.
+        foreach (var version in Versions)
         {
-            var version = Versions[i];
             var settings = Window.MakeNativeWindowSettings(config, string.Empty, version.Major, version.Minor);
             if (GlVersionTest.Test(settings, version.OnSuccess))
             {
@@ -112,9 +115,10 @@ public partial class Client : IDisposable, IInputManagement
         }
     }
 
-    private static void CheckExtensions()
+    private static void CheckSupport()
     {
         GLInfo.ClipControlSupported = GLExtensions.Supports("GL_ARB_clip_control");
+        GLInfo.MapPersistentBitSupported = GlVersion.IsVersionSupported(4, 4);
     }
 
     private static void SetIcon(Window window)

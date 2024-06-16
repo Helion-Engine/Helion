@@ -163,7 +163,7 @@ public class GeometryRenderer : IDisposable
         }
 
         m_lightBuffer?.Dispose();
-        m_lightBuffer = new("Sector lights texture buffer", m_lightBufferData, GlVersion.IsVersionSupported(4, 4));
+        m_lightBuffer = new("Sector lights texture buffer", m_lightBufferData, GLInfo.MapPersistentBitSupported);
 
         for (int i = 0; i < world.Sides.Count; i++)
             m_drawnSides[i] = -1;
