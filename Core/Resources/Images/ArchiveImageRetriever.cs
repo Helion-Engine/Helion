@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
@@ -9,6 +7,8 @@ using NLog;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
+using System.IO;
 using Image = Helion.Graphics.Image;
 
 namespace Helion.Resources.Images;
@@ -155,17 +155,19 @@ public class ArchiveImageRetriever : IImageRetriever
                 using MemoryStream inputStream = new MemoryStream(data);
                 using Image<Rgba32> img = SixLabors.ImageSharp.Image.Load<Rgba32>(inputStream);
 
-                Span<Rgba32> pixelSpans = img.GetPixelSpan<Rgba32>();
-                byte[] argbData = new byte[pixelSpans.Length * 4];
+                byte[] argbData = new byte[img.Height * img.Width * 4];
                 int offset = 0;
-
-                foreach (Rgba32 rgba in pixelSpans)
+                for (int y = 0; y < img.Height; y++)
                 {
-                    argbData[offset] = rgba.A;
-                    argbData[offset + 1] = rgba.R;
-                    argbData[offset + 2] = rgba.G;
-                    argbData[offset + 3] = rgba.B;
-                    offset += 4;
+                    Span<Rgba32> pixelRow = img.DangerousGetPixelRowMemory(y).Span;
+                    foreach (ref Rgba32 pixel in pixelRow)
+                    {
+                        argbData[offset] = pixel.A;
+                        argbData[offset + 1] = pixel.R;
+                        argbData[offset + 2] = pixel.G;
+                        argbData[offset + 3] = pixel.B;
+                        offset += 4;
+                    }
                 }
 
                 image = Image.FromArgbBytes((img.Width, img.Height), argbData, (0, 0), entry.Namespace);
