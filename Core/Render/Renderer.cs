@@ -51,12 +51,11 @@ public class Renderer : IDisposable
     private readonly HudRenderer m_hudRenderer;
     private readonly RenderInfo m_renderInfo = new();
     private readonly FramebufferRenderer m_framebufferRenderer;
+    private Rectangle m_viewport = new(0, 0, 800, 600);
     private bool m_disposed;
 
     public Dimension RenderDimension => UseVirtualResolution ? m_config.Window.Virtual.Dimension : Window.Dimension;
     public IImageDrawInfoProvider DrawInfo => Textures.ImageDrawInfoProvider;
-
-    private bool UseFrameBuffer => UseVirtualResolution || ShaderVars.ReversedZ; // Need to enforce 32bit depth precision with ReversedZ
     private bool UseVirtualResolution => (m_config.Window.Virtual.Enable && m_config.Window.Virtual.Dimension.Value.HasPositiveArea);
 
     public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker)
@@ -72,7 +71,7 @@ public class Renderer : IDisposable
         Textures = new LegacyGLTextureManager(config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
-        m_framebufferRenderer = new(config, window);
+        m_framebufferRenderer = new(config, window, RenderDimension);
         Default = new(window, this);
 
         PrintGLInfo();
@@ -213,14 +212,11 @@ public class Renderer : IDisposable
     public void Render(RenderCommands renderCommands)
     {
         m_hudRenderer.Clear();
-
-        if (UseFrameBuffer)
-            SetupAndBindVirtualFramebuffer();
+        SetupAndBindVirtualFramebuffer();
 
         // This has to be tracked beyond just the rendering command, and it
         // also prevents something from going terribly wrong if there is no
         // call to setting the viewport.
-        Rectangle viewport = new(0, 0, 800, 600);
         bool virtualFrameBufferDraw = false;
         for (int i = 0; i < renderCommands.Commands.Count; i++)
         {
@@ -240,17 +236,14 @@ public class Renderer : IDisposable
                     HandleClearCommand(renderCommands.ClearCommands[cmd.Index]);
                     break;
                 case RenderCommandType.World:
-                    HandleRenderWorldCommand(renderCommands.WorldCommands[cmd.Index], viewport);
+                    HandleRenderWorldCommand(renderCommands.WorldCommands[cmd.Index], m_viewport);
                     break;
                 case RenderCommandType.Viewport:
-                    HandleViewportCommand(renderCommands.ViewportCommands[cmd.Index], out viewport);
+                    HandleViewportCommand(renderCommands.ViewportCommands[cmd.Index], out m_viewport);
                     break;
                 case RenderCommandType.DrawVirtualFrameBuffer:
-                    if (UseFrameBuffer)
-                    {
-                        virtualFrameBufferDraw = true;
-                        DrawFramebufferOnDefault();
-                    }
+                    virtualFrameBufferDraw = true;
+                    DrawFramebufferOnDefault();
                     break;
                 default:
                     Fail($"Unsupported render command type: {cmd.Type}");
@@ -258,24 +251,21 @@ public class Renderer : IDisposable
             }
         }
 
-        DrawHudImagesIfAnyQueued(viewport);
+        DrawHudImagesIfAnyQueued(m_viewport);
 
-        if (!virtualFrameBufferDraw && UseFrameBuffer)
+        if (!virtualFrameBufferDraw)
             DrawFramebufferOnDefault();
     }
 
     private void SetupAndBindVirtualFramebuffer()
     {
-        Dimension dimension = UseVirtualResolution ? m_config.Window.Virtual.Dimension : Window.Dimension;
-        m_framebufferRenderer.UpdateToDimensionIfNeeded(dimension);
-
+        m_framebufferRenderer.UpdateToDimensionIfNeeded(RenderDimension);
         m_framebufferRenderer.Framebuffer.Bind();
     }
 
     private void DrawFramebufferOnDefault()
     {
         m_framebufferRenderer.Framebuffer.Unbind();
-
         m_framebufferRenderer.Render();
     }
 
@@ -358,7 +348,7 @@ public class Renderer : IDisposable
         });
     }
 
-    private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
+    private static void HandleClearCommand(ClearRenderCommand clearRenderCommand)
     {
         Color color = clearRenderCommand.ClearColor;
         GL.ClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
@@ -431,7 +421,7 @@ public class Renderer : IDisposable
         GL.Disable(EnableCap.DepthTest);
     }
 
-    private void HandleViewportCommand(ViewportCommand viewportCommand, out Rectangle viewport)
+    private static void HandleViewportCommand(ViewportCommand viewportCommand, out Rectangle viewport)
     {
         Vec2I offset = viewportCommand.Offset;
         Dimension dimension = viewportCommand.Dimension;
