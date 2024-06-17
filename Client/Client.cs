@@ -57,6 +57,14 @@ public partial class Client : IDisposable, IInputManagement
     private bool m_loadComplete;
     private WorldModel? m_loadCompleteModel;
 
+    record struct VersionTest(int Major, int Minor, Action? OnSuccess);
+    private static readonly VersionTest[] Versions =
+    [
+        new VersionTest(4, 5, null),
+        new VersionTest(4, 4, CheckSupport),
+        new VersionTest(3, 3, CheckSupport)
+    ];
+
     private Client(CommandLineArgs commandLineArgs, IConfig config, HelionConsole console, IAudioSystem audioSystem,
         ArchiveCollection archiveCollection)
     {
@@ -68,11 +76,7 @@ public partial class Client : IDisposable, IInputManagement
         m_saveGameManager = new SaveGameManager(config, commandLineArgs.SaveDir);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
 
-        if (!GlVersionTest.Test(Window.MakeNativeWindowSettings(config, string.Empty, GlVersion.Major, GlVersion.Minor)))
-        {
-            GlVersion.Major = 3;
-            GlVersion.Minor = 3;
-        }
+        SetOpenGLVersion(config);
 
         m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor);
         SetIcon(m_window);
@@ -93,13 +97,37 @@ public partial class Client : IDisposable, IInputManagement
         m_ticker.Start();
     }
 
+    private static void SetOpenGLVersion(IConfig config)
+    {
+        // Helion supports a minimum of 3.3 but will use features from newer versions / extensions if supported.
+        // Checks for 4.5 / ClipControl extension for reverse-z projection.
+        // Checks for 4.4 to use MapPersistentBit. Specifically required for AMD Vega cards as they do not do this automatically.
+        // AMD used to map persistent automatically, NVIDIA apparently always does.
+        foreach (var version in Versions)
+        {
+            var settings = Window.MakeNativeWindowSettings(config, string.Empty, version.Major, version.Minor);
+            if (GlVersionTest.Test(settings, version.OnSuccess))
+            {
+                GlVersion.Major = version.Major;
+                GlVersion.Minor = version.Minor;
+                return;
+            }
+        }
+    }
+
+    private static void CheckSupport()
+    {
+        GLInfo.ClipControlSupported = GLExtensions.Supports("GL_ARB_clip_control");
+        GLInfo.MapPersistentBitSupported = GlVersion.IsVersionSupported(4, 4);
+    }
+
     private static void SetIcon(Window window)
     {
         try
         {
             int size = (int)Math.Sqrt(HelionIcon.Pixels.Length / 4);
             var image = new OpenTK.Windowing.Common.Input.Image(size, size, HelionIcon.Pixels);
-            window.Icon = new(new[] { image });
+            window.Icon = new([image]);
         }
         catch { }
     }

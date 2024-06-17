@@ -69,7 +69,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometryRenderer = geometryRenderer;
         m_program = program;
         m_skyRenderer = new(archiveCollection, textureManager);
-        m_mapPersistent = GlVersion.IsVersionSupported(4, 4);
+        m_mapPersistent = GLInfo.MapPersistentBitSupported;
     }
 
     private static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)

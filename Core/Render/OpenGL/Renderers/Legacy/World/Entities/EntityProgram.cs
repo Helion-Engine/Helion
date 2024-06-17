@@ -125,10 +125,10 @@ public class EntityProgram : RenderProgram
             // This keeps the fuzz consistent across the texture.
             vec4 glPosMin = mvp * vec4(minPos.x, minPos.y, minPos.z, 1);
             vec4 glPosMax = mvp * vec4(maxPos.x, maxPos.y, maxPos.z, 1);
-            fuzzDist = (glPosMin.z + glPosMax.z) / 2;
+            fuzzDist = (glPosMin.${Depth} + glPosMax.${Depth}) / 2;
 
             gl_Position = glPosMin;
-            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).z;
+            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).${Depth};
             uvFrag = vec2(leftU, 1);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -136,7 +136,7 @@ public class EntityProgram : RenderProgram
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1);
-            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1)).z;
+            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1)).${Depth};
             uvFrag = vec2(rightU, 1);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -144,7 +144,7 @@ public class EntityProgram : RenderProgram
             EmitVertex();
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
-            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1)).z;
+            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1)).${Depth};
             uvFrag = vec2(leftU, 0);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -152,7 +152,7 @@ public class EntityProgram : RenderProgram
             EmitVertex();
 
             gl_Position = glPosMax;
-            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, maxPos.z, 1)).z;
+            dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, maxPos.z, 1)).${Depth};
             uvFrag = vec2(rightU, 0);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -161,7 +161,7 @@ public class EntityProgram : RenderProgram
     
             EndPrimitive();
         }  
-    ";
+    ".Replace("${Depth}", ShaderVars.Depth);
 
     protected override string? FragmentShader() => @"
         #version 330

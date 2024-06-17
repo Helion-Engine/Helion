@@ -9,7 +9,7 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers;
 using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Util;
@@ -35,6 +35,8 @@ public class Renderer : IDisposable
 {
     public const float ZNearMin = 0.2f;
     public const float ZNearMax = 7.9f;
+    public const float ZFar = 65536;
+    public const float ReversedZNear = 0.01f;
     public static readonly Color DefaultBackground = (16, 16, 16);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static bool InfoPrinted;
@@ -49,11 +51,12 @@ public class Renderer : IDisposable
     private readonly HudRenderer m_hudRenderer;
     private readonly RenderInfo m_renderInfo = new();
     private readonly FramebufferRenderer m_framebufferRenderer;
+    private Rectangle m_viewport = new(0, 0, 800, 600);
     private bool m_disposed;
 
     public Dimension RenderDimension => UseVirtualResolution ? m_config.Window.Virtual.Dimension : Window.Dimension;
     public IImageDrawInfoProvider DrawInfo => Textures.ImageDrawInfoProvider;
-    private bool UseVirtualResolution => m_config.Window.Virtual.Enable && m_config.Window.Virtual.Dimension.Value.HasPositiveArea;
+    private bool UseVirtualResolution => (m_config.Window.Virtual.Enable && m_config.Window.Virtual.Dimension.Value.HasPositiveArea);
 
     public Renderer(IWindow window, IConfig config, ArchiveCollection archiveCollection, FpsTracker fpsTracker)
     {
@@ -63,15 +66,33 @@ public class Renderer : IDisposable
         m_fpsTracker = fpsTracker;
 
         SetGLDebugger();
+        SetShaderVars();
 
         Textures = new LegacyGLTextureManager(config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
-        m_framebufferRenderer = new(config, window);
+        m_framebufferRenderer = new(config, window, RenderDimension);
         Default = new(window, this);
 
         PrintGLInfo();
         SetGLStates();
+    }
+
+    private void SetShaderVars()
+    {
+        SetReverseZ();
+        ShaderVars.Depth = ShaderVars.ReversedZ ? "w" : "z";
+    }
+
+    private void SetReverseZ()
+    {
+        if (!m_config.Developer.UseReversedZ)
+        {
+            ShaderVars.ReversedZ = GLInfo.ClipControlSupported;
+            return;
+        }
+
+        ShaderVars.ReversedZ = m_config.Developer.ReversedZ;
     }
 
     public void UpdateToNewWorld(IWorld world)
@@ -102,15 +123,6 @@ public class Renderer : IDisposable
 
     public static ShaderUniforms GetShaderUniforms(RenderInfo renderInfo)
     {
-        // We divide by 4 to make it so the noise changes every four ticks.
-        // We then mod by 8 so that the number stays small (or else when it
-        // is multiplied in the shader it will overflow very quickly if we
-        // don't do this). This could be any number, I just arbitrarily
-        // chose 8. This means there are 8 different versions that are to
-        // be rendered if the person stares at an unmoving body long enough.
-        // Then we add 1 because if the value is 0, then the noise formula
-        // outputs zero uniformly which makes it look invisible.
-
         bool drawInvulnerability = false;
         int extraLight = 0;
         float mix = 0.0f;
@@ -126,10 +138,10 @@ public class Renderer : IDisposable
             extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
         }
 
-        return new ShaderUniforms(Renderer.CalculateMvpMatrix(renderInfo),
-            Renderer.CalculateMvpMatrix(renderInfo, true),
-            GetTimeFrac(), drawInvulnerability, mix, extraLight, Renderer.GetDistanceOffset(renderInfo),
-            colorMix, Renderer.GetFuzzDiv(renderInfo.Config, renderInfo.Viewport));
+        return new ShaderUniforms(CalculateMvpMatrix(renderInfo),
+            CalculateMvpMatrix(renderInfo, true),
+            GetTimeFrac(), drawInvulnerability, mix, extraLight, GetDistanceOffset(renderInfo),
+            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport));
     }
 
     public static Vec3F GetColorMix(Entity viewerEntity, OldCamera camera)
@@ -142,12 +154,26 @@ public class Renderer : IDisposable
 
     public static mat4 CalculateMvpMatrix(RenderInfo renderInfo, bool onlyXY = false)
     {
-        var fovInfo = GetFieldOfViewInfo(renderInfo);
         mat4 model = mat4.Identity;
         mat4 view = renderInfo.Camera.CalculateViewMatrix(onlyXY);
+        return GetProjection(renderInfo) * view * model;
+    }
 
-        mat4 projection = mat4.PerspectiveFov(fovInfo.FovY, fovInfo.Width, fovInfo.Height, GetZNear(renderInfo), 65536.0f);
-        return projection * view * model;
+    private static mat4 GetProjection(RenderInfo renderInfo)
+    {
+        var fovInfo = GetFieldOfViewInfo(renderInfo);
+        if (!ShaderVars.ReversedZ)
+            return mat4.PerspectiveFov(fovInfo.FovY, fovInfo.Width, fovInfo.Height, GetZNear(renderInfo), ZFar);
+
+        // Adapted from https://nlguillemot.wordpress.com/2016/12/07/reversed-z-in-opengl/
+        var viewFov = Math.Cos((double)fovInfo.FovY / 2.0) / Math.Sin((double)fovInfo.FovY / 2.0);
+        var viewAspect = viewFov * (double)(fovInfo.Height / fovInfo.Width);
+        mat4 projection = mat4.Zero;
+        projection.m00 = (float)viewAspect;
+        projection.m11 = (float)viewFov;
+        projection.m23 = -1;
+        projection.m32 = ReversedZNear;
+        return projection;
     }
 
     public static FieldOfViewInfo GetFieldOfViewInfo(RenderInfo renderInfo)
@@ -161,6 +187,9 @@ public class Renderer : IDisposable
 
     public static float GetZNear(RenderInfo renderInfo)
     {
+        if (ShaderVars.ReversedZ)
+            return ReversedZNear;
+
         // Optimally this should be handled in the shader. Setting this variable and using it for a low zNear is good enough for now.
         // If we are being crushed or clipped into a line with a middle texture then use a lower zNear.
         float zNear = (float)((renderInfo.ViewerEntity.LowestCeilingZ - renderInfo.ViewerEntity.HighestFloorZ - renderInfo.ViewerEntity.ViewZ) * 0.68);
@@ -183,14 +212,11 @@ public class Renderer : IDisposable
     public void Render(RenderCommands renderCommands)
     {
         m_hudRenderer.Clear();
-
-        if (UseVirtualResolution)
-            SetupAndBindVirtualFramebuffer();
+        SetupAndBindVirtualFramebuffer();
 
         // This has to be tracked beyond just the rendering command, and it
         // also prevents something from going terribly wrong if there is no
         // call to setting the viewport.
-        Rectangle viewport = new(0, 0, 800, 600);
         bool virtualFrameBufferDraw = false;
         for (int i = 0; i < renderCommands.Commands.Count; i++)
         {
@@ -210,17 +236,14 @@ public class Renderer : IDisposable
                     HandleClearCommand(renderCommands.ClearCommands[cmd.Index]);
                     break;
                 case RenderCommandType.World:
-                    HandleRenderWorldCommand(renderCommands.WorldCommands[cmd.Index], viewport);
+                    HandleRenderWorldCommand(renderCommands.WorldCommands[cmd.Index], m_viewport);
                     break;
                 case RenderCommandType.Viewport:
-                    HandleViewportCommand(renderCommands.ViewportCommands[cmd.Index], out viewport);
+                    HandleViewportCommand(renderCommands.ViewportCommands[cmd.Index], out m_viewport);
                     break;
                 case RenderCommandType.DrawVirtualFrameBuffer:
-                    if (UseVirtualResolution)
-                    {
-                        virtualFrameBufferDraw = true;
-                        DrawFramebufferOnDefault();
-                    }
+                    virtualFrameBufferDraw = true;
+                    DrawFramebufferOnDefault();
                     break;
                 default:
                     Fail($"Unsupported render command type: {cmd.Type}");
@@ -228,24 +251,21 @@ public class Renderer : IDisposable
             }
         }
 
-        DrawHudImagesIfAnyQueued(viewport);
+        DrawHudImagesIfAnyQueued(m_viewport);
 
-        if (!virtualFrameBufferDraw && UseVirtualResolution)
+        if (!virtualFrameBufferDraw)
             DrawFramebufferOnDefault();
     }
 
     private void SetupAndBindVirtualFramebuffer()
     {
-        Dimension dimension = m_config.Window.Virtual.Dimension;
-        m_framebufferRenderer.UpdateToDimensionIfNeeded(dimension);
-
+        m_framebufferRenderer.UpdateToDimensionIfNeeded(RenderDimension);
         m_framebufferRenderer.Framebuffer.Bind();
     }
 
     private void DrawFramebufferOnDefault()
     {
         m_framebufferRenderer.Framebuffer.Unbind();
-
         m_framebufferRenderer.Render();
     }
 
@@ -270,6 +290,7 @@ public class Renderer : IDisposable
         Log.Info("OpenGL Vendor: {0}", GLInfo.Vendor);
         Log.Info("OpenGL Hardware: {0}", GLInfo.Renderer);
         Log.Info("OpenGL Extensions: {0}", GLExtensions.Count);
+        Log.Info($"GL_ARB_clip_control {GLInfo.ClipControlSupported}");
 
         InfoPrinted = true;
     }
@@ -312,22 +333,22 @@ public class Renderer : IDisposable
         {
             switch (level.Ordinal)
             {
-            case 2:
-                Log.Warn("OpenGL minor issue: {0}", message);
-                return;
-            case 3:
-                Log.Error("OpenGL warning: {0}", message);
-                return;
-            case 4:
-                Log.Error("OpenGL major error: {0}", message);
-                return;
-            default:
-                throw new ArgumentOutOfRangeException($"Unsupported enumeration debug callback: {level}");
+                case 2:
+                    Log.Warn("OpenGL minor issue: {0}", message);
+                    return;
+                case 3:
+                    Log.Error("OpenGL warning: {0}", message);
+                    return;
+                case 4:
+                    Log.Error("OpenGL major error: {0}", message);
+                    return;
+                default:
+                    throw new ArgumentOutOfRangeException($"Unsupported enumeration debug callback: {level}");
             }
         });
     }
 
-    private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
+    private static void HandleClearCommand(ClearRenderCommand clearRenderCommand)
     {
         Color color = clearRenderCommand.ClearColor;
         GL.ClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
@@ -379,10 +400,28 @@ public class Renderer : IDisposable
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
             cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
         m_renderInfo.Uniforms = GetShaderUniforms(m_renderInfo);
+
+        if (!ShaderVars.ReversedZ)
+        {
+            m_worldRenderer.Render(cmd.World, m_renderInfo);
+            return;
+        }
+
+        GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
+        GL.DepthFunc(DepthFunction.Greater);
+        GL.Enable(EnableCap.DepthTest);
+
+        GL.ClearDepth(0.0);
+        GL.Clear(ClearBufferMask.DepthBufferBit);
+
         m_worldRenderer.Render(cmd.World, m_renderInfo);
+
+        GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.NegativeOneToOne);
+        GL.DepthFunc(DepthFunction.Less);
+        GL.Disable(EnableCap.DepthTest);
     }
 
-    private void HandleViewportCommand(ViewportCommand viewportCommand, out Rectangle viewport)
+    private static void HandleViewportCommand(ViewportCommand viewportCommand, out Rectangle viewport)
     {
         Vec2I offset = viewportCommand.Offset;
         Dimension dimension = viewportCommand.Dimension;

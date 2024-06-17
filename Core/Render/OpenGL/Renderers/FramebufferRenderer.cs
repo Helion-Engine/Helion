@@ -78,7 +78,7 @@ public class FramebufferProgram : RenderProgram
 
 public class FramebufferRenderer : IDisposable
 {
-    public GLFramebuffer Framebuffer { get; private set; } = new("Virtual", (640, 480), 1, RenderbufferStorage.Depth24Stencil8);
+    public GLFramebuffer Framebuffer { get; private set; }
     private readonly IConfig m_config;
     private readonly IWindow m_window;
     private readonly StaticVertexBuffer<FramebufferVertex> m_vbo = new("Framebuffer");
@@ -86,11 +86,12 @@ public class FramebufferRenderer : IDisposable
     private readonly FramebufferProgram m_program = new();
     private bool m_disposed;
 
-    public FramebufferRenderer(IConfig config, IWindow window)
+    public FramebufferRenderer(IConfig config, IWindow window, Dimension dimension)
     {
         m_config = config;
         m_window = window;
 
+        Framebuffer = CreateFramebuffer(dimension);
         Attributes.BindAndApply(m_vbo, m_vao, m_program.Attributes);
         UploadVertices();
     }
@@ -99,6 +100,9 @@ public class FramebufferRenderer : IDisposable
     {
         Dispose(false);
     }
+
+    private static GLFramebuffer CreateFramebuffer(in Dimension dimension) =>
+        new("Virtual", dimension, 1, RenderbufferStorage.Depth32fStencil8);
 
     private void UploadVertices()
     {
@@ -118,9 +122,9 @@ public class FramebufferRenderer : IDisposable
     {
         if (Framebuffer.Dimension == dimension)
             return;
-    
+
         Framebuffer.Dispose();
-        Framebuffer = new("Virtual", dimension, 1, RenderbufferStorage.Depth24Stencil8);
+        Framebuffer = CreateFramebuffer(dimension);
     }
 
     private mat4 CalculateMvp()
