@@ -10,14 +10,15 @@ using Helion.World.Static;
 using System;
 using System.Diagnostics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
-using Helion.World.Geometry.Walls;
-using Helion.World.Geometry.Lines;
 using Helion.Util;
+using Helion.World.Geometry.Lines;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 
 public class PortalRenderer : IDisposable
 {
+    enum PushDir { Back, Forward }
     const int FakeWallHeight = Constants.MaxTextureHeight;
 
     private readonly FloodFillRenderer m_floodFillRenderer;
@@ -26,11 +27,14 @@ public class PortalRenderer : IDisposable
     private readonly SectorPlane m_fakeCeiling = new(SectorPlaneFace.Floor, 0, 0, 0);
     private bool m_disposed;
     private bool m_alwaysFlood;
+    private double m_pushSegAmount;
 
     public PortalRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager)
     {
         m_archiveCollection = archiveCollection;
         m_floodFillRenderer = new(glTextureManager);
+        // ReversedZ allows for a much smaller push amount
+        m_pushSegAmount = ShaderVars.ReversedZ ? 0.005 : 0.05;
     }
 
     ~PortalRenderer()
@@ -70,33 +74,24 @@ public class PortalRenderer : IDisposable
         var saveStart = line.Segment.Start;
         var saveEnd = line.Segment.End;
 
-        bool flipPush = false;
+        PushDir dir = PushDir.Back;
         var floodPlanes = facingSide.MidTextureFlood;
         var otherSide = facingSide.PartnerSide;
         WallVertices wall = default;
         // The flood plane will clip with an upper/lower texture. Flag push the line towards in the inside of the sector.
         if (m_alwaysFlood && face == SectorPlaneFace.Floor && otherSide != null && otherSide.Sector.Ceiling.Z < facingSide.Sector.Floor.Z)
         {
-            flipPush = true;
+            dir = PushDir.Forward;
             floodPlanes |= SectorPlanes.Floor;
         }
         if (m_alwaysFlood && face == SectorPlaneFace.Ceiling && otherSide != null && otherSide.Sector.Floor.Z > facingSide.Sector.Ceiling.Z)
         {
-            flipPush = true;
+            dir = PushDir.Forward;
             floodPlanes |= SectorPlanes.Ceiling;
         }
 
         if ((floodPlanes & planes) != 0)
-        {
-            // Push it out to prevent potential z-fighting. Default pushes out from the sector.
-            var angle = facingSide == line.Front ? line.Segment.Start.Angle(line.Segment.End) : line.Segment.End.Angle(line.Segment.Start);
-            if (flipPush)
-                angle += MathHelper.Pi;
-            var unit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * 0.05;
-
-            line.Segment.Start += unit;
-            line.Segment.End += unit;
-        }
+            PushSeg(line, facingSide, dir, m_pushSegAmount);
 
         if (face == SectorPlaneFace.Floor)
         {
@@ -138,6 +133,15 @@ public class PortalRenderer : IDisposable
         WallVertices wall = default;
         Sector facingSector = facingSide.Sector.GetRenderSector(TransferHeightView.Middle);
         Sector otherSector = otherSide.Sector.GetRenderSector(TransferHeightView.Middle);
+
+        var line = facingSide.Line;
+        var saveStart = line.Segment.Start;
+        var saveEnd = line.Segment.End;
+
+        // The middle texture renders over any potential flood textures. Push the flood texture slightly behind the line.
+        if (facingSide.Middle.TextureHandle > Constants.NullCompatibilityTextureIndex)
+            PushSeg(facingSide.Line, facingSide, PushDir.Back, m_pushSegAmount);
+
         if (sideTexture == SideTexture.Upper)
         {
             bool floodOpposing = otherSide.Sector.FloodOpposingCeiling;
@@ -154,7 +158,11 @@ public class PortalRenderer : IDisposable
             }
 
             if (IgnoreAltFloodFill(facingSide, otherSide, SectorPlaneFace.Ceiling))
+            {
+                facingSide.Line.Segment.Start = saveStart;
+                facingSide.Line.Segment.End = saveEnd;
                 return;
+            }
 
             bottom = facingSector.Ceiling;
             m_fakeCeiling.TextureHandle = floodSector.Ceiling.TextureHandle;
@@ -188,7 +196,11 @@ public class PortalRenderer : IDisposable
             }
 
             if (IgnoreAltFloodFill(facingSide, otherSide, SectorPlaneFace.Floor))
+            {
+                facingSide.Line.Segment.Start = saveStart;
+                facingSide.Line.Segment.End = saveEnd;
                 return;
+            }
 
             // This is the alternate case where the floor will flood with the surrounding sector when the camera goes below the flood sector z.
             top = facingSector.Floor;
@@ -206,6 +218,21 @@ public class PortalRenderer : IDisposable
             else
                 facingSide.LowerFloodKeys.Key2 = m_floodFillRenderer.AddStaticWall(facingSector.Floor, wall, min, max);
         }
+
+        facingSide.Line.Segment.Start = saveStart;
+        facingSide.Line.Segment.End = saveEnd;
+    }
+
+    private static void PushSeg(Line line, Side facingSide, PushDir dir, double amount)
+    {
+        // Push it out to prevent potential z-fighting. Default pushes out from the sector.
+        var angle = facingSide == line.Front ? line.Segment.Start.Angle(line.Segment.End) : line.Segment.End.Angle(line.Segment.Start);
+        if (dir == PushDir.Forward)
+            angle += MathHelper.Pi;
+
+        var unit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * amount;
+        line.Segment.Start += unit;
+        line.Segment.End += unit;
     }
 
     private bool IgnoreAltFloodFill(Side facingSide, Side otherSide, SectorPlaneFace face) =>
