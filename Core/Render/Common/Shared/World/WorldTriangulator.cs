@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Util;
+using Helion.Render.Common.Shared.World;
 using Helion.Util.Container;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -96,8 +96,9 @@ public static class WorldTriangulator
     }
 
     public static void HandleTwoSidedMiddle(Side facingSide,
-        in Dimension textureDimension, in Vec2F textureUVInverse, double bottomOpeningZ, double topOpeningZ, double prevBottomZ, double prevTopZ,
-        bool isFrontSide, ref WallVertices wall, out bool nothingVisible, double offset = 0, double prevOffset = 0)
+        in Dimension textureDimension, in Vec2F textureUVInverse, in MidTexOpening opening, in MidTexOpening prevOpening,
+        bool isFrontSide, ref WallVertices wall, out bool nothingVisible, double offset = 0, double prevOffset = 0, 
+        SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling)
     {
         if (LineOpening.IsRenderingBlocked(facingSide.Line))
         {
@@ -106,7 +107,7 @@ public static class WorldTriangulator
         }
 
         Line line = facingSide.Line;
-        MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, bottomOpeningZ, topOpeningZ, prevBottomZ, prevTopZ, textureDimension, offset, prevOffset);
+        MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, opening, prevOpening, textureDimension, offset, prevOffset, clipPlanes);
         if (drawSpan.NotVisible())
         {
             nothingVisible = true;
@@ -277,18 +278,21 @@ public static class WorldTriangulator
         }
     }
 
-    private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, Side facingSide, double bottomOpeningZ,
-        double topOpeningZ, double prevBottomOpeningZ, double prevTopOpeningZ, in Dimension textureDimension, double offset, double prevOffset)
+    private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, Side facingSide, in MidTexOpening opening, in MidTexOpening prevOpening, 
+        in Dimension textureDimension, double offset, double prevOffset, SectorPlanes clipPlanes)
     {
-        double topZ = topOpeningZ;
+        // Default rendering top down. Unpegged.Lower renders bottom up
+        // TopZ is the top of the texture to render and BottomZ is the bottom
+        // MaxTopZ and MinBottomZ are the min/max areas to render with Y offset. (e.g. a middle texture can render over a missing lower texture)
+        double topZ = opening.TopZ;
         double bottomZ = topZ - textureDimension.Height;
-        double prevTopZ = prevTopOpeningZ;
+        double prevTopZ = prevOpening.TopZ;
         double prevBottomZ = prevTopZ - textureDimension.Height;
         if (line.Flags.Unpegged.Lower)
         {
-            bottomZ = bottomOpeningZ;
+            bottomZ = opening.BottomZ;
             topZ = bottomZ + textureDimension.Height;
-            prevBottomZ = prevBottomOpeningZ;
+            prevBottomZ = prevOpening.BottomZ;
             prevTopZ = prevBottomZ + textureDimension.Height;
         }
 
@@ -297,21 +301,12 @@ public static class WorldTriangulator
         prevTopZ += facingSide.Offset.Y + prevOffset;
         prevBottomZ += facingSide.Offset.Y + prevOffset;
 
-        // Check if the lower/upper textures are set. If not then then the middle can be drawn through.
-        double visibleTopZ = topZ;
-        double visiblePrevTopZ = prevTopZ;
-        if (facingSide.Upper.TextureHandle != Constants.NoTextureIndex)
-        {
-            visibleTopZ = Math.Min(topZ, topOpeningZ);
-            visiblePrevTopZ = Math.Min(prevTopZ, prevTopOpeningZ);
-        }
-        double visibleBottomZ = bottomZ;
-        double visiblePrevBottomZ = prevBottomZ;
-        if (facingSide.Lower.TextureHandle != Constants.NoTextureIndex)
-        {
-            visibleBottomZ = Math.Max(bottomZ, bottomOpeningZ);
-            visiblePrevBottomZ = Math.Max(prevBottomZ, prevBottomOpeningZ);
-        }
+        // Check clipping to min/max floor/ceiling. Typically ignored for skies or mid-texture hacks.
+        var visibleTopZ = (clipPlanes & SectorPlanes.Ceiling) == 0 ? topZ : Math.Min(topZ, opening.MaxTopZ);
+        var visiblePrevTopZ = (clipPlanes & SectorPlanes.Ceiling) == 0 ? prevTopZ : Math.Min(prevTopZ, prevOpening.MaxTopZ);
+
+        var visibleBottomZ = (clipPlanes & SectorPlanes.Floor) == 0 ? bottomZ : Math.Max(bottomZ, opening.MinBottomZ);
+        var visiblePrevBottomZ = (clipPlanes & SectorPlanes.Floor) == 0 ? prevBottomZ : Math.Max(prevBottomZ, prevOpening.MinBottomZ);
 
         return new MiddleDrawSpan(bottomZ, topZ, visibleBottomZ, visibleTopZ, prevBottomZ, prevTopZ, visiblePrevBottomZ, visiblePrevTopZ);
     }

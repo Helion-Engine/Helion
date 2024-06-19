@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Render.Common.Shared.World;
 using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
@@ -28,7 +28,6 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Static;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -302,7 +301,7 @@ public class GeometryRenderer : IDisposable
                 world.Sectors[sectorId].Ceiling.NoRender = true;
         }
 
-        m_midTextureHack.Apply(world, def.MidTextureHackSectors, m_glTextureManager, this);
+        m_midTextureHack.Apply(world, def.MidTextureHackSectors, m_glTextureManager, TextureManager, this);
     }
 
     private void CacheData(IWorld world)
@@ -679,7 +678,7 @@ public class GeometryRenderer : IDisposable
             facingSide.LowerFloodKeys.Key1 > 0;
     }
 
-    public static bool UpperIsVisible(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
+    public static bool UpperIsVisible(Side facingSide, Sector facingSector, Sector otherSector)
     {
         return facingSector.Ceiling.Z > otherSector.Ceiling.Z || facingSector.Ceiling.PrevZ > otherSector.Ceiling.PrevZ ||
             facingSide.UpperFloodKeys.Key1 > 0;
@@ -690,7 +689,7 @@ public class GeometryRenderer : IDisposable
         bool isSky = textureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         bool isOtherSky = textureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
 
-        bool upperVisible = GeometryRenderer.UpperOrSkySideIsVisible(textureManager, facingSide, facingSector, otherSector, out bool skyHack);
+        bool upperVisible = UpperOrSkySideIsVisible(textureManager, facingSide, facingSector, otherSector, out bool skyHack);
         if (!upperVisible && !skyHack && !isOtherSky && isSky)
             return true;
 
@@ -899,7 +898,7 @@ public class GeometryRenderer : IDisposable
         else
         {
             if (facingSide.Upper.TextureHandle == Constants.NoTextureIndex && skyVertices2 != null ||
-                !UpperIsVisible(facingSide, otherSide, facingSector, otherSector))
+                !UpperIsVisible(facingSide, facingSector, otherSector))
             {
                 // This isn't the best spot for this but separating this logic would be difficult. (Sector 72 in skyshowcase.wad)
                 vertices = null;
@@ -1016,19 +1015,19 @@ public class GeometryRenderer : IDisposable
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
-            (double bottomZ, double topZ) = FindOpeningFlats(facingSector, otherSector);
-            (double prevBottomZ, double prevTopZ) = FindOpeningFlatsPrev(facingSector, otherSector);
-            double offset = GetTransferHeightHackOffset(facingSide, otherSide, bottomZ, topZ, previous: false);
+            var opening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector);
+            var prevOpening = GetMidTexOpeningPrev(TextureManager, facingSide, facingSector, otherSector);
+            double offset = GetTransferHeightHackOffset(facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: false);
             double prevOffset = 0;
 
             if (offset != 0)
-                prevOffset = GetTransferHeightHackOffset(facingSide, otherSide, bottomZ, topZ, previous: true);
+                prevOffset = GetTransferHeightHackOffset(facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: true);
 
             int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
-            // Not going to do anything with out nothingVisible for now
             WallVertices wall = default;
             WorldTriangulator.HandleTwoSidedMiddle(facingSide,
-                texture.Dimension, texture.UVInverse, bottomZ, topZ, prevBottomZ, prevTopZ, isFrontSide, ref wall, out _, offset, prevOffset);
+                texture.Dimension, texture.UVInverse, opening, prevOpening, isFrontSide, ref wall, out _, offset, prevOffset, 
+                clipPlanes: GetTwoSidedMiddleClipPlanes(facingSide, facingSector, otherSector));
 
             if (m_cacheOverride)
             {
@@ -1050,6 +1049,16 @@ public class GeometryRenderer : IDisposable
         vertices = data;
     }
 
+    private SectorPlanes GetTwoSidedMiddleClipPlanes(Side facingSide, Sector facingSector, Sector otherSector)
+    {
+        bool midTextureHack = facingSide.Sector.Floor.MidTextureHack || facingSide.Sector.Ceiling.MidTextureHack;
+        bool isCeilingSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
+        SectorPlanes clipPlanes = midTextureHack ? SectorPlanes.None : SectorPlanes.Floor | SectorPlanes.Ceiling;
+        if (isCeilingSky)
+            clipPlanes &= ~SectorPlanes.Ceiling;
+        return clipPlanes;
+    }
+
     // There is some issue with how the original code renders middle textures with transfer heights.
     // It appears to incorrectly draw from the floor of the original sector instead of the transfer heights sector.
     // Alternatively, I could be dumb and this is dumb but it appears to work.
@@ -1058,17 +1067,18 @@ public class GeometryRenderer : IDisposable
         if (otherSide.Sector.TransferHeights == null && facingSide.Sector.TransferHeights == null)
             return 0;
 
-        (double originalBottomZ, double originalTopZ) = previous ?
-            FindOpeningFlatsPrev(facingSide.Sector, otherSide.Sector) :
-            FindOpeningFlats(facingSide.Sector, otherSide.Sector);
+        //(double originalBottomZ, double originalTopZ)
+        var openingFlats = previous ?
+            GetMidTexOpeningPrev(TextureManager, facingSide, facingSide.Sector, otherSide.Sector) :
+            GetMidTexOpening(TextureManager, facingSide, facingSide.Sector, otherSide.Sector);
 
         if (facingSide.Line.Flags.Unpegged.Lower)
-            return originalBottomZ - bottomZ;
+            return openingFlats.BottomZ - bottomZ;
 
-        return originalTopZ - topZ;
+        return openingFlats.TopZ - topZ;
     }
 
-    public static (double bottomZ, double topZ) FindOpeningFlats(Sector facingSector, Sector otherSector)
+    public static MidTexOpening GetMidTexOpening(TextureManager textureManager, Side facingSide, Sector facingSector, Sector otherSector)
     {
         SectorPlane facingFloor = facingSector.Floor;
         SectorPlane facingCeiling = facingSector.Ceiling;
@@ -1080,36 +1090,43 @@ public class GeometryRenderer : IDisposable
         double otherFloorZ = otherFloor.Z;
         double otherCeilingZ = otherCeiling.Z;
 
-        double bottomZ = facingFloorZ;
-        double topZ = facingCeilingZ;
-        if (otherFloorZ > facingFloorZ)
-            bottomZ = otherFloorZ;
-        if (otherCeilingZ < facingCeilingZ)
-            topZ = otherCeilingZ;
+        double bottomZ = Math.Max(facingFloorZ, otherFloorZ);
+        double topZ = Math.Min(facingCeilingZ, otherCeilingZ);
+        double minBottomZ = bottomZ;
+        double maxTopZ = topZ;
 
-        return (bottomZ, topZ);
+        if (LowerIsVisible(facingSide, facingSector, otherSector) && facingSide.Lower.TextureHandle <= Constants.NullCompatibilityTextureIndex)
+            minBottomZ = Math.Min(facingFloorZ, otherFloorZ);
+        if (UpperOrSkySideIsVisible(textureManager, facingSide, facingSector, otherSector, out _) && facingSide.Upper.TextureHandle <= Constants.NullCompatibilityTextureIndex)
+            maxTopZ = Math.Max(facingCeilingZ, otherCeilingZ);
+
+        return new(bottomZ, topZ, minBottomZ, maxTopZ);
+
     }
 
-    public static (double bottomZ, double topZ) FindOpeningFlatsPrev(Sector facingSector, Sector otherSector)
+    public static MidTexOpening GetMidTexOpeningPrev(TextureManager textureManager, Side facingSide, Sector facingSector, Sector otherSector)
     {
         SectorPlane facingFloor = facingSector.Floor;
         SectorPlane facingCeiling = facingSector.Ceiling;
         SectorPlane otherFloor = otherSector.Floor;
         SectorPlane otherCeiling = otherSector.Ceiling;
 
-        double facingFloorZ = facingFloor.PrevZ;
-        double facingCeilingZ = facingCeiling.PrevZ;
-        double otherFloorZ = otherFloor.PrevZ;
-        double otherCeilingZ = otherCeiling.PrevZ;
+        double facingFloorZ = facingFloor.Z;
+        double facingCeilingZ = facingCeiling.Z;
+        double otherFloorZ = otherFloor.Z;
+        double otherCeilingZ = otherCeiling.Z;
 
-        double bottomZ = facingFloorZ;
-        double topZ = facingCeilingZ;
-        if (otherFloorZ > facingFloorZ)
-            bottomZ = otherFloorZ;
-        if (otherCeilingZ < facingCeilingZ)
-            topZ = otherCeilingZ;
+        double bottomZ = Math.Max(facingFloorZ, otherFloorZ);
+        double topZ = Math.Min(facingCeilingZ, otherCeilingZ);
+        double minBottomZ = bottomZ;
+        double maxTopZ = topZ;
 
-        return (bottomZ, topZ);
+        if (LowerIsVisible(facingSide, facingSector, otherSector) && facingSide.Lower.TextureHandle <= Constants.NullCompatibilityTextureIndex)
+            minBottomZ = Math.Min(facingFloorZ, otherFloorZ);
+        if (UpperOrSkySideIsVisible(textureManager, facingSide, facingSector, otherSector, out _) && facingSide.Upper.TextureHandle <= Constants.NullCompatibilityTextureIndex)
+            maxTopZ = Math.Max(facingCeilingZ, otherCeilingZ);
+
+        return new(bottomZ, topZ, minBottomZ, maxTopZ);
     }
 
     public void SetTransferHeightView(TransferHeightView view) => m_transferHeightsView = view;

@@ -1,11 +1,11 @@
-﻿using System;
-using Helion.Render.OpenGL.Shared.World;
+﻿using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Util;
 using Helion.World;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Sectors;
 using System.Collections.Generic;
+using Helion.Resources;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
@@ -16,22 +16,22 @@ public class MidTextureHack
     private readonly HashSet<int> m_midTextureHackSectors = new(128);
     private readonly List<Sector> m_containingSectors = new(128);
 
-    public void Apply(IWorld world, LegacyGLTextureManager textureManager, GeometryRenderer geometryRenderer)
+    public void Apply(IWorld world, LegacyGLTextureManager glTextureManager, TextureManager textureManager,  GeometryRenderer geometryRenderer)
     {
         for (int i = 0; i < world.Sectors.Count; i++)
-            ApplyToSector(world, textureManager, geometryRenderer, world.Sectors[i]);
+            ApplyToSector(world, glTextureManager, textureManager, geometryRenderer, world.Sectors[i]);
 
         m_floodLineSet.Clear();
         m_midTextureHackLines.Clear();
         m_midTextureHackSectors.Clear();
     }
 
-    public void Apply(IWorld world, IList<int> sectorIds, LegacyGLTextureManager textureManager, GeometryRenderer geometryRenderer)
+    public void Apply(IWorld world, IList<int> sectorIds, LegacyGLTextureManager glTextureManager, TextureManager textureManager, GeometryRenderer geometryRenderer)
     {
         foreach (var sectorId in sectorIds)
         {
             if (world.IsSectorIdValid(sectorId))
-                ApplyToSector(world, textureManager, geometryRenderer, world.Sectors[sectorId]);
+                ApplyToSector(world, glTextureManager, textureManager, geometryRenderer, world.Sectors[sectorId]);
         }
 
         m_floodLineSet.Clear();
@@ -39,7 +39,7 @@ public class MidTextureHack
         m_midTextureHackSectors.Clear();
     }
 
-    private void ApplyToSector(IWorld world, LegacyGLTextureManager textureManager, GeometryRenderer geometryRenderer, Sector sector)
+    private void ApplyToSector(IWorld world, LegacyGLTextureManager glTextureManager, TextureManager textureManager, GeometryRenderer geometryRenderer, Sector sector)
     {
         if (sector.TransferHeights != null)
             return;
@@ -60,17 +60,17 @@ public class MidTextureHack
                 continue;
 
             var side = line.Front.Middle.TextureHandle == Constants.NoTextureIndex ? line.Back : line.Front;
-            var texture = textureManager.GetTexture(side.Middle.TextureHandle);
+            var texture = glTextureManager.GetTexture(side.Middle.TextureHandle);
             // Do not emulate unless there are transparent pixels or alpha.
             if (texture.TransparentPixelCount == 0 && line.Alpha >= 1)
                 continue;
 
             m_midTextureHackLines.Add(line.Id);
-            (double bottomZ, double topZ) = GeometryRenderer.FindOpeningFlats(side.Sector, side.PartnerSide!.Sector);
+            var opening = GeometryRenderer.GetMidTexOpening(textureManager, side, side.Sector, side.PartnerSide!.Sector);
 
             WallVertices wall = default;
             WorldTriangulator.HandleTwoSidedMiddle(side,
-                texture.Dimension, texture.UVInverse, bottomZ, topZ, bottomZ, topZ, side.Id == line.Front.Id, ref wall, out _, 0, 0);
+                texture.Dimension, texture.UVInverse, opening, opening, side.Id == line.Front.Id, ref wall, out _, 0, 0, clipPlanes: SectorPlanes.None);
 
             if (wall.BottomRight.Z < sector.Floor.Z && line.Front.Sector.Floor.Z == line.Back.Sector.Floor.Z)
                 clippedFloor = true;
