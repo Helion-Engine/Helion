@@ -42,7 +42,8 @@ public class Block
     /// <summary>
     /// All the lines for this block.
     /// </summary>  
-    public readonly DynamicArray<BlockLine> BlockLines = new(arrayPool: false);
+    public BlockLine[] BlockLines = new BlockLine[8];
+    public int BlockLineCount;
 
     /// <summary>
     /// All the entities in this block.

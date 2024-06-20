@@ -80,7 +80,6 @@ public class DataCache
             if (entity == null!)
                 continue;
             entity.IntersectSectors.FlushReferences();
-            entity.IntersectMovementSectors.FlushReferences();
         }
 
         for (int i = 0; i < m_entityLists.Capacity; i++)

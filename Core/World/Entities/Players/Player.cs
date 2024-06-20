@@ -577,9 +577,9 @@ public class Player : Entity
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
                 Block block = grid[by * it.Width + bx];
-                for (int i = 0; i < block.BlockLines.Length; i++)
+                for (int i = 0; i < block.BlockLineCount; i++)
                 {
-                    fixed (BlockLine* blockLine = &block.BlockLines.Data[i])
+                    fixed (BlockLine* blockLine = &block.BlockLines[i])
                     {
                         if (!box.Intersects(blockLine->Segment))
                             continue;

@@ -81,7 +81,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public double LowestCeilingZ;
     public double HighestFloorZ;
     public DynamicArray<Sector> IntersectSectors = new();
-    public DynamicArray<Sector> IntersectMovementSectors = new();
     public Vec3D SpawnPoint;
     public int Id;
     public int ThingId;
@@ -368,7 +367,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         }
 
         IntersectSectors.Clear();
-        IntersectMovementSectors.Clear();
         BlockingLine = null;
         BlockingEntity = null;
         BlockingSectorPlane = null;
@@ -903,7 +901,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         BlockmapNodes.Clear();
         SectorNodes.Clear();
         IntersectSectors.Clear();
-        IntersectMovementSectors.Clear();
 
         Target = WeakEntity.Default;
         Tracer = WeakEntity.Default;
