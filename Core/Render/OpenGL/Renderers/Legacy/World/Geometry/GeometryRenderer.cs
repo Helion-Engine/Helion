@@ -334,6 +334,9 @@ public class GeometryRenderer : IDisposable
     public void RenderStaticGeometryFlats() =>
         m_staticCacheGeometryRenderer.RenderFlats();
 
+    public void RenderStaticCoverWalls() =>
+        m_staticCacheGeometryRenderer.RenderCoverWalls();
+
     public void RenderPortalsAndSkies(RenderInfo renderInfo)
     {
         m_skyRenderer.Render(renderInfo);

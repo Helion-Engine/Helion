@@ -24,10 +24,10 @@ public static class WorldTriangulator
 
         Vec2F left = isFront ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
         Vec2F right = isFront ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
-        double topZ = overrideCeiling == NoOverride ? ceiling.Z + 8192 : overrideCeiling;
-        double bottomZ = overrideFloor == NoOverride ? floor.Z - 8192 : overrideFloor;
-        double prevTopZ = overrideCeiling == NoOverride ? ceiling.PrevZ + 8192 : overrideCeiling;
-        double prevBottomZ = overrideFloor == NoOverride ? floor.PrevZ - 8192 : overrideFloor;
+        double topZ = overrideCeiling == NoOverride ? ceiling.Z : overrideCeiling;
+        double bottomZ = overrideFloor == NoOverride ? floor.Z : overrideFloor;
+        double prevTopZ = overrideCeiling == NoOverride ? ceiling.PrevZ : overrideCeiling;
+        double prevBottomZ = overrideFloor == NoOverride ? floor.PrevZ : overrideFloor;
 
         double length = line.GetLength();
         double spanZ = topZ - bottomZ;
@@ -65,9 +65,9 @@ public static class WorldTriangulator
         Vec2F left = isFrontSide ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
         Vec2F right = isFrontSide ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
         double topZ = topFlat.Z;
-        double bottomZ = bottomFlat.Z - 8192;
+        double bottomZ = bottomFlat.Z;
         double prevTopZ = topFlat.PrevZ;
-        double prevBottomZ = bottomFlat.PrevZ - 8192;
+        double prevBottomZ = bottomFlat.PrevZ;
 
         double length = line.GetLength();
         WallUV uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ, previous: false);

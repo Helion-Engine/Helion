@@ -270,34 +270,27 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.Unbind();
 
         m_interpolationProgram.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
         SetInterpolationUniforms(renderInfo);
         m_worldDataManager.RenderWalls();
         m_worldDataManager.RenderFlats();
         m_interpolationProgram.Unbind();
 
-        GL.ActiveTexture(TextureUnit.Texture0);
         GL.Clear(ClearBufferMask.DepthBufferBit);
-
         GL.ColorMask(false, false, false, false);
+        GL.Disable(EnableCap.CullFace);
         m_staticProgram.Bind();
-        m_geometryRenderer.RenderStaticGeometryWalls();
-
-        GL.CullFace(CullFaceMode.Front);
-        m_geometryRenderer.RenderStaticGeometryWalls();
-        GL.CullFace(CullFaceMode.Back);
-
+        m_geometryRenderer.RenderStaticCoverWalls();
         m_staticProgram.Unbind();
+        GL.Enable(EnableCap.CullFace);
 
         m_interpolationProgram.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
         SetInterpolationUniforms(renderInfo);
         m_worldDataManager.RenderWalls();
-        m_interpolationProgram.Unbind();
 
         GL.CullFace(CullFaceMode.Front);
         m_worldDataManager.RenderWalls();
         GL.CullFace(CullFaceMode.Back);
+        m_interpolationProgram.Unbind();
 
         GL.ColorMask(true, true, true, true);
 
@@ -305,7 +298,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_entityRenderer.RenderAlpha(renderInfo);
 
         m_interpolationProgram.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
         SetInterpolationUniforms(renderInfo);
         m_worldDataManager.RenderAlphaWalls();
         m_interpolationProgram.Unbind();
