@@ -5,37 +5,46 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
 public class RenderGeometry
 {
-    private readonly List<GeometryData> m_wallGeometry = new();
-    private readonly List<GeometryData> m_flatGeometry = new();
+    private readonly GeometryTypeLookup<List<GeometryData>> m_lookup = new(() => new List<GeometryData>());
 
     public void AddGeometry(GeometryType type, GeometryData data)
     {
-        GetGeometry(type).Add(data);
-    }
-
-    public void ClearVbo()
-    {
-        for (int i = 0; i < m_wallGeometry.Count; i++)
-            m_wallGeometry[i].Vbo.Clear();
-        for (int i = 0; i < m_flatGeometry.Count; i++)
-            m_flatGeometry[i].Vbo.Clear();
-    }
-
-    public void DisposeAndClear()
-    {
-        for (int i = 0; i < m_wallGeometry.Count; i++)
-            m_wallGeometry[i].Dispose();
-        for (int i = 0; i < m_flatGeometry.Count; i++)
-            m_flatGeometry[i].Dispose();
-
-        m_wallGeometry.Clear();
-        m_flatGeometry.Clear();
+        m_lookup.Get(type).Add(data);
     }
 
     public List<GeometryData> GetGeometry(GeometryType type)
     {
-        if (type == GeometryType.Flat)
-            return m_flatGeometry;
-        return m_wallGeometry;
+        return m_lookup.Get(type);
+    }
+
+    public List<GeometryData>[] GetAllGeometry()
+    {
+        return m_lookup.GetItems();
+    }
+
+    public void ClearVbo()
+    {
+        var items = m_lookup.GetItems();
+        for (int i = 0; i < items.Length; i++)
+        {
+            var list = items[i];
+            for (int j = 0; j < list.Count; j++)
+                list[j].Vbo.Clear();
+        }
+    }
+
+    public void DisposeAndClear()
+    {
+        var items = m_lookup.GetItems();
+        for (int i = 0; i < items.Length; i++)
+        {
+            var list = items[i];
+            for (int j = 0; j < list.Count; j++)
+            {
+                var data = list[j];
+                data.Dispose();
+            }
+            list.Clear();
+        }
     }
 }

@@ -21,7 +21,6 @@ using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using Helion.Render.OpenGL.Context;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -36,7 +35,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly RenderGeometry m_geometry = new();
 
     private readonly DynamicArray<GeometryData> m_runtimeGeometry = new();
-    private readonly GeometryLookup m_textureToGeometryLookup = new();
+    private readonly GeometryTextureLookup m_textureToGeometryLookup = new();
 
     private readonly HashSet<int> m_runtimeGeometryTextures = new();
     private readonly FreeGeometryManager m_freeManager = new();
@@ -52,19 +51,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
     private readonly List<Sector> m_initMoveSectors = new();
 
-    readonly struct CoverWallKey(int sideId, WallLocation location)
-    {
-        public readonly int SideId = sideId;
-        public readonly WallLocation Location = location;
-
-        public override int GetHashCode()
-        {
-            return SideId + (int)Location * 131072;
-        }
-    }
-
     private readonly Dictionary<CoverWallKey, StaticGeometryData> m_coverWallLookup = new();
-    public GeometryData m_coverWallGeometry;
+    private GeometryData m_coverWallGeometry;
 
     private bool m_disposed;
     private IWorld m_world = null!;
@@ -168,16 +156,13 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_initMoveSectors.Clear();
 
-        foreach (var data in m_geometry.GetGeometry(GeometryType.Wall))
+        foreach (var list in m_geometry.GetAllGeometry())
         {
-            data.Vbo.Bind();
-            data.Vbo.UploadIfNeeded();
-        }
-
-        foreach (var data in m_geometry.GetGeometry(GeometryType.Flat))
-        {
-            data.Vbo.Bind();
-            data.Vbo.UploadIfNeeded();
+            foreach (var data in list)
+            {
+                data.Vbo.Bind();
+                data.Vbo.UploadIfNeeded();
+            }
         }
 
         UpdateLookup(m_updateLightSectorsLookup, world.Sectors.Count);
@@ -585,7 +570,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (sideVertices == null || !visible)
             return;
 
-        AddOrUpdateCoverWall(side, wall, sideVertices, repeatY);
+        var type = GetWallType(side, wall);
+        if (type != GeometryType.TwoSidedMiddleWall)
+            AddOrUpdateCoverWall(side, wall, sideVertices, repeatY);
         
         if (update)
         {
@@ -593,15 +580,18 @@ public class StaticCacheGeometryRenderer : IDisposable
                 null, side, wall, repeatY);
             return;
         }
-
-        var vertices = GetTextureVertices(GeometryType.Wall, wall.TextureHandle, repeatY);
-        SetSideData(ref wall.Static, wall.TextureHandle, vertices.Length, sideVertices.Length, repeatY, null);
+                
+        var vertices = GetTextureVertices(type, wall.TextureHandle, repeatY);
+        SetSideData(ref wall.Static, type, wall.TextureHandle, vertices.Length, sideVertices.Length, repeatY, null);
         AddVertices(vertices, sideVertices);
     }
 
-    private void SetSideData(ref StaticGeometryData staticGeometry, int textureHandle, int vboIndex, int vertexCount, bool repeatY, GeometryData? geometryData)
+    private static GeometryType GetWallType(Side side, Wall wall) => 
+        wall.Location == WallLocation.Middle && side.PartnerSide != null ? GeometryType.TwoSidedMiddleWall : GeometryType.Wall;
+
+    private void SetSideData(ref StaticGeometryData staticGeometry, GeometryType type, int textureHandle, int vboIndex, int vertexCount, bool repeatY, GeometryData? geometryData)
     {
-        if (geometryData == null && !m_textureToGeometryLookup.TryGetValue(GeometryType.Wall, textureHandle, repeatY, out geometryData))
+        if (geometryData == null && !m_textureToGeometryLookup.TryGetValue(type, textureHandle, repeatY, out geometryData))
             return;
 
         staticGeometry.GeometryData = geometryData;
@@ -649,16 +639,19 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_world = null!;
         }
 
-
         if (world.SameAsPreviousMap)
         {
             m_geometry.ClearVbo();
+            m_coverWallGeometry.Vbo.Clear();
         }
         else
         {
             m_geometry.DisposeAndClear();
             m_textureToGeometryLookup.Clear();
+            m_coverWallGeometry?.Dispose();
         }
+
+        m_coverWallLookup.Clear();
 
         m_freeManager.Clear();
         m_skyRenderer.Clear();
@@ -740,6 +733,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         RenderGeometry(m_geometry.GetGeometry(GeometryType.Wall));
     }
 
+    public void RenderTwoSidedMiddleWalls()
+    {
+        RenderGeometry(m_geometry.GetGeometry(GeometryType.TwoSidedMiddleWall));
+    }
+
     public void RenderFlats()
     {
         RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat));
@@ -770,6 +768,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             data.Vao.Bind();
             data.Vbo.Bind();
+            data.Vbo.UploadIfNeeded();
             data.Vbo.DrawArrays();
         }
     }
@@ -911,15 +910,15 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             if (line.Front.IsDynamic || line.Front.UpperSky)
             {
-                ClearGeometryVertices(line.Front.Upper.Static);
+                ClearSideGeometryVertices(line.Front, line.Front.Upper);
                 m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Upper);
             }
             if (line.Front.IsDynamic)
             {
-                ClearGeometryVertices(line.Front.Lower.Static);
+                ClearSideGeometryVertices(line.Front, line.Front.Lower);
                 m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Lower);
 
-                ClearGeometryVertices(line.Front.Middle.Static);
+                ClearSideGeometryVertices(line.Front, line.Front.Middle);
                 m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Middle);
             }
 
@@ -928,18 +927,25 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             if (line.Back.IsDynamic || line.Back.UpperSky)
             {
-                ClearGeometryVertices(line.Back.Upper.Static);
+                ClearSideGeometryVertices(line.Back, line.Front.Upper);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Upper);
             }
             if (line.Back.IsDynamic)
             {
-                ClearGeometryVertices(line.Back.Lower.Static);
+                ClearSideGeometryVertices(line.Back, line.Front.Lower);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Lower);
 
-                ClearGeometryVertices(line.Back.Middle.Static);
+                ClearSideGeometryVertices(line.Back, line.Front.Middle);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Middle);
             }
         }
+    }
+
+    private void ClearSideGeometryVertices(Side side, Wall wall)
+    {
+        ClearGeometryVertices(wall.Static);
+        if (m_coverWallLookup.TryGetValue(new CoverWallKey(side.Id, wall.Location), out var geometryData))
+            ClearGeometryVertices(geometryData);
     }
 
     private void World_SectorMoveComplete(object? sender, SectorPlane plane)
@@ -996,7 +1002,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_SideTextureChanged(object? sender, SideTextureEvent e)
     {
-        ClearGeometryVertices(e.Wall.Static);
+        ClearSideGeometryVertices(e.Side, e.Wall);
         m_freeManager.Add(e.PreviousTextureHandle, e.Wall.Static);
         e.Wall.Static.GeometryData = null;
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
@@ -1058,12 +1064,15 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             m_coverWallGeometry.Vbo.Data.EnsureCapacity(m_coverWallGeometry.Vbo.Data.Length + 6);
             CopyCoverWallVertices(m_coverWallGeometry.Vbo.Data.Data, sideVertices, staticGeometryData.Index, wall.Location);
+            m_coverWallGeometry.Vbo.Bind();
+            m_coverWallGeometry.Vbo.UploadSubData(staticGeometryData.Index, sideVertices.Length);
             return;
         }
 
+        var type = GetWallType(side, wall);
         StaticGeometryData coverWallStatic = new(m_coverWallGeometry, 0, 0);
         var vertices = m_coverWallGeometry.Vbo.Data;
-        SetSideData(ref coverWallStatic, m_coverWallGeometry.Texture.Index, vertices.Length, sideVertices.Length, repeatY, m_coverWallGeometry);
+        SetSideData(ref coverWallStatic, type, m_coverWallGeometry.Texture.Index, vertices.Length, sideVertices.Length, repeatY, m_coverWallGeometry);
         AddCoverWallVertices(vertices, sideVertices, wall.Location);
         m_coverWallLookup[new CoverWallKey(side.Id, wall.Location)] = coverWallStatic;
     }
@@ -1110,7 +1119,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         if (side != null && wall != null)
         {
-            SetSideData(ref wall.Static, textureHandle, geometryData.Vbo.Count, vertices.Length, repeat, geometryData);
+            SetSideData(ref wall.Static, GetWallType(side, wall), textureHandle, geometryData.Vbo.Count, vertices.Length, repeat, geometryData);
             return;
         }
 

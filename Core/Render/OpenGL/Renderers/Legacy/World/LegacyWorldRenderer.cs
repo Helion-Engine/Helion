@@ -266,22 +266,28 @@ public class LegacyWorldRenderer : WorldRenderer
         SetStaticUniforms(renderInfo);
         m_geometryRenderer.StartRenderStaticGeometry();
         m_geometryRenderer.RenderStaticGeometryWalls();
+        m_geometryRenderer.RenderStaticTwoSidedWalls();
         m_geometryRenderer.RenderStaticGeometryFlats();
         m_staticProgram.Unbind();
 
         m_interpolationProgram.Bind();
         SetInterpolationUniforms(renderInfo);
         m_worldDataManager.RenderWalls();
+        m_worldDataManager.RenderTwoSidedMiddleWalls();
         m_worldDataManager.RenderFlats();
         m_interpolationProgram.Unbind();
 
         GL.Clear(ClearBufferMask.DepthBufferBit);
         GL.ColorMask(false, false, false, false);
-        GL.Disable(EnableCap.CullFace);
         m_staticProgram.Bind();
+        m_geometryRenderer.RenderStaticTwoSidedWalls();
+        m_worldDataManager.RenderTwoSidedMiddleWalls();
+        GL.Disable(EnableCap.CullFace);
         m_geometryRenderer.RenderStaticCoverWalls();
-        m_staticProgram.Unbind();
+        // TODO implement this
+        //m_worldDataManager.RenderCoverWalls();
         GL.Enable(EnableCap.CullFace);
+        m_staticProgram.Unbind();
 
         m_interpolationProgram.Bind();
         SetInterpolationUniforms(renderInfo);
