@@ -5,8 +5,8 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
 internal class TextureGeometryLookup
 {
-    private readonly Dictionary<int, GeometryData> m_textureToGeometryLookup = new();
-    private readonly Dictionary<int, GeometryData> m_textureToGeometryLookupClamp = new();
+    private readonly Dictionary<int, GeometryData> m_textureToGeometryLookup = [];
+    private readonly Dictionary<int, GeometryData> m_textureToGeometryLookupClamp = [];
 
     public void Clear()
     {
@@ -19,8 +19,8 @@ internal class TextureGeometryLookup
         GetLookup(repeatY).Add(textureHandle, data);
     }
 
-    public bool TryGetValue(int textureHanldle, bool repeatY, [NotNullWhen(true)] out GeometryData? value) =>
-        GetLookup(repeatY).TryGetValue(textureHanldle, out value);
+    public bool TryGetValue(int textureHandle, bool repeatY, [NotNullWhen(true)] out GeometryData? value) =>
+        GetLookup(repeatY).TryGetValue(textureHandle, out value);
 
     private Dictionary<int, GeometryData> GetLookup(bool repeatY) =>
         repeatY ? m_textureToGeometryLookup : m_textureToGeometryLookupClamp;

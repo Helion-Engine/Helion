@@ -261,29 +261,55 @@ public class LegacyWorldRenderer : WorldRenderer
         PopulatePrimitives(world);
 
         m_geometryRenderer.RenderPortalsAndSkies(renderInfo);
-                
-        m_entityRenderer.RenderNonAlpha(renderInfo);
+
+        m_staticProgram.Bind();
+        SetStaticUniforms(renderInfo);
+        m_geometryRenderer.StartRenderStaticGeometry();
+        m_geometryRenderer.RenderStaticGeometryWalls();
+        m_geometryRenderer.RenderStaticGeometryFlats();
+        m_staticProgram.Unbind();
 
         m_interpolationProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetInterpolationUniforms(renderInfo);
-        m_worldDataManager.DrawNonAlpha();
+        m_worldDataManager.RenderWalls();
+        m_worldDataManager.RenderFlats();
         m_interpolationProgram.Unbind();
 
-        m_staticProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
-        SetStaticUniforms(renderInfo);
-        m_geometryRenderer.RenderStaticGeometry();
+        GL.Clear(ClearBufferMask.DepthBufferBit);
+
+        GL.ColorMask(false, false, false, false);
+        m_staticProgram.Bind();
+        m_geometryRenderer.RenderStaticGeometryWalls();
+
+        GL.CullFace(CullFaceMode.Front);
+        m_geometryRenderer.RenderStaticGeometryWalls();
+        GL.CullFace(CullFaceMode.Back);
+
         m_staticProgram.Unbind();
 
+        m_interpolationProgram.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        SetInterpolationUniforms(renderInfo);
+        m_worldDataManager.RenderWalls();
+        m_interpolationProgram.Unbind();
+
+        GL.CullFace(CullFaceMode.Front);
+        m_worldDataManager.RenderWalls();
+        GL.CullFace(CullFaceMode.Back);
+
+        GL.ColorMask(true, true, true, true);
+
+        m_entityRenderer.RenderNonAlpha(renderInfo);
         m_entityRenderer.RenderAlpha(renderInfo);
 
         m_interpolationProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetInterpolationUniforms(renderInfo);
-        m_worldDataManager.DrawAlpha();
+        m_worldDataManager.RenderAlphaWalls();
         m_interpolationProgram.Unbind();
-        
+
         m_primitiveRenderer.Render(renderInfo);
     }
 

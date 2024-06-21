@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 
@@ -7,91 +7,51 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
 public class RenderWorldDataManager : IDisposable
 {
-    private readonly List<RenderWorldData> m_renderData = new();
-    private readonly List<RenderWorldData> m_alphaRenderData = new();
-
-    private RenderWorldData?[] m_allRenderData;
-    private RenderWorldData?[] m_allRenderDataAlpha;
-
-    private int m_renderCount = 1;
-
-    public RenderWorldDataManager()
-    {
-        m_allRenderData = new RenderWorldData[1024];
-        m_allRenderDataAlpha = new RenderWorldData[1024];
-    }
+    private readonly RenderWorldDataList m_renderDataWall = new();
+    private readonly RenderWorldDataList m_alphaRenderDataWall = new();
+    private readonly RenderWorldDataList m_renderDataFlat = new();
 
     ~RenderWorldDataManager()
     {
         ReleaseUnmanagedResources();
     }
 
-    public RenderWorldData GetRenderData(GLLegacyTexture texture, RenderProgram program)
+    private RenderWorldDataList GetRenderDataList(GeometryType type, bool alpha)
     {
-        if (m_allRenderData.Length <= texture.TextureId)
-        {
-            var original = m_allRenderData;
-            m_allRenderData = new RenderWorldData[texture.TextureId + 1024];
-            Array.Copy(original, m_allRenderData, original.Length);
-        }
+        if (type == GeometryType.Flat)
+            return m_renderDataFlat;
 
-        RenderWorldData? data = m_allRenderData[texture.TextureId];
-        if (data != null)
-        {
-            if (data.RenderCount != m_renderCount)
-                data.RenderCount = m_renderCount;
-            return data;
-        }
-
-        RenderWorldData newData = new(texture, program);
-        m_allRenderData[texture.TextureId] = newData;       
-        m_renderData.Add(newData);
-        return newData;
+        if (alpha)
+            return m_alphaRenderDataWall;
+        return m_renderDataWall;
     }
 
-    public RenderWorldData GetAlphaRenderData(GLLegacyTexture texture, RenderProgram program)
+    public RenderWorldData GetRenderData(GLLegacyTexture texture, RenderProgram program, GeometryType type, bool alpha)
     {
-        if (m_allRenderDataAlpha.Length <= texture.TextureId)
-        {
-            var original = m_allRenderDataAlpha;
-            m_allRenderDataAlpha = new RenderWorldData[texture.TextureId + 1024];
-            Array.Copy(original, m_allRenderDataAlpha, original.Length);
-        }
-
-        RenderWorldData? data = m_allRenderDataAlpha[texture.TextureId];
-        if (data != null)
-        {
-            if (data.RenderCount != m_renderCount)
-                data.RenderCount = m_renderCount;
-            return data;
-        }
-
-        RenderWorldData newData = new(texture, program);
-        m_allRenderDataAlpha[texture.TextureId] = newData;
-        m_alphaRenderData.Add(newData);
-        return newData;
+        var renderDataList = GetRenderDataList(type, alpha);
+        return renderDataList.Add(texture, program);
     }
 
+    
     public void Clear()
     {
-        m_renderCount++;
-        for (int i = 0; i < m_renderData.Count; i++)
-            m_renderData[i].Clear();
-
-        for (int i = 0; i < m_alphaRenderData.Count; i++)
-            m_alphaRenderData[i].Clear();
+        m_renderDataWall.Clear();
+        m_renderDataFlat.Clear();
     }
 
-    public void DrawNonAlpha()
+    public void RenderWalls()
     {
-        for (int i = 0; i < m_renderData.Count; i++)
-            m_renderData[i].Draw();
+        m_renderDataWall.Draw();
     }
 
-    public void DrawAlpha()
+    public void RenderAlphaWalls()
     {
-        for (int i = 0; i < m_alphaRenderData.Count; i++)
-            m_alphaRenderData[i].Draw();
+        m_alphaRenderDataWall.Draw();
+    }
+
+    public void RenderFlats()
+    {
+        m_renderDataFlat.Draw();
     }
 
     public void Dispose()
@@ -102,10 +62,7 @@ public class RenderWorldDataManager : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        for (int i = 0; i < m_renderData.Count; i++)
-            m_renderData[i].Dispose();
-
-        for (int i = 0; i < m_alphaRenderData.Count; i++)
-            m_alphaRenderData[i].Dispose();
+        m_renderDataWall.ReleaseUnmanagedResources();
+        m_renderDataFlat.ReleaseUnmanagedResources();
     }
 }

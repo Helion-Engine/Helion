@@ -324,8 +324,15 @@ public class GeometryRenderer : IDisposable
         m_lineDrawnTracker.ClearDrawnLines();
         AlphaSides.Clear();
     }
-    public void RenderStaticGeometry() =>
-        m_staticCacheGeometryRenderer.Render();
+
+    public void StartRenderStaticGeometry() =>
+        m_staticCacheGeometryRenderer.StartRender();
+
+    public void RenderStaticGeometryWalls() =>
+        m_staticCacheGeometryRenderer.RenderWalls();
+
+    public void RenderStaticGeometryFlats() =>
+        m_staticCacheGeometryRenderer.RenderFlats();
 
     public void RenderPortalsAndSkies(RenderInfo renderInfo)
     {
@@ -613,7 +620,7 @@ public class GeometryRenderer : IDisposable
 
         if (m_buffer)
         {
-            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
+            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, false);
             renderData.Vbo.Add(data);
         }
         vertices = data;
@@ -767,7 +774,7 @@ public class GeometryRenderer : IDisposable
         }
 
         GLLegacyTexture texture = m_glTextureManager.GetTexture(lowerWall.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, false);
 
         SectorPlane top = otherSector.Floor;
         SectorPlane bottom = facingSector.Floor;
@@ -859,7 +866,7 @@ public class GeometryRenderer : IDisposable
 
         WallVertices wall = default;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(upperWall.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, false);
 
         SectorPlane top = facingSector.Ceiling;
         SectorPlane bottom = otherSector.Ceiling;
@@ -1009,9 +1016,7 @@ public class GeometryRenderer : IDisposable
 
         float alpha = m_config.Render.TextureTransparency ? facingSide.Line.Alpha : 1.0f;
         LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
-        RenderWorldData renderData = alpha < 1 ?
-            m_worldDataManager.GetAlphaRenderData(texture, m_program) :
-            m_worldDataManager.GetRenderData(texture, m_program);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, alpha < 1);
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
@@ -1150,7 +1155,7 @@ public class GeometryRenderer : IDisposable
     {
         bool isSky = TextureManager.IsSkyTexture(flat.TextureHandle);
         GLLegacyTexture texture = m_glTextureManager.GetTexture(flat.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Flat, false);
         bool flatChanged = FlatChanged(flat);
         int id = subsectors[0].Sector.Id;
         Sector renderSector = subsectors[0].Sector.GetRenderSector(m_transferHeightsView);

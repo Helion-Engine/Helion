@@ -32,10 +32,10 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly RenderProgram m_program;
-    private readonly List<GeometryData> m_geometry = new();
+    private readonly RenderGeometry m_geometry = new();
 
     private readonly DynamicArray<GeometryData> m_runtimeGeometry = new();
-    private readonly TextureGeometryLookup m_textureToGeometryLookup = new();
+    private readonly GeometryLookup m_textureToGeometryLookup = new();
 
     private readonly HashSet<int> m_runtimeGeometryTextures = new();
     private readonly FreeGeometryManager m_freeManager = new();
@@ -151,7 +151,13 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_initMoveSectors.Clear();
 
-        foreach (var data in m_geometry)
+        foreach (var data in m_geometry.GetGeometry(GeometryType.Wall))
+        {
+            data.Vbo.Bind();
+            data.Vbo.UploadIfNeeded();
+        }
+
+        foreach (var data in m_geometry.GetGeometry(GeometryType.Flat))
         {
             data.Vbo.Bind();
             data.Vbo.UploadIfNeeded();
@@ -509,14 +515,14 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        var vertices = GetTextureVertices(wall.TextureHandle, repeatY);
+        var vertices = GetTextureVertices(GeometryType.Wall, wall.TextureHandle, repeatY);
         SetSideData(wall, wall.TextureHandle, vertices.Length, sideVertices.Length, repeatY, null);
         AddVertices(vertices, sideVertices);
     }
 
     private void SetSideData(Wall wall, int textureHandle, int vboIndex, int vertexCount, bool repeatY, GeometryData? geometryData)
     {
-        if (geometryData == null && !m_textureToGeometryLookup.TryGetValue(textureHandle, repeatY, out geometryData))
+        if (geometryData == null && !m_textureToGeometryLookup.TryGetValue(GeometryType.Wall, textureHandle, repeatY, out geometryData))
             return;
 
         wall.Static.GeometryData = geometryData;
@@ -524,15 +530,15 @@ public class StaticCacheGeometryRenderer : IDisposable
         wall.Static.Length = vertexCount;
     }
 
-    private DynamicArray<StaticVertex> GetTextureVertices(int textureHandle, bool repeatY)
+    private DynamicArray<StaticVertex> GetTextureVertices(GeometryType type, int textureHandle, bool repeatY)
     {
-        if (!m_textureToGeometryLookup.TryGetValue(textureHandle, repeatY, out GeometryData? geometryData))
-            AllocateGeometryData(textureHandle, repeatY, out geometryData);
+        if (!m_textureToGeometryLookup.TryGetValue(type, textureHandle, repeatY, out GeometryData? geometryData))
+            AllocateGeometryData(type, textureHandle, repeatY, out geometryData);
 
         return geometryData.Vbo.Data;
     }
 
-    private void AllocateGeometryData(int textureHandle, bool repeat, out GeometryData data)
+    private void AllocateGeometryData(GeometryType type, int textureHandle, bool repeat, out GeometryData data)
     {
         VertexArrayObject vao = new($"Geometry (handle {textureHandle}, repeat {repeat})");
         StaticVertexBuffer<StaticVertex> vbo = new($"Geometry (handle {textureHandle}, repeat {repeat})", 1024);
@@ -541,11 +547,11 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         var texture = m_textureManager.GetTexture(textureHandle, repeat);
         data = new GeometryData(textureHandle, texture, vbo, vao);
-        m_geometry.Add(data);
+        m_geometry.AddGeometry(type, data);
         // Sorts textures that do not have transparent pixels first.
         // This is to get around the issue of middle textures with transparent pixels being drawn first and discarding stuff behind that should not be.
-        m_geometry.Sort(TransparentGeometryCompare);
-        m_textureToGeometryLookup.Add(textureHandle, repeat, data);
+        m_geometry.GetGeometry(type).Sort(TransparentGeometryCompare);
+        m_textureToGeometryLookup.Add(type, textureHandle, repeat, data);
     }
 
     private void ClearData(IWorld world)
@@ -563,14 +569,11 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (world.SameAsPreviousMap)
         {
-            for (int i = 0; i < m_geometry.Count; i++)
-                m_geometry[i].Vbo.Clear();
+            m_geometry.ClearVbo();
         }
         else
         {
-            foreach (var data in m_geometry)
-                data.Dispose();
-            m_geometry.Clear();
+            m_geometry.DisposeAndClear();
             m_textureToGeometryLookup.Clear();
         }
 
@@ -624,8 +627,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        var vertices = GetTextureVertices(renderPlane.TextureHandle, true);
-        if (m_textureToGeometryLookup.TryGetValue(renderPlane.TextureHandle, true, out var geometryData))
+        var vertices = GetTextureVertices(GeometryType.Flat, renderPlane.TextureHandle, true);
+        if (m_textureToGeometryLookup.TryGetValue(GeometryType.Flat, renderPlane.TextureHandle, true, out var geometryData))
         {
             plane.Static.GeometryData = geometryData;
             plane.Static.Index = vertices.Length;
@@ -635,7 +638,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         AddVertices(vertices, renderedVertices);
     }
 
-    public void Render()
+    public void StartRender()
     {
         UpdateRunTimeBuffers();
 
@@ -646,20 +649,33 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_lightBuffer.BindTexBuffer();
         }
 
-        for (int i = 0; i < m_geometry.Count; i++)
+        m_counter++;
+    }
+
+    public void RenderWalls()
+    {
+        RenderGeometry(m_geometry.GetGeometry(GeometryType.Wall));
+    }
+
+    public void RenderFlats()
+    {
+        RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat));
+    }
+
+    private void RenderGeometry(List<GeometryData> geometry)
+    {
+        for (int i = 0; i < geometry.Count; i++)
         {
-            var data = m_geometry[i];
-            
+            var data = geometry[i];
+
             GL.ActiveTexture(TextureUnit.Texture0);
             GLLegacyTexture texture = m_textureManager.GetTexture(data.TextureHandle, (data.Texture.Flags & TextureFlags.ClampY) == 0);
             texture.Bind();
-            
+
             data.Vao.Bind();
             data.Vbo.Bind();
             data.Vbo.DrawArrays();
         }
-
-        m_counter++;
     }
 
     private void UpdateRunTimeBuffers()
@@ -758,9 +774,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_disposed)
             return;
 
-        foreach (var data in m_geometry)
-            data.Dispose();
-        
+        m_geometry.DisposeAndClear();        
         m_disposed = true;
     }
 
@@ -952,8 +966,10 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
+        GeometryType geometryType = wall != null ? GeometryType.Wall : GeometryType.Flat;
+
         // This texture exists, append to the vbo
-        if (m_textureToGeometryLookup.TryGetValue(textureHandle, repeat, out GeometryData? data))
+        if (m_textureToGeometryLookup.TryGetValue(geometryType, textureHandle, repeat, out GeometryData? data))
         {
             SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
             AddVertices(data.Vbo.Data, vertices);
@@ -967,7 +983,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        AllocateGeometryData(textureHandle, repeat, out data);
+        AllocateGeometryData(geometryType, textureHandle, repeat, out data);
         SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
         AddVertices(data.Vbo.Data, vertices);
         data.Vbo.SetNotUploaded();

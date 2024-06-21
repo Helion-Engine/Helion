@@ -99,6 +99,8 @@ public class EntityRenderer : IDisposable
     private float GetOffsetZ(Entity entity, GLLegacyTexture texture)
     {
         float offsetAmount = texture.Offset.Y - texture.Height;
+        return offsetAmount;
+
         if (offsetAmount >= 0 || entity.Definition.Flags.Missile)
             return offsetAmount;
 
