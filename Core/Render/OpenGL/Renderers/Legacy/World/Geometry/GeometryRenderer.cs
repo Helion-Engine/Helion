@@ -61,7 +61,7 @@ public class GeometryRenderer : IDisposable
     private bool m_vanillaFlood;
     private bool m_alwaysFlood;
     private bool m_fakeContrast;
-    private bool m_vanillSprites;
+    private bool m_vanillaSprites;
     private Vec3D m_viewPosition;
     private Vec3D m_prevViewPosition;
     private Sector m_viewSector;
@@ -118,7 +118,7 @@ public class GeometryRenderer : IDisposable
 
         m_vanillaFlood = world.Config.Render.VanillaFloodFill.Value;
         m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats.Value;
-        m_vanillSprites = world.Config.Render.VanillaSprites.Value;
+        m_vanillaSprites = world.Config.Render.VanillaSprites.Value;
 
         PreloadAllTextures(world);
 
@@ -1072,9 +1072,19 @@ public class GeometryRenderer : IDisposable
 
     private SectorPlanes GetTwoSidedMiddleClipPlanes(Side facingSide, Sector facingSector, Sector otherSector)
     {
+        SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling;
+        if (m_vanillaSprites)
+        {
+            if (facingSector.Floor.Z == otherSector.Floor.Z)
+                clipPlanes &= ~SectorPlanes.Floor;
+            if (facingSector.Ceiling.Z == otherSector.Ceiling.Z)
+                clipPlanes &= ~SectorPlanes.Ceiling;
+            return clipPlanes;
+        }
+
         bool midTextureHack = facingSide.Sector.Floor.MidTextureHack || facingSide.Sector.Ceiling.MidTextureHack;
         bool isCeilingSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
-        SectorPlanes clipPlanes = midTextureHack ? SectorPlanes.None : SectorPlanes.Floor | SectorPlanes.Ceiling;
+        clipPlanes = midTextureHack ? SectorPlanes.None : SectorPlanes.Floor | SectorPlanes.Ceiling;
         if (isCeilingSky)
             clipPlanes &= ~SectorPlanes.Ceiling;
         return clipPlanes;
@@ -1156,7 +1166,7 @@ public class GeometryRenderer : IDisposable
 
     public void SetBufferCoverWall(bool set)
     {
-        if (!m_vanillSprites)
+        if (!m_vanillaSprites)
             return;
         m_worldDataManager.BufferCoverWalls = set;
     }

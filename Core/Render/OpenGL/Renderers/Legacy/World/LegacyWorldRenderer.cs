@@ -301,7 +301,6 @@ public class LegacyWorldRenderer : WorldRenderer
         GL.ActiveTexture(TextureUnit.Texture0);
         SetInterpolationUniforms(renderInfo);
         m_worldDataManager.RenderWalls();
-        m_worldDataManager.RenderTwoSidedMiddleWalls();
         m_worldDataManager.RenderFlats();
 
         m_staticProgram.Bind();
@@ -309,16 +308,10 @@ public class LegacyWorldRenderer : WorldRenderer
         SetStaticUniforms(renderInfo);
         m_geometryRenderer.StartRenderStaticGeometry();
         m_geometryRenderer.RenderStaticGeometryWalls();
-        m_geometryRenderer.RenderStaticTwoSidedWalls();
         m_geometryRenderer.RenderStaticGeometryFlats();
 
         GL.Clear(ClearBufferMask.DepthBufferBit);
         GL.ColorMask(false, false, false, false);
-        m_staticProgram.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
-        m_geometryRenderer.RenderStaticTwoSidedWalls();
-        m_interpolationProgram.Bind();
-        m_worldDataManager.RenderTwoSidedMiddleWalls();
         GL.Disable(EnableCap.CullFace);
         m_staticProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
@@ -327,6 +320,12 @@ public class LegacyWorldRenderer : WorldRenderer
         m_worldDataManager.RenderCoverWalls();
         GL.Enable(EnableCap.CullFace);
         GL.ColorMask(true, true, true, true);
+
+        m_staticProgram.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        m_geometryRenderer.RenderStaticTwoSidedWalls();
+        m_interpolationProgram.Bind();
+        m_worldDataManager.RenderTwoSidedMiddleWalls();
 
         m_entityRenderer.RenderNonAlpha(renderInfo);
         m_entityRenderer.RenderAlpha(renderInfo);
