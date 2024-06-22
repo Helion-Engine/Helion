@@ -2,6 +2,7 @@ using System;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -29,14 +30,14 @@ public class RenderWorldDataManager : IDisposable
         return renderDataList.Add(texture, program);
     }
 
-    public void AddCoverWallVertices(LegacyVertex[] vertices, WallLocation location)
+    public void AddCoverWallVertices(Side side, LegacyVertex[] vertices, WallLocation location)
     {
         if (m_coverWalls == null || !BufferCoverWalls)
             return;
 
         int index = m_coverWalls.Vbo.Data.Length;
         m_coverWalls.Vbo.Add(vertices);
-        CoverWallUtil.SetCoverWallVertices(m_coverWalls.Vbo.Data.Data, index, location);
+        CoverWallUtil.SetCoverWallVertices(side, m_coverWalls.Vbo.Data.Data, index, location);
     }
 
     public void Clear()

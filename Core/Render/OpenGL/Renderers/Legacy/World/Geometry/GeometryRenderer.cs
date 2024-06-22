@@ -67,7 +67,6 @@ public class GeometryRenderer : IDisposable
     private IWorld m_world;
     private TransferHeightView m_transferHeightsView = TransferHeightView.Middle;
     private bool m_buffer = true;
-    private bool m_bufferCoverWall = true;
     private LegacyVertex[]?[] m_vertexLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[]?[] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[]?[] m_vertexUpperLookup = Array.Empty<LegacyVertex[]>();
@@ -629,7 +628,7 @@ public class GeometryRenderer : IDisposable
         {
             RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall);
             renderData.Vbo.Add(data);
-            m_worldDataManager.AddCoverWallVertices(data, WallLocation.Middle);
+            m_worldDataManager.AddCoverWallVertices(side, data, WallLocation.Middle);
         }
         vertices = data;
     }
@@ -835,7 +834,7 @@ public class GeometryRenderer : IDisposable
             if (m_buffer)
             {
                 renderData.Vbo.Add(data);
-                m_worldDataManager.AddCoverWallVertices(data, WallLocation.Lower);
+                m_worldDataManager.AddCoverWallVertices(facingSide, data, WallLocation.Lower);
             }
             vertices = data;
             skyVertices = null;
@@ -948,7 +947,7 @@ public class GeometryRenderer : IDisposable
             if (m_buffer)
             {
                 renderData.Vbo.Add(data);
-                m_worldDataManager.AddCoverWallVertices(data, WallLocation.Upper);
+                m_worldDataManager.AddCoverWallVertices(facingSide, data, WallLocation.Upper);
             }
             vertices = data;
             skyVertices = null;

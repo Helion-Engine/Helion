@@ -1003,7 +1003,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         var key = new CoverWallKey(side.Id, wall.Location);
         if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData))
         {            
-            CoverWallUtil.CopyCoverWallVertices(m_coverWallGeometry.Vbo.Data.Data, sideVertices, staticGeometryData.Index, wall.Location);
+            CoverWallUtil.CopyCoverWallVertices(side, m_coverWallGeometry.Vbo.Data.Data, sideVertices, staticGeometryData.Index, wall.Location);
             m_coverWallGeometry.Vbo.Bind();
             m_coverWallGeometry.Vbo.UploadSubData(staticGeometryData.Index, sideVertices.Length);
             return;
@@ -1013,7 +1013,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         StaticGeometryData coverWallStatic = new(m_coverWallGeometry, 0, 0);
         var vertices = m_coverWallGeometry.Vbo.Data;
         SetSideData(ref coverWallStatic, type, m_coverWallGeometry.Texture.Index, vertices.Length, sideVertices.Length, repeatY, m_coverWallGeometry);
-        CoverWallUtil.AddCoverWallVertices(vertices, sideVertices, wall.Location);
+        CoverWallUtil.AddCoverWallVertices(side, vertices, sideVertices, wall.Location);
         m_coverWallLookup[new CoverWallKey(side.Id, wall.Location)] = coverWallStatic;
     }
 

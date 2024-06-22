@@ -1,5 +1,7 @@
 ﻿using Helion.Util.Container;
+using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using Helion.World.Physics;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
@@ -8,9 +10,9 @@ public class CoverWallUtil
     readonly record struct Heights(int Add, int Sub);
     const int ProjectHeight = 8192;
 
-    public static unsafe void SetCoverWallVertices(LegacyVertex[] vertices, int index, WallLocation location)
+    public static unsafe void SetCoverWallVertices(Side side, LegacyVertex[] vertices, int index, WallLocation location)
     {
-        var heights = GetProjectHeights(location);
+        var heights = GetProjectHeights(side, location);
         fixed (LegacyVertex* startVertex = &vertices[index])
         {
             LegacyVertex* v = startVertex;
@@ -39,9 +41,9 @@ public class CoverWallUtil
         }
     }
 
-    public static unsafe void AddCoverWallVertices(DynamicArray<StaticVertex> staticVertices, LegacyVertex[] vertices, WallLocation location)
+    public static unsafe void AddCoverWallVertices(Side side, DynamicArray<StaticVertex> staticVertices, LegacyVertex[] vertices, WallLocation location)
     {
-        var heights = GetProjectHeights(location);
+        var heights = GetProjectHeights(side, location);
         staticVertices.EnsureCapacity(staticVertices.Length + 6);
         int staticStartIndex = staticVertices.Length;
         fixed (LegacyVertex* startVertex = &vertices[0])
@@ -69,9 +71,9 @@ public class CoverWallUtil
         }
     }
 
-    public static unsafe void CopyCoverWallVertices(StaticVertex[] staticVertices, LegacyVertex[] vertices, int index, WallLocation location)
+    public static unsafe void CopyCoverWallVertices(Side side, StaticVertex[] staticVertices, LegacyVertex[] vertices, int index, WallLocation location)
     {
-        var heights = GetProjectHeights(location);
+        var heights = GetProjectHeights(side, location);
         fixed (LegacyVertex* startVertex = &vertices[0])
         {
             LegacyVertex* v = startVertex;
@@ -95,8 +97,12 @@ public class CoverWallUtil
         }
     }
 
-    private static Heights GetProjectHeights(WallLocation location)
+    private static Heights GetProjectHeights(Side side, WallLocation location)
     {
+        // Treat two-sided lines that block rendering as one-sided cover to prevent sprites from bleeding through.
+        if (side.PartnerSide == null || LineOpening.IsRenderingBlocked(side.Line))
+            return new Heights(ProjectHeight, ProjectHeight);
+
         // Do not add to upper portion of lower textures, or upper portion of lower textures
         return new Heights
         (
