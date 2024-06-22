@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.World.Entities;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction;
@@ -29,8 +30,33 @@ public partial class Physics
     public void TryMoveBoundingBoxOnLine()
     {
         var monster = GameActions.CreateEntity(World, "ChaingunGuy", new Vec3D(560, 1648, int.MinValue), frozen: false, init: true);
-        // Places the box corner exacly on lines 377 and 379
+        // Places the box corner exactly on lines 377 and 379
         World.IsPositionValid(monster, new Vec2D(560, 1648)).Should().BeTrue();
         World.IsPositionValid(monster, new Vec2D(560, 1664)).Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "Moving with z velocity only")]
+    public void MoveZOnly()
+    {
+        var sector = GameActions.GetSector(World, 17);
+        var saveSectorZ = sector.Ceiling.Z;
+        sector.Ceiling.Z = 128;
+        GameActions.SetEntityPosition(World, Player, new Vec3D(1040, 1056, 24));
+        Player.Sector.Id.Should().Be(9);
+        Player.HighestFloorZ.Should().Be(24);
+        Player.LowestCeilingZ.Should().Be(128);
+
+        Player.Velocity.Z = 16;
+        var values = new double[] { 40, 55, 69, 72, 72, 70, 67, 63, 58, 52, 45, 37, 28, 24, 24 };
+        for (int i = 0; i < values.Length; i++)
+        {
+            GameActions.TickWorld(World, 1);
+            Player.Sector.Id.Should().Be(9);
+            Player.HighestFloorZ.Should().Be(24);
+            Player.LowestCeilingZ.Should().Be(128);
+            Player.Position.Z.Should().Be(values[i]);
+        }
+
+        sector.Ceiling.Z = saveSectorZ;
     }
 }

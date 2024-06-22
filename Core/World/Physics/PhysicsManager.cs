@@ -850,13 +850,14 @@ public sealed class PhysicsManager
     private static void GetEntityClampValues(Entity entity, DynamicArray<Sector>? intersectSectors,
         bool clampToLinkedSectors, TryMoveData? tryMove, out Sector highestFloor, out Sector lowestCeiling, out double highestFloorZ, out double lowestCeilZ)
     {
-        highestFloor = entity.Sector;
-        lowestCeiling = entity.Sector;
-        highestFloorZ = highestFloor.Floor.Z;
-        lowestCeilZ = lowestCeiling.Ceiling.Z;
-
         if (!clampToLinkedSectors)
+        {
+            highestFloor = entity.Sector;
+            lowestCeiling = entity.Sector;
+            highestFloorZ = highestFloor.Floor.Z;
+            lowestCeilZ = lowestCeiling.Ceiling.Z;
             return;
+        }
 
         if (tryMove != null && tryMove.LowestCeiling != null && tryMove.HighestFloor != null)
         {
@@ -876,6 +877,10 @@ public sealed class PhysicsManager
             return;
         }
 
+        highestFloor = entity.Sector;
+        lowestCeiling = entity.Sector;
+        highestFloorZ = highestFloor.Floor.Z;
+        lowestCeilZ = lowestCeiling.Ceiling.Z;
         for (int i = 0; i < intersectSectors.Length; i++)
         {
             Sector sector = intersectSectors[i];
