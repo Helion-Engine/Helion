@@ -21,7 +21,7 @@ public class RenderWorldDataManager : IDisposable
 
     public void InitCoverWallRenderData(GLLegacyTexture texture, RenderProgram program)
     {
-        m_coverWalls = new(texture, program);
+        m_coverWalls ??= new(texture, program);
     }
 
     public RenderWorldData GetRenderData(GLLegacyTexture texture, RenderProgram program, GeometryType type)
