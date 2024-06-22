@@ -17,6 +17,11 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
         GL.BufferData(Target, BytesPerElement * Data.Length, Data.Data, Hint);
     }
 
+    protected override void PerformUploadCapacity()
+    {
+        GL.BufferData(Target, BytesPerElement * Data.Capacity, Data.Data, Hint);
+    }
+
     protected override void BufferSubData(int index, int length)
     {
         IntPtr offset = new(BytesPerElement * index);

@@ -55,6 +55,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     }
 
     protected abstract void PerformUpload();
+    protected abstract void PerformUploadCapacity();
 
     public IntPtr GetVboArray()
     {
@@ -113,6 +114,17 @@ public abstract class BufferObject<T> : IDisposable where T : struct
             Bind();
             Upload();
             Unbind();
+        }
+    }
+
+    public void UploadCapacity()
+    {
+        if (NeedsUpload)
+        {
+            Bind();
+            PerformUploadCapacity();
+            Unbind();
+            Uploaded = true;
         }
     }
 
