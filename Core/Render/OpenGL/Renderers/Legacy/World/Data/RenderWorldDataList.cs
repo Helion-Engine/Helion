@@ -9,7 +9,6 @@ public class RenderWorldDataList
 {
     public List<RenderWorldData> RenderData = [];
     private RenderWorldData?[] m_allRenderData = new RenderWorldData?[1024];
-    private int m_renderCount = 1;
 
     public RenderWorldData Add(GLLegacyTexture texture, RenderProgram program)
     {
@@ -22,11 +21,7 @@ public class RenderWorldDataList
 
         RenderWorldData? data = m_allRenderData[texture.TextureId];
         if (data != null)
-        {
-            if (data.RenderCount != m_renderCount)
-                data.RenderCount = m_renderCount;
             return data;
-        }
 
         RenderWorldData newData = new(texture, program);
         m_allRenderData[texture.TextureId] = newData;
@@ -42,7 +37,6 @@ public class RenderWorldDataList
 
     public void Clear()
     {
-        m_renderCount++;
         for (int i = 0; i < RenderData.Count; i++)
             RenderData[i].Clear();
     }

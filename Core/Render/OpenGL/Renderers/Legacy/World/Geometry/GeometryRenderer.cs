@@ -67,6 +67,7 @@ public class GeometryRenderer : IDisposable
     private IWorld m_world;
     private TransferHeightView m_transferHeightsView = TransferHeightView.Middle;
     private bool m_buffer = true;
+    private bool m_bufferCoverWall = true;
     private LegacyVertex[]?[] m_vertexLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[]?[] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
     private LegacyVertex[]?[] m_vertexUpperLookup = Array.Empty<LegacyVertex[]>();
@@ -175,6 +176,7 @@ public class GeometryRenderer : IDisposable
 
         Portals.UpdateTo(world);
         m_staticCacheGeometryRenderer.UpdateTo(world, m_lightBuffer);
+        m_worldDataManager.InitCoverWallRenderData(m_glTextureManager.WhiteTexture, m_program);
     }
 
     private static void ZeroArray<T>(T[] array) where T : struct
@@ -627,6 +629,7 @@ public class GeometryRenderer : IDisposable
         {
             RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall);
             renderData.Vbo.Add(data);
+            m_worldDataManager.AddCoverWallVertices(data, WallLocation.Middle);
         }
         vertices = data;
     }
@@ -830,7 +833,10 @@ public class GeometryRenderer : IDisposable
 
             // See RenderOneSided() for an ASCII image of why we do this.
             if (m_buffer)
+            {
                 renderData.Vbo.Add(data);
+                m_worldDataManager.AddCoverWallVertices(data, WallLocation.Lower);
+            }
             vertices = data;
             skyVertices = null;
         }
@@ -940,7 +946,10 @@ public class GeometryRenderer : IDisposable
 
             // See RenderOneSided() for an ASCII image of why we do this.
             if (m_buffer)
+            {
                 renderData.Vbo.Add(data);
+                m_worldDataManager.AddCoverWallVertices(data, WallLocation.Upper);
+            }
             vertices = data;
             skyVertices = null;
         }
@@ -1021,7 +1030,8 @@ public class GeometryRenderer : IDisposable
 
         float alpha = m_config.Render.TextureTransparency ? facingSide.Line.Alpha : 1.0f;
         LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, alpha < 1 ? GeometryType.AlphaWall : GeometryType.TwoSidedMiddleWall);
+        var geometryType = alpha < 1 ? GeometryType.AlphaWall : GeometryType.TwoSidedMiddleWall;
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType);
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
@@ -1142,6 +1152,11 @@ public class GeometryRenderer : IDisposable
     public void SetTransferHeightView(TransferHeightView view) => m_transferHeightsView = view;
     public void SetBuffer(bool set) => m_buffer = set;
     public void SetViewSector(Sector sector) => m_viewSector = sector;
+
+    public void SetBufferCoverWall(bool set)
+    {
+        m_worldDataManager.BufferCoverWalls = set;
+    }
 
     public void RenderSectorFlats(Sector sector, SectorPlane flat, bool floor, out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
     {

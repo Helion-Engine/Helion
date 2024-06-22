@@ -195,6 +195,8 @@ public class LegacyWorldRenderer : WorldRenderer
                     }
                 }
 
+                // DynamicSides are either scrolling textures or alpha, neither should setup cover walls.
+                m_geometryRenderer.SetBufferCoverWall(false);
                 for (LinkableNode<Side>? sideNode = block.DynamicSides.Head; sideNode != null; sideNode = sideNode.Next)
                 {
                     if (sideNode.Value.BlockmapCount == m_renderData.CheckCount)
@@ -206,6 +208,7 @@ public class LegacyWorldRenderer : WorldRenderer
                     m_geometryRenderer.RenderSectorWall(m_viewSector, sideNode.Value.Sector, sideNode.Value.Line,
                         m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);
                 }
+                m_geometryRenderer.SetBufferCoverWall(true);
 
                 for (var entity = block.HeadEntity; entity != null; entity = entity.RenderBlockNext)
                     RenderEntity(world, entity);
@@ -262,49 +265,38 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_geometryRenderer.RenderPortalsAndSkies(renderInfo);
 
+        GL.ActiveTexture(TextureUnit.Texture0);
         m_staticProgram.Bind();
         SetStaticUniforms(renderInfo);
         m_geometryRenderer.StartRenderStaticGeometry();
         m_geometryRenderer.RenderStaticGeometryWalls();
         m_geometryRenderer.RenderStaticTwoSidedWalls();
         m_geometryRenderer.RenderStaticGeometryFlats();
-        m_staticProgram.Unbind();
 
         m_interpolationProgram.Bind();
         SetInterpolationUniforms(renderInfo);
         m_worldDataManager.RenderWalls();
         m_worldDataManager.RenderTwoSidedMiddleWalls();
         m_worldDataManager.RenderFlats();
-        m_interpolationProgram.Unbind();
 
         GL.Clear(ClearBufferMask.DepthBufferBit);
         GL.ColorMask(false, false, false, false);
         m_staticProgram.Bind();
         m_geometryRenderer.RenderStaticTwoSidedWalls();
+        m_interpolationProgram.Bind();
         m_worldDataManager.RenderTwoSidedMiddleWalls();
         GL.Disable(EnableCap.CullFace);
+        m_staticProgram.Bind();
         m_geometryRenderer.RenderStaticCoverWalls();
-        // TODO implement this
-        //m_worldDataManager.RenderCoverWalls();
-        GL.Enable(EnableCap.CullFace);
-        m_staticProgram.Unbind();
-
         m_interpolationProgram.Bind();
-        SetInterpolationUniforms(renderInfo);
-        m_worldDataManager.RenderWalls();
-
-        GL.CullFace(CullFaceMode.Front);
-        m_worldDataManager.RenderWalls();
-        GL.CullFace(CullFaceMode.Back);
-        m_interpolationProgram.Unbind();
-
+        m_worldDataManager.RenderCoverWalls();
+        GL.Enable(EnableCap.CullFace);
         GL.ColorMask(true, true, true, true);
 
         m_entityRenderer.RenderNonAlpha(renderInfo);
         m_entityRenderer.RenderAlpha(renderInfo);
 
         m_interpolationProgram.Bind();
-        SetInterpolationUniforms(renderInfo);
         m_worldDataManager.RenderAlphaWalls();
         m_interpolationProgram.Unbind();
 

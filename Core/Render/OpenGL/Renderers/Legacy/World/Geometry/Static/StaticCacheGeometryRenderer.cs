@@ -491,38 +491,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private static unsafe void AddCoverWallVertices(DynamicArray<StaticVertex> staticVertices, LegacyVertex[] vertices, WallLocation location)
-    {
-        staticVertices.EnsureCapacity(staticVertices.Length + 6);
-        const int ProjectHeight = 4096;
-        int addHeight = location == WallLocation.Lower ? 0 : ProjectHeight;
-        int subHeight = location == WallLocation.Upper ? 0 : ProjectHeight;
-        int staticStartIndex = staticVertices.Length;
-        fixed (LegacyVertex* startVertex = &vertices[0])
-        {
-            LegacyVertex* v = startVertex;
-            staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z + addHeight, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);            
-            v++;
-            staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z - subHeight, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
-            v++;
-            staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z + addHeight, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
-            v++;
-            staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z + addHeight, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
-            v++;
-            staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z - subHeight, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
-            v++;
-            staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z - subHeight, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
-
-            staticVertices.SetLength(staticVertices.Length + 6);
-        }
-    }
-
     private static unsafe void CopyVertices(StaticVertex[] staticVertices, LegacyVertex[] vertices, int index)
     {
         fixed (LegacyVertex* startVertex = &vertices[0])
@@ -533,34 +501,6 @@ public class StaticCacheGeometryRenderer : IDisposable
                 staticVertices[index + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
                     v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
             }
-        }
-    }
-
-    private static unsafe void CopyCoverWallVertices(StaticVertex[] staticVertices, LegacyVertex[] vertices, int index, WallLocation location)
-    {
-        const int ProjectHeight = 4096;
-        int addHeight = location == WallLocation.Lower ? 0 : ProjectHeight;
-        int subHeight = location == WallLocation.Upper ? 0 : ProjectHeight;
-        fixed (LegacyVertex* startVertex = &vertices[0])
-        {
-            LegacyVertex* v = startVertex;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + addHeight, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
-            v++;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - subHeight, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
-            v++;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + addHeight, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
-            v++;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + addHeight, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
-            v++;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - subHeight, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
-            v++;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - subHeight, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
         }
     }
 
@@ -1063,7 +1003,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         var key = new CoverWallKey(side.Id, wall.Location);
         if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData))
         {            
-            CopyCoverWallVertices(m_coverWallGeometry.Vbo.Data.Data, sideVertices, staticGeometryData.Index, wall.Location);
+            CoverWallUtil.CopyCoverWallVertices(m_coverWallGeometry.Vbo.Data.Data, sideVertices, staticGeometryData.Index, wall.Location);
             m_coverWallGeometry.Vbo.Bind();
             m_coverWallGeometry.Vbo.UploadSubData(staticGeometryData.Index, sideVertices.Length);
             return;
@@ -1073,7 +1013,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         StaticGeometryData coverWallStatic = new(m_coverWallGeometry, 0, 0);
         var vertices = m_coverWallGeometry.Vbo.Data;
         SetSideData(ref coverWallStatic, type, m_coverWallGeometry.Texture.Index, vertices.Length, sideVertices.Length, repeatY, m_coverWallGeometry);
-        AddCoverWallVertices(vertices, sideVertices, wall.Location);
+        CoverWallUtil.AddCoverWallVertices(vertices, sideVertices, wall.Location);
         m_coverWallLookup[new CoverWallKey(side.Id, wall.Location)] = coverWallStatic;
     }
 
