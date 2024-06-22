@@ -31,6 +31,7 @@ public class EntityRenderer : IDisposable
     private bool m_spriteClip;
     private bool m_spriteZCheck;
     private bool m_alwaysFlood;
+    private bool m_vanillaSprites;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
     private bool m_disposed;
@@ -47,6 +48,7 @@ public class EntityRenderer : IDisposable
         m_spriteZCheck = m_config.Render.SpriteZCheck;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_alwaysFlood = m_config.Render.AlwaysFloodFillFlats;
+        m_vanillaSprites = m_config.Render.VanillaSprites;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
     }
 
@@ -58,6 +60,7 @@ public class EntityRenderer : IDisposable
     public void UpdateTo(IWorld world)
     {
         m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats;
+        m_vanillaSprites = world.Config.Render.VanillaSprites;
         m_lastViewerEntityId = -1;
     }
     
@@ -99,7 +102,8 @@ public class EntityRenderer : IDisposable
     private float GetOffsetZ(Entity entity, GLLegacyTexture texture)
     {
         float offsetAmount = texture.Offset.Y - texture.Height;
-        return offsetAmount;
+        if (m_vanillaSprites)
+            return offsetAmount;
 
         if (offsetAmount >= 0 || entity.Definition.Flags.Missile)
             return offsetAmount;

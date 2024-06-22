@@ -64,6 +64,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private bool m_vanillaFlood;
     private bool m_alwaysFlood;
     private bool m_mapPersistent;
+    private bool m_vanillaSprites;
 
     public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
         RenderProgram program, GeometryRenderer geometryRenderer)
@@ -99,6 +100,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         m_vanillaFlood = world.Config.Render.VanillaFloodFill;
         m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats;
+        m_vanillaSprites = world.Config.Render.VanillaSprites;
         ClearData(world);
 
         if (!world.SameAsPreviousMap)
@@ -510,7 +512,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
 
         var type = GetWallType(side, wall);
-        if (type != GeometryType.TwoSidedMiddleWall)
+        if (m_vanillaSprites && type != GeometryType.TwoSidedMiddleWall)
             AddOrUpdateCoverWall(side, wall, sideVertices, repeatY);
         
         if (update)
@@ -885,7 +887,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void ClearSideGeometryVertices(Side side, Wall wall)
     {
         ClearGeometryVertices(wall.Static);
-        if (m_coverWallLookup.TryGetValue(new CoverWallKey(side.Id, wall.Location), out var geometryData))
+        if (m_vanillaSprites && m_coverWallLookup.TryGetValue(new CoverWallKey(side.Id, wall.Location), out var geometryData))
             ClearGeometryVertices(geometryData);
     }
 

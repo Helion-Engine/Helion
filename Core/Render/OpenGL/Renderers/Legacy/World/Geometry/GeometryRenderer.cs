@@ -61,6 +61,7 @@ public class GeometryRenderer : IDisposable
     private bool m_vanillaFlood;
     private bool m_alwaysFlood;
     private bool m_fakeContrast;
+    private bool m_vanillSprites;
     private Vec3D m_viewPosition;
     private Vec3D m_prevViewPosition;
     private Sector m_viewSector;
@@ -117,6 +118,7 @@ public class GeometryRenderer : IDisposable
 
         m_vanillaFlood = world.Config.Render.VanillaFloodFill.Value;
         m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats.Value;
+        m_vanillSprites = world.Config.Render.VanillaSprites.Value;
 
         PreloadAllTextures(world);
 
@@ -1154,6 +1156,8 @@ public class GeometryRenderer : IDisposable
 
     public void SetBufferCoverWall(bool set)
     {
+        if (!m_vanillSprites)
+            return;
         m_worldDataManager.BufferCoverWalls = set;
     }
 

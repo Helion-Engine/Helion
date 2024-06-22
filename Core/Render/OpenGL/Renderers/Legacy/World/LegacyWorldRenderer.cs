@@ -14,6 +14,7 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Blockmap;
@@ -43,6 +44,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
     private bool m_spriteTransparency;
+    private bool m_vanillaSprites;
     private int m_lastTicker = -1;
     private int m_renderCount;
     private int m_maxDistance;
@@ -85,6 +87,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
     public override void UpdateToNewWorld(IWorld world)
     {
+        m_vanillaSprites = m_config.Render.VanillaSprites;
         TransferHeights.FlushSectorReferences();
         m_lastRenderedWorld.SetTarget(world);
 
@@ -264,6 +267,35 @@ public class LegacyWorldRenderer : WorldRenderer
         PopulatePrimitives(world);
 
         m_geometryRenderer.RenderPortalsAndSkies(renderInfo);
+
+        if (!m_vanillaSprites)
+        {
+            m_interpolationProgram.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
+            SetInterpolationUniforms(renderInfo);
+            m_worldDataManager.RenderWalls();
+            m_worldDataManager.RenderTwoSidedMiddleWalls();
+            m_worldDataManager.RenderFlats();
+
+            m_staticProgram.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
+            SetStaticUniforms(renderInfo);
+            m_geometryRenderer.StartRenderStaticGeometry();
+            m_geometryRenderer.RenderStaticGeometryWalls();
+            m_geometryRenderer.RenderStaticTwoSidedWalls();
+            m_geometryRenderer.RenderStaticGeometryFlats();
+            m_entityRenderer.RenderNonAlpha(renderInfo);
+            m_entityRenderer.RenderAlpha(renderInfo);
+
+            m_interpolationProgram.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
+            m_worldDataManager.RenderAlphaWalls();
+            m_interpolationProgram.Unbind();
+
+            m_primitiveRenderer.Render(renderInfo);
+            return;
+        }
+
 
         m_interpolationProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);

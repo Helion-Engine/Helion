@@ -80,8 +80,12 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Cache all sprites")]
     public readonly ConfigValue<bool> CacheSprites = new(true);
 
+    [ConfigInfo("Renders sprites over floors/ceilings.", mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Vanilla sprites", spacer: true)]
+    public readonly ConfigValue<bool> VanillaSprites = new(false);
+
     [ConfigInfo("If any sprite should clip the floor.")]
-    [OptionMenu(OptionSectionType.Render, "Sprite floor clip", spacer: true)]
+    [OptionMenu(OptionSectionType.Render, "Sprite floor clip")]
     public readonly ConfigValue<bool> SpriteClip = new(true);
 
     [ConfigInfo("Max percentage of height allowed to clip the floor for corpses.")]
