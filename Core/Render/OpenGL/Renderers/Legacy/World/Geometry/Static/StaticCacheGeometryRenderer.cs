@@ -49,9 +49,9 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferData = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferDataClamp = new();
     private readonly DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
-    private readonly List<Sector> m_initMoveSectors = new();
+    private readonly List<Sector> m_initMoveSectors = [];
 
-    private readonly Dictionary<CoverWallKey, StaticGeometryData> m_coverWallLookup = new();
+    private readonly Dictionary<CoverWallKey, StaticGeometryData> m_coverWallLookup = [];
     private GeometryData m_coverWallGeometry;
 
     private bool m_disposed;
@@ -73,6 +73,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_program = program;
         m_skyRenderer = new(archiveCollection, textureManager);
         m_mapPersistent = GLInfo.MapPersistentBitSupported;
+        // Allocated in UpdateTo, can't be allocated in the constructor
+        m_coverWallGeometry = null!;
     }
 
     private static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
@@ -100,16 +102,15 @@ public class StaticCacheGeometryRenderer : IDisposable
         ClearData(world);
 
         if (!world.SameAsPreviousMap)
+        {
             m_skyRenderer.Reset();
+            m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, m_textureManager.WhiteTexture.Index, false, addToGeometry: false);
+        }
 
         m_runtimeGeometry.FlushReferences();
         m_updateLightSectors.FlushReferences();
         for (int i = 0; i < m_bufferData.Length; i++)
-        {
-            var list = m_bufferData.Data[i];
-            if (list != null)
-                list.FlushStruct();
-        }
+            m_bufferData.Data[i]?.FlushStruct();
 
         m_world = world;
         // Alpha textures are currently sorted on the CPU and can't be rendered statically.
@@ -120,8 +121,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
         m_world.SectorLightChanged += World_SectorLightChanged;
-
-        AllocateGeometryData(GeometryType.Wall, m_textureManager.WhiteTexture.Index, false, out m_coverWallGeometry, addToGeometry: false);
 
         SetLightBufferData(world, lightBuffer);
         m_geometryRenderer.SetInitRender();
@@ -602,12 +601,12 @@ public class StaticCacheGeometryRenderer : IDisposable
     private DynamicArray<StaticVertex> GetTextureVertices(GeometryType type, int textureHandle, bool repeatY)
     {
         if (!m_textureToGeometryLookup.TryGetValue(type, textureHandle, repeatY, out GeometryData? geometryData))
-            AllocateGeometryData(type, textureHandle, repeatY, out geometryData);
+            geometryData = AllocateGeometryData(type, textureHandle, repeatY);
 
         return geometryData.Vbo.Data;
     }
 
-    private void AllocateGeometryData(GeometryType type, int textureHandle, bool repeat, out GeometryData data, bool addToGeometry = true)
+    private GeometryData AllocateGeometryData(GeometryType type, int textureHandle, bool repeat, bool addToGeometry = true)
     {
         VertexArrayObject vao = new($"Geometry (handle {textureHandle}, repeat {repeat})");
         StaticVertexBuffer<StaticVertex> vbo = new($"Geometry (handle {textureHandle}, repeat {repeat})", 1024);
@@ -615,7 +614,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         Attributes.BindAndApply(vbo, vao, m_program.Attributes);
 
         var texture = m_textureManager.GetTexture(textureHandle, repeat);
-        data = new GeometryData(textureHandle, texture, vbo, vao);
+        var data = new GeometryData(textureHandle, texture, vbo, vao);
 
         if (addToGeometry)
         {
@@ -625,6 +624,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_geometry.GetGeometry(type).Sort(TransparentGeometryCompare);
             m_textureToGeometryLookup.Add(type, textureHandle, repeat, data);
         }
+
+        return data;
     }
 
     private void ClearData(IWorld world)
@@ -1061,8 +1062,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         var key = new CoverWallKey(side.Id, wall.Location);
         if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData))
-        {
-            m_coverWallGeometry.Vbo.Data.EnsureCapacity(m_coverWallGeometry.Vbo.Data.Length + 6);
+        {            
             CopyCoverWallVertices(m_coverWallGeometry.Vbo.Data.Data, sideVertices, staticGeometryData.Index, wall.Location);
             m_coverWallGeometry.Vbo.Bind();
             m_coverWallGeometry.Vbo.UploadSubData(staticGeometryData.Index, sideVertices.Length);
@@ -1108,7 +1108,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        AllocateGeometryData(geometryType, textureHandle, repeat, out data);
+        data = AllocateGeometryData(geometryType, textureHandle, repeat);
         SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
         AddVertices(data.Vbo.Data, vertices);
         data.Vbo.SetNotUploaded();
