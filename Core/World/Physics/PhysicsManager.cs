@@ -868,7 +868,13 @@ public sealed class PhysicsManager
         }
 
         if (intersectSectors == null)
+        {
+            highestFloor = entity.HighestFloorSector;
+            lowestCeiling = entity.LowestCeilingSector;
+            highestFloorZ = entity.HighestFloorZ;
+            lowestCeilZ = entity.LowestCeilingZ;
             return;
+        }
 
         for (int i = 0; i < intersectSectors.Length; i++)
         {
