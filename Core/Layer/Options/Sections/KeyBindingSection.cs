@@ -91,6 +91,7 @@ public class KeyBindingSection : IOptionSection
 
     public void OnShow()
     {
+        OnRowChanged?.Invoke(this, new(m_currentRow, string.Empty));
         m_configUpdated = true;
     }
 
@@ -445,7 +446,7 @@ public class KeyBindingSection : IOptionSection
 
         if (m_updateRow)
         {
-            OnRowChanged?.Invoke(this, new(m_currentRow));
+            OnRowChanged?.Invoke(this, new(m_currentRow, string.Empty));
             m_updateRow = false;
         }
     }

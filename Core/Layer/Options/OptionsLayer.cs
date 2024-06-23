@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using Helion.Audio.Sounds;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Layer.Options.Sections;
-using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Resources;
@@ -45,6 +45,7 @@ public class OptionsLayer : IGameLayer
     private int m_messageTicks;
     private string m_message = string.Empty;
     private string m_sectionMessage = string.Empty;
+    private string m_selectedRowDescription = string.Empty;
     private bool m_locked;
     private bool m_resetMouse;
     private bool m_setMouse;
@@ -221,6 +222,8 @@ public class OptionsLayer : IGameLayer
     {
         if (e.Index == 0)
             m_scrollOffset = 0;
+
+        m_selectedRowDescription = e.SelectedRowDescription;
     }
 
     private void OptionSection_OnLockChanged(object? sender, LockEvent e)
@@ -394,7 +397,10 @@ public class OptionsLayer : IGameLayer
 
         hud.Text(m_sectionMessage.Length > 0 ? m_sectionMessage : "Press left or right to change pages.", Fonts.SmallGray, fontSize, (0, m_headerHeight + y),
             out Dimension pageInstrArea, both: Align.TopMiddle, color: Color.Red);
+
+        WriteMultilineFooter(m_selectedRowDescription, Fonts.SmallGray, fontSize, hud);
         m_headerHeight += pageInstrArea.Height + m_config.Hud.GetScaled(16);
+
         y += m_headerHeight;
 
         if (m_currentSectionIndex < m_sections.Count)
@@ -427,6 +433,48 @@ public class OptionsLayer : IGameLayer
             var dim = hud.MeasureText(m_message, Fonts.SmallGray, fontSize);
             hud.FillBox(new(new Vec2I(0, hud.Dimension.Height - dim.Height - (padding * 2)), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.7f);
             hud.Text(m_message, Fonts.SmallGray, fontSize, (0, -padding), both: Align.BottomMiddle, color: Color.Yellow);
+        }
+    }
+
+    private void WriteMultilineFooter(string inputText, string font, int fontSize, IHudRenderContext hud)
+    {
+        List<string> lines = new List<string>();
+        int maxTokenHeight = 0;
+
+        StringBuilder builder = new();
+        string[] tokens = inputText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        int widthCounter = 0;
+
+        // Split the text into multiple lines depending on the screen resolution
+        for (int i = 0; i < tokens?.Length; i++)
+        {
+            string token = $"{tokens[i]} ";
+            Dimension tokenSize = hud.MeasureText(token, font, fontSize);
+            maxTokenHeight = Math.Max(maxTokenHeight, tokenSize.Height);
+
+            if (widthCounter + tokenSize.Width > hud.Width)
+            {
+                lines.Add(builder.ToString());
+                builder.Clear();
+                widthCounter = 0;
+            }
+
+            builder.Append(token);
+            widthCounter += tokenSize.Width;
+        }
+
+        // Flush any remaining text out of the StringBuilder
+        if (builder.Length > 0)
+        {
+            lines.Add(builder.ToString());
+        }
+
+        // Write the text lines at the bottom of the HUD
+        int y = hud.Height - (lines.Count * maxTokenHeight);
+        foreach (string line in lines)
+        {
+            hud.Text(line, font, fontSize, (0, y), both: Align.TopMiddle, color: Color.White);
+            y += maxTokenHeight;
         }
     }
 
