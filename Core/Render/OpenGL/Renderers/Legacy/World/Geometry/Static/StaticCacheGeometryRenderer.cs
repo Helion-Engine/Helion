@@ -899,15 +899,15 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             if (line.Back.IsDynamic || line.Back.UpperSky)
             {
-                ClearSideGeometryVertices(line.Back, line.Front.Upper);
+                ClearSideGeometryVertices(line.Back, line.Back.Upper);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Upper);
             }
             if (line.Back.IsDynamic)
             {
-                ClearSideGeometryVertices(line.Back, line.Front.Lower);
+                ClearSideGeometryVertices(line.Back, line.Back.Lower);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Lower);
 
-                ClearSideGeometryVertices(line.Back, line.Front.Middle);
+                ClearSideGeometryVertices(line.Back, line.Back.Middle);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Middle);
             }
         }
