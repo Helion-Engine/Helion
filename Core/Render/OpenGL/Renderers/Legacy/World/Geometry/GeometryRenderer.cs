@@ -333,6 +333,10 @@ public class GeometryRenderer : IDisposable
 
     public void RenderStaticCoverWalls() =>
         m_staticCacheGeometryRenderer.RenderCoverWalls();
+
+    public void RenderStaticOneSidedCoverWalls() =>
+        m_staticCacheGeometryRenderer.RenderOneSidedCoverWalls();
+
     public void RenderStaticTwoSidedWalls() =>
         m_staticCacheGeometryRenderer.RenderTwoSidedMiddleWalls();
 

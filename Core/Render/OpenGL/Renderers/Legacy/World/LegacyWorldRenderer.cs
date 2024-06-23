@@ -318,6 +318,9 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationProgram.Bind();
         m_worldDataManager.RenderCoverWalls();
         GL.Enable(EnableCap.CullFace);
+        m_staticProgram.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        m_geometryRenderer.RenderStaticOneSidedCoverWalls();
         GL.ColorMask(true, true, true, true);
 
         m_staticProgram.Bind();

@@ -53,6 +53,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private readonly Dictionary<CoverWallKey, StaticGeometryData> m_coverWallLookup = [];
     private GeometryData? m_coverWallGeometry;
+    private GeometryData? m_coverWallGeometryOneSided;
 
     private bool m_disposed;
     private IWorld m_world = null!;
@@ -104,6 +105,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, m_textureManager.WhiteTexture.Index,
                     repeat: false, addToGeometry: false, world.Sides.Count * 3 * 6);
+                m_coverWallGeometryOneSided = AllocateGeometryData(GeometryType.Wall, m_textureManager.WhiteTexture.Index,
+                    repeat: false, addToGeometry: false, world.Sides.Count);
             }
         }
 
@@ -598,12 +601,14 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             m_geometry.ClearVbo();
             m_coverWallGeometry?.Vbo.Clear();
+            m_coverWallGeometryOneSided?.Vbo.Clear();
         }
         else
         {
             m_geometry.DisposeAndClear();
             m_textureToGeometryLookup.Clear();
             m_coverWallGeometry?.Dispose();
+            m_coverWallGeometryOneSided?.Dispose();
         }
 
         m_coverWallLookup.Clear();
@@ -698,14 +703,19 @@ public class StaticCacheGeometryRenderer : IDisposable
         RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat));
     }
 
-    public void RenderCoverWalls()
+    public void RenderCoverWalls() =>
+        RenderCoverWallsInternal(m_coverWallGeometry);
+
+    public void RenderOneSidedCoverWalls() =>
+        RenderCoverWallsInternal(m_coverWallGeometryOneSided);
+
+    private void RenderCoverWallsInternal(GeometryData? data)
     {
-        if (m_coverWallGeometry == null)
+        if (data == null)
             return;
 
-        var data = m_coverWallGeometry;
         GL.ActiveTexture(TextureUnit.Texture0);
-        GLLegacyTexture texture = m_textureManager.GetTexture(data.TextureHandle, (data.Texture.Flags & TextureFlags.ClampY) == 0);
+        GLLegacyTexture texture = m_textureManager.GetTexture(data.TextureHandle, true);
         texture.Bind();
 
         data.Vbo.UploadCapacity();
@@ -718,6 +728,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void RenderGeometry(List<GeometryData> geometry)
     {
         for (int i = 0; i < geometry.Count; i++)
+
         {
             var data = geometry[i];
 
@@ -1019,13 +1030,15 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddOrUpdateCoverWall(Side side, Wall wall, LegacyVertex[] sideVertices)
     {
-        if (m_coverWallGeometry == null)
+        if (m_coverWallGeometry == null || m_coverWallGeometryOneSided == null)
             return;
 
+        var useGeometry = wall.Location == WallLocation.Middle && side.PartnerSide == null ? m_coverWallGeometryOneSided : m_coverWallGeometry;
         // This is uploaded as the max possible value so UploadSubData can be used even if it's new.
-        var vbo = m_coverWallGeometry.Vbo;
+        var vbo = useGeometry.Vbo;
         var key = new CoverWallKey(side.Id, wall.Location);
         int length = sideVertices.Length;
+        bool discard = wall.Location == WallLocation.Middle && side.PartnerSide == null;
         if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData))
         {            
             CoverWallUtil.CopyCoverWallVertices(side, vbo.Data.Data, sideVertices, staticGeometryData.Index, wall.Location);
@@ -1035,7 +1048,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         var vertices = vbo.Data;
-        staticGeometryData = new(m_coverWallGeometry, vertices.Length, length);
+        staticGeometryData = new(useGeometry, vertices.Length, length);
         CoverWallUtil.CopyCoverWallVertices(side, vertices.Data, sideVertices, staticGeometryData.Index, wall.Location);
         vertices.Length += length;
         m_coverWallLookup[new CoverWallKey(side.Id, wall.Location)] = staticGeometryData;
