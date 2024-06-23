@@ -26,6 +26,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
 public class StaticCacheGeometryRenderer : IDisposable
 {
+    const int WallVertices = 6;
     private const SectorDynamic IgnoreFlags = SectorDynamic.Movement;
     private static readonly Sector DefaultSector = Sector.CreateDefault();
 
@@ -104,9 +105,9 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (m_vanillaRender)
             {
                 m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, m_textureManager.WhiteTexture.Index,
-                    repeat: false, addToGeometry: false, world.Sides.Count * 3 * 6);
+                    repeat: false, addToGeometry: false, world.Sides.Count * 3 * WallVertices);
                 m_coverWallGeometryOneSided = AllocateGeometryData(GeometryType.Wall, m_textureManager.WhiteTexture.Index,
-                    repeat: false, addToGeometry: false, world.Sides.Count);
+                    repeat: false, addToGeometry: false, world.Lines.Count * WallVertices);
             }
         }
 
@@ -1038,7 +1039,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         var vbo = useGeometry.Vbo;
         var key = new CoverWallKey(side.Id, wall.Location);
         int length = sideVertices.Length;
-        bool discard = wall.Location == WallLocation.Middle && side.PartnerSide == null;
         if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData))
         {            
             CoverWallUtil.CopyCoverWallVertices(side, vbo.Data.Data, sideVertices, staticGeometryData.Index, wall.Location);
