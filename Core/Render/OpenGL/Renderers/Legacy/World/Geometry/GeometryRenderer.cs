@@ -758,6 +758,13 @@ public class GeometryRenderer : IDisposable
             vertices = null;
             skyVertices = null;
             Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower, isFrontSide);
+
+            if (m_vanillaRender && m_buffer)
+            {
+                vertices = RenderTwoSidedUpperOrLowerRaw(WallLocation.Lower, facingSide, facingSector, otherSector, isFrontSide);
+                m_worldDataManager.AddCoverWallVertices(facingSide, vertices, WallLocation.Lower);
+            }
+
             // Key2 is used for partner side flood. Still may need to draw the lower.
             if (facingSide.LowerFloodKeys.Key1 > 0)
                 return;
@@ -769,7 +776,7 @@ public class GeometryRenderer : IDisposable
             otherSide.LowerFloodKeys.Key2 = 0;
         }
 
-        if (lowerWall.TextureHandle == Constants.NoTextureIndex && !skyRender)
+        if (lowerWall.TextureHandle <= Constants.NullCompatibilityTextureIndex && !skyRender)
         {
             vertices = null;
             skyVertices = null;
@@ -837,6 +844,22 @@ public class GeometryRenderer : IDisposable
         }
     }
 
+    // Renders vertices for upper/lower. No checking for skies, flood fill etc.
+    public LegacyVertex[] RenderTwoSidedUpperOrLowerRaw(WallLocation location, Side facingSide, Sector facingSector, Sector otherSector, bool isFrontSide)
+    {
+        Wall lowerWall = facingSide.Lower;
+        WallVertices wall = default;
+
+        GLLegacyTexture texture = m_glTextureManager.GetTexture(lowerWall.TextureHandle);
+        int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
+        if (location == WallLocation.Upper)
+            WorldTriangulator.HandleTwoSidedUpper(facingSide, facingSector.Ceiling, otherSector.Ceiling, texture.UVInverse, isFrontSide, ref wall);
+        else
+            WorldTriangulator.HandleTwoSidedLower(facingSide, otherSector.Floor, facingSector.Floor, texture.UVInverse, isFrontSide, ref wall);
+        SetWallVertices(m_wallVertices, wall, GetLightLevelAdd(facingSide), lightIndex);
+        return m_wallVertices;        
+    }
+
     public void RenderTwoSidedUpper(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
         out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out SkyGeometryVertex[]? skyVertices2)
     {
@@ -854,6 +877,12 @@ public class GeometryRenderer : IDisposable
             // Key2 is used for partner side flood. Still may need to draw the upper.
             // Flood only floods the upper texture portion. If the ceiling is a sky texture then the fake sky side needs to be rendered with RenderSkySide.
             renderSkySideOnly = facingSide.UpperFloodKeys.Key1 > 0;
+
+            if (m_vanillaRender && m_buffer)
+            {
+                vertices = RenderTwoSidedUpperOrLowerRaw(WallLocation.Upper, facingSide, facingSector, otherSector, isFrontSide);
+                m_worldDataManager.AddCoverWallVertices(facingSide, vertices, WallLocation.Upper);
+            }
         }
 
         if (!TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&

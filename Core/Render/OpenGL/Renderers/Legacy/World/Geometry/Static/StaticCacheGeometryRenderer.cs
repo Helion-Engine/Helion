@@ -52,7 +52,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly List<Sector> m_initMoveSectors = [];
 
     private readonly Dictionary<CoverWallKey, StaticGeometryData> m_coverWallLookup = [];
-    private GeometryData m_coverWallGeometry;
+    private GeometryData? m_coverWallGeometry;
 
     private bool m_disposed;
     private IWorld m_world = null!;
@@ -72,8 +72,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_program = program;
         m_skyRenderer = new(archiveCollection, textureManager);
         m_mapPersistent = GLInfo.MapPersistentBitSupported;
-        // Allocated in UpdateTo, can't be allocated in the constructor
-        m_coverWallGeometry = null!;
     }
 
     private static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
@@ -102,7 +100,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!world.SameAsPreviousMap)
         {
             m_skyRenderer.Reset();
-            m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, m_textureManager.WhiteTexture.Index, false, addToGeometry: false, world.Sides.Count * 3 * 6);
+            if (m_vanillaRender)
+            {
+                m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, m_textureManager.WhiteTexture.Index,
+                    repeat: false, addToGeometry: false, world.Sides.Count * 3 * 6);
+            }
         }
 
         m_runtimeGeometry.FlushReferences();
@@ -407,6 +409,12 @@ public class StaticCacheGeometryRenderer : IDisposable
                 if ((side.FloodTextures & SideTexture.Upper) != 0 || side.PartnerSide!.Sector.FloodOpposingCeiling)
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide);
             }
+
+            if (m_vanillaRender)
+            {
+                sideVertices = m_geometryRenderer.RenderTwoSidedUpperOrLowerRaw(WallLocation.Upper, side, facingSector, otherSector, isFrontSide);
+                AddOrUpdateCoverWall(side, side.Upper, sideVertices);
+            }
         }
 
         bool lowerVisible = GeometryRenderer.LowerIsVisible(side, facingSector, otherSector);
@@ -420,6 +428,12 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 if ((side.FloodTextures & SideTexture.Lower) != 0 || side.PartnerSide!.Sector.FloodOpposingFloor)
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower, isFrontSide);
+            }
+
+            if (m_vanillaRender)
+            {
+                sideVertices = m_geometryRenderer.RenderTwoSidedUpperOrLowerRaw(WallLocation.Lower, side, facingSector, otherSector, isFrontSide);
+                AddOrUpdateCoverWall(side, side.Lower, sideVertices);
             }
         }
 
@@ -582,7 +596,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (world.SameAsPreviousMap)
         {
             m_geometry.ClearVbo();
-            m_coverWallGeometry.Vbo.Clear();
+            m_coverWallGeometry?.Vbo.Clear();
         }
         else
         {
@@ -685,6 +699,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void RenderCoverWalls()
     {
+        if (m_coverWallGeometry == null)
+            return;
+
         var data = m_coverWallGeometry;
         GL.ActiveTexture(TextureUnit.Texture0);
         GLLegacyTexture texture = m_textureManager.GetTexture(data.TextureHandle, (data.Texture.Flags & TextureFlags.ClampY) == 0);
@@ -1001,24 +1018,28 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddOrUpdateCoverWall(Side side, Wall wall, LegacyVertex[] sideVertices)
     {
+        if (m_coverWallGeometry == null)
+            return;
+
         // This is uploaded as the max possible value so UploadSubData can be used even if it's new.
+        var vbo = m_coverWallGeometry.Vbo;
         var key = new CoverWallKey(side.Id, wall.Location);
         int length = sideVertices.Length;
         if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData))
         {            
-            CoverWallUtil.CopyCoverWallVertices(side, m_coverWallGeometry.Vbo.Data.Data, sideVertices, staticGeometryData.Index, wall.Location);
-            m_coverWallGeometry.Vbo.Bind();
-            m_coverWallGeometry.Vbo.UploadSubData(staticGeometryData.Index, length);
+            CoverWallUtil.CopyCoverWallVertices(side, vbo.Data.Data, sideVertices, staticGeometryData.Index, wall.Location);
+            vbo.Bind();
+            vbo.UploadSubData(staticGeometryData.Index, length);
             return;
         }
 
-        var vertices = m_coverWallGeometry.Vbo.Data;
+        var vertices = vbo.Data;
         staticGeometryData = new(m_coverWallGeometry, vertices.Length, length);
         CoverWallUtil.CopyCoverWallVertices(side, vertices.Data, sideVertices, staticGeometryData.Index, wall.Location);
         vertices.Length += length;
         m_coverWallLookup[new CoverWallKey(side.Id, wall.Location)] = staticGeometryData;
-        m_coverWallGeometry.Vbo.Bind();
-        m_coverWallGeometry.Vbo.UploadSubData(staticGeometryData.Index, length);
+        vbo.Bind();
+        vbo.UploadSubData(staticGeometryData.Index, length);
     }
 
     private void AddRuntimeGeometry(int textureHandle, LegacyVertex[] vertices, SectorPlane? plane, Side? side, Wall? wall, bool repeat)
