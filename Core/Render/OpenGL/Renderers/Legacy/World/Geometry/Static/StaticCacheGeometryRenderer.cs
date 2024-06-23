@@ -61,11 +61,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     private int m_counter;
     // These are the flags to ignore when setting a side back to static.
     private SectorDynamic m_sideDynamicIgnore;
-    private bool m_vanillaFlood;
-    private bool m_alwaysFlood;
     private bool m_mapPersistent;
-    private bool m_vanillaSprites;
-    private bool m_uploadCoverWall;
+    private bool m_vanillaRender;
 
     public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
         RenderProgram program, GeometryRenderer geometryRenderer)
@@ -99,9 +96,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void UpdateTo(IWorld world, GLBufferTexture lightBuffer)
     {
-        m_vanillaFlood = world.Config.Render.VanillaFloodFill;
-        m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats;
-        m_vanillaSprites = world.Config.Render.VanillaSprites;
+        m_vanillaRender = world.Config.Render.VanillaRender;
         ClearData(world);
 
         if (!world.SameAsPreviousMap)
@@ -338,7 +333,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddFloodFillPlane(Side side, Sector sector, bool isFrontSide)
     {
-        bool flood = m_alwaysFlood || (m_vanillaFlood && sector.Flood);
+        bool flood = sector.Flood;
         if (!flood && side.MidTextureFlood == SectorPlanes.None)
             return;
 
@@ -513,7 +508,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
 
         var type = GetWallType(side, wall);
-        if (m_vanillaSprites && type != GeometryType.TwoSidedMiddleWall)
+        if (m_vanillaRender && type != GeometryType.TwoSidedMiddleWall)
             AddOrUpdateCoverWall(side, wall, sideVertices);
         
         if (update)
@@ -891,7 +886,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void ClearSideGeometryVertices(Side side, Wall wall)
     {
         ClearGeometryVertices(wall.Static);
-        if (m_vanillaSprites && m_coverWallLookup.TryGetValue(new CoverWallKey(side.Id, wall.Location), out var geometryData))
+        if (m_vanillaRender && m_coverWallLookup.TryGetValue(new CoverWallKey(side.Id, wall.Location), out var geometryData))
             ClearGeometryVertices(geometryData);
     }
 

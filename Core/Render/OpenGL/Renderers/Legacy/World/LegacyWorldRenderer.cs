@@ -44,7 +44,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
     private bool m_spriteTransparency;
-    private bool m_vanillaSprites;
+    private bool m_vanillaRender;
     private int m_lastTicker = -1;
     private int m_renderCount;
     private int m_maxDistance;
@@ -87,7 +87,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
     public override void UpdateToNewWorld(IWorld world)
     {
-        m_vanillaSprites = m_config.Render.VanillaSprites;
+        m_vanillaRender = m_config.Render.VanillaRender;
         TransferHeights.FlushSectorReferences();
         m_lastRenderedWorld.SetTarget(world);
 
@@ -268,7 +268,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_geometryRenderer.RenderPortalsAndSkies(renderInfo);
 
-        if (!m_vanillaSprites)
+        if (!m_vanillaRender)
         {
             m_interpolationProgram.Bind();
             GL.ActiveTexture(TextureUnit.Texture0);
@@ -295,7 +295,6 @@ public class LegacyWorldRenderer : WorldRenderer
             m_primitiveRenderer.Render(renderInfo);
             return;
         }
-
 
         m_interpolationProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);

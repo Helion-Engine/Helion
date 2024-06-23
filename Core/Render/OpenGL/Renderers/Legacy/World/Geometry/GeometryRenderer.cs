@@ -58,10 +58,8 @@ public class GeometryRenderer : IDisposable
     private bool m_ceilingChanged;
     private bool m_sectorChangedLine;
     private bool m_cacheOverride;
-    private bool m_vanillaFlood;
-    private bool m_alwaysFlood;
     private bool m_fakeContrast;
-    private bool m_vanillaSprites;
+    private bool m_vanillaRender;
     private Vec3D m_viewPosition;
     private Vec3D m_prevViewPosition;
     private Sector m_viewSector;
@@ -116,9 +114,7 @@ public class GeometryRenderer : IDisposable
         m_lineDrawnTracker.UpdateToWorld(world);
         m_viewSector = DefaultSector;
 
-        m_vanillaFlood = world.Config.Render.VanillaFloodFill.Value;
-        m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats.Value;
-        m_vanillaSprites = world.Config.Render.VanillaSprites.Value;
+        m_vanillaRender = world.Config.Render.VanillaRender;
 
         PreloadAllTextures(world);
 
@@ -173,7 +169,7 @@ public class GeometryRenderer : IDisposable
 
         Clear(m_tickFraction, true);
         SetRenderCompatibility(world);
-        CacheData(world);
+        SetFloodSectors(world);
 
         Portals.UpdateTo(world);
         m_staticCacheGeometryRenderer.UpdateTo(world, m_lightBuffer);
@@ -307,15 +303,13 @@ public class GeometryRenderer : IDisposable
         m_midTextureHack.Apply(world, def.MidTextureHackSectors, m_glTextureManager, TextureManager, this);
     }
 
-    private void CacheData(IWorld world)
+    private static void SetFloodSectors(IWorld world)
     {
-        Vec2D pos = m_viewPosition.XY;
-        bool flood = m_alwaysFlood || m_vanillaFlood;
         foreach (var sector in world.Sectors)
-            sector.Flood = flood && world.Geometry.IslandGeometry.FloodSectors.Contains(sector.Id);
+            sector.Flood = world.Geometry.IslandGeometry.FloodSectors.Contains(sector.Id);
 
         foreach (var subsector in world.BspTree.Subsectors)
-            subsector.Flood = flood && world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id);
+            subsector.Flood = world.Geometry.IslandGeometry.BadSubsectors.Contains(subsector.Id);
     }
 
     public void Clear(double tickFraction, bool newTick)
@@ -1073,7 +1067,7 @@ public class GeometryRenderer : IDisposable
     private SectorPlanes GetTwoSidedMiddleClipPlanes(Side facingSide, Sector facingSector, Sector otherSector)
     {
         SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling;
-        if (m_vanillaSprites)
+        if (m_vanillaRender)
         {
             if (facingSector.Floor.Z == otherSector.Floor.Z)
                 clipPlanes &= ~SectorPlanes.Floor;
@@ -1166,7 +1160,7 @@ public class GeometryRenderer : IDisposable
 
     public void SetBufferCoverWall(bool set)
     {
-        if (!m_vanillaSprites)
+        if (!m_vanillaRender)
             return;
         m_worldDataManager.BufferCoverWalls = set;
     }
@@ -1225,13 +1219,6 @@ public class GeometryRenderer : IDisposable
         }
         else
         {
-            if (m_alwaysFlood)
-            {
-                vertices = null;
-                skyVertices = null;
-                return;
-            }
-
             LegacyVertex[] lookupData = GetSectorVertices(subsectors, floor, id, out bool generate);
             if (generate || flatChanged)
             {

@@ -25,9 +25,8 @@ public class PortalRenderer : IDisposable
     private readonly ArchiveCollection m_archiveCollection;
     private readonly SectorPlane m_fakeFloor = new(SectorPlaneFace.Floor, 0, 0, 0);
     private readonly SectorPlane m_fakeCeiling = new(SectorPlaneFace.Floor, 0, 0, 0);
+    private readonly double m_pushSegAmount;
     private bool m_disposed;
-    private bool m_alwaysFlood;
-    private double m_pushSegAmount;
 
     public PortalRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager)
     {
@@ -49,7 +48,6 @@ public class PortalRenderer : IDisposable
 
     public void UpdateTo(IWorld world)
     {
-        m_alwaysFlood = world.Config.Render.AlwaysFloodFillFlats;
         m_floodFillRenderer.UpdateTo(world);
     }
 
@@ -71,27 +69,8 @@ public class PortalRenderer : IDisposable
     private void HandleFloodFillPlane(Side facingSide, Sector floodSector, SectorPlanes planes, SectorPlaneFace face, bool isFront, bool update)
     {
         var line = facingSide.Line;
-        var saveStart = line.Segment.Start;
-        var saveEnd = line.Segment.End;
-
-        PushDir dir = PushDir.Back;
         var floodPlanes = facingSide.MidTextureFlood;
-        var otherSide = facingSide.PartnerSide;
         WallVertices wall = default;
-        // The flood plane will clip with an upper/lower texture. Flag push the line towards in the inside of the sector.
-        if (m_alwaysFlood && face == SectorPlaneFace.Floor && otherSide != null && otherSide.Sector.Ceiling.Z < facingSide.Sector.Floor.Z)
-        {
-            dir = PushDir.Forward;
-            floodPlanes |= SectorPlanes.Floor;
-        }
-        if (m_alwaysFlood && face == SectorPlaneFace.Ceiling && otherSide != null && otherSide.Sector.Floor.Z > facingSide.Sector.Ceiling.Z)
-        {
-            dir = PushDir.Forward;
-            floodPlanes |= SectorPlanes.Ceiling;
-        }
-
-        if ((floodPlanes & planes) != 0)
-            PushSeg(line, facingSide, dir, m_pushSegAmount);
 
         if (face == SectorPlaneFace.Floor)
         {
@@ -123,9 +102,6 @@ public class PortalRenderer : IDisposable
             else
                 facingSide.CeilingFloodKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, bottom.Z, isFloodFillPlane: true);
         }
-
-        line.Segment.Start = saveStart;
-        line.Segment.End = saveEnd;
     }
 
     private void HandleStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront, bool update)

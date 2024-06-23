@@ -80,9 +80,9 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Cache all sprites")]
     public readonly ConfigValue<bool> CacheSprites = new(true);
 
-    [ConfigInfo("Renders sprites over floors/ceilings.", mapRestartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Vanilla sprites", spacer: true)]
-    public readonly ConfigValue<bool> VanillaSprites = new(false);
+    [ConfigInfo("Renders sprites over floors/ceilings. Follows vanilla rules for rendering middle textures over floors/ceilings.", mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Vanilla rendering", spacer: true)]
+    public readonly ConfigValue<bool> VanillaRender = new(false);
 
     [ConfigInfo("If any sprite should clip the floor.")]
     [OptionMenu(OptionSectionType.Render, "Sprite floor clip")]
@@ -115,14 +115,6 @@ public class ConfigRender
     [ConfigInfo("Enable rendering missing textures as a red/black checkered texture.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Render null textures")]
     public readonly ConfigValue<bool> NullTexture = new(false);
-
-    [ConfigInfo("Enable vanilla flat flood filling for self-referencing sectors.", mapRestartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Vanilla flood fill")]
-    public readonly ConfigValue<bool> VanillaFloodFill = new(true);
-
-    [ConfigInfo("Enable vanilla flat flood filling for all sectors. Experimental.", mapRestartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Always flood fill flats (experimental)")]
-    public readonly ConfigValue<bool> AlwaysFloodFillFlats = new(false);
 
     [ConfigInfo("Fuzz amount.")]
     [OptionMenu(OptionSectionType.Render, "Fuzz amount")]
