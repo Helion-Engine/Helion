@@ -1066,18 +1066,22 @@ public class GeometryRenderer : IDisposable
 
     private SectorPlanes GetTwoSidedMiddleClipPlanes(Side facingSide, Sector facingSector, Sector otherSector)
     {
+        var floor = facingSector.Floor;
+        var ceiling = facingSector.Ceiling;
+        var otherFloor = otherSector.Floor;
+        var otherCeil = otherSector.Ceiling;
         SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling;
         if (m_vanillaRender)
         {
-            if (facingSector.Floor.Z == otherSector.Floor.Z)
+            if (floor.Z == otherFloor.Z && floor.TextureHandle == otherFloor.TextureHandle && floor.LightLevel == otherFloor.LightLevel)
                 clipPlanes &= ~SectorPlanes.Floor;
-            if (facingSector.Ceiling.Z == otherSector.Ceiling.Z)
+            if (ceiling.Z == otherCeil.Z && ceiling.TextureHandle == otherCeil.TextureHandle && ceiling.LightLevel == otherCeil.LightLevel)
                 clipPlanes &= ~SectorPlanes.Ceiling;
             return clipPlanes;
         }
 
-        bool midTextureHack = facingSide.Sector.Floor.MidTextureHack || facingSide.Sector.Ceiling.MidTextureHack;
-        bool isCeilingSky = TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
+        bool midTextureHack = floor.MidTextureHack || ceiling.MidTextureHack;
+        bool isCeilingSky = TextureManager.IsSkyTexture(otherCeil.TextureHandle) && TextureManager.IsSkyTexture(ceiling.TextureHandle);
         clipPlanes = midTextureHack ? SectorPlanes.None : SectorPlanes.Floor | SectorPlanes.Ceiling;
         if (isCeilingSky)
             clipPlanes &= ~SectorPlanes.Ceiling;
