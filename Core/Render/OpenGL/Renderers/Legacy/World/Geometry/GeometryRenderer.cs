@@ -488,10 +488,10 @@ public class GeometryRenderer : IDisposable
                 CheckFloodFillLine(line.Front, line.Back);
 
             // Need to force render for alternative flood fill from the front side.
-            if (onFront || onBothSides || line.Front.LowerFloodKeys.Key2 > 0 || line.Front.UpperFloodKeys.Key2 > 0)
+            if (onFront || onBothSides || line.Front.LowerFloodKeys.Key2 > 0 || line.Front.UpperFloodKeys.Key2 > 0 || m_vanillaRender)
                 RenderSectorSideWall(sector, line.Front, pos2D, true);
             // Need to force render for alternative flood fill from the back side.
-            if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKeys.Key2 > 0 || line.Back.UpperFloodKeys.Key2 > 0))
+            if (line.Back != null && (!onFront || onBothSides || line.Back.LowerFloodKeys.Key2 > 0 || line.Back.UpperFloodKeys.Key2 > 0 || m_vanillaRender))
                 RenderSectorSideWall(sector, line.Back, pos2D, false);
         }
     }
@@ -756,6 +756,8 @@ public class GeometryRenderer : IDisposable
         WallVertices wall = default;
         bool isSky = TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
         bool skyRender = isSky && TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle);
+        // TODO this is a mess. This gets forced twice just to ensure coverwalls are rendered.
+        bool renderCoverWall = m_vanillaRender && m_drawnSides[otherSide.Id] != WorldStatic.World.GameTicker;
 
         if (facingSide.LowerFloodKeys.Key1 > 0 || facingSide.LowerFloodKeys.Key2 > 0)
         {
@@ -763,12 +765,8 @@ public class GeometryRenderer : IDisposable
             skyVertices = null;
             Portals.UpdateStaticFloodFillSide(facingSide, otherSide, otherSector, SideTexture.Lower, isFrontSide);
 
-            if (m_vanillaRender && m_buffer)
-            {
-                vertices = RenderTwoSidedUpperOrLowerRaw(WallLocation.Lower, facingSide, facingSector, otherSector, isFrontSide);
-                m_worldDataManager.AddCoverWallVertices(facingSide, vertices, WallLocation.Lower);
-            }
-
+            renderCoverWall = false;
+            RenderCoverWallLower(facingSide, facingSector, otherSector, isFrontSide);
             // Key2 is used for partner side flood. Still may need to draw the lower.
             if (facingSide.LowerFloodKeys.Key1 > 0)
                 return;
@@ -782,6 +780,8 @@ public class GeometryRenderer : IDisposable
 
         if (lowerWall.TextureHandle <= Constants.NullCompatibilityTextureIndex && !skyRender)
         {
+            if (renderCoverWall)
+                RenderCoverWallLower(facingSide, facingSector, otherSector, isFrontSide);
             vertices = null;
             skyVertices = null;
             return;
@@ -841,11 +841,21 @@ public class GeometryRenderer : IDisposable
             if (m_buffer)
             {
                 renderData.Vbo.Add(data);
-                m_worldDataManager.AddCoverWallVertices(facingSide, data, WallLocation.Lower);
+                if (renderCoverWall)
+                    m_worldDataManager.AddCoverWallVertices(facingSide, data, WallLocation.Lower);
             }
             vertices = data;
             skyVertices = null;
         }
+    }
+
+    private void RenderCoverWallLower(Side facingSide, Sector facingSector, Sector otherSector, bool isFrontSide)
+    {
+        if (!m_vanillaRender || !m_buffer)
+            return;
+
+        var vertices = RenderTwoSidedUpperOrLowerRaw(WallLocation.Lower, facingSide, facingSector, otherSector, isFrontSide);
+        m_worldDataManager.AddCoverWallVertices(facingSide, vertices, WallLocation.Lower);
     }
 
     // Renders vertices for upper/lower. No checking for skies, flood fill etc.
