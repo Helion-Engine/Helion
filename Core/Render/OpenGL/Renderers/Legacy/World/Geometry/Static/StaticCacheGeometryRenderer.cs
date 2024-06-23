@@ -574,7 +574,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_geometry.AddGeometry(type, data);
             // Sorts textures that do not have transparent pixels first.
             // This is to get around the issue of middle textures with transparent pixels being drawn first and discarding stuff behind that should not be.
-            m_geometry.GetGeometry(type).Sort(TransparentGeometryCompare);
+            if (type == GeometryType.TwoSidedMiddleWall)
+                m_geometry.GetGeometry(type).Sort(TransparentGeometryCompare);
             m_textureToGeometryLookup.Add(type, textureHandle, repeat, data);
         }
 
