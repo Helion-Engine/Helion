@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Helion.Audio.Sounds;
@@ -438,17 +439,20 @@ public class OptionsLayer : IGameLayer
 
     private void WriteMultilineFooter(string inputText, string font, int fontSize, IHudRenderContext hud)
     {
-        List<string> lines = new List<string>();
-        int maxTokenHeight = 0;
-
-        StringBuilder builder = new();
-        string[] tokens = inputText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        int widthCounter = 0;
-
-        // Split the text into multiple lines depending on the screen resolution
-        for (int i = 0; i < tokens?.Length; i++)
+        if (string.IsNullOrEmpty(inputText))
         {
-            string token = $"{tokens[i]} ";
+            return;
+        }
+
+        int maxTokenHeight = 0;
+        int widthCounter = 0;
+        List<string> lines = new();
+        StringBuilder builder = new();
+
+        // Since we are using this method to render setting descriptions, which can be verbose, we must
+        // split the text into multiple lines that are each short enough to fit within the display resolution
+        foreach (string token in inputText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(str => $"{str} "))
+        {
             Dimension tokenSize = hud.MeasureText(token, font, fontSize);
             maxTokenHeight = Math.Max(maxTokenHeight, tokenSize.Height);
 
@@ -463,14 +467,24 @@ public class OptionsLayer : IGameLayer
             widthCounter += tokenSize.Width;
         }
 
-        // Flush any remaining text out of the StringBuilder
+        // Flush the last line out of the StringBuilder
         if (builder.Length > 0)
         {
             lines.Add(builder.ToString());
         }
 
-        // Write the text lines at the bottom of the HUD
-        int y = hud.Height - (lines.Count * maxTokenHeight);
+        // Calculate how much room we need for the footer, with padding both above and below the text
+        int padding = m_config.Hud.GetScaled(8);
+        int footerHeight = lines.Count * maxTokenHeight + 2 * padding;
+
+        // Make a box at the bottom of the HUD, then write the text lines over the box
+        hud.FillBox(
+            new(new Vec2I(0, hud.Dimension.Height - footerHeight), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)),
+            Color.Black,
+            alpha: 0.7f);
+
+        int y = hud.Height - footerHeight + padding;
+
         foreach (string line in lines)
         {
             hud.Text(line, font, fontSize, (0, y), both: Align.TopMiddle, color: Color.White);
