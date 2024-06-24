@@ -61,8 +61,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     private GLBufferTexture? m_lightBuffer;
     private GLMappedBuffer<float> m_mappedLightBuffer;
     private int m_counter;
-    // These are the flags to ignore when setting a side back to static.
-    private SectorDynamic m_sideDynamicIgnore;
     private bool m_mapPersistent;
     private bool m_vanillaRender;
 
@@ -117,8 +115,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_bufferData.Data[i]?.FlushStruct();
 
         m_world = world;
-        // Alpha textures are currently sorted on the CPU and can't be rendered statically.
-        m_sideDynamicIgnore = SectorDynamic.Alpha;
 
         m_world.SectorMoveStart += World_SectorMoveStart;
         m_world.SectorMoveComplete += World_SectorMoveComplete;
@@ -316,9 +312,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddOneSided(Side side, bool isFrontSide, bool update)
     {
-        if ((side.Dynamic & m_sideDynamicIgnore) != 0)
-            return;
-
         bool dynamic = side.IsDynamic || side.Sector.IsMoving;
         var sector = side.Sector;
         if (dynamic && (sector.Floor.Dynamic == SectorDynamic.Movement || sector.Ceiling.Dynamic == SectorDynamic.Movement))
@@ -383,10 +376,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         bool floorDynamic = (side.Sector.Floor.Dynamic & SectorDynamic.Movement) != 0 || (otherSide.Sector.Floor.Dynamic & SectorDynamic.Movement) != 0;
         bool ceilingDynamic = (side.Sector.Ceiling.Dynamic & SectorDynamic.Movement) != 0 || (otherSide.Sector.Ceiling.Dynamic & SectorDynamic.Movement) != 0;
-        bool sideDynamic = (side.Dynamic & m_sideDynamicIgnore) == 0;
-        bool upper = !(ceilingDynamic && side.IsDynamic) && sideDynamic;
-        bool lower = !(floorDynamic && side.IsDynamic) && sideDynamic;
-        bool middle = !((floorDynamic || ceilingDynamic) && side.IsDynamic) && sideDynamic;
+        bool upper = !(ceilingDynamic && side.IsDynamic);
+        bool lower = !(floorDynamic && side.IsDynamic);
+        bool middle = !((floorDynamic || ceilingDynamic) && side.IsDynamic) && (side.Dynamic & SectorDynamic.Alpha) == 0; // Middle with alpha is drawn separately through dynamic rendering.
 
         m_geometryRenderer.SetRenderTwoSided(side);
 
