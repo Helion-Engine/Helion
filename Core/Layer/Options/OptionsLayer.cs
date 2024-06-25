@@ -17,7 +17,6 @@ using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
-using Helion.Util.Parser;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
@@ -548,7 +547,7 @@ public class OptionsLayer : IGameLayer
         }
 
         int actualScrollOffset = Math.Abs(m_scrollOffset);
-        int barPosition = (int)((actualScrollOffset / (float)maxScrollOffset) * hud.Dimension.Height);
+        int barPosition = (int)(actualScrollOffset / (float)maxScrollOffset * hud.Dimension.Height);
 
         const string Bar = "|";
         var textDimension = hud.MeasureText(Bar, Fonts.Small, fontSize);
