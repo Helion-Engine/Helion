@@ -301,7 +301,8 @@ public class GeometryRenderer : IDisposable
                 world.Sectors[sectorId].Ceiling.NoRender = true;
         }
 
-        m_midTextureHack.Apply(world, def.MidTextureHackSectors, m_glTextureManager, TextureManager, this);
+        if (!m_vanillaRender)
+            m_midTextureHack.Apply(world, def.MidTextureHackSectors, m_glTextureManager, TextureManager, this);
     }
 
     private static void SetFloodSectors(IWorld world)
