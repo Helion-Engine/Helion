@@ -540,28 +540,25 @@ public class OptionsLayer : IGameLayer
             return;
 
         int scrollHeight = section.GetRenderHeight() + m_headerHeight;
-        if (scrollHeight <= hud.Dimension.Height - m_footerHeight)
+        int maxScrollOffset = scrollHeight - hud.Dimension.Height;
+
+        if (maxScrollOffset < 0)
+        {
             return;
+        }
+
+        int actualScrollOffset = Math.Abs(m_scrollOffset);
+        int barPosition = (int)((actualScrollOffset / (float)maxScrollOffset) * hud.Dimension.Height);
 
         const string Bar = "|";
         var textDimension = hud.MeasureText(Bar, Fonts.Small, fontSize);
 
-        int scrollAmount = GetScrollAmount();
-        int scrollDiff = scrollHeight - (hud.Dimension.Height - m_headerHeight) ;
-        int total = scrollDiff / scrollAmount;
-        if (scrollDiff % scrollAmount != 0)
-            total++;
+        if (barPosition + textDimension.Height > hud.Dimension.Height)
+        {
+            barPosition = hud.Dimension.Height - textDimension.Height;
+        }
 
-        if (total == 0)
-            return;
-
-        int screenScrollAmount = hud.Dimension.Height / total;
-
-        int y = -(total - (total - (m_scrollOffset / scrollAmount))) * screenScrollAmount;
-        if (y + textDimension.Height > hud.Dimension.Height)
-            y = hud.Dimension.Height - textDimension.Height;
-
-        hud.Text(Bar, Fonts.Small, fontSize, (0, y), both: Align.TopRight);
+        hud.Text(Bar, Fonts.Small, fontSize, (0, barPosition), both: Align.TopRight);
     }
 
     private bool ScrollRequired(int windowHeight, IOptionSection section) =>
