@@ -81,6 +81,9 @@ public class KeyBindingSection : IOptionSection
     private bool m_updateMouse;
     private bool m_configUpdated;
 
+    public int CurrentRowIndex => m_currentRow;
+    public int MaxRowIndex => m_commandToKeys?.Count ?? 0;
+
     public KeyBindingSection(IConfig config, SoundManager soundManager)
     {
         m_config = config;

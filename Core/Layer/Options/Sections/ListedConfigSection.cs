@@ -53,6 +53,9 @@ public class ListedConfigSection : IOptionSection
     private bool m_updateMouse;
     private IConfigValue? m_currentEditValue;
 
+    public int CurrentRowIndex => m_currentRowIndex;
+    public int MaxRowIndex => m_configValues?.Count ?? 0;
+
     public ListedConfigSection(IConfig config, OptionSectionType optionType, SoundManager soundManager)
     {
         m_config = config;

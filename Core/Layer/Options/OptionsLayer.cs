@@ -538,25 +538,12 @@ public class OptionsLayer : IGameLayer
         if (!ScrollRequired(hud.Dimension.Height, section))
             return;
 
-        int scrollHeight = section.GetRenderHeight() + m_headerHeight;
-        int maxScrollOffset = scrollHeight - hud.Dimension.Height;
-
-        if (maxScrollOffset < 0)
-        {
-            return;
-        }
-
-        int actualScrollOffset = Math.Abs(m_scrollOffset);
-        int barPosition = (int)(actualScrollOffset / (float)maxScrollOffset * hud.Dimension.Height);
-
         const string Bar = "|";
-        var textDimension = hud.MeasureText(Bar, Fonts.Small, fontSize);
 
-        if (barPosition + textDimension.Height > hud.Dimension.Height)
-        {
-            barPosition = hud.Dimension.Height - textDimension.Height;
-        }
+        // Figure out how low we can put the bar before it clips off the bottom of the screen
+        int lowestBarPosition = hud.Dimension.Height - hud.MeasureText(Bar, Fonts.Small, fontSize).Height;
 
+        int barPosition = (int)(Math.Abs(section.CurrentRowIndex) / (float)Math.Max(section.MaxRowIndex, 1) * lowestBarPosition);
         hud.Text(Bar, Fonts.Small, fontSize, (0, barPosition), both: Align.TopRight);
     }
 
