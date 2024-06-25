@@ -81,7 +81,7 @@ public class ConfigRender
     public readonly ConfigValue<bool> CacheSprites = new(true);
 
     [ConfigInfo("Renders sprites over floors/ceilings. Follows vanilla rules for rendering middle textures over floors/ceilings.", mapRestartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Vanilla rendering", spacer: true)]
+    [OptionMenu(OptionSectionType.Render, "Emulate Vanilla rendering", spacer: true)]
     public readonly ConfigValue<bool> VanillaRender = new(false);
 
     [ConfigInfo("If any sprite should clip the floor.")]

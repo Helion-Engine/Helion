@@ -52,9 +52,11 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
     private readonly List<Sector> m_initMoveSectors = [];
 
-    private readonly Dictionary<CoverWallKey, StaticGeometryData> m_coverWallLookup = [];
+    private readonly Dictionary<CoverKey, StaticGeometryData> m_coverWallLookup = [];
+    private readonly Dictionary<CoverKey, StaticGeometryData> m_coverFlatLookup = [];
     private GeometryData? m_coverWallGeometry;
     private GeometryData? m_coverWallGeometryOneSided;
+    private GeometryData? m_coverFlatGeometry;
 
     private bool m_disposed;
     private IWorld m_world = null!;
@@ -97,18 +99,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_vanillaRender = world.Config.Render.VanillaRender;
         ClearData(world);
 
-        if (!world.SameAsPreviousMap)
-        {
-            m_skyRenderer.Reset();
-            if (m_vanillaRender)
-            {
-                m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, m_textureManager.WhiteTexture.Index,
-                    repeat: false, addToGeometry: false, world.Sides.Count * 3 * WallVertices);
-                m_coverWallGeometryOneSided = AllocateGeometryData(GeometryType.Wall, m_textureManager.WhiteTexture.Index,
-                    repeat: false, addToGeometry: false, world.Lines.Count * WallVertices);
-            }
-        }
-
         m_runtimeGeometry.FlushReferences();
         m_updateLightSectors.FlushReferences();
         for (int i = 0; i < m_bufferData.Length; i++)
@@ -124,6 +114,22 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         SetLightBufferData(world, lightBuffer);
         m_geometryRenderer.SetInitRender();
+
+        if (!world.SameAsPreviousMap)
+        {
+            m_skyRenderer.Reset();
+            if (m_vanillaRender)
+            {
+                var texture = m_textureManager.WhiteTexture;
+                var textureIndex = 0;
+                m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, textureIndex,
+                    repeat: true, addToGeometry: false, world.Sides.Count * 3 * WallVertices, overrideTexture: texture);
+                m_coverWallGeometryOneSided = AllocateGeometryData(GeometryType.Wall, textureIndex,
+                    repeat: true, addToGeometry: false, world.Lines.Count * WallVertices, overrideTexture: texture);
+                m_coverFlatGeometry = AllocateGeometryData(GeometryType.Flat, textureIndex,
+                    repeat: true, addToGeometry: true, overrideTexture: texture);
+            }
+        }
 
         for (int i = 0; i < world.Sectors.Count; i++)
         {
@@ -554,7 +560,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         return geometryData.Vbo.Data;
     }
 
-    private GeometryData AllocateGeometryData(GeometryType type, int textureHandle, bool repeat, bool addToGeometry = true, int vboSize = 0)
+    private GeometryData AllocateGeometryData(GeometryType type, int textureHandle, bool repeat, bool addToGeometry = true, int vboSize = 0, 
+        GLLegacyTexture? overrideTexture = null)
     {
         VertexArrayObject vao = new($"Geometry (handle {textureHandle}, repeat {repeat})");
         vboSize = Math.Max(vboSize, 1024);
@@ -562,7 +569,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         Attributes.BindAndApply(vbo, vao, m_program.Attributes);
 
-        var texture = m_textureManager.GetTexture(textureHandle, repeat);
+        var texture = overrideTexture ?? m_textureManager.GetTexture(textureHandle, repeat);
         var data = new GeometryData(textureHandle, texture, vbo, vao);
 
         if (addToGeometry)
@@ -595,6 +602,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_geometry.ClearVbo();
             m_coverWallGeometry?.Vbo.Clear();
             m_coverWallGeometryOneSided?.Vbo.Clear();
+            m_coverFlatGeometry?.Vbo.Clear();
         }
         else
         {
@@ -602,6 +610,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_textureToGeometryLookup.Clear();
             m_coverWallGeometry?.Dispose();
             m_coverWallGeometryOneSided?.Dispose();
+            m_coverFlatGeometry?.Dispose();
         }
 
         m_coverWallLookup.Clear();
@@ -648,6 +657,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (renderedVertices == null)
             return;
+
+        if (sector.TransferHeights != null || m_coverFlatGeometry == null)
+            AddOrUpdateCoverFlatGeometry(sector, plane, renderedVertices);
 
         if (update)
         {
@@ -697,18 +709,21 @@ public class StaticCacheGeometryRenderer : IDisposable
     }
 
     public void RenderCoverWalls() =>
-        RenderCoverWallsInternal(m_coverWallGeometry);
+        RenderCoverInternal(m_coverWallGeometry);
 
-    public void RenderOneSidedCoverWalls() =>
-        RenderCoverWallsInternal(m_coverWallGeometryOneSided);
+    public void RenderOneSidedCoverWalls()
+    {
+        RenderCoverInternal(m_coverWallGeometryOneSided);
+        RenderCoverInternal(m_coverFlatGeometry);
+    }
 
-    private void RenderCoverWallsInternal(GeometryData? data)
+    private static void RenderCoverInternal(GeometryData? data)
     {
         if (data == null)
             return;
 
         GL.ActiveTexture(TextureUnit.Texture0);
-        GLLegacyTexture texture = m_textureManager.GetTexture(data.TextureHandle, true);
+        GLLegacyTexture texture = data.Texture;
         texture.Bind();
 
         data.Vbo.UploadCapacity();
@@ -721,7 +736,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void RenderGeometry(List<GeometryData> geometry)
     {
         for (int i = 0; i < geometry.Count; i++)
-
         {
             var data = geometry[i];
 
@@ -865,6 +879,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         StaticDataApplier.SetSectorDynamic(world, plane.Sector, plane.Facing.ToSectorPlanes(), SectorDynamic.Movement);
         ClearGeometryVertices(plane.Static);
+
+        if (m_vanillaRender && m_coverFlatLookup.TryGetValue(CoverKey.MakeFlatKey(plane.Sector.Id, plane.Facing), out var coverGeometry))
+            ClearGeometryVertices(coverGeometry);
+
         m_skyGeometry.ClearGeometryVertices(plane);
 
         for (int i = 0; i < plane.Sector.Lines.Count; i++)
@@ -908,7 +926,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void ClearSideGeometryVertices(Side side, Wall wall)
     {
         ClearGeometryVertices(wall.Static);
-        if (m_vanillaRender && m_coverWallLookup.TryGetValue(new CoverWallKey(side.Id, wall.Location), out var geometryData))
+        if (m_vanillaRender && m_coverWallLookup.TryGetValue(CoverKey.MakeCoverWallKey(side.Id, wall.Location), out var geometryData))
             ClearGeometryVertices(geometryData);
     }
 
@@ -1029,7 +1047,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         var useGeometry = wall.Location == WallLocation.Middle && side.PartnerSide == null ? m_coverWallGeometryOneSided : m_coverWallGeometry;
         // This is uploaded as the max possible value so UploadSubData can be used even if it's new.
         var vbo = useGeometry.Vbo;
-        var key = new CoverWallKey(side.Id, wall.Location);
+        var key = CoverKey.MakeCoverWallKey(side.Id, wall.Location);
         int length = sideVertices.Length;
         if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData))
         {            
@@ -1043,9 +1061,36 @@ public class StaticCacheGeometryRenderer : IDisposable
         staticGeometryData = new(useGeometry, vertices.Length, length);
         CoverWallUtil.CopyCoverWallVertices(side, vertices.Data, sideVertices, staticGeometryData.Index, wall.Location);
         vertices.Length += length;
-        m_coverWallLookup[new CoverWallKey(side.Id, wall.Location)] = staticGeometryData;
+        m_coverWallLookup[CoverKey.MakeCoverWallKey(side.Id, wall.Location)] = staticGeometryData;
         vbo.Bind();
         vbo.UploadSubData(staticGeometryData.Index, length);
+    }
+
+    private void AddOrUpdateCoverFlatGeometry(Sector sector, SectorPlane plane, LegacyVertex[] vertices)
+    {
+        if (!m_vanillaRender || m_coverFlatGeometry == null)
+            return;
+
+        var key = CoverKey.MakeFlatKey(sector.Id, plane.Facing);
+        var vbo = m_coverFlatGeometry.Vbo;
+        if (m_coverFlatLookup.TryGetValue(key, out var coverGeometry))
+        {
+            CopyVertices(vbo.Data.Data, vertices, coverGeometry.Index);
+            vbo.Bind();
+            vbo.UploadSubData(coverGeometry.Index, coverGeometry.Length);
+            vbo.Unbind();
+        }
+        else
+        {
+            coverGeometry = new StaticGeometryData(m_coverFlatGeometry, vbo.Data.Length, vertices.Length);
+            m_coverFlatLookup[key] = coverGeometry;
+            AddVertices(vbo.Data, vertices);
+            if (!m_runtimeGeometryTextures.Contains(m_coverFlatGeometry.TextureHandle))
+            {
+                m_runtimeGeometry.Add(m_coverFlatGeometry);
+                m_runtimeGeometryTextures.Add(m_coverFlatGeometry.TextureHandle);
+            }
+        }
     }
 
     private void AddRuntimeGeometry(int textureHandle, LegacyVertex[] vertices, SectorPlane? plane, Side? side, Wall? wall, bool repeat)

@@ -40,6 +40,14 @@ public class RenderWorldDataManager : IDisposable
         CoverWallUtil.SetCoverWallVertices(side, m_coverWalls.Vbo.Data.Data, index, location);
     }
 
+    public void AddCoverFlatVertices(LegacyVertex[] vertices)
+    {
+        if (m_coverWalls == null || !BufferCoverWalls)
+            return;
+
+        m_coverWalls.Vbo.Add(vertices);
+    }
+
     public void Clear()
     {
         var items = m_lookup.GetItems();

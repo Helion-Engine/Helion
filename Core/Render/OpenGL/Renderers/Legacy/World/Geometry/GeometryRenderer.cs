@@ -1221,7 +1221,7 @@ public class GeometryRenderer : IDisposable
         m_worldDataManager.BufferCoverWalls = set;
     }
 
-    public void RenderSectorFlats(Sector sector, SectorPlane flat, bool floor, out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
+    public void RenderSectorFlats(Sector sector, SectorPlane flat, bool floor,  out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
     {
         if (sector.Id >= m_subsectors.Length)
         {
@@ -1240,8 +1240,9 @@ public class GeometryRenderer : IDisposable
         GLLegacyTexture texture = m_glTextureManager.GetTexture(flat.TextureHandle);
         RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Flat);
         bool flatChanged = FlatChanged(flat);
-        int id = subsectors[0].Sector.Id;
-        Sector renderSector = subsectors[0].Sector.GetRenderSector(m_transferHeightsView);
+        var sector = subsectors[0].Sector;
+        int id = sector.Id;
+        Sector renderSector = sector.GetRenderSector(m_transferHeightsView);
         var textureVector = new Vec2F(texture.Dimension.Vector.X, texture.Dimension.Vector.Y);
 
         int indexStart = 0;
@@ -1283,7 +1284,7 @@ public class GeometryRenderer : IDisposable
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
-                    // Don't ignore transferheights sectors. Flood filling sector flats for transfer heights can't currently be emulated.
+                    // Don't ignore transfer heights sectors. Flood filling sector flats for transfer heights can't currently be emulated.
                     if (subsector.Flood && !flat.MidTextureHack && subsector.Sector.TransferHeights == null)
                         continue;
 
@@ -1302,7 +1303,12 @@ public class GeometryRenderer : IDisposable
 
             skyVertices = null;
             vertices = lookupData;
-            renderData.Vbo.Add(lookupData);
+            if (m_buffer)
+            {
+                renderData.Vbo.Add(lookupData);
+                if (sector.TransferHeights != null)
+                    m_worldDataManager.AddCoverFlatVertices(lookupData);
+            }
         }
     }
 
