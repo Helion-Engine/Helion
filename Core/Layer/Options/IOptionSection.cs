@@ -49,9 +49,6 @@ public interface IOptionSection
     public event EventHandler<RowEvent>? OnRowChanged;
     public event EventHandler<string>? OnError;
 
-    public int CurrentRowIndex { get; }
-    public int MaxRowIndex { get; }
-
     public OptionSectionType OptionType { get; }
 
     void OnShow();
