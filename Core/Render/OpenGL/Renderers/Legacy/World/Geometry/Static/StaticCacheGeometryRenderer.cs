@@ -116,19 +116,18 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometryRenderer.SetInitRender();
 
         if (!world.SameAsPreviousMap)
-        {
             m_skyRenderer.Reset();
-            if (m_vanillaRender)
-            {
-                var texture = m_textureManager.WhiteTexture;
-                var textureIndex = 0;
-                m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, textureIndex,
-                    repeat: true, addToGeometry: false, world.Sides.Count * 3 * WallVertices, overrideTexture: texture);
-                m_coverWallGeometryOneSided = AllocateGeometryData(GeometryType.Wall, textureIndex,
-                    repeat: true, addToGeometry: false, world.Lines.Count * WallVertices, overrideTexture: texture);
-                m_coverFlatGeometry = AllocateGeometryData(GeometryType.Flat, textureIndex,
-                    repeat: true, addToGeometry: true, overrideTexture: texture);
-            }
+
+        if (!world.SameAsPreviousMap || (world.SameAsPreviousMap && m_vanillaRender && m_coverWallGeometry == null))
+        {
+            var texture = m_textureManager.WhiteTexture;
+            var textureIndex = 0;
+            m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, textureIndex,
+                repeat: true, addToGeometry: false, world.Sides.Count * 3 * WallVertices, overrideTexture: texture);
+            m_coverWallGeometryOneSided = AllocateGeometryData(GeometryType.Wall, textureIndex,
+                repeat: true, addToGeometry: false, world.Lines.Count * WallVertices, overrideTexture: texture);
+            m_coverFlatGeometry = AllocateGeometryData(GeometryType.Flat, textureIndex,
+                repeat: true, addToGeometry: true, overrideTexture: texture);
         }
 
         for (int i = 0; i < world.Sectors.Count; i++)
