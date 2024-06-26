@@ -412,7 +412,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide);
             }
 
-            if (m_vanillaRender)
+            if (m_vanillaRender && (side.FloodTextures & SideTexture.Upper) == 0)
             {
                 sideVertices = m_geometryRenderer.RenderTwoSidedUpperOrLowerRaw(WallLocation.Upper, side, facingSector, otherSector, isFrontSide);
                 AddOrUpdateCoverWall(side, side.Upper, sideVertices);
@@ -432,7 +432,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower, isFrontSide);
             }
 
-            if (m_vanillaRender)
+            if (m_vanillaRender && (side.FloodTextures & SideTexture.Lower) == 0)
             {
                 sideVertices = m_geometryRenderer.RenderTwoSidedUpperOrLowerRaw(WallLocation.Lower, side, facingSector, otherSector, isFrontSide);
                 AddOrUpdateCoverWall(side, side.Lower, sideVertices);

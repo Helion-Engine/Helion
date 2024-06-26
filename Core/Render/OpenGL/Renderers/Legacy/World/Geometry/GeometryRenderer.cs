@@ -646,7 +646,8 @@ public class GeometryRenderer : IDisposable
         {
             RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall);
             renderData.Vbo.Add(data);
-            m_worldDataManager.AddCoverWallVertices(side, data, WallLocation.Middle);
+            if (m_vanillaRender)
+                m_worldDataManager.AddCoverWallVertices(side, data, WallLocation.Middle);
         }
         vertices = data;
     }
@@ -773,7 +774,7 @@ public class GeometryRenderer : IDisposable
         vertices = null;
         skyVertices = null;
 
-        if (m_vanillaRender)
+        if (m_vanillaRender && (facingSide.FloodTextures & SideTexture.Lower) == 0)
             RenderCoverWall(WallLocation.Lower, facingSide, facingSector, otherSector, isFrontSide);
 
         if (m_renderCoverOnly)
@@ -865,7 +866,8 @@ public class GeometryRenderer : IDisposable
         skyVertices = null;
         skyVertices2 = null;
 
-        RenderCoverWall(WallLocation.Upper, facingSide, facingSector, otherSector, isFrontSide);
+        if (m_vanillaRender && (facingSide.FloodTextures & SideTexture.Upper) == 0)
+            RenderCoverWall(WallLocation.Upper, facingSide, facingSector, otherSector, isFrontSide);
 
         if (m_renderCoverOnly)
             return;
@@ -880,12 +882,6 @@ public class GeometryRenderer : IDisposable
             // Key2 is used for partner side flood. Still may need to draw the upper.
             // Flood only floods the upper texture portion. If the ceiling is a sky texture then the fake sky side needs to be rendered with RenderSkySide.
             renderSkySideOnly = facingSide.UpperFloodKeys.Key1 > 0;
-
-            if (m_vanillaRender && m_buffer)
-            {
-                vertices = RenderTwoSidedUpperOrLowerRaw(WallLocation.Upper, facingSide, facingSector, otherSector, isFrontSide);
-                m_worldDataManager.AddCoverWallVertices(facingSide, vertices, WallLocation.Upper);
-            }
         }
 
         if (!TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&

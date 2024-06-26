@@ -317,6 +317,8 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.RenderStaticCoverWalls();
         m_interpolationProgram.Bind();
         m_worldDataManager.RenderCoverWalls();
+        // Need to render flood fill again. Sprites need to be blocked by flood filling if visible.
+        m_geometryRenderer.Portals.Render(renderInfo);
         GL.Enable(EnableCap.CullFace);
         m_staticProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
