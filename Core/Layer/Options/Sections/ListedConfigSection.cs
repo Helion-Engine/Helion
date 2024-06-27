@@ -484,7 +484,7 @@ public class ListedConfigSection : IOptionSection
 
         if (m_updateRow)
         {
-            OnRowChanged?.Invoke(this, new(m_currentRowIndex));
+            OnRowChanged?.Invoke(this, new(m_currentRowIndex, this.m_configValues[m_currentRowIndex].ConfigAttr.Description));
             m_updateRow = false;
         }
     }
@@ -514,8 +514,12 @@ public class ListedConfigSection : IOptionSection
         (IConfigValue cfgValue, OptionMenuAttribute attr, _) = m_configValues[rowIndex];
         return cfgValue.OptionDisabled || attr.Disabled;
     }
-    
-    public void OnShow() { }
+
+    public void OnShow()
+    {
+        OnRowChanged?.Invoke(this, new(m_currentRowIndex, m_configValues[m_currentRowIndex].ConfigAttr.Description));
+    }
+
     public int GetRenderHeight() => m_renderHeight;
     public (int, int) GetSelectedRenderY() => m_selectedRender;
     public void SetToFirstSelection() => m_currentRowIndex = 0;

@@ -34,9 +34,12 @@ public struct RowEvent
 {
     public readonly int Index;
 
-    public RowEvent(int index)
+    public readonly string SelectedRowDescription;
+
+    public RowEvent(int index, string selectedRowDescription)
     {
         Index = index;
+        SelectedRowDescription = selectedRowDescription;
     }
 }
 

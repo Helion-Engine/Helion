@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Text;
 using Helion.Audio.Sounds;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Layer.Options.Sections;
-using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Resources;
@@ -30,7 +31,7 @@ public class OptionsLayer : IGameLayer
     private const string TiledBackgroundFlat = "FLOOR5_1";
     private const int BackIndex = 0;
     private const int ForwardIndex = 1;
-    
+
     private readonly GameLayerManager m_manager;
     private readonly IConfig m_config;
     private readonly SoundManager m_soundManager;
@@ -42,9 +43,11 @@ public class OptionsLayer : IGameLayer
     private int m_currentSectionIndex;
     private int m_scrollOffset;
     private int m_headerHeight;
+    private int m_footerHeight;
     private int m_messageTicks;
     private string m_message = string.Empty;
     private string m_sectionMessage = string.Empty;
+    private string m_selectedRowDescription = string.Empty;
     private bool m_locked;
     private bool m_resetMouse;
     private bool m_setMouse;
@@ -125,7 +128,7 @@ public class OptionsLayer : IGameLayer
         const int RecursiveOverflowLimit = 100;
         if (depth > RecursiveOverflowLimit)
             throw new($"Overflow when trying to get options from the config: {obj} ({obj.GetType()})");
-        
+
         foreach (FieldInfo fieldInfo in obj.GetType().GetFields())
         {
             if (!fieldInfo.IsPublic)
@@ -148,7 +151,7 @@ public class OptionsLayer : IGameLayer
         }
     }
 
-    private ListedConfigSection GetOrMakeListedConfigSectionOrThrow(Dictionary<OptionSectionType, IOptionSection> sectionMap, 
+    private ListedConfigSection GetOrMakeListedConfigSectionOrThrow(Dictionary<OptionSectionType, IOptionSection> sectionMap,
         OptionSectionType section)
     {
         if (sectionMap.TryGetValue(section, out var optionSection))
@@ -181,7 +184,7 @@ public class OptionsLayer : IGameLayer
     private List<IOptionSection> GenerateSections()
     {
         Dictionary<OptionSectionType, IOptionSection> sectionMap = new();
-        
+
         // This takes all the common section types and turns them into the
         // generic list of values that users can tweak. It does not handle
         // sections that require special logic, like key bindings.
@@ -190,7 +193,7 @@ public class OptionsLayer : IGameLayer
             ListedConfigSection cfgSection = GetOrMakeListedConfigSectionOrThrow(sectionMap, attr.Section);
             cfgSection.Add(value, attr, configAttr);
         }
-        
+
         // Key bindings are a special type of option section handled specially.
         sectionMap[OptionSectionType.Keys] = new KeyBindingSection(m_config, m_soundManager);
 
@@ -208,7 +211,7 @@ public class OptionsLayer : IGameLayer
             optionSection.OnRowChanged += OptionSection_OnRowChanged;
             optionSection.OnError += OptionSection_OnError;
         }
-        
+
         return sections;
     }
 
@@ -221,6 +224,8 @@ public class OptionsLayer : IGameLayer
     {
         if (e.Index == 0)
             m_scrollOffset = 0;
+
+        m_selectedRowDescription = e.SelectedRowDescription;
     }
 
     private void OptionSection_OnLockChanged(object? sender, LockEvent e)
@@ -241,7 +246,7 @@ public class OptionsLayer : IGameLayer
             section.HandleInput(input);
             return;
         }
-        
+
         if (input.ConsumeKeyPressed(Key.Escape))
         {
             m_soundManager.PlayStaticSound(MenuSounds.Choose);
@@ -268,7 +273,7 @@ public class OptionsLayer : IGameLayer
             if (input.ConsumeKeyPressed(Key.End))
                 section.SetToLastSelection();
 
-            bool scrollRequired = ScrollRequired(m_windowSize.Height, section);
+            bool scrollRequired = ScrollRequired(m_windowSize.Height - m_footerHeight, section);
             if (checkScroll && scrollRequired)
                 ScrollToVisibleArea(section);
 
@@ -279,7 +284,7 @@ public class OptionsLayer : IGameLayer
                 if (consumeScroll != 0)
                     m_didMouseWheelScroll = true;
                 m_scrollOffset += consumeScroll * scrollAmount;
-                m_scrollOffset = Math.Clamp(m_scrollOffset, -(section.GetRenderHeight() + m_headerHeight - m_windowSize.Height + scrollAmount), 0);                
+                m_scrollOffset = Math.Clamp(m_scrollOffset, -(Math.Abs(section.GetRenderHeight() + m_headerHeight + m_footerHeight - m_windowSize.Height + scrollAmount)), 0);
             }
 
             int buttonIndex = -1;
@@ -315,9 +320,9 @@ public class OptionsLayer : IGameLayer
     {
         int scrollAmount = GetScrollAmount();
         (int startY, int endY) = section.GetSelectedRenderY();
-        if (endY + m_headerHeight > Math.Abs(m_scrollOffset) + m_windowSize.Height)
+        if (endY + m_headerHeight > Math.Abs(m_scrollOffset) + (m_windowSize.Height - m_footerHeight))
         {
-            m_scrollOffset = (endY + m_headerHeight - m_windowSize.Height);
+            m_scrollOffset = (endY + m_headerHeight - m_windowSize.Height + m_footerHeight);
             m_scrollOffset = -(int)Math.Ceiling((m_scrollOffset / (double)scrollAmount)) * scrollAmount;
         }
 
@@ -349,7 +354,7 @@ public class OptionsLayer : IGameLayer
         for (int y = 0; y < (h / 64) + 1; y++)
             for (int x = 0; x < (w / 64) + 1; x++)
                 hud.Image(TiledBackgroundFlat, (x * 64, y * 64));
-        
+
         hud.FillBox((0, 0, w, h), Color.Black, alpha: 0.8f);
     }
 
@@ -394,7 +399,10 @@ public class OptionsLayer : IGameLayer
 
         hud.Text(m_sectionMessage.Length > 0 ? m_sectionMessage : "Press left or right to change pages.", Fonts.SmallGray, fontSize, (0, m_headerHeight + y),
             out Dimension pageInstrArea, both: Align.TopMiddle, color: Color.Red);
+
         m_headerHeight += pageInstrArea.Height + m_config.Hud.GetScaled(16);
+        List<string> footerLines = GenerateFooterLines(m_selectedRowDescription, Fonts.SmallGray, fontSize, hud, out m_footerHeight);
+
         y += m_headerHeight;
 
         if (m_currentSectionIndex < m_sections.Count)
@@ -428,6 +436,77 @@ public class OptionsLayer : IGameLayer
             hud.FillBox(new(new Vec2I(0, hud.Dimension.Height - dim.Height - (padding * 2)), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.7f);
             hud.Text(m_message, Fonts.SmallGray, fontSize, (0, -padding), both: Align.BottomMiddle, color: Color.Yellow);
         }
+        else if (footerLines.Count > 0)
+        {
+            RenderFooter(footerLines, hud.Height - m_footerHeight, Fonts.SmallGray, fontSize, hud);
+        }
+    }
+
+    private List<string> GenerateFooterLines(string inputText, string font, int fontSize, IHudRenderContext hud, out int requiredHeight)
+    {
+        // Setting descriptions may be verbose, and may need multiple lines to render.  This method precomputes 
+        // the dimensions we'll need for a footer, so we can reserve room when doing rendering and scroll offset
+        // calculations.  It also returns the split text, since we need to figure that out anyway and are going to
+        // need it later when we actually render the footer.
+
+        if (string.IsNullOrEmpty(inputText))
+        {
+            requiredHeight = 0;
+            return new();
+        }
+
+        int maxTokenHeight = 0;
+        int widthCounter = 0;
+        List<string> lines = new();
+        StringBuilder builder = new();
+
+
+        foreach (string token in inputText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(str => $"{str} "))
+        {
+            Dimension tokenSize = hud.MeasureText(token, font, fontSize);
+            maxTokenHeight = Math.Max(maxTokenHeight, tokenSize.Height);
+
+            if (widthCounter + tokenSize.Width > hud.Width)
+            {
+                lines.Add(builder.ToString());
+                builder.Clear();
+                widthCounter = 0;
+            }
+
+            builder.Append(token);
+            widthCounter += tokenSize.Width;
+        }
+
+        // Flush the last line out of the StringBuilder
+        if (builder.Length > 0)
+        {
+            lines.Add(builder.ToString());
+        }
+
+        // Calculate how much room we need for the footer, with padding both above and below the text
+        int padding = m_config.Hud.GetScaled(8);
+        requiredHeight = lines.Count * maxTokenHeight + 2 * padding;
+        return lines;
+    }
+
+    private void RenderFooter(List<string> lines, int startY, string font, int fontSize, IHudRenderContext hud)
+    {
+        int padding = m_config.Hud.GetScaled(8);
+
+        // Make a box at the bottom of the HUD, then write the text lines over the box
+        hud.FillBox(
+            new(new Vec2I(0, startY), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)),
+            Color.Black,
+            alpha: 0.7f);
+
+        int y = hud.Height - m_footerHeight + padding;
+
+        foreach (string line in lines)
+        {
+            Dimension tokenSize = hud.MeasureText(line, font, fontSize);
+            hud.Text(line, font, fontSize, (0, y), out Dimension drawArea, both: Align.TopMiddle, color: Color.White);
+            y += drawArea.Height;
+        }
     }
 
     private void SetMouseFromRender(IHudRenderContext hud)
@@ -451,7 +530,7 @@ public class OptionsLayer : IGameLayer
         if (set)
             return;
 
-        m_cursorPos = m_window.InputManager.MousePosition; 
+        m_cursorPos = m_window.InputManager.MousePosition;
     }
 
     private void RenderScrollBar(IHudRenderContext hud, int fontSize, IOptionSection section)
@@ -459,33 +538,30 @@ public class OptionsLayer : IGameLayer
         if (!ScrollRequired(hud.Dimension.Height, section))
             return;
 
-        int scrollHeight = section.GetRenderHeight();
-        if (scrollHeight <= hud.Dimension.Height)
+        int scrollHeight = section.GetRenderHeight() + m_headerHeight;
+        int maxScrollOffset = scrollHeight - hud.Dimension.Height;
+
+        if (maxScrollOffset < 0)
+        {
             return;
+        }
+
+        int actualScrollOffset = Math.Abs(m_scrollOffset);
+        int barPosition = (int)(actualScrollOffset / (float)maxScrollOffset * hud.Dimension.Height);
 
         const string Bar = "|";
         var textDimension = hud.MeasureText(Bar, Fonts.Small, fontSize);
 
-        int scrollAmount = GetScrollAmount();
-        int scrollDiff = scrollHeight - (hud.Dimension.Height - m_headerHeight);
-        int total = scrollDiff / scrollAmount;
-        if (scrollDiff % scrollAmount != 0)
-            total++;
+        if (barPosition + textDimension.Height > hud.Dimension.Height)
+        {
+            barPosition = hud.Dimension.Height - textDimension.Height;
+        }
 
-        if (total == 0)
-            return;
-
-        int screenScrollAmount = hud.Dimension.Height / total;
-
-        int y = -(total - (total - (m_scrollOffset / scrollAmount))) * screenScrollAmount;
-        if (y + textDimension.Height > hud.Dimension.Height)
-            y = hud.Dimension.Height - textDimension.Height;
-
-        hud.Text(Bar, Fonts.Small, fontSize, (0, y), both: Align.TopRight);
+        hud.Text(Bar, Fonts.Small, fontSize, (0, barPosition), both: Align.TopRight);
     }
 
     private bool ScrollRequired(int windowHeight, IOptionSection section) =>
-        section.GetRenderHeight() - (windowHeight - m_headerHeight) > 0;
+        section.GetRenderHeight() - (windowHeight - m_headerHeight - m_footerHeight) > 0;
 
     public void Dispose()
     {
