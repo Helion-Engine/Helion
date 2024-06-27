@@ -301,8 +301,7 @@ public class GeometryRenderer : IDisposable
                 world.Sectors[sectorId].Ceiling.NoRender = true;
         }
 
-        if (!m_vanillaRender)
-            m_midTextureHack.Apply(world, def.MidTextureHackSectors, m_glTextureManager, TextureManager, this);
+        m_midTextureHack.Apply(world, def.MidTextureHackSectors, m_glTextureManager, TextureManager, this);
     }
 
     private static void SetFloodSectors(IWorld world)
@@ -1091,7 +1090,7 @@ public class GeometryRenderer : IDisposable
             WallVertices wall = default;
             WorldTriangulator.HandleTwoSidedMiddle(facingSide,
                 texture.Dimension, texture.UVInverse, opening, prevOpening, isFrontSide, ref wall, out _, offset, prevOffset, 
-                clipPlanes: GetTwoSidedMiddleClipPlanes(facingSide, facingSector, otherSector));
+                clipPlanes: GetTwoSidedMiddleClipPlanes(facingSide, otherSide, facingSector, otherSector));
 
             if (m_cacheOverride)
             {
@@ -1113,27 +1112,24 @@ public class GeometryRenderer : IDisposable
         vertices = data;
     }
 
-    private SectorPlanes GetTwoSidedMiddleClipPlanes(Side facingSide, Sector facingSector, Sector otherSector)
+    public SectorPlanes GetTwoSidedMiddleClipPlanes(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
     {
         var floor = facingSector.Floor;
         var ceiling = facingSector.Ceiling;
-        var otherFloor = otherSector.Floor;
         var otherCeil = otherSector.Ceiling;
-        SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling;
-        if (m_vanillaRender)
-        {
-            if (floor.Z == otherFloor.Z && floor.TextureHandle == otherFloor.TextureHandle && floor.LightLevel == otherFloor.LightLevel)
-                clipPlanes &= ~SectorPlanes.Floor;
-            if (ceiling.Z == otherCeil.Z && ceiling.TextureHandle == otherCeil.TextureHandle && ceiling.LightLevel == otherCeil.LightLevel)
-                clipPlanes &= ~SectorPlanes.Ceiling;
-            return clipPlanes;
-        }
 
         bool midTextureHack = floor.MidTextureHack || ceiling.MidTextureHack;
         bool isCeilingSky = TextureManager.IsSkyTexture(otherCeil.TextureHandle) && TextureManager.IsSkyTexture(ceiling.TextureHandle);
-        clipPlanes = midTextureHack ? SectorPlanes.None : SectorPlanes.Floor | SectorPlanes.Ceiling;
+        SectorPlanes clipPlanes = midTextureHack ? SectorPlanes.None : SectorPlanes.Floor | SectorPlanes.Ceiling;
         if (isCeilingSky)
             clipPlanes &= ~SectorPlanes.Ceiling;
+
+        if (!LowerIsVisible(facingSide, facingSector, otherSector))
+            clipPlanes &= ~SectorPlanes.Floor;
+
+        if (!UpperOrSkySideIsVisible(TextureManager, facingSide, facingSector, otherSector, out _))
+            clipPlanes &= ~SectorPlanes.Ceiling;
+
         return clipPlanes;
     }
 
