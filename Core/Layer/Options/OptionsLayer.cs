@@ -31,6 +31,9 @@ public class OptionsLayer : IGameLayer
     private const string TiledBackgroundFlat = "FLOOR5_1";
     private const int BackIndex = 0;
     private const int ForwardIndex = 1;
+    private const string Font = Fonts.SmallGray;
+    private const string FooterFont = Fonts.Console;
+    private const string ScrollBarFont = Fonts.Small;
 
     private readonly GameLayerManager m_manager;
     private readonly IConfig m_config;
@@ -38,16 +41,20 @@ public class OptionsLayer : IGameLayer
     private readonly IWindow m_window;
     private readonly List<IOptionSection> m_sections;
     private readonly BoxList m_backForwardPos = new();
+    private readonly List<string> m_footerLines = [];
+    private readonly StringBuilder m_footerStringBuilder = new();
     private Dimension m_windowSize;
     private Vec2I m_cursorPos;
     private int m_currentSectionIndex;
     private int m_scrollOffset;
     private int m_headerHeight;
     private int m_footerHeight;
+    private int m_footerScrollPadding;
     private int m_messageTicks;
     private string m_message = string.Empty;
     private string m_sectionMessage = string.Empty;
     private string m_selectedRowDescription = string.Empty;
+    private string m_lastSelectedRowDescription = string.Empty;
     private bool m_locked;
     private bool m_resetMouse;
     private bool m_setMouse;
@@ -273,7 +280,7 @@ public class OptionsLayer : IGameLayer
             if (input.ConsumeKeyPressed(Key.End))
                 section.SetToLastSelection();
 
-            bool scrollRequired = ScrollRequired(m_windowSize.Height - m_footerHeight, section);
+            bool scrollRequired = ScrollRequired(m_windowSize.Height, section);
             if (checkScroll && scrollRequired)
                 ScrollToVisibleArea(section);
 
@@ -284,7 +291,7 @@ public class OptionsLayer : IGameLayer
                 if (consumeScroll != 0)
                     m_didMouseWheelScroll = true;
                 m_scrollOffset += consumeScroll * scrollAmount;
-                m_scrollOffset = Math.Clamp(m_scrollOffset, -(Math.Abs(section.GetRenderHeight() + m_headerHeight + m_footerHeight - m_windowSize.Height + scrollAmount)), 0);
+                m_scrollOffset = Math.Clamp(m_scrollOffset, -(Math.Abs(section.GetRenderHeight() + m_headerHeight + m_footerScrollPadding - m_windowSize.Height + scrollAmount)), 0);
             }
 
             int buttonIndex = -1;
@@ -320,9 +327,9 @@ public class OptionsLayer : IGameLayer
     {
         int scrollAmount = GetScrollAmount();
         (int startY, int endY) = section.GetSelectedRenderY();
-        if (endY + m_headerHeight > Math.Abs(m_scrollOffset) + (m_windowSize.Height - m_footerHeight))
+        if (endY + m_headerHeight > Math.Abs(m_scrollOffset) + (m_windowSize.Height - m_footerScrollPadding))
         {
-            m_scrollOffset = (endY + m_headerHeight - m_windowSize.Height + m_footerHeight);
+            m_scrollOffset = (endY + m_headerHeight - m_windowSize.Height + m_footerScrollPadding);
             m_scrollOffset = -(int)Math.Ceiling((m_scrollOffset / (double)scrollAmount)) * scrollAmount;
         }
 
@@ -372,13 +379,16 @@ public class OptionsLayer : IGameLayer
         int fontSize = m_config.Hud.GetMediumFontSize();
         int largeFontSize = m_config.Hud.GetLargeFontSize();
         int smallPad = m_config.Hud.GetScaled(2);
-        hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Fonts.SmallGray, fontSize, (smallPad, smallPad),
+
+        m_footerScrollPadding = hud.MeasureText(" ", FooterFont, fontSize).Height * 4 + (m_config.Hud.GetScaled(8) * 2);
+
+        hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, fontSize, (smallPad, smallPad),
             out _, both: Align.TopLeft, color: Color.Red);
 
         m_headerHeight = 0;
         int y = m_scrollOffset;
         int titleY = m_scrollOffset;
-        hud.Text("Options", Fonts.SmallGray, largeFontSize, (smallPad, smallPad + titleY),
+        hud.Text("Options", Font, largeFontSize, (smallPad, smallPad + titleY),
                    out var titleArea, both: Align.TopMiddle, color: Color.White);
         m_headerHeight += titleArea.Height + m_config.Hud.GetScaled(5);
 
@@ -386,22 +396,24 @@ public class OptionsLayer : IGameLayer
         if (m_sections.Count > 1)
         {
             int xOffset = (hud.Dimension.Width - titleArea.Width) / 2;
-            var arrowSize = hud.MeasureText("<-", Fonts.SmallGray, fontSize);
+            var arrowSize = hud.MeasureText("<-", Font, fontSize);
             int yOffset = titleArea.Height - arrowSize.Height;
             Vec2I backArrowPos = (xOffset - arrowSize.Width - padding, titleY + yOffset);
             Vec2I forwardArrowPos = (xOffset + titleArea.Width + padding, titleY + yOffset);
-            hud.Text("<-", Fonts.SmallGray, fontSize, backArrowPos, color: Color.White);
-            hud.Text("->", Fonts.SmallGray, fontSize, forwardArrowPos, color: Color.White);
+            hud.Text("<-", Font, fontSize, backArrowPos, color: Color.White);
+            hud.Text("->", Font, fontSize, forwardArrowPos, color: Color.White);
 
             m_backForwardPos.Add(new Box2I(backArrowPos, (backArrowPos.X + arrowSize.Width, backArrowPos.Y + arrowSize.Height)), BackIndex);
             m_backForwardPos.Add(new Box2I(forwardArrowPos, (forwardArrowPos.X + arrowSize.Width, forwardArrowPos.Y + arrowSize.Height)), ForwardIndex);
         }
 
-        hud.Text(m_sectionMessage.Length > 0 ? m_sectionMessage : "Press left or right to change pages.", Fonts.SmallGray, fontSize, (0, m_headerHeight + y),
+        hud.Text(m_sectionMessage.Length > 0 ? m_sectionMessage : "Press left or right to change pages.", Font, fontSize, (0, m_headerHeight + y),
             out Dimension pageInstrArea, both: Align.TopMiddle, color: Color.Red);
 
         m_headerHeight += pageInstrArea.Height + m_config.Hud.GetScaled(16);
-        List<string> footerLines = GenerateFooterLines(m_selectedRowDescription, Fonts.SmallGray, fontSize, hud, out m_footerHeight);
+        if (m_lastSelectedRowDescription != m_selectedRowDescription)
+            GenerateFooterLines(m_selectedRowDescription, FooterFont, fontSize, hud, m_footerLines, m_footerStringBuilder, out m_footerHeight);
+        m_lastSelectedRowDescription = m_selectedRowDescription;
 
         y += m_headerHeight;
 
@@ -427,39 +439,38 @@ public class OptionsLayer : IGameLayer
             }
         }
         else
-            hud.Text("Unexpected error: no config or keys", Fonts.Small, fontSize, (0, y), out _, both: Align.TopMiddle);
+            hud.Text("Unexpected error: no config or keys", Font, fontSize, (0, y), out _, both: Align.TopMiddle);
 
 
         if (m_message.Length > 0)
         {
-            var dim = hud.MeasureText(m_message, Fonts.SmallGray, fontSize);
+            var dim = hud.MeasureText(m_message, Font, fontSize);
             hud.FillBox(new(new Vec2I(0, hud.Dimension.Height - dim.Height - (padding * 2)), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.7f);
-            hud.Text(m_message, Fonts.SmallGray, fontSize, (0, -padding), both: Align.BottomMiddle, color: Color.Yellow);
+            hud.Text(m_message, Font, fontSize, (0, -padding), both: Align.BottomMiddle, color: Color.Yellow);
         }
-        else if (footerLines.Count > 0)
+        else if (m_footerLines.Count > 0)
         {
-            RenderFooter(footerLines, hud.Height - m_footerHeight, Fonts.SmallGray, fontSize, hud);
+            RenderFooter(m_footerLines, hud.Height - m_footerHeight, FooterFont, fontSize, hud);
         }
     }
 
-    private List<string> GenerateFooterLines(string inputText, string font, int fontSize, IHudRenderContext hud, out int requiredHeight)
+    private void GenerateFooterLines(string inputText, string font, int fontSize, IHudRenderContext hud, List<string> lines, StringBuilder builder,
+        out int requiredHeight)
     {
         // Setting descriptions may be verbose, and may need multiple lines to render.  This method precomputes 
         // the dimensions we'll need for a footer, so we can reserve room when doing rendering and scroll offset
         // calculations.  It also returns the split text, since we need to figure that out anyway and are going to
         // need it later when we actually render the footer.
-
+        m_footerLines.Clear();
+        builder.Clear();
         if (string.IsNullOrEmpty(inputText))
         {
             requiredHeight = 0;
-            return new();
+            return;
         }
 
         int maxTokenHeight = 0;
         int widthCounter = 0;
-        List<string> lines = new();
-        StringBuilder builder = new();
-
 
         foreach (string token in inputText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(str => $"{str} "))
         {
@@ -486,7 +497,6 @@ public class OptionsLayer : IGameLayer
         // Calculate how much room we need for the footer, with padding both above and below the text
         int padding = m_config.Hud.GetScaled(8);
         requiredHeight = lines.Count * maxTokenHeight + 2 * padding;
-        return lines;
     }
 
     private void RenderFooter(List<string> lines, int startY, string font, int fontSize, IHudRenderContext hud)
@@ -538,7 +548,7 @@ public class OptionsLayer : IGameLayer
         if (!ScrollRequired(hud.Dimension.Height, section))
             return;
 
-        int scrollHeight = section.GetRenderHeight() + m_headerHeight;
+        int scrollHeight = section.GetRenderHeight() + m_headerHeight + m_footerScrollPadding;
         int maxScrollOffset = scrollHeight - hud.Dimension.Height;
 
         if (maxScrollOffset < 0)
@@ -550,18 +560,18 @@ public class OptionsLayer : IGameLayer
         int barPosition = (int)(actualScrollOffset / (float)maxScrollOffset * hud.Dimension.Height);
 
         const string Bar = "|";
-        var textDimension = hud.MeasureText(Bar, Fonts.Small, fontSize);
+        var textDimension = hud.MeasureText(Bar, ScrollBarFont, fontSize);
 
         if (barPosition + textDimension.Height > hud.Dimension.Height)
         {
             barPosition = hud.Dimension.Height - textDimension.Height;
         }
 
-        hud.Text(Bar, Fonts.Small, fontSize, (0, barPosition), both: Align.TopRight);
+        hud.Text(Bar, ScrollBarFont, fontSize, (0, barPosition), both: Align.TopRight);
     }
 
     private bool ScrollRequired(int windowHeight, IOptionSection section) =>
-        section.GetRenderHeight() - (windowHeight - m_headerHeight - m_footerHeight) > 0;
+        section.GetRenderHeight() - (windowHeight - m_headerHeight - m_footerScrollPadding) > 0;
 
     public void Dispose()
     {
