@@ -71,6 +71,7 @@ public class OptionsLayer : IGameLayer
         m_config.Window.State.OnChanged += WindowState_OnChanged;
         m_config.Window.Virtual.Enable.OnChanged += WindowVirtualEnable_OnChanged;
         m_config.Window.Virtual.Dimension.OnChanged += WindowVirtualDimension_OnChanged;
+        m_config.Hud.Scale.OnChanged += Scale_OnChanged;
     }
 
     public void OnShow()
@@ -91,6 +92,8 @@ public class OptionsLayer : IGameLayer
     private void WindowVirtualEnable_OnChanged(object? sender, bool e) => HandleResize();
 
     private void WindowState_OnChanged(object? sender, RenderWindowState e) => HandleResize();
+
+    private void Scale_OnChanged(object? sender, double e) => m_lastSelectedRowDescription = string.Empty;
 
     private void HandleResize()
     {
