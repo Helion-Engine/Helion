@@ -1024,7 +1024,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, LegacyVertex[] vertices,
         SectorPlane? plane, Side? side, Wall? wall, bool repeat)
     {
-        if (side != null && wall != null)
+        if (side != null && wall != null && GetWallType(side, wall) != GeometryType.TwoSidedMiddleWall)
             AddOrUpdateCoverWall(side, wall, vertices);
 
         if (geometryData == null)
