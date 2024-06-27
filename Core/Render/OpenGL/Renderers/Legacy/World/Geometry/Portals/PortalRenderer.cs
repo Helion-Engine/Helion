@@ -69,8 +69,12 @@ public class PortalRenderer : IDisposable
     private void HandleFloodFillPlane(Side facingSide, Sector floodSector, SectorPlanes planes, SectorPlaneFace face, bool isFront, bool update)
     {
         var line = facingSide.Line;
-        var floodPlanes = facingSide.MidTextureFlood;
+        var saveStart = line.Segment.Start;
+        var saveEnd = line.Segment.End;
         WallVertices wall = default;
+
+        if (facingSide.Middle.TextureHandle != Constants.NoTextureIndex)
+            PushSeg(line, facingSide, PushDir.Back, m_pushSegAmount);
 
         if (face == SectorPlaneFace.Floor)
         {
@@ -102,6 +106,9 @@ public class PortalRenderer : IDisposable
             else
                 facingSide.CeilingFloodKey = m_floodFillRenderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, bottom.Z, isFloodFillPlane: true);
         }
+
+        line.Segment.Start = saveStart;
+        line.Segment.End = saveEnd;
     }
 
     private void HandleStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront, bool update)
@@ -115,7 +122,7 @@ public class PortalRenderer : IDisposable
         var saveEnd = line.Segment.End;
 
         // The middle texture renders over any potential flood textures. Push the flood texture slightly behind the line.
-        if (facingSide.Middle.TextureHandle > Constants.NullCompatibilityTextureIndex)
+        if (facingSide.Middle.TextureHandle > Constants.NullCompatibilityTextureIndex || floodSector.Flood)
             PushSeg(facingSide.Line, facingSide, PushDir.Back, m_pushSegAmount);
 
         if (sideTexture == SideTexture.Upper)
