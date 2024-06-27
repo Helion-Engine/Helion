@@ -27,6 +27,7 @@ namespace Helion.Layer.Options.Sections;
 
 public class ListedConfigSection : IOptionSection
 {
+    private const string Font = Fonts.SmallGray;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public event EventHandler<LockEvent>? OnLockChanged;
@@ -363,13 +364,13 @@ public class ListedConfigSection : IOptionSection
     
     private void RenderEditAndUnderscore(IHudRenderContext hud, int fontSize, Vec2I pos, out Dimension renderArea, Color textColor)
     {
-        hud.Text(m_rowEditText.ToString(), Fonts.SmallGray, fontSize, (16, pos.Y), out renderArea, window: Align.TopMiddle, 
+        hud.Text(m_rowEditText.ToString(), Font, fontSize, (16, pos.Y), out renderArea, window: Align.TopMiddle, 
             anchor: Align.TopLeft, color: textColor);
 
         if (Flash())
         {
             int x = pos.X + renderArea.Width + 1;
-            hud.Text("_", Fonts.SmallGray, fontSize, (x, pos.Y), out _, window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Yellow);
+            hud.Text("_", Font, fontSize, (x, pos.Y), out _, window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Yellow);
         }
     }
 
@@ -379,16 +380,16 @@ public class ListedConfigSection : IOptionSection
         {
             // To prevent the word from moving, the left arrow needs to be drawn to the
             // left of the word. We have to calculate this.
-            Dimension leftArrowArea = hud.MeasureText("<", Fonts.SmallGray, fontSize);
+            Dimension leftArrowArea = hud.MeasureText("<", Font, fontSize);
             
-            hud.Text("<", Fonts.SmallGray, fontSize, (pos.X - leftArrowArea.Width - 4, pos.Y), out _, window: Align.TopMiddle, 
+            hud.Text("<", Font, fontSize, (pos.X - leftArrowArea.Width - 4, pos.Y), out _, window: Align.TopMiddle, 
                 anchor: Align.TopLeft, color: Color.Yellow);
             
-            hud.Text(m_rowEditText.ToString(), Fonts.SmallGray, fontSize, (pos.X, pos.Y), out Dimension textArea, window: Align.TopMiddle, 
+            hud.Text(m_rowEditText.ToString(), Font, fontSize, (pos.X, pos.Y), out Dimension textArea, window: Align.TopMiddle, 
                 anchor: Align.TopLeft, color: textColor);
             int accumulatedWidth = textArea.Width + 4;
             
-            hud.Text(">", Fonts.SmallGray, fontSize, (pos.X + accumulatedWidth, pos.Y), out Dimension rightArrowArea, window: Align.TopMiddle, 
+            hud.Text(">", Font, fontSize, (pos.X + accumulatedWidth, pos.Y), out Dimension rightArrowArea, window: Align.TopMiddle, 
                 anchor: Align.TopLeft, color: Color.Yellow);
             accumulatedWidth += rightArrowArea.Width;
 
@@ -397,7 +398,7 @@ public class ListedConfigSection : IOptionSection
         }
         else
         {
-            hud.Text(m_rowEditText.ToString(), Fonts.SmallGray, fontSize, pos, out renderArea, window: Align.TopMiddle, 
+            hud.Text(m_rowEditText.ToString(), Font, fontSize, pos, out renderArea, window: Align.TopMiddle, 
                 anchor: Align.TopLeft, color: textColor);
         }
     }
@@ -421,7 +422,7 @@ public class ListedConfigSection : IOptionSection
         
         int y = startY;
         
-        hud.Text(OptionType.ToString(), Fonts.SmallGray, m_config.Hud.GetLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
+        hud.Text(OptionType.ToString(), Font, m_config.Hud.GetLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
         y += headerArea.Height + m_config.Hud.GetScaled(8);
 
         int fontSize = m_config.Hud.GetSmallFontSize();
@@ -439,8 +440,8 @@ public class ListedConfigSection : IOptionSection
             if (i == m_currentRowIndex && m_rowIsSelected)
                 attrColor = Color.Yellow;
 
-            string name = GetEllipsesText(hud, attr.Name, Fonts.SmallGray, fontSize, hud.Dimension.Width / 2 - offsetX);
-            hud.Text(name, Fonts.SmallGray, fontSize, (-offsetX, y), out Dimension attrArea, window: Align.TopMiddle, 
+            string name = GetEllipsesText(hud, attr.Name, Font, fontSize, hud.Dimension.Width / 2 - offsetX);
+            hud.Text(name, Font, fontSize, (-offsetX, y), out Dimension attrArea, window: Align.TopMiddle, 
                 anchor: Align.TopRight, color: attrColor);
 
             Dimension valueArea;
@@ -453,7 +454,7 @@ public class ListedConfigSection : IOptionSection
             }
             else
             {
-                hud.Text(GetConfigDisplayValue(cfgValue, attr), Fonts.SmallGray, fontSize, (offsetX, y), out valueArea, window: Align.TopMiddle, 
+                hud.Text(GetConfigDisplayValue(cfgValue, attr), Font, fontSize, (offsetX, y), out valueArea, window: Align.TopMiddle, 
                     anchor: Align.TopLeft, color: valueColor);
             }
 
@@ -462,11 +463,11 @@ public class ListedConfigSection : IOptionSection
 
             if (i == m_currentRowIndex && m_hasSelectableRow && !m_rowIsSelected)
             {
-                var arrowSize = hud.MeasureText("<", Fonts.SmallGray, fontSize);
+                var arrowSize = hud.MeasureText("<", Font, fontSize);
                 Vec2I arrowLeft = (-offsetX - attrArea.Width - m_config.Hud.GetScaled(2), y);
-                hud.Text(">", Fonts.SmallGray, fontSize, arrowLeft, window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);
+                hud.Text(">", Font, fontSize, arrowLeft, window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);
                 Vec2I arrowRight = (-offsetX + arrowSize.Width + m_config.Hud.GetScaled(2), y);
-                hud.Text("<", Fonts.SmallGray, fontSize, arrowRight, window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);
+                hud.Text("<", Font, fontSize, arrowRight, window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);
             }
 
             int maxHeight = Math.Max(attrArea.Height, valueArea.Height);
@@ -491,13 +492,13 @@ public class ListedConfigSection : IOptionSection
 
     private static string GetEllipsesText(IHudRenderContext hud, string text, string font, int fontSize, int maxWidth)
     {
-        int nameWidth = hud.MeasureText(text, Fonts.SmallGray, fontSize).Width;
+        int nameWidth = hud.MeasureText(text, Font, fontSize).Width;
         if (nameWidth <= maxWidth)
             return text;
 
         var textSpan = text.AsSpan();
         int sub = 1;
-        while (sub < textSpan.Length && hud.MeasureText(textSpan, Fonts.SmallGray, fontSize).Width > maxWidth)
+        while (sub < textSpan.Length && hud.MeasureText(textSpan, Font, fontSize).Width > maxWidth)
         {
             textSpan = text.AsSpan(0, text.Length - sub);
             sub++;
@@ -506,7 +507,7 @@ public class ListedConfigSection : IOptionSection
         if (textSpan.Length <= 3)
             return text;
 
-        return text.Substring(0, textSpan.Length - 3) + "...";
+        return string.Concat(text.AsSpan(0, textSpan.Length - 3), "...");
     }
 
     private bool IsConfigDisabled(int rowIndex)
