@@ -73,8 +73,8 @@ public class PortalRenderer : IDisposable
         var saveEnd = line.Segment.End;
         WallVertices wall = default;
 
-        if (facingSide.Middle.TextureHandle != Constants.NoTextureIndex)
-            PushSeg(line, facingSide, PushDir.Back, m_pushSegAmount);
+        if (facingSide.Middle.TextureHandle > Constants.NullCompatibilityTextureIndex)
+            PushSeg(line, facingSide, PushDir.Forward, m_pushSegAmount);
 
         if (face == SectorPlaneFace.Floor)
         {
