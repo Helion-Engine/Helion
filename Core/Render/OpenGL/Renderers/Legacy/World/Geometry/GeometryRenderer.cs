@@ -694,7 +694,11 @@ public class GeometryRenderer : IDisposable
         Sector otherSector = otherSide.Sector.GetRenderSector(m_transferHeightsView);
 
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick) || facingSide.Sector.CheckRenderingChanged(facingSide.LastRenderGametick);
-        facingSide.LastRenderGametick = m_world.Gametick;
+
+        // Don't set the game tick if rendering cover walls. This will prevent lines from rendering when the camera goes from back side to front.
+        if (!m_renderCoverOnly)
+            facingSide.LastRenderGametick = m_world.Gametick;
+
         if (facingSide.IsDynamic && LowerIsVisible(facingSide, facingSector, otherSector))
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex &&
