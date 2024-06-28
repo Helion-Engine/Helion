@@ -4,6 +4,7 @@ using Helion.Client.Input;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render;
+using Helion.Render.OpenGL.Context;
 using Helion.Resources.Archives.Collection;
 using Helion.Strings;
 using Helion.Util.Configs;
@@ -39,8 +40,9 @@ public class Window : GameWindow, IWindow
     private SpanString m_textInput = new();
     private bool m_disposed;
 
-    public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement, int glMajor, int glMinor) :
-        base(MakeGameWindowSettings(), MakeNativeWindowSettings(config, title, glMajor, glMinor))
+    public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement, 
+        int glMajor, int glMinor, GLContextFlags flags) :
+        base(MakeGameWindowSettings(), MakeNativeWindowSettings(config, title, glMajor, glMinor, flags))
     {
         Log.Debug("Creating client window");
 
@@ -150,15 +152,21 @@ public class Window : GameWindow, IWindow
         };
     }
 
-    public static NativeWindowSettings MakeNativeWindowSettings(IConfig config, string title, int glMajor, int glMinor)
+    public static NativeWindowSettings MakeNativeWindowSettings(IConfig config, string title, int glMajor, int glMinor, GLContextFlags flags)
     {
         (int windowWidth, int windowHeight) = config.Window.Dimension.Value;
+
+        var settingsFlags = ContextFlags.Default;
+        if ((flags & GLContextFlags.ForwardCompatible) != 0)
+            settingsFlags |= ContextFlags.ForwardCompatible;
+        if (config.Developer.Render.Debug)
+            settingsFlags |= ContextFlags.Debug;
 
         var settings = new NativeWindowSettings
         {
             Profile = ContextProfile.Core,
             APIVersion = new Version(glMajor, glMinor),
-            Flags = config.Developer.Render.Debug ? ContextFlags.Debug : ContextFlags.Default,
+            Flags = settingsFlags,
             NumberOfSamples = config.Render.Multisample.Value,
             Size = new Vector2i(windowWidth, windowHeight),
             Title = title,

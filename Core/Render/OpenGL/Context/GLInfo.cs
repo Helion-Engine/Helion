@@ -2,10 +2,17 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Context;
 
+public enum GLContextFlags
+{
+    Default,
+    ForwardCompatible = 1
+}
+
 public static class GlVersion
 {
     public static int Major;
     public static int Minor;
+    public static GLContextFlags Flags;
 
     public static bool IsVersionSupported(int major, int minor)
     {

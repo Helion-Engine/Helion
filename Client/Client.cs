@@ -57,12 +57,12 @@ public partial class Client : IDisposable, IInputManagement
     private bool m_loadComplete;
     private WorldModel? m_loadCompleteModel;
 
-    record struct VersionTest(int Major, int Minor, Action? OnSuccess);
+    record struct VersionTest(int Major, int Minor);
     private static readonly VersionTest[] Versions =
     [
-        new VersionTest(4, 5, null),
-        new VersionTest(4, 4, CheckSupport),
-        new VersionTest(3, 3, CheckSupport)
+        new VersionTest(4, 5),
+        new VersionTest(4, 4),
+        new VersionTest(3, 3)
     ];
 
     private Client(CommandLineArgs commandLineArgs, IConfig config, HelionConsole console, IAudioSystem audioSystem,
@@ -76,9 +76,18 @@ public partial class Client : IDisposable, IInputManagement
         m_saveGameManager = new SaveGameManager(config, commandLineArgs.SaveDir);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
 
-        SetOpenGLVersion(config);
+        if (commandLineArgs.GlVersion.HasValue)
+        {
+            GlVersion.Major = commandLineArgs.GlVersion.Value / 10;
+            GlVersion.Minor = commandLineArgs.GlVersion.Value - GlVersion.Major * 10;
+        }
+        else
+        {
+            SetOpenGLVersion(config);
+        }
 
-        m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor);
+        m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor, GlVersion.Flags);
+        CheckOpenGLSupport();
         SetIcon(m_window);
 
         m_layerManager = new GameLayerManager(config, m_window, console, m_consoleCommands, archiveCollection,
@@ -99,14 +108,25 @@ public partial class Client : IDisposable, IInputManagement
 
     private static void SetOpenGLVersion(IConfig config)
     {
+        // MacOS is opposite from Windows/Linux. Request 3.3 with ForwardCompatible and MacOS will return the highest available (The M series appears to return 4.1).
+        // Running the tests below appears to generate a hard crash so just force it here.
+        if (OperatingSystem.IsMacOS())
+        {
+            Log.Info("MacOS: Requesting OpenGL 3.3 with ForwardCompatible");
+            GlVersion.Major = 3;
+            GlVersion.Minor = 3;
+            GlVersion.Flags = GLContextFlags.ForwardCompatible;
+            return;
+        }
+
         // Helion supports a minimum of 3.3 but will use features from newer versions / extensions if supported.
         // Checks for 4.5 / ClipControl extension for reverse-z projection.
         // Checks for 4.4 to use MapPersistentBit. Specifically required for AMD Vega cards as they do not do this automatically.
         // AMD used to map persistent automatically, NVIDIA apparently always does.
         foreach (var version in Versions)
         {
-            var settings = Window.MakeNativeWindowSettings(config, string.Empty, version.Major, version.Minor);
-            if (GlVersionTest.Test(settings, version.OnSuccess))
+            var settings = Window.MakeNativeWindowSettings(config, string.Empty, version.Major, version.Minor, GLContextFlags.Default);
+            if (GlVersionTest.Test(settings))
             {
                 GlVersion.Major = version.Major;
                 GlVersion.Minor = version.Minor;
@@ -115,7 +135,7 @@ public partial class Client : IDisposable, IInputManagement
         }
     }
 
-    private static void CheckSupport()
+    private static void CheckOpenGLSupport()
     {
         GLInfo.ClipControlSupported = GLExtensions.Supports("GL_ARB_clip_control");
         GLInfo.MapPersistentBitSupported = GlVersion.IsVersionSupported(4, 4);
@@ -449,7 +469,7 @@ public partial class Client : IDisposable, IInputManagement
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(archiveCollection.DataCache, config, commandLineArgs);
             LogClientInfo();
-            using IMusicPlayer musicPlayer = new MusicPlayer();
+            using IMusicPlayer musicPlayer = commandLineArgs.NoMusic ? new MockMusicPlayer() : new MusicPlayer();
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
 
             using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);

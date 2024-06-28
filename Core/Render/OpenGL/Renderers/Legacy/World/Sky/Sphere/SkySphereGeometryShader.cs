@@ -28,7 +28,7 @@ public class SkySphereGeometryShader : RenderProgram
     ";
 
     protected override string FragmentShader() => @"
-        #version 130
+        #version 330
 
         out vec4 fragColor;
 

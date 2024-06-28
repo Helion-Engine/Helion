@@ -35,6 +35,8 @@ public class CommandLineArgs
     public double? SetAngle { get; set; }
     public double? SetPitch { get; set; }
     public IList<string> Cheats { get; set; } = Array.Empty<string>();
+    public int? GlVersion { get; set; }
+    public bool NoMusic { get; set; }
 
     private static readonly string[] Options = new string[]
     {
@@ -55,10 +57,12 @@ public class CommandLineArgs
         "-deh",
         "-record",
         "-playdemo",
+        "-nomusic",
         "+setpos",
         "+cheats",
         "+setangle",
-        "+setpitch"
+        "+setpitch",
+        "+glversion"
     };
 
     /// <summary>
@@ -113,6 +117,8 @@ public class CommandLineArgs
                 commandLineArgs.NoMonsters = true;
             else if (IsArgMatch(parsedArg, "-levelstat"))
                 commandLineArgs.LevelStat = true;
+            else if (IsArgMatch(parsedArg, "-nomusic"))
+                commandLineArgs.NoMusic = true;
             else if (IsArgMatch(parsedArg, "-loadgame"))
                 commandLineArgs.LoadGame = GetString(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "+sv_fastmonsters"))
@@ -131,6 +137,8 @@ public class CommandLineArgs
                 commandLineArgs.SetAngle = ParseDouble(GetString(commandLineArgs, parsedArg));
             else if (IsArgMatch(parsedArg, "+setpitch"))
                 commandLineArgs.SetPitch = ParseDouble(GetString(commandLineArgs, parsedArg));
+            else if (IsArgMatch(parsedArg, "+glversion"))
+                commandLineArgs.GlVersion = ParseInt(commandLineArgs, parsedArg);
             else
                 commandLineArgs.Errors.Add("Unknown command: " + parsedArg.Key);
         }
