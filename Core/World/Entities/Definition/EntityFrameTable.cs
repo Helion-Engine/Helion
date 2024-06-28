@@ -78,7 +78,7 @@ public class EntityFrameTable
         entityFrame.NextFrameIndex = entityFrame.MasterFrameIndex;
         ClosetLookFrameIndex = entityFrame.MasterFrameIndex;
 
-        entityFrame = new(this, Constants.InvisibleSprite, 0, 35, EntityFrameProperties.Default, EntityActionFunctions.A_ClosetChase, 0, string.Empty);
+        entityFrame = new(this, Constants.InvisibleSprite, 0, 16, EntityFrameProperties.Default, EntityActionFunctions.A_ClosetChase, 0, string.Empty);
         AddFrame(entityFrame);
         entityFrame.NextFrameIndex = entityFrame.MasterFrameIndex;
         ClosetChaseFrameIndex = entityFrame.MasterFrameIndex;

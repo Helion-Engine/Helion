@@ -33,7 +33,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     private const double Speed = 47000 / 65536.0;
     private const int ForceGibDamage = ushort.MaxValue;
     private const int KillDamage = ushort.MaxValue - 1;
-    private const int DefaultClosetChaseSpeed = 64;
+    private const int DefaultClosetChaseSpeed = 40;
     public const double FloatSpeed = 4.0;
 
     public Entity? Next;
