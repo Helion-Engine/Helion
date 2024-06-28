@@ -407,7 +407,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             if (!update)
             {
-                if ((side.FloodTextures & SideTexture.Upper) != 0 || side.PartnerSide!.Sector.FloodOpposingCeiling)
+                if ((side.FloodTextures & SideTexture.Upper) != 0 || side.PartnerSide!.Sector.FloodOpposingCeiling) 
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide);
             }
 
@@ -418,7 +418,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             }
         }
 
-        bool lowerVisible = GeometryRenderer.LowerIsVisible(side, facingSector, otherSector);
+        bool lowerVisible = m_geometryRenderer.IsLowerVisibleWithTransferHeights(side, otherSide, facingSector, otherSector);
         if (lower && lowerVisible)
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
@@ -657,7 +657,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (renderedVertices == null)
             return;
 
-        if (sector.TransferHeights != null || m_coverFlatGeometry == null)
+        if (sector.TransferHeights != null && m_coverFlatGeometry != null)
             AddOrUpdateCoverFlatGeometry(sector, plane, renderedVertices);
 
         if (update)
@@ -1068,6 +1068,11 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddOrUpdateCoverFlatGeometry(Sector sector, SectorPlane plane, LegacyVertex[] vertices)
     {
         if (!m_vanillaRender || m_coverFlatGeometry == null)
+            return;
+
+        var renderSector = sector.GetRenderSector(TransferHeightView.Middle);
+        // Don't need this cover flat if they are equal.
+        if (renderSector.GetSectorPlane(plane.Facing).Z == plane.Z)
             return;
 
         var key = CoverKey.MakeFlatKey(sector.Id, plane.Facing);
