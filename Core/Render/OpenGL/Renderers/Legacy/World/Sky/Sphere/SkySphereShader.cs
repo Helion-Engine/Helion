@@ -50,7 +50,7 @@ public class SkySphereShader : RenderProgram
     ";
 
     protected override string FragmentShader() => @"
-        #version 130
+        #version 330
 
         in vec2 uvFrag;
 

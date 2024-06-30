@@ -27,7 +27,6 @@ public unsafe struct BspNodeCompact
     /// out which side of the line a point is on.
     /// </summary>
     public Vec2D SplitStart;
-    public Vec2D SplitEnd;
     public Vec2D SplitDelta;
 
     /// <summary>
@@ -49,7 +48,6 @@ public unsafe struct BspNodeCompact
     public BspNodeCompact(uint leftChild, uint rightChild, Vec2D start, Vec2D end, Box2D boundingBox)
     {
         SplitStart = start;
-        SplitEnd = end;
         SplitDelta = end - start;
         BoundingBox = boundingBox;
         Children[0] = leftChild;

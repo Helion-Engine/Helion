@@ -124,7 +124,7 @@ public class AutomapMarker
 
                 LegacyWorldRenderer.SetOccludePosition(pos.Position, pos.AngleRadians, pos.PitchRadians,
                     ref m_occlude, ref m_occludeViewPos);
-                MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position, pos.ViewDirection.XY, m_world, token);
+                MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position.XY, pos.ViewDirection.XY, m_world, token);
             }
 
             m_stopwatch.Stop();
@@ -135,17 +135,16 @@ public class AutomapMarker
         }
     }
 
-    private unsafe void MarkBspLineClips(uint nodeIndex, in Vec3D position, in Vec2D viewDirection, IWorld world, CancellationToken token)
+    private unsafe void MarkBspLineClips(uint nodeIndex, in Vec2D position, in Vec2D viewDirection, IWorld world, CancellationToken token)
     {
-        Vec2D pos2D = position.XY;
         while ((nodeIndex & BspNodeCompact.IsSubsectorBit) == 0)
         {
             fixed (BspNodeCompact* node = &world.BspTree.Nodes[nodeIndex])
             {
-                if (Occluded(node->BoundingBox, pos2D, viewDirection))
+                if (Occluded(node->BoundingBox, position, viewDirection))
                     return;
 
-                double dot = (node->SplitDelta.X * (position.X - node->SplitStart.Y)) - (node->SplitDelta.Y * (position.Y - node->SplitStart.X));
+                double dot = (node->SplitDelta.X * (position.Y - node->SplitStart.Y)) - (node->SplitDelta.Y * (position.X - node->SplitStart.X));
                 int front = Convert.ToInt32(dot < 0);
                 int back = front ^ 1;
 
@@ -158,7 +157,7 @@ public class AutomapMarker
         }
 
         Subsector subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
-        if (Occluded(subsector.BoundingBox, pos2D, viewDirection))
+        if (Occluded(subsector.BoundingBox, position, viewDirection))
             return;
 
         for (int i = 0; i < subsector.ClockwiseEdges.Count; i++)
@@ -175,7 +174,7 @@ public class AutomapMarker
                 continue;
             }
 
-            if (line.Back == null && !line.Segment.OnRight(pos2D))
+            if (line.Back == null && !line.Segment.OnRight(position))
                 continue;
 
             if (m_viewClipper.InsideAnyRange(line.Segment.Start, line.Segment.End))
@@ -187,7 +186,7 @@ public class AutomapMarker
             if (line.SeenForAutomap)
                 continue;
 
-            if (m_occlude && !line.Segment.InView(pos2D, viewDirection))
+            if (m_occlude && !line.Segment.InView(position, viewDirection))
                 continue;
 
             line.MarkSeenOnAutomap();

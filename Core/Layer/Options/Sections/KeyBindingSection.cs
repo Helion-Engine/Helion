@@ -25,6 +25,8 @@ namespace Helion.Layer.Options.Sections;
 
 public class KeyBindingSection : IOptionSection
 {
+    private const string Font = Fonts.SmallGray;
+
     struct CommandKeys
     {
         public readonly string Command;
@@ -91,6 +93,7 @@ public class KeyBindingSection : IOptionSection
 
     public void OnShow()
     {
+        OnRowChanged?.Invoke(this, new(m_currentRow, string.Empty));
         m_configUpdated = true;
     }
 
@@ -355,21 +358,21 @@ public class KeyBindingSection : IOptionSection
         }
 
         int fontSize = m_config.Hud.GetSmallFontSize();
-        hud.Text("Key Bindings", Fonts.SmallGray, m_config.Hud.GetLargeFontSize(), (0, startY), out Dimension headerArea, 
+        hud.Text("Key Bindings", Font, m_config.Hud.GetLargeFontSize(), (0, startY), out Dimension headerArea, 
             both: Align.TopMiddle, color: Color.Red);
         int y = startY + headerArea.Height + m_config.Hud.GetScaled(8);
         int xOffset = m_config.Hud.GetScaled(4) * 2;
         int smallPad = m_config.Hud.GetScaled(1);
 
-        hud.Text("Scroll with the mouse wheel or holding up/down", Fonts.SmallGray, fontSize, (0, y), out Dimension scrollArea, 
+        hud.Text("Scroll with the mouse wheel or holding up/down", Font, fontSize, (0, y), out Dimension scrollArea, 
             both: Align.TopMiddle, color: Color.Firebrick);
         y += scrollArea.Height + smallPad;
         
-        hud.Text("Press delete to clear all bindings", Fonts.SmallGray, fontSize, (0, y), out Dimension instructionArea, 
+        hud.Text("Press delete to clear all bindings", Font, fontSize, (0, y), out Dimension instructionArea, 
             both: Align.TopMiddle, color: Color.Firebrick);
         y += instructionArea.Height + smallPad;
         
-        hud.Text("Press enter to start binding and press a key", Fonts.SmallGray, fontSize, (0, y), out Dimension enterArea, 
+        hud.Text("Press enter to start binding and press a key", Font, fontSize, (0, y), out Dimension enterArea, 
             both: Align.TopMiddle, color: Color.Firebrick);
         y += enterArea.Height + m_config.Hud.GetScaled(12);
 
@@ -380,12 +383,12 @@ public class KeyBindingSection : IOptionSection
             Dimension commandArea;
             if (cmdIndex == m_currentRow && m_updatingKeyBinding)
             {
-                hud.Text(commandKeys.Name, Fonts.SmallGray, fontSize, (-xOffset, y), out commandArea,
+                hud.Text(commandKeys.Name, Font, fontSize, (-xOffset, y), out commandArea,
                     window: Align.TopMiddle, anchor: Align.TopRight, color: Color.Yellow);
             }
             else
             {
-                hud.Text(commandKeys.Name, Fonts.SmallGray, fontSize, (-xOffset, y), out commandArea,
+                hud.Text(commandKeys.Name, Font, fontSize, (-xOffset, y), out commandArea,
                     window: Align.TopMiddle, anchor: Align.TopRight, color: Color.Red);
             }
 
@@ -394,18 +397,18 @@ public class KeyBindingSection : IOptionSection
 
             if (cmdIndex == m_currentRow && !m_updatingKeyBinding)
             {
-                var arrowSize = hud.MeasureText("<", Fonts.SmallGray, fontSize);
+                var arrowSize = hud.MeasureText("<", Font, fontSize);
                 Vec2I arrowLeft = (-xOffset - commandArea.Width - m_config.Hud.GetScaled(2), y);
-                hud.Text(">", Fonts.SmallGray, fontSize, arrowLeft, window: Align.TopMiddle,
+                hud.Text(">", Font, fontSize, arrowLeft, window: Align.TopMiddle,
                     anchor: Align.TopRight, color: Color.White);
                 Vec2I arrowRight = (-xOffset + arrowSize.Width + m_config.Hud.GetScaled(2), y);
-                hud.Text("<", Fonts.SmallGray, fontSize, arrowRight, window: Align.TopMiddle, 
+                hud.Text("<", Font, fontSize, arrowRight, window: Align.TopMiddle, 
                     anchor: Align.TopRight, color: Color.White);
             }
 
             if (commandKeys.Keys.Empty())
             {
-                hud.Text("No binding", Fonts.SmallGray, fontSize, (xOffset, y), out Dimension noBindingArea,
+                hud.Text("No binding", Font, fontSize, (xOffset, y), out Dimension noBindingArea,
                     window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Gray);
 
                 int rowHeight = Math.Max(noBindingArea.Height, commandArea.Height);
@@ -419,14 +422,14 @@ public class KeyBindingSection : IOptionSection
                 for (int keyIndex = 0; keyIndex < commandKeys.Keys.Count; keyIndex++)
                 {
                     Key key = commandKeys.Keys[keyIndex];
-                    hud.Text(key.ToString(), Fonts.SmallGray, fontSize, (xOffset + totalKeyArea.Width, y),
+                    hud.Text(key.ToString(), Font, fontSize, (xOffset + totalKeyArea.Width, y),
                         out Dimension keyArea,
                         window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.White);
                     totalKeyArea.Width += keyArea.Width;
 
                     if (keyIndex != commandKeys.Keys.Count - 1)
                     {
-                        hud.Text(", ", Fonts.SmallGray, fontSize, (xOffset + totalKeyArea.Width, y),
+                        hud.Text(", ", Font, fontSize, (xOffset + totalKeyArea.Width, y),
                             out Dimension commaArea,
                             window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Red);
                         totalKeyArea.Width += commaArea.Width;
@@ -445,7 +448,7 @@ public class KeyBindingSection : IOptionSection
 
         if (m_updateRow)
         {
-            OnRowChanged?.Invoke(this, new(m_currentRow));
+            OnRowChanged?.Invoke(this, new(m_currentRow, string.Empty));
             m_updateRow = false;
         }
     }

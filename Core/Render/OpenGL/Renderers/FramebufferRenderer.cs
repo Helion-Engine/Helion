@@ -120,7 +120,7 @@ public class FramebufferRenderer : IDisposable
 
     public void UpdateToDimensionIfNeeded(Dimension dimension)
     {
-        if (Framebuffer.Dimension == dimension)
+        if (Framebuffer.Dimension == dimension || !dimension.HasPositiveArea)
             return;
 
         Framebuffer.Dispose();
