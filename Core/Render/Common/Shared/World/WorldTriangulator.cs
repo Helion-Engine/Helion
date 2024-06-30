@@ -187,11 +187,11 @@ public static class WorldTriangulator
     public static unsafe void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Vec2F textureVector,
         DynamicArray<TriangulatedWorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
     {
-        Precondition(subsector.ClockwiseEdges.Count >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
+        Precondition(subsector.ClockwiseEdges.Length >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
 
-        List<SubsectorSegment> edges = subsector.ClockwiseEdges;
-        verticesToPopulate.EnsureCapacity(edges.Count);
-        verticesToPopulate.SetLength(edges.Count);
+        var edges = subsector.ClockwiseEdges;
+        verticesToPopulate.EnsureCapacity(edges.Length);
+        verticesToPopulate.SetLength(edges.Length);
 
         double z = overrideZ == int.MaxValue ? sectorPlane.Z : overrideZ;
         double prevZ = sectorPlane.PrevZ;
@@ -202,7 +202,7 @@ public static class WorldTriangulator
             fixed (TriangulatedWorldVertex* startVertex = &verticesToPopulate.Data[0])
             {
                 TriangulatedWorldVertex* worldVertex = startVertex;
-                for (int i = 0; i < edges.Count; i++)
+                for (int i = 0; i < edges.Length; i++)
                 {
                     Vec2D vertex = edges[i].Start;
                     if (sectorPlane.SectorScrollData == null)
@@ -243,7 +243,7 @@ public static class WorldTriangulator
                 // Because the floor is looked at downwards and because it is
                 // clockwise, to get counter-clockwise vertices we reverse the
                 // iteration order and go from the end vertex.
-                for (int i = edges.Count - 1; i >= 0; i--)
+                for (int i = edges.Length - 1; i >= 0; i--)
                 {
                     Vec2D vertex = edges[i].End;
                     if (sectorPlane.SectorScrollData == null)

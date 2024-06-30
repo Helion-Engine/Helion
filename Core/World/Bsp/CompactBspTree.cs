@@ -192,7 +192,7 @@ public class CompactBspTree
 
     private BspCreateResultCompact CreateSubsector(BspNode node, GeometryBuilder builder)
     {
-        List<SubsectorSegment> clockwiseSegments = CreateClockwiseSegments(node, builder);
+        var clockwiseSegments = CreateClockwiseSegments(node, builder);
 
         List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Select(s => new Seg2D(s.Start, s.End)).ToList();
         Box2D bbox = Box2D.Bound(clockwiseDoubleSegments) ?? Box2D.UnitBox;
@@ -204,16 +204,17 @@ public class CompactBspTree
         return BspCreateResultCompact.Subsector(m_nextSubsectorIndex++);
     }
 
-    private List<SubsectorSegment> CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
+    private SubsectorSegment[] CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
     {
-        List<SubsectorSegment> returnSegments = new();
+        SubsectorSegment[] returnSegments = new SubsectorSegment[node.ClockwiseEdges.Count];
 
+        int count = 0;
         foreach (SubsectorEdge edge in node.ClockwiseEdges)
         {
             Side? side = GetSideFromEdge(edge, builder);
             SubsectorSegment subsectorEdge = new(side?.Id, edge.Start, edge.End);
 
-            returnSegments.Add(subsectorEdge);
+            returnSegments[count++] = subsectorEdge;
             Segments.Add(subsectorEdge);
         }
 
