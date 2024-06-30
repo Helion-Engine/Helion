@@ -1265,7 +1265,7 @@ public class GeometryRenderer : IDisposable
     {
         int count = 0;
         for (int j = 0; j < subsectors.Length; j++)
-            count += (subsectors[j].ClockwiseEdges.Count - 2) * 3;
+            count += (subsectors[j].ClockwiseEdges.Length - 2) * 3;
 
         var data = new LegacyVertex[count];
         if (floor)
@@ -1280,7 +1280,7 @@ public class GeometryRenderer : IDisposable
     {
         int count = 0;
         for (int j = 0; j < subsectors.Length; j++)
-            count += (subsectors[j].ClockwiseEdges.Count - 2) * 3;
+            count += (subsectors[j].ClockwiseEdges.Length - 2) * 3;
 
         var data = new SkyGeometryVertex[count];
         if (floor)
