@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
@@ -10,18 +9,18 @@ namespace Helion.World.Geometry.Subsectors;
 
 public class Subsector
 {
-    public static readonly Subsector Default = new(0, Sector.Default, (Vec2D.Zero, Vec2D.Zero), new());
+    public static readonly Subsector Default = new(0, Sector.Default, (Vec2D.Zero, Vec2D.Zero), []);
 
     public readonly int Id;
     public Sector Sector;
     public readonly Box2D BoundingBox;
-    public readonly List<SubsectorSegment> ClockwiseEdges;
+    public readonly SubsectorSegment[] ClockwiseEdges;
     public readonly LinkableList<Entity> Entities = new();
     public bool Flood;
 
-    public Subsector(int id, Sector sector, Box2D boundingBox, List<SubsectorSegment> clockwiseEdges)
+    public Subsector(int id, Sector sector, Box2D boundingBox, SubsectorSegment[] clockwiseEdges)
     {
-        Precondition(ReferenceEquals(sector, Sector.Default) || clockwiseEdges.Count >= 3, "Degenerate sector, must be at least a triangle");
+        Precondition(ReferenceEquals(sector, Sector.Default) || clockwiseEdges.Length >= 3, "Degenerate sector, must be at least a triangle");
 
         Id = id;
         Sector = sector;

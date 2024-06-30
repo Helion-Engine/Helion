@@ -6,6 +6,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.Loggers;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Subsectors;
@@ -18,39 +19,26 @@ using System.Threading.Tasks;
 
 namespace Helion.World.Impl.SinglePlayer;
 
-public class AutomapMarker
+public class AutomapMarker(ArchiveCollection archiveCollection)
 {
-    private readonly struct PlayerPosition
+    private readonly struct PlayerPosition(Vec3D position, Vec3D viewDirection, double angleRadians, double pitchRadians)
     {
-        public readonly Vec3D Position;
-        public readonly Vec3D ViewDirection;
-        public readonly double AngleRadians;
-        public readonly double PitchRadians;
-
-        public PlayerPosition(Vec3D position, Vec3D viewDirection, double angleRadians, double pitchRadians)
-        {
-            Position = position;
-            ViewDirection = viewDirection;
-            AngleRadians = angleRadians;
-            PitchRadians = pitchRadians;
-        }
+        public readonly Vec3D Position = position;
+        public readonly Vec3D ViewDirection = viewDirection;
+        public readonly double AngleRadians = angleRadians;
+        public readonly double PitchRadians = pitchRadians;
     }
 
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
     private readonly Stopwatch m_stopwatch = new();
-    private readonly ViewClipper m_viewClipper;
+    private readonly ViewClipper m_viewClipper = new(archiveCollection.DataCache);
     private Task? m_task;
     private CancellationTokenSource m_cancelTasks = new();
-    private IWorld? m_world;
+    private IWorld m_world = null!;
     private bool m_occlude;
     private Vec2D m_occludeViewPos;
 
     private readonly ConcurrentQueue<PlayerPosition> m_positions = new();
-
-    public AutomapMarker(ArchiveCollection archiveCollection)
-    {
-        m_viewClipper = new ViewClipper(archiveCollection.DataCache);
-    }
 
     public void Start(IWorld world)
     {
@@ -62,6 +50,7 @@ public class AutomapMarker
         world.OnDestroying += World_OnDestroying;
         m_world = world;
         m_lineDrawnTracker.UpdateToWorld(world);
+
         m_task = Task.Factory.StartNew(() => AutomapTask(m_cancelTasks.Token), m_cancelTasks.Token,
             TaskCreationOptions.LongRunning, TaskScheduler.Default);
     }
@@ -73,7 +62,7 @@ public class AutomapMarker
 
         m_world.OnDestroying -= World_OnDestroying;
         Stop();
-        m_world = null;
+        m_world = null!;
     }
 
     public void Stop()
@@ -160,46 +149,50 @@ public class AutomapMarker
         if (Occluded(subsector.BoundingBox, position, viewDirection))
             return;
 
-        for (int i = 0; i < subsector.ClockwiseEdges.Count; i++)
+        fixed (SubsectorSegment* startEdge = &subsector.ClockwiseEdges[0])
         {
-            var edge = subsector.ClockwiseEdges[i];
-            if (edge.SideId == null)
-                continue;
-
-            var side = m_world.Sides[edge.SideId.Value];
-            Line line = side.Line;
-            if (m_lineDrawnTracker.HasDrawn(line))
+            SubsectorSegment* edge = startEdge;
+            for (int i = 0; i < subsector.ClockwiseEdges.Length; i++, edge++)
             {
+                var sideId = edge->SideId;
+                if (sideId == null)
+                    continue;
+
+                var side = m_world.Sides[sideId.Value];
+                Line line = side.Line;
+                if (m_lineDrawnTracker.HasDrawn(line))
+                {
+                    AddLineClip(edge);
+                    continue;
+                }
+
+                if (line.Back == null && !line.Segment.OnRight(position))
+                    continue;
+
+                if (m_viewClipper.InsideAnyRange(line.Segment.Start, line.Segment.End))
+                    continue;
+
                 AddLineClip(edge);
-                continue;
+                m_lineDrawnTracker.MarkDrawn(line);
+
+                if (line.SeenForAutomap)
+                    continue;
+
+                if (m_occlude && !line.Segment.InView(position, viewDirection))
+                    continue;
+
+                line.MarkSeenOnAutomap();
             }
-
-            if (line.Back == null && !line.Segment.OnRight(position))
-                continue;
-
-            if (m_viewClipper.InsideAnyRange(line.Segment.Start, line.Segment.End))
-                continue;
-
-            AddLineClip(edge);
-            m_lineDrawnTracker.MarkDrawn(line);
-
-            if (line.SeenForAutomap)
-                continue;
-
-            if (m_occlude && !line.Segment.InView(position, viewDirection))
-                continue;
-
-            line.MarkSeenOnAutomap();
         }
     }
 
-    private void AddLineClip(SubsectorSegment edge)
+    private unsafe void AddLineClip(SubsectorSegment* edge)
     {
-        var side = m_world.Sides[edge.SideId!.Value];
+        var side = m_world.Sides[edge->SideId!.Value];
         if (side.Line.Back == null)
-            m_viewClipper.AddLine(edge.Start, edge.End);
+            m_viewClipper.AddLine(edge->Start, edge->End);
         else if (LineOpening.IsRenderingBlocked(side.Line))
-            m_viewClipper.AddLine(edge.Start, edge.End);
+            m_viewClipper.AddLine(edge->Start, edge->End);
     }
 
     private bool Occluded(in Box2D box, in Vec2D position, in Vec2D viewDirection)
