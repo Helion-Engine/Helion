@@ -1168,7 +1168,7 @@ public class GeometryRenderer : IDisposable
                     if (floor && subsector.Flood && !flat.MidTextureHack)
                         continue;
 
-                    WorldTriangulator.HandleSubsector(subsector, flat, textureVector, m_subsectorVertices,
+                    WorldTriangulator.HandleSubsector(m_world.BspTree, subsector, flat, textureVector, m_subsectorVertices,
                         floor ? flat.Z : MaxSky);
                     TriangulatedWorldVertex root = m_subsectorVertices[0];
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
@@ -1206,7 +1206,7 @@ public class GeometryRenderer : IDisposable
                     if (subsector.Flood && !flat.MidTextureHack && subsector.Sector.TransferHeights == null)
                         continue;
 
-                    WorldTriangulator.HandleSubsector(subsector, flat, textureVector, m_subsectorVertices);
+                    WorldTriangulator.HandleSubsector(m_world.BspTree, subsector, flat, textureVector, m_subsectorVertices);
 
                     TriangulatedWorldVertex root = m_subsectorVertices[0];
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
@@ -1265,7 +1265,7 @@ public class GeometryRenderer : IDisposable
     {
         int count = 0;
         for (int j = 0; j < subsectors.Length; j++)
-            count += (subsectors[j].ClockwiseEdges.Length - 2) * 3;
+            count += (subsectors[j].SegCount - 2) * 3;
 
         var data = new LegacyVertex[count];
         if (floor)
@@ -1280,7 +1280,7 @@ public class GeometryRenderer : IDisposable
     {
         int count = 0;
         for (int j = 0; j < subsectors.Length; j++)
-            count += (subsectors[j].ClockwiseEdges.Length - 2) * 3;
+            count += (subsectors[j].SegCount - 2) * 3;
 
         var data = new SkyGeometryVertex[count];
         if (floor)

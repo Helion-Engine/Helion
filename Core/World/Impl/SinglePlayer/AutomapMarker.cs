@@ -149,20 +149,19 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
         if (Occluded(subsector.BoundingBox, position, viewDirection))
             return;
 
-        fixed (SubsectorSegment* startEdge = &subsector.ClockwiseEdges[0])
+        var subsectorLines = m_world.BspSegLines;
+        fixed (SubsectorSegment* startEdge = &world.BspTree.Segments.Data[subsector.SegIndex])
         {
             SubsectorSegment* edge = startEdge;
-            for (int i = 0; i < subsector.ClockwiseEdges.Length; i++, edge++)
+            for (int i = 0; i < subsector.SegCount; i++, edge++)
             {
-                var sideId = edge->SideId;
-                if (sideId == null)
+                var line = subsectorLines[subsector.SegIndex + i];
+                if (line == null)
                     continue;
 
-                var side = m_world.Sides[sideId.Value];
-                Line line = side.Line;
                 if (m_lineDrawnTracker.HasDrawn(line))
                 {
-                    AddLineClip(edge);
+                    AddLineClip(edge, line);
                     continue;
                 }
 
@@ -172,26 +171,25 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                 if (m_viewClipper.InsideAnyRange(line.Segment.Start, line.Segment.End))
                     continue;
 
-                AddLineClip(edge);
+                AddLineClip(edge, line);
                 m_lineDrawnTracker.MarkDrawn(line);
 
-                if (line.SeenForAutomap)
+                if ((line.DataChanges & LineDataTypes.Automap) != 0)
                     continue;
 
                 if (m_occlude && !line.Segment.InView(position, viewDirection))
                     continue;
 
-                line.MarkSeenOnAutomap();
+                line.DataChanges |= LineDataTypes.Automap;
             }
         }
     }
 
-    private unsafe void AddLineClip(SubsectorSegment* edge)
+    private unsafe void AddLineClip(SubsectorSegment* edge, Line line)
     {
-        var side = m_world.Sides[edge->SideId!.Value];
-        if (side.Line.Back == null)
+        if (line.Back == null)
             m_viewClipper.AddLine(edge->Start, edge->End);
-        else if (LineOpening.IsRenderingBlocked(side.Line))
+        else if (LineOpening.IsRenderingBlocked(line))
             m_viewClipper.AddLine(edge->Start, edge->End);
     }
 

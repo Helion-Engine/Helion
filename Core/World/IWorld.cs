@@ -65,6 +65,7 @@ public interface IWorld : IDisposable
     IList<Line> Lines { get; }
     IList<Side> Sides { get; }
     IList<Sector> Sectors { get; }
+    Line?[] BspSegLines { get; }
     IList<HighlightArea> HighlightAreas { get; }
     CompactBspTree BspTree { get; }
     IRandom Random { get; }

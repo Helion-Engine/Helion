@@ -9,6 +9,7 @@ using Helion.Maps.Bsp;
 using Helion.Maps.Bsp.Node;
 using Helion.Maps.Components;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.World.Geometry.Builder;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -30,7 +31,7 @@ public class CompactBspTree
     /// <summary>
     /// All the segments, which are the edges of the subsector.
     /// </summary>
-    public List<SubsectorSegment> Segments = new List<SubsectorSegment>();
+    public DynamicArray<SubsectorSegment> Segments = new();
 
     /// <summary>
     /// All the subsectors, the convex leaves at the bottom of the BSP
@@ -172,7 +173,7 @@ public class CompactBspTree
         int subsectorNodeCount = parentNodeCount + 1;
         int segmentCountGuess = subsectorNodeCount * 4;
 
-        Segments = new List<SubsectorSegment>(segmentCountGuess);
+        Segments = new(segmentCountGuess);
         Subsectors = new Subsector[subsectorNodeCount];
         Nodes = new BspNodeCompact[parentNodeCount];
 
@@ -190,35 +191,37 @@ public class CompactBspTree
         return node.IsSubsector ? CreateSubsector(node, builder) : CreateNode(node, builder);
     }
 
+    private readonly List<Seg2D> m_segs = [];
+
     private BspCreateResultCompact CreateSubsector(BspNode node, GeometryBuilder builder)
     {
-        var clockwiseSegments = CreateClockwiseSegments(node, builder);
+        int index = Segments.Length;
+        CreateClockwiseSegments(node, builder);
 
-        List<Seg2D> clockwiseDoubleSegments = clockwiseSegments.Select(s => new Seg2D(s.Start, s.End)).ToList();
-        Box2D bbox = Box2D.Bound(clockwiseDoubleSegments) ?? Box2D.UnitBox;
+        m_segs.Clear();
+        for (int i = 0; i < node.ClockwiseEdges.Count; i++)
+        {
+            var edge = node.ClockwiseEdges[i];
+            m_segs.Add(new Seg2D(edge.Start, edge.End));
+        }
+
+        Box2D bbox = Box2D.Bound(m_segs) ?? Box2D.UnitBox;
 
         Sector sector = GetSectorFrom(node, builder);
-        Subsector subsector = new(node.Id, sector, bbox, clockwiseSegments);
+        Subsector subsector = new(node.Id, sector, bbox, index, node.ClockwiseEdges.Count);
         Subsectors[m_nextSubsectorIndex] = subsector;
 
         return BspCreateResultCompact.Subsector(m_nextSubsectorIndex++);
     }
 
-    private SubsectorSegment[] CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
+    private void CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
     {
-        SubsectorSegment[] returnSegments = new SubsectorSegment[node.ClockwiseEdges.Count];
-
-        int count = 0;
         foreach (SubsectorEdge edge in node.ClockwiseEdges)
         {
             Side? side = GetSideFromEdge(edge, builder);
             SubsectorSegment subsectorEdge = new(side?.Id, edge.Start, edge.End);
-
-            returnSegments[count++] = subsectorEdge;
             Segments.Add(subsectorEdge);
         }
-
-        return returnSegments;
     }
 
     private Sector GetSectorFrom(BspNode node, GeometryBuilder builder)
@@ -274,7 +277,7 @@ public class CompactBspTree
     private void HandleSingleSubsectorTree()
     {
         Subsector subsector = Subsectors[0];
-        SubsectorSegment edge = subsector.ClockwiseEdges[0];
+        SubsectorSegment edge = Segments[0];
         Box2D box = subsector.BoundingBox;
 
         // Because we want index 0 with the subsector bit set, this is just

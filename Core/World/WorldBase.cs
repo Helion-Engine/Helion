@@ -73,6 +73,7 @@ public abstract partial class WorldBase : IWorld
     private static EntityManager? LastEntityManager;
     private static PhysicsManager? LastPhysicManager;
     private static SpecialManager? LastSpecialManager;
+    private static Line?[]? LastBspSegLines;
 
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
@@ -106,6 +107,7 @@ public abstract partial class WorldBase : IWorld
     public IList<Line> Lines => Geometry.Lines;
     public IList<Side> Sides => Geometry.Sides;
     public IList<Sector> Sectors => Geometry.Sectors;
+    public Line?[] BspSegLines { get; } = [];
     public IList<HighlightArea> HighlightAreas { get; } = new List<HighlightArea>();
     public CompactBspTree BspTree => Geometry.CompactBspTree;
     public EntityManager EntityManager { get; }
@@ -212,6 +214,7 @@ public abstract partial class WorldBase : IWorld
         EntityManager = CreateEntityManager(reuse);
         PhysicsManager = CreatePhysicsManager();
         SpecialManager = CreateSpecialManager(reuse);
+        BspSegLines = CreateBspSegLines(reuse && sameAsPreviousMap);
 
         WorldStatic.FlushIntersectionReferences();
         IsFastMonsters = skillDef.IsFastMonsters(config);
@@ -247,6 +250,29 @@ public abstract partial class WorldBase : IWorld
             LevelStats.ItemCount = worldModel.ItemCount;
             LevelStats.SecretCount = worldModel.SecretCount;
         }
+    }
+
+    // Used by the automap marker to prevent cache misses by needing to fetch the side first.
+    private Line?[] CreateBspSegLines(bool reuse)
+    {
+        if (reuse && LastBspSegLines != null)
+            return LastBspSegLines;
+
+        LastBspSegLines = new Line?[BspTree.Segments.Length];
+        for (int i = 0; i < BspTree.Subsectors.Length; i++)
+        {
+            var subsector = BspTree.Subsectors[i];
+            for (int j = 0; j < subsector.SegCount; j++)
+            {
+                var edge = BspTree.Segments[subsector.SegIndex + j];
+                if (!edge.SideId.HasValue)
+                    continue;
+                var side = Sides[edge.SideId.Value];
+                LastBspSegLines[subsector.SegIndex + j] = side.Line;
+            }
+        }
+
+        return LastBspSegLines;
     }
 
     private SpecialManager CreateSpecialManager(bool reuse)

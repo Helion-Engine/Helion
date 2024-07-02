@@ -146,7 +146,7 @@ public class ViewClipper
     /// <param name="second">The second vertex of a line segment.</param>
     public void AddLine(in Vec2D first, in Vec2D second)
     {
-        (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(GetDiamondAngle(first), GetDiamondAngle(second));
+        (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(ToDiamondAngle(Center, first), ToDiamondAngle(Center, second));
 
         if (AnglesSpanOriginVector(smallerAngle, largerAngle))
         {
