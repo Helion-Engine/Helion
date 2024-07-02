@@ -4,6 +4,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Shared.World;
 using Helion.Util.Container;
+using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -184,25 +185,28 @@ public static class WorldTriangulator
         wall.PrevBottomZ = (float)prevBottomZ;
     }
 
-    public static unsafe void HandleSubsector(Subsector subsector, SectorPlane sectorPlane, in Vec2F textureVector,
+    public static unsafe void HandleSubsector(CompactBspTree bspTree, Subsector subsector, SectorPlane sectorPlane, in Vec2F textureVector,
         DynamicArray<TriangulatedWorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
     {
-        Precondition(subsector.ClockwiseEdges.Length >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
+        Precondition(subsector.SegCount >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
 
-        var edges = subsector.ClockwiseEdges;
-        verticesToPopulate.EnsureCapacity(edges.Length);
-        verticesToPopulate.SetLength(edges.Length);
+        var edges = bspTree.Segments;
+        int index = subsector.SegIndex;
+        int length = index + subsector.SegCount;
+        verticesToPopulate.EnsureCapacity(subsector.SegCount);
+        verticesToPopulate.SetLength(subsector.SegCount);
 
         double z = overrideZ == int.MaxValue ? sectorPlane.Z : overrideZ;
         double prevZ = sectorPlane.PrevZ;
         Vec2D uv = default;
         Vec2D prevUV = default;
+
         if (sectorPlane.Facing == SectorPlaneFace.Ceiling)
         {
             fixed (TriangulatedWorldVertex* startVertex = &verticesToPopulate.Data[0])
             {
                 TriangulatedWorldVertex* worldVertex = startVertex;
-                for (int i = 0; i < edges.Length; i++)
+                for (int i = index; i < length; i++)
                 {
                     Vec2D vertex = edges[i].Start;
                     if (sectorPlane.SectorScrollData == null)
@@ -243,7 +247,7 @@ public static class WorldTriangulator
                 // Because the floor is looked at downwards and because it is
                 // clockwise, to get counter-clockwise vertices we reverse the
                 // iteration order and go from the end vertex.
-                for (int i = edges.Length - 1; i >= 0; i--)
+                for (int i = length - 1; i >= index; i--)
                 {
                     Vec2D vertex = edges[i].End;
                     if (sectorPlane.SectorScrollData == null)

@@ -9,23 +9,25 @@ namespace Helion.World.Geometry.Subsectors;
 
 public class Subsector
 {
-    public static readonly Subsector Default = new(0, Sector.Default, (Vec2D.Zero, Vec2D.Zero), []);
+    public static readonly Subsector Default = new(0, Sector.Default, (Vec2D.Zero, Vec2D.Zero), 0, 0);
 
     public readonly int Id;
     public Sector Sector;
-    public readonly Box2D BoundingBox;
-    public readonly SubsectorSegment[] ClockwiseEdges;
+    public readonly Box2D BoundingBox;    
+    public readonly int SegIndex;
+    public readonly int SegCount;
     public readonly LinkableList<Entity> Entities = new();
     public bool Flood;
 
-    public Subsector(int id, Sector sector, Box2D boundingBox, SubsectorSegment[] clockwiseEdges)
+    public Subsector(int id, Sector sector, Box2D boundingBox, int index, int count)
     {
-        Precondition(ReferenceEquals(sector, Sector.Default) || clockwiseEdges.Length >= 3, "Degenerate sector, must be at least a triangle");
+        Precondition(ReferenceEquals(sector, Sector.Default) || count >= 3, "Degenerate sector, must be at least a triangle");
 
         Id = id;
         Sector = sector;
         BoundingBox = boundingBox;
-        ClockwiseEdges = clockwiseEdges;
+        SegIndex = index;
+        SegCount = count;
     }
 
     public LinkableNode<Entity> Link(Entity entity)
