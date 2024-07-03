@@ -35,10 +35,8 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly RenderProgram m_program;
     private readonly RenderGeometry m_geometry = new();
 
-    private readonly DynamicArray<GeometryData> m_runtimeGeometry = new();
     private readonly GeometryTextureLookup m_textureToGeometryLookup = new();
 
-    private readonly HashSet<int> m_runtimeGeometryTextures = new();
     private readonly FreeGeometryManager m_freeManager = new();
     private readonly LegacySkyRenderer m_skyRenderer;
 
@@ -47,9 +45,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private readonly SkyGeometryManager m_skyGeometry = new();
     private readonly LookupArray<List<Sector>?> m_transferHeightsLookup = new();
-    private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferData = new();
-    private readonly DynamicArray<DynamicArray<StaticGeometryData>?> m_bufferDataClamp = new();
-    private readonly DynamicArray<DynamicArray<StaticGeometryData>> m_bufferLists = new();
     private readonly List<Sector> m_initMoveSectors = [];
 
     private readonly Dictionary<CoverKey, StaticGeometryData> m_coverWallLookup = [];
@@ -99,10 +94,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_vanillaRender = world.Config.Render.VanillaRender;
         ClearData(world);
 
-        m_runtimeGeometry.FlushReferences();
         m_updateLightSectors.FlushReferences();
-        for (int i = 0; i < m_bufferData.Length; i++)
-            m_bufferData.Data[i]?.FlushStruct();
 
         m_world = world;
 
@@ -617,22 +609,12 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_freeManager.Clear();
         m_skyRenderer.Clear();
         m_skyGeometry.Clear();
-        m_runtimeGeometry.Clear();
         m_updateLightSectors.Clear();
 
-        m_runtimeGeometry.FlushReferences();
         m_updateLightSectors.FlushReferences();
         m_updateLightSectors.FlushReferences();
 
         m_transferHeightsLookup.SetAll(null);
-
-        ClearBufferData(m_bufferData);
-        ClearBufferData(m_bufferDataClamp);
-        ClearBufferData(m_bufferLists);
-
-        m_bufferData.FlushReferences();
-        m_bufferDataClamp.FlushReferences();
-        m_bufferLists.FlushReferences();
     }
 
     private static void ClearBufferData(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData)
@@ -680,7 +662,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     public void StartRender()
     {
-        UpdateRunTimeBuffers();
+        UpdateLights();
 
         if (m_lightBuffer != null)
         {
@@ -748,65 +730,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             data.Vbo.Bind();
             data.Vbo.DrawArrays();
         }
-    }
-
-    private void UpdateRunTimeBuffers()
-    {
-        // These are textures added at run time. Need to be uploaded then cleared.
-        if (m_runtimeGeometry.Length > 0)
-        {
-            for (int i = 0; i < m_runtimeGeometry.Length; i++)
-            {
-                var data = m_runtimeGeometry[i];
-                data.Vbo.Bind();
-                data.Vbo.UploadIfNeeded();
-            }
-
-            m_runtimeGeometry.Clear();
-            m_runtimeGeometryTextures.Clear();
-        }
-
-        UpdateLights();
-        UpdateBufferData();
-    }
-
-    private void UpdateBufferData()
-    {
-        for (int bufferIndex = 0; bufferIndex < m_bufferLists.Length; bufferIndex++)
-        {
-            DynamicArray<StaticGeometryData> list = m_bufferLists[bufferIndex];
-            if (list.Length == 0)
-                continue;
-
-            GeometryData? geometryData = list[0].GeometryData;
-            if (geometryData == null)
-                continue;
-
-            list.Sort(GeometryIndexCompare);
-
-            int startIndex = list[0].Index;
-            int lastIndex = startIndex + list[0].Length;
-            for (int i = 1; i < list.Length; i++)
-            {
-                if (lastIndex != list[i].Index)
-                {
-                    geometryData.Vbo.Bind();
-                    geometryData.Vbo.UploadSubData(startIndex, lastIndex - startIndex);
-                    startIndex = list[i].Index;
-                    lastIndex = startIndex + list[i].Length;
-                    continue;
-                }
-
-                lastIndex += list[i].Length;
-            }
-
-            geometryData.Vbo.Bind();
-            geometryData.Vbo.UploadSubData(startIndex, lastIndex - startIndex);
-
-            list.Clear();
-        }
-
-        m_bufferLists.Clear();
     }
 
     private unsafe void UpdateLights()
@@ -1029,7 +952,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (geometryData == null)
         {
-            AddRuntimeGeometry(textureHandle, vertices, plane, side, wall, repeat);
+            AddNewGeometry(textureHandle, vertices, plane, side, wall, repeat);
             return;
         }
 
@@ -1079,25 +1002,30 @@ public class StaticCacheGeometryRenderer : IDisposable
         var vbo = m_coverFlatGeometry.Vbo;
         if (m_coverFlatLookup.TryGetValue(key, out var coverGeometry))
         {
-            CopyVertices(vbo.Data.Data, vertices, coverGeometry.Index);
-            vbo.Bind();
-            vbo.UploadSubData(coverGeometry.Index, coverGeometry.Length);
-            vbo.Unbind();
+            int newLength = coverGeometry.Index + coverGeometry.Length;
+            if (vbo.Data.Capacity < newLength)
+            {
+                vbo.Data.EnsureCapacity(newLength);
+                CopyVertices(vbo.Data.Data, vertices, coverGeometry.Index);
+                vbo.SetNotUploaded();
+            }
+            else
+            {
+                CopyVertices(vbo.Data.Data, vertices, coverGeometry.Index);
+                vbo.Bind();
+                vbo.UploadSubData(coverGeometry.Index, coverGeometry.Length);
+                vbo.Unbind();
+            }
         }
         else
         {
             coverGeometry = new StaticGeometryData(m_coverFlatGeometry, vbo.Data.Length, vertices.Length);
             m_coverFlatLookup[key] = coverGeometry;
             AddVertices(vbo.Data, vertices);
-            if (!m_runtimeGeometryTextures.Contains(m_coverFlatGeometry.TextureHandle))
-            {
-                m_runtimeGeometry.Add(m_coverFlatGeometry);
-                m_runtimeGeometryTextures.Add(m_coverFlatGeometry.TextureHandle);
-            }
         }
     }
 
-    private void AddRuntimeGeometry(int textureHandle, LegacyVertex[] vertices, SectorPlane? plane, Side? side, Wall? wall, bool repeat)
+    private void AddNewGeometry(int textureHandle, LegacyVertex[] vertices, SectorPlane? plane, Side? side, Wall? wall, bool repeat)
     {
         if (m_freeManager.GetAndRemove(textureHandle, vertices.Length, out StaticGeometryData? existing))
         {
@@ -1120,11 +1048,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddVertices(data.Vbo.Data, vertices);
             // TODO this causes the entire vbo to be uploaded when we could use sub-buffer
             data.Vbo.SetNotUploaded();
-            if (!m_runtimeGeometryTextures.Contains(textureHandle))
-            {
-                m_runtimeGeometry.Add(data);
-                m_runtimeGeometryTextures.Add(textureHandle);
-            }
             return;
         }
 
@@ -1132,7 +1055,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
         AddVertices(data.Vbo.Data, vertices);
         data.Vbo.SetNotUploaded();
-        m_runtimeGeometry.Add(data);
     }
 
     private void SetRuntimeGeometryData(SectorPlane? plane, Side? side, Wall? wall, int textureHandle, GeometryData geometryData, LegacyVertex[] vertices, bool repeat)

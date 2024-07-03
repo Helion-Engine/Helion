@@ -117,7 +117,6 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
             }
 
             m_stopwatch.Stop();
-            HelionLog.Info(m_stopwatch.Elapsed.TotalMilliseconds.ToString());
             if (m_stopwatch.ElapsedMilliseconds >= ticks)
                 continue;
 
