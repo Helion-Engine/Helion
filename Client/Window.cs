@@ -41,11 +41,11 @@ public class Window : GameWindow, IWindow
     private bool m_disposed;
 
     public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement, 
-        int glMajor, int glMinor, GLContextFlags flags) :
+        int glMajor, int glMinor, GLContextFlags flags, Action onCreate) :
         base(MakeGameWindowSettings(), MakeNativeWindowSettings(config, title, glMajor, glMinor, flags))
     {
         Log.Debug("Creating client window");
-
+        onCreate();
         m_config = config;
         m_inputManagement = inputManagement;
         CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;

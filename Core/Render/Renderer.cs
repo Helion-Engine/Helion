@@ -290,7 +290,8 @@ public class Renderer : IDisposable
         Log.Info("OpenGL Vendor: {0}", GLInfo.Vendor);
         Log.Info("OpenGL Hardware: {0}", GLInfo.Renderer);
         Log.Info("OpenGL Extensions: {0}", GLExtensions.Count);
-        Log.Info($"GL_ARB_clip_control {GLInfo.ClipControlSupported}");
+        Log.Info("GL_ARB_clip_control {0}", GLInfo.ClipControlSupported);
+        Log.Info("MapPersistentBit {0}", GLInfo.MapPersistentBitSupported);
 
         InfoPrinted = true;
     }
