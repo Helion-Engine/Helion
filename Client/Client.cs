@@ -86,8 +86,7 @@ public partial class Client : IDisposable, IInputManagement
             SetOpenGLVersion(config);
         }
 
-        m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor, GlVersion.Flags);
-        CheckOpenGLSupport();
+        m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor, GlVersion.Flags, CheckOpenGLSupport);
         SetIcon(m_window);
 
         m_layerManager = new GameLayerManager(config, m_window, console, m_consoleCommands, archiveCollection,
@@ -137,7 +136,8 @@ public partial class Client : IDisposable, IInputManagement
 
     private static void CheckOpenGLSupport()
     {
-        GLInfo.ClipControlSupported = GLExtensions.Supports("GL_ARB_clip_control");
+        Log.Info("CheckOpenGLSupport {0}{1}", GlVersion.Major, GlVersion.Minor);
+        GLInfo.ClipControlSupported = GlVersion.IsVersionSupported(4, 5) || GLExtensions.Supports("GL_ARB_clip_control");
         GLInfo.MapPersistentBitSupported = GlVersion.IsVersionSupported(4, 4);
     }
 
