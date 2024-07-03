@@ -1253,7 +1253,7 @@ doneLinkToSectors:
                     }
                 }
 
-                tryMove.IntersectSectors.EnsureCapacity(tryMove.IntersectSectors.Length + block.BlockLineCount * 2);
+                tryMove.IntersectSectors.EnsureCapacity(intersectSectorLength + block.BlockLineCount * 2);
 
                 for (int i = 0; i < block.BlockLineCount; i++)
                 {
