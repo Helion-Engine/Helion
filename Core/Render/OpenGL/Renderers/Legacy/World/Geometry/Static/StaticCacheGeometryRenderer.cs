@@ -605,6 +605,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         m_coverWallLookup.Clear();
+        m_coverFlatLookup.Clear();
 
         m_freeManager.Clear();
         m_skyRenderer.Clear();
