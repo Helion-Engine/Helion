@@ -88,6 +88,12 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     {
         try
         {
+            if (typeof(T) == typeof(bool) && newValue is string str && str.Length == 1 && str[0] == '*')
+            {
+                bool value = Convert.ToBoolean(Value);
+                return Set(!value);
+            }
+
             T converted = ObjectToTypeConverterOrThrow(newValue);
             return Set(converted);
         }
