@@ -218,12 +218,14 @@ public class GameLayerManager : IGameLayerManager
         {
             OptionsLayer = null;
             m_window.InputManager.ClearMouse();
+            m_window.SetMousePosition(Vec2I.Zero);
         }
         else if (ReferenceEquals(layer, MenuLayer))
         {
             MenuLayer?.Dispose();
             MenuLayer = null;
             m_window.InputManager.ClearMouse();
+            m_window.SetMousePosition(Vec2I.Zero);
         }
         else if (ReferenceEquals(layer, ReadThisLayer))
         {
