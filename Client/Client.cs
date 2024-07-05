@@ -274,7 +274,7 @@ public partial class Client : IDisposable, IInputManagement
         var newLayer = m_layerManager.WorldLayer;
         if (newLayer == null)
         {
-            Log.Error("Failed to map");
+            Log.Error("Failed to load map");
             ShowConsole();
             m_layerManager.LockInput = false;
             m_layerManager.Remove(m_layerManager.LoadingLayer);
