@@ -29,6 +29,7 @@ public class InputManager : IInputManager
     private double m_mouseScroll;
     private double m_processMouseScroll;
     private Key m_prevKeyDown;
+    private bool m_ignoreNextMouseMove;
 
     public int CurrentScroll => (int)m_mouseScroll;
     public int Scroll => (int)m_processMouseScroll;
@@ -73,6 +74,11 @@ public class InputManager : IInputManager
 
     public void AddMouseMovement(Vec2I movement)
     {
+        if (m_ignoreNextMouseMove)
+        {
+            m_ignoreNextMouseMove = false;
+            return;
+        }
         MouseMove += movement;
     }
 
@@ -162,6 +168,9 @@ public class InputManager : IInputManager
 
     public void ClearMouse()
     {
+        // This is a hack to fix an issue when cursor goes off screen in options menu.
+        // When the cursor is grabbed again the next mouse delta can be way off making the camera jump.
+        m_ignoreNextMouseMove = true;
         MouseMove = (0, 0);
     }
 
