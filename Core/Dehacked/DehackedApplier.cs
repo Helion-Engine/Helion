@@ -1208,11 +1208,11 @@ public class DehackedApplier
             else
                 mapName = $"map{par.Map.ToString().PadLeft(2, '0')}";
 
-            MapInfoDef? mapInfo = mapInfoDefinition.MapInfo.GetMap(mapName);
-            if (mapInfo == null)
+            var findMapInfo = mapInfoDefinition.MapInfo.GetMap(mapName);
+            if (!string.IsNullOrEmpty(findMapInfo.Error))
                 Log.Warn($"Failed to find map:{mapName} for par.");
-            else
-                mapInfo.ParTime = par.Par;
+            if (findMapInfo.MapInfo != null)
+                findMapInfo.MapInfo.ParTime = par.Par;
         }
     }
 

@@ -61,7 +61,7 @@ public class UMapInfo
 
         mapInfoDef.MapInfo.Episodes.Count.Should().Be(1);
 
-        var getMap = mapInfoDef.MapInfo.GetMap("E1M2");
+        var getMap = mapInfoDef.MapInfo.GetMap("E1M2").MapInfo;
         getMap.Should().NotBeNull();
         var e1m2 = getMap!;
         var cluster = mapInfoDef.MapInfo.GetCluster(e1m2.Cluster);
@@ -87,7 +87,7 @@ public class UMapInfo
         episodes[1].PicName.Should().BeEquivalentTo("M_EPI5");
         episodes[1].StartMap.Should().BeEquivalentTo("E5M1");
 
-        var getMap = mapInfoDef.MapInfo.GetMap("E1M1");
+        var getMap = mapInfoDef.MapInfo.GetMap("E1M1").MapInfo;
         getMap.Should().NotBeNull();
         var e1m1 = getMap!;
         e1m1.MapName.Should().Be("E1M1");
@@ -101,7 +101,7 @@ public class UMapInfo
         e1m1.Author.Should().Be("the author");
         e1m1.ParTime.Should().Be(420);
 
-        getMap = mapInfoDef.MapInfo.GetMap("E1M2");
+        getMap = mapInfoDef.MapInfo.GetMap("E1M2").MapInfo;
         getMap.Should().NotBeNull();
         var e1m2 = getMap!;
         e1m2.MapName.Should().BeEquivalentTo("e1m2");
@@ -119,7 +119,7 @@ public class UMapInfo
         cluster!.ExitText.Count.Should().Be(0);
         cluster!.SecretExitText.Count.Should().Be(0);
 
-        getMap = mapInfoDef.MapInfo.GetMap("E1M3");
+        getMap = mapInfoDef.MapInfo.GetMap("E1M3").MapInfo;
         getMap.Should().NotBeNull();
         var e1m3 = getMap!;
         e1m3.Cluster.Should().NotBe(0);
@@ -128,7 +128,7 @@ public class UMapInfo
         cluster!.SecretExitText[0].Should().Be("super secret");
         cluster!.SecretExitText[1].Should().Be("really secret");
 
-        getMap = mapInfoDef.MapInfo.GetMap("E1M8");
+        getMap = mapInfoDef.MapInfo.GetMap("E1M8").MapInfo;
         getMap.Should().NotBeNull();
         var e1m8 = getMap!;
         e1m8.Next.Should().BeEquivalentTo("EndGameW");
@@ -151,12 +151,12 @@ public class UMapInfo
         cluster!.ExitText[6].Should().Be("");
         cluster!.ExitText[7].Should().Be("Join us for Episode 2: Deimos Corrupted!");
 
-        getMap = mapInfoDef.MapInfo.GetMap("E1M9");
+        getMap = mapInfoDef.MapInfo.GetMap("E1M9").MapInfo;
         getMap.Should().NotBeNull();
         var e1m9 = getMap!;
         e1m9.Next.Should().Be("EndBunny");
 
-        getMap = mapInfoDef.MapInfo.GetMap("E5M1");
+        getMap = mapInfoDef.MapInfo.GetMap("E5M1").MapInfo;
         getMap.Should().NotBeNull();
         var e5m1 = getMap!;
         // boss actions should be cleared
@@ -167,7 +167,7 @@ public class UMapInfo
         cluster.Should().NotBeNull();
         cluster!.Music.Should().Be("D_TEST");
 
-        getMap = mapInfoDef.MapInfo.GetMap("E5M8");
+        getMap = mapInfoDef.MapInfo.GetMap("E5M8").MapInfo;
         getMap.Should().NotBeNull();
         var e5m8 = getMap!;
         e5m8.Next.Should().BeEquivalentTo("EndGameC");

@@ -175,6 +175,9 @@ public partial class IntermissionLayer
         const int RightOffsetX = 280;
         const int OffsetY = 50;
         var fontObject = m_archiveCollection.GetFont(Font);
+        if (fontObject == null)
+            return;
+
         int RowOffsetY = 3 * fontObject.Get('0').Area.Height / 2;
 
         if (IntermissionState >= IntermissionState.NextMap)

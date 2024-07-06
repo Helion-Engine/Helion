@@ -9,7 +9,6 @@ using Helion.Resources.Definitions.Intermission;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Parser;
-using Helion.Util.Sounds.Mus;
 using Helion.World;
 using Helion.World.Stats;
 using NLog;
@@ -25,6 +24,7 @@ public partial class IntermissionLayer : IGameLayer
     public readonly IWorld World;
     public readonly MapInfoDef CurrentMapInfo;
     public readonly MapInfoDef? NextMapInfo;
+    public readonly Func<FindMapResult> GetNextMapInfo;
     public int LevelTimeSeconds { get; private set; }
     public int ParTimeSeconds { get; private set; }
     public string IntermissionPic { get; private set; }
@@ -49,12 +49,13 @@ public partial class IntermissionLayer : IGameLayer
     private bool IsNextMap => IntermissionState == IntermissionState.NextMap;
 
     public IntermissionLayer(GameLayerManager parent, IWorld world, SoundManager soundManager, IMusicPlayer musicPlayer,
-        MapInfoDef currentMapInfo, MapInfoDef? nextMapInfo)
+        MapInfoDef currentMapInfo, Func<FindMapResult> getNextMapInfo)
     {
         m_gameLayerManager = parent;
         World = world;
         CurrentMapInfo = currentMapInfo;
-        NextMapInfo = nextMapInfo;
+        GetNextMapInfo = getNextMapInfo;
+        NextMapInfo = getNextMapInfo().MapInfo;
         m_archiveCollection = world.ArchiveCollection;
         m_soundManager = soundManager;
         m_musicPlayer = musicPlayer;

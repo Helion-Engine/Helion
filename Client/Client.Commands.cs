@@ -839,12 +839,12 @@ public partial class Client
             switch (e.ChangeType)
             {
                 case LevelChangeType.Next:
-                    await Intermission(world, GetNextLevel(world.MapInfo));
+                    await Intermission(world, () => GetNextLevel(world.MapInfo));
                     break;
 
                 case LevelChangeType.SecretNext:
                     m_isSecretExit = true;
-                    await Intermission(world, GetNextSecretLevel(world.MapInfo));
+                    await Intermission(world, () => GetNextSecretLevel(world.MapInfo));
                     break;
 
                 case LevelChangeType.SpecificLevel:
@@ -902,16 +902,16 @@ public partial class Client
         }
     }
 
-    private async Task Intermission(IWorld world, MapInfoDef? nextMapInfo)
+    private async Task Intermission(IWorld world, Func<FindMapResult> getNextMapInfo)
     {
         if (world.MapInfo.HasOption(MapOptions.NoIntermission))
         {
-            await EndGame(world, nextMapInfo);
+            await EndGame(world, getNextMapInfo);
         }
         else
         {
             IntermissionLayer intermissionLayer = new(m_layerManager, world, m_soundManager, m_audioSystem.Music,
-                world.MapInfo, nextMapInfo);
+                world.MapInfo, getNextMapInfo);
             intermissionLayer.Exited += IntermissionLayer_Exited;
             m_layerManager.Add(intermissionLayer);
         }
@@ -922,14 +922,16 @@ public partial class Client
         if (sender is not IntermissionLayer intermissionLayer)
             return;
 
-        await EndGame(intermissionLayer.World, intermissionLayer.NextMapInfo);
+        await EndGame(intermissionLayer.World, intermissionLayer.GetNextMapInfo);
         m_layerManager.Remove(m_layerManager.IntermissionLayer);
     }
 
-    private async Task EndGame(IWorld world, MapInfoDef? nextMapInfo)
+    private async Task EndGame(IWorld world, Func<FindMapResult> getNextMapInfo)
     {
         try
         {
+            var nextMapResult = getNextMapInfo();
+            var nextMapInfo = nextMapResult.MapInfo;
             ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
             ClusterDef? nextCluster = null;
             if (nextMapInfo != null)
@@ -945,12 +947,21 @@ public partial class Client
                     isChangingClusters = false;
             }
 
-            if (isChangingClusters || world.MapInfo.EndGame != null || EndGameLayer.EndGameMaps.Contains(world.MapInfo.Next))
+            if (isChangingClusters || world.MapInfo.EndGame != null || nextMapResult.Options.HasFlag(FindMapResultOptions.EndGame))
+            {
                 HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
+            }
             else if (nextMapInfo != null)
             {
                 PrepLoadMap();
                 await LoadMapAsync(nextMapInfo, null, world, showLoadingTitlepic: false);
+            }
+
+            if (!string.IsNullOrEmpty(nextMapResult.Error))
+            {
+                m_layerManager.ClearAllExcept();
+                Log.Error(nextMapResult.Error);
+                ShowConsole();
             }
         }
         catch (Exception e)
@@ -1004,10 +1015,10 @@ public partial class Client
         await LoadMapAsync(mapInfoDef, null, null, e);
     }
 
-    private MapInfoDef? GetNextLevel(MapInfoDef mapDef) =>
+    private FindMapResult GetNextLevel(MapInfoDef mapDef) => 
         m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextMap(mapDef);
-
-    private MapInfoDef? GetNextSecretLevel(MapInfoDef mapDef) =>
+    
+    private FindMapResult GetNextSecretLevel(MapInfoDef mapDef) =>
         m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextSecretMap(mapDef);
 
     private void ShowConsole()

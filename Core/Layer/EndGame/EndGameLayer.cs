@@ -8,7 +8,6 @@ using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util.Extensions;
-using Helion.Util.Sounds.Mus;
 using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities;
@@ -20,18 +19,13 @@ public partial class EndGameLayer : IGameLayer
 {
     private const int LettersPerSecond = 10;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    public static readonly IEnumerable<string> EndGameMaps = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-    {
-        "EndPic", "EndGame1", "EndGame2", "EndGameW", "EndGame4", "EndGameC", "EndGame3",
-        "EndDemon", "EndGameS", "EndChess", "EndTitle", "EndSequence", "EndBunny", "EndGame"
-    };
-    private static readonly IList<string> TheEndImages = new[]
-    {
+    private static readonly IList<string> TheEndImages =
+    [
         "END0", "END1", "END2", "END3", "END4", "END5", "END6"
-    };
+    ];
 
-    private static readonly IList<CastData> Cast = new[]
-    {
+    private static readonly IList<CastData> Cast =
+    [
         new CastData("ZombieMan", "$CC_ZOMBIE"),
         new CastData("ShotgunGuy", "$CC_SHOTGUN"),
         new CastData("ChaingunGuy", "$CC_HEAVY"),
@@ -49,7 +43,7 @@ public partial class EndGameLayer : IGameLayer
         new CastData("SpiderMastermind", "$CC_SPIDER"),
         new CastData("Cyberdemon", "$CC_CYBER"),
         new CastData("DoomPlayer", "$CC_HERO"),
-    };
+    ];
 
     public event EventHandler? Exited;
 
