@@ -438,7 +438,13 @@ public partial class MapInfoDefinition
     private List<string> GetClusterText(SimpleParser parser)
     {
         if (m_legacy)
-            return new List<string>(parser.ConsumeString().Split('\n'));
+        {
+            string text = parser.ConsumeString();
+            if (text.Equals("lookup", StringComparison.OrdinalIgnoreCase))
+                return new List<string>(["$" + parser.ConsumeString()]);
+
+            return new List<string>(text.Split('\n'));
+        }
 
         List<string> textItems = [];
         while (!ClusterNames.Contains(parser.PeekString()))
