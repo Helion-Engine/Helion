@@ -1,9 +1,7 @@
 using Helion.Graphics;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
-using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Parser;
 using NLog;
@@ -235,7 +233,7 @@ public partial class MapInfoDefinition
     private MapInfoDef SetMapDef(MapInfoDef mapDef, string mapName, bool hasDefaultMap)
     {
         mapDef.MapName = mapName;
-        MapInfoDef? existing = MapInfo.GetMap(mapDef.MapName);
+        MapInfoDef? existing = MapInfo.GetMap(mapDef.MapName).MapInfo;
         if (existing == null)
             return mapDef;
 

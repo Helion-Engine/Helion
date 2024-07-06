@@ -61,7 +61,7 @@ public static class MapWarp
     {
         if (GetMapNameString(episode, level, mapInfo, out var mapName))
         {
-            mapInfoDef = mapInfo.GetMap(mapName);
+            mapInfoDef = mapInfo.GetMap(mapName).MapInfo;
             return mapInfoDef != null;
         }
 
@@ -69,7 +69,7 @@ public static class MapWarp
         return false;
     }
 
-    private static bool GetMapNameString(int episode, int level, MapInfo mapInfo, [NotNullWhen(true)] out string mapName)
+    private static bool GetMapNameString(int episode, int level, MapInfo mapInfo, [NotNullWhen(true)] out string? mapName)
     {
         string startMap = "map01";        
         if (mapInfo.Episodes.Count > 0 && !MapInfo.IsWarpTrans(mapInfo.Episodes[0].StartMap))
@@ -92,7 +92,7 @@ public static class MapWarp
     {
         if (GetEpisodeMapNameString(episode, level, mapInfo, out var mapName))
         {
-            mapInfoDef = mapInfo.GetMap(mapName);
+            mapInfoDef = mapInfo.GetMap(mapName).MapInfo;
             return mapInfoDef != null;
         }
 
@@ -100,7 +100,9 @@ public static class MapWarp
         return false;
     }
 
-    private static bool GetEpisodeMapNameString(int episode, int level, MapInfo mapInfo, [NotNullWhen(true)] out string mapName)
+    private static readonly Regex EpisodeRegex = new(@"(?<episode>[^\s\d]+)\d+(?<map>[^\s\d]+)\d+", RegexOptions.Compiled);
+
+    private static bool GetEpisodeMapNameString(int episode, int level, MapInfo mapInfo, [NotNullWhen(true)] out string? mapName)
     {
         episode = Math.Clamp(episode, 1, int.MaxValue);
         int episodeIndex = episode - 1;
@@ -109,8 +111,7 @@ public static class MapWarp
         if (episodeIndex >= 0 && episodeIndex < mapInfo.Episodes.Count)
             startMap = mapInfo.Episodes[episodeIndex].StartMap;
         
-        Regex epRegex = new Regex(@"(?<episode>[^\s\d]+)\d+(?<map>[^\s\d]+)\d+");
-        var match = epRegex.Match(startMap);
+        var match = EpisodeRegex.Match(startMap);
         if (match.Success)
         {
             mapName = match.Groups["episode"].Value + episode.ToString() +

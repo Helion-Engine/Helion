@@ -19,7 +19,7 @@ public partial class MapInfoDefinition
             mapDef.MapName = parser.ConsumeString();
             ConsumeBrace(parser, true);
 
-            MapInfoDef? existing = MapInfo.GetMap(mapDef.MapName);
+            MapInfoDef? existing = MapInfo.GetMap(mapDef.MapName).MapInfo;
             if (existing != null)
                 mapDef = existing;
             MapInfo.AddOrReplaceMap(mapDef);

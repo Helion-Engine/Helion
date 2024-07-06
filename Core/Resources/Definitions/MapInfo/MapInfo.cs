@@ -2,6 +2,7 @@ using Helion.Maps.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
 using Helion.World.Util;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -10,6 +11,12 @@ namespace Helion.Resources.Definitions.MapInfo;
 
 public class MapInfo
 {
+    public static readonly HashSet<string> EndGameMaps = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "EndPic", "EndGame1", "EndGame2", "EndGameW", "EndGame4", "EndGameC", "EndGame3",
+        "EndDemon", "EndGameS", "EndChess", "EndTitle", "EndSequence", "EndBunny", "EndGame"
+    };
+
     const string WarpTrans = "&wt@";
 
     public IReadOnlyList<EpisodeDef> Episodes => m_episodes.AsReadOnly();
@@ -103,12 +110,26 @@ public class MapInfo
     }
 
     public void SetDefaultMap(MapInfoDef? map) => DefaultMap = map;
-    public MapInfoDef? GetNextMap(MapInfoDef map) => GetMap(map.Next);
-    public MapInfoDef? GetNextSecretMap(MapInfoDef map) => GetMap(map.SecretNext);
-    public MapInfoDef? GetMap(string name) => m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase(name));
+    public FindMapResult GetNextMap(MapInfoDef map) => GetMap(map.Next);
+    public FindMapResult GetNextSecretMap(MapInfoDef map) => GetMap(map.SecretNext);
     public ClusterDef? GetCluster(int clusterNumber) => m_clusters.FirstOrDefault(c => c.ClusterNum == clusterNumber);
     public static bool IsWarpTrans(string mapName) => mapName.StartsWith(WarpTrans);
-    
+
+    public FindMapResult GetMap(string name)
+    {
+        if (EndGameMaps.Contains(name))
+            return FindMapResult.CreateEmptyResult(name, FindMapResultOptions.EndGame);
+
+        var map = m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase(name));
+        if (map != null)
+            return FindMapResult.Create(map, name);
+
+        if (int.TryParse(name, out int mapNum))
+            return FindMapResult.Create(m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase("MAP" + mapNum)), name);
+
+        return FindMapResult.Create(null, name);
+    }
+
     public MapInfoDef GetStartMapOrDefault(ArchiveCollection archiveCollection, string mapName)
     {        
         if (IsWarpTrans(mapName) && MapWarp.GetMap(mapName[WarpTrans.Length..], archiveCollection, out var mapInfoDef))

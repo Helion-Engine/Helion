@@ -532,10 +532,10 @@ public abstract partial class WorldBase : IWorld
 
     private IList<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
     {
-        List<MapInfoDef> maps = new();
+        List<MapInfoDef> maps = [];
         foreach (string mapName in visitedMaps)
         {
-            var mapInfoDef = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMap(mapName);
+            var mapInfoDef = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMap(mapName).MapInfo;
             if (mapInfoDef != null)
                 maps.Add(mapInfoDef);
         }
