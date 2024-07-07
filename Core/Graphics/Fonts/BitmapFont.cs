@@ -39,7 +39,7 @@ public static class BitmapFont
             if (definition.Grayscale)
                 image.ConvertToGrayscale(definition.GrayscaleNormalization);
             
-            return new Font(definition.Name, glyphs, image, fixedWidth: definition.FixedWidth, fixedHeight: definition.FixedHeight);
+            return new Font(definition.Name, glyphs, image, fixedWidth: definition.FixedWidth, fixedHeight: definition.FixedHeight, fixedWidthChar: definition.FixedWidthChar);
         }
         catch
         {

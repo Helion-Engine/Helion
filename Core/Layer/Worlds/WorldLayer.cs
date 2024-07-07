@@ -13,7 +13,6 @@ using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.MapInfo;
-using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
@@ -99,7 +98,7 @@ public partial class WorldLayer : IGameLayerParent
         m_virtualDrawPauseAction = new(VirtualDrawPause);
 
         var font = World.ArchiveCollection.GetFont(LargeHudFont);
-        font ??= new Font("Empty", new(), new((0, 0), Graphics.ImageType.Argb));
+        font ??= new Font("Empty", [], new((0, 0), Graphics.ImageType.Argb));
         DefaultFont = font;
 
         m_renderHealthString = InitRenderableString();
@@ -114,11 +113,12 @@ public partial class WorldLayer : IGameLayerParent
         m_renderSecretString = InitRenderableString(TextAlign.Right);
         m_renderKillLabel = InitRenderableString(TextAlign.Right);
         m_renderItemLabel = InitRenderableString(TextAlign.Right);
-        m_renderSecretLabel = InitRenderableString(TextAlign.Right);        
+        m_renderSecretLabel = InitRenderableString(TextAlign.Right);
 
-        StatValues = new SpanString[] { m_killString, m_itemString, m_secretString };
-        RenderableStatLabels = new RenderableString[] { m_renderKillLabel, m_renderItemLabel, m_renderSecretLabel };
-        RenderableStatValues = new RenderableString[] { m_renderKillString, m_renderItemString, m_renderSecretString };
+        StatValues = [m_killString, m_itemString, m_secretString];
+        RenderableStatLabels = [m_renderKillLabel, m_renderItemLabel, m_renderSecretLabel];
+        RenderableStatValues = [m_renderKillString, m_renderItemString, m_renderSecretString];
+        m_largeHudFont = GetFontOrDefault(LargeHudFont);
     }
 
     private RenderableString InitRenderableString(TextAlign align = TextAlign.Left) => 

@@ -1,19 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Graphics.Geometry;
-using Helion.Graphics.Palettes;
+using Helion.Graphics.Fonts;
 using Helion.Render;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
-using Helion.Render.OpenGL.Commands;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
@@ -26,14 +23,12 @@ using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
 using Helion.World;
-using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.StatusBar;
-using SixLabors.ImageSharp.PixelFormats;
 using static Helion.Render.Common.RenderDimensions;
 
 namespace Helion.Layer.Worlds;
@@ -101,10 +96,11 @@ public partial class WorldLayer
     private RenderableString m_renderSecretString;
     private RenderableString m_renderTimeString;
 
-    private static readonly string[] StatLabels = new string[] { "Kills: ", "Items: ", "Secrets: " };
+    private static readonly string[] StatLabels = ["Kills: ", "Items: ", "Secrets: "];
     private readonly SpanString[] StatValues;
     private readonly RenderableString[] RenderableStatLabels;
     private readonly RenderableString[] RenderableStatValues;
+    private readonly Font m_largeHudFont;
 
     private readonly record struct HudDrawWeapon(IHudRenderContext Hud, FrameState FrameState, int yOffset, bool Flash);
 
@@ -771,30 +767,40 @@ public partial class WorldLayer
         const int OffsetY = 171;
         const int FontSize = 16;
 
+        const int HealthX = 90;
+        const int ArmorX = 221;
+        const int AmmoX = 43;
+
         var weapon = Player.AnimationWeapon;
         if (weapon != null && weapon.Definition.Properties.Weapons.AmmoType.Length > 0)
         {
             int ammoAmount = Player.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType);
             m_ammoString.Clear();
             m_ammoString.Append(Math.Clamp(ammoAmount, 0, 999));
-
             SetRenderableString(m_ammoString.AsSpan(), m_renderAmmoString, LargeHudFont, FontSize, useDoomScale: false);
-            hud.Text(m_renderAmmoString, (43, OffsetY), anchor: Align.TopRight);
+            hud.Text(m_renderAmmoString, (AmmoX, OffsetY), anchor: Align.TopRight);
         }
 
         m_healthString.Clear();
         m_healthString.Append(Math.Clamp(Player.Health, 0, 999));
-        m_healthString.Append( '%');
+        m_healthString.Append('%');
 
         SetRenderableString(m_healthString.AsSpan(), m_renderHealthString, LargeHudFont, FontSize, useDoomScale: false);
-        hud.Text(m_renderHealthString, (103, OffsetY), anchor: Align.TopRight);
+        hud.Text(m_renderHealthString, (CalcPercentStartOffsetX(HealthX, m_largeHudFont), OffsetY), anchor: Align.TopRight);
 
         m_armorString.Clear();
         m_armorString.Append(Math.Clamp(Player.Armor, 0, 999));
         m_armorString.Append('%');
 
         SetRenderableString(m_armorString.AsSpan(), m_renderArmorString, LargeHudFont, FontSize, useDoomScale: false);
-        hud.Text(m_renderArmorString, (234, OffsetY), anchor: Align.TopRight);
+        hud.Text(m_renderArmorString, (CalcPercentStartOffsetX(ArmorX, m_largeHudFont), OffsetY), anchor: Align.TopRight);
+    }
+
+    private static int CalcPercentStartOffsetX(int offsetX, Font font)
+    {
+        if (!font.FixedWidthChar.HasValue)
+            return offsetX - 1;
+        return offsetX + font.FixedWidthChar.Value.Area.Width - 1;
     }
 
     private void DrawFullHudWeaponSlots(IHudRenderContext hud)

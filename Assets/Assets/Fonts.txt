@@ -204,7 +204,7 @@ font LargeHudFont
 {
     space = 14;
     align = top;
-    fixedwidth = 14;
+    fixedwidthchar = "0";
     fixedheight = 16;
     useOffset = true;
     characters

@@ -39,14 +39,14 @@ public class FontDefinitionParser : ParserBase
         string alignName = ConsumeString();
         switch (alignName.ToUpper())
         {
-        case "BOTTOM":
-            return FontAlignment.Bottom;
-        case "CENTER":
-            return FontAlignment.Center;
-        case "TOP":
-            return FontAlignment.Top;
-        default:
-            throw MakeException($"Expected alignment to be bottom/center/top, got {alignName} instead");
+            case "BOTTOM":
+                return FontAlignment.Bottom;
+            case "CENTER":
+                return FontAlignment.Center;
+            case "TOP":
+                return FontAlignment.Top;
+            default:
+                throw MakeException($"Expected alignment to be bottom/center/top, got {alignName} instead");
         }
     }
 
@@ -103,7 +103,7 @@ public class FontDefinitionParser : ParserBase
         CurrentDefinition.Grayscale = ConsumeBoolean();
         Consume(';');
     }
-    
+
     private void ConsumeGrayscaleNormalizationDefinition()
     {
         Consume('=');
@@ -122,6 +122,13 @@ public class FontDefinitionParser : ParserBase
     {
         Consume('=');
         CurrentDefinition.FixedWidth = ConsumeInteger();
+        Consume(';');
+    }
+
+    private void ConsumeFixedWidthChar()
+    {
+        Consume('=');
+        CurrentDefinition.FixedWidthChar = ConsumeString()[0];
         Consume(';');
     }
 
@@ -164,6 +171,9 @@ public class FontDefinitionParser : ParserBase
                 break;
             case "FIXEDHEIGHT":
                 ConsumeFixedHeight();
+                break;
+            case "FIXEDWIDTHCHAR":
+                ConsumeFixedWidthChar();
                 break;
             case "USEOFFSET":
                 ConsumeUseOffset();
