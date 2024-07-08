@@ -33,10 +33,10 @@ public struct RenderableSentence
         for (int i = 0; i < glyphs.Length; i++)
         {
             var glyph = glyphs[i];
-            if (glyph.Coordinates.Right > width)
-                width = glyph.Coordinates.Right;
-            if (glyph.Coordinates.Height > height)
-                height = glyph.Coordinates.Height;
+            if (glyph.AreaCoordinates.Right > width)
+                width = glyph.AreaCoordinates.Right;
+            if (glyph.AreaCoordinates.Height > height)
+                height = glyph.AreaCoordinates.Height;
         }
 
         return new Dimension(width, height);
