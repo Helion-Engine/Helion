@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Geometry.Vectors;
-using Helion.Geometry;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
 using Helion.Layer.Images;
@@ -27,11 +26,9 @@ using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World.Save;
-using Helion.World.StatusBar;
 using static Helion.Util.Assertion.Assert;
 using Helion.Geometry.Boxes;
 using Helion.Util.Configs.Components;
-using Helion.Render.OpenGL.Shared;
 
 namespace Helion.Layer;
 
@@ -119,14 +116,15 @@ public class GameLayerManager : IGameLayerManager
 
     public bool ShouldFocus()
     {
-        if (ConsoleLayer != null)
+        if (ConsoleLayer != null || MenuLayer != null)
             return false;
 
-        if (TitlepicLayer != null)
-            return MenuLayer == null;
-
         if (WorldLayer != null)
+        {
+            if (LoadingLayer != null)
+                return true;
             return WorldLayer.ShouldFocus;
+        }
 
         return true;
     }
@@ -213,19 +211,18 @@ public class GameLayerManager : IGameLayerManager
         {
             ConsoleLayer?.Dispose();
             ConsoleLayer = null;
+            ResetAndGrabMouse();
         }
         else if (ReferenceEquals(layer, OptionsLayer))
         {
             OptionsLayer = null;
-            m_window.InputManager.ClearMouse();
-            m_window.SetMousePosition(Vec2I.Zero);
+            ResetAndGrabMouse();
         }
         else if (ReferenceEquals(layer, MenuLayer))
         {
             MenuLayer?.Dispose();
             MenuLayer = null;
-            m_window.InputManager.ClearMouse();
-            m_window.SetMousePosition(Vec2I.Zero);
+            ResetAndGrabMouse();
         }
         else if (ReferenceEquals(layer, ReadThisLayer))
         {
@@ -262,6 +259,12 @@ public class GameLayerManager : IGameLayerManager
             LoadingLayer?.Dispose();
             LoadingLayer = null;
         }
+    }
+
+    private void ResetAndGrabMouse()
+    {
+        m_window.InputManager.ClearMouse();
+        m_window.SetMousePosition(Vec2I.Zero);
     }
 
     private void GameLayer_OnRemove(object? sender, EventArgs e)
