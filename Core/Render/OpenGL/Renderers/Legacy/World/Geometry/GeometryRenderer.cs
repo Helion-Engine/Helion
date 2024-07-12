@@ -1317,8 +1317,13 @@ public class GeometryRenderer : IDisposable
             if (m_buffer)
             {
                 renderData.Vbo.Add(lookupData);
-                if (sector.TransferHeights != null)
+                // Don't need to clip floor on lower view and ceiling on upper view
+                if (sector.TransferHeights != null
+                    && !(m_transferHeightsView == TransferHeightView.Bottom && floor) 
+                    && !(m_transferHeightsView == TransferHeightView.Top && !floor))
+                {
                     m_worldDataManager.AddCoverFlatVertices(lookupData);
+                }
             }
         }
     }
