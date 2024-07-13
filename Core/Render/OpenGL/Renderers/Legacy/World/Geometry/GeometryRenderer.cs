@@ -420,10 +420,12 @@ public class GeometryRenderer : IDisposable
         sector.LastRenderGametick = m_world.Gametick;
 
         double floorZ = renderSector.Floor.Z;
+        double prevFloorZ = renderSector.Floor.PrevZ;
         double ceilingZ = renderSector.Ceiling.Z;
+        double prevCeilingZ = renderSector.Ceiling.PrevZ;
 
-        bool floorVisible = m_viewPosition.Z >= floorZ || m_prevViewPosition.Z >= floorZ;
-        bool ceilingVisible = m_viewPosition.Z <= ceilingZ || m_prevViewPosition.Z <= ceilingZ;
+        bool floorVisible = m_viewPosition.Z >= floorZ || m_prevViewPosition.Z >= prevFloorZ;
+        bool ceilingVisible = m_viewPosition.Z <= ceilingZ || m_prevViewPosition.Z <= prevCeilingZ;
         if (floorVisible && !sector.IsFloorStatic)
         {
             sector.Floor.LastRenderGametick = m_world.Gametick;
