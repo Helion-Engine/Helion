@@ -62,22 +62,22 @@ public class StaticDataApplier
         {
             line.Front.Dynamic |= SectorDynamic.Alpha;
             line.Back.Dynamic |= SectorDynamic.Alpha;
-            world.RenderBlockmap.LinkDynamicSide(world, line.Front);
+            world.RenderBlockmap.LinkDynamicSide(line.Front);
             if (line.Front.Sector != line.Back.Sector)
-                world.RenderBlockmap.LinkDynamicSide(world, line.Back);
+                world.RenderBlockmap.LinkDynamicSide(line.Back);
             return;
         }
 
         if (line.Front.ScrollData != null)
         {
             line.Front.Dynamic |= SectorDynamic.Scroll;
-            world.RenderBlockmap.LinkDynamicSide(world, line.Front);
+            world.RenderBlockmap.LinkDynamicSide(line.Front);
         }
 
         if (line.Back != null && line.Back.ScrollData != null)
         {
             line.Front.Dynamic |= SectorDynamic.Scroll;
-            world.RenderBlockmap.LinkDynamicSide(world, line.Back);
+            world.RenderBlockmap.LinkDynamicSide(line.Back);
         }
     }
 

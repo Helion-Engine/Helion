@@ -200,15 +200,16 @@ public class LegacyWorldRenderer : WorldRenderer
 
                 // DynamicSides are either scrolling textures or alpha, neither should setup cover walls.
                 m_geometryRenderer.SetBufferCoverWall(false);
-                for (LinkableNode<Side>? sideNode = block.DynamicSides.Head; sideNode != null; sideNode = sideNode.Next)
+                for (int i = 0; i < block.DynamicSides.Length; i++)
                 {
-                    if (sideNode.Value.BlockmapCount == m_renderData.CheckCount)
+                    var side = block.DynamicSides.Data[i];
+                    if (side.BlockmapCount == m_renderData.CheckCount)
                         continue;
-                    if (sideNode.Value.Sector.IsMoving || (sideNode.Value.PartnerSide != null && sideNode.Value.PartnerSide.Sector.IsMoving))
+                    if (side.Sector.IsMoving || (side.PartnerSide != null && side.PartnerSide.Sector.IsMoving))
                         continue;
 
-                    sideNode.Value.BlockmapCount = m_renderData.CheckCount;
-                    m_geometryRenderer.RenderSectorWall(m_viewSector, sideNode.Value.Sector, sideNode.Value.Line,
+                    side.BlockmapCount = m_renderData.CheckCount;
+                    m_geometryRenderer.RenderSectorWall(m_viewSector, side.Sector, side.Line,
                         m_renderData.ViewPos3D, m_renderData.ViewPosInterpolated3D);
                 }
                 m_geometryRenderer.SetBufferCoverWall(true);

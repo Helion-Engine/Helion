@@ -42,22 +42,16 @@ public class BlockMap
         {
             // Note: Entities are unlinked using UnlinkFromWorld. Only need to dump the other data.
             
-            var sectorNode = block.DynamicSectors.Head;
-            while (sectorNode != null)
+            var islandNode = block.DynamicSectors.Head;
+            while (islandNode != null)
             {
-                var nextNode = sectorNode.Next;
-                sectorNode.Unlink();
-                //WorldStatic.DataCache.FreeLinkableNodeSector(sectorNode);
-                sectorNode = nextNode;
+                var nextNode = islandNode.Next;
+                islandNode.Unlink();
+                WorldStatic.DataCache.FreeLinkableNodeIsland(islandNode);
+                islandNode = nextNode;
             }
 
-            var sideNode = block.DynamicSides.Head;
-            while (sideNode != null)
-            {
-                var nextNode = sideNode.Next;
-                sideNode.Unlink();
-                sideNode = nextNode;
-            }
+            block.DynamicSides.Clear();
         }
     }
 
@@ -138,7 +132,7 @@ public class BlockMap
         }
     }
 
-    public void LinkDynamicSide(IWorld world, Side side)
+    public void LinkDynamicSide(Side side)
     {
         if (side.BlockmapLinked)
             return;
@@ -149,7 +143,7 @@ public class BlockMap
         var block = it.Next();
         while (block != null)
         {
-            block.DynamicSides.Add(new LinkableNode<Side>() { Value = side });
+            block.DynamicSides.Add(side);
             block = it.Next();
         }
     }

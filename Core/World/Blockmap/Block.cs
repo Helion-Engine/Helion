@@ -50,7 +50,7 @@ public class Block
     /// </summary>
     public readonly LinkableList<Entity> Entities = new();
     public readonly LinkableList<Island> DynamicSectors = new();
-    public readonly LinkableList<Side> DynamicSides = new();
+    public readonly DynamicArray<Side> DynamicSides = new();
 
     public Entity? HeadEntity;
 
