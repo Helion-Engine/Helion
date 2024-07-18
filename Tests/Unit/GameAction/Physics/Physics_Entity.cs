@@ -1,10 +1,8 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Vectors;
-using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Physics;
-using Helion.World.Physics.Blockmap;
 using System.Collections.Generic;
 using Xunit;
 
@@ -27,13 +25,13 @@ namespace Helion.Tests.Unit.GameAction
         }
 
         [Fact(DisplayName = "OnEntity/OverEntity two on bottom")]
-        public void StackEntityMutliple()
+        public void StackEntityMultiple()
         {
             var bottom1 = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(0));
             var bottom2 = GameActions.CreateEntity(World, "BaronOfHell", StackPos3.To3D(0));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos2.To3D(64));
 
-            top.OnEntity.Entity.Should().NotBe(null);
+            top.OnEntity.Entity.Should().NotBeNull();
             (top.OnEntity.Entity!.Equals(bottom1) || top.OnEntity.Entity!.Equals(bottom2)).Should().BeTrue();
             bottom1.OverEntity.Entity!.Should().Be(top);
             bottom2.OverEntity.Entity!.Should().Be(top);
@@ -78,13 +76,13 @@ namespace Helion.Tests.Unit.GameAction
         }
 
         [Fact(DisplayName = "OnEntity/OverEntity two on top with change")]
-        public void StackEntityMutlipleChange()
+        public void StackEntityMultipleChange()
         {
             var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos2.To3D(0));
             var top1 = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
             var top2 = GameActions.CreateEntity(World, "BaronOfHell", StackPos2.To3D(64));
 
-            bottom.OverEntity.Should().NotBe(null);
+            bottom.OverEntity.Should().NotBeNull();
             (bottom.OverEntity.Entity!.Equals(top1) || bottom.OverEntity.Entity!.Equals(top2)).Should().BeTrue();
             top1.OnEntity.Entity.Should().Be(bottom);
             top2.OnEntity.Entity.Should().Be(bottom);
@@ -94,6 +92,41 @@ namespace Helion.Tests.Unit.GameAction
             top1.OnEntity.Entity.Should().BeNull();
             top2.OnEntity.Entity.Should().BeNull();
             bottom.OverEntity.Entity!.Should().BeNull();
+        }
+
+        [Fact(DisplayName = "OverEntity corpse falls when OnEntity moves")]
+        public void StackEntityFalls()
+        {
+            var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos2.To3D(0));
+            var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
+            bottom.OverEntity.Should().NotBeNull();
+            top.OnEntity.Should().NotBeNull();
+            top.Position.Z.Should().Be(bottom.Position.Z + bottom.Height);
+
+            GameActions.MoveEntity(World, bottom, (StackPos1.X, StackPos1.Y - 64));
+            bottom.OverEntity.Entity.Should().BeNull();
+            top.OnEntity.Entity.Should().BeNull();
+
+            GameActions.TickWorld(World, 35);
+            top.Position.Z.Should().Be(bottom.Position.Z);
+        }
+
+        [Fact(DisplayName = "OverEntity corpse falls when OnEntity moves")]
+        public void StackEntityCorpseFalls()
+        {
+            var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos2.To3D(0));
+            var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
+            top.Kill(null);
+            bottom.OverEntity.Should().NotBeNull();
+            top.OnEntity.Should().NotBeNull();
+            top.Position.Z.Should().Be(bottom.Position.Z + bottom.Height);
+
+            GameActions.MoveEntity(World, bottom, (StackPos1.X, StackPos1.Y - 64));
+            bottom.OverEntity.Entity.Should().BeNull();
+            top.OnEntity.Entity.Should().BeNull();
+
+            GameActions.TickWorld(World, 35);
+            top.Position.Z.Should().Be(bottom.Position.Z);
         }
 
         [Fact(DisplayName = "Entity can move partially clipped")]

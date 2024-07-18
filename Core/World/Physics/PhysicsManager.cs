@@ -1112,9 +1112,6 @@ doneLinkToSectors:
 
     private GridIterationStatus HandleStackEntityTraverse(Entity entity)
     {
-        if (!entity.Flags.Solid || entity.Flags.Corpse)
-            return GridIterationStatus.Continue;
-
         if (entity.OnEntity.Entity == m_stackData.Entity || entity.OverEntity.Entity == entity ||
             entity.Position.Z == m_stackData.EntityTopZ || entity.Position.Z + entity.Height == m_stackData.EntityBottomZ)
         {
