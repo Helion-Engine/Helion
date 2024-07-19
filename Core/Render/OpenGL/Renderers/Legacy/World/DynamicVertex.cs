@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct LegacyVertex
+public struct DynamicVertex
 {
     [VertexAttribute("pos", size: 3)]
     public float X;
@@ -29,7 +29,7 @@ public struct LegacyVertex
 
     [VertexAttribute("prevPos", size: 3)]
     public float PrevX;
-    public float PrevY;
+    public float PrevY; 
     public float PrevZ;
 
     [VertexAttribute("prevUV", size: 2)]

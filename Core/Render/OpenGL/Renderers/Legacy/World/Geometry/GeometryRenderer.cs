@@ -45,7 +45,7 @@ public class GeometryRenderer : IDisposable
     private readonly LineDrawnTracker m_lineDrawnTracker = new();
     private readonly StaticCacheGeometryRenderer m_staticCacheGeometryRenderer;
     private readonly DynamicArray<TriangulatedWorldVertex> m_subsectorVertices = new();
-    private readonly LegacyVertex[] m_wallVertices = new LegacyVertex[6];
+    private readonly DynamicVertex[] m_wallVertices = new DynamicVertex[6];
     private readonly SkyGeometryVertex[] m_skyWallVertices = new SkyGeometryVertex[6];
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacySkyRenderer m_skyRenderer;
@@ -67,13 +67,13 @@ public class GeometryRenderer : IDisposable
     private IWorld m_world;
     private TransferHeightView m_transferHeightsView = TransferHeightView.Middle;
     private bool m_buffer = true;
-    private LegacyVertex[]?[] m_vertexLookup = Array.Empty<LegacyVertex[]>();
-    private LegacyVertex[]?[] m_vertexLowerLookup = Array.Empty<LegacyVertex[]>();
-    private LegacyVertex[]?[] m_vertexUpperLookup = Array.Empty<LegacyVertex[]>();
+    private DynamicVertex[]?[] m_vertexLookup = Array.Empty<DynamicVertex[]>();
+    private DynamicVertex[]?[] m_vertexLowerLookup = Array.Empty<DynamicVertex[]>();
+    private DynamicVertex[]?[] m_vertexUpperLookup = Array.Empty<DynamicVertex[]>();
     private SkyGeometryVertex[]?[] m_skyWallVertexLowerLookup = Array.Empty<SkyGeometryVertex[]>();
     private SkyGeometryVertex[]?[] m_skyWallVertexUpperLookup = Array.Empty<SkyGeometryVertex[]>();
-    private DynamicArray<LegacyVertex[][]?> m_vertexFloorLookup = new(3);
-    private DynamicArray<LegacyVertex[][]?> m_vertexCeilingLookup = new(3);
+    private DynamicArray<DynamicVertex[][]?> m_vertexFloorLookup = new(3);
+    private DynamicArray<DynamicVertex[][]?> m_vertexCeilingLookup = new(3);
     private DynamicArray<SkyGeometryVertex[][]?> m_skyFloorVertexLookup = new(3);
     private DynamicArray<SkyGeometryVertex[][]?> m_skyCeilingVertexLookup = new(3);
     // List of each subsector mapped to a sector id
@@ -183,7 +183,7 @@ public class GeometryRenderer : IDisposable
         Unsafe.InitBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), 0, (uint)(Marshal.SizeOf<T>() * array.Length));
     }
 
-    private LegacyVertex[]?[] UpdateVertexWallLookup(LegacyVertex[]?[] vertices, int sideCount, bool free)
+    private DynamicVertex[]?[] UpdateVertexWallLookup(DynamicVertex[]?[] vertices, int sideCount, bool free)
     {
         for (int i = 0; i < vertices.Length; i++)
         {
@@ -202,7 +202,7 @@ public class GeometryRenderer : IDisposable
         }
 
         if (vertices.Length < sideCount)
-            return new LegacyVertex[sideCount][];
+            return new DynamicVertex[sideCount][];
         return vertices;
     }
 
@@ -229,7 +229,7 @@ public class GeometryRenderer : IDisposable
         return vertices;
     }
 
-    private static void UpdateFlatVertices(DynamicArray<LegacyVertex[][]?> data, int sectorCount, bool free)
+    private static void UpdateFlatVertices(DynamicArray<DynamicVertex[][]?> data, int sectorCount, bool free)
     {
         for (int i = 0; i < data.Capacity; i++)
         {
@@ -252,7 +252,7 @@ public class GeometryRenderer : IDisposable
             }
 
             if (lookup.Length < sectorCount)
-                data[i] = new LegacyVertex[sectorCount][];
+                data[i] = new DynamicVertex[sectorCount][];
         }
     }
 
@@ -604,14 +604,14 @@ public class GeometryRenderer : IDisposable
             RenderOneSided(side, isFrontSide, out _, out _);
     }
 
-    public void RenderOneSided(Side side, bool isFront, out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
+    public void RenderOneSided(Side side, bool isFront, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
     {
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
         side.LastRenderGametick = m_world.Gametick;
 
         WallVertices wall = default;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(side.Middle.TextureHandle);
-        LegacyVertex[]? data = m_vertexLookup[side.Id];
+        DynamicVertex[]? data = m_vertexLookup[side.Id];
 
         var renderSector = side.Sector.GetRenderSector(m_transferHeightsView);
 
@@ -788,7 +788,7 @@ public class GeometryRenderer : IDisposable
     }
 
     public void RenderTwoSidedLower(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
-        out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
+        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
     {
         vertices = null;
         skyVertices = null;
@@ -847,7 +847,7 @@ public class GeometryRenderer : IDisposable
         }
         else
         {
-            LegacyVertex[]? data = m_vertexLowerLookup[facingSide.Id];
+            DynamicVertex[]? data = m_vertexLowerLookup[facingSide.Id];
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
@@ -879,7 +879,7 @@ public class GeometryRenderer : IDisposable
     }
 
     public void RenderTwoSidedUpper(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
-        out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out SkyGeometryVertex[]? skyVertices2)
+        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out SkyGeometryVertex[]? skyVertices2)
     {
         vertices = null;
         skyVertices = null;
@@ -966,7 +966,7 @@ public class GeometryRenderer : IDisposable
                 return;
             }
 
-            LegacyVertex[]? data = m_vertexUpperLookup[facingSide.Id];
+            DynamicVertex[]? data = m_vertexUpperLookup[facingSide.Id];
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
@@ -1003,7 +1003,7 @@ public class GeometryRenderer : IDisposable
     }
 
     // Renders vertices for upper/lower. No checking for skies, flood fill etc.
-    public LegacyVertex[] RenderTwoSidedUpperOrLowerRaw(WallLocation location, Side facingSide, Sector facingSector, Sector otherSector, bool isFrontSide)
+    public DynamicVertex[] RenderTwoSidedUpperOrLowerRaw(WallLocation location, Side facingSide, Sector facingSector, Sector otherSector, bool isFrontSide)
     {
         Wall lowerWall = facingSide.Lower;
         WallVertices wall = default;
@@ -1086,13 +1086,13 @@ public class GeometryRenderer : IDisposable
     }
 
     public void RenderTwoSidedMiddle(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
-        out LegacyVertex[]? vertices)
+        out DynamicVertex[]? vertices)
     {
         Wall middleWall = facingSide.Middle;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle, repeatY: false);
 
         float alpha = m_config.Render.TextureTransparency ? facingSide.Line.Alpha : 1.0f;
-        LegacyVertex[]? data = m_vertexLookup[facingSide.Id];
+        DynamicVertex[]? data = m_vertexLookup[facingSide.Id];
         var geometryType = alpha < 1 ? GeometryType.AlphaWall : GeometryType.TwoSidedMiddleWall;
         RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType);
 
@@ -1234,7 +1234,7 @@ public class GeometryRenderer : IDisposable
         m_worldDataManager.BufferCoverWalls = set;
     }
 
-    public void RenderSectorFlats(Sector sector, SectorPlane flat, bool floor,  out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
+    public void RenderSectorFlats(Sector sector, SectorPlane flat, bool floor,  out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
     {
         if (sector.Id >= m_subsectors.Length)
         {
@@ -1247,7 +1247,7 @@ public class GeometryRenderer : IDisposable
         RenderFlat(subsectors, flat, floor, out vertices, out skyVertices);
     }
 
-    private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane flat, bool floor, out LegacyVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
+    private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane flat, bool floor, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
     {
         bool isSky = TextureManager.IsSkyTexture(flat.TextureHandle);
         GLLegacyTexture texture = m_glTextureManager.GetTexture(flat.TextureHandle);
@@ -1289,7 +1289,7 @@ public class GeometryRenderer : IDisposable
         }
         else
         {
-            LegacyVertex[] lookupData = GetSectorVertices(subsectors, floor, id, out bool generate);
+            DynamicVertex[] lookupData = GetSectorVertices(subsectors, floor, id, out bool generate);
             if (generate || flatChanged)
             {
                 int lightIndex = floor ? StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Floor) :
@@ -1330,19 +1330,19 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private LegacyVertex[] GetSectorVertices(DynamicArray<Subsector> subsectors, bool floor, int id, out bool generate)
+    private DynamicVertex[] GetSectorVertices(DynamicArray<Subsector> subsectors, bool floor, int id, out bool generate)
     {
-        LegacyVertex[][]? lookupView = floor ? m_vertexFloorLookup[(int)m_transferHeightsView] : m_vertexCeilingLookup[(int)m_transferHeightsView];
+        DynamicVertex[][]? lookupView = floor ? m_vertexFloorLookup[(int)m_transferHeightsView] : m_vertexCeilingLookup[(int)m_transferHeightsView];
         if (lookupView == null)
         {
-            lookupView ??= new LegacyVertex[m_world.Sectors.Count][];
+            lookupView ??= new DynamicVertex[m_world.Sectors.Count][];
             if (floor)
                 m_vertexFloorLookup[(int)m_transferHeightsView] = lookupView;
             else
                 m_vertexCeilingLookup[(int)m_transferHeightsView] = lookupView;
         }
 
-        LegacyVertex[]? data = lookupView[id];
+        DynamicVertex[]? data = lookupView[id];
         generate = data == null;
         data ??= InitSectorVertices(subsectors, floor, id, lookupView);
         return data;
@@ -1366,13 +1366,13 @@ public class GeometryRenderer : IDisposable
         return data;
     }
 
-    private static LegacyVertex[] InitSectorVertices(DynamicArray<Subsector> subsectors, bool floor, int id, LegacyVertex[][] lookup)
+    private static DynamicVertex[] InitSectorVertices(DynamicArray<Subsector> subsectors, bool floor, int id, DynamicVertex[][] lookup)
     {
         int count = 0;
         for (int j = 0; j < subsectors.Length; j++)
             count += (subsectors[j].SegCount - 2) * 3;
 
-        var data = new LegacyVertex[count];
+        var data = new DynamicVertex[count];
         if (floor)
             lookup[id] = data;
         else
@@ -1500,12 +1500,12 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private static unsafe void SetWallVertices(LegacyVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
+    private static unsafe void SetWallVertices(DynamicVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
-        fixed (LegacyVertex* startVertex = &data[0])
+        fixed (DynamicVertex* startVertex = &data[0])
         {
-            LegacyVertex* vertex = startVertex;
+            DynamicVertex* vertex = startVertex;
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.TopLeft.Z;
@@ -1602,13 +1602,13 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private static unsafe LegacyVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
+    private static unsafe DynamicVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
         var data = WorldStatic.DataCache.GetWallVertices();
-        fixed (LegacyVertex* startVertex = &data[0])
+        fixed (DynamicVertex* startVertex = &data[0])
         {
-            LegacyVertex* vertex = startVertex;
+            DynamicVertex* vertex = startVertex;
             // Our triangle is added like:
             //    0--2
             //    | /  3
@@ -1714,12 +1714,12 @@ public class GeometryRenderer : IDisposable
         return data;
     }
 
-    private static unsafe void GetFlatVertices(LegacyVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
+    private static unsafe void GetFlatVertices(DynamicVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
         int lightLevelBufferIndex)
     {
-        fixed (LegacyVertex* startVertex = &vertices[startIndex])
+        fixed (DynamicVertex* startVertex = &vertices[startIndex])
         {
-            LegacyVertex* vertex = startVertex;
+            DynamicVertex* vertex = startVertex;
             vertex->X = root.X;
             vertex->Y = root.Y;
             vertex->Z = root.Z;

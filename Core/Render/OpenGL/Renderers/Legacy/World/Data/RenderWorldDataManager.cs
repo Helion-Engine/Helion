@@ -30,7 +30,7 @@ public class RenderWorldDataManager : IDisposable
         return renderDataList.Add(texture, program);
     }
 
-    public void AddCoverWallVertices(Side side, LegacyVertex[] vertices, WallLocation location)
+    public void AddCoverWallVertices(Side side, DynamicVertex[] vertices, WallLocation location)
     {
         if (m_coverWalls == null || !BufferCoverWalls)
             return;
@@ -40,7 +40,7 @@ public class RenderWorldDataManager : IDisposable
         CoverWallUtil.SetCoverWallVertices(side, m_coverWalls.Vbo.Data.Data, index, location);
     }
 
-    public void AddCoverFlatVertices(LegacyVertex[] vertices)
+    public void AddCoverFlatVertices(DynamicVertex[] vertices)
     {
         if (m_coverWalls == null || !BufferCoverWalls)
             return;

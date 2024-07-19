@@ -56,7 +56,7 @@ public class DataCache
     private readonly DynamicArray<SwitchChangeSpecial> m_switchSpecials = new();
     private readonly DynamicArray<StairSpecial> m_stairSpecials = new();
     private readonly DynamicArray<ConsoleMessage> m_consoleMessages = new();
-    private readonly DynamicArray<LegacyVertex[]> m_wallVertices = new(DefaultLength);
+    private readonly DynamicArray<DynamicVertex[]> m_wallVertices = new(DefaultLength);
     private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new(DefaultLength);
     public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
 
@@ -495,14 +495,14 @@ public class DataCache
         m_consoleMessageNodes.Add(node);
     }
 
-    public LegacyVertex[] GetWallVertices()
+    public DynamicVertex[] GetWallVertices()
     {
         if (m_wallVertices.Length > 0)
             return m_wallVertices.RemoveLast();
-        return new LegacyVertex[6];
+        return new DynamicVertex[6];
     }
 
-    public void FreeWallVertices(LegacyVertex[] vertices)
+    public void FreeWallVertices(DynamicVertex[] vertices)
     {
         m_wallVertices.Add(vertices);
     }

@@ -9,7 +9,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 public class RenderWorldData : IDisposable
 {
     public readonly GLLegacyTexture Texture;
-    public readonly StreamVertexBuffer<LegacyVertex> Vbo;
+    public readonly StreamVertexBuffer<DynamicVertex> Vbo;
     public readonly VertexArrayObject Vao;
     public int RenderCount;
 

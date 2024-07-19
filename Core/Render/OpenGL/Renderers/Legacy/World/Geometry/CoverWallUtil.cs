@@ -10,12 +10,12 @@ public class CoverWallUtil
     readonly record struct Heights(int Add, int Sub);
     const int ProjectHeight = 8192;
 
-    public static unsafe void SetCoverWallVertices(Side side, LegacyVertex[] vertices, int index, WallLocation location)
+    public static unsafe void SetCoverWallVertices(Side side, DynamicVertex[] vertices, int index, WallLocation location)
     {
         var heights = GetProjectHeights(side, location);
-        fixed (LegacyVertex* startVertex = &vertices[index])
+        fixed (DynamicVertex* startVertex = &vertices[index])
         {
-            LegacyVertex* v = startVertex;
+            DynamicVertex* v = startVertex;
             v->Z += heights.Add;
             v->PrevZ += heights.Add;
             v++;
@@ -41,14 +41,14 @@ public class CoverWallUtil
         }
     }
 
-    public static unsafe void AddCoverWallVertices(Side side, DynamicArray<StaticVertex> staticVertices, LegacyVertex[] vertices, WallLocation location)
+    public static unsafe void AddCoverWallVertices(Side side, DynamicArray<StaticVertex> staticVertices, DynamicVertex[] vertices, WallLocation location)
     {
         var heights = GetProjectHeights(side, location);
         staticVertices.EnsureCapacity(staticVertices.Length + 6);
         int staticStartIndex = staticVertices.Length;
-        fixed (LegacyVertex* startVertex = &vertices[0])
+        fixed (DynamicVertex* startVertex = &vertices[0])
         {
-            LegacyVertex* v = startVertex;
+            DynamicVertex* v = startVertex;
             staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
                 v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
             v++;
@@ -71,12 +71,12 @@ public class CoverWallUtil
         }
     }
 
-    public static unsafe void CopyCoverWallVertices(Side side, StaticVertex[] staticVertices, LegacyVertex[] vertices, int index, WallLocation location)
+    public static unsafe void CopyCoverWallVertices(Side side, StaticVertex[] staticVertices, DynamicVertex[] vertices, int index, WallLocation location)
     {
         var heights = GetProjectHeights(side, location);
-        fixed (LegacyVertex* startVertex = &vertices[0])
+        fixed (DynamicVertex* startVertex = &vertices[0])
         {
-            LegacyVertex* v = startVertex;
+            DynamicVertex* v = startVertex;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
                 v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
             v++;

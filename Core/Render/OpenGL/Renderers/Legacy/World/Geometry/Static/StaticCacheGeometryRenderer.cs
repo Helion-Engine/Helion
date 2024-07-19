@@ -479,15 +479,15 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_skyGeometry.AddSide(sky, side, wallLocation, vertices);
     }
 
-    private static unsafe void AddVertices(DynamicArray<StaticVertex> staticVertices, LegacyVertex[] vertices)
+    private static unsafe void AddVertices(DynamicArray<StaticVertex> staticVertices, DynamicVertex[] vertices)
     {
         int staticStartIndex = staticVertices.Length;
-        fixed(LegacyVertex* startVertex = &vertices[0])
+        fixed(DynamicVertex* startVertex = &vertices[0])
         {
             staticVertices.EnsureCapacity(staticVertices.Length + vertices.Length);
             for (int i = 0; i < vertices.Length; i++)
             {
-                LegacyVertex* v = startVertex + i;
+                DynamicVertex* v = startVertex + i;
                 staticVertices.Data[staticStartIndex + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V, 
                     v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
             }
@@ -496,20 +496,20 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private static unsafe void CopyVertices(StaticVertex[] staticVertices, LegacyVertex[] vertices, int index)
+    private static unsafe void CopyVertices(StaticVertex[] staticVertices, DynamicVertex[] vertices, int index)
     {
-        fixed (LegacyVertex* startVertex = &vertices[0])
+        fixed (DynamicVertex* startVertex = &vertices[0])
         {
             for (int i = 0; i < vertices.Length; i++)
             {
-                LegacyVertex* v = startVertex + i;
+                DynamicVertex* v = startVertex + i;
                 staticVertices[index + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
                     v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
             }
         }
     }
 
-    private void SetSideVertices(Side side, Wall wall, bool update, LegacyVertex[]? sideVertices, bool visible, bool repeatY)
+    private void SetSideVertices(Side side, Wall wall, bool update, DynamicVertex[]? sideVertices, bool visible, bool repeatY)
     {
         if (sideVertices == null || !visible)
             return;
@@ -945,7 +945,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         return true;
     }
 
-    private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, LegacyVertex[] vertices,
+    private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, DynamicVertex[] vertices,
         SectorPlane? plane, Side? side, Wall? wall, bool repeat)
     {
         if (side != null && wall != null && GetWallType(side, wall) != GeometryType.TwoSidedMiddleWall)
@@ -962,7 +962,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         geometryData.Vbo.UploadSubData(startIndex, vertices.Length);
     }
 
-    private void AddOrUpdateCoverWall(Side side, Wall wall, LegacyVertex[] sideVertices)
+    private void AddOrUpdateCoverWall(Side side, Wall wall, DynamicVertex[] sideVertices)
     {
         if (m_coverWallGeometry == null || m_coverWallGeometryOneSided == null)
             return;
@@ -989,7 +989,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         vbo.UploadSubData(staticGeometryData.Index, length);
     }
 
-    private void AddOrUpdateCoverFlatGeometry(Sector sector, SectorPlane plane, LegacyVertex[] vertices)
+    private void AddOrUpdateCoverFlatGeometry(Sector sector, SectorPlane plane, DynamicVertex[] vertices)
     {
         if (!m_vanillaRender || m_coverFlatGeometry == null)
             return;
@@ -1026,7 +1026,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void AddNewGeometry(int textureHandle, LegacyVertex[] vertices, SectorPlane? plane, Side? side, Wall? wall, bool repeat)
+    private void AddNewGeometry(int textureHandle, DynamicVertex[] vertices, SectorPlane? plane, Side? side, Wall? wall, bool repeat)
     {
         if (m_freeManager.GetAndRemove(textureHandle, vertices.Length, out StaticGeometryData? existing))
         {
@@ -1058,7 +1058,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         data.Vbo.SetNotUploaded();
     }
 
-    private void SetRuntimeGeometryData(SectorPlane? plane, Side? side, Wall? wall, int textureHandle, GeometryData geometryData, LegacyVertex[] vertices, bool repeat)
+    private void SetRuntimeGeometryData(SectorPlane? plane, Side? side, Wall? wall, int textureHandle, GeometryData geometryData, DynamicVertex[] vertices, bool repeat)
     {
         if (side != null && wall != null)
         {
