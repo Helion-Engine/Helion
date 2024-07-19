@@ -16,13 +16,7 @@ public struct DynamicVertex
     public float V;
 
     [VertexAttribute]
-    public float Alpha;
-
-    [VertexAttribute]
-    public float AddAlpha;
-    
-    [VertexAttribute]
-    public float LightLevelBufferIndex;
+    public float Options;
 
     [VertexAttribute]
     public float LightLevelAdd;

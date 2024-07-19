@@ -97,7 +97,7 @@ public class GeometryRenderer : IDisposable
         m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);
 
         for (int i = 0; i < m_wallVertices.Length; i++)
-            m_wallVertices[i].Alpha = 1.0f;
+            m_wallVertices[i].Options = VertexOptions.Get(1, 0, 0);
 
         m_world = null!;
     }
@@ -1503,6 +1503,7 @@ public class GeometryRenderer : IDisposable
     private static unsafe void SetWallVertices(DynamicVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
+        var options = VertexOptions.Get(alpha, addAlpha, lightBufferIndex);
         fixed (DynamicVertex* startVertex = &data[0])
         {
             DynamicVertex* vertex = startVertex;
@@ -1516,9 +1517,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->Alpha = alpha;
-            vertex->AddAlpha = addAlpha;
-            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
 
             vertex++;
@@ -1532,8 +1531,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Alpha = alpha;
-            vertex->AddAlpha = addAlpha;
+            vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
 
             vertex++;
@@ -1547,9 +1545,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->Alpha = alpha;
-            vertex->AddAlpha = addAlpha;
-            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
 
             vertex++;
@@ -1563,9 +1559,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->Alpha = alpha;
-            vertex->AddAlpha = addAlpha;
-            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
 
             vertex++;
@@ -1579,9 +1573,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Alpha = alpha;
-            vertex->AddAlpha = addAlpha;
-            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
 
             vertex++;
@@ -1595,9 +1587,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Alpha = alpha;
-            vertex->AddAlpha = addAlpha;
-            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
         }
     }
@@ -1605,6 +1595,7 @@ public class GeometryRenderer : IDisposable
     private static unsafe DynamicVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
+        var options = VertexOptions.Get(alpha, addAlpha, lightBufferIndex);
         var data = WorldStatic.DataCache.GetWallVertices();
         fixed (DynamicVertex* startVertex = &data[0])
         {
@@ -1625,9 +1616,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->Alpha = alpha;
-            vertex->AddAlpha = addAlpha;
-            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
 
             vertex++;
@@ -1641,9 +1630,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Alpha = alpha;
-            vertex->AddAlpha = addAlpha;
-            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
 
             vertex++;
@@ -1657,9 +1644,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->Alpha = alpha;
-            vertex->AddAlpha = addAlpha;
-            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
 
             vertex++;
@@ -1673,9 +1658,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->Alpha = alpha;
-            vertex->AddAlpha = addAlpha;
-            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
 
             vertex++;
@@ -1689,9 +1672,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Alpha = alpha;
-            vertex->AddAlpha = addAlpha;
-            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
 
             vertex++;
@@ -1705,9 +1686,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Alpha = alpha;
-            vertex->AddAlpha = addAlpha;
-            vertex->LightLevelBufferIndex = lightBufferIndex;
+            vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
         }
 
@@ -1717,6 +1696,7 @@ public class GeometryRenderer : IDisposable
     private static unsafe void GetFlatVertices(DynamicVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
         int lightLevelBufferIndex)
     {
+        var options = VertexOptions.Get(1, 0, lightLevelBufferIndex);
         fixed (DynamicVertex* startVertex = &vertices[startIndex])
         {
             DynamicVertex* vertex = startVertex;
@@ -1730,8 +1710,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = root.V;
             vertex->PrevU = root.PrevU;
             vertex->PrevV = root.PrevV;
-            vertex->Alpha = 1.0f;
-            vertex->LightLevelBufferIndex = lightLevelBufferIndex;
+            vertex->Options = options;
 
             vertex++;
             vertex->X = second.X;
@@ -1744,8 +1723,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = second.V;
             vertex->PrevU = second.PrevU;
             vertex->PrevV = second.PrevV;
-            vertex->Alpha = 1.0f;
-            vertex->LightLevelBufferIndex = lightLevelBufferIndex;
+            vertex->Options = options;
 
             vertex++;
             vertex->X = third.X;
@@ -1758,8 +1736,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = third.V;
             vertex->PrevU = third.PrevU;
             vertex->PrevV = third.PrevV;
-            vertex->Alpha = 1.0f;
-            vertex->LightLevelBufferIndex = lightLevelBufferIndex;
+            vertex->Options = options;
         }
     }
 

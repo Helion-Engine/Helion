@@ -50,12 +50,10 @@ public class InterpolationShader : RenderProgram
 
         layout(location = 0) in vec3 pos;
         layout(location = 1) in vec2 uv;
-        layout(location = 2) in float alpha;
-        layout(location = 3) in float addAlpha;
-        layout(location = 4) in float lightLevelBufferIndex;
-        layout(location = 5) in float lightLevelAdd;
-        layout(location = 6) in vec3 prevPos;
-        layout(location = 7) in vec2 prevUV;
+        layout(location = 2) in float options;
+        layout(location = 3) in float lightLevelAdd;
+        layout(location = 4) in vec3 prevPos;
+        layout(location = 5) in vec2 prevUV;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
@@ -68,9 +66,12 @@ public class InterpolationShader : RenderProgram
         uniform float timeFrac;
 
         void main() {
+            float splitOptions = options;
+            float lightLevelBufferIndex = trunc(splitOptions / 4);
+            splitOptions -= (lightLevelBufferIndex * 4);
+            addAlphaFrag = trunc(splitOptions / 2);
+            alphaFrag = splitOptions - (addAlphaFrag * 2);      
             uvFrag = mix(prevUV, uv, timeFrac);
-            alphaFrag = alpha;
-            addAlphaFrag = addAlpha;
             
             vec4 mixPos = vec4(mix(prevPos, pos, timeFrac), 1.0);
             ${VertexLightBuffer}

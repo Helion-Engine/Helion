@@ -50,22 +50,22 @@ public class CoverWallUtil
         {
             DynamicVertex* v = startVertex;
             staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                v->Options, v->LightLevelAdd);
             v++;
             staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                v->Options, v->LightLevelAdd);
             v++;
             staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                v->Options, v->LightLevelAdd);
             v++;
             staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                v->Options, v->LightLevelAdd);
             v++;
             staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                v->Options, v->LightLevelAdd);
             v++;
             staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                v->Options, v->LightLevelAdd);
 
             staticVertices.SetLength(staticVertices.Length + 6);
         }
@@ -78,22 +78,22 @@ public class CoverWallUtil
         {
             DynamicVertex* v = startVertex;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                v->Options, v->LightLevelAdd);
             v++;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                v->Options, v->LightLevelAdd);
             v++;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                v->Options, v->LightLevelAdd);
             v++;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                v->Options, v->LightLevelAdd);
             v++;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                v->Options, v->LightLevelAdd);
             v++;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
-                v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                v->Options, v->LightLevelAdd);
         }
     }
 

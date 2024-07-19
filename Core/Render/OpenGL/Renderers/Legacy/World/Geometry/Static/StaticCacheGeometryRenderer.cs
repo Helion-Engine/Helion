@@ -21,6 +21,9 @@ using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using Helion.Render.OpenGL.Context;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -489,7 +492,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 DynamicVertex* v = startVertex + i;
                 staticVertices.Data[staticStartIndex + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V, 
-                    v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                    v->Options, v->LightLevelAdd);
             }
 
             staticVertices.SetLength(staticVertices.Length + vertices.Length);
@@ -504,7 +507,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 DynamicVertex* v = startVertex + i;
                 staticVertices[index + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
-                    v->Alpha, v->AddAlpha, v->LightLevelBufferIndex, v->LightLevelAdd);
+                    v->Options, v->LightLevelAdd);
             }
         }
     }
