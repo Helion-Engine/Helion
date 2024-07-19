@@ -1079,20 +1079,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private static unsafe void ClearGeometryVertices(GeometryData geometryData, int startIndex, int length)
     {
-        for (int i = 0; i < length; i++)
-        {
-            int index = startIndex + i;
-            fixed (StaticVertex* vertex = &geometryData.Vbo.Data.Data[index])
-            {
-                vertex->Options = 0;
-                vertex->X = 0;
-                vertex->Y = 0;
-                vertex->Z = 0;
-                vertex->U = 0;
-                vertex->V = 0;
-            }
-        }
-
+        ref var reference = ref geometryData.Vbo.Data.Data[startIndex];
+        Unsafe.InitBlockUnaligned(ref Unsafe.As<StaticVertex, byte>(ref reference), 0, (uint)(Marshal.SizeOf<StaticVertex>() * length));
         geometryData.Vbo.Bind();
         geometryData.Vbo.UploadSubData(startIndex, length);
     }
