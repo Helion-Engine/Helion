@@ -140,9 +140,21 @@ public partial class WorldLayer
 
     private void DrawMapHeader(IHudRenderContext hud)
     {
+        const int StatusBarSize = 32;
+        const int FaceSize = 24;
+        float doomScale = hud.Dimension.Height / 200f;
+        int padding = (int)(2 * m_scale);
+        Vec2I pos = new(padding + m_hudPaddingX, -padding);
+        var offsetY = m_statusBarSizeType switch
+        {
+            StatusBarSizeType.Hidden => 0,
+            StatusBarSizeType.Minimal => (int)(FaceSize * doomScale),
+            _ => (int)(StatusBarSize * doomScale),
+        };
+        pos.Y -= offsetY;
+
         string text = World.MapInfo.GetDisplayNameWithPrefix(World.ArchiveCollection);
-        Vec2I pos = new((int)(2 * m_scale) + m_hudPaddingX, (int)(2 * m_scale));
-        hud.Text(text, SmallHudFont, m_mapHeaderFontSize, pos);
+        hud.Text(text, SmallHudFont, m_mapHeaderFontSize, pos, both: Align.BottomLeft);
     }
 
     private void DrawPause(IHudRenderContext hud)
