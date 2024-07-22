@@ -155,13 +155,13 @@ public class GLHudRenderContext : IHudRenderContext
     }
 
     public void Text(RenderableString str, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
-    Align? both = null)
+        Align? both = null, float alpha = 1)
     {
         window = both ?? window;
         anchor = both ?? anchor;
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, str.DrawArea.Width, str.DrawArea.Height,
             window, anchor);
-        m_commands.DrawText(str, pos.X, pos.Y, 1.0f);
+        m_commands.DrawText(str, pos.X, pos.Y, alpha);
     }
 
     public void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
@@ -215,7 +215,7 @@ public class GLHudRenderContext : IHudRenderContext
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,
             window, anchor);
 
-        m_commands.DrawText(renderableString, pos.X, pos.Y, 1.0f);
+        m_commands.DrawText(renderableString, pos.X, pos.Y, alpha);
     }
 
     public Dimension MeasureText(ReadOnlySpan<char> text, string font, int fontSize, int maxWidth = int.MaxValue,

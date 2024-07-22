@@ -78,7 +78,7 @@ public interface IHudRenderContext : IDisposable
         Color? color = null, float scale = 1.0f, float alpha = 1.0f);
 
     void Text(RenderableString str, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
-        Align? both = null);
+        Align? both = null, float alpha = 1);
 
     void Text(ReadOnlySpan<char> text, string font, int fontSize, Vec2I origin, TextAlign textAlign = TextAlign.Left,
         Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,

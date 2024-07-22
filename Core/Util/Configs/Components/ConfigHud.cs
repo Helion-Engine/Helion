@@ -90,6 +90,14 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Hud scale")]
     public readonly ConfigValue<double> Scale = new(2.0, Greater(0.0));
 
+    [ConfigInfo("Amount of hud transparency.")]
+    [OptionMenu(OptionSectionType.Hud, "Hud transparency")]
+    public readonly ConfigValue<double> Transparency = new(0.0, ClampNormalized);
+
+    [ConfigInfo("Max hud messages.")]
+    [OptionMenu(OptionSectionType.Hud, "Max hud messages")]
+    public readonly ConfigValue<int> MaxMessages = new(4, GreaterOrEqual(0));
+
     [ConfigInfo("Horizontal hud margin percentage.")]
     [OptionMenu(OptionSectionType.Hud, "Horizontal margin percent (0.0 - 1.0)")]
     public readonly ConfigValue<double> HorizontalMargin = new(0, ClampNormalized);

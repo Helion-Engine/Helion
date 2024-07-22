@@ -34,7 +34,7 @@ using static Helion.Render.Common.RenderDimensions;
 namespace Helion.Layer.Worlds;
 
 public partial class WorldLayer
-{    
+{
     private const double DoomVerticalScale = (320 / 200.0) / (640 / 480.0);
     private const int MapFontSize = 12;
     private const int DebugFontSize = 8;
@@ -43,7 +43,7 @@ public partial class WorldLayer
     private const int MessageSpacing = 1;
     private const int FpsMessageSpacing = 2;
     private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
-    private const long FadingNanoSpan = 350L * 1000L * 1000L;
+    private const long MessageTransitionSpan = 350L * 1000L * 1000L;
     private const ResourceNamespace LookupNamespace = ResourceNamespace.Undefined;
     private static readonly Color PickupColor = (255, 255, 128);
     private static readonly Color DamageColor = (255, 0, 0);
@@ -54,6 +54,7 @@ public partial class WorldLayer
     private int m_padding = 4;
     private int m_hudPaddingX = 0;
     private float m_scale = 1.0f;
+    private float m_hudAlpha = 0.5f;
     private int m_infoFontSize = DebugFontSize;
     private int m_mapHeaderFontSize = MapFontSize;
     private Dimension m_viewport;
@@ -107,6 +108,7 @@ public partial class WorldLayer
     private void DrawHud(HudRenderContext hudContext, IHudRenderContext hud, bool automapVisible)
     {
         m_scale = (float)m_config.Hud.Scale.Value;
+        m_hudAlpha = 1f - (float)m_config.Hud.Transparency.Value;
         m_infoFontSize = Math.Max((int)(m_scale * DebugFontSize), 12);
         m_mapHeaderFontSize = Math.Max((int)(m_scale * MapFontSize), 20);
         m_padding = (int)(4 * m_scale);
@@ -214,7 +216,7 @@ public partial class WorldLayer
         for (int i = 0; i < RenderableStatLabels.Length; i++)
         {
             var str = RenderableStatLabels[i];
-            hud.Text(RenderableStatLabels[i], labelPos, both: align);
+            hud.Text(RenderableStatLabels[i], labelPos, both: align, alpha: m_hudAlpha);
             labelPos.Y += str.DrawArea.Height;
         }
 
@@ -222,7 +224,7 @@ public partial class WorldLayer
         for (int i = 0; i < RenderableStatValues.Length; i++)
         {
             var str = RenderableStatValues[i];
-            hud.Text(RenderableStatValues[i], labelPos, both: align);
+            hud.Text(RenderableStatValues[i], labelPos, both: align, alpha: m_hudAlpha);
             labelPos.Y += str.DrawArea.Height;
         }
         labelPos.Y += m_padding;
@@ -231,16 +233,16 @@ public partial class WorldLayer
         {
             TimeSpan ts = TimeSpan.FromSeconds(World.LevelTime / 35);
             m_timeString.Clear();
-            m_timeString.Append((int)ts.Hours, 2);
+            m_timeString.Append(ts.Hours, 2);
             m_timeString.Append(':');
-            m_timeString.Append((int)ts.Minutes, 2);
+            m_timeString.Append(ts.Minutes, 2);
             m_timeString.Append(':');
-            m_timeString.Append((int)ts.Seconds, 2);
+            m_timeString.Append(ts.Seconds, 2);
 
             SetRenderableString(m_timeString.AsSpan(), m_renderTimeString, ConsoleFont, m_infoFontSize, useDoomScale: false);
         }
 
-        hud.Text(m_renderTimeString, labelPos, both: align);
+        hud.Text(m_renderTimeString, labelPos, both: align, alpha: m_hudAlpha);
         labelPos.Y += m_renderTimeString.DrawArea.Height;
 
         topRightY = labelPos.Y;
@@ -295,7 +297,7 @@ public partial class WorldLayer
         str.Append((int)Math.Round(fps));
 
         SetRenderableString(str.AsSpan(), renderableString, ConsoleFont, m_infoFontSize, useDoomScale: false);
-        hud.Text(renderableString, (-m_padding - m_hudPaddingX, y), both: Align.TopRight);
+        hud.Text(renderableString, (-m_padding - m_hudPaddingX, y), both: Align.TopRight, alpha: m_hudAlpha);
 
         y += renderableString.DrawArea.Height + FpsMessageSpacing;
     }
@@ -317,7 +319,7 @@ public partial class WorldLayer
     {
         hud.Text($"{axis}: {Math.Floor(position * 10000)/10000}", ConsoleFont, m_infoFontSize,
             (-m_padding - m_hudPaddingX, y), out Dimension area, TextAlign.Right, both: Align.TopRight,
-            color: Color.White);
+            color: Color.White, alpha: m_hudAlpha);
         y += area.Height + FpsMessageSpacing;
     }
 
@@ -608,14 +610,14 @@ public partial class WorldLayer
         int textStartX = m_hudPaddingX + setWidth + m_padding * 2;
 
         x += (setWidth - medkitDimension.Width) / 2;
-        DrawDoomScaledImage(hud, Medkit, (x, y), out var medkitArea, both: Align.BottomLeft);
+        DrawDoomScaledImage(hud, Medkit, (x, y), out var medkitArea, both: Align.BottomLeft, alpha: m_hudAlpha);
         x = textStartX;
 
         m_healthString.Clear();
         m_healthString.Append(Math.Max(0, Player.Health));
 
         SetRenderableString(m_healthString.AsSpan(), m_renderHealthString, LargeHudFont, m_fontHeight);
-        hud.Text(m_renderHealthString, (x, y), both: Align.BottomLeft);
+        hud.Text(m_renderHealthString, (x, y), both: Align.BottomLeft, alpha: m_hudAlpha);
 
         // This is to make sure the face never moves (even if the health changes).
         if (HasTicks)
@@ -623,7 +625,7 @@ public partial class WorldLayer
         x += m_healthWidth;
         int highestX = x;
 
-        DrawDoomScaledImage(hud, Player.StatusBar.GetFacePatch(), (x, y), out var faceArea, both: Align.BottomLeft);
+        DrawDoomScaledImage(hud, Player.StatusBar.GetFacePatch(), (x, y), out var faceArea, both: Align.BottomLeft, alpha: m_hudAlpha);
 
         if (Player.Armor > 0)
         {
@@ -631,7 +633,7 @@ public partial class WorldLayer
             y -= medkitArea.Height + m_padding;
 
             if (armorProp != null && hasArmorImage)
-                DrawDoomScaledImage(hud, armorProp.Inventory.Icon, (x, y), out var armorArea, both: Align.BottomLeft);
+                DrawDoomScaledImage(hud, armorProp.Inventory.Icon, (x, y), out var armorArea, both: Align.BottomLeft, alpha: m_hudAlpha);
 
             x = textStartX;
 
@@ -639,11 +641,11 @@ public partial class WorldLayer
             m_armorString.Append(Player.Armor);
             SetRenderableString(m_armorString.AsSpan(), m_renderArmorString, LargeHudFont, m_fontHeight);
 
-            hud.Text(m_renderArmorString, (x, y), both: Align.BottomLeft);
+            hud.Text(m_renderArmorString, (x, y), both: Align.BottomLeft, alpha: m_hudAlpha);
         }
     }
 
-    private void DrawDoomScaledImage(IHudRenderContext hud, string image, Vec2I origin, out HudBox area, Align? both = null)
+    private void DrawDoomScaledImage(IHudRenderContext hud, string image, Vec2I origin, out HudBox area, Align? both = null, float alpha = 1)
     {
         if (!hud.Textures.TryGet(image, out var handle, LookupNamespace))
         {
@@ -655,7 +657,7 @@ public partial class WorldLayer
         var scale = new Vec2D(1 * m_scale, verticalScale * m_scale);
         var imageArea = new Box2D(handle.Area.Min.Double * scale, handle.Area.Max.Double * scale).Int;
         area = new HudBox(origin + imageArea.Min, origin + imageArea.Max);
-        hud.Image(image, area, both: both);
+        hud.Image(image, area, both: both, alpha: alpha);
     }
 
     private Dimension GetDoomScaledImageArea(IHudRenderContext hud, string image)
@@ -678,7 +680,7 @@ public partial class WorldLayer
             string icon = key.Definition.Properties.Inventory.Icon;
             if (!hud.Textures.HasImage(icon))
                 continue;
-            DrawDoomScaledImage(hud, icon, (-m_padding - m_hudPaddingX, y), out var drawArea, both: Align.TopRight);
+            DrawDoomScaledImage(hud, icon, (-m_padding - m_hudPaddingX, y), out var drawArea, both: Align.TopRight, alpha: m_hudAlpha);
             y += drawArea.Height + m_padding;
         }
     }
@@ -705,14 +707,14 @@ public partial class WorldLayer
             SetRenderableString(m_ammoString.AsSpan(), m_renderAmmoString, LargeHudFont, m_fontHeight);
         }
 
-        hud.Text(m_renderAmmoString, (x, y), both: Align.BottomRight);
+        hud.Text(m_renderAmmoString, (x, y), both: Align.BottomRight, alpha: m_hudAlpha);
 
         x -= m_renderAmmoString.DrawArea.Width + m_padding;
         if (weapon.AmmoSprite.Length <= 0 || !hud.Textures.TryGet(weapon.AmmoSprite, out var handle))
             return;
 
         x -= (int)(handle.Dimension.Width * m_scale);
-        DrawDoomScaledImage(hud, weapon.AmmoSprite, (x, y), out _, both: Align.BottomRight);
+        DrawDoomScaledImage(hud, weapon.AmmoSprite, (x, y), out _, both: Align.BottomRight, alpha: m_hudAlpha);
     }
 
     private void DrawFullStatusBar(IHudRenderContext hud)
@@ -730,12 +732,18 @@ public partial class WorldLayer
 
     private void VirtualDrawFullStatusBar(IHudRenderContext hud)
     {
+        var hudAlpha = m_hudAlpha;
+        if (m_statusBarSizeType == StatusBarSizeType.Full)
+            m_hudAlpha = 1;
+
         DrawFullHudHealthArmorAmmo(hud);
         DrawFullHudWeaponSlots(hud);
         if (m_statusBarSizeType == StatusBarSizeType.Full)
             HudImageWithOffset(hud, Player.StatusBar.GetFacePatch(), (143, 168));
         DrawFullHudKeys(hud);
         DrawFullTotalAmmo(hud);
+
+        m_hudAlpha = hudAlpha;
     }
 
     private void HudImageWithOffset(IHudRenderContext hud, string image, Vec2I pos, Align? both = null)
@@ -743,7 +751,7 @@ public partial class WorldLayer
         if (!hud.Textures.TryGet(image, out var faceHandle))
             return;
         pos += TranslateDoomOffset(faceHandle.Offset);
-        hud.Image(image, pos, both: both);
+        hud.Image(image, pos, both: both, alpha: m_hudAlpha);
     }
 
     private readonly record struct HudStatusBarbackground(IHudRenderContext Hud, IRenderableTextureHandle BarHandle, IRenderableTextureHandle BackgroundHandle);
@@ -790,7 +798,7 @@ public partial class WorldLayer
             m_ammoString.Clear();
             m_ammoString.Append(Math.Clamp(ammoAmount, 0, 999));
             SetRenderableString(m_ammoString.AsSpan(), m_renderAmmoString, LargeHudFont, FontSize, useDoomScale: false);
-            hud.Text(m_renderAmmoString, (AmmoX, OffsetY), anchor: Align.TopRight);
+            hud.Text(m_renderAmmoString, (AmmoX, OffsetY), anchor: Align.TopRight, alpha: m_hudAlpha);
         }
 
         m_healthString.Clear();
@@ -798,14 +806,14 @@ public partial class WorldLayer
         m_healthString.Append('%');
 
         SetRenderableString(m_healthString.AsSpan(), m_renderHealthString, LargeHudFont, FontSize, useDoomScale: false);
-        hud.Text(m_renderHealthString, (CalcPercentStartOffsetX(HealthX, m_largeHudFont), OffsetY), anchor: Align.TopRight);
+        hud.Text(m_renderHealthString, (CalcPercentStartOffsetX(HealthX, m_largeHudFont), OffsetY), anchor: Align.TopRight, alpha: m_hudAlpha);
 
         m_armorString.Clear();
         m_armorString.Append(Math.Clamp(Player.Armor, 0, 999));
         m_armorString.Append('%');
 
         SetRenderableString(m_armorString.AsSpan(), m_renderArmorString, LargeHudFont, FontSize, useDoomScale: false);
-        hud.Text(m_renderArmorString, (CalcPercentStartOffsetX(ArmorX, m_largeHudFont), OffsetY), anchor: Align.TopRight);
+        hud.Text(m_renderArmorString, (CalcPercentStartOffsetX(ArmorX, m_largeHudFont), OffsetY), anchor: Align.TopRight, alpha: m_hudAlpha);
     }
 
     private static int CalcPercentStartOffsetX(int offsetX, Font font)
@@ -920,13 +928,15 @@ public partial class WorldLayer
         m_maxAmmoString.Clear();
         m_ammoString.Append(ammo);
         m_maxAmmoString.Append(maxAmmo);
-        hud.Text(m_ammoString.AsSpan(), YellowFontName, FontSize, (287, y), anchor: Align.TopRight);
-        hud.Text(m_maxAmmoString.AsSpan(), YellowFontName, FontSize, (315, y), anchor: Align.TopRight);
+        hud.Text(m_ammoString.AsSpan(), YellowFontName, FontSize, (287, y), anchor: Align.TopRight, alpha: m_hudAlpha);
+        hud.Text(m_maxAmmoString.AsSpan(), YellowFontName, FontSize, (315, y), anchor: Align.TopRight, alpha: m_hudAlpha);
     }
+
+    private int m_lastMessageCount = 0;
 
     private void DrawRecentConsoleMessages(IHudRenderContext hud)
     {
-        const int MaxHudMessages = 4;
+        int maxHudMessages = m_config.Hud.MaxMessages.Value;
 
         long currentNanos = Ticker.NanoTime();
         int messagesDrawn = 0;
@@ -939,6 +949,7 @@ public partial class WorldLayer
         // forward iteration without the stack, then they get drawn in the
         // reverse order and fading begins at the wrong end.
 
+        long lastMessageTime = 0;
         lock (m_console.Messages)
         {
             LinkedListNode<ConsoleMessage>? node = m_console.Messages.First;
@@ -947,7 +958,7 @@ public partial class WorldLayer
                 ConsoleMessage msg = node.Value;
                 node = node.Next;
 
-                if (messagesDrawn >= MaxHudMessages || MessageTooOldToDraw(msg, World, m_console))
+                if (messagesDrawn >= maxHudMessages || MessageTooOldToDraw(msg, World, m_console))
                     break;
 
                 long timeSinceMessage = currentNanos - msg.TimeNanos;
@@ -956,14 +967,18 @@ public partial class WorldLayer
 
                 m_messages.Add((msg.Message, CalculateFade(timeSinceMessage)));
                 messagesDrawn++;
+                lastMessageTime = timeSinceMessage;
             }
 
+            int slideOffsetY = m_messages.Count <= 1 ? 0 : CalculateSlide(hud, lastMessageTime);
             for (int i = m_messages.Count - 1; i >= 0; i--)
             {
-                hud.Text(m_messages[i].message, SmallHudFont, 8, (LeftOffset + m_hudPaddingX, offsetY),
-                    out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: m_messages[i].alpha);
+                hud.Text(m_messages[i].message, SmallHudFont, 8, (LeftOffset + m_hudPaddingX, offsetY + slideOffsetY),
+                    out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: m_messages[i].alpha * m_hudAlpha);
                 offsetY += drawArea.Height + MessageSpacing;
             }
+
+            m_lastMessageCount = m_messages.Count;
 
             m_messages.Clear();
         }
@@ -974,14 +989,24 @@ public partial class WorldLayer
         return msg.TimeNanos < world.CreationTimeNanos || msg.TimeNanos < console.LastClosedNanos;
     }
 
+    private static int CalculateSlide(IHudRenderContext hud, long timeSinceMessage)
+    {
+        const long SlideNanoRange = MaxVisibleTimeNanos - MessageTransitionSpan;        
+        if (timeSinceMessage < SlideNanoRange)
+            return 0;
+
+        var dim = hud.MeasureText("I", SmallHudFont, 8);
+        double frac = 1.0 - (double)(MaxVisibleTimeNanos - timeSinceMessage) / MessageTransitionSpan;
+        return (int)(-(dim.Height + MessageSpacing) * frac * 2.5);
+    }
+
     private static float CalculateFade(long timeSinceMessage)
     {
-        const long OpaqueNanoRange = MaxVisibleTimeNanos - FadingNanoSpan;
-
+        const long OpaqueNanoRange = MaxVisibleTimeNanos - MessageTransitionSpan;
         if (timeSinceMessage < OpaqueNanoRange)
             return 1.0f;
 
-        double fractionIntoFadeRange = (double)(timeSinceMessage - OpaqueNanoRange) / FadingNanoSpan;
+        double fractionIntoFadeRange = (double)(timeSinceMessage - OpaqueNanoRange) / MessageTransitionSpan;
         return 1.0f - (float)fractionIntoFadeRange;
     }
 }
