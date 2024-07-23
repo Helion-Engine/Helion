@@ -80,7 +80,7 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Cache all sprites")]
     public readonly ConfigValue<bool> CacheSprites = new(true);
 
-    [ConfigInfo("Renders sprites over floors/ceilings.", mapRestartRequired: true)]
+    [ConfigInfo("Renders sprites over floors/ceilings. Sprites always clipped to walls.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Emulate vanilla rendering", spacer: true)]
     public readonly ConfigValue<bool> VanillaRender = new(false);
 
