@@ -21,7 +21,6 @@ using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
 using Helion.Render.OpenGL.Context;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -433,11 +432,23 @@ public class StaticCacheGeometryRenderer : IDisposable
             }
         }
 
-        if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex)
+        if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex && ShouldRenderStaticMiddle(side))
         {
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
             SetSideVertices(side, side.Middle, update, sideVertices, true, repeatY: false);
         }
+    }
+
+    private bool ShouldRenderStaticMiddle(Side side)
+    {
+        if ((side.Dynamic & SectorDynamic.Scroll) == 0)
+            return true;
+
+        // If the texture has transparent pixels and scrolls then do not render statically.
+        // Textures with no transparent pixels can be added for when the camera is outside the dynamic distance
+        // that the static non-scrolling texture will be rendered in place.
+        var texture = m_textureManager.GetTexture(side.Middle.TextureHandle, repeatY: false);
+        return texture.TransparentPixelCount == 0;
     }
 
     private void AddSkyGeometry(Side? side, WallLocation wallLocation, SectorPlane? plane,
