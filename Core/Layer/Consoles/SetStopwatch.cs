@@ -15,4 +15,6 @@ public class SetStopwatch : Stopwatch
     }
 
     public new long ElapsedMilliseconds => base.ElapsedMilliseconds + (long)m_offset.TotalMilliseconds;
+
+    public new TimeSpan Elapsed => base.Elapsed + m_offset;
 }

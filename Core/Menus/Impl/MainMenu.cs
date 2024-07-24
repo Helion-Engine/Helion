@@ -66,6 +66,7 @@ public class MainMenu : Menu
     {
         return () =>
         {
+            m_optionsLayer.Animation.AnimateIn();
             m_parent.Manager.Add(m_optionsLayer);        
             return null;
         };

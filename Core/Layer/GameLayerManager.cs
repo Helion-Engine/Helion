@@ -121,6 +121,8 @@ public class GameLayerManager : IGameLayerManager
 
     public bool MenuLock => MenuLayer != null && MenuLayer.Animation.State != InterpolationAnimationState.Out;
 
+    public bool OptionsLock => OptionsLayer != null && OptionsLayer.Animation.State != InterpolationAnimationState.Out;
+
     public bool ShouldFocus()
     {
         if (ConsoleLock || MenuLock)
@@ -235,7 +237,10 @@ public class GameLayerManager : IGameLayerManager
             return;
 
         if (layer is IAnimationLayer animationLayer)
+        {
+            animationLayer.Animation.OnStart -= Animation_OnStart;
             animationLayer.Animation.OnComplete -= Animation_OnComplete;
+        }
 
         if (ReferenceEquals(layer, ConsoleLayer))
         {
@@ -343,7 +348,8 @@ public class GameLayerManager : IGameLayerManager
 
             if (ReadThisLayer == null)
             {
-                OptionsLayer?.HandleInput(input);
+                if (OptionsLock)
+                    OptionsLayer?.HandleInput(input);
                 if (MenuLayer != null && MenuLayer.Animation.State != InterpolationAnimationState.Out)
                     MenuLayer.HandleInput(input);
                 IwadSelectionLayer?.HandleInput(input);
@@ -456,6 +462,10 @@ public class GameLayerManager : IGameLayerManager
             MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager, m_optionsLayer);
             menuLayer.Animation.AnimateIn();
             Add(menuLayer);
+        }
+        else
+        {
+            MenuLayer.Animation.AnimateIn();
         }
     }
 
@@ -601,7 +611,9 @@ public class GameLayerManager : IGameLayerManager
         if (MenuLayer != null)
             RenderWithAlpha(hudCtx, MenuLayer.Animation, RenderMenu);
 
-        OptionsLayer?.Render(m_ctx, hudCtx);
+        if (OptionsLayer != null)
+            RenderWithAlpha(hudCtx, OptionsLayer.Animation, RenderOptions);
+
         ReadThisLayer?.Render(hudCtx);
         IwadSelectionLayer?.Render(m_ctx, hudCtx);
         if (LoadingLayer != null)
@@ -639,7 +651,7 @@ public class GameLayerManager : IGameLayerManager
         hudCtx.PopOffset();
     }
 
-    private void RenderWithAlpha(IHudRenderContext hudCtx, InterpolationAnimation<IAnimationLayer> animation, Action action)
+    private static void RenderWithAlpha(IHudRenderContext hudCtx, InterpolationAnimation<IAnimationLayer> animation, Action action)
     {
         float alpha = (float)animation.GetInterpolated(1);
         hudCtx.PushAlpha(alpha);

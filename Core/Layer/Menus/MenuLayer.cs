@@ -69,6 +69,7 @@ public partial class MenuLayer : IGameLayer, IAnimationLayer
     public void ShowOptionsMenu()
     {
         m_optionsLayer.ClearOnExit = true;
+        m_optionsLayer.Animation.AnimateIn();
         Manager.Add(m_optionsLayer);
     }
 

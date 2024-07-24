@@ -31,6 +31,7 @@ public class InterpolationAnimation<T>(TimeSpan duration, T arg) : ITickable
 
         if (m_stopwatch.IsRunning)
         {
+            m_stopwatch.Stop();
             m_stopwatch.Restart(m_duration - m_stopwatch.Elapsed);
             return;
         }
@@ -45,6 +46,7 @@ public class InterpolationAnimation<T>(TimeSpan duration, T arg) : ITickable
 
         if (m_stopwatch.IsRunning)
         {
+            m_stopwatch.Stop();
             m_stopwatch.Restart(m_duration - m_stopwatch.Elapsed);
             return;
         }

@@ -24,8 +24,9 @@ using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
 
-public class OptionsLayer : IGameLayer
+public class OptionsLayer : IGameLayer, IAnimationLayer
 {
+    public InterpolationAnimation<IAnimationLayer> Animation { get; }
     public bool ClearOnExit { get; set; }
 
     private const string TiledBackgroundFlat = "FLOOR5_1";
@@ -72,6 +73,13 @@ public class OptionsLayer : IGameLayer
         m_config.Window.Virtual.Enable.OnChanged += WindowVirtualEnable_OnChanged;
         m_config.Window.Virtual.Dimension.OnChanged += WindowVirtualDimension_OnChanged;
         m_config.Hud.Scale.OnChanged += Scale_OnChanged;
+
+        Animation = new(TimeSpan.FromMilliseconds(200), this);
+    }
+
+    public bool ShouldRemove()
+    {
+        return Animation.State == InterpolationAnimationState.OutComplete;
     }
 
     public void OnShow()
@@ -260,7 +268,7 @@ public class OptionsLayer : IGameLayer
         if (input.ConsumeKeyPressed(Key.Escape))
         {
             m_soundManager.PlayStaticSound(MenuSounds.Choose);
-            m_manager.Remove(this);
+            Animation.AnimateOut();
 
             if (ClearOnExit)
                 m_manager.Remove(m_manager.MenuLayer);
@@ -370,6 +378,7 @@ public class OptionsLayer : IGameLayer
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
+        Animation.Tick();
         m_windowSize = hud.Dimension;
         m_backForwardPos.Clear();
         ctx.ClearDepth();
