@@ -20,6 +20,7 @@ public partial class ConsoleLayer
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
+        Animation.Tick();
         ctx.ClearDepth();
 
         var drawArea = GetDrawArea(hud);

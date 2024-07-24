@@ -14,8 +14,9 @@ using Helion.World.Save;
 
 namespace Helion.Layer.Menus;
 
-public partial class MenuLayer : IGameLayer
+public partial class MenuLayer : IGameLayer, IAnimationLayer
 {
+    public InterpolationAnimation<IAnimationLayer> Animation { get; }
     internal readonly GameLayerManager Manager;
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
@@ -41,8 +42,15 @@ public partial class MenuLayer : IGameLayer
         m_renderVirtualHudAction = new(RenderVirtualHud);
         m_stopwatch.Start();
 
+        Animation = new(TimeSpan.FromMilliseconds(200), this);
+
         MainMenu mainMenu = new(this, config, console, soundManager, archiveCollection, saveGameManager, optionsLayer);
         m_menus.Push(mainMenu);
+    }
+
+    public bool ShouldRemove()
+    {
+        return Animation.State == InterpolationAnimationState.OutComplete;
     }
 
     public void AddSaveOrLoadMenuIfMissing(bool isSave, bool clearOnExit)

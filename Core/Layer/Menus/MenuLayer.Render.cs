@@ -22,6 +22,7 @@ public partial class MenuLayer
 
     public void Render(IHudRenderContext hud)
     {
+        Animation.Tick();
         hud.DoomVirtualResolution(m_renderVirtualHudAction, hud);
     }
 

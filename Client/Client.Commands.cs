@@ -673,7 +673,7 @@ public partial class Client
         var loadingLayer = m_layerManager.LoadingLayer;
         if (loadingLayer == null)
         {
-            loadingLayer = new(m_layerManager, m_archiveCollection, m_config, string.Empty);
+            loadingLayer = new(m_archiveCollection, m_config, string.Empty);
             m_layerManager.Add(loadingLayer);
         }
 

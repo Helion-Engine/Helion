@@ -1,78 +1,64 @@
-﻿using Helion.Geometry;
-using Helion.Geometry.Vectors;
+﻿using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Graphics.Fonts;
-using Helion.Render;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
-using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
 using Helion.Window;
-using Helion.Window.Input;
-using NLog;
 using System;
 using System.Diagnostics;
 
 namespace Helion.Layer.IwadSelection;
 
-public class LoadingLayer : IGameLayer
+public class LoadingLayer : IGameLayer, IAnimationLayer
 {
     private static readonly string ConsoleFont = Constants.Fonts.Console;
-    private static readonly string[] Spinner = new[] { "-", "\\", "|", "/" };
+    private static readonly string[] Spinner = ["-", "\\", "|", "/"];
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly IConfig m_config;
     private readonly Stopwatch m_stopwatch = new();
-    private readonly Stopwatch m_fadeOut = new();
-    private TimeSpan m_fadeOutTime;
     private int m_spinner;
     public string LoadingText { get; set; }
     public string LoadingImage { get; set; } = string.Empty;
     public bool ShowSpinner { get; set; } = true;
 
-    private readonly IGameLayerManager m_layerManager;
+    public InterpolationAnimation<IAnimationLayer> Animation { get; }
 
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
-    public LoadingLayer(IGameLayerManager manager, ArchiveCollection archiveCollection, IConfig config, string text)
+    public LoadingLayer(ArchiveCollection archiveCollection, IConfig config, string text)
     {
-        m_layerManager = manager;
         m_archiveCollection = archiveCollection;
         m_config = config;
         LoadingText = text;
         m_stopwatch.Start();
+        Animation = new(TimeSpan.FromSeconds(1), this);
+    }
+
+    public bool ShouldRemove()
+    {
+        return true;
     }
 
     public void SetFadeOut(TimeSpan time)
     {
+        Animation.Stop();
+        Animation.SetDuration(time);
+        Animation.AnimateOut();
         LoadingText = string.Empty;
-        m_fadeOutTime = time;
-        m_fadeOut.Start();
     }
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
-        float alpha = 1;
-        if (m_fadeOut.IsRunning && m_fadeOut.ElapsedMilliseconds >= m_fadeOutTime.TotalMilliseconds)
-        {
-            m_fadeOut.Stop();
-            m_layerManager.Remove(this);
-            return;
-        }
-
-        if (m_fadeOut.IsRunning)
-            alpha = Math.Max(0, 1 - m_fadeOut.ElapsedMilliseconds / (float)m_fadeOutTime.TotalMilliseconds);
+        Animation.Tick();
 
         if (LoadingImage.Length > 0)
         {
-            hud.FillBox(new(new Vec2I(0, 0), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: alpha);
-            hud.RenderFullscreenImage(LoadingImage, alpha: alpha);
+            hud.FillBox(new(new Vec2I(0, 0), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black);
+            hud.RenderFullscreenImage(LoadingImage);
         }
 
         int fontSize = m_config.Hud.GetScaled(20);

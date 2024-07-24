@@ -69,8 +69,6 @@ public class GameLayerManager : IGameLayerManager
     private readonly HudRenderContext m_hudContext = new(default);
     private readonly OptionsLayer m_optionsLayer;
     private readonly ConsoleLayer m_consoleLayer;
-    private readonly InterpolationAnimation m_consoleAnimation = new(TimeSpan.FromMilliseconds(200));
-    private readonly InterpolationAnimation m_menuAnimation = new(TimeSpan.FromMilliseconds(200));
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private bool m_disposed;
@@ -101,27 +99,8 @@ public class GameLayerManager : IGameLayerManager
 
         m_optionsLayer = new(this, m_config, m_soundManager, m_window);
         m_consoleLayer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
-        m_consoleAnimation.Complete += ConsoleAnimation_Complete;
-        m_menuAnimation.Complete += MenuAnimation_Complete;
 
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
-    }
-
-    private void MenuAnimation_Complete(object? sender, EventArgs e)
-    {
-        if (m_menuAnimation.State != InterpolationAnimationState.OutComplete)
-            return;
-        Remove(MenuLayer);
-        ResetAndGrabMouse();
-    }
-
-    private void ConsoleAnimation_Complete(object? sender, EventArgs e)
-    {
-        if (m_consoleAnimation.State != InterpolationAnimationState.OutComplete)
-            return;
-        m_consoleLayer.ClearInputText();
-        Remove(m_consoleLayer);
-        ResetAndGrabMouse();
     }
 
     ~GameLayerManager()
@@ -138,9 +117,9 @@ public class GameLayerManager : IGameLayerManager
 
     public bool HasMenuOrConsole() => MenuLock || ConsoleLock;
 
-    public bool ConsoleLock => ConsoleLayer != null && m_consoleAnimation.State != InterpolationAnimationState.Out;
+    public bool ConsoleLock => ConsoleLayer != null && ConsoleLayer.Animation.State != InterpolationAnimationState.Out;
 
-    public bool MenuLock => MenuLayer != null && m_menuAnimation.State != InterpolationAnimationState.Out;
+    public bool MenuLock => MenuLayer != null && MenuLayer.Animation.State != InterpolationAnimationState.Out;
 
     public bool ShouldFocus()
     {
@@ -159,6 +138,12 @@ public class GameLayerManager : IGameLayerManager
 
     public void Add(IGameLayer? gameLayer)
     {
+        if (gameLayer is IAnimationLayer animationLayer)
+        {
+            animationLayer.Animation.OnStart += Animation_OnStart;
+            animationLayer.Animation.OnComplete += Animation_OnComplete; 
+        }
+
         switch (gameLayer)
         {
             case ConsoleLayer layer:
@@ -214,6 +199,20 @@ public class GameLayerManager : IGameLayerManager
         }
     }
 
+    private void Animation_OnStart(object? sender, IAnimationLayer layer)
+    {
+        if (layer.Animation.State == InterpolationAnimationState.Out && layer == ConsoleLayer || layer == MenuLayer || layer == OptionsLayer)
+        {
+            ResetAndGrabMouse();
+        }
+    }
+
+    private void Animation_OnComplete(object? sender, IAnimationLayer layer)
+    {
+        if (layer.ShouldRemove())
+            Remove(layer);
+    }
+
     public void SubmitConsoleText(string text)
     {
         m_console.ClearInputText();
@@ -235,14 +234,17 @@ public class GameLayerManager : IGameLayerManager
         if (layer == null)
             return;
 
+        if (layer is IAnimationLayer animationLayer)
+            animationLayer.Animation.OnComplete -= Animation_OnComplete;
+
         if (ReferenceEquals(layer, ConsoleLayer))
         {
             ConsoleLayer = null;
+            m_consoleLayer.ClearInputText();
         }
         else if (ReferenceEquals(layer, OptionsLayer))
         {
             OptionsLayer = null;
-            ResetAndGrabMouse();
         }
         else if (ReferenceEquals(layer, MenuLayer))
         {
@@ -320,7 +322,7 @@ public class GameLayerManager : IGameLayerManager
             if (IwadSelectionLayer == null && ConsumeCommandPressed(Constants.Input.Console, input))
                 ToggleConsoleLayer(input);
 
-            if (ConsoleLayer != null && m_consoleAnimation.State != InterpolationAnimationState.Out)
+            if (ConsoleLayer != null && ConsoleLayer.Animation.State != InterpolationAnimationState.Out)
                 ConsoleLayer.HandleInput(input);
             
             if (ShouldCreateMenu(input))
@@ -342,7 +344,7 @@ public class GameLayerManager : IGameLayerManager
             if (ReadThisLayer == null)
             {
                 OptionsLayer?.HandleInput(input);
-                if (MenuLayer != null && m_menuAnimation.State != InterpolationAnimationState.Out)
+                if (MenuLayer != null && MenuLayer.Animation.State != InterpolationAnimationState.Out)
                     MenuLayer.HandleInput(input);
                 IwadSelectionLayer?.HandleInput(input);
             }
@@ -426,32 +428,33 @@ public class GameLayerManager : IGameLayerManager
     {
         input?.ConsumeAll();
 
+        var animation = m_consoleLayer.Animation;
         if (ConsoleLayer == null)
         {
-            m_consoleAnimation.AnimateIn();
+            animation.AnimateIn();
             Add(m_consoleLayer);
             return;
         }
 
-        if (m_consoleAnimation.State == InterpolationAnimationState.InComplete || m_consoleAnimation.State == InterpolationAnimationState.In)
-            m_consoleAnimation.AnimateOut();
+        if (animation.State == InterpolationAnimationState.InComplete || animation.State == InterpolationAnimationState.In)
+            animation.AnimateOut();
         else
-            m_consoleAnimation.AnimateIn();
+            animation.AnimateIn();
     }
 
     public void RemoveMenu()
     {
-        m_menuAnimation.AnimateOut();
+        MenuLayer?.Animation.AnimateOut();
     }
 
     private void CreateMenuLayer()
     {
         m_soundManager.PlayStaticSound(Constants.MenuSounds.Activate);
-        m_menuAnimation.AnimateIn();
 
         if (MenuLayer == null)
         {
             MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager, m_optionsLayer);
+            menuLayer.Animation.AnimateIn();
             Add(menuLayer);
         }
     }
@@ -591,23 +594,27 @@ public class GameLayerManager : IGameLayerManager
         
         m_ctx.ClearDepth();
 
-        m_consoleAnimation.Tick();
-        m_menuAnimation.Tick();
-
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
 
         if (MenuLayer != null)
-            RenderWithAlpha(hudCtx, m_menuAnimation, RenderMenu);
+            RenderWithAlpha(hudCtx, MenuLayer.Animation, RenderMenu);
 
         OptionsLayer?.Render(m_ctx, hudCtx);
         ReadThisLayer?.Render(hudCtx);
         IwadSelectionLayer?.Render(m_ctx, hudCtx);
-        LoadingLayer?.Render(m_ctx, hudCtx);
+        if (LoadingLayer != null)
+            RenderWithAlpha(hudCtx, LoadingLayer.Animation, RenderLoadingLayer);
+
         RenderConsole(hudCtx);
 
         m_ctx.Surface.ClearOverrideDimension();
+    }
+
+    private void RenderLoadingLayer()
+    {
+        LoadingLayer?.Render(m_ctx, m_hudRenderCtx);
     }
 
     private void RenderMenu()
@@ -625,14 +632,14 @@ public class GameLayerManager : IGameLayerManager
         if (ConsoleLayer == null)
             return;
 
-        int consoleHeight = m_consoleLayer.GetRenderHeight(hudCtx);
-        int offsetY = -hudCtx.Height + (int)m_consoleAnimation.GetInterpolated(consoleHeight);
+        int consoleHeight = ConsoleLayer.GetRenderHeight(hudCtx);
+        int offsetY = -hudCtx.Height + (int)m_consoleLayer.Animation.GetInterpolated(consoleHeight);
         hudCtx.PushOffset((0, offsetY));
         ConsoleLayer.Render(m_ctx, hudCtx);
         hudCtx.PopOffset();
     }
 
-    private void RenderWithAlpha(IHudRenderContext hudCtx, InterpolationAnimation animation, Action action)
+    private void RenderWithAlpha(IHudRenderContext hudCtx, InterpolationAnimation<IAnimationLayer> animation, Action action)
     {
         float alpha = (float)animation.GetInterpolated(1);
         hudCtx.PushAlpha(alpha);

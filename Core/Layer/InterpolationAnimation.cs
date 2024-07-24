@@ -13,16 +13,22 @@ public enum InterpolationAnimationState
     OutComplete,
 }
 
-public class InterpolationAnimation(TimeSpan duration) : ITickable
+public class InterpolationAnimation<T>(TimeSpan duration, T arg) : ITickable
 {
-    public event EventHandler? Complete;
+    public event EventHandler<T>? OnStart;
+    public event EventHandler<T>? OnComplete;
     public InterpolationAnimationState State { get; private set; }
+    private TimeSpan m_duration = duration;
     private readonly SetStopwatch m_stopwatch = new();
-    private readonly TimeSpan m_duration = duration;
+    private readonly T m_arg = arg;
+
+    public void SetDuration(TimeSpan duration) => m_duration = duration;
 
     public void AnimateIn()
     {
         State = InterpolationAnimationState.In;
+        OnStart?.Invoke(this, m_arg);
+
         if (m_stopwatch.IsRunning)
         {
             m_stopwatch.Restart(m_duration - m_stopwatch.Elapsed);
@@ -35,6 +41,7 @@ public class InterpolationAnimation(TimeSpan duration) : ITickable
     public void AnimateOut()
     {
         State = InterpolationAnimationState.Out;
+        OnStart?.Invoke(this, m_arg);
 
         if (m_stopwatch.IsRunning)
         {
@@ -51,9 +58,13 @@ public class InterpolationAnimation(TimeSpan duration) : ITickable
         {
             m_stopwatch.Stop();
             State = State == InterpolationAnimationState.In ? InterpolationAnimationState.InComplete : InterpolationAnimationState.OutComplete;
-            Complete?.Invoke(this, EventArgs.Empty);
+            OnComplete?.Invoke(this, m_arg);
         }
     }
+
+    public void Stop() => m_stopwatch.Stop();
+
+    public bool Completed() => State == InterpolationAnimationState.OutComplete || State == InterpolationAnimationState.InComplete;
 
     private double GetPercentage()
     {

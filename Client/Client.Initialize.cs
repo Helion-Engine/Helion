@@ -23,7 +23,7 @@ public partial class Client
         {
             m_archiveCollection.Load(Array.Empty<string>());
             m_layerManager.Remove(m_layerManager.LoadingLayer);
-            LoadingLayer loadingLayer = new(m_layerManager, m_archiveCollection, m_config, "Loading files...");
+            LoadingLayer loadingLayer = new(m_archiveCollection, m_config, "Loading files...");
             m_layerManager.Add(loadingLayer);
 
             if (iwad == null && m_iwads.Count == 0)
