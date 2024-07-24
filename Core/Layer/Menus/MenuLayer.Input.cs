@@ -18,7 +18,7 @@ public partial class MenuLayer
         if (playSound)
             m_soundManager.PlayStaticSound(Constants.MenuSounds.Clear);
 
-        Manager.Remove(this);
+        Manager.RemoveMenu();
     }
 
     public void HandleInput(IConsumableInput input)
@@ -79,17 +79,23 @@ public partial class MenuLayer
 
         if (input.ConsumeKeyPressed(Key.Escape))
         {
+            Menu? poppedMenu = null;
             bool clear = false;
             if (m_menus.Count >= 1)
             {
-                var poppedMenu = m_menus.Pop();
+                poppedMenu = m_menus.Pop();
                 clear = poppedMenu.ClearOnClose;
             }
 
             if (m_menus.Empty() || clear)
+            {
+                if (poppedMenu != null)
+                    m_menus.Push(poppedMenu);
                 ClearMenu(true);
-            else
-                m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
+                return;
+            }
+            
+            m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
         }
     }
 }

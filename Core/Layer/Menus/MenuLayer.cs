@@ -69,6 +69,12 @@ public partial class MenuLayer : IGameLayer
         m_menus.Push(message);
     }
 
+    public void SetToMainMenu()
+    {
+        m_menus.Clear();
+        m_menus.Push(new MainMenu(this, m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager, m_optionsLayer));
+    }
+
     public void RunLogic(TickerInfo tickerInfo)
     {
         // No logic.

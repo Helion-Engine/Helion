@@ -1023,8 +1023,7 @@ public partial class Client
 
     private void ShowConsole()
     {
-        if (m_layerManager.ConsoleLayer == null)
-            m_layerManager.Add(new ConsoleLayer(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands));
+        m_layerManager.ShowConsole();
     }
 
     private void LogError(string error)

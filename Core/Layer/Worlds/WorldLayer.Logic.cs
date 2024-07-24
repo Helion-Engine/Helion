@@ -15,8 +15,8 @@ public partial class WorldLayer
     private bool m_stopped;
     private int m_demoSkipTicks;
 
-    private bool AnyLayerObscuring => m_parent.ConsoleLayer != null ||
-                                      m_parent.MenuLayer != null ||
+    private bool AnyLayerObscuring => m_parent.ConsoleLock ||
+                                      m_parent.MenuLock ||
                                       m_parent.TitlepicLayer != null ||
                                       m_parent.IntermissionLayer != null ||
                                       m_parent.ReadThisLayer != null ||

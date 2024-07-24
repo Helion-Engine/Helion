@@ -178,4 +178,10 @@ public interface IHudRenderContext : IDisposable
     /// it will do nothing if the stack is empty.
     /// </summary>
     void PopVirtualDimension();
+
+    void PushAlpha(float alpha);
+    void PopAlpha();
+
+    void PushOffset(Vec2I offset);
+    void PopOffset();
 }

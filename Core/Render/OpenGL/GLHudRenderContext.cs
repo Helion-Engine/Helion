@@ -242,6 +242,12 @@ public class GLHudRenderContext : IHudRenderContext
         m_resolutionInfos.Push(resolutionInfo);
     }
 
+    public void PushAlpha(float alpha) => m_commands.SetAlpha(alpha);
+    public void PopAlpha() => m_commands.SetAlpha(1);
+
+    public void PushOffset(Vec2I offset) => m_commands.SetOffset(offset);
+    public void PopOffset() => m_commands.SetOffset(Vec2I.Zero);
+
     public void PopVirtualDimension()
     {
         if (m_resolutionInfos.TryPop(out _))

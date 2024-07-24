@@ -49,6 +49,8 @@ public class RenderCommands
     private Dimension m_windowDimensions;
     private Vec2D m_scale = Vec2D.One;
     private int m_centeringOffsetX;
+    private float m_alpha = 1;
+    private Vec2I m_offset = Vec2I.Zero;
     public List<RenderCommand> Commands = new();
     public List<ClearRenderCommand> ClearCommands = new();
     public List<DrawWorldCommand> WorldCommands = new();
@@ -109,7 +111,7 @@ public class RenderCommands
         float alpha = 1.0f, bool drawInvul = false, bool drawFuzz = false)
     {
         ImageBox2I drawArea = TranslateDoomImageDimensions(left, top, width, height);
-        DrawImageCommand cmd = new(textureName, drawArea, color, alpha, drawInvul, drawFuzz);
+        DrawImageCommand cmd = new(textureName, drawArea, color, alpha * m_alpha, drawInvul, drawFuzz);
         Commands.Add(new RenderCommand(RenderCommandType.Image, ImageCommands.Count));
         ImageCommands.Add(cmd);
     }
@@ -117,7 +119,7 @@ public class RenderCommands
     public void FillRect(ImageBox2I rectangle, Color color, float alpha)
     {
         ImageBox2I transformedRectangle = TranslateDimensions(rectangle);
-        DrawShapeCommand command = new(transformedRectangle, color, alpha);
+        DrawShapeCommand command = new(transformedRectangle, color, alpha * m_alpha);
         Commands.Add(new RenderCommand(RenderCommandType.Shape, ShapeCommands.Count));
         ShapeCommands.Add(command);
     }
@@ -125,7 +127,7 @@ public class RenderCommands
     public void DrawText(RenderableString str, int left, int top, float alpha)
     {
         ImageBox2I drawArea = TranslateDimensions(left, top, str.DrawArea);
-        DrawTextCommand command = new(str, drawArea, alpha);
+        DrawTextCommand command = new(str, drawArea, alpha * m_alpha);
         Commands.Add(new RenderCommand(RenderCommandType.Text, TextCommands.Count));
         TextCommands.Add(command);
     }
@@ -189,6 +191,10 @@ public class RenderCommands
         }
     }
 
+    public void SetAlpha(float alpha) => m_alpha = alpha;
+
+    public void SetOffset(Vec2I offset) => m_offset = offset;
+
     private ImageBox2I TranslateDimensions(int x, int y, Dimension dimension)
     {
         return TranslateDimensions(new ImageBox2I(x, y, x + dimension.Width, y + dimension.Height));
@@ -196,6 +202,8 @@ public class RenderCommands
 
     private ImageBox2I TranslateDoomImageDimensions(int x, int y, int width, int height)
     {
+        x += m_offset.X;
+        y += m_offset.Y;
         if (RenderDimension == ResolutionInfo.VirtualDimensions)
             return new ImageBox2I(x, y, x + width, y + height);
 
@@ -206,6 +214,8 @@ public class RenderCommands
 
     private ImageBox2I TranslateDimensions(ImageBox2I drawArea)
     {
+        drawArea = new(drawArea.Min.X + m_offset.X, drawArea.Min.Y + m_offset.Y,
+            drawArea.Max.X + m_offset.X, drawArea.Max.Y + m_offset.Y);
         if (RenderDimension == ResolutionInfo.VirtualDimensions)
             return drawArea;
 

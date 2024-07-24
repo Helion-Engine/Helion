@@ -16,30 +16,36 @@ public partial class ConsoleLayer
     private const long HalfFlashSpanNanos = FlashSpanNanos / 2;
     private static bool IsCursorFlashTime => Ticker.NanoTime() % FlashSpanNanos < HalfFlashSpanNanos;
 
+    public static int GetRenderHeight(IHudRenderContext hud) => hud.Height / 2;
+
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
         ctx.ClearDepth();
 
-        RenderBackground(hud);
-        RenderInput(hud, out int inputHeight);
-        RenderMessages(hud, inputHeight);
+        var drawArea = GetDrawArea(hud);
+
+        RenderBackground(hud, drawArea);
+        RenderInput(hud, drawArea, out int inputHeight);
+        RenderMessages(hud, inputHeight, drawArea);
     }
 
     private int FontSize => m_config.Console.FontSize;
 
-    private void RenderBackground(IHudRenderContext hud)
+    private void RenderBackground(IHudRenderContext hud, HudBox drawArea)
     {
-        RenderConsoleBackground(hud);
-        RenderConsoleDivider(hud);
+        RenderConsoleBackground(hud, drawArea);
+        RenderConsoleDivider(hud, drawArea);
     }
 
-    private void RenderConsoleBackground(IHudRenderContext hud)
+    private HudBox GetDrawArea(IHudRenderContext hud)
+    {
+        return (0, 0, hud.Width, hud.Height);
+    }
+
+    private void RenderConsoleBackground(IHudRenderContext hud, HudBox drawArea)
     {
         const string ConsoleBackingImage = "CONBACK";
         const float BackgroundAlpha = 0.65f;
-
-        int halfHeight = hud.Height / 2;
-        HudBox drawArea = (0, -halfHeight, hud.Width, halfHeight);
 
         if (hud.Textures.HasImage(ConsoleBackingImage))
         {
@@ -57,48 +63,49 @@ public partial class ConsoleLayer
         }
     }
 
-    private void RenderConsoleDivider(IHudRenderContext hud)
+    private void RenderConsoleDivider(IHudRenderContext hud, HudBox drawArea)
     {
         const int DividerHeight = 3;
 
-        HudBox dividerArea = (0, 0, hud.Width, DividerHeight);
-        hud.FillBox(dividerArea, Color.Black, Align.MiddleLeft);
+        HudBox dividerArea = (0, drawArea.Bottom - DividerHeight, drawArea.Width, drawArea.Bottom);
+        hud.FillBox(dividerArea, Color.Black);
     }
 
-    private void RenderInput(IHudRenderContext hud, out int inputHeight)
+    private void RenderInput(IHudRenderContext hud, HudBox drawArea, out int inputHeight)
     {
-        hud.Text(m_console.Input, FontName, FontSize, (4, -4), out Dimension drawArea,
-            window: Align.MiddleLeft, anchor: Align.BottomLeft, color: Color.Yellow);
+        hud.Text(m_console.Input, FontName, FontSize, (4, drawArea.Bottom - 4), out Dimension inputArea,
+            anchor: Align.BottomLeft, color: Color.Yellow);
 
-        if (drawArea.Height == 0)
-            drawArea.Height = FontSize;
+        if (inputArea.Height == 0)
+            inputArea.Height = FontSize;
 
-        RenderInputCursorFlash(hud, drawArea);
+        RenderInputCursorFlash(hud, inputArea);
 
-        inputHeight = drawArea.Height;
+        inputHeight = inputArea.Height;
     }
 
-    private void RenderInputCursorFlash(IHudRenderContext hud, Dimension drawArea)
+    private void RenderInputCursorFlash(IHudRenderContext hud, Dimension inputArea)
     {
         const int CaretWidth = 2;
 
         if (!IsCursorFlashTime)
             return;
 
+        var drawArea = GetDrawArea(hud);
         int offsetX = m_console.Input == "" ? 4 : 6;
-        Vec2I origin = (drawArea.Width + offsetX, -4);
-        Vec2I dimension = (CaretWidth, drawArea.Height);
+        Vec2I origin = (inputArea.Width + offsetX, drawArea.Bottom - 4 - inputArea.Height);
+        Vec2I dimension = (CaretWidth, inputArea.Height);
 
         HudBox area = (origin, origin + dimension);
-        hud.FillBox(area, Color.LawnGreen, Align.MiddleLeft, Align.BottomLeft);
+        hud.FillBox(area, Color.LawnGreen);
     }
 
-    private void RenderMessages(IHudRenderContext hud, int inputHeight)
+    private void RenderMessages(IHudRenderContext hud, int inputHeight, HudBox drawArea)
     {
         const int InputToMessagePadding = 8;
         const int BetweenMessagePadding = 7;
 
-        int bottomY = (hud.Height / 2) - inputHeight - InputToMessagePadding;
+        int bottomY = (drawArea.Bottom) - inputHeight - InputToMessagePadding;
         int offsetCount = 0;
 
         lock (m_console.Messages)
@@ -114,10 +121,10 @@ public partial class ConsoleLayer
                     continue;
                 }
 
-                hud.Text(message.Message, FontName, FontSize, (4, bottomY), out Dimension drawArea,
+                hud.Text(message.Message, FontName, FontSize, (4, bottomY), out Dimension textArea,
                     anchor: Align.BottomLeft, color: message.Color, maxWidth: hud.Width);
 
-                bottomY -= drawArea.Height + BetweenMessagePadding;
+                bottomY -= textArea.Height + BetweenMessagePadding;
             }
         }
     }

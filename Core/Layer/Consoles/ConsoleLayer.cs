@@ -10,8 +10,6 @@ namespace Helion.Layer.Consoles;
 
 public partial class ConsoleLayer : IGameLayer
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
     private readonly ConsoleCommands m_consoleCommands;
@@ -33,6 +31,11 @@ public partial class ConsoleLayer : IGameLayer
     {
         FailedToDispose(this);
         PerformDispose();
+    }
+
+    public void ClearInputText()
+    {
+        m_console.ClearInputText();
     }
 
     public void RunLogic(TickerInfo tickerInfo)
