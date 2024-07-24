@@ -17,6 +17,7 @@ namespace Helion.Render.Common.Renderers;
 public interface IWorldRenderContext : IDisposable
 {
     void Draw(IWorld world);
+    void DrawAutomap(IWorld world);
     void DrawLine(Seg3D seg, Color color);
     void DrawLines(Seg3D[] segs, Color color);
     void DrawRay(Ray3D ray, Color color);

@@ -23,7 +23,8 @@ public enum RenderCommandType
     Text,
     Shape,
     Viewport,
-    DrawVirtualFrameBuffer
+    DrawVirtualFrameBuffer,
+    Automap
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -52,6 +53,7 @@ public class RenderCommands
     private float m_alpha = 1;
     private Vec2I m_offset = Vec2I.Zero;
     public List<RenderCommand> Commands = new();
+    public List<DrawAutomapCommand> AutomapCommands = new();
     public List<ClearRenderCommand> ClearCommands = new();
     public List<DrawWorldCommand> WorldCommands = new();
     public List<DrawImageCommand> ImageCommands = new();
@@ -89,6 +91,7 @@ public class RenderCommands
         ViewportCommands.Clear();
         TextCommands.Clear();
         ShapeCommands.Clear();
+        AutomapCommands.Clear();
 
         ResolutionInfo = new ResolutionInfo { VirtualDimensions = RenderDimension };
         m_scale = Vec2D.One;
@@ -137,6 +140,12 @@ public class RenderCommands
     {
         Commands.Add(new RenderCommand(RenderCommandType.World, WorldCommands.Count));
         WorldCommands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity, drawAutomap, automapOffset, automapScale));
+    }
+
+    public void DrawAutomap(IWorld world)
+    {
+        Commands.Add(new RenderCommand(RenderCommandType.Automap, AutomapCommands.Count));
+        AutomapCommands.Add(new DrawAutomapCommand(world));
     }
 
     public void Viewport(Dimension dimension, Vec2I? offset = null)

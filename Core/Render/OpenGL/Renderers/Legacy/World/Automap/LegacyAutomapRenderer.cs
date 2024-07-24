@@ -4,17 +4,13 @@ using GlmSharp;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Maps.Specials.ZDoom;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
-using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Locks;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities;
@@ -26,7 +22,6 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Special;
 using OpenTK.Graphics.OpenGL;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 

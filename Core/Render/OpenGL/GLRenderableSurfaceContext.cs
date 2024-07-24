@@ -91,4 +91,10 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
         m_worldRenderContext.Begin(context);
         action(m_worldRenderContext);
     }
+
+    public void Automap(WorldRenderContext context, Action<IWorldRenderContext> action)
+    {
+        m_worldRenderContext.Begin(context);
+        action(m_worldRenderContext);
+    }
 }

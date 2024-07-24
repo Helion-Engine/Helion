@@ -1,10 +1,7 @@
-using Helion.Geometry;
-using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.World;
-using Helion.World.StatusBar;
 using System;
 
 namespace Helion.Layer.Worlds;
@@ -18,12 +15,12 @@ public partial class WorldLayer
 
     private Action<IHudRenderContext> m_drawHudAction;
     private readonly Action<IWorldRenderContext> m_renderWorldAction;
+    private readonly Action<IWorldRenderContext> m_renderAutomapAction;
+
+    private bool m_weaponOnly;
 
     public void RenderWorld(IRenderableSurfaceContext ctx)
     {
-        if (m_drawAutomap)
-            return;
-
         m_profiler.Render.World.Start();
 
         ctx.ClearDepth();
@@ -42,14 +39,12 @@ public partial class WorldLayer
         if (!m_drawAutomap)
             return;
 
-        ctx.ClearDepth();
-        ctx.ClearStencil();
+        //ctx.Automap(m_worldContext, m_renderAutomapAction);
+    }
 
-        var oldCamera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
-        m_camera.Set(oldCamera.PositionInterpolated, oldCamera.Position, oldCamera.YawRadians, oldCamera.PitchRadians);
-        m_worldContext.Set(m_lastTickInfo.Fraction, m_drawAutomap, m_autoMapOffset, m_autoMapScale);
-
-        ctx.World(m_worldContext, m_renderWorldAction);
+    void RenderAutomap(IWorldRenderContext context)
+    {
+        context.DrawAutomap(World);
     }
 
     void RenderWorld(IWorldRenderContext context)
@@ -57,8 +52,9 @@ public partial class WorldLayer
         context.Draw(World);
     }
 
-    public void RenderHud(IRenderableSurfaceContext ctx)
+    public void RenderHud(IRenderableSurfaceContext ctx, bool weaponOnly)
     {
+        m_weaponOnly = weaponOnly;
         m_profiler.Render.Hud.Start();
 
         m_hudContext.Set(ctx.Surface.Dimension);
@@ -66,6 +62,16 @@ public partial class WorldLayer
         ctx.Hud(m_hudContext, m_drawHudAction);
 
         m_profiler.Render.Hud.Stop();
+    }
+
+    public void RenderAutomapNew(IRenderableSurfaceContext ctx)
+    {
+        if (!m_drawAutomap)
+            return;
+
+        m_hudContext.Set(ctx.Surface.Dimension);
+        m_renderableHudContext = ctx;
+        ctx.Automap(m_worldContext, m_renderAutomapAction);
     }
 
     private void DrawHudContext(IHudRenderContext hud)

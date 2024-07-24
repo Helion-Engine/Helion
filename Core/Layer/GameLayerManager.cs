@@ -572,6 +572,9 @@ public class GameLayerManager : IGameLayerManager
             }
 
             WorldLayer.RenderWorld(ctx);
+            WorldLayer.RenderHud(m_ctx, true);
+            WorldLayer.RenderAutomapNew(m_ctx);
+            //WorldLayer.RenderAutomap(ctx);
         }
 
         m_profiler.Render.MiscLayers.Start();
@@ -598,8 +601,8 @@ public class GameLayerManager : IGameLayerManager
 
         if (WorldLayer != null && WorldLayer.ShouldRender)
         {            
-            WorldLayer.RenderAutomap(m_ctx);
-            WorldLayer.RenderHud(m_ctx);
+            //WorldLayer.RenderAutomap(m_ctx);
+            WorldLayer.RenderHud(m_ctx, false);
         }
         
         m_ctx.ClearDepth();

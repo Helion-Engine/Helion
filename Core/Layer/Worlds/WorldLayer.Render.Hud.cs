@@ -114,6 +114,13 @@ public partial class WorldLayer
         m_padding = (int)(4 * m_scale);
         m_fontHeight = (int)(16 * m_scale);
         m_viewport = hud.Dimension;
+
+        if (m_weaponOnly)
+        {
+            DrawWeapon(hud, hudContext);
+            return;
+        }
+
         SetHudPadding(hud);
 
         int topRightY = m_padding / 2;
@@ -150,7 +157,7 @@ public partial class WorldLayer
         var offsetY = m_statusBarSizeType switch
         {
             StatusBarSizeType.Hidden => 0,
-            StatusBarSizeType.Minimal => (int)(FaceSize * doomScale),
+            StatusBarSizeType.Minimal => (int)(FaceSize * doomScale) + (int)(8 * doomScale),
             _ => (int)(StatusBarSize * doomScale),
         };
         pos.Y -= offsetY;
@@ -328,23 +335,6 @@ public partial class WorldLayer
         if (!WorldStatic.World.DrawHud)
             return;
 
-        if (Player.AnimationWeapon != null && !m_drawAutomap)
-        {
-            hudContext.DrawInvul = Player.DrawInvulnerableColorMap();
-            IPowerup? powerup = Player.Inventory.GetPowerup(PowerupType.Invisibility);
-            if (powerup != null && powerup.DrawPowerupEffect)
-                hudContext.DrawFuzz = true;
-
-            // Doom pushes the gun sprite up when the status bar is showing
-            int yOffset = m_config.Hud.StatusBarSize == StatusBarSizeType.Full ? HudView.FullSizeHudOffsetY : 0;
-            DrawHudWeapon(hud, Player.AnimationWeapon.FrameState, yOffset, flash: false);
-            if (Player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
-                DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset, flash: true);
-
-            hudContext.DrawInvul = false;
-            hudContext.DrawFuzz = false;
-        }
-
         if (!m_drawAutomap && m_config.Hud.Crosshair)
             DrawCrosshair(hud);
 
@@ -359,6 +349,29 @@ public partial class WorldLayer
             default:
                 DrawFullStatusBar(hud);
                 break;
+        }
+    }
+
+    private void DrawWeapon(IHudRenderContext hud, HudRenderContext hudContext)
+    {
+        if (!WorldStatic.World.DrawHud)
+            return;
+
+        if (Player.AnimationWeapon != null)
+        {
+            hudContext.DrawInvul = Player.DrawInvulnerableColorMap();
+            IPowerup? powerup = Player.Inventory.GetPowerup(PowerupType.Invisibility);
+            if (powerup != null && powerup.DrawPowerupEffect)
+                hudContext.DrawFuzz = true;
+
+            // Doom pushes the gun sprite up when the status bar is showing
+            int yOffset = m_config.Hud.StatusBarSize == StatusBarSizeType.Full ? HudView.FullSizeHudOffsetY : 0;
+            DrawHudWeapon(hud, Player.AnimationWeapon.FrameState, yOffset, flash: false);
+            if (Player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
+                DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset, flash: true);
+
+            hudContext.DrawInvul = false;
+            hudContext.DrawFuzz = false;
         }
     }
 

@@ -9,6 +9,7 @@ using Helion.Maps;
 using Helion.Models;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions;
@@ -93,6 +94,7 @@ public partial class WorldLayer : IGameLayerParent
 
         m_drawHudAction = new(DrawHudContext);
         m_renderWorldAction = new(RenderWorld);
+        m_renderAutomapAction = new(RenderAutomap);
         m_virtualDrawFullStatusBarAction = new(VirtualDrawFullStatusBar);
         m_virtualStatusBarBackgroundAction = new(VirtualStatusBarBackground);
         m_virtualDrawPauseAction = new(VirtualDrawPause);

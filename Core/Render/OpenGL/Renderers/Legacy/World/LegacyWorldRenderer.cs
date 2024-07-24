@@ -35,7 +35,6 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly InterpolationShader m_interpolationProgram = new();
     private readonly StaticShader m_staticProgram = new();
     private readonly RenderWorldDataManager m_worldDataManager = new();
-    private readonly LegacyAutomapRenderer m_automapRenderer;
     private readonly DynamicArray<IRenderObject> m_alphaEntities = new(256);
     private readonly Comparison<IRenderObject> m_renderObjectComparer = new(RenderObjectCompare);
     private readonly ArchiveCollection m_archiveCollection;
@@ -55,7 +54,6 @@ public class LegacyWorldRenderer : WorldRenderer
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
         m_config = config;
-        m_automapRenderer = new(archiveCollection);
         m_entityRenderer = new(config, textureManager);
         m_primitiveRenderer = new();
         m_viewSector = Sector.CreateDefault();
@@ -116,12 +114,6 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         m_lastTicker = -1;
         ResetInterpolation((IWorld)sender!);
-    }
-
-    protected override void PerformAutomapRender(IWorld world, RenderInfo renderInfo)
-    {
-        Clear(world, renderInfo);
-        m_automapRenderer.Render(world, renderInfo);
     }
 
     private void IterateBlockmap(IWorld world, RenderInfo renderInfo)
@@ -468,7 +460,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.Dispose();
         m_geometryRenderer.Dispose();
         m_worldDataManager.Dispose();
-        m_automapRenderer.Dispose();
+        //m_automapRenderer.Dispose();
         m_primitiveRenderer.Dispose();
         m_entityRenderer.Dispose();
     }

@@ -19,10 +19,7 @@ public abstract class WorldRenderer : IDisposable
     /// <param name="renderInfo">The rendering metadata.</param>
     public void Render(IWorld world, RenderInfo renderInfo)
     {
-        if (renderInfo.DrawAutomap)
-            PerformAutomapRender(world, renderInfo);
-        else
-            PerformRender(world, renderInfo);
+        PerformRender(world, renderInfo);
     }
 
     public abstract void ResetInterpolation(IWorld world);
@@ -35,13 +32,6 @@ public abstract class WorldRenderer : IDisposable
     /// </summary>
     /// <param name="world">The world to update to.</param>
     public abstract void UpdateToNewWorld(IWorld world);
-
-    /// <summary>
-    /// Performs the actual rendering of the automap.
-    /// </summary>
-    /// <param name="world">The world.</param>
-    /// <param name="renderInfo">The rendering metadata.</param>
-    protected abstract void PerformAutomapRender(IWorld world, RenderInfo renderInfo);
 
     /// <summary>
     /// Performs the actual rendering commands.

@@ -38,12 +38,20 @@ public class GLWorldRenderContext : IWorldRenderContext
 
         Camera camera = m_context.Camera;
         m_oldCamera.Set(camera.PositionInterpolated, camera.Position, camera.YawRadians, camera.PitchRadians);
-        
+
         // Note: We never draw the automap for this, that should be handled
         // elsewhere.
         m_commands.DrawWorld(world, m_oldCamera, world.Gametick, m_context.InterpolationFrac,
             world.GetCameraPlayer(), m_context.DrawAutomap, m_context.AutomapOffset,
             m_context.AutomapScale);
+    }
+
+    public void DrawAutomap(IWorld world)
+    {
+        if (m_context == null)
+            return;
+
+        m_commands.DrawAutomap(world);
     }
 
     public void DrawLine(Seg3D seg, Color color)

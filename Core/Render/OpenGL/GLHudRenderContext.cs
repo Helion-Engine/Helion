@@ -15,6 +15,7 @@ using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
+using Helion.World;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.OpenGL;
@@ -50,6 +51,11 @@ public class GLHudRenderContext : IHudRenderContext
         m_context = context;
         m_commands.Viewport(m_commands.WindowDimension);
         m_commands.UpdateRenderDimension(m_commands.WindowDimension, m_commands.WindowDimension);
+    }
+
+    public void DrawAutomap(IWorld world)
+    {
+        m_commands.DrawAutomap(world);
     }
 
     public void Clear(Color color, float alpha)

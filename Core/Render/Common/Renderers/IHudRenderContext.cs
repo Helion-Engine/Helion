@@ -8,6 +8,7 @@ using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources;
 using Helion.Util;
+using Helion.World;
 
 namespace Helion.Render.Common.Renderers;
 
@@ -28,6 +29,8 @@ public interface IHudRenderContext : IDisposable
 
     int Width => Dimension.Width;
     int Height => Dimension.Height;
+
+    void DrawAutomap(IWorld world);
 
     /// <summary>
     /// Equivalent to filling the viewport with the color provided.

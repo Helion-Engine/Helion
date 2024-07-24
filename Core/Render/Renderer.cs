@@ -9,6 +9,7 @@ using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers;
 using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -51,6 +52,7 @@ public class Renderer : IDisposable
     private readonly HudRenderer m_hudRenderer;
     private readonly RenderInfo m_renderInfo = new();
     private readonly FramebufferRenderer m_framebufferRenderer;
+    private readonly LegacyAutomapRenderer m_automapRenderer;
     private Rectangle m_viewport = new(0, 0, 800, 600);
     private bool m_disposed;
 
@@ -71,6 +73,7 @@ public class Renderer : IDisposable
         Textures = new LegacyGLTextureManager(config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
+        m_automapRenderer = new(archiveCollection);
         m_framebufferRenderer = new(config, window, RenderDimension);
         Default = new(window, this);
 
@@ -238,6 +241,9 @@ public class Renderer : IDisposable
                 case RenderCommandType.World:
                     HandleRenderWorldCommand(renderCommands.WorldCommands[cmd.Index], m_viewport);
                     break;
+                case RenderCommandType.Automap:
+                    HandleRenderAutomapCommand(renderCommands.AutomapCommands[cmd.Index], m_viewport);
+                    break;
                 case RenderCommandType.Viewport:
                     HandleViewportCommand(renderCommands.ViewportCommands[cmd.Index], out m_viewport);
                     break;
@@ -388,6 +394,15 @@ public class Renderer : IDisposable
         dataCache.FreeRenderableString(cmd.Text);
     }
 
+    private void HandleRenderAutomapCommand(DrawAutomapCommand cmd, Rectangle viewport)
+    {
+        if (viewport.Width == 0 || viewport.Height == 0 || cmd.World.IsDisposed)
+            return;
+
+        m_automapRenderer.Render(cmd.World, m_renderInfo);
+        //m_worldRenderer.PerformAutomapRender(cmd.World, m_renderInfo);
+    }
+
     private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle viewport)
     {
         if (viewport.Width == 0 || viewport.Height == 0 || cmd.World.IsDisposed)
@@ -445,6 +460,7 @@ public class Renderer : IDisposable
         m_hudRenderer.Dispose();
         m_worldRenderer.Dispose();
         m_framebufferRenderer.Dispose();
+        m_automapRenderer.Dispose();
 
         m_disposed = true;
     }
