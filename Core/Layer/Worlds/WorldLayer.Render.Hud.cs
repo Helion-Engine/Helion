@@ -115,8 +115,8 @@ public partial class WorldLayer
         m_fontHeight = (int)(16 * m_scale);
         m_viewport = hud.Dimension;
 
-        if (m_weaponOnly)
-        {
+        if (m_renderHudOptions == RenderHudOptions.WeaponOnly)
+        {            
             DrawWeapon(hud, hudContext);
             return;
         }
@@ -335,8 +335,12 @@ public partial class WorldLayer
         if (!WorldStatic.World.DrawHud)
             return;
 
-        if (!m_drawAutomap && m_config.Hud.Crosshair)
-            DrawCrosshair(hud);
+        if (m_renderHudOptions != RenderHudOptions.ExcludeWeapon)
+        {
+            DrawWeapon(hud, hudContext);
+            if (m_config.Hud.Crosshair)
+                DrawCrosshair(hud);
+        }
 
         m_statusBarSizeType = m_config.Hud.StatusBarSize.Value;
         switch (m_statusBarSizeType)

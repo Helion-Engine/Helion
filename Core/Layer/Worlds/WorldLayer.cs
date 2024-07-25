@@ -55,6 +55,8 @@ public partial class WorldLayer : IGameLayerParent
     public MapInfoDef CurrentMap { get; }
     public SinglePlayerWorld World { get; }
 
+    public bool DrawAutomap { get; private set; }
+
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
     private readonly GameLayerManager m_parent;
@@ -68,7 +70,6 @@ public partial class WorldLayer : IGameLayerParent
     private readonly Action<IHudRenderContext> m_virtualDrawPauseAction;
     private StatusBarSizeType m_statusBarSizeType = StatusBarSizeType.Minimal;
     private TickerInfo m_lastTickInfo = new(0, 0);
-    private bool m_drawAutomap;
     private Vec2I m_autoMapOffset = (0, 0);
     private double m_autoMapScale;
     private bool m_disposed;

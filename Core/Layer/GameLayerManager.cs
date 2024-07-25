@@ -71,6 +71,7 @@ public class GameLayerManager : IGameLayerManager
     private readonly ConsoleLayer m_consoleLayer;
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
+    private IHudRenderContext m_hudRenderCtx;
     private bool m_disposed;
 
     private IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
@@ -562,7 +563,7 @@ public class GameLayerManager : IGameLayerManager
         ctx.Viewport(m_renderer.RenderDimension.Box);
         ctx.Clear(Renderer.DefaultBackground, true, true);
 
-        if (WorldLayer != null && WorldLayer.ShouldRender)
+        if (WorldLayer != null && WorldLayer.ShouldRender && !WorldLayer.DrawAutomap)
         {
             var offset = HudView.GetViewPortOffset(m_config.Hud.StatusBarSize, ctx.Surface.Dimension);
             if (WorldLayer.World.DrawHud && (offset.X != 0 || offset.Y != 0))
@@ -572,17 +573,12 @@ public class GameLayerManager : IGameLayerManager
             }
 
             WorldLayer.RenderWorld(ctx);
-            WorldLayer.RenderHud(m_ctx, true);
-            WorldLayer.RenderAutomapNew(m_ctx);
-            //WorldLayer.RenderAutomap(ctx);
         }
 
         m_profiler.Render.MiscLayers.Start();
         ctx.Hud(m_hudContext, m_renderHudAction);
         m_profiler.Render.MiscLayers.Stop();
     }
-
-    private IHudRenderContext m_hudRenderCtx;
 
     private void RenderHud(IHudRenderContext hudCtx)
     {
@@ -597,15 +593,16 @@ public class GameLayerManager : IGameLayerManager
             m_ctx.Viewport(m_ctx.Surface.Dimension.Box);
         }
 
-        m_ctx.DrawVirtualFrameBuffer();
+        m_ctx.DrawVirtualFrameBuffer();                
+        m_ctx.ClearDepth();
 
         if (WorldLayer != null && WorldLayer.ShouldRender)
-        {            
-            //WorldLayer.RenderAutomap(m_ctx);
-            WorldLayer.RenderHud(m_ctx, false);
+        {
+            if (WorldLayer.DrawAutomap)
+                WorldLayer.RenderAutomap(m_ctx);
+
+            WorldLayer.RenderHud(m_ctx, WorldLayer.DrawAutomap ? RenderHudOptions.ExcludeWeapon : RenderHudOptions.Default);
         }
-        
-        m_ctx.ClearDepth();
 
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);

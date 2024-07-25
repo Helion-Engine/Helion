@@ -73,7 +73,7 @@ public partial class WorldLayer
         {
             if (input.HandleKeyInput)
             {
-                if (m_drawAutomap)
+                if (DrawAutomap)
                     HandleAutoMapInput(input);
                 HandleCommandInput(input);
                 World.HandleKeyInput(input);
@@ -93,7 +93,7 @@ public partial class WorldLayer
             ChangeHudSize(true);
         else if (IsCommandPressed(Constants.Input.Automap, input))
         {
-            m_drawAutomap = !m_drawAutomap;
+            DrawAutomap = !DrawAutomap;
             m_autoMapOffset = (0, 0);
             m_autoMapScale = m_config.Hud.AutoMap.Scale;
         }

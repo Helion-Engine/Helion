@@ -8,6 +8,7 @@ public class RenderProfiler
     public readonly ProfilerStopwatch SwapBuffers = new();
     public readonly ProfilerStopwatch Total = new();
     public readonly ProfilerStopwatch World = new();
+    public readonly ProfilerStopwatch Automap = new();
 
     internal void ResetAll()
     {
@@ -17,5 +18,6 @@ public class RenderProfiler
         SwapBuffers.Reset();
         Total.Reset();
         World.Reset();
+        Automap.Reset();
     }
 }

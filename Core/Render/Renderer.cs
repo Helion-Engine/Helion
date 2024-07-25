@@ -355,7 +355,7 @@ public class Renderer : IDisposable
         });
     }
 
-    private static void HandleClearCommand(ClearRenderCommand clearRenderCommand)
+    private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
     {
         Color color = clearRenderCommand.ClearColor;
         GL.ClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
@@ -394,13 +394,15 @@ public class Renderer : IDisposable
         dataCache.FreeRenderableString(cmd.Text);
     }
 
-    private void HandleRenderAutomapCommand(DrawAutomapCommand cmd, Rectangle viewport)
+    private void HandleRenderAutomapCommand(DrawWorldCommand cmd, Rectangle viewport)
     {
         if (viewport.Width == 0 || viewport.Height == 0 || cmd.World.IsDisposed)
             return;
 
+        m_renderInfo.Set(cmd.Camera, 0, viewport, cmd.ViewerEntity, true,
+            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, cmd.World.Sectors[0], TransferHeightView.Middle);
+
         m_automapRenderer.Render(cmd.World, m_renderInfo);
-        //m_worldRenderer.PerformAutomapRender(cmd.World, m_renderInfo);
     }
 
     private void HandleRenderWorldCommand(DrawWorldCommand cmd, Rectangle viewport)

@@ -53,7 +53,7 @@ public class RenderCommands
     private float m_alpha = 1;
     private Vec2I m_offset = Vec2I.Zero;
     public List<RenderCommand> Commands = new();
-    public List<DrawAutomapCommand> AutomapCommands = new();
+    public List<DrawWorldCommand> AutomapCommands = new();
     public List<ClearRenderCommand> ClearCommands = new();
     public List<DrawWorldCommand> WorldCommands = new();
     public List<DrawImageCommand> ImageCommands = new();
@@ -142,10 +142,11 @@ public class RenderCommands
         WorldCommands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity, drawAutomap, automapOffset, automapScale));
     }
 
-    public void DrawAutomap(IWorld world)
+    public void DrawAutomap(IWorld world, OldCamera camera, int gametick, float fraction, Entity viewerEntity, bool drawAutomap,
+        Vec2I automapOffset, double automapScale)
     {
         Commands.Add(new RenderCommand(RenderCommandType.Automap, AutomapCommands.Count));
-        AutomapCommands.Add(new DrawAutomapCommand(world));
+        AutomapCommands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity, drawAutomap, automapOffset, automapScale));
     }
 
     public void Viewport(Dimension dimension, Vec2I? offset = null)

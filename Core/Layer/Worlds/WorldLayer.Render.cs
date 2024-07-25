@@ -17,7 +17,7 @@ public partial class WorldLayer
     private readonly Action<IWorldRenderContext> m_renderWorldAction;
     private readonly Action<IWorldRenderContext> m_renderAutomapAction;
 
-    private bool m_weaponOnly;
+    private RenderHudOptions m_renderHudOptions;
 
     public void RenderWorld(IRenderableSurfaceContext ctx)
     {
@@ -28,23 +28,22 @@ public partial class WorldLayer
 
         var oldCamera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
         m_camera.Set(oldCamera.PositionInterpolated, oldCamera.Position, oldCamera.YawRadians, oldCamera.PitchRadians);
-        m_worldContext.Set(m_lastTickInfo.Fraction, m_drawAutomap, m_autoMapOffset, m_autoMapScale);
+        m_worldContext.Set(m_lastTickInfo.Fraction, DrawAutomap, m_autoMapOffset, m_autoMapScale);
 
         ctx.World(m_worldContext, m_renderWorldAction);
         m_profiler.Render.World.Stop();
     }
 
-    public void RenderAutomap(IRenderableSurfaceContext ctx)
+    void RenderAutomap(IWorldRenderContext ctx)
     {
-        if (!m_drawAutomap)
-            return;
+        m_profiler.Render.Automap.Start();
 
-        //ctx.Automap(m_worldContext, m_renderAutomapAction);
-    }
+        var oldCamera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
+        m_camera.Set(oldCamera.PositionInterpolated, oldCamera.Position, oldCamera.YawRadians, oldCamera.PitchRadians);
+        m_worldContext.Set(m_lastTickInfo.Fraction, DrawAutomap, m_autoMapOffset, m_autoMapScale);
 
-    void RenderAutomap(IWorldRenderContext context)
-    {
-        context.DrawAutomap(World);
+        ctx.DrawAutomap(World);
+        m_profiler.Render.Automap.Stop();
     }
 
     void RenderWorld(IWorldRenderContext context)
@@ -52,9 +51,9 @@ public partial class WorldLayer
         context.Draw(World);
     }
 
-    public void RenderHud(IRenderableSurfaceContext ctx, bool weaponOnly)
+    public void RenderHud(IRenderableSurfaceContext ctx, RenderHudOptions options)
     {
-        m_weaponOnly = weaponOnly;
+        m_renderHudOptions = options;
         m_profiler.Render.Hud.Start();
 
         m_hudContext.Set(ctx.Surface.Dimension);
@@ -64,13 +63,8 @@ public partial class WorldLayer
         m_profiler.Render.Hud.Stop();
     }
 
-    public void RenderAutomapNew(IRenderableSurfaceContext ctx)
+    public void RenderAutomap(IRenderableSurfaceContext ctx)
     {
-        if (!m_drawAutomap)
-            return;
-
-        m_hudContext.Set(ctx.Surface.Dimension);
-        m_renderableHudContext = ctx;
         ctx.Automap(m_worldContext, m_renderAutomapAction);
     }
 
@@ -80,6 +74,6 @@ public partial class WorldLayer
             return;
 
         m_renderableHudContext.ClearDepth();
-        DrawHud(m_hudContext, hud, m_drawAutomap);
+        DrawHud(m_hudContext, hud, DrawAutomap);
     }
 }

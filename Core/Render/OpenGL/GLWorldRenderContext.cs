@@ -50,8 +50,12 @@ public class GLWorldRenderContext : IWorldRenderContext
     {
         if (m_context == null)
             return;
+        Camera camera = m_context.Camera;
+        m_oldCamera.Set(camera.PositionInterpolated, camera.Position, camera.YawRadians, camera.PitchRadians);
 
-        m_commands.DrawAutomap(world);
+        m_commands.DrawAutomap(world, m_oldCamera, world.Gametick, m_context.InterpolationFrac,
+            world.GetCameraPlayer(), m_context.DrawAutomap, m_context.AutomapOffset,
+            m_context.AutomapScale);
     }
 
     public void DrawLine(Seg3D seg, Color color)

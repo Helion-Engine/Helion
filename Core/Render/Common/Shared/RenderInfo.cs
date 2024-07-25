@@ -36,12 +36,13 @@ public class RenderInfo
         ViewSector = null!;
     }
 
-    public void Set(OldCamera camera, float tickFraction, Rectangle viewport, Entity viewerEntity, bool drawAutomap,
+    public void Set(OldCamera? camera, float tickFraction, Rectangle viewport, Entity viewerEntity, bool drawAutomap,
         Vec2I automapOffset, double automapScale, ConfigRender config, Sector viewSector, TransferHeightView transferHeightView)
     {
         Precondition(tickFraction >= 0.0 && tickFraction <= 1.0, "Tick fraction should be in the unit range");
 
-        Camera = camera;
+        if (camera != null)
+            Camera = camera;
         TickFraction = tickFraction;
         Viewport = viewport;
         ViewerEntity = viewerEntity;
