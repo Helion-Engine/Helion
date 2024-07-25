@@ -564,7 +564,7 @@ public class GameLayerManager : IGameLayerManager
         ctx.Viewport(m_renderer.RenderDimension.Box);
         ctx.Clear(Renderer.DefaultBackground, true, true);
 
-        if (WorldLayer != null && WorldLayer.ShouldRender && (m_config.Hud.AutomapOverlay.Value || !WorldLayer.DrawAutomap))
+        if (WorldLayer != null && WorldLayer.ShouldRender && (m_config.Hud.AutoMap.Overlay || !WorldLayer.DrawAutomap))
         {
             var offset = HudView.GetViewPortOffset(m_config.Hud.StatusBarSize, ctx.Surface.Dimension);
             if (WorldLayer.World.DrawHud && (offset.X != 0 || offset.Y != 0))
@@ -602,7 +602,7 @@ public class GameLayerManager : IGameLayerManager
             if (WorldLayer.DrawAutomap)
                 WorldLayer.RenderAutomap(m_ctx);
 
-            var options = (!m_config.Hud.AutomapOverlay.Value && WorldLayer.DrawAutomap) ? RenderHudOptions.ExcludeWeapon : RenderHudOptions.Default;
+            var options = (!m_config.Hud.AutoMap.Overlay && WorldLayer.DrawAutomap) ? RenderHudOptions.ExcludeWeapon : RenderHudOptions.Default;
             WorldLayer.RenderHud(m_ctx, options);
         }
 

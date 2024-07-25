@@ -26,24 +26,27 @@ public partial class WorldLayer
         ctx.ClearDepth();
         ctx.ClearStencil();
 
-        var oldCamera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
-        m_camera.Set(oldCamera.PositionInterpolated, oldCamera.Position, oldCamera.YawRadians, oldCamera.PitchRadians);
-        m_worldContext.Set(m_lastTickInfo.Fraction, DrawAutomap, m_autoMapOffset, m_autoMapScale);
+        SetWorldContextVars();
 
         ctx.World(m_worldContext, m_renderWorldAction);
         m_profiler.Render.World.Stop();
     }
 
-    void RenderAutomap(IWorldRenderContext ctx)
+    public void RenderAutomap(IWorldRenderContext ctx)
     {
         m_profiler.Render.Automap.Start();
 
-        var oldCamera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
-        m_camera.Set(oldCamera.PositionInterpolated, oldCamera.Position, oldCamera.YawRadians, oldCamera.PitchRadians);
-        m_worldContext.Set(m_lastTickInfo.Fraction, DrawAutomap, m_autoMapOffset, m_autoMapScale);
+        SetWorldContextVars();
 
         ctx.DrawAutomap(World);
         m_profiler.Render.Automap.Stop();
+    }
+
+    private void SetWorldContextVars()
+    {
+        var oldCamera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
+        m_camera.Set(oldCamera.PositionInterpolated, oldCamera.Position, oldCamera.YawRadians, oldCamera.PitchRadians);
+        m_worldContext.Set(m_lastTickInfo.Fraction, DrawAutomap, m_autoMapOffset, m_autoMapScale);
     }
 
     void RenderWorld(IWorldRenderContext context)

@@ -1,6 +1,5 @@
 using Helion.Geometry.Vectors;
 using Helion.Geometry;
-using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.World.StatusBar;
@@ -25,6 +24,14 @@ public class ConfigHudAutoMap
     // Internal to the client
     [ConfigInfo("Amount to scale automap.", save: false)]
     public readonly ConfigValue<double> Scale = new(1.0);
+
+    [ConfigInfo("Overlay automap over game window.")]
+    [OptionMenu(OptionSectionType.Hud, "Overlay Automap")]
+    public readonly ConfigValue<bool> Overlay = new(false);
+
+    [ConfigInfo("Automap rotates with the player so the top is forward.")]
+    [OptionMenu(OptionSectionType.Hud, "Automap Rotate")]
+    public readonly ConfigValue<bool> Rotate = new(false);
 }
 
 public class ConfigHud
@@ -101,10 +108,6 @@ public class ConfigHud
     [ConfigInfo("Horizontal hud margin percentage.")]
     [OptionMenu(OptionSectionType.Hud, "Horizontal margin percent (0.0 - 1.0)")]
     public readonly ConfigValue<double> HorizontalMargin = new(0, ClampNormalized);
-
-    [ConfigInfo("Overlay automap over game window.")]
-    [OptionMenu(OptionSectionType.Hud, "Overlay Automap")]
-    public readonly ConfigValue<bool> AutomapOverlay = new(false);
 
     public readonly ConfigHudAutoMap AutoMap = new();
 

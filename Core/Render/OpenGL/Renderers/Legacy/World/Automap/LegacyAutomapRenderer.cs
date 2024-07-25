@@ -10,6 +10,7 @@ using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Locks;
 using Helion.Util;
+using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Cheats;
@@ -96,7 +97,7 @@ public class LegacyAutomapRenderer : IDisposable
 
         m_shader.Bind();
 
-        m_shader.Mvp(CalculateMvp(renderInfo));
+        m_shader.Mvp(CalculateMvp(renderInfo, world.Config));
 
         for (int i = 0; i < m_vboRanges.Count; i++)
         {
@@ -112,12 +113,14 @@ public class LegacyAutomapRenderer : IDisposable
         m_shader.Unbind();
     }
 
-    private mat4 CalculateMvp(RenderInfo renderInfo)
+    private mat4 CalculateMvp(RenderInfo renderInfo, IConfig config)
     {
         vec2 scale = CalculateScale(renderInfo);
         vec3 camera = renderInfo.Camera.PositionInterpolated.GlmVector;
 
         mat4 model = mat4.Scale(scale.x, scale.y, 1.0f);
+        if (config.Hud.AutoMap.Rotate)
+            model *= mat4.RotateZ(-renderInfo.Camera.YawRadians + MathF.PI / 2);
         mat4 view = mat4.Translate(-camera.x - m_offsetX, -camera.y - m_offsetY, 0);
         mat4 proj = mat4.Identity;
 
