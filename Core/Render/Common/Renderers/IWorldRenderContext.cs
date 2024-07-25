@@ -6,11 +6,8 @@ using Helion.Geometry.Rays;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Spheres;
 using Helion.Geometry.Triangles;
-using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Render.OpenGL.Shared;
 using Helion.World;
-using Helion.World.Entities;
 
 namespace Helion.Render.Common.Renderers;
 

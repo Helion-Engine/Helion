@@ -102,6 +102,10 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Horizontal margin percent (0.0 - 1.0)")]
     public readonly ConfigValue<double> HorizontalMargin = new(0, ClampNormalized);
 
+    [ConfigInfo("Overlay automap over game window.")]
+    [OptionMenu(OptionSectionType.Hud, "Overlay Automap")]
+    public readonly ConfigValue<bool> AutomapOverlay = new(false);
+
     public readonly ConfigHudAutoMap AutoMap = new();
 
     // Legacy stuff

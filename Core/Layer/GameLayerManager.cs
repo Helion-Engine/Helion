@@ -29,6 +29,7 @@ using Helion.World.Save;
 using static Helion.Util.Assertion.Assert;
 using Helion.Geometry.Boxes;
 using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Impl;
 
 namespace Helion.Layer;
 
@@ -563,7 +564,7 @@ public class GameLayerManager : IGameLayerManager
         ctx.Viewport(m_renderer.RenderDimension.Box);
         ctx.Clear(Renderer.DefaultBackground, true, true);
 
-        if (WorldLayer != null && WorldLayer.ShouldRender && !WorldLayer.DrawAutomap)
+        if (WorldLayer != null && WorldLayer.ShouldRender && (m_config.Hud.AutomapOverlay.Value || !WorldLayer.DrawAutomap))
         {
             var offset = HudView.GetViewPortOffset(m_config.Hud.StatusBarSize, ctx.Surface.Dimension);
             if (WorldLayer.World.DrawHud && (offset.X != 0 || offset.Y != 0))
@@ -601,7 +602,8 @@ public class GameLayerManager : IGameLayerManager
             if (WorldLayer.DrawAutomap)
                 WorldLayer.RenderAutomap(m_ctx);
 
-            WorldLayer.RenderHud(m_ctx, WorldLayer.DrawAutomap ? RenderHudOptions.ExcludeWeapon : RenderHudOptions.Default);
+            var options = (!m_config.Hud.AutomapOverlay.Value && WorldLayer.DrawAutomap) ? RenderHudOptions.ExcludeWeapon : RenderHudOptions.Default;
+            WorldLayer.RenderHud(m_ctx, options);
         }
 
         IntermissionLayer?.Render(m_ctx, hudCtx);

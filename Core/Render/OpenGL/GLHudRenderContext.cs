@@ -15,8 +15,6 @@ using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
-using Helion.World;
-using Helion.World.Entities;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.OpenGL;
