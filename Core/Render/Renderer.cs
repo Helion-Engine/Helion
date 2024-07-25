@@ -399,8 +399,11 @@ public class Renderer : IDisposable
         if (viewport.Width == 0 || viewport.Height == 0 || cmd.World.IsDisposed)
             return;
 
-        m_renderInfo.Set(cmd.Camera, 0, viewport, cmd.ViewerEntity, true,
-            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, cmd.World.Sectors[0], TransferHeightView.Middle);
+        var viewSector = cmd.World.BspTree.ToSector(cmd.Camera.PositionInterpolated.Double);
+        var transferHeightsView = TransferHeights.GetView(viewSector, cmd.Camera.PositionInterpolated.Z);
+
+        m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
+            cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
 
         m_automapRenderer.Render(cmd.World, m_renderInfo);
     }
