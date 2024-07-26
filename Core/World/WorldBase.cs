@@ -74,6 +74,7 @@ public abstract partial class WorldBase : IWorld
     private static PhysicsManager? LastPhysicManager;
     private static SpecialManager? LastSpecialManager;
     private static Line?[]? LastBspSegLines;
+    private static DynamicArray<StructLine> LastStructLines = new();
 
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? WorldResumed;
@@ -88,6 +89,9 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<Entry>? OnMusicChanged;
     public event EventHandler? OnTick;
     public event EventHandler? OnDestroying;
+        
+    private static int StaticId;
+    public int Id { get; } = StaticId++;
 
     public readonly long CreationTimeNanos;
     public string MapName { get; protected set; }
@@ -107,6 +111,7 @@ public abstract partial class WorldBase : IWorld
     public IList<Line> Lines => Geometry.Lines;
     public IList<Side> Sides => Geometry.Sides;
     public IList<Sector> Sectors => Geometry.Sectors;
+    public DynamicArray<StructLine> StructLines => LastStructLines;
     public Line?[] BspSegLines { get; } = [];
     public IList<HighlightArea> HighlightAreas { get; } = new List<HighlightArea>();
     public CompactBspTree BspTree => Geometry.CompactBspTree;
@@ -208,7 +213,7 @@ public abstract partial class WorldBase : IWorld
 
         Blockmap = CreateBlockMap();
         RenderBlockmap = CreateRenderBlockMap();
-        BuildSoundLines();
+        BuildStructLines();
 
         SoundManager = CreateSoundManager();
         EntityManager = CreateEntityManager(reuse);
@@ -345,20 +350,23 @@ public abstract partial class WorldBase : IWorld
         LastRenderBlockMap = new BlockMap(Blockmap.Bounds, 512);
         return LastRenderBlockMap;
     }
-    private void BuildSoundLines()
+
+    private void BuildStructLines()
     {
         if (SameAsPreviousMap)
             return;
 
+        LastStructLines.Clear();
+
         for (int i = 0; i < Sectors.Count; i++)
         {
             var sector = Sectors[i];
+            sector.StructLineStart = LastStructLines.Length;
+            sector.StructLineCount = sector.Lines.Count;
             for (int j = 0; j < sector.Lines.Count; j++)
             {
                 var line = sector.Lines[j];
-                if (line.Back == null)
-                    continue;
-                sector.SoundLines.Add(new SoundLine(line.Front.Sector, line.Back.Sector, line.Flags.BlockSound));
+                LastStructLines.Add(new StructLine(line));
             }
         }
     }
@@ -625,10 +633,12 @@ public abstract partial class WorldBase : IWorld
     public void NoiseAlert(Entity target, Entity source)
     {
         m_soundCount++;
+        Stopwatch stopwatch = Stopwatch.StartNew();
         RecursiveSound(WeakEntity.GetReference(target), source.Sector, 0);
+        HelionLog.Info(stopwatch.Elapsed.TotalMilliseconds.ToString());
     }
 
-    private unsafe void RecursiveSound(WeakEntity target, Sector sector, int block)
+    private void RecursiveSound(WeakEntity target, Sector sector, int block)
     {
         if (sector.SoundValidationCount == m_soundCount && sector.SoundBlock <= block + 1)
             return;
@@ -637,30 +647,32 @@ public abstract partial class WorldBase : IWorld
         sector.SoundBlock = block + 1;
         sector.SoundTarget = target;
 
-        var soundLines = sector.SoundLines;
-        fixed (SoundLine* startLine = &soundLines.Data[0])
+        var lineArray = LastStructLines.Data;
+        int length = sector.StructLineCount;
+        for (int i = 0; i < length; i++)
         {
-            for (int i = 0; i < soundLines.Length; i++)
-            {
-                SoundLine* line = startLine + i;
-                var frontSector = line->Front;
-                var backSector = line->Back;
-                double minCeilingZ = frontSector.Ceiling.Z < backSector.Ceiling.Z ? frontSector.Ceiling.Z : backSector.Ceiling.Z;
-                double maxFloorZ = frontSector.Floor.Z < backSector.Floor.Z ? backSector.Floor.Z : frontSector.Floor.Z;
-                if (minCeilingZ - maxFloorZ <= 0)
-                    continue;
+            ref var line = ref lineArray[sector.StructLineStart + i];
+            var frontSector = line.FrontSector;
+            var backSector = line.BackSector;
 
-                Sector other = frontSector == sector ? backSector : frontSector;
-                if (line->BlockSound)
-                {
-                    // Has to cross two block sound lines to stop. This is how it was designed.
-                    if (block == 0)
-                        RecursiveSound(target, other, 1);
-                }
-                else
-                {
-                    RecursiveSound(target, other, block);
-                }
+            if (backSector == null)
+                continue;
+
+            double minCeilingZ = frontSector.Ceiling.Z < backSector.Ceiling.Z ? frontSector.Ceiling.Z : backSector.Ceiling.Z;
+            double maxFloorZ = frontSector.Floor.Z < backSector.Floor.Z ? backSector.Floor.Z : frontSector.Floor.Z;
+            if (minCeilingZ - maxFloorZ <= 0)
+                continue;
+
+            Sector other = frontSector == sector ? backSector : frontSector;
+            if (line.BlockSound)
+            {
+                // Has to cross two block sound lines to stop. This is how it was designed.
+                if (block == 0)
+                    RecursiveSound(target, other, 1);
+            }
+            else
+            {
+                RecursiveSound(target, other, block);
             }
         }
     }  

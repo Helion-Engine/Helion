@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using GlmSharp;
 using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
@@ -40,6 +41,10 @@ public class LegacyAutomapRenderer : IDisposable
     private int m_lastOffsetX;
     private int m_lastOffsetY;
     private bool m_disposed;
+    private bool m_rotate;
+    private int m_lastWorldId = -1;
+    private Box2D m_boundingBox = default;
+
 
     private readonly Dictionary<string, Color> m_keys = new(StringComparer.OrdinalIgnoreCase);
 
@@ -112,6 +117,10 @@ public class LegacyAutomapRenderer : IDisposable
             m_lastOffsetY = renderInfo.AutomapOffset.Y;
         }
 
+        // Don't rotate if the user has applied offsets
+        m_rotate = m_offsetX == 0 && m_offsetY == 0 && m_archiveCollection.Config.Hud.AutoMap.Rotate;
+
+        SetBoundingBox(renderInfo);
         PopulateData(world, renderInfo, out _);
 
         m_shader.Bind();
@@ -131,13 +140,31 @@ public class LegacyAutomapRenderer : IDisposable
         m_shader.Unbind();
     }
 
+    private void SetBoundingBox(RenderInfo renderInfo)
+    {
+        // Not optimally correct but works well enough. Would be best if this used the same method as static rendering.
+        var center = new Vec2D(renderInfo.Camera.PositionInterpolated.X + m_offsetX, renderInfo.Camera.PositionInterpolated.Y + m_offsetY);        
+        var scale = m_archiveCollection.Config.Hud.AutoMap.Scale;
+        double BoxScale = m_rotate ? 2 / scale : 2.2 / scale;
+        var width = (renderInfo.Viewport.Width * BoxScale) / 2;
+        var height = (renderInfo.Viewport.Height * BoxScale) / 2;
+
+        if (m_rotate)
+        {
+            width = Math.Max(width, height);
+            height = Math.Max(width, height);
+        }
+
+        m_boundingBox = new Box2D((center.X - width, center.Y - height), (center.X + width, center.Y + height));
+    }
+
     private mat4 CalculateMvp(RenderInfo renderInfo, IConfig config)
     {
         vec2 scale = CalculateScale(renderInfo);
         vec3 camera = renderInfo.Camera.PositionInterpolated.GlmVector;
 
         mat4 model = mat4.Scale(scale.x, scale.y, 1.0f);
-        if (config.Hud.AutoMap.Rotate)
+        if (m_rotate)
             model *= mat4.RotateZ(-renderInfo.Camera.YawRadians + MathF.PI / 2);
         mat4 view = mat4.Translate(-camera.x - m_offsetX, -camera.y - m_offsetY, 0);
         mat4 proj = mat4.Identity;
@@ -161,7 +188,7 @@ public class LegacyAutomapRenderer : IDisposable
         Player? player = renderInfo.ViewerEntity.PlayerObj;
 
         m_vbo.Clear();
-        PopulateColoredLines(world, player);
+        PopulateColoredLines(renderInfo, world, player);
         PopulateThings(world, player, renderInfo);
         DrawEntity(player, renderInfo.TickFraction);
         DrawHighlightAreas(world, renderInfo);
@@ -218,6 +245,9 @@ public class LegacyAutomapRenderer : IDisposable
 
         for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
+            if (!m_boundingBox.Contains(entity.Position))
+                continue;
+
             if (entity.Definition.EditorId == (int)EditorId.MapMarker)
                 DrawEntity(entity, renderInfo.TickFraction);
 
@@ -228,7 +258,7 @@ public class LegacyAutomapRenderer : IDisposable
         }
     }
 
-    private void PopulateColoredLines(IWorld world, Player? player)
+    private void PopulateColoredLines(RenderInfo renderInfo, IWorld world, Player? player)
     {
         m_colorPoints.Clear();
 
@@ -244,15 +274,20 @@ public class LegacyAutomapRenderer : IDisposable
         bool markSecrets = world.Config.Game.MarkSecrets;
         bool markFlood = world.Config.Developer.MarkFlood;
 
-        for (int i = 0; i < world.Lines.Count; i++)
+        int length = world.StructLines.Length;
+        var lineArray = world.StructLines.Data;
+        for (int i = 0; i < length; i++)
         {
-            Line line = world.Lines[i];
+            ref var structLine = ref lineArray[i];
+            var start = structLine.Start;
+            var end = structLine.End;
+            if (!m_boundingBox.Contains(start) && !m_boundingBox.Contains(end))
+                continue;
+
+            var line = structLine.Line;
             bool markedLine = IsLineMarked(line, markSecrets, markFlood);
             if (!forceDraw && !line.Flags.Automap.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
                 continue;
-
-            Vec2D start = line.StartPosition;
-            Vec2D end = line.EndPosition;
 
             if (!markedLine && LockSpecialUtil.IsLockSpecial(line, out int key))
             {

@@ -15,27 +15,11 @@ using Helion.Maps.Specials;
 using Helion.Util.Configs.Components;
 using Helion.World.Static;
 using Helion.Geometry.Boxes;
-using Helion.World.Bsp;
 using Helion.World.Geometry.Islands;
 using static Helion.World.Entities.EntityManager;
 using Helion.Graphics.Palettes;
-using Helion.Maps.Doom.Components;
 
 namespace Helion.World.Geometry.Sectors;
-
-public readonly record struct SoundLine
-{
-    public readonly Sector Front;
-    public readonly Sector Back;
-    public readonly bool BlockSound;
-
-    public SoundLine(Sector front, Sector back, bool blockSound)
-    {
-        Front = front;
-        Back = back;
-        BlockSound = blockSound;
-    }
-}
 
 public sealed class Sector
 {
@@ -50,7 +34,8 @@ public sealed class Sector
     public List<Line> Lines = new();
     public LinkableList<Entity> Entities = new();
     public DynamicArray<LinkableNode<Island>> BlockmapNodes = new();
-    public DynamicArray<SoundLine> SoundLines = new();
+    public int StructLineStart;
+    public int StructLineCount;
     public Island Island = null!;
 
     public short LightLevel;

@@ -25,21 +25,17 @@ using Helion.Util.RandomGenerators;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Entities.Inventories.Powerups;
-using Helion.Util.Configs.Impl;
 using Helion.Resources.Definitions.SoundInfo;
 
 namespace Helion.World.Impl.SinglePlayer;
 
 public class SinglePlayerWorld : WorldBase
 {
-    private static int StaticId;
     private static bool SoundsCached;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly CheatType[] ChaseCameraCheats = new[] { CheatType.AutoMapModeShowAllLines, CheatType.AutoMapModeShowAllLinesAndThings };
     private readonly AutomapMarker m_automapMarker;
     private bool m_chaseCamMode;
-
-    public int Id = StaticId++;
 
     public override Player Player { get; protected set; }
     public readonly Player ChaseCamPlayer;

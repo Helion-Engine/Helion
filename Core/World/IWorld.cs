@@ -15,7 +15,6 @@ using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Archives.Collection;
-using Helion.Util.Container;
 using Helion.Models;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Cheats;
@@ -26,13 +25,13 @@ using Helion.World.Entities.Definition.States;
 using Helion.Util;
 using Helion.World.Special.Specials;
 using Helion.Resources;
-using Helion.World.Static;
 using Helion.World.Blockmap;
 using Helion.Maps.Specials;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Geometry;
 using Helion.Maps;
 using Helion.Resources.Archives.Entries;
+using Helion.Util.Container;
 
 namespace Helion.World;
 
@@ -54,6 +53,7 @@ public interface IWorld : IDisposable
     event EventHandler? OnTick;
     event EventHandler? OnDestroying;
 
+    int Id { get; }
     string MapName { get; }
     // Increments every tick unless the game is paused.
     int Gametick { get; }
@@ -65,6 +65,7 @@ public interface IWorld : IDisposable
     IList<Line> Lines { get; }
     IList<Side> Sides { get; }
     IList<Sector> Sectors { get; }
+    DynamicArray<StructLine> StructLines { get; }
     Line?[] BspSegLines { get; }
     IList<HighlightArea> HighlightAreas { get; }
     CompactBspTree BspTree { get; }

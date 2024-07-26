@@ -203,11 +203,6 @@ public sealed class Line
         return false;
     }
 
-    public void MarkSeenOnAutomap()
-    {
-        DataChanges |= LineDataTypes.Automap;
-    }
-
     public override string ToString()
     {
         return $"Id={Id} [{StartPosition}] [{EndPosition}]";
