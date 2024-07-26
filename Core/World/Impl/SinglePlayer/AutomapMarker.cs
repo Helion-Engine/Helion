@@ -150,46 +150,51 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
             return;
 
         var subsectorLines = m_world.BspSegLines;
+        var lineArray = world.StructLines.Data;
         fixed (SubsectorSegment* startEdge = &world.BspTree.Segments.Data[subsector.SegIndex])
         {
             SubsectorSegment* edge = startEdge;
             for (int i = 0; i < subsector.SegCount; i++, edge++)
             {
-                var line = subsectorLines[subsector.SegIndex + i];
-                if (line == null)
+                var getLineId = subsectorLines[subsector.SegIndex + i];
+                if (getLineId == null)
                     continue;
 
-                if (m_lineDrawnTracker.HasDrawn(line))
+                var lineId = getLineId.Value;
+
+                ref var line = ref lineArray[lineId];
+                if (m_lineDrawnTracker.HasDrawn(lineId))
                 {
-                    AddLineClip(edge, line);
+                    AddLineClip(edge, ref line);
                     continue;
                 }
 
-                if (line.Back == null && !line.Segment.OnRight(position))
+                if (line.BackSector == null && !line.Segment.OnRight(position))
                     continue;
 
                 if (m_viewClipper.InsideAnyRange(line.Segment.Start, line.Segment.End))
                     continue;
 
-                AddLineClip(edge, line);
-                m_lineDrawnTracker.MarkDrawn(line);
+                AddLineClip(edge, ref line);
+                m_lineDrawnTracker.MarkDrawn(lineId);
 
-                if ((line.DataChanges & LineDataTypes.Automap) != 0)
+                if (line.SeenForAutomap)
                     continue;
 
                 if (m_occlude && !line.Segment.InView(position, viewDirection))
                     continue;
 
-                line.DataChanges |= LineDataTypes.Automap;
+                line.Flags |= StructLineFlags.SeenForAutomap;
+                line.Line.DataChanges |= LineDataTypes.Automap;
             }
         }
     }
 
-    private unsafe void AddLineClip(SubsectorSegment* edge, Line line)
+    private unsafe void AddLineClip(SubsectorSegment* edge, ref StructLine line)
     {
-        if (line.Back == null)
+        if (line.BackSector == null)
             m_viewClipper.AddLine(edge->Start, edge->End);
-        else if (LineOpening.IsRenderingBlocked(line))
+        else if (LineOpening.IsRenderingBlocked(ref line))
             m_viewClipper.AddLine(edge->Start, edge->End);
     }
 

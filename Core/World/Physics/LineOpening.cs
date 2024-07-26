@@ -48,6 +48,22 @@ public class LineOpening
         return false;
     }
 
+    public static bool IsRenderingBlocked(ref StructLine line)
+    {
+        Assert.Precondition(line.BackSector != null, "Cannot create LineOpening with one sided line");
+
+        // TODO This can be smarter. This is just to allow rendering tricks for invisible platforms.
+        if (line.FrontSector.TransferHeights != null || line.BackSector!.TransferHeights != null)
+            return false;
+
+        // Closed door check. This check isn't really correct, but is required for some old rendering tricks to work.
+        // E.g. TNT Map02 - see through window that opens as a door
+        if (line.BackSector!.Ceiling.Z <= line.FrontSector.Floor.Z || line.BackSector.Floor.Z >= line.FrontSector.Ceiling.Z)
+            return true;
+
+        return false;
+    }
+
     public LineOpening()
     {
         CeilingZ = 0;

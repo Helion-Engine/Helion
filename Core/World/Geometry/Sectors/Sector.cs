@@ -34,8 +34,7 @@ public sealed class Sector
     public List<Line> Lines = new();
     public LinkableList<Entity> Entities = new();
     public DynamicArray<LinkableNode<Island>> BlockmapNodes = new();
-    public int StructLineStart;
-    public int StructLineCount;
+    public int[] LineIds = [];
     public Island Island = null!;
 
     public short LightLevel;

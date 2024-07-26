@@ -30,10 +30,24 @@ public class LineDrawnTracker
         return m_lineWasDrawn.Get(line.Id);
     }
 
+    public bool HasDrawn(int lineId)
+    {
+        Precondition(lineId <= m_maxLineId, "Checking drawn line which is out of range");
+
+        return m_lineWasDrawn.Get(lineId);
+    }
+
     public void MarkDrawn(Line line)
     {
         Precondition(line.Id <= m_maxLineId, "Marking line which is out of range");
 
         m_lineWasDrawn.Set(line.Id, true);
+    }
+
+    public void MarkDrawn(int lineId)
+    {
+        Precondition(lineId <= m_maxLineId, "Marking line which is out of range");
+
+        m_lineWasDrawn.Set(lineId, true);
     }
 }

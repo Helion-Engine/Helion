@@ -29,7 +29,6 @@ public sealed class Line
     public bool DataChanged => DataChanges > 0;
     public int BlockmapCount;
     public int PhysicsCount;
-    public bool MarkAutomap;
     private double? m_length;
 
     public Vec2D StartPosition => Segment.Start;
@@ -72,7 +71,6 @@ public sealed class Line
         DataChanges = default;
         BlockmapCount = default;
         PhysicsCount = default;
-        MarkAutomap = false;
     }
 
     // Same as Segment.Length, but caches the value.

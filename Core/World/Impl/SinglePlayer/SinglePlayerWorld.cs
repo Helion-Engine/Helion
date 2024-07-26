@@ -156,7 +156,7 @@ public class SinglePlayerWorld : WorldBase
 
     private void MarkSpecials_OnChanged(object? sender, bool e)
     {
-        MarkSpecials.Clear(Player);
+        MarkSpecials.Clear(this, Player);
     }
 
     private void AutomapBspThread_OnChanged(object? sender, bool set)
@@ -258,7 +258,9 @@ public class SinglePlayerWorld : WorldBase
             if (lineModel.Id < 0 || lineModel.Id >= Lines.Count)
                 continue;
 
-            Lines[lineModel.Id].ApplyLineModel(this, lineModel);
+            var line = Lines[lineModel.Id];
+            line.ApplyLineModel(this, lineModel);
+            StructLines[lineModel.Id].Update(line);
         }
     }
 

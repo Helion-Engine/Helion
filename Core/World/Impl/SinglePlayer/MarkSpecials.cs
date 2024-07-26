@@ -36,10 +36,10 @@ public class MarkSpecials
     private int m_ignoreGametick = -1;
     private int m_lineMarkColor;
 
-    public void Clear(Player player)
+    public void Clear(IWorld world, Player player)
     {
         ClearMarkedSectors();
-        ClearMarkedLines();
+        ClearMarkedLines(world);
         ClearPlayerTracers(player);
         m_lastLineId = -1;
     }
@@ -61,7 +61,7 @@ public class MarkSpecials
             newGametick = true;
             m_lastLineId = line.Id;
             m_lineMarkColor = -1;
-            Clear(entity.PlayerObj);
+            Clear(world, entity.PlayerObj);
         }
 
         int markedSectors = MarkedSectors.Length;
@@ -78,7 +78,7 @@ public class MarkSpecials
                 m_lastGametick = gametick;
             }
             MarkedLines.Add(line);
-            line.MarkAutomap = true;
+            UpdateLineMark(world, line, true);
             return;
         }
     }
@@ -347,18 +347,18 @@ public class MarkSpecials
 
         if (!m_mappedLineTags)
         {
-            MarkSpecialLines(world.Lines, frontTag, backTag);
+            MarkSpecialLines(world, world.Lines, frontTag, backTag);
             m_mappedLineTags = true;
             return;
         }
 
         if (frontTag != 0 && m_tagToLines.TryGetValue(frontTag, out var lines))
-            MarkSpecialLines(lines, frontTag, backTag);
+            MarkSpecialLines(world, lines, frontTag, backTag);
         if (backTag != 0 && m_tagToLines.TryGetValue(backTag, out lines))
-            MarkSpecialLines(lines, frontTag, backTag);
+            MarkSpecialLines(world, lines, frontTag, backTag);
     }
 
-    private void MarkSpecialLines(IList<Line> lines, int frontTag, int backTag)
+    private void MarkSpecialLines(IWorld world, IList<Line> lines, int frontTag, int backTag)
     {
         for (int i = 0; i < lines.Count; i++)
         {
@@ -374,7 +374,7 @@ public class MarkSpecials
             if (line.SectorTag != frontTag && line.SectorTag != backTag)
                 continue;
 
-            line.MarkAutomap = true;
+            UpdateLineMark(world, line, true);
             MarkedLines.Add(line);
         }
     }
@@ -393,11 +393,20 @@ public class MarkSpecials
         lines.Add(line);
     }
 
-    private void ClearMarkedLines()
+    private void ClearMarkedLines(IWorld world)
     {
         for (int i = 0; i < MarkedLines.Length; i++)
-            MarkedLines[i].MarkAutomap = false;
+            UpdateLineMark(world, MarkedLines[i], false);
         MarkedLines.Clear();
+    }
+
+    private void UpdateLineMark(IWorld world, Line line, bool set)
+    {
+        ref var structLine = ref world.StructLines.Data[line.Id];
+        if (set)
+            structLine.Flags |= StructLineFlags.MarkAutomap;
+        else
+            structLine.Flags &= ~StructLineFlags.MarkAutomap;
     }
 
     private void ClearMarkedSectors()

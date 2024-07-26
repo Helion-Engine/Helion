@@ -73,7 +73,7 @@ public abstract partial class WorldBase : IWorld
     private static EntityManager? LastEntityManager;
     private static PhysicsManager? LastPhysicManager;
     private static SpecialManager? LastSpecialManager;
-    private static Line?[]? LastBspSegLines;
+    private static int?[]? LastBspSegLines;
     private static DynamicArray<StructLine> LastStructLines = new();
 
     public event EventHandler<LevelChangeEvent>? LevelExit;
@@ -112,7 +112,7 @@ public abstract partial class WorldBase : IWorld
     public IList<Side> Sides => Geometry.Sides;
     public IList<Sector> Sectors => Geometry.Sectors;
     public DynamicArray<StructLine> StructLines => LastStructLines;
-    public Line?[] BspSegLines { get; } = [];
+    public int?[] BspSegLines { get; } = [];
     public IList<HighlightArea> HighlightAreas { get; } = new List<HighlightArea>();
     public CompactBspTree BspTree => Geometry.CompactBspTree;
     public EntityManager EntityManager { get; }
@@ -258,12 +258,12 @@ public abstract partial class WorldBase : IWorld
     }
 
     // Used by the automap marker to prevent cache misses by needing to fetch the side first.
-    private Line?[] CreateBspSegLines(bool reuse)
+    private int?[] CreateBspSegLines(bool reuse)
     {
         if (reuse && LastBspSegLines != null)
             return LastBspSegLines;
 
-        LastBspSegLines = new Line?[BspTree.Segments.Length];
+        LastBspSegLines = new int?[BspTree.Segments.Length];
         for (int i = 0; i < BspTree.Subsectors.Length; i++)
         {
             var subsector = BspTree.Subsectors[i];
@@ -273,7 +273,7 @@ public abstract partial class WorldBase : IWorld
                 if (!edge.SideId.HasValue)
                     continue;
                 var side = Sides[edge.SideId.Value];
-                LastBspSegLines[subsector.SegIndex + j] = side.Line;
+                LastBspSegLines[subsector.SegIndex + j] = side.Line.Id;
             }
         }
 
@@ -357,17 +357,15 @@ public abstract partial class WorldBase : IWorld
             return;
 
         LastStructLines.Clear();
+        for (int i = 0; i < Lines.Count; i++)
+            LastStructLines.Add(new StructLine(Lines[i]));
 
         for (int i = 0; i < Sectors.Count; i++)
         {
             var sector = Sectors[i];
-            sector.StructLineStart = LastStructLines.Length;
-            sector.StructLineCount = sector.Lines.Count;
+            sector.LineIds = new int[sector.Lines.Count];
             for (int j = 0; j < sector.Lines.Count; j++)
-            {
-                var line = sector.Lines[j];
-                LastStructLines.Add(new StructLine(line));
-            }
+                sector.LineIds[j] = sector.Lines[j].Id;
         }
     }
 
@@ -633,9 +631,7 @@ public abstract partial class WorldBase : IWorld
     public void NoiseAlert(Entity target, Entity source)
     {
         m_soundCount++;
-        Stopwatch stopwatch = Stopwatch.StartNew();
         RecursiveSound(WeakEntity.GetReference(target), source.Sector, 0);
-        HelionLog.Info(stopwatch.Elapsed.TotalMilliseconds.ToString());
     }
 
     private void RecursiveSound(WeakEntity target, Sector sector, int block)
@@ -647,11 +643,11 @@ public abstract partial class WorldBase : IWorld
         sector.SoundBlock = block + 1;
         sector.SoundTarget = target;
 
+        int length = sector.LineIds.Length;
         var lineArray = LastStructLines.Data;
-        int length = sector.StructLineCount;
         for (int i = 0; i < length; i++)
         {
-            ref var line = ref lineArray[sector.StructLineStart + i];
+            ref var line = ref lineArray[sector.LineIds[i]];
             var frontSector = line.FrontSector;
             var backSector = line.BackSector;
 

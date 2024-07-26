@@ -278,34 +278,33 @@ public class LegacyAutomapRenderer : IDisposable
         var lineArray = world.StructLines.Data;
         for (int i = 0; i < length; i++)
         {
-            ref var structLine = ref lineArray[i];
-            var start = structLine.Start;
-            var end = structLine.End;
+            ref var line = ref lineArray[i];
+            var start = line.Segment.Start;
+            var end = line.Segment.End;
             if (!m_boundingBox.Contains(start) && !m_boundingBox.Contains(end))
                 continue;
 
-            var line = structLine.Line;
-            bool markedLine = IsLineMarked(line, markSecrets, markFlood);
-            if (!forceDraw && !line.Flags.Automap.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap || line.Flags.Automap.NeverDraw))
+            bool markedLine = IsLineMarked(ref line, markSecrets, markFlood);
+            if (!forceDraw && !line.AutomapFlags.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap || line.AutomapFlags.NeverDraw))
                 continue;
 
-            if (!markedLine && LockSpecialUtil.IsLockSpecial(line, out int key))
+            if (!markedLine && line.LockKey != -1)
             {
-                AddLockedLine(key, start, end);
+                AddLockedLine(line.LockKey, start, end);
                 continue;
             }
 
-            if (line.Back == null || line.Flags.Secret || line.Flags.Automap.AlwaysDraw)
+            if (line.BackSector == null || line.Secret || line.AutomapFlags.AlwaysDraw)
             {
-                AddLine(GetOneSidedColor(world, line, forceDraw, markedLine), start, end);
+                AddLine(GetOneSidedColor(world, ref line, forceDraw, markedLine), start, end);
                 continue;
             }
 
-            AddLine(GetTwoSidedColor(world, line, forceDraw, markedLine), start, end);
+            AddLine(GetTwoSidedColor(world, ref line, forceDraw, markedLine), start, end);
         }
     }
 
-    private Color GetOneSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
+    private Color GetOneSidedColor(IWorld world, ref StructLine line, bool forceDraw, bool marked)
     {
         if (marked)
             return GetMarkedColor(world);
@@ -316,15 +315,15 @@ public class LegacyAutomapRenderer : IDisposable
         return m_unseenWallColor;
     }
 
-    private Color GetTwoSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
+    private Color GetTwoSidedColor(IWorld world, ref StructLine line, bool forceDraw, bool marked)
     {
         if (marked)
             return GetMarkedColor(world);
 
         if (line.SeenForAutomap || forceDraw)
         {
-            if (line.HasSpecial && line.Special.IsTeleport())
-                return m_teleportLineColor;
+            //if (line.HasSpecial && line.Special.IsTeleport())
+            //    return m_teleportLineColor;
 
             return m_twoSidedWallColor;
         }
@@ -339,21 +338,21 @@ public class LegacyAutomapRenderer : IDisposable
         return m_markerColorAlt;
     }
 
-    private static bool IsLineMarked(Line line, bool markSecrets, bool markFlood)
+    private static bool IsLineMarked(ref StructLine line, bool markSecrets, bool markFlood)
     {
         if (line.MarkAutomap)
             return true;
 
-        if (line.Front.Sector.MarkAutomap || (line.Back != null && line.Back.Sector.MarkAutomap))
+        if (line.FrontSector.MarkAutomap || (line.BackSector != null && line.BackSector.MarkAutomap))
             return true;
 
-        if (markSecrets && (line.Front.Sector.Secret || line.Back != null && line.Back.Sector.Secret))
+        if (markSecrets && (line.FrontSector.Secret || line.BackSector != null && line.BackSector.Secret))
             return true;
 
-        if (markFlood && (line.Front.Sector.Flood || line.Back != null && line.Back.Sector.Flood))
+        if (markFlood && (line.FrontSector.Flood || line.BackSector != null && line.BackSector.Flood))
             return true;
 
-        if (markFlood && line.Back != null && (CheckFloodSide(line.Front) || CheckFloodSide(line.Back)))
+        if (markFlood && line.BackSector != null && (CheckFloodSide(line.Line.Front) || CheckFloodSide(line.Line.Back!)))
             return true;
 
         return false;
