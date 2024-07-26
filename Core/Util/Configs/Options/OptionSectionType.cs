@@ -11,6 +11,7 @@ public enum OptionSectionType
     Audio,
     Render,
     Hud,
+    Automap,
     Compatibility,
     SlowTick,
     Demo,

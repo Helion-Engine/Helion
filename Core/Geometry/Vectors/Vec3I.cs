@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
@@ -117,5 +118,21 @@ namespace Helion.Geometry.Vectors
         public override string ToString() => $"{X}, {Y}, {Z}";
         public override bool Equals(object? obj) => obj is Vec3I v && X == v.X && Y == v.Y && Z == v.Z;
         public override int GetHashCode() => HashCode.Combine(X, Y, Z);
+
+        public static Vec3I FromConfigString(string s)
+        {
+            try
+            {
+                var tokens = s.Split(Config.FindSplitValue(s));
+                var x = int.Parse(tokens[0].Trim());
+                var y = int.Parse(tokens[1].Trim());
+                var z = int.Parse(tokens[2].Trim());
+                return (x, y, z);
+            }
+            catch
+            {
+                return (1, 1, 1);
+            }
+        }
     }
 }

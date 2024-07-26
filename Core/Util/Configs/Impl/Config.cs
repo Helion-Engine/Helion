@@ -36,6 +36,17 @@ public class Config : IConfig
     protected readonly ConfigKeyMapping KeyMapping = new();
     protected readonly Dictionary<string, ConfigComponent> Components = new(StringComparer.OrdinalIgnoreCase);
 
+    public static string FindSplitValue(string value)
+    {
+        if (value.Contains(','))
+            return ",";
+        if (value.Contains('x'))
+            return "x";
+        if (value.Contains('X'))
+            return "X";
+        return " ";
+    }
+
     public Config()
     {
         Aliases = new ConfigAliasMapping(this);

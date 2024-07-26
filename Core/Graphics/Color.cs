@@ -47,6 +47,12 @@ public record struct Color(byte A, byte R, byte G, byte B)
     {
     }
 
+    public Color(Vec3I bytes) :
+        this(255, (byte)bytes.X, (byte)bytes.Y, (byte)bytes.Z)
+    {
+
+    }
+
     public Color(byte R, byte G, byte B) : this(255, R, G, B)
     {
     }

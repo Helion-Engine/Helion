@@ -1,10 +1,9 @@
 ﻿using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Util;
-using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Entities.Inventories;
@@ -12,7 +11,6 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Special;
 using Helion.World.Special.Switches;
@@ -24,14 +22,14 @@ namespace Helion.World.Impl.SinglePlayer;
 
 public class MarkSpecials
 {
-    private static readonly Vec3F[] TracerColors = new Vec3F[] { new(1f, 0.2f, 0.2f), new(0.2f, 1f, 0.2f), new(0.2f, 0.2f, 1f), new(0.8f, 0.2f, 0.8f), new(0.8f, 0.8f, 0.8f) };
-    private static readonly AutomapColor[] AutomapColors = new[] { AutomapColor.Red, AutomapColor.Green, AutomapColor.Blue, AutomapColor.Purple, AutomapColor.Yellow };
+    private static readonly Vec3F[] TracerColors =  [new(1f, 0.2f, 0.2f), new(0.2f, 1f, 0.2f), new(0.2f, 0.2f, 1f), new(0.8f, 0.2f, 0.8f), new(0.8f, 0.8f, 0.8f)];
+    private static readonly Color[] AutomapColors = [Color.Red, Color.Green, Color.Blue, Color.Purple, Color.Yellow];
 
     public readonly DynamicArray<Sector> MarkedSectors = new();
     public readonly DynamicArray<Line> MarkedLines = new();
     private readonly DynamicArray<int> m_playerTracers = new();
-    private readonly Dictionary<int, List<Line>> m_tagToLines = new();
-    private readonly HashSet<int> m_searchedSectors = new();
+    private readonly Dictionary<int, List<Line>> m_tagToLines = [];
+    private readonly HashSet<int> m_searchedSectors = [];
     private bool m_mappedLineTags;
     private int m_lastLineId = -1;
     private int m_lastGametick = -1;

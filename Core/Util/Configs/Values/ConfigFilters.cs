@@ -1,3 +1,4 @@
+using Helion.Geometry.Vectors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,4 +61,6 @@ public static class ConfigFilters
     public static Func<int, int> Clamp(int min, int max) => value => Math.Clamp(value, min, max);
 
     public static readonly Func<double, double> ClampNormalized = Clamp(0.0, 1.0);
+
+    public static Vec3I ClampColor(Vec3I v) => new(Math.Clamp(v.X, 0, 255), Math.Clamp(v.Y, 0, 255), Math.Clamp(v.Z, 0, 255));
 }

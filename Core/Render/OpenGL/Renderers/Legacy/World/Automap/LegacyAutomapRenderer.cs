@@ -32,16 +32,16 @@ public class LegacyAutomapRenderer : IDisposable
     private readonly StreamVertexBuffer<AutomapVertex> m_vbo;
     private readonly VertexArrayObject m_vao;
     private readonly AutomapShader m_shader;
-    private readonly List<DynamicArray<vec2>> m_colorEnumToLines = new();
     private readonly List<(int start, Vec3F color)> m_vboRanges = new();
     private readonly DynamicArray<vec2> m_points = new();
+    private readonly AutomapColorPoints m_colorPoints = new();
     private float m_offsetX;
     private float m_offsetY;
     private int m_lastOffsetX;
     private int m_lastOffsetY;
     private bool m_disposed;
 
-    private readonly Dictionary<string, AutomapColor> m_keys = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Color> m_keys = new(StringComparer.OrdinalIgnoreCase);
 
     public LegacyAutomapRenderer(ArchiveCollection archiveCollection)
     {
@@ -52,20 +52,9 @@ public class LegacyAutomapRenderer : IDisposable
 
         Attributes.BindAndApply(m_vbo, m_vao, m_shader.Attributes);
 
-        foreach (AutomapColor _ in Enum.GetValues<AutomapColor>())
-            m_colorEnumToLines.Add(new DynamicArray<vec2>());
-
         foreach (var lockDef in m_archiveCollection.Definitions.LockDefininitions.LockDefs)
-        {
             foreach (var item in lockDef.KeyDefinitionNames)
-            {
-                // TODO support any color
-                if (FromColor(lockDef.MapColor, out AutomapColor? color))
-                    m_keys[item] = color!.Value;
-                else
-                    m_keys[item] = AutomapColor.Purple;
-            }
-        }
+                m_keys[item] = lockDef.MapColor;
     }
 
     ~LegacyAutomapRenderer()
@@ -96,7 +85,6 @@ public class LegacyAutomapRenderer : IDisposable
         PopulateData(world, renderInfo, out _);
 
         m_shader.Bind();
-
         m_shader.Mvp(CalculateMvp(renderInfo, world.Config));
 
         for (int i = 0; i < m_vboRanges.Count; i++)
@@ -186,7 +174,7 @@ public class LegacyAutomapRenderer : IDisposable
         // Center the cross
         float offset = length / VirtualLength / 2.0f;
 
-        DynamicArray<vec2> array = m_colorEnumToLines[(int)AutomapColor.Purple];
+        DynamicArray<vec2> array = m_colorPoints.GetPoints(Color.Purple);
         array.Add(new vec2(x - length, y - offset));
         array.Add(new vec2(x + length, y - offset));
         array.Add(new vec2(x - offset, y - length));
@@ -212,8 +200,7 @@ public class LegacyAutomapRenderer : IDisposable
 
     private void PopulateColoredLines(IWorld world, Player? player)
     {
-        foreach (DynamicArray<vec2> lineList in m_colorEnumToLines)
-            lineList.Clear();
+        m_colorPoints.Clear();
 
         bool allMap = false;
         if (player != null)
@@ -253,18 +240,18 @@ public class LegacyAutomapRenderer : IDisposable
         }
     }
 
-    private static AutomapColor GetOneSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
+    private static Color GetOneSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
     {
         if (marked)
             return GetMarkedColor(world);
 
         if (line.SeenForAutomap || forceDraw)
-            return AutomapColor.White;
+            return Color.White;
 
-        return AutomapColor.LightBlue;
+        return Color.LightBlue;
     }
 
-    private static AutomapColor GetTwoSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
+    private static Color GetTwoSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
     {
         if (marked)
             return GetMarkedColor(world);
@@ -272,19 +259,19 @@ public class LegacyAutomapRenderer : IDisposable
         if (line.SeenForAutomap || forceDraw)
         {
             if (line.HasSpecial && line.Special.IsTeleport())
-                return AutomapColor.Green;
+                return Color.Green;
 
-            return AutomapColor.Gray;
+            return Color.Gray;
         }
 
-        return AutomapColor.LightBlue;
+        return Color.LightBlue;
     }
 
-    private static AutomapColor GetMarkedColor(IWorld world)
+    private static Color GetMarkedColor(IWorld world)
     {
         if (world.GameTicker / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
-            return AutomapColor.Purple;
-        return AutomapColor.LightBlue;
+            return Color.Purple;
+        return Color.LightBlue;
     }
 
     private static bool IsLineMarked(Line line, bool markSecrets, bool markFlood)
@@ -322,18 +309,18 @@ public class LegacyAutomapRenderer : IDisposable
             return false;
 
         LockDef? lockDef = m_archiveCollection.Definitions.LockDefininitions.GetLockDef(keyNumber);
-        if (lockDef != null && FromColor(lockDef.MapColor, out AutomapColor? color))
+        if (lockDef != null)
         {
-            AddLine(color!.Value, start, end);
+            AddLine(lockDef.MapColor, start, end);
             return true;
         }
 
         return false;
     }
 
-    void AddLine(AutomapColor color, Vec2D start, Vec2D end)
+    void AddLine(Color color, Vec2D start, Vec2D end)
     {
-        DynamicArray<vec2> array = m_colorEnumToLines[(int)color];
+        DynamicArray<vec2> array = m_colorPoints.GetPoints(color);
         array.Add(new vec2((float)start.X, (float)start.Y));
         array.Add(new vec2((float)end.X, (float)end.Y));
     }
@@ -377,31 +364,31 @@ public class LegacyAutomapRenderer : IDisposable
         float quarterHeight = radius / 4;
 
         mat4 transform = CreateTransform((float)entity.AngleRadians, centerX, centerY);
-        AutomapColor color = AutomapColor.Green;
+        Color color = Color.Green;
         bool flash = false;
 
-        if (m_keys.TryGetValue(entity.Definition.Name, out AutomapColor keyColor))
+        if (m_keys.TryGetValue(entity.Definition.Name, out Color keyColor))
         {
             flash = true;
             color = keyColor;
         }
         else if (entity.Flags.CountKill)
         {
-            color = entity.IsDead ? AutomapColor.Gray : AutomapColor.Red;
+            color = entity.IsDead ? Color.Gray : Color.Red;
         }
         else if (entity.Definition.IsType(EntityDefinitionType.Inventory))
         {
-            color = AutomapColor.Yellow;
+            color = Color.Yellow;
         }
         else if (entity.Definition.EditorId == (int)EditorId.MapMarker)
         {
-            color = AutomapColor.Green;
+            color = Color.Green;
             flash = true;
         }
 
         if (entity.Definition.EditorId == (int)EditorId.TeleportLanding)
         {
-            color = AutomapColor.Green;
+            color = Color.Green;
             AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight, transform);
         }
         else if (flash)
@@ -412,7 +399,7 @@ public class LegacyAutomapRenderer : IDisposable
         }
         else if (entity.IsPlayer)
         {
-            color = AutomapColor.Green;
+            color = Color.Green;
             // Main arrow from middle left to middle right
             AddLine(-halfWidth, 0, halfWidth, 0, transform);
 
@@ -428,7 +415,7 @@ public class LegacyAutomapRenderer : IDisposable
             AddLine(-halfWidth, -quarterHeight, -halfWidth, quarterHeight, transform);
         }
 
-        DynamicArray<vec2> array = m_colorEnumToLines[(int)color];
+        DynamicArray<vec2> array = m_colorPoints.GetPoints(color);
         for (int i = 0; i < m_points.Length; i++)
             array.Add(m_points[i]);
     }
@@ -446,7 +433,7 @@ public class LegacyAutomapRenderer : IDisposable
             AddSquare(-halfWidth, -halfWidth, area, area, CreateTransform(angle, pos.X, pos.Y));
         }
 
-        DynamicArray<vec2> array = m_colorEnumToLines[(int)AutomapColor.Purple];
+        DynamicArray<vec2> array = m_colorPoints.GetPoints(Color.Purple);
         for (int i = 0; i < m_points.Length; i++)
             array.Add(m_points[i]);
     }
@@ -475,23 +462,28 @@ public class LegacyAutomapRenderer : IDisposable
         m_points.Add(e.xy);
     }
 
+    private readonly List<Color> m_transferColors = [];
+
     private void TransferLineDataIntoBuffer(out Box2F box2F)
     {
-        float minX = Single.PositiveInfinity;
-        float minY = Single.PositiveInfinity;
-        float maxX = Single.NegativeInfinity;
-        float maxY = Single.NegativeInfinity;
+        float minX = float.PositiveInfinity;
+        float minY = float.PositiveInfinity;
+        float maxX = float.NegativeInfinity;
+        float maxY = float.NegativeInfinity;
 
         m_vboRanges.Clear();
+        m_transferColors.Clear();
 
-        for (int i = 0; i < m_colorEnumToLines.Count; i++)
+        m_colorPoints.GetColors(m_transferColors);
+
+        for (int i = 0; i < m_transferColors.Count; i++)
         {
-            DynamicArray<vec2> lines = m_colorEnumToLines[i];
+            var color = m_transferColors[i];
+            DynamicArray<vec2> lines = m_colorPoints.GetPoints(m_transferColors[i]);
             if (lines.Length == 0)
                 continue;
 
-            AutomapColor color = (AutomapColor)i;
-            Vec3F colorVec = color.ToColor();
+            Vec3F colorVec = new(color.R / 255f, color.G / 255f, color.B / 255f);
             m_vboRanges.Add((m_vbo.Count, colorVec));
 
             for (int j = 0; j < lines.Length; j++)

@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Util;
@@ -8,7 +9,7 @@ using System.Diagnostics;
 
 namespace Helion.World.Entities.Players;
 
-public record struct PlayerTracerInfo(int Id, int Gametick, int Ticks, Vec3F Color, AutomapColor? AutomapColor, PrimitiveRenderType Type)
+public record struct PlayerTracerInfo(int Id, int Gametick, int Ticks, Vec3F Color, Color? AutomapColor, PrimitiveRenderType Type)
 {
     public readonly List<Seg3D> Segs = new();
 }
@@ -27,7 +28,7 @@ public class PlayerTracers
 
     public readonly LinkedList<PlayerTracerInfo> Tracers = new();
 
-    private PlayerTracerInfo GetOrCreateTracerInfo(PrimitiveRenderType type, int gametick, Vec3F color, int ticks = TracerRenderTicks, AutomapColor? automapColor = null)
+    private PlayerTracerInfo GetOrCreateTracerInfo(PrimitiveRenderType type, int gametick, Vec3F color, int ticks = TracerRenderTicks, Color? automapColor = null)
     {
         PlayerTracerInfo? info = FindTracer(color, ticks);
         // If there's no items, then make the first one.
@@ -83,7 +84,7 @@ public class PlayerTracers
         info.Segs.Add(new(start, end));
     }
 
-    public int AddTracer(PrimitiveRenderType type, Seg3D path, int gametick, Vec3F color, int ticks = TracerRenderTicks, AutomapColor? automapColor = null)
+    public int AddTracer(PrimitiveRenderType type, Seg3D path, int gametick, Vec3F color, int ticks = TracerRenderTicks, Color? automapColor = null)
     {
         PlayerTracerInfo info = GetOrCreateTracerInfo(type, gametick, color, ticks, automapColor);
         info.Segs.Add(path);

@@ -26,12 +26,16 @@ public class ConfigHudAutoMap
     public readonly ConfigValue<double> Scale = new(1.0);
 
     [ConfigInfo("Overlay automap over game window.")]
-    [OptionMenu(OptionSectionType.Hud, "Overlay Automap")]
+    [OptionMenu(OptionSectionType.Automap, "Overlay")]
     public readonly ConfigValue<bool> Overlay = new(false);
 
     [ConfigInfo("Automap rotates with the player so the top is forward.")]
-    [OptionMenu(OptionSectionType.Hud, "Automap Rotate")]
+    [OptionMenu(OptionSectionType.Automap, "Rotate")]
     public readonly ConfigValue<bool> Rotate = new(false);
+
+    [ConfigInfo("Background color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Background color")]
+    public readonly ConfigValue<Vec3I> BackgroundColor = new((0, 0, 0), ClampColor);
 }
 
 public class ConfigHud
@@ -47,7 +51,6 @@ public class ConfigHud
     [ConfigInfo("Crosshair color.")]
     [OptionMenu(OptionSectionType.Hud, "Crosshair color")]
     public readonly ConfigValue<CrossColor> CrosshairColor = new(CrossColor.Green);
-
 
     [ConfigInfo("Crosshair target color.")]
     [OptionMenu(OptionSectionType.Hud, "Crosshair target color")]

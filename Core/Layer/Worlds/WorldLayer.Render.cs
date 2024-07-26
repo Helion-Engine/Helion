@@ -1,4 +1,5 @@
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.World;
@@ -32,13 +33,13 @@ public partial class WorldLayer
         m_profiler.Render.World.Stop();
     }
 
-    public void RenderAutomap(IWorldRenderContext ctx)
+    public void RenderAutomap(IWorldRenderContext worldCtx)
     {
         m_profiler.Render.Automap.Start();
 
         SetWorldContextVars();
 
-        ctx.DrawAutomap(World);
+        worldCtx.DrawAutomap(World);
         m_profiler.Render.Automap.Stop();
     }
 
@@ -68,6 +69,12 @@ public partial class WorldLayer
 
     public void RenderAutomap(IRenderableSurfaceContext ctx)
     {
+        if (!m_config.Hud.AutoMap.Overlay)
+        {
+            Color color = new(m_config.Hud.AutoMap.BackgroundColor.Value);
+            ctx.Clear(color, true, true);
+        }
+
         ctx.Automap(m_worldContext, m_renderAutomapAction);
     }
 

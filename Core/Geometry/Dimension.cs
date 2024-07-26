@@ -1,6 +1,7 @@
 using System;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
+using Helion.Util.Configs.Impl;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Geometry;
@@ -70,7 +71,7 @@ public struct Dimension
     {
         try
         {
-            var tokens = s.Split(",");
+            var tokens = s.Split(Config.FindSplitValue(s));
             int w = int.Parse(tokens[0].Trim());
             int h = int.Parse(tokens[1].Trim());
             return (w, h);
@@ -83,5 +84,5 @@ public struct Dimension
 
     public override bool Equals(object? obj) => obj is Dimension other && Equals(other);
     public override int GetHashCode() => HashCode.Combine(Width, Height);
-    public override string ToString() => $"{Width}, {Height}";
+    public override string ToString() => $"{Width} x {Height}";
 }
