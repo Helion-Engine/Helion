@@ -36,6 +36,60 @@ public class ConfigHudAutoMap
     [ConfigInfo("Background color for the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Background color")]
     public readonly ConfigValue<Vec3I> BackgroundColor = new((0, 0, 0), ClampColor);
+
+    [ConfigInfo("Shows map title on the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Show map title")]
+    public readonly ConfigValue<bool> MapTitle = new(true);
+
+    public AutomapLineColors DefaultColors = new(false);
+    public AutomapLineColors OverlayColors = new(true);
+}
+
+public class AutomapLineColors(bool overlay)
+{
+    [ConfigInfo("", save: false, legacy: true)]
+    [OptionMenu(OptionSectionType.Automap, "", disabled: true, spacer: true)]
+    public readonly ConfigValueHeader Header = new(overlay ? "Overlay Colors" : "Default Colors");
+
+    [ConfigInfo("One-sided wall color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Wall color")]
+    public readonly ConfigValue<Vec3I> WallColor = new(overlay ? (0, 0xFF, 0) : (0xFF, 0xFF, 0xFF), ClampColor);
+
+    [ConfigInfo("One-sided wall color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Two-sided wall color")]
+    public readonly ConfigValue<Vec3I> TwoSidedWallColor = new(overlay ? (0, 0x80, 0) : (0x80, 0x80, 0x80), ClampColor);
+
+    [ConfigInfo("Unseen wall color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Unseen wall color")]
+    public readonly ConfigValue<Vec3I> UnseenWallColor = new(overlay ? (0, 0x80, 0) : (0x80, 0x80, 0x80), ClampColor);
+
+    [ConfigInfo("Teleport line color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Teleport line color")]
+    public readonly ConfigValue<Vec3I> TeleportLineColor = new((0x80, 0x80, 0x80), ClampColor);
+
+    [ConfigInfo("Player color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Player color")]
+    public readonly ConfigValue<Vec3I> PlayerColor = new((0x00, 0xFF, 0x00), ClampColor);
+
+    [ConfigInfo("Thing color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Thing color")]
+    public readonly ConfigValue<Vec3I> ThingColor = new((0xFF, 0xFF, 0x00), ClampColor);
+
+    [ConfigInfo("Monster color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Monster color")]
+    public readonly ConfigValue<Vec3I> MonsterColor = new((0xFF, 0xFF, 0x00), ClampColor);
+
+    [ConfigInfo("Dead monster color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Dead monster color")]
+    public readonly ConfigValue<Vec3I> DeadMonsterColor = new((0xFF, 0x00, 0x00), ClampColor);
+
+    [ConfigInfo("Marker color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Marker color")]
+    public readonly ConfigValue<Vec3I> MakerColor = new((0x80, 0x00, 0x80), ClampColor);
+
+    [ConfigInfo("Alt marker color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Marker color")]
+    public readonly ConfigValue<Vec3I> AltMakerColor = new((0xAD, 0xD8, 0xE6), ClampColor);
 }
 
 public class ConfigHud

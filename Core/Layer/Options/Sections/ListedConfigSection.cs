@@ -440,7 +440,14 @@ public class ListedConfigSection : IOptionSection
             if (i == m_currentRowIndex && m_rowIsSelected)
                 attrColor = Color.Yellow;
 
-            string name = GetEllipsesText(hud, attr.Name, Font, fontSize, hud.Dimension.Width / 2 - offsetX);
+            string name = attr.Name;
+            if (cfgValue is ConfigValueHeader header)
+            {
+                attrColor = Color.White;
+                name = header.HeaderText;
+            }
+
+            name = GetEllipsesText(hud, name, Font, fontSize, hud.Dimension.Width / 2 - offsetX);
             hud.Text(name, Font, fontSize, (-offsetX, y), out Dimension attrArea, window: Align.TopMiddle, 
                 anchor: Align.TopRight, color: attrColor);
 

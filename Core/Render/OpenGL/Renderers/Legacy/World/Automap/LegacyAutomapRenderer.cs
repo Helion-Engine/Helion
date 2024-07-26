@@ -32,7 +32,7 @@ public class LegacyAutomapRenderer : IDisposable
     private readonly StreamVertexBuffer<AutomapVertex> m_vbo;
     private readonly VertexArrayObject m_vao;
     private readonly AutomapShader m_shader;
-    private readonly List<(int start, Vec3F color)> m_vboRanges = new();
+    private readonly List<(int start, Vec3F color)> m_vboRanges = [];
     private readonly DynamicArray<vec2> m_points = new();
     private readonly AutomapColorPoints m_colorPoints = new();
     private float m_offsetX;
@@ -42,6 +42,35 @@ public class LegacyAutomapRenderer : IDisposable
     private bool m_disposed;
 
     private readonly Dictionary<string, Color> m_keys = new(StringComparer.OrdinalIgnoreCase);
+
+    private Color m_wallColor;
+    private Color m_twoSidedWallColor;
+    private Color m_unseenWallColor;
+    private Color m_teleportLineColor;
+
+    private Color m_playerColor;
+    private Color m_thingColor;
+    private Color m_monsterColor;
+    private Color m_deadMonsterColor;
+
+    private Color m_markerColor;
+    private Color m_markerColorAlt;
+
+    private void SetColors()
+    {
+        var automap = m_archiveCollection.Config.Hud.AutoMap;
+        var colors = automap.Overlay ? automap.OverlayColors : automap.DefaultColors;
+        m_wallColor = new(colors.WallColor.Value);
+        m_twoSidedWallColor = new(colors.TwoSidedWallColor.Value);
+        m_unseenWallColor = new(colors.UnseenWallColor.Value);
+        m_teleportLineColor = new(colors.TeleportLineColor.Value);
+        m_playerColor = new(colors.PlayerColor.Value);
+        m_thingColor = new(colors.ThingColor.Value);
+        m_monsterColor = new(colors.MonsterColor.Value);
+        m_deadMonsterColor = new(colors.DeadMonsterColor.Value);
+        m_markerColor = new(colors.MakerColor.Value);
+        m_markerColorAlt = new(colors.AltMakerColor.Value);
+    }
 
     public LegacyAutomapRenderer(ArchiveCollection archiveCollection)
     {
@@ -64,6 +93,7 @@ public class LegacyAutomapRenderer : IDisposable
 
     public void Render(IWorld world, RenderInfo renderInfo)
     {
+        SetColors();
         // Consider both offsets at zero a reset
         if (renderInfo.AutomapOffset.X == 0 && renderInfo.AutomapOffset.Y == 0)
         {
@@ -174,7 +204,7 @@ public class LegacyAutomapRenderer : IDisposable
         // Center the cross
         float offset = length / VirtualLength / 2.0f;
 
-        DynamicArray<vec2> array = m_colorPoints.GetPoints(Color.Purple);
+        DynamicArray<vec2> array = m_colorPoints.GetPoints(m_markerColor);
         array.Add(new vec2(x - length, y - offset));
         array.Add(new vec2(x + length, y - offset));
         array.Add(new vec2(x - offset, y - length));
@@ -240,18 +270,18 @@ public class LegacyAutomapRenderer : IDisposable
         }
     }
 
-    private static Color GetOneSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
+    private Color GetOneSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
     {
         if (marked)
             return GetMarkedColor(world);
 
         if (line.SeenForAutomap || forceDraw)
-            return Color.White;
+            return m_wallColor;
 
-        return Color.LightBlue;
+        return m_unseenWallColor;
     }
 
-    private static Color GetTwoSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
+    private Color GetTwoSidedColor(IWorld world, Line line, bool forceDraw, bool marked)
     {
         if (marked)
             return GetMarkedColor(world);
@@ -259,19 +289,19 @@ public class LegacyAutomapRenderer : IDisposable
         if (line.SeenForAutomap || forceDraw)
         {
             if (line.HasSpecial && line.Special.IsTeleport())
-                return Color.Green;
+                return m_teleportLineColor;
 
-            return Color.Gray;
+            return m_twoSidedWallColor;
         }
 
-        return Color.LightBlue;
+        return m_unseenWallColor;
     }
 
-    private static Color GetMarkedColor(IWorld world)
+    private Color GetMarkedColor(IWorld world)
     {
         if (world.GameTicker / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
-            return Color.Purple;
-        return Color.LightBlue;
+            return m_markerColor;
+        return m_markerColorAlt;
     }
 
     private static bool IsLineMarked(Line line, bool markSecrets, bool markFlood)
@@ -325,23 +355,6 @@ public class LegacyAutomapRenderer : IDisposable
         array.Add(new vec2((float)end.X, (float)end.Y));
     }
 
-    private static bool FromColor(Color color, out AutomapColor? automapColor)
-    {
-        automapColor = null;
-        if (color == Color.Red)
-            automapColor = AutomapColor.Red;
-        else if (color == Color.Blue)
-            automapColor = AutomapColor.Blue;
-        else if (color == Color.Yellow)
-            automapColor = AutomapColor.Yellow;
-        else if (color == Color.Purple)
-            automapColor = AutomapColor.Purple;
-        else if (color == Color.LightBlue)
-            automapColor = AutomapColor.LightBlue;
-
-        return automapColor != null;
-    }
-
     private void DrawEntity(Entity? entity, float interpolateFrac)
     {
         if (entity == null)
@@ -364,7 +377,7 @@ public class LegacyAutomapRenderer : IDisposable
         float quarterHeight = radius / 4;
 
         mat4 transform = CreateTransform((float)entity.AngleRadians, centerX, centerY);
-        Color color = Color.Green;
+        Color color = m_thingColor;
         bool flash = false;
 
         if (m_keys.TryGetValue(entity.Definition.Name, out Color keyColor))
@@ -374,21 +387,21 @@ public class LegacyAutomapRenderer : IDisposable
         }
         else if (entity.Flags.CountKill)
         {
-            color = entity.IsDead ? Color.Gray : Color.Red;
+            color = entity.IsDead ? m_deadMonsterColor : m_monsterColor;
         }
         else if (entity.Definition.IsType(EntityDefinitionType.Inventory))
         {
-            color = Color.Yellow;
+            color = m_thingColor;
         }
         else if (entity.Definition.EditorId == (int)EditorId.MapMarker)
         {
-            color = Color.Green;
+            color = m_thingColor;
             flash = true;
         }
 
         if (entity.Definition.EditorId == (int)EditorId.TeleportLanding)
         {
-            color = Color.Green;
+            color = m_thingColor;
             AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight, transform);
         }
         else if (flash)
@@ -399,7 +412,7 @@ public class LegacyAutomapRenderer : IDisposable
         }
         else if (entity.IsPlayer)
         {
-            color = Color.Green;
+            color = m_playerColor;
             // Main arrow from middle left to middle right
             AddLine(-halfWidth, 0, halfWidth, 0, transform);
 
@@ -433,7 +446,7 @@ public class LegacyAutomapRenderer : IDisposable
             AddSquare(-halfWidth, -halfWidth, area, area, CreateTransform(angle, pos.X, pos.Y));
         }
 
-        DynamicArray<vec2> array = m_colorPoints.GetPoints(Color.Purple);
+        DynamicArray<vec2> array = m_colorPoints.GetPoints(m_markerColor);
         for (int i = 0; i < m_points.Length; i++)
             array.Add(m_points[i]);
     }

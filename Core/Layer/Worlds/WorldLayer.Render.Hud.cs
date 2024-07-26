@@ -132,7 +132,7 @@ public partial class WorldLayer
         DrawRecentConsoleMessages(hud);
         DrawPause(hud);
 
-        if (automapVisible)
+        if (automapVisible && m_config.Hud.AutoMap.MapTitle)
             DrawMapHeader(hud);
     }
 
