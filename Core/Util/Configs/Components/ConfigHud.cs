@@ -69,7 +69,7 @@ public class AutomapLineColors(bool overlay)
 
     [ConfigInfo("Player color for the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Player color")]
-    public readonly ConfigValue<Vec3I> PlayerColor = new((0x00, 0xFF, 0x00), ClampColor);
+    public readonly ConfigValue<Vec3I> PlayerColor = new(overlay ? (0xFF, 0xFF, 0xFF) : (0x00, 0xFF, 0x00), ClampColor);
 
     [ConfigInfo("Thing color for the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Thing color")]
