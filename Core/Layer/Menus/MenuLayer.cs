@@ -84,6 +84,11 @@ public partial class MenuLayer : IGameLayer, IAnimationLayer
         m_menus.Push(new MainMenu(this, m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager, m_optionsLayer));
     }
 
+    public void Close()
+    {
+        Animation.AnimateOut();
+    }
+
     public void RunLogic(TickerInfo tickerInfo)
     {
         // No logic.

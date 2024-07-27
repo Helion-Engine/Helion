@@ -105,7 +105,7 @@ public class SaveMenu : Menu
 
         if (input.Manager.HasAnyKeyPressed() && m_isSave && !m_canSave)
         {
-            m_parent.Dispose();
+            m_parent.Close();
             return;
         }
 
@@ -136,7 +136,7 @@ public class SaveMenu : Menu
             if (GetWorld(out IWorld? world) && world != null)
             {
                 SaveGameEvent saveGameEvent = m_saveGameManager.WriteSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection), save);
-                m_parent.Dispose();
+                m_parent.Close();
 
                 HandleSaveEvent(world, saveGameEvent);
             }
@@ -166,10 +166,11 @@ public class SaveMenu : Menu
             }
 
             return null;
+
         };
     }
 
-    private void HandleSaveEvent(IWorld world, SaveGameEvent saveGameEvent)
+    private static void HandleSaveEvent(IWorld world, SaveGameEvent saveGameEvent)
     {
         if (saveGameEvent.Success)
         {

@@ -214,7 +214,7 @@ public class GameLayerManager : IGameLayerManager
     private void Animation_OnComplete(object? sender, IAnimationLayer layer)
     {
         if (layer.ShouldRemove())
-            Remove(layer);
+            RemoveAnimatedLayer(layer);
     }
 
     public void SubmitConsoleText(string text)
@@ -240,24 +240,10 @@ public class GameLayerManager : IGameLayerManager
 
         if (layer is IAnimationLayer animationLayer)
         {
-            animationLayer.Animation.OnStart -= Animation_OnStart;
-            animationLayer.Animation.OnComplete -= Animation_OnComplete;
+            animationLayer.Animation.AnimateOut();
+            return;
         }
 
-        if (ReferenceEquals(layer, ConsoleLayer))
-        {
-            ConsoleLayer = null;
-            m_consoleLayer.ClearInputText();
-        }
-        else if (ReferenceEquals(layer, OptionsLayer))
-        {
-            OptionsLayer = null;
-        }
-        else if (ReferenceEquals(layer, MenuLayer))
-        {
-            MenuLayer?.Dispose();
-            MenuLayer = null;
-        }
         else if (ReferenceEquals(layer, ReadThisLayer))
         {
             ReadThisLayer?.Dispose();
@@ -287,6 +273,30 @@ public class GameLayerManager : IGameLayerManager
         {
             IwadSelectionLayer?.Dispose();
             IwadSelectionLayer = null;
+        }
+    }
+
+    private void RemoveAnimatedLayer(object layer)
+    {
+        if (layer is IAnimationLayer animationLayer)
+        {
+            animationLayer.Animation.OnStart -= Animation_OnStart;
+            animationLayer.Animation.OnComplete -= Animation_OnComplete;
+        }
+
+        if (ReferenceEquals(layer, ConsoleLayer))
+        {
+            ConsoleLayer = null;
+            m_consoleLayer.ClearInputText();
+        }
+        else if (ReferenceEquals(layer, OptionsLayer))
+        {
+            OptionsLayer = null;
+        }
+        else if (ReferenceEquals(layer, MenuLayer))
+        {
+            MenuLayer?.Dispose();
+            MenuLayer = null;
         }
         else if (ReferenceEquals(layer, LoadingLayer))
         {
