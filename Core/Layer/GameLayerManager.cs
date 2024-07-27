@@ -233,6 +233,18 @@ public class GameLayerManager : IGameLayerManager
                 Remove(existingLayer);
     }
 
+    public void RemoveWithoutAnimation(object? layer)
+    {
+        if (layer is IAnimationLayer animationLayer)
+        {
+            animationLayer.Animation.Stop();
+            RemoveAnimatedLayer(animationLayer);
+            return;
+        }
+
+        Remove(layer);
+    }
+
     public void Remove(object? layer)
     {
         if (layer == null)
