@@ -88,7 +88,7 @@ public class AutomapLineColors(bool overlay)
     public readonly ConfigValue<Vec3I> MakerColor = new((0x80, 0x00, 0x80), ClampColor);
 
     [ConfigInfo("Alt marker color for the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Marker color")]
+    [OptionMenu(OptionSectionType.Automap, "Marker color alt")]
     public readonly ConfigValue<Vec3I> AltMakerColor = new((0xAD, 0xD8, 0xE6), ClampColor);
 }
 

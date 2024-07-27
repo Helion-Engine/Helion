@@ -364,7 +364,7 @@ public class ListedConfigSection : IOptionSection
     
     private void RenderEditAndUnderscore(IHudRenderContext hud, int fontSize, Vec2I pos, out Dimension renderArea, Color textColor)
     {
-        hud.Text(m_rowEditText.ToString(), Font, fontSize, (16, pos.Y), out renderArea, window: Align.TopMiddle, 
+        hud.Text(m_rowEditText.ToString(), Font, fontSize, (pos.X, pos.Y), out renderArea, window: Align.TopMiddle, 
             anchor: Align.TopLeft, color: textColor);
 
         if (Flash())
@@ -428,6 +428,8 @@ public class ListedConfigSection : IOptionSection
         int fontSize = m_config.Hud.GetSmallFontSize();
         int offsetX = m_config.Hud.GetScaled(8);
         int spacerY = m_config.Hud.GetScaled(8);
+        int smallSpacer = m_config.Hud.GetScaled(2);
+        int colorBoxHeight = hud.MeasureText("I", Font, fontSize).Height;
 
         for (int i = 0; i < m_configValues.Count; i++)
         {
@@ -451,17 +453,24 @@ public class ListedConfigSection : IOptionSection
             hud.Text(name, Font, fontSize, (-offsetX, y), out Dimension attrArea, window: Align.TopMiddle, 
                 anchor: Align.TopRight, color: attrColor);
 
+            int valueOffsetX = offsetX;
+            if (cfgValue.ObjectValue.GetType() == typeof(Vec3I))
+            {
+                RenderColorBox(hud, cfgValue, offsetX, y, colorBoxHeight);
+                valueOffsetX += colorBoxHeight + smallSpacer;
+            }
+
             Dimension valueArea;
             if (i == m_currentRowIndex && m_rowIsSelected)
             {
                 if (CurrentRowAllowsTextInput())
-                    RenderEditAndUnderscore(hud, fontSize, (offsetX, y), out valueArea, valueColor);
+                    RenderEditAndUnderscore(hud, fontSize, (valueOffsetX, y), out valueArea, valueColor);
                 else
-                    RenderEditAndSelectionArrows(hud, fontSize, (offsetX, y), out valueArea, valueColor);
+                    RenderEditAndSelectionArrows(hud, fontSize, (valueOffsetX, y), out valueArea, valueColor);
             }
             else
             {
-                hud.Text(GetConfigDisplayValue(cfgValue, attr), Font, fontSize, (offsetX, y), out valueArea, window: Align.TopMiddle, 
+                hud.Text(GetConfigDisplayValue(cfgValue, attr), Font, fontSize, (valueOffsetX, y), out valueArea, window: Align.TopMiddle, 
                     anchor: Align.TopLeft, color: valueColor);
             }
 
@@ -492,9 +501,18 @@ public class ListedConfigSection : IOptionSection
 
         if (m_updateRow)
         {
-            OnRowChanged?.Invoke(this, new(m_currentRowIndex, this.m_configValues[m_currentRowIndex].ConfigAttr.Description));
+            OnRowChanged?.Invoke(this, new(m_currentRowIndex, m_configValues[m_currentRowIndex].ConfigAttr.Description));
             m_updateRow = false;
         }
+    }
+
+    private static void RenderColorBox(IHudRenderContext hud, IConfigValue cfgValue, int x, int y, int boxSize)
+    {
+        var boxColor = new Color((Vec3I)cfgValue.ObjectValue);
+        hud.FillBox((x, y, x + boxSize, y + boxSize), Color.White, window: Align.TopMiddle,
+            anchor: Align.TopLeft);
+        hud.FillBox((x + 1, y + 1, x + boxSize - 1, y + boxSize - 1), boxColor, window: Align.TopMiddle,
+            anchor: Align.TopLeft);
     }
 
     private static string GetEllipsesText(IHudRenderContext hud, string text, string font, int fontSize, int maxWidth)
