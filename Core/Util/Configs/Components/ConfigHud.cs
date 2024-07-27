@@ -75,13 +75,17 @@ public class AutomapLineColors(bool overlay)
     [OptionMenu(OptionSectionType.Automap, "Thing color")]
     public readonly ConfigValue<Vec3I> ThingColor = new((0xFF, 0xFF, 0x00), ClampColor);
 
+    [ConfigInfo("Pickup thing color for the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Pickup color")]
+    public readonly ConfigValue<Vec3I> PickupColor = new(overlay ? (0x00, 0x00, 0xFF) : (0x00, 0xFF, 0x00), ClampColor);
+
     [ConfigInfo("Monster color for the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Monster color")]
-    public readonly ConfigValue<Vec3I> MonsterColor = new((0xFF, 0xFF, 0x00), ClampColor);
+    public readonly ConfigValue<Vec3I> MonsterColor = new((0xFF, 0x00, 0x00), ClampColor);
 
     [ConfigInfo("Dead monster color for the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Dead monster color")]
-    public readonly ConfigValue<Vec3I> DeadMonsterColor = new((0xFF, 0x00, 0x00), ClampColor);
+    public readonly ConfigValue<Vec3I> DeadMonsterColor = new((0x80, 0x80, 0x80), ClampColor);
 
     [ConfigInfo("Marker color for the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Marker color")]

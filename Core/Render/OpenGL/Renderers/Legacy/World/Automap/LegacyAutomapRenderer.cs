@@ -55,6 +55,7 @@ public class LegacyAutomapRenderer : IDisposable
 
     private Color m_playerColor;
     private Color m_thingColor;
+    private Color m_pickupColor;
     private Color m_monsterColor;
     private Color m_deadMonsterColor;
 
@@ -71,6 +72,7 @@ public class LegacyAutomapRenderer : IDisposable
         m_teleportLineColor = new(colors.TeleportLineColor.Value);
         m_playerColor = new(colors.PlayerColor.Value);
         m_thingColor = new(colors.ThingColor.Value);
+        m_pickupColor = new(colors.PickupColor.Value);
         m_monsterColor = new(colors.MonsterColor.Value);
         m_deadMonsterColor = new(colors.DeadMonsterColor.Value);
         m_markerColor = new(colors.MakerColor.Value);
@@ -425,7 +427,7 @@ public class LegacyAutomapRenderer : IDisposable
         }
         else if (entity.Definition.IsType(EntityDefinitionType.Inventory))
         {
-            color = m_thingColor;
+            color = m_pickupColor;
         }
         else if (entity.Definition.EditorId == (int)EditorId.MapMarker)
         {
