@@ -115,25 +115,31 @@ public partial class WorldLayer
         m_fontHeight = (int)(16 * m_scale);
         m_viewport = hud.Dimension;
 
-        if (m_renderHudOptions == RenderHudOptions.WeaponOnly)
-        {            
+        if ((m_renderHudOptions & RenderHudOptions.Weapon) != 0)       
             DrawWeapon(hud, hudContext);
-            return;
+
+
+        if ((m_renderHudOptions & RenderHudOptions.Hud) != 0)
+        {
+            SetHudPadding(hud);
+
+            int topRightY = m_padding / 2;
+            DrawFPS(hud, ref topRightY);
+            DrawPosition(hud, ref topRightY);
+            DrawStatInfo(hud, automapVisible, (0, topRightY), ref topRightY);
+            DrawBottomHud(hud, topRightY, hudContext);
+            DrawHudEffects(hud);
+            DrawRecentConsoleMessages(hud);
+            DrawPause(hud);
+
+            if (automapVisible && m_config.Hud.AutoMap.MapTitle)
+                DrawMapHeader(hud);
         }
 
-        SetHudPadding(hud);
-
-        int topRightY = m_padding / 2;
-        DrawFPS(hud, ref topRightY);
-        DrawPosition(hud, ref topRightY);
-        DrawStatInfo(hud, automapVisible, (0, topRightY), ref topRightY);
-        DrawBottomHud(hud, topRightY, hudContext);
-        DrawHudEffects(hud);
-        DrawRecentConsoleMessages(hud);
-        DrawPause(hud);
-
-        if (automapVisible && m_config.Hud.AutoMap.MapTitle)
-            DrawMapHeader(hud);
+        if ((m_renderHudOptions & RenderHudOptions.Overlay) != 0)
+        {
+            hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
+        }    
     }
 
     private void SetHudPadding(IHudRenderContext hud)
@@ -335,7 +341,7 @@ public partial class WorldLayer
         if (!WorldStatic.World.DrawHud)
             return;
 
-        if (m_renderHudOptions != RenderHudOptions.ExcludeWeapon)
+        if ((m_renderHudOptions & RenderHudOptions.Weapon) != 0)
         {
             DrawWeapon(hud, hudContext);
             if (m_config.Hud.Crosshair)

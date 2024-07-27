@@ -600,9 +600,16 @@ public class GameLayerManager : IGameLayerManager
         if (WorldLayer != null && WorldLayer.ShouldRender)
         {
             if (WorldLayer.DrawAutomap)
-                WorldLayer.RenderAutomap(m_ctx);
+            {
+                if (m_config.Hud.AutoMap.Overlay)
+                    WorldLayer.RenderHud(m_ctx, RenderHudOptions.Weapon);
 
-            var options = (!m_config.Hud.AutoMap.Overlay && WorldLayer.DrawAutomap) ? RenderHudOptions.ExcludeWeapon : RenderHudOptions.Default;
+                WorldLayer.RenderAutomap(m_ctx);
+            }
+
+            var options = RenderHudOptions.Hud | RenderHudOptions.Weapon;
+            if (WorldLayer.DrawAutomap && !m_config.Hud.AutoMap.Overlay)
+                options &= ~RenderHudOptions.Weapon;
             WorldLayer.RenderHud(m_ctx, options);
         }
 

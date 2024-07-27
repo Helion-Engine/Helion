@@ -1,9 +1,12 @@
-﻿namespace Helion.Layer.Worlds
+﻿using System;
+
+namespace Helion.Layer.Worlds
 {
+    [Flags]
     public enum RenderHudOptions
     {
-        Default,
-        WeaponOnly,
-        ExcludeWeapon
+        Weapon = 1,
+        Hud = 2,
+        Overlay = 4
     }
 }
