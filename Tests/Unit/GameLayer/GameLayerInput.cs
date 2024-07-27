@@ -164,10 +164,12 @@ public class GameLayerInput
         InputManager.SetKeyUp(Key.Escape);
         InputManager.SetKeyDown(Key.Escape);
         GameLayerManager.RunLogic(SingleTick);
+        GameLayerManager.ExpireAnimations();
+        GameLayerManager.RunLogic(SingleTick);
         GameLayerManager.MenuLayer.Should().BeNull();
     }
 
-    [Fact(DisplayName = "Show/hide menu")]
+    [Fact(DisplayName = "Show/hide console")]
     public void Console()
     {
         GameLayerManager.RunLogic(SingleTick);
@@ -182,6 +184,8 @@ public class GameLayerInput
 
         InputManager.SetKeyUp(Key.Backtick);
         InputManager.SetKeyDown(Key.Backtick);
+        GameLayerManager.RunLogic(SingleTick);
+        GameLayerManager.ExpireAnimations();
         GameLayerManager.RunLogic(SingleTick);
         GameLayerManager.ConsoleLayer.Should().BeNull();
     }

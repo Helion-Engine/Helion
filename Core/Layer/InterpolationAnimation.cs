@@ -64,6 +64,12 @@ public class InterpolationAnimation<T>(TimeSpan duration, T arg) : ITickable
         }
     }
 
+    public void StopAndFireComplete()
+    {
+        m_stopwatch.Restart(m_duration);
+        Tick();
+    }
+
     public void Stop() => m_stopwatch.Stop();
 
     public bool Completed() => State == InterpolationAnimationState.OutComplete || State == InterpolationAnimationState.InComplete;

@@ -442,6 +442,15 @@ public class GameLayerManager : IGameLayerManager
         ToggleConsoleLayer(null);
     }
 
+    public void ExpireAnimations()
+    {
+        foreach(var layer in Layers)
+        {
+            if (layer is IAnimationLayer animationLayer)
+                animationLayer.Animation.StopAndFireComplete();
+        }
+    }
+
     private void ToggleConsoleLayer(IConsumableInput? input)
     {
         input?.ConsumeAll();
