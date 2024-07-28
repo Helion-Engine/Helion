@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using GlmSharp;
 using Helion.Geometry.Boxes;
-using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
@@ -13,6 +13,7 @@ using Helion.Resources.Definitions.Locks;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
+using Helion.Util.Loggers;
 using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities;
@@ -22,7 +23,6 @@ using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Impl.SinglePlayer;
-using Helion.World.Special;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
@@ -275,6 +275,7 @@ public class LegacyAutomapRenderer : IDisposable
         bool forceDraw = !world.Config.Render.AutomapBspThread;
         bool markSecrets = world.Config.Game.MarkSecrets;
         bool markFlood = world.Config.Developer.MarkFlood;
+        bool checkMarkedSectors = markSecrets || markFlood || world.Config.Game.MarkSpecials;
 
         int length = world.StructLines.Length;
         var lineArray = world.StructLines.Data;
@@ -286,7 +287,7 @@ public class LegacyAutomapRenderer : IDisposable
             if (!m_boundingBox.Contains(start) && !m_boundingBox.Contains(end))
                 continue;
 
-            bool markedLine = IsLineMarked(ref line, markSecrets, markFlood);
+            bool markedLine = IsLineMarked(ref line, markSecrets, markFlood, checkMarkedSectors);
             if (!forceDraw && !line.AutomapFlags.AlwaysDraw && !markedLine && (!allMap && !line.SeenForAutomap || line.AutomapFlags.NeverDraw))
                 continue;
 
@@ -340,10 +341,13 @@ public class LegacyAutomapRenderer : IDisposable
         return m_markerColorAlt;
     }
 
-    private static bool IsLineMarked(ref StructLine line, bool markSecrets, bool markFlood)
+    private static bool IsLineMarked(ref StructLine line, bool markSecrets, bool markFlood, bool checkMarkedSectors)
     {
         if (line.MarkAutomap)
             return true;
+
+        if (!checkMarkedSectors)
+            return false;
 
         if (line.FrontSector.MarkAutomap || (line.BackSector != null && line.BackSector.MarkAutomap))
             return true;
