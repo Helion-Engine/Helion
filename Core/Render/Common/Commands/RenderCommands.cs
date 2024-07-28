@@ -63,6 +63,7 @@ public class RenderCommands
 
     public Dimension RenderDimension => m_renderDimensions;
     public Dimension WindowDimension => m_windowDimensions;
+    public Vec2I Offset => m_offset;
 
     public RenderCommands(IConfig config, Dimension renderDimensions, Dimension windowDimensions, IImageDrawInfoProvider imageDrawInfoProvider,
         FpsTracker fpsTracker)
@@ -204,6 +205,8 @@ public class RenderCommands
     public void SetAlpha(float alpha) => m_alpha = alpha;
 
     public void SetOffset(Vec2I offset) => m_offset = offset;
+
+    public void AddOffset(Vec2I offset) => m_offset += offset;
 
     private ImageBox2I TranslateDimensions(int x, int y, Dimension dimension)
     {

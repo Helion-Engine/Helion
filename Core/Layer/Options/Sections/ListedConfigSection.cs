@@ -53,6 +53,7 @@ public class ListedConfigSection : IOptionSection
     private bool m_updateRow;
     private bool m_updateMouse;
     private IConfigValue? m_currentEditValue;
+    private IDialog? m_dialog;
 
     public ListedConfigSection(IConfig config, OptionSectionType optionType, SoundManager soundManager)
     {
@@ -83,6 +84,12 @@ public class ListedConfigSection : IOptionSection
 
     public void HandleInput(IConsumableInput input)
     {
+        if (m_dialog != null)
+        {
+            m_dialog.HandleInput(input);
+            return;
+        }
+
         if (!m_hasSelectableRow)
             return;
         
@@ -124,6 +131,12 @@ public class ListedConfigSection : IOptionSection
                 m_currentEditValue = configData.CfgValue.Clone();
                 m_stopwatch.Restart();
 
+                if (IsColor(configData.CfgValue, out var color))
+                {
+                    m_dialog = new ColorDialog(m_config.Hud, configData.CfgValue, configData.Attr, color);
+                    m_dialog.OnClose += Dialog_OnClose;
+                }
+
                 if (m_currentEditValue is ConfigValue<bool> boolCfgValue)
                     UpdateBoolOption(input, boolCfgValue, true);
 
@@ -143,6 +156,27 @@ public class ListedConfigSection : IOptionSection
             if (lastRow != m_currentRowIndex)
                 m_updateRow = true;
         }
+    }
+
+    private void Dialog_OnClose(object? sender, DialogCloseArgs e)
+    {
+        if (m_dialog == null)
+            return;
+
+        if (e.Accepted && sender is ColorDialog colorDialog)
+        {
+            m_rowEditText.Clear();
+            m_rowEditText.Append(colorDialog.SelectedColor.ToString());
+            SubmitEditRow();
+        }
+        else
+        {
+            ReleaseEditRow();
+        }
+
+        m_dialog.OnClose -= Dialog_OnClose;
+        m_dialog.Dispose();
+        m_dialog = null;
     }
 
     private bool CurrentRowAllowsTextInput()
@@ -261,7 +295,6 @@ public class ListedConfigSection : IOptionSection
         if (m_currentEditValue == null)
             return;
 
-        bool doneEditingRow = false;
         IConfigValue cfgValue = m_currentEditValue;
 
         if (cfgValue is ConfigValue<bool> boolCfgValue)
@@ -273,25 +306,28 @@ public class ListedConfigSection : IOptionSection
 
         bool mousePress = input.ConsumeKeyPressed(Key.MouseLeft);
         if (mousePress || input.ConsumeKeyPressed(Key.Enter))
-        {
-            m_soundManager.PlayStaticSound(MenuSounds.Choose);
-            SubmitRowChanges();
-            doneEditingRow = true;
-            OnLockChanged?.Invoke(this, new(Lock.Unlocked));
-        }
+            SubmitEditRow();
 
         if (input.ConsumeKeyPressed(Key.Escape) || input.ConsumeKeyPressed(Key.MouseRight))
-        {
-            m_soundManager.PlayStaticSound(MenuSounds.Clear);
-            doneEditingRow = true;
-            OnLockChanged?.Invoke(this, new(Lock.Unlocked));
-        }
+            ReleaseEditRow();
 
-        if (doneEditingRow)
-            m_rowIsSelected = false;
-        
         // Everything should be consumed by the row.
         input.ConsumeAll();
+    }
+
+    private void ReleaseEditRow()
+    {
+        m_soundManager.PlayStaticSound(MenuSounds.Clear);
+        m_rowIsSelected = false;
+        OnLockChanged?.Invoke(this, new(Lock.Unlocked));
+    }
+
+    private void SubmitEditRow()
+    {
+        m_soundManager.PlayStaticSound(MenuSounds.Choose);
+        SubmitRowChanges();
+        m_rowIsSelected = false;
+        OnLockChanged?.Invoke(this, new(Lock.Unlocked));
     }
 
     private void SubmitRowChanges()
@@ -454,7 +490,7 @@ public class ListedConfigSection : IOptionSection
                 anchor: Align.TopRight, color: attrColor);
 
             int valueOffsetX = offsetX;
-            if (cfgValue.ObjectValue.GetType() == typeof(Vec3I))
+            if (IsColor(cfgValue, out _))
             {
                 RenderColorBox(hud, cfgValue, offsetX, y, colorBoxHeight);
                 valueOffsetX += colorBoxHeight + smallSpacer;
@@ -504,6 +540,20 @@ public class ListedConfigSection : IOptionSection
             OnRowChanged?.Invoke(this, new(m_currentRowIndex, m_configValues[m_currentRowIndex].ConfigAttr.Description));
             m_updateRow = false;
         }
+
+        m_dialog?.Render(ctx, hud);
+    }
+
+    private static bool IsColor(IConfigValue cfgValue, out Vec3I value)
+    {
+        if (cfgValue.ObjectValue.GetType() == typeof(Vec3I))
+        {
+            value = (Vec3I)cfgValue.ObjectValue;
+            return true;
+        }
+
+        value = default;
+        return false;
     }
 
     private static void RenderColorBox(IHudRenderContext hud, IConfigValue cfgValue, int x, int y, int boxSize)
@@ -515,7 +565,7 @@ public class ListedConfigSection : IOptionSection
             anchor: Align.TopLeft);
     }
 
-    private static string GetEllipsesText(IHudRenderContext hud, string text, string font, int fontSize, int maxWidth)
+    public static string GetEllipsesText(IHudRenderContext hud, string text, string font, int fontSize, int maxWidth)
     {
         int nameWidth = hud.MeasureText(text, Font, fontSize).Width;
         if (nameWidth <= maxWidth)

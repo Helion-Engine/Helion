@@ -182,6 +182,9 @@ public interface IHudRenderContext : IDisposable
     void PushAlpha(float alpha);
     void PopAlpha();
 
+    void Offset(Vec2I offset, Action action);
+    void AddOffset(Vec2I offset, Action action);
     void PushOffset(Vec2I offset);
+    void AddOffset(Vec2I offset);
     void PopOffset();
 }

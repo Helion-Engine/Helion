@@ -245,7 +245,24 @@ public class GLHudRenderContext : IHudRenderContext
     public void PushAlpha(float alpha) => m_commands.SetAlpha(alpha);
     public void PopAlpha() => m_commands.SetAlpha(1);
 
+    public void Offset(Vec2I offset, Action action)
+    {
+        var startOffset = m_commands.Offset;
+        m_commands.SetOffset(offset);
+        action();
+        m_commands.SetOffset(startOffset);
+    }
+
+    public void AddOffset(Vec2I offset, Action action)
+    {
+        var startOffset = m_commands.Offset;
+        m_commands.AddOffset(offset);
+        action();
+        m_commands.SetOffset(startOffset);
+    }
+
     public void PushOffset(Vec2I offset) => m_commands.SetOffset(offset);
+    public void AddOffset(Vec2I offset) => m_commands.AddOffset(offset);
     public void PopOffset() => m_commands.SetOffset(Vec2I.Zero);
 
     public void PopVirtualDimension()
