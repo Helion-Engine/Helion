@@ -12,20 +12,30 @@ public enum Lock
     Unlocked
 }
 
+[Flags]
+public enum LockOptions
+{
+    None,
+    AllowMouse = 1
+}
+
 public struct LockEvent
 {
     public readonly Lock Lock;
+    public readonly LockOptions Options;
     public readonly string Message;
 
-    public LockEvent(Lock setLock, string message)
+    public LockEvent(Lock setLock, string message, LockOptions options = LockOptions.None)
     {
         Lock = setLock;
+        Options = options;
         Message = message;
     }
 
-    public LockEvent(Lock setLock)
+    public LockEvent(Lock setLock, LockOptions options = LockOptions.None)
     {
         Lock = setLock;
+        Options = options;
         Message = string.Empty;
     }
 }

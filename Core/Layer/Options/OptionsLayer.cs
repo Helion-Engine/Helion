@@ -57,6 +57,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private string m_selectedRowDescription = string.Empty;
     private string m_lastSelectedRowDescription = string.Empty;
     private bool m_locked;
+    private LockOptions m_lockOptions;
     private bool m_resetMouse;
     private bool m_setMouse;
     private bool m_didMouseWheelScroll;
@@ -252,6 +253,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             ClearMessage();
 
         m_locked = e.Lock == Lock.Locked;
+        m_lockOptions = e.Options;
         m_sectionMessage = e.Message;
     }
 
@@ -437,7 +439,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
             RenderScrollBar(hud, fontSize, section);
 
-            if (m_locked)
+            if (m_locked && m_lockOptions == LockOptions.None)
                 return;
 
             bool hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetIndex(m_cursorPos, out _);

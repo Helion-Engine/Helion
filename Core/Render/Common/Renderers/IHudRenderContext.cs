@@ -187,4 +187,5 @@ public interface IHudRenderContext : IDisposable
     void PushOffset(Vec2I offset);
     void AddOffset(Vec2I offset);
     void PopOffset();
+    Vec2I GetOffset();
 }

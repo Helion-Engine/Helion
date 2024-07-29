@@ -264,6 +264,7 @@ public class GLHudRenderContext : IHudRenderContext
     public void PushOffset(Vec2I offset) => m_commands.SetOffset(offset);
     public void AddOffset(Vec2I offset) => m_commands.AddOffset(offset);
     public void PopOffset() => m_commands.SetOffset(Vec2I.Zero);
+    public Vec2I GetOffset() => m_commands.Offset;
 
     public void PopVirtualDimension()
     {

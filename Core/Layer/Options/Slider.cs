@@ -24,14 +24,27 @@ public class Slider(double value, double step, double min, double max, RenderSiz
 
     public void HandleInput(IConsumableInput input)
     {
-        bool add = input.ConsumePressOrContinuousHold(Key.Right);
-        bool sub = input.ConsumePressOrContinuousHold(Key.Left);
+        bool add, sub;
+        int amount = input.ConsumeScroll();
+        if (amount != 0)
+        {
+            sub = amount < 0;
+            add = amount > 0;
+            amount = Math.Abs(amount);
+        }
+        else
+        {
+            amount = 1;
+            add = input.ConsumePressOrContinuousHold(Key.Right);
+            sub = input.ConsumePressOrContinuousHold(Key.Left);
+        }
 
         if (!add && !sub)
             return;
 
         var oldValue = Value;
         var step = add ? m_step : -m_step;
+        step *= amount;
         bool max = Value == m_max;
         Value = Math.Clamp(Value + step, m_min, m_max);
 

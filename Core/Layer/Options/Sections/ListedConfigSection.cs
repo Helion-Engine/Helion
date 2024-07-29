@@ -73,8 +73,13 @@ public class ListedConfigSection : IOptionSection
 
     public void ResetSelection() => m_currentRowIndex = 0;
 
-    public bool OnClickableItem(Vec2I mousePosition) =>
-        m_menuPositionList.GetIndex(mousePosition, out _);
+    public bool OnClickableItem(Vec2I mousePosition)
+    {
+        if (m_dialog != null)
+            return m_dialog.OnClickableItem(mousePosition);
+
+        return m_menuPositionList.GetIndex(mousePosition, out _);
+    }    
 
     public void Add(IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr)
     {
@@ -84,17 +89,18 @@ public class ListedConfigSection : IOptionSection
 
     public void HandleInput(IConsumableInput input)
     {
-        if (m_dialog != null)
-        {
-            m_dialog.HandleInput(input);
-            return;
-        }
-
         if (!m_hasSelectableRow)
             return;
         
         if (m_rowIsSelected)
         {
+            if (m_dialog != null)
+            {
+                m_mousePos = input.Manager.MousePosition;
+                m_dialog.HandleInput(input);
+                return;
+            }
+
             UpdateSelectedRow(input);
         }
         else
@@ -131,8 +137,10 @@ public class ListedConfigSection : IOptionSection
                 m_currentEditValue = configData.CfgValue.Clone();
                 m_stopwatch.Restart();
 
+                var lockOptions = LockOptions.None;
                 if (IsColor(configData.CfgValue, out var color))
                 {
+                    lockOptions |= LockOptions.AllowMouse;
                     m_dialog = new ColorDialog(m_config.Hud, configData.CfgValue, configData.Attr, color);
                     m_dialog.OnClose += Dialog_OnClose;
                 }
@@ -145,11 +153,11 @@ public class ListedConfigSection : IOptionSection
                 if (isCycleValue)
                 {
                     m_rowEditText.Append(GetConfigDisplayValue(m_currentEditValue, configData.Attr));
-                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Press left/right or mouse wheel to change values. Enter to confirm."));
+                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Press left/right or mouse wheel to change values. Enter to confirm.", lockOptions));
                 }
                 else
                 {
-                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Type a new value. Enter to confirm."));
+                    OnLockChanged?.Invoke(this, new(Lock.Locked, "Type a new value. Enter to confirm.", lockOptions));
                 }
             }
 
