@@ -1,11 +1,6 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.Resources.Archives.Entries;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Helion.Graphics.Palettes;
 
@@ -17,6 +12,7 @@ public class Colormap
     private static Colormap? DefaultColormap;
 
     private readonly List<Color[]> layers;
+    public readonly bool[] FullBright = new bool[NumColors];
 
     public readonly Vec3F ColorMix;
     public readonly Entry? Entry;
@@ -24,16 +20,17 @@ public class Colormap
     public int Count => NumLayers;
 
     private Colormap(List<Color[]> colormapLayers) 
-        : this(colormapLayers, Vec3F.One, null)
+        : this(colormapLayers, Vec3F.One, null, [])
     {
 
     }
 
-    private Colormap(List<Color[]> colormapLayers, Vec3F colorMix, Entry? entry)
+    private Colormap(List<Color[]> colormapLayers, Vec3F colorMix, Entry? entry, bool[] fullBright)
     {
         layers = colormapLayers;
         ColorMix = colorMix;
         Entry = entry;
+        FullBright = fullBright;
     }
 
     public static Colormap? From(Palette palette, byte[] data, Entry entry)
@@ -42,7 +39,11 @@ public class Colormap
             return null;
 
         Vec3I addColors = Vec3I.Zero;
-        List<Color[]> colormapLayers = new();
+        List<Color[]> colormapLayers = new(NumLayers);
+        bool[] fullBright = new bool[NumColors];
+        for (int i = 0; i < NumColors; i++)
+            fullBright[i] = true;
+
         var paletteColors = palette.DefaultLayer;
         for (int layer = 0; layer < NumLayers; layer++)
         {
@@ -57,21 +58,29 @@ public class Colormap
                     continue;
                 }
 
-                if (layer != 0)
-                    continue;
-
                 var currentColor = paletteColors[data[index]];
-                addColors.X += currentColor.R;
-                addColors.Y += currentColor.G;
-                addColors.Z += currentColor.B;
                 currentColors[i] = currentColor;
+
+                if (layer > 0 && layer < 32)
+                {
+                    var previousColor = colormapLayers[layer - 1][i];
+                    if (previousColor != currentColor)
+                        fullBright[i] = false;
+                }
+
+                if (layer == 0)
+                {
+                    addColors.X += currentColor.R;
+                    addColors.Y += currentColor.G;
+                    addColors.Z += currentColor.B;
+                }
             }
             colormapLayers.Add(currentColors);
         }
 
         var colorMix = addColors.Float / NumColors;
         colorMix.Normalize();
-        return new (colormapLayers, colorMix, entry);
+        return new (colormapLayers, colorMix, entry, fullBright);
     }
 
     public Color[] Layer(int index) => layers[index];

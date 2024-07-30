@@ -45,17 +45,23 @@ public class FragFunction
             fragColor.w *= clamp(noise(blockCoordinate * fuzzFrac), 0.2, 0.45);
         }";
 
+
+    public static string FullBrightFlag(bool lightLevel) =>
+        @"// Check for the reserved alpha value to indicate a full bright pixel.
+        float fullBrightFlag = float(fragColor.w == 0.0039215686274509803921568627451);
+        " + (lightLevel ? "lightLevel = mix(lightLevel, 1, fullBrightFlag);\n" : "") +
+        "fragColor.w = mix(fragColor.w, 1, fullBrightFlag);\n";
+
     public static string FragColorFunction(FragColorFunctionOptions options)
     {
         return @"
             fragColor = texture(boundTexture, uvFrag.st);"
-            + (options.HasFlag(FragColorFunctionOptions.Fuzz) ?
-            FuzzFragFunction
-            : 
-            "") +
-            "fragColor.xyz *= lightLevel;" +
+            + FullBrightFlag(true) +
+            
+            (options.HasFlag(FragColorFunctionOptions.Fuzz) ? FuzzFragFunction :  "") +
+            "fragColor.xyz *= lightLevel;\n" +
             (options.HasFlag(FragColorFunctionOptions.AddAlpha) ? 
-                "fragColor.w = fragColor.w * alphaFrag + addAlphaFrag;" : 
+                "fragColor.w = fragColor.w * alphaFrag + addAlphaFrag;\n" : 
                 "") +
             (options.HasFlag(FragColorFunctionOptions.Alpha) ?
                 "fragColor.w *= alphaFrag;" :

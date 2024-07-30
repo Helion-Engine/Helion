@@ -17,6 +17,7 @@ namespace Helion.Graphics;
 /// </remarks>
 public class Image
 {
+    public const byte AlphaFlag = 1;
     public const ushort TransparentIndex = 0xFF00;
     public static readonly Image NullImage = CreateNullImage();
     public static readonly Image WhiteImage = CreateWhiteImage();
@@ -33,6 +34,7 @@ public class Image
     public Span<uint> Pixels => m_pixels;
 
     public int BlankRowsFromBottom;
+    public bool HasFullBrightPixels;
 
     public Image(Dimension dimension, ImageType imageType, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global) :
         this(new uint[dimension.Area], dimension, imageType, offset, ns)
@@ -80,6 +82,8 @@ public class Image
             uint r = argbData[argbByteOffset + 1];
             uint g = argbData[argbByteOffset + 2];
             uint b = argbData[argbByteOffset + 3];
+            if (a == AlphaFlag)
+                a++;
             pixels[i] = (a << 24) | (r << 16) | (g << 8) | b;
             argbByteOffset += 4;
         }
@@ -87,7 +91,7 @@ public class Image
         return new(pixels, dimension, ImageType.Argb, offset, ns);
     }
 
-    public Image PaletteToArgb(Palette palette)
+    public Image PaletteToArgb(Palette palette, bool[] fullBright)
     {
         uint[] pixels = new uint[m_pixels.Length];
         Color[] layer = palette.DefaultLayer;
@@ -95,13 +99,22 @@ public class Image
         for (int i = 0; i < m_pixels.Length; i++)
         {
             uint argb = m_pixels[i];
-            pixels[i] = (argb == TransparentIndex ? Color.Transparent.Uint : layer[argb].Uint);
+            uint pixel = (argb == TransparentIndex ? Color.Transparent.Uint : layer[argb].Uint);
+
+            if (argb != TransparentIndex && argb < fullBright.Length && fullBright[argb])
+            {
+                HasFullBrightPixels = true;
+                uint newPixel = (pixel & 0x00FFFFFF) | (AlphaFlag << 24);
+                pixel = newPixel;
+            }
+
+            pixels[i] = pixel;
         }
 
         return new(pixels, Dimension, ImageType.Argb, Offset, Namespace);
     }
 
-    private uint BlendPixels(uint back, uint front)
+    private static uint BlendPixels(uint back, uint front)
     {
         uint frontA = (front >> 24) & 0xFF;
         if (frontA == 0)
@@ -156,7 +169,7 @@ public class Image
                 uint alpha = (pixel >> 24) & 0xFF;
                 if (alpha > 0)
                 {
-                    if (alpha == 255)
+                    if (alpha == 255 || alpha == AlphaFlag)
                         image.m_pixels[targetOffset] = pixel;
                     else
                         image.m_pixels[targetOffset] = BlendPixels(image.m_pixels[targetOffset], pixel);

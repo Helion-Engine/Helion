@@ -183,13 +183,13 @@ public class ArchiveImageRetriever : IImageRetriever
             {
                 Image? flatPaletteImage = PaletteReaders.ReadFlat(data, entry.Namespace);
                 if (flatPaletteImage != null)
-                    image = flatPaletteImage.PaletteToArgb(m_archiveCollection.Data.Palette);
+                    image = flatPaletteImage.PaletteToArgb(m_archiveCollection.Data.Palette, m_archiveCollection.Data.Colormap.FullBright);
             }
             else
             {
                 Image? columnPaletteImage = PaletteReaders.ReadColumn(data, entry.Namespace);
                 if (columnPaletteImage != null)
-                    image = columnPaletteImage.PaletteToArgb(m_archiveCollection.Data.Palette);
+                    image = columnPaletteImage.PaletteToArgb(m_archiveCollection.Data.Palette, m_archiveCollection.Data.Colormap.FullBright);
             }
         }
 

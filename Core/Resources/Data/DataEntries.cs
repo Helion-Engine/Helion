@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.Palettes;
+using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using NLog;
 
@@ -18,6 +19,7 @@ public class DataEntries
     public readonly Dictionary<string, Font> TrueTypeFonts = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Action<Entry>> m_entryNameToAction;
     private readonly Dictionary<string, Action<Entry>> m_extensionToAction;
+
     private Palette? m_latestPalette;
     private Colormap? m_latestColormap;
 
@@ -32,6 +34,7 @@ public class DataEntries
         m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase)
         {
             ["PLAYPAL"] = HandlePlaypal,
+            ["COLORMAP"] = HandleColorMap
         };
 
         m_extensionToAction = new(StringComparer.OrdinalIgnoreCase)
@@ -60,6 +63,11 @@ public class DataEntries
             m_latestPalette = palette;
         else
             Log.Warn("Cannot read corrupt palette at {0}", entry);
+    }
+
+    private void HandleColorMap(Entry entry)
+    {
+        m_latestColormap = Colormap.From(Palette, entry.ReadData(), entry);
     }
 
     private void HandleTrueTypeFont(Entry entry)

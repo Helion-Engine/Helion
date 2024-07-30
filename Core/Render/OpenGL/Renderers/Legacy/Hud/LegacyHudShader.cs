@@ -75,6 +75,7 @@ public class LegacyHudShader : RenderProgram
 
         void main() {
             fragColor = texture(boundTexture, uvFrag.st);
+            ${FullBrightFlag}
             fragColor.w *= alphaFrag;
             fragColor.xyz *= mix(vec3(1.0, 1.0, 1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);
 
@@ -88,5 +89,6 @@ public class LegacyHudShader : RenderProgram
         }
     "
     .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
-    .Replace("${FuzzFragFunction}", FragFunction.FuzzFragFunction);
+    .Replace("${FuzzFragFunction}", FragFunction.FuzzFragFunction)
+    .Replace("${FullBrightFlag}", FragFunction.FullBrightFlag(false));
 }
