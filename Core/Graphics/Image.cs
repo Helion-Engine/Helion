@@ -62,7 +62,11 @@ public class Image
         m_pixels = pixels;
 
         if (ImageType == ImageType.PaletteWithArgb && indices == null)
+        {
             m_indices = new uint[m_pixels.Length];
+            for (int i = 0; i < m_indices.Length; i++)
+                m_indices[i] = TransparentIndex;
+        }
 
         if (indices != null)
         {
