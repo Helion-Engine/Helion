@@ -59,7 +59,7 @@ public class FragFunction
             "fragColor.w = mix(fragColor.w, 1, fullBrightFlag);\n";
     }
 
-    public static string ColorMapFetch(bool lightLevel)
+    public static string ColorMapFetch(bool lightLevel, bool invulFrag)
     {
         if (!ShaderVars.ColorMap)
             return "";
@@ -74,7 +74,8 @@ public class FragFunction
             @"
               int usePalette = paletteIndex;
               int lightLevelOffset = 0;
-              lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability)));";
+              lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability${InvulFrag})));"
+            .Replace("${InvulFrag}", invulFrag ? "* hasInvulnerabilityFrag" : "");
         // Use the alpha flag to indicate we need to fetch from the colormap buffer since we don't need it for fullbright.
         return @"
                 const int paletteSize = 256 * 34;
@@ -93,7 +94,7 @@ public class FragFunction
     {
         return @"
             fragColor = texture(boundTexture, uvFrag.st);" +
-            (options.HasFlag(FragColorFunctionOptions.Colormap) ? ColorMapFetch(true) : "")
+            (options.HasFlag(FragColorFunctionOptions.Colormap) ? ColorMapFetch(true, false) : "")
             + AlphaFlag(true) +
             (options.HasFlag(FragColorFunctionOptions.Fuzz) ? FuzzFragFunction :  "") +
             (ShaderVars.ColorMap ? "\n" : "fragColor.xyz *= lightLevel;\n") +

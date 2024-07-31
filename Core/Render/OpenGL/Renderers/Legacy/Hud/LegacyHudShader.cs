@@ -63,6 +63,13 @@ public class LegacyHudShader : RenderProgram
         }
     ";
 
+    private static string TrueColorInvul = 
+        @"if (hasInvulnerabilityFrag != 0) {
+            float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
+            maxColor *= 1.5;
+            fragColor.xyz = vec3(maxColor, maxColor, maxColor);
+        }";
+
     protected override string FragmentShader() => @"
         #version 330
 
@@ -91,19 +98,14 @@ public class LegacyHudShader : RenderProgram
             ${AlphaFlag}
             fragColor.w *= alphaFrag;
             fragColor.xyz *= mix(vec3(1.0, 1.0, 1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);
-
-            // TODO fix colormap invul nonsense
-            if (hasInvulnerabilityFrag != 0) {
-                float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
-                maxColor *= 1.5;
-                fragColor.xyz = vec3(maxColor, maxColor, maxColor);
-            }
-
+            
+            ${TrueColorInvul}
             ${FuzzFragFunction}
         }
     "
     .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
     .Replace("${FuzzFragFunction}", FragFunction.FuzzFragFunction)
-    .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false))
-    .Replace("${AlphaFlag}", FragFunction.AlphaFlag(false));
+    .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false, true))
+    .Replace("${AlphaFlag}", FragFunction.AlphaFlag(false))
+    .Replace("${TrueColorInvul}", ShaderVars.ColorMap ? "" : TrueColorInvul);
 }

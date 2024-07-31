@@ -75,5 +75,5 @@ public class SkySphereShader : RenderProgram
         }
     "
     .Replace("${InvulnerabilityFragColor}", FragFunction.InvulnerabilityFragColor)
-    .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false));
+    .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false, false));
 }
