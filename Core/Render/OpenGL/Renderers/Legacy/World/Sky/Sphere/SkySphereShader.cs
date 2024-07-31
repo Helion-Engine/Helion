@@ -13,6 +13,7 @@ public class SkySphereShader : RenderProgram
     private readonly int m_hasInvulnerabilityLocation;
     private readonly int m_scaleULocation;
     private readonly int m_flipULocation;
+    private readonly int m_paletteIndexLocation;
 
     public SkySphereShader() : base("Sky sphere")
     {
@@ -22,6 +23,7 @@ public class SkySphereShader : RenderProgram
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
         m_scaleULocation = Uniforms.GetLocation("scaleU");
         m_flipULocation = Uniforms.GetLocation("flipU");
+        m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -30,6 +32,7 @@ public class SkySphereShader : RenderProgram
     public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
     public void ScaleU(float u) => Uniforms.Set(u, m_scaleULocation);
     public void FlipU(bool flip) => Uniforms.Set(flip, m_flipULocation);
+    public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -63,6 +66,7 @@ public class SkySphereShader : RenderProgram
         uniform sampler2D boundTexture;
         uniform samplerBuffer colormapTexture;
         uniform int hasInvulnerability;
+        uniform int paletteIndex;
 
         void main() {
             fragColor = texture(boundTexture, vec2(uvFrag.x * scaleU, uvFrag.y));

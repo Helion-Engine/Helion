@@ -92,6 +92,11 @@ public class GLBufferTexture : IDisposable
         GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, m_name);
     }
 
+    public void BindRgbBuffer()
+    {
+        GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.Rgb32f, m_name);
+    }
+
     protected virtual void Dispose(bool disposing)
     {
         if (m_disposed)

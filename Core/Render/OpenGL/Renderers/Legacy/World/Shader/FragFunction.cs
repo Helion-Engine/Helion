@@ -64,14 +64,25 @@ public class FragFunction
         if (!ShaderVars.ColorMap)
             return "";
 
-        string indexAdd = lightLevel ? "(colormapIndex * 256 * 3) + " : "";
-        // Use the alpha flag to indicite we need to fetch from the colormap buffer since we don't need it for fullbright.
-        return @"float colormapFetchFlag = float(fragColor.w == 0.0039215686274509803921568627451);
+        string indexAdd = lightLevel ?
+            @"
+            int usePalette = paletteIndex;
+            int lightLevelOffset = (colormapIndex * 256);
+            lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability)));
+            lightLevelOffset = int(mix(lightLevelOffset, 0, float(lightLevelMix)));"
+            :
+            @"
+              int usePalette = paletteIndex;
+              int lightLevelOffset = 0;
+              lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability)));";
+        // Use the alpha flag to indicate we need to fetch from the colormap buffer since we don't need it for fullbright.
+        return @"
+                const int paletteSize = 256 * 34;
+                float colormapFetchFlag = float(fragColor.w == 0.0039215686274509803921568627451);                
                 fragColor.w += colormapFetchFlag;
-                int texIndex = ${IndexAdd}(int(fragColor.r * 255.0) * 3);
-                vec3 fetchColor = vec3(texelFetch(colormapTexture, texIndex).r,
-                                       texelFetch(colormapTexture, texIndex + 1).r,
-                                       texelFetch(colormapTexture, texIndex + 2).r);
+                ${IndexAdd}
+                int texIndex = lightLevelOffset + (usePalette * paletteSize + int(fragColor.r * 255.0));
+                vec3 fetchColor = texelFetch(colormapTexture, texIndex).rgb;
                 fragColor.rgb = mix(fragColor.rgb, fetchColor, vec3(colormapFetchFlag, colormapFetchFlag, colormapFetchFlag));
                 "
                 .Replace("${IndexAdd}", indexAdd);
@@ -101,6 +112,7 @@ public class FragFunction
     }
 
     public static string InvulnerabilityFragColor =>
+        ShaderVars.ColorMap ? "" :
     @"
     // If invulnerable, grayscale everything and crank the brightness.
     // Note: The 1.5x is a visual guess to make it look closer to vanilla.

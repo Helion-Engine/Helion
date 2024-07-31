@@ -22,6 +22,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_distanceOffsetLocation;
     private readonly int m_colorMixLocation;
     private readonly int m_fuzzDivLocation;
+    private readonly int m_paletteIndexLocation;
 
     public EntityProgram() : base("Entity")
     {
@@ -39,6 +40,7 @@ public class EntityProgram : RenderProgram
         m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
         m_colorMixLocation = Uniforms.GetLocation("colorMix");
         m_fuzzDivLocation = Uniforms.GetLocation("fuzzDiv");
+        m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -55,6 +57,7 @@ public class EntityProgram : RenderProgram
     public void DistanceOffset(float distance) => Uniforms.Set(distance, m_distanceOffsetLocation);
     public void ColorMix(Vec3F color) => Uniforms.Set(color, m_colorMixLocation);
     public void FuzzDiv(float div) => Uniforms.Set(div, m_fuzzDivLocation);
+    public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -187,6 +190,7 @@ public class EntityProgram : RenderProgram
         uniform vec3 colorMix;
         uniform float distanceOffset;
         uniform float fuzzDiv;
+        uniform int paletteIndex;
 
         ${FuzzFunction}        
         ${LightLevelConstants}

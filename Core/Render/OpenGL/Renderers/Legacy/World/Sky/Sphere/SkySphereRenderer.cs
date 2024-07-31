@@ -147,6 +147,7 @@ public class SkySphereRenderer : IDisposable
         m_program.ScaleU(m_texture.ScaleU);
         m_program.FlipU(flipSkyHorizontal);
         m_program.HasInvulnerability(invulnerability);
+        m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
     }
 
     private void ReleaseUnmanagedResources()

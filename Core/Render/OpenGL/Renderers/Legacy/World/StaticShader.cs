@@ -18,6 +18,7 @@ public class StaticShader : RenderProgram
     private readonly int m_extraLightLocation;
     private readonly int m_distanceOffsetLocation;
     private readonly int m_colorMixLocation;
+    private readonly int m_paletteIndexLocation;
 
     public StaticShader() : base("WorldStatic")
     {
@@ -31,6 +32,7 @@ public class StaticShader : RenderProgram
         m_extraLightLocation = Uniforms.GetLocation("extraLight");
         m_distanceOffsetLocation = Uniforms.GetLocation("distanceOffset");
         m_colorMixLocation = Uniforms.GetLocation("colorMix");
+        m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -44,6 +46,7 @@ public class StaticShader : RenderProgram
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void DistanceOffset(float distance) => Uniforms.Set(distance, m_distanceOffsetLocation);
     public void ColorMix(Vec3F color) => Uniforms.Set(color, m_colorMixLocation);
+    public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -95,6 +98,7 @@ public class StaticShader : RenderProgram
         uniform int hasInvulnerability;
         uniform sampler2D boundTexture;
         uniform vec3 colorMix;
+        uniform int paletteIndex;
 
         ${LightLevelFragVariables}        
         ${LightLevelConstants}

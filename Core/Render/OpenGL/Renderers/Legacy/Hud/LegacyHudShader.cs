@@ -12,6 +12,8 @@ public class LegacyHudShader : RenderProgram
     private readonly int m_mvpLocation;
     private readonly int m_fuzzFracLocation;
     private readonly int m_fuzzDivLocation;
+    private readonly int m_paletteIndexLocation;
+    private readonly int m_hasInvulnerabilityLocation;
 
     public LegacyHudShader() : base("Hud")
     {
@@ -20,6 +22,8 @@ public class LegacyHudShader : RenderProgram
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_fuzzFracLocation = Uniforms.GetLocation("fuzzFrac");
         m_fuzzDivLocation = Uniforms.GetLocation("fuzzDiv");
+        m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
+        m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -27,6 +31,8 @@ public class LegacyHudShader : RenderProgram
     public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
     public void FuzzFrac(float frac) => Uniforms.Set(frac, m_fuzzFracLocation);
     public void FuzzDiv(float div) => Uniforms.Set(div, m_fuzzDivLocation);
+    public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
+    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -72,6 +78,8 @@ public class LegacyHudShader : RenderProgram
         uniform samplerBuffer colormapTexture;
         uniform float fuzzFrac;
         uniform float fuzzDiv;
+        uniform int paletteIndex;
+        uniform int hasInvulnerability;
         // Make the hud weapon fuzz a little more detailed.
         float fuzzDist = " + (FragFunction.FuzzDistanceStep * 1.5) + @";
 
@@ -84,6 +92,7 @@ public class LegacyHudShader : RenderProgram
             fragColor.w *= alphaFrag;
             fragColor.xyz *= mix(vec3(1.0, 1.0, 1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);
 
+            // TODO fix colormap invul nonsense
             if (hasInvulnerabilityFrag != 0) {
                 float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
                 maxColor *= 1.5;

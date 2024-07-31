@@ -272,6 +272,7 @@ public class FloodFillRenderer : IDisposable
         m_program.ExtraLight(renderInfo.Uniforms.ExtraLight);
         m_program.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
         m_program.ColorMix(renderInfo.Uniforms.ColorMix);
+        m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
 
         for (int i = 0; i < m_floodFillInfos.Count; i++)
         {

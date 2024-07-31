@@ -11,6 +11,7 @@ using Helion.Render.Common.Context;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
@@ -271,7 +272,7 @@ public partial class WorldLayer
 
     private void DrawHudEffects(IHudRenderContext hud)
     {
-        if (!WorldStatic.World.DrawHud)
+        if (!WorldStatic.World.DrawHud || ShaderVars.ColorMap)
             return;
 
         IPowerup? powerup = Player.Inventory.PowerupEffectColor;

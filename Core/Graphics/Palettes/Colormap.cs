@@ -2,7 +2,6 @@
 using Helion.Resources.Archives.Entries;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace Helion.Graphics.Palettes;
 
@@ -13,7 +12,8 @@ public class Colormap
     public static readonly int BytesPerColormap = NumColors * NumLayers;
     private static Colormap? DefaultColormap;
 
-    private readonly List<Color[]> layers;
+    private readonly List<Color[]> m_layers;
+    private readonly List<int[]> m_indexLayers;
     public readonly bool[] FullBright = new bool[NumColors];
 
     public readonly Vec3F ColorMix;
@@ -21,15 +21,16 @@ public class Colormap
 
     public int Count => NumLayers;
 
-    private Colormap(List<Color[]> colormapLayers) 
-        : this(colormapLayers, Vec3F.One, null, [])
+    private Colormap(List<Color[]> colormapLayers, List<int[]> indices) 
+        : this(colormapLayers, indices, Vec3F.One, null, [])
     {
 
     }
 
-    private Colormap(List<Color[]> colormapLayers, Vec3F colorMix, Entry? entry, bool[] fullBright)
+    private Colormap(List<Color[]> colormapLayers, List<int[]> indices, Vec3F colorMix, Entry? entry, bool[] fullBright)
     {
-        layers = colormapLayers;
+        m_layers = colormapLayers;
+        m_indexLayers = indices;
         ColorMix = colorMix;
         Entry = entry;
         FullBright = fullBright;
@@ -62,6 +63,7 @@ public class Colormap
 
         Vec3I addColors = Vec3I.Zero;
         List<Color[]> colormapLayers = new(NumLayers);
+        List<int[]> colormapLayerIndices = new(NumLayers);
         bool[] fullBright = new bool[NumColors];
         for (int i = 0; i < NumColors; i++)
             fullBright[i] = true;
@@ -71,9 +73,11 @@ public class Colormap
         {
             int startIndex = layer * NumColors;
             var currentColors = new Color[NumColors];
+            var currentIndices = new int[NumColors];
             for (int i = 0; i < NumColors; i++)
             {
                 int index = data[startIndex + i];
+                currentIndices[i] = index;
                 if (index < 0 || index >= paletteColors.Length)
                 {
                     currentColors[i] = Color.Black;
@@ -98,23 +102,27 @@ public class Colormap
                 }
             }
             colormapLayers.Add(currentColors);
+            colormapLayerIndices.Add(currentIndices);
         }
 
         var colorMix = addColors.Float / NumColors;
         colorMix.Normalize();
-        return new (colormapLayers, colorMix, entry, fullBright);
+        return new(colormapLayers, colormapLayerIndices, colorMix, entry, fullBright);
     }
 
-    public Color[] Layer(int index) => layers[index];
+    public Color[] Layer(int index) => m_layers[index];
+
+    public int[] IndexLayer(int index) => m_indexLayers[index];
 
     public static Colormap GetDefaultColormap()
     {
         if (DefaultColormap != null)
             return DefaultColormap;
 
-        List<Color[]> colors = new();
-        colors.Add(new Color[NumColors]);
-        DefaultColormap = new(colors);
+        List<Color[]> colors = [new Color[NumColors]];
+        List<int[]> indices = [new int[NumColors]];
+
+        DefaultColormap = new(colors, indices);
         return DefaultColormap;
     }
 }

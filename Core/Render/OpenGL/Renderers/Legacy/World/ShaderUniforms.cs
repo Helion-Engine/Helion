@@ -1,30 +1,20 @@
 ﻿using GlmSharp;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.Palettes;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
-public readonly struct ShaderUniforms
+public readonly struct ShaderUniforms(mat4 mvp, mat4 mvpNoPitch, float timeFrac, bool drawInvulnerability, float mix, int extraLight, float distanceOffset,
+    Vec3F colorMix, float fuzzDiv, PaletteIndex paletteIndex)
 {
-    public readonly mat4 Mvp;
-    public readonly mat4 MvpNoPitch;
-    public readonly float TimeFrac;
-    public readonly float Mix;
-    public readonly bool DrawInvulnerability;
-    public readonly int ExtraLight;
-    public readonly float DistanceOffset;
-    public readonly Vec3F ColorMix;
-    public readonly float FuzzDiv;
-
-    public ShaderUniforms(mat4 mvp, mat4 mvpNoPitch, float timeFrac, bool drawInvulnerability, float mix, int extraLight, float distanceOffset, Vec3F colorMix, float fuzzDiv)
-    {
-        Mvp = mvp;
-        MvpNoPitch = mvpNoPitch;
-        TimeFrac = timeFrac;
-        Mix = mix;
-        DrawInvulnerability = drawInvulnerability;
-        ExtraLight = extraLight;
-        DistanceOffset = distanceOffset;
-        ColorMix = colorMix;
-        FuzzDiv = fuzzDiv;
-    }
+    public readonly mat4 Mvp = mvp;
+    public readonly mat4 MvpNoPitch = mvpNoPitch;
+    public readonly float TimeFrac = timeFrac;
+    public readonly float Mix = mix;
+    public readonly bool DrawInvulnerability = drawInvulnerability;
+    public readonly int ExtraLight = extraLight;
+    public readonly float DistanceOffset = distanceOffset;
+    public readonly Vec3F ColorMix = colorMix;
+    public readonly float FuzzDiv = fuzzDiv;
+    public readonly PaletteIndex PaletteIndex = paletteIndex;
 }

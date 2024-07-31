@@ -15,6 +15,7 @@ public class Palette
     public static readonly int NumColors = 256;
     public static readonly int ColorComponents = 3;
     public static readonly int BytesPerLayer = NumColors * ColorComponents;
+    public static readonly int NumPalettes = 14;
     private static Palette? DefaultPalette;
 
     private readonly List<Color[]> layers;
