@@ -2,6 +2,7 @@ using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
+using System.ComponentModel;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
@@ -11,6 +12,13 @@ public enum RenderVsyncMode
     Off,
     On,
     Adaptive
+}
+
+public enum RenderColorMode
+{
+    [Description("True Color")]
+    TrueColor,
+    Palette
 }
 
 public class ConfigRenderFilter
@@ -83,6 +91,10 @@ public class ConfigRender
     [ConfigInfo("Renders sprites over floors/ceilings. Sprites always clipped to walls.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Emulate vanilla rendering", spacer: true)]
     public readonly ConfigValue<bool> VanillaRender = new(false);
+
+    [ConfigInfo("Palette uses Doom's colormaps. True color is calculated from the base palette and interpolated. Full application restart required.", restartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Color mode")]
+    public readonly ConfigValue<RenderColorMode> ColorMode = new(RenderColorMode.TrueColor);
 
     [ConfigInfo("If any sprite should clip the floor.")]
     [OptionMenu(OptionSectionType.Render, "Sprite floor clip")]

@@ -261,6 +261,7 @@ public class FloodFillRenderer : IDisposable
         GL.ActiveTexture(TextureUnit.Texture0);
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.SectorLightTexture(TextureUnit.Texture1);
+        m_program.ColormapTexture(TextureUnit.Texture2);
         m_program.Camera(renderInfo.Camera.PositionInterpolated);
         m_program.Mvp(renderInfo.Uniforms.Mvp);
         m_program.TimeFrac(renderInfo.TickFraction);

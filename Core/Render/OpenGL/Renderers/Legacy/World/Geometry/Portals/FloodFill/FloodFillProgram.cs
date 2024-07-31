@@ -10,6 +10,7 @@ public class FloodFillProgram : RenderProgram
 {
     private readonly int m_boundTextureLocation;
     private readonly int m_sectorLightTextureLocation;
+    private readonly int m_colormapTextureLocation;
     private readonly int m_cameraLocation;
     private readonly int m_mvpLocation;
     private readonly int m_timeFracLocation;
@@ -24,6 +25,7 @@ public class FloodFillProgram : RenderProgram
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
+        m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_cameraLocation = Uniforms.GetLocation("camera");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_timeFracLocation = Uniforms.GetLocation("timeFrac");
@@ -37,6 +39,7 @@ public class FloodFillProgram : RenderProgram
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
     public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorLightTextureLocation);
+    public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
 
     public void Camera(Vec3F camera) => Uniforms.Set(camera, m_cameraLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
@@ -125,6 +128,6 @@ public class FloodFillProgram : RenderProgram
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${LightLevelConstants}", LightLevel.Constants)
     .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.NoDist))
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.None))
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Colormap))
     .Replace("${Depth}", ShaderVars.Depth);
 }

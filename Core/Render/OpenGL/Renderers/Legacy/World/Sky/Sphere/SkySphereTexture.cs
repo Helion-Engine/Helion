@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
@@ -150,17 +151,20 @@ public class SkySphereTexture : IDisposable
     // This is why we multiply by four. Note that there is no blending
     // at the horizon (middle line).
     //
-    private static Image CreateFadedSky(int rowsToEvaluate, Color bottomFadeColor, Color topFadeColor, Image skyImage)
+    private Image CreateFadedSky(int rowsToEvaluate, Color bottomFadeColor, Color topFadeColor, Image skyImage)
     {
         float scale = 128 / (float)skyImage.Height * 2.3f;
         int padding = (int)(skyImage.Height * scale);
-        Image fadedSky = new(skyImage.Width, skyImage.Height * 2 + padding, ImageType.Argb);
+        Image fadedSky = new(skyImage.Width, skyImage.Height * 2 + padding, ImageType.PaletteWithArgb);
         int middleY = fadedSky.Height / 2;
 
         // Fill the top and bottom halves with the fade colors, so we can draw
         // everything else on top of it later on.
         fadedSky.FillRows(topFadeColor, 0, middleY);
         fadedSky.FillRows(bottomFadeColor, middleY, fadedSky.Height);
+
+        fadedSky.FillRows(m_archiveCollection.Colormap.GetNearestColorIndex(topFadeColor), 0, middleY);
+        fadedSky.FillRows(m_archiveCollection.Colormap.GetNearestColorIndex(topFadeColor), middleY, fadedSky.Height);
 
         // Now draw the images on top of them.
         skyImage.DrawOnTopOf(fadedSky, (0, middleY));
@@ -199,13 +203,13 @@ public class SkySphereTexture : IDisposable
         return fadedSky;
     }
 
-    private static void FillRow(Image fadedSky, Vec4F normalized, int targetY, float t)
+    private void FillRow(Image fadedSky, Vec4F normalized, int targetY, float t)
     {
         for (int x = 0; x < fadedSky.Width; x++)
         {
             Color originalColor = fadedSky.GetPixel(x, targetY);
             Color newArgb = Color.Lerp(normalized, originalColor, t);
-            fadedSky.SetPixel(x, targetY, newArgb);
+            fadedSky.SetPixel(x, targetY, newArgb, m_archiveCollection.Colormap);
         }
     }
 
@@ -248,7 +252,7 @@ public class SkySphereTexture : IDisposable
         return CreateTexture(GetFadedSkyImage(textureIndex, skyImage), $"[SKY][{textureIndex}] {m_archiveCollection.TextureManager.SkyTextureName}");
     }
 
-    private static Image GetFadedSkyImage(int textureIndex, Image skyImage)
+    private Image GetFadedSkyImage(int textureIndex, Image skyImage)
     {
         if (LegacySkyRenderer.GeneratedImages.TryGetValue(textureIndex, out var existingImage))
             return existingImage;
@@ -265,6 +269,10 @@ public class SkySphereTexture : IDisposable
         int bottomExclusiveEndY = skyImage.Height;
         Color topFadeColor = CalculateAverageRowColor(0, rowsToEvaluate, skyImage);
         Color bottomFadeColor = CalculateAverageRowColor(bottomStartY, bottomExclusiveEndY, skyImage);
+
+        // Don't fade sky with colormap
+        if (ShaderVars.ColorMap)
+            rowsToEvaluate = 0;
 
         Image fadedSkyImage = CreateFadedSky(rowsToEvaluate, bottomFadeColor, topFadeColor, skyImage);
         LegacySkyRenderer.GeneratedImages[textureIndex] = fadedSkyImage;

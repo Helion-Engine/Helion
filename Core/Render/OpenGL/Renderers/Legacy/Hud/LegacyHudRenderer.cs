@@ -119,6 +119,7 @@ public class LegacyHudRenderer : HudRenderer
 
         GL.ActiveTexture(TextureUnit.Texture0);
         m_program.BoundTexture(TextureUnit.Texture0);
+        m_program.ColormapTexture(TextureUnit.Texture2);
         m_program.Mvp(CreateMvp(viewport));
         m_program.FuzzFrac(Renderer.GetTimeFrac());
         m_program.FuzzDiv(Renderer.GetFuzzDiv(m_config.Render, viewport));

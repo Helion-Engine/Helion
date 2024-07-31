@@ -8,6 +8,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 public class SkySphereShader : RenderProgram
 {
     private readonly int m_boundTextureLocation;
+    private readonly int m_colormapTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_hasInvulnerabilityLocation;
     private readonly int m_scaleULocation;
@@ -16,6 +17,7 @@ public class SkySphereShader : RenderProgram
     public SkySphereShader() : base("Sky sphere")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
         m_scaleULocation = Uniforms.GetLocation("scaleU");
@@ -23,6 +25,7 @@ public class SkySphereShader : RenderProgram
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
+    public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
     public void ScaleU(float u) => Uniforms.Set(u, m_scaleULocation);
@@ -58,12 +61,15 @@ public class SkySphereShader : RenderProgram
 
         uniform float scaleU;
         uniform sampler2D boundTexture;
+        uniform samplerBuffer colormapTexture;
         uniform int hasInvulnerability;
 
         void main() {
             fragColor = texture(boundTexture, vec2(uvFrag.x * scaleU, uvFrag.y));
+            ${ColorMapFetch}
             ${InvulnerabilityFragColor}
         }
     "
-    .Replace("${InvulnerabilityFragColor}", FragFunction.InvulnerabilityFragColor);
+    .Replace("${InvulnerabilityFragColor}", FragFunction.InvulnerabilityFragColor)
+    .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false));
 }

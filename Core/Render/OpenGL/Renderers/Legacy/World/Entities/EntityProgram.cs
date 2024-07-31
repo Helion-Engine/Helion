@@ -9,6 +9,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 public class EntityProgram : RenderProgram
 {
     private readonly int m_boundTextureLocation;
+    private readonly int m_colormapTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_timeFracLocation;
     private readonly int m_hasInvulnerabilityLocation;
@@ -25,6 +26,7 @@ public class EntityProgram : RenderProgram
     public EntityProgram() : base("Entity")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_timeFracLocation = Uniforms.GetLocation("timeFrac");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
@@ -40,6 +42,7 @@ public class EntityProgram : RenderProgram
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
+    public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
@@ -178,6 +181,7 @@ public class EntityProgram : RenderProgram
         uniform int hasInvulnerability;
         uniform float fuzzFrac;
         uniform sampler2D boundTexture;
+        uniform samplerBuffer colormapTexture;
         uniform float lightLevelMix;
         uniform int extraLight;
         uniform vec3 colorMix;
@@ -196,5 +200,5 @@ public class EntityProgram : RenderProgram
     .Replace("${LightLevelConstants}", LightLevel.Constants)
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha));
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha | FragColorFunctionOptions.Colormap));
 }

@@ -4,4 +4,5 @@ public static class ShaderVars
 {
     public static bool ReversedZ;
     public static string Depth = "z";
+    public static bool ColorMap = true;
 }

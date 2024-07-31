@@ -2,6 +2,7 @@ using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Graphics.Palettes;
 using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Commands;
 using Helion.Render.OpenGL.Commands.Types;
@@ -13,6 +14,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -22,6 +24,8 @@ using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World;
 using Helion.World.Entities;
+using Helion.World.Entities.Inventories.Powerups;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
@@ -53,6 +57,8 @@ public class Renderer : IDisposable
     private readonly RenderInfo m_renderInfo = new();
     private readonly FramebufferRenderer m_framebufferRenderer;
     private readonly LegacyAutomapRenderer m_automapRenderer;
+
+    private GLBufferTexture? m_colorMapBuffer;
     private Rectangle m_viewport = new(0, 0, 800, 600);
     private bool m_disposed;
 
@@ -81,10 +87,47 @@ public class Renderer : IDisposable
         SetGLStates();
     }
 
+    public void UploadColorMap()
+    {
+        if (ShaderVars.ColorMap)
+        {
+            var colorMapData = CreateColorMap(m_archiveCollection.Palette, m_archiveCollection.Colormap);
+            m_colorMapBuffer = new("Colormap buffer", colorMapData, false);
+        }
+    }
+
     private void SetShaderVars()
     {
         SetReverseZ();
         ShaderVars.Depth = ShaderVars.ReversedZ ? "w" : "z";
+        ShaderVars.ColorMap = m_config.Render.ColorMode.Value == RenderColorMode.Palette;
+    }
+
+    private static float[] CreateColorMap(Palette palettes, Colormap colormap)
+    {
+        int colorMapSize = Colormap.NumColors * Colormap.NumLayers * 3;
+        float[] buffer = new float[colorMapSize * Palette.NumPalettes];
+        int offset = 0;
+
+        for (int paletteIndex = 0; paletteIndex < palettes.Count && paletteIndex < Palette.NumPalettes; paletteIndex++)
+        {
+            var palette = palettes.Layer(paletteIndex);
+            for (int colormapIndex = 0; colormapIndex < colormap.Count && colormapIndex < Colormap.NumColors; colormapIndex++)
+            {
+                var layer = colormap.IndexLayer(colormapIndex);
+                for (int i = 0; i < layer.Length; i++)
+                {
+                    var index = layer[i];
+                    var color = palette[index];
+                    buffer[offset++] = color.R / 255f;
+                    buffer[offset++] = color.G / 255f;
+                    buffer[offset++] = color.B / 255f;
+                }
+                offset = (paletteIndex * colorMapSize) + ((colormapIndex + 1) * Colormap.NumColors * 3);
+            }
+        }
+
+        return buffer;
     }
 
     private void SetReverseZ()
@@ -130,21 +173,82 @@ public class Renderer : IDisposable
         int extraLight = 0;
         float mix = 0.0f;
         var colorMix = GetColorMix(renderInfo.ViewerEntity, renderInfo.Camera);
+        PaletteIndex paletteIndex = PaletteIndex.Normal;
 
         if (renderInfo.ViewerEntity.PlayerObj != null)
         {
-            if (renderInfo.ViewerEntity.PlayerObj.DrawFullBright())
+            var player = renderInfo.ViewerEntity.PlayerObj;
+            if (player.DrawFullBright())
                 mix = 1.0f;
-            if (renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap())
+            if (player.DrawInvulnerableColorMap())
                 drawInvulnerability = true;
 
-            extraLight = renderInfo.ViewerEntity.PlayerObj.GetExtraLightRender();
+            extraLight = player.GetExtraLightRender();
+
+            if (ShaderVars.ColorMap)
+            {
+                mix = 0.0f;
+                paletteIndex = GetPalette(player);
+                if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
+                    mix = 1.0f;                    
+            }
         }
 
         return new ShaderUniforms(CalculateMvpMatrix(renderInfo),
             CalculateMvpMatrix(renderInfo, true),
             GetTimeFrac(), drawInvulnerability, mix, extraLight, GetDistanceOffset(renderInfo),
-            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport));
+            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), paletteIndex);
+    }
+
+    private static PaletteIndex GetPalette(Player player)
+    {
+        var palette = PaletteIndex.Normal;
+        var powerupIndex = PaletteIndex.Normal;
+        var powerup = player.Inventory.PowerupEffectColor;
+        int damageCount = player.DamageCount;
+
+        if (powerup != null && powerup.PowerupType == PowerupType.Strength)
+            damageCount = Math.Max(damageCount, 12 - (powerup.Ticks >> 6));
+
+        if (damageCount > 0)
+        {
+            palette = GetDamagePalette(damageCount);
+            if (powerupIndex > palette)
+                palette = powerupIndex;
+
+        }
+        else if (player.BonusCount > 0)
+        {
+            palette = GetBonusPalette(player.BonusCount);
+        }
+        else if (powerup != null && powerup.PowerupType == PowerupType.IronFeet && powerup.DrawPowerupEffect)
+        {
+            palette = PaletteIndex.Green;
+        }
+
+        return palette;
+    }
+
+    private static PaletteIndex GetBonusPalette(int bonusCount)
+    {
+        const int BonusPals = 4;
+        const int StartBonusPals = 9;
+        int palette = (bonusCount + 7) >> 3;
+        if (palette >= BonusPals)
+            palette = BonusPals - 1;
+        palette += StartBonusPals;
+        return (PaletteIndex)palette;
+    }
+
+    private static PaletteIndex GetDamagePalette(int damageCount)
+    {
+        const int RedPals = 8;
+        const int StartRedPals = 1;
+        int palette = (damageCount + 7) >> 3;
+        if (palette >= RedPals)
+            palette = RedPals - 1;
+        palette += StartRedPals;
+        return (PaletteIndex)palette;
     }
 
     public static Vec3F GetColorMix(Entity viewerEntity, OldCamera camera)
@@ -216,6 +320,7 @@ public class Renderer : IDisposable
     {
         m_hudRenderer.Clear();
         SetupAndBindVirtualFramebuffer();
+        BindColorMapBuffer();
 
         // This has to be tracked beyond just the rendering command, and it
         // also prevents something from going terribly wrong if there is no
@@ -257,10 +362,20 @@ public class Renderer : IDisposable
             }
         }
 
-        DrawHudImagesIfAnyQueued(m_viewport);
+        DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
 
         if (!virtualFrameBufferDraw)
             DrawFramebufferOnDefault();
+    }
+
+    private void BindColorMapBuffer()
+    {
+        if (m_colorMapBuffer != null)
+        {
+            GL.ActiveTexture(TextureUnit.Texture2);
+            m_colorMapBuffer.BindTexture();
+            m_colorMapBuffer.BindRgbBuffer();
+        }
     }
 
     private void SetupAndBindVirtualFramebuffer()
@@ -413,14 +528,14 @@ public class Renderer : IDisposable
         if (viewport.Width == 0 || viewport.Height == 0 || cmd.World.IsDisposed)
             return;
 
-        DrawHudImagesIfAnyQueued(viewport);
-
         var viewSector = cmd.World.BspTree.ToSector(cmd.Camera.PositionInterpolated.Double);
         var transferHeightsView = TransferHeights.GetView(viewSector, cmd.Camera.PositionInterpolated.Z);
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
             cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
         m_renderInfo.Uniforms = GetShaderUniforms(m_renderInfo);
+
+        DrawHudImagesIfAnyQueued(viewport, m_renderInfo.Uniforms);
 
         if (!ShaderVars.ReversedZ)
         {
@@ -451,9 +566,9 @@ public class Renderer : IDisposable
         GL.Viewport(offset.X, offset.Y, dimension.Width, dimension.Height);
     }
 
-    private void DrawHudImagesIfAnyQueued(Rectangle viewport)
+    private void DrawHudImagesIfAnyQueued(Rectangle viewport, ShaderUniforms uniforms)
     {
-        m_hudRenderer.Render(viewport);
+        m_hudRenderer.Render(viewport, uniforms);
     }
 
     protected virtual void Dispose(bool disposing)

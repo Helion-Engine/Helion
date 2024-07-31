@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Helion.Geometry.Vectors;
 using SixLabors.ImageSharp.PixelFormats;
@@ -6,7 +7,7 @@ using SixLabors.ImageSharp.PixelFormats;
 namespace Helion.Graphics;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public record struct Color(byte A, byte R, byte G, byte B)
+public struct Color
 {
     public static readonly Color Transparent = (0, 0, 0, 0);
 
@@ -38,7 +39,21 @@ public record struct Color(byte A, byte R, byte G, byte B)
     public static readonly Color White = (0xFF, 0xFF, 0xFF);
     public static readonly Color Yellow = (0xFF, 0xFF, 0x00);
 
-    public uint Uint => (uint)((A << 24) | (R << 16) | (G << 8) | B);
+    private uint m_value;
+
+    public byte A => (byte)((m_value & 0xFF000000) >> 24);
+    public byte R => (byte)((m_value & 0x00FF0000) >> 16);
+    public byte G => (byte)((m_value & 0x0000FF00) >> 8);
+    public byte B => (byte)(m_value & 0x000000FF);
+
+    public Color(byte a, byte r, byte g, byte b)
+    {
+        m_value = FromBytes(a, r, g, b);
+    }
+
+    public static uint FromBytes(byte a, byte r, byte g, byte b) => (uint)((a << 24) | (r << 16) | (g << 8) | b);
+
+    public uint Uint => m_value;
     public Vec4F Normalized => new Vec4F(A, R, G, B) * (1 / 255.0f);
     public SixLabors.ImageSharp.Color ToImageSharp => new(new Rgba32(R, G, B, A));
 
@@ -57,14 +72,12 @@ public record struct Color(byte A, byte R, byte G, byte B)
     {
     }
 
-    public Color(uint argb) : this(ExtractAlpha(argb), ExtractRed(argb), ExtractGreen(argb), ExtractBlue(argb))
+    public Color(uint argb)
     {
+        m_value = argb;
     }
 
-    public static byte ExtractAlpha(uint argb) => (byte)((argb & 0xFF000000) >> 24);
-    public static byte ExtractRed(uint argb) => (byte)((argb & 0x00FF0000) >> 16);
-    public static byte ExtractGreen(uint argb) => (byte)((argb & 0x0000FF00) >> 8);
-    public static byte ExtractBlue(uint argb) => (byte)((argb & 0x000000FF));
+    public static Color Indexed(byte index) => new(index, 0, 0);
 
     public static implicit operator Color(ValueTuple<byte, byte, byte> tuple)
     {
@@ -134,5 +147,27 @@ public record struct Color(byte A, byte R, byte G, byte B)
             "yellow" => Yellow,
             _ => Black
         };
+    }
+
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        if (obj is Color c)
+            return c.m_value == m_value;
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return (int)m_value;
+    }
+
+    public static bool operator ==(Color left, Color right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Color left, Color right)
+    {
+        return !(left == right);
     }
 }

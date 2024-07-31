@@ -44,5 +44,10 @@ public class ProgramUniforms
     public void Set(TextureUnit value, int location) => GL.Uniform1(location, (int)value - (int)TextureUnit.Texture0);
     public void Set(TextureUnit value, string name) => Set(value, GetLocation(name));
 
-    public int GetLocation(string name) => m_nameToLocation[name];
+    public int GetLocation(string name)
+    {
+        if (m_nameToLocation.TryGetValue(name, out var location))
+            return location;
+        return -1;
+    }
 }

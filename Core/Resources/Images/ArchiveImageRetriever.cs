@@ -82,7 +82,7 @@ public class ArchiveImageRetriever : IImageRetriever
     private Image ImageFromDefinition(TextureDefinition definition)
     {
         (int w, int h) = definition.Dimension;
-        Image image = new(w, h, ImageType.Argb, (0, 0), definition.Namespace);
+        Image image = new(w, h, ImageType.PaletteWithArgb, (0, 0), definition.Namespace);
 
         foreach (TextureDefinitionComponent component in definition.Components)
         {

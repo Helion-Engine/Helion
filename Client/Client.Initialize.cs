@@ -111,6 +111,7 @@ public partial class Client
             return false;
         }
 
+        m_filesLoaded = true;
         return true;
     }
 

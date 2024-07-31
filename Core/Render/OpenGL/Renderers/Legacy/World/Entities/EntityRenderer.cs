@@ -246,6 +246,7 @@ public class EntityRenderer : IDisposable
     private void SetUniforms(RenderInfo renderInfo)
     {
         m_program.BoundTexture(TextureUnit.Texture0);
+        m_program.ColormapTexture(TextureUnit.Texture2);
         m_program.ExtraLight(renderInfo.Uniforms.ExtraLight);
         m_program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         m_program.LightLevelMix(renderInfo.Uniforms.Mix);

@@ -8,6 +8,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 public class LegacyHudShader : RenderProgram
 {
     private readonly int m_boundTextureLocation;
+    private readonly int m_colormapTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_fuzzFracLocation;
     private readonly int m_fuzzDivLocation;
@@ -15,12 +16,14 @@ public class LegacyHudShader : RenderProgram
     public LegacyHudShader() : base("Hud")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_fuzzFracLocation = Uniforms.GetLocation("fuzzFrac");
         m_fuzzDivLocation = Uniforms.GetLocation("fuzzDiv");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
+    public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
     public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
     public void FuzzFrac(float frac) => Uniforms.Set(frac, m_fuzzFracLocation);
     public void FuzzDiv(float div) => Uniforms.Set(div, m_fuzzDivLocation);
@@ -66,6 +69,7 @@ public class LegacyHudShader : RenderProgram
         out vec4 fragColor;
 
         uniform sampler2D boundTexture;
+        uniform samplerBuffer colormapTexture;
         uniform float fuzzFrac;
         uniform float fuzzDiv;
         // Make the hud weapon fuzz a little more detailed.
@@ -75,7 +79,8 @@ public class LegacyHudShader : RenderProgram
 
         void main() {
             fragColor = texture(boundTexture, uvFrag.st);
-            ${FullBrightFlag}
+            ${ColorMapFetch}
+            ${AlphaFlag}
             fragColor.w *= alphaFrag;
             fragColor.xyz *= mix(vec3(1.0, 1.0, 1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);
 
@@ -90,5 +95,6 @@ public class LegacyHudShader : RenderProgram
     "
     .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
     .Replace("${FuzzFragFunction}", FragFunction.FuzzFragFunction)
-    .Replace("${FullBrightFlag}", FragFunction.FullBrightFlag(false));
+    .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false))
+    .Replace("${AlphaFlag}", FragFunction.AlphaFlag(false));
 }

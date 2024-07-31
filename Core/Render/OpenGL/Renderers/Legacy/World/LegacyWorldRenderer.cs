@@ -3,8 +3,6 @@ using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Graphics.Palettes;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -14,7 +12,6 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Blockmap;
@@ -431,6 +428,7 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         m_interpolationProgram.BoundTexture(TextureUnit.Texture0);
         m_interpolationProgram.SectorLightTexture(TextureUnit.Texture1);
+        m_interpolationProgram.ColormapTexture(TextureUnit.Texture2);
         m_interpolationProgram.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         m_interpolationProgram.Mvp(renderInfo.Uniforms.Mvp);
         m_interpolationProgram.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
@@ -439,12 +437,14 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationProgram.ExtraLight(renderInfo.Uniforms.ExtraLight);
         m_interpolationProgram.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
         m_interpolationProgram.ColorMix(renderInfo.Uniforms.ColorMix);
+        m_interpolationProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
     }
 
     private void SetStaticUniforms(RenderInfo renderInfo)
     {
         m_staticProgram.BoundTexture(TextureUnit.Texture0);
         m_staticProgram.SectorLightTexture(TextureUnit.Texture1);
+        m_staticProgram.ColormapTexture(TextureUnit.Texture2);
         m_staticProgram.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         m_staticProgram.Mvp(renderInfo.Uniforms.Mvp);
         m_staticProgram.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
@@ -452,6 +452,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.ExtraLight(renderInfo.Uniforms.ExtraLight);
         m_staticProgram.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
         m_staticProgram.ColorMix(renderInfo.Uniforms.ColorMix);
+        m_staticProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
     }
 
     private void ReleaseUnmanagedResources()
@@ -460,7 +461,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.Dispose();
         m_geometryRenderer.Dispose();
         m_worldDataManager.Dispose();
-        //m_automapRenderer.Dispose();
         m_primitiveRenderer.Dispose();
         m_entityRenderer.Dispose();
     }

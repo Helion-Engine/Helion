@@ -86,7 +86,7 @@ public class GLTexture2DArray : GLTexture
     // Assumes the user binds first.
     public unsafe void UploadLayer(Image image, int layer)
     {
-        fixed (uint* pixelPtr = image.Pixels)
+        fixed (uint* pixelPtr = image.GetGlTexturePixels())
         {
             IntPtr ptr = new(pixelPtr);
             GL.TexSubImage3D(TextureTarget.Texture2DArray, 0, 0, 0, layer, image.Width, image.Height, 1,

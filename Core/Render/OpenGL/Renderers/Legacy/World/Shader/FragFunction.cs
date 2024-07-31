@@ -8,7 +8,8 @@ public enum FragColorFunctionOptions
     None,
     AddAlpha = 1,
     Alpha = 2,
-    Fuzz = 4
+    Fuzz = 4,
+    Colormap = 8
 }
 
 public class FragFunction
@@ -46,20 +47,45 @@ public class FragFunction
         }";
 
 
-    public static string FullBrightFlag(bool lightLevel) =>
-        @"// Check for the reserved alpha value to indicate a full bright pixel.
-        float fullBrightFlag = float(fragColor.w == 0.0039215686274509803921568627451);
-        " + (lightLevel ? "lightLevel = mix(lightLevel, 1, fullBrightFlag);\n" : "") +
-        "fragColor.w = mix(fragColor.w, 1, fullBrightFlag);\n";
+    public static string AlphaFlag(bool lightLevel)
+    {
+        if (ShaderVars.ColorMap)
+            return "";
+
+        return
+            @"// Check for the reserved alpha value to indicate a full bright pixel.
+            float fullBrightFlag = float(fragColor.w == 0.0039215686274509803921568627451);
+            " + (lightLevel ? "lightLevel = mix(lightLevel, 1, fullBrightFlag);\n" : "") +
+            "fragColor.w = mix(fragColor.w, 1, fullBrightFlag);\n";
+    }
+
+    public static string ColorMapFetch(bool lightLevel)
+    {
+        if (!ShaderVars.ColorMap)
+            return "";
+
+        string indexAdd = lightLevel ? "(colormapIndex * 256 * 3) + " : "";
+        // Use the alpha flag to indicite we need to fetch from the colormap buffer since we don't need it for fullbright.
+        return @"float colormapFetchFlag = float(fragColor.w == 0.0039215686274509803921568627451);
+                fragColor.w += colormapFetchFlag;
+                int texIndex = ${IndexAdd}(int(fragColor.r * 255.0) * 3);
+                vec3 fetchColor = vec3(texelFetch(colormapTexture, texIndex).r,
+                                       texelFetch(colormapTexture, texIndex + 1).r,
+                                       texelFetch(colormapTexture, texIndex + 2).r);
+                fragColor.rgb = mix(fragColor.rgb, fetchColor, vec3(colormapFetchFlag, colormapFetchFlag, colormapFetchFlag));
+                "
+                .Replace("${IndexAdd}", indexAdd);
+    }
+
 
     public static string FragColorFunction(FragColorFunctionOptions options)
     {
         return @"
-            fragColor = texture(boundTexture, uvFrag.st);"
-            + FullBrightFlag(true) +
-            
+            fragColor = texture(boundTexture, uvFrag.st);" +
+            (options.HasFlag(FragColorFunctionOptions.Colormap) ? ColorMapFetch(true) : "")
+            + AlphaFlag(true) +
             (options.HasFlag(FragColorFunctionOptions.Fuzz) ? FuzzFragFunction :  "") +
-            "fragColor.xyz *= lightLevel;\n" +
+            (ShaderVars.ColorMap ? "\n" : "fragColor.xyz *= lightLevel;\n") +
             (options.HasFlag(FragColorFunctionOptions.AddAlpha) ? 
                 "fragColor.w = fragColor.w * alphaFrag + addAlphaFrag;\n" : 
                 "") +

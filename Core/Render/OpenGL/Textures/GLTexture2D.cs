@@ -47,7 +47,7 @@ public class GLTexture2D : GLTexture
     // Assumes the user binds first.
     public unsafe void UploadImage(Image image)
     {
-        fixed (uint* pixelPtr = image.Pixels)
+        fixed (uint* pixelPtr = image.GetGlTexturePixels())
         {
             IntPtr ptr = new(pixelPtr);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0,

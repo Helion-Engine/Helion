@@ -55,6 +55,7 @@ public partial class Client : IDisposable, IInputManagement
     private bool m_disposed;
     private bool m_takeScreenshot;
     private bool m_loadComplete;
+    private bool m_filesLoaded;
     private WorldModel? m_loadCompleteModel;
 
     record struct VersionTest(int Major, int Minor);
@@ -253,6 +254,7 @@ public partial class Client : IDisposable, IInputManagement
         m_profiler.ResetTimers();
         m_profiler.Global.Start();
 
+        CheckLoadFilesComplete();
         CheckLoadMapComplete();
         CheckForErrorsIfDebug();
 
@@ -263,6 +265,15 @@ public partial class Client : IDisposable, IInputManagement
 
         m_profiler.Global.Stop();
         m_profiler.MarkFrameFinished();
+    }
+
+    private void CheckLoadFilesComplete()
+    {
+        if (!m_filesLoaded)
+            return;
+
+        m_filesLoaded = false;
+        m_window.Renderer.UploadColorMap();
     }
 
     private void CheckLoadMapComplete()

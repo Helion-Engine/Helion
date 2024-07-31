@@ -27,9 +27,9 @@ public class GLBufferTexture : IDisposable
         BindBuffer();
 
         if (persistentBufferStorage)
-            GL.BufferStorage(BufferTarget.TextureBuffer, data.Length, 0, BufferStorageFlags.MapWriteBit | BufferStorageFlags.MapPersistentBit);
+            GL.BufferStorage(BufferTarget.TextureBuffer, data.Length * 4, 0, BufferStorageFlags.MapWriteBit | BufferStorageFlags.MapPersistentBit);
         else
-            GL.BufferData(BufferTarget.TextureBuffer, data.Length, m_data, BufferUsageHint.DynamicDraw);
+            GL.BufferData(BufferTarget.TextureBuffer, data.Length * 4, m_data, BufferUsageHint.DynamicDraw);
         
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, m_name, $"TBO: {label}");
         UnbindBuffer();

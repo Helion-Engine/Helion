@@ -142,6 +142,7 @@ public class SkySphereRenderer : IDisposable
             invulnerability = renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap();
 
         m_program.BoundTexture(TextureUnit.Texture0);
+        m_program.ColormapTexture(TextureUnit.Texture2);
         m_program.Mvp(CalculateMvp(renderInfo));
         m_program.ScaleU(m_texture.ScaleU);
         m_program.FlipU(flipSkyHorizontal);

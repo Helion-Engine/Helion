@@ -2,11 +2,13 @@ using System;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Resources;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics;
+
 
 /// <summary>
 /// An image, that can either contain ARGB data or palette indices.
@@ -28,6 +30,7 @@ public class Image
     public readonly Vec2I Offset;
     public readonly ResourceNamespace Namespace;
     private readonly uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
+    private readonly uint[] m_indices;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
@@ -48,7 +51,7 @@ public class Image
         Precondition(h >= 0, "Tried providing a negative height for an image");
     }
 
-    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns)
+    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, uint[]? indices = null)
     {
         Precondition(pixels.Length == dimension.Area, "Image size mismatch");
 
@@ -57,6 +60,17 @@ public class Image
         Offset = offset;
         Namespace = ns;
         m_pixels = pixels;
+
+        if (ImageType == ImageType.PaletteWithArgb && indices == null)
+            m_indices = new uint[m_pixels.Length];
+
+        if (indices != null)
+        {
+            ImageType = ImageType.PaletteWithArgb;
+            m_indices = indices;
+        }
+
+        m_indices ??= [];
     }
 
     public static Image? FromPaletteIndices(Dimension dimension, uint[] indices, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
@@ -100,18 +114,16 @@ public class Image
         {
             uint argb = m_pixels[i];
             uint pixel = (argb == TransparentIndex ? Color.Transparent.Uint : layer[argb].Uint);
-
             if (argb != TransparentIndex && argb < fullBright.Length && fullBright[argb])
             {
                 HasFullBrightPixels = true;
                 uint newPixel = (pixel & 0x00FFFFFF) | (AlphaFlag << 24);
                 pixel = newPixel;
             }
-
             pixels[i] = pixel;
         }
 
-        return new(pixels, Dimension, ImageType.Argb, Offset, Namespace);
+        return new(pixels, Dimension, ImageType.Argb, Offset, Namespace, m_pixels);
     }
 
     private static uint BlendPixels(uint back, uint front)
@@ -167,6 +179,10 @@ public class Image
 
                 uint pixel = m_pixels[thisOffset];
                 uint alpha = (pixel >> 24) & 0xFF;
+
+                if (ImageType == ImageType.PaletteWithArgb && image.ImageType == ImageType.PaletteWithArgb)
+                    image.m_indices[targetOffset] = m_indices[thisOffset];
+
                 if (alpha > 0)
                 {
                     if (alpha == 255 || alpha == AlphaFlag)
@@ -192,6 +208,16 @@ public class Image
             m_pixels[i] = argb;
     }
 
+    public void FillRows(uint index, int startY, int endY)
+    {
+        if (ImageType != ImageType.PaletteWithArgb)
+            return;
+        int offsetStart = startY * Width;
+        int offsetEnd = endY * Width;
+        for (int i = offsetStart; i < offsetEnd; i++)
+            m_indices[i] = index;
+    }
+
     public int TransparentPixelCount()
     {
         int count = 0;
@@ -210,11 +236,15 @@ public class Image
         return new(argb);
     }
 
-    public void SetPixel(int x, int y, Color color)
+    public void SetPixel(int x, int y, Color color, Colormap colormap)
     {
         int offset = (y * Width) + x;
         if (offset >= 0 && offset < m_pixels.Length)
+        {
+            if (ImageType == ImageType.PaletteWithArgb)
+                m_indices[offset] = colormap.GetNearestColorIndex(color);
             m_pixels[offset] = color.Uint;
+        }
     }
 
     public Image FlipY()
@@ -291,6 +321,22 @@ public class Image
         }
     }
 
+    public uint[] GetGlTexturePixels()
+    {
+        if (m_indices.Length == 0 || !ShaderVars.ColorMap)
+            return m_pixels;
+
+        uint[] pixels = new uint[m_indices.Length];
+        for (int i = 0; i < m_indices.Length; i++)
+        {
+            var argb = m_indices[i];
+            byte alpha = (byte)(argb == TransparentIndex ? 0 : AlphaFlag);
+            pixels[i] = (uint)(alpha << 24 | (byte)argb << 16);
+        }
+
+        return pixels;
+    }
+
     private static Image CreateNullImage()
     {
         const int Dimension = 8;
@@ -302,11 +348,11 @@ public class Image
 
         for (int y = 0; y < HalfDimension; y++)
             for (int x = 0; x < HalfDimension; x++)
-                image.SetPixel(x, y, Color.Red);
+                image.SetPixel(x, y, Color.Red, Colormap.GetDefaultColormap());
 
         for (int y = HalfDimension; y < Dimension; y++)
             for (int x = HalfDimension; x < Dimension; x++)
-                image.SetPixel(x, y, Color.Red);
+                image.SetPixel(x, y, Color.Red, Colormap.GetDefaultColormap());
 
         return image;
     }
