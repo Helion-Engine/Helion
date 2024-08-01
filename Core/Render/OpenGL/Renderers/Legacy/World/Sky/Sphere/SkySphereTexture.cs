@@ -22,14 +22,16 @@ public class SkySphereTexture : IDisposable
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly int m_textureHandleIndex;
-    private readonly List<SkyTexture> m_skyTextures = new();
+    private readonly List<SkyTexture> m_skyTextures = [];
+    private readonly bool m_fade;
     private bool m_loadedTextures;
 
-    public SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle)
+    public SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle, bool fade)
     {
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
         m_textureHandleIndex = textureHandle;
+        m_fade = fade;
     }
 
     ~SkySphereTexture()
@@ -164,7 +166,7 @@ public class SkySphereTexture : IDisposable
         fadedSky.FillRows(bottomFadeColor, middleY, fadedSky.Height);
 
         fadedSky.FillRows(m_archiveCollection.Colormap.GetNearestColorIndex(topFadeColor), 0, middleY);
-        fadedSky.FillRows(m_archiveCollection.Colormap.GetNearestColorIndex(topFadeColor), middleY, fadedSky.Height);
+        fadedSky.FillRows(m_archiveCollection.Colormap.GetNearestColorIndex(bottomFadeColor), middleY, fadedSky.Height);
 
         // Now draw the images on top of them.
         skyImage.DrawOnTopOf(fadedSky, (0, middleY));
@@ -270,11 +272,7 @@ public class SkySphereTexture : IDisposable
         Color topFadeColor = CalculateAverageRowColor(0, rowsToEvaluate, skyImage);
         Color bottomFadeColor = CalculateAverageRowColor(bottomStartY, bottomExclusiveEndY, skyImage);
 
-        // Don't fade sky with colormap
-        if (ShaderVars.ColorMap)
-            rowsToEvaluate = 0;
-
-        Image fadedSkyImage = CreateFadedSky(rowsToEvaluate, bottomFadeColor, topFadeColor, skyImage);
+        Image fadedSkyImage = CreateFadedSky(m_fade ? rowsToEvaluate : 0, bottomFadeColor, topFadeColor, skyImage);
         LegacySkyRenderer.GeneratedImages[textureIndex] = fadedSkyImage;
         return fadedSkyImage;
     }

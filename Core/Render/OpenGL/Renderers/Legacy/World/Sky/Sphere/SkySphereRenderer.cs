@@ -15,7 +15,7 @@ public class SkySphereRenderer : IDisposable
     private const int HorizontalSpherePoints = 64;
     private const int VerticalSpherePoints = 64;
     private static readonly vec3 UpOpenGL = new(0, 1, 0);
-    private static SkySphereVertex[] SpherePoints = new SkySphereVertex[VerticalSpherePoints * HorizontalSpherePoints * 6];
+    private static readonly SkySphereVertex[] SpherePoints = new SkySphereVertex[VerticalSpherePoints * HorizontalSpherePoints * 6];
     private static bool SphereInitialized;
 
     private readonly StaticVertexBuffer<SkySphereVertex> m_vbo;
@@ -23,12 +23,12 @@ public class SkySphereRenderer : IDisposable
     private readonly SkySphereShader m_program;
     private readonly SkySphereTexture m_texture;
 
-    public SkySphereRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle)
+    public SkySphereRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle, bool fadeTexture)
     {
         m_vao = new("Sky sphere");
         m_vbo = new("Sky sphere", HorizontalSpherePoints * VerticalSpherePoints * 6);
         m_program = new();
-        m_texture = new(archiveCollection, textureManager, textureHandle);
+        m_texture = new(archiveCollection, textureManager, textureHandle, fadeTexture);
         m_texture.LoadTextures();
 
         Attributes.BindAndApply(m_vbo, m_vao, m_program.Attributes);

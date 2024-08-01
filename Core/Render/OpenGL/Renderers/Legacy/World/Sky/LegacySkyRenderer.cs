@@ -15,17 +15,20 @@ public class LegacySkyRenderer : IDisposable
 {
     private const int MaxSkyTextures = 255;
 
-    public static readonly Dictionary<int, Image> GeneratedImages = new();
+    public static readonly Dictionary<int, Image> GeneratedImages = [];
+
+    public bool FadeSkyTexture { get; set; }
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
-    private readonly Dictionary<int, ISkyComponent> m_skyComponents = new();
-    private readonly List<ISkyComponent> m_skyComponentsList = new();
+    private readonly Dictionary<int, ISkyComponent> m_skyComponents = [];
+    private readonly List<ISkyComponent> m_skyComponentsList = [];
 
-    public LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
+    public LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, bool fadeSkyTexture)
     {
         m_archiveCollection = archiveCollection;
         m_textureManager = textureManager;
+        FadeSkyTexture = fadeSkyTexture;
     }
 
     ~LegacySkyRenderer()
@@ -72,7 +75,7 @@ public class LegacySkyRenderer : IDisposable
         if (m_skyComponents.TryGetValue(textureHandleLookup, out sky))
             return true;
 
-        sky = new SkySphereComponent(m_archiveCollection, m_textureManager, textureHandle.Value, flipSkyTexture);
+        sky = new SkySphereComponent(m_archiveCollection, m_textureManager, textureHandle.Value, flipSkyTexture, FadeSkyTexture);
         m_skyComponents[textureHandleLookup] = sky;
         m_skyComponentsList.Add(sky);
         return true;

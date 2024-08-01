@@ -23,6 +23,7 @@ using OpenTK.Graphics.OpenGL;
 using Helion.Render.OpenGL.Context;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -69,7 +70,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
         m_program = program;
-        m_skyRenderer = new(archiveCollection, textureManager);
+        m_skyRenderer = new(archiveCollection, textureManager, !ShaderVars.ColorMap);
         m_mapPersistent = GLInfo.MapPersistentBitSupported;
     }
 
