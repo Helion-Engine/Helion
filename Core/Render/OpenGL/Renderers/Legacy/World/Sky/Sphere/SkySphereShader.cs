@@ -71,6 +71,7 @@ public class SkySphereShader : RenderProgram
         void main() {
             fragColor = texture(boundTexture, vec2(uvFrag.x * scaleU, uvFrag.y));
             ${ColorMapFetch}
+            fragColor.w = 1;
             ${InvulnerabilityFragColor}
         }
     "
