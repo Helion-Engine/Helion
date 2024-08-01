@@ -54,7 +54,8 @@ public struct Color
     public static uint FromBytes(byte a, byte r, byte g, byte b) => (uint)((a << 24) | (r << 16) | (g << 8) | b);
 
     public uint Uint => m_value;
-    public Vec4F Normalized => new Vec4F(A, R, G, B) * (1 / 255.0f);
+    public Vec4F Normalized => new(A / 255.0f, R / 255.0f, G / 255.0f, B / 255.0f);
+    public Vec3F Noralized3 => new(R / 255.0f, G / 255.0f, B / 255.0f);
     public SixLabors.ImageSharp.Color ToImageSharp => new(new Rgba32(R, G, B, A));
 
     public Color(Vec4F normalized) : 
@@ -169,5 +170,10 @@ public struct Color
     public static bool operator !=(Color left, Color right)
     {
         return !(left == right);
+    }
+
+    public override string ToString()
+    {
+        return $"{R} {G} {B} [{A}]";
     }
 }
