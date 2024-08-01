@@ -184,16 +184,16 @@ public class Image
                 uint pixel = m_pixels[thisOffset];
                 uint alpha = (pixel >> 24) & 0xFF;
 
-                if (ImageType == ImageType.PaletteWithArgb && image.ImageType == ImageType.PaletteWithArgb)
+                if (alpha == 0)
+                    continue;
+
+                if (ImageType == ImageType.PaletteWithArgb && image.ImageType == ImageType.PaletteWithArgb && image.m_indices.Length > targetOffset)
                     image.m_indices[targetOffset] = m_indices[thisOffset];
 
-                if (alpha > 0)
-                {
-                    if (alpha == 255 || alpha == AlphaFlag)
-                        image.m_pixels[targetOffset] = pixel;
-                    else
-                        image.m_pixels[targetOffset] = BlendPixels(image.m_pixels[targetOffset], pixel);
-                }
+                if (alpha == 255 || alpha == AlphaFlag)
+                    image.m_pixels[targetOffset] = pixel;
+                else
+                    image.m_pixels[targetOffset] = BlendPixels(image.m_pixels[targetOffset], pixel);
             }
         }
     }
