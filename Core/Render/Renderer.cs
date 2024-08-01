@@ -100,7 +100,7 @@ public class Renderer : IDisposable
     {
         SetReverseZ();
         ShaderVars.Depth = ShaderVars.ReversedZ ? "w" : "z";
-        ShaderVars.ColorMap = m_config.Render.ColorMode.Value == RenderColorMode.Palette;
+        ShaderVars.ColorMap = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
     }
 
     private static float[] CreateColorMap(Palette palettes, Colormap colormap)

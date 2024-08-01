@@ -92,10 +92,6 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Emulate vanilla rendering", spacer: true)]
     public readonly ConfigValue<bool> VanillaRender = new(false);
 
-    [ConfigInfo("Palette uses Doom's colormaps. True color is calculated from the base palette and interpolated. Full application restart required.", restartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Color mode")]
-    public readonly ConfigValue<RenderColorMode> ColorMode = new(RenderColorMode.TrueColor);
-
     [ConfigInfo("If any sprite should clip the floor.")]
     [OptionMenu(OptionSectionType.Render, "Sprite floor clip")]
     public readonly ConfigValue<bool> SpriteClip = new(true);

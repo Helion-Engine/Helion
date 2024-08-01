@@ -48,4 +48,8 @@ public class ConfigWindow
     [ConfigInfo("The display number for the window. (0 = default. Use command ListDisplays for display numbers).")]
     [OptionMenu(OptionSectionType.Video, "Display Number [0 default]", spacer: true)]
     public readonly ConfigValue<int> Display = new(0, GreaterOrEqual(0));
+
+    [ConfigInfo("Palette uses Doom's colormaps. True color is calculated from the base palette and interpolated. *Application restart required.", restartRequired: true)]
+    [OptionMenu(OptionSectionType.Video, "Color mode")]
+    public readonly ConfigValue<RenderColorMode> ColorMode = new(RenderColorMode.TrueColor);
 }
