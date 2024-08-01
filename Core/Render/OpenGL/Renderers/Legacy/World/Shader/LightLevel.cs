@@ -17,7 +17,7 @@ public static class LightLevel
     public static string VertexVariables(LightLevelOptions options) =>
         $"flat out float lightLevelFrag;{(options.HasFlag(LightLevelOptions.NoDist) ? "" : "out float dist;")}uniform mat4 mvpNoPitch;uniform float distanceOffset;";
 
-    public static string VertexLightBufferVariables = "uniform samplerBuffer sectorLightTexture;";
+    public static string VertexLightBufferVariables => "uniform samplerBuffer sectorLightTexture;";
 
     public static string VertexLightBuffer(VertexLightBufferOptions options) =>
 @"int texBufferIndex = int(lightLevelBufferIndex);
@@ -29,7 +29,7 @@ lightLevelFrag = clamp(lightLevelBufferValue" + (options.HasFlag(VertexLightBuff
     public static string FragVariables(LightLevelOptions options) =>
 $"flat in float lightLevelFrag;{(options.HasFlag(LightLevelOptions.NoDist) ? "" : "in float dist;")}uniform float lightLevelMix;uniform int extraLight;uniform float distanceOffset;uniform samplerBuffer colormapTexture;";
 
-    public static string Constants =
+    public static string Constants =>
 @"// Defined in GLHelper as well
 const int colorMaps = 32;
 const int colorMapClamp = 31;
@@ -38,7 +38,7 @@ const int scaleCountClamp = 15;
 const int maxLightScale = 23;
 const int lightFadeStart = 56;";
 
-    public static string FragFunction =
+    public static string FragFunction =>
 @"
 float lightLevel = lightLevelFrag;
 float distCalc = clamp(dist - lightFadeStart - distanceOffset, 0, dist);
@@ -47,9 +47,10 @@ int colormapIndex = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
 sub = maxLightScale - clamp(sub - extraLight, 0, maxLightScale);
 colormapIndex = clamp(((scaleCount - colormapIndex - 1) * 2 * colorMaps/scaleCount) - sub, 0, colorMapClamp);
 "
-+ (!ShaderVars.ColorMap ?
++ (ShaderVars.ColorMap ? "" :
 @"
 lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
-lightLevel = float(colorMaps - colormapIndex) / colorMaps;"
-: "");
+lightLevel = float(colorMaps - colormapIndex) / colorMaps;
+lightLevel = mix(lightLevel, 1, hasInvulnerability);"
+);
 }

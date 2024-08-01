@@ -121,8 +121,8 @@ public class FragFunction
     // Note: The 1.5x is a visual guess to make it look closer to vanilla.
     if (hasInvulnerability != 0)
     {
-        float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
-        maxColor *= 1.5;
-        fragColor.xyz = vec3(maxColor, maxColor, maxColor);
+        float gray = fragColor.x * 0.299 + fragColor.y * 0.587 + fragColor.z * 0.144;
+        gray = 1 - gray;
+        fragColor.xyz = vec3(gray, gray, gray);
     }";
 }
