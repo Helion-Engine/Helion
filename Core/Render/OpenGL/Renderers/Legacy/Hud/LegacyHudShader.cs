@@ -43,12 +43,14 @@ public class LegacyHudShader : RenderProgram
         layout(location = 3) in float alpha;
         layout(location = 4) in float hasInvulnerability;
         layout(location = 5) in float hasFuzz;
+        layout(location = 6) in float drawColorMap;
 
         out vec2 uvFrag;
         flat out vec4 rgbMultiplierFrag;
         flat out float alphaFrag;
         flat out float hasInvulnerabilityFrag;
         flat out float fuzzFrag;
+        flat out float drawColorMapFrag;
 
         uniform mat4 mvp;
 
@@ -58,12 +60,13 @@ public class LegacyHudShader : RenderProgram
             alphaFrag = alpha;
             hasInvulnerabilityFrag = hasInvulnerability;
             fuzzFrag = hasFuzz;
+            drawColorMapFrag = drawColorMap;
 
             gl_Position = mvp * vec4(pos, 1.0);
         }
     ";
 
-    private static string TrueColorInvul = 
+    private static readonly string TrueColorInvul = 
         @"if (hasInvulnerabilityFrag != 0) {
             float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
             maxColor *= 1.5;
@@ -78,6 +81,7 @@ public class LegacyHudShader : RenderProgram
         flat in float alphaFrag;
         flat in float hasInvulnerabilityFrag;
         flat in float fuzzFrag;
+        flat in float drawColorMapFrag;
 
         out vec4 fragColor;
 

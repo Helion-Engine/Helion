@@ -59,7 +59,7 @@ public class FragFunction
             "fragColor.w = mix(fragColor.w, 1, fullBrightFlag);\n";
     }
 
-    public static string ColorMapFetch(bool lightLevel, bool invulFrag)
+    public static string ColorMapFetch(bool lightLevel, bool hud)
     {
         if (!ShaderVars.ColorMap)
             return "";
@@ -74,8 +74,10 @@ public class FragFunction
             @"
               int usePalette = paletteIndex;
               int lightLevelOffset = 0;
-              lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability${InvulFrag})));"
-            .Replace("${InvulFrag}", invulFrag ? "* hasInvulnerabilityFrag" : "");
+              lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability${HudInvulFrag})));
+              ${HudClearPalette}"
+            .Replace("${HudInvulFrag}", hud ? "* hasInvulnerabilityFrag" : "")
+            .Replace("${HudClearPalette}", hud ? "usePalette = int(mix(0, usePalette, float(drawColorMapFrag)));" : "");
         // Use the alpha flag to indicate we need to fetch from the colormap buffer since we don't need it for fullbright.
         return @"
                 const int paletteSize = 256 * 34;

@@ -20,6 +20,10 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Horizontal Autoaim")]
     public readonly ConfigValue<bool> HorizontalAutoAim = new(false);
 
+    [ConfigInfo("Scales red amount draw to screen when the player takes damage.")]
+    [OptionMenu(OptionSectionType.General, "Pain Intensity")]
+    public readonly ConfigValue<double> PainIntensity = new(1.0);
+
     [ConfigInfo("If the player should automatically use lines when bumping.", demo: true)]
     [OptionMenu(OptionSectionType.General, "Bump Use", spacer: true)]
     public readonly ConfigValue<bool> BumpUse = new(false);

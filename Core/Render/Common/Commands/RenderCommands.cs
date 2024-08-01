@@ -112,10 +112,10 @@ public class RenderCommands
     }
 
     public void DrawImage(string textureName, int left, int top, int width, int height, Color color,
-        float alpha = 1.0f, bool drawInvul = false, bool drawFuzz = false)
+        float alpha = 1.0f, bool drawInvul = false, bool drawFuzz = false, bool drawColorMap = true)
     {
         ImageBox2I drawArea = TranslateDoomImageDimensions(left, top, width, height);
-        DrawImageCommand cmd = new(textureName, drawArea, color, alpha * m_alpha, drawInvul, drawFuzz);
+        DrawImageCommand cmd = new(textureName, drawArea, color, alpha * m_alpha, drawInvul, drawFuzz, drawColorMap);
         Commands.Add(new RenderCommand(RenderCommandType.Image, ImageCommands.Count));
         ImageCommands.Add(cmd);
     }
@@ -128,10 +128,10 @@ public class RenderCommands
         ShapeCommands.Add(command);
     }
 
-    public void DrawText(RenderableString str, int left, int top, float alpha)
+    public void DrawText(RenderableString str, int left, int top, float alpha, bool drawColorMap)
     {
         ImageBox2I drawArea = TranslateDimensions(left, top, str.DrawArea);
-        DrawTextCommand command = new(str, drawArea, alpha * m_alpha);
+        DrawTextCommand command = new(str, drawArea, alpha * m_alpha, drawColorMap);
         Commands.Add(new RenderCommand(RenderCommandType.Text, TextCommands.Count));
         TextCommands.Add(command);
     }

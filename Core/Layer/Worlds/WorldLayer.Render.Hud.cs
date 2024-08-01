@@ -20,6 +20,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Extensions;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
@@ -119,7 +120,6 @@ public partial class WorldLayer
         if ((m_renderHudOptions & RenderHudOptions.Weapon) != 0)       
             DrawWeapon(hud, hudContext);
 
-
         if ((m_renderHudOptions & RenderHudOptions.Hud) != 0)
         {
             SetHudPadding(hud);
@@ -130,11 +130,14 @@ public partial class WorldLayer
             DrawStatInfo(hud, automapVisible, (0, topRightY), ref topRightY);
             DrawBottomHud(hud, topRightY, hudContext);
             DrawHudEffects(hud);
+            hud.DrawColorMap(false);
             DrawRecentConsoleMessages(hud);
             DrawPause(hud);
 
             if (automapVisible && m_config.Hud.AutoMap.MapTitle)
                 DrawMapHeader(hud);
+
+            hud.DrawColorMap(true);
         }
 
         if ((m_renderHudOptions & RenderHudOptions.Overlay) != 0)
@@ -283,7 +286,7 @@ public partial class WorldLayer
             hud.Clear(PickupColor, 0.2f);
 
         if (Player.DamageCount > 0)
-            hud.Clear(DamageColor, Player.DamageCount * 0.01f);
+            hud.Clear(DamageColor, Player.DamageCount * 0.01f * (float)m_config.Game.PainIntensity);
     }
 
     private void DrawFPS(IHudRenderContext hud, ref int topRightY)
@@ -1013,7 +1016,7 @@ public partial class WorldLayer
         return msg.TimeNanos < world.CreationTimeNanos || msg.TimeNanos < console.LastClosedNanos;
     }
 
-    private static int CalculateSlide(IHudRenderContext hud, long timeSinceMessage)
+    private int CalculateSlide(IHudRenderContext hud, long timeSinceMessage)
     {
         const long SlideNanoRange = MaxVisibleTimeNanos - MessageTransitionSpan;        
         if (timeSinceMessage < SlideNanoRange)
@@ -1021,7 +1024,7 @@ public partial class WorldLayer
 
         var dim = hud.MeasureText("I", SmallHudFont, 8);
         double frac = 1.0 - (double)(MaxVisibleTimeNanos - timeSinceMessage) / MessageTransitionSpan;
-        return (int)(-(dim.Height + MessageSpacing) * frac * 2.5);
+        return (int)(-(dim.Height + MessageSpacing) * frac * m_config.Hud.GetScaled(1));
     }
 
     private static float CalculateFade(long timeSinceMessage)

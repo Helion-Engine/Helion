@@ -188,4 +188,6 @@ public interface IHudRenderContext : IDisposable
     void AddOffset(Vec2I offset);
     void PopOffset();
     Vec2I GetOffset();
+
+    void DrawColorMap(bool set);
 }

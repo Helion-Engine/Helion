@@ -149,7 +149,7 @@ public class GLHudRenderContext : IHudRenderContext
             window, anchor);
 
         m_commands.DrawImage(texture, pos.X, pos.Y, drawDim.Width, drawDim.Height,
-            color ?? Color.White, alpha, m_context.DrawInvul, m_context.DrawFuzz);
+            color ?? Color.White, alpha, m_context.DrawInvul, m_context.DrawFuzz, m_context.DrawColorMap);
 
         drawArea = (location, location + drawDim.Vector);
     }
@@ -161,7 +161,7 @@ public class GLHudRenderContext : IHudRenderContext
         anchor = both ?? anchor;
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, str.DrawArea.Width, str.DrawArea.Height,
             window, anchor);
-        m_commands.DrawText(str, pos.X, pos.Y, alpha);
+        m_commands.DrawText(str, pos.X, pos.Y, alpha, m_context?.DrawColorMap ?? false);
     }
 
     public void Text(string text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
@@ -188,7 +188,7 @@ public class GLHudRenderContext : IHudRenderContext
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,
             window, anchor);
 
-        m_commands.DrawText(renderableString, pos.X, pos.Y, 1.0f);
+        m_commands.DrawText(renderableString, pos.X, pos.Y, 1.0f, m_context.DrawColorMap);
     }
 
     public void Text(ReadOnlySpan<char> text, string font, int fontSize, Vec2I origin, out Dimension drawArea,
@@ -215,7 +215,7 @@ public class GLHudRenderContext : IHudRenderContext
         Vec2I pos = GetDrawingCoordinateFromAlign(origin.X, origin.Y, drawArea.Width, drawArea.Height,
             window, anchor);
 
-        m_commands.DrawText(renderableString, pos.X, pos.Y, alpha);
+        m_commands.DrawText(renderableString, pos.X, pos.Y, alpha, m_context.DrawColorMap);
     }
 
     public Dimension MeasureText(ReadOnlySpan<char> text, string font, int fontSize, int maxWidth = int.MaxValue,
@@ -265,6 +265,11 @@ public class GLHudRenderContext : IHudRenderContext
     public void AddOffset(Vec2I offset) => m_commands.AddOffset(offset);
     public void PopOffset() => m_commands.SetOffset(Vec2I.Zero);
     public Vec2I GetOffset() => m_commands.Offset;
+    public void DrawColorMap(bool set)
+    {
+        if (m_context != null)
+            m_context.DrawColorMap = set;
+    }
 
     public void PopVirtualDimension()
     {

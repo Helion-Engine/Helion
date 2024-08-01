@@ -167,7 +167,7 @@ public class Renderer : IDisposable
         return viewport.Height / 480f * (float)config.FuzzAmount;
     }
 
-    public static ShaderUniforms GetShaderUniforms(RenderInfo renderInfo)
+    public static ShaderUniforms GetShaderUniforms(IConfig config, IWorld world, RenderInfo renderInfo)
     {
         bool drawInvulnerability = false;
         int extraLight = 0;
@@ -188,7 +188,7 @@ public class Renderer : IDisposable
             if (ShaderVars.ColorMap)
             {
                 mix = 0.0f;
-                paletteIndex = GetPalette(player);
+                paletteIndex = GetPalette(config, player);
                 if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
                     mix = 1.0f;                    
             }
@@ -200,10 +200,9 @@ public class Renderer : IDisposable
             colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), paletteIndex);
     }
 
-    private static PaletteIndex GetPalette(Player player)
+    private static PaletteIndex GetPalette(IConfig config, Player player)
     {
         var palette = PaletteIndex.Normal;
-        var powerupIndex = PaletteIndex.Normal;
         var powerup = player.Inventory.PowerupEffectColor;
         int damageCount = player.DamageCount;
 
@@ -212,16 +211,18 @@ public class Renderer : IDisposable
 
         if (damageCount > 0)
         {
-            palette = GetDamagePalette(damageCount);
-            if (powerupIndex > palette)
-                palette = powerupIndex;
+            if (damageCount == player.DamageCount)
+                damageCount = (int)(player.DamageCount * config.Game.PainIntensity);
 
+            palette = GetDamagePalette(damageCount);
         }
         else if (player.BonusCount > 0)
         {
             palette = GetBonusPalette(player.BonusCount);
         }
-        else if (powerup != null && powerup.PowerupType == PowerupType.IronFeet && powerup.DrawPowerupEffect)
+       
+        if (palette == PaletteIndex.Normal &&  powerup != null && 
+            powerup.PowerupType == PowerupType.IronFeet && powerup.DrawPowerupEffect)
         {
             palette = PaletteIndex.Green;
         }
@@ -491,10 +492,10 @@ public class Renderer : IDisposable
         if (cmd.AreaIsTextureDimension)
         {
             Vec2I topLeft = (cmd.DrawArea.Top, cmd.DrawArea.Left);
-            m_hudRenderer.DrawImage(cmd.TextureName, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawInvulnerability, cmd.DrawFuzz);
+            m_hudRenderer.DrawImage(cmd.TextureName, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawInvulnerability, cmd.DrawFuzz, cmd.DrawColorMap);
         }
         else
-            m_hudRenderer.DrawImage(cmd.TextureName, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha, cmd.DrawInvulnerability, cmd.DrawFuzz);
+            m_hudRenderer.DrawImage(cmd.TextureName, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha, cmd.DrawInvulnerability, cmd.DrawFuzz, cmd.DrawColorMap);
     }
 
     private void HandleDrawShape(DrawShapeCommand cmd)
@@ -504,7 +505,7 @@ public class Renderer : IDisposable
 
     private void HandleDrawText(DrawTextCommand cmd)
     {
-        m_hudRenderer.DrawText(cmd.Text, cmd.DrawArea, cmd.Alpha);
+        m_hudRenderer.DrawText(cmd.Text, cmd.DrawArea, cmd.Alpha, cmd.DrawColorMap);
         var dataCache = m_archiveCollection.DataCache;
         dataCache.FreeRenderableString(cmd.Text);
     }
@@ -533,7 +534,7 @@ public class Renderer : IDisposable
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
             cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
-        m_renderInfo.Uniforms = GetShaderUniforms(m_renderInfo);
+        m_renderInfo.Uniforms = GetShaderUniforms(m_config, cmd.World, m_renderInfo);
 
         DrawHudImagesIfAnyQueued(viewport, m_renderInfo.Uniforms);
 
