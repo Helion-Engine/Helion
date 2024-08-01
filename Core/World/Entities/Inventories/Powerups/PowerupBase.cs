@@ -23,7 +23,7 @@ public class PowerupBase : IPowerup
     public readonly Color? PowerupColor;
     public readonly float PowerupAlpha;
 
-    private const int DefaultEffectTicks = 60 * (int)Constants.TicksPerSecond;
+    private const int BerserkEffectTicks = 766;
 
     private readonly Player m_player;
     private int m_tics;
@@ -98,8 +98,8 @@ public class PowerupBase : IPowerup
 
         if (PowerupType == PowerupType.Strength)
         {
-            m_effectTics = DefaultEffectTicks;
-            m_subAlpha = DrawAlpha / DefaultEffectTicks;
+            m_effectTics = BerserkEffectTicks;
+            m_subAlpha = DrawAlpha / BerserkEffectTicks;
         }
         else
         {
