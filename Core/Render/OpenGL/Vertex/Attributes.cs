@@ -110,8 +110,8 @@ public static class Attributes
             IndexUsed.Add(index);
 
             VaoAttribute attr = codeAttr.IsIntegral ?
-                new(name, index, size, integerType, offset, stride) :
-                new(name, index, size, pointerType, offset, codeAttr.Normalized, stride);
+                new(name, index, size, integerType, offset, stride, codeAttr.Required) :
+                new(name, index, size, pointerType, offset, codeAttr.Normalized, stride, codeAttr.Required);
             
             attributes.Add(attr);
 
@@ -153,7 +153,7 @@ public static class Attributes
         foreach (VaoAttribute attr in ReadStructAttributes<TVertex>())
         {
             ProgramAttribute? progAttr = FindShaderAttribute(shaderAttribs, attr.Name);
-            if (progAttr == null)
+            if (progAttr == null && attr.Required)
                 throw new($"Cannot find shader attribute named {attr.Name}, was it optimized out?");
 
             // TODO: This doesn't work because Size = 1 for Vec2, but we supply Size = 2 for Float.

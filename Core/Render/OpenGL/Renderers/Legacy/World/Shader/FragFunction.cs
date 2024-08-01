@@ -77,7 +77,7 @@ public class FragFunction
               lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability${HudInvulFrag})));
               ${HudClearPalette}"
             .Replace("${HudInvulFrag}", hud ? "* hasInvulnerabilityFrag" : "")
-            .Replace("${HudClearPalette}", hud ? "usePalette = int(mix(0, usePalette, float(drawColorMapFrag)));" : "");
+            .Replace("${HudClearPalette}", hud && ShaderVars.ColorMap ? "usePalette = int(mix(0, usePalette, float(drawColorMapFrag)));" : "");
         // Use the alpha flag to indicate we need to fetch from the colormap buffer since we don't need it for fullbright.
         return @"
                 const int paletteSize = 256 * 34;

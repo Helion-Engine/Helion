@@ -31,7 +31,7 @@ public readonly struct HudVertex
     [VertexAttribute("hasFuzz")]
     public readonly float DrawFuzz;
 
-    [VertexAttribute("drawColorMap")]
+    [VertexAttribute("drawColorMap", required: false)]
     public readonly float DrawColorMap;
 
     public HudVertex(float x, float y, float z, float u, float v, byte mulR, byte mulG, byte mulB, byte mulFactor, float alpha, bool drawInvul, bool drawFuzz, bool drawColorMap)

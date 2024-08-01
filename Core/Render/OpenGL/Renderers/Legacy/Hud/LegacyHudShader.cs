@@ -50,7 +50,7 @@ public class LegacyHudShader : RenderProgram
         flat out float alphaFrag;
         flat out float hasInvulnerabilityFrag;
         flat out float fuzzFrag;
-        flat out float drawColorMapFrag;
+        ${ColorMapFrag}
 
         uniform mat4 mvp;
 
@@ -60,11 +60,13 @@ public class LegacyHudShader : RenderProgram
             alphaFrag = alpha;
             hasInvulnerabilityFrag = hasInvulnerability;
             fuzzFrag = hasFuzz;
-            drawColorMapFrag = drawColorMap;
+            ${ColorMapFragSet}
 
             gl_Position = mvp * vec4(pos, 1.0);
         }
-    ";
+    "
+    .Replace("${ColorMapFrag}", ShaderVars.ColorMap ? "flat out float drawColorMapFrag;" : "")
+    .Replace("${ColorMapFragSet}", ShaderVars.ColorMap ? "drawColorMapFrag = drawColorMap;" : "");
 
     private static readonly string TrueColorInvul = 
         @"if (hasInvulnerabilityFrag != 0) {
@@ -73,7 +75,7 @@ public class LegacyHudShader : RenderProgram
             fragColor.xyz = vec3(maxColor, maxColor, maxColor);
         }";
 
-    protected override string FragmentShader() => @"
+    private readonly string ShaderFrag = @"
         #version 330
 
         in vec2 uvFrag;
@@ -81,7 +83,7 @@ public class LegacyHudShader : RenderProgram
         flat in float alphaFrag;
         flat in float hasInvulnerabilityFrag;
         flat in float fuzzFrag;
-        flat in float drawColorMapFrag;
+        ${DrawColorMapFrag}
 
         out vec4 fragColor;
 
@@ -106,7 +108,10 @@ public class LegacyHudShader : RenderProgram
             ${TrueColorInvul}
             ${FuzzFragFunction}
         }
-    "
+    ";
+
+    protected override string FragmentShader() => ShaderFrag
+    .Replace("${DrawColorMapFrag}", ShaderVars.ColorMap ? "flat in float drawColorMapFrag;" : "")
     .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
     .Replace("${FuzzFragFunction}", FragFunction.FuzzFragFunction)
     .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false, true))
