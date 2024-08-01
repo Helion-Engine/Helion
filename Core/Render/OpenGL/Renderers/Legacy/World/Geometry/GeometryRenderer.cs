@@ -29,6 +29,7 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Static;
+using OpenTK.Graphics.OpenGL;
 using static Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -162,7 +163,7 @@ public class GeometryRenderer : IDisposable
         }
 
         m_lightBuffer?.Dispose();
-        m_lightBuffer = new("Sector lights texture buffer", m_lightBufferData, GLInfo.MapPersistentBitSupported);
+        m_lightBuffer = new("Sector lights texture buffer", m_lightBufferData, SizedInternalFormat.R32f, GLInfo.MapPersistentBitSupported);
 
         for (int i = 0; i < world.Sides.Count; i++)
             m_drawnSides[i] = -1;

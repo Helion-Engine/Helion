@@ -92,7 +92,7 @@ public class Renderer : IDisposable
         if (ShaderVars.ColorMap)
         {
             var colorMapData = CreateColorMap(m_archiveCollection.Palette, m_archiveCollection.Colormap);
-            m_colorMapBuffer = new("Colormap buffer", colorMapData, false);
+            m_colorMapBuffer = new("Colormap buffer", colorMapData, SizedInternalFormat.Rgb32f, false);
         }
     }
 
@@ -375,7 +375,7 @@ public class Renderer : IDisposable
         {
             GL.ActiveTexture(TextureUnit.Texture2);
             m_colorMapBuffer.BindTexture();
-            m_colorMapBuffer.BindRgbBuffer();
+            m_colorMapBuffer.BindTexBuffer();
         }
     }
 

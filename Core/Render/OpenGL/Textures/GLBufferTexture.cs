@@ -12,16 +12,18 @@ public class GLBufferTexture : IDisposable
     private readonly float[] m_data;
     private readonly int m_name;
     private readonly int m_textureName;
+    private readonly SizedInternalFormat m_format;
     private bool m_disposed;
     private bool m_persistentBufferStorage;
 
-    public GLBufferTexture(string label, float[] data, bool persistentBufferStorage)
+    public GLBufferTexture(string label, float[] data, SizedInternalFormat format, bool persistentBufferStorage)
     {
         Label = label;
         m_name = GL.GenBuffer();
         m_textureName = GL.GenTexture();
         
         m_data = data;
+        m_format = format;
         m_persistentBufferStorage = persistentBufferStorage;
 
         BindBuffer();
@@ -89,12 +91,8 @@ public class GLBufferTexture : IDisposable
 
     public void BindTexBuffer()
     {
-        GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, m_name);
-    }
-
-    public void BindRgbBuffer()
-    {
-        GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.Rgb32f, m_name);
+        GL.TexBuffer(TextureBufferTarget.TextureBuffer, m_format, m_name);
+        //GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, m_name);
     }
 
     protected virtual void Dispose(bool disposing)
