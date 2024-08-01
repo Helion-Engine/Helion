@@ -2,7 +2,6 @@ using System;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Resources;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
@@ -26,7 +25,8 @@ public class Image
     public static readonly Image TransparentImage = CreateTransparentImage();
 
     public Dimension Dimension;
-    public readonly ImageType ImageType;
+    public ImageType ImageType;
+    public ImageType UploadType;
     public readonly Vec2I Offset;
     public readonly ResourceNamespace Namespace;
     private readonly uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
@@ -74,7 +74,20 @@ public class Image
             m_indices = indices;
         }
 
+        UploadType = ImageType;
         m_indices ??= [];
+    }
+
+    public void DisableIndexedUpload()
+    {
+        if (UploadType == ImageType.PaletteWithArgb)
+            UploadType = ImageType.Argb;
+    }
+
+    public void EnableIndexedUpload()
+    {
+        if (m_indices.Length > 0)
+            UploadType = ImageType.PaletteWithArgb;
     }
 
     public static Image? FromPaletteIndices(Dimension dimension, uint[] indices, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
@@ -117,7 +130,7 @@ public class Image
         for (int i = 0; i < m_pixels.Length; i++)
         {
             uint argb = m_pixels[i];
-            uint pixel = (argb == TransparentIndex ? Color.Transparent.Uint : layer[argb].Uint);
+            uint pixel = argb == TransparentIndex ? Color.Transparent.Uint : layer[argb].Uint;
             if (argb != TransparentIndex && argb < fullBright.Length && fullBright[argb])
             {
                 HasFullBrightPixels = true;
@@ -325,9 +338,9 @@ public class Image
         }
     }
 
-    public uint[] GetGlTexturePixels()
+    public uint[] GetGlTexturePixels(bool indexedSupported)
     {
-        if (m_indices.Length == 0 || !ShaderVars.ColorMap)
+        if (m_indices.Length == 0 || !indexedSupported || UploadType != ImageType.PaletteWithArgb)
             return m_pixels;
 
         uint[] pixels = new uint[m_indices.Length];

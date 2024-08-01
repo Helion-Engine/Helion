@@ -2,6 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Util;
 using Helion.Util.Extensions;
 using OpenTK.Graphics.OpenGL;
@@ -47,7 +48,7 @@ public class GLTexture2D : GLTexture
     // Assumes the user binds first.
     public unsafe void UploadImage(Image image)
     {
-        fixed (uint* pixelPtr = image.GetGlTexturePixels())
+        fixed (uint* pixelPtr = image.GetGlTexturePixels(ShaderVars.ColorMap))
         {
             IntPtr ptr = new(pixelPtr);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, image.Width, image.Height, 0,

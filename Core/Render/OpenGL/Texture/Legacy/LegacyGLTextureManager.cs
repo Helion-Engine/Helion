@@ -108,7 +108,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, $"Texture: {name} ({flags})");
 
-        fixed (uint* pixelPtr = image.GetGlTexturePixels())
+        fixed (uint* pixelPtr = image.GetGlTexturePixels(ShaderVars.ColorMap))
         {
             IntPtr ptr = new(pixelPtr);
             // Because the C# image format is 'ARGB', we can get it into the

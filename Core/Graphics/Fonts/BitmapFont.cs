@@ -38,7 +38,9 @@ public static class BitmapFont
             
             if (definition.Grayscale)
                 image.ConvertToGrayscale(definition.GrayscaleNormalization);
-            
+
+            // Fonts don't need to be indexed. SmallGrayscaleFont has colors applied and needs to be full color to support different colors;
+            image.DisableIndexedUpload();
             return new Font(definition.Name, glyphs, image, fixedWidth: definition.FixedWidth, fixedHeight: definition.FixedHeight, fixedWidthChar: definition.FixedWidthChar);
         }
         catch
