@@ -7,15 +7,16 @@ namespace Helion.Graphics.Palettes;
 
 public class Colormap
 {
-    public static readonly int NumColors = 256;
-    public static readonly int NumLayers = 34;
-    public static readonly int BytesPerColormap = NumColors * NumLayers;
+    public const int NumColors = 256;
+    public const int NumLayers = 34;
+    public const int BytesPerColormap = NumColors * NumLayers;
     private static Colormap? DefaultColormap;
 
     private readonly List<Color[]> m_layers;
     private readonly List<int[]> m_indexLayers;
     public readonly bool[] FullBright = new bool[NumColors];
 
+    public int Index;
     public readonly Vec3F ColorMix;
     public readonly Entry? Entry;
 

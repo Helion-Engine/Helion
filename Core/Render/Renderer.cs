@@ -30,6 +30,7 @@ using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
@@ -89,11 +90,11 @@ public class Renderer : IDisposable
 
     public void UploadColorMap()
     {
-        if (ShaderVars.ColorMap)
-        {
-            var colorMapData = CreateColorMap(m_archiveCollection.Palette, m_archiveCollection.Colormap);
-            m_colorMapBuffer = new("Colormap buffer", colorMapData, SizedInternalFormat.Rgb32f, false);
-        }
+        if (!ShaderVars.ColorMap)
+            return;
+        
+        var colorMapData = ColorMapBuffer.Create(m_archiveCollection.Palette, m_archiveCollection.Colormap, m_archiveCollection.Definitions.Colormaps);
+        m_colorMapBuffer = new("Colormap buffer", colorMapData, SizedInternalFormat.Rgb32f, false);
     }
 
     private void SetShaderVars()
@@ -101,33 +102,6 @@ public class Renderer : IDisposable
         SetReverseZ();
         ShaderVars.Depth = ShaderVars.ReversedZ ? "w" : "z";
         ShaderVars.ColorMap = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
-    }
-
-    private static float[] CreateColorMap(Palette palettes, Colormap colormap)
-    {
-        int colorMapSize = Colormap.NumColors * Colormap.NumLayers * 3;
-        float[] buffer = new float[colorMapSize * Palette.NumPalettes];
-        int offset = 0;
-
-        for (int paletteIndex = 0; paletteIndex < palettes.Count && paletteIndex < Palette.NumPalettes; paletteIndex++)
-        {
-            var palette = palettes.Layer(paletteIndex);
-            for (int colormapIndex = 0; colormapIndex < colormap.Count && colormapIndex < Colormap.NumColors; colormapIndex++)
-            {
-                var layer = colormap.IndexLayer(colormapIndex);
-                for (int i = 0; i < layer.Length; i++)
-                {
-                    var index = layer[i];
-                    var color = palette[index];
-                    buffer[offset++] = color.R / 255f;
-                    buffer[offset++] = color.G / 255f;
-                    buffer[offset++] = color.B / 255f;
-                }
-                offset = (paletteIndex * colorMapSize) + ((colormapIndex + 1) * Colormap.NumColors * 3);
-            }
-        }
-
-        return buffer;
     }
 
     private void SetReverseZ()
@@ -174,6 +148,7 @@ public class Renderer : IDisposable
         float mix = 0.0f;
         var colorMix = GetColorMix(renderInfo.ViewerEntity, renderInfo.Camera);
         PaletteIndex paletteIndex = PaletteIndex.Normal;
+        int colorMapIndex = 0;
 
         if (renderInfo.ViewerEntity.PlayerObj != null)
         {
@@ -188,6 +163,7 @@ public class Renderer : IDisposable
             if (ShaderVars.ColorMap)
             {
                 mix = 0.0f;
+                colorMapIndex = GetColorMapIndex(renderInfo.ViewerEntity, renderInfo.Camera);
                 paletteIndex = GetPalette(config, player);
                 if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
                     mix = 1.0f;                    
@@ -197,7 +173,7 @@ public class Renderer : IDisposable
         return new ShaderUniforms(CalculateMvpMatrix(renderInfo),
             CalculateMvpMatrix(renderInfo, true),
             GetTimeFrac(), drawInvulnerability, mix, extraLight, GetDistanceOffset(renderInfo),
-            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), paletteIndex);
+            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), colorMapIndex, paletteIndex);
     }
 
     private static PaletteIndex GetPalette(IConfig config, Player player)
@@ -252,12 +228,26 @@ public class Renderer : IDisposable
         return (PaletteIndex)palette;
     }
 
-    public static Vec3F GetColorMix(Entity viewerEntity, OldCamera camera)
+    private static int GetColorMapIndex(Entity viewer, OldCamera camera)
     {
-        if (viewerEntity.Sector.TransferHeights != null &&
-            viewerEntity.Sector.TransferHeights.TryGetColormap(viewerEntity.Sector, camera.PositionInterpolated.Z, out var colormap))
+        if (ShaderVars.ColorMap && GetViewerColorMap(viewer, camera, out var colormap))
+            return colormap.Index;
+        return 0;
+    }
+
+    public static Vec3F GetColorMix(Entity viewer, OldCamera camera)
+    {
+        if (!ShaderVars.ColorMap && GetViewerColorMap(viewer, camera, out var colormap))
             return colormap.ColorMix;
         return Vec3F.One;
+    }
+
+    private static bool GetViewerColorMap(Entity viewer, OldCamera camera, [NotNullWhen(true)] out Colormap? colormap)
+    {
+        colormap = null;
+        if (viewer.Sector.TransferHeights == null)
+            return false;
+        return viewer.Sector.TransferHeights.TryGetColormap(viewer.Sector, camera.PositionInterpolated.Z, out colormap);
     }
 
     public static mat4 CalculateMvpMatrix(RenderInfo renderInfo, bool onlyXY = false)

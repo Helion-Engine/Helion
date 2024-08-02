@@ -43,14 +43,14 @@ const int lightFadeStart = 56;";
 float lightLevel = lightLevelFrag;
 float distCalc = clamp(dist - lightFadeStart - distanceOffset, 0, dist);
 int sub = int(21.53536 - 21.63471881/(1 + pow((distCalc/48.46036), 0.9737408)));
-int colormapIndex = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
+int lightColorIndex = clamp(int(lightLevel / scaleCount), 0, scaleCountClamp);
 sub = maxLightScale - clamp(sub - extraLight, 0, maxLightScale);
-colormapIndex = clamp(((scaleCount - colormapIndex - 1) * 2 * colorMaps/scaleCount) - sub, 0, colorMapClamp);
+lightColorIndex = clamp(((scaleCount - lightColorIndex - 1) * 2 * colorMaps/scaleCount) - sub, 0, colorMapClamp);
 "
 + (ShaderVars.ColorMap ? "" :
 @"
 lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
-lightLevel = float(colorMaps - colormapIndex) / colorMaps;
+lightLevel = float(colorMaps - lightColorIndex) / colorMaps;
 lightLevel = mix(lightLevel, 1, hasInvulnerability);"
 );
 }

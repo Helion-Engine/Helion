@@ -1221,7 +1221,7 @@ public abstract partial class WorldBase : IWorld
     public bool CanActivate(Entity entity, Line line, ActivationContext context)
     {
         bool success = line.Special.CanActivate(entity, line, context,
-            ArchiveCollection.Definitions.LockDefininitions, out LockDef? lockFail);
+            ArchiveCollection.Definitions.LockDefinitions, out LockDef? lockFail);
         if (entity.PlayerObj != null && lockFail != null)
         {
             entity.PlayerObj.PlayUseFailSound();

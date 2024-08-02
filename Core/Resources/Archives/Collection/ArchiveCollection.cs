@@ -61,7 +61,7 @@ public class ArchiveCollection : IResources, IPathResolver
     public IResourceTextureManager Textures { get; }
     public ResourceTracker<TextureDefinition> TextureDefinitions => Definitions.Textures;
     public SoundInfoDefinition SoundInfo => Definitions.SoundInfo;
-    public LockDefinitions Locks => Definitions.LockDefininitions;
+    public LockDefinitions Locks => Definitions.LockDefinitions;
     public LanguageDefinition Language => Definitions.Language;
     public MapInfoDefinition MapInfo => Definitions.MapInfoDefinition;
     public GameInfoDef GameInfo => Definitions.MapInfoDefinition.GameDefinition;

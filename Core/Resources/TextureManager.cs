@@ -280,14 +280,14 @@ public class TextureManager : ITickable
             colormap = null;
             return false;
         }
-        return m_archiveCollection.Definitions.Colormaps.TryGetValue(name, out colormap);
+        return m_archiveCollection.Definitions.ColormapsLookup.TryGetValue(name, out colormap);
     }
 
     public bool IsTextureAnimated(int textureHandle) => m_animatedTextures.Contains(textureHandle);
 
     private void HandleUnitTestAdd(string name, ResourceNamespace resourceNamespace)
     {
-        if (m_flatLookup.ContainsKey(name) || m_textureLookup.ContainsKey(name) || m_archiveCollection.Definitions.Colormaps.ContainsKey(name))
+        if (m_flatLookup.ContainsKey(name) || m_textureLookup.ContainsKey(name) || m_archiveCollection.Definitions.ColormapsLookup.ContainsKey(name))
             return;
 
         Texture? addedTexture = null;

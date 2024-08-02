@@ -438,6 +438,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationProgram.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
         m_interpolationProgram.ColorMix(renderInfo.Uniforms.ColorMix);
         m_interpolationProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
+        m_staticProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapIndex);
     }
 
     private void SetStaticUniforms(RenderInfo renderInfo)
@@ -453,6 +454,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
         m_staticProgram.ColorMix(renderInfo.Uniforms.ColorMix);
         m_staticProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
+        m_staticProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapIndex);
     }
 
     private void ReleaseUnmanagedResources()

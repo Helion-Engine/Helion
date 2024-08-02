@@ -5,7 +5,7 @@ using Helion.Graphics.Palettes;
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public readonly struct ShaderUniforms(mat4 mvp, mat4 mvpNoPitch, float timeFrac, bool drawInvulnerability, float mix, int extraLight, float distanceOffset,
-    Vec3F colorMix, float fuzzDiv, PaletteIndex paletteIndex)
+    Vec3F colorMix, float fuzzDiv, int colorMapIndex, PaletteIndex paletteIndex)
 {
     public readonly mat4 Mvp = mvp;
     public readonly mat4 MvpNoPitch = mvpNoPitch;
@@ -16,5 +16,6 @@ public readonly struct ShaderUniforms(mat4 mvp, mat4 mvpNoPitch, float timeFrac,
     public readonly float DistanceOffset = distanceOffset;
     public readonly Vec3F ColorMix = colorMix;
     public readonly float FuzzDiv = fuzzDiv;
+    public readonly int ColorMapIndex = colorMapIndex;
     public readonly PaletteIndex PaletteIndex = paletteIndex;
 }

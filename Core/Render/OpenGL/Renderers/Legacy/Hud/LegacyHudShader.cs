@@ -13,6 +13,7 @@ public class LegacyHudShader : RenderProgram
     private readonly int m_fuzzFracLocation;
     private readonly int m_fuzzDivLocation;
     private readonly int m_paletteIndexLocation;
+    private readonly int m_colorMapIndexLocation;
     private readonly int m_hasInvulnerabilityLocation;
 
     public LegacyHudShader() : base("Hud")
@@ -23,6 +24,7 @@ public class LegacyHudShader : RenderProgram
         m_fuzzFracLocation = Uniforms.GetLocation("fuzzFrac");
         m_fuzzDivLocation = Uniforms.GetLocation("fuzzDiv");
         m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
+        m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
     }
 
@@ -33,6 +35,7 @@ public class LegacyHudShader : RenderProgram
     public void FuzzDiv(float div) => Uniforms.Set(div, m_fuzzDivLocation);
     public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
+    public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -92,6 +95,7 @@ public class LegacyHudShader : RenderProgram
         uniform float fuzzFrac;
         uniform float fuzzDiv;
         uniform int paletteIndex;
+        uniform int colormapIndex;
         uniform int hasInvulnerability;
         // Make the hud weapon fuzz a little more detailed.
         float fuzzDist = " + (FragFunction.FuzzDistanceStep * 1.5) + @";

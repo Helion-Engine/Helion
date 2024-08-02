@@ -66,31 +66,37 @@ public class FragFunction
 
         string indexAdd = lightLevel ?
             @"
+            int useColormap = colormapIndex;
             int usePalette = paletteIndex;
-            int lightLevelOffset = (colormapIndex * 256);
+            int lightLevelOffset = (lightColorIndex * 256);
             lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability)));
             lightLevelOffset = int(mix(lightLevelOffset, 0, float(lightLevelMix)));"
             :
             @"
-              int usePalette = paletteIndex;
-              int lightLevelOffset = 0;
-              lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability${HudInvulFrag})));
-              ${HudClearPalette}"
+            int useColormap = colormapIndex;
+            int usePalette = paletteIndex;
+            int lightLevelOffset = 0;
+            lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability${HudInvulFrag})));
+            ${HudClearPalette}"
             .Replace("${HudInvulFrag}", hud ? "* hasInvulnerabilityFrag" : "")
-            .Replace("${HudClearPalette}", hud && ShaderVars.ColorMap ? "usePalette = int(mix(0, usePalette, float(drawColorMapFrag)));" : "");
+            .Replace("${HudClearPalette}", hud && ShaderVars.ColorMap ?
+                @"
+                useColormap = int(mix(0, useColormap, float(drawColorMapFrag)));
+                usePalette = int(mix(0, usePalette, float(drawColorMapFrag)));"
+                : "");
         // Use the alpha flag to indicate we need to fetch from the colormap buffer since we don't need it for fullbright.
         return @"
                 const int paletteSize = 256 * 34;
+                const int colormapSize = paletteSize * 14;
                 float colormapFetchFlag = float(fragColor.w == 0.0039215686274509803921568627451);                
                 fragColor.w += colormapFetchFlag;
                 ${IndexAdd}
-                int texIndex = lightLevelOffset + (usePalette * paletteSize + int(fragColor.r * 255.0));
+                int texIndex = lightLevelOffset + (useColormap * colormapSize) + (usePalette * paletteSize + int(fragColor.r * 255.0));
                 vec3 fetchColor = texelFetch(colormapTexture, texIndex).rgb;
                 fragColor.rgb = mix(fragColor.rgb, fetchColor, vec3(colormapFetchFlag, colormapFetchFlag, colormapFetchFlag));
                 "
                 .Replace("${IndexAdd}", indexAdd);
     }
-
 
     public static string FragColorFunction(FragColorFunctionOptions options)
     {

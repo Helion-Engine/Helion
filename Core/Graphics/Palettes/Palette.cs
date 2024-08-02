@@ -12,10 +12,10 @@ namespace Helion.Graphics.Palettes;
 /// </summary>
 public class Palette
 {
-    public static readonly int NumColors = 256;
-    public static readonly int ColorComponents = 3;
-    public static readonly int BytesPerLayer = NumColors * ColorComponents;
-    public static readonly int NumPalettes = 14;
+    public const int NumColors = 256;
+    public const int ColorComponents = 3;
+    public const int BytesPerLayer = NumColors * ColorComponents;
+    public const int NumPalettes = 14;
     private static Palette? DefaultPalette;
 
     private readonly List<Color[]> layers;

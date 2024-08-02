@@ -34,21 +34,22 @@ public class DefinitionEntries
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public readonly AnimatedDefinitions Animdefs = new AnimatedDefinitions();
-    public readonly BoomAnimatedDefinition BoomAnimated = new BoomAnimatedDefinition();
-    public readonly BoomSwitchDefinition BoomSwitches = new BoomSwitchDefinition();
-    public readonly CompatibilityDefinitions Compatibility = new CompatibilityDefinitions();
+    public readonly AnimatedDefinitions Animdefs = new();
+    public readonly BoomAnimatedDefinition BoomAnimated = new();
+    public readonly BoomSwitchDefinition BoomSwitches = new();
+    public readonly CompatibilityDefinitions Compatibility = new();
     public readonly DecorateDefinitions Decorate;
-    public readonly FontDefinitionCollection Fonts = new FontDefinitionCollection();
-    public readonly ResourceTracker<TextureDefinition> Textures = new ResourceTracker<TextureDefinition>();
-    public readonly SoundInfoDefinition SoundInfo = new SoundInfoDefinition();
-    public readonly LockDefinitions LockDefininitions = new LockDefinitions();
-    public readonly LanguageDefinition Language = new LanguageDefinition();
-    public readonly MapInfoDefinition MapInfoDefinition = new MapInfoDefinition();
+    public readonly FontDefinitionCollection Fonts = new();
+    public readonly ResourceTracker<TextureDefinition> Textures = new();
+    public readonly SoundInfoDefinition SoundInfo = new();
+    public readonly LockDefinitions LockDefinitions = new();
+    public readonly LanguageDefinition Language = new();
+    public readonly MapInfoDefinition MapInfoDefinition = new();
     public readonly ConfigCompat ConfigCompatibility;
     public readonly EntityFrameTable EntityFrameTable = new();
     public readonly TexturesDefinition TexturesDef = new();
-    public readonly Dictionary<string, Colormap> Colormaps = new();
+    public readonly Dictionary<string, Colormap> ColormapsLookup = [];
+    public readonly List<Colormap> Colormaps = [];
     public readonly CompLevelDefinition CompLevelDefinition = new();
     public readonly MusInfoDefinition MusInfoDefinition = new();
 
@@ -252,7 +253,11 @@ public class DefinitionEntries
     {
         var colormap = Colormap.From(m_archiveCollection.Data.Palette, entry.ReadData(), entry);
         if (colormap != null)
-            Colormaps[entry.Path.Name] = colormap;
+        {
+            colormap.Index = Colormaps.Count;
+            Colormaps.Add(colormap);
+            ColormapsLookup[entry.Path.Name] = colormap;
+        }
     }
 
     private void CreateImageDefinitionsFrom(PnamesTextureXCollection collection)

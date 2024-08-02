@@ -88,7 +88,7 @@ public class LegacyAutomapRenderer : IDisposable
 
         Attributes.BindAndApply(m_vbo, m_vao, m_shader.Attributes);
 
-        foreach (var lockDef in m_archiveCollection.Definitions.LockDefininitions.LockDefs)
+        foreach (var lockDef in m_archiveCollection.Definitions.LockDefinitions.LockDefs)
             foreach (var item in lockDef.KeyDefinitionNames)
                 m_keys[item] = lockDef.MapColor;
     }
@@ -378,7 +378,7 @@ public class LegacyAutomapRenderer : IDisposable
         if (keyNumber == 0)
             return false;
 
-        LockDef? lockDef = m_archiveCollection.Definitions.LockDefininitions.GetLockDef(keyNumber);
+        LockDef? lockDef = m_archiveCollection.Definitions.LockDefinitions.GetLockDef(keyNumber);
         if (lockDef != null)
         {
             AddLine(lockDef.MapColor, start, end);
