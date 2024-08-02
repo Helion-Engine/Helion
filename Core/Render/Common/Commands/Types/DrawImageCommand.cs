@@ -5,27 +5,15 @@ using Helion.Graphics.Geometry;
 namespace Helion.Render.OpenGL.Commands.Types;
 
 [StructLayout(LayoutKind.Sequential)]
-public struct DrawImageCommand
+public readonly struct DrawImageCommand(string textureName, ImageBox2I drawArea, Color multiplyColor,
+    float alpha = 1.0f, bool drawColorMap = false, bool drawFuzz = false, bool drawPalette = true)
 {
-    public readonly ImageBox2I DrawArea;
-    public readonly float Alpha;
-    public readonly Color MultiplyColor;
-    public readonly bool AreaIsTextureDimension;
-    public readonly bool DrawInvulnerability;
-    public readonly bool DrawFuzz;
-    public readonly bool DrawColorMap;
-    public readonly string TextureName;
-
-    public DrawImageCommand(string textureName, ImageBox2I drawArea, Color multiplyColor,
-        float alpha = 1.0f, bool drawInvul = false, bool drawFuzz = false, bool drawColorMap = true)
-    {
-        TextureName = textureName;
-        DrawArea = drawArea;
-        Alpha = alpha;
-        MultiplyColor = multiplyColor;
-        AreaIsTextureDimension = false;
-        DrawInvulnerability = drawInvul;
-        DrawFuzz = drawFuzz;
-        DrawColorMap = drawColorMap;
-    }
+    public readonly ImageBox2I DrawArea = drawArea;
+    public readonly float Alpha = alpha;
+    public readonly Color MultiplyColor = multiplyColor;
+    public readonly bool AreaIsTextureDimension = false;
+    public readonly bool DrawColorMap = drawColorMap;
+    public readonly bool DrawFuzz = drawFuzz;
+    public readonly bool DrawPalette = drawPalette;
+    public readonly string TextureName = textureName;
 }

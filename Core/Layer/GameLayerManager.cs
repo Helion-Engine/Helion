@@ -592,7 +592,7 @@ public class GameLayerManager : IGameLayerManager
     {
         m_ctx = ctx;        
         m_hudContext.Dimension = m_renderer.RenderDimension;
-        m_hudContext.DrawColorMap = true;
+        m_hudContext.DrawPalette = true;
         ctx.Viewport(m_renderer.RenderDimension.Box);
         ctx.Clear(Renderer.DefaultBackground, true, true);
 
@@ -616,8 +616,8 @@ public class GameLayerManager : IGameLayerManager
     private void RenderHud(IHudRenderContext hudCtx)
     {
         m_hudRenderCtx = hudCtx;
-        m_hudContext.DrawColorMap = true;
-        m_hudRenderCtx.DrawColorMap(true);
+        m_hudContext.DrawPalette = true;
+        m_hudRenderCtx.DrawPalette(true);
         // Only use virtual dimensions when drawing the world.
         // Restore back to window dimensions when drawing anything else so that text etc are not stretched.
         bool resetViewport = m_ctx.Surface.Dimension != m_renderer.Window.Dimension;
@@ -647,8 +647,8 @@ public class GameLayerManager : IGameLayerManager
             WorldLayer.RenderHud(m_ctx, options);
         }
 
-        m_hudContext.DrawColorMap = false;
-        m_hudRenderCtx.DrawColorMap(false);
+        m_hudContext.DrawPalette = false;
+        m_hudRenderCtx.DrawPalette(false);
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
@@ -668,8 +668,8 @@ public class GameLayerManager : IGameLayerManager
         RenderConsole(hudCtx);
 
         m_ctx.Surface.ClearOverrideDimension();
-        m_hudContext.DrawColorMap = true;
-        m_hudRenderCtx.DrawColorMap(true);
+        m_hudContext.DrawPalette = true;
+        m_hudRenderCtx.DrawPalette(true);
     }
 
     private void RenderLoadingLayer()

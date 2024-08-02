@@ -189,5 +189,10 @@ public interface IHudRenderContext : IDisposable
     void PopOffset();
     Vec2I GetOffset();
 
+    // Enables drawing with palettes other than the default (0).
+    // Allows for HUD menus to be drawn with the correct colors while player status bar graphics can have red or yellow palettes applied.
+    void DrawPalette(bool set);
+    // Enables drawing with colormaps other than the default (0).
+    // Setting to false with colormap rendering will stop boom colormaps set from transfer heights.
     void DrawColorMap(bool set);
 }

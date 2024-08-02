@@ -130,14 +130,14 @@ public partial class WorldLayer
             DrawStatInfo(hud, automapVisible, (0, topRightY), ref topRightY);
             DrawBottomHud(hud, topRightY, hudContext);
             DrawHudEffects(hud);
-            hud.DrawColorMap(false);
+            hud.DrawPalette(false);
             DrawRecentConsoleMessages(hud);
             DrawPause(hud);
 
             if (automapVisible && m_config.Hud.AutoMap.MapTitle)
                 DrawMapHeader(hud);
 
-            hud.DrawColorMap(true);
+            hud.DrawPalette(true);
         }
 
         if ((m_renderHudOptions & RenderHudOptions.Overlay) != 0)
@@ -373,7 +373,11 @@ public partial class WorldLayer
 
         if (Player.AnimationWeapon != null)
         {
-            hudContext.DrawInvul = Player.DrawInvulnerableColorMap();
+            // When using palette mode disable boom colormaps for weapons
+            if (ShaderVars.ColorMap)
+                hudContext.DrawColorMap = true;
+            else
+                hudContext.DrawColorMap = Player.DrawInvulnerableColorMap();
             IPowerup? powerup = Player.Inventory.GetPowerup(PowerupType.Invisibility);
             if (powerup != null && powerup.DrawPowerupEffect)
                 hudContext.DrawFuzz = true;
@@ -384,7 +388,7 @@ public partial class WorldLayer
             if (Player.AnimationWeapon.FlashState.Frame.BranchType != ActorStateBranch.Stop)
                 DrawHudWeapon(hud, Player.AnimationWeapon.FlashState, yOffset, flash: true);
 
-            hudContext.DrawInvul = false;
+            hudContext.DrawColorMap = false;
             hudContext.DrawFuzz = false;
         }
     }
@@ -426,6 +430,7 @@ public partial class WorldLayer
         offset.Y += yOffset;
         offset = TranslateDoomOffset(offset);
         var hudBox = GetInterpolatePlayerWeaponBox(hud, handle, offset);
+
         hud.Image(sprite, hudBox, color: lightLevelColor);
     }
 

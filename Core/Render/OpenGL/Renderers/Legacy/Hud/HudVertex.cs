@@ -25,16 +25,16 @@ public readonly struct HudVertex
     [VertexAttribute]
     public readonly float Alpha;
 
-    [VertexAttribute("hasInvulnerability")]
-    public readonly float DrawInvulnerability;
+    [VertexAttribute("drawColorMap")]
+    public readonly float DrawColorMap;
 
     [VertexAttribute("hasFuzz")]
     public readonly float DrawFuzz;
 
-    [VertexAttribute("drawColorMap", required: false)]
-    public readonly float DrawColorMap;
+    [VertexAttribute("drawPalette", required: false)]
+    public readonly float DrawPalette;
 
-    public HudVertex(float x, float y, float z, float u, float v, byte mulR, byte mulG, byte mulB, byte mulFactor, float alpha, bool drawInvul, bool drawFuzz, bool drawColorMap)
+    public HudVertex(float x, float y, float z, float u, float v, byte mulR, byte mulG, byte mulB, byte mulFactor, float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette)
     {
         X = x;
         Y = y;
@@ -46,14 +46,14 @@ public readonly struct HudVertex
         MultiplierB = mulB / 255.0f;
         MultiplierFactor = mulFactor / 255.0f;
         Alpha = alpha;
-        DrawInvulnerability = drawInvul ? 1.0f : 0.0f;
-        DrawFuzz = drawFuzz ? 1.0f : 0.0f;
         DrawColorMap = drawColorMap ? 1.0f : 0.0f;
+        DrawFuzz = drawFuzz ? 1.0f : 0.0f;
+        DrawPalette = drawPalette ? 1.0f : 0.0f;
     }
 
     // TODO: Updated color to be RGBA, but still need to do step 2 and abandon division for RGBA.
-    public HudVertex(float x, float y, float z, float u, float v, Color multiplierColor, float alpha, bool drawInvul, bool drawFuzz, bool applyColorMap) : 
-        this(x, y, z, u, v, multiplierColor.R, multiplierColor.G, multiplierColor.B, multiplierColor.A, alpha, drawInvul, drawFuzz, applyColorMap)
+    public HudVertex(float x, float y, float z, float u, float v, Color multiplierColor, float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette) : 
+        this(x, y, z, u, v, multiplierColor.R, multiplierColor.G, multiplierColor.B, multiplierColor.A, alpha, drawColorMap, drawFuzz, drawPalette)
     {
     }
 }
