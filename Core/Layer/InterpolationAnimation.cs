@@ -76,7 +76,7 @@ public class InterpolationAnimation<T>(TimeSpan duration, T arg) : ITickable
 
     private double GetPercentage()
     {
-        return m_stopwatch.ElapsedMilliseconds / (double)m_duration.TotalMilliseconds;
+        return Math.Min(1, m_stopwatch.ElapsedMilliseconds / (double)m_duration.TotalMilliseconds);
     }
 
     public double GetInterpolated(double total)
