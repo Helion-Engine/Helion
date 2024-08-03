@@ -46,7 +46,7 @@ public class ConfigWindow
     public readonly ConfigWindowVirtual Virtual = new();
 
     [ConfigInfo("The display number for the window. (0 = default. Use command ListDisplays for display numbers).")]
-    [OptionMenu(OptionSectionType.Video, "Display Number [0 default]", spacer: true)]
+    [OptionMenu(OptionSectionType.Video, "Display Number", spacer: true)]
     public readonly ConfigValue<int> Display = new(0, GreaterOrEqual(0));
 
     [ConfigInfo("Palette uses Doom's colormaps. True color is calculated from the base palette and interpolated. *Application restart required.", restartRequired: true)]

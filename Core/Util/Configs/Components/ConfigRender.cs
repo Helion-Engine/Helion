@@ -1,5 +1,4 @@
 using Helion.Render.Common.Textures;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using System.ComponentModel;
