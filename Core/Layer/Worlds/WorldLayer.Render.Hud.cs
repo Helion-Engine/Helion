@@ -120,6 +120,9 @@ public partial class WorldLayer
         if ((m_renderHudOptions & RenderHudOptions.Weapon) != 0)       
             DrawWeapon(hud, hudContext);
 
+        if ((m_renderHudOptions & RenderHudOptions.Overlay) != 0)
+            hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
+
         if ((m_renderHudOptions & RenderHudOptions.Hud) != 0)
         {
             SetHudPadding(hud);
@@ -138,12 +141,7 @@ public partial class WorldLayer
                 DrawMapHeader(hud);
 
             hud.DrawPalette(true);
-        }
-
-        if ((m_renderHudOptions & RenderHudOptions.Overlay) != 0)
-        {
-            hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
-        }    
+        } 
     }
 
     private void SetHudPadding(IHudRenderContext hud)
