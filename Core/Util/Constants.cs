@@ -176,7 +176,7 @@ public static class Constants
         public const int ColorMapCount = 32;
     }
 
-    public static readonly HashSet<string> InGameCommands = new(StringComparer.OrdinalIgnoreCase)
+    public static readonly HashSet<string> BaseCommands = new(StringComparer.OrdinalIgnoreCase)
     {
         Input.Forward,
         Input.Left,
@@ -218,7 +218,35 @@ public static class Constants
         Input.QuickSave,
         Input.OptionsMenu,
         Input.Menu,
-        Input.CenterView
+        Input.CenterView,
+    };
+
+    public static readonly HashSet<string> InGameCommands = new(StringComparer.OrdinalIgnoreCase)
+    {
+        Input.Forward,
+        Input.Left,
+        Input.Backward,
+        Input.Right,
+        Input.Use,
+        Input.Run,
+        Input.Strafe,
+        Input.TurnLeft,
+        Input.TurnRight,
+        Input.LookUp,
+        Input.LookDown,
+        Input.Jump,
+        Input.Crouch,
+        Input.Attack,
+        Input.NextWeapon,
+        Input.PreviousWeapon,
+        Input.WeaponSlot1,
+        Input.WeaponSlot2,
+        Input.WeaponSlot3,
+        Input.WeaponSlot4,
+        Input.WeaponSlot5,
+        Input.WeaponSlot6,
+        Input.WeaponSlot7,
+        Input.CenterView,
     };
 
     public static class ConsoleCommands

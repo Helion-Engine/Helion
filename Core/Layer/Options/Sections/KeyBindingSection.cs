@@ -130,7 +130,7 @@ public class KeyBindingSection : IOptionSection
 
         // These should always exist, and should report being unbound if not by
         // having an empty list of keys assigned to it.
-        foreach (string command in InGameCommands)
+        foreach (string command in BaseCommands)
             MapCommand(command);
 
         // Search for items that were bound by the user
