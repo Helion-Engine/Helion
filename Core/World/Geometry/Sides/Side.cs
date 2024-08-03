@@ -80,7 +80,6 @@ public sealed class Side : IRenderObject
     {
         DataChanges = default;
         ScrollData = default;
-        Colormaps = default;
         Offset = m_initialOffset;
         LastRenderGametick = default;
         LastRenderGametickAlpha = default;
