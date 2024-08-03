@@ -66,7 +66,7 @@ public class MidTextureHack
                 continue;
 
             m_midTextureHackLines.Add(line.Id);
-            var opening = GeometryRenderer.GetMidTexOpening(textureManager, side, side.Sector, side.PartnerSide!.Sector);
+            var opening = GeometryRenderer.GetMidTexOpening(textureManager, side, side.Sector, side.PartnerSide!.Sector, false);
 
             WallVertices wall = default;
             WorldTriangulator.HandleTwoSidedMiddle(side,

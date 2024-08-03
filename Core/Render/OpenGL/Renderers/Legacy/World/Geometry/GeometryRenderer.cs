@@ -1100,8 +1100,8 @@ public class GeometryRenderer : IDisposable
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
-            var opening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector);
-            var prevOpening = GetMidTexOpeningPrev(TextureManager, facingSide, facingSector, otherSector);
+            var opening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector, false);
+            var prevOpening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector, true);
             double offset = GetTransferHeightHackOffset(facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: false);
             double prevOffset = 0;
 
@@ -1163,54 +1163,35 @@ public class GeometryRenderer : IDisposable
         if (otherSide.Sector.TransferHeights == null && facingSide.Sector.TransferHeights == null)
             return 0;
 
-        //(double originalBottomZ, double originalTopZ)
-        var openingFlats = previous ?
-            GetMidTexOpeningPrev(TextureManager, facingSide, facingSide.Sector, otherSide.Sector) :
-            GetMidTexOpening(TextureManager, facingSide, facingSide.Sector, otherSide.Sector);
-
+        var openingFlats = GetMidTexOpening(TextureManager, facingSide, facingSide.Sector, otherSide.Sector, previous);
         if (facingSide.Line.Flags.Unpegged.Lower)
             return openingFlats.BottomZ - bottomZ;
 
         return openingFlats.TopZ - topZ;
     }
 
-    public static MidTexOpening GetMidTexOpening(TextureManager textureManager, Side facingSide, Sector facingSector, Sector otherSector)
+    public static MidTexOpening GetMidTexOpening(TextureManager textureManager, Side facingSide, Sector facingSector, Sector otherSector, bool previous)
     {
         SectorPlane facingFloor = facingSector.Floor;
         SectorPlane facingCeiling = facingSector.Ceiling;
         SectorPlane otherFloor = otherSector.Floor;
         SectorPlane otherCeiling = otherSector.Ceiling;
 
-        double facingFloorZ = facingFloor.Z;
-        double facingCeilingZ = facingCeiling.Z;
-        double otherFloorZ = otherFloor.Z;
-        double otherCeilingZ = otherCeiling.Z;
-
-        double bottomZ = Math.Max(facingFloorZ, otherFloorZ);
-        double topZ = Math.Min(facingCeilingZ, otherCeilingZ);
-        double minBottomZ = bottomZ;
-        double maxTopZ = topZ;
-
-        if (LowerIsVisible(facingSide, facingSector, otherSector) && facingSide.Lower.TextureHandle <= Constants.NullCompatibilityTextureIndex)
-            minBottomZ = Math.Min(facingFloorZ, otherFloorZ);
-        if (UpperOrSkySideIsVisible(textureManager, facingSide, facingSector, otherSector, out _) && facingSide.Upper.TextureHandle <= Constants.NullCompatibilityTextureIndex)
-            maxTopZ = Math.Max(facingCeilingZ, otherCeilingZ);
-
-        return new(bottomZ, topZ, minBottomZ, maxTopZ);
-
-    }
-
-    public static MidTexOpening GetMidTexOpeningPrev(TextureManager textureManager, Side facingSide, Sector facingSector, Sector otherSector)
-    {
-        SectorPlane facingFloor = facingSector.Floor;
-        SectorPlane facingCeiling = facingSector.Ceiling;
-        SectorPlane otherFloor = otherSector.Floor;
-        SectorPlane otherCeiling = otherSector.Ceiling;
-
-        double facingFloorZ = facingFloor.Z;
-        double facingCeilingZ = facingCeiling.Z;
-        double otherFloorZ = otherFloor.Z;
-        double otherCeilingZ = otherCeiling.Z;
+        double facingFloorZ, facingCeilingZ, otherFloorZ, otherCeilingZ;
+        if (previous)
+        {
+            facingFloorZ = facingFloor.PrevZ;
+            facingCeilingZ = facingCeiling.PrevZ;
+            otherFloorZ = otherFloor.PrevZ;
+            otherCeilingZ = otherCeiling.PrevZ;
+        }
+        else
+        {
+            facingFloorZ = facingFloor.Z;
+            facingCeilingZ = facingCeiling.Z;
+            otherFloorZ = otherFloor.Z;
+            otherCeilingZ = otherCeiling.Z;
+        }
 
         double bottomZ = Math.Max(facingFloorZ, otherFloorZ);
         double topZ = Math.Min(facingCeilingZ, otherCeilingZ);
