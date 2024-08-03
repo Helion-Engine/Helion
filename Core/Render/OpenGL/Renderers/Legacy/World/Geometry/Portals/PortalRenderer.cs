@@ -218,8 +218,15 @@ public class PortalRenderer : IDisposable
         line.Segment.End += unit;
     }
 
-    private bool IgnoreAltFloodFill(Side facingSide, Side otherSide, SectorPlaneFace face) =>
-        IsSky(facingSide.Sector.GetSectorPlane(face)) || IsSky(facingSide.Sector.GetSectorPlane(face));
+    private bool IgnoreAltFloodFill(Side facingSide, Side otherSide, SectorPlaneFace face)
+    {
+        // TODO because flood fill is static on the middle view rendering the alt case can cause some really bad rendering issues.
+        // Better to ignore them for now until a caching solution is implemented that separates all three views.
+        if (facingSide.Sector.TransferHeights != null || otherSide.Sector.TransferHeights != null)
+            return true;
+
+        return IsSky(facingSide.Sector.GetSectorPlane(face)) || IsSky(facingSide.Sector.GetSectorPlane(face));
+    }
 
     public void Render(RenderInfo renderInfo)
     {
