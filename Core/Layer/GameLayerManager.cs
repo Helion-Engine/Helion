@@ -30,6 +30,7 @@ using static Helion.Util.Assertion.Assert;
 using Helion.Geometry.Boxes;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 
 namespace Helion.Layer;
 
@@ -647,8 +648,7 @@ public class GameLayerManager : IGameLayerManager
             WorldLayer.RenderHud(m_ctx, options);
         }
 
-        m_hudContext.DrawPalette = false;
-        m_hudRenderCtx.DrawPalette(false);
+        StartDrawHud();
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
@@ -667,9 +667,24 @@ public class GameLayerManager : IGameLayerManager
 
         RenderConsole(hudCtx);
 
+        EndDrawHud();
+    }
+
+    private void StartDrawHud()
+    {
+        m_hudContext.DrawPalette = false;
+        m_hudRenderCtx.DrawPalette(false);
+        m_hudContext.DrawColorMap = false;
+        m_hudRenderCtx.DrawColorMap(false);
+    }
+
+    private void EndDrawHud()
+    {
         m_ctx.Surface.ClearOverrideDimension();
         m_hudContext.DrawPalette = true;
         m_hudRenderCtx.DrawPalette(true);
+        m_hudContext.DrawColorMap = ShaderVars.ColorMap;
+        m_hudRenderCtx.DrawColorMap(ShaderVars.ColorMap);
     }
 
     private void RenderLoadingLayer()
