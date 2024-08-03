@@ -16,6 +16,7 @@ public enum StructLineFlags
 
 public record struct StructLine
 {
+    public int Id;
     public Seg2D Segment;
     public Sector FrontSector;
     public Sector? BackSector;
@@ -31,6 +32,7 @@ public record struct StructLine
 
     public StructLine(Line line)
     {
+        Id = line.Id;
         Segment = line.Segment;
         FrontSector = line.Front.Sector;
         BackSector = line.Back?.Sector;

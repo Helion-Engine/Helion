@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using GlmSharp;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
@@ -13,7 +12,6 @@ using Helion.Resources.Definitions.Locks;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
-using Helion.Util.Loggers;
 using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities;
@@ -36,6 +34,7 @@ public class LegacyAutomapRenderer : IDisposable
     private readonly List<(int start, Vec3F color)> m_vboRanges = [];
     private readonly DynamicArray<vec2> m_points = new();
     private readonly AutomapColorPoints m_colorPoints = new();
+    private readonly HashSet<int> m_teleportLines = new();
     private float m_offsetX;
     private float m_offsetY;
     private int m_lastOffsetX;
@@ -44,7 +43,6 @@ public class LegacyAutomapRenderer : IDisposable
     private bool m_rotate;
     private int m_lastWorldId = -1;
     private Box2D m_boundingBox = default;
-
 
     private readonly Dictionary<string, Color> m_keys = new(StringComparer.OrdinalIgnoreCase);
 
@@ -101,6 +99,13 @@ public class LegacyAutomapRenderer : IDisposable
     public void Render(IWorld world, RenderInfo renderInfo)
     {
         SetColors();
+
+        if (m_lastWorldId != world.Id)
+        {
+            m_lastWorldId = world.Id;
+            UpdateTo(world);
+        }
+
         // Consider both offsets at zero a reset
         if (renderInfo.AutomapOffset.X == 0 && renderInfo.AutomapOffset.Y == 0)
         {
@@ -140,6 +145,17 @@ public class LegacyAutomapRenderer : IDisposable
         }
 
         m_shader.Unbind();
+    }
+
+    private void UpdateTo(IWorld world)
+    {
+        m_teleportLines.Clear();
+
+        foreach (var line in world.Lines)
+        {
+            if (line.Special.IsTeleport())
+                m_teleportLines.Add(line.Id);
+        }
     }
 
     private void SetBoundingBox(RenderInfo renderInfo)
@@ -325,8 +341,8 @@ public class LegacyAutomapRenderer : IDisposable
 
         if (line.SeenForAutomap || forceDraw)
         {
-            //if (line.HasSpecial && line.Special.IsTeleport())
-            //    return m_teleportLineColor;
+            if (m_teleportLines.Contains(line.Id))
+                return m_teleportLineColor;
 
             return m_twoSidedWallColor;
         }

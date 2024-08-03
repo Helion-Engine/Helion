@@ -65,7 +65,7 @@ public class AutomapLineColors(bool overlay)
 
     [ConfigInfo("Teleport line color for the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Teleport line color")]
-    public readonly ConfigValue<Vec3I> TeleportLineColor = new((0x80, 0x80, 0x80), ClampColor);
+    public readonly ConfigValue<Vec3I> TeleportLineColor = new(overlay ? (0xFF, 0x00, 0xFF) : (0x00, 0xFF, 0x00), ClampColor);
 
     [ConfigInfo("Player color for the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Player color")]
