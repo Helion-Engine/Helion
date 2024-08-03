@@ -24,7 +24,6 @@ public partial class MapInfoDefinition
                 mapDef = existing;
             MapInfo.AddOrReplaceMap(mapDef);
 
-            mapDef.LookupName = string.Empty;
             mapDef.TitlePatch = string.Empty;
             while (!IsBlockComplete(parser, true))
             {
