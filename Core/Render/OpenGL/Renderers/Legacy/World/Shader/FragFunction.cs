@@ -42,10 +42,14 @@ public class FragFunction
             // blocks. A larger denominator makes it more blocky.
             // Dividing by the distance makes the fuzz look more detailed from far away instead of getting gigantic blocks.
             vec2 blockCoordinate = floor(gl_FragCoord.xy / ceil((fuzzDiv/(max(1, fuzzDist/" + FuzzDistanceStep + @")))));
-            fragColor.xyz = vec3(0, 0, 0);
+            ${FuzzBlackColor}
             fragColor.w *= clamp(noise(blockCoordinate * fuzzFrac), 0.2, 0.45);
-        }";
-
+        }"
+        .Replace("${FuzzBlackColor}",
+            // Fetch black color from current palette. This takes the pre-blended black color with red/yellow/green palettes.
+            ShaderVars.ColorMap ? 
+                "fragColor.xyz = texelFetch(colormapTexture, usePalette * paletteSize).rgb;" : 
+                "fragColor.xyz = vec3(0, 0, 0);");
 
     public static string AlphaFlag(bool lightLevel)
     {
