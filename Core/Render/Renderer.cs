@@ -173,7 +173,7 @@ public class Renderer : IDisposable
         return new ShaderUniforms(CalculateMvpMatrix(renderInfo),
             CalculateMvpMatrix(renderInfo, true),
             GetTimeFrac(), drawInvulnerability, mix, extraLight, GetDistanceOffset(renderInfo),
-            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), colorMapIndex, paletteIndex);
+            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), colorMapIndex, paletteIndex, config.Render.LightMode);
     }
 
     private static PaletteIndex GetPalette(IConfig config, Player player)

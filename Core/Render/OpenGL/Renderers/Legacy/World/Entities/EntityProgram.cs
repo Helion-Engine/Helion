@@ -2,6 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shader;
+using Helion.Util.Configs.Components;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
@@ -24,6 +25,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_fuzzDivLocation;
     private readonly int m_paletteIndexLocation;
     private readonly int m_colorMapIndexLocation;
+    private readonly int m_lightModeLocation;
 
     public EntityProgram() : base("Entity")
     {
@@ -43,6 +45,7 @@ public class EntityProgram : RenderProgram
         m_fuzzDivLocation = Uniforms.GetLocation("fuzzDiv");
         m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
         m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
+        m_lightModeLocation = Uniforms.GetLocation("lightMode");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -61,6 +64,7 @@ public class EntityProgram : RenderProgram
     public void FuzzDiv(float div) => Uniforms.Set(div, m_fuzzDivLocation);
     public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
     public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
+    public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -195,6 +199,7 @@ public class EntityProgram : RenderProgram
         uniform float fuzzDiv;
         uniform int paletteIndex;
         uniform int colormapIndex;
+        uniform int lightMode;
 
         ${FuzzFunction}
 

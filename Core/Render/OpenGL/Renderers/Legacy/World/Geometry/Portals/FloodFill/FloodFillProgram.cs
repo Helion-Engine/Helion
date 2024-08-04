@@ -2,6 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shader;
+using Helion.Util.Configs.Components;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
@@ -22,6 +23,7 @@ public class FloodFillProgram : RenderProgram
     private readonly int m_colorMixLocation;
     private readonly int m_paletteIndexLocation;
     private readonly int m_colorMapIndexLocation;
+    private readonly int m_lightModeLocation;
 
     public FloodFillProgram() : base("Flood fill plane")
     {
@@ -39,6 +41,7 @@ public class FloodFillProgram : RenderProgram
         m_colorMixLocation = Uniforms.GetLocation("colorMix");
         m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
         m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
+        m_lightModeLocation = Uniforms.GetLocation("lightMode");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -56,6 +59,7 @@ public class FloodFillProgram : RenderProgram
     public void ColorMix(Vec3F color) => Uniforms.Set(color, m_colorMixLocation);
     public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
     public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
+    public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
 
     protected override string VertexShader() => @"
         #version 330

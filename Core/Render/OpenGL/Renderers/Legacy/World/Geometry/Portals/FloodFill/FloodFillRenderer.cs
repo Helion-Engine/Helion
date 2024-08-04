@@ -274,6 +274,7 @@ public class FloodFillRenderer : IDisposable
         m_program.ColorMix(renderInfo.Uniforms.ColorMix);
         m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapIndex);
+        m_program.LightMode(renderInfo.Uniforms.LightMode);
 
         for (int i = 0; i < m_floodFillInfos.Count; i++)
         {

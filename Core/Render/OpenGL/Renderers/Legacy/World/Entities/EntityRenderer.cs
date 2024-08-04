@@ -261,6 +261,7 @@ public class EntityRenderer : IDisposable
         m_program.FuzzDiv(renderInfo.Uniforms.FuzzDiv);
         m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapIndex);
+        m_program.LightMode(renderInfo.Uniforms.LightMode);
     }
 
     public void RenderAlpha(RenderInfo renderInfo)

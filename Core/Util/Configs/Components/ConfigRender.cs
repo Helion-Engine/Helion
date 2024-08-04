@@ -20,6 +20,12 @@ public enum RenderColorMode
     Palette
 }
 
+public enum RenderLightMode
+{
+    Banded,
+    Smooth
+}
+
 public class ConfigRenderFilter
 {
     [ConfigInfo("The kind of filter applied to fonts.")]
@@ -91,24 +97,12 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Emulate vanilla rendering", spacer: true)]
     public readonly ConfigValue<bool> VanillaRender = new(false);
 
-    [ConfigInfo("If any sprite should clip the floor.")]
-    [OptionMenu(OptionSectionType.Render, "Sprite floor clip")]
-    public readonly ConfigValue<bool> SpriteClip = new(true);
-
-    [ConfigInfo("Max percentage of height allowed to clip the floor for corpses.")]
-    [OptionMenu(OptionSectionType.Render, "Clip max height percentage")]
-    public readonly ConfigValue<double> SpriteClipFactorMax = new(0.02, ClampNormalized);
-
-    [ConfigInfo("The minimum sprite height to allow to clip the floor.")]
-    [OptionMenu(OptionSectionType.Render, "Clip min height")]
-    public readonly ConfigValue<int> SpriteClipMin = new(16, GreaterOrEqual(0));
-
-    [ConfigInfo("Checks if sprites will overlap and z-fight.")]
-    [OptionMenu(OptionSectionType.Render, "Sprite Z-fighting check")]
-    public readonly ConfigValue<bool> SpriteZCheck = new(true);
+    [ConfigInfo("Sets light projection to banded or smooth. Smooth only supported with true color rendering.")]
+    [OptionMenu(OptionSectionType.Render, "Light mode", spacer: true)]
+    public readonly ConfigValue<RenderLightMode> LightMode = new(RenderLightMode.Banded);
 
     [ConfigInfo("Adds to the rendering light level offset.")]
-    [OptionMenu(OptionSectionType.Render, "Extra lighting", spacer: true)]
+    [OptionMenu(OptionSectionType.Render, "Extra lighting")]
     public readonly ConfigValue<int> ExtraLight = new(0);
 
     [ConfigInfo("Draws everything at full brightness.")]
@@ -126,4 +120,20 @@ public class ConfigRender
     [ConfigInfo("Fuzz amount.")]
     [OptionMenu(OptionSectionType.Render, "Fuzz amount")]
     public readonly ConfigValue<double> FuzzAmount = new(1);
+
+    [ConfigInfo("If any sprite should clip the floor.")]
+    [OptionMenu(OptionSectionType.Render, "Sprite floor clip")]
+    public readonly ConfigValue<bool> SpriteClip = new(true);
+
+    [ConfigInfo("Max percentage of height allowed to clip the floor for corpses.")]
+    [OptionMenu(OptionSectionType.Render, "Clip max height percentage")]
+    public readonly ConfigValue<double> SpriteClipFactorMax = new(0.02, ClampNormalized);
+
+    [ConfigInfo("The minimum sprite height to allow to clip the floor.")]
+    [OptionMenu(OptionSectionType.Render, "Clip min height")]
+    public readonly ConfigValue<int> SpriteClipMin = new(16, GreaterOrEqual(0));
+
+    [ConfigInfo("Checks if sprites will overlap and z-fight.")]
+    [OptionMenu(OptionSectionType.Render, "Sprite Z-fighting check")]
+    public readonly ConfigValue<bool> SpriteZCheck = new(true);
 }
