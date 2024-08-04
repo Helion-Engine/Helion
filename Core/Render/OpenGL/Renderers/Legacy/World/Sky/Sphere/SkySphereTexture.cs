@@ -165,8 +165,11 @@ public class SkySphereTexture : IDisposable
         fadedSky.FillRows(topFadeColor, 0, middleY);
         fadedSky.FillRows(bottomFadeColor, middleY, fadedSky.Height);
 
-        fadedSky.FillRows(m_archiveCollection.Colormap.GetNearestColorIndex(topFadeColor), 0, middleY);
-        fadedSky.FillRows(m_archiveCollection.Colormap.GetNearestColorIndex(bottomFadeColor), middleY, fadedSky.Height);
+        if (ShaderVars.ColorMap)
+        {
+            fadedSky.FillRows(m_archiveCollection.Colormap.GetNearestColorIndex(topFadeColor), 0, middleY);
+            fadedSky.FillRows(m_archiveCollection.Colormap.GetNearestColorIndex(bottomFadeColor), middleY, fadedSky.Height);
+        }
 
         // Now draw the images on top of them.
         skyImage.DrawOnTopOf(fadedSky, (0, middleY));
@@ -211,7 +214,10 @@ public class SkySphereTexture : IDisposable
         {
             Color originalColor = fadedSky.GetPixel(x, targetY);
             Color newArgb = Color.Lerp(normalized, originalColor, t);
-            fadedSky.SetPixel(x, targetY, newArgb, m_archiveCollection.Colormap);
+            if (ShaderVars.ColorMap)
+                fadedSky.SetPixel(x, targetY, newArgb, m_archiveCollection.Colormap);
+            else
+                fadedSky.SetPixel(x, targetY, newArgb);
         }
     }
 

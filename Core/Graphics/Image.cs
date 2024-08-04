@@ -257,13 +257,24 @@ public class Image
         return new(argb);
     }
 
+    public void SetPixel(int x, int y, Color color)
+    {
+        int offset = (y * Width) + x;
+        if (offset >= 0 && offset < m_pixels.Length)
+            m_pixels[offset] = color.Uint;
+    }
+
     public void SetPixel(int x, int y, Color color, Colormap colormap)
     {
+        uint index = 0;
+       if (ImageType == ImageType.PaletteWithArgb)
+        index = colormap.GetNearestColorIndex(color);
+
         int offset = (y * Width) + x;
         if (offset >= 0 && offset < m_pixels.Length)
         {
             if (ImageType == ImageType.PaletteWithArgb)
-                m_indices[offset] = colormap.GetNearestColorIndex(color);
+                m_indices[offset] = index;
             m_pixels[offset] = color.Uint;
         }
     }
