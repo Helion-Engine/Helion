@@ -114,7 +114,6 @@ public class FloodFillProgram : RenderProgram
         uniform int colormapIndex;
 
         ${LightLevelFragVariables}
-        ${LightLevelConstants}
 
         void main()
         {
@@ -134,7 +133,6 @@ public class FloodFillProgram : RenderProgram
         }
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
-    .Replace("${LightLevelConstants}", LightLevel.Constants)
     .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.NoDist))
     .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Colormap))
     .Replace("${Depth}", ShaderVars.Depth);

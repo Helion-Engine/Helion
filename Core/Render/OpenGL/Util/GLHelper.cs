@@ -33,7 +33,6 @@ public static class GLHelper
     // a way of getting around allocations, by reusing it.
     private static float[] MvpBuffer = new float[16];
 
-    // Defined in LegacyShader as well
     const int ColorMaps = 32;
     const int ColorMapClamp = 31;
     const int ScaleCount = 16;

@@ -104,8 +104,7 @@ public class StaticShader : RenderProgram
         uniform int paletteIndex;
         uniform int colormapIndex;
 
-        ${LightLevelFragVariables}        
-        ${LightLevelConstants}
+        ${LightLevelFragVariables}
 
         void main() {
             ${LightLevelFragFunction}
@@ -113,7 +112,6 @@ public class StaticShader : RenderProgram
         }
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
-    .Replace("${LightLevelConstants}", LightLevel.Constants)
     .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
     .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap));
 }

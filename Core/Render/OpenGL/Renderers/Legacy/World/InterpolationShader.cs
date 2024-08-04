@@ -109,8 +109,6 @@ public class InterpolationShader : RenderProgram
         uniform int colormapIndex;
 
         ${LightLevelFragVariables}
-        
-        ${LightLevelConstants}
 
         void main() {
             ${LightLevelFragFunction}
@@ -118,7 +116,6 @@ public class InterpolationShader : RenderProgram
         }
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
-    .Replace("${LightLevelConstants}", LightLevel.Constants)
     .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
     .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap));
 }

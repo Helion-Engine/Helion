@@ -196,8 +196,7 @@ public class EntityProgram : RenderProgram
         uniform int paletteIndex;
         uniform int colormapIndex;
 
-        ${FuzzFunction}        
-        ${LightLevelConstants}
+        ${FuzzFunction}
 
         void main()
         {
@@ -205,7 +204,6 @@ public class EntityProgram : RenderProgram
             ${FragColorFunction}
         }
     "
-    .Replace("${LightLevelConstants}", LightLevel.Constants)
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
     .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha | FragColorFunctionOptions.Colormap));
