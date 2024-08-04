@@ -52,8 +52,8 @@ int lightColorIndex = int(lightColor);
 @"
 float useLightIndex = lightColor;
 useLightIndex = mix(lightColorIndex, lightColor, lightMode);
-lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
 lightLevel = float(colorMaps - useLightIndex) / colorMaps;
+lightLevel = mix(clamp(lightLevel, 0.0, 1.0), 1.0, lightLevelMix);
 lightLevel = mix(lightLevel, 1, hasInvulnerability);"
 );
 }
