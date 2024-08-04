@@ -18,7 +18,7 @@ namespace Helion.Graphics;
 /// </remarks>
 public class Image
 {
-    public const byte AlphaFlag = 1;
+    public const byte AlphaFlag = 254;
     public const ushort TransparentIndex = 0xFF00;
     public static readonly Image NullImage = CreateNullImage();
     public static readonly Image WhiteImage = CreateWhiteImage();
@@ -133,9 +133,13 @@ public class Image
             uint pixel = argb == TransparentIndex ? Color.Transparent.Uint : layer[argb].Uint;
             if (argb != TransparentIndex && argb < fullBright.Length && fullBright[argb])
             {
-                HasFullBrightPixels = true;
-                uint newPixel = (pixel & 0x00FFFFFF) | (AlphaFlag << 24);
-                pixel = newPixel;
+                var color = layer[argb];
+                if (color.R != 0 && color.G != 0 && color.B != 0)
+                {
+                    HasFullBrightPixels = true;
+                    uint newPixel = (pixel & 0x00FFFFFF) | ((uint)AlphaFlag << 24);
+                    pixel = newPixel;
+                }
             }
             pixels[i] = pixel;
         }

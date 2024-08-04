@@ -54,7 +54,7 @@ public class FragFunction
 
         return
             @"// Check for the reserved alpha value to indicate a full bright pixel.
-            float fullBrightFlag = float(fragColor.w == 0.0039215686274509803921568627451);
+            float fullBrightFlag = float(fragColor.w == 0.9960784313725490196078431372549);
             " + (lightLevel ? "lightLevel = mix(lightLevel, 1, fullBrightFlag);\n" : "") +
             "fragColor.w = mix(fragColor.w, 1, fullBrightFlag);\n";
     }
@@ -87,8 +87,8 @@ public class FragFunction
         return @"
                 const int paletteSize = 256 * 34;
                 const int colormapSize = paletteSize * 14;
-                float colormapFetchFlag = float(fragColor.w == 0.0039215686274509803921568627451);                
-                fragColor.w += colormapFetchFlag;
+                float colormapFetchFlag = float(fragColor.w == 0.9960784313725490196078431372549);                
+                fragColor.w = mix(fragColor.w, 1, colormapFetchFlag);
                 ${IndexAdd}
                 int texIndex = lightLevelOffset + (useColormap * colormapSize) + (usePalette * paletteSize + int(fragColor.r * 255.0));
                 vec3 fetchColor = texelFetch(colormapTexture, texIndex).rgb;
@@ -122,8 +122,6 @@ public class FragFunction
     public static string InvulnerabilityFragColor =>
         ShaderVars.ColorMap ? "" :
     @"
-    // If invulnerable, grayscale everything and crank the brightness.
-    // Note: The 1.5x is a visual guess to make it look closer to vanilla.
     if (hasInvulnerability != 0)
     {
         float gray = fragColor.x * 0.299 + fragColor.y * 0.587 + fragColor.z * 0.144;
