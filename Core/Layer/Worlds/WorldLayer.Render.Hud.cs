@@ -117,7 +117,7 @@ public partial class WorldLayer
         m_fontHeight = (int)(16 * m_scale);
         m_viewport = hud.Dimension;
 
-        if ((m_renderHudOptions & RenderHudOptions.Weapon) != 0)       
+        if ((m_renderHudOptions & RenderHudOptions.Weapon) != 0)
             DrawWeapon(hud, hudContext);
 
         if ((m_renderHudOptions & RenderHudOptions.Overlay) != 0)
@@ -126,6 +126,9 @@ public partial class WorldLayer
         if ((m_renderHudOptions & RenderHudOptions.Hud) != 0)
         {
             SetHudPadding(hud);
+
+            if (m_config.Hud.Crosshair)
+                DrawCrosshair(hud);
 
             int topRightY = m_padding / 2;
             DrawFPS(hud, ref topRightY);
@@ -342,13 +345,6 @@ public partial class WorldLayer
     {
         if (!WorldStatic.World.DrawHud)
             return;
-
-        if ((m_renderHudOptions & RenderHudOptions.Weapon) != 0)
-        {
-            DrawWeapon(hud, hudContext);
-            if (m_config.Hud.Crosshair)
-                DrawCrosshair(hud);
-        }
 
         m_statusBarSizeType = m_config.Hud.StatusBarSize.Value;
         switch (m_statusBarSizeType)
