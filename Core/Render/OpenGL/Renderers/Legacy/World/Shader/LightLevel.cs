@@ -44,7 +44,7 @@ const int colorMaps = 32;
 float lightLevel = lightLevelFrag;
 int lightNum = int(lightLevel / 8);
 int startMap = (30 - lightNum) * 2;
-float lightIndex = min(2560 / dist, 47);
+float lightIndex = min(2560 / abs(dist), 47);
 float lightColor = clamp((startMap - lightIndex / 2) - extraLight, 0, 31);
 int lightColorIndex = int(lightColor);
 "
