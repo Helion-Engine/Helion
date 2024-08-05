@@ -1,3 +1,4 @@
+using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Resources;
 using Helion.Util.Bytes;
@@ -5,6 +6,8 @@ using Helion.Util.Extensions;
 using System;
 
 namespace Helion.Graphics.Palettes;
+
+public readonly record struct PaletteImage(ushort[] Indices, Dimension Dimension, Vec2I Offset, ResourceNamespace Namespace);
 
 /// <summary>
 /// A collection of palette image reader helper methods.
@@ -58,13 +61,16 @@ public static class PaletteReaders
     /// palette image to be created.</param>
     /// <returns>A palette image, or an empty optional if the data is not a
     /// flat palette image.</returns>
-    public static Image? ReadFlat(byte[] data, ResourceNamespace resourceNamespace)
+    public static bool ReadFlat(byte[] data, ResourceNamespace resourceNamespace, out PaletteImage paletteImage)
     {
         int dim = FlatDimension(data.Length);
         if (dim == 0)
-            return null;
+        {
+            paletteImage = default;
+            return false;
+        }
 
-        uint[] indices = new uint[dim * dim];
+        ushort[] indices = new ushort[dim * dim];
 
         int offset = 0;
         for (int y = 0; y < dim; y++)
@@ -76,7 +82,8 @@ public static class PaletteReaders
             }
         }
 
-        return Image.FromPaletteIndices((dim, dim), indices, (0, 0), resourceNamespace);
+        paletteImage = new(indices, (dim, dim), (0, 0), resourceNamespace);
+        return true;
     }
 
     /// <summary>
@@ -87,7 +94,7 @@ public static class PaletteReaders
     /// palette image to be created.</param>
     /// <returns>A palette image, or an empty optional if the data is not a
     /// column palette image.</returns>
-    public static Image? ReadColumn(byte[] data, ResourceNamespace resourceNamespace)
+    public static bool ReadColumn(byte[] data, ResourceNamespace resourceNamespace, out PaletteImage paletteImage)
     {
         try
         {
@@ -101,7 +108,7 @@ public static class PaletteReaders
             for (int i = 0; i < width; i++)
                 offsets[i] = reader.ReadInt32();
 
-            uint[] indices = new uint[width * height];
+            ushort[] indices = new ushort[width * height];
             indices.Fill(Image.TransparentIndex);
 
             for (int col = 0; col < width; col++)
@@ -140,11 +147,13 @@ public static class PaletteReaders
                 }
             }
 
-            return Image.FromPaletteIndices((width, height), indices, imageOffsets, resourceNamespace);
+            paletteImage = new(indices, (width, height), imageOffsets, resourceNamespace);
+            return true;
         }
         catch
         {
-            return null;
+            paletteImage = default;
+            return false;
         }
     }
 

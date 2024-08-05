@@ -83,7 +83,7 @@ public static class BitmapFont
         Dictionary<char, Image> charImages = new();
 
         // TODO: TEMPORARY: The texture manager should do all of this for us later on!
-        IImageRetriever imageRetriever = new ArchiveImageRetriever(archiveCollection);
+        var imageRetriever = new ArchiveImageRetriever(archiveCollection);
 
         // Unfortunately we need to know the max height, and require all of
         // the images beforehand to make such a calculation.

@@ -30,14 +30,13 @@ public class Image
     public readonly Vec2I Offset;
     public readonly ResourceNamespace Namespace;
     private readonly uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
-    private readonly uint[] m_indices;
+    private readonly byte[] m_indices;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
     public Span<uint> Pixels => m_pixels;
 
     public int BlankRowsFromBottom;
-    public bool HasFullBrightPixels;
 
     public Image(Dimension dimension, ImageType imageType, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global) :
         this(new uint[dimension.Area], dimension, imageType, offset, ns)
@@ -51,7 +50,7 @@ public class Image
         Precondition(h >= 0, "Tried providing a negative height for an image");
     }
 
-    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, uint[]? indices = null)
+    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, ushort[]? indices = null)
     {
         Precondition(pixels.Length == dimension.Area, "Image size mismatch");
 
@@ -62,16 +61,15 @@ public class Image
         m_pixels = pixels;
 
         if (ImageType == ImageType.PaletteWithArgb && indices == null)
-        {
-            m_indices = new uint[m_pixels.Length];
-            for (int i = 0; i < m_indices.Length; i++)
-                m_indices[i] = TransparentIndex;
-        }
+            m_indices = new byte[m_pixels.Length];
 
         if (indices != null)
         {
             ImageType = ImageType.PaletteWithArgb;
-            m_indices = indices;
+            m_indices = new byte[indices.Length];
+            for (int i = 0; i < m_indices.Length; i++)
+                m_indices[i] = (byte)indices[i];
+
         }
 
         UploadType = ImageType;
@@ -122,21 +120,20 @@ public class Image
         return new(pixels, dimension, ImageType.Argb, offset, ns);
     }
 
-    public Image PaletteToArgb(Palette palette, bool[] fullBright)
+    public static Image PaletteToArgb(PaletteImage image, Palette palette, bool[] fullBright, bool storeIndices)
     {
-        uint[] pixels = new uint[m_pixels.Length];
+        uint[] pixels = new uint[image.Indices.Length];
         Color[] layer = palette.DefaultLayer;
 
-        for (int i = 0; i < m_pixels.Length; i++)
+        for (int i = 0; i < image.Indices.Length; i++)
         {
-            uint argb = m_pixels[i];
+            uint argb = image.Indices[i];
             uint pixel = argb == TransparentIndex ? Color.Transparent.Uint : layer[argb].Uint;
             if (argb != TransparentIndex && argb < fullBright.Length && fullBright[argb])
             {
                 var color = layer[argb];
                 if (color.R != 0 && color.G != 0 && color.B != 0)
                 {
-                    HasFullBrightPixels = true;
                     uint newPixel = (pixel & 0x00FFFFFF) | ((uint)AlphaFlag << 24);
                     pixel = newPixel;
                 }
@@ -144,7 +141,7 @@ public class Image
             pixels[i] = pixel;
         }
 
-        return new(pixels, Dimension, ImageType.Argb, Offset, Namespace, m_pixels);
+        return new(pixels, image.Dimension, ImageType.Argb, image.Offset, image.Namespace, storeIndices ? image.Indices : null);
     }
 
     private static uint BlendPixels(uint back, uint front)
@@ -229,7 +226,7 @@ public class Image
             m_pixels[i] = argb;
     }
 
-    public void FillRows(uint index, int startY, int endY)
+    public void FillRows(byte index, int startY, int endY)
     {
         if (ImageType != ImageType.PaletteWithArgb)
             return;
@@ -266,9 +263,9 @@ public class Image
 
     public void SetPixel(int x, int y, Color color, Colormap colormap)
     {
-        uint index = 0;
-       if (ImageType == ImageType.PaletteWithArgb)
-        index = colormap.GetNearestColorIndex(color);
+        byte index = 0;
+        if (ImageType == ImageType.PaletteWithArgb)
+            index = colormap.GetNearestColorIndex(color);
 
         int offset = (y * Width) + x;
         if (offset >= 0 && offset < m_pixels.Length)
@@ -362,7 +359,7 @@ public class Image
         for (int i = 0; i < m_indices.Length; i++)
         {
             var argb = m_indices[i];
-            byte alpha = (byte)(argb == TransparentIndex ? 0 : AlphaFlag);
+            byte alpha = (byte)((m_pixels[i] & 0xFF000000) == 0 ? 0 : AlphaFlag);
             pixels[i] = (uint)(alpha << 24 | (byte)argb << 16);
         }
 

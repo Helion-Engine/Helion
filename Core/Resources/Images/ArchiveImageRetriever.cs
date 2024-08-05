@@ -179,17 +179,17 @@ public class ArchiveImageRetriever : IImageRetriever
         }
         else
         {
+            var dataEntries = m_archiveCollection.Data;
+            var storeIndices = m_archiveCollection.StoreImageIndices;
             if (entry.Namespace == ResourceNamespace.Flats && PaletteReaders.LikelyFlat(data))
             {
-                Image? flatPaletteImage = PaletteReaders.ReadFlat(data, entry.Namespace);
-                if (flatPaletteImage != null)
-                    image = flatPaletteImage.PaletteToArgb(m_archiveCollection.Data.Palette, m_archiveCollection.Data.Colormap.FullBright);
+                if (PaletteReaders.ReadFlat(data, entry.Namespace, out var paletteImage))
+                    image = Image.PaletteToArgb(paletteImage, dataEntries.Palette, dataEntries.Colormap.FullBright, storeIndices);
             }
             else
             {
-                Image? columnPaletteImage = PaletteReaders.ReadColumn(data, entry.Namespace);
-                if (columnPaletteImage != null)
-                    image = columnPaletteImage.PaletteToArgb(m_archiveCollection.Data.Palette, m_archiveCollection.Data.Colormap.FullBright);
+                if (PaletteReaders.ReadColumn(data, entry.Namespace, out var paletteImage))
+                    image = Image.PaletteToArgb(paletteImage, dataEntries.Palette, dataEntries.Colormap.FullBright, storeIndices);
             }
         }
 

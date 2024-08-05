@@ -7,6 +7,7 @@ using Helion.Dehacked;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.Palettes;
 using Helion.Maps;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Archives.Iterator;
 using Helion.Resources.Archives.Locator;
@@ -71,6 +72,7 @@ public class ArchiveCollection : IResources, IPathResolver
     public DataCache DataCache { get; }
     public IImageRetriever ImageRetriever { get; }
     public bool Loaded { get; private set; }
+    public bool StoreImageIndices => ShaderVars.ColorMap;
     public IConfig Config => m_config;
     public DehackedDefinition? Dehacked => Definitions.DehackedDefinition;
     public ArchiveCollectionEntries Entries = new();
