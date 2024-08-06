@@ -71,11 +71,8 @@ public class EntityProgram : RenderProgram
 
         layout(location = 0) in vec3 pos;
         layout(location = 1) in float lightLevel;
-        layout(location = 2) in float alpha;
-        layout(location = 3) in float fuzz;
-        layout(location = 4) in float flipU;        
-        layout(location = 5) in float colorMapTranslation;
-        layout(location = 6) in vec3 prevPos;
+        layout(location = 2) in float options;
+        layout(location = 3) in vec3 prevPos;
 
         out float lightLevelOut;
         out float alphaOut;
@@ -87,6 +84,14 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
+            float splitOptions = options;
+            float colorMapTranslation = trunc(splitOptions / 8);
+            splitOptions -= (colorMapTranslation * 8);
+            float flipU = trunc(splitOptions / 4);
+            splitOptions -= (flipU * 4);
+            float fuzz = trunc(splitOptions / 2);
+            float alpha = splitOptions - (fuzz * 2);
+
             lightLevelOut = lightLevel;
             alphaOut = alpha;
             fuzzOut = fuzz;

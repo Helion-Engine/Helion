@@ -14,16 +14,7 @@ public struct EntityVertex
     public float LightLevel;
 
     [VertexAttribute]
-    public float Alpha;
-
-    [VertexAttribute]
-    public float Fuzz;
-
-    [VertexAttribute]
-    public float FlipU;
-
-    [VertexAttribute]
-    public float ColorMapTranslation;
+    public float Options;
 
     [VertexAttribute]
     public Vec3F PrevPos;
