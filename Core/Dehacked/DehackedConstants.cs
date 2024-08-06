@@ -1015,6 +1015,7 @@ public partial class DehackedDefinition
         { ThingState.SKEL_RUN9,     new("Revenant::see",                8) },
         { ThingState.SKEL_RUN10,    new("Revenant::see",                9) },
         { ThingState.SKEL_RUN11,    new("Revenant::see",                10) },
+        { ThingState.SKEL_RUN12,    new("Revenant::see",                11) },
         { ThingState.SKEL_FIST1,    new("Revenant::melee",              0) },
         { ThingState.SKEL_FIST2,    new("Revenant::melee",              1) },
         { ThingState.SKEL_FIST3,    new("Revenant::melee",              2) },
