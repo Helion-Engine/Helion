@@ -273,8 +273,11 @@ public class DefinitionEntries
         {
             // Boom mapped the first entry found in the hash for textures. This is especially important animated ranges.
             // E.g. Ancient Aliens has KS_FLSG6 duplicated and using the second texture breaks animated range values.
-            if (Textures.Contains(def.Name, def.Namespace))
-                continue;
+            // Use the new texture but with original index.
+            var existing = Textures.Get(def.Name, def.Namespace);
+            if (existing != null)
+                def.Index = existing.Index;
+
             Textures.Insert(def.Name, def.Namespace, def);
         }
     }

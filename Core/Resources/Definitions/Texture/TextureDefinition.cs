@@ -43,7 +43,7 @@ public class TextureDefinition
 
     public readonly TextureOptions Options;
 
-    public readonly int Index;
+    public int Index;
 
     /// <summary>
     /// Creates a new texture definition.
