@@ -297,17 +297,20 @@ public class DefinitionEntries
         // handled, it might be 'one pnames to textureX' when more than one
         // pnames exist. If so, the logic will need to change here a bit.
         Pnames pnames = collection.Pnames.First();
-        var textureDefs = collection.TextureX.SelectMany(textureX => textureX.ToTextureDefinitions(pnames));
-        foreach (var def in textureDefs)
+        var processed = new HashSet<string>();
+        foreach (var textureX in collection.TextureX)
         {
-            // Boom mapped the first entry found in the hash for textures. This is especially important animated ranges.
-            // E.g. Ancient Aliens has KS_FLSG6 duplicated and using the second texture breaks animated range values.
-            // Use the new texture but with original index.
-            var existing = Textures.Get(def.Name, def.Namespace);
-            if (existing != null)
-                def.Index = existing.Index;
+            var textureDefinitions = textureX.ToTextureDefinitions(pnames);
+            foreach (var def in textureDefinitions)
+            {
+                // Ignore duplicated textures from same archive
+                // E.g. Ancient Aliens has KS_FLSG6 duplicated and using the second texture breaks animated range values.
+                if (processed.Contains(def.Name))
+                    continue;
 
-            Textures.Insert(def.Name, def.Namespace, def);
+                processed.Add(def.Name);
+                Textures.Insert(def.Name, def.Namespace, def);
+            }
         }
     }
 }
