@@ -5,6 +5,8 @@ using System.Collections.Generic;
 
 namespace Helion.Graphics.Palettes;
 
+public enum TranslateColor { Gray, Brown, Red, Count }
+
 public class Colormap
 {
     public const int NumColors = 256;
@@ -59,7 +61,7 @@ public class Colormap
         return bestIndex;
     }
 
-    public static Colormap? From(Palette palette, byte[] data, Entry entry)
+    public static Colormap? From(Palette palette, byte[] data, Entry? entry)
     {
         if (data.Length < BytesPerColormap)
             return null;
@@ -127,5 +129,38 @@ public class Colormap
 
         DefaultColormap = new(colors, indices);
         return DefaultColormap;
+    }
+
+    public static Colormap? CreateTranslatedColormap(Palette palette, byte[] colorMap, TranslateColor color)
+    {
+        var translated = TranslateIndices(colorMap, color);
+        return From(palette, translated, null);
+    }
+
+    private static byte[] TranslateIndices(byte[] data, TranslateColor color)
+    {
+        byte offset = color switch
+        {
+            TranslateColor.Gray => 0x60,
+            TranslateColor.Red => 0x40,
+            TranslateColor.Brown => 0x20,
+            _ => 0
+        };
+
+        var translate = new byte[data.Length];
+        int index = 0;
+        for (int layer = 0; layer < NumLayers; layer++)
+        {
+            for (int colorIndex = 0; colorIndex < NumColors; colorIndex++, index++)
+            {
+                // Only translate green color indices
+                if (colorIndex >= 0x70 && colorIndex <= 0x7f)
+                    translate[index] = data[(layer * NumColors) + offset + (colorIndex & 0xF)];
+                else
+                    translate[index] = data[index];
+            }
+        }
+
+        return translate;
     }
 }

@@ -937,12 +937,12 @@ public class DehackedApplier
         flags.Touchy = GetNewFlagValue(flags.Touchy, thingProperties.HasFlag(ThingProperties.TOUCHY), opAnd);
         flags.MbfBouncer = GetNewFlagValue(flags.MbfBouncer, thingProperties.HasFlag(ThingProperties.BOUNCES), opAnd);
         flags.Friendly = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.FRIEND), opAnd);
+        flags.Translation1 = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.TRANSLATION1), opAnd);
+        flags.Translation2 = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.TRANSLATION2), opAnd);
 
         properties.Alpha = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.TRANSLUCENT), opAnd) ? TranslucentValue: 1;
 
         // TODO can we support these?
-        //ThingProperties.TRANSLATION1
-        //ThingProperties.TRANSLATION2
         //ThingProperties.INFLOAT
     }
 

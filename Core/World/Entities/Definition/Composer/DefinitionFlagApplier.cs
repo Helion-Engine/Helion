@@ -27,19 +27,16 @@ public static class DefinitionFlagApplier
             definition.Flags.NoGravity = true;
             definition.Flags.NoTeleport = true;
         }
-
-       
+               
         if (flags.ActLikeBridge != null)
             definition.Flags.ActLikeBridge = flags.ActLikeBridge.Value;
-
 
         if (flags.Ambush != null)
             definition.Flags.Ambush = flags.Ambush.Value;
         
         if (flags.Boss != null)
             definition.Flags.Boss = flags.Boss.Value;
-       
-        
+               
         if (flags.Corpse != null)
             definition.Flags.Corpse = flags.Corpse.Value;
         if (flags.CountItem != null)

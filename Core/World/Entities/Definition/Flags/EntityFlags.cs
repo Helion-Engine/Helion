@@ -1,4 +1,5 @@
 using Helion.Models;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World.Entities.Definition.Flags;
 
@@ -8,6 +9,16 @@ public struct EntityFlags
     public const int SolidFlag = FlagValue.Flag2;
     public const int ShootableFlag = FlagValue.Flag3;
     public const int TouchyFlag = FlagValue.Flag24;
+
+    public const int Translation1Flag = FlagValue.Flag12;
+    public const int Translation2Flag = FlagValue.Flag13;
+    public const int TranslationFlag = Translation1Flag | Translation2Flag;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly int GetTranslationColorMap()
+    {
+        return (Flags3 & TranslationFlag) >> 11;
+    }
 
     public int Flags1;
     public int Flags2;
@@ -87,6 +98,8 @@ public struct EntityFlags
     public bool Fly { get => (Flags3 & FlagValue.Flag9) != 0; set { if (value) Flags3 |= FlagValue.Flag9; else Flags3 &= FlagValue.InvFlag9; } }
     public bool Teleported { get => (Flags3 & FlagValue.Flag10) != 0; set { if (value) Flags3 |= FlagValue.Flag10; else Flags3 &= FlagValue.InvFlag10; } }
     public bool CrushGiblets { get => (Flags3 & FlagValue.Flag11) != 0; set { if (value) Flags3 |= FlagValue.Flag11; else Flags3 &= FlagValue.InvFlag11; } }
+    public bool Translation1 { get => (Flags3 & FlagValue.Flag12) != 0; set { if (value) Flags3 |= FlagValue.Flag12; else Flags3 &= FlagValue.InvFlag12; } }
+    public bool Translation2 { get => (Flags3 & FlagValue.Flag13) != 0; set { if (value) Flags3 |= FlagValue.Flag13; else Flags3 &= FlagValue.InvFlag13; } }
 
     public EntityFlags(EntityFlagsModel model)
     {

@@ -10,6 +10,7 @@ using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition.Flags;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
 
@@ -209,6 +210,7 @@ public class EntityRenderer : IDisposable
         int length = arrayData.Length;
         if (arrayData.Capacity < length + 1)
             arrayData.EnsureCapacity(length + 1);
+
         fixed (EntityVertex* vertex = &arrayData.Data[length])
         {
             // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
@@ -226,6 +228,7 @@ public class EntityRenderer : IDisposable
             vertex->Alpha = alpha;
             vertex->Fuzz = fuzz;
             vertex->FlipU = spriteRotation.FlipU;
+            vertex->ColorMapTranslation = entity.Flags.GetTranslationColorMap();
         }
         arrayData.Length = length + 1;
     }
