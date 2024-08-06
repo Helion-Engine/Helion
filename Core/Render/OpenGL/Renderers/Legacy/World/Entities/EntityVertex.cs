@@ -23,5 +23,8 @@ public struct EntityVertex
     public float FlipU;
 
     [VertexAttribute]
+    public float ColorMapTranslation;
+
+    [VertexAttribute]
     public Vec3F PrevPos;
 }

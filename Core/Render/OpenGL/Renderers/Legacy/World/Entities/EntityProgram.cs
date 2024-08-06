@@ -73,13 +73,15 @@ public class EntityProgram : RenderProgram
         layout(location = 1) in float lightLevel;
         layout(location = 2) in float alpha;
         layout(location = 3) in float fuzz;
-        layout(location = 4) in float flipU;
-        layout(location = 5) in vec3 prevPos;
+        layout(location = 4) in float flipU;        
+        layout(location = 5) in float colorMapTranslation;
+        layout(location = 6) in vec3 prevPos;
 
         out float lightLevelOut;
         out float alphaOut;
         out float fuzzOut;
         out float flipUOut;
+        out float colorMapTranslationOut;
 
         uniform float timeFrac;
 
@@ -89,6 +91,7 @@ public class EntityProgram : RenderProgram
             alphaOut = alpha;
             fuzzOut = fuzz;
             flipUOut = flipU;
+            colorMapTranslationOut = colorMapTranslation;
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
         }
     ";
@@ -103,6 +106,7 @@ public class EntityProgram : RenderProgram
         in float alphaOut[];
         in float fuzzOut[];
         in float flipUOut[];
+        in float colorMapTranslationOut[];
 
         out vec2 uvFrag;
         out float dist;
@@ -110,6 +114,7 @@ public class EntityProgram : RenderProgram
         flat out float lightLevelFrag;
         flat out float alphaFrag;
         flat out float fuzzFrag;
+        flat out float colorMapTranslationFrag;
 
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
@@ -146,6 +151,7 @@ public class EntityProgram : RenderProgram
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
             fuzzFrag = fuzzOut[0];
+            colorMapTranslationFrag = colorMapTranslationOut[0];
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1);
@@ -154,6 +160,7 @@ public class EntityProgram : RenderProgram
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
             fuzzFrag = fuzzOut[0];
+            colorMapTranslationFrag = colorMapTranslationOut[0];
             EmitVertex();
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
@@ -162,6 +169,7 @@ public class EntityProgram : RenderProgram
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
             fuzzFrag = fuzzOut[0];
+            colorMapTranslationFrag = colorMapTranslationOut[0];
             EmitVertex();
 
             gl_Position = glPosMax;
@@ -170,11 +178,14 @@ public class EntityProgram : RenderProgram
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
             fuzzFrag = fuzzOut[0];
+            colorMapTranslationFrag = colorMapTranslationOut[0];
             EmitVertex();
     
             EndPrimitive();
         }  
     ".Replace("${Depth}", ShaderVars.Depth);
+
+    private const string ColorMapFetch = @"";
 
     protected override string? FragmentShader() => @"
         #version 330
@@ -185,6 +196,7 @@ public class EntityProgram : RenderProgram
         flat in float lightLevelFrag;
         flat in float alphaFrag;
         flat in float fuzzFrag;
+        flat in float colorMapTranslationFrag;
 
         out vec4 fragColor;
 
@@ -211,5 +223,5 @@ public class EntityProgram : RenderProgram
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha | FragColorFunctionOptions.Colormap));
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha | FragColorFunctionOptions.Colormap, ColorMapFetchContext.Entity));
 }

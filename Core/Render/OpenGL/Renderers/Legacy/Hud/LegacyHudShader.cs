@@ -118,7 +118,7 @@ public class LegacyHudShader : RenderProgram
     .Replace("${DrawPaletteFrag}", ShaderVars.ColorMap ? "flat in float drawPaletteFrag;" : "")
     .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
     .Replace("${FuzzFragFunction}", FragFunction.FuzzFragFunction)
-    .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false, true))
+    .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false, ColorMapFetchContext.Hud))
     .Replace("${AlphaFlag}", FragFunction.AlphaFlag(false))
     .Replace("${TrueColorInvul}", ShaderVars.ColorMap ? "" : TrueColorInvul);
 }

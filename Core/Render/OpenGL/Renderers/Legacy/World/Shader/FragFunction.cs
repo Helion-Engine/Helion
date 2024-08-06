@@ -12,6 +12,8 @@ public enum FragColorFunctionOptions
     Colormap = 8
 }
 
+public enum ColorMapFetchContext { Default, Hud, Entity }
+
 public class FragFunction
 {
     public static string FuzzFunction =>
@@ -63,7 +65,7 @@ public class FragFunction
             "fragColor.w = mix(fragColor.w, 1, fullBrightFlag);\n";
     }
 
-    public static string ColorMapFetch(bool lightLevel, bool hud)
+    public static string ColorMapFetch(bool lightLevel, ColorMapFetchContext ctx)
     {
         if (!ShaderVars.ColorMap)
             return "";
@@ -71,10 +73,15 @@ public class FragFunction
         string indexAdd = lightLevel ?
             @"
             int useColormap = colormapIndex;
+            ${EntityColorMapFrag}
             int usePalette = paletteIndex;
             int lightLevelOffset = (lightColorIndex * 256);
             lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability)));
             lightLevelOffset = int(mix(lightLevelOffset, 0, float(lightLevelMix)));"
+            .Replace("${EntityColorMapFrag}", ctx == ColorMapFetchContext.Entity ?
+                // if useColormap is not default(0) then override with the uniform colormap. This overrides translations with boom colormaps etc.
+                @"useColormap = int(mix(useColormap, colorMapTranslationFrag, float(useColormap == 0)));"
+                : "")
             :
             @"
             int useColormap = colormapIndex${HudClearColorMap};
@@ -82,11 +89,12 @@ public class FragFunction
             int lightLevelOffset = 0;
             lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability${HudDrawColorMapFrag})));
             ${HudClearPalette}"
-            .Replace("${HudClearColorMap}", hud && ShaderVars.ColorMap ? "* int(drawColorMapFrag)" : "")
-            .Replace("${HudDrawColorMapFrag}", hud ? "* drawColorMapFrag" : "")
-            .Replace("${HudClearPalette}", hud && ShaderVars.ColorMap ?
+            .Replace("${HudClearColorMap}", ctx == ColorMapFetchContext.Hud && ShaderVars.ColorMap ? "* int(drawColorMapFrag)" : "")
+            .Replace("${HudDrawColorMapFrag}", ctx == ColorMapFetchContext.Hud ? "* drawColorMapFrag" : "")
+            .Replace("${HudClearPalette}", ctx == ColorMapFetchContext.Hud && ShaderVars.ColorMap ?
                 @"usePalette = int(mix(0, usePalette, float(drawPaletteFrag)));"
                 : "");
+            
         // Use the alpha flag to indicate we need to fetch from the colormap buffer since we don't need it for fullbright.
         return @"
                 const int paletteSize = 256 * 34;
@@ -101,11 +109,11 @@ public class FragFunction
                 .Replace("${IndexAdd}", indexAdd);
     }
 
-    public static string FragColorFunction(FragColorFunctionOptions options)
+    public static string FragColorFunction(FragColorFunctionOptions options, ColorMapFetchContext ctx = ColorMapFetchContext.Default)
     {
         return @"
             fragColor = texture(boundTexture, uvFrag.st);" +
-            (options.HasFlag(FragColorFunctionOptions.Colormap) ? ColorMapFetch(true, false) : "")
+            (options.HasFlag(FragColorFunctionOptions.Colormap) ? ColorMapFetch(true, ctx) : "")
             + AlphaFlag(true) +
             (options.HasFlag(FragColorFunctionOptions.Fuzz) ? FuzzFragFunction :  "") +
             (ShaderVars.ColorMap ? "\n" : "fragColor.xyz *= lightLevel;\n") +

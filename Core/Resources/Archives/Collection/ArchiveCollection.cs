@@ -354,6 +354,9 @@ public class ArchiveCollection : IResources, IPathResolver
             ApplyDehackedPatch();
             EntityFrameTable.AddCustomFrames();
 
+            if (iwad != null || files.Any())
+                Definitions.BuildTranslationColorMaps(Data.Palette, Data.Colormap);
+
             if (dehackedPatch != null)
             {
                 try

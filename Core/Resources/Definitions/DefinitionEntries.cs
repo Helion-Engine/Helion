@@ -249,6 +249,35 @@ public class DefinitionEntries
         ConfigCompatibility.VanillaShortestTexture.Set(archive.IWadInfo.VanillaCompatibility);
     }
 
+
+    public void BuildTranslationColorMaps(Palette palette, Colormap baseColorMap)
+    {
+        if (baseColorMap.Entry == null)
+            return;
+
+        var colormapBytes = baseColorMap.Entry.ReadData();
+        int colorCount = (int)TranslateColor.Count;
+        List<Colormap> translatedColormaps = new(Colormaps.Count + colorCount);
+        // Doom built 3 translation color maps that map green to gray, brown, and red
+        for (int i = 0; i < colorCount; i++)
+        {
+            var colormap = Colormap.CreateTranslatedColormap(palette, colormapBytes, (TranslateColor)i);
+            if (colormap == null)
+            {
+                Log.Error("Failed to create translation colormap.");
+                continue;
+            }
+            translatedColormaps.Add(colormap);
+        }
+
+        // Translated colormaps must be first
+        translatedColormaps.AddRange(Colormaps);
+        Colormaps.Clear();
+        Colormaps.AddRange(translatedColormaps);
+        for (int i = 0; i < Colormaps.Count; i++)
+            Colormaps[i].Index = i;
+    }
+
     private void AddColormap(Entry entry)
     {
         var colormap = Colormap.From(m_archiveCollection.Data.Palette, entry.ReadData(), entry);
