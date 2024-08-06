@@ -270,6 +270,12 @@ public class DefinitionEntries
         Pnames pnames = collection.Pnames.First();
         var textureDefs = collection.TextureX.SelectMany(textureX => textureX.ToTextureDefinitions(pnames));
         foreach (var def in textureDefs)
+        {
+            // Boom mapped the first entry found in the hash for textures. This is especially important animated ranges.
+            // E.g. Ancient Aliens has KS_FLSG6 duplicated and using the second texture breaks animated range values.
+            if (Textures.Contains(def.Name, def.Namespace))
+                continue;
             Textures.Insert(def.Name, def.Namespace, def);
+        }
     }
 }

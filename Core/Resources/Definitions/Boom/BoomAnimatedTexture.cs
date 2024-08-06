@@ -14,4 +14,9 @@ public class BoomAnimatedTexture : IAnimatedRange
     public ResourceNamespace Namespace => IsTexture ? ResourceNamespace.Textures : ResourceNamespace.Flats;
     public bool Optional => false;
     public bool Oscillate => false;
+
+    public override string ToString()
+    {
+        return $"{StartTexture} {EndTexture} {MinTics} Texture[{IsTexture}]";
+    }
 }

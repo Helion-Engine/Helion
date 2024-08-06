@@ -475,7 +475,7 @@ public class TextureManager : ITickable
     {
         foreach (IAnimatedRange range in animatedRanges)
         {
-            GetAnimatedRangeIndicies(range, out int startIndex, out int endIndex);
+            GetAnimatedRangeIndices(range, out int startIndex, out int endIndex);
             if (startIndex == Constants.NoTextureIndex || endIndex == Constants.NoTextureIndex)
                 continue;
 
@@ -497,7 +497,7 @@ public class TextureManager : ITickable
         }
     }
 
-    private void GetAnimatedRangeIndicies(IAnimatedRange range, out int startIndex, out int endIndex)
+    private void GetAnimatedRangeIndices(IAnimatedRange range, out int startIndex, out int endIndex)
     {
         if (range.StartTextureIndex == -1)
             startIndex = GetTexture(range.StartTexture, range.Namespace).Index;
@@ -557,7 +557,6 @@ public class TextureManager : ITickable
         {
             if (texture.Name.EqualsIgnoreCase(ShittyTextureName))
                 continue;
-
             m_textures.Add(new Texture(texture.Name, texture.Namespace, index));
             m_textureLookup[texture.Name] = m_textures[index];
             index++;

@@ -84,8 +84,7 @@ public class TextureX
     /// <returns>A list of all the texture definitions.</returns>
     public List<TextureDefinition> ToTextureDefinitions(Pnames pnames)
     {
-        List<TextureDefinition> definitions = new List<TextureDefinition>();
-
+        List<TextureDefinition> definitions = new(Definitions.Count);
         foreach (TextureXImage image in Definitions)
         {
             List<TextureDefinitionComponent> components = CreateComponents(image, pnames);

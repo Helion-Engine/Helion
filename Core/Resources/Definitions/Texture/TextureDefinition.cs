@@ -67,5 +67,5 @@ public class TextureDefinition
     }
 
     /// <inheritdoc/>
-    public override string ToString() => $"{Name} ({Dimension}, {Namespace})";
+    public override string ToString() => $"{Index} {Name} ({Dimension}, {Namespace})";
 }

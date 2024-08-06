@@ -33,7 +33,7 @@ public class TextureXImage
     /// <summary>
     /// Gets the dimension for this image.
     /// </summary>
-    public Dimension Dimension => new Dimension(Width, Height);
+    public Dimension Dimension => new(Width, Height);
 
     /// <summary>
     /// Creates a new texture1/2/3 image.
@@ -52,5 +52,10 @@ public class TextureXImage
         Patches = patches;
         Width = Math.Max(0, width);
         Height = Math.Max(0, height);
+    }
+
+    public override string ToString()
+    {
+        return $"{Name} {Width},{Height}";
     }
 }
