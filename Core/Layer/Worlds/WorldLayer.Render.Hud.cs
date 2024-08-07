@@ -120,15 +120,12 @@ public partial class WorldLayer
         if ((m_renderHudOptions & RenderHudOptions.Weapon) != 0)
             DrawWeapon(hud, hudContext);
 
-        if ((m_renderHudOptions & RenderHudOptions.Overlay) != 0)
-            hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
+        if ((m_renderHudOptions & RenderHudOptions.Crosshair) != 0 && m_config.Hud.Crosshair)
+            DrawCrosshair(hud);
 
         if ((m_renderHudOptions & RenderHudOptions.Hud) != 0)
         {
             SetHudPadding(hud);
-
-            if (m_config.Hud.Crosshair)
-                DrawCrosshair(hud);
 
             int topRightY = m_padding / 2;
             DrawFPS(hud, ref topRightY);
@@ -144,7 +141,14 @@ public partial class WorldLayer
                 DrawMapHeader(hud);
 
             hud.DrawPalette(true);
-        } 
+        }
+
+        if ((m_renderHudOptions & RenderHudOptions.Overlay) != 0)
+        {
+            var color = new Color(m_config.Hud.AutoMap.OverlayBackgroundColor.Value);
+            var alpha = 1 - (float)m_config.Hud.AutoMap.OverlayTransparency;
+            hud.FillBox((0, 0, hud.Width, hud.Height), color, alpha: alpha);
+        }
     }
 
     private void SetHudPadding(IHudRenderContext hud)

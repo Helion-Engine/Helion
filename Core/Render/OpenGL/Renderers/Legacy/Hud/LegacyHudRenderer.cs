@@ -192,7 +192,7 @@ public class LegacyHudRenderer : HudRenderer
         // 2) We flip the Z depths so that we draw back-to-front, meaning
         // the stuff we drew first should be drawn behind the stuff we drew
         // later on. This gives us the Painters Algorithm approach we want.
-        return mat4.Ortho(viewport.Left, viewport.Right, viewport.Bottom, viewport.Top, -(DrawDepth + 1), 0);
+        return mat4.Ortho(viewport.Left, viewport.Right, viewport.Bottom, viewport.Top, -(DrawDepth + 1), DrawDepth + 1);
     }
 
     private void ReleaseUnmanagedResources()

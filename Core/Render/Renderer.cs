@@ -338,6 +338,8 @@ public class Renderer : IDisposable
                     HandleRenderWorldCommand(renderCommands.WorldCommands[cmd.Index], m_viewport);
                     break;
                 case RenderCommandType.Automap:
+                    // This will probably need to be handled in the future. Force render the hud since the automap may need to render over hud elements.
+                    DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
                     HandleRenderAutomapCommand(renderCommands.AutomapCommands[cmd.Index], m_viewport);
                     break;
                 case RenderCommandType.Viewport:
@@ -560,6 +562,7 @@ public class Renderer : IDisposable
     private void DrawHudImagesIfAnyQueued(Rectangle viewport, ShaderUniforms uniforms)
     {
         m_hudRenderer.Render(viewport, uniforms);
+        m_hudRenderer.Clear();
     }
 
     protected virtual void Dispose(bool disposing)

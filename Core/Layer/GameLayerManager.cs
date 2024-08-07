@@ -629,25 +629,11 @@ public class GameLayerManager : IGameLayerManager
             m_ctx.Viewport(m_ctx.Surface.Dimension.Box);
         }
 
-        m_ctx.DrawVirtualFrameBuffer();                
+        m_ctx.DrawVirtualFrameBuffer();
         m_ctx.ClearDepth();
 
         if (WorldLayer != null && WorldLayer.ShouldRender)
-        {
-            if (WorldLayer.DrawAutomap)
-            {
-                if (m_config.Hud.AutoMap.Overlay)
-                    WorldLayer.RenderHud(m_ctx, RenderHudOptions.Hud | RenderHudOptions.Weapon);
-                else
-                    WorldLayer.RenderHud(m_ctx, RenderHudOptions.Hud);
-
-                WorldLayer.RenderAutomap(m_ctx);
-            }
-            else
-            {
-                WorldLayer.RenderHud(m_ctx, RenderHudOptions.Hud | RenderHudOptions.Weapon);
-            }
-        }
+            DrawHudStatusAndAutomap(WorldLayer);
 
         StartDrawHud();
         IntermissionLayer?.Render(m_ctx, hudCtx);
@@ -669,6 +655,27 @@ public class GameLayerManager : IGameLayerManager
         RenderConsole(hudCtx);
 
         EndDrawHud();
+    }
+
+    private void DrawHudStatusAndAutomap(WorldLayer worldLayer)
+    {
+        if (!worldLayer.DrawAutomap)
+        {
+            worldLayer.RenderHud(m_ctx, RenderHudOptions.Hud | RenderHudOptions.Crosshair| RenderHudOptions.Weapon);
+            return;
+        }
+
+        if (m_config.Hud.AutoMap.Overlay)
+        {
+            worldLayer.RenderHud(m_ctx, RenderHudOptions.Weapon | RenderHudOptions.Crosshair | RenderHudOptions.Overlay);
+            worldLayer.RenderAutomap(m_ctx);
+            worldLayer.RenderHud(m_ctx, RenderHudOptions.Hud);
+        }
+        else
+        {
+            worldLayer.RenderAutomap(m_ctx);
+            worldLayer.RenderHud(m_ctx, RenderHudOptions.Hud);
+        }
     }
 
     private void StartDrawHud()

@@ -28,16 +28,15 @@ public enum RenderCommandType
 }
 
 [StructLayout(LayoutKind.Sequential)]
-public struct RenderCommand
+public struct RenderCommand(RenderCommandType type, int index)
 {
-    public RenderCommand(RenderCommandType type, int index)
-    {
-        Type = type;
-        Index = index;
-    }
+    public RenderCommandType Type = type;
+    public int Index = index;
 
-    public RenderCommandType Type;
-    public int Index;
+    public override readonly string ToString()
+    {
+        return $"{Index}: {Type}";
+    }
 };
 
 public class RenderCommands

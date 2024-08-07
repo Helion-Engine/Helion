@@ -6,7 +6,8 @@ namespace Helion.Layer.Worlds
     public enum RenderHudOptions
     {
         Weapon = 1,
-        Hud = 2,
-        Overlay = 4
+        Crosshair = 2,
+        Hud = 4,
+        Overlay = 8
     }
 }

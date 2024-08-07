@@ -33,9 +33,17 @@ public class ConfigHudAutoMap
     [OptionMenu(OptionSectionType.Automap, "Rotate")]
     public readonly ConfigValue<bool> Rotate = new(false);
 
-    [ConfigInfo("Background color for the automap.")]
+    [ConfigInfo("Background color for the default automap.")]
     [OptionMenu(OptionSectionType.Automap, "Background color")]
     public readonly ConfigValue<Vec3I> BackgroundColor = new((0, 0, 0), ClampColor);
+
+    [ConfigInfo("Background color for the overlay automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Overlay color")]
+    public readonly ConfigValue<Vec3I> OverlayBackgroundColor = new((0, 0, 0), ClampColor);
+
+    [ConfigInfo("Background color transparency when using overlay.")]
+    [OptionMenu(OptionSectionType.Automap, "Overlay transparency")]
+    public readonly ConfigValue<double> OverlayTransparency = new(0.7, ClampNormalized);
 
     [ConfigInfo("Shows map title on the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Show map title")]
