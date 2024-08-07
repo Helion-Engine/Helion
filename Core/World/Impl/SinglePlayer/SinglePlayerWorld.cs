@@ -260,7 +260,8 @@ public class SinglePlayerWorld : WorldBase
 
             var line = Lines[lineModel.Id];
             line.ApplyLineModel(this, lineModel);
-            StructLines[lineModel.Id].Update(line);
+            ref StructLine structLine = ref StructLines.Data[lineModel.Id];
+            structLine.Update(line);
         }
     }
 
