@@ -338,9 +338,10 @@ public class Renderer : IDisposable
                     HandleRenderWorldCommand(renderCommands.WorldCommands[cmd.Index], m_viewport);
                     break;
                 case RenderCommandType.Automap:
-                    // This will probably need to be handled in the future. Force render the hud since the automap may need to render over hud elements.
-                    DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
                     HandleRenderAutomapCommand(renderCommands.AutomapCommands[cmd.Index], m_viewport);
+                    break;
+                case RenderCommandType.Hud:
+                    DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
                     break;
                 case RenderCommandType.Viewport:
                     HandleViewportCommand(renderCommands.ViewportCommands[cmd.Index], out m_viewport);

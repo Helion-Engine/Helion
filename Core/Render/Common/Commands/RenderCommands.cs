@@ -24,7 +24,8 @@ public enum RenderCommandType
     Shape,
     Viewport,
     DrawVirtualFrameBuffer,
-    Automap
+    Automap,
+    Hud
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -147,6 +148,11 @@ public class RenderCommands
     {
         Commands.Add(new RenderCommand(RenderCommandType.Automap, AutomapCommands.Count));
         AutomapCommands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity, drawAutomap, automapOffset, automapScale));
+    }
+
+    public void DrawHud()
+    {
+        Commands.Add(new RenderCommand(RenderCommandType.Hud, 0));
     }
 
     public void Viewport(Dimension dimension, Vec2I? offset = null)

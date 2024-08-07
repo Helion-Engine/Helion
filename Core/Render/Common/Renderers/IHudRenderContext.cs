@@ -195,4 +195,6 @@ public interface IHudRenderContext : IDisposable
     // Enables drawing with colormaps other than the default (0).
     // Setting to false with colormap rendering will stop boom colormaps set from transfer heights.
     void DrawColorMap(bool set);
+
+    void DrawHud();
 }
