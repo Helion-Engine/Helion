@@ -49,7 +49,7 @@ public class ConfigWindow
     [OptionMenu(OptionSectionType.Video, "Display Number", spacer: true)]
     public readonly ConfigValue<int> Display = new(0, GreaterOrEqual(0));
 
-    [ConfigInfo("Palette uses Doom's colormaps. True color is calculated from the base palette and interpolated. *Application restart required.", restartRequired: true)]
+    [ConfigInfo("Palette uses Doom's colormaps. True color is calculated from the base palette and interpolated. Disables texture filtering. Application restart required.", restartRequired: true)]
     [OptionMenu(OptionSectionType.Video, "Color mode")]
     public readonly ConfigValue<RenderColorMode> ColorMode = new(RenderColorMode.TrueColor);
 }

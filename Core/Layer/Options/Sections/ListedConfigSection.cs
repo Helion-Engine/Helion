@@ -68,8 +68,13 @@ public class ListedConfigSection : IOptionSection
     private void WindowState_OnChanged(object? sender, RenderWindowState windowState) =>
         SetDisableStates();
 
-    private void SetDisableStates() =>
+    private void SetDisableStates()
+    {
         m_config.Window.Dimension.OptionDisabled = m_config.Window.State != RenderWindowState.Normal;
+        bool paletteMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
+        m_config.Render.Filter.Texture.OptionDisabled = paletteMode;
+        m_config.Render.Anisotropy.OptionDisabled = paletteMode;
+    }
 
     public void ResetSelection() => m_currentRowIndex = 0;
 

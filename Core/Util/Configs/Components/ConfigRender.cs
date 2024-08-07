@@ -34,7 +34,7 @@ public class ConfigRenderFilter
     public readonly ConfigValue<FilterType> Font = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 
     [ConfigInfo("The filter to be applied to textures.")]
-    [OptionMenu(OptionSectionType.Render, "Texture filtering")]
+    [OptionMenu(OptionSectionType.Render, "Texture filtering", spacer: true)]
     public readonly ConfigValue<FilterType> Texture = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 }
 
@@ -56,8 +56,6 @@ public class ConfigRender
         };
     });
 
-    public readonly ConfigRenderFilter Filter = new();
-
     [ConfigInfo("Field of view. Default = 90")]
     [OptionMenu(OptionSectionType.Render, "Field of view")]
     public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60.0, 120.0));
@@ -66,6 +64,12 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Max rendering distance")]
     public readonly ConfigValue<int> MaxDistance = new(0);
 
+    public readonly ConfigRenderFilter Filter = new();
+
+    [ConfigInfo("The anisotropic filtering amount. A value of 1 is the same as being off.")]
+    [OptionMenu(OptionSectionType.Render, "Anisotropy")]
+    public readonly ConfigValue<int> Anisotropy = new(8, GreaterOrEqual(1));
+
     [ConfigInfo("Enable sprite transparency.")]
     [OptionMenu(OptionSectionType.Render, "Sprite transparency", spacer: true)]
     public readonly ConfigValue<bool> SpriteTransparency = new(true);
@@ -73,10 +77,6 @@ public class ConfigRender
     [ConfigInfo("Enable texture transparency.")]
     [OptionMenu(OptionSectionType.Render, "Texture transparency")]
     public readonly ConfigValue<bool> TextureTransparency = new(true);
-
-    [ConfigInfo("The anisotropic filtering amount. A value of 1 is the same as being off.")]
-    [OptionMenu(OptionSectionType.Render, "Anisotropy")]
-    public readonly ConfigValue<int> Anisotropy = new(8, GreaterOrEqual(1));
 
     [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
     [OptionMenu(OptionSectionType.Render, "Emulate vanilla contrast")]
@@ -122,7 +122,7 @@ public class ConfigRender
     public readonly ConfigValue<double> FuzzAmount = new(1);
 
     [ConfigInfo("If any sprite should clip the floor.")]
-    [OptionMenu(OptionSectionType.Render, "Sprite floor clip")]
+    [OptionMenu(OptionSectionType.Render, "Sprite floor clip", spacer: true)]
     public readonly ConfigValue<bool> SpriteClip = new(true);
 
     [ConfigInfo("Max percentage of height allowed to clip the floor for corpses.")]
