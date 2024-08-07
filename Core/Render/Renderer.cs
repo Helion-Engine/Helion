@@ -118,6 +118,7 @@ public class Renderer : IDisposable
     public void UpdateToNewWorld(IWorld world)
     {
         m_worldRenderer.UpdateToNewWorld(world);
+        m_automapRenderer.UpdateTo(world);
     }
 
     ~Renderer()

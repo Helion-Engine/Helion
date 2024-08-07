@@ -41,7 +41,6 @@ public class LegacyAutomapRenderer : IDisposable
     private int m_lastOffsetY;
     private bool m_disposed;
     private bool m_rotate;
-    private int m_lastWorldId = -1;
     private Box2D m_boundingBox = default;
 
     private readonly Dictionary<string, Color> m_keys = new(StringComparer.OrdinalIgnoreCase);
@@ -100,12 +99,6 @@ public class LegacyAutomapRenderer : IDisposable
     {
         SetColors();
 
-        if (m_lastWorldId != world.Id)
-        {
-            m_lastWorldId = world.Id;
-            UpdateTo(world);
-        }
-
         // Consider both offsets at zero a reset
         if (renderInfo.AutomapOffset.X == 0 && renderInfo.AutomapOffset.Y == 0)
         {
@@ -147,7 +140,7 @@ public class LegacyAutomapRenderer : IDisposable
         m_shader.Unbind();
     }
 
-    private void UpdateTo(IWorld world)
+    public void UpdateTo(IWorld world)
     {
         m_teleportLines.Clear();
 
