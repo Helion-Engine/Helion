@@ -354,7 +354,15 @@ public abstract partial class WorldBase : IWorld
     private void BuildStructLines()
     {
         if (SameAsPreviousMap)
+        {
+            for (int i = 0; i < Lines.Count; i++)
+            {
+                ref StructLine structLine = ref StructLines.Data[i];
+                structLine.Flags &= ~StructLineFlags.SeenForAutomap;
+                structLine.Update(Lines[i]);
+            }
             return;
+        }
 
         LastStructLines.Clear();
         for (int i = 0; i < Lines.Count; i++)
