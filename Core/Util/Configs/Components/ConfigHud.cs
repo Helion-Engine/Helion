@@ -37,13 +37,13 @@ public class ConfigHudAutoMap
     [OptionMenu(OptionSectionType.Automap, "Background color")]
     public readonly ConfigValue<Vec3I> BackgroundColor = new((0, 0, 0), ClampColor);
 
-    [ConfigInfo("Background color for the overlay automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Overlay color")]
-    public readonly ConfigValue<Vec3I> OverlayBackgroundColor = new((0, 0, 0), ClampColor);
+    [ConfigInfo("Backdrop color for the overlay automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Backdrop color")]
+    public readonly ConfigValue<Vec3I> OverlayBackdropColor = new((0, 0, 0), ClampColor);
 
     [ConfigInfo("Background color transparency when using overlay.")]
-    [OptionMenu(OptionSectionType.Automap, "Overlay transparency")]
-    public readonly ConfigValue<double> OverlayTransparency = new(0.7, ClampNormalized);
+    [OptionMenu(OptionSectionType.Automap, "Backdrop transparency")]
+    public readonly ConfigValue<double> OverlayBackdropTransparency = new(0.7, ClampNormalized);
 
     [ConfigInfo("Shows map title on the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Show map title")]

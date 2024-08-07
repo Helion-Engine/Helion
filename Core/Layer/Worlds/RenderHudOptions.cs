@@ -8,6 +8,6 @@ namespace Helion.Layer.Worlds
         Weapon = 1,
         Crosshair = 2,
         Hud = 4,
-        Overlay = 8
+        BackDrop = 8
     }
 }

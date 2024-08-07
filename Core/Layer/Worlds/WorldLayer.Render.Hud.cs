@@ -143,10 +143,10 @@ public partial class WorldLayer
             hud.DrawPalette(true);
         }
 
-        if ((m_renderHudOptions & RenderHudOptions.Overlay) != 0)
+        if ((m_renderHudOptions & RenderHudOptions.BackDrop) != 0)
         {
-            var color = new Color(m_config.Hud.AutoMap.OverlayBackgroundColor.Value);
-            var alpha = 1 - (float)m_config.Hud.AutoMap.OverlayTransparency;
+            var color = new Color(m_config.Hud.AutoMap.OverlayBackdropColor.Value);
+            var alpha = 1 - (float)m_config.Hud.AutoMap.OverlayBackdropTransparency;
             hud.FillBox((0, 0, hud.Width, hud.Height), color, alpha: alpha);
         }
     }

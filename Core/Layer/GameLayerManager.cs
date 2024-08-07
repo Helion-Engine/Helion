@@ -667,7 +667,7 @@ public class GameLayerManager : IGameLayerManager
 
         if (m_config.Hud.AutoMap.Overlay)
         {
-            worldLayer.RenderHud(m_ctx, RenderHudOptions.Weapon | RenderHudOptions.Crosshair | RenderHudOptions.Overlay);
+            worldLayer.RenderHud(m_ctx, RenderHudOptions.Weapon | RenderHudOptions.Crosshair | RenderHudOptions.BackDrop);
             worldLayer.RenderAutomap(m_ctx);
             worldLayer.RenderHud(m_ctx, RenderHudOptions.Hud);
         }
