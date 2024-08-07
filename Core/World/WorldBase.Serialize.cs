@@ -132,6 +132,10 @@ public partial class WorldBase
         for (int i = 0; i < Lines.Count; i++)
         {
             Line line = Lines[i];
+            ref StructLine structLine = ref StructLines.Data[i];
+            if (structLine.SeenForAutomap)
+                line.DataChanges |= LineDataTypes.Automap;
+
             if (!line.DataChanged)
                 continue;
 
