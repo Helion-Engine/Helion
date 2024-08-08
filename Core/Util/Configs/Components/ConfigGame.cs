@@ -57,6 +57,9 @@ public class ConfigGame
     [ConfigInfo("Whether no monsters should be spawned.", save: false, serialize: true)]
     public readonly ConfigValue<bool> NoMonsters = new(false);
 
+    [ConfigInfo("Resets the players inventory at the start of each map.", save: false, serialize: true)]
+    public readonly ConfigValue<bool> PistolStart = new(false);
+
     [ConfigInfo("Marks lines and secctors that are activated by a special in the automap.")]
     [OptionMenu(OptionSectionType.General, "Mark specials", spacer: true)]
     public readonly ConfigValue<bool> MarkSpecials = new(false);

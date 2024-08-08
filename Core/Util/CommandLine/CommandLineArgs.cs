@@ -12,9 +12,9 @@ namespace Helion.Util.CommandLine;
 /// </summary>
 public class CommandLineArgs
 {
-    public string[] OriginalArgs = Array.Empty<string>();
-    public readonly List<string> Errors = new();
-    public readonly List<string> Files = new();
+    public string[] OriginalArgs = [];
+    public readonly List<string> Errors = [];
+    public readonly List<string> Files = [];
     public string? Iwad { get; set; }
     public string? Map { get; set; }
     public string? ConfigFileName { get; set; }
@@ -28,6 +28,7 @@ public class CommandLineArgs
     public bool LevelStat { get; set; }
     public string? LoadGame { get; set; }
     public bool SV_FastMonsters { get; set; }
+    public bool PistolStart { get; set; }
     public string? DehackedPatch { get; set; }
     public string? Record { get; set; }
     public string? PlayDemo { get; set; }
@@ -38,8 +39,8 @@ public class CommandLineArgs
     public int? GlVersion { get; set; }
     public bool NoMusic { get; set; }
 
-    private static readonly string[] Options = new string[]
-    {
+    private static readonly string[] Options =
+    [
         "-iwad",
         "-file",
         "-config",
@@ -62,8 +63,9 @@ public class CommandLineArgs
         "+cheats",
         "+setangle",
         "+setpitch",
-        "+glversion"
-    };
+        "+glversion",
+        "-pistolstart"
+    ];
 
     /// <summary>
     /// Parses the command line arguments and returns an object with the
@@ -123,6 +125,8 @@ public class CommandLineArgs
                 commandLineArgs.LoadGame = GetString(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "+sv_fastmonsters"))
                 commandLineArgs.SV_FastMonsters = GetBoolArg(parsedArg);
+            else if (IsArgMatch(parsedArg, "-pistolstart"))
+                commandLineArgs.PistolStart = true;
             else if (IsArgMatch(parsedArg, "-deh"))
                 commandLineArgs.DehackedPatch = GetString(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "-record"))

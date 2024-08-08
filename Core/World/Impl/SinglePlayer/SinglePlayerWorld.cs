@@ -8,7 +8,6 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Sounds.Mus;
 using Helion.World.Cheats;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
@@ -68,7 +67,7 @@ public class SinglePlayerWorld : WorldBase
                 player.SetDefaultInventory();
             }
 
-            if (existingPlayer != null && !existingPlayer.IsDead && !mapDef.HasOption(MapOptions.ResetInventory))
+            if (existingPlayer != null && !existingPlayer.IsDead && !mapDef.HasOption(MapOptions.ResetInventory) && !config.Game.PistolStart)
             {
                 Player.CopyProperties(existingPlayer);
                 Player.Inventory.ClearKeys();

@@ -52,6 +52,7 @@ public partial class Client
             m_config.Game.NoMonsters.Set(m_commandLineArgs.NoMonsters);
             m_config.Game.LevelStat.Set(m_commandLineArgs.LevelStat);
             m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
+            m_config.Game.PistolStart.Set(m_commandLineArgs.PistolStart);
 
             m_archiveCollection.Definitions.CompLevelDefinition.Apply(m_config);
 
