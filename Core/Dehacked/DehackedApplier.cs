@@ -937,8 +937,8 @@ public class DehackedApplier
         flags.Touchy = GetNewFlagValue(flags.Touchy, thingProperties.HasFlag(ThingProperties.TOUCHY), opAnd);
         flags.MbfBouncer = GetNewFlagValue(flags.MbfBouncer, thingProperties.HasFlag(ThingProperties.BOUNCES), opAnd);
         flags.Friendly = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.FRIEND), opAnd);
-        flags.Translation1 = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.TRANSLATION1), opAnd);
-        flags.Translation2 = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.TRANSLATION2), opAnd);
+        flags.Translation1 = GetNewFlagValue(flags.Translation1, thingProperties.HasFlag(ThingProperties.TRANSLATION1), opAnd);
+        flags.Translation2 = GetNewFlagValue(flags.Translation2, thingProperties.HasFlag(ThingProperties.TRANSLATION2), opAnd);
 
         properties.Alpha = GetNewFlagValue(flags.Friendly, thingProperties.HasFlag(ThingProperties.TRANSLUCENT), opAnd) ? TranslucentValue: 1;
 
