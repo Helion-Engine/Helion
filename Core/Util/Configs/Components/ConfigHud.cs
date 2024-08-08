@@ -27,11 +27,11 @@ public class ConfigHudAutoMap
 
     [ConfigInfo("Overlay automap over game window.")]
     [OptionMenu(OptionSectionType.Automap, "Overlay")]
-    public readonly ConfigValue<bool> Overlay = new(false);
+    public readonly ConfigValue<bool> Overlay = new(true);
 
     [ConfigInfo("Automap rotates with the player so the top is forward.")]
     [OptionMenu(OptionSectionType.Automap, "Rotate")]
-    public readonly ConfigValue<bool> Rotate = new(false);
+    public readonly ConfigValue<bool> Rotate = new(true);
 
     [ConfigInfo("Background color for the default automap.")]
     [OptionMenu(OptionSectionType.Automap, "Background color")]

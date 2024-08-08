@@ -99,7 +99,7 @@ public class ConfigRender
 
     [ConfigInfo("Sets light projection to banded or smooth. Smooth only supported with true color rendering.")]
     [OptionMenu(OptionSectionType.Render, "Light mode", spacer: true)]
-    public readonly ConfigValue<RenderLightMode> LightMode = new(RenderLightMode.Banded);
+    public readonly ConfigValue<RenderLightMode> LightMode = new(RenderLightMode.Smooth);
 
     [ConfigInfo("Adds to the rendering light level offset.")]
     [OptionMenu(OptionSectionType.Render, "Extra lighting")]

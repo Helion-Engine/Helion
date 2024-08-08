@@ -74,6 +74,7 @@ public class ListedConfigSection : IOptionSection
         bool paletteMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
         m_config.Render.Filter.Texture.OptionDisabled = paletteMode;
         m_config.Render.Anisotropy.OptionDisabled = paletteMode;
+        m_config.Render.LightMode.OptionDisabled = paletteMode;
     }
 
     public void ResetSelection() => m_currentRowIndex = 0;
