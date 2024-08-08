@@ -465,7 +465,11 @@ public class DehackedApplier
             if (thing.Width.HasValue)
                 properties.Radius = GetDouble(thing.Width.Value);
             if (thing.Height.HasValue)
-                properties.Height = GetDouble(thing.Height.Value);
+            {
+                var height = GetDouble(thing.Height.Value);
+                properties.Height = height;
+                properties.ProjectilePassHeight = height;
+            }
             if (thing.Mass.HasValue)
                 properties.Mass = thing.Mass.Value;
             if (thing.MisileDamage.HasValue)

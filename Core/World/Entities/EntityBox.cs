@@ -116,7 +116,7 @@ public partial class Entity
 
     public double GetMissileClipHeight(bool missileClipCompat)
     {
-        int passHeight = Properties.ProjectilePassHeight;
+        var passHeight = Properties.ProjectilePassHeight;
         if (passHeight == 0)
             return Height;
 

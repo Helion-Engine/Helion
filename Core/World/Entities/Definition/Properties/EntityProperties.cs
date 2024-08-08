@@ -44,7 +44,7 @@ public class EntityProperties
     public PlayerProperty Player = new();
     public PowerupProperty Powerup = new();
     public int ProjectileKickBack = 100;
-    public int ProjectilePassHeight;
+    public double ProjectilePassHeight;
     public double Radius = 20.0;
     public int ReactionTime = 8;
     public double Scale = 1.0;
