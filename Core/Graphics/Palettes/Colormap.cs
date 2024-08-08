@@ -142,8 +142,8 @@ public class Colormap
         byte offset = color switch
         {
             TranslateColor.Gray => 0x60,
-            TranslateColor.Red => 0x40,
-            TranslateColor.Brown => 0x20,
+            TranslateColor.Brown => 0x40,
+            TranslateColor.Red => 0x20,
             _ => 0
         };
 
