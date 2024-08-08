@@ -33,7 +33,7 @@ public class ConfigRenderFilter
     //[OptionMenu(OptionSectionType.Render, "Font filtering")]
     public readonly ConfigValue<FilterType> Font = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 
-    [ConfigInfo("The filter to be applied to textures.")]
+    [ConfigInfo("The filter to be applied to textures. True color required.")]
     [OptionMenu(OptionSectionType.Render, "Texture filtering", spacer: true)]
     public readonly ConfigValue<FilterType> Texture = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 }
@@ -66,7 +66,7 @@ public class ConfigRender
 
     public readonly ConfigRenderFilter Filter = new();
 
-    [ConfigInfo("The anisotropic filtering amount. A value of 1 is the same as being off.")]
+    [ConfigInfo("The anisotropic filtering amount. A value of 1 is the same as being off. True color required.")]
     [OptionMenu(OptionSectionType.Render, "Anisotropy")]
     public readonly ConfigValue<int> Anisotropy = new(8, GreaterOrEqual(1));
 

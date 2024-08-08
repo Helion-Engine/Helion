@@ -48,7 +48,6 @@ public class ListedConfigSection : IOptionSection
     private int m_currentRowIndex;
     private int? m_currentEnumIndex;
     private int m_lastY;
-    private bool m_hasSelectableRow;
     private bool m_rowIsSelected;
     private bool m_updateRow;
     private bool m_updateMouse;
@@ -90,14 +89,10 @@ public class ListedConfigSection : IOptionSection
     public void Add(IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr)
     {
         m_configValues.Add((value, attr, configAttr));
-        m_hasSelectableRow |= !IsConfigDisabled(m_configValues.Count - 1);
     }
 
     public void HandleInput(IConsumableInput input)
     {
-        if (!m_hasSelectableRow)
-            return;
-        
         if (m_rowIsSelected)
         {
             if (m_dialog != null)
@@ -135,6 +130,9 @@ public class ListedConfigSection : IOptionSection
                         return;
                     m_currentRowIndex = rowIndex;
                 }
+
+                if (IsConfigDisabled(m_currentRowIndex))
+                    return;
 
                 var configData = m_configValues[m_currentRowIndex];
                 m_soundManager.PlayStaticSound(MenuSounds.Choose);
@@ -382,25 +380,11 @@ public class ListedConfigSection : IOptionSection
     }
 
     private void AdvanceToValidRow(int direction)
-    {
-        const int MaxOverflowCounter = 10000;
-        
-        for (int overflowCounter = 0; overflowCounter < MaxOverflowCounter + 1; overflowCounter++)
-        {
-            if (overflowCounter == MaxOverflowCounter)
-            {
-                Debug.Assert(m_hasSelectableRow, $"No selectable row detected in options menu type {OptionType}");
-                throw new("Unexpected infinite row looping in options menu");
-            }
-            
-            m_currentRowIndex += direction;
-            if (m_currentRowIndex < 0)
-                m_currentRowIndex += m_configValues.Count;
-            m_currentRowIndex %= m_configValues.Count;
-
-            if (!IsConfigDisabled(m_currentRowIndex))
-                break;
-        }
+    {            
+        m_currentRowIndex += direction;
+        if (m_currentRowIndex < 0)
+            m_currentRowIndex += m_configValues.Count;
+        m_currentRowIndex %= m_configValues.Count;
 
         m_soundManager.PlayStaticSound(MenuSounds.Cursor);
     }
@@ -465,11 +449,6 @@ public class ListedConfigSection : IOptionSection
             m_updateMouse = true;
         }
         
-        // This is for the case where we start off on a row that is disabled but
-        // we know there's at least one valid row.
-        if (m_hasSelectableRow && IsConfigDisabled(m_currentRowIndex))
-            AdvanceToValidRow(1);
-        
         int y = startY;
         
         hud.Text(OptionType.ToString(), Font, m_config.Hud.GetLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
@@ -527,7 +506,7 @@ public class ListedConfigSection : IOptionSection
             if (i == m_currentRowIndex)
                 m_selectedRender = (y - startY, y + valueArea.Height - startY);
 
-            if (i == m_currentRowIndex && m_hasSelectableRow && !m_rowIsSelected)
+            if (i == m_currentRowIndex && !m_rowIsSelected)
             {
                 var arrowSize = hud.MeasureText("<", Font, fontSize);
                 Vec2I arrowLeft = (-offsetX - attrArea.Width - m_config.Hud.GetScaled(2), y);
@@ -537,12 +516,8 @@ public class ListedConfigSection : IOptionSection
             }
 
             int maxHeight = Math.Max(attrArea.Height, valueArea.Height);
-
-            if (!IsConfigDisabled(i))
-            {
-                var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + maxHeight));
-                m_menuPositionList.Add(rowDimensions, i);
-            }
+            var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + maxHeight));
+            m_menuPositionList.Add(rowDimensions, i);
 
             y += maxHeight + m_config.Hud.GetScaled(3);
         }
