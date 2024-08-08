@@ -334,6 +334,12 @@ public partial class Client
         try
         {
             var mapName = args.Args[0];
+            if (mapName == "*" && m_layerManager.WorldLayer != null)
+            {
+                await NewGame(m_layerManager.WorldLayer.CurrentMap);
+                return;
+            }
+
             if (MapInfo.IsWarpTrans(mapName))
             {
                 await NewGame(m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetStartMapOrDefault(m_archiveCollection, mapName));
