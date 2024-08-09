@@ -16,6 +16,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
@@ -189,7 +190,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     {
         if (configAttr.RestartRequired)
         {
-            m_dialog = new MessageDialog(m_config.Hud, "Restart required", ["Restart required for ", "this to take effect.", "", "Restart now?"], "Yes", "No");
+            m_dialog = new MessageDialog(m_config.Hud, "Restart required", ["Restart required for this change to take effect.", "", "Restart now?"], "Yes", "No");
             m_dialog.OnClose += RestartDialog_OnClose;
             return;
         }
@@ -503,47 +504,16 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private void GenerateFooterLines(string inputText, string font, int fontSize, IHudRenderContext hud, List<string> lines, StringBuilder builder,
         out int requiredHeight)
-    {
+    {   
         // Setting descriptions may be verbose, and may need multiple lines to render.  This method precomputes 
         // the dimensions we'll need for a footer, so we can reserve room when doing rendering and scroll offset
         // calculations.  It also returns the split text, since we need to figure that out anyway and are going to
         // need it later when we actually render the footer.
-        m_footerLines.Clear();
-        builder.Clear();
-        if (string.IsNullOrEmpty(inputText))
-        {
-            requiredHeight = 0;
-            return;
-        }
-
-        int maxTokenHeight = 0;
-        int widthCounter = 0;
-
-        foreach (string token in inputText.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(str => $"{str} "))
-        {
-            Dimension tokenSize = hud.MeasureText(token, font, fontSize);
-            maxTokenHeight = Math.Max(maxTokenHeight, tokenSize.Height);
-
-            if (widthCounter + tokenSize.Width > hud.Width)
-            {
-                lines.Add(builder.ToString());
-                builder.Clear();
-                widthCounter = 0;
-            }
-
-            builder.Append(token);
-            widthCounter += tokenSize.Width;
-        }
-
-        // Flush the last line out of the StringBuilder
-        if (builder.Length > 0)
-        {
-            lines.Add(builder.ToString());
-        }
+        LineWrap.Calculate(inputText, font, fontSize, hud.Width, hud, lines, builder, out requiredHeight);
 
         // Calculate how much room we need for the footer, with padding both above and below the text
         int padding = m_config.Hud.GetScaled(8);
-        requiredHeight = lines.Count * maxTokenHeight + 2 * padding;
+        requiredHeight += padding * 2;
     }
 
     private void RenderFooter(List<string> lines, int startY, string font, int fontSize, IHudRenderContext hud)

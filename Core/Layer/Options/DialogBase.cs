@@ -20,7 +20,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
 
     public event EventHandler<DialogCloseArgs>? OnClose;
 
-    private readonly ConfigHud m_config = config;
+    protected readonly ConfigHud m_config = config;
     private readonly string? m_acceptButton = acceptButton;
     private readonly string? m_cancelButton = cancelButton;
     private readonly BoxList m_buttonPosList = new();
