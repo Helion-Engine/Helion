@@ -104,6 +104,12 @@ public class GameLayerManager : IGameLayerManager
         m_consoleLayer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
 
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
+        m_optionsLayer.OnRestartApplication += OptionsLayer_OnRestartApplication;
+    }
+
+    private void OptionsLayer_OnRestartApplication(object? sender, EventArgs e)
+    {
+        m_console.SubmitInputText("restart");
     }
 
     ~GameLayerManager()

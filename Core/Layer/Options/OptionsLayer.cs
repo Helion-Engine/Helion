@@ -12,6 +12,7 @@ using Helion.Layer.Options.Sections;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Resources;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
@@ -26,6 +27,7 @@ namespace Helion.Layer.Options;
 
 public class OptionsLayer : IGameLayer, IAnimationLayer
 {
+    public event EventHandler? OnRestartApplication;
     public InterpolationAnimation<IAnimationLayer> Animation { get; }
     public bool ClearOnExit { get; set; }
 
@@ -61,6 +63,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private bool m_resetMouse;
     private bool m_setMouse;
     private bool m_didMouseWheelScroll;
+    private IDialog? m_dialog;
 
     public OptionsLayer(GameLayerManager manager, IConfig config, SoundManager soundManager, IWindow window)
     {
@@ -184,8 +187,23 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private void ListedConfigSection_OnAttributeChanged(object? sender, ConfigInfoAttribute configAttr)
     {
+        if (configAttr.RestartRequired)
+        {
+            m_dialog = new MessageDialog(m_config.Hud, "Restart required", ["Restart required for ", "this to take effect.", "", "Restart now?"], "Yes", "No");
+            m_dialog.OnClose += RestartDialog_OnClose;
+            return;
+        }
+
         if (configAttr.GetSetWarningString(out var warningString))
             ShowMessage(warningString);
+    }
+
+    private void RestartDialog_OnClose(object? sender, DialogCloseArgs e)
+    {
+        m_dialog = null;
+        m_soundManager.PlayStaticSound(e.Accepted ? MenuSounds.Choose : MenuSounds.Clear);
+        if (e.Accepted)
+            OnRestartApplication?.Invoke(this, EventArgs.Empty);
     }
 
     private void ShowMessage(string message)
@@ -259,6 +277,12 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     public void HandleInput(IConsumableInput input)
     {
+        if (m_dialog != null)
+        {
+            m_dialog.HandleInput(input);
+            return;
+        }
+
         var section = m_sections[m_currentSectionIndex];
 
         if (m_locked)
@@ -442,7 +466,16 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             if (m_locked && m_lockOptions == LockOptions.None)
                 return;
 
-            bool hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetIndex(m_cursorPos, out _);
+            bool hover;
+            if (m_dialog != null)
+            {
+                m_dialog.Render(ctx, hud);
+                hover = m_dialog.OnClickableItem(m_cursorPos);
+            }
+            else
+            {
+                hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetIndex(m_cursorPos, out _);
+            }
 
             string cursor = hover ? "pointer" : "cursor";
             if (hud.Textures.TryGet(cursor, out var cursorHandle, ResourceNamespace.Graphics))

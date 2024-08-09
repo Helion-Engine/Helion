@@ -61,7 +61,7 @@ public partial class Client
         m_layerManager.Remove(m_layerManager.ConsoleLayer);
     }
 
-    [ConsoleCommand("restart", "Lists all available commands.")]
+    [ConsoleCommand("restart", "Restarts the application.")]
     private void Restart(ConsoleCommandEventArgs args)
     {
         var assembly = System.Reflection.Assembly.GetEntryAssembly();
