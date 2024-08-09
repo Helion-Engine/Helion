@@ -46,16 +46,17 @@ public partial class ConsoleLayer
     private void RenderConsoleBackground(IHudRenderContext hud, HudBox drawArea)
     {
         const string ConsoleBackingImage = "CONBACK";
-        const float BackgroundAlpha = 0.65f;
+        const float BackgroundAlpha = 0.5f;
+        float imageAlpha = 1 - (float)m_config.Console.Transparency;
 
         if (hud.Textures.HasImage(ConsoleBackingImage))
         {
-            hud.Image(ConsoleBackingImage, drawArea);
+            hud.Image(ConsoleBackingImage, drawArea, alpha: imageAlpha);
             hud.FillBox(drawArea, Color.Black, alpha: BackgroundAlpha);
         }
         else if (hud.Textures.HasImage(m_backingImage))
         {
-            hud.Image(m_backingImage, drawArea);
+            hud.Image(m_backingImage, drawArea, alpha: imageAlpha);
             hud.FillBox(drawArea, Color.Black, alpha: BackgroundAlpha);
         }
         else

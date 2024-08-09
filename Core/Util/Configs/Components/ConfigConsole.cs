@@ -13,4 +13,8 @@ public class ConfigConsole
     [ConfigInfo("Font size.")]
     [OptionMenu(OptionSectionType.Console, "Font size")]
     public readonly ConfigValue<int> FontSize = new(32, Greater(15));
+
+    [ConfigInfo("Transparency.")]
+    [OptionMenu(OptionSectionType.Console, "Transparency")]
+    public readonly ConfigValue<double> Transparency = new(0.75, ClampNormalized);
 }
