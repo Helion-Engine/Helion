@@ -16,5 +16,5 @@ public class ConfigConsole
 
     [ConfigInfo("Transparency.")]
     [OptionMenu(OptionSectionType.Console, "Transparency")]
-    public readonly ConfigValue<double> Transparency = new(0.75, ClampNormalized);
+    public readonly ConfigValue<double> Transparency = new(0.6, ClampNormalized);
 }
