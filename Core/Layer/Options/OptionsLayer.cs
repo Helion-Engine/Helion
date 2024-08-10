@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using Helion.Audio.Sounds;
@@ -12,11 +11,9 @@ using Helion.Layer.Options.Sections;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Resources;
-using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
-using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.Util.Timing;

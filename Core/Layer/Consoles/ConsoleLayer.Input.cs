@@ -27,6 +27,12 @@ public partial class ConsoleLayer
 
     public void HandleInput(IConsumableInput input)
     {
+        if (input.ConsumeKeyPressed(Key.Escape))
+        {
+            Animation.AnimateOut();
+            return;
+        }
+
         if (ConsumeControlV(input))
         {
             input.ConsumeTypedCharacters();
