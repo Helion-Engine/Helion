@@ -1,6 +1,7 @@
 using System;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Menus;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;
@@ -23,6 +24,7 @@ public partial class MenuLayer
     public void Render(IHudRenderContext hud)
     {
         Animation.Tick();
+        hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
         hud.DoomVirtualResolution(m_renderVirtualHudAction, hud);
     }
 
