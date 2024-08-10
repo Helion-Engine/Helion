@@ -963,12 +963,13 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, DynamicVertex[] vertices,
         SectorPlane? plane, Side? side, Wall? wall, bool repeat)
     {
-        if (side != null && wall != null && GetWallType(side, wall) != GeometryType.TwoSidedMiddleWall)
+        var geometryType = side != null && wall != null ? GetWallType(side, wall) : GeometryType.Flat;
+        if (side != null && wall != null && geometryType != GeometryType.TwoSidedMiddleWall)
             AddOrUpdateCoverWall(side, wall, vertices);
 
         if (geometryData == null)
         {
-            AddNewGeometry(textureHandle, vertices, plane, side, wall, repeat);
+            AddNewGeometry(textureHandle, vertices, geometryType, plane, side, wall, repeat);
             return;
         }
 
@@ -1041,7 +1042,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void AddNewGeometry(int textureHandle, DynamicVertex[] vertices, SectorPlane? plane, Side? side, Wall? wall, bool repeat)
+    private void AddNewGeometry(int textureHandle, DynamicVertex[] vertices, GeometryType geometryType, SectorPlane? plane, Side? side, Wall? wall, bool repeat)
     {
         if (m_freeManager.GetAndRemove(textureHandle, vertices.Length, out StaticGeometryData? existing))
         {
@@ -1054,8 +1055,6 @@ public class StaticCacheGeometryRenderer : IDisposable
                 vertices, plane, side, wall, repeat);
             return;
         }
-
-        GeometryType geometryType = wall != null ? GeometryType.Wall : GeometryType.Flat;
 
         // This texture exists, append to the vbo
         if (m_textureToGeometryLookup.TryGetValue(geometryType, textureHandle, repeat, out GeometryData? data))

@@ -64,4 +64,9 @@ public class RenderWorldData : IDisposable
         Vbo.Dispose();
         Vao.Dispose();
     }
+
+    public override string ToString()
+    {
+        return Texture.Name;
+    }
 }
