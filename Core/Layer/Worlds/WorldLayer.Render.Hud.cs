@@ -401,21 +401,25 @@ public partial class WorldLayer
     private void DrawHudWeapon(IHudRenderContext hud, FrameState frameState, int yOffset, bool flash)
     {
         int lightLevel;
+        int colorMapIndex;
         if (frameState.Frame.Properties.Bright || Player.DrawFullBright())
         {
             lightLevel = 255;
+            colorMapIndex = 0;
         }
         else
         {
             int extraLight = Player.GetExtraLightRender();
             lightLevel = GetLightLevel(Player);
+            colorMapIndex = GLHelper.ColorMapIndex(lightLevel, extraLight);
             lightLevel = GLHelper.DoomLightLevelToColor(lightLevel, extraLight);
         }
 
         var camera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
         var colorMix = Renderer.GetColorMix(Player, camera);
 
-        Color lightLevelColor = ((byte)(Math.Min(lightLevel * colorMix.X, 255)), 
+        Color lightLevelColor = ShaderVars.ColorMap ? Color.White :            
+            ((byte)(Math.Min(lightLevel * colorMix.X, 255)), 
             (byte)(Math.Min(lightLevel * colorMix.Y, 255)), 
             (byte)(Math.Min(lightLevel * colorMix.Z, 255)));
 
@@ -429,7 +433,7 @@ public partial class WorldLayer
         offset = TranslateDoomOffset(offset);
         var hudBox = GetInterpolatePlayerWeaponBox(hud, handle, offset);
 
-        hud.Image(sprite, hudBox, color: lightLevelColor);
+        hud.Image(sprite, hudBox, color: lightLevelColor, colorMapIndex: colorMapIndex);
     }
 
     private HudBox GetInterpolatePlayerWeaponBox(IHudRenderContext hud, IRenderableTextureHandle handle, Vec2I offset)

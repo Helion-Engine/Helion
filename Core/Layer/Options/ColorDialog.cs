@@ -18,7 +18,6 @@ internal class ColorDialog : DialogBase
 {
     const string Selector = ">";
 
-    private readonly ConfigHud m_config;
     private readonly IConfigValue m_configValue;
     private readonly OptionMenuAttribute m_attr;
     private readonly Slider m_redSlider;
@@ -38,7 +37,6 @@ internal class ColorDialog : DialogBase
     public ColorDialog(ConfigHud config, IConfigValue configValue, OptionMenuAttribute attr, Vec3I color)
         : base(config, "OK", "Cancel")
     {
-        m_config = config;
         m_configValue = configValue;
         m_attr = attr;
         m_color = color;

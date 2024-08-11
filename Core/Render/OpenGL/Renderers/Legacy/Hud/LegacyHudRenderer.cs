@@ -56,25 +56,25 @@ public class LegacyHudRenderer : HudRenderer
     }
 
     public override void DrawImage(string textureName, ImageBox2I drawArea, Color multiplyColor,
-        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette)
+        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex)
     {
         m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
-        AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette);
+        AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
     }
 
     public override void DrawImage(string textureName, Vec2I topLeft, Color multiplyColor,
-        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette)
+        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex)
     {
         m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
         (int width, int height) = texture.Dimension;
         ImageBox2I drawArea = new ImageBox2I(topLeft.X, topLeft.Y, topLeft.X + width, topLeft.Y + height);
-        AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette);
+        AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
     }
 
     public override void DrawShape(ImageBox2I drawArea, Color color, float alpha)
     {
         GLLegacyTexture texture = m_textureManager.WhiteTexture;
-        AddImage(texture, drawArea, (255, color.R, color.G, color.B), alpha, false, false, false);
+        AddImage(texture, drawArea, (255, color.R, color.G, color.B), alpha, false, false, false, 0);
     }
 
     public override void DrawText(RenderableString text, ImageBox2I drawArea, float alpha, bool drawPalette)
@@ -110,7 +110,7 @@ public class LegacyHudRenderer : HudRenderer
 
     private HudVertex MakeVertex(float x, float y, float u, float v, RenderableGlyph glyph, float alpha, bool drawPalette)
     {
-        return new(x, y, DrawDepth, u, v, glyph.Color, alpha, false, false, drawPalette);
+        return new(x, y, DrawDepth, u, v, glyph.Color, alpha, false, false, drawPalette, 0);
     }
 
     public override void Render(Rectangle viewport, ShaderUniforms uniforms)
@@ -165,13 +165,13 @@ public class LegacyHudRenderer : HudRenderer
     }
 
     private void AddImage(GLLegacyTexture texture, ImageBox2I drawArea, Color multiplyColor,
-        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette)
+        float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex)
     {
         // Remember that we are drawing along the Z for visual depth now.
-        var topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette);
-        var topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette);
-        var bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette);
-        var bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette);
+        var topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+        var topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+        var bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+        var bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
 
         var quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
         m_drawBuffer.Add(texture, quad);

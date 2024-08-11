@@ -34,7 +34,11 @@ public readonly struct HudVertex
     [VertexAttribute("drawPalette", required: false)]
     public readonly float DrawPalette;
 
-    public HudVertex(float x, float y, float z, float u, float v, byte mulR, byte mulG, byte mulB, byte mulFactor, float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette)
+    [VertexAttribute("hudColorMapIndex", required: false)]
+    public readonly float ColorMapIndex;
+
+    public HudVertex(float x, float y, float z, float u, float v, byte mulR, byte mulG, byte mulB, byte mulFactor, float alpha, bool drawColorMap, 
+        bool drawFuzz, bool drawPalette, int colorMapIndex)
     {
         X = x;
         Y = y;
@@ -49,11 +53,12 @@ public readonly struct HudVertex
         DrawColorMap = drawColorMap ? 1.0f : 0.0f;
         DrawFuzz = drawFuzz ? 1.0f : 0.0f;
         DrawPalette = drawPalette ? 1.0f : 0.0f;
+        ColorMapIndex = colorMapIndex;
     }
 
     // TODO: Updated color to be RGBA, but still need to do step 2 and abandon division for RGBA.
-    public HudVertex(float x, float y, float z, float u, float v, Color multiplierColor, float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette) : 
-        this(x, y, z, u, v, multiplierColor.R, multiplierColor.G, multiplierColor.B, multiplierColor.A, alpha, drawColorMap, drawFuzz, drawPalette)
+    public HudVertex(float x, float y, float z, float u, float v, Color multiplierColor, float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex) : 
+        this(x, y, z, u, v, multiplierColor.R, multiplierColor.G, multiplierColor.B, multiplierColor.A, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex)
     {
     }
 }

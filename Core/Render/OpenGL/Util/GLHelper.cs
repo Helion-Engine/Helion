@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Geometry;
+using Helion.Graphics.Palettes;
 using Helion.Render.OpenGL.Context;
 using NLog;
 using OpenTK.Graphics.OpenGL;
@@ -31,57 +33,19 @@ public static class GLHelper
     // GLM's 1D value accessor creates a whole new array for each invocation, which shows up
     // as a significant generator of garbage due to us running at very high FPS now. This is
     // a way of getting around allocations, by reusing it.
-    private static float[] MvpBuffer = new float[16];
+    private static readonly float[] MvpBuffer = new float[16];
 
-    const int ColorMaps = 32;
-    const int ColorMapClamp = 31;
-    const int ScaleCount = 16;
-    const int MaxLightScale = 23;
-
-    private static int GetLightLevelIndex(int lightLevel, int add)
+    public static int ColorMapIndex(int lightLevel, int extraLight)
     {
-        int index = Math.Clamp(lightLevel / ScaleCount, 0, ScaleCount - 1);
-        int startMap = (ScaleCount - index - 1) * 2 * ColorMaps / ScaleCount;
-        add = MaxLightScale - Math.Clamp(add, 0, MaxLightScale);
-        return Math.Clamp(startMap - add, 0, ColorMapClamp);
+        int lightNum = lightLevel / 8;
+        int startMap = (30 - lightNum) * 2;
+        return Math.Clamp((startMap - 47 / 2) - extraLight, 0, 31);
     }
 
-    /// <summary>
-    /// Converts a light level to the doom light level color. This is used
-    /// since the mapping of light levels to visible color is usually not
-    /// correct with vanilla (ex: 128 is darker than 0.5). This formula is
-    /// used in the shader as well.
-    /// </summary>
-    /// <param name="lightLevel">The light level.</param>
-    /// <param name="extraLight">The extra light value from the player.</param>
-    /// <returns>A value between 0 and 255.</returns>
-    public static int DoomLightLevelToColor(int lightLevel, int extraLight) =>
-        Math.Clamp((ColorMaps - GetLightLevelIndex(lightLevel, 8 - extraLight)) * ScaleCount, 0, 255);
-
-    public static double DoomLightLevelToColorStatic(int lightLevel, int extraLight)
+    public static int DoomLightLevelToColor(int lightLevel, int extraLight)
     {
-        double lightLevelFrac = Math.Clamp(lightLevel + extraLight * 16, 0, 255) / 255.0f;
-
-        switch (lightLevelFrac)
-        {
-            case > 0.75:
-                break;
-
-            case > 0.4:
-                {
-                    lightLevelFrac = -0.6375 + (1.85 * lightLevelFrac);
-                    if (lightLevelFrac < 0.08)
-                        lightLevelFrac = 0.08 + (lightLevelFrac * 0.2);
-
-                    break;
-                }
-
-            default:
-                lightLevelFrac /= 5.0;
-                break;
-        }
-
-        return Math.Clamp(lightLevelFrac, 0.0, 1.0);
+        int lightColorIndex = ColorMapIndex(lightLevel, extraLight);
+        return Math.Clamp((32 - lightColorIndex) * 8, 0, 255);
     }
 
     /// <summary>

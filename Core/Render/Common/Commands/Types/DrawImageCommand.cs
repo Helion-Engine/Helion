@@ -6,7 +6,7 @@ namespace Helion.Render.OpenGL.Commands.Types;
 
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct DrawImageCommand(string textureName, ImageBox2I drawArea, Color multiplyColor,
-    float alpha = 1.0f, bool drawColorMap = false, bool drawFuzz = false, bool drawPalette = true)
+    float alpha = 1.0f, bool drawColorMap = false, bool drawFuzz = false, bool drawPalette = true, int colorMapIndex = 0)
 {
     public readonly ImageBox2I DrawArea = drawArea;
     public readonly float Alpha = alpha;
@@ -16,4 +16,5 @@ public readonly struct DrawImageCommand(string textureName, ImageBox2I drawArea,
     public readonly bool DrawFuzz = drawFuzz;
     public readonly bool DrawPalette = drawPalette;
     public readonly string TextureName = textureName;
+    public readonly int ColorMapIndex = colorMapIndex;
 }
