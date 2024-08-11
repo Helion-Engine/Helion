@@ -63,23 +63,24 @@ public class EntityFrameTable
 
     public int SpriteIndexCount => m_spriteNameToIndex.Count;
 
-    public void AddFrame(EntityFrame entityFrame)
+    public void AddFrame(EntityFrame entityFrame, bool mapVanillaFrame = true)
     {
         entityFrame.MasterFrameIndex = Frames.Count;
         Frames.Add(entityFrame);
-        m_vanillaFrameMap[entityFrame.VanillaIndex] = entityFrame;
+        if (mapVanillaFrame)
+            m_vanillaFrameMap[entityFrame.VanillaIndex] = entityFrame;
         entityFrame.SpriteIndex = GetSpriteIndex(entityFrame.Sprite);
     }
 
     public void AddCustomFrames()
     {
         EntityFrame entityFrame = new(this, Constants.InvisibleSprite, 0, 16, EntityFrameProperties.Default, EntityActionFunctions.A_ClosetLook, 0, string.Empty);
-        AddFrame(entityFrame);
+        AddFrame(entityFrame, false);
         entityFrame.NextFrameIndex = entityFrame.MasterFrameIndex;
         ClosetLookFrameIndex = entityFrame.MasterFrameIndex;
 
         entityFrame = new(this, Constants.InvisibleSprite, 0, 16, EntityFrameProperties.Default, EntityActionFunctions.A_ClosetChase, 0, string.Empty);
-        AddFrame(entityFrame);
+        AddFrame(entityFrame, false);
         entityFrame.NextFrameIndex = entityFrame.MasterFrameIndex;
         ClosetChaseFrameIndex = entityFrame.MasterFrameIndex;
     }
