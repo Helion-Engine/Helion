@@ -423,7 +423,7 @@ public partial class Client : IDisposable, IInputManagement
         if (assembly == null)
             return;
 
-        string? dir = Path.GetDirectoryName(assembly.Location);
+        string? dir = AppContext.BaseDirectory;
         if (dir == null)
             return;
 
