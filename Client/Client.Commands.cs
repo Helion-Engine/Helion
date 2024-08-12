@@ -64,11 +64,8 @@ public partial class Client
     [ConsoleCommand("restart", "Restarts the application.")]
     private void Restart(ConsoleCommandEventArgs args)
     {
-        var assembly = System.Reflection.Assembly.GetEntryAssembly();
-        if (assembly == null)
-            return;
+        var path = AppContext.BaseDirectory;
 
-        var path = Path.GetDirectoryName(assembly.Location);
         if (path == null)
             return;
 
