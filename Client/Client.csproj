@@ -47,20 +47,28 @@
       <!-- Runtime unspecified; copy native files into runtimes\(runtimeID)\native  -->
       <NativeFiles Include="$(ProjectDir)Unmanaged\win-x64\**\*" Destination="runtimes\win-x64\native\%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == ''" />
       <NativeFiles Include="$(ProjectDir)Unmanaged\win-x64\**\*" Destination="runtimes\win-x86\native\%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == ''" />
+
+      <!-- Files used to determine whether the "copy support files" targets need to run  -->
+      <TargetAssetsFile Include="$(TargetDir)assets.pk3" />
+      <PublishAssetsFile Include="$(PublishDir)assets.pk3" />
+      <AllSupportFiles Include="@(NativeFiles)" />
+      <AllSupportFiles Include="@(SoundFonts)" />
+      <AllSupportFiles Include="$(HelionRootDir)Assets\Assets\**\*" />
     </ItemGroup>
   </Target>
 
-  <Target Name="CopySupportFilesForBuild" AfterTargets="Build" DependsOnTargets="GetSupportFiles" >
+  <Target Name="CopySupportFilesForBuild" AfterTargets="Build" DependsOnTargets="GetSupportFiles" Inputs="@(AllSupportFiles)" Outputs="@(TargetAssetsFile)">
     <!-- Copy SoundFont for FluidSynth, create assets.pk3 -->
     <Copy SourceFiles="@(SoundFonts)" DestinationFolder="$(TargetDir)SoundFonts\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(NativeFiles)" DestinationFolder="$(TargetDir)%(Destination)" SkipUnchangedFiles="true" />
-    <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="$(TargetDir)assets.pk3" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="@(TargetAssetsFile)" Overwrite="true" />
   </Target>
 
-  <Target Name="CopySupportFilesForPublish" AfterTargets="Publish" DependsOnTargets="GetSupportFiles">
+  <Target Name="CopySupportFilesForPublish" AfterTargets="Publish" DependsOnTargets="GetSupportFiles" Inputs="@(AllSupportFiles)" Outputs="@(PublishAssetsFile)">
     <!-- The previous steps that copy support files to the target directory do NOT copy on publish, so we have to handle that again. -->
     <Copy SourceFiles="@(SoundFonts)" DestinationFolder="$(PublishDir)SoundFonts\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(NativeFiles)" DestinationFolder="$(PublishDir)%(Destination)" SkipUnchangedFiles="true" />
-    <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="$(PublishDir)assets.pk3" Overwrite="true" />
+    <Copy SourceFiles="@(TargetAssetsFile)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
   </Target>
+
 </Project>
