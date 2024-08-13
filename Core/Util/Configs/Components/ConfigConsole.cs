@@ -6,12 +6,12 @@ namespace Helion.Util.Configs.Components;
 
 public class ConfigConsole
 {
-    [ConfigInfo("The number of messages the console buffer holds before discarding old ones.")]
-    [OptionMenu(OptionSectionType.Console, "Max messages")]
+    [ConfigInfo("Number of messages the console buffer holds before discarding old ones.")]
+    [OptionMenu(OptionSectionType.Console, "Max Messages")]
     public readonly ConfigValue<int> MaxMessages = new(256, Greater(0));
 
     [ConfigInfo("Font size.")]
-    [OptionMenu(OptionSectionType.Console, "Font size")]
+    [OptionMenu(OptionSectionType.Console, "Font Size")]
     public readonly ConfigValue<int> FontSize = new(32, Greater(15));
 
     [ConfigInfo("Transparency.")]

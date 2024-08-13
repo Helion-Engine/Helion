@@ -6,23 +6,23 @@ namespace Helion.Util.Configs.Components;
 
 public class ConfigMouse
 {
-    [ConfigInfo("If we should be able to look around the level with the mouse.", demo: true)]
-    [OptionMenu(OptionSectionType.Mouse, "Mouse look")]
+    [ConfigInfo("If the player can look up and down with the mouse.", demo: true)]
+    [OptionMenu(OptionSectionType.Mouse, "Mouse Look")]
     public readonly ConfigValue<bool> Look = new(true);
     
     [ConfigInfo("Forward/backward movement speed.")]
-    [OptionMenu(OptionSectionType.Mouse, "Movement speed")]
+    [OptionMenu(OptionSectionType.Mouse, "Movement Speed")]
     public readonly ConfigValue<double> ForwardBackwardSpeed = new(0, GreaterOrEqual(0.0));
 
-    [ConfigInfo("A scale for both the pitch and yaw, meaning this affects both axis.")]
-    [OptionMenu(OptionSectionType.Mouse, "Sensitivity", spacer: true)]
+    [ConfigInfo("A scale for both the pitch and yaw, meaning this affects both axes.")]
+    [OptionMenu(OptionSectionType.Mouse, "Overall Sensitivity", spacer: true)]
     public readonly ConfigValue<double> Sensitivity = new(1.0);
 
-    [ConfigInfo("The vertical sensitivity. This is multiplied by the sensitivity value for a final calculation.")]
+    [ConfigInfo("Vertical sensitivity. This is multiplied by the overall sensitivity value.")]
     [OptionMenu(OptionSectionType.Mouse, "Vertical Sensitivity")]
     public readonly ConfigValue<double> Pitch = new(1.0);
 
-    [ConfigInfo("The horizontal sensitivity. This is multiplied by the sensitivity value for a final calculation.")]
+    [ConfigInfo("Horizontal sensitivity. This is multiplied by the overall sensitivity value.")]
     [OptionMenu(OptionSectionType.Mouse, "Horizontal Sensitivity")]
     public readonly ConfigValue<double> Yaw = new(1.0);
     
@@ -30,7 +30,7 @@ public class ConfigMouse
     [OptionMenu(OptionSectionType.Mouse, "Invert Y", spacer: true)]
     public readonly ConfigValue<bool> InvertY = new(false);
 
-    [ConfigInfo("If the mouse should interpolate.")]
+    [ConfigInfo("If mouse input should be interpolated.")]
     [OptionMenu(OptionSectionType.Mouse, "Interpolate")]
     public readonly ConfigValue<bool> Interpolate = new(false);
 

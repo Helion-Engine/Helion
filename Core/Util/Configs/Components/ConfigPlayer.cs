@@ -7,11 +7,11 @@ namespace Helion.Util.Configs.Components;
 
 public class ConfigPlayer
 {
-    [ConfigInfo("The name of the player.")]
+    [ConfigInfo("Name of the player.")]
     [OptionMenu(OptionSectionType.General, "Player Name", spacer: true)]
     public readonly ConfigValue<string> Name = new("Player", IfEmptyDefaultTo("Player"));
 
-    [ConfigInfo("The gender of the player.")]
+    [ConfigInfo("Gender of the player.")]
     [OptionMenu(OptionSectionType.General, "Player Gender")]
     public readonly ConfigValue<PlayerGender> Gender = new(default, OnlyValidEnums<PlayerGender>());
 }
