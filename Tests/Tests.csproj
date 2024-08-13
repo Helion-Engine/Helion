@@ -34,9 +34,17 @@
     <None Update ="Resources\*" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 
-  <Target Name="MakeAssetsZip" AfterTargets="PostBuildEvent">
+  <Target Name="GetSupportFiles">
+    <ItemGroup>
+      <!-- Source files used for input into "zip" task  -->
+      <CompressedAssetSources Include="$(HelionRootDir)Assets\Assets\**\*" />
+      <TargetAssetsFile Include="$(TargetDir)assets.pk3" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="MakeAssetsZip" AfterTargets="PostBuildEvent" DependsOnTargets="GetSupportFiles" Inputs="@(CompressedAssetSources)" Outputs="@(TargetAssetsFile)">
     <!-- Zip the (Root)\Assets directory to a .pk3 file in the target directory -->
-    <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="$(TargetDir)assets.pk3" Overwrite="true" />
+    <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="@(TargetAssetsFile)" Overwrite="true" />
   </Target>
 
 </Project>
