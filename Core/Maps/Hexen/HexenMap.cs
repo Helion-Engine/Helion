@@ -55,6 +55,7 @@ public class HexenMap : IMap
         GL = gl;
         Reject = reject;
         CompatibilityDefinition = compatibility;
+        MD5 = string.Empty;
     }
 
     /// <summary>

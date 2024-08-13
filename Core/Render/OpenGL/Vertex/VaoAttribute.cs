@@ -14,7 +14,7 @@ public class VaoAttribute
     public readonly bool Required;
     public int Stride;
 
-    private string PointerTypeToString => PointerType != null ? PointerType.ToString() : IntegerType?.ToString();
+    private string PointerTypeToString => (PointerType != null ? PointerType.ToString() : IntegerType?.ToString()) ?? "N/A";
 
     public VaoAttribute(string name, int index, int size, VertexAttribPointerType type, int offset, bool normalized, int stride, bool required)
     {

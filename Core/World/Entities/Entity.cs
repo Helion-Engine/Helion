@@ -296,16 +296,18 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public EntityDefinition GetBloodDefinition()
     {
-        if (Definition.BloodDefinition != null)
+        if (Definition.DefinitionSet)
             return Definition.BloodDefinition;
+
+        Definition.DefinitionSet = true;
 
         if (!string.IsNullOrEmpty(Definition.Properties.BloodType))
         {
-            Definition.BloodDefinition = WorldStatic.EntityManager.DefinitionComposer.GetByName(Definition.Properties.BloodType);
+            Definition.BloodDefinition = WorldStatic.EntityManager.DefinitionComposer.GetByNameOrDefault(Definition.Properties.BloodType);
             return Definition.BloodDefinition;
         }
 
-        Definition.BloodDefinition = WorldStatic.EntityManager.DefinitionComposer.GetByName("BLOOD");
+        Definition.BloodDefinition = WorldStatic.EntityManager.DefinitionComposer.GetByNameOrDefault("BLOOD");
         return Definition.BloodDefinition;
     }
 

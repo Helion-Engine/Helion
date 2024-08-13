@@ -48,11 +48,12 @@ public class TextureManager : ITickable
         m_archiveCollection = archiveCollection;
         m_textures = new();
         m_translations = new();
-        SkyTextureName = "SKY1";
+        SkyTextureName = Constants.DefaultSkyTextureName;
     }
 
     public TextureManager(ArchiveCollection archiveCollection, bool cacheAllSprites, bool unitTest = false)
     {
+        SkyTextureName = Constants.DefaultSkyTextureName;
         m_archiveCollection = archiveCollection;
         m_cacheAllSprites = cacheAllSprites;
         m_unitTest = unitTest;

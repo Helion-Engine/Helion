@@ -57,7 +57,7 @@ public class GLTexture2DArray : GLTexture
         this(label)
     {
         Debug.Assert(images.Any(), "Require at least one image for a texture 2D array");
-        Debug.Assert(images.FirstOrDefault().Dimension.Area > 0, "Image must have a non-zero area");
+        Debug.Assert(images.First().Dimension.Area > 0, "Image must have a non-zero area");
         Debug.Assert(images.Select(i => i.Dimension.Area).Distinct().Count() == 1, "All 2D array textures must be the same dimension");
 
         Bind();
@@ -74,7 +74,7 @@ public class GLTexture2DArray : GLTexture
     public void UploadImages(IEnumerable<Image> images)
     {
         int numImages = images.Count();
-        Image firstImage = images.FirstOrDefault();
+        Image firstImage = images.First();
         
         Depth = numImages;
         Dimension = firstImage.Dimension;

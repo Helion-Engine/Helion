@@ -175,6 +175,7 @@ public class MidTextureHack
             {
                 SectorPlaneFace.Floor => SectorPlanes.Floor,
                 SectorPlaneFace.Ceiling => SectorPlanes.Ceiling,
+                _ => SectorPlanes.Floor,
             };
         }
     }

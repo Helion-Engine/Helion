@@ -36,7 +36,7 @@ public abstract class RenderProgram : IDisposable
 
     private void CreateAndCompileShaderOrThrow()
     {
-        (int vertex, int? geometry, int? fragment) = CompileShadersOrThrow();
+        (int? vertex, int? geometry, int? fragment) = CompileShadersOrThrow();
 
         GL.LinkProgram(m_program);
         ThrowIfLinkFailure();
@@ -46,7 +46,7 @@ public abstract class RenderProgram : IDisposable
         DetachAndDelete(m_program, fragment);
     }
 
-    private (int vertex, int? geometry, int? fragment) CompileShadersOrThrow()
+    private (int? vertex, int? geometry, int? fragment) CompileShadersOrThrow()
     {
         int? vertexShader = null;
         int? geometryShader = null;
@@ -57,7 +57,7 @@ public abstract class RenderProgram : IDisposable
             vertexShader = CompileShaderOrThrow(VertexShader(), ShaderType.VertexShader);
             geometryShader = CompileShaderOrThrow(GeometryShader(), ShaderType.GeometryShader);
             fragmentShader = CompileShaderOrThrow(FragmentShader(), ShaderType.FragmentShader);
-            return (vertexShader.Value, geometryShader, fragmentShader);
+            return (vertexShader, geometryShader, fragmentShader);
         }
         catch
         {

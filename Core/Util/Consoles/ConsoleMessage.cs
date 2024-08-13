@@ -4,7 +4,7 @@ namespace Helion.Util.Consoles;
 
 public class ConsoleMessage
 {
-    public string Message;
+    public string Message = string.Empty;
     public long TimeNanos;
     public Color Color;
 

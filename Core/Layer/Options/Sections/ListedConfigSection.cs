@@ -234,7 +234,7 @@ public class ListedConfigSection : IOptionSection
         {
             for (; enumIndex < enumValues.Length; enumIndex++)
             {
-                object enumVal = enumValues.GetValue(enumIndex);
+                var enumVal = enumValues.GetValue(enumIndex);
                 if (enumVal?.Equals(currentEnumValue) ?? false)
                     break;
             }
@@ -262,7 +262,7 @@ public class ListedConfigSection : IOptionSection
                 enumIndex--;
         }
 
-        object nextEnumValue = GetEnumDescription(enumValues.GetValue(enumIndex));
+        object nextEnumValue = GetEnumDescription(enumValues.GetValue(enumIndex) ?? "");
         m_rowEditText.Clear();
         m_rowEditText.Append(nextEnumValue);
         m_currentEnumIndex = enumIndex;
@@ -272,7 +272,7 @@ public class ListedConfigSection : IOptionSection
     private static string GetConfigDisplayValue(IConfigValue configValue, OptionMenuAttribute attr)
     {
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
-            return GetEnumDescription(configValue.ObjectValue).ToString();
+            return GetEnumDescription(configValue.ObjectValue).ToString() ?? "??";
 
         var doubleValue = Convert.ToDouble(configValue.ObjectValue);
         if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
@@ -287,7 +287,9 @@ public class ListedConfigSection : IOptionSection
         if (type.BaseType != typeof(Enum))
             return value;
 
-        FieldInfo fi = type.GetField(value.ToString());
+        var fi = type.GetField(value.ToString() ?? "");
+        if (fi == null)
+            return value;
         var descAttr = fi.GetCustomAttribute<DescriptionAttribute>();
         if (descAttr != null)
             return descAttr.Description;
@@ -362,8 +364,11 @@ public class ListedConfigSection : IOptionSection
         // not be a valid enum when setting, so we use the index instead.
         if (m_currentEnumIndex.HasValue)
         {
-            object enumValue = Enum.GetValues(cfgValue.ValueType).GetValue(m_currentEnumIndex.Value);
-            result = cfgValue.Set(enumValue);
+            var enumValue = Enum.GetValues(cfgValue.ValueType).GetValue(m_currentEnumIndex.Value);
+            if (enumValue == null)
+                result = ConfigSetResult.NotSetByBadConversion;
+            else
+                result = cfgValue.Set(enumValue);
         }
         else
         {

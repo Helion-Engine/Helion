@@ -59,6 +59,9 @@ public class EntityDefinitionComposer
         BulletPuffDefinition = GetByName("BulletPuff");
     }
 
+    public EntityDefinition GetByNameOrDefault(string name) =>
+        GetByName(name) ?? EntityDefinition.Default;
+
     public EntityDefinition? GetByName(string name)
     {
         if (m_definitions.TryGetValue(name, out EntityDefinition? definition))

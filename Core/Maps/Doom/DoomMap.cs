@@ -61,6 +61,7 @@ public class DoomMap : IMap
         GL = gl;
         Reject = reject;
         CompatibilityDefinition = compatibility;
+        MD5 = string.Empty;
     }
 
     /// <summary>

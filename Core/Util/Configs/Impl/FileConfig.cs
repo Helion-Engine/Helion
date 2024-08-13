@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Values;
@@ -168,8 +169,7 @@ public class FileConfig : Config
                     continue;
                 }
 
-                list = new();
-                list.Add(item.Command);
+                list = [item.Command];
                 commandMapping[item.Key] = list;
             }
 
@@ -245,7 +245,7 @@ public class FileConfig : Config
                     continue;
                 }
 
-                List<string>? commandArray = JsonSerializer.Deserialize<List<string>>(keyData.Value).Where(x => x.Trim().Length > 0).ToList();
+                var commandArray = GetCommandArray(keyData);
                 if (commandArray == null)
                 {
                     Log.Warn($"Unable to parse parse config key line: {keyData.KeyName} = {keyData.Value}");
@@ -254,7 +254,7 @@ public class FileConfig : Config
 
                 // If the user clears a key bind entirely then the command array will be empty.
                 // Keep this so that the defaults are not added.
-                if (commandArray.Count == 0)
+                if (commandArray.Length == 0)
                 {
                     Keys.AddEmpty(key);
                     continue;
@@ -264,5 +264,14 @@ public class FileConfig : Config
                     Keys.Add(key, command);
             }
         }
+    }
+
+    private static string[]? GetCommandArray(KeyData keyData)
+    {
+        var deserialized = JsonSerializer.Deserialize<string[]>(keyData.Value);
+        if (deserialized == null)
+            return null;
+
+        return deserialized.Where(x => x.Trim().Length > 0).ToArray();
     }
 }

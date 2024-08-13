@@ -23,7 +23,7 @@ public class EntityRenderer : IDisposable
     private readonly EntityProgram m_program = new();
     private readonly RenderDataManager<EntityVertex> m_dataManager;
     private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
-    private DynamicArray<SpriteDefinition> m_spriteDefs = new(1024);
+    private DynamicArray<SpriteDefinition?> m_spriteDefs = new(1024);
     private SpriteRotation m_nullSpriteRotation;
     private Vec2F m_viewRightNormal;
     private Vec2F m_prevViewRightNormal;

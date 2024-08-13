@@ -109,6 +109,9 @@ public static class Attributes
             int index = GetNextIndex(codeAttr, IndexUsed, ref nextAvailableIndex);
             IndexUsed.Add(index);
 
+            if (name == null)
+                throw new Exception("Failed to read attrubute name");
+
             VaoAttribute attr = codeAttr.IsIntegral ?
                 new(name, index, size, integerType, offset, stride, codeAttr.Required) :
                 new(name, index, size, pointerType, offset, codeAttr.Normalized, stride, codeAttr.Required);

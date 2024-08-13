@@ -236,14 +236,14 @@ public class BspTreeNew
                 if (node.Right.Item1 != null)
                     node = node.Right.Item1;
                 else
-                    return node.Right.Item2;
+                    return node.Right.Item2!;
             }
             else
             {
                 if (node.Left.Item1 != null)
                     node = node.Left.Item1;
                 else
-                    return node.Left.Item2;
+                    return node.Left.Item2!;
             }
         }
     }

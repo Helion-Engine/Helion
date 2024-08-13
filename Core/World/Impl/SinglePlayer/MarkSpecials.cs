@@ -236,8 +236,11 @@ public class MarkSpecials
             if (world.BspTree.ToSector(end).Id != sector.Id)
             {
                 var endLine = GetClosestLineCenterFrom(world, island, player.Position.XY);
-                end = endLine.Segment.FromTime(0.5).To3D(Math.Min(sector.Floor.Z + 8, sector.Ceiling.Z));
-                end += (Vec2D.UnitCircle(start.Angle(end)) * 16).To3D(0);
+                if (endLine != null)
+                {
+                    end = endLine.Segment.FromTime(0.5).To3D(Math.Min(sector.Floor.Z + 8, sector.Ceiling.Z));
+                    end += (Vec2D.UnitCircle(start.Angle(end)) * 16).To3D(0);
+                }
             }
 
             m_playerTracers.Add(player.Tracers.AddTracer(PrimitiveRenderType.Line, (start, end), world.Gametick, TracerColors[m_lineMarkColor],
@@ -245,7 +248,7 @@ public class MarkSpecials
         }
     }
 
-    public Line? GetClosestLineCenterFrom(IWorld world, Island island, in Vec2D point)
+    public static Line? GetClosestLineCenterFrom(IWorld world, Island island, in Vec2D point)
     {
         double minDist = double.MaxValue;
         Line? minLine = null;

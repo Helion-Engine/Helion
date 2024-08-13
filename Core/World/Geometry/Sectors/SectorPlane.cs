@@ -48,6 +48,7 @@ public sealed class SectorPlane : ISoundSource
         Plane = new PlaneD(0, 0, 1.0, -z);
         m_initialZ = z;
         m_initialTextureHandle = textureHandle;
+        Sector = null!;
     }
 
     public void Reset(short lightLevel)

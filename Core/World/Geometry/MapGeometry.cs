@@ -71,7 +71,8 @@ public class MapGeometry
                         continue;
 
                     IslandGeometry.BadSubsectors.Add(subsector.Id);
-                    IslandGeometry.FloodSectors.Add(subsector.SectorId.Value);
+                    if (subsector.SectorId.HasValue)
+                        IslandGeometry.FloodSectors.Add(subsector.SectorId.Value);
 
                     if (islandFlooded)
                         continue;

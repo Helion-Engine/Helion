@@ -3,6 +3,7 @@ using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
@@ -43,18 +44,18 @@ public static class WorldStatic
     public static WorldSoundManager SoundManager = null!;
     public static List<EntityFrame> Frames = null!;
 
-    public static EntityDefinition? DoomImpBall;
-    public static EntityDefinition? ArachnotronPlasma;
-    public static EntityDefinition? Rocket;
-    public static EntityDefinition? FatShot;
-    public static EntityDefinition? CacodemonBall;
-    public static EntityDefinition? RevenantTracer;
-    public static EntityDefinition? BaronBall;
-    public static EntityDefinition? SpawnShot;
-    public static EntityDefinition? BFGBall;
-    public static EntityDefinition? PlasmaBall;
+    public static EntityDefinition DoomImpBall = EntityDefinition.Default;
+    public static EntityDefinition ArachnotronPlasma = EntityDefinition.Default;
+    public static EntityDefinition Rocket = EntityDefinition.Default;
+    public static EntityDefinition FatShot = EntityDefinition.Default;
+    public static EntityDefinition CacodemonBall = EntityDefinition.Default;
+    public static EntityDefinition RevenantTracer = EntityDefinition.Default;
+    public static EntityDefinition BaronBall = EntityDefinition.Default;
+    public static EntityDefinition SpawnShot = EntityDefinition.Default;
+    public static EntityDefinition BFGBall = EntityDefinition.Default;
+    public static EntityDefinition PlasmaBall = EntityDefinition.Default;
 
-    public static EntityDefinition? WeaponBfg;
+    public static EntityDefinition WeaponBfg = EntityDefinition.Default;
 
     public static void FlushIntersectionReferences()
     {

@@ -493,17 +493,17 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
 
-        WorldStatic.DoomImpBall = EntityManager.DefinitionComposer.GetByName("DoomImpBall");
-        WorldStatic.ArachnotronPlasma = EntityManager.DefinitionComposer.GetByName("ArachnotronPlasma");
-        WorldStatic.Rocket = EntityManager.DefinitionComposer.GetByName("Rocket");
-        WorldStatic.FatShot = EntityManager.DefinitionComposer.GetByName("FatShot");
-        WorldStatic.CacodemonBall = EntityManager.DefinitionComposer.GetByName("CacodemonBall");
-        WorldStatic.RevenantTracer = EntityManager.DefinitionComposer.GetByName("RevenantTracer");
-        WorldStatic.BaronBall = EntityManager.DefinitionComposer.GetByName("BaronBall");
-        WorldStatic.SpawnShot = EntityManager.DefinitionComposer.GetByName("SpawnShot");
-        WorldStatic.BFGBall = EntityManager.DefinitionComposer.GetByName("BFGBall");
-        WorldStatic.PlasmaBall = EntityManager.DefinitionComposer.GetByName("PlasmaBall");
-        WorldStatic.WeaponBfg = EntityManager.DefinitionComposer.GetByName(DehackedDefinition.BFG900Class);
+        WorldStatic.DoomImpBall = EntityManager.DefinitionComposer.GetByNameOrDefault("DoomImpBall");
+        WorldStatic.ArachnotronPlasma = EntityManager.DefinitionComposer.GetByNameOrDefault("ArachnotronPlasma");
+        WorldStatic.Rocket = EntityManager.DefinitionComposer.GetByNameOrDefault("Rocket");
+        WorldStatic.FatShot = EntityManager.DefinitionComposer.GetByNameOrDefault("FatShot");
+        WorldStatic.CacodemonBall = EntityManager.DefinitionComposer.GetByNameOrDefault("CacodemonBall");
+        WorldStatic.RevenantTracer = EntityManager.DefinitionComposer.GetByNameOrDefault("RevenantTracer");
+        WorldStatic.BaronBall = EntityManager.DefinitionComposer.GetByNameOrDefault("BaronBall");
+        WorldStatic.SpawnShot = EntityManager.DefinitionComposer.GetByNameOrDefault("SpawnShot");
+        WorldStatic.BFGBall = EntityManager.DefinitionComposer.GetByNameOrDefault("BFGBall");
+        WorldStatic.PlasmaBall = EntityManager.DefinitionComposer.GetByNameOrDefault("PlasmaBall");
+        WorldStatic.WeaponBfg = EntityManager.DefinitionComposer.GetByNameOrDefault(BFG900Class);
     }
 
     private void VanillaSectorSound_OnChanged(object? sender, bool enabled) =>

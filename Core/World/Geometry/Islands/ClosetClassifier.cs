@@ -57,6 +57,8 @@ public static class ClosetClassifier
             var islands = world.Geometry.IslandGeometry.SectorIslands[i];
             foreach (var island in islands)
             {
+                if (island.ParentIsland == null)
+                    continue;
                 island.IsVooDooCloset = island.ParentIsland.IsVooDooCloset;
                 island.IsMonsterCloset = island.ParentIsland.IsMonsterCloset;
             }
@@ -89,14 +91,12 @@ public static class ClosetClassifier
         bool monsterCloset = true;
         bool voodooCloset = true;
 
-        bool hasNonMonsterClosetSpecial = false;
         for (int i = 0; i < island.LineIds.Count; i++)
         {
             var line = world.Lines[island.LineIds[i]];
             if (line.HasSpecial && !line.Special.IsTeleport() && !line.Special.IsPlaneScroller())
             {
                 monsterCloset = false;
-                hasNonMonsterClosetSpecial = true;
                 break;
             }
         }

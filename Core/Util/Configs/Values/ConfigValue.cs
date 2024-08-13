@@ -74,6 +74,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         Func<T, T>? transformer = null)
     {
         Value = transformer != null ? transformer(initialValue) : initialValue;
+        UserValue = Value;
         DefaultValue = Value;
         m_filter = filter;
         m_transformer = transformer;
@@ -173,7 +174,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     }
 
     public IConfigValue Clone()
-    {
-        return new ConfigValue<T>(Value, m_filter);
+    {        
+        return new ConfigValue<T>(Value, m_filter!);
     }
 }

@@ -10,6 +10,8 @@ namespace Helion.World.Entities.Definition;
 
 public class EntityDefinition
 {
+    public static readonly EntityDefinition Default = new(-1, "DEFAULT-NULL", null, []);
+
     public int Id { get; set; }
     public int? EditorId { get; set; }
     public readonly string Name;
@@ -30,13 +32,14 @@ public class EntityDefinition
     public int? HealState;
     public string? BaseInventoryName;
     public string DehackedName = string.Empty;
+    public bool DefinitionSet;
 
     public EntityFrame? HealFrame;
 
     public EntityDefinition? MonsterSpeciesDefinition;
-    public EntityDefinition? BloodDefinition;
+    public EntityDefinition BloodDefinition = Default;
 
-    private readonly HashSet<string> ParentClassLookup = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> ParentClassLookup = new(StringComparer.OrdinalIgnoreCase);
 
     public EntityDefinition(int id, string name, int? editorId, IList<string> parentClassNames)
     {

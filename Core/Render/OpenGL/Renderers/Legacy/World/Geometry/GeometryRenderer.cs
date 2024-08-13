@@ -55,7 +55,7 @@ public class GeometryRenderer : IDisposable
     private readonly MidTextureHack m_midTextureHack = new();
     private GLBufferTexture? m_lightBuffer;
     private double m_tickFraction;
-    private bool m_skyOverride;
+    //private bool m_skyOverride;
     private bool m_floorChanged;
     private bool m_ceilingChanged;
     private bool m_sectorChangedLine;
@@ -593,7 +593,7 @@ public class GeometryRenderer : IDisposable
 
     public void RenderSide(Side side, bool isFrontSide)
     {
-        m_skyOverride = false;
+        //m_skyOverride = false;
 
         if (side.FloorFloodKey > 0)
             Portals.UpdateFloodFillPlane(side, side.Sector, SectorPlanes.Floor, SectorPlaneFace.Floor, isFrontSide);
@@ -908,8 +908,8 @@ public class GeometryRenderer : IDisposable
         if (!TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle) &&
             upperWall.TextureHandle == Constants.NoTextureIndex)
         {
-            if (TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
-                m_skyOverride = true;
+            //if (TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
+            //    m_skyOverride = true;
             return;
         }
 
@@ -936,7 +936,7 @@ public class GeometryRenderer : IDisposable
 
             if (TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle))
             {
-                m_skyOverride = true;
+                //m_skyOverride = true;
                 vertices = null;
                 skyVertices = null;
                 return;

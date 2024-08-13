@@ -85,7 +85,6 @@ public static class GLHelper
 #if DEBUG
             throw new("Trying to register a debug callback twice");
 #endif
-            return;
         }
 
         // If we don't do this, the GC will collect it (since the lambda

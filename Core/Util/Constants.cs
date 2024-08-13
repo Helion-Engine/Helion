@@ -73,6 +73,8 @@ public static class Constants
 
     public const string MusicChanger = "MusicChanger";
 
+    public const string DefaultSkyTextureName = "SKY1";
+
     public static class MenuSounds
     {
         public const string Activate = "menu/activate";

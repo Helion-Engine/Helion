@@ -123,9 +123,9 @@ public class ArchiveCollection : IResources, IPathResolver
     private void SetTextureManagerSky(MapInfoDef mapInfo)
     {
         if (mapInfo.Sky1.Name != null && mapInfo.Sky1.Name.Length > 0)
-            TextureManager.SetSkyTexture(mapInfo.Sky1.Name ?? "SKY1");
+            TextureManager.SetSkyTexture(mapInfo.Sky1.Name ?? Constants.DefaultSkyTextureName);
         else
-            TextureManager.SetSkyTexture("SKY1");
+            TextureManager.SetSkyTexture(Constants.DefaultSkyTextureName);
     }
 
     public Entry? FindEntry(string name, ResourceNamespace? priorityNamespace = null)
