@@ -8,15 +8,15 @@ namespace Helion.Util.Configs.Components;
 
 public class ConfigGame
 {
-    [ConfigInfo("Player always runs.", demo: true)]
+    [ConfigInfo("Always run.", demo: true)]
     [OptionMenu(OptionSectionType.General, "Always Run")]
     public readonly ConfigValue<bool> AlwaysRun = new(true);
 
-    [ConfigInfo("Enable autoaiming.", demo: true)]
+    [ConfigInfo("Enable vertical autoaiming.", demo: true)]
     [OptionMenu(OptionSectionType.General, "Autoaim")]
     public readonly ConfigValue<bool> AutoAim = new(true);
 
-    [ConfigInfo("Horizontal autoaiming enabled for projectiles (rockets, plasma).", demo: true)]
+    [ConfigInfo("Enable horizontal autoaiming for projectiles (rockets, plasma).  Only applies if vertical autoaiming is enabled.", demo: true)]
     [OptionMenu(OptionSectionType.General, "Horizontal Autoaim")]
     public readonly ConfigValue<bool> HorizontalAutoAim = new(false);
 

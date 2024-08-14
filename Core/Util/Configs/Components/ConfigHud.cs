@@ -45,7 +45,7 @@ public class ConfigHudAutoMap
     [OptionMenu(OptionSectionType.Automap, "Backdrop Transparency")]
     public readonly ConfigValue<double> OverlayBackdropTransparency = new(0.7, ClampNormalized);
 
-    [ConfigInfo("Shows map title on the automap.")]
+    [ConfigInfo("Show map title on the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Show Map Title")]
     public readonly ConfigValue<bool> MapTitle = new(true);
 

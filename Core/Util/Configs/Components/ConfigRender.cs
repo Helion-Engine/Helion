@@ -101,7 +101,7 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Light Mode", spacer: true)]
     public readonly ConfigValue<RenderLightMode> LightMode = new(RenderLightMode.Smooth);
 
-    [ConfigInfo("Adds to the rendering light level offset.")]
+    [ConfigInfo("Added light level offset.")]
     [OptionMenu(OptionSectionType.Render, "Extra Lighting")]
     public readonly ConfigValue<int> ExtraLight = new(0);
 
@@ -109,7 +109,7 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Full Brightness")]
     public readonly ConfigValue<bool> Fullbright = new(false);
 
-    [ConfigInfo("Traverse the BSP in a separate thread to mark lines seen for automap. Ignored if using BSP rendering.")]
+    [ConfigInfo("Traverse the BSP tree in a separate thread to mark lines seen for automap. If disabled, automap always shows all lines.")]
     [OptionMenu(OptionSectionType.Render, "Automap on Separate Thread")]
     public readonly ConfigValue<bool> AutomapBspThread = new(true);
 

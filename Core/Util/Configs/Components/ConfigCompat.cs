@@ -37,11 +37,11 @@ public class ConfigCompat
     [OptionMenu(OptionSectionType.Compatibility, "Vanilla Missile Height Collision")]
     public readonly ConfigValue<bool> MissileClip = new(false);
 
-    [ConfigInfo("Limits lost souls spawned by pain elementals to 21.", serialize: true, demo: true)]
+    [ConfigInfo("Limit lost souls spawned by pain elementals to 21.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Limit Pain Elemental Lost Souls to 21")]
     public readonly ConfigValue<bool> PainElementalLostSoulLimit = new(false);
 
-    [ConfigInfo("Disables item drop tossing.", serialize: true, demo: true)]
+    [ConfigInfo("Disable item drop tossing.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Disable Item Drop Tossing")]
     public readonly ConfigValue<bool> NoTossDrops = new(false);
 

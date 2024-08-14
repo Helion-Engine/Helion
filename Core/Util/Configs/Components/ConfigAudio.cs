@@ -26,7 +26,7 @@ public class ConfigAudio
     [OptionMenu(OptionSectionType.Audio, "Random Pitch Scale")]
     public readonly ConfigValue<double> RandomPitchScale = new(1, Clamp(0.1, 10));
 
-    [ConfigInfo("Scale sound pitch.")]
+    [ConfigInfo("Scale for sound pitch.")]
     [OptionMenu(OptionSectionType.Audio, "Pitch Scale")]
     public readonly ConfigValue<double> Pitch = new(1, Clamp(0.1, 10));
 
