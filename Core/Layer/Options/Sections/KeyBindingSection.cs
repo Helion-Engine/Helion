@@ -364,7 +364,7 @@ public class KeyBindingSection : IOptionSection
         int xOffset = m_config.Hud.GetScaled(4) * 2;
         int smallPad = m_config.Hud.GetScaled(1);
 
-        hud.Text("Scroll with the mouse wheel or holding up/down", Font, fontSize, (0, y), out Dimension scrollArea, 
+        hud.Text("Scroll with the mouse wheel or hold up/down arrows", Font, fontSize, (0, y), out Dimension scrollArea, 
             both: Align.TopMiddle, color: Color.Firebrick);
         y += scrollArea.Height + smallPad;
         

@@ -34,19 +34,19 @@ public class ConfigHudAutoMap
     public readonly ConfigValue<bool> Rotate = new(true);
 
     [ConfigInfo("Background color for the default automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Background color")]
+    [OptionMenu(OptionSectionType.Automap, "Background Color")]
     public readonly ConfigValue<Vec3I> BackgroundColor = new((0, 0, 0), ClampColor);
 
     [ConfigInfo("Backdrop color for the overlay automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Backdrop color")]
+    [OptionMenu(OptionSectionType.Automap, "Backdrop Color")]
     public readonly ConfigValue<Vec3I> OverlayBackdropColor = new((0, 0, 0), ClampColor);
 
     [ConfigInfo("Background color transparency when using overlay.")]
-    [OptionMenu(OptionSectionType.Automap, "Backdrop transparency")]
+    [OptionMenu(OptionSectionType.Automap, "Backdrop Transparency")]
     public readonly ConfigValue<double> OverlayBackdropTransparency = new(0.7, ClampNormalized);
 
-    [ConfigInfo("Shows map title on the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Show map title")]
+    [ConfigInfo("Show map title on the automap.")]
+    [OptionMenu(OptionSectionType.Automap, "Show Map Title")]
     public readonly ConfigValue<bool> MapTitle = new(true);
 
     public AutomapLineColors DefaultColors = new(false);
@@ -60,54 +60,54 @@ public class AutomapLineColors(bool overlay)
     public readonly ConfigValueHeader Header = new(overlay ? "Overlay Colors" : "Default Colors");
 
     [ConfigInfo("One-sided wall color for the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Wall color")]
+    [OptionMenu(OptionSectionType.Automap, "Wall Color")]
     public readonly ConfigValue<Vec3I> WallColor = new(overlay ? (0, 0xFF, 0) : (0xFF, 0xFF, 0xFF), ClampColor);
 
     [ConfigInfo("One-sided wall color for the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Two-sided wall color")]
+    [OptionMenu(OptionSectionType.Automap, "Two-sided Wall Color")]
     public readonly ConfigValue<Vec3I> TwoSidedWallColor = new(overlay ? (0, 0x80, 0) : (0x80, 0x80, 0x80), ClampColor);
 
     [ConfigInfo("Unseen wall color for the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Unseen wall color")]
+    [OptionMenu(OptionSectionType.Automap, "Unseen Wall Color")]
     public readonly ConfigValue<Vec3I> UnseenWallColor = new(overlay ? (0, 0x80, 0) : (0x80, 0x80, 0x80), ClampColor);
 
     [ConfigInfo("Teleport line color for the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Teleport line color")]
+    [OptionMenu(OptionSectionType.Automap, "Teleport Line Color")]
     public readonly ConfigValue<Vec3I> TeleportLineColor = new(overlay ? (0xFF, 0x00, 0xFF) : (0x00, 0xFF, 0x00), ClampColor);
 
     [ConfigInfo("Player color for the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Player color")]
+    [OptionMenu(OptionSectionType.Automap, "Player Color")]
     public readonly ConfigValue<Vec3I> PlayerColor = new(overlay ? (0xFF, 0xFF, 0xFF) : (0x00, 0xFF, 0x00), ClampColor);
 
     [ConfigInfo("Thing color for the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Thing color")]
+    [OptionMenu(OptionSectionType.Automap, "Thing Color")]
     public readonly ConfigValue<Vec3I> ThingColor = new((0xFF, 0xFF, 0x00), ClampColor);
 
     [ConfigInfo("Pickup thing color for the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Pickup color")]
+    [OptionMenu(OptionSectionType.Automap, "Pickup Color")]
     public readonly ConfigValue<Vec3I> PickupColor = new(overlay ? (0x00, 0x00, 0xFF) : (0x00, 0xFF, 0x00), ClampColor);
 
     [ConfigInfo("Monster color for the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Monster color")]
+    [OptionMenu(OptionSectionType.Automap, "Monster Color")]
     public readonly ConfigValue<Vec3I> MonsterColor = new((0xFF, 0x00, 0x00), ClampColor);
 
     [ConfigInfo("Dead monster color for the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Dead monster color")]
+    [OptionMenu(OptionSectionType.Automap, "Dead Monster Color")]
     public readonly ConfigValue<Vec3I> DeadMonsterColor = new((0x80, 0x80, 0x80), ClampColor);
 
     [ConfigInfo("Marker color for the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Marker color")]
+    [OptionMenu(OptionSectionType.Automap, "Marker Color")]
     public readonly ConfigValue<Vec3I> MakerColor = new((0x80, 0x00, 0x80), ClampColor);
 
     [ConfigInfo("Alt marker color for the automap.")]
-    [OptionMenu(OptionSectionType.Automap, "Marker color alt")]
+    [OptionMenu(OptionSectionType.Automap, "Marker Color Alt")]
     public readonly ConfigValue<Vec3I> AltMakerColor = new((0xAD, 0xD8, 0xE6), ClampColor);
 }
 
 public class ConfigHud
 {
     [ConfigInfo("Shows crosshair.")]
-    [OptionMenu(OptionSectionType.Hud, "Crosshair enabled")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair Enabled")]
     public readonly ConfigValue<bool> Crosshair = new(true);
 
     [ConfigInfo("Crosshair type.")]
@@ -115,72 +115,72 @@ public class ConfigHud
     public readonly ConfigValue<CrosshairStyle> CrosshairType = new(CrosshairStyle.Cross1);
 
     [ConfigInfo("Crosshair color.")]
-    [OptionMenu(OptionSectionType.Hud, "Crosshair color")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair Color")]
     public readonly ConfigValue<CrossColor> CrosshairColor = new(CrossColor.Green);
 
     [ConfigInfo("Crosshair target color.")]
-    [OptionMenu(OptionSectionType.Hud, "Crosshair target color")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair Target Color")]
     public readonly ConfigValue<CrossColor> CrosshairTargetColor = new(CrossColor.Red);
 
     [ConfigInfo("Crosshair transparency.")]
-    [OptionMenu(OptionSectionType.Hud, "Crosshair transparency")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair Transparency")]
     public readonly ConfigValue<double> CrosshairTransparency = new(0.5, ClampNormalized);
 
     [ConfigInfo("Crosshair scale.")]
-    [OptionMenu(OptionSectionType.Hud, "Crosshair scale")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair Scale")]
     public readonly ConfigValue<double> CrosshairScale = new(1.0);
 
-    [ConfigInfo("The amount of view bobbing. 0.0 is off, 1.0 is normal.")]
-    [OptionMenu(OptionSectionType.Hud, "View bob", spacer: true)]
+    [ConfigInfo("Amount of view bobbing. 0.0 is off, 1.0 is normal.")]
+    [OptionMenu(OptionSectionType.Hud, "View Bob", spacer: true)]
     public readonly ConfigValue<double> ViewBob = new(1.0, ClampNormalized);
 
-    [ConfigInfo("The amount of weapon bobbing. 0.0 is off, 1.0 is normal.")]
-    [OptionMenu(OptionSectionType.Hud, "Weapon bob")]
+    [ConfigInfo("Amount of weapon bobbing. 0.0 is off, 1.0 is normal.")]
+    [OptionMenu(OptionSectionType.Hud, "Weapon Bob")]
     public readonly ConfigValue<double> WeaponBob = new(1.0, ClampNormalized);
 
-    [ConfigInfo("The size of the status bar.")]
-    [OptionMenu(OptionSectionType.Hud, "Status bar size", spacer: true)]
+    [ConfigInfo("Size of the status bar.")]
+    [OptionMenu(OptionSectionType.Hud, "Status Bar Size", spacer: true)]
     public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal, OnlyValidEnums<StatusBarSizeType>());
 
     [ConfigInfo("Background texture for status bar when it doesn't fill the screen.")]
-    [OptionMenu(OptionSectionType.Hud, "Status bar texture")]
+    [OptionMenu(OptionSectionType.Hud, "Status Bar Texture")]
     public readonly ConfigValue<string> BackgroundTexture = new("W94_1");
 
-    [ConfigInfo("If average frames per second should be rendered.")]
+    [ConfigInfo("Render average frames per second in corner of display.")]
     [OptionMenu(OptionSectionType.Hud, "Show FPS", spacer: true)]
     public readonly ConfigValue<bool> ShowFPS = new(false);
 
-    [ConfigInfo("If min/max frames per second should be rendered.")]
+    [ConfigInfo("Render min/max frames per second in corner of display.")]
     [OptionMenu(OptionSectionType.Hud, "Show Min/Max FPS")]
     public readonly ConfigValue<bool> ShowMinMaxFPS = new(false);
 
-    [ConfigInfo("If the world stats should be rendered.")]
-    [OptionMenu(OptionSectionType.Hud, "Show world stats")]
+    [ConfigInfo("Render world statistics (kills, secrets, items, time) in corner of display.")]
+    [OptionMenu(OptionSectionType.Hud, "Show World Stats")]
     public readonly ConfigValue<bool> ShowStats = new(false);
 
-    [ConfigInfo("If the hud should be autoscaled.")]
-    [OptionMenu(OptionSectionType.Hud, "Autoscale hud", spacer: true)]
+    [ConfigInfo("Automatically scale HUD.")]
+    [OptionMenu(OptionSectionType.Hud, "Autoscale HUD", spacer: true)]
     public readonly ConfigValue<bool> AutoScale = new(true);
 
-    [ConfigInfo("Amount to scale the hud.")]
-    [OptionMenu(OptionSectionType.Hud, "Hud scale")]
+    [ConfigInfo("Amount to scale the HUD.")]
+    [OptionMenu(OptionSectionType.Hud, "HUD Scale")]
     public readonly ConfigValue<double> Scale = new(2.0, Greater(0.0));
 
-    [ConfigInfo("Amount of hud transparency.")]
-    [OptionMenu(OptionSectionType.Hud, "Hud transparency")]
+    [ConfigInfo("Amount of HUD transparency.")]
+    [OptionMenu(OptionSectionType.Hud, "HUD Transparency")]
     public readonly ConfigValue<double> Transparency = new(0.0, ClampNormalized);
 
-    [ConfigInfo("Max hud messages.")]
-    [OptionMenu(OptionSectionType.Hud, "Max hud messages")]
+    [ConfigInfo("Max HUD messages.")]
+    [OptionMenu(OptionSectionType.Hud, "Max HUD Messages")]
     public readonly ConfigValue<int> MaxMessages = new(4, GreaterOrEqual(0));
 
-    [ConfigInfo("Horizontal hud margin percentage.")]
-    [OptionMenu(OptionSectionType.Hud, "Horizontal margin percent (0.0 - 1.0)")]
+    [ConfigInfo("Horizontal HUD margin percentage  (0.0 - 1.0).")]
+    [OptionMenu(OptionSectionType.Hud, "Horizontal Margin Percent")]
     public readonly ConfigValue<double> HorizontalMargin = new(0, ClampNormalized);
 
     public readonly ConfigHudAutoMap AutoMap = new();
 
     // Legacy stuff
-    [ConfigInfo("The amount of view and weapon bobbing. 0.0 is off, 1.0 is normal.", legacy: true)]
+    [ConfigInfo("Amount of view and weapon bobbing. 0.0 is off, 1.0 is normal.", legacy: true)]
     public readonly ConfigValue<double> MoveBob = new(1.0, ClampNormalized);
 }
