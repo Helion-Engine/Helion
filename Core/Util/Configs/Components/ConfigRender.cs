@@ -40,7 +40,7 @@ public class ConfigRenderFilter
 
 public class ConfigRender
 {
-    [ConfigInfo("Vertical synchronization. Prevents tearing, but affects input processing (unless you have g-sync).")]
+    [ConfigInfo("Vertical synchronization. Prevents tearing, but affects input processing (unless you have G-Sync).")]
     [OptionMenu(OptionSectionType.Render, "VSync")]
     public readonly ConfigValue<RenderVsyncMode> VSync = new(RenderVsyncMode.On);
 
