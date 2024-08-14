@@ -290,14 +290,16 @@ public partial class Client
     private async Task CommandLoadGame(ConsoleCommandEventArgs args)
     {
         string fileName = args.Args[0];
+        string? baseDir = args.Args.Count == 2 ? args.Args[1] : null;
+
         HelionLog.Info($"Loading save file {fileName}");
-        if (!m_saveGameManager.SaveFileExists(fileName))
+        if (!m_saveGameManager.SaveFileExists(baseDir, fileName))
         {
             LogError($"Save file {fileName} not found.");
             return;
         }
 
-        SaveGame saveGame = m_saveGameManager.ReadSaveGame(fileName);
+        SaveGame saveGame = m_saveGameManager.ReadSaveGame(baseDir ?? m_saveGameManager.GetSaveDir(), fileName);
         if (saveGame.Model == null)
         {
             LogError("Corrupt save game.");

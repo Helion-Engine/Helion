@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Layer.Menus;
@@ -45,7 +46,17 @@ public class SaveMenu : Menu
         m_canSave = hasWorld;
         m_isSave = isSave;
 
-        List<SaveGame> savedGames = saveManager.GetMatchingSaveGames(saveManager.GetSaveGames(), archiveCollection).ToList();
+        List<SaveGame> savedGames = saveManager.GetMatchingSaveGames(saveManager.GetSaveGames(saveManager.GetSaveDir()), archiveCollection).ToList();
+        if (config.Game.UseSavedGameOrganizer)
+        {
+            string organizedDir = saveManager.GetOrganizedSaveDir(archiveCollection);
+
+            if (SaveGameManager.EnsureDirectoryExists(organizedDir))
+            {
+                savedGames.AddRange(saveManager.GetMatchingSaveGames(saveManager.GetSaveGames(organizedDir), archiveCollection));
+            }
+        }
+
         if (isSave)
             CreateSaveRows(savedGames, hasWorld);
         else
@@ -205,8 +216,9 @@ public class SaveMenu : Menu
             .Select(save =>
             {
                 string displayName = save.Model?.Text ?? "Unknown";
-                string fileName = System.IO.Path.GetFileName(save.FileName);
-                return new MenuSaveRowComponent(displayName, CreateConsoleCommand($"load {fileName}"),
+                string fileName = Path.GetFileName(save.FileName);
+                string? saveDir = Path.GetDirectoryName(save.FileName);
+                return new MenuSaveRowComponent(displayName, CreateConsoleCommand($"load {fileName} {saveDir}"),
                     CreateDeleteCommand(save), save);
             });
     }

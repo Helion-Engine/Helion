@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Helion.Models;
 using Helion.Resources.Archives.Collection;
-using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.World.Util;
@@ -44,7 +43,7 @@ public class SaveGameManager
         m_saveDirCommandLineArg = saveDirCommandLineArg;
     }
 
-    private string GetSaveDir()
+    public string GetSaveDir()
     {
         if (string.IsNullOrEmpty(m_saveDirCommandLineArg))
             return Directory.GetCurrentDirectory();
@@ -55,7 +54,7 @@ public class SaveGameManager
         return m_saveDirCommandLineArg;
     }
 
-    private static bool EnsureDirectoryExists(string path)
+    public static bool EnsureDirectoryExists(string path)
     {
         if (Directory.Exists(path))
             return true;
@@ -72,32 +71,29 @@ public class SaveGameManager
         }
     }
 
-    public bool SaveFileExists(string filename)
+    public bool SaveFileExists(string? baseDir, string filename)
     {
-        string filePath = Path.Combine(GetSaveDir(), filename);
+        string filePath = Path.Combine(baseDir ?? GetSaveDir(), filename);
         return File.Exists(filePath);
     }
 
-    public SaveGame ReadSaveGame(string filename) => new SaveGame(GetSaveDir(), filename);
+    public SaveGame ReadSaveGame(string dir, string filename) => new SaveGame(dir, filename);
 
     public SaveGameEvent WriteNewSaveGame(IWorld world, string title, bool autoSave = false) =>
         WriteSaveGame(world, title, null, autoSave);
 
     public SaveGameEvent WriteSaveGame(IWorld world, string title, SaveGame? existingSave, bool autoSave = false)
     {
-        string filename = existingSave?.FileName ?? GetNewSaveName(autoSave);
-        var saveEvent = SaveGame.WriteSaveGame(world, title, GetSaveDir(), filename);
+        SaveGameEvent saveEvent = existingSave != null
+            ? SaveGame.WriteSaveGame(world, title, existingSave.SaveDir, existingSave.FileName)
+            : SaveGame.WriteSaveGame(
+                world,
+                title,
+                m_config.Game.UseSavedGameOrganizer ? GetOrganizedSaveDir(world.ArchiveCollection) : GetSaveDir(),
+                GetNewSaveName(world, autoSave));
 
         GameSaved?.Invoke(this, saveEvent);
         return saveEvent;
-    }
-
-    public List<SaveGame> GetSortedSaveGames(ArchiveCollection archiveCollection)
-    {
-        var saveGames = GetSaveGames();
-        var matchingGames = GetMatchingSaveGames(saveGames, archiveCollection);
-        var nonMatchingGames = saveGames.Except(matchingGames);
-        return matchingGames.Union(nonMatchingGames).ToList();
     }
 
     public IEnumerable<SaveGame> GetMatchingSaveGames(IEnumerable<SaveGame> saveGames,
@@ -107,10 +103,10 @@ public class SaveGameManager
             ModelVerification.VerifyModelFiles(x.Model.Files, archiveCollection, null));
     }
 
-    public List<SaveGame> GetSaveGames()
+    public List<SaveGame> GetSaveGames(string saveDir)
     {
-        return Directory.GetFiles(GetSaveDir(), "*.hsg")
-            .Select(f => new SaveGame(GetSaveDir(), f))
+        return Directory.GetFiles(saveDir, "*.hsg")
+            .Select(f => new SaveGame(saveDir, f))
             .OrderByDescending(f => f.Model?.Date)
             .ToList();
     }
@@ -130,9 +126,13 @@ public class SaveGameManager
         return true;
     }
 
-    private string GetNewSaveName(bool autoSave)
+    private string GetNewSaveName(IWorld world, bool autoSave)
     {
-        List<string> files = Directory.GetFiles(GetSaveDir(), "*.hsg")
+        string saveDir = m_config.Game.UseSavedGameOrganizer
+            ? GetOrganizedSaveDir(world.ArchiveCollection)
+            : GetSaveDir();
+
+        List<string> files = Directory.GetFiles(saveDir, "*.hsg")
             .Select(Path.GetFileName)
             .WhereNotNull()
             .ToList();
@@ -146,6 +146,16 @@ public class SaveGameManager
             else
                 return name;
         }
+    }
+
+    public string GetOrganizedSaveDir(ArchiveCollection archiveCollection)
+    {
+        string path = Path.Join(GetSaveDir(),
+            Path.Join(archiveCollection.GetIdentifiers().ToArray()));
+
+        return EnsureDirectoryExists(path)
+            ? path
+            : Directory.GetCurrentDirectory();
     }
 
     private static string GetSaveName(int number, bool autoSave)

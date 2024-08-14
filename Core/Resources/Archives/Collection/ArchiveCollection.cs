@@ -520,7 +520,7 @@ public class ArchiveCollection : IResources, IPathResolver
             Definitions.Track(archive);
 
             if (archive.ArchiveType == ArchiveType.Assets && GetIWadInfo(iwadArchive, out IWadInfo? info))
-            {                
+            {
                 Definitions.LoadMapInfo(archive, info.MapInfoResource);
                 Definitions.LoadDecorate(archive, info.DecorateResource);
             }
@@ -544,5 +544,25 @@ public class ArchiveCollection : IResources, IPathResolver
 
         info = null;
         return false;
+    }
+
+    /// <summary>
+    /// Get a list of string tokens that uniquely identify the IWAD and any loaded PWADs
+    /// </summary>
+    /// <returns>A list of strings, in the format "{Name}_{MD5}", that identify the current IWAD and any PWADS added to it</returns>
+    public List<string> GetIdentifiers()
+    {
+        // Always include the IWAD first
+        List<string> idStrings = this.IWad != null
+            ? new List<string>() { $"{this.IWad.IWadInfo.IWadType}_{this.IWad.MD5}" }
+            : new List<string>();
+
+        // Add the rest of the loaded archives in name order, ignoring the IWAD and Helion's own asset file
+        idStrings.AddRange(m_archives
+            .OrderBy(archive => archive.Path.Name)
+            .Where(archive => archive.MD5 != this.IWad?.MD5 && archive.Path.FullPath != "assets.pk3")
+            .Select(archive => $"{archive.Path.Name}_{archive.MD5}"));
+
+        return idStrings;
     }
 }

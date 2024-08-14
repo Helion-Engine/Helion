@@ -40,6 +40,10 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Confirm Quick Save")]
     public readonly ConfigValue<bool> QuickSaveConfirm = new(true);
 
+    [ConfigInfo("Store saved games in subdirectories per WAD file.")]
+    [OptionMenu(OptionSectionType.General, "Organize Saved Games")]
+    public readonly ConfigValue<bool> UseSavedGameOrganizer = new(true);
+
     [ConfigInfo("Enable fast monsters.", save: false, demo: true, serialize: true)]
     [OptionMenu(OptionSectionType.General, "Fast Monsters", spacer: true)]
     public readonly ConfigValue<bool> FastMonsters = new(false);
