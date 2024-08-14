@@ -28,23 +28,23 @@ public enum RenderLightMode
 
 public class ConfigRenderFilter
 {
-    [ConfigInfo("Kind of filter applied to fonts.")]
+    [ConfigInfo("Filter applied to fonts.")]
     // TODO need to implement to take effect
     //[OptionMenu(OptionSectionType.Render, "Font filtering")]
     public readonly ConfigValue<FilterType> Font = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 
-    [ConfigInfo("Filter to be applied to textures. True color required.")]
+    [ConfigInfo("Filter applied to textures. True color required.")]
     [OptionMenu(OptionSectionType.Render, "Texture Filtering", spacer: true)]
     public readonly ConfigValue<FilterType> Texture = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 }
 
 public class ConfigRender
 {
-    [ConfigInfo("If VSync should be on or off. Prevents tearing, but affects input processing (unless you have g-sync).")]
+    [ConfigInfo("Vertical synchronization. Prevents tearing, but affects input processing (unless you have g-sync).")]
     [OptionMenu(OptionSectionType.Render, "VSync")]
     public readonly ConfigValue<RenderVsyncMode> VSync = new(RenderVsyncMode.On);
 
-    [ConfigInfo("A cap on the maximum amount of frames per second. Zero is equivalent to no cap.")]
+    [ConfigInfo("Maximum frames per second. Zero is equivalent to no cap.")]
     [OptionMenu(OptionSectionType.Render, "Max FPS")]
     public readonly ConfigValue<int> MaxFPS = new(250, fps =>
     {
@@ -82,7 +82,7 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Contrast")]
     public readonly ConfigValue<bool> FakeContrast = new(true);
 
-    [ConfigInfo("If true, forces the pipeline to be flushed after rendering a frame. May fix a laggy buffered feeling on lower end computers.")]
+    [ConfigInfo("Force pipeline flush after rendering each frame. May fix a laggy buffered feeling on lower end computers.")]
     [OptionMenu(OptionSectionType.Render, "Pipeline Flush (for old GPUs)")]
     public readonly ConfigValue<bool> ForcePipelineFlush = new(false);
 
@@ -93,11 +93,11 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Cache All Sprites")]
     public readonly ConfigValue<bool> CacheSprites = new(true);
 
-    [ConfigInfo("Renders sprites over floors/ceilings. Sprites always clipped to walls.", mapRestartRequired: true)]
+    [ConfigInfo("Render sprites over floors/ceilings. Sprites always clipped to walls.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Rendering", spacer: true)]
     public readonly ConfigValue<bool> VanillaRender = new(false);
 
-    [ConfigInfo("Sets light projection to banded or smooth. Smooth only supported with true color rendering.")]
+    [ConfigInfo("Set light projection to banded or smooth. Smooth only supported with true color rendering.")]
     [OptionMenu(OptionSectionType.Render, "Light Mode", spacer: true)]
     public readonly ConfigValue<RenderLightMode> LightMode = new(RenderLightMode.Smooth);
 
@@ -105,15 +105,15 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Extra Lighting")]
     public readonly ConfigValue<int> ExtraLight = new(0);
 
-    [ConfigInfo("Draws everything at full brightness.")]
+    [ConfigInfo("Draw everything at full brightness.")]
     [OptionMenu(OptionSectionType.Render, "Full Brightness")]
     public readonly ConfigValue<bool> Fullbright = new(false);
 
-    [ConfigInfo("Traverses the BSP in a separate thread to mark lines seen for automap. Ignored if using BSP rendering.")]
+    [ConfigInfo("Traverse the BSP in a separate thread to mark lines seen for automap. Ignored if using BSP rendering.")]
     [OptionMenu(OptionSectionType.Render, "Automap on Separate Thread")]
     public readonly ConfigValue<bool> AutomapBspThread = new(true);
 
-    [ConfigInfo("Renders missing textures as a red/black checkered texture.", mapRestartRequired: true)]
+    [ConfigInfo("Render missing textures as a red/black checkered texture.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Render Null Textures")]
     public readonly ConfigValue<bool> NullTexture = new(false);
 
@@ -121,7 +121,7 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Fuzz Amount")]
     public readonly ConfigValue<double> FuzzAmount = new(1);
 
-    [ConfigInfo("If any sprite should clip the floor.")]
+    [ConfigInfo("Clip sprites against the floor.")]
     [OptionMenu(OptionSectionType.Render, "Sprite Floor Clip", spacer: true)]
     public readonly ConfigValue<bool> SpriteClip = new(true);
 
@@ -133,7 +133,7 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Clip Min Height")]
     public readonly ConfigValue<int> SpriteClipMin = new(16, GreaterOrEqual(0));
 
-    [ConfigInfo("Checks if sprites will overlap and Z-fight.")]
+    [ConfigInfo("Prevent sprites from overlapping and Z-fighting.")]
     [OptionMenu(OptionSectionType.Render, "Sprite Z-fighting Check")]
     public readonly ConfigValue<bool> SpriteZCheck = new(true);
 }

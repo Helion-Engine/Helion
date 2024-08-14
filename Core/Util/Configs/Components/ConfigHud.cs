@@ -130,15 +130,15 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Crosshair Scale")]
     public readonly ConfigValue<double> CrosshairScale = new(1.0);
 
-    [ConfigInfo("The amount of view bobbing. 0.0 is off, 1.0 is normal.")]
+    [ConfigInfo("Amount of view bobbing. 0.0 is off, 1.0 is normal.")]
     [OptionMenu(OptionSectionType.Hud, "View Bob", spacer: true)]
     public readonly ConfigValue<double> ViewBob = new(1.0, ClampNormalized);
 
-    [ConfigInfo("The amount of weapon bobbing. 0.0 is off, 1.0 is normal.")]
+    [ConfigInfo("Amount of weapon bobbing. 0.0 is off, 1.0 is normal.")]
     [OptionMenu(OptionSectionType.Hud, "Weapon Bob")]
     public readonly ConfigValue<double> WeaponBob = new(1.0, ClampNormalized);
 
-    [ConfigInfo("The size of the status bar.")]
+    [ConfigInfo("Size of the status bar.")]
     [OptionMenu(OptionSectionType.Hud, "Status Bar Size", spacer: true)]
     public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal, OnlyValidEnums<StatusBarSizeType>());
 
@@ -146,19 +146,19 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Status Bar Texture")]
     public readonly ConfigValue<string> BackgroundTexture = new("W94_1");
 
-    [ConfigInfo("If average frames per second should be rendered.")]
+    [ConfigInfo("Render average frames per second in corner of display.")]
     [OptionMenu(OptionSectionType.Hud, "Show FPS", spacer: true)]
     public readonly ConfigValue<bool> ShowFPS = new(false);
 
-    [ConfigInfo("If min/max frames per second should be rendered.")]
+    [ConfigInfo("Render min/max frames per second in corner of display.")]
     [OptionMenu(OptionSectionType.Hud, "Show Min/Max FPS")]
     public readonly ConfigValue<bool> ShowMinMaxFPS = new(false);
 
-    [ConfigInfo("If the world stats should be rendered.")]
+    [ConfigInfo("Render world statistics (kills, secrets, items, time) in corner of display.")]
     [OptionMenu(OptionSectionType.Hud, "Show World Stats")]
     public readonly ConfigValue<bool> ShowStats = new(false);
 
-    [ConfigInfo("If the HUD should be autoscaled.")]
+    [ConfigInfo("Automatically scale HUD.")]
     [OptionMenu(OptionSectionType.Hud, "Autoscale HUD", spacer: true)]
     public readonly ConfigValue<bool> AutoScale = new(true);
 
@@ -181,6 +181,6 @@ public class ConfigHud
     public readonly ConfigHudAutoMap AutoMap = new();
 
     // Legacy stuff
-    [ConfigInfo("The amount of view and weapon bobbing. 0.0 is off, 1.0 is normal.", legacy: true)]
+    [ConfigInfo("Amount of view and weapon bobbing. 0.0 is off, 1.0 is normal.", legacy: true)]
     public readonly ConfigValue<double> MoveBob = new(1.0, ClampNormalized);
 }

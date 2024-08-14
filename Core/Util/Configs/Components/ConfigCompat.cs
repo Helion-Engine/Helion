@@ -9,7 +9,7 @@ public class ConfigCompat
     [OptionMenu(OptionSectionType.Compatibility, "Find Shortest Texture")]
     public readonly ConfigValue<bool> VanillaShortestTexture = new(true);
 
-    [ConfigInfo("If DeHackEd should be preferred over DECORATE in the same archive.", demo: true)]
+    [ConfigInfo("Use DeHackEd over DECORATE if both are available.", demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Use DeHackEd over DECORATE")]
     public readonly ConfigValue<bool> PreferDehacked = new(true);
 

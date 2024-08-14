@@ -7,15 +7,15 @@ namespace Helion.Util.Configs.Components;
 
 public class ConfigAudio
 {
-    [ConfigInfo("Music volume. 0.0 is off, 1.0 is max.")]
+    [ConfigInfo("Music volume. 0.0 is Off, 1.0 is Maximum.")]
     [OptionMenu(OptionSectionType.Audio, "Music Volume")]
     public readonly ConfigValue<double> MusicVolume = new(1.0, ClampNormalized);
 
-    [ConfigInfo("Sound effect volume. 0.0 is off, 1.0 is max.")]
+    [ConfigInfo("Sound effect volume. 0.0 is Off, 1.0 is Maximum.")]
     [OptionMenu(OptionSectionType.Audio, "Sound Volume")]
     public readonly ConfigValue<double> SoundVolume = new(1.0, ClampNormalized);
 
-    [ConfigInfo("Overall volume. 0.0 is off, 1.0 is max.")]
+    [ConfigInfo("Overall volume. 0.0 is Off, 1.0 is Maximum.")]
     public readonly ConfigValue<double> Volume = new(1.0, ClampNormalized);
 
     [ConfigInfo("Randomize sound pitch.")]
