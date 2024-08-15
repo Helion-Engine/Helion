@@ -1,4 +1,5 @@
 using Helion.Util;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 using Helion.Util.Container;
 using Helion.Window;
@@ -7,6 +8,7 @@ using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
 using System;
+using static Helion.Util.Constants;
 
 namespace Helion.Layer.Worlds;
 
@@ -16,30 +18,30 @@ public partial class WorldLayer
 
     private static readonly (string, TickCommands)[] KeyPressCommandMapping =
     {
-        (Constants.Input.Forward,       TickCommands.Forward),
-        (Constants.Input.Backward,      TickCommands.Backward),
-        (Constants.Input.Left,          TickCommands.Left),
-        (Constants.Input.Right,         TickCommands.Right),
-        (Constants.Input.TurnLeft,      TickCommands.TurnLeft),
-        (Constants.Input.TurnRight,     TickCommands.TurnRight),
-        (Constants.Input.LookDown,      TickCommands.LookDown),
-        (Constants.Input.LookUp,        TickCommands.LookUp),
-        (Constants.Input.Jump,          TickCommands.Jump),
-        (Constants.Input.Crouch,        TickCommands.Crouch),
-        (Constants.Input.Attack,        TickCommands.Attack),
-        (Constants.Input.Run,           TickCommands.Speed),
-        (Constants.Input.Strafe,        TickCommands.Strafe),
-        (Constants.Input.CenterView,    TickCommands.CenterView),
-        (Constants.Input.Use,            TickCommands.Use),
-        (Constants.Input.NextWeapon,     TickCommands.NextWeapon),
-        (Constants.Input.PreviousWeapon, TickCommands.PreviousWeapon),
-        (Constants.Input.WeaponSlot1,    TickCommands.WeaponSlot1),
-        (Constants.Input.WeaponSlot2,    TickCommands.WeaponSlot2),
-        (Constants.Input.WeaponSlot3,    TickCommands.WeaponSlot3),
-        (Constants.Input.WeaponSlot4,    TickCommands.WeaponSlot4),
-        (Constants.Input.WeaponSlot5,    TickCommands.WeaponSlot5),
-        (Constants.Input.WeaponSlot6,    TickCommands.WeaponSlot6),
-        (Constants.Input.WeaponSlot7,    TickCommands.WeaponSlot7),
+        (Input.Forward,       TickCommands.Forward),
+        (Input.Backward,      TickCommands.Backward),
+        (Input.Left,          TickCommands.Left),
+        (Input.Right,         TickCommands.Right),
+        (Input.TurnLeft,      TickCommands.TurnLeft),
+        (Input.TurnRight,     TickCommands.TurnRight),
+        (Input.LookDown,      TickCommands.LookDown),
+        (Input.LookUp,        TickCommands.LookUp),
+        (Input.Jump,          TickCommands.Jump),
+        (Input.Crouch,        TickCommands.Crouch),
+        (Input.Attack,        TickCommands.Attack),
+        (Input.Run,           TickCommands.Speed),
+        (Input.Strafe,        TickCommands.Strafe),
+        (Input.CenterView,    TickCommands.CenterView),
+        (Input.Use,            TickCommands.Use),
+        (Input.NextWeapon,     TickCommands.NextWeapon),
+        (Input.PreviousWeapon, TickCommands.PreviousWeapon),
+        (Input.WeaponSlot1,    TickCommands.WeaponSlot1),
+        (Input.WeaponSlot2,    TickCommands.WeaponSlot2),
+        (Input.WeaponSlot3,    TickCommands.WeaponSlot3),
+        (Input.WeaponSlot4,    TickCommands.WeaponSlot4),
+        (Input.WeaponSlot5,    TickCommands.WeaponSlot5),
+        (Input.WeaponSlot6,    TickCommands.WeaponSlot6),
+        (Input.WeaponSlot7,    TickCommands.WeaponSlot7),
     };
 
     private readonly DynamicArray<Key> m_pressedKeys = new();
@@ -84,44 +86,33 @@ public partial class WorldLayer
         if (!input.HandleKeyInput)
             return;
 
-        if (IsCommandPressed(Constants.Input.Pause, input))
+        if (IsCommandPressed(Input.Pause, input))
             HandlePausePress();
 
-        if (IsCommandPressed(Constants.Input.HudDecrease, input))
+        if (IsCommandPressed(Input.HudDecrease, input))
             ChangeHudSize(false);
-        else if (IsCommandPressed(Constants.Input.HudIncrease, input))
+        else if (IsCommandPressed(Input.HudIncrease, input))
             ChangeHudSize(true);
-        else if (IsCommandPressed(Constants.Input.Automap, input))
+        else if (IsCommandPressed(Input.Automap, input))
         {
             DrawAutomap = !DrawAutomap;
             m_autoMapOffset = (0, 0);
             m_autoMapScale = m_config.Hud.AutoMap.Scale;
         }
 
-        CheckCommandInput(input);
+        input.IterateCommands(World.Config.Keys.GetKeyMapping(), m_checkCommandAction, true);
     }
 
-    private void CheckCommandInput(IConsumableInput input)
+    private void CheckCommand(IConsumableInput input, KeyCommandItem cmd)
     {
-        m_pressedKeys.Clear();
-        input.Manager.GetPressedKeys(m_pressedKeys);
-        for (int i = 0; i < m_pressedKeys.Length; i++)
-        {
-            var key = m_pressedKeys[i];
-            if (!input.ConsumeKeyPressed(key))
-                continue;
-            var commands = World.Config.Keys.GetKeyMapping();
-            for (int j = 0; j < commands.Count; j++)
-            {
-                var cmd = commands[j];
-                if (cmd.Key != key)
-                    continue;
+        // Handling this at the GameLayerManager level so screenshots can work on title/options etc.
+        if (cmd.Command == Input.Screenshot)
+            return;
 
-                if ((m_parent.LoadingLayer != null || World.Paused) && Constants.InGameCommands.Contains(cmd.Command))
-                    return;
-                m_parent.SubmitConsoleText(cmd.Command);
-            }
-        }
+        if ((m_parent.LoadingLayer != null || World.Paused) && InGameCommands.Contains(cmd.Command))
+            return;
+
+        m_parent.SubmitConsoleText(cmd.Command);
     }
 
     private void HandlePausePress()

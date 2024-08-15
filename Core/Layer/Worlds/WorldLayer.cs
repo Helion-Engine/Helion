@@ -17,6 +17,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
@@ -24,6 +25,7 @@ using Helion.Util.Loggers;
 using Helion.Util.Profiling;
 using Helion.Util.RandomGenerators;
 using Helion.Util.Timing;
+using Helion.Window;
 using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
@@ -68,6 +70,7 @@ public partial class WorldLayer : IGameLayerParent
     private readonly Action<IHudRenderContext> m_virtualDrawFullStatusBarAction;
     private readonly Action<HudStatusBarbackground> m_virtualStatusBarBackgroundAction;
     private readonly Action<IHudRenderContext> m_virtualDrawPauseAction;
+    private readonly Action<IConsumableInput, KeyCommandItem> m_checkCommandAction;
     private StatusBarSizeType m_statusBarSizeType = StatusBarSizeType.Minimal;
     private TickerInfo m_lastTickInfo = new(0, 0);
     private Vec2I m_autoMapOffset = (0, 0);
@@ -99,6 +102,7 @@ public partial class WorldLayer : IGameLayerParent
         m_virtualDrawFullStatusBarAction = new(VirtualDrawFullStatusBar);
         m_virtualStatusBarBackgroundAction = new(VirtualStatusBarBackground);
         m_virtualDrawPauseAction = new(VirtualDrawPause);
+        m_checkCommandAction = new(CheckCommand);
 
         var font = World.ArchiveCollection.GetFont(LargeHudFont);
         font ??= new Font("Empty", [], new((0, 0), Graphics.ImageType.Argb));

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Helion.Geometry.Vectors;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 
@@ -11,6 +13,7 @@ public class ConsumableInput : IConsumableInput
     private readonly DynamicArray<Key> m_inputDownConsumed = new();
     private readonly DynamicArray<Key> m_inputUpConsumed = new();
     private readonly DynamicArray<Key> m_pressedKeys = new();
+    private readonly DynamicArray<Key> m_iteratePressedKeys = new();
     private bool m_typedCharsConsumed;
     private Vec2I m_mouseMove = (0, 0);
     private int m_mouseScroll;
@@ -97,6 +100,27 @@ public class ConsumableInput : IConsumableInput
         }
 
         return false;
+    }
+
+    public void IterateCommands(IList<KeyCommandItem> commands, Action<IConsumableInput, KeyCommandItem> onCommand, bool consumeKeyPressed)
+    {
+        m_iteratePressedKeys.Clear();
+        Manager.GetPressedKeys(m_iteratePressedKeys);
+        for (int i = 0; i < m_iteratePressedKeys.Length; i++)
+        {
+            var key = m_iteratePressedKeys[i];
+            if (consumeKeyPressed && !ConsumeKeyPressed(key))
+                continue;
+
+            for (int j = 0; j < commands.Count; j++)
+            {
+                var cmd = commands[j];
+                if (cmd.Key != key)
+                    continue;
+
+                onCommand(this, cmd);
+            }
+        }
     }
 
     internal void Reset(int mouseScroll)

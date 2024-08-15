@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Helion.Geometry.Vectors;
+using Helion.Util.Configs.Impl;
 using Helion.Window.Input;
 
 namespace Helion.Window;
@@ -24,4 +26,5 @@ public interface IConsumableInput
     Vec2I ConsumeMouseMove();
     Vec2I GetMouseMove();
     int ConsumeScroll();
+    void IterateCommands(IList<KeyCommandItem> commands, Action<IConsumableInput, KeyCommandItem> onCommand, bool consumeKeyPressed);
 }

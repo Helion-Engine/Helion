@@ -29,8 +29,10 @@ using Helion.World.Save;
 using static Helion.Util.Assertion.Assert;
 using Helion.Geometry.Boxes;
 using Helion.Util.Configs.Components;
-using Helion.Util.Configs.Impl;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Window.Input;
+using Helion.Util.Container;
+using Helion.Util.Configs.Impl;
 
 namespace Helion.Layer;
 
@@ -71,6 +73,7 @@ public class GameLayerManager : IGameLayerManager
     private readonly HudRenderContext m_hudContext = new(default);
     private readonly OptionsLayer m_optionsLayer;
     private readonly ConsoleLayer m_consoleLayer;
+    private readonly Action<IConsumableInput, KeyCommandItem> m_checkScreenShotCommand;
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private IHudRenderContext m_hudRenderCtx;
@@ -99,6 +102,7 @@ public class GameLayerManager : IGameLayerManager
         m_renderer = null!;
         m_ctx = null!;
         m_hudRenderCtx = null!;
+        m_checkScreenShotCommand = CheckScreenShotCommand;
 
         m_optionsLayer = new(this, m_config, m_soundManager, m_window);
         m_consoleLayer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
@@ -352,7 +356,9 @@ public class GameLayerManager : IGameLayerManager
     }
 
     public void HandleInput(IConsumableInput input)
-    {        
+    {
+        input.IterateCommands(m_config.Keys.GetKeyMapping(), m_checkScreenShotCommand, false);
+
         if (input.HandleKeyInput)
         {
             if (IwadSelectionLayer == null && ConsumeCommandPressed(Constants.Input.Console, input))
@@ -391,6 +397,14 @@ public class GameLayerManager : IGameLayerManager
         }
 
         WorldLayer?.HandleInput(input);
+    }
+
+    private void CheckScreenShotCommand(IConsumableInput input, KeyCommandItem cmd)
+    {
+        if (cmd.Command != Constants.Input.Screenshot || !input.ConsumeKeyPressed(cmd.Key))
+            return;
+
+        m_console.SubmitInputText(Constants.Input.Screenshot);
     }
 
     private void CheckMenuShortcuts(IConsumableInput input)
@@ -483,9 +497,13 @@ public class GameLayerManager : IGameLayerManager
         }
 
         if (animation.State == InterpolationAnimationState.InComplete || animation.State == InterpolationAnimationState.In)
+        {
+            m_console.LastClosedNanos = Ticker.NanoTime();
             animation.AnimateOut();
-        else
-            animation.AnimateIn();
+            return;
+        }
+        
+        animation.AnimateIn();
     }
 
     public void RemoveMenu()
