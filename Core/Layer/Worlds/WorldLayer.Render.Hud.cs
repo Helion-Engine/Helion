@@ -996,7 +996,7 @@ public partial class WorldLayer
                     break;
 
                 long timeSinceMessage = currentNanos - msg.TimeNanos;
-                if (timeSinceMessage > MaxVisibleTimeNanos)
+                if (timeSinceMessage > MaxVisibleTimeNanos || m_parent.ConsoleLayer != null)
                     break;
 
                 m_messages.Add((msg.Message, CalculateFade(timeSinceMessage)));
