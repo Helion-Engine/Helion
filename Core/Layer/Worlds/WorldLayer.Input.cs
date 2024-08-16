@@ -1,3 +1,4 @@
+using Helion.Layer.IwadSelection;
 using Helion.Util;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
@@ -100,7 +101,8 @@ public partial class WorldLayer
             m_autoMapScale = m_config.Hud.AutoMap.Scale;
         }
 
-        input.IterateCommands(World.Config.Keys.GetKeyMapping(), m_checkCommandAction, true);
+        if (m_parent.LoadingLayer == null)
+            input.IterateCommands(World.Config.Keys.GetKeyMapping(), m_checkCommandAction, true);
     }
 
     private void CheckCommand(IConsumableInput input, KeyCommandItem cmd)
