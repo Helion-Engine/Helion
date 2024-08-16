@@ -156,7 +156,7 @@ public class LegacyAutomapRenderer : IDisposable
         // Not optimally correct but works well enough. Would be best if this used the same method as static rendering.
         var center = new Vec2D(renderInfo.Camera.PositionInterpolated.X + m_offsetX, renderInfo.Camera.PositionInterpolated.Y + m_offsetY);        
         var scale = m_archiveCollection.Config.Hud.AutoMap.Scale;
-        double BoxScale = m_rotate ? 2 / scale : 2.2 / scale;
+        double BoxScale = m_rotate ? 2.2 / scale : 2 / scale;
         var width = (renderInfo.Viewport.Width * BoxScale) / 2;
         var height = (renderInfo.Viewport.Height * BoxScale) / 2;
 
