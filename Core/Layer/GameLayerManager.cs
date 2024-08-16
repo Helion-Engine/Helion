@@ -216,10 +216,12 @@ public class GameLayerManager : IGameLayerManager
 
     private void Animation_OnStart(object? sender, IAnimationLayer layer)
     {
-        if (layer.Animation.State == InterpolationAnimationState.Out && layer == ConsoleLayer || layer == MenuLayer || layer == OptionsLayer)
-        {
+        bool animateOut = layer.Animation.State == InterpolationAnimationState.Out;
+        if (animateOut && layer == ConsoleLayer || layer == MenuLayer || layer == OptionsLayer)
             ResetAndGrabMouse();
-        }
+
+        if (animateOut && layer == ConsoleLayer)
+            m_console.LastClosedNanos = Ticker.NanoTime();
     }
 
     private void Animation_OnComplete(object? sender, IAnimationLayer layer)
