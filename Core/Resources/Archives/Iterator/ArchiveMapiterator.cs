@@ -98,7 +98,14 @@ public class ArchiveMapIterator : IEnumerable<MapEntryCollection>
     {
         // Unfortunately GLBSP decided it'd allow things like GL_XXXXX
         // where the X's are the map name if it's less/equal to 5 letters.
-        return m_currentMap.Name.Length <= 5 && (entryName.Equals("GL_" + m_currentMap.Name, StringComparison.OrdinalIgnoreCase));
+        if (entryName.Length <= 5 || !entryName.StartsWith("GL_", StringComparison.OrdinalIgnoreCase))
+            return false;
+        
+        // Accept partial map name matches. This currently happens in btsx e2 MAP16C
+        // Zdbsp creates the map marker as MAP16 when MAP16C is expected
+        var mapName = entryName.AsSpan(3, entryName.Length - 3);
+        var currentMapName = m_currentMap.Name.AsSpan();
+        return currentMapName.StartsWith(mapName, StringComparison.OrdinalIgnoreCase);
     }
 
     private bool IsMapEntry(string entryName)
