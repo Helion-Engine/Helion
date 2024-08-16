@@ -133,6 +133,10 @@ public partial class Client : IDisposable, IInputManagement
                 return;
             }
         }
+
+        // Everything failed so use 3.3. This happens on fake 
+        GlVersion.Major = 3;
+        GlVersion.Minor = 3;
     }
 
     private static void CheckOpenGLSupport()

@@ -60,7 +60,9 @@ public class GlVersionTest
 
     private static unsafe void GetGlVersion(out int major, out int minor)
     {
-        var version = GL.GetString(StringName.Version);
+        var version = GL.GetString(StringName.Version).Trim();
+        if (version.Contains(' '))
+            version = version.Split(' ')[0];
         var split = version.Split('.');
 
         if (!int.TryParse(split[0], out int parseMajor))
