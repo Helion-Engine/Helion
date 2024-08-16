@@ -357,8 +357,6 @@ public class GameLayerManager : IGameLayerManager
 
     public void HandleInput(IConsumableInput input)
     {
-        input.IterateCommands(m_config.Keys.GetKeyMapping(), m_checkScreenShotCommand, false);
-
         if (input.HandleKeyInput)
         {
             if (IwadSelectionLayer == null && ConsumeCommandPressed(Constants.Input.Console, input))
@@ -397,6 +395,7 @@ public class GameLayerManager : IGameLayerManager
         }
 
         WorldLayer?.HandleInput(input);
+        input.IterateCommands(m_config.Keys.GetKeyMapping(), m_checkScreenShotCommand, false);
     }
 
     private void CheckScreenShotCommand(IConsumableInput input, KeyCommandItem cmd)

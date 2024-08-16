@@ -145,7 +145,6 @@ public class HelionConsole : Target
         if (command.Empty())
             return;
 
-        HelionLog.Info(command);
         OnConsoleCommandEvent?.Invoke(this, new ConsoleCommandEventArgs(command));
     }
 
