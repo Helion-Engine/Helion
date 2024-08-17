@@ -8,6 +8,43 @@ Content creators have created maps that struggle to render at high framerates wi
 
 Minimum requirements are Windows 7 and an Open GL 3.3 capable GPU.
 
+## Images
+
+Doom E1M1 - True Color Mode
+
+image::https://i.imgur.com/YBQJAc2.png[Doom E1M1 - True Color Mode]
+
+
+Doom E1M1 - Palette Color Mode
+
+image::https://i.imgur.com/WfNu68M.png[Doom E1M1 - Palette Color Mode]
+
+
+Eviternity MAP26 - Automap Overlay
+
+image::https://i.imgur.com/lrksM1C.png[Eviternity MAP26 - Automap Overlay]
+
+
+Knee-Deep in Knee-Deep in ZDoom Z1M1
+
+
+image::https://i.imgur.com/iA4bVzs.png[Knee-Deep in Knee-Deep in ZDoom Z1M1]
+
+PUSS X Summer of Slaughter MAP32 (SOS_BOOM.wad)
+
+image::https://i.imgur.com/dVbYPg4.png[PUSSX Summer of Slaught MAP32]
+
+
+Sunlust MAP28
+
+image::https://i.imgur.com/XyD6UA2.png[Sunlust MAP28]
+
+Eviternity II MAP32
+
+image::https://i.imgur.com/1w9t5N1.png[Eviternity II MAP32]
+
+## Benchmarks
+
 https://docs.google.com/spreadsheets/d/19INwMjrppDO-n90HOc-Hhrs1tcqphrItQ_LhzRgurZc[Full Benchmark Spreadsheet]
 
 image::https://i.imgur.com/DbxGlNy.png[Sunder MAP15]
