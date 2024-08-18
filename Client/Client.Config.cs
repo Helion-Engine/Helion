@@ -4,6 +4,7 @@ using Helion.Util.Configs.Components;
 using Helion.World.Entities.Players;
 using OpenTK.Windowing.Common;
 using System;
+using System.IO;
 
 namespace Helion.Client;
 
@@ -14,7 +15,6 @@ public partial class Client
         m_config.Audio.MusicVolume.OnChanged += MusicVolume_OnChanged;
         m_config.Audio.SoundVolume.OnChanged += SoundVolume_OnChanged;
         m_config.Audio.Volume.OnChanged += Volume_OnChanged;
-        m_config.Audio.SoundFontFolder.OnChanged += SoundFont_OnChanged;
         m_config.Audio.SoundFontFile.OnChanged += SoundFont_OnChanged;
         m_config.Mouse.Look.OnChanged += Look_OnChanged;
 
@@ -113,7 +113,7 @@ public partial class Client
         }
     }
 
-    private void SoundFont_OnChanged(object? sender, string e)
+    private void SoundFont_OnChanged(object? sender, FileInfo e)
     {
         (m_audioSystem.Music as MusicPlayer)?.ChangeSoundFont();
     }

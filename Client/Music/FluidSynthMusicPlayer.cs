@@ -20,7 +20,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
     private float m_volume = 1;
     private uint m_soundFontCounter = 0;
 
-    public FluidSynthMusicPlayer(string soundFontFile)
+    public FluidSynthMusicPlayer(FileInfo soundFontFile)
     {
         m_settings = new Settings();
         m_settings[ConfigurationKeys.SynthAudioChannels].IntValue = 2;
@@ -87,7 +87,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         return false;
     }
 
-    public void ChangeSoundFont(string soundFontPath)
+    public void ChangeSoundFont(FileInfo soundFontPath)
     {
         if (m_soundFontLoaded)
         {
@@ -97,7 +97,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
         try
         {
-            m_synth.LoadSoundFont(soundFontPath, true);
+            m_synth.LoadSoundFont(soundFontPath.FullName, true);
             for (int i = 0; i < 16; i++)
                 m_synth.SoundFontSelect(i, 0);
 

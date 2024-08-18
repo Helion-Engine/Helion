@@ -118,7 +118,7 @@ public class MusicPlayer : IMusicPlayer
         switch(musicType)
         {
             case MusicType.MIDI:
-                m_musicPlayer = new FluidSynthMusicPlayer(Path.Combine(m_configAudio.SoundFontFolder, m_configAudio.SoundFontFile));
+                m_musicPlayer = new FluidSynthMusicPlayer(m_configAudio.SoundFontFile);
                 break;
             case MusicType.OGG:
                 m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Ogg);
@@ -133,7 +133,7 @@ public class MusicPlayer : IMusicPlayer
 
     public void ChangeSoundFont()
     {
-        (m_musicPlayer as FluidSynthMusicPlayer)?.ChangeSoundFont(Path.Combine(m_configAudio.SoundFontFolder, m_configAudio.SoundFontFile));
+        (m_musicPlayer as FluidSynthMusicPlayer)?.ChangeSoundFont(m_configAudio.SoundFontFile);
     }
 
     private void PlayThread(object? param)

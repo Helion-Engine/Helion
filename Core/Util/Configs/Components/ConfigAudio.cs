@@ -1,6 +1,7 @@
 using Helion.Audio;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
+using System.IO;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
@@ -37,11 +38,7 @@ public class ConfigAudio
     [ConfigInfo("Main device to use for audio.")]
     public readonly ConfigValue<string> Device = new(IAudioSystem.DefaultAudioDevice);
 
-    [ConfigInfo("Folder to use for SoundFonts.")]
-    [OptionMenu(OptionSectionType.Audio, "SoundFont Folder")]
-    public readonly ConfigValue<string> SoundFontFolder = new("SoundFonts");
-
     [ConfigInfo("SoundFont file to use for MIDI/MUS music playback.")]
     [OptionMenu(OptionSectionType.Audio, "SoundFont File")]
-    public readonly ConfigValue<string> SoundFontFile = new($"Default.sf2");
+    public readonly ConfigValue<FileInfo> SoundFontFile = new(new($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2"));
 }
