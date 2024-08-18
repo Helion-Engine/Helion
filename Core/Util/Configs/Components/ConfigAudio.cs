@@ -37,7 +37,11 @@ public class ConfigAudio
     [ConfigInfo("Main device to use for audio.")]
     public readonly ConfigValue<string> Device = new(IAudioSystem.DefaultAudioDevice);
 
+    [ConfigInfo("Folder to use for SoundFonts.")]
+    [OptionMenu(OptionSectionType.Audio, "SoundFont Folder")]
+    public readonly ConfigValue<string> SoundFontFolder = new("SoundFonts");
+
     [ConfigInfo("SoundFont file to use for MIDI/MUS music playback.")]
-    [OptionMenu(OptionSectionType.Audio, "SoundFont")]
-    public readonly ConfigValue<string> SoundFont = new($"SoundFonts{System.IO.Path.DirectorySeparatorChar}Default.sf2");
+    [OptionMenu(OptionSectionType.Audio, "SoundFont File")]
+    public readonly ConfigValue<string> SoundFontFile = new($"Default.sf2");
 }

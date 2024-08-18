@@ -1,9 +1,10 @@
 ﻿using Helion.Audio;
-using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
 using NLog;
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -12,16 +13,23 @@ namespace Helion.Client.Music;
 public class MusicPlayer : IMusicPlayer
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private IMusicPlayer? m_musicPlayer;
+
     private string m_lastDataHash = string.Empty;
     private float m_volume;
     private bool m_disposed;
-    private IConfig m_config;
 
-    private byte[]? m_currentData;
-    private MusicPlayerOptions? m_currentOptions;
-
+    private ConfigAudio m_configAudio;
     private Thread? m_thread;
+    private IMusicPlayer? m_musicPlayer;
+    private MusicType? m_lastMusicType;
+
+    private enum MusicType
+    {
+        MIDI,
+        MP3,
+        OGG,
+        NONE
+    };
 
     private class PlayParams
     {
@@ -35,9 +43,9 @@ public class MusicPlayer : IMusicPlayer
         }
     }
 
-    public MusicPlayer(IConfig config)
+    public MusicPlayer(ConfigAudio configAudio)
     {
-        m_config = config;
+        m_configAudio = configAudio;
     }
 
     public bool Play(byte[] data, MusicPlayerOptions options)
@@ -45,61 +53,50 @@ public class MusicPlayer : IMusicPlayer
         if (m_disposed)
             return false;
 
-        m_currentData = data;
-        m_currentOptions = options;
-
-        return PlayImpl(false);
-    }
-
-    private bool PlayImpl(bool isForcedRestart)
-    {
-        if (m_currentOptions == null || m_currentData == null)
-        {
-            return false;
-        }
-
         string? hash = null;
-        if (!isForcedRestart && m_currentOptions?.HasFlag(MusicPlayerOptions.IgnoreAlreadyPlaying) == true)
+        if (options.HasFlag(MusicPlayerOptions.IgnoreAlreadyPlaying))
         {
-            hash = m_currentData.CalculateCrc32();
+            hash = data.CalculateCrc32();
             if (hash == m_lastDataHash)
                 return true;
         }
 
-        m_lastDataHash = hash ?? m_currentData.CalculateCrc32();
+        m_lastDataHash = hash ?? data.CalculateCrc32();
 
-        StopImpl();
-        m_musicPlayer?.Dispose();
-        m_musicPlayer = null;
+        Stop();
 
-        if (MusToMidi.TryConvert(m_currentData, out var converted))
+        if (MusToMidi.TryConvert(data, out var converted))
         {
-            m_musicPlayer = CreateFluidSynthPlayer();
-            m_currentData = converted;
+            SelectMusicPlayer(MusicType.MIDI);
+            data = converted;
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             // Ogg/mp3 currently only works in Windows
-            if (NAudioMusicPlayer.IsOgg(m_currentData))
+            if (NAudioMusicPlayer.IsOgg(data))
             {
-                m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Ogg);
+                SelectMusicPlayer(MusicType.OGG);
             }
-            else if (NAudioMusicPlayer.IsMp3(m_currentData))
+            else if (NAudioMusicPlayer.IsMp3(data))
             {
-                m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Mp3);
+                SelectMusicPlayer(MusicType.MP3);
             }
 
         }
-        else if (MusToMidi.TryConvertNoHeader(m_currentData, out converted))
+        else if (MusToMidi.TryConvertNoHeader(data, out converted))
         {
-            m_musicPlayer = CreateFluidSynthPlayer();
-            m_currentData = converted;
+            SelectMusicPlayer(MusicType.MIDI);
+            data = converted;
+        }
+        else
+        {
+            SelectMusicPlayer(MusicType.NONE);
         }
 
         if (m_musicPlayer != null)
         {
             m_thread = new Thread(new ParameterizedThreadStart(PlayThread));
-            m_thread.Start(new PlayParams(m_currentData, m_currentOptions!.Value));
+            m_thread.Start(new PlayParams(data, options));
             return true;
         }
 
@@ -109,7 +106,35 @@ public class MusicPlayer : IMusicPlayer
 
     public bool ChangesMasterVolume() => m_musicPlayer is NAudioMusicPlayer;
 
-    private IMusicPlayer CreateFluidSynthPlayer() => new FluidSynthMusicPlayer(m_config.Audio.SoundFont);
+    private void SelectMusicPlayer(MusicType musicType)
+    {
+        if (musicType == MusicType.MIDI && m_musicPlayer is FluidSynthMusicPlayer)
+        {
+            // We already have a FluidSynth player; avoid reloading it, so it can cache SoundFonts.
+            return;
+        }
+
+        m_musicPlayer?.Dispose();
+        switch(musicType)
+        {
+            case MusicType.MIDI:
+                m_musicPlayer = new FluidSynthMusicPlayer(Path.Combine(m_configAudio.SoundFontFolder, m_configAudio.SoundFontFile));
+                break;
+            case MusicType.OGG:
+                m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Ogg);
+                break;
+            case MusicType.MP3:
+                m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Mp3);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void ChangeSoundFont()
+    {
+        (m_musicPlayer as FluidSynthMusicPlayer)?.ChangeSoundFont(Path.Combine(m_configAudio.SoundFontFolder, m_configAudio.SoundFontFile));
+    }
 
     private void PlayThread(object? param)
     {
@@ -148,12 +173,6 @@ public class MusicPlayer : IMusicPlayer
         if (m_disposed)
             return;
 
-        m_currentOptions = null;
-        m_currentData = null;
-    }
-
-    private void StopImpl()
-    {
         m_musicPlayer?.Stop();
 
         if (m_thread == null)
@@ -161,15 +180,5 @@ public class MusicPlayer : IMusicPlayer
 
         if (!m_thread.Join(1000))
             Log.Error($"Music player failed to terminate.");
-    }
-
-    public void Restart()
-    {
-        if (m_disposed || m_currentData == null)
-        {
-            return;
-        }
-
-        PlayImpl(true);
     }
 }

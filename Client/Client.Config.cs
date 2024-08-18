@@ -14,7 +14,8 @@ public partial class Client
         m_config.Audio.MusicVolume.OnChanged += MusicVolume_OnChanged;
         m_config.Audio.SoundVolume.OnChanged += SoundVolume_OnChanged;
         m_config.Audio.Volume.OnChanged += Volume_OnChanged;
-        m_config.Audio.SoundFont.OnChanged += SoundFont_OnChanged;
+        m_config.Audio.SoundFontFolder.OnChanged += SoundFont_OnChanged;
+        m_config.Audio.SoundFontFile.OnChanged += SoundFont_OnChanged;
         m_config.Mouse.Look.OnChanged += Look_OnChanged;
 
         m_config.Window.State.OnChanged += WindowState_OnChanged;
@@ -114,6 +115,6 @@ public partial class Client
 
     private void SoundFont_OnChanged(object? sender, string e)
     {
-        (m_audioSystem.Music as MusicPlayer)?.Restart();
+        (m_audioSystem.Music as MusicPlayer)?.ChangeSoundFont();
     }
 }
