@@ -1,5 +1,5 @@
 ﻿using Helion.Audio;
-using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
 using NLog;
@@ -13,12 +13,23 @@ namespace Helion.Client.Music;
 public class MusicPlayer : IMusicPlayer
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private IMusicPlayer? m_musicPlayer;
+
     private string m_lastDataHash = string.Empty;
     private float m_volume;
     private bool m_disposed;
 
+    private ConfigAudio m_configAudio;
     private Thread? m_thread;
+    private IMusicPlayer? m_musicPlayer;
+    private MusicType? m_lastMusicType;
+
+    private enum MusicType
+    {
+        MIDI,
+        MP3,
+        OGG,
+        NONE
+    };
 
     private class PlayParams
     {
@@ -32,9 +43,9 @@ public class MusicPlayer : IMusicPlayer
         }
     }
 
-    public MusicPlayer()
+    public MusicPlayer(ConfigAudio configAudio)
     {
-
+        m_configAudio = configAudio;
     }
 
     public bool Play(byte[] data, MusicPlayerOptions options)
@@ -53,12 +64,10 @@ public class MusicPlayer : IMusicPlayer
         m_lastDataHash = hash ?? data.CalculateCrc32();
 
         Stop();
-        m_musicPlayer?.Dispose();
-        m_musicPlayer = null;
 
         if (MusToMidi.TryConvert(data, out var converted))
         {
-            m_musicPlayer = CreateFluidSynthPlayer();
+            SelectMusicPlayer(MusicType.MIDI);
             data = converted;
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -66,18 +75,22 @@ public class MusicPlayer : IMusicPlayer
             // Ogg/mp3 currently only works in Windows
             if (NAudioMusicPlayer.IsOgg(data))
             {
-                m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Ogg);
+                SelectMusicPlayer(MusicType.OGG);
             }
             else if (NAudioMusicPlayer.IsMp3(data))
             {
-                m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Mp3);
+                SelectMusicPlayer(MusicType.MP3);
             }
 
         }
         else if (MusToMidi.TryConvertNoHeader(data, out converted))
         {
-            m_musicPlayer = CreateFluidSynthPlayer();
+            SelectMusicPlayer(MusicType.MIDI);
             data = converted;
+        }
+        else
+        {
+            SelectMusicPlayer(MusicType.NONE);
         }
 
         if (m_musicPlayer != null)
@@ -93,8 +106,35 @@ public class MusicPlayer : IMusicPlayer
 
     public bool ChangesMasterVolume() => m_musicPlayer is NAudioMusicPlayer;
 
-    private static IMusicPlayer CreateFluidSynthPlayer() => 
-        new FluidSynthMusicPlayer($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");
+    private void SelectMusicPlayer(MusicType musicType)
+    {
+        if (musicType == MusicType.MIDI && m_musicPlayer is FluidSynthMusicPlayer)
+        {
+            // We already have a FluidSynth player; avoid reloading it, so it can cache SoundFonts.
+            return;
+        }
+
+        m_musicPlayer?.Dispose();
+        switch(musicType)
+        {
+            case MusicType.MIDI:
+                m_musicPlayer = new FluidSynthMusicPlayer(m_configAudio.SoundFontFile);
+                break;
+            case MusicType.OGG:
+                m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Ogg);
+                break;
+            case MusicType.MP3:
+                m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Mp3);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void ChangeSoundFont()
+    {
+        (m_musicPlayer as FluidSynthMusicPlayer)?.ChangeSoundFont(m_configAudio.SoundFontFile);
+    }
 
     private void PlayThread(object? param)
     {

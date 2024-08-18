@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.Json;
@@ -26,6 +27,8 @@ public static class ConfigConverters
             return MakeThrowableEnumConverter<T>();
         if (typeof(T) == typeof(List<string>))
             return MakeThrowableStringListConverter<T>();
+        if (typeof(T) == typeof(FileInfo))
+            return MakeThrowableFileInfoConverter<T>();
 
         // Last ditch attempt at a converter.
         MethodInfo? method = typeof(T).GetMethod("FromConfigString", BindingFlags.Static | BindingFlags.Public);
@@ -135,5 +138,15 @@ public static class ConfigConverters
         }
 
         return ThrowableStringListConverter;
+    }
+
+    private static Func<object, T> MakeThrowableFileInfoConverter<T>() where T : notnull
+    {
+        static T ThrowableFileInfoConverter(object obj)
+        {
+            return (T)(object)new FileInfo(obj?.ToString() ?? string.Empty);
+        }
+
+        return ThrowableFileInfoConverter;
     }
 }
