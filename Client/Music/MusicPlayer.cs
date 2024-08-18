@@ -4,7 +4,6 @@ using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
 using NLog;
 using System;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -17,6 +16,10 @@ public class MusicPlayer : IMusicPlayer
     private string m_lastDataHash = string.Empty;
     private float m_volume;
     private bool m_disposed;
+    private IConfig m_config;
+
+    private byte[]? m_currentData;
+    private MusicPlayerOptions? m_currentOptions;
 
     private Thread? m_thread;
 
@@ -32,9 +35,9 @@ public class MusicPlayer : IMusicPlayer
         }
     }
 
-    public MusicPlayer()
+    public MusicPlayer(IConfig config)
     {
-
+        m_config = config;
     }
 
     public bool Play(byte[] data, MusicPlayerOptions options)
@@ -42,48 +45,61 @@ public class MusicPlayer : IMusicPlayer
         if (m_disposed)
             return false;
 
-        string? hash = null;
-        if (options.HasFlag(MusicPlayerOptions.IgnoreAlreadyPlaying))
+        m_currentData = data;
+        m_currentOptions = options;
+
+        return PlayImpl(false);
+    }
+
+    private bool PlayImpl(bool isForcedRestart)
+    {
+        if (m_currentOptions == null || m_currentData == null)
         {
-            hash = data.CalculateCrc32();
+            return false;
+        }
+
+        string? hash = null;
+        if (!isForcedRestart && m_currentOptions?.HasFlag(MusicPlayerOptions.IgnoreAlreadyPlaying) == true)
+        {
+            hash = m_currentData.CalculateCrc32();
             if (hash == m_lastDataHash)
                 return true;
         }
 
-        m_lastDataHash = hash ?? data.CalculateCrc32();
+        m_lastDataHash = hash ?? m_currentData.CalculateCrc32();
 
-        Stop();
+        StopImpl();
         m_musicPlayer?.Dispose();
         m_musicPlayer = null;
 
-        if (MusToMidi.TryConvert(data, out var converted))
+        if (MusToMidi.TryConvert(m_currentData, out var converted))
         {
             m_musicPlayer = CreateFluidSynthPlayer();
-            data = converted;
+            m_currentData = converted;
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             // Ogg/mp3 currently only works in Windows
-            if (NAudioMusicPlayer.IsOgg(data))
+            if (NAudioMusicPlayer.IsOgg(m_currentData))
             {
                 m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Ogg);
             }
-            else if (NAudioMusicPlayer.IsMp3(data))
+            else if (NAudioMusicPlayer.IsMp3(m_currentData))
             {
                 m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Mp3);
             }
 
         }
-        else if (MusToMidi.TryConvertNoHeader(data, out converted))
+        else if (MusToMidi.TryConvertNoHeader(m_currentData, out converted))
         {
             m_musicPlayer = CreateFluidSynthPlayer();
-            data = converted;
+            m_currentData = converted;
         }
 
         if (m_musicPlayer != null)
         {
             m_thread = new Thread(new ParameterizedThreadStart(PlayThread));
-            m_thread.Start(new PlayParams(data, options));
+            m_thread.Start(new PlayParams(m_currentData, m_currentOptions!.Value));
             return true;
         }
 
@@ -93,8 +109,7 @@ public class MusicPlayer : IMusicPlayer
 
     public bool ChangesMasterVolume() => m_musicPlayer is NAudioMusicPlayer;
 
-    private static IMusicPlayer CreateFluidSynthPlayer() => 
-        new FluidSynthMusicPlayer($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");
+    private IMusicPlayer CreateFluidSynthPlayer() => new FluidSynthMusicPlayer(m_config.Audio.SoundFont);
 
     private void PlayThread(object? param)
     {
@@ -133,6 +148,12 @@ public class MusicPlayer : IMusicPlayer
         if (m_disposed)
             return;
 
+        m_currentOptions = null;
+        m_currentData = null;
+    }
+
+    private void StopImpl()
+    {
         m_musicPlayer?.Stop();
 
         if (m_thread == null)
@@ -140,5 +161,15 @@ public class MusicPlayer : IMusicPlayer
 
         if (!m_thread.Join(1000))
             Log.Error($"Music player failed to terminate.");
+    }
+
+    public void Restart()
+    {
+        if (m_disposed || m_currentData == null)
+        {
+            return;
+        }
+
+        PlayImpl(true);
     }
 }
