@@ -11,25 +11,32 @@ using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
 using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace Helion.Layer.Options;
 
 internal abstract class DialogBase(ConfigHud config, string? acceptButton, string? cancelButton) : IDialog
 {
+    protected const string Selector = ">";
     protected const string Font = Constants.Fonts.SmallGray;
 
     public event EventHandler<DialogCloseArgs>? OnClose;
 
-    protected readonly ConfigHud m_config = config;
     private readonly string? m_acceptButton = acceptButton;
     private readonly string? m_cancelButton = cancelButton;
-    private readonly BoxList m_buttonPosList = new();
+    private readonly List<string> m_lines = [];
+    private readonly StringBuilder m_builder = new();
+    protected readonly ConfigHud m_config = config;
 
+    protected Dimension m_selectorSize;
+    protected int m_rowHeight;
     protected int m_fontSize;
     protected int m_padding;
     protected Dimension m_box;
     protected Box2I m_dialogBox;
     protected Vec2I m_dialogOffset;
+    protected BoxList m_buttonPosList = new();
 
     public void Dispose()
     {
@@ -61,8 +68,12 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
     public virtual void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
         m_buttonPosList.Clear();
+
+        m_selectorSize = hud.MeasureText(Selector, Font, m_fontSize);
         m_fontSize = m_config.GetSmallFontSize();
         m_padding = m_config.GetScaled(8);
+        m_rowHeight = hud.MeasureText("I", Font, m_fontSize).Height;
+
         int border = m_config.GetScaled(1);
         var size = new Dimension(Math.Max(hud.Width / 2, 320), Math.Max(hud.Height / 2, 200));
         hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
@@ -76,8 +87,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
 
         if (m_acceptButton != null && m_cancelButton != null)
         {
-            int rowHeight =  hud.MeasureText("I", Font, m_fontSize).Height;
-            hud.PushOffset((m_dialogOffset.X + m_box.Width - m_padding, m_dialogOffset.Y + m_box.Height - rowHeight));
+            hud.PushOffset((m_dialogOffset.X + m_box.Width - m_padding, m_dialogOffset.Y + m_box.Height - m_rowHeight));
 
             if (m_acceptButton != null)
             {
@@ -89,6 +99,40 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
                 RenderButton(ctx, hud, m_cancelButton, 1);
 
             hud.PopOffset();
+        }
+
+        hud.PushOffset((0, m_dialogOffset.Y + m_padding));
+        this.RenderImpl(ctx, hud);
+        hud.PopOffset();
+    }
+    
+    /// <summary>
+    /// Render the contents of the dialog (the Accept/Cancel buttons, box outline, and title row are already rendered)
+    /// </summary>
+    protected abstract void RenderImpl(IRenderableSurfaceContext ctx, IHudRenderContext hud);
+
+    /// <summary>
+    /// Print a line of text, with line wrapping applied if needed
+    /// </summary>
+    protected void PrintMessage(
+        IHudRenderContext hud,
+        string message,
+        Color? color = null,
+        TextAlign textAlign = TextAlign.Left,
+        Align windowAlign = Align.TopLeft,
+        Align anchorAlign = Align.TopLeft)
+    {
+        if (!(message?.Length > 0))
+        {
+            hud.AddOffset((0, m_rowHeight));
+            return;
+        }
+
+        LineWrap.Calculate(message, Font, m_fontSize, m_box.Width, hud, m_lines, m_builder, out _);
+        foreach (var line in m_lines)
+        {
+            hud.Text(line, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign);
+            hud.AddOffset((0, m_rowHeight + m_padding));
         }
     }
 
