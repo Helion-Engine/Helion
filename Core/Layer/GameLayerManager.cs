@@ -58,6 +58,7 @@ public class GameLayerManager : IGameLayerManager
     public IwadSelectionLayer? IwadSelectionLayer {  get; private set; }
     public LoadingLayer? LoadingLayer { get; private set; }
     public WorldLayer? WorldLayer { get; private set; }
+    public long OptionsLastClosedNanos => m_optionsLayer.LastClosedNanos;
     public SaveGameEvent? LastSave;
     private readonly IConfig m_config;
     private readonly IWindow m_window;

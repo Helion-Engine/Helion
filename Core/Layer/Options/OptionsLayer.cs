@@ -28,6 +28,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     public event EventHandler? OnRestartApplication;
     public InterpolationAnimation<IAnimationLayer> Animation { get; }
     public bool ClearOnExit { get; set; }
+    public long LastClosedNanos;
 
     private const string TiledBackgroundFlat = "FLOOR5_1";
     private const int BackIndex = 0;
@@ -77,6 +78,13 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_config.Hud.Scale.OnChanged += Scale_OnChanged;
 
         Animation = new(TimeSpan.FromMilliseconds(200), this);
+        Animation.OnStart += Animation_OnStart;
+    }
+
+    private void Animation_OnStart(object? sender, IAnimationLayer e)
+    {
+        if (Animation.State == InterpolationAnimationState.Out)
+            LastClosedNanos = Ticker.NanoTime();
     }
 
     public bool ShouldRemove()
