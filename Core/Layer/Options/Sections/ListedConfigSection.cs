@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using Helion.Audio.Sounds;
@@ -149,6 +150,13 @@ public class ListedConfigSection : IOptionSection
                     m_dialog.OnClose += Dialog_OnClose;
                 }
 
+                if (configData.CfgValue.ObjectValue is FileInfo)
+                {
+                    lockOptions |= LockOptions.AllowMouse;
+                    m_dialog = new FileListDialog(m_config.Hud, configData.CfgValue, configData.Attr);
+                    m_dialog.OnClose += Dialog_OnClose;
+                }
+
                 if (m_currentEditValue is ConfigValue<bool> boolCfgValue)
                     UpdateBoolOption(input, boolCfgValue, true);
 
@@ -175,10 +183,18 @@ public class ListedConfigSection : IOptionSection
         if (m_dialog == null)
             return;
 
-        if (e.Accepted && sender is ColorDialog colorDialog)
+        if (e.Accepted)
         {
-            m_rowEditText.Clear();
-            m_rowEditText.Append(colorDialog.SelectedColor.ToString());
+            if (sender is ColorDialog colorDialog)
+            {
+                m_rowEditText.Clear();
+                m_rowEditText.Append(colorDialog.SelectedColor.ToString());
+            }
+            if (sender is FileListDialog fileDialog)
+            {
+                m_rowEditText.Clear();
+                m_rowEditText.Append(fileDialog.SelectedFile.ToString());
+            }
             SubmitEditRow();
         }
         else
