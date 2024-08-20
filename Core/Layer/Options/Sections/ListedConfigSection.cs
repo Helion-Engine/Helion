@@ -192,8 +192,11 @@ public class ListedConfigSection : IOptionSection
             }
             if (sender is FileListDialog fileDialog)
             {
-                m_rowEditText.Clear();
-                m_rowEditText.Append(fileDialog.SelectedFile.ToString());
+                if (fileDialog.SelectedFile?.Exists == true)
+                {
+                    m_rowEditText.Clear();
+                    m_rowEditText.Append(fileDialog.SelectedFile.ToString());
+                }
             }
             SubmitEditRow();
         }

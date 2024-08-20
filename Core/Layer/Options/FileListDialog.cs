@@ -1,52 +1,43 @@
-﻿using Helion.Geometry;
-using Helion.Geometry.Vectors;
-using Helion.Graphics;
-using Helion.Layer.Options.Sections;
-using Helion.Render.Common.Enums;
-using Helion.Render.Common.Renderers;
+﻿using Helion.Render.Common.Renderers;
 using Helion.Util.Configs.Components;
-using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.Window;
-using Helion.Window.Input;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Helion.Layer.Options;
 
-internal class FileListDialog : DialogBase
+internal class FileListDialog : ListDialog
 {
-    const string Selector = ">";
+    private static readonly HashSet<string> SoundFontFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ".SF2",
+        ".SF3"
+    };
 
-    private int m_rowHeight;
     private int m_valueStartX;
-    private Dimension m_selectorSize;
 
-    private readonly IConfigValue m_configValue;
-    private readonly OptionMenuAttribute m_attr;
     private int m_row;
-    
-    private FileInfo m_file;
-    private DirectoryInfo m_directory;
+    private FileInfo? m_file;
+    private string m_path = string.Empty;
+    private List<object> m_directoryContents = new List<object>();
+    private bool m_listsNeedUpdate = true;
 
-    public FileInfo SelectedFile => m_file;
-    public IConfigValue ConfigValue => m_configValue;
+    public FileInfo? SelectedFile => m_file;
 
     public FileListDialog(ConfigHud config, IConfigValue configValue, OptionMenuAttribute attr)
-        : base(config, "OK", "Cancel")
+        : base(config, configValue, attr)
     {
-        m_configValue = configValue;
-        m_attr = attr;
-        m_file = (FileInfo)ConfigValue.ObjectValue;
         try
         {
-            m_directory = m_file.Directory ?? new DirectoryInfo(AppContext.BaseDirectory);
+            m_file = (FileInfo)ConfigValue.ObjectValue;
+            m_path = m_file != null ? Path.GetDirectoryName(m_file.ToString()) ?? string.Empty : string.Empty;
         }
         catch
         {
-            // Handle directory-not-found and security exceptions that File::Directory might throw
-            m_directory = new DirectoryInfo(AppContext.BaseDirectory);
         }
     }
 
@@ -54,43 +45,70 @@ internal class FileListDialog : DialogBase
     {
         base.HandleInput(input);
 
-        if (input.ConsumePressOrContinuousHold(Key.Down))
-            m_row = ++m_row;
-        if (input.ConsumePressOrContinuousHold(Key.Up))
-            m_row = --m_row;
+        if (input.ConsumeKeyPressed(Window.Input.Key.Backspace))
+        {
+            m_path = m_path.Length > 0 ? m_path.Remove(m_path.Length - 1) : m_path;
+            m_listsNeedUpdate = true;
+        }
+
+        ReadOnlySpan<char> typedChars = input.ConsumeTypedCharacters();
+        if (typedChars.Length > 0)
+        {
+            m_path = $"{m_path}{typedChars}";
+
+            m_listsNeedUpdate = true;
+        }
     }
 
-    public override void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
+    protected override void PopulateListElements(List<string> valuesList)
     {
-        base.Render(ctx, hud);
+        if (m_listsNeedUpdate)
+        {
+            m_directoryContents.Clear();
+            valuesList.Clear();
 
-        //m_fontSize = m_config.GetSmallFontSize();
-        //m_padding = m_config.GetScaled(8);
-        //int border = m_config.GetScaled(1);
-        //var size = new Dimension(Math.Max(hud.Width / 2, 320), Math.Max(hud.Height / 2, 200));
-        //hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
+            DirectoryInfo directory = new DirectoryInfo(m_path.Length > 0 ? m_path : AppContext.BaseDirectory);
 
-        //hud.FillBox((0, 0, size.Width, size.Height), Color.Gray, window: Align.Center, anchor: Align.Center);
-        //hud.FillBox((0, 0, size.Width - (border * 2), size.Height - (border * 2)), Color.Black, window: Align.Center, anchor: Align.Center);
+            if (directory?.Exists == true)
+            {
+                DirectoryInfo? parent = directory.Parent;
+                DirectoryInfo[] subDirectories = directory.GetDirectories();
+                FileInfo[] soundFontFiles = directory.GetFiles()
+                    .Where(f => SoundFontFileExtensions.Contains(f.Extension))
+                    .ToArray();
 
-        //m_selectorSize = hud.MeasureText(Selector, Font, m_fontSize);
-        //m_rowHeight = hud.MeasureText("I", Font, m_fontSize).Height;
-        //m_valueStartX = hud.MeasureText("Green", Font, m_fontSize).Width + m_padding * 4;
+                if (parent != null)
+                {
+                    m_directoryContents.Add(parent);
+                    valuesList.Add("..");
+                }
 
-        //hud.PushOffset((0, m_dialogOffset.Y + m_padding));
+                m_directoryContents.AddRange(subDirectories);
+                m_directoryContents.AddRange(soundFontFiles);
 
-        //// Draw the option name
-        //hud.Text(m_attr.Name, Font, m_fontSize, (0, 0), window: Align.TopMiddle, anchor: Align.TopMiddle);
-        //hud.AddOffset((0, m_rowHeight + m_padding));
-        //hud.Text($"Look in: {m_directory}", Font, m_fontSize, (0, 0), window: Align.TopLeft, anchor: Align.TopLeft);
-        ////yhud.Text(m_configValue.ObjectValue.ToString() ?? string.Empty, Font, m_fontSize, (0, 0), window: Align.TopMiddle, anchor: Align.TopMiddle);
+                valuesList.AddRange(subDirectories.Select(sd => sd.Name));
+                valuesList.AddRange(soundFontFiles.Select(f => f.Name));
+            }
 
-
-
-
-        hud.PopOffset();
+            m_listsNeedUpdate = false;
+        }
     }
 
+    protected override void RenderDialogHeader(IHudRenderContext renderContext)
+    {
+        renderContext.AddOffset((m_dialogOffset.X + m_padding, 0));
+        RenderDialogText(renderContext, $"Directory: {m_path}", color: Graphics.Color.Yellow);
+    }
 
-
+    protected override void SelectedStringChanged(string selectedStringOption)
+    {
+        try
+        {
+            m_file = new FileInfo(Path.Combine(m_path, selectedStringOption));
+        }
+        catch
+        {
+            m_file = null;
+        }
+    }
 }
