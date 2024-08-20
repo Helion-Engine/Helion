@@ -59,7 +59,7 @@ public class MusicPlayer : IMusicPlayer
 
         if (MusToMidi.TryConvert(data, out var converted))
         {
-            m_musicPlayer = new FluidSynthMusicPlayer(m_configAudio.SoundFontFile);
+            m_musicPlayer = CreateFluidSynthPlayer();
             data = converted;
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -77,7 +77,7 @@ public class MusicPlayer : IMusicPlayer
         }
         else if (MusToMidi.TryConvertNoHeader(data, out converted))
         {
-            m_musicPlayer = new FluidSynthMusicPlayer(m_configAudio.SoundFontFile);
+            m_musicPlayer = CreateFluidSynthPlayer();
             data = converted;
         }
 
@@ -88,11 +88,14 @@ public class MusicPlayer : IMusicPlayer
             return true;
         }
 
-        Log.Warn("Unsupported music format");
+        Log.Warn("Unknown/unsupported music format");
         return false;
     }
 
     public bool ChangesMasterVolume() => m_musicPlayer is NAudioMusicPlayer;
+
+    private IMusicPlayer CreateFluidSynthPlayer() =>
+        new FluidSynthMusicPlayer(m_configAudio.SoundFontFile);
 
     public void ChangeSoundFont()
     {
