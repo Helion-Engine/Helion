@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Helion.Geometry.Segments;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Doom;
@@ -17,7 +16,6 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Special;
-using NLog;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Geometry.Builder;
@@ -42,9 +40,7 @@ public static class DoomGeometryBuilder
     {
         double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
         string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
-        int handle = textureManager.GetTexture(texture, ResourceNamespace.Flats).Index;
-        if (handle == Constants.NoTextureIndex)
-            handle = textureManager.GetTexture(texture, ResourceNamespace.Textures).Index;
+        int handle = textureManager.GetTexture(texture, ResourceNamespace.Global).Index;
         return new SectorPlane(face, z, handle, doomSector.LightLevel);
     }
 
@@ -66,11 +62,7 @@ public static class DoomGeometryBuilder
 
     private static Texture GetWallTexture(TextureManager textureManager, string textureName)
     {
-        var texture = textureManager.GetTexture(textureName, ResourceNamespace.Textures);
-        if (texture.Index != Constants.NoTextureIndex)
-            return texture;
-
-        return textureManager.GetTexture(textureName, ResourceNamespace.Flats);
+        return textureManager.GetTexture(textureName, ResourceNamespace.Global);
     }
 
     private static (Side front, Side? back) CreateSingleSide(DoomLine doomLine, GeometryBuilder builder,
