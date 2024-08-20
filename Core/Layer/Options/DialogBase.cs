@@ -10,6 +10,7 @@ using Helion.Util.Configs.Extensions;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
+using Helion.World.Geometry.Lines;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -123,7 +124,8 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         Color? color = null,
         TextAlign textAlign = TextAlign.Left,
         Align windowAlign = Align.TopLeft,
-        Align anchorAlign = Align.TopLeft)
+        Align anchorAlign = Align.TopLeft, 
+        bool wrapLines = true)
     {
         if (!(message?.Length > 0))
         {
@@ -131,10 +133,18 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
             return;
         }
 
-        LineWrap.Calculate(message, Font, m_fontSize, m_box.Width, hud, m_lines, m_builder, out _);
-        foreach (var line in m_lines)
+        if (wrapLines)
         {
-            hud.Text(line, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign);
+            LineWrap.Calculate(message, Font, m_fontSize, m_box.Width, hud, m_lines, m_builder, out _);
+            foreach (var line in m_lines)
+            {
+                hud.Text(line, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width);
+                hud.AddOffset((0, m_rowHeight + m_padding));
+            }
+        }
+        else
+        {
+            hud.Text(message, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width);
             hud.AddOffset((0, m_rowHeight + m_padding));
         }
     }

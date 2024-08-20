@@ -21,23 +21,26 @@ internal class FileListDialog : ListDialog
     private int m_valueStartX;
 
     private int m_row;
-    private FileInfo? m_file;
-    private string m_path = string.Empty;
+    private string m_file;
+    private string m_path;
     private List<object> m_directoryContents = new List<object>();
     private bool m_listsNeedUpdate = true;
 
-    public FileInfo? SelectedFile => m_file;
+    public FileInfo? SelectedFile => new FileInfo(Path.Combine(m_path, m_file));
 
     public FileListDialog(ConfigHud config, IConfigValue configValue, OptionMenuAttribute attr)
         : base(config, configValue, attr)
     {
         try
         {
-            m_file = (FileInfo)ConfigValue.ObjectValue;
-            m_path = m_file != null ? Path.GetDirectoryName(m_file.ToString()) ?? string.Empty : string.Empty;
+            FileInfo file = (FileInfo)ConfigValue.ObjectValue;
+            m_path = file != null ? Path.GetDirectoryName(file.ToString()) ?? string.Empty : string.Empty;
+            m_file = file != null ? Path.GetFileName(file.ToString()) ?? string.Empty : string.Empty;
         }
         catch
         {
+            m_path = string.Empty;
+            m_file = string.Empty;
         }
     }
 
@@ -45,6 +48,26 @@ internal class FileListDialog : ListDialog
     {
         base.HandleInput(input);
 
+        // Pressing right arrow will go into directory, IFF the currently selected item is a directory.
+        if (input.ConsumeKeyPressed(Window.Input.Key.Right) && Directory.Exists(Path.Combine(m_path, m_file)))
+        {
+            m_path = Path.Combine(m_path, m_file);
+
+            // Simplify path to prevent accumulation of ".." tokens
+            if (Path.IsPathFullyQualified(m_path))
+            {
+                m_path = new DirectoryInfo(m_path).FullName;
+            }
+            else
+            {
+                m_path = Path.GetRelativePath(AppContext.BaseDirectory, m_path);
+            }
+
+            m_file = string.Empty;
+            m_listsNeedUpdate = true;
+        }
+
+        // Backspace and typed characters will change the current path directly
         if (input.ConsumeKeyPressed(Window.Input.Key.Backspace))
         {
             m_path = m_path.Length > 0 ? m_path.Remove(m_path.Length - 1) : m_path;
@@ -94,21 +117,20 @@ internal class FileListDialog : ListDialog
         }
     }
 
-    protected override void RenderDialogHeader(IHudRenderContext renderContext)
+    protected override void RenderDialogHeader(IHudRenderContext hud)
     {
-        renderContext.AddOffset((m_dialogOffset.X + m_padding, 0));
-        RenderDialogText(renderContext, $"Directory: {m_path}", color: Graphics.Color.Yellow);
+        RenderDialogText(hud, $"Directory: {m_path}", color: Graphics.Color.Yellow);
     }
 
-    protected override void SelectedStringChanged(string selectedStringOption)
+    protected override void SelectedRowChanged(string selectedRowLabel, int selectedRowId)
     {
         try
         {
-            m_file = new FileInfo(Path.Combine(m_path, selectedStringOption));
+            m_file = selectedRowLabel;
         }
         catch
         {
-            m_file = null;
+            m_file = string.Empty;
         }
     }
 }
