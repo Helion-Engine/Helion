@@ -46,10 +46,8 @@ internal class FileListDialog : ListDialog
 
     public override void HandleInput(IConsumableInput input)
     {
-        base.HandleInput(input);
-
-        // Pressing right arrow will go into directory, IFF the currently selected item is a directory.
-        if (input.ConsumeKeyPressed(Window.Input.Key.Right) && Directory.Exists(Path.Combine(m_path, m_file)))
+        // Pressing enter will go into directory, IFF the currently selected item is a directory.
+        if (Directory.Exists(Path.Combine(m_path, m_file)) && input.ConsumeKeyPressed(Window.Input.Key.Enter))
         {
             m_path = Path.Combine(m_path, m_file);
 
@@ -81,6 +79,8 @@ internal class FileListDialog : ListDialog
 
             m_listsNeedUpdate = true;
         }
+
+        base.HandleInput(input);
     }
 
     protected override void PopulateListElements(List<string> valuesList)
@@ -119,7 +119,7 @@ internal class FileListDialog : ListDialog
 
     protected override void RenderDialogHeader(IHudRenderContext hud)
     {
-        RenderDialogText(hud, $"Directory: {m_path}", color: Graphics.Color.Yellow);
+        RenderDialogText(hud, $"Directory: {m_path}", color: Graphics.Color.Yellow, wrapLines: false);
     }
 
     protected override void SelectedRowChanged(string selectedRowLabel, int selectedRowId)

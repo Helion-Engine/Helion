@@ -15,8 +15,9 @@ internal abstract class ListDialog : DialogBase
     private readonly IConfigValue m_configValue;
     private readonly OptionMenuAttribute m_attr;
     private int m_selectedRow;
-    private int m_scrollWindowMinimum;
-    private int m_scrollWindowMaximum;
+    private int m_firstVisibleRow;
+    private int m_lastVisibleRow;
+    private bool m_ensureSelectedVisible = true;
 
     public IConfigValue ConfigValue => m_configValue;
     private readonly List<string> m_values = new List<string>();
@@ -56,20 +57,39 @@ internal abstract class ListDialog : DialogBase
 
         if (m_values.Count != length)
         {
-            // reset selection and scroll bounds
+            // reset selection and scroll bounds; the list just changed
             m_selectedRow = 0;
-            m_scrollWindowMinimum = 0;
+            m_ensureSelectedVisible = true;
             SendSelectedRowChange();
         }
 
-        // Calculate how many lines we can fit after the header.  Subtract 1 to make room for OK/Cancel buttons
-        int maxLines = ((m_box.Height - (hud.GetOffset().Y - m_dialogOffset.Y)) / m_rowHeight) - 1;
+        if (m_ensureSelectedVisible)
+        {
+            // Snap scroll bounds to fit selection and current list length
 
-        // Figure out how many rows we can display after what the header has consumed; set min/max bounds
-        m_scrollWindowMinimum = 0;
-        m_scrollWindowMaximum = Math.Min(m_values.Count, maxLines);
+            // Calculate how many lines we can fit after the header.  Subtract 1 to make room for OK/Cancel buttons
+            int maxVisibleRows = (m_dialogBox.Max.Y - hud.GetOffset().Y) / (m_rowHeight + m_padding) - 1;
 
-        for (int rowIndex = m_scrollWindowMinimum; rowIndex < m_scrollWindowMaximum; rowIndex++)
+            if (m_selectedRow == 0)
+            {
+                m_firstVisibleRow = 0;
+                m_lastVisibleRow = Math.Min(m_values.Count - 1, maxVisibleRows);
+            }
+            else if (m_selectedRow > m_lastVisibleRow)
+            {
+                m_lastVisibleRow = m_selectedRow;
+                m_firstVisibleRow = Math.Max(0, m_selectedRow - maxVisibleRows);
+            }
+            else if (m_selectedRow < m_firstVisibleRow)
+            {
+                m_firstVisibleRow = m_selectedRow;
+                m_lastVisibleRow = Math.Min(m_values.Count - 1, m_selectedRow + maxVisibleRows);
+            }
+
+            m_ensureSelectedVisible = false;
+        }
+
+        for (int rowIndex = m_firstVisibleRow; rowIndex <= m_lastVisibleRow; rowIndex++)
         {
             RenderDialogText(hud, m_values[rowIndex], color: rowIndex == m_selectedRow ? Color.Yellow : null, wrapLines: false);
         }
@@ -83,17 +103,19 @@ internal abstract class ListDialog : DialogBase
 
     public override void HandleInput(IConsumableInput input)
     {
-        base.HandleInput(input);
-
         if (input.ConsumePressOrContinuousHold(Key.Down))
         {
             m_selectedRow = Math.Min(m_selectedRow + 1, m_values.Count - 1);
             SendSelectedRowChange();
+            m_ensureSelectedVisible = true;
         }
         if (input.ConsumePressOrContinuousHold(Key.Up))
         {
             m_selectedRow = Math.Max(m_selectedRow - 1, 0);
             SendSelectedRowChange();
+            m_ensureSelectedVisible = true;
         }
+
+        base.HandleInput(input);
     }
 }
