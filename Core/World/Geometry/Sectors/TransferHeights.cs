@@ -52,8 +52,8 @@ public class TransferHeights
     public Sector GetRenderSector(TransferHeightView view)
     {
         Sector sector = RenderSectors[++RenderSectorIndex % RenderSectors.Length];
-        sector.Floor.SectorScrollData = null;
-        sector.Ceiling.SectorScrollData = null;
+        sector.Floor.RenderOffsets = default;
+        sector.Ceiling.RenderOffsets = default;
         switch (view)
         {
             case TransferHeightView.Top:
@@ -84,7 +84,7 @@ public class TransferHeights
                 sector.Ceiling.PrevZ = ControlSector.Ceiling.PrevZ;
                 sector.Ceiling.TextureHandle = ParentSector.Ceiling.TextureHandle;
                 sector.Ceiling.LightLevel = ParentSector.CeilingRenderLightLevel;
-                sector.Ceiling.SectorScrollData = ParentSector.Ceiling.SectorScrollData;
+                sector.Ceiling.RenderOffsets = ParentSector.Ceiling.RenderOffsets;
                 sector.Ceiling.Sector = ParentSector;
 
                 sector.Floor.Plane = ControlSector.Floor.Plane;
@@ -92,7 +92,7 @@ public class TransferHeights
                 sector.Floor.PrevZ = ControlSector.Floor.PrevZ;
                 sector.Floor.TextureHandle = ParentSector.Floor.TextureHandle;
                 sector.Floor.LightLevel = ParentSector.FloorRenderLightLevel;
-                sector.Floor.SectorScrollData = ParentSector.Floor.SectorScrollData;
+                sector.Floor.RenderOffsets = ParentSector.Floor.RenderOffsets;
                 sector.Floor.Sector = ParentSector;
 
                 sector.LightLevel = ParentSector.LightLevel;

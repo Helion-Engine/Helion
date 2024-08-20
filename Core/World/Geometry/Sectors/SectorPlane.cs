@@ -24,7 +24,7 @@ public sealed class SectorPlane : ISoundSource
     public int LastRenderChangeGametick;
     public int LastRenderGametick;
 
-    public SectorScrollData? SectorScrollData;
+    public RenderOffsets RenderOffsets;
     public SectorDynamic Dynamic;
     public StaticGeometryData Static;
 
@@ -63,7 +63,7 @@ public sealed class SectorPlane : ISoundSource
         LastRenderGametick = default;
         Dynamic = default;
         Static = default;
-        SectorScrollData = default;
+        RenderOffsets = default;
         MidTextureHack = default;
         NoRender = default;
         SkyGeometry = default;
@@ -85,16 +85,10 @@ public sealed class SectorPlane : ISoundSource
         if (PrevZ != Z)
             return true;
 
-        if (SectorScrollData != null)
+        if (RenderOffsets.Gametick != 0)
             return true;
 
         return false;
-    }
-
-    public void CreateScrollData()
-    {
-        if (SectorScrollData == null)
-            SectorScrollData = new();
     }
 
     public void SetTexture(int texture, int gametick)

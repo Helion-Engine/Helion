@@ -8,7 +8,6 @@ using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Static;
-using System.Linq;
 
 namespace Helion.World.Special.Specials;
 
@@ -23,7 +22,7 @@ public class ScrollSpecial : ISpecial
     public readonly SectorPlane? SectorPlane;
     public readonly Line? Line;
 
-    public Vec2D Speed => m_speed;
+    public Vec2D Speed;
 
     public bool OverrideEquals => true;
 
@@ -32,16 +31,14 @@ public class ScrollSpecial : ISpecial
     private readonly ZDoomLineScroll m_lineScroll;
     private readonly SideTexture m_sideTextures;
     private readonly bool m_scrollLineFront;
-    private SideScrollData? m_frontScroll;
-    private SideScrollData? m_backScroll;
-    private SectorScrollData? m_planeScroll;
-    private Vec2D m_speed;
+    private readonly SideScrollData? m_frontScroll;
+    private readonly SideScrollData? m_backScroll;
 
     public ScrollSpecial(Line line, in Vec2D speed, ZDoomLineScroll scroll, bool front = true, Sector? accelSector = null,
         ZDoomScroll scrollFlags = ZDoomScroll.None)
     {
         m_type = ScrollType.Scroll;
-        m_speed = speed;
+        Speed = speed;
         Line = line;
         if ((int)scroll > (int)ZDoomLineScroll.LowerTexture)
             m_lineScroll = ZDoomLineScroll.All;
@@ -65,8 +62,7 @@ public class ScrollSpecial : ISpecial
         m_scrollLineFront = front;
         if (m_scrollLineFront)
         {
-            if (Line.Front.ScrollData == null)
-                Line.Front.ScrollData = new();
+            Line.Front.ScrollData ??= new();
             m_frontScroll = Line.Front.ScrollData;
         }
         else if (Line.Back != null)
@@ -85,15 +81,9 @@ public class ScrollSpecial : ISpecial
     {
         m_type = type;
         SectorPlane = sectorPlane;
-        m_speed = speed;
+        Speed = speed;
         if (accelSector != null)
             m_accelScrollSpeed = new AccelScrollSpeed(accelSector, speed, scrollFlags);
-
-        // Only create if visually scrolling
-        if (type == ScrollType.Scroll)
-            SectorPlane.CreateScrollData();
-
-        m_planeScroll = sectorPlane.SectorScrollData;
     }
 
     public ScrollSpecial(Line line, Sector? accelSector, ScrollSpecialModel model)
@@ -121,8 +111,8 @@ public class ScrollSpecial : ISpecial
             {
                 LineId = Line.Id,
                 Type = (int)m_lineScroll,
-                SpeedX = m_speed.X,
-                SpeedY = m_speed.Y,
+                SpeedX = Speed.X,
+                SpeedY = Speed.Y,
                 Front = m_scrollLineFront,
                 AccelSectorId = m_accelScrollSpeed?.Sector.Id,
                 AccelSpeedX = m_accelScrollSpeed?.AccelSpeed.X,
@@ -152,8 +142,8 @@ public class ScrollSpecial : ISpecial
                 SectorId = SectorPlane.Sector.Id,
                 PlaneType = SectorPlane == SectorPlane.Sector.Floor ? (int)SectorPlaneFace.Floor : (int)SectorPlaneFace.Ceiling,
                 Type = (int)m_type,
-                SpeedX = m_speed.X,
-                SpeedY = m_speed.Y,
+                SpeedX = Speed.X,
+                SpeedY = Speed.Y,
                 AccelSectorId = m_accelScrollSpeed?.Sector.Id,
                 AccelSpeedX = m_accelScrollSpeed?.AccelSpeed.X,
                 AccelSpeedY = m_accelScrollSpeed?.AccelSpeed.Y,
@@ -176,12 +166,12 @@ public class ScrollSpecial : ISpecial
     public SpecialTickStatus Tick()
     {
         m_accelScrollSpeed?.Tick();
-        Vec2D speed = m_accelScrollSpeed == null ? m_speed : m_accelScrollSpeed.AccelSpeed;
+        Vec2D speed = m_accelScrollSpeed == null ? Speed : m_accelScrollSpeed.AccelSpeed;
 
         if (Line != null)
             ScrollLine(Line, speed);
         else if (SectorPlane != null)
-            ScrollPlane(SectorPlane, m_planeScroll!, speed);
+            ScrollPlane(SectorPlane, speed);
 
         return SpecialTickStatus.Continue;
     }
@@ -221,13 +211,14 @@ public class ScrollSpecial : ISpecial
         scrollData.Gametick = WorldStatic.World.Gametick;
     }
 
-    private void ScrollPlane(SectorPlane sectorPlane, SectorScrollData scroll, in Vec2D speed)
+    private void ScrollPlane(SectorPlane sectorPlane, in Vec2D speed)
     {
+        ref RenderOffsets scroll = ref sectorPlane.RenderOffsets;
         if (m_type == ScrollType.Scroll)
         {
             if (speed == Vec2D.Zero)
             {
-                scroll.LastOffset = scroll.Offset;
+                scroll.LastOffset = scroll.Offset; 
                 return;
             }
 
@@ -269,7 +260,7 @@ public class ScrollSpecial : ISpecial
     public void ResetInterpolation()
     {
         if (SectorPlane != null && m_type == ScrollType.Scroll)
-            SectorPlane.SectorScrollData!.LastOffset = SectorPlane.SectorScrollData!.Offset;
+            SectorPlane.RenderOffsets.LastOffset = SectorPlane.RenderOffsets.Offset;
         else if (Line != null)
             ScrollLine(Line, Vec2D.Zero);
     }
@@ -301,7 +292,7 @@ public class ScrollSpecial : ISpecial
             scroll.m_accelScrollSpeed == m_accelScrollSpeed &&
             scroll.m_lineScroll == m_lineScroll &&
             scroll.m_scrollLineFront == m_scrollLineFront &&
-            scroll.m_speed == m_speed;
+            scroll.Speed == Speed;
     }
 
     public override int GetHashCode()

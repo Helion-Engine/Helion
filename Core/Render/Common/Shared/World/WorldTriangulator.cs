@@ -200,32 +200,26 @@ public static class WorldTriangulator
         double prevZ = sectorPlane.PrevZ;
         Vec2D uv = default;
         Vec2D prevUV = default;
+        Vec2D offset = sectorPlane.RenderOffsets.Offset;
+        Vec2D lastOffset = sectorPlane.RenderOffsets.LastOffset;
 
         if (sectorPlane.Facing == SectorPlaneFace.Ceiling)
         {
             fixed (TriangulatedWorldVertex* startVertex = &verticesToPopulate.Data[0])
             {
                 TriangulatedWorldVertex* worldVertex = startVertex;
+
                 for (int i = index; i < length; i++)
                 {
-                    Vec2D vertex = edges[i].Start;
-                    if (sectorPlane.SectorScrollData == null)
-                    {
-                        uv.X = vertex.X / textureVector.X;
-                        uv.Y = -(vertex.Y / textureVector.Y);
-                        prevUV = uv;
-                    }
-                    else
-                    {
-                        uv.X = vertex.X / textureVector.X;
-                        uv.Y = -(vertex.Y / textureVector.Y);
-                        prevUV = uv;
+                    Vec2D vertex = edges[i].Start;       
+                    uv.X = vertex.X / textureVector.X;
+                    uv.Y = -(vertex.Y / textureVector.Y);
+                    prevUV = uv;
 
-                        uv.X += sectorPlane.SectorScrollData.Offset.X;
-                        uv.Y += sectorPlane.SectorScrollData.Offset.Y;
-                        prevUV.X += sectorPlane.SectorScrollData.LastOffset.X;
-                        prevUV.Y += sectorPlane.SectorScrollData.LastOffset.Y;
-                    }
+                    uv.X += offset.X;
+                    uv.Y += offset.Y;
+                    prevUV.X += lastOffset.X;
+                    prevUV.Y += lastOffset.Y;
 
                     worldVertex->X = (float)vertex.X;
                     worldVertex->Y = (float)vertex.Y;
@@ -250,23 +244,14 @@ public static class WorldTriangulator
                 for (int i = length - 1; i >= index; i--)
                 {
                     Vec2D vertex = edges[i].End;
-                    if (sectorPlane.SectorScrollData == null)
-                    {
-                        uv.X = vertex.X / textureVector.X;
-                        uv.Y = -(vertex.Y / textureVector.Y);
-                        prevUV = uv;
-                    }
-                    else
-                    {
-                        uv.X = vertex.X / textureVector.X;
-                        uv.Y = -(vertex.Y / textureVector.Y);
-                        prevUV = uv;
+                    uv.X = vertex.X / textureVector.X;
+                    uv.Y = -(vertex.Y / textureVector.Y);
+                    prevUV = uv;
 
-                        uv.X += sectorPlane.SectorScrollData.Offset.X;
-                        uv.Y += sectorPlane.SectorScrollData.Offset.Y;
-                        prevUV.X += sectorPlane.SectorScrollData.LastOffset.X;
-                        prevUV.Y += sectorPlane.SectorScrollData.LastOffset.Y;
-                    }
+                    uv.X += offset.X;
+                    uv.Y += offset.Y;
+                    prevUV.X += lastOffset.X;
+                    prevUV.Y += lastOffset.Y;
 
                     worldVertex->X = (float)vertex.X;
                     worldVertex->Y = (float)vertex.Y;
