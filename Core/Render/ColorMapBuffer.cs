@@ -30,7 +30,7 @@ public static class ColorMapBuffer
         for (int paletteIndex = 0; paletteIndex < palettes.Count && paletteIndex < Palette.NumPalettes; paletteIndex++)
         {
             var palette = palettes.Layer(paletteIndex);
-            for (int colormapIndex = 0; colormapIndex < colormap.Count && colormapIndex < Colormap.NumColors; colormapIndex++)
+            for (int colormapIndex = 0; colormapIndex < Colormap.NumLayers; colormapIndex++)
             {
                 var layer = colormap.IndexLayer(colormapIndex);
                 for (int i = 0; i < layer.Length; i++)

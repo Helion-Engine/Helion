@@ -22,7 +22,7 @@ public class Colormap
     public readonly Vec3F ColorMix;
     public readonly Entry? Entry;
 
-    public int Count => NumLayers;
+    public int Count => m_layers.Count;
 
     private Colormap(List<Color[]> colormapLayers, List<int[]> indices) 
         : this(colormapLayers, indices, Vec3F.One, null, [])
@@ -63,9 +63,6 @@ public class Colormap
 
     public static Colormap? From(Palette palette, byte[] data, Entry? entry)
     {
-        if (data.Length < BytesPerColormap)
-            return null;
-
         Vec3I addColors = Vec3I.Zero;
         List<Color[]> colormapLayers = new(NumLayers);
         List<int[]> colormapLayerIndices = new(NumLayers);
@@ -77,6 +74,9 @@ public class Colormap
         for (int layer = 0; layer < NumLayers; layer++)
         {
             int startIndex = layer * NumColors;
+            if (startIndex + NumColors > data.Length)
+                break;
+
             var currentColors = new Color[NumColors];
             var currentIndices = new int[NumColors];
             for (int i = 0; i < NumColors; i++)
@@ -115,9 +115,19 @@ public class Colormap
         return new(colormapLayers, colormapLayerIndices, colorMix, entry, fullBright);
     }
 
-    public Color[] Layer(int index) => m_layers[index];
+    public Color[] Layer(int index)
+    {
+        if (index >= m_layers.Count)
+            return m_layers[0];
+        return m_layers[index];
+    }
 
-    public int[] IndexLayer(int index) => m_indexLayers[index];
+    public int[] IndexLayer(int index)
+    {
+        if (index >= m_indexLayers.Count)
+            return m_indexLayers[0];
+        return m_indexLayers[index];
+    }
 
     public static Colormap GetDefaultColormap()
     {
@@ -153,9 +163,13 @@ public class Colormap
         {
             for (int colorIndex = 0; colorIndex < NumColors; colorIndex++, index++)
             {
+                if (index >= translate.Length)
+                    return translate;
+
+                int dataIndex = (layer * NumColors) + offset + (colorIndex & 0xF);
                 // Only translate green color indices
-                if (colorIndex >= 0x70 && colorIndex <= 0x7f)
-                    translate[index] = data[(layer * NumColors) + offset + (colorIndex & 0xF)];
+                if (colorIndex >= 0x70 && colorIndex <= 0x7f && dataIndex < data.Length)
+                    translate[index] = data[dataIndex];
                 else
                     translate[index] = data[index];
             }
