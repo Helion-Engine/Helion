@@ -1,5 +1,4 @@
-﻿using Helion.Geometry;
-using Helion.Geometry.Vectors;
+﻿using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Layer.Options.Sections;
 using Helion.Render.Common.Enums;
@@ -72,9 +71,9 @@ internal class ColorDialog : DialogBase
         m_sliders[m_row].HandleInput(input);
     }
 
-    protected override void RenderImpl(IRenderableSurfaceContext ctx, IHudRenderContext hud)
+    protected override void RenderDialogContents(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
-        PrintMessage(hud, m_attr.Name, windowAlign: Align.TopMiddle, anchorAlign: Align.TopMiddle);
+        RenderDialogText(hud, m_attr.Name, windowAlign: Align.TopMiddle, anchorAlign: Align.TopMiddle);
         m_valueStartX = hud.MeasureText("Green", Font, m_fontSize).Width + m_padding * 4;
 
         int boxSize = m_config.GetScaled(24);

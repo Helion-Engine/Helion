@@ -65,7 +65,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
     public virtual bool OnClickableItem(Vec2I mousePosition) =>
         m_buttonPosList.GetIndex(mousePosition, out _);
 
-    public virtual void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
+    public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
         m_buttonPosList.Clear();
 
@@ -102,19 +102,22 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         }
 
         hud.PushOffset((0, m_dialogOffset.Y + m_padding));
-        this.RenderImpl(ctx, hud);
+        // When dialog contents are rendered, vertical offset is at a point suitable for rendering new elements.
+        // Horizontal offset is set to the left side of the screen in case we need to draw something centered on the screen,
+        // as in the color picker dialog.
+        this.RenderDialogContents(ctx, hud);
         hud.PopOffset();
     }
-    
-    /// <summary>
-    /// Render the contents of the dialog (the Accept/Cancel buttons, box outline, and title row are already rendered)
-    /// </summary>
-    protected abstract void RenderImpl(IRenderableSurfaceContext ctx, IHudRenderContext hud);
 
     /// <summary>
-    /// Print a line of text, with line wrapping applied if needed
+    /// Render the contents of the dialog.
     /// </summary>
-    protected void PrintMessage(
+    protected abstract void RenderDialogContents(IRenderableSurfaceContext ctx, IHudRenderContext hud);
+
+    /// <summary>
+    /// Print a string of text, with line wrapping applied if needed, auto-incrementing the vertical offset after each line.
+    /// </summary>
+    protected void RenderDialogText(
         IHudRenderContext hud,
         string message,
         Color? color = null,
@@ -138,7 +141,6 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
 
     public virtual void RunLogic(TickerInfo tickerInfo)
     {
-
     }
 
     protected void RenderButton(IRenderableSurfaceContext ctx, IHudRenderContext hud, string text, int index)
