@@ -43,6 +43,8 @@ public static class DoomGeometryBuilder
         double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
         string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
         int handle = textureManager.GetTexture(texture, ResourceNamespace.Flats).Index;
+        if (handle == Constants.NoTextureIndex)
+            handle = textureManager.GetTexture(texture, ResourceNamespace.Textures).Index;
         return new SectorPlane(face, z, handle, doomSector.LightLevel);
     }
 
@@ -55,11 +57,20 @@ public static class DoomGeometryBuilder
             SectorPlane ceilingPlane = CreateSectorPlane(doomSector, SectorPlaneFace.Ceiling, textureManager);
             ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, sectorData);
 
-            Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
+            Sector sector = new(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
                 floorPlane, ceilingPlane, sectorSpecial, sectorData);
             builder.Sectors.Add(sector);
             sectorData.Clear();
         }
+    }
+
+    private static Texture GetWallTexture(TextureManager textureManager, string textureName)
+    {
+        var texture = textureManager.GetTexture(textureName, ResourceNamespace.Textures);
+        if (texture.Index != Constants.NoTextureIndex)
+            return texture;
+
+        return textureManager.GetTexture(textureName, ResourceNamespace.Flats);
     }
 
     private static (Side front, Side? back) CreateSingleSide(DoomLine doomLine, GeometryBuilder builder,
@@ -72,15 +83,15 @@ public static class DoomGeometryBuilder
         // ordering very badly.
         Invariant(doomSide.Sector.Id < builder.Sectors.Count, "Sector ID mapping broken");
         Sector sector = builder.Sectors[doomSide.Sector.Id];
-        var middleTexture = textureManager.GetTexture(doomSide.MiddleTexture, ResourceNamespace.Textures);
-        var upperTexture = textureManager.GetTexture(doomSide.UpperTexture, ResourceNamespace.Textures);
-        var lowerTexture = textureManager.GetTexture(doomSide.LowerTexture, ResourceNamespace.Textures);
+        var middleTexture = GetWallTexture(textureManager, doomSide.MiddleTexture);
+        var upperTexture = GetWallTexture(textureManager, doomSide.UpperTexture);
+        var lowerTexture = GetWallTexture(textureManager, doomSide.LowerTexture);
 
         Wall middle = new(middleTexture.Index, WallLocation.Middle);
         Wall upper = new(upperTexture.Index, WallLocation.Upper);
         Wall lower = new(lowerTexture.Index, WallLocation.Lower);
 
-        Side front = new Side(nextSideId, doomSide.Offset, upper, middle, lower, sector);
+        Side front = new(nextSideId, doomSide.Offset, upper, middle, lower, sector);
         builder.Sides.Add(front);
 
         if (doomLine.LineType == VanillaLineSpecialType.TransferHeights)
@@ -112,10 +123,10 @@ public static class DoomGeometryBuilder
         Invariant(facingSide.Sector.Id < builder.Sectors.Count, "Sector (facing) ID mapping broken");
         Sector facingSector = builder.Sectors[facingSide.Sector.Id];
 
-        var middleTexture = textureManager.GetTexture(facingSide.MiddleTexture, ResourceNamespace.Textures);
-        var upperTexture = textureManager.GetTexture(facingSide.UpperTexture, ResourceNamespace.Textures);
-        var lowerTexture = textureManager.GetTexture(facingSide.LowerTexture, ResourceNamespace.Textures);
-
+        var middleTexture = GetWallTexture(textureManager, facingSide.MiddleTexture);
+        var upperTexture = GetWallTexture(textureManager, facingSide.UpperTexture);
+        var lowerTexture = GetWallTexture(textureManager, facingSide.LowerTexture);
+            
         Wall middle = new(middleTexture.Index, WallLocation.Middle);
         Wall upper = new(upperTexture.Index, WallLocation.Upper);
         Wall lower = new(lowerTexture.Index, WallLocation.Lower);
