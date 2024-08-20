@@ -266,4 +266,5 @@ public enum ZDoomLineSpecialType
     Unused73,
     CeilingRaiseToHighest = 262,
     StairsBuildUpDoomCrush = 273,
+    OffsetPlaneByLineDirection = 2048
 }

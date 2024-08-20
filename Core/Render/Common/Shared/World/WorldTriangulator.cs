@@ -216,10 +216,10 @@ public static class WorldTriangulator
                     uv.Y = -(vertex.Y / textureVector.Y);
                     prevUV = uv;
 
-                    uv.X += offset.X;
-                    uv.Y += offset.Y;
-                    prevUV.X += lastOffset.X;
-                    prevUV.Y += lastOffset.Y;
+                    uv.X += offset.X / textureVector.X;
+                    uv.Y += offset.Y / textureVector.Y;
+                    prevUV.X += lastOffset.X / textureVector.X;
+                    prevUV.Y += lastOffset.Y / textureVector.Y;
 
                     worldVertex->X = (float)vertex.X;
                     worldVertex->Y = (float)vertex.Y;
@@ -248,10 +248,10 @@ public static class WorldTriangulator
                     uv.Y = -(vertex.Y / textureVector.Y);
                     prevUV = uv;
 
-                    uv.X += offset.X;
-                    uv.Y += offset.Y;
-                    prevUV.X += lastOffset.X;
-                    prevUV.Y += lastOffset.Y;
+                    uv.X += offset.X / textureVector.X;
+                    uv.Y += offset.Y / textureVector.Y;
+                    prevUV.X += lastOffset.X / textureVector.X;
+                    prevUV.Y += lastOffset.Y / textureVector.Y;
 
                     worldVertex->X = (float)vertex.X;
                     worldVertex->Y = (float)vertex.Y;

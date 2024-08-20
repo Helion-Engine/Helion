@@ -736,7 +736,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             var data = geometry[i];
 
-            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.ActiveTexture(TextureUnit.Texture0); 
             GLLegacyTexture texture = m_textureManager.GetTexture(data.TextureHandle, (data.Texture.Flags & TextureFlags.ClampY) == 0);
             texture.Bind();
 

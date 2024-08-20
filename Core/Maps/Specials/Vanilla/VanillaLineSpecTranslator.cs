@@ -3,6 +3,7 @@ using Helion.Maps.Specials.Boom;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Special;
 using NLog;
 
@@ -692,6 +693,21 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg0 = tag;
                 argsToMutate.Arg1 = (int)ZDoomScroll.Displacement | (int)ZDoomScroll.LineOffset;
                 return ZDoomLineSpecialType.ScrollTextureModel;
+
+            case VanillaLineSpecialType.OffsetFloorByLineDirection:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)SectorPlanes.Floor;
+                return ZDoomLineSpecialType.OffsetPlaneByLineDirection;
+
+            case VanillaLineSpecialType.OffsetCeilingByLineDirection:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)SectorPlanes.Ceiling;
+                return ZDoomLineSpecialType.OffsetPlaneByLineDirection;
+
+            case VanillaLineSpecialType.OffsetFloorAndCeilingByLineDirection:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)(SectorPlanes.Floor |SectorPlanes.Ceiling);
+                return ZDoomLineSpecialType.OffsetPlaneByLineDirection;
 
             default:
                 break;
@@ -1406,6 +1422,9 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.StandardScrollMbf21:
             case VanillaLineSpecialType.AccelerativeScrollMbf21:
             case VanillaLineSpecialType.DisplacementScrollMbf21:
+            case VanillaLineSpecialType.OffsetFloorByLineDirection:
+            case VanillaLineSpecialType.OffsetCeilingByLineDirection:
+            case VanillaLineSpecialType.OffsetFloorAndCeilingByLineDirection:
                 activations = LineActivations.LevelStart;
                 return activations;
 
