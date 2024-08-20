@@ -545,7 +545,8 @@ public partial class Client
         if (TryHandleConfigVariableCommand(args))
             return;
 
-        HelionLog.Warn($"No such command or config variable: {args.Command}");
+        if (!Constants.BaseCommands.Contains(args.Command) && !Constants.InGameCommands.Contains(args.Command))
+            HelionLog.Warn($"No such command or config variable: {args.Command}");
     }
 
     private bool TryHandleCheatCommand(ConsoleCommandEventArgs args)

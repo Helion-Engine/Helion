@@ -992,7 +992,7 @@ public partial class WorldLayer
                 ConsoleMessage msg = node.Value;
                 node = node.Next;
 
-                if (messagesDrawn >= maxHudMessages || MessageTooOldToDraw(msg, World, m_console))
+                if (messagesDrawn >= maxHudMessages || MessageTooOldToDraw(msg, World, m_console, m_parent.OptionsLastClosedNanos))
                     break;
 
                 long timeSinceMessage = currentNanos - msg.TimeNanos;
@@ -1018,8 +1018,11 @@ public partial class WorldLayer
         }
     }
 
-    private static bool MessageTooOldToDraw(ConsoleMessage msg, WorldBase world, HelionConsole console)
+    private static bool MessageTooOldToDraw(ConsoleMessage msg, WorldBase world, HelionConsole console, long optionsLastClosedNanos)
     {
+        if (optionsLastClosedNanos > msg.TimeNanos)
+            return true;
+
         return msg.TimeNanos < world.CreationTimeNanos || msg.TimeNanos < console.LastClosedNanos;
     }
 
