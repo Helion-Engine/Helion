@@ -77,9 +77,9 @@ internal class FileListDialog : ListDialog
         m_listsNeedUpdate = true;
     }
 
-    protected override void ModifyListElements(List<string> valuesList, IHudRenderContext hud)
+    protected override void ModifyListElements(List<string> valuesList, IHudRenderContext hud, bool sizeChanged)
     {
-        if (m_listsNeedUpdate)
+        if (m_listsNeedUpdate || sizeChanged)
         {
             m_header = TruncateTextToDialogWidth($"Directory: {m_path}", hud);
             m_headerWithUnderscore = TruncateTextToDialogWidth($"Directory: {m_path}_", hud);

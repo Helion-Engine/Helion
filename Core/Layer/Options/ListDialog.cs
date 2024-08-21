@@ -43,7 +43,7 @@ internal abstract class ListDialog : DialogBase
     /// <param name="valuesList">The list of elements displayed in the dialog.  This is persistent between renders
     /// and after initial population, it only needs to be changed if the underlying options have changed for some reason.
     /// Render context is provided only so that implementers can pre-truncate dialog strings.
-    protected abstract void ModifyListElements(List<string> valuesList, IHudRenderContext hud);
+    protected abstract void ModifyListElements(List<string> valuesList, IHudRenderContext hud, bool sizeChanged);
 
     /// <summary>
     /// Render any additional messages or controls needed at the top of the dialog.
@@ -72,14 +72,14 @@ internal abstract class ListDialog : DialogBase
         }
     }
 
-    protected override void RenderDialogContents(IRenderableSurfaceContext ctx, IHudRenderContext hud)
+    protected override void RenderDialogContents(IRenderableSurfaceContext ctx, IHudRenderContext hud, bool sizeChanged)
     {
         RenderDialogText(hud, m_attr.Name, windowAlign: Align.TopMiddle, anchorAlign: Align.TopMiddle);
         hud.AddOffset((m_dialogOffset.X + m_padding, 0));
         RenderDialogHeader(hud);
 
         int length = m_values.Count;
-        ModifyListElements(m_values, hud);
+        ModifyListElements(m_values, hud, sizeChanged);
 
         int verticalOffset = hud.GetOffset().Y;
         if (m_values.Count != length || verticalOffset != m_listFirstY)
@@ -91,7 +91,7 @@ internal abstract class ListDialog : DialogBase
             SendSelectedRowChange(false);
         }
 
-        if (m_ensureSelectedVisible)
+        if (m_ensureSelectedVisible || sizeChanged)
         {
             // Snap scroll bounds to fit selection and current list length
 

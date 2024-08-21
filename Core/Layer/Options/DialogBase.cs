@@ -12,6 +12,7 @@ using Helion.Window;
 using Helion.Window.Input;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Helion.Layer.Options;
 
@@ -36,6 +37,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
     private BoxList m_buttonPosList = new();
     private List<Action> m_buttonActionList = new();
     private int m_buttonIndex = 0;
+    private StringBuilder m_textWrapBuilder = new();
 
     public void Dispose()
     {
@@ -89,6 +91,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         var size = new Dimension(Math.Max(hud.Width / 2, 320), Math.Max(hud.Height / 2, 200));
         hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
 
+        Dimension lastBox = m_box;
         m_box = new(size.Width - m_padding * 2, size.Height - m_padding * 2);
         m_dialogOffset = new Vec2I(size.Width / 2, size.Height / 2);
         m_dialogBox = new(m_dialogOffset, (m_dialogOffset.X + m_box.Width, m_dialogOffset.Y + m_box.Height));
@@ -116,14 +119,14 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         // When dialog contents are rendered, vertical offset is at a point suitable for rendering new elements.
         // Horizontal offset is set to the left side of the screen in case we need to draw something centered on the screen,
         // as in the color picker dialog.
-        this.RenderDialogContents(ctx, hud);
+        this.RenderDialogContents(ctx, hud, !m_box.Equals(lastBox));
         hud.PopOffset();
     }
 
     /// <summary>
     /// Render the contents of the dialog.
     /// </summary>
-    protected abstract void RenderDialogContents(IRenderableSurfaceContext ctx, IHudRenderContext hud);
+    protected abstract void RenderDialogContents(IRenderableSurfaceContext ctx, IHudRenderContext hud, bool sizeChanged);
 
     /// <summary>
     /// Print a string of text, auto-incrementing the vertical offset afterward
@@ -149,6 +152,11 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
     protected string TruncateTextToDialogWidth(string text, IHudRenderContext hud)
     {
         return LineWrap.Truncate(text, Font, m_fontSize, m_box.Width, hud).ToString();
+    }
+
+    protected void WrapTextToDialogWidth(string text, IHudRenderContext hud, List<string> wrappedLines)
+    {
+        LineWrap.Calculate(text, Font, m_fontSize, m_box.Width, hud, wrappedLines, m_textWrapBuilder, out _);
     }
 
     public virtual void RunLogic(TickerInfo tickerInfo)
