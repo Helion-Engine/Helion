@@ -12,26 +12,24 @@ public partial class BoomActions
     public void Action245()
     {
         var scrollSector = GameActions.GetSectorByTag(World, 15);
-        scrollSector.Floor.SectorScrollData.Should().BeNull();
-        scrollSector.Ceiling.SectorScrollData.Should().NotBeNull();
 
         GameActions.ActivateLine(World, World.Player, 308, ActivationContext.UseLine);
         GameActions.RunSectorPlaneSpecial(World, scrollSector);
         GameActions.TickWorld(World, 1);
-        scrollSector.Ceiling.SectorScrollData!.Offset.Should().Be(new Vec2D(0, -1));
+        scrollSector.Floor.RenderOffsets.Offset.Should().Be(new Vec2D(0, 0));
+        scrollSector.Ceiling.RenderOffsets.Offset.Should().Be(new Vec2D(0, -1));
     }
 
     [Fact(DisplayName = "Boom Action 246 Scroll floor when sector height changes")]
     public void Action246()
     {
         var scrollSector = GameActions.GetSectorByTag(World, 16);
-        scrollSector.Ceiling.SectorScrollData.Should().BeNull();
-        scrollSector.Floor.SectorScrollData.Should().NotBeNull();
 
         GameActions.ActivateLine(World, World.Player, 316, ActivationContext.UseLine);
         GameActions.RunSectorPlaneSpecial(World, scrollSector);
         GameActions.TickWorld(World, 1);
-        scrollSector.Floor.SectorScrollData!.Offset.Should().Be(new Vec2D(0, 1));
+        scrollSector.Ceiling.RenderOffsets.Offset.Should().Be(new Vec2D(0, 0));
+        scrollSector.Floor.RenderOffsets.Offset.Should().Be(new Vec2D(0, 1));
 
         var barrel = GameActions.GetSectorEntity(World, 58, "ExplosiveBarrel");
         barrel.Velocity.XY.Should().Be(Vec2D.Zero);
@@ -41,8 +39,6 @@ public partial class BoomActions
     public void Action247()
     {
         var scrollSector = GameActions.GetSectorByTag(World, 17);
-        scrollSector.Ceiling.SectorScrollData.Should().BeNull();
-        scrollSector.Floor.SectorScrollData.Should().BeNull();
 
         GameActions.ActivateLine(World, World.Player, 336, ActivationContext.UseLine);
         GameActions.RunSectorPlaneSpecial(World, scrollSector);
@@ -56,13 +52,12 @@ public partial class BoomActions
     public void Action248()
     {
         var scrollSector = GameActions.GetSectorByTag(World, 18);
-        scrollSector.Ceiling.SectorScrollData.Should().BeNull();
-        scrollSector.Floor.SectorScrollData.Should().NotBeNull();
 
         GameActions.ActivateLine(World, World.Player, 341, ActivationContext.UseLine);
         GameActions.RunSectorPlaneSpecial(World, scrollSector);
         GameActions.TickWorld(World, 1);
-        scrollSector.Floor.SectorScrollData!.Offset.Should().Be(new Vec2D(0, 1));
+        scrollSector.Ceiling.RenderOffsets.Offset.Should().Be(new Vec2D(0, 0));
+        scrollSector.Floor.RenderOffsets.Offset.Should().Be(new Vec2D(0, 1));
 
         var barrel = GameActions.GetSectorEntity(World, 64, "ExplosiveBarrel");
         barrel.Velocity.XY.Should().NotBe(Vec2D.Zero);
@@ -74,8 +69,6 @@ public partial class BoomActions
         var scrollLine1 = GameActions.GetLine(World, 352);
         var scrollLine2 = GameActions.GetLine(World, 362);
         var moveSector = GameActions.GetSectorByTag(World, 19);
-        scrollLine1.Front.ScrollData.Should().NotBeNull();
-        scrollLine2.Front.ScrollData.Should().NotBeNull();
 
         GameActions.ActivateLine(World, World.Player, 352, ActivationContext.UseLine).Should().BeTrue();
         GameActions.RunSectorPlaneSpecial(World, moveSector);
@@ -94,22 +87,20 @@ public partial class BoomActions
     public void Action250()
     {
         var scrollSector = GameActions.GetSectorByTag(World, 11);
-        scrollSector.Floor.SectorScrollData.Should().BeNull();
-        scrollSector.Ceiling.SectorScrollData.Should().NotBeNull();
         GameActions.TickWorld(World, 1);
-        var offset = scrollSector.Ceiling.SectorScrollData!.LastOffset - scrollSector.Ceiling.SectorScrollData!.Offset;
+        var offset = scrollSector.Ceiling.RenderOffsets.LastOffset - scrollSector.Ceiling.RenderOffsets.Offset;
         offset.Should().Be(new Vec2D(0.03125, 0));
+        scrollSector.Floor.RenderOffsets.Offset.Should().Be(new Vec2D(0, 0));
     }
 
     [Fact(DisplayName = "Boom Action 251 Scroll floor")]
     public void Action251()
     {
         var scrollSector = GameActions.GetSectorByTag(World, 12);
-        scrollSector.Floor.SectorScrollData.Should().NotBeNull();
-        scrollSector.Ceiling.SectorScrollData.Should().BeNull();
         GameActions.TickWorld(World, 1);
-        var offset = scrollSector.Floor.SectorScrollData!.LastOffset - scrollSector.Floor.SectorScrollData!.Offset;
+        var offset = scrollSector.Floor.RenderOffsets.LastOffset - scrollSector.Floor.RenderOffsets.Offset;
         offset.Should().Be(new Vec2D(0.03125, 0));
+        scrollSector.Ceiling.RenderOffsets.Offset.Should().Be(new Vec2D(0, 0));
     }
 
     [Fact(DisplayName = "Boom Action 252 Scroll objects on floor")]
@@ -117,10 +108,10 @@ public partial class BoomActions
     {
         var scrollSector = GameActions.GetSectorByTag(World, 13);
         var barrel = GameActions.GetSectorEntity(World, 52, "ExplosiveBarrel");
-        scrollSector.Floor.SectorScrollData.Should().BeNull();
-        scrollSector.Ceiling.SectorScrollData.Should().BeNull();
         GameActions.TickWorld(World, 1);
         barrel.Velocity.XY.Should().NotBe(Vec2D.Zero);
+        scrollSector.Ceiling.RenderOffsets.Offset.Should().Be(new Vec2D(0, 0));
+        scrollSector.Floor.RenderOffsets.Offset.Should().Be(new Vec2D(0, 0));
     }
 
     [Fact(DisplayName = "Boom Action 252 Scroll floor and objects")]
@@ -128,12 +119,11 @@ public partial class BoomActions
     {
         var scrollSector = GameActions.GetSectorByTag(World, 9);
         var barrel = GameActions.GetSectorEntity(World, 47, "ExplosiveBarrel");
-        scrollSector.Floor.SectorScrollData.Should().NotBeNull();
-        scrollSector.Ceiling.SectorScrollData.Should().BeNull();
         GameActions.TickWorld(World, 1);
-        var offset = scrollSector.Floor.SectorScrollData!.LastOffset - scrollSector.Floor.SectorScrollData!.Offset;
+        var offset = scrollSector.Floor.RenderOffsets.LastOffset - scrollSector.Floor.RenderOffsets.Offset;
         offset.Should().Be(new Vec2D(0.03125, 0));
         barrel.Velocity.XY.Should().NotBe(Vec2D.Zero);
+        scrollSector.Ceiling.RenderOffsets.Offset.Should().Be(new Vec2D(0, 0));
     }
 
     [Fact(DisplayName = "Boom Action 254 Scroll tagged wall")]

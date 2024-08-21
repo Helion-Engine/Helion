@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Shared.World;
+using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
@@ -190,7 +191,7 @@ public static class WorldTriangulator
     {
         Precondition(subsector.SegCount >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
 
-        var edges = bspTree.Segments;
+        var edges = bspTree.Segments.Data;
         int index = subsector.SegIndex;
         int length = index + subsector.SegCount;
         verticesToPopulate.EnsureCapacity(subsector.SegCount);
@@ -200,84 +201,63 @@ public static class WorldTriangulator
         double prevZ = sectorPlane.PrevZ;
         Vec2D uv = default;
         Vec2D prevUV = default;
+        Vec2D offset = sectorPlane.RenderOffsets.Offset;
+        Vec2D lastOffset = sectorPlane.RenderOffsets.LastOffset;
 
-        if (sectorPlane.Facing == SectorPlaneFace.Ceiling)
+        int edgeIndex = index;
+        int count = length - index;
+        int add = 1;
+
+        if (sectorPlane.Facing == SectorPlaneFace.Floor)
         {
-            fixed (TriangulatedWorldVertex* startVertex = &verticesToPopulate.Data[0])
-            {
-                TriangulatedWorldVertex* worldVertex = startVertex;
-                for (int i = index; i < length; i++)
-                {
-                    Vec2D vertex = edges[i].Start;
-                    if (sectorPlane.SectorScrollData == null)
-                    {
-                        uv.X = vertex.X / textureVector.X;
-                        uv.Y = -(vertex.Y / textureVector.Y);
-                        prevUV = uv;
-                    }
-                    else
-                    {
-                        uv.X = vertex.X / textureVector.X;
-                        uv.Y = -(vertex.Y / textureVector.Y);
-                        prevUV = uv;
-
-                        uv.X += sectorPlane.SectorScrollData.Offset.X;
-                        uv.Y += sectorPlane.SectorScrollData.Offset.Y;
-                        prevUV.X += sectorPlane.SectorScrollData.LastOffset.X;
-                        prevUV.Y += sectorPlane.SectorScrollData.LastOffset.Y;
-                    }
-
-                    worldVertex->X = (float)vertex.X;
-                    worldVertex->Y = (float)vertex.Y;
-                    worldVertex->Z = (float)z;
-                    worldVertex->PrevZ = (float)prevZ;
-                    worldVertex->U = (float)uv.X;
-                    worldVertex->V = (float)uv.Y;
-                    worldVertex->PrevU = (float)prevUV.X;
-                    worldVertex->PrevV = (float)prevUV.Y;
-                    worldVertex++;
-                }
-            }
+            edgeIndex = length - 1;
+            add = -1;
         }
-        else
+
+        fixed (TriangulatedWorldVertex* startVertex = &verticesToPopulate.Data[0])
         {
-            fixed (TriangulatedWorldVertex* startVertex = &verticesToPopulate.Data[0])
+            TriangulatedWorldVertex* worldVertex = startVertex;
+            for (int i = 0; i < count; i++)
             {
-                TriangulatedWorldVertex* worldVertex = startVertex;
-                // Because the floor is looked at downwards and because it is
-                // clockwise, to get counter-clockwise vertices we reverse the
-                // iteration order and go from the end vertex.
-                for (int i = length - 1; i >= index; i--)
+                Vec2D vertex = edges[edgeIndex].Start;
+                if (sectorPlane.RenderOffsets.Rotate == 0)
                 {
-                    Vec2D vertex = edges[i].End;
-                    if (sectorPlane.SectorScrollData == null)
-                    {
-                        uv.X = vertex.X / textureVector.X;
-                        uv.Y = -(vertex.Y / textureVector.Y);
-                        prevUV = uv;
-                    }
-                    else
-                    {
-                        uv.X = vertex.X / textureVector.X;
-                        uv.Y = -(vertex.Y / textureVector.Y);
-                        prevUV = uv;
+                    uv.X = vertex.X / textureVector.X;
+                    uv.Y = -(vertex.Y / textureVector.Y);
+                    prevUV = uv;
 
-                        uv.X += sectorPlane.SectorScrollData.Offset.X;
-                        uv.Y += sectorPlane.SectorScrollData.Offset.Y;
-                        prevUV.X += sectorPlane.SectorScrollData.LastOffset.X;
-                        prevUV.Y += sectorPlane.SectorScrollData.LastOffset.Y;
-                    }
-
-                    worldVertex->X = (float)vertex.X;
-                    worldVertex->Y = (float)vertex.Y;
-                    worldVertex->Z = (float)z;
-                    worldVertex->PrevZ = (float)prevZ;
-                    worldVertex->U = (float)uv.X;
-                    worldVertex->V = (float)uv.Y;
-                    worldVertex->PrevU = (float)prevUV.X;
-                    worldVertex->PrevV = (float)prevUV.Y;
-                    worldVertex++;
+                    uv.X += offset.X / textureVector.X;
+                    uv.Y += offset.Y / textureVector.Y;
+                    prevUV.X += lastOffset.X / textureVector.X;
+                    prevUV.Y += lastOffset.Y / textureVector.Y;
                 }
+                else
+                {
+                    var uvVertex = vertex;
+                    uvVertex.X += offset.X;
+                    uvVertex.Y -= offset.Y;
+                    uvVertex = uvVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
+                    uv.X = uvVertex.X / textureVector.X;
+                    uv.Y = -(uvVertex.Y / textureVector.Y);
+
+                    var prevUVVertex = vertex;
+                    prevUVVertex.X += lastOffset.X;
+                    prevUVVertex.Y -= lastOffset.Y;
+                    prevUVVertex = prevUVVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
+                    prevUV.X = uvVertex.X / textureVector.X;
+                    prevUV.Y = -(uvVertex.Y / textureVector.Y);
+                }
+
+                worldVertex->X = (float)vertex.X;
+                worldVertex->Y = (float)vertex.Y;
+                worldVertex->Z = (float)z;
+                worldVertex->PrevZ = (float)prevZ;
+                worldVertex->U = (float)uv.X;
+                worldVertex->V = (float)uv.Y;
+                worldVertex->PrevU = (float)prevUV.X;
+                worldVertex->PrevV = (float)prevUV.Y;
+                worldVertex++;
+                edgeIndex += add;
             }
         }
     }

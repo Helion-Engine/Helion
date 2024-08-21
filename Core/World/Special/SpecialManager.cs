@@ -659,7 +659,56 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.TransferHeights:
                 SetTransferHeights(line);
                 break;
+            case ZDoomLineSpecialType.OffsetPlaneByLineDirection:
+                SetSectorPlaneOffset(line);
+                break;
+
+            case ZDoomLineSpecialType.RotatePlaneByLineDirection:
+                SetSectorPlaneRotation(line);
+                break;
+
+            case ZDoomLineSpecialType.OffsetThenRotateByLineDirection:
+                SetSectorPlaneOffset(line);
+                SetSectorPlaneRotation(line);
+                break;
         }
+    }
+
+    private void SetSectorPlaneRotation(Line line)
+    {
+        SectorPlanes planes = (SectorPlanes)line.Args.Arg1;
+        var sectors = GetSectorsFromSpecialLine(line);
+        var rotate = -line.StartPosition.Angle(line.EndPosition);
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors.GetSector(i);
+            if ((planes & SectorPlanes.Floor) != 0)
+                sector.Floor.RenderOffsets.Rotate += rotate;
+            if ((planes & SectorPlanes.Ceiling) != 0)
+                sector.Ceiling.RenderOffsets.Rotate += rotate;
+        }
+    }
+
+    private void SetSectorPlaneOffset(Line line)
+    {
+        SectorPlanes planes = (SectorPlanes)line.Args.Arg1;
+        var sectors = GetSectorsFromSpecialLine(line);
+        var offset = line.EndPosition - line.StartPosition;
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors.GetSector(i);
+            if ((planes & SectorPlanes.Floor) != 0)
+                SetPlaneOffset(sector.Floor, offset);
+            if ((planes & SectorPlanes.Ceiling) != 0)
+                SetPlaneOffset(sector.Ceiling, offset);
+        }
+    }
+
+    private static void SetPlaneOffset(SectorPlane plane, Vec2D offset)
+    {
+        offset = new(-offset.X, offset.Y);
+        plane.RenderOffsets.Offset += offset;
+        plane.RenderOffsets.LastOffset += offset;
     }
 
     private void SetTransferHeights(Line line)
@@ -813,7 +862,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         if (planeType == SectorPlaneFace.Floor)
             scrollType = (ZDoomPlaneScrollType)line.Args.Arg2;
 
-        ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(line, flags, scrollType, VisualScrollFactor);
+        ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(line, flags, scrollType, 1);
         Sector? changeScroll = null;
 
         if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)

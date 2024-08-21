@@ -240,7 +240,7 @@ public class TextureManager : ITickable
     /// <param name="resourceNamespace">The resource namespace to search by.</param>
     /// <returns>Returns the texture given the name and resource namespace.
     /// If not found the texture will be returned with Name = Constants.NoTexture and Index = Constants.NoTextureIndex.</returns>
-    public Texture GetTexture(string name, ResourceNamespace resourceNamespace)
+    public Texture GetTexture(string name, ResourceNamespace resourceNamespace, ResourceNamespace? priority = null)
     {
         if (name.Equals(Constants.NoTexture, StringComparison.OrdinalIgnoreCase))
             return m_textures[Constants.NoTextureIndex];
@@ -251,10 +251,20 @@ public class TextureManager : ITickable
         Texture? texture;
         if (resourceNamespace == ResourceNamespace.Global)
         {
-            if (m_textureLookup.TryGetValue(name, out texture))
-                return texture;
-            if (m_flatLookup.TryGetValue(name, out texture))
-                return texture;
+            if (priority == null || priority == ResourceNamespace.Textures)
+            {
+                if (m_textureLookup.TryGetValue(name, out texture))
+                    return texture;
+                if (m_flatLookup.TryGetValue(name, out texture))
+                    return texture;
+            }
+            else
+            {
+                if (m_flatLookup.TryGetValue(name, out texture))
+                    return texture;
+                if (m_textureLookup.TryGetValue(name, out texture))
+                    return texture;
+            }
         }
         else
         {
