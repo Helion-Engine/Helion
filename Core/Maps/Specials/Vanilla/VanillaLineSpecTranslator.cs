@@ -5,14 +5,11 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special;
-using NLog;
 
 namespace Helion.Maps.Specials.Vanilla;
 
 public static class VanillaLineSpecTranslator
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
     public static ZDoomLineSpecialType Translate(ref LineFlags lineFlags, VanillaLineSpecialType type, int tag,
         ref SpecialArgs argsToMutate, out LineActivationType lineActivationType, out LineSpecialCompatibility compatibility)
     {
@@ -706,8 +703,38 @@ public static class VanillaLineSpecTranslator
 
             case VanillaLineSpecialType.OffsetFloorAndCeilingByLineDirection:
                 argsToMutate.Arg0 = tag;
-                argsToMutate.Arg1 = (int)(SectorPlanes.Floor |SectorPlanes.Ceiling);
+                argsToMutate.Arg1 = (int)(SectorPlanes.Floor | SectorPlanes.Ceiling);
                 return ZDoomLineSpecialType.OffsetPlaneByLineDirection;
+
+            case VanillaLineSpecialType.RotateFloorByLineDirection:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)SectorPlanes.Floor;
+                return ZDoomLineSpecialType.RotatePlaneByLineDirection;
+
+            case VanillaLineSpecialType.RotateCeilingByLineDirection:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)SectorPlanes.Ceiling;
+                return ZDoomLineSpecialType.RotatePlaneByLineDirection;
+
+            case VanillaLineSpecialType.RotateFloorAndCeilingByLineDirection:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)(SectorPlanes.Floor | SectorPlanes.Ceiling);
+                return ZDoomLineSpecialType.RotatePlaneByLineDirection;
+
+            case VanillaLineSpecialType.OffsetThenRotateFloorByLineDirection:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)SectorPlanes.Floor;
+                return ZDoomLineSpecialType.OffsetThenRotateByLineDirection;
+
+            case VanillaLineSpecialType.OffsetThenRotateCeilingByLineDirection:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)SectorPlanes.Ceiling;
+                return ZDoomLineSpecialType.OffsetThenRotateByLineDirection;
+
+            case VanillaLineSpecialType.OffsetThenRotateFloorAndCeilingByLineDirection:
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)(SectorPlanes.Floor | SectorPlanes.Ceiling);
+                return ZDoomLineSpecialType.OffsetThenRotateByLineDirection;
 
             default:
                 break;
@@ -1425,6 +1452,12 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.OffsetFloorByLineDirection:
             case VanillaLineSpecialType.OffsetCeilingByLineDirection:
             case VanillaLineSpecialType.OffsetFloorAndCeilingByLineDirection:
+            case VanillaLineSpecialType.RotateCeilingByLineDirection:
+            case VanillaLineSpecialType.RotateFloorByLineDirection:
+            case VanillaLineSpecialType.RotateFloorAndCeilingByLineDirection:
+            case VanillaLineSpecialType.OffsetThenRotateFloorByLineDirection:
+            case VanillaLineSpecialType.OffsetThenRotateCeilingByLineDirection:
+            case VanillaLineSpecialType.OffsetThenRotateFloorAndCeilingByLineDirection:
                 activations = LineActivations.LevelStart;
                 return activations;
 

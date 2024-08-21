@@ -40,7 +40,7 @@ public static class DoomGeometryBuilder
     {
         double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
         string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
-        int handle = textureManager.GetTexture(texture, ResourceNamespace.Global).Index;
+        int handle = textureManager.GetTexture(texture, ResourceNamespace.Global, ResourceNamespace.Flats).Index;
         return new SectorPlane(face, z, handle, doomSector.LightLevel);
     }
 
@@ -62,7 +62,7 @@ public static class DoomGeometryBuilder
 
     private static Texture GetWallTexture(TextureManager textureManager, string textureName)
     {
-        return textureManager.GetTexture(textureName, ResourceNamespace.Global);
+        return textureManager.GetTexture(textureName, ResourceNamespace.Global, ResourceNamespace.Textures);
     }
 
     private static (Side front, Side? back) CreateSingleSide(DoomLine doomLine, GeometryBuilder builder,
