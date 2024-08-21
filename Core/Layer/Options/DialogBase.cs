@@ -25,8 +25,6 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
 
     private readonly string? m_acceptButton = acceptButton;
     private readonly string? m_cancelButton = cancelButton;
-    private readonly List<string> m_lines = [];
-    private readonly StringBuilder m_builder = new();
     protected readonly ConfigHud m_config = config;
 
     protected Dimension m_selectorSize;
@@ -36,7 +34,10 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
     protected Dimension m_box;
     protected Box2I m_dialogBox;
     protected Vec2I m_dialogOffset;
-    protected BoxList m_buttonPosList = new();
+    private BoxList m_buttonPosList = new();
+    private List<Action> m_buttonActionList = new();
+    private int m_buttonIndex = 0;
+    private StringBuilder m_textWrapBuilder = new();
 
     public void Dispose()
     {
@@ -48,11 +49,18 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         {
             var mousePos = input.Manager.MousePosition;
 
-            if (m_buttonPosList.GetIndex(mousePos, out var buttonIndex) ||
-                !m_dialogBox.Contains(mousePos))
+            if (m_buttonPosList.GetIndex(mousePos, out var buttonIndex))
             {
-                InvokeClose(new(buttonIndex == 0));
+                m_buttonActionList[buttonIndex]();
                 return;
+            }
+            else if (m_dialogBox.Contains(mousePos))
+            {
+                HandleClickInWindow(mousePos);
+            }
+            else
+            {
+                InvokeClose(new(false));
             }
         }
 
@@ -64,6 +72,11 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
 
     public virtual bool OnClickableItem(Vec2I mousePosition) =>
         m_buttonPosList.GetIndex(mousePosition, out _);
+
+    /// <summary>
+    /// When overridden in a derived class, this should handle clicking things that aren't marked as buttons.
+    /// </summary>
+    protected virtual void HandleClickInWindow(Vec2I mousePosition) { }
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
@@ -78,6 +91,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         var size = new Dimension(Math.Max(hud.Width / 2, 320), Math.Max(hud.Height / 2, 200));
         hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
 
+        Dimension lastBox = m_box;
         m_box = new(size.Width - m_padding * 2, size.Height - m_padding * 2);
         m_dialogOffset = new Vec2I(size.Width / 2, size.Height / 2);
         m_dialogBox = new(m_dialogOffset, (m_dialogOffset.X + m_box.Width, m_dialogOffset.Y + m_box.Height));
@@ -91,12 +105,12 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
 
             if (m_acceptButton != null)
             {
-                RenderButton(ctx, hud, m_acceptButton, 0);
+                RenderButton(hud, m_acceptButton, () => InvokeClose(new(true)));
                 hud.AddOffset((-m_padding, 0));
             }
 
             if (m_cancelButton != null)
-                RenderButton(ctx, hud, m_cancelButton, 1);
+                RenderButton(hud, m_cancelButton, () => InvokeClose(new(false)));
 
             hud.PopOffset();
         }
@@ -105,17 +119,17 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         // When dialog contents are rendered, vertical offset is at a point suitable for rendering new elements.
         // Horizontal offset is set to the left side of the screen in case we need to draw something centered on the screen,
         // as in the color picker dialog.
-        this.RenderDialogContents(ctx, hud);
+        this.RenderDialogContents(ctx, hud, !m_box.Equals(lastBox));
         hud.PopOffset();
     }
 
     /// <summary>
     /// Render the contents of the dialog.
     /// </summary>
-    protected abstract void RenderDialogContents(IRenderableSurfaceContext ctx, IHudRenderContext hud);
+    protected abstract void RenderDialogContents(IRenderableSurfaceContext ctx, IHudRenderContext hud, bool sizeChanged);
 
     /// <summary>
-    /// Print a string of text, with line wrapping applied if needed, auto-incrementing the vertical offset after each line.
+    /// Print a string of text, auto-incrementing the vertical offset afterward
     /// </summary>
     protected void RenderDialogText(
         IHudRenderContext hud,
@@ -131,24 +145,32 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
             return;
         }
 
-        LineWrap.Calculate(message, Font, m_fontSize, m_box.Width, hud, m_lines, m_builder, out _);
-        foreach (var line in m_lines)
-        {
-            hud.Text(line, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign);
-            hud.AddOffset((0, m_rowHeight + m_padding));
-        }
+        hud.Text(message, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width);
+        hud.AddOffset((0, m_rowHeight + m_padding));
+    }
+
+    protected string TruncateTextToDialogWidth(string text, IHudRenderContext hud)
+    {
+        return LineWrap.Truncate(text, Font, m_fontSize, m_box.Width, hud).ToString();
+    }
+
+    protected void WrapTextToDialogWidth(string text, IHudRenderContext hud, List<string> wrappedLines)
+    {
+        LineWrap.Calculate(text, Font, m_fontSize, m_box.Width, hud, wrappedLines, m_textWrapBuilder, out _);
     }
 
     public virtual void RunLogic(TickerInfo tickerInfo)
     {
     }
 
-    protected void RenderButton(IRenderableSurfaceContext ctx, IHudRenderContext hud, string text, int index)
+    protected void RenderButton(IHudRenderContext hud, string text, Action buttonAction)
     {
         var dim = hud.MeasureText(text, Font, m_fontSize);
         hud.Text(text, Font, m_fontSize, (-dim.Width, 0));
         hud.AddOffset((-dim.Width, 0));
-        m_buttonPosList.Add(new(hud.GetOffset(), hud.GetOffset() + new Vec2I(dim.Width, dim.Height)), index);
+        m_buttonPosList.Add(new(hud.GetOffset(), hud.GetOffset() + new Vec2I(dim.Width, dim.Height)), m_buttonIndex);
+        m_buttonActionList.Add(buttonAction);
+        m_buttonIndex++;
     }
 
     protected void InvokeClose(DialogCloseArgs e)
