@@ -30,15 +30,13 @@ using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using static Helion.Util.Assertion.Assert;
-using static Helion.Util.Constants;
 
 namespace Helion.Render;
 
 public record struct FieldOfViewInfo(float Width, float Height, float FovY);
 
-public class Renderer : IDisposable
+public partial class Renderer : IDisposable
 {
     public const float ZNearMin = 0.2f;
     public const float ZNearMax = 7.9f;
@@ -62,8 +60,6 @@ public class Renderer : IDisposable
 
     private IWorld? m_world;
     private GLBufferTexture? m_colorMapBuffer;
-    private GLBufferTexture? m_sectorColorMapsBuffer;
-    private GLMappedBuffer<float> m_mappedSectorColorMapsBuffer;
     private Rectangle m_viewport = new(0, 0, 800, 600);
     private bool m_disposed;
 
@@ -116,52 +112,6 @@ public class Renderer : IDisposable
         }
 
         ShaderVars.ReversedZ = m_config.Developer.ReversedZ;
-    }
-
-    public unsafe void UpdateToNewWorld(IWorld world)
-    {
-        m_worldRenderer.UpdateToNewWorld(world);
-        m_automapRenderer.UpdateTo(world);
-
-        if (m_world != null)
-        {
-            m_world.SectorColorMapChanged -= World_SectorColorMapChanged;
-        }
-
-        m_world = world;
-        m_world.SectorColorMapChanged += World_SectorColorMapChanged;
-
-        if (ShaderVars.ColorMap)
-        {
-            m_sectorColorMapsBuffer?.Dispose();
-            // First index will always map to default colormap
-            int sectorBufferCount = world.Sectors.Count + 1;
-            var sectorBuffer = new float[sectorBufferCount * 4];
-
-            m_sectorColorMapsBuffer = new("Sector colormaps", sectorBuffer, SizedInternalFormat.R32f, GLInfo.MapPersistentBitSupported);
-            m_sectorColorMapsBuffer.Map(data =>
-            {
-                float* lightBuffer = (float*)data.ToPointer();
-                for (int i = 0; i < world.Sectors.Count; i++)
-                {
-                    var sector = world.Sectors[i];
-                    if (sector.Colormap != null)
-                        lightBuffer[i + 1] = sector.Colormap.Index;
-                }
-            });
-
-            if (GLInfo.MapPersistentBitSupported)
-            {
-                //m_mappedSectorColorMapsBuffer.Dispose();
-                m_sectorColorMapsBuffer.BindBuffer();
-                m_mappedSectorColorMapsBuffer = m_sectorColorMapsBuffer.MapWithDisposable();
-                m_sectorColorMapsBuffer.UnbindBuffer();
-            }
-        }
-    }
-
-    private void World_SectorColorMapChanged(object? sender, Sector sector)
-    {
     }
 
     ~Renderer()
@@ -379,6 +329,7 @@ public class Renderer : IDisposable
         SetupAndBindVirtualFramebuffer();
         BindColorMapBuffer();
         BindSectorColorMapBuffer();
+        BindLightBuffer();
 
         // This has to be tracked beyond just the rendering command, and it
         // also prevents something from going terribly wrong if there is no
@@ -441,12 +392,12 @@ public class Renderer : IDisposable
 
     private void BindSectorColorMapBuffer()
     {
-        if (m_sectorColorMapsBuffer != null)
-        {
-            GL.ActiveTexture(TextureUnit.Texture3);
-            m_sectorColorMapsBuffer.BindTexture();
-            m_sectorColorMapsBuffer.BindTexBuffer();
-        }
+        m_sectorColorMapsBuffer?.BindTexture(TextureUnit.Texture3);
+    }
+
+    private void BindLightBuffer()
+    {
+        m_lightBufferStorage?.BindTexture(TextureUnit.Texture1);
     }
 
     private void SetupAndBindVirtualFramebuffer()
@@ -610,6 +561,7 @@ public class Renderer : IDisposable
 
         if (!ShaderVars.ReversedZ)
         {
+            UpdateBuffers();
             m_worldRenderer.Render(cmd.World, m_renderInfo);
             return;
         }
@@ -621,6 +573,7 @@ public class Renderer : IDisposable
         GL.ClearDepth(0.0);
         GL.Clear(ClearBufferMask.DepthBufferBit);
 
+        UpdateBuffers();
         m_worldRenderer.Render(cmd.World, m_renderInfo);
 
         GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.NegativeOneToOne);
@@ -653,6 +606,8 @@ public class Renderer : IDisposable
         m_worldRenderer.Dispose();
         m_framebufferRenderer.Dispose();
         m_automapRenderer.Dispose();
+        m_lightBufferStorage?.Dispose();
+        m_sectorColorMapsBuffer?.Dispose();
 
         m_disposed = true;
     }

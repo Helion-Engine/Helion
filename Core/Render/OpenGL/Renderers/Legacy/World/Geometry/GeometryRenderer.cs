@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Shared.World;
-using Helion.Render.OpenGL.Context;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
@@ -15,7 +14,6 @@ using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Render.OpenGL.Textures;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -29,7 +27,6 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Static;
-using OpenTK.Graphics.OpenGL;
 using static Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -53,8 +50,6 @@ public class GeometryRenderer : IDisposable
     private readonly LegacySkyRenderer m_skyRenderer;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly MidTextureHack m_midTextureHack = new();
-    private GLBufferTexture? m_lightBuffer;
-    private GLBufferTextureStorage? m_lightBufferStorage;
     private double m_tickFraction;
     //private bool m_skyOverride;
     private bool m_floorChanged;
@@ -82,7 +77,6 @@ public class GeometryRenderer : IDisposable
     // List of each subsector mapped to a sector id
     private DynamicArray<Subsector>[] m_subsectors = Array.Empty<DynamicArray<Subsector>>();
     private int[] m_drawnSides = Array.Empty<int>();
-    private float[] m_lightBufferData = Array.Empty<float>();
 
     private TextureManager TextureManager => m_archiveCollection.TextureManager;
 
@@ -158,13 +152,7 @@ public class GeometryRenderer : IDisposable
 
             if (m_drawnSides.Length < world.Sides.Count)
                 m_drawnSides = new int[world.Sides.Count];
-
-            const int FloatSize = 4;
-            m_lightBufferData = new float[world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize)];
         }
-
-        m_lightBufferStorage?.Dispose();
-        m_lightBufferStorage = new("Sector lights texture buffer", m_lightBufferData, SizedInternalFormat.R32f, GLInfo.MapPersistentBitSupported);
 
         for (int i = 0; i < world.Sides.Count; i++)
             m_drawnSides[i] = -1;
@@ -176,7 +164,7 @@ public class GeometryRenderer : IDisposable
         SetFloodSectors(world);
 
         Portals.UpdateTo(world);
-        m_staticCacheGeometryRenderer.UpdateTo(world, m_lightBufferStorage);
+        m_staticCacheGeometryRenderer.UpdateTo(world);
         m_worldDataManager.InitCoverWallRenderData(m_glTextureManager.WhiteTexture, m_program);
     }
 
@@ -325,9 +313,6 @@ public class GeometryRenderer : IDisposable
         m_lineDrawnTracker.ClearDrawnLines();
         AlphaSides.Clear();
     }
-
-    public void StartRenderStaticGeometry() =>
-        m_staticCacheGeometryRenderer.StartRender();
 
     public void RenderStaticGeometryWalls() =>
         m_staticCacheGeometryRenderer.RenderWalls();
@@ -631,7 +616,7 @@ public class GeometryRenderer : IDisposable
         if (side.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
             int sectorIndex = renderSector.Id + 1;
-            int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Wall);
+            int lightIndex = Renderer.GetLightBufferIndex(renderSector, LightBufferType.Wall);
             WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, ref wall, isFront: isFront);
             if (m_cacheOverride)
             {
@@ -856,7 +841,7 @@ public class GeometryRenderer : IDisposable
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
                 int sectorIndex = facingSector.Id + 1;
-                int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
+                int lightIndex = Renderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
                 // This lower would clip into the upper texture. Pick the upper as the priority and stop at the ceiling.
                 if (top.Z > otherSector.Ceiling.Z && !TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                     top = otherSector.Ceiling;
@@ -976,7 +961,7 @@ public class GeometryRenderer : IDisposable
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
                 int sectorIndex = facingSector.Id + 1;
-                int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
+                int lightIndex = Renderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
                 WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse, isFrontSide, ref wall);
                 if (m_cacheOverride)
                 {
@@ -1016,7 +1001,7 @@ public class GeometryRenderer : IDisposable
 
         GLLegacyTexture texture = m_glTextureManager.GetTexture(lowerWall.TextureHandle);
         int sectorIndex = facingSector.Id + 1;
-        int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
+        int lightIndex = Renderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
         if (location == WallLocation.Upper)
             WorldTriangulator.HandleTwoSidedUpper(facingSide, facingSector.Ceiling, otherSector.Ceiling, texture.UVInverse, isFrontSide, ref wall);
         else
@@ -1114,7 +1099,7 @@ public class GeometryRenderer : IDisposable
                 prevOffset = GetTransferHeightHackOffset(facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: true);
 
             int sectorIndex = facingSector.Id + 1;
-            int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
+            int lightIndex = Renderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
             WallVertices wall = default;
             WorldTriangulator.HandleTwoSidedMiddle(facingSide,
                 texture.Dimension, texture.UVInverse, opening, prevOpening, isFrontSide, ref wall, out _, offset, prevOffset, 
@@ -1282,8 +1267,8 @@ public class GeometryRenderer : IDisposable
             if (generate || flatChanged)
             {
                 int sectorIndex = flat.Sector.Id + 1;
-                int lightIndex = floor ? StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Floor) :
-                            StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Ceiling);
+                int lightIndex = floor ? Renderer.GetLightBufferIndex(renderSector, LightBufferType.Floor) :
+                            Renderer.GetLightBufferIndex(renderSector, LightBufferType.Ceiling);
                 for (int j = 0; j < subsectors.Length; j++)
                 {
                     Subsector subsector = subsectors[j];
@@ -1750,7 +1735,5 @@ public class GeometryRenderer : IDisposable
         m_staticCacheGeometryRenderer.Dispose();
         m_skyRenderer.Dispose();
         Portals.Dispose();
-        if (m_lightBuffer != null)
-            m_lightBuffer.Dispose();
     }
 }

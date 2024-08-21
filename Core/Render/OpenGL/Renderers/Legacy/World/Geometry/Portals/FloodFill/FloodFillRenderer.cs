@@ -137,7 +137,7 @@ public class FloodFillRenderer : IDisposable
         float prevPlaneZ = (float)sectorPlane.PrevZ;
         FloodFillInfo floodFillInfo = GetOrCreateFloodFillInfo(sectorPlane);
 
-        int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(sectorPlane.Sector,
+        int lightIndex = Renderer.GetLightBufferIndex(sectorPlane.Sector,
             sectorPlane.Facing == SectorPlaneFace.Floor ? LightBufferType.Floor : LightBufferType.Ceiling);
 
         for (int i = 0; i < m_freeData.Count; i++)

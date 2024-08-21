@@ -270,7 +270,6 @@ public class LegacyWorldRenderer : WorldRenderer
             m_staticProgram.Bind();
             GL.ActiveTexture(TextureUnit.Texture0);
             SetStaticUniforms(renderInfo);
-            m_geometryRenderer.StartRenderStaticGeometry();
             m_geometryRenderer.RenderStaticGeometryWalls();
             m_geometryRenderer.RenderStaticTwoSidedWalls();
             m_geometryRenderer.RenderStaticGeometryFlats();
@@ -296,7 +295,6 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetStaticUniforms(renderInfo);
-        m_geometryRenderer.StartRenderStaticGeometry();
         m_geometryRenderer.RenderStaticGeometryWalls();
         m_geometryRenderer.RenderStaticGeometryFlats();
         m_geometryRenderer.RenderStaticTwoSidedWalls();

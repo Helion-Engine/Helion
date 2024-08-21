@@ -17,10 +17,7 @@ using Helion.World.Geometry.Walls;
 using Helion.World.Static;
 using System;
 using System.Collections.Generic;
-using Helion.Render.OpenGL.Textures;
-using Helion.Render.OpenGL.Util;
 using OpenTK.Graphics.OpenGL;
-using Helion.Render.OpenGL.Context;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
@@ -43,9 +40,6 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly FreeGeometryManager m_freeManager = new();
     private readonly LegacySkyRenderer m_skyRenderer;
 
-    private readonly DynamicArray<Sector> m_updateLightSectors = new();
-    private readonly DynamicArray<int> m_updateLightSectorsLookup = new();
-
     private readonly SkyGeometryManager m_skyGeometry = new();
     private readonly LookupArray<List<Sector>?> m_transferHeightsLookup = new();
     private readonly List<Sector> m_initMoveSectors = [];
@@ -58,8 +52,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private bool m_disposed;
     private IWorld m_world = null!;
-    GLBufferTextureStorage? m_lightBufferStorage;
-    private int m_counter;
     private bool m_vanillaRender;
 
     public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
@@ -89,12 +81,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         Dispose(false);
     }
 
-    public void UpdateTo(IWorld world, GLBufferTextureStorage lightBufferStorage)
+    public void UpdateTo(IWorld world)
     {
         m_vanillaRender = world.Config.Render.VanillaRender;
         ClearData(world);
-
-        m_updateLightSectors.FlushReferences();
 
         m_world = world;
 
@@ -102,9 +92,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.SectorMoveComplete += World_SectorMoveComplete;
         m_world.SideTextureChanged += World_SideTextureChanged;
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
-        m_world.SectorLightChanged += World_SectorLightChanged;
 
-        SetLightBufferData(world, lightBufferStorage);
         m_geometryRenderer.SetInitRender();
 
         if (!world.SameAsPreviousMap)
@@ -160,10 +148,6 @@ public class StaticCacheGeometryRenderer : IDisposable
                 data.Vbo.UploadIfNeeded();
             }
         }
-
-        UpdateLookup(m_updateLightSectorsLookup, world.Sectors.Count);
-
-        m_lightBufferStorage = lightBufferStorage;
     }
 
     private void UpdateSectorPlaneFloodFill(Line line)
@@ -217,54 +201,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             else
                 facingSide.LowerFloodKeys = Side.NoFloodKeys;
         }  
-    }
-
-    public static int GetLightBufferIndex(Sector sector, LightBufferType type)
-    {
-        int index = sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart;
-        switch (type)
-        {
-            case LightBufferType.Floor:
-                return sector.TransferFloorLightSector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart + Constants.LightBuffer.FloorOffset;
-            case LightBufferType.Ceiling:
-                return sector.TransferCeilingLightSector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart + Constants.LightBuffer.CeilingOffset;
-            case LightBufferType.Wall:
-                return sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart + Constants.LightBuffer.WallOffset;
-        }
-
-        return index;
-    }
-
-    private unsafe void SetLightBufferData(IWorld world, GLBufferTextureStorage lightBufferStorage)
-    {
-        lightBufferStorage.Map(data =>
-        {
-            float* lightBuffer = (float*)data.ToPointer();
-            lightBuffer[Constants.LightBuffer.DarkIndex] = 0;
-            lightBuffer[Constants.LightBuffer.FullBrightIndex] = 255;
-
-            for (int i = 0; i < Constants.LightBuffer.ColorMapCount; i++)
-                lightBuffer[Constants.LightBuffer.ColorMapStartIndex + i] =
-                    256 - ((Constants.LightBuffer.ColorMapCount - i) * 256 / Constants.LightBuffer.ColorMapCount);
-
-            for (int i = 0; i < world.Sectors.Count; i++)
-            {
-                Sector sector = world.Sectors[i];
-                int index = sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart;
-                lightBuffer[index + Constants.LightBuffer.FloorOffset] = sector.Floor.LightLevel;
-                lightBuffer[index + Constants.LightBuffer.CeilingOffset] = sector.Ceiling.LightLevel;
-                lightBuffer[index + Constants.LightBuffer.WallOffset] = sector.LightLevel;
-            }
-        });
-    }
-
-    private static void UpdateLookup(DynamicArray<int> array, int count)
-    {
-        if (array.Capacity < count)
-            array.Resize(count);
-
-        for (int i = 0; i < array.Capacity; i++)
-            array.Data[i] = -1;
     }
 
     private void AddTransferSector(Sector sector)
@@ -586,7 +522,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_world.SectorMoveComplete -= World_SectorMoveComplete;
             m_world.SideTextureChanged -= World_SideTextureChanged;
             m_world.PlaneTextureChanged -= World_PlaneTextureChanged;
-            m_world.SectorLightChanged -= World_SectorLightChanged;
             m_world = null!;
         }
 
@@ -612,10 +547,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_freeManager.Clear();
         m_skyRenderer.Clear();
         m_skyGeometry.Clear();
-        m_updateLightSectors.Clear();
-
-        m_updateLightSectors.FlushReferences();
-        m_updateLightSectors.FlushReferences();
 
         m_transferHeightsLookup.SetAll(null);
     }
@@ -663,13 +594,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         AddVertices(vertices, renderedVertices, sector.Id + 1);
     }
 
-    public void StartRender()
-    {
-        UpdateLights();
-
-        m_lightBufferStorage?.BindTexture(TextureUnit.Texture1);
-        m_counter++;
-    }
 
     public void RenderWalls()
     {
@@ -727,28 +651,6 @@ public class StaticCacheGeometryRenderer : IDisposable
             data.Vbo.Bind();
             data.Vbo.DrawArrays();
         }
-    }
-
-    private unsafe void UpdateLights()
-    {
-        if (m_updateLightSectors.Length == 0 || m_lightBufferStorage == null)
-            return;
-
-        GLMappedBuffer<float> lightBuffer = m_lightBufferStorage.GetMappedBufferAndBind();
-        float* lightData = lightBuffer.MappedMemoryPtr;
-
-        for (int i = 0; i < m_updateLightSectors.Length; i++)
-        {
-            Sector sector = m_updateLightSectors[i];
-            float level = sector.LightLevel;
-            int index = sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart;
-            lightData[index + Constants.LightBuffer.FloorOffset] = level;
-            lightData[index + Constants.LightBuffer.CeilingOffset] = level;
-            lightData[index + Constants.LightBuffer.WallOffset] = level;
-        }
-
-        m_lightBufferStorage.Unbind();
-        m_updateLightSectors.Clear();
     }
 
     public void RenderSkies(RenderInfo renderInfo)
@@ -916,15 +818,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometryRenderer.SetTransferHeightView(TransferHeightView.Middle);
         m_geometryRenderer.SetViewSector(DefaultSector);
         AddSectorPlane(e.Plane.Sector, e.Plane.Facing == SectorPlaneFace.Floor, update: true);
-    }
-
-    private void World_SectorLightChanged(object? sender, Sector e)
-    {
-        if (m_updateLightSectorsLookup.Data[e.Id] == m_counter)
-            return;
-
-        m_updateLightSectorsLookup.Data[e.Id] = m_counter;
-        m_updateLightSectors.Add(e);
     }
 
     private static bool ClearGeometryVertices(in StaticGeometryData data)
