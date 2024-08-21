@@ -153,7 +153,8 @@ public class ListedConfigSection : IOptionSection
                 if (configData.CfgValue.ObjectValue is FileInfo)
                 {
                     lockOptions |= LockOptions.AllowMouse;
-                    m_dialog = new FileListDialog(m_config.Hud, configData.CfgValue, configData.Attr);
+                    // For now, the only one of these we have is for SoundFonts.  
+                    m_dialog = new FileListDialog(m_config.Hud, configData.CfgValue, configData.Attr, ".SF2,.SF3");
                     m_dialog.OnClose += Dialog_OnClose;
                 }
 

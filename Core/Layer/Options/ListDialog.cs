@@ -16,6 +16,7 @@ internal abstract class ListDialog : DialogBase
     private const string ScrollIndicator = "|";
     private readonly IConfigValue m_configValue;
     private readonly OptionMenuAttribute m_attr;
+    private int m_maxVisibleRows;
     private int m_listFirstY;
     private int m_selectedRow;
     private int m_firstVisibleRow;
@@ -35,20 +36,25 @@ internal abstract class ListDialog : DialogBase
     }
 
     /// <summary>
-    /// Return a list of strings the user can select from the dialog
-    /// </summary>        
-    protected abstract void PopulateListElements(List<string> valuesList);
+    /// Modify the list of elements that are displayed in this dialog.
+    /// </summary>
+    /// <param name="valuesList">The list of elements displayed in the dialog.  This is persistent between renders
+    /// and after initial population, it only needs to be changed if the underlying options have changed for some reason.
+    protected abstract void ModifyListElements(List<string> valuesList);
 
     /// <summary>
-    /// Render any additional messages or controls needed at the top of the dialog, and add text offsets so we know 
-    /// where to render the list.
+    /// Render any additional messages or controls needed at the top of the dialog.
+    /// Implementers should be careful to add a vertical offset, so we know where we can start drawing the list below.
     /// </summary>
     protected abstract void RenderDialogHeader(IHudRenderContext hud);
 
     /// <summary>
-    /// Called when the selected string has changed
+    /// Handle selected row changes
     /// </summary>
-    protected abstract void SelectedRowChanged(string selectedRowLabel, int selectedRowId, bool mouseClick);
+    /// <param name="selectedRowLabel">The text label of the selected row</param>
+    /// <param name="selectedRowIndex">The index of the selected row</param>
+    /// <param name="mouseClick">Whether the selection was done via mouse click instead of keypresses</param>
+    protected abstract void SelectedRowChanged(string selectedRowLabel, int selectedRowIndex, bool mouseClick);
 
     /// <summary>
     /// Handle selecting whatever list item the user wants
@@ -70,7 +76,7 @@ internal abstract class ListDialog : DialogBase
         RenderDialogHeader(hud);
 
         int length = m_values.Count;
-        PopulateListElements(m_values);
+        ModifyListElements(m_values);
 
         int verticalOffset = hud.GetOffset().Y;
         if (m_values.Count != length || verticalOffset != m_listFirstY)
@@ -88,23 +94,23 @@ internal abstract class ListDialog : DialogBase
 
             // Calculate how many lines we can fit after the header.
             // Subtract 2 to make room for OK/Cancel buttons and their padding.
-            int maxVisibleRows = (m_dialogBox.Max.Y - m_listFirstY) / (m_rowHeight + m_padding) - 2;
-            m_hasScrollBar = maxVisibleRows < m_values.Count;
+            m_maxVisibleRows = (m_dialogBox.Max.Y - m_listFirstY) / (m_rowHeight + m_padding) - 1;
+            m_hasScrollBar = m_maxVisibleRows < m_values.Count;
 
             if (m_selectedRow == 0)
             {
                 m_firstVisibleRow = 0;
-                m_lastVisibleRow = Math.Min(m_values.Count - 1, maxVisibleRows);
+                m_lastVisibleRow = Math.Min(m_values.Count - 1, m_maxVisibleRows - 1);
             }
             else if (m_selectedRow > m_lastVisibleRow)
             {
                 m_lastVisibleRow = m_selectedRow;
-                m_firstVisibleRow = Math.Max(0, m_selectedRow - maxVisibleRows);
+                m_firstVisibleRow = Math.Max(0, m_selectedRow - m_maxVisibleRows + 1);
             }
             else if (m_selectedRow < m_firstVisibleRow)
             {
                 m_firstVisibleRow = m_selectedRow;
-                m_lastVisibleRow = Math.Min(m_values.Count - 1, m_selectedRow + maxVisibleRows);
+                m_lastVisibleRow = Math.Min(m_values.Count - 1, m_selectedRow + m_maxVisibleRows - 1);
             }
 
             m_ensureSelectedVisible = false;
@@ -122,8 +128,11 @@ internal abstract class ListDialog : DialogBase
         if (m_hasScrollBar)
         {
             Geometry.Dimension scrollBarDimension = hud.MeasureText(ScrollIndicator, Font, m_fontSize);
-            double listScrollFraction = 1d - (double)(m_values.Count - m_lastVisibleRow) / (m_values.Count - (m_lastVisibleRow - m_firstVisibleRow));
-            int verticalPosition = (int)((m_dialogBox.Max.Y - m_listFirstY - scrollBarDimension.Height) * listScrollFraction) + m_listFirstY;
+            int scrollBufferSize = m_values.Count - m_maxVisibleRows;
+            int scrollOffset = m_lastVisibleRow + 1 - m_maxVisibleRows;
+            double scrollFraction = (double)scrollOffset / scrollBufferSize;
+            int scrollbarOffset = scrollBarDimension.Height + m_padding + m_rowHeight;  // Pad for the OK/Cancel buttons
+            int verticalPosition = (int)((m_dialogBox.Max.Y - m_listFirstY - scrollbarOffset) * scrollFraction) + m_listFirstY;
 
             hud.Text(ScrollIndicator, Font, m_fontSize, (m_dialogBox.Max.X - scrollBarDimension.Width, verticalPosition), color: Color.Red);
         }

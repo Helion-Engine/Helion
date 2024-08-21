@@ -12,12 +12,7 @@ namespace Helion.Layer.Options;
 
 internal class FileListDialog : ListDialog
 {
-    private static readonly HashSet<string> SoundFontFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-    {
-        ".SF2",
-        ".SF3"
-    };
-
+    private readonly HashSet<string> m_supportedFileExtensions;
     private int m_valueStartX;
 
     private int m_row;
@@ -28,9 +23,13 @@ internal class FileListDialog : ListDialog
 
     public FileInfo? SelectedFile => new FileInfo(Path.Combine(m_path, m_file));
 
-    public FileListDialog(ConfigHud config, IConfigValue configValue, OptionMenuAttribute attr)
+    public FileListDialog(ConfigHud config, IConfigValue configValue, OptionMenuAttribute attr, string supportedFileExtensions)
         : base(config, configValue, attr)
     {
+        m_supportedFileExtensions = new HashSet<string>(
+            supportedFileExtensions.Split(",", StringSplitOptions.RemoveEmptyEntries),
+            StringComparer.OrdinalIgnoreCase);
+
         try
         {
             FileInfo file = (FileInfo)ConfigValue.ObjectValue;
@@ -89,7 +88,7 @@ internal class FileListDialog : ListDialog
         m_listsNeedUpdate = true;
     }
 
-    protected override void PopulateListElements(List<string> valuesList)
+    protected override void ModifyListElements(List<string> valuesList)
     {
         if (m_listsNeedUpdate)
         {
@@ -110,15 +109,15 @@ internal class FileListDialog : ListDialog
                 try
                 {
                     DirectoryInfo[] subDirectories = directory.GetDirectories();
-                    FileInfo[] soundFontFiles = directory.GetFiles()
-                        .Where(f => SoundFontFileExtensions.Contains(f.Extension))
+                    FileInfo[] filteredFiles = directory.GetFiles()
+                        .Where(f => m_supportedFileExtensions.Contains(f.Extension))
                         .ToArray();
 
                     m_valuesListRaw.AddRange(subDirectories.Select(sd => sd.Name));
-                    m_valuesListRaw.AddRange(soundFontFiles.Select(f => f.Name));
+                    m_valuesListRaw.AddRange(filteredFiles.Select(f => f.Name));
 
                     valuesList.AddRange(subDirectories.Select(sd => $"[{sd.Name}]"));
-                    valuesList.AddRange(soundFontFiles.Select(f => f.Name));
+                    valuesList.AddRange(filteredFiles.Select(f => f.Name));
                 }
                 catch
                 {
@@ -142,6 +141,7 @@ internal class FileListDialog : ListDialog
             m_file = m_valuesListRaw[selectedRowId];
             if (mouseClick && Directory.Exists(Path.Combine(m_path, m_file)))
             {
+                // If the user clicked on a directory name using the mouse, assume that they want to open that directory.
                 ChangeDirectory();
             }
         }
