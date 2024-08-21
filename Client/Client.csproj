@@ -31,6 +31,15 @@
     <PackageReference Include="OpenAL.Soft" Version="1.19.1" />
     <PackageReference Include="OpenTK" Version="4.7.4" />
   </ItemGroup>
+  
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' OR '$(RuntimeIdentifier)' == 'win-x86'">
+    <!-- Publishing settings; tested extensively on Windows but not Linux, so currently restricted to just Windows -->
+    <SelfContained>True</SelfContained>
+    <PublishSingleFile>True</PublishSingleFile>
+    <PublishReadyToRun>True</PublishReadyToRun>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile >
+  </PropertyGroup>
+
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />

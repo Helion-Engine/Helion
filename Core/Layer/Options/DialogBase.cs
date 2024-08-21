@@ -12,7 +12,6 @@ using Helion.Window;
 using Helion.Window.Input;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Helion.Layer.Options;
 
@@ -25,8 +24,6 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
 
     private readonly string? m_acceptButton = acceptButton;
     private readonly string? m_cancelButton = cancelButton;
-    private readonly List<string> m_lines = [];
-    private readonly StringBuilder m_builder = new();
     protected readonly ConfigHud m_config = config;
 
     protected Dimension m_selectorSize;
@@ -129,7 +126,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
     protected abstract void RenderDialogContents(IRenderableSurfaceContext ctx, IHudRenderContext hud);
 
     /// <summary>
-    /// Print a string of text, with line wrapping applied if needed, auto-incrementing the vertical offset after each line.
+    /// Print a string of text, auto-incrementing the vertical offset afterward
     /// </summary>
     protected void RenderDialogText(
         IHudRenderContext hud,
@@ -137,8 +134,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         Color? color = null,
         TextAlign textAlign = TextAlign.Left,
         Align windowAlign = Align.TopLeft,
-        Align anchorAlign = Align.TopLeft,
-        bool wrapLines = true)
+        Align anchorAlign = Align.TopLeft)
     {
         if (!(message?.Length > 0))
         {
@@ -146,21 +142,13 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
             return;
         }
 
-        if (wrapLines)
-        {
-            LineWrap.Calculate(message, Font, m_fontSize, m_box.Width, hud, m_lines, m_builder, out _);
-            foreach (var line in m_lines)
-            {
-                hud.Text(line, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width);
-                hud.AddOffset((0, m_rowHeight + m_padding));
-            }
-        }
-        else
-        {
-            string truncated = LineWrap.Truncate(message, Font, m_fontSize, m_box.Width, hud);
-            hud.Text(truncated, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width, maxHeight: m_rowHeight);
-            hud.AddOffset((0, m_rowHeight + m_padding));
-        }
+        hud.Text(message, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width);
+        hud.AddOffset((0, m_rowHeight + m_padding));
+    }
+
+    protected string TruncateTextToDialogWidth(string text, IHudRenderContext hud)
+    {
+        return LineWrap.Truncate(text, Font, m_fontSize, m_box.Width, hud).ToString();
     }
 
     public virtual void RunLogic(TickerInfo tickerInfo)

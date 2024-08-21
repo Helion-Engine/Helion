@@ -12,12 +12,13 @@ namespace Helion.Layer.Options;
 
 internal class FileListDialog : ListDialog
 {
+    private const int BlinkIntervalMilliseconds = 500;
     private readonly HashSet<string> m_supportedFileExtensions;
-    private int m_valueStartX;
 
-    private int m_row;
     private string m_file;
     private string m_path;
+    private string? m_header;
+    private string? m_headerWithUnderscore;
     private List<string> m_valuesListRaw = new List<string>();
     private bool m_listsNeedUpdate = true;
 
@@ -76,10 +77,13 @@ internal class FileListDialog : ListDialog
         m_listsNeedUpdate = true;
     }
 
-    protected override void ModifyListElements(List<string> valuesList)
+    protected override void ModifyListElements(List<string> valuesList, IHudRenderContext hud)
     {
         if (m_listsNeedUpdate)
         {
+            m_header = TruncateTextToDialogWidth($"Directory: {m_path}", hud);
+            m_headerWithUnderscore = TruncateTextToDialogWidth($"Directory: {m_path}_", hud);
+
             m_valuesListRaw.Clear();
             valuesList.Clear();
 
@@ -104,8 +108,8 @@ internal class FileListDialog : ListDialog
                     m_valuesListRaw.AddRange(subDirectories.Select(sd => sd.Name));
                     m_valuesListRaw.AddRange(filteredFiles.Select(f => f.Name));
 
-                    valuesList.AddRange(subDirectories.Select(sd => $"[{sd.Name}]"));
-                    valuesList.AddRange(filteredFiles.Select(f => f.Name));
+                    valuesList.AddRange(subDirectories.Select(sd => TruncateTextToDialogWidth($"[{sd.Name}]", hud)));
+                    valuesList.AddRange(filteredFiles.Select(f => TruncateTextToDialogWidth(f.Name, hud)));
                 }
                 catch
                 {
@@ -119,7 +123,14 @@ internal class FileListDialog : ListDialog
 
     protected override void RenderDialogHeader(IHudRenderContext hud)
     {
-        RenderDialogText(hud, $"Directory: {m_path}", color: Graphics.Color.Yellow, wrapLines: false);
+        if (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / BlinkIntervalMilliseconds % 2 == 0)
+        {
+            RenderDialogText(hud, m_header ?? string.Empty, color: Graphics.Color.Yellow);
+        }
+        else
+        {
+            RenderDialogText(hud, m_headerWithUnderscore ?? string.Empty, color: Graphics.Color.Yellow);
+        }
     }
 
     protected override void SelectedRowChanged(string selectedRowLabel, int selectedRowId, bool mouseClick)

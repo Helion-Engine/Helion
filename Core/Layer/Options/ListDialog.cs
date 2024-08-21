@@ -42,7 +42,8 @@ internal abstract class ListDialog : DialogBase
     /// </summary>
     /// <param name="valuesList">The list of elements displayed in the dialog.  This is persistent between renders
     /// and after initial population, it only needs to be changed if the underlying options have changed for some reason.
-    protected abstract void ModifyListElements(List<string> valuesList);
+    /// Render context is provided only so that implementers can pre-truncate dialog strings.
+    protected abstract void ModifyListElements(List<string> valuesList, IHudRenderContext hud);
 
     /// <summary>
     /// Render any additional messages or controls needed at the top of the dialog.
@@ -78,7 +79,7 @@ internal abstract class ListDialog : DialogBase
         RenderDialogHeader(hud);
 
         int length = m_values.Count;
-        ModifyListElements(m_values);
+        ModifyListElements(m_values, hud);
 
         int verticalOffset = hud.GetOffset().Y;
         if (m_values.Count != length || verticalOffset != m_listFirstY)
@@ -123,7 +124,7 @@ internal abstract class ListDialog : DialogBase
         hud.PushOffset(hud.GetOffset());
         for (int rowIndex = m_firstVisibleRow; rowIndex <= m_lastVisibleRow; rowIndex++)
         {
-            RenderDialogText(hud, m_values[rowIndex], color: rowIndex == m_selectedRow ? Color.Yellow : null, wrapLines: false);
+            RenderDialogText(hud, m_values[rowIndex], color: rowIndex == m_selectedRow ? Color.Yellow : null);
         }
         hud.PopOffset();
 

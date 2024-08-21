@@ -7,7 +7,7 @@ namespace Helion.Layer.Options;
 
 internal static class LineWrap
 {
-    public static string Truncate(string inputText, string font, int fontSize, int maxWidth, IHudRenderContext hud)
+    public static ReadOnlySpan<char> Truncate(string inputText, string font, int fontSize, int maxWidth, IHudRenderContext hud)
     {
         if (string.IsNullOrEmpty(inputText))
         {
@@ -18,7 +18,7 @@ internal static class LineWrap
         {
             if (hud.MeasureText(inputText.AsSpan(0, i + 1), font, fontSize).Width > maxWidth)
             {
-                return inputText.AsSpan(0, i).ToString();
+                return inputText.AsSpan(0, i);
             }
         }
 
