@@ -36,7 +36,9 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
     protected Dimension m_box;
     protected Box2I m_dialogBox;
     protected Vec2I m_dialogOffset;
-    protected BoxList m_buttonPosList = new();
+    private BoxList m_buttonPosList = new();
+    private List<Action> m_buttonActionList = new();
+    private int m_buttonIndex = 0;
 
     public void Dispose()
     {
@@ -48,11 +50,18 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         {
             var mousePos = input.Manager.MousePosition;
 
-            if (m_buttonPosList.GetIndex(mousePos, out var buttonIndex) ||
-                !m_dialogBox.Contains(mousePos))
+            if (m_buttonPosList.GetIndex(mousePos, out var buttonIndex))
             {
-                InvokeClose(new(buttonIndex == 0));
+                m_buttonActionList[buttonIndex]();
                 return;
+            }
+            else if (m_dialogBox.Contains(mousePos))
+            {
+                HandleClickInWindow(mousePos);
+            }
+            else
+            {
+                InvokeClose(new(false));
             }
         }
 
@@ -64,6 +73,11 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
 
     public virtual bool OnClickableItem(Vec2I mousePosition) =>
         m_buttonPosList.GetIndex(mousePosition, out _);
+
+    /// <summary>
+    /// When overridden in a derived class, this should handle clicking things that aren't marked as buttons.
+    /// </summary>
+    protected virtual void HandleClickInWindow(Vec2I mousePosition) { }
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
@@ -91,12 +105,12 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
 
             if (m_acceptButton != null)
             {
-                RenderButton(ctx, hud, m_acceptButton, 0);
+                RenderButton(hud, m_acceptButton, () => InvokeClose(new(true)));
                 hud.AddOffset((-m_padding, 0));
             }
 
             if (m_cancelButton != null)
-                RenderButton(ctx, hud, m_cancelButton, 1);
+                RenderButton(hud, m_cancelButton, () => InvokeClose(new(false)));
 
             hud.PopOffset();
         }
@@ -143,7 +157,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         }
         else
         {
-            hud.Text(message, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width);
+            hud.Text(message, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width, maxHeight: m_rowHeight);
             hud.AddOffset((0, m_rowHeight + m_padding));
         }
     }
@@ -152,12 +166,14 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
     {
     }
 
-    protected void RenderButton(IRenderableSurfaceContext ctx, IHudRenderContext hud, string text, int index)
+    protected void RenderButton(IHudRenderContext hud, string text, Action buttonAction)
     {
         var dim = hud.MeasureText(text, Font, m_fontSize);
         hud.Text(text, Font, m_fontSize, (-dim.Width, 0));
         hud.AddOffset((-dim.Width, 0));
-        m_buttonPosList.Add(new(hud.GetOffset(), hud.GetOffset() + new Vec2I(dim.Width, dim.Height)), index);
+        m_buttonPosList.Add(new(hud.GetOffset(), hud.GetOffset() + new Vec2I(dim.Width, dim.Height)), m_buttonIndex);
+        m_buttonActionList.Add(buttonAction);
+        m_buttonIndex++;
     }
 
     protected void InvokeClose(DialogCloseArgs e)

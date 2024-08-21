@@ -23,7 +23,7 @@ internal class FileListDialog : ListDialog
     private int m_row;
     private string m_file;
     private string m_path;
-    private List<object> m_directoryContents = new List<object>();
+    private List<string> m_valuesListRaw = new List<string>();
     private bool m_listsNeedUpdate = true;
 
     public FileInfo? SelectedFile => new FileInfo(Path.Combine(m_path, m_file));
@@ -47,22 +47,10 @@ internal class FileListDialog : ListDialog
     public override void HandleInput(IConsumableInput input)
     {
         // Pressing enter will go into directory, IFF the currently selected item is a directory.
+        // Else be careful to fall through because OK is also Enter.
         if (Directory.Exists(Path.Combine(m_path, m_file)) && input.ConsumeKeyPressed(Window.Input.Key.Enter))
         {
-            m_path = Path.Combine(m_path, m_file);
-
-            // Simplify path to prevent accumulation of ".." tokens
-            if (Path.IsPathFullyQualified(m_path))
-            {
-                m_path = new DirectoryInfo(m_path).FullName;
-            }
-            else
-            {
-                m_path = Path.GetRelativePath(AppContext.BaseDirectory, m_path);
-            }
-
-            m_file = string.Empty;
-            m_listsNeedUpdate = true;
+            ChangeDirectory();
         }
 
         // Backspace and typed characters will change the current path directly
@@ -83,11 +71,29 @@ internal class FileListDialog : ListDialog
         base.HandleInput(input);
     }
 
+    private void ChangeDirectory()
+    {
+        m_path = Path.Combine(m_path, m_file);
+
+        // Simplify path to prevent accumulation of ".." tokens
+        if (Path.IsPathFullyQualified(m_path))
+        {
+            m_path = new DirectoryInfo(m_path).FullName;
+        }
+        else
+        {
+            m_path = Path.GetRelativePath(AppContext.BaseDirectory, m_path);
+        }
+
+        m_file = string.Empty;
+        m_listsNeedUpdate = true;
+    }
+
     protected override void PopulateListElements(List<string> valuesList)
     {
         if (m_listsNeedUpdate)
         {
-            m_directoryContents.Clear();
+            m_valuesListRaw.Clear();
             valuesList.Clear();
 
             DirectoryInfo directory = new DirectoryInfo(m_path.Length > 0 ? m_path : AppContext.BaseDirectory);
@@ -95,22 +101,29 @@ internal class FileListDialog : ListDialog
             if (directory?.Exists == true)
             {
                 DirectoryInfo? parent = directory.Parent;
-                DirectoryInfo[] subDirectories = directory.GetDirectories();
-                FileInfo[] soundFontFiles = directory.GetFiles()
-                    .Where(f => SoundFontFileExtensions.Contains(f.Extension))
-                    .ToArray();
-
                 if (parent != null)
                 {
-                    m_directoryContents.Add(parent);
-                    valuesList.Add("..");
+                    m_valuesListRaw.Add("..");
+                    valuesList.Add("[..]");
                 }
 
-                m_directoryContents.AddRange(subDirectories);
-                m_directoryContents.AddRange(soundFontFiles);
+                try
+                {
+                    DirectoryInfo[] subDirectories = directory.GetDirectories();
+                    FileInfo[] soundFontFiles = directory.GetFiles()
+                        .Where(f => SoundFontFileExtensions.Contains(f.Extension))
+                        .ToArray();
 
-                valuesList.AddRange(subDirectories.Select(sd => sd.Name));
-                valuesList.AddRange(soundFontFiles.Select(f => f.Name));
+                    m_valuesListRaw.AddRange(subDirectories.Select(sd => sd.Name));
+                    m_valuesListRaw.AddRange(soundFontFiles.Select(f => f.Name));
+
+                    valuesList.AddRange(subDirectories.Select(sd => $"[{sd.Name}]"));
+                    valuesList.AddRange(soundFontFiles.Select(f => f.Name));
+                }
+                catch
+                {
+                    // IO exceptions, permissions, etc.
+                }
             }
 
             m_listsNeedUpdate = false;
@@ -122,11 +135,15 @@ internal class FileListDialog : ListDialog
         RenderDialogText(hud, $"Directory: {m_path}", color: Graphics.Color.Yellow, wrapLines: false);
     }
 
-    protected override void SelectedRowChanged(string selectedRowLabel, int selectedRowId)
+    protected override void SelectedRowChanged(string selectedRowLabel, int selectedRowId, bool mouseClick)
     {
         try
         {
-            m_file = selectedRowLabel;
+            m_file = m_valuesListRaw[selectedRowId];
+            if (mouseClick && Directory.Exists(Path.Combine(m_path, m_file)))
+            {
+                ChangeDirectory();
+            }
         }
         catch
         {
