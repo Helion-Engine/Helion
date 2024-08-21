@@ -1,5 +1,4 @@
-﻿using Helion.Geometry;
-using Helion.Render.Common.Renderers;
+﻿using Helion.Render.Common.Renderers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,6 +7,24 @@ namespace Helion.Layer.Options;
 
 internal static class LineWrap
 {
+    public static string Truncate(string inputText, string font, int fontSize, int maxWidth, IHudRenderContext hud)
+    {
+        if (string.IsNullOrEmpty(inputText))
+        {
+            return inputText;
+        }
+
+        for (int i = 0; i < inputText.Length; i++)
+        {
+            if (hud.MeasureText(inputText.AsSpan(0, i + 1), font, fontSize).Width > maxWidth)
+            {
+                return inputText.AsSpan(0, i).ToString();
+            }
+        }
+
+        return inputText;
+    }
+
     public static void Calculate(string inputText, string font, int fontSize, int maxWidth, IHudRenderContext hud, List<string> lines, StringBuilder builder,
         out int requiredHeight)
     {

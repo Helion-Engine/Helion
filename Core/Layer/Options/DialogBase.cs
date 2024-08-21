@@ -157,7 +157,8 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         }
         else
         {
-            hud.Text(message, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width, maxHeight: m_rowHeight);
+            string truncated = LineWrap.Truncate(message, Font, m_fontSize, m_box.Width, hud);
+            hud.Text(truncated, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width, maxHeight: m_rowHeight);
             hud.AddOffset((0, m_rowHeight + m_padding));
         }
     }

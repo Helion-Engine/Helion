@@ -1,4 +1,5 @@
-﻿using Helion.Geometry.Vectors;
+﻿using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
@@ -23,6 +24,7 @@ internal abstract class ListDialog : DialogBase
     private int m_lastVisibleRow;
     private bool m_ensureSelectedVisible = true;
     private bool m_hasScrollBar = false;
+    private Dimension? m_scrollBarDimension;
 
     public IConfigValue ConfigValue => m_configValue;
     private readonly List<string> m_values = new List<string>();
@@ -93,7 +95,7 @@ internal abstract class ListDialog : DialogBase
             // Snap scroll bounds to fit selection and current list length
 
             // Calculate how many lines we can fit after the header.
-            // Subtract 2 to make room for OK/Cancel buttons and their padding.
+            // Subtract 1 to make room for OK/Cancel buttons and their padding.
             m_maxVisibleRows = (m_dialogBox.Max.Y - m_listFirstY) / (m_rowHeight + m_padding) - 1;
             m_hasScrollBar = m_maxVisibleRows < m_values.Count;
 
@@ -127,14 +129,14 @@ internal abstract class ListDialog : DialogBase
 
         if (m_hasScrollBar)
         {
-            Geometry.Dimension scrollBarDimension = hud.MeasureText(ScrollIndicator, Font, m_fontSize);
+            m_scrollBarDimension ??= hud.MeasureText(ScrollIndicator, Font, m_fontSize);
             int scrollBufferSize = m_values.Count - m_maxVisibleRows;
             int scrollOffset = m_lastVisibleRow + 1 - m_maxVisibleRows;
             double scrollFraction = (double)scrollOffset / scrollBufferSize;
-            int scrollbarOffset = scrollBarDimension.Height + m_padding + m_rowHeight;  // Pad for the OK/Cancel buttons
+            int scrollbarOffset = m_scrollBarDimension.Value.Height + m_padding + m_rowHeight;  // Pad for the OK/Cancel buttons
             int verticalPosition = (int)((m_dialogBox.Max.Y - m_listFirstY - scrollbarOffset) * scrollFraction) + m_listFirstY;
 
-            hud.Text(ScrollIndicator, Font, m_fontSize, (m_dialogBox.Max.X - scrollBarDimension.Width, verticalPosition), color: Color.Red);
+            hud.Text(ScrollIndicator, Font, m_fontSize, (m_dialogBox.Max.X - m_scrollBarDimension.Value.Width, verticalPosition), color: Color.Red);
         }
     }
 

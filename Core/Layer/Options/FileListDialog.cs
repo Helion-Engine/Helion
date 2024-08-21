@@ -32,9 +32,9 @@ internal class FileListDialog : ListDialog
 
         try
         {
-            FileInfo file = (FileInfo)ConfigValue.ObjectValue;
-            m_path = file != null ? Path.GetDirectoryName(file.ToString()) ?? string.Empty : string.Empty;
-            m_file = file != null ? Path.GetFileName(file.ToString()) ?? string.Empty : string.Empty;
+            string path = ConfigValue.ObjectValue.ToString() ?? string.Empty;
+            m_path = Path.GetDirectoryName(path) ?? string.Empty;
+            m_file = Path.GetFileName(path) ?? string.Empty;
         }
         catch
         {
@@ -53,7 +53,7 @@ internal class FileListDialog : ListDialog
         }
 
         // Backspace and typed characters will change the current path directly
-        if (input.ConsumeKeyPressed(Window.Input.Key.Backspace))
+        if (input.ConsumePressOrContinuousHold(Window.Input.Key.Backspace))
         {
             m_path = m_path.Length > 0 ? m_path.Remove(m_path.Length - 1) : m_path;
             m_listsNeedUpdate = true;
@@ -63,7 +63,6 @@ internal class FileListDialog : ListDialog
         if (typedChars.Length > 0)
         {
             m_path = $"{m_path}{typedChars}";
-
             m_listsNeedUpdate = true;
         }
 
@@ -72,18 +71,7 @@ internal class FileListDialog : ListDialog
 
     private void ChangeDirectory()
     {
-        m_path = Path.Combine(m_path, m_file);
-
-        // Simplify path to prevent accumulation of ".." tokens
-        if (Path.IsPathFullyQualified(m_path))
-        {
-            m_path = new DirectoryInfo(m_path).FullName;
-        }
-        else
-        {
-            m_path = Path.GetRelativePath(AppContext.BaseDirectory, m_path);
-        }
-
+        m_path = Path.GetRelativePath(AppContext.BaseDirectory, Path.Combine(m_path, m_file));
         m_file = string.Empty;
         m_listsNeedUpdate = true;
     }
