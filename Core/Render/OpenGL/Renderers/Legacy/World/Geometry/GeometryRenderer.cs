@@ -166,7 +166,6 @@ public class GeometryRenderer : IDisposable
         m_lightBufferStorage?.Dispose();
         m_lightBufferStorage = new("Sector lights texture buffer", m_lightBufferData, SizedInternalFormat.R32f, GLInfo.MapPersistentBitSupported);
 
-
         for (int i = 0; i < world.Sides.Count; i++)
             m_drawnSides[i] = -1;
 
@@ -631,17 +630,18 @@ public class GeometryRenderer : IDisposable
 
         if (side.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
         {
+            int sectorIndex = renderSector.Id + 1;
             int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Wall);
             WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, ref wall, isFront: isFront);
             if (m_cacheOverride)
             {
                 data = m_wallVertices;
-                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex);
+                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, sectorIndex);
             }
             else if (data == null)
-                data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex);
+                data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, sectorIndex);
             else
-                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex);
+                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, sectorIndex);
 
             if (!m_cacheOverride)
                 m_vertexLookup[side.Id] = data;
@@ -855,6 +855,7 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
+                int sectorIndex = facingSector.Id + 1;
                 int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
                 // This lower would clip into the upper texture. Pick the upper as the priority and stop at the ceiling.
                 if (top.Z > otherSector.Ceiling.Z && !TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
@@ -864,12 +865,12 @@ public class GeometryRenderer : IDisposable
                 if (m_cacheOverride)
                 {
                     data = m_wallVertices;
-                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex);
+                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex);
                 }
                 else if (data == null)
-                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex);
+                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex);
                 else
-                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex);
+                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex);
 
                 if (!m_cacheOverride)
                     m_vertexLowerLookup[facingSide.Id] = data;
@@ -974,17 +975,18 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null || m_cacheOverride)
             {
+                int sectorIndex = facingSector.Id + 1;
                 int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
                 WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse, isFrontSide, ref wall);
                 if (m_cacheOverride)
                 {
                     data = m_wallVertices;
-                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex);
+                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex);
                 }
                 else if (data == null)
-                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex);
+                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex);
                 else
-                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex);
+                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex);
 
                 if (!m_cacheOverride)
                     m_vertexUpperLookup[facingSide.Id] = data;
@@ -1013,12 +1015,13 @@ public class GeometryRenderer : IDisposable
         WallVertices wall = default;
 
         GLLegacyTexture texture = m_glTextureManager.GetTexture(lowerWall.TextureHandle);
+        int sectorIndex = facingSector.Id + 1;
         int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
         if (location == WallLocation.Upper)
             WorldTriangulator.HandleTwoSidedUpper(facingSide, facingSector.Ceiling, otherSector.Ceiling, texture.UVInverse, isFrontSide, ref wall);
         else
             WorldTriangulator.HandleTwoSidedLower(facingSide, otherSector.Floor, facingSector.Floor, texture.UVInverse, isFrontSide, ref wall);
-        SetWallVertices(m_wallVertices, wall, GetLightLevelAdd(facingSide), lightIndex);
+        SetWallVertices(m_wallVertices, wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex);
         return m_wallVertices;
     }
 
@@ -1110,6 +1113,7 @@ public class GeometryRenderer : IDisposable
             if (offset != 0)
                 prevOffset = GetTransferHeightHackOffset(facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: true);
 
+            int sectorIndex = facingSector.Id + 1;
             int lightIndex = StaticCacheGeometryRenderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
             WallVertices wall = default;
             WorldTriangulator.HandleTwoSidedMiddle(facingSide,
@@ -1119,12 +1123,12 @@ public class GeometryRenderer : IDisposable
             if (m_cacheOverride)
             {
                 data = m_wallVertices;
-                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, alpha, addAlpha: 0);
+                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex, alpha, addAlpha: 0);
             }
             else if (data == null)
-                data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, alpha, addAlpha: 0);
+                data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex, alpha, addAlpha: 0);
             else
-                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, alpha, addAlpha: 0);
+                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex, alpha, addAlpha: 0);
 
             if (!m_cacheOverride)
                 m_vertexLookup[facingSide.Id] = data;
@@ -1277,6 +1281,7 @@ public class GeometryRenderer : IDisposable
             DynamicVertex[] lookupData = GetSectorVertices(subsectors, floor, id, out bool generate);
             if (generate || flatChanged)
             {
+                int sectorIndex = flat.Sector.Id + 1;
                 int lightIndex = floor ? StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Floor) :
                             StaticCacheGeometryRenderer.GetLightBufferIndex(renderSector, LightBufferType.Ceiling);
                 for (int j = 0; j < subsectors.Length; j++)
@@ -1293,7 +1298,7 @@ public class GeometryRenderer : IDisposable
                     {
                         TriangulatedWorldVertex second = m_subsectorVertices[i];
                         TriangulatedWorldVertex third = m_subsectorVertices[i + 1];
-                        GetFlatVertices(lookupData, indexStart, ref root, ref second, ref third, lightIndex);
+                        GetFlatVertices(lookupData, indexStart, ref root, ref second, ref third, lightIndex, sectorIndex);
                         indexStart += 3;
                     }
                 }
@@ -1485,7 +1490,7 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private static unsafe void SetWallVertices(DynamicVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
+    private static unsafe void SetWallVertices(DynamicVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex, int sectorIndex,
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
         var options = VertexOptions.World(alpha, addAlpha, lightBufferIndex);
@@ -1504,6 +1509,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevV = wv.TopLeft.PrevV;
             vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
+            vertex->SectorIndex = sectorIndex;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
@@ -1518,6 +1524,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
+            vertex->SectorIndex = sectorIndex;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1532,6 +1539,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevV = wv.TopLeft.PrevV;
             vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
+            vertex->SectorIndex = sectorIndex;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1546,6 +1554,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevV = wv.TopLeft.PrevV;
             vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
+            vertex->SectorIndex = sectorIndex;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
@@ -1560,6 +1569,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
+            vertex->SectorIndex = sectorIndex;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1574,10 +1584,11 @@ public class GeometryRenderer : IDisposable
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
+            vertex->SectorIndex = sectorIndex;
         }
     }
 
-    private static unsafe DynamicVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex,
+    private static unsafe DynamicVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex, int sectorIndex,
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
         var options = VertexOptions.World(alpha, addAlpha, lightBufferIndex);
@@ -1603,6 +1614,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevV = wv.TopLeft.PrevV;
             vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
+            vertex->SectorIndex = sectorIndex;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
@@ -1617,6 +1629,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
+            vertex->SectorIndex = sectorIndex;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1631,6 +1644,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevV = wv.TopLeft.PrevV;
             vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
+            vertex->SectorIndex = sectorIndex;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1645,6 +1659,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevV = wv.TopLeft.PrevV;
             vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
+            vertex->SectorIndex = sectorIndex;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
@@ -1659,6 +1674,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
+            vertex->SectorIndex = sectorIndex;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1673,13 +1689,14 @@ public class GeometryRenderer : IDisposable
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->Options = options;
             vertex->LightLevelAdd = lightLevelAdd;
+            vertex->SectorIndex = sectorIndex;
         }
 
         return data;
     }
 
     private static unsafe void GetFlatVertices(DynamicVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
-        int lightLevelBufferIndex)
+        int lightLevelBufferIndex, int sectorIndex)
     {
         var options = VertexOptions.World(1, 0, lightLevelBufferIndex);
         fixed (DynamicVertex* startVertex = &vertices[startIndex])
@@ -1696,6 +1713,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevU = root.PrevU;
             vertex->PrevV = root.PrevV;
             vertex->Options = options;
+            vertex->SectorIndex = sectorIndex;
 
             vertex++;
             vertex->X = second.X;
@@ -1709,6 +1727,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevU = second.PrevU;
             vertex->PrevV = second.PrevV;
             vertex->Options = options;
+            vertex->SectorIndex = sectorIndex;
 
             vertex++;
             vertex->X = third.X;
@@ -1722,6 +1741,7 @@ public class GeometryRenderer : IDisposable
             vertex->PrevU = third.PrevU;
             vertex->PrevV = third.PrevV;
             vertex->Options = options;
+            vertex->SectorIndex = sectorIndex;
         }
     }
 
