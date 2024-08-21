@@ -101,10 +101,31 @@ public static class DoomGeometryBuilder
             if (upperColormap != null || middleColormap != null || lowerColormap != null)
                 front.Colormaps = new(upperColormap, middleColormap, lowerColormap);
         }
+        else if (IsSetColorMap(doomLine) && textureManager.TryGetColormap(doomSide.UpperTexture, out var colormap))
+        {
+            front.Colormaps = new(colormap, null, null);
+        }
 
         nextSideId++;
 
         return (front, null);
+    }
+
+    private static bool IsSetColorMap(DoomLine line)
+    {
+        switch (line.LineType)
+        {
+            case VanillaLineSpecialType.SetSectorColorMap:
+            case VanillaLineSpecialType.W1_SetSectorColorMap:
+            case VanillaLineSpecialType.WR_SetSectorColorMap:
+            case VanillaLineSpecialType.S1_SetSectorColorMap:
+            case VanillaLineSpecialType.SR_SetSectorColorMap:
+            case VanillaLineSpecialType.G1_SetSectorColorMap:
+            case VanillaLineSpecialType.GR_SetSectorColorMap:
+                return true;
+        }
+
+        return false;
     }
 
     private static Side CreateTwoSided(DoomSide facingSide, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager)

@@ -736,6 +736,16 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg1 = (int)(SectorPlanes.Floor | SectorPlanes.Ceiling);
                 return ZDoomLineSpecialType.OffsetThenRotateByLineDirection;
 
+            case VanillaLineSpecialType.SetSectorColorMap:
+            case VanillaLineSpecialType.W1_SetSectorColorMap:
+            case VanillaLineSpecialType.WR_SetSectorColorMap:
+            case VanillaLineSpecialType.S1_SetSectorColorMap:
+            case VanillaLineSpecialType.SR_SetSectorColorMap:
+            case VanillaLineSpecialType.G1_SetSectorColorMap:
+            case VanillaLineSpecialType.GR_SetSectorColorMap:
+                argsToMutate.Arg0 = tag;
+                return ZDoomLineSpecialType.SetSectorColorMap;
+
             default:
                 break;
         }
@@ -1458,6 +1468,7 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.OffsetThenRotateFloorByLineDirection:
             case VanillaLineSpecialType.OffsetThenRotateCeilingByLineDirection:
             case VanillaLineSpecialType.OffsetThenRotateFloorAndCeilingByLineDirection:
+            case VanillaLineSpecialType.SetSectorColorMap:
                 activations = LineActivations.LevelStart;
                 return activations;
 
@@ -1484,6 +1495,21 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.W1_MonsterTeleportNoFog:
             case VanillaLineSpecialType.WR_MonsterTeportNoFog:
                 activations = LineActivations.Monster | LineActivations.CrossLine;
+                return activations;
+
+            case VanillaLineSpecialType.W1_SetSectorColorMap:
+            case VanillaLineSpecialType.WR_SetSectorColorMap:
+                activations = LineActivations.Player | LineActivations.CrossLine;
+                return activations;
+
+            case VanillaLineSpecialType.S1_SetSectorColorMap:
+            case VanillaLineSpecialType.SR_SetSectorColorMap:
+                activations = LineActivations.Player | LineActivations.UseLine;
+                return activations;
+
+            case VanillaLineSpecialType.G1_SetSectorColorMap:
+            case VanillaLineSpecialType.GR_SetSectorColorMap:
+                activations = LineActivations.Player | LineActivations.Hitscan | LineActivations.ImpactLine;
                 return activations;
 
             default:
@@ -1619,6 +1645,9 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.WR_MonsterTeleportLine:
             case VanillaLineSpecialType.WR_MonsterTeportNoFog:
             case VanillaLineSpecialType.WR_MonsterTeleportLineReversed:
+            case VanillaLineSpecialType.WR_SetSectorColorMap:
+            case VanillaLineSpecialType.SR_SetSectorColorMap:
+            case VanillaLineSpecialType.GR_SetSectorColorMap:
                 return true;
 
             default:

@@ -268,5 +268,6 @@ public enum ZDoomLineSpecialType
     StairsBuildUpDoomCrush = 273,
     OffsetPlaneByLineDirection = 2048,
     RotatePlaneByLineDirection,
-    OffsetThenRotateByLineDirection
+    OffsetThenRotateByLineDirection,
+    SetSectorColorMap
 }

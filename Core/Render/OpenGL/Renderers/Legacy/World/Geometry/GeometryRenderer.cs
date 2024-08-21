@@ -54,6 +54,7 @@ public class GeometryRenderer : IDisposable
     private readonly ArchiveCollection m_archiveCollection;
     private readonly MidTextureHack m_midTextureHack = new();
     private GLBufferTexture? m_lightBuffer;
+    private GLBufferTextureStorage? m_lightBufferStorage;
     private double m_tickFraction;
     //private bool m_skyOverride;
     private bool m_floorChanged;
@@ -162,8 +163,9 @@ public class GeometryRenderer : IDisposable
             m_lightBufferData = new float[world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize)];
         }
 
-        m_lightBuffer?.Dispose();
-        m_lightBuffer = new("Sector lights texture buffer", m_lightBufferData, SizedInternalFormat.R32f, GLInfo.MapPersistentBitSupported);
+        m_lightBufferStorage?.Dispose();
+        m_lightBufferStorage = new("Sector lights texture buffer", m_lightBufferData, SizedInternalFormat.R32f, GLInfo.MapPersistentBitSupported);
+
 
         for (int i = 0; i < world.Sides.Count; i++)
             m_drawnSides[i] = -1;
@@ -175,7 +177,7 @@ public class GeometryRenderer : IDisposable
         SetFloodSectors(world);
 
         Portals.UpdateTo(world);
-        m_staticCacheGeometryRenderer.UpdateTo(world, m_lightBuffer);
+        m_staticCacheGeometryRenderer.UpdateTo(world, m_lightBufferStorage);
         m_worldDataManager.InitCoverWallRenderData(m_glTextureManager.WhiteTexture, m_program);
     }
 

@@ -32,6 +32,7 @@ using OpenTK.Graphics.OpenGL;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using static Helion.Util.Assertion.Assert;
+using static Helion.Util.Constants;
 
 namespace Helion.Render;
 
@@ -59,7 +60,10 @@ public class Renderer : IDisposable
     private readonly FramebufferRenderer m_framebufferRenderer;
     private readonly LegacyAutomapRenderer m_automapRenderer;
 
+    private IWorld? m_world;
     private GLBufferTexture? m_colorMapBuffer;
+    private GLBufferTexture? m_sectorColorMapsBuffer;
+    private GLMappedBuffer<float> m_mappedSectorColorMapsBuffer;
     private Rectangle m_viewport = new(0, 0, 800, 600);
     private bool m_disposed;
 
@@ -92,7 +96,6 @@ public class Renderer : IDisposable
     {
         if (!ShaderVars.ColorMap)
             return;
-        
         var colorMapData = ColorMapBuffer.Create(m_archiveCollection.Palette, m_archiveCollection.Colormap, m_archiveCollection.Definitions.Colormaps);
         m_colorMapBuffer = new("Colormap buffer", colorMapData, SizedInternalFormat.Rgb32f, false);
     }
@@ -115,10 +118,50 @@ public class Renderer : IDisposable
         ShaderVars.ReversedZ = m_config.Developer.ReversedZ;
     }
 
-    public void UpdateToNewWorld(IWorld world)
+    public unsafe void UpdateToNewWorld(IWorld world)
     {
         m_worldRenderer.UpdateToNewWorld(world);
         m_automapRenderer.UpdateTo(world);
+
+        if (m_world != null)
+        {
+            m_world.SectorColorMapChanged -= World_SectorColorMapChanged;
+        }
+
+        m_world = world;
+        m_world.SectorColorMapChanged += World_SectorColorMapChanged;
+
+        if (ShaderVars.ColorMap)
+        {
+            m_sectorColorMapsBuffer?.Dispose();
+            // First index will always map to default colormap
+            int sectorBufferCount = world.Sectors.Count + 1;
+            var sectorBuffer = new float[sectorBufferCount * 4];
+
+            m_sectorColorMapsBuffer = new("Sector colormaps", sectorBuffer, SizedInternalFormat.R32f, GLInfo.MapPersistentBitSupported);
+            m_sectorColorMapsBuffer.Map(data =>
+            {
+                float* lightBuffer = (float*)data.ToPointer();
+                for (int i = 0; i < world.Sectors.Count; i++)
+                {
+                    var sector = world.Sectors[i];
+                    if (sector.Colormap != null)
+                        lightBuffer[i + 1] = sector.Colormap.Index;
+                }
+            });
+
+            if (GLInfo.MapPersistentBitSupported)
+            {
+                //m_mappedSectorColorMapsBuffer.Dispose();
+                m_sectorColorMapsBuffer.BindBuffer();
+                m_mappedSectorColorMapsBuffer = m_sectorColorMapsBuffer.MapWithDisposable();
+                m_sectorColorMapsBuffer.UnbindBuffer();
+            }
+        }
+    }
+
+    private void World_SectorColorMapChanged(object? sender, Sector sector)
+    {
     }
 
     ~Renderer()
@@ -149,7 +192,7 @@ public class Renderer : IDisposable
         float mix = 0.0f;
         var colorMix = GetColorMix(renderInfo.ViewerEntity, renderInfo.Camera);
         PaletteIndex paletteIndex = PaletteIndex.Normal;
-        int colorMapIndex = 0;
+        ColorMapUniforms colorMapUniforms = default;
 
         if (renderInfo.ViewerEntity.PlayerObj != null)
         {
@@ -164,7 +207,7 @@ public class Renderer : IDisposable
             if (ShaderVars.ColorMap)
             {
                 mix = 0.0f;
-                colorMapIndex = GetColorMapIndex(renderInfo.ViewerEntity, renderInfo.Camera);
+                colorMapUniforms = GetColorMapUniforms(renderInfo.ViewerEntity, renderInfo.Camera);
                 paletteIndex = GetPalette(config, player);
                 if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
                     mix = 1.0f;                    
@@ -174,7 +217,7 @@ public class Renderer : IDisposable
         return new ShaderUniforms(CalculateMvpMatrix(renderInfo),
             CalculateMvpMatrix(renderInfo, true),
             GetTimeFrac(), drawInvulnerability, mix, extraLight, GetDistanceOffset(renderInfo),
-            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), colorMapIndex, paletteIndex, config.Render.LightMode);
+            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), colorMapUniforms, paletteIndex, config.Render.LightMode);
     }
 
     private static PaletteIndex GetPalette(IConfig config, Player player)
@@ -229,26 +272,48 @@ public class Renderer : IDisposable
         return (PaletteIndex)palette;
     }
 
-    private static int GetColorMapIndex(Entity viewer, OldCamera camera)
+    private static ColorMapUniforms GetColorMapUniforms(Entity viewer, OldCamera camera)
     {
-        if (ShaderVars.ColorMap && GetViewerColorMap(viewer, camera, out var colormap))
-            return colormap.Index;
-        return 0;
+        ColorMapUniforms uniforms = default;
+        if (ShaderVars.ColorMap)
+        {
+            GetViewerColorMap(viewer, camera, out var globalColormap, out var sectorColormap, out var skyColormap);
+            if (globalColormap != null)
+                uniforms.GlobalIndex = globalColormap.Index;
+            if (sectorColormap != null)
+                uniforms.SectorIndex = sectorColormap.Index;
+            if (skyColormap != null)
+                uniforms.SkyIndex = skyColormap.Index;
+        }
+        return uniforms;
     }
 
     public static Vec3F GetColorMix(Entity viewer, OldCamera camera)
     {
-        if (!ShaderVars.ColorMap && GetViewerColorMap(viewer, camera, out var colormap))
-            return colormap.ColorMix;
+        if (!ShaderVars.ColorMap)
+        {
+            GetViewerColorMap(viewer, camera, out var colormap, out _, out _);
+            if (colormap != null)
+                return colormap.ColorMix;
+        }
         return Vec3F.One;
     }
 
-    private static bool GetViewerColorMap(Entity viewer, OldCamera camera, [NotNullWhen(true)] out Colormap? colormap)
+    private static void GetViewerColorMap(Entity viewer, OldCamera camera,
+        out Colormap? globalColormap, out Colormap? sectorColormap, out Colormap? skyColormap)
     {
-        colormap = null;
-        if (viewer.Sector.TransferHeights == null)
-            return false;
-        return viewer.Sector.TransferHeights.TryGetColormap(viewer.Sector, camera.PositionInterpolated.Z, out colormap);
+        globalColormap = null;
+        sectorColormap = null;
+        skyColormap = null;
+
+        if (viewer.Sector.TransferHeights != null)
+        {
+            viewer.Sector.TransferHeights.TryGetColormap(viewer.Sector, camera.PositionInterpolated.Z, out globalColormap);
+            skyColormap = globalColormap;
+        }
+
+        if (viewer.Sector.Colormap != null)
+            sectorColormap = viewer.Sector.Colormap;
     }
 
     public static mat4 CalculateMvpMatrix(RenderInfo renderInfo, bool onlyXY = false)
@@ -313,6 +378,7 @@ public class Renderer : IDisposable
         m_hudRenderer.Clear();
         SetupAndBindVirtualFramebuffer();
         BindColorMapBuffer();
+        BindSectorColorMapBuffer();
 
         // This has to be tracked beyond just the rendering command, and it
         // also prevents something from going terribly wrong if there is no
@@ -370,6 +436,16 @@ public class Renderer : IDisposable
             GL.ActiveTexture(TextureUnit.Texture2);
             m_colorMapBuffer.BindTexture();
             m_colorMapBuffer.BindTexBuffer();
+        }
+    }
+
+    private void BindSectorColorMapBuffer()
+    {
+        if (m_sectorColorMapsBuffer != null)
+        {
+            GL.ActiveTexture(TextureUnit.Texture3);
+            m_sectorColorMapsBuffer.BindTexture();
+            m_sectorColorMapsBuffer.BindTexBuffer();
         }
     }
 

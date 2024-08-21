@@ -71,8 +71,9 @@ public class FragFunction
             return "";
 
         string indexAdd = lightLevel ?
+            // sectorColorMapIndexFrag is overriding the colormapIndex uniform
             @"
-            int useColormap = colormapIndex;
+            int useColormap = int(mix(colormapIndex, sectorColorMapIndexFrag, float(sectorColorMapIndexFrag > 0)));
             ${EntityColorMapFrag}
             int usePalette = paletteIndex;
             int lightLevelOffset = (lightColorIndex * 256);

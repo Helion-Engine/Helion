@@ -12,6 +12,7 @@ public class FloodFillProgram : RenderProgram
     private readonly int m_boundTextureLocation;
     private readonly int m_sectorLightTextureLocation;
     private readonly int m_colormapTextureLocation;
+    private readonly int m_sectorColormapTextureLocation;
     private readonly int m_cameraLocation;
     private readonly int m_mvpLocation;
     private readonly int m_timeFracLocation;
@@ -30,6 +31,7 @@ public class FloodFillProgram : RenderProgram
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
+        m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
         m_cameraLocation = Uniforms.GetLocation("camera");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_timeFracLocation = Uniforms.GetLocation("timeFrac");
@@ -47,6 +49,7 @@ public class FloodFillProgram : RenderProgram
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
     public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorLightTextureLocation);
     public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
+    public void SectorColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorColormapTextureLocation);
 
     public void Camera(Vec3F camera) => Uniforms.Set(camera, m_cameraLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
@@ -71,13 +74,16 @@ public class FloodFillProgram : RenderProgram
         layout(location = 4) in float prevZ;
         layout(location = 5) in float prevPlaneZ;
         layout(location = 6) in float lightLevelBufferIndex;
+        layout(location = 7) in float sectorIndex;
 
         flat out float planeZFrag;
         out vec3 vertexPosFrag;
         flat out float distanceOffsetFrag;
 
+        ${SectorColorMapVertexFragVariables}
         ${LightLevelVertexVariables}
         ${VertexLightBufferVariables}
+        ${SectorColorMapVertexUniformVariables}
 
         uniform mat4 mvp;
         uniform vec3 camera;
@@ -90,6 +96,7 @@ public class FloodFillProgram : RenderProgram
             vertexPosFrag = mix(prevPos, pos, timeFrac);
 
             ${VertexLightBuffer}
+            ${SectorColorMapVertexFunction}
 
             if (camera.z <= minViewZ || camera.z >= maxViewZ)
                 gl_Position = vec4(0, 0, 0, 1);
@@ -99,7 +106,10 @@ public class FloodFillProgram : RenderProgram
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.NoDist))
     .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
-    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(VertexLightBufferOptions.Default));
+    .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(VertexLightBufferOptions.Default))
+    .Replace("${SectorColorMapVertexFragVariables}", SectorColorMap.VertexFragVariables)
+    .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction);
 
     protected override string FragmentShader() => @"
         #version 330
@@ -118,6 +128,7 @@ public class FloodFillProgram : RenderProgram
         uniform int colormapIndex;
 
         ${LightLevelFragVariables}
+        ${SectorColorMapFragVariables}
 
         void main()
         {
@@ -133,11 +144,14 @@ public class FloodFillProgram : RenderProgram
 
             float dist = (mvpNoPitch * vec4(planePos, 1.0)).${Depth};
             ${LightLevelFragFunction}
+            ${SectorColorMapFragFunction}
             ${FragColorFunction}
         }
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.NoDist))
     .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Colormap))
-    .Replace("${Depth}", ShaderVars.Depth);
+    .Replace("${Depth}", ShaderVars.Depth)
+    .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
+    .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction);
 }

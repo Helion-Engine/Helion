@@ -58,6 +58,7 @@ using Helion.Resources.Archives.Entries;
 using Helion.Maps.Doom;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Util.Loggers;
+using Helion.Graphics.Palettes;
 
 namespace Helion.World;
 
@@ -85,6 +86,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<SideTextureEvent>? SideTextureChanged;
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     public event EventHandler<Sector>? SectorLightChanged;
+    public event EventHandler<Sector>? SectorColorMapChanged;
     public event EventHandler<PlayerMessageEvent>? PlayerMessage;
     public event EventHandler<Entry>? OnMusicChanged;
     public event EventHandler? OnTick;
@@ -2980,6 +2982,12 @@ public abstract partial class WorldBase : IWorld
     {
         sector.SetCeilingLightLevel(lightLevel, Gametick);
         SectorLightChanged?.Invoke(this, sector);
+    }
+
+    public void SetSectorColorMap(Sector sector, Colormap? colormap)
+    {
+        sector.SetColorMap(colormap);
+        SectorColorMapChanged?.Invoke(this, sector);
     }
 
     private bool EntityActivatedSpecial(in EntityActivateSpecial args) =>

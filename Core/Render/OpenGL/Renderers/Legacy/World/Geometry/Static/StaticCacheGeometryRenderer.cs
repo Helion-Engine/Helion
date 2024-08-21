@@ -58,10 +58,8 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private bool m_disposed;
     private IWorld m_world = null!;
-    private GLBufferTexture? m_lightBuffer;
-    private GLMappedBuffer<float> m_mappedLightBuffer;
+    GLBufferTextureStorage? m_lightBufferStorage;
     private int m_counter;
-    private bool m_mapPersistent;
     private bool m_vanillaRender;
 
     public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
@@ -71,7 +69,6 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometryRenderer = geometryRenderer;
         m_program = program;
         m_skyRenderer = new(archiveCollection, textureManager, !ShaderVars.ColorMap);
-        m_mapPersistent = GLInfo.MapPersistentBitSupported;
     }
 
     private static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
@@ -92,7 +89,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         Dispose(false);
     }
 
-    public void UpdateTo(IWorld world, GLBufferTexture lightBuffer)
+    public void UpdateTo(IWorld world, GLBufferTextureStorage lightBufferStorage)
     {
         m_vanillaRender = world.Config.Render.VanillaRender;
         ClearData(world);
@@ -107,7 +104,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_world.PlaneTextureChanged += World_PlaneTextureChanged;
         m_world.SectorLightChanged += World_SectorLightChanged;
 
-        SetLightBufferData(world, lightBuffer);
+        SetLightBufferData(world, lightBufferStorage);
         m_geometryRenderer.SetInitRender();
 
         if (!world.SameAsPreviousMap)
@@ -166,17 +163,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         UpdateLookup(m_updateLightSectorsLookup, world.Sectors.Count);
 
-        if (m_mapPersistent)
-        {
-            if (m_lightBuffer != null)
-                m_mappedLightBuffer.Dispose();
-
-            lightBuffer.BindBuffer();
-            m_mappedLightBuffer = lightBuffer.MapWithDisposable();
-            lightBuffer.UnbindBuffer();
-        }
-
-        m_lightBuffer = lightBuffer;
+        m_lightBufferStorage = lightBufferStorage;
     }
 
     private void UpdateSectorPlaneFloodFill(Line line)
@@ -247,17 +234,17 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         return index;
     }
-    
-    private unsafe void SetLightBufferData(IWorld world, GLBufferTexture lightBufferTexture)
+
+    private unsafe void SetLightBufferData(IWorld world, GLBufferTextureStorage lightBufferStorage)
     {
-        lightBufferTexture.Map(data =>
+        lightBufferStorage.Map(data =>
         {
             float* lightBuffer = (float*)data.ToPointer();
             lightBuffer[Constants.LightBuffer.DarkIndex] = 0;
             lightBuffer[Constants.LightBuffer.FullBrightIndex] = 255;
 
             for (int i = 0; i < Constants.LightBuffer.ColorMapCount; i++)
-                lightBuffer[Constants.LightBuffer.ColorMapStartIndex + i] = 
+                lightBuffer[Constants.LightBuffer.ColorMapStartIndex + i] =
                     256 - ((Constants.LightBuffer.ColorMapCount - i) * 256 / Constants.LightBuffer.ColorMapCount);
 
             for (int i = 0; i < world.Sectors.Count; i++)
@@ -267,7 +254,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 lightBuffer[index + Constants.LightBuffer.FloorOffset] = sector.Floor.LightLevel;
                 lightBuffer[index + Constants.LightBuffer.CeilingOffset] = sector.Ceiling.LightLevel;
                 lightBuffer[index + Constants.LightBuffer.WallOffset] = sector.LightLevel;
-            } 
+            }
         });
     }
 
@@ -326,7 +313,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             AddFloodFillPlane(side, sector, true);
             var wall = side.Middle;
-            UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices, null, side, wall, true);
+            UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices, null, side, wall, true, sector);
         }
     }
 
@@ -494,7 +481,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_skyGeometry.AddSide(sky, side, wallLocation, vertices);
     }
 
-    private static unsafe void AddVertices(DynamicArray<StaticVertex> staticVertices, DynamicVertex[] vertices)
+    private static unsafe void AddVertices(DynamicArray<StaticVertex> staticVertices, DynamicVertex[] vertices, int sectorIndex)
     {
         int staticStartIndex = staticVertices.Length;
         fixed(DynamicVertex* startVertex = &vertices[0])
@@ -504,7 +491,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 DynamicVertex* v = startVertex + i;
                 staticVertices.Data[staticStartIndex + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V, 
-                    v->Options, v->LightLevelAdd);
+                    v->Options, v->LightLevelAdd, sectorIndex);
             }
 
             staticVertices.SetLength(staticVertices.Length + vertices.Length);
@@ -519,7 +506,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 DynamicVertex* v = startVertex + i;
                 staticVertices[index + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
-                    v->Options, v->LightLevelAdd);
+                    v->Options, v->LightLevelAdd, v->SectorIndex);
             }
         }
     }
@@ -536,13 +523,13 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (update)
         {
             UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices,
-                null, side, wall, repeatY);
+                null, side, wall, repeatY, side.Sector);
             return;
         }
                 
         var vertices = GetTextureVertices(type, wall.TextureHandle, repeatY);
         SetSideData(ref wall.Static, type, wall.TextureHandle, vertices.Length, sideVertices.Length, repeatY, null);
-        AddVertices(vertices, sideVertices);
+        AddVertices(vertices, sideVertices, side.Sector.Id + 1);
     }
 
     private static GeometryType GetWallType(Side side, Wall wall) => 
@@ -661,7 +648,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (update)
         {
             UpdateVertices(plane.Static.GeometryData, plane.TextureHandle, plane.Static.Index,
-                renderedVertices, plane, null, null, true);
+                renderedVertices, plane, null, null, true, sector);
             return;
         }
 
@@ -673,20 +660,14 @@ public class StaticCacheGeometryRenderer : IDisposable
             plane.Static.Length = renderedVertices.Length;
         }
 
-        AddVertices(vertices, renderedVertices);
+        AddVertices(vertices, renderedVertices, sector.Id + 1);
     }
 
     public void StartRender()
     {
         UpdateLights();
 
-        if (m_lightBuffer != null)
-        {
-            GL.ActiveTexture(TextureUnit.Texture1);
-            m_lightBuffer.BindTexture();
-            m_lightBuffer.BindTexBuffer();
-        }
-
+        m_lightBufferStorage?.BindTexture(TextureUnit.Texture1);
         m_counter++;
     }
 
@@ -750,12 +731,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private unsafe void UpdateLights()
     {
-        if (m_updateLightSectors.Length == 0 || m_lightBuffer == null)
+        if (m_updateLightSectors.Length == 0 || m_lightBufferStorage == null)
             return;
 
-        m_lightBuffer.BindBuffer();
-        // OpenGL 4.4 only feature. If set with MapPersistentBit then it doesn't need to be mapped here.
-        GLMappedBuffer<float> lightBuffer = m_mapPersistent ? m_mappedLightBuffer : m_lightBuffer.MapWithDisposable();
+        GLMappedBuffer<float> lightBuffer = m_lightBufferStorage.GetMappedBufferAndBind();
         float* lightData = lightBuffer.MappedMemoryPtr;
 
         for (int i = 0; i < m_updateLightSectors.Length; i++)
@@ -768,10 +747,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             lightData[index + Constants.LightBuffer.WallOffset] = level;
         }
 
-        if (!m_mapPersistent)
-            lightBuffer.Dispose();
-
-        m_lightBuffer.UnbindBuffer();
+        m_lightBufferStorage.Unbind();
         m_updateLightSectors.Clear();
     }
 
@@ -961,7 +937,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     }
 
     private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, DynamicVertex[] vertices,
-        SectorPlane? plane, Side? side, Wall? wall, bool repeat)
+        SectorPlane? plane, Side? side, Wall? wall, bool repeat, Sector sector)
     {
         var geometryType = side != null && wall != null ? GetWallType(side, wall) : GeometryType.Flat;
         if (side != null && wall != null && geometryType != GeometryType.TwoSidedMiddleWall)
@@ -969,7 +945,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (geometryData == null)
         {
-            AddNewGeometry(textureHandle, vertices, geometryType, plane, side, wall, repeat);
+            AddNewGeometry(textureHandle, vertices, geometryType, plane, side, wall, repeat, sector);
             return;
         }
 
@@ -1038,11 +1014,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             coverGeometry = new StaticGeometryData(m_coverFlatGeometry, vbo.Data.Length, vertices.Length);
             m_coverFlatLookup[key] = coverGeometry;
-            AddVertices(vbo.Data, vertices);
+            AddVertices(vbo.Data, vertices, sector.Id + 1);
         }
     }
 
-    private void AddNewGeometry(int textureHandle, DynamicVertex[] vertices, GeometryType geometryType, SectorPlane? plane, Side? side, Wall? wall, bool repeat)
+    private void AddNewGeometry(int textureHandle, DynamicVertex[] vertices, GeometryType geometryType, SectorPlane? plane, Side? side, Wall? wall, bool repeat, Sector sector)
     {
         if (m_freeManager.GetAndRemove(textureHandle, vertices.Length, out StaticGeometryData? existing))
         {
@@ -1052,7 +1028,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 wall.Static = existing.Value;
 
             UpdateVertices(existing.Value.GeometryData, textureHandle, existing.Value.Index,
-                vertices, plane, side, wall, repeat);
+                vertices, plane, side, wall, repeat, sector);
             return;
         }
 
@@ -1060,7 +1036,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_textureToGeometryLookup.TryGetValue(geometryType, textureHandle, repeat, out GeometryData? data))
         {
             SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
-            AddVertices(data.Vbo.Data, vertices);
+            AddVertices(data.Vbo.Data, vertices, sector.Id + 1);
             // TODO this causes the entire vbo to be uploaded when we could use sub-buffer
             data.Vbo.SetNotUploaded();
             return;
@@ -1068,7 +1044,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         data = AllocateGeometryData(geometryType, textureHandle, repeat);
         SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
-        AddVertices(data.Vbo.Data, vertices);
+        AddVertices(data.Vbo.Data, vertices, sector.Id + 1);
         data.Vbo.SetNotUploaded();
     }
 

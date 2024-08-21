@@ -41,6 +41,7 @@ public sealed class Sector
     public TransferHeights? TransferHeights;
     public SectorMoveSpecial? ActiveFloorMove;
     public SectorMoveSpecial? ActiveCeilingMove;
+    public Colormap? Colormap;
     public int RenderGametick;
     public int ChangeGametick;
     public SectorPlaneFace LastActivePlaneMove;
@@ -228,6 +229,12 @@ public sealed class Sector
         DataChanges |= SectorDataTypes.Light;
         Ceiling.LightLevel = lightLevel;
         RenderLightChangeGametick = gametick;
+    }
+
+    public void SetColorMap(Colormap? colormap)
+    {
+        DataChanges |= SectorDataTypes.Light;
+        Colormap = colormap;
     }
 
     public void SetSectorSpecialType(ZDoomSectorSpecialType type)

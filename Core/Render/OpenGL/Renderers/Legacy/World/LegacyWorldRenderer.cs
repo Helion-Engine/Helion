@@ -429,6 +429,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationProgram.BoundTexture(TextureUnit.Texture0);
         m_interpolationProgram.SectorLightTexture(TextureUnit.Texture1);
         m_interpolationProgram.ColormapTexture(TextureUnit.Texture2);
+        m_interpolationProgram.SectorColormapTexture(TextureUnit.Texture3);
         m_interpolationProgram.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         m_interpolationProgram.Mvp(renderInfo.Uniforms.Mvp);
         m_interpolationProgram.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
@@ -438,7 +439,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationProgram.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
         m_interpolationProgram.ColorMix(renderInfo.Uniforms.ColorMix);
         m_interpolationProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
-        m_interpolationProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapIndex);
+        m_interpolationProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         m_interpolationProgram.LightMode(renderInfo.Uniforms.LightMode);
     }
 
@@ -447,6 +448,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.BoundTexture(TextureUnit.Texture0);
         m_staticProgram.SectorLightTexture(TextureUnit.Texture1);
         m_staticProgram.ColormapTexture(TextureUnit.Texture2);
+        m_staticProgram.SectorColormapTexture(TextureUnit.Texture3);
         m_staticProgram.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         m_staticProgram.Mvp(renderInfo.Uniforms.Mvp);
         m_staticProgram.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
@@ -455,7 +457,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
         m_staticProgram.ColorMix(renderInfo.Uniforms.ColorMix);
         m_staticProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
-        m_staticProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapIndex);
+        m_staticProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         m_staticProgram.LightMode(renderInfo.Uniforms.LightMode);
     }
 

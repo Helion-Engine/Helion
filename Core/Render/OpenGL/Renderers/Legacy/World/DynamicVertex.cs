@@ -29,4 +29,7 @@ public struct DynamicVertex
     [VertexAttribute("prevUV", size: 2)]
     public float PrevU;
     public float PrevV;
+
+    [VertexAttribute(required: false)]
+    public float SectorIndex;
 }

@@ -9,12 +9,12 @@ namespace Helion.Render.OpenGL.Textures;
 public class GLBufferTexture : IDisposable
 {
     public readonly string Label;
+    public readonly bool PersistentBufferStorage;
     private readonly float[] m_data;
     private readonly int m_name;
     private readonly int m_textureName;
     private readonly SizedInternalFormat m_format;
     private bool m_disposed;
-    private bool m_persistentBufferStorage;
 
     public GLBufferTexture(string label, float[] data, SizedInternalFormat format, bool persistentBufferStorage)
     {
@@ -24,7 +24,7 @@ public class GLBufferTexture : IDisposable
         
         m_data = data;
         m_format = format;
-        m_persistentBufferStorage = persistentBufferStorage;
+        PersistentBufferStorage = persistentBufferStorage;
 
         BindBuffer();
 
@@ -44,7 +44,7 @@ public class GLBufferTexture : IDisposable
 
     private BufferAccessMask GetAccess()
     {
-        if (m_persistentBufferStorage)
+        if (PersistentBufferStorage)
             return BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit | BufferAccessMask.MapPersistentBit;
         return BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit;
     }
@@ -92,7 +92,6 @@ public class GLBufferTexture : IDisposable
     public void BindTexBuffer()
     {
         GL.TexBuffer(TextureBufferTarget.TextureBuffer, m_format, m_name);
-        //GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, m_name);
     }
 
     protected virtual void Dispose(bool disposing)

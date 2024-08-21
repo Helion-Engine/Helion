@@ -7,7 +7,6 @@ using Helion.Graphics;
 using Helion.Graphics.Geometry;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
-using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -124,7 +123,7 @@ public class LegacyHudRenderer : HudRenderer
         m_program.FuzzFrac(Renderer.GetTimeFrac());
         m_program.FuzzDiv(Renderer.GetFuzzDiv(m_config.Render, viewport));
         m_program.PaletteIndex((int)uniforms.PaletteIndex);
-        m_program.ColorMapIndex(uniforms.ColorMapIndex);
+        m_program.ColorMapIndex(uniforms.ColorMapUniforms.SectorIndex == 0 ? uniforms.ColorMapUniforms.GlobalIndex : uniforms.ColorMapUniforms.SectorIndex);
         m_program.HasInvulnerability(uniforms.DrawInvulnerability);
 
         for (int i = 0; i < m_drawBuffer.DrawBuffer.Count; i++)

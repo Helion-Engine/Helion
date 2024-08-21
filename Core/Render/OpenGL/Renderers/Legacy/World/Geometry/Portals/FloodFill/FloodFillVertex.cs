@@ -28,7 +28,10 @@ public struct FloodFillVertex
     [VertexAttribute("lightLevelBufferIndex", size: 1)]
     public float LightLevelBufferIndex;
 
-    public FloodFillVertex(Vec3F pos, float prevZ, float planeZ, float prevPlaneZ, float minPlaneZ, float maxPlaneZ, int lightIndex)
+    [VertexAttribute("sectorIndex", size: 1, required: false)]
+    public float SectorIndex;
+
+    public FloodFillVertex(Vec3F pos, float prevZ, float planeZ, float prevPlaneZ, float minPlaneZ, float maxPlaneZ, int lightIndex, int sectorIndex)
     {
         Pos = pos;
         PrevZ = prevZ;
@@ -37,5 +40,6 @@ public struct FloodFillVertex
         MinViewZ = minPlaneZ;
         MaxViewZ = maxPlaneZ;
         LightLevelBufferIndex = lightIndex;
+        SectorIndex = sectorIndex;
     }
 }

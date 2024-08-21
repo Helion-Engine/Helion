@@ -18,4 +18,7 @@ public struct EntityVertex
 
     [VertexAttribute]
     public Vec3F PrevPos;
+
+    [VertexAttribute(required: false)]
+    public float SectorIndex;
 }

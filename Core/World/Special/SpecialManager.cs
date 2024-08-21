@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
@@ -671,6 +670,24 @@ public sealed class SpecialManager : ITickable, IDisposable
                 SetSectorPlaneOffset(line);
                 SetSectorPlaneRotation(line);
                 break;
+
+            case ZDoomLineSpecialType.SetSectorColorMap:
+                SetSectorColorMap(line);
+                break;
+        }
+    }
+
+    private void SetSectorColorMap(Line line)
+    {
+        var colormap = line.Front.Colormaps?.Upper;
+        if (colormap == null)
+            return;
+
+        var sectors = GetSectorsFromSpecialLine(line);
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors.GetSector(i);
+            sector.Colormap = colormap;
         }
     }
 

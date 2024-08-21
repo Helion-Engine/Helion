@@ -12,6 +12,7 @@ public class StaticShader : RenderProgram
     private readonly int m_boundTextureLocation;
     private readonly int m_sectorLightTextureLocation;
     private readonly int m_colormapTextureLocation;
+    private readonly int m_sectorColormapTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_hasInvulnerabilityLocation;
     private readonly int m_mvpNoPitchLocation;
@@ -28,6 +29,7 @@ public class StaticShader : RenderProgram
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
+        m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
         m_mvpNoPitchLocation = Uniforms.GetLocation("mvpNoPitch");
@@ -43,6 +45,7 @@ public class StaticShader : RenderProgram
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
     public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorLightTextureLocation);
     public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
+    public void SectorColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorColormapTextureLocation);
 
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
@@ -62,13 +65,16 @@ public class StaticShader : RenderProgram
         layout(location = 1) in vec2 uv; 
         layout(location = 2) in float lightLevelAdd;
         layout(location = 3) in float options;
+        layout(location = 4) in float sectorIndex;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
         flat out float addAlphaFrag;
 
+        ${SectorColorMapVertexFragVariables}
         ${LightLevelVertexVariables}
         ${VertexLightBufferVariables}
+        ${SectorColorMapVertexUniformVariables}
 
         uniform mat4 mvp;
         uniform float timeFrac;
@@ -85,13 +91,17 @@ public class StaticShader : RenderProgram
             vec4 mixPos = vec4(pos, 1.0);
             ${VertexLightBuffer}
             ${LightLevelVertexDist}
+            ${SectorColorMapVertexFunction}
             gl_Position = mvp * mixPos;
         }
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
     .Replace("${VertexLightBufferVariables}", LightLevel.VertexLightBufferVariables)
     .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(VertexLightBufferOptions.LightLevelAdd))
-    .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"));
+    .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"))
+    .Replace("${SectorColorMapVertexFragVariables}", SectorColorMap.VertexFragVariables)
+    .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction);
 
     protected override string FragmentShader() => @"
         #version 330
@@ -109,13 +119,17 @@ public class StaticShader : RenderProgram
         uniform int colormapIndex;
 
         ${LightLevelFragVariables}
+        ${SectorColorMapFragVariables}
 
         void main() {
             ${LightLevelFragFunction}
+            ${SectorColorMapFragFunction}
             ${FragColorFunction}
         }
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap));
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap))
+    .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
+    .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction);
 }

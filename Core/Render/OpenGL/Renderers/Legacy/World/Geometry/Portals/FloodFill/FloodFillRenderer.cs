@@ -98,14 +98,15 @@ public class FloodFillRenderer : IDisposable
         float prevTopZ = vertices.PrevTopZ;
         float prevBottomZ = vertices.PrevBottomZ;
 
+        int sectorIndex = floodPlane.Sector.Id + 1;
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, topZ),
-            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
+            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex, sectorIndex);
         FloodFillVertex topRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, topZ),
-            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
+            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex, sectorIndex);
         FloodFillVertex bottomLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, bottomZ),
-            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
+            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex, sectorIndex);
         FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, bottomZ),
-            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex);
+            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, data.LightIndex, sectorIndex);
 
         var vbo = floodInfo.Vertices.Vbo;
         vbo.Data[data.VboOffset] = topLeft;
@@ -117,7 +118,7 @@ public class FloodFillRenderer : IDisposable
 
         if (isFloodFillPlane)
             ProjectFloodPlane(vbo, data.VboOffset + VerticesPerWall, vertices, minZ, maxZ, planeZ, prevPlaneZ, data.LightIndex,
-                maxPlaneZ > Constants.MaxTextureHeight ? -Constants.MaxTextureHeight : Constants.MaxTextureHeight, false);
+                maxPlaneZ > Constants.MaxTextureHeight ? -Constants.MaxTextureHeight : Constants.MaxTextureHeight, false, sectorIndex);
 
         vbo.Bind();
         vbo.UploadSubData(data.VboOffset, data.Vertices);
@@ -158,14 +159,15 @@ public class FloodFillRenderer : IDisposable
 
         m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, lightIndex, vbo.Count, vertexCount));
 
+        int sectorIndex = sectorPlane.Sector.Id + 1;
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z),
-            vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex, sectorIndex);
         FloodFillVertex topRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, vertices.TopLeft.Z),
-            vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex, sectorIndex);
         FloodFillVertex bottomLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.BottomRight.Z),
-            vertices.BottomRight.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            vertices.BottomRight.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex, sectorIndex);
         FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, vertices.BottomRight.Z),
-            vertices.BottomRight.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+            vertices.BottomRight.Z, planeZ, prevPlaneZ, minZ, maxZ, lightIndex, sectorIndex);
 
         int offset = vbo.Data.Length;
         int newLength = vbo.Data.Length + VerticesPerWall;
@@ -181,13 +183,13 @@ public class FloodFillRenderer : IDisposable
 
         if (isFloodFillPlane)
             ProjectFloodPlane(vbo, vbo.Data.Length, vertices, minZ, maxZ, planeZ, prevPlaneZ, lightIndex, 
-                maxPlaneZ > Constants.MaxTextureHeight ? -Constants.MaxTextureHeight : Constants.MaxTextureHeight, true);
+                maxPlaneZ > Constants.MaxTextureHeight ? -Constants.MaxTextureHeight : Constants.MaxTextureHeight, true, sectorIndex);
 
         return newKey;
     }
 
     private unsafe void ProjectFloodPlane(VertexBufferObject<FloodFillVertex> vbo, int startIndex,
-       WallVertices vertices, float minZ, float maxZ, float planeZ, float prevPlaneZ, int lightIndex, int addHeight, bool add)
+       WallVertices vertices, float minZ, float maxZ, float planeZ, float prevPlaneZ, int lightIndex, int addHeight, bool add, int sectorIndex)
     {
         int newLength = startIndex + FloodPlaneAddCount * VerticesPerWall;
         vbo.Data.EnsureCapacity(newLength);
@@ -202,13 +204,13 @@ public class FloodFillRenderer : IDisposable
             float prevBottomZ = vertices.PrevBottomZ + currentAddHeight;
 
             FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, topLeftZ),
-                prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+                prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex, sectorIndex);
             FloodFillVertex topRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, topLeftZ),
-                prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+                prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex, sectorIndex);
             FloodFillVertex bottomLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, bottomRightZ),
-                prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+                prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex, sectorIndex);
             FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, bottomRightZ),
-                prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex);
+                prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex, sectorIndex);
 
             buffer[startIndex++] = topLeft;
             buffer[startIndex++] = bottomLeft;
@@ -247,7 +249,7 @@ public class FloodFillRenderer : IDisposable
         for (int i = 0; i < vertices; i++)
         {
             int index = bufferOffset + i;
-            vbo.Data.Data[index] = new(Vec3F.Zero, 0, 0, 0, float.MaxValue, float.MinValue, 0);
+            vbo.Data.Data[index] = new(Vec3F.Zero, 0, 0, 0, float.MaxValue, float.MinValue, 0, 0);
         }
 
         vbo.Bind();
@@ -262,6 +264,7 @@ public class FloodFillRenderer : IDisposable
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.SectorLightTexture(TextureUnit.Texture1);
         m_program.ColormapTexture(TextureUnit.Texture2);
+        m_program.SectorColormapTexture(TextureUnit.Texture3);
         m_program.Camera(renderInfo.Camera.PositionInterpolated);
         m_program.Mvp(renderInfo.Uniforms.Mvp);
         m_program.TimeFrac(renderInfo.TickFraction);
@@ -273,7 +276,7 @@ public class FloodFillRenderer : IDisposable
         m_program.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
         m_program.ColorMix(renderInfo.Uniforms.ColorMix);
         m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
-        m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapIndex);
+        m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         m_program.LightMode(renderInfo.Uniforms.LightMode);
 
         for (int i = 0; i < m_floodFillInfos.Count; i++)

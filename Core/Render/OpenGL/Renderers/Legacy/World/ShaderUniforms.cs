@@ -5,8 +5,10 @@ using Helion.Util.Configs.Components;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
+public record struct ColorMapUniforms(int GlobalIndex, int SkyIndex, int SectorIndex);
+
 public readonly struct ShaderUniforms(mat4 mvp, mat4 mvpNoPitch, float timeFrac, bool drawInvulnerability, float mix, int extraLight, float distanceOffset,
-    Vec3F colorMix, float fuzzDiv, int colorMapIndex, PaletteIndex paletteIndex, RenderLightMode lightMode)
+    Vec3F colorMix, float fuzzDiv, ColorMapUniforms colorMapUniforms, PaletteIndex paletteIndex, RenderLightMode lightMode)
 {
     public readonly mat4 Mvp = mvp;
     public readonly mat4 MvpNoPitch = mvpNoPitch;
@@ -17,7 +19,7 @@ public readonly struct ShaderUniforms(mat4 mvp, mat4 mvpNoPitch, float timeFrac,
     public readonly float DistanceOffset = distanceOffset;
     public readonly Vec3F ColorMix = colorMix;
     public readonly float FuzzDiv = fuzzDiv;
-    public readonly int ColorMapIndex = colorMapIndex;
+    public readonly ColorMapUniforms ColorMapUniforms = colorMapUniforms;
     public readonly PaletteIndex PaletteIndex = paletteIndex;
     public readonly RenderLightMode LightMode = lightMode;
 }

@@ -226,6 +226,7 @@ public class EntityRenderer : IDisposable
             vertex->LightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? 255 :
                 ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
             vertex->Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, entity.Flags.GetTranslationColorMap());
+            vertex->SectorIndex = sector.Id + 1;
         }
         arrayData.Length = length + 1;
     }
@@ -247,6 +248,7 @@ public class EntityRenderer : IDisposable
     {
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.ColormapTexture(TextureUnit.Texture2);
+        m_program.SectorColormapTexture(TextureUnit.Texture3);
         m_program.ExtraLight(renderInfo.Uniforms.ExtraLight);
         m_program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         m_program.LightLevelMix(renderInfo.Uniforms.Mix);
@@ -260,7 +262,7 @@ public class EntityRenderer : IDisposable
         m_program.ColorMix(renderInfo.Uniforms.ColorMix);
         m_program.FuzzDiv(renderInfo.Uniforms.FuzzDiv);
         m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
-        m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapIndex);
+        m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         m_program.LightMode(renderInfo.Uniforms.LightMode);
     }
 
