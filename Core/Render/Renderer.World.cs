@@ -8,6 +8,8 @@ using Helion.Util;
 using Helion.Util.Container;
 using Helion.Render.OpenGL.Util;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
+using Helion.Graphics.Palettes;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Render;
 
@@ -70,9 +72,7 @@ public partial class Renderer
         m_lightBufferStorage = new("Sector lights texture buffer", m_lightBufferData, SizedInternalFormat.R32f, GLInfo.MapPersistentBitSupported);
 
         SetLightBufferData(world, m_lightBufferStorage);
-
-        if (ShaderVars.PaletteColorMode)
-            SetSectorColorMapsBuffer(world);
+        SetSectorColorMapsBuffer(world);
 
         UpdateLookup(m_updateLightSectorsLookup, world.Sectors.Count);
         UpdateLookup(m_updateColorMapSectorsLookup, world.Sectors.Count);
@@ -80,22 +80,57 @@ public partial class Renderer
 
     private unsafe void SetSectorColorMapsBuffer(IWorld world)
     {
+        bool usePalette = ShaderVars.PaletteColorMode;
         m_sectorColorMapsBuffer?.Dispose();
         // First index will always map to default colormap
         int sectorBufferCount = world.Sectors.Count + 1;
+        // PaletteColorMode is index to colormap, true color will be RGB mix
+        int size = usePalette ? 1 : 3;
         var sectorBuffer = new float[sectorBufferCount * 4];
 
-        m_sectorColorMapsBuffer = new("Sector colormaps", sectorBuffer, SizedInternalFormat.R32f, GLInfo.MapPersistentBitSupported);
-        m_sectorColorMapsBuffer.Map(data =>
+        m_sectorColorMapsBuffer = new("Sector colormaps", sectorBuffer, usePalette ? SizedInternalFormat.R32f : SizedInternalFormat.Rgb32f, GLInfo.MapPersistentBitSupported);
+
+        if (usePalette)
         {
-            float* lightBuffer = (float*)data.ToPointer();
-            for (int i = 0; i < world.Sectors.Count; i++)
+            m_sectorColorMapsBuffer.Map(data =>
             {
-                var sector = world.Sectors[i];
-                if (sector.Colormap != null)
-                    lightBuffer[i + 1] = sector.Colormap.Index;
-            }
-        });
+                float* colorMapBuffer = (float*)data.ToPointer();
+                for (int i = 0; i < world.Sectors.Count; i++)
+                {
+                    var sector = world.Sectors[i];
+                    SetSectorColorMap(colorMapBuffer, sector.Id, sector.Colormap);
+                }
+            });
+        }
+        else
+        {
+            m_sectorColorMapsBuffer.Map(data =>
+            {
+                float* colorMapBuffer = (float*)data.ToPointer();
+                Vec3F* color = (Vec3F*)&colorMapBuffer[0];
+                *color = Vec3F.One;
+                for (int i = 0; i < world.Sectors.Count; i++)
+                {
+                    var sector = world.Sectors[i];
+                    SetSectorColorMap(colorMapBuffer, sector.Id, sector.Colormap);
+                }
+            });
+        }
+    }
+
+    private static unsafe void SetSectorColorMap(float* colorMapBuffer, int sectorId, Colormap? colormap)
+    {
+        if (ShaderVars.PaletteColorMode)
+        {
+            colorMapBuffer[sectorId + 1] = colormap == null ? 0 : colormap.Index;
+            return;
+        }
+
+        Vec3F* color = (Vec3F*)&colorMapBuffer[(sectorId + 1) * 3];
+        if (colormap == null)
+            *color = Vec3F.One;
+        else
+            *color = colormap.ColorMix;
     }
 
     private unsafe void SetLightBufferData(IWorld world, GLBufferTextureStorage lightBuffer)
@@ -173,13 +208,13 @@ public partial class Renderer
         if (m_updateColorMapSectors.Length == 0 || m_sectorColorMapsBuffer == null)
             return;
 
-        GLMappedBuffer<float> colorMapBuffer = m_sectorColorMapsBuffer.GetMappedBufferAndBind();
-        float* colorMapData = colorMapBuffer.MappedMemoryPtr;
+        GLMappedBuffer<float> mappedBuffer = m_sectorColorMapsBuffer.GetMappedBufferAndBind();
+        float* colorMapBuffer = mappedBuffer.MappedMemoryPtr;
 
         for (int i = 0; i < m_updateColorMapSectors.Length; i++)
         {
             Sector sector = m_updateColorMapSectors[i];
-            colorMapData[sector.Id + 1] = sector.Colormap == null ? 0 : sector.Colormap.Index;
+            SetSectorColorMap(colorMapBuffer, sector.Id, sector.Colormap);
         }
 
         m_sectorColorMapsBuffer.Unbind();

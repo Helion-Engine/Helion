@@ -416,12 +416,16 @@ public partial class WorldLayer
         }
 
         var camera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
-        var colorMix = Renderer.GetColorMix(Player, camera);
+        var colorMixUniforms = Renderer.GetColorMix(Player, camera);
+        var colorMix = colorMixUniforms.Global;
+
+        if (colorMixUniforms.Sector != Vec3F.One)
+            colorMix = colorMixUniforms.Sector;
 
         Color lightLevelColor = ShaderVars.PaletteColorMode ? Color.White :            
-            ((byte)(Math.Min(lightLevel * colorMix.X, 255)), 
-            (byte)(Math.Min(lightLevel * colorMix.Y, 255)), 
-            (byte)(Math.Min(lightLevel * colorMix.Z, 255)));
+            ((byte)Math.Min(lightLevel * colorMix.X, 255), 
+            (byte)Math.Min(lightLevel * colorMix.Y, 255), 
+            (byte)Math.Min(lightLevel * colorMix.Z, 255));
 
         string sprite = GetHudWeaponSpriteString(frameState, flash);
 

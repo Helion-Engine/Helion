@@ -117,10 +117,10 @@ public class FragFunction
             fragColor = texture(boundTexture, uvFrag.st);" +
             (options.HasFlag(FragColorFunctionOptions.Colormap) ? ColorMapFetch(true, ctx) : "")
             + AlphaFlag(true) +
-            (options.HasFlag(FragColorFunctionOptions.Fuzz) ? FuzzFragFunction :  "") +
+            (options.HasFlag(FragColorFunctionOptions.Fuzz) ? FuzzFragFunction : "") +
             (ShaderVars.PaletteColorMode ? "\n" : "fragColor.xyz *= lightLevel;\n") +
-            (options.HasFlag(FragColorFunctionOptions.AddAlpha) ? 
-                "fragColor.w = fragColor.w * alphaFrag + addAlphaFrag;\n" : 
+            (options.HasFlag(FragColorFunctionOptions.AddAlpha) ?
+                "fragColor.w = fragColor.w * alphaFrag + addAlphaFrag;\n" :
                 "") +
             (options.HasFlag(FragColorFunctionOptions.Alpha) ?
                 "fragColor.w *= alphaFrag;" :
@@ -129,7 +129,8 @@ public class FragFunction
             if (fragColor.w <= 0.0)
                 discard;
 
-            fragColor.xyz *= min(colorMix, 1);" 
+            fragColor.xyz *= min(colorMix, 1);"
+            + (ShaderVars.PaletteColorMode ? "" : "fragColor.xyz *= min(sectorColorMapIndexFrag, 1);")
             + InvulnerabilityFragColor;
     }
 

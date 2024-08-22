@@ -259,7 +259,7 @@ public class EntityRenderer : IDisposable
         m_program.ViewRightNormal(m_viewRightNormal);
         m_program.PrevViewRightNormal(m_prevViewRightNormal);
         m_program.DistanceOffset(Renderer.GetDistanceOffset(renderInfo));
-        m_program.ColorMix(renderInfo.Uniforms.ColorMix);
+        m_program.ColorMix(renderInfo.Uniforms.ColorMix.Global);
         m_program.FuzzDiv(renderInfo.Uniforms.FuzzDiv);
         m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);

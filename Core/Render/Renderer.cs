@@ -30,6 +30,7 @@ using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Reflection.Metadata.Ecma335;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
@@ -238,15 +239,20 @@ public partial class Renderer : IDisposable
         return uniforms;
     }
 
-    public static Vec3F GetColorMix(Entity viewer, OldCamera camera)
+    public static ColorMixUniforms GetColorMix(Entity viewer, OldCamera camera)
     {
+        ColorMixUniforms uniforms = new(Vec3F.One, Vec3F.One, Vec3F.One);
         if (!ShaderVars.PaletteColorMode)
         {
-            GetViewerColorMap(viewer, camera, out var colormap, out _, out _);
-            if (colormap != null)
-                return colormap.ColorMix;
+            GetViewerColorMap(viewer, camera, out var globalColormap, out var sectorColormap, out var skyColormap);
+            if (globalColormap != null)
+                uniforms.Global = globalColormap.ColorMix;
+            if (sectorColormap != null)
+                uniforms.Sector = sectorColormap.ColorMix;
+            if (skyColormap != null)
+                uniforms.Sky = skyColormap.ColorMix;
         }
-        return Vec3F.One;
+        return uniforms;
     }
 
     private static void GetViewerColorMap(Entity viewer, OldCamera camera,

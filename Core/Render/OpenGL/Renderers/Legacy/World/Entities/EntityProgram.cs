@@ -83,7 +83,7 @@ public class EntityProgram : RenderProgram
         out float fuzzOut;
         out float flipUOut;
         out float colorMapTranslationOut;
-        out int sectorColorMapIndexOut;
+        ${SectorColorMapVar}
 
         uniform float timeFrac;
         uniform samplerBuffer sectorColormapTexture;
@@ -102,11 +102,15 @@ public class EntityProgram : RenderProgram
             alphaOut = alpha;
             fuzzOut = fuzz;
             flipUOut = flipU;
-            sectorColorMapIndexOut = int(texelFetch(sectorColormapTexture, int(sectorIndex)).r);;
             colorMapTranslationOut = colorMapTranslation;
+            ${SectorColorMap}
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
         }
-    ";
+    "
+    .Replace("${SectorColorMapVar}", ShaderVars.PaletteColorMode ? "out int sectorColorMapIndexOut;" : "out vec3 sectorColorMapIndexOut;")
+    .Replace("${SectorColorMap}", ShaderVars.PaletteColorMode ? 
+        "sectorColorMapIndexOut = int(texelFetch(sectorColormapTexture, int(sectorIndex)).r);" :
+        "sectorColorMapIndexOut = texelFetch(sectorColormapTexture, int(sectorIndex)).rgb;");
 
     protected override string? GeometryShader() => @"
         #version 330 core
@@ -119,7 +123,7 @@ public class EntityProgram : RenderProgram
         in float fuzzOut[];
         in float flipUOut[];
         in float colorMapTranslationOut[];
-        in int sectorColorMapIndexOut[];
+        ${SectorColorMapVar}
 
         out vec2 uvFrag;
         out float dist;
@@ -128,7 +132,7 @@ public class EntityProgram : RenderProgram
         flat out float alphaFrag;
         flat out float fuzzFrag;
         flat out float colorMapTranslationFrag;
-        flat out int sectorColorMapIndexFrag;
+        ${SectorColorMapFrag}
 
         uniform mat4 mvp;
         uniform mat4 mvpNoPitch;
@@ -201,7 +205,10 @@ public class EntityProgram : RenderProgram
     
             EndPrimitive();
         }  
-    ".Replace("${Depth}", ShaderVars.Depth);
+    "
+    .Replace("${SectorColorMapVar}", ShaderVars.PaletteColorMode ? "in int sectorColorMapIndexOut[];" : "in vec3 sectorColorMapIndexOut[];")
+    .Replace("${SectorColorMapFrag}", ShaderVars.PaletteColorMode ? "flat out int sectorColorMapIndexFrag;" : "flat out vec3 sectorColorMapIndexFrag;")
+    .Replace("${Depth}", ShaderVars.Depth);
 
     protected override string? FragmentShader() => @"
         #version 330
