@@ -610,6 +610,9 @@ public class Player : Entity
             Flags.JustAttacked = false;
         }
 
+        PrevWeaponOffset = WeaponOffset;
+        PrevWeaponBobOffset = WeaponBobOffset;
+
         Inventory.Tick();
         AnimationWeapon?.Tick();
         StatusBar.Tick();
@@ -623,9 +626,6 @@ public class Player : Entity
         PrevAngle = AngleRadians;
         m_prevPitch = PitchRadians;
         m_prevViewZ = m_viewZ;
-
-        PrevWeaponOffset = WeaponOffset;
-        PrevWeaponBobOffset = WeaponBobOffset;
 
         if (m_jumpTics > 0)
             m_jumpTics--;
