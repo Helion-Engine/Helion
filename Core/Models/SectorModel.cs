@@ -27,6 +27,7 @@ public class SectorModel
     public int? TransferFloorLight;
     public int? TransferCeilingLight;
     public int? TransferHeights;
+    public string? ColorMap;
     public string? TransferHeightsColormapUpper;
     public string? TransferHeightsColormapMiddle;
     public string? TransferHeightsColormapLower;

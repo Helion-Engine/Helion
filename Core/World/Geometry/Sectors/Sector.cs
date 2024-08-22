@@ -233,7 +233,7 @@ public sealed class Sector
 
     public void SetColorMap(Colormap? colormap)
     {
-        DataChanges |= SectorDataTypes.Light;
+        DataChanges |= SectorDataTypes.ColorMap;
         Colormap = colormap;
     }
 
@@ -337,6 +337,8 @@ public sealed class Sector
                 if (Ceiling.LightLevel != LightLevel)
                     sectorModel.CeilingLightLevel = Ceiling.LightLevel;
             }
+            if ((DataChanges & SectorDataTypes.ColorMap) != 0)
+                sectorModel.ColorMap = Colormap?.Entry?.Path.Name;
 
             sectorModel.Secret = Secret;
             sectorModel.DamageAmount = DamageAmount;
@@ -347,6 +349,7 @@ public sealed class Sector
 
     public void ApplySectorModel(IWorld world, SectorModel sectorModel, WorldModelPopulateResult result)
     {
+        var textureManager = world.ArchiveCollection.TextureManager;
         IList<Sector> sectors = world.Sectors;
         SoundValidationCount = sectorModel.SoundValidationCount;
         SoundBlock = sectorModel.SoundBlock;
@@ -414,6 +417,9 @@ public sealed class Sector
                 SetSectorEffect(sectorModel.SectorEffect.Value);
 
             DamageAmount = sectorModel.DamageAmount;
+
+            if ((DataChanges & SectorDataTypes.ColorMap) != 0 && sectorModel.ColorMap != null && textureManager.TryGetColormap(sectorModel.ColorMap, out var sectorColorMap))
+                Colormap = sectorColorMap;
         }
 
         if (sectorModel.TransferFloorLight.HasValue && IsSectorIdValid(sectors, sectorModel.TransferFloorLight.Value))
@@ -424,7 +430,6 @@ public sealed class Sector
 
         if (sectorModel.TransferHeights.HasValue && IsSectorIdValid(sectors, sectorModel.TransferHeights.Value))
         {
-            var textureManager = world.ArchiveCollection.TextureManager;
             textureManager.TryGetColormap(sectorModel.TransferHeightsColormapUpper, out var upper);
             textureManager.TryGetColormap(sectorModel.TransferHeightsColormapMiddle, out var middle);
             textureManager.TryGetColormap(sectorModel.TransferHeightsColormapLower, out var lower);
