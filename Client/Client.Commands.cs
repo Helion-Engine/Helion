@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Helion.Geometry.Boxes;
 using Helion.Layer.Consoles;
@@ -64,14 +65,13 @@ public partial class Client
     [ConsoleCommand("restart", "Restarts the application.")]
     private void Restart(ConsoleCommandEventArgs args)
     {
-        var path = AppContext.BaseDirectory;
+        // Note:  We might also want to use the current working directory when restarting, in case it
+        // is not the same directory the executable is in.  That seems like a less likely case because
+        // the single-file published version of this application doesn't really like being run from
+        // a different working directory.
+        string executablePath = Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
 
-        if (path == null)
-            return;
-
-        // .net core runs through the dll. This currently won't work if the user renames the exe.
-        string application = Path.Combine(path, "Helion.exe");
-        if (!File.Exists(application))
+        if (!File.Exists(executablePath))
         {
             Log.Error("Application not found.");
             return;
@@ -80,7 +80,7 @@ public partial class Client
         if (m_config is FileConfig fileConfig)
             fileConfig.Write();
 
-        Process.Start(application, m_commandLineArgs.OriginalArgs.Join(" "));
+        Process.Start(executablePath, m_commandLineArgs.OriginalArgs);
         Environment.Exit(0);
     }
 
@@ -157,7 +157,7 @@ public partial class Client
 
         AdvanceDemo(advanceAmount * (int)Constants.TicksPerSecond);
     }
-    
+
 
     [ConsoleCommand("mark.add", "Mark current spot in automap.")]
     private void CommandMark(ConsoleCommandEventArgs args)
@@ -232,7 +232,7 @@ public partial class Client
         foreach (var monitor in monitors)
         {
             string current = (currentMonitor != null && monitor.Index == currentMonitor.Index ? "[Current]" : string.Empty);
-            HelionLog.Info($"{monitor.Index+1}: {monitor.HorizontalResolution}, {monitor.VerticalResolution}{current}");
+            HelionLog.Info($"{monitor.Index + 1}: {monitor.HorizontalResolution}, {monitor.VerticalResolution}{current}");
         }
     }
 
@@ -685,7 +685,7 @@ public partial class Client
         loadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
 
         UnRegisterWorldEvents();
-        
+
         m_layerManager.ClearAllExcept(loadingLayer);
         m_archiveCollection.DataCache.FlushReferences();
 
@@ -872,7 +872,7 @@ public partial class Client
         }
     }
 
-    private static bool ShouldWriteStatsFile(LevelChangeType type) => 
+    private static bool ShouldWriteStatsFile(LevelChangeType type) =>
         type == LevelChangeType.Next || type == LevelChangeType.SecretNext;
 
     private static void ClearStatsFile()
@@ -998,7 +998,7 @@ public partial class Client
                 await LoadMapAsync(endGameLayer.NextMapInfo, null, endGameLayer.World, showLoadingTitlepic: false);
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             HandleFatalException(ex);
         }
@@ -1019,9 +1019,9 @@ public partial class Client
         await LoadMapAsync(mapInfoDef, null, null, e);
     }
 
-    private FindMapResult GetNextLevel(MapInfoDef mapDef) => 
+    private FindMapResult GetNextLevel(MapInfoDef mapDef) =>
         m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextMap(mapDef);
-    
+
     private FindMapResult GetNextSecretLevel(MapInfoDef mapDef) =>
         m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextSecretMap(mapDef);
 
