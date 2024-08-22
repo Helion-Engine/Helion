@@ -1509,7 +1509,7 @@ public static class VanillaLineSpecTranslator
 
             case VanillaLineSpecialType.G1_SetSectorColorMap:
             case VanillaLineSpecialType.GR_SetSectorColorMap:
-                activations = LineActivations.Player | LineActivations.Hitscan | LineActivations.ImpactLine;
+                activations = LineActivations.Hitscan | LineActivations.ImpactLine | LineActivations.CrossLine;
                 return activations;
 
             default:
