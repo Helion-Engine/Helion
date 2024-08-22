@@ -13,6 +13,13 @@
     <NoWarn>1701;1702;NU1701</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(SelfContainedRelease)' == 'true'">
+    <SelfContained>True</SelfContained>
+    <PublishSingleFile>True</PublishSingleFile>
+    <PublishReadyToRun>True</PublishReadyToRun>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile >
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
@@ -36,6 +43,13 @@
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
+  <Target Name="SetPublishDir" BeforeTargets="Build">
+    <PropertyGroup>
+      <PublishDir Condition="'$(SelfContainedRelease)' == 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)_SelfContained\</PublishDir>
+      <PublishDir Condition="'$(SelfContainedRelease)' != 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)\</PublishDir>
+    </PropertyGroup>
+  </Target>
+
   <Target Name="GetSupportFiles">
     <ItemGroup>
       <SoundFonts Include="$(ProjectDir)SoundFonts\**\*.sf2" />
@@ -43,10 +57,12 @@
       <!-- Runtime specified, e.g. "-r win-x64"; copy native files into root -->
       <NativeFiles Include="$(ProjectDir)Unmanaged\win-x64\**\*" Destination="%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
       <NativeFiles Include="$(ProjectDir)Unmanaged\win-x86\**\*" Destination="%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == 'win-x86'" />
+      <NativeFiles Include="$(ProjectDir)Unmanaged\linux-x64\**\*" Destination="%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
 
       <!-- Runtime unspecified; copy native files into runtimes\(runtimeID)\native  -->
       <NativeFiles Include="$(ProjectDir)Unmanaged\win-x64\**\*" Destination="runtimes\win-x64\native\%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == ''" />
-      <NativeFiles Include="$(ProjectDir)Unmanaged\win-x64\**\*" Destination="runtimes\win-x86\native\%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == ''" />
+      <NativeFiles Include="$(ProjectDir)Unmanaged\win-x86\**\*" Destination="runtimes\win-x86\native\%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == ''" />
+      <NativeFiles Include="$(ProjectDir)Unmanaged\linux-x64\**\*" Destination="runtimes\linux-x64\native\%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == ''" />
 
       <!-- Files used to determine whether the "copy support files" targets need to run  -->
       <TargetAssetsFile Include="$(TargetDir)assets.pk3" />
