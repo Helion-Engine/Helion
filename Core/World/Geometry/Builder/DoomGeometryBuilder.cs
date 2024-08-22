@@ -86,7 +86,17 @@ public static class DoomGeometryBuilder
         Side front = new(nextSideId, doomSide.Offset, upper, middle, lower, sector);
         builder.Sides.Add(front);
 
-        if (doomLine.LineType == VanillaLineSpecialType.TransferHeights)
+        SetColorMaps(doomLine, textureManager, doomSide, middleTexture, upperTexture, lowerTexture, front, true);
+
+        nextSideId++;
+
+        return (front, null);
+    }
+
+    private static void SetColorMaps(DoomLine doomLine, TextureManager textureManager, DoomSide doomSide, Texture middleTexture, Texture upperTexture, Texture lowerTexture, Side front, bool oneSided)
+    {
+        // Boom only allows transfer heights colormaps for one-sided lines?
+        if (oneSided && doomLine.LineType == VanillaLineSpecialType.TransferHeights)
         {
             Colormap? upperColormap = null;
             Colormap? middleColormap = null;
@@ -101,14 +111,9 @@ public static class DoomGeometryBuilder
             if (upperColormap != null || middleColormap != null || lowerColormap != null)
                 front.Colormaps = new(upperColormap, middleColormap, lowerColormap);
         }
-        else if (IsSetColorMap(doomLine) && textureManager.TryGetColormap(doomSide.UpperTexture, out var colormap))
-        {
+
+        if (IsSetColorMap(doomLine) && textureManager.TryGetColormap(doomSide.UpperTexture, out var colormap))
             front.Colormaps = new(colormap, null, null);
-        }
-
-        nextSideId++;
-
-        return (front, null);
     }
 
     private static bool IsSetColorMap(DoomLine line)
@@ -128,7 +133,7 @@ public static class DoomGeometryBuilder
         return false;
     }
 
-    private static Side CreateTwoSided(DoomSide facingSide, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager)
+    private static Side CreateTwoSided(DoomLine line, DoomSide facingSide, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager)
     {
         // This is okay because of how we create sectors corresponding
         // to their list index. If this is wrong then someone broke the
@@ -147,8 +152,9 @@ public static class DoomGeometryBuilder
         Side side = new(nextSideId, facingSide.Offset, upper, middle, lower, facingSector);
         builder.Sides.Add(side);
 
-        nextSideId++;
+        SetColorMaps(line, textureManager, facingSide, middleTexture, upperTexture, lowerTexture, side, false);
 
+        nextSideId++;
         return side;
     }
 
@@ -158,8 +164,8 @@ public static class DoomGeometryBuilder
         if (doomLine.Back == null)
             return CreateSingleSide(doomLine, builder, ref nextSideId, textureManager);
 
-        Side front = CreateTwoSided(doomLine.Front, builder, ref nextSideId, textureManager);
-        Side back = CreateTwoSided(doomLine.Back, builder, ref nextSideId, textureManager);
+        Side front = CreateTwoSided(doomLine, doomLine.Front, builder, ref nextSideId, textureManager);
+        Side back = CreateTwoSided(doomLine, doomLine.Back, builder, ref nextSideId, textureManager);
         return (front, back);
     }
 

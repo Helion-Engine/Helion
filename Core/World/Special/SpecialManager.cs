@@ -680,14 +680,11 @@ public sealed class SpecialManager : ITickable, IDisposable
     private void SetSectorColorMap(Line line)
     {
         var colormap = line.Front.Colormaps?.Upper;
-        if (colormap == null)
-            return;
-
         var sectors = GetSectorsFromSpecialLine(line);
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
-            sector.Colormap = colormap;
+            m_world.SetSectorColorMap(sector, colormap);
         }
     }
 
@@ -1007,6 +1004,10 @@ public sealed class SpecialManager : ITickable, IDisposable
 
             case ZDoomLineSpecialType.ExitSecret:
                 m_world.ExitLevel(LevelChangeType.SecretNext);
+                return true;
+
+            case ZDoomLineSpecialType.SetSectorColorMap:
+                SetSectorColorMap(args.ActivateLineSpecial);
                 return true;
         }
 

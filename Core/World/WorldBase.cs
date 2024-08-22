@@ -2986,6 +2986,8 @@ public abstract partial class WorldBase : IWorld
 
     public void SetSectorColorMap(Sector sector, Colormap? colormap)
     {
+        if (sector.Colormap == colormap)
+            return;
         sector.SetColorMap(colormap);
         SectorColorMapChanged?.Invoke(this, sector);
     }
