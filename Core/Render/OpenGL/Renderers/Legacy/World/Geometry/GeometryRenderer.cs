@@ -88,7 +88,7 @@ public class GeometryRenderer : IDisposable
         m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
         Portals = new(archiveCollection, glTextureManager);
-        m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager, !ShaderVars.ColorMap);
+        m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager, !ShaderVars.PaletteColorMode);
         m_viewSector = DefaultSector;
         m_archiveCollection = archiveCollection;
         m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);

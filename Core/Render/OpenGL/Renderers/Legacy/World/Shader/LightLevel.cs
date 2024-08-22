@@ -48,7 +48,7 @@ float lightIndex = min(2560 / abs(dist), 47);
 float lightColor = clamp((startMap - lightIndex / 2) - extraLight, 0, 31);
 int lightColorIndex = int(lightColor);
 "
-+ (ShaderVars.ColorMap ? "" :
++ (ShaderVars.PaletteColorMode ? "" :
 @"
 float useLightIndex = lightColor;
 useLightIndex = mix(lightColorIndex, lightColor, lightMode);

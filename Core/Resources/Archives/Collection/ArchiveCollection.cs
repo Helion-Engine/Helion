@@ -72,7 +72,7 @@ public class ArchiveCollection : IResources, IPathResolver
     public DataCache DataCache { get; }
     public IImageRetriever ImageRetriever { get; }
     public bool Loaded { get; private set; }
-    public bool StoreImageIndices => ShaderVars.ColorMap;
+    public bool StoreImageIndices => ShaderVars.PaletteColorMode;
     public IConfig Config => m_config;
     public DehackedDefinition? Dehacked => Definitions.DehackedDefinition;
     public ArchiveCollectionEntries Entries = new();

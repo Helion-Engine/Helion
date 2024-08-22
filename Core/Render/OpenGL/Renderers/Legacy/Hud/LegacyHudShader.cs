@@ -69,8 +69,8 @@ public class LegacyHudShader : RenderProgram
             gl_Position = mvp * vec4(pos, 1.0);
         }
     "
-    .Replace("${ColorMapFrag}", ShaderVars.ColorMap ? "flat out float drawPaletteFrag; flat out float hudColorMapIndexFrag;" : "")
-    .Replace("${ColorMapFragSet}", ShaderVars.ColorMap ? "drawPaletteFrag = drawPalette; hudColorMapIndexFrag = hudColorMapIndex;" : "");
+    .Replace("${ColorMapFrag}", ShaderVars.PaletteColorMode ? "flat out float drawPaletteFrag; flat out float hudColorMapIndexFrag;" : "")
+    .Replace("${ColorMapFragSet}", ShaderVars.PaletteColorMode ? "drawPaletteFrag = drawPalette; hudColorMapIndexFrag = hudColorMapIndex;" : "");
 
     private static readonly string TrueColorInvul =
         @"if (drawColorMapFrag != 0) {
@@ -116,10 +116,10 @@ public class LegacyHudShader : RenderProgram
     ";
 
     protected override string FragmentShader() => ShaderFrag
-    .Replace("${DrawPaletteFrag}", ShaderVars.ColorMap ? "flat in float drawPaletteFrag; flat in float hudColorMapIndexFrag;" : "")
+    .Replace("${DrawPaletteFrag}", ShaderVars.PaletteColorMode ? "flat in float drawPaletteFrag; flat in float hudColorMapIndexFrag;" : "")
     .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
     .Replace("${FuzzFragFunction}", FragFunction.FuzzFragFunction)
     .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false, ColorMapFetchContext.Hud))
     .Replace("${AlphaFlag}", FragFunction.AlphaFlag(false))
-    .Replace("${TrueColorInvul}", ShaderVars.ColorMap ? "" : TrueColorInvul);
+    .Replace("${TrueColorInvul}", ShaderVars.PaletteColorMode ? "" : TrueColorInvul);
 }

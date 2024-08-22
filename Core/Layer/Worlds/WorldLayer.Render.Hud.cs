@@ -280,7 +280,7 @@ public partial class WorldLayer
 
     private void DrawHudEffects(IHudRenderContext hud)
     {
-        if (!WorldStatic.World.DrawHud || ShaderVars.ColorMap)
+        if (!WorldStatic.World.DrawHud || ShaderVars.PaletteColorMode)
             return;
 
         IPowerup? powerup = Player.Inventory.PowerupEffectColor;
@@ -372,7 +372,7 @@ public partial class WorldLayer
         if (Player.AnimationWeapon != null)
         {
             // When using palette mode disable boom colormaps for weapons
-            if (ShaderVars.ColorMap)
+            if (ShaderVars.PaletteColorMode)
                 hudContext.DrawColorMap = true;
             else
                 hudContext.DrawColorMap = Player.DrawInvulnerableColorMap();
@@ -418,7 +418,7 @@ public partial class WorldLayer
         var camera = World.GetCameraPlayer().GetCamera(m_lastTickInfo.Fraction);
         var colorMix = Renderer.GetColorMix(Player, camera);
 
-        Color lightLevelColor = ShaderVars.ColorMap ? Color.White :            
+        Color lightLevelColor = ShaderVars.PaletteColorMode ? Color.White :            
             ((byte)(Math.Min(lightLevel * colorMix.X, 255)), 
             (byte)(Math.Min(lightLevel * colorMix.Y, 255)), 
             (byte)(Math.Min(lightLevel * colorMix.Z, 255)));

@@ -20,7 +20,7 @@ public class HudRenderContext
     public void Set(Dimension dimension)
     {
         Dimension = dimension;
-        DrawColorMap = ShaderVars.ColorMap;
+        DrawColorMap = ShaderVars.PaletteColorMode;
         DrawFuzz = false;
         DrawPalette = true;
     }

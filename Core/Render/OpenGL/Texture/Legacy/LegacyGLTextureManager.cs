@@ -108,7 +108,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, texture.TextureId, $"Texture: {name} ({flags})");
 
-        fixed (uint* pixelPtr = image.GetGlTexturePixels(ShaderVars.ColorMap))
+        fixed (uint* pixelPtr = image.GetGlTexturePixels(ShaderVars.PaletteColorMode))
         {
             IntPtr ptr = new(pixelPtr);
             // Because the C# image format is 'ARGB', we can get it into the
@@ -199,7 +199,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         int minFilter = (int)TextureMinFilter.Nearest;
         int magFilter = (int)TextureMagFilter.Nearest;
 
-        if (ShaderVars.ColorMap)
+        if (ShaderVars.PaletteColorMode)
             return (minFilter, magFilter);
 
         switch (filterType)
@@ -223,7 +223,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     public void SetAnisotropicFiltering(TextureTarget targetType)
     {
         // Anisotropy must be 1 for colormap support
-        if (ShaderVars.ColorMap)
+        if (ShaderVars.PaletteColorMode)
         {
             GL.TexParameter(targetType, (TextureParameterName)All.TextureMaxAnisotropy, 1);
             return;

@@ -49,13 +49,13 @@ public class FragFunction
         }"
         .Replace("${FuzzBlackColor}",
             // Fetch black color from current palette. This takes the pre-blended black color with red/yellow/green palettes.
-            ShaderVars.ColorMap ? 
+            ShaderVars.PaletteColorMode ? 
                 "fragColor.xyz = texelFetch(colormapTexture, usePalette * paletteSize).rgb;" : 
                 "fragColor.xyz = vec3(0, 0, 0);");
 
     public static string AlphaFlag(bool lightLevel)
     {
-        if (ShaderVars.ColorMap)
+        if (ShaderVars.PaletteColorMode)
             return "";
 
         return
@@ -67,7 +67,7 @@ public class FragFunction
 
     public static string ColorMapFetch(bool lightLevel, ColorMapFetchContext ctx)
     {
-        if (!ShaderVars.ColorMap)
+        if (!ShaderVars.PaletteColorMode)
             return "";
 
         string indexAdd = lightLevel ?
@@ -90,9 +90,9 @@ public class FragFunction
             int lightLevelOffset = ${LightOffset};
             lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability${HudDrawColorMapFrag})));
             ${HudClearPalette}"
-            .Replace("${HudClearColorMap}", ctx == ColorMapFetchContext.Hud && ShaderVars.ColorMap ? "* int(drawColorMapFrag)" : "")
+            .Replace("${HudClearColorMap}", ctx == ColorMapFetchContext.Hud && ShaderVars.PaletteColorMode ? "* int(drawColorMapFrag)" : "")
             .Replace("${HudDrawColorMapFrag}", ctx == ColorMapFetchContext.Hud ? "* drawColorMapFrag" : "")
-            .Replace("${HudClearPalette}", ctx == ColorMapFetchContext.Hud && ShaderVars.ColorMap ?
+            .Replace("${HudClearPalette}", ctx == ColorMapFetchContext.Hud && ShaderVars.PaletteColorMode ?
                 @"usePalette = int(mix(0, usePalette, float(drawPaletteFrag)));"
                 : "")
             .Replace("${LightOffset}", ctx == ColorMapFetchContext.Hud ? "int(hudColorMapIndexFrag) * 256" : "0");
@@ -118,7 +118,7 @@ public class FragFunction
             (options.HasFlag(FragColorFunctionOptions.Colormap) ? ColorMapFetch(true, ctx) : "")
             + AlphaFlag(true) +
             (options.HasFlag(FragColorFunctionOptions.Fuzz) ? FuzzFragFunction :  "") +
-            (ShaderVars.ColorMap ? "\n" : "fragColor.xyz *= lightLevel;\n") +
+            (ShaderVars.PaletteColorMode ? "\n" : "fragColor.xyz *= lightLevel;\n") +
             (options.HasFlag(FragColorFunctionOptions.AddAlpha) ? 
                 "fragColor.w = fragColor.w * alphaFrag + addAlphaFrag;\n" : 
                 "") +
@@ -134,7 +134,7 @@ public class FragFunction
     }
 
     public static string InvulnerabilityFragColor =>
-        ShaderVars.ColorMap ? "" :
+        ShaderVars.PaletteColorMode ? "" :
     @"
     if (hasInvulnerability != 0)
     {

@@ -90,7 +90,7 @@ public partial class Renderer : IDisposable
 
     public void UploadColorMap()
     {
-        if (!ShaderVars.ColorMap)
+        if (!ShaderVars.PaletteColorMode)
             return;
         var colorMapData = ColorMapBuffer.Create(m_archiveCollection.Palette, m_archiveCollection.Colormap, m_archiveCollection.Definitions.Colormaps);
         m_colorMapBuffer = new("Colormap buffer", colorMapData, SizedInternalFormat.Rgb32f, false);
@@ -100,7 +100,7 @@ public partial class Renderer : IDisposable
     {
         SetReverseZ();
         ShaderVars.Depth = ShaderVars.ReversedZ ? "w" : "z";
-        ShaderVars.ColorMap = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
+        ShaderVars.PaletteColorMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
     }
 
     private void SetReverseZ()
@@ -154,7 +154,7 @@ public partial class Renderer : IDisposable
 
             extraLight = player.GetExtraLightRender();
 
-            if (ShaderVars.ColorMap)
+            if (ShaderVars.PaletteColorMode)
             {
                 mix = 0.0f;
                 colorMapUniforms = GetColorMapUniforms(renderInfo.ViewerEntity, renderInfo.Camera);
@@ -225,7 +225,7 @@ public partial class Renderer : IDisposable
     private static ColorMapUniforms GetColorMapUniforms(Entity viewer, OldCamera camera)
     {
         ColorMapUniforms uniforms = default;
-        if (ShaderVars.ColorMap)
+        if (ShaderVars.PaletteColorMode)
         {
             GetViewerColorMap(viewer, camera, out var globalColormap, out var sectorColormap, out var skyColormap);
             if (globalColormap != null)
@@ -240,7 +240,7 @@ public partial class Renderer : IDisposable
 
     public static Vec3F GetColorMix(Entity viewer, OldCamera camera)
     {
-        if (!ShaderVars.ColorMap)
+        if (!ShaderVars.PaletteColorMode)
         {
             GetViewerColorMap(viewer, camera, out var colormap, out _, out _);
             if (colormap != null)

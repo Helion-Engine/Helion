@@ -718,8 +718,8 @@ public class GameLayerManager : IGameLayerManager
         m_ctx.Surface.ClearOverrideDimension();
         m_hudContext.DrawPalette = true;
         m_hudRenderCtx.DrawPalette(true);
-        m_hudContext.DrawColorMap = ShaderVars.ColorMap;
-        m_hudRenderCtx.DrawColorMap(ShaderVars.ColorMap);
+        m_hudContext.DrawColorMap = ShaderVars.PaletteColorMode;
+        m_hudRenderCtx.DrawColorMap(ShaderVars.PaletteColorMode);
     }
 
     private void RenderLoadingLayer()

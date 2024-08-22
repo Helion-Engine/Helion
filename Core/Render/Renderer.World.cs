@@ -71,7 +71,7 @@ public partial class Renderer
 
         SetLightBufferData(world, m_lightBufferStorage);
 
-        if (ShaderVars.ColorMap)
+        if (ShaderVars.PaletteColorMode)
             SetSectorColorMapsBuffer(world);
 
         UpdateLookup(m_updateLightSectorsLookup, world.Sectors.Count);
