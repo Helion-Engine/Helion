@@ -42,6 +42,8 @@ public class Wad : Archive
         ["TX_END"] = ResourceNamespace.Global,
         ["C_START"] = ResourceNamespace.Colormaps,
         ["C_END"] = ResourceNamespace.Global,
+        ["CC_START"] = ResourceNamespace.Colormaps,
+        ["CC_END"] = ResourceNamespace.Global,
     };
 
     public Wad(IEntryPath path, IIndexGenerator indexGenerator) : base(path)
