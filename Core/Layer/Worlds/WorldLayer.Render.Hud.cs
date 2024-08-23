@@ -539,10 +539,9 @@ public partial class WorldLayer
         {
             // If the crosshair color and crosshair target color are the same, then rendering the target indicator takes priority
             // if we've detected a target.  Else, render a health indicator using hue angle (240 is blue, 120 green, 0 red).
-            // Note the assumption that max health is 200.
             color = target && m_config.Hud.CrosshairColor != m_config.Hud.CrosshairTargetColor
                 ? ToColor(m_config.Hud.CrosshairTargetColor.Value)
-                : Color.FromHSV((int)(Player.Health * 1.2f), 100, 100);
+                : Color.FromHSV((int)(Math.Clamp(Player.Health, 0, 200) * 1.2f), 100, 100);
         }
         else
         {
