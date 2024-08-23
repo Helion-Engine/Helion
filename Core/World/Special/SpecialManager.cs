@@ -1006,6 +1006,14 @@ public sealed class SpecialManager : ITickable, IDisposable
                 m_world.ExitLevel(LevelChangeType.SecretNext);
                 return true;
 
+            case ZDoomLineSpecialType.ExitResetInventory:
+                m_world.ExitLevel(LevelChangeType.Next, LevelChangeFlags.ResetInventory);
+                return true;
+
+            case ZDoomLineSpecialType.ExitSecretResetInventory:
+                m_world.ExitLevel(LevelChangeType.SecretNext, LevelChangeFlags.ResetInventory);
+                return true;
+
             case ZDoomLineSpecialType.SetSectorColorMap:
                 SetSectorColorMap(args.ActivateLineSpecial);
                 return true;

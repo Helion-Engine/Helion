@@ -767,6 +767,10 @@ public abstract partial class WorldBase : IWorld
     {
         if ((m_levelChangeFlags & LevelChangeFlags.KillAllPlayers) != 0)
             KillAllPlayers();
+
+        if ((m_levelChangeFlags & LevelChangeFlags.ResetInventory) != 0)
+            Player.SetDefaultInventory();
+
         m_levelChangeFlags = LevelChangeFlags.None;
     }
 

@@ -269,5 +269,7 @@ public enum ZDoomLineSpecialType
     OffsetPlaneByLineDirection = 2048,
     RotatePlaneByLineDirection,
     OffsetThenRotateByLineDirection,
-    SetSectorColorMap
+    SetSectorColorMap,
+    ExitResetInventory,
+    ExitSecretResetInventory,
 }

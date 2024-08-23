@@ -746,6 +746,16 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg0 = tag;
                 return ZDoomLineSpecialType.SetSectorColorMap;
 
+            case VanillaLineSpecialType.W1_ExitResetInventory:
+            case VanillaLineSpecialType.S1_ExitResetInventory:
+            case VanillaLineSpecialType.G1_ExitResetInventory:
+                return ZDoomLineSpecialType.ExitResetInventory;
+
+            case VanillaLineSpecialType.W1_ExitSecretResetInventory:
+            case VanillaLineSpecialType.S1_ExitSecretResetInventory:
+            case VanillaLineSpecialType.G1_ExitSecretResetInventory:
+                return ZDoomLineSpecialType.ExitSecretResetInventory;
+
             default:
                 break;
         }
@@ -1509,6 +1519,21 @@ public static class VanillaLineSpecTranslator
 
             case VanillaLineSpecialType.G1_SetSectorColorMap:
             case VanillaLineSpecialType.GR_SetSectorColorMap:
+                activations = LineActivations.Hitscan | LineActivations.ImpactLine | LineActivations.CrossLine;
+                return activations;
+
+            case VanillaLineSpecialType.W1_ExitResetInventory:
+            case VanillaLineSpecialType.W1_ExitSecretResetInventory:
+                activations = LineActivations.Player | LineActivations.CrossLine;
+                return activations;
+
+            case VanillaLineSpecialType.S1_ExitResetInventory:
+            case VanillaLineSpecialType.S1_ExitSecretResetInventory:
+                activations = LineActivations.Player | LineActivations.UseLine;
+                return activations;
+
+            case VanillaLineSpecialType.G1_ExitResetInventory:
+            case VanillaLineSpecialType.G1_ExitSecretResetInventory:
                 activations = LineActivations.Hitscan | LineActivations.ImpactLine | LineActivations.CrossLine;
                 return activations;
 

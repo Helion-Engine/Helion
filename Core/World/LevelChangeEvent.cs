@@ -44,5 +44,6 @@ public enum LevelChangeType
 public enum LevelChangeFlags
 {
     None,
-    KillAllPlayers
+    KillAllPlayers,
+    ResetInventory
 }

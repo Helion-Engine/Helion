@@ -375,6 +375,9 @@ public class Player : Entity
             }
         }
 
+        Health = Definition.Properties.Health;
+        Armor = 0;
+
         m_hasNewWeapon = false;
     }
 
