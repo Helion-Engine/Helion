@@ -92,7 +92,9 @@ public partial class EndGameLayer : IGameLayer
         m_archiveCollection = archiveCollection;
         m_musicPlayer = musicPlayer;
         m_soundManager = soundManager;
-        m_backgroundImage = language.GetMessage(currentCluster.Flat);
+        m_backgroundImage = language.GetMessage(currentCluster.Pic);
+        if (string.IsNullOrEmpty(m_backgroundImage))
+            m_backgroundImage = language.GetMessage(currentCluster.Flat);
         if (string.IsNullOrEmpty(m_backgroundImage))
             m_backgroundImage = archiveCollection.Definitions.MapInfoDefinition.GameDefinition.FinaleFlat;
 

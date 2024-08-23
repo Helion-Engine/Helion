@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Helion.Geometry.Vectors;
+using SixLabors.ImageSharp.PixelFormats;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using Helion.Geometry.Vectors;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace Helion.Graphics;
 
@@ -58,7 +58,7 @@ public struct Color
     public Vec3F Noralized3 => new(R / 255.0f, G / 255.0f, B / 255.0f);
     public SixLabors.ImageSharp.Color ToImageSharp => new(new Rgba32(R, G, B, A));
 
-    public Color(Vec4F normalized) : 
+    public Color(Vec4F normalized) :
         this((byte)(normalized.X * 255), (byte)(normalized.Y * 255), (byte)(normalized.Z * 255), (byte)(normalized.W * 255))
     {
     }
@@ -101,6 +101,33 @@ public struct Color
     public static Color FromInts(int a, int r, int g, int b)
     {
         return new((byte)Math.Clamp(a, 0, 255), (byte)Math.Clamp(r, 0, 255), (byte)Math.Clamp(g, 0, 255), (byte)Math.Clamp(b, 0, 255));
+    }
+
+    public static Color FromHSV(int hue, int saturation, int value)
+    {
+        hue = Math.Clamp(hue, 0, 359);
+        saturation = Math.Clamp(saturation, 0, 100);
+        value = Math.Clamp(value, 0, 100);
+
+        int[] rgb = new int[3];
+
+        int baseColor = (hue + 60) % 360 / 120;
+        int shift = (hue + 60) % 360 - (120 * baseColor + 60);
+        int secondaryColor = (baseColor + (shift >= 0 ? 1 : -1) + 3) % 3;
+
+        // Hue
+        rgb[baseColor] = 255;
+        rgb[secondaryColor] = (int)(Math.Abs(shift) / 60.0f * 255.0f);
+
+        // Saturation
+        for (int i = 0; i < 3; i++)
+            rgb[i] += (int)((255 - rgb[i]) * ((100 - saturation) / 100.0f));
+
+        // Value
+        for (int i = 0; i < 3; i++)
+            rgb[i] -= (int)(rgb[i] * (100 - value) / 100.0f);
+
+        return FromInts(255, rgb[0], rgb[1], rgb[2]);
     }
 
     // `t` is [0.0, 1.0], it does not saturate if out of range. Returns the
