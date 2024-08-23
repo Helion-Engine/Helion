@@ -537,7 +537,7 @@ public partial class WorldLayer
 
         if (m_config.Hud.CrosshairHealthIndicator.Value)
         {
-            // If the crosshair color and crosshair target color are the same, then rendering the target indicator takes priority
+            // If the crosshair color and crosshair target color are not the same, then the player clearly wants it to change color
             // if we've detected a target.  Else, render a health indicator using hue angle (240 is blue, 120 green, 0 red).
             color = target && m_config.Hud.CrosshairColor != m_config.Hud.CrosshairTargetColor
                 ? ToColor(m_config.Hud.CrosshairTargetColor.Value)
