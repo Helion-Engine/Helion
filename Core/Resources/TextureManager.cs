@@ -246,7 +246,7 @@ public class TextureManager : ITickable
             return m_textures[Constants.NoTextureIndex];
 
         if (m_unitTest)
-            HandleUnitTestAdd(name, resourceNamespace);
+            HandleUnitTestAdd(name, resourceNamespace, priority);
 
         Texture? texture;
         if (resourceNamespace == ResourceNamespace.Global)
@@ -296,14 +296,15 @@ public class TextureManager : ITickable
 
     public bool IsTextureAnimated(int textureHandle) => m_animatedTextures.Contains(textureHandle);
 
-    private void HandleUnitTestAdd(string name, ResourceNamespace resourceNamespace)
+    private void HandleUnitTestAdd(string name, ResourceNamespace resourceNamespace, ResourceNamespace? priority = null)
     {
         if (m_flatLookup.ContainsKey(name) || m_textureLookup.ContainsKey(name) || m_archiveCollection.Definitions.ColormapsLookup.ContainsKey(name))
             return;
 
         Texture? addedTexture = null;
-        // Have to set indicies even if texture doesn't exist. Otherwise stair builder testing will break because it depends on the texture.
-        if (resourceNamespace == ResourceNamespace.Flats && !m_flatLookup.ContainsKey(name))
+        bool flats = resourceNamespace == ResourceNamespace.Flats || (priority != null && priority.Value == ResourceNamespace.Flats);
+        // Have to set indices even if texture doesn't exist. Otherwise stair builder testing will break because it depends on the texture.
+        if (flats && !m_flatLookup.ContainsKey(name))
         {
             addedTexture = new Texture(name, resourceNamespace, m_textures.Count);
             m_flatLookup[name] = addedTexture;
