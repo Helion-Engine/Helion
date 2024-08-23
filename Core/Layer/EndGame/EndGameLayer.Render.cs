@@ -72,12 +72,12 @@ public partial class EndGameLayer
         ctx.ClearDepth();
         hud.Clear(Color.Black);
 
+        hud.RenderFullscreenImage("BOSSBACK");
         hud.DoomVirtualResolution(m_virtualDrawCast, hud);
     }
 
     private void VirtualDrawCast(IHudRenderContext hud)
     {
-        hud.Image("BOSSBACK", Vec2I.Zero);
         DrawCastMonsterText(hud);
 
         if (m_castEntity == null)
@@ -168,6 +168,11 @@ public partial class EndGameLayer
         ctx.ClearDepth();
         hud.Clear(Color.Black);
 
+        if (m_drawState == EndGameDrawState.Complete && images.Count == 1)
+        {
+            hud.RenderFullscreenImage(images[0]);
+            return;
+        }
         for (int i = 0; i < images.Count; i++)
         {
             string image = images[i];
