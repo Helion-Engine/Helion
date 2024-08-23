@@ -1832,14 +1832,14 @@ public static class EntityActionFunctions
         var player = entity.PlayerObj;
         player.Weapon.ReadyState = true;
         player.WeaponOffset.Y = Constants.WeaponTop;
-        if (!player.Weapon.Definition.Flags.WeaponNoAutofire || !player.AttackDown)
-            entity.PlayerObj.Weapon.ReadyToFire = true;
 
         if (entity.PlayerObj.PendingWeapon != null || player.IsDead)
         {
             entity.PlayerObj.LowerWeapon();
             return;
         }
+        if (!player.Weapon.Definition.Flags.WeaponNoAutofire || !player.AttackDown)
+            entity.PlayerObj.Weapon.ReadyToFire = true;
 
         if (player.TickCommand.Has(TickCommands.Attack))
         {
