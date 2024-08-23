@@ -168,6 +168,11 @@ public partial class EndGameLayer
         ctx.ClearDepth();
         hud.Clear(Color.Black);
 
+        if (m_drawState == EndGameDrawState.Complete && images.Count == 1)
+        {
+            hud.RenderFullscreenImage(images[0]);
+            return;
+        }
         for (int i = 0; i < images.Count; i++)
         {
             string image = images[i];
