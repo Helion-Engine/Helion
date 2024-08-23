@@ -531,9 +531,23 @@ public partial class WorldLayer
         int HalfWidth = Math.Max(Width / 2, 1);
         int Length = (int)(5 * m_scale * m_config.Hud.CrosshairScale.Value);
 
+        Color color = ToColor(m_config.Hud.CrosshairColor);
         bool target = Player.CrosshairTarget.Entity != null;
-        var color = target ? ToColor(m_config.Hud.CrosshairTargetColor.Value) : ToColor(m_config.Hud.CrosshairColor);
-        int crosshairLength = target ? (int)(Length * 0.8f) : Length ;
+        int crosshairLength = target ? (int)(Length * 0.8f) : Length;
+
+        if (m_config.Hud.CrosshairHealthIndicator.Value)
+        {
+            // If the crosshair color and crosshair target color are not the same, then the player clearly wants it to change color
+            // if we've detected a target.  Else, render a health indicator using hue angle (240 is blue, 120 green, 0 red).
+            color = target && m_config.Hud.CrosshairColor != m_config.Hud.CrosshairTargetColor
+                ? ToColor(m_config.Hud.CrosshairTargetColor.Value)
+                : Color.FromHSV((int)(Math.Clamp(Player.Health, 0, 200) * 1.2f), 100, 100);
+        }
+        else
+        {
+            color = target ? ToColor(m_config.Hud.CrosshairTargetColor.Value) : ToColor(m_config.Hud.CrosshairColor);
+        }
+
         int totalCrosshairLength = crosshairLength * 2;
         if (Width == 1)
             totalCrosshairLength += 1;

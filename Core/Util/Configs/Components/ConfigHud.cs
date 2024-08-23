@@ -1,5 +1,5 @@
-using Helion.Geometry.Vectors;
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.World.StatusBar;
@@ -121,6 +121,10 @@ public class ConfigHud
     [ConfigInfo("Crosshair target color.")]
     [OptionMenu(OptionSectionType.Hud, "Crosshair Target Color")]
     public readonly ConfigValue<CrossColor> CrosshairTargetColor = new(CrossColor.Red);
+
+    [ConfigInfo("Use crosshair as health indicator.  Crosshair gets redder as player loses health.")]
+    [OptionMenu(OptionSectionType.Hud, "Crosshair Health Indicator")]
+    public readonly ConfigValue<bool> CrosshairHealthIndicator = new(false);
 
     [ConfigInfo("Crosshair transparency.")]
     [OptionMenu(OptionSectionType.Hud, "Crosshair Transparency")]
