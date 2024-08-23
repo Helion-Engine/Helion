@@ -195,7 +195,7 @@ public partial class WorldLayer
 
         cmd.WeaponScroll = weaponScroll;
         int yMove = input.GetMouseMove().Y;
-        if (m_config.Mouse.ForwardBackwardSpeed > 0 && yMove != 0)
+        if (!m_config.Mouse.Look && m_config.Mouse.ForwardBackwardSpeed > 0 && yMove != 0)
             cmd.ForwardMoveSpeed += yMove * (m_config.Mouse.ForwardBackwardSpeed / 128);
     }
 
