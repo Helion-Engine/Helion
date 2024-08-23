@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Resources.IWad;
 using Helion.World.Entities.Players;
-using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
@@ -33,6 +32,7 @@ public class ColorMaps
         var sector = GameActions.GetSectorByTag(World, 2);
         AssertColorMap(sector, "BLUMAP");
 
+        GameActions.GetLine(World, 24).Flags.Repeat.Should().BeFalse();
         GameActions.ActivateLine(World, Player, 24, ActivationContext.CrossLine).Should().BeTrue();
         AssertColorMap(sector, "REDMAP");
     }
@@ -43,6 +43,7 @@ public class ColorMaps
         var sector = GameActions.GetSectorByTag(World, 2);
         AssertColorMap(sector, "BLUMAP");
 
+        GameActions.GetLine(World, 25).Flags.Repeat.Should().BeTrue();
         GameActions.ActivateLine(World, Player, 25, ActivationContext.CrossLine).Should().BeTrue();
         AssertColorMap(sector, null);
     }
@@ -53,6 +54,7 @@ public class ColorMaps
         var sector = GameActions.GetSectorByTag(World, 1);
         AssertColorMap(sector, "BLUMAP");
 
+        GameActions.GetLine(World, 16).Flags.Repeat.Should().BeFalse();
         GameActions.ActivateLine(World, Player, 16, ActivationContext.UseLine).Should().BeTrue();
         AssertColorMap(sector, "YELMAP");
     }
@@ -63,6 +65,7 @@ public class ColorMaps
         var sector = GameActions.GetSectorByTag(World, 1);
         AssertColorMap(sector, "BLUMAP");
 
+        GameActions.GetLine(World, 12).Flags.Repeat.Should().BeTrue();
         GameActions.ActivateLine(World, Player, 12, ActivationContext.UseLine).Should().BeTrue();
         AssertColorMap(sector, null);
     }
@@ -73,6 +76,7 @@ public class ColorMaps
         var sector = GameActions.GetSectorByTag(World, 3);
         AssertColorMap(sector, null);
 
+        GameActions.GetLine(World, 5).Flags.Repeat.Should().BeFalse();
         GameActions.SetEntityToLine(World, Player, 5, Player.Radius * 2).Should().BeTrue();
         GameActions.PlayerFirePistol(World, Player).Should().BeTrue();
         AssertColorMap(sector, "CYAMAP");
@@ -84,6 +88,7 @@ public class ColorMaps
         var sector = GameActions.GetSectorByTag(World, 3);
         AssertColorMap(sector, null);
 
+        GameActions.GetLine(World, 4).Flags.Repeat.Should().BeTrue();
         GameActions.SetEntityToLine(World, Player, 4, Player.Radius * 2).Should().BeTrue();
         GameActions.PlayerFirePistol(World, Player).Should().BeTrue();
         AssertColorMap(sector, "VIOMAP");
