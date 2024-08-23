@@ -10,7 +10,7 @@ public class ConfigMouse
     [OptionMenu(OptionSectionType.Mouse, "Mouse Look")]
     public readonly ConfigValue<bool> Look = new(true);
     
-    [ConfigInfo("Forward/backward movement speed.")]
+    [ConfigInfo("Forward/backward movement speed when mouse look is disabled.")]
     [OptionMenu(OptionSectionType.Mouse, "Movement Speed")]
     public readonly ConfigValue<double> ForwardBackwardSpeed = new(0, GreaterOrEqual(0.0));
 

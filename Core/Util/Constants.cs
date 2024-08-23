@@ -115,8 +115,8 @@ public static class Constants
     public static class Input
     {
         public const string Forward = "Forward";
-        public const string Left = "Left";
         public const string Backward = "Backward";
+        public const string Left = "Left";
         public const string Right = "Right";
         public const string Use = "Use";
         public const string Run = "Run";
@@ -181,8 +181,8 @@ public static class Constants
     public static readonly HashSet<string> BaseCommands = new(StringComparer.OrdinalIgnoreCase)
     {
         Input.Forward,
-        Input.Left,
         Input.Backward,
+        Input.Left,
         Input.Right,
         Input.Use,
         Input.Run,
@@ -226,8 +226,8 @@ public static class Constants
     public static readonly HashSet<string> InGameCommands = new(StringComparer.OrdinalIgnoreCase)
     {
         Input.Forward,
-        Input.Left,
         Input.Backward,
+        Input.Left,
         Input.Right,
         Input.Use,
         Input.Run,
