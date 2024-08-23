@@ -71,10 +71,13 @@ public class ListedConfigSection : IOptionSection
     private void SetDisableStates()
     {
         m_config.Window.Dimension.OptionDisabled = m_config.Window.State != RenderWindowState.Normal;
+
         bool paletteMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
         m_config.Render.Filter.Texture.OptionDisabled = paletteMode;
         m_config.Render.Anisotropy.OptionDisabled = paletteMode;
         m_config.Render.LightMode.OptionDisabled = paletteMode;
+
+        m_config.Mouse.ForwardBackwardSpeed.OptionDisabled = m_config.Mouse.Look.Value == true;
     }
 
     public void ResetSelection() => m_currentRowIndex = 0;
@@ -402,6 +405,7 @@ public class ListedConfigSection : IOptionSection
 
         Log.ConditionalTrace($"Config value with '{newValue}'for update result: {result}");
         m_currentEditValue = null;
+        SetDisableStates();
     }
 
     private void AdvanceToValidRow(int direction)
