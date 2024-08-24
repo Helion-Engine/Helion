@@ -25,10 +25,10 @@ public static class ArrayExtensions
     /// Calculates the CRC32 hash of a bunch of bytes.
     /// </summary>
     /// <param name="bytes">The bytes to hash.</param>
-    /// <returns>The hashed string.</returns>
-    public static string CalculateCrc32(this byte[] bytes)
+    /// <returns>The hashed uint.</returns>
+    public static uint CalculateCrc32(this byte[] bytes)
     {
-        return Crc32Algorithm.Compute(bytes).ToString("x2").ToUpper();
+        return Crc32Algorithm.Compute(bytes);
     }
 
     public static bool Contains(this DynamicArray<Key> keys, Key key)

@@ -4,8 +4,11 @@ using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
 using NLog;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Helion.Client.Music;
 
@@ -13,29 +16,30 @@ public class MusicPlayer : IMusicPlayer
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    private string m_lastDataHash = string.Empty;
+    private uint m_lastDataHash;
     private float m_volume;
     private bool m_disposed;
 
-    private ConfigAudio m_configAudio;
-    private Thread? m_thread;
+    private readonly ConfigAudio m_configAudio;
+    private readonly ConcurrentQueue<PlayParams> m_playQueue = [];
+    private readonly Dictionary<uint, byte[]> m_convertedMus = [];
+    private readonly CancellationTokenSource m_cancelPlayQueue = new();
+    private readonly Task m_playQueueTask;
+    private Thread? m_playThread;
     private IMusicPlayer? m_musicPlayer;
-
-    private class PlayParams
-    {
-        public readonly byte[] Data;
-        public readonly MusicPlayerOptions Options;
-
-        public PlayParams(byte[] data, MusicPlayerOptions options)
-        {
-            Data = data;
-            Options = options;
-        }
-    }
+    private PlayParams m_playParams = default;
 
     public MusicPlayer(ConfigAudio configAudio)
     {
         m_configAudio = configAudio;
+        m_playQueueTask = Task.Factory.StartNew(PlayQueueTask, m_cancelPlayQueue.Token,
+                TaskCreationOptions.LongRunning, TaskScheduler.Default);
+    }
+
+    private readonly struct PlayParams(byte[] data, MusicPlayerOptions options)
+    {
+        public readonly byte[] Data = data;
+        public readonly MusicPlayerOptions Options = options;
     }
 
     public bool Play(byte[] data, MusicPlayerOptions options)
@@ -43,22 +47,54 @@ public class MusicPlayer : IMusicPlayer
         if (m_disposed)
             return false;
 
-        string? hash = null;
+        m_playQueue.Clear();
+        m_playQueue.Enqueue(new PlayParams(data, options));
+        return true;
+    }
+
+    public bool ChangesMasterVolume() => m_musicPlayer is NAudioMusicPlayer;
+
+    private FluidSynthMusicPlayer CreateFluidSynthPlayer() =>
+        new(m_configAudio.SoundFontFile);
+
+    public void ChangeSoundFont()
+    {
+        (m_musicPlayer as FluidSynthMusicPlayer)?.ChangeSoundFont(m_configAudio.SoundFontFile);
+    }
+
+    private void PlayQueueTask()
+    {
+        while (!m_disposed)
+        {
+            if (m_playQueue.TryDequeue(out var playParams))
+                CreateAndPlayMusic(playParams);
+
+            if (m_cancelPlayQueue.IsCancellationRequested)
+                break;
+
+            Thread.Sleep(10);
+        }
+    }
+
+    private void CreateAndPlayMusic(PlayParams playParams)
+    {
+        var data = playParams.Data;
+        var options = playParams.Options;
+        uint? hash = null;
         if (options.HasFlag(MusicPlayerOptions.IgnoreAlreadyPlaying))
         {
             hash = data.CalculateCrc32();
             if (hash == m_lastDataHash)
-                return true;
+                return;
         }
 
         m_lastDataHash = hash ?? data.CalculateCrc32();
 
         Stop();
-        m_musicPlayer?.Dispose();
-        m_musicPlayer = null;
 
-        if (MusToMidi.TryConvert(data, out var converted))
+        if (m_convertedMus.TryGetValue(m_lastDataHash, out var converted) || MusToMidi.TryConvert(data, out converted))
         {
+            m_convertedMus[m_lastDataHash] = converted;
             m_musicPlayer = CreateFluidSynthPlayer();
             data = converted;
         }
@@ -77,39 +113,29 @@ public class MusicPlayer : IMusicPlayer
         }
         else if (MusToMidi.TryConvertNoHeader(data, out converted))
         {
+            m_convertedMus[m_lastDataHash] = converted;
             m_musicPlayer = CreateFluidSynthPlayer();
             data = converted;
         }
 
-        if (m_musicPlayer != null)
+        if (m_musicPlayer == null)
         {
-            m_thread = new Thread(new ParameterizedThreadStart(PlayThread));
-            m_thread.Start(new PlayParams(data, options));
-            return true;
+            Log.Warn("Unknown/unsupported music format");
+            return;
         }
 
-        Log.Warn("Unknown/unsupported music format");
-        return false;
+        m_playParams = new(data, playParams.Options);
+        m_playThread = new Thread(PlayThread);
+        m_playThread.Start();
     }
 
-    public bool ChangesMasterVolume() => m_musicPlayer is NAudioMusicPlayer;
-
-    private IMusicPlayer CreateFluidSynthPlayer() =>
-        new FluidSynthMusicPlayer(m_configAudio.SoundFontFile);
-
-    public void ChangeSoundFont()
-    {
-        (m_musicPlayer as FluidSynthMusicPlayer)?.ChangeSoundFont(m_configAudio.SoundFontFile);
-    }
-
-    private void PlayThread(object? param)
+    private void PlayThread()
     {
         if (m_musicPlayer == null)
             return;
 
-        var playParams = (PlayParams)param!;
         m_musicPlayer.SetVolume(m_volume);
-        m_musicPlayer.Play(playParams.Data, playParams.Options);
+        m_musicPlayer.Play(m_playParams.Data, m_playParams.Options);
     }
 
     public void Dispose()
@@ -124,6 +150,10 @@ public class MusicPlayer : IMusicPlayer
             return;
 
         Stop();
+
+        m_cancelPlayQueue.Cancel();
+        m_playQueueTask.Wait(1000);
+
         m_musicPlayer?.Dispose();
         m_disposed = true;
     }
@@ -141,10 +171,12 @@ public class MusicPlayer : IMusicPlayer
 
         m_musicPlayer?.Stop();
 
-        if (m_thread == null)
+        if (m_playThread == null)
             return;
 
-        if (!m_thread.Join(1000))
-            Log.Error($"Music player failed to terminate.");
+        if (m_playThread.Join(1000))
+            m_musicPlayer?.Dispose();
+        else
+            Log.Error("Music player failed to terminate.");
     }
 }
