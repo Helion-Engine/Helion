@@ -1380,7 +1380,7 @@ doneLinkToSectors:
                 if (line.Special.IsTeleport() && !fromFront)
                     continue;
 
-                m_world.ActivateSpecialLine(entity, line, ActivationContext.CrossLine);
+                m_world.ActivateSpecialLine(entity, line, ActivationContext.CrossLine, fromFront);
             }
         }
     }

@@ -119,7 +119,7 @@ public interface IWorld : IDisposable
     bool EntityUse(Entity entity);
     void OnTryEntityUseLine(Entity entity, Line line);
     bool CanActivate(Entity entity, Line line, ActivationContext context);
-    bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context);
+    bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, bool fromFrom);
     bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity);
     Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, EntityDefinition projectileDef, out Entity? autoAimEntity,
         double addAngle = 0, double addPitch = 0, double zOffset = 0);
@@ -165,7 +165,7 @@ public interface IWorld : IDisposable
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
     void ResetGametick();
     void EntityTeleported(Entity entity);
-    bool PlayLevelMusic(string name, byte[]? data);
+    bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop);
     void FindKeys();
     void FindKeyLines();
     void FindExits();

@@ -72,7 +72,7 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
 
         activationType = LineActivationType.Tag;
         LineSpecial lineSpecial = new(specialType, activationType, compat);
-        EntityActivateSpecial args = new(ActivationContext.CrossLine, m_world.Player, CreateDummyLine(flags, lineSpecial, specialArgs, m_world.Sectors[0]));
+        EntityActivateSpecial args = new(ActivationContext.CrossLine, m_world.Player, CreateDummyLine(flags, lineSpecial, specialArgs, m_world.Sectors[0]), true);
         m_world.SpecialManager.TryAddActivatedLineSpecial(args);
     }
 

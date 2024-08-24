@@ -1017,9 +1017,29 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.SetSectorColorMap:
                 SetSectorColorMap(args.ActivateLineSpecial);
                 return true;
+
+            case ZDoomLineSpecialType.ChangeMusic:
+                ChangeMusic(args);
+                return true;
         }
 
         return false;
+    }
+
+    private void ChangeMusic(in EntityActivateSpecial args)
+    {
+        var music = args.FromFront ? args.ActivateLineSpecial.MusicChangeFront : args.ActivateLineSpecial.MusicChangeBack;
+        var musicFlags = (MusicFlags)args.ActivateLineSpecial.Args.Arg0;
+        if (music == null && (musicFlags & MusicFlags.ResetToDefault) == 0)
+            return;
+
+        if (music == null)
+        {
+            music = m_world.MapInfo.Music;
+            musicFlags |= MusicFlags.Loop;
+        }
+
+        m_world.PlayLevelMusic(music, null, musicFlags);
     }
 
     private bool HandleSectorLineSpecial(in EntityActivateSpecial args, LineSpecial special)

@@ -29,6 +29,8 @@ public sealed class Line
     public bool DataChanged => DataChanges > 0;
     public int BlockmapCount;
     public int PhysicsCount;
+    public string? MusicChangeFront;
+    public string? MusicChangeBack;
     private double? m_length;
 
     public Vec2D StartPosition => Segment.Start;

@@ -2864,7 +2864,7 @@ public static class EntityActionFunctions
         DummyLine.Args = specialArgs;
         DummyLine.Flags = flags;
 
-        EntityActivateSpecial args = new(ActivationContext.CrossLine, entity, DummyLine);
+        EntityActivateSpecial args = new(ActivationContext.CrossLine, entity, DummyLine, true);
         WorldStatic.World.SpecialManager.TryAddActivatedLineSpecial(args);
     }
 

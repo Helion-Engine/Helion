@@ -2,6 +2,8 @@ using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials.Boom;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Util;
+using Helion.World;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special;
@@ -756,6 +758,41 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.G1_ExitSecretResetInventory:
                 return ZDoomLineSpecialType.ExitSecretResetInventory;
 
+            case VanillaLineSpecialType.W1_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.WR_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.S1_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.SR_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.G1_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.GR_ChangeMusicAndLoop:
+                argsToMutate.Arg0 = (int)MusicFlags.Loop;
+                return ZDoomLineSpecialType.ChangeMusic;
+
+            case VanillaLineSpecialType.W1_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.WR_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.S1_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.SR_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.G1_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.GR_ChangeMusicPlayOnce:
+                return ZDoomLineSpecialType.ChangeMusic;
+
+            case VanillaLineSpecialType.W1_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.WR_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.S1_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.SR_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.G1_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.GR_ChangeMusicAndLoopDefault:
+                argsToMutate.Arg0 = (int)(MusicFlags.Loop | MusicFlags.ResetToDefault);
+                return ZDoomLineSpecialType.ChangeMusic;
+
+            case VanillaLineSpecialType.W1_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.WR_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.S1_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.SR_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.G1_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.GR_ChangeMusicPlayOnceDefault:
+                argsToMutate.Arg0 = (int)MusicFlags.ResetToDefault;
+                return ZDoomLineSpecialType.ChangeMusic;
+
             default:
                 break;
         }
@@ -767,6 +804,49 @@ public static class VanillaLineSpecTranslator
     {
         // Based on testing boom seems to do this for every line...
         line.LineId = doomLine.SectorTag;
+
+        if (IsMusicChange(doomLine))
+        {
+            if (doomLine.Front.UpperTexture != Constants.NoTexture)
+                line.MusicChangeFront = doomLine.Front.UpperTexture;
+            if (doomLine.Front.LowerTexture != Constants.NoTexture)
+                line.MusicChangeBack = doomLine.Front.LowerTexture;
+        }
+    }
+
+
+    private static bool IsMusicChange(DoomLine line)
+    {
+        switch (line.LineType)
+        {
+            case VanillaLineSpecialType.W1_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.WR_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.S1_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.SR_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.G1_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.GR_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.W1_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.WR_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.S1_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.SR_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.G1_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.GR_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.W1_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.WR_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.S1_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.SR_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.G1_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.GR_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.W1_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.WR_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.S1_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.SR_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.G1_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.GR_ChangeMusicPlayOnceDefault:
+                return true;
+        }
+
+        return false;
     }
 
     private static void HandleDoor(VanillaLineSpecialType type, int tag, ref SpecialArgs argsToMutate, ref LineSpecialCompatibility compatibility)
@@ -1537,6 +1617,39 @@ public static class VanillaLineSpecTranslator
                 activations = LineActivations.Hitscan | LineActivations.ImpactLine | LineActivations.CrossLine;
                 return activations;
 
+            case VanillaLineSpecialType.W1_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.W1_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.WR_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.WR_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.G1_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.W1_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.WR_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.W1_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.WR_ChangeMusicPlayOnceDefault:
+                activations = LineActivations.Player | LineActivations.CrossLine;
+                return activations;
+
+            case VanillaLineSpecialType.S1_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.S1_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.SR_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.SR_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.G1_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.S1_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.SR_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.S1_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.SR_ChangeMusicPlayOnceDefault:
+                activations = LineActivations.Player | LineActivations.UseLine;
+                return activations;
+
+            case VanillaLineSpecialType.GR_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.GR_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.G1_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.GR_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.G1_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.GR_ChangeMusicPlayOnceDefault:
+                activations = LineActivations.Hitscan | LineActivations.ImpactLine | LineActivations.CrossLine;
+                return activations;
+
             default:
                 break;
         }
@@ -1673,6 +1786,18 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.WR_SetSectorColorMap:
             case VanillaLineSpecialType.SR_SetSectorColorMap:
             case VanillaLineSpecialType.GR_SetSectorColorMap:
+            case VanillaLineSpecialType.WR_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.SR_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.GR_ChangeMusicAndLoopDefault:
+            case VanillaLineSpecialType.WR_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.SR_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.GR_ChangeMusicPlayOnceDefault:
+            case VanillaLineSpecialType.WR_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.SR_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.GR_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.WR_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.SR_ChangeMusicPlayOnce:
+            case VanillaLineSpecialType.GR_ChangeMusicPlayOnce:
                 return true;
 
             default:

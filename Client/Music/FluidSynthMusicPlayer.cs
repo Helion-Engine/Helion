@@ -106,7 +106,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         }
         catch
         {
-            Log.Warn($"Cound not load SoundFont {soundFontPath}.");
+            Log.Warn($"Could not load SoundFont {soundFontPath}.");
         }
     }
 
