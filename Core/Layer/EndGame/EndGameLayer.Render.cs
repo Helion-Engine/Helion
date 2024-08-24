@@ -40,7 +40,7 @@ public partial class EndGameLayer
             if (TheEndImages.Count > 0)
             {
                 if (hud.Textures.TryGet(TheEndImages[0], out var handle))
-                    m_theEndOffset.Y = -handle.Dimension.Height;
+                    m_theEndOffset = new Vec2I(-2 - handle.Dimension.Width / 2, -2 - handle.Dimension.Height / 2);
             }
         }
 
@@ -173,14 +173,21 @@ public partial class EndGameLayer
             hud.RenderFullscreenImage(images[0]);
             return;
         }
+        int imagesRunningWidth = 0;
         for (int i = 0; i < images.Count; i++)
         {
             string image = images[i];
             if (!hud.Textures.TryGet(image, out var handle))
                 continue;
 
-            hud.Image(image, (xOffset, 0));
-            xOffset -= handle.Dimension.Width;
+            hud.Image(image, (xOffset - imagesRunningWidth, 0));
+            imagesRunningWidth += handle.Dimension.Width;
+        }
+        // When drawing bunny end, cover image spillover to keep viewport consistent
+        if (m_shouldScroll && imagesRunningWidth > 0)
+        {
+            hud.FillBox(new HudBox((-(imagesRunningWidth - hud.Width) + xOffset, 0, 0, hud.Height)), Color.Black, Align.TopLeft);
+            hud.FillBox(new HudBox((1, 0, xOffset + 1, hud.Height)), Color.Black, Align.TopRight);
         }
     }
 
