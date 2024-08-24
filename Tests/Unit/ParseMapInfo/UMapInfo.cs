@@ -76,7 +76,7 @@ public class UMapInfo
         var mapInfoDef = new MapInfoDefinition();
         SetupMapInfo(mapInfoDef);
 
-        mapInfoDef.ParseUniversalMapInfo(mapInfoDef.MapInfo, File.ReadAllText("Resources/UMAPINFO1.txt"));
+        mapInfoDef.ParseUniversalMapInfo(mapInfoDef.MapInfo, File.ReadAllText("Resources/UMAPINFO1.TXT"));
 
         var episodes = mapInfoDef.MapInfo.Episodes;
         episodes.Count.Should().Be(2);
