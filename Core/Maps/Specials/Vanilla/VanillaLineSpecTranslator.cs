@@ -1621,7 +1621,6 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.W1_ChangeMusicPlayOnce:
             case VanillaLineSpecialType.WR_ChangeMusicAndLoop:
             case VanillaLineSpecialType.WR_ChangeMusicPlayOnce:
-            case VanillaLineSpecialType.G1_ChangeMusicAndLoop:
             case VanillaLineSpecialType.W1_ChangeMusicAndLoopDefault:
             case VanillaLineSpecialType.WR_ChangeMusicAndLoopDefault:
             case VanillaLineSpecialType.W1_ChangeMusicPlayOnceDefault:
@@ -1633,7 +1632,6 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.S1_ChangeMusicPlayOnce:
             case VanillaLineSpecialType.SR_ChangeMusicAndLoop:
             case VanillaLineSpecialType.SR_ChangeMusicPlayOnce:
-            case VanillaLineSpecialType.G1_ChangeMusicPlayOnce:
             case VanillaLineSpecialType.S1_ChangeMusicAndLoopDefault:
             case VanillaLineSpecialType.SR_ChangeMusicAndLoopDefault:
             case VanillaLineSpecialType.S1_ChangeMusicPlayOnceDefault:
@@ -1641,7 +1639,9 @@ public static class VanillaLineSpecTranslator
                 activations = LineActivations.Player | LineActivations.UseLine;
                 return activations;
 
+            case VanillaLineSpecialType.G1_ChangeMusicAndLoop:
             case VanillaLineSpecialType.GR_ChangeMusicAndLoop:
+            case VanillaLineSpecialType.G1_ChangeMusicPlayOnce:
             case VanillaLineSpecialType.GR_ChangeMusicPlayOnce:
             case VanillaLineSpecialType.G1_ChangeMusicAndLoopDefault:
             case VanillaLineSpecialType.GR_ChangeMusicAndLoopDefault:
