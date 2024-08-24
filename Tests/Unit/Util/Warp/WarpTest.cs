@@ -132,7 +132,7 @@ public class WarpTest
     [Fact(DisplayName = "Map Warp without map info")]
     public void MapWarpWithoutMapInfo()
     {
-        var archiveCollection = GetArchiveCollection((MapInfo i) => { }, Path.Combine("Resources", "maptest.wad"));
+        var archiveCollection = GetArchiveCollection((MapInfo i) => { }, Path.Combine("Resources", "maptest.WAD"));
         MapWarp.GetMap(01, archiveCollection, out var mapInfoDef);
         mapInfoDef.Should().NotBeNull();
         mapInfoDef!.MapName.Should().Be("MAP01");

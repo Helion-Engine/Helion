@@ -21,7 +21,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public PlayerMovement()
         {
-            World = WorldAllocator.LoadMap("Resources/playermovement.zip", "playermovement.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap("Resources/playermovement.zip", "playermovement.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
             World.Config.Hud.MoveBob.Set(0);
         }
 

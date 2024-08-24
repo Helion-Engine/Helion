@@ -23,7 +23,7 @@ public class Nightmare
 
     public Nightmare()
     {
-        World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2, SkillLevel.Nightmare, cacheWorld: false);
+        World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2, SkillLevel.Nightmare, cacheWorld: false);
         World.SetRandom(m_random);
     }
 

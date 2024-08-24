@@ -13,7 +13,7 @@ public class MusInfoMap01
 
     public MusInfoMap01()
     {
-        World = WorldAllocator.LoadMap("Resources/musinfo.zip", "musinfo.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, cacheWorld: false);
+        World = WorldAllocator.LoadMap("Resources/musinfo.zip", "musinfo.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, cacheWorld: false);
     }
 
     [Fact(DisplayName= "Change music MAP01 #1")]

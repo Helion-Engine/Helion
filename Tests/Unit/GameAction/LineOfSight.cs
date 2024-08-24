@@ -20,7 +20,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public LineOfSight()
         {
-            World = WorldAllocator.LoadMap("Resources/los.zip", "los.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap("Resources/los.zip", "los.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
         }
 
         private void WorldInit(SinglePlayerWorld world)

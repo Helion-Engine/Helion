@@ -18,7 +18,7 @@ namespace Helion.Tests.Unit.GameAction
                 
         public VanillaLineFlags()
         {
-            World = WorldAllocator.LoadMap("Resources/vanillalineflags.zip", "vanillalineflags.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap("Resources/vanillalineflags.zip", "vanillalineflags.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
         }
 
         private void WorldInit(SinglePlayerWorld world)

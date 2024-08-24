@@ -17,7 +17,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public BoomPhysics()
         {
-            World = WorldAllocator.LoadMap("Resources/boomphysics.zip", "boomphysics.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap("Resources/boomphysics.zip", "boomphysics.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
         }
 
         private void WorldInit(SinglePlayerWorld world)

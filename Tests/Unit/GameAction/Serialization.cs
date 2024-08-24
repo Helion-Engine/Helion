@@ -63,7 +63,7 @@ public class Serialization : IDisposable
         if (worldModel != null && !PreviousWorld.ArchiveCollection.IsDisposed)
             PreviousWorld.ArchiveCollection.Dispose();
 
-        return WorldAllocator.LoadMap("Resources/serialization.zip", "serialization.wad", "MAP01", Guid.NewGuid().ToString(), onInit, IWadType.Doom2,
+        return WorldAllocator.LoadMap("Resources/serialization.zip", "serialization.WAD", "MAP01", Guid.NewGuid().ToString(), onInit, IWadType.Doom2,
             worldModel: worldModel, disposeExistingWorld: disposeExistingWorld);
     }
 

@@ -14,7 +14,7 @@ public class ClosetClassify
 
     public ClosetClassify()
     {
-        World = WorldAllocator.LoadMap("Resources/closetclassify.zip", "closetclassify.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/closetclassify.zip", "closetclassify.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
     }
 
     [Fact]

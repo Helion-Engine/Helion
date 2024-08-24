@@ -34,7 +34,7 @@ public class GameLayerInput
     public GameLayerInput()
     {
         HelionLoggers.Initialize(new());
-        World = WorldAllocator.LoadMap("Resources/playermovement.zip", "playermovement.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/playermovement.zip", "playermovement.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
         InputManager = new InputManager();
         MockWindow window = new(InputManager);
         HelionConsole console = new(new DataCache(), World.Config);

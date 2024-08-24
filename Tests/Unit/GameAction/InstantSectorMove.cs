@@ -15,7 +15,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public InstantSectorMove()
         {
-            World = WorldAllocator.LoadMap("Resources/instantmove.zip", "instantmove.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap("Resources/instantmove.zip", "instantmove.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
         }
 
         [Fact(DisplayName = "Toggle instant floor should not interpolate")]

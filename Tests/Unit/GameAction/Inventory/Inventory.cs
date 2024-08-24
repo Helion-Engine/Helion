@@ -19,7 +19,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public Inventory()
         {
-            World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
             World.Player.TickCommand = new TestTickCommand();
         }
 
@@ -87,7 +87,7 @@ namespace Helion.Tests.Unit.GameAction
             InventoryUtil.AssertWeapon(existingPlayer.Weapon, "Chaingun");
             existingPlayer.Inventory.HasItem("RedCard").Should().BeTrue();
 
-            World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", Guid.NewGuid().ToString(), (SinglePlayerWorld world) => { }, IWadType.Doom2, 
+            World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", Guid.NewGuid().ToString(), (SinglePlayerWorld world) => { }, IWadType.Doom2, 
                 existingPlayer: existingPlayer);
             InventoryUtil.AssertWeapon(Player.Weapon, "Chaingun");
             Player.WeaponOffset.Y.Should().Be(InventoryUtil.WeaponBottomRaise);

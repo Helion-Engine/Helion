@@ -22,7 +22,7 @@ public class ProjectileCompat
 
     public ProjectileCompat()
     {
-        World = WorldAllocator.LoadMap(ResourceZip, "projectilecompat.wad", MapName, GetType().Name, 
+        World = WorldAllocator.LoadMap(ResourceZip, "projectilecompat.WAD", MapName, GetType().Name, 
             (world) => { world.CheatManager.ActivateCheat(world.Player, CheatType.God); }, IWadType.Doom2, cacheWorld: false);
     }
 

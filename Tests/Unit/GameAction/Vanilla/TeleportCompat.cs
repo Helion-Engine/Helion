@@ -20,7 +20,7 @@ public class TeleportCompat
 
     public TeleportCompat()
     {
-        World = WorldAllocator.LoadMap(ResourceZip, "teleportcompat.wad", MapName, GetType().Name,
+        World = WorldAllocator.LoadMap(ResourceZip, "teleportcompat.WAD", MapName, GetType().Name,
             (world) => { }, IWadType.Doom2, cacheWorld: false);
     }
 

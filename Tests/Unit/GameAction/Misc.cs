@@ -20,7 +20,7 @@ public class Misc
 
     public Misc()
     {
-        World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", GetType().Name, WorldInit,
+        World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, WorldInit,
             IWadType.Doom2);
     }
 

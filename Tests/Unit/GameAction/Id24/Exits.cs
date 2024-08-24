@@ -17,7 +17,7 @@ public class Exits
 
     public Exits()
     {
-        World = WorldAllocator.LoadMap("Resources/id24exits.zip", "id24exits.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/id24exits.zip", "id24exits.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
     }
 
     [Fact(DisplayName = "2070 - S1 ExitResetInventory")]

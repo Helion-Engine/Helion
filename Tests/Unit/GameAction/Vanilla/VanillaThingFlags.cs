@@ -19,7 +19,7 @@ public class VanillaThingFlags
     const string Baron = "BaronOfHell"; // ambush
 
     private SinglePlayerWorld GetWorld(SkillLevel skillLevel) =>
-        WorldAllocator.LoadMap("Resources/vanillathingflags.zip", "vanillathingflags.wad", "MAP01", GetType().Name,
+        WorldAllocator.LoadMap("Resources/vanillathingflags.zip", "vanillathingflags.WAD", "MAP01", GetType().Name,
             (world) => { }, IWadType.Doom2, skillLevel, cacheWorld: false);
 
     [Fact(DisplayName = "Skill easy")]

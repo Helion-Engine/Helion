@@ -21,7 +21,7 @@ public class VileGhostCompat
 
     public VileGhostCompat()
     {
-        World = WorldAllocator.LoadMap(ResourceZip, "vileghost.wad", MapName, GetType().Name,
+        World = WorldAllocator.LoadMap(ResourceZip, "vileghost.WAD", MapName, GetType().Name,
             (world) => { world.CheatManager.ActivateCheat(world.Player, CheatType.God); }, IWadType.Doom2, cacheWorld: false);
     }
 

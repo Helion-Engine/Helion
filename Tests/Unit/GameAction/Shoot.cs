@@ -20,7 +20,7 @@ public class Shoot
 
     public Shoot()
     {
-        World = WorldAllocator.LoadMap("Resources/shoot.zip", "shoot.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2, cacheWorld: false);
+        World = WorldAllocator.LoadMap("Resources/shoot.zip", "shoot.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2, cacheWorld: false);
     }
 
     private void WorldInit(SinglePlayerWorld world)

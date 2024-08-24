@@ -13,7 +13,7 @@ namespace Helion.Tests.Unit.GameAction
     public class Keen
     {
         private const string Resource = "Resources/keen.zip";
-        private const string File = "keen.wad";
+        private const string File = "keen.WAD";
 
         private void WorldInit(SinglePlayerWorld world)
         {

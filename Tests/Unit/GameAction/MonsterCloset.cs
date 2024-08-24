@@ -15,7 +15,7 @@ public class MonsterCloset
 
     public MonsterCloset()
     {
-        World = WorldAllocator.LoadMap("Resources/monstercloset.zip", "monstercloset.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/monstercloset.zip", "monstercloset.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
     }
 
     [Fact(DisplayName = "Monster closets")]

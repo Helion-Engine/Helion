@@ -16,7 +16,7 @@ public class HealChase : IDisposable
 
     public HealChase()
     {
-        World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
     }
 
     private void WorldInit(SinglePlayerWorld world)

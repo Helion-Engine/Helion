@@ -22,7 +22,7 @@ public class VanillaSectorSound
 
     public VanillaSectorSound()
     {
-        World = WorldAllocator.LoadMap(ResourceZip, "vanillasectorsound.wad", MapName, GetType().Name,
+        World = WorldAllocator.LoadMap(ResourceZip, "vanillasectorsound.WAD", MapName, GetType().Name,
             (world) => { world.Config.Compatibility.VanillaSectorSound.Set(true); }, IWadType.Doom2, cacheWorld: false);
     }
 

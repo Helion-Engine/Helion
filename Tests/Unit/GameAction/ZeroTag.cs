@@ -22,7 +22,7 @@ public class ZeroTag
 
     public ZeroTag()
     {
-        World = WorldAllocator.LoadMap("Resources/zerotag.zip", "zerotag.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/zerotag.zip", "zerotag.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
     }
 
     private void WorldInit(SinglePlayerWorld world)
