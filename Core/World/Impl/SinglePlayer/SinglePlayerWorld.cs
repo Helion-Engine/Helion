@@ -332,7 +332,7 @@ public class SinglePlayerWorld : WorldBase
             return false;
         }
 
-        InvokeMusicChange(entry);
+        InvokeMusicChange(entry, flags);
         if (data != null)
             return PlayMusic(data, flags);
 

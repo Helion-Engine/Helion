@@ -50,7 +50,7 @@ public interface IWorld : IDisposable
     event EventHandler<Sector>? SectorLightChanged;
     event EventHandler<Sector>? SectorColorMapChanged;
     event EventHandler<PlayerMessageEvent>? PlayerMessage;
-    event EventHandler<Entry>? OnMusicChanged;
+    event EventHandler<MusicChangeEvent>? OnMusicChanged;
     event EventHandler? OnTick;
     event EventHandler? OnDestroying;
 

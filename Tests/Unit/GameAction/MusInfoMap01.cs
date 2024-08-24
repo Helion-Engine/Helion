@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.IWad;
+using Helion.World;
 using Helion.World.Impl.SinglePlayer;
 using Xunit;
 
@@ -40,9 +41,9 @@ public class MusInfoMap01
         GameActions.TickWorld(World, 30);
         musicEntry.Should().BeNull();
 
-        void World_OnMusicChanged(object? sender, Entry e)
+        void World_OnMusicChanged(object? sender, MusicChangeEvent e)
         {
-            musicEntry = e;
+            musicEntry = e.Entry;
         }
     }
 
@@ -70,9 +71,9 @@ public class MusInfoMap01
         GameActions.TickWorld(World, 30);
         musicEntry.Should().BeNull();
 
-        void World_OnMusicChanged(object? sender, Entry e)
+        void World_OnMusicChanged(object? sender, MusicChangeEvent e)
         {
-            musicEntry = e;
+            musicEntry = e.Entry;
         }
     }
 
@@ -96,9 +97,9 @@ public class MusInfoMap01
         musicEntry.Should().NotBeNull();
         musicEntry!.Path.Name.Should().Be("D_COUNTD");
 
-        void World_OnMusicChanged(object? sender, Entry e)
+        void World_OnMusicChanged(object? sender, MusicChangeEvent e)
         {
-            musicEntry = e;
+            musicEntry = e.Entry;
         }
     }
 
@@ -119,9 +120,9 @@ public class MusInfoMap01
         musicEntry.Should().NotBeNull();
         musicEntry!.Path.Name.Should().Be("D_COUNTD");
 
-        void World_OnMusicChanged(object? sender, Entry e)
+        void World_OnMusicChanged(object? sender, MusicChangeEvent e)
         {
-            musicEntry = e;
+            musicEntry = e.Entry;
         }
     }
 }

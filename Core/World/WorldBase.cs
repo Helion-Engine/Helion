@@ -59,7 +59,6 @@ using Helion.Maps.Doom;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Util.Loggers;
 using Helion.Graphics.Palettes;
-using Helion.Maps.Specials.ZDoom;
 
 namespace Helion.World;
 
@@ -89,7 +88,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<Sector>? SectorLightChanged;
     public event EventHandler<Sector>? SectorColorMapChanged;
     public event EventHandler<PlayerMessageEvent>? PlayerMessage;
-    public event EventHandler<Entry>? OnMusicChanged;
+    public event EventHandler<MusicChangeEvent>? OnMusicChanged;
     public event EventHandler? OnTick;
     public event EventHandler? OnDestroying;
         
@@ -762,7 +761,7 @@ public abstract partial class WorldBase : IWorld
 
     public virtual bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop) => true;
 
-    protected void InvokeMusicChange(Entry entry) => OnMusicChanged?.Invoke(this, entry);
+    protected void InvokeMusicChange(Entry entry, MusicFlags flags) => OnMusicChanged?.Invoke(this, new(entry, flags));
 
     private void HandleExitFlags()
     {

@@ -228,7 +228,7 @@ namespace Helion.Tests.Unit.GameAction
         {
             Line line = GetLine(world, lineId);
             line.SetActivated(false);
-            return world.ActivateSpecialLine(entity, line, context);
+            return world.ActivateSpecialLine(entity, line, context, true);
         }
 
         public static bool PlayerFirePistol(WorldBase world, Player player)
