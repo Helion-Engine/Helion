@@ -15,7 +15,6 @@ public class NAudioMusicPlayer : IMusicPlayer
 {
     private readonly NAudioMusicType m_type;
     private WaveOutEvent? m_waveOut;
-    private bool m_stop;
     private bool m_disposed;
     private float m_volume = 1;
     private WaveStream? m_audioStream;
@@ -95,7 +94,6 @@ public class NAudioMusicPlayer : IMusicPlayer
         if (m_disposed)
             return;
         SetVolume(1f);
-        m_stop = true;
         m_waveOut?.Stop();
         m_audioStream?.Dispose();
     }
