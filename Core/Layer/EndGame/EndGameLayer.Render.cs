@@ -18,7 +18,7 @@ namespace Helion.Layer.EndGame;
 public partial class EndGameLayer
 {
     private const string FontName = "SMALLFONT";
-    private static readonly Vec2I TextStartCorner = new(24, 4);
+    private static readonly Vec2I TextStartCorner = new(10, 10);
 
     private IList<string> m_images = Array.Empty<string>();
     private Vec2I m_theEndOffset = Vec2I.Zero;
@@ -225,11 +225,15 @@ public partial class EndGameLayer
 
     private void DrawText(IEnumerable<string> lines, Ticker ticker, bool showAllText, IHudRenderContext hud)
     {
-        const int LineSpacing = 4;
 
         Font? font = m_archiveCollection.GetFont(FontName);
         if (font == null)
             return;
+
+        // Default height/spacing is 7/4;
+        // Other ports allow taller fonts to eat into that spacing.
+        // We'll at least keep 1px
+        int lineSpacing = Math.Clamp(11 - font.MaxHeight, 1, 4);
 
         // The ticker goes slower than normal, so as long as we see one
         // or more ticks happening then advance the number of characters
@@ -239,7 +243,7 @@ public partial class EndGameLayer
         int charsDrawn = 0;
         int x = TextStartCorner.X;
         int y = TextStartCorner.Y;
-        int fontSize = font.MaxHeight - 1;
+        int fontSize = font.MaxHeight;
 
         // TODO: This is going to be a pain in the ass to the GC...
         foreach (string line in lines)
@@ -255,7 +259,7 @@ public partial class EndGameLayer
             }
 
             x = TextStartCorner.X;
-            y += fontSize + LineSpacing;
+            y += fontSize + lineSpacing;
         }
     }
 }
