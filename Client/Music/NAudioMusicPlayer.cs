@@ -18,6 +18,7 @@ public class NAudioMusicPlayer : IMusicPlayer
     private bool m_stop;
     private bool m_disposed;
     private float m_volume = 1;
+    private WaveStream? m_audioStream;
 
     public NAudioMusicPlayer(NAudioMusicType type)
     {
@@ -47,26 +48,20 @@ public class NAudioMusicPlayer : IMusicPlayer
             return false;
 
         var stream = new MemoryStream(data);
-        WaveStream? audioStream = m_type switch
+        m_audioStream = m_type switch
         {
             NAudioMusicType.Mp3 => new Mp3FileReader(stream),
             _ => new NAudio.Vorbis.VorbisWaveReader(stream),
         };
      
-        var playStream = options.HasFlag(MusicPlayerOptions.Loop) ? new LoopStream(audioStream) : audioStream;
+        var playStream = options.HasFlag(MusicPlayerOptions.Loop) ? new LoopStream(m_audioStream) : m_audioStream;
         m_waveOut = new WaveOutEvent();
         m_waveOut.Stop();
         m_waveOut.Init(playStream);
         SetVolume(m_volume);
 
-        try
-        {
-            while (!m_stop)
-                m_waveOut.Play();
-        }
-        catch { }
-
-        audioStream.Dispose();
+        // This will keep playing forever, if looped.
+        m_waveOut.Play();
         return true;
     }
 
@@ -83,6 +78,7 @@ public class NAudioMusicPlayer : IMusicPlayer
 
         m_waveOut?.Stop();
         m_waveOut?.Dispose();
+        m_audioStream?.Dispose();
         m_disposed = true;
     }
 
@@ -101,5 +97,6 @@ public class NAudioMusicPlayer : IMusicPlayer
         SetVolume(1f);
         m_stop = true;
         m_waveOut?.Stop();
+        m_audioStream?.Dispose();
     }
 }
