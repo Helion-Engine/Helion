@@ -14,14 +14,7 @@ public static class HudExtensions
         if (!hud.Textures.TryGet(image, out var handle))
             return false;
 
-        if (handle.Dimension.AspectRatio == 1.6f)
-        {
-            hud.VirtualDimension(handle.Dimension, ResolutionScale.Center, Constants.DoomVirtualAspectRatio, HudVirtualFullscreenImage,
-                new HudImage(hud, image, handle, window, anchor, alpha));
-            return true;
-        }
-
-        hud.VirtualDimension(handle.Dimension, ResolutionScale.Center, handle.Dimension.AspectRatio, HudVirtualFullscreenImage,
+        hud.VirtualDimension(handle.Dimension, ResolutionScale.Center, handle.Dimension.AspectRatio / 1.2f, HudVirtualFullscreenImage,
             new HudImage(hud, image, handle, window, anchor, alpha));
         return true;
     }

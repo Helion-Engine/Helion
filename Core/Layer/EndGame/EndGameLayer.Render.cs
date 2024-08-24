@@ -18,7 +18,7 @@ namespace Helion.Layer.EndGame;
 public partial class EndGameLayer
 {
     private const string FontName = "SMALLFONT";
-    private static readonly Vec2I TextStartCorner = new(24, 4);
+    private static readonly Vec2I TextStartCorner = new(10, 10);
 
     private IList<string> m_images = Array.Empty<string>();
     private Vec2I m_theEndOffset = Vec2I.Zero;
@@ -40,7 +40,7 @@ public partial class EndGameLayer
             if (TheEndImages.Count > 0)
             {
                 if (hud.Textures.TryGet(TheEndImages[0], out var handle))
-                    m_theEndOffset.Y = -handle.Dimension.Height;
+                    m_theEndOffset = new Vec2I(-2 - handle.Dimension.Width / 2, -2 - handle.Dimension.Height / 2);
             }
         }
 
@@ -72,12 +72,12 @@ public partial class EndGameLayer
         ctx.ClearDepth();
         hud.Clear(Color.Black);
 
+        hud.RenderFullscreenImage("BOSSBACK");
         hud.DoomVirtualResolution(m_virtualDrawCast, hud);
     }
 
     private void VirtualDrawCast(IHudRenderContext hud)
     {
-        hud.Image("BOSSBACK", Vec2I.Zero);
         DrawCastMonsterText(hud);
 
         if (m_castEntity == null)
@@ -168,14 +168,26 @@ public partial class EndGameLayer
         ctx.ClearDepth();
         hud.Clear(Color.Black);
 
+        if (m_drawState == EndGameDrawState.Complete && images.Count == 1)
+        {
+            hud.RenderFullscreenImage(images[0]);
+            return;
+        }
+        int imagesRunningWidth = 0;
         for (int i = 0; i < images.Count; i++)
         {
             string image = images[i];
             if (!hud.Textures.TryGet(image, out var handle))
                 continue;
 
-            hud.Image(image, (xOffset, 0));
-            xOffset -= handle.Dimension.Width;
+            hud.Image(image, (xOffset - imagesRunningWidth, 0));
+            imagesRunningWidth += handle.Dimension.Width;
+        }
+        // When drawing bunny end, cover image spillover to keep viewport consistent
+        if (m_shouldScroll && imagesRunningWidth > 0)
+        {
+            hud.FillBox(new HudBox((-(imagesRunningWidth - hud.Width) + xOffset, 0, 0, hud.Height)), Color.Black, Align.TopLeft);
+            hud.FillBox(new HudBox((1, 0, xOffset + 1, hud.Height)), Color.Black, Align.TopRight);
         }
     }
 
@@ -220,11 +232,15 @@ public partial class EndGameLayer
 
     private void DrawText(IEnumerable<string> lines, Ticker ticker, bool showAllText, IHudRenderContext hud)
     {
-        const int LineSpacing = 4;
 
         Font? font = m_archiveCollection.GetFont(FontName);
         if (font == null)
             return;
+
+        // Default height/spacing is 7/4;
+        // Other ports allow taller fonts to eat into that spacing.
+        // We'll at least keep 1px
+        int lineSpacing = Math.Clamp(11 - font.MaxHeight, 1, 4);
 
         // The ticker goes slower than normal, so as long as we see one
         // or more ticks happening then advance the number of characters
@@ -234,7 +250,7 @@ public partial class EndGameLayer
         int charsDrawn = 0;
         int x = TextStartCorner.X;
         int y = TextStartCorner.Y;
-        int fontSize = font.MaxHeight - 1;
+        int fontSize = font.MaxHeight;
 
         // TODO: This is going to be a pain in the ass to the GC...
         foreach (string line in lines)
@@ -250,7 +266,7 @@ public partial class EndGameLayer
             }
 
             x = TextStartCorner.X;
-            y += fontSize + LineSpacing;
+            y += fontSize + lineSpacing;
         }
     }
 }
