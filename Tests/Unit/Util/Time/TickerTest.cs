@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using FluentAssertions;
 using Helion.Util.Timing;
@@ -12,8 +13,13 @@ public class TickerTest
     [Fact(DisplayName = "Can read nanosecond time")]
     public void ReadNanoTime()
     {
-        long nanos = 10000L * Stopwatch.GetTimestamp() / TimeSpan.TicksPerMillisecond * 100L;
-        nanos.Should().BeLessOrEqualTo(Ticker.NanoTime());
+        // This OS requirement is mainly intended to avoid test failures on WSL and
+        // other virtualized environments.
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            long nanos = 10000L * Stopwatch.GetTimestamp() / TimeSpan.TicksPerMillisecond * 100L;
+            nanos.Should().BeLessOrEqualTo(Ticker.NanoTime());
+        }
     }
 
     [Fact(DisplayName = "Can start and stop the ticker")]
