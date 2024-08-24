@@ -66,7 +66,7 @@ public class SimpleParser
     public void Parse(string data, bool keepEmptyLines = false, bool parseQuotes = true)
     {
         m_index = 0;
-        m_lines = data.Split(SplitLines, keepEmptyLines ?  StringSplitOptions.None : StringSplitOptions.RemoveEmptyEntries);
+        m_lines = data.Split(SplitLines, StringSplitOptions.None);
         bool multiLineComment = false;
         int lineCount = 0;
         int startLine = 0;
@@ -79,9 +79,10 @@ public class SimpleParser
 
         foreach (string line in m_lines)
         {
-            if (line.Length == 0 && keepEmptyLines)
+            if (line.Length == 0)
             {
-                m_tokens.Add(new ParserToken(lineCount, 0, 0));
+                if (keepEmptyLines || quotedString)
+                    m_tokens.Add(new ParserToken(lineCount, 0, 0));
                 lineCount++;
                 continue;
             }
