@@ -26,7 +26,7 @@ public partial class BoomActions
 
     public BoomActions()
     {
-        World = WorldAllocator.LoadMap("Resources/boomactions.zip", "boomactions.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/boomactions.zip", "boomactions.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
 
         Player.Inventory.ClearKeys();
         Player.Inventory.Powerups.Clear();

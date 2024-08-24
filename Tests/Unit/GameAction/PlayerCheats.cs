@@ -28,7 +28,7 @@ public class PlayerCheats
 
     public PlayerCheats()
     {
-        World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, cacheWorld: false);
+        World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, cacheWorld: false);
     }
 
     [Fact(DisplayName = "Cheat no clip")]

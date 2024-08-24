@@ -19,7 +19,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public Switch()
         {
-            World = WorldAllocator.LoadMap("Resources/switch.zip", "switch.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap("Resources/switch.zip", "switch.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
         }
 
         private void WorldInit(SinglePlayerWorld world)

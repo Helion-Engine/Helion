@@ -15,7 +15,7 @@ public class LineEffect
 
     public LineEffect()
     {
-        World = WorldAllocator.LoadMap("Resources/lineeffect.zip", "lineeffect.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2, cacheWorld: false);
+        World = WorldAllocator.LoadMap("Resources/lineeffect.zip", "lineeffect.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2, cacheWorld: false);
     }
 
     private void WorldInit(SinglePlayerWorld world)

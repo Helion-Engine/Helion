@@ -14,7 +14,7 @@ public class BoomColormap
 
     public BoomColormap()
     {
-        World = WorldAllocator.LoadMap("Resources/boomcolormap.zip", "boomcolormap.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/boomcolormap.zip", "boomcolormap.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
     }
 
     private void WorldInit(SinglePlayerWorld world)

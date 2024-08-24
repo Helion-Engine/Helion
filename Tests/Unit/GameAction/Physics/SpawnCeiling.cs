@@ -15,7 +15,7 @@ public class SpawnCeiling
 
     public SpawnCeiling()
     {
-        World = WorldAllocator.LoadMap("Resources/spawnceiling.zip", "spawnceiling.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2,
+        World = WorldAllocator.LoadMap("Resources/spawnceiling.zip", "spawnceiling.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2,
             cacheWorld: false, onBeforeInit: BeforeInit);
     }
 

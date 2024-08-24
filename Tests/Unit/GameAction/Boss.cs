@@ -13,7 +13,7 @@ namespace Helion.Tests.Unit.GameAction
     public class Boss
     {
         private const string Resource = "Resources/boss.zip";
-        private const string File = "boss.wad";
+        private const string File = "boss.WAD";
 
         public Boss()
         {

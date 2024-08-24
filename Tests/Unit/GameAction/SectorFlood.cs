@@ -12,7 +12,7 @@ public class SectorFlood
 
     public SectorFlood()
     {
-        World = WorldAllocator.LoadMap("Resources/sectorflood.zip", "sectorflood.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/sectorflood.zip", "sectorflood.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
     }
 
     [Fact(DisplayName="Self referencing sectors flood surrounding sectors")]

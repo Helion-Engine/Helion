@@ -11,7 +11,7 @@ public class BoomAnimatedRanges
     [Fact(DisplayName = "Animated range with duplicate texture")]
     public void AnimatedRangeWithDuplicateTexture()
     {
-        var world = WorldAllocator.LoadMap("Resources/boomanimated.zip", "boomanimated.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        var world = WorldAllocator.LoadMap("Resources/boomanimated.zip", "boomanimated.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
         var animations = world.TextureManager.GetAnimations();
 
         var animation = animations.First(x => x.AnimatedTexture.Name.Equals("KS_FLSG1")).AnimatedTexture;

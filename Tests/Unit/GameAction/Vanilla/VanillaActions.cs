@@ -30,7 +30,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public VanillaActions()
         {
-            World = WorldAllocator.LoadMap(ResourceZip, "vandacts.wad", MapName, GetType().Name, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap(ResourceZip, "vandacts.WAD", MapName, GetType().Name, WorldInit, IWadType.Doom2);
         }
 
         private void WorldInit(SinglePlayerWorld world)
@@ -47,7 +47,7 @@ namespace Helion.Tests.Unit.GameAction
 
         private static void SetUnitTestTextures(WorldBase world)
         {
-            // We're not loading doom2.wad so the texture images are empty. Load fake images to test action 30 (raise by shortest lower)
+            // We're not loading doom2.WAD so the texture images are empty. Load fake images to test action 30 (raise by shortest lower)
 
             // For raise by shortest lower compatibility testing            
             Texture texture = world.TextureManager.GetTexture("AASHITTY", ResourceNamespace.Textures);

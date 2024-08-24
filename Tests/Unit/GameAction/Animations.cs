@@ -11,7 +11,7 @@ namespace Helion.Tests.Unit.GameAction
     public class Animations
     {
         private const string Resource = "Resources/animations.zip";
-        private const string File = "animations.wad";
+        private const string File = "animations.WAD";
         private const string Map = "MAP01";
 
         private class AnimationValues

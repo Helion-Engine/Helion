@@ -19,7 +19,7 @@ public class VanillaMovementPhysics
 
     public VanillaMovementPhysics()
     {
-        World = WorldAllocator.LoadMap(ResourceZip, "vanillamovementphysics.wad", MapName, GetType().Name,
+        World = WorldAllocator.LoadMap(ResourceZip, "vanillamovementphysics.WAD", MapName, GetType().Name,
             (world) => { world.Config.Compatibility.VanillaMovementPhysics.Set(true); }, IWadType.Doom2, cacheWorld: false);
     }
 

@@ -12,13 +12,13 @@ public class CommandLineArgsTest
         CommandLineArgs args = CommandLineArgs.Parse(new[]
         {
             "-iwad", "DOOM.WAD",
-            "-file", "yes.pk3", "no.wad",
+            "-file", "yes.pk3", "no.WAD",
             "-log", "log.log",
             "+map", "E1M3"
         });
 
         args.Iwad.Should().Be("DOOM.WAD");
-        args.Files.Should().Equal("yes.pk3", "no.wad");
+        args.Files.Should().Equal("yes.pk3", "no.WAD");
         args.LogFileName.Should().Be("log.log");
         args.Map.Should().Be("E1M3");
     }
@@ -26,17 +26,17 @@ public class CommandLineArgsTest
     [Fact(DisplayName = "Can set command line iwad arg")]
     public void CanSetIwad()
     {
-        CommandLineArgs args = CommandLineArgs.Parse(new[] { "-iwad", "dumb2.wad" });
+        CommandLineArgs args = CommandLineArgs.Parse(new[] { "-iwad", "dumb2.WAD" });
 
-        args.Iwad.Should().Be("dumb2.wad");
+        args.Iwad.Should().Be("dumb2.WAD");
     }
 
     [Fact(DisplayName = "Can set command line files")]
     public void CanAddFiles()
     {
-        CommandLineArgs args = CommandLineArgs.Parse(new[] { "-file", "a.wad", "b.pk3" });
+        CommandLineArgs args = CommandLineArgs.Parse(new[] { "-file", "a.WAD", "b.pk3" });
 
-        args.Files.Should().Equal("a.wad", "b.pk3");
+        args.Files.Should().Equal("a.WAD", "b.pk3");
     }
 
     [Fact(DisplayName = "Can set command line log path")]

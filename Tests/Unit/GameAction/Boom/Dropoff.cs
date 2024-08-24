@@ -13,7 +13,7 @@ public class Dropoff
 
     public Dropoff()
     {
-        World = WorldAllocator.LoadMap("Resources/dropoff.zip", "dropoff.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2, cacheWorld: false);
+        World = WorldAllocator.LoadMap("Resources/dropoff.zip", "dropoff.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2, cacheWorld: false);
     }
 
     private void WorldInit(SinglePlayerWorld world)

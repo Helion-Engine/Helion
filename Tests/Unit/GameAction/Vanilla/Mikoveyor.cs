@@ -19,7 +19,7 @@ public class MikoVeyor
 
     public MikoVeyor()
     {
-        World = WorldAllocator.LoadMap(ResourceZip, "mikoveyor.wad", MapName, GetType().Name, (world) => { }, IWadType.Doom2);
+        World = WorldAllocator.LoadMap(ResourceZip, "mikoveyor.WAD", MapName, GetType().Name, (world) => { }, IWadType.Doom2);
     }
 
     [Fact(DisplayName = "Mikoveyor")]

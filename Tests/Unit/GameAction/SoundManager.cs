@@ -20,7 +20,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public SoundManager()
         {
-            World = WorldAllocator.LoadMap("Resources/sound.zip", "sound.wad", "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2, cacheWorld: false);
+            World = WorldAllocator.LoadMap("Resources/sound.zip", "sound.WAD", "MAP01", Guid.NewGuid().ToString(), WorldInit, IWadType.Doom2, cacheWorld: false);
         }
 
         private void WorldInit(SinglePlayerWorld world)

@@ -16,7 +16,7 @@ public class SectorIsland
 
     public SectorIsland()
     {
-        World = WorldAllocator.LoadMap("Resources/sectorisland.zip", "sectorisland.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/sectorisland.zip", "sectorisland.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
     }
 
     [Fact(DisplayName = "Sector islands")]

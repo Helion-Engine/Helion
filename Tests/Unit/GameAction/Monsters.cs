@@ -134,7 +134,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public Monsters()
         {
-            World = WorldAllocator.LoadMap("Resources/box.zip", "box.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
         }
 
         public void Dispose()

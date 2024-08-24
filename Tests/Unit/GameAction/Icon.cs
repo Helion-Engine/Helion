@@ -20,7 +20,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public Icon()
         {
-            World = WorldAllocator.LoadMap("Resources/icon.zip", "icon.wad", "MAP30", GetType().Name, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap("Resources/icon.zip", "icon.WAD", "MAP30", GetType().Name, WorldInit, IWadType.Doom2);
             World.SetRandom(new NoRandom());
             World.CheatManager.ActivateCheat(World.Player, CheatType.God);
         }

@@ -19,7 +19,7 @@ public class VanillaStairActions
 
     public VanillaStairActions()
     {
-        World = WorldAllocator.LoadMap(ResourceZip, "vanillastairs.wad", MapName, GetType().Name, WorldInit, IWadType.Doom2);
+        World = WorldAllocator.LoadMap(ResourceZip, "vanillastairs.WAD", MapName, GetType().Name, WorldInit, IWadType.Doom2);
     }
 
     private void WorldInit(SinglePlayerWorld world)

@@ -16,7 +16,7 @@ namespace Helion.Tests.Unit.GameAction
     public class EntityRef
     {
         private const string Resource = "Resources/box.zip";
-        private const string File = "box.wad";
+        private const string File = "box.WAD";
 
         private void WorldInit(SinglePlayerWorld world)
         {

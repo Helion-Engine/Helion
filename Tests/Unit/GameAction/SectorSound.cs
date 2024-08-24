@@ -16,7 +16,7 @@ namespace Helion.Tests.Unit.GameAction
 
         public SectorSound()
         {
-            World = WorldAllocator.LoadMap("Resources/sectorsound.zip", "sectorsound.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+            World = WorldAllocator.LoadMap("Resources/sectorsound.zip", "sectorsound.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
             ClearSoundTargets();
             GameActions.GetSector(World, 6).Ceiling.SetZ(0);
             GameActions.GetSector(World, 8).Ceiling.SetZ(32);

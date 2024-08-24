@@ -13,7 +13,7 @@ public class Subsector
     // Tests for when things are exactly on a line between two sectors
     public Subsector()
     {
-        World = WorldAllocator.LoadMap("Resources/subsector.zip", "subsector.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/subsector.zip", "subsector.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
     }
 
     [Fact(DisplayName="Player should be in sector 0")]

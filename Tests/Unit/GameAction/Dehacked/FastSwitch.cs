@@ -18,7 +18,7 @@ public class FastSwitch : IDisposable
 
     public FastSwitch()
     {
-        World = WorldAllocator.LoadMap("Resources/fastswitch.zip", "fastswitch.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/fastswitch.zip", "fastswitch.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
         World.Player.TickCommand = new TestTickCommand();
     }
 

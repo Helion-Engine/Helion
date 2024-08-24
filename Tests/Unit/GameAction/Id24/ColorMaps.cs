@@ -16,7 +16,7 @@ public class ColorMaps
 
     public ColorMaps()
     {
-        World = WorldAllocator.LoadMap("Resources/id24colormaps.zip", "id24colormaps.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, cacheWorld: false);
+        World = WorldAllocator.LoadMap("Resources/id24colormaps.zip", "id24colormaps.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, cacheWorld: false);
     }
 
     [Fact(DisplayName = "2075 - Set sector colormap")]
