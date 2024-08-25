@@ -458,6 +458,16 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg0 = 64;
                 return ZDoomLineSpecialType.ScrollTextureRight;
 
+            case VanillaLineSpecialType.ScrollSidesToLinesLeftDirection:
+                argsToMutate.Arg0 = 64;
+                argsToMutate.Arg1 = (int)ZDoomLineScroll.BothSides;
+                return ZDoomLineSpecialType.ScrollTextureLeft;
+
+            case VanillaLineSpecialType.ScrollSidesToLinesRightDirection:
+                argsToMutate.Arg0 = 64;
+                argsToMutate.Arg1 = (int)ZDoomLineScroll.BothSides;
+                return ZDoomLineSpecialType.ScrollTextureRight;
+
             case VanillaLineSpecialType.ScrollTextureOffsets:
                 return ZDoomLineSpecialType.ScrollUsingTextureOffsets;
 
@@ -1559,6 +1569,11 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.OffsetThenRotateCeilingByLineDirection:
             case VanillaLineSpecialType.OffsetThenRotateFloorAndCeilingByLineDirection:
             case VanillaLineSpecialType.SetSectorColorMap:
+            case VanillaLineSpecialType.ScrollSidesToLinesLeftDirection:
+            case VanillaLineSpecialType.ScrollSidesToLinesRightDirection:
+            case VanillaLineSpecialType.ScrollSidesToSectorScrollValues:
+            case VanillaLineSpecialType.ScrollSidesToSectorMovement:
+            case VanillaLineSpecialType.ScrollSidesAccelerateToSectorMovement:
                 activations = LineActivations.LevelStart;
                 return activations;
 

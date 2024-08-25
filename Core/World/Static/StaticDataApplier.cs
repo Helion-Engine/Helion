@@ -76,7 +76,7 @@ public class StaticDataApplier
 
         if (line.Back != null && line.Back.ScrollData != null)
         {
-            line.Front.Dynamic |= SectorDynamic.Scroll;
+            line.Back.Dynamic |= SectorDynamic.Scroll;
             world.RenderBlockmap.LinkDynamicSide(line.Back);
         }
     }

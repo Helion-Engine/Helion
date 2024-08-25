@@ -13,7 +13,6 @@ public class ScrollSpecialModel : ISpecialModel
     public int? LineId { get; set; }
     public int PlaneType { get; set; }
     public int Type { get; set; }
-    public bool Front { get; set; }
     public double SpeedX { get; set; }
     public double SpeedY { get; set; }
     public int? AccelSectorId { get; set; }
