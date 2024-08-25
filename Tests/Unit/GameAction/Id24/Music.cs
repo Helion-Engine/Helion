@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using Helion.Resources.Archives.Entries;
 using Helion.Resources.IWad;
 using Helion.World;
 using Helion.World.Entities.Players;
@@ -22,7 +21,7 @@ public class Music
 
     public Music()
     {
-        World = WorldAllocator.LoadMap("Resources/id24music.zip", "id24music.wad", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/id24music.zip", "id24music.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
     }
 
     private static void WorldInit(IWorld world)
