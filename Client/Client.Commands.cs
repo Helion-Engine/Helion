@@ -1,14 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Helion.Geometry.Boxes;
-using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
-using Helion.Layer.IwadSelection;
 using Helion.Layer.Worlds;
 using Helion.Maps;
 using Helion.Maps.Bsp.Zdbsp;
@@ -17,7 +8,6 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
-using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
@@ -29,11 +19,16 @@ using Helion.Util.Parser;
 using Helion.Util.RandomGenerators;
 using Helion.World;
 using Helion.World.Cheats;
-using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Players;
 using Helion.World.Save;
 using Helion.World.Util;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Helion.Client;
 
@@ -111,7 +106,9 @@ public partial class Client
 
     private IEnumerable<string> GetAllCommands()
     {
-        foreach ((string command, _) in m_consoleCommands.OrderBy(x => x.command))
+        foreach ((string command, _) in m_consoleCommands
+            .Where(cmd => cmd.data.Action.Method.Name != nameof(ConsoleCommands.NotImplemented))
+            .OrderBy(x => x.command))
             yield return command;
 
         foreach (ICheat cheat in CheatManager.Cheats.OrderBy(x => x.ConsoleCommand))
@@ -536,13 +533,15 @@ public partial class Client
 
     private void Console_OnCommand(object? sender, ConsoleCommandEventArgs args)
     {
-        if (TryHandleConsoleCommand(args))
-            return;
 
         if (TryHandleCheatCommand(args))
             return;
 
         if (TryHandleConfigVariableCommand(args))
+            return;
+
+        // Console command list contains placeholders for various game actions, so check this last.
+        if (TryHandleConsoleCommand(args))
             return;
 
         if (!Constants.BaseCommands.Contains(args.Command) && !Constants.InGameCommands.Contains(args.Command))
