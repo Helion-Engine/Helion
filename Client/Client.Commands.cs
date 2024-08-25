@@ -1,5 +1,6 @@
 using Helion.Geometry.Boxes;
 using Helion.Layer.EndGame;
+using Helion.Layer.Transition;
 using Helion.Layer.Worlds;
 using Helion.Maps;
 using Helion.Maps.Bsp.Zdbsp;
@@ -676,7 +677,7 @@ public partial class Client
         var loadingLayer = m_layerManager.LoadingLayer;
         if (loadingLayer == null)
         {
-            loadingLayer = new(m_archiveCollection, m_config, string.Empty);
+            loadingLayer = new(m_archiveCollection, m_config, string.Empty, showLoadingImage: showLoadingTitlepic);
             m_layerManager.Add(loadingLayer);
         }
 
@@ -685,7 +686,9 @@ public partial class Client
 
         UnRegisterWorldEvents();
 
-        m_layerManager.ClearAllExcept(loadingLayer);
+        // keep any intermission/endgame layers so we can draw loading text over them,
+        // and once the loading has completed, copy the framebuffer for the transition
+        m_layerManager.ClearAllExcept(m_layerManager.IntermissionLayer, m_layerManager.EndGameLayer, loadingLayer);
         m_archiveCollection.DataCache.FlushReferences();
 
         await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
@@ -754,7 +757,9 @@ public partial class Client
         RegisterWorldEvents(newLayer);
 
         m_layerManager.Add(newLayer);
-        m_layerManager.ClearAllExcept(newLayer, m_layerManager.LoadingLayer);
+        // keep any intermission/endgame layers so we can draw loading text over them,
+        // and once the loading has completed, copy the framebuffer for the transition
+        m_layerManager.ClearAllExcept(newLayer, m_layerManager.IntermissionLayer, m_layerManager.EndGameLayer, m_layerManager.LoadingLayer);
 
         if (players.Count > 0 && m_config.Game.AutoSave)
         {
@@ -929,6 +934,12 @@ public partial class Client
         m_layerManager.Remove(m_layerManager.IntermissionLayer);
     }
 
+    private void PlayTransition()
+    {
+        if (m_layerManager.TransitionLayer == null)
+            m_layerManager.Add(new TransitionLayer(m_config));
+    }
+
     private async Task EndGame(IWorld world, Func<FindMapResult> getNextMapInfo)
     {
         try
@@ -953,6 +964,7 @@ public partial class Client
             if (isChangingClusters || world.MapInfo.EndGame != null || nextMapResult.Options.HasFlag(FindMapResultOptions.EndGame))
             {
                 HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
+                PlayTransition();
             }
             else if (nextMapInfo != null)
             {

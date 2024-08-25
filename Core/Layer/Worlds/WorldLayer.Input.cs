@@ -100,7 +100,7 @@ public partial class WorldLayer
             m_autoMapScale = m_config.Hud.AutoMap.Scale;
         }
 
-        if (m_parent.LoadingLayer == null)
+        if (m_parent.LoadingLayer == null && m_parent.TransitionLayer == null)
             input.IterateCommands(World.Config.Keys.GetKeyMapping(), m_checkCommandAction);
     }
 
@@ -110,7 +110,7 @@ public partial class WorldLayer
         if (cmd.Command == Input.Screenshot)
             return false;
 
-        if ((m_parent.LoadingLayer != null || World.Paused) && InGameCommands.Contains(cmd.Command))
+        if ((m_parent.LoadingLayer != null || m_parent.TransitionLayer != null || World.Paused) && InGameCommands.Contains(cmd.Command))
             return false;
 
         // This layer should eat all regular base commands whenever it's on top, to prevent things like "move automap"

@@ -39,7 +39,7 @@ public partial class Client
             }
 
             bool success = await Task.Run(() => LoadFiles(iwad));
-            m_layerManager.RemoveWithoutAnimation(m_layerManager.LoadingLayer);
+            m_layerManager.Remove(m_layerManager.LoadingLayer);
             if (!success)
             {
                 ShowConsole();

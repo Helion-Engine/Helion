@@ -24,6 +24,10 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Pain Intensity")]
     public readonly ConfigValue<double> PainIntensity = new(1.0);
 
+    [ConfigInfo("Transition effect between levels/screens.")]
+    [OptionMenu(OptionSectionType.General, "Transition Type")]
+    public readonly ConfigValue<World.TransitionType> TransitionType = new(World.TransitionType.Melt);
+
     [ConfigInfo("Player can use lines (doors, switches) by bumping into them.", demo: true)]
     [OptionMenu(OptionSectionType.General, "Bump Use", spacer: true)]
     public readonly ConfigValue<bool> BumpUse = new(false);
