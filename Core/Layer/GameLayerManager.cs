@@ -137,6 +137,8 @@ public class GameLayerManager : IGameLayerManager
 
     public bool OptionsLock => OptionsLayer != null && OptionsLayer.Animation.State != InterpolationAnimationState.Out;
 
+    public bool CanSave => EndGameLayer == null && IntermissionLayer == null;
+
     public bool ShouldFocus()
     {
         if (ConsoleLock || MenuLock)
@@ -531,6 +533,9 @@ public class GameLayerManager : IGameLayerManager
 
     public void GoToSaveOrLoadMenu(bool isSave)
     {
+        if (isSave && !CanSave)
+            return;
+
         if (MenuLayer == null)
             CreateMenuLayer();
 
@@ -548,6 +553,9 @@ public class GameLayerManager : IGameLayerManager
 
     public void QuickSave()
     {
+        if (!CanSave)
+            return;
+
         if (WorldLayer == null  || !LastSave.HasValue)
         {
             GoToSaveOrLoadMenu(true);
@@ -579,10 +587,10 @@ public class GameLayerManager : IGameLayerManager
 
     private void WriteQuickSave()
     {
-        if (WorldLayer == null || LastSave == null)
+        if (WorldLayer == null || LastSave == null || !CanSave)
             return;
 
-        var world = WorldLayer.World;
+        var world = WorldLayer!.World;
         var save = LastSave.Value;
         m_saveGameManager.WriteSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection), save.SaveGame);
         world.DisplayMessage(world.Player, null, SaveMenu.SaveMessage);

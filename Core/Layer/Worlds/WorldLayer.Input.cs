@@ -1,4 +1,3 @@
-using Helion.Layer.IwadSelection;
 using Helion.Util;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
@@ -114,6 +113,12 @@ public partial class WorldLayer
         if ((m_parent.LoadingLayer != null || World.Paused) && InGameCommands.Contains(cmd.Command))
             return;
 
+        // This layer should eat all regular base commands whenever it's on top, to prevent things like "move automap"
+        // commands from getting passed down to the console when the automap isn't raised (it'll always be on top and
+        // thus will have had a chance to consume its inputs first).
+        if (BaseCommands.Contains(cmd.Command))
+            return;
+
         m_parent.SubmitConsoleText(cmd.Command);
     }
 
@@ -168,7 +173,7 @@ public partial class WorldLayer
     }
 
     private void ChangeAutoMapSize(int amount)
-    {       
+    {
         if (m_autoMapScale > 0.5)
             m_autoMapScale += amount * 0.2;
         else
