@@ -271,15 +271,22 @@ public class LegacyWorldRenderer : WorldRenderer
             SetStaticUniforms(renderInfo);
             m_geometryRenderer.RenderStaticGeometryWalls();
             m_geometryRenderer.RenderStaticGeometryFlats();
-            m_geometryRenderer.RenderStaticTwoSidedWalls();
-            m_entityRenderer.RenderNonAlpha(renderInfo);
-            m_entityRenderer.RenderAlpha(renderInfo);
 
             m_interpolationProgram.Bind();
             GL.ActiveTexture(TextureUnit.Texture0);
             m_worldDataManager.RenderTwoSidedMiddleWalls();
+
+            m_staticProgram.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
+            SetStaticUniforms(renderInfo);
+            m_geometryRenderer.RenderStaticTwoSidedWalls();
+
+            m_interpolationProgram.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
             m_worldDataManager.RenderAlphaWalls();
-            m_interpolationProgram.Unbind();
+
+            m_entityRenderer.RenderNonAlpha(renderInfo);
+            m_entityRenderer.RenderAlpha(renderInfo);
 
             m_primitiveRenderer.Render(renderInfo);
             return;
@@ -296,7 +303,6 @@ public class LegacyWorldRenderer : WorldRenderer
         SetStaticUniforms(renderInfo);
         m_geometryRenderer.RenderStaticGeometryWalls();
         m_geometryRenderer.RenderStaticGeometryFlats();
-        m_geometryRenderer.RenderStaticTwoSidedWalls();
 
         GL.Clear(ClearBufferMask.DepthBufferBit);
         GL.ColorMask(false, false, false, false);
@@ -312,13 +318,16 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         m_geometryRenderer.RenderStaticOneSidedCoverWalls();
-        m_geometryRenderer.RenderStaticTwoSidedWalls();
-        m_interpolationProgram.Bind();
         GL.ColorMask(true, true, true, true);
 
         m_interpolationProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         m_worldDataManager.RenderTwoSidedMiddleWalls();
+
+        m_staticProgram.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        SetStaticUniforms(renderInfo);
+        m_geometryRenderer.RenderStaticTwoSidedWalls();
 
         m_entityRenderer.RenderNonAlpha(renderInfo);
         m_entityRenderer.RenderAlpha(renderInfo);
