@@ -6,8 +6,8 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
-using Helion.Util.Configs.Impl;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
@@ -24,7 +24,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics;
 
-readonly record struct SectorMoveEntityData(double SaveZ, double PrevSaveZ, bool WasCrushing);
+readonly record struct SectorMoveEntityData(Entity Entity, double SaveZ, double PrevSaveZ, bool WasCrushing);
 
 /// <summary>
 /// Responsible for handling all the physics and collision detection in a
@@ -65,13 +65,16 @@ public sealed class PhysicsManager
     private readonly DynamicArray<Entity> m_onEntities = new();
     private readonly Comparison<Entity> m_sectorMoveOrderComparer = new(SectorEntityMoveOrderCompare);
     private readonly DynamicArray<Entity> m_stackCrush = new();
+    private readonly DynamicArray<Entity> m_clampIgnoreEntities = new();
 
     private MoveLinkData m_moveLinkData;
     private CanPassData m_canPassData;
     private StackEntityTraverseData m_stackData;
+    private Entity m_clampIgnoreEntity;
     private readonly Func<Entity, GridIterationStatus> m_canPassTraverseFunc;
     private readonly Func<Entity, GridIterationStatus> m_sectorMoveLinkClampAction;
     private readonly Func<Entity, GridIterationStatus> m_stackEntityTraverseAction;
+    private readonly Func<Entity, GridIterationStatus> m_ignoreClampEntityTraverseAction;
 
     public PhysicsManager(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random, bool alwaysStickEntitiesToFloor)
     {
@@ -87,6 +90,7 @@ public sealed class PhysicsManager
         m_sectorMoveLinkClampAction = new(HandleSectorMoveLinkClamp);
         m_stackEntityTraverseAction = new(HandleStackEntityTraverse);
         m_canPassTraverseFunc = new(CanPassTraverse);
+        m_ignoreClampEntityTraverseAction = new(IgnoreClampEntityTraverse);
         m_alwaysStickEntitiesToFloor = alwaysStickEntitiesToFloor;
     }
 
@@ -184,7 +188,8 @@ public sealed class PhysicsManager
         for (int i = 0; i < m_sectorMoveEntities.Length; i++)
         {
             Entity entity = m_sectorMoveEntities[i];
-            m_sectorMoveEntitiesData.Add(new SectorMoveEntityData(entity.Position.Z, entity.PrevPosition.Z, entity.IsCrushing()));
+            var sectorMoveEntityData = new SectorMoveEntityData(entity, entity.Position.Z, entity.PrevPosition.Z, entity.IsCrushing());
+            m_sectorMoveEntitiesData.Add(sectorMoveEntityData);
 
             // At slower speeds we need to set entities to the floor
             // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
@@ -199,6 +204,12 @@ public sealed class PhysicsManager
                 // Otherwise this is a problem with the instant lift hack
                 entity.PrevPosition.Z = entity.Position.Z;
             }
+
+            // If the move distance is higher than entity height (usually instant floors) then check entities this entity is clipped with.
+            // They can't be processed for 3d checks because it will incorrectly block sector movement.
+            // See InstantMoveSectorNotBlockedByClippedEntities
+            if (!sectorMoveEntityData.WasCrushing && Math.Abs(startZ - destZ) >= entity.Height)
+                SetClampIgnoreEntities(entity);
 
             ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
 
@@ -234,6 +245,7 @@ public sealed class PhysicsManager
                 continue;
 
             double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
+
             if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
             {
                 if (entity.Flags.Dropped)
@@ -315,6 +327,7 @@ public sealed class PhysicsManager
         if (moveData.Crush != null && m_crushEntities.Length > 0)
             CrushEntities(m_crushEntities, sector, moveData.Crush.Value);
 
+        m_clampIgnoreEntities.Clear();
         m_crushEntities.Clear();
         m_sectorMoveEntities.Clear();
 
@@ -323,6 +336,36 @@ public sealed class PhysicsManager
             return SectorMoveStatus.BlockedAndStop;
 
         return status;
+    }
+
+    private void SetClampIgnoreEntities(Entity entity)
+    {
+        m_clampIgnoreEntity = entity;
+        m_clampIgnoreEntities.Clear();
+        BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_ignoreClampEntityTraverseAction);
+    }
+
+    private GridIterationStatus IgnoreClampEntityTraverse(Entity checkEntity)
+    {
+        if (!checkEntity.Flags.Solid)
+            return GridIterationStatus.Continue;
+
+        double currentZ = checkEntity.Position.Z;
+        // Find the original Z value if this entity is currently being moved by a sector.
+        for (int i = 0; i < m_sectorMoveEntitiesData.Length; i++)
+        {
+            if (m_sectorMoveEntitiesData[i].Entity != checkEntity)
+                continue;
+            currentZ = m_sectorMoveEntitiesData[i].SaveZ;
+            break;
+        }
+
+        double saveZ = checkEntity.Position.Z;
+        checkEntity.Position.Z = currentZ;
+        if (m_clampIgnoreEntity.OverlapsZ(checkEntity))
+            m_clampIgnoreEntities.Add(checkEntity);
+        checkEntity.Position.Z = saveZ;
+        return GridIterationStatus.Continue;
     }
 
     private bool SectorMoveLinkedClampCheck(Entity entity)
@@ -792,6 +835,12 @@ public sealed class PhysicsManager
         var entity = m_canPassData.Entity;
         if (!intersectEntity.Flags.Solid || intersectEntity.Flags.Corpse || intersectEntity.Flags.NoClip || entity.Id == intersectEntity.Id)
             return GridIterationStatus.Continue;
+
+        for (int i = 0; i < m_clampIgnoreEntities.Length; i++)
+        {
+            if (m_clampIgnoreEntities[i] == intersectEntity)
+                return GridIterationStatus.Continue;
+        }
 
         double intersectTopZ = intersectEntity.Position.Z + intersectEntity.Height;
         if (entity.Flags.Missile && WorldStatic.MissileClip)

@@ -7,6 +7,7 @@
   - Fix issues related to building on case-sensitive file systems (Linux)
   - Fix rendering order for two-sided middle walls that could cause flats/walls behind not to render.
   - Fix boom WR lock door lines from constantly triggering key messages when contacting.
+  - Fixed instant sector floors not raising when two monsters are overlapping.
 
 ## Features:
   - Initial id24 specification support
