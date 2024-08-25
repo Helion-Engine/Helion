@@ -25,6 +25,7 @@ using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.Resources.Definitions.SoundInfo;
+using Helion.Maps.Specials.ZDoom;
 
 namespace Helion.World.Impl.SinglePlayer;
 
@@ -32,9 +33,10 @@ public class SinglePlayerWorld : WorldBase
 {
     private static bool SoundsCached;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private static readonly CheatType[] ChaseCameraCheats = new[] { CheatType.AutoMapModeShowAllLines, CheatType.AutoMapModeShowAllLinesAndThings };
+    private static readonly CheatType[] ChaseCameraCheats = [CheatType.AutoMapModeShowAllLines, CheatType.AutoMapModeShowAllLinesAndThings];
     private readonly AutomapMarker m_automapMarker;
     private bool m_chaseCamMode;
+    private readonly Dictionary<string, byte[]> m_musicLookup = new(StringComparer.OrdinalIgnoreCase);
 
     public override Player Player { get; protected set; }
     public readonly Player ChaseCamPlayer;
@@ -129,6 +131,7 @@ public class SinglePlayerWorld : WorldBase
 
         m_automapMarker = new AutomapMarker(ArchiveCollection);
         CacheSounds();
+        CacheMusic();
     }
 
     private void CacheSounds()
@@ -141,6 +144,30 @@ public class SinglePlayerWorld : WorldBase
         ArchiveCollection.Definitions.SoundInfo.GetSounds(sounds);
         foreach (var sound in sounds)
             SoundManager.CacheSound(sound.Name);
+    }
+
+    private void CacheMusic()
+    {
+        for (int i = 0; i < Lines.Count; i++)
+        {
+            var line = Lines[i];
+            if (line.MusicChangeFront != null)
+                CacheMusic(line.MusicChangeFront);
+            if (line.MusicChangeBack != null)
+                CacheMusic(line.MusicChangeBack);
+        }
+    }
+
+    private void CacheMusic(string name)
+    {
+        if (m_musicLookup.ContainsKey(name))
+            return;
+
+        GetMusicEntry(name, out _, out var entry);
+        if (entry == null)
+            return;
+
+        m_musicLookup[name] = entry.ReadData();
     }
 
     private void ClearMonsterClosets()
@@ -292,10 +319,12 @@ public class SinglePlayerWorld : WorldBase
         m_automapMarker.Start(this);
     }
 
-    public override bool PlayLevelMusic(string name, byte[]? data)
+    public override bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop)
     {
-        string lookup = ArchiveCollection.Definitions.Language.GetMessage(name);
-        Entry? entry = ArchiveCollection.Entries.FindByName(lookup);
+        GetMusicEntry(name, out var lookup, out var entry);
+
+        if (data == null)
+            m_musicLookup.TryGetValue(lookup, out data);
 
         if (entry == null)
         {
@@ -303,14 +332,26 @@ public class SinglePlayerWorld : WorldBase
             return false;
         }
 
-        InvokeMusicChange(entry);
+        InvokeMusicChange(entry, flags);
         if (data != null)
-            return PlayMusic(data);
+            return PlayMusic(data, flags);
 
-        return PlayMusic(entry.ReadData());
+        return PlayMusic(entry.ReadData(), flags);
     }
 
-    private bool PlayMusic(byte[] data) => AudioSystem.Music.Play(data);
+    private void GetMusicEntry(string name, out string lookup, out Entry? entry)
+    {
+        lookup = ArchiveCollection.Definitions.Language.GetMessage(name);
+        entry = ArchiveCollection.Entries.FindByName(lookup);
+    }
+
+    private bool PlayMusic(byte[] data, MusicFlags flags)
+    {
+        var musicPlayerOptions = MusicPlayerOptions.IgnoreAlreadyPlaying;
+        if ((flags & MusicFlags.Loop) != 0)
+            musicPlayerOptions |= MusicPlayerOptions.Loop;
+        return AudioSystem.Music.Play(data, musicPlayerOptions);
+    }
 
     public void HandleMouseMovement(IConsumableInput input)
     {
@@ -389,10 +430,10 @@ public class SinglePlayerWorld : WorldBase
         base.OnTryEntityUseLine(entity, line);
     }
 
-    public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context)
+    public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, bool fromFront)
     {
         MarkSpecials.Mark(this, entity, line, Gametick);
-        return base.ActivateSpecialLine(entity, line, context);
+        return base.ActivateSpecialLine(entity, line, context, fromFront);
     }
 
     public override void ToggleChaseCameraMode()

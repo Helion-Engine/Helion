@@ -224,11 +224,11 @@ namespace Helion.Tests.Unit.GameAction
         }
 
         // Activates the line given the context. Will force even if not repeatable.
-        public static bool ActivateLine(WorldBase world, Entity entity, int lineId, ActivationContext context)
+        public static bool ActivateLine(WorldBase world, Entity entity, int lineId, ActivationContext context, bool fromFront = true)
         {
             Line line = GetLine(world, lineId);
             line.SetActivated(false);
-            return world.ActivateSpecialLine(entity, line, context);
+            return world.ActivateSpecialLine(entity, line, context, fromFront);
         }
 
         public static bool PlayerFirePistol(WorldBase world, Player player)

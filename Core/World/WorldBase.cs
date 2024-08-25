@@ -88,7 +88,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<Sector>? SectorLightChanged;
     public event EventHandler<Sector>? SectorColorMapChanged;
     public event EventHandler<PlayerMessageEvent>? PlayerMessage;
-    public event EventHandler<Entry>? OnMusicChanged;
+    public event EventHandler<MusicChangeEvent>? OnMusicChanged;
     public event EventHandler? OnTick;
     public event EventHandler? OnDestroying;
         
@@ -759,9 +759,9 @@ public abstract partial class WorldBase : IWorld
         Profiler.World.Total.Stop();
     }
 
-    public virtual bool PlayLevelMusic(string name, byte[]? data) => true;
+    public virtual bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop) => true;
 
-    protected void InvokeMusicChange(Entry entry) => OnMusicChanged?.Invoke(this, entry);
+    protected void InvokeMusicChange(Entry entry, MusicFlags flags) => OnMusicChanged?.Invoke(this, new(entry, flags));
 
     private void HandleExitFlags()
     {
@@ -1152,7 +1152,7 @@ public abstract partial class WorldBase : IWorld
             if (bi.Line.Segment.OnRight(start))
             {
                 if (bi.Line.HasSpecial)
-                    activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine) || activateSuccess;
+                    activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine, true) || activateSuccess;
 
                 if (activateSuccess && !bi.Line.Flags.PassThrough)
                     break;
@@ -1262,12 +1262,13 @@ public abstract partial class WorldBase : IWorld
     /// <param name="entity">The entity to execute special.</param>
     /// <param name="line">The line containing the special to execute.</param>
     /// <param name="context">The ActivationContext to attempt to execute the special.</param>
-    public virtual bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context)
+    /// <param name="fromFront">If the line was activated from the front side.</param>
+    public virtual bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, bool fromFront)
     {
         if (!CanActivate(entity, line, context))
             return false;
 
-        EntityActivateSpecial args = new(context, entity, line);
+        EntityActivateSpecial args = new(context, entity, line, fromFront);
         return EntityActivatedSpecial(args);
     }
 
@@ -1412,7 +1413,7 @@ public abstract partial class WorldBase : IWorld
             {
                 if (damage != Constants.HitscanTestDamage && bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.HitscanImpactsWall))
                 {
-                    var args = new EntityActivateSpecial(ActivationContext.HitscanImpactsWall, shooter, bi.Line);
+                    var args = new EntityActivateSpecial(ActivationContext.HitscanImpactsWall, shooter, bi.Line, true);
                     EntityActivatedSpecial(args);
                 }
 
@@ -1671,7 +1672,7 @@ public abstract partial class WorldBase : IWorld
         if (tryMove != null && (entity.Flags.Missile || entity.IsPlayer))
         {
             for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
-                ActivateSpecialLine(entity, tryMove.ImpactSpecialLines[i], ActivationContext.EntityImpactsWall);
+                ActivateSpecialLine(entity, tryMove.ImpactSpecialLines[i], ActivationContext.EntityImpactsWall, true);
 
             if (entity.IsPlayer && Config.Game.BumpUse)
                 PlayerBumpUse(entity);

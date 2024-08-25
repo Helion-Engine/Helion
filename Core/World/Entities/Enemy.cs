@@ -463,7 +463,7 @@ public partial class Entity
             if (tryMove != null && tryMove.ImpactSpecialLines.Length > 0)
             {
                 for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
-                    WorldStatic.World.ActivateSpecialLine(this, tryMove.ImpactSpecialLines[i], ActivationContext.UseLine);
+                    WorldStatic.World.ActivateSpecialLine(this, tryMove.ImpactSpecialLines[i], ActivationContext.UseLine, true);
             }
 
             return false;

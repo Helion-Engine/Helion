@@ -272,4 +272,5 @@ public enum ZDoomLineSpecialType
     SetSectorColorMap,
     ExitResetInventory,
     ExitSecretResetInventory,
+    ChangeMusic
 }

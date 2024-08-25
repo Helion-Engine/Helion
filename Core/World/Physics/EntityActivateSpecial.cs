@@ -18,27 +18,22 @@ public enum ActivationContext
 /// <summary>
 /// Event arguments for when a special is activated.
 /// </summary>
-public readonly struct EntityActivateSpecial
+public readonly struct EntityActivateSpecial(ActivationContext activationContext, Entity entity, Line activateLineSpecial, bool fromFront)
 {
     /// <summary>
     /// How the special was activated.
     /// </summary>
-    public readonly ActivationContext ActivationContext;
+    public readonly ActivationContext ActivationContext = activationContext;
 
     /// <summary>
     /// Entity that activated the special.
     /// </summary>
-    public readonly Entity Entity;
+    public readonly Entity Entity = entity;
 
     /// <summary>
     /// The line that activated the special if applicable.
     /// </summary>
-    public readonly Line ActivateLineSpecial;
+    public readonly Line ActivateLineSpecial = activateLineSpecial;
 
-    public EntityActivateSpecial(ActivationContext activationContext, Entity entity, Line activateLineSpecial)
-    {
-        ActivationContext = activationContext;
-        Entity = entity;
-        ActivateLineSpecial = activateLineSpecial;
-    }
+    public readonly bool FromFront = fromFront;
 }
