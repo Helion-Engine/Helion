@@ -6,7 +6,6 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
@@ -92,6 +91,7 @@ public sealed class PhysicsManager
         m_canPassTraverseFunc = new(CanPassTraverse);
         m_ignoreClampEntityTraverseAction = new(IgnoreClampEntityTraverse);
         m_alwaysStickEntitiesToFloor = alwaysStickEntitiesToFloor;
+        m_clampIgnoreEntity = null!;
     }
 
     public void UpdateTo(IWorld world, CompactBspTree bspTree, BlockMap blockmap, IRandom random, bool alwaysStickEntitiesToFloor)
