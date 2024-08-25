@@ -1371,13 +1371,13 @@ doneLinkToSectors:
                 break;
 
             var line = tryMove.IntersectSpecialLines[i];
-            if (!m_world.CanActivate(entity, line, ActivationContext.CrossLine))
-                continue;
-
             bool fromFront = line.Segment.PerpDot(prevX, prevY) <= 0;
             if (fromFront != (line.Segment.PerpDot(entity.Position.X, entity.Position.Y) <= 0))
             {
                 if (line.Special.IsTeleport() && !fromFront)
+                    continue;
+
+                if (!m_world.CanActivate(entity, line, ActivationContext.CrossLine))
                     continue;
 
                 m_world.ActivateSpecialLine(entity, line, ActivationContext.CrossLine, fromFront);

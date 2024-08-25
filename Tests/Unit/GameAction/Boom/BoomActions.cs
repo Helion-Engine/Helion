@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
-using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
+using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
@@ -22,7 +22,7 @@ public partial class BoomActions
     const string BlueSkull = "BlueSkull";
     const string YellowSkull = "YellowSkull";
 
-    readonly string[] AllKeys = new[] { RedCard, BlueCard, YellowCard, RedSkull, BlueSkull, YellowSkull };
+    readonly string[] AllKeys = [ RedCard, BlueCard, YellowCard, RedSkull, BlueSkull, YellowSkull ];
 
     public BoomActions()
     {
@@ -338,6 +338,30 @@ public partial class BoomActions
         {
             GameActions.EntityCrossLine(World, Player, Line).Should().BeTrue();
             GameActions.RunDoor(World, sector, 0, 72, 32, 148, true);
+        }
+    }
+
+    [Fact(DisplayName = "Boom locked door WR - Failure triggers on line cross")]
+    public void DoorLockedWalkFailTriggersOnLineCross()
+    {
+        string? message = null;
+        World.PlayerMessage += World_PlayerMessage;
+
+        Sector sector = GameActions.GetSector(World, 32);
+        GameActions.EntityCrossLine(World, Player, 173).Should().BeTrue();
+        sector.ActiveCeilingMove.Should().BeNull();
+        message.Should().Be("Any key will open this door");
+
+        // Lock failure should only trigger when crossing the line and not contacting.
+        GameActions.SetEntityToLine(World, Player, 173, 4);
+        message = null;
+        Player.Velocity.X = -8;
+        GameActions.TickWorld(World, 35);
+        message.Should().BeNull();
+
+        void World_PlayerMessage(object? sender, PlayerMessageEvent e)
+        {
+            message = e.Message;
         }
     }
 
