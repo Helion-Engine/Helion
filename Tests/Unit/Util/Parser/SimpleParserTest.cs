@@ -145,14 +145,14 @@ Line2 Data2";
     [Fact(DisplayName = "Consume single line comment on its own line")]
     public void SingleLineCommentTest()
     {
-         const string data = @"Line1 Data1
+        const string data = @"Line1 Data1
              //This is a comment
              Line2 Data2";
-         SimpleParser parser = new();
-         parser.Parse(data);
+        SimpleParser parser = new();
+        parser.Parse(data);
 
-         foreach (string s in new[] { "Line1", "Data1", "Line2", "Data2" })
-             parser.ConsumeString().Should().Be(s);
+        foreach (string s in new[] { "Line1", "Data1", "Line2", "Data2" })
+            parser.ConsumeString().Should().Be(s);
     }
 
     [Fact(DisplayName = "Consume single line comment at the end of a line")]
@@ -350,6 +350,43 @@ test3";
         parser.ConsumeString().Should().Be("exittext");
         parser.ConsumeString().Should().Be("\ntest1\nhello/*notacomment*/\ntest2\n");
         parser.ConsumeString().Should().Be("test3");
+        parser.IsDone().Should().Be(true);
+    }
+
+    [Fact(DisplayName = "Multiline intermission text with blank lines parses correctly")]
+    public void MultiLineIntermissionTextWithBlankLinesParses()
+    {
+        string data = @"E1TEXT = ""Multiline text blocks
+
+should still work even with blank lines...
+
+I hope this parses"";";
+
+        SimpleParser parser = new();
+        parser.Parse(data);
+
+        parser.ConsumeString().Should().Be("E1TEXT");
+        parser.ConsumeString().Should().Be("=");
+        parser.ConsumeString().Should().Be("Multiline text blocks\n\nshould still work even with blank lines...\n\nI hope this parses");
+        parser.ConsumeString().Should().Be(";");
+        parser.IsDone().Should().Be(true);
+    }
+
+    // e.g. Going Down
+    [Fact(DisplayName = "Multiline MAPINFO exittext with blank lines parses correctly")]
+    public void MultiLineExitTextWithBlankLinesParses()
+    {
+        string data = @"
+exittext ""*RING RING*
+
+HELLO?
+YEAH, I BROKE THE PARSER...""
+";
+        SimpleParser parser = new();
+        parser.Parse(data);
+
+        parser.ConsumeString().Should().Be("exittext");
+        parser.ConsumeString().Should().Be("*RING RING*\n\nHELLO?\nYEAH, I BROKE THE PARSER...");
         parser.IsDone().Should().Be(true);
     }
 }
