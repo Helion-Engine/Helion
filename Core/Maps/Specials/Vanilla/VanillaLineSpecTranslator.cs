@@ -458,6 +458,14 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg0 = 64;
                 return ZDoomLineSpecialType.ScrollTextureRight;
 
+            case VanillaLineSpecialType.ScrollSidesToLinesLeftDirection:
+                argsToMutate.Arg0 = 64;
+                return ZDoomLineSpecialType.ScrollTextureLeftBothSides;
+
+            case VanillaLineSpecialType.ScrollSidesToLinesRightDirection:
+                argsToMutate.Arg0 = 64;
+                return ZDoomLineSpecialType.ScrollTextureRightBothSides;
+
             case VanillaLineSpecialType.ScrollTextureOffsets:
                 return ZDoomLineSpecialType.ScrollUsingTextureOffsets;
 
@@ -692,6 +700,21 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg0 = tag;
                 argsToMutate.Arg1 = (int)ZDoomScroll.Displacement | (int)ZDoomScroll.LineOffset;
                 return ZDoomLineSpecialType.ScrollTextureModel;
+
+            case VanillaLineSpecialType.ScrollSidesToSectorScrollValues: // Same as StandardScrollMbf21
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)ZDoomScroll.LineOffset;
+                return ZDoomLineSpecialType.ScrollTextureModelBothSides;
+
+            case VanillaLineSpecialType.ScrollSidesToSectorMovement: // Same as DisplacementScrollMbf21
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)ZDoomScroll.Displacement | (int)ZDoomScroll.LineOffset;
+                return ZDoomLineSpecialType.ScrollTextureModelBothSides;
+
+            case VanillaLineSpecialType.ScrollSidesAccelerateToSectorMovement: // Same as AccelerativeScrollMbf21
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)ZDoomScroll.Accelerative | (int)ZDoomScroll.LineOffset;
+                return ZDoomLineSpecialType.ScrollTextureModelBothSides;
 
             case VanillaLineSpecialType.OffsetFloorByLineDirection:
                 argsToMutate.Arg0 = tag;
@@ -1559,6 +1582,11 @@ public static class VanillaLineSpecTranslator
             case VanillaLineSpecialType.OffsetThenRotateCeilingByLineDirection:
             case VanillaLineSpecialType.OffsetThenRotateFloorAndCeilingByLineDirection:
             case VanillaLineSpecialType.SetSectorColorMap:
+            case VanillaLineSpecialType.ScrollSidesToLinesLeftDirection:
+            case VanillaLineSpecialType.ScrollSidesToLinesRightDirection:
+            case VanillaLineSpecialType.ScrollSidesToSectorScrollValues:
+            case VanillaLineSpecialType.ScrollSidesToSectorMovement:
+            case VanillaLineSpecialType.ScrollSidesAccelerateToSectorMovement:
                 activations = LineActivations.LevelStart;
                 return activations;
 

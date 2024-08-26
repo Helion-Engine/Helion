@@ -29,12 +29,11 @@ public class ScrollSpecial : ISpecial
     private readonly ScrollType m_type;
     private readonly AccelScrollSpeed? m_accelScrollSpeed;
     private readonly ZDoomLineScroll m_lineScroll;
-    private readonly SideTexture m_sideTextures;
     private readonly bool m_scrollLineFront;
     private readonly SideScrollData? m_frontScroll;
     private readonly SideScrollData? m_backScroll;
 
-    public ScrollSpecial(Line line, in Vec2D speed, ZDoomLineScroll scroll, bool front = true, Sector? accelSector = null,
+    public ScrollSpecial(Line line, in Vec2D speed, ZDoomLineScroll scroll, Sector? accelSector = null,
         ZDoomScroll scrollFlags = ZDoomScroll.None)
     {
         m_type = ScrollType.Scroll;
@@ -45,30 +44,12 @@ public class ScrollSpecial : ISpecial
         else
             m_lineScroll = scroll;
 
-        if (m_lineScroll == ZDoomLineScroll.All)
+        Line.Front.ScrollData ??= new();
+        m_frontScroll = Line.Front.ScrollData;
+        
+        if ((scroll & ZDoomLineScroll.BothSides) != 0 && Line.Back != null)
         {
-            m_sideTextures = SideTexture.Upper | SideTexture.Lower | SideTexture.Middle;
-        }
-        else
-        {
-            if ((m_lineScroll & ZDoomLineScroll.UpperTexture) != 0)
-                m_sideTextures |= SideTexture.Upper;
-            if ((m_lineScroll & ZDoomLineScroll.LowerTexture) != 0)
-                m_sideTextures |= SideTexture.Lower;
-            if ((m_lineScroll & ZDoomLineScroll.MiddleTexture) != 0)
-                m_sideTextures |= SideTexture.Middle;
-        }
-
-        m_scrollLineFront = front;
-        if (m_scrollLineFront)
-        {
-            Line.Front.ScrollData ??= new();
-            m_frontScroll = Line.Front.ScrollData;
-        }
-        else if (Line.Back != null)
-        {
-            if (Line.Front.ScrollData == null)
-                Line.Back.ScrollData = new();
+            Line.Back.ScrollData ??= new();
             m_backScroll = Line.Back.ScrollData;
         }
 
@@ -87,7 +68,7 @@ public class ScrollSpecial : ISpecial
     }
 
     public ScrollSpecial(Line line, Sector? accelSector, ScrollSpecialModel model)
-        : this(line, new Vec2D(model.SpeedX, model.SpeedY), (ZDoomLineScroll)model.Type, model.Front, accelSector, (ZDoomScroll)model.ScrollFlags)
+        : this(line, new Vec2D(model.SpeedX, model.SpeedY), (ZDoomLineScroll)model.Type, accelSector, (ZDoomScroll)model.ScrollFlags)
     {
 
     }
@@ -107,13 +88,12 @@ public class ScrollSpecial : ISpecial
     {
         if (Line != null)
         {
-            ScrollSpecialModel model = new ScrollSpecialModel()
+            ScrollSpecialModel model = new()
             {
                 LineId = Line.Id,
                 Type = (int)m_lineScroll,
                 SpeedX = Speed.X,
                 SpeedY = Speed.Y,
-                Front = m_scrollLineFront,
                 AccelSectorId = m_accelScrollSpeed?.Sector.Id,
                 AccelSpeedX = m_accelScrollSpeed?.AccelSpeed.X,
                 AccelSpeedY = m_accelScrollSpeed?.AccelSpeed.Y,
@@ -123,14 +103,14 @@ public class ScrollSpecial : ISpecial
 
             if (m_scrollLineFront && Line.Front.ScrollData != null)
             {
-                model.OffsetFrontX = new[] { Line.Front.ScrollData.OffsetUpper.X, Line.Front.ScrollData.OffsetMiddle.X, Line.Front.ScrollData.OffsetLower.X };
-                model.OffsetFrontY = new[] { Line.Front.ScrollData.OffsetUpper.Y, Line.Front.ScrollData.OffsetMiddle.Y, Line.Front.ScrollData.OffsetLower.Y };
+                model.OffsetFrontX = [Line.Front.ScrollData.OffsetUpper.X, Line.Front.ScrollData.OffsetMiddle.X, Line.Front.ScrollData.OffsetLower.X];
+                model.OffsetFrontY = [Line.Front.ScrollData.OffsetUpper.Y, Line.Front.ScrollData.OffsetMiddle.Y, Line.Front.ScrollData.OffsetLower.Y];
             }
 
             if (!m_scrollLineFront && Line.Back?.ScrollData != null)
             {
-                model.OffsetBackX = new[] { Line.Back.ScrollData.OffsetUpper.X, Line.Back.ScrollData.OffsetMiddle.X, Line.Back.ScrollData.OffsetLower.X };
-                model.OffsetBackY = new[] { Line.Back.ScrollData.OffsetUpper.Y, Line.Back.ScrollData.OffsetMiddle.Y, Line.Back.ScrollData.OffsetLower.Y };
+                model.OffsetBackX = [Line.Back.ScrollData.OffsetUpper.X, Line.Back.ScrollData.OffsetMiddle.X, Line.Back.ScrollData.OffsetLower.X];
+                model.OffsetBackY = [Line.Back.ScrollData.OffsetUpper.Y, Line.Back.ScrollData.OffsetMiddle.Y, Line.Back.ScrollData.OffsetLower.Y];
             }
 
             return model;
@@ -166,57 +146,60 @@ public class ScrollSpecial : ISpecial
     public SpecialTickStatus Tick()
     {
         m_accelScrollSpeed?.Tick();
-        Vec2D speed = m_accelScrollSpeed == null ? Speed : m_accelScrollSpeed.AccelSpeed;
+        var speed = m_accelScrollSpeed == null ? Speed : m_accelScrollSpeed.AccelSpeed;
 
         if (Line != null)
-            ScrollLine(Line, speed);
+            ScrollLine(speed.X, speed.Y);
         else if (SectorPlane != null)
-            ScrollPlane(SectorPlane, speed);
+            ScrollPlane(SectorPlane, speed.X, speed.Y);
 
         return SpecialTickStatus.Continue;
     }
 
-    private void ScrollLine(Line line, in Vec2D speed)
+    private void ScrollLine(double x, double y)
     {
         if (m_frontScroll != null)
-            Scroll(m_frontScroll, speed);
-        else if (m_backScroll != null)
-            Scroll(m_backScroll, speed);
+            Scroll(m_frontScroll, x, y);
+        if (m_backScroll != null)
+            Scroll(m_backScroll, -x, y);
     }
 
-    private void Scroll(SideScrollData scrollData, in Vec2D speed)
+    private void Scroll(SideScrollData scrollData, double x, double y)
     {
         bool updateInterpolation = WorldStatic.World.Gametick != scrollData.Gametick; 
         if (m_lineScroll == ZDoomLineScroll.All || (m_lineScroll & ZDoomLineScroll.UpperTexture) != 0)
         {
             if (updateInterpolation)
                 scrollData.LastOffsetUpper = scrollData.OffsetUpper;
-            scrollData.OffsetUpper += speed;
+            scrollData.OffsetUpper.X += x;
+            scrollData.OffsetUpper.Y += y;
         }
 
         if (m_lineScroll == ZDoomLineScroll.All || (m_lineScroll & ZDoomLineScroll.MiddleTexture) != 0)
         {
             if (updateInterpolation)
                 scrollData.LastOffsetMiddle = scrollData.OffsetMiddle;
-            scrollData.OffsetMiddle += speed;
+            scrollData.OffsetMiddle.X += x;
+            scrollData.OffsetMiddle.Y += y;
         }
 
         if (m_lineScroll == ZDoomLineScroll.All || (m_lineScroll & ZDoomLineScroll.LowerTexture) != 0)
         {
             if (updateInterpolation)
                 scrollData.LastOffsetLower = scrollData.OffsetLower;
-            scrollData.OffsetLower += speed;
+            scrollData.OffsetLower.X += x;
+            scrollData.OffsetLower.Y += y;
         }
 
         scrollData.Gametick = WorldStatic.World.Gametick;
     }
 
-    private void ScrollPlane(SectorPlane sectorPlane, in Vec2D speed)
+    private void ScrollPlane(SectorPlane sectorPlane, double x, double y)
     {
         ref RenderOffsets scroll = ref sectorPlane.RenderOffsets;
         if (m_type == ScrollType.Scroll)
         {
-            if (speed == Vec2D.Zero)
+            if (x == 0 && y == 0)
             {
                 scroll.LastOffset = scroll.Offset; 
                 return;
@@ -227,7 +210,8 @@ public class ScrollSpecial : ISpecial
                 scroll.Gametick = WorldStatic.World.Gametick;
                 scroll.LastOffset = scroll.Offset;
             }
-            scroll.Offset += speed;
+            scroll.Offset.X += x;
+            scroll.Offset.Y += y;
             sectorPlane.Sector.DataChanges |= SectorDataTypes.Offset;
         }
         else if (m_type == ScrollType.Carry && sectorPlane == sectorPlane.Sector.Floor)
@@ -250,8 +234,8 @@ public class ScrollSpecial : ISpecial
                 if (entity.Position.Z >= waterHeight && (entity.Flags.NoBlockmap || entity.Flags.NoGravity || !entity.OnGround || !entity.OnSectorFloorZ(sectorPlane.Sector)))
                     continue;
 
-                entity.Velocity.X += speed.X;
-                entity.Velocity.Y += speed.Y;
+                entity.Velocity.X += x;
+                entity.Velocity.Y += y;
                 entity.Flags.IgnoreDropOff = true;
             }
         }
@@ -262,7 +246,7 @@ public class ScrollSpecial : ISpecial
         if (SectorPlane != null && m_type == ScrollType.Scroll)
             SectorPlane.RenderOffsets.LastOffset = SectorPlane.RenderOffsets.Offset;
         else if (Line != null)
-            ScrollLine(Line, Vec2D.Zero);
+            ScrollLine(0, 0);
     }
 
     public bool Use(Entity entity)

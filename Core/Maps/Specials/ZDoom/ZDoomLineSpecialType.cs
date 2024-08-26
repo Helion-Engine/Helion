@@ -272,5 +272,8 @@ public enum ZDoomLineSpecialType
     SetSectorColorMap,
     ExitResetInventory,
     ExitSecretResetInventory,
-    ChangeMusic
+    ChangeMusic,
+    ScrollTextureLeftBothSides,
+    ScrollTextureRightBothSides,
+    ScrollTextureModelBothSides
 }

@@ -109,6 +109,12 @@ public static class WorldTriangulator
         }
 
         Line line = facingSide.Line;
+        // Set offset according to the scroll Y offset. The doom renderer would push the entire texture up/down.
+        if (facingSide.ScrollData != null)
+        {
+            offset += facingSide.ScrollData.OffsetMiddle.Y;
+            prevOffset += facingSide.ScrollData.LastOffsetMiddle.Y;
+        }
         MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, opening, prevOpening, textureDimension, offset, prevOffset, clipPlanes);
         if (drawSpan.NotVisible())
         {
@@ -385,13 +391,13 @@ public static class WorldTriangulator
         {
             if (previous)
             {
-                offsetUV.X += (float)side.ScrollData.LastOffsetLower.X * textureUVInverse.U;
-                offsetUV.Y += (float)side.ScrollData.LastOffsetLower.Y * textureUVInverse.V;
+                offsetUV.X += (float)side.ScrollData.LastOffsetMiddle.X * textureUVInverse.U;
+                offsetUV.Y += (float)side.ScrollData.LastOffsetMiddle.Y * textureUVInverse.V;
             }
             else
             {
-                offsetUV.X += (float)side.ScrollData.OffsetLower.X * textureUVInverse.U;
-                offsetUV.Y += (float)side.ScrollData.OffsetLower.Y * textureUVInverse.V;
+                offsetUV.X += (float)side.ScrollData.OffsetMiddle.X * textureUVInverse.U;
+                offsetUV.Y += (float)side.ScrollData.OffsetMiddle.Y * textureUVInverse.V;
             }
         }
         float wallSpanU = (float)length * textureUVInverse.U;
