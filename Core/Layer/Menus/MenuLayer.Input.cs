@@ -39,6 +39,9 @@ public partial class MenuLayer
 
         if (MenuNotChanged(menu))
             HandleInputForMenu(menu, input);
+
+        // Consume all remaining input--when menu layer is on top, users are not expecting input to fall through into other layers.
+        input.ConsumeAll();
     }
 
     private void InvokeAndPushMenu(Func<Menu?> action)

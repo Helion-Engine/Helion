@@ -74,7 +74,7 @@ public class ConsoleCommands : IEnumerable<(string command, ConsoleCommandData d
             if (parameters[0].ParameterType != typeof(ConsoleCommandEventArgs))
                 throw new Exception($"Method {methodInfo.Name} in type {typeof(T).FullName} must accept a {nameof(ConsoleCommandEventArgs)}");
 
-            Action<ConsoleCommandEventArgs> action = cmdArgs => methodInfo.Invoke(obj, new object?[] { cmdArgs } );
+            Action<ConsoleCommandEventArgs> action = cmdArgs => methodInfo.Invoke(obj, new object?[] { cmdArgs });
             List<ConsoleCommandArgAttribute> args = methodInfo
                 .GetCustomAttributes(typeof(ConsoleCommandArgAttribute))
                 .Cast<ConsoleCommandArgAttribute>()
@@ -85,6 +85,16 @@ public class ConsoleCommands : IEnumerable<(string command, ConsoleCommandData d
                 Log.Error($"Replacing existing console command {attr.Command}");
 
             m_nameToAction[attr.Command] = new ConsoleCommandData(action, attr, args);
+        }
+
+        // Create dummy "I'm not implemented" commands for valid game actions that don't have console equivalents
+        foreach (string cmd in Constants.BaseCommands.Concat(Constants.InGameCommands))
+        {
+            _ = m_nameToAction.TryAdd(
+                cmd,
+                new(NotImplemented,
+                    new ConsoleCommandAttribute(cmd, "Not implemented"),
+                    new List<ConsoleCommandArgAttribute>()));
         }
     }
 
@@ -97,5 +107,10 @@ public class ConsoleCommands : IEnumerable<(string command, ConsoleCommandData d
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
+    }
+
+    public void NotImplemented(ConsoleCommandEventArgs args)
+    {
+        Log.Warn($"No such command or config variable: {args.Command}");
     }
 }

@@ -81,7 +81,7 @@ public class SimpleParser
         {
             if (line.Length == 0)
             {
-                if (keepEmptyLines || quotedString)
+                if (keepEmptyLines && !quotedString)
                     m_tokens.Add(new ParserToken(lineCount, 0, 0));
                 lineCount++;
                 continue;
@@ -203,7 +203,7 @@ public class SimpleParser
         if (line[i] != '/' || !CheckNext(line, i, '*'))
             return false;
 
-        i+=2;
+        i += 2;
         return true;
     }
 
@@ -246,7 +246,7 @@ public class SimpleParser
 
     private static bool CheckNext(string str, int i, char c) => i + 1 < str.Length && str[i + 1] == c;
 
-    public int GetCurrentLine() => IsDone() ? - 1 : m_tokens[m_index].Line;
+    public int GetCurrentLine() => IsDone() ? -1 : m_tokens[m_index].Line;
     public int GetCurrentCharOffset() => IsDone() ? -1 : m_tokens[m_index].Index;
 
     public ParserOffset GetCurrentOffset() => new(GetCurrentLine(), GetCurrentCharOffset());
@@ -454,7 +454,7 @@ public class SimpleParser
             token = m_tokens[^1];
 
         return new ParserException(token.Line, token.Index, 0, reason);
-}
+    }
 
     private void AssertData()
     {
