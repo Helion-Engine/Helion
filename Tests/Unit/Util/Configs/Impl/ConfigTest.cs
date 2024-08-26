@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Helion.Maps.Shared;
@@ -130,5 +131,17 @@ public class ConfigTest
 
         config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
         config.Game.Skill.Value.Should().Be(newSkillLevel);
+    }
+
+    [Fact(DisplayName = "All config values should be resettable from their own default values")]
+    public void TestConfigReset()
+    {
+        Config config = new();
+        List<(IConfigValue, Helion.Util.Configs.Options.OptionMenuAttribute, ConfigInfoAttribute)> allConfigFields = config.GetAllConfigFields();
+        foreach((IConfigValue cfgValue, _, _) in allConfigFields)
+        {
+            ConfigSetResult result = cfgValue.Set(cfgValue.ObjectDefaultValue);
+            result.Should().NotBe(ConfigSetResult.NotSetByBadConversion);
+        }
     }
 }
