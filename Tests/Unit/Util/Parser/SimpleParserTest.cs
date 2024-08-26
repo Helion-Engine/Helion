@@ -352,4 +352,22 @@ test3";
         parser.ConsumeString().Should().Be("test3");
         parser.IsDone().Should().Be(true);
     }
+
+    // e.g. Going Down
+    [Fact(DisplayName = "Multiline MAPINFO exittext parses correctly")]
+    public void MultiLineExitTextParses()
+    {
+        string data = @"
+exittext ""*RING RING*
+
+HELLO?
+YEAH, I BROKE THE PARSER...""
+";
+        SimpleParser parser = new();
+        parser.Parse(data);
+
+        parser.ConsumeString().Should().Be("exittext");
+        parser.ConsumeString().Should().Be("*RING RING*\n\nHELLO?\nYEAH, I BROKE THE PARSER...");
+        parser.IsDone().Should().Be(true);
+    }
 }
