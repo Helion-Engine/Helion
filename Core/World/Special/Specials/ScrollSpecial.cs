@@ -29,7 +29,6 @@ public class ScrollSpecial : ISpecial
     private readonly ScrollType m_type;
     private readonly AccelScrollSpeed? m_accelScrollSpeed;
     private readonly ZDoomLineScroll m_lineScroll;
-    private readonly SideTexture m_sideTextures;
     private readonly bool m_scrollLineFront;
     private readonly SideScrollData? m_frontScroll;
     private readonly SideScrollData? m_backScroll;
@@ -44,20 +43,6 @@ public class ScrollSpecial : ISpecial
             m_lineScroll = ZDoomLineScroll.All;
         else
             m_lineScroll = scroll;
-
-        if (m_lineScroll == ZDoomLineScroll.All)
-        {
-            m_sideTextures = SideTexture.Upper | SideTexture.Lower | SideTexture.Middle;
-        }
-        else
-        {
-            if ((m_lineScroll & ZDoomLineScroll.UpperTexture) != 0)
-                m_sideTextures |= SideTexture.Upper;
-            if ((m_lineScroll & ZDoomLineScroll.LowerTexture) != 0)
-                m_sideTextures |= SideTexture.Lower;
-            if ((m_lineScroll & ZDoomLineScroll.MiddleTexture) != 0)
-                m_sideTextures |= SideTexture.Middle;
-        }
 
         Line.Front.ScrollData ??= new();
         m_frontScroll = Line.Front.ScrollData;

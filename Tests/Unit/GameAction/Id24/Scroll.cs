@@ -39,7 +39,7 @@ public class Scroll
         AssertTwoSidedScroll(line, (-1, 0));
     }
 
-    [Fact]
+    [Fact(DisplayName = "2084 ScrollSidesToSectorScrollValues")]
     public void Action2084_ScrollSidesToSectorScrollValues()
     {
         var line = GameActions.GetLine(World, 8);
@@ -48,7 +48,7 @@ public class Scroll
         AssertTwoSidedScroll(line, (-0.5, 1));
     }
 
-    [Fact]
+    [Fact(DisplayName = "2085 ScrollSidesToSectorMovement")]
     public void Action2085_ScrollSidesToSectorMovement()
     {
         var line = GameActions.GetLine(World, 9);
@@ -73,7 +73,7 @@ public class Scroll
         AssertTwoSidedScroll(line, offset);
     }
 
-    [Fact]
+    [Fact(DisplayName = "2086 ScrollSidesAccelerateToSectorMovement")]
     public void Action2086_ScrollSidesAccelerateToSectorMovement()
     {
         var line = GameActions.GetLine(World, 31);
