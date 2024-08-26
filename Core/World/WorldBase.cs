@@ -980,8 +980,7 @@ public abstract partial class WorldBase : IWorld
 
         foreach (var bossAction in MapInfo.BossActions)
         {
-            string translatedName = GetTranslatedDehackedName(bossAction.ActorName);
-            var entityDef = GetEntityDefinitionWithWarning(translatedName, "boss action");
+            var entityDef = GetBossActionDefinition(bossAction);
             if (entityDef == null)
                 continue;
 
@@ -1019,7 +1018,16 @@ public abstract partial class WorldBase : IWorld
         m_bossDeathSpecials.Add(new BossActionMonsterCount(this, new(definition.Name, type, sectorTag), definition.Id));
     }
 
-    private string GetTranslatedDehackedName(string actorName)
+    private EntityDefinition? GetBossActionDefinition(BossAction bossAction)
+    {
+        if (bossAction.EditorNumber.HasValue)
+            return ArchiveCollection.EntityDefinitionComposer.GetByID(bossAction.EditorNumber.Value);
+
+        var translatedName = GetTranslatedDehackedName(bossAction.ActorName);
+        return GetEntityDefinitionWithWarning(translatedName, "boss action");
+    }
+
+    private static string GetTranslatedDehackedName(string actorName)
     {
         const string DehActor = "Deh_Actor_";
         if (actorName.StartsWith(DehActor, StringComparison.OrdinalIgnoreCase))

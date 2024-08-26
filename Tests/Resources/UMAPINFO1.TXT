@@ -84,6 +84,7 @@ map e1m8
 	"",
 	"Join us for Episode 2: Deimos Corrupted!"
 	bossaction = "cyberdemon", 69, 42069
+	bossactionednum = 65, 77, 999
 }
 
 map e1m9
