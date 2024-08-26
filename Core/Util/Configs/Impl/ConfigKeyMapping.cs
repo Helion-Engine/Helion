@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
 using Helion.Window;
 using Helion.Window.Input;
 using NLog;
+using System;
+using System.Collections.Generic;
 
 namespace Helion.Util.Configs.Impl;
 
@@ -234,4 +234,10 @@ public class ConfigKeyMapping : IConfigKeyMapping
     }
 
     public IList<KeyCommandItem> GetKeyMapping() => m_commands;
+    public void ReloadAllDefaults()
+    {
+        m_commands.Clear();
+        AddDefaultsIfMissing();
+        Changed = true;
+    }
 }

@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using Helion.Util.Configs.Impl;
 using Helion.Window;
 using Helion.Window.Input;
+using System.Collections.Generic;
 
 namespace Helion.Util.Configs;
 
@@ -74,4 +74,9 @@ public interface IConfigKeyMapping
     void UnbindAll(Key key);
 
     IList<KeyCommandItem> GetKeyMapping();
+
+    /// <summary>
+    /// Restore all default bindings
+    /// </summary>
+    void ReloadAllDefaults();
 }
