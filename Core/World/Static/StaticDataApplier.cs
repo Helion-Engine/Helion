@@ -33,8 +33,19 @@ public class StaticDataApplier
 
         foreach (var special in world.SpecialManager.GetSpecials())
         {
-            if (special is ScrollSpecial scrollSpecial && scrollSpecial.SectorPlane != null)
-                SetSectorDynamic(world, scrollSpecial.SectorPlane.Sector, scrollSpecial.SectorPlane.Facing.ToSectorPlanes(), SectorDynamic.Scroll);
+            if (special is ScrollSpecial scrollSpecial)
+            {
+                if (scrollSpecial.SectorPlane != null)
+                {
+                    SetSectorDynamic(world, scrollSpecial.SectorPlane.Sector, scrollSpecial.SectorPlane.Facing.ToSectorPlanes(), SectorDynamic.Scroll);
+                }
+                else if (scrollSpecial.Line != null && scrollSpecial.Speed.Y != 0)
+                {
+                    scrollSpecial.Line.Front.Dynamic |= SectorDynamic.ScrollY;
+                    if (scrollSpecial.Line.Back != null)
+                        scrollSpecial.Line.Back.Dynamic |= SectorDynamic.ScrollY;
+                }                    
+            }
         }
 
         for (int i = 0; i < world.Sectors.Count; i++)

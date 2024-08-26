@@ -368,6 +368,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         if ((side.Dynamic & SectorDynamic.Scroll) == 0)
             return true;
 
+        // Mid textures that have Y scrolling physically move so ignore in the static renderer.
+        if (side.Middle.TextureHandle != Constants.NoTextureIndex && side.ScrollData != null && (side.Dynamic & SectorDynamic.ScrollY) != 0)
+            return false;
+
         // If the texture has transparent pixels and scrolls then do not render statically.
         // Textures with no transparent pixels can be added for when the camera is outside the dynamic distance
         // that the static non-scrolling texture will be rendered in place.
