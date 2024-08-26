@@ -25,7 +25,6 @@ using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.Resources.Definitions.SoundInfo;
-using Helion.Maps.Specials.ZDoom;
 
 namespace Helion.World.Impl.SinglePlayer;
 
@@ -316,7 +315,8 @@ public class SinglePlayerWorld : WorldBase
         if (!PlayLevelMusic(musicName, null))
             AudioSystem.Music.Stop();
 
-        m_automapMarker.Start(this);
+        if (Config.Render.AutomapBspThread.Value)
+            m_automapMarker.Start(this);
     }
 
     public override bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop)
