@@ -460,13 +460,11 @@ public static class VanillaLineSpecTranslator
 
             case VanillaLineSpecialType.ScrollSidesToLinesLeftDirection:
                 argsToMutate.Arg0 = 64;
-                argsToMutate.Arg1 = (int)ZDoomLineScroll.BothSides;
-                return ZDoomLineSpecialType.ScrollTextureLeft;
+                return ZDoomLineSpecialType.ScrollTextureLeftBothSides;
 
             case VanillaLineSpecialType.ScrollSidesToLinesRightDirection:
                 argsToMutate.Arg0 = 64;
-                argsToMutate.Arg1 = (int)ZDoomLineScroll.BothSides;
-                return ZDoomLineSpecialType.ScrollTextureRight;
+                return ZDoomLineSpecialType.ScrollTextureRightBothSides;
 
             case VanillaLineSpecialType.ScrollTextureOffsets:
                 return ZDoomLineSpecialType.ScrollUsingTextureOffsets;
@@ -702,6 +700,21 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg0 = tag;
                 argsToMutate.Arg1 = (int)ZDoomScroll.Displacement | (int)ZDoomScroll.LineOffset;
                 return ZDoomLineSpecialType.ScrollTextureModel;
+
+            case VanillaLineSpecialType.ScrollSidesToSectorScrollValues: // Same as StandardScrollMbf21
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)ZDoomScroll.LineOffset;
+                return ZDoomLineSpecialType.ScrollTextureModelBothSides;
+
+            case VanillaLineSpecialType.ScrollSidesToSectorMovement: // Same as DisplacementScrollMbf21
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)ZDoomScroll.Displacement | (int)ZDoomScroll.LineOffset;
+                return ZDoomLineSpecialType.ScrollTextureModelBothSides;
+
+            case VanillaLineSpecialType.ScrollSidesAccelerateToSectorMovement: // Same as AccelerativeScrollMbf21
+                argsToMutate.Arg0 = tag;
+                argsToMutate.Arg1 = (int)ZDoomScroll.Accelerative | (int)ZDoomScroll.LineOffset;
+                return ZDoomLineSpecialType.ScrollTextureModelBothSides;
 
             case VanillaLineSpecialType.OffsetFloorByLineDirection:
                 argsToMutate.Arg0 = tag;

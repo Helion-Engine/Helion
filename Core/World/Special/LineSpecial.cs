@@ -61,6 +61,8 @@ public class LineSpecial
         {
             case ZDoomLineSpecialType.ScrollTextureLeft:
             case ZDoomLineSpecialType.ScrollTextureRight:
+            case ZDoomLineSpecialType.ScrollTextureLeftBothSides:
+            case ZDoomLineSpecialType.ScrollTextureRightBothSides:
             case ZDoomLineSpecialType.ScrollTextureUp:
             case ZDoomLineSpecialType.ScrollTextureDown:
             case ZDoomLineSpecialType.ScrollFloor:
