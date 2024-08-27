@@ -15,6 +15,8 @@ public class ScrollSpecialModel : ISpecialModel
     public int Type { get; set; }
     public double SpeedX { get; set; }
     public double SpeedY { get; set; }
+    public double? OffsetX { get; set; }
+    public double? OffsetY { get; set; }
     public int? AccelSectorId { get; set; }
     public double? AccelSpeedX { get; set; }
     public double? AccelSpeedY { get; set; }

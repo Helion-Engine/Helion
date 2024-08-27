@@ -8,6 +8,7 @@
   - Fix rendering order for two-sided middle walls that could cause flats/walls behind not to render
   - Fix boom WR lock door lines from constantly triggering key messages when contacting
   - Fixed two-sided middle scrolling to offset entire texture by the Y value when rendering to match original doom behavior
+  - Fixed visual scroll offsets not being restored from a save for walls and flats
   - Fixed instant sector floors not raising when two monsters are overlapping
 
 ## Features:

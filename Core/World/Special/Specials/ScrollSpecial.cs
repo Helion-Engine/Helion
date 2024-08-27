@@ -7,7 +7,7 @@ using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Static;
+using System;
 
 namespace Helion.World.Special.Specials;
 
@@ -15,6 +15,13 @@ public enum ScrollType
 {
     Scroll,
     Carry
+}
+
+[Flags]
+enum ScrollSides
+{
+    Front = 1,
+    Back = 2
 }
 
 public class ScrollSpecial : ISpecial
@@ -29,7 +36,7 @@ public class ScrollSpecial : ISpecial
     private readonly ScrollType m_type;
     private readonly AccelScrollSpeed? m_accelScrollSpeed;
     private readonly ZDoomLineScroll m_lineScroll;
-    private readonly bool m_scrollLineFront;
+    private readonly ScrollSides m_scrollSides;
     private readonly SideScrollData? m_frontScroll;
     private readonly SideScrollData? m_backScroll;
 
@@ -39,6 +46,11 @@ public class ScrollSpecial : ISpecial
         m_type = ScrollType.Scroll;
         Speed = speed;
         Line = line;
+
+        m_scrollSides = ScrollSides.Front;
+        if ((scroll & ZDoomLineScroll.BothSides) != 0)
+            m_scrollSides |= ScrollSides.Back;
+
         if ((int)scroll > (int)ZDoomLineScroll.LowerTexture)
             m_lineScroll = ZDoomLineScroll.All;
         else
@@ -47,7 +59,7 @@ public class ScrollSpecial : ISpecial
         Line.Front.ScrollData ??= new();
         m_frontScroll = Line.Front.ScrollData;
         
-        if ((scroll & ZDoomLineScroll.BothSides) != 0 && Line.Back != null)
+        if ((m_scrollSides & ScrollSides.Back) != 0 && Line.Back != null)
         {
             Line.Back.ScrollData ??= new();
             m_backScroll = Line.Back.ScrollData;
@@ -70,7 +82,42 @@ public class ScrollSpecial : ISpecial
     public ScrollSpecial(Line line, Sector? accelSector, ScrollSpecialModel model)
         : this(line, new Vec2D(model.SpeedX, model.SpeedY), (ZDoomLineScroll)model.Type, accelSector, (ZDoomScroll)model.ScrollFlags)
     {
+        if (model.OffsetFrontX != null && model.OffsetFrontY != null)
+        {
+            line.Front.ScrollData ??= new();
+            m_frontScroll = line.Front.ScrollData;
+            m_scrollSides |= ScrollSides.Front;
+        }
 
+        if (line.Back != null && model.OffsetBackX != null && model.OffsetBackY != null)
+        {
+            line.Back.ScrollData ??= new();
+            m_backScroll = line.Back.ScrollData;
+            m_scrollSides |= ScrollSides.Back;
+        }
+
+        if (line.Front.ScrollData != null)
+            ApplyScrollOffset(line.Front.ScrollData, model.OffsetFrontX, model.OffsetFrontY);
+
+        if (line.Back != null && line.Back.ScrollData != null)
+            ApplyScrollOffset(line.Back.ScrollData, model.OffsetBackX, model.OffsetBackY);
+    }
+
+    private static void ApplyScrollOffset(SideScrollData scroll, double[]? offsetX, double[]? offsetY)
+    {
+        if (offsetX == null || offsetY == null)
+            return;
+
+        if (offsetX.Length != 3 || offsetY.Length != 3)
+            return;
+
+        scroll.OffsetUpper.X = scroll.LastOffsetUpper.X = offsetX[0];
+        scroll.OffsetMiddle.X = scroll.LastOffsetMiddle.X = offsetX[1];
+        scroll.OffsetLower.X = scroll.LastOffsetLower.X = offsetX[2];
+
+        scroll.OffsetUpper.Y = scroll.LastOffsetUpper.Y = offsetY[0];
+        scroll.OffsetMiddle.Y = scroll.LastOffsetMiddle.Y = offsetY[1];
+        scroll.OffsetLower.Y = scroll.LastOffsetLower.Y = offsetY[2];
     }
 
     public ScrollSpecial(SectorPlane sectorPlane, Sector? accelSector, ScrollSpecialModel model)
@@ -82,6 +129,11 @@ public class ScrollSpecial : ISpecial
             m_accelScrollSpeed.AccelSpeed.Y = model.AccelSpeedY.Value;
             m_accelScrollSpeed.LastHeight = model.AccelLastZ.Value;
         }
+
+        if (model.OffsetX != null)
+            sectorPlane.RenderOffsets.Offset.X = model.OffsetX.Value;
+        if (model.OffsetY != null)
+            sectorPlane.RenderOffsets.Offset.Y = model.OffsetY.Value;
     }
 
     public ISpecialModel ToSpecialModel()
@@ -101,13 +153,13 @@ public class ScrollSpecial : ISpecial
                 ScrollFlags = GetModelScrollFlags()
             };
 
-            if (m_scrollLineFront && Line.Front.ScrollData != null)
+            if (Line.Front.ScrollData != null)
             {
                 model.OffsetFrontX = [Line.Front.ScrollData.OffsetUpper.X, Line.Front.ScrollData.OffsetMiddle.X, Line.Front.ScrollData.OffsetLower.X];
                 model.OffsetFrontY = [Line.Front.ScrollData.OffsetUpper.Y, Line.Front.ScrollData.OffsetMiddle.Y, Line.Front.ScrollData.OffsetLower.Y];
             }
 
-            if (!m_scrollLineFront && Line.Back?.ScrollData != null)
+            if (Line.Back?.ScrollData != null)
             {
                 model.OffsetBackX = [Line.Back.ScrollData.OffsetUpper.X, Line.Back.ScrollData.OffsetMiddle.X, Line.Back.ScrollData.OffsetLower.X];
                 model.OffsetBackY = [Line.Back.ScrollData.OffsetUpper.Y, Line.Back.ScrollData.OffsetMiddle.Y, Line.Back.ScrollData.OffsetLower.Y];
@@ -124,6 +176,8 @@ public class ScrollSpecial : ISpecial
                 Type = (int)m_type,
                 SpeedX = Speed.X,
                 SpeedY = Speed.Y,
+                OffsetX = SectorPlane.RenderOffsets.Offset.X,
+                OffsetY = SectorPlane.RenderOffsets.Offset.Y,
                 AccelSectorId = m_accelScrollSpeed?.Sector.Id,
                 AccelSpeedX = m_accelScrollSpeed?.AccelSpeed.X,
                 AccelSpeedY = m_accelScrollSpeed?.AccelSpeed.Y,
@@ -275,7 +329,7 @@ public class ScrollSpecial : ISpecial
             scroll.m_type == m_type &&
             scroll.m_accelScrollSpeed == m_accelScrollSpeed &&
             scroll.m_lineScroll == m_lineScroll &&
-            scroll.m_scrollLineFront == m_scrollLineFront &&
+            scroll.m_scrollSides == m_scrollSides &&
             scroll.Speed == Speed;
     }
 
