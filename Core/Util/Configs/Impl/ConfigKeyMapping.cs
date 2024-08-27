@@ -74,8 +74,15 @@ public class ConfigKeyMapping : IConfigKeyMapping
     {
         Log.Trace("Adding default key commands to config keys");
 
-        foreach ((Key key, string action) in DefaultBindings)
-            Add(key, action);
+        var defaultBindingsByKey = DefaultBindings
+            .GroupBy(binding => binding.key)
+            .Select(grp => (grp.Key, grp.Select(binding => binding.command).ToArray()))
+            .ToArray();
+
+        foreach((Key key, string[] actions) in defaultBindingsByKey)
+        {
+            AddIfMissing(key, actions);
+        }
     }
 
     public void ClearChanged()
