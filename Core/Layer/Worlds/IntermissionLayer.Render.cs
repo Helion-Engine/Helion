@@ -17,7 +17,6 @@ namespace Helion.Layer.Worlds;
 
 public partial class IntermissionLayer
 {
-    private const int FontSize = 12;
     private const string MainFont = "IntermissionFont";
     private const string LevelInfoFont = Constants.Fonts.SmallGray;
 
@@ -198,7 +197,8 @@ public partial class IntermissionLayer
 
         void DrawNumber(double percent, int offsetY)
         {
-            hud.Text($"{percent}%", MainFont, FontSize, (RightOffsetX, offsetY), anchor: Align.TopRight);
+            int fontSize = hud.GetFontMaxHeight(MainFont);
+            hud.Text($"{percent}%", MainFont, fontSize, (RightOffsetX, offsetY), anchor: Align.TopRight);
         }
     }
 
@@ -240,7 +240,8 @@ public partial class IntermissionLayer
         void RenderTime(int seconds, int rightOffsetX, int y)
         {
             string levelTime = GetTimeString(seconds);
-            hud.Text(levelTime, MainFont, FontSize, (rightOffsetX, y), window: Align.BottomLeft, anchor: Align.TopRight);
+            int fontSize = hud.GetFontMaxHeight(MainFont);
+            hud.Text(levelTime, MainFont, fontSize, (rightOffsetX, y), window: Align.BottomLeft, anchor: Align.TopRight);
         }
     }
 }
