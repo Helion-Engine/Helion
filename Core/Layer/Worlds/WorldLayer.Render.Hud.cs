@@ -49,9 +49,9 @@ public partial class WorldLayer
     private const ResourceNamespace LookupNamespace = ResourceNamespace.Undefined;
     private static readonly Color PickupColor = (255, 255, 128);
     private static readonly Color DamageColor = (255, 0, 0);
-    private static readonly string SmallHudFont = Constants.Fonts.Small;
-    private static readonly string LargeHudFont = Constants.Fonts.LargeHud;
-    private static readonly string ConsoleFont = "Console";
+    private const string SmallHudFont = Constants.Fonts.Small;
+    private const string LargeHudFont = Constants.Fonts.LargeHud;
+    private const string ConsoleFont = Constants.Fonts.Console;
     private int m_fontHeight = 16;
     private int m_padding = 4;
     private int m_hudPaddingX = 0;
@@ -1022,10 +1022,11 @@ public partial class WorldLayer
                 lastMessageTime = timeSinceMessage;
             }
 
+            int fontSize = hud.GetFontMaxHeight(SmallHudFont);
             int slideOffsetY = m_messages.Count <= 1 ? 0 : CalculateSlide(hud, lastMessageTime);
             for (int i = m_messages.Count - 1; i >= 0; i--)
             {
-                hud.Text(m_messages[i].message, SmallHudFont, 8, (LeftOffset + m_hudPaddingX, offsetY + slideOffsetY),
+                hud.Text(m_messages[i].message, SmallHudFont, fontSize, (LeftOffset + m_hudPaddingX, offsetY + slideOffsetY),
                     out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: m_messages[i].alpha * m_hudAlpha);
                 offsetY += drawArea.Height + MessageSpacing;
             }
