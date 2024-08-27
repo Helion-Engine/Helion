@@ -204,6 +204,7 @@ font LargeHudFont
 {
     space = 14;
     align = top;
+    baseheight = 16;
     fixedwidthchar = "0";
     useOffset = true;
     characters
@@ -262,6 +263,7 @@ font HudYellowNumbers
 font IntermissionFont
 {
     space = 14;
+    baseheight = 12;
     useOffset = true;
     characters
     {
