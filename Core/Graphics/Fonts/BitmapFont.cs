@@ -107,7 +107,7 @@ public static class BitmapFont
         foreach ((char c, Image charImage) in charImages)
         {
             FontAlignment alignment = definition.CharDefinitions[c].Alignment ?? definition.Alignment;
-            processedCharImages[c] = CreateCharImage(charImage, maxHeight, alignment, imageType, definition.BaseHeight);
+            processedCharImages[c] = CreateCharImage(charImage, maxHeight, alignment, imageType);
         }
 
         return processedCharImages;
@@ -151,19 +151,18 @@ public static class BitmapFont
         return (glyphs, atlas);
     }
 
-    private static Image CreateCharImage(Image image, int maxHeight, FontAlignment alignment, ImageType imageType, int? baseHeight = null)
+    private static Image CreateCharImage(Image image, int maxHeight, FontAlignment alignment, ImageType imageType)
     {
         Precondition(maxHeight >= image.Height, "Miscalculated max height when making font");
 
         if (image.Height == maxHeight)
             return image;
 
-        int alignmentHeight = baseHeight ?? maxHeight;
         int startY = alignment switch
         {
             FontAlignment.Top => 0,
-            FontAlignment.Center => (alignmentHeight / 2) - (image.Height / 2),
-            FontAlignment.Bottom => alignmentHeight - image.Height,
+            FontAlignment.Center => (maxHeight / 2) - (image.Height / 2),
+            FontAlignment.Bottom => maxHeight - image.Height,
             _ => throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "Unexpected font alignment in glyph creation"),
         };
         Image glyphImage = new(image.Width, maxHeight, imageType, offset: image.Offset);
