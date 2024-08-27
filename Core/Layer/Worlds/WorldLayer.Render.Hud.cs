@@ -981,7 +981,7 @@ public partial class WorldLayer
         m_ammoString.Append(ammo);
         m_maxAmmoString.Append(maxAmmo);
         hud.Text(m_ammoString.AsSpan(), YellowFontName, FontSize, (287, y), anchor: Align.TopRight, alpha: m_hudAlpha);
-        hud.Text(m_maxAmmoString.AsSpan(), YellowFontName, FontSize, (315, y), anchor: Align.TopRight, alpha: m_hudAlpha);
+        hud.Text(m_maxAmmoString.AsSpan(), YellowFontName, FontSize, (313, y), anchor: Align.TopRight, alpha: m_hudAlpha);
     }
 
     private int m_lastMessageCount = 0;
