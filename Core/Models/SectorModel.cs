@@ -32,5 +32,7 @@ public class SectorModel
     public string? TransferHeightsColormapMiddle;
     public string? TransferHeightsColormapLower;
     public double? Friction;
-    public SectorEffect? SectorEffect; 
+    public SectorEffect? SectorEffect;
+    public double? FloorRotate;
+    public double? CeilingRotate;
 }
