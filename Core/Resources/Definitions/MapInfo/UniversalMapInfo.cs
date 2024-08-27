@@ -72,6 +72,8 @@ public partial class MapInfoDefinition
                     ParseEpisode(parser, mapDef);
                 else if (item.EqualsIgnoreCase("bossaction"))
                     ParseBossAction(parser, mapDef);
+                else if (item.EqualsIgnoreCase("bossactionednum"))
+                    ParseBossActionEditorNumber(parser, mapDef);
                 else if (item.EqualsIgnoreCase("author"))
                     mapDef.Author = parser.ConsumeString();
                 else
@@ -86,7 +88,7 @@ public partial class MapInfoDefinition
         }
     }
 
-    private void ParseBossAction(SimpleParser parser, MapInfoDef mapDef)
+    private static void ParseBossAction(SimpleParser parser, MapInfoDef mapDef)
     {
         mapDef.MapSpecial = MapSpecial.None;
         mapDef.MapSpecialAction = MapSpecialAction.None;
@@ -103,6 +105,25 @@ public partial class MapInfoDefinition
         int tag = parser.ConsumeInteger();
 
         mapDef.BossActions.Add(new(actorName, (VanillaLineSpecialType)action, tag));
+    }
+
+    private static void ParseBossActionEditorNumber(SimpleParser parser, MapInfoDef mapDef)
+    {
+        mapDef.MapSpecial = MapSpecial.None;
+        mapDef.MapSpecialAction = MapSpecialAction.None;
+        if (parser.ConsumeIf("clear"))
+        {
+            mapDef.BossActions.Clear();
+            return;
+        }
+
+        int num = parser.ConsumeInteger();
+        parser.ConsumeString(",");
+        int action = parser.ConsumeInteger();
+        parser.ConsumeString(",");
+        int tag = parser.ConsumeInteger();
+
+        mapDef.BossActions.Add(new(num, (VanillaLineSpecialType)action, tag));
     }
 
     private void ParseEpisode(SimpleParser parser, MapInfoDef mapDef)

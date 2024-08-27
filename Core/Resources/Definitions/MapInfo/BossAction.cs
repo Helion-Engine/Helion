@@ -20,6 +20,15 @@ public class BossAction
         ZDoomSpecialArgs = args;
     }
 
+    public BossAction(int editorNumber, VanillaLineSpecialType action, int tag)
+    {
+        ActorName = string.Empty;
+        EditorNumber = editorNumber;
+        Action = action;
+        Tag = tag;
+    }
+
+    public int? EditorNumber { get; set; }
     public string ActorName { get; set; }
     public VanillaLineSpecialType? Action { get; set; }
     public ZDoomLineSpecialType? ZDoomAction { get; set; }

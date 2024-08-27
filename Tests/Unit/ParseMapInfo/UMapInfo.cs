@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using BmpSharp;
 using FluentAssertions;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Resources.Definitions.MapInfo;
@@ -14,8 +13,8 @@ public class UMapInfo
     {
         mapInfoDef.MapInfo.AddCluster(new ClusterDef(1)
         {
-            ExitText = new List<string>() { "default exit text" },
-            SecretExitText = new List<string>() { "default secret exit text" },
+            ExitText = ["default exit text"],
+            SecretExitText = ["default secret exit text"],
         });
 
         mapInfoDef.MapInfo.AddEpisode(new EpisodeDef()
@@ -41,7 +40,7 @@ public class UMapInfo
 
         var bossActions = new List<BossAction>()
         {
-            new ("BaronOfHell", VanillaLineSpecialType.S1_LowerLiftRaise, 69)
+            new("BaronOfHell", VanillaLineSpecialType.S1_LowerLiftRaise, 69)
         };
 
         mapInfoDef.MapInfo.AddOrReplaceMap(new MapInfoDef()
@@ -133,13 +132,20 @@ public class UMapInfo
         var e1m8 = getMap!;
         e1m8.Next.Should().BeEquivalentTo("EndGameW");
         e1m8.EndPic.Should().Be("CREDIT");
-        e1m8.BossActions.Count.Should().Be(1);
+        e1m8.BossActions.Count.Should().Be(2);
         e1m8.MapSpecial.Should().Be(MapSpecial.None);
         e1m8.MapSpecialAction.Should().Be(MapSpecialAction.None);
+
         var bossAction = e1m8.BossActions[0];
         bossAction.ActorName.Should().BeEquivalentTo("cyberdemon");
         bossAction.Action.Should().Be(VanillaLineSpecialType.SR_RaiseFloorToNextHigher);
         bossAction.Tag.Should().Be(42069);
+
+        var bossActionEdNum = e1m8.BossActions[1];
+        bossActionEdNum.ActorName.Length.Should().Be(0);
+        bossActionEdNum.Action.Should().Be(VanillaLineSpecialType.WR_FastCrusherCeilingSlowDamage);
+        bossActionEdNum.Tag.Should().Be(999);
+
         cluster = mapInfoDef.MapInfo.GetCluster(e1m8.Cluster);
         cluster.Should().NotBeNull();
         cluster!.ExitText[0].Should().Be("Despite your victory, you rot along with the");
