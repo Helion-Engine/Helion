@@ -117,7 +117,7 @@ public static class BitmapFont
         int maxHeight, ImageType imageType)
     {
         Dictionary<char, Glyph> glyphs = new();
-        int offsetX = 0;
+        int atlasOffsetX = 0;
         const int padding = 1;
         int width = charImages.Values.Select(i => i.Width).Sum() + padding * charImages.Count * 2;
         if (definition.FixedWidth != null)
@@ -132,22 +132,20 @@ public static class BitmapFont
         foreach ((char c, Image image) in charImages)
         {
             var charImage = image;
-            offsetX += padding;
+            atlasOffsetX += padding;
 
-            int charWidth = definition.FixedWidth.HasValue ? definition.FixedWidth.Value : charImage.Width;
-            var offset = Vec2I.Zero;
-            offset.X += offsetX;
+            int charWidth = definition.FixedWidth ?? charImage.Width;
 
-            charImage.DrawOnTopOf(atlas, offset);
+            charImage.DrawOnTopOf(atlas, (atlasOffsetX, 0));
             var glyphDimension = charImage.Dimension;
             glyphDimension.Width = charWidth;
-            offset = definition.UseOffset ? new Vec2I(charImage.Offset.X, -charImage.Offset.Y) : Vec2I.Zero;
+            var offset = definition.UseOffset ? new Vec2I(charImage.Offset.X, -charImage.Offset.Y) : Vec2I.Zero;
 
             if (definition.FixedWidth != null && charImage.Width < definition.FixedWidth.Value)
                 offset.X += definition.FixedWidth.Value - charImage.Width;
             // Offsets need to handled in the renderer as they can be drawn off atlas.
-            glyphs[c] = new Glyph(c, (offsetX, 0), glyphDimension, atlasDimension, offset);
-            offsetX += charWidth + padding;
+            glyphs[c] = new Glyph(c, (atlasOffsetX, 0), glyphDimension, atlasDimension, offset);
+            atlasOffsetX += charWidth + padding;
         }
 
         return (glyphs, atlas);

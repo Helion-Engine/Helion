@@ -2,23 +2,23 @@ font SmallFont
 {
     space = 4;
     align = top;
-    baseheight = 7;
+    useOffset = true;
     characters
     {
         "!" STCFN033;
-        "\"" STCFN034 align top;
+        "\"" STCFN034;
         "#" STCFN035;
         "$" STCFN036;
         "%" STCFN037;
         "&" STCFN038;
-        "'" STCFN039 align top;
+        "'" STCFN039;
         "(" STCFN040;
         ")" STCFN041;
-        "*" STCFN042 align top;
-        "+" STCFN043 align center;
-        "," STCFN044 align bottom;
-        "-" STCFN045 align center;
-        "." STCFN046 align bottom;
+        "*" STCFN042;
+        "+" STCFN043;
+        "," STCFN044;
+        "-" STCFN045;
+        "." STCFN046;
         "/" STCFN047;
         "0" STCFN048;
         "1" STCFN049;
@@ -66,8 +66,8 @@ font SmallFont
         "[" STCFN091;
         "\\" STCFN092;
         "]" STCFN093;
-        "^" STCFN094 align top;
-        "_" STCFN095 align bottom;
+        "^" STCFN094;
+        "_" STCFN095;
         "a" STCFN065;
         "b" STCFN066;
         "c" STCFN067;
@@ -104,23 +104,23 @@ font SmallFontGrayscale
     grayscale = true;
     grayscaleNormalization = true;
     align = top;
-    baseheight = 7;
+    useOffset = true;
     characters
     {
         "!" STCFN033;
-        "\"" STCFN034 align top;
+        "\"" STCFN034;
         "#" STCFN035;
         "$" STCFN036;
         "%" STCFN037;
         "&" STCFN038;
-        "'" STCFN039 align top;
+        "'" STCFN039;
         "(" STCFN040;
         ")" STCFN041;
-        "*" STCFN042 align top;
-        "+" STCFN043 align center;
-        "," STCFN044 align bottom;
-        "-" STCFN045 align center;
-        "." STCFN046 align bottom;
+        "*" STCFN042;
+        "+" STCFN043;
+        "," STCFN044;
+        "-" STCFN045;
+        "." STCFN046;
         "/" STCFN047;
         "0" STCFN048;
         "1" STCFN049;
@@ -168,8 +168,8 @@ font SmallFontGrayscale
         "[" STCFN091;
         "\\" STCFN092;
         "]" STCFN093;
-        "^" STCFN094 align top;
-        "_" STCFN095 align bottom;
+        "^" STCFN094;
+        "_" STCFN095;
         "a" STCFN065;
         "b" STCFN066;
         "c" STCFN067;
@@ -204,12 +204,11 @@ font LargeHudFont
 {
     space = 14;
     align = top;
-    baseheight = 16;
     fixedwidthchar = "0";
     useOffset = true;
     characters
     {
-        "-" STTMINUS align center;
+        "-" STTMINUS;
         "%" STTPRCNT;
         "0" STTNUM0 default;
         "1" STTNUM1;
@@ -263,13 +262,13 @@ font HudYellowNumbers
 font IntermissionFont
 {
     space = 14;
-    baseheight = 12;
+    align = top;
     useOffset = true;
     characters
     {
-        "-" WIMINUS align center;
-        ":" WICOLON align top;
-        "%" WIPCNT align top;
+        "-" WIMINUS;
+        ":" WICOLON;
+        "%" WIPCNT;
         "0" WINUM0 default;
         "1" WINUM1;
         "2" WINUM2;
