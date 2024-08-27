@@ -837,7 +837,7 @@ public partial class WorldLayer
     {
         // Note: This area is already drawn using Doom's stretched scale so useDoomScale needs to be false.
         const int OffsetY = 171;
-        const int FontSize = 16;
+        int fontSize = hud.GetFontMaxHeight(LargeHudFont);
 
         const int HealthX = 90;
         const int ArmorX = 221;
@@ -849,7 +849,7 @@ public partial class WorldLayer
             int ammoAmount = Player.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType);
             m_ammoString.Clear();
             m_ammoString.Append(Math.Clamp(ammoAmount, 0, 999));
-            SetRenderableString(m_ammoString.AsSpan(), m_renderAmmoString, LargeHudFont, FontSize, useDoomScale: false);
+            SetRenderableString(m_ammoString.AsSpan(), m_renderAmmoString, LargeHudFont, fontSize, useDoomScale: false);
             hud.Text(m_renderAmmoString, (AmmoX, OffsetY), anchor: Align.TopRight, alpha: m_hudAlpha);
         }
 
@@ -857,14 +857,14 @@ public partial class WorldLayer
         m_healthString.Append(Math.Clamp(Player.Health, 0, 999));
         m_healthString.Append('%');
 
-        SetRenderableString(m_healthString.AsSpan(), m_renderHealthString, LargeHudFont, FontSize, useDoomScale: false);
+        SetRenderableString(m_healthString.AsSpan(), m_renderHealthString, LargeHudFont, fontSize, useDoomScale: false);
         hud.Text(m_renderHealthString, (CalcPercentStartOffsetX(HealthX, m_largeHudFont), OffsetY), anchor: Align.TopRight, alpha: m_hudAlpha);
 
         m_armorString.Clear();
         m_armorString.Append(Math.Clamp(Player.Armor, 0, 999));
         m_armorString.Append('%');
 
-        SetRenderableString(m_armorString.AsSpan(), m_renderArmorString, LargeHudFont, FontSize, useDoomScale: false);
+        SetRenderableString(m_armorString.AsSpan(), m_renderArmorString, LargeHudFont, fontSize, useDoomScale: false);
         hud.Text(m_renderArmorString, (CalcPercentStartOffsetX(ArmorX, m_largeHudFont), OffsetY), anchor: Align.TopRight, alpha: m_hudAlpha);
     }
 
