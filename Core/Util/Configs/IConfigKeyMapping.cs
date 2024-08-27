@@ -76,6 +76,11 @@ public interface IConfigKeyMapping
     IList<KeyCommandItem> GetKeyMapping();
 
     /// <summary>
+    /// Restore default bindings for specified command
+    /// </summary>
+    void ReloadDefaults(string command);
+
+    /// <summary>
     /// Restore all default bindings
     /// </summary>
     void ReloadAllDefaults();

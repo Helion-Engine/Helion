@@ -11,12 +11,12 @@ public class OptionMenuAttribute : Attribute
         Name = name;
         Disabled = disabled;
         Spacer = spacer;
-        AllowReset = allowReset;
+        AllowBulkReset = allowReset;
     }
 
     public readonly OptionSectionType Section;
     public readonly string Name;
     public readonly bool Disabled;
     public readonly bool Spacer;
-    public readonly bool AllowReset;
+    public readonly bool AllowBulkReset;
 }

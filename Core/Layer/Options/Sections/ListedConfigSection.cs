@@ -95,13 +95,19 @@ public class ListedConfigSection : IOptionSection
         m_configValues.Add((value, attr, configAttr));
     }
 
+    public void ResetSelectedRowDefaults()
+    {
+        var configValue = m_configValues[m_currentRowIndex];
+        configValue.CfgValue.Set(configValue.CfgValue.ObjectDefaultValue);
+    }
+
     public void ResetSectionDefaults()
     {
         foreach (var configValue in m_configValues)
         {
             // Some settings are pretty disruptive to the user, like which monitor we're displaying on
             // or which color mode we are rendering in (requires restart), so we won't auto-default those.
-            if (!configValue.Attr.AllowReset)
+            if (!configValue.Attr.AllowBulkReset)
                 continue;
 
             configValue.CfgValue.Set(configValue.CfgValue.ObjectDefaultValue);
@@ -137,6 +143,12 @@ public class ListedConfigSection : IOptionSection
                 AdvanceToValidRow(-1);
             if (input.ConsumePressOrContinuousHold(Key.Down))
                 AdvanceToValidRow(1);
+
+            if (input.ConsumeKeyPressed(Key.R) && m_currentRowIndex < m_configValues.Count)
+            {
+                ResetSelectedRowDefaults();
+                return;
+            }
 
             bool mousePress = input.ConsumeKeyPressed(Key.MouseLeft);
             if (mousePress || input.ConsumeKeyPressed(Key.Enter))
@@ -512,11 +524,20 @@ public class ListedConfigSection : IOptionSection
         }
 
         int y = startY;
+        int fontSize = m_config.Hud.GetSmallFontSize();
+        int smallPad = m_config.Hud.GetScaled(1);
+
+        hud.Text("Press enter to modify the selected setting", Font, fontSize, (0, y), out Dimension textDimension,
+            both: Align.TopMiddle, color: Color.Firebrick);
+        y += textDimension.Height + smallPad;
+
+        hud.Text("Press R to reset the selected setting to its default", Font, fontSize, (0, y), out textDimension,
+            both: Align.TopMiddle, color: Color.Firebrick);
+        y += textDimension.Height  + m_config.Hud.GetScaled(8);
 
         hud.Text(OptionType.ToString(), Font, m_config.Hud.GetLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
         y += headerArea.Height + m_config.Hud.GetScaled(8);
 
-        int fontSize = m_config.Hud.GetSmallFontSize();
         int offsetX = m_config.Hud.GetScaled(8);
         int spacerY = m_config.Hud.GetScaled(8);
         int smallSpacer = m_config.Hud.GetScaled(2);
@@ -591,8 +612,8 @@ public class ListedConfigSection : IOptionSection
         }
 
         string resetText = m_currentRowIndex != m_configValues.Count
-            ? "Reload Defaults"
-            : "> Reload Defaults <";
+            ? "Reload All Defaults"
+            : "> Reload All Defaults <";
         hud.Text(resetText, Font, fontSize, (0, y), out Dimension area, window: Align.TopMiddle, anchor: Align.TopMiddle, color: Color.Yellow);
         m_menuPositionList.Add(new Box2I((0, y), (hud.Dimension.Width, y + area.Height)), m_configValues.Count);
         y += area.Height + m_config.Hud.GetScaled(3);

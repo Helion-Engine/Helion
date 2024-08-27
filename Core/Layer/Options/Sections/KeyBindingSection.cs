@@ -285,6 +285,13 @@ public class KeyBindingSection : IOptionSection
         WriteConfigFile();
     }
 
+    private void ResetCurrentRowDefault()
+    {
+        m_config.Keys.ReloadDefaults(m_commandToKeys[m_currentRow].Command);
+        WriteConfigFile();
+        m_configUpdated = true;
+    }
+
     public void HandleInput(IConsumableInput input)
     {
         CheckForConfigUpdates();
@@ -342,10 +349,16 @@ public class KeyBindingSection : IOptionSection
                 OnLockChanged?.Invoke(this, new(Lock.Locked, "Press any key to add binding. Escape to cancel."));
             }
 
-            if (input.ConsumeKeyPressed(Key.Delete))
+            if (input.ConsumeKeyPressed(Key.Delete) && m_currentRow < m_commandToKeys.Count)
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 UnbindCurrentRow();
+            }
+
+            if (input.ConsumeKeyPressed(Key.R) && m_currentRow < m_commandToKeys.Count)
+            {
+                m_soundManager.PlayStaticSound(MenuSounds.Choose);
+                ResetCurrentRowDefault();
             }
 
             if (m_currentRow != lastRow)
@@ -377,6 +390,10 @@ public class KeyBindingSection : IOptionSection
         hud.Text("Press delete to clear all bindings", Font, fontSize, (0, y), out Dimension instructionArea,
             both: Align.TopMiddle, color: Color.Firebrick);
         y += instructionArea.Height + smallPad;
+
+        hud.Text("Press R to reset bindings", Font, fontSize, (0, y), out Dimension clearArea,
+            both: Align.TopMiddle, color: Color.Firebrick);
+         y += clearArea.Height + smallPad;
 
         hud.Text("Press enter to start binding and press a key", Font, fontSize, (0, y), out Dimension enterArea,
             both: Align.TopMiddle, color: Color.Firebrick);
@@ -451,8 +468,8 @@ public class KeyBindingSection : IOptionSection
         }
 
         string resetText = m_currentRow != m_commandToKeys.Count
-            ? "Reload Defaults"
-            : "> Reload Defaults <";
+            ? "Reload All Defaults"
+            : "> Reload All Defaults <";
         hud.Text(resetText, Font, fontSize, (0, y), out Dimension area, window: Align.TopMiddle, anchor: Align.TopMiddle, color: Color.Yellow);
         m_menuPositionList.Add(new Box2I((0, y), (hud.Dimension.Width, y + area.Height)), m_commandToKeys.Count);
         y += area.Height + m_config.Hud.GetScaled(3);
@@ -470,6 +487,7 @@ public class KeyBindingSection : IOptionSection
     {
         m_config.Keys.ReloadAllDefaults();
         m_configUpdated = true;
+        WriteConfigFile();
     }
 
     public int GetRenderHeight() => m_renderHeight;
