@@ -56,7 +56,7 @@ public class ConfigRender
         };
     });
 
-    [ConfigInfo("Field of view. Default = 90")]
+    [ConfigInfo("Field of view.")]
     [OptionMenu(OptionSectionType.Render, "Field Of View")]
     public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60.0, 120.0));
 

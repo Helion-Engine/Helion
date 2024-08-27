@@ -125,60 +125,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_window.SetMousePosition(m_cursorPos);
     }
 
-    private List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> GetAllConfigFields()
-    {
-        List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields = new();
-        RecursivelyGetConfigFieldsOrThrow(m_config, fields);
-        return fields;
-    }
-
-    private static void RecursivelyGetConfigFieldsOrThrow(object obj, List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields)
-    {
-        foreach (PropertyInfo propertyInfo in obj.GetType().GetProperties())
-        {
-            MethodInfo? getMethod = propertyInfo.GetMethod;
-            if (getMethod?.IsPublic == null)
-                continue;
-
-            if (!getMethod.ReturnType.Name.StartsWith("Config", StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            object? childObj = getMethod.Invoke(obj, null);
-            if (childObj == null)
-                continue;
-
-            PopulateComponentsRecursively(childObj, fields);
-        }
-    }
-
-    private static void PopulateComponentsRecursively(object obj, List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields, int depth = 1)
-    {
-        const int RecursiveOverflowLimit = 100;
-        if (depth > RecursiveOverflowLimit)
-            throw new($"Overflow when trying to get options from the config: {obj} ({obj.GetType()})");
-
-        foreach (FieldInfo fieldInfo in obj.GetType().GetFields())
-        {
-            if (!fieldInfo.IsPublic)
-                continue;
-
-            object? childObj = fieldInfo.GetValue(obj);
-            if (childObj == null || childObj == obj)
-                continue;
-
-            if (childObj is IConfigValue configValue)
-            {
-                OptionMenuAttribute? attribute = fieldInfo.GetCustomAttribute<OptionMenuAttribute>();
-                ConfigInfoAttribute? configAttribute = fieldInfo.GetCustomAttribute<ConfigInfoAttribute>();
-                if (attribute != null && configAttribute != null)
-                    fields.Add((configValue, attribute, configAttribute));
-                continue;
-            }
-
-            PopulateComponentsRecursively(childObj, fields, depth + 1);
-        }
-    }
-
     private ListedConfigSection GetOrMakeListedConfigSectionOrThrow(Dictionary<OptionSectionType, IOptionSection> sectionMap,
         OptionSectionType section)
     {
@@ -231,7 +177,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         // This takes all the common section types and turns them into the
         // generic list of values that users can tweak. It does not handle
         // sections that require special logic, like key bindings.
-        foreach ((IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr) in GetAllConfigFields())
+        foreach ((IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr) in m_config.GetAllConfigFields())
         {
             ListedConfigSection cfgSection = GetOrMakeListedConfigSectionOrThrow(sectionMap, attr.Section);
             cfgSection.Add(value, attr, configAttr);

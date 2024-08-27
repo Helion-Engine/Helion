@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Text;
-using Helion.Audio.Sounds;
+﻿using Helion.Audio.Sounds;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
@@ -22,6 +15,13 @@ using Helion.Util.Extensions;
 using Helion.Window;
 using Helion.Window.Input;
 using NLog;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Text;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options.Sections;
@@ -88,11 +88,30 @@ public class ListedConfigSection : IOptionSection
             return m_dialog.OnClickableItem(mousePosition);
 
         return m_menuPositionList.GetIndex(mousePosition, out _);
-    }    
+    }
 
     public void Add(IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr)
     {
         m_configValues.Add((value, attr, configAttr));
+    }
+
+    public void ResetSelectedRowDefaults()
+    {
+        var configValue = m_configValues[m_currentRowIndex];
+        configValue.CfgValue.Set(configValue.CfgValue.ObjectDefaultValue);
+    }
+
+    public void ResetSectionDefaults()
+    {
+        foreach (var configValue in m_configValues)
+        {
+            // Some settings are pretty disruptive to the user, like which monitor we're displaying on
+            // or which color mode we are rendering in (requires restart), so we won't auto-default those.
+            if (!configValue.Attr.AllowBulkReset)
+                continue;
+
+            configValue.CfgValue.Set(configValue.CfgValue.ObjectDefaultValue);
+        }
     }
 
     public void HandleInput(IConsumableInput input)
@@ -125,6 +144,12 @@ public class ListedConfigSection : IOptionSection
             if (input.ConsumePressOrContinuousHold(Key.Down))
                 AdvanceToValidRow(1);
 
+            if (input.ConsumeKeyPressed(Key.R) && m_currentRowIndex < m_configValues.Count)
+            {
+                ResetSelectedRowDefaults();
+                return;
+            }
+
             bool mousePress = input.ConsumeKeyPressed(Key.MouseLeft);
             if (mousePress || input.ConsumeKeyPressed(Key.Enter))
             {
@@ -133,6 +158,12 @@ public class ListedConfigSection : IOptionSection
                     if (!m_menuPositionList.GetIndex(input.Manager.MousePosition, out int rowIndex))
                         return;
                     m_currentRowIndex = rowIndex;
+                }
+
+                if (m_currentRowIndex >= m_configValues.Count)
+                {
+                    ResetSectionDefaults();
+                    return;
                 }
 
                 if (IsConfigDisabled(m_currentRowIndex))
@@ -225,7 +256,7 @@ public class ListedConfigSection : IOptionSection
     private void UpdateBoolOption(IConsumableInput input, ConfigValue<bool> cfgValue, bool force)
     {
         int scroll = input.ConsumeScroll();
-        if (!force && !input.ConsumeKeyPressed(Key.Left) && !input.ConsumeKeyPressed(Key.Right) && scroll == 0) 
+        if (!force && !input.ConsumeKeyPressed(Key.Left) && !input.ConsumeKeyPressed(Key.Right) && scroll == 0)
             return;
 
         m_soundManager.PlayStaticSound(MenuSounds.Change);
@@ -240,14 +271,14 @@ public class ListedConfigSection : IOptionSection
         bool left = input.ConsumeKeyPressed(Key.Left);
         bool right = input.ConsumeKeyPressed(Key.Right);
         int scroll = input.ConsumeScroll();
-        if (m_currentEnumIndex.HasValue && !left && !right && scroll == 0) 
+        if (m_currentEnumIndex.HasValue && !left && !right && scroll == 0)
             return;
-        
+
         object currentEnumValue = cfgValue.ObjectValue;
         Array enumValues = Enum.GetValues(cfgValue.ValueType);
-        if (enumValues.Length <= 0) 
+        if (enumValues.Length <= 0)
             return;
-        
+
         int enumIndex = 0;
         if (m_currentEnumIndex.HasValue)
         {
@@ -263,7 +294,7 @@ public class ListedConfigSection : IOptionSection
             }
         }
 
-        if (enumIndex >= enumValues.Length) 
+        if (enumIndex >= enumValues.Length)
             return;
 
         if (scroll != 0)
@@ -276,10 +307,10 @@ public class ListedConfigSection : IOptionSection
 
         if (right)
             enumIndex = (enumIndex + 1) % enumValues.Length;
-        
+
         if (left)
         {
-            if (enumIndex == 0) 
+            if (enumIndex == 0)
                 enumIndex = enumValues.Length - 1;
             else
                 enumIndex--;
@@ -304,6 +335,20 @@ public class ListedConfigSection : IOptionSection
         return doubleValue.ToString();
     }
 
+    private static string GetConfigDisplayDefaultValue(IConfigValue configValue, OptionMenuAttribute attr)
+    {
+        if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
+            return GetEnumDescription(configValue.ObjectDefaultValue).ToString()
+                ?? configValue.ObjectDefaultValue?.ToString()
+                ?? string.Empty;
+
+        var doubleValue = Convert.ToDouble(configValue.ObjectDefaultValue);
+        if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
+            return doubleValue.ToString() + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
+
+        return doubleValue.ToString();
+    }
+
     private static object GetEnumDescription(object value)
     {
         var type = value.GetType();
@@ -322,7 +367,7 @@ public class ListedConfigSection : IOptionSection
     private void UpdateTextEditableOption(IConsumableInput input)
     {
         m_rowEditText.Append(input.ConsumeTypedCharacters());
-            
+
         if (input.ConsumePressOrContinuousHold(Key.Backspace) && m_rowEditText.Length > 0)
             m_rowEditText.Remove(m_rowEditText.Length - 1, 1);
     }
@@ -373,7 +418,7 @@ public class ListedConfigSection : IOptionSection
             return;
 
         string newValue = m_rowEditText.ToString();
-        
+
         // If we erase it and submit an empty field, we will treat this the
         // same as exiting, since it could have unintended side effects like
         // an empty string being converted into something "falsey".
@@ -395,7 +440,7 @@ public class ListedConfigSection : IOptionSection
         }
         else
         {
-            result = cfgValue.Set(newValue);    
+            result = cfgValue.Set(newValue);
         }
 
         if (result == ConfigSetResult.Set)
@@ -409,11 +454,11 @@ public class ListedConfigSection : IOptionSection
     }
 
     private void AdvanceToValidRow(int direction)
-    {            
+    {
         m_currentRowIndex += direction;
         if (m_currentRowIndex < 0)
-            m_currentRowIndex += m_configValues.Count;
-        m_currentRowIndex %= m_configValues.Count;
+            m_currentRowIndex += m_configValues.Count + 1;
+        m_currentRowIndex %= m_configValues.Count + 1;
 
         m_soundManager.PlayStaticSound(MenuSounds.Cursor);
     }
@@ -424,10 +469,10 @@ public class ListedConfigSection : IOptionSection
         const long HalfDuration = Duration / 2;
         return m_stopwatch.ElapsedMilliseconds % Duration < HalfDuration;
     }
-    
+
     private void RenderEditAndUnderscore(IHudRenderContext hud, int fontSize, Vec2I pos, out Dimension renderArea, Color textColor)
     {
-        hud.Text(m_rowEditText.ToString(), Font, fontSize, (pos.X, pos.Y), out renderArea, window: Align.TopMiddle, 
+        hud.Text(m_rowEditText.ToString(), Font, fontSize, (pos.X, pos.Y), out renderArea, window: Align.TopMiddle,
             anchor: Align.TopLeft, color: textColor);
 
         if (Flash())
@@ -444,15 +489,15 @@ public class ListedConfigSection : IOptionSection
             // To prevent the word from moving, the left arrow needs to be drawn to the
             // left of the word. We have to calculate this.
             Dimension leftArrowArea = hud.MeasureText("<", Font, fontSize);
-            
-            hud.Text("<", Font, fontSize, (pos.X - leftArrowArea.Width - 4, pos.Y), out _, window: Align.TopMiddle, 
+
+            hud.Text("<", Font, fontSize, (pos.X - leftArrowArea.Width - 4, pos.Y), out _, window: Align.TopMiddle,
                 anchor: Align.TopLeft, color: Color.Yellow);
-            
-            hud.Text(m_rowEditText.ToString(), Font, fontSize, (pos.X, pos.Y), out Dimension textArea, window: Align.TopMiddle, 
+
+            hud.Text(m_rowEditText.ToString(), Font, fontSize, (pos.X, pos.Y), out Dimension textArea, window: Align.TopMiddle,
                 anchor: Align.TopLeft, color: textColor);
             int accumulatedWidth = textArea.Width + 4;
-            
-            hud.Text(">", Font, fontSize, (pos.X + accumulatedWidth, pos.Y), out Dimension rightArrowArea, window: Align.TopMiddle, 
+
+            hud.Text(">", Font, fontSize, (pos.X + accumulatedWidth, pos.Y), out Dimension rightArrowArea, window: Align.TopMiddle,
                 anchor: Align.TopLeft, color: Color.Yellow);
             accumulatedWidth += rightArrowArea.Width;
 
@@ -461,11 +506,11 @@ public class ListedConfigSection : IOptionSection
         }
         else
         {
-            hud.Text(m_rowEditText.ToString(), Font, fontSize, pos, out renderArea, window: Align.TopMiddle, 
+            hud.Text(m_rowEditText.ToString(), Font, fontSize, pos, out renderArea, window: Align.TopMiddle,
                 anchor: Align.TopLeft, color: textColor);
         }
     }
-    
+
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY, bool didMouseWheelScroll)
     {
         m_menuPositionList.Clear();
@@ -477,13 +522,22 @@ public class ListedConfigSection : IOptionSection
             m_lastY = startY;
             m_updateMouse = true;
         }
-        
+
         int y = startY;
-        
+        int fontSize = m_config.Hud.GetSmallFontSize();
+        int smallPad = m_config.Hud.GetScaled(1);
+
+        hud.Text("Press enter to modify the selected setting", Font, fontSize, (0, y), out Dimension textDimension,
+            both: Align.TopMiddle, color: Color.Firebrick);
+        y += textDimension.Height + smallPad;
+
+        hud.Text("Press R to reset the selected setting to its default", Font, fontSize, (0, y), out textDimension,
+            both: Align.TopMiddle, color: Color.Firebrick);
+        y += textDimension.Height  + m_config.Hud.GetScaled(8);
+
         hud.Text(OptionType.ToString(), Font, m_config.Hud.GetLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
         y += headerArea.Height + m_config.Hud.GetScaled(8);
 
-        int fontSize = m_config.Hud.GetSmallFontSize();
         int offsetX = m_config.Hud.GetScaled(8);
         int spacerY = m_config.Hud.GetScaled(8);
         int smallSpacer = m_config.Hud.GetScaled(2);
@@ -492,11 +546,13 @@ public class ListedConfigSection : IOptionSection
         for (int i = 0; i < m_configValues.Count; i++)
         {
             (IConfigValue cfgValue, OptionMenuAttribute attr, _) = m_configValues[i];
-            (Color attrColor, Color valueColor) = IsConfigDisabled(i) ? (Color.Gray, Color.Gray) : (Color.Red, Color.White);
+            (Color attrColor, Color valueColorDefault, Color valueColorCustomized) = IsConfigDisabled(i)
+                ? (Color.Gray, Color.Gray, Color.Gray)
+                : (Color.Red, Color.White, Color.Yellow);
 
             if (attr.Spacer)
-               y += spacerY;
-            
+                y += spacerY;
+
             if (i == m_currentRowIndex && m_rowIsSelected)
                 attrColor = Color.Yellow;
 
@@ -508,7 +564,7 @@ public class ListedConfigSection : IOptionSection
             }
 
             name = GetEllipsesText(hud, name, Font, fontSize, hud.Dimension.Width / 2 - offsetX);
-            hud.Text(name, Font, fontSize, (-offsetX, y), out Dimension attrArea, window: Align.TopMiddle, 
+            hud.Text(name, Font, fontSize, (-offsetX, y), out Dimension attrArea, window: Align.TopMiddle,
                 anchor: Align.TopRight, color: attrColor);
 
             int valueOffsetX = offsetX;
@@ -519,6 +575,10 @@ public class ListedConfigSection : IOptionSection
             }
 
             Dimension valueArea;
+            string displayValue = GetConfigDisplayValue(cfgValue, attr);
+            string displayDefaultValue = GetConfigDisplayDefaultValue(cfgValue, attr);
+            Color valueColor = displayValue == displayDefaultValue ? valueColorDefault : valueColorCustomized;
+
             if (i == m_currentRowIndex && m_rowIsSelected)
             {
                 if (CurrentRowAllowsTextInput())
@@ -528,7 +588,7 @@ public class ListedConfigSection : IOptionSection
             }
             else
             {
-                hud.Text(GetConfigDisplayValue(cfgValue, attr), Font, fontSize, (valueOffsetX, y), out valueArea, window: Align.TopMiddle, 
+                hud.Text(displayValue, Font, fontSize, (valueOffsetX, y), out valueArea, window: Align.TopMiddle,
                     anchor: Align.TopLeft, color: valueColor);
             }
 
@@ -551,15 +611,37 @@ public class ListedConfigSection : IOptionSection
             y += maxHeight + m_config.Hud.GetScaled(3);
         }
 
+        string resetText = m_currentRowIndex != m_configValues.Count
+            ? "Reload All Defaults"
+            : "> Reload All Defaults <";
+        hud.Text(resetText, Font, fontSize, (0, y), out Dimension area, window: Align.TopMiddle, anchor: Align.TopMiddle, color: Color.Yellow);
+        m_menuPositionList.Add(new Box2I((0, y), (hud.Dimension.Width, y + area.Height)), m_configValues.Count);
+        y += area.Height + m_config.Hud.GetScaled(3);
+
         m_renderHeight = y - startY;
 
         if (m_updateRow)
         {
-            OnRowChanged?.Invoke(this, new(m_currentRowIndex, m_configValues[m_currentRowIndex].ConfigAttr.Description));
+            InvokeRowChange();
             m_updateRow = false;
         }
 
         m_dialog?.Render(ctx, hud);
+    }
+
+    public void InvokeRowChange()
+    {
+        string message = string.Empty;
+        if (m_currentRowIndex >= m_configValues.Count)
+        {
+            message = "Reset all configuration options in this section to their default values.";
+        }
+        else if (!string.IsNullOrEmpty(m_configValues[m_currentRowIndex].ConfigAttr.Description))
+        {
+            message = $"{m_configValues[m_currentRowIndex].ConfigAttr.Description} (Default: {GetConfigDisplayDefaultValue(m_configValues[m_currentRowIndex].CfgValue, m_configValues[m_currentRowIndex].Attr)})";
+        }
+
+        OnRowChanged?.Invoke(this, new(m_currentRowIndex, message));
     }
 
     private static bool IsColor(IConfigValue cfgValue, out Vec3I value)
@@ -611,7 +693,7 @@ public class ListedConfigSection : IOptionSection
 
     public void OnShow()
     {
-        OnRowChanged?.Invoke(this, new(m_currentRowIndex, m_configValues[m_currentRowIndex].ConfigAttr.Description));
+        InvokeRowChange();
     }
 
     public int GetRenderHeight() => m_renderHeight;

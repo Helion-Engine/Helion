@@ -89,6 +89,11 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     {
         try
         {
+            if (typeof(T) == newValue.GetType())
+            {
+                return Set((T)newValue);
+            }
+
             if (typeof(T) == typeof(bool) && newValue is string str && str.Length == 1 && str[0] == '*')
             {
                 bool value = Convert.ToBoolean(Value);

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Helion.Models;
 using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using NLog;
 
@@ -156,6 +157,63 @@ public class Config : IConfig
 
             if (component.Value.Set(configModel.Value) == ConfigSetResult.NotSetByBadConversion)
                 Log.Error($"Bad configuration value '{configModel.Value}' for '{configModel.Key}'.");
+        }
+    }
+
+    /// <summary>
+    /// Gets information about all fields exposed by this configuration object
+    /// </summary>
+    public List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> GetAllConfigFields()
+    {
+        List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields = new();
+        RecursivelyGetConfigFieldsOrThrow(this, fields);
+        return fields;
+    }
+
+    private static void RecursivelyGetConfigFieldsOrThrow(object obj, List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields)
+    {
+        foreach (PropertyInfo propertyInfo in obj.GetType().GetProperties())
+        {
+            MethodInfo? getMethod = propertyInfo.GetMethod;
+            if (getMethod?.IsPublic == null)
+                continue;
+
+            if (!getMethod.ReturnType.Name.StartsWith("Config", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            object? childObj = getMethod.Invoke(obj, null);
+            if (childObj == null)
+                continue;
+
+            PopulateComponentsRecursively(childObj, fields);
+        }
+    }
+
+    private static void PopulateComponentsRecursively(object obj, List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields, int depth = 1)
+    {
+        const int RecursiveOverflowLimit = 100;
+        if (depth > RecursiveOverflowLimit)
+            throw new($"Overflow when trying to get options from the config: {obj} ({obj.GetType()})");
+
+        foreach (FieldInfo fieldInfo in obj.GetType().GetFields())
+        {
+            if (!fieldInfo.IsPublic)
+                continue;
+
+            object? childObj = fieldInfo.GetValue(obj);
+            if (childObj == null || childObj == obj)
+                continue;
+
+            if (childObj is IConfigValue configValue)
+            {
+                OptionMenuAttribute? attribute = fieldInfo.GetCustomAttribute<OptionMenuAttribute>();
+                ConfigInfoAttribute? configAttribute = fieldInfo.GetCustomAttribute<ConfigInfoAttribute>();
+                if (attribute != null && configAttribute != null)
+                    fields.Add((configValue, attribute, configAttribute));
+                continue;
+            }
+
+            PopulateComponentsRecursively(childObj, fields, depth + 1);
         }
     }
 }

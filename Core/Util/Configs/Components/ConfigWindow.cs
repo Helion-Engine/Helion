@@ -32,7 +32,7 @@ public class ConfigWindowVirtual
 public class ConfigWindow
 {
     [ConfigInfo("Display fullscreen or windowed.")]
-    [OptionMenu(OptionSectionType.Video, "Fullscreen/Window")]
+    [OptionMenu(OptionSectionType.Video, "Fullscreen/Window", allowReset: false)]
     public readonly ConfigValue<RenderWindowState> State = new(RenderWindowState.Fullscreen, OnlyValidEnums<RenderWindowState>());
 
     [ConfigInfo("Window border.")]
@@ -45,11 +45,11 @@ public class ConfigWindow
 
     public readonly ConfigWindowVirtual Virtual = new();
 
-    [ConfigInfo("Display number for the window. (0 = default. Use command ListDisplays for display numbers.)")]
-    [OptionMenu(OptionSectionType.Video, "Display Number", spacer: true)]
+    [ConfigInfo("Display number for the window. Use command ListDisplays for display numbers.")]
+    [OptionMenu(OptionSectionType.Video, "Display Number", spacer: true, allowReset: false)]
     public readonly ConfigValue<int> Display = new(0, GreaterOrEqual(0));
 
     [ConfigInfo("Color rendering mode: Palette uses Doom's colormaps and disables texture filtering, producing output that resembles software rendering. True Color interpolates color values. Application restart required.", restartRequired: true)]
-    [OptionMenu(OptionSectionType.Video, "Color Mode")]
+    [OptionMenu(OptionSectionType.Video, "Color Mode", allowReset: false)]
     public readonly ConfigValue<RenderColorMode> ColorMode = new(RenderColorMode.TrueColor);
 }

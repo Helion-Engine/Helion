@@ -163,11 +163,11 @@ public class ConfigHud
     public readonly ConfigValue<bool> ShowStats = new(false);
 
     [ConfigInfo("Automatically scale HUD.")]
-    [OptionMenu(OptionSectionType.Hud, "Autoscale HUD", spacer: true)]
+    [OptionMenu(OptionSectionType.Hud, "Autoscale HUD", spacer: true, allowReset: false)]
     public readonly ConfigValue<bool> AutoScale = new(true);
 
     [ConfigInfo("Amount to scale the HUD.")]
-    [OptionMenu(OptionSectionType.Hud, "HUD Scale")]
+    [OptionMenu(OptionSectionType.Hud, "HUD Scale", allowReset: false)]
     public readonly ConfigValue<double> Scale = new(2.0, Greater(0.0));
 
     [ConfigInfo("Amount of HUD transparency.")]

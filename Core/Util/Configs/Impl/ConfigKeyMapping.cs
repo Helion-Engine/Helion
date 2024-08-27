@@ -1,8 +1,9 @@
-using System;
-using System.Collections.Generic;
 using Helion.Window;
 using Helion.Window.Input;
 using NLog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.Util.Configs.Impl;
 
@@ -18,48 +19,63 @@ public class ConfigKeyMapping : IConfigKeyMapping
     public bool Changed { get; private set; }
     private readonly List<KeyCommandItem> m_commands = new();
 
+    private static readonly (Key key, string command)[] DefaultBindings = new[]
+    {
+        (Key.W,             Constants.Input.Forward),
+        (Key.A,             Constants.Input.Left),
+        (Key.S,             Constants.Input.Backward),
+        (Key.D,             Constants.Input.Right),
+        (Key.E,             Constants.Input.Use),
+        (Key.ShiftLeft,     Constants.Input.Run),
+        (Key.ShiftRight,    Constants.Input.Run),
+        (Key.AltLeft,       Constants.Input.Strafe),
+        (Key.AltRight,      Constants.Input.Strafe),
+        (Key.Left,          Constants.Input.TurnLeft),
+        (Key.Right,         Constants.Input.TurnRight),
+        (Key.Up,            Constants.Input.LookUp),
+        (Key.Down,          Constants.Input.LookDown),
+        (Key.Space,         Constants.Input.Jump),
+        (Key.C,             Constants.Input.Crouch),
+        (Key.Backtick,      Constants.Input.Console),
+        (Key.MouseLeft,     Constants.Input.Attack),
+        (Key.ControlLeft,   Constants.Input.Attack),
+        (Key.ControlRight,  Constants.Input.Attack),
+        (Key.One,           Constants.Input.WeaponSlot1),
+        (Key.Two,           Constants.Input.WeaponSlot2),
+        (Key.Three,         Constants.Input.WeaponSlot3),
+        (Key.Four,          Constants.Input.WeaponSlot4),
+        (Key.Five,          Constants.Input.WeaponSlot5),
+        (Key.Six,           Constants.Input.WeaponSlot6),
+        (Key.Seven,         Constants.Input.WeaponSlot7),
+        (Key.PrintScreen,   Constants.Input.Screenshot),
+        (Key.Equals,        Constants.Input.HudIncrease),
+        (Key.Minus,         Constants.Input.HudDecrease),
+        (Key.MouseWheelUp,  Constants.Input.NextWeapon),
+        (Key.MouseWheelDown, Constants.Input.PreviousWeapon),
+        (Key.F2,            Constants.Input.Save),
+        (Key.F3,            Constants.Input.Load),
+        (Key.F4,            Constants.Input.OptionsMenu),
+        (Key.Tab,           Constants.Input.Automap),
+        (Key.Pause,         Constants.Input.Pause),
+        (Key.F6,            Constants.Input.QuickSave),
+        (Key.Escape,        Constants.Input.Menu),
+        // Automap bindings
+        (Key.Left,          Constants.Input.AutoMapLeft),
+        (Key.Right,         Constants.Input.AutoMapRight),
+        (Key.Up,            Constants.Input.AutoMapUp),
+        (Key.Down,          Constants.Input.AutoMapDown),
+        (Key.Equals,        Constants.Input.AutoMapIncrease),
+        (Key.Minus,         Constants.Input.AutoMapDecrease),
+        (Key.MouseWheelUp,  Constants.Input.AutoMapIncrease),
+        (Key.MouseWheelDown, Constants.Input.AutoMapDecrease),
+    };
+
     public void AddDefaultsIfMissing()
     {
         Log.Trace("Adding default key commands to config keys");
 
-        AddIfMissing(Key.W, Constants.Input.Forward);
-        AddIfMissing(Key.A, Constants.Input.Left);
-        AddIfMissing(Key.S, Constants.Input.Backward);
-        AddIfMissing(Key.D, Constants.Input.Right);
-        AddIfMissing(Key.E, Constants.Input.Use);
-        AddIfMissing(Key.ShiftLeft, Constants.Input.Run);
-        AddIfMissing(Key.ShiftRight, Constants.Input.Run);
-        AddIfMissing(Key.AltLeft, Constants.Input.Strafe);
-        AddIfMissing(Key.AltRight, Constants.Input.Strafe);
-        AddIfMissing(Key.Left, Constants.Input.TurnLeft, Constants.Input.AutoMapLeft);
-        AddIfMissing(Key.Right, Constants.Input.TurnRight, Constants.Input.AutoMapRight);
-        AddIfMissing(Key.Up, Constants.Input.LookUp, Constants.Input.AutoMapUp);
-        AddIfMissing(Key.Down, Constants.Input.LookDown, Constants.Input.AutoMapDown);
-        AddIfMissing(Key.Space, Constants.Input.Jump);
-        AddIfMissing(Key.C, Constants.Input.Crouch);
-        AddIfMissing(Key.Backtick, Constants.Input.Console);
-        AddIfMissing(Key.MouseLeft, Constants.Input.Attack);
-        AddIfMissing(Key.ControlLeft, Constants.Input.Attack);
-        AddIfMissing(Key.ControlRight, Constants.Input.Attack);
-        AddIfMissing(Key.One, Constants.Input.WeaponSlot1);
-        AddIfMissing(Key.Two, Constants.Input.WeaponSlot2);
-        AddIfMissing(Key.Three, Constants.Input.WeaponSlot3);
-        AddIfMissing(Key.Four, Constants.Input.WeaponSlot4);
-        AddIfMissing(Key.Five, Constants.Input.WeaponSlot5);
-        AddIfMissing(Key.Six, Constants.Input.WeaponSlot6);
-        AddIfMissing(Key.Seven, Constants.Input.WeaponSlot7);
-        AddIfMissing(Key.PrintScreen, Constants.Input.Screenshot);
-        AddIfMissing(Key.Equals, Constants.Input.HudIncrease, Constants.Input.AutoMapIncrease);
-        AddIfMissing(Key.Minus, Constants.Input.HudDecrease, Constants.Input.AutoMapDecrease);
-        AddIfMissing(Key.MouseWheelUp, Constants.Input.AutoMapIncrease, Constants.Input.NextWeapon);
-        AddIfMissing(Key.MouseWheelDown, Constants.Input.AutoMapDecrease, Constants.Input.PreviousWeapon);
-        AddIfMissing(Key.F2, Constants.Input.Save);
-        AddIfMissing(Key.F3, Constants.Input.Load);
-        AddIfMissing(Key.F4, Constants.Input.OptionsMenu);
-        AddIfMissing(Key.Tab, Constants.Input.Automap);
-        AddIfMissing(Key.Pause, Constants.Input.Pause);
-        AddIfMissing(Key.F6, Constants.Input.QuickSave);
-        AddIfMissing(Key.Escape, Constants.Input.Menu);
+        foreach ((Key key, string action) in DefaultBindings)
+            Add(key, action);
     }
 
     public void ClearChanged()
@@ -234,4 +250,21 @@ public class ConfigKeyMapping : IConfigKeyMapping
     }
 
     public IList<KeyCommandItem> GetKeyMapping() => m_commands;
+
+    public void ReloadDefaults(string command)
+    {
+        m_commands.RemoveAll(x => x.Command == command);
+        foreach ((Key key, _) in DefaultBindings.Where(binding => binding.command == command))
+        {
+            Add(key, command);
+        }
+        Changed = true;
+    }
+
+    public void ReloadAllDefaults()
+    {
+        m_commands.Clear();
+        AddDefaultsIfMissing();
+        Changed = true;
+    }
 }

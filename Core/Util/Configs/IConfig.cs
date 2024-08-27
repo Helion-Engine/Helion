@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Models;
 using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 
 namespace Helion.Util.Configs;
@@ -46,4 +47,6 @@ public interface IConfig
 
     Dictionary<string, ConfigComponent> GetComponents();
     void ApplyConfiguration(IList<ConfigValueModel> configValues);
+
+    List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> GetAllConfigFields();
 }
