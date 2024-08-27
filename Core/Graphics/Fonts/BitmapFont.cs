@@ -97,7 +97,7 @@ public static class BitmapFont
         if (charImages.Empty())
             return new Dictionary<char, Image>();
 
-        maxHeight = CalculateMaxHeight(charImages);
+        maxHeight = definition.FixedHeight ?? CalculateMaxHeight(charImages);
 
         imageType = charImages.Values.First().ImageType;
         if (NotAllSameImageType(imageType, charImages))
@@ -107,7 +107,7 @@ public static class BitmapFont
         foreach ((char c, Image charImage) in charImages)
         {
             FontAlignment alignment = definition.CharDefinitions[c].Alignment ?? definition.Alignment;
-            processedCharImages[c] = CreateCharImage(charImage, maxHeight, alignment, imageType, definition.FixedHeight);
+            processedCharImages[c] = CreateCharImage(charImage, maxHeight, alignment, imageType, definition.BaseHeight);
         }
 
         return processedCharImages;
@@ -153,33 +153,21 @@ public static class BitmapFont
         return (glyphs, atlas);
     }
 
-    private static Image CreateCharImage(Image image, int maxHeight, FontAlignment alignment,
-        ImageType imageType, int? fixedHeight)
+    private static Image CreateCharImage(Image image, int maxHeight, FontAlignment alignment, ImageType imageType, int? baseHeight = null)
     {
         Precondition(maxHeight >= image.Height, "Miscalculated max height when making font");
-
-        if (fixedHeight.HasValue)
-            maxHeight = fixedHeight.Value;
 
         if (image.Height == maxHeight)
             return image;
 
-        int startY = 0;
-        switch (alignment)
+        int alignmentHeight = baseHeight ?? maxHeight;
+        int startY = alignment switch
         {
-            case FontAlignment.Top:
-                // We're done, the default value is correct already.
-                break;
-            case FontAlignment.Center:
-                startY = (maxHeight / 2) - (image.Height / 2);
-                break;
-            case FontAlignment.Bottom:
-                startY = maxHeight - image.Height;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "Unexpected font alignment in glyph creation");
-        }
-
+            FontAlignment.Top => 0,
+            FontAlignment.Center => (alignmentHeight / 2) - (image.Height / 2),
+            FontAlignment.Bottom => alignmentHeight - image.Height,
+            _ => throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "Unexpected font alignment in glyph creation"),
+        };
         Image glyphImage = new(image.Width, maxHeight, imageType, offset: image.Offset);
         image.DrawOnTopOf(glyphImage, (0, startY));
 

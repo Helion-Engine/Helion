@@ -139,6 +139,13 @@ public class FontDefinitionParser : ParserBase
         Consume(';');
     }
 
+    private void ConsumeBaseHeight()
+    {
+        Consume('=');
+        CurrentDefinition.BaseHeight = ConsumeInteger();
+        Consume(';');
+    }
+
     private void ConsumeUseOffset()
     {
         Consume('=');
@@ -174,6 +181,9 @@ public class FontDefinitionParser : ParserBase
                 break;
             case "FIXEDWIDTHCHAR":
                 ConsumeFixedWidthChar();
+                break;
+            case "BASEHEIGHT":
+                ConsumeBaseHeight();
                 break;
             case "USEOFFSET":
                 ConsumeUseOffset();
