@@ -17,8 +17,8 @@ namespace Helion.Layer.Worlds;
 
 public partial class IntermissionLayer
 {
-    private const int FontSize = 12;
-    private const string Font = "IntermissionFont";
+    private const string MainFont = "IntermissionFont";
+    private const string LevelInfoFont = Constants.Fonts.SmallGray;
 
     private readonly List<IntermissionSpot> m_visitedSpots = new();
     private IntermissionSpot? m_nextSpot;
@@ -159,14 +159,13 @@ public partial class IntermissionLayer
         }
 
         // TODO would look nicer if there was a large font for the level text
-        const int LevelFontSize = 8;
-        const int AuthorFontSize = 8;
+        const int LevelInfoFontSize = 8;
 
-        hud.Text(mapInfo.NiceName, Constants.Fonts.SmallGray, LevelFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
-        offsetY += hud.MeasureText(mapInfo.Author, Constants.Fonts.Small, LevelFontSize).Height;
+        hud.Text(mapInfo.NiceName, LevelInfoFont, LevelInfoFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
+        offsetY += hud.MeasureText(mapInfo.Author, LevelInfoFont, LevelInfoFontSize).Height;
 
-        hud.Text(mapInfo.Author, Constants.Fonts.SmallGray, AuthorFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
-        offsetY += hud.MeasureText(mapInfo.Author, Constants.Fonts.Small, AuthorFontSize).Height + 1;
+        hud.Text(mapInfo.Author, LevelInfoFont, LevelInfoFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
+        offsetY += hud.MeasureText(mapInfo.Author, LevelInfoFont, LevelInfoFontSize).Height + 1;
     }
 
     private void DrawStatistics(IHudRenderContext hud)
@@ -174,7 +173,7 @@ public partial class IntermissionLayer
         const int LeftOffsetX = 50;
         const int RightOffsetX = 280;
         const int OffsetY = 50;
-        var fontObject = m_archiveCollection.GetFont(Font);
+        var fontObject = m_archiveCollection.GetFont(MainFont);
         if (fontObject == null)
             return;
 
@@ -198,7 +197,8 @@ public partial class IntermissionLayer
 
         void DrawNumber(double percent, int offsetY)
         {
-            hud.Text($"{percent}%", Font, FontSize, (RightOffsetX, offsetY), anchor: Align.TopRight);
+            int fontSize = hud.GetFontMaxHeight(MainFont);
+            hud.Text($"{percent}%", MainFont, fontSize, (RightOffsetX, offsetY), anchor: Align.TopRight);
         }
     }
 
@@ -240,7 +240,8 @@ public partial class IntermissionLayer
         void RenderTime(int seconds, int rightOffsetX, int y)
         {
             string levelTime = GetTimeString(seconds);
-            hud.Text(levelTime, Font, FontSize, (rightOffsetX, y), window: Align.BottomLeft, anchor: Align.TopRight);
+            int fontSize = hud.GetFontMaxHeight(MainFont);
+            hud.Text(levelTime, MainFont, fontSize, (rightOffsetX, y), window: Align.BottomLeft, anchor: Align.TopRight);
         }
     }
 }

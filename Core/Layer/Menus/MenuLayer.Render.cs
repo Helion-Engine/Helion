@@ -125,7 +125,7 @@ public partial class MenuLayer
         const int SelectionOffsetX = 4;
         const int RowOffsetY = 7;
         const int FontSize = 8;
-        const string FontName = "SmallFont";
+        const string FontName = Constants.Fonts.Small;
         const string LeftBarName = "M_LSLEFT";
         const string MiddleBarName = "M_LSCNTR";
         const string RightBarName = "M_LSRGHT";

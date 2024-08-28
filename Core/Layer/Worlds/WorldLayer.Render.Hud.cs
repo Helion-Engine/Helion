@@ -49,9 +49,9 @@ public partial class WorldLayer
     private const ResourceNamespace LookupNamespace = ResourceNamespace.Undefined;
     private static readonly Color PickupColor = (255, 255, 128);
     private static readonly Color DamageColor = (255, 0, 0);
-    private static readonly string SmallHudFont = Constants.Fonts.Small;
-    private static readonly string LargeHudFont = Constants.Fonts.LargeHud;
-    private static readonly string ConsoleFont = "Console";
+    private const string SmallHudFont = Constants.Fonts.Small;
+    private const string LargeHudFont = Constants.Fonts.LargeHud;
+    private const string ConsoleFont = Constants.Fonts.Console;
     private int m_fontHeight = 16;
     private int m_padding = 4;
     private int m_hudPaddingX = 0;
@@ -837,7 +837,7 @@ public partial class WorldLayer
     {
         // Note: This area is already drawn using Doom's stretched scale so useDoomScale needs to be false.
         const int OffsetY = 171;
-        const int FontSize = 16;
+        int fontSize = hud.GetFontMaxHeight(LargeHudFont);
 
         const int HealthX = 90;
         const int ArmorX = 221;
@@ -849,7 +849,7 @@ public partial class WorldLayer
             int ammoAmount = Player.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType);
             m_ammoString.Clear();
             m_ammoString.Append(Math.Clamp(ammoAmount, 0, 999));
-            SetRenderableString(m_ammoString.AsSpan(), m_renderAmmoString, LargeHudFont, FontSize, useDoomScale: false);
+            SetRenderableString(m_ammoString.AsSpan(), m_renderAmmoString, LargeHudFont, fontSize, useDoomScale: false);
             hud.Text(m_renderAmmoString, (AmmoX, OffsetY), anchor: Align.TopRight, alpha: m_hudAlpha);
         }
 
@@ -857,14 +857,14 @@ public partial class WorldLayer
         m_healthString.Append(Math.Clamp(Player.Health, 0, 999));
         m_healthString.Append('%');
 
-        SetRenderableString(m_healthString.AsSpan(), m_renderHealthString, LargeHudFont, FontSize, useDoomScale: false);
+        SetRenderableString(m_healthString.AsSpan(), m_renderHealthString, LargeHudFont, fontSize, useDoomScale: false);
         hud.Text(m_renderHealthString, (CalcPercentStartOffsetX(HealthX, m_largeHudFont), OffsetY), anchor: Align.TopRight, alpha: m_hudAlpha);
 
         m_armorString.Clear();
         m_armorString.Append(Math.Clamp(Player.Armor, 0, 999));
         m_armorString.Append('%');
 
-        SetRenderableString(m_armorString.AsSpan(), m_renderArmorString, LargeHudFont, FontSize, useDoomScale: false);
+        SetRenderableString(m_armorString.AsSpan(), m_renderArmorString, LargeHudFont, fontSize, useDoomScale: false);
         hud.Text(m_renderArmorString, (CalcPercentStartOffsetX(ArmorX, m_largeHudFont), OffsetY), anchor: Align.TopRight, alpha: m_hudAlpha);
     }
 
@@ -981,7 +981,7 @@ public partial class WorldLayer
         m_ammoString.Append(ammo);
         m_maxAmmoString.Append(maxAmmo);
         hud.Text(m_ammoString.AsSpan(), YellowFontName, FontSize, (287, y), anchor: Align.TopRight, alpha: m_hudAlpha);
-        hud.Text(m_maxAmmoString.AsSpan(), YellowFontName, FontSize, (315, y), anchor: Align.TopRight, alpha: m_hudAlpha);
+        hud.Text(m_maxAmmoString.AsSpan(), YellowFontName, FontSize, (313, y), anchor: Align.TopRight, alpha: m_hudAlpha);
     }
 
     private int m_lastMessageCount = 0;
@@ -1022,10 +1022,11 @@ public partial class WorldLayer
                 lastMessageTime = timeSinceMessage;
             }
 
+            int fontSize = (int)(1.25 * hud.GetFontMaxHeight(SmallHudFont));
             int slideOffsetY = m_messages.Count <= 1 ? 0 : CalculateSlide(hud, lastMessageTime);
             for (int i = m_messages.Count - 1; i >= 0; i--)
             {
-                hud.Text(m_messages[i].message, SmallHudFont, 8, (LeftOffset + m_hudPaddingX, offsetY + slideOffsetY),
+                hud.Text(m_messages[i].message, SmallHudFont, fontSize, (LeftOffset + m_hudPaddingX, offsetY + slideOffsetY),
                     out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: m_messages[i].alpha * m_hudAlpha);
                 offsetY += drawArea.Height + MessageSpacing;
             }
