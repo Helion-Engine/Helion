@@ -576,12 +576,33 @@ public abstract partial class WorldBase : IWorld
         AddMapSpecial();
         InitBossBrainTargets();
         SetupMusicChangers();
+        SetSectorSkies();
 
         if (worldModel == null)
             SpecialManager.StartInitSpecials(LevelStats);
 
         StaticDataApplier.DetermineStaticData(this);
         SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;
+    }
+
+    private void SetSectorSkies()
+    {
+        for (int i = 0; i < Sectors.Count; i++)
+        {
+            var sector = Sectors[i];
+            if (GetSectorSkyTextureHandle(sector.Floor.TextureHandle, out int skyTextureHandle))
+                sector.FloorSkyTextureHandle = skyTextureHandle;
+
+            if (GetSectorSkyTextureHandle(sector.Ceiling.TextureHandle, out skyTextureHandle))
+                sector.CeilingSkyTextureHandle = skyTextureHandle;
+        }
+    }
+
+    private bool GetSectorSkyTextureHandle(int textureHandle, out int skyTextureHandle)
+    {
+        skyTextureHandle = 0;
+        return TextureManager.IsSkyTexture(textureHandle) && !TextureManager.IsDefaultSkyTexture(textureHandle) &&
+                TextureManager.GetSkyTextureFromFlat(textureHandle, out skyTextureHandle);
     }
 
     private void SpecialManager_SectorSpecialDestroyed(object? sender, ISectorSpecial special)

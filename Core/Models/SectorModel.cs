@@ -22,6 +22,8 @@ public class SectorModel
     public string? CeilingTex;
     public int? SectorSpecialType;
     public int? SkyTexture;
+    public int? FloorSkyTexture;
+    public int? CeilingSkyTexture;
     public bool? Secret;
     public int DamageAmount;
     public int? TransferFloorLight;

@@ -48,7 +48,8 @@ public sealed class Sector
     public ZDoomSectorSpecialType SectorSpecialType;
     public bool Secret => (SectorEffect & SectorEffect.Secret) != 0;
     public int DamageAmount;
-    public int? SkyTextureHandle;
+    public int? FloorSkyTextureHandle;
+    public int? CeilingSkyTextureHandle;
     public bool FlipSkyTexture = true;
     public bool IsFloorStatic => Floor.Dynamic == SectorDynamic.None;
     public bool IsCeilingStatic => Ceiling.Dynamic == SectorDynamic.None;
@@ -283,7 +284,8 @@ public sealed class Sector
 
     public void SetSkyTexture(int texture, bool flipped, int gametick)
     {
-        SkyTextureHandle = texture;
+        FloorSkyTextureHandle = texture;
+        CeilingSkyTextureHandle = texture;
         FlipSkyTexture = flipped;
         DataChanges |= SectorDataTypes.SkyTexture;
         ChangeGametick = gametick;
@@ -305,7 +307,8 @@ public sealed class Sector
             SoundTarget = SoundTarget.Entity?.Id,
             SectorSpecialType = (int)SectorSpecialType,
             SectorDataChanges = (int)DataChanges,
-            SkyTexture = SkyTextureHandle,
+            FloorSkyTexture = FloorSkyTextureHandle,
+            CeilingSkyTexture = FloorSkyTextureHandle,
             TransferFloorLight = TransferFloorLightSector?.Id,
             TransferCeilingLight = TransferCeilingLightSector?.Id,
             TransferHeights = TransferHeights?.ControlSector.Id,
@@ -408,7 +411,17 @@ public sealed class Sector
                 SectorSpecialType = (ZDoomSectorSpecialType)sectorModel.SectorSpecialType;
 
             if ((DataChanges & SectorDataTypes.SkyTexture) != 0 && sectorModel.SkyTexture.HasValue)
-                SkyTextureHandle = sectorModel.SkyTexture;
+            {
+                FloorSkyTextureHandle = sectorModel.SkyTexture;
+                CeilingSkyTextureHandle = sectorModel.SkyTexture;
+            }
+            else if ((DataChanges & SectorDataTypes.SkyTexture) != 0)
+            {
+                if (sectorModel.FloorSkyTexture.HasValue)
+                    FloorSkyTextureHandle = sectorModel.FloorSkyTexture;
+                if (sectorModel.CeilingSkyTexture.HasValue)
+                    CeilingSkyTextureHandle = sectorModel.CeilingSkyTexture;
+            }
 
             if ((DataChanges & SectorDataTypes.Friction) != 0 && sectorModel.Friction.HasValue)
                 Friction = sectorModel.Friction.Value;

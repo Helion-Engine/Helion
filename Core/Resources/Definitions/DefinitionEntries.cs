@@ -23,6 +23,7 @@ using Helion.Util.Configs.Components;
 using static Helion.Util.Assertion.Assert;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Definitions.MusInfo;
+using Helion.Resources.Definitions.Id24;
 
 namespace Helion.Resources.Definitions;
 
@@ -52,6 +53,7 @@ public class DefinitionEntries
     public readonly List<Colormap> Colormaps = [];
     public readonly CompLevelDefinition CompLevelDefinition = new();
     public readonly MusInfoDefinition MusInfoDefinition = new();
+    public readonly Id24SkyDefinition Id24SkyDefinition = new();
 
     public DehackedDefinition? DehackedDefinition { get; set; }
 
@@ -88,7 +90,7 @@ public class DefinitionEntries
         m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
         m_entryNameToAction["SNDINFO"] = entry => ParseEntry(ParseSoundInfo, entry);
         m_entryNameToAction["LANGUAGE"] = entry => ParseEntry(ParseLanguage, entry);
-        m_entryNameToAction["LANGUAGECOMPAT"] = entry => ParseEntry(ParseLangaugeCompatibility, entry);
+        m_entryNameToAction["LANGUAGECOMPAT"] = entry => ParseEntry(ParseLanguageCompatibility, entry);
         m_entryNameToAction["MAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
         m_entryNameToAction["ZMAPINFO"] = entry => ParseEntry(ParseZMapInfo, entry);
         m_entryNameToAction["UMAPINFO"] = entry => ParseEntry(ParseUniversalMapInfo, entry);
@@ -96,6 +98,7 @@ public class DefinitionEntries
         m_entryNameToAction["TEXTURES"] = entry => ParseEntry(ParseTextures, entry);
         m_entryNameToAction["COMPLVL"] = entry => ParseEntry(ParseCompLevel, entry);
         m_entryNameToAction["MUSINFO"] = entry => ParseEntry(ParseMusInfo, entry);
+        m_entryNameToAction["SKYDEFS"] = Id24SkyDefinition.Parse;
     }
 
     public void ParseDehackedPatch(string data)
@@ -145,7 +148,7 @@ public class DefinitionEntries
     private void ParseAnimDefs(string text) => Animdefs.Parse(text);
     private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
     private void ParseLanguage(string text) => Language.Parse(text);
-    private void ParseLangaugeCompatibility(string text) => Language.ParseCompatibility(text);
+    private void ParseLanguageCompatibility(string text) => Language.ParseCompatibility(text);
     private void ParseZMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text, ShouldParseWeapons);
     private void ParseCompLevel(string data) => CompLevelDefinition.Parse(data);
     private void ParseMusInfo(string text) => MusInfoDefinition.Parse(text);

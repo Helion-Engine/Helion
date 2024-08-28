@@ -27,10 +27,12 @@ public class TextureManager : ITickable
     private readonly Dictionary<string, Texture> m_textureLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_flatLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_patchLookup = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<Animation> m_animations = new();
-    private readonly HashSet<int> m_animatedTextures = new();
-    private readonly HashSet<int> m_processedEntityDefinitions = new();
-    private readonly Dictionary<int, Entry[]> m_spriteIndexEntries = new();
+    private readonly List<Animation> m_animations = [];
+    private readonly HashSet<int> m_animatedTextures = [];
+    private readonly HashSet<int> m_processedEntityDefinitions = [];
+    private readonly Dictionary<int, Entry[]> m_spriteIndexEntries = [];
+    // Maps flat index to texture index
+    private readonly Dictionary<int, int> m_skyTextureLookup = [];
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
@@ -46,8 +48,8 @@ public class TextureManager : ITickable
     public TextureManager(ArchiveCollection archiveCollection)
     {
         m_archiveCollection = archiveCollection;
-        m_textures = new();
-        m_translations = new();
+        m_textures = [];
+        m_translations = [];
         SkyTextureName = Constants.DefaultSkyTextureName;
     }
 
@@ -211,12 +213,22 @@ public class TextureManager : ITickable
     }
 
     /// <summary>
-    /// Checks if a texture is a sky.
+    /// Checks if a texture is a sky.re
     /// </summary>
     /// <param name="texture">The texture to check.</param>
     public bool IsSkyTexture(int texture)
     {
+        return texture == m_skyIndex || m_skyTextureLookup.ContainsKey(texture);
+    }
+
+    public bool IsDefaultSkyTexture(int texture)
+    {
         return texture == m_skyIndex;
+    }
+
+    public bool GetSkyTextureFromFlat(int texture, out int skyTextureHandle)
+    {
+        return m_skyTextureLookup.TryGetValue(texture, out skyTextureHandle);
     }
 
     /// <summary>
@@ -585,8 +597,22 @@ public class TextureManager : ITickable
             if (flat.Path.Name.Equals(skyFlatName, StringComparison.OrdinalIgnoreCase))
                 m_skyIndex = index;
 
+            MapSky(flat, index);
+
             index++;
         }
+    }
+
+    private void MapSky(Entry flat, int textureIndex)
+    {
+        if (!m_archiveCollection.Definitions.Id24SkyDefinition.FlatMapping.TryGetValue(flat.Path.Name, out var textureName))
+            return;
+
+        if (!m_textureLookup.TryGetValue(textureName, out var texture))
+            return;
+
+        m_skyTextureLookup[textureIndex] = texture.Index;
+        LoadTextureImage(texture.Index);
     }
 
     private Texture GetShittyTexture(List<TextureDefinition> textures)

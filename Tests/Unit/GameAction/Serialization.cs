@@ -85,8 +85,10 @@ public class Serialization : IDisposable
         txSector.Floor.TextureHandle.Should().Be(world.TextureManager.GetTexture("NUKAGE1", Resources.ResourceNamespace.Global).Index);
 
         var transferSkySector = GameActions.GetSectorByTag(world, 99);
-        transferSkySector.SkyTextureHandle.Should().NotBeNull();
-        world.TextureManager.GetTexture(transferSkySector.SkyTextureHandle!.Value).Name.Should().Be("SKY3");
+        transferSkySector.FloorSkyTextureHandle.Should().NotBeNull();
+        world.TextureManager.GetTexture(transferSkySector.FloorSkyTextureHandle!.Value).Name.Should().Be("SKY3");
+        transferSkySector.CeilingSkyTextureHandle.Should().NotBeNull();
+        world.TextureManager.GetTexture(transferSkySector.CeilingSkyTextureHandle!.Value).Name.Should().Be("SKY3");
 
         GameActions.ActivateLine(world, world.Player, 15, ActivationContext.UseLine).Should().BeTrue();
         GameActions.ActivateLine(world, world.Player, 27, ActivationContext.UseLine).Should().BeTrue();
@@ -262,12 +264,12 @@ public class Serialization : IDisposable
             sector.SectorSpecialType.Should().Be(newSector.SectorSpecialType);
             sector.Secret.Should().Be(newSector.Secret);
             sector.DamageAmount .Should().Be(newSector.DamageAmount);
-            sector.SkyTextureHandle.Should().Be(newSector.SkyTextureHandle);
             sector.DataChanges.Should().Be(newSector.DataChanges);
             sector.SoundTarget.Entity?.Id.Should().Be(newSector.SoundTarget.Entity?.Id);
             sector.KillEffect.Should().Be(newSector.KillEffect);
             sector.SectorEffect.Should().Be(newSector.SectorEffect);
-            sector.SkyTextureHandle.Should().Be(newSector.SkyTextureHandle);
+            sector.FloorSkyTextureHandle.Should().Be(newSector.FloorSkyTextureHandle);
+            sector.CeilingSkyTextureHandle.Should().Be(newSector.CeilingSkyTextureHandle);
             sector.Friction.Should().Be(newSector.Friction);
 
             if (sector.SectorDamageSpecial != null)
