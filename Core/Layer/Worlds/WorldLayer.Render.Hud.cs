@@ -1022,7 +1022,7 @@ public partial class WorldLayer
                 lastMessageTime = timeSinceMessage;
             }
 
-            int fontSize = hud.GetFontMaxHeight(SmallHudFont);
+            int fontSize = (int)(1.25 * hud.GetFontMaxHeight(SmallHudFont));
             int slideOffsetY = m_messages.Count <= 1 ? 0 : CalculateSlide(hud, lastMessageTime);
             for (int i = m_messages.Count - 1; i >= 0; i--)
             {
