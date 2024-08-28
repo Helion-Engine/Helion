@@ -321,7 +321,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             }
 
             SetSideVertices(side, side.Upper, update, sideVertices, upperVisible, true);
-            // Skyhack is done from the facingSector, otherwise use the otherSector like normal. Required for id24 flat mapping using different foor/ceiling textures.
+            // Skyhack is done from the facingSector, otherwise use the otherSector like normal. Required for id24 flat mapping using different floor/ceiling textures.
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, skyHack ? facingSector: otherSector, update);
 
             if (!update)
