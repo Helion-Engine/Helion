@@ -61,7 +61,7 @@ public class SkySphereTexture : IDisposable
         InitializeAnimatedTextures();
     }
 
-    public GLLegacyTexture GetTexture(out SkyTransform skyTransform)
+    public GLLegacyTexture GetSkyTexture(out SkyTransform skyTransform)
     {
         if (!m_loadedTextures)
         {
@@ -88,6 +88,11 @@ public class SkySphereTexture : IDisposable
         }
 
         return m_textureManager.NullTexture;
+    }
+
+    public GLLegacyTexture GetForegroundTexture(SkyTransformTexture skyTexture)
+    {
+        return m_textureManager.GetTexture(skyTexture.TextureIndex, false);
     }
 
     public void Dispose()

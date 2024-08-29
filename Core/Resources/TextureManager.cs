@@ -9,6 +9,7 @@ using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.Definitions.Texture;
+using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -417,7 +418,9 @@ public class TextureManager : ITickable
         for (int i = 0; i < m_skyTransforms.Count; i++)
         {
             var transform = m_skyTransforms[i];
-            transform.CurrentScroll += transform.Scroll;
+            transform.Sky.CurrentScroll += transform.Sky.Scroll;
+            if (transform.Foreground != null)
+                transform.Foreground.CurrentScroll += transform.Foreground.Scroll;
         }
     }
 
@@ -633,7 +636,16 @@ public class TextureManager : ITickable
             if (!sky.Name.Equals(texture.Name, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            var skyTransform = SkyTransform.FromId24SkyDef(texture.Index, sky);
+            int? foregroundTextureIndex = null;
+            if (sky.ForegroundTex != null)
+            {
+                var foregroundTexture = GetTexture(sky.ForegroundTex.Name, ResourceNamespace.Textures);
+                LoadTextureImage(foregroundTexture.Index, GetImageOptions.ClearBlackPixels);
+                if (foregroundTexture != null)
+                    foregroundTextureIndex = foregroundTexture.Index;
+            }
+
+            var skyTransform = SkyTransform.FromId24SkyDef(texture.Index, foregroundTextureIndex, sky);
             m_skyTransforms.Add(skyTransform);
             m_skyTransformLookup[texture.Index] = skyTransform;
             break;
@@ -653,11 +665,10 @@ public class TextureManager : ITickable
         return shittyTexture;
     }
 
-    private void LoadTextureImage(int textureIndex)
+    private void LoadTextureImage(int textureIndex, GetImageOptions options = GetImageOptions.Default)
     {
         var texture = m_textures[textureIndex];
-        if (texture.Image == null)
-            texture.Image = m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace);
+        texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
     }
 
     public void SetSkyTexture()

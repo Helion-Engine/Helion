@@ -120,7 +120,7 @@ public class Image
         return new(pixels, dimension, ImageType.Argb, offset, ns);
     }
 
-    public static Image PaletteToArgb(PaletteImage image, Palette palette, bool[] fullBright, bool storeIndices)
+    public static Image PaletteToArgb(PaletteImage image, Palette palette, bool[] fullBright, bool storeIndices, bool clearBlackPixels)
     {
         uint[] pixels = new uint[image.Indices.Length];
         Color[] layer = palette.DefaultLayer;
@@ -128,6 +128,8 @@ public class Image
         for (int i = 0; i < image.Indices.Length; i++)
         {
             uint argb = image.Indices[i];
+            if (argb == 0 && clearBlackPixels)
+                argb = TransparentIndex;
             uint pixel = argb == TransparentIndex ? Color.Transparent.Uint : layer[argb].Uint;
             if (argb != TransparentIndex && argb < fullBright.Length && fullBright[argb])
             {

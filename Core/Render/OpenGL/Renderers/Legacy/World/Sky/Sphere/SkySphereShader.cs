@@ -20,6 +20,7 @@ public class SkySphereShader : RenderProgram
     private readonly int m_topColorLocation;
     private readonly int m_bottomColorLocation;
     private readonly int m_textureHeightLocation;
+    private readonly int m_foregroundTextureLocation;
 
     public SkySphereShader() : base("Sky sphere")
     {
@@ -35,6 +36,7 @@ public class SkySphereShader : RenderProgram
         m_topColorLocation = Uniforms.GetLocation("topColor");
         m_bottomColorLocation = Uniforms.GetLocation("bottomColor");
         m_textureHeightLocation = Uniforms.GetLocation("textureHeight");
+        m_foregroundTextureLocation = Uniforms.GetLocation("isForegroundTexture");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -49,6 +51,7 @@ public class SkySphereShader : RenderProgram
     public void TopColor(Vec4F topColor) => Uniforms.Set(topColor, m_topColorLocation);
     public void BottomColor(Vec4F bottomColor) => Uniforms.Set(bottomColor, m_bottomColorLocation);
     public void TextureHeight(float textureHeight) => Uniforms.Set(textureHeight, m_textureHeightLocation);
+    public void ForegroundTexture(bool set) => Uniforms.Set(set ? 1f : 0f, m_foregroundTextureLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -58,14 +61,19 @@ public class SkySphereShader : RenderProgram
 
         out vec2 uvFrag;
         flat out vec2 scrollOffsetFrag;
+        flat out float paddingHeightFrag;
+        flat out float skyHeightFrag;
 
         uniform mat4 mvp;
         uniform int flipU;
         uniform vec2 scrollOffset;
+        uniform float textureHeight;
 
         void main() {
             uvFrag = uv;
             scrollOffsetFrag = scrollOffset;
+            paddingHeightFrag = (128 / textureHeight) * 0.28;
+            skyHeightFrag = (1 - (paddingHeightFrag * 2)) / 2;
             if (flipU == 1)
                 uvFrag.x = -uvFrag.x;            
             gl_Position = mvp * vec4(pos, 1.0);
@@ -77,6 +85,8 @@ public class SkySphereShader : RenderProgram
 
         in vec2 uvFrag;
         flat in vec2 scrollOffsetFrag;
+        flat in float paddingHeightFrag;
+        flat in float skyHeightFrag;
 
         out vec4 fragColor;
 
@@ -89,27 +99,25 @@ public class SkySphereShader : RenderProgram
 
         uniform vec4 topColor;
         uniform vec4 bottomColor;
-        uniform float textureHeight;
+        uniform float isForegroundTexture;
 
-        float paddingHeight = (128 / textureHeight) * 0.28;
-        float skyHeight = (1 - (paddingHeight * 2)) / 2;
-        float skyStart1 = 1 - paddingHeight - skyHeight;
-        float skyStart2 = 1 - paddingHeight - (skyHeight * 2);
+        float skyStart1 = 1 - paddingHeightFrag - skyHeightFrag;
+        float skyStart2 = 1 - paddingHeightFrag - (skyHeightFrag * 2);
         float skyV = 0;
         vec4 fadeColor = vec4(0, 0, 0, 0);
 
         void main() {
-            if (uvFrag.y > 1 - paddingHeight) {
+            if (uvFrag.y > 1 - paddingHeightFrag) {
                 fragColor = bottomColor;
             }
             else if (uvFrag.y > skyStart1) {
-                skyV = (uvFrag.y - skyStart1) / skyHeight;
+                skyV = (uvFrag.y - skyStart1) / skyHeightFrag;
                 fragColor = texture(boundTexture, vec2(uvFrag.x * scaleU + scrollOffsetFrag.x, skyV + scrollOffsetFrag.y));
                 fadeColor = bottomColor;
                 skyV = 1 - skyV;
             }
             else if (uvFrag.y > skyStart2) {
-                skyV = (uvFrag.y - skyStart2) / skyHeight;
+                skyV = (uvFrag.y - skyStart2) / skyHeightFrag;
                 fragColor = texture(boundTexture, vec2(uvFrag.x * scaleU + scrollOffsetFrag.x, skyV + scrollOffsetFrag.y));
                 fadeColor = topColor;
             }
@@ -118,11 +126,13 @@ public class SkySphereShader : RenderProgram
             }
 
             ${ColorMapFetch}
-            if (skyV != 0) {
+            
+            if (isForegroundTexture == 0 && skyV != 0) {
                 // Fade portion of the sky into the top/bottom color
                 fragColor = vec4(mix(fadeColor.rgb, fragColor.rgb, min(skyV * 4, 1)), 1);
             }
-            fragColor.a = 1;
+
+            fragColor.a = mix(fragColor.a, 1, float(isForegroundTexture == 0));
             ${InvulnerabilityFragColor}
         }
     "

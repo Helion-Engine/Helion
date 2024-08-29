@@ -48,10 +48,16 @@ public class SkySphereRenderer : IDisposable
 
         GL.ActiveTexture(TextureUnit.Texture0);
 
-        var texture = m_texture.GetTexture(out var skyDef);
-        SetUniforms(renderInfo, flipSkyHorizontal, texture, skyDef);
-
+        var texture = m_texture.GetSkyTexture(out var skyDef);
+        SetUniforms(renderInfo, flipSkyHorizontal, texture, skyDef.Sky, false);
         DrawSphere(texture);
+
+        if (skyDef.Foreground != null)
+        {
+            texture = m_texture.GetForegroundTexture(skyDef.Foreground);
+            SetUniforms(renderInfo, flipSkyHorizontal, texture, skyDef.Foreground, true);
+            DrawSphere(texture);
+        }
 
         m_program.Unbind();
     }
@@ -138,25 +144,26 @@ public class SkySphereRenderer : IDisposable
         }
     }
 
-    private void SetUniforms(RenderInfo renderInfo, bool flipSkyHorizontal, GLLegacyTexture texture, SkyTransform skyTransform)
+    private void SetUniforms(RenderInfo renderInfo, bool flipSkyHorizontal, GLLegacyTexture texture, in SkyTransformTexture skyTexture, bool foreground)
     {
         bool invulnerability = false;
         if (renderInfo.ViewerEntity.PlayerObj != null)
             invulnerability = renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap();
 
+        Vec4F black = new(0, 0, 0, 0);
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.ColormapTexture(TextureUnit.Texture2);
-        //m_program.SectorColormapTexture(TextureUnit.Texture3);
         m_program.Mvp(CalculateMvp(renderInfo));
         m_program.ScaleU(m_texture.ScaleU);
         m_program.FlipU(flipSkyHorizontal);
-        m_program.TopColor(m_texture.TopColor);
-        m_program.BottomColor(m_texture.BottomColor);
+        m_program.TopColor(foreground ? black : m_texture.TopColor);
+        m_program.BottomColor(foreground ? black : m_texture.BottomColor);
         m_program.TextureHeight(texture.Height);
         m_program.HasInvulnerability(invulnerability);
         m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
-        m_program.ScrollOffset(new(skyTransform.CurrentScroll.X / texture.Dimension.Width, skyTransform.CurrentScroll.Y / texture.Dimension.Height));
+        m_program.ScrollOffset(new(skyTexture.CurrentScroll.X / texture.Dimension.Width, skyTexture.CurrentScroll.Y / texture.Dimension.Height));
+        m_program.ForegroundTexture(foreground);
     }
 
     private void ReleaseUnmanagedResources()
