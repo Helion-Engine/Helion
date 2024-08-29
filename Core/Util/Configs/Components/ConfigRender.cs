@@ -82,17 +82,6 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Contrast")]
     public readonly ConfigValue<bool> FakeContrast = new(true);
 
-    [ConfigInfo("Force pipeline flush after rendering each frame. May fix a laggy buffered feeling on lower end computers.")]
-    [OptionMenu(OptionSectionType.Render, "Pipeline Flush (for old GPUs)")]
-    public readonly ConfigValue<bool> ForcePipelineFlush = new(false);
-
-    [ConfigInfo("Multisampling amount. A value of 1 is the same as being off.")]
-    public readonly ConfigValue<int> Multisample = new(1, GreaterOrEqual(1));
-
-    [ConfigInfo("Cache all sprites. Prevents stuttering compared to loading them at runtime.", restartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Cache All Sprites")]
-    public readonly ConfigValue<bool> CacheSprites = new(true);
-
     [ConfigInfo("Render sprites over floors/ceilings. Sprites always clipped to walls.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Rendering", spacer: true)]
     public readonly ConfigValue<bool> VanillaRender = new(false);
@@ -121,19 +110,27 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Fuzz Amount")]
     public readonly ConfigValue<double> FuzzAmount = new(1);
 
-    [ConfigInfo("Clip sprites against the floor.")]
-    [OptionMenu(OptionSectionType.Render, "Sprite Floor Clip", spacer: true)]
-    public readonly ConfigValue<bool> SpriteClip = new(true);
-
-    [ConfigInfo("Max percentage of height allowed to clip the floor for corpses.")]
-    [OptionMenu(OptionSectionType.Render, "Clip Max Height Percentage")]
-    public readonly ConfigValue<double> SpriteClipFactorMax = new(0.02, ClampNormalized);
-
-    [ConfigInfo("Minimum sprite height to allow to clip the floor.")]
-    [OptionMenu(OptionSectionType.Render, "Clip Min Height")]
-    public readonly ConfigValue<int> SpriteClipMin = new(16, GreaterOrEqual(0));
-
     [ConfigInfo("Prevent sprites from overlapping and Z-fighting.")]
     [OptionMenu(OptionSectionType.Render, "Sprite Z-fighting Check")]
     public readonly ConfigValue<bool> SpriteZCheck = new(true);
+
+    // Settings below are believed to be less frequently used and thus are not on the menus.
+
+    [ConfigInfo("Cache all sprites. Prevents stuttering compared to loading them at runtime.", restartRequired: true)]
+    public readonly ConfigValue<bool> CacheSprites = new(true);
+
+    [ConfigInfo("Force pipeline flush after rendering each frame. May fix a laggy buffered feeling on lower end computers.")]
+    public readonly ConfigValue<bool> ForcePipelineFlush = new(false);
+
+    [ConfigInfo("Multisampling amount. A value of 1 is the same as being off.")]
+    public readonly ConfigValue<int> Multisample = new(1, GreaterOrEqual(1));
+
+    [ConfigInfo("Clip sprites against the floor.")]
+    public readonly ConfigValue<bool> SpriteClip = new(true);
+
+    [ConfigInfo("Max percentage of height allowed to clip the floor for corpses.")]
+    public readonly ConfigValue<double> SpriteClipFactorMax = new(0.02, ClampNormalized);
+
+    [ConfigInfo("Minimum sprite height to allow to clip the floor.")]
+    public readonly ConfigValue<int> SpriteClipMin = new(16, GreaterOrEqual(0));
 }
