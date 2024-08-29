@@ -7,7 +7,6 @@ using Helion.Render.Common.Shared.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
@@ -88,7 +87,7 @@ public class GeometryRenderer : IDisposable
         m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
         Portals = new(archiveCollection, glTextureManager);
-        m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager, !ShaderVars.PaletteColorMode);
+        m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager);
         m_viewSector = DefaultSector;
         m_archiveCollection = archiveCollection;
         m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);

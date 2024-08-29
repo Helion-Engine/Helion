@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
@@ -33,6 +34,9 @@ public class TextureManager : ITickable
     private readonly Dictionary<int, Entry[]> m_spriteIndexEntries = [];
     // Maps flat index to texture index
     private readonly Dictionary<int, int> m_skyTextureLookup = [];
+    // Texture index to SkyDef
+    private readonly Dictionary<int, SkyTransform> m_skyTransformLookup = [];
+    private readonly List<SkyTransform> m_skyTransforms = [];
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
@@ -174,6 +178,11 @@ public class TextureManager : ITickable
             LoadTextureImage(m_defaultSkyTexture.Index);
 
         return m_defaultSkyTexture;
+    }
+
+    public bool TryGetSkyTransform(int textureIndex, [NotNullWhen(true)] out SkyTransform? skyTransform)
+    {
+        return m_skyTransformLookup.TryGetValue(textureIndex, out skyTransform);
     }
 
     public void LoadTextureImages(HashSet<int> textures)
@@ -404,6 +413,12 @@ public class TextureManager : ITickable
                 anim.Tics = 0;
             }
         }
+
+        for (int i = 0; i < m_skyTransforms.Count; i++)
+        {
+            var transform = m_skyTransforms[i];
+            transform.CurrentScroll += transform.Scroll;
+        }
     }
 
     public void ResetAnimations()
@@ -605,11 +620,24 @@ public class TextureManager : ITickable
 
     private void MapSky(Entry flat, int textureIndex)
     {
-        if (!m_archiveCollection.Definitions.Id24SkyDefinition.FlatMapping.TryGetValue(flat.Path.Name, out var textureName))
+        var skyDefinition = m_archiveCollection.Definitions.Id24SkyDefinition;
+        if (!skyDefinition.FlatMapping.TryGetValue(flat.Path.Name, out var textureName))
             return;
 
         if (!m_textureLookup.TryGetValue(textureName, out var texture))
             return;
+
+        for (int i = 0; i < skyDefinition.Data.Skies.Count; i++)
+        {
+            var sky = skyDefinition.Data.Skies[i];
+            if (!sky.Name.Equals(texture.Name, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var skyTransform = SkyTransform.FromId24SkyDef(texture.Index, sky);
+            m_skyTransforms.Add(skyTransform);
+            m_skyTransformLookup[texture.Index] = skyTransform;
+            break;
+        }
 
         m_skyTextureLookup[textureIndex] = texture.Index;
         LoadTextureImage(texture.Index);

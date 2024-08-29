@@ -1,4 +1,6 @@
-﻿namespace Helion.Resources.Definitions.Id24;
+﻿using Helion.Geometry.Vectors;
+
+namespace Helion.Resources.Definitions.Id24;
 
 public class SkyFire
 {

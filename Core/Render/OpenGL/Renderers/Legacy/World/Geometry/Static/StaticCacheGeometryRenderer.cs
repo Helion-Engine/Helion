@@ -60,7 +60,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
         m_program = program;
-        m_skyRenderer = new(archiveCollection, textureManager, !ShaderVars.PaletteColorMode);
+        m_skyRenderer = new(archiveCollection, textureManager);
     }
 
     private static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)

@@ -5,6 +5,7 @@ using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using OpenTK.Graphics.OpenGL;
 
@@ -23,12 +24,12 @@ public class SkySphereRenderer : IDisposable
     private readonly SkySphereShader m_program;
     private readonly SkySphereTexture m_texture;
 
-    public SkySphereRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle, bool fadeTexture)
+    public SkySphereRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle)
     {
         m_vao = new("Sky sphere");
         m_vbo = new("Sky sphere", HorizontalSpherePoints * VerticalSpherePoints * 6);
         m_program = new();
-        m_texture = new(archiveCollection, textureManager, textureHandle, fadeTexture);
+        m_texture = new(archiveCollection, textureManager, textureHandle);
         m_texture.LoadTextures();
 
         Attributes.BindAndApply(m_vbo, m_vao, m_program.Attributes);
@@ -46,9 +47,11 @@ public class SkySphereRenderer : IDisposable
         m_program.Bind();
 
         GL.ActiveTexture(TextureUnit.Texture0);
-        SetUniforms(renderInfo, flipSkyHorizontal);
 
-        DrawSphere(m_texture.GetTexture());
+        var texture = m_texture.GetTexture(out var skyDef);
+        SetUniforms(renderInfo, flipSkyHorizontal, texture, skyDef);
+
+        DrawSphere(texture);
 
         m_program.Unbind();
     }
@@ -135,7 +138,7 @@ public class SkySphereRenderer : IDisposable
         }
     }
 
-    private void SetUniforms(RenderInfo renderInfo, bool flipSkyHorizontal)
+    private void SetUniforms(RenderInfo renderInfo, bool flipSkyHorizontal, GLLegacyTexture texture, SkyTransform skyTransform)
     {
         bool invulnerability = false;
         if (renderInfo.ViewerEntity.PlayerObj != null)
@@ -147,9 +150,13 @@ public class SkySphereRenderer : IDisposable
         m_program.Mvp(CalculateMvp(renderInfo));
         m_program.ScaleU(m_texture.ScaleU);
         m_program.FlipU(flipSkyHorizontal);
+        m_program.TopColor(m_texture.TopColor);
+        m_program.BottomColor(m_texture.BottomColor);
+        m_program.TextureHeight(texture.Height);
         m_program.HasInvulnerability(invulnerability);
         m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
+        m_program.ScrollOffset(new(skyTransform.CurrentScroll.X / texture.Dimension.Width, skyTransform.CurrentScroll.Y / texture.Dimension.Height));
     }
 
     private void ReleaseUnmanagedResources()
