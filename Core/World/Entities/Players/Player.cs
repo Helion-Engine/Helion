@@ -948,6 +948,7 @@ public class Player : Entity
     private void SetBob()
     {
         m_viewBob = CalculateBob(WorldStatic.World.Config.Hud.ViewBob);
+        // chainsaw is only ready to fire on tick 1 of its 4-tick A_WeaponReady -- this fixes the choppy bobbing
         if (Weapon != null && (Weapon.ReadyToFire || Weapon.FrameState.Frame.ActionFunction == EntityActionFunctions.A_WeaponReady))
         {
             const double WeaponSwayMultiplier = Math.PI / 32;
