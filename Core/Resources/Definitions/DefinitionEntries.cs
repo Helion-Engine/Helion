@@ -24,6 +24,7 @@ using static Helion.Util.Assertion.Assert;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Definitions.MusInfo;
 using Helion.Resources.Definitions.Id24;
+using Helion.Resources.IWad;
 
 namespace Helion.Resources.Definitions;
 
@@ -34,6 +35,11 @@ namespace Helion.Resources.Definitions;
 public class DefinitionEntries
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    private static readonly Dictionary<IWadBaseType, HashSet<string>> IgnorePatchOffsets = new()
+    {
+        {IWadBaseType.Doom1, new HashSet<string>(["SKY1"], StringComparer.OrdinalIgnoreCase)}
+    };
 
     public readonly AnimatedDefinitions Animdefs = new();
     public readonly BoomAnimatedDefinition BoomAnimated = new();
@@ -246,7 +252,7 @@ public class DefinitionEntries
         }
 
         if (m_pnamesTextureXCollection.Valid)
-            CreateImageDefinitionsFrom(m_pnamesTextureXCollection);
+            CreateImageDefinitionsFrom(archive, m_pnamesTextureXCollection);
 
         // Vanilla IWADS will have this set. If a PWAD is loaded this will get clear it.
         ConfigCompatibility.VanillaShortestTexture.Set(archive.IWadInfo.VanillaCompatibility);
@@ -292,9 +298,15 @@ public class DefinitionEntries
         }
     }
 
-    private void CreateImageDefinitionsFrom(PnamesTextureXCollection collection)
+    private void CreateImageDefinitionsFrom(Archive archive, PnamesTextureXCollection collection)
     {
         Precondition(!collection.Pnames.Empty(), "Expecting pnames to exist when reading TextureX definitions");
+
+        HashSet<string> ignoreNames;
+        if (IgnorePatchOffsets.TryGetValue(archive.IWadInfo.IWadBaseType, out var getIgnoreNames))
+            ignoreNames = getIgnoreNames;
+        else
+            ignoreNames = [];
 
         // Note: We don't handle multiple pnames. I am not sure how they're
         // handled, it might be 'one pnames to textureX' when more than one
@@ -303,7 +315,7 @@ public class DefinitionEntries
         var processed = new HashSet<string>();
         foreach (var textureX in collection.TextureX)
         {
-            var textureDefinitions = textureX.ToTextureDefinitions(pnames);
+            var textureDefinitions = textureX.ToTextureDefinitions(pnames, ignoreNames);
             foreach (var def in textureDefinitions)
             {
                 // Ignore duplicated textures from same archive
