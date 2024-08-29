@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
@@ -12,6 +11,23 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
+// The sky texture looks like this (p = padding):
+//
+//      0  o----------o
+//         |Fade color|
+//     1/p o..........o  <- Blending
+//         |          |
+//         | Texture  |
+//     1/2 o----------o
+//         |          |
+//         | Texture  |
+// 1 - 1/p o..........o  <- Blending
+//         |Fade color|
+//      1  o----------o
+//
+// This is why we multiply by four. Note that there is no blending
+// at the horizon (middle line).
+//
 public class SkySphereTexture : IDisposable
 {
     record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIndex);
@@ -19,8 +35,8 @@ public class SkySphereTexture : IDisposable
     private const int PixelRowsToEvaluate = 24;
 
     public float ScaleU = 1.0f;
-    public Vec3F TopColor;
-    public Vec3F BottomColor;
+    public Vec4F TopColor;
+    public Vec4F BottomColor;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly int m_textureHandleIndex;
@@ -140,99 +156,6 @@ public class SkySphereTexture : IDisposable
         return Color.FromInts(255, r, g, b);
     }
 
-    // The sky texture looks like this (p = padding):
-    //
-    //      0  o----------o
-    //         |Fade color|
-    //     1/p o..........o  <- Blending
-    //         |          |
-    //         | Texture  |
-    //     1/2 o----------o
-    //         |          |
-    //         | Texture  |
-    // 1 - 1/p o..........o  <- Blending
-    //         |Fade color|
-    //      1  o----------o
-    //
-    // This is why we multiply by four. Note that there is no blending
-    // at the horizon (middle line).
-    //
-    //private Image CreateFadedSky(int rowsToEvaluate, Color bottomFadeColor, Color topFadeColor, Image skyImage, SkyDef skyDef)
-    //{
-    //    float scale = 128 / (float)skyImage.Height * 2.3f;
-    //    int padding = (int)(skyImage.Height * scale);
-    //    Image fadedSky = new(skyImage.Width, skyImage.Height * 2 + padding, ImageType.PaletteWithArgb);
-    //    int middleY = fadedSky.Height / 2;
-
-    //    // Fill the top and bottom halves with the fade colors, so we can draw
-    //    // everything else on top of it later on.
-    //    fadedSky.FillRows(topFadeColor, 0, middleY);
-    //    fadedSky.FillRows(bottomFadeColor, middleY, fadedSky.Height);
-
-    //    if (ShaderVars.PaletteColorMode)
-    //    {
-    //        fadedSky.FillRows(m_archiveCollection.Colormap.GetNearestColorIndex(topFadeColor), 0, middleY);
-    //        fadedSky.FillRows(m_archiveCollection.Colormap.GetNearestColorIndex(bottomFadeColor), middleY, fadedSky.Height);
-    //    }
-
-    //    if (skyDef.ScrollY != 0)
-    //    {
-    //        skyImage.DrawOnTopOf(fadedSky, (0, middleY - skyImage.Height * 3));
-    //        skyImage.DrawOnTopOf(fadedSky, (0, middleY - skyImage.Height * 2));
-    //        skyImage.DrawOnTopOf(fadedSky, (0, middleY + skyImage.Height));
-    //    }
-
-    //    // Now draw the images on top of them.
-    //    skyImage.DrawOnTopOf(fadedSky, (0, middleY));
-    //    skyImage.DrawOnTopOf(fadedSky, (0, middleY - skyImage.Height));
-
-        
-    //    // Now blend the top of the image into the background.
-    //    if (rowsToEvaluate > 0)
-    //    {
-    //        // Start from the top of the top piece and fade downwards, from the
-    //        // background color into the image.
-    //        Vec4F topColorVec = topFadeColor.Normalized;
-    //        int startY = fadedSky.Height - (skyImage.Height * 2);
-    //        for (int y = 0; y < rowsToEvaluate; y++)
-    //        {
-    //            int targetY = padding / 2 + y;
-    //            if (targetY < 0 || targetY >= fadedSky.Height)
-    //                break;
-    //            float t = (float)y / rowsToEvaluate;
-    //            FillRow(fadedSky, topColorVec, targetY, t);
-    //        }
-            
-    //        // Do the same but start at the top of the bottom transition zone and
-    //        // walk downwards to blend.
-    //        Vec4F bottomColorVec = bottomFadeColor.Normalized;
-    //        startY = (middleY + skyImage.Height - 1);
-    //        for (int y = 0; y < rowsToEvaluate; y++)
-    //        {
-    //            int targetY = startY - y;
-    //            if (targetY < 0 || targetY >= fadedSky.Height)
-    //                break;
-    //            float t = (float)y / rowsToEvaluate;
-    //            FillRow(fadedSky, bottomColorVec, targetY, t);
-    //        }
-    //    }
-
-    //    return fadedSky;
-    //}
-
-    private void FillRow(Image fadedSky, Vec4F normalized, int targetY, float t)
-    {
-        for (int x = 0; x < fadedSky.Width; x++)
-        {
-            Color originalColor = fadedSky.GetPixel(x, targetY);
-            Color newArgb = Color.Lerp(normalized, originalColor, t);
-            if (ShaderVars.PaletteColorMode)
-                fadedSky.SetPixel(x, targetY, newArgb, m_archiveCollection.Colormap);
-            else
-                fadedSky.SetPixel(x, targetY, newArgb);
-        }
-    }
-
     private void InitializeAnimatedTextures()
     {
         var animations = m_archiveCollection.TextureManager.GetAnimations();
@@ -284,8 +207,8 @@ public class SkySphereTexture : IDisposable
 
         int bottomStartY = skyImage.Height - rowsToEvaluate;
         int bottomExclusiveEndY = skyImage.Height;
-        TopColor = CalculateAverageRowColor(0, rowsToEvaluate, skyImage).Normalized3;
-        BottomColor = CalculateAverageRowColor(bottomStartY, bottomExclusiveEndY, skyImage).Normalized3;
+        TopColor = CalculateAverageRowColor(0, rowsToEvaluate, skyImage).Normalized3.To4D(1);
+        BottomColor = CalculateAverageRowColor(bottomStartY, bottomExclusiveEndY, skyImage).Normalized3.To4D(1);
     }
 
     private GLLegacyTexture CreateTexture(Image fadedSkyImage, string debugName = "")
