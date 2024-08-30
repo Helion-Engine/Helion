@@ -480,8 +480,8 @@ public static class EntityActionFunctions
             for (int j = 0; j < 15; j++)
                 damage += (WorldStatic.Random.NextByte() & 7) + 1;
 
-            WorldStatic.EntityManager.Create("BFGExtra", hitEntity.CenterPoint);
             WorldStatic.World.DamageEntity(hitEntity, entity, damage, DamageType.Normal, Thrust.Horizontal);
+            WorldStatic.EntityManager.Create("BFGExtra", hitEntity.CenterPoint);
         }
     }
 
