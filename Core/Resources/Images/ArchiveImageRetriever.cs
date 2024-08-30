@@ -72,7 +72,7 @@ public class ArchiveImageRetriever : IImageRetriever
     /// This creates a new list.
     /// </summary>
     /// <returns>All image names, optionally filtered to a specific namespace</returns>
-    public IEnumerable<string> GetAllNames(ResourceNamespace specificNamespace)
+    public IEnumerable<string> GetNames(ResourceNamespace specificNamespace)
     {
         return m_compiledImages.GetNames(specificNamespace)
             .Concat(m_archiveCollection.Entries.GetNames(specificNamespace))

@@ -32,5 +32,5 @@ public interface IImageRetriever
     /// </summary>
     /// <param name="specificNamespace">The desired namespace</param>
     /// <returns>A list of image names</returns>
-    IEnumerable<string> GetAllNames(ResourceNamespace specificNamespace);
+    IEnumerable<string> GetNames(ResourceNamespace specificNamespace);
 }

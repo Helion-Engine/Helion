@@ -96,7 +96,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
 
     public IEnumerable<string> GetNames(ResourceNamespace specificNamespace)
     {
-        return ArchiveCollection.ImageRetriever.GetAllNames(specificNamespace);
+        return ArchiveCollection.ImageRetriever.GetNames(specificNamespace);
     }
 
     /// <summary>

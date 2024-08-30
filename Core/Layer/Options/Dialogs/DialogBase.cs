@@ -157,7 +157,6 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         Align windowAlign = Align.TopLeft,
         Align anchorAlign = Align.TopLeft)
     {
-        //hud.Image(imageName, )
         hud.Image(imageName, new HudBox((0, 0), desiredSize), window: windowAlign, anchor: anchorAlign);
         hud.AddOffset((0, desiredSize.Y + m_padding));
     }
