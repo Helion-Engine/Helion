@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Helion.Resources.Archives.Directories;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Configs;
@@ -49,20 +48,8 @@ public class FilesystemArchiveLocator : IArchiveLocator
     public FilesystemArchiveLocator(IConfig config)
     {
         List<string> paths = config.Files.Directories.Value;
-
-        // https://doomwiki.org/wiki/Environment_variables
-        string? envDOOMWADDIR = Environment.GetEnvironmentVariable("DOOMWADDIR");
-        if (envDOOMWADDIR != null)
-            paths.Add(envDOOMWADDIR);
-        string? envDOOMWADPATH = Environment.GetEnvironmentVariable("DOOMWADPATH");
-        if (envDOOMWADPATH != null)
-        {
-            char separator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ';' : ':';
-            foreach (string path in envDOOMWADPATH.Split(separator))
-                paths.Add(path);
-        }
-
-        foreach (string path in paths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct())
+        var envPaths = WadPaths.GetFromEnvVars();
+        foreach (string path in paths.Concat(envPaths).Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct())
             m_paths.Add(path);
     }
 
