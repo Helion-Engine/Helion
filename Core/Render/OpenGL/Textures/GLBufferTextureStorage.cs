@@ -53,9 +53,6 @@ public class GLBufferTextureStorage
 
     public void Map(Action<IntPtr> action)
     {
-        if (!m_bufferTexture.PersistentBufferStorage)
-            return;
-
         m_bufferTexture.Map(action);
     }
 
