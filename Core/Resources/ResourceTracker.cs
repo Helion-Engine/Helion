@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Helion.Util.Container;
 
 namespace Helion.Resources;
@@ -105,6 +106,16 @@ public class ResourceTracker<T> where T : class
 
         m_tableByName.TryGetValue(name, out var value);
         return value;
+    }
+
+    /// <summary>
+    /// Gets a list of resources in the specified namespace.
+    /// This creates a new list.
+    /// </summary>
+    /// <returns>A list of resource names</returns>
+    public IEnumerable<string> GetNames(ResourceNamespace resourceNamespace)
+    {
+        return m_table.GetSecondKeys(resourceNamespace);
     }
 
     /// <summary>

@@ -11,7 +11,7 @@ using Helion.Window;
 using Helion.Window.Input;
 using System;
 
-namespace Helion.Layer.Options;
+namespace Helion.Layer.Options.Dialogs;
 
 internal class ColorDialog : DialogBase
 {

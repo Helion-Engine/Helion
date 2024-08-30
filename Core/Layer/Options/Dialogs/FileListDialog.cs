@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Helion.Layer.Options;
+namespace Helion.Layer.Options.Dialogs;
 
 internal class FileListDialog : ListDialog
 {
@@ -77,8 +77,10 @@ internal class FileListDialog : ListDialog
         m_listsNeedUpdate = true;
     }
 
-    protected override void ModifyListElements(List<string> valuesList, IHudRenderContext hud, bool sizeChanged)
+    protected override void ModifyListElements(List<string> valuesList, IHudRenderContext hud, bool sizeChanged, out bool didChange)
     {
+        didChange = false;
+
         if (m_listsNeedUpdate || sizeChanged)
         {
             m_header = TruncateTextToDialogWidth($"Directory: {m_path}", hud);
@@ -86,6 +88,7 @@ internal class FileListDialog : ListDialog
 
             m_valuesListRaw.Clear();
             valuesList.Clear();
+            didChange = true;
 
             DirectoryInfo directory = new DirectoryInfo(m_path.Length > 0 ? m_path : AppContext.BaseDirectory);
 

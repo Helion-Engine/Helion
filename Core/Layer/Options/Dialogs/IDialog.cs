@@ -2,7 +2,7 @@
 using Helion.Render.Common.Renderers;
 using System;
 
-namespace Helion.Layer.Options;
+namespace Helion.Layer.Options.Dialogs;
 
 public record struct DialogCloseArgs(bool Accepted);
 

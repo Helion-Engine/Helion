@@ -6,6 +6,7 @@ using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,11 +56,11 @@ public class MusicPlayer : IMusicPlayer
     public bool ChangesMasterVolume() => m_musicPlayer is NAudioMusicPlayer;
 
     private FluidSynthMusicPlayer CreateFluidSynthPlayer() =>
-        new(m_configAudio.SoundFontFile);
+        new(new FileInfo(m_configAudio.SoundFontFile));
 
     public void ChangeSoundFont()
     {
-        (m_musicPlayer as FluidSynthMusicPlayer)?.ChangeSoundFont(m_configAudio.SoundFontFile);
+        (m_musicPlayer as FluidSynthMusicPlayer)?.ChangeSoundFont(new FileInfo(m_configAudio.SoundFontFile));
     }
 
     private void PlayQueueTask()

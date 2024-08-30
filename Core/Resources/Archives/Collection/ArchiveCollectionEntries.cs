@@ -95,6 +95,11 @@ public class ArchiveCollectionEntries
         return entry;
     }
 
+    public IEnumerable<string> GetNames(ResourceNamespace specificNamespace)
+    {
+        return m_namespaceEntries.GetNames(specificNamespace);
+    }
+
     // WARNING: Should only be used sparingly on startup. Never at runtime. This list is allocated each time.
     public List<Entry> GetAllByNamespace(ResourceNamespace resourceNamespace)
     {

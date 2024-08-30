@@ -2,6 +2,7 @@
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Util;
@@ -14,7 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Helion.Layer.Options;
+namespace Helion.Layer.Options.Dialogs;
 
 internal abstract class DialogBase(ConfigHud config, string? acceptButton, string? cancelButton) : IDialog
 {
@@ -97,7 +98,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         m_dialogBox = new(m_dialogOffset, (m_dialogOffset.X + m_box.Width, m_dialogOffset.Y + m_box.Height));
 
         hud.FillBox((0, 0, size.Width, size.Height), Color.Gray, window: Align.Center, anchor: Align.Center);
-        hud.FillBox((0, 0, size.Width - (border * 2), size.Height - (border * 2)), Color.Black, window: Align.Center, anchor: Align.Center);
+        hud.FillBox((0, 0, size.Width - border * 2, size.Height - border * 2), Color.Black, window: Align.Center, anchor: Align.Center);
 
         if (m_acceptButton != null && m_cancelButton != null)
         {
@@ -119,7 +120,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         // When dialog contents are rendered, vertical offset is at a point suitable for rendering new elements.
         // Horizontal offset is set to the left side of the screen in case we need to draw something centered on the screen,
         // as in the color picker dialog.
-        this.RenderDialogContents(ctx, hud, !m_box.Equals(lastBox));
+        RenderDialogContents(ctx, hud, !m_box.Equals(lastBox));
         hud.PopOffset();
     }
 
@@ -147,6 +148,17 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
 
         hud.Text(message, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width);
         hud.AddOffset((0, m_rowHeight + m_padding));
+    }
+
+    protected void RenderDialogImage(
+        IHudRenderContext hud,
+        string imageName,
+        Vec2I desiredSize,
+        Align windowAlign = Align.TopLeft,
+        Align anchorAlign = Align.TopLeft)
+    {
+        hud.Image(imageName, new HudBox((0, 0), desiredSize), window: windowAlign, anchor: anchorAlign);
+        hud.AddOffset((0, desiredSize.Y + m_padding));
     }
 
     protected string TruncateTextToDialogWidth(string text, IHudRenderContext hud)
