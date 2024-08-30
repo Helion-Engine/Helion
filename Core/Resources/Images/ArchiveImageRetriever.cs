@@ -192,11 +192,6 @@ public class ArchiveImageRetriever : IImageRetriever
                 if (PaletteReaders.ReadColumn(data, entry.Namespace, out var paletteImage))
                     image = Image.PaletteToArgb(paletteImage, dataEntries.Palette, dataEntries.Colormap.FullBright, storeIndices, clearBlackPixels);
             }
-
-            if (clearBlackPixels && image != null)
-            {
-                image.SavePng(@"C:\Users\stlau\Desktop\test\\test.png");
-            }
         }
 
         if (image == null)

@@ -155,15 +155,15 @@ public class SkySphereRenderer : IDisposable
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.ColormapTexture(TextureUnit.Texture2);
         m_program.Mvp(CalculateMvp(renderInfo));
-        m_program.Scale(new Vec2F(m_texture.ScaleU * skyTransform.Scale.X, skyTransform.Scale.Y));
+        m_program.Scale(new Vec2F(m_texture.ScaleU * skyTransform.Scale.X, 0));
         m_program.FlipU(flipSkyHorizontal);
         m_program.TopColor(foreground ? black : m_texture.TopColor);
         m_program.BottomColor(foreground ? black : m_texture.BottomColor);
-        m_program.TextureHeight(texture.Height * skyTransform.Scale.Y);
         m_program.HasInvulnerability(invulnerability);
         m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
         m_program.ScrollOffset(new(offset.X / texture.Dimension.Width, offset.Y / texture.Dimension.Height));
+        m_program.SkyHeight(Math.Min(texture.Dimension.Height * skyTransform.Scale.Y / 128f * 0.24f, 1));
         m_program.ForegroundTexture(foreground);
     }
 

@@ -19,8 +19,8 @@ public class SkySphereShader : RenderProgram
     private readonly int m_scrollOffsetLocation;
     private readonly int m_topColorLocation;
     private readonly int m_bottomColorLocation;
-    private readonly int m_textureHeightLocation;
     private readonly int m_foregroundTextureLocation;
+    private readonly int m_skyHeightLocation;
 
     public SkySphereShader() : base("Sky sphere")
     {
@@ -35,8 +35,8 @@ public class SkySphereShader : RenderProgram
         m_scrollOffsetLocation = Uniforms.GetLocation("scrollOffset");
         m_topColorLocation = Uniforms.GetLocation("topColor");
         m_bottomColorLocation = Uniforms.GetLocation("bottomColor");
-        m_textureHeightLocation = Uniforms.GetLocation("textureHeight");
         m_foregroundTextureLocation = Uniforms.GetLocation("isForegroundTexture");
+        m_skyHeightLocation = Uniforms.GetLocation("skyHeight");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -50,8 +50,8 @@ public class SkySphereShader : RenderProgram
     public void ScrollOffset(Vec2F offset) => Uniforms.Set(offset, m_scrollOffsetLocation);
     public void TopColor(Vec4F topColor) => Uniforms.Set(topColor, m_topColorLocation);
     public void BottomColor(Vec4F bottomColor) => Uniforms.Set(bottomColor, m_bottomColorLocation);
-    public void TextureHeight(float textureHeight) => Uniforms.Set(textureHeight, m_textureHeightLocation);
     public void ForegroundTexture(bool set) => Uniforms.Set(set ? 1f : 0f, m_foregroundTextureLocation);
+    public void SkyHeight(float height) => Uniforms.Set(height, m_skyHeightLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -61,19 +61,14 @@ public class SkySphereShader : RenderProgram
 
         out vec2 uvFrag;
         flat out vec2 scrollOffsetFrag;
-        flat out float paddingHeightFrag;
-        flat out float skyHeightFrag;
 
         uniform mat4 mvp;
         uniform int flipU;
         uniform vec2 scrollOffset;
-        uniform float textureHeight;
 
         void main() {
             uvFrag = uv;
             scrollOffsetFrag = scrollOffset;
-            paddingHeightFrag = (128 / textureHeight) * 0.28;
-            skyHeightFrag = (1 - (paddingHeightFrag * 2)) / 2;
             if (flipU == 1)
                 uvFrag.x = -uvFrag.x;            
             gl_Position = mvp * vec4(pos, 1.0);
@@ -85,8 +80,6 @@ public class SkySphereShader : RenderProgram
 
         in vec2 uvFrag;
         flat in vec2 scrollOffsetFrag;
-        flat in float paddingHeightFrag;
-        flat in float skyHeightFrag;
 
         out vec4 fragColor;
 
@@ -96,18 +89,22 @@ public class SkySphereShader : RenderProgram
         uniform int hasInvulnerability;
         uniform int paletteIndex;
         uniform int colormapIndex;
+        uniform float skyHeight;
 
         uniform vec4 topColor;
         uniform vec4 bottomColor;
         uniform float isForegroundTexture;
+        uniform float foregroundBottomOffset;
 
-        float skyStart1 = 1 - paddingHeightFrag - skyHeightFrag;
-        float skyStart2 = 1 - paddingHeightFrag - (skyHeightFrag * 2);
+        float paddingHeight = (1 - (skyHeight * 2)) / 2;
+
+        float skyStart1 = 1 - paddingHeight - skyHeight;
+        float skyStart2 = 1 - paddingHeight - (skyHeight * 2);
         float skyV = 0;
         vec4 fadeColor = vec4(0, 0, 0, 0);
 
         float getSkyV(float skyStart) {
-            return (uvFrag.y - skyStart) / skyHeightFrag;
+            return (uvFrag.y - skyStart) / skyHeight;
         }
 
         vec2 getScaledWithOffset(float u, float skyV) {
@@ -116,7 +113,7 @@ public class SkySphereShader : RenderProgram
 
         void main() {
             // Bottom color portion
-            if (uvFrag.y > 1 - paddingHeightFrag) {
+            if (uvFrag.y > 1 - paddingHeight) {
                 fragColor = bottomColor;
             }
             // Bottom sky portion
