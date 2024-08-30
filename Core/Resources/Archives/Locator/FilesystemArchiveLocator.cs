@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Helion.Resources.Archives.Directories;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Configs;
@@ -49,7 +48,7 @@ public class FilesystemArchiveLocator : IArchiveLocator
     public FilesystemArchiveLocator(IConfig config)
     {
         List<string> paths = config.Files.Directories.Value;
-        var envPaths = GetWadDirsFromEnvVars();
+        var envPaths = WadPaths.GetFromEnvVars();
         foreach (string path in paths.Concat(envPaths).Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct())
             m_paths.Add(path);
     }
@@ -123,24 +122,5 @@ public class FilesystemArchiveLocator : IArchiveLocator
     private static string EnsureEndsWithDirectorySeparator(string path)
     {
         return path.EndsWith(Path.DirectorySeparatorChar) ? path : path + Path.DirectorySeparatorChar;
-    }
-
-    /// <remarks>
-    /// https://doomwiki.org/wiki/Environment_variables
-    /// </remarks>
-    public static List<string> GetWadDirsFromEnvVars()
-    {
-        List<string> envPaths = [];
-        string? envDOOMWADDIR = Environment.GetEnvironmentVariable("DOOMWADDIR");
-        if (envDOOMWADDIR != null)
-            envPaths.Add(envDOOMWADDIR);
-        string? envDOOMWADPATH = Environment.GetEnvironmentVariable("DOOMWADPATH");
-        if (envDOOMWADPATH != null)
-        {
-            char separator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ';' : ':';
-            foreach (string path in envDOOMWADPATH.Split(separator))
-                envPaths.Add(path);
-        }
-        return envPaths;
     }
 }
