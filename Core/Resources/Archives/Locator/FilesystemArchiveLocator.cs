@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Helion.Resources.Archives.Directories;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using NLog;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Helion.Resources.Archives.Locator;
 
@@ -28,7 +28,7 @@ public class FilesystemArchiveLocator : IArchiveLocator
     /// we assume priority is meant to be given to the beginning of what is
     /// provided.
     /// </remarks>
-    private readonly IList<string> m_paths = new List<string> { "" };
+    private readonly List<string> m_paths = new List<string> { "" };
     private readonly IndexGenerator m_indexGenerator = new();
 
     /// <summary>
@@ -49,8 +49,7 @@ public class FilesystemArchiveLocator : IArchiveLocator
     {
         List<string> paths = config.Files.Directories.Value;
         var envPaths = WadPaths.GetFromEnvVars();
-        foreach (string path in paths.Concat(envPaths).Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct())
-            m_paths.Add(path);
+        m_paths.AddRange(paths.Concat(envPaths).Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct());
     }
 
     public Archive? Locate(string uri)

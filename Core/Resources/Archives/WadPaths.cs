@@ -1,9 +1,9 @@
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.Win32;
 
 namespace Helion.Resources.Archives;
 
@@ -13,7 +13,7 @@ namespace Helion.Resources.Archives;
 public static class WadPaths
 {
     private static readonly string[] SteamDoomDirs = [
-        "steamapps/common/Ultimate Doom/base",
+        "steamapps/common/Ultimate Doom/rerelease",
         "steamapps/common/Doom 2/base",
         "steamapps/common/Doom 2/masterbase",
         "steamapps/common/Doom 2/finaldoombase",
@@ -35,15 +35,16 @@ public static class WadPaths
     public static List<string> GetFromEnvVars()
     {
         List<string> paths = [];
+
         string? envDOOMWADDIR = Environment.GetEnvironmentVariable("DOOMWADDIR");
         if (!string.IsNullOrEmpty(envDOOMWADDIR))
             paths.Add(envDOOMWADDIR);
+
         string? envDOOMWADPATH = Environment.GetEnvironmentVariable("DOOMWADPATH");
         if (envDOOMWADPATH != null)
         {
             char separator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ';' : ':';
-            foreach (string path in envDOOMWADPATH.Split(separator).Where(x => !string.IsNullOrEmpty(x)))
-                paths.Add(path);
+            paths.AddRange(envDOOMWADPATH.Split(separator, StringSplitOptions.RemoveEmptyEntries));
         }
         return paths;
     }
@@ -55,8 +56,7 @@ public static class WadPaths
         var steamPath = GetSteamPath();
         if (Directory.Exists(steamPath))
         {
-            foreach (var dir in SteamDoomDirs)
-                paths.Add(Path.Combine(steamPath, dir));
+            paths.AddRange(SteamDoomDirs.Select(dir => Path.Combine(steamPath, dir)));
         }
 
         if (OperatingSystem.IsLinux())
