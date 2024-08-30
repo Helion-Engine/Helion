@@ -113,7 +113,7 @@ public partial class Client
         }
     }
 
-    private void SoundFont_OnChanged(object? sender, FileInfo e)
+    private void SoundFont_OnChanged(object? sender, string _)
     {
         (m_audioSystem.Music as MusicPlayer)?.ChangeSoundFont();
     }

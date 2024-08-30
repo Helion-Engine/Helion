@@ -184,6 +184,24 @@ public class ListedConfigSection : IOptionSection
                     m_dialog = new ColorDialog(m_config.Hud, configData.CfgValue, configData.Attr, color);
                     m_dialog.OnClose += Dialog_OnClose;
                 }
+                else if (configData.Attr.DialogType != DialogType.Default)
+                {
+                    switch (configData.Attr.DialogType)
+                    {
+                        case DialogType.TexturePicker:
+                            m_dialog = new TexturePickerDialog(m_config.Hud, configData.CfgValue, configData.Attr);
+                            break;
+                        case DialogType.SoundFontPicker:
+                            m_dialog = new FileListDialog(m_config.Hud, configData.CfgValue, configData.Attr, ".SF2,.SF3");
+                            break;
+                        default:
+                            throw new NotImplementedException($"Unimplemented dialog type: {configData.Attr.DialogType}");
+                    }
+
+                    lockOptions |= LockOptions.AllowMouse;
+                    m_dialog.OnClose += Dialog_OnClose;
+                }
+
 
                 if (configData.CfgValue.ObjectValue is FileInfo)
                 {
@@ -233,6 +251,11 @@ public class ListedConfigSection : IOptionSection
                     m_rowEditText.Clear();
                     m_rowEditText.Append(fileDialog.SelectedFile.ToString());
                 }
+            }
+            if (sender is TexturePickerDialog textureDialog)
+            {
+                m_rowEditText.Clear();
+                m_rowEditText.Append(textureDialog.SelectedTexture);
             }
             SubmitEditRow();
         }
@@ -534,7 +557,7 @@ public class ListedConfigSection : IOptionSection
 
         hud.Text("Press R to reset the selected setting to its default", Font, fontSize, (0, y), out textDimension,
             both: Align.TopMiddle, color: Color.Firebrick);
-        y += textDimension.Height  + m_config.Hud.GetScaled(8);
+        y += textDimension.Height + m_config.Hud.GetScaled(8);
 
         hud.Text(OptionType.ToString(), Font, m_config.Hud.GetLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
         y += headerArea.Height + m_config.Hud.GetScaled(8);

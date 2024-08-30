@@ -39,6 +39,6 @@ public class ConfigAudio
     public readonly ConfigValue<string> Device = new(IAudioSystem.DefaultAudioDevice);
 
     [ConfigInfo("SoundFont file to use for MIDI/MUS music playback.")]
-    [OptionMenu(OptionSectionType.Audio, "SoundFont File")]
-    public readonly ConfigValue<FileInfo> SoundFontFile = new(new($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2"));
+    [OptionMenu(OptionSectionType.Audio, "SoundFont File", dialogType: DialogType.SoundFontPicker)]
+    public readonly ConfigValue<string> SoundFontFile = new($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");
 }

@@ -147,7 +147,7 @@ public class ConfigHud
     public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal, OnlyValidEnums<StatusBarSizeType>());
 
     [ConfigInfo("Background texture for status bar when it doesn't fill the screen.")]
-    [OptionMenu(OptionSectionType.Hud, "Status Bar Texture")]
+    [OptionMenu(OptionSectionType.Hud, "Status Bar Texture", dialogType: DialogType.TexturePicker)]
     public readonly ConfigValue<string> BackgroundTexture = new("W94_1");
 
     [ConfigInfo("Render average frames per second in corner of display.")]
