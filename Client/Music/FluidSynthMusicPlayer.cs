@@ -79,9 +79,10 @@ public class FluidSynthMusicPlayer : IMusicPlayer
             m_player = null;
             return true;
         }
-        catch
+        catch (Exception ex)
         {
             Log.Warn("Error starting FluidSynth music playback.");
+            Log.Info(ex.ToString());
         }
 
         return false;
@@ -104,9 +105,10 @@ public class FluidSynthMusicPlayer : IMusicPlayer
             m_soundFontCounter++;
             m_soundFontLoaded = true;
         }
-        catch
+        catch (Exception ex)
         {
             Log.Warn($"Could not load SoundFont {soundFontPath}.");
+            Log.Info(ex.ToString());
         }
     }
 
@@ -131,8 +133,16 @@ public class FluidSynthMusicPlayer : IMusicPlayer
             return;
 
         Stop();
-        m_settings.Dispose();
-        m_synth.Dispose();
+        try
+        {
+            m_settings.Dispose();
+            m_synth.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Log.Warn("Error unloading FluidSynth music player");
+            Log.Info(ex.ToString());
+        }
         m_disposed = true;
     }
 }
