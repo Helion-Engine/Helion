@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Helion.Layer.Options;
+namespace Helion.Layer.Options.Dialogs;
 
 internal class FileListDialog : ListDialog
 {

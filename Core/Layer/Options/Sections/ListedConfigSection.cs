@@ -3,6 +3,7 @@ using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Layer.Options.Dialogs;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Util;

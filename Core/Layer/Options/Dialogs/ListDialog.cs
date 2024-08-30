@@ -11,7 +11,7 @@ using Helion.Window.Input;
 using System;
 using System.Collections.Generic;
 
-namespace Helion.Layer.Options;
+namespace Helion.Layer.Options.Dialogs;
 internal abstract class ListDialog : DialogBase
 {
     private const string ScrollIndicator = "|";

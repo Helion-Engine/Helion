@@ -14,7 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Helion.Layer.Options;
+namespace Helion.Layer.Options.Dialogs;
 
 internal abstract class DialogBase(ConfigHud config, string? acceptButton, string? cancelButton) : IDialog
 {
@@ -97,7 +97,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         m_dialogBox = new(m_dialogOffset, (m_dialogOffset.X + m_box.Width, m_dialogOffset.Y + m_box.Height));
 
         hud.FillBox((0, 0, size.Width, size.Height), Color.Gray, window: Align.Center, anchor: Align.Center);
-        hud.FillBox((0, 0, size.Width - (border * 2), size.Height - (border * 2)), Color.Black, window: Align.Center, anchor: Align.Center);
+        hud.FillBox((0, 0, size.Width - border * 2, size.Height - border * 2), Color.Black, window: Align.Center, anchor: Align.Center);
 
         if (m_acceptButton != null && m_cancelButton != null)
         {
@@ -119,7 +119,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         // When dialog contents are rendered, vertical offset is at a point suitable for rendering new elements.
         // Horizontal offset is set to the left side of the screen in case we need to draw something centered on the screen,
         // as in the color picker dialog.
-        this.RenderDialogContents(ctx, hud, !m_box.Equals(lastBox));
+        RenderDialogContents(ctx, hud, !m_box.Equals(lastBox));
         hud.PopOffset();
     }
 
