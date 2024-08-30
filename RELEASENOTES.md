@@ -10,6 +10,7 @@
   - Fixed two-sided middle scrolling to offset entire texture by the Y value when rendering to match original doom behavior
   - Fixed visual scroll offsets not being restored from a save for walls and flats
   - Fixed instant sector floors not raising when two monsters are overlapping
+  - Fixed A_BfgSpray to be created after damage so they are rendered at corpse height if a monster is killed.
 
 ## Features:
   - Initial id24 specification support
