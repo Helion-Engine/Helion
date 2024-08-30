@@ -150,11 +150,12 @@ public class SkySphereRenderer : IDisposable
         if (renderInfo.ViewerEntity.PlayerObj != null)
             invulnerability = renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap();
 
+        var offset = (skyTexture.Offset / skyTexture.Scale) + skyTexture.CurrentScroll;
         Vec4F black = new(0, 0, 0, 0);
         m_program.BoundTexture(TextureUnit.Texture0);
         m_program.ColormapTexture(TextureUnit.Texture2);
         m_program.Mvp(CalculateMvp(renderInfo));
-        m_program.ScaleU(m_texture.ScaleU);
+        m_program.Scale(new Vec2F(m_texture.ScaleU * skyTexture.Scale.X, skyTexture.Scale.Y));
         m_program.FlipU(flipSkyHorizontal);
         m_program.TopColor(foreground ? black : m_texture.TopColor);
         m_program.BottomColor(foreground ? black : m_texture.BottomColor);
@@ -162,7 +163,7 @@ public class SkySphereRenderer : IDisposable
         m_program.HasInvulnerability(invulnerability);
         m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
-        m_program.ScrollOffset(new(skyTexture.CurrentScroll.X / texture.Dimension.Width, skyTexture.CurrentScroll.Y / texture.Dimension.Height));
+        m_program.ScrollOffset(new(offset.X / texture.Dimension.Width, offset.Y / texture.Dimension.Height));
         m_program.ForegroundTexture(foreground);
     }
 

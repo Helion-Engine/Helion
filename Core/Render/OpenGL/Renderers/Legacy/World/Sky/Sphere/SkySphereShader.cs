@@ -12,7 +12,7 @@ public class SkySphereShader : RenderProgram
     private readonly int m_colormapTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_hasInvulnerabilityLocation;
-    private readonly int m_scaleULocation;
+    private readonly int m_scaleLocation;
     private readonly int m_flipULocation;
     private readonly int m_paletteIndexLocation;
     private readonly int m_colorMapIndexLocation;
@@ -28,7 +28,7 @@ public class SkySphereShader : RenderProgram
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
-        m_scaleULocation = Uniforms.GetLocation("scaleU");
+        m_scaleLocation = Uniforms.GetLocation("scale");
         m_flipULocation = Uniforms.GetLocation("flipU");
         m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
         m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
@@ -43,7 +43,7 @@ public class SkySphereShader : RenderProgram
     public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
-    public void ScaleU(float u) => Uniforms.Set(u, m_scaleULocation);
+    public void Scale(Vec2F v) => Uniforms.Set(v, m_scaleLocation);
     public void FlipU(bool flip) => Uniforms.Set(flip, m_flipULocation);
     public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
     public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
@@ -90,7 +90,7 @@ public class SkySphereShader : RenderProgram
 
         out vec4 fragColor;
 
-        uniform float scaleU;
+        uniform vec2 scale;
         uniform sampler2D boundTexture;
         uniform samplerBuffer colormapTexture;
         uniform int hasInvulnerability;
@@ -100,27 +100,46 @@ public class SkySphereShader : RenderProgram
         uniform vec4 topColor;
         uniform vec4 bottomColor;
         uniform float isForegroundTexture;
+        uniform float textureHeight;
 
         float skyStart1 = 1 - paddingHeightFrag - skyHeightFrag;
         float skyStart2 = 1 - paddingHeightFrag - (skyHeightFrag * 2);
         float skyV = 0;
         vec4 fadeColor = vec4(0, 0, 0, 0);
 
+        float getSkyV(float skyStart) {
+            return (uvFrag.y - skyStart) / skyHeightFrag  * scale.y;
+        }
+
+        vec2 getScaledWithOffset(float u, float skyV) {
+            return vec2(uvFrag.x / scale.x + scrollOffsetFrag.x, skyV + scrollOffsetFrag.y / scale.y);
+        }
+
         void main() {
+            // Bottom color portion
             if (uvFrag.y > 1 - paddingHeightFrag) {
                 fragColor = bottomColor;
             }
+            // Bottom sky portion
             else if (uvFrag.y > skyStart1) {
-                skyV = (uvFrag.y - skyStart1) / skyHeightFrag;
-                fragColor = texture(boundTexture, vec2(uvFrag.x * scaleU + scrollOffsetFrag.x, skyV + scrollOffsetFrag.y));
+                skyV = getSkyV(skyStart1);
+                vec2 skyUV = getScaledWithOffset(uvFrag.x, skyV);
+                if ((skyUV.y > 1 || skyUV.y < 0) && isForegroundTexture == 1)
+                    discard;
+                fragColor = texture(boundTexture, skyUV);
                 fadeColor = bottomColor;
                 skyV = 1 - skyV;
             }
+            // Top sky portion
             else if (uvFrag.y > skyStart2) {
-                skyV = (uvFrag.y - skyStart2) / skyHeightFrag;
-                fragColor = texture(boundTexture, vec2(uvFrag.x * scaleU + scrollOffsetFrag.x, skyV + scrollOffsetFrag.y));
+                skyV = getSkyV(skyStart2);
+                vec2 skyUV = getScaledWithOffset(uvFrag.x, skyV);
+                if ((skyUV.y > 1 || skyUV.y < 0) && isForegroundTexture == 1)
+                    discard;
+                fragColor = texture(boundTexture, skyUV);
                 fadeColor = topColor;
-            }
+            }            
+            // Top color portion
             else {
                 fragColor = topColor;
             }

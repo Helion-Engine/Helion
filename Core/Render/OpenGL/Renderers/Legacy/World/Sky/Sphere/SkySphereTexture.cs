@@ -133,7 +133,7 @@ public class SkySphereTexture : IDisposable
         // the texture in other ports appears visually to be clockwise. By
         // setting the U scaling to be negative, the shader will reverse
         // the direction of the texturing (which is what we want).
-        return scalingFactor;
+        return 1 / scalingFactor;
     }
 
     private static Color CalculateAverageRowColor(int startY, int exclusiveEndY, Image skyImage)

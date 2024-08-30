@@ -1,14 +1,14 @@
-﻿using Helion.Geometry.Vectors;
+﻿using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Resources.Definitions.Id24;
 using Helion.Util;
-using System;
 
 namespace Helion.Resources;
 
 public class SkyTransformTexture
 {
     public int TextureIndex;
-    public float Mid;
+    public Vec2F Offset;
     public Vec2F Scroll;
     public Vec2F Scale;
     public Vec2F CurrentScroll;
@@ -24,7 +24,7 @@ public class SkyTransform
         }
     };
 
-    public SkyTransformTexture Sky;
+    public SkyTransformTexture Sky = null!;
     public SkyTransformTexture? Foreground;
 
     public static SkyTransform FromId24SkyDef(int textureIndex, int? foregroundTextureIndex, SkyDef skyDef)
@@ -34,9 +34,9 @@ public class SkyTransform
             Sky = new()
             {
                 TextureIndex = textureIndex,
-                Mid = (float)skyDef.Mid,
+                Offset = CalcOffset((float)skyDef.Mid),
                 Scroll = new((float)(skyDef.ScrollX / Constants.TicksPerSecond), (float)(skyDef.ScrollY / Constants.TicksPerSecond)),
-                Scale = new((float)skyDef.ScaleX, (float)skyDef.ScaleY),
+                Scale = new(1 / (float)skyDef.ScaleX, 1 / (float)skyDef.ScaleY),
             },
             Foreground = CreateSkyTextureFromForegroundTexture(skyDef, foregroundTextureIndex)
         };
@@ -51,9 +51,14 @@ public class SkyTransform
         return new()
         {
             TextureIndex = foregroundTextureIndex.Value,
-            Mid = (float)foreground.Mid,
+            Offset = CalcOffset((float)foreground.Mid),
             Scroll = new((float)(foreground.ScrollX / Constants.TicksPerSecond), (float)(foreground.ScrollY / Constants.TicksPerSecond)),
-            Scale = new((float)foreground.ScaleX, (float)foreground.ScaleY),
+            Scale = new(1 / (float)foreground.ScaleX, 1 / (float)foreground.ScaleY),
         };
+    }
+
+    private static Vec2F CalcOffset(float mid)
+    {
+        return new(0, 100 - mid);
     }
 }
