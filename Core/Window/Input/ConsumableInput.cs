@@ -28,6 +28,8 @@ public class ConsumableInput : IConsumableInput
         m_inputManager = inputManager;
     }
 
+    public bool IsKeyDownConsumed(Key key) => m_inputDownConsumed.Contains(key);
+
     public void ConsumeAll()
     {
         m_allConsumed = true;
@@ -40,8 +42,13 @@ public class ConsumableInput : IConsumableInput
         if (m_allConsumed || m_inputDownConsumed.Contains(key))
             return false;
 
-        m_inputDownConsumed.Add(key);
-        return Manager.IsKeyDown(key);
+        if (Manager.IsKeyDown(key))
+        {
+            m_inputDownConsumed.Add(key);
+            return true;
+        }
+
+        return false;
     }
 
     public bool ConsumeKeyPressed(Key key)
@@ -49,8 +56,13 @@ public class ConsumableInput : IConsumableInput
         if (m_allConsumed || m_inputDownConsumed.Contains(key))
             return false;
 
-        m_inputDownConsumed.Add(key);
-        return Manager.IsKeyPressed(key);
+        if (Manager.IsKeyPressed(key))
+        {
+            m_inputDownConsumed.Add(key);
+            return true;
+        }
+
+        return false;
     }
 
     public bool ConsumePressOrContinuousHold(Key key)
@@ -64,7 +76,7 @@ public class ConsumableInput : IConsumableInput
     public ReadOnlySpan<char> ConsumeTypedCharacters()
     {
         if (m_allConsumed || m_typedCharsConsumed)
-            return ReadOnlySpan<char>.Empty;
+            return [];
 
         m_typedCharsConsumed = true;
         return Manager.TypedCharacters;
@@ -102,24 +114,29 @@ public class ConsumableInput : IConsumableInput
         return false;
     }
 
-    public void IterateCommands(IList<KeyCommandItem> commands, Action<IConsumableInput, KeyCommandItem> onCommand, bool consumeKeyPressed)
+    public void IterateCommands(IList<KeyCommandItem> commands, Func<IConsumableInput, KeyCommandItem, bool> onCommand)
     {
         m_iteratePressedKeys.Clear();
         Manager.GetPressedKeys(m_iteratePressedKeys);
         for (int i = 0; i < m_iteratePressedKeys.Length; i++)
         {
             var key = m_iteratePressedKeys[i];
-            if (consumeKeyPressed && !ConsumeKeyPressed(key))
+            if (!Manager.IsKeyDown(key))
                 continue;
 
+            bool executed = false;
             for (int j = 0; j < commands.Count; j++)
             {
                 var cmd = commands[j];
                 if (cmd.Key != key)
                     continue;
 
-                onCommand(this, cmd);
+                if (onCommand(this, cmd))
+                    executed = true;
             }
+
+            if (executed)
+                ConsumeKeyPressed(key);
         }
     }
 

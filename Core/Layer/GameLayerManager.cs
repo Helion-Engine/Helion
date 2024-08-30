@@ -74,7 +74,7 @@ public class GameLayerManager : IGameLayerManager
     private readonly HudRenderContext m_hudContext = new(default);
     private readonly OptionsLayer m_optionsLayer;
     private readonly ConsoleLayer m_consoleLayer;
-    private readonly Action<IConsumableInput, KeyCommandItem> m_checkScreenShotCommand;
+    private readonly Func<IConsumableInput, KeyCommandItem, bool> m_checkScreenShotCommand;
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private IHudRenderContext m_hudRenderCtx;
@@ -400,15 +400,16 @@ public class GameLayerManager : IGameLayerManager
         }
 
         WorldLayer?.HandleInput(input);
-        input.IterateCommands(m_config.Keys.GetKeyMapping(), m_checkScreenShotCommand, false);
+        input.IterateCommands(m_config.Keys.GetKeyMapping(), m_checkScreenShotCommand);
     }
 
-    private void CheckScreenShotCommand(IConsumableInput input, KeyCommandItem cmd)
+    private bool CheckScreenShotCommand(IConsumableInput input, KeyCommandItem cmd)
     {
         if (cmd.Command != Constants.Input.Screenshot || !input.ConsumeKeyPressed(cmd.Key))
-            return;
+            return false;
 
         m_console.SubmitInputText(Constants.Input.Screenshot);
+        return true;
     }
 
     private void CheckMenuShortcuts(IConsumableInput input)

@@ -26,5 +26,5 @@ public interface IConsumableInput
     Vec2I ConsumeMouseMove();
     Vec2I GetMouseMove();
     int ConsumeScroll();
-    void IterateCommands(IList<KeyCommandItem> commands, Action<IConsumableInput, KeyCommandItem> onCommand, bool consumeKeyPressed);
+    void IterateCommands(IList<KeyCommandItem> commands, Func<IConsumableInput, KeyCommandItem, bool> onCommand);
 }

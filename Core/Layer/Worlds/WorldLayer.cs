@@ -70,7 +70,7 @@ public partial class WorldLayer : IGameLayerParent
     private readonly Action<IHudRenderContext> m_virtualDrawFullStatusBarAction;
     private readonly Action<HudStatusBarbackground> m_virtualStatusBarBackgroundAction;
     private readonly Action<IHudRenderContext> m_virtualDrawPauseAction;
-    private readonly Action<IConsumableInput, KeyCommandItem> m_checkCommandAction;
+    private readonly Func<IConsumableInput, KeyCommandItem, bool> m_checkCommandAction;
     private StatusBarSizeType m_statusBarSizeType = StatusBarSizeType.Minimal;
     private TickerInfo m_lastTickInfo = new(0, 0);
     private Vec2I m_autoMapOffset = (0, 0);

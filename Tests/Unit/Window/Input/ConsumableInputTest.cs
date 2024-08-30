@@ -1,7 +1,10 @@
 using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Util;
+using Helion.Util.Configs.Impl;
 using Helion.Window;
 using Helion.Window.Input;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Helion.Tests.Unit.Window.Input;
@@ -234,5 +237,55 @@ public class ConsumableInputTest
         input.ConsumeMouseMove().Should().Be(Vec2I.Zero);
         input.ConsumeScroll().Should().Be(0);
         input.ConsumeTypedCharacters().ToString().Should().Be("");
+    }
+
+    [Fact(DisplayName = "Keys not pressed are not consumed")]
+    public void KeysNotPressedAreNotConsumed()
+    {
+        InputManager inputManager = new();
+
+        ConsumableInput input = (ConsumableInput)inputManager.Poll(true);
+        input.ConsumeKeyDown(Key.E).Should().BeFalse();
+        input.IsKeyDownConsumed(Key.E).Should().BeFalse();
+
+        input.ConsumeKeyDown(Key.E).Should().BeFalse();
+        input.IsKeyDownConsumed(Key.Z).Should().BeFalse();
+
+        inputManager.SetKeyDown(Key.E);
+        inputManager.SetKeyDown(Key.Z);
+
+        input = (ConsumableInput)inputManager.Poll(true);
+        input.ConsumeKeyDown(Key.E).Should().BeTrue();
+        input.ConsumeKeyDown(Key.Z).Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "Iterate commands")]
+    public void IterateCommands()
+    {
+        InputManager inputManager = new();
+        ConsumableInput input = (ConsumableInput)inputManager.Poll(true);
+        List<KeyCommandItem> commands = [new(Key.PrintScreen, Constants.Input.Screenshot), new(Key.F12, Constants.Input.CenterView), new(Key.F1, Constants.Input.Attack)];
+
+        inputManager.SetKeyDown(Key.PrintScreen);
+        inputManager.SetKeyDown(Key.F12);
+        input = (ConsumableInput)inputManager.Poll(true);
+
+        input.IterateCommands(commands, IterateNoConsume);
+        input.IsKeyDownConsumed(Key.PrintScreen).Should().BeFalse();
+        input.IsKeyDownConsumed(Key.F12).Should().BeFalse();
+
+        input.IterateCommands(commands, IterateConsume);
+        input.IsKeyDownConsumed(Key.PrintScreen).Should().BeTrue();
+        input.IsKeyDownConsumed(Key.F12).Should().BeTrue();
+
+        bool IterateNoConsume(IConsumableInput input, KeyCommandItem item)
+        {
+            return false;
+        }
+
+        bool IterateConsume(IConsumableInput input, KeyCommandItem item)
+        {
+            return true;
+        }
     }
 }
