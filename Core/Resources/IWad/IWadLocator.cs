@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Helion.Resources.Archives.Locator;
 
 namespace Helion.Resources.IWad;
 
@@ -31,7 +32,7 @@ public class IWadLocator
 
     public static IWadLocator CreateDefault(IEnumerable<string> configDirectories)
     {
-        List<string> paths = [Directory.GetCurrentDirectory(), .. configDirectories];
+        List<string> paths = [Directory.GetCurrentDirectory(), .. configDirectories, .. FilesystemArchiveLocator.GetWadDirsFromEnvVars()];
 
         var steamPath = GetSteamPath();
 
