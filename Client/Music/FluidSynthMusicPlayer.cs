@@ -131,8 +131,15 @@ public class FluidSynthMusicPlayer : IMusicPlayer
             return;
 
         Stop();
-        m_settings.Dispose();
-        m_synth.Dispose();
+        try
+        {
+            m_settings.Dispose();
+            m_synth.Dispose();
+        }
+        catch(Exception ex)
+        {
+            Log.Warn("Error unloading FluidSynth music player");
+        }
         m_disposed = true;
     }
 }
