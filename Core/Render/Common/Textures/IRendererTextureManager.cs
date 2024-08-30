@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Resources;
 
@@ -31,4 +32,11 @@ public interface IRendererTextureManager : IDisposable
     /// otherwise will search only in the provided one.</param>
     /// <returns>True if found, false if not.</returns>
     bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null);
+
+    /// <summary>
+    /// Get a list of texture names
+    /// </summary>
+    /// <param name="specificNamespace">Namespace to filter to</param>
+    /// <returns>A list of texture names</returns>
+    IEnumerable<string> GetNames(ResourceNamespace specificNamespace);
 }

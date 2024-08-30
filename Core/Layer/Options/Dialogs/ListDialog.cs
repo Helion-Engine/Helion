@@ -10,6 +10,7 @@ using Helion.Window;
 using Helion.Window.Input;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.Layer.Options.Dialogs;
 internal abstract class ListDialog : DialogBase
@@ -22,19 +23,29 @@ internal abstract class ListDialog : DialogBase
     private int m_selectedRow;
     private int m_firstVisibleRow;
     private int m_lastVisibleRow;
-    private bool m_ensureSelectedVisible = true;
     private bool m_hasScrollBar = false;
     private Dimension? m_scrollBarDimension;
 
     public IConfigValue ConfigValue => m_configValue;
-    private readonly List<string> m_values = new List<string>();
-    private readonly List<string> m_truncatedValues = new List<string>();
+    private readonly List<string> m_labels = new List<string>();
+    private readonly List<(int index, string label)> m_values = new List<(int, string)>();
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the dialog should scroll to the selected item next time it renders.
+    /// This will be automatically cleared.
+    /// </summary>
+    protected bool EnsureSelectedVisible
+    {
+        get;
+        set;
+    }
 
     public ListDialog(ConfigHud config, IConfigValue configValue, OptionMenuAttribute attr)
     : base(config, "OK", "Cancel")
     {
         m_configValue = configValue;
         m_attr = attr;
+        EnsureSelectedVisible = true;
     }
 
     /// <summary>
@@ -43,7 +54,7 @@ internal abstract class ListDialog : DialogBase
     /// <param name="valuesList">The list of elements displayed in the dialog.  This is persistent between renders
     /// and after initial population, it only needs to be changed if the underlying options have changed for some reason.
     /// Render context is provided only so that implementers can pre-truncate dialog strings.
-    protected abstract void ModifyListElements(List<string> valuesList, IHudRenderContext hud, bool sizeChanged);
+    protected abstract void ModifyListElements(List<string> valuesList, IHudRenderContext hud, bool sizeChanged, out bool didChange);
 
     /// <summary>
     /// Render any additional messages or controls needed at the top of the dialog.
@@ -79,7 +90,13 @@ internal abstract class ListDialog : DialogBase
         RenderDialogHeader(hud);
 
         int length = m_values.Count;
-        ModifyListElements(m_values, hud, sizeChanged);
+        ModifyListElements(m_labels, hud, sizeChanged, out bool didChange);
+        if (didChange)
+        {
+            int index = 0;
+            m_values.Clear();
+            m_values.AddRange(m_labels.Select(l => (index++, l)));
+        }
 
         int verticalOffset = hud.GetOffset().Y;
         if (m_values.Count != length || verticalOffset != m_listFirstY)
@@ -87,11 +104,11 @@ internal abstract class ListDialog : DialogBase
             // reset selection and scroll bounds; the list just changed
             m_listFirstY = verticalOffset;
             m_selectedRow = 0;
-            m_ensureSelectedVisible = true;
+            EnsureSelectedVisible = true;
             SendSelectedRowChange(false);
         }
 
-        if (m_ensureSelectedVisible || sizeChanged)
+        if (EnsureSelectedVisible || sizeChanged)
         {
             // Snap scroll bounds to fit selection and current list length
 
@@ -116,7 +133,7 @@ internal abstract class ListDialog : DialogBase
                 m_lastVisibleRow = Math.Min(m_values.Count - 1, m_selectedRow + m_maxVisibleRows - 1);
             }
 
-            m_ensureSelectedVisible = false;
+            EnsureSelectedVisible = false;
         }
 
         // Put another offset on the stack so we can restore to where we were BEFORE drawing the text;
@@ -124,7 +141,7 @@ internal abstract class ListDialog : DialogBase
         hud.PushOffset(hud.GetOffset());
         for (int rowIndex = m_firstVisibleRow; rowIndex <= m_lastVisibleRow; rowIndex++)
         {
-            RenderDialogText(hud, m_values[rowIndex], color: rowIndex == m_selectedRow ? Color.Yellow : null);
+            RenderDialogText(hud, m_values[rowIndex].Item2, color: rowIndex == m_selectedRow ? Color.Yellow : null);
         }
         hud.PopOffset();
 
@@ -143,8 +160,20 @@ internal abstract class ListDialog : DialogBase
 
     private void SendSelectedRowChange(bool mouseClick)
     {
-        string selectedLabel = m_selectedRow < m_values.Count ? m_values[m_selectedRow] : string.Empty;
+        string selectedLabel = m_selectedRow < m_values.Count ? m_values[m_selectedRow].label : string.Empty;
         SelectedRowChanged(selectedLabel, m_selectedRow, mouseClick);
+    }
+
+    protected (int row, string label) SelectRowByBeginsWith(string startsWithText, StringComparison comparisonType, bool sendRowChange)
+    {
+        (m_selectedRow, string label) = m_values.FirstOrDefault(str => str.label.StartsWith(startsWithText, comparisonType));
+
+        if (sendRowChange)
+        {
+            SelectedRowChanged(label, m_selectedRow, false);
+        }
+
+        return (m_selectedRow, label);
     }
 
     public override void HandleInput(IConsumableInput input)
@@ -153,13 +182,13 @@ internal abstract class ListDialog : DialogBase
         {
             m_selectedRow = Math.Min(m_selectedRow + 1, m_values.Count - 1);
             SendSelectedRowChange(false);
-            m_ensureSelectedVisible = true;
+            EnsureSelectedVisible = true;
         }
         if (input.ConsumePressOrContinuousHold(Key.Up))
         {
             m_selectedRow = Math.Max(m_selectedRow - 1, 0);
             SendSelectedRowChange(false);
-            m_ensureSelectedVisible = true;
+            EnsureSelectedVisible = true;
         }
 
         int scrollAmount = input.ConsumeScroll();

@@ -8,7 +8,9 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Image = Helion.Graphics.Image;
 
 namespace Helion.Resources.Images;
@@ -63,6 +65,19 @@ public class ArchiveImageRetriever : IImageRetriever
             return ImageFromDefinition(definition);
 
         return null;
+    }
+
+    /// <summary>
+    /// Returns a list of all image names.
+    /// This creates a new list.
+    /// </summary>
+    /// <returns>All image names, optionally filtered to a specific namespace</returns>
+    public IEnumerable<string> GetAllNames(ResourceNamespace specificNamespace)
+    {
+        return m_compiledImages.GetNames(specificNamespace)
+            .Concat(m_archiveCollection.Entries.GetNames(specificNamespace))
+            .Concat(m_archiveCollection.Definitions.Textures.GetNames(specificNamespace))
+            .ToList();
     }
 
     public Image? GetOnly(string name, ResourceNamespace targetNamespace)

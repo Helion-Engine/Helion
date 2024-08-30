@@ -83,6 +83,13 @@ public class HashTable<K1, K2, V> where V : class
     public IEnumerable<K1> GetFirstKeys() => m_table.Keys.ToList();
 
     /// <summary>
+    /// Gets a list of the second-level keys, for a given value of a first key.
+    /// This will return a new list.
+    /// </summary>
+    /// <returns>A new list of all second-level keys for a given first key value</returns>
+    public IEnumerable<K2> GetSecondKeys(K1 firstKey) => m_table.TryGetValue(firstKey, out var contents) ? contents.Keys.ToList() : [];
+
+    /// <summary>
     /// Gets the value in the map.
     /// </summary>
     /// <param name="firstKey">The first key.</param>

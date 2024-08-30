@@ -2,6 +2,7 @@
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Util;
@@ -147,6 +148,18 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
 
         hud.Text(message, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width);
         hud.AddOffset((0, m_rowHeight + m_padding));
+    }
+
+    protected void RenderDialogImage(
+        IHudRenderContext hud,
+        string imageName,
+        Vec2I desiredSize,
+        Align windowAlign = Align.TopLeft,
+        Align anchorAlign = Align.TopLeft)
+    {
+        //hud.Image(imageName, )
+        hud.Image(imageName, new HudBox((0, 0), desiredSize), window: windowAlign, anchor: anchorAlign);
+        hud.AddOffset((0, desiredSize.Y + m_padding));
     }
 
     protected string TruncateTextToDialogWidth(string text, IHudRenderContext hud)
