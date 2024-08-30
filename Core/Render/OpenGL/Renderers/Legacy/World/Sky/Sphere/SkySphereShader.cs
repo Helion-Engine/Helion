@@ -100,7 +100,6 @@ public class SkySphereShader : RenderProgram
         uniform vec4 topColor;
         uniform vec4 bottomColor;
         uniform float isForegroundTexture;
-        uniform float textureHeight;
 
         float skyStart1 = 1 - paddingHeightFrag - skyHeightFrag;
         float skyStart2 = 1 - paddingHeightFrag - (skyHeightFrag * 2);
@@ -108,11 +107,11 @@ public class SkySphereShader : RenderProgram
         vec4 fadeColor = vec4(0, 0, 0, 0);
 
         float getSkyV(float skyStart) {
-            return (uvFrag.y - skyStart) / skyHeightFrag  * scale.y;
+            return (uvFrag.y - skyStart) / skyHeightFrag;
         }
 
         vec2 getScaledWithOffset(float u, float skyV) {
-            return vec2(uvFrag.x / scale.x + scrollOffsetFrag.x, skyV + scrollOffsetFrag.y / scale.y);
+            return vec2(uvFrag.x / scale.x + scrollOffsetFrag.x, skyV + scrollOffsetFrag.y);
         }
 
         void main() {

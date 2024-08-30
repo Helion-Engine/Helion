@@ -36,7 +36,7 @@ public class SkyTransform
                 TextureIndex = textureIndex,
                 Offset = CalcOffset((float)skyDef.Mid),
                 Scroll = new((float)(skyDef.ScrollX / Constants.TicksPerSecond), (float)(skyDef.ScrollY / Constants.TicksPerSecond)),
-                Scale = new(1 / (float)skyDef.ScaleX, 1 / (float)skyDef.ScaleY),
+                Scale = new((float)skyDef.ScaleX, (float)skyDef.ScaleY),
             },
             Foreground = CreateSkyTextureFromForegroundTexture(skyDef, foregroundTextureIndex)
         };
@@ -53,12 +53,12 @@ public class SkyTransform
             TextureIndex = foregroundTextureIndex.Value,
             Offset = CalcOffset((float)foreground.Mid),
             Scroll = new((float)(foreground.ScrollX / Constants.TicksPerSecond), (float)(foreground.ScrollY / Constants.TicksPerSecond)),
-            Scale = new(1 / (float)foreground.ScaleX, 1 / (float)foreground.ScaleY),
+            Scale = new((float)foreground.ScaleX, (float)foreground.ScaleY),
         };
     }
 
     private static Vec2F CalcOffset(float mid)
     {
-        return new(0, 100 - mid);
+        return new(0, mid - 100);
     }
 }
