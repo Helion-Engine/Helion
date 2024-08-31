@@ -9,7 +9,9 @@
     using System.Reflection;
     using Xunit;
 
-    [Collection("Config events")]
+    // This needs to run in the same collection as other things that exercise game code,
+    // because it is unsafe to execute concurrently.
+    [Collection("GameActions")]
     public class ConfigEventLeakageTest
     {
         [Fact(DisplayName = "Creating and destroying a game world cannot leak event handlers attached to the default Config")]
