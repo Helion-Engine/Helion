@@ -425,6 +425,7 @@ public abstract partial class WorldBase : IWorld
         Config.SlowTick.ChaseMultiplier.OnChanged += SlowTickChaseMultiplier_OnChanged;
         Config.SlowTick.LookMultiplier.OnChanged += SlowTickLookMultiplier_OnChanged;
         Config.SlowTick.TracerMultiplier.OnChanged += SlowTickTracerMultiplier_OnChanged;
+        
         Config.Compatibility.MissileClip.OnChanged += MissileClip_OnChanged;
         Config.Compatibility.AllowItemDropoff.OnChanged += AllowItemDropoff_OnChanged;
         Config.Compatibility.InfinitelyTallThings.OnChanged += InfinitelyTallThings_OnChanged;
@@ -435,6 +436,7 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.OriginalExplosion.OnChanged += OriginalExplosion_OnChanged;
         Config.Compatibility.FinalDoomTeleport.OnChanged += FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged += VanillaSectorSound_OnChanged;
+
         Config.Game.FastMonsters.OnChanged += FastMonsters_OnChanged;
     }
 
@@ -446,15 +448,18 @@ public abstract partial class WorldBase : IWorld
         Config.SlowTick.ChaseMultiplier.OnChanged -= SlowTickChaseMultiplier_OnChanged;
         Config.SlowTick.LookMultiplier.OnChanged -= SlowTickLookMultiplier_OnChanged;
         Config.SlowTick.TracerMultiplier.OnChanged -= SlowTickTracerMultiplier_OnChanged;
+
         Config.Compatibility.MissileClip.OnChanged -= MissileClip_OnChanged;
         Config.Compatibility.AllowItemDropoff.OnChanged -= AllowItemDropoff_OnChanged;
         Config.Compatibility.InfinitelyTallThings.OnChanged -= InfinitelyTallThings_OnChanged;
         Config.Compatibility.NoTossDrops.OnChanged -= NoTossDrops_OnChanged;
         Config.Compatibility.VanillaMovementPhysics.OnChanged -= VanillaMovementPhysics_OnChanged;
         Config.Compatibility.Mbf21.OnChanged -= Mbf21_OnChanged;
+        Config.Compatibility.Doom2ProjectileWalkTriggers.OnChanged -= Doom2ProjectileWalkTriggers_OnChanged;
         Config.Compatibility.OriginalExplosion.OnChanged -= OriginalExplosion_OnChanged;
         Config.Compatibility.FinalDoomTeleport.OnChanged -= FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged -= VanillaSectorSound_OnChanged;
+
         Config.Game.FastMonsters.OnChanged -= FastMonsters_OnChanged;
     }
 
