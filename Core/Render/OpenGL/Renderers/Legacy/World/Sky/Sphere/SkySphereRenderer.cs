@@ -163,8 +163,14 @@ public class SkySphereRenderer : IDisposable
         m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
         m_program.ScrollOffset(new(offset.X / texture.Dimension.Width, offset.Y / texture.Dimension.Height));
-        m_program.SkyHeight(Math.Min(texture.Dimension.Height * skyTransform.Scale.Y / 128f * 0.24f, 1));
+        m_program.SkyHeight(CalcSkyHeight(texture.Dimension.Height * skyTransform.Scale.Y));
         m_program.ForegroundTexture(foreground);
+    }
+
+    private static float CalcSkyHeight(float textureHeight)
+    {
+        float pad = 128 / textureHeight * 0.28f;
+        return (1 - (pad * 2)) / 2;
     }
 
     private void ReleaseUnmanagedResources()
