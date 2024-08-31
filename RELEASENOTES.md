@@ -17,4 +17,5 @@
   - Initial id24 specification support
   - SoundFont picker dialog
   - Minor usability improvement to options menus (can see and restore defaults)
+  - Status bar texture picker dialog
   
