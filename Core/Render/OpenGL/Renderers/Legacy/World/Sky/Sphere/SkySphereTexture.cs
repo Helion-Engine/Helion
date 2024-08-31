@@ -92,7 +92,7 @@ public class SkySphereTexture : IDisposable
 
     public GLLegacyTexture GetForegroundTexture(SkyTransformTexture skyTexture)
     {
-        return m_textureManager.GetTexture(skyTexture.TextureIndex, false);
+        return m_textureManager.GetTexture(skyTexture.TextureIndex, true);
     }
 
     public void Dispose()
