@@ -459,6 +459,12 @@ public sealed class Inventory
         return item.Amount;
     }
 
+    public static int MaxAmount(string name)
+    {
+        EntityDefinition? definition = WorldStatic.EntityManager.DefinitionComposer.GetByName(name);
+        return definition?.Properties.Inventory.MaxAmount ?? 0;
+    }
+
     public void Remove(string name, int amount)
     {
         if (amount <= 0)

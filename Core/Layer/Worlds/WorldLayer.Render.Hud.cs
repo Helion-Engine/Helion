@@ -964,18 +964,21 @@ public partial class WorldLayer
 
     private void DrawFullTotalAmmo(IHudRenderContext hud)
     {
-        bool backpack = Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName);
-        DrawFullTotalAmmoText(hud, "Clip", backpack ? 400 : 200, 173);
-        DrawFullTotalAmmoText(hud, "Shell", backpack ? 100 : 50, 179);
-        DrawFullTotalAmmoText(hud, "RocketAmmo", backpack ? 100 : 50, 185);
-        DrawFullTotalAmmoText(hud, "Cell", backpack ? 600 : 300, 191);
+        bool hasBackpack = Player.Inventory.HasItemOfClass(Inventory.BackPackBaseClassName);
+        DrawFullTotalAmmoText(hud, "Clip", hasBackpack, 173);
+        DrawFullTotalAmmoText(hud, "Shell", hasBackpack, 179);
+        DrawFullTotalAmmoText(hud, "RocketAmmo", hasBackpack, 185);
+        DrawFullTotalAmmoText(hud, "Cell", hasBackpack, 191);
     }
 
-    void DrawFullTotalAmmoText(IHudRenderContext hud, string ammoName, int maxAmmo, int y)
+    void DrawFullTotalAmmoText(IHudRenderContext hud, string ammoName, bool hasBackpack, int y)
     {
         const int FontSize = 6;
         const string YellowFontName = "HudYellowNumbers";
         int ammo = Player.Inventory.Amount(ammoName);
+        int maxAmmo = Inventory.MaxAmount(ammoName);
+        if (hasBackpack)
+            maxAmmo *= 2;
         m_ammoString.Clear();
         m_maxAmmoString.Clear();
         m_ammoString.Append(ammo);
