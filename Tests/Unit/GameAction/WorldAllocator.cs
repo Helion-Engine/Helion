@@ -35,9 +35,9 @@ internal static class WorldAllocator
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public static SinglePlayerWorld LoadMap(string resourceZip, string fileName, string mapName, string testKey, Action<SinglePlayerWorld> onInit,
-        IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium, Player? existingPlayer = null, WorldModel? worldModel = null, 
+        IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium, Player? existingPlayer = null, WorldModel? worldModel = null,
         bool disposeExistingWorld = true, bool cacheWorld = true,
-        Action<ArchiveCollection>? onBeforeInit = null)
+        Action<ArchiveCollection>? onBeforeInit = null, Config? config = null)
     {
         if (disposeExistingWorld && UseExistingWorld(resourceZip, fileName, mapName, testKey, cacheWorld, out SinglePlayerWorld? existingWorld))
             return existingWorld;
@@ -52,7 +52,7 @@ internal static class WorldAllocator
 
         using ZipArchive archive = ZipFile.OpenRead(resourceZip);
         archive.ExtractToDirectory(Directory.GetCurrentDirectory(), true);
-        Config config = CreateConfig();
+        config ??= CreateConfig();
         var profiler = new Profiler();
         var audioSystem = new MockAudioSystem();
         ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), config, new DataCache());
@@ -68,7 +68,7 @@ internal static class WorldAllocator
         onBeforeInit?.Invoke(archiveCollection);
 
         DoomRandom random = worldModel == null ? new() : new(worldModel.RandomIndex);
-        SinglePlayerWorld? world = WorldLayer.CreateWorldGeometry(new GlobalData(), config, audioSystem, archiveCollection, profiler, mapDef, 
+        SinglePlayerWorld? world = WorldLayer.CreateWorldGeometry(new GlobalData(), config, audioSystem, archiveCollection, profiler, mapDef,
             skillDef, outputMap, existingPlayer, worldModel, random, unitTest: true) ?? throw new Exception("Failed to create world");
         StaticWorld = world;
         world.OnTick += World_OnTick;
@@ -102,7 +102,7 @@ internal static class WorldAllocator
         if (StaticWorld == null)
             return false;
 
-        if (cacheWorld && existingWorld != null && resourceZip.EqualsIgnoreCase(LastResource) && fileName.EqualsIgnoreCase(LastFileName) && 
+        if (cacheWorld && existingWorld != null && resourceZip.EqualsIgnoreCase(LastResource) && fileName.EqualsIgnoreCase(LastFileName) &&
             mapName.EqualsIgnoreCase(LastMapName) && testKey.EqualsIgnoreCase(LastTestKey))
             return true;
 
