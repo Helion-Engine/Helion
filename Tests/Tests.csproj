@@ -26,11 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Resources\" />
-    <Folder Include="Unit\MapGeometry\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update ="Resources\*" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 
