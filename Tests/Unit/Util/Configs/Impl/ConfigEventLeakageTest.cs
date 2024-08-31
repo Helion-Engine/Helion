@@ -9,6 +9,7 @@
     using System.Reflection;
     using Xunit;
 
+    [Collection("Config events")]
     public class ConfigEventLeakageTest
     {
         [Fact(DisplayName = "Creating and destroying a game world cannot leak event handlers attached to the default Config")]
@@ -40,19 +41,19 @@
             int audioDeviceChangedHandlerCount = handlerCounts.First(hc => hc.PropertyName == "Audio" && hc.FieldName == "Device" && hc.EventName == "OnChanged").EventCount;
             audioDeviceChangedHandlerCount.Should().BeGreaterThan(0, "Found registered event on Audio Device Changed");
 
-            // Sanity check #3:  Make sure we can detect when we've unregistered this handler
+            // Sanity check #3:  Make sure we can detect when we've unregistered this handler.
             config.Audio.Device.OnChanged -= Device_OnChanged;
             handlerCounts = GetEventHandlerCounts(eventDefinitionsByPropAndField, config);
             int audioDeviceChangedHandlerCountAfter = handlerCounts.First(hc => hc.PropertyName == "Audio" && hc.FieldName == "Device" && hc.EventName == "OnChanged").EventCount;
             (audioDeviceChangedHandlerCount - audioDeviceChangedHandlerCountAfter).Should().Be(1);
 
-            // Now for the main event
+            // Now for the main event.
             // Create a game world and simulate a second of gameplay, then tear down the game world.
-
-            var world = WorldAllocator.LoadMap("Resources/boomactions.zip", "boomactions.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+            var world = WorldAllocator.LoadMap("Resources/boomactions.zip", "boomactions.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, config: config);
             GameActions.TickWorld(world, 35);
             world.Dispose();
 
+            // Check whether the game world added any event handlers then forgot to remove them.
             var handlerCountsAfterWorldTeardown = GetEventHandlerCounts(eventDefinitionsByPropAndField, config);
             for (int i = 0; i < handlerCountsAfterWorldTeardown.Length; i++)
             {
@@ -72,8 +73,7 @@
                     EventName: evtDef.evt.Name,
                     EventCount:
                         (evtDef.evt.GetValue(evtDef.field.GetValue(evtDef.prop.GetValue(config))) as MulticastDelegate)?
-                            .GetInvocationList().Length ?? 0)
-                    )
+                            .GetInvocationList().Length ?? 0))
                 .OrderBy(evt => evt.PropertyName)
                 .ThenBy(evt => evt.FieldName)
                 .ThenBy(evt => evt.EventName)
