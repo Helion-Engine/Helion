@@ -35,6 +35,15 @@ public interface IConfigKeyMapping
     bool ConsumeCommandKeyPress(string command, IConsumableInput input, out int scrollAmount);
 
     /// <summary>
+    /// Consumes any of the specified commands if currently pressed
+    /// This will only consume the _first_ matching command key.
+    /// </summary>
+    /// <param name="input">The consumable input</param>
+    /// <param name="commands">The commands to consume</param>
+    /// <returns>True if any of the specified commands were found and consumed</returns>
+    bool ConsumeCommandKeyPress(IConsumableInput input, params string[] commands);
+
+    /// <summary>
     /// Consumes the key for the mapped command if it is currently down.
     /// </summary>
     /// <param name="command">The command, which is not case sensitive.</param>

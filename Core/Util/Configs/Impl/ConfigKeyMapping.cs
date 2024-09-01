@@ -161,6 +161,19 @@ public class ConfigKeyMapping : IConfigKeyMapping
         return false;
     }
 
+    public bool ConsumeCommandKeyPress(IConsumableInput input, params string[] commands)
+    {
+        foreach (string command in commands)
+        {
+            if (ConsumeCommandKeyPress(command, input, out _))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public bool ConsumeCommandKeyDown(string command, IConsumableInput input, out int scrollAmount, out Key key)
     {
         scrollAmount = 0;

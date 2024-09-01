@@ -913,8 +913,8 @@ public partial class Client
         }
         else
         {
-            IntermissionLayer intermissionLayer = new(m_layerManager, world, m_soundManager, m_audioSystem.Music,
-                world.MapInfo, getNextMapInfo);
+            IntermissionLayer intermissionLayer = new(m_layerManager, world, m_config.Keys, m_soundManager,
+                m_audioSystem.Music, world.MapInfo, getNextMapInfo);
             intermissionLayer.Exited += IntermissionLayer_Exited;
             m_layerManager.Add(intermissionLayer);
         }
@@ -978,7 +978,7 @@ public partial class Client
         if (cluster == null)
             return;
 
-        EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, m_soundManager, world, cluster, nextCluster, nextMapInfo, m_isSecretExit);
+        EndGameLayer endGameLayer = new(world, m_config.Keys, m_soundManager, m_audioSystem.Music, m_archiveCollection, cluster, nextCluster, nextMapInfo, m_isSecretExit);
         endGameLayer.Exited += EndGameLayer_Exited;
 
         m_layerManager.Add(endGameLayer);
