@@ -201,10 +201,7 @@ public class SkySphereRenderer : IDisposable
         m_foregroundProgram.SkyMax(0.5f + skyHeight);
 
         // The sky is drawn twice from the middle. Offset from the middle and subtract difference in sky height from foreground texture height.
-        if (top)
-            m_foregroundProgram.TextureStart(0.5f - skyHeight + skyHeight - textureHeight);
-        else
-            m_foregroundProgram.TextureStart(0.5f + skyHeight - textureHeight);
+        m_foregroundProgram.TextureStart(0.5f - skyHeight + skyHeight - textureHeight);
     }
 
     private static float CalcSkyHeight(float textureHeight)

@@ -94,21 +94,11 @@ internal class SkySphereForegroundShader : RenderProgram
         uniform float skyMin;
         uniform float skyMax;
 
-        float getSkyV(float skyStart) {
-            return (uvFrag.y - textureStart) / textureHeight;
-        }
-
-        vec2 getScaledWithOffset(float u, float skyV) {
-            return vec2(uvFrag.x / scale.x + scrollOffsetFrag.x, skyV + scrollOffsetFrag.y);
-        }
-
         void main() {
             if (uvFrag.y < skyMin || uvFrag.y > skyMax)
                 discard;
             
-            float skyV = getSkyV(textureStart);
-            vec2 skyUV = getScaledWithOffset(uvFrag.x, skyV);
-
+            vec2 skyUV = vec2(uvFrag.x / scale.x + scrollOffsetFrag.x, (uvFrag.y - textureStart + scrollOffsetFrag.y) / textureHeight);
             fragColor = texture(boundTexture, skyUV);
 
             ${ColorMapFetch}
