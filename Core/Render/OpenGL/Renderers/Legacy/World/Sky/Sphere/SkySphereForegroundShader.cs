@@ -19,6 +19,8 @@ internal class SkySphereForegroundShader : RenderProgram
     private readonly int m_scrollOffsetLocation;
     private readonly int m_textureHeightLocation;
     private readonly int m_textureStartLocation;
+    private readonly int m_topColorLocation;
+    private readonly int m_bottomColorLocation;
     private readonly int m_skyMin;
     private readonly int m_skyMax;
 
@@ -35,6 +37,8 @@ internal class SkySphereForegroundShader : RenderProgram
         m_scrollOffsetLocation = Uniforms.GetLocation("scrollOffset");
         m_textureHeightLocation = Uniforms.GetLocation("textureHeight");
         m_textureStartLocation = Uniforms.GetLocation("textureStart");
+        m_topColorLocation = Uniforms.GetLocation("topColor");
+        m_bottomColorLocation = Uniforms.GetLocation("bottomColor");
         m_skyMin = Uniforms.GetLocation("skyMin");
         m_skyMax = Uniforms.GetLocation("skyMax");
     }
@@ -50,6 +54,8 @@ internal class SkySphereForegroundShader : RenderProgram
     public void ScrollOffset(Vec2F offset) => Uniforms.Set(offset, m_scrollOffsetLocation);
     public void TextureHeight(float height) => Uniforms.Set(height, m_textureHeightLocation);
     public void TextureStart(float start) => Uniforms.Set(start, m_textureStartLocation);
+    public void TopColor(Vec4F topColor) => Uniforms.Set(topColor, m_topColorLocation);
+    public void BottomColor(Vec4F bottomColor) => Uniforms.Set(bottomColor, m_bottomColorLocation);
     public void SkyMin(float value) => Uniforms.Set(value, m_skyMin);
     public void SkyMax(float value) => Uniforms.Set(value, m_skyMax);
 
@@ -93,6 +99,9 @@ internal class SkySphereForegroundShader : RenderProgram
         uniform float textureStart;
         uniform float skyMin;
         uniform float skyMax;
+        
+        uniform vec4 topColor;
+        uniform vec4 bottomColor;
 
         void main() {
             if (uvFrag.y < skyMin || uvFrag.y > skyMax)
@@ -101,8 +110,17 @@ internal class SkySphereForegroundShader : RenderProgram
             vec2 skyUV = vec2(uvFrag.x / scale.x + scrollOffsetFrag.x, (uvFrag.y - textureStart + scrollOffsetFrag.y) / textureHeight);
             fragColor = texture(boundTexture, skyUV);
 
+            if (fragColor.a == 0)
+                discard;
+
             ${ColorMapFetch}
             ${InvulnerabilityFragColor}
+
+            const float blendAmount = 0.025;
+            if (uvFrag.y < skyMax && uvFrag.y > skyMax - blendAmount)
+                fragColor = vec4(mix(bottomColor.rgb, fragColor.rgb, (skyMax - uvFrag.y) / blendAmount), 1);
+            if (uvFrag.y > skyMin && uvFrag.y < skyMin + blendAmount)
+                fragColor = vec4(mix(topColor.rgb, fragColor.rgb, ((uvFrag.y - skyMin) / blendAmount)), 1);
         }
     "
     .Replace("${InvulnerabilityFragColor}", FragFunction.InvulnerabilityFragColor)

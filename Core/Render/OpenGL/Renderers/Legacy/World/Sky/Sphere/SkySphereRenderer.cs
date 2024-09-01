@@ -188,6 +188,8 @@ public class SkySphereRenderer : IDisposable
         m_foregroundProgram.Mvp(CalculateMvp(renderInfo));
         m_foregroundProgram.Scale(new Vec2F(m_texture.ScaleU * foregroundTransform.Scale.X, 0));
         m_foregroundProgram.FlipU(flipSkyHorizontal);
+        m_foregroundProgram.TopColor(m_texture.TopColor);
+        m_foregroundProgram.BottomColor(m_texture.BottomColor);
         m_foregroundProgram.HasInvulnerability(invulnerability);
         m_foregroundProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_foregroundProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
