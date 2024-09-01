@@ -164,6 +164,7 @@ public partial class Client
 
         var world = m_layerManager.WorldLayer.World;
         world.EntityManager.Create("MapMarker", m_layerManager.WorldLayer.World.Player.Position + RenderInfo.LastAutomapOffset.Double.To3D(0));
+        HelionLog.Info($"Added a map marker.");
     }
 
     [ConsoleCommand("mark.remove", "Removes map markers within a 128 radius.")]
@@ -172,6 +173,7 @@ public partial class Client
         if (m_layerManager.WorldLayer == null)
             return;
 
+        int removedCount = 0;
         var world = m_layerManager.WorldLayer.World;
         var box = new Box2D(world.Player.Position.XY + RenderInfo.LastAutomapOffset.Double, 128);
         var entity = world.EntityManager.Head;
@@ -179,9 +181,17 @@ public partial class Client
         {
             var nextEntity = entity.Next;
             if (entity.Definition.EditorId == (int)EditorId.MapMarker && entity.Overlaps2D(box))
+            {
                 world.EntityManager.Destroy(entity);
+                removedCount++;
+            }
             entity = nextEntity;
         }
+        if (removedCount > 0)
+            HelionLog.Info($"Removed {removedCount} nearby map marker{(removedCount > 1 ? "s" : "")}.");
+        else
+            HelionLog.Info($"No nearby map markers to remove.");
+
     }
 
     [ConsoleCommand("mark.clear", "Removes all map markers.")]
@@ -190,15 +200,23 @@ public partial class Client
         if (m_layerManager.WorldLayer == null)
             return;
 
+        int removedCount = 0;
         var world = m_layerManager.WorldLayer.World;
         var entity = world.EntityManager.Head;
         while (entity != null)
         {
             var nextEntity = entity.Next;
             if (entity.Definition.EditorId == (int)EditorId.MapMarker)
+            {
                 world.EntityManager.Destroy(entity);
+                removedCount++;
+            }
             entity = nextEntity;
         }
+        if (removedCount > 0)
+            HelionLog.Info($"Removed all {removedCount} map markers.");
+        else
+            HelionLog.Info($"No map markers to remove.");
     }
 
     [ConsoleCommand("findkeys", "Finds the next key in the map.")]
