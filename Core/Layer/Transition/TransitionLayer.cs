@@ -25,7 +25,7 @@ public class TransitionLayer : IGameLayer, IAnimationLayer
         m_type = m_config.Game.TransitionType;
         double duration = m_type switch
         {
-            TransitionType.Fade => 0.5,
+            TransitionType.Fade => 1,
             TransitionType.Melt => 1.2,
             // avoid single-frame flicker on very short loads;
             // extend so there's there's a (barely) perceptible load screen
