@@ -73,7 +73,7 @@ public class ConfigKeyMappingTest
             GetKeyCommands(keys, key).Should().BeEmpty();
         }
 
-        keys.AddDefaultsIfMissing();
+        keys.SetInitialDefaultKeyBindings();
 
         // Now with the defaults applied, let's make sure they are in fact added.
         foreach ((Key key, string command) in ExpectedMappings)

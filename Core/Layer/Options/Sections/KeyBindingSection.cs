@@ -393,7 +393,7 @@ public class KeyBindingSection : IOptionSection
 
         hud.Text("Press R to reset bindings", Font, fontSize, (0, y), out Dimension clearArea,
             both: Align.TopMiddle, color: Color.Firebrick);
-         y += clearArea.Height + smallPad;
+        y += clearArea.Height + smallPad;
 
         hud.Text("Press enter to start binding and press a key", Font, fontSize, (0, y), out Dimension enterArea,
             both: Align.TopMiddle, color: Color.Firebrick);
@@ -485,7 +485,7 @@ public class KeyBindingSection : IOptionSection
 
     private void ResetAllKeyBindings()
     {
-        m_config.Keys.ReloadAllDefaults();
+        m_config.Keys.SetInitialDefaultKeyBindings();
         m_configUpdated = true;
         WriteConfigFile();
     }

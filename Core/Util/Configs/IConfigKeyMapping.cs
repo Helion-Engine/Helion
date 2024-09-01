@@ -21,10 +21,9 @@ public interface IConfigKeyMapping
     /// </summary>
     /// <param name="key">The key to add.</param>
     /// <param name="command">The command for the key.</param>
-    void Add(Key key, string command);
+    bool Add(Key key, string command);
     bool Remove(Key key);
     bool Remove(Key key, string command);
-    void AddEmpty(Key key);
 
     /// <summary>
     /// Consumes the key for the mapped command if it is currently pressed.
@@ -81,7 +80,12 @@ public interface IConfigKeyMapping
     void ReloadDefaults(string command);
 
     /// <summary>
-    /// Restore all default bindings
+    /// Reloads all default key bindings
     /// </summary>
-    void ReloadAllDefaults();
+    void SetInitialDefaultKeyBindings();
+
+    /// <summary>
+    /// Ensures that the user has some way to get back to the menus even if they have unbound all keys.
+    /// </summary>
+    void EnsureMenuKey();
 }
