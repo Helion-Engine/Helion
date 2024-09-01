@@ -7,11 +7,14 @@
   - Fix issues related to building on case-sensitive file systems (Linux)
   - Fix rendering order for two-sided middle walls that could cause flats/walls behind not to render
   - Fix boom WR lock door lines from constantly triggering key messages when contacting
-  - Fixed two-sided middle scrolling to offset entire texture by the Y value when rendering to match original doom behavior
-  - Fixed visual scroll offsets not being restored from a save for walls and flats
-  - Fixed instant sector floors not raising when two monsters are overlapping
-  - Fixed A_BfgSpray to be created after damage so they are rendered at corpse height if a monster is killed.
-  - Fixed issue with screenshot command not being processed.
+  - Fix two-sided middle scrolling to offset entire texture by the Y value when rendering to match original doom behavior
+  - Fix visual scroll offsets not being restored from a save for walls and flats
+  - Fix instant sector floors not raising when two monsters are overlapping
+  - Fix A_BfgSpray to be created after damage so they are rendered at corpse height if a monster is killed.
+  - Fix issue with screenshot command not being processed.
+  - Various fixes around key bindings saved to config file
+  - Fix an issue that caused the process' working set to grow rapidly on level changes
+  - Fix max ammo display on status bar in PWADs that modify this property
 
 ## Features:
   - Initial id24 specification support
