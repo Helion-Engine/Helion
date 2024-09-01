@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
@@ -15,11 +14,13 @@ using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Loggers;
 using Helion.World;
+using NLog;
 
 namespace Helion.Resources;
 
-public class TextureManager : ITickable
+public partial class TextureManager : ITickable
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public const int NoTextureIndex = 0;
     const string ShittyTextureName = "AASHITTY";
 
@@ -33,11 +34,6 @@ public class TextureManager : ITickable
     private readonly HashSet<int> m_animatedTextures = [];
     private readonly HashSet<int> m_processedEntityDefinitions = [];
     private readonly Dictionary<int, Entry[]> m_spriteIndexEntries = [];
-    // Maps flat index to texture index
-    private readonly Dictionary<int, int> m_skyTextureLookup = [];
-    // Texture index to SkyDef
-    private readonly Dictionary<int, SkyTransform> m_skyTransformLookup = [];
-    private readonly List<SkyTransform> m_skyTransforms = [];
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
@@ -181,11 +177,6 @@ public class TextureManager : ITickable
         return m_defaultSkyTexture;
     }
 
-    public bool TryGetSkyTransform(int textureIndex, [NotNullWhen(true)] out SkyTransform? skyTransform)
-    {
-        return m_skyTransformLookup.TryGetValue(textureIndex, out skyTransform);
-    }
-
     public void LoadTextureImages(HashSet<int> textures)
     {
         foreach (int texture in textures)
@@ -228,7 +219,7 @@ public class TextureManager : ITickable
     /// <param name="texture">The texture to check.</param>
     public bool IsSkyTexture(int texture)
     {
-        return texture == m_skyIndex || m_skyTextureLookup.ContainsKey(texture);
+        return texture == m_skyIndex || m_flatIndexToSkyTextureIndex.ContainsKey(texture);
     }
 
     public bool IsDefaultSkyTexture(int texture)
@@ -238,7 +229,7 @@ public class TextureManager : ITickable
 
     public bool GetSkyTextureFromFlat(int texture, out int skyTextureHandle)
     {
-        return m_skyTextureLookup.TryGetValue(texture, out skyTextureHandle);
+        return m_flatIndexToSkyTextureIndex.TryGetValue(texture, out skyTextureHandle);
     }
 
     /// <summary>
@@ -604,55 +595,18 @@ public class TextureManager : ITickable
             index++;
         }
 
-        // TODO: When ZDoom's Textures lump becomes a thing, this will need updating.
         string skyFlatName = m_archiveCollection.GameInfo.SkyFlatName;
         foreach (Entry flat in flatEntries)
         {
             m_textures.Add(new Texture(flat.Path.Name, ResourceNamespace.Flats, index));
             m_flatLookup[flat.Path.Name] = m_textures[index];
 
-            // TODO fix with MapInfo when implemented
             if (flat.Path.Name.Equals(skyFlatName, StringComparison.OrdinalIgnoreCase))
                 m_skyIndex = index;
 
-            MapSky(flat, index);
-
+            MapSkyFlat(flat, index);
             index++;
         }
-    }
-
-    private void MapSky(Entry flat, int textureIndex)
-    {
-        var skyDefinition = m_archiveCollection.Definitions.Id24SkyDefinition;
-        if (!skyDefinition.FlatMapping.TryGetValue(flat.Path.Name, out var textureName))
-            return;
-
-        if (!m_textureLookup.TryGetValue(textureName, out var texture))
-            return;
-
-        for (int i = 0; i < skyDefinition.Data.Skies.Count; i++)
-        {
-            var sky = skyDefinition.Data.Skies[i];
-            if (!sky.Name.Equals(texture.Name, StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            int? foregroundTextureIndex = null;
-            if (sky.ForegroundTex != null)
-            {
-                var foregroundTexture = GetTexture(sky.ForegroundTex.Name, ResourceNamespace.Textures);
-                LoadTextureImage(foregroundTexture.Index, GetImageOptions.ClearBlackPixels);
-                if (foregroundTexture != null)
-                    foregroundTextureIndex = foregroundTexture.Index;
-            }
-
-            var skyTransform = SkyTransform.FromId24SkyDef(texture.Index, foregroundTextureIndex, sky);
-            m_skyTransforms.Add(skyTransform);
-            m_skyTransformLookup[texture.Index] = skyTransform;
-            break;
-        }
-
-        m_skyTextureLookup[textureIndex] = texture.Index;
-        LoadTextureImage(texture.Index);
     }
 
     private Texture GetShittyTexture(List<TextureDefinition> textures)

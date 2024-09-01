@@ -63,10 +63,7 @@ public class SkySphereRenderer : IDisposable
         GL.ActiveTexture(TextureUnit.Texture0);
 
         var foregroundTexture = m_texture.GetForegroundTexture(skyDef.Foreground);
-        SetForegroundUniforms(renderInfo, true, skyTexture, skyDef.Sky, foregroundTexture, skyDef.Foreground, true);
-        DrawSphere(foregroundTexture);
-
-        SetForegroundUniforms(renderInfo, true, skyTexture, skyDef.Sky, foregroundTexture, skyDef.Foreground, false);
+        SetForegroundUniforms(renderInfo, true, skyTexture, skyDef.Sky, foregroundTexture, skyDef.Foreground);
         DrawSphere(foregroundTexture);
 
         m_foregroundProgram.Unbind();
@@ -176,7 +173,7 @@ public class SkySphereRenderer : IDisposable
     }
 
     private void SetForegroundUniforms(RenderInfo renderInfo, bool flipSkyHorizontal, 
-        GLLegacyTexture skyTexture, SkyTransformTexture skyTransform, GLLegacyTexture foregroundTexture, SkyTransformTexture foregroundTransform, bool top)
+        GLLegacyTexture skyTexture, SkyTransformTexture skyTransform, GLLegacyTexture foregroundTexture, SkyTransformTexture foregroundTransform)
     {
         bool invulnerability = false;
         if (renderInfo.ViewerEntity.PlayerObj != null)
