@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Audio.Sounds;
@@ -195,8 +196,7 @@ public partial class Client : IDisposable, IInputManagement
         m_window.Renderer.PerformThrowableErrorChecks();
     }
 
-    // TODO: This should be delegated to the renderer, not done here.
-    private unsafe void HandleScreenshot()
+    private void HandleScreenshot()
     {
         if (!m_takeScreenshot)
             return;
@@ -205,31 +205,8 @@ public partial class Client : IDisposable, IInputManagement
         HelionLog.Info($"Saving screenshot to {path}");
 
         m_takeScreenshot = false;
-        GL.Finish();
-
-        (int w, int h) = m_window.Dimension;
-        int pixelCount = m_window.Dimension.Area;
-        byte[] rgb = new byte[pixelCount * 3];
-
-        fixed (byte* rgbPtr = rgb)
-        {
-            IntPtr ptr = new(rgbPtr);
-            GL.ReadPixels(0, 0, w, h, PixelFormat.Rgb, PixelType.UnsignedByte, ptr);
-        }
-
-        uint[] argb = new uint[pixelCount];
-        int offset = 0;
-        for (int i = 0; i < pixelCount; i++)
-        {
-            uint r = rgb[offset];
-            uint g = rgb[offset + 1];
-            uint b = rgb[offset + 2];
-            argb[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
-            offset += 3;
-        }
-
-        var image = new Graphics.Image(argb, m_window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
-        image.SavePng(path);
+        var image = m_window.Renderer.GetMainFramebufferData();
+        Task.Run(() => image.SavePng(path));
     }
 
     private void Render()
@@ -306,7 +283,12 @@ public partial class Client : IDisposable, IInputManagement
 
         // Flag the WorldLayer that it is safe to render now that everything has been loaded
         newLayer.ShouldRender = true;
-        m_layerManager.LoadingLayer?.SetFadeOut(TimeSpan.FromSeconds(1));
+        // intermission/endgame may have been kept to draw loading screen over
+        // and grab the framebuffer after map load for transition effect
+        m_layerManager.Remove(m_layerManager.IntermissionLayer);
+        m_layerManager.Remove(m_layerManager.EndGameLayer);
+        m_layerManager.Remove(m_layerManager.LoadingLayer);
+        PlayTransition();
         UpdateVolume();
     }
 

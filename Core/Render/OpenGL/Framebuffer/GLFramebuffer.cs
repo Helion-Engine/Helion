@@ -71,15 +71,10 @@ public class GLFramebuffer : IDisposable
         Dispose(false);
     }
 
-    public void Bind()
-    {
-        GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_name);
-    }
-
-    public void Unbind()
-    {
-        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-    }
+    public void Bind() => GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_name);
+    public void Unbind() => GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+    public void BindRead() => GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, m_name);
+    public void BindDraw() => GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, m_name);
 
     protected virtual void Dispose(bool disposing)
     {

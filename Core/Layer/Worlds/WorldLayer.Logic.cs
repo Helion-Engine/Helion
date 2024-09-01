@@ -20,7 +20,8 @@ public partial class WorldLayer
                                       m_parent.TitlepicLayer != null ||
                                       m_parent.IntermissionLayer != null ||
                                       m_parent.ReadThisLayer != null ||
-                                      m_parent.LoadingLayer != null;
+                                      m_parent.LoadingLayer != null ||
+                                      m_parent.TransitionLayer != null;
 
     public void Stop()
     {

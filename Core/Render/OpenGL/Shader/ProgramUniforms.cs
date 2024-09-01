@@ -33,6 +33,8 @@ public class ProgramUniforms
     public void Set(int value, string name) => Set(value, GetLocation(name));
     public void Set(float value, int location) => GL.Uniform1(location, value);
     public void Set(float value, string name) => Set(value, GetLocation(name));
+    public void Set(float[] value, int location) => GL.Uniform1(location, value.Length, value);
+    public void Set(float[] value, string name) => Set(value, GetLocation(name));
     public void Set(Vec2F value, int location) => GL.Uniform2(location, value.X, value.Y);
     public void Set(Vec2F value, string name) => Set(value, GetLocation(name));
     public void Set(Vec3F value, int location) => GL.Uniform3(location, value.X, value.Y, value.Z);

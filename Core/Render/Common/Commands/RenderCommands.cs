@@ -4,6 +4,7 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Geometry;
+using Helion.Layer.Transition;
 using Helion.Render.Common.Enums;
 using Helion.Render.OpenGL.Commands.Types;
 using Helion.Render.OpenGL.Shared;
@@ -25,7 +26,8 @@ public enum RenderCommandType
     Viewport,
     DrawVirtualFrameBuffer,
     Automap,
-    Hud
+    Hud,
+    Transition,
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -60,6 +62,7 @@ public class RenderCommands
     public List<ViewportCommand> ViewportCommands = new();
     public List<DrawTextCommand> TextCommands = new();
     public List<DrawShapeCommand> ShapeCommands = new();
+    public TransitionCommand? CurrentTransitionCommand = null;
 
     public Dimension RenderDimension => m_renderDimensions;
     public Dimension WindowDimension => m_windowDimensions;
@@ -93,6 +96,7 @@ public class RenderCommands
         TextCommands.Clear();
         ShapeCommands.Clear();
         AutomapCommands.Clear();
+        CurrentTransitionCommand = null;
 
         ResolutionInfo = new ResolutionInfo { VirtualDimensions = RenderDimension };
         m_scale = Vec2D.One;
@@ -164,6 +168,11 @@ public class RenderCommands
     public void DrawVirtualFrameBuffer()
     {
         Commands.Add(new RenderCommand(RenderCommandType.DrawVirtualFrameBuffer, 0));
+    }
+
+    public void DrawTransition(TransitionType type, float progress, bool start)
+    {
+        CurrentTransitionCommand = new TransitionCommand(type, progress, start);
     }
 
     /// <summary>

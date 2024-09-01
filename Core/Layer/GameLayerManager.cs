@@ -10,6 +10,7 @@ using Helion.Layer.Images;
 using Helion.Layer.IwadSelection;
 using Helion.Layer.Menus;
 using Helion.Layer.Options;
+using Helion.Layer.Transition;
 using Helion.Layer.Worlds;
 using Helion.Menus.Impl;
 using Helion.Render;
@@ -26,12 +27,10 @@ using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World.Save;
-using static Helion.Util.Assertion.Assert;
 using Helion.Geometry.Boxes;
-using Helion.Util.Configs.Components;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
-using Helion.Window.Input;
-using Helion.Util.Container;
+using static Helion.Util.Assertion.Assert;
+using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
 
 namespace Helion.Layer;
@@ -57,6 +56,7 @@ public class GameLayerManager : IGameLayerManager
     public IntermissionLayer? IntermissionLayer { get; private set; }
     public IwadSelectionLayer? IwadSelectionLayer {  get; private set; }
     public LoadingLayer? LoadingLayer { get; private set; }
+    public TransitionLayer? TransitionLayer { get; private set; }
     public WorldLayer? WorldLayer { get; private set; }
     public long OptionsLastClosedNanos => m_optionsLayer.LastClosedNanos;
     public SaveGameEvent? LastSave;
@@ -82,7 +82,7 @@ public class GameLayerManager : IGameLayerManager
 
     private IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
     {
-        ConsoleLayer, OptionsLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
+        ConsoleLayer, OptionsLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, TransitionLayer, WorldLayer
     }.WhereNotNull();
 
     public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ConsoleCommands consoleCommands,
@@ -204,6 +204,10 @@ public class GameLayerManager : IGameLayerManager
                 Remove(LoadingLayer);
                 LoadingLayer = layer;
                 break;
+            case TransitionLayer layer:
+                Remove(TransitionLayer);
+                TransitionLayer = layer;
+                break;
             case null:
                 break;
             default:
@@ -302,6 +306,11 @@ public class GameLayerManager : IGameLayerManager
             IwadSelectionLayer?.Dispose();
             IwadSelectionLayer = null;
         }
+        else if (ReferenceEquals(layer, LoadingLayer))
+        {
+            LoadingLayer?.Dispose();
+            LoadingLayer = null;
+        }
     }
 
     private void RemoveAnimatedLayer(object layer)
@@ -326,10 +335,10 @@ public class GameLayerManager : IGameLayerManager
             MenuLayer?.Dispose();
             MenuLayer = null;
         }
-        else if (ReferenceEquals(layer, LoadingLayer))
+        else if (ReferenceEquals(layer, TransitionLayer))
         {
-            LoadingLayer?.Dispose();
-            LoadingLayer = null;
+            TransitionLayer?.Dispose();
+            TransitionLayer = null;
         }
     }
 
@@ -630,7 +639,7 @@ public class GameLayerManager : IGameLayerManager
 
     private void RenderDefault(IRenderableSurfaceContext ctx)
     {
-        m_ctx = ctx;        
+        m_ctx = ctx;
         m_hudContext.Dimension = m_renderer.RenderDimension;
         m_hudContext.DrawPalette = true;
         ctx.Viewport(m_renderer.RenderDimension.Box);
@@ -650,6 +659,7 @@ public class GameLayerManager : IGameLayerManager
 
         m_profiler.Render.MiscLayers.Start();
         ctx.Hud(m_hudContext, m_renderHudAction);
+        TransitionLayer?.Render(m_ctx);
         m_profiler.Render.MiscLayers.Stop();
     }
 
@@ -687,9 +697,7 @@ public class GameLayerManager : IGameLayerManager
 
         ReadThisLayer?.Render(hudCtx);
         IwadSelectionLayer?.Render(m_ctx, hudCtx);
-
-        if (LoadingLayer != null)
-            RenderWithAlpha(hudCtx, LoadingLayer.Animation, RenderLoadingLayer);
+        LoadingLayer?.Render(m_ctx, m_hudRenderCtx);
 
         RenderConsole(hudCtx);
 
@@ -733,11 +741,6 @@ public class GameLayerManager : IGameLayerManager
         m_hudRenderCtx.DrawPalette(true);
         m_hudContext.DrawColorMap = ShaderVars.PaletteColorMode;
         m_hudRenderCtx.DrawColorMap(ShaderVars.PaletteColorMode);
-    }
-
-    private void RenderLoadingLayer()
-    {
-        LoadingLayer?.Render(m_ctx, m_hudRenderCtx);
     }
 
     private void RenderMenu()
@@ -790,6 +793,7 @@ public class GameLayerManager : IGameLayerManager
         Remove(OptionsLayer);
         Remove(ConsoleLayer);
         Remove(LoadingLayer);
+        Remove(TransitionLayer);
 
         m_disposed = true;
     }

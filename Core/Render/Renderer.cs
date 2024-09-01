@@ -3,10 +3,12 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
+using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL;
 using Helion.Render.OpenGL.Commands;
 using Helion.Render.OpenGL.Commands.Types;
 using Helion.Render.OpenGL.Context;
+using Helion.Render.OpenGL.Framebuffer;
 using Helion.Render.OpenGL.Renderers;
 using Helion.Render.OpenGL.Renderers.Legacy.Hud;
 using Helion.Render.OpenGL.Renderers.Legacy.World;
@@ -30,7 +32,6 @@ using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
 using System;
-using System.Reflection.Metadata.Ecma335;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render;
@@ -49,6 +50,14 @@ public partial class Renderer : IDisposable
 
     public readonly IWindow Window;
     public readonly GLSurface Default;
+    /// <summary>
+    /// Final framebuffer used to draw to screen.
+    /// </summary>
+    private GLFramebuffer m_mainFramebuffer;
+    /// <summary>
+    /// Framebuffer used to draw the world.
+    /// </summary>
+    private GLFramebuffer m_virtualFramebuffer;
     public readonly LegacyGLTextureManager Textures;
     internal readonly IConfig m_config;
     internal readonly FpsTracker m_fpsTracker;
@@ -56,8 +65,9 @@ public partial class Renderer : IDisposable
     private readonly WorldRenderer m_worldRenderer;
     private readonly HudRenderer m_hudRenderer;
     private readonly RenderInfo m_renderInfo = new();
-    private readonly FramebufferRenderer m_framebufferRenderer;
+    private readonly BasicFramebufferRenderer m_framebufferRenderer;
     private readonly LegacyAutomapRenderer m_automapRenderer;
+    private readonly TransitionRenderer m_transitionRenderer;
 
     private IWorld? m_world;
     private GLBufferTexture? m_colorMapBuffer;
@@ -81,13 +91,19 @@ public partial class Renderer : IDisposable
         Textures = new LegacyGLTextureManager(config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
-        m_automapRenderer = new(archiveCollection);
-        m_framebufferRenderer = new(config, window, RenderDimension);
+        m_automapRenderer = new LegacyAutomapRenderer(archiveCollection);
+        m_framebufferRenderer = new BasicFramebufferRenderer(window);
+        m_transitionRenderer = new TransitionRenderer(window);
         Default = new(window, this);
+        m_mainFramebuffer = GenerateMainFramebuffer();
+        m_virtualFramebuffer = GenerateVirtualFramebuffer();
 
         PrintGLInfo();
         SetGLStates();
     }
+
+    private GLFramebuffer GenerateMainFramebuffer() => new("Main", Window.Dimension, 1, RenderbufferStorage.Depth32fStencil8);
+    private GLFramebuffer GenerateVirtualFramebuffer() => new("Virtual", RenderDimension, 1, RenderbufferStorage.Depth32fStencil8);
 
     public void UploadColorMap()
     {
@@ -161,7 +177,7 @@ public partial class Renderer : IDisposable
                 colorMapUniforms = GetColorMapUniforms(renderInfo.ViewerEntity, renderInfo.Camera);
                 paletteIndex = GetPalette(config, player);
                 if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
-                    mix = 1.0f;                    
+                    mix = 1.0f;
             }
         }
 
@@ -191,8 +207,8 @@ public partial class Renderer : IDisposable
         {
             palette = GetBonusPalette(player.BonusCount);
         }
-       
-        if (palette == PaletteIndex.Normal &&  powerup != null && 
+
+        if (palette == PaletteIndex.Normal && powerup != null &&
             powerup.PowerupType == PowerupType.IronFeet && powerup.DrawPowerupEffect)
         {
             palette = PaletteIndex.Green;
@@ -329,10 +345,30 @@ public partial class Renderer : IDisposable
     public static float GetDistanceOffset(RenderInfo renderInfo) =>
         (ZNearMax - GetZNear(renderInfo)) * 2;
 
+    private void UpdateFramebufferDimensionsIfNeeded()
+    {
+        if (m_mainFramebuffer.Dimension != Window.Dimension && Window.Dimension.HasPositiveArea)
+        {
+            m_mainFramebuffer.Dispose();
+            m_mainFramebuffer = GenerateMainFramebuffer();
+        }
+        if (m_virtualFramebuffer.Dimension != RenderDimension && RenderDimension.HasPositiveArea)
+        {
+            m_virtualFramebuffer.Dispose();
+            m_virtualFramebuffer = GenerateVirtualFramebuffer();
+        }
+        m_transitionRenderer.UpdateFramebufferDimensionsIfNeeded();
+    }
+
     public void Render(RenderCommands renderCommands)
     {
+        // this needs to run first so we can snapshot the framebuffer
+        if (renderCommands.CurrentTransitionCommand?.Start == true)
+            m_transitionRenderer.PrepareNewTransition(m_mainFramebuffer, renderCommands.CurrentTransitionCommand.Value.Type);
+
         m_hudRenderer.Clear();
-        SetupAndBindVirtualFramebuffer();
+        UpdateFramebufferDimensionsIfNeeded();
+        m_virtualFramebuffer.Bind();
         BindColorMapBuffer();
         BindSectorColorMapBuffer();
         BindLightBuffer();
@@ -372,7 +408,10 @@ public partial class Renderer : IDisposable
                     break;
                 case RenderCommandType.DrawVirtualFrameBuffer:
                     virtualFrameBufferDraw = true;
-                    DrawFramebufferOnDefault();
+                    BlitVirtualFramebufferToMain();
+                    break;
+                case RenderCommandType.Transition:
+                    Fail("transition command shouldn't be here");
                     break;
                 default:
                     Fail($"Unsupported render command type: {cmd.Type}");
@@ -383,7 +422,15 @@ public partial class Renderer : IDisposable
         DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
 
         if (!virtualFrameBufferDraw)
-            DrawFramebufferOnDefault();
+            BlitVirtualFramebufferToMain();
+
+        if (renderCommands.CurrentTransitionCommand != null)
+            m_transitionRenderer.Render(m_mainFramebuffer, renderCommands.CurrentTransitionCommand.Value.Progress);
+
+        // draw main framebuffer to default
+        // BlitMainFramebufferToDefault();
+        GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+        m_framebufferRenderer.Render(m_mainFramebuffer);
     }
 
     private void BindColorMapBuffer()
@@ -404,18 +451,6 @@ public partial class Renderer : IDisposable
     private void BindLightBuffer()
     {
         m_lightBufferStorage?.BindTexture(TextureUnit.Texture1);
-    }
-
-    private void SetupAndBindVirtualFramebuffer()
-    {
-        m_framebufferRenderer.UpdateToDimensionIfNeeded(RenderDimension);
-        m_framebufferRenderer.Framebuffer.Bind();
-    }
-
-    private void DrawFramebufferOnDefault()
-    {
-        m_framebufferRenderer.Framebuffer.Unbind();
-        m_framebufferRenderer.Render();
     }
 
     public void PerformThrowableErrorChecks()
@@ -498,6 +533,41 @@ public partial class Renderer : IDisposable
         });
     }
 
+    public Image GetMainFramebufferData()
+    {
+        var (w, h, rgb) = GetMainFramebufferDataRaw();
+        int pixelCount = w * h;
+        uint[] argb = new uint[pixelCount];
+        int offset = 0;
+        for (int i = 0; i < pixelCount; i++)
+        {
+            uint r = rgb[offset];
+            uint g = rgb[offset + 1];
+            uint b = rgb[offset + 2];
+            argb[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
+            offset += 3;
+        }
+
+        var image = new Image(argb, Window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
+        return image;
+    }
+
+    private unsafe (int width, int height, byte[] rgb) GetMainFramebufferDataRaw()
+    {
+        (int w, int h) = m_mainFramebuffer.Dimension;
+        int pixelCount = m_mainFramebuffer.Dimension.Area;
+        byte[] rgb = new byte[pixelCount * 3];
+
+        m_mainFramebuffer.BindRead();
+        fixed (byte* rgbPtr = rgb)
+        {
+            IntPtr ptr = new(rgbPtr);
+            GL.ReadPixels(0, 0, w, h, PixelFormat.Rgb, PixelType.UnsignedByte, ptr);
+        }
+
+        return (w, h, rgb);
+    }
+
     private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
     {
         Color color = clearRenderCommand.ClearColor;
@@ -565,26 +635,25 @@ public partial class Renderer : IDisposable
 
         DrawHudImagesIfAnyQueued(viewport, m_renderInfo.Uniforms);
 
-        if (!ShaderVars.ReversedZ)
+        if (ShaderVars.ReversedZ)
         {
-            UpdateBuffers();
-            m_worldRenderer.Render(cmd.World, m_renderInfo);
-            return;
+            GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
+            GL.DepthFunc(DepthFunction.Greater);
+            GL.Enable(EnableCap.DepthTest);
+
+            GL.ClearDepth(0.0);
+            GL.Clear(ClearBufferMask.DepthBufferBit);
         }
-
-        GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
-        GL.DepthFunc(DepthFunction.Greater);
-        GL.Enable(EnableCap.DepthTest);
-
-        GL.ClearDepth(0.0);
-        GL.Clear(ClearBufferMask.DepthBufferBit);
 
         UpdateBuffers();
         m_worldRenderer.Render(cmd.World, m_renderInfo);
 
-        GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.NegativeOneToOne);
-        GL.DepthFunc(DepthFunction.Less);
-        GL.Disable(EnableCap.DepthTest);
+        if (ShaderVars.ReversedZ)
+        {
+            GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.NegativeOneToOne);
+            GL.DepthFunc(DepthFunction.Less);
+            GL.Disable(EnableCap.DepthTest);
+        }
     }
 
     private static void HandleViewportCommand(ViewportCommand viewportCommand, out Rectangle viewport)
@@ -602,11 +671,44 @@ public partial class Renderer : IDisposable
         m_hudRenderer.Clear();
     }
 
+    private void BlitVirtualFramebufferToMain()
+    {
+        var mainDimension = m_mainFramebuffer.Dimension;
+        var virtualDimension = m_virtualFramebuffer.Textures[0].Dimension;
+        float scaleX = (m_config.Window.Virtual.Stretch)
+            ? 1f
+            : Math.Min(virtualDimension.AspectRatio / mainDimension.AspectRatio, 1.0f);
+        int destWidth = (int)(mainDimension.Width * scaleX);
+        int offsetX = (mainDimension.Width - destWidth) / 2;
+        var filterType = (m_config.Render.Filter.Texture == FilterType.Nearest)
+            ? BlitFramebufferFilter.Nearest
+            : BlitFramebufferFilter.Linear;
+
+        m_mainFramebuffer.BindDraw();
+        m_virtualFramebuffer.BindRead();
+        GL.ClearColor(0, 0, 0, 1);
+        GL.Clear(ClearBufferMask.ColorBufferBit);
+        GL.BlitFramebuffer(
+            0, 0, virtualDimension.Width, virtualDimension.Height,
+            offsetX, 0, offsetX + destWidth, mainDimension.Height,
+            ClearBufferMask.ColorBufferBit, filterType);
+    }
+
+    // private void BlitMainFramebufferToDefault()
+    // {
+    //     m_mainFramebuffer.BindRead();
+    //     GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+    //     GL.BlitFramebuffer(0, 0, Window.Dimension.Width, Window.Dimension.Height, 0, 0, Window.Dimension.Width, Window.Dimension.Height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Linear);
+    //     m_mainFramebuffer.UnbindRead();
+    // }
+
     protected virtual void Dispose(bool disposing)
     {
         if (m_disposed)
             return;
 
+        m_mainFramebuffer.Dispose();
+        m_virtualFramebuffer.Dispose();
         Textures.Dispose();
         m_hudRenderer.Dispose();
         m_worldRenderer.Dispose();
@@ -614,6 +716,7 @@ public partial class Renderer : IDisposable
         m_automapRenderer.Dispose();
         m_lightBufferStorage?.Dispose();
         m_sectorColorMapsBuffer?.Dispose();
+        m_transitionRenderer?.Dispose();
 
         m_disposed = true;
     }

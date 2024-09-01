@@ -2,6 +2,7 @@ using System;
 using Helion.Geometry.Boxes;
 using Helion.Graphics;
 using Helion.Render.Common.Context;
+using Helion.World;
 
 namespace Helion.Render.Common.Renderers;
 
@@ -80,4 +81,6 @@ public interface IRenderableSurfaceContext
     void Automap(WorldRenderContext context, Action<IWorldRenderContext> action);
 
     void DrawVirtualFrameBuffer();
+
+    void DrawTransition(TransitionType type, float progress, bool start);
 }
