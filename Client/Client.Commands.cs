@@ -174,10 +174,13 @@ public partial class Client
 
         var world = m_layerManager.WorldLayer.World;
         var box = new Box2D(world.Player.Position.XY + RenderInfo.LastAutomapOffset.Double, 128);
-        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
+        var entity = world.EntityManager.Head;
+        while (entity != null)
         {
+            var nextEntity = entity.Next;
             if (entity.Definition.EditorId == (int)EditorId.MapMarker && entity.Overlaps2D(box))
                 world.EntityManager.Destroy(entity);
+            entity = nextEntity;
         }
     }
 
@@ -188,10 +191,13 @@ public partial class Client
             return;
 
         var world = m_layerManager.WorldLayer.World;
-        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
+        var entity = world.EntityManager.Head;
+        while (entity != null)
         {
+            var nextEntity = entity.Next;
             if (entity.Definition.EditorId == (int)EditorId.MapMarker)
                 world.EntityManager.Destroy(entity);
+            entity = nextEntity;
         }
     }
 
