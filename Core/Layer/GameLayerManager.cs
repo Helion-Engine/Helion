@@ -368,7 +368,11 @@ public class GameLayerManager : IGameLayerManager
                 ToggleConsoleLayer(input);
 
             if (ConsoleLayer != null && ConsoleLayer.Animation.State != InterpolationAnimationState.Out)
+            {
                 ConsoleLayer.HandleInput(input);
+                input.ConsumeAll();
+                return;
+            }
             
             if (ShouldCreateMenu(input))
             {
