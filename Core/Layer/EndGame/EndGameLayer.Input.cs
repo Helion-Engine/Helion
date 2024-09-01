@@ -1,5 +1,6 @@
-using System;
+using Helion.Util;
 using Helion.Window;
+using System;
 
 namespace Helion.Layer.EndGame;
 
@@ -9,7 +10,7 @@ public partial class EndGameLayer
 
     public void HandleInput(IConsumableInput input)
     {
-        if (input.HasAnyKeyPressed())
+        if (m_keys.ConsumeCommandKeyPress(input, Constants.Input.Use, Constants.Input.Attack))
             AdvanceState();
     }
 

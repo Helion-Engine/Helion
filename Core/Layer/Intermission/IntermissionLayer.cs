@@ -1,17 +1,19 @@
-using System;
-using System.Text.RegularExpressions;
 using Helion.Audio;
 using Helion.Audio.Sounds;
+using Helion.Layer.Intermission;
 using Helion.Render.Common.Renderers;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Intermission;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
+using Helion.Util.Configs;
 using Helion.Util.Parser;
 using Helion.World;
 using Helion.World.Stats;
 using NLog;
+using System;
+using System.Text.RegularExpressions;
 
 namespace Helion.Layer.Worlds;
 
@@ -40,6 +42,7 @@ public partial class IntermissionLayer : IGameLayer
     private IntermissionState m_delayState;
     private int m_tics;
     private int m_delayStateTics;
+    private readonly IConfigKeyMapping m_keys;
 
     public event EventHandler? Exited;
 
@@ -48,8 +51,8 @@ public partial class IntermissionLayer : IGameLayer
     public double SecretPercent => m_levelPercents.SecretCount;
     private bool IsNextMap => IntermissionState == IntermissionState.NextMap;
 
-    public IntermissionLayer(GameLayerManager parent, IWorld world, SoundManager soundManager, IMusicPlayer musicPlayer,
-        MapInfoDef currentMapInfo, Func<FindMapResult> getNextMapInfo)
+    public IntermissionLayer(GameLayerManager parent, IWorld world, IConfigKeyMapping keys, SoundManager soundManager,
+        IMusicPlayer musicPlayer, MapInfoDef currentMapInfo, Func<FindMapResult> getNextMapInfo)
     {
         m_gameLayerManager = parent;
         World = world;
@@ -61,6 +64,7 @@ public partial class IntermissionLayer : IGameLayer
         m_musicPlayer = musicPlayer;
         m_totalLevelTime = World.LevelTime / (int)Constants.TicksPerSecond;
         m_renderVirtualIntermissionAction = new(RenderVirtualIntermission);
+        m_keys = keys;
 
         IntermissionPic = string.IsNullOrEmpty(currentMapInfo.ExitPic) ? "INTERPIC" : currentMapInfo.ExitPic;
         CalculatePercentages();

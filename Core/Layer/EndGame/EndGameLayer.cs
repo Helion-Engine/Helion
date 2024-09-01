@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Helion.Audio;
 using Helion.Audio.Sounds;
 using Helion.Render.Common.Renderers;
@@ -7,11 +5,14 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities;
 using NLog;
+using System;
+using System.Collections.Generic;
 
 namespace Helion.Layer.EndGame;
 
@@ -75,9 +76,11 @@ public partial class EndGameLayer : IGameLayer
     private CastEntityState m_castEntityState;
     private int m_castEntityFrameTicks;
     private int m_castFrameCount;
+    private IConfigKeyMapping m_keys;
 
-    public EndGameLayer(ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, SoundManager soundManager, IWorld world,
-        ClusterDef currentCluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo, bool isNextMapSecret)
+    public EndGameLayer(IWorld world, IConfigKeyMapping keys, SoundManager soundManager, IMusicPlayer musicPlayer,
+        ArchiveCollection archiveCollection, ClusterDef currentCluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo,
+        bool isNextMapSecret)
     {
         World = world;
         NextMapInfo = nextMapInfo;
@@ -105,6 +108,7 @@ public partial class EndGameLayer : IGameLayer
         m_virtualDrawCast = new(VirtualDrawCast);
         m_virtualDrawText = new(VirtualDrawText);
         m_virtualDrawBackgroundImage = new(VirtualDrawBackgroundImage);
+        m_keys = keys;
 
         m_ticker.Start();
 

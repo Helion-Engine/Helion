@@ -3,6 +3,7 @@ using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Layer.Intermission;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
