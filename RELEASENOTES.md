@@ -2,7 +2,7 @@
 
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
-  - Interpolate weapon raise/lower animation
+  - Interpolate weapon raise/lower animations and chainsaw bobbing
   - Prevent mouse vertical movement from causing the player to move when mouselook is enabled
   - Fix issues related to building on case-sensitive file systems (Linux)
   - Fix rendering order for two-sided middle walls that could cause flats/walls behind not to render
@@ -15,6 +15,7 @@
   - Various fixes around key bindings saved to config file
   - Fix an issue that caused the process' working set to grow rapidly on level changes
   - Fix max ammo display on status bar in PWADs that modify this property
+  - Fix rendering of taller fonts
 
 ## Features:
   - Initial id24 specification support
