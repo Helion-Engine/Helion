@@ -21,10 +21,6 @@ public static class HudView
 
 public class ConfigHudAutoMap
 {
-    [ConfigInfo("", save: false, legacy: true)]
-    [OptionMenu(OptionSectionType.Automap, "", disabled: true)]
-    public readonly ConfigValueHeader GeneralHeader = new("General");
-
     [ConfigInfo("Overlay automap over game window.")]
     [OptionMenu(OptionSectionType.Automap, "Overlay")]
     public readonly ConfigValue<bool> Overlay = new(true);
@@ -110,9 +106,7 @@ public class AutomapLineColors(bool overlay)
 
 public class ConfigHud
 {
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.Hud, "", disabled: true)]
-    public readonly ConfigValueHeader CrosshairHeader = new("Crosshair");
+    // Crosshair
 
     [ConfigInfo("Shows crosshair.")]
     [OptionMenu(OptionSectionType.Hud, "Crosshair Enabled")]
@@ -143,12 +137,10 @@ public class ConfigHud
     public readonly ConfigValue<double> CrosshairScale = new(1.0);
 
 
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.Hud, "", disabled: true, spacer: true)]
-    public readonly ConfigValueHeader BobHeader = new("Bobbing");
+    // Bobbin'
 
     [ConfigInfo("Amount of view bobbing. 0.0 is off, 1.0 is normal.")]
-    [OptionMenu(OptionSectionType.Hud, "View Bob")]
+    [OptionMenu(OptionSectionType.Hud, "View Bob", spacer: true)]
     public readonly ConfigValue<double> ViewBob = new(1.0, ClampNormalized);
 
     [ConfigInfo("Amount of weapon bobbing. 0.0 is off, 1.0 is normal.")]
@@ -156,12 +148,10 @@ public class ConfigHud
     public readonly ConfigValue<double> WeaponBob = new(1.0, ClampNormalized);
 
 
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.Hud, "", disabled: true, spacer: true)]
-    public readonly ConfigValueHeader StatusBarHeader = new("Status Bar");
+    // Status bar
 
     [ConfigInfo("Size of the status bar.")]
-    [OptionMenu(OptionSectionType.Hud, "Status Bar Size")]
+    [OptionMenu(OptionSectionType.Hud, "Status Bar Size", spacer: true)]
     public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal, OnlyValidEnums<StatusBarSizeType>());
 
     [ConfigInfo("Background texture for status bar when it doesn't fill the screen.")]
@@ -169,12 +159,10 @@ public class ConfigHud
     public readonly ConfigValue<string> BackgroundTexture = new("W94_1");
 
 
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.Hud, "", disabled: true, spacer: true)]
-    public readonly ConfigValueHeader FormattingHeader = new("Formatting");
+    // Formatting, scaling
 
     [ConfigInfo("Automatically scale HUD.")]
-    [OptionMenu(OptionSectionType.Hud, "Autoscale HUD", allowReset: false)]
+    [OptionMenu(OptionSectionType.Hud, "Autoscale HUD", allowReset: false, spacer: true)]
     public readonly ConfigValue<bool> AutoScale = new(true);
 
     [ConfigInfo("Amount to scale the HUD.")]
@@ -193,12 +181,11 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Horizontal Margin Percent")]
     public readonly ConfigValue<double> HorizontalMargin = new(0, ClampNormalized);
 
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.Hud, "", disabled: true, spacer: true)]
-    public readonly ConfigValueHeader StatsHeader = new("Stats");
+
+    // Stats and diagnostics
 
     [ConfigInfo("Render average frames per second in corner of display.")]
-    [OptionMenu(OptionSectionType.Hud, "Show FPS")]
+    [OptionMenu(OptionSectionType.Hud, "Show FPS", spacer: true)]
     public readonly ConfigValue<bool> ShowFPS = new(false);
 
     [ConfigInfo("Render min/max frames per second in corner of display.")]

@@ -8,9 +8,7 @@ namespace Helion.Util.Configs.Components;
 
 public class ConfigGame
 {
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.General, "", disabled: true)]
-    public readonly ConfigValueHeader ControlsHeader = new("Controls");
+    // Controls/input
 
     [ConfigInfo("Always run.", demo: true)]
     [OptionMenu(OptionSectionType.General, "Always Run")]
@@ -29,13 +27,10 @@ public class ConfigGame
     public readonly ConfigValue<bool> BumpUse = new(false);
 
 
-
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.General, "", disabled: true, spacer: true)]
-    public readonly ConfigValueHeader VisualHeader = new("Visual");
+    // Visual effects
 
     [ConfigInfo("Scale red amount drawn to screen when the player takes damage.")]
-    [OptionMenu(OptionSectionType.General, "Pain Intensity")]
+    [OptionMenu(OptionSectionType.General, "Pain Intensity", spacer: true)]
     public readonly ConfigValue<double> PainIntensity = new(1.0);
 
     [ConfigInfo("Transition effect between levels/screens.")]
@@ -43,12 +38,10 @@ public class ConfigGame
     public readonly ConfigValue<World.TransitionType> TransitionType = new(World.TransitionType.Melt);
 
 
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.General, "", disabled: true, spacer: true)]
-    public readonly ConfigValueHeader SaveLoadHeader = new("Save/Load");
+    // Saving and loading
 
     [ConfigInfo("Attempt to load latest saved game on death.")]
-    [OptionMenu(OptionSectionType.General, "Load Latest on Death")]
+    [OptionMenu(OptionSectionType.General, "Load Latest on Death", spacer: true)]
     public readonly ConfigValue<bool> LoadLatestOnDeath = new(true);
 
     [ConfigInfo("Automatically save at level start.", save: true)]
@@ -60,12 +53,10 @@ public class ConfigGame
     public readonly ConfigValue<bool> QuickSaveConfirm = new(true);
 
 
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.General, "", disabled: true, spacer: true)]
-    public readonly ConfigValueHeader CheatHeader = new("Cheats");
+    // Cheats
 
     [ConfigInfo("Mark lines and sectors that are activated by a special in the automap.")]
-    [OptionMenu(OptionSectionType.General, "Mark Specials", spacer: false)]
+    [OptionMenu(OptionSectionType.General, "Mark Specials", spacer: true)]
     public readonly ConfigValue<bool> MarkSpecials = new(false);
 
     [ConfigInfo("Mark secret sectors in the automap.")]
@@ -73,12 +64,10 @@ public class ConfigGame
     public readonly ConfigValue<bool> MarkSecrets = new(false);
 
     
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.General, "", disabled: true, spacer: true)]
-    public readonly ConfigValueHeader DifficultyHeader = new("Difficulty");
+    // Difficulty modifiers
 
     [ConfigInfo("Remove all monsters from the game.", save: false, serialize: true)]
-    [OptionMenu(OptionSectionType.General, "No Monsters")]
+    [OptionMenu(OptionSectionType.General, "No Monsters", spacer: true)]
     public readonly ConfigValue<bool> NoMonsters = new(false);
 
     [ConfigInfo("Reset the player's inventory at the start of each map.", save: false, serialize: true)]

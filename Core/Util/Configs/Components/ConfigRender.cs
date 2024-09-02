@@ -40,9 +40,7 @@ public class ConfigRenderFilter
 
 public class ConfigRender
 {
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.Render, "", disabled: true)]
-    public readonly ConfigValueHeader FrameRateHeader = new("Frame Rate");
+    // VSync and rate limiting
 
     [ConfigInfo("Vertical synchronization. Prevents tearing, but affects input processing (unless you have G-Sync).")]
     [OptionMenu(OptionSectionType.Render, "VSync")]
@@ -61,12 +59,10 @@ public class ConfigRender
     });
 
 
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.Render, "", disabled: true, spacer: true)]
-    public readonly ConfigValueHeader TextureHeader = new("Textures");
+    // Textures and filtering
 
     [ConfigInfo("Anisotropic filtering amount. A value of 1 is the same as being off. True color required.")]
-    [OptionMenu(OptionSectionType.Render, "Anisotropy")]
+    [OptionMenu(OptionSectionType.Render, "Anisotropy", spacer: true)]
     public readonly ConfigValue<int> Anisotropy = new(8, GreaterOrEqual(1));
     
     public readonly ConfigRenderFilter Filter = new();
@@ -76,12 +72,10 @@ public class ConfigRender
     public readonly ConfigValue<bool> NullTexture = new(false);
 
 
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.Render, "", disabled: true, spacer: true)]
-    public readonly ConfigValueHeader ViewHeader = new("View");
+    // Viewport
 
     [ConfigInfo("Field of view.")]
-    [OptionMenu(OptionSectionType.Render, "Field Of View")]
+    [OptionMenu(OptionSectionType.Render, "Field Of View", spacer:true)]
     public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60.0, 120.0));
 
     [ConfigInfo("Max render distance.")]
@@ -89,12 +83,10 @@ public class ConfigRender
     public readonly ConfigValue<int> MaxDistance = new(0);
 
 
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.Render, "", disabled: true, spacer: true)]
-    public readonly ConfigValueHeader LightingHeader = new("Lighting");
+    // Lighting effects
 
     [ConfigInfo("Set light projection to banded or smooth. Smooth only supported with true color rendering.")]
-    [OptionMenu(OptionSectionType.Render, "Light Mode")]
+    [OptionMenu(OptionSectionType.Render, "Light Mode", spacer: true)]
     public readonly ConfigValue<RenderLightMode> LightMode = new(RenderLightMode.Smooth);
 
     [ConfigInfo("Added light level offset.")]
@@ -106,12 +98,10 @@ public class ConfigRender
     public readonly ConfigValue<bool> Fullbright = new(false);
 
 
-    [ConfigInfo("", save: false)]
-    [OptionMenu(OptionSectionType.Render, "", disabled: true, spacer: true)]
-    public readonly ConfigValueHeader EffectsHeader = new("Effects");
+    // Misc. Visual effects
 
     [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
-    [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Contrast")]
+    [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Contrast", spacer: true)]
     public readonly ConfigValue<bool> FakeContrast = new(true);
 
     [ConfigInfo("Render sprites over floors/ceilings. Sprites always clipped to walls. May slow down rendering.", mapRestartRequired: true)]
