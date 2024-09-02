@@ -48,7 +48,7 @@ public class TransitionLayer : IGameLayer, IAnimationLayer
     {
         if (m_inited)
             return;
-        ctx.DrawTransition(m_type, 0, true);
+        ctx.HandleTransition(m_type, null, true);
         m_inited = true;
     }
 
@@ -56,7 +56,7 @@ public class TransitionLayer : IGameLayer, IAnimationLayer
     {
         Animation.Tick();
         float progress = m_started ? (float)Animation.GetInterpolated(1) : 0;
-        ctx.DrawTransition(m_type, progress, false);
+        ctx.HandleTransition(m_type, progress, null);
     }
 
     public void HandleInput(IConsumableInput input) { }

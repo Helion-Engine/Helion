@@ -68,6 +68,7 @@ public class TransitionRenderer : IDisposable
         GL.BlitFramebuffer(0, 0, sourceBuffer.Dimension.Width, sourceBuffer.Dimension.Height,
             0, 0, m_startBuffer.Dimension.Width, m_startBuffer.Dimension.Height,
             ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Linear);
+        sourceBuffer.BindDraw();
     }
 
     private void UploadVertices()
@@ -90,6 +91,7 @@ public class TransitionRenderer : IDisposable
         if (m_program == null)
             return;
 
+        m_startBuffer.BindRead();
         targetBuffer.BindDraw();
         GL.Viewport(0, 0, targetBuffer.Dimension.Width, targetBuffer.Dimension.Height);
         m_program.Bind();

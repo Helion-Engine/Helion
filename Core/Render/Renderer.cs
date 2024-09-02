@@ -410,7 +410,8 @@ public partial class Renderer : IDisposable
                     var tranCmd = renderCommands.TransitionCommands[cmd.Index];
                     if (tranCmd.Start == true)
                         m_transitionRenderer.PrepareNewTransition(m_mainFramebuffer, tranCmd.Type);
-                    m_transitionRenderer.Render(m_mainFramebuffer, tranCmd.Progress);
+                    if (tranCmd.Progress.HasValue)
+                        m_transitionRenderer.Render(m_mainFramebuffer, tranCmd.Progress.Value);
                     break;
                 default:
                     Fail($"Unsupported render command type: {cmd.Type}");

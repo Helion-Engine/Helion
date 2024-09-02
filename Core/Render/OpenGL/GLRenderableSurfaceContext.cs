@@ -99,5 +99,5 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
         action(m_worldRenderContext);
     }
 
-    public void DrawTransition(TransitionType type, float progress, bool start) => Commands.DrawTransition(type, progress, start);
+    public void HandleTransition(TransitionType type, float? progress, bool? start) => Commands.HandleTransition(type, progress, start);
 }
