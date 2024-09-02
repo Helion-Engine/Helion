@@ -26,6 +26,7 @@ public class LoadingLayer : IGameLayer
     public string LoadingText { get; set; }
     public string LoadingImage { get; set; } = string.Empty;
     private readonly bool m_showLoadingImage;
+    public bool HasImage => m_showLoadingImage && LoadingImage.Length > 0;
     public bool ShowSpinner { get; set; } = true;
 
     public LoadingLayer(ArchiveCollection archiveCollection, IConfig config, string text, bool showLoadingImage = true)
@@ -37,14 +38,16 @@ public class LoadingLayer : IGameLayer
         m_stopwatch.Start();
     }
 
-    public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
+    public void RenderImage(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
-        if (m_showLoadingImage && LoadingImage.Length > 0)
-        {
-            hud.FillBox(new(new Vec2I(0, 0), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black);
-            hud.RenderFullscreenImage(LoadingImage);
-        }
+        if (!HasImage)
+            return;
+        hud.FillBox(new(new Vec2I(0, 0), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black);
+        hud.RenderFullscreenImage(LoadingImage);
+    }
 
+    public void RenderProgress(IRenderableSurfaceContext ctx, IHudRenderContext hud)
+    {
         int fontSize = m_config.Hud.GetScaled(20);
         int yOffset = -m_config.Hud.GetScaled(8);
         var dim = hud.MeasureText(LoadingText, ConsoleFont, fontSize);
