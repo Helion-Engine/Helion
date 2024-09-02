@@ -479,16 +479,10 @@ public class ListedConfigSection : IOptionSection
 
     private void AdvanceToValidRow(int direction)
     {
-        bool ranOnce = false;
-
-        while (ranOnce == false || (m_currentRowIndex < m_configValues.Count && m_configValues[m_currentRowIndex].Attr.Disabled))
-        {
-            m_currentRowIndex += direction;
-            if (m_currentRowIndex < 0)
-                m_currentRowIndex += m_configValues.Count + 1;
-            m_currentRowIndex %= m_configValues.Count + 1;
-            ranOnce = true;
-        }
+        m_currentRowIndex += direction;
+        if (m_currentRowIndex < 0)
+            m_currentRowIndex += m_configValues.Count + 1;
+        m_currentRowIndex %= m_configValues.Count + 1;
 
         m_soundManager.PlayStaticSound(MenuSounds.Cursor);
     }
