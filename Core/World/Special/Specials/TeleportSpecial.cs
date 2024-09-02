@@ -30,6 +30,7 @@ public struct TeleportSpecial
     private readonly int m_tag;
     private readonly int m_lineId;
     private readonly bool m_teleportLineReverse;
+    private readonly bool m_keepHeight;
     private readonly TeleportFog m_fogFlags;
     private readonly TeleportType m_type;
 
@@ -48,7 +49,7 @@ public struct TeleportSpecial
     }
 
     public TeleportSpecial(in EntityActivateSpecial args, IWorld world, int tid, int tag, TeleportFog flags,
-        TeleportType type = TeleportType.Doom)
+        TeleportType type = TeleportType.Doom, bool keepHeight = false)
     {
         m_args = args;
         m_world = world;
@@ -58,6 +59,7 @@ public struct TeleportSpecial
             m_tag = -1;
         m_fogFlags = flags;
         m_type = type;
+        m_keepHeight = keepHeight;
     }
 
     public TeleportSpecial(in EntityActivateSpecial args, IWorld world, int lineId, TeleportFog flags,
@@ -81,6 +83,8 @@ public struct TeleportSpecial
         if (WorldStatic.FinalDoomTeleport)
             pos.Z = entity.Position.Z;
 
+        double zFromFloor = entity.Position.Z - entity.Sector.Floor.Z;
+
         bool isMonsterCloset = (entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0;
         Vec3D oldPosition = entity.Position;
         if (Teleport(entity, pos, angle, offsetZ))
@@ -92,6 +96,12 @@ public struct TeleportSpecial
             {
                 Vec3D offsetUnit = Vec2D.UnitCircle(entity.AngleRadians).To3D(0);
                 m_world.CreateTeleportFog(entity.Position + (offsetUnit * Constants.TeleportOffsetDist));
+            }
+
+            if (m_keepHeight)
+            {
+                entity.Position.Z += zFromFloor;
+                entity.PrevPosition.Z = entity.Position.Z;
             }
 
             return true;
