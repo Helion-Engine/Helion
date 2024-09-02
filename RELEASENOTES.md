@@ -1,5 +1,11 @@
 # 0.9.5.0 (Pre-release)
 
+## Features:
+  - Initial id24 specification support
+  - SoundFont picker dialog
+  - Minor usability improvement to options menus (can see and restore defaults)
+  - Status bar texture picker dialog
+
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
   - Interpolate weapon raise/lower animations and chainsaw bobbing
@@ -16,10 +22,3 @@
   - Fix an issue that caused the process' working set to grow rapidly on level changes
   - Fix max ammo display on status bar in PWADs that modify this property
   - Fix rendering of taller fonts
-
-## Features:
-  - Initial id24 specification support
-  - SoundFont picker dialog
-  - Minor usability improvement to options menus (can see and restore defaults)
-  - Status bar texture picker dialog
-  
