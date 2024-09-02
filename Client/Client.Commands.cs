@@ -886,12 +886,14 @@ public partial class Client
 
                 case LevelChangeType.Reset:
                     PrepLoadMap();
-                    await LoadMapAsync(world.MapInfo, null, null, e, showLoadingTitlepic: false);
+                    // TODO: we need to grab the framebuffer for the transition before the world is disposed
+                    await LoadMapAsync(world.MapInfo, null, null, e, showLoadingTitlepic: true);//false);
                     break;
 
                 case LevelChangeType.ResetOrLoadLast:
                     PrepLoadMap();
-                    await LoadMapAsync(world.MapInfo, m_lastWorldModel, null, e, showLoadingTitlepic: false);
+                    // TODO: we need to grab the framebuffer for the transition before the world is disposed
+                    await LoadMapAsync(world.MapInfo, m_lastWorldModel, null, e, showLoadingTitlepic: true);//false);
                     break;
             }
         }
