@@ -375,6 +375,26 @@ public partial class Client
         }
     }
 
+    [ConsoleCommand("listmaps", "Lists all maps")]
+    private void ListMaps(ConsoleCommandEventArgs args)
+    {
+        foreach (var map in m_archiveCollection.MapInfo.MapInfo.Maps)
+            HelionLog.Info(map.GetDisplayNameWithPrefix(m_archiveCollection));
+    }
+
+    [ConsoleCommand("printmap", "Prints the current map")]
+    private void PrintMap(ConsoleCommandEventArgs args)
+    {
+        // TODO: it would be nice to print the game title if available,
+        // but it seems uncommon - some exist in gameinfo.txt `startuptitle`s,
+        // and others exist in gameconf.txt `data.title`s
+        var map = m_layerManager.WorldLayer?.CurrentMap;
+        if (map != null)
+            HelionLog.Info(map.GetDisplayNameWithPrefix(m_archiveCollection));
+        else
+            HelionLog.Info("No map loaded");
+    }
+
     [ConsoleCommand("startGame", "Starts a new game")]
     private async Task CommandStartNewGame(ConsoleCommandEventArgs args)
     {
