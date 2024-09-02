@@ -958,8 +958,8 @@ public partial class Client
 
     private void PrepareTransition()
     {
-        if (m_layerManager.TransitionLayer == null)
-            m_layerManager.Add(new TransitionLayer(m_config));
+        m_layerManager.RemoveWithoutAnimation(m_layerManager.TransitionLayer);
+        m_layerManager.Add(new TransitionLayer(m_config));
     }
 
     private void PlayTransition()
