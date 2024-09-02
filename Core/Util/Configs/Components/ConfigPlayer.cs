@@ -7,8 +7,12 @@ namespace Helion.Util.Configs.Components;
 
 public class ConfigPlayer
 {
+    [ConfigInfo("", save: false)]
+    [OptionMenu(OptionSectionType.General, "", disabled: true, spacer: true)]
+    public readonly ConfigValueHeader PlayerHeader = new("Player");
+
     [ConfigInfo("Name of the player.")]
-    [OptionMenu(OptionSectionType.General, "Player Name", spacer: true)]
+    [OptionMenu(OptionSectionType.General, "Player Name")]
     public readonly ConfigValue<string> Name = new("Player", IfEmptyDefaultTo("Player"));
 
     [ConfigInfo("Gender of the player.")]
