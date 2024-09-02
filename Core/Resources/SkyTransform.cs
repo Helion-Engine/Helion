@@ -1,17 +1,24 @@
-﻿using Helion.Geometry;
-using Helion.Geometry.Vectors;
+﻿using Helion.Geometry.Vectors;
 using Helion.Resources.Definitions.Id24;
 using Helion.Util;
 
 namespace Helion.Resources;
 
+public enum SkyTransformType
+{
+    Normal,
+    Fire
+}
+
 public class SkyTransformTexture
 {
+    public string TextureName = string.Empty;
     public int TextureIndex;
     public Vec2F Offset;
     public Vec2F Scroll;
     public Vec2F Scale;
     public Vec2F CurrentScroll;
+    public SkyTransformType Type;
 }
 
 public class SkyTransform
@@ -33,12 +40,23 @@ public class SkyTransform
         {
             Sky = new()
             {
+                TextureName = skyDef.Name,
                 TextureIndex = textureIndex,
                 Offset = CalcOffset((float)skyDef.Mid),
                 Scroll = new((float)(skyDef.ScrollX / Constants.TicksPerSecond), (float)(skyDef.ScrollY / Constants.TicksPerSecond)),
                 Scale = new((float)skyDef.ScaleX, (float)skyDef.ScaleY),
+                Type = FromId24SkyType(skyDef.Type)
             },
             Foreground = CreateSkyTextureFromForegroundTexture(skyDef, foregroundTextureIndex)
+        };
+    }
+
+    private static SkyTransformType FromId24SkyType(SkyType type)
+    {
+        return type switch
+        {
+           SkyType.Fire => SkyTransformType.Fire,
+            _ => SkyTransformType.Normal,
         };
     }
 
@@ -50,10 +68,12 @@ public class SkyTransform
 
         return new()
         {
+            TextureName = foreground.Name,
             TextureIndex = foregroundTextureIndex.Value,
             Offset = CalcOffset((float)foreground.Mid),
             Scroll = new((float)(foreground.ScrollX / Constants.TicksPerSecond), (float)(foreground.ScrollY / Constants.TicksPerSecond)),
             Scale = new((float)foreground.ScaleX, (float)foreground.ScaleY),
+            Type = SkyTransformType.Normal
         };
     }
 

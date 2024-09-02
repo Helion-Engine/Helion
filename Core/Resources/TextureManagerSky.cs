@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Images;
 using Helion.Resources.Definitions.Id24;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Helion.Resources;
 
@@ -43,14 +45,14 @@ public partial class TextureManager
             if (!sky.Name.Equals(texture.Name, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            int? foregroundTextureIndex = null;
+            int? foregroundSkyHandle = null;
             if (sky.ForegroundTex != null)
-                foregroundTextureIndex = CreateForegroundSky(sky, sky.ForegroundTex, foregroundTextureIndex);
+                foregroundSkyHandle = CreateForegroundSky(sky, sky.ForegroundTex);
 
             if (sky.Fire != null)
-                CreateSkyFireTextures(sky, sky.Fire);
+                CreateSkyFireTexture(sky, sky.Fire);
 
-            var skyTransform = SkyTransform.FromId24SkyDef(texture.Index, foregroundTextureIndex, sky);
+            var skyTransform = SkyTransform.FromId24SkyDef(texture.Index, foregroundSkyHandle, sky);
             m_skyTransforms.Add(skyTransform);
             m_textureIndexToSkyTransform[texture.Index] = skyTransform;
             break;
@@ -60,7 +62,7 @@ public partial class TextureManager
         return texture;
     }
 
-    private int? CreateForegroundSky(SkyDef sky, SkyForeTex skyForeTex, int? foregroundTextureIndex)
+    private int? CreateForegroundSky(SkyDef sky, SkyForeTex skyForeTex)
     {
         if (sky.Type != SkyType.WithForeground)
         {
@@ -68,20 +70,39 @@ public partial class TextureManager
             return null;
         }
 
-        var foregroundTexture = GetTexture(skyForeTex.Name, ResourceNamespace.Textures);
-        LoadTextureImage(foregroundTexture.Index, GetImageOptions.ClearBlackPixels);
-        if (foregroundTexture != null)
-            foregroundTextureIndex = foregroundTexture.Index;
-        return foregroundTextureIndex;
+        var fireSkyDef = m_archiveCollection.Definitions.Id24SkyDefinition.Data.Skies
+            .FirstOrDefault(x => x.Type == SkyType.Fire && x.Name.Equals(skyForeTex.Name, StringComparison.OrdinalIgnoreCase));
+
+        if (fireSkyDef != null)
+            return CreateSkyFireTexture(fireSkyDef, fireSkyDef.Fire);
+
+        return CreateSkyForegroundTexture(skyForeTex.Name);
     }
 
-    private void CreateSkyFireTextures(SkyDef sky, SkyFire fire)
+    private int? CreateSkyForegroundTexture(string textureName)
+    {
+        var foregroundTexture = GetTexture(textureName, ResourceNamespace.Textures);
+        LoadTextureImage(foregroundTexture.Index, GetImageOptions.ClearBlackPixels);
+        if (foregroundTexture != null)
+            return foregroundTexture.Index;
+        return null;
+    }
+
+    private int? CreateSkyFireTexture(SkyDef sky, SkyFire? fire)
     {
         if (sky.Type != SkyType.Fire)
         {
             Log.Error($"Sky {sky.Name} with Fire definition has invalid type ${sky.Type}");
-            return;
+            return null;
         }
+
+        if (fire == null)
+        {
+            Log.Error($"Sky {sky.Name} with Fire type missing fire definition");
+            return null;
+        }
+
+        return CreateSkyForegroundTexture(sky.Name);
     }
 }
 
