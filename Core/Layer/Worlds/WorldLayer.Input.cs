@@ -153,6 +153,12 @@ public partial class WorldLayer
             ChangeAutoMapOffsetX(true);
         else if (IsCommandContinuousHold(Constants.Input.AutoMapLeft, input))
             ChangeAutoMapOffsetX(false);
+        else if (IsCommandPressed(Constants.Input.AutoMapAddMarker, input))
+            m_console.SubmitInputText("mark.add");
+        else if (IsCommandPressed(Constants.Input.AutoMapRemoveNearbyMarkers, input))
+            m_console.SubmitInputText("mark.remove");
+        else if (IsCommandPressed(Constants.Input.AutoMapClearAllMarkers, input))
+            m_console.SubmitInputText("mark.clear");
     }
 
     private static int GetChangeAmount(IConsumableInput input, int baseAmount, int scrollAmount)

@@ -56,6 +56,9 @@ public class KeyBindingSection : IOptionSection
         { Constants.Input.AutoMapDown, "AutoMap Down" },
         { Constants.Input.AutoMapLeft, "AutoMap Left" },
         { Constants.Input.AutoMapRight, "AutoMap Right" },
+        { Constants.Input.AutoMapAddMarker, "AutoMap Add Marker" },
+        { Constants.Input.AutoMapRemoveNearbyMarkers, "AutoMap Remove Nearby" },
+        { Constants.Input.AutoMapClearAllMarkers, "AutoMap Clear All" },
     };
 
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();

@@ -5,6 +5,7 @@
   - SoundFont picker dialog
   - Minor usability improvement to options menus (can see and restore defaults)
   - Status bar texture picker dialog
+  - Added automap marker functionality to key binding options
 
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
@@ -22,3 +23,4 @@
   - Fix an issue that caused the process' working set to grow rapidly on level changes
   - Fix max ammo display on status bar in PWADs that modify this property
   - Fix rendering of taller fonts
+  - Fix issue with clearing multiple automap markers
