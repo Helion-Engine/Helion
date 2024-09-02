@@ -139,6 +139,8 @@ public class ConfigKeyMapping : IConfigKeyMapping
             break;
         }
 
+        if (removed)
+            Changed = true;
         return removed;
     }
 
