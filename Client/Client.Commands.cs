@@ -343,7 +343,8 @@ public partial class Client
         m_layerManager.LastSave = new(saveGame, worldModel, string.Empty, true);
         PrepLoadMap();
         await LoadMapAsync(GetMapInfo(worldModel.MapName), worldModel, null,
-            showLoadingTitlepic: world == null || !world.MapInfo.MapName.EqualsIgnoreCase(worldModel.MapName));
+        // TODO: need to allow transition layer to grab framebuffer before world is disposed
+            showLoadingTitlepic: true);//world == null || !world.MapInfo.MapName.EqualsIgnoreCase(worldModel.MapName));
     }
 
     [ConsoleCommand("map", "Starts a new world with the map provided")]
