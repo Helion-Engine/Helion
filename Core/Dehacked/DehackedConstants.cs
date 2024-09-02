@@ -1782,6 +1782,7 @@ public partial class DehackedDefinition
         { ThingState.PLS1EXP2,      new("PlasmaBall1::Death",           1) },
         { ThingState.PLS1EXP3,      new("PlasmaBall1::Death",           2) },
         { ThingState.PLS1EXP4,      new("PlasmaBall1::Death",           3) },
+        { ThingState.PLS1EXP5,      new("PlasmaBall1::Death",           4) },
 
         { ThingState.PLS2BALL,      new("PlasmaBall2::Spawn",           0) },
         { ThingState.PLS2BALL2,     new("PlasmaBall2::Spawn",           1) },
