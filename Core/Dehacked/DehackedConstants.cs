@@ -592,6 +592,7 @@ public partial class DehackedDefinition
         { "COUNTITEM", 0x00800000 },
         { "SKULLFLY", 0x01000000 },
         { "NOTDMATCH", 0x02000000 },
+        { "TRANSLATION", 0x04000000 },
         { "TRANSLATION1", 0x04000000 },
         { "TRANSLATION2", 0x08000000 },
         { "TOUCHY", 0x10000000 },
