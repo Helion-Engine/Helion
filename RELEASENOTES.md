@@ -6,6 +6,7 @@
   - Minor usability improvement to options menus (can see and restore defaults)
   - Status bar texture picker dialog
   - Added automap marker functionality to key binding options
+  - "Melt" screen wipe added
 
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
