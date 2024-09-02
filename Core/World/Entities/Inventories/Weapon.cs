@@ -36,12 +36,12 @@ public class Weapon : InventoryItem, ITickable
         Owner = owner;
 
         if (frameStateModel == null)
-            FrameState = new FrameState(owner, definition, false);
+            FrameState = new FrameState(owner, definition, FrameStateOptions.PlayerSprite);
         else
             FrameState = new FrameState(owner, definition, frameStateModel.Value);
 
         if (flashStateModel == null)
-            FlashState = new FrameState(owner, definition, false);
+            FlashState = new FrameState(owner, definition, FrameStateOptions.None);
         else
             FlashState = new FrameState(owner, definition, flashStateModel.Value);
 
