@@ -26,7 +26,7 @@ public enum RenderCommandType
     Viewport,
     DrawVirtualFrameBuffer,
     Automap,
-    Hud,
+    DrawQueuedHudImages,
     Transition,
 }
 
@@ -154,9 +154,9 @@ public class RenderCommands
         AutomapCommands.Add(new DrawWorldCommand(world, camera, gametick, fraction, viewerEntity, drawAutomap, automapOffset, automapScale));
     }
 
-    public void DrawHud()
+    public void DrawQueuedHudImages()
     {
-        Commands.Add(new RenderCommand(RenderCommandType.Hud, 0));
+        Commands.Add(new RenderCommand(RenderCommandType.DrawQueuedHudImages, 0));
     }
 
     public void Viewport(Dimension dimension, Vec2I? offset = null)
@@ -172,6 +172,7 @@ public class RenderCommands
 
     public void DrawTransition(TransitionType type, float progress, bool start)
     {
+        Commands.Add(new RenderCommand(RenderCommandType.Transition, 0));
         CurrentTransitionCommand = new TransitionCommand(type, progress, start);
     }
 

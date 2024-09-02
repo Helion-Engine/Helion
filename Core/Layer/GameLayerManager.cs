@@ -659,7 +659,6 @@ public class GameLayerManager : IGameLayerManager
 
         m_profiler.Render.MiscLayers.Start();
         ctx.Hud(m_hudContext, m_renderHudAction);
-        TransitionLayer?.Render(m_ctx);
         m_profiler.Render.MiscLayers.Stop();
     }
 
@@ -697,6 +696,10 @@ public class GameLayerManager : IGameLayerManager
 
         ReadThisLayer?.Render(hudCtx);
         IwadSelectionLayer?.Render(m_ctx, hudCtx);
+        // flush queue with HUD etc to screen, so we can refill the queue with
+        // loading screen elements to draw over the transition layer
+        m_hudRenderCtx.DrawQueuedHudImages();
+        TransitionLayer?.Render(m_ctx);
         LoadingLayer?.Render(m_ctx, m_hudRenderCtx);
 
         RenderConsole(hudCtx);
@@ -715,7 +718,7 @@ public class GameLayerManager : IGameLayerManager
         if (m_config.Hud.AutoMap.Overlay)
         {
             worldLayer.RenderHud(m_ctx, RenderHudOptions.Weapon | RenderHudOptions.Crosshair | RenderHudOptions.BackDrop);
-            m_hudRenderCtx.DrawHud();
+            m_hudRenderCtx.DrawQueuedHudImages();
             worldLayer.RenderAutomap(m_ctx);
             worldLayer.RenderHud(m_ctx, RenderHudOptions.Hud);
         }

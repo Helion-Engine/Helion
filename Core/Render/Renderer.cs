@@ -400,7 +400,7 @@ public partial class Renderer : IDisposable
                 case RenderCommandType.Automap:
                     HandleRenderAutomapCommand(renderCommands.AutomapCommands[cmd.Index], m_viewport);
                     break;
-                case RenderCommandType.Hud:
+                case RenderCommandType.DrawQueuedHudImages:
                     DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
                     break;
                 case RenderCommandType.Viewport:
@@ -411,7 +411,7 @@ public partial class Renderer : IDisposable
                     BlitVirtualFramebufferToMain();
                     break;
                 case RenderCommandType.Transition:
-                    Fail("transition command shouldn't be here");
+                    m_transitionRenderer.Render(m_mainFramebuffer, renderCommands.CurrentTransitionCommand!.Value.Progress);
                     break;
                 default:
                     Fail($"Unsupported render command type: {cmd.Type}");
@@ -423,9 +423,6 @@ public partial class Renderer : IDisposable
 
         if (!virtualFrameBufferDraw)
             BlitVirtualFramebufferToMain();
-
-        if (renderCommands.CurrentTransitionCommand != null)
-            m_transitionRenderer.Render(m_mainFramebuffer, renderCommands.CurrentTransitionCommand.Value.Progress);
 
         // draw main framebuffer to default
         // BlitMainFramebufferToDefault();
