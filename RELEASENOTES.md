@@ -25,3 +25,8 @@
   - Fix max ammo display on status bar in PWADs that modify this property
   - Fix rendering of taller fonts
   - Fix issue with clearing multiple automap markers
+  - Fix self-referencing sectors to not block hitscan attacks and line of sight checks to match original doom behavior
+  - Fix boom silent teleport specials to keep height from floor
+  - Added missing PLS1EXP5 dehacked lookup (fixes decoration in Frozen Heart)
+  - Map dehacked TRANSLATION bit memnomic to TRANSLATION1
+  - Fix dehacked frame misc1/2 to correctly set weapon sprite offsets through the weapon frame state only
