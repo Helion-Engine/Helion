@@ -2776,7 +2776,11 @@ public static class EntityActionFunctions
 
         Vec3D pos = entity.Position;
         pos.Z += entity.Frame.DehackedMisc2;
-        WorldStatic.EntityManager.Create(def, pos, 0, 0, 0);
+        var spawnEntity = WorldStatic.EntityManager.Create(def, pos, 0, 0, 0);
+        if (spawnEntity == null)
+            return;
+
+        spawnEntity.Flags.Friendly = entity.Flags.Friendly;
     }
 
     private static void A_Face(Entity entity)
