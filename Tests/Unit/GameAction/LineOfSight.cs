@@ -38,18 +38,18 @@ namespace Helion.Tests.Unit.GameAction
             World.CheckLineOfSight(SightThing, Player).Should().BeTrue();
 
             SightThing.AngleRadians = GameActions.GetAngle(Bearing.North);
-            World.GetLineOfSightPlayer(SightThing, allaround: true).Should().Be(Player);
-            World.GetLineOfSightPlayer(SightThing, allaround: false).Should().BeNull();
+            World.GetLineOfSightPlayer(SightThing, allAround: true).Should().Be(Player);
+            World.GetLineOfSightPlayer(SightThing, allAround: false).Should().BeNull();
 
             SightThing.AngleRadians = GameActions.GetAngle(Bearing.East);
-            World.GetLineOfSightPlayer(SightThing, allaround: false).Should().BeNull();
+            World.GetLineOfSightPlayer(SightThing, allAround: false).Should().BeNull();
 
             GameActions.SetEntityPosition(World, Player, new Vec2D(-254, -480));
-            World.GetLineOfSightPlayer(SightThing, allaround: false).Should().Be(Player);
+            World.GetLineOfSightPlayer(SightThing, allAround: false).Should().Be(Player);
 
             GameActions.SetEntityPosition(World, Player, new Vec2D(-257, -480));
             SightThing.AngleRadians = GameActions.GetAngle(Bearing.West);
-            World.GetLineOfSightPlayer(SightThing, allaround: false).Should().Be(Player);
+            World.GetLineOfSightPlayer(SightThing, allAround: false).Should().Be(Player);
         }
 
         [Fact(DisplayName = "Line of sight obstructed by one sided line")]

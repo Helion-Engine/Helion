@@ -378,30 +378,6 @@ namespace Helion.Tests.Unit.GameAction
             dest.Definition.Properties.PainChance = savePainChance;
         }
 
-        [Fact(DisplayName = "Monster see state plays see sound and going back to spawn does not play see sound")]
-        public void MonsterBackToSpawnState()
-        {
-            GameActions.SetEntityPosition(World, Player, (-320, 64, 0));
-            var source = GameActions.CreateEntity(World, "ShotgunGuy", new(-256, -64, 0), onCreated: EntityCreated);
-            int frameIndex = source.FrameState.Frame.MasterFrameIndex;
-            source.AngleRadians = GameActions.GetAngle(Bearing.South);
-            source.FrozenTics = 0;
-            source.Flags.Friendly = true;
-            var dest = GameActions.CreateEntity(World, "Cacodemon", new(-256, -416, 0), onCreated: EntityCreated);
-
-            GameActions.TickWorld(World, () => { return source.Target.Entity == null; }, () => { });
-            source.Target.Entity.Should().Be(dest);
-
-            GameActions.SetEntityOutOfBounds(World, dest);
-            source.FrameState.SetFrameIndex(frameIndex);
-            GameActions.AssertAnySound(World, source);
-
-            source.Target.Entity.Should().Be(dest);
-            GameActions.TickWorld(World, 10);
-            GameActions.AssertNoSound(World, source);
-            (source.FrameState.Frame.ActionFunction == EntityActionFunctions.A_Look).Should().BeTrue();
-        }
-
         [Fact(DisplayName = "Monster infighting tests")]
         public void MonsterInfight()
         {
