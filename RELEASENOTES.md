@@ -30,3 +30,4 @@
   - Added missing PLS1EXP5 dehacked lookup (fixes decoration in Frozen Heart)
   - Map dehacked TRANSLATION bit memnomic to TRANSLATION1
   - Fix dehacked frame misc1/2 to correctly set weapon sprite offsets through the weapon frame state only
+  - Fix rendering that would stop sprites from rendering behind two-sided transparent walls when not using emulate vanilla rendering

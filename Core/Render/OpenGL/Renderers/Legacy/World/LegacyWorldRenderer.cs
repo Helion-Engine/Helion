@@ -281,12 +281,12 @@ public class LegacyWorldRenderer : WorldRenderer
             SetStaticUniforms(renderInfo);
             m_geometryRenderer.RenderStaticTwoSidedWalls();
 
+            m_entityRenderer.RenderNonAlpha(renderInfo);
+            m_entityRenderer.RenderAlpha(renderInfo);
+
             m_interpolationProgram.Bind();
             GL.ActiveTexture(TextureUnit.Texture0);
             m_worldDataManager.RenderAlphaWalls();
-
-            m_entityRenderer.RenderNonAlpha(renderInfo);
-            m_entityRenderer.RenderAlpha(renderInfo);
 
             m_primitiveRenderer.Render(renderInfo);
             return;
