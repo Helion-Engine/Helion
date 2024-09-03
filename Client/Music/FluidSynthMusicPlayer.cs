@@ -65,8 +65,6 @@ public class FluidSynthMusicPlayer : IMusicPlayer
             if (options.HasFlag(MusicPlayerOptions.Loop))
                 m_player.SetLoop(-1);
 
-            SetVolumeInternal();
-
             m_player.Add(m_lastFile);
             m_player.Play();
 
@@ -95,14 +93,14 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
     public void EnsureSoundFont(FileInfo soundFontPath)
     {
-        if (!string.IsNullOrEmpty(m_soundFontLoaded))
-        {
-            m_synth.UnloadSoundFont(m_soundFontCounter, true);
-            m_soundFontLoaded = string.Empty;
-        }
-
         try
         {
+            if (!string.IsNullOrEmpty(m_soundFontLoaded))
+            {
+                m_synth.UnloadSoundFont(m_soundFontCounter, true);
+                m_soundFontLoaded = string.Empty;
+            }
+
             if (soundFontPath.FullName != m_soundFontLoaded)
             {
                 m_synth.LoadSoundFont(soundFontPath.FullName, true);
@@ -137,7 +135,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         if (m_disposed)
             return;
 
-        Stop();
+        Stop(); // disposes m_player
         try
         {
             m_audioDriver.Dispose();
