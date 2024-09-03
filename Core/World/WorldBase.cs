@@ -1419,9 +1419,11 @@ public abstract partial class WorldBase : IWorld
         intersections.Clear();
         BlockmapTraverser.ShootTraverse(seg, intersections);
 
-        for (int i = 0; i < intersections.Length; i++)
+        var data = intersections.Data;
+        int length = intersections.Length;
+        for (int i = 0; i < length; i++)
         {
-            BlockmapIntersect bi = intersections[i];
+            ref BlockmapIntersect bi = ref data[i];
             if (bi.Line != null)
             {
                 if (damage != Constants.HitscanTestDamage && bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.HitscanImpactsWall))
@@ -1455,11 +1457,22 @@ public abstract partial class WorldBase : IWorld
                 }
 
                 GetOrderedSectors(bi.Line, start, out Sector front, out Sector back);
-                if (IsSkyClipTwoSided(front, back, intersect))
-                    break;
 
-                floorZ = front.ToFloorZ(intersect);
-                ceilingZ = front.ToCeilingZ(intersect);
+
+                if (bi.Line.Front.Sector != bi.Line.Back.Sector)
+                {
+                    if (IsSkyClipTwoSided(front, back, intersect))
+                        break;
+
+                    floorZ = front.ToFloorZ(intersect);
+                    ceilingZ = front.ToCeilingZ(intersect);
+                }
+                else
+                {
+                    // Emulate doom behavior where the line would be ignored if self referencing
+                    floorZ = double.MinValue;
+                    ceilingZ = double.MaxValue;
+                }
 
                 if (intersect.Z < floorZ || intersect.Z > ceilingZ)
                 {
@@ -1469,8 +1482,9 @@ public abstract partial class WorldBase : IWorld
                     break;
                 }
 
-                LineOpening opening = PhysicsManager.GetLineOpening(bi.Line);
-                if ((opening.FloorZ > intersect.Z && intersect.Z > floorZ) || (opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
+                var opening = PhysicsManager.GetLineOpening(bi.Line);
+                if ((floorZ != double.MinValue && opening.FloorZ > intersect.Z && intersect.Z > floorZ) || 
+                    (ceilingZ != double.MaxValue && opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
                 {
                     returnValue = bi;
                     break;

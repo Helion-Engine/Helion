@@ -196,4 +196,26 @@ public class Shoot
         foreach (var imp in imps)
             imp.IsDead.Should().BeTrue();
     }
+
+    [Fact(DisplayName = "Self referencing sector with blocking floor doesn't block hitscan")]
+    public void SelfReferencingSectorFloor()
+    {
+        GameActions.SetEntityPosition(World, Player, (-896, -224, 0));
+        Player.AngleRadians = GameActions.GetAngle(Bearing.North);
+        World.FirePlayerHitscanBullets(Player, 1, 0, 0, 0, 2048, false, DamageFunc);
+        var bulletPuff = GameActions.FindEntity(World, "BulletPuff");
+        bulletPuff.Should().NotBeNull();
+        bulletPuff!.Position.ApproxEquals((-896, 62, 36)).Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "Self referencing sector with blocking ceiling doesn't block hitscan")]
+    public void SelfReferencingSectorCeiling()
+    {
+        GameActions.SetEntityPosition(World, Player, (-896, -224, 0));
+        Player.AngleRadians = GameActions.GetAngle(Bearing.South);
+        World.FirePlayerHitscanBullets(Player, 1, 0, 0, 0, 2048, false, DamageFunc);
+        var bulletPuff = GameActions.FindEntity(World, "BulletPuff");
+        bulletPuff.Should().NotBeNull();
+        bulletPuff!.Position.ApproxEquals((-896, -510, 36)).Should().BeTrue();
+    }
 }
