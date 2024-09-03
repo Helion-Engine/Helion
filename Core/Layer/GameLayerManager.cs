@@ -693,17 +693,16 @@ public class GameLayerManager : IGameLayerManager
         EndGameLayer?.Render(m_ctx, hudCtx);
         ReadThisLayer?.Render(hudCtx);
         IwadSelectionLayer?.Render(m_ctx, hudCtx);
+
         // if the loading layer has an image to render, we'll draw it to screen,
         // allow the transition layer to copy it to framebuffer, and then draw
         // the progress bar over it
         LoadingLayer?.RenderImage(m_ctx, m_hudRenderCtx);
         m_hudRenderCtx.DrawHud();
         if (LoadingLayer?.HasImage == true)
-        {
             TransitionLayer?.GrabFramebufferIfNeeded(m_ctx);
-            m_ctx.ClearDepth();
-        }
         TransitionLayer?.Render(m_ctx);
+        m_ctx.ClearDepth();
 
         if (MenuLayer != null)
             RenderWithAlpha(hudCtx, MenuLayer.Animation, RenderMenu);
