@@ -4,6 +4,7 @@ using NFluidsynth;
 using NLog;
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client.Music;
@@ -26,6 +27,12 @@ public class FluidSynthMusicPlayer : IMusicPlayer
     {
         m_settings = new Settings();
         m_settings[ConfigurationKeys.SynthAudioChannels].IntValue = 2;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            m_settings[ConfigurationKeys.AudioDriver].StringValue = "sdl2";
+        }
+
         m_synth = new(m_settings);
         m_audioDriver = new(m_synth.Settings, m_synth);
         EnsureSoundFont(soundFontFile);
