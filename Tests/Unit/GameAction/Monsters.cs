@@ -400,7 +400,6 @@ namespace Helion.Tests.Unit.GameAction
             Player.Health = 100;
         }
 
-
         [Fact(DisplayName = "Friendly monster sets target to player when monster in sight")]
         public void FriendlyMonsterTargetPlayerInSight()
         {
@@ -420,6 +419,7 @@ namespace Helion.Tests.Unit.GameAction
             source.FrameState.SetFrameIndex(frameIndex);
             World.CheckLineOfSight(source, Player).Should().BeTrue();
             source.Target.Entity.Should().Be(Player);
+            GameActions.SetEntityOutOfBounds(World, Player);
         }
 
         [Fact(DisplayName = "Friendly monster sets target to player when out of sight")]
