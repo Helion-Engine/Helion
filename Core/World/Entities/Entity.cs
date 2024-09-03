@@ -630,6 +630,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             return false;
 
         Entity? damageSource = source;
+        bool canRetaliate = false;
         bool willRetaliate = false;
         if (source != null)
         {
@@ -637,7 +638,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             if (!CanDamage(source, damageType))
                 return false;
 
-            willRetaliate = WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != Target.Entity && damageSource != this;
+            canRetaliate = WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != this;
+            willRetaliate = canRetaliate && damageSource != Target.Entity;
             if (willRetaliate && !damageSource.Flags.NoTarget && !IsFriend(damageSource))
                 SetTarget(damageSource);
         }
@@ -674,10 +676,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         if (Flags.Skullfly)
             Velocity = Vec3D.Zero;
 
+        if (damageSource != null && canRetaliate && !Flags.QuickToRetaliate)
+            Threshold = Properties.DefThreshold;
         if (damageSource != null && willRetaliate)
         {
-            if (!Flags.QuickToRetaliate)
-                Threshold = Properties.DefThreshold;
             if (Definition.SeeState != null && Definition.SpawnState != null && FrameState.FrameIndex == Definition.SpawnState.Value)
                 SetSeeState();
         }
