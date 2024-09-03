@@ -2367,16 +2367,21 @@ public abstract partial class WorldBase : IWorld
         pitch = 0.0;
         entity = null;
 
-        for (int i = 0; i < intersections.Length; i++)
+        var data = intersections.Data;
+        int length = intersections.Length;
+        for (int i = 0; i < length; i++)
         {
-            BlockmapIntersect bi = intersections[i];
+            ref BlockmapIntersect bi = ref data[i];
 
             if (bi.Line != null)
             {
                 if (bi.Line.Back == null)
                     return TraversalPitchStatus.Blocked;
 
-                LineOpening opening = PhysicsManager.GetLineOpening(bi.Line);
+                if (bi.Line.Front.Sector == bi.Line.Back.Sector)
+                    continue;
+
+                var opening = PhysicsManager.GetLineOpening(bi.Line);
                 if (opening.FloorZ < opening.CeilingZ)
                 {
                     double sectorPitch = start.Pitch(opening.FloorZ, bi.SegTime * segLength);

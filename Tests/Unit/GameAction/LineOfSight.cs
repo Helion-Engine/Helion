@@ -17,6 +17,7 @@ namespace Helion.Tests.Unit.GameAction
         private readonly SinglePlayerWorld World;
         private Player Player => World.Player;
         private Entity SightThing => GameActions.GetEntity(World, 1);
+        private Entity SightThing2 => GameActions.GetEntity(World, 2);
 
         public LineOfSight()
         {
@@ -237,6 +238,14 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityPosition(World, Player, new Vec2D(384, -320 - 119));
             World.GetLineOfSightPlayer(SightThing, false).Should().Be(Player);
             World.SetLineOfSightDistance(WorldBase.DefaultLineOfSightDistance);
+        }
+
+
+        [Fact(DisplayName = "Line of sight not blocked by self-referencing sector")]
+        public void LineOfSightSelfReferencing()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec2D(1024, -224));
+            World.GetLineOfSightPlayer(SightThing2, false).Should().Be(Player);
         }
     }
 }
