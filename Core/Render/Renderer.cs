@@ -396,7 +396,7 @@ public partial class Renderer : IDisposable
                 case RenderCommandType.Automap:
                     HandleRenderAutomapCommand(renderCommands.AutomapCommands[cmd.Index], m_viewport);
                     break;
-                case RenderCommandType.DrawQueuedHudImages:
+                case RenderCommandType.Hud:
                     DrawHudImagesIfAnyQueued(m_viewport, m_renderInfo.Uniforms);
                     break;
                 case RenderCommandType.Viewport:

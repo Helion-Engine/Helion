@@ -702,7 +702,7 @@ public class GameLayerManager : IGameLayerManager
         // allow the transition layer to copy it to framebuffer, and then draw
         // the progress bar over it
         LoadingLayer?.RenderImage(m_ctx, m_hudRenderCtx);
-        m_hudRenderCtx.DrawQueuedHudImages();
+        m_hudRenderCtx.DrawHud();
         if (LoadingLayer?.HasImage == true)
         {
             TransitionLayer?.GrabFramebufferIfNeeded(m_ctx);
@@ -727,7 +727,7 @@ public class GameLayerManager : IGameLayerManager
         if (m_config.Hud.AutoMap.Overlay)
         {
             worldLayer.RenderHud(m_ctx, RenderHudOptions.Weapon | RenderHudOptions.Crosshair | RenderHudOptions.BackDrop);
-            m_hudRenderCtx.DrawQueuedHudImages();
+            m_hudRenderCtx.DrawHud();
             worldLayer.RenderAutomap(m_ctx);
             worldLayer.RenderHud(m_ctx, RenderHudOptions.Hud);
         }

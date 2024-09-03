@@ -339,8 +339,8 @@ public class GLHudRenderContext : IHudRenderContext
         // Nothing to do
     }
 
-    public void DrawQueuedHudImages()
+    public void DrawHud()
     {
-        m_commands.DrawQueuedHudImages();
+        m_commands.DrawHud();
     }
 }
