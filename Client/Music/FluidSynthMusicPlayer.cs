@@ -85,6 +85,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
             return;
 
         m_player?.Stop();
+        m_player?.Join();
         m_synth.SystemReset();
 
         m_player?.Dispose();

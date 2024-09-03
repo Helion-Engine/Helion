@@ -91,12 +91,14 @@ public class MusicPlayer : IMusicPlayer
         m_lastDataHash = hash ?? data.CalculateCrc32();
 
         Stop();
+        bool foundValidFormat = false;
 
         if (m_convertedMus.TryGetValue(m_lastDataHash, out var converted) || MusToMidi.TryConvert(data, out converted))
         {
             m_convertedMus[m_lastDataHash] = converted;
             m_musicPlayer = m_fluidSynthPlayer;
             data = converted;
+            foundValidFormat = true;
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
@@ -104,10 +106,12 @@ public class MusicPlayer : IMusicPlayer
             if (NAudioMusicPlayer.IsOgg(data))
             {
                 m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Ogg);
+                foundValidFormat = true;
             }
             else if (NAudioMusicPlayer.IsMp3(data))
             {
                 m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Mp3);
+                foundValidFormat = true;
             }
 
         }
@@ -116,9 +120,10 @@ public class MusicPlayer : IMusicPlayer
             m_convertedMus[m_lastDataHash] = converted;
             m_musicPlayer = m_fluidSynthPlayer;
             data = converted;
+            foundValidFormat = true;
         }
 
-        if (m_musicPlayer == null)
+        if (!foundValidFormat)
         {
             Log.Warn("Unknown/unsupported music format");
             return;
