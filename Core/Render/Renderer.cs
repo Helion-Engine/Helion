@@ -408,7 +408,7 @@ public partial class Renderer : IDisposable
                     break;
                 case RenderCommandType.Transition:
                     var tranCmd = renderCommands.TransitionCommands[cmd.Index];
-                    if (tranCmd.Start == true)
+                    if (tranCmd.Init == true)
                         m_transitionRenderer.PrepareNewTransition(m_mainFramebuffer, tranCmd.Type);
                     if (tranCmd.Progress.HasValue)
                         m_transitionRenderer.Render(m_mainFramebuffer, tranCmd.Progress.Value);

@@ -82,5 +82,5 @@ public interface IRenderableSurfaceContext
 
     void DrawVirtualFrameBuffer();
 
-    void HandleTransition(TransitionType type, float? progress, bool? start);
+    void HandleTransition(TransitionType type, float? progress, bool? init);
 }

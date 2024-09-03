@@ -170,10 +170,10 @@ public class RenderCommands
         Commands.Add(new RenderCommand(RenderCommandType.DrawVirtualFrameBuffer, 0));
     }
 
-    public void HandleTransition(TransitionType type, float? progress, bool? start)
+    public void HandleTransition(TransitionType type, float? progress, bool? init)
     {
         Commands.Add(new RenderCommand(RenderCommandType.Transition, TransitionCommands.Count));
-        TransitionCommands.Add(new TransitionCommand(type, progress, start));
+        TransitionCommands.Add(new TransitionCommand(type, progress, init));
     }
 
     /// <summary>
