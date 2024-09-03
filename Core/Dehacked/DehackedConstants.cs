@@ -477,7 +477,6 @@ public partial class DehackedDefinition
         "skeleton/sight",
         "skeleton/attack",
         "misc/chat",
-        "misc/teamchat",
         "dog/sight",
         "dog/attack",
         "dog/active",
