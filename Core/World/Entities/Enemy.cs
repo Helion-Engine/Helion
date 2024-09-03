@@ -68,7 +68,21 @@ public partial class Entity
 
         if (newTarget != null)
         {
-            SetTarget(newTarget);
+            if (Flags.Friendly)
+            {
+                var previousTarget = Target;
+                SetTarget(newTarget);
+                if (newTarget != null && newTarget.IsPlayer && newTarget != previousTarget.Entity && Definition.MissileState.HasValue)
+                {
+                    SetSeeState();
+                    Flags.JustHit = false;
+                }
+            }
+            else
+            {
+                SetTarget(newTarget);
+            }
+
             if (!allAround)
             {
                 SetSeeState();
@@ -129,16 +143,9 @@ public partial class Entity
         Entity? newTarget;
         if (Flags.Friendly)
         {
-            var previousTarget = Target;
             newTarget = WorldStatic.World.GetLineOfSightEnemy(this, allAround);
             newTarget ??= WorldStatic.World.GetLineOfSightPlayer(this, allAround);
             newTarget ??= WorldStatic.World.GetFirstAlivePlayer();
-
-            if (newTarget != null && newTarget.IsPlayer && newTarget != previousTarget.Entity && Definition.MissileState.HasValue)
-            {
-                SetSeeState();
-                Flags.JustHit = false;
-            }
         }
         else
         {
