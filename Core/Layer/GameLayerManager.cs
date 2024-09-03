@@ -640,6 +640,8 @@ public class GameLayerManager : IGameLayerManager
     private void RenderDefault(IRenderableSurfaceContext ctx)
     {
         m_ctx = ctx;
+        // if preparing a transition, unless we're going to show the titlepic,
+        // we'll want to grab the previous frame's framebuffer immediately
         if (LoadingLayer?.HasImage != true)
             TransitionLayer?.GrabFramebufferIfNeeded(m_ctx);
         m_hudContext.Dimension = m_renderer.RenderDimension;
