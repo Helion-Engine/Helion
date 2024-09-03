@@ -96,14 +96,14 @@ public class FluidSynthMusicPlayer : IMusicPlayer
     {
         try
         {
-            if (!string.IsNullOrEmpty(m_soundFontLoaded))
-            {
-                m_synth.UnloadSoundFont(m_soundFontCounter, true);
-                m_soundFontLoaded = string.Empty;
-            }
-
             if (soundFontPath.FullName != m_soundFontLoaded)
             {
+                if (!string.IsNullOrEmpty(m_soundFontLoaded))
+                {
+                    m_synth.UnloadSoundFont(m_soundFontCounter, true);
+                    m_soundFontLoaded = string.Empty;
+                }
+
                 m_synth.LoadSoundFont(soundFontPath.FullName, true);
                 for (int i = 0; i < 16; i++)
                     m_synth.SoundFontSelect(i, 0);
