@@ -362,10 +362,6 @@ public partial class Renderer : IDisposable
 
     public void Render(RenderCommands renderCommands)
     {
-        // this needs to run first so we can snapshot the framebuffer
-        if (renderCommands.CurrentTransitionCommand?.Start == true)
-            m_transitionRenderer.PrepareNewTransition(m_mainFramebuffer, renderCommands.CurrentTransitionCommand.Value.Type);
-
         m_hudRenderer.Clear();
         UpdateFramebufferDimensionsIfNeeded();
         m_virtualFramebuffer.Bind();
@@ -411,7 +407,11 @@ public partial class Renderer : IDisposable
                     BlitVirtualFramebufferToMain();
                     break;
                 case RenderCommandType.Transition:
-                    Fail("transition command shouldn't be here");
+                    var tranCmd = renderCommands.TransitionCommands[cmd.Index];
+                    if (tranCmd.Init == true)
+                        m_transitionRenderer.PrepareNewTransition(m_mainFramebuffer, tranCmd.Type);
+                    if (tranCmd.Progress.HasValue)
+                        m_transitionRenderer.Render(m_mainFramebuffer, tranCmd.Progress.Value);
                     break;
                 default:
                     Fail($"Unsupported render command type: {cmd.Type}");
@@ -423,9 +423,6 @@ public partial class Renderer : IDisposable
 
         if (!virtualFrameBufferDraw)
             BlitVirtualFramebufferToMain();
-
-        if (renderCommands.CurrentTransitionCommand != null)
-            m_transitionRenderer.Render(m_mainFramebuffer, renderCommands.CurrentTransitionCommand.Value.Progress);
 
         // draw main framebuffer to default
         // BlitMainFramebufferToDefault();

@@ -640,6 +640,10 @@ public class GameLayerManager : IGameLayerManager
     private void RenderDefault(IRenderableSurfaceContext ctx)
     {
         m_ctx = ctx;
+        // if preparing a transition, unless we're going to show the titlepic,
+        // we'll want to grab the previous frame's framebuffer immediately
+        if (LoadingLayer?.HasImage != true)
+            TransitionLayer?.GrabFramebufferIfNeeded(m_ctx);
         m_hudContext.Dimension = m_renderer.RenderDimension;
         m_hudContext.DrawPalette = true;
         ctx.Viewport(m_renderer.RenderDimension.Box);
@@ -659,7 +663,6 @@ public class GameLayerManager : IGameLayerManager
 
         m_profiler.Render.MiscLayers.Start();
         ctx.Hud(m_hudContext, m_renderHudAction);
-        TransitionLayer?.Render(m_ctx);
         m_profiler.Render.MiscLayers.Stop();
     }
 
@@ -688,6 +691,18 @@ public class GameLayerManager : IGameLayerManager
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
+        ReadThisLayer?.Render(hudCtx);
+        IwadSelectionLayer?.Render(m_ctx, hudCtx);
+
+        // if the loading layer has an image to render, we'll draw it to screen,
+        // allow the transition layer to copy it to framebuffer, and then draw
+        // the progress bar over it
+        LoadingLayer?.RenderImage(m_ctx, m_hudRenderCtx);
+        m_hudRenderCtx.DrawHud();
+        if (LoadingLayer?.HasImage == true)
+            TransitionLayer?.GrabFramebufferIfNeeded(m_ctx);
+        TransitionLayer?.Render(m_ctx);
+        m_ctx.ClearDepth();
 
         if (MenuLayer != null)
             RenderWithAlpha(hudCtx, MenuLayer.Animation, RenderMenu);
@@ -695,9 +710,7 @@ public class GameLayerManager : IGameLayerManager
         if (OptionsLayer != null)
             RenderWithAlpha(hudCtx, OptionsLayer.Animation, RenderOptions);
 
-        ReadThisLayer?.Render(hudCtx);
-        IwadSelectionLayer?.Render(m_ctx, hudCtx);
-        LoadingLayer?.Render(m_ctx, m_hudRenderCtx);
+        LoadingLayer?.RenderProgress(m_ctx, m_hudRenderCtx);
 
         RenderConsole(hudCtx);
 

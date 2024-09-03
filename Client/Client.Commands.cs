@@ -343,8 +343,7 @@ public partial class Client
         m_layerManager.LastSave = new(saveGame, worldModel, string.Empty, true);
         PrepLoadMap();
         await LoadMapAsync(GetMapInfo(worldModel.MapName), worldModel, null,
-        // TODO: need to allow transition layer to grab framebuffer before world is disposed
-            showLoadingTitlepic: true);//world == null || !world.MapInfo.MapName.EqualsIgnoreCase(worldModel.MapName));
+            showLoadingTitlepic: world == null || !world.MapInfo.MapName.EqualsIgnoreCase(worldModel.MapName));
     }
 
     [ConsoleCommand("map", "Starts a new world with the map provided")]
@@ -729,11 +728,11 @@ public partial class Client
         loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
         loadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
 
+        PrepareTransition();
+
         UnRegisterWorldEvents();
 
-        // keep any intermission/endgame layers so we can draw loading text over them,
-        // and once the loading has completed, copy the framebuffer for the transition
-        m_layerManager.ClearAllExcept(m_layerManager.IntermissionLayer, m_layerManager.EndGameLayer, loadingLayer);
+        m_layerManager.ClearAllExcept(loadingLayer, m_layerManager.TransitionLayer);
         m_archiveCollection.DataCache.FlushReferences();
 
         await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
@@ -802,9 +801,7 @@ public partial class Client
         RegisterWorldEvents(newLayer);
 
         m_layerManager.Add(newLayer);
-        // keep any intermission/endgame layers so we can draw loading text over them,
-        // and once the loading has completed, copy the framebuffer for the transition
-        m_layerManager.ClearAllExcept(newLayer, m_layerManager.IntermissionLayer, m_layerManager.EndGameLayer, m_layerManager.LoadingLayer);
+        m_layerManager.ClearAllExcept(newLayer, m_layerManager.LoadingLayer, m_layerManager.TransitionLayer);
 
         if (players.Count > 0 && m_config.Game.AutoSave)
         {
@@ -906,14 +903,12 @@ public partial class Client
 
                 case LevelChangeType.Reset:
                     PrepLoadMap();
-                    // TODO: we need to grab the framebuffer for the transition before the world is disposed
-                    await LoadMapAsync(world.MapInfo, null, null, e, showLoadingTitlepic: true);//false);
+                    await LoadMapAsync(world.MapInfo, null, null, e, showLoadingTitlepic: false);
                     break;
 
                 case LevelChangeType.ResetOrLoadLast:
                     PrepLoadMap();
-                    // TODO: we need to grab the framebuffer for the transition before the world is disposed
-                    await LoadMapAsync(world.MapInfo, m_lastWorldModel, null, e, showLoadingTitlepic: true);//false);
+                    await LoadMapAsync(world.MapInfo, m_lastWorldModel, null, e, showLoadingTitlepic: false);
                     break;
             }
         }
@@ -981,10 +976,15 @@ public partial class Client
         m_layerManager.Remove(m_layerManager.IntermissionLayer);
     }
 
+    private void PrepareTransition()
+    {
+        m_layerManager.RemoveWithoutAnimation(m_layerManager.TransitionLayer);
+        m_layerManager.Add(new TransitionLayer(m_config));
+    }
+
     private void PlayTransition()
     {
-        if (m_layerManager.TransitionLayer == null)
-            m_layerManager.Add(new TransitionLayer(m_config));
+        m_layerManager.TransitionLayer?.Start();
     }
 
     private async Task EndGame(IWorld world, Func<FindMapResult> getNextMapInfo)
@@ -1011,6 +1011,7 @@ public partial class Client
             if (isChangingClusters || world.MapInfo.EndGame != null || nextMapResult.Options.HasFlag(FindMapResultOptions.EndGame))
             {
                 HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
+                PrepareTransition();
                 PlayTransition();
             }
             else if (nextMapInfo != null)

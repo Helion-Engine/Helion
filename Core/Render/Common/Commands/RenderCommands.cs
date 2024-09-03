@@ -62,7 +62,7 @@ public class RenderCommands
     public List<ViewportCommand> ViewportCommands = new();
     public List<DrawTextCommand> TextCommands = new();
     public List<DrawShapeCommand> ShapeCommands = new();
-    public TransitionCommand? CurrentTransitionCommand = null;
+    public List<TransitionCommand> TransitionCommands = new();
 
     public Dimension RenderDimension => m_renderDimensions;
     public Dimension WindowDimension => m_windowDimensions;
@@ -96,7 +96,7 @@ public class RenderCommands
         TextCommands.Clear();
         ShapeCommands.Clear();
         AutomapCommands.Clear();
-        CurrentTransitionCommand = null;
+        TransitionCommands.Clear();
 
         ResolutionInfo = new ResolutionInfo { VirtualDimensions = RenderDimension };
         m_scale = Vec2D.One;
@@ -170,9 +170,10 @@ public class RenderCommands
         Commands.Add(new RenderCommand(RenderCommandType.DrawVirtualFrameBuffer, 0));
     }
 
-    public void DrawTransition(TransitionType type, float progress, bool start)
+    public void HandleTransition(TransitionType type, float? progress, bool? init)
     {
-        CurrentTransitionCommand = new TransitionCommand(type, progress, start);
+        Commands.Add(new RenderCommand(RenderCommandType.Transition, TransitionCommands.Count));
+        TransitionCommands.Add(new TransitionCommand(type, progress, init));
     }
 
     /// <summary>

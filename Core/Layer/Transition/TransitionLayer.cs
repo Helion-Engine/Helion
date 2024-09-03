@@ -14,6 +14,7 @@ public class TransitionLayer : IGameLayer, IAnimationLayer
 {
     private readonly IConfig m_config;
     private readonly TransitionType m_type;
+    private bool m_inited;
     private bool m_started;
 
     public InterpolationAnimation<IAnimationLayer> Animation { get; }
@@ -21,6 +22,7 @@ public class TransitionLayer : IGameLayer, IAnimationLayer
     public TransitionLayer(IConfig config)
     {
         m_config = config;
+        m_inited = false;
         m_started = false;
         m_type = m_config.Game.TransitionType;
         double duration = m_type switch
@@ -36,14 +38,25 @@ public class TransitionLayer : IGameLayer, IAnimationLayer
 
     public bool ShouldRemove() => true;
 
+    public void Start()
+    {
+        m_started = true;
+        Animation.AnimateIn();
+    }
+
+    public void GrabFramebufferIfNeeded(IRenderableSurfaceContext ctx)
+    {
+        if (m_inited)
+            return;
+        ctx.HandleTransition(m_type, null, true);
+        m_inited = true;
+    }
+
     public void Render(IRenderableSurfaceContext ctx)
     {
-        if (!m_started)
-            Animation.AnimateIn();
         Animation.Tick();
-        var progress = (float)Animation.GetInterpolated(1);
-        ctx.DrawTransition(m_type, progress, !m_started);
-        m_started = true;
+        float progress = m_started ? (float)Animation.GetInterpolated(1) : 0;
+        ctx.HandleTransition(m_type, progress, null);
     }
 
     public void HandleInput(IConsumableInput input) { }
