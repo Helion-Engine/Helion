@@ -10,6 +10,7 @@ using Helion.Layer.Images;
 using Helion.Layer.IwadSelection;
 using Helion.Layer.Menus;
 using Helion.Layer.Options;
+using Helion.Layer.Transition;
 using Helion.Layer.Worlds;
 using Helion.Menus.Impl;
 using Helion.Render;
@@ -26,12 +27,10 @@ using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World.Save;
-using static Helion.Util.Assertion.Assert;
 using Helion.Geometry.Boxes;
-using Helion.Util.Configs.Components;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
-using Helion.Window.Input;
-using Helion.Util.Container;
+using static Helion.Util.Assertion.Assert;
+using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
 
 namespace Helion.Layer;
@@ -57,6 +56,7 @@ public class GameLayerManager : IGameLayerManager
     public IntermissionLayer? IntermissionLayer { get; private set; }
     public IwadSelectionLayer? IwadSelectionLayer {  get; private set; }
     public LoadingLayer? LoadingLayer { get; private set; }
+    public TransitionLayer? TransitionLayer { get; private set; }
     public WorldLayer? WorldLayer { get; private set; }
     public long OptionsLastClosedNanos => m_optionsLayer.LastClosedNanos;
     public SaveGameEvent? LastSave;
@@ -74,7 +74,7 @@ public class GameLayerManager : IGameLayerManager
     private readonly HudRenderContext m_hudContext = new(default);
     private readonly OptionsLayer m_optionsLayer;
     private readonly ConsoleLayer m_consoleLayer;
-    private readonly Action<IConsumableInput, KeyCommandItem> m_checkScreenShotCommand;
+    private readonly Func<IConsumableInput, KeyCommandItem, bool> m_checkScreenShotCommand;
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private IHudRenderContext m_hudRenderCtx;
@@ -82,7 +82,7 @@ public class GameLayerManager : IGameLayerManager
 
     private IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
     {
-        ConsoleLayer, OptionsLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, WorldLayer
+        ConsoleLayer, OptionsLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, TransitionLayer, WorldLayer
     }.WhereNotNull();
 
     public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ConsoleCommands consoleCommands,
@@ -204,6 +204,10 @@ public class GameLayerManager : IGameLayerManager
                 Remove(LoadingLayer);
                 LoadingLayer = layer;
                 break;
+            case TransitionLayer layer:
+                Remove(TransitionLayer);
+                TransitionLayer = layer;
+                break;
             case null:
                 break;
             default:
@@ -302,6 +306,11 @@ public class GameLayerManager : IGameLayerManager
             IwadSelectionLayer?.Dispose();
             IwadSelectionLayer = null;
         }
+        else if (ReferenceEquals(layer, LoadingLayer))
+        {
+            LoadingLayer?.Dispose();
+            LoadingLayer = null;
+        }
     }
 
     private void RemoveAnimatedLayer(object layer)
@@ -326,10 +335,10 @@ public class GameLayerManager : IGameLayerManager
             MenuLayer?.Dispose();
             MenuLayer = null;
         }
-        else if (ReferenceEquals(layer, LoadingLayer))
+        else if (ReferenceEquals(layer, TransitionLayer))
         {
-            LoadingLayer?.Dispose();
-            LoadingLayer = null;
+            TransitionLayer?.Dispose();
+            TransitionLayer = null;
         }
     }
 
@@ -368,7 +377,11 @@ public class GameLayerManager : IGameLayerManager
                 ToggleConsoleLayer(input);
 
             if (ConsoleLayer != null && ConsoleLayer.Animation.State != InterpolationAnimationState.Out)
+            {
                 ConsoleLayer.HandleInput(input);
+                input.ConsumeAll();
+                return;
+            }
             
             if (ShouldCreateMenu(input))
             {
@@ -400,15 +413,16 @@ public class GameLayerManager : IGameLayerManager
         }
 
         WorldLayer?.HandleInput(input);
-        input.IterateCommands(m_config.Keys.GetKeyMapping(), m_checkScreenShotCommand, false);
+        input.IterateCommands(m_config.Keys.GetKeyMapping(), m_checkScreenShotCommand);
     }
 
-    private void CheckScreenShotCommand(IConsumableInput input, KeyCommandItem cmd)
+    private bool CheckScreenShotCommand(IConsumableInput input, KeyCommandItem cmd)
     {
         if (cmd.Command != Constants.Input.Screenshot || !input.ConsumeKeyPressed(cmd.Key))
-            return;
+            return false;
 
         m_console.SubmitInputText(Constants.Input.Screenshot);
+        return true;
     }
 
     private void CheckMenuShortcuts(IConsumableInput input)
@@ -625,7 +639,11 @@ public class GameLayerManager : IGameLayerManager
 
     private void RenderDefault(IRenderableSurfaceContext ctx)
     {
-        m_ctx = ctx;        
+        m_ctx = ctx;
+        // if preparing a transition, unless we're going to show the titlepic,
+        // we'll want to grab the previous frame's framebuffer immediately
+        if (LoadingLayer?.HasImage != true)
+            TransitionLayer?.GrabFramebufferIfNeeded(m_ctx);
         m_hudContext.Dimension = m_renderer.RenderDimension;
         m_hudContext.DrawPalette = true;
         ctx.Viewport(m_renderer.RenderDimension.Box);
@@ -673,6 +691,18 @@ public class GameLayerManager : IGameLayerManager
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
+        ReadThisLayer?.Render(hudCtx);
+        IwadSelectionLayer?.Render(m_ctx, hudCtx);
+
+        // if the loading layer has an image to render, we'll draw it to screen,
+        // allow the transition layer to copy it to framebuffer, and then draw
+        // the progress bar over it
+        LoadingLayer?.RenderImage(m_ctx, m_hudRenderCtx);
+        m_hudRenderCtx.DrawHud();
+        if (LoadingLayer?.HasImage == true)
+            TransitionLayer?.GrabFramebufferIfNeeded(m_ctx);
+        TransitionLayer?.Render(m_ctx);
+        m_ctx.ClearDepth();
 
         if (MenuLayer != null)
             RenderWithAlpha(hudCtx, MenuLayer.Animation, RenderMenu);
@@ -680,11 +710,7 @@ public class GameLayerManager : IGameLayerManager
         if (OptionsLayer != null)
             RenderWithAlpha(hudCtx, OptionsLayer.Animation, RenderOptions);
 
-        ReadThisLayer?.Render(hudCtx);
-        IwadSelectionLayer?.Render(m_ctx, hudCtx);
-
-        if (LoadingLayer != null)
-            RenderWithAlpha(hudCtx, LoadingLayer.Animation, RenderLoadingLayer);
+        LoadingLayer?.RenderProgress(m_ctx, m_hudRenderCtx);
 
         RenderConsole(hudCtx);
 
@@ -728,11 +754,6 @@ public class GameLayerManager : IGameLayerManager
         m_hudRenderCtx.DrawPalette(true);
         m_hudContext.DrawColorMap = ShaderVars.PaletteColorMode;
         m_hudRenderCtx.DrawColorMap(ShaderVars.PaletteColorMode);
-    }
-
-    private void RenderLoadingLayer()
-    {
-        LoadingLayer?.Render(m_ctx, m_hudRenderCtx);
     }
 
     private void RenderMenu()
@@ -785,6 +806,7 @@ public class GameLayerManager : IGameLayerManager
         Remove(OptionsLayer);
         Remove(ConsoleLayer);
         Remove(LoadingLayer);
+        Remove(TransitionLayer);
 
         m_disposed = true;
     }

@@ -1,6 +1,7 @@
-using System;
+using Helion.Layer.Intermission;
 using Helion.Util;
 using Helion.Window;
+using System;
 
 namespace Helion.Layer.Worlds;
 
@@ -14,10 +15,7 @@ public partial class IntermissionLayer
         if (m_gameLayerManager.HasMenuOrConsole())
             return;
 
-        bool pressedKey = input.HasAnyKeyPressed();
-        input.ConsumeAll();
-
-        if (pressedKey)
+        if (m_keys.ConsumeCommandKeyPress(input, Constants.Input.Use, Constants.Input.Attack))
         {
             AdvanceToNextStateForcefully();
             PlayPressedKeySound();
@@ -75,22 +73,22 @@ public partial class IntermissionLayer
     {
         switch (IntermissionState)
         {
-        case IntermissionState.Started:
-            break;
-        case IntermissionState.TallyingKills:
-        case IntermissionState.TallyingItems:
-        case IntermissionState.TallyingSecrets:
-        case IntermissionState.TallyingTime:
-        case IntermissionState.ShowAllStats:
-            m_soundManager.PlayStaticSound("intermission/nextstage");
-            break;
-        case IntermissionState.NextMap:
-            m_soundManager.PlayStaticSound("intermission/paststats");
-            break;
-        case IntermissionState.Complete:
-            break;
-        default:
-            throw new HelionException($"Unknown intermission state: {IntermissionState}");
+            case IntermissionState.Started:
+                break;
+            case IntermissionState.TallyingKills:
+            case IntermissionState.TallyingItems:
+            case IntermissionState.TallyingSecrets:
+            case IntermissionState.TallyingTime:
+            case IntermissionState.ShowAllStats:
+                m_soundManager.PlayStaticSound("intermission/nextstage");
+                break;
+            case IntermissionState.NextMap:
+                m_soundManager.PlayStaticSound("intermission/paststats");
+                break;
+            case IntermissionState.Complete:
+                break;
+            default:
+                throw new HelionException($"Unknown intermission state: {IntermissionState}");
         }
     }
 }

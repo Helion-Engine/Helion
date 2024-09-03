@@ -9,15 +9,15 @@ using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
+using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.Timing;
-using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Layer.EndGame;
 
 public partial class EndGameLayer
 {
-    private const string FontName = "SMALLFONT";
+    private const string FontName = Constants.Fonts.Small;
     private static readonly Vec2I TextStartCorner = new(10, 10);
 
     private IList<string> m_images = Array.Empty<string>();
@@ -104,12 +104,11 @@ public partial class EndGameLayer
 
     private void DrawCastMonsterText(IHudRenderContext hud)
     {
-        const string font = "SmallFont";
-        const int fontSize = 8;
+        int fontSize = hud.GetFontMaxHeight(FontName);
         string text = World.ArchiveCollection.Language.GetMessage(Cast[m_castIndex].DisplayName);
-        Dimension size = hud.MeasureText(text, font, fontSize);
+        Dimension size = hud.MeasureText(text, FontName, fontSize);
         Vec2I offset = new(160 - (size.Width / 2), 180);
-        hud.Text(text, font, fontSize, offset);
+        hud.Text(text, FontName, fontSize, offset);
     }
 
     private void SetPage(IHudRenderContext hud)
@@ -232,15 +231,11 @@ public partial class EndGameLayer
 
     private void DrawText(IEnumerable<string> lines, Ticker ticker, bool showAllText, IHudRenderContext hud)
     {
-
-        Font? font = m_archiveCollection.GetFont(FontName);
-        if (font == null)
-            return;
-
-        // Default height/spacing is 7/4;
+        // Default height/spacing is 8/3;
         // Other ports allow taller fonts to eat into that spacing.
         // We'll at least keep 1px
-        int lineSpacing = Math.Clamp(11 - font.MaxHeight, 1, 4);
+        int fontSize = hud.GetFontMaxHeight(FontName);
+        int lineSpacing = Math.Clamp(11 - fontSize, 1, 3);
 
         // The ticker goes slower than normal, so as long as we see one
         // or more ticks happening then advance the number of characters
@@ -250,7 +245,6 @@ public partial class EndGameLayer
         int charsDrawn = 0;
         int x = TextStartCorner.X;
         int y = TextStartCorner.Y;
-        int fontSize = font.MaxHeight;
 
         // TODO: This is going to be a pain in the ass to the GC...
         foreach (string line in lines)

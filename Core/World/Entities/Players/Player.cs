@@ -13,6 +13,7 @@ using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
+using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Geometry.Lines;
@@ -947,7 +948,8 @@ public class Player : Entity
     private void SetBob()
     {
         m_viewBob = CalculateBob(WorldStatic.World.Config.Hud.ViewBob);
-        if (Weapon != null && Weapon.ReadyToFire)
+        // chainsaw is only ready to fire on tick 1 of its 4-tick A_WeaponReady -- this fixes the choppy bobbing
+        if (Weapon != null && (Weapon.ReadyToFire || Weapon.FrameState.Frame.ActionFunction == EntityActionFunctions.A_WeaponReady))
         {
             const double WeaponSwayMultiplier = Math.PI / 32;
             double value = WeaponSwayMultiplier * WorldStatic.World.LevelTime;

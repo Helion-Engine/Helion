@@ -34,12 +34,14 @@ public class ConfigRenderFilter
     public readonly ConfigValue<FilterType> Font = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 
     [ConfigInfo("Filter applied to textures. True color required.")]
-    [OptionMenu(OptionSectionType.Render, "Texture Filtering", spacer: true)]
+    [OptionMenu(OptionSectionType.Render, "Texture Filtering")]
     public readonly ConfigValue<FilterType> Texture = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 }
 
 public class ConfigRender
 {
+    // VSync and rate limiting
+
     [ConfigInfo("Vertical synchronization. Prevents tearing, but affects input processing (unless you have G-Sync).")]
     [OptionMenu(OptionSectionType.Render, "VSync")]
     public readonly ConfigValue<RenderVsyncMode> VSync = new(RenderVsyncMode.On);
@@ -56,46 +58,32 @@ public class ConfigRender
         };
     });
 
+
+    // Textures and filtering
+
+    [ConfigInfo("Anisotropic filtering amount. A value of 1 is the same as being off. True color required.")]
+    [OptionMenu(OptionSectionType.Render, "Anisotropy", spacer: true)]
+    public readonly ConfigValue<int> Anisotropy = new(8, GreaterOrEqual(1));
+    
+    public readonly ConfigRenderFilter Filter = new();
+
+    [ConfigInfo("Render missing textures as a red/black checkered texture.", mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Render Null Textures")]
+    public readonly ConfigValue<bool> NullTexture = new(false);
+
+
+    // Viewport
+
     [ConfigInfo("Field of view.")]
-    [OptionMenu(OptionSectionType.Render, "Field Of View")]
+    [OptionMenu(OptionSectionType.Render, "Field Of View", spacer:true)]
     public readonly ConfigValue<double> FieldOfView = new(90, Clamp(60.0, 120.0));
 
     [ConfigInfo("Max render distance.")]
     [OptionMenu(OptionSectionType.Render, "Max Rendering Distance")]
     public readonly ConfigValue<int> MaxDistance = new(0);
 
-    public readonly ConfigRenderFilter Filter = new();
 
-    [ConfigInfo("Anisotropic filtering amount. A value of 1 is the same as being off. True color required.")]
-    [OptionMenu(OptionSectionType.Render, "Anisotropy")]
-    public readonly ConfigValue<int> Anisotropy = new(8, GreaterOrEqual(1));
-
-    [ConfigInfo("Enable sprite transparency.")]
-    [OptionMenu(OptionSectionType.Render, "Sprite Transparency", spacer: true)]
-    public readonly ConfigValue<bool> SpriteTransparency = new(true);
-
-    [ConfigInfo("Enable texture transparency.")]
-    [OptionMenu(OptionSectionType.Render, "Texture Transparency")]
-    public readonly ConfigValue<bool> TextureTransparency = new(true);
-
-    [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
-    [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Contrast")]
-    public readonly ConfigValue<bool> FakeContrast = new(true);
-
-    [ConfigInfo("Force pipeline flush after rendering each frame. May fix a laggy buffered feeling on lower end computers.")]
-    [OptionMenu(OptionSectionType.Render, "Pipeline Flush (for old GPUs)")]
-    public readonly ConfigValue<bool> ForcePipelineFlush = new(false);
-
-    [ConfigInfo("Multisampling amount. A value of 1 is the same as being off.")]
-    public readonly ConfigValue<int> Multisample = new(1, GreaterOrEqual(1));
-
-    [ConfigInfo("Cache all sprites. Prevents stuttering compared to loading them at runtime.", restartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Cache All Sprites")]
-    public readonly ConfigValue<bool> CacheSprites = new(true);
-
-    [ConfigInfo("Render sprites over floors/ceilings. Sprites always clipped to walls.", mapRestartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Rendering", spacer: true)]
-    public readonly ConfigValue<bool> VanillaRender = new(false);
+    // Lighting effects
 
     [ConfigInfo("Set light projection to banded or smooth. Smooth only supported with true color rendering.")]
     [OptionMenu(OptionSectionType.Render, "Light Mode", spacer: true)]
@@ -109,31 +97,52 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "Full Brightness")]
     public readonly ConfigValue<bool> Fullbright = new(false);
 
-    [ConfigInfo("Traverse the BSP tree in a separate thread to mark lines seen for automap. If disabled, automap always shows all lines.")]
-    [OptionMenu(OptionSectionType.Render, "Automap on Separate Thread")]
-    public readonly ConfigValue<bool> AutomapBspThread = new(true);
 
-    [ConfigInfo("Render missing textures as a red/black checkered texture.", mapRestartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Render Null Textures")]
-    public readonly ConfigValue<bool> NullTexture = new(false);
+    // Misc. Visual effects
+
+    [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
+    [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Contrast", spacer: true)]
+    public readonly ConfigValue<bool> FakeContrast = new(true);
+
+    [ConfigInfo("Render sprites over floors/ceilings. Sprites always clipped to walls. May slow down rendering.", mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Rendering")]
+    public readonly ConfigValue<bool> VanillaRender = new(false);
 
     [ConfigInfo("Fuzz amount for partial invisibility effect.")]
     [OptionMenu(OptionSectionType.Render, "Fuzz Amount")]
     public readonly ConfigValue<double> FuzzAmount = new(1);
 
-    [ConfigInfo("Clip sprites against the floor.")]
-    [OptionMenu(OptionSectionType.Render, "Sprite Floor Clip", spacer: true)]
-    public readonly ConfigValue<bool> SpriteClip = new(true);
-
-    [ConfigInfo("Max percentage of height allowed to clip the floor for corpses.")]
-    [OptionMenu(OptionSectionType.Render, "Clip Max Height Percentage")]
-    public readonly ConfigValue<double> SpriteClipFactorMax = new(0.02, ClampNormalized);
-
-    [ConfigInfo("Minimum sprite height to allow to clip the floor.")]
-    [OptionMenu(OptionSectionType.Render, "Clip Min Height")]
-    public readonly ConfigValue<int> SpriteClipMin = new(16, GreaterOrEqual(0));
-
     [ConfigInfo("Prevent sprites from overlapping and Z-fighting.")]
     [OptionMenu(OptionSectionType.Render, "Sprite Z-fighting Check")]
     public readonly ConfigValue<bool> SpriteZCheck = new(true);
+
+
+    // Settings below are believed to be less frequently used and thus are not on the menus.
+
+    [ConfigInfo("Cache all sprites. Prevents stuttering compared to loading them at runtime.", restartRequired: true)]
+    public readonly ConfigValue<bool> CacheSprites = new(true);
+
+    [ConfigInfo("Force pipeline flush after rendering each frame. May fix a laggy buffered feeling on lower end computers.")]
+    public readonly ConfigValue<bool> ForcePipelineFlush = new(false);
+
+    [ConfigInfo("Multisampling amount. A value of 1 is the same as being off.")]
+    public readonly ConfigValue<int> Multisample = new(1, GreaterOrEqual(1));
+
+    [ConfigInfo("Clip sprites against the floor.")]
+    public readonly ConfigValue<bool> SpriteClip = new(true);
+
+    [ConfigInfo("Max percentage of height allowed to clip the floor for corpses.")]
+    public readonly ConfigValue<double> SpriteClipFactorMax = new(0.02, ClampNormalized);
+
+    [ConfigInfo("Minimum sprite height to allow to clip the floor.")]
+    public readonly ConfigValue<int> SpriteClipMin = new(16, GreaterOrEqual(0));
+
+    [ConfigInfo("Enable sprite transparency.")]
+    public readonly ConfigValue<bool> SpriteTransparency = new(true);
+
+    [ConfigInfo("Enable texture transparency.")]
+    public readonly ConfigValue<bool> TextureTransparency = new(true);
+
+    [ConfigInfo("Traverse the BSP tree in a separate thread to mark lines seen for automap. If disabled, automap always shows all lines.")]
+    public readonly ConfigValue<bool> AutomapBspThread = new(true);
 }

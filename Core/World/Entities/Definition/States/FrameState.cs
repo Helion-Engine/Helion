@@ -4,8 +4,17 @@ using Helion.Util;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 using System.Collections.Generic;
+using System;
 
 namespace Helion.World.Entities.Definition.States;
+
+[Flags]
+public enum FrameStateOptions
+{
+    None,
+    DestroyOnStop = 1,
+    PlayerSprite = 2
+}
 
 /// <summary>
 /// A simple state wrapper that allows us to advance the state.
@@ -22,16 +31,16 @@ public struct FrameState
     public EntityFrame Frame;
     private readonly Entity m_entity;
     private readonly Dictionary<string, int> m_stateLabels;
-    private readonly bool m_destroyOnStop;
+    private readonly FrameStateOptions m_options;
 
     public int CurrentTick;
     public int FrameIndex;
 
-    public FrameState(Entity entity, EntityDefinition definition,bool destroyOnStop = true)
+    public FrameState(Entity entity, EntityDefinition definition, FrameStateOptions options = FrameStateOptions.DestroyOnStop)
     {
         m_entity = entity;
         m_stateLabels = definition.States.Labels;
-        m_destroyOnStop = destroyOnStop;
+        m_options = options;
         Frame = WorldStatic.Frames[FrameIndex];
     }
 
@@ -41,7 +50,12 @@ public struct FrameState
         m_stateLabels = definition.States.Labels;
         FrameIndex = frameStateModel.FrameIndex;
         CurrentTick = frameStateModel.Tics;
-        m_destroyOnStop = frameStateModel.Destroy;
+
+        if (frameStateModel.Destroy)
+            m_options |= FrameStateOptions.DestroyOnStop;
+        if (frameStateModel.PlayerSprite)
+            m_options |= FrameStateOptions.PlayerSprite;
+
         Frame = WorldStatic.Frames[FrameIndex];
         if (Frame.MasterFrameIndex == WorldStatic.ClosetLookFrameIndex)
             m_entity.ClosetFlags |= ClosetFlags.ClosetLook;
@@ -173,13 +187,13 @@ public struct FrameState
 
             CheckSlowTickDistance();
             // Doom set the offsets only if misc1 wasn't zero. Only was applied through the player sprite code.
-            if (Frame.DehackedMisc1 != 0 && m_entity.PlayerObj != null && !m_entity.PlayerObj.WeaponFlashState)
+            if ((m_options & FrameStateOptions.PlayerSprite) != 0 && Frame.DehackedMisc1 != 0 && m_entity.PlayerObj != null)
             {
                 m_entity.PlayerObj.WeaponOffset.X = Frame.DehackedMisc1;
                 m_entity.PlayerObj.WeaponOffset.Y = Frame.DehackedMisc2;
             }
 
-            if (m_destroyOnStop && Frame.IsNullFrame)
+            if ((m_options & FrameStateOptions.DestroyOnStop) != 0 && Frame.IsNullFrame)
             {
                 WorldStatic.EntityManager.Destroy(m_entity);
                 return;
@@ -261,7 +275,7 @@ public struct FrameState
         CurrentTick--;
         if (CurrentTick <= 0)
         {
-            if (Frame.BranchType == ActorStateBranch.Stop && m_destroyOnStop)
+            if (Frame.BranchType == ActorStateBranch.Stop && (m_options & FrameStateOptions.DestroyOnStop) != 0)
             {
                 WorldStatic.EntityManager.Destroy(m_entity);
                 return;
@@ -277,7 +291,8 @@ public struct FrameState
         {
             FrameIndex = FrameIndex,
             Tics = CurrentTick,
-            Destroy = m_destroyOnStop
+            Destroy = (m_options & FrameStateOptions.DestroyOnStop) != 0,
+            PlayerSprite = (m_options & FrameStateOptions.PlayerSprite) != 0
         };
     }
 
@@ -289,11 +304,21 @@ public struct FrameState
         return frameState.m_entity.Id == m_entity.Id &&
             frameState.FrameIndex == FrameIndex &&
             frameState.CurrentTick == CurrentTick &&
-            frameState.m_destroyOnStop == m_destroyOnStop;
+            frameState.m_options == m_options;
     }
 
     public override int GetHashCode()
     {
         return base.GetHashCode();
+    }
+
+    public static bool operator ==(FrameState left, FrameState right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(FrameState left, FrameState right)
+    {
+        return !(left == right);
     }
 }

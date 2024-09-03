@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using Helion.Resources.Archives.Directories;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using NLog;
-using Helion.Resources.Archives.Directories;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Helion.Resources.Archives.Locator;
 
@@ -28,7 +28,7 @@ public class FilesystemArchiveLocator : IArchiveLocator
     /// we assume priority is meant to be given to the beginning of what is
     /// provided.
     /// </remarks>
-    private readonly IList<string> m_paths = new List<string> { "" };
+    private readonly List<string> m_paths = new List<string> { "" };
     private readonly IndexGenerator m_indexGenerator = new();
 
     /// <summary>
@@ -41,15 +41,15 @@ public class FilesystemArchiveLocator : IArchiveLocator
 
     /// <summary>
     /// Creates a file system locator that looks in the working directory
-    /// and any additional directories that are in the config.
+    /// and any additional directories that are in the config or commonly used envvars.
     /// </summary>
     /// <param name="config">The config to get the additional directories
     /// from.</param>
     public FilesystemArchiveLocator(IConfig config)
     {
         List<string> paths = config.Files.Directories.Value;
-        foreach (string path in paths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator))
-            m_paths.Add(path);
+        var envPaths = WadPaths.GetFromEnvVars();
+        m_paths.AddRange(paths.Concat(envPaths).Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct());
     }
 
     public Archive? Locate(string uri)

@@ -147,6 +147,9 @@ public static class Constants
         public const string AutoMapDown = "AutoMapDown";
         public const string AutoMapLeft = "AutoMapLeft";
         public const string AutoMapRight = "AutoMapRight";
+        public const string AutoMapAddMarker = "AutoMapAddMarker";
+        public const string AutoMapRemoveNearbyMarkers = "AutoMapRemoveNearbyMarkers";
+        public const string AutoMapClearAllMarkers = "AutoMapClearAllMarkers";
         public const string Save = "Save";
         public const string Load = "Load";
         public const string Automap = "Automap";
@@ -213,6 +216,9 @@ public static class Constants
         Input.AutoMapDown,
         Input.AutoMapLeft,
         Input.AutoMapRight,
+        Input.AutoMapAddMarker,
+        Input.AutoMapRemoveNearbyMarkers,
+        Input.AutoMapClearAllMarkers,
         Input.Save,
         Input.Load,
         Input.Automap,

@@ -1,4 +1,5 @@
 using Helion.Graphics;
+using System.Collections.Generic;
 
 namespace Helion.Resources.Images;
 
@@ -27,4 +28,11 @@ public interface IImageRetriever
     /// <param name="options">Options for fetching the image.
     /// <returns>The image, or null if none can be found.</returns>
     Image? GetOnly(string name, ResourceNamespace targetNamespace, GetImageOptions options = GetImageOptions.Default);
+
+    /// <summary>
+    /// Get the names of all images in the specific namespace
+    /// </summary>
+    /// <param name="specificNamespace">The desired namespace</param>
+    /// <returns>A list of image names</returns>
+    IEnumerable<string> GetNames(ResourceNamespace specificNamespace);
 }

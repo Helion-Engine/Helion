@@ -21,10 +21,6 @@ public static class HudView
 
 public class ConfigHudAutoMap
 {
-    // Internal to the client
-    [ConfigInfo("Amount to scale automap.", save: false)]
-    public readonly ConfigValue<double> Scale = new(1.0);
-
     [ConfigInfo("Overlay automap over game window.")]
     [OptionMenu(OptionSectionType.Automap, "Overlay")]
     public readonly ConfigValue<bool> Overlay = new(true);
@@ -48,6 +44,10 @@ public class ConfigHudAutoMap
     [ConfigInfo("Show map title on the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Show Map Title")]
     public readonly ConfigValue<bool> MapTitle = new(true);
+
+    // Internal to the client
+    [ConfigInfo("Amount to scale automap.", save: false)]
+    public readonly ConfigValue<double> Scale = new(1.0);
 
     public AutomapLineColors DefaultColors = new(false);
     public AutomapLineColors OverlayColors = new(true);
@@ -106,6 +106,8 @@ public class AutomapLineColors(bool overlay)
 
 public class ConfigHud
 {
+    // Crosshair
+
     [ConfigInfo("Shows crosshair.")]
     [OptionMenu(OptionSectionType.Hud, "Crosshair Enabled")]
     public readonly ConfigValue<bool> Crosshair = new(true);
@@ -134,6 +136,9 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Crosshair Scale")]
     public readonly ConfigValue<double> CrosshairScale = new(1.0);
 
+
+    // Bobbin'
+
     [ConfigInfo("Amount of view bobbing. 0.0 is off, 1.0 is normal.")]
     [OptionMenu(OptionSectionType.Hud, "View Bob", spacer: true)]
     public readonly ConfigValue<double> ViewBob = new(1.0, ClampNormalized);
@@ -142,28 +147,22 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Weapon Bob")]
     public readonly ConfigValue<double> WeaponBob = new(1.0, ClampNormalized);
 
+
+    // Status bar
+
     [ConfigInfo("Size of the status bar.")]
     [OptionMenu(OptionSectionType.Hud, "Status Bar Size", spacer: true)]
     public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal, OnlyValidEnums<StatusBarSizeType>());
 
     [ConfigInfo("Background texture for status bar when it doesn't fill the screen.")]
-    [OptionMenu(OptionSectionType.Hud, "Status Bar Texture")]
-    public readonly ConfigValue<string> BackgroundTexture = new("W94_1");
+    [OptionMenu(OptionSectionType.Hud, "Status Bar Texture", dialogType: DialogType.TexturePicker)]
+    public readonly ConfigValue<string> BackgroundTexture = new("GRNROCK");
 
-    [ConfigInfo("Render average frames per second in corner of display.")]
-    [OptionMenu(OptionSectionType.Hud, "Show FPS", spacer: true)]
-    public readonly ConfigValue<bool> ShowFPS = new(false);
 
-    [ConfigInfo("Render min/max frames per second in corner of display.")]
-    [OptionMenu(OptionSectionType.Hud, "Show Min/Max FPS")]
-    public readonly ConfigValue<bool> ShowMinMaxFPS = new(false);
-
-    [ConfigInfo("Render world statistics (kills, secrets, items, time) in corner of display.")]
-    [OptionMenu(OptionSectionType.Hud, "Show World Stats")]
-    public readonly ConfigValue<bool> ShowStats = new(false);
+    // Formatting, scaling
 
     [ConfigInfo("Automatically scale HUD.")]
-    [OptionMenu(OptionSectionType.Hud, "Autoscale HUD", spacer: true, allowReset: false)]
+    [OptionMenu(OptionSectionType.Hud, "Autoscale HUD", allowReset: false, spacer: true)]
     public readonly ConfigValue<bool> AutoScale = new(true);
 
     [ConfigInfo("Amount to scale the HUD.")]
@@ -181,6 +180,21 @@ public class ConfigHud
     [ConfigInfo("Horizontal HUD margin percentage  (0.0 - 1.0).")]
     [OptionMenu(OptionSectionType.Hud, "Horizontal Margin Percent")]
     public readonly ConfigValue<double> HorizontalMargin = new(0, ClampNormalized);
+
+
+    // Stats and diagnostics
+
+    [ConfigInfo("Render average frames per second in corner of display.")]
+    [OptionMenu(OptionSectionType.Hud, "Show FPS", spacer: true)]
+    public readonly ConfigValue<bool> ShowFPS = new(false);
+
+    [ConfigInfo("Render min/max frames per second in corner of display.")]
+    [OptionMenu(OptionSectionType.Hud, "Show Min/Max FPS")]
+    public readonly ConfigValue<bool> ShowMinMaxFPS = new(false);
+
+    [ConfigInfo("Render world statistics (kills, secrets, items, time) in corner of display.")]
+    [OptionMenu(OptionSectionType.Hud, "Show World Stats")]
+    public readonly ConfigValue<bool> ShowStats = new(false);
 
     public readonly ConfigHudAutoMap AutoMap = new();
 

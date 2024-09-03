@@ -19,7 +19,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
     public bool Changed { get; private set; }
     private readonly List<KeyCommandItem> m_commands = new();
 
-    private static readonly (Key key, string command)[] DefaultBindings = new[]
+    private static readonly (Key key, string command)[] DefaultBindingsByKey = new[]
     {
         (Key.W,             Constants.Input.Forward),
         (Key.A,             Constants.Input.Left),
@@ -70,18 +70,29 @@ public class ConfigKeyMapping : IConfigKeyMapping
         (Key.MouseWheelDown, Constants.Input.AutoMapDecrease),
     };
 
-    public void AddDefaultsIfMissing()
+    public void SetInitialDefaultKeyBindings()
     {
-        Log.Trace("Adding default key commands to config keys");
+        Log.Trace("Resetting key bindings to defaults");
 
-        var defaultBindingsByKey = DefaultBindings
-            .GroupBy(binding => binding.key)
-            .Select(grp => (grp.Key, grp.Select(binding => binding.command).ToArray()))
-            .ToArray();
+        m_commands.Clear();
 
-        foreach((Key key, string[] actions) in defaultBindingsByKey)
+        foreach ((Key key, string action) in DefaultBindingsByKey)
         {
-            AddIfMissing(key, actions);
+            m_commands.Add(new(key, action));
+        }
+
+        Changed = true;
+    }
+
+    public void EnsureMenuKey()
+    {
+        if (!m_commands.Any(binding => binding.Command == Constants.Input.Menu))
+        {
+            (Key menuKey, _) = DefaultBindingsByKey
+                .First(binding => binding.command == Constants.Input.Menu);
+
+            m_commands.Add(new(menuKey, Constants.Input.Menu));
+            Changed = true;
         }
     }
 
@@ -90,40 +101,21 @@ public class ConfigKeyMapping : IConfigKeyMapping
         Changed = false;
     }
 
-    private bool HasKey(Key key)
+    public bool Add(Key key, string command)
     {
-        for (int i = 0; i < m_commands.Count; i++)
-        {
-            if (m_commands[i].Key == key)
-                return true;
-        }
-
-        return false;
-    }
-
-    private void AddIfMissing(Key key, params string[] commands)
-    {
-        if (HasKey(key))
-            return;
-
-        foreach (var command in commands)
-            Add(key, command);
-    }
-
-    public void Add(Key key, string command)
-    {
-        if (key == Key.Unknown || command == "")
-            return;
+        if (key == Key.Unknown || string.IsNullOrEmpty(command))
+            return false;
 
         for (int i = 0; i < m_commands.Count; i++)
         {
             var cmd = m_commands[i];
             if (cmd.Key == key && command.Equals(cmd.Command, StringComparison.OrdinalIgnoreCase))
-                return;
+                return false;
         }
 
         Changed = true;
         m_commands.Add(new(key, command));
+        return true;
     }
 
     public bool Remove(Key key)
@@ -147,16 +139,9 @@ public class ConfigKeyMapping : IConfigKeyMapping
             break;
         }
 
-        AddEmpty(key);
+        if (removed)
+            Changed = true;
         return removed;
-    }
-
-    public void AddEmpty(Key key)
-    {
-        if (HasKey(key))
-            return;
-
-        m_commands.Add(new(key, string.Empty));
     }
 
     public bool ConsumeCommandKeyPress(string command, IConsumableInput input, out int scrollAmount)
@@ -173,6 +158,19 @@ public class ConfigKeyMapping : IConfigKeyMapping
 
             if (input.ConsumeKeyPressed(cmd.Key))
                 return true;
+        }
+
+        return false;
+    }
+
+    public bool ConsumeCommandKeyPress(IConsumableInput input, params string[] commands)
+    {
+        foreach (string command in commands)
+        {
+            if (ConsumeCommandKeyPress(command, input, out _))
+            {
+                return true;
+            }
         }
 
         return false;
@@ -261,17 +259,10 @@ public class ConfigKeyMapping : IConfigKeyMapping
     public void ReloadDefaults(string command)
     {
         m_commands.RemoveAll(x => x.Command == command);
-        foreach ((Key key, _) in DefaultBindings.Where(binding => binding.command == command))
+        foreach ((Key key, _) in DefaultBindingsByKey.Where(binding => binding.command == command))
         {
             Add(key, command);
         }
-        Changed = true;
-    }
-
-    public void ReloadAllDefaults()
-    {
-        m_commands.Clear();
-        AddDefaultsIfMissing();
         Changed = true;
     }
 }

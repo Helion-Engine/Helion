@@ -218,6 +218,8 @@ public class GLHudRenderContext : IHudRenderContext
         m_commands.DrawText(renderableString, pos.X, pos.Y, alpha, m_context.DrawPalette);
     }
 
+    public int GetFontMaxHeight(string font) => m_archiveCollection.GetFont(font)?.MaxHeight ?? 0;
+
     public Dimension MeasureText(ReadOnlySpan<char> text, string font, int fontSize, int maxWidth = int.MaxValue,
         int maxHeight = int.MaxValue, float scale = 1.0f)
     {

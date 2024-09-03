@@ -1013,7 +1013,7 @@ public sealed class SpecialManager : ITickable, IDisposable
 
             case ZDoomLineSpecialType.TeleportNoFog:
                 return new TeleportSpecial(args, world, line.Args.Arg0, line.Args.Arg2, TeleportSpecial.GetTeleportFog(args.ActivateLineSpecial),
-                    (TeleportType)line.Args.Arg1).Teleport();
+                    (TeleportType)line.Args.Arg1, line.Args.Arg3 == 1).Teleport();
 
             case ZDoomLineSpecialType.TeleportLine:
                 return new TeleportSpecial(args, world, line.Args.Arg1, TeleportFog.None, TeleportType.BoomFixed, line.Args.Arg2 != 0).Teleport();

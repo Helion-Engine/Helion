@@ -3,7 +3,7 @@ using Helion.Render.Common.Renderers;
 using Helion.Util.Configs.Components;
 using System.Collections.Generic;
 
-namespace Helion.Layer.Options;
+namespace Helion.Layer.Options.Dialogs;
 
 internal class MessageDialog(ConfigHud config, string title, IList<string> message, string? acceptButton, string? cancelButton)
     : DialogBase(config, acceptButton, cancelButton)

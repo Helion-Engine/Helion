@@ -73,7 +73,7 @@ public class ConfigKeyMappingTest
             GetKeyCommands(keys, key).Should().BeEmpty();
         }
 
-        keys.AddDefaultsIfMissing();
+        keys.SetInitialDefaultKeyBindings();
 
         // Now with the defaults applied, let's make sure they are in fact added.
         foreach ((Key key, string command) in ExpectedMappings)
@@ -216,6 +216,30 @@ public class ConfigKeyMappingTest
         keys.Changed.Should().BeFalse();
 
         keys.UnbindAll(Key.F);
+        keys.Changed.Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "Removing key marks change if key was bound")]
+    public void RemovingKeyMarksChangedIfKeyBound()
+    {
+        ConfigKeyMapping keys = new();
+        keys.Add(Key.B, "something");
+        keys.Add(Key.C, "other");
+
+        keys.ClearChanged();
+
+        keys.Remove(Key.A);
+        keys.Changed.Should().BeFalse();
+
+        keys.Remove(Key.B, "something");
+        keys.Changed.Should().BeTrue();
+
+        keys.ClearChanged();
+
+        keys.Remove(Key.C, "notbound");
+        keys.Changed.Should().BeFalse();
+
+        keys.Remove(Key.C);
         keys.Changed.Should().BeTrue();
     }
 

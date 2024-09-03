@@ -425,6 +425,7 @@ public abstract partial class WorldBase : IWorld
         Config.SlowTick.ChaseMultiplier.OnChanged += SlowTickChaseMultiplier_OnChanged;
         Config.SlowTick.LookMultiplier.OnChanged += SlowTickLookMultiplier_OnChanged;
         Config.SlowTick.TracerMultiplier.OnChanged += SlowTickTracerMultiplier_OnChanged;
+        
         Config.Compatibility.MissileClip.OnChanged += MissileClip_OnChanged;
         Config.Compatibility.AllowItemDropoff.OnChanged += AllowItemDropoff_OnChanged;
         Config.Compatibility.InfinitelyTallThings.OnChanged += InfinitelyTallThings_OnChanged;
@@ -435,6 +436,7 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.OriginalExplosion.OnChanged += OriginalExplosion_OnChanged;
         Config.Compatibility.FinalDoomTeleport.OnChanged += FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged += VanillaSectorSound_OnChanged;
+
         Config.Game.FastMonsters.OnChanged += FastMonsters_OnChanged;
     }
 
@@ -446,15 +448,18 @@ public abstract partial class WorldBase : IWorld
         Config.SlowTick.ChaseMultiplier.OnChanged -= SlowTickChaseMultiplier_OnChanged;
         Config.SlowTick.LookMultiplier.OnChanged -= SlowTickLookMultiplier_OnChanged;
         Config.SlowTick.TracerMultiplier.OnChanged -= SlowTickTracerMultiplier_OnChanged;
+
         Config.Compatibility.MissileClip.OnChanged -= MissileClip_OnChanged;
         Config.Compatibility.AllowItemDropoff.OnChanged -= AllowItemDropoff_OnChanged;
         Config.Compatibility.InfinitelyTallThings.OnChanged -= InfinitelyTallThings_OnChanged;
         Config.Compatibility.NoTossDrops.OnChanged -= NoTossDrops_OnChanged;
         Config.Compatibility.VanillaMovementPhysics.OnChanged -= VanillaMovementPhysics_OnChanged;
         Config.Compatibility.Mbf21.OnChanged -= Mbf21_OnChanged;
+        Config.Compatibility.Doom2ProjectileWalkTriggers.OnChanged -= Doom2ProjectileWalkTriggers_OnChanged;
         Config.Compatibility.OriginalExplosion.OnChanged -= OriginalExplosion_OnChanged;
         Config.Compatibility.FinalDoomTeleport.OnChanged -= FinalDoomTeleport_OnChanged;
         Config.Compatibility.VanillaSectorSound.OnChanged -= VanillaSectorSound_OnChanged;
+
         Config.Game.FastMonsters.OnChanged -= FastMonsters_OnChanged;
     }
 
@@ -613,7 +618,7 @@ public abstract partial class WorldBase : IWorld
         SectorMoveComplete?.Invoke(this, move.SectorPlane);
     }
 
-    public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
+    public Player? GetLineOfSightPlayer(Entity entity, bool allAround)
     {
         for (int i = 0; i < EntityManager.Players.Count; i++)
         {
@@ -621,7 +626,7 @@ public abstract partial class WorldBase : IWorld
             if (player.IsDead)
                 continue;
 
-            if (!allaround && !InFieldOfViewOrInMeleeDistance(entity, player))
+            if (!allAround && !InFieldOfViewOrInMeleeDistance(entity, player))
                 continue;
 
             if (CheckLineOfSight(entity, player))
@@ -631,10 +636,22 @@ public abstract partial class WorldBase : IWorld
         return null;
     }
 
-    public Entity? GetLineOfSightEnemy(Entity entity, bool allaround)
+    public Player? GetFirstAlivePlayer()
+    {
+        for (int i = 0; i < EntityManager.Players.Count; i++)
+        {
+            Player player = EntityManager.Players[i];
+            if (!player.IsDead)
+                return player;
+        }
+
+        return null;
+    }
+
+    public Entity? GetLineOfSightEnemy(Entity entity, bool allAround)
     {
         m_lineOfSightEnemyData.Entity = entity;
-        m_lineOfSightEnemyData.AllAround = allaround;
+        m_lineOfSightEnemyData.AllAround = allAround;
         m_lineOfSightEnemyData.SightEntity = null;
         Box2D box = new(entity.Position.X, entity.Position.Y, 1280);
         BlockmapTraverser.EntityTraverse(box, m_lineOfSightEnemyAction);
@@ -643,7 +660,7 @@ public abstract partial class WorldBase : IWorld
 
     private GridIterationStatus HandleLineOfSightEnemy(Entity checkEntity)
     {
-        if (m_lineOfSightEnemyData.Entity.Id == checkEntity.Id || checkEntity.IsDead || !checkEntity.Flags.CountKill ||
+        if (m_lineOfSightEnemyData.Entity == checkEntity || checkEntity.IsDead || !checkEntity.Flags.CountKill ||
             m_lineOfSightEnemyData.Entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
             return GridIterationStatus.Continue;
 
@@ -1435,9 +1452,11 @@ public abstract partial class WorldBase : IWorld
         intersections.Clear();
         BlockmapTraverser.ShootTraverse(seg, intersections);
 
-        for (int i = 0; i < intersections.Length; i++)
+        var data = intersections.Data;
+        int length = intersections.Length;
+        for (int i = 0; i < length; i++)
         {
-            BlockmapIntersect bi = intersections[i];
+            ref BlockmapIntersect bi = ref data[i];
             if (bi.Line != null)
             {
                 if (damage != Constants.HitscanTestDamage && bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.HitscanImpactsWall))
@@ -1471,11 +1490,22 @@ public abstract partial class WorldBase : IWorld
                 }
 
                 GetOrderedSectors(bi.Line, start, out Sector front, out Sector back);
-                if (IsSkyClipTwoSided(front, back, intersect))
-                    break;
 
-                floorZ = front.ToFloorZ(intersect);
-                ceilingZ = front.ToCeilingZ(intersect);
+
+                if (bi.Line.Front.Sector != bi.Line.Back.Sector)
+                {
+                    if (IsSkyClipTwoSided(front, back, intersect))
+                        break;
+
+                    floorZ = front.ToFloorZ(intersect);
+                    ceilingZ = front.ToCeilingZ(intersect);
+                }
+                else
+                {
+                    // Emulate doom behavior where the line would be ignored if self referencing
+                    floorZ = double.MinValue;
+                    ceilingZ = double.MaxValue;
+                }
 
                 if (intersect.Z < floorZ || intersect.Z > ceilingZ)
                 {
@@ -1485,8 +1515,9 @@ public abstract partial class WorldBase : IWorld
                     break;
                 }
 
-                LineOpening opening = PhysicsManager.GetLineOpening(bi.Line);
-                if ((opening.FloorZ > intersect.Z && intersect.Z > floorZ) || (opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
+                var opening = PhysicsManager.GetLineOpening(bi.Line);
+                if ((floorZ != double.MinValue && opening.FloorZ > intersect.Z && intersect.Z > floorZ) || 
+                    (ceilingZ != double.MaxValue && opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
                 {
                     returnValue = bi;
                     break;
@@ -2369,16 +2400,21 @@ public abstract partial class WorldBase : IWorld
         pitch = 0.0;
         entity = null;
 
-        for (int i = 0; i < intersections.Length; i++)
+        var data = intersections.Data;
+        int length = intersections.Length;
+        for (int i = 0; i < length; i++)
         {
-            BlockmapIntersect bi = intersections[i];
+            ref BlockmapIntersect bi = ref data[i];
 
             if (bi.Line != null)
             {
                 if (bi.Line.Back == null)
                     return TraversalPitchStatus.Blocked;
 
-                LineOpening opening = PhysicsManager.GetLineOpening(bi.Line);
+                if (bi.Line.Front.Sector == bi.Line.Back.Sector)
+                    continue;
+
+                var opening = PhysicsManager.GetLineOpening(bi.Line);
                 if (opening.FloorZ < opening.CeilingZ)
                 {
                     double sectorPitch = start.Pitch(opening.FloorZ, bi.SegTime * segLength);

@@ -5,6 +5,7 @@ using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
 using Helion.Render.OpenGL.Commands;
 using Helion.Window;
+using Helion.World;
 
 namespace Helion.Render.OpenGL;
 
@@ -97,4 +98,6 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
         m_worldRenderContext.Begin(context);
         action(m_worldRenderContext);
     }
+
+    public void HandleTransition(TransitionType type, float? progress, bool? init) => Commands.HandleTransition(type, progress, init);
 }

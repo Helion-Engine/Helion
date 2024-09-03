@@ -477,7 +477,6 @@ public partial class DehackedDefinition
         "skeleton/sight",
         "skeleton/attack",
         "misc/chat",
-        "misc/teamchat",
         "dog/sight",
         "dog/attack",
         "dog/active",
@@ -592,6 +591,7 @@ public partial class DehackedDefinition
         { "COUNTITEM", 0x00800000 },
         { "SKULLFLY", 0x01000000 },
         { "NOTDMATCH", 0x02000000 },
+        { "TRANSLATION", 0x04000000 },
         { "TRANSLATION1", 0x04000000 },
         { "TRANSLATION2", 0x08000000 },
         { "TOUCHY", 0x10000000 },
@@ -1781,6 +1781,7 @@ public partial class DehackedDefinition
         { ThingState.PLS1EXP2,      new("PlasmaBall1::Death",           1) },
         { ThingState.PLS1EXP3,      new("PlasmaBall1::Death",           2) },
         { ThingState.PLS1EXP4,      new("PlasmaBall1::Death",           3) },
+        { ThingState.PLS1EXP5,      new("PlasmaBall1::Death",           4) },
 
         { ThingState.PLS2BALL,      new("PlasmaBall2::Spawn",           0) },
         { ThingState.PLS2BALL2,     new("PlasmaBall2::Spawn",           1) },

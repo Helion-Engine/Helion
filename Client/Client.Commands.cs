@@ -1,5 +1,6 @@
 using Helion.Geometry.Boxes;
 using Helion.Layer.EndGame;
+using Helion.Layer.Transition;
 using Helion.Layer.Worlds;
 using Helion.Maps;
 using Helion.Maps.Bsp.Zdbsp;
@@ -164,6 +165,7 @@ public partial class Client
 
         var world = m_layerManager.WorldLayer.World;
         world.EntityManager.Create("MapMarker", m_layerManager.WorldLayer.World.Player.Position + RenderInfo.LastAutomapOffset.Double.To3D(0));
+        HelionLog.Info($"Added a map marker.");
     }
 
     [ConsoleCommand("mark.remove", "Removes map markers within a 128 radius.")]
@@ -172,13 +174,25 @@ public partial class Client
         if (m_layerManager.WorldLayer == null)
             return;
 
+        int removedCount = 0;
         var world = m_layerManager.WorldLayer.World;
         var box = new Box2D(world.Player.Position.XY + RenderInfo.LastAutomapOffset.Double, 128);
-        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
+        var entity = world.EntityManager.Head;
+        while (entity != null)
         {
+            var nextEntity = entity.Next;
             if (entity.Definition.EditorId == (int)EditorId.MapMarker && entity.Overlaps2D(box))
+            {
                 world.EntityManager.Destroy(entity);
+                removedCount++;
+            }
+            entity = nextEntity;
         }
+        if (removedCount > 0)
+            HelionLog.Info($"Removed {removedCount} nearby map marker{(removedCount > 1 ? "s" : "")}.");
+        else
+            HelionLog.Info($"No nearby map markers to remove.");
+
     }
 
     [ConsoleCommand("mark.clear", "Removes all map markers.")]
@@ -187,12 +201,23 @@ public partial class Client
         if (m_layerManager.WorldLayer == null)
             return;
 
+        int removedCount = 0;
         var world = m_layerManager.WorldLayer.World;
-        for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
+        var entity = world.EntityManager.Head;
+        while (entity != null)
         {
+            var nextEntity = entity.Next;
             if (entity.Definition.EditorId == (int)EditorId.MapMarker)
+            {
                 world.EntityManager.Destroy(entity);
+                removedCount++;
+            }
+            entity = nextEntity;
         }
+        if (removedCount > 0)
+            HelionLog.Info($"Removed all {removedCount} map markers.");
+        else
+            HelionLog.Info($"No map markers to remove.");
     }
 
     [ConsoleCommand("findkeys", "Finds the next key in the map.")]
@@ -347,6 +372,26 @@ public partial class Client
         {
             HandleFatalException(e);
         }
+    }
+
+    [ConsoleCommand("listmaps", "Lists all maps")]
+    private void ListMaps(ConsoleCommandEventArgs args)
+    {
+        foreach (var map in m_archiveCollection.MapInfo.MapInfo.Maps)
+            HelionLog.Info(map.GetDisplayNameWithPrefix(m_archiveCollection));
+    }
+
+    [ConsoleCommand("printmap", "Prints the current map")]
+    private void PrintMap(ConsoleCommandEventArgs args)
+    {
+        // TODO: it would be nice to print the game title if available,
+        // but it seems uncommon - some exist in gameinfo.txt `startuptitle`s,
+        // and others exist in gameconf.txt `data.title`s
+        var map = m_layerManager.WorldLayer?.CurrentMap;
+        if (map != null)
+            HelionLog.Info(map.GetDisplayNameWithPrefix(m_archiveCollection));
+        else
+            HelionLog.Info("No map loaded");
     }
 
     [ConsoleCommand("startGame", "Starts a new game")]
@@ -676,16 +721,18 @@ public partial class Client
         var loadingLayer = m_layerManager.LoadingLayer;
         if (loadingLayer == null)
         {
-            loadingLayer = new(m_archiveCollection, m_config, string.Empty);
+            loadingLayer = new(m_archiveCollection, m_config, string.Empty, showLoadingImage: showLoadingTitlepic);
             m_layerManager.Add(loadingLayer);
         }
 
         loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
         loadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
 
+        PrepareTransition();
+
         UnRegisterWorldEvents();
 
-        m_layerManager.ClearAllExcept(loadingLayer);
+        m_layerManager.ClearAllExcept(loadingLayer, m_layerManager.TransitionLayer);
         m_archiveCollection.DataCache.FlushReferences();
 
         await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
@@ -754,7 +801,7 @@ public partial class Client
         RegisterWorldEvents(newLayer);
 
         m_layerManager.Add(newLayer);
-        m_layerManager.ClearAllExcept(newLayer, m_layerManager.LoadingLayer);
+        m_layerManager.ClearAllExcept(newLayer, m_layerManager.LoadingLayer, m_layerManager.TransitionLayer);
 
         if (players.Count > 0 && m_config.Game.AutoSave)
         {
@@ -913,8 +960,8 @@ public partial class Client
         }
         else
         {
-            IntermissionLayer intermissionLayer = new(m_layerManager, world, m_soundManager, m_audioSystem.Music,
-                world.MapInfo, getNextMapInfo);
+            IntermissionLayer intermissionLayer = new(m_layerManager, world, m_config.Keys, m_soundManager,
+                m_audioSystem.Music, world.MapInfo, getNextMapInfo);
             intermissionLayer.Exited += IntermissionLayer_Exited;
             m_layerManager.Add(intermissionLayer);
         }
@@ -927,6 +974,17 @@ public partial class Client
 
         await EndGame(intermissionLayer.World, intermissionLayer.GetNextMapInfo);
         m_layerManager.Remove(m_layerManager.IntermissionLayer);
+    }
+
+    private void PrepareTransition()
+    {
+        m_layerManager.RemoveWithoutAnimation(m_layerManager.TransitionLayer);
+        m_layerManager.Add(new TransitionLayer(m_config));
+    }
+
+    private void PlayTransition()
+    {
+        m_layerManager.TransitionLayer?.Start();
     }
 
     private async Task EndGame(IWorld world, Func<FindMapResult> getNextMapInfo)
@@ -953,6 +1011,8 @@ public partial class Client
             if (isChangingClusters || world.MapInfo.EndGame != null || nextMapResult.Options.HasFlag(FindMapResultOptions.EndGame))
             {
                 HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
+                PrepareTransition();
+                PlayTransition();
             }
             else if (nextMapInfo != null)
             {
@@ -978,7 +1038,7 @@ public partial class Client
         if (cluster == null)
             return;
 
-        EndGameLayer endGameLayer = new(m_archiveCollection, m_audioSystem.Music, m_soundManager, world, cluster, nextCluster, nextMapInfo, m_isSecretExit);
+        EndGameLayer endGameLayer = new(world, m_config.Keys, m_soundManager, m_audioSystem.Music, m_archiveCollection, cluster, nextCluster, nextMapInfo, m_isSecretExit);
         endGameLayer.Exited += EndGameLayer_Exited;
 
         m_layerManager.Add(endGameLayer);

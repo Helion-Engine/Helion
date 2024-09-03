@@ -193,11 +193,12 @@ public sealed class Line
         if (oneSided)
             return true;
 
-        if (!entity.IsPlayer && !entity.Flags.Missile &&
+        bool isPlayerOrFriendly = entity.IsPlayer || entity.Flags.Friendly;
+        if (!isPlayerOrFriendly && !entity.Flags.Missile &&
             (flags.Blocking.Monsters || (mbf21 && flags.Blocking.LandMonstersMbf21 && !entity.Flags.Float)))
             return true;
 
-        if (entity.IsPlayer && (flags.Blocking.Players || (mbf21 && flags.Blocking.PlayersMbf21)))
+        if (isPlayerOrFriendly && (flags.Blocking.Players || (mbf21 && flags.Blocking.PlayersMbf21)))
             return true;
 
         return false;

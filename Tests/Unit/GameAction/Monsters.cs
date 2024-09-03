@@ -381,6 +381,28 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "Monster see state plays see sound and going back to spawn does not play see sound")]
         public void MonsterBackToSpawnState()
         {
+            GameActions.SetEntityPosition(World, Player, (-256, -416, 0));
+            var source = GameActions.CreateEntity(World, "ShotgunGuy", new(-256, -64, 0), onCreated: EntityCreated);
+            int frameIndex = source.FrameState.Frame.MasterFrameIndex;
+            source.AngleRadians = GameActions.GetAngle(Bearing.South);
+            source.FrozenTics = 0;
+            GameActions.TickWorld(World, () => { return source.Target.Entity == null; }, () => { });
+            source.Target.Entity.Should().Be(Player);
+
+            Player.Health = 0;
+            source.FrameState.SetFrameIndex(frameIndex);
+            GameActions.AssertAnySound(World, source);
+
+            source.Target.Entity.Should().Be(Player);
+            GameActions.TickWorld(World, 10);
+            GameActions.AssertNoSound(World, source);
+            (source.FrameState.Frame.ActionFunction == EntityActionFunctions.A_Look).Should().BeTrue();
+            Player.Health = 100;
+        }
+
+        [Fact(DisplayName = "Friendly monster sets target to player when monster in sight")]
+        public void FriendlyMonsterTargetPlayerInSight()
+        {
             GameActions.SetEntityPosition(World, Player, (-320, 64, 0));
             var source = GameActions.CreateEntity(World, "ShotgunGuy", new(-256, -64, 0), onCreated: EntityCreated);
             int frameIndex = source.FrameState.Frame.MasterFrameIndex;
@@ -388,18 +410,37 @@ namespace Helion.Tests.Unit.GameAction
             source.FrozenTics = 0;
             source.Flags.Friendly = true;
             var dest = GameActions.CreateEntity(World, "Cacodemon", new(-256, -416, 0), onCreated: EntityCreated);
+            source.SetTarget(dest);
+            GameActions.TickWorld(World, () => { return source.Target.Entity == null; }, () => { });
+            source.Target.Entity.Should().Be(dest);
 
+            GameActions.SetEntityOutOfBounds(World, dest);
+            GameActions.SetEntityPosition(World, Player, new Vec2D(-256, -416));
+            source.FrameState.SetFrameIndex(frameIndex);
+            World.CheckLineOfSight(source, Player).Should().BeTrue();
+            source.Target.Entity.Should().Be(Player);
+            GameActions.SetEntityOutOfBounds(World, Player);
+        }
+
+        [Fact(DisplayName = "Friendly monster sets target to player when out of sight")]
+        public void FriendlyMonsterTargetPlayerOutOfSight()
+        {
+            GameActions.SetEntityPosition(World, Player, (-320, 64, 0));
+            var source = GameActions.CreateEntity(World, "ShotgunGuy", new(-256, -64, 0), onCreated: EntityCreated);
+            int frameIndex = source.FrameState.Frame.MasterFrameIndex;
+            source.AngleRadians = GameActions.GetAngle(Bearing.South);
+            source.FrozenTics = 0;
+            source.Flags.Friendly = true;
+            var dest = GameActions.CreateEntity(World, "Cacodemon", new(-256, -416, 0), onCreated: EntityCreated);
+            source.SetTarget(dest);
             GameActions.TickWorld(World, () => { return source.Target.Entity == null; }, () => { });
             source.Target.Entity.Should().Be(dest);
 
             GameActions.SetEntityOutOfBounds(World, dest);
             source.FrameState.SetFrameIndex(frameIndex);
             GameActions.AssertAnySound(World, source);
-
-            source.Target.Entity.Should().Be(dest);
-            GameActions.TickWorld(World, 10);
-            GameActions.AssertNoSound(World, source);
-            (source.FrameState.Frame.ActionFunction == EntityActionFunctions.A_Look).Should().BeTrue();
+            World.CheckLineOfSight(source, Player).Should().BeFalse();
+            source.Target.Entity.Should().Be(Player);
         }
 
         [Fact(DisplayName = "Monster infighting tests")]

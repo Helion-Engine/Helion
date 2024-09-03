@@ -94,6 +94,11 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         return false;
     }
 
+    public IEnumerable<string> GetNames(ResourceNamespace specificNamespace)
+    {
+        return ArchiveCollection.ImageRetriever.GetNames(specificNamespace);
+    }
+
     /// <summary>
     /// Checks if the texture manager contains the image.
     /// </summary>
@@ -312,14 +317,14 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     {
         if (m_disposed)
             return;
-        
+
         NullTexture.Dispose();
         WhiteTexture.Dispose();
         NullFont.Dispose();
-        
+
         TextureTracker.GetValues().ForEach(texture => texture?.Dispose());
         TextureTrackerClamp.GetValues().ForEach(texture => texture?.Dispose());
-        
+
         foreach (var pair in m_fonts)
             pair.Value.Dispose();
 

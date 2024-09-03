@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text.Json;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Values;
 using Helion.Util.Extensions;
@@ -12,6 +6,11 @@ using Helion.Window.Input;
 using IniParser;
 using IniParser.Model;
 using NLog;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
 
 namespace Helion.Util.Configs.Impl;
 
@@ -125,6 +124,7 @@ public class FileConfig : Config
                 parser.WriteFile(filePath, iniData);
             }
 
+            KeyMapping.ClearChanged();
             HelionLog.Info($"Wrote config file to {filePath}");
             return success;
         }
@@ -189,7 +189,7 @@ public class FileConfig : Config
             HelionLog.Info($"Config file not found, will generate new config file at {path}");
             m_noFileExistedWhenRead = true;
 
-            KeyMapping.AddDefaultsIfMissing();
+            KeyMapping.SetInitialDefaultKeyBindings();
             return;
         }
 
@@ -199,8 +199,15 @@ public class FileConfig : Config
             IniData iniData = parser.ReadFile(path);
 
             ReadEngineValues(iniData);
-            ReadKeyValues(iniData);
-            KeyMapping.AddDefaultsIfMissing();
+            bool keyValuesNeedSave = !ReadKeyValues(iniData);
+
+            // Allow the user to un-bind as many keys as they want, but make sure they
+            // at least have a way to get back into the menus if their bindings aren't working.
+            KeyMapping.EnsureMenuKey();
+            if (KeyMapping.Changed || keyValuesNeedSave)
+            {
+                Write(path, true);
+            }
         }
         catch (Exception e)
         {
@@ -231,8 +238,9 @@ public class FileConfig : Config
             }
         }
 
-        void ReadKeyValues(IniData iniData)
+        bool ReadKeyValues(IniData iniData)
         {
+            bool noBadMappings = true;
             Dictionary<string, Key> nameToKey = new(StringComparer.OrdinalIgnoreCase);
             foreach (Key key in Enum.GetValues<Key>())
                 nameToKey[key.ToString()] = key;
@@ -252,17 +260,19 @@ public class FileConfig : Config
                     continue;
                 }
 
-                // If the user clears a key bind entirely then the command array will be empty.
-                // Keep this so that the defaults are not added.
                 if (commandArray.Length == 0)
                 {
-                    Keys.AddEmpty(key);
-                    continue;
+                    Log.Warn($"Empty mappings for {keyData.KeyName}");
+                    noBadMappings = false;
                 }
 
                 foreach (var command in commandArray)
-                    Keys.Add(key, command);
+                    noBadMappings &= Keys.Add(key, command);
             }
+
+            KeyMapping.ClearChanged();
+            // This might be false if we couldn't bind a key because it was "empty" or duplicated.
+            return noBadMappings;
         }
     }
 

@@ -480,8 +480,8 @@ public static class EntityActionFunctions
             for (int j = 0; j < 15; j++)
                 damage += (WorldStatic.Random.NextByte() & 7) + 1;
 
-            WorldStatic.EntityManager.Create("BFGExtra", hitEntity.CenterPoint);
             WorldStatic.World.DamageEntity(hitEntity, entity, damage, DamageType.Normal, Thrust.Horizontal);
+            WorldStatic.EntityManager.Create("BFGExtra", hitEntity.CenterPoint);
         }
     }
 
@@ -1832,6 +1832,7 @@ public static class EntityActionFunctions
         var player = entity.PlayerObj;
         player.Weapon.ReadyState = true;
         player.WeaponOffset.Y = Constants.WeaponTop;
+        player.WeaponOffset.X = 0;
 
         if (entity.PlayerObj.PendingWeapon != null || player.IsDead)
         {
@@ -2775,7 +2776,11 @@ public static class EntityActionFunctions
 
         Vec3D pos = entity.Position;
         pos.Z += entity.Frame.DehackedMisc2;
-        WorldStatic.EntityManager.Create(def, pos, 0, 0, 0);
+        var spawnEntity = WorldStatic.EntityManager.Create(def, pos, 0, 0, 0);
+        if (spawnEntity == null)
+            return;
+
+        spawnEntity.Flags.Friendly = entity.Flags.Friendly;
     }
 
     private static void A_Face(Entity entity)

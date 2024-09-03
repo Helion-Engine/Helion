@@ -1,4 +1,4 @@
-namespace Helion.Layer.Worlds;
+namespace Helion.Layer.Intermission;
 
 public enum IntermissionState
 {

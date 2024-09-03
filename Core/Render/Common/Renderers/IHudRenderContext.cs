@@ -105,6 +105,8 @@ public interface IHudRenderContext : IDisposable
         Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null, int maxWidth = int.MaxValue,
         int maxHeight = int.MaxValue, Color? color = null, float scale = 1.0f, float alpha = 1.0f);
 
+    int GetFontMaxHeight(string font);
+
     Dimension MeasureText(string text, string font, int fontSize, int maxWidth = int.MaxValue,
         int maxHeight = int.MaxValue, float scale = 1.0f)
     {
@@ -196,5 +198,8 @@ public interface IHudRenderContext : IDisposable
     // Setting to false with colormap rendering will stop boom colormaps set from transfer heights.
     void DrawColorMap(bool set);
 
+    /// <summary>
+    /// Draws queued images, text, shapes to screen.
+    /// </summary>
     void DrawHud();
 }

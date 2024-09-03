@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using Helion.Audio.Sounds;
+﻿using Helion.Audio.Sounds;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Layer.Options.Dialogs;
 using Helion.Layer.Options.Sections;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
@@ -14,11 +11,15 @@ using Helion.Resources;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
+using System;
+using System.Collections.Generic;
+using System.Text;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
@@ -245,6 +246,13 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         if (input.ConsumeKeyPressed(Key.Escape))
         {
+            // Ensure that the user isn't closing out of the menus without some kind of binding to get back into the menus.
+            m_config.Keys.EnsureMenuKey();
+            if (m_config.Keys.Changed && m_config is FileConfig fileConfig)
+            {
+                fileConfig.Write();
+            }
+
             m_soundManager.PlayStaticSound(MenuSounds.Choose);
             Animation.AnimateOut();
 
@@ -455,7 +463,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private void GenerateFooterLines(string inputText, string font, int fontSize, IHudRenderContext hud, List<string> lines, StringBuilder builder,
         out int requiredHeight)
-    {   
+    {
         // Setting descriptions may be verbose, and may need multiple lines to render.  This method precomputes 
         // the dimensions we'll need for a footer, so we can reserve room when doing rendering and scroll offset
         // calculations.  It also returns the split text, since we need to figure that out anyway and are going to

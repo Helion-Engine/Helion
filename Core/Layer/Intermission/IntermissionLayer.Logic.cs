@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Helion.Layer.Intermission;
 using Helion.Resources.Definitions.Intermission;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;

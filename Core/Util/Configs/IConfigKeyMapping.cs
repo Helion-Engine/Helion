@@ -21,10 +21,9 @@ public interface IConfigKeyMapping
     /// </summary>
     /// <param name="key">The key to add.</param>
     /// <param name="command">The command for the key.</param>
-    void Add(Key key, string command);
+    bool Add(Key key, string command);
     bool Remove(Key key);
     bool Remove(Key key, string command);
-    void AddEmpty(Key key);
 
     /// <summary>
     /// Consumes the key for the mapped command if it is currently pressed.
@@ -34,6 +33,15 @@ public interface IConfigKeyMapping
     /// <returns>True if it was found to be pressed and was consumed, false if
     /// not or if something else consumed it.</returns>
     bool ConsumeCommandKeyPress(string command, IConsumableInput input, out int scrollAmount);
+
+    /// <summary>
+    /// Consumes any of the specified commands if currently pressed
+    /// This will only consume the _first_ matching command key.
+    /// </summary>
+    /// <param name="input">The consumable input</param>
+    /// <param name="commands">The commands to consume</param>
+    /// <returns>True if any of the specified commands were found and consumed</returns>
+    bool ConsumeCommandKeyPress(IConsumableInput input, params string[] commands);
 
     /// <summary>
     /// Consumes the key for the mapped command if it is currently down.
@@ -81,7 +89,12 @@ public interface IConfigKeyMapping
     void ReloadDefaults(string command);
 
     /// <summary>
-    /// Restore all default bindings
+    /// Reloads all default key bindings
     /// </summary>
-    void ReloadAllDefaults();
+    void SetInitialDefaultKeyBindings();
+
+    /// <summary>
+    /// Ensures that the user has some way to get back to the menus even if they have unbound all keys.
+    /// </summary>
+    void EnsureMenuKey();
 }

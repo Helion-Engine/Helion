@@ -17,6 +17,7 @@ namespace Helion.Tests.Unit.GameAction
         private readonly SinglePlayerWorld World;
         private Player Player => World.Player;
         private Entity SightThing => GameActions.GetEntity(World, 1);
+        private Entity SightThing2 => GameActions.GetEntity(World, 2);
 
         public LineOfSight()
         {
@@ -37,18 +38,18 @@ namespace Helion.Tests.Unit.GameAction
             World.CheckLineOfSight(SightThing, Player).Should().BeTrue();
 
             SightThing.AngleRadians = GameActions.GetAngle(Bearing.North);
-            World.GetLineOfSightPlayer(SightThing, allaround: true).Should().Be(Player);
-            World.GetLineOfSightPlayer(SightThing, allaround: false).Should().BeNull();
+            World.GetLineOfSightPlayer(SightThing, allAround: true).Should().Be(Player);
+            World.GetLineOfSightPlayer(SightThing, allAround: false).Should().BeNull();
 
             SightThing.AngleRadians = GameActions.GetAngle(Bearing.East);
-            World.GetLineOfSightPlayer(SightThing, allaround: false).Should().BeNull();
+            World.GetLineOfSightPlayer(SightThing, allAround: false).Should().BeNull();
 
             GameActions.SetEntityPosition(World, Player, new Vec2D(-254, -480));
-            World.GetLineOfSightPlayer(SightThing, allaround: false).Should().Be(Player);
+            World.GetLineOfSightPlayer(SightThing, allAround: false).Should().Be(Player);
 
             GameActions.SetEntityPosition(World, Player, new Vec2D(-257, -480));
             SightThing.AngleRadians = GameActions.GetAngle(Bearing.West);
-            World.GetLineOfSightPlayer(SightThing, allaround: false).Should().Be(Player);
+            World.GetLineOfSightPlayer(SightThing, allAround: false).Should().Be(Player);
         }
 
         [Fact(DisplayName = "Line of sight obstructed by one sided line")]
@@ -237,6 +238,14 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityPosition(World, Player, new Vec2D(384, -320 - 119));
             World.GetLineOfSightPlayer(SightThing, false).Should().Be(Player);
             World.SetLineOfSightDistance(WorldBase.DefaultLineOfSightDistance);
+        }
+
+
+        [Fact(DisplayName = "Line of sight not blocked by self-referencing sector")]
+        public void LineOfSightSelfReferencing()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec2D(1024, -224));
+            World.GetLineOfSightPlayer(SightThing2, false).Should().Be(Player);
         }
     }
 }

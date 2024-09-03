@@ -100,26 +100,27 @@ public partial class WorldLayer
             m_autoMapScale = m_config.Hud.AutoMap.Scale;
         }
 
-        if (m_parent.LoadingLayer == null)
-            input.IterateCommands(World.Config.Keys.GetKeyMapping(), m_checkCommandAction, true);
+        if (m_parent.LoadingLayer == null && m_parent.TransitionLayer == null)
+            input.IterateCommands(World.Config.Keys.GetKeyMapping(), m_checkCommandAction);
     }
 
-    private void CheckCommand(IConsumableInput input, KeyCommandItem cmd)
+    private bool CheckCommand(IConsumableInput input, KeyCommandItem cmd)
     {
         // Handling this at the GameLayerManager level so screenshots can work on title/options etc.
         if (cmd.Command == Input.Screenshot)
-            return;
+            return false;
 
-        if ((m_parent.LoadingLayer != null || World.Paused) && InGameCommands.Contains(cmd.Command))
-            return;
+        if ((m_parent.LoadingLayer != null || m_parent.TransitionLayer != null || World.Paused) && InGameCommands.Contains(cmd.Command))
+            return false;
 
         // This layer should eat all regular base commands whenever it's on top, to prevent things like "move automap"
         // commands from getting passed down to the console when the automap isn't raised (it'll always be on top and
         // thus will have had a chance to consume its inputs first).
         if (BaseCommands.Contains(cmd.Command))
-            return;
+            return false;
 
         m_parent.SubmitConsoleText(cmd.Command);
+        return true;
     }
 
     private void HandlePausePress()
@@ -152,6 +153,12 @@ public partial class WorldLayer
             ChangeAutoMapOffsetX(true);
         else if (IsCommandContinuousHold(Constants.Input.AutoMapLeft, input))
             ChangeAutoMapOffsetX(false);
+        else if (IsCommandPressed(Constants.Input.AutoMapAddMarker, input))
+            m_console.SubmitInputText("mark.add");
+        else if (IsCommandPressed(Constants.Input.AutoMapRemoveNearbyMarkers, input))
+            m_console.SubmitInputText("mark.remove");
+        else if (IsCommandPressed(Constants.Input.AutoMapClearAllMarkers, input))
+            m_console.SubmitInputText("mark.clear");
     }
 
     private static int GetChangeAmount(IConsumableInput input, int baseAmount, int scrollAmount)

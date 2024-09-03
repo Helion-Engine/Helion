@@ -27,6 +27,7 @@ public class MusicPlayer : IMusicPlayer
     private readonly Task m_playQueueTask;
     private Thread? m_playThread;
     private IMusicPlayer? m_musicPlayer;
+    private readonly FluidSynthMusicPlayer m_fluidSynthPlayer;
     private PlayParams m_playParams = default;
 
     public MusicPlayer(ConfigAudio configAudio)
@@ -34,6 +35,7 @@ public class MusicPlayer : IMusicPlayer
         m_configAudio = configAudio;
         m_playQueueTask = Task.Factory.StartNew(PlayQueueTask, m_cancelPlayQueue.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        m_fluidSynthPlayer = new FluidSynthMusicPlayer(new(m_configAudio.SoundFontFile));
     }
 
     private readonly struct PlayParams(byte[] data, MusicPlayerOptions options)
@@ -54,12 +56,14 @@ public class MusicPlayer : IMusicPlayer
 
     public bool ChangesMasterVolume() => m_musicPlayer is NAudioMusicPlayer;
 
-    private FluidSynthMusicPlayer CreateFluidSynthPlayer() =>
-        new(m_configAudio.SoundFontFile);
-
     public void ChangeSoundFont()
     {
-        (m_musicPlayer as FluidSynthMusicPlayer)?.ChangeSoundFont(m_configAudio.SoundFontFile);
+        if (m_disposed)
+        {
+            return;
+        }
+
+        m_fluidSynthPlayer.EnsureSoundFont(new(m_configAudio.SoundFontFile));
     }
 
     private void PlayQueueTask()
@@ -80,53 +84,71 @@ public class MusicPlayer : IMusicPlayer
     {
         var data = playParams.Data;
         var options = playParams.Options;
-        uint? hash = null;
+        uint hash = data.CalculateCrc32();
         if (options.HasFlag(MusicPlayerOptions.IgnoreAlreadyPlaying))
         {
-            hash = data.CalculateCrc32();
             if (hash == m_lastDataHash)
                 return;
         }
 
-        m_lastDataHash = hash ?? data.CalculateCrc32();
+        m_lastDataHash = hash;
 
         Stop();
+        m_musicPlayer = null;
 
         if (m_convertedMus.TryGetValue(m_lastDataHash, out var converted) || MusToMidi.TryConvert(data, out converted))
         {
             m_convertedMus[m_lastDataHash] = converted;
-            m_musicPlayer = CreateFluidSynthPlayer();
+            m_musicPlayer = m_fluidSynthPlayer;
             data = converted;
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        else if (IsMod(data))
         {
-            // Ogg/mp3 currently only works in Windows
-            if (NAudioMusicPlayer.IsOgg(data))
-            {
-                m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Ogg);
-            }
-            else if (NAudioMusicPlayer.IsMp3(data))
-            {
-                m_musicPlayer = new NAudioMusicPlayer(NAudioMusicType.Mp3);
-            }
-
+            Log.Error("MOD music format not supported");
+        }
+        else if (NAudioMusicPlayer.IsMp3(data))
+        {
+            m_musicPlayer = GetNaudioPlayer(NAudioMusicType.Mp3);
+        }
+        else if (NAudioMusicPlayer.IsOgg(data))
+        {
+            m_musicPlayer = GetNaudioPlayer(NAudioMusicType.Ogg);
         }
         else if (MusToMidi.TryConvertNoHeader(data, out converted))
         {
             m_convertedMus[m_lastDataHash] = converted;
-            m_musicPlayer = CreateFluidSynthPlayer();
+            m_musicPlayer = m_fluidSynthPlayer;
             data = converted;
+        }
+        else
+        {
+            Log.Warn("Unknown/unsupported music format");
         }
 
         if (m_musicPlayer == null)
         {
-            Log.Warn("Unknown/unsupported music format");
             return;
         }
 
         m_playParams = new(data, playParams.Options);
         m_playThread = new Thread(PlayThread);
         m_playThread.Start();
+    }
+
+    private static bool IsMod(byte[] data)
+    {
+        return data.Length > 0x43B && data[0x438] == 'M' && data[0x439] == '.' && data[0x43A] == 'K' && data[0x43B] == '.';
+    }
+
+    private static IMusicPlayer? GetNaudioPlayer(NAudioMusicType musicType)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return new NAudioMusicPlayer(musicType);
+        }
+
+        Log.Warn($"Audio format for {musicType} only available on Windows.");
+        return null;
     }
 
     private void PlayThread()
@@ -149,11 +171,16 @@ public class MusicPlayer : IMusicPlayer
         if (m_disposed)
             return;
 
-        Stop();
+        StopImpl(true);
 
         m_cancelPlayQueue.Cancel();
         m_playQueueTask.Wait(1000);
 
+
+        if (m_musicPlayer != m_fluidSynthPlayer)
+        {
+            m_fluidSynthPlayer.Dispose();
+        }
         m_musicPlayer?.Dispose();
         m_disposed = true;
     }
@@ -166,12 +193,18 @@ public class MusicPlayer : IMusicPlayer
 
     public void Stop()
     {
+        StopImpl(false);
+    }
+
+    private void StopImpl(bool disposing = false)
+    {
         if (m_disposed)
             return;
 
         m_musicPlayer?.Stop();
 
-        if (m_playThread == null)
+        // Try to avoid disposing the FluidSynth player unless we need to
+        if (m_playThread == null || ((m_musicPlayer == m_fluidSynthPlayer) && !disposing))
             return;
 
         if (m_playThread.Join(1000))
