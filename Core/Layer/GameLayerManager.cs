@@ -691,13 +691,6 @@ public class GameLayerManager : IGameLayerManager
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
-
-        if (MenuLayer != null)
-            RenderWithAlpha(hudCtx, MenuLayer.Animation, RenderMenu);
-
-        if (OptionsLayer != null)
-            RenderWithAlpha(hudCtx, OptionsLayer.Animation, RenderOptions);
-
         ReadThisLayer?.Render(hudCtx);
         IwadSelectionLayer?.Render(m_ctx, hudCtx);
         // if the loading layer has an image to render, we'll draw it to screen,
@@ -711,6 +704,13 @@ public class GameLayerManager : IGameLayerManager
             m_ctx.ClearDepth();
         }
         TransitionLayer?.Render(m_ctx);
+
+        if (MenuLayer != null)
+            RenderWithAlpha(hudCtx, MenuLayer.Animation, RenderMenu);
+
+        if (OptionsLayer != null)
+            RenderWithAlpha(hudCtx, OptionsLayer.Animation, RenderOptions);
+
         LoadingLayer?.RenderProgress(m_ctx, m_hudRenderCtx);
 
         RenderConsole(hudCtx);
