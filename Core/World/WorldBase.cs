@@ -597,7 +597,7 @@ public abstract partial class WorldBase : IWorld
         SectorMoveComplete?.Invoke(this, move.SectorPlane);
     }
 
-    public Player? GetLineOfSightPlayer(Entity entity, bool allaround)
+    public Player? GetLineOfSightPlayer(Entity entity, bool allAround)
     {
         for (int i = 0; i < EntityManager.Players.Count; i++)
         {
@@ -605,7 +605,7 @@ public abstract partial class WorldBase : IWorld
             if (player.IsDead)
                 continue;
 
-            if (!allaround && !InFieldOfViewOrInMeleeDistance(entity, player))
+            if (!allAround && !InFieldOfViewOrInMeleeDistance(entity, player))
                 continue;
 
             if (CheckLineOfSight(entity, player))
@@ -615,10 +615,22 @@ public abstract partial class WorldBase : IWorld
         return null;
     }
 
-    public Entity? GetLineOfSightEnemy(Entity entity, bool allaround)
+    public Player? GetFirstAlivePlayer()
+    {
+        for (int i = 0; i < EntityManager.Players.Count; i++)
+        {
+            Player player = EntityManager.Players[i];
+            if (!player.IsDead)
+                return player;
+        }
+
+        return null;
+    }
+
+    public Entity? GetLineOfSightEnemy(Entity entity, bool allAround)
     {
         m_lineOfSightEnemyData.Entity = entity;
-        m_lineOfSightEnemyData.AllAround = allaround;
+        m_lineOfSightEnemyData.AllAround = allAround;
         m_lineOfSightEnemyData.SightEntity = null;
         Box2D box = new(entity.Position.X, entity.Position.Y, 1280);
         BlockmapTraverser.EntityTraverse(box, m_lineOfSightEnemyAction);
@@ -627,7 +639,7 @@ public abstract partial class WorldBase : IWorld
 
     private GridIterationStatus HandleLineOfSightEnemy(Entity checkEntity)
     {
-        if (m_lineOfSightEnemyData.Entity.Id == checkEntity.Id || checkEntity.IsDead || !checkEntity.Flags.CountKill ||
+        if (m_lineOfSightEnemyData.Entity == checkEntity || checkEntity.IsDead || !checkEntity.Flags.CountKill ||
             m_lineOfSightEnemyData.Entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
             return GridIterationStatus.Continue;
 

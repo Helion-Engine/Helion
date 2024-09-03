@@ -42,7 +42,7 @@ public partial class Entity
 
     public void SetMoveDirection(MoveDir dir) => m_direction = dir;
 
-    public bool SetNewTarget(bool allaround)
+    public bool SetNewTarget(bool allAround)
     {
         if (IsFrozen)
             return false;
@@ -63,13 +63,13 @@ public partial class Entity
         }
         else
         {
-            newTarget = GetNewTarget(allaround);
+            newTarget = GetNewTarget(allAround);
         }
 
         if (newTarget != null)
         {
             SetTarget(newTarget);
-            if (!allaround)
+            if (!allAround)
             {
                 SetSeeState();
                 PlaySeeSound();
@@ -124,17 +124,25 @@ public partial class Entity
             SetSpawnState();
     }
 
-    private Entity? GetNewTarget(bool allaround)
+    private Entity? GetNewTarget(bool allAround)
     {
         Entity? newTarget;
         if (Flags.Friendly)
         {
-            newTarget = WorldStatic.World.GetLineOfSightEnemy(this, allaround);
-            newTarget ??= WorldStatic.World.GetLineOfSightPlayer(this, allaround);
+            var previousTarget = Target;
+            newTarget = WorldStatic.World.GetLineOfSightEnemy(this, allAround);
+            newTarget ??= WorldStatic.World.GetLineOfSightPlayer(this, allAround);
+            newTarget ??= WorldStatic.World.GetFirstAlivePlayer();
+
+            if (newTarget != null && newTarget.IsPlayer && newTarget != previousTarget.Entity && Definition.MissileState.HasValue)
+            {
+                SetSeeState();
+                Flags.JustHit = false;
+            }
         }
         else
         {
-            newTarget = WorldStatic.World.GetLineOfSightPlayer(this, allaround);
+            newTarget = WorldStatic.World.GetLineOfSightPlayer(this, allAround);
         }
 
         return newTarget;

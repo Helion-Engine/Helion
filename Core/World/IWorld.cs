@@ -150,8 +150,9 @@ public interface IWorld : IDisposable
     int EntityAliveCount(int entityDefinitionId);
     void NoiseAlert(Entity target, Entity source);
     void BossDeath(Entity entity);
-    Player? GetLineOfSightPlayer(Entity entity, bool allaround);
-    Entity? GetLineOfSightEnemy(Entity entity, bool allaround);
+    Player? GetLineOfSightPlayer(Entity entity, bool allAround);
+    Player? GetFirstAlivePlayer();
+    Entity? GetLineOfSightEnemy(Entity entity, bool allAround);
     bool HealChase(Entity entity, EntityFrame healState, string healSound);
     void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ);
     void SetNewTracerTarget(Entity entity, double fieldOfView, double radius);
