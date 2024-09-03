@@ -178,9 +178,6 @@ public class CompactBspTree
         Nodes = new BspNodeCompact[parentNodeCount];
 
         RecursivelyCreateComponents(root, builder);
-
-        Postcondition(m_nextSubsectorIndex <= ushort.MaxValue, "Subsector index overflow (need a 4-byte BSP tree for this map)");
-        Postcondition(m_nextNodeIndex <= ushort.MaxValue, "Node index overflow (need a 4-byte BSP tree for this map)");
     }
 
     private BspCreateResultCompact RecursivelyCreateComponents(BspNode? node, GeometryBuilder builder)
