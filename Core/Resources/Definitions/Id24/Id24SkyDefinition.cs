@@ -26,8 +26,11 @@ public class Id24SkyDefinition
 
             Data = converted.Data;
 
-            foreach (var item in Data.FlatMapping)
-                FlatMapping[item.Flat] = item.Sky;
+            if (Data.FlatMapping != null)
+            {
+                foreach (var item in Data.FlatMapping)
+                    FlatMapping[item.Flat] = item.Sky;
+            }
 
             foreach (var sky in Data.Skies)
             {

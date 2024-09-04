@@ -71,28 +71,56 @@ public class SkySphereTexture : IDisposable
 
         skyTransform = SkyTransform.Default;
         // Check if we have generated this sky texture yet. The translation can change if skies are animated.
-        int textureIndex = m_archiveCollection.TextureManager.GetTranslationIndex(m_textureHandleIndex);
-        if (m_archiveCollection.TextureManager.TryGetSkyTransform(textureIndex, out var findTransform))
+        int animationIndex = m_archiveCollection.TextureManager.GetTranslationIndex(m_textureHandleIndex);
+        if (m_archiveCollection.TextureManager.TryGetSkyTransform(animationIndex, out var findTransform))
             skyTransform = findTransform;
+        return GetSkyTextureFromTextureIndex(animationIndex, m_textureHandleIndex);
+    }
 
+    private GLLegacyTexture GetSkyTextureFromTextureIndex(int animationIndex, int textureIndex)
+    {
+        GLLegacyTexture? glTexture = null;
         for (int i = 0; i < m_skyTextures.Count; i++)
         {
-            if (m_skyTextures[i].AnimatedTextureIndex == textureIndex)
-                return m_skyTextures[i].GlTexture;
+            if (m_skyTextures[i].AnimatedTextureIndex == animationIndex)
+            {
+                glTexture = m_skyTextures[i].GlTexture;
+                break;
+            }
         }
 
         if (GenerateSkyTextures(textureIndex, out var skyTexture))
         {
-            m_skyTextures.Add(new(skyTexture, textureIndex));
-            return skyTexture;
+            m_skyTextures.Add(new(skyTexture, animationIndex));
+            glTexture = skyTexture;
         }
 
-        return m_textureManager.NullTexture;
+        if (glTexture != null)
+            CheckSkyFireUpdate(glTexture, textureIndex);
+
+        return glTexture ?? m_textureManager.NullTexture;
+    }
+
+    private void CheckSkyFireUpdate(GLLegacyTexture skyTexture, int textureIndex)
+    {
+        var skyFireTextures = m_archiveCollection.TextureManager.GetSkyFireTextures();
+        for (int i = 0; i < skyFireTextures.Count; i++)
+        {
+            var skyFire = skyFireTextures[i];
+            var texture = skyFire.Texture;
+            if (!skyFire.RenderUpdate || texture.Image == null || texture.Index != textureIndex)
+                continue;
+
+            skyFire.RenderUpdate = false;
+
+            m_textureManager.ReUpload(skyTexture, texture.Image);
+        }
     }
 
     public GLLegacyTexture GetForegroundTexture(SkyTransformTexture skyTexture)
     {
-        return m_textureManager.GetTexture(skyTexture.TextureIndex, true);
+        int animationIndex = m_archiveCollection.TextureManager.GetTranslationIndex(m_textureHandleIndex);
+        return GetSkyTextureFromTextureIndex(animationIndex, skyTexture.TextureIndex);
     }
 
     public void Dispose()

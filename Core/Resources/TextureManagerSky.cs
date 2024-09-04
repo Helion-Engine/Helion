@@ -18,6 +18,7 @@ public class SkyFireAnimation(int[] firePalette, Texture texture, Image fireImag
     public Image FireImage = fireImage;
     public int Ticks = ticks;
     public int CurrentTick;
+    public bool RenderUpdate;
 }
 
 public partial class TextureManager
@@ -48,21 +49,21 @@ public partial class TextureManager
                 continue;
 
             skyFire.CurrentTick = 0;
-            UpdateSkyFire(skyFire);
+            skyFire.RenderUpdate = true;
+            UpdateSkyFire(skyFire, skyFire.Texture.Image);
         }
     }
 
-    private void UpdateSkyFire(SkyFireAnimation skyFire)
+    private void UpdateSkyFire(SkyFireAnimation skyFire, Image textureImage)
     {
         var fireImage = skyFire.FireImage;
-
         var fireImageIndices = fireImage.Indices;
         for (int x = 0; x < fireImage.Width; x++)
             for (int y = 1; y < fireImage.Height; y++)
                 SpreadFire(fireImageIndices, y * fireImage.Width + x, fireImage.Width);
 
         var palette = m_archiveCollection.Data.Palette.DefaultLayer;
-        WriteSkyFireToTexture(palette, skyFire.FirePalette, fireImage, skyFire.Texture.Image);
+        WriteSkyFireToTexture(palette, skyFire.FirePalette, fireImage, textureImage);
     }
 
     private static void WriteSkyFireToTexture(Color[] palette, int[] skyFirePalette, Image fireImage, Image textureImage)
@@ -70,12 +71,13 @@ public partial class TextureManager
         var fireIndices = fireImage.Indices;
         var textureIndices = textureImage.Indices;
         var texturePixels = textureImage.Pixels;
+        var transparentColor = Color.Transparent.Uint;
         for (int p = 0; p < fireImage.Indices.Length; p++)
         {
             if (fireImage.Indices[p] == 0)
             {
                 textureIndices[p] = 0;
-                texturePixels[p] = Color.Transparent.Uint;
+                texturePixels[p] = transparentColor;
                 continue;
             }
 
@@ -131,7 +133,7 @@ public partial class TextureManager
             m_skyFireTextures.Add(skyFireAnimation);
 
             for (int i = 0; i < 64; i++)
-                UpdateSkyFire(skyFireAnimation);
+                UpdateSkyFire(skyFireAnimation, texture.Image);
         }
     }
 
