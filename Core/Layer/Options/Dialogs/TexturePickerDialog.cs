@@ -19,7 +19,7 @@
         private string m_headerWithUnderscore;
         public string SelectedTexture { get; private set; }
 
-        public TexturePickerDialog(ConfigHud config, IConfigValue configValue, OptionMenuAttribute attr)
+        public TexturePickerDialog(ConfigWindow config, IConfigValue configValue, OptionMenuAttribute attr)
             : base(config, configValue, attr)
         {
             SelectedTexture = (string)configValue.ObjectValue;

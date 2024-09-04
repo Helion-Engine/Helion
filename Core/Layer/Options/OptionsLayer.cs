@@ -76,7 +76,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_config.Window.State.OnChanged += WindowState_OnChanged;
         m_config.Window.Virtual.Enable.OnChanged += WindowVirtualEnable_OnChanged;
         m_config.Window.Virtual.Dimension.OnChanged += WindowVirtualDimension_OnChanged;
-        m_config.Hud.Scale.OnChanged += Scale_OnChanged;
+        m_config.Window.MenuScale.OnChanged += Scale_OnChanged;
 
         Animation = new(TimeSpan.FromMilliseconds(200), this);
         Animation.OnStart += Animation_OnStart;
@@ -122,7 +122,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private void ResetMousePosition(IHudRenderContext hud)
     {
-        m_cursorPos = (hud.Dimension.Width / 2, m_config.Hud.GetScaled(45));
+        m_cursorPos = (hud.Dimension.Width / 2, m_config.Window.GetMenuScaled(45));
         m_window.SetMousePosition(m_cursorPos);
     }
 
@@ -142,7 +142,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     {
         if (configAttr.RestartRequired)
         {
-            m_dialog = new MessageDialog(m_config.Hud, "Restart required", ["Restart required for this change to take effect.", "", "Restart now?"], "Yes", "No");
+            m_dialog = new MessageDialog(m_config.Window, "Restart required", ["Restart required for this change to take effect.", "", "Restart now?"], "Yes", "No");
             m_dialog.OnClose += RestartDialog_OnClose;
             return;
         }
@@ -337,7 +337,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         }
     }
 
-    private int GetScrollAmount() => (int)(16 * m_config.Hud.Scale);
+    private int GetScrollAmount() => (int)(16 * m_config.Window.MenuScale);
 
     public void RunLogic(TickerInfo tickerInfo)
     {
@@ -374,11 +374,11 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         FillBackgroundRepeatingImages(ctx, hud);
 
-        int fontSize = m_config.Hud.GetMediumFontSize();
-        int largeFontSize = m_config.Hud.GetLargeFontSize();
-        int smallPad = m_config.Hud.GetScaled(2);
+        int fontSize = m_config.Window.GetMenuMediumFontSize();
+        int largeFontSize = m_config.Window.GetMenuLargeFontSize();
+        int smallPad = m_config.Window.GetMenuScaled(2);
 
-        m_footerScrollPadding = hud.MeasureText(" ", FooterFont, fontSize).Height * 4 + (m_config.Hud.GetScaled(8) * 2);
+        m_footerScrollPadding = hud.MeasureText(" ", FooterFont, fontSize).Height * 4 + (m_config.Window.GetMenuScaled(8) * 2);
 
         hud.Text($"{m_currentSectionIndex + 1}/{m_sections.Count}", Font, fontSize, (smallPad, smallPad),
             out _, both: Align.TopLeft, color: Color.Red);
@@ -388,9 +388,9 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         int titleY = m_scrollOffset;
         hud.Text("Options", Font, largeFontSize, (smallPad, smallPad + titleY),
                    out var titleArea, both: Align.TopMiddle, color: Color.White);
-        m_headerHeight += titleArea.Height + m_config.Hud.GetScaled(5);
+        m_headerHeight += titleArea.Height + m_config.Window.GetMenuScaled(5);
 
-        int padding = m_config.Hud.GetScaled(8);
+        int padding = m_config.Window.GetMenuScaled(8);
         if (m_sections.Count > 1)
         {
             int xOffset = (hud.Dimension.Width - titleArea.Width) / 2;
@@ -408,7 +408,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         hud.Text(m_sectionMessage.Length > 0 ? m_sectionMessage : "Press left or right to change pages.", Font, fontSize, (0, m_headerHeight + y),
             out Dimension pageInstrArea, both: Align.TopMiddle, color: Color.Red);
 
-        m_headerHeight += pageInstrArea.Height + m_config.Hud.GetScaled(16);
+        m_headerHeight += pageInstrArea.Height + m_config.Window.GetMenuScaled(16);
         if (m_lastSelectedRowDescription != m_selectedRowDescription)
             GenerateFooterLines(m_selectedRowDescription, FooterFont, fontSize, hud, m_footerLines, m_footerStringBuilder, out m_footerHeight);
         m_lastSelectedRowDescription = m_selectedRowDescription;
@@ -471,13 +471,13 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         LineWrap.Calculate(inputText, font, fontSize, hud.Width, hud, lines, builder, out requiredHeight);
 
         // Calculate how much room we need for the footer, with padding both above and below the text
-        int padding = m_config.Hud.GetScaled(8);
+        int padding = m_config.Window.GetMenuScaled(8);
         requiredHeight += padding * 2;
     }
 
     private void RenderFooter(List<string> lines, int startY, string font, int fontSize, IHudRenderContext hud)
     {
-        int padding = m_config.Hud.GetScaled(8);
+        int padding = m_config.Window.GetMenuScaled(8);
 
         // Make a box at the bottom of the HUD, then write the text lines over the box
         hud.FillBox(

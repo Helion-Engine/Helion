@@ -66,6 +66,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
                 m_player.SetLoop(-1);
 
             m_player.Add(m_lastFile);
+            SetVolumeInternal();
             m_player.Play();
 
             return true;

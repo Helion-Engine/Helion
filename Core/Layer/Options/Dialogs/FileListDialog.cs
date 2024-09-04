@@ -24,7 +24,7 @@ internal class FileListDialog : ListDialog
 
     public FileInfo? SelectedFile => new FileInfo(Path.Combine(m_path, m_file));
 
-    public FileListDialog(ConfigHud config, IConfigValue configValue, OptionMenuAttribute attr, string supportedFileExtensions)
+    public FileListDialog(ConfigWindow config, IConfigValue configValue, OptionMenuAttribute attr, string supportedFileExtensions)
         : base(config, configValue, attr)
     {
         m_supportedFileExtensions = new HashSet<string>(

@@ -379,12 +379,12 @@ public class KeyBindingSection : IOptionSection
             m_updateMouse = true;
         }
 
-        int fontSize = m_config.Hud.GetSmallFontSize();
-        hud.Text("Key Bindings", Font, m_config.Hud.GetLargeFontSize(), (0, startY), out Dimension headerArea,
+        int fontSize = m_config.Window.GetMenuSmallFontSize();
+        hud.Text("Key Bindings", Font, m_config.Window.GetMenuLargeFontSize(), (0, startY), out Dimension headerArea,
             both: Align.TopMiddle, color: Color.Red);
-        int y = startY + headerArea.Height + m_config.Hud.GetScaled(8);
-        int xOffset = m_config.Hud.GetScaled(4) * 2;
-        int smallPad = m_config.Hud.GetScaled(1);
+        int y = startY + headerArea.Height + m_config.Window.GetMenuScaled(8);
+        int xOffset = m_config.Window.GetMenuScaled(4) * 2;
+        int smallPad = m_config.Window.GetMenuScaled(1);
 
         hud.Text("Scroll with the mouse wheel or hold up/down arrows", Font, fontSize, (0, y), out Dimension scrollArea,
             both: Align.TopMiddle, color: Color.Firebrick);
@@ -400,7 +400,7 @@ public class KeyBindingSection : IOptionSection
 
         hud.Text("Press enter to start binding and press a key", Font, fontSize, (0, y), out Dimension enterArea,
             both: Align.TopMiddle, color: Color.Firebrick);
-        y += enterArea.Height + m_config.Hud.GetScaled(12);
+        y += enterArea.Height + m_config.Window.GetMenuScaled(12);
 
         for (int cmdIndex = 0; cmdIndex < m_commandToKeys.Count; cmdIndex++)
         {
@@ -424,10 +424,10 @@ public class KeyBindingSection : IOptionSection
             if (cmdIndex == m_currentRow && !m_updatingKeyBinding)
             {
                 var arrowSize = hud.MeasureText("<", Font, fontSize);
-                Vec2I arrowLeft = (-xOffset - commandArea.Width - m_config.Hud.GetScaled(2), y);
+                Vec2I arrowLeft = (-xOffset - commandArea.Width - m_config.Window.GetMenuScaled(2), y);
                 hud.Text(">", Font, fontSize, arrowLeft, window: Align.TopMiddle,
                     anchor: Align.TopRight, color: Color.White);
-                Vec2I arrowRight = (-xOffset + arrowSize.Width + m_config.Hud.GetScaled(2), y);
+                Vec2I arrowRight = (-xOffset + arrowSize.Width + m_config.Window.GetMenuScaled(2), y);
                 hud.Text("<", Font, fontSize, arrowRight, window: Align.TopMiddle,
                     anchor: Align.TopRight, color: Color.White);
             }
@@ -475,7 +475,11 @@ public class KeyBindingSection : IOptionSection
             : "> Reload All Defaults <";
         hud.Text(resetText, Font, fontSize, (0, y), out Dimension area, window: Align.TopMiddle, anchor: Align.TopMiddle, color: Color.Yellow);
         m_menuPositionList.Add(new Box2I((0, y), (hud.Dimension.Width, y + area.Height)), m_commandToKeys.Count);
-        y += area.Height + m_config.Hud.GetScaled(3);
+        y += area.Height + m_config.Window.GetMenuScaled(3);
+
+        // Handle case where the "Reset" row is selected; this affects auto-scrolling.
+        if (m_currentRow == m_commandToKeys.Count)
+            m_selectedRender = (y - startY, y + area.Height - startY);
 
         m_renderHeight = y - startY;
 

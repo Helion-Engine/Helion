@@ -55,20 +55,20 @@ public class Slider(double value, double step, double min, double max, RenderSiz
             ValueChanged?.Invoke(this, Value);
     }
 
-    public Dimension Render(ConfigHud config, IRenderableSurfaceContext ctx, IHudRenderContext hud)
+    public Dimension Render(ConfigWindow config, IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
-        int sliderHeight = config.GetScaled(12);
-        int sliderWidth = config.GetScaled(2);
+        int sliderHeight = config.GetMenuScaled(12);
+        int sliderWidth = config.GetMenuScaled(2);
         var width = Width.GetSize(hud.Width);
         int sliderOffsetX = (int)(Value / m_max * width);
 
-        int barHeight = config.GetScaled(2);
+        int barHeight = config.GetMenuScaled(2);
         int centerY = (sliderHeight - barHeight) / 2;
 
         hud.FillBox((0, centerY, width, centerY + barHeight), Color.Gray);
         hud.FillBox((sliderOffsetX - 1, -1, sliderOffsetX - 1 + sliderWidth + 2, sliderHeight + 1), Color.Black);
         hud.FillBox((sliderOffsetX, 0, sliderOffsetX + sliderWidth, sliderHeight), Color.Red);
-        hud.Text(Value.ToString(), Constants.Fonts.SmallGray, config.GetSmallFontSize(), (width + config.GetScaled(8), 0));
+        hud.Text(Value.ToString(), Constants.Fonts.SmallGray, config.GetMenuSmallFontSize(), (width + config.GetMenuScaled(8), 0));
         return (0, 0);
     }
 }

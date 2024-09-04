@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Helion.Layer.Options.Dialogs;
 
-internal class MessageDialog(ConfigHud config, string title, IList<string> message, string? acceptButton, string? cancelButton)
+internal class MessageDialog(ConfigWindow config, string title, IList<string> message, string? acceptButton, string? cancelButton)
     : DialogBase(config, acceptButton, cancelButton)
 {
     private readonly string m_title = title;
