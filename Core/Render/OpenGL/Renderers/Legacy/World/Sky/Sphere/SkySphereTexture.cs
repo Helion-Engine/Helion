@@ -111,7 +111,7 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
 
     public SkyTexture GetForegroundTexture(SkyTransformTexture skyTexture)
     {
-        int animationIndex = m_archiveCollection.TextureManager.GetTranslationIndex(m_textureHandleIndex);
+        int animationIndex = m_archiveCollection.TextureManager.GetTranslationIndex(skyTexture.TextureIndex);
         return GetSkyTextureFromTextureIndex(animationIndex, skyTexture.TextureIndex);
     }
 
