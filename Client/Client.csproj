@@ -29,7 +29,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="helion.ico" />
+    <None Remove="Unmanaged\**\*" />
+    <None Remove="SoundFonts\*" />
+
+    <Content Include="helion.ico" Link="%(Filename)%(Extension)" CopyToOutputDirectory="Never" />
+    <Content Include="$(HelionRootDir)Assets\Documentation\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(ProjectDir)SoundFonts\*" Link="SoundFonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(ProjectDir)Unmanaged\**\*" Link="runtimes\%(RecursiveDir)\native\%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == ''" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(ProjectDir)Unmanaged\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' != ''" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,41 +57,29 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="GetSupportFiles">
+  <Target Name="GetAssetsIncludeFiles">
     <ItemGroup>
-      <SoundFonts Include="$(ProjectDir)SoundFonts\**\*.sf2" />
-
-      <!-- Runtime specified, e.g. "-r win-x64"; copy native files into root -->
-      <NativeFiles Include="$(ProjectDir)Unmanaged\win-x64\**\*" Destination="%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
-      <NativeFiles Include="$(ProjectDir)Unmanaged\win-x86\**\*" Destination="%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == 'win-x86'" />
-      <NativeFiles Include="$(ProjectDir)Unmanaged\linux-x64\**\*" Destination="%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
-
-      <!-- Runtime unspecified; copy native files into runtimes\(runtimeID)\native  -->
-      <NativeFiles Include="$(ProjectDir)Unmanaged\win-x64\**\*" Destination="runtimes\win-x64\native\%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == ''" />
-      <NativeFiles Include="$(ProjectDir)Unmanaged\win-x86\**\*" Destination="runtimes\win-x86\native\%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == ''" />
-      <NativeFiles Include="$(ProjectDir)Unmanaged\linux-x64\**\*" Destination="runtimes\linux-x64\native\%(RecursiveDir)" Condition="'$(RuntimeIdentifier)' == ''" />
-
-      <!-- Files used to determine whether the "copy support files" targets need to run  -->
-      <TargetAssetsFile Include="$(TargetDir)assets.pk3" />
-      <PublishAssetsFile Include="$(PublishDir)assets.pk3" />
-      <AllSupportFiles Include="@(NativeFiles)" />
-      <AllSupportFiles Include="@(SoundFonts)" />
-      <AllSupportFiles Include="$(HelionRootDir)Assets\Assets\**\*" />
+      <AssetSources Include="$(HelionRootDir)Assets\Assets\**\*" />
     </ItemGroup>
   </Target>
 
-  <Target Name="CopySupportFilesForBuild" AfterTargets="Build" DependsOnTargets="GetSupportFiles" Inputs="@(AllSupportFiles)" Outputs="@(TargetAssetsFile)">
-    <!-- Copy SoundFont for FluidSynth, create assets.pk3 -->
-    <Copy SourceFiles="@(SoundFonts)" DestinationFolder="$(TargetDir)SoundFonts\%(RecursiveDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(NativeFiles)" DestinationFolder="$(TargetDir)%(Destination)" SkipUnchangedFiles="true" />
-    <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="@(TargetAssetsFile)" Overwrite="true" />
+  <Target Name="MakeAssetsFile" AfterTargets="Build" DependsOnTargets="GetAssetsIncludeFiles" Inputs="@(AssetSources)" Outputs="$(TargetDir)\assets.pk3">
+    <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="$(TargetDir)\assets.pk3" Overwrite="true" />
   </Target>
 
-  <Target Name="CopySupportFilesForPublish" AfterTargets="Publish" DependsOnTargets="GetSupportFiles" Inputs="@(AllSupportFiles)" Outputs="@(PublishAssetsFile)">
-    <!-- The previous steps that copy support files to the target directory do NOT copy on publish, so we have to handle that again. -->
-    <Copy SourceFiles="@(SoundFonts)" DestinationFolder="$(PublishDir)SoundFonts\%(RecursiveDir)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(NativeFiles)" DestinationFolder="$(PublishDir)%(Destination)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(TargetAssetsFile)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" />
+  <Target Name="CopyAssetsFileAfterPublish" AfterTargets="Publish" Inputs="$(TargetDir)\assets.pk3" Outputs="$(PublishDir)\assets.pk3">
+    <Copy SourceFiles="$(TargetDir)\assets.pk3" DestinationFiles="$(PublishDir)\assets.pk3" SkipUnchangedFiles="true" />
   </Target>
 
+  <Target Name="GetFilesForPostPublishCopy" DependsOnTargets="PublishItemsOutputGroup">
+    <ItemGroup>
+      <PostPublishFiles Include="@(Content)" Destination="$(PublishDir)%(Link)" Condition="'%(CopyToOutputDirectory)' != 'Never'" />
+      <!-- Deal with an annoying case where redoing a single-file publish deletes openal32.dll and some other native files -->
+      <PostPublishFiles Include="@(NativeCopyLocalItems)" Destination="$(PublishDir)%(NativeCopyLocalItems.DestinationSubPath)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="EnsureContentFilesAfterPublish" AfterTargets="Publish" DependsOnTargets="GetFilesForPostPublishCopy" Inputs="@(PostPublishFiles)" Outputs="@(PostPublishFiles -> '%(Destination)')">
+    <Copy SourceFiles="@(PostPublishFiles)" DestinationFiles="%(Destination)" SkipUnchangedFiles="true" />
+  </Target>
 </Project>
