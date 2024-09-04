@@ -3,6 +3,7 @@ using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -251,6 +252,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         if (m_lastTicker != world.GameTicker)
             m_entityRenderer.Start(renderInfo);
+
         SetOccludePosition(renderInfo.Camera.PositionInterpolated.Double, renderInfo.Camera.YawRadians, renderInfo.Camera.PitchRadians,
             ref m_occlude, ref m_occludeViewPos);
         IterateBlockmap(world, renderInfo);

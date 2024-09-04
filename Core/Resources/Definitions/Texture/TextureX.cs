@@ -82,19 +82,19 @@ public class TextureX
     /// <param name="pnames">The pnames to make the texture definitions
     /// with.</param>
     /// <returns>A list of all the texture definitions.</returns>
-    public List<TextureDefinition> ToTextureDefinitions(Pnames pnames)
+    public List<TextureDefinition> ToTextureDefinitions(Pnames pnames, HashSet<string> ignoreOffsetNames)
     {
         List<TextureDefinition> definitions = new(Definitions.Count);
         foreach (TextureXImage image in Definitions)
         {
-            List<TextureDefinitionComponent> components = CreateComponents(image, pnames);
+            List<TextureDefinitionComponent> components = CreateComponents(image, pnames, ignoreOffsetNames);
             definitions.Add(new TextureDefinition(image.Name, image.Dimension, ResourceNamespace.Textures, components));
         }
 
         return definitions;
     }
 
-    private List<TextureDefinitionComponent> CreateComponents(TextureXImage image, Pnames pnames)
+    private List<TextureDefinitionComponent> CreateComponents(TextureXImage image, Pnames pnames, HashSet<string> ignoreOffsetNames)
     {
         List<TextureDefinitionComponent> components = new List<TextureDefinitionComponent>();
 
@@ -107,7 +107,7 @@ public class TextureX
             }
 
             string name = pnames.Names[patch.PnamesIndex];
-            TextureDefinitionComponent component = new TextureDefinitionComponent(name, patch.Offset);
+            TextureDefinitionComponent component = new(name, ignoreOffsetNames.Contains(name) ? Vec2I.Zero : patch.Offset);
             components.Add(component);
         }
 

@@ -14,9 +14,10 @@ public interface IImageRetriever
     /// </summary>
     /// <param name="name">The image name.</param>
     /// <param name="priorityNamespace">The namespace to check first.
+    /// <param name="options">Options for fetching the image.
     /// </param>
     /// <returns>The image, or null if none can be found.</returns>
-    Image? Get(string name, ResourceNamespace priorityNamespace);
+    Image? Get(string name, ResourceNamespace priorityNamespace, GetImageOptions options = GetImageOptions.Default);
 
     /// <summary>
     /// Gets the image in only the namespace provided. It will not look in
@@ -24,8 +25,9 @@ public interface IImageRetriever
     /// </summary>
     /// <param name="name">The image name.</param>
     /// <param name="targetNamespace">The namespace to check.</param>
+    /// <param name="options">Options for fetching the image.
     /// <returns>The image, or null if none can be found.</returns>
-    Image? GetOnly(string name, ResourceNamespace targetNamespace);
+    Image? GetOnly(string name, ResourceNamespace targetNamespace, GetImageOptions options = GetImageOptions.Default);
 
     /// <summary>
     /// Get the names of all images in the specific namespace

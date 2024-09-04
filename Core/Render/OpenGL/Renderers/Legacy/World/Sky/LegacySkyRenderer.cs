@@ -5,6 +5,7 @@ using Helion.Graphics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
@@ -17,18 +18,17 @@ public class LegacySkyRenderer : IDisposable
 
     public static readonly Dictionary<int, Image> GeneratedImages = [];
 
-    public bool FadeSkyTexture { get; set; }
-
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly LegacyGLTextureManager m_textureManager;
+    private readonly TextureManager m_textureManager;
+    private readonly LegacyGLTextureManager m_glTextureManager;
     private readonly Dictionary<int, ISkyComponent> m_skyComponents = [];
     private readonly List<ISkyComponent> m_skyComponentsList = [];
 
-    public LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, bool fadeSkyTexture)
+    public LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager)
     {
         m_archiveCollection = archiveCollection;
-        m_textureManager = textureManager;
-        FadeSkyTexture = fadeSkyTexture;
+        m_glTextureManager = glTextureManager;
+        m_textureManager = archiveCollection.TextureManager;
     }
 
     ~LegacySkyRenderer()
@@ -75,7 +75,7 @@ public class LegacySkyRenderer : IDisposable
         if (m_skyComponents.TryGetValue(textureHandleLookup, out sky))
             return true;
 
-        sky = new SkySphereComponent(m_archiveCollection, m_textureManager, textureHandle.Value, flipSkyTexture, FadeSkyTexture);
+        sky = new SkySphereComponent(m_archiveCollection, m_glTextureManager, textureHandle.Value, flipSkyTexture);
         m_skyComponents[textureHandleLookup] = sky;
         m_skyComponentsList.Add(sky);
         return true;
@@ -87,6 +87,13 @@ public class LegacySkyRenderer : IDisposable
             return;
 
         sky.Add(data, length);
+    }
+
+    private SkyTransform GetSkyTransFormOrDefault(int textureHandle)
+    {
+        if (m_textureManager.TryGetSkyTransform(textureHandle, out var skyTransform))
+            return skyTransform;
+        return SkyTransform.Default;
     }
 
     public void Render(RenderInfo renderInfo)

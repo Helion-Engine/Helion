@@ -55,7 +55,7 @@ public struct Color
 
     public uint Uint => m_value;
     public Vec4F Normalized => new(A / 255.0f, R / 255.0f, G / 255.0f, B / 255.0f);
-    public Vec3F Noralized3 => new(R / 255.0f, G / 255.0f, B / 255.0f);
+    public Vec3F Normalized3 => new(R / 255.0f, G / 255.0f, B / 255.0f);
     public SixLabors.ImageSharp.Color ToImageSharp => new(new Rgba32(R, G, B, A));
 
     public Color(Vec4F normalized) :

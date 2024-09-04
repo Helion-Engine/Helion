@@ -35,6 +35,7 @@ public class Image
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
     public Span<uint> Pixels => m_pixels;
+    public Span<byte> Indices => m_indices;
 
     public int BlankRowsFromBottom;
 
@@ -60,7 +61,7 @@ public class Image
         Namespace = ns;
         m_pixels = pixels;
 
-        if (ImageType == ImageType.PaletteWithArgb && indices == null)
+        if ((ImageType == ImageType.PaletteWithArgb || ImageType == ImageType.Palette) && indices == null)
             m_indices = new byte[m_pixels.Length];
 
         if (indices != null)
@@ -69,7 +70,6 @@ public class Image
             m_indices = new byte[indices.Length];
             for (int i = 0; i < m_indices.Length; i++)
                 m_indices[i] = (byte)indices[i];
-
         }
 
         UploadType = ImageType;
@@ -120,7 +120,7 @@ public class Image
         return new(pixels, dimension, ImageType.Argb, offset, ns);
     }
 
-    public static Image PaletteToArgb(PaletteImage image, Palette palette, bool[] fullBright, bool storeIndices)
+    public static Image PaletteToArgb(PaletteImage image, Palette palette, bool[] fullBright, bool storeIndices, bool clearBlackPixels)
     {
         uint[] pixels = new uint[image.Indices.Length];
         Color[] layer = palette.DefaultLayer;
@@ -128,6 +128,8 @@ public class Image
         for (int i = 0; i < image.Indices.Length; i++)
         {
             uint argb = image.Indices[i];
+            if (argb == 0 && clearBlackPixels)
+                argb = TransparentIndex;
             uint pixel = argb == TransparentIndex ? Color.Transparent.Uint : layer[argb].Uint;
             if (argb != TransparentIndex && argb < fullBright.Length && fullBright[argb])
             {
@@ -217,6 +219,12 @@ public class Image
         m_pixels.Fill(color.Uint);
     }
 
+    public void FillIndices(byte index)
+    {
+        for (int i = 0; i < m_indices.Length; i++)
+            m_indices[i] = index;
+    }
+
     public void FillRows(Color color, int startY, int endY)
     {
         int offsetStart = startY * Width;
@@ -254,11 +262,24 @@ public class Image
         return new(argb);
     }
 
+    public byte GetIndex(int x, int y)
+    {
+        int offset = (y * Width) + x;
+        return m_indices[offset];
+    }
+
     public void SetPixel(int x, int y, Color color)
     {
         int offset = (y * Width) + x;
         if (offset >= 0 && offset < m_pixels.Length)
             m_pixels[offset] = color.Uint;
+    }
+
+    public void SetIndex(int x, int y, byte index)
+    {
+        int offset = (y * Width) + x;
+        if (offset >= 0 && offset < m_indices.Length)
+            m_indices[offset] = index;
     }
 
     public void SetPixel(int x, int y, Color color, Colormap colormap)

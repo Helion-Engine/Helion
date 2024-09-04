@@ -44,11 +44,11 @@ public class Colormap
         byte bestIndex = 0;
         var colors = Layer(0);
         double nearest = int.MaxValue;
-        var colorNormalized = color.Noralized3;
+        var colorNormalized = color.Normalized3;
         for (int i = 0; i < colors.Length; i++)
         {
             var paletteColor = colors[i];
-            var value = paletteColor.Noralized3 - colorNormalized;
+            var value = paletteColor.Normalized3 - colorNormalized;
             var calc = Math.Pow(value.X, 2) + Math.Pow(value.Y, 2) + Math.Pow(value.Z, 2);
 
             if (calc < nearest)

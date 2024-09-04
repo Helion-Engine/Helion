@@ -60,7 +60,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_textureManager = textureManager;
         m_geometryRenderer = geometryRenderer;
         m_program = program;
-        m_skyRenderer = new(archiveCollection, textureManager, !ShaderVars.PaletteColorMode);
+        m_skyRenderer = new(archiveCollection, textureManager);
     }
 
     private static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
@@ -307,7 +307,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         AddFloodFillPlane(side, facingSector, isFrontSide);
 
-        bool upperVisible = GeometryRenderer.UpperIsVisibleOrFlood(m_world.ArchiveCollection.TextureManager, side, otherSide, facingSector, otherSector);
+        bool upperVisible = GeometryRenderer.UpperIsVisibleOrFlood(m_world.ArchiveCollection.TextureManager, side, otherSide, facingSector, otherSector, out bool skyHack);
         if (upper && upperVisible)
         {
             m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2);
@@ -321,7 +321,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             }
 
             SetSideVertices(side, side.Upper, update, sideVertices, upperVisible, true);
-            AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, side.Sector, update);
+            // Skyhack is done from the facingSector, otherwise use the otherSector like normal. Required for id24 flat mapping using different floor/ceiling textures.
+            AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, skyHack ? facingSector: otherSector, update);
 
             if (!update)
             {
@@ -341,7 +342,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
             SetSideVertices(side, side.Lower, update, sideVertices, lowerVisible, true);
-            AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, side.Sector, update);
+            AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, otherSector, update);
 
             if (!update && skyVertices == null)
             {
@@ -406,7 +407,13 @@ public class StaticCacheGeometryRenderer : IDisposable
                 return;
         }
 
-        if (!m_skyRenderer.GetOrCreateSky(sector.SkyTextureHandle, sector.FlipSkyTexture, out var sky))
+        int? skyTextureHandle = sector.CeilingSkyTextureHandle;
+        if (plane != null && plane.Facing == SectorPlaneFace.Floor)
+            skyTextureHandle = sector.FloorSkyTextureHandle;
+        else if (side != null && wallLocation == WallLocation.Lower)
+            skyTextureHandle = sector.FloorSkyTextureHandle;
+
+        if (!m_skyRenderer.GetOrCreateSky(skyTextureHandle, sector.FlipSkyTexture, out var sky))
             return;
 
         if (plane != null && !planeUpdated)

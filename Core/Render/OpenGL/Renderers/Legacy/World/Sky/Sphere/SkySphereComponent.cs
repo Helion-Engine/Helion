@@ -19,9 +19,9 @@ public class SkySphereComponent : ISkyComponent
     public VertexBufferObject<SkyGeometryVertex> Vbo => m_geometryVbo;
 
     public SkySphereComponent(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle, 
-        bool flipSkyTexture, bool fadeTexture)
+        bool flipSkyTexture)
     {
-        m_skySphereRenderer = new(archiveCollection, textureManager, textureHandle, fadeTexture);
+        m_skySphereRenderer = new(archiveCollection, textureManager, textureHandle);
         m_geometryVao = new("Sky geometry");
         m_geometryVbo = new("Sky geometry");
         m_geometryProgram = new();

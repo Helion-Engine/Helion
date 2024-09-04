@@ -7,7 +7,6 @@ using Helion.Render.Common.Shared.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
@@ -88,7 +87,7 @@ public class GeometryRenderer : IDisposable
         m_glTextureManager = glTextureManager;
         m_worldDataManager = worldDataManager;
         Portals = new(archiveCollection, glTextureManager);
-        m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager, !ShaderVars.PaletteColorMode);
+        m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager);
         m_viewSector = DefaultSector;
         m_archiveCollection = archiveCollection;
         m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);
@@ -725,12 +724,12 @@ public class GeometryRenderer : IDisposable
             facingSide.UpperFloodKeys.Key1 > 0;
     }
 
-    public static bool UpperIsVisibleOrFlood(TextureManager textureManager, Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
+    public static bool UpperIsVisibleOrFlood(TextureManager textureManager, Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, out bool skyHack)
     {
         bool isSky = textureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         bool isOtherSky = textureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle);
 
-        bool upperVisible = UpperOrSkySideIsVisible(textureManager, facingSide, facingSector, otherSector, out bool skyHack);
+        bool upperVisible = UpperOrSkySideIsVisible(textureManager, facingSide, facingSector, otherSector, out skyHack);
         if (!upperVisible && !skyHack && !isOtherSky && isSky)
             return true;
 
@@ -830,7 +829,7 @@ public class GeometryRenderer : IDisposable
                 m_skyWallVertexLowerLookup[facingSide.Id] = data;
             }
 
-            m_skyRenderer.Add(data, data.Length, otherSide.Sector.SkyTextureHandle, otherSide.Sector.FlipSkyTexture);
+            m_skyRenderer.Add(data, data.Length, otherSide.Sector.FloorSkyTextureHandle, otherSide.Sector.FlipSkyTexture);
             vertices = null;
             skyVertices = data;
         }
@@ -941,7 +940,7 @@ public class GeometryRenderer : IDisposable
                 m_skyWallVertexUpperLookup[facingSide.Id] = data;
             }
 
-            m_skyRenderer.Add(data, data.Length, plane.Sector.SkyTextureHandle, plane.Sector.FlipSkyTexture);
+            m_skyRenderer.Add(data, data.Length, plane.Sector.CeilingSkyTextureHandle, plane.Sector.FlipSkyTexture);
             vertices = null;
             skyVertices = data;
         }
@@ -1043,7 +1042,7 @@ public class GeometryRenderer : IDisposable
         }
 
         SetSkyWallVertices(m_skyWallVertices, wall);
-        m_skyRenderer.Add(m_skyWallVertices, m_skyWallVertices.Length, facingSide.Sector.SkyTextureHandle, facingSide.Sector.FlipSkyTexture);
+        m_skyRenderer.Add(m_skyWallVertices, m_skyWallVertices.Length, facingSide.Sector.CeilingSkyTextureHandle, facingSide.Sector.FlipSkyTexture);
         skyVertices = m_skyWallVertices;
     }
 
@@ -1259,7 +1258,8 @@ public class GeometryRenderer : IDisposable
 
             vertices = null;
             skyVertices = lookupData;
-            m_skyRenderer.Add(lookupData, lookupData.Length, subsectors[0].Sector.SkyTextureHandle, subsectors[0].Sector.FlipSkyTexture);
+            var skyHandle = floor ? subsectors[0].Sector.FloorSkyTextureHandle : subsectors[0].Sector.CeilingSkyTextureHandle;
+            m_skyRenderer.Add(lookupData, lookupData.Length, skyHandle, subsectors[0].Sector.FlipSkyTexture);
         }
         else
         {

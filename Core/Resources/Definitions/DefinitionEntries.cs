@@ -23,6 +23,8 @@ using Helion.Util.Configs.Components;
 using static Helion.Util.Assertion.Assert;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Definitions.MusInfo;
+using Helion.Resources.Definitions.Id24;
+using Helion.Resources.IWad;
 
 namespace Helion.Resources.Definitions;
 
@@ -33,6 +35,11 @@ namespace Helion.Resources.Definitions;
 public class DefinitionEntries
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    private static readonly Dictionary<IWadBaseType, HashSet<string>> IgnorePatchOffsets = new()
+    {
+        {IWadBaseType.Doom1, new HashSet<string>(["SKY1"], StringComparer.OrdinalIgnoreCase)}
+    };
 
     public readonly AnimatedDefinitions Animdefs = new();
     public readonly BoomAnimatedDefinition BoomAnimated = new();
@@ -52,6 +59,7 @@ public class DefinitionEntries
     public readonly List<Colormap> Colormaps = [];
     public readonly CompLevelDefinition CompLevelDefinition = new();
     public readonly MusInfoDefinition MusInfoDefinition = new();
+    public readonly Id24SkyDefinition Id24SkyDefinition = new();
 
     public DehackedDefinition? DehackedDefinition { get; set; }
 
@@ -88,7 +96,7 @@ public class DefinitionEntries
         m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
         m_entryNameToAction["SNDINFO"] = entry => ParseEntry(ParseSoundInfo, entry);
         m_entryNameToAction["LANGUAGE"] = entry => ParseEntry(ParseLanguage, entry);
-        m_entryNameToAction["LANGUAGECOMPAT"] = entry => ParseEntry(ParseLangaugeCompatibility, entry);
+        m_entryNameToAction["LANGUAGECOMPAT"] = entry => ParseEntry(ParseLanguageCompatibility, entry);
         m_entryNameToAction["MAPINFO"] = entry => ParseEntry(ParseMapInfo, entry);
         m_entryNameToAction["ZMAPINFO"] = entry => ParseEntry(ParseZMapInfo, entry);
         m_entryNameToAction["UMAPINFO"] = entry => ParseEntry(ParseUniversalMapInfo, entry);
@@ -96,6 +104,7 @@ public class DefinitionEntries
         m_entryNameToAction["TEXTURES"] = entry => ParseEntry(ParseTextures, entry);
         m_entryNameToAction["COMPLVL"] = entry => ParseEntry(ParseCompLevel, entry);
         m_entryNameToAction["MUSINFO"] = entry => ParseEntry(ParseMusInfo, entry);
+        m_entryNameToAction["SKYDEFS"] = Id24SkyDefinition.Parse;
     }
 
     public void ParseDehackedPatch(string data)
@@ -145,7 +154,7 @@ public class DefinitionEntries
     private void ParseAnimDefs(string text) => Animdefs.Parse(text);
     private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
     private void ParseLanguage(string text) => Language.Parse(text);
-    private void ParseLangaugeCompatibility(string text) => Language.ParseCompatibility(text);
+    private void ParseLanguageCompatibility(string text) => Language.ParseCompatibility(text);
     private void ParseZMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text, ShouldParseWeapons);
     private void ParseCompLevel(string data) => CompLevelDefinition.Parse(data);
     private void ParseMusInfo(string text) => MusInfoDefinition.Parse(text);
@@ -243,7 +252,7 @@ public class DefinitionEntries
         }
 
         if (m_pnamesTextureXCollection.Valid)
-            CreateImageDefinitionsFrom(m_pnamesTextureXCollection);
+            CreateImageDefinitionsFrom(archive, m_pnamesTextureXCollection);
 
         // Vanilla IWADS will have this set. If a PWAD is loaded this will get clear it.
         ConfigCompatibility.VanillaShortestTexture.Set(archive.IWadInfo.VanillaCompatibility);
@@ -289,9 +298,15 @@ public class DefinitionEntries
         }
     }
 
-    private void CreateImageDefinitionsFrom(PnamesTextureXCollection collection)
+    private void CreateImageDefinitionsFrom(Archive archive, PnamesTextureXCollection collection)
     {
         Precondition(!collection.Pnames.Empty(), "Expecting pnames to exist when reading TextureX definitions");
+
+        HashSet<string> ignoreNames;
+        if (IgnorePatchOffsets.TryGetValue(archive.IWadInfo.IWadBaseType, out var getIgnoreNames))
+            ignoreNames = getIgnoreNames;
+        else
+            ignoreNames = [];
 
         // Note: We don't handle multiple pnames. I am not sure how they're
         // handled, it might be 'one pnames to textureX' when more than one
@@ -300,7 +315,7 @@ public class DefinitionEntries
         var processed = new HashSet<string>();
         foreach (var textureX in collection.TextureX)
         {
-            var textureDefinitions = textureX.ToTextureDefinitions(pnames);
+            var textureDefinitions = textureX.ToTextureDefinitions(pnames, ignoreNames);
             foreach (var def in textureDefinitions)
             {
                 // Ignore duplicated textures from same archive

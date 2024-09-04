@@ -8,16 +8,19 @@ using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.Definitions.Texture;
+using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Loggers;
 using Helion.World;
+using NLog;
 
 namespace Helion.Resources;
 
-public class TextureManager : ITickable
+public partial class TextureManager : ITickable
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public const int NoTextureIndex = 0;
     const string ShittyTextureName = "AASHITTY";
 
@@ -27,10 +30,10 @@ public class TextureManager : ITickable
     private readonly Dictionary<string, Texture> m_textureLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_flatLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_patchLookup = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<Animation> m_animations = new();
-    private readonly HashSet<int> m_animatedTextures = new();
-    private readonly HashSet<int> m_processedEntityDefinitions = new();
-    private readonly Dictionary<int, Entry[]> m_spriteIndexEntries = new();
+    private readonly List<Animation> m_animations = [];
+    private readonly HashSet<int> m_animatedTextures = [];
+    private readonly HashSet<int> m_processedEntityDefinitions = [];
+    private readonly Dictionary<int, Entry[]> m_spriteIndexEntries = [];
     private int m_skyIndex;
     private Texture? m_defaultSkyTexture;
     private readonly bool m_unitTest;
@@ -46,8 +49,8 @@ public class TextureManager : ITickable
     public TextureManager(ArchiveCollection archiveCollection)
     {
         m_archiveCollection = archiveCollection;
-        m_textures = new();
-        m_translations = new();
+        m_textures = [];
+        m_translations = [];
         SkyTextureName = Constants.DefaultSkyTextureName;
     }
 
@@ -70,6 +73,8 @@ public class TextureManager : ITickable
             .ToList();
 
         InitTextureArrays(m_archiveCollection.Definitions.Textures.GetValues(), flatEntries);
+
+        SetSkyFireTextures();
 
         m_translations = new List<int>(m_textures.Count);
         for (int i = 0; i < m_textures.Count; i++)
@@ -211,12 +216,22 @@ public class TextureManager : ITickable
     }
 
     /// <summary>
-    /// Checks if a texture is a sky.
+    /// Checks if a texture is a sky.re
     /// </summary>
     /// <param name="texture">The texture to check.</param>
     public bool IsSkyTexture(int texture)
     {
+        return texture == m_skyIndex || m_flatIndexToSkyTextureIndex.ContainsKey(texture);
+    }
+
+    public bool IsDefaultSkyTexture(int texture)
+    {
         return texture == m_skyIndex;
+    }
+
+    public bool GetSkyTextureFromFlat(int texture, out int skyTextureHandle)
+    {
+        return m_flatIndexToSkyTextureIndex.TryGetValue(texture, out skyTextureHandle);
     }
 
     /// <summary>
@@ -392,6 +407,16 @@ public class TextureManager : ITickable
                 anim.Tics = 0;
             }
         }
+
+        for (int i = 0; i < m_skyTransforms.Count; i++)
+        {
+            var transform = m_skyTransforms[i];
+            transform.Sky.CurrentScroll += transform.Sky.Scroll;
+            if (transform.Foreground != null)
+                transform.Foreground.CurrentScroll += transform.Foreground.Scroll;
+        }
+
+        TickSkyFire();
     }
 
     public void ResetAnimations()
@@ -574,17 +599,16 @@ public class TextureManager : ITickable
             index++;
         }
 
-        // TODO: When ZDoom's Textures lump becomes a thing, this will need updating.
         string skyFlatName = m_archiveCollection.GameInfo.SkyFlatName;
         foreach (Entry flat in flatEntries)
         {
             m_textures.Add(new Texture(flat.Path.Name, ResourceNamespace.Flats, index));
             m_flatLookup[flat.Path.Name] = m_textures[index];
 
-            // TODO fix with MapInfo when implemented
             if (flat.Path.Name.Equals(skyFlatName, StringComparison.OrdinalIgnoreCase))
                 m_skyIndex = index;
 
+            MapSkyFlat(flat, index);
             index++;
         }
     }
@@ -599,11 +623,10 @@ public class TextureManager : ITickable
         return shittyTexture;
     }
 
-    private void LoadTextureImage(int textureIndex)
+    private void LoadTextureImage(int textureIndex, GetImageOptions options = GetImageOptions.Default)
     {
         var texture = m_textures[textureIndex];
-        if (texture.Image == null)
-            texture.Image = m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace);
+        texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
     }
 
     public void SetSkyTexture()
