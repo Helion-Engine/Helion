@@ -68,6 +68,8 @@ public static class WadPaths
         return paths;
     }
 
+    // TODO: this will get the base path, but doom may be in another library folder,
+    // consider parsing libraryfolders.vdf
     private static string? GetSteamPath()
     {
         if (OperatingSystem.IsWindows())
