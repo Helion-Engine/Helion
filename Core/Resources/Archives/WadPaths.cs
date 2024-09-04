@@ -1,3 +1,4 @@
+using Helion.Util.Parser;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -12,14 +13,28 @@ namespace Helion.Resources.Archives;
 /// </summary>
 public static class WadPaths
 {
-    private static readonly string[] SteamDoomDirs = [
-        "steamapps/common/Ultimate Doom/rerelease",
-        "steamapps/common/Doom 2/base",
-        "steamapps/common/Doom 2/masterbase",
-        "steamapps/common/Doom 2/finaldoombase",
-        "steamapps/common/Final Doom/base",
-        "steamapps/common/DOOM 3 BFG Edition/base/wads",
-    ];
+    private const string SteamLibraryFile = "config/libraryfolders.vdf";
+    private const string SteamAppsCommon = "steamapps/common";
+    private static readonly Dictionary<string, string[]> SteamIdLocationLookup = new() {
+        { "2280", [
+            "Ultimate Doom/base",
+            "Ultimate Doom/base/doom2",
+            "Ultimate Doom/base/tnt",
+            "Ultimate Doom/base/plutonia",
+            "Ultimate Doom/rerelease"
+        ] },
+        { "2290", [
+            "Final Doom/base"
+        ] },
+        { "2300", [
+            "Doom 2/base",
+            "Doom 2/masterbase",
+            "Doom 2/finaldoombase"
+        ] },
+        { "208200", [
+            "DOOM 3 BFG Edition/base/wads"
+        ] },
+    };
 
     private static readonly string[] LinuxDoomDirs = [
         "/usr/local/share/doom",
@@ -56,7 +71,7 @@ public static class WadPaths
         var steamPath = GetSteamPath();
         if (Directory.Exists(steamPath))
         {
-            paths.AddRange(SteamDoomDirs.Select(dir => Path.Combine(steamPath, dir)));
+            paths.AddRange(GetPathsFromSteamLibraries(steamPath));
         }
 
         if (OperatingSystem.IsLinux())
@@ -68,8 +83,6 @@ public static class WadPaths
         return paths;
     }
 
-    // TODO: this will get the base path, but doom may be in another library folder,
-    // consider parsing libraryfolders.vdf
     private static string? GetSteamPath()
     {
         if (OperatingSystem.IsWindows())
@@ -93,6 +106,38 @@ public static class WadPaths
         }
 
         return null;
+    }
+
+    private static List<string> GetPathsFromSteamLibraries(string steamBasePath)
+    {
+        List<string> foundPaths = [];
+        try
+        {
+            string libraryInfoPath = Path.Combine(steamBasePath, SteamLibraryFile);
+            string libraryInfo = File.ReadAllText(libraryInfoPath);
+            SimpleParser parser = new();
+            parser.Parse(libraryInfo);
+            string? currentLibraryPath = null;
+            while (!parser.IsDone())
+            {
+                string token = parser.ConsumeString();
+                if (token == "path")
+                    currentLibraryPath = parser.ConsumeString().Replace("\\\\", "\\");
+                if (token == "apps" && parser.PeekString() == "{")
+                {
+                    parser.ConsumeString();
+                    while (parser.PeekString() != "}")
+                    {
+                        string appId = parser.ConsumeString();
+                        if (SteamIdLocationLookup.TryGetValue(appId, out string[]? appPaths) && currentLibraryPath != null)
+                            foundPaths.AddRange(appPaths.Select(x => Path.Combine(currentLibraryPath, SteamAppsCommon, x)).Where(Directory.Exists));
+                        parser.ConsumeString();
+                    }
+                }
+            }
+        }
+        catch { }
+        return foundPaths;
     }
 
     private static List<string> GetLinuxUserPaths()
