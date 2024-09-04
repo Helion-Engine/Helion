@@ -74,6 +74,8 @@ public partial class TextureManager : ITickable
 
         InitTextureArrays(m_archiveCollection.Definitions.Textures.GetValues(), flatEntries);
 
+        SetSkyFireTextures();
+
         m_translations = new List<int>(m_textures.Count);
         for (int i = 0; i < m_textures.Count; i++)
             m_translations.Add(i);
@@ -413,6 +415,8 @@ public partial class TextureManager : ITickable
             if (transform.Foreground != null)
                 transform.Foreground.CurrentScroll += transform.Foreground.Scroll;
         }
+
+        TickSkyFire();
     }
 
     public void ResetAnimations()

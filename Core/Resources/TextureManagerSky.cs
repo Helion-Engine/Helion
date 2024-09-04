@@ -5,19 +5,140 @@ using Helion.Resources.Archives.Entries;
 using Helion.Resources.Images;
 using Helion.Resources.Definitions.Id24;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
+using Helion.Graphics;
+using Helion.Util.RandomGenerators;
+using Helion.Util;
 
 namespace Helion.Resources;
 
+public class SkyFireAnimation(SkyFire fire, Texture texture, Image fireImage, int ticks)
+{
+    public SkyFire Fire = fire;
+    public Texture Texture = texture;
+    public Image FireImage = fireImage;
+    public int Ticks = ticks;
+    public int CurrentTick;
+}
+
 public partial class TextureManager
 {
+    public List<SkyFireAnimation> GetSkyFireTextures() => m_skyFireTextures;
+
     private readonly Dictionary<int, int> m_flatIndexToSkyTextureIndex = [];
     private readonly Dictionary<int, SkyTransform> m_textureIndexToSkyTransform = [];
     private readonly List<SkyTransform> m_skyTransforms = [];
+    private readonly List<SkyFireAnimation> m_skyFireTextures = [];
+    private readonly DoomRandom m_fireRandom = new();
 
     public bool TryGetSkyTransform(int textureIndex, [NotNullWhen(true)] out SkyTransform? skyTransform)
     {
         return m_textureIndexToSkyTransform.TryGetValue(textureIndex, out skyTransform);
+    }
+    
+    private void TickSkyFire()
+    {
+        for (int i = 0; i < m_skyFireTextures.Count; i++)
+        {
+            var skyFire = m_skyFireTextures[i];
+            if (skyFire.Texture.Image == null)
+                continue;
+
+            skyFire.CurrentTick++;
+            if (skyFire.CurrentTick < skyFire.Ticks)
+                continue;
+
+            skyFire.CurrentTick = 0;
+
+            var skyFirePalette = skyFire.Fire.Palette;
+            var fireImage = skyFire.FireImage;
+
+            var fireImageIndices = fireImage.Indices;
+            for (int x = 0; x < fireImage.Width; x++)
+                for (int y = 1; y < fireImage.Height; y++)
+                    SpreadFire(fireImageIndices, y * fireImage.Width + x, fireImage.Width);
+
+            var palette = m_archiveCollection.Data.Palette.DefaultLayer;
+            WriteSkyFireToTexture(palette, skyFirePalette, fireImage, skyFire.Texture.Image);
+        }
+    }
+
+    private static void WriteSkyFireToTexture(Color[] palette, int[] skyFirePalette, Image fireImage, Image textureImage)
+    {
+        var fireIndices = fireImage.Indices;
+        var textureIndices = textureImage.Indices;
+        var texturePixels = textureImage.Pixels;
+        for (int p = 0; p < fireImage.Indices.Length; p++)
+        {
+            if (fireImage.Indices[p] == 0)
+            {
+                textureIndices[p] = 0;
+                texturePixels[p] = Color.Transparent.Uint;
+                continue;
+            }
+
+            var index = fireIndices[p];
+            if (index >= skyFirePalette.Length)
+                continue;
+
+            var paletteIndex = (byte)skyFirePalette[index];
+            textureIndices[p] = paletteIndex;
+            texturePixels[p] = palette[paletteIndex].Uint;
+        }
+    }
+
+    private void SpreadFire(Span<byte> indices, int src, int imageWidth)
+    {
+        var pixel = indices[src];
+        if (pixel == 0)
+        {
+            indices[src - imageWidth] = 0;
+        }
+        else
+        {
+            var randIdx = m_fireRandom.NextByte() & 3;
+            var dst = src - randIdx + 1;
+            var pixelIndex = dst - imageWidth;
+            if (pixelIndex < 0 || pixelIndex >= indices.Length)
+                return;
+            indices[pixelIndex] = (byte)(pixel - (randIdx & 1));
+        }
+    }
+
+    private void SetSkyFireTextures()
+    {
+        const int FireImageWidth = 320;
+        const int FireImageHeight = 168;
+        var skyDefinition = m_archiveCollection.Definitions.Id24SkyDefinition;
+        foreach (var sky in skyDefinition.Data.Skies)
+        {
+            if (sky.Type != SkyType.Fire || sky.Fire == null)
+                continue;
+
+            var texture = GetTexture(sky.Name, ResourceNamespace.Textures);
+            if (texture == null)
+                continue;
+
+            texture.Image = new Image((FireImageWidth, FireImageHeight), ImageType.PaletteWithArgb);
+            texture.Image.Fill(Color.Transparent);
+            texture.Image.FillIndices(0);
+
+            var fireImage = new Image((FireImageWidth, FireImageHeight), ImageType.Palette);
+            fireImage.FillIndices(0);
+
+            byte fillIndex = (byte)(sky.Fire.Palette.Length - 1);
+            for (int x = 0; x < fireImage.Width; x++)
+                fireImage.SetIndex(x, texture.Image.Height - 1, fillIndex);
+
+            m_skyFireTextures.Add(new(sky.Fire, texture, fireImage, CalcFireTicks(sky.Fire)));
+        }
+    }
+
+    private static int CalcFireTicks(SkyFire fire)
+    {
+        if (fire.UpdateTime <= 0)
+            return 1;
+        var seconds = 1 / Constants.TicksPerSecond;
+        return Math.Max((int)(fire.UpdateTime / seconds), 1);
     }
 
     private void MapSkyFlat(Entry flat, int textureIndex)

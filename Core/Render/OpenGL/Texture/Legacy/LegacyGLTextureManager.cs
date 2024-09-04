@@ -124,6 +124,20 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         texture.Flags = flags;
     }
 
+    public unsafe void ReUpload(GLLegacyTexture texture, Image image)
+    {
+        GL.BindTexture(texture.Target, texture.TextureId);
+
+        fixed (uint* pixelPtr = image.GetGlTexturePixels(ShaderVars.PaletteColorMode))
+        {
+            IntPtr ptr = new(pixelPtr);
+            GL.TexSubImage2D(texture.Target, 0, 0, 0, image.Width, image.Height,
+                PixelFormat.Bgra, PixelType.UnsignedInt8888Reversed, ptr);
+        }
+
+        GL.BindTexture(texture.Target, 0);
+    }
+
     /// <summary>
     /// Creates a new texture. The caller is responsible for disposing it.
     /// </summary>

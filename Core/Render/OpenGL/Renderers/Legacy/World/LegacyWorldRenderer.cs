@@ -119,6 +119,8 @@ public class LegacyWorldRenderer : WorldRenderer
         if (!shouldRender)
             return;
 
+        UpdateSkyFireTextures();
+
         m_renderCount = ++WorldStatic.CheckCounter;
         m_renderData.ViewerEntity = renderInfo.ViewerEntity;
         m_renderData.ViewPosInterpolated = renderInfo.Camera.PositionInterpolated.XY.Double;
@@ -212,6 +214,21 @@ public class LegacyWorldRenderer : WorldRenderer
 
         RenderAlphaObjects(m_alphaEntities);
         m_alphaEntities.Clear();
+    }
+
+    private void UpdateSkyFireTextures()
+    {
+        var skyFireTextures = m_archiveCollection.TextureManager.GetSkyFireTextures();
+        for (int i = 0; i < skyFireTextures.Count; i++)
+        {
+            var skyFire = skyFireTextures[i];
+            var texture = skyFire.Texture;
+            if (texture.Image == null)
+                continue;
+
+            var glTexture = m_textureManager.GetTexture(skyFire.Texture.Index);
+            m_textureManager.ReUpload(glTexture, texture.Image);
+        }
     }
 
     void RenderEntity(IWorld world, Entity entity)
