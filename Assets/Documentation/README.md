@@ -1,11 +1,12 @@
 # Installation
 
 1. Extract the contents of this archive to a directory of your choice.
-2. Obtain one or more of the official IWADs (Doom, Doom II, Plutonia, TNT, etc.).  If you've bought the games via Steam, we'll try to automatically find them.  If that doesn't work, you can also (pick one):
+2. Obtain one or more of the official IWADs (Doom, Doom II, Plutonia, TNT, etc.).  If you've bought the games via Steam, we'll try to automatically find them.  If that doesn't work, you can also (PICK ONE):
     1. Copy the IWADs to the same directory as Helion
     2. Run Helion.exe (or just "./Helion", on Linux) with the -iwad parameter, followed by the path to the IWAD you want to use
     3. Configure your Doom launcher of choice to pass the -iwad parameter
-    4. Launch the Helion executable, let it fail because it cannot find an IWAD, then edit the `files.directories = [".", "wads"]` line to include the directory that contains your IWADs.
+    4. Set values for the `DOOMWADDIR` or `DOOMWADPATH` environment variables
+    5. Launch the Helion executable using one of the other methods described above, then edit the `files.directories = [".", "wads"]` line in `config.ini` to include the directory that contains your IWADs.
 4. Run the Helion executable (Helion.exe on Windows, ./Helion on Linux) to play.
 
 # Common issues
