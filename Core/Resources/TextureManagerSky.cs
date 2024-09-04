@@ -11,9 +11,9 @@ using Helion.Util;
 
 namespace Helion.Resources;
 
-public class SkyFireAnimation(SkyFire fire, Texture texture, Image fireImage, int ticks)
+public class SkyFireAnimation(int[] firePalette, Texture texture, Image fireImage, int ticks)
 {
-    public SkyFire Fire = fire;
+    public int[] FirePalette = firePalette;
     public Texture Texture = texture;
     public Image FireImage = fireImage;
     public int Ticks = ticks;
@@ -48,18 +48,21 @@ public partial class TextureManager
                 continue;
 
             skyFire.CurrentTick = 0;
-
-            var skyFirePalette = skyFire.Fire.Palette;
-            var fireImage = skyFire.FireImage;
-
-            var fireImageIndices = fireImage.Indices;
-            for (int x = 0; x < fireImage.Width; x++)
-                for (int y = 1; y < fireImage.Height; y++)
-                    SpreadFire(fireImageIndices, y * fireImage.Width + x, fireImage.Width);
-
-            var palette = m_archiveCollection.Data.Palette.DefaultLayer;
-            WriteSkyFireToTexture(palette, skyFirePalette, fireImage, skyFire.Texture.Image);
+            UpdateSkyFire(skyFire);
         }
+    }
+
+    private void UpdateSkyFire(SkyFireAnimation skyFire)
+    {
+        var fireImage = skyFire.FireImage;
+
+        var fireImageIndices = fireImage.Indices;
+        for (int x = 0; x < fireImage.Width; x++)
+            for (int y = 1; y < fireImage.Height; y++)
+                SpreadFire(fireImageIndices, y * fireImage.Width + x, fireImage.Width);
+
+        var palette = m_archiveCollection.Data.Palette.DefaultLayer;
+        WriteSkyFireToTexture(palette, skyFire.FirePalette, fireImage, skyFire.Texture.Image);
     }
 
     private static void WriteSkyFireToTexture(Color[] palette, int[] skyFirePalette, Image fireImage, Image textureImage)
@@ -123,14 +126,25 @@ public partial class TextureManager
             texture.Image.FillIndices(0);
 
             var fireImage = new Image((FireImageWidth, FireImageHeight), ImageType.Palette);
-            fireImage.FillIndices(0);
+            InitSkyFireImage(sky.Fire.Palette, fireImage);
+            var skyFireAnimation = new SkyFireAnimation(sky.Fire.Palette, texture, fireImage, CalcFireTicks(sky.Fire));
+            m_skyFireTextures.Add(skyFireAnimation);
 
-            byte fillIndex = (byte)(sky.Fire.Palette.Length - 1);
-            for (int x = 0; x < fireImage.Width; x++)
-                fireImage.SetIndex(x, texture.Image.Height - 1, fillIndex);
-
-            m_skyFireTextures.Add(new(sky.Fire, texture, fireImage, CalcFireTicks(sky.Fire)));
+            for (int i = 0; i < 64; i++)
+                UpdateSkyFire(skyFireAnimation);
         }
+    }
+
+    private static void InitSkyFireImage(int[] firePalette, Image fireImage)
+    {
+        fireImage.FillIndices(0);
+
+        if (firePalette.Length == 0)
+            return;
+
+        byte fillIndex = (byte)(firePalette.Length - 1);
+        for (int x = 0; x < fireImage.Width; x++)
+            fireImage.SetIndex(x, fireImage.Height - 1, fillIndex);
     }
 
     private static int CalcFireTicks(SkyFire fire)
