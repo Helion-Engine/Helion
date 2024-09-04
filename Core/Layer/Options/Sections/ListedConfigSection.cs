@@ -642,6 +642,10 @@ public class ListedConfigSection : IOptionSection
         m_menuPositionList.Add(new Box2I((0, y), (hud.Dimension.Width, y + area.Height)), m_configValues.Count);
         y += area.Height + m_config.Hud.GetScaled(3);
 
+        // Handle case where the "Reset" row is selected; this affects auto-scrolling.
+        if (m_currentRowIndex == m_configValues.Count)
+            m_selectedRender = (y - startY, y + area.Height - startY);
+
         m_renderHeight = y - startY;
 
         if (m_updateRow)
