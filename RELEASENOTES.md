@@ -32,3 +32,4 @@
   - Fix dehacked frame misc1/2 to correctly set weapon sprite offsets through the weapon frame state only
   - Fix rendering that would stop sprites from rendering behind two-sided transparent walls when not using emulate vanilla rendering
   - Fix monsters infighting too easily
+  - Improved detection of WADs installed from Steam 
