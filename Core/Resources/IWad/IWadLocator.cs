@@ -46,6 +46,10 @@ public class IWadLocator
                 .Where(x => Path.GetExtension(x).Equals(".wad", StringComparison.OrdinalIgnoreCase));
             foreach (var file in files)
             {
+                // don't check large files as the IWAD detection does an MD5 hash
+                // and there aren't any IWADS that large
+                if (new FileInfo(file).Length > 25_000_000)
+                    continue;
                 IWadInfo iwadInfo = IWadInfo.GetIWadInfo(file);
                 if (iwadInfo != IWadInfo.DefaultIWadInfo && !foundTypes.Contains(iwadInfo.IWadType))
                 {
