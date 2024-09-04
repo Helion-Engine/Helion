@@ -29,7 +29,7 @@ internal class ColorDialog : DialogBase
     public Vec3I SelectedColor => m_color;
     public IConfigValue ConfigValue => m_configValue;
 
-    public ColorDialog(ConfigHud config, IConfigValue configValue, OptionMenuAttribute attr, Vec3I color)
+    public ColorDialog(ConfigWindow config, IConfigValue configValue, OptionMenuAttribute attr, Vec3I color)
         : base(config, "OK", "Cancel")
     {
         m_configValue = configValue;
@@ -76,7 +76,7 @@ internal class ColorDialog : DialogBase
         RenderDialogText(hud, m_attr.Name, windowAlign: Align.TopMiddle, anchorAlign: Align.TopMiddle);
         m_valueStartX = hud.MeasureText("Green", Font, m_fontSize).Width + m_padding * 4;
 
-        int boxSize = m_config.GetScaled(24);
+        int boxSize = m_config.GetMenuScaled(24);
         RenderColorBox(hud, 0, 0, boxSize);
         hud.AddOffset((m_dialogOffset.X + m_padding, boxSize + m_rowHeight));
 

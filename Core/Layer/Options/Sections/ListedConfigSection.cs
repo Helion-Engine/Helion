@@ -181,7 +181,7 @@ public class ListedConfigSection : IOptionSection
                 if (IsColor(configData.CfgValue, out var color))
                 {
                     lockOptions |= LockOptions.AllowMouse;
-                    m_dialog = new ColorDialog(m_config.Hud, configData.CfgValue, configData.Attr, color);
+                    m_dialog = new ColorDialog(m_config.Window, configData.CfgValue, configData.Attr, color);
                     m_dialog.OnClose += Dialog_OnClose;
                 }
                 else if (configData.Attr.DialogType != DialogType.Default)
@@ -189,10 +189,10 @@ public class ListedConfigSection : IOptionSection
                     switch (configData.Attr.DialogType)
                     {
                         case DialogType.TexturePicker:
-                            m_dialog = new TexturePickerDialog(m_config.Hud, configData.CfgValue, configData.Attr);
+                            m_dialog = new TexturePickerDialog(m_config.Window, configData.CfgValue, configData.Attr);
                             break;
                         case DialogType.SoundFontPicker:
-                            m_dialog = new FileListDialog(m_config.Hud, configData.CfgValue, configData.Attr, ".SF2,.SF3");
+                            m_dialog = new FileListDialog(m_config.Window, configData.CfgValue, configData.Attr, ".SF2,.SF3");
                             break;
                         default:
                             throw new NotImplementedException($"Unimplemented dialog type: {configData.Attr.DialogType}");
@@ -207,7 +207,7 @@ public class ListedConfigSection : IOptionSection
                 {
                     lockOptions |= LockOptions.AllowMouse;
                     // For now, the only one of these we have is for SoundFonts.  
-                    m_dialog = new FileListDialog(m_config.Hud, configData.CfgValue, configData.Attr, ".SF2,.SF3");
+                    m_dialog = new FileListDialog(m_config.Window, configData.CfgValue, configData.Attr, ".SF2,.SF3");
                     m_dialog.OnClose += Dialog_OnClose;
                 }
 
@@ -548,8 +548,8 @@ public class ListedConfigSection : IOptionSection
         }
 
         int y = startY;
-        int fontSize = m_config.Hud.GetSmallFontSize();
-        int smallPad = m_config.Hud.GetScaled(1);
+        int fontSize = m_config.Window.GetMenuSmallFontSize();
+        int smallPad = m_config.Window.GetMenuScaled(1);
 
         hud.Text("Press enter to modify the selected setting", Font, fontSize, (0, y), out Dimension textDimension,
             both: Align.TopMiddle, color: Color.Firebrick);
@@ -557,14 +557,14 @@ public class ListedConfigSection : IOptionSection
 
         hud.Text("Press R to reset the selected setting to its default", Font, fontSize, (0, y), out textDimension,
             both: Align.TopMiddle, color: Color.Firebrick);
-        y += textDimension.Height + m_config.Hud.GetScaled(8);
+        y += textDimension.Height + m_config.Window.GetMenuScaled(8);
 
-        hud.Text(OptionType.ToString(), Font, m_config.Hud.GetLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
-        y += headerArea.Height + m_config.Hud.GetScaled(8);
+        hud.Text(OptionType.ToString(), Font, m_config.Window.GetMenuLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
+        y += headerArea.Height + m_config.Window.GetMenuScaled(8);
 
-        int offsetX = m_config.Hud.GetScaled(8);
-        int spacerY = m_config.Hud.GetScaled(8);
-        int smallSpacer = m_config.Hud.GetScaled(2);
+        int offsetX = m_config.Window.GetMenuScaled(8);
+        int spacerY = m_config.Window.GetMenuScaled(8);
+        int smallSpacer = m_config.Window.GetMenuScaled(2);
         int colorBoxHeight = hud.MeasureText("I", Font, fontSize).Height;
 
         for (int i = 0; i < m_configValues.Count; i++)
@@ -622,9 +622,9 @@ public class ListedConfigSection : IOptionSection
             if (i == m_currentRowIndex && !m_rowIsSelected)
             {
                 var arrowSize = hud.MeasureText("<", Font, fontSize);
-                Vec2I arrowLeft = (-offsetX - attrArea.Width - m_config.Hud.GetScaled(2), y);
+                Vec2I arrowLeft = (-offsetX - attrArea.Width - m_config.Window.GetMenuScaled(2), y);
                 hud.Text(">", Font, fontSize, arrowLeft, window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);
-                Vec2I arrowRight = (-offsetX + arrowSize.Width + m_config.Hud.GetScaled(2), y);
+                Vec2I arrowRight = (-offsetX + arrowSize.Width + m_config.Window.GetMenuScaled(2), y);
                 hud.Text("<", Font, fontSize, arrowRight, window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);
             }
 
@@ -632,7 +632,7 @@ public class ListedConfigSection : IOptionSection
             var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + maxHeight));
             m_menuPositionList.Add(rowDimensions, i);
 
-            y += maxHeight + m_config.Hud.GetScaled(3);
+            y += maxHeight + m_config.Window.GetMenuScaled(3);
         }
 
         string resetText = m_currentRowIndex != m_configValues.Count
@@ -640,7 +640,7 @@ public class ListedConfigSection : IOptionSection
             : "> Reload All Defaults <";
         hud.Text(resetText, Font, fontSize, (0, y), out Dimension area, window: Align.TopMiddle, anchor: Align.TopMiddle, color: Color.Yellow);
         m_menuPositionList.Add(new Box2I((0, y), (hud.Dimension.Width, y + area.Height)), m_configValues.Count);
-        y += area.Height + m_config.Hud.GetScaled(3);
+        y += area.Height + m_config.Window.GetMenuScaled(3);
 
         // Handle case where the "Reset" row is selected; this affects auto-scrolling.
         if (m_currentRowIndex == m_configValues.Count)

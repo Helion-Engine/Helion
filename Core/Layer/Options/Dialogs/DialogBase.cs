@@ -17,7 +17,7 @@ using System.Text;
 
 namespace Helion.Layer.Options.Dialogs;
 
-internal abstract class DialogBase(ConfigHud config, string? acceptButton, string? cancelButton) : IDialog
+internal abstract class DialogBase(ConfigWindow config, string? acceptButton, string? cancelButton) : IDialog
 {
     protected const string Selector = ">";
     protected const string Font = Constants.Fonts.SmallGray;
@@ -26,7 +26,7 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
 
     private readonly string? m_acceptButton = acceptButton;
     private readonly string? m_cancelButton = cancelButton;
-    protected readonly ConfigHud m_config = config;
+    protected readonly ConfigWindow m_config = config;
 
     protected Dimension m_selectorSize;
     protected int m_rowHeight;
@@ -84,11 +84,11 @@ internal abstract class DialogBase(ConfigHud config, string? acceptButton, strin
         m_buttonPosList.Clear();
 
         m_selectorSize = hud.MeasureText(Selector, Font, m_fontSize);
-        m_fontSize = m_config.GetSmallFontSize();
-        m_padding = m_config.GetScaled(8);
+        m_fontSize = m_config.GetMenuSmallFontSize();
+        m_padding = m_config.GetMenuScaled(8);
         m_rowHeight = hud.MeasureText("I", Font, m_fontSize).Height;
 
-        int border = m_config.GetScaled(1);
+        int border = m_config.GetMenuScaled(1);
         var size = new Dimension(Math.Max(hud.Width / 2, 320), Math.Max(hud.Height / 2, 200));
         hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
 
