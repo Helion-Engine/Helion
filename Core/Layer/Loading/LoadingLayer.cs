@@ -48,8 +48,8 @@ public class LoadingLayer : IGameLayer
 
     public void RenderProgress(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
-        int fontSize = m_config.Hud.GetScaled(20);
-        int yOffset = -m_config.Hud.GetScaled(8);
+        int fontSize = m_config.Hud.GetHudScaled(20);
+        int yOffset = -m_config.Hud.GetHudScaled(8);
         var dim = hud.MeasureText(LoadingText, ConsoleFont, fontSize);
         if (dim.Width == 0 && dim.Height == 0)
             return;
@@ -64,7 +64,7 @@ public class LoadingLayer : IGameLayer
         }
 
         if (ShowSpinner)
-            hud.Text(Spinner[m_spinner], ConsoleFont, fontSize, (-dim.Width / 2 - m_config.Hud.GetScaled(16), yOffset), both: Align.BottomMiddle);
+            hud.Text(Spinner[m_spinner], ConsoleFont, fontSize, (-dim.Width / 2 - m_config.Hud.GetHudScaled(16), yOffset), both: Align.BottomMiddle);
     }
 
     public void HandleInput(IConsumableInput input)

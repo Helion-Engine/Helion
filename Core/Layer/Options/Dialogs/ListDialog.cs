@@ -40,7 +40,7 @@ internal abstract class ListDialog : DialogBase
         set;
     }
 
-    public ListDialog(ConfigHud config, IConfigValue configValue, OptionMenuAttribute attr)
+    public ListDialog(ConfigWindow config, IConfigValue configValue, OptionMenuAttribute attr)
     : base(config, "OK", "Cancel")
     {
         m_configValue = configValue;

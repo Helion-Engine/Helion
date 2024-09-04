@@ -43,6 +43,10 @@ public class ConfigWindow
     [OptionMenu(OptionSectionType.Video, "Window Size")]
     public readonly ConfigValue<Dimension> Dimension = new((1024, 768), (_, dim) => dim.Width >= 320 && dim.Height >= 200);
 
+    [ConfigInfo("Amount to scale menu text.")]
+    [OptionMenu(OptionSectionType.Video, "Menu Scale", allowReset: false)]
+    public readonly ConfigValue<double> MenuScale = new(1.5, Greater(0.0));
+
     public readonly ConfigWindowVirtual Virtual = new();
 
     [ConfigInfo("Display number for the window. Use command ListDisplays for display numbers.")]

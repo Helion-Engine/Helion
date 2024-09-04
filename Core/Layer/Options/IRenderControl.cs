@@ -7,6 +7,6 @@ namespace Helion.Layer.Options;
 
 public interface IRenderControl
 {
-    public Dimension Render(ConfigHud config, IRenderableSurfaceContext ctx, IHudRenderContext hudCtx);
+    public Dimension Render(ConfigWindow config, IRenderableSurfaceContext ctx, IHudRenderContext hudCtx);
     public void HandleInput(IConsumableInput input);
 }

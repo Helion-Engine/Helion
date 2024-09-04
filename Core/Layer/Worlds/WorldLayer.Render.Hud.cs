@@ -1056,7 +1056,7 @@ public partial class WorldLayer
 
         var dim = hud.MeasureText("I", SmallHudFont, 8);
         double frac = 1.0 - (double)(MaxVisibleTimeNanos - timeSinceMessage) / MessageTransitionSpan;
-        return (int)(-(dim.Height + MessageSpacing) * frac * m_config.Hud.GetScaled(1));
+        return (int)(-(dim.Height + MessageSpacing) * frac * m_config.Hud.GetHudScaled(1));
     }
 
     private static float CalculateFade(long timeSinceMessage)
