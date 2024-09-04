@@ -7,9 +7,12 @@ using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
+
+public record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIndex, float ScaleU, Vec4F TopColor, Vec4F BottomColor);
 
 // The sky texture looks like this (p = padding):
 //
@@ -28,27 +31,14 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 // This is why we multiply by four. Note that there is no blending
 // at the horizon (middle line).
 //
-public class SkySphereTexture : IDisposable
+public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle) : IDisposable
 {
-    record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIndex);
-
     private const int PixelRowsToEvaluate = 24;
-
-    public float ScaleU = 1.0f;
-    public Vec4F TopColor;
-    public Vec4F BottomColor;
-    private readonly ArchiveCollection m_archiveCollection;
-    private readonly LegacyGLTextureManager m_textureManager;
-    private readonly int m_textureHandleIndex;
-    private readonly List<SkyTexture> m_skyTextures = [];
+    private readonly ArchiveCollection m_archiveCollection = archiveCollection;
+    private readonly LegacyGLTextureManager m_textureManager = textureManager;
+    private readonly int m_textureHandleIndex = textureHandle;
+    private readonly DynamicArray<SkyTexture> m_skyTextures = new();
     private bool m_loadedTextures;
-
-    public SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle)
-    {
-        m_archiveCollection = archiveCollection;
-        m_textureManager = textureManager;
-        m_textureHandleIndex = textureHandle;
-    }
 
     ~SkySphereTexture()
     {
@@ -61,7 +51,7 @@ public class SkySphereTexture : IDisposable
         InitializeAnimatedTextures();
     }
 
-    public GLLegacyTexture GetSkyTexture(out SkyTransform skyTransform)
+    public SkyTexture GetSkyTexture(out SkyTransform skyTransform)
     {
         if (!m_loadedTextures)
         {
@@ -77,28 +67,30 @@ public class SkySphereTexture : IDisposable
         return GetSkyTextureFromTextureIndex(animationIndex, m_textureHandleIndex);
     }
 
-    private GLLegacyTexture GetSkyTextureFromTextureIndex(int animationIndex, int textureIndex)
+    private SkyTexture GetSkyTextureFromTextureIndex(int animationIndex, int textureIndex)
     {
-        GLLegacyTexture? glTexture = null;
-        for (int i = 0; i < m_skyTextures.Count; i++)
+        SkyTexture? findSkyTexture = null;
+        var skyArray = m_skyTextures.Data;
+        for (int i = 0; i < m_skyTextures.Length; i++)
         {
-            if (m_skyTextures[i].AnimatedTextureIndex == animationIndex)
+            ref var checkSkyTexture = ref skyArray[i];
+            if (checkSkyTexture.AnimatedTextureIndex == animationIndex)
             {
-                glTexture = m_skyTextures[i].GlTexture;
+                findSkyTexture = checkSkyTexture;
                 break;
             }
         }
 
-        if (GenerateSkyTextures(textureIndex, out var skyTexture))
+        if (findSkyTexture == null && GenerateSkyTexture(textureIndex, out var skyTexture))
         {
-            m_skyTextures.Add(new(skyTexture, animationIndex));
-            glTexture = skyTexture;
+            m_skyTextures.Add(skyTexture.Value);
+            findSkyTexture = skyTexture;
         }
 
-        if (glTexture != null)
-            CheckSkyFireUpdate(glTexture, textureIndex);
+        if (findSkyTexture != null)
+            CheckSkyFireUpdate(findSkyTexture.Value.GlTexture, textureIndex);
 
-        return glTexture ?? m_textureManager.NullTexture;
+        return findSkyTexture ?? new SkyTexture(m_textureManager.NullTexture, 0, 1, Vec4F.Zero, Vec4F.Zero);
     }
 
     private void CheckSkyFireUpdate(GLLegacyTexture skyTexture, int textureIndex)
@@ -117,7 +109,7 @@ public class SkySphereTexture : IDisposable
         }
     }
 
-    public GLLegacyTexture GetForegroundTexture(SkyTransformTexture skyTexture)
+    public SkyTexture GetForegroundTexture(SkyTransformTexture skyTexture)
     {
         int animationIndex = m_archiveCollection.TextureManager.GetTranslationIndex(m_textureHandleIndex);
         return GetSkyTextureFromTextureIndex(animationIndex, skyTexture.TextureIndex);
@@ -202,13 +194,13 @@ public class SkySphereTexture : IDisposable
             for (int j = 0; j < components.Count; j++)
             {
                 int animatedTextureIndex = components[j].TextureIndex;
-                if (GenerateSkyTextures(animatedTextureIndex, out var skyTexture))
-                    m_skyTextures.Add(new(skyTexture, animatedTextureIndex));
+                if (GenerateSkyTexture(animatedTextureIndex, out var skyTexture))
+                    m_skyTextures.Add(skyTexture.Value);
             }
         }
     }
 
-    private bool GenerateSkyTextures(int textureIndex, [NotNullWhen(true)] out GLLegacyTexture? texture)
+    private bool GenerateSkyTexture(int textureIndex, [NotNullWhen(true)] out SkyTexture? texture)
     {
         Image? skyImage = m_archiveCollection.TextureManager.GetNonAnimatedTexture(textureIndex).Image;
         if (skyImage == null)
@@ -217,18 +209,14 @@ public class SkySphereTexture : IDisposable
             return false;
         }
 
-        ScaleU = CalculateScale(skyImage.Dimension.Width);
-        SetAverageColors(skyImage);
-        texture = CreateSkyTexture(textureIndex, skyImage);
+        float scaleU = CalculateScale(skyImage.Dimension.Width);
+        GetAverageColors(skyImage, out var topColor, out var bottomColor);
+        var glTexture = CreateTexture(skyImage, $"[SKY][{textureIndex}] {m_archiveCollection.TextureManager.SkyTextureName}");
+        texture = new(glTexture, textureIndex, scaleU, topColor, bottomColor);
         return true;
     }
 
-    private GLLegacyTexture CreateSkyTexture(int textureIndex, Image skyImage)
-    {
-        return CreateTexture(skyImage, $"[SKY][{textureIndex}] {m_archiveCollection.TextureManager.SkyTextureName}");
-    }
-
-    private void SetAverageColors(Image skyImage)
+    private void GetAverageColors(Image skyImage, out Vec4F topColor, out Vec4F bottomColor)
     {
         // Most (all?) skies are tall enough that we don't have to worry
         // about this, but if we run into a sky that is small then we
@@ -240,8 +228,8 @@ public class SkySphereTexture : IDisposable
 
         int bottomStartY = skyImage.Height - rowsToEvaluate;
         int bottomExclusiveEndY = skyImage.Height;
-        TopColor = CalculateAverageRowColor(0, rowsToEvaluate, skyImage).Normalized3.To4D(1);
-        BottomColor = CalculateAverageRowColor(bottomStartY, bottomExclusiveEndY, skyImage).Normalized3.To4D(1);
+        topColor = CalculateAverageRowColor(0, rowsToEvaluate, skyImage).Normalized3.To4D(1);
+        bottomColor = CalculateAverageRowColor(bottomStartY, bottomExclusiveEndY, skyImage).Normalized3.To4D(1);
     }
 
     private GLLegacyTexture CreateTexture(Image fadedSkyImage, string debugName = "")
@@ -257,7 +245,7 @@ public class SkySphereTexture : IDisposable
 
     private void ReleaseUnmanagedResources()
     {
-        for (int i = 0; i < m_skyTextures.Count; i++)
+        for (int i = 0; i < m_skyTextures.Length; i++)
         {
             m_textureManager.UnRegisterTexture(m_skyTextures[i].GlTexture);
             m_skyTextures[i].GlTexture.Dispose();

@@ -52,7 +52,7 @@ public class SkySphereRenderer : IDisposable
 
         var skyTexture = m_texture.GetSkyTexture(out var skyDef);
         SetSkyUniforms(renderInfo, flipSkyHorizontal, skyTexture, skyDef.Sky);
-        DrawSphere(skyTexture);
+        DrawSphere(skyTexture.GlTexture);
 
         m_skyProgram.Unbind();
 
@@ -64,7 +64,7 @@ public class SkySphereRenderer : IDisposable
 
         var foregroundTexture = m_texture.GetForegroundTexture(skyDef.Foreground);
         SetForegroundUniforms(renderInfo, true, skyTexture, skyDef.Sky, foregroundTexture, skyDef.Foreground);
-        DrawSphere(foregroundTexture);
+        DrawSphere(foregroundTexture.GlTexture);
 
         m_foregroundProgram.Unbind();
     }
@@ -151,20 +151,21 @@ public class SkySphereRenderer : IDisposable
         }
     }
 
-    private void SetSkyUniforms(RenderInfo renderInfo, bool flipSkyHorizontal, GLLegacyTexture texture, SkyTransformTexture skyTransform)
+    private void SetSkyUniforms(RenderInfo renderInfo, bool flipSkyHorizontal, in SkyTexture skyTexture, SkyTransformTexture skyTransform)
     {
         bool invulnerability = false;
         if (renderInfo.ViewerEntity.PlayerObj != null)
             invulnerability = renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap();
 
+        var texture = skyTexture.GlTexture;
         var offset = (skyTransform.Offset / skyTransform.Scale) + skyTransform.CurrentScroll;
         m_skyProgram.BoundTexture(TextureUnit.Texture0);
         m_skyProgram.ColormapTexture(TextureUnit.Texture2);
         m_skyProgram.Mvp(CalculateMvp(renderInfo));
-        m_skyProgram.Scale(new Vec2F(m_texture.ScaleU * skyTransform.Scale.X, 0));
+        m_skyProgram.Scale(new Vec2F(skyTexture.ScaleU * skyTransform.Scale.X, 0));
         m_skyProgram.FlipU(flipSkyHorizontal);
-        m_skyProgram.TopColor(m_texture.TopColor);
-        m_skyProgram.BottomColor(m_texture.BottomColor);
+        m_skyProgram.TopColor(skyTexture.TopColor);
+        m_skyProgram.BottomColor(skyTexture.BottomColor);
         m_skyProgram.HasInvulnerability(invulnerability);
         m_skyProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_skyProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
@@ -173,7 +174,7 @@ public class SkySphereRenderer : IDisposable
     }
 
     private void SetForegroundUniforms(RenderInfo renderInfo, bool flipSkyHorizontal, 
-        GLLegacyTexture skyTexture, SkyTransformTexture skyTransform, GLLegacyTexture foregroundTexture, SkyTransformTexture foregroundTransform)
+        in SkyTexture skyTexture, SkyTransformTexture skyTransform, in SkyTexture foregroundTexture, SkyTransformTexture foregroundTransform)
     {
         bool invulnerability = false;
         if (renderInfo.ViewerEntity.PlayerObj != null)
@@ -183,17 +184,17 @@ public class SkySphereRenderer : IDisposable
         m_foregroundProgram.BoundTexture(TextureUnit.Texture0);
         m_foregroundProgram.ColormapTexture(TextureUnit.Texture2);
         m_foregroundProgram.Mvp(CalculateMvp(renderInfo));
-        m_foregroundProgram.Scale(new Vec2F(m_texture.ScaleU * foregroundTransform.Scale.X, 0));
+        m_foregroundProgram.Scale(new Vec2F(skyTexture.ScaleU * foregroundTransform.Scale.X, 0));
         m_foregroundProgram.FlipU(flipSkyHorizontal);
-        m_foregroundProgram.TopColor(m_texture.TopColor);
-        m_foregroundProgram.BottomColor(m_texture.BottomColor);
+        m_foregroundProgram.TopColor(skyTexture.TopColor);
+        m_foregroundProgram.BottomColor(skyTexture.BottomColor);
         m_foregroundProgram.HasInvulnerability(invulnerability);
         m_foregroundProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_foregroundProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
-        m_foregroundProgram.ScrollOffset(new(offset.X / foregroundTexture.Dimension.Width, offset.Y / foregroundTexture.Dimension.Height));
+        m_foregroundProgram.ScrollOffset(new(offset.X / foregroundTexture.GlTexture.Dimension.Width, offset.Y / foregroundTexture.GlTexture.Dimension.Height));
 
-        var textureHeight = CalcSkyHeight(foregroundTexture.Dimension.Height) * foregroundTransform.Scale.Y;
-        var skyHeight = CalcSkyHeight(skyTexture.Dimension.Height) * skyTransform.Scale.Y;
+        var textureHeight = CalcSkyHeight(foregroundTexture.GlTexture.Dimension.Height) * foregroundTransform.Scale.Y;
+        var skyHeight = CalcSkyHeight(skyTexture.GlTexture.Dimension.Height) * skyTransform.Scale.Y;
 
         m_foregroundProgram.TextureHeight(textureHeight);
         m_foregroundProgram.SkyMin(0.5f - skyHeight);
