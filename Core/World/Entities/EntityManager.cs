@@ -345,6 +345,9 @@ public class EntityManager : IDisposable
         FinalizeEntity(entity, false);
         if (setOnGround != null)
             entity.OnGround = setOnGround.Value;
+
+        if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
+            MusicChangers.Add(entity);
     }
 
     public Player? GetRealPlayer(int playerNumber)
