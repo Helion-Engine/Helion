@@ -70,7 +70,7 @@ public partial class Renderer : IDisposable
     private readonly TransitionRenderer m_transitionRenderer;
 
     private IWorld? m_world;
-    private GLBufferTexture? m_colorMapBuffer;
+    private GLBufferTextureStorage? m_colorMapBuffer;
     private Rectangle m_viewport = new(0, 0, 800, 600);
     private bool m_disposed;
 
@@ -105,12 +105,23 @@ public partial class Renderer : IDisposable
     private GLFramebuffer GenerateMainFramebuffer() => new("Main", Window.Dimension, 1, RenderbufferStorage.Depth32fStencil8);
     private GLFramebuffer GenerateVirtualFramebuffer() => new("Virtual", RenderDimension, 1, RenderbufferStorage.Depth32fStencil8);
 
-    public void UploadColorMap()
+    public unsafe void UploadColorMap()
     {
         if (!ShaderVars.PaletteColorMode)
             return;
+
         var colorMapData = ColorMapBuffer.Create(m_archiveCollection.Palette, m_archiveCollection.Colormap, m_archiveCollection.Definitions.Colormaps);
-        m_colorMapBuffer = new("Colormap buffer", colorMapData, SizedInternalFormat.Rgb32f, false);
+        m_colorMapBuffer = new("Colormap buffer", colorMapData, SizedInternalFormat.Rgb32f, GLInfo.MapPersistentBitSupported);
+
+        m_colorMapBuffer.Map(data =>
+        {
+            float* destBuffer = (float*)data.ToPointer();
+            fixed (float* colorMapBuffer = &colorMapData[0])
+            {
+                int length = sizeof(float) * colorMapData.Length;
+                System.Buffer.MemoryCopy(colorMapBuffer, destBuffer, length, length);
+            };
+        });
     }
 
     private void SetShaderVars()
@@ -432,12 +443,7 @@ public partial class Renderer : IDisposable
 
     private void BindColorMapBuffer()
     {
-        if (m_colorMapBuffer != null)
-        {
-            GL.ActiveTexture(TextureUnit.Texture2);
-            m_colorMapBuffer.BindTexture();
-            m_colorMapBuffer.BindTexBuffer();
-        }
+        m_colorMapBuffer?.BindTexture(TextureUnit.Texture2);
     }
 
     private void BindSectorColorMapBuffer()
