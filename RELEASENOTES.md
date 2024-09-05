@@ -34,3 +34,4 @@
   - Fix monsters infighting too easily
   - Improved detection of WADs installed from Steam 
   - Separate HUD and menu scaling into two different options
+  - Fixed incorrect dehacked mapping for BEXP5
