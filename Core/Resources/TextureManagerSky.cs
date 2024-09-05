@@ -8,6 +8,9 @@ using System.Linq;
 using Helion.Graphics;
 using Helion.Util.RandomGenerators;
 using Helion.Util;
+using System.Diagnostics;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Resources.Definitions.Texture;
 
 namespace Helion.Resources;
 
@@ -18,7 +21,7 @@ public class SkyFireAnimation(int[] firePalette, Texture texture, Image fireImag
     public Image FireImage = fireImage;
     public int Ticks = ticks;
     public int CurrentTick;
-    public bool RenderUpdate;
+    public bool RenderUpdate = true;
 }
 
 public partial class TextureManager
@@ -47,66 +50,72 @@ public partial class TextureManager
             skyFire.CurrentTick++;
             if (skyFire.CurrentTick < skyFire.Ticks)
                 continue;
-
+                        
             skyFire.CurrentTick = 0;
             skyFire.RenderUpdate = true;
             UpdateSkyFire(skyFire, skyFire.Texture.Image);
+            var palette = m_archiveCollection.Data.Palette.DefaultLayer;
+            WriteSkyFireToTexture(palette, skyFire.FirePalette, skyFire.FireImage, skyFire.Texture.Image);
         }
     }
 
     private void UpdateSkyFire(SkyFireAnimation skyFire, Image textureImage)
     {
         var fireImage = skyFire.FireImage;
-        var fireImageIndices = fireImage.Indices;
-        for (int x = 0; x < fireImage.Width; x++)
-            for (int y = 1; y < fireImage.Height; y++)
-                SpreadFire(fireImageIndices, y * fireImage.Width + x, fireImage.Width);
-
-        var palette = m_archiveCollection.Data.Palette.DefaultLayer;
-        WriteSkyFireToTexture(palette, skyFire.FirePalette, fireImage, textureImage);
+        var fireImageIndices = fireImage.m_indices;
+        int fireImageWidth = fireImage.Width;
+        int fireImageHeight = fireImage.Height;
+        for (int x = 0; x < fireImageWidth; x++)
+        {
+            for (int y = 1; y < fireImageHeight; y++)
+            {
+                int src = y * fireImageWidth + x;
+                var pixel = fireImageIndices[src];
+                if (pixel == 0)
+                {
+                    fireImageIndices[src - fireImageWidth] = 0;
+                }
+                else
+                {
+                    var randIdx = m_fireRandom.NextByte() & 3;
+                    var dst = src - randIdx + 1;
+                    var pixelIndex = dst - fireImageWidth;
+                    if (pixelIndex < 0 || pixelIndex >= fireImageIndices.Length)
+                        return;
+                    fireImageIndices[pixelIndex] = (byte)(pixel - (randIdx & 1));
+                }
+            }
+        }
     }
 
     private static void WriteSkyFireToTexture(Color[] palette, int[] skyFirePalette, Image fireImage, Image textureImage)
     {
-        var fireIndices = fireImage.Indices;
-        var textureIndices = textureImage.Indices;
-        var texturePixels = textureImage.Pixels;
+        var fireIndices = fireImage.m_indices;
+        var texturePixels = textureImage.m_pixels;
         var transparentColor = Color.Transparent.Uint;
-        for (int p = 0; p < fireImage.Indices.Length; p++)
+        int skyFirePaletteLength = skyFirePalette.Length;
+        for (int p = 0; p < fireIndices.Length; p++)
         {
-            if (fireImage.Indices[p] == 0)
+            if (fireIndices[p] == 0)
             {
-                textureIndices[p] = 0;
-                texturePixels[p] = transparentColor;
+                texturePixels[p] = ShaderVars.PaletteColorMode ? 0 : transparentColor;
                 continue;
             }
 
             var index = fireIndices[p];
-            if (index >= skyFirePalette.Length)
+            if (index >= skyFirePaletteLength)
                 continue;
 
+            // Directly writing the magic values for palette color mode here.
+            // This prevents creating a new array and iterating the indices again when uploading to the GPU.
             var paletteIndex = (byte)skyFirePalette[index];
-            textureIndices[p] = paletteIndex;
-            texturePixels[p] = palette[paletteIndex].Uint;
+            texturePixels[p] = ShaderVars.PaletteColorMode ? (uint)(Image.AlphaFlag << 24 | (byte)paletteIndex << 16) : palette[paletteIndex].m_value;
         }
     }
 
     private void SpreadFire(Span<byte> indices, int src, int imageWidth)
     {
-        var pixel = indices[src];
-        if (pixel == 0)
-        {
-            indices[src - imageWidth] = 0;
-        }
-        else
-        {
-            var randIdx = m_fireRandom.NextByte() & 3;
-            var dst = src - randIdx + 1;
-            var pixelIndex = dst - imageWidth;
-            if (pixelIndex < 0 || pixelIndex >= indices.Length)
-                return;
-            indices[pixelIndex] = (byte)(pixel - (randIdx & 1));
-        }
+
     }
 
     private void SetSkyFireTextures()
@@ -134,6 +143,9 @@ public partial class TextureManager
 
             for (int i = 0; i < 64; i++)
                 UpdateSkyFire(skyFireAnimation, texture.Image);
+
+            var palette = m_archiveCollection.Data.Palette.DefaultLayer;
+            WriteSkyFireToTexture(palette, sky.Fire.Palette, fireImage, texture.Image);
         }
     }
 

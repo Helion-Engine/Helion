@@ -39,7 +39,7 @@ public struct Color
     public static readonly Color White = (0xFF, 0xFF, 0xFF);
     public static readonly Color Yellow = (0xFF, 0xFF, 0x00);
 
-    private uint m_value;
+    public uint m_value;
 
     public byte A => (byte)((m_value & 0xFF000000) >> 24);
     public byte R => (byte)((m_value & 0x00FF0000) >> 16);

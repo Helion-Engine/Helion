@@ -29,8 +29,8 @@ public class Image
     public ImageType UploadType;
     public readonly Vec2I Offset;
     public readonly ResourceNamespace Namespace;
-    private readonly uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
-    private readonly byte[] m_indices;
+    public readonly uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
+    public readonly byte[] m_indices;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;

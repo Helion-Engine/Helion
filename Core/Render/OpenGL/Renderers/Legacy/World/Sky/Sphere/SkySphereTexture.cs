@@ -105,7 +105,7 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
 
             skyFire.RenderUpdate = false;
 
-            m_textureManager.ReUpload(skyTexture, texture.Image);
+            m_textureManager.ReUpload(skyTexture, texture.Image, texture.Image.m_pixels);
         }
     }
 
