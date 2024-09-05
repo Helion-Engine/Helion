@@ -209,7 +209,7 @@ public class SkySphereRenderer : IDisposable
 
     private static float CalcSkyHeight(float textureHeight)
     {
-        float pad = 128 / textureHeight * 0.28f;
+        float pad = 128 / textureHeight / 1.08f * 0.28f;
         return (1 - (pad * 2)) / 2;
     }
 
