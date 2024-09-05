@@ -1517,7 +1517,7 @@ public partial class DehackedDefinition
         { ThingState.BEXP2,         new("ExplosiveBarrel::death",       1) },
         { ThingState.BEXP3,         new("ExplosiveBarrel::death",       2) },
         { ThingState.BEXP4,         new("ExplosiveBarrel::death",       3) },
-        { ThingState.BEXP5,         new("ExplosiveBarrel::death",       5) },
+        { ThingState.BEXP5,         new("ExplosiveBarrel::death",       4) },
 
         { ThingState.BBAR1,         new("BurningBarrel::spawn",         0) },
         { ThingState.BBAR2,         new("BurningBarrel::spawn",         1) },
