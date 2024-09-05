@@ -3,7 +3,6 @@ using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Graphics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -274,14 +273,7 @@ public class LegacyWorldRenderer : WorldRenderer
             m_geometryRenderer.RenderStaticGeometryWalls();
             m_geometryRenderer.RenderStaticGeometryFlats();
 
-            m_interpolationProgram.Bind();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            m_worldDataManager.RenderTwoSidedMiddleWalls();
-
-            m_staticProgram.Bind();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            SetStaticUniforms(renderInfo);
-            m_geometryRenderer.RenderStaticTwoSidedWalls();
+            RenderTwoSidedMiddleWalls(renderInfo);
 
             m_entityRenderer.RenderNonAlpha(renderInfo);
             m_entityRenderer.RenderAlpha(renderInfo);
@@ -322,6 +314,39 @@ public class LegacyWorldRenderer : WorldRenderer
         m_geometryRenderer.RenderStaticOneSidedCoverWalls();
         GL.ColorMask(true, true, true, true);
 
+        m_entityRenderer.RenderNonAlpha(renderInfo);
+        m_entityRenderer.RenderAlpha(renderInfo);
+
+        // Draw flats to depth buffer so two-sided middle walls won't bleed through flats
+        GL.ColorMask(false, false, false, false);
+        RenderFlats(renderInfo);
+        GL.ColorMask(true, true, true, true);
+
+        RenderTwoSidedMiddleWalls(renderInfo);
+
+        m_interpolationProgram.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        m_worldDataManager.RenderAlphaWalls();
+        m_interpolationProgram.Unbind();
+
+        m_primitiveRenderer.Render(renderInfo);
+    }
+
+    private void RenderFlats(RenderInfo renderInfo)
+    {
+        m_staticProgram.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        SetStaticUniforms(renderInfo);
+        m_geometryRenderer.RenderStaticGeometryFlats();
+
+        m_interpolationProgram.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        SetInterpolationUniforms(renderInfo);
+        m_worldDataManager.RenderFlats();
+    }
+
+    private void RenderTwoSidedMiddleWalls(RenderInfo renderInfo)
+    {
         m_interpolationProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         m_worldDataManager.RenderTwoSidedMiddleWalls();
@@ -330,16 +355,6 @@ public class LegacyWorldRenderer : WorldRenderer
         GL.ActiveTexture(TextureUnit.Texture0);
         SetStaticUniforms(renderInfo);
         m_geometryRenderer.RenderStaticTwoSidedWalls();
-
-        m_entityRenderer.RenderNonAlpha(renderInfo);
-        m_entityRenderer.RenderAlpha(renderInfo);
-
-        m_interpolationProgram.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
-        m_worldDataManager.RenderAlphaWalls();
-        m_interpolationProgram.Unbind();
-
-        m_primitiveRenderer.Render(renderInfo);
     }
 
     public override void ResetInterpolation(IWorld world)
