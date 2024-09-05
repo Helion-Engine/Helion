@@ -170,7 +170,10 @@ public class SkySphereRenderer : IDisposable
         m_skyProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_skyProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
         m_skyProgram.ScrollOffset(new(offset.X / texture.Dimension.Width, offset.Y / texture.Dimension.Height));
-        m_skyProgram.SkyHeight(CalcSkyHeight(texture.Dimension.Height) * skyTransform.Scale.Y);
+        var skyHeight = CalcSkyHeight(texture.Dimension.Height) * skyTransform.Scale.Y;
+        m_skyProgram.SkyHeight(skyHeight);
+        m_skyProgram.SkyMin(0.5f - skyHeight);
+        m_skyProgram.SkyMax(0.5f + skyHeight);
     }
 
     private void SetForegroundUniforms(RenderInfo renderInfo, bool flipSkyHorizontal, 

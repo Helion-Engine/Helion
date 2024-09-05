@@ -116,7 +116,7 @@ internal class SkySphereForegroundShader : RenderProgram
             ${ColorMapFetch}
             ${InvulnerabilityFragColor}
 
-            const float blendAmount = 0.025;
+            float blendAmount = textureHeight / 4.6;
             if (uvFrag.y < skyMax && uvFrag.y > skyMax - blendAmount)
                 fragColor = vec4(mix(bottomColor.rgb, fragColor.rgb, (skyMax - uvFrag.y) / blendAmount), 1);
             if (uvFrag.y > skyMin && uvFrag.y < skyMin + blendAmount)
