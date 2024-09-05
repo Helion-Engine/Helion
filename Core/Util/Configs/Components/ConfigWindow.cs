@@ -45,7 +45,7 @@ public class ConfigWindow
 
     [ConfigInfo("Amount to scale menu text.")]
     [OptionMenu(OptionSectionType.Video, "Menu Scale", allowReset: false)]
-    public readonly ConfigValue<double> MenuScale = new(1.5, Greater(0.0));
+    public readonly ConfigValue<double> MenuScale = new(2.0, Greater(0.0));
 
     public readonly ConfigWindowVirtual Virtual = new();
 
