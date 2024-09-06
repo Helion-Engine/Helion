@@ -1,3 +1,4 @@
+using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
@@ -306,6 +307,30 @@ public partial class DehackedDefinition
                 thing.FastSpeed = GetIntProperty(parser, FastSpeed);
             else if (line.StartsWith(MeleeRange, StringComparison.OrdinalIgnoreCase))
                 thing.MeleeRange = GetIntProperty(parser, MeleeRange);
+            else if (line.StartsWith(Id24Bits, StringComparison.OrdinalIgnoreCase))
+                thing.Id24Bits = GetBits(parser, Id24Bits, ThingPropertyStringsId24);
+            else if (line.StartsWith(MinRespawnTicks, StringComparison.OrdinalIgnoreCase))
+                thing.MinRespawnTicks = GetIntProperty(parser, MinRespawnTicks);
+            else if (line.StartsWith(RespawnDice, StringComparison.OrdinalIgnoreCase))
+                thing.RespawnDice = GetIntProperty(parser, RespawnDice);
+            else if (line.StartsWith(PickupAmmoType, StringComparison.OrdinalIgnoreCase))
+                thing.PickupAmmoType = GetIntProperty(parser, PickupAmmoType);
+            else if (line.StartsWith(PickupAmmoCategory, StringComparison.OrdinalIgnoreCase))
+                thing.PickupAmmoCategory = GetIntProperty(parser, PickupAmmoCategory);
+            else if (line.StartsWith(PickupWeaponType, StringComparison.OrdinalIgnoreCase))
+                thing.PickupWeaponType = GetIntProperty(parser, PickupWeaponType);
+            else if (line.StartsWith(PickupItemType, StringComparison.OrdinalIgnoreCase))
+                thing.PickupItemType = GetIntProperty(parser, PickupItemType);
+            else if (line.StartsWith(PickupBonusCount, StringComparison.OrdinalIgnoreCase))
+                thing.PickupBonusCount = GetIntProperty(parser, PickupBonusCount);
+            else if (line.StartsWith(PickupSound, StringComparison.OrdinalIgnoreCase))
+                thing.PickupSound = GetIntProperty(parser, PickupSound);
+            else if (line.StartsWith(PickupMessage, StringComparison.OrdinalIgnoreCase))
+                thing.PickupMessage = GetStringProperty(parser, PickupMessage);
+            else if (line.StartsWith(TranslationLump, StringComparison.OrdinalIgnoreCase))
+                thing.TranslationLump = GetStringProperty(parser, TranslationLump);
+            else if (line.StartsWith(SelfDamageFactor, StringComparison.OrdinalIgnoreCase))
+                thing.SelfDamageFactor = MathHelper.FromFixed(GetIntProperty(parser, SelfDamageFactor));
             else
                 UnknownWarning(parser, "thing type");
 

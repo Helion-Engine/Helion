@@ -36,7 +36,20 @@ Action sound = 44
 Respawn frame = 45
 Splash group = 1
 Infighting group = 2
-Projectile group = 3";
+Projectile group = 3
+ID24 Bits = NORESPAWN+SPECIALSTAYSSINGLE+SPECIALSTAYSCOOP+SPECIALSTAYSDM
+Min respawn tics = 24
+Respawn dice = 25
+Dropped item = 26
+Pickup ammo type = 27
+Pickup ammo category = 28
+Pickup weapon type = 29
+Pickup item type = 30
+Pickup bonus count = 31
+Pickup sound = 32
+Pickup message = SPECIAL_MESSAGE
+Translation = TRANS69
+Self damage factor = 98304";
 
         var dehacked = new DehackedDefinition();
         dehacked.Parse(data);
@@ -71,5 +84,18 @@ Projectile group = 3";
         thing.InfightingGroup.Should().Be(2);
         thing.ProjectileGroup.Should().Be(3);
         thing.Bits.Should().Be(4194374);
+        thing.Id24Bits.Should().Be(15);
+        thing.MinRespawnTicks.Should().Be(24);
+        thing.RespawnDice.Should().Be(25);
+        thing.DroppedItem.Should().Be(26);
+        thing.PickupAmmoType.Should().Be(27);
+        thing.PickupAmmoCategory.Should().Be(28);
+        thing.PickupWeaponType.Should().Be(29);
+        thing.PickupItemType.Should().Be(30);
+        thing.PickupBonusCount.Should().Be(31);
+        thing.PickupSound.Should().Be(32);
+        thing.PickupMessage.Should().Be("SPECIAL_MESSAGE");
+        thing.TranslationLump.Should().Be("TRANS69");
+        thing.SelfDamageFactor.Should().Be(1.5);
     }
 }

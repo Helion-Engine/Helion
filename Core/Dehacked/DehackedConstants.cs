@@ -638,6 +638,14 @@ public partial class DehackedDefinition
         { "SKILL5FAST", 0x00000001 },
     };
 
+    public readonly IReadOnlyDictionary<string, uint> ThingPropertyStringsId24 = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "NORESPAWN", 0x00000001 },
+        { "SPECIALSTAYSSINGLE", 0x00000002 },
+        { "SPECIALSTAYSCOOP", 0x00000004 },
+        { "SPECIALSTAYSDM", 0x00000008 },
+    };
+
     public class FrameStateLookup
     {
         public FrameStateLookup(string label, int offset)
@@ -4804,6 +4812,18 @@ public partial class DehackedDefinition
     private static readonly string FastSpeed = "Fast speed";
     private static readonly string MeleeRange = "Melee range";
     private static readonly string GibHealth = "Gib health";
+    private static readonly string Id24Bits = "ID24 Bits";
+    private static readonly string MinRespawnTicks = "Min respawn tics";
+    private static readonly string RespawnDice = "Respawn dice";
+    private static readonly string PickupAmmoType = "Pickup ammo type";
+    private static readonly string PickupAmmoCategory = "Pickup ammo category";
+    private static readonly string PickupWeaponType = "Pickup weapon type";
+    private static readonly string PickupItemType = "Pickup item type";
+    private static readonly string PickupBonusCount = "Pickup bonus count";
+    private static readonly string PickupSound = "Pickup sound";
+    private static readonly string PickupMessage = "Pickup message";
+    private static readonly string TranslationLump = "Translation";
+    private static readonly string SelfDamageFactor = "Self damage factor";
 
     private static readonly string Duration = "Duration";
     private static readonly string SpriteNum = "Sprite number";
