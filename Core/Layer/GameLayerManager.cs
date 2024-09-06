@@ -606,7 +606,12 @@ public class GameLayerManager : IGameLayerManager
 
         var world = WorldLayer!.World;
         var save = LastSave.Value;
-        m_saveGameManager.WriteSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection), save.SaveGame);
+        // If the saved game name has been customized, preserve that customization
+        bool isCustomizedName = save.SaveGame.Model?.MapName != save.SaveGame.Model?.Text;
+        string name = isCustomizedName
+            ? save.SaveGame.Model?.Text ?? "Unnamed"
+            : world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection);
+        m_saveGameManager.WriteSaveGame(world, name, save.SaveGame);
         world.DisplayMessage(world.Player, null, SaveMenu.SaveMessage);
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Helion.Audio.Sounds;
 using Helion.Layer.Menus;
 using Helion.Menus.Base;
@@ -21,11 +22,13 @@ namespace Helion.Menus.Impl;
 
 public class SaveMenu : Menu
 {
+    public const string SaveMessage = "Game saved.";
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private const int MaxRows = 9;
     private const string SaveHeaderImage = "M_SGTTL";
     private const string LoadHeaderImage = "M_LGTTL";
-    public const string SaveMessage = "Game saved.";
+    private const string UnknownSavedGameName = "Unknown";
+    private const string EmptySlot = "Empty slot";
 
     public bool IsTypingName { get; private set; }
 
@@ -33,6 +36,11 @@ public class SaveMenu : Menu
     private readonly SaveGameManager m_saveGameManager;
     private readonly bool m_isSave;
     private readonly bool m_canSave;
+
+    private bool m_hasRowLock;
+    private string m_previousDisplayName;
+    private string m_defaultSavedGameName;
+    private StringBuilder m_customNameBuilder = new StringBuilder();
 
     private SaveGame? m_deleteSave;
 
@@ -94,7 +102,8 @@ public class SaveMenu : Menu
 
         if (savedGames.Count < MaxRows)
         {
-            MenuSaveRowComponent saveRowComponent = new("Empty slot", CreateNewSaveGame());
+            MenuSaveRowComponent saveRowComponent = new(EmptySlot, string.Empty);
+            saveRowComponent.Action = CreateNewSaveGame(() => saveRowComponent.Text);
             Components = Components.Add(saveRowComponent);
         }
     }
@@ -109,8 +118,102 @@ public class SaveMenu : Menu
             return;
         }
 
-        if (input.ConsumeKeyPressed(Key.Enter) && ComponentIndex.HasValue)
-            Components[ComponentIndex.Value].Action?.Invoke();
+        if (ComponentIndex.HasValue)
+        {
+            MenuSaveRowComponent? savedGameRow = Components[ComponentIndex.Value] as MenuSaveRowComponent;
+            if (savedGameRow != null)
+            {
+                if (m_isSave)
+                {
+                    if (m_hasRowLock)
+                    {
+                        EditRow(savedGameRow, input);
+                    }
+                    else if (input.ConsumeKeyPressed(Key.Enter))
+                    {
+                        m_customNameBuilder.Clear();
+                        m_previousDisplayName = savedGameRow.Text;
+
+                        m_defaultSavedGameName = (GetWorld(out IWorld? world) && world != null)
+                            ? world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection)
+                            : UnknownSavedGameName;
+
+                        if (savedGameRow.Text == EmptySlot || savedGameRow.Text == savedGameRow.MapName)
+                        {
+                            // New saved game, or saved game with default (map) name; update to current map name
+                            m_customNameBuilder.Append(m_defaultSavedGameName);
+                            savedGameRow.Text = m_defaultSavedGameName;
+                        }
+                        else
+                        {
+                            // saved game with non-default name; preserve name
+                            m_customNameBuilder.Append(savedGameRow.Text);
+                        }
+
+                        m_hasRowLock = true;
+                    }
+                }
+                else if (!m_isSave && input.ConsumeKeyPressed(Key.Enter)) // Load
+                {
+                    savedGameRow.Action?.Invoke();
+                }
+            }
+        }
+    }
+
+    public void EditRow(MenuSaveRowComponent savedGameRow, IConsumableInput input)
+    {
+        if (input.ConsumeKeyPressed(Key.Escape))
+        {
+            // The user has decided not to save.
+            // Undo any customizations they've made to the display name of the saved game, and leave edit mode.
+            savedGameRow.Text = m_previousDisplayName;
+            m_hasRowLock = false;
+        }
+        else if (input.ConsumeKeyPressed(Key.Enter))
+        {
+            // If there's any text in the field, use that as the name, else force the defualt.
+            savedGameRow.Text = m_customNameBuilder.Length > 0
+                ? m_customNameBuilder.ToString()
+                : m_defaultSavedGameName;
+
+            savedGameRow.Action?.Invoke();
+            m_hasRowLock = false;
+        }
+        else
+        {
+            // Handle all other typed input.
+            if (input.ConsumeKeyPressed(Key.Backspace))
+            {
+                if (m_customNameBuilder.ToString() == m_defaultSavedGameName)
+                {
+                    m_customNameBuilder.Clear();
+                }
+
+                if (m_customNameBuilder.Length > 0)
+                {
+                    m_customNameBuilder.Remove(m_customNameBuilder.Length - 1, 1);
+                }
+            }
+
+            var chars = input.ConsumeTypedCharacters();
+            m_customNameBuilder.Append(chars);
+
+            savedGameRow.Text = m_customNameBuilder.ToString() + Blink();
+        }
+
+        // Ensure we have no remaining input whatsoever.
+        input.ConsumeAll();
+    }
+
+    private static string Blink()
+    {
+        const string editStr = "_";
+        if (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 500 % 2 == 0)
+        {
+            return editStr;
+        }
+        return string.Empty;
     }
 
     private IEnumerable<IMenuComponent> CreateSaveRowComponents(IEnumerable<SaveGame> savedGames)
@@ -118,12 +221,14 @@ public class SaveMenu : Menu
         return savedGames.Take(MaxRows)
             .Select(save =>
             {
-                string displayName = save.Model?.Text ?? "Unknown";
-                return new MenuSaveRowComponent(displayName, UpdateSaveGame(save), CreateDeleteCommand(save));
+                string displayName = save.Model?.Text ?? UnknownSavedGameName;
+                MenuSaveRowComponent saveRow = new(displayName, save.Model?.MapName ?? UnknownSavedGameName, null, CreateDeleteCommand(save));
+                saveRow.Action = new Func<Menu?>(UpdateSaveGame(save, new(() => saveRow.Text)));
+                return saveRow;
             });
     }
 
-    private Func<Menu?> UpdateSaveGame(SaveGame save)
+    private Func<Menu?> UpdateSaveGame(SaveGame save, Func<string> getName)
     {
         return () =>
         {
@@ -135,7 +240,7 @@ public class SaveMenu : Menu
 
             if (GetWorld(out IWorld? world) && world != null)
             {
-                SaveGameEvent saveGameEvent = m_saveGameManager.WriteSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection), save);
+                SaveGameEvent saveGameEvent = m_saveGameManager.WriteSaveGame(world, getName(), save);
                 m_parent.Close();
 
                 HandleSaveEvent(world, saveGameEvent);
@@ -149,13 +254,13 @@ public class SaveMenu : Menu
         };
     }
 
-    private Func<Menu?> CreateNewSaveGame()
+    private Func<Menu?> CreateNewSaveGame(Func<string> getName)
     {
         return () =>
         {
             if (GetWorld(out IWorld? world) && world != null)
             {
-                SaveGameEvent saveGameEvent = m_saveGameManager.WriteNewSaveGame(world, world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection));
+                SaveGameEvent saveGameEvent = m_saveGameManager.WriteNewSaveGame(world, getName());
                 m_parent.Manager.Remove(m_parent);
 
                 HandleSaveEvent(world, saveGameEvent);
@@ -204,9 +309,9 @@ public class SaveMenu : Menu
         return savedGames.Take(MaxRows)
             .Select(save =>
             {
-                string displayName = save.Model?.Text ?? "Unknown";
+                string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string fileName = System.IO.Path.GetFileName(save.FileName);
-                return new MenuSaveRowComponent(displayName, CreateConsoleCommand($"load {fileName}"),
+                return new MenuSaveRowComponent(displayName, string.Empty, CreateConsoleCommand($"load {fileName}"),
                     CreateDeleteCommand(save), save);
             });
     }

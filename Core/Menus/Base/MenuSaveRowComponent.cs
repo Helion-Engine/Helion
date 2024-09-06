@@ -5,15 +5,18 @@ namespace Helion.Menus.Base;
 
 public class MenuSaveRowComponent : IMenuComponent
 {
-    public string Text { get; }
-    public Func<Menu?>? Action { get; }
+    public string Text { get; set; }
+    public string MapName { get; set; }
+
+    public Func<Menu?>? Action { get; set; }
     public Func<Menu?>? DeleteAction { get; }
     public SaveGame? SaveGame { get; }
 
-    public MenuSaveRowComponent(string text, Func<Menu?>? action = null,
+    public MenuSaveRowComponent(string text, string mapName, Func<Menu?>? action = null,
         Func<Menu?>? deleteAction = null, SaveGame? saveGame = null)
     {
         Text = text;
+        MapName = mapName;
         Action = action;
         DeleteAction = deleteAction;
         SaveGame = saveGame;
