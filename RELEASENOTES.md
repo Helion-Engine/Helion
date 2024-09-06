@@ -7,6 +7,7 @@
   - Status bar texture picker dialog
   - Added automap marker functionality to key binding options
   - "Melt" screen wipe added
+  - Minor improvements to Save/Load dialog (user can name saved games)
 
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
@@ -32,6 +33,8 @@
   - Fix dehacked frame misc1/2 to correctly set weapon sprite offsets through the weapon frame state only
   - Fix rendering that would stop sprites from rendering behind two-sided transparent walls when not using emulate vanilla rendering
   - Fix monsters infighting too easily
-  - Improved detection of WADs installed from Steam 
+  - Improve detection of WADs installed from Steam 
   - Separate HUD and menu scaling into two different options
-  - Fixed incorrect dehacked mapping for BEXP5
+  - Fix incorrect dehacked mapping for BEXP5
+  - Rework FluidSynth loading sequence to prevent a crash on some systems and speed up music track changes
+  - Prevent user from overwriting autosaves via quick save, since we are likely to add "rotation" for autosaves
