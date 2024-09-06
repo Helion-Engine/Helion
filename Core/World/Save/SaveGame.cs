@@ -31,6 +31,8 @@ public class SaveGame
 
     public string FilePath => Path.Combine(SaveDir, FileName);
 
+    public bool IsAutoSave => Path.GetFileName(FileName).StartsWith("autosave");
+
     public SaveGame(string saveDir, string filename, SaveGameModel model)
     {
         SaveDir = saveDir;

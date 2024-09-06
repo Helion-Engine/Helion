@@ -54,7 +54,7 @@ public class GameLayerManager : IGameLayerManager
     public TitlepicLayer? TitlepicLayer { get; private set; }
     public EndGameLayer? EndGameLayer { get; private set; }
     public IntermissionLayer? IntermissionLayer { get; private set; }
-    public IwadSelectionLayer? IwadSelectionLayer {  get; private set; }
+    public IwadSelectionLayer? IwadSelectionLayer { get; private set; }
     public LoadingLayer? LoadingLayer { get; private set; }
     public TransitionLayer? TransitionLayer { get; private set; }
     public WorldLayer? WorldLayer { get; private set; }
@@ -159,7 +159,7 @@ public class GameLayerManager : IGameLayerManager
         if (gameLayer is IAnimationLayer animationLayer)
         {
             animationLayer.Animation.OnStart += Animation_OnStart;
-            animationLayer.Animation.OnComplete += Animation_OnComplete; 
+            animationLayer.Animation.OnComplete += Animation_OnComplete;
         }
 
         switch (gameLayer)
@@ -382,7 +382,7 @@ public class GameLayerManager : IGameLayerManager
                 input.ConsumeAll();
                 return;
             }
-            
+
             if (ShouldCreateMenu(input))
             {
                 if (ReadThisLayer != null)
@@ -460,7 +460,7 @@ public class GameLayerManager : IGameLayerManager
             input.ConsumeAll();
             return true;
         }
-        
+
         return ConsumeCommandPressed(Constants.Input.Menu, input);
     }
 
@@ -495,7 +495,7 @@ public class GameLayerManager : IGameLayerManager
 
     public void ExpireAnimations()
     {
-        foreach(var layer in Layers)
+        foreach (var layer in Layers)
         {
             if (layer is IAnimationLayer animationLayer)
                 animationLayer.Animation.StopAndFireComplete();
@@ -520,7 +520,7 @@ public class GameLayerManager : IGameLayerManager
             animation.AnimateOut();
             return;
         }
-        
+
         animation.AnimateIn();
     }
 
@@ -570,7 +570,7 @@ public class GameLayerManager : IGameLayerManager
         if (!CanSave)
             return;
 
-        if (WorldLayer == null  || !LastSave.HasValue)
+        if (WorldLayer == null || !LastSave.HasValue || LastSave?.SaveGame.IsAutoSave == true)
         {
             GoToSaveOrLoadMenu(true);
             return;
@@ -579,7 +579,7 @@ public class GameLayerManager : IGameLayerManager
         if (m_config.Game.QuickSaveConfirm)
         {
             MessageMenu confirm = new(m_config, m_console, m_soundManager, m_archiveCollection,
-                new[] { "Are you sure you want to overwrite:", LastSave.Value.SaveGame.Model != null ? LastSave.Value.SaveGame.Model.Text : "Save", "Press Y to confirm." },
+                new[] { "Are you sure you want to overwrite:", LastSave?.SaveGame.Model != null ? LastSave.Value.SaveGame.Model.Text : "Save", "Press Y to confirm." },
                 isYesNoConfirm: true, clearMenus: true);
             confirm.Cleared += Confirm_Cleared;
 
@@ -726,7 +726,7 @@ public class GameLayerManager : IGameLayerManager
     {
         if (!worldLayer.DrawAutomap)
         {
-            worldLayer.RenderHud(m_ctx, RenderHudOptions.Hud | RenderHudOptions.Crosshair| RenderHudOptions.Weapon);
+            worldLayer.RenderHud(m_ctx, RenderHudOptions.Hud | RenderHudOptions.Crosshair | RenderHudOptions.Weapon);
             return;
         }
 

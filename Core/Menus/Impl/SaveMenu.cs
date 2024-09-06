@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Helion.Audio.Sounds;
 using Helion.Layer.Menus;
 using Helion.Menus.Base;
@@ -17,6 +13,10 @@ using Helion.Window.Input;
 using Helion.World;
 using Helion.World.Save;
 using NLog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace Helion.Menus.Impl;
 
@@ -38,8 +38,8 @@ public class SaveMenu : Menu
     private readonly bool m_canSave;
 
     private bool m_hasRowLock;
-    private string m_previousDisplayName;
-    private string m_defaultSavedGameName;
+    private string m_previousDisplayName = string.Empty;
+    private string m_defaultSavedGameName = string.Empty;
     private StringBuilder m_customNameBuilder = new StringBuilder();
 
     private SaveGame? m_deleteSave;
@@ -102,7 +102,7 @@ public class SaveMenu : Menu
 
         if (savedGames.Count < MaxRows)
         {
-            MenuSaveRowComponent saveRowComponent = new(EmptySlot, string.Empty);
+            MenuSaveRowComponent saveRowComponent = new(EmptySlot, string.Empty, isAutoSave: false);
             saveRowComponent.Action = CreateNewSaveGame(() => saveRowComponent.Text);
             Components = Components.Add(saveRowComponent);
         }
@@ -129,7 +129,7 @@ public class SaveMenu : Menu
                     {
                         EditRow(savedGameRow, input);
                     }
-                    else if (input.ConsumeKeyPressed(Key.Enter))
+                    else if (input.ConsumeKeyPressed(Key.Enter) && !savedGameRow.IsAutoSave)
                     {
                         m_customNameBuilder.Clear();
                         m_previousDisplayName = savedGameRow.Text;
@@ -151,6 +151,7 @@ public class SaveMenu : Menu
                         }
 
                         m_hasRowLock = true;
+                        SoundManager.PlayStaticSound(Constants.MenuSounds.Choose);
                     }
                 }
                 else if (!m_isSave && input.ConsumeKeyPressed(Key.Enter)) // Load
@@ -169,6 +170,7 @@ public class SaveMenu : Menu
             // Undo any customizations they've made to the display name of the saved game, and leave edit mode.
             savedGameRow.Text = m_previousDisplayName;
             m_hasRowLock = false;
+            SoundManager.PlayStaticSound(Constants.MenuSounds.Backup);
         }
         else if (input.ConsumeKeyPressed(Key.Enter))
         {
@@ -222,7 +224,7 @@ public class SaveMenu : Menu
             .Select(save =>
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
-                MenuSaveRowComponent saveRow = new(displayName, save.Model?.MapName ?? UnknownSavedGameName, null, CreateDeleteCommand(save));
+                MenuSaveRowComponent saveRow = new(displayName, save.Model?.MapName ?? UnknownSavedGameName, save.IsAutoSave, null, CreateDeleteCommand(save));
                 saveRow.Action = new Func<Menu?>(UpdateSaveGame(save, new(() => saveRow.Text)));
                 return saveRow;
             });
@@ -311,7 +313,7 @@ public class SaveMenu : Menu
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string fileName = System.IO.Path.GetFileName(save.FileName);
-                return new MenuSaveRowComponent(displayName, string.Empty, CreateConsoleCommand($"load {fileName}"),
+                return new MenuSaveRowComponent(displayName, string.Empty, save.IsAutoSave, CreateConsoleCommand($"load {fileName}"),
                     CreateDeleteCommand(save), save);
             });
     }
