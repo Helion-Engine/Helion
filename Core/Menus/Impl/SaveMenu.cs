@@ -127,31 +127,39 @@ public class SaveMenu : Menu
                 {
                     if (m_hasRowLock)
                     {
+                        // We're already in "name edit mode"
                         EditRow(savedGameRow, input);
                     }
-                    else if (input.ConsumeKeyPressed(Key.Enter) && !savedGameRow.IsAutoSave)
+                    else if (input.ConsumeKeyPressed(Key.Enter))
                     {
-                        m_customNameBuilder.Clear();
-                        m_previousDisplayName = savedGameRow.Text;
-
-                        m_defaultSavedGameName = (GetWorld(out IWorld? world) && world != null)
-                            ? world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection)
-                            : UnknownSavedGameName;
-
-                        if (savedGameRow.Text == EmptySlot || savedGameRow.Text == savedGameRow.MapName)
+                        if (savedGameRow.IsAutoSave)
                         {
-                            // New saved game, or saved game with default (map) name; update to current map name
-                            m_customNameBuilder.Append(m_defaultSavedGameName);
-                            savedGameRow.Text = m_defaultSavedGameName;
+                            SoundManager.PlayStaticSound(Constants.MenuSounds.Invalid);
                         }
                         else
                         {
-                            // saved game with non-default name; preserve name
-                            m_customNameBuilder.Append(savedGameRow.Text);
-                        }
+                            m_customNameBuilder.Clear();
+                            m_previousDisplayName = savedGameRow.Text;
 
-                        m_hasRowLock = true;
-                        SoundManager.PlayStaticSound(Constants.MenuSounds.Choose);
+                            m_defaultSavedGameName = (GetWorld(out IWorld? world) && world != null)
+                                ? world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection)
+                                : UnknownSavedGameName;
+
+                            if (savedGameRow.Text == EmptySlot || savedGameRow.Text == savedGameRow.MapName)
+                            {
+                                // New saved game, or saved game with default (map) name; update to current map name
+                                m_customNameBuilder.Append(m_defaultSavedGameName);
+                                savedGameRow.Text = m_defaultSavedGameName;
+                            }
+                            else
+                            {
+                                // saved game with non-default name; preserve name
+                                m_customNameBuilder.Append(savedGameRow.Text);
+                            }
+
+                            m_hasRowLock = true;
+                            SoundManager.PlayStaticSound(Constants.MenuSounds.Choose);
+                        }
                     }
                 }
                 else if (!m_isSave && input.ConsumeKeyPressed(Key.Enter)) // Load
