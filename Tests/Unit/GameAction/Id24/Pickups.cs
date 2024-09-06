@@ -110,10 +110,32 @@ public class Pickups
         GameActions.AssertSound(World, Player, "dspistol");
     }
 
+    [Fact(DisplayName = "Pickup message")]
+    public void PickupMessage()
+    {
+        PlayerMessageEvent? messageEvent = null;
+        World.PlayerMessage += World_PlayerMessage;
+        var item = GameActions.CreateEntity(World, "*deh/entity42068", ItemPos);
+        item.Definition.Properties.Inventory.PickupMessage.Should().Be("$*deh/USER_PICKUPITEM1");
+        World.PerformItemPickup(Player, item);
+        messageEvent.HasValue.Should().BeTrue();
+        messageEvent!.Value.Message.Should().Be("great job, your did it");
+
+        void World_PlayerMessage(object? sender, PlayerMessageEvent e)
+        {
+            messageEvent = e;
+        }
+    }
+
+
     private static readonly string Dehacked =
 @"Thing 42069 (PickupThing)
 Bits = SPECIAL
 Pickup item type = 0
 Pickup bonus count = 20
-Pickup sound = 1";
+Pickup sound = 1
+Pickup message = USER_PICKUPITEM1
+
+[STRINGS]
+USER_PICKUPITEM1 = great job, your did it";
 }

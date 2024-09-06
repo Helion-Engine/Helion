@@ -534,6 +534,8 @@ public class DehackedApplier
                 SetPickupItemType(properties, thing.PickupItemType.Value);
             if (thing.PickupSound.HasValue)
                 properties.Inventory.PickupSound = GetSound(dehacked, thing.PickupSound.Value);
+            if (!string.IsNullOrEmpty(thing.PickupMessage))
+                properties.Inventory.PickupMessage = GetDehackedMessageLookup(thing.PickupMessage, true);
         }
     }
 
@@ -641,6 +643,14 @@ public class DehackedApplier
 
     public static string GetDehackedActorName(int index) =>
         $"*deh/entity{index}";
+
+    private static string GetDehackedMessageLookup(string mnemonic, bool prefix)
+    {
+        if (prefix)
+            return $"$*deh/{mnemonic}";
+        else
+            return $"*deh/{mnemonic}";
+    }
 
     private static void ApplyAmmo(DehackedDefinition dehacked, EntityDefinitionComposer composer)
     {
@@ -1237,6 +1247,9 @@ public class DehackedApplier
     {
         foreach (var text in dehacked.BexStrings)
         {
+            if (text.Mnemonic.StartsWith("USER_", StringComparison.OrdinalIgnoreCase))
+                language.Add(GetDehackedMessageLookup(text.Mnemonic, false), text.Value);
+
             if (!language.SetValue(text.Mnemonic, text.Value))
                 Log.Warn($"Unknown bex string mnemonic:{text.Mnemonic}");
         }
