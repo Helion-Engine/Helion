@@ -55,6 +55,8 @@ public class EntityProperties
     public int? InfightingGroup;
     public int? ProjectileGroup;
     public int? SplashGroup;
+    public int? RespawnTicks;
+    public int RespawnDice = 4;
 
     public double MonsterMovementSpeed;
     public double MissileMovementSpeed;

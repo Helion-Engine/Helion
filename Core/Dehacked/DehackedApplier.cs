@@ -524,6 +524,10 @@ public class DehackedApplier
                 properties.ProjectileGroup = thing.ProjectileGroup;
             if (IsGroupValid(properties.SplashGroup))
                 properties.SplashGroup = thing.SplashGroup;
+
+            properties.RespawnTicks = thing.MinRespawnTicks;
+            if (thing.RespawnDice.HasValue)
+                properties.RespawnDice = thing.RespawnDice.Value;
         }
     }
 

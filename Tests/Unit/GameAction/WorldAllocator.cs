@@ -20,6 +20,7 @@ using System.IO;
 using System.IO.Compression;
 using Helion.Maps.Bsp.Zdbsp;
 using NLog;
+using Helion.Dehacked;
 
 namespace Helion.Tests.Unit.GameAction;
 
@@ -37,7 +38,7 @@ internal static class WorldAllocator
     public static SinglePlayerWorld LoadMap(string resourceZip, string fileName, string mapName, string testKey, Action<SinglePlayerWorld> onInit,
         IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium, Player? existingPlayer = null, WorldModel? worldModel = null,
         bool disposeExistingWorld = true, bool cacheWorld = true,
-        Action<ArchiveCollection>? onBeforeInit = null, Config? config = null)
+        Action<ArchiveCollection>? onBeforeInit = null, Config? config = null, string? dehackedPatch = null)
     {
         if (disposeExistingWorld && UseExistingWorld(resourceZip, fileName, mapName, testKey, cacheWorld, out SinglePlayerWorld? existingWorld))
             return existingWorld;
@@ -57,6 +58,13 @@ internal static class WorldAllocator
         var audioSystem = new MockAudioSystem();
         ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), config, new DataCache());
         archiveCollection.Load([fileName], iwad: null, iwadTypeOverride: iwadType).Should().BeTrue();
+
+        if (dehackedPatch != null)
+        {
+            archiveCollection.Definitions.DehackedDefinition = new();
+            archiveCollection.Definitions.DehackedDefinition.Parse(dehackedPatch);
+            archiveCollection.ApplyDehackedPatch();
+        }
 
         var mapDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(mapName);
         var skillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skillLevel) ?? throw new Exception("Failed to load skill definition");

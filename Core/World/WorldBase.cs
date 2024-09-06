@@ -497,7 +497,7 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.OriginalExplosion = Config.Compatibility.OriginalExplosion;
         WorldStatic.FinalDoomTeleport = Config.Compatibility.FinalDoomTeleport;
         WorldStatic.VanillaSectorSound = Config.Compatibility.VanillaSectorSound;
-        WorldStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
+        WorldStatic.RespawnTicks = SkillDefinition.RespawnTime.Seconds * (int)Constants.TicksPerSecond;
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
 
