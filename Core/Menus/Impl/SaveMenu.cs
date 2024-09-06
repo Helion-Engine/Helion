@@ -321,7 +321,7 @@ public class SaveMenu : Menu
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string fileName = System.IO.Path.GetFileName(save.FileName);
-                return new MenuSaveRowComponent(displayName, string.Empty, save.IsAutoSave, CreateConsoleCommand($"load {fileName}"),
+                return new MenuSaveRowComponent(displayName, string.Empty, save.IsAutoSave, CreateConsoleCommand($"load \"{fileName}\""),
                     CreateDeleteCommand(save), save);
             });
     }
