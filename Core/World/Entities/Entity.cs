@@ -393,7 +393,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         if (Flags.CountKill && IsDeathStateFinished)
         {
-            if (WorldStatic.RespawnTimeSeconds == 0)
+            if (WorldStatic.RespawnTimeSeconds == 0 || Flags.NoRespawn)
                 return;
 
             MoveCount++;

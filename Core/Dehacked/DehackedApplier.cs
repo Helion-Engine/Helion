@@ -448,6 +448,11 @@ public class DehackedApplier
                 ClearEntityFlagsMbf21(ref definition.Flags);
                 SetEntityFlagsMbf21(properties, ref definition.Flags, thing.Mbf21Bits.Value, false);
             }
+            if (thing.Id24Bits.HasValue)
+            {
+                ClearEntityFlagsId24(ref definition.Flags);
+                SetEntityFlagsId24(ref definition.Flags, thing.Id24Bits.Value, false);
+            }
 
             if (thing.ID.HasValue)
                 composer.ChangeEntityEditorID(definition, thing.ID.Value);
@@ -868,6 +873,23 @@ public class DehackedApplier
         flags.Ripper = GetNewFlagValue(flags.Ripper, thingProperties.HasFlag(Mbf21ThingFlags.RIP), opAnd);
         flags.FullVolSee = GetNewFlagValue(flags.FullVolSee, thingProperties.HasFlag(Mbf21ThingFlags.FULLVOLSOUNDS), opAnd);
         flags.FullVolDeath = GetNewFlagValue(flags.FullVolDeath, thingProperties.HasFlag(Mbf21ThingFlags.FULLVOLSOUNDS), opAnd);
+    }
+
+    private static void ClearEntityFlagsId24(ref EntityFlags flags)
+    {
+        flags.NoRespawn = false;
+        flags.SpecialStaySingle = false;
+        flags.SpecialStayCooperative = false;
+        flags.SpecialStayCooperative = false;
+    }
+
+    public static void SetEntityFlagsId24(ref EntityFlags flags, uint value, bool opAnd)
+    {
+        Id24ThingFlags thingProperties = (Id24ThingFlags)value;
+        flags.NoRespawn = GetNewFlagValue(flags.NoRespawn, thingProperties.HasFlag(Id24ThingFlags.NORESPAWN), opAnd);
+        flags.SpecialStaySingle = GetNewFlagValue(flags.NoRespawn, thingProperties.HasFlag(Id24ThingFlags.SPECIALSTAYSSINGLE), opAnd);
+        flags.SpecialStayCooperative = GetNewFlagValue(flags.SpecialStayCooperative, thingProperties.HasFlag(Id24ThingFlags.SPECIALSTAYSCOOP), opAnd);
+        flags.SpecialStayDeathmatch = GetNewFlagValue(flags.SpecialStayDeathmatch, thingProperties.HasFlag(Id24ThingFlags.SPECIALSTAYSDM), opAnd);
     }
 
     private static bool GetNewFlagValue(bool existingFlag, bool newFlag, bool opAnd)

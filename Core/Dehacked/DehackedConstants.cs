@@ -563,6 +563,15 @@ public partial class DehackedDefinition
         SKILL5FAST = 0x001,   // Tics halve on nightmare skill (demon)
     }
 
+    [Flags]
+    public enum Id24ThingFlags : uint
+    {
+        NORESPAWN = 0x00000001,
+        SPECIALSTAYSSINGLE = 0x00000002,
+        SPECIALSTAYSCOOP = 0x00000004,
+        SPECIALSTAYSDM = 0x00000004
+    }
+
     public readonly IReadOnlyDictionary<string, uint> ThingPropertyStrings = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase)
     {
         { "SPECIAL", 0x00000001 },

@@ -964,6 +964,13 @@ public class Player : Entity
     private double CalculateBob(double bobAmount) => 
         Math.Min(16, ((Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y)) / 4) * bobAmount;
 
+    public bool OwnsItem(EntityDefinition definition)
+    {
+        if (IsWeapon(definition))
+            return Inventory.Weapons.OwnsWeapon(definition);
+        return Inventory.HasItem(definition);
+    }
+
     public bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
     {
         if (IsDead)

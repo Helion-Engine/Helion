@@ -54,6 +54,7 @@ public interface IWorld : IDisposable
     event EventHandler? OnTick;
     event EventHandler? OnDestroying;
 
+    WorldType WorldType { get; }
     int Id { get; }
     string MapName { get; }
     // Increments every tick unless the game is paused.

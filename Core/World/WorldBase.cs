@@ -93,6 +93,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler? OnDestroying;
         
     private static int StaticId;
+    public virtual WorldType WorldType => WorldType.SinglePlayer;
     public int Id { get; } = StaticId++;
 
     public readonly long CreationTimeNanos;
@@ -1638,7 +1639,6 @@ public abstract partial class WorldBase : IWorld
 
         if (ArchiveCollection.Definitions.DehackedDefinition != null && GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item, out var vanillaDef))
         {
-            var saveFlags = flags;
             definition = vanillaDef;
             flags = GetCombinedPickupFlags(vanillaDef.Flags, flags);
         }
@@ -1653,7 +1653,12 @@ public abstract partial class WorldBase : IWorld
     {
         // Need to carry over flags that are modified by the world and affect pickups
         if (flags.HasValue)
+        {
             dehackedFlags.Dropped = flags.Value.Dropped;
+            dehackedFlags.SpecialStaySingle = flags.Value.SpecialStaySingle;
+            dehackedFlags.SpecialStayCooperative = flags.Value.SpecialStayCooperative;
+            dehackedFlags.SpecialStayDeathmatch = flags.Value.SpecialStayDeathmatch;
+        }
 
         return dehackedFlags;
     }
@@ -1677,6 +1682,10 @@ public abstract partial class WorldBase : IWorld
         if (entity.PlayerObj == null)
             return;
 
+        bool shouldStay = ShouldItemStay(item);
+        if (shouldStay && entity.PlayerObj.OwnsItem(item.Definition))
+            return;
+
         int health = entity.PlayerObj.Health;
         if (!GiveItem(entity.PlayerObj, item, item.Flags, out EntityDefinition definition))
             return;
@@ -1686,7 +1695,19 @@ public abstract partial class WorldBase : IWorld
 
         if (entity.PlayerObj != null)
             PlayerPickedUpItem(entity.PlayerObj, item, health, definition);
-        EntityManager.Destroy(item);
+
+        if (!shouldStay)
+            EntityManager.Destroy(item);
+    }
+
+    private bool ShouldItemStay(Entity item)
+    {
+        return WorldType switch
+        {
+            WorldType.Cooperative => item.Flags.SpecialStayCooperative,
+            WorldType.Deathmatch => item.Flags.SpecialStayDeathmatch,
+            _ => item.Flags.SpecialStaySingle,
+        };
     }
 
     private void PlayerPickedUpItem(Player player, Entity item, int previousHealth, EntityDefinition definition)
