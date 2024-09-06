@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Helion.Models;
+using Helion.Util.Container;
 using Helion.Util.Loggers;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Players;
-using NLog;
 
 namespace Helion.World.Entities.Inventories;
 
@@ -19,9 +17,10 @@ public sealed class Weapons
     private const int MinSlot = 1;
     private const int MaxSlot = 7;
     private static readonly WeaponSlot DefaultSlot = new(-1, -1);
-    private readonly Dictionary<int, WeaponSlot> m_weaponSlotLookup = new();
-    private readonly List<string> m_weaponNames = new();
-    private readonly List<Weapon> m_ownedWeapons = new();
+    private readonly Dictionary<int, WeaponSlot> m_weaponSlotLookup = [];
+    private readonly List<string> m_weaponNames = [];
+    private readonly List<Weapon> m_ownedWeapons = [];
+    private readonly LookupArray<Weapon?> m_ownedWeaponsById = new();
     private readonly Comparison<Weapon> m_weaponSelectionOrderCompare = new(WeaponSelectionOrderCompare);
 
     public event EventHandler? WeaponsCleared;
@@ -59,7 +58,7 @@ public sealed class Weapons
 
     public List<string> GetOwnedWeaponNames()
     {
-        List<string> weapons = new();
+        List<string> weapons = [];
         foreach (var weapon in m_ownedWeapons)
             weapons.Add(weapon.Definition.Name);
         return weapons;
@@ -151,6 +150,7 @@ public sealed class Weapons
         var (slot, subSlot) = GetWeaponSlot(definition);
 
         var weapon = new Weapon(definition, owner, entityManager, frameStateModel, flashStateModel);
+        m_ownedWeaponsById.Set(definition.Id, weapon);
         m_ownedWeapons.Add(weapon);
         m_ownedWeapons.Sort(m_weaponSelectionOrderCompare);
         return weapon;
@@ -164,6 +164,7 @@ public sealed class Weapons
             if (!weapon.Definition.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                 continue;
             m_ownedWeapons.RemoveAt(i);
+            m_ownedWeaponsById.Set(weapon.Definition.Id, null);
             WeaponRemoved?.Invoke(this, weapon);
             break;
         }
@@ -172,6 +173,7 @@ public sealed class Weapons
     public void Clear()
     {
         m_ownedWeapons.Clear();
+        m_ownedWeaponsById.SetAll(null);
         WeaponsCleared?.Invoke(this, EventArgs.Empty);
     }
 
@@ -237,12 +239,7 @@ public sealed class Weapons
 
     public bool OwnsWeapon(EntityDefinition def)
     {
-        for (int i = 0; i < m_ownedWeapons.Count; i++)
-        {
-            if (m_ownedWeapons[i].Definition.Id == def.Id)
-                return true;
-        }
-        return false;
+        return m_ownedWeaponsById.TryGetValue(def.Id, out _);
     }
 
     public bool OwnsWeapon(string name) => GetWeapon(name) != null;

@@ -1683,7 +1683,7 @@ public abstract partial class WorldBase : IWorld
             return;
 
         bool shouldStay = ShouldItemStay(item);
-        if (shouldStay && entity.PlayerObj.OwnsItem(item.Definition))
+        if (shouldStay && entity.PlayerObj.HasItemOrWeapon(item.Definition))
             return;
 
         int health = entity.PlayerObj.Health;

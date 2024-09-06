@@ -65,6 +65,7 @@ public static class InventoryUtil
         def.Should().NotBeNull();
         player.Inventory.HasItem(name).Should().BeFalse();
         player.Inventory.HasItem(def).Should().BeFalse();
+        player.HasItemOrWeapon(def).Should().BeFalse();
     }
 
     public static void AssertAmount(Player player, string name, int amount)
