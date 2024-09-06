@@ -44,7 +44,7 @@ Dropped item = 26
 Pickup ammo type = 27
 Pickup ammo category = 28
 Pickup weapon type = 29
-Pickup item type = 30
+Pickup item type = 1
 Pickup bonus count = 31
 Pickup sound = 32
 Pickup message = SPECIAL_MESSAGE
@@ -91,7 +91,7 @@ Self damage factor = 98304";
         thing.PickupAmmoType.Should().Be(27);
         thing.PickupAmmoCategory.Should().Be(28);
         thing.PickupWeaponType.Should().Be(29);
-        thing.PickupItemType.Should().Be(30);
+        thing.PickupItemType.Should().Be(Id24PickupType.BlueKeyCard);
         thing.PickupBonusCount.Should().Be(31);
         thing.PickupSound.Should().Be(32);
         thing.PickupMessage.Should().Be("SPECIAL_MESSAGE");

@@ -18,7 +18,8 @@ public class Pickups
 
     public Pickups()
     {
-        World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2,
+            dehackedPatch: Dehacked);
     }
 
     private void WorldInit(IWorld world)
@@ -89,4 +90,30 @@ public class Pickups
         Player.Health.Should().Be(100);
         medikit.IsDisposed.Should().BeFalse();
     }
+
+    [Fact(DisplayName = "Pickup bonus count")]
+    public void PickupBonusCount()
+    {
+        var item = GameActions.CreateEntity(World, "*deh/entity42068", ItemPos);
+        item.Definition.Properties.Inventory.MessageOnly.Should().BeTrue();
+        item.Definition.Properties.Inventory.PickupBonusCount.Should().Be(20);
+        World.PerformItemPickup(Player, item);
+        Player.BonusCount.Should().Be(20);
+    }
+
+    [Fact(DisplayName = "Pickup sound")]
+    public void PickupSound()
+    {
+        var item = GameActions.CreateEntity(World, "*deh/entity42068", ItemPos);
+        item.Definition.Properties.Inventory.PickupSound.Should().Be("weapons/pistol");
+        World.PerformItemPickup(Player, item);
+        GameActions.AssertSound(World, Player, "dspistol");
+    }
+
+    private static readonly string Dehacked =
+@"Thing 42069 (PickupThing)
+Bits = SPECIAL
+Pickup item type = 0
+Pickup bonus count = 20
+Pickup sound = 1";
 }

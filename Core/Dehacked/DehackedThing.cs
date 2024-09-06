@@ -42,7 +42,7 @@ public class DehackedThing
     public int? PickupAmmoType { get; set; }
     public int? PickupAmmoCategory { get; set; }
     public int? PickupWeaponType { get; set; }
-    public int? PickupItemType { get; set; }
+    public Id24PickupType? PickupItemType { get; set; }
     public int? PickupBonusCount { get; set; }
     public int? PickupSound { get; set; }
     public string? PickupMessage { get; set; }

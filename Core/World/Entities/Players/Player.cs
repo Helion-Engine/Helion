@@ -977,17 +977,16 @@ public class Player : Entity
         if (IsDead)
             return false;
 
-        bool success = GiveWeapon(definition, flags);
+        bool success = definition.Properties.Inventory.NoItem || definition.Properties.Inventory.MessageOnly;
+        if (!success)
+            success = GiveWeapon(definition, flags);
         if (!success)
             success = GiveItemBase(definition, flags);
 
         if (success && pickupFlash)
-        {
-            BonusCount = 6;
-            return true;
-        }
+            BonusCount = definition.Properties.Inventory.PickupBonusCount;
 
-        return false;
+        return success;
     }
 
     private bool GiveItemBase(EntityDefinition definition, EntityFlags? flags, bool autoSwitchWeapon = true, int amount = -1)

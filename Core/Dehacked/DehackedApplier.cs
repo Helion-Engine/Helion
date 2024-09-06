@@ -528,7 +528,21 @@ public class DehackedApplier
             properties.RespawnTicks = thing.MinRespawnTicks;
             if (thing.RespawnDice.HasValue)
                 properties.RespawnDice = thing.RespawnDice.Value;
+            if (thing.PickupBonusCount.HasValue)
+                properties.Inventory.PickupBonusCount = thing.PickupBonusCount.Value;
+            if (thing.PickupItemType.HasValue)
+                SetPickupItemType(properties, thing.PickupItemType.Value);
+            if (thing.PickupSound.HasValue)
+                properties.Inventory.PickupSound = GetSound(dehacked, thing.PickupSound.Value);
         }
+    }
+
+    private static void SetPickupItemType(EntityProperties properties, Id24PickupType pickupItemType)
+    {
+        if (pickupItemType == Id24PickupType.NoItem)
+            properties.Inventory.NoItem = true;
+        if (pickupItemType == Id24PickupType.MessageOnly)
+            properties.Inventory.MessageOnly = true;
     }
 
     private static void SetDroppedItem(int thingNumber, DehackedDefinition dehacked, EntityDefinition definition)

@@ -320,7 +320,7 @@ public partial class DehackedDefinition
             else if (line.StartsWith(PickupWeaponType, StringComparison.OrdinalIgnoreCase))
                 thing.PickupWeaponType = GetIntProperty(parser, PickupWeaponType);
             else if (line.StartsWith(PickupItemType, StringComparison.OrdinalIgnoreCase))
-                thing.PickupItemType = GetIntProperty(parser, PickupItemType);
+                thing.PickupItemType = (Id24PickupType?)GetIntProperty(parser, PickupItemType);
             else if (line.StartsWith(PickupBonusCount, StringComparison.OrdinalIgnoreCase))
                 thing.PickupBonusCount = GetIntProperty(parser, PickupBonusCount);
             else if (line.StartsWith(PickupSound, StringComparison.OrdinalIgnoreCase))

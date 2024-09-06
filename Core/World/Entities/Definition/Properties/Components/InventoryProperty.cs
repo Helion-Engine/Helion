@@ -19,4 +19,7 @@ public class InventoryProperty
     public int RespawnTics;
     public IList<string> RestrictedTo = Array.Empty<string>();
     public string UseSound = string.Empty;
+    public int PickupBonusCount = 6;
+    public bool MessageOnly = false;
+    public bool NoItem = false;
 }
