@@ -7,7 +7,7 @@
   - Status bar texture picker dialog
   - Added automap marker functionality to key binding options
   - "Melt" screen wipe added
-  - Minor improvements to Save/Load dialog (user can name saved games)
+  - Improvements to Save/Load dialog: User can name saved games, pagination added
 
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
