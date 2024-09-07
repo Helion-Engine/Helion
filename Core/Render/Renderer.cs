@@ -551,7 +551,7 @@ public partial class Renderer : IDisposable
             offset += 3;
         }
 
-        var image = new Image(argb, Window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
+        var image = new Image(argb, (w, h), ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
         return image;
     }
 
