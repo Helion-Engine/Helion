@@ -144,4 +144,18 @@ public abstract class Menu
             }
         }
     }
+
+    protected void SetToLastActiveComponent()
+    {
+        ComponentIndex = null;
+
+        for (int i = Components.Count - 1; i >= 0; i--)
+        {
+            if (Components[i].HasAction)
+            {
+                ComponentIndex = i;
+                return;
+            }
+        }
+    }
 }
