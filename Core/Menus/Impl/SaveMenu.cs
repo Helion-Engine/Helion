@@ -153,6 +153,7 @@ public class SaveMenu : Menu
 
         if (m_isSave && !m_canSave)
         {
+            newComponents.Add(new MenuPaddingComponent(8));
             string[] text = ArchiveCollection.Definitions.Language.GetMessages("$SAVEDEAD");
             for (int i = 0; i < text.Length; i++)
             {
