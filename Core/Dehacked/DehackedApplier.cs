@@ -536,6 +536,8 @@ public class DehackedApplier
                 properties.Inventory.PickupSound = GetSound(dehacked, thing.PickupSound.Value);
             if (!string.IsNullOrEmpty(thing.PickupMessage))
                 properties.Inventory.PickupMessage = GetDehackedMessageLookup(thing.PickupMessage, true);
+            if (thing.SelfDamageFactor.HasValue)
+                properties.SelfDamageFactor = thing.SelfDamageFactor.Value;
         }
     }
 

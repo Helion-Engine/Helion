@@ -1553,6 +1553,9 @@ public abstract partial class WorldBase : IWorld
     public virtual bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType,
         Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null)
     {
+        if (source != null && source.Owner.Entity == target)
+            damage = (int)(damage * source.Properties.SelfDamageFactor);
+
         if (!target.Flags.Shootable || damage == 0 || target.IsDead)
             return false;
 
