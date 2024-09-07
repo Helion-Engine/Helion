@@ -97,7 +97,7 @@ public class SaveMenu : Menu
 
     private List<IMenuComponent> GetPaginationFooter() => [
         new MenuPaddingComponent(5),
-        new MenuSmallTextComponent($"Page {m_currentPage} / {GetPageCount()}")
+        new MenuSmallTextComponent($"<- Page {m_currentPage}/{GetPageCount()} ->")
     ];
 
     /// <summary>
