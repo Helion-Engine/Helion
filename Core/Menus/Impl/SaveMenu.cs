@@ -243,7 +243,8 @@ public class SaveMenu : Menu
                     ConsumeAndHandlePageChange(input);
                 }
             }
-            else if (!m_isSave)
+            // load screen
+            else
             {
                 if (input.ConsumeKeyPressed(Key.Enter)) // Load
                     savedGameRow.Action?.Invoke();
