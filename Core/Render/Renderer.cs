@@ -538,37 +538,38 @@ public partial class Renderer : IDisposable
 
     public Image GetMainFramebufferData()
     {
-        var (w, h, rgb) = GetMainFramebufferDataRaw();
+        var (w, h, rgba) = GetMainFramebufferDataRaw();
         int pixelCount = w * h;
         uint[] argb = new uint[pixelCount];
         int offset = 0;
         for (int i = 0; i < pixelCount; i++)
         {
-            uint r = rgb[offset];
-            uint g = rgb[offset + 1];
-            uint b = rgb[offset + 2];
+            uint r = rgba[offset];
+            uint g = rgba[offset + 1];
+            uint b = rgba[offset + 2];
+            // ignore the original alpha channel
             argb[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
-            offset += 3;
+            offset += 4;
         }
 
-        var image = new Image(argb, Window.Dimension, ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
+        var image = new Image(argb, (w, h), ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
         return image;
     }
 
-    private unsafe (int width, int height, byte[] rgb) GetMainFramebufferDataRaw()
+    private unsafe (int width, int height, byte[] rgba) GetMainFramebufferDataRaw()
     {
+        GL.Finish();
         (int w, int h) = m_mainFramebuffer.Dimension;
-        int pixelCount = m_mainFramebuffer.Dimension.Area;
-        byte[] rgb = new byte[pixelCount * 3];
+        byte[] rgba = new byte[w * h * 4];
 
         m_mainFramebuffer.BindRead();
-        fixed (byte* rgbPtr = rgb)
+        fixed (byte* rgbPtr = rgba)
         {
             IntPtr ptr = new(rgbPtr);
-            GL.ReadPixels(0, 0, w, h, PixelFormat.Rgb, PixelType.UnsignedByte, ptr);
+            GL.ReadPixels(0, 0, w, h, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
         }
 
-        return (w, h, rgb);
+        return (w, h, rgba);
     }
 
     private void HandleClearCommand(ClearRenderCommand clearRenderCommand)

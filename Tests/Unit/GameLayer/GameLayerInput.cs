@@ -38,7 +38,7 @@ public class GameLayerInput
         InputManager = new InputManager();
         MockWindow window = new(InputManager);
         HelionConsole console = new(new DataCache(), World.Config);
-        SaveGameManager saveGameManager = new(World.Config, null);
+        SaveGameManager saveGameManager = new(World.Config, World.ArchiveCollection, null);
         GameLayerManager = new(World.Config, window, console, new(), World.ArchiveCollection, World.SoundManager, saveGameManager, new());
 
         WorldLayer = new(GameLayerManager, World.Config, console, new(), World, World.MapInfo, new());

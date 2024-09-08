@@ -61,7 +61,7 @@ public partial class Client
 
             if (m_commandLineArgs.LoadGame != null)
             {
-                ConsoleCommandEventArgs args = new($"load {m_commandLineArgs.LoadGame}");
+                ConsoleCommandEventArgs args = new($"load \"{m_commandLineArgs.LoadGame}\"");
                 await CommandLoadGame(args);
             }
             else
