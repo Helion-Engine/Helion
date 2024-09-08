@@ -58,7 +58,7 @@ public class SaveMenu : Menu
         m_canSave = hasWorld;
         m_isSave = isSave;
 
-        m_saveGames = saveManager.GetMatchingSaveGames(saveManager.GetSaveGames(), archiveCollection).ToList();
+        m_saveGames = saveManager.GetMatchingSaveGames(saveManager.GetSaveGames()).ToList();
         UpdateMenuComponents(setTop: true);
     }
 

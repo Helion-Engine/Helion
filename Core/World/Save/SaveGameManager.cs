@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Helion.Models;
 using Helion.Resources.Archives.Collection;
-using Helion.Util.CommandLine;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.World.Util;
@@ -34,13 +33,15 @@ public class SaveGameManager
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly IConfig m_config;
+    private readonly ArchiveCollection m_archiveCollection;
     private readonly string? m_saveDirCommandLineArg;
 
     public event EventHandler<SaveGameEvent>? GameSaved;
 
-    public SaveGameManager(IConfig config, string? saveDirCommandLineArg)
+    public SaveGameManager(IConfig config, ArchiveCollection archiveCollection, string? saveDirCommandLineArg)
     {
         m_config = config;
+        m_archiveCollection = archiveCollection;
         m_saveDirCommandLineArg = saveDirCommandLineArg;
     }
 
@@ -85,6 +86,13 @@ public class SaveGameManager
 
     public SaveGameEvent WriteSaveGame(IWorld world, string title, SaveGame? existingSave, bool autoSave = false)
     {
+        if (existingSave == null && autoSave && m_config.Game.RotateAutoSaves.Value)
+        {
+            var autoSaves = GetSaveGames().Where(x => x.IsAutoSave);
+            var matchingSaves = GetMatchingSaveGames(autoSaves).OrderBy(x => x.Model?.Date);
+            if (matchingSaves.Any() && matchingSaves.Count() >= m_config.Game.MaxAutoSaves.Value)
+                existingSave = matchingSaves.First();
+        }
         string filename = existingSave?.FileName ?? GetNewSaveName(autoSave);
         var saveEvent = SaveGame.WriteSaveGame(world, title, GetSaveDir(), filename);
 
@@ -92,25 +100,24 @@ public class SaveGameManager
         return saveEvent;
     }
 
-    public List<SaveGame> GetSortedSaveGames(ArchiveCollection archiveCollection)
+    public List<SaveGame> GetSortedSaveGames()
     {
         var saveGames = GetSaveGames();
-        var matchingGames = GetMatchingSaveGames(saveGames, archiveCollection);
+        var matchingGames = GetMatchingSaveGames(saveGames);
         var nonMatchingGames = saveGames.Except(matchingGames);
         return matchingGames.Union(nonMatchingGames).ToList();
     }
 
-    public IEnumerable<SaveGame> GetMatchingSaveGames(IEnumerable<SaveGame> saveGames,
-        ArchiveCollection archiveCollection)
+    public IEnumerable<SaveGame> GetMatchingSaveGames(IEnumerable<SaveGame> saveGames)
     {
         return saveGames.Where(x => x.Model != null &&
-            ModelVerification.VerifyModelFiles(x.Model.Files, archiveCollection, null));
+            ModelVerification.VerifyModelFiles(x.Model.Files, m_archiveCollection, null));
     }
 
     public List<SaveGame> GetSaveGames()
     {
         return Directory.GetFiles(GetSaveDir(), "*.hsg")
-            .Select(f => new SaveGame(GetSaveDir(), f))
+            .Select(f => new SaveGame(GetSaveDir(), Path.GetFileName(f)))
             .OrderByDescending(f => f.Model?.Date)
             .ToList();
     }

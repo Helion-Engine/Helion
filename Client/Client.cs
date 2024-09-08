@@ -75,7 +75,7 @@ public partial class Client : IDisposable, IInputManagement
         m_console = console;
         m_audioSystem = audioSystem;
         m_archiveCollection = archiveCollection;
-        m_saveGameManager = new SaveGameManager(config, commandLineArgs.SaveDir);
+        m_saveGameManager = new SaveGameManager(config, m_archiveCollection, commandLineArgs.SaveDir);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
 
         if (commandLineArgs.GlVersion.HasValue)
