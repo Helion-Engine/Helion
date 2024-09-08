@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Helion.Dehacked;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
@@ -18,7 +20,7 @@ public class EntityDefinition
     public EntityFlags Flags;
     public readonly EntityProperties Properties;
     public readonly EntityStates States;
-    public readonly IList<string> ParentClassNames;
+    public readonly List<string> ParentClassNames;
     public readonly bool IsBulletPuff;
     public bool IsInventory;
     public int? SpawnState;
@@ -41,7 +43,7 @@ public class EntityDefinition
 
     private readonly HashSet<string> ParentClassLookup = new(StringComparer.OrdinalIgnoreCase);
 
-    public EntityDefinition(int id, string name, int? editorId, IList<string> parentClassNames)
+    public EntityDefinition(int id, string name, int? editorId, List<string> parentClassNames)
     {
         Precondition(!string.IsNullOrEmpty(name), "Cannot have an entity definition with an empty name");
 
@@ -67,4 +69,19 @@ public class EntityDefinition
     public bool IsType(string className) => ParentClassLookup.Contains(className);
 
     public override string ToString() => $"{(string.IsNullOrEmpty(DehackedName) ? Name : DehackedName)} (id = {Id}, editorId = {EditorId})";
+
+    public void CloneAmmo(EntityDefinition definition)
+    {
+        ParentClassLookup.Clear();
+        ParentClassNames.Clear();
+
+        ParentClassNames.AddRange(definition.ParentClassNames);
+
+        foreach (var parentClass in definition.ParentClassNames)
+            ParentClassLookup.Add(parentClass);
+
+        Properties.Inventory.Amount = definition.Properties.Inventory.Amount;
+        Properties.Inventory.MaxAmount = definition.Properties.Inventory.MaxAmount;
+        Properties.Ammo = definition.Properties.Ammo;
+    }
 }

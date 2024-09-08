@@ -2021,11 +2021,12 @@ public abstract partial class WorldBase : IWorld
 
     private void CheckDropItem(Entity deathEntity)
     {
-        if (deathEntity.Definition.Properties.DropItem != null &&
-            (deathEntity.Definition.Properties.DropItem.Probability == DropItemProperty.DefaultProbability ||
-                m_random.NextByte() < deathEntity.Definition.Properties.DropItem.Probability))
+        ref var dropItemDef = ref deathEntity.Definition.Properties.DropItem;
+        if (dropItemDef != null &&
+            (dropItemDef.Value.Probability == DropItemProperty.DefaultProbability ||
+                m_random.NextByte() < dropItemDef.Value.Probability))
         {
-            for (int i = 0; i < deathEntity.Definition.Properties.DropItem.Amount; i++)
+            for (int i = 0; i < dropItemDef.Value.Amount; i++)
             {
                 bool spawnInit = true;
                 Vec3D pos = deathEntity.Position;
@@ -2038,7 +2039,7 @@ public abstract partial class WorldBase : IWorld
                     addVelocity = 4;
                 }
                 
-                Entity? dropItem = EntityManager.Create(deathEntity.Definition.Properties.DropItem.ClassName, pos, init: spawnInit);
+                Entity? dropItem = EntityManager.Create(dropItemDef.Value.ClassName, pos, init: spawnInit);
                 if (dropItem == null)
                     continue;
                 

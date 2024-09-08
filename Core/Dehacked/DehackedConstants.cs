@@ -1,4 +1,3 @@
-using Helion.Util;
 using System;
 using System.Collections.Generic;
 using static Helion.World.Entities.Definition.States.EntityActionFunctions;
@@ -18,24 +17,32 @@ public partial class DehackedDefinition
     public const int GreenArmorClassNum = 1;
     public const int BlueArmorClassNum = 2;
 
-    public readonly string[] AmmoNames = new string[]
-    {
+    public readonly string[] AmmoNames =
+    [
         "Clip",
         "Shell",
         "Cell",
         "RocketAmmo"
-    };
+    ];
 
-    public readonly string[] AmmoDoubleNames = new string[]
-    {
+    public readonly string[] AmmoDoubleNames =
+    [
         "ClipBox",
         "ShellBox",
         "CellPack",
         "RocketBox"
-    };
+    ];
 
-    public readonly string[] ActorNames = new string[]
-    {
+    public readonly string[] WeaponNames = 
+    [
+        "Pistol",
+        "Shotgun",
+        "PlasmaRifle",
+        "RocketLauncher"
+    ];
+
+    public readonly string[] ActorNames =
+    [
         "DoomPlayer",               // MT_PLAYER
 		"ZombieMan",				// MT_POSSESSED
 		"ShotgunGuy",				// MT_SHOTGUY
@@ -181,7 +188,7 @@ public partial class DehackedDefinition
         "EvilSceptre",              // MT_SCEPTRE
         "UnholyBible",              // MT_BIBLE
         "MusicChanger",             // MT_MUSICSOURCE
-    };
+    ];
 
     public Dictionary<string, string> PickupLookup = new(StringComparer.OrdinalIgnoreCase)
     {

@@ -22,4 +22,5 @@ public class InventoryProperty
     public int PickupBonusCount = 6;
     public bool MessageOnly = false;
     public bool NoItem = false;
+    public double AmountModifier = 1;
 }

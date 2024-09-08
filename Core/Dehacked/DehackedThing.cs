@@ -40,7 +40,7 @@ public class DehackedThing
     public int? MinRespawnTicks { get; set; }
     public int? RespawnDice { get; set; }
     public int? PickupAmmoType { get; set; }
-    public int? PickupAmmoCategory { get; set; }
+    public Id24AmmoCategory? PickupAmmoCategory { get; set; }
     public int? PickupWeaponType { get; set; }
     public Id24PickupType? PickupItemType { get; set; }
     public int? PickupBonusCount { get; set; }

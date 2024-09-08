@@ -1034,8 +1034,9 @@ public class Player : Entity
 
     private bool AddAmmo(EntityDefinition ammoDef, int amount, EntityFlags? flags, bool autoSwitchWeapon)
     {
+        var modifier = ammoDef.Properties.Inventory.AmountModifier;
         int oldCount = Inventory.Amount(Inventory.GetBaseInventoryName(ammoDef));
-        bool success = Inventory.Add(ammoDef, WorldStatic.World.SkillDefinition.GetAmmoAmount(amount, flags), flags);
+        bool success = Inventory.Add(ammoDef, WorldStatic.World.SkillDefinition.GetAmmoAmount(amount, modifier, flags), flags);
         if (success && autoSwitchWeapon)
             CheckAutoSwitchAmmo(ammoDef, oldCount);
         return success;

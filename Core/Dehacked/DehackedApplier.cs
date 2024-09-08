@@ -536,8 +536,65 @@ public class DehackedApplier
                 properties.Inventory.PickupSound = GetSound(dehacked, thing.PickupSound.Value);
             if (!string.IsNullOrEmpty(thing.PickupMessage))
                 properties.Inventory.PickupMessage = GetDehackedMessageLookup(thing.PickupMessage, true);
+            if (thing.PickupAmmoType.HasValue)
+                ApplyPickupAmmoType(thing, dehacked, composer, definition, thing.PickupAmmoType.Value, thing.PickupAmmoCategory ?? Id24AmmoCategory.Default);
             if (thing.SelfDamageFactor.HasValue)
                 properties.SelfDamageFactor = thing.SelfDamageFactor.Value;
+        }
+    }
+
+    private static void ApplyPickupAmmoType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, 
+        int type, Id24AmmoCategory category)
+    {
+        Id24AmmoCategory categoryFlags = (Id24AmmoCategory)((int)category & 0xC);
+        category = (Id24AmmoCategory)((int)category & ~(int)categoryFlags);
+
+        if ((int)categoryFlags == -1)
+        {
+            definition.Properties.Inventory.NoItem = true;
+            return;
+        }
+
+        var ammoLookup = category == Id24AmmoCategory.Default ? dehacked.AmmoNames : dehacked.AmmoDoubleNames;
+        if (type < 0 || type >= ammoLookup.Length)
+        {
+            Log.Warn("Invalid ammo type {type} for {number} {name}", type, thing.Number, thing.Name);
+            return;
+        }
+
+        var ammoDef = composer.GetByName(ammoLookup[type]);
+        if (ammoDef == null)
+            return;
+
+        definition.CloneAmmo(ammoDef);
+
+        if (category == Id24AmmoCategory.Weapon)
+        {
+            var weaponDef = composer.GetByName(dehacked.WeaponNames[type]);
+            if (weaponDef == null)
+                return;
+
+            definition.Properties.Inventory.Amount = weaponDef.Properties.Weapons.AmmoGive;
+        }
+        else if (category == Id24AmmoCategory.Backpack)
+        {
+            definition.Properties.Inventory.Amount = definition.Properties.Ammo.BackpackAmount;
+        }
+
+        switch (categoryFlags)
+        {
+            case Id24AmmoCategory.Default:
+                definition.Properties.Inventory.AmountModifier = 1;
+                break;
+            case Id24AmmoCategory.Dropped:
+                definition.Properties.Inventory.AmountModifier = 0.5;
+                break;
+            case Id24AmmoCategory.Deathmatch:
+                definition.Properties.Inventory.AmountModifier = 2.5;
+                break;
+            default:
+                definition.Properties.Inventory.NoItem = true;
+                break;
         }
     }
 
@@ -636,7 +693,7 @@ public class DehackedApplier
             return def.Name;
 
         string newName = GetDehackedActorName(index);
-        EntityDefinition definition = new(composer.GetNextId(), newName, 0, Array.Empty<string>());
+        EntityDefinition definition = new(composer.GetNextId(), newName, 0, []);
         definition.DehackedName = thing.Name;
         composer.Add(definition);
         m_dehacked.NewThingLookup.Set(index, definition);
