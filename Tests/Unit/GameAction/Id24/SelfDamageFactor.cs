@@ -1,8 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
-using Helion.World;
-using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
@@ -20,7 +18,7 @@ public class SelfDamageFactor
     public SelfDamageFactor()
     {
         World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, (World) => { }, IWadType.Doom2,
-            dehackedPatch: Dehacked);
+            dehackedPatch: Dehacked, cacheWorld: false);
     }
 
     [Fact(DisplayName = "Damage self with self default damage factor")]

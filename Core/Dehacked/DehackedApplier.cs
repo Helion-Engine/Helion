@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Helion.World.Entities.Definition.Properties.Components;
 using static Helion.Dehacked.DehackedDefinition;
+using System.Collections;
 
 namespace Helion.Dehacked;
 
@@ -531,7 +532,7 @@ public class DehackedApplier
             if (thing.PickupBonusCount.HasValue)
                 properties.Inventory.PickupBonusCount = thing.PickupBonusCount.Value;
             if (thing.PickupItemType.HasValue)
-                SetPickupItemType(properties, thing.PickupItemType.Value);
+                SetPickupItemType(thing, dehacked, composer, definition, thing.PickupItemType.Value);
             if (thing.PickupSound.HasValue)
                 properties.Inventory.PickupSound = GetSound(dehacked, thing.PickupSound.Value);
             if (!string.IsNullOrEmpty(thing.PickupMessage))
@@ -566,7 +567,10 @@ public class DehackedApplier
         if (ammoDef == null)
             return;
 
-        definition.CloneAmmo(ammoDef);
+        definition.CloneClassNames(ammoDef);
+        definition.Properties.Inventory.Amount = ammoDef.Properties.Inventory.Amount;
+        definition.Properties.Inventory.MaxAmount = ammoDef.Properties.Inventory.MaxAmount;
+        definition.Properties.Ammo = ammoDef.Properties.Ammo;
 
         if (category == Id24AmmoCategory.Weapon)
         {
@@ -598,12 +602,38 @@ public class DehackedApplier
         }
     }
 
-    private static void SetPickupItemType(EntityProperties properties, Id24PickupType pickupItemType)
+    private static void SetPickupItemType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, Id24PickupType pickupItemType)
     {
         if (pickupItemType == Id24PickupType.NoItem)
-            properties.Inventory.NoItem = true;
+        {
+            definition.Properties.Inventory.NoItem = true;
+            return;
+        }
+
         if (pickupItemType == Id24PickupType.MessageOnly)
-            properties.Inventory.MessageOnly = true;
+        {
+            definition.Properties.Inventory.MessageOnly = true;
+            return;
+        }
+
+        int index = (int)pickupItemType;
+        if (index < 0 || index >= dehacked.Id24PickupLookup.Length)
+        {
+            Log.Warn("Invalid item pickup type {type} for {number} {name}", index, thing.Number, thing.Name);
+            return;
+        }
+
+        var itemDef = composer.GetByName(dehacked.Id24PickupLookup[index]);
+        if (itemDef == null)
+            return;
+
+        definition.CloneClassNames(itemDef);
+        definition.IsInventory = true;
+        definition.Properties.TranslatedPickup = itemDef;
+        definition.Properties.TranslatedPickupDisplay = definition;
+
+        if (itemDef.States.Labels.TryGetValue("Pickup", out var frameIndex))
+            definition.States.Labels["Pickup"] = frameIndex;
     }
 
     private static void SetDroppedItem(int thingNumber, DehackedDefinition dehacked, EntityDefinition definition)

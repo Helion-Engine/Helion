@@ -42,7 +42,7 @@ Min respawn tics = 24
 Respawn dice = 25
 Dropped item = 26
 Pickup ammo type = 27
-Pickup ammo category = 28
+Pickup ammo category = 1
 Pickup weapon type = 29
 Pickup item type = 1
 Pickup bonus count = 31
@@ -89,7 +89,7 @@ Self damage factor = 98304";
         thing.RespawnDice.Should().Be(25);
         thing.DroppedItem.Should().Be(26);
         thing.PickupAmmoType.Should().Be(27);
-        thing.PickupAmmoCategory.Should().Be(28);
+        thing.PickupAmmoCategory.Should().Be(Id24AmmoCategory.Box);
         thing.PickupWeaponType.Should().Be(29);
         thing.PickupItemType.Should().Be(Id24PickupType.BlueKeyCard);
         thing.PickupBonusCount.Should().Be(31);

@@ -230,6 +230,32 @@ public partial class DehackedDefinition
         { "SGN2", "SuperShotgun" },
     };
 
+    public readonly string[] Id24PickupLookup =
+    [
+        "",
+        "BlueCard",
+        "YellowCard",
+        "RedCard",
+        "BlueSkull",
+        "YellowSkull",
+        "RedSkull",
+        "Backpack",
+        "HealthBonus",
+        "Stimpack",
+        "Medikit",
+        "Soulsphere",
+        "Megasphere",
+        "ArmorBonus",
+        "GreenArmor",
+        "BlueArmor",
+        "Allmap",
+        "Infrared",
+        "Berserk",
+        "BlurSphere",
+        "RadSuit",
+        "InvulnerabilitySphere",
+    ];
+
     public readonly HashSet<string> SpriteNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "TROO",

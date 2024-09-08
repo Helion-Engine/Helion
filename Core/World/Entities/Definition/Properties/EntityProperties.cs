@@ -58,6 +58,8 @@ public class EntityProperties
     public int? RespawnTicks;
     public int RespawnDice = 4;
     public double SelfDamageFactor = 1;
+    public EntityDefinition? TranslatedPickup;
+    public EntityDefinition? TranslatedPickupDisplay;
 
     public double MonsterMovementSpeed;
     public double MissileMovementSpeed;

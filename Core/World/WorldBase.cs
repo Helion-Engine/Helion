@@ -1638,18 +1638,26 @@ public abstract partial class WorldBase : IWorld
 
     public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true)
     {
+        var pickupDef = item.Definition;
         definition = item.Definition;
 
         if (ArchiveCollection.Definitions.DehackedDefinition != null && GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item, out var vanillaDef))
         {
             definition = vanillaDef;
+            pickupDef = vanillaDef;
             flags = GetCombinedPickupFlags(vanillaDef.Flags, flags);
+        }
+        else if (item.Definition.Properties.TranslatedPickup != null)
+        {
+            pickupDef = item.Definition.Properties.TranslatedPickup;
+            definition = item.Definition.Properties.TranslatedPickupDisplay ?? item.Definition;
+            flags = GetCombinedPickupFlags(pickupDef.Flags, flags);
         }
 
         if (player.IsVooDooDoll)
             return GiveVooDooItem(player, item, flags, pickupFlash);
 
-        return player.GiveItem(definition, flags, pickupFlash);
+        return player.GiveItem(pickupDef, flags, pickupFlash);
     }
 
     private static EntityFlags GetCombinedPickupFlags(EntityFlags dehackedFlags, EntityFlags? flags)
