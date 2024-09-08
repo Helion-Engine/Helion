@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Helion.Maps.Specials;
 using Helion.World.Entities.Definition.Properties.Components;
 
@@ -58,7 +59,7 @@ public class EntityProperties
     public int? RespawnTicks;
     public int RespawnDice = 4;
     public double SelfDamageFactor = 1;
-    public EntityDefinition? TranslatedPickup;
+    public List<EntityDefinition>? TranslatedPickups;
     public EntityDefinition? TranslatedPickupDisplay;
 
     public double MonsterMovementSpeed;
@@ -66,5 +67,11 @@ public class EntityProperties
 
     public EntityProperties()
     {
+    }
+
+    public void AddTranslatedPickup(EntityDefinition definition)
+    {
+        TranslatedPickups ??= [];
+        TranslatedPickups.Add(definition);
     }
 }

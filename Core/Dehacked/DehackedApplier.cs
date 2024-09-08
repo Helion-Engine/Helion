@@ -533,6 +533,8 @@ public class DehackedApplier
                 properties.Inventory.PickupBonusCount = thing.PickupBonusCount.Value;
             if (thing.PickupItemType.HasValue)
                 SetPickupItemType(thing, dehacked, composer, definition, thing.PickupItemType.Value);
+            if (thing.PickupWeaponType.HasValue)
+                SetWeaponType(thing, dehacked, composer, definition, thing.PickupWeaponType.Value);
             if (thing.PickupSound.HasValue)
                 properties.Inventory.PickupSound = GetSound(dehacked, thing.PickupSound.Value);
             if (!string.IsNullOrEmpty(thing.PickupMessage))
@@ -627,15 +629,24 @@ public class DehackedApplier
         if (itemDef == null)
             return;
 
-        definition.CloneClassNames(itemDef);
-        definition.IsInventory = true;
-        definition.Properties.TranslatedPickup = itemDef;
-        definition.Properties.TranslatedPickupDisplay = definition;
-
-        if (itemDef.States.Labels.TryGetValue("Pickup", out var frameIndex))
-            definition.States.Labels["Pickup"] = frameIndex;
+        definition.Properties.AddTranslatedPickup(itemDef);
     }
 
+    private static void SetWeaponType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, int weaponType)
+    {
+        if (weaponType < 0 || weaponType >= dehacked.WeaponNamesById.Length)
+        {
+            Log.Warn("Invalid weapon pickup type {type} for {number} {name}", weaponType, thing.Number, thing.Name);
+            return;
+        }
+
+        var weaponDef = composer.GetByName(dehacked.WeaponNamesById[weaponType]);
+        if (weaponDef == null)
+            return;
+
+        definition.Properties.AddTranslatedPickup(weaponDef);
+    }
+    
     private static void SetDroppedItem(int thingNumber, DehackedDefinition dehacked, EntityDefinition definition)
     {
         if (dehacked.GetEntityDefinitionName(thingNumber, out var droppedName))

@@ -1638,24 +1638,34 @@ public abstract partial class WorldBase : IWorld
 
     public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true)
     {
-        var pickupDef = item.Definition;
-        definition = item.Definition;
-
         if (ArchiveCollection.Definitions.DehackedDefinition != null && GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item, out var vanillaDef))
         {
             definition = vanillaDef;
-            pickupDef = vanillaDef;
             flags = GetCombinedPickupFlags(vanillaDef.Flags, flags);
+            return GiveItemInternal(player, vanillaDef, flags, pickupFlash);
         }
-        else if (item.Definition.Properties.TranslatedPickup != null)
+        else if (item.Definition.Properties.TranslatedPickups != null)
         {
-            pickupDef = item.Definition.Properties.TranslatedPickup;
+            bool success = false;
             definition = item.Definition.Properties.TranslatedPickupDisplay ?? item.Definition;
-            flags = GetCombinedPickupFlags(pickupDef.Flags, flags);
+            foreach (var pickupDef in item.Definition.Properties.TranslatedPickups)
+            {
+                var pickupFlags = GetCombinedPickupFlags(pickupDef.Flags, flags);
+                if (GiveItemInternal(player, pickupDef, pickupFlags, pickupFlash))
+                    success = true;
+            }
+
+            return success;
         }
 
+        definition = item.Definition;
+        return GiveItemInternal(player, definition, flags, pickupFlash);
+    }
+
+    private bool GiveItemInternal(Player player, EntityDefinition pickupDef, EntityFlags? flags, bool pickupFlash)
+    {
         if (player.IsVooDooDoll)
-            return GiveVooDooItem(player, item, flags, pickupFlash);
+            return GiveVooDooItem(player, pickupDef, flags, pickupFlash);
 
         return player.GiveItem(pickupDef, flags, pickupFlash);
     }
@@ -2999,13 +3009,13 @@ public abstract partial class WorldBase : IWorld
         CompleteVooDooDollSync();
     }
 
-    private bool GiveVooDooItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash)
+    private bool GiveVooDooItem(Player player, EntityDefinition pickupDef, EntityFlags? flags, bool pickupFlash)
     {
         Player? updatePlayer = EntityManager.GetRealPlayer(player.PlayerNumber);
         if (updatePlayer == null)
             return false;
 
-        bool success = updatePlayer.GiveItem(item.Definition, flags, pickupFlash);
+        bool success = updatePlayer.GiveItem(pickupDef, flags, pickupFlash);
         if (!success)
             return false;
 
