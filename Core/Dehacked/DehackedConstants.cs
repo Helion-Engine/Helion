@@ -1,3 +1,4 @@
+using Helion.World.Entities.Inventories;
 using System;
 using System.Collections.Generic;
 using static Helion.World.Entities.Definition.States.EntityActionFunctions;
@@ -4889,6 +4890,21 @@ public partial class DehackedDefinition
 
     private static readonly string MaxAmmo = "Max ammo";
     private static readonly string PerAmmo = "Per ammo";
+    private static readonly string InitialAmmo = "Initial ammo";
+    private static readonly string MaxUpgradedAmmo = "Max upgraded ammo";
+    private static readonly string BoxAmmo = "Box ammo";
+    private static readonly string BackpackAmmo = "Backpack ammo";
+    private static readonly string WeaponAmmo = "Weapon ammo";
+    private static readonly string DroppedAmmo = "Dropped ammo";
+    private static readonly string DroppedBoxAmmo = "Dropped box ammo";
+    private static readonly string DroppedBackpackAmmo = "Dropped backpack ammo";
+    private static readonly string DroppedWeaponAmmo = "Dropped weapon ammo";
+    private static readonly string DeathmatchWeaponAmmo = "Deathmatch weapon ammo";
+    private static readonly string Skill1Multiplier = "Skill 1 multiplier";
+    private static readonly string Skill2Multiplier = "Skill 2 multiplier";
+    private static readonly string Skill3Multiplier = "Skill 3 multiplier";
+    private static readonly string Skill4Multiplier = "Skill 4 multiplier";
+    private static readonly string Skill5Multiplier = "Skill 5 multiplier";
 
     private static readonly string AmmoType = "Ammo type";
     private static readonly string AmmoUse = "Ammo use";

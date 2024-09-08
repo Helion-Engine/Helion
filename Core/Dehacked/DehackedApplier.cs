@@ -762,14 +762,29 @@ public class DehackedApplier
                 continue;
             }
 
-            var definition = composer.GetByName(dehacked.AmmoNames[ammo.AmmoNumber]);
-            ApplyAmmo(definition, ammo, 1);
+            var normalAmmo = composer.GetByName(dehacked.AmmoNames[ammo.AmmoNumber]);
+            var boxAmmo = composer.GetByName(dehacked.AmmoDoubleNames[ammo.AmmoNumber]);
+            ApplyAmmo(normalAmmo, ammo, 1);
+            ApplyAmmo(boxAmmo, ammo, 2);
+            ApplyId24Ammo(composer, normalAmmo, boxAmmo, ammo);
+        }
+    }
 
-            if (ammo.AmmoNumber >= dehacked.AmmoDoubleNames.Length)
-                continue;
+    private static void ApplyId24Ammo(EntityDefinitionComposer composer, EntityDefinition? normalAmmo, EntityDefinition? boxAmmo, DehackedAmmo ammo)
+    {
+        if (normalAmmo != null)
+        {
+            if (ammo.InitialAmmo.HasValue)
+                SetInitialAmmo(composer, normalAmmo, ammo.InitialAmmo.Value);
 
-            definition = composer.GetByName(dehacked.AmmoDoubleNames[ammo.AmmoNumber]);
-            ApplyAmmo(definition, ammo, 2);
+            if (ammo.MaxUpgradedAmmo.HasValue)
+                normalAmmo.Properties.Ammo.BackpackMaxAmount = ammo.MaxUpgradedAmmo.Value;
+        }
+
+        if (boxAmmo != null)
+        {
+            if (ammo.BoxAmmo.HasValue)
+                boxAmmo.Properties.Inventory.Amount = ammo.BoxAmmo.Value;
         }
     }
 
@@ -790,6 +805,23 @@ public class DehackedApplier
             inventory.MaxAmount = ammo.MaxAmmo.Value;
             definition.Properties.Ammo.BackpackMaxAmount = ammo.MaxAmmo.Value * 2;
         }
+    }
+
+    private static void SetInitialAmmo(EntityDefinitionComposer composer, EntityDefinition definition, int startAmount)
+    {
+        var playerDef = composer.GetByName("DoomPlayer");
+        if (playerDef == null)
+            return;
+
+        var startItems = playerDef.Properties.Player.StartItem;
+        var item = startItems.FirstOrDefault(x => x.Name.Equals(definition.Name, StringComparison.OrdinalIgnoreCase));
+        if (item != null)
+        {
+            item.Amount = startAmount;
+            return;
+        }
+
+        startItems.Add(new(definition.Name, startAmount));
     }
 
     private static readonly List<string> IgnoreTextNames = new()

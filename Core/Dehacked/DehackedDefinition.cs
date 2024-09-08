@@ -454,6 +454,38 @@ public partial class DehackedDefinition
                 ammo.MaxAmmo = GetIntProperty(parser, MaxAmmo);
             else if (line.StartsWith(PerAmmo, StringComparison.OrdinalIgnoreCase))
                 ammo.PerAmmo = GetIntProperty(parser, PerAmmo);
+            else if (line.StartsWith(InitialAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.InitialAmmo = GetIntProperty(parser, InitialAmmo);
+            else if (line.StartsWith(MaxUpgradedAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.MaxUpgradedAmmo = GetIntProperty(parser, MaxUpgradedAmmo);
+            else if (line.StartsWith(BoxAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.BoxAmmo = GetIntProperty(parser, BoxAmmo);
+            else if (line.StartsWith(BackpackAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.BackpackAmmo = GetIntProperty(parser, BackpackAmmo);
+            else if (line.StartsWith(WeaponAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.WeaponAmmo = GetIntProperty(parser, WeaponAmmo);
+            else if (line.StartsWith(DroppedAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.DroppedAmmo = GetIntProperty(parser, DroppedAmmo);
+            else if (line.StartsWith(DroppedBoxAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.DroppedBoxAmmo = GetIntProperty(parser, DroppedBoxAmmo);
+            else if (line.StartsWith(DroppedBoxAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.DroppedBoxAmmo = GetIntProperty(parser, DroppedBoxAmmo);
+            else if (line.StartsWith(DroppedBackpackAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.DroppedBackpackAmmo = GetIntProperty(parser, DroppedBackpackAmmo);
+            else if (line.StartsWith(DroppedWeaponAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.DroppedWeaponAmmo = GetIntProperty(parser, DroppedWeaponAmmo);
+            else if (line.StartsWith(DeathmatchWeaponAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.DeathmatchWeaponAmmo = GetIntProperty(parser, DeathmatchWeaponAmmo);
+            else if (line.StartsWith(Skill1Multiplier, StringComparison.OrdinalIgnoreCase))
+                ammo.Skill1Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill1Multiplier));
+            else if (line.StartsWith(Skill2Multiplier, StringComparison.OrdinalIgnoreCase))
+                ammo.Skill2Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill2Multiplier));
+            else if (line.StartsWith(Skill3Multiplier, StringComparison.OrdinalIgnoreCase))
+                ammo.Skill3Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill3Multiplier));
+            else if (line.StartsWith(Skill4Multiplier, StringComparison.OrdinalIgnoreCase))
+                ammo.Skill4Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill4Multiplier));
+            else if (line.StartsWith(Skill5Multiplier, StringComparison.OrdinalIgnoreCase))
+                ammo.Skill5Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill5Multiplier));
             else
                 UnknownWarning(parser, "ammo type");
             ConsumeLine(parser, lineNumber);
