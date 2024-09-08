@@ -71,6 +71,8 @@ public class ListedConfigSection : IOptionSection
 
     private void SetDisableStates()
     {
+        m_config.Game.MaxAutoSaves.OptionDisabled = !m_config.Game.RotateAutoSaves;
+
         m_config.Window.Dimension.OptionDisabled = m_config.Window.State != RenderWindowState.Normal;
 
         bool paletteMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;

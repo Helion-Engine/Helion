@@ -44,9 +44,17 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Load Latest on Death", spacer: true)]
     public readonly ConfigValue<bool> LoadLatestOnDeath = new(true);
 
-    [ConfigInfo("Automatically save at level start.", save: true)]
+    [ConfigInfo("Automatically save at level start.")]
     [OptionMenu(OptionSectionType.General, "Autosave")]
-    public readonly ConfigValue<bool> AutoSave = new(false);
+    public readonly ConfigValue<bool> AutoSave = new(true);
+
+    [ConfigInfo("Limits the number of autosaves by replacing the oldest when autosaving.")]
+    [OptionMenu(OptionSectionType.General, "Rotate Autosaves")]
+    public readonly ConfigValue<bool> RotateAutoSaves = new(true);
+
+    [ConfigInfo("Maximum number of autosaves when rotating.")]
+    [OptionMenu(OptionSectionType.General, "Rotating Autosave Limit")]
+    public readonly ConfigValue<int> MaxAutoSaves = new(4, Greater(0));
 
     [ConfigInfo("Confirm overwrite when quick saving.")]
     [OptionMenu(OptionSectionType.General, "Confirm Quick Save")]
