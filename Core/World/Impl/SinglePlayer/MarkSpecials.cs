@@ -178,7 +178,7 @@ public class MarkSpecials
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             var sec = world.Sectors[i];
-            if (sec.SectorSpecialType == ZDoomSectorSpecialType.DamageEnd || sec.KillEffect == InstantKillEffect.KillAllPlayersExit || sec.KillEffect == InstantKillEffect.KillAllPlayersSecretExit)
+            if (sec.SectorSpecialType == ZDoomSectorSpecialType.DamageEnd || (sec.KillEffect & InstantKillEffect.KillAllPlayersExit) != 0 || (sec.KillEffect & InstantKillEffect.KillAllPlayersSecretExit) != 0)
                 items.Add(sec);
         }
     }
