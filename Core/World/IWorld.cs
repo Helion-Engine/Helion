@@ -32,6 +32,7 @@ using Helion.World.Geometry;
 using Helion.Maps;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Container;
+using Helion.Maps.Shared;
 
 namespace Helion.World;
 
@@ -83,6 +84,7 @@ public interface IWorld : IDisposable
     TextureManager TextureManager { get; }
     IConfig Config { get; }
     SkillDef SkillDefinition { get; }
+    SkillLevel SkillLevel { get; }
     ArchiveCollection ArchiveCollection { get; }
     MapInfoDef MapInfo { get; }
     GameInfoDef GameInfo { get; }

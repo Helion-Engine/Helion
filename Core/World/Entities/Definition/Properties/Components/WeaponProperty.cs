@@ -9,6 +9,8 @@ public struct WeaponProperty
     }
 
     public int AmmoGive;
+    public int? DeathmatchAmmoGive;
+    public int? DroppedAmmoGive;
     public int AmmoGive1;
     public int AmmoGive2;
     public EntityDefinition? AmmoTypeDef;

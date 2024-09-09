@@ -13,6 +13,7 @@ using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
+using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
@@ -1012,16 +1013,24 @@ public class Player : Entity
 
         if (IsWeapon(definition))
         {
-            EntityDefinition? ammoDef = WorldStatic.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
-            if (ammoDef != null)
-                return AddAmmo(ammoDef, definition.Properties.Weapons.AmmoGive, flags, autoSwitchWeapon);
+            var ammoDef = WorldStatic.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
+            if (ammoDef == null)
+                return false;
 
-            return false;
+            int ammoGive = definition.Properties.Weapons.AmmoGive;
+            if (flags.HasValue && (flags.Value.Dropped || definition.Properties.Inventory.AmountModifier == AmountModifier.Dropped) && definition.Properties.Weapons.DroppedAmmoGive.HasValue)
+                ammoGive = definition.Properties.Weapons.DroppedAmmoGive.Value;
+
+            if (definition.Properties.Weapons.DeathmatchAmmoGive.HasValue && definition.Properties.Inventory.AmountModifier == AmountModifier.Deathmatch)
+                ammoGive = definition.Properties.Weapons.DeathmatchAmmoGive.Value;
+
+            return AddAmmo(ammoDef, ammoGive, flags, autoSwitchWeapon);
+
         }
 
         if (definition.IsType(Inventory.BackPackBaseClassName))
         {
-            Inventory.AddBackPackAmmo(WorldStatic.EntityManager.DefinitionComposer);
+            Inventory.AddBackPackAmmo(WorldStatic.EntityManager.DefinitionComposer, flags.HasValue && flags.Value.Dropped);
             Inventory.Add(definition, invData.Amount, flags);
             return true;
         }
@@ -1034,12 +1043,34 @@ public class Player : Entity
 
     private bool AddAmmo(EntityDefinition ammoDef, int amount, EntityFlags? flags, bool autoSwitchWeapon)
     {
-        var modifier = ammoDef.Properties.Inventory.AmountModifier;
-        int oldCount = Inventory.Amount(Inventory.GetBaseInventoryName(ammoDef));
-        bool success = Inventory.Add(ammoDef, WorldStatic.World.SkillDefinition.GetAmmoAmount(amount, modifier, flags), flags);
+        var baseAmmoDef = Inventory.GetBaseAmmoDef(ammoDef);
+        int giveAmount = GetAmmoGiveAmount(ammoDef, baseAmmoDef, amount, flags);
+
+        int oldCount = Inventory.Amount(baseAmmoDef);
+        bool success = Inventory.Add(baseAmmoDef, giveAmount, flags);
         if (success && autoSwitchWeapon)
-            CheckAutoSwitchAmmo(ammoDef, oldCount);
+            CheckAutoSwitchAmmo(baseAmmoDef, oldCount);
         return success;
+    }
+
+    private static int GetAmmoGiveAmount(EntityDefinition ammoDef, EntityDefinition baseAmmoDef, int amount, EntityFlags? flags)
+    {
+        double? multiplier = baseAmmoDef.Properties.Ammo.GetSkillMultiplier(WorldStatic.World.SkillLevel);
+
+        int giveAmount = amount;
+        bool isDropped = flags.HasValue && flags.Value.Dropped || ammoDef.Properties.Inventory.AmountModifier == AmountModifier.Dropped;
+        if (isDropped && ammoDef.Properties.Ammo.DropAmount.HasValue)
+            giveAmount = ammoDef.Properties.Ammo.DropAmount.Value;
+
+        if (ammoDef.Properties.Inventory.AmountModifier == AmountModifier.Deathmatch)
+            giveAmount = (int)(giveAmount * 2.5);
+        
+        if (multiplier.HasValue)
+            giveAmount = (int)(giveAmount * multiplier);
+        else
+            giveAmount = WorldStatic.World.SkillDefinition.GetAmmoAmount(giveAmount, 1, flags);
+
+        return giveAmount;
     }
 
     public double GetForwardMovementSpeed()

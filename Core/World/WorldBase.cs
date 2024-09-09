@@ -59,6 +59,7 @@ using Helion.Maps.Doom;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Util.Loggers;
 using Helion.Graphics.Palettes;
+using Helion.Maps.Shared;
 
 namespace Helion.World;
 
@@ -127,6 +128,7 @@ public abstract partial class WorldBase : IWorld
     public MapInfoDef MapInfo { get; private set; }
     public LevelStats LevelStats { get; } = new();
     public SkillDef SkillDefinition { get; private set; }
+    public SkillLevel SkillLevel { get; private set; }
     public ArchiveCollection ArchiveCollection { get; protected set; }
     public GlobalData GlobalData { get; }
     public CheatManager CheatManager { get; } = new();
@@ -201,6 +203,7 @@ public abstract partial class WorldBase : IWorld
         Config = config;
         MapInfo = mapInfoDef;
         SkillDefinition = skillDef;
+        SkillLevel = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(skillDef);
         MapName = map.Name;
         Profiler = profiler;
         Geometry = geometry;

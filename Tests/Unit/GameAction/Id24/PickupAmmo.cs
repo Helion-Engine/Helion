@@ -82,7 +82,12 @@ public class PickupAmmo
     {
         var item = GameActions.CreateEntity(World, "*deh/entity42075", ItemPos);
         World.PerformItemPickup(Player, item);
-        InventoryUtil.AssertAmount(Player, "Shell", 10);
+        InventoryUtil.AssertAmount(Player, "Shell", 20);
+
+        item = GameActions.CreateEntity(World, "*deh/entity42075", ItemPos);
+        item.Flags.Dropped = true;
+        World.PerformItemPickup(Player, item);
+        InventoryUtil.AssertAmount(Player, "Shell", 30);
     }
 
     [Fact(DisplayName = "Pickup ammo category box+deathmatch")]

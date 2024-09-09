@@ -6,6 +6,7 @@ using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
+using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 
@@ -364,20 +365,51 @@ public sealed class Inventory
         return color;
     }
 
-    public void AddBackPackAmmo(EntityDefinitionComposer definitionComposer)
+    public static EntityDefinition GetBaseAmmoDef(EntityDefinition ammoDef)
+    {
+        string name = GetBaseInventoryName(ammoDef);
+        var def = WorldStatic.EntityManager.DefinitionComposer.GetByName(name);
+        if (def != null)
+            return def;
+        return ammoDef;
+    }
+
+    public static int GetAmmoGiveAmount(EntityDefinition ammoDef, EntityDefinition baseAmmoDef, int amount, EntityFlags? flags)
+    {
+        double? multiplier = baseAmmoDef.Properties.Ammo.GetSkillMultiplier(WorldStatic.World.SkillLevel);
+
+        int giveAmount = amount;
+        bool isDropped = flags.HasValue && flags.Value.Dropped || ammoDef.Properties.Inventory.AmountModifier == AmountModifier.Dropped;
+        if (isDropped && ammoDef.Properties.Ammo.DropAmount.HasValue)
+            giveAmount = ammoDef.Properties.Ammo.DropAmount.Value;
+
+        if (ammoDef.Properties.Inventory.AmountModifier == AmountModifier.Deathmatch)
+            giveAmount = (int)(giveAmount * 2.5);
+
+        if (multiplier.HasValue)
+            giveAmount = (int)(giveAmount * multiplier);
+        else
+            giveAmount = WorldStatic.World.SkillDefinition.GetAmmoAmount(giveAmount, 1, flags);
+
+        return giveAmount;
+    }
+
+    public void AddBackPackAmmo(EntityDefinitionComposer definitionComposer, bool dropped)
     {
         m_addedBaseNames.Clear();
         var ammoDefinitions = definitionComposer.GetAmmoDefinitions();
         foreach (EntityDefinition ammo in ammoDefinitions)
         {
-            if (ammo.Properties.Ammo.BackpackAmount <= 0)
+            int amount = dropped && ammo.Properties.Ammo.DropBackpackAmmo.HasValue ? ammo.Properties.Ammo.DropBackpackAmmo.Value : ammo.Properties.Ammo.BackpackAmount;
+            if (amount <= 0)
                 continue;
 
             string baseName = GetBaseInventoryName(ammo);
             if (m_addedBaseNames.Contains(baseName))
                 continue;
 
-            Add(ammo, ammo.Properties.Ammo.BackpackAmount);
+            amount = GetAmmoGiveAmount(ammo, GetBaseAmmoDef(ammo), amount, null);
+            Add(ammo, amount);
             m_addedBaseNames.Add(baseName);
         }
     }

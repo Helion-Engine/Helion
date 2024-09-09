@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Helion.World.Entities.Definition.Properties.Components;
 using static Helion.Dehacked.DehackedDefinition;
+using Helion.Maps.Shared;
 
 namespace Helion.Dehacked;
 
@@ -428,6 +429,9 @@ public class DehackedApplier
 
     private void ApplyThings(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer)
     {
+        // Create new thing lookup first. Required for finding DroppedItem
+        CreateNewThingLookup(dehacked, composer);
+
         foreach (var thing in dehacked.Things)
         {
             var definition = GetEntityDefinition(dehacked, thing, composer);
@@ -545,6 +549,12 @@ public class DehackedApplier
         }
     }
 
+    private void CreateNewThingLookup(DehackedDefinition dehacked, EntityDefinitionComposer composer)
+    {
+        foreach (var thing in dehacked.Things)
+            GetEntityDefinition(dehacked, thing, composer);
+    }
+
     private static void ApplyPickupAmmoType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, 
         int type, Id24AmmoCategory category)
     {
@@ -589,13 +599,13 @@ public class DehackedApplier
         switch (categoryFlags)
         {
             case Id24AmmoCategory.Default:
-                definition.Properties.Inventory.AmountModifier = 1;
+                definition.Properties.Inventory.AmountModifier = AmountModifier.Default;
                 break;
             case Id24AmmoCategory.Dropped:
-                definition.Properties.Inventory.AmountModifier = 0.5;
+                definition.Properties.Inventory.AmountModifier = AmountModifier.Dropped;
                 break;
             case Id24AmmoCategory.Deathmatch:
-                definition.Properties.Inventory.AmountModifier = 2.5;
+                definition.Properties.Inventory.AmountModifier = AmountModifier.Deathmatch;
                 break;
             default:
                 definition.Properties.Inventory.NoItem = true;
@@ -753,6 +763,8 @@ public class DehackedApplier
 
     private static void ApplyAmmo(DehackedDefinition dehacked, EntityDefinitionComposer composer)
     {
+        var weaponDefs = GetAmmoWeaponDefinitions(dehacked, composer);
+
         foreach (var ammo in dehacked.Ammo)
         {
             if (ammo.AmmoNumber < 0 || ammo.AmmoNumber >= dehacked.AmmoNames.Length)
@@ -767,20 +779,36 @@ public class DehackedApplier
             ApplyAmmo(boxAmmo, ammo, 2);
             ApplyId24Ammo(composer, normalAmmo, boxAmmo, ammo);
 
-            if (ammo.WeaponAmmo.HasValue && ammo.AmmoNumber < dehacked.AmmoToWeaponNames.Length)
-                SetWeaponAmmo(dehacked, composer, ammo, ammo.WeaponAmmo.Value);
+            if (ammo.AmmoNumber >= weaponDefs.Count)
+                continue;
+            
+            var ammoWeaponDefs = weaponDefs[ammo.AmmoNumber];
+            if (ammo.WeaponAmmo.HasValue)
+            {
+                foreach (var weaponDef in ammoWeaponDefs)
+                    weaponDef.Properties.Weapons.AmmoGive = ammo.WeaponAmmo.Value;
+            }
+
+            if (ammo.DroppedWeaponAmmo.HasValue)
+            {
+                foreach (var weaponDef in ammoWeaponDefs)
+                    weaponDef.Properties.Weapons.DroppedAmmoGive = ammo.DroppedWeaponAmmo.Value;
+            }
+
+            if (ammo.DeathmatchWeaponAmmo.HasValue)
+            {
+                foreach (var weaponDef in ammoWeaponDefs)
+                    weaponDef.Properties.Weapons.DeathmatchAmmoGive = ammo.DeathmatchWeaponAmmo.Value;
+            }  
         }
     }
 
-    private static void SetWeaponAmmo(DehackedDefinition dehacked, EntityDefinitionComposer composer, DehackedAmmo ammo, int weaponAmmo)
+    private static List<EntityDefinition[]> GetAmmoWeaponDefinitions(DehackedDefinition dehacked, EntityDefinitionComposer composer)
     {
-        var weaponNames = dehacked.AmmoToWeaponNames[ammo.AmmoNumber];
-        foreach (var weaponName in weaponNames)
-        {
-            var weaponDef = composer.GetByName(weaponName);
-            if (weaponDef != null)
-                weaponDef.Properties.Weapons.AmmoGive = weaponAmmo;
-        }
+        List<EntityDefinition[]> weaponDefs = [];
+        foreach (var weaponNames in dehacked.AmmoToWeaponNames)
+            weaponDefs.Add(weaponNames.Select(x => composer.GetByNameOrDefault(x)).ToArray());
+        return weaponDefs;
     }
 
     private static void ApplyId24Ammo(EntityDefinitionComposer composer, EntityDefinition? normalAmmo, EntityDefinition? boxAmmo, DehackedAmmo ammo)
@@ -795,12 +823,36 @@ public class DehackedApplier
 
             if (ammo.BackpackAmmo.HasValue)
                 normalAmmo.Properties.Ammo.BackpackAmount = ammo.BackpackAmmo.Value;
+
+            if (ammo.DroppedAmmo.HasValue)
+                normalAmmo.Properties.Ammo.DropAmount = ammo.DroppedAmmo.Value;
+
+            if (ammo.DroppedBackpackAmmo.HasValue)
+                normalAmmo.Properties.Ammo.DropBackpackAmmo = ammo.DroppedBackpackAmmo.Value;
+
+            if (ammo.Skill1Multiplier.HasValue && ammo.Skill1Multiplier.Value != 0)
+                normalAmmo.Properties.Ammo.SetSkillMultiplier(SkillLevel.VeryEasy, ammo.Skill1Multiplier.Value);
+
+            if (ammo.Skill2Multiplier.HasValue && ammo.Skill2Multiplier.Value != 0)
+                normalAmmo.Properties.Ammo.SetSkillMultiplier(SkillLevel.Easy, ammo.Skill2Multiplier.Value);
+
+            if (ammo.Skill3Multiplier.HasValue && ammo.Skill3Multiplier.Value != 0)
+                normalAmmo.Properties.Ammo.SetSkillMultiplier(SkillLevel.Medium, ammo.Skill3Multiplier.Value);
+
+            if (ammo.Skill4Multiplier.HasValue && ammo.Skill4Multiplier.Value != 0)
+                normalAmmo.Properties.Ammo.SetSkillMultiplier(SkillLevel.Hard, ammo.Skill4Multiplier.Value);
+
+            if (ammo.Skill5Multiplier.HasValue && ammo.Skill5Multiplier.Value != 0)
+                normalAmmo.Properties.Ammo.SetSkillMultiplier(SkillLevel.Nightmare, ammo.Skill5Multiplier.Value);
         }
 
         if (boxAmmo != null)
         {
             if (ammo.BoxAmmo.HasValue)
                 boxAmmo.Properties.Inventory.Amount = ammo.BoxAmmo.Value;
+
+            if (ammo.DroppedBoxAmmo.HasValue)
+                boxAmmo.Properties.Ammo.DropAmount = ammo.DroppedBoxAmmo.Value;
         }
     }
 

@@ -3,6 +3,13 @@ using System.Collections.Generic;
 
 namespace Helion.World.Entities.Definition.Properties.Components;
 
+public enum AmountModifier
+{
+    Default,
+    Dropped,
+    Deathmatch
+}
+
 public class InventoryProperty
 {
     public string AltHUDIcon = string.Empty;
@@ -22,5 +29,5 @@ public class InventoryProperty
     public int PickupBonusCount = 6;
     public bool MessageOnly = false;
     public bool NoItem = false;
-    public double AmountModifier = 1;
+    public AmountModifier AmountModifier;
 }
