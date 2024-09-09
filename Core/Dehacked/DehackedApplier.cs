@@ -18,7 +18,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Helion.World.Entities.Definition.Properties.Components;
 using static Helion.Dehacked.DehackedDefinition;
-using System.Collections;
 
 namespace Helion.Dehacked;
 
@@ -767,6 +766,20 @@ public class DehackedApplier
             ApplyAmmo(normalAmmo, ammo, 1);
             ApplyAmmo(boxAmmo, ammo, 2);
             ApplyId24Ammo(composer, normalAmmo, boxAmmo, ammo);
+
+            if (ammo.WeaponAmmo.HasValue && ammo.AmmoNumber < dehacked.AmmoToWeaponNames.Length)
+                SetWeaponAmmo(dehacked, composer, ammo, ammo.WeaponAmmo.Value);
+        }
+    }
+
+    private static void SetWeaponAmmo(DehackedDefinition dehacked, EntityDefinitionComposer composer, DehackedAmmo ammo, int weaponAmmo)
+    {
+        var weaponNames = dehacked.AmmoToWeaponNames[ammo.AmmoNumber];
+        foreach (var weaponName in weaponNames)
+        {
+            var weaponDef = composer.GetByName(weaponName);
+            if (weaponDef != null)
+                weaponDef.Properties.Weapons.AmmoGive = weaponAmmo;
         }
     }
 
@@ -779,6 +792,9 @@ public class DehackedApplier
 
             if (ammo.MaxUpgradedAmmo.HasValue)
                 normalAmmo.Properties.Ammo.BackpackMaxAmount = ammo.MaxUpgradedAmmo.Value;
+
+            if (ammo.BackpackAmmo.HasValue)
+                normalAmmo.Properties.Ammo.BackpackAmount = ammo.BackpackAmmo.Value;
         }
 
         if (boxAmmo != null)

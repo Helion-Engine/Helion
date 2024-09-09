@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Helion.Models;
-using Helion.Render.OpenGL.Renderers.Legacy.World;
-using Helion.Strings;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
@@ -242,6 +239,9 @@ public sealed class Inventory
 
         string name = GetBaseInventoryName(definition);
         int maxAmount = definition.Properties.Inventory.MaxAmount;
+        var baseAmmoDef = EntityDefinitionComposer.GetByName(name);
+        if (baseAmmoDef != null)
+            definition = baseAmmoDef;
         if (definition.IsType(AmmoClassName) && HasItemOfClass(BackPackBaseClassName) && definition.Properties.Ammo.BackpackMaxAmount > maxAmount)
             maxAmount = definition.Properties.Ammo.BackpackMaxAmount;
 
@@ -457,12 +457,6 @@ public sealed class Inventory
             return 0;
 
         return item.Amount;
-    }
-
-    public static int MaxAmount(string name)
-    {
-        EntityDefinition? definition = WorldStatic.EntityManager.DefinitionComposer.GetByName(name);
-        return definition?.Properties.Inventory.MaxAmount ?? 0;
     }
 
     public void Remove(string name, int amount)

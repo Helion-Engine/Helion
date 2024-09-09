@@ -42,6 +42,14 @@ public partial class DehackedDefinition
         "RocketLauncher"
     ];
 
+    public readonly string[][] AmmoToWeaponNames =
+    [
+        ["Pistol"],
+        ["Shotgun", "SuperShotgun"],
+        ["PlasmaRifle", "BFG9000"],
+        ["RocketLauncher"]
+    ];
+
     public readonly string[] WeaponNamesById =
     [
         "Fist",
