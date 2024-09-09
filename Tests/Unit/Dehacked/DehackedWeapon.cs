@@ -20,6 +20,13 @@ Firing frame = 7
 Ammo per shot = 8
 Min ammo = 9
 MBF21 Bits= 10
+Slot = 11
+Slot Priority = 12
+Switch Priority = 13
+Initial Owned = 1
+Initial Raised = 0
+Carousel icon = SOMEICON
+
 
 Weapon 2
 Ammo type = 2
@@ -47,6 +54,12 @@ MBF21 Bits= 10";
         weapon.AmmoPerShot.Should().Be(8);
         weapon.MinAmmo.Should().Be(9);
         weapon.Mbf21Bits.Should().Be(10);
+        weapon.Slot.Should().Be(11);
+        weapon.SlotPriority.Should().Be(12);
+        weapon.SwitchPriority.Should().Be(13);
+        weapon.InitialOwned.Should().Be(true);
+        weapon.InitialRaised.Should().Be(false);
+        weapon.CarouselIcon.Should().Be("SOMEICON");
 
         weapon = dehacked.Weapons[1];
         weapon.WeaponNumber.Should().Be(2);

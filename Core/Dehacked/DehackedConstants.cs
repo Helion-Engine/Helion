@@ -4823,6 +4823,12 @@ public partial class DehackedDefinition
     private static readonly string BobbingFrame = "Bobbing frame";
     private static readonly string ShootingFrame = "Shooting frame";
     private static readonly string FiringFrame = "Firing frame";
+    private static readonly string WeaponSlot = "Slot";
+    private static readonly string WeaponSlotPriority = "Slot Priority";
+    private static readonly string WeaponSwitchPriority = "Switch Priority";
+    private static readonly string InitialOwned = "Initial Owned";
+    private static readonly string InitialRaised = "Initial Raised";
+    private static readonly string CarouselIcon = "Carousel icon";
 
     private static readonly string ChangeMusic = "Change music";
     private static readonly string Chainsaw = "Chainsaw";
