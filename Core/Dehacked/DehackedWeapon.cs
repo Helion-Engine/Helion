@@ -12,4 +12,10 @@ public class DehackedWeapon
     public int? AmmoPerShot { get; set; }
     public int? MinAmmo { get; set; }
     public uint? Mbf21Bits { get; set; }
+    public int? Slot { get; set; }
+    public int? SlotPriority { get; set; }
+    public int? SwitchPriority { get; set; }
+    public bool? InitialOwned { get; set; }
+    public bool? InitialRaised { get; set; }
+    public string? CarouselIcon { get; set; }
 }

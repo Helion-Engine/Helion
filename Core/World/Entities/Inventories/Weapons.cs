@@ -90,7 +90,7 @@ public sealed class Weapons
         if (m_ownedWeapons.Count == 0)
            return DefaultSlot;
 
-        subSlot = CycleSubSlot(player, slot, subSlot, next);
+        subSlot = GetNextSubSlot(slot, subSlot, next);
         if (subSlot != -1)
             return new(slot, subSlot);
 
@@ -119,17 +119,28 @@ public sealed class Weapons
         return DefaultSlot;
     }
 
-    private int CycleSubSlot(Player player, int slot, int subSlot, bool next)
+    public int GetNextSubSlot(int slot, int subSlot, bool next)
     {
-        if (next)
-            subSlot++;
-        else
-            subSlot--;
+        int find = next ? int.MaxValue : int.MinValue;
+        for (int i = 0; i < m_ownedWeapons.Count; i++)
+        {
+            var weapon = m_ownedWeapons[i];
+            if (!m_weaponSlotLookup.TryGetValue(weapon.Definition.Id, out var weaponSlot))
+                continue;
 
-        if (subSlot < 0 || subSlot > GetSubSlots(slot) - 1)
-            return -1;
+            if (weaponSlot.Slot != slot)
+                continue;
 
-        return subSlot;
+            if (next && weaponSlot.SubSlot > subSlot && weaponSlot.SubSlot < find)
+                find = weaponSlot.SubSlot;
+
+            if (!next && weaponSlot.SubSlot < subSlot && weaponSlot.SubSlot > find)
+                find = weaponSlot.SubSlot;
+        }
+
+        if (find == subSlot || find == int.MaxValue || find == int.MinValue)
+            return GetFirstSubSlot(slot);
+        return find;
     }
 
     private static int GetSlot(int slot, int min, int max)
@@ -256,6 +267,21 @@ public sealed class Weapons
         }
 
         return null;
+    }
+
+    public bool HasWeaponSlot(Player player, int slot)
+    {
+        for (int i = 0; i < m_ownedWeapons.Count; i++)
+        {
+            var weapon = m_ownedWeapons[i];
+            if (!m_weaponSlotLookup.TryGetValue(weapon.Definition.Id, out var weaponSlot))
+                continue;
+
+            if (weaponSlot.Slot == slot)
+                return true;
+        }
+
+        return false;
     }
 
     public Weapon? GetWeapon(Player player, int slot, int subslot = -1)

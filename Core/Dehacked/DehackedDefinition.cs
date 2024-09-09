@@ -525,6 +525,18 @@ public partial class DehackedDefinition
                 weapon.MinAmmo = GetIntProperty(parser, MinAmmo);
             else if (line.StartsWith(Mbf21Bits, StringComparison.OrdinalIgnoreCase))
                 weapon.Mbf21Bits = GetBits(parser, Mbf21Bits, WeaponPropertyStringsMbf21);
+            else if (line.StartsWith(WeaponSlotPriority, StringComparison.OrdinalIgnoreCase))
+                weapon.SlotPriority = GetIntProperty(parser, WeaponSlotPriority);
+            else if (line.StartsWith(WeaponSlot, StringComparison.OrdinalIgnoreCase))
+                weapon.Slot = GetIntProperty(parser, WeaponSlot);
+            else if (line.StartsWith(WeaponSwitchPriority, StringComparison.OrdinalIgnoreCase))
+                weapon.SwitchPriority = GetIntProperty(parser, WeaponSwitchPriority);
+            else if (line.StartsWith(InitialOwned, StringComparison.OrdinalIgnoreCase))
+                weapon.InitialOwned = GetIntProperty(parser, InitialOwned) != 0;
+            else if (line.StartsWith(InitialRaised, StringComparison.OrdinalIgnoreCase))
+                weapon.InitialRaised = GetIntProperty(parser, InitialRaised) != 0;
+            else if (line.StartsWith(CarouselIcon, StringComparison.OrdinalIgnoreCase))
+                weapon.CarouselIcon = GetStringProperty(parser, CarouselIcon);
             else
                 UnknownWarning(parser, "weapon type");
 

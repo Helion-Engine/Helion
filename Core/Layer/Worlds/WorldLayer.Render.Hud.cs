@@ -910,14 +910,11 @@ public partial class WorldLayer
 
     private void DrawWeaponNumber(IHudRenderContext hud, int slot)
     {
-        Weapon? weapon = Player.Inventory.Weapons.GetWeapon(Player, slot, 0);
-        if (slot == 3 && weapon == null)
-            weapon = Player.Inventory.Weapons.GetWeapon(Player, slot, 1);
-
+        bool hasSlot = Player.Inventory.Weapons.HasWeaponSlot(Player, slot);
         if (slot < 0 || slot >= WeaponImages.Length || slot >= HasWeaponImages.Length)
             return;
 
-        string image = weapon != null ? HasWeaponImages[slot] : WeaponImages[slot];
+        string image = hasSlot ? HasWeaponImages[slot] : WeaponImages[slot];
         if (string.IsNullOrEmpty(image))
             return;
 

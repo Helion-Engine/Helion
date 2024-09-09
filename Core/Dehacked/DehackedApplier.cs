@@ -27,6 +27,7 @@ public class DehackedApplier
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly List<string> RemoveLabels = new();
     private readonly DehackedDefinition m_dehacked;
+    private EntityDefinition? m_playerDefinition;
 
     private const int DehExtraSpriteStart = 145;
     private const int DehExtraSoundStart = 500;
@@ -49,6 +50,7 @@ public class DehackedApplier
 
     public void Apply(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
     {
+        m_playerDefinition = composer.GetByName("DoomPlayer");
         ApplyVanillaIndex(dehacked, definitionEntries.EntityFrameTable);
 
         ApplySounds(dehacked, definitionEntries.SoundInfo);
@@ -58,7 +60,7 @@ public class DehackedApplier
         ApplyThings(dehacked, definitionEntries.EntityFrameTable, composer);
         ApplyPointers(dehacked, definitionEntries.EntityFrameTable);
         ApplyFrames(dehacked, definitionEntries.EntityFrameTable);
-        ApplyWeapons(dehacked, definitionEntries.EntityFrameTable, composer);
+        ApplyWeapons(dehacked, definitionEntries.EntityFrameTable, composer, definitionEntries.MapInfoDefinition.GameDefinition);
         ApplyAmmo(dehacked, composer);
         ApplyText(dehacked, definitionEntries.EntityFrameTable, definitionEntries.Language);
         ApplyCheats(dehacked);
@@ -104,7 +106,7 @@ public class DehackedApplier
         }
     }
 
-    private void ApplyWeapons(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer)
+    private void ApplyWeapons(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer, GameInfoDef gameDef)
     {
         if (dehacked.Weapons.Count == 0)
             return;
@@ -118,7 +120,7 @@ public class DehackedApplier
             properties.Add(weaponDef.Properties.Weapons);
         }
 
-
+        bool setWeaponSlot = false;
         foreach (var weapon in dehacked.Weapons)
         {
             EntityDefinition? weaponDef = GetWeaponDefinition(weapon.WeaponNumber, composer);
@@ -146,6 +148,62 @@ public class DehackedApplier
             }
             if (weapon.Mbf21Bits.HasValue)
                 ApplyWeaponMbf21Bits(weaponDef, weapon.Mbf21Bits.Value);
+
+            if (weapon.InitialOwned.HasValue)
+                SetInitialOwned(weaponDef, weapon.InitialOwned.Value);
+
+            if (weapon.Slot.HasValue)
+            {
+                SetWeaponSlot(gameDef, weaponDef, weapon.Slot.Value);
+                setWeaponSlot = true;
+            }
+        }
+
+        if (setWeaponSlot)
+        {
+            // Remap and set slot priorities
+        }
+    }
+
+    private void SetWeaponSlot(GameInfoDef gameDef, EntityDefinition weaponDef, int slot)
+    {
+        foreach (var weaponSlot in gameDef.WeaponSlots)
+        {
+            int index = weaponSlot.Value.FindIndex(x => x.Equals(weaponDef.Name, StringComparison.OrdinalIgnoreCase));
+            if (index == -1)
+                continue;
+
+            weaponSlot.Value.RemoveAt(index);
+        }
+
+        if (!gameDef.WeaponSlots.TryGetValue(slot, out var weapons))
+        {
+            weapons = [];
+            gameDef.WeaponSlots[slot] = weapons;
+        }
+
+        weapons.Add(weaponDef.Name);
+    }
+
+    private void SetInitialOwned(EntityDefinition weaponDef, bool owned)
+    {
+        if (m_playerDefinition == null)
+            return;
+
+        var startItems = m_playerDefinition.Properties.Player.StartItem;
+
+        var itemIndex = startItems.FindIndex(x => x.Name.Equals(weaponDef.Name, StringComparison.OrdinalIgnoreCase));
+        if (owned)
+        {
+            if (itemIndex != -1)
+                return;
+            startItems.Add(new(weaponDef.Name, 1));
+        }
+        else
+        {
+            if (itemIndex == -1)
+                return;
+            startItems.RemoveAt(itemIndex);
         }
     }
 
@@ -1347,23 +1405,22 @@ public class DehackedApplier
             CheatManager.SetCheatCode(CheatType.ShowPosition, cheat.PlayerPos);
     }
 
-    private static void ApplyMisc(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
+    private void ApplyMisc(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
     {
         if (dehacked.Misc == null)
             return;
 
-        var player = composer.GetByName("DoomPlayer");
-        if (player != null)
+        if (m_playerDefinition != null)
         {
             if (dehacked.Misc.InitialHealth.HasValue)
-                player.Properties.Health = dehacked.Misc.InitialHealth.Value;
+                m_playerDefinition.Properties.Health = dehacked.Misc.InitialHealth.Value;
 
             if (dehacked.Misc.MaxHealth.HasValue)
-                player.Properties.Player.MaxHealth = dehacked.Misc.MaxHealth.Value;
+                m_playerDefinition.Properties.Player.MaxHealth = dehacked.Misc.MaxHealth.Value;
 
             if (dehacked.Misc.InitialBullets.HasValue)
             {
-                var startItem = player.Properties.Player.StartItem.FirstOrDefault(x => x.Name.Equals("Clip", StringComparison.OrdinalIgnoreCase));
+                var startItem = m_playerDefinition.Properties.Player.StartItem.FirstOrDefault(x => x.Name.Equals("Clip", StringComparison.OrdinalIgnoreCase));
                 if (startItem != null)
                     startItem.Amount = dehacked.Misc.InitialBullets.Value;
             }

@@ -828,12 +828,12 @@ public class Player : Entity
             Weapon? weapon = null;
             if (WeaponSlot == slot)
             {
-                int subslotCount = Inventory.Weapons.GetSubSlots(slot);
-                if (subslotCount > 0)
-                {
-                    int subslot = (WeaponSubSlot + 1) % subslotCount;
-                    weapon = Inventory.Weapons.GetWeapon(this, slot, subslot);
-                }
+                var nextSlot = Inventory.Weapons.GetNextSlot(this);
+                if (nextSlot.Slot != slot)
+                    nextSlot.SubSlot = Inventory.Weapons.GetFirstSubSlot(slot);
+
+                if (nextSlot.Slot != -1)
+                    weapon = Inventory.Weapons.GetWeapon(this, nextSlot.Slot, nextSlot.SubSlot);
             }
             else
             {
@@ -1399,6 +1399,11 @@ public class Player : Entity
 
         AnimationWeapon = PendingWeapon;
         Weapon = PendingWeapon;
+
+        var slot = Inventory.Weapons.GetWeaponSlot(Weapon.Definition);
+        WeaponSlot = slot.Slot;
+        WeaponSubSlot = slot.SubSlot;
+
         PendingWeapon = null;
         WeaponOffset.Y = Constants.WeaponBottom;
         SetWeaponFrameState(AnimationWeapon, Constants.FrameStates.Select);
