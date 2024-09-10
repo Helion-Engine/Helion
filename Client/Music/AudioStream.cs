@@ -1,4 +1,5 @@
-﻿using NAudio.Wave;
+﻿namespace Helion.Client.Music;
+
 using OpenTK.Audio.OpenAL;
 using System;
 using System.Runtime.ExceptionServices;
