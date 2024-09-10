@@ -1,0 +1,6 @@
+# ZMusic wrapper
+This directory contains a P/Invoke wrapper for the [ZMusic](https://github.com/ZDoom/ZMusic) music playback library, as well as precompiled binaries for supported platforms.
+
+## Subdirectories
+1. `/native`: Contains precompiled binaries for target operating systems, including the main ZMusic library as well as the libraries it depends upon:  libsndfile, libmpg123, and libfluidsynth.
+2. `/ZMusicWrapper`: Contains source code for a P/Invoke wrapper for ZMusic.  Care should be taken to ensure that Helion-specific (or even OpenAL-specific) implementation details do not "leak" into this source code, as we may later want to release this in package form.  Code in the `/ZMusicWrapper/Generated` subdirectory was automatically generated using the [ClangSharp](https://sharovarskyi.com/blog/posts/clangsharp-dotnet-interop-bindings/) binding generator and should not be edited unless strictly necessary.  Code in the main `/ZMusicWrapper` directory contains interface definitions and code for a simple "player" that should work with any audio output that meets the requirements described in IOutputStream.cs.
