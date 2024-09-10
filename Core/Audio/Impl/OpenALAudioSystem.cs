@@ -28,7 +28,8 @@ public class OpenALAudioSystem : IAudioSystem
     private OpenALContext m_alContext;
     private string m_changeDeviceName = string.Empty;
     private string m_lastDeviceName;
-    private float m_volume = 1;
+
+    public double Gain { get; private set; }
 
     public OpenALAudioSystem(IConfig config, ArchiveCollection archiveCollection, IMusicPlayer musicPlayer)
     {
@@ -73,7 +74,7 @@ public class OpenALAudioSystem : IAudioSystem
 
         m_alDevice = new OpenALDevice(deviceName);
         m_alContext = new OpenALContext(m_alDevice);
-        SetVolume(m_volume);
+        SetVolume(Gain);
 
         // TODO: This assumes we always successfully changed. We should probably limit this.
         return true;
@@ -81,8 +82,12 @@ public class OpenALAudioSystem : IAudioSystem
 
     public void SetVolume(double volume)
     {
-        m_volume = (float)volume;
-        AL.Listener(ALListenerf.Gain, m_volume);
+        Gain = volume;
+
+        foreach(var sourceManager in m_sourceManagers)
+        {
+            sourceManager.SetGain(Gain);
+        }
     }
 
     public void ThrowIfErrorCheckFails()
