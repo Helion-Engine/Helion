@@ -38,10 +38,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
     <PackageReference Include="OpenAL.Soft" Version="1.19.1" />
     <PackageReference Include="OpenTK" Version="4.7.4" />
-    <PackageReference Include="SpaceWizards.NFluidsynth" Version="0.1.1" />
   </ItemGroup>
 
   <ItemGroup>
