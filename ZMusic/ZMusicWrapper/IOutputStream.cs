@@ -46,5 +46,11 @@
         /// Gets the block length the output stream will use when asking for more data
         /// </summary>
         int BlockLength { get; }
+
+        /// <summary>
+        /// Change the volume, if supported; else fail silently
+        /// </summary>
+        /// <param name="newVolume">New volume, on a scale where 1.0f represents "no gain".</param>
+        void SetVolume(float newVolume);
     }
 }

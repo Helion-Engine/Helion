@@ -20,20 +20,34 @@
         private Task? m_playStartTask;
         private IntPtr m_zMusicSong;
         private Action? m_stoppedAction;
+        private float m_sourceVolume;
+        private bool m_loop;
 
         private bool m_disposed;
 
         public bool IsPlaying => IsPlayingImpl();
+
+        public float Volume
+        {
+            get => m_sourceVolume;
+            set
+            {
+                m_sourceVolume = value;
+                m_activeStream?.SetVolume(value);
+            }
+        }
 
         /// <summary>
         /// Creates a new music player
         /// </summary>
         /// <param name="outputStreamFactory">Output stream factory to use for playback</param>
         /// <param name="soundFontPath">Path to a SoundFont (.sf2) file for use when playing MIDI</param>
-        public ZMusicPlayer(IOutputStreamFactory outputStreamFactory, string soundFontPath)
+        /// <param name="sourceVolume">Initial volume for this source</param>
+        public ZMusicPlayer(IOutputStreamFactory outputStreamFactory, string soundFontPath, float sourceVolume = 1.0f)
         {
             m_streamFactory = outputStreamFactory;
             m_soundFontPath = soundFontPath;
+            m_sourceVolume = sourceVolume;
         }
 
         /// <summary>
@@ -75,12 +89,7 @@
                 }
                 else
                 {
-                    byte[] fluidSynthPathBytes = Encoding.UTF8.GetBytes(m_soundFontPath);
-                    fixed (byte* path = fluidSynthPathBytes)
-                    {
-                        ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_fluid_samplerate, song, DefaultSampleRate, null);
-                        ZMusic.ChangeMusicSetting(EStringConfigKey_.zmusic_fluid_patchset, song, (sbyte*)path);
-                    }
+                    SetSoundFont(song, m_soundFontPath);
                     PlayStream(song, DefaultSampleRate, DefaultChannels, loop, m_streamFactory);
                 }
             }
@@ -95,13 +104,45 @@
             }
         }
 
+        public unsafe void ChangeSoundFont(string newPath)
+        {
+            if (m_soundFontPath == newPath)
+                return;
+
+            m_soundFontPath = newPath;
+            if (IsPlaying)
+            {
+                _ZMusic_MusicStream_Struct* song = (_ZMusic_MusicStream_Struct*)m_zMusicSong;
+
+                SetSoundFont(song, m_soundFontPath);
+                m_playStartTask = new(() =>
+                {
+                    ZMusic.ZMusic_Stop(song);
+                    ZMusic.ZMusic_Start(song, 0, Convert.ToByte(m_loop));
+                });
+                m_playStartTask.Start();
+            }
+        }
+
+        private unsafe void SetSoundFont(_ZMusic_MusicStream_Struct* song, string soundFontPath)
+        {
+            byte[] fluidSynthPathBytes = Encoding.UTF8.GetBytes(soundFontPath);
+            fixed (byte* path = fluidSynthPathBytes)
+            {
+                ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_fluid_samplerate, song, DefaultSampleRate, null);
+                ZMusic.ChangeMusicSetting(EStringConfigKey_.zmusic_fluid_patchset, song, (sbyte*)path);
+            }
+        }
+
         private unsafe void PlayStream(_ZMusic_MusicStream_Struct* song, int sampleRate, int channels, bool loop, IOutputStreamFactory streamFactory)
         {
             if (channels == 0) // what
                 throw new Exception("Cannot play stream with no channels");
 
             m_activeStream = streamFactory.GetOutputStream(sampleRate, Math.Abs(channels));
+            m_activeStream.SetVolume(m_sourceVolume);
 
+            m_loop = loop;
             _ = ZMusic.ZMusic_Start(song, 0, Convert.ToByte(loop));
 
             if (channels > 0)
