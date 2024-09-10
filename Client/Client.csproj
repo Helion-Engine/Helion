@@ -33,8 +33,9 @@
     <Content Include="$(HelionRootDir)Assets\Documentation\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(ProjectDir)SoundFonts\*" Link="SoundFonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 
-    <Content Include="$(HelionRootDir)\ZMusic\native\$(DefaultAppHostRuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="'$(RuntimeIdentifier)' == ''" />
     <Content Include="$(HelionRootDir)\ZMusic\native\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="'$(RuntimeIdentifier)' != ''" />
+    <Content Include="$(HelionRootDir)\ZMusic\native\$(DefaultAppHostRuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="'$(RuntimeIdentifier)' == '' AND '$(DefaultAppHostRuntimeIdentifier)' != ''" />
+    <Content Include="$(HelionRootDir)\ZMusic\native\$(DefaultAppHostRuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="'$(RuntimeIdentifier)' == '' AND '$(NETCoreSdkPortableRuntimeIdentifier)' != ''" />
   </ItemGroup>
 
   <ItemGroup>
