@@ -33,6 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\..\Client\Soundfonts\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\Client\SoundFonts\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
