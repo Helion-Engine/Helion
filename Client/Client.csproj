@@ -29,14 +29,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Unmanaged\**\*" />
-    <None Remove="SoundFonts\*" />
-
     <Content Include="helion.ico" Link="%(Filename)%(Extension)" CopyToOutputDirectory="Never" />
     <Content Include="$(HelionRootDir)Assets\Documentation\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(ProjectDir)SoundFonts\*" Link="SoundFonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="$(ProjectDir)Unmanaged\**\*" Link="runtimes\%(RecursiveDir)\native\%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == ''" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="$(ProjectDir)Unmanaged\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' != ''" CopyToOutputDirectory="PreserveNewest" />
+
+    <Content Include="$(HelionRootDir)\ZMusic\native\$(DefaultAppHostRuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="'$(RuntimeIdentifier)' == ''" />
+    <Content Include="$(HelionRootDir)\ZMusic\native\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="'$(RuntimeIdentifier)' != ''" />
   </ItemGroup>
 
   <ItemGroup>
@@ -48,6 +46,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\ZMusic\ZMusicWrapper\ZMusicWrapper.csproj" />
   </ItemGroup>
 
   <Target Name="SetPublishDir" BeforeTargets="Build">
