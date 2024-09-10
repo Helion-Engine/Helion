@@ -27,6 +27,9 @@
 
         public bool IsPlaying => IsPlayingImpl();
 
+        /// <summary>
+        /// Gets or sets the volume.  Note that this is done on the output stream, not internal to ZMusic.
+        /// </summary>
         public float Volume
         {
             get => m_sourceVolume;
@@ -36,6 +39,12 @@
                 m_activeStream?.SetVolume(value);
             }
         }
+
+        /// <summary>
+        /// Gets the last error encountered when starting or stopping playback.
+        /// This will be null if we have not encountered any errors.
+        /// </summary>
+        public Exception? LastErr { get; private set; }
 
         /// <summary>
         /// Creates a new music player
@@ -77,25 +86,29 @@
                 fixed (byte* dataBytes = soundFileData)
                 {
                     nuint length = (nuint)soundFileData.Length;
-                    song = Generated.ZMusic.ZMusic_OpenSongMem(dataBytes, length, EMidiDevice_.MDEV_FLUIDSYNTH, null);
+                    song = ZMusic.ZMusic_OpenSongMem(dataBytes, length, EMidiDevice_.MDEV_FLUIDSYNTH, null);
                     m_zMusicSong = (IntPtr)song;
                 }
 
-                Generated.ZMusic.ZMusic_GetStreamInfo(song, &info);
+                ZMusic.ZMusic_GetStreamInfo(song, &info);
 
-                if (Generated.ZMusic.ZMusic_IsMIDI(song) == 0)
+                if (ZMusic.ZMusic_IsMIDI(song) == 0)
                 {
                     this.PlayStream(song, info.mSampleRate, info.mNumChannels, loop, this.m_streamFactory);
                 }
                 else
                 {
-                    this.SetSoundFont(song, this.m_soundFontPath);
+                    if (!m_soundFontLoaded)
+                    {
+                        this.SetSoundFont(song, this.m_soundFontPath);
+                    }
                     this.PlayStream(song, DefaultSampleRate, DefaultChannels, loop, this.m_streamFactory);
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Console.WriteLine(ex.ToString());
+                LastErr = e;
+
                 if (song != null)
                 {
                     // We've failed at some point in initialization; bail out and clean up
@@ -110,6 +123,8 @@
                 return;
 
             m_soundFontPath = newPath;
+            m_soundFontLoaded = false;
+
             if (IsPlaying)
             {
                 _ZMusic_MusicStream_Struct* song = (_ZMusic_MusicStream_Struct*)m_zMusicSong;
@@ -117,8 +132,8 @@
                 SetSoundFont(song, m_soundFontPath);
                 m_playStartTask = new(() =>
                 {
-                    Generated.ZMusic.ZMusic_Stop(song);
-                    Generated.ZMusic.ZMusic_Start(song, 0, Convert.ToByte(this.m_loop));
+                    ZMusic.ZMusic_Stop(song);
+                    ZMusic.ZMusic_Start(song, 0, Convert.ToByte(this.m_loop));
                 });
                 m_playStartTask.Start();
             }
@@ -129,8 +144,9 @@
             byte[] fluidSynthPathBytes = Encoding.UTF8.GetBytes(soundFontPath);
             fixed (byte* path = fluidSynthPathBytes)
             {
-                Generated.ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_fluid_samplerate, song, DefaultSampleRate, null);
-                Generated.ZMusic.ChangeMusicSetting(EStringConfigKey_.zmusic_fluid_patchset, song, (sbyte*)path);
+                ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_fluid_samplerate, song, DefaultSampleRate, null);
+                ZMusic.ChangeMusicSetting(EStringConfigKey_.zmusic_fluid_patchset, song, (sbyte*)path);
+                m_soundFontLoaded = true;
             }
         }
 
@@ -143,7 +159,7 @@
             m_activeStream.SetVolume(m_sourceVolume);
 
             m_loop = loop;
-            _ = Generated.ZMusic.ZMusic_Start(song, 0, Convert.ToByte(loop));
+            _ = ZMusic.ZMusic_Start(song, 0, Convert.ToByte(loop));
 
             if (channels > 0)
             {
@@ -155,7 +171,7 @@
                     {
                         fixed (float* p = data)
                         {
-                            _ = Generated.ZMusic.ZMusic_FillStream(song, p, sizeof(float) * data.Length);
+                            _ = ZMusic.ZMusic_FillStream(song, p, sizeof(float) * data.Length);
                         }
                         for (int i = 0; i < buffer.Length; i++)
                         {
@@ -181,7 +197,7 @@
                     {
                         fixed (short* b = buffer)
                         {
-                            _ = Generated.ZMusic.ZMusic_FillStream(song, b, sizeof(short) * data.Length);
+                            _ = ZMusic.ZMusic_FillStream(song, b, sizeof(short) * data.Length);
                         }
                     }
                     else
@@ -197,7 +213,7 @@
         private unsafe bool IsPlayingImpl()
         {
             ObjectDisposedException.ThrowIf(m_disposed, this);
-            return this.m_zMusicSong != nint.Zero && Generated.ZMusic.ZMusic_IsPlaying((_ZMusic_MusicStream_Struct*)this.m_zMusicSong) != 0;
+            return this.m_zMusicSong != nint.Zero && ZMusic.ZMusic_IsPlaying((_ZMusic_MusicStream_Struct*)this.m_zMusicSong) != 0;
         }
 
         /// <summary>
@@ -207,21 +223,32 @@
         {
             ObjectDisposedException.ThrowIf(m_disposed, this);
 
-            // Ensure we are not currently _starting_ playback, as that would put us in a weird state
-            m_playStartTask?.Wait();
-            m_playStartTask?.Dispose();
-            m_playStartTask = null;
-
-            // Stop playing
-            m_activeStream?.Stop();
-            m_activeStream?.Dispose();
-            m_activeStream = null;
-
-            // Ask ZMusic to close the stream
-            if (m_zMusicSong != IntPtr.Zero)
+            try
             {
-                Generated.ZMusic.ZMusic_Close((_ZMusic_MusicStream_Struct*)this.m_zMusicSong);
-                m_zMusicSong = IntPtr.Zero;
+                // Ensure we are not currently _starting_ playback, as that would put us in a weird state
+                m_playStartTask?.Wait();
+                m_playStartTask?.Dispose();
+                m_playStartTask = null;
+
+                // Stop playing
+                m_activeStream?.Stop();
+                m_activeStream?.Dispose();
+                m_activeStream = null;
+
+                // Ask ZMusic to close the stream
+                if (m_zMusicSong != IntPtr.Zero)
+                {
+                    if (IsPlayingImpl())
+                    {
+                        ZMusic.ZMusic_Stop((_ZMusic_MusicStream_Struct*)this.m_zMusicSong);
+                    }
+                    ZMusic.ZMusic_Close((_ZMusic_MusicStream_Struct*)this.m_zMusicSong);
+                    m_zMusicSong = IntPtr.Zero;
+                }
+            }
+            catch (Exception e)
+            {
+                LastErr = e;
             }
         }
 
