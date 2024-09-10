@@ -24,8 +24,12 @@
     <Content Include="..\native\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(RuntimeIdentifier)' == ''">
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == '' AND '$(DefaultAppHostRuntimeIdentifier)' != ''">
     <Content Include="..\native\$(DefaultAppHostRuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == '' AND '$(NETCoreSdkPortableRuntimeIdentifier)' != ''">
+    <Content Include="..\native\$(NETCoreSdkPortableRuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

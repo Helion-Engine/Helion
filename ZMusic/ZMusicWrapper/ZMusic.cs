@@ -41,7 +41,7 @@
 
         private static IntPtr ImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
         {
-            if (libraryName == Generated.ZMusic.LibraryName)
+            if (libraryName == ZMusic.LibraryName)
             {
                 string[] libraryNames = GetExpectedLibraryNames();
 
