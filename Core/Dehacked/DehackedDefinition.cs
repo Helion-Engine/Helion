@@ -537,6 +537,14 @@ public partial class DehackedDefinition
                 weapon.InitialRaised = GetIntProperty(parser, InitialRaised) != 0;
             else if (line.StartsWith(CarouselIcon, StringComparison.OrdinalIgnoreCase))
                 weapon.CarouselIcon = GetStringProperty(parser, CarouselIcon);
+            else if (line.StartsWith(AllowSwitchWithOwnedWeapon, StringComparison.OrdinalIgnoreCase))
+                weapon.AllowSwitchWithOwnedWeapon = GetIntProperty(parser, AllowSwitchWithOwnedWeapon);
+            else if (line.StartsWith(NoSwitchWithOwnedWeapon, StringComparison.OrdinalIgnoreCase))
+                weapon.NoSwitchWithOwnedWeapon = GetIntProperty(parser, NoSwitchWithOwnedWeapon);
+            else if (line.StartsWith(AllowSwitchWithOwnedItem, StringComparison.OrdinalIgnoreCase))
+                weapon.AllowSwitchWithOwnedItem = GetIntProperty(parser, AllowSwitchWithOwnedItem);
+            else if (line.StartsWith(NoSwitchWithOwnedItem, StringComparison.OrdinalIgnoreCase))
+                weapon.NoSwitchWithOwnedItem = GetIntProperty(parser, NoSwitchWithOwnedItem);
             else
                 UnknownWarning(parser, "weapon type");
 

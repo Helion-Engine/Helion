@@ -18,4 +18,8 @@ public class DehackedWeapon
     public bool? InitialOwned { get; set; }
     public bool? InitialRaised { get; set; }
     public string? CarouselIcon { get; set; }
+    public int? AllowSwitchWithOwnedWeapon { get; set; }
+    public int? NoSwitchWithOwnedWeapon { get; set; }
+    public int? AllowSwitchWithOwnedItem { get; set; }
+    public int? NoSwitchWithOwnedItem { get; set; }
 }

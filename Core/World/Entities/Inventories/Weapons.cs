@@ -64,8 +64,8 @@ public sealed class Weapons
         return weapons;
     }
 
-    public WeaponSlot GetNextSlot(Player player) => CycleSlot(player, player.WeaponSlot, player.WeaponSubSlot, true);
-    public WeaponSlot GetPreviousSlot(Player player) => CycleSlot(player, player.WeaponSlot, player.WeaponSubSlot, false);
+    public WeaponSlot GetNextSlot(Player player) => CycleSlot(player, player.WeaponSlot, player.WeaponSubSlot, true, true);
+    public WeaponSlot GetPreviousSlot(Player player) => CycleSlot(player, player.WeaponSlot, player.WeaponSubSlot, false, false);
 
     public WeaponSlot GetNextSlot(Player player, int amount)
     {
@@ -77,46 +77,34 @@ public sealed class Weapons
         amount = Math.Abs(amount % m_ownedWeapons.Count);
         while (amount > 0)
         {
-            slot = CycleSlot(player, slot.Slot, slot.SubSlot, direction);
+            slot = CycleSlot(player, slot.Slot, slot.SubSlot, direction, false);
             amount--;
         }
 
         return slot;
     }
 
-    private WeaponSlot CycleSlot(Player player, int slot, int subSlot, bool next)
+    private WeaponSlot CycleSlot(Player player, int slot, int subSlot, bool next, bool wrapSubSlot)
     {
-        int startSlot = slot;
         if (m_ownedWeapons.Count == 0)
-           return DefaultSlot;
+            return DefaultSlot;
 
-        subSlot = GetNextSubSlot(slot, subSlot, next);
-        if (subSlot != -1)
-            return new(slot, subSlot);
-
-        if (next)
-            slot = GetSlot(++slot, MinSlot, MaxSlot);
-        else
-            slot = GetSlot(--slot, MinSlot, MaxSlot);
-
-        while (slot != startSlot)
+        var nextSubSlot = GetNextSubSlot(slot, subSlot, next);
+        if (nextSubSlot != -1 && nextSubSlot != subSlot)
         {
-            if (next)
-                subSlot = GetFirstSubSlot(slot);
-            else
-                subSlot = GetSubSlots(slot) - 1;
+            if (wrapSubSlot)
+                return new(slot, nextSubSlot);
 
-            var weapon = GetWeapon(player, slot, subSlot);
-            if (weapon != null)
-                return new(slot, subSlot);
-
-            if (next)
-                slot = GetSlot(++slot, MinSlot, MaxSlot);
-            else
-                slot = GetSlot(--slot, MinSlot, MaxSlot);
+            if (next && nextSubSlot > subSlot)
+                return new(slot, nextSubSlot);
+            if (!next && nextSubSlot < subSlot)
+                return new(slot, nextSubSlot);
         }
 
-        return DefaultSlot;
+        var nextSlot = GetNextSlot(slot, next);
+        nextSubSlot = next ? GetFirstSubSlot(nextSlot) : GetBestSubSlot(nextSlot);
+
+        return new(nextSlot, nextSubSlot);
     }
 
     public int GetNextSubSlot(int slot, int subSlot, bool next)
@@ -139,17 +127,29 @@ public sealed class Weapons
         }
 
         if (find == subSlot || find == int.MaxValue || find == int.MinValue)
-            return GetFirstSubSlot(slot);
+            return next ? GetFirstSubSlot(slot) : GetBestSubSlot(slot);
         return find;
     }
 
-    private static int GetSlot(int slot, int min, int max)
+    public int GetNextSlot(int slot, bool next)
     {
-        if (slot < min)
-            slot = max;
-        if (slot > max)
-            slot = min;
-        return slot;
+        int find = next ? int.MaxValue : int.MinValue;
+        for (int i = 0; i < m_ownedWeapons.Count; i++)
+        {
+            var weapon = m_ownedWeapons[i];
+            if (!m_weaponSlotLookup.TryGetValue(weapon.Definition.Id, out var weaponSlot))
+                continue;
+
+            if (next && weaponSlot.Slot > slot && weaponSlot.Slot < find)
+                find = weaponSlot.Slot;
+
+            if (!next && weaponSlot.Slot < slot && weaponSlot.Slot > find)
+                find = weaponSlot.Slot;
+        }
+
+        if (find == int.MaxValue || find == int.MinValue)
+            return next ? GetFirstSlot() : GetLastSlot();
+        return find;
     }
 
     public Weapon? Add(EntityDefinition definition, Player owner, EntityManager entityManager,
@@ -186,6 +186,42 @@ public sealed class Weapons
         m_ownedWeapons.Clear();
         m_ownedWeaponsById.SetAll(null);
         WeaponsCleared?.Invoke(this, EventArgs.Empty);
+    }
+
+    public int GetFirstSlot()
+    {
+        int min = int.MaxValue;
+        for (int i = 0; i < m_ownedWeapons.Count; i++)
+        {
+            var weapon = m_ownedWeapons[i];
+            if (!m_weaponSlotLookup.TryGetValue(weapon.Definition.Id, out var weaponSlot))
+                continue;
+
+            if (weaponSlot.Slot < min)
+                min = weaponSlot.Slot;
+        }
+
+        if (min == int.MaxValue)
+            return -1;
+        return min;
+    }
+
+    public int GetLastSlot()
+    {
+        int max = int.MinValue;
+        for (int i = 0; i < m_ownedWeapons.Count; i++)
+        {
+            var weapon = m_ownedWeapons[i];
+            if (!m_weaponSlotLookup.TryGetValue(weapon.Definition.Id, out var weaponSlot))
+                continue;
+
+            if (weaponSlot.Slot > max)
+                max = weaponSlot.Slot;
+        }
+
+        if (max == int.MinValue)
+            return -1;
+        return max;
     }
 
     public int GetFirstSubSlot(int slot)
@@ -230,24 +266,6 @@ public sealed class Weapons
         return max;
     }
 
-    public int GetSubSlots(int slot)
-    {
-        int count = 0;
-        for (int i = 0; i < m_ownedWeapons.Count; i++)
-        {
-            var weapon = m_ownedWeapons[i];
-            if (!m_weaponSlotLookup.TryGetValue(weapon.Definition.Id, out var weaponSlot))
-                continue;
-
-            if (weaponSlot.Slot != slot)
-                continue;
-
-            count++;
-        }
-
-        return count;
-    }
-
     public bool OwnsWeapon(EntityDefinition def)
     {
         return m_ownedWeaponsById.TryGetValue(def.Id, out _);
@@ -269,7 +287,7 @@ public sealed class Weapons
         return null;
     }
 
-    public bool HasWeaponSlot(Player player, int slot)
+    public bool HasWeaponSlot(int slot)
     {
         for (int i = 0; i < m_ownedWeapons.Count; i++)
         {
@@ -284,13 +302,8 @@ public sealed class Weapons
         return false;
     }
 
-    public Weapon? GetWeapon(Player player, int slot, int subslot = -1)
+    public Weapon? GetWeapon(int slot, int subslot)
     {
-        if (slot == player.WeaponSlot && subslot == -1)
-            subslot = GetSlot(player.WeaponSubSlot + 1, 0, GetSubSlots(slot));
-        else if (subslot == -1)
-            subslot = GetBestSubSlot(slot);
-
         for (int i = 0; i < m_ownedWeapons.Count; i++)
         {
             var weapon = m_ownedWeapons[i];
@@ -305,6 +318,7 @@ public sealed class Weapons
 
         return null;
     }
+
     private static int WeaponSelectionOrderCompare(Weapon w1, Weapon w2)
     {
         return w1.Definition.Properties.Weapons.SelectionOrder.CompareTo(w2.Definition.Properties.Weapons.SelectionOrder);

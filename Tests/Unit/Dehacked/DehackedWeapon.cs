@@ -26,7 +26,10 @@ Switch Priority = 13
 Initial Owned = 1
 Initial Raised = 0
 Carousel icon = SOMEICON
-
+Allow switch with owned weapon = 14
+No switch with owned weapon = 15
+Allow switch with owned item = 16
+No switch with owned item = 17
 
 Weapon 2
 Ammo type = 2
@@ -60,6 +63,10 @@ MBF21 Bits= 10";
         weapon.InitialOwned.Should().Be(true);
         weapon.InitialRaised.Should().Be(false);
         weapon.CarouselIcon.Should().Be("SOMEICON");
+        weapon.AllowSwitchWithOwnedWeapon.Should().Be(14);
+        weapon.NoSwitchWithOwnedWeapon.Should().Be(15);
+        weapon.AllowSwitchWithOwnedItem.Should().Be(16);
+        weapon.NoSwitchWithOwnedItem.Should().Be(17);
 
         weapon = dehacked.Weapons[1];
         weapon.WeaponNumber.Should().Be(2);

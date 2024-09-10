@@ -833,11 +833,11 @@ public class Player : Entity
                     nextSlot.SubSlot = Inventory.Weapons.GetFirstSubSlot(slot);
 
                 if (nextSlot.Slot != -1)
-                    weapon = Inventory.Weapons.GetWeapon(this, nextSlot.Slot, nextSlot.SubSlot);
+                    weapon = Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
             }
             else
             {
-                weapon = Inventory.Weapons.GetWeapon(this, slot);
+                weapon = Inventory.Weapons.GetWeapon(slot, Inventory.Weapons.GetBestSubSlot(slot));
             }
 
             if (weapon != null)
@@ -903,7 +903,7 @@ public class Player : Entity
     {
         if (slot.Slot != WeaponSlot || slot.SubSlot != WeaponSubSlot)
         {
-            var weapon = Inventory.Weapons.GetWeapon(this, slot.Slot, slot.SubSlot);
+            var weapon = Inventory.Weapons.GetWeapon(slot.Slot, slot.SubSlot);
             if (weapon != null)
                 ChangeWeapon(weapon);
         }

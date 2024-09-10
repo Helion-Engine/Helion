@@ -4928,6 +4928,10 @@ public partial class DehackedDefinition
     private static readonly string InitialOwned = "Initial Owned";
     private static readonly string InitialRaised = "Initial Raised";
     private static readonly string CarouselIcon = "Carousel icon";
+    private static readonly string AllowSwitchWithOwnedWeapon = "Allow switch with owned weapon";
+    private static readonly string NoSwitchWithOwnedWeapon = "No switch with owned weapon";
+    private static readonly string AllowSwitchWithOwnedItem = "Allow switch with owned item";
+    private static readonly string NoSwitchWithOwnedItem = "No switch with owned item";
 
     private static readonly string ChangeMusic = "Change music";
     private static readonly string Chainsaw = "Chainsaw";

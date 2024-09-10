@@ -123,9 +123,9 @@ public class DehackedApplier
         bool setWeaponSlot = false;
         foreach (var weapon in dehacked.Weapons)
         {
-            EntityDefinition? weaponDef = GetWeaponDefinition(weapon.WeaponNumber, composer);
+            var weaponDef = GetWeaponDefinition(weapon.WeaponNumber, composer);
             if (weaponDef == null)
-                return;
+                continue;
 
             // Deselect and select are backwards in dehacked...
             if (weapon.DeselectFrame.HasValue)
@@ -160,8 +160,65 @@ public class DehackedApplier
         }
 
         if (setWeaponSlot)
+            RemapWeaponSlotPriorities(dehacked, composer, gameDef);
+    }
+
+    private static void RemapWeaponSlotPriorities(DehackedDefinition dehacked, EntityDefinitionComposer composer, GameInfoDef gameDef)
+    {
+        foreach (var weaponName in dehacked.WeaponNamesById)
         {
-            // Remap and set slot priorities
+            var weaponDef = composer.GetByName(weaponName);
+            if (weaponDef == null)
+                continue;
+
+            if (weaponName.Equals("Fist", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+            if (weaponName.Equals("Chainsaw", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 1;
+            else if (weaponName.Equals("Pistol", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+            else if (weaponName.Equals("Shotgun", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+            else if (weaponName.Equals("SuperShotgun", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 1;
+            else if (weaponName.Equals("Chaingun", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+            else if (weaponName.Equals("RocketLauncher", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+            else if (weaponName.Equals("PlasmaRifle", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+            else if (weaponName.Equals("BFG9000", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+        }
+
+        foreach (var weapon in dehacked.Weapons)
+        {
+            if (!weapon.SlotPriority.HasValue)
+                continue;
+
+            var weaponDef = GetWeaponDefinition(weapon.WeaponNumber, composer);
+            if (weaponDef == null)
+                continue;
+
+            weaponDef.Properties.Weapons.SlotPriority = weapon.SlotPriority.Value;
+        }
+
+        foreach (var weaponSlot in gameDef.WeaponSlots)
+        {
+            if (weaponSlot.Value.Count < 2)
+                continue;
+
+            var weaponDefs = weaponSlot.Value.Select(composer.GetByName).ToList();
+            for (int i = 0; i < weaponDefs.Count; i++)
+            {
+                var weaponDef = weaponDefs[i];
+                if (weaponDef == null)
+                {
+                    weaponSlot.Value[i] = string.Empty;
+                    continue;
+                }
+                weaponSlot.Value[i] = weaponDef.Name;
+            }
         }
     }
 
