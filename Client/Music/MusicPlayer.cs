@@ -1,6 +1,7 @@
 ﻿using Helion.Audio;
 using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
+using Helion.Util.Sounds.Mus;
 using NLog;
 using System;
 using System.Collections.Concurrent;
@@ -22,14 +23,17 @@ public class MusicPlayer : IMusicPlayer
     private readonly Dictionary<uint, byte[]> m_convertedMus = [];
     private readonly CancellationTokenSource m_cancelPlayQueue = new();
     private readonly Task m_playQueueTask;
-    private ZMusicWrapper.ZMusicPlayer m_musicPlayer;
+    private Thread? m_playStartThread;
+    private ZMusicWrapper.ZMusicPlayer m_zMusicPlayer;
+    private FluidSynthMusicPlayer m_fluidSynthPlayer;
 
     public MusicPlayer(ConfigAudio configAudio)
     {
         m_configAudio = configAudio;
         m_playQueueTask = Task.Factory.StartNew(PlayQueueTask, m_cancelPlayQueue.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
-        m_musicPlayer = new ZMusicWrapper.ZMusicPlayer(new AudioStreamFactory(), configAudio.SoundFontFile.Value, (float)(configAudio.MusicVolume.Value * .5));
+        m_zMusicPlayer = new ZMusicWrapper.ZMusicPlayer(new AudioStreamFactory(), string.Empty, (float)(configAudio.MusicVolume.Value * .5));
+        m_fluidSynthPlayer = new FluidSynthMusicPlayer(configAudio.SoundFontFile.Value);
     }
 
     private readonly struct PlayParams(byte[] data, MusicPlayerOptions options)
@@ -55,7 +59,7 @@ public class MusicPlayer : IMusicPlayer
             return;
         }
 
-        m_musicPlayer.ChangeSoundFont(m_configAudio.SoundFontFile);
+        m_fluidSynthPlayer.EnsureSoundFont(m_configAudio.SoundFontFile);
     }
 
     private void PlayQueueTask()
@@ -86,7 +90,44 @@ public class MusicPlayer : IMusicPlayer
         m_lastDataHash = hash;
 
         Stop();
-        m_musicPlayer.Play(data, playParams.Options.HasFlag(MusicPlayerOptions.Loop));
+        SetVolume((float)m_configAudio.MusicVolume.Value);
+        bool isMidi = m_zMusicPlayer.IsMIDI(data, out string? error);
+
+        if (!string.IsNullOrEmpty(error))
+        {
+            // ZMusic can't make sense of this, so just log it and give up.
+            Log.Warn("Unknown/unsupported music format.");
+            return;
+        }
+
+        if (!isMidi)
+        {
+            // MP3, OGG, MOD, XM, IT, etc. -- use ZMusic.
+            // No need for the "play thread" wrapper here.
+            m_zMusicPlayer.Play(data, playParams.Options.HasFlag(MusicPlayerOptions.Loop));
+        }
+        else
+        {
+            if (m_convertedMus.TryGetValue(m_lastDataHash, out var converted) || MusToMidi.TryConvert(data, out converted))
+            {
+                m_convertedMus[m_lastDataHash] = converted;
+                data = converted;
+            }
+            else if (MusToMidi.TryConvertNoHeader(data, out converted))
+            {
+                m_convertedMus[m_lastDataHash] = converted;
+                data = converted;
+            }
+            else
+            {
+                // Warn and give up
+                Log.Warn("Unknown/unsupported MIDI-like music format");
+                return;
+            }
+
+            m_playStartThread = new Thread(() => m_fluidSynthPlayer.Play(data, playParams.Options));
+            m_playStartThread.Start();
+        }
     }
 
     public void Dispose()
@@ -105,13 +146,14 @@ public class MusicPlayer : IMusicPlayer
         m_cancelPlayQueue.Cancel();
         m_playQueueTask.Wait(1000);
 
-        m_musicPlayer.Dispose();
+        m_zMusicPlayer.Dispose();
         m_disposed = true;
     }
 
     public void SetVolume(float volume)
     {
-        m_musicPlayer.Volume = (float)(volume * .5);
+        m_zMusicPlayer.Volume = (float)(volume * .5);
+        m_fluidSynthPlayer.SetVolume(volume);
     }
 
     public void Stop()
@@ -119,6 +161,7 @@ public class MusicPlayer : IMusicPlayer
         if (m_disposed)
             return;
 
-        m_musicPlayer?.Stop();
+        m_zMusicPlayer.Stop();
+        m_fluidSynthPlayer.Stop();
     }
 }

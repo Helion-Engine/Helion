@@ -65,8 +65,10 @@
         /// </summary>
         /// <param name="soundFileData">byte array representing the raw data of a music file</param>
         /// <returns>True if the input data appears to be MIDI or MUS, False otherwise</returns>
-        public unsafe bool IsMIDI(byte[] soundFileData)
+        public unsafe bool IsMIDI(byte[] soundFileData, out string? err)
         {
+            err = null;
+
             try
             {
                 fixed (byte* dataBytes = soundFileData)
@@ -80,12 +82,14 @@
                     bool result = ZMusic.ZMusic_IsMIDI(song) != 0;
 
                     ZMusic.ZMusic_Close(song);
+                    m_zMusicSong = IntPtr.Zero;
                     return result;
                 }
             }
-            catch
+            catch(Exception ex)
             {
                 // Whatever just happened, let's assume it wasn't MIDI
+                err = ex.ToString();
                 return false;
             }
         }
