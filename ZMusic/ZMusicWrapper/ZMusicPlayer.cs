@@ -22,6 +22,7 @@
         private Action? m_stoppedAction;
         private float m_sourceVolume;
         private bool m_loop;
+        private bool m_soundFontLoaded;
 
         private bool m_disposed;
 
@@ -57,6 +58,36 @@
             m_streamFactory = outputStreamFactory;
             m_soundFontPath = soundFontPath;
             m_sourceVolume = sourceVolume;
+        }
+
+        /// <summary>
+        /// Determine whether a given byte array looks like MIDI or MUS data
+        /// </summary>
+        /// <param name="soundFileData">byte array representing the raw data of a music file</param>
+        /// <returns>True if the input data appears to be MIDI or MUS, False otherwise</returns>
+        public unsafe bool IsMIDI(byte[] soundFileData)
+        {
+            try
+            {
+                fixed (byte* dataBytes = soundFileData)
+                {
+                    _ZMusic_MusicStream_Struct* song = null;
+
+                    nuint length = (nuint)soundFileData.Length;
+                    song = ZMusic.ZMusic_OpenSongMem(dataBytes, length, EMidiDevice_.MDEV_FLUIDSYNTH, null);
+                    m_zMusicSong = (IntPtr)song;
+
+                    bool result = ZMusic.ZMusic_IsMIDI(song) != 0;
+
+                    ZMusic.ZMusic_Close(song);
+                    return result;
+                }
+            }
+            catch
+            {
+                // Whatever just happened, let's assume it wasn't MIDI
+                return false;
+            }
         }
 
         /// <summary>
