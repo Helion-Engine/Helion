@@ -7,6 +7,7 @@ using Helion.Render.Common.Renderers;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Extensions;
+using Helion.Util.Sounds.Mus;
 using Helion.Util.Timing;
 using Helion.Window;
 
