@@ -570,6 +570,13 @@ public class GameLayerManager : IGameLayerManager
         if (!CanSave)
             return;
 
+        // if quick saves are separated, then we aren't concerned with slots
+        if (m_config.Game.SeparateQuickSaves)
+        {
+            WriteQuickSave();
+            return;
+        }
+
         if (WorldLayer == null || !LastSave.HasValue || LastSave?.SaveGame.IsAutoSave == true)
         {
             GoToSaveOrLoadMenu(true);
@@ -601,18 +608,42 @@ public class GameLayerManager : IGameLayerManager
 
     private void WriteQuickSave()
     {
-        if (WorldLayer == null || LastSave == null || !CanSave)
+        bool separate = m_config.Game.SeparateQuickSaves;
+        if (WorldLayer == null || (!separate && LastSave == null) || !CanSave)
             return;
 
         var world = WorldLayer!.World;
-        var save = LastSave.Value;
-        // If the saved game name has been customized, preserve that customization
-        bool isCustomizedName = save.SaveGame.Model?.MapName != save.SaveGame.Model?.Text;
-        string name = isCustomizedName
-            ? save.SaveGame.Model?.Text ?? "Unnamed"
-            : world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection);
-        m_saveGameManager.WriteSaveGame(world, name, save.SaveGame);
-        world.DisplayMessage(world.Player, null, SaveMenu.SaveMessage);
+        if (separate)
+        {
+            string name = $"Quick: {world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection)}";
+            var saveEvent = m_saveGameManager.WriteSaveGame(world, name, null, quickSave: true);
+            if (saveEvent.Success)
+                m_console.AddMessage($"Saved {saveEvent.FileName}");
+            else
+            {
+                m_console.AddMessage($"Failed to save {saveEvent.FileName}");
+                if (saveEvent.Exception != null)
+                    throw saveEvent.Exception;
+            }
+        }
+        else
+        {
+            var existingSave = LastSave!.Value.SaveGame;
+            // If the saved game name has been customized, preserve that customization
+            bool isCustomizedName = existingSave.Model?.MapName != existingSave.Model?.Text;
+            string name = isCustomizedName
+                ? existingSave.Model?.Text ?? "Unnamed"
+                : world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection);
+            var saveEvent = m_saveGameManager.WriteSaveGame(world, name, existingSave);
+            if (saveEvent.Success)
+                world.DisplayMessage(world.Player, null, SaveMenu.SaveMessage);
+            else
+            {
+                m_console.AddMessage($"Failed to save {saveEvent.FileName}");
+                if (saveEvent.Exception != null)
+                    throw saveEvent.Exception;
+            }
+        }
     }
 
     public void RunLogic(TickerInfo tickerInfo)

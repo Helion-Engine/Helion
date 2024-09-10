@@ -48,7 +48,7 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Autosave")]
     public readonly ConfigValue<bool> AutoSave = new(true);
 
-    [ConfigInfo("Limits the number of autosaves by replacing the oldest when autosaving.")]
+    [ConfigInfo("Replaces the oldest autosave when when the limit is hit.")]
     [OptionMenu(OptionSectionType.General, "Rotate Autosaves")]
     public readonly ConfigValue<bool> RotateAutoSaves = new(true);
 
@@ -56,9 +56,21 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Rotating Autosave Limit")]
     public readonly ConfigValue<int> MaxAutoSaves = new(4, Greater(0));
 
-    [ConfigInfo("Confirm overwrite when quick saving.")]
-    [OptionMenu(OptionSectionType.General, "Confirm Quick Save")]
+    [ConfigInfo("Separates quicksaves from regular saves.")]
+    [OptionMenu(OptionSectionType.General, "Separate Quicksaves")]
+    public readonly ConfigValue<bool> SeparateQuickSaves = new(true);
+
+    [ConfigInfo("Confirm overwrite when quicksaving to a specific slot.")]
+    [OptionMenu(OptionSectionType.General, "Confirm Quicksave to Slot")]
     public readonly ConfigValue<bool> QuickSaveConfirm = new(true);
+
+    [ConfigInfo("Replaces the oldest quicksave when when the limit is hit.")]
+    [OptionMenu(OptionSectionType.General, "Rotate Quicksaves")]
+    public readonly ConfigValue<bool> RotateQuickSaves = new(true);
+
+    [ConfigInfo("Maximum number of quicksaves when rotating.")]
+    [OptionMenu(OptionSectionType.General, "Rotating Quicksave Limit")]
+    public readonly ConfigValue<int> MaxQuickSaves = new(4, Greater(0));
 
 
     // Cheats

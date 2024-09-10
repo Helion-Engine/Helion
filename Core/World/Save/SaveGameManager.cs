@@ -81,10 +81,10 @@ public class SaveGameManager
 
     public SaveGame ReadSaveGame(string filename) => new SaveGame(GetSaveDir(), filename);
 
-    public SaveGameEvent WriteNewSaveGame(IWorld world, string title, bool autoSave = false) =>
-        WriteSaveGame(world, title, null, autoSave);
+    public SaveGameEvent WriteNewSaveGame(IWorld world, string title, bool autoSave = false, bool quickSave = false) =>
+        WriteSaveGame(world, title, null, autoSave, quickSave);
 
-    public SaveGameEvent WriteSaveGame(IWorld world, string title, SaveGame? existingSave, bool autoSave = false)
+    public SaveGameEvent WriteSaveGame(IWorld world, string title, SaveGame? existingSave, bool autoSave = false, bool quickSave = false)
     {
         if (existingSave == null && autoSave && m_config.Game.RotateAutoSaves.Value)
         {
@@ -93,7 +93,14 @@ public class SaveGameManager
             if (matchingSaves.Any() && matchingSaves.Count() >= m_config.Game.MaxAutoSaves.Value)
                 existingSave = matchingSaves.First();
         }
-        string filename = existingSave?.FileName ?? GetNewSaveName(autoSave);
+        if (existingSave == null && quickSave && m_config.Game.SeparateQuickSaves.Value && m_config.Game.RotateQuickSaves.Value)
+        {
+            var quickSaves = GetSaveGames().Where(x => x.IsQuickSave);
+            var matchingSaves = GetMatchingSaveGames(quickSaves).OrderBy(x => x.Model?.Date);
+            if (matchingSaves.Any() && matchingSaves.Count() >= m_config.Game.MaxQuickSaves.Value)
+                existingSave = matchingSaves.First();
+        }
+        string filename = existingSave?.FileName ?? GetNewSaveName(autoSave, quickSave);
         var saveEvent = SaveGame.WriteSaveGame(world, title, GetSaveDir(), filename);
 
         GameSaved?.Invoke(this, saveEvent);
@@ -137,7 +144,7 @@ public class SaveGameManager
         return true;
     }
 
-    private string GetNewSaveName(bool autoSave)
+    private string GetNewSaveName(bool autoSave, bool quickSave)
     {
         List<string> files = Directory.GetFiles(GetSaveDir(), "*.hsg")
             .Select(Path.GetFileName)
@@ -147,7 +154,7 @@ public class SaveGameManager
         int number = 0;
         while (true)
         {
-            string name = GetSaveName(number, autoSave);
+            string name = GetSaveName(number, autoSave, quickSave);
             if (files.Any(x => x.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 number++;
             else
@@ -155,10 +162,12 @@ public class SaveGameManager
         }
     }
 
-    private static string GetSaveName(int number, bool autoSave)
+    private static string GetSaveName(int number, bool autoSave, bool quickSave)
     {
         if (autoSave)
             return $"autosave{number}.hsg";
+        else if (quickSave)
+            return $"quicksave{number}.hsg";
         return $"savegame{number}.hsg";
     }
 }
