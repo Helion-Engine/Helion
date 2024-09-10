@@ -86,18 +86,18 @@ public class SaveGameManager
 
     public SaveGameEvent WriteSaveGame(IWorld world, string title, SaveGame? existingSave, bool autoSave = false, bool quickSave = false)
     {
-        if (existingSave == null && autoSave && m_config.Game.RotateAutoSaves.Value)
+        if (existingSave == null && autoSave && m_config.Game.RotatingAutoSaves > 0)
         {
             var autoSaves = GetSaveGames().Where(x => x.IsAutoSave);
             var matchingSaves = GetMatchingSaveGames(autoSaves).OrderBy(x => x.Model?.Date);
-            if (matchingSaves.Any() && matchingSaves.Count() >= m_config.Game.MaxAutoSaves.Value)
+            if (matchingSaves.Any() && matchingSaves.Count() >= m_config.Game.RotatingAutoSaves)
                 existingSave = matchingSaves.First();
         }
-        if (existingSave == null && quickSave && m_config.Game.SeparateQuickSaves.Value && m_config.Game.RotateQuickSaves.Value)
+        if (existingSave == null && quickSave && m_config.Game.RotatingQuickSaves > 0)
         {
             var quickSaves = GetSaveGames().Where(x => x.IsQuickSave);
             var matchingSaves = GetMatchingSaveGames(quickSaves).OrderBy(x => x.Model?.Date);
-            if (matchingSaves.Any() && matchingSaves.Count() >= m_config.Game.MaxQuickSaves.Value)
+            if (matchingSaves.Any() && matchingSaves.Count() >= m_config.Game.RotatingQuickSaves)
                 existingSave = matchingSaves.First();
         }
         string filename = existingSave?.FileName ?? GetNewSaveName(autoSave, quickSave);

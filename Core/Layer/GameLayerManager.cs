@@ -26,6 +26,7 @@ using Helion.Util.Extensions;
 using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
+using Helion.World.Impl.SinglePlayer;
 using Helion.World.Save;
 using Helion.Geometry.Boxes;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
@@ -570,8 +571,8 @@ public class GameLayerManager : IGameLayerManager
         if (!CanSave)
             return;
 
-        // if quick saves are separated, then we aren't concerned with slots
-        if (m_config.Game.SeparateQuickSaves)
+        // if we're using rotating quicksaves, then we aren't concerned with saving to a particular slot
+        if (m_config.Game.RotatingQuickSaves > 0)
         {
             WriteQuickSave();
             return;
@@ -608,23 +609,16 @@ public class GameLayerManager : IGameLayerManager
 
     private void WriteQuickSave()
     {
-        bool separate = m_config.Game.SeparateQuickSaves;
-        if (WorldLayer == null || (!separate && LastSave == null) || !CanSave)
+        bool isRotating = m_config.Game.RotatingQuickSaves > 0;
+        if (WorldLayer == null || (!isRotating && LastSave == null) || !CanSave)
             return;
 
         var world = WorldLayer!.World;
-        if (separate)
+        if (isRotating)
         {
             string name = $"Quick: {world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection)}";
             var saveEvent = m_saveGameManager.WriteSaveGame(world, name, null, quickSave: true);
-            if (saveEvent.Success)
-                m_console.AddMessage($"Saved {saveEvent.FileName}");
-            else
-            {
-                m_console.AddMessage($"Failed to save {saveEvent.FileName}");
-                if (saveEvent.Exception != null)
-                    throw saveEvent.Exception;
-            }
+            HandleSaveEvent(saveEvent, world);
         }
         else
         {
@@ -635,14 +629,19 @@ public class GameLayerManager : IGameLayerManager
                 ? existingSave.Model?.Text ?? "Unnamed"
                 : world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection);
             var saveEvent = m_saveGameManager.WriteSaveGame(world, name, existingSave);
-            if (saveEvent.Success)
-                world.DisplayMessage(world.Player, null, SaveMenu.SaveMessage);
-            else
-            {
-                m_console.AddMessage($"Failed to save {saveEvent.FileName}");
-                if (saveEvent.Exception != null)
-                    throw saveEvent.Exception;
-            }
+            HandleSaveEvent(saveEvent, world, SaveMenu.SaveMessage);
+        }
+    }
+
+    private void HandleSaveEvent(SaveGameEvent saveEvent, SinglePlayerWorld world, string? successMessage = null)
+    {
+        if (saveEvent.Success)
+            world.DisplayMessage(world.Player, null, successMessage ?? $"Saved {saveEvent.FileName}");
+        else
+        {
+            world.DisplayMessage(world.Player, null, $"Failed to save {saveEvent.FileName}");
+            if (saveEvent.Exception != null)
+                throw saveEvent.Exception;
         }
     }
 
