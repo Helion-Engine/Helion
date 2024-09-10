@@ -26,6 +26,7 @@ using Helion.Util.Extensions;
 using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
+using Helion.World.Impl.SinglePlayer;
 using Helion.World.Save;
 using Helion.Geometry.Boxes;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
@@ -570,6 +571,13 @@ public class GameLayerManager : IGameLayerManager
         if (!CanSave)
             return;
 
+        // if we're using rotating quicksaves, then we aren't concerned with saving to a particular slot
+        if (m_config.Game.RotatingQuickSaves > 0)
+        {
+            WriteQuickSave();
+            return;
+        }
+
         if (WorldLayer == null || !LastSave.HasValue || LastSave?.SaveGame.IsAutoSave == true)
         {
             GoToSaveOrLoadMenu(true);
@@ -601,18 +609,40 @@ public class GameLayerManager : IGameLayerManager
 
     private void WriteQuickSave()
     {
-        if (WorldLayer == null || LastSave == null || !CanSave)
+        bool isRotating = m_config.Game.RotatingQuickSaves > 0;
+        if (WorldLayer == null || (!isRotating && LastSave == null) || !CanSave)
             return;
 
         var world = WorldLayer!.World;
-        var save = LastSave.Value;
-        // If the saved game name has been customized, preserve that customization
-        bool isCustomizedName = save.SaveGame.Model?.MapName != save.SaveGame.Model?.Text;
-        string name = isCustomizedName
-            ? save.SaveGame.Model?.Text ?? "Unnamed"
-            : world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection);
-        m_saveGameManager.WriteSaveGame(world, name, save.SaveGame);
-        world.DisplayMessage(world.Player, null, SaveMenu.SaveMessage);
+        if (isRotating)
+        {
+            string name = $"Quick: {world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection)}";
+            var saveEvent = m_saveGameManager.WriteSaveGame(world, name, null, quickSave: true);
+            HandleSaveEvent(saveEvent, world);
+        }
+        else
+        {
+            var existingSave = LastSave!.Value.SaveGame;
+            // If the saved game name has been customized, preserve that customization
+            bool isCustomizedName = existingSave.Model?.MapName != existingSave.Model?.Text;
+            string name = isCustomizedName
+                ? existingSave.Model?.Text ?? "Unnamed"
+                : world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection);
+            var saveEvent = m_saveGameManager.WriteSaveGame(world, name, existingSave);
+            HandleSaveEvent(saveEvent, world, SaveMenu.SaveMessage);
+        }
+    }
+
+    private void HandleSaveEvent(SaveGameEvent saveEvent, SinglePlayerWorld world, string? successMessage = null)
+    {
+        if (saveEvent.Success)
+            world.DisplayMessage(world.Player, null, successMessage ?? $"Saved {saveEvent.FileName}");
+        else
+        {
+            world.DisplayMessage(world.Player, null, $"Failed to save {saveEvent.FileName}");
+            if (saveEvent.Exception != null)
+                throw saveEvent.Exception;
+        }
     }
 
     public void RunLogic(TickerInfo tickerInfo)
