@@ -3,7 +3,7 @@
     using System;
     using System.Text;
     using System.Threading.Tasks;
-    using ZMusicWrapper.Generated;
+    using global::ZMusicWrapper.Generated;
 
     /// <summary>
     /// Provides basic playback functionality for formats that ZMusic supports
@@ -77,20 +77,20 @@
                 fixed (byte* dataBytes = soundFileData)
                 {
                     nuint length = (nuint)soundFileData.Length;
-                    song = ZMusic.ZMusic_OpenSongMem(dataBytes, length, EMidiDevice_.MDEV_FLUIDSYNTH, null);
+                    song = Generated.ZMusic.ZMusic_OpenSongMem(dataBytes, length, EMidiDevice_.MDEV_FLUIDSYNTH, null);
                     m_zMusicSong = (IntPtr)song;
                 }
 
-                ZMusic.ZMusic_GetStreamInfo(song, &info);
+                Generated.ZMusic.ZMusic_GetStreamInfo(song, &info);
 
-                if (ZMusic.ZMusic_IsMIDI(song) == 0)
+                if (Generated.ZMusic.ZMusic_IsMIDI(song) == 0)
                 {
-                    PlayStream(song, info.mSampleRate, info.mNumChannels, loop, m_streamFactory);
+                    this.PlayStream(song, info.mSampleRate, info.mNumChannels, loop, this.m_streamFactory);
                 }
                 else
                 {
-                    SetSoundFont(song, m_soundFontPath);
-                    PlayStream(song, DefaultSampleRate, DefaultChannels, loop, m_streamFactory);
+                    this.SetSoundFont(song, this.m_soundFontPath);
+                    this.PlayStream(song, DefaultSampleRate, DefaultChannels, loop, this.m_streamFactory);
                 }
             }
             catch (Exception ex)
@@ -117,8 +117,8 @@
                 SetSoundFont(song, m_soundFontPath);
                 m_playStartTask = new(() =>
                 {
-                    ZMusic.ZMusic_Stop(song);
-                    ZMusic.ZMusic_Start(song, 0, Convert.ToByte(m_loop));
+                    Generated.ZMusic.ZMusic_Stop(song);
+                    Generated.ZMusic.ZMusic_Start(song, 0, Convert.ToByte(this.m_loop));
                 });
                 m_playStartTask.Start();
             }
@@ -129,8 +129,8 @@
             byte[] fluidSynthPathBytes = Encoding.UTF8.GetBytes(soundFontPath);
             fixed (byte* path = fluidSynthPathBytes)
             {
-                ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_fluid_samplerate, song, DefaultSampleRate, null);
-                ZMusic.ChangeMusicSetting(EStringConfigKey_.zmusic_fluid_patchset, song, (sbyte*)path);
+                Generated.ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_fluid_samplerate, song, DefaultSampleRate, null);
+                Generated.ZMusic.ChangeMusicSetting(EStringConfigKey_.zmusic_fluid_patchset, song, (sbyte*)path);
             }
         }
 
@@ -143,19 +143,19 @@
             m_activeStream.SetVolume(m_sourceVolume);
 
             m_loop = loop;
-            _ = ZMusic.ZMusic_Start(song, 0, Convert.ToByte(loop));
+            _ = Generated.ZMusic.ZMusic_Start(song, 0, Convert.ToByte(loop));
 
             if (channels > 0)
             {
                 float[] data = new float[m_activeStream.ChannelCount * m_activeStream.BlockLength];
 
-                m_activeStream.Play(buffer =>
+                this.m_activeStream.Play(buffer =>
                 {
-                    if (IsPlayingImpl())
+                    if (this.IsPlayingImpl())
                     {
                         fixed (float* p = data)
                         {
-                            _ = ZMusic.ZMusic_FillStream(song, p, sizeof(float) * data.Length);
+                            _ = Generated.ZMusic.ZMusic_FillStream(song, p, sizeof(float) * data.Length);
                         }
                         for (int i = 0; i < buffer.Length; i++)
                         {
@@ -166,8 +166,8 @@
                     else
                     {
                         // We've reached end-of-track
-                        m_stoppedAction?.Invoke();
-                        m_stoppedAction = null;
+                        this.m_stoppedAction?.Invoke();
+                        this.m_stoppedAction = null;
                     }
                 });
             }
@@ -175,20 +175,20 @@
             {
                 short[] data = new short[m_activeStream.ChannelCount * m_activeStream.BlockLength];
 
-                m_activeStream.Play(buffer =>
+                this.m_activeStream.Play(buffer =>
                 {
-                    if (IsPlayingImpl())
+                    if (this.IsPlayingImpl())
                     {
                         fixed (short* b = buffer)
                         {
-                            _ = ZMusic.ZMusic_FillStream(song, b, sizeof(short) * data.Length);
+                            _ = Generated.ZMusic.ZMusic_FillStream(song, b, sizeof(short) * data.Length);
                         }
                     }
                     else
                     {
                         // We've reached end-of-track
-                        m_stoppedAction?.Invoke();
-                        m_stoppedAction = null;
+                        this.m_stoppedAction?.Invoke();
+                        this.m_stoppedAction = null;
                     }
                 });
             }
@@ -197,7 +197,7 @@
         private unsafe bool IsPlayingImpl()
         {
             ObjectDisposedException.ThrowIf(m_disposed, this);
-            return m_zMusicSong != IntPtr.Zero && ZMusic.ZMusic_IsPlaying((_ZMusic_MusicStream_Struct*)m_zMusicSong) != 0;
+            return this.m_zMusicSong != nint.Zero && Generated.ZMusic.ZMusic_IsPlaying((_ZMusic_MusicStream_Struct*)this.m_zMusicSong) != 0;
         }
 
         /// <summary>
@@ -220,7 +220,7 @@
             // Ask ZMusic to close the stream
             if (m_zMusicSong != IntPtr.Zero)
             {
-                ZMusic.ZMusic_Close((_ZMusic_MusicStream_Struct*)m_zMusicSong);
+                Generated.ZMusic.ZMusic_Close((_ZMusic_MusicStream_Struct*)this.m_zMusicSong);
                 m_zMusicSong = IntPtr.Zero;
             }
         }
