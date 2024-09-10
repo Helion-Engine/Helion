@@ -1,13 +1,12 @@
+namespace Helion.Client.Music;
+
 using Helion.Audio;
 using Helion.Util;
 using NFluidsynth;
 using NLog;
 using System;
 using System.IO;
-using System.Threading.Tasks;
 using static Helion.Util.Assertion.Assert;
-
-namespace Helion.Client.Music;
 
 public class FluidSynthMusicPlayer : IMusicPlayer
 {
@@ -22,7 +21,6 @@ public class FluidSynthMusicPlayer : IMusicPlayer
     private Player? m_player;
     private Synth m_synth;
     private AudioDriver m_audioDriver;
-    private Task? m_playStartTask;
 
     public FluidSynthMusicPlayer(string soundFontFile)
     {

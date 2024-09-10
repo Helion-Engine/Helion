@@ -224,15 +224,13 @@
             }
             else if (channels < 0) // Samples should be handled as 16-bit ints
             {
-                short[] data = new short[m_activeStream.ChannelCount * m_activeStream.BlockLength];
-
                 this.m_activeStream.Play(buffer =>
                 {
                     if (this.IsPlayingImpl())
                     {
                         fixed (short* b = buffer)
                         {
-                            _ = ZMusic.ZMusic_FillStream(song, b, sizeof(short) * data.Length);
+                            _ = ZMusic.ZMusic_FillStream(song, b, sizeof(short) * buffer.Length);
                         }
                     }
                     else
