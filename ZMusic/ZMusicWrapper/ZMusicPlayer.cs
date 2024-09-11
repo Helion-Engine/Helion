@@ -220,7 +220,7 @@ public class ZMusicPlayer : IDisposable
                 }
                 else
                 {
-                    HandleEndOfTrack();
+                    HandleEndOfTrack(buffer);
                 }
             });
         }
@@ -238,14 +238,21 @@ public class ZMusicPlayer : IDisposable
                 }
                 else
                 {
-                    HandleEndOfTrack();
+                    HandleEndOfTrack(buffer);
                 }
             });
         }
     }
 
-    private void HandleEndOfTrack()
+    private void HandleEndOfTrack(short[] buffer)
     {
+        // Zero-fill the buffer in case the stream doesn't respond immediately to the end request
+        for (int i = 0; i < buffer.Length; i++)
+        {
+            buffer[i] = 0;
+        }
+
+        m_activeStream?.Stop();
         m_stoppedAction?.Invoke();
         m_stoppedAction = null;
     }
