@@ -30,6 +30,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     public InterpolationAnimation<IAnimationLayer> Animation { get; }
     public bool ClearOnExit { get; set; }
     public long LastClosedNanos;
+    public bool CurrentlyBindingKey => m_sections[m_currentSectionIndex] is KeyBindingSection x && x.CurrentlyBinding;
 
     private const string TiledBackgroundFlat = "FLOOR5_1";
     private const int BackIndex = 0;
