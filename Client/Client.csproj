@@ -37,8 +37,10 @@
     <Content Include="$(ProjectDir)Unmanaged\**\*" Link="runtimes\%(RecursiveDir)\native\%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == ''" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(ProjectDir)Unmanaged\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' != ''" CopyToOutputDirectory="PreserveNewest" />
 
+    <!-- Note: Both FluidSynth and ZMusic provide versions of libsndfile-1.dll (on Windows), so we need to pick one.  We're using the one that came with ZMusic for now. -->
+    <Content Remove="**\libsndfile-1.dll" />
+
     <!-- ZMusic libs -->
-    <!-- Note: Both FluidSynth and ZMusic provide versions of libsndfile-1.dll (on Windows); last one wins -->
     <Content Include="$(HelionRootDir)\ZMusic\native\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="'$(RuntimeIdentifier)' != ''" />
     <Content Include="$(HelionRootDir)\ZMusic\native\**\*" Link="runtimes\%(RecursiveDir)\native\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="'$(RuntimeIdentifier)' == ''" />
   </ItemGroup>
