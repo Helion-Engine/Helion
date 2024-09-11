@@ -225,7 +225,7 @@ public partial class WorldLayer : IGameLayerParent
         if (worldModel == null)
             return;
 
-        config.ApplyConfiguration(worldModel.ConfigValues);
+        config.ApplyConfiguration(worldModel.ConfigValues, writeToConfig: false);
     }
     
     public static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, IConfig config, IAudioSystem audioSystem,
