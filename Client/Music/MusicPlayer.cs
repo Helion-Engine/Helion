@@ -1,4 +1,6 @@
-﻿using Helion.Audio;
+﻿namespace Helion.Client.Music;
+
+using Helion.Audio;
 using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
@@ -8,8 +10,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
-namespace Helion.Client.Music;
 
 public class MusicPlayer : IMusicPlayer
 {

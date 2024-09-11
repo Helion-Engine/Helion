@@ -38,7 +38,7 @@
     <Content Include="$(ProjectDir)Unmanaged\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' != ''" CopyToOutputDirectory="PreserveNewest" />
 
     <!-- ZMusic libs -->
-    <!-- Note: Both FluidSynth and ZMusic provide versions of libsndfile-1.dll; last one wins -->
+    <!-- Note: Both FluidSynth and ZMusic provide versions of libsndfile-1.dll (on Windows); last one wins -->
     <Content Include="$(HelionRootDir)\ZMusic\native\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="'$(RuntimeIdentifier)' != ''" />
     <Content Include="$(HelionRootDir)\ZMusic\native\**\*" Link="runtimes\%(RecursiveDir)\native\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Condition="'$(RuntimeIdentifier)' == ''" />
   </ItemGroup>
