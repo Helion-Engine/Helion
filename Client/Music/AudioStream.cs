@@ -47,6 +47,7 @@ public sealed class AudioStream : IOutputStream
 
     private int m_alSource;
 
+    private readonly short[] m_monoBlockData;
     private readonly short[] m_blockData;
     private readonly int[] m_alBufferQueue;
 
@@ -93,7 +94,8 @@ public sealed class AudioStream : IOutputStream
                 }
             }
 
-            m_format = channelCount == 1 ? ALFormat.Mono16 : ALFormat.Stereo16;
+            // Work around some other quirks in Helion's audio by _always_ requesting stereo.
+            m_format = ALFormat.Stereo16;
 
             m_alSource = AL.GenSource();
             if (AL.GetError() != ALError.NoError)
@@ -101,7 +103,8 @@ public sealed class AudioStream : IOutputStream
                 throw new Exception("Failed to generate an audio source.");
             }
 
-            m_blockData = new short[channelCount * blockLength];
+            m_monoBlockData = new short[blockLength];
+            m_blockData = new short[2 * blockLength];
             m_alBufferQueue = new int[1];
         }
         catch (Exception e)
@@ -134,11 +137,14 @@ public sealed class AudioStream : IOutputStream
             m_pollingCts.Dispose();
         }
 
-        m_fillBlock = fillBlock;
+        // If the source is mono, then just do channel doubling.
+        m_fillBlock = ChannelCount == 1
+            ? (blockData) => CopyMonoBlock(fillBlock, blockData)
+            : fillBlock;
 
         for (int i = 0; i < m_alBuffers.Length; i++)
         {
-            fillBlock(m_blockData);
+            m_fillBlock(m_blockData);
             AL.BufferData(m_alBuffers[i], m_format, m_blockData, SampleRate);
             m_alBufferQueue[0] = m_alBuffers[i];
             AL.SourceQueueBuffers(m_alSource, m_alBufferQueue);
@@ -148,6 +154,18 @@ public sealed class AudioStream : IOutputStream
 
         m_pollingCts = new CancellationTokenSource();
         m_pollingTask = Task.Run(() => PollingLoop(m_pollingCts.Token));
+    }
+
+    private void CopyMonoBlock(Action<short[]> fillMonoBlock, short[] blockData)
+    {
+        // This exists to work around a quirk in OpenAL where it doesn't want to play back mono music
+        // if the rest of the environment is in stereo.
+        fillMonoBlock(m_monoBlockData);
+        for (int i = 0; i < m_monoBlockData.Length; i++)
+        {
+            blockData[2 * i] = m_monoBlockData[i];
+            blockData[(2 * i) + 1] = m_monoBlockData[i];
+        }
     }
 
     /// <summary>
