@@ -68,6 +68,7 @@ public class OpenALAudioSource : IAudioSource
         OpenALDebug.Start("Creating new source");
         m_sourceId = AL.GenSource();
         AL.Source(m_sourceId, ALSourcef.MinGain, 0.0f);
+        AL.Source(m_sourceId, ALSourcef.Gain, (float)Owner.AudioSystem.Gain);
         AL.Source(m_sourceId, ALSourcef.RolloffFactor, rolloffFactor);
         AL.Source(m_sourceId, ALSourcef.ReferenceDistance, referenceDistance);
         AL.Source(m_sourceId, SourceRadius, radius);
@@ -76,6 +77,13 @@ public class OpenALAudioSource : IAudioSource
         AL.Source(m_sourceId, ALSourceb.Looping, audioData.Loop);
         AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
         OpenALDebug.End("Creating new source");
+    }
+
+    public void SetGain(double gain)
+    {
+        OpenALDebug.Start("Setting sound gain");
+        AL.Source(m_sourceId, ALSourcef.Gain, (float)gain);
+        OpenALDebug.End("Setting sound gain");
     }
 
     public void SetPosition(float x, float y, float z)

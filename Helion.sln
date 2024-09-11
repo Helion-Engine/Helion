@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28809.33
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", "{8A68F691-F36D-4D1C-844D-0B0A2F19CD76}"
 EndProject
@@ -10,7 +10,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csp
 		{8A68F691-F36D-4D1C-844D-0B0A2F19CD76} = {8A68F691-F36D-4D1C-844D-0B0A2F19CD76}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{A0043EF8-C339-4FC4-958A-A2548681184B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{A0043EF8-C339-4FC4-958A-A2548681184B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZMusicWrapper", "ZMusic\ZMusicWrapper\ZMusicWrapper.csproj", "{6578D2EE-E1CD-4CD1-AF05-40E99B17CBCF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +32,10 @@ Global
 		{A0043EF8-C339-4FC4-958A-A2548681184B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A0043EF8-C339-4FC4-958A-A2548681184B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A0043EF8-C339-4FC4-958A-A2548681184B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6578D2EE-E1CD-4CD1-AF05-40E99B17CBCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6578D2EE-E1CD-4CD1-AF05-40E99B17CBCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6578D2EE-E1CD-4CD1-AF05-40E99B17CBCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6578D2EE-E1CD-4CD1-AF05-40E99B17CBCF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

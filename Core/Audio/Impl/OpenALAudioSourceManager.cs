@@ -22,15 +22,16 @@ public class OpenALAudioSourceManager : IAudioSourceManager
     private const int MaxSounds = 256;
 
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly OpenALAudioSystem m_owner;
     private readonly HashSet<OpenALAudioSource> m_sources = new();
     private readonly Dictionary<string, OpenALBuffer> m_nameToBuffer = new(StringComparer.OrdinalIgnoreCase);
     private readonly DynamicArray<int> m_playGroup = new();
     private readonly IConfig m_config;
 
+    public readonly OpenALAudioSystem AudioSystem;
+
     public OpenALAudioSourceManager(OpenALAudioSystem owner, ArchiveCollection archiveCollection, IConfig config)
     {
-        m_owner = owner;
+        AudioSystem = owner;
         m_archiveCollection = archiveCollection;
         m_config = config;
         OpenALDebug.Start("Setting distance model");
@@ -49,6 +50,14 @@ public class OpenALAudioSourceManager : IAudioSourceManager
             buffer.Dispose();
 
         m_nameToBuffer.Clear();
+    }
+
+    public void SetGain(double gain)
+    {
+        foreach(var source in m_sources)
+        {
+            source?.SetGain(gain);
+        }
     }
 
     public void SetListener(Vec3D pos, double angle, double pitch)
@@ -138,7 +147,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
 
     public void Tick()
     {
-        m_owner.Tick();
+        AudioSystem.Tick();
     }
 
     public void Dispose()
@@ -154,7 +163,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
 
     private void PerformDispose()
     {
-        m_owner.Unlink(this);
+        AudioSystem.Unlink(this);
 
         // We create a copy list because disposing will mutate the list
         // that it belongs to, since it has no idea if we're disposing it
