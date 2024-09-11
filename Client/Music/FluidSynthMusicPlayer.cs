@@ -1,3 +1,5 @@
+namespace Helion.Client.Music;
+
 using Helion.Audio;
 using Helion.Util;
 using NFluidsynth;
@@ -5,8 +7,6 @@ using NLog;
 using System;
 using System.IO;
 using static Helion.Util.Assertion.Assert;
-
-namespace Helion.Client.Music;
 
 public class FluidSynthMusicPlayer : IMusicPlayer
 {
@@ -22,7 +22,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
     private Synth m_synth;
     private AudioDriver m_audioDriver;
 
-    public FluidSynthMusicPlayer(FileInfo soundFontFile)
+    public FluidSynthMusicPlayer(string soundFontFile)
     {
         m_settings = new Settings();
         m_settings[ConfigurationKeys.SynthAudioChannels].IntValue = 2;
@@ -93,11 +93,11 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         m_player = null;
     }
 
-    public void EnsureSoundFont(FileInfo soundFontPath)
+    public void EnsureSoundFont(string soundFontPath)
     {
         try
         {
-            if (soundFontPath.FullName != m_soundFontLoaded)
+            if (soundFontPath != m_soundFontLoaded)
             {
                 if (!string.IsNullOrEmpty(m_soundFontLoaded))
                 {
@@ -105,12 +105,12 @@ public class FluidSynthMusicPlayer : IMusicPlayer
                     m_soundFontLoaded = string.Empty;
                 }
 
-                m_synth.LoadSoundFont(soundFontPath.FullName, true);
+                m_synth.LoadSoundFont(soundFontPath, true);
                 for (int i = 0; i < 16; i++)
                     m_synth.SoundFontSelect(i, 0);
 
                 m_soundFontCounter++;
-                m_soundFontLoaded = soundFontPath.FullName;
+                m_soundFontLoaded = soundFontPath;
             }
         }
         catch (Exception ex)

@@ -33,6 +33,8 @@ public class SaveGame
 
     public bool IsAutoSave => Path.GetFileName(FileName).StartsWith("autosave");
 
+    public bool IsQuickSave => Path.GetFileName(FileName).StartsWith("quicksave");
+
     public SaveGame(string saveDir, string filename, SaveGameModel model)
     {
         SaveDir = saveDir;

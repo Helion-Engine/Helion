@@ -16,6 +16,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -46,6 +47,7 @@ public class SaveMenu : Menu
     private string m_previousDisplayName = string.Empty;
     private string m_defaultSavedGameName = string.Empty;
     private readonly StringBuilder m_customNameBuilder = new();
+    private readonly Stopwatch m_tickStopwatch = new();
 
     private SaveGame? m_deleteSave;
 
@@ -144,7 +146,7 @@ public class SaveMenu : Menu
             // show empty slot on page 1
             if (m_currentPage == 1)
             {
-                MenuSaveRowComponent saveRowComponent = new(EmptySlotText, string.Empty, isAutoSave: false);
+                MenuSaveRowComponent saveRowComponent = new(EmptySlotText, string.Empty, false);
                 saveRowComponent.Action = CreateNewSaveGame(() => saveRowComponent.Text);
                 newComponents.Add(saveRowComponent);
             }
@@ -152,7 +154,7 @@ public class SaveMenu : Menu
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string mapName = save.Model?.MapName ?? UnknownSavedGameName;
-                MenuSaveRowComponent saveRow = new(displayName, mapName, save.IsAutoSave,
+                MenuSaveRowComponent saveRow = new(displayName, mapName, save.IsAutoSave || save.IsQuickSave,
                     null, CreateDeleteCommand(save));
                 saveRow.Action = new Func<Menu?>(UpdateSaveGame(save, new(() => saveRow.Text)));
                 return saveRow;
@@ -177,7 +179,7 @@ public class SaveMenu : Menu
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string fileName = System.IO.Path.GetFileName(save.FileName);
-                return new MenuSaveRowComponent(displayName, string.Empty, save.IsAutoSave,
+                return new MenuSaveRowComponent(displayName, string.Empty, save.IsAutoSave || save.IsQuickSave,
                     CreateConsoleCommand($"load \"{fileName}\""), CreateDeleteCommand(save), save);
             });
             newComponents.AddRange(saveRowComponents);
@@ -210,7 +212,7 @@ public class SaveMenu : Menu
                 }
                 else if (input.ConsumeKeyPressed(Key.Enter))
                 {
-                    if (savedGameRow.IsAutoSave)
+                    if (savedGameRow.IsAutoOrQuickSave)
                     {
                         SoundManager.PlayStaticSound(Constants.MenuSounds.Invalid);
                     }
@@ -236,6 +238,7 @@ public class SaveMenu : Menu
                         }
 
                         m_hasRowLock = true;
+                        m_tickStopwatch.Restart();
                         SoundManager.PlayStaticSound(Constants.MenuSounds.Choose);
                     }
                 }
@@ -286,6 +289,7 @@ public class SaveMenu : Menu
             // Undo any customizations they've made to the display name of the saved game, and leave edit mode.
             savedGameRow.Text = m_previousDisplayName;
             m_hasRowLock = false;
+            m_tickStopwatch.Stop();
             SoundManager.PlayStaticSound(Constants.MenuSounds.Backup);
         }
         else if (input.ConsumeKeyPressed(Key.Enter))
@@ -297,6 +301,7 @@ public class SaveMenu : Menu
 
             savedGameRow.Action?.Invoke();
             m_hasRowLock = false;
+            m_tickStopwatch.Stop();
         }
         else
         {
@@ -324,10 +329,10 @@ public class SaveMenu : Menu
         input.ConsumeAll();
     }
 
-    private static string Blink()
+    private string Blink()
     {
         const string editStr = "_";
-        if (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 500 % 2 == 0)
+        if (m_tickStopwatch.ElapsedMilliseconds / 500 % 2 == 0)
         {
             return editStr;
         }

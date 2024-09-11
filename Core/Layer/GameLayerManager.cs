@@ -26,6 +26,7 @@ using Helion.Util.Extensions;
 using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
+using Helion.World.Impl.SinglePlayer;
 using Helion.World.Save;
 using Helion.Geometry.Boxes;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
@@ -74,7 +75,6 @@ public class GameLayerManager : IGameLayerManager
     private readonly HudRenderContext m_hudContext = new(default);
     private readonly OptionsLayer m_optionsLayer;
     private readonly ConsoleLayer m_consoleLayer;
-    private readonly Func<IConsumableInput, KeyCommandItem, bool> m_checkScreenShotCommand;
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private IHudRenderContext m_hudRenderCtx;
@@ -103,7 +103,6 @@ public class GameLayerManager : IGameLayerManager
         m_renderer = null!;
         m_ctx = null!;
         m_hudRenderCtx = null!;
-        m_checkScreenShotCommand = CheckScreenShotCommand;
 
         m_optionsLayer = new(this, m_config, m_soundManager, m_window);
         m_consoleLayer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
@@ -373,6 +372,9 @@ public class GameLayerManager : IGameLayerManager
     {
         if (input.HandleKeyInput)
         {
+            if (OptionsLayer?.CurrentlyBindingKey != true && ConsumeCommandPressed(Constants.Input.Screenshot, input))
+                m_console.SubmitInputText(Constants.Input.Screenshot);
+
             if (IwadSelectionLayer == null && ConsumeCommandPressed(Constants.Input.Console, input))
                 ToggleConsoleLayer(input);
 
@@ -413,16 +415,6 @@ public class GameLayerManager : IGameLayerManager
         }
 
         WorldLayer?.HandleInput(input);
-        input.IterateCommands(m_config.Keys.GetKeyMapping(), m_checkScreenShotCommand);
-    }
-
-    private bool CheckScreenShotCommand(IConsumableInput input, KeyCommandItem cmd)
-    {
-        if (cmd.Command != Constants.Input.Screenshot || !input.ConsumeKeyPressed(cmd.Key))
-            return false;
-
-        m_console.SubmitInputText(Constants.Input.Screenshot);
-        return true;
     }
 
     private void CheckMenuShortcuts(IConsumableInput input)
@@ -570,6 +562,13 @@ public class GameLayerManager : IGameLayerManager
         if (!CanSave)
             return;
 
+        // if we're using rotating quicksaves, then we aren't concerned with saving to a particular slot
+        if (m_config.Game.RotatingQuickSaves > 0)
+        {
+            WriteQuickSave();
+            return;
+        }
+
         if (WorldLayer == null || !LastSave.HasValue || LastSave?.SaveGame.IsAutoSave == true)
         {
             GoToSaveOrLoadMenu(true);
@@ -601,18 +600,40 @@ public class GameLayerManager : IGameLayerManager
 
     private void WriteQuickSave()
     {
-        if (WorldLayer == null || LastSave == null || !CanSave)
+        bool isRotating = m_config.Game.RotatingQuickSaves > 0;
+        if (WorldLayer == null || (!isRotating && LastSave == null) || !CanSave)
             return;
 
         var world = WorldLayer!.World;
-        var save = LastSave.Value;
-        // If the saved game name has been customized, preserve that customization
-        bool isCustomizedName = save.SaveGame.Model?.MapName != save.SaveGame.Model?.Text;
-        string name = isCustomizedName
-            ? save.SaveGame.Model?.Text ?? "Unnamed"
-            : world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection);
-        m_saveGameManager.WriteSaveGame(world, name, save.SaveGame);
-        world.DisplayMessage(world.Player, null, SaveMenu.SaveMessage);
+        if (isRotating)
+        {
+            string name = $"Quick: {world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection)}";
+            var saveEvent = m_saveGameManager.WriteSaveGame(world, name, null, quickSave: true);
+            HandleSaveEvent(saveEvent, world);
+        }
+        else
+        {
+            var existingSave = LastSave!.Value.SaveGame;
+            // If the saved game name has been customized, preserve that customization
+            bool isCustomizedName = existingSave.Model?.MapName != existingSave.Model?.Text;
+            string name = isCustomizedName
+                ? existingSave.Model?.Text ?? "Unnamed"
+                : world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection);
+            var saveEvent = m_saveGameManager.WriteSaveGame(world, name, existingSave);
+            HandleSaveEvent(saveEvent, world, SaveMenu.SaveMessage);
+        }
+    }
+
+    private void HandleSaveEvent(SaveGameEvent saveEvent, SinglePlayerWorld world, string? successMessage = null)
+    {
+        if (saveEvent.Success)
+            world.DisplayMessage(world.Player, null, successMessage ?? $"Saved {saveEvent.FileName}");
+        else
+        {
+            world.DisplayMessage(world.Player, null, $"Failed to save {saveEvent.FileName}");
+            if (saveEvent.Exception != null)
+                throw saveEvent.Exception;
+        }
     }
 
     public void RunLogic(TickerInfo tickerInfo)

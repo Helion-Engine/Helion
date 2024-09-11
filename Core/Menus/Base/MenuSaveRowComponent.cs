@@ -10,9 +10,9 @@ public class MenuSaveRowComponent : IMenuComponent
     public Func<Menu?>? Action { get; set; }
     public Func<Menu?>? DeleteAction { get; }
     public SaveGame? SaveGame { get; }
-    public bool IsAutoSave { get; }
+    public bool IsAutoOrQuickSave { get; }
 
-    public MenuSaveRowComponent(string text, string mapName, bool isAutoSave, Func<Menu?>? action = null,
+    public MenuSaveRowComponent(string text, string mapName, bool isAutoOrQuickSave, Func<Menu?>? action = null,
         Func<Menu?>? deleteAction = null, SaveGame? saveGame = null)
     {
         Text = text;
@@ -20,6 +20,6 @@ public class MenuSaveRowComponent : IMenuComponent
         Action = action;
         DeleteAction = deleteAction;
         SaveGame = saveGame;
-        IsAutoSave = isAutoSave;
+        IsAutoOrQuickSave = isAutoOrQuickSave;
     }
 }
