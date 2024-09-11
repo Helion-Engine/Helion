@@ -18,6 +18,7 @@ using Helion.Resources.Definitions.Boom;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Fonts.Definition;
+using Helion.Resources.Definitions.Id24;
 using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.MapInfo;
@@ -520,7 +521,7 @@ public class ArchiveCollection : IResources, IPathResolver
             Definitions.Track(archive);
 
             if (archive.ArchiveType == ArchiveType.Assets && GetIWadInfo(iwadArchive, out IWadInfo? info))
-            {                
+            {
                 Definitions.LoadMapInfo(archive, info.MapInfoResource);
                 Definitions.LoadDecorate(archive, info.DecorateResource);
             }
@@ -544,5 +545,45 @@ public class ArchiveCollection : IResources, IPathResolver
 
         info = null;
         return false;
+    }
+
+    /// <summary>
+    /// ID24 GAMECONF is allowed to define an IWAD and additional PWADS.
+    /// If an IWAD is specified, it will override any previously specified one.
+    /// PWADs added by PWADs are placed before the PWAD that added them.
+    /// </summary>
+    public (string? iwad, List<string> pwads) GetWadsFromGameConfs(string? originalIwad, List<string> originalPwads)
+    {
+        string? iwad = originalIwad;
+        List<string> pwads = [];
+
+        GameConfDefinition parser = new();
+        void ApplyWadsFromWadGameConf(string wad)
+        {
+            using var archive = LoadArchive(wad, null);
+            var entry = archive?.GetEntryByName("GAMECONF");
+            if (entry == null)
+                return;
+            parser.Data = null;
+            parser.Parse(entry);
+            if (parser.Data == null)
+                return;
+            if (parser.Data.Iwad != null)
+                iwad = parser.Data.Iwad;
+            if (parser.Data.Pwads != null)
+                pwads.AddRange(parser.Data.Pwads);
+        }
+
+        if (originalIwad != null)
+        {
+            ApplyWadsFromWadGameConf(originalIwad);
+        }
+        foreach (string pwad in originalPwads)
+        {
+            ApplyWadsFromWadGameConf(pwad);
+            pwads.Add(pwad);
+        }
+
+        return (iwad, pwads);
     }
 }
