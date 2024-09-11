@@ -75,7 +75,6 @@ public class GameLayerManager : IGameLayerManager
     private readonly HudRenderContext m_hudContext = new(default);
     private readonly OptionsLayer m_optionsLayer;
     private readonly ConsoleLayer m_consoleLayer;
-    private readonly Func<IConsumableInput, KeyCommandItem, bool> m_checkScreenShotCommand;
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private IHudRenderContext m_hudRenderCtx;
@@ -104,7 +103,6 @@ public class GameLayerManager : IGameLayerManager
         m_renderer = null!;
         m_ctx = null!;
         m_hudRenderCtx = null!;
-        m_checkScreenShotCommand = CheckScreenShotCommand;
 
         m_optionsLayer = new(this, m_config, m_soundManager, m_window);
         m_consoleLayer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
@@ -374,6 +372,9 @@ public class GameLayerManager : IGameLayerManager
     {
         if (input.HandleKeyInput)
         {
+            if (OptionsLayer?.CurrentlyBindingKey != true && ConsumeCommandPressed(Constants.Input.Screenshot, input))
+                m_console.SubmitInputText(Constants.Input.Screenshot);
+
             if (IwadSelectionLayer == null && ConsumeCommandPressed(Constants.Input.Console, input))
                 ToggleConsoleLayer(input);
 
@@ -414,16 +415,6 @@ public class GameLayerManager : IGameLayerManager
         }
 
         WorldLayer?.HandleInput(input);
-        input.IterateCommands(m_config.Keys.GetKeyMapping(), m_checkScreenShotCommand);
-    }
-
-    private bool CheckScreenShotCommand(IConsumableInput input, KeyCommandItem cmd)
-    {
-        if (cmd.Command != Constants.Input.Screenshot || !input.ConsumeKeyPressed(cmd.Key))
-            return false;
-
-        m_console.SubmitInputText(Constants.Input.Screenshot);
-        return true;
     }
 
     private void CheckMenuShortcuts(IConsumableInput input)

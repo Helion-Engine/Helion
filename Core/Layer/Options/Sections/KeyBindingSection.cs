@@ -68,6 +68,7 @@ public class KeyBindingSection : IOptionSection
     public event EventHandler<string>? OnError;
 
     public OptionSectionType OptionType => OptionSectionType.Keys;
+    public bool CurrentlyBinding => m_updatingKeyBinding;
     private readonly Key[] AllKeys = Enum.GetValues<Key>();
     private readonly IConfig m_config;
     private readonly BoxList m_menuPositionList = new();
