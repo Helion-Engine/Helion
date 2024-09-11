@@ -29,6 +29,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Unmanaged\**\*" />
+    <None Remove="SoundFonts\*" />
+
     <Content Include="helion.ico" Link="%(Filename)%(Extension)" CopyToOutputDirectory="Never" />
     <Content Include="$(HelionRootDir)Assets\Documentation\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(ProjectDir)SoundFonts\*" Link="SoundFonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
