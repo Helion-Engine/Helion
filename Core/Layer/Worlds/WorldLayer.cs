@@ -180,23 +180,23 @@ public partial class WorldLayer : IGameLayerParent
         compat.ResetToUserValues();
 
         if (mapInfoDef.HasOption(MapOptions.CompatMissileClip))
-            compat.MissileClip.SetWithNoWriteConfig(true);
+            compat.MissileClip.Set(true, writeToConfig: false);
         if (mapInfoDef.HasOption(MapOptions.CompatShortestTexture))
-            compat.VanillaShortestTexture.SetWithNoWriteConfig(true);
+            compat.VanillaShortestTexture.Set(true, writeToConfig: false);
         if (mapInfoDef.HasOption(MapOptions.CompatFloorMove))
-            compat.VanillaSectorPhysics.SetWithNoWriteConfig(true);
+            compat.VanillaSectorPhysics.Set(true, writeToConfig: false);
         if (mapInfoDef.HasOption(MapOptions.CompatNoCrossOver))
-            compat.InfinitelyTallThings.SetWithNoWriteConfig(true);
+            compat.InfinitelyTallThings.Set(true, writeToConfig: false);
         if (mapInfoDef.HasOption(MapOptions.CompatLimitPain))
-            compat.PainElementalLostSoulLimit.SetWithNoWriteConfig(true);
+            compat.PainElementalLostSoulLimit.Set(true, writeToConfig: false);
         if (mapInfoDef.HasOption(MapOptions.CompatNoTossDrops))
-            compat.NoTossDrops.SetWithNoWriteConfig(true);
+            compat.NoTossDrops.Set(true, writeToConfig: false);
         if (mapInfoDef.HasOption(MapOptions.CompatStairs))
-            compat.Stairs.SetWithNoWriteConfig(true);
+            compat.Stairs.Set(true, writeToConfig: false);
         if (mapInfoDef.HasOption(MapOptions.CompatExplosion1) || mapInfoDef.HasOption(MapOptions.CompatExplosion2)) // These aren't separated like ZDoom, but are unlikely to be toggled independently
-            compat.OriginalExplosion.SetWithNoWriteConfig(true);
+            compat.OriginalExplosion.Set(true, writeToConfig: false);
         if (mapInfoDef.HasOption(MapOptions.VileGhosts))
-            compat.VileGhosts.SetWithNoWriteConfig(true);
+            compat.VileGhosts.Set(true, writeToConfig: false);
 
         foreach (var mapCompat in MapCompat)
         {
@@ -212,10 +212,9 @@ public partial class WorldLayer : IGameLayerParent
     {
         foreach (var (field, set) in props)
         {
-            var configValue = field.GetValue(config.Compatibility) as ConfigValue<bool>;
-            if (configValue == null)
+            if (field.GetValue(config.Compatibility) is not ConfigValue<bool> configValue)
                 continue;
-            configValue.SetWithNoWriteConfig(set);
+            configValue.Set(set, writeToConfig: false);
         }
     }
 
