@@ -17,6 +17,7 @@
             _ = AL.GetError();
 
             Queue<string> fileQueue = new(fileNames);
+            byte[]? genMidiLumpBytes = null;
 
             using (ZMusicPlayer player = new ZMusicPlayer(new AudioStreamFactory(), "Default.sf2"))
             {
@@ -27,6 +28,12 @@
                         string[] files = Directory.GetFiles(fileName);
                         foreach (string file in files)
                         {
+                            if (Path.GetFileName(file).Equals("GENMIDI.LMP", StringComparison.OrdinalIgnoreCase))
+                            {
+                                genMidiLumpBytes = File.ReadAllBytes(file);
+                                continue;
+                            }
+
                             fileQueue.Enqueue(file);
                         }
                         continue;

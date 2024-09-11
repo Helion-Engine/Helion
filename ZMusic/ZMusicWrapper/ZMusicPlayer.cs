@@ -42,6 +42,11 @@ public class ZMusicPlayer : IDisposable
     }
 
     /// <summary>
+    /// Whether to use OPL emulation.  If false, use FluidSynth.
+    /// </summary>
+    public bool UseOPLEmulation { get; set; }
+
+    /// <summary>
     /// Gets the last error encountered when starting or stopping playback.
     /// This will be null if we have not encountered any errors.
     /// </summary>
@@ -58,6 +63,18 @@ public class ZMusicPlayer : IDisposable
         m_streamFactory = outputStreamFactory;
         m_soundFontPath = soundFontPath;
         m_sourceVolume = sourceVolume;
+    }
+
+    /// <summary>
+    /// Sets the patch set data to use when OPL emulation is selected
+    /// </summary>
+    /// <param name="patchData">OPL patch data, typically from the GENMIDI lump in an IWAD</param>
+    public unsafe void SetOPLPatchSet(byte[] patchData)
+    {
+        fixed (byte* genMidiBytes = patchData)
+        {
+            ZMusic.ZMusic_SetGenMidi(genMidiBytes);
+        }
     }
 
     /// <summary>
@@ -121,7 +138,7 @@ public class ZMusicPlayer : IDisposable
             fixed (byte* dataBytes = soundFileData)
             {
                 nuint length = (nuint)soundFileData.Length;
-                song = ZMusic.ZMusic_OpenSongMem(dataBytes, length, EMidiDevice_.MDEV_FLUIDSYNTH, null);
+                song = ZMusic.ZMusic_OpenSongMem(dataBytes, length, UseOPLEmulation ? EMidiDevice_.MDEV_OPL : EMidiDevice_.MDEV_FLUIDSYNTH, null);
                 m_zMusicSong = (IntPtr)song;
             }
 
@@ -133,7 +150,13 @@ public class ZMusicPlayer : IDisposable
             }
             else
             {
-                if (!m_soundFontLoaded)
+                if (UseOPLEmulation)
+                {
+                    ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_opl_numchips, song, 8, null);
+                    ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_opl_core, song, 3, null);
+                }
+
+                if (!m_soundFontLoaded && !UseOPLEmulation)
                 {
                     SetSoundFont(song, m_soundFontPath);
                 }
