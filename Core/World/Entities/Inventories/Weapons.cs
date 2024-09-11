@@ -163,34 +163,34 @@ public sealed class Weapons
 
     public bool CanSelectWeapon(Weapon weapon)
     {
-        bool allowed = true;
-        ref var weaponDef = ref weapon.Definition.Properties.Weapons; 
+        bool allowSwitch = true;
+        bool disallowSwitch = false;
+        ref var weaponDef = ref weapon.Definition.Properties.Weapons;
 
-        if (weaponDef.NoSwitchWithOwnedWeapon != null)
+        if (weaponDef.NoSwitchWithOwnedWeapon != null && OwnsWeapon(weaponDef.NoSwitchWithOwnedWeapon))
         {
-            if (OwnsWeapon(weaponDef.NoSwitchWithOwnedWeapon))
-                allowed = false;
+            allowSwitch = false;
+            disallowSwitch = true;
         }
 
-        if (weaponDef.AllowSwitchWithOwnedWeapon != null)
+        if (weaponDef.AllowSwitchWithOwnedWeapon != null && OwnsWeapon(weaponDef.AllowSwitchWithOwnedWeapon))
         {
-            if (OwnsWeapon(weaponDef.AllowSwitchWithOwnedWeapon))
-                return true;
+            allowSwitch = true;
+            disallowSwitch = false;
         }
 
-        if (allowed && weaponDef.NoSwitchWithOwnedItem != null)
+        if (allowSwitch && weaponDef.NoSwitchWithOwnedItem != null && m_inventory.HasItem(weaponDef.NoSwitchWithOwnedItem))
         {
-            if (m_inventory.HasItem(weaponDef.NoSwitchWithOwnedItem))
-                return false;
+            allowSwitch = false;
+            disallowSwitch = true;
         }
 
-        if (!allowed && weaponDef.AllowSwitchWithOwnedItem != null)
+        if (disallowSwitch && weaponDef.AllowSwitchWithOwnedItem != null && m_inventory.HasItem(weaponDef.AllowSwitchWithOwnedItem))
         {
-            if (m_inventory.HasItem(weaponDef.AllowSwitchWithOwnedItem))
-                return true;
+            allowSwitch = true;
         }
 
-        return allowed;
+        return allowSwitch;
     }
 
     public Weapon? Add(EntityDefinition definition, Player owner, EntityManager entityManager,

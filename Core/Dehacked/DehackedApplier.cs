@@ -19,6 +19,8 @@ using System.Text.RegularExpressions;
 using Helion.World.Entities.Definition.Properties.Components;
 using static Helion.Dehacked.DehackedDefinition;
 using Helion.Maps.Shared;
+using System.Diagnostics.CodeAnalysis;
+using System.Collections;
 
 namespace Helion.Dehacked;
 
@@ -162,9 +164,9 @@ public class DehackedApplier
                 weaponDef.Properties.Weapons.AllowSwitchWithOwnedWeapon = GetWeaponByIdDefinition(dehacked, composer, weapon.AllowSwitchWithOwnedWeapon.Value);
             if (weapon.NoSwitchWithOwnedWeapon.HasValue)
                 weaponDef.Properties.Weapons.NoSwitchWithOwnedWeapon = GetWeaponByIdDefinition(dehacked, composer, weapon.NoSwitchWithOwnedWeapon.Value);
-            if (weapon.AllowSwitchWithOwnedItem.HasValue && dehacked.GetEntityDefinition(weapon.AllowSwitchWithOwnedItem.Value, out var allowSwitchItemDef))
+            if (weapon.AllowSwitchWithOwnedItem.HasValue && dehacked.TryGetId24PickupType(composer, weapon.AllowSwitchWithOwnedItem.Value, out var allowSwitchItemDef))
                 weaponDef.Properties.Weapons.AllowSwitchWithOwnedItem = allowSwitchItemDef;
-            if (weapon.NoSwitchWithOwnedItem.HasValue && dehacked.GetEntityDefinition(weapon.NoSwitchWithOwnedItem.Value, out var noSwitchItemDef))
+            if (weapon.NoSwitchWithOwnedItem.HasValue && dehacked.TryGetId24PickupType(composer, weapon.NoSwitchWithOwnedItem.Value, out var noSwitchItemDef))
                 weaponDef.Properties.Weapons.NoSwitchWithOwnedItem = noSwitchItemDef;
         }
 
@@ -668,7 +670,7 @@ public class DehackedApplier
             if (thing.PickupBonusCount.HasValue)
                 properties.Inventory.PickupBonusCount = thing.PickupBonusCount.Value;
             if (thing.PickupItemType.HasValue)
-                SetPickupItemType(thing, dehacked, composer, definition, thing.PickupItemType.Value);
+                SetPickupItemType(thing, dehacked, composer, definition, (int)thing.PickupItemType.Value);
             if (thing.PickupWeaponType.HasValue)
                 SetWeaponType(thing, dehacked, composer, definition, thing.PickupWeaponType.Value);
             if (thing.PickupSound.HasValue)
@@ -746,30 +748,25 @@ public class DehackedApplier
         }
     }
 
-    private static void SetPickupItemType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, Id24PickupType pickupItemType)
+    private static void SetPickupItemType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, int pickupItemType)
     {
-        if (pickupItemType == Id24PickupType.NoItem)
+        if (pickupItemType == (int)Id24PickupType.NoItem)
         {
             definition.Properties.Inventory.NoItem = true;
             return;
         }
 
-        if (pickupItemType == Id24PickupType.MessageOnly)
+        if (pickupItemType == (int)Id24PickupType.MessageOnly)
         {
             definition.Properties.Inventory.MessageOnly = true;
             return;
         }
 
-        int index = (int)pickupItemType;
-        if (index < 0 || index >= dehacked.Id24PickupLookup.Length)
+        if (!dehacked.TryGetId24PickupType(composer, pickupItemType, out var itemDef))
         {
-            Log.Warn("Invalid item pickup type {type} for {number} {name}", index, thing.Number, thing.Name);
+            Log.Warn("Invalid item pickup type {type} for {number} {name}", pickupItemType, thing.Number, thing.Name);
             return;
         }
-
-        var itemDef = composer.GetByName(dehacked.Id24PickupLookup[index]);
-        if (itemDef == null)
-            return;
 
         definition.Properties.AddTranslatedPickup(itemDef);
     }

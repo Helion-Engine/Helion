@@ -175,6 +175,19 @@ public partial class DehackedDefinition
         return false;
     }
 
+    public bool TryGetId24PickupType(EntityDefinitionComposer composer, int pickupItemType, [NotNullWhen(true)] out EntityDefinition? definition)
+    {
+        definition = null;
+        if (pickupItemType < 0 || pickupItemType >= Id24PickupLookup.Length)
+            return false;
+
+        definition = composer.GetByName(Id24PickupLookup[pickupItemType]);
+        if (definition == null)
+            return false;
+
+        return true;
+    }
+
     public bool GetSoundName(int soundIndex, [NotNullWhen(true)] out string? soundName)
     {
         if (soundIndex >= 0 && soundIndex < SoundStrings.Length)

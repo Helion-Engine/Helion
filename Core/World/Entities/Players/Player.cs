@@ -1273,10 +1273,10 @@ public class Player : Entity
         return false;
     }
 
-    public void ChangeWeapon(Weapon weapon)
+    public bool ChangeWeapon(Weapon weapon)
     {
-        if (!Inventory.Weapons.OwnsWeapon(weapon.Definition) || Weapon == weapon || AnimationWeapon == weapon)
-            return;
+        if (!Inventory.Weapons.OwnsWeapon(weapon.Definition) || Weapon == weapon || AnimationWeapon == weapon || !Inventory.Weapons.CanSelectWeapon(weapon))
+            return false;
 
         bool hadWeapon = Weapon != null;
         var slot = Inventory.Weapons.GetWeaponSlot(weapon.Definition);
@@ -1294,6 +1294,8 @@ public class Player : Entity
         LowerWeapon(hadWeapon);
         if (!hadWeapon)
             ForceLowerWeapon(setTop: false);
+
+        return true;
     }
 
     public bool FireWeapon()
