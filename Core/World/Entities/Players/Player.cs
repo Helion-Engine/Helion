@@ -1189,6 +1189,9 @@ public class Player : Entity
                 if (Weapon != null && !Weapon.Definition.Flags.WeaponWimpyWeapon && ammoWeapon.Definition.Flags.WeaponNoAutoSwitch)
                     return;
 
+                if (!Inventory.Weapons.CanSelectWeapon(ammoWeapon))
+                    return;
+
                 ChangeWeapon(ammoWeapon);
             }
         }
@@ -1203,6 +1206,9 @@ public class Player : Entity
         if (newWeapon == null)
             return;
 
+        if (!Inventory.Weapons.CanSelectWeapon(newWeapon))
+            return;
+
         ChangeWeapon(newWeapon);
     }
 
@@ -1215,7 +1221,7 @@ public class Player : Entity
         foreach (Weapon weapon in weapons)
         {
             if (weapon != Weapon && CheckAmmo(weapon) &&
-                !weapon.Definition.Flags.WeaponNoAutoSwitch)
+                !weapon.Definition.Flags.WeaponNoAutoSwitch && Inventory.Weapons.CanSelectWeapon(weapon))
             {
                 ChangeWeapon(weapon);
                 break;
@@ -1225,14 +1231,25 @@ public class Player : Entity
 
     public bool ForceSwitchWeapon()
     {
+        Weapon? selectWeapon = null;
         var weapons = Inventory.Weapons.GetWeaponsInSelectionOrder();
-        if (weapons.Count == 0)
+        for (int i= 0; i < weapons.Count; i++)
+        {
+            var weapon = weapons[i];
+            if (Inventory.Weapons.CanSelectWeapon(weapon))
+            {
+                selectWeapon = weapon;
+                break;
+            }
+        }
+
+        if (selectWeapon == null)
         {
             ForceLowerWeapon(setTop: false);
             return false;
         }
 
-        ChangeWeapon(weapons.First());
+        ChangeWeapon(selectWeapon);
         return true;
     }
 

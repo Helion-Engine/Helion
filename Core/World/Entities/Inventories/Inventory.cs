@@ -67,14 +67,14 @@ public sealed class Inventory
     {
         Owner = owner;
         EntityDefinitionComposer = composer;
-        Weapons = new Weapons(WorldStatic.World.GameInfo.WeaponSlots, composer);
+        Weapons = new Weapons(this, WorldStatic.World.GameInfo.WeaponSlots, composer);
     }
 
     public Inventory(PlayerModel playerModel, Player owner, EntityDefinitionComposer composer)
     {
         Owner = owner;
         EntityDefinitionComposer = composer;
-        Weapons = new Weapons(WorldStatic.World.GameInfo.WeaponSlots, composer);
+        Weapons = new Weapons(this, WorldStatic.World.GameInfo.WeaponSlots, composer);
 
         for (int i = 0; i < playerModel.Inventory.Items.Count; i++)
         {

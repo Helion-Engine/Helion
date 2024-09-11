@@ -37,4 +37,8 @@ public struct WeaponProperty
     public double SlotPriority;
     public string UpSound = string.Empty;
     public int YAdjust;
+    public EntityDefinition? AllowSwitchWithOwnedWeapon;
+    public EntityDefinition? NoSwitchWithOwnedWeapon;
+    public EntityDefinition? AllowSwitchWithOwnedItem;
+    public EntityDefinition? NoSwitchWithOwnedItem;
 }

@@ -157,10 +157,27 @@ public class DehackedApplier
                 SetWeaponSlot(gameDef, weaponDef, weapon.Slot.Value);
                 setWeaponSlot = true;
             }
+
+            if (weapon.AllowSwitchWithOwnedWeapon.HasValue)
+                weaponDef.Properties.Weapons.AllowSwitchWithOwnedWeapon = GetWeaponByIdDefinition(dehacked, composer, weapon.AllowSwitchWithOwnedWeapon.Value);
+            if (weapon.NoSwitchWithOwnedWeapon.HasValue)
+                weaponDef.Properties.Weapons.NoSwitchWithOwnedWeapon = GetWeaponByIdDefinition(dehacked, composer, weapon.NoSwitchWithOwnedWeapon.Value);
+            if (weapon.AllowSwitchWithOwnedItem.HasValue && dehacked.GetEntityDefinition(weapon.AllowSwitchWithOwnedItem.Value, out var allowSwitchItemDef))
+                weaponDef.Properties.Weapons.AllowSwitchWithOwnedItem = allowSwitchItemDef;
+            if (weapon.NoSwitchWithOwnedItem.HasValue && dehacked.GetEntityDefinition(weapon.NoSwitchWithOwnedItem.Value, out var noSwitchItemDef))
+                weaponDef.Properties.Weapons.NoSwitchWithOwnedItem = noSwitchItemDef;
         }
 
         if (setWeaponSlot)
             RemapWeaponSlotPriorities(dehacked, composer, gameDef);
+    }
+
+    private static EntityDefinition? GetWeaponByIdDefinition(DehackedDefinition dehacked, EntityDefinitionComposer composer, int id)
+    {
+        if (id < 0 || id >= dehacked.WeaponNamesById.Length)
+            return null;
+
+        return composer.GetByName(dehacked.WeaponNamesById[id]);
     }
 
     private static void RemapWeaponSlotPriorities(DehackedDefinition dehacked, EntityDefinitionComposer composer, GameInfoDef gameDef)
@@ -205,11 +222,11 @@ public class DehackedApplier
 
         foreach (var weaponSlot in gameDef.WeaponSlots)
         {
-            if (weaponSlot.Value.Count < 2)
+            if (weaponSlot.Value.Count == 0)
                 continue;
 
-            var weaponDefs = weaponSlot.Value.Select(composer.GetByName).ToList();
-            for (int i = 0; i < weaponDefs.Count; i++)
+            var weaponDefs = weaponSlot.Value.Select(composer.GetByName).Where(x => x != null).OrderBy(x => x!.Properties.Weapons.SlotPriority).ToArray();
+            for (int i = 0; i < weaponDefs.Length; i++)
             {
                 var weaponDef = weaponDefs[i];
                 if (weaponDef == null)
@@ -218,6 +235,7 @@ public class DehackedApplier
                     continue;
                 }
                 weaponSlot.Value[i] = weaponDef.Name;
+                weaponDef.Properties.Weapons.SelectionOrder = weaponSlot.Key * 1000 + i;
             }
         }
     }

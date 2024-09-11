@@ -22,12 +22,15 @@ public sealed class Weapons
     private readonly List<Weapon> m_ownedWeapons = [];
     private readonly LookupArray<Weapon?> m_ownedWeaponsById = new();
     private readonly Comparison<Weapon> m_weaponSelectionOrderCompare = new(WeaponSelectionOrderCompare);
+    private readonly Inventory m_inventory;
 
     public event EventHandler? WeaponsCleared;
     public event EventHandler<Weapon>? WeaponRemoved;
 
-    public Weapons(Dictionary<int, List<string>> weaponSlots, EntityDefinitionComposer composer)
+    public Weapons(Inventory inventory, Dictionary<int, List<string>> weaponSlots, EntityDefinitionComposer composer)
     {
+        m_inventory = inventory;
+
         foreach (var item in weaponSlots)
         {
             int subSlot = 0;
@@ -116,6 +119,9 @@ public sealed class Weapons
             if (!m_weaponSlotLookup.TryGetValue(weapon.Definition.Id, out var weaponSlot))
                 continue;
 
+            if (!CanSelectWeapon(weapon))
+                continue;
+
             if (weaponSlot.Slot != slot)
                 continue;
 
@@ -140,6 +146,9 @@ public sealed class Weapons
             if (!m_weaponSlotLookup.TryGetValue(weapon.Definition.Id, out var weaponSlot))
                 continue;
 
+            if (!CanSelectWeapon(weapon))
+                continue;
+
             if (next && weaponSlot.Slot > slot && weaponSlot.Slot < find)
                 find = weaponSlot.Slot;
 
@@ -150,6 +159,38 @@ public sealed class Weapons
         if (find == int.MaxValue || find == int.MinValue)
             return next ? GetFirstSlot() : GetLastSlot();
         return find;
+    }
+
+    public bool CanSelectWeapon(Weapon weapon)
+    {
+        bool allowed = true;
+        ref var weaponDef = ref weapon.Definition.Properties.Weapons; 
+
+        if (weaponDef.NoSwitchWithOwnedWeapon != null)
+        {
+            if (OwnsWeapon(weaponDef.NoSwitchWithOwnedWeapon))
+                allowed = false;
+        }
+
+        if (weaponDef.AllowSwitchWithOwnedWeapon != null)
+        {
+            if (OwnsWeapon(weaponDef.AllowSwitchWithOwnedWeapon))
+                return true;
+        }
+
+        if (allowed && weaponDef.NoSwitchWithOwnedItem != null)
+        {
+            if (m_inventory.HasItem(weaponDef.NoSwitchWithOwnedItem))
+                return false;
+        }
+
+        if (!allowed && weaponDef.AllowSwitchWithOwnedItem != null)
+        {
+            if (m_inventory.HasItem(weaponDef.AllowSwitchWithOwnedItem))
+                return true;
+        }
+
+        return allowed;
     }
 
     public Weapon? Add(EntityDefinition definition, Player owner, EntityManager entityManager,
@@ -236,6 +277,9 @@ public sealed class Weapons
             if (weaponSlot.Slot != slot)
                 continue;
 
+            if (!CanSelectWeapon(weapon))
+                continue;
+
             if (weaponSlot.SubSlot < min)
                 min = weaponSlot.SubSlot;
         }
@@ -255,6 +299,9 @@ public sealed class Weapons
                 continue;
 
             if (weaponSlot.Slot != slot)
+                continue;
+
+            if (!CanSelectWeapon(weapon))
                 continue;
 
             if (weaponSlot.SubSlot > max)
