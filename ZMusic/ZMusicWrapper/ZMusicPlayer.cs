@@ -2,6 +2,7 @@
 
 using global::ZMusicWrapper.Generated;
 using System;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,6 +24,8 @@ public class ZMusicPlayer : IDisposable
     private float m_sourceVolume;
     private bool m_loop;
     private bool m_soundFontLoaded;
+    private bool m_patchesLoaded;
+    private EMidiDevice_ m_midiDevice;
 
     private bool m_disposed;
 
@@ -41,10 +44,21 @@ public class ZMusicPlayer : IDisposable
         }
     }
 
-    /// <summary>
-    /// Whether to use OPL emulation.  If false, use FluidSynth.
-    /// </summary>
-    public bool UseOPLEmulation { get; set; }
+    public MidiDevice PreferredDevice
+    {
+        get
+        {
+            return m_midiDevice == EMidiDevice_.MDEV_OPL
+                ? MidiDevice.OPL3
+                : MidiDevice.FluidSynth;
+        }
+        set
+        {
+            m_midiDevice = value == MidiDevice.OPL3
+                ? EMidiDevice_.MDEV_OPL
+                : EMidiDevice_.MDEV_FLUIDSYNTH;
+        }
+    }
 
     /// <summary>
     /// Gets the last error encountered when starting or stopping playback.
@@ -56,13 +70,25 @@ public class ZMusicPlayer : IDisposable
     /// Creates a new music player
     /// </summary>
     /// <param name="outputStreamFactory">Output stream factory to use for playback</param>
-    /// <param name="soundFontPath">Path to a SoundFont (.sf2) file for use when playing MIDI</param>
+    /// <param name="preferredDevice">Preferred device for playing MIDI</param>
+    /// <param name="soundFontPath">Path to a SoundFont (.sf2, .sf3) file for use when playing MIDI</param>
+    /// <param name="oplPatchSet">Patches to use for emulated OPL playback</param>
     /// <param name="sourceVolume">Initial volume for this source</param>
-    public ZMusicPlayer(IOutputStreamFactory outputStreamFactory, string soundFontPath, float sourceVolume = 1.0f)
+    public ZMusicPlayer(IOutputStreamFactory outputStreamFactory, MidiDevice preferredDevice, string soundFontPath, byte[]? oplPatchSet, float sourceVolume = 1.0f)
     {
         m_streamFactory = outputStreamFactory;
-        m_soundFontPath = soundFontPath;
+        m_soundFontPath = File.Exists(soundFontPath) ? soundFontPath : throw new FileNotFoundException("Invalid SoundFont file path");
         m_sourceVolume = sourceVolume;
+
+        if (preferredDevice == MidiDevice.OPL3 && oplPatchSet != null)
+        {
+            SetOPLPatchSet(oplPatchSet);
+            m_midiDevice = EMidiDevice_.MDEV_OPL;
+        }
+        else
+        {
+            m_midiDevice = EMidiDevice_.MDEV_FLUIDSYNTH;
+        }
     }
 
     /// <summary>
@@ -74,6 +100,7 @@ public class ZMusicPlayer : IDisposable
         fixed (byte* genMidiBytes = patchData)
         {
             ZMusic.ZMusic_SetGenMidi(genMidiBytes);
+            m_patchesLoaded = true;
         }
     }
 
@@ -138,7 +165,7 @@ public class ZMusicPlayer : IDisposable
             fixed (byte* dataBytes = soundFileData)
             {
                 nuint length = (nuint)soundFileData.Length;
-                song = ZMusic.ZMusic_OpenSongMem(dataBytes, length, UseOPLEmulation ? EMidiDevice_.MDEV_OPL : EMidiDevice_.MDEV_FLUIDSYNTH, null);
+                song = ZMusic.ZMusic_OpenSongMem(dataBytes, length, m_midiDevice, null);
                 m_zMusicSong = (IntPtr)song;
             }
 
@@ -150,16 +177,16 @@ public class ZMusicPlayer : IDisposable
             }
             else
             {
-                if (UseOPLEmulation)
+                if (m_midiDevice == EMidiDevice_.MDEV_OPL && m_patchesLoaded)
                 {
                     ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_opl_numchips, song, 8, null);
                     ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_opl_core, song, 3, null);
                 }
-
-                if (!m_soundFontLoaded && !UseOPLEmulation)
+                if (!m_soundFontLoaded && m_midiDevice != EMidiDevice_.MDEV_OPL)
                 {
                     SetSoundFont(song, m_soundFontPath);
                 }
+
                 PlayStream(song, DefaultSampleRate, DefaultChannels, loop, m_streamFactory);
             }
         }
