@@ -10,6 +10,8 @@ public class SetStopwatch : Stopwatch
 
     public void Restart(TimeSpan offset)
     {
+        if (offset < TimeSpan.Zero)
+            offset = TimeSpan.Zero;
         m_offset = offset;
         Restart();
     }
