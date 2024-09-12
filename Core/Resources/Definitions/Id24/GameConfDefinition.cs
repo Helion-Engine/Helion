@@ -56,7 +56,7 @@ public class GameConfDefinition
             newData.Mode = Max(ModeValues, newData.Mode, Data?.Mode);
 
             // merge options
-            Dictionary<string, bool> options = Data?.Options ?? [];
+            Dictionary<string, string> options = Data?.Options ?? [];
             foreach (var item in newData.Options.Where(x => OptionValidForExecutable(x.Key, newData.Executable)))
                 options[item.Key] = item.Value;
             newData.Options = options;
@@ -90,7 +90,7 @@ public class GameConfDefinition
     {
         if (executable == null)
             return false;
-        // TODO: actually check
+        // TODO: actually check, see https://doomwiki.org/wiki/OPTIONS
         return true;
     }
 }

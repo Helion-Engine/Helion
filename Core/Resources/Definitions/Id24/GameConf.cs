@@ -26,33 +26,31 @@ public class GameConfData
     public string? Executable { get; set; }
     public string? Mode { get; set; }
 
-    // TODO: fix
-    // [JsonConverter(typeof(OptionsConverter))]
-    [JsonIgnore]
-    public Dictionary<string, bool> Options { get; set; } = [];
+    [JsonConverter(typeof(OptionsConverter))]
+    public Dictionary<string, string> Options { get; set; } = [];
 }
 
-public class OptionsConverter : JsonConverter<Dictionary<string, bool>>
+public class OptionsConverter : JsonConverter<Dictionary<string, string>>
 {
-    public override void WriteJson(JsonWriter writer, Dictionary<string, bool>? value, JsonSerializer serializer) => throw new NotImplementedException();
+    public override void WriteJson(JsonWriter writer, Dictionary<string, string>? value, JsonSerializer serializer) => throw new NotImplementedException();
 
-    public override Dictionary<string, bool>? ReadJson(JsonReader reader, Type objectType, Dictionary<string, bool>? existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override Dictionary<string, string>? ReadJson(JsonReader reader, Type objectType, Dictionary<string, string>? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
-        Dictionary<string, bool> options = [];
-        reader.Read();
+        Dictionary<string, string> options = [];
         if (reader.TokenType == JsonToken.String)
         {
             SimpleParser parser = new();
             parser.Parse(reader.Value?.ToString() ?? "");
             while (!parser.IsDone())
             {
-                string key = parser.ConsumeString();
-                int value = parser.ConsumeInteger();
-                if (value == 1)
-                    options[key] = true;
-                else if (value == 0)
-                    options[key] = false;
-                parser.ConsumeLine();
+                try
+                {
+                    // TODO: sanity check?
+                    string key = parser.ConsumeString();
+                    string value = parser.ConsumeString();
+                    options[key] = value;
+                }
+                catch { }
             }
         }
         return options;
