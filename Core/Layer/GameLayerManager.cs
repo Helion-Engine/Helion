@@ -249,7 +249,7 @@ public class GameLayerManager : IGameLayerManager
     {
         foreach (IGameLayer existingLayer in Layers)
             if (!layers.Contains(existingLayer))
-                Remove(existingLayer);
+                RemoveWithoutAnimation(existingLayer);
     }
 
     public void RemoveWithoutAnimation(object? layer)
