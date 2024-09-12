@@ -94,7 +94,10 @@ public partial class Client
 
     private bool LoadFiles(string? iwad = null)
     {
-        if (!m_archiveCollection.Load(m_commandLineArgs.Files, iwad ?? GetIwad(m_iwads),
+        // transform WAD list per GAMECONF spec
+        var wads = m_archiveCollection.GetWadsFromGameConfs(iwad ?? GetIwad(m_iwads), m_commandLineArgs.Files);
+
+        if (!m_archiveCollection.Load(wads.pwads, wads.iwad,
             dehackedPatch: m_commandLineArgs.DehackedPatch))
         {
             if (m_archiveCollection.Assets == null)

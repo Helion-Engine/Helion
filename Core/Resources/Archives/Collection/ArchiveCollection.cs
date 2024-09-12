@@ -548,7 +548,7 @@ public class ArchiveCollection : IResources, IPathResolver
     }
 
     /// <summary>
-    /// ID24 GAMECONF is allowed to define an IWAD and additional PWADS.
+    /// ID24 GAMECONF is allowed to define an IWAD and additional PWADs.
     /// If an IWAD is specified, it will override any previously specified one.
     /// PWADs added by PWADs are placed before the PWAD that added them.
     /// </summary>
