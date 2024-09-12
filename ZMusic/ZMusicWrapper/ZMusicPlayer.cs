@@ -2,6 +2,7 @@
 
 using global::ZMusicWrapper.Generated;
 using System;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,6 +24,8 @@ public class ZMusicPlayer : IDisposable
     private float m_sourceVolume;
     private bool m_loop;
     private bool m_soundFontLoaded;
+    private bool m_patchesLoaded;
+    private EMidiDevice_ m_midiDevice;
 
     private bool m_disposed;
 
@@ -41,6 +44,22 @@ public class ZMusicPlayer : IDisposable
         }
     }
 
+    public MidiDevice PreferredDevice
+    {
+        get
+        {
+            return m_midiDevice == EMidiDevice_.MDEV_OPL
+                ? MidiDevice.OPL3
+                : MidiDevice.FluidSynth;
+        }
+        set
+        {
+            m_midiDevice = value == MidiDevice.OPL3
+                ? EMidiDevice_.MDEV_OPL
+                : EMidiDevice_.MDEV_FLUIDSYNTH;
+        }
+    }
+
     /// <summary>
     /// Gets the last error encountered when starting or stopping playback.
     /// This will be null if we have not encountered any errors.
@@ -51,13 +70,39 @@ public class ZMusicPlayer : IDisposable
     /// Creates a new music player
     /// </summary>
     /// <param name="outputStreamFactory">Output stream factory to use for playback</param>
-    /// <param name="soundFontPath">Path to a SoundFont (.sf2) file for use when playing MIDI</param>
+    /// <param name="preferredDevice">Preferred device for playing MIDI</param>
+    /// <param name="soundFontPath">Path to a SoundFont (.sf2, .sf3) file for use when playing MIDI</param>
+    /// <param name="oplPatchSet">Patches to use for emulated OPL playback</param>
     /// <param name="sourceVolume">Initial volume for this source</param>
-    public ZMusicPlayer(IOutputStreamFactory outputStreamFactory, string soundFontPath, float sourceVolume = 1.0f)
+    public ZMusicPlayer(IOutputStreamFactory outputStreamFactory, MidiDevice preferredDevice, string soundFontPath, byte[]? oplPatchSet, float sourceVolume = 1.0f)
     {
         m_streamFactory = outputStreamFactory;
         m_soundFontPath = soundFontPath;
         m_sourceVolume = sourceVolume;
+
+        if (preferredDevice == MidiDevice.OPL3 && oplPatchSet != null)
+        {
+            SetOPLPatchSet(oplPatchSet);
+            m_midiDevice = EMidiDevice_.MDEV_OPL;
+        }
+        else
+        {
+            m_midiDevice = EMidiDevice_.MDEV_FLUIDSYNTH;
+        }
+    }
+
+    /// <summary>
+    /// Sets the patch set data to use when OPL emulation is selected.
+    /// The caller is responsible for stripping any headers specific to the file/lump format.
+    /// </summary>
+    /// <param name="patchData">OPL patch data, typically from the GENMIDI lump in an IWAD, with headers stripped.</param>
+    public unsafe void SetOPLPatchSet(byte[] patchData)
+    {
+        fixed (byte* genMidiBytes = patchData)
+        {
+            ZMusic.ZMusic_SetGenMidi(genMidiBytes);
+            m_patchesLoaded = true;
+        }
     }
 
     /// <summary>
@@ -121,7 +166,7 @@ public class ZMusicPlayer : IDisposable
             fixed (byte* dataBytes = soundFileData)
             {
                 nuint length = (nuint)soundFileData.Length;
-                song = ZMusic.ZMusic_OpenSongMem(dataBytes, length, EMidiDevice_.MDEV_FLUIDSYNTH, null);
+                song = ZMusic.ZMusic_OpenSongMem(dataBytes, length, m_midiDevice, null);
                 m_zMusicSong = (IntPtr)song;
             }
 
@@ -133,10 +178,21 @@ public class ZMusicPlayer : IDisposable
             }
             else
             {
-                if (!m_soundFontLoaded)
+                if (m_midiDevice == EMidiDevice_.MDEV_OPL && m_patchesLoaded)
+                {
+                    ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_opl_numchips, song, 8, null);
+                    // OPL cores:
+                    // 0 YM3812
+                    // 1 DBOPL
+                    // 2 JavaOPL
+                    // 3 NukedOPL3
+                    ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_opl_core, song, 0, null);
+                }
+                if (!m_soundFontLoaded && m_midiDevice != EMidiDevice_.MDEV_OPL)
                 {
                     SetSoundFont(song, m_soundFontPath);
                 }
+
                 PlayStream(song, DefaultSampleRate, DefaultChannels, loop, m_streamFactory);
             }
         }
@@ -176,6 +232,11 @@ public class ZMusicPlayer : IDisposable
 
     private unsafe void SetSoundFont(_ZMusic_MusicStream_Struct* song, string soundFontPath)
     {
+        if (!File.Exists(soundFontPath))
+        {
+            throw new FileNotFoundException("Invalid SoundFont file path");
+        }
+
         byte[] fluidSynthPathBytes = Encoding.UTF8.GetBytes(soundFontPath);
         fixed (byte* path = fluidSynthPathBytes)
         {

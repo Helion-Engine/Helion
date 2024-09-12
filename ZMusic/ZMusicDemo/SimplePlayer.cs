@@ -1,11 +1,11 @@
 ﻿namespace ZMusicDemo
 {
+    using Helion.Client.Music;
     using OpenTK.Audio.OpenAL;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using ZMusicWrapper;
-    using Helion.Client.Music;
 
     internal static class SimplePlayer
     {
@@ -17,8 +17,9 @@
             _ = AL.GetError();
 
             Queue<string> fileQueue = new(fileNames);
+            byte[]? genMidiLumpBytes = null;
 
-            using (ZMusicPlayer player = new ZMusicPlayer(new AudioStreamFactory(), "Default.sf2"))
+            using (ZMusicPlayer player = new ZMusicPlayer(new AudioStreamFactory(), MidiDevice.FluidSynth, "Default.sf2", null))
             {
                 while (fileQueue.TryDequeue(out string? fileName))
                 {
@@ -27,6 +28,14 @@
                         string[] files = Directory.GetFiles(fileName);
                         foreach (string file in files)
                         {
+                            if (Path.GetFileName(file).Equals("GENMIDI.LMP", StringComparison.OrdinalIgnoreCase))
+                            {
+                                genMidiLumpBytes = File.ReadAllBytes(file);
+                                player.SetOPLPatchSet(genMidiLumpBytes[8..]);
+                                player.PreferredDevice = MidiDevice.OPL3;
+                                continue;
+                            }
+
                             fileQueue.Enqueue(file);
                         }
                         continue;
