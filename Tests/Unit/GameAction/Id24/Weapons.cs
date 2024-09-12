@@ -6,6 +6,7 @@ using Xunit;
 using FluentAssertions;
 using Helion.World.Entities.Inventories;
 using Helion.Geometry.Vectors;
+using Helion.Tests.Unit.GameAction.Util;
 
 namespace Helion.Tests.Unit.GameAction.Id24;
 
@@ -19,8 +20,7 @@ public class Weapons
     {
         World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2,
             dehackedPatch: Dehacked);
-
-        World.Player.SetDefaultInventory();
+        InventoryUtil.Reset(World, Player);
     }
 
     [Fact(DisplayName = "Initial owned")]

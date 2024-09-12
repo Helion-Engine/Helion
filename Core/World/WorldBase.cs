@@ -811,7 +811,10 @@ public abstract partial class WorldBase : IWorld
             KillAllPlayers();
 
         if ((m_levelChangeFlags & LevelChangeFlags.ResetInventory) != 0)
+        {
+            Player.Inventory.Clear();
             Player.SetDefaultInventory();
+        }
 
         m_levelChangeFlags = LevelChangeFlags.None;
     }
@@ -1745,7 +1748,7 @@ public abstract partial class WorldBase : IWorld
         }
 
         item.PickupPlayer = player;
-        item.FrameState.SetState("Pickup", warn: false);
+        item.FrameState.SetState(Constants.FrameStates.Pickup, warn: false);
 
         if (item.Flags.CountItem)
         {

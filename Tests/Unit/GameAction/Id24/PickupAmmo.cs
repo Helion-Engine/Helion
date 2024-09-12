@@ -102,18 +102,22 @@ public class PickupAmmo
 @"Thing 42069 (PickupAmmo0)
 Bits = SPECIAL
 Pickup ammo type = 0
+Pickup ammo category = 0
 
 Thing 42070 (PickupAmmo1)
 Bits = SPECIAL
 Pickup ammo type = 1
+Pickup ammo category = 0
 
 Thing 42071 (PickupAmmo2)
 Bits = SPECIAL
 Pickup ammo type = 2
+Pickup ammo category = 0
 
 Thing 42072 (PickupAmmo3)
 Bits = SPECIAL
 Pickup ammo type = 3
+Pickup ammo category = 0
 
 Thing 42073 (PickupAmmo1Box)
 Bits = SPECIAL

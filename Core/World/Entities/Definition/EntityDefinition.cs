@@ -18,7 +18,7 @@ public class EntityDefinition
     public EntityFlags Flags;
     public EntityProperties Properties;
     public readonly EntityStates States;
-    public readonly List<string> ParentClassNames;
+    public readonly IList<string> ParentClassNames;
     public readonly bool IsBulletPuff;
     public bool IsInventory;
     public int? SpawnState;
@@ -41,7 +41,7 @@ public class EntityDefinition
 
     private readonly HashSet<string> ParentClassLookup = new(StringComparer.OrdinalIgnoreCase);
 
-    public EntityDefinition(int id, string name, int? editorId, List<string> parentClassNames)
+    public EntityDefinition(int id, string name, int? editorId, IList<string> parentClassNames)
     {
         Precondition(!string.IsNullOrEmpty(name), "Cannot have an entity definition with an empty name");
 
@@ -67,17 +67,4 @@ public class EntityDefinition
     public bool IsType(string className) => ParentClassLookup.Contains(className);
 
     public override string ToString() => $"{(string.IsNullOrEmpty(DehackedName) ? Name : DehackedName)} (id = {Id}, editorId = {EditorId})";
-
-    public void CloneClassNames(EntityDefinition definition)
-    {
-        ParentClassLookup.Clear();
-        ParentClassNames.Clear();
-
-        ParentClassNames.AddRange(definition.ParentClassNames);
-
-        foreach (var parentClass in definition.ParentClassNames)
-            ParentClassLookup.Add(parentClass);
-
-
-    }
 }

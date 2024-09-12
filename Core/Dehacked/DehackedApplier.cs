@@ -677,8 +677,8 @@ public class DehackedApplier
                 properties.Inventory.PickupSound = GetSound(dehacked, thing.PickupSound.Value);
             if (!string.IsNullOrEmpty(thing.PickupMessage))
                 properties.Inventory.PickupMessage = GetDehackedMessageLookup(thing.PickupMessage, true);
-            if (thing.PickupAmmoType.HasValue)
-                ApplyPickupAmmoType(thing, dehacked, composer, definition, thing.PickupAmmoType.Value, thing.PickupAmmoCategory ?? Id24AmmoCategory.Default);
+            if (thing.PickupAmmoType.HasValue && thing.PickupAmmoCategory.HasValue)
+                ApplyPickupAmmoType(thing, dehacked, composer, definition, thing.PickupAmmoType.Value, thing.PickupAmmoCategory.Value);
             if (thing.SelfDamageFactor.HasValue)
                 properties.SelfDamageFactor = thing.SelfDamageFactor.Value;
         }
@@ -690,7 +690,9 @@ public class DehackedApplier
             GetEntityDefinition(dehacked, thing, composer);
     }
 
-    private static void ApplyPickupAmmoType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, 
+    private int m_ammoDefIndex;
+
+    private void ApplyPickupAmmoType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, 
         int type, Id24AmmoCategory category)
     {
         Id24AmmoCategory categoryFlags = (Id24AmmoCategory)((int)category & 0xC);
@@ -713,10 +715,11 @@ public class DehackedApplier
         if (ammoDef == null)
             return;
 
-        definition.CloneClassNames(ammoDef);
-        definition.Properties.Inventory.Amount = ammoDef.Properties.Inventory.Amount;
-        definition.Properties.Inventory.MaxAmount = ammoDef.Properties.Inventory.MaxAmount;
-        definition.Properties.Ammo = ammoDef.Properties.Ammo;
+        var newAmmo = new EntityDefinition(0, $"*deh/{thing.Number}/AmmoPickup{m_ammoDefIndex++}", null, ammoDef.ParentClassNames);
+        newAmmo.Properties.Inventory.Amount = ammoDef.Properties.Inventory.Amount;
+        newAmmo.Properties.Inventory.MaxAmount = ammoDef.Properties.Inventory.MaxAmount;
+        newAmmo.Properties.Ammo = ammoDef.Properties.Ammo;
+        definition.Properties.AddTranslatedPickup(newAmmo);
 
         if (category == Id24AmmoCategory.Weapon)
         {
@@ -724,26 +727,26 @@ public class DehackedApplier
             if (weaponDef == null)
                 return;
 
-            definition.Properties.Inventory.Amount = weaponDef.Properties.Weapons.AmmoGive;
+            newAmmo.Properties.Inventory.Amount = weaponDef.Properties.Weapons.AmmoGive;
         }
         else if (category == Id24AmmoCategory.Backpack)
         {
-            definition.Properties.Inventory.Amount = definition.Properties.Ammo.BackpackAmount;
+            newAmmo.Properties.Inventory.Amount = ammoDef.Properties.Ammo.BackpackAmount;
         }
 
         switch (categoryFlags)
         {
             case Id24AmmoCategory.Default:
-                definition.Properties.Inventory.AmountModifier = AmountModifier.Default;
+                newAmmo.Properties.Inventory.AmountModifier = AmountModifier.Default;
                 break;
             case Id24AmmoCategory.Dropped:
-                definition.Properties.Inventory.AmountModifier = AmountModifier.Dropped;
+                newAmmo.Properties.Inventory.AmountModifier = AmountModifier.Dropped;
                 break;
             case Id24AmmoCategory.Deathmatch:
-                definition.Properties.Inventory.AmountModifier = AmountModifier.Deathmatch;
+                newAmmo.Properties.Inventory.AmountModifier = AmountModifier.Deathmatch;
                 break;
             default:
-                definition.Properties.Inventory.NoItem = true;
+                newAmmo.Properties.Inventory.NoItem = true;
                 break;
         }
     }
@@ -769,6 +772,9 @@ public class DehackedApplier
         }
 
         definition.Properties.AddTranslatedPickup(itemDef);
+
+        if (itemDef.States.Labels.TryGetValue(Constants.FrameStates.Pickup, out int frame))
+            definition.States.Labels[Constants.FrameStates.Pickup] = frame;
     }
 
     private static void SetWeaponType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, int weaponType)

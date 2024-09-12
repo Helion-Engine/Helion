@@ -213,7 +213,7 @@ public class EntityDefinitionComposer
         }
 
         int id = m_indexTracker.Next();
-        var parentClassNames = definitions.Select(d => d.Name).ToList();
+        var parentClassNames = definitions.Select(d => d.Name).ToArray();
         EntityDefinition definition = new(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
 
         ApplyFlagsAndPropertiesFrom(definition, definitions);
