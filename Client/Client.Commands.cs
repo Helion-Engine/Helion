@@ -835,14 +835,14 @@ public partial class Client
 
     private SkillDef? GetSkillDefinition(WorldModel? worldModel)
     {
+        var mapInfo = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo;
+        if (worldModel != null)
+            return mapInfo.GetSkill(worldModel.Skill);
+
         if (m_config.Game.SelectedSkillDefinition != null)
             return m_config.Game.SelectedSkillDefinition;
 
-        var skill = m_config.Game.Skill.Value;
-        if (worldModel != null)
-            skill = worldModel.Skill;
-
-        return m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skill);
+        return mapInfo.GetSkill(m_config.Game.Skill.Value);
     }
 
     private void RegisterWorldEvents(WorldLayer newLayer)
