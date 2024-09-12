@@ -57,7 +57,7 @@ public partial class Client : IDisposable, IInputManagement
     private bool m_takeScreenshot;
     private bool m_loadComplete;
     private bool m_filesLoaded;
-    private WorldModel? m_loadCompleteModel;
+    private LoadMapResult? m_loadMapResult;
 
     record struct VersionTest(int Major, int Minor);
     private static readonly VersionTest[] Versions =
@@ -263,33 +263,48 @@ public partial class Client : IDisposable, IInputManagement
             return;
 
         m_loadComplete = false;
-        var newLayer = m_layerManager.WorldLayer;
-        if (newLayer == null)
+        if (m_loadMapResult == null)
         {
-            Log.Error("Failed to load map");
-            ShowConsole();
-            m_layerManager.LockInput = false;
-            m_layerManager.Remove(m_layerManager.LoadingLayer);
+            SetMapLoadFailure();
             return;
         }
 
+        var worldLayer = m_loadMapResult.WorldLayer;
+        if (worldLayer == null)
+        {
+            SetMapLoadFailure();
+            return;
+        }
+
+        FinalizeWorldLayerLoad(m_loadMapResult);
+
         // Note: StaticDataApplier happens through this start and needs to happen before UpdateToNewWorld
-        newLayer.World.Start(m_loadCompleteModel);
-        m_window.Renderer.UpdateToNewWorld(newLayer.World);
+        worldLayer.World.Start(m_loadMapResult.WorldModel);
+        m_window.Renderer.UpdateToNewWorld(worldLayer.World);
         m_layerManager.LockInput = false;
 
-        CheckLoadMapDemo(newLayer, m_loadCompleteModel);
-        m_loadCompleteModel = null;
+        CheckLoadMapDemo(worldLayer, m_loadMapResult.WorldModel);
 
         // Flag the WorldLayer that it is safe to render now that everything has been loaded
-        newLayer.ShouldRender = true;
+        worldLayer.ShouldRender = true;
         // intermission/endgame may have been kept to draw loading screen over
         // and grab the framebuffer after map load for transition effect
         m_layerManager.Remove(m_layerManager.IntermissionLayer);
         m_layerManager.Remove(m_layerManager.EndGameLayer);
         m_layerManager.Remove(m_layerManager.LoadingLayer);
+
+
+        m_loadMapResult = null;
         PlayTransition();
         UpdateVolume();
+    }
+
+    private void SetMapLoadFailure()
+    {
+        Log.Error("Failed to load map");
+        m_layerManager.ClearAllExcept();
+        ShowConsole();
+        m_layerManager.LockInput = false;
     }
 
     /// <summary>

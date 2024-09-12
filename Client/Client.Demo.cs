@@ -268,7 +268,10 @@ public partial class Client
 
         // Rewind is accomplished by loading the closest map and advancing to the desired tick.
         if (!loadMap.Map.Equals(m_layerManager.WorldLayer.CurrentMap.MapName, StringComparison.OrdinalIgnoreCase) || advanceAmount < 0)
-            LoadMap(GetMapInfo(loadMap.Map), null, null);
+        {
+            var result = LoadMap(GetMapInfo(loadMap.Map), null, null);
+            FinalizeWorldLayerLoad(result);
+        }
 
         m_layerManager.WorldLayer.World.SoundManager.ClearSounds();
         m_layerManager.WorldLayer.World.SoundManager.PlaySound = false;
