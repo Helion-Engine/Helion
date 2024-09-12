@@ -38,6 +38,10 @@ public class ConfigAudio
     [ConfigInfo("Main device to use for audio.")]
     public readonly ConfigValue<string> Device = new(IAudioSystem.DefaultAudioDevice);
 
+    [ConfigInfo("If enabled, use OPL3 emulator for music.  If disabled, use FluidSynth.")]
+    [OptionMenu(OptionSectionType.Audio, "Use OPL Emulation")]
+    public readonly ConfigValue<bool> UseOPLEmulation = new(false);
+
     [ConfigInfo("SoundFont file to use for MIDI/MUS music playback.")]
     [OptionMenu(OptionSectionType.Audio, "SoundFont File", dialogType: DialogType.SoundFontPicker)]
     public readonly ConfigValue<string> SoundFontFile = new($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");

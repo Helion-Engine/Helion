@@ -77,7 +77,7 @@ public class ZMusicPlayer : IDisposable
     public ZMusicPlayer(IOutputStreamFactory outputStreamFactory, MidiDevice preferredDevice, string soundFontPath, byte[]? oplPatchSet, float sourceVolume = 1.0f)
     {
         m_streamFactory = outputStreamFactory;
-        m_soundFontPath = File.Exists(soundFontPath) ? soundFontPath : throw new FileNotFoundException("Invalid SoundFont file path");
+        m_soundFontPath = soundFontPath;
         m_sourceVolume = sourceVolume;
 
         if (preferredDevice == MidiDevice.OPL3 && oplPatchSet != null)
@@ -92,9 +92,10 @@ public class ZMusicPlayer : IDisposable
     }
 
     /// <summary>
-    /// Sets the patch set data to use when OPL emulation is selected
+    /// Sets the patch set data to use when OPL emulation is selected.
+    /// The caller is responsible for stripping any headers specific to the file/lump format.
     /// </summary>
-    /// <param name="patchData">OPL patch data, typically from the GENMIDI lump in an IWAD</param>
+    /// <param name="patchData">OPL patch data, typically from the GENMIDI lump in an IWAD, with headers stripped.</param>
     public unsafe void SetOPLPatchSet(byte[] patchData)
     {
         fixed (byte* genMidiBytes = patchData)
@@ -180,7 +181,12 @@ public class ZMusicPlayer : IDisposable
                 if (m_midiDevice == EMidiDevice_.MDEV_OPL && m_patchesLoaded)
                 {
                     ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_opl_numchips, song, 8, null);
-                    ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_opl_core, song, 3, null);
+                    // OPL cores:
+                    // 0 YM3812
+                    // 1 DBOPL
+                    // 2 JavaOPL
+                    // 3 NukedOPL3
+                    ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_opl_core, song, 0, null);
                 }
                 if (!m_soundFontLoaded && m_midiDevice != EMidiDevice_.MDEV_OPL)
                 {
@@ -226,6 +232,11 @@ public class ZMusicPlayer : IDisposable
 
     private unsafe void SetSoundFont(_ZMusic_MusicStream_Struct* song, string soundFontPath)
     {
+        if (!File.Exists(soundFontPath))
+        {
+            throw new FileNotFoundException("Invalid SoundFont file path");
+        }
+
         byte[] fluidSynthPathBytes = Encoding.UTF8.GetBytes(soundFontPath);
         fixed (byte* path = fluidSynthPathBytes)
         {

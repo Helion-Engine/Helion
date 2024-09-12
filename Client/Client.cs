@@ -466,7 +466,9 @@ public partial class Client : IDisposable, IInputManagement
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(archiveCollection.DataCache, config, commandLineArgs);
             LogClientInfo();
-            using IMusicPlayer musicPlayer = commandLineArgs.NoMusic ? new MockMusicPlayer() : new MusicPlayer(config.Audio);
+            using IMusicPlayer musicPlayer = commandLineArgs.NoMusic ?
+                new MockMusicPlayer() :
+                new MusicPlayer(config.Audio, archiveCollection);
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
 
             using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);

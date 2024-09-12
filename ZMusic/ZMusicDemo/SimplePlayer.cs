@@ -31,7 +31,7 @@
                             if (Path.GetFileName(file).Equals("GENMIDI.LMP", StringComparison.OrdinalIgnoreCase))
                             {
                                 genMidiLumpBytes = File.ReadAllBytes(file);
-                                player.SetOPLPatchSet(genMidiLumpBytes);
+                                player.SetOPLPatchSet(genMidiLumpBytes[8..]);
                                 player.PreferredDevice = MidiDevice.OPL3;
                                 continue;
                             }
