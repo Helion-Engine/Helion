@@ -306,7 +306,7 @@ public class SaveMenu : Menu
         else
         {
             // Handle all other typed input.
-            if (input.ConsumeKeyPressed(Key.Backspace))
+            if (input.ConsumePressOrContinuousHold(Key.Backspace))
             {
                 if (m_customNameBuilder.ToString() == m_defaultSavedGameName)
                 {
