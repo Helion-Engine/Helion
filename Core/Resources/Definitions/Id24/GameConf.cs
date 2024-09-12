@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using Helion.Util.Parser;
+using Newtonsoft.Json;
+
 namespace Helion.Resources.Definitions.Id24;
 
 public class GameConf
@@ -20,7 +25,38 @@ public class GameConfData
     public string? WadTranslation { get; set; }
     public string? Executable { get; set; }
     public string? Mode { get; set; }
-    public string? Options { get; set; }
+
+    // TODO: fix
+    // [JsonConverter(typeof(OptionsConverter))]
+    [JsonIgnore]
+    public Dictionary<string, bool> Options { get; set; } = [];
+}
+
+public class OptionsConverter : JsonConverter<Dictionary<string, bool>>
+{
+    public override void WriteJson(JsonWriter writer, Dictionary<string, bool>? value, JsonSerializer serializer) => throw new NotImplementedException();
+
+    public override Dictionary<string, bool>? ReadJson(JsonReader reader, Type objectType, Dictionary<string, bool>? existingValue, bool hasExistingValue, JsonSerializer serializer)
+    {
+        Dictionary<string, bool> options = [];
+        reader.Read();
+        if (reader.TokenType == JsonToken.String)
+        {
+            SimpleParser parser = new();
+            parser.Parse(reader.Value?.ToString() ?? "");
+            while (!parser.IsDone())
+            {
+                string key = parser.ConsumeString();
+                int value = parser.ConsumeInteger();
+                if (value == 1)
+                    options[key] = true;
+                else if (value == 0)
+                    options[key] = false;
+                parser.ConsumeLine();
+            }
+        }
+        return options;
+    }
 }
 
 public static class GameConfConstants
@@ -31,7 +67,7 @@ public static class GameConfConstants
         public const string Version = "1.0.0";
     }
 
-    public static class Version
+    public static class Executable
     {
         public const string Doom1_9 = "doom1.9";
         public const string LimitRemoving = "limitremoving";
@@ -44,16 +80,19 @@ public static class GameConfConstants
         public const string Id24 = "id24";
     }
 
-    public static readonly string[] ValidVersions = [
-        Version.Doom1_9,
-        Version.LimitRemoving,
-        Version.BugFixed,
-        Version.Boom2_02,
-        Version.Complevel9,
-        Version.Mbf,
-        Version.Mbf21,
-        Version.Mbf21Ex,
-        Version.Id24,
+    /// <remarks>
+    /// from least to highest priority
+    /// </remarks>
+    public static readonly string[] ValidExecutables = [
+        Executable.Doom1_9,
+        Executable.LimitRemoving,
+        Executable.BugFixed,
+        Executable.Boom2_02,
+        Executable.Complevel9,
+        Executable.Mbf,
+        Executable.Mbf21,
+        Executable.Mbf21Ex,
+        Executable.Id24,
     ];
 
     public static class Mode
@@ -63,6 +102,9 @@ public static class GameConfConstants
         public const string Commercial = "commercial";
     }
 
+    /// <remarks>
+    /// from least to highest priority
+    /// </remarks>
     public static readonly string[] ValidModes = [
         Mode.Registered,
         Mode.Retail,
