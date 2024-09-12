@@ -43,14 +43,16 @@ public class OptionsConverter : JsonConverter<Dictionary<string, string>>
             parser.Parse(reader.Value?.ToString() ?? "");
             while (!parser.IsDone())
             {
+                int lineNumber = parser.GetCurrentLine();
                 try
                 {
-                    // TODO: sanity check?
                     string key = parser.ConsumeString();
                     string value = parser.ConsumeString();
                     options[key] = value;
                 }
                 catch { }
+                if (parser.GetCurrentLine() == lineNumber)
+                    parser.ConsumeLine();
             }
         }
         return options;
