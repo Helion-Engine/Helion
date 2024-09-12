@@ -47,9 +47,12 @@ public class FilesystemArchiveLocator : IArchiveLocator
     /// from.</param>
     public FilesystemArchiveLocator(IConfig config)
     {
-        List<string> paths = config.Files.Directories.Value;
-        var envPaths = WadPaths.GetFromEnvVars();
-        m_paths.AddRange(paths.Concat(envPaths).Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct());
+        List<string> paths = [
+            .. config.Files.Directories.Value,
+            .. WadPaths.GetFromSteamAndLinuxDirs(),
+            .. WadPaths.GetFromEnvVars()
+        ];
+        m_paths.AddRange(paths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct());
     }
 
     public Archive? Locate(string uri)

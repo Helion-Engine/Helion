@@ -373,6 +373,28 @@ public class ArchiveCollection : IResources, IPathResolver
             }
         }
 
+        // ID24: load extras.wad and potentially id24res.wad if a GAMECONF is present
+        var gameConfData = Definitions.GameConfDefinition.Data;
+        if (gameConfData != null)
+        {
+            const string extrasName = "extras.wad";
+            Archive? extrasArchive = LoadArchive(extrasName, null);
+            if (extrasArchive == null)
+                HelionLog.Error($"Unable to open {extrasName} for GAMECONF config");
+            else
+                m_archives.Add(extrasArchive);
+
+            if (gameConfData?.Executable == GameConfConstants.Executable.Id24)
+            {
+                const string id24ResName = "id24res.wad";
+                Archive? id24ResArchive = LoadArchive(id24ResName, null);
+                if (id24ResArchive == null)
+                    HelionLog.Error($"Unable to open {id24ResName} for ID24 config");
+                else
+                    m_archives.Add(id24ResArchive);
+            }
+        }
+
         return true;
     }
 
