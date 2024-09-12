@@ -1,6 +1,7 @@
 ﻿namespace Helion.Client.Music;
 
 using Helion.Audio;
+using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
@@ -19,6 +20,7 @@ public class MusicPlayer : IMusicPlayer
     private bool m_disposed;
 
     private readonly ConfigAudio m_configAudio;
+    private readonly ArchiveCollection m_archiveCollection;
     private readonly ConcurrentQueue<PlayParams> m_playQueue = [];
     private readonly Dictionary<uint, byte[]> m_convertedMus = [];
     private readonly CancellationTokenSource m_cancelPlayQueue = new();
@@ -26,14 +28,23 @@ public class MusicPlayer : IMusicPlayer
     private Thread? m_playStartThread;
     private ZMusicWrapper.ZMusicPlayer m_zMusicPlayer;
     private FluidSynthMusicPlayer m_fluidSynthPlayer;
+    private bool m_genMidiPatchLoaded;
+    private PlayParams? m_currentTrack;
 
-    public MusicPlayer(ConfigAudio configAudio)
+    public MusicPlayer(ConfigAudio configAudio, ArchiveCollection archiveCollection)
     {
         m_configAudio = configAudio;
+        m_archiveCollection = archiveCollection;
         m_playQueueTask = Task.Factory.StartNew(PlayQueueTask, m_cancelPlayQueue.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
-        m_zMusicPlayer = new ZMusicWrapper.ZMusicPlayer(new AudioStreamFactory(), string.Empty, (float)(configAudio.MusicVolume.Value * .5));
+        m_zMusicPlayer = new ZMusicWrapper.ZMusicPlayer(
+            new AudioStreamFactory(),
+            configAudio.Synthesizer == Synth.OPL3 ? ZMusicWrapper.MidiDevice.OPL3 : ZMusicWrapper.MidiDevice.FluidSynth,
+            configAudio.SoundFontFile,
+            null,
+            (float)(configAudio.MusicVolume.Value * .5));
         m_fluidSynthPlayer = new FluidSynthMusicPlayer(configAudio.SoundFontFile.Value);
+        SetSynthesizer();
     }
 
     private readonly struct PlayParams(byte[] data, MusicPlayerOptions options)
@@ -62,6 +73,29 @@ public class MusicPlayer : IMusicPlayer
         m_fluidSynthPlayer.EnsureSoundFont(m_configAudio.SoundFontFile);
     }
 
+    public void SetSynthesizer()
+    {
+        if (m_disposed)
+        {
+            return;
+        }
+
+        ZMusicWrapper.MidiDevice currentDevice = m_zMusicPlayer.PreferredDevice;
+        ZMusicWrapper.MidiDevice newDevice = m_configAudio.Synthesizer == Synth.OPL3 
+            ? ZMusicWrapper.MidiDevice.OPL3 
+            : ZMusicWrapper.MidiDevice.FluidSynth;
+
+        if (currentDevice != newDevice)
+        {
+            m_zMusicPlayer.PreferredDevice = newDevice;
+            if (m_currentTrack?.Data != null)
+            {
+                MusicPlayerOptions newOptions = (m_currentTrack?.Options ?? MusicPlayerOptions.None) & ~MusicPlayerOptions.IgnoreAlreadyPlaying;
+                this.Play(m_currentTrack?.Data!, newOptions);
+            }
+        }
+    }
+
     private void PlayQueueTask()
     {
         while (!m_disposed)
@@ -78,6 +112,7 @@ public class MusicPlayer : IMusicPlayer
 
     private void CreateAndPlayMusic(PlayParams playParams)
     {
+        m_currentTrack = playParams;
         var data = playParams.Data;
         var options = playParams.Options;
         uint hash = data.CalculateCrc32();
@@ -100,10 +135,10 @@ public class MusicPlayer : IMusicPlayer
             return;
         }
 
-        if (!isMidi)
+        if (!isMidi || (m_configAudio.Synthesizer == Synth.OPL3 && EnsurePatchSetLoaded()))
         {
             // MP3, OGG, MOD, XM, IT, etc. -- use ZMusic.
-            // No need for the "play thread" wrapper here.
+            // No need for the "play thread" wrapper here because the player spins up its own thread/task internally
             m_zMusicPlayer.Play(data, playParams.Options.HasFlag(MusicPlayerOptions.Loop));
         }
         else
@@ -128,6 +163,24 @@ public class MusicPlayer : IMusicPlayer
             m_playStartThread = new Thread(() => m_fluidSynthPlayer.Play(data, playParams.Options));
             m_playStartThread.Start();
         }
+    }
+
+    private bool EnsurePatchSetLoaded()
+    {
+        if (m_genMidiPatchLoaded)
+        {
+            return true;
+        }
+
+        byte[]? patchSet = m_archiveCollection.Entries.FindByName("GENMIDI")?.ReadData() ?? null;
+        if (patchSet != null)
+        {
+            // Discard 8-byte header
+            m_zMusicPlayer.SetOPLPatchSet(patchSet[8..]);
+            m_genMidiPatchLoaded = true;
+        }
+
+        return m_genMidiPatchLoaded;
     }
 
     public void Dispose()

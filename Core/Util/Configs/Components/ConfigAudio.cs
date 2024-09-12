@@ -38,6 +38,10 @@ public class ConfigAudio
     [ConfigInfo("Main device to use for audio.")]
     public readonly ConfigValue<string> Device = new(IAudioSystem.DefaultAudioDevice);
 
+    [ConfigInfo("Synthesizer to use for music.")]
+    [OptionMenu(OptionSectionType.Audio, "Music Synthesizer")]
+    public readonly ConfigValue<Synth> Synthesizer = new(Synth.FluidSynth);
+
     [ConfigInfo("SoundFont file to use for MIDI/MUS music playback.")]
     [OptionMenu(OptionSectionType.Audio, "SoundFont File", dialogType: DialogType.SoundFontPicker)]
     public readonly ConfigValue<string> SoundFontFile = new($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");

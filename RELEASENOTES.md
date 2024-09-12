@@ -8,7 +8,7 @@
   - Added automap marker functionality to key binding options
   - "Melt" screen wipe added
   - Save game improvements: Saves can be named, pagination added to Save/Load dialog, rotating autosaves added
-  - Expanded support for music formats via ZMusic
+  - Expanded support for music formats and more synthesizer options, via ZMusic
 
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
@@ -38,4 +38,6 @@
   - Separate HUD and menu scaling into two different options
   - Fix incorrect dehacked mapping for BEXP5
   - Rework FluidSynth loading sequence to prevent a crash on some systems and speed up music track changes
-  - Prevent user from overwriting autosaves via quick save, since we are likely to add "rotation" for autosaves
+  - Prevent user from overwriting autosaves via quick save
+  - Fix issue with savegame compatibility settings persisting to user config
+  - Fix MusicChangers breaking when loading saves
