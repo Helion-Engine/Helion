@@ -39,7 +39,7 @@ public class MusicPlayer : IMusicPlayer
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
         m_zMusicPlayer = new ZMusicWrapper.ZMusicPlayer(
             new AudioStreamFactory(),
-            configAudio.UseOPLEmulation ? ZMusicWrapper.MidiDevice.OPL3 : ZMusicWrapper.MidiDevice.FluidSynth,
+            configAudio.Synthesizer == Synth.OPL3 ? ZMusicWrapper.MidiDevice.OPL3 : ZMusicWrapper.MidiDevice.FluidSynth,
             configAudio.SoundFontFile,
             null,
             (float)(configAudio.MusicVolume.Value * .5));
@@ -81,7 +81,9 @@ public class MusicPlayer : IMusicPlayer
         }
 
         ZMusicWrapper.MidiDevice currentDevice = m_zMusicPlayer.PreferredDevice;
-        ZMusicWrapper.MidiDevice newDevice = m_configAudio.UseOPLEmulation ? ZMusicWrapper.MidiDevice.OPL3 : ZMusicWrapper.MidiDevice.FluidSynth;
+        ZMusicWrapper.MidiDevice newDevice = m_configAudio.Synthesizer == Synth.OPL3 
+            ? ZMusicWrapper.MidiDevice.OPL3 
+            : ZMusicWrapper.MidiDevice.FluidSynth;
 
         if (currentDevice != newDevice)
         {
@@ -133,7 +135,7 @@ public class MusicPlayer : IMusicPlayer
             return;
         }
 
-        if (!isMidi || (m_configAudio.UseOPLEmulation && EnsurePatchSetLoaded()))
+        if (!isMidi || (m_configAudio.Synthesizer == Synth.OPL3 && EnsurePatchSetLoaded()))
         {
             // MP3, OGG, MOD, XM, IT, etc. -- use ZMusic.
             // No need for the "play thread" wrapper here because the player spins up its own thread/task internally

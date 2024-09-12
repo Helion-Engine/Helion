@@ -16,7 +16,7 @@ public partial class Client
         m_config.Audio.SoundVolume.OnChanged += SoundVolume_OnChanged;
         m_config.Audio.Volume.OnChanged += Volume_OnChanged;
         m_config.Audio.SoundFontFile.OnChanged += SoundFont_OnChanged;
-        m_config.Audio.UseOPLEmulation.OnChanged += this.UseOPLEmulation_OnChanged;
+        m_config.Audio.Synthesizer.OnChanged += this.UseOPLEmulation_OnChanged;
         m_config.Mouse.Look.OnChanged += Look_OnChanged;
 
         m_config.Window.State.OnChanged += WindowState_OnChanged;
@@ -106,7 +106,7 @@ public partial class Client
         (m_audioSystem.Music as MusicPlayer)?.ChangeSoundFont();
     }
 
-    private void UseOPLEmulation_OnChanged(object? sender, bool e)
+    private void UseOPLEmulation_OnChanged(object? sender, Synth e)
     {
         (m_audioSystem.Music as MusicPlayer)?.SetSynthesizer();
     }
