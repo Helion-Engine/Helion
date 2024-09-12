@@ -17,4 +17,10 @@ public interface IArchiveLocator
     /// <returns>The archive, or an error reason on why it cannot be found.
     /// </returns>
     Archive? Locate(string uri);
+
+    /// <summary>
+    /// Checks the search paths for the archive, without opening it or confirming its type,
+    /// returning its path if found.
+    /// </summary>
+    string? LocateWithoutLoading(string uri);
 }

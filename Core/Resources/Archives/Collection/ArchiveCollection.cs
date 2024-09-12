@@ -557,6 +557,22 @@ public class ArchiveCollection : IResources, IPathResolver
         string? iwad = originalIwad;
         List<string> pwads = [];
 
+        string? LocateReferencedWad(string wadName, string? referencingWadPath)
+        {
+            // first check in the same folder
+            var siblingPath = Path.Join(referencingWadPath, wadName);
+            if (Path.Exists(siblingPath))
+                return siblingPath;
+            // check in other search paths
+            else
+            {
+                string? otherPath = m_archiveLocator.LocateWithoutLoading(wadName);
+                if (otherPath != null)
+                    return otherPath;
+            }
+            return null;
+        }
+
         GameConfDefinition parser = new();
         void ApplyWadsFromWadGameConf(string wad)
         {
@@ -568,10 +584,24 @@ public class ArchiveCollection : IResources, IPathResolver
             parser.Parse(entry);
             if (parser.Data == null)
                 return;
+            // assume that referenced PWADs are in the same directory before
+            // falling back to other search paths, the spec isn't clear here
+            string? wadDir = Path.GetDirectoryName(wad);
             if (parser.Data.Iwad != null)
-                iwad = parser.Data.Iwad;
+            {
+                string? locatedIwad = LocateReferencedWad(parser.Data.Iwad, wadDir);
+                if (locatedIwad != null)
+                    iwad = locatedIwad;
+            }
             if (parser.Data.Pwads != null)
-                pwads.AddRange(parser.Data.Pwads);
+            {
+                foreach (string pwad in parser.Data.Pwads)
+                {
+                    string? locatedPwad = LocateReferencedWad(pwad, wadDir);
+                    if (locatedPwad != null)
+                        pwads.Add(locatedPwad);
+                }
+            }
         }
 
         if (originalIwad != null)

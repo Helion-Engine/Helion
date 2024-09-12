@@ -83,6 +83,23 @@ public class FilesystemArchiveLocator : IArchiveLocator
         return null;
     }
 
+    /// <summary>
+    /// Checks the search paths for the archive, without opening it or confirming its type.
+    /// </summary>
+    public string? LocateWithoutLoading(string uri)
+    {
+        string? foundPath = null;
+        foreach (string basePath in m_paths)
+        {
+            string path = Path.Combine(basePath, uri);
+            if (!CheckPathExists(path))
+                continue;
+
+            foundPath = path;
+        }
+        return foundPath;
+    }
+
     private static bool IsDirectory(string path)
     {
         FileAttributes attr = File.GetAttributes(path);
