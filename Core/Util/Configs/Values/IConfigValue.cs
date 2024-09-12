@@ -45,7 +45,7 @@ public interface IConfigValue
     /// </remarks>
     /// <param name="newValue">The new value.</param>
     /// <returns>The set result.</returns>
-    ConfigSetResult Set(object newValue);
+    ConfigSetResult Set(object newValue, bool writeToConfig = true);
 
     /// <summary>
     /// Applies the queued changes, if any.
