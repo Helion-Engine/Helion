@@ -727,10 +727,8 @@ public partial class Client
         loadingLayer.LoadingImage = m_layerManager.WorldLayer == null ? m_archiveCollection.GameInfo.TitlePage : string.Empty;
 
         PrepareTransition();
-
         UnRegisterWorldEvents();
 
-        m_layerManager.ClearAllExcept(loadingLayer, m_layerManager.TransitionLayer);
         m_archiveCollection.DataCache.FlushReferences();
 
         m_loadMapResult = await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
@@ -770,7 +768,6 @@ public partial class Client
             return result;
         }
 
-        UnRegisterWorldEvents();
         m_window.InputManager.Clear();
         m_resumeCommands.Clear();
 
@@ -779,9 +776,6 @@ public partial class Client
             LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
             return result;
         }
-
-        m_layerManager.Remove(m_layerManager.WorldLayer);
-        m_archiveCollection.DataCache.FlushReferences();
 
         // Don't show the spinner here. The final steps requires OpenGL calls that are required to be executed on the main thread for now so the spinner can't update.
         if (m_layerManager.LoadingLayer != null)
