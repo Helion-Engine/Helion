@@ -90,15 +90,14 @@ public class SaveMenu : Menu
         }
     }
 
-    private readonly IMenuComponent SaveHeader = new MenuImageComponent(SaveHeaderImage);
-    private readonly IMenuComponent LoadHeader = new MenuImageComponent(LoadHeaderImage);
-    private readonly ImmutableArray<IMenuComponent> NoSavedGamesComponents = [
-        new MenuPaddingComponent(8),
-        new MenuSmallTextComponent(NoSavedGamesText)
-    ];
+    private readonly MenuImageComponent SaveHeader = new(SaveHeaderImage);
+    private readonly MenuImageComponent LoadHeader = new(LoadHeaderImage);
+    private readonly MenuPaddingComponent BigPadding = new(8);
+    private readonly MenuPaddingComponent SmallPadding = new(4);
+    private readonly MenuSmallTextComponent NoSavedGamesComponent = new(NoSavedGamesText);
 
     private List<IMenuComponent> GetPaginationFooter() => [
-        new MenuPaddingComponent(5),
+        SmallPadding,
         new MenuSmallTextComponent($"<- Page {m_currentPage}/{GetPageCount()} ->")
     ];
 
@@ -128,17 +127,16 @@ public class SaveMenu : Menu
 
     private List<IMenuComponent> GenerateSaveMenuComponents()
     {
-        List<IMenuComponent> newComponents = [SaveHeader];
+        List<IMenuComponent> newComponents = [SaveHeader, BigPadding];
 
         if (m_isSave && !m_canSave)
         {
-            newComponents.Add(new MenuPaddingComponent(8));
             string[] text = ArchiveCollection.Definitions.Language.GetMessages("$SAVEDEAD");
             for (int i = 0; i < text.Length; i++)
             {
                 newComponents.Add(new MenuSmallTextComponent(text[i]));
                 if (i != text.Length - 1)
-                    newComponents.Add(new MenuPaddingComponent(8));
+                    newComponents.Add(SmallPadding);
             }
         }
         else
@@ -169,10 +167,10 @@ public class SaveMenu : Menu
 
     private List<IMenuComponent> GenerateLoadMenuComponents()
     {
-        List<IMenuComponent> newComponents = [LoadHeader];
+        List<IMenuComponent> newComponents = [LoadHeader, BigPadding];
 
         if (m_saveGames.Empty())
-            newComponents.AddRange(NoSavedGamesComponents);
+            newComponents.Add(NoSavedGamesComponent);
         else
         {
             var saveRowComponents = GetCurrentPageSaveGames().Select(save =>

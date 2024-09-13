@@ -121,26 +121,15 @@ public partial class MenuLayer
         ref int offsetY)
     {
         const int LeftOffset = 32;
-        const int RowVerticalPadding = 4;
-        const int SelectionOffsetX = 4;
-        const int RowOffsetY = 7;
-        const int FontSize = 8;
+        const int DesiredRowVerticalPadding = 4;
+        const int SelectionOffsetX = 6;
         const string FontName = Constants.Fonts.Small;
+        int fontSize = hud.GetFontMaxHeight(FontName);
         const string LeftBarName = "M_LSLEFT";
         const string MiddleBarName = "M_LSCNTR";
         const string RightBarName = "M_LSRGHT";
 
-        if (isSelected)
-        {
-            string selectedName = ShouldDrawActive ? Constants.MenuSelectIconActive : Constants.MenuSelectIconInactive;
-            if (hud.Textures.TryGet(selectedName, out var handle))
-            {
-                Vec2I selectedOffset = TranslateDoomOffset(handle.Offset);
-                selectedOffset += (LeftOffset - handle.Dimension.Width - SelectionOffsetX, offsetY);
-                hud.Image(selectedName, selectedOffset);
-            }
-        }
-
+        // draw row background
         if (!hud.Textures.TryGet(LeftBarName, out var leftHandle) ||
             !hud.Textures.TryGet(MiddleBarName, out var midHandle) ||
             !hud.Textures.TryGet(RightBarName, out var rightHandle))
@@ -153,7 +142,7 @@ public partial class MenuLayer
         Dimension midDim = midHandle.Dimension;
         Dimension rightDim = rightHandle.Dimension;
 
-        hud.Image(LeftBarName, (offsetX, offsetY + RowOffsetY));
+        hud.Image(LeftBarName, (offsetX, offsetY));
         offsetX += leftDim.Width;
 
         const int MenuRowWidth = 248;
@@ -161,16 +150,35 @@ public partial class MenuLayer
         int blocks = (int)Math.Ceiling((MenuRowWidth - leftDim.Width - rightDim.Width) / (double)midDim.Width) + 1;
         for (int i = 0; i < blocks; i++)
         {
-            hud.Image(MiddleBarName, (offsetX, offsetY + RowOffsetY));
+            hud.Image(MiddleBarName, (offsetX, offsetY));
             offsetX += midDim.Width;
         }
 
-        hud.Image(RightBarName, (offsetX, offsetY + RowOffsetY));
+        hud.Image(RightBarName, (offsetX, offsetY));
 
+        int rowBgHeight = MathHelper.Max(leftDim.Height, midDim.Height, rightDim.Width);
+
+        // draw text
         string saveText = saveRowComponent.Text.Length > blocks ? saveRowComponent.Text.Substring(0, blocks) : saveRowComponent.Text;
-        Vec2I origin = (LeftOffset + leftDim.Width + 4, offsetY + 3 + RowOffsetY);
-        hud.Text(saveText, FontName, FontSize, origin, out Dimension area);
+        int textVerticalPadding = (rowBgHeight - fontSize) / 2;
+        Vec2I origin = (LeftOffset + leftDim.Width + 4, offsetY + textVerticalPadding);
+        hud.Text(saveText, FontName, fontSize, origin, out Dimension textArea);
 
-        offsetY += MathHelper.Max(area.Height, leftDim.Height, midDim.Height, rightDim.Width) + RowVerticalPadding;
+        // draw row selector
+        if (isSelected)
+        {
+            string selectedName = ShouldDrawActive ? Constants.MenuSelectIconActive : Constants.MenuSelectIconInactive;
+            if (hud.Textures.TryGet(selectedName, out var handle))
+            {
+                Vec2I selectedOffset = TranslateDoomOffset(handle.Offset);
+                selectedOffset += (LeftOffset - handle.Dimension.Width - SelectionOffsetX, offsetY - 2);
+                hud.Image(selectedName, selectedOffset);
+            }
+        }
+
+        // Vanilla graphics are 14px high, some PWADs are higher. Target a 4px gap and eat into it if needed.
+        int rowTotalHeight = Math.Max(rowBgHeight, textArea.Height);
+        int rowVerticalPadding = Math.Max(0, (14 + DesiredRowVerticalPadding) - rowTotalHeight);
+        offsetY += rowTotalHeight + rowVerticalPadding;
     }
 }
