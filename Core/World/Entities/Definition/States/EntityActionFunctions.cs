@@ -1972,6 +1972,7 @@ public static class EntityActionFunctions
         if (entity.Target.Entity == null)
             return;
 
+        WorldStatic.SoundManager.CreateSoundOn(entity, "shotguy/attack", new SoundParams(entity));
         A_FaceTarget(entity);
 
         // could remove GetAutoAimEntity if FireHitscanBullets took optional auto aim angle
