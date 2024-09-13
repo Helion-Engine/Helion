@@ -159,6 +159,9 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
 
     public void Tick()
     {
+        if (m_world.IsDisposed)
+            return;
+
         var listener = m_world.GetListener();
         AudioManager.SetListener(listener.Position, listener.Angle, listener.Pitch);
         UpdateWaitingLoopSounds();
