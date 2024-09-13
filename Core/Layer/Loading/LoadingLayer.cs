@@ -46,8 +46,8 @@ public class LoadingLayer : IGameLayer
 
     public void RenderProgress(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
-        int fontSize = m_config.Hud.GetHudScaled(20);
-        int yOffset = -m_config.Hud.GetHudScaled(8);
+        int fontSize = m_config.Window.GetMenuLargeFontSize();
+        int yOffset = -m_config.Window.GetMenuScaled(8);
         var dim = hud.MeasureText(LoadingText, ConsoleFont, fontSize);
         if (dim.Width == 0 && dim.Height == 0)
             return;
