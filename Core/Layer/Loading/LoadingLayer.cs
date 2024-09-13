@@ -25,16 +25,14 @@ public class LoadingLayer : IGameLayer
     private int m_spinner;
     public string LoadingText { get; set; }
     public string LoadingImage { get; set; } = string.Empty;
-    private readonly bool m_showLoadingImage;
-    public bool HasImage => m_showLoadingImage && LoadingImage.Length > 0;
+    public bool HasImage => LoadingImage.Length > 0;
     public bool ShowSpinner { get; set; } = true;
 
-    public LoadingLayer(ArchiveCollection archiveCollection, IConfig config, string text, bool showLoadingImage = true)
+    public LoadingLayer(ArchiveCollection archiveCollection, IConfig config, string text)
     {
         m_archiveCollection = archiveCollection;
         m_config = config;
         LoadingText = text;
-        m_showLoadingImage = showLoadingImage;
         m_stopwatch.Start();
     }
 
