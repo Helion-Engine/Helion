@@ -41,3 +41,4 @@
   - Prevent user from overwriting autosaves via quick save
   - Fix issue with savegame compatibility settings persisting to user config
   - Fix MusicChangers breaking when loading saves
+  - Fix random crash from sounds trying to play while loading a new map
