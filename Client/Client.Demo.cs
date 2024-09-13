@@ -113,7 +113,7 @@ public partial class Client
 
     private void Player_PlaybackEnded(object? sender, EventArgs e)
     {
-        m_config.ApplyConfiguration(m_userConfigValues);
+        m_config.ApplyConfiguration(m_userConfigValues, writeToConfig: false);
         m_userConfigValues.Clear();
     }
 
@@ -148,7 +148,7 @@ public partial class Client
             m_userConfigValues.Add(new ConfigValueModel(component.Path, component.Value.ObjectValue));
         }
 
-        m_config.ApplyConfiguration(m_demoModel.ConfigValues);
+        m_config.ApplyConfiguration(m_demoModel.ConfigValues, writeToConfig: false);
     }
 
     private void SetDefaultDemoValues(Dictionary<string, ConfigComponent> components)
@@ -268,7 +268,10 @@ public partial class Client
 
         // Rewind is accomplished by loading the closest map and advancing to the desired tick.
         if (!loadMap.Map.Equals(m_layerManager.WorldLayer.CurrentMap.MapName, StringComparison.OrdinalIgnoreCase) || advanceAmount < 0)
-            LoadMap(GetMapInfo(loadMap.Map), null, null);
+        {
+            var result = LoadMap(GetMapInfo(loadMap.Map), null, null);
+            FinalizeWorldLayerLoad(result);
+        }
 
         m_layerManager.WorldLayer.World.SoundManager.ClearSounds();
         m_layerManager.WorldLayer.World.SoundManager.PlaySound = false;

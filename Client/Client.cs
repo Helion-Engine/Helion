@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -16,6 +17,8 @@ using Helion.Models;
 using Helion.Render.OpenGL.Context;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
+using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.Definitions.MusInfo;
 using Helion.Util;
 using Helion.Util.CommandLine;
 using Helion.Util.Configs;
@@ -25,10 +28,12 @@ using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
 using Helion.Util.Loggers;
 using Helion.Util.Profiling;
+using Helion.Util.RandomGenerators;
 using Helion.Util.Timing;
+using Helion.World;
+using Helion.World.Entities.Players;
 using Helion.World.Save;
 using NLog;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using static Helion.Util.Assertion.Assert;
@@ -37,10 +42,14 @@ namespace Helion.Client;
 
 public partial class Client : IDisposable, IInputManagement
 {
+    private record class OnLoadMapComplete(Action<object?> OnComplete, object? CompleteParam);
+    private record class LoadMapResult(WorldLayer? WorldLayer, WorldModel? WorldModel, LevelChangeEvent? EventContext, IList<Player> Players, IRandom Random);
+    private record class QueueLoadMapParams(MapInfoDef MapInfoDef, WorldModel? WorldModel, IWorld? PreviousWorld, LevelChangeEvent? EventContext, Action<object?>? OnComplete, object? CompleteParam);
+
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly AppInfo AppInfo = new();
 
-    private ArchiveCollection m_archiveCollection;
+    private readonly ArchiveCollection m_archiveCollection;
     private readonly IAudioSystem m_audioSystem;
     private readonly CommandLineArgs m_commandLineArgs;
     private readonly IConfig m_config;
@@ -57,7 +66,9 @@ public partial class Client : IDisposable, IInputManagement
     private bool m_takeScreenshot;
     private bool m_loadComplete;
     private bool m_filesLoaded;
-    private WorldModel? m_loadCompleteModel;
+    private OnLoadMapComplete? m_onLoadMapComplete;
+    private LoadMapResult? m_loadMapResult;
+    private QueueLoadMapParams? m_queueMapLoad;
 
     record struct VersionTest(int Major, int Minor);
     private static readonly VersionTest[] Versions =
@@ -236,6 +247,7 @@ public partial class Client : IDisposable, IInputManagement
         m_profiler.Global.Start();
 
         CheckLoadFilesComplete();
+        CheckMapLoad();
         CheckLoadMapComplete();
         CheckForErrorsIfDebug();
 
@@ -257,39 +269,93 @@ public partial class Client : IDisposable, IInputManagement
         m_window.Renderer.UploadColorMap();
     }
 
+    private void CheckMapLoad()
+    {
+        if (m_queueMapLoad == null)
+            return;
+
+        var load = m_queueMapLoad;
+        m_queueMapLoad = null;
+        m_layerManager.LockInput = true;
+        m_layerManager.RemoveWithoutAnimation(m_layerManager.ConsoleLayer);
+        m_layerManager.RemoveWithoutAnimation(m_layerManager.MenuLayer);
+        m_layerManager.RemoveWithoutAnimation(m_layerManager.LoadingLayer);
+
+        UnRegisterWorldEvents();
+        PerformRender();
+        PrepareTransition();
+
+        var loadingLayer = m_layerManager.LoadingLayer;
+        if (loadingLayer == null)
+        {
+            loadingLayer = new(m_archiveCollection, m_config, string.Empty);
+            m_layerManager.Add(loadingLayer);
+        }
+
+        loadingLayer.LoadingText = $"Loading {load.MapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
+        loadingLayer.LoadingImage = m_layerManager.WorldLayer == null ? m_archiveCollection.GameInfo.TitlePage : string.Empty;
+
+        var worldLayer = m_layerManager.WorldLayer;
+        if (worldLayer != null)
+        {
+            worldLayer.Stop();
+            m_layerManager.Remove(worldLayer);
+            m_archiveCollection.DataCache.FlushReferences();
+        }
+
+        _ = LoadMapAsync(load.MapInfoDef, load.WorldModel, load.PreviousWorld, load.OnComplete, load.CompleteParam, load.EventContext);
+    }
+
     private void CheckLoadMapComplete()
     {
         if (!m_loadComplete)
             return;
 
         m_loadComplete = false;
-        var newLayer = m_layerManager.WorldLayer;
-        if (newLayer == null)
+        if (m_loadMapResult == null)
         {
-            Log.Error("Failed to load map");
-            ShowConsole();
-            m_layerManager.LockInput = false;
-            m_layerManager.Remove(m_layerManager.LoadingLayer);
+            SetMapLoadFailure();
             return;
         }
 
+        var worldLayer = m_loadMapResult.WorldLayer;
+        if (worldLayer == null)
+        {
+            SetMapLoadFailure();
+            return;
+        }
+
+        FinalizeWorldLayerLoad(m_loadMapResult);
+
         // Note: StaticDataApplier happens through this start and needs to happen before UpdateToNewWorld
-        newLayer.World.Start(m_loadCompleteModel);
-        m_window.Renderer.UpdateToNewWorld(newLayer.World);
+        worldLayer.World.Start(m_loadMapResult.WorldModel);
+        m_window.Renderer.UpdateToNewWorld(worldLayer.World);
         m_layerManager.LockInput = false;
 
-        CheckLoadMapDemo(newLayer, m_loadCompleteModel);
-        m_loadCompleteModel = null;
+        CheckLoadMapDemo(worldLayer, m_loadMapResult.WorldModel);
 
         // Flag the WorldLayer that it is safe to render now that everything has been loaded
-        newLayer.ShouldRender = true;
+        worldLayer.ShouldRender = true;
         // intermission/endgame may have been kept to draw loading screen over
         // and grab the framebuffer after map load for transition effect
         m_layerManager.Remove(m_layerManager.IntermissionLayer);
         m_layerManager.Remove(m_layerManager.EndGameLayer);
         m_layerManager.Remove(m_layerManager.LoadingLayer);
+
+        m_loadMapResult = null;
         PlayTransition();
         UpdateVolume();
+
+        m_onLoadMapComplete?.OnComplete(m_onLoadMapComplete.CompleteParam);
+        m_onLoadMapComplete = null;
+    }
+
+    private void SetMapLoadFailure()
+    {
+        Log.Error("Failed to load map");
+        m_layerManager.ClearAllExcept();
+        ShowConsole();
+        m_layerManager.LockInput = false;
     }
 
     /// <summary>
@@ -466,7 +532,9 @@ public partial class Client : IDisposable, IInputManagement
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config), config, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(archiveCollection.DataCache, config, commandLineArgs);
             LogClientInfo();
-            using IMusicPlayer musicPlayer = commandLineArgs.NoMusic ? new MockMusicPlayer() : new MusicPlayer(config.Audio);
+            using IMusicPlayer musicPlayer = commandLineArgs.NoMusic ?
+                new MockMusicPlayer() :
+                new MusicPlayer(config.Audio, archiveCollection);
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer);
 
             using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);

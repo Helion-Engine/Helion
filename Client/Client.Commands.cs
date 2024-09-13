@@ -309,7 +309,7 @@ public partial class Client
 
     [ConsoleCommand("load", "Loads a save game file into a new world")]
     [ConsoleCommandArg("fileName", "The name of the file")]
-    private async Task CommandLoadGame(ConsoleCommandEventArgs args)
+    private void CommandLoadGame(ConsoleCommandEventArgs args)
     {
         string fileName = args.Args[0];
         HelionLog.Info($"Loading save file {fileName}");
@@ -339,34 +339,31 @@ public partial class Client
             return;
         }
 
-        var world = m_layerManager.WorldLayer?.World;
         m_layerManager.LastSave = new(saveGame, worldModel, string.Empty, true);
-        PrepLoadMap();
-        await LoadMapAsync(GetMapInfo(worldModel.MapName), worldModel, null,
-            showLoadingTitlepic: world == null || !world.MapInfo.MapName.EqualsIgnoreCase(worldModel.MapName));
+        QueueLoadMap(GetMapInfo(worldModel.MapName), worldModel, null);
     }
 
     [ConsoleCommand("map", "Starts a new world with the map provided")]
     [ConsoleCommandArg("mapName", "The name of the map")]
-    private async Task CommandHandleMap(ConsoleCommandEventArgs args)
+    private void CommandHandleMap(ConsoleCommandEventArgs args)
     {
         try
         {
             var mapName = args.Args[0];
             if (mapName == "*" && m_layerManager.WorldLayer != null)
             {
-                await NewGame(m_layerManager.WorldLayer.CurrentMap);
+                NewGame(m_layerManager.WorldLayer.CurrentMap);
                 return;
             }
 
             if (MapInfo.IsWarpTrans(mapName))
             {
-                await NewGame(m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetStartMapOrDefault(m_archiveCollection, mapName));
+                NewGame(m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetStartMapOrDefault(m_archiveCollection, mapName));
                 return;
             }
 
             MapInfoDef mapInfo = GetMapInfo(mapName);
-            await NewGame(mapInfo);
+            NewGame(mapInfo);
         }
         catch (Exception e)
         {
@@ -395,7 +392,7 @@ public partial class Client
     }
 
     [ConsoleCommand("startGame", "Starts a new game")]
-    private async Task CommandStartNewGame(ConsoleCommandEventArgs args)
+    private void CommandStartNewGame(ConsoleCommandEventArgs args)
     {
         try
         {
@@ -406,7 +403,7 @@ public partial class Client
                 return;
             }
 
-            await NewGame(mapInfoDef);
+            NewGame(mapInfoDef);
         }
         catch (Exception e)
         {
@@ -681,11 +678,10 @@ public partial class Client
         return true;
     }
 
-    private async Task NewGame(MapInfoDef mapInfo)
+    private void NewGame(MapInfoDef mapInfo)
     {
         m_globalData = new();
-        PrepLoadMap();
-        await LoadMapAsync(mapInfo, null, null);
+        QueueLoadMap(mapInfo, null, null);
         InitializeDemoRecorderFromCommandArgs();
     }
 
@@ -709,44 +705,36 @@ public partial class Client
         return new DoomRandom();
     }
 
-    private void PrepLoadMap()
+    private void QueueLoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, Action<object?> onComplete, object? completeParam, LevelChangeEvent? eventContext = null)
     {
-        m_layerManager.LockInput = true;
-        m_layerManager.WorldLayer?.Stop();
+        if (m_queueMapLoad != null)
+            return;
+
+        m_onLoadMapComplete = new(onComplete, completeParam);
+        m_queueMapLoad = new(mapInfoDef, worldModel, previousWorld, eventContext, onComplete, completeParam);
     }
 
-    private async Task LoadMapAsync(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null,
-        bool showLoadingTitlepic = true)
+    private void QueueLoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
     {
-        var loadingLayer = m_layerManager.LoadingLayer;
-        if (loadingLayer == null)
-        {
-            loadingLayer = new(m_archiveCollection, m_config, string.Empty, showLoadingImage: showLoadingTitlepic);
-            m_layerManager.Add(loadingLayer);
-        }
+        if (m_queueMapLoad != null)
+            return;
 
-        loadingLayer.LoadingText = $"Loading {mapInfoDef.GetDisplayNameWithPrefix(m_archiveCollection)}...";
-        loadingLayer.LoadingImage = m_archiveCollection.GameInfo.TitlePage;
+        m_queueMapLoad = new(mapInfoDef, worldModel, previousWorld, eventContext, null, null);
+    }
 
-        PrepareTransition();
-
-        UnRegisterWorldEvents();
-
-        m_layerManager.ClearAllExcept(loadingLayer, m_layerManager.TransitionLayer);
-        m_archiveCollection.DataCache.FlushReferences();
-
-        await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
+    private async Task LoadMapAsync(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, Action<object>? onComplete, object? completeParam,  LevelChangeEvent? eventContext)
+    {
+        m_loadMapResult = await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
 
         // Signal the client to finalizing loading on the main thread. OpenGL can't do things outside of the main thread.
-        m_loadCompleteModel = worldModel;
         m_loadComplete = true;
     }
 
-    private void LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
+    private LoadMapResult LoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
     {
         IList<Player> players = Array.Empty<Player>();
         IRandom random = GetLoadMapRandom(mapInfoDef, worldModel, previousWorld);
-        int randomIndex = random.RandomIndex;
+        var result = new LoadMapResult(null, worldModel, eventContext, players, random);
 
         if (previousWorld != null)
             players = previousWorld.EntityManager.Players;
@@ -756,13 +744,13 @@ public partial class Client
         if (map == null)
         {
             LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
-            return;
+            return result;
         }
 
         if (!m_zdbsp.RunZdbsp(map, map.Name, mapInfoDef, out map))
         {
             Log.Error("Failed to run zdbsp.");
-            return;
+            return result;
         }
 
         m_config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
@@ -770,43 +758,46 @@ public partial class Client
         if (skillDef == null)
         {
             LogError($"Could not find skill definition for {m_config.Game.Skill}");
-            return;
+            return result;
         }
 
-        UnRegisterWorldEvents();
         m_window.InputManager.Clear();
         m_resumeCommands.Clear();
 
         if (map == null)
         {
             LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
-            return;
+            return result;
         }
-
-        m_layerManager.Remove(m_layerManager.WorldLayer);
-        m_archiveCollection.DataCache.FlushReferences();
 
         // Don't show the spinner here. The final steps requires OpenGL calls that are required to be executed on the main thread for now so the spinner can't update.
         if (m_layerManager.LoadingLayer != null)
             m_layerManager.LoadingLayer.ShowSpinner = false;
 
-        WorldLayer? newLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
+        var worldLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
             m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
             players.FirstOrDefault(), worldModel, random);
-        if (newLayer == null)
+        return new(worldLayer, worldModel, eventContext, players, random);
+    }
+
+    private void FinalizeWorldLayerLoad(LoadMapResult result)
+    {
+        if (result.WorldLayer == null)
             return;
 
+        var worldLayer = result.WorldLayer;
+        var mapInfoDef = worldLayer.CurrentMap;
         if (!m_globalData.VisitedMaps.Contains(mapInfoDef))
             m_globalData.VisitedMaps.Add(mapInfoDef);
-        RegisterWorldEvents(newLayer);
+        RegisterWorldEvents(worldLayer);
 
-        m_layerManager.Add(newLayer);
-        m_layerManager.ClearAllExcept(newLayer, m_layerManager.LoadingLayer, m_layerManager.TransitionLayer);
+        m_layerManager.Add(worldLayer);
+        m_layerManager.ClearAllExcept(worldLayer, m_layerManager.LoadingLayer, m_layerManager.TransitionLayer);
 
-        if (players.Count > 0 && m_config.Game.AutoSave)
+        if (result.Players.Count > 0 && m_config.Game.AutoSave)
         {
-            string title = $"Auto: {mapInfoDef.GetMapNameWithPrefix(newLayer.World.ArchiveCollection)}";
-            SaveGameEvent saveGameEvent = m_saveGameManager.WriteNewSaveGame(newLayer.World, title, autoSave: true);
+            string title = $"Auto: {mapInfoDef.GetMapNameWithPrefix(worldLayer.World.ArchiveCollection)}";
+            SaveGameEvent saveGameEvent = m_saveGameManager.WriteNewSaveGame(worldLayer.World, title, autoSave: true);
             if (saveGameEvent.Success)
                 m_console.AddMessage($"Saved {saveGameEvent.FileName}");
 
@@ -819,30 +810,31 @@ public partial class Client
         }
 
         if (m_demoPlayer != null)
-            SetWorldLayerToDemo(m_demoPlayer, mapInfoDef, newLayer);
+            SetWorldLayerToDemo(m_demoPlayer, mapInfoDef, worldLayer);
 
         if (m_demoRecorder != null)
         {
-            var worldPlayer = newLayer.World.Player;
+            int randomIndex = result.Random.RandomIndex;
+            var worldPlayer = worldLayer.World.Player;
             // Cheat events reset the player, do not serialize the player
-            if (eventContext != null && eventContext.ChangeType == LevelChangeType.SpecificLevel)
+            if (result.EventContext != null && result.EventContext.ChangeType == LevelChangeType.SpecificLevel)
                 worldPlayer = null;
 
-            AddDemoMap(m_demoRecorder, newLayer.CurrentMap.MapName, randomIndex, worldPlayer);
-            newLayer.StartRecording(m_demoRecorder);
+            AddDemoMap(m_demoRecorder, worldLayer.CurrentMap.MapName, randomIndex, worldPlayer);
+            worldLayer.StartRecording(m_demoRecorder);
         }
     }
 
     private SkillDef? GetSkillDefinition(WorldModel? worldModel)
     {
+        var mapInfo = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo;
+        if (worldModel != null)
+            return mapInfo.GetSkill(worldModel.Skill);
+
         if (m_config.Game.SelectedSkillDefinition != null)
             return m_config.Game.SelectedSkillDefinition;
 
-        var skill = m_config.Game.Skill.Value;
-        if (worldModel != null)
-            skill = worldModel.Skill;
-
-        return m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skill);
+        return mapInfo.GetSkill(m_config.Game.Skill.Value);
     }
 
     private void RegisterWorldEvents(WorldLayer newLayer)
@@ -875,7 +867,7 @@ public partial class Client
         m_resumeCommands.Clear();
     }
 
-    private async void World_LevelExit(object? sender, LevelChangeEvent e)
+    private void World_LevelExit(object? sender, LevelChangeEvent e)
     {
         try
         {
@@ -889,26 +881,24 @@ public partial class Client
             switch (e.ChangeType)
             {
                 case LevelChangeType.Next:
-                    await Intermission(world, () => GetNextLevel(world.MapInfo));
+                    Intermission(world, () => GetNextLevel(world.MapInfo));
                     break;
 
                 case LevelChangeType.SecretNext:
                     m_isSecretExit = true;
-                    await Intermission(world, () => GetNextSecretLevel(world.MapInfo));
+                    Intermission(world, () => GetNextSecretLevel(world.MapInfo));
                     break;
 
                 case LevelChangeType.SpecificLevel:
-                    await ChangeLevel(world, e);
+                    ChangeLevel(world, e);
                     break;
 
                 case LevelChangeType.Reset:
-                    PrepLoadMap();
-                    await LoadMapAsync(world.MapInfo, null, null, e, showLoadingTitlepic: false);
+                    QueueLoadMap(world.MapInfo, null, null, e);
                     break;
 
                 case LevelChangeType.ResetOrLoadLast:
-                    PrepLoadMap();
-                    await LoadMapAsync(world.MapInfo, m_lastWorldModel, null, e, showLoadingTitlepic: false);
+                    QueueLoadMap(world.MapInfo, m_lastWorldModel, null, e);
                     break;
             }
         }
@@ -952,11 +942,11 @@ public partial class Client
         }
     }
 
-    private async Task Intermission(IWorld world, Func<FindMapResult> getNextMapInfo)
+    private void Intermission(IWorld world, Func<FindMapResult> getNextMapInfo)
     {
         if (world.MapInfo.HasOption(MapOptions.NoIntermission))
         {
-            await EndGame(world, getNextMapInfo);
+            EndGame(world, getNextMapInfo);
         }
         else
         {
@@ -967,13 +957,12 @@ public partial class Client
         }
     }
 
-    private async void IntermissionLayer_Exited(object? sender, EventArgs e)
+    private void IntermissionLayer_Exited(object? sender, EventArgs e)
     {
         if (sender is not IntermissionLayer intermissionLayer)
             return;
 
-        await EndGame(intermissionLayer.World, intermissionLayer.GetNextMapInfo);
-        m_layerManager.Remove(m_layerManager.IntermissionLayer);
+        EndGame(intermissionLayer.World, intermissionLayer.GetNextMapInfo);
     }
 
     private void PrepareTransition()
@@ -987,7 +976,7 @@ public partial class Client
         m_layerManager.TransitionLayer?.Start();
     }
 
-    private async Task EndGame(IWorld world, Func<FindMapResult> getNextMapInfo)
+    private void EndGame(IWorld world, Func<FindMapResult> getNextMapInfo)
     {
         try
         {
@@ -1016,8 +1005,7 @@ public partial class Client
             }
             else if (nextMapInfo != null)
             {
-                PrepLoadMap();
-                await LoadMapAsync(nextMapInfo, null, world, showLoadingTitlepic: false);
+                QueueLoadMap(nextMapInfo, null, world);
             }
 
             if (!string.IsNullOrEmpty(nextMapResult.Error))
@@ -1044,7 +1032,7 @@ public partial class Client
         m_layerManager.Add(endGameLayer);
     }
 
-    private async void EndGameLayer_Exited(object? sender, EventArgs e)
+    private void EndGameLayer_Exited(object? sender, EventArgs e)
     {
         try
         {
@@ -1052,10 +1040,7 @@ public partial class Client
                 return;
 
             if (endGameLayer.NextMapInfo != null)
-            {
-                PrepLoadMap();
-                await LoadMapAsync(endGameLayer.NextMapInfo, null, endGameLayer.World, showLoadingTitlepic: false);
-            }
+                QueueLoadMap(endGameLayer.NextMapInfo, null, endGameLayer.World);
         }
         catch (Exception ex)
         {
@@ -1063,7 +1048,7 @@ public partial class Client
         }
     }
 
-    private async Task ChangeLevel(IWorld world, LevelChangeEvent e)
+    private void ChangeLevel(IWorld world, LevelChangeEvent e)
     {
         if (!MapWarp.GetMap(e.LevelNumber, m_archiveCollection, out MapInfoDef? mapInfoDef))
         {
@@ -1074,8 +1059,7 @@ public partial class Client
         if (e.IsCheat)
             world.DisplayMessage("$STSTR_CLEV");
 
-        PrepLoadMap();
-        await LoadMapAsync(mapInfoDef, null, null, e);
+        QueueLoadMap(mapInfoDef, null, null, e);
     }
 
     private FindMapResult GetNextLevel(MapInfoDef mapDef) =>

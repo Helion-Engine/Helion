@@ -48,12 +48,12 @@
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return Environment.Is64BitProcess
-                    ? ["zmusic.dll", "libsndfile-1.dll", "libmpg123-0.dll"]
-                    : ["zmusic.dll", "libsndfile-1.dll", "libmpg123-0.dll"];
+                    ? ["zmusic.dll"]
+                    : ["zmusic.dll"];
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return ["libzmusic.so", "libc.so.6", "libgcc_s.so.1", "libglib-2.0.so.0", "libpcre.so.3", "libstdc++.so.6"];
+                return ["libzmusic.so"];
 
             throw new NotSupportedException("This library does not support the current machine OS.");
 #pragma warning restore IDE0046

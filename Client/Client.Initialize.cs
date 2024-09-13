@@ -15,7 +15,7 @@ namespace Helion.Client;
 
 public partial class Client
 {
-    private readonly List<IWadPath> m_iwads = new();
+    private readonly List<IWadPath> m_iwads = [];
 
     private async Task Initialize(string? iwad = null)
     {
@@ -62,12 +62,16 @@ public partial class Client
             if (m_commandLineArgs.LoadGame != null)
             {
                 ConsoleCommandEventArgs args = new($"load \"{m_commandLineArgs.LoadGame}\"");
-                await CommandLoadGame(args);
+                CommandLoadGame(args);
             }
             else
             {
-                await CheckLoadMap();
-                AddTitlepicIfNoMap();
+                var loadedMap = CheckLoadMap();
+                if (!loadedMap)
+                {
+                    m_layerManager.Remove(m_layerManager.IwadSelectionLayer);
+                    m_layerManager.Add(new TitlepicLayer(m_layerManager, m_archiveCollection, m_audioSystem));
+                }
             }
         }
         catch (Exception e)
@@ -80,16 +84,6 @@ public partial class Client
     {
         var iwadLocator = IWadLocator.CreateDefault(m_config.Files.Directories.Value);
         m_iwads.AddRange(iwadLocator.Locate());
-    }
-
-    private void AddTitlepicIfNoMap()
-    {
-        if (m_layerManager.WorldLayer != null)
-            return;
-
-        m_layerManager.Remove(m_layerManager.IwadSelectionLayer);
-        TitlepicLayer layer = new(m_layerManager, m_archiveCollection, m_audioSystem);
-        m_layerManager.Add(layer);
     }
 
     private async void IwadSelection_OnIwadSelected(object? sender, string iwad)
@@ -116,8 +110,9 @@ public partial class Client
         return true;
     }
 
-    private async Task CheckLoadMap()
+    private bool CheckLoadMap()
     {
+        bool loadedMap = false;
         bool tryLoadMap = m_commandLineArgs.Map != null || m_commandLineArgs.Warp != null;
 
         if (m_commandLineArgs.PlayDemo != null &&
@@ -125,20 +120,26 @@ public partial class Client
         {
             // Check if a specific map was loaded. If not load the first map in the demo file.
             if (!tryLoadMap && m_demoModel != null && m_demoModel.Maps.Count > 0)
-                await LoadMap(m_demoModel.Maps[0].Map);
+            {
+                loadedMap = true;
+                LoadMap(m_demoModel.Maps[0].Map);
+            }
         }
 
         if (m_commandLineArgs.Map != null)
         {
-            await LoadMap(m_commandLineArgs.Map, m_commandLineArgs);
+            loadedMap = true;
+            LoadMap(m_commandLineArgs.Map, m_commandLineArgs);
         }
         else if (m_commandLineArgs.Warp != null &&
             MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection, out MapInfoDef? mapInfoDef))
         {
-            await LoadMap(mapInfoDef.MapName, m_commandLineArgs);
+            loadedMap = true;
+            LoadMap(mapInfoDef.MapName, m_commandLineArgs);
         }
 
         InitializeDemoRecorderFromCommandArgs();
+        return loadedMap;
     }
 
     private string? GetIwad(List<IWadPath> iwads)
@@ -174,11 +175,14 @@ public partial class Client
             Log.Info($"Invalid skill level: {value}");
     }
 
-    private async Task LoadMap(string mapName, CommandLineArgs? args = null)
+    private void LoadMap(string mapName, CommandLineArgs? args = null)
     {
-        PrepLoadMap();
-        await LoadMapAsync(GetMapInfo(mapName), null, null);
+        QueueLoadMap(GetMapInfo(mapName), null, null, OnLoadMapCommandComplete, args);
+    }
 
+    private void OnLoadMapCommandComplete(object? value)
+    {
+        CommandLineArgs? args = value as CommandLineArgs;
         if (m_layerManager.WorldLayer == null && m_layerManager.ConsoleLayer != null)
         {
             ConsoleLayer layer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);

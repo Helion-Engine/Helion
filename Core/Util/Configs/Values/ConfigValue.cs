@@ -85,23 +85,23 @@ public class ConfigValue<T> : IConfigValue where T : notnull
 
     public static implicit operator T(ConfigValue<T> val) => val.Value;
 
-    public ConfigSetResult Set(object newValue)
+    public ConfigSetResult Set(object newValue, bool writeToConfig = true)
     {
         try
         {
             if (typeof(T) == newValue.GetType())
             {
-                return Set((T)newValue);
+                return Set((T)newValue, writeToConfig);
             }
 
             if (typeof(T) == typeof(bool) && newValue is string str && str.Length == 1 && str[0] == '*')
             {
                 bool value = Convert.ToBoolean(Value);
-                return Set(!value);
+                return Set(!value, writeToConfig);
             }
 
             T converted = ObjectToTypeConverterOrThrow(newValue);
-            return Set(converted);
+            return Set(converted, writeToConfig);
         }
         catch
         {
@@ -109,18 +109,13 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         }
     }
 
-    public ConfigSetResult Set(T newValue)
+    public ConfigSetResult Set(T newValue, bool writeToConfig = true)
     {
-        WriteToConfig = true;
+        WriteToConfig = writeToConfig;
         var result = SetValue(newValue, false);
-        UserValue = Value;
+        if (WriteToConfig)
+            UserValue = Value;
         return result;
-    }
-
-    public ConfigSetResult SetWithNoWriteConfig(T newValue)
-    {
-        WriteToConfig = false;
-        return SetValue(newValue, false);
     }
 
     public void ResetToUserValue()

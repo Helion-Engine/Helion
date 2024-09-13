@@ -32,7 +32,6 @@ using Helion.Geometry.Boxes;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using static Helion.Util.Assertion.Assert;
 using Helion.Util.Configs.Components;
-using Helion.Util.Configs.Impl;
 
 namespace Helion.Layer;
 
@@ -82,7 +81,7 @@ public class GameLayerManager : IGameLayerManager
 
     private IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
     {
-        ConsoleLayer, OptionsLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, TransitionLayer, WorldLayer
+        ConsoleLayer, OptionsLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, TransitionLayer, WorldLayer, LoadingLayer
     }.WhereNotNull();
 
     public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ConsoleCommands consoleCommands,
@@ -249,7 +248,7 @@ public class GameLayerManager : IGameLayerManager
     {
         foreach (IGameLayer existingLayer in Layers)
             if (!layers.Contains(existingLayer))
-                Remove(existingLayer);
+                RemoveWithoutAnimation(existingLayer);
     }
 
     public void RemoveWithoutAnimation(object? layer)
@@ -338,6 +337,11 @@ public class GameLayerManager : IGameLayerManager
         {
             TransitionLayer?.Dispose();
             TransitionLayer = null;
+        }
+        else if (ReferenceEquals(layer, LoadingLayer))
+        {
+            LoadingLayer?.Dispose();
+            LoadingLayer = null;
         }
     }
 

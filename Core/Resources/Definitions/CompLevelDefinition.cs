@@ -48,30 +48,30 @@ public class CompLevelDefinition
         switch (CompLevel)
         {
             case CompLevel.Vanilla:
-                compat.InfinitelyTallThings.SetWithNoWriteConfig(true);
-                compat.OriginalExplosion.SetWithNoWriteConfig(true);
-                compat.VanillaMovementPhysics.SetWithNoWriteConfig(true);
-                compat.VanillaSectorPhysics.SetWithNoWriteConfig(true);
-                compat.VanillaSectorSound.SetWithNoWriteConfig(true);
-                compat.MissileClip.SetWithNoWriteConfig(true);
-                compat.Stairs.SetWithNoWriteConfig(true);
-                compat.PainElementalLostSoulLimit.SetWithNoWriteConfig(true);
-                compat.Doom2ProjectileWalkTriggers.SetWithNoWriteConfig(true);
-                compat.AllowItemDropoff.SetWithNoWriteConfig(false);
-                compat.Mbf21.SetWithNoWriteConfig(false);
+                compat.InfinitelyTallThings.Set(true, writeToConfig: false);
+                compat.OriginalExplosion.Set(true, writeToConfig: false);
+                compat.VanillaMovementPhysics.Set(true, writeToConfig: false);
+                compat.VanillaSectorPhysics.Set(true, writeToConfig: false);
+                compat.VanillaSectorSound.Set(true, writeToConfig: false);
+                compat.MissileClip.Set(true, writeToConfig: false);
+                compat.Stairs.Set(true, writeToConfig: false);
+                compat.PainElementalLostSoulLimit.Set(true, writeToConfig: false);
+                compat.Doom2ProjectileWalkTriggers.Set(true, writeToConfig: false);
+                compat.AllowItemDropoff.Set(false, writeToConfig: false);
+                compat.Mbf21.Set(false, writeToConfig: false);
                 break;
             case CompLevel.Boom:
             case CompLevel.Mbf:
-                compat.AllowItemDropoff.SetWithNoWriteConfig(true);
-                compat.VanillaSectorPhysics.SetWithNoWriteConfig(false);
-                compat.Stairs.SetWithNoWriteConfig(false);
-                compat.Mbf21.SetWithNoWriteConfig(false);
+                compat.AllowItemDropoff.Set(true, writeToConfig: false);
+                compat.VanillaSectorPhysics.Set(false, writeToConfig: false);
+                compat.Stairs.Set(false, writeToConfig: false);
+                compat.Mbf21.Set(false, writeToConfig: false);
                 break;
             case CompLevel.Mbf21:
-                compat.AllowItemDropoff.SetWithNoWriteConfig(true);
-                compat.Mbf21.SetWithNoWriteConfig(true);
-                compat.VanillaSectorPhysics.SetWithNoWriteConfig(false);
-                compat.Stairs.SetWithNoWriteConfig(false);
+                compat.AllowItemDropoff.Set(true, writeToConfig: false);
+                compat.Mbf21.Set(true, writeToConfig: false);
+                compat.VanillaSectorPhysics.Set(false, writeToConfig: false);
+                compat.Stairs.Set(false, writeToConfig: false);
                 break;
         }
 

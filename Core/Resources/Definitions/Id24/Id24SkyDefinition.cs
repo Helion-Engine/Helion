@@ -1,4 +1,5 @@
 ﻿using Helion.Resources.Archives.Entries;
+using Helion.Util;
 using Newtonsoft.Json;
 using NLog;
 using System;
@@ -17,7 +18,7 @@ public class Id24SkyDefinition
         string data = entry.ReadDataAsString();
         try
         {
-            var converted = JsonConvert.DeserializeObject<SkyDefinitions>(data);
+            var converted = JsonConvert.DeserializeObject<SkyDefinitions>(data, JsonSerializationSettings.IgnoreNull);
             if (converted == null)
             {
                 Log.Error(GetParseError(entry));
@@ -26,11 +27,8 @@ public class Id24SkyDefinition
 
             Data = converted.Data;
 
-            if (Data.FlatMapping != null)
-            {
-                foreach (var item in Data.FlatMapping)
-                    FlatMapping[item.Flat] = item.Sky;
-            }
+            foreach (var item in Data.FlatMapping)
+                FlatMapping[item.Flat] = item.Sky;
 
             foreach (var sky in Data.Skies)
             {
