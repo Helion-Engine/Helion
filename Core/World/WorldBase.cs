@@ -60,6 +60,7 @@ using Helion.Maps.Specials.Vanilla;
 using Helion.Util.Loggers;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Shared;
+using Helion.Resources.Definitions;
 
 namespace Helion.World;
 
@@ -2213,6 +2214,17 @@ public abstract partial class WorldBase : IWorld
             else if (obj is Sector sector)
                 HighlightSector(sector);
         }
+    }
+        
+    public bool SetSkillLevel(SkillLevel skill)
+    {
+        var skillDef = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skill);
+        if (skillDef == null)
+            return false;
+
+        SkillLevel = skill;
+        SkillDefinition = skillDef;
+        return true;
     }
 
     private void HighlightSector(Sector sector)
