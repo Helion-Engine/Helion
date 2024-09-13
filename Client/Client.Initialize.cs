@@ -62,11 +62,11 @@ public partial class Client
             if (m_commandLineArgs.LoadGame != null)
             {
                 ConsoleCommandEventArgs args = new($"load \"{m_commandLineArgs.LoadGame}\"");
-                await CommandLoadGame(args);
+                CommandLoadGame(args);
             }
             else
             {
-                var loadedMap = await CheckLoadMap();
+                var loadedMap = CheckLoadMap();
                 if (!loadedMap)
                 {
                     m_layerManager.Remove(m_layerManager.IwadSelectionLayer);
@@ -110,7 +110,7 @@ public partial class Client
         return true;
     }
 
-    private async Task<bool> CheckLoadMap()
+    private bool CheckLoadMap()
     {
         bool loadedMap = false;
         bool tryLoadMap = m_commandLineArgs.Map != null || m_commandLineArgs.Warp != null;
@@ -122,20 +122,20 @@ public partial class Client
             if (!tryLoadMap && m_demoModel != null && m_demoModel.Maps.Count > 0)
             {
                 loadedMap = true;
-                await LoadMap(m_demoModel.Maps[0].Map);
+                LoadMap(m_demoModel.Maps[0].Map);
             }
         }
 
         if (m_commandLineArgs.Map != null)
         {
             loadedMap = true;
-            await LoadMap(m_commandLineArgs.Map, m_commandLineArgs);
+            LoadMap(m_commandLineArgs.Map, m_commandLineArgs);
         }
         else if (m_commandLineArgs.Warp != null &&
             MapWarp.GetMap(m_commandLineArgs.Warp, m_archiveCollection, out MapInfoDef? mapInfoDef))
         {
             loadedMap = true;
-            await LoadMap(mapInfoDef.MapName, m_commandLineArgs);
+            LoadMap(mapInfoDef.MapName, m_commandLineArgs);
         }
 
         InitializeDemoRecorderFromCommandArgs();
@@ -175,11 +175,14 @@ public partial class Client
             Log.Info($"Invalid skill level: {value}");
     }
 
-    private async Task LoadMap(string mapName, CommandLineArgs? args = null)
+    private void LoadMap(string mapName, CommandLineArgs? args = null)
     {
-        PrepLoadMap();
-        await LoadMapAsync(GetMapInfo(mapName), null, null);
+        QueueLoadMap(GetMapInfo(mapName), null, null, OnLoadMapCommandComplete, args);
+    }
 
+    private void OnLoadMapCommandComplete(object? value)
+    {
+        CommandLineArgs? args = value as CommandLineArgs;
         if (m_layerManager.WorldLayer == null && m_layerManager.ConsoleLayer != null)
         {
             ConsoleLayer layer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
