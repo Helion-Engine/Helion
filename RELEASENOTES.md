@@ -42,3 +42,4 @@
   - Fix issue with savegame compatibility settings persisting to user config
   - Fix MusicChangers breaking when loading saves
   - Fix random crash from sounds trying to play while loading a new map
+  - Fix dehacked to correctly use A_SPosAttack function with hard-coded shotgun sound
