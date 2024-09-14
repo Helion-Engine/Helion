@@ -188,17 +188,17 @@ public partial class Client
         // apply complevel
         compLevelDef.Apply(m_config);
 
-        // apply any granular gameconf options
+        // apply any granular options - use gameconf's if present, otherwise use options lump
+        // TODO: gameconf's options care about the executable level,
+        // should a regular options lump care about the compatlvl?
         var compat = m_config.Compatibility;
-        if (gameConfDef.Data != null)
-        {
-            if (gameConfDef.OptionEnabled(OptionsConstants.Comp.Pain))
-                compat.PainElementalLostSoulLimit.Set(true, writeToConfig: false);
-            if (gameConfDef.OptionEnabled(OptionsConstants.Comp.Stairs))
-                compat.Stairs.Set(true, writeToConfig: false);
-            if (gameConfDef.OptionEnabled(OptionsConstants.Comp.Vile))
-                compat.VileGhosts.Set(true, writeToConfig: false);
-        }
+        Options options = gameConfDef.Data?.Options ?? m_archiveCollection.Definitions.OptionsDefinition.Data;
+        if (options.OptionEnabled(OptionsConstants.Comp.Pain, compLevelDef.CompLevel))
+            compat.PainElementalLostSoulLimit.Set(true, writeToConfig: false);
+        if (options.OptionEnabled(OptionsConstants.Comp.Stairs, compLevelDef.CompLevel))
+            compat.Stairs.Set(true, writeToConfig: false);
+        if (options.OptionEnabled(OptionsConstants.Comp.Vile, compLevelDef.CompLevel))
+            compat.VileGhosts.Set(true, writeToConfig: false);
     }
 
     private MapInfoDef? GetDefaultMap()

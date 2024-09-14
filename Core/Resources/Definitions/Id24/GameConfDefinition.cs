@@ -57,16 +57,9 @@ public class GameConfDefinition
             newData.Mode = Max(ModeValues, newData.Mode, Data?.Mode);
 
             // merge options
-            Dictionary<string, string> options = Data?.Options ?? new(StringComparer.OrdinalIgnoreCase);
-            foreach (var item in newData.Options)
-                options[item.Key] = item.Value;
-            foreach (var item in options)
-            {
-                // since we may be raising the executable level and MBF21 force-disables
-                // some options, we need to check options validity after merging
-                if (!OptionValidForExecutable(item.Key, newData.Executable))
-                    options.Remove(item.Key);
-            }
+            Options options = Data?.Options ?? new();
+            foreach (var item in newData.Options.Items)
+                options.Set(item.Key, item.Value);
             newData.Options = options;
 
             Data = newData;
@@ -93,77 +86,4 @@ public class GameConfDefinition
             return a;
         return (aValue > bValue) ? a : b;
     }
-
-    // https://doomwiki.org/wiki/OPTIONS
-    // most of these aren't supported
-    private static bool OptionValidForExecutable(string option, string? executable)
-    {
-        if (executable == null || !ExecutableValues.TryGetValue(executable, out int val))
-            return false;
-        // bool atLeastBugFixed = val >= ExecutableValues[GameConfConstants.Executable.BugFixed];
-        bool atLeastBoom = val >= ExecutableValues[GameConfConstants.Executable.Boom2_02];
-        // bool atLeastComplevel9 = val >= ExecutableValues[GameConfConstants.Executable.Complevel9];
-        // bool atLeastMbf = val >= ExecutableValues[GameConfConstants.Executable.Mbf];
-        // bool atLeastMbf21 = val >= ExecutableValues[GameConfConstants.Executable.Mbf21];
-        return option switch
-        {
-            // vanilla
-            // "comp_soul" => true,
-            // Boom
-            // "comp_blazing" when atLeastBoom => true,
-            // "comp_doorlight" when atLeastBoom => true,
-            // "comp_doorstuck" when atLeastBoom => true,
-            // "comp_floors" when atLeastBoom => true,
-            // "comp_god" when atLeastBoom => true,
-            // "comp_model" when atLeastBoom => true,
-            OptionsConstants.Comp.Pain when atLeastBoom => true,
-            // "comp_skull" when atLeastBoom => true,
-            OptionsConstants.Comp.Stairs when atLeastBoom => true,
-            OptionsConstants.Comp.Vile when atLeastBoom => true,
-            // "comp_zerotags" when atLeastBoom => true,
-            // PrBoom
-            // "comp_zombie" when atLeastComplevel9 => true, // TODO: verify
-            // MBF
-            // "comp_dropoff" when atLeastMbf => true,
-            // "comp_falloff" when atLeastMbf => true,
-            // "comp_infcheat" when atLeastMbf => true,
-            // "comp_pursuit" when atLeastMbf => true,
-            // "comp_respawn" when atLeastMbf => true,
-            // "comp_skymap" when atLeastMbf => true,
-            // "comp_staylift" when atLeastMbf => true,
-            // "comp_telefrag" when atLeastMbf => true,
-            // "dog_jumping" when atLeastMbf => true,
-            // "friend_distance" when atLeastMbf => true,
-            // "help_friends" when atLeastMbf => true,
-            // "monkeys" when atLeastMbf => true,
-            // "monster_avoid_hazards" when atLeastMbf => true,
-            // "monster_backing" when atLeastMbf => true,
-            // "monster_friction" when atLeastMbf => true,
-            // "monster_infighting" when atLeastMbf => true,
-            // "monsters_remember" when atLeastMbf => true,
-            // "player_helpers" when atLeastMbf => true,
-            // "weapon_recoil" when atLeastMbf => true,
-            // MBF21
-            // "comp_friendlyspawn" when atLeastMbf21 => true,
-            // "comp_ledgeblock" when atLeastMbf21 => true,
-            // "comp_reservedlineflag" when atLeastMbf21 => true,
-            // "comp_voodooscroller" when atLeastMbf21 => true,
-
-            // forced off in MBF21
-            // vanilla
-            // "comp_666" when !atLeastMbf21 => true,
-            // "comp_maskedanim" when !atLeastMbf21 => true,
-            // LxDoom
-            // "comp_moveblock" when atLeastBugFixed && !atLeastMbf21 => true, // TODO: verify
-            // Boom
-            // "comp_maxhealth" when atLeastBoom && !atLeastMbf21 => true,
-            // "comp_sound" when atLeastBoom && !atLeastMbf21 => true,
-            // PrBoom+
-            // "comp_ouchface" when atLeastComplevel9 && !atLeastMbf21 => true, // TODO: verify
-
-            _ => false
-        };
-    }
-
-    public bool OptionEnabled(string optionName) => Data?.Options.TryGetValue(optionName, out string? val) == true && val == "1";
 }

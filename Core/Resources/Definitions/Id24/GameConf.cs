@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Resources.Definitions.Compatibility;
 using Helion.Util.Parser;
 using Newtonsoft.Json;
 
@@ -27,35 +28,19 @@ public class GameConfData
     public string? Mode { get; set; }
 
     [JsonConverter(typeof(OptionsConverter))]
-    public Dictionary<string, string> Options { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public Options Options { get; set; } = new();
 }
 
-public class OptionsConverter : JsonConverter<Dictionary<string, string>>
+public class OptionsConverter : JsonConverter<Options>
 {
-    public override void WriteJson(JsonWriter writer, Dictionary<string, string>? value, JsonSerializer serializer) => throw new NotImplementedException();
+    public override void WriteJson(JsonWriter writer, Options? value, JsonSerializer serializer) => throw new NotImplementedException();
 
-    public override Dictionary<string, string>? ReadJson(JsonReader reader, Type objectType, Dictionary<string, string>? existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override Options? ReadJson(JsonReader reader, Type objectType, Options? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
-        Dictionary<string, string> options = [];
-        if (reader.TokenType == JsonToken.String)
-        {
-            SimpleParser parser = new();
-            parser.Parse(reader.Value?.ToString() ?? "");
-            while (!parser.IsDone())
-            {
-                int lineNumber = parser.GetCurrentLine();
-                try
-                {
-                    string key = parser.ConsumeString();
-                    string value = parser.ConsumeString();
-                    options[key] = value;
-                }
-                catch { }
-                if (parser.GetCurrentLine() == lineNumber)
-                    parser.ConsumeLine();
-            }
-        }
-        return options;
+        string? token = (reader.TokenType == JsonToken.String)
+            ? reader.Value?.ToString()
+            : null;
+        return new Options(token);
     }
 }
 
