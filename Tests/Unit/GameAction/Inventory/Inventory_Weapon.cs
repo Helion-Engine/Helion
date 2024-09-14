@@ -514,7 +514,7 @@ namespace Helion.Tests.Unit.GameAction
             foreach (var weapon in cycleWeapons)
             {
                 var slot = Player.Inventory.Weapons.GetNextSlot(Player, 1);
-                var changeWeapon = Player.Inventory.Weapons.GetWeapon(Player, slot.Slot, slot.SubSlot);
+                var changeWeapon = Player.Inventory.Weapons.GetWeapon(slot.Slot, slot.SubSlot);
                 changeWeapon.Should().NotBeNull();
                 changeWeapon!.Definition.Name.Equals(weapon, StringComparison.OrdinalIgnoreCase).Should().BeTrue();
                 Player.ChangeWeapon(changeWeapon);
@@ -536,7 +536,7 @@ namespace Helion.Tests.Unit.GameAction
             foreach (var weapon in cycleWeapons)
             {
                 var slot = Player.Inventory.Weapons.GetNextSlot(Player, -1);
-                var changeWeapon = Player.Inventory.Weapons.GetWeapon(Player, slot.Slot, slot.SubSlot   );
+                var changeWeapon = Player.Inventory.Weapons.GetWeapon(slot.Slot, slot.SubSlot);
                 changeWeapon.Should().NotBeNull();
                 changeWeapon!.Definition.Name.Equals(weapon, StringComparison.OrdinalIgnoreCase).Should().BeTrue();
                 Player.ChangeWeapon(changeWeapon);
@@ -551,7 +551,7 @@ namespace Helion.Tests.Unit.GameAction
             Player.ChangeWeapon(InventoryUtil.GetWeapon(Player, "Fist"));
             GameActions.TickWorld(World, 35);
             var slot = Player.Inventory.Weapons.GetNextSlot(Player, 11);
-            var changeWeapon = Player.Inventory.Weapons.GetWeapon(Player, slot.Slot, slot.SubSlot);
+            var changeWeapon = Player.Inventory.Weapons.GetWeapon(slot.Slot, slot.SubSlot);
             changeWeapon!.Definition.Name.Equals("Pistol", StringComparison.OrdinalIgnoreCase).Should().BeTrue();
         }
 
@@ -563,8 +563,89 @@ namespace Helion.Tests.Unit.GameAction
             Player.ChangeWeapon(InventoryUtil.GetWeapon(Player, "Fist"));
             GameActions.TickWorld(World, 35);
             var slot = Player.Inventory.Weapons.GetNextSlot(Player, -11);
-            var changeWeapon = Player.Inventory.Weapons.GetWeapon(Player, slot.Slot, slot.SubSlot);
+            var changeWeapon = Player.Inventory.Weapons.GetWeapon(slot.Slot, slot.SubSlot);
             changeWeapon!.Definition.Name.Equals("PlasmaRifle", StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+        }
+
+
+        [Fact(DisplayName = "Cycle weapon slot")]
+        public void CycleSlot()
+        {
+            Player.GiveAllWeapons(World.EntityManager.DefinitionComposer);
+            Player.ChangeWeapon(InventoryUtil.GetWeapon(Player, "Fist"));
+            GameActions.TickWorld(World, 35);
+            var changeWeapon = Player.Inventory.Weapons.GetWeapon(3, Player.Inventory.Weapons.GetBestSubSlot(3));
+            changeWeapon!.Definition.Name.Equals("SuperShotgun", StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+            Player.ChangeWeapon(changeWeapon!);
+
+            var nextSlot = Player.Inventory.Weapons.GetNextSlot(Player);
+            nextSlot.Slot.Should().Be(3);
+            nextSlot.SubSlot.Should().Be(0);
+            changeWeapon = Player.Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
+            changeWeapon!.Definition.Name.Equals("Shotgun", StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+            Player.ChangeWeapon(changeWeapon!);
+
+            nextSlot = Player.Inventory.Weapons.GetNextSlot(Player);
+            nextSlot.Slot.Should().Be(3);
+            nextSlot.SubSlot.Should().Be(1);
+            changeWeapon = Player.Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
+            changeWeapon!.Definition.Name.Equals("SuperShotgun", StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+        }
+
+        [Fact(DisplayName = "Best weapon subslot")]
+        public void GetBestSubSlot()
+        {
+            Player.GiveAllWeapons(World.EntityManager.DefinitionComposer);
+            Player.Inventory.Weapons.GetBestSubSlot(1).Should().Be(1);
+            Player.Inventory.Weapons.GetBestSubSlot(3).Should().Be(1);
+            Player.Inventory.Weapons.GetBestSubSlot(2).Should().Be(0);
+            Player.Inventory.Weapons.GetBestSubSlot(4).Should().Be(0);
+            Player.Inventory.Weapons.GetBestSubSlot(5).Should().Be(0);
+            Player.Inventory.Weapons.GetBestSubSlot(6).Should().Be(0);
+            Player.Inventory.Weapons.GetBestSubSlot(7).Should().Be(0);
+            Player.Inventory.Weapons.GetBestSubSlot(8).Should().Be(-1);
+            Player.Inventory.Weapons.GetBestSubSlot(0).Should().Be(-1);
+        }
+
+        [Fact(DisplayName = "First weapon subslot")]
+        public void GetFirstSubSlot()
+        {
+            Player.GiveAllWeapons(World.EntityManager.DefinitionComposer);
+            Player.Inventory.Weapons.GetFirstSubSlot(1).Should().Be(0);
+            Player.Inventory.Weapons.GetFirstSubSlot(3).Should().Be(0);
+            Player.Inventory.Weapons.GetFirstSubSlot(2).Should().Be(0);
+            Player.Inventory.Weapons.GetFirstSubSlot(4).Should().Be(0);
+            Player.Inventory.Weapons.GetFirstSubSlot(5).Should().Be(0);
+            Player.Inventory.Weapons.GetFirstSubSlot(6).Should().Be(0);
+            Player.Inventory.Weapons.GetFirstSubSlot(7).Should().Be(0);
+            Player.Inventory.Weapons.GetFirstSubSlot(8).Should().Be(-1);
+            Player.Inventory.Weapons.GetFirstSubSlot(0).Should().Be(-1);
+        }
+
+        [Fact(DisplayName = "Has weapon slot")]
+        public void HasWeaponSlot()
+        {
+            Player.Inventory.Weapons.HasWeaponSlot(1).Should().BeTrue();
+            Player.Inventory.Weapons.HasWeaponSlot(2).Should().BeTrue();
+            Player.Inventory.Weapons.HasWeaponSlot(3).Should().BeFalse();
+            Player.Inventory.Weapons.HasWeaponSlot(4).Should().BeFalse();
+            Player.Inventory.Weapons.HasWeaponSlot(5).Should().BeFalse();
+            Player.Inventory.Weapons.HasWeaponSlot(6).Should().BeFalse();
+            Player.Inventory.Weapons.HasWeaponSlot(7).Should().BeFalse();
+
+            Player.GiveAllWeapons(World.EntityManager.DefinitionComposer);
+            Player.Inventory.Weapons.HasWeaponSlot(1).Should().BeTrue();
+            Player.Inventory.Weapons.HasWeaponSlot(2).Should().BeTrue();
+            Player.Inventory.Weapons.HasWeaponSlot(3).Should().BeTrue();
+            Player.Inventory.Weapons.HasWeaponSlot(4).Should().BeTrue();
+            Player.Inventory.Weapons.HasWeaponSlot(5).Should().BeTrue();
+            Player.Inventory.Weapons.HasWeaponSlot(6).Should().BeTrue();
+            Player.Inventory.Weapons.HasWeaponSlot(7).Should().BeTrue();
+
+            Player.Inventory.Remove("SuperShotgun", 1);
+            Player.Inventory.Weapons.HasWeaponSlot(3).Should().BeTrue();
+            Player.Inventory.Remove("Shotgun", 1);
+            Player.Inventory.Weapons.HasWeaponSlot(3).Should().BeFalse();
         }
 
         private Entity CreateEntity(string name, Vec3D pos)

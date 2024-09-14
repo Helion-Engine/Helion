@@ -20,14 +20,14 @@ public partial class Client
     private IDemoPlayer? m_demoPlayer;
     private DemoModel? m_demoModel;
     private string m_demoPackageFile = string.Empty;
-    private readonly List<DemoMap> m_demoMaps = new();
-    private readonly List<ConfigValueModel> m_demoConfigValues = new();
-    private readonly List<ConfigValueModel> m_userConfigValues = new();
-    private readonly List<DemoCheat> m_demoCheats = new();
+    private readonly List<DemoMap> m_demoMaps = [];
+    private readonly List<ConfigValueModel> m_demoConfigValues = [];
+    private readonly List<ConfigValueModel> m_userConfigValues = [];
+    private readonly List<DemoCheat> m_demoCheats = [];
 
-    private void InitializeDemoRecorderFromCommandArgs()
+    private void InitializeDemoRecorderFromCommandArgs(WorldLayer worldLayer)
     {
-        if (m_commandLineArgs.Record == null || m_layerManager.WorldLayer == null)
+        if (m_commandLineArgs.Record == null)
             return;
 
         string fileName = m_commandLineArgs.Record;
@@ -36,7 +36,6 @@ public partial class Client
         if (!TryCreateDemoRecorder(fileName, out m_demoRecorder))
             return;
 
-        var worldLayer = m_layerManager.WorldLayer;
         AddDemoMap(m_demoRecorder, worldLayer.CurrentMap.MapName, 0, null);
         m_demoRecorder.Start();
         worldLayer.StartRecording(m_demoRecorder);
@@ -246,6 +245,8 @@ public partial class Client
         return m_demoModel.Maps.FirstOrDefault(x => x.Map == mapName);
     }
 
+    record class AdvanceDemoParams(int CommandIndex, bool IsPaused, bool ConsoleShowing);
+
     private void AdvanceDemo(int advanceAmount)
     {
         if (m_demoPlayer == null || m_demoModel == null || m_demoModel.Maps.Count == 0 || m_layerManager.WorldLayer == null)
@@ -269,19 +270,27 @@ public partial class Client
         // Rewind is accomplished by loading the closest map and advancing to the desired tick.
         if (!loadMap.Map.Equals(m_layerManager.WorldLayer.CurrentMap.MapName, StringComparison.OrdinalIgnoreCase) || advanceAmount < 0)
         {
-            var result = LoadMap(GetMapInfo(loadMap.Map), null, null);
-            FinalizeWorldLayerLoad(result);
+            var param = new AdvanceDemoParams(commandIndex, isPaused, consoleShowing);
+            QueueLoadMap(GetMapInfo(loadMap.Map), null, null, AdvanceDemoLoadComplete, param, null, transition: false);
         }
+    }
 
-        m_layerManager.WorldLayer.World.SoundManager.ClearSounds();
-        m_layerManager.WorldLayer.World.SoundManager.PlaySound = false;
-        m_layerManager.WorldLayer.World.Resume();
-        m_layerManager.WorldLayer.RunTicks(commandIndex - m_demoPlayer.CommandIndex);
-        m_layerManager.WorldLayer.World.SoundManager.PlaySound = true;
+    private void AdvanceDemoLoadComplete(object? param)
+    {
+        var worldLayer = m_layerManager.WorldLayer;
+        if (worldLayer == null || param == null || m_demoPlayer == null)
+            return;
 
-        if (isPaused)
-            m_layerManager.WorldLayer.World.Pause();
-        if (consoleShowing)
+        var advanceParam = (AdvanceDemoParams)param;
+        worldLayer.World.SoundManager.ClearSounds();
+        worldLayer.World.SoundManager.PlaySound = false;
+        worldLayer.World.Resume();
+        worldLayer.RunTicks(advanceParam.CommandIndex - m_demoPlayer.CommandIndex);
+        worldLayer.World.SoundManager.PlaySound = true;
+
+        if (advanceParam.IsPaused)
+            worldLayer.World.Pause();
+        if (advanceParam.ConsoleShowing)
             ShowConsole();
     }
 }

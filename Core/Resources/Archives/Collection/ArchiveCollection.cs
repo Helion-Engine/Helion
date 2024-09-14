@@ -470,7 +470,7 @@ public class ArchiveCollection : IResources, IPathResolver
         return IWad?.IWadInfo ?? IWadInfo.DefaultIWadInfo;
     }
 
-    private void ApplyDehackedPatch()
+    public void ApplyDehackedPatch()
     {
         if (Definitions.DehackedDefinition != null)
         {

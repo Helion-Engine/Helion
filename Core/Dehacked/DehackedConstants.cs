@@ -1,4 +1,4 @@
-using Helion.Util;
+using Helion.World.Entities.Inventories;
 using System;
 using System.Collections.Generic;
 using static Helion.World.Entities.Definition.States.EntityActionFunctions;
@@ -18,24 +18,53 @@ public partial class DehackedDefinition
     public const int GreenArmorClassNum = 1;
     public const int BlueArmorClassNum = 2;
 
-    public readonly string[] AmmoNames = new string[]
-    {
+    public readonly string[] AmmoNames =
+    [
         "Clip",
         "Shell",
         "Cell",
         "RocketAmmo"
-    };
+    ];
 
-    public readonly string[] AmmoDoubleNames = new string[]
-    {
+    public readonly string[] AmmoDoubleNames =
+    [
         "ClipBox",
         "ShellBox",
         "CellPack",
         "RocketBox"
-    };
+    ];
 
-    public readonly string[] ActorNames = new string[]
-    {
+    public readonly string[] WeaponNames = 
+    [
+        "Pistol",
+        "Shotgun",
+        "PlasmaRifle",
+        "RocketLauncher"
+    ];
+
+    public readonly string[][] AmmoToWeaponNames =
+    [
+        ["Pistol"],
+        ["Shotgun", "SuperShotgun"],
+        ["PlasmaRifle", "BFG9000"],
+        ["RocketLauncher"]
+    ];
+
+    public readonly string[] WeaponNamesById =
+    [
+        "Fist",
+        "Pistol",
+        "Shotgun",
+        "Chaingun",
+        "RocketLauncher",
+        "PlasmaRifle",
+        "BFG9000",
+        "Chainsaw",
+        "SuperShotgun"
+    ];
+
+    public readonly string[] ActorNames =
+    [
         "DoomPlayer",               // MT_PLAYER
 		"ZombieMan",				// MT_POSSESSED
 		"ShotgunGuy",				// MT_SHOTGUY
@@ -181,7 +210,7 @@ public partial class DehackedDefinition
         "EvilSceptre",              // MT_SCEPTRE
         "UnholyBible",              // MT_BIBLE
         "MusicChanger",             // MT_MUSICSOURCE
-    };
+    ];
 
     public Dictionary<string, string> PickupLookup = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -222,6 +251,32 @@ public partial class DehackedDefinition
         { "SHOT", "Shotgun" },
         { "SGN2", "SuperShotgun" },
     };
+
+    public readonly string[] Id24PickupLookup =
+    [
+        "",
+        "BlueCard",
+        "YellowCard",
+        "RedCard",
+        "BlueSkull",
+        "YellowSkull",
+        "RedSkull",
+        "Backpack",
+        "HealthBonus",
+        "Stimpack",
+        "Medikit",
+        "Soulsphere",
+        "Megasphere",
+        "ArmorBonus",
+        "GreenArmor",
+        "BlueArmor",
+        "Allmap",
+        "Infrared",
+        "Berserk",
+        "BlurSphere",
+        "RadSuit",
+        "InvulnerabilitySphere",
+    ];
 
     public readonly HashSet<string> SpriteNames = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -563,6 +618,15 @@ public partial class DehackedDefinition
         SKILL5FAST = 0x001,   // Tics halve on nightmare skill (demon)
     }
 
+    [Flags]
+    public enum Id24ThingFlags : uint
+    {
+        NORESPAWN = 0x00000001,
+        SPECIALSTAYSSINGLE = 0x00000002,
+        SPECIALSTAYSCOOP = 0x00000004,
+        SPECIALSTAYSDM = 0x00000004
+    }
+
     public readonly IReadOnlyDictionary<string, uint> ThingPropertyStrings = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase)
     {
         { "SPECIAL", 0x00000001 },
@@ -636,6 +700,14 @@ public partial class DehackedDefinition
     public readonly IReadOnlyDictionary<string, uint> FramePropertyStringsMbf21 = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase)
     {
         { "SKILL5FAST", 0x00000001 },
+    };
+
+    public readonly IReadOnlyDictionary<string, uint> ThingPropertyStringsId24 = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "NORESPAWN", 0x00000001 },
+        { "SPECIALSTAYSSINGLE", 0x00000002 },
+        { "SPECIALSTAYSCOOP", 0x00000004 },
+        { "SPECIALSTAYSDM", 0x00000008 },
     };
 
     public class FrameStateLookup
@@ -4804,6 +4876,18 @@ public partial class DehackedDefinition
     private static readonly string FastSpeed = "Fast speed";
     private static readonly string MeleeRange = "Melee range";
     private static readonly string GibHealth = "Gib health";
+    private static readonly string Id24Bits = "ID24 Bits";
+    private static readonly string MinRespawnTicks = "Min respawn tics";
+    private static readonly string RespawnDice = "Respawn dice";
+    private static readonly string PickupAmmoType = "Pickup ammo type";
+    private static readonly string PickupAmmoCategory = "Pickup ammo category";
+    private static readonly string PickupWeaponType = "Pickup weapon type";
+    private static readonly string PickupItemType = "Pickup item type";
+    private static readonly string PickupBonusCount = "Pickup bonus count";
+    private static readonly string PickupSound = "Pickup sound";
+    private static readonly string PickupMessage = "Pickup message";
+    private static readonly string TranslationLump = "Translation";
+    private static readonly string SelfDamageFactor = "Self damage factor";
 
     private static readonly string Duration = "Duration";
     private static readonly string SpriteNum = "Sprite number";
@@ -4814,6 +4898,21 @@ public partial class DehackedDefinition
 
     private static readonly string MaxAmmo = "Max ammo";
     private static readonly string PerAmmo = "Per ammo";
+    private static readonly string InitialAmmo = "Initial ammo";
+    private static readonly string MaxUpgradedAmmo = "Max upgraded ammo";
+    private static readonly string BoxAmmo = "Box ammo";
+    private static readonly string BackpackAmmo = "Backpack ammo";
+    private static readonly string WeaponAmmo = "Weapon ammo";
+    private static readonly string DroppedAmmo = "Dropped ammo";
+    private static readonly string DroppedBoxAmmo = "Dropped box ammo";
+    private static readonly string DroppedBackpackAmmo = "Dropped backpack ammo";
+    private static readonly string DroppedWeaponAmmo = "Dropped weapon ammo";
+    private static readonly string DeathmatchWeaponAmmo = "Deathmatch weapon ammo";
+    private static readonly string Skill1Multiplier = "Skill 1 multiplier";
+    private static readonly string Skill2Multiplier = "Skill 2 multiplier";
+    private static readonly string Skill3Multiplier = "Skill 3 multiplier";
+    private static readonly string Skill4Multiplier = "Skill 4 multiplier";
+    private static readonly string Skill5Multiplier = "Skill 5 multiplier";
 
     private static readonly string AmmoType = "Ammo type";
     private static readonly string AmmoUse = "Ammo use";
@@ -4823,6 +4922,16 @@ public partial class DehackedDefinition
     private static readonly string BobbingFrame = "Bobbing frame";
     private static readonly string ShootingFrame = "Shooting frame";
     private static readonly string FiringFrame = "Firing frame";
+    private static readonly string WeaponSlot = "Slot";
+    private static readonly string WeaponSlotPriority = "Slot Priority";
+    private static readonly string WeaponSwitchPriority = "Switch Priority";
+    private static readonly string InitialOwned = "Initial Owned";
+    private static readonly string InitialRaised = "Initial Raised";
+    private static readonly string CarouselIcon = "Carousel icon";
+    private static readonly string AllowSwitchWithOwnedWeapon = "Allow switch with owned weapon";
+    private static readonly string NoSwitchWithOwnedWeapon = "No switch with owned weapon";
+    private static readonly string AllowSwitchWithOwnedItem = "Allow switch with owned item";
+    private static readonly string NoSwitchWithOwnedItem = "No switch with owned item";
 
     private static readonly string ChangeMusic = "Change music";
     private static readonly string Chainsaw = "Chainsaw";

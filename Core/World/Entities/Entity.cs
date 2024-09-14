@@ -393,18 +393,19 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
         if (Flags.CountKill && IsDeathStateFinished)
         {
-            if (WorldStatic.RespawnTimeSeconds == 0)
+            int checkCount = Properties.RespawnTicks ?? WorldStatic.RespawnTicks;
+            if (checkCount == 0 || Flags.NoRespawn)
                 return;
 
             MoveCount++;
 
-            if (MoveCount < WorldStatic.RespawnTimeSeconds * (int)Constants.TicksPerSecond)
+            if (MoveCount < checkCount)
                 return;
 
             if ((WorldStatic.World.LevelTime & 31) != 0)
                 return;
 
-            if (WorldStatic.Random.NextByte() > 4)
+            if (WorldStatic.Random.NextByte() > Properties.RespawnDice)
                 return;
 
             Respawn = true;

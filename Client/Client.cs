@@ -18,7 +18,6 @@ using Helion.Render.OpenGL.Context;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Resources.Definitions.MapInfo;
-using Helion.Resources.Definitions.MusInfo;
 using Helion.Util;
 using Helion.Util.CommandLine;
 using Helion.Util.Configs;
@@ -44,7 +43,7 @@ public partial class Client : IDisposable, IInputManagement
 {
     private record class OnLoadMapComplete(Action<object?> OnComplete, object? CompleteParam);
     private record class LoadMapResult(WorldLayer? WorldLayer, WorldModel? WorldModel, LevelChangeEvent? EventContext, IList<Player> Players, IRandom Random);
-    private record class QueueLoadMapParams(MapInfoDef MapInfoDef, WorldModel? WorldModel, IWorld? PreviousWorld, LevelChangeEvent? EventContext, Action<object?>? OnComplete, object? CompleteParam);
+    private record class QueueLoadMapParams(MapInfoDef MapInfoDef, WorldModel? WorldModel, IWorld? PreviousWorld, LevelChangeEvent? EventContext, bool Transition);
 
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly AppInfo AppInfo = new();
@@ -282,8 +281,12 @@ public partial class Client : IDisposable, IInputManagement
         m_layerManager.RemoveWithoutAnimation(m_layerManager.LoadingLayer);
 
         UnRegisterWorldEvents();
-        PerformRender();
-        PrepareTransition();
+
+        if (load.Transition)
+        {
+            PerformRender();
+            PrepareTransition();
+        }
 
         var loadingLayer = m_layerManager.LoadingLayer;
         if (loadingLayer == null)
@@ -303,7 +306,7 @@ public partial class Client : IDisposable, IInputManagement
             m_archiveCollection.DataCache.FlushReferences();
         }
 
-        _ = LoadMapAsync(load.MapInfoDef, load.WorldModel, load.PreviousWorld, load.OnComplete, load.CompleteParam, load.EventContext);
+        _ = LoadMapAsync(load.MapInfoDef, load.WorldModel, load.PreviousWorld, load.EventContext);
     }
 
     private void CheckLoadMapComplete()

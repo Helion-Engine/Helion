@@ -126,6 +126,13 @@ public class EntityDefinitionComposer
         m_editorNumToDefinition[newID] = definition;
     }
 
+    public void SetEntityDefinition(EntityDefinition definition)
+    {
+        if (definition.EditorId.HasValue)
+            m_editorNumToDefinition[definition.EditorId.Value] = definition;
+        m_definitions[definition.Name] = definition;
+    }
+
     private static void ApplyFlagsAndPropertiesFrom(EntityDefinition definition, IList<ActorDefinition> parents)
     {
         // This entire function is needed to support Skip_Super. Thanks
@@ -207,7 +214,7 @@ public class EntityDefinitionComposer
 
         int id = m_indexTracker.Next();
         var parentClassNames = definitions.Select(d => d.Name).ToArray();
-        EntityDefinition definition = new EntityDefinition(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
+        EntityDefinition definition = new(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
 
         ApplyFlagsAndPropertiesFrom(definition, definitions);
         m_definitionStateApplier.Apply(m_archiveCollection.Definitions.EntityFrameTable, definition, definitions);

@@ -13,6 +13,7 @@ using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
+using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
@@ -827,16 +828,16 @@ public class Player : Entity
             Weapon? weapon = null;
             if (WeaponSlot == slot)
             {
-                int subslotCount = Inventory.Weapons.GetSubSlots(slot);
-                if (subslotCount > 0)
-                {
-                    int subslot = (WeaponSubSlot + 1) % subslotCount;
-                    weapon = Inventory.Weapons.GetWeapon(this, slot, subslot);
-                }
+                var nextSlot = Inventory.Weapons.GetNextSlot(this);
+                if (nextSlot.Slot != slot)
+                    nextSlot.SubSlot = Inventory.Weapons.GetFirstSubSlot(slot);
+
+                if (nextSlot.Slot != -1)
+                    weapon = Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
             }
             else
             {
-                weapon = Inventory.Weapons.GetWeapon(this, slot);
+                weapon = Inventory.Weapons.GetWeapon(slot, Inventory.Weapons.GetBestSubSlot(slot));
             }
 
             if (weapon != null)
@@ -902,7 +903,7 @@ public class Player : Entity
     {
         if (slot.Slot != WeaponSlot || slot.SubSlot != WeaponSubSlot)
         {
-            var weapon = Inventory.Weapons.GetWeapon(this, slot.Slot, slot.SubSlot);
+            var weapon = Inventory.Weapons.GetWeapon(slot.Slot, slot.SubSlot);
             if (weapon != null)
                 ChangeWeapon(weapon);
         }
@@ -964,22 +965,29 @@ public class Player : Entity
     private double CalculateBob(double bobAmount) => 
         Math.Min(16, ((Velocity.X * Velocity.X) + (Velocity.Y * Velocity.Y)) / 4) * bobAmount;
 
+    public bool HasItemOrWeapon(EntityDefinition definition)
+    {
+        if (Inventory.HasItem(definition))
+            return true;
+
+        return Inventory.Weapons.OwnsWeapon(definition);
+    }
+
     public bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
     {
         if (IsDead)
             return false;
 
-        bool success = GiveWeapon(definition, flags);
+        bool success = definition.Properties.Inventory.NoItem || definition.Properties.Inventory.MessageOnly;
+        if (!success)
+            success = GiveWeapon(definition, flags);
         if (!success)
             success = GiveItemBase(definition, flags);
 
         if (success && pickupFlash)
-        {
-            BonusCount = 6;
-            return true;
-        }
+            BonusCount = definition.Properties.Inventory.PickupBonusCount;
 
-        return false;
+        return success;
     }
 
     private bool GiveItemBase(EntityDefinition definition, EntityFlags? flags, bool autoSwitchWeapon = true, int amount = -1)
@@ -1005,32 +1013,49 @@ public class Player : Entity
 
         if (IsWeapon(definition))
         {
-            EntityDefinition? ammoDef = WorldStatic.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
-            if (ammoDef != null)
-                return AddAmmo(ammoDef, definition.Properties.Weapons.AmmoGive, flags, autoSwitchWeapon);
+            var ammoDef = WorldStatic.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
+            if (ammoDef == null)
+                return false;
 
-            return false;
+            int ammoGive = definition.Properties.Weapons.AmmoGive;
+            if (flags.HasValue && (flags.Value.Dropped || definition.Properties.Inventory.AmountModifier == AmountModifier.Dropped) && definition.Properties.Weapons.DroppedAmmoGive.HasValue)
+            {
+                ammoGive = definition.Properties.Weapons.DroppedAmmoGive.Value;
+                flags = null;
+            }
+
+            if (definition.Properties.Weapons.DeathmatchAmmoGive.HasValue && definition.Properties.Inventory.AmountModifier == AmountModifier.Deathmatch)
+            {
+                ammoGive = definition.Properties.Weapons.DeathmatchAmmoGive.Value;
+                flags = null;
+            }
+
+            return AddAmmo(ammoDef, definition, ammoGive, flags, autoSwitchWeapon);
+
         }
 
         if (definition.IsType(Inventory.BackPackBaseClassName))
         {
-            Inventory.AddBackPackAmmo(WorldStatic.EntityManager.DefinitionComposer);
+            Inventory.AddBackPackAmmo(WorldStatic.EntityManager.DefinitionComposer, flags.HasValue && flags.Value.Dropped);
             Inventory.Add(definition, invData.Amount, flags);
             return true;
         }
 
         if (isAmmo)
-            return AddAmmo(definition, amount, flags, autoSwitchWeapon);
+            return AddAmmo(definition, null, amount, flags, autoSwitchWeapon);
 
         return Inventory.Add(definition, amount, flags);
     }
 
-    private bool AddAmmo(EntityDefinition ammoDef, int amount, EntityFlags? flags, bool autoSwitchWeapon)
+    private bool AddAmmo(EntityDefinition ammoDef, EntityDefinition? weaponDef, int amount, EntityFlags? flags, bool autoSwitchWeapon)
     {
-        int oldCount = Inventory.Amount(Inventory.GetBaseInventoryName(ammoDef));
-        bool success = Inventory.Add(ammoDef, WorldStatic.World.SkillDefinition.GetAmmoAmount(amount, flags), flags);
+        var baseAmmoDef = Inventory.GetBaseAmmoDef(ammoDef);
+        int giveAmount = Inventory.GetAmmoGiveAmount(ammoDef, baseAmmoDef, weaponDef, amount, flags);
+
+        int oldCount = Inventory.Amount(baseAmmoDef);
+        bool success = Inventory.Add(baseAmmoDef, giveAmount, flags);
         if (success && autoSwitchWeapon)
-            CheckAutoSwitchAmmo(ammoDef, oldCount);
+            CheckAutoSwitchAmmo(baseAmmoDef, oldCount);
         return success;
     }
 
@@ -1150,6 +1175,9 @@ public class Player : Entity
                 if (Weapon != null && !Weapon.Definition.Flags.WeaponWimpyWeapon && ammoWeapon.Definition.Flags.WeaponNoAutoSwitch)
                     return;
 
+                if (!Inventory.Weapons.CanSelectWeapon(ammoWeapon))
+                    return;
+
                 ChangeWeapon(ammoWeapon);
             }
         }
@@ -1164,6 +1192,9 @@ public class Player : Entity
         if (newWeapon == null)
             return;
 
+        if (!Inventory.Weapons.CanSelectWeapon(newWeapon))
+            return;
+
         ChangeWeapon(newWeapon);
     }
 
@@ -1176,7 +1207,7 @@ public class Player : Entity
         foreach (Weapon weapon in weapons)
         {
             if (weapon != Weapon && CheckAmmo(weapon) &&
-                !weapon.Definition.Flags.WeaponNoAutoSwitch)
+                !weapon.Definition.Flags.WeaponNoAutoSwitch && Inventory.Weapons.CanSelectWeapon(weapon))
             {
                 ChangeWeapon(weapon);
                 break;
@@ -1186,14 +1217,25 @@ public class Player : Entity
 
     public bool ForceSwitchWeapon()
     {
+        Weapon? selectWeapon = null;
         var weapons = Inventory.Weapons.GetWeaponsInSelectionOrder();
-        if (weapons.Count == 0)
+        for (int i= 0; i < weapons.Count; i++)
+        {
+            var weapon = weapons[i];
+            if (Inventory.Weapons.CanSelectWeapon(weapon))
+            {
+                selectWeapon = weapon;
+                break;
+            }
+        }
+
+        if (selectWeapon == null)
         {
             ForceLowerWeapon(setTop: false);
             return false;
         }
 
-        ChangeWeapon(weapons.First());
+        ChangeWeapon(selectWeapon);
         return true;
     }
 
@@ -1217,10 +1259,10 @@ public class Player : Entity
         return false;
     }
 
-    public void ChangeWeapon(Weapon weapon)
+    public bool ChangeWeapon(Weapon weapon)
     {
-        if (!Inventory.Weapons.OwnsWeapon(weapon.Definition) || Weapon == weapon || AnimationWeapon == weapon)
-            return;
+        if (!Inventory.Weapons.OwnsWeapon(weapon.Definition) || Weapon == weapon || AnimationWeapon == weapon || !Inventory.Weapons.CanSelectWeapon(weapon))
+            return false;
 
         bool hadWeapon = Weapon != null;
         var slot = Inventory.Weapons.GetWeaponSlot(weapon.Definition);
@@ -1238,6 +1280,8 @@ public class Player : Entity
         LowerWeapon(hadWeapon);
         if (!hadWeapon)
             ForceLowerWeapon(setTop: false);
+
+        return true;
     }
 
     public bool FireWeapon()
@@ -1360,6 +1404,11 @@ public class Player : Entity
 
         AnimationWeapon = PendingWeapon;
         Weapon = PendingWeapon;
+
+        var slot = Inventory.Weapons.GetWeaponSlot(Weapon.Definition);
+        WeaponSlot = slot.Slot;
+        WeaponSubSlot = slot.SubSlot;
+
         PendingWeapon = null;
         WeaponOffset.Y = Constants.WeaponBottom;
         SetWeaponFrameState(AnimationWeapon, Constants.FrameStates.Select);

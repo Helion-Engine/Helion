@@ -18,14 +18,17 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Helion.World.Entities.Definition.Properties.Components;
 using static Helion.Dehacked.DehackedDefinition;
+using Helion.Maps.Shared;
 
 namespace Helion.Dehacked;
 
 public class DehackedApplier
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private readonly List<string> RemoveLabels = new();
+    private readonly List<string> RemoveLabels = [];
     private readonly DehackedDefinition m_dehacked;
+    private EntityDefinition? m_playerDefinition;
+    private int m_ammoDefIndex;
 
     private const int DehExtraSpriteStart = 145;
     private const int DehExtraSoundStart = 500;
@@ -48,6 +51,7 @@ public class DehackedApplier
 
     public void Apply(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
     {
+        m_playerDefinition = composer.GetByName("DoomPlayer");
         ApplyVanillaIndex(dehacked, definitionEntries.EntityFrameTable);
 
         ApplySounds(dehacked, definitionEntries.SoundInfo);
@@ -57,7 +61,7 @@ public class DehackedApplier
         ApplyThings(dehacked, definitionEntries.EntityFrameTable, composer);
         ApplyPointers(dehacked, definitionEntries.EntityFrameTable);
         ApplyFrames(dehacked, definitionEntries.EntityFrameTable);
-        ApplyWeapons(dehacked, definitionEntries.EntityFrameTable, composer);
+        ApplyWeapons(dehacked, definitionEntries.EntityFrameTable, composer, definitionEntries.MapInfoDefinition.GameDefinition);
         ApplyAmmo(dehacked, composer);
         ApplyText(dehacked, definitionEntries.EntityFrameTable, definitionEntries.Language);
         ApplyCheats(dehacked);
@@ -103,7 +107,7 @@ public class DehackedApplier
         }
     }
 
-    private void ApplyWeapons(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer)
+    private void ApplyWeapons(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer, GameInfoDef gameDef)
     {
         if (dehacked.Weapons.Count == 0)
             return;
@@ -117,12 +121,12 @@ public class DehackedApplier
             properties.Add(weaponDef.Properties.Weapons);
         }
 
-
+        bool setWeaponSlot = false;
         foreach (var weapon in dehacked.Weapons)
         {
-            EntityDefinition? weaponDef = GetWeaponDefinition(weapon.WeaponNumber, composer);
+            var weaponDef = GetWeaponDefinition(weapon.WeaponNumber, composer);
             if (weaponDef == null)
-                return;
+                continue;
 
             // Deselect and select are backwards in dehacked...
             if (weapon.DeselectFrame.HasValue)
@@ -145,6 +149,137 @@ public class DehackedApplier
             }
             if (weapon.Mbf21Bits.HasValue)
                 ApplyWeaponMbf21Bits(weaponDef, weapon.Mbf21Bits.Value);
+
+            if (weapon.InitialOwned.HasValue)
+                SetInitialOwned(weaponDef, weapon.InitialOwned.Value);
+
+            if (weapon.Slot.HasValue)
+            {
+                SetWeaponSlot(gameDef, weaponDef, weapon.Slot.Value);
+                setWeaponSlot = true;
+            }
+
+            if (weapon.AllowSwitchWithOwnedWeapon.HasValue)
+                weaponDef.Properties.Weapons.AllowSwitchWithOwnedWeapon = GetWeaponByIdDefinition(dehacked, composer, weapon.AllowSwitchWithOwnedWeapon.Value);
+            if (weapon.NoSwitchWithOwnedWeapon.HasValue)
+                weaponDef.Properties.Weapons.NoSwitchWithOwnedWeapon = GetWeaponByIdDefinition(dehacked, composer, weapon.NoSwitchWithOwnedWeapon.Value);
+            if (weapon.AllowSwitchWithOwnedItem.HasValue && dehacked.TryGetId24PickupType(composer, weapon.AllowSwitchWithOwnedItem.Value, out var allowSwitchItemDef))
+                weaponDef.Properties.Weapons.AllowSwitchWithOwnedItem = allowSwitchItemDef;
+            if (weapon.NoSwitchWithOwnedItem.HasValue && dehacked.TryGetId24PickupType(composer, weapon.NoSwitchWithOwnedItem.Value, out var noSwitchItemDef))
+                weaponDef.Properties.Weapons.NoSwitchWithOwnedItem = noSwitchItemDef;
+        }
+
+        if (setWeaponSlot)
+            RemapWeaponSlotPriorities(dehacked, composer, gameDef);
+    }
+
+    private static EntityDefinition? GetWeaponByIdDefinition(DehackedDefinition dehacked, EntityDefinitionComposer composer, int id)
+    {
+        if (id < 0 || id >= dehacked.WeaponNamesById.Length)
+            return null;
+
+        return composer.GetByName(dehacked.WeaponNamesById[id]);
+    }
+
+    private static void RemapWeaponSlotPriorities(DehackedDefinition dehacked, EntityDefinitionComposer composer, GameInfoDef gameDef)
+    {
+        foreach (var weaponName in dehacked.WeaponNamesById)
+        {
+            var weaponDef = composer.GetByName(weaponName);
+            if (weaponDef == null)
+                continue;
+
+            if (weaponName.Equals("Fist", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+            if (weaponName.Equals("Chainsaw", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 1;
+            else if (weaponName.Equals("Pistol", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+            else if (weaponName.Equals("Shotgun", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+            else if (weaponName.Equals("SuperShotgun", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 1;
+            else if (weaponName.Equals("Chaingun", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+            else if (weaponName.Equals("RocketLauncher", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+            else if (weaponName.Equals("PlasmaRifle", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+            else if (weaponName.Equals("BFG9000", StringComparison.OrdinalIgnoreCase))
+                weaponDef.Properties.Weapons.SlotPriority = 0;
+        }
+
+        foreach (var weapon in dehacked.Weapons)
+        {
+            if (!weapon.SlotPriority.HasValue)
+                continue;
+
+            var weaponDef = GetWeaponDefinition(weapon.WeaponNumber, composer);
+            if (weaponDef == null)
+                continue;
+
+            weaponDef.Properties.Weapons.SlotPriority = weapon.SlotPriority.Value;
+        }
+
+        foreach (var weaponSlot in gameDef.WeaponSlots)
+        {
+            if (weaponSlot.Value.Count == 0)
+                continue;
+
+            var weaponDefs = weaponSlot.Value.Select(composer.GetByName).Where(x => x != null).OrderBy(x => x!.Properties.Weapons.SlotPriority).ToArray();
+            for (int i = 0; i < weaponDefs.Length; i++)
+            {
+                var weaponDef = weaponDefs[i];
+                if (weaponDef == null)
+                {
+                    weaponSlot.Value[i] = string.Empty;
+                    continue;
+                }
+                weaponSlot.Value[i] = weaponDef.Name;
+                weaponDef.Properties.Weapons.SelectionOrder = weaponSlot.Key * 1000 + i;
+            }
+        }
+    }
+
+    private void SetWeaponSlot(GameInfoDef gameDef, EntityDefinition weaponDef, int slot)
+    {
+        foreach (var weaponSlot in gameDef.WeaponSlots)
+        {
+            int index = weaponSlot.Value.FindIndex(x => x.Equals(weaponDef.Name, StringComparison.OrdinalIgnoreCase));
+            if (index == -1)
+                continue;
+
+            weaponSlot.Value.RemoveAt(index);
+        }
+
+        if (!gameDef.WeaponSlots.TryGetValue(slot, out var weapons))
+        {
+            weapons = [];
+            gameDef.WeaponSlots[slot] = weapons;
+        }
+
+        weapons.Add(weaponDef.Name);
+    }
+
+    private void SetInitialOwned(EntityDefinition weaponDef, bool owned)
+    {
+        if (m_playerDefinition == null)
+            return;
+
+        var startItems = m_playerDefinition.Properties.Player.StartItem;
+
+        var itemIndex = startItems.FindIndex(x => x.Name.Equals(weaponDef.Name, StringComparison.OrdinalIgnoreCase));
+        if (owned)
+        {
+            if (itemIndex != -1)
+                return;
+            startItems.Add(new(weaponDef.Name, 1));
+        }
+        else
+        {
+            if (itemIndex == -1)
+                return;
+            startItems.RemoveAt(itemIndex);
         }
     }
 
@@ -420,6 +555,9 @@ public class DehackedApplier
 
     private void ApplyThings(DehackedDefinition dehacked, EntityFrameTable entityFrameTable, EntityDefinitionComposer composer)
     {
+        // Create new thing lookup first. Required for finding DroppedItem
+        CreateNewThingLookup(dehacked, composer);
+
         foreach (var thing in dehacked.Things)
         {
             var definition = GetEntityDefinition(dehacked, thing, composer);
@@ -439,6 +577,11 @@ public class DehackedApplier
             {
                 ClearEntityFlagsMbf21(ref definition.Flags);
                 SetEntityFlagsMbf21(properties, ref definition.Flags, thing.Mbf21Bits.Value, false);
+            }
+            if (thing.Id24Bits.HasValue)
+            {
+                ClearEntityFlagsId24(ref definition.Flags);
+                SetEntityFlagsId24(ref definition.Flags, thing.Id24Bits.Value, false);
             }
 
             if (thing.ID.HasValue)
@@ -511,9 +654,133 @@ public class DehackedApplier
                 properties.ProjectileGroup = thing.ProjectileGroup;
             if (IsGroupValid(properties.SplashGroup))
                 properties.SplashGroup = thing.SplashGroup;
+
+            properties.RespawnTicks = thing.MinRespawnTicks;
+            if (thing.RespawnDice.HasValue)
+                properties.RespawnDice = thing.RespawnDice.Value;
+            if (thing.PickupBonusCount.HasValue)
+                properties.Inventory.PickupBonusCount = thing.PickupBonusCount.Value;
+            if (thing.PickupItemType.HasValue)
+                SetPickupItemType(thing, dehacked, composer, definition, (int)thing.PickupItemType.Value);
+            if (thing.PickupWeaponType.HasValue)
+                SetWeaponType(thing, dehacked, composer, definition, thing.PickupWeaponType.Value);
+            if (thing.PickupSound.HasValue)
+                properties.Inventory.PickupSound = GetSound(dehacked, thing.PickupSound.Value);
+            if (!string.IsNullOrEmpty(thing.PickupMessage))
+                properties.Inventory.PickupMessage = GetDehackedMessageLookup(thing.PickupMessage, true);
+            if (thing.PickupAmmoType.HasValue && thing.PickupAmmoCategory.HasValue)
+                ApplyPickupAmmoType(thing, dehacked, composer, definition, thing.PickupAmmoType.Value, thing.PickupAmmoCategory.Value);
+            if (thing.SelfDamageFactor.HasValue)
+                properties.SelfDamageFactor = thing.SelfDamageFactor.Value;
         }
     }
 
+    private void CreateNewThingLookup(DehackedDefinition dehacked, EntityDefinitionComposer composer)
+    {
+        foreach (var thing in dehacked.Things)
+            GetEntityDefinition(dehacked, thing, composer);
+    }
+
+    private void ApplyPickupAmmoType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, 
+        int type, Id24AmmoCategory category)
+    {
+        Id24AmmoCategory categoryFlags = (Id24AmmoCategory)((int)category & 0xC);
+        category = (Id24AmmoCategory)((int)category & ~(int)categoryFlags);
+
+        if ((int)categoryFlags == -1)
+        {
+            definition.Properties.Inventory.NoItem = true;
+            return;
+        }
+
+        var ammoLookup = category == Id24AmmoCategory.Default ? dehacked.AmmoNames : dehacked.AmmoDoubleNames;
+        if (type < 0 || type >= ammoLookup.Length)
+        {
+            Log.Warn("Invalid ammo type {type} for {number} {name}", type, thing.Number, thing.Name);
+            return;
+        }
+
+        var ammoDef = composer.GetByName(ammoLookup[type]);
+        if (ammoDef == null)
+            return;
+
+        var newAmmo = new EntityDefinition(0, $"*deh/{thing.Number}/AmmoPickup{m_ammoDefIndex++}", null, ammoDef.ParentClassNames);
+        newAmmo.Properties.Inventory.Amount = ammoDef.Properties.Inventory.Amount;
+        newAmmo.Properties.Inventory.MaxAmount = ammoDef.Properties.Inventory.MaxAmount;
+        newAmmo.Properties.Ammo = ammoDef.Properties.Ammo;
+        definition.Properties.AddTranslatedPickup(newAmmo);
+
+        if (category == Id24AmmoCategory.Weapon)
+        {
+            var weaponDef = composer.GetByName(dehacked.WeaponNames[type]);
+            if (weaponDef == null)
+                return;
+
+            newAmmo.Properties.Inventory.Amount = weaponDef.Properties.Weapons.AmmoGive;
+        }
+        else if (category == Id24AmmoCategory.Backpack)
+        {
+            newAmmo.Properties.Inventory.Amount = ammoDef.Properties.Ammo.BackpackAmount;
+        }
+
+        switch (categoryFlags)
+        {
+            case Id24AmmoCategory.Default:
+                newAmmo.Properties.Inventory.AmountModifier = AmountModifier.Default;
+                break;
+            case Id24AmmoCategory.Dropped:
+                newAmmo.Properties.Inventory.AmountModifier = AmountModifier.Dropped;
+                break;
+            case Id24AmmoCategory.Deathmatch:
+                newAmmo.Properties.Inventory.AmountModifier = AmountModifier.Deathmatch;
+                break;
+            default:
+                newAmmo.Properties.Inventory.NoItem = true;
+                break;
+        }
+    }
+
+    private static void SetPickupItemType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, int pickupItemType)
+    {
+        if (pickupItemType == (int)Id24PickupType.NoItem)
+        {
+            definition.Properties.Inventory.NoItem = true;
+            return;
+        }
+
+        if (pickupItemType == (int)Id24PickupType.MessageOnly)
+        {
+            definition.Properties.Inventory.MessageOnly = true;
+            return;
+        }
+
+        if (!dehacked.TryGetId24PickupType(composer, pickupItemType, out var itemDef))
+        {
+            Log.Warn("Invalid item pickup type {type} for {number} {name}", pickupItemType, thing.Number, thing.Name);
+            return;
+        }
+
+        definition.Properties.AddTranslatedPickup(itemDef);
+
+        if (itemDef.States.Labels.TryGetValue(Constants.FrameStates.Pickup, out int frame))
+            definition.States.Labels[Constants.FrameStates.Pickup] = frame;
+    }
+
+    private static void SetWeaponType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, int weaponType)
+    {
+        if (weaponType < 0 || weaponType >= dehacked.WeaponNamesById.Length)
+        {
+            Log.Warn("Invalid weapon pickup type {type} for {number} {name}", weaponType, thing.Number, thing.Name);
+            return;
+        }
+
+        var weaponDef = composer.GetByName(dehacked.WeaponNamesById[weaponType]);
+        if (weaponDef == null)
+            return;
+
+        definition.Properties.AddTranslatedPickup(weaponDef);
+    }
+    
     private static void SetDroppedItem(int thingNumber, DehackedDefinition dehacked, EntityDefinition definition)
     {
         if (dehacked.GetEntityDefinitionName(thingNumber, out var droppedName))
@@ -601,7 +868,7 @@ public class DehackedApplier
             return def.Name;
 
         string newName = GetDehackedActorName(index);
-        EntityDefinition definition = new(composer.GetNextId(), newName, 0, Array.Empty<string>());
+        EntityDefinition definition = new(composer.GetNextId(), newName, 0, []);
         definition.DehackedName = thing.Name;
         composer.Add(definition);
         m_dehacked.NewThingLookup.Set(index, definition);
@@ -611,8 +878,18 @@ public class DehackedApplier
     public static string GetDehackedActorName(int index) =>
         $"*deh/entity{index}";
 
+    private static string GetDehackedMessageLookup(string mnemonic, bool prefix)
+    {
+        if (prefix)
+            return $"$*deh/{mnemonic}";
+        else
+            return $"*deh/{mnemonic}";
+    }
+
     private static void ApplyAmmo(DehackedDefinition dehacked, EntityDefinitionComposer composer)
     {
+        var weaponDefs = GetAmmoWeaponDefinitions(dehacked, composer);
+
         foreach (var ammo in dehacked.Ammo)
         {
             if (ammo.AmmoNumber < 0 || ammo.AmmoNumber >= dehacked.AmmoNames.Length)
@@ -621,14 +898,86 @@ public class DehackedApplier
                 continue;
             }
 
-            var definition = composer.GetByName(dehacked.AmmoNames[ammo.AmmoNumber]);
-            ApplyAmmo(definition, ammo, 1);
+            var normalAmmo = composer.GetByName(dehacked.AmmoNames[ammo.AmmoNumber]);
+            var boxAmmo = composer.GetByName(dehacked.AmmoDoubleNames[ammo.AmmoNumber]);
+            ApplyAmmo(normalAmmo, ammo, 1);
+            ApplyAmmo(boxAmmo, ammo, 2);
+            ApplyId24Ammo(composer, normalAmmo, boxAmmo, ammo);
 
-            if (ammo.AmmoNumber >= dehacked.AmmoDoubleNames.Length)
+            if (ammo.AmmoNumber >= weaponDefs.Count)
                 continue;
+            
+            var ammoWeaponDefs = weaponDefs[ammo.AmmoNumber];
+            if (ammo.WeaponAmmo.HasValue)
+            {
+                foreach (var weaponDef in ammoWeaponDefs)
+                    weaponDef.Properties.Weapons.AmmoGive = ammo.WeaponAmmo.Value;
+            }
 
-            definition = composer.GetByName(dehacked.AmmoDoubleNames[ammo.AmmoNumber]);
-            ApplyAmmo(definition, ammo, 2);
+            if (ammo.DroppedWeaponAmmo.HasValue)
+            {
+                foreach (var weaponDef in ammoWeaponDefs)
+                    weaponDef.Properties.Weapons.DroppedAmmoGive = ammo.DroppedWeaponAmmo.Value;
+            }
+
+            if (ammo.DeathmatchWeaponAmmo.HasValue)
+            {
+                foreach (var weaponDef in ammoWeaponDefs)
+                    weaponDef.Properties.Weapons.DeathmatchAmmoGive = ammo.DeathmatchWeaponAmmo.Value;
+            }  
+        }
+    }
+
+    private static List<EntityDefinition[]> GetAmmoWeaponDefinitions(DehackedDefinition dehacked, EntityDefinitionComposer composer)
+    {
+        List<EntityDefinition[]> weaponDefs = [];
+        foreach (var weaponNames in dehacked.AmmoToWeaponNames)
+            weaponDefs.Add(weaponNames.Select(x => composer.GetByNameOrDefault(x)).ToArray());
+        return weaponDefs;
+    }
+
+    private static void ApplyId24Ammo(EntityDefinitionComposer composer, EntityDefinition? normalAmmo, EntityDefinition? boxAmmo, DehackedAmmo ammo)
+    {
+        if (normalAmmo != null)
+        {
+            if (ammo.InitialAmmo.HasValue)
+                SetInitialAmmo(composer, normalAmmo, ammo.InitialAmmo.Value);
+
+            if (ammo.MaxUpgradedAmmo.HasValue)
+                normalAmmo.Properties.Ammo.BackpackMaxAmount = ammo.MaxUpgradedAmmo.Value;
+
+            if (ammo.BackpackAmmo.HasValue)
+                normalAmmo.Properties.Ammo.BackpackAmount = ammo.BackpackAmmo.Value;
+
+            if (ammo.DroppedAmmo.HasValue)
+                normalAmmo.Properties.Ammo.DropAmount = ammo.DroppedAmmo.Value;
+
+            if (ammo.DroppedBackpackAmmo.HasValue)
+                normalAmmo.Properties.Ammo.DropBackpackAmmo = ammo.DroppedBackpackAmmo.Value;
+
+            if (ammo.Skill1Multiplier.HasValue && ammo.Skill1Multiplier.Value != 0)
+                normalAmmo.Properties.Ammo.SetSkillMultiplier(SkillLevel.VeryEasy, ammo.Skill1Multiplier.Value);
+
+            if (ammo.Skill2Multiplier.HasValue && ammo.Skill2Multiplier.Value != 0)
+                normalAmmo.Properties.Ammo.SetSkillMultiplier(SkillLevel.Easy, ammo.Skill2Multiplier.Value);
+
+            if (ammo.Skill3Multiplier.HasValue && ammo.Skill3Multiplier.Value != 0)
+                normalAmmo.Properties.Ammo.SetSkillMultiplier(SkillLevel.Medium, ammo.Skill3Multiplier.Value);
+
+            if (ammo.Skill4Multiplier.HasValue && ammo.Skill4Multiplier.Value != 0)
+                normalAmmo.Properties.Ammo.SetSkillMultiplier(SkillLevel.Hard, ammo.Skill4Multiplier.Value);
+
+            if (ammo.Skill5Multiplier.HasValue && ammo.Skill5Multiplier.Value != 0)
+                normalAmmo.Properties.Ammo.SetSkillMultiplier(SkillLevel.Nightmare, ammo.Skill5Multiplier.Value);
+        }
+
+        if (boxAmmo != null)
+        {
+            if (ammo.BoxAmmo.HasValue)
+                boxAmmo.Properties.Inventory.Amount = ammo.BoxAmmo.Value;
+
+            if (ammo.DroppedBoxAmmo.HasValue)
+                boxAmmo.Properties.Ammo.DropAmount = ammo.DroppedBoxAmmo.Value;
         }
     }
 
@@ -649,6 +998,23 @@ public class DehackedApplier
             inventory.MaxAmount = ammo.MaxAmmo.Value;
             definition.Properties.Ammo.BackpackMaxAmount = ammo.MaxAmmo.Value * 2;
         }
+    }
+
+    private static void SetInitialAmmo(EntityDefinitionComposer composer, EntityDefinition definition, int startAmount)
+    {
+        var playerDef = composer.GetByName("DoomPlayer");
+        if (playerDef == null)
+            return;
+
+        var startItems = playerDef.Properties.Player.StartItem;
+        var item = startItems.FirstOrDefault(x => x.Name.Equals(definition.Name, StringComparison.OrdinalIgnoreCase));
+        if (item != null)
+        {
+            item.Amount = startAmount;
+            return;
+        }
+
+        startItems.Add(new(definition.Name, startAmount));
     }
 
     private static readonly List<string> IgnoreTextNames = new()
@@ -860,6 +1226,23 @@ public class DehackedApplier
         flags.Ripper = GetNewFlagValue(flags.Ripper, thingProperties.HasFlag(Mbf21ThingFlags.RIP), opAnd);
         flags.FullVolSee = GetNewFlagValue(flags.FullVolSee, thingProperties.HasFlag(Mbf21ThingFlags.FULLVOLSOUNDS), opAnd);
         flags.FullVolDeath = GetNewFlagValue(flags.FullVolDeath, thingProperties.HasFlag(Mbf21ThingFlags.FULLVOLSOUNDS), opAnd);
+    }
+
+    private static void ClearEntityFlagsId24(ref EntityFlags flags)
+    {
+        flags.NoRespawn = false;
+        flags.SpecialStaySingle = false;
+        flags.SpecialStayCooperative = false;
+        flags.SpecialStayCooperative = false;
+    }
+
+    public static void SetEntityFlagsId24(ref EntityFlags flags, uint value, bool opAnd)
+    {
+        Id24ThingFlags thingProperties = (Id24ThingFlags)value;
+        flags.NoRespawn = GetNewFlagValue(flags.NoRespawn, thingProperties.HasFlag(Id24ThingFlags.NORESPAWN), opAnd);
+        flags.SpecialStaySingle = GetNewFlagValue(flags.NoRespawn, thingProperties.HasFlag(Id24ThingFlags.SPECIALSTAYSSINGLE), opAnd);
+        flags.SpecialStayCooperative = GetNewFlagValue(flags.SpecialStayCooperative, thingProperties.HasFlag(Id24ThingFlags.SPECIALSTAYSCOOP), opAnd);
+        flags.SpecialStayDeathmatch = GetNewFlagValue(flags.SpecialStayDeathmatch, thingProperties.HasFlag(Id24ThingFlags.SPECIALSTAYSDM), opAnd);
     }
 
     private static bool GetNewFlagValue(bool existingFlag, bool newFlag, bool opAnd)
@@ -1089,23 +1472,22 @@ public class DehackedApplier
             CheatManager.SetCheatCode(CheatType.ShowPosition, cheat.PlayerPos);
     }
 
-    private static void ApplyMisc(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
+    private void ApplyMisc(DehackedDefinition dehacked, DefinitionEntries definitionEntries, EntityDefinitionComposer composer)
     {
         if (dehacked.Misc == null)
             return;
 
-        var player = composer.GetByName("DoomPlayer");
-        if (player != null)
+        if (m_playerDefinition != null)
         {
             if (dehacked.Misc.InitialHealth.HasValue)
-                player.Properties.Health = dehacked.Misc.InitialHealth.Value;
+                m_playerDefinition.Properties.Health = dehacked.Misc.InitialHealth.Value;
 
             if (dehacked.Misc.MaxHealth.HasValue)
-                player.Properties.Player.MaxHealth = dehacked.Misc.MaxHealth.Value;
+                m_playerDefinition.Properties.Player.MaxHealth = dehacked.Misc.MaxHealth.Value;
 
             if (dehacked.Misc.InitialBullets.HasValue)
             {
-                var startItem = player.Properties.Player.StartItem.FirstOrDefault(x => x.Name.Equals("Clip", StringComparison.OrdinalIgnoreCase));
+                var startItem = m_playerDefinition.Properties.Player.StartItem.FirstOrDefault(x => x.Name.Equals("Clip", StringComparison.OrdinalIgnoreCase));
                 if (startItem != null)
                     startItem.Amount = dehacked.Misc.InitialBullets.Value;
             }
@@ -1189,6 +1571,9 @@ public class DehackedApplier
     {
         foreach (var text in dehacked.BexStrings)
         {
+            if (text.Mnemonic.StartsWith("USER_", StringComparison.OrdinalIgnoreCase))
+                language.Add(GetDehackedMessageLookup(text.Mnemonic, false), text.Value);
+
             if (!language.SetValue(text.Mnemonic, text.Value))
                 Log.Warn($"Unknown bex string mnemonic:{text.Mnemonic}");
         }

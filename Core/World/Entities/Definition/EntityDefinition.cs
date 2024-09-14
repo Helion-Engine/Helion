@@ -12,11 +12,11 @@ public class EntityDefinition
 {
     public static readonly EntityDefinition Default = new(-1, "DEFAULT-NULL", null, []);
 
-    public int Id { get; set; }
-    public int? EditorId { get; set; }
-    public readonly string Name;
+    public int Id;
+    public int? EditorId;
+    public string Name;
     public EntityFlags Flags;
-    public readonly EntityProperties Properties;
+    public EntityProperties Properties;
     public readonly EntityStates States;
     public readonly IList<string> ParentClassNames;
     public readonly bool IsBulletPuff;

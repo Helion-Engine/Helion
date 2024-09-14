@@ -59,6 +59,7 @@ using Helion.Maps.Doom;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Util.Loggers;
 using Helion.Graphics.Palettes;
+using Helion.Maps.Shared;
 
 namespace Helion.World;
 
@@ -93,6 +94,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler? OnDestroying;
         
     private static int StaticId;
+    public abstract WorldType WorldType { get; }
     public int Id { get; } = StaticId++;
 
     public readonly long CreationTimeNanos;
@@ -126,6 +128,7 @@ public abstract partial class WorldBase : IWorld
     public MapInfoDef MapInfo { get; private set; }
     public LevelStats LevelStats { get; } = new();
     public SkillDef SkillDefinition { get; private set; }
+    public SkillLevel SkillLevel { get; private set; }
     public ArchiveCollection ArchiveCollection { get; protected set; }
     public GlobalData GlobalData { get; }
     public CheatManager CheatManager { get; } = new();
@@ -200,6 +203,7 @@ public abstract partial class WorldBase : IWorld
         Config = config;
         MapInfo = mapInfoDef;
         SkillDefinition = skillDef;
+        SkillLevel = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(skillDef);
         MapName = map.Name;
         Profiler = profiler;
         Geometry = geometry;
@@ -485,23 +489,20 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.SlowTickTracerMultiplier = Config.SlowTick.TracerMultiplier;
         WorldStatic.IsFastMonsters = IsFastMonsters;
         WorldStatic.IsSlowMonsters = SkillDefinition.SlowMonsters;
+        WorldStatic.InfinitelyTallThings = Config.Compatibility.InfinitelyTallThings;
+        WorldStatic.MissileClip = Config.Compatibility.MissileClip;
+        WorldStatic.AllowItemDropoff = Config.Compatibility.AllowItemDropoff;
+        WorldStatic.NoTossDrops = Config.Compatibility.NoTossDrops;
+        WorldStatic.VanillaMovementPhysics = Config.Compatibility.VanillaMovementPhysics;
         WorldStatic.Dehacked = ArchiveCollection.Definitions.DehackedDefinition != null;
-
-        WorldStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
+        WorldStatic.Mbf21 = Config.Compatibility.Mbf21;
+        WorldStatic.Doom2ProjectileWalkTriggers = Config.Compatibility.Doom2ProjectileWalkTriggers;
+        WorldStatic.OriginalExplosion = Config.Compatibility.OriginalExplosion;
+        WorldStatic.FinalDoomTeleport = Config.Compatibility.FinalDoomTeleport;
+        WorldStatic.VanillaSectorSound = Config.Compatibility.VanillaSectorSound;
+        WorldStatic.RespawnTicks = SkillDefinition.RespawnTime.Seconds * (int)Constants.TicksPerSecond;
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
-
-        // Compatibility stuff
-        WorldStatic.AllowItemDropoff = Config.Compatibility.AllowItemDropoff;
-        WorldStatic.Doom2ProjectileWalkTriggers = Config.Compatibility.Doom2ProjectileWalkTriggers;
-        WorldStatic.FinalDoomTeleport = Config.Compatibility.FinalDoomTeleport;
-        WorldStatic.InfinitelyTallThings = Config.Compatibility.InfinitelyTallThings;
-        WorldStatic.Mbf21 = Config.Compatibility.Mbf21;
-        WorldStatic.MissileClip = Config.Compatibility.MissileClip;
-        WorldStatic.NoTossDrops = Config.Compatibility.NoTossDrops;
-        WorldStatic.OriginalExplosion = Config.Compatibility.OriginalExplosion;
-        WorldStatic.VanillaMovementPhysics = Config.Compatibility.VanillaMovementPhysics;
-        WorldStatic.VanillaSectorSound = Config.Compatibility.VanillaSectorSound;
 
         WorldStatic.DoomImpBall = EntityManager.DefinitionComposer.GetByNameOrDefault("DoomImpBall");
         WorldStatic.ArachnotronPlasma = EntityManager.DefinitionComposer.GetByNameOrDefault("ArachnotronPlasma");
@@ -810,7 +811,10 @@ public abstract partial class WorldBase : IWorld
             KillAllPlayers();
 
         if ((m_levelChangeFlags & LevelChangeFlags.ResetInventory) != 0)
+        {
+            Player.Inventory.Clear();
             Player.SetDefaultInventory();
+        }
 
         m_levelChangeFlags = LevelChangeFlags.None;
     }
@@ -1555,6 +1559,9 @@ public abstract partial class WorldBase : IWorld
     public virtual bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType,
         Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null)
     {
+        if (source != null && source.Owner.Entity == target)
+            damage = (int)(damage * source.Properties.SelfDamageFactor);
+
         if (!target.Flags.Shootable || damage == 0 || target.IsDead)
             return false;
 
@@ -1637,26 +1644,48 @@ public abstract partial class WorldBase : IWorld
 
     public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true)
     {
-        definition = item.Definition;
-
         if (ArchiveCollection.Definitions.DehackedDefinition != null && GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item, out var vanillaDef))
         {
-            var saveFlags = flags;
             definition = vanillaDef;
             flags = GetCombinedPickupFlags(vanillaDef.Flags, flags);
+            return GiveItemInternal(player, vanillaDef, flags, pickupFlash);
+        }
+        else if (item.Definition.Properties.TranslatedPickups != null)
+        {
+            bool success = false;
+            definition = item.Definition.Properties.TranslatedPickupDisplay ?? item.Definition;
+            foreach (var pickupDef in item.Definition.Properties.TranslatedPickups)
+            {
+                var pickupFlags = GetCombinedPickupFlags(pickupDef.Flags, flags);
+                if (GiveItemInternal(player, pickupDef, pickupFlags, pickupFlash))
+                    success = true;
+            }
+
+            return success;
         }
 
-        if (player.IsVooDooDoll)
-            return GiveVooDooItem(player, item, flags, pickupFlash);
+        definition = item.Definition;
+        return GiveItemInternal(player, definition, flags, pickupFlash);
+    }
 
-        return player.GiveItem(definition, flags, pickupFlash);
+    private bool GiveItemInternal(Player player, EntityDefinition pickupDef, EntityFlags? flags, bool pickupFlash)
+    {
+        if (player.IsVooDooDoll)
+            return GiveVooDooItem(player, pickupDef, flags, pickupFlash);
+
+        return player.GiveItem(pickupDef, flags, pickupFlash);
     }
 
     private static EntityFlags GetCombinedPickupFlags(EntityFlags dehackedFlags, EntityFlags? flags)
     {
         // Need to carry over flags that are modified by the world and affect pickups
         if (flags.HasValue)
+        {
             dehackedFlags.Dropped = flags.Value.Dropped;
+            dehackedFlags.SpecialStaySingle = flags.Value.SpecialStaySingle;
+            dehackedFlags.SpecialStayCooperative = flags.Value.SpecialStayCooperative;
+            dehackedFlags.SpecialStayDeathmatch = flags.Value.SpecialStayDeathmatch;
+        }
 
         return dehackedFlags;
     }
@@ -1680,6 +1709,10 @@ public abstract partial class WorldBase : IWorld
         if (entity.PlayerObj == null)
             return;
 
+        bool shouldStay = ShouldItemStay(item);
+        if (shouldStay && entity.PlayerObj.HasItemOrWeapon(item.Definition))
+            return;
+
         int health = entity.PlayerObj.Health;
         if (!GiveItem(entity.PlayerObj, item, item.Flags, out EntityDefinition definition))
             return;
@@ -1689,7 +1722,19 @@ public abstract partial class WorldBase : IWorld
 
         if (entity.PlayerObj != null)
             PlayerPickedUpItem(entity.PlayerObj, item, health, definition);
-        EntityManager.Destroy(item);
+
+        if (!shouldStay)
+            EntityManager.Destroy(item);
+    }
+
+    private bool ShouldItemStay(Entity item)
+    {
+        return WorldType switch
+        {
+            WorldType.Cooperative => item.Flags.SpecialStayCooperative,
+            WorldType.Deathmatch => item.Flags.SpecialStayDeathmatch,
+            _ => item.Flags.SpecialStaySingle,
+        };
     }
 
     private void PlayerPickedUpItem(Player player, Entity item, int previousHealth, EntityDefinition definition)
@@ -1703,7 +1748,7 @@ public abstract partial class WorldBase : IWorld
         }
 
         item.PickupPlayer = player;
-        item.FrameState.SetState("Pickup", warn: false);
+        item.FrameState.SetState(Constants.FrameStates.Pickup, warn: false);
 
         if (item.Flags.CountItem)
         {
@@ -2000,11 +2045,12 @@ public abstract partial class WorldBase : IWorld
 
     private void CheckDropItem(Entity deathEntity)
     {
-        if (deathEntity.Definition.Properties.DropItem != null &&
-            (deathEntity.Definition.Properties.DropItem.Probability == DropItemProperty.DefaultProbability ||
-                m_random.NextByte() < deathEntity.Definition.Properties.DropItem.Probability))
+        ref var dropItemDef = ref deathEntity.Definition.Properties.DropItem;
+        if (dropItemDef != null &&
+            (dropItemDef.Value.Probability == DropItemProperty.DefaultProbability ||
+                m_random.NextByte() < dropItemDef.Value.Probability))
         {
-            for (int i = 0; i < deathEntity.Definition.Properties.DropItem.Amount; i++)
+            for (int i = 0; i < dropItemDef.Value.Amount; i++)
             {
                 bool spawnInit = true;
                 Vec3D pos = deathEntity.Position;
@@ -2017,7 +2063,7 @@ public abstract partial class WorldBase : IWorld
                     addVelocity = 4;
                 }
                 
-                Entity? dropItem = EntityManager.Create(deathEntity.Definition.Properties.DropItem.ClassName, pos, init: spawnInit);
+                Entity? dropItem = EntityManager.Create(dropItemDef.Value.ClassName, pos, init: spawnInit);
                 if (dropItem == null)
                     continue;
                 
@@ -2167,6 +2213,17 @@ public abstract partial class WorldBase : IWorld
             else if (obj is Sector sector)
                 HighlightSector(sector);
         }
+    }
+        
+    public bool SetSkillLevel(SkillLevel skill)
+    {
+        var skillDef = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skill);
+        if (skillDef == null)
+            return false;
+
+        SkillLevel = skill;
+        SkillDefinition = skillDef;
+        return true;
     }
 
     private void HighlightSector(Sector sector)
@@ -2969,13 +3026,13 @@ public abstract partial class WorldBase : IWorld
         CompleteVooDooDollSync();
     }
 
-    private bool GiveVooDooItem(Player player, Entity item, EntityFlags? flags, bool pickupFlash)
+    private bool GiveVooDooItem(Player player, EntityDefinition pickupDef, EntityFlags? flags, bool pickupFlash)
     {
         Player? updatePlayer = EntityManager.GetRealPlayer(player.PlayerNumber);
         if (updatePlayer == null)
             return false;
 
-        bool success = updatePlayer.GiveItem(item.Definition, flags, pickupFlash);
+        bool success = updatePlayer.GiveItem(pickupDef, flags, pickupFlash);
         if (!success)
             return false;
 

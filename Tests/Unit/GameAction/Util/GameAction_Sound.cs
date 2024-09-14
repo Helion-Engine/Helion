@@ -9,12 +9,12 @@ namespace Helion.Tests.Unit.GameAction
     {
         public static void AssertAnySound(WorldBase world, object soundSource) => AssertSound(world, soundSource, null);
 
-        public static void AssertSound(WorldBase world, object soundSource, string? soundName)
+        public static void AssertSound(WorldBase world, object soundSource, string? entrySoundName)
         {
             var sound = world.SoundManager.FindBySource(soundSource);
             sound.Should().NotBeNull();
-            if (soundName != null)
-                sound!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase(soundName).Should().BeTrue();
+            if (entrySoundName != null)
+                sound!.AudioData.SoundInfo.EntryName.EqualsIgnoreCase(entrySoundName).Should().BeTrue();
 
             ((MockAudioSourceManager)world.SoundManager.AudioManager).CreateSound = false;
             TickWorld(world, () => { return world.SoundManager.FindBySource(soundSource) != null; }, () => { });

@@ -1,6 +1,6 @@
 namespace Helion.World.Entities.Definition.Properties.Components;
 
-public class DropItemProperty
+public struct DropItemProperty
 {
     public string ClassName;
     public byte Probability;

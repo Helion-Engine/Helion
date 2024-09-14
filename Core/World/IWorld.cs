@@ -32,6 +32,7 @@ using Helion.World.Geometry;
 using Helion.Maps;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Container;
+using Helion.Maps.Shared;
 
 namespace Helion.World;
 
@@ -54,6 +55,7 @@ public interface IWorld : IDisposable
     event EventHandler? OnTick;
     event EventHandler? OnDestroying;
 
+    WorldType WorldType { get; }
     int Id { get; }
     string MapName { get; }
     // Increments every tick unless the game is paused.
@@ -82,6 +84,7 @@ public interface IWorld : IDisposable
     TextureManager TextureManager { get; }
     IConfig Config { get; }
     SkillDef SkillDefinition { get; }
+    SkillLevel SkillLevel { get; }
     ArchiveCollection ArchiveCollection { get; }
     MapInfoDef MapInfo { get; }
     GameInfoDef GameInfo { get; }
@@ -170,6 +173,7 @@ public interface IWorld : IDisposable
     void FindKeys();
     void FindKeyLines();
     void FindExits();
+    bool SetSkillLevel(SkillLevel skill);    
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

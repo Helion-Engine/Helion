@@ -37,7 +37,7 @@ public static class WorldStatic
     public static bool OriginalExplosion;
     public static bool FinalDoomTeleport;
     public static bool VanillaSectorSound;
-    public static int RespawnTimeSeconds;
+    public static int RespawnTicks;
     public static int ClosetLookFrameIndex;
     public static int ClosetChaseFrameIndex;
     public static EntityManager EntityManager = null!;

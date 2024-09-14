@@ -37,6 +37,7 @@ public partial class Client
 {
     private const string StatFile = "levelstat.txt";
 
+    private readonly List<Tuple<Action<ConsoleCommandEventArgs>, ConsoleCommandEventArgs>> m_resumeCommands = [];
     private GlobalData m_globalData = new();
     private readonly Zdbsp m_zdbsp = new();
     private WorldModel? m_lastWorldModel;
@@ -673,13 +674,10 @@ public partial class Client
     {
         m_globalData = new();
         QueueLoadMap(mapInfo, null, null);
-        InitializeDemoRecorderFromCommandArgs();
     }
 
     private MapInfoDef GetMapInfo(string mapName) =>
         m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetMapInfoOrDefault(mapName);
-
-    private readonly List<Tuple<Action<ConsoleCommandEventArgs>, ConsoleCommandEventArgs>> m_resumeCommands = new();
 
     private IRandom GetLoadMapRandom(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld)
     {
@@ -696,24 +694,18 @@ public partial class Client
         return new DoomRandom();
     }
 
-    private void QueueLoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, Action<object?> onComplete, object? completeParam, LevelChangeEvent? eventContext = null)
+    private void QueueLoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, Action<object?> onComplete, object? completeParam, LevelChangeEvent? eventContext = null, bool transition = true)
     {
-        if (m_queueMapLoad != null)
-            return;
-
         m_onLoadMapComplete = new(onComplete, completeParam);
-        m_queueMapLoad = new(mapInfoDef, worldModel, previousWorld, eventContext, onComplete, completeParam);
+        m_queueMapLoad = new(mapInfoDef, worldModel, previousWorld, eventContext, transition);
     }
 
-    private void QueueLoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null)
+    private void QueueLoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null, bool transition = true)
     {
-        if (m_queueMapLoad != null)
-            return;
-
-        m_queueMapLoad = new(mapInfoDef, worldModel, previousWorld, eventContext, null, null);
+        m_queueMapLoad = new(mapInfoDef, worldModel, previousWorld, eventContext, transition);
     }
 
-    private async Task LoadMapAsync(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, Action<object>? onComplete, object? completeParam, LevelChangeEvent? eventContext)
+    private async Task LoadMapAsync(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext)
     {
         m_loadMapResult = await Task.Run(() => LoadMap(mapInfoDef, worldModel, previousWorld, eventContext));
 
@@ -799,6 +791,8 @@ public partial class Client
                     throw saveGameEvent.Exception;
             }
         }
+
+        InitializeDemoRecorderFromCommandArgs(worldLayer);
 
         if (m_demoPlayer != null)
             SetWorldLayerToDemo(m_demoPlayer, mapInfoDef, worldLayer);
