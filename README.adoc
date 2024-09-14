@@ -2,7 +2,7 @@
 
 A modern Doom engine written from the ground up with a focus on performance.
 
-Helion uses static rendering with a state management system to reconcile dynamic map changes in Doom. In contrast to the typical BSP tree rendering that requires significant CPU processing, Helion is able to manage dynamic changes and optimially utilize the GPU resulting in dramatic performance increases.
+Helion uses static rendering with a state management system to reconcile dynamic map changes in Doom. In contrast to the typical BSP tree rendering that requires significant CPU processing, Helion is able to manage dynamic changes and optimally utilize the GPU resulting in dramatic performance increases.
 
 Content creators have created maps that struggle to render at high framerates with even the latest and most expensive hardware. With Helion, Doom's most complex maps are no longer stressful on modern GPUs and playable on old hardware that was previously impossible.
 
