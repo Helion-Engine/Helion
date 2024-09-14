@@ -1389,31 +1389,37 @@ public class GeometryRenderer : IDisposable
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.TopLeft.Z;
+            vertex->PrevZ = wv.PrevTopZ;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.BottomRight.Z;
+            vertex->PrevZ = wv.PrevBottomZ;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.TopLeft.Z;
+            vertex->PrevZ = wv.PrevTopZ;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.TopLeft.Z;
+            vertex->PrevZ = wv.PrevTopZ;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.BottomRight.Z;
+            vertex->PrevZ = wv.PrevBottomZ;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.BottomRight.Z;
+            vertex->PrevZ = wv.PrevBottomZ;
         }
     }
 
@@ -1426,31 +1432,37 @@ public class GeometryRenderer : IDisposable
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.TopLeft.Z;
+            vertex->PrevZ = wv.PrevTopZ;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.BottomRight.Z;
+            vertex->PrevZ = wv.PrevBottomZ;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.TopLeft.Z;
+            vertex->PrevZ = wv.PrevTopZ;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.TopLeft.Z;
+            vertex->PrevZ = wv.PrevTopZ;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.BottomRight.Z;
+            vertex->PrevZ = wv.PrevBottomZ;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.BottomRight.Z;
+            vertex->PrevZ = wv.PrevBottomZ;
         }
 
         return data;
@@ -1464,16 +1476,19 @@ public class GeometryRenderer : IDisposable
             vertex->X = root.X;
             vertex->Y = root.Y;
             vertex->Z = root.Z;
+            vertex->PrevZ = root.PrevZ;
 
             vertex++;
             vertex->X = second.X;
             vertex->Y = second.Y;
             vertex->Z = second.Z;
+            vertex->PrevZ = second.PrevZ;
 
             vertex++;
             vertex->X = third.X;
             vertex->Y = third.Y;
             vertex->Z = third.Z;
+            vertex->PrevZ = third.PrevZ;
         }
     }
 

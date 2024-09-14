@@ -12,14 +12,18 @@ public struct SkyGeometryVertex
     public float Y;
     public float Z;
 
-    public SkyGeometryVertex(float x, float y, float z)
+    [VertexAttribute("prevZ", required: false)]
+    public float PrevZ;
+
+    public SkyGeometryVertex(float x, float y, float z, float prevZ)
     {
         X = x;
         Y = y;
         Z = z;
+        PrevZ = prevZ;
     }
 
-    public SkyGeometryVertex(TriangulatedWorldVertex vertex) : this(vertex.X, vertex.Y, vertex.Z)
+    public SkyGeometryVertex(TriangulatedWorldVertex vertex) : this(vertex.X, vertex.Y, vertex.Z, vertex.Z)
     {
     }
 }
