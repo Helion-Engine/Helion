@@ -138,7 +138,6 @@ public partial class Client
             LoadMap(mapInfoDef.MapName, m_commandLineArgs);
         }
 
-        InitializeDemoRecorderFromCommandArgs();
         return loadedMap;
     }
 
