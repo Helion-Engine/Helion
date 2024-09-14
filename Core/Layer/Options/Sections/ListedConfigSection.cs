@@ -538,7 +538,7 @@ public class ListedConfigSection : IOptionSection
         }
     }
 
-    public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY, bool didMouseWheelScroll)
+    public virtual void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY, bool didMouseWheelScroll)
     {
         m_menuPositionList.Clear();
         if (m_configValues.Empty())

@@ -485,20 +485,23 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.SlowTickTracerMultiplier = Config.SlowTick.TracerMultiplier;
         WorldStatic.IsFastMonsters = IsFastMonsters;
         WorldStatic.IsSlowMonsters = SkillDefinition.SlowMonsters;
-        WorldStatic.InfinitelyTallThings = Config.Compatibility.InfinitelyTallThings;
-        WorldStatic.MissileClip = Config.Compatibility.MissileClip;
-        WorldStatic.AllowItemDropoff = Config.Compatibility.AllowItemDropoff;
-        WorldStatic.NoTossDrops = Config.Compatibility.NoTossDrops;
-        WorldStatic.VanillaMovementPhysics = Config.Compatibility.VanillaMovementPhysics;
         WorldStatic.Dehacked = ArchiveCollection.Definitions.DehackedDefinition != null;
-        WorldStatic.Mbf21 = Config.Compatibility.Mbf21;
-        WorldStatic.Doom2ProjectileWalkTriggers = Config.Compatibility.Doom2ProjectileWalkTriggers;
-        WorldStatic.OriginalExplosion = Config.Compatibility.OriginalExplosion;
-        WorldStatic.FinalDoomTeleport = Config.Compatibility.FinalDoomTeleport;
-        WorldStatic.VanillaSectorSound = Config.Compatibility.VanillaSectorSound;
+
         WorldStatic.RespawnTimeSeconds = SkillDefinition.RespawnTime.Seconds;
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
+
+        // Compatibility stuff
+        WorldStatic.AllowItemDropoff = Config.Compatibility.AllowItemDropoff;
+        WorldStatic.Doom2ProjectileWalkTriggers = Config.Compatibility.Doom2ProjectileWalkTriggers;
+        WorldStatic.FinalDoomTeleport = Config.Compatibility.FinalDoomTeleport;
+        WorldStatic.InfinitelyTallThings = Config.Compatibility.InfinitelyTallThings;
+        WorldStatic.Mbf21 = Config.Compatibility.Mbf21;
+        WorldStatic.MissileClip = Config.Compatibility.MissileClip;
+        WorldStatic.NoTossDrops = Config.Compatibility.NoTossDrops;
+        WorldStatic.OriginalExplosion = Config.Compatibility.OriginalExplosion;
+        WorldStatic.VanillaMovementPhysics = Config.Compatibility.VanillaMovementPhysics;
+        WorldStatic.VanillaSectorSound = Config.Compatibility.VanillaSectorSound;
 
         WorldStatic.DoomImpBall = EntityManager.DefinitionComposer.GetByNameOrDefault("DoomImpBall");
         WorldStatic.ArachnotronPlasma = EntityManager.DefinitionComposer.GetByNameOrDefault("ArachnotronPlasma");
