@@ -35,8 +35,10 @@ public class SinglePlayerWorld : WorldBase
     private static readonly CheatType[] ChaseCameraCheats = [CheatType.AutoMapModeShowAllLines, CheatType.AutoMapModeShowAllLinesAndThings];
     private readonly AutomapMarker m_automapMarker;
     private bool m_chaseCamMode;
+    private WorldType m_worldType = WorldType.SinglePlayer;
     private readonly Dictionary<string, byte[]> m_musicLookup = new(StringComparer.OrdinalIgnoreCase);
 
+    public override WorldType WorldType => m_worldType;
     public override Player Player { get; protected set; }
     public readonly Player ChaseCamPlayer;
     public override bool IsChaseCamMode => m_chaseCamMode;
@@ -131,6 +133,12 @@ public class SinglePlayerWorld : WorldBase
         m_automapMarker = new AutomapMarker(ArchiveCollection);
         CacheSounds();
         CacheMusic();
+    }
+
+    // Intended for unit testing
+    public void SetWorldType(WorldType worldType)
+    {
+        m_worldType = worldType;
     }
 
     private void CacheSounds()

@@ -100,6 +100,10 @@ public struct EntityFlags
     public bool CrushGiblets { get => (Flags3 & FlagValue.Flag11) != 0; set { if (value) Flags3 |= FlagValue.Flag11; else Flags3 &= FlagValue.InvFlag11; } }
     public bool Translation1 { get => (Flags3 & FlagValue.Flag12) != 0; set { if (value) Flags3 |= FlagValue.Flag12; else Flags3 &= FlagValue.InvFlag12; } }
     public bool Translation2 { get => (Flags3 & FlagValue.Flag13) != 0; set { if (value) Flags3 |= FlagValue.Flag13; else Flags3 &= FlagValue.InvFlag13; } }
+    public bool NoRespawn { get => (Flags3 & FlagValue.Flag14) != 0; set { if (value) Flags3 |= FlagValue.Flag14; else Flags3 &= FlagValue.InvFlag14; } }
+    public bool SpecialStaySingle { get => (Flags3 & FlagValue.Flag15) != 0; set { if (value) Flags3 |= FlagValue.Flag15; else Flags3 &= FlagValue.InvFlag15; } }
+    public bool SpecialStayCooperative { get => (Flags3 & FlagValue.Flag16) != 0; set { if (value) Flags3 |= FlagValue.Flag16; else Flags3 &= FlagValue.InvFlag16; } }
+    public bool SpecialStayDeathmatch { get => (Flags3 & FlagValue.Flag17) != 0; set { if (value) Flags3 |= FlagValue.Flag17; else Flags3 &= FlagValue.InvFlag17; } }
 
     public EntityFlags(EntityFlagsModel model)
     {

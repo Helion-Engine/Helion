@@ -9,6 +9,8 @@ public struct WeaponProperty
     }
 
     public int AmmoGive;
+    public int? DeathmatchAmmoGive;
+    public int? DroppedAmmoGive;
     public int AmmoGive1;
     public int AmmoGive2;
     public EntityDefinition? AmmoTypeDef;
@@ -35,4 +37,8 @@ public struct WeaponProperty
     public double SlotPriority;
     public string UpSound = string.Empty;
     public int YAdjust;
+    public EntityDefinition? AllowSwitchWithOwnedWeapon;
+    public EntityDefinition? NoSwitchWithOwnedWeapon;
+    public EntityDefinition? AllowSwitchWithOwnedItem;
+    public EntityDefinition? NoSwitchWithOwnedItem;
 }

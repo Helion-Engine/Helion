@@ -36,4 +36,16 @@ public class DehackedThing
     public int? ProjectileGroup { get; set; }
     public int? SplashGroup { get; set; }
     public int? GibHealth { get; set; }
+    public uint? Id24Bits { get; set; }
+    public int? MinRespawnTicks { get; set; }
+    public int? RespawnDice { get; set; }
+    public int? PickupAmmoType { get; set; }
+    public Id24AmmoCategory? PickupAmmoCategory { get; set; }
+    public int? PickupWeaponType { get; set; }
+    public Id24PickupType? PickupItemType { get; set; }
+    public int? PickupBonusCount { get; set; }
+    public int? PickupSound { get; set; }
+    public string? PickupMessage { get; set; }
+    public string? TranslationLump { get; set; }
+    public double? SelfDamageFactor { get; set; }
 }

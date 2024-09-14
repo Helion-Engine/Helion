@@ -42,7 +42,7 @@ public class SkillDef
     public string? MustConfirmMessage { get; set; }
     public bool Default { get; set; }
 
-    public int GetAmmoAmount(int amount, EntityFlags? flags)
+    public int GetAmmoAmount(int amount, double multiplier, EntityFlags? flags)
     {
         if (flags != null && flags.Value.Dropped)
         {
@@ -50,10 +50,10 @@ public class SkillDef
             if (dropAmmoFactor == -1)
                 dropAmmoFactor = 0.5;
 
-            return (int)(amount * dropAmmoFactor);
+            return (int)(amount * dropAmmoFactor * multiplier);
         }
 
-        return (int)(amount * AmmoFactor);
+        return (int)(amount * AmmoFactor * multiplier);
     }
 
     public int GetDamage(int damage) => (int)(damage * DamageFator);

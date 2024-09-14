@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Helion.Maps.Specials;
 using Helion.World.Entities.Definition.Properties.Components;
 
@@ -55,11 +56,22 @@ public class EntityProperties
     public int? InfightingGroup;
     public int? ProjectileGroup;
     public int? SplashGroup;
+    public int? RespawnTicks;
+    public int RespawnDice = 4;
+    public double SelfDamageFactor = 1;
+    public List<EntityDefinition>? TranslatedPickups;
+    public EntityDefinition? TranslatedPickupDisplay;
 
     public double MonsterMovementSpeed;
     public double MissileMovementSpeed;
 
     public EntityProperties()
     {
+    }
+
+    public void AddTranslatedPickup(EntityDefinition definition)
+    {
+        TranslatedPickups ??= [];
+        TranslatedPickups.Add(definition);
     }
 }

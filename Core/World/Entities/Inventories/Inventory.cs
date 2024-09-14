@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Helion.Models;
-using Helion.Render.OpenGL.Renderers.Legacy.World;
-using Helion.Strings;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.Flags;
+using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 
@@ -49,9 +47,9 @@ public sealed class Inventory
     /// item (ex: weapons, which need more logic).
     /// </summary>
     private readonly Dictionary<string, InventoryItem> Items = new(StringComparer.OrdinalIgnoreCase);
-    private LookupArray<InventoryItem?> ItemsById = new();
-    private readonly List<InventoryItem> ItemList = new();
-    private readonly List<InventoryItem> Keys = new();
+    private readonly LookupArray<InventoryItem?> ItemsById = new();
+    private readonly List<InventoryItem> ItemList = [];
+    private readonly List<InventoryItem> Keys = [];
     private readonly EntityDefinitionComposer EntityDefinitionComposer;
     private readonly Player Owner;
 
@@ -69,14 +67,14 @@ public sealed class Inventory
     {
         Owner = owner;
         EntityDefinitionComposer = composer;
-        Weapons = new Weapons(WorldStatic.World.GameInfo.WeaponSlots, composer);
+        Weapons = new Weapons(this, WorldStatic.World.GameInfo.WeaponSlots, composer);
     }
 
     public Inventory(PlayerModel playerModel, Player owner, EntityDefinitionComposer composer)
     {
         Owner = owner;
         EntityDefinitionComposer = composer;
-        Weapons = new Weapons(WorldStatic.World.GameInfo.WeaponSlots, composer);
+        Weapons = new Weapons(this, WorldStatic.World.GameInfo.WeaponSlots, composer);
 
         for (int i = 0; i < playerModel.Inventory.Items.Count; i++)
         {
@@ -242,6 +240,9 @@ public sealed class Inventory
 
         string name = GetBaseInventoryName(definition);
         int maxAmount = definition.Properties.Inventory.MaxAmount;
+        var baseAmmoDef = EntityDefinitionComposer.GetByName(name);
+        if (baseAmmoDef != null)
+            definition = baseAmmoDef;
         if (definition.IsType(AmmoClassName) && HasItemOfClass(BackPackBaseClassName) && definition.Properties.Ammo.BackpackMaxAmount > maxAmount)
             maxAmount = definition.Properties.Ammo.BackpackMaxAmount;
 
@@ -364,20 +365,57 @@ public sealed class Inventory
         return color;
     }
 
-    public void AddBackPackAmmo(EntityDefinitionComposer definitionComposer)
+    public static EntityDefinition GetBaseAmmoDef(EntityDefinition ammoDef)
+    {
+        string name = GetBaseInventoryName(ammoDef);
+        var def = WorldStatic.EntityManager.DefinitionComposer.GetByName(name);
+        if (def != null)
+            return def;
+        return ammoDef;
+    }
+
+    public static int GetAmmoGiveAmount(EntityDefinition ammoDef, EntityDefinition baseAmmoDef, EntityDefinition? weaponDef, int amount, EntityFlags? flags)
+    {
+        double? multiplier = baseAmmoDef.Properties.Ammo.GetSkillMultiplier(WorldStatic.World.SkillLevel);
+
+        int giveAmount = amount;
+        bool isDropped = flags.HasValue && flags.Value.Dropped || ammoDef.Properties.Inventory.AmountModifier == AmountModifier.Dropped;
+        if (isDropped && ammoDef.Properties.Ammo.DropAmount.HasValue)
+        {
+            // Null flags for SkillDefinition to not apply 0.5 dropped multiplier
+            flags = null;
+            giveAmount = ammoDef.Properties.Ammo.DropAmount.Value;
+        }
+
+        if (ammoDef.Properties.Inventory.AmountModifier == AmountModifier.Deathmatch)
+            giveAmount = (int)(giveAmount * 2.5);
+        else if (weaponDef != null && weaponDef.Properties.Weapons.DeathmatchAmmoGive.HasValue && WorldStatic.World.WorldType == WorldType.Deathmatch)
+            giveAmount = weaponDef.Properties.Weapons.DeathmatchAmmoGive.Value;
+
+        if (multiplier.HasValue)
+            giveAmount = (int)(giveAmount * multiplier);
+        else
+            giveAmount = WorldStatic.World.SkillDefinition.GetAmmoAmount(giveAmount, 1, flags);
+
+        return giveAmount;
+    }
+
+    public void AddBackPackAmmo(EntityDefinitionComposer definitionComposer, bool dropped)
     {
         m_addedBaseNames.Clear();
         var ammoDefinitions = definitionComposer.GetAmmoDefinitions();
         foreach (EntityDefinition ammo in ammoDefinitions)
         {
-            if (ammo.Properties.Ammo.BackpackAmount <= 0)
+            int amount = dropped && ammo.Properties.Ammo.DropBackpackAmmo.HasValue ? ammo.Properties.Ammo.DropBackpackAmmo.Value : ammo.Properties.Ammo.BackpackAmount;
+            if (amount <= 0)
                 continue;
 
             string baseName = GetBaseInventoryName(ammo);
             if (m_addedBaseNames.Contains(baseName))
                 continue;
 
-            Add(ammo, ammo.Properties.Ammo.BackpackAmount);
+            amount = GetAmmoGiveAmount(ammo, GetBaseAmmoDef(ammo), null, amount, null);
+            Add(ammo, amount);
             m_addedBaseNames.Add(baseName);
         }
     }
@@ -457,12 +495,6 @@ public sealed class Inventory
             return 0;
 
         return item.Amount;
-    }
-
-    public static int MaxAmount(string name)
-    {
-        EntityDefinition? definition = WorldStatic.EntityManager.DefinitionComposer.GetByName(name);
-        return definition?.Properties.Inventory.MaxAmount ?? 0;
     }
 
     public void Remove(string name, int amount)

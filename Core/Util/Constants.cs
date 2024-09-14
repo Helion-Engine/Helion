@@ -110,6 +110,7 @@ public static class Constants
         public const string Select = "Select";
         public const string Fire = "Fire";
         public const string Flash = "Flash";
+        public const string Pickup = "Pickup";
     }
 
     public static class Input

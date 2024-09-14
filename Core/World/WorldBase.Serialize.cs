@@ -26,7 +26,7 @@ public partial class WorldBase
             SoundCount = m_soundCount,
             Gravity = Gravity,
             RandomIndex = Random.RandomIndex,
-            Skill = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(SkillDefinition),
+            Skill = SkillLevel,
             CurrentBossTarget = CurrentBossTarget,
 
             Players = GetPlayerModels(),

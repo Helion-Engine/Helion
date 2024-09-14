@@ -64,6 +64,11 @@ public class LanguageDefinition
         return true;
     }
 
+    public void Add(string key, string value)
+    {
+        m_lookup[key] = value;
+    }
+
     private string GetCurrentLanguageSection(string data)
     {
         Regex currentLanguage = new(string.Format("\\[{0}\\w?(\\s+default)?]", CultureInfo.TwoLetterISOLanguageName));

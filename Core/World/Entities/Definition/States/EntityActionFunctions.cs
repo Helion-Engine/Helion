@@ -1027,7 +1027,7 @@ public static class EntityActionFunctions
          // TODO
     }
 
-    private static void A_Explode(Entity entity)
+    public static void A_Explode(Entity entity)
     {
         // Pass through owner if set (usually a projectile)
         // Barrels pass through who shot them (Target)

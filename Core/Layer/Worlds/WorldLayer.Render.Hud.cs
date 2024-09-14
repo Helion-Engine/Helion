@@ -910,14 +910,11 @@ public partial class WorldLayer
 
     private void DrawWeaponNumber(IHudRenderContext hud, int slot)
     {
-        Weapon? weapon = Player.Inventory.Weapons.GetWeapon(Player, slot, 0);
-        if (slot == 3 && weapon == null)
-            weapon = Player.Inventory.Weapons.GetWeapon(Player, slot, 1);
-
+        bool hasSlot = Player.Inventory.Weapons.HasWeaponSlot(slot);
         if (slot < 0 || slot >= WeaponImages.Length || slot >= HasWeaponImages.Length)
             return;
 
-        string image = weapon != null ? HasWeaponImages[slot] : WeaponImages[slot];
+        string image = hasSlot ? HasWeaponImages[slot] : WeaponImages[slot];
         if (string.IsNullOrEmpty(image))
             return;
 
@@ -976,13 +973,14 @@ public partial class WorldLayer
         const int FontSize = 6;
         const string YellowFontName = "HudYellowNumbers";
         int ammo = Player.Inventory.Amount(ammoName);
-        int maxAmmo = Inventory.MaxAmount(ammoName);
-        if (hasBackpack)
-            maxAmmo *= 2;
+
+        var def = WorldStatic.EntityManager.DefinitionComposer.GetByNameOrDefault(ammoName);
+        int amount = hasBackpack ? def.Properties.Ammo.BackpackMaxAmount : def.Properties.Inventory.MaxAmount;
+
         m_ammoString.Clear();
         m_maxAmmoString.Clear();
         m_ammoString.Append(ammo);
-        m_maxAmmoString.Append(maxAmmo);
+        m_maxAmmoString.Append(amount);
         hud.Text(m_ammoString.AsSpan(), YellowFontName, FontSize, (287, y), anchor: Align.TopRight, alpha: m_hudAlpha);
         hud.Text(m_maxAmmoString.AsSpan(), YellowFontName, FontSize, (313, y), anchor: Align.TopRight, alpha: m_hudAlpha);
     }

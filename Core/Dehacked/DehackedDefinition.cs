@@ -1,3 +1,4 @@
+using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
@@ -174,6 +175,19 @@ public partial class DehackedDefinition
         return false;
     }
 
+    public bool TryGetId24PickupType(EntityDefinitionComposer composer, int pickupItemType, [NotNullWhen(true)] out EntityDefinition? definition)
+    {
+        definition = null;
+        if (pickupItemType < 0 || pickupItemType >= Id24PickupLookup.Length)
+            return false;
+
+        definition = composer.GetByName(Id24PickupLookup[pickupItemType]);
+        if (definition == null)
+            return false;
+
+        return true;
+    }
+
     public bool GetSoundName(int soundIndex, [NotNullWhen(true)] out string? soundName)
     {
         if (soundIndex >= 0 && soundIndex < SoundStrings.Length)
@@ -306,6 +320,30 @@ public partial class DehackedDefinition
                 thing.FastSpeed = GetIntProperty(parser, FastSpeed);
             else if (line.StartsWith(MeleeRange, StringComparison.OrdinalIgnoreCase))
                 thing.MeleeRange = GetIntProperty(parser, MeleeRange);
+            else if (line.StartsWith(Id24Bits, StringComparison.OrdinalIgnoreCase))
+                thing.Id24Bits = GetBits(parser, Id24Bits, ThingPropertyStringsId24);
+            else if (line.StartsWith(MinRespawnTicks, StringComparison.OrdinalIgnoreCase))
+                thing.MinRespawnTicks = GetIntProperty(parser, MinRespawnTicks);
+            else if (line.StartsWith(RespawnDice, StringComparison.OrdinalIgnoreCase))
+                thing.RespawnDice = GetIntProperty(parser, RespawnDice);
+            else if (line.StartsWith(PickupAmmoType, StringComparison.OrdinalIgnoreCase))
+                thing.PickupAmmoType = GetIntProperty(parser, PickupAmmoType);
+            else if (line.StartsWith(PickupAmmoCategory, StringComparison.OrdinalIgnoreCase))
+                thing.PickupAmmoCategory = (Id24AmmoCategory)GetIntProperty(parser, PickupAmmoCategory);
+            else if (line.StartsWith(PickupWeaponType, StringComparison.OrdinalIgnoreCase))
+                thing.PickupWeaponType = GetIntProperty(parser, PickupWeaponType);
+            else if (line.StartsWith(PickupItemType, StringComparison.OrdinalIgnoreCase))
+                thing.PickupItemType = (Id24PickupType?)GetIntProperty(parser, PickupItemType);
+            else if (line.StartsWith(PickupBonusCount, StringComparison.OrdinalIgnoreCase))
+                thing.PickupBonusCount = GetIntProperty(parser, PickupBonusCount);
+            else if (line.StartsWith(PickupSound, StringComparison.OrdinalIgnoreCase))
+                thing.PickupSound = GetIntProperty(parser, PickupSound);
+            else if (line.StartsWith(PickupMessage, StringComparison.OrdinalIgnoreCase))
+                thing.PickupMessage = GetStringProperty(parser, PickupMessage);
+            else if (line.StartsWith(TranslationLump, StringComparison.OrdinalIgnoreCase))
+                thing.TranslationLump = GetStringProperty(parser, TranslationLump);
+            else if (line.StartsWith(SelfDamageFactor, StringComparison.OrdinalIgnoreCase))
+                thing.SelfDamageFactor = MathHelper.FromFixed(GetIntProperty(parser, SelfDamageFactor));
             else
                 UnknownWarning(parser, "thing type");
 
@@ -429,6 +467,38 @@ public partial class DehackedDefinition
                 ammo.MaxAmmo = GetIntProperty(parser, MaxAmmo);
             else if (line.StartsWith(PerAmmo, StringComparison.OrdinalIgnoreCase))
                 ammo.PerAmmo = GetIntProperty(parser, PerAmmo);
+            else if (line.StartsWith(InitialAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.InitialAmmo = GetIntProperty(parser, InitialAmmo);
+            else if (line.StartsWith(MaxUpgradedAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.MaxUpgradedAmmo = GetIntProperty(parser, MaxUpgradedAmmo);
+            else if (line.StartsWith(BoxAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.BoxAmmo = GetIntProperty(parser, BoxAmmo);
+            else if (line.StartsWith(BackpackAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.BackpackAmmo = GetIntProperty(parser, BackpackAmmo);
+            else if (line.StartsWith(WeaponAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.WeaponAmmo = GetIntProperty(parser, WeaponAmmo);
+            else if (line.StartsWith(DroppedAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.DroppedAmmo = GetIntProperty(parser, DroppedAmmo);
+            else if (line.StartsWith(DroppedBoxAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.DroppedBoxAmmo = GetIntProperty(parser, DroppedBoxAmmo);
+            else if (line.StartsWith(DroppedBoxAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.DroppedBoxAmmo = GetIntProperty(parser, DroppedBoxAmmo);
+            else if (line.StartsWith(DroppedBackpackAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.DroppedBackpackAmmo = GetIntProperty(parser, DroppedBackpackAmmo);
+            else if (line.StartsWith(DroppedWeaponAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.DroppedWeaponAmmo = GetIntProperty(parser, DroppedWeaponAmmo);
+            else if (line.StartsWith(DeathmatchWeaponAmmo, StringComparison.OrdinalIgnoreCase))
+                ammo.DeathmatchWeaponAmmo = GetIntProperty(parser, DeathmatchWeaponAmmo);
+            else if (line.StartsWith(Skill1Multiplier, StringComparison.OrdinalIgnoreCase))
+                ammo.Skill1Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill1Multiplier));
+            else if (line.StartsWith(Skill2Multiplier, StringComparison.OrdinalIgnoreCase))
+                ammo.Skill2Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill2Multiplier));
+            else if (line.StartsWith(Skill3Multiplier, StringComparison.OrdinalIgnoreCase))
+                ammo.Skill3Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill3Multiplier));
+            else if (line.StartsWith(Skill4Multiplier, StringComparison.OrdinalIgnoreCase))
+                ammo.Skill4Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill4Multiplier));
+            else if (line.StartsWith(Skill5Multiplier, StringComparison.OrdinalIgnoreCase))
+                ammo.Skill5Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill5Multiplier));
             else
                 UnknownWarning(parser, "ammo type");
             ConsumeLine(parser, lineNumber);
@@ -468,6 +538,26 @@ public partial class DehackedDefinition
                 weapon.MinAmmo = GetIntProperty(parser, MinAmmo);
             else if (line.StartsWith(Mbf21Bits, StringComparison.OrdinalIgnoreCase))
                 weapon.Mbf21Bits = GetBits(parser, Mbf21Bits, WeaponPropertyStringsMbf21);
+            else if (line.StartsWith(WeaponSlotPriority, StringComparison.OrdinalIgnoreCase))
+                weapon.SlotPriority = GetIntProperty(parser, WeaponSlotPriority);
+            else if (line.StartsWith(WeaponSlot, StringComparison.OrdinalIgnoreCase))
+                weapon.Slot = GetIntProperty(parser, WeaponSlot);
+            else if (line.StartsWith(WeaponSwitchPriority, StringComparison.OrdinalIgnoreCase))
+                weapon.SwitchPriority = GetIntProperty(parser, WeaponSwitchPriority);
+            else if (line.StartsWith(InitialOwned, StringComparison.OrdinalIgnoreCase))
+                weapon.InitialOwned = GetIntProperty(parser, InitialOwned) != 0;
+            else if (line.StartsWith(InitialRaised, StringComparison.OrdinalIgnoreCase))
+                weapon.InitialRaised = GetIntProperty(parser, InitialRaised) != 0;
+            else if (line.StartsWith(CarouselIcon, StringComparison.OrdinalIgnoreCase))
+                weapon.CarouselIcon = GetStringProperty(parser, CarouselIcon);
+            else if (line.StartsWith(AllowSwitchWithOwnedWeapon, StringComparison.OrdinalIgnoreCase))
+                weapon.AllowSwitchWithOwnedWeapon = GetIntProperty(parser, AllowSwitchWithOwnedWeapon);
+            else if (line.StartsWith(NoSwitchWithOwnedWeapon, StringComparison.OrdinalIgnoreCase))
+                weapon.NoSwitchWithOwnedWeapon = GetIntProperty(parser, NoSwitchWithOwnedWeapon);
+            else if (line.StartsWith(AllowSwitchWithOwnedItem, StringComparison.OrdinalIgnoreCase))
+                weapon.AllowSwitchWithOwnedItem = GetIntProperty(parser, AllowSwitchWithOwnedItem);
+            else if (line.StartsWith(NoSwitchWithOwnedItem, StringComparison.OrdinalIgnoreCase))
+                weapon.NoSwitchWithOwnedItem = GetIntProperty(parser, NoSwitchWithOwnedItem);
             else
                 UnknownWarning(parser, "weapon type");
 
