@@ -781,15 +781,16 @@ public class GeometryRenderer : IDisposable
         vertices = null;
         skyVertices = null;
 
-        if (m_vanillaRender && (facingSide.FloodTextures & SideTexture.Lower) == 0)
+        Wall lowerWall = facingSide.Lower;
+        bool isSky = TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
+
+        if (m_vanillaRender && ((facingSide.FloodTextures & SideTexture.Lower) == 0 || isSky))
             RenderCoverWall(WallLocation.Lower, facingSide, facingSector, otherSector, isFrontSide);
 
         if (m_renderCoverOnly)
             return;
 
-        Wall lowerWall = facingSide.Lower;
         WallVertices wall = default;
-        bool isSky = TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
         bool skyRender = isSky && TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle);
 
         if (facingSide.LowerFloodKeys.Key1 > 0 || facingSide.LowerFloodKeys.Key2 > 0)
@@ -874,14 +875,15 @@ public class GeometryRenderer : IDisposable
         skyVertices = null;
         skyVertices2 = null;
 
-        if (m_vanillaRender && (facingSide.FloodTextures & SideTexture.Upper) == 0)
+        SectorPlane plane = otherSector.Ceiling;
+        bool isSky = TextureManager.IsSkyTexture(plane.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
+
+        if (m_vanillaRender && ((facingSide.FloodTextures & SideTexture.Upper) == 0 || isSky))
             RenderCoverWall(WallLocation.Upper, facingSide, facingSector, otherSector, isFrontSide);
 
         if (m_renderCoverOnly)
             return;
 
-        SectorPlane plane = otherSector.Ceiling;
-        bool isSky = TextureManager.IsSkyTexture(plane.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         Wall upperWall = facingSide.Upper;
         bool renderSkySideOnly = false;
         if (facingSide.UpperFloodKeys.Key1 > 0 || facingSide.UpperFloodKeys.Key2 > 0)
@@ -1002,7 +1004,7 @@ public class GeometryRenderer : IDisposable
         int sectorIndex = facingSector.Id + 1;
         int lightIndex = Renderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
         if (location == WallLocation.Upper)
-            WorldTriangulator.HandleTwoSidedUpper(facingSide, facingSector.Ceiling, otherSector.Ceiling, texture.UVInverse, isFrontSide, ref wall);
+            WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSector.Ceiling, facingSector.Ceiling, texture.UVInverse, isFrontSide, ref wall);
         else
             WorldTriangulator.HandleTwoSidedLower(facingSide, otherSector.Floor, facingSector.Floor, texture.UVInverse, isFrontSide, ref wall);
         SetWallVertices(m_wallVertices, wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex);
