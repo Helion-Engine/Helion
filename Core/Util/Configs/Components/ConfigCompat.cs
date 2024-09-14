@@ -1,12 +1,17 @@
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
+using Helion.Resources.Definitions;
 
 namespace Helion.Util.Configs.Components;
 
 public class ConfigCompat
 {
+    [ConfigInfo("Compatibility level for this session.  This setting is not saved to disk.", save: false)]
+    [OptionMenu(OptionSectionType.Compatibility, "Compatibility level")]
+    public readonly ConfigValue<CompLevel> CompatLevel = new(CompLevel.Undefined);
+
     [ConfigInfo("Use vanilla method for finding shortest texture. Emulates bug with AASHITTY.", save: false, serialize: true, demo: true)]
-    [OptionMenu(OptionSectionType.Compatibility, "Find Shortest Texture")]
+    [OptionMenu(OptionSectionType.Compatibility, "Find Shortest Texture", spacer: true)]
     public readonly ConfigValue<bool> VanillaShortestTexture = new(true);
 
     [ConfigInfo("Use DeHackEd over DECORATE if both are available.", demo: true)]
@@ -71,19 +76,20 @@ public class ConfigCompat
 
     public void ResetToUserValues()
     {
-        MissileClip.ResetToUserValue();
-        VanillaShortestTexture.ResetToUserValue();
-        VanillaSectorPhysics.ResetToUserValue();
+        AllowItemDropoff.ResetToUserValue();
+        Doom2ProjectileWalkTriggers.ResetToUserValue();
+        FinalDoomTeleport.ResetToUserValue();
         InfinitelyTallThings.ResetToUserValue();
-        PainElementalLostSoulLimit.ResetToUserValue();
+        MissileClip.ResetToUserValue();
         NoTossDrops.ResetToUserValue();
+        OriginalExplosion.ResetToUserValue();
+        PainElementalLostSoulLimit.ResetToUserValue();
         Stairs.ResetToUserValue();
         VanillaMovementPhysics.ResetToUserValue();
-        Doom2ProjectileWalkTriggers.ResetToUserValue();
-        OriginalExplosion.ResetToUserValue();
-        VileGhosts.ResetToUserValue();
-        FinalDoomTeleport.ResetToUserValue();
+        VanillaSectorPhysics.ResetToUserValue();
         VanillaSectorSound.ResetToUserValue();
+        VanillaShortestTexture.ResetToUserValue();
+        VileGhosts.ResetToUserValue();
         Mbf21.ResetToUserValue();
     }
 }

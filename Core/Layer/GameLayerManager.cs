@@ -58,14 +58,13 @@ public class GameLayerManager : IGameLayerManager
     public LoadingLayer? LoadingLayer { get; private set; }
     public TransitionLayer? TransitionLayer { get; private set; }
     public WorldLayer? WorldLayer { get; private set; }
-    public ArchiveCollection ArchiveCollection { get; private set; }
-
     public long OptionsLastClosedNanos => m_optionsLayer.LastClosedNanos;
     public SaveGameEvent? LastSave;
     private readonly IConfig m_config;
     private readonly IWindow m_window;
     private readonly HelionConsole m_console;
     private readonly ConsoleCommands m_consoleCommands;
+    private readonly ArchiveCollection m_archiveCollection;
     private readonly SoundManager m_soundManager;
     private readonly SaveGameManager m_saveGameManager;
     private readonly Profiler m_profiler;
@@ -93,7 +92,7 @@ public class GameLayerManager : IGameLayerManager
         m_window = window;
         m_console = console;
         m_consoleCommands = consoleCommands;
-        ArchiveCollection = archiveCollection;
+        m_archiveCollection = archiveCollection;
         m_soundManager = soundManager;
         m_saveGameManager = saveGameManager;
         m_profiler = profiler;
@@ -105,7 +104,7 @@ public class GameLayerManager : IGameLayerManager
         m_hudRenderCtx = null!;
 
         m_optionsLayer = new(this, m_config, m_soundManager, m_window);
-        m_consoleLayer = new(ArchiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
+        m_consoleLayer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
 
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
         m_optionsLayer.OnRestartApplication += OptionsLayer_OnRestartApplication;
@@ -532,7 +531,7 @@ public class GameLayerManager : IGameLayerManager
 
         if (MenuLayer == null)
         {
-            MenuLayer menuLayer = new(this, m_config, m_console, ArchiveCollection, m_soundManager, m_saveGameManager, m_optionsLayer);
+            MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager, m_optionsLayer);
             menuLayer.Animation.AnimateIn();
             Add(menuLayer);
         }
@@ -582,7 +581,7 @@ public class GameLayerManager : IGameLayerManager
 
         if (m_config.Game.QuickSaveConfirm)
         {
-            MessageMenu confirm = new(m_config, m_console, m_soundManager, ArchiveCollection,
+            MessageMenu confirm = new(m_config, m_console, m_soundManager, m_archiveCollection,
                 new[] { "Are you sure you want to overwrite:", LastSave?.SaveGame.Model != null ? LastSave.Value.SaveGame.Model.Text : "Save", "Press Y to confirm." },
                 isYesNoConfirm: true, clearMenus: true);
             confirm.Cleared += Confirm_Cleared;

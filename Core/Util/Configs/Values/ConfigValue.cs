@@ -26,6 +26,8 @@ public class ConfigValue<T> : IConfigValue where T : notnull
 
     public object ObjectValue => Value;
     public object ObjectDefaultValue => DefaultValue;
+    public object ObjectUserValue => UserValue;
+    public bool HasTemporaryValue { get; private set; }
     public T Value { get; private set; }
     public T UserValue { get; private set; }
     public T DefaultValue { get; private set; }
@@ -114,13 +116,21 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         WriteToConfig = writeToConfig;
         var result = SetValue(newValue, false);
         if (WriteToConfig)
+        {
             UserValue = Value;
+            HasTemporaryValue = false;
+        }
+        else
+        {
+            HasTemporaryValue = true;
+        }
         return result;
     }
 
     public void ResetToUserValue()
     {
         Value = UserValue;
+        HasTemporaryValue = false;
     }
 
     private ConfigSetResult SetValue(T newValue, bool ignoreSetFlags)
