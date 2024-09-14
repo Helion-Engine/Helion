@@ -19,17 +19,16 @@ using System.Text.RegularExpressions;
 using Helion.World.Entities.Definition.Properties.Components;
 using static Helion.Dehacked.DehackedDefinition;
 using Helion.Maps.Shared;
-using System.Diagnostics.CodeAnalysis;
-using System.Collections;
 
 namespace Helion.Dehacked;
 
 public class DehackedApplier
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private readonly List<string> RemoveLabels = new();
+    private readonly List<string> RemoveLabels = [];
     private readonly DehackedDefinition m_dehacked;
     private EntityDefinition? m_playerDefinition;
+    private int m_ammoDefIndex;
 
     private const int DehExtraSpriteStart = 145;
     private const int DehExtraSoundStart = 500;
@@ -681,8 +680,6 @@ public class DehackedApplier
         foreach (var thing in dehacked.Things)
             GetEntityDefinition(dehacked, thing, composer);
     }
-
-    private int m_ammoDefIndex;
 
     private void ApplyPickupAmmoType(DehackedThing thing, DehackedDefinition dehacked, EntityDefinitionComposer composer, EntityDefinition definition, 
         int type, Id24AmmoCategory category)

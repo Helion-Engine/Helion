@@ -1019,12 +1019,18 @@ public class Player : Entity
 
             int ammoGive = definition.Properties.Weapons.AmmoGive;
             if (flags.HasValue && (flags.Value.Dropped || definition.Properties.Inventory.AmountModifier == AmountModifier.Dropped) && definition.Properties.Weapons.DroppedAmmoGive.HasValue)
+            {
                 ammoGive = definition.Properties.Weapons.DroppedAmmoGive.Value;
+                flags = null;
+            }
 
             if (definition.Properties.Weapons.DeathmatchAmmoGive.HasValue && definition.Properties.Inventory.AmountModifier == AmountModifier.Deathmatch)
+            {
                 ammoGive = definition.Properties.Weapons.DeathmatchAmmoGive.Value;
+                flags = null;
+            }
 
-            return AddAmmo(ammoDef, ammoGive, flags, autoSwitchWeapon);
+            return AddAmmo(ammoDef, definition, ammoGive, flags, autoSwitchWeapon);
 
         }
 
@@ -1036,41 +1042,21 @@ public class Player : Entity
         }
 
         if (isAmmo)
-            return AddAmmo(definition, amount, flags, autoSwitchWeapon);
+            return AddAmmo(definition, null, amount, flags, autoSwitchWeapon);
 
         return Inventory.Add(definition, amount, flags);
     }
 
-    private bool AddAmmo(EntityDefinition ammoDef, int amount, EntityFlags? flags, bool autoSwitchWeapon)
+    private bool AddAmmo(EntityDefinition ammoDef, EntityDefinition? weaponDef, int amount, EntityFlags? flags, bool autoSwitchWeapon)
     {
         var baseAmmoDef = Inventory.GetBaseAmmoDef(ammoDef);
-        int giveAmount = GetAmmoGiveAmount(ammoDef, baseAmmoDef, amount, flags);
+        int giveAmount = Inventory.GetAmmoGiveAmount(ammoDef, baseAmmoDef, weaponDef, amount, flags);
 
         int oldCount = Inventory.Amount(baseAmmoDef);
         bool success = Inventory.Add(baseAmmoDef, giveAmount, flags);
         if (success && autoSwitchWeapon)
             CheckAutoSwitchAmmo(baseAmmoDef, oldCount);
         return success;
-    }
-
-    private static int GetAmmoGiveAmount(EntityDefinition ammoDef, EntityDefinition baseAmmoDef, int amount, EntityFlags? flags)
-    {
-        double? multiplier = baseAmmoDef.Properties.Ammo.GetSkillMultiplier(WorldStatic.World.SkillLevel);
-
-        int giveAmount = amount;
-        bool isDropped = flags.HasValue && flags.Value.Dropped || ammoDef.Properties.Inventory.AmountModifier == AmountModifier.Dropped;
-        if (isDropped && ammoDef.Properties.Ammo.DropAmount.HasValue)
-            giveAmount = ammoDef.Properties.Ammo.DropAmount.Value;
-
-        if (ammoDef.Properties.Inventory.AmountModifier == AmountModifier.Deathmatch)
-            giveAmount = (int)(giveAmount * 2.5);
-        
-        if (multiplier.HasValue)
-            giveAmount = (int)(giveAmount * multiplier);
-        else
-            giveAmount = WorldStatic.World.SkillDefinition.GetAmmoAmount(giveAmount, 1, flags);
-
-        return giveAmount;
     }
 
     public double GetForwardMovementSpeed()

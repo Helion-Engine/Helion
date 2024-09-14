@@ -374,17 +374,23 @@ public sealed class Inventory
         return ammoDef;
     }
 
-    public static int GetAmmoGiveAmount(EntityDefinition ammoDef, EntityDefinition baseAmmoDef, int amount, EntityFlags? flags)
+    public static int GetAmmoGiveAmount(EntityDefinition ammoDef, EntityDefinition baseAmmoDef, EntityDefinition? weaponDef, int amount, EntityFlags? flags)
     {
         double? multiplier = baseAmmoDef.Properties.Ammo.GetSkillMultiplier(WorldStatic.World.SkillLevel);
 
         int giveAmount = amount;
         bool isDropped = flags.HasValue && flags.Value.Dropped || ammoDef.Properties.Inventory.AmountModifier == AmountModifier.Dropped;
         if (isDropped && ammoDef.Properties.Ammo.DropAmount.HasValue)
+        {
+            // Null flags for SkillDefinition to not apply 0.5 dropped multiplier
+            flags = null;
             giveAmount = ammoDef.Properties.Ammo.DropAmount.Value;
+        }
 
         if (ammoDef.Properties.Inventory.AmountModifier == AmountModifier.Deathmatch)
             giveAmount = (int)(giveAmount * 2.5);
+        else if (weaponDef != null && weaponDef.Properties.Weapons.DeathmatchAmmoGive.HasValue && WorldStatic.World.WorldType == WorldType.Deathmatch)
+            giveAmount = weaponDef.Properties.Weapons.DeathmatchAmmoGive.Value;
 
         if (multiplier.HasValue)
             giveAmount = (int)(giveAmount * multiplier);
@@ -408,7 +414,7 @@ public sealed class Inventory
             if (m_addedBaseNames.Contains(baseName))
                 continue;
 
-            amount = GetAmmoGiveAmount(ammo, GetBaseAmmoDef(ammo), amount, null);
+            amount = GetAmmoGiveAmount(ammo, GetBaseAmmoDef(ammo), null, amount, null);
             Add(ammo, amount);
             m_addedBaseNames.Add(baseName);
         }

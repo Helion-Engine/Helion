@@ -10,13 +10,13 @@ using Xunit;
 namespace Helion.Tests.Unit.GameAction.Id24;
 
 [Collection("GameActions")]
-public class PickupAmmoSkill
+public class AmmoSkill
 {
     private readonly SinglePlayerWorld World;
     private Player Player => World.Player;
     private readonly Vec3D ItemPos = new(0, 0, 0);
 
-    public PickupAmmoSkill()
+    public AmmoSkill()
     {
         World = WorldAllocator.LoadMap("Resources/box.zip", "box.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2,
             dehackedPatch: Dehacked);

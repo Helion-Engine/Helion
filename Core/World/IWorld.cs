@@ -173,7 +173,7 @@ public interface IWorld : IDisposable
     void FindKeys();
     void FindKeyLines();
     void FindExits();
-    bool SetSkillLevel(SkillLevel skill);
+    bool SetSkillLevel(SkillLevel skill);    
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

@@ -60,7 +60,6 @@ using Helion.Maps.Specials.Vanilla;
 using Helion.Util.Loggers;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Shared;
-using Helion.Resources.Definitions;
 
 namespace Helion.World;
 
@@ -95,7 +94,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler? OnDestroying;
         
     private static int StaticId;
-    public virtual WorldType WorldType => WorldType.SinglePlayer;
+    public abstract WorldType WorldType { get; }
     public int Id { get; } = StaticId++;
 
     public readonly long CreationTimeNanos;
