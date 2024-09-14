@@ -879,7 +879,10 @@ public class GeometryRenderer : IDisposable
         bool isSky = TextureManager.IsSkyTexture(plane.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
 
         if (m_vanillaRender && ((facingSide.FloodTextures & SideTexture.Upper) == 0 || isSky))
-            RenderCoverWall(WallLocation.Upper, facingSide, facingSector, otherSector, isFrontSide);
+        {
+            if (!isSky || (isSky && !TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle)))
+                RenderCoverWall(WallLocation.Upper, facingSide, facingSector, otherSector, isFrontSide);
+        }
 
         if (m_renderCoverOnly)
             return;
