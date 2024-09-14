@@ -27,7 +27,7 @@ public class GameConfData
     public string? Mode { get; set; }
 
     [JsonConverter(typeof(OptionsConverter))]
-    public Dictionary<string, string> Options { get; set; } = [];
+    public Dictionary<string, string> Options { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
 public class OptionsConverter : JsonConverter<Dictionary<string, string>>

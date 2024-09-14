@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
 using Helion.Layer.IwadSelection;
+using Helion.Resources.Definitions;
+using Helion.Resources.Definitions.Compatibility;
+using Helion.Resources.Definitions.Id24;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
@@ -54,7 +57,7 @@ public partial class Client
             m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
             m_config.Game.PistolStart.Set(m_commandLineArgs.PistolStart);
 
-            m_archiveCollection.Definitions.CompLevelDefinition.Apply(m_config);
+            ApplyFeatureSet();
 
             if (m_commandLineArgs.LevelStat)
                 ClearStatsFile();
@@ -154,6 +157,48 @@ public partial class Client
             return iwads[0].Path;
 
         return null;
+    }
+
+    /// <summary>
+    /// Sets features/compatibility from GAMECONF and COMPLVL
+    /// </summary>
+    private void ApplyFeatureSet()
+    {
+        var gameConfDef = m_archiveCollection.Definitions.GameConfDefinition;
+        var compLevelDef = m_archiveCollection.Definitions.CompLevelDefinition;
+
+        // proxy gameconf executable to complvl for now
+        if (gameConfDef.Data?.Executable != null)
+        {
+            compLevelDef.CompLevel = gameConfDef.Data.Executable switch
+            {
+                GameConfConstants.Executable.Doom1_9 => CompLevel.Vanilla,
+                GameConfConstants.Executable.LimitRemoving => CompLevel.Vanilla,
+                GameConfConstants.Executable.BugFixed => CompLevel.Vanilla,
+                GameConfConstants.Executable.Boom2_02 => CompLevel.Boom,
+                GameConfConstants.Executable.Complevel9 => CompLevel.Boom,
+                GameConfConstants.Executable.Mbf => CompLevel.Mbf,
+                GameConfConstants.Executable.Mbf21 => CompLevel.Mbf21,
+                GameConfConstants.Executable.Mbf21Ex => CompLevel.Mbf21,
+                GameConfConstants.Executable.Id24 => CompLevel.Mbf21,
+                _ => compLevelDef.CompLevel
+            };
+        }
+
+        // apply complevel
+        compLevelDef.Apply(m_config);
+
+        // apply any granular gameconf options
+        var compat = m_config.Compatibility;
+        if (gameConfDef.Data != null)
+        {
+            if (gameConfDef.OptionEnabled(OptionsConstants.Comp.Pain))
+                compat.PainElementalLostSoulLimit.Set(true, writeToConfig: false);
+            if (gameConfDef.OptionEnabled(OptionsConstants.Comp.Stairs))
+                compat.Stairs.Set(true, writeToConfig: false);
+            if (gameConfDef.OptionEnabled(OptionsConstants.Comp.Vile))
+                compat.VileGhosts.Set(true, writeToConfig: false);
+        }
     }
 
     private MapInfoDef? GetDefaultMap()
