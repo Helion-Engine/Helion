@@ -18,9 +18,12 @@ namespace Helion.Client;
 
 public partial class Client
 {
-    private readonly List<IWadPath> m_iwads = [];
+    private readonly List<IWadPath> m_installedIwads = [];
+    private string? m_iwad;
+    private List<string> m_pwads = [];
+    private bool m_wadListTransformed = false;
 
-    private async Task Initialize(string? iwad = null)
+    private async Task Initialize()
     {
         try
         {
@@ -29,19 +32,30 @@ public partial class Client
             LoadingLayer loadingLayer = new(m_archiveCollection, m_config, "Loading files...");
             m_layerManager.Add(loadingLayer);
 
-            if (iwad == null && m_iwads.Count == 0)
+            // pull iwad from command line, or if there's only one installed, fall back to that
+            if (m_iwad == null && m_installedIwads.Count == 0)
                 await Task.Run(FindInstalledIWads);
+            m_iwad ??= GetIwad(m_installedIwads);
 
-            if (iwad == null && GetIwad(m_iwads) == null)
+            // transform WAD list per GAMECONF spec
+            if (!m_wadListTransformed)
             {
-                IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config, m_iwads);
+                var wads = m_archiveCollection.GetWadsFromGameConfs(m_iwad, m_commandLineArgs.Files);
+                m_iwad = wads.iwad;
+                m_pwads = wads.pwads;
+                m_wadListTransformed = true;
+            }
+
+            if (m_iwad == null)
+            {
+                IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config, m_installedIwads);
                 selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
                 m_layerManager.Add(selectionlayer);
                 m_layerManager.Remove(m_layerManager.LoadingLayer);
                 return;
             }
 
-            bool success = await Task.Run(() => LoadFiles(iwad));
+            bool success = await Task.Run(() => LoadFiles());
             m_layerManager.Remove(m_layerManager.LoadingLayer);
             if (!success)
             {
@@ -86,22 +100,29 @@ public partial class Client
     private void FindInstalledIWads()
     {
         var iwadLocator = IWadLocator.CreateDefault(m_config.Files.Directories.Value);
-        m_iwads.AddRange(iwadLocator.Locate());
+        m_installedIwads.AddRange(iwadLocator.Locate());
+    }
+
+    private void AddTitlepicIfNoMap()
+    {
+        if (m_layerManager.WorldLayer != null)
+            return;
+
+        m_layerManager.Remove(m_layerManager.IwadSelectionLayer);
+        TitlepicLayer layer = new(m_layerManager, m_archiveCollection, m_audioSystem);
+        m_layerManager.Add(layer);
     }
 
     private async void IwadSelection_OnIwadSelected(object? sender, string iwad)
     {
+        m_iwad = iwad;
         m_layerManager.Remove(m_layerManager.IwadSelectionLayer);
-        await Initialize(iwad);
+        await Initialize();
     }
 
-    private bool LoadFiles(string? iwad = null)
+    private bool LoadFiles()
     {
-        // transform WAD list per GAMECONF spec
-        var wads = m_archiveCollection.GetWadsFromGameConfs(iwad ?? GetIwad(m_iwads), m_commandLineArgs.Files);
-
-        if (!m_archiveCollection.Load(wads.pwads, wads.iwad,
-            dehackedPatch: m_commandLineArgs.DehackedPatch))
+        if (!m_archiveCollection.Load(m_pwads, m_iwad, dehackedPatch: m_commandLineArgs.DehackedPatch))
         {
             if (m_archiveCollection.Assets == null)
                 ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
