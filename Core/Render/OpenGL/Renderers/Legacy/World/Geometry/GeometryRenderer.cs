@@ -1007,7 +1007,7 @@ public class GeometryRenderer : IDisposable
         int sectorIndex = facingSector.Id + 1;
         int lightIndex = Renderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
         if (location == WallLocation.Upper)
-            WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSector.Ceiling, facingSector.Ceiling, texture.UVInverse, isFrontSide, ref wall);
+            WorldTriangulator.HandleTwoSidedUpper(facingSide, facingSector.Ceiling, otherSector.Ceiling, texture.UVInverse, isFrontSide, ref wall);
         else
             WorldTriangulator.HandleTwoSidedLower(facingSide, otherSector.Floor, facingSector.Floor, texture.UVInverse, isFrontSide, ref wall);
         SetWallVertices(m_wallVertices, wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex);
