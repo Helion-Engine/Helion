@@ -33,8 +33,8 @@ public class CompLevelDefinition
     public void Apply(IConfig config, bool reset = false)
     {
         // Avoid possible recursion if invoked via event handler
-        if ((CompLevel)config.Compatibility.CompatLevel.ObjectValue != CompLevel)
-            config.Compatibility.CompatLevel.Set(CompLevel, writeToConfig: false);
+        if ((CompLevel)config.Compatibility.SessionCompatLevel.ObjectValue != CompLevel)
+            config.Compatibility.SessionCompatLevel.Set(CompLevel, writeToConfig: false);
 
         if (reset)
             config.Compatibility.ResetToUserValues();

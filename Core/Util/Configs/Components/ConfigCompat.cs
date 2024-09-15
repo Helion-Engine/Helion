@@ -7,8 +7,8 @@ namespace Helion.Util.Configs.Components;
 public class ConfigCompat
 {
     [ConfigInfo("Compatibility level for this session.  This setting is not saved to disk.", save: false)]
-    [OptionMenu(OptionSectionType.Compatibility, "Compatibility level")]
-    public readonly ConfigValue<CompLevel> CompatLevel = new(CompLevel.Undefined);
+    [OptionMenu(OptionSectionType.Compatibility, "Compatibility Level")]
+    public readonly ConfigValue<CompLevel> SessionCompatLevel = new(CompLevel.Undefined);
 
     [ConfigInfo("Use vanilla method for finding shortest texture. Emulates bug with AASHITTY.", save: false, serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Find Shortest Texture", spacer: true)]

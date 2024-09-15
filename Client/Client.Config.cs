@@ -28,7 +28,7 @@ public partial class Client
 
         m_config.Hud.AutoScale.OnChanged += AutoScale_OnChanged;
 
-        m_config.Compatibility.CompatLevel.OnChanged += this.CompatLevel_OnChanged;
+        m_config.Compatibility.SessionCompatLevel.OnChanged += this.SessionCompatLevel_OnChanged;
 
         CalculateHudScale();
     }
@@ -114,7 +114,7 @@ public partial class Client
         (m_audioSystem.Music as MusicPlayer)?.SetSynthesizer();
     }
 
-    private void CompatLevel_OnChanged(object? sender, Resources.Definitions.CompLevel e)
+    private void SessionCompatLevel_OnChanged(object? sender, Resources.Definitions.CompLevel e)
     {
         m_archiveCollection.Definitions.CompLevelDefinition.CompLevel = e;
         m_archiveCollection.Definitions.CompLevelDefinition.Apply(m_config, true);

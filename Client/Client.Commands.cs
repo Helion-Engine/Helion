@@ -483,7 +483,7 @@ public partial class Client
         {
             compLevel.CompLevel = CompLevel.Undefined;
             m_config.Compatibility.ResetToUserValues();
-            m_config.Compatibility.CompatLevel.Set(CompLevel.Undefined);
+            m_config.Compatibility.SessionCompatLevel.Set(CompLevel.Undefined);
             return;
         }
 
