@@ -50,6 +50,7 @@ public class SkySphereComponent : ISkyComponent
         m_geometryProgram.Bind();
 
         m_geometryProgram.Mvp(renderInfo.Uniforms.Mvp);
+        m_geometryProgram.TimeFrac(renderInfo.TickFraction);
 
         m_geometryVbo.UploadIfNeeded();
 

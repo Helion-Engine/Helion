@@ -781,15 +781,16 @@ public class GeometryRenderer : IDisposable
         vertices = null;
         skyVertices = null;
 
-        if (m_vanillaRender && (facingSide.FloodTextures & SideTexture.Lower) == 0)
+        Wall lowerWall = facingSide.Lower;
+        bool isSky = TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
+
+        if (m_vanillaRender && ((facingSide.FloodTextures & SideTexture.Lower) == 0 || isSky))
             RenderCoverWall(WallLocation.Lower, facingSide, facingSector, otherSector, isFrontSide);
 
         if (m_renderCoverOnly)
             return;
 
-        Wall lowerWall = facingSide.Lower;
         WallVertices wall = default;
-        bool isSky = TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle) && lowerWall.TextureHandle == Constants.NoTextureIndex;
         bool skyRender = isSky && TextureManager.IsSkyTexture(otherSide.Sector.Floor.TextureHandle);
 
         if (facingSide.LowerFloodKeys.Key1 > 0 || facingSide.LowerFloodKeys.Key2 > 0)
@@ -874,14 +875,18 @@ public class GeometryRenderer : IDisposable
         skyVertices = null;
         skyVertices2 = null;
 
-        if (m_vanillaRender && (facingSide.FloodTextures & SideTexture.Upper) == 0)
-            RenderCoverWall(WallLocation.Upper, facingSide, facingSector, otherSector, isFrontSide);
+        SectorPlane plane = otherSector.Ceiling;
+        bool isSky = TextureManager.IsSkyTexture(plane.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
+
+        if (m_vanillaRender && ((facingSide.FloodTextures & SideTexture.Upper) == 0 || isSky))
+        {
+            if (!isSky || (isSky && !TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle)))
+                RenderCoverWall(WallLocation.Upper, facingSide, facingSector, otherSector, isFrontSide);
+        }
 
         if (m_renderCoverOnly)
             return;
 
-        SectorPlane plane = otherSector.Ceiling;
-        bool isSky = TextureManager.IsSkyTexture(plane.TextureHandle) && TextureManager.IsSkyTexture(facingSector.Ceiling.TextureHandle);
         Wall upperWall = facingSide.Upper;
         bool renderSkySideOnly = false;
         if (facingSide.UpperFloodKeys.Key1 > 0 || facingSide.UpperFloodKeys.Key2 > 0)
@@ -1002,7 +1007,7 @@ public class GeometryRenderer : IDisposable
         int sectorIndex = facingSector.Id + 1;
         int lightIndex = Renderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
         if (location == WallLocation.Upper)
-            WorldTriangulator.HandleTwoSidedUpper(facingSide, facingSector.Ceiling, otherSector.Ceiling, texture.UVInverse, isFrontSide, ref wall);
+            WorldTriangulator.HandleTwoSidedUpper(facingSide, otherSector.Ceiling, facingSector.Ceiling, texture.UVInverse, isFrontSide, ref wall);
         else
             WorldTriangulator.HandleTwoSidedLower(facingSide, otherSector.Floor, facingSector.Floor, texture.UVInverse, isFrontSide, ref wall);
         SetWallVertices(m_wallVertices, wall, GetLightLevelAdd(facingSide), lightIndex, sectorIndex);
@@ -1387,31 +1392,37 @@ public class GeometryRenderer : IDisposable
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.TopLeft.Z;
+            vertex->PrevZ = wv.PrevTopZ;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.BottomRight.Z;
+            vertex->PrevZ = wv.PrevBottomZ;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.TopLeft.Z;
+            vertex->PrevZ = wv.PrevTopZ;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.TopLeft.Z;
+            vertex->PrevZ = wv.PrevTopZ;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.BottomRight.Z;
+            vertex->PrevZ = wv.PrevBottomZ;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.BottomRight.Z;
+            vertex->PrevZ = wv.PrevBottomZ;
         }
     }
 
@@ -1424,31 +1435,37 @@ public class GeometryRenderer : IDisposable
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.TopLeft.Z;
+            vertex->PrevZ = wv.PrevTopZ;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.BottomRight.Z;
+            vertex->PrevZ = wv.PrevBottomZ;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.TopLeft.Z;
+            vertex->PrevZ = wv.PrevTopZ;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.TopLeft.Z;
+            vertex->PrevZ = wv.PrevTopZ;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
             vertex->Z = wv.BottomRight.Z;
+            vertex->PrevZ = wv.PrevBottomZ;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.BottomRight.Z;
+            vertex->PrevZ = wv.PrevBottomZ;
         }
 
         return data;
@@ -1462,16 +1479,19 @@ public class GeometryRenderer : IDisposable
             vertex->X = root.X;
             vertex->Y = root.Y;
             vertex->Z = root.Z;
+            vertex->PrevZ = root.PrevZ;
 
             vertex++;
             vertex->X = second.X;
             vertex->Y = second.Y;
             vertex->Z = second.Z;
+            vertex->PrevZ = second.PrevZ;
 
             vertex++;
             vertex->X = third.X;
             vertex->Y = third.Y;
             vertex->Z = third.Z;
+            vertex->PrevZ = third.PrevZ;
         }
     }
 
