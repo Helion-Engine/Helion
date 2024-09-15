@@ -342,10 +342,6 @@ public partial class Client : IDisposable, IInputManagement
 
         // Flag the WorldLayer that it is safe to render now that everything has been loaded
         worldLayer.ShouldRender = true;
-        // intermission/endgame may have been kept to draw loading screen over
-        // and grab the framebuffer after map load for transition effect
-        m_layerManager.Remove(m_layerManager.IntermissionLayer);
-        m_layerManager.Remove(m_layerManager.EndGameLayer);
         m_layerManager.Remove(m_layerManager.LoadingLayer);
 
         m_loadMapResult = null;
