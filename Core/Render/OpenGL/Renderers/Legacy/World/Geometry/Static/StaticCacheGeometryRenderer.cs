@@ -330,7 +330,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide);
             }
 
-            if (m_vanillaRender && !skyHack && ((side.FloodTextures & SideTexture.Upper) == 0 || skyVertices != null))
+            if (m_vanillaRender && ((side.FloodTextures & SideTexture.Upper) == 0))
             {
                 sideVertices = m_geometryRenderer.RenderTwoSidedUpperOrLowerRaw(WallLocation.Upper, side, facingSector, otherSector, isFrontSide);
                 AddOrUpdateCoverWall(side, side.Upper, sideVertices);
