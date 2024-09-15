@@ -29,6 +29,7 @@ public partial class Client
         m_config.Hud.AutoScale.OnChanged += AutoScale_OnChanged;
 
         m_config.Compatibility.SessionCompatLevel.OnChanged += this.SessionCompatLevel_OnChanged;
+        m_config.Compatibility.DefaultCompatLevel.OnChanged += this.DefaultCompatLevel_OnChanged;
 
         CalculateHudScale();
     }
@@ -117,6 +118,15 @@ public partial class Client
     private void SessionCompatLevel_OnChanged(object? sender, Resources.Definitions.CompLevel e)
     {
         m_archiveCollection.Definitions.CompLevelDefinition.CompLevel = e;
-        m_archiveCollection.Definitions.CompLevelDefinition.Apply(m_config, true);
+        m_archiveCollection.Definitions.CompLevelDefinition.Apply(m_config, reset: true, save: false);
+    }
+
+    private void DefaultCompatLevel_OnChanged(object? sender, Resources.Definitions.CompLevel e)
+    {
+        // This is not strictly correct, but it should be less confusing to the user if we reset everything first
+        m_config.Compatibility.ResetToDefaultValues();
+
+        m_archiveCollection.Definitions.CompLevelDefinition.CompLevel = e;
+        m_archiveCollection.Definitions.CompLevelDefinition.Apply(m_config, reset: true, save: true);
     }
 }

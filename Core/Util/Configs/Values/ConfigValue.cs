@@ -133,6 +133,11 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         HasTemporaryValue = false;
     }
 
+    public void ResetToDefaultValue()
+    {
+        Set(DefaultValue);
+    }
+
     private ConfigSetResult SetValue(T newValue, bool ignoreSetFlags)
     {
         if (Equals(newValue, Value))

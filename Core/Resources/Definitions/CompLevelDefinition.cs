@@ -30,7 +30,7 @@ public class CompLevelDefinition
         }
     }
 
-    public void Apply(IConfig config, bool reset = false)
+    public void Apply(IConfig config, bool reset = false, bool save = false)
     {
         // Avoid possible recursion if invoked via event handler
         if ((CompLevel)config.Compatibility.SessionCompatLevel.ObjectValue != CompLevel)
@@ -45,41 +45,45 @@ public class CompLevelDefinition
         }
 
         var compat = config.Compatibility;
+        compat.SetChangingCompatLevel(true);
+
         switch (CompLevel)
         {
             case CompLevel.Vanilla:
-                compat.AllowItemDropoff.Set(false, writeToConfig: false);
-                compat.Doom2ProjectileWalkTriggers.Set(true, writeToConfig: false);
-                compat.InfinitelyTallThings.Set(true, writeToConfig: false);
-                compat.MissileClip.Set(true, writeToConfig: false);
-                compat.OriginalExplosion.Set(true, writeToConfig: false);
-                compat.PainElementalLostSoulLimit.Set(true, writeToConfig: false);
-                compat.Stairs.Set(true, writeToConfig: false);
-                compat.VanillaMovementPhysics.Set(true, writeToConfig: false);
-                compat.VanillaSectorPhysics.Set(true, writeToConfig: false);
-                compat.VanillaSectorSound.Set(true, writeToConfig: false);
-                compat.VanillaShortestTexture.Set(true, writeToConfig: false);
+                compat.AllowItemDropoff.Set(false, writeToConfig: save);
+                compat.Doom2ProjectileWalkTriggers.Set(true, writeToConfig: save);
+                compat.InfinitelyTallThings.Set(true, writeToConfig: save);
+                compat.MissileClip.Set(true, writeToConfig: save);
+                compat.OriginalExplosion.Set(true, writeToConfig: save);
+                compat.PainElementalLostSoulLimit.Set(true, writeToConfig: save);
+                compat.Stairs.Set(true, writeToConfig: save);
+                compat.VanillaMovementPhysics.Set(true, writeToConfig: save);
+                compat.VanillaSectorPhysics.Set(true, writeToConfig: save);
+                compat.VanillaSectorSound.Set(true, writeToConfig: save);
+                compat.VanillaShortestTexture.Set(true, writeToConfig: save);
 
-                compat.Mbf21.Set(false, writeToConfig: false);
+                compat.Mbf21.Set(false, writeToConfig: save);
                 break;
             case CompLevel.Boom:
             case CompLevel.Mbf:
-                compat.AllowItemDropoff.Set(true, writeToConfig: false);
-                compat.Stairs.Set(false, writeToConfig: false);
-                compat.VanillaSectorPhysics.Set(false, writeToConfig: false);
-                compat.VanillaShortestTexture.Set(false, writeToConfig: false);
+                compat.AllowItemDropoff.Set(true, writeToConfig: save);
+                compat.Stairs.Set(false, writeToConfig: save);
+                compat.VanillaSectorPhysics.Set(false, writeToConfig: save);
+                compat.VanillaShortestTexture.Set(false, writeToConfig: save);
 
-                compat.Mbf21.Set(false, writeToConfig: false);
+                compat.Mbf21.Set(false, writeToConfig: save);
                 break;
             case CompLevel.Mbf21:
-                compat.AllowItemDropoff.Set(true, writeToConfig: false);
-                compat.Stairs.Set(false, writeToConfig: false);
-                compat.VanillaSectorPhysics.Set(false, writeToConfig: false);
-                compat.VanillaShortestTexture.Set(false, writeToConfig: false);
+                compat.AllowItemDropoff.Set(true, writeToConfig: save);
+                compat.Stairs.Set(false, writeToConfig: save);
+                compat.VanillaSectorPhysics.Set(false, writeToConfig: save);
+                compat.VanillaShortestTexture.Set(false, writeToConfig: save);
 
-                compat.Mbf21.Set(true, writeToConfig: false);
+                compat.Mbf21.Set(true, writeToConfig: save);
                 break;
         }
+
+        compat.SetChangingCompatLevel(false);
 
         HelionLog.Info($"Comp level set to {CompLevel}");
     }

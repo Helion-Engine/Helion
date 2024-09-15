@@ -7,7 +7,7 @@
 
     public class CompatibilitySection : ListedConfigSection
     {
-        private const string HeaderText = "Items displayed in orange have been set automatically";
+        private const string HeaderText = "Items displayed in orange have been set automatically for this session";
 
         public CompatibilitySection(IConfig config, OptionSectionType optionType, SoundManager soundManager)
             : base(config, optionType, soundManager)

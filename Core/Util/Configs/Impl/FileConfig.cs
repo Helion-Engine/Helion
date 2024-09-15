@@ -208,6 +208,7 @@ public class FileConfig : Config
             {
                 Write(path, true);
             }
+            Compatibility.ActivateChangeHandlers();
         }
         catch (Exception e)
         {

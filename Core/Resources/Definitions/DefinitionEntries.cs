@@ -253,9 +253,6 @@ public class DefinitionEntries
 
         if (m_pnamesTextureXCollection.Valid)
             CreateImageDefinitionsFrom(archive, m_pnamesTextureXCollection);
-
-        // Vanilla IWADS will have this set. If a PWAD is loaded this will get clear it.
-        ConfigCompatibility.VanillaShortestTexture.Set(archive.IWadInfo.VanillaCompatibility);
     }
 
 
