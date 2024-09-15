@@ -26,6 +26,7 @@ using Helion.Util.Extensions;
 using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
+using Helion.Window.Input;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Save;
 using Helion.Geometry.Boxes;
@@ -379,6 +380,8 @@ public class GameLayerManager : IGameLayerManager
             if (OptionsLayer?.CurrentlyBindingKey != true && ConsumeCommandPressed(Constants.Input.Screenshot, input))
                 m_console.SubmitInputText(Constants.Input.Screenshot);
 
+            CheckToggleFullscreen(input);
+
             if (IwadSelectionLayer == null && ConsumeCommandPressed(Constants.Input.Console, input))
                 ToggleConsoleLayer(input);
 
@@ -419,6 +422,17 @@ public class GameLayerManager : IGameLayerManager
         }
 
         WorldLayer?.HandleInput(input);
+    }
+
+    private void CheckToggleFullscreen(IConsumableInput input)
+    {
+        if ((input.Manager.IsKeyDown(Key.AltLeft) || input.Manager.IsKeyDown(Key.AltRight)) && input.ConsumeKeyPressed(Key.Enter))
+        {
+            var newValue = (m_config.Window.State.Value == RenderWindowState.Fullscreen)
+                ? RenderWindowState.Normal
+                : RenderWindowState.Fullscreen;
+            m_config.Window.State.Set(newValue);
+        }
     }
 
     private void CheckMenuShortcuts(IConsumableInput input)
