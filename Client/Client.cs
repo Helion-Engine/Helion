@@ -332,6 +332,9 @@ public partial class Client : IDisposable, IInputManagement
 
         // Note: StaticDataApplier happens through this start and needs to happen before UpdateToNewWorld
         worldLayer.World.Start(m_loadMapResult.WorldModel);
+
+        WriteAutoSave(m_loadMapResult);
+
         m_window.Renderer.UpdateToNewWorld(worldLayer.World);
         m_layerManager.LockInput = false;
 
@@ -351,6 +354,27 @@ public partial class Client : IDisposable, IInputManagement
 
         m_onLoadMapComplete?.OnComplete(m_onLoadMapComplete.CompleteParam);
         m_onLoadMapComplete = null;
+    }
+
+    private void WriteAutoSave(LoadMapResult result)
+    {
+        if (result.WorldLayer == null || result.Players.Count == 0 || !m_config.Game.AutoSave)
+            return;
+
+        var worldLayer = result.WorldLayer;
+        var mapInfoDef = worldLayer.CurrentMap;
+
+        string title = $"Auto: {mapInfoDef.GetMapNameWithPrefix(worldLayer.World.ArchiveCollection)}";
+        var saveGameEvent = m_saveGameManager.WriteNewSaveGame(worldLayer.World, title, autoSave: true);
+        if (saveGameEvent.Success)
+            m_console.AddMessage($"Saved {saveGameEvent.FileName}");
+
+        if (!saveGameEvent.Success)
+        {
+            m_console.AddMessage($"Failed to save {saveGameEvent.FileName}");
+            if (saveGameEvent.Exception != null)
+                throw saveGameEvent.Exception;
+        }
     }
 
     private void SetMapLoadFailure()

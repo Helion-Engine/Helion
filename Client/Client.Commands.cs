@@ -777,21 +777,6 @@ public partial class Client
         m_layerManager.Add(worldLayer);
         m_layerManager.ClearAllExcept(worldLayer, m_layerManager.LoadingLayer, m_layerManager.TransitionLayer);
 
-        if (result.Players.Count > 0 && m_config.Game.AutoSave)
-        {
-            string title = $"Auto: {mapInfoDef.GetMapNameWithPrefix(worldLayer.World.ArchiveCollection)}";
-            SaveGameEvent saveGameEvent = m_saveGameManager.WriteNewSaveGame(worldLayer.World, title, autoSave: true);
-            if (saveGameEvent.Success)
-                m_console.AddMessage($"Saved {saveGameEvent.FileName}");
-
-            if (!saveGameEvent.Success)
-            {
-                m_console.AddMessage($"Failed to save {saveGameEvent.FileName}");
-                if (saveGameEvent.Exception != null)
-                    throw saveGameEvent.Exception;
-            }
-        }
-
         InitializeDemoRecorderFromCommandArgs(worldLayer);
 
         if (m_demoPlayer != null)
