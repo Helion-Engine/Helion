@@ -7,7 +7,7 @@
   - Status bar texture picker dialog
   - Added automap marker functionality to key binding options
   - "Melt" screen wipe added
-  - Save game improvements: Saves can be named, pagination added to Save/Load dialog, rotating autosaves added
+  - Save game improvements: Saves can be named, pagination added to Save/Load dialog, rotating auto/quicksaves added
   - Expanded support for music formats and more synthesizer options, via ZMusic
 
 ## Bug fixes:
@@ -43,3 +43,4 @@
   - Fix MusicChangers breaking when loading saves
   - Fix random crash from sounds trying to play while loading a new map
   - Fix dehacked to correctly use A_SPosAttack function with hard-coded shotgun sound
+  - Fix map start specials not getting written to autosaves
