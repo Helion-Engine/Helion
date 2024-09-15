@@ -88,6 +88,12 @@ public partial class TextureManager : ITickable
             InitSprites(spriteNames, spriteEntries);
     }
 
+    public void MapInit()
+    {
+        foreach (var skyFire in m_skyFireTextures)
+            skyFire.RenderUpdate = true;
+    }
+
     private void MapSpriteIndexToEntries(List<Entry> spriteEntries, List<string> spriteNames)
     {
         foreach (var spriteName in spriteNames)

@@ -8,9 +8,9 @@ using System.Linq;
 using Helion.Graphics;
 using Helion.Util.RandomGenerators;
 using Helion.Util;
-using System.Diagnostics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
-using Helion.Resources.Definitions.Texture;
+using Helion.Util.Extensions;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Resources;
 
@@ -53,13 +53,13 @@ public partial class TextureManager
                         
             skyFire.CurrentTick = 0;
             skyFire.RenderUpdate = true;
-            UpdateSkyFire(skyFire, skyFire.Texture.Image);
+            UpdateSkyFire(skyFire);
             var palette = m_archiveCollection.Data.Palette.DefaultLayer;
             WriteSkyFireToTexture(palette, skyFire.FirePalette, skyFire.FireImage, skyFire.Texture.Image);
         }
     }
 
-    private void UpdateSkyFire(SkyFireAnimation skyFire, Image textureImage)
+    private void UpdateSkyFire(SkyFireAnimation skyFire)
     {
         var fireImage = skyFire.FireImage;
         var fireImageIndices = fireImage.m_indices;
@@ -113,11 +113,6 @@ public partial class TextureManager
         }
     }
 
-    private void SpreadFire(Span<byte> indices, int src, int imageWidth)
-    {
-
-    }
-
     private void SetSkyFireTextures()
     {
         const int FireImageWidth = 320;
@@ -142,10 +137,26 @@ public partial class TextureManager
             m_skyFireTextures.Add(skyFireAnimation);
 
             for (int i = 0; i < 64; i++)
-                UpdateSkyFire(skyFireAnimation, texture.Image);
+                UpdateSkyFire(skyFireAnimation);
 
             var palette = m_archiveCollection.Data.Palette.DefaultLayer;
             WriteSkyFireToTexture(palette, sky.Fire.Palette, fireImage, texture.Image);
+
+            FlagSkyTrasformForegroundAsFire(sky);
+        }
+    }
+
+    private void FlagSkyTrasformForegroundAsFire(SkyDef sky)
+    {
+        foreach (var skyTransform in m_skyTransforms)
+        {
+            if (skyTransform.Foreground == null || !skyTransform.Foreground.TextureName.EqualsIgnoreCase(sky.Name))
+                continue;
+
+            skyTransform.Foreground.Type = SkyTransformType.Fire;
+            skyTransform.Foreground.Scale.Y = 1;
+            skyTransform.Foreground.Scale.X = 1;
+            skyTransform.Foreground.Offset = Vec2F.Zero;
         }
     }
 

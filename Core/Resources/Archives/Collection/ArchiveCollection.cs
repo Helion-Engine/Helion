@@ -112,6 +112,7 @@ public class ArchiveCollection : IResources, IPathResolver
         if (m_initTextureManager)
         {
             SetTextureManagerSky(mapInfo);
+            TextureManager.MapInit();
             return;
         }
 
