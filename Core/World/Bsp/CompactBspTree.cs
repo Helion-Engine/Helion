@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
@@ -131,14 +130,36 @@ public class CompactBspTree
             while (true)
             {
                 BspNodeCompact* node = startNode + nodeIndex;
-                double dot = (node->SplitDelta.X * (y - node->SplitStart.Y)) - (node->SplitDelta.Y * (x - node->SplitStart.X));
-                int next = Convert.ToInt32(dot < 0);
+
+                bool onRight = OnRightNode(x, y, node);
+                int next = Convert.ToInt32(onRight);
                 nodeIndex = node->Children[next];
 
                 if ((nodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
                     return (int)(nodeIndex & BspNodeCompact.SubsectorMask);
             }
         }
+    }
+
+    private unsafe bool OnRightNode(double x, double y, BspNodeCompact* node)
+    {
+        // These checks are required to match dooms behavior for returning different results when exactly on lines w/o deltas
+        if (node->SplitDelta.X == 0)
+        {
+            if (x <= node->SplitStart.X)
+                return node->SplitDelta.Y < 0;
+            return node->SplitDelta.Y > 0;
+        }
+
+        if (node->SplitDelta.Y == 0)
+        {
+            if (y <= node->SplitStart.Y)
+                return node->SplitDelta.X > 0;
+            return node->SplitDelta.X < 0;
+        }
+
+        double dot = (node->SplitDelta.X * (y - node->SplitStart.Y)) - (node->SplitDelta.Y * (x - node->SplitStart.X));
+        return dot < 0;
     }
 
     public unsafe Subsector ToSubsector(double x, double y)
