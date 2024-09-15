@@ -27,4 +27,22 @@ public class Subsector
     {
         GameActions.GetEntity(World, 1).Sector.Id.Should().Be(2);
     }
+
+    [Fact(DisplayName = "To subsector on corners")]
+    public void ToSubsectorOnCorners()
+    {
+        GameActions.GetEntity(World, 2).Sector.Id.Should().Be(0);
+        GameActions.GetEntity(World, 3).Sector.Id.Should().Be(0);
+        GameActions.GetEntity(World, 4).Sector.Id.Should().Be(0);
+        GameActions.GetEntity(World, 5).Sector.Id.Should().Be(3);
+    }
+
+    [Fact(DisplayName = "To subsector on lines")]
+    public void ToSubsectorOnLines()
+    {
+        GameActions.GetEntity(World, 6).Sector.Id.Should().Be(0);
+        GameActions.GetEntity(World, 7).Sector.Id.Should().Be(4);
+        GameActions.GetEntity(World, 8).Sector.Id.Should().Be(4);
+        GameActions.GetEntity(World, 9).Sector.Id.Should().Be(0);
+    }
 }
