@@ -920,6 +920,8 @@ public partial class Client
         }
         else
         {
+            PrepareTransition();
+            PlayTransition();
             IntermissionLayer intermissionLayer = new(m_layerManager, world, m_config.Keys, m_soundManager,
                 m_audioSystem.Music, world.MapInfo, getNextMapInfo);
             intermissionLayer.Exited += IntermissionLayer_Exited;
