@@ -380,14 +380,7 @@ public class GameLayerManager : IGameLayerManager
             if (OptionsLayer?.CurrentlyBindingKey != true && ConsumeCommandPressed(Constants.Input.Screenshot, input))
                 m_console.SubmitInputText(Constants.Input.Screenshot);
 
-            // toggle fullscreen on alt+enter
-            if ((input.Manager.IsKeyDown(Key.AltLeft) || input.Manager.IsKeyDown(Key.AltRight)) && input.ConsumeKeyPressed(Key.Enter))
-            {
-                var newValue = (m_config.Window.State.Value == RenderWindowState.Fullscreen)
-                    ? RenderWindowState.Normal
-                    : RenderWindowState.Fullscreen;
-                m_config.Window.State.Set(newValue);
-            }
+            CheckToggleFullscreen(input);
 
             if (IwadSelectionLayer == null && ConsumeCommandPressed(Constants.Input.Console, input))
                 ToggleConsoleLayer(input);
@@ -429,6 +422,17 @@ public class GameLayerManager : IGameLayerManager
         }
 
         WorldLayer?.HandleInput(input);
+    }
+
+    private void CheckToggleFullscreen(IConsumableInput input)
+    {
+        if ((input.Manager.IsKeyDown(Key.AltLeft) || input.Manager.IsKeyDown(Key.AltRight)) && input.ConsumeKeyPressed(Key.Enter))
+        {
+            var newValue = (m_config.Window.State.Value == RenderWindowState.Fullscreen)
+                ? RenderWindowState.Normal
+                : RenderWindowState.Fullscreen;
+            m_config.Window.State.Set(newValue);
+        }
     }
 
     private void CheckMenuShortcuts(IConsumableInput input)
