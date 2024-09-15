@@ -4,7 +4,6 @@ using Helion.Util.Configs.Components;
 using Helion.World.Entities.Players;
 using OpenTK.Windowing.Common;
 using System;
-using System.IO;
 
 namespace Helion.Client;
 
@@ -17,6 +16,7 @@ public partial class Client
         m_config.Audio.Volume.OnChanged += Volume_OnChanged;
         m_config.Audio.SoundFontFile.OnChanged += SoundFont_OnChanged;
         m_config.Audio.Synthesizer.OnChanged += this.UseOPLEmulation_OnChanged;
+
         m_config.Mouse.Look.OnChanged += Look_OnChanged;
 
         m_config.Window.State.OnChanged += WindowState_OnChanged;
@@ -25,7 +25,10 @@ public partial class Client
         m_config.Window.Display.OnChanged += WindowDisplay_OnChanged;
         m_config.Window.Virtual.Enable.OnChanged += WindowVirtualEnable_OnChanged;
         m_config.Window.Virtual.Dimension.OnChanged += WindowVirtualDimension_OnChanged;
+
         m_config.Hud.AutoScale.OnChanged += AutoScale_OnChanged;
+
+        m_config.Compatibility.SessionCompatLevel.OnChanged += this.SessionCompatLevel_OnChanged;
 
         CalculateHudScale();
     }
@@ -109,5 +112,11 @@ public partial class Client
     private void UseOPLEmulation_OnChanged(object? sender, Synth e)
     {
         (m_audioSystem.Music as MusicPlayer)?.SetSynthesizer();
+    }
+
+    private void SessionCompatLevel_OnChanged(object? sender, Resources.Definitions.CompLevel e)
+    {
+        m_archiveCollection.Definitions.CompLevelDefinition.CompLevel = e;
+        m_archiveCollection.Definitions.CompLevelDefinition.Apply(m_config, true);
     }
 }

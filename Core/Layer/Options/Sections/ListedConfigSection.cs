@@ -221,7 +221,7 @@ public class ListedConfigSection : IOptionSection
                 bool isCycleValue = m_currentEditValue is ConfigValue<bool> || m_currentEditValue.ValueType.BaseType == typeof(Enum);
                 if (isCycleValue)
                 {
-                    m_rowEditText.Append(GetConfigDisplayValue(m_currentEditValue, configData.Attr));
+                    m_rowEditText.Append(GetDisplayStringForCurrentValue(m_currentEditValue, configData.Attr));
                     OnLockChanged?.Invoke(this, new(Lock.Locked, "Press left/right or mouse wheel to change values. Enter to confirm.", lockOptions));
                 }
                 else
@@ -350,7 +350,7 @@ public class ListedConfigSection : IOptionSection
         m_soundManager.PlayStaticSound(MenuSounds.Change);
     }
 
-    private static string GetConfigDisplayValue(IConfigValue configValue, OptionMenuAttribute attr)
+    private static string GetDisplayStringForCurrentValue(IConfigValue configValue, OptionMenuAttribute attr)
     {
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectValue).ToString() ?? "??";
@@ -362,7 +362,19 @@ public class ListedConfigSection : IOptionSection
         return doubleValue.ToString();
     }
 
-    private static string GetConfigDisplayDefaultValue(IConfigValue configValue, OptionMenuAttribute attr)
+    private static string GetDisplayStringForUserValue(IConfigValue configValue, OptionMenuAttribute attr)
+    {
+        if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
+            return GetEnumDescription(configValue.ObjectUserValue).ToString() ?? "??";
+
+        var doubleValue = Convert.ToDouble(configValue.ObjectUserValue);
+        if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
+            return doubleValue.ToString() + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
+
+        return doubleValue.ToString();
+    }
+
+    private static string GetDisplayStringForDefaultValue(IConfigValue configValue, OptionMenuAttribute attr)
     {
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectDefaultValue).ToString()
@@ -538,7 +550,13 @@ public class ListedConfigSection : IOptionSection
         }
     }
 
-    public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY, bool didMouseWheelScroll)
+    protected virtual string GetExtendedHeaderText(out Color desiredColor)
+    {
+        desiredColor = Color.Firebrick;
+        return string.Empty;
+    }
+
+    public virtual void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud, int startY, bool didMouseWheelScroll)
     {
         m_menuPositionList.Clear();
         if (m_configValues.Empty())
@@ -560,6 +578,16 @@ public class ListedConfigSection : IOptionSection
 
         hud.Text("Press R to reset the selected setting to its default", Font, fontSize, (0, y), out textDimension,
             both: Align.TopMiddle, color: Color.Firebrick);
+
+
+        string additionalHeader = GetExtendedHeaderText(out Color additionalHeaderColor);
+        if (!string.IsNullOrEmpty(additionalHeader))
+        {
+            y += textDimension.Height + smallPad;
+            hud.Text(additionalHeader, Font, fontSize, (0, y), out textDimension,
+                both: Align.TopMiddle, color: additionalHeaderColor);
+        }
+
         y += textDimension.Height + m_config.Window.GetMenuScaled(8);
 
         hud.Text(OptionType.ToString(), Font, m_config.Window.GetMenuLargeFontSize(), (0, y), out Dimension headerArea, both: Align.TopMiddle, color: Color.Red);
@@ -573,9 +601,9 @@ public class ListedConfigSection : IOptionSection
         for (int i = 0; i < m_configValues.Count; i++)
         {
             (IConfigValue cfgValue, OptionMenuAttribute attr, _) = m_configValues[i];
-            (Color attrColor, Color valueColorDefault, Color valueColorCustomized) = IsConfigDisabled(i)
-                ? (Color.Gray, Color.Gray, Color.Gray)
-                : (Color.Red, Color.White, Color.Yellow);
+            (Color attrColor, Color valueColorDefault, Color valueColorCustomized, Color valueColorOverridden) = IsConfigDisabled(i)
+                ? (Color.Gray, Color.Gray, Color.Gray, Color.Gray)
+                : (Color.Red, Color.White, Color.Yellow, Color.Orange);
 
             if (attr.Spacer)
                 y += spacerY;
@@ -602,9 +630,12 @@ public class ListedConfigSection : IOptionSection
             }
 
             Dimension valueArea;
-            string displayValue = GetConfigDisplayValue(cfgValue, attr);
-            string displayDefaultValue = GetConfigDisplayDefaultValue(cfgValue, attr);
+            string displayValue = GetDisplayStringForCurrentValue(cfgValue, attr);
+            string displayUserValue = GetDisplayStringForUserValue(cfgValue, attr);
+            string displayDefaultValue = GetDisplayStringForDefaultValue(cfgValue, attr);
+
             Color valueColor = displayValue == displayDefaultValue ? valueColorDefault : valueColorCustomized;
+            valueColor = cfgValue.HasTemporaryValue ? valueColorOverridden : valueColor;
 
             if (i == m_currentRowIndex && m_rowIsSelected)
             {
@@ -669,7 +700,7 @@ public class ListedConfigSection : IOptionSection
         }
         else if (!string.IsNullOrEmpty(m_configValues[m_currentRowIndex].ConfigAttr.Description))
         {
-            message = $"{m_configValues[m_currentRowIndex].ConfigAttr.Description} (Default: {GetConfigDisplayDefaultValue(m_configValues[m_currentRowIndex].CfgValue, m_configValues[m_currentRowIndex].Attr)})";
+            message = $"{m_configValues[m_currentRowIndex].ConfigAttr.Description} (Default: {GetDisplayStringForDefaultValue(m_configValues[m_currentRowIndex].CfgValue, m_configValues[m_currentRowIndex].Attr)})";
         }
 
         OnRowChanged?.Invoke(this, new(m_currentRowIndex, message));

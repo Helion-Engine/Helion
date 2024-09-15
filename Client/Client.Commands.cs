@@ -471,12 +471,6 @@ public partial class Client
     [ConsoleCommand("CompLvl", "Sets the complvl (vanilla, boom, mbf, or mbf21)")]
     private void CompLvl(ConsoleCommandEventArgs args)
     {
-        if (m_compLevelNames.Count == 0)
-        {
-            foreach (CompLevel comp in Enum.GetValues(typeof(CompLevel)))
-                m_compLevelNames.Add(comp.ToString());
-        }
-
         var compLevel = m_archiveCollection.Definitions.CompLevelDefinition;
         if (args.Args.Count == 0)
         {
@@ -489,18 +483,15 @@ public partial class Client
         {
             compLevel.CompLevel = CompLevel.Undefined;
             m_config.Compatibility.ResetToUserValues();
+            m_config.Compatibility.SessionCompatLevel.Set(CompLevel.Undefined);
             return;
         }
 
-        for (int i = 0; i < m_compLevelNames.Count; i++)
+        if (Enum.TryParse(arg, ignoreCase: true, out CompLevel newLevel))
         {
-            if (arg.EqualsIgnoreCase(m_compLevelNames[i]))
-            {
-                m_config.Compatibility.ResetToUserValues();
-                compLevel.CompLevel = (CompLevel)i;
-                compLevel.Apply(m_config);
-                return;
-            }
+            compLevel.CompLevel = newLevel;
+            compLevel.Apply(m_config, reset: true);
+            return;
         }
 
         HelionLog.Error("Invalid complvl");

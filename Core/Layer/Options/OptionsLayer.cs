@@ -133,7 +133,10 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         if (sectionMap.TryGetValue(section, out var optionSection))
             return optionSection as ListedConfigSection ?? throw new($"Expected a listed config for {optionSection.GetType().FullName}");
 
-        ListedConfigSection listedConfigSection = new(m_config, section, m_soundManager);
+        ListedConfigSection listedConfigSection = (section == OptionSectionType.Compatibility)
+            ? new CompatibilitySection(m_config, section, m_soundManager)
+            : new ListedConfigSection(m_config, section, m_soundManager);
+
         listedConfigSection.OnAttributeChanged += ListedConfigSection_OnAttributeChanged;
         sectionMap[section] = listedConfigSection;
         return listedConfigSection;
