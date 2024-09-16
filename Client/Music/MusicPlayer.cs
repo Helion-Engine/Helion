@@ -39,15 +39,17 @@ public class MusicPlayer : IMusicPlayer
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
         AudioStreamFactory streamFactory = new AudioStreamFactory();
-        float volume = (float)(configAudio.MusicVolume.Value * .5);
 
         m_zMusicPlayer = new ZMusicWrapper.ZMusicPlayer(
             streamFactory,
             configAudio.Synthesizer == Synth.OPL3 ? ZMusicWrapper.MidiDevice.OPL3 : ZMusicWrapper.MidiDevice.FluidSynth,
             configAudio.SoundFontFile,
             null,
-            volume);
-        m_fluidSynthPlayer = new FluidSynthMusicPlayer(configAudio.SoundFontFile.Value, streamFactory, volume);
+            (float)(configAudio.MusicVolume.Value * .5));
+        m_fluidSynthPlayer = new FluidSynthMusicPlayer(
+            configAudio.SoundFontFile.Value,
+            streamFactory,
+            (float)m_configAudio.MusicVolume);
         SetSynthesizer();
     }
 
@@ -222,7 +224,7 @@ public class MusicPlayer : IMusicPlayer
     public void SetVolume(float volume)
     {
         m_zMusicPlayer.Volume = (float)(volume * .5);
-        m_fluidSynthPlayer.SetVolume((float)(volume * .5));
+        m_fluidSynthPlayer.SetVolume(volume);
     }
 
     public void Stop()
