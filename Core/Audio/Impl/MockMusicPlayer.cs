@@ -23,5 +23,15 @@ namespace Helion.Audio.Impl
         {
 
         }
+
+        public void OutputChanging()
+        {
+
+        }
+
+        public void OutputChanged()
+        {
+
+        }
     }
 }

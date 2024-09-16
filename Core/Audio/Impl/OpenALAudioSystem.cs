@@ -68,6 +68,7 @@ public class OpenALAudioSystem : IAudioSystem
     public bool SetDevice(string deviceName)
     {
         DeviceChanging?.Invoke(this, EventArgs.Empty);
+        Music.OutputChanging();
 
         m_alContext.Dispose();
         m_alDevice.Dispose();
@@ -76,6 +77,7 @@ public class OpenALAudioSystem : IAudioSystem
         m_alContext = new OpenALContext(m_alDevice);
         SetVolume(Gain);
 
+        Music.OutputChanged();
         // TODO: This assumes we always successfully changed. We should probably limit this.
         return true;
     }

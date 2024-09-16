@@ -47,6 +47,16 @@ public class MusicPlayer : IMusicPlayer
         SetSynthesizer();
     }
 
+    public void OutputChanging()
+    {
+        m_zMusicPlayer.Pause();
+    }
+
+    public void OutputChanged()
+    {
+        m_zMusicPlayer.Resume();
+    }
+
     private readonly struct PlayParams(byte[] data, MusicPlayerOptions options)
     {
         public readonly byte[] Data = data;
@@ -81,8 +91,8 @@ public class MusicPlayer : IMusicPlayer
         }
 
         ZMusicWrapper.MidiDevice currentDevice = m_zMusicPlayer.PreferredDevice;
-        ZMusicWrapper.MidiDevice newDevice = m_configAudio.Synthesizer == Synth.OPL3 
-            ? ZMusicWrapper.MidiDevice.OPL3 
+        ZMusicWrapper.MidiDevice newDevice = m_configAudio.Synthesizer == Synth.OPL3
+            ? ZMusicWrapper.MidiDevice.OPL3
             : ZMusicWrapper.MidiDevice.FluidSynth;
 
         if (currentDevice != newDevice)
