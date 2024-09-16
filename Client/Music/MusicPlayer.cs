@@ -37,24 +37,32 @@ public class MusicPlayer : IMusicPlayer
         m_archiveCollection = archiveCollection;
         m_playQueueTask = Task.Factory.StartNew(PlayQueueTask, m_cancelPlayQueue.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
+
+        AudioStreamFactory streamFactory = new AudioStreamFactory();
+
         m_zMusicPlayer = new ZMusicWrapper.ZMusicPlayer(
-            new AudioStreamFactory(),
+            streamFactory,
             configAudio.Synthesizer == Synth.OPL3 ? ZMusicWrapper.MidiDevice.OPL3 : ZMusicWrapper.MidiDevice.FluidSynth,
             configAudio.SoundFontFile,
             null,
             (float)(configAudio.MusicVolume.Value * .5));
-        m_fluidSynthPlayer = new FluidSynthMusicPlayer(configAudio.SoundFontFile.Value);
+        m_fluidSynthPlayer = new FluidSynthMusicPlayer(
+            configAudio.SoundFontFile.Value,
+            streamFactory,
+            (float)m_configAudio.MusicVolume);
         SetSynthesizer();
     }
 
     public void OutputChanging()
     {
         m_zMusicPlayer.Pause();
+        m_fluidSynthPlayer.OutputChanging();
     }
 
     public void OutputChanged()
     {
         m_zMusicPlayer.Resume();
+        m_fluidSynthPlayer.OutputChanged();
     }
 
     private readonly struct PlayParams(byte[] data, MusicPlayerOptions options)
