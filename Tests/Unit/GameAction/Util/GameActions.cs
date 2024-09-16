@@ -22,9 +22,13 @@ namespace Helion.Tests.Unit.GameAction
     public enum Bearing
     {
         East,
+        NorthEast,
         North,
+        NorthWest,
         West,
+        SouthWest,
         South,
+        SouthEast
     }
 
     public static partial class GameActions
@@ -445,7 +449,7 @@ namespace Helion.Tests.Unit.GameAction
             source.SetSeeState();
         }
 
-        public static double GetAngle(Bearing bearing) => MathHelper.HalfPi * (int)bearing;
+        public static double GetAngle(Bearing bearing) => MathHelper.QuarterPi * (int)bearing;
 
         public static void AssertFlags(object flags, params FieldInfo?[] trueField)
         {

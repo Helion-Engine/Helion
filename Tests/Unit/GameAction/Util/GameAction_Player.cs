@@ -28,7 +28,10 @@ namespace Helion.Tests.Unit.GameAction
         }
 
         public static void PlayerRunForward(SinglePlayerWorld world, double angle, Func<bool> runWhile, TimeSpan? timeout = null, Action? onTick = null) =>
-            RunPlayerCommands(world, angle, new TickCommands[] { TickCommands.Forward }, runWhile, timeout, onTick, stopTicks: null, tickAngleTurn: null);
+            RunPlayerCommands(world, angle, [TickCommands.Forward], runWhile, timeout, onTick, stopTicks: null, tickAngleTurn: null);
+
+        public static void PlayerRunBackward(SinglePlayerWorld world, double angle, Func<bool> runWhile, TimeSpan? timeout = null, Action? onTick = null) =>
+            RunPlayerCommands(world, angle, [TickCommands.Backward], runWhile, timeout, onTick, stopTicks: null, tickAngleTurn: null);
 
         public static void RunPlayerCommands(SinglePlayerWorld world, double angle, TickCommands[] commands, Func<bool> runWhile, TimeSpan? timeout = null, Action? onTick = null) =>
             RunPlayerCommands(world, angle, commands, runWhile, timeout, onTick);
