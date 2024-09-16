@@ -6,10 +6,14 @@ using NFluidsynth;
 using NLog;
 using System;
 using System.IO;
+using ZMusicWrapper;
 using static Helion.Util.Assertion.Assert;
 
 public class FluidSynthMusicPlayer : IMusicPlayer
 {
+    private const int Channels = 2;
+    private const int SampleRate = 44100;
+
     private static readonly NLog.Logger Log = LogManager.GetCurrentClassLogger();
     private string m_lastFile = string.Empty;
     private string? m_soundFontLoaded;
@@ -17,35 +21,32 @@ public class FluidSynthMusicPlayer : IMusicPlayer
     private float m_volume = 1;
     private uint m_soundFontCounter = 0;
 
+    private readonly IOutputStreamFactory m_streamFactory;
     private readonly Settings m_settings;
     private Player? m_player;
     private Synth m_synth;
-    private AudioDriver m_audioDriver;
+    private IOutputStream? m_stream;
+    private Action<short[]>? m_fillBlockAction;
 
-    public FluidSynthMusicPlayer(string soundFontFile)
+    public FluidSynthMusicPlayer(string soundFontFile, IOutputStreamFactory streamFactory, float sourceVolume)
     {
         m_settings = new Settings();
-        m_settings[ConfigurationKeys.SynthAudioChannels].IntValue = 2;
         m_synth = new(m_settings);
-        m_audioDriver = new(m_synth.Settings, m_synth);
+        m_streamFactory = streamFactory;
         EnsureSoundFont(soundFontFile);
+        m_volume = sourceVolume;
     }
 
-    public void SetVolume(float volume)
+    public void SetVolume(float newVolume)
     {
-        m_volume = volume;
-        if (m_player == null || m_disposed)
+        if (m_disposed)
             return;
-        SetVolumeInternal();
+
+        m_volume = newVolume;
+        m_stream?.SetVolume(newVolume);
     }
 
-    private void SetVolumeInternal()
-    {
-        var setting = m_settings[ConfigurationKeys.SynthGain];
-        setting.DoubleValue = m_volume * setting.DoubleDefault;
-    }
-
-    public bool Play(byte[] data, MusicPlayerOptions options)
+    public unsafe bool Play(byte[] data, MusicPlayerOptions options)
     {
         if (m_disposed)
             return false;
@@ -66,8 +67,30 @@ public class FluidSynthMusicPlayer : IMusicPlayer
                 m_player.SetLoop(-1);
 
             m_player.Add(m_lastFile);
-            SetVolumeInternal();
             m_player.Play();
+
+            m_stream = m_streamFactory.GetOutputStream(SampleRate, Channels);
+            m_stream.SetVolume(m_volume);
+
+            float[] sampleBuffer = new float[m_stream.BlockLength * 2];
+            m_fillBlockAction = block =>
+            {
+                if (m_player.Status == FluidPlayerStatus.Playing)
+                {
+                    m_synth.WriteSampleFloat(m_stream.BlockLength, sampleBuffer, 0, 2, sampleBuffer, 1, 2);
+                    for (int i = 0; i < block.Length; i++)
+                    {
+                        short sample = (short)Math.Clamp((int)(32768 * sampleBuffer[i]), short.MinValue, short.MaxValue);
+                        block[i] = sample;
+                    }
+                }
+                else
+                {
+                    m_stream.Stop();
+                }
+            };
+
+            m_stream.Play(m_fillBlockAction);
 
             return true;
         }
@@ -85,6 +108,12 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         if (m_disposed)
             return;
 
+        m_stream?.Stop();
+        m_stream?.Dispose();
+        m_stream = null;
+
+        m_fillBlockAction = null;
+
         m_player?.Stop();
         m_player?.Join();
         m_synth.SystemReset();
@@ -97,6 +126,9 @@ public class FluidSynthMusicPlayer : IMusicPlayer
     {
         try
         {
+            // Pause
+            OutputChanging();
+
             if (soundFontPath != m_soundFontLoaded)
             {
                 if (!string.IsNullOrEmpty(m_soundFontLoaded))
@@ -112,6 +144,9 @@ public class FluidSynthMusicPlayer : IMusicPlayer
                 m_soundFontCounter++;
                 m_soundFontLoaded = soundFontPath;
             }
+
+            // Resume
+            OutputChanged();
         }
         catch (Exception ex)
         {
@@ -122,11 +157,23 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
     public void OutputChanging()
     {
-        // FluidSynth handles this internally.
+        if (m_disposed)
+            return;
+
+        m_stream?.Stop();
+        m_stream?.Dispose();
     }
     public void OutputChanged()
     {
-        // FluidSynth handles this internally.
+        if (m_disposed)
+            return;
+
+        if (m_fillBlockAction != null)
+        {
+            m_stream = m_streamFactory.GetOutputStream(SampleRate, Channels);
+            m_stream.SetVolume(m_volume);
+            m_stream.Play(m_fillBlockAction);
+        }
     }
 
     ~FluidSynthMusicPlayer()
@@ -149,7 +196,6 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         Stop(); // disposes m_player
         try
         {
-            m_audioDriver.Dispose();
             m_synth.Dispose();
             m_settings.Dispose();
         }
