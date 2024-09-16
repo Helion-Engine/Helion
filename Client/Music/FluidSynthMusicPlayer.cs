@@ -120,6 +120,15 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         }
     }
 
+    public void OutputChanging()
+    {
+        // FluidSynth handles this internally.
+    }
+    public void OutputChanged()
+    {
+        // FluidSynth handles this internally.
+    }
+
     ~FluidSynthMusicPlayer()
     {
         FailedToDispose(this);

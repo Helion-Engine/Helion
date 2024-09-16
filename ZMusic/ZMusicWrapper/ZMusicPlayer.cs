@@ -26,6 +26,9 @@ public class ZMusicPlayer : IDisposable
     private bool m_soundFontLoaded;
     private bool m_patchesLoaded;
     private EMidiDevice_ m_midiDevice;
+    private Action<short[]>? m_fillBlockAction;
+    private int m_channels;
+    private int m_samplerate;
 
     private bool m_disposed;
 
@@ -57,6 +60,33 @@ public class ZMusicPlayer : IDisposable
             m_midiDevice = value == MidiDevice.OPL3
                 ? EMidiDevice_.MDEV_OPL
                 : EMidiDevice_.MDEV_FLUIDSYNTH;
+        }
+    }
+
+
+    /// <summary>
+    /// Stop playback on the current output stream and discard it.
+    /// If music was playing at the time, this is resumable.
+    /// </summary>
+    public void Pause()
+    {
+        if (m_activeStream != null)
+        {
+            m_activeStream.Stop();
+            m_activeStream.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Resume playback on a new output stream
+    /// </summary>
+    public void Resume()
+    {
+        if (IsPlayingImpl() && m_fillBlockAction != null)
+        {
+            m_activeStream = m_streamFactory.GetOutputStream(m_samplerate, m_channels);
+            m_activeStream.SetVolume(m_sourceVolume);
+            m_activeStream.Play(m_fillBlockAction);
         }
     }
 
@@ -251,7 +281,10 @@ public class ZMusicPlayer : IDisposable
         if (channels == 0 || Math.Abs(channels) > 2)
             throw new Exception("Unsupported audio format");
 
-        m_activeStream = streamFactory.GetOutputStream(sampleRate, Math.Abs(channels));
+        m_samplerate = sampleRate;
+        m_channels = Math.Abs(channels);
+
+        m_activeStream = streamFactory.GetOutputStream(m_samplerate, m_channels);
         m_activeStream.SetVolume(m_sourceVolume);
 
         m_loop = loop;
@@ -265,7 +298,7 @@ public class ZMusicPlayer : IDisposable
             // Positive:  The samples are 32-bit floats in the range [-1..1] and must be converted by multiplying by 32768.
             float[] data = new float[m_activeStream.ChannelCount * m_activeStream.BlockLength];
 
-            m_activeStream.Play(buffer =>
+            m_fillBlockAction = buffer =>
             {
                 if (IsPlayingImpl())
                 {
@@ -283,12 +316,12 @@ public class ZMusicPlayer : IDisposable
                 {
                     HandleEndOfTrack(buffer);
                 }
-            });
+            };
         }
         else if (channels < 0)
         {
             // Negative:  The samples are shorts and can be copied directly to an output stream.
-            m_activeStream.Play(buffer =>
+            m_fillBlockAction = buffer =>
             {
                 if (IsPlayingImpl())
                 {
@@ -301,7 +334,12 @@ public class ZMusicPlayer : IDisposable
                 {
                     HandleEndOfTrack(buffer);
                 }
-            });
+            };
+        }
+
+        if (m_fillBlockAction != null)
+        {
+            m_activeStream.Play(m_fillBlockAction);
         }
     }
 

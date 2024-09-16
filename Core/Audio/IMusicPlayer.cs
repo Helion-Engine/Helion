@@ -34,5 +34,13 @@ public interface IMusicPlayer : IDisposable
     /// </summary>
     void Stop();
 
-    bool ChangesMasterVolume() => false;
+    /// <summary>
+    /// Ask the music player to stop playback temporarily and discard any outputs it is currently using
+    /// </summary>
+    void OutputChanging();
+
+    /// <summary>
+    /// Ask the music player to resume playback, possibly on a different output than it was using before
+    /// </summary>
+    void OutputChanged();
 }
