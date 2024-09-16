@@ -13,28 +13,35 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 {
     private const int Channels = 2;
     private const int SampleRate = 44100;
+    private const int BlockLength = Channels * SampleRate;
 
     private static readonly NLog.Logger Log = LogManager.GetCurrentClassLogger();
-    private string m_lastFile = string.Empty;
-    private string? m_soundFontLoaded;
+
     private bool m_disposed;
     private float m_volume = 1;
+    private readonly float[] m_sampleBuffer;
+    private string m_lastFile = string.Empty;
+    private string m_soundFontLoaded = string.Empty;
     private uint m_soundFontCounter = 0;
 
     private readonly IOutputStreamFactory m_streamFactory;
     private readonly Settings m_settings;
-    private Player? m_player;
-    private Synth m_synth;
+    private readonly Synth m_synth;
+
     private IOutputStream? m_stream;
-    private Action<short[]>? m_fillBlockAction;
+    private Player? m_player;
 
     public FluidSynthMusicPlayer(string soundFontFile, IOutputStreamFactory streamFactory, float sourceVolume)
     {
+        m_volume = sourceVolume;
+
         m_settings = new Settings();
         m_synth = new(m_settings);
+
         m_streamFactory = streamFactory;
+        m_sampleBuffer = new float[BlockLength];
+
         EnsureSoundFont(soundFontFile);
-        m_volume = sourceVolume;
     }
 
     public void SetVolume(float newVolume)
@@ -69,28 +76,10 @@ public class FluidSynthMusicPlayer : IMusicPlayer
             m_player.Add(m_lastFile);
             m_player.Play();
 
-            m_stream = m_streamFactory.GetOutputStream(SampleRate, Channels);
+            m_stream ??= m_streamFactory.GetOutputStream(SampleRate, Channels);
             m_stream.SetVolume(m_volume);
 
-            float[] sampleBuffer = new float[m_stream.BlockLength * 2];
-            m_fillBlockAction = block =>
-            {
-                if (m_player.Status == FluidPlayerStatus.Playing)
-                {
-                    m_synth.WriteSampleFloat(m_stream.BlockLength, sampleBuffer, 0, 2, sampleBuffer, 1, 2);
-                    for (int i = 0; i < block.Length; i++)
-                    {
-                        short sample = (short)Math.Clamp((int)(32768 * sampleBuffer[i]), short.MinValue, short.MaxValue);
-                        block[i] = sample;
-                    }
-                }
-                else
-                {
-                    m_stream.Stop();
-                }
-            };
-
-            m_stream.Play(m_fillBlockAction);
+            m_stream.Play(FillBlock);
 
             return true;
         }
@@ -103,27 +92,43 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         return false;
     }
 
+    private void FillBlock(short[] sampleBlock)
+    {
+        if (m_player?.Status == FluidPlayerStatus.Playing)
+        {
+            m_synth.WriteSampleFloat(m_stream!.BlockLength, m_sampleBuffer, 0, 2, m_sampleBuffer, 1, 2);
+            for (int i = 0; i < sampleBlock.Length; i++)
+            {
+                short sample = (short)Math.Clamp((int)(32768 * m_sampleBuffer[i]), short.MinValue, short.MaxValue);
+                sampleBlock[i] = sample;
+            }
+        }
+        else
+        {
+            m_stream?.Stop();
+        }
+    }
+
     public void Stop()
     {
         if (m_disposed)
             return;
 
         m_stream?.Stop();
-        m_stream?.Dispose();
-        m_stream = null;
-
-        m_fillBlockAction = null;
 
         m_player?.Stop();
         m_player?.Join();
-        m_synth.SystemReset();
-
         m_player?.Dispose();
         m_player = null;
+
+        m_synth.SystemReset();
     }
 
     public void EnsureSoundFont(string soundFontPath)
     {
+        if (m_disposed)
+            return;
+
         try
         {
             // Pause
@@ -162,17 +167,20 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
         m_stream?.Stop();
         m_stream?.Dispose();
+        m_stream = null;
     }
+
     public void OutputChanged()
     {
         if (m_disposed)
             return;
 
-        if (m_fillBlockAction != null)
+        m_stream = m_streamFactory.GetOutputStream(SampleRate, Channels);
+        m_stream.SetVolume(m_volume);
+
+        if (m_player?.Status == FluidPlayerStatus.Playing)
         {
-            m_stream = m_streamFactory.GetOutputStream(SampleRate, Channels);
-            m_stream.SetVolume(m_volume);
-            m_stream.Play(m_fillBlockAction);
+            m_stream.Play(FillBlock);
         }
     }
 
@@ -196,6 +204,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         Stop(); // disposes m_player
         try
         {
+            m_stream?.Dispose();
             m_synth.Dispose();
             m_settings.Dispose();
         }

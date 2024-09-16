@@ -50,6 +50,7 @@ public sealed class AudioStream : IOutputStream
     private readonly short[] m_monoBlockData;
     private readonly short[] m_blockData;
     private readonly int[] m_alBufferQueue;
+    private readonly int m_bufferRefreshInterval;
 
     private Action<short[]>? m_fillBlock;
     private CancellationTokenSource? m_pollingCts;
@@ -82,7 +83,7 @@ public sealed class AudioStream : IOutputStream
                 ? blockLength
                 : throw new ArgumentException("The block length must be greater than or equal to 8.", nameof(blockLength));
 
-            int bufferCount = Math.Max(2, (int)Math.Ceiling((double)(sampleRate * latency) / (1000 * blockLength)));
+            int bufferCount = Math.Max(4, (int)Math.Ceiling((double)(sampleRate * latency) / (1000 * blockLength)));
 
             m_alBuffers = new int[bufferCount];
             for (int i = 0; i < m_alBuffers.Length; i++)
@@ -93,6 +94,10 @@ public sealed class AudioStream : IOutputStream
                     throw new Exception("Failed to generate an audio buffer.");
                 }
             }
+
+            // Calculate an interval for how often we should wake up and try to fill our buffers.
+            // We'll try to wake up when about half of the buffers have been played.
+            m_bufferRefreshInterval = bufferCount * blockLength * 1000 / (sampleRate * 2);
 
             // Work around some other quirks in Helion's audio by _always_ requesting stereo.
             m_format = ALFormat.Stereo16;
@@ -200,7 +205,7 @@ public sealed class AudioStream : IOutputStream
                 AL.SourcePlay(m_alSource);
             }
 
-            Thread.Sleep(1);
+            Thread.Sleep(m_bufferRefreshInterval);
         }
 
         AL.SourceStop(m_alSource);

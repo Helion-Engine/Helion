@@ -11,22 +11,24 @@ using System.Threading.Tasks;
 /// </summary>
 public class ZMusicPlayer : IDisposable
 {
-    private const int DefaultSampleRate = 44100;
+    private const int DefaultSampleRate = 44_100;
+    private const int DefaultSampleRate_OPL = 49_716; // source: https://en.wikipedia.org/wiki/Yamaha_OPL
     private const int DefaultChannels = 2;
 
+    private EMidiDevice_ m_midiDevice;
     private IOutputStreamFactory m_streamFactory;
+    private bool m_patchesLoaded;
+    private bool m_soundFontLoaded;
+    private float m_sourceVolume;
     private string m_soundFontPath;
 
-    private IOutputStream? m_activeStream;
-    private Task? m_playStartTask;
-    private IntPtr m_zMusicSong;
-    private Action? m_stoppedAction;
-    private float m_sourceVolume;
-    private bool m_loop;
-    private bool m_soundFontLoaded;
-    private bool m_patchesLoaded;
-    private EMidiDevice_ m_midiDevice;
     private Action<short[]>? m_fillBlockAction;
+    private Action? m_stoppedAction;
+    private IOutputStream? m_activeStream;
+    private IntPtr m_zMusicSong;
+    private Task? m_playStartTask;
+    private bool m_loop;
+    private float[]? m_floatSampleData;
     private int m_channels;
     private int m_samplerate;
 
@@ -68,7 +70,7 @@ public class ZMusicPlayer : IDisposable
     /// Stop playback on the current output stream and discard it.
     /// If music was playing at the time, this is resumable.
     /// </summary>
-    public void Pause()
+    public void OnDeviceChanging()
     {
         if (m_activeStream != null)
         {
@@ -80,7 +82,7 @@ public class ZMusicPlayer : IDisposable
     /// <summary>
     /// Resume playback on a new output stream
     /// </summary>
-    public void Resume()
+    public void OnDeviceChanged()
     {
         if (IsPlayingImpl() && m_fillBlockAction != null)
         {
@@ -204,26 +206,33 @@ public class ZMusicPlayer : IDisposable
 
             if (ZMusic.ZMusic_IsMIDI(song) == 0)
             {
-                PlayStream(song, info.mSampleRate, info.mNumChannels, loop, m_streamFactory);
+                PlayStream(info.mSampleRate, info.mNumChannels, loop);
             }
             else
             {
-                if (m_midiDevice == EMidiDevice_.MDEV_OPL && m_patchesLoaded)
+                if (m_midiDevice == EMidiDevice_.MDEV_OPL)
                 {
+                    if (!m_patchesLoaded)
+                    {
+                        throw new Exception("Cannot use OPL synth without patches loaded.");
+                    }
+
                     ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_opl_numchips, song, 8, null);
                     // OPL cores:
                     // 0 YM3812
                     // 1 DBOPL
                     // 2 JavaOPL
                     // 3 NukedOPL3
-                    ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_opl_core, song, 0, null);
+                    ZMusic.ChangeMusicSettingInt(EIntConfigKey_.zmusic_opl_core, song, 3, null);
+                    PlayStream(DefaultSampleRate_OPL, 2, loop);
                 }
-                if (!m_soundFontLoaded && m_midiDevice != EMidiDevice_.MDEV_OPL)
+                else
                 {
-                    SetSoundFont(song, m_soundFontPath);
-                }
+                    if (!m_soundFontLoaded)
+                        SetSoundFont(song, m_soundFontPath);
 
-                PlayStream(song, DefaultSampleRate, DefaultChannels, loop, m_streamFactory);
+                    PlayStream(DefaultSampleRate, DefaultChannels, loop);
+                }
             }
         }
         catch (Exception e)
@@ -276,7 +285,7 @@ public class ZMusicPlayer : IDisposable
         }
     }
 
-    private unsafe void PlayStream(_ZMusic_MusicStream_Struct* song, int sampleRate, int channels, bool loop, IOutputStreamFactory streamFactory)
+    private unsafe void PlayStream(int sampleRate, int channels, bool loop)
     {
         if (channels == 0 || Math.Abs(channels) > 2)
             throw new Exception("Unsupported audio format");
@@ -284,11 +293,17 @@ public class ZMusicPlayer : IDisposable
         m_samplerate = sampleRate;
         m_channels = Math.Abs(channels);
 
-        m_activeStream = streamFactory.GetOutputStream(m_samplerate, m_channels);
-        m_activeStream.SetVolume(m_sourceVolume);
+        // Only get a new stream if the sample rate or channel count differs from the previous track.
+        if (m_activeStream?.SampleRate != m_samplerate || m_activeStream?.ChannelCount != m_channels)
+        {
+            m_activeStream?.Dispose();
+            m_activeStream = m_streamFactory.GetOutputStream(m_samplerate, m_channels);
+            m_activeStream.SetVolume(m_sourceVolume);
+            m_floatSampleData = new float[m_activeStream.ChannelCount * m_activeStream.BlockLength];
+        }
 
         m_loop = loop;
-        _ = ZMusic.ZMusic_Start(song, 0, Convert.ToByte(loop));
+        _ = ZMusic.ZMusic_Start((_ZMusic_MusicStream_Struct*)m_zMusicSong, 0, Convert.ToByte(loop));
 
         // The samples returned from ZMusic will be in one of two formats, depending on the _sign_ of the channel count
         // it reported when opening the data.  In all cases, the _output_ must be a signed short.
@@ -296,50 +311,52 @@ public class ZMusicPlayer : IDisposable
         if (channels > 0)
         {
             // Positive:  The samples are 32-bit floats in the range [-1..1] and must be converted by multiplying by 32768.
-            float[] data = new float[m_activeStream.ChannelCount * m_activeStream.BlockLength];
-
-            m_fillBlockAction = buffer =>
-            {
-                if (IsPlayingImpl())
-                {
-                    fixed (float* p = data)
-                    {
-                        _ = ZMusic.ZMusic_FillStream(song, p, sizeof(float) * data.Length);
-                    }
-                    for (int i = 0; i < buffer.Length; i++)
-                    {
-                        short sample = (short)Math.Clamp((int)(32768 * data[i]), short.MinValue, short.MaxValue);
-                        buffer[i] = sample;
-                    }
-                }
-                else
-                {
-                    HandleEndOfTrack(buffer);
-                }
-            };
+            m_fillBlockAction = FillStreamFromFloatSource;
         }
         else if (channels < 0)
         {
             // Negative:  The samples are shorts and can be copied directly to an output stream.
-            m_fillBlockAction = buffer =>
-            {
-                if (IsPlayingImpl())
-                {
-                    fixed (short* b = buffer)
-                    {
-                        _ = ZMusic.ZMusic_FillStream(song, b, sizeof(short) * buffer.Length);
-                    }
-                }
-                else
-                {
-                    HandleEndOfTrack(buffer);
-                }
-            };
+            m_fillBlockAction = FillStreamBufferDirectly;
         }
 
         if (m_fillBlockAction != null)
         {
             m_activeStream.Play(m_fillBlockAction);
+        }
+    }
+
+    private unsafe void FillStreamFromFloatSource(short[] buffer)
+    {
+        if (IsPlayingImpl())
+        {
+            fixed (float* p = m_floatSampleData ?? throw new NullReferenceException())
+            {
+                _ = ZMusic.ZMusic_FillStream((_ZMusic_MusicStream_Struct*)m_zMusicSong, p, sizeof(float) * m_floatSampleData.Length);
+            }
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                short sample = (short)Math.Clamp((int)(32768 * m_floatSampleData[i]), short.MinValue, short.MaxValue);
+                buffer[i] = sample;
+            }
+        }
+        else
+        {
+            HandleEndOfTrack(buffer);
+        }
+    }
+
+    private unsafe void FillStreamBufferDirectly(short[] buffer)
+    {
+        if (IsPlayingImpl())
+        {
+            fixed (short* b = buffer)
+            {
+                _ = ZMusic.ZMusic_FillStream((_ZMusic_MusicStream_Struct*)m_zMusicSong, b, sizeof(short) * buffer.Length);
+            }
+        }
+        else
+        {
+            HandleEndOfTrack(buffer);
         }
     }
 
@@ -378,8 +395,6 @@ public class ZMusicPlayer : IDisposable
 
             // Stop playing
             m_activeStream?.Stop();
-            m_activeStream?.Dispose();
-            m_activeStream = null;
 
             // Ask ZMusic to close the stream
             if (m_zMusicSong != IntPtr.Zero)
@@ -391,6 +406,8 @@ public class ZMusicPlayer : IDisposable
                 ZMusic.ZMusic_Close((_ZMusic_MusicStream_Struct*)m_zMusicSong);
                 m_zMusicSong = IntPtr.Zero;
             }
+
+            m_fillBlockAction = null;
         }
         catch (Exception e)
         {
@@ -405,6 +422,8 @@ public class ZMusicPlayer : IDisposable
             if (disposing)
             {
                 Stop();
+                m_activeStream?.Dispose();
+                m_activeStream = null;
             }
 
             m_disposed = true;

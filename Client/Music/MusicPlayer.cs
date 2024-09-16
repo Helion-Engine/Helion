@@ -55,13 +55,13 @@ public class MusicPlayer : IMusicPlayer
 
     public void OutputChanging()
     {
-        m_zMusicPlayer.Pause();
+        m_zMusicPlayer.OnDeviceChanging();
         m_fluidSynthPlayer.OutputChanging();
     }
 
     public void OutputChanged()
     {
-        m_zMusicPlayer.Resume();
+        m_zMusicPlayer.OnDeviceChanged();
         m_fluidSynthPlayer.OutputChanged();
     }
 
