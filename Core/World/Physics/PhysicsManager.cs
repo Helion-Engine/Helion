@@ -1132,7 +1132,7 @@ doneLinkToSectors:
             }
 
             success = false;
-            if (ShouldClearSlide(entity, TryMoveData))
+            if (ShouldClearSlide(TryMoveData))
                 ClearVelocityXY(entity);
             break;
         }
@@ -1451,7 +1451,7 @@ doneLinkToSectors:
 
         // If we cannot find the line or thing that is blocking us, then we
         // are fully done moving horizontally.
-        if (ShouldClearSlide(entity, tryMove))
+        if (ShouldClearSlide(tryMove))
             ClearVelocityXY(entity);
         stepDelta.X = 0;
         stepDelta.Y = 0;
@@ -1650,7 +1650,7 @@ doneLinkToSectors:
             if (IsPositionValid(entity, nextX, entity.Position.Y, tryMove))
             {
                 MoveTo(entity, nextX, entity.Position.Y, tryMove);
-                if (ShouldClearSlide(entity, tryMove))
+                if (ShouldClearSlide(tryMove))
                     entity.Velocity.Y = 0;
                 stepDelta.Y = 0;
                 return true;
@@ -1662,7 +1662,7 @@ doneLinkToSectors:
             if (IsPositionValid(entity, entity.Position.X, nextY, tryMove))
             {
                 MoveTo(entity, entity.Position.X, nextY, tryMove);
-                if (ShouldClearSlide(entity, tryMove))
+                if (ShouldClearSlide(tryMove))
                     entity.Velocity.X = 0;
                 stepDelta.X = 0;
                 return true;
@@ -1672,12 +1672,9 @@ doneLinkToSectors:
         return false;
     }
 
-    private static bool ShouldClearSlide(Entity entity, TryMoveData tryMove)
+    private static bool ShouldClearSlide(TryMoveData tryMove)
     {
-        if (!WorldStatic.VanillaMovementPhysics)
-            return true;
-
-        return tryMove.BlockingEntity == null;
+        return !WorldStatic.VanillaMovementPhysics && tryMove.BlockingEntity != null;
     }
 
     private void MoveXY(Entity entity)
