@@ -2,6 +2,7 @@ using System;
 using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
@@ -174,8 +175,19 @@ public class SkySphereRenderer : IDisposable
         m_skyProgram.Mvp(CalculateMvp(renderInfo));
         m_skyProgram.Scale(new Vec2F(skyTexture.ScaleU * skyTransform.Scale.X, 0));
         m_skyProgram.FlipU(flipSkyHorizontal);
-        m_skyProgram.TopColor(skyTexture.TopColor);
-        m_skyProgram.BottomColor(skyTexture.BottomColor);
+        m_skyProgram.ColorMix(renderInfo.Uniforms.ColorMix.Sky);
+
+        if (ShaderVars.PaletteColorMode)
+        {
+            m_skyProgram.TopColor(new Vec4F(skyTexture.TopColorIndex / 255f, 0, 0, 0));
+            m_skyProgram.BottomColor(new Vec4F(skyTexture.BottomColorIndex / 255f, 0, 0, 0));
+        }
+        else
+        {
+            m_skyProgram.TopColor(skyTexture.TopColor);
+            m_skyProgram.BottomColor(skyTexture.BottomColor);
+        }
+
         m_skyProgram.HasInvulnerability(invulnerability);
         m_skyProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_skyProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
@@ -199,8 +211,19 @@ public class SkySphereRenderer : IDisposable
         m_foregroundProgram.Mvp(CalculateMvp(renderInfo));
         m_foregroundProgram.Scale(new Vec2F(skyTexture.ScaleU * foregroundTransform.Scale.X, 0));
         m_foregroundProgram.FlipU(flipSkyHorizontal);
-        m_foregroundProgram.TopColor(skyTexture.TopColor);
-        m_foregroundProgram.BottomColor(skyTexture.BottomColor);
+        m_foregroundProgram.ColorMix(renderInfo.Uniforms.ColorMix.Sky);
+
+        if (ShaderVars.PaletteColorMode)
+        {
+            m_foregroundProgram.TopColor(new Vec4F(skyTexture.TopColorIndex / 255f, 0, 0, 0));
+            m_foregroundProgram.BottomColor(new Vec4F(skyTexture.BottomColorIndex / 255f, 0, 0, 0));
+        }
+        else
+        {
+            m_foregroundProgram.TopColor(skyTexture.TopColor);
+            m_foregroundProgram.BottomColor(skyTexture.BottomColor);
+        }
+
         m_foregroundProgram.HasInvulnerability(invulnerability);
         m_foregroundProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_foregroundProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
@@ -230,6 +253,7 @@ public class SkySphereRenderer : IDisposable
         m_foregroundProgram.Mvp(CalculateMvp(renderInfo));
         m_foregroundProgram.Scale(new Vec2F(skyTexture.ScaleU * foregroundTransform.Scale.X, 0));
         m_foregroundProgram.FlipU(flipSkyHorizontal);
+        m_foregroundProgram.ColorMix(renderInfo.Uniforms.ColorMix.Sky);
         m_foregroundProgram.TopColor(Vec4F.Zero);
         m_foregroundProgram.BottomColor(Vec4F.Zero);
         m_foregroundProgram.HasInvulnerability(invulnerability);

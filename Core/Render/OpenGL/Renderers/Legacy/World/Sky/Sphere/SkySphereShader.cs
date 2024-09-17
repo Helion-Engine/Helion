@@ -22,6 +22,7 @@ public class SkySphereShader : RenderProgram
     private readonly int m_skyHeightLocation;
     private readonly int m_skyMin;
     private readonly int m_skyMax;
+    private readonly int m_colorMixLocation;
 
     public SkySphereShader() : base("Sky sphere")
     {
@@ -39,6 +40,7 @@ public class SkySphereShader : RenderProgram
         m_skyHeightLocation = Uniforms.GetLocation("skyHeight");
         m_skyMin = Uniforms.GetLocation("skyMin");
         m_skyMax = Uniforms.GetLocation("skyMax");
+        m_colorMixLocation = Uniforms.GetLocation("colorMix");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -55,6 +57,7 @@ public class SkySphereShader : RenderProgram
     public void SkyHeight(float height) => Uniforms.Set(height, m_skyHeightLocation);
     public void SkyMin(float value) => Uniforms.Set(value, m_skyMin);
     public void SkyMax(float value) => Uniforms.Set(value, m_skyMax);
+    public void ColorMix(Vec3F value) => Uniforms.Set(value, m_colorMixLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -78,6 +81,19 @@ public class SkySphereShader : RenderProgram
         }
     ";
 
+    public static string FetchTopBottomColors =>
+        ShaderVars.PaletteColorMode ?
+@"
+int topTexIndex = lightLevelOffset + (useColormap * colormapSize) + (usePalette * paletteSize + int(topColor.r * 255.0));
+vec4 topFetchColor = vec4(texelFetch(colormapTexture, topTexIndex).rgb, 1);
+int bottomTexIndex = lightLevelOffset + (useColormap * colormapSize) + (usePalette * paletteSize + int(bottomColor.r * 255.0));
+vec4 bottomFetchColor = vec4(texelFetch(colormapTexture, bottomTexIndex).rgb, 1);"
+:
+@"
+vec4 topFetchColor = topColor;
+vec4 bottomFetchColor = bottomColor;
+";
+
     protected override string FragmentShader() => @"
         #version 330
 
@@ -95,6 +111,7 @@ public class SkySphereShader : RenderProgram
         uniform float skyHeight;
         uniform float skyMin;
         uniform float skyMax;
+        uniform vec3 colorMix;
 
         uniform vec4 topColor;
         uniform vec4 bottomColor;
@@ -114,29 +131,41 @@ public class SkySphereShader : RenderProgram
             return vec2(uvFrag.x / scale.x + scrollOffsetFrag.x, skyV + scrollOffsetFrag.y);
         }
 
-        void main() {            
+        vec4 blendSky(vec4 fragColor, vec4 topBlendColor, vec4 bottomBlendColor) {
+            float blendAmount = skyHeight / 4.6;
+            if (uvFrag.y < skyMax && uvFrag.y > skyMax - blendAmount)
+                fragColor = vec4(mix(bottomBlendColor.rgb, fragColor.rgb, (skyMax - uvFrag.y) / blendAmount), 1);
+            if (uvFrag.y > skyMin && uvFrag.y < skyMin + blendAmount)
+                fragColor = vec4(mix(topBlendColor.rgb, fragColor.rgb, ((uvFrag.y - skyMin) / blendAmount)), 1);
+            return fragColor;
+        }
+
+        void main() {
+            vec2 skyUV = vec2(uvFrag.x / scale.x + scrollOffsetFrag.x, (uvFrag.y - 0.5 + scrollOffsetFrag.y) / skyHeight);
+            fragColor = texture(boundTexture, skyUV);
             if (uvFrag.y < skyMin) {
                 fragColor = topColor;
             }
             else if (uvFrag.y > skyMax) {
                 fragColor = bottomColor;
             }
-            else {
-                vec2 skyUV = vec2(uvFrag.x / scale.x + scrollOffsetFrag.x, (uvFrag.y - 0.5 + scrollOffsetFrag.y) / skyHeight);
-                fragColor = texture(boundTexture, skyUV);
-            }
 
             ${ColorMapFetch}
+            ${FetchTopBottomColors}
+            if (uvFrag.y < skyMin) {
+                fragColor = topFetchColor;
+            }
+            else if (uvFrag.y > skyMax) {
+                fragColor = bottomFetchColor;
+            }
             fragColor.a = 1;
-            ${InvulnerabilityFragColor}
 
-            float blendAmount = skyHeight / 4.6;
-            if (uvFrag.y < skyMax && uvFrag.y > skyMax - blendAmount)
-                fragColor = vec4(mix(bottomColor.rgb, fragColor.rgb, (skyMax - uvFrag.y) / blendAmount), 1);
-            if (uvFrag.y > skyMin && uvFrag.y < skyMin + blendAmount)
-                fragColor = vec4(mix(topColor.rgb, fragColor.rgb, ((uvFrag.y - skyMin) / blendAmount)), 1);
+            fragColor = blendSky(fragColor, topFetchColor, bottomFetchColor);
+            fragColor.xyz *= min(colorMix, 1);
+            ${InvulnerabilityFragColor}
         }
     "
+    .Replace("${FetchTopBottomColors}", FetchTopBottomColors)
     .Replace("${InvulnerabilityFragColor}", FragFunction.InvulnerabilityFragColor)
     .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false, ColorMapFetchContext.Default));
 }
