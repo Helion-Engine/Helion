@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Graphics.Palettes;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
@@ -12,7 +13,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
-public record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIndex, float ScaleU, Vec4F TopColor, Vec4F BottomColor);
+public record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIndex, float ScaleU, Vec4F TopColor, Vec4F BottomColor, int TopColorIndex, int BottomColorIndex);
 
 // The sky texture looks like this (p = padding):
 //
@@ -90,7 +91,7 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         if (findSkyTexture != null)
             CheckSkyFireUpdate(findSkyTexture.Value.GlTexture, textureIndex);
 
-        return findSkyTexture ?? new SkyTexture(m_textureManager.NullTexture, 0, 1, Vec4F.Zero, Vec4F.Zero);
+        return findSkyTexture ?? new SkyTexture(m_textureManager.NullTexture, 0, 1, Vec4F.Zero, Vec4F.Zero, 0, 0);
     }
 
     private void CheckSkyFireUpdate(GLLegacyTexture skyTexture, int textureIndex)
@@ -211,9 +212,16 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
 
         float scaleU = CalculateScale(skyImage.Dimension.Width);
         GetAverageColors(skyImage, out var topColor, out var bottomColor);
+        var colormap = m_archiveCollection.Colormap;
         var glTexture = CreateTexture(skyImage, $"[SKY][{textureIndex}] {m_archiveCollection.TextureManager.SkyTextureName}");
-        texture = new(glTexture, textureIndex, scaleU, topColor, bottomColor);
+        texture = new(glTexture, textureIndex, scaleU, topColor, bottomColor, 
+            colormap.GetNearestColorIndex(FromRgba(topColor)), colormap.GetNearestColorIndex(FromRgba(bottomColor)));
         return true;
+    }
+
+    private static Color FromRgba(Vec4F rgba)
+    {
+        return new Color((byte)(rgba.W * 255), (byte)(rgba.X * 255), (byte)(rgba.Y * 255), (byte)(rgba.Z * 255));
     }
 
     private void GetAverageColors(Image skyImage, out Vec4F topColor, out Vec4F bottomColor)
