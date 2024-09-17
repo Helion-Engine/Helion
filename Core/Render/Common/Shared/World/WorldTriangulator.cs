@@ -203,8 +203,18 @@ public static class WorldTriangulator
         verticesToPopulate.EnsureCapacity(subsector.SegCount);
         verticesToPopulate.SetLength(subsector.SegCount);
 
-        double z = overrideZ == int.MaxValue ? sectorPlane.Z : overrideZ;
-        double prevZ = sectorPlane.PrevZ;
+        double z, prevZ;
+        if (overrideZ == int.MaxValue)
+        {
+            z = sectorPlane.Z;
+            prevZ = sectorPlane.PrevZ;
+        }
+        else
+        {
+            z = overrideZ;
+            prevZ = overrideZ;
+        }
+
         Vec2D uv = default;
         Vec2D prevUV = default;
         Vec2D offset = sectorPlane.RenderOffsets.Offset;
