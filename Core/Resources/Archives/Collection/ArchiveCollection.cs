@@ -45,6 +45,11 @@ namespace Helion.Resources.Archives.Collection;
 /// </summary>
 public class ArchiveCollection : IResources, IPathResolver
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    public event EventHandler<Archive>? ArchiveLoaded;
+    public event EventHandler<Archive>? ArchiveRead;
+
     public static readonly DataCache StaticDataCache = new();
 
     public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
@@ -54,6 +59,7 @@ public class ArchiveCollection : IResources, IPathResolver
     public Archive? Assets => m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.Assets);
     public Archive? IWad => m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.IWAD);
     public IEnumerable<Archive> Archives => m_archives.Where(x => x.ArchiveType == ArchiveType.None);
+    public IEnumerable<Archive> AllArchives => m_archives;
     public AnimatedDefinitions Animdefs => Definitions.Animdefs;
     public BoomAnimatedDefinition BoomAnimated => Definitions.BoomAnimated;
     public BoomSwitchDefinition BoomSwitches => Definitions.BoomSwitches;
@@ -305,7 +311,7 @@ public class ArchiveCollection : IResources, IPathResolver
         }
 
         Loaded = true;
-        List<string> filePaths = new();
+        List<string> filePaths = [];
         Archive? iwadArchive = null;
 
         if (iwadTypeOverride.HasValue)
@@ -323,7 +329,6 @@ public class ArchiveCollection : IResources, IPathResolver
             m_archives.Add(assetsArchive);
         }
 
-        // TODO: in wads that provide DSSECRET, the extras.wad version is still being played, so something isn't being done properly here
         if (checkGameConfArchives)
             m_archives.AddRange(LoadGameConfArchives(iwad, files));
 
@@ -395,7 +400,7 @@ public class ArchiveCollection : IResources, IPathResolver
         GameConfDefinition gameConfDef = new();
         foreach (string wad in wads)
         {
-            Archive? archive = LoadArchive(wad, null);
+            Archive? archive = LoadArchive(wad, null, isLoadEvent: false);
             var entry = archive?.GetEntryByName("GAMECONF");
             if (entry != null)
                 gameConfDef.Parse(entry);
@@ -539,12 +544,12 @@ public class ArchiveCollection : IResources, IPathResolver
         return archive;
     }
 
-    private Archive? LoadArchive(string filePath, string? md5)
+    private Archive? LoadArchive(string filePath, string? md5, bool isLoadEvent = true)
     {
         Archive? archive = m_archiveLocator.Locate(filePath);
         if (archive == null)
         {
-            HelionLog.Error($"Failure when loading {filePath}");
+            Log.Error($"Failure when loading {filePath}");
             return null;
         }
 
@@ -552,7 +557,11 @@ public class ArchiveCollection : IResources, IPathResolver
         if (md5 != null)
             archive.MD5 = md5;
 
-        HelionLog.Info($"Loaded {filePath}");
+        if (isLoadEvent)
+            ArchiveLoaded?.Invoke(this, archive);
+        else
+            ArchiveRead?.Invoke(this, archive);
+
         return archive;
     }
 

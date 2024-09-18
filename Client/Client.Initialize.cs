@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
 using Helion.Layer.IwadSelection;
+using Helion.Resources.Archives;
 using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Id24;
@@ -40,9 +41,9 @@ public partial class Client
             // transform WAD list per GAMECONF spec
             if (!m_wadListTransformed)
             {
-                var wads = m_archiveCollection.GetWadsFromGameConfs(m_iwad, m_commandLineArgs.Files);
-                m_iwad = wads.iwad;
-                m_pwads = wads.pwads;
+                var (iwad, pwads) = m_archiveCollection.GetWadsFromGameConfs(m_iwad, m_commandLineArgs.Files);
+                m_iwad = iwad;
+                m_pwads = pwads;
                 m_wadListTransformed = true;
             }
 
@@ -55,7 +56,7 @@ public partial class Client
                 return;
             }
 
-            bool success = await Task.Run(() => LoadFiles());
+            bool success = await Task.Run(LoadFiles);
             m_layerManager.Remove(m_layerManager.LoadingLayer);
             if (!success)
             {
@@ -112,19 +113,39 @@ public partial class Client
 
     private bool LoadFiles()
     {
-        if (!m_archiveCollection.Load(m_pwads, m_iwad, dehackedPatch: m_commandLineArgs.DehackedPatch, checkGameConfArchives: true))
-        {
-            if (m_archiveCollection.Assets == null)
-                ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
-            else if (m_archiveCollection.IWad == null)
-                ShowFatalError("Failed to load IWAD.");
-            else
-                ShowFatalError("Failed to load files.");
-            return false;
-        }
-
+        m_archiveCollection.ArchiveLoaded += ArchiveCollection_ArchiveLoaded;
+        m_archiveCollection.ArchiveRead += ArchiveCollection_ArchiveRead;
+        bool success = HandleArchiveLoad();
+        m_archiveCollection.ArchiveLoaded -= ArchiveCollection_ArchiveLoaded;
+        m_archiveCollection.ArchiveRead -= ArchiveCollection_ArchiveRead;
         m_filesLoaded = true;
-        return true;
+        return success;
+
+        bool HandleArchiveLoad()
+        {
+            if (!m_archiveCollection.Load(m_pwads, m_iwad, dehackedPatch: m_commandLineArgs.DehackedPatch, checkGameConfArchives: true))
+            {
+                if (m_archiveCollection.Assets == null)
+                    ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
+                else if (m_archiveCollection.IWad == null)
+                    ShowFatalError("Failed to load IWAD.");
+                else
+                    ShowFatalError("Failed to load files.");
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    private void ArchiveCollection_ArchiveRead(object? sender, Archive archive)
+    {
+        Log.Info($"Reading {archive.OriginalFilePath}");
+    }
+
+    private void ArchiveCollection_ArchiveLoaded(object? sender, Archive archive)
+    {
+        Log.Info($"Loaded {archive.OriginalFilePath}");
     }
 
     private bool CheckLoadMap()
