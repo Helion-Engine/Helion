@@ -377,19 +377,19 @@ public class ArchiveCollection : IResources, IPathResolver
         var gameConfData = Definitions.GameConfDefinition.Data;
         if (gameConfData != null)
         {
-            const string extrasName = "extras.wad";
-            Archive? extrasArchive = LoadArchive(extrasName, null);
+            const string ExtrasName = "extras.wad";
+            Archive? extrasArchive = LoadArchive(ExtrasName, null);
             if (extrasArchive == null)
-                HelionLog.Error($"Unable to open {extrasName} for GAMECONF config");
+                HelionLog.Error($"Unable to open {ExtrasName} for GAMECONF config");
             else
                 m_archives.Add(extrasArchive);
 
             if (gameConfData?.Executable == GameConfConstants.Executable.Id24)
             {
-                const string id24ResName = "id24res.wad";
-                Archive? id24ResArchive = LoadArchive(id24ResName, null);
+                const string Id24ResName = "id24res.wad";
+                Archive? id24ResArchive = LoadArchive(Id24ResName, null);
                 if (id24ResArchive == null)
-                    HelionLog.Error($"Unable to open {id24ResName} for ID24 config");
+                    HelionLog.Error($"Unable to open {Id24ResName} for ID24 config");
                 else
                     m_archives.Add(id24ResArchive);
             }
