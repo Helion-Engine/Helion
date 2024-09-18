@@ -63,7 +63,7 @@ Install dependencies first:
 #### Debian/Ubuntu
 
 ```sh
-sudo apt install dotnet-sdk-8.0 libfluidsynth-dev libopenal-dev
+sudo apt install dotnet-sdk-8.0 libopenal-dev
 ```
 
 Then go to the "Command Line Build" section below.
@@ -71,7 +71,7 @@ Then go to the "Command Line Build" section below.
 #### Fedora
 
 ```sh
-sudo dnf install dotnet-sdk-8.0 fluidsynth-devel openal-devel
+sudo dnf install dotnet-sdk-8.0 openal-devel
 ```
 
 After installing dependencies, if you have an IDE that supports C# (like Rider), you can open Helion and build/run directly.  You can also build from the command line, as described in the section below.

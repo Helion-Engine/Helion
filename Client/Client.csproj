@@ -44,12 +44,12 @@
   <ItemGroup>
     <PackageReference Include="OpenAL.Soft" Version="1.19.1" />
     <PackageReference Include="OpenTK" Version="4.7.4" />
-    <PackageReference Include="SpaceWizards.NFluidsynth" Version="0.1.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\ZMusic\ZMusicWrapper\ZMusicWrapper.csproj" />
+    <ProjectReference Include="..\NFluidsynth\NFluidsynth.csproj" />
   </ItemGroup>
 
   <Target Name="SetPublishDir" BeforeTargets="Build">

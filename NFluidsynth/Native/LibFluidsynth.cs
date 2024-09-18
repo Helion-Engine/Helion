@@ -1,14 +1,22 @@
-﻿namespace ZMusicWrapper.Generated
-{
-    using System;
-    using System.Reflection;
-    using System.Runtime.InteropServices;
+﻿using System;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
-    public unsafe partial class ZMusic
+namespace NFluidsynth.Native
+{
+    internal static partial class LibFluidsynth
     {
+        public const string LibraryName = "fluidsynth";
         private static bool RegisteredResolver;
 
-        static ZMusic()
+        // Supports both ABI 2 and ABI 3 of Fluid Synth
+        // https://abi-laboratory.pro/index.php?view=timeline&l=fluidsynth
+        public static int LibraryVersion { get; private set; } = 3;
+
+        public const int FluidOk = 0;
+        public const int FluidFailed = -1;
+
+        static LibFluidsynth()
         {
             RegisteredResolver = false;
             RegisterDllResolver();
@@ -18,7 +26,7 @@
         {
             if (!RegisteredResolver)
             {
-                NativeLibrary.SetDllImportResolver(typeof(ZMusic).Assembly, ImportResolver);
+                NativeLibrary.SetDllImportResolver(typeof(LibFluidsynth).Assembly, ImportResolver);
                 RegisteredResolver = true;
             }
         }
@@ -40,10 +48,10 @@
         {
 #pragma warning disable IDE0046 // if/else collapsing produces very dense code here
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return ["zmusic.dll"];
+                return ["fluidsynth.dll"];
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return ["libzmusic.so"];
+                return ["libfluidsynth.so"];
 
             throw new NotSupportedException("This library does not support the current OS.");
 #pragma warning restore IDE0046

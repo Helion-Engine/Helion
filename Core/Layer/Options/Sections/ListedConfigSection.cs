@@ -22,6 +22,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using static Helion.Util.Constants;
 
@@ -195,22 +196,16 @@ public class ListedConfigSection : IOptionSection
                             m_dialog = new TexturePickerDialog(m_config.Window, configData.CfgValue, configData.Attr);
                             break;
                         case DialogType.SoundFontPicker:
-                            m_dialog = new FileListDialog(m_config.Window, configData.CfgValue, configData.Attr, ".SF2,.SF3");
+                            string fileFilter = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                                ? ".SF2,.SF3"
+                                : ".SF2";
+                            m_dialog = new FileListDialog(m_config.Window, configData.CfgValue, configData.Attr, fileFilter);
                             break;
                         default:
                             throw new NotImplementedException($"Unimplemented dialog type: {configData.Attr.DialogType}");
                     }
 
                     lockOptions |= LockOptions.AllowMouse;
-                    m_dialog.OnClose += Dialog_OnClose;
-                }
-
-
-                if (configData.CfgValue.ObjectValue is FileInfo)
-                {
-                    lockOptions |= LockOptions.AllowMouse;
-                    // For now, the only one of these we have is for SoundFonts.  
-                    m_dialog = new FileListDialog(m_config.Window, configData.CfgValue, configData.Attr, ".SF2,.SF3");
                     m_dialog.OnClose += Dialog_OnClose;
                 }
 

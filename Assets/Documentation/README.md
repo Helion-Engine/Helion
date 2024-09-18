@@ -18,9 +18,9 @@
 
 ## Linux
 
-1.  While we have included a version of LibFluidSynth that _should_ work on common Linux distributions, if it doesn't work, you may need to use your package manager to install a different one (and possibly delete the ".so" file we've included).  You can also run with the `-nomusic` to disable music support.
+1.  While we have included a version of LibFluidSynth that _should_ work on common Linux distributions, if it doesn't work, you may need to use your package manager to install a different one (and possibly delete the ".so" file we've included).  You can also run with `-nomusic` to disable music support.
 2.  Similar to the Windows ZIP files, the standard `Helion-<version>-linux-x64.zip` file requires a .NET 8.x runtime.  See https://learn.microsoft.com/en-us/dotnet/core/install/linux .  The `Helion-<version>-linux-x64_SelfContained.zip` file provides its own self-contained runtime and does not require this.
-3.  The audio libraries we are currently using do not provide support for MP3 or Ogg Vorbis audio playback on Linux.
+3.  Helion requires OpenGL (GLFW) and OpenAL runtime components.  You must install these if they are not present, otherwise Helion will fail to start.  On a barebones Ubuntu install, OpenAL may need to be installed (`sudo apt-get install libopenal1`)
 
 # Contact Us
 
