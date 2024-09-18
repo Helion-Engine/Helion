@@ -26,6 +26,13 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Bump Use")]
     public readonly ConfigValue<bool> BumpUse = new(false);
 
+    [ConfigInfo("Enable game controller support.")]
+    [OptionMenu(OptionSectionType.General, "Enable Game Controller")]
+    public readonly ConfigValue<bool> EnableGameController = new(true);
+
+    [ConfigInfo("Dead zone for game controller analog inputs.")]
+    //[OptionMenu(OptionSectionType.General, "Game Controller Dead Zone")]
+    public readonly ConfigValue<double> GameControllerDeadZone = new(0.0, Clamp(0.0, 1.0));
 
     // Visual effects
 

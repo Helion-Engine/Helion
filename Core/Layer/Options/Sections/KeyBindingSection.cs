@@ -350,7 +350,7 @@ public class KeyBindingSection : IOptionSection
 
                 m_soundManager.PlayStaticSound(MenuSounds.Choose);
                 m_updatingKeyBinding = true;
-                OnLockChanged?.Invoke(this, new(Lock.Locked, "Press any key to add binding. Escape to cancel."));
+                OnLockChanged?.Invoke(this, new(Lock.Locked, "Press any key/button to add binding. Escape to cancel."));
             }
 
             if (input.ConsumeKeyPressed(Key.Delete) && m_currentRow < m_commandToKeys.Count)
@@ -399,7 +399,7 @@ public class KeyBindingSection : IOptionSection
             both: Align.TopMiddle, color: Color.Firebrick);
         y += clearArea.Height + smallPad;
 
-        hud.Text("Press enter to start binding and press a key", Font, fontSize, (0, y), out Dimension enterArea,
+        hud.Text("Press enter to start binding and press a key or button", Font, fontSize, (0, y), out Dimension enterArea,
             both: Align.TopMiddle, color: Color.Firebrick);
         y += enterArea.Height + m_config.Window.GetMenuScaled(12);
 
