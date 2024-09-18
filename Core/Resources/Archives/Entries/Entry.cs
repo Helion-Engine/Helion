@@ -22,7 +22,7 @@ public abstract class Entry
     /// <summary>
     /// The namespace this entry was located in.
     /// </summary>
-    public ResourceNamespace Namespace { get; }
+    public ResourceNamespace Namespace { get; set; }
 
     public int Index { get; }
 

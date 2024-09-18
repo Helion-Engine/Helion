@@ -42,7 +42,10 @@ public class ArchiveCollectionEntries
         // If this entry has no namespace and was previously defined with one, use that
         // e.g. RSKY1 in a PWAD
         if (ns == ResourceNamespace.Global && m_nameToEntries.TryGetValue(entry.Path.Name, out var existingEntry))
+        {
             ns = existingEntry.Namespace;
+            entry.Namespace = existingEntry.Namespace;         
+        }
 
         string fullPath = entry.Path.FullPath;
         // Lookups for directory paths need to be relative to the directory
