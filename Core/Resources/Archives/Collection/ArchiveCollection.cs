@@ -18,6 +18,7 @@ using Helion.Resources.Definitions.Boom;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Decorate;
 using Helion.Resources.Definitions.Fonts.Definition;
+using Helion.Resources.Definitions.Id24;
 using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.MapInfo;
@@ -44,6 +45,11 @@ namespace Helion.Resources.Archives.Collection;
 /// </summary>
 public class ArchiveCollection : IResources, IPathResolver
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    public event EventHandler<Archive>? ArchiveLoaded;
+    public event EventHandler<Archive>? ArchiveRead;
+
     public static readonly DataCache StaticDataCache = new();
 
     public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
@@ -53,6 +59,7 @@ public class ArchiveCollection : IResources, IPathResolver
     public Archive? Assets => m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.Assets);
     public Archive? IWad => m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.IWAD);
     public IEnumerable<Archive> Archives => m_archives.Where(x => x.ArchiveType == ArchiveType.None);
+    public IEnumerable<Archive> AllArchives => m_archives;
     public AnimatedDefinitions Animdefs => Definitions.Animdefs;
     public BoomAnimatedDefinition BoomAnimated => Definitions.BoomAnimated;
     public BoomSwitchDefinition BoomSwitches => Definitions.BoomSwitches;
@@ -290,7 +297,7 @@ public class ArchiveCollection : IResources, IPathResolver
         GC.SuppressFinalize(this);
     }
 
-    public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null, IWadType? iwadTypeOverride = null)
+    public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null, IWadType? iwadTypeOverride = null, bool checkGameConfArchives = false)
     {
         if (Loaded)
         {
@@ -305,7 +312,7 @@ public class ArchiveCollection : IResources, IPathResolver
         }
 
         Loaded = true;
-        List<string> filePaths = new();
+        List<string> filePaths = [];
         Archive? iwadArchive = null;
 
         if (iwadTypeOverride.HasValue)
@@ -322,6 +329,9 @@ public class ArchiveCollection : IResources, IPathResolver
 
             m_archives.Add(assetsArchive);
         }
+
+        if (checkGameConfArchives)
+            m_archives.AddRange(LoadGameConfArchives(iwad, files));
 
         if (iwad != null)
         {
@@ -374,6 +384,50 @@ public class ArchiveCollection : IResources, IPathResolver
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Adds extras.wad and potentially id24res.wad to the WAD list
+    /// if a GAMECONF is present in the specified WADs
+    /// </summary>
+    private List<Archive> LoadGameConfArchives(string? iwad, IEnumerable<string> pwads)
+    {
+        List<string> wads = [];
+        if (iwad != null)
+            wads.Add(iwad);
+        wads.AddRange(pwads);
+
+        // parse GAMECONFs in the specified WADs
+        GameConfDefinition gameConfDef = new();
+        foreach (string wad in wads)
+        {
+            Archive? archive = LoadArchive(wad, null, isLoadEvent: false);
+            var entry = archive?.GetEntryByName("GAMECONF");
+            if (entry != null)
+                gameConfDef.Parse(entry);
+        }
+
+        // add whichever archives are needed
+        List<Archive> gameConfArchives = [];
+        if (gameConfDef.Data != null)
+        {
+            const string ExtrasName = "extras.wad";
+            Archive? extrasArchive = LoadArchive(ExtrasName, null);
+            if (extrasArchive == null)
+                HelionLog.Error($"Unable to open {ExtrasName} for GAMECONF config");
+            else
+                gameConfArchives.Add(extrasArchive);
+        }
+        if (gameConfDef.Data?.Executable == GameConfConstants.Executable.Id24)
+        {
+            const string Id24ResName = "id24res.wad";
+            Archive? id24ResArchive = LoadArchive(Id24ResName, null);
+            if (id24ResArchive == null)
+                HelionLog.Error($"Unable to open {Id24ResName} for ID24 config");
+            else
+                gameConfArchives.Add(id24ResArchive);
+        }
+        return gameConfArchives;
     }
 
     private List<Archive> LoadEmbeddedArchives(List<Archive> archives)
@@ -491,12 +545,12 @@ public class ArchiveCollection : IResources, IPathResolver
         return archive;
     }
 
-    private Archive? LoadArchive(string filePath, string? md5)
+    private Archive? LoadArchive(string filePath, string? md5, bool isLoadEvent = true)
     {
         Archive? archive = m_archiveLocator.Locate(filePath);
         if (archive == null)
         {
-            HelionLog.Error($"Failure when loading {filePath}");
+            Log.Error($"Failure when loading {filePath}");
             return null;
         }
 
@@ -504,7 +558,11 @@ public class ArchiveCollection : IResources, IPathResolver
         if (md5 != null)
             archive.MD5 = md5;
 
-        HelionLog.Info($"Loaded {filePath}");
+        if (isLoadEvent)
+            ArchiveLoaded?.Invoke(this, archive);
+        else
+            ArchiveRead?.Invoke(this, archive);
+
         return archive;
     }
 
@@ -521,7 +579,7 @@ public class ArchiveCollection : IResources, IPathResolver
             Definitions.Track(archive);
 
             if (archive.ArchiveType == ArchiveType.Assets && GetIWadInfo(iwadArchive, out IWadInfo? info))
-            {                
+            {
                 Definitions.LoadMapInfo(archive, info.MapInfoResource);
                 Definitions.LoadDecorate(archive, info.DecorateResource);
             }
@@ -545,5 +603,80 @@ public class ArchiveCollection : IResources, IPathResolver
 
         info = null;
         return false;
+    }
+
+    /// <summary>
+    /// ID24 GAMECONF is allowed to define an IWAD and additional PWADs.
+    /// If an IWAD is specified, it will override any previously specified one.
+    /// PWADs added by PWADs are placed before the PWAD that added them.
+    /// </summary>
+    public (string? iwad, List<string> pwads) GetWadsFromGameConfs(string? originalIwad, List<string> originalPwads)
+    {
+        string? iwad = originalIwad;
+        List<string> pwads = [];
+
+        string? LocateReferencedWad(string wadName, string? referencingWadPath)
+        {
+            // first check in the same folder
+            var siblingPath = Path.Join(referencingWadPath, wadName);
+            if (Path.Exists(siblingPath))
+                return siblingPath;
+            // check in other search paths
+            else
+            {
+                string? otherPath = m_archiveLocator.LocateWithoutLoading(wadName);
+                if (otherPath != null)
+                    return otherPath;
+            }
+            return null;
+        }
+
+        GameConfDefinition parser = new();
+        void ApplyWadsFromWadGameConf(string wad)
+        {
+            using var archive = LoadArchive(wad, null);
+            var entry = archive?.GetEntryByName("GAMECONF");
+            if (entry == null)
+                return;
+            parser.Data = null;
+            parser.Parse(entry);
+            if (parser.Data == null)
+                return;
+            // assume that referenced PWADs are in the same directory before
+            // falling back to other search paths, the spec isn't clear here
+            string? wadDir = Path.GetDirectoryName(wad);
+            if (parser.Data.Iwad != null)
+            {
+                // don't replace an iwad by the same name, so that users can specify a version if they want
+                string? previousIwadName = Path.GetFileName(iwad);
+                if (previousIwadName == null || !parser.Data.Iwad.EqualsIgnoreCase(previousIwadName))
+                {
+                    string? locatedIwad = LocateReferencedWad(parser.Data.Iwad, wadDir);
+                    if (locatedIwad != null)
+                        iwad = locatedIwad;
+                }
+            }
+            if (parser.Data.Pwads != null)
+            {
+                foreach (string pwad in parser.Data.Pwads)
+                {
+                    string? locatedPwad = LocateReferencedWad(pwad, wadDir);
+                    if (locatedPwad != null)
+                        pwads.Add(locatedPwad);
+                }
+            }
+        }
+
+        if (originalIwad != null)
+        {
+            ApplyWadsFromWadGameConf(originalIwad);
+        }
+        foreach (string pwad in originalPwads)
+        {
+            ApplyWadsFromWadGameConf(pwad);
+            pwads.Add(pwad);
+        }
+
+        return (iwad, pwads);
     }
 }

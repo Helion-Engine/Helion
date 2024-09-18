@@ -58,8 +58,10 @@ public class DefinitionEntries
     public readonly Dictionary<string, Colormap> ColormapsLookup = [];
     public readonly List<Colormap> Colormaps = [];
     public readonly CompLevelDefinition CompLevelDefinition = new();
+    public readonly OptionsDefinition OptionsDefinition = new();
     public readonly MusInfoDefinition MusInfoDefinition = new();
     public readonly Id24SkyDefinition Id24SkyDefinition = new();
+    public readonly GameConfDefinition GameConfDefinition = new();
 
     public DehackedDefinition? DehackedDefinition { get; set; }
 
@@ -103,8 +105,10 @@ public class DefinitionEntries
         m_entryNameToAction["DEHACKED"] = entry => ParseEntry(ParseDehacked, entry);
         m_entryNameToAction["TEXTURES"] = entry => ParseEntry(ParseTextures, entry);
         m_entryNameToAction["COMPLVL"] = entry => ParseEntry(ParseCompLevel, entry);
+        m_entryNameToAction["OPTIONS"] = OptionsDefinition.Parse;
         m_entryNameToAction["MUSINFO"] = entry => ParseEntry(ParseMusInfo, entry);
         m_entryNameToAction["SKYDEFS"] = Id24SkyDefinition.Parse;
+        m_entryNameToAction["GAMECONF"] = GameConfDefinition.Parse;
     }
 
     public void ParseDehackedPatch(string data)

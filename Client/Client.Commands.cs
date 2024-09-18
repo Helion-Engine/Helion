@@ -382,14 +382,20 @@ public partial class Client
     [ConsoleCommand("printmap", "Prints the current map")]
     private void PrintMap(ConsoleCommandEventArgs args)
     {
-        // TODO: it would be nice to print the game title if available,
-        // but it seems uncommon - some exist in gameinfo.txt `startuptitle`s,
-        // and others exist in gameconf.txt `data.title`s
         var map = m_layerManager.WorldLayer?.CurrentMap;
         if (map != null)
             HelionLog.Info(map.GetDisplayNameWithPrefix(m_archiveCollection));
         else
             HelionLog.Info("No map loaded");
+    }
+
+    [ConsoleCommand("printgame", "Prints the current game title, when available")]
+    private void PrintGame(ConsoleCommandEventArgs args)
+    {
+        // TODO: some exist in gameinfo.txt `startuptitle` as well
+        string? title = m_archiveCollection.Definitions.GameConfDefinition.Data?.Title;
+        if (title != null)
+            HelionLog.Info(title);
     }
 
     [ConsoleCommand("startGame", "Starts a new game")]

@@ -4,6 +4,10 @@ using System.Threading.Tasks;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
 using Helion.Layer.IwadSelection;
+using Helion.Resources.Archives;
+using Helion.Resources.Definitions;
+using Helion.Resources.Definitions.Compatibility;
+using Helion.Resources.Definitions.Id24;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
@@ -15,9 +19,12 @@ namespace Helion.Client;
 
 public partial class Client
 {
-    private readonly List<IWadPath> m_iwads = [];
+    private readonly List<IWadPath> m_installedIwads = [];
+    private string? m_iwad;
+    private List<string> m_pwads = [];
+    private bool m_wadListTransformed = false;
 
-    private async Task Initialize(string? iwad = null)
+    private async Task Initialize()
     {
         try
         {
@@ -26,19 +33,30 @@ public partial class Client
             LoadingLayer loadingLayer = new(m_archiveCollection, m_config, "Loading files...");
             m_layerManager.Add(loadingLayer);
 
-            if (iwad == null && m_iwads.Count == 0)
+            // pull iwad from command line, or if there's only one installed, fall back to that
+            if (m_iwad == null && m_installedIwads.Count == 0)
                 await Task.Run(FindInstalledIWads);
+            m_iwad ??= GetIwad(m_installedIwads);
 
-            if (iwad == null && GetIwad(m_iwads) == null)
+            // transform WAD list per GAMECONF spec
+            if (!m_wadListTransformed)
             {
-                IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config, m_iwads);
+                var (iwad, pwads) = m_archiveCollection.GetWadsFromGameConfs(m_iwad, m_commandLineArgs.Files);
+                m_iwad = iwad;
+                m_pwads = pwads;
+                m_wadListTransformed = true;
+            }
+
+            if (m_iwad == null)
+            {
+                IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config, m_installedIwads);
                 selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
                 m_layerManager.Add(selectionlayer);
                 m_layerManager.Remove(m_layerManager.LoadingLayer);
                 return;
             }
 
-            bool success = await Task.Run(() => LoadFiles(iwad));
+            bool success = await Task.Run(LoadFiles);
             m_layerManager.Remove(m_layerManager.LoadingLayer);
             if (!success)
             {
@@ -54,7 +72,7 @@ public partial class Client
             m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
             m_config.Game.PistolStart.Set(m_commandLineArgs.PistolStart);
 
-            m_archiveCollection.Definitions.CompLevelDefinition.Apply(m_config);
+            ApplyFeatureSet();
 
             if (m_commandLineArgs.LevelStat)
                 ClearStatsFile();
@@ -83,31 +101,51 @@ public partial class Client
     private void FindInstalledIWads()
     {
         var iwadLocator = IWadLocator.CreateDefault(m_config.Files.Directories.Value);
-        m_iwads.AddRange(iwadLocator.Locate());
+        m_installedIwads.AddRange(iwadLocator.Locate());
     }
 
     private async void IwadSelection_OnIwadSelected(object? sender, string iwad)
     {
+        m_iwad = iwad;
         m_layerManager.Remove(m_layerManager.IwadSelectionLayer);
-        await Initialize(iwad);
+        await Initialize();
     }
 
-    private bool LoadFiles(string? iwad = null)
+    private bool LoadFiles()
     {
-        if (!m_archiveCollection.Load(m_commandLineArgs.Files, iwad ?? GetIwad(m_iwads),
-            dehackedPatch: m_commandLineArgs.DehackedPatch))
-        {
-            if (m_archiveCollection.Assets == null)
-                ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
-            else if (m_archiveCollection.IWad == null)
-                ShowFatalError("Failed to load IWAD.");
-            else
-                ShowFatalError("Failed to load files.");
-            return false;
-        }
-
+        m_archiveCollection.ArchiveLoaded += ArchiveCollection_ArchiveLoaded;
+        m_archiveCollection.ArchiveRead += ArchiveCollection_ArchiveRead;
+        bool success = HandleArchiveLoad();
+        m_archiveCollection.ArchiveLoaded -= ArchiveCollection_ArchiveLoaded;
+        m_archiveCollection.ArchiveRead -= ArchiveCollection_ArchiveRead;
         m_filesLoaded = true;
-        return true;
+        return success;
+
+        bool HandleArchiveLoad()
+        {
+            if (!m_archiveCollection.Load(m_pwads, m_iwad, dehackedPatch: m_commandLineArgs.DehackedPatch, checkGameConfArchives: true))
+            {
+                if (m_archiveCollection.Assets == null)
+                    ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
+                else if (m_archiveCollection.IWad == null)
+                    ShowFatalError("Failed to load IWAD.");
+                else
+                    ShowFatalError("Failed to load files.");
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    private void ArchiveCollection_ArchiveRead(object? sender, Archive archive)
+    {
+        Log.Info($"Reading {archive.OriginalFilePath}");
+    }
+
+    private void ArchiveCollection_ArchiveLoaded(object? sender, Archive archive)
+    {
+        Log.Info($"Loaded {archive.OriginalFilePath}");
     }
 
     private bool CheckLoadMap()
@@ -151,6 +189,49 @@ public partial class Client
             return iwads[0].Path;
 
         return null;
+    }
+
+    /// <summary>
+    /// Sets features/compatibility from GAMECONF, COMPLVL, and OPTIONS
+    /// </summary>
+    private void ApplyFeatureSet()
+    {
+        var gameConfDef = m_archiveCollection.Definitions.GameConfDefinition;
+        var compLevelDef = m_archiveCollection.Definitions.CompLevelDefinition;
+        var optionsDef = m_archiveCollection.Definitions.OptionsDefinition;
+
+        // proxy gameconf executable to complvl for now
+        if (gameConfDef.Data?.Executable != null)
+        {
+            compLevelDef.CompLevel = gameConfDef.Data.Executable switch
+            {
+                GameConfConstants.Executable.Doom1_9 => CompLevel.Vanilla,
+                GameConfConstants.Executable.LimitRemoving => CompLevel.Vanilla,
+                GameConfConstants.Executable.BugFixed => CompLevel.Vanilla,
+                GameConfConstants.Executable.Boom2_02 => CompLevel.Boom,
+                GameConfConstants.Executable.Complevel9 => CompLevel.Boom,
+                GameConfConstants.Executable.Mbf => CompLevel.Mbf,
+                GameConfConstants.Executable.Mbf21 => CompLevel.Mbf21,
+                GameConfConstants.Executable.Mbf21Ex => CompLevel.Mbf21,
+                GameConfConstants.Executable.Id24 => CompLevel.Mbf21,
+                _ => compLevelDef.CompLevel
+            };
+        }
+
+        // apply complevel
+        compLevelDef.Apply(m_config);
+
+        // apply any granular options - use gameconf's if present, otherwise use options lump
+        // TODO: gameconf's options care about the executable level,
+        // should a regular options lump care about the compatlvl?
+        var compat = m_config.Compatibility;
+        Options options = gameConfDef.Data?.Options ?? optionsDef.Data;
+        if (options.OptionEnabled(OptionsConstants.Comp.Pain, compLevelDef.CompLevel))
+            compat.PainElementalLostSoulLimit.Set(true, writeToConfig: false);
+        if (options.OptionEnabled(OptionsConstants.Comp.Stairs, compLevelDef.CompLevel))
+            compat.Stairs.Set(true, writeToConfig: false);
+        if (options.OptionEnabled(OptionsConstants.Comp.Vile, compLevelDef.CompLevel))
+            compat.VileGhosts.Set(true, writeToConfig: false);
     }
 
     private MapInfoDef? GetDefaultMap()
