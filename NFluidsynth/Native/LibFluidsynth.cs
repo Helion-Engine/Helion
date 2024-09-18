@@ -11,7 +11,7 @@ namespace NFluidsynth.Native
 
         // Supports both ABI 2 and ABI 3 of Fluid Synth
         // https://abi-laboratory.pro/index.php?view=timeline&l=fluidsynth
-        public static int LibraryVersion { get; private set; } = 2;
+        public static int LibraryVersion { get; private set; } = 3;
 
         public const int FluidOk = 0;
         public const int FluidFailed = -1;
