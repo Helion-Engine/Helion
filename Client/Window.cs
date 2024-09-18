@@ -305,12 +305,12 @@ public class Window : GameWindow, IWindow
     {
         if (active)
         {
-            UpdateFrame += PollJoysticks;
+            RenderFrame += PollJoysticks;
             JoystickConnected += RedetectJoysticks;
         }
         else
         {
-            UpdateFrame -= PollJoysticks;
+            RenderFrame -= PollJoysticks;
             JoystickConnected -= RedetectJoysticks;
         }
     }

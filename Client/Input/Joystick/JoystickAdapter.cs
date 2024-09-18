@@ -20,22 +20,27 @@
         private InputManager m_inputManager;
 
         /// <summary>
-        /// Get or set the dead zone for the controllers, in the range [0..1]
+        /// Get or set the dead zone for the controllers, in the range of 0-.5 (the range for an axis is [-1..+1])
         /// </summary>
         public float DeadZone
         {
             get => m_deadZone;
             set
             {
-                m_deadZone = Math.Clamp(value, 0, 1);
+                m_deadZone = Math.Clamp(value, 0, .5f);
             }
         }
+
+        /// <summary>
+        /// Get data on the positions of each axis on each controller
+        /// </summary>
+        public AxisState[][] AxisStates { get; private set; }
 
         public JoystickAdapter(IReadOnlyList<OpenTKJoystick> joystickInputs, float axisDeadzone, InputManager inputManager)
         {
             m_windowJoystickStates = joystickInputs;
             m_inputManager = inputManager;
-
+            AxisStates = [];
             m_joystickStates = new JoystickState[2][];
             m_initialJoystickStates = Array.Empty<JoystickState>();
             m_deadZone = axisDeadzone;
@@ -56,12 +61,14 @@
             m_joystickStates[1] = new JoystickState[activeSticks.Length];
             m_initialJoystickStates = new JoystickState[activeSticks.Length];
 
+            AxisStates = new AxisState[activeSticks.Length][];
 
             for (int i = 0; i < activeSticks.Length; i++)
             {
                 m_joystickStates[0][i] = new JoystickState(activeSticks[i]);
                 m_joystickStates[1][i] = new JoystickState(activeSticks[i]);
                 m_initialJoystickStates[i] = new JoystickState(activeSticks[i]);
+                AxisStates[i] = new AxisState[activeSticks[i].AxisCount];
             }
 
             // Capture initial zero
@@ -73,6 +80,7 @@
 
         /// <summary>
         /// Reset the "zero" position on all active joysticks to whatever position they are now in
+        /// This should be called at some point after launch, since some trigger buttons have a nonzero resting position.
         /// </summary>
         public void Zero()
         {
@@ -112,17 +120,7 @@
                 prevState = m_joystickStates[m_prevStatePointer][joystick];
                 initialState = m_initialJoystickStates[joystick];
 
-
-                // Unfortunately, hats (D-pads) are aliased as buttons on some controllers; we try to prevent the button aliases
-                // from taking precedence by polling everything else first _and_ putting the hats, etc., first in the keys list.
-
-                // We are also assuming that the user will only have one _active_ controller plugged in at a time, as far as buttons
-                // and hats go, since we just treat those like keys.
-
                 CheckAxes(currentState, prevState, initialState, joystick);
-
-                // Maybe we should check our coats, too..
-                CheckHats(currentState, prevState);
                 CheckButtons(currentState, prevState);
             }
 
@@ -130,50 +128,15 @@
             m_prevStatePointer = (m_prevStatePointer + 1) % 2;
         }
 
-        private void CheckHats(JoystickState currentState, JoystickState prevState)
-        {
-            for (int hat = 0; hat < currentState.HatPositions.Length; hat++)
-            {
-                Hat currentDirection = currentState.HatPositions[hat];
-                Hat prevDirection = prevState.HatPositions[hat];
-
-                if (hat < JoystickStatic.PadToKeys.Length && currentDirection != prevDirection)
-                {
-                    var (left, right, up, down) = JoystickStatic.PadToKeys[hat];
-                    Hat directionsAdded = (Hat)Math.Max((byte)currentDirection - (byte)prevDirection, (byte)0);
-                    Hat directionsRemoved = (Hat)Math.Max((byte)prevDirection - (byte)currentDirection, (byte)0);
-
-                    if (directionsAdded > 0)
-                    {
-                        if ((directionsAdded & Hat.Left) != 0)
-                            m_inputManager.SetKeyDown(left);
-                        if ((directionsAdded & Hat.Right) != 0)
-                            m_inputManager.SetKeyDown(right);
-                        if ((directionsAdded & Hat.Up) != 0)
-                            m_inputManager.SetKeyDown(up);
-                        if ((directionsAdded & Hat.Down) != 0)
-                            m_inputManager.SetKeyDown(down);
-                    }
-
-                    if (directionsRemoved > 0)
-                    {
-                        if ((directionsRemoved & Hat.Left) != 0)
-                            m_inputManager.SetKeyUp(left);
-                        if ((directionsRemoved & Hat.Right) != 0)
-                            m_inputManager.SetKeyUp(right);
-                        if ((directionsRemoved & Hat.Up) != 0)
-                            m_inputManager.SetKeyUp(up);
-                        if ((directionsRemoved & Hat.Down) != 0)
-                            m_inputManager.SetKeyUp(down);
-                    }
-                }
-            }
-        }
-
         private void CheckButtons(JoystickState currentState, JoystickState prevState)
         {
+            // Hats/D-pads are aliased as the last buttons on the controller, at least with XBox and DualShock controllers.
+            int totalButtonCount = currentState.ButtonStates.Length;
+            int hatButtonCount = currentState.HatPositions.Length * 4;
+            int normalButtonCount = totalButtonCount - hatButtonCount;
 
-            for (int button = 0; button < currentState.ButtonStates.Length; button++)
+            // Regular buttons
+            for (int button = 0; button < normalButtonCount; button++)
             {
                 bool currentlyPressed = currentState.ButtonStates[button];
                 bool previouslyPressed = prevState.ButtonStates[button];
@@ -191,27 +154,44 @@
                     }
                 }
             }
+
+            // Hat (D-pad) buttons
+            for (int hatButton = 0; hatButton < hatButtonCount; hatButton++)
+            {
+                bool currentlyPressed = currentState.ButtonStates[normalButtonCount + hatButton];
+                bool previouslyPressed = prevState.ButtonStates[normalButtonCount + hatButton];
+
+                if (hatButton < JoystickStatic.PadToKeys.Length)
+                {
+                    if (currentlyPressed && !previouslyPressed)
+                    {
+                        m_inputManager.SetKeyDown(JoystickStatic.PadToKeys[hatButton]);
+                    }
+
+                    if (!currentlyPressed && previouslyPressed)
+                    {
+                        m_inputManager.SetKeyUp(JoystickStatic.PadToKeys[hatButton]);
+                    }
+                }
+            }
         }
 
         private void CheckAxes(JoystickState currentState, JoystickState prevState, JoystickState initialState, int joystick)
         {
             for (int axis = 0; axis < currentState.AxisValues.Length; axis++)
             {
-                float axisValue;
-                float prevAxisValue;
-                float axisDelta;
-                float axisMovementFromNeutral;
-                float axisPositionCorrected;
-                bool axisNotAtZero;
+                float axisValue = currentState.AxisValues[axis];
+                float prevAxisValue = prevState.AxisValues[axis];
 
-                axisValue = currentState.AxisValues[axis];
-                prevAxisValue = prevState.AxisValues[axis];
-                axisDelta = axisValue - prevAxisValue;
-                axisMovementFromNeutral = axisValue - initialState.AxisValues[axis];
-                axisPositionCorrected = Math.Sign(axisMovementFromNeutral) * (Math.Abs(axisMovementFromNeutral) - m_deadZone) / (1 - m_deadZone);
-                axisNotAtZero = Math.Abs(axisMovementFromNeutral) > m_deadZone;
+                var axisState = AxisStates[joystick][axis];
 
-                // To-do: store the corrected positions somewhere.
+                axisState.position = axisValue;
+                axisState.delta = axisValue - prevAxisValue;
+
+                float axisMovementFromNeutral = axisValue - initialState.AxisValues[axis];
+                axisState.positionCorrected = Math.Sign(axisMovementFromNeutral)
+                    * Math.Clamp(Math.Abs(axisMovementFromNeutral) - m_deadZone, 0, 1)
+                    / (1 - m_deadZone);
             }
         }
     }

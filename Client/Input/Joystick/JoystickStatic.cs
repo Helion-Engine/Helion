@@ -38,11 +38,20 @@
             Key.Button30
         ];
 
-        public static readonly (Key left, Key right, Key up, Key down)[] PadToKeys =
+        public static readonly Key[] PadToKeys =
         [
-            (Key.DPad1Left, Key.DPad1Right, Key.DPad1Up, Key.DPad1Down),
-            (Key.DPad2Left, Key.DPad2Right, Key.DPad2Up, Key.DPad2Down),
-            (Key.DPad3Left, Key.DPad3Right, Key.DPad3Up, Key.DPad3Down)
+            Key.DPad1Up,
+            Key.DPad1Right,
+            Key.DPad1Down,
+            Key.DPad1Left,
+            Key.DPad2Up,
+            Key.DPad2Right,
+            Key.DPad2Down,
+            Key.DPad2Left,
+            Key.DPad3Up,
+            Key.DPad3Right,
+            Key.DPad3Down,
+            Key.DPad3Left,
         ];
     }
 }
