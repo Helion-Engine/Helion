@@ -61,27 +61,29 @@
 
         private static IntPtr ImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
         {
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+
             if (libraryName == LibraryName)
             {
                 string runtimePath = GetRuntimePath();
                 string[] libraryNames = GetExpectedLibraryNames();
 
                 string primaryLibrary = libraryNames[0];
-                if (NativeLibrary.TryLoad($"{runtimePath}{primaryLibrary}", out nint handle))
+                if (NativeLibrary.TryLoad($"{baseDirectory}{runtimePath}{primaryLibrary}", out nint handle))
                 {
                     foreach (string secondaryLibrary in libraryNames[1..])
                     {
-                        _ = NativeLibrary.TryLoad($"{runtimePath}{secondaryLibrary}", out _);
+                        _ = NativeLibrary.TryLoad($"{baseDirectory}{runtimePath}{secondaryLibrary}", out _);
                     }
 
                     return handle;
                 }
 
-                if (NativeLibrary.TryLoad(primaryLibrary, out handle))
+                if (NativeLibrary.TryLoad($"{baseDirectory}{primaryLibrary}", out handle))
                 {
                     foreach (string secondaryLibrary in libraryNames[1..])
                     {
-                        _= NativeLibrary.TryLoad($"{secondaryLibrary}", out _);
+                        _ = NativeLibrary.TryLoad($"{baseDirectory}{secondaryLibrary}", out _);
                     }
 
                     return handle;
