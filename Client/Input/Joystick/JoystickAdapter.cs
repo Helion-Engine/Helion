@@ -8,7 +8,7 @@
 
     public class JoystickAdapter
     {
-        private IReadOnlyList<OpenTKJoystick> m_windowJoystickStates;
+        private readonly IReadOnlyList<OpenTKJoystick> m_windowJoystickStates;
 
         private readonly JoystickState[][] m_joystickStates;
         private JoystickState[] m_initialJoystickStates;
@@ -41,7 +41,7 @@
             m_inputManager = inputManager;
             AxisStates = [];
             m_joystickStates = new JoystickState[2][];
-            m_initialJoystickStates = Array.Empty<JoystickState>();
+            m_initialJoystickStates = [];
             m_deadZone = axisDeadzone;
 
             RedetectJoysticks();
@@ -109,15 +109,11 @@
             // Diff against input state since the last time we sampled
             // Note that we're using this, instead of OpenTK's built-in "Previous" states, because we may or may not want
             // to sample at the same rate as the parent window.
-            JoystickState currentState;
-            JoystickState prevState;
-            JoystickState initialState;
-
             for (int joystick = 0; joystick < m_joystickStates[0].Length; joystick++)
             {
-                currentState = m_joystickStates[m_statePointer][joystick];
-                prevState = m_joystickStates[m_prevStatePointer][joystick];
-                initialState = m_initialJoystickStates[joystick];
+                ref JoystickState currentState = ref m_joystickStates[m_statePointer][joystick];
+                ref JoystickState prevState = ref m_joystickStates[m_prevStatePointer][joystick];
+                ref JoystickState initialState = ref m_initialJoystickStates[joystick];
 
                 CheckAxes(currentState, prevState, initialState, joystick);
                 CheckButtons(currentState, prevState);
@@ -127,7 +123,7 @@
             m_prevStatePointer = (m_prevStatePointer + 1) % 2;
         }
 
-        private void CheckButtons(JoystickState currentState, JoystickState prevState)
+        private void CheckButtons(in JoystickState currentState, in JoystickState prevState)
         {
             // Hats/D-pads are aliased as the last buttons on the controller, at least with XBox and DualShock controllers.
             int totalButtonCount = currentState.ButtonStates.Length;
@@ -175,7 +171,7 @@
             }
         }
 
-        private void CheckAxes(JoystickState currentState, JoystickState prevState, JoystickState initialState, int joystick)
+        private void CheckAxes(in JoystickState currentState, in JoystickState prevState, in JoystickState initialState, int joystick)
         {
             for (int axis = 0; axis < currentState.AxisValues.Length; axis++)
             {
