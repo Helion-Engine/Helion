@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
 using Helion.Client.Input;
+using Helion.Client.Input.Joystick;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render;
@@ -16,6 +15,8 @@ using NLog;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using System;
+using System.Collections.Generic;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client;
@@ -39,8 +40,9 @@ public class Window : GameWindow, IWindow
     private readonly InputManager m_inputManager = new();
     private SpanString m_textInput = new();
     private bool m_disposed;
+    private readonly JoystickAdapter m_joystickAdapter;
 
-    public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement, 
+    public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement,
         int glMajor, int glMinor, GLContextFlags flags, Action onCreate) :
         base(MakeGameWindowSettings(), MakeNativeWindowSettings(config, title, glMajor, glMinor, flags))
     {
@@ -61,14 +63,29 @@ public class Window : GameWindow, IWindow
         MouseWheel += Window_MouseWheel;
         TextInput += Window_TextInput;
 
+        m_joystickAdapter = new JoystickAdapter(JoystickStates, (float)m_config.Game.GameControllerDeadZone.Value, m_inputManager);
+        SetGameControllerPolling(m_config.Game.EnableGameController);
+
         m_config.Render.MaxFPS.OnChanged += OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
+        m_config.Game.EnableGameController.OnChanged += EnableGameController_OnChanged;
+        m_config.Game.GameControllerDeadZone.OnChanged += GameControllerDeadZone_OnChanged;
     }
 
     public void SetMousePosition(Vec2I pos)
     {
         MousePosition = (pos.X, pos.Y);
         InputManager.MousePosition = pos;
+    }
+
+    private void RedetectJoysticks(JoystickEventArgs obj)
+    {
+        m_joystickAdapter.RedetectJoysticks();
+    }
+
+    private void PollJoysticks(FrameEventArgs _)
+    {
+        m_joystickAdapter.SampleJoystickStates();
     }
 
     public void SetWindowState(RenderWindowState state)
@@ -79,7 +96,7 @@ public class Window : GameWindow, IWindow
                 WindowState = WindowState.Fullscreen;
                 break;
             case RenderWindowState.Normal:
-                WindowState = WindowState.Normal; 
+                WindowState = WindowState.Normal;
                 break;
         }
     }
@@ -188,7 +205,7 @@ public class Window : GameWindow, IWindow
     }
 
     private static void SetDisplay(int display, NativeWindowSettings settings)
-    {   
+    {
         settings.CurrentMonitor = GetMonitorHandle(display);
     }
 
@@ -236,7 +253,7 @@ public class Window : GameWindow, IWindow
         m_inputManager.SetMousePosition(((int)args.Position.X, (int)args.Position.Y));
         if (!m_inputManagement.ShouldHandleMouseMovement())
             return;
-        
+
         Vec2F movement = (-args.Delta.X, -args.Delta.Y);
         m_inputManager.AddMouseMovement(movement.Int);
     }
@@ -274,6 +291,30 @@ public class Window : GameWindow, IWindow
         SetVsync(mode);
     }
 
+    private void GameControllerDeadZone_OnChanged(object? sender, double e)
+    {
+        m_joystickAdapter.DeadZone = (float)e;
+    }
+
+    private void EnableGameController_OnChanged(object? sender, bool e)
+    {
+        SetGameControllerPolling(e);
+    }
+
+    public void SetGameControllerPolling(bool active)
+    {
+        if (active)
+        {
+            RenderFrame += PollJoysticks;
+            JoystickConnected += RedetectJoysticks;
+        }
+        else
+        {
+            RenderFrame -= PollJoysticks;
+            JoystickConnected -= RedetectJoysticks;
+        }
+    }
+
     private void PerformDispose()
     {
         if (m_disposed || m_config == null)
@@ -286,10 +327,14 @@ public class Window : GameWindow, IWindow
         MouseUp -= Window_MouseUp;
         MouseWheel -= Window_MouseWheel;
         TextInput -= Window_TextInput;
+        UpdateFrame -= PollJoysticks;
+        JoystickConnected -= RedetectJoysticks;
 
         m_config.Render.MaxFPS.OnChanged -= OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged -= OnVSyncChanged;
-        
+        m_config.Game.EnableGameController.OnChanged -= EnableGameController_OnChanged;
+        m_config.Game.GameControllerDeadZone.OnChanged -= GameControllerDeadZone_OnChanged;
+
         Renderer.Dispose();
 
         m_disposed = true;

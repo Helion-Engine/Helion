@@ -11,7 +11,7 @@ using Helion.Window.Input;
 
 namespace Helion.Menus.Impl;
 
-public class MessageMenu  : Menu
+public class MessageMenu : Menu
 {
     public readonly bool IsYesNoConfirm;
     public readonly bool ClearMenus;
@@ -40,12 +40,12 @@ public class MessageMenu  : Menu
     {
         if (IsYesNoConfirm)
         {
-            if (input.ConsumeKeyPressed(Key.Y))
+            if (input.ConsumeKeyPressed(Key.Y) || input.ConsumeKeyPressed(Key.Button1))
             {
                 Cleared?.Invoke(this, true);
                 return true;
             }
-            if (input.ConsumeKeyPressed(Key.N))
+            if (input.ConsumeKeyPressed(Key.N) || input.ConsumeKeyPressed(Key.Button2))
             {
                 Cleared?.Invoke(this, false);
                 return true;
