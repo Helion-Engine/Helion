@@ -611,9 +611,14 @@ public class ArchiveCollection : IResources, IPathResolver
             string? wadDir = Path.GetDirectoryName(wad);
             if (parser.Data.Iwad != null)
             {
-                string? locatedIwad = LocateReferencedWad(parser.Data.Iwad, wadDir);
-                if (locatedIwad != null)
-                    iwad = locatedIwad;
+                // don't replace an iwad by the same name, so that users can specify a version if they want
+                string? previousIwadName = Path.GetFileName(iwad);
+                if (previousIwadName == null || !parser.Data.Iwad.EqualsIgnoreCase(previousIwadName))
+                {
+                    string? locatedIwad = LocateReferencedWad(parser.Data.Iwad, wadDir);
+                    if (locatedIwad != null)
+                        iwad = locatedIwad;
+                }
             }
             if (parser.Data.Pwads != null)
             {
