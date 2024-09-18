@@ -26,17 +26,11 @@
         private static string GetRuntimePath()
         {
 #pragma warning disable IDE0046 // if/else collapsing produces very dense code here
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return Environment.Is64BitProcess
-                    ? "runtimes\\win-x64\\native\\"
-                    : "runtimes\\win-x86\\native\\";
-            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
+                return "runtimes\\win-x64\\native\\";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && Environment.Is64BitProcess)
-            {
                 return "runtimes/linux-x64/native/";
-            }
 
             throw new NotSupportedException("This library does not support the current OS.");
 #pragma warning restore IDE0046
@@ -46,16 +40,12 @@
         {
 #pragma warning disable IDE0046 // if/else collapsing produces very dense code here
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return Environment.Is64BitProcess
-                    ? ["zmusic.dll"]
-                    : ["zmusic.dll"];
-            }
+                return ["zmusic.dll"];
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 return ["libzmusic.so"];
 
-            throw new NotSupportedException("This library does not support the current machine OS.");
+            throw new NotSupportedException("This library does not support the current OS.");
 #pragma warning restore IDE0046
         }
 
