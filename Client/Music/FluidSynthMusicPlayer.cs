@@ -131,8 +131,11 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
         try
         {
+            bool shouldRestart = m_player?.Status == FluidPlayerStatus.Playing;
+
             // Pause
-            OutputChanging();
+            if (shouldRestart)
+                OutputChanging();
 
             if (soundFontPath != m_soundFontLoaded)
             {
@@ -151,7 +154,8 @@ public class FluidSynthMusicPlayer : IMusicPlayer
             }
 
             // Resume
-            OutputChanged();
+            if (shouldRestart)
+                OutputChanged();
         }
         catch (Exception ex)
         {
