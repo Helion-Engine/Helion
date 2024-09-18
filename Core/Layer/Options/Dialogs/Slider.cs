@@ -8,7 +8,7 @@ using Helion.Window;
 using Helion.Window.Input;
 using System;
 
-namespace Helion.Layer.Options;
+namespace Helion.Layer.Options.Dialogs;
 
 public class Slider(double value, double step, double min, double max, RenderSize? width = null) : IRenderControl
 {
@@ -35,8 +35,8 @@ public class Slider(double value, double step, double min, double max, RenderSiz
         else
         {
             amount = 1;
-            add = input.ConsumePressOrContinuousHold(Key.Right);
-            sub = input.ConsumePressOrContinuousHold(Key.Left);
+            add = input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.DPad1Right);
+            sub = input.ConsumePressOrContinuousHold(Key.Left) || input.ConsumePressOrContinuousHold(Key.DPad1Left);
         }
 
         if (!add && !sub)

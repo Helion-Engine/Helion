@@ -321,19 +321,19 @@ public class KeyBindingSection : IOptionSection
                     m_currentRow = rowIndex;
             }
 
-            if (input.ConsumePressOrContinuousHold(Key.Up))
+            if (input.ConsumePressOrContinuousHold(Key.Up) || input.ConsumePressOrContinuousHold(Key.DPad1Up))
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Cursor);
                 m_currentRow = m_currentRow > 0 ? (m_currentRow - 1) : m_commandToKeys.Count;
             }
-            if (input.ConsumePressOrContinuousHold(Key.Down))
+            if (input.ConsumePressOrContinuousHold(Key.Down) || input.ConsumePressOrContinuousHold(Key.DPad1Down))
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Cursor);
                 m_currentRow = (m_currentRow + 1) % (m_commandToKeys.Count + 1);
             }
 
             bool mousePress = input.ConsumeKeyPressed(Key.MouseLeft);
-            if (mousePress || input.ConsumeKeyPressed(Key.Enter))
+            if (mousePress || input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.Button1))
             {
                 if (mousePress)
                 {

@@ -178,13 +178,13 @@ internal abstract class ListDialog : DialogBase
 
     public override void HandleInput(IConsumableInput input)
     {
-        if (input.ConsumePressOrContinuousHold(Key.Down))
+        if (input.ConsumePressOrContinuousHold(Key.Down) || input.ConsumePressOrContinuousHold(Key.DPad1Down))
         {
             m_selectedRow = Math.Min(m_selectedRow + 1, m_values.Count - 1);
             SendSelectedRowChange(false);
             EnsureSelectedVisible = true;
         }
-        if (input.ConsumePressOrContinuousHold(Key.Up))
+        if (input.ConsumePressOrContinuousHold(Key.Up) || input.ConsumePressOrContinuousHold(Key.DPad1Down))
         {
             m_selectedRow = Math.Max(m_selectedRow - 1, 0);
             SendSelectedRowChange(false);

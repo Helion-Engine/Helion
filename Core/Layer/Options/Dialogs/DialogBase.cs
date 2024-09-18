@@ -65,9 +65,9 @@ internal abstract class DialogBase(ConfigWindow config, string? acceptButton, st
             }
         }
 
-        if (input.ConsumeKeyPressed(Key.Escape))
+        if (input.ConsumeKeyPressed(Key.Escape) || input.ConsumeKeyPressed(Key.Button2))
             InvokeClose(new(false));
-        if (input.ConsumeKeyPressed(Key.Enter))
+        if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.Button1))
             InvokeClose(new(true));
     }
 

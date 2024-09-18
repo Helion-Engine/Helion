@@ -248,7 +248,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             return;
         }
 
-        if (input.ConsumeKeyPressed(Key.Escape))
+        if (input.ConsumeKeyPressed(Key.Escape) || input.ConsumeKeyPressed(Key.Button2))
         {
             // Ensure that the user isn't closing out of the menus without some kind of binding to get back into the menus.
             m_config.Keys.EnsureMenuKey();
@@ -301,7 +301,8 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
             section.HandleInput(input);
 
-            if (input.ConsumePressOrContinuousHold(Key.Left) || input.ConsumePressOrContinuousHold(Key.MouseCustom4) || buttonIndex == BackIndex)
+            if (input.ConsumePressOrContinuousHold(Key.Left) || input.ConsumePressOrContinuousHold(Key.MouseCustom4)
+                || input.ConsumePressOrContinuousHold(Key.DPad1Left) || buttonIndex == BackIndex)
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Change);
                 m_scrollOffset = 0;
@@ -310,7 +311,8 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
                 m_sections[m_currentSectionIndex].OnShow();
             }
 
-            if (input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.MouseCustom5) || buttonIndex == ForwardIndex)
+            if (input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.MouseCustom5) 
+                || input.ConsumePressOrContinuousHold(Key.DPad1Right) || buttonIndex == ForwardIndex)
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Change);
                 m_scrollOffset = 0;
