@@ -171,12 +171,13 @@ public partial class Client
     }
 
     /// <summary>
-    /// Sets features/compatibility from GAMECONF and COMPLVL
+    /// Sets features/compatibility from GAMECONF, COMPLVL, and OPTIONS
     /// </summary>
     private void ApplyFeatureSet()
     {
         var gameConfDef = m_archiveCollection.Definitions.GameConfDefinition;
         var compLevelDef = m_archiveCollection.Definitions.CompLevelDefinition;
+        var optionsDef = m_archiveCollection.Definitions.OptionsDefinition;
 
         // proxy gameconf executable to complvl for now
         if (gameConfDef.Data?.Executable != null)
@@ -203,7 +204,7 @@ public partial class Client
         // TODO: gameconf's options care about the executable level,
         // should a regular options lump care about the compatlvl?
         var compat = m_config.Compatibility;
-        Options options = gameConfDef.Data?.Options ?? m_archiveCollection.Definitions.OptionsDefinition.Data;
+        Options options = gameConfDef.Data?.Options ?? optionsDef.Data;
         if (options.OptionEnabled(OptionsConstants.Comp.Pain, compLevelDef.CompLevel))
             compat.PainElementalLostSoulLimit.Set(true, writeToConfig: false);
         if (options.OptionEnabled(OptionsConstants.Comp.Stairs, compLevelDef.CompLevel))
