@@ -53,20 +53,20 @@ public partial class MenuLayer
 
     private void HandleInputForMenu(Menu menu, IConsumableInput input)
     {
-        if (input.ConsumeKeyPressed(Key.Up))
+        if (input.ConsumeKeyPressed(Key.Up) || input.ConsumeKeyPressed(Key.DPad1Up))
             menu.MoveToPreviousComponent();
-        if (input.ConsumeKeyPressed(Key.Down))
+        if (input.ConsumeKeyPressed(Key.Down) || input.ConsumeKeyPressed(Key.DPad1Down))
             menu.MoveToNextComponent();
 
         if (menu.CurrentComponent is MenuOptionListComponent options)
         {
-            if (input.ConsumeKeyPressed(Key.Left))
+            if (input.ConsumeKeyPressed(Key.Left) || input.ConsumeKeyPressed(Key.DPad1Left))
                 options.MoveToPrevious();
-            else if (input.ConsumeKeyPressed(Key.Right))
+            else if (input.ConsumeKeyPressed(Key.Right) || input.ConsumeKeyPressed(Key.DPad1Right))
                 options.MoveToNext();
         }
 
-        if (input.ConsumeKeyPressed(Key.Enter) && menu.CurrentComponent?.Action != null)
+        if ((input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.Button1)) && menu.CurrentComponent?.Action != null)
         {
             if (menu.CurrentComponent.PlaySelectedSound)
             {
@@ -80,7 +80,7 @@ public partial class MenuLayer
         if (input.ConsumeKeyPressed(Key.Delete) && menu.CurrentComponent?.DeleteAction != null)
             InvokeAndPushMenu(menu.CurrentComponent.DeleteAction);
 
-        if (input.ConsumeKeyPressed(Key.Escape))
+        if (input.ConsumeKeyPressed(Key.Escape) || input.ConsumeKeyPressed(Key.Button2))
         {
             Menu? poppedMenu = null;
             bool clear = false;
@@ -97,7 +97,7 @@ public partial class MenuLayer
                 ClearMenu(true);
                 return;
             }
-            
+
             m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
         }
     }

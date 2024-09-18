@@ -1,7 +1,6 @@
 ﻿namespace Helion.Client.Input.Joystick
 {
     using Helion.Window.Input;
-    using OpenTK.Windowing.Common.Input;
     using System;
     using System.Collections.Generic;
     using System.Linq;
