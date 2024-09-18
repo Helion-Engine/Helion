@@ -103,16 +103,6 @@ public partial class Client
         m_installedIwads.AddRange(iwadLocator.Locate());
     }
 
-    private void AddTitlepicIfNoMap()
-    {
-        if (m_layerManager.WorldLayer != null)
-            return;
-
-        m_layerManager.Remove(m_layerManager.IwadSelectionLayer);
-        TitlepicLayer layer = new(m_layerManager, m_archiveCollection, m_audioSystem);
-        m_layerManager.Add(layer);
-    }
-
     private async void IwadSelection_OnIwadSelected(object? sender, string iwad)
     {
         m_iwad = iwad;
