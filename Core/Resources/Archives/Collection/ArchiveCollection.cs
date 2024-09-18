@@ -290,7 +290,7 @@ public class ArchiveCollection : IResources, IPathResolver
         GC.SuppressFinalize(this);
     }
 
-    public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null, IWadType? iwadTypeOverride = null)
+    public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null, IWadType? iwadTypeOverride = null, bool checkGameConfArchives = false)
     {
         if (Loaded)
         {
@@ -322,6 +322,10 @@ public class ArchiveCollection : IResources, IPathResolver
 
             m_archives.Add(assetsArchive);
         }
+
+        // TODO: in wads that provide DSSECRET, the extras.wad version is still being played, so something isn't being done properly here
+        if (checkGameConfArchives)
+            m_archives.AddRange(LoadGameConfArchives(iwad, files));
 
         if (iwad != null)
         {
@@ -373,29 +377,51 @@ public class ArchiveCollection : IResources, IPathResolver
             }
         }
 
-        // ID24: load extras.wad and potentially id24res.wad if a GAMECONF is present
-        var gameConfData = Definitions.GameConfDefinition.Data;
-        if (gameConfData != null)
+        return true;
+    }
+
+    /// <summary>
+    /// Adds extras.wad and potentially id24res.wad to the WAD list
+    /// if a GAMECONF is present in the specified WADs
+    /// </summary>
+    private List<Archive> LoadGameConfArchives(string? iwad, IEnumerable<string> pwads)
+    {
+        List<string> wads = [];
+        if (iwad != null)
+            wads.Add(iwad);
+        wads.AddRange(pwads);
+
+        // parse GAMECONFs in the specified WADs
+        GameConfDefinition gameConfDef = new();
+        foreach (string wad in wads)
+        {
+            Archive? archive = LoadArchive(wad, null);
+            var entry = archive?.GetEntryByName("GAMECONF");
+            if (entry != null)
+                gameConfDef.Parse(entry);
+        }
+
+        // add whichever archives are needed
+        List<Archive> gameConfArchives = [];
+        if (gameConfDef.Data != null)
         {
             const string ExtrasName = "extras.wad";
             Archive? extrasArchive = LoadArchive(ExtrasName, null);
             if (extrasArchive == null)
                 HelionLog.Error($"Unable to open {ExtrasName} for GAMECONF config");
             else
-                m_archives.Add(extrasArchive);
-
-            if (gameConfData?.Executable == GameConfConstants.Executable.Id24)
-            {
-                const string Id24ResName = "id24res.wad";
-                Archive? id24ResArchive = LoadArchive(Id24ResName, null);
-                if (id24ResArchive == null)
-                    HelionLog.Error($"Unable to open {Id24ResName} for ID24 config");
-                else
-                    m_archives.Add(id24ResArchive);
-            }
+                gameConfArchives.Add(extrasArchive);
         }
-
-        return true;
+        if (gameConfDef.Data?.Executable == GameConfConstants.Executable.Id24)
+        {
+            const string Id24ResName = "id24res.wad";
+            Archive? id24ResArchive = LoadArchive(Id24ResName, null);
+            if (id24ResArchive == null)
+                HelionLog.Error($"Unable to open {Id24ResName} for ID24 config");
+            else
+                gameConfArchives.Add(id24ResArchive);
+        }
+        return gameConfArchives;
     }
 
     private List<Archive> LoadEmbeddedArchives(List<Archive> archives)

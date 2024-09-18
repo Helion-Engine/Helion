@@ -112,7 +112,7 @@ public partial class Client
 
     private bool LoadFiles()
     {
-        if (!m_archiveCollection.Load(m_pwads, m_iwad, dehackedPatch: m_commandLineArgs.DehackedPatch))
+        if (!m_archiveCollection.Load(m_pwads, m_iwad, dehackedPatch: m_commandLineArgs.DehackedPatch, checkGameConfArchives: true))
         {
             if (m_archiveCollection.Assets == null)
                 ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
