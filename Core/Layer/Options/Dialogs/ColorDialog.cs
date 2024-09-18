@@ -55,9 +55,9 @@ internal class ColorDialog : DialogBase
     {
         base.HandleInput(input);
 
-        if (input.ConsumePressOrContinuousHold(Key.Down))
+        if (input.ConsumePressOrContinuousHold(Key.Down) || input.ConsumePressOrContinuousHold(Key.DPad1Down))
             m_row = ++m_row;
-        if (input.ConsumePressOrContinuousHold(Key.Up))
+        if (input.ConsumePressOrContinuousHold(Key.Up) || input.ConsumePressOrContinuousHold(Key.DPad1Up))
             m_row = --m_row;
 
         if (m_row < 0)
