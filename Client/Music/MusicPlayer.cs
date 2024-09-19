@@ -193,8 +193,20 @@ public class MusicPlayer : IMusicPlayer
         byte[]? patchSet = m_archiveCollection.Entries.FindByName("GENMIDI")?.ReadData() ?? null;
         if (patchSet != null)
         {
-            // Discard 8-byte header
-            m_zMusicPlayer.SetOPLPatchSet(patchSet[8..]);
+            // The original OPL patch set distributed by ID software has an 8-byte header.
+            // Other patch sets may have longer or shorter headers: https://doomwiki.org/wiki/GENMIDI
+            // "The header is followed by 175 36-byte records of instrument data." ...
+            // "Following the instrument data is 175 32-byte ASCII fields containing the names of the standard General MIDI instruments."
+            const int patchSetSize = (175 * 36) + (175 * 32);
+            int patchStart = patchSet.Length - patchSetSize;
+
+            if (patchStart < 0)
+            {
+                Log.Warn("Invalid OPL patch set.");
+                return false;
+            }
+
+            m_zMusicPlayer.SetOPLPatchSet(patchSet[patchStart..]);
             m_genMidiPatchLoaded = true;
         }
 
