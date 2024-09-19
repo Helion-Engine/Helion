@@ -31,8 +31,8 @@ public class ConfigGame
     public readonly ConfigValue<bool> EnableGameController = new(true);
 
     [ConfigInfo("Dead zone for game controller analog inputs.")]
-    //[OptionMenu(OptionSectionType.General, "Game Controller Dead Zone")]
-    public readonly ConfigValue<double> GameControllerDeadZone = new(0.0, Clamp(0.0, 1.0));
+    [OptionMenu(OptionSectionType.General, "Game Controller Dead Zone")]
+    public readonly ConfigValue<double> GameControllerDeadZone = new(0.1, Clamp(0.1, 0.9));
 
     // Visual effects
 

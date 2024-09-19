@@ -4,10 +4,12 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Timers;
     using OpenTKJoystick = OpenTK.Windowing.GraphicsLibraryFramework.JoystickState;
 
     public class JoystickAdapter
     {
+        private const int RezeroDelay = 1000;
         private readonly IReadOnlyList<OpenTKJoystick> m_windowJoystickStates;
 
         private readonly JoystickState[][] m_joystickStates;
@@ -15,8 +17,10 @@
         private int m_statePointer = 0;
         private int m_prevStatePointer = 1;
         private float m_deadZone;
+        private bool m_zeroed;
 
         private InputManager m_inputManager;
+        private Timer m_zeroTimer;
 
         /// <summary>
         /// Get or set the dead zone for the controllers, in the range of 0-.5 (the range for an axis is [-1..+1])
@@ -26,7 +30,7 @@
             get => m_deadZone;
             set
             {
-                m_deadZone = Math.Clamp(value, 0, .5f);
+                m_deadZone = Math.Clamp(value, .1f, .5f);
             }
         }
 
@@ -43,6 +47,7 @@
             m_joystickStates = new JoystickState[2][];
             m_initialJoystickStates = [];
             m_deadZone = axisDeadzone;
+            m_zeroTimer = new Timer(RezeroDelay);
 
             RedetectJoysticks();
         }
@@ -70,11 +75,18 @@
                 AxisStates[i] = new AxisState[activeSticks[i].AxisCount];
             }
 
-            // Capture initial zero
-            foreach (JoystickState joystick in m_initialJoystickStates)
-            {
-                joystick.Update(m_windowJoystickStates[joystick.JoystickId]);
-            }
+            // Initial zeros when a joystick is plugged in are not reliable, particularly for "trigger" axes.
+            // Schedule a re-zero after some time has passed.
+            m_zeroed = false;
+            m_zeroTimer.Elapsed += RezeroTimerElapsed;
+            m_zeroTimer.Start();
+        }
+
+        private void RezeroTimerElapsed(object? sender, ElapsedEventArgs e)
+        {
+            m_zeroTimer.Stop();
+            m_zeroTimer.Elapsed -= RezeroTimerElapsed;
+            Zero();
         }
 
         /// <summary>
@@ -87,6 +99,8 @@
             {
                 joystick.Update(m_windowJoystickStates[joystick.JoystickId]);
             }
+
+            m_zeroed = true;
         }
 
         /// <summary>
@@ -178,15 +192,41 @@
                 float axisValue = currentState.AxisValues[axis];
                 float prevAxisValue = prevState.AxisValues[axis];
 
-                var axisState = AxisStates[joystick][axis];
+                ref AxisState axisState = ref AxisStates[joystick][axis];
 
-                axisState.position = axisValue;
-                axisState.delta = axisValue - prevAxisValue;
+                axisState.Position = axisValue;
+                axisState.Delta = axisValue - prevAxisValue;
 
                 float axisMovementFromNeutral = axisValue - initialState.AxisValues[axis];
-                axisState.positionCorrected = Math.Sign(axisMovementFromNeutral)
+                axisState.PositionCorrected = Math.Sign(axisMovementFromNeutral)
                     * Math.Clamp(Math.Abs(axisMovementFromNeutral) - m_deadZone, 0, 1)
                     / (1 - m_deadZone);
+
+                bool pressedPositive = axisMovementFromNeutral > m_deadZone;
+                bool pressedNegative = axisMovementFromNeutral < -m_deadZone;
+
+                if (m_zeroed && axis < JoystickStatic.AxisToKeys.Length / 2)
+                {
+                    if (!axisState.PressedPositive && pressedPositive)
+                    {
+                        m_inputManager.SetKeyDown(JoystickStatic.AxisToKeys[axis * 2]);
+                    }
+                    if (axisState.PressedPositive && !pressedPositive)
+                    {
+                        m_inputManager.SetKeyUp(JoystickStatic.AxisToKeys[axis * 2]);
+                    }
+                    if (!axisState.PressedNegative && pressedNegative)
+                    {
+                        m_inputManager.SetKeyDown(JoystickStatic.AxisToKeys[(axis * 2) + 1]);
+                    }
+                    if (axisState.PressedNegative && !pressedNegative)
+                    {
+                        m_inputManager.SetKeyUp(JoystickStatic.AxisToKeys[(axis * 2) + 1]);
+                    }
+                }
+
+                axisState.PressedPositive = pressedPositive;
+                axisState.PressedNegative = pressedNegative;
             }
         }
     }

@@ -53,5 +53,29 @@
             Key.DPad3Down,
             Key.DPad3Left,
         ];
+
+        public static readonly Key[] AxisToKeys =
+        [
+            Key.Axis1Plus,
+            Key.Axis1Minus,
+            Key.Axis2Plus,
+            Key.Axis2Minus,
+            Key.Axis3Plus,
+            Key.Axis3Minus,
+            Key.Axis4Plus,
+            Key.Axis4Minus,
+            Key.Axis5Plus,
+            Key.Axis5Minus,
+            Key.Axis6Plus,
+            Key.Axis6Minus,
+            Key.Axis7Plus,
+            Key.Axis7Minus,
+            Key.Axis8Plus,
+            Key.Axis8Minus,
+            Key.Axis9Plus,
+            Key.Axis9Minus,
+            Key.Axis10Plus,
+            Key.Axis10Minus,
+        ];
     }
 }

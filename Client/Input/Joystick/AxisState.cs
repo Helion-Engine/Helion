@@ -1,15 +1,11 @@
 ﻿namespace Helion.Client.Input.Joystick
 {
-    public record struct AxisState(float position, float positionCorrected, float delta)
+    public struct AxisState(float position, float positionCorrected, float delta, bool pressedPositive, bool pressedNegative)
     {
-        public static implicit operator (float position, float positionCorrected, float delta)(AxisState value)
-        {
-            return (value.position, value.positionCorrected, value.delta);
-        }
-
-        public static implicit operator AxisState((float position, float positionCorrected, float delta) value)
-        {
-            return new AxisState(value.position, value.positionCorrected, value.delta);
-        }
+        public float Position = position;
+        public float PositionCorrected = positionCorrected;
+        public float Delta = delta;
+        public bool PressedPositive = pressedPositive;
+        public bool PressedNegative = pressedNegative;
     }
 }
