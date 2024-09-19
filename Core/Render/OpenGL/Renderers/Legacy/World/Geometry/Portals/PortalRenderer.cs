@@ -73,8 +73,7 @@ public class PortalRenderer : IDisposable
         var saveEnd = line.Segment.End;
         WallVertices wall = default;
 
-        if (facingSide.Middle.TextureHandle > Constants.NullCompatibilityTextureIndex)
-            PushSeg(line, facingSide, PushDir.Forward, m_pushSegAmount);
+        PushSeg(line, facingSide, PushDir.Forward, m_pushSegAmount);
 
         if (face == SectorPlaneFace.Floor)
         {
@@ -122,8 +121,7 @@ public class PortalRenderer : IDisposable
         var saveEnd = line.Segment.End;
 
         // The middle texture renders over any potential flood textures. Push the flood texture slightly behind the line.
-        if (facingSide.Middle.TextureHandle > Constants.NullCompatibilityTextureIndex || floodSector.Flood)
-            PushSeg(facingSide.Line, facingSide, PushDir.Back, m_pushSegAmount);
+        PushSeg(facingSide.Line, facingSide, PushDir.Back, m_pushSegAmount);
 
         if (sideTexture == SideTexture.Upper)
         {
