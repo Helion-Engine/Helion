@@ -26,13 +26,19 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Bump Use")]
     public readonly ConfigValue<bool> BumpUse = new(false);
 
+    // Controller
+
     [ConfigInfo("Enable game controller support.")]
-    [OptionMenu(OptionSectionType.General, "Enable Game Controller")]
+    [OptionMenu(OptionSectionType.General, "Enable Game Controller", spacer: true)]
     public readonly ConfigValue<bool> EnableGameController = new(true);
 
     [ConfigInfo("Dead zone for game controller analog inputs.")]
     [OptionMenu(OptionSectionType.General, "Game Controller Dead Zone")]
-    public readonly ConfigValue<double> GameControllerDeadZone = new(0.1, Clamp(0.1, 0.9));
+    public readonly ConfigValue<double> GameControllerDeadZone = new(0.2, Clamp(0.1, 0.9));
+
+    [ConfigInfo("Saturation zone for game controller analog inputs.")]
+    [OptionMenu(OptionSectionType.General, "Game Controller Saturation")]
+    public readonly ConfigValue<double> GameControllerSaturation = new(0, Clamp(0, 0.3));
 
     // Visual effects
 
@@ -78,7 +84,7 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Mark Secrets")]
     public readonly ConfigValue<bool> MarkSecrets = new(false);
 
-    
+
     // Difficulty modifiers
 
     [ConfigInfo("Remove all monsters from the game.", save: false, serialize: true)]

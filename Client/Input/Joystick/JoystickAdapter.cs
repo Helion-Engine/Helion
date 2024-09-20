@@ -12,11 +12,13 @@
         private const int RezeroDelay = 1000;
         private readonly IReadOnlyList<OpenTKJoystick> m_windowJoystickStates;
 
-        private readonly JoystickState[][] m_joystickStates;
-        private JoystickState[] m_initialJoystickStates;
+        private OpenTKJoystick? m_activeJoystick;
+        private readonly JoystickState[] m_joystickState;
+        private JoystickState m_initialJoystickState;
         private int m_statePointer = 0;
         private int m_prevStatePointer = 1;
         private float m_deadZone;
+        private float m_saturation;
         private bool m_zeroed;
 
         private InputManager m_inputManager;
@@ -34,19 +36,40 @@
             }
         }
 
-        /// <summary>
-        /// Get data on the positions of each axis on each controller
-        /// </summary>
-        public AxisState[][] AxisStates { get; private set; }
+        public float Saturation
+        {
+            get => m_saturation;
+            set
+            {
+                m_saturation = Math.Clamp(value, 0f, .3f);
+            }
+        }
 
-        public JoystickAdapter(IReadOnlyList<OpenTKJoystick> joystickInputs, float axisDeadzone, InputManager inputManager)
+        /// <summary>
+        /// Selects the active joystick ID
+        /// </summary>
+        public int ActiveJoystick
+        {
+            get => m_activeJoystick?.Id ?? -1;
+            set
+            {
+                m_activeJoystick = m_windowJoystickStates.FirstOrDefault(j => j.Id == value) ?? m_activeJoystick;
+            }
+        }
+
+        /// <summary>
+        /// Get data on the positions of each axis on the current controller
+        /// </summary>
+        public AxisState[] AxisStates { get; private set; }
+
+        public JoystickAdapter(IReadOnlyList<OpenTKJoystick> joystickInputs, float axisDeadzone, float axisSaturation, InputManager inputManager)
         {
             m_windowJoystickStates = joystickInputs;
             m_inputManager = inputManager;
             AxisStates = [];
-            m_joystickStates = new JoystickState[2][];
-            m_initialJoystickStates = [];
+            m_joystickState = new JoystickState[2];
             m_deadZone = axisDeadzone;
+            m_saturation = axisSaturation;
             m_zeroTimer = new Timer(RezeroDelay);
 
             RedetectJoysticks();
@@ -61,19 +84,21 @@
                 .Where(stick => stick != null)
                 .ToArray();
 
-            m_joystickStates[0] = new JoystickState[activeSticks.Length];
-            m_joystickStates[1] = new JoystickState[activeSticks.Length];
-            m_initialJoystickStates = new JoystickState[activeSticks.Length];
-
-            AxisStates = new AxisState[activeSticks.Length][];
-
-            for (int i = 0; i < activeSticks.Length; i++)
+            if (activeSticks.Length == 0)
             {
-                m_joystickStates[0][i] = new JoystickState(activeSticks[i]);
-                m_joystickStates[1][i] = new JoystickState(activeSticks[i]);
-                m_initialJoystickStates[i] = new JoystickState(activeSticks[i]);
-                AxisStates[i] = new AxisState[activeSticks[i].AxisCount];
+                AxisStates = [];
+                m_activeJoystick = null;
+                return;
             }
+
+            AxisStates = new AxisState[activeSticks.Length];
+            m_activeJoystick = activeSticks.FirstOrDefault(joystick => joystick.Id == m_activeJoystick?.Id) ??
+                activeSticks.First();
+
+            m_joystickState[0] = new JoystickState(m_activeJoystick);
+            m_joystickState[1] = new JoystickState(m_activeJoystick);
+            m_initialJoystickState = new JoystickState(m_activeJoystick);
+            AxisStates = new AxisState[m_activeJoystick.AxisCount];
 
             // Initial zeros when a joystick is plugged in are not reliable, particularly for "trigger" axes.
             // Schedule a re-zero after some time has passed.
@@ -95,11 +120,12 @@
         /// </summary>
         public void Zero()
         {
-            foreach (JoystickState joystick in m_initialJoystickStates)
+            if (m_activeJoystick == null)
             {
-                joystick.Update(m_windowJoystickStates[joystick.JoystickId]);
+                return;
             }
 
+            m_initialJoystickState.Update(m_activeJoystick);
             m_zeroed = true;
         }
 
@@ -108,30 +134,24 @@
         /// </summary>
         public void SampleJoystickStates()
         {
-            if (m_initialJoystickStates.Length == 0)
+            if (m_activeJoystick == null)
             {
                 // Do minimal amount of work if controller input is enabled but no controllers are available
                 return;
             }
 
             // Sample current input state
-            foreach (JoystickState joystick in m_joystickStates[m_statePointer])
-            {
-                joystick.Update(m_windowJoystickStates[joystick.JoystickId]);
-            }
+            m_joystickState[m_statePointer].Update(m_activeJoystick);
 
             // Diff against input state since the last time we sampled
             // Note that we're using this, instead of OpenTK's built-in "Previous" states, because we may or may not want
             // to sample at the same rate as the parent window.
-            for (int joystick = 0; joystick < m_joystickStates[0].Length; joystick++)
-            {
-                ref JoystickState currentState = ref m_joystickStates[m_statePointer][joystick];
-                ref JoystickState prevState = ref m_joystickStates[m_prevStatePointer][joystick];
-                ref JoystickState initialState = ref m_initialJoystickStates[joystick];
+            ref JoystickState currentState = ref m_joystickState[m_statePointer];
+            ref JoystickState prevState = ref m_joystickState[m_prevStatePointer];
+            ref JoystickState initialState = ref m_initialJoystickState;
 
-                CheckAxes(currentState, prevState, initialState, joystick);
-                CheckButtons(currentState, prevState);
-            }
+            CheckAxes(currentState, prevState, initialState);
+            CheckButtons(currentState, prevState);
 
             m_statePointer = (m_statePointer + 1) % 2;
             m_prevStatePointer = (m_prevStatePointer + 1) % 2;
@@ -185,22 +205,23 @@
             }
         }
 
-        private void CheckAxes(in JoystickState currentState, in JoystickState prevState, in JoystickState initialState, int joystick)
+        private void CheckAxes(in JoystickState currentState, in JoystickState prevState, in JoystickState initialState)
         {
             for (int axis = 0; axis < currentState.AxisValues.Length; axis++)
             {
                 float axisValue = currentState.AxisValues[axis];
                 float prevAxisValue = prevState.AxisValues[axis];
 
-                ref AxisState axisState = ref AxisStates[joystick][axis];
+                ref AxisState axisState = ref AxisStates[axis];
 
                 axisState.Position = axisValue;
                 axisState.Delta = axisValue - prevAxisValue;
 
                 float axisMovementFromNeutral = axisValue - initialState.AxisValues[axis];
-                axisState.PositionCorrected = Math.Sign(axisMovementFromNeutral)
+
+                axisState.PositionCorrected = Math.Clamp(Math.Sign(axisMovementFromNeutral)
                     * Math.Clamp(Math.Abs(axisMovementFromNeutral) - m_deadZone, 0, 1)
-                    / (1 - m_deadZone);
+                    / (1 - m_deadZone - m_saturation), -1, 1);
 
                 bool pressedPositive = axisMovementFromNeutral > m_deadZone;
                 bool pressedNegative = axisMovementFromNeutral < -m_deadZone;

@@ -63,13 +63,18 @@ public class Window : GameWindow, IWindow
         MouseWheel += Window_MouseWheel;
         TextInput += Window_TextInput;
 
-        m_joystickAdapter = new JoystickAdapter(JoystickStates, (float)m_config.Game.GameControllerDeadZone.Value, m_inputManager);
+        m_joystickAdapter = new JoystickAdapter(
+            JoystickStates,
+            (float)m_config.Game.GameControllerDeadZone.Value,
+            (float)m_config.Game.GameControllerSaturation.Value,
+            m_inputManager);
         SetGameControllerPolling(m_config.Game.EnableGameController);
 
         m_config.Render.MaxFPS.OnChanged += OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
         m_config.Game.EnableGameController.OnChanged += EnableGameController_OnChanged;
         m_config.Game.GameControllerDeadZone.OnChanged += GameControllerDeadZone_OnChanged;
+        m_config.Game.GameControllerSaturation.OnChanged += GameControllerSaturation_OnChanged;
     }
 
     public void SetMousePosition(Vec2I pos)
@@ -296,6 +301,11 @@ public class Window : GameWindow, IWindow
         m_joystickAdapter.DeadZone = (float)e;
     }
 
+    private void GameControllerSaturation_OnChanged(object? sender, double e)
+    {
+        m_joystickAdapter.Saturation = (float)e;
+    }
+
     private void EnableGameController_OnChanged(object? sender, bool e)
     {
         SetGameControllerPolling(e);
@@ -334,6 +344,7 @@ public class Window : GameWindow, IWindow
         m_config.Render.VSync.OnChanged -= OnVSyncChanged;
         m_config.Game.EnableGameController.OnChanged -= EnableGameController_OnChanged;
         m_config.Game.GameControllerDeadZone.OnChanged -= GameControllerDeadZone_OnChanged;
+        m_config.Game.GameControllerSaturation.OnChanged -= GameControllerSaturation_OnChanged;
 
         Renderer.Dispose();
 
