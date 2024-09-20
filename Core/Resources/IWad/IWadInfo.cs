@@ -125,6 +125,14 @@ public class IWadInfo
         return DefaultIWadInfo;
     }
 
+    public static string GetDefaultFileName(IWadType type)
+    {
+        if (IWadDataLookup.TryGetValue(type, out var data))
+            return data.DefaultFileName;
+
+        return string.Empty;
+    }
+
     private static IWadInfo GetIWadInforFromMd5(string path)
     {
         string? md5 = Files.CalculateMD5(path);

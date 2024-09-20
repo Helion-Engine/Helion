@@ -20,7 +20,9 @@ using System.IO;
 using System.IO.Compression;
 using Helion.Maps.Bsp.Zdbsp;
 using NLog;
-using Helion.Dehacked;
+using Helion.Resources.Archives;
+using Helion.Resources.Archives.Entries;
+using System.Collections.Generic;
 
 namespace Helion.Tests.Unit.GameAction;
 
@@ -37,7 +39,7 @@ internal static class WorldAllocator
 
     public static SinglePlayerWorld LoadMap(string resourceZip, string fileName, string mapName, string testKey, Action<SinglePlayerWorld> onInit,
         IWadType iwadType = IWadType.Doom2, SkillLevel skillLevel = SkillLevel.Medium, Player? existingPlayer = null, WorldModel? worldModel = null,
-        bool disposeExistingWorld = true, bool cacheWorld = true,
+        bool disposeExistingWorld = true, bool cacheWorld = true, bool gameConf = false,
         Action<ArchiveCollection>? onBeforeInit = null, Config? config = null, string? dehackedPatch = null)
     {
         if (disposeExistingWorld && UseExistingWorld(resourceZip, fileName, mapName, testKey, cacheWorld, out SinglePlayerWorld? existingWorld))
@@ -56,8 +58,26 @@ internal static class WorldAllocator
         config ??= CreateConfig();
         var profiler = new Profiler();
         var audioSystem = new MockAudioSystem();
+
+        string iwadFileName = IWadInfo.GetDefaultFileName(iwadType);
+        if (!File.Exists(iwadFileName))
+            File.Copy("Resources/dummy.wad", iwadFileName, true);
+
+        var iwadArchive = new Wad(new EntryPath(iwadFileName), new IndexGenerator())
+        {
+            ArchiveType = ArchiveType.IWAD,
+            IWadInfo = IWadInfo.GetIWadInfo(iwadType),
+            OriginalFilePath = iwadFileName
+        };
+
         ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), config, new DataCache());
-        archiveCollection.Load([fileName], iwad: null, iwadTypeOverride: iwadType).Should().BeTrue();
+        List<string> loadFiles = [fileName];
+        if (gameConf)
+        {
+            var (iwad, pwads) = archiveCollection.GetWadsFromGameConfs(null, loadFiles);
+            loadFiles = pwads;
+        }
+        archiveCollection.Load(loadFiles, iwad: null, iwadOverride: iwadArchive, checkGameConfArchives: gameConf).Should().BeTrue();
 
         if (dehackedPatch != null)
         {
