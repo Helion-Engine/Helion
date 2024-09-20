@@ -268,6 +268,21 @@ public class DefinitionEntries
 
     public void BuildTranslationColorMaps(Palette palette, Colormap baseColorMap)
     {
+        SetPlayerColorMaps(palette, baseColorMap);
+
+        for (int i = 0; i < Colormaps.Count; i++)
+            Colormaps[i].Index = i + 1;
+
+        SetGameConfTranslations();
+
+        if (DehackedDefinition != null)
+            SetEntityTranslations(DehackedDefinition);
+
+        m_processedTranslationColormaps.Clear();
+    }
+
+    private void SetPlayerColorMaps(Palette palette, Colormap baseColorMap)
+    {
         if (baseColorMap.Entry == null)
             return;
 
@@ -290,16 +305,6 @@ public class DefinitionEntries
         translatedColormaps.AddRange(Colormaps);
         Colormaps.Clear();
         Colormaps.AddRange(translatedColormaps);
-
-        for (int i = 0; i < Colormaps.Count; i++)
-            Colormaps[i].Index = i + 1;
-
-        SetGameConfTranslations();
-
-        if (DehackedDefinition != null)
-            SetEntityTranslations(DehackedDefinition);
-
-        m_processedTranslationColormaps.Clear();
     }
 
     private void SetGameConfTranslations()
