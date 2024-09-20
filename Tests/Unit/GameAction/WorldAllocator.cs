@@ -71,6 +71,8 @@ internal static class WorldAllocator
         };
 
         ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), config, new DataCache());
+        archiveCollection.ArchiveLoaded += ArchiveCollection_ArchiveLoaded;
+        archiveCollection.ArchiveRead += ArchiveCollection_ArchiveRead;
         List<string> loadFiles = [fileName];
         if (gameConf)
         {
@@ -78,6 +80,9 @@ internal static class WorldAllocator
             loadFiles = pwads;
         }
         archiveCollection.Load(loadFiles, iwad: null, iwadOverride: iwadArchive, checkGameConfArchives: gameConf).Should().BeTrue();
+
+        archiveCollection.ArchiveLoaded -= ArchiveCollection_ArchiveLoaded;
+        archiveCollection.ArchiveRead -= ArchiveCollection_ArchiveRead;
 
         if (dehackedPatch != null)
         {
@@ -104,6 +109,16 @@ internal static class WorldAllocator
         world.OnDestroying += World_OnDestroying;
         onInit(world);
         return world;
+    }
+
+    private static void ArchiveCollection_ArchiveRead(object? sender, Archive e)
+    {
+        Log.Info($"Read {e.Path.NameWithExtension}");
+    }
+
+    private static void ArchiveCollection_ArchiveLoaded(object? sender, Archive e)
+    {
+        Log.Info($"Loaded {e.Path.NameWithExtension}");
     }
 
     private static void World_OnDestroying(object? sender, EventArgs e)
