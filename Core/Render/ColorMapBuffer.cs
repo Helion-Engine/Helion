@@ -16,8 +16,7 @@ public static class ColorMapBuffer
         for (int i = 0; i < colormaps.Count; i++)
         {
             var colormap = colormaps[i];
-            colormap.Index = i + 1;
-            WriteColorMap(i + 1, palette, colormaps[i], buffer);
+            WriteColorMap(colormap.Index, palette, colormap, buffer);
         }
 
         return buffer;

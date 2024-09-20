@@ -61,6 +61,8 @@ public class EntityProperties
     public double SelfDamageFactor = 1;
     public List<EntityDefinition>? TranslatedPickups;
     public EntityDefinition? TranslatedPickupDisplay;
+    public string? TranslationEntry;
+    public int? ColormapIndex;
 
     public double MonsterMovementSpeed;
     public double MissileMovementSpeed;

@@ -93,7 +93,6 @@ public class ArchiveCollection : IResources, IPathResolver
     private IMap? m_lastLoadedMap;
     private bool m_lastLoadedMapIsTemp;
     private bool m_initTextureManager;
-    private IWadInfo? m_overrideIWadInfo;
 
     public ArchiveCollection(IArchiveLocator archiveLocator, Config config, DataCache dataCache)
     {
@@ -297,11 +296,10 @@ public class ArchiveCollection : IResources, IPathResolver
         GC.SuppressFinalize(this);
     }
 
-    public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null, IWadType? iwadTypeOverride = null, bool checkGameConfArchives = false)
+    public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null, Archive? iwadOverride = null, bool checkGameConfArchives = false)
     {
         if (Loaded)
         {
-            m_overrideIWadInfo = null;
             foreach (var archive in m_archives)
                 archive.Dispose();
             m_archives.Clear();
@@ -314,9 +312,6 @@ public class ArchiveCollection : IResources, IPathResolver
         Loaded = true;
         List<string> filePaths = [];
         Archive? iwadArchive = null;
-
-        if (iwadTypeOverride.HasValue)
-            m_overrideIWadInfo = IWadInfo.GetIWadInfo(iwadTypeOverride.Value);
 
         // If we have nothing loaded, we want to make sure assets.pk3 is
         // loaded before anything else. We also do not want it to be loaded
@@ -333,7 +328,12 @@ public class ArchiveCollection : IResources, IPathResolver
         if (checkGameConfArchives)
             m_archives.AddRange(LoadGameConfArchives(iwad, files));
 
-        if (iwad != null)
+        if (iwadOverride != null)
+        {
+            iwadArchive = iwadOverride;
+            m_archives.Add(iwadArchive);
+        }
+        else if (iwad != null)
         {
             iwadArchive = LoadSpecial(iwad, ArchiveType.IWAD, Files.CalculateMD5(iwad));
             if (iwadArchive == null)
@@ -519,9 +519,6 @@ public class ArchiveCollection : IResources, IPathResolver
 
     private IWadInfo GetIWadInfo()
     {
-        if (m_overrideIWadInfo != null)
-            return m_overrideIWadInfo;
-
         return IWad?.IWadInfo ?? IWadInfo.DefaultIWadInfo;
     }
 
@@ -586,18 +583,12 @@ public class ArchiveCollection : IResources, IPathResolver
         }
     }
 
-    private bool GetIWadInfo(Archive? iwadArchive, [NotNullWhen(true)] out IWadInfo? info)
+    private static bool GetIWadInfo(Archive? iwadArchive, [NotNullWhen(true)] out IWadInfo? info)
     {
         if (iwadArchive != null)
         {
             iwadArchive.IWadInfo = IWadInfo.GetIWadInfo(iwadArchive.OriginalFilePath);
             info = iwadArchive.IWadInfo;
-            return true;
-        }
-
-        if (m_overrideIWadInfo != null)
-        {
-            info = m_overrideIWadInfo;
             return true;
         }
 

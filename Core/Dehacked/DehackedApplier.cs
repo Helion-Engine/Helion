@@ -672,6 +672,8 @@ public class DehackedApplier
                 ApplyPickupAmmoType(thing, dehacked, composer, definition, thing.PickupAmmoType.Value, thing.PickupAmmoCategory.Value);
             if (thing.SelfDamageFactor.HasValue)
                 properties.SelfDamageFactor = thing.SelfDamageFactor.Value;
+
+            properties.TranslationEntry = thing.TranslationLump;
         }
     }
 

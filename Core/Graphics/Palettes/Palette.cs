@@ -22,10 +22,12 @@ public class Palette
 
     public int Count => layers.Count;
     public Color[] DefaultLayer => layers[0];
+    public readonly byte[]? Translation;
 
-    private Palette(List<Color[]> paletteLayers)
+    private Palette(List<Color[]> paletteLayers, byte[]? translation = null)
     {
         layers = paletteLayers;
+        Translation = translation;
     }
 
     /// <summary>
@@ -42,15 +44,36 @@ public class Palette
         if (data.Length == 0 || data.Length % BytesPerLayer != 0)
             return null;
 
-        List<Color[]> paletteLayers = new();
+        List<Color[]> paletteLayers = [];
         for (int layer = 0; layer < data.Length / BytesPerLayer; layer++)
         {
             int offset = layer * BytesPerLayer;
-            Span<byte> layerSpan = new Span<byte>(data, offset, BytesPerLayer);
+            Span<byte> layerSpan = new(data, offset, BytesPerLayer);
             paletteLayers.Add(PaletteLayerFrom(layerSpan));
         }
 
         return new Palette(paletteLayers);
+    }
+
+    public static Palette? CreateTranslatedPalette(Palette basePalette, byte[] translationData)
+    {
+        if (translationData.Length < 256)
+            return null;
+
+        List<Color[]> paletteLayers = new(basePalette.Count);
+        for (int layerIndex = 0; layerIndex < basePalette.Count; layerIndex++)
+        {
+            var baseColors = basePalette.Layer(layerIndex);
+            var newColors = new Color[baseColors.Length];
+            for (int colorIndex = 0; colorIndex < baseColors.Length; colorIndex++)
+            {
+                var color = baseColors[translationData[colorIndex]];
+                newColors[colorIndex] = color;
+            }
+            paletteLayers.Add(newColors);
+        }
+
+        return new Palette(paletteLayers, translationData);
     }
 
     private static Color[] PaletteLayerFrom(Span<byte> data)

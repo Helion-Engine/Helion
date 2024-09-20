@@ -2,6 +2,7 @@ using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.Data;
 using Helion.Resources.Definitions.Texture;
 using NLog;
 using SixLabors.ImageSharp;
@@ -197,15 +198,25 @@ public class ArchiveImageRetriever : IImageRetriever
             bool clearBlackPixels = (options & GetImageOptions.ClearBlackPixels) != 0;
             var dataEntries = m_archiveCollection.Data;
             var storeIndices = m_archiveCollection.StoreImageIndices;
+            var palette = entry.Parent.TranslationPalette ?? dataEntries.Palette;
+
             if (entry.Namespace == ResourceNamespace.Flats && PaletteReaders.LikelyFlat(data))
             {
                 if (PaletteReaders.ReadFlat(data, entry.Namespace, out var paletteImage))
-                    image = Image.PaletteToArgb(paletteImage, dataEntries.Palette, dataEntries.Colormap.FullBright, storeIndices, clearBlackPixels);
+                {
+                    if (storeIndices && palette.Translation != null)
+                        TranslatePaletteIndices(paletteImage.Indices, palette.Translation);
+                    image = Image.PaletteToArgb(paletteImage, palette, dataEntries.Colormap.FullBright, storeIndices, clearBlackPixels);
+                }
             }
             else
             {
                 if (PaletteReaders.ReadColumn(data, entry.Namespace, out var paletteImage))
-                    image = Image.PaletteToArgb(paletteImage, dataEntries.Palette, dataEntries.Colormap.FullBright, storeIndices, clearBlackPixels);
+                {
+                    if (storeIndices && palette.Translation != null)
+                        TranslatePaletteIndices(paletteImage.Indices, palette.Translation);
+                    image = Image.PaletteToArgb(paletteImage, palette, dataEntries.Colormap.FullBright, storeIndices, clearBlackPixels);
+                }
             }
         }
 
@@ -218,5 +229,16 @@ public class ArchiveImageRetriever : IImageRetriever
         if (cacheEntry)
             m_compiledImages.Insert(entry.Path.Name, entry.Namespace, image);
         return image;
+    }
+
+    private static void TranslatePaletteIndices(ushort[] indices, byte[] translation)
+    {
+        for (int i = 0; i < indices.Length; i++)
+        {
+            var value = indices[i];
+            if (value == Image.TransparentIndex)
+                continue;
+            indices[i] = translation[value];
+        }
     }
 }

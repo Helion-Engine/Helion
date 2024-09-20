@@ -21,7 +21,7 @@ public class Id24SkyDefinition
             var converted = JsonConvert.DeserializeObject<SkyDefinitions>(data, JsonSerializationSettings.IgnoreNull);
             if (converted == null)
             {
-                Log.Error(GetParseError(entry));
+                Log.Error(ParseUtil.GetParseError(entry, "skydefs"));
                 return;
             }
 
@@ -38,9 +38,7 @@ public class Id24SkyDefinition
         }
         catch (Exception ex)
         {
-            Log.Error(ex, GetParseError(entry));
+            Log.Error(ex, ParseUtil.GetParseError(entry, "skydefs"));
         }
     }
-
-    private static string GetParseError(Entry entry) => $"Failed to parse skydefs from {entry.Parent.Path.Name}";
 }
