@@ -15,7 +15,7 @@ public class GameConf
 
     public GameConf()
     {
-        World = WorldAllocator.LoadMap("Resources/id24gameconf.zip", "id24gameconf.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, gameConf: true);
+        World = WorldAllocator.LoadMap("Resources/id24gameconf.zip", "id24gameconf.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, gameConf: true);
     }
 
     [Fact(DisplayName = "Wad translation")]
