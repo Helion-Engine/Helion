@@ -40,6 +40,14 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Game Controller Saturation")]
     public readonly ConfigValue<double> GameControllerSaturation = new(0, Clamp(0, 0.3));
 
+    [ConfigInfo("Turn speed scaling factor for controller analog inputs.")]
+    [OptionMenu(OptionSectionType.General, "Game Controller Turn Scale")]
+    public readonly ConfigValue<double> GameControllerTurnScale = new(1.5, Clamp(0.1, 3.0));
+
+    [ConfigInfo("Pitch speed scaling factor for controller analog inputs.")]
+    [OptionMenu(OptionSectionType.General, "Game Controller Pitch Scale")]
+    public readonly ConfigValue<double> GameControllerPitchScale = new(0.5, Clamp(0.1, 3.0));
+
     // Visual effects
 
     [ConfigInfo("Scale red amount drawn to screen when the player takes damage.")]

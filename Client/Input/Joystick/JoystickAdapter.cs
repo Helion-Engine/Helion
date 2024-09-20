@@ -7,7 +7,7 @@
     using System.Timers;
     using OpenTKJoystick = OpenTK.Windowing.GraphicsLibraryFramework.JoystickState;
 
-    public class JoystickAdapter
+    public class JoystickAdapter : IAnalogAdapter
     {
         private const int RezeroDelay = 1000;
 
@@ -72,6 +72,7 @@
         {
             m_windowJoystickStates = joystickInputs;
             m_inputManager = inputManager;
+            m_inputManager.AnalogAdapter = this;
             AxisStates = [];
             m_joystickState = new JoystickState[2];
             m_deadZone = axisDeadzone;

@@ -1,4 +1,5 @@
 using Helion.Util;
+using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 using Helion.Util.Container;
@@ -8,6 +9,7 @@ using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.StatusBar;
 using System;
+using System.Collections.Generic;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Worlds;
@@ -42,6 +44,19 @@ public partial class WorldLayer
         (Input.WeaponSlot5,    TickCommands.WeaponSlot5),
         (Input.WeaponSlot6,    TickCommands.WeaponSlot6),
         (Input.WeaponSlot7,    TickCommands.WeaponSlot7),
+    };
+
+    // Convert analog inputs into movements, assumes analog values are in range [0..1]
+    private static readonly Dictionary<TickCommands, Action<TickCommand, float, ConfigGame>> MovementCommmands = new()
+    {
+        { TickCommands.TurnLeft, (cmd, value, cfg) => cmd.AngleTurn = value * Player.FastTurnSpeed * cfg.GameControllerTurnScale },
+        { TickCommands.TurnRight, (cmd,value, cfg) => cmd.AngleTurn = -value * Player.FastTurnSpeed * cfg.GameControllerTurnScale },
+        { TickCommands.LookUp, (cmd, value, cfg) => cmd.PitchTurn = value * Player.FastTurnSpeed * cfg.GameControllerPitchScale},
+        { TickCommands.LookDown, (cmd, value, cfg) => cmd.PitchTurn = -value * Player.FastTurnSpeed * cfg.GameControllerPitchScale },
+        { TickCommands.Forward, (cmd, value, cfg) => cmd.ForwardMoveSpeed = value * Player.ForwardMovementSpeedRun },
+        { TickCommands.Backward, (cmd, value, cfg) => cmd.ForwardMoveSpeed = -value * Player.ForwardMovementSpeedRun },
+        { TickCommands.Left, (cmd, value, cfg) => cmd.SideMoveSpeed =  -value * Player.SideMovementSpeedRun },
+        { TickCommands.Right, (cmd, value, cfg) => cmd.SideMoveSpeed = value * Player.SideMovementSpeedRun },
     };
 
     private readonly DynamicArray<Key> m_pressedKeys = new();
@@ -201,7 +216,22 @@ public partial class WorldLayer
             {
                 if (tickCommand == TickCommands.NextWeapon || tickCommand == TickCommands.PreviousWeapon)
                     weaponScroll += GetWeaponScroll(scrollAmount, key, tickCommand);
-                cmd.Add(tickCommand);
+
+                bool cancelKey = false;
+                if (m_config.Game.EnableGameController)
+                {
+                    // If there is an analog input that corresponds to this key, directly enter the analog data into
+                    // the current tick command's movement parameters rather than setting a key.
+                    if (MovementCommmands.TryGetValue(tickCommand, out var setAction)
+                        && input.Manager.AnalogAdapter.TryGetAnalogValueForAxis(key, out float analogValue))
+                    {
+                        setAction(cmd, analogValue, m_config.Game);
+                        cancelKey = true;
+                    }
+                }
+
+                if (!cancelKey)
+                    cmd.Add(tickCommand);
             }
         }
 

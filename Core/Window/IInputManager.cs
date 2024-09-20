@@ -14,7 +14,7 @@ public interface IInputManager
     Vec2I MousePosition { get; set; }
     public int Scroll { get; }
     public ReadOnlySpan<char> TypedCharacters { get; }
-
+    public IAnalogAdapter AnalogAdapter { get; }
     bool IsKeyDown(Key key);
     bool IsKeyPrevDown(Key key);
     bool IsKeyHeldDown(Key key);
