@@ -10,11 +10,13 @@
     public class JoystickAdapter
     {
         private const int RezeroDelay = 1000;
-        private readonly IReadOnlyList<OpenTKJoystick> m_windowJoystickStates;
 
+        private readonly IReadOnlyList<OpenTKJoystick> m_windowJoystickStates;
         private OpenTKJoystick? m_activeJoystick;
+
         private readonly JoystickState[] m_joystickState;
         private JoystickState m_initialJoystickState;
+
         private int m_statePointer = 0;
         private int m_prevStatePointer = 1;
         private float m_deadZone;
@@ -36,6 +38,9 @@
             }
         }
 
+        /// <summary>
+        /// Get or set the size of the saturation zone for controllers, in the range of 0-.3
+        /// </summary>
         public float Saturation
         {
             get => m_saturation;
@@ -46,7 +51,8 @@
         }
 
         /// <summary>
-        /// Selects the active joystick ID
+        /// Selects the active joystick ID; this should only be needed if we allow the user to plug in multiple joysticks
+        /// and select one.
         /// </summary>
         public int ActiveJoystick
         {
@@ -249,6 +255,30 @@
                 axisState.PressedPositive = pressedPositive;
                 axisState.PressedNegative = pressedNegative;
             }
+        }
+
+        /// <summary>
+        /// Gets value in the range [0..1] for the specified "key", if it is actually an analog axis.
+        /// This is a reverse lookup from "pressed key" to an analog axis.
+        /// </summary>
+        /// <param name="key">Key for which to get analog values</param>
+        /// <param name="axisAnalogValue">Scaled analog value for the axis, in the range [0..1]</param>
+        /// <returns>True (and a floating point value) if the axis exists on a currently active controller, false (and zero) otherwise</returns>
+        public bool TryGetAnalogValueForAxis(Key key, out float axisAnalogValue)
+        {
+            if ((m_activeJoystick == null)
+                || !JoystickStatic.KeysToAxis.TryGetValue(key, out (int axisId, bool isPositive) axisLookup)
+                || m_activeJoystick.AxisCount < axisLookup.axisId)
+            {
+                axisAnalogValue = 0f;
+                return false;
+            }
+
+            float correctedAxisValue = AxisStates[axisLookup.axisId].PositionCorrected;
+            axisAnalogValue = Math.Abs(axisLookup.isPositive
+                ? Math.Clamp(correctedAxisValue, 0, 1)
+                : Math.Clamp(correctedAxisValue, -1, 0));
+            return true;
         }
     }
 }
