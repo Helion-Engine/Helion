@@ -26,14 +26,6 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Bump Use")]
     public readonly ConfigValue<bool> BumpUse = new(false);
 
-    [ConfigInfo("Enable game controller support.")]
-    [OptionMenu(OptionSectionType.General, "Enable Game Controller")]
-    public readonly ConfigValue<bool> EnableGameController = new(true);
-
-    [ConfigInfo("Dead zone for game controller analog inputs.")]
-    [OptionMenu(OptionSectionType.General, "Game Controller Dead Zone")]
-    public readonly ConfigValue<double> GameControllerDeadZone = new(0.1, Clamp(0.1, 0.9));
-
     // Visual effects
 
     [ConfigInfo("Scale red amount drawn to screen when the player takes damage.")]
@@ -78,7 +70,7 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Mark Secrets")]
     public readonly ConfigValue<bool> MarkSecrets = new(false);
 
-    
+
     // Difficulty modifiers
 
     [ConfigInfo("Remove all monsters from the game.", save: false, serialize: true)]

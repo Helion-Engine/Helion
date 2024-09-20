@@ -22,6 +22,7 @@ public class Config : IConfig
     public ConfigAudio Audio { get; } = new();
     public ConfigCompat Compatibility { get; } = new();
     public ConfigConsole Console { get; } = new();
+    public ConfigController Controller { get; } = new();
     public ConfigDeveloper Developer { get; } = new();
     public ConfigFiles Files { get; } = new();
     public ConfigGame Game { get; } = new();

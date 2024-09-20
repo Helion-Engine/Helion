@@ -1,6 +1,7 @@
 ﻿namespace Helion.Client.Input.Joystick
 {
     using Helion.Window.Input;
+    using System.Collections.Generic;
 
     public static class JoystickStatic
     {
@@ -77,5 +78,29 @@
             Key.Axis10Plus,
             Key.Axis10Minus,
         ];
+
+        public static readonly Dictionary<Key, (int axisId, bool isPositive)> KeysToAxis = new()
+        {
+            { Key.Axis1Plus, (0, true) },
+            { Key.Axis1Minus, (0, false) },
+            { Key.Axis2Plus, (1, true) },
+            { Key.Axis2Minus, (1, false) },
+            { Key.Axis3Plus, (2, true) },
+            { Key.Axis3Minus, (2, false) },
+            { Key.Axis4Plus, (3, true) },
+            { Key.Axis4Minus, (3, false) },
+            { Key.Axis5Plus, (4, true) },
+            { Key.Axis5Minus, (4, false) },
+            { Key.Axis6Plus, (5, true) },
+            { Key.Axis6Minus, (5, false) },
+            { Key.Axis7Plus, (6, true) },
+            { Key.Axis7Minus, (6, false) },
+            { Key.Axis8Plus, (7, true) },
+            { Key.Axis8Minus, (7, false) },
+            { Key.Axis9Plus, (8, true) },
+            { Key.Axis9Minus, (8, false) },
+            { Key.Axis10Plus, (9, true) },
+            { Key.Axis10Minus, (9, false) },
+        };
     }
 }

@@ -6,6 +6,7 @@ public enum OptionSectionType
 {
     Keys,
     Mouse,
+    Controller,
     General,
     Video,
     Audio,

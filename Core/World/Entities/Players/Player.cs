@@ -42,9 +42,9 @@ public class Player : Entity
     private const double PlayerViewDivider = 8.0;
     private const double ViewHeightMin = 4.0;
     private const double DeathHeight = 8.0;
+    public const double FastTurnSpeed = 7.03125 / 180 * Math.PI;
     private const double SlowTurnSpeed = 1.7578125 / 180 * Math.PI;
     private const double NormalTurnSpeed = 3.515625 / 180 * Math.PI;
-    private const double FastTurnSpeed = 7.03125 / 180 * Math.PI;
     private const int JumpDelayTicks = 7;
     private const int SlowTurnTicks = 6;
     private const double MaxPitch = Camera.MaxPitch;
