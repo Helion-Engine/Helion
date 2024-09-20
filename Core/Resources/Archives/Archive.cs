@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Graphics.Palettes;
 using Helion.Models;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.IWad;
@@ -15,10 +16,10 @@ public abstract class Archive : IDisposable
 {
     protected static readonly char DirectorySeparatorChar = System.IO.Path.DirectorySeparatorChar;
     protected static readonly char AltDirectorySeparatorChar = System.IO.Path.AltDirectorySeparatorChar;
-    protected static readonly char[] DirectorySeparatorChars = new char[] { System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar };
+    protected static readonly char[] DirectorySeparatorChars = [ System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar ];
 
-    protected static readonly (string, ResourceNamespace)[] FolderToNamespace = new (string, ResourceNamespace)[]
-    {
+    protected static readonly (string, ResourceNamespace)[] FolderToNamespace =
+    [
         ("ACS", ResourceNamespace.ACS),
         ("FLATS", ResourceNamespace.Flats),
         ("FONTS", ResourceNamespace.Fonts),
@@ -29,7 +30,7 @@ public abstract class Archive : IDisposable
         ("SPRITES", ResourceNamespace.Sprites),
         ("TEXTURES", ResourceNamespace.Textures),
         ("PATCHES", ResourceNamespace.Textures)
-    };
+    ];
 
     protected static ResourceNamespace NamespaceFromEntryPath(string path)
     {
@@ -64,6 +65,8 @@ public abstract class Archive : IDisposable
     public Archive? ExtractedFrom { get; set; }
 
     public string OriginalFilePath { get; set; } = string.Empty;
+
+    public Palette? TranslationPalette { get; set; }
 
     /// <summary>
     /// Creates an archive, which may either be a top level file or some

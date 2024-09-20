@@ -11,10 +11,13 @@ public class Id24TranslationDefinition
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public List<TranslationDef> Translations = [];
+    public Dictionary<string, TranslationDef> Translations = [];
 
     public TranslationDef? Parse(Entry entry)
     {
+        if (Translations.TryGetValue(entry.Path.Name, out var existing))
+            return existing;
+
         string data = entry.ReadDataAsString();
         try
         {
@@ -25,7 +28,7 @@ public class Id24TranslationDefinition
                 return null;
             }
 
-            Translations.Add(translation);
+            Translations[entry.Path.Name] = translation;
             return translation;
         }
         catch (Exception ex)

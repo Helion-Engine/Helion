@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Helion.Resources.Archives;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Compatibility;
 using Newtonsoft.Json;

@@ -25,6 +25,7 @@ using Helion.Graphics.Palettes;
 using Helion.Resources.Definitions.MusInfo;
 using Helion.Resources.Definitions.Id24;
 using Helion.Resources.IWad;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Resources.Definitions;
 
@@ -68,6 +69,7 @@ public class DefinitionEntries
 
     private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
     private readonly ArchiveCollection m_archiveCollection;
+    private readonly Dictionary<string, Colormap> m_processedTranslationColormaps = [];
     private PnamesTextureXCollection m_pnamesTextureXCollection = new();
     private bool m_parseDehacked;
     private bool m_parseDecorate;
@@ -284,7 +286,7 @@ public class DefinitionEntries
             translatedColormaps.Add(colormap);
         }
 
-        // Translated colormaps must be first
+        // Translated player colormaps must be first
         translatedColormaps.AddRange(Colormaps);
         Colormaps.Clear();
         Colormaps.AddRange(translatedColormaps);
@@ -292,59 +294,138 @@ public class DefinitionEntries
         for (int i = 0; i < Colormaps.Count; i++)
             Colormaps[i].Index = i + 1;
 
+        SetGameConfTranslations();
+
         if (DehackedDefinition != null)
+            SetEntityTranslations(DehackedDefinition);
+
+        m_processedTranslationColormaps.Clear();
+    }
+
+    private void SetGameConfTranslations()
+    {
+        var gameConf = GameConfDefinition.Data;
+        if (gameConf == null)
+            return;
+
+        if (string.IsNullOrEmpty(gameConf.WadTranslation) || !TryParseTranslationEntryToPalette(gameConf.WadTranslation, out var palette))
+            return;
+
+        if (m_archiveCollection.IWad != null)
+            m_archiveCollection.IWad.TranslationPalette = palette;
+
+        HashSet<string> wadFiles = new(StringComparer.OrdinalIgnoreCase);
+        if (gameConf.Pwads != null)
         {
-            HashSet<string> translationEntries = [];
-            Dictionary<string, List<EntityDefinition>> translationDefinitions = [];
-            var definitions = m_archiveCollection.EntityDefinitionComposer.GetEntityDefinitions();
-            foreach (var definition in definitions)
-            {
-                var entryName = definition.Properties.TranslationEntry;
-                if (string.IsNullOrEmpty(entryName))
-                    continue;
-
-                if (!translationDefinitions.TryGetValue(entryName, out var list))
-                {
-                    list = [];
-                    translationDefinitions[entryName] = list;
-                }
-
-                list.Add(definition);
-                translationEntries.Add(entryName);
-            }
-
-            foreach (var thing in DehackedDefinition.Things)
-            {
-                if (string.IsNullOrEmpty(thing.TranslationLump))
-                    continue;
-
-                translationEntries.Add(thing.TranslationLump);
-            }
-
-            foreach (var entryName in translationEntries)
-            {
-                var entry = m_archiveCollection.Entries.FindByName(entryName);
-                if (entry == null)
-                    continue;
-
-                var translationDef = Id24TranslationDefinition.Parse(entry);
-                if (translationDef == null)
-                    continue;
-
-                var colormap = Colormap.From(m_archiveCollection.Data.Palette, translationDef.Data.Table, null);
-                if (colormap == null)
-                    continue;
-
-                Colormaps.Add(colormap);
-                colormap.Index = Colormaps.Count;
-
-                if (!translationDefinitions.TryGetValue(entryName, out var list))
-                    continue;
-
-                foreach (var entityDef in list)
-                    entityDef.Properties.ColormapIndex = colormap.Index;
-            }
+            foreach (var file in gameConf.Pwads)
+                wadFiles.Add(file);
         }
+
+        foreach (var archive in m_archiveCollection.Archives)
+        {
+            if (wadFiles.Contains(archive.Path.NameWithExtension))
+                archive.TranslationPalette = palette;
+        }
+    }
+
+    private void SetEntityTranslations(DehackedDefinition dehacked)
+    {
+        HashSet<string> translationEntries = [];
+        Dictionary<string, List<EntityDefinition>> translationDefinitions = [];
+        var definitions = m_archiveCollection.EntityDefinitionComposer.GetEntityDefinitions();
+        foreach (var definition in definitions)
+        {
+            var entryName = definition.Properties.TranslationEntry;
+            if (string.IsNullOrEmpty(entryName))
+                continue;
+
+            if (!translationDefinitions.TryGetValue(entryName, out var list))
+            {
+                list = [];
+                translationDefinitions[entryName] = list;
+            }
+
+            list.Add(definition);
+            translationEntries.Add(entryName);
+        }
+
+        foreach (var thing in dehacked.Things)
+        {
+            if (string.IsNullOrEmpty(thing.TranslationLump))
+                continue;
+
+            translationEntries.Add(thing.TranslationLump);
+        }
+
+        foreach (var entryName in translationEntries)
+        {
+            if (!TryParseTranslationEntryToColormap(entryName, out var colormap))
+                continue;
+
+            m_processedTranslationColormaps[entryName] = colormap;
+
+            Colormaps.Add(colormap);
+            colormap.Index = Colormaps.Count;
+
+            if (!translationDefinitions.TryGetValue(entryName, out var list))
+                continue;
+
+            foreach (var entityDef in list)
+                entityDef.Properties.ColormapIndex = colormap.Index;
+        }
+    }
+
+    private bool TryParseTranslationEntryToColormap(string entryName, [NotNullWhen(true)] out Colormap? colormap)
+    {
+        colormap = null;
+        if (!TryParseTranslationEntry(entryName, out var translationEntry, out var translationDef))
+            return false;
+
+        colormap = Colormap.From(m_archiveCollection.Data.Palette, translationDef.Data.Table, translationEntry);
+        if (colormap == null)
+            return false;
+
+        m_processedTranslationColormaps[entryName] = colormap;
+
+        Colormaps.Add(colormap);
+        colormap.Index = Colormaps.Count;
+
+        return true;
+    }
+
+    private bool TryParseTranslationEntryToPalette(string entryName, [NotNullWhen(true)] out Palette? palette)
+    {
+        palette = null;
+        if (!TryParseTranslationEntry(entryName, out _, out var translationDef))
+            return false;
+
+        palette = Palette.CreateTranslatedPalette(m_archiveCollection.Data.Palette, translationDef.Data.Table);
+        return palette != null;
+    }
+
+    private bool TryParseTranslationEntry(string entryName, [NotNullWhen(true)] out Entry? translationEntry, [NotNullWhen(true)] out TranslationDef? translationDef)
+    {
+        translationDef = null;
+        translationEntry = m_archiveCollection.Entries.FindByName(entryName);
+        if (translationEntry == null)
+        {
+            LogTranslationNotFound("entry", entryName);
+            return false;
+        }
+
+        translationDef = Id24TranslationDefinition.Parse(translationEntry);
+        if (translationDef == null)
+        {
+            LogTranslationNotFound("definition", entryName);
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void LogTranslationNotFound(string type, string entryName)
+    {
+        Log.Error($"Translation {type} not found for {entryName}");
     }
 
     private void AddColormap(Entry entry)
