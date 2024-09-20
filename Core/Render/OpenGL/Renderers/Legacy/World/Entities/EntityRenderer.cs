@@ -225,7 +225,7 @@ public class EntityRenderer : IDisposable
                 (float)entity.PrevPosition.Z + offsetZ);
             vertex->LightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? 255 :
                 ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
-            vertex->Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, entity.Flags.GetTranslationColorMap());
+            vertex->Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, entity.Properties.ColormapIndex ?? entity.Flags.GetTranslationColorMap());
             vertex->SectorIndex = sector.Id + 1;
         }
         arrayData.Length = length + 1;

@@ -61,6 +61,7 @@ public class DefinitionEntries
     public readonly OptionsDefinition OptionsDefinition = new();
     public readonly MusInfoDefinition MusInfoDefinition = new();
     public readonly Id24SkyDefinition Id24SkyDefinition = new();
+    public readonly Id24TranslationDefinition Id24TranslationDefinition = new();
     public readonly GameConfDefinition GameConfDefinition = new();
 
     public DehackedDefinition? DehackedDefinition { get; set; }
@@ -287,8 +288,63 @@ public class DefinitionEntries
         translatedColormaps.AddRange(Colormaps);
         Colormaps.Clear();
         Colormaps.AddRange(translatedColormaps);
+
         for (int i = 0; i < Colormaps.Count; i++)
-            Colormaps[i].Index = i;
+            Colormaps[i].Index = i + 1;
+
+        if (DehackedDefinition != null)
+        {
+            HashSet<string> translationEntries = [];
+            Dictionary<string, List<EntityDefinition>> translationDefinitions = [];
+            var definitions = m_archiveCollection.EntityDefinitionComposer.GetEntityDefinitions();
+            foreach (var definition in definitions)
+            {
+                var entryName = definition.Properties.TranslationEntry;
+                if (string.IsNullOrEmpty(entryName))
+                    continue;
+
+                if (!translationDefinitions.TryGetValue(entryName, out var list))
+                {
+                    list = [];
+                    translationDefinitions[entryName] = list;
+                }
+
+                list.Add(definition);
+                translationEntries.Add(entryName);
+            }
+
+            foreach (var thing in DehackedDefinition.Things)
+            {
+                if (string.IsNullOrEmpty(thing.TranslationLump))
+                    continue;
+
+                translationEntries.Add(thing.TranslationLump);
+            }
+
+            foreach (var entryName in translationEntries)
+            {
+                var entry = m_archiveCollection.Entries.FindByName(entryName);
+                if (entry == null)
+                    continue;
+
+                var translationDef = Id24TranslationDefinition.Parse(entry);
+                if (translationDef == null)
+                    continue;
+
+                var colormap = Colormap.From(m_archiveCollection.Data.Palette, translationDef.Data.Table, null);
+                if (colormap == null)
+                    continue;
+
+                Colormaps.Add(colormap);
+                colormap.Index = Colormaps.Count;
+
+                if (!translationDefinitions.TryGetValue(entryName, out var list))
+                    continue;
+
+                foreach (var entityDef in list)
+                    entityDef.Properties.ColormapIndex = colormap.Index;
+            }
+        }
     }
 
     private void AddColormap(Entry entry)
