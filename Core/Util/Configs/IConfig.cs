@@ -15,6 +15,7 @@ public interface IConfig
     ConfigAudio Audio { get; }
     ConfigCompat Compatibility { get; }
     ConfigConsole Console { get; }
+    ConfigController Controller { get; }
     ConfigDeveloper Developer { get; }
     ConfigFiles Files { get; }
     ConfigGame Game { get; }

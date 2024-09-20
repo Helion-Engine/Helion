@@ -47,7 +47,7 @@ public partial class WorldLayer
     };
 
     // Convert analog inputs into movements, assumes analog values are in range [0..1]
-    private static readonly Dictionary<TickCommands, Action<TickCommand, float, ConfigGame>> MovementCommmands = new()
+    private static readonly Dictionary<TickCommands, Action<TickCommand, float, ConfigController>> MovementCommmands = new()
     {
         { TickCommands.TurnLeft, (cmd, value, cfg) => cmd.AngleTurn = value * Player.FastTurnSpeed * cfg.GameControllerTurnScale },
         { TickCommands.TurnRight, (cmd,value, cfg) => cmd.AngleTurn = -value * Player.FastTurnSpeed * cfg.GameControllerTurnScale },
@@ -218,14 +218,14 @@ public partial class WorldLayer
                     weaponScroll += GetWeaponScroll(scrollAmount, key, tickCommand);
 
                 bool cancelKey = false;
-                if (m_config.Game.EnableGameController)
+                if (m_config.Controller.EnableGameController)
                 {
                     // If there is an analog input that corresponds to this key, directly enter the analog data into
                     // the current tick command's movement parameters rather than setting a key.
                     if (MovementCommmands.TryGetValue(tickCommand, out var setAction)
-                        && input.Manager.AnalogAdapter.TryGetAnalogValueForAxis(key, out float analogValue))
+                        && input.Manager.AnalogAdapter?.TryGetAnalogValueForAxis(key, out float analogValue) == true)
                     {
-                        setAction(cmd, analogValue, m_config.Game);
+                        setAction(cmd, analogValue, m_config.Controller);
                         cancelKey = true;
                     }
                 }

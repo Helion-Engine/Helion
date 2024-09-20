@@ -26,28 +26,6 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Bump Use")]
     public readonly ConfigValue<bool> BumpUse = new(false);
 
-    // Controller
-
-    [ConfigInfo("Enable game controller support.")]
-    [OptionMenu(OptionSectionType.General, "Enable Game Controller", spacer: true)]
-    public readonly ConfigValue<bool> EnableGameController = new(true);
-
-    [ConfigInfo("Dead zone for game controller analog inputs.")]
-    [OptionMenu(OptionSectionType.General, "Game Controller Dead Zone")]
-    public readonly ConfigValue<double> GameControllerDeadZone = new(0.2, Clamp(0.1, 0.9));
-
-    [ConfigInfo("Saturation zone for game controller analog inputs.")]
-    [OptionMenu(OptionSectionType.General, "Game Controller Saturation")]
-    public readonly ConfigValue<double> GameControllerSaturation = new(0, Clamp(0, 0.3));
-
-    [ConfigInfo("Turn speed scaling factor for controller analog inputs.")]
-    [OptionMenu(OptionSectionType.General, "Game Controller Turn Scale")]
-    public readonly ConfigValue<double> GameControllerTurnScale = new(1.5, Clamp(0.1, 3.0));
-
-    [ConfigInfo("Pitch speed scaling factor for controller analog inputs.")]
-    [OptionMenu(OptionSectionType.General, "Game Controller Pitch Scale")]
-    public readonly ConfigValue<double> GameControllerPitchScale = new(0.5, Clamp(0.1, 3.0));
-
     // Visual effects
 
     [ConfigInfo("Scale red amount drawn to screen when the player takes damage.")]

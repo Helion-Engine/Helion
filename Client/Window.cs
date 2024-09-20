@@ -65,16 +65,16 @@ public class Window : GameWindow, IWindow
 
         m_joystickAdapter = new JoystickAdapter(
             JoystickStates,
-            (float)m_config.Game.GameControllerDeadZone.Value,
-            (float)m_config.Game.GameControllerSaturation.Value,
+            (float)m_config.Controller.GameControllerDeadZone.Value,
+            (float)m_config.Controller.GameControllerSaturation.Value,
             m_inputManager);
-        SetGameControllerPolling(m_config.Game.EnableGameController);
+        SetGameControllerPolling(m_config.Controller.EnableGameController);
 
         m_config.Render.MaxFPS.OnChanged += OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
-        m_config.Game.EnableGameController.OnChanged += EnableGameController_OnChanged;
-        m_config.Game.GameControllerDeadZone.OnChanged += GameControllerDeadZone_OnChanged;
-        m_config.Game.GameControllerSaturation.OnChanged += GameControllerSaturation_OnChanged;
+        m_config.Controller.EnableGameController.OnChanged += EnableGameController_OnChanged;
+        m_config.Controller.GameControllerDeadZone.OnChanged += GameControllerDeadZone_OnChanged;
+        m_config.Controller.GameControllerSaturation.OnChanged += GameControllerSaturation_OnChanged;
     }
 
     public void SetMousePosition(Vec2I pos)
@@ -342,9 +342,9 @@ public class Window : GameWindow, IWindow
 
         m_config.Render.MaxFPS.OnChanged -= OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged -= OnVSyncChanged;
-        m_config.Game.EnableGameController.OnChanged -= EnableGameController_OnChanged;
-        m_config.Game.GameControllerDeadZone.OnChanged -= GameControllerDeadZone_OnChanged;
-        m_config.Game.GameControllerSaturation.OnChanged -= GameControllerSaturation_OnChanged;
+        m_config.Controller.EnableGameController.OnChanged -= EnableGameController_OnChanged;
+        m_config.Controller.GameControllerDeadZone.OnChanged -= GameControllerDeadZone_OnChanged;
+        m_config.Controller.GameControllerSaturation.OnChanged -= GameControllerSaturation_OnChanged;
 
         Renderer.Dispose();
 
