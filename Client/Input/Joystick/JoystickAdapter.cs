@@ -20,7 +20,6 @@
         private int m_statePointer = 0;
         private int m_prevStatePointer = 1;
         private float m_deadZone;
-        private float m_saturation;
         private bool m_zeroed;
 
         private InputManager m_inputManager;
@@ -38,17 +37,6 @@
             }
         }
 
-        /// <summary>
-        /// Get or set the size of the saturation zone for controllers, in the range of 0-.3
-        /// </summary>
-        public float Saturation
-        {
-            get => m_saturation;
-            set
-            {
-                m_saturation = Math.Clamp(value, 0f, .3f);
-            }
-        }
 
         /// <summary>
         /// Selects the active joystick ID; this should only be needed if we allow the user to plug in multiple joysticks
@@ -68,7 +56,7 @@
         /// </summary>
         public AxisState[] AxisStates { get; private set; }
 
-        public JoystickAdapter(IReadOnlyList<OpenTKJoystick> joystickInputs, float axisDeadzone, float axisSaturation, InputManager inputManager)
+        public JoystickAdapter(IReadOnlyList<OpenTKJoystick> joystickInputs, float axisDeadzone, InputManager inputManager)
         {
             m_windowJoystickStates = joystickInputs;
             m_inputManager = inputManager;
@@ -76,7 +64,6 @@
             AxisStates = [];
             m_joystickState = new JoystickState[2];
             m_deadZone = axisDeadzone;
-            m_saturation = axisSaturation;
             m_zeroTimer = new Timer(RezeroDelay);
 
             RedetectJoysticks();
@@ -228,7 +215,7 @@
 
                 axisState.PositionCorrected = Math.Clamp(Math.Sign(axisMovementFromNeutral)
                     * Math.Clamp(Math.Abs(axisMovementFromNeutral) - m_deadZone, 0, 1)
-                    / (1 - m_deadZone - m_saturation), -1, 1);
+                    / (1 - m_deadZone), -1, 1);
 
                 bool pressedPositive = axisMovementFromNeutral > m_deadZone;
                 bool pressedNegative = axisMovementFromNeutral < -m_deadZone;

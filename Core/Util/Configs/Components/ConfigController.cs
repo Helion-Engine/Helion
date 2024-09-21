@@ -16,13 +16,9 @@ public class ConfigController
     [OptionMenu(OptionSectionType.Controller, "Game Controller Dead Zone")]
     public readonly ConfigValue<double> GameControllerDeadZone = new(0.2, Clamp(0.1, 0.9));
 
-    [ConfigInfo("Saturation zone for analog inputs.")]
-    [OptionMenu(OptionSectionType.Controller, "Game Controller Saturation")]
-    public readonly ConfigValue<double> GameControllerSaturation = new(0, Clamp(0, 0.3));
-
     [ConfigInfo("Turn speed scaling factor for analog inputs.")]
     [OptionMenu(OptionSectionType.Controller, "Game Controller Turn Scale")]
-    public readonly ConfigValue<double> GameControllerTurnScale = new(1.2, Clamp(0.1, 3.0));
+    public readonly ConfigValue<double> GameControllerTurnScale = new(1.0, Clamp(0.1, 3.0));
 
     [ConfigInfo("Pitch speed scaling factor for analog inputs.")]
     [OptionMenu(OptionSectionType.Controller, "Game Controller Pitch Scale")]
