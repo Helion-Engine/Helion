@@ -114,7 +114,7 @@ public class InputManager : IInputManager
         for (int i = 0; i < m_processEvents.Length; i++)
         {
             if (IsKeyPressed(m_processEvents[i].Key))
-                return true;           
+                return true;
         }
 
         return false;
@@ -197,7 +197,7 @@ public class InputManager : IInputManager
     private bool GetLastKeyState(DynamicArray<InputKey> events, Key key)
     {
         bool pressed = false;
-        for (int i = 0; i <  events.Length; i++)
+        for (int i = 0; i < events.Length; i++)
         {
             var ev = events[i];
             if (ev.Key != key)
@@ -217,7 +217,10 @@ public class InputManager : IInputManager
     public IConsumableInput Poll(bool pollKeys)
     {
         if (pollKeys)
+        {
+            AnalogAdapter?.Poll();
             CreateCurrentInputKeys();
+        }
 
         m_consumableInput.Reset((int)m_processMouseScroll);
         m_consumableInput.HandleKeyInput = pollKeys;
@@ -249,7 +252,7 @@ public class InputManager : IInputManager
 
             m_processEvents.Add(m_events[i]);
         }
-        
+
         m_downKeysToRemove.Clear();
         for (int i = 0; i < m_upKeys.Length; i++)
         {
