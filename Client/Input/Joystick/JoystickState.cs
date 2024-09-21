@@ -1,6 +1,7 @@
 ﻿namespace Helion.Client.Input.Joystick
 {
     using OpenTK.Windowing.Common.Input;
+    using System;
     using OpenTKJoystick = OpenTK.Windowing.GraphicsLibraryFramework.JoystickState;
 
     public struct JoystickState
@@ -24,7 +25,7 @@
         {
             for (int axisId = 0; axisId < AxisValues.Length; axisId++)
             {
-                AxisValues[axisId] = openTKState.GetAxis(axisId);
+                AxisValues[axisId] = (float)Math.Sin(openTKState.GetAxis(axisId) * Math.PI / 2);
             }
             for (int buttonId = 0; buttonId < ButtonStates.Length; buttonId++)
             {
