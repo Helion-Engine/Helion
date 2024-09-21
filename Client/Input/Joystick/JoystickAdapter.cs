@@ -268,5 +268,15 @@
                 : Math.Clamp(correctedAxisValue, -1, 0));
             return true;
         }
+
+        /// <summary>
+        /// Determines whether a specified key is really an analog axis
+        /// </summary>
+        /// <param name="key">Key pressed</param>
+        /// <returns>True if the key is an analog axis, false if it's a key or button</returns>
+        public bool KeyIsAnalogAxis(Key key)
+        {
+            return JoystickStatic.KeysToAxis.ContainsKey(key);
+        }
     }
 }

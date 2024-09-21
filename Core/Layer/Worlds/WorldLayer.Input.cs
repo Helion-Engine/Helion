@@ -63,6 +63,9 @@ public partial class WorldLayer
 
     private static float ScaleMovement(float value)
     {
+        if (value == 0)
+            return 0;
+
         // Apply a logarithmic scale factor for player movements.  If more precision is required, we might want to replace this
         // with unit-circle scaling in the future.
         var logScale = Math.Log(value * 100);
@@ -232,6 +235,7 @@ public partial class WorldLayer
                     // If there is an analog input that corresponds to this key, directly enter the analog data into
                     // the current tick command's movement parameters rather than setting a key.
                     if (MovementCommmands.TryGetValue(tickCommand, out var setAction)
+                        && input.Manager.AnalogAdapter?.KeyIsAnalogAxis(key) == true
                         && input.Manager.AnalogAdapter?.TryGetAnalogValueForAxis(key, out float analogValue) == true)
                     {
                         setAction(cmd, ScaleMovement(analogValue), m_config.Controller);
