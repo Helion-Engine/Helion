@@ -933,30 +933,51 @@ public partial class WorldLayer
     private void DrawFullHudKeys(IHudRenderContext hud)
     {
         const int OffsetX = 239;
-        var keys = Player.Inventory.GetKeys();
+        const int BlueOffsetY = 171;
+        const int YellowOffsetY = BlueOffsetY + 10;
+        const int RedOffsetY = YellowOffsetY + 10;
+        const string BothBlueKeysIcon = "STKEYS6";
+        const string BothYellowKeysIcon = "STKEYS7";
+        const string BothRedKeysIcon = "STKEYS8";
 
+        var keys = Player.Inventory.GetKeys();
+        InventoryItem?[] orderedKeys = new InventoryItem?[6];
         for (int i = 0; i < keys.Count; i++)
         {
             InventoryItem key = keys[i];
-            DrawKeyIfOwned(hud, key, "BlueSkull", "BlueCard", OffsetX, 171);
-            DrawKeyIfOwned(hud, key, "YellowSkull", "YellowCard", OffsetX, 181);
-            DrawKeyIfOwned(hud, key, "RedSkull", "RedCard", OffsetX, 191);
+            if (key.Definition.Name.EqualsIgnoreCase("BlueCard"))
+                orderedKeys[0] = key;
+            else if (key.Definition.Name.EqualsIgnoreCase("BlueSkull"))
+                orderedKeys[1] = key;
+            else if (key.Definition.Name.EqualsIgnoreCase("YellowCard"))
+                orderedKeys[2] = key;
+            else if (key.Definition.Name.EqualsIgnoreCase("YellowSkull"))
+                orderedKeys[3] = key;
+            else if (key.Definition.Name.EqualsIgnoreCase("RedCard"))
+                orderedKeys[4] = key;
+            else if (key.Definition.Name.EqualsIgnoreCase("RedSkull"))
+                orderedKeys[5] = key;
         }
+        DrawKeysIfOwned(hud, orderedKeys[0], orderedKeys[1], BothBlueKeysIcon, OffsetX, BlueOffsetY);
+        DrawKeysIfOwned(hud, orderedKeys[2], orderedKeys[3], BothYellowKeysIcon, OffsetX, YellowOffsetY);
+        DrawKeysIfOwned(hud, orderedKeys[4], orderedKeys[5], BothRedKeysIcon, OffsetX, RedOffsetY);
     }
 
-    private void DrawKeyIfOwned(IHudRenderContext hud, InventoryItem key, string skullKeyName,
-        string keyName, int x, int y)
+    private void DrawKeysIfOwned(IHudRenderContext hud, InventoryItem? cardKey, InventoryItem? skullKey, string bothKeysIcon, int x, int y)
     {
-        string imageName = key.Definition.Properties.Inventory.Icon;
-
-        if (key.Definition.Name.EqualsIgnoreCase(skullKeyName) && hud.Textures.HasImage(imageName))
+        if (cardKey != null && skullKey != null && hud.Textures.HasImage(bothKeysIcon))
         {
-            HudImageWithOffset(hud, imageName, (x, y));
+            HudImageWithOffset(hud, bothKeysIcon, (x, y));
             return;
         }
 
-        if (key.Definition.Name.EqualsIgnoreCase(keyName) && hud.Textures.HasImage(imageName))
-            HudImageWithOffset(hud, imageName, (x, y));
+        string? cardKeyIcon = cardKey?.Definition.Properties.Inventory.Icon;
+        if (cardKeyIcon != null && hud.Textures.HasImage(cardKeyIcon))
+            HudImageWithOffset(hud, cardKeyIcon, (x, y));
+
+        string? skullKeyIcon = skullKey?.Definition.Properties.Inventory.Icon;
+        if (skullKeyIcon != null && hud.Textures.HasImage(skullKeyIcon))
+            HudImageWithOffset(hud, skullKeyIcon, (x, y));
     }
 
     private void DrawFullTotalAmmo(IHudRenderContext hud)
