@@ -25,8 +25,8 @@ public partial class TextureManager : ITickable
     const string ShittyTextureName = "AASHITTY";
 
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly List<Texture> m_textures;
-    private readonly List<int> m_translations;
+    private readonly List<Texture> m_textures = [];
+    private readonly List<int> m_translations = [];
     private readonly Dictionary<string, Texture> m_textureLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_flatLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Texture> m_patchLookup = new(StringComparer.OrdinalIgnoreCase);
@@ -49,8 +49,6 @@ public partial class TextureManager : ITickable
     public TextureManager(ArchiveCollection archiveCollection)
     {
         m_archiveCollection = archiveCollection;
-        m_textures = [];
-        m_translations = [];
         SkyTextureName = Constants.DefaultSkyTextureName;
     }
 
