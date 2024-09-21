@@ -61,6 +61,15 @@ public partial class WorldLayer
 
     private readonly DynamicArray<Key> m_pressedKeys = new();
 
+    private static float ScaleMovement(float value)
+    {
+        // Apply a logarithmic scale factor for player movements.  If more precision is required, we might want to replace this
+        // with unit-circle scaling in the future.
+        var logScale = Math.Log(value * 100);
+        var newValue = logScale * logScale / 20;
+        return (float)Math.Min(1, newValue);
+    }
+
     private bool IsCommandContinuousHold(string command, IConsumableInput input) =>
         IsCommandContinuousHold(command, input, out _);
 
@@ -225,7 +234,7 @@ public partial class WorldLayer
                     if (MovementCommmands.TryGetValue(tickCommand, out var setAction)
                         && input.Manager.AnalogAdapter?.TryGetAnalogValueForAxis(key, out float analogValue) == true)
                     {
-                        setAction(cmd, analogValue, m_config.Controller);
+                        setAction(cmd, ScaleMovement(analogValue), m_config.Controller);
                         cancelKey = true;
                     }
                 }
