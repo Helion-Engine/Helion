@@ -47,31 +47,19 @@ public partial class WorldLayer
     };
 
     // Convert analog inputs into movements, assumes analog values are in range [0..1]
-    private static readonly Dictionary<TickCommands, Action<TickCommand, float, ConfigController>> MovementCommmands = new()
+    private static readonly Dictionary<TickCommands, Action<Player, TickCommand, float, ConfigController>> MovementCommmands = new()
     {
-        { TickCommands.TurnLeft, (cmd, value, cfg) => cmd.AngleTurn = value * Player.FastTurnSpeed * cfg.GameControllerTurnScale },
-        { TickCommands.TurnRight, (cmd,value, cfg) => cmd.AngleTurn = -value * Player.FastTurnSpeed * cfg.GameControllerTurnScale },
-        { TickCommands.LookUp, (cmd, value, cfg) => cmd.PitchTurn = value * Player.FastTurnSpeed * cfg.GameControllerPitchScale},
-        { TickCommands.LookDown, (cmd, value, cfg) => cmd.PitchTurn = -value * Player.FastTurnSpeed * cfg.GameControllerPitchScale },
-        { TickCommands.Forward, (cmd, value, cfg) => cmd.ForwardMoveSpeed = value * Player.ForwardMovementSpeedRun },
-        { TickCommands.Backward, (cmd, value, cfg) => cmd.ForwardMoveSpeed = -value * Player.ForwardMovementSpeedRun },
-        { TickCommands.Left, (cmd, value, cfg) => cmd.SideMoveSpeed =  -value * Player.SideMovementSpeedRun },
-        { TickCommands.Right, (cmd, value, cfg) => cmd.SideMoveSpeed = value * Player.SideMovementSpeedRun },
+        { TickCommands.TurnLeft, (player, cmd, value, cfg) => cmd.AngleTurn = value * Player.FastTurnSpeed * cfg.GameControllerTurnScale },
+        { TickCommands.TurnRight, (player, cmd,value, cfg) => cmd.AngleTurn = -value * Player.FastTurnSpeed * cfg.GameControllerTurnScale },
+        { TickCommands.LookUp, (player, cmd, value, cfg) => cmd.PitchTurn = value * Player.FastTurnSpeed * cfg.GameControllerPitchScale},
+        { TickCommands.LookDown, (player, cmd, value, cfg) => cmd.PitchTurn = -value * Player.FastTurnSpeed * cfg.GameControllerPitchScale },
+        { TickCommands.Forward, (player, cmd, value, cfg) => cmd.ForwardMoveSpeed = value * player.GetForwardMovementSpeed() },
+        { TickCommands.Backward, (player, cmd, value, cfg) => cmd.ForwardMoveSpeed = -value * player.GetForwardMovementSpeed() },
+        { TickCommands.Left, (player, cmd, value, cfg) => cmd.SideMoveSpeed =  -value * player.GetSideMovementSpeed() },
+        { TickCommands.Right, (player, cmd, value, cfg) => cmd.SideMoveSpeed = value * player.GetSideMovementSpeed() },
     };
 
     private readonly DynamicArray<Key> m_pressedKeys = new();
-
-    private static float ScaleMovement(float value)
-    {
-        if (value == 0)
-            return 0;
-
-        // Apply a logarithmic scale factor for player movements.  If more precision is required, we might want to replace this
-        // with unit-circle scaling in the future.
-        var logScale = Math.Log(value * 100);
-        var newValue = logScale * logScale / 20;
-        return (float)Math.Min(1, newValue);
-    }
 
     private bool IsCommandContinuousHold(string command, IConsumableInput input) =>
         IsCommandContinuousHold(command, input, out _);
@@ -238,7 +226,7 @@ public partial class WorldLayer
                         && input.Manager.AnalogAdapter?.KeyIsAnalogAxis(key) == true
                         && input.Manager.AnalogAdapter?.TryGetAnalogValueForAxis(key, out float analogValue) == true)
                     {
-                        setAction(cmd, ScaleMovement(analogValue), m_config.Controller);
+                        setAction(Player, cmd, analogValue, m_config.Controller);
                         cancelKey = true;
                     }
                 }
