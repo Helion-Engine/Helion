@@ -9,6 +9,7 @@
   - "Melt" screen wipe added
   - Save game improvements: Saves can be named, pagination added to Save/Load dialog, rotating auto/quicksaves added
   - Expanded support for music formats and more synthesizer options, via ZMusic
+  - Game controller support
 
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
