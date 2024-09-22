@@ -30,6 +30,18 @@ public interface IImageRetriever
     Image? GetOnly(string name, ResourceNamespace targetNamespace, GetImageOptions options = GetImageOptions.Default);
 
     /// <summary>
+    /// Gets the image in only the namespace provided. It will not look in
+    /// any other namespace.
+    /// </summary>
+    /// <param name="mappedName">The name to map this image.</param>
+    /// <param name="entryName">The name to search if the image is not mapped to mappedName.</param>
+    /// <param name="targetNamespace">The namespace to check.</param>
+    /// <param name="colorTranslation">Color translation table to generate the image.</param>
+    /// <param name="options">Options for fetching the image.
+    /// <returns>The image, or null if none can be found.</returns>
+    Image? GetOnlyMapped(string mappedName, string entryName, ResourceNamespace targetNamespace, byte[]? colorTranslation, GetImageOptions options = GetImageOptions.Default);
+
+    /// <summary>
     /// Get the names of all images in the specific namespace
     /// </summary>
     /// <param name="specificNamespace">The desired namespace</param>

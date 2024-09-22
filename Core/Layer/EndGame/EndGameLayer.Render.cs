@@ -90,7 +90,7 @@ public partial class EndGameLayer
         if (spriteDef == null)
             return;
 
-        var spriteRotation = textureManager.GetSpriteRotation(spriteDef, m_castEntity.Frame.Frame, 0);
+        var spriteRotation = textureManager.GetSpriteRotation(spriteDef, m_castEntity.Frame.Frame, 0, 0);
         if (spriteRotation == null)
             return;
 

@@ -16,7 +16,7 @@ public class Colormap
     private static Colormap? DefaultColormap;
 
     private readonly List<Color[]> m_layers;
-    private readonly List<int[]> m_indexLayers;
+    private readonly List<byte[]> m_indexLayers;
     public readonly bool[] FullBright = new bool[NumColors];
 
     public int Index;
@@ -25,13 +25,13 @@ public class Colormap
 
     public int Count => m_layers.Count;
 
-    private Colormap(List<Color[]> colormapLayers, List<int[]> indices) 
+    private Colormap(List<Color[]> colormapLayers, List<byte[]> indices) 
         : this(colormapLayers, indices, Vec3F.One, null, [])
     {
 
     }
 
-    private Colormap(List<Color[]> colormapLayers, List<int[]> indices, Vec3F colorMix, Entry? entry, bool[] fullBright)
+    private Colormap(List<Color[]> colormapLayers, List<byte[]> indices, Vec3F colorMix, Entry? entry, bool[] fullBright)
     {
         m_layers = colormapLayers;
         m_indexLayers = indices;
@@ -66,7 +66,7 @@ public class Colormap
     {
         Vec3I addColors = Vec3I.Zero;
         List<Color[]> colormapLayers = new(NumLayers);
-        List<int[]> colormapLayerIndices = new(NumLayers);
+        List<byte[]> colormapLayerIndices = new(NumLayers);
         bool[] fullBright = new bool[NumColors];
         for (int i = 0; i < NumColors; i++)
             fullBright[i] = true;
@@ -79,10 +79,10 @@ public class Colormap
                 break;
 
             var currentColors = new Color[NumColors];
-            var currentIndices = new int[NumColors];
+            var currentIndices = new byte[NumColors];
             for (int i = 0; i < NumColors; i++)
             {
-                int index = data[startIndex + i];
+                var index = data[startIndex + i];
                 currentIndices[i] = index;
                 if (index < 0 || index >= paletteColors.Length)
                 {
@@ -123,7 +123,7 @@ public class Colormap
         return m_layers[index];
     }
 
-    public int[] IndexLayer(int index)
+    public byte[] IndexLayer(int index)
     {
         if (index >= m_indexLayers.Count)
             return m_indexLayers[0];
@@ -136,7 +136,7 @@ public class Colormap
             return DefaultColormap;
 
         List<Color[]> colors = [new Color[NumColors]];
-        List<int[]> indices = [new int[NumColors]];
+        List<byte[]> indices = [new byte[NumColors]];
 
         DefaultColormap = new(colors, indices);
         return DefaultColormap;
