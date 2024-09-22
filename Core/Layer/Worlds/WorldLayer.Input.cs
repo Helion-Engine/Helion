@@ -1,3 +1,4 @@
+using Helion.Geometry.Vectors;
 using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
@@ -47,16 +48,16 @@ public partial class WorldLayer
     };
 
     // Convert analog inputs into movements, assumes analog values are in range [0..1]
-    private static readonly Dictionary<TickCommands, Action<Player, TickCommand, float, ConfigController>> MovementCommmands = new()
+    private static readonly Dictionary<TickCommands, Func<float, Vec4F>> MovementCommmands = new()
     {
-        { TickCommands.TurnLeft, (player, cmd, value, cfg) => cmd.AngleTurn = value * Player.FastTurnSpeed * cfg.GameControllerTurnScale },
-        { TickCommands.TurnRight, (player, cmd,value, cfg) => cmd.AngleTurn = -value * Player.FastTurnSpeed * cfg.GameControllerTurnScale },
-        { TickCommands.LookUp, (player, cmd, value, cfg) => cmd.PitchTurn = value * Player.FastTurnSpeed * cfg.GameControllerPitchScale},
-        { TickCommands.LookDown, (player, cmd, value, cfg) => cmd.PitchTurn = -value * Player.FastTurnSpeed * cfg.GameControllerPitchScale },
-        { TickCommands.Forward, (player, cmd, value, cfg) => cmd.ForwardMoveSpeed = value * player.GetForwardMovementSpeed() },
-        { TickCommands.Backward, (player, cmd, value, cfg) => cmd.ForwardMoveSpeed = -value * player.GetForwardMovementSpeed() },
-        { TickCommands.Left, (player, cmd, value, cfg) => cmd.SideMoveSpeed =  -value * player.GetSideMovementSpeed() },
-        { TickCommands.Right, (player, cmd, value, cfg) => cmd.SideMoveSpeed = value * player.GetSideMovementSpeed() },
+        { TickCommands.TurnLeft, (value) =>     new Vec4F(0, 0, value, 0) },
+        { TickCommands.TurnRight, (value) =>    new Vec4F(0, 0, -value, 0) },
+        { TickCommands.LookUp, (value) =>       new Vec4F(0, 0, 0, value) },
+        { TickCommands.LookDown, (value) =>     new Vec4F(0, 0, 0, -value) },
+        { TickCommands.Forward, (value) =>      new Vec4F(value, 0, 0, 0) },
+        { TickCommands.Backward, (value) =>     new Vec4F(-value, 0, 0, 0) },
+        { TickCommands.Left, (value) =>         new Vec4F(0, -value, 0, 0) },
+        { TickCommands.Right, (value) =>        new Vec4F(0, value, 0 ,0) },
     };
 
     private readonly DynamicArray<Key> m_pressedKeys = new();
@@ -209,6 +210,8 @@ public partial class WorldLayer
     {
         int weaponScroll = 0;
         TickCommand cmd = GetTickCommand();
+        Vec4F analogInput = Vec4F.Zero; // (We'll use the order X="run", Y="strafe", Z="turn", W="pitch")
+
         for (int i = 0; i < KeyPressCommandMapping.Length; i++)
         {
             (string command, TickCommands tickCommand) = KeyPressCommandMapping[i];
@@ -220,13 +223,13 @@ public partial class WorldLayer
                 bool cancelKey = false;
                 if (m_config.Controller.EnableGameController)
                 {
-                    // If there is an analog input that corresponds to this key, directly enter the analog data into
-                    // the current tick command's movement parameters rather than setting a key.
-                    if (MovementCommmands.TryGetValue(tickCommand, out var setAction)
+                    // If there is an analog input that corresponds to this key, build up a set of analog movement vectors
+                    // rather than using the on/off value from the keypress.
+                    if (MovementCommmands.TryGetValue(tickCommand, out var movementVector)
                         && input.Manager.AnalogAdapter?.KeyIsAnalogAxis(key) == true
                         && input.Manager.AnalogAdapter?.TryGetAnalogValueForAxis(key, out float analogValue) == true)
                     {
-                        setAction(Player, cmd, analogValue, m_config.Controller);
+                        analogInput += movementVector(analogValue);
                         cancelKey = true;
                     }
                 }
@@ -236,10 +239,51 @@ public partial class WorldLayer
             }
         }
 
+        if (analogInput != Vec4F.Zero)
+        {
+            // Perform unit-circle correction for the run and strafe axes -- most players will probably make them share a (round)
+            // stick, and they need to be able to max out run and strafe at the same time.  We're not bothering to do this for pitch
+            // and turn as this would make freelook overly sensitive.
+            CircleCoordsToSquare(analogInput.X, analogInput.Y, out analogInput.X, out analogInput.Y);
+
+            cmd.ForwardMoveSpeed = Math.Clamp(analogInput.X, -1, 1) * Player.GetForwardMovementSpeed();
+            cmd.SideMoveSpeed = Math.Clamp(analogInput.Y, -1, 1) * Player.GetSideMovementSpeed();
+            cmd.AngleTurn = analogInput.Z * Player.FastTurnSpeed * m_config.Controller.GameControllerTurnScale;
+            cmd.PitchTurn = analogInput.W * Player.FastTurnSpeed * m_config.Controller.GameControllerPitchScale;
+        }
+
         cmd.WeaponScroll = weaponScroll;
         int yMove = input.GetMouseMove().Y;
         if (!m_config.Mouse.Look && m_config.Mouse.ForwardBackwardSpeed > 0 && yMove != 0)
             cmd.ForwardMoveSpeed += yMove * (m_config.Mouse.ForwardBackwardSpeed / 128);
+    }
+
+    private static void CircleCoordsToSquare(float u, float v, out float x, out float y)
+    {
+        if (u == 0)
+        {
+            x = 0;
+            y = v;
+            return;
+        }
+        if (v == 0)
+        {
+            x = u;
+            y = 0;
+            return;
+        }
+
+        double radius = Math.Sqrt(u * u + v * v);
+        if (Math.Abs(u) < Math.Abs(v))
+        {
+            x = (float)(u * radius / Math.Abs(v));
+            y = (float)(radius * Math.Sign(v));
+        }
+        else
+        {
+            x = (float)(radius * Math.Sign(u));
+            y = (float)(v * radius / Math.Abs(u));
+        }
     }
 
     private int GetWeaponScroll(int scrollAmount, Key key, TickCommands tickCommand)
