@@ -940,27 +940,32 @@ public partial class WorldLayer
         const string BothYellowKeysIcon = "STKEYS7";
         const string BothRedKeysIcon = "STKEYS8";
 
+        InventoryItem? blueCard = null;
+        InventoryItem? blueSkull = null;
+        InventoryItem? yellowCard = null;
+        InventoryItem? yellowSkull = null;
+        InventoryItem? redCard = null;
+        InventoryItem? redSkull = null;
         var keys = Player.Inventory.GetKeys();
-        InventoryItem?[] orderedKeys = new InventoryItem?[6];
         for (int i = 0; i < keys.Count; i++)
         {
             InventoryItem key = keys[i];
             if (key.Definition.Name.EqualsIgnoreCase("BlueCard"))
-                orderedKeys[0] = key;
+                blueCard = key;
             else if (key.Definition.Name.EqualsIgnoreCase("BlueSkull"))
-                orderedKeys[1] = key;
+                blueSkull = key;
             else if (key.Definition.Name.EqualsIgnoreCase("YellowCard"))
-                orderedKeys[2] = key;
+                yellowCard = key;
             else if (key.Definition.Name.EqualsIgnoreCase("YellowSkull"))
-                orderedKeys[3] = key;
+                yellowSkull = key;
             else if (key.Definition.Name.EqualsIgnoreCase("RedCard"))
-                orderedKeys[4] = key;
+                redCard = key;
             else if (key.Definition.Name.EqualsIgnoreCase("RedSkull"))
-                orderedKeys[5] = key;
+                redSkull = key;
         }
-        DrawKeysIfOwned(hud, orderedKeys[0], orderedKeys[1], BothBlueKeysIcon, OffsetX, BlueOffsetY);
-        DrawKeysIfOwned(hud, orderedKeys[2], orderedKeys[3], BothYellowKeysIcon, OffsetX, YellowOffsetY);
-        DrawKeysIfOwned(hud, orderedKeys[4], orderedKeys[5], BothRedKeysIcon, OffsetX, RedOffsetY);
+        DrawKeysIfOwned(hud, blueCard, blueSkull, BothBlueKeysIcon, OffsetX, BlueOffsetY);
+        DrawKeysIfOwned(hud, yellowCard, yellowSkull, BothYellowKeysIcon, OffsetX, YellowOffsetY);
+        DrawKeysIfOwned(hud, redCard, redSkull, BothRedKeysIcon, OffsetX, RedOffsetY);
     }
 
     private void DrawKeysIfOwned(IHudRenderContext hud, InventoryItem? cardKey, InventoryItem? skullKey, string bothKeysIcon, int x, int y)
