@@ -13,5 +13,5 @@ public class TranslationDef
 {
     public string Type { get; set; } = string.Empty;
     public string Version { get; set; } = string.Empty;
-    public TranslationData Data { get; set; }
+    public TranslationData Data { get; set; } = new();
 }

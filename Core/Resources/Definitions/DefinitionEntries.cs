@@ -268,7 +268,26 @@ public class DefinitionEntries
 
     public void BuildTranslationColorMaps(Palette palette, Colormap baseColorMap)
     {
-        SetPlayerColorMaps(palette, baseColorMap);
+        if (GetGameConfPlayerTranslations(out var playerColormaps))
+        {
+            var translatedColorMaps = new List<Colormap>(Colormaps.Count + playerColormaps.Length);
+            foreach (var playerColormap in playerColormaps)
+            {
+                if (playerColormap == null)
+                {
+                    translatedColorMaps.Add(baseColorMap);
+                    continue;
+                }
+                translatedColorMaps.Add(playerColormap);
+            }
+            translatedColorMaps.AddRange(Colormaps);
+            Colormaps.Clear();
+            Colormaps.AddRange(translatedColorMaps);
+        }
+        else
+        {
+            SetPlayerColorMaps(palette, baseColorMap);
+        }
 
         for (int i = 0; i < Colormaps.Count; i++)
             Colormaps[i].Index = i + 1;
@@ -281,14 +300,38 @@ public class DefinitionEntries
         m_processedTranslationColormaps.Clear();
     }
 
+    private bool GetGameConfPlayerTranslations([NotNullWhen(true)] out Colormap?[]? colormaps)
+    {
+        var translations = GameConfDefinition?.Data?.PlayerTranslations;
+        if (translations == null || translations.Length != 4)
+        {
+            colormaps = null;
+            return false;
+        }
+
+        colormaps = new Colormap?[4];
+        for (int i = 0; i < translations.Length; i++)
+        {
+            if (!TryParseTranslationEntryToColormap(translations[i], false, out var colormap))
+                continue;
+            colormaps[i] = colormap;
+        }
+
+        return true;
+    }
+
     private void SetPlayerColorMaps(Palette palette, Colormap baseColorMap)
     {
-        if (baseColorMap.Entry == null)
+        if (m_archiveCollection.Data.ColormapData.Length == 0)
             return;
 
-        var colormapBytes = baseColorMap.Entry.ReadData();
+        var colormapBytes = m_archiveCollection.Data.ColormapData;
         int colorCount = (int)TranslateColor.Count;
-        List<Colormap> translatedColormaps = new(Colormaps.Count + colorCount);
+        // First player colormap is default
+        List<Colormap> translatedColormaps = new(Colormaps.Count + colorCount + 1)
+        {
+            baseColorMap
+        };
         // Doom built 3 translation color maps that map green to gray, brown, and red
         for (int i = 0; i < colorCount; i++)
         {
@@ -364,7 +407,7 @@ public class DefinitionEntries
 
         foreach (var entryName in translationEntries)
         {
-            if (!TryParseTranslationEntryToColormap(entryName, out var colormap))
+            if (!TryParseTranslationEntryToColormap(entryName, true, out var colormap))
                 continue;
 
             m_processedTranslationColormaps[entryName] = colormap;
@@ -380,20 +423,26 @@ public class DefinitionEntries
         }
     }
 
-    private bool TryParseTranslationEntryToColormap(string entryName, [NotNullWhen(true)] out Colormap? colormap)
+    private bool TryParseTranslationEntryToColormap(string entryName, bool addToColorMaps, [NotNullWhen(true)] out Colormap? colormap)
     {
+        if (addToColorMaps && m_processedTranslationColormaps.TryGetValue(entryName, out colormap))
+            return true;
+
         colormap = null;
-        if (!TryParseTranslationEntry(entryName, out var translationEntry, out var translationDef))
+        if (!TryParseTranslationEntry(entryName, out _, out var translationDef))
             return false;
 
-        colormap = Colormap.From(m_archiveCollection.Data.Palette, translationDef.Data.Table, translationEntry);
+        colormap = Colormap.CreateTranslatedColormap(m_archiveCollection.Data.Palette, m_archiveCollection.Data.ColormapData, translationDef.Data.Table);
         if (colormap == null)
             return false;
 
         m_processedTranslationColormaps[entryName] = colormap;
 
-        Colormaps.Add(colormap);
-        colormap.Index = Colormaps.Count;
+        if (addToColorMaps)
+        {
+            Colormaps.Add(colormap);
+            colormap.Index = Colormaps.Count;
+        }
 
         return true;
     }

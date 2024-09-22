@@ -1,4 +1,5 @@
 ﻿using Helion.Geometry.Vectors;
+using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using System;
 using System.Collections.Generic;
@@ -147,6 +148,15 @@ public class Colormap
         return From(palette, translated, null);
     }
 
+    public static Colormap? CreateTranslatedColormap(Palette palette, byte[] colorMap, byte[] translateTable)
+    {
+        if (translateTable.Length < 256)
+            return null;
+
+        var translated = TranslateIndices(colorMap, translateTable);
+        return From(palette, translated, null);
+    }
+
     private static byte[] TranslateIndices(byte[] data, TranslateColor color)
     {
         byte offset = color switch
@@ -172,6 +182,25 @@ public class Colormap
                     translate[index] = data[dataIndex];
                 else
                     translate[index] = data[index];
+            }
+        }
+
+        return translate;
+    }
+
+    private static byte[] TranslateIndices(byte[] data, byte[] translateTable)
+    {
+        var translate = new byte[data.Length];
+        int index = 0;
+        for (int layer = 0; layer < NumLayers; layer++)
+        {
+            for (int colorIndex = 0; colorIndex < NumColors; colorIndex++, index++)
+            {
+                if (index >= translate.Length)
+                    return translate;
+
+                int dataIndex = (layer * NumColors) + translateTable[colorIndex];
+                translate[index] = data[dataIndex];
             }
         }
 

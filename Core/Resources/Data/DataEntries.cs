@@ -25,6 +25,7 @@ public class DataEntries
 
     public Palette Palette => m_latestPalette ?? Palette.GetDefaultPalette();
     public Colormap Colormap => m_latestColormap ?? Colormap.GetDefaultColormap();
+    public byte[] ColormapData { get; private set; } = [];
 
     /// <summary>
     /// Creates an empty data entry tracker.
@@ -67,7 +68,8 @@ public class DataEntries
 
     private void HandleColorMap(Entry entry)
     {
-        m_latestColormap = Colormap.From(Palette, entry.ReadData(), entry);
+        ColormapData = entry.ReadData();
+        m_latestColormap = Colormap.From(Palette, ColormapData, entry);
     }
 
     private void HandleTrueTypeFont(Entry entry)

@@ -67,7 +67,7 @@ public class GameConfDefinition
         }
         catch (Exception ex)
         {
-            Log.Error(ex, $"Failed to parse gameconf from {entry.Parent.Path.Name}");
+            Log.Error(ex, ParseUtil.GetParseError(entry, "gameconf", ex));
         }
     }
 

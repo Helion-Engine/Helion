@@ -18,13 +18,7 @@ public class Id24SkyDefinition
         string data = entry.ReadDataAsString();
         try
         {
-            var converted = JsonConvert.DeserializeObject<SkyDefinitions>(data, JsonSerializationSettings.IgnoreNull);
-            if (converted == null)
-            {
-                Log.Error(ParseUtil.GetParseError(entry, "skydefs"));
-                return;
-            }
-
+            var converted = JsonConvert.DeserializeObject<SkyDefinitions>(data, JsonSerializationSettings.IgnoreNull) ?? throw new Exception("Data was null");
             Data = converted.Data;
 
             foreach (var item in Data.FlatMapping)
@@ -38,7 +32,7 @@ public class Id24SkyDefinition
         }
         catch (Exception ex)
         {
-            Log.Error(ex, ParseUtil.GetParseError(entry, "skydefs"));
+            Log.Error(ex, ParseUtil.GetParseError(entry, "skydefs", ex));
         }
     }
 }

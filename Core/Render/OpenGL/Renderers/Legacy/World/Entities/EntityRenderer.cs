@@ -211,6 +211,7 @@ public class EntityRenderer : IDisposable
         if (arrayData.Capacity < length + 1)
             arrayData.EnsureCapacity(length + 1);
 
+        int colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
         fixed (EntityVertex* vertex = &arrayData.Data[length])
         {
             // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
@@ -225,7 +226,7 @@ public class EntityRenderer : IDisposable
                 (float)entity.PrevPosition.Z + offsetZ);
             vertex->LightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? 255 :
                 ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
-            vertex->Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, entity.Properties.ColormapIndex ?? entity.Flags.GetTranslationColorMap());
+            vertex->Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
             vertex->SectorIndex = sector.Id + 1;
         }
         arrayData.Length = length + 1;

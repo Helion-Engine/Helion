@@ -1,5 +1,4 @@
 using Helion.Models;
-using System.Runtime.CompilerServices;
 
 namespace Helion.World.Entities.Definition.Flags;
 
@@ -13,12 +12,6 @@ public struct EntityFlags
     public const int Translation1Flag = FlagValue.Flag12;
     public const int Translation2Flag = FlagValue.Flag13;
     public const int TranslationFlag = Translation1Flag | Translation2Flag;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public readonly int GetTranslationColorMap()
-    {
-        return (Flags3 & TranslationFlag) >> 11;
-    }
 
     public int Flags1;
     public int Flags2;

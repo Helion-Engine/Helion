@@ -22,6 +22,8 @@ using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
 using Helion.World.Blockmap;
 using Helion.World.Geometry.Subsectors;
+using Helion.Graphics.Palettes;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World.Entities;
 
@@ -890,6 +892,16 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
             return BlockingEntity != null || BlockingLine != null;
 
         return Flags.Missile;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int GetTranslationColorMap()
+    {
+        // Player colormaps start index 1 (green)
+        if (PlayerObj != null)
+            return PlayerObj.PlayerNumber % ((int)TranslateColor.Count + 1) + 1;
+
+        return (Flags.Flags3 & EntityFlags.TranslationFlag) >> 10;
     }
 
     public void Dispose()
