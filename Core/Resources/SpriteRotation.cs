@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Helion.Resources;
 
 public class SpriteRotation
@@ -6,6 +8,7 @@ public class SpriteRotation
     public bool Mirror;
     public float FlipU;
     public object? RenderStore;
+    public Dictionary<int, SpriteRotation> TranslationSpriteRotations = [];
 
     public SpriteRotation(Texture texture, bool mirror)
     {

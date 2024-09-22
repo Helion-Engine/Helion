@@ -194,14 +194,41 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     /// <param name="frame">Sprite frame.</param>
     /// <param name="rotation">Rotation.</param>
     /// <returns>Returns a SpriteRotation if sprite name, frame, and rotation are valid. Otherwise null.</returns>
-    public SpriteRotation GetSpriteRotation(SpriteDefinition spriteDefinition, int frame, uint rotation)
+    public SpriteRotation GetSpriteRotation(SpriteDefinition spriteDefinition, int frame, uint rotation, int colorMapIndex)
     {
         SpriteRotation? spriteRotation = spriteDefinition.GetSpriteRotation(frame, rotation);
         if (spriteRotation == null)
             return NullSpriteRotation;
 
-        if (spriteRotation.RenderStore == null)
-            spriteRotation.RenderStore = CreateTexture(spriteRotation.Texture.Image, spriteRotation.Texture.Name, ResourceNamespace.Sprites);
+        colorMapIndex--;
+        if (!ArchiveCollection.StoreImageIndices && colorMapIndex >= 0)
+        {
+            // For true color mode the image needs to be recreated using a different palette
+            if (spriteRotation.TranslationSpriteRotations.TryGetValue(colorMapIndex, out var translationRotation))
+                return translationRotation;
+
+            if (colorMapIndex >= ArchiveCollection.Definitions.Colormaps.Count)
+                return NullSpriteRotation;
+
+            string translatedName = spriteRotation.Texture.Name + "-ColorMap-" + colorMapIndex;
+            var texture = new Resources.Texture(translatedName, ResourceNamespace.Sprites, 0)
+            {
+                Image = ArchiveCollection.ImageRetriever.GetOnlyMapped(translatedName, spriteRotation.Texture.Name, ResourceNamespace.Sprites,
+                    colorTranslation: ArchiveCollection.Definitions.Colormaps[colorMapIndex].IndexLayer(0))
+            };
+
+            translationRotation = new SpriteRotation(texture, spriteRotation.Mirror)
+            {
+                RenderStore = CreateTexture(texture.Image, translatedName, ResourceNamespace.Sprites)
+            };
+
+            spriteRotation.TranslationSpriteRotations[colorMapIndex] = translationRotation;
+            return translationRotation;
+        }
+        else
+        {
+            spriteRotation.RenderStore ??= CreateTexture(spriteRotation.Texture.Image, spriteRotation.Texture.Name, ResourceNamespace.Sprites);
+        }
 
         return spriteRotation;
     }

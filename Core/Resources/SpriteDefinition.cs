@@ -11,7 +11,7 @@ public class SpriteDefinition
     public SpriteRotation?[,] Rotations = new SpriteRotation[MaxFrames, MaxRotations];
     public bool HasRotations;
 
-    private static readonly Dictionary<string, Texture> SpriteTextureLookup = new();
+    private static readonly Dictionary<string, Texture> SpriteTextureLookup = [];
 
     public SpriteDefinition(IList<Entry> entries, IImageRetriever imageRetriever)
     {

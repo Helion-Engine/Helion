@@ -10,7 +10,6 @@ using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Entities;
-using Helion.World.Entities.Definition.Flags;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
 
@@ -23,8 +22,8 @@ public class EntityRenderer : IDisposable
     private readonly EntityProgram m_program = new();
     private readonly RenderDataManager<EntityVertex> m_dataManager;
     private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
-    private DynamicArray<SpriteDefinition?> m_spriteDefs = new(1024);
-    private SpriteRotation m_nullSpriteRotation;
+    private readonly DynamicArray<SpriteDefinition?> m_spriteDefs = new(1024);
+    private readonly SpriteRotation m_nullSpriteRotation;
     private Vec2F m_viewRightNormal;
     private Vec2F m_prevViewRightNormal;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
@@ -127,16 +126,16 @@ public class EntityRenderer : IDisposable
         return offsetAmount;
     }
 
-    private SpriteRotation GetSpriteRotation(SpriteDefinition spriteDefinition, int frame, uint rotation)
+    private SpriteRotation GetSpriteRotation(SpriteDefinition spriteDefinition, int frame, uint rotation, int colorMapIndex)
     {
         var spriteRotation = spriteDefinition.Rotations[frame, rotation];
         if (spriteRotation == null)
             return m_nullSpriteRotation;
 
-        if (spriteRotation.RenderStore != null)
+        if (colorMapIndex <= 0 && spriteRotation.RenderStore != null)
             return spriteRotation;
 
-        return m_textureManager.GetSpriteRotation(spriteDefinition, frame, rotation);
+        return m_textureManager.GetSpriteRotation(spriteDefinition, frame, rotation, colorMapIndex);
     }
 
     public unsafe void RenderEntity(Entity entity, in Vec2D position)
@@ -188,8 +187,9 @@ public class EntityRenderer : IDisposable
                 m_renderPositions[entityPos] = 1;
             }
         }
-        
-        SpriteRotation spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation);
+
+        int colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
+        SpriteRotation spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation, colorMapIndex);
         GLLegacyTexture texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
         Sector sector = entity.Sector.GetRenderSector(m_transferHeightView);
 
@@ -211,7 +211,6 @@ public class EntityRenderer : IDisposable
         if (arrayData.Capacity < length + 1)
             arrayData.EnsureCapacity(length + 1);
 
-        int colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
         fixed (EntityVertex* vertex = &arrayData.Data[length])
         {
             // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view

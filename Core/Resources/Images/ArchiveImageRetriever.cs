@@ -81,21 +81,24 @@ public class ArchiveImageRetriever : IImageRetriever
             .ToList();
     }
 
-    public Image? GetOnly(string name, ResourceNamespace targetNamespace, GetImageOptions options = GetImageOptions.Default)
+    public Image? GetOnly(string name, ResourceNamespace targetNamespace, GetImageOptions options = GetImageOptions.Default) =>
+        GetOnlyMapped(name, name, targetNamespace, null, options);
+
+    public Image? GetOnlyMapped(string mappedName, string entryName, ResourceNamespace targetNamespace, byte[]? colorTranslation, GetImageOptions options = GetImageOptions.Default)
     {
-        Image? compiledImage = m_compiledImages.GetOnly(name, targetNamespace);
+        Image? compiledImage = m_compiledImages.GetOnly(mappedName, targetNamespace);
         if (compiledImage != null)
             return compiledImage;
 
-        TextureDefinition? definition = m_archiveCollection.Definitions.Textures.GetOnly(name, targetNamespace);
+        TextureDefinition? definition = m_archiveCollection.Definitions.Textures.GetOnly(mappedName, targetNamespace);
         if (definition != null)
             return ImageFromDefinition(definition, options);
 
-        Entry? entry = m_archiveCollection.Entries.FindByNamespace(name, targetNamespace);
-        return entry != null ? ImageFromEntry(entry) : null;
+        Entry? entry = m_archiveCollection.Entries.FindByNamespace(entryName, targetNamespace);
+        return entry != null ? ImageFromEntry(entry, colorTranslation: colorTranslation) : null;
     }
 
-    private Image ImageFromDefinition(TextureDefinition definition, GetImageOptions options = default)
+    private Image ImageFromDefinition(TextureDefinition definition, GetImageOptions options = default, byte[]? colorTranslation = null)
     {
         (int w, int h) = definition.Dimension;
         Image image = new(w, h, ImageType.PaletteWithArgb, (0, 0), definition.Namespace);
@@ -105,7 +108,7 @@ public class ArchiveImageRetriever : IImageRetriever
             Image? subImage = null;
             Entry? entry = m_archiveCollection.Entries.FindByNamespace(component.Name, definition.Namespace);
             if (entry != null)
-                subImage = ImageFromEntry(entry, cacheEntry: false, options);
+                subImage = ImageFromEntry(entry, cacheEntry: false, options, colorTranslation: colorTranslation);
 
             if (subImage == null)
             {
@@ -159,7 +162,7 @@ public class ArchiveImageRetriever : IImageRetriever
         return Math.Max(0, image.Height - y - 1);
     }
 
-    private Image? ImageFromEntry(Entry entry, bool cacheEntry = true, GetImageOptions options = GetImageOptions.Default)
+    private Image? ImageFromEntry(Entry entry, bool cacheEntry = true, GetImageOptions options = GetImageOptions.Default, byte[]? colorTranslation = null)
     {
         Image? image = null;
         byte[] data = entry.ReadData();
@@ -200,22 +203,25 @@ public class ArchiveImageRetriever : IImageRetriever
             var storeIndices = m_archiveCollection.StoreImageIndices;
             var palette = entry.Parent.TranslationPalette ?? dataEntries.Palette;
 
+            if (colorTranslation == null && palette.Translation != null)
+                colorTranslation = palette.Translation;
+
             if (entry.Namespace == ResourceNamespace.Flats && PaletteReaders.LikelyFlat(data))
             {
                 if (PaletteReaders.ReadFlat(data, entry.Namespace, out var paletteImage))
                 {
-                    if (storeIndices && palette.Translation != null)
-                        TranslatePaletteIndices(paletteImage.Indices, palette.Translation);
-                    image = Image.PaletteToArgb(paletteImage, palette, dataEntries.Colormap.FullBright, storeIndices, clearBlackPixels);
+                    if (storeIndices && colorTranslation != null)
+                        TranslatePaletteIndices(paletteImage.Indices, colorTranslation);
+                    image = Image.PaletteToArgb(paletteImage, palette, dataEntries.Colormap.FullBright, storeIndices, clearBlackPixels, colorTranslation);
                 }
             }
             else
             {
                 if (PaletteReaders.ReadColumn(data, entry.Namespace, out var paletteImage))
                 {
-                    if (storeIndices && palette.Translation != null)
-                        TranslatePaletteIndices(paletteImage.Indices, palette.Translation);
-                    image = Image.PaletteToArgb(paletteImage, palette, dataEntries.Colormap.FullBright, storeIndices, clearBlackPixels);
+                    if (storeIndices && colorTranslation != null)
+                        TranslatePaletteIndices(paletteImage.Indices, colorTranslation);
+                    image = Image.PaletteToArgb(paletteImage, palette, dataEntries.Colormap.FullBright, storeIndices, clearBlackPixels, colorTranslation);
                 }
             }
         }
