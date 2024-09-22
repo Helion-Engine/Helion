@@ -66,8 +66,9 @@ public class Window : GameWindow, IWindow
         m_joystickAdapter = new JoystickAdapter(
             JoystickStates,
             (float)m_config.Controller.GameControllerDeadZone.Value,
+            m_config.Controller.EnableGameController,
             m_inputManager);
-        SetGameControllerPolling(m_config.Controller.EnableGameController);
+        JoystickConnected += RedetectJoysticks;
 
         m_config.Render.MaxFPS.OnChanged += OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
@@ -84,11 +85,6 @@ public class Window : GameWindow, IWindow
     private void RedetectJoysticks(JoystickEventArgs obj)
     {
         m_joystickAdapter.RedetectJoysticks();
-    }
-
-    private void PollJoysticks(FrameEventArgs _)
-    {
-        m_joystickAdapter.SampleJoystickStates();
     }
 
     public void SetWindowState(RenderWindowState state)
@@ -301,21 +297,7 @@ public class Window : GameWindow, IWindow
 
     private void EnableGameController_OnChanged(object? sender, bool e)
     {
-        SetGameControllerPolling(e);
-    }
-
-    public void SetGameControllerPolling(bool active)
-    {
-        if (active)
-        {
-            RenderFrame += PollJoysticks;
-            JoystickConnected += RedetectJoysticks;
-        }
-        else
-        {
-            RenderFrame -= PollJoysticks;
-            JoystickConnected -= RedetectJoysticks;
-        }
+        m_joystickAdapter.Enabled = e;
     }
 
     private void PerformDispose()
@@ -330,7 +312,6 @@ public class Window : GameWindow, IWindow
         MouseUp -= Window_MouseUp;
         MouseWheel -= Window_MouseWheel;
         TextInput -= Window_TextInput;
-        UpdateFrame -= PollJoysticks;
         JoystickConnected -= RedetectJoysticks;
 
         m_config.Render.MaxFPS.OnChanged -= OnMaxFpsChanged;

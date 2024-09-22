@@ -26,6 +26,11 @@
         private Timer m_zeroTimer;
 
         /// <summary>
+        /// Get or set whether this adapter is enabled
+        /// </summary>
+        public bool Enabled { get; set; }
+
+        /// <summary>
         /// Get or set the dead zone for the controllers, in the range of 0-.5 (the range for an axis is [-1..+1])
         /// </summary>
         public float DeadZone
@@ -56,11 +61,12 @@
         /// </summary>
         public AxisState[] AxisStates { get; private set; }
 
-        public JoystickAdapter(IReadOnlyList<OpenTKJoystick> joystickInputs, float axisDeadzone, InputManager inputManager)
+        public JoystickAdapter(IReadOnlyList<OpenTKJoystick> joystickInputs, float axisDeadzone,  bool enable, InputManager inputManager)
         {
             m_windowJoystickStates = joystickInputs;
             m_inputManager = inputManager;
             m_inputManager.AnalogAdapter = this;
+            Enabled = enable;
             AxisStates = [];
             m_joystickState = new JoystickState[2];
             m_deadZone = axisDeadzone;
@@ -126,9 +132,9 @@
         /// <summary>
         /// Get the positions and button states of all active joysticks
         /// </summary>
-        public void SampleJoystickStates()
+        public void Poll()
         {
-            if (m_activeJoystick == null)
+            if (!Enabled || m_activeJoystick == null)
             {
                 // Do minimal amount of work if controller input is enabled but no controllers are available
                 return;

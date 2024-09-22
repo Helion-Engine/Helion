@@ -39,6 +39,8 @@ public class GameLayerInput
     {
         public List<(Key, float)> AxisValues { get; set; } = new List<(Key, float)>();
 
+        public void Poll() { }
+
         public bool KeyIsAnalogAxis(Key key)
         {
             return key.ToString().StartsWith("Axis");
