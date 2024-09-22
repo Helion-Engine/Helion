@@ -204,7 +204,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         if (!ArchiveCollection.StoreImageIndices && colorMapIndex >= 0)
         {
             // For true color mode the image needs to be recreated using a different palette
-            if (spriteRotation.TranslationSpriteRotations.TryGetValue(colorMapIndex, out var translationRotation))
+            if (spriteRotation.TryGetTranslationRotation(colorMapIndex, out var translationRotation))
                 return translationRotation;
 
             if (colorMapIndex >= ArchiveCollection.Definitions.Colormaps.Count)
@@ -222,7 +222,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
                 RenderStore = CreateTexture(texture.Image, translatedName, ResourceNamespace.Sprites)
             };
 
-            spriteRotation.TranslationSpriteRotations[colorMapIndex] = translationRotation;
+            spriteRotation.SetTranslationRotation(colorMapIndex, translationRotation);
             return translationRotation;
         }
         else

@@ -1,19 +1,30 @@
-using System.Collections.Generic;
+using Helion.Util.Container;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Resources;
 
-public class SpriteRotation
+public class SpriteRotation(Texture texture, bool mirror)
 {
-    public Texture Texture;
-    public bool Mirror;
-    public float FlipU;
+    public Texture Texture = texture;
+    public bool Mirror = mirror;
+    public float FlipU = mirror ? 1 : 0;
     public object? RenderStore;
-    public Dictionary<int, SpriteRotation> TranslationSpriteRotations = [];
+    private LookupArray<SpriteRotation>? m_translationRotations;
 
-    public SpriteRotation(Texture texture, bool mirror)
+    public bool TryGetTranslationRotation(int index, [NotNullWhen(true)] out SpriteRotation? rotation)
     {
-        Texture = texture;
-        Mirror = mirror;
-        FlipU = mirror ? 1 : 0;
+        if (m_translationRotations == null)
+        {
+            rotation = null;
+            return false;
+        }
+
+        return m_translationRotations.TryGetValue(index, out rotation);
+    }
+
+    public void SetTranslationRotation(int index, SpriteRotation rotation)
+    {
+        m_translationRotations ??= new();
+        m_translationRotations.Set(index, rotation);
     }
 }
