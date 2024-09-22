@@ -25,7 +25,7 @@
         {
             for (int axisId = 0; axisId < AxisValues.Length; axisId++)
             {
-                AxisValues[axisId] = (float)Math.Sin(openTKState.GetAxis(axisId) * Math.PI / 2);
+                AxisValues[axisId] = openTKState.GetAxis(axisId);
             }
             for (int buttonId = 0; buttonId < ButtonStates.Length; buttonId++)
             {
