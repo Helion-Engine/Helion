@@ -246,8 +246,8 @@ public partial class WorldLayer
             // and turn as this would make freelook overly sensitive.
             CircleCoordsToSquare(analogInput.X, analogInput.Y, out analogInput.X, out analogInput.Y);
 
-            cmd.ForwardMoveSpeed = Math.Clamp(analogInput.X, -1, 1) * Player.GetForwardMovementSpeed();
-            cmd.SideMoveSpeed = Math.Clamp(analogInput.Y, -1, 1) * Player.GetSideMovementSpeed();
+            cmd.ForwardMoveSpeed = Math.Clamp(analogInput.X * m_config.Controller.GameControllerRunScale, -1, 1) * Player.GetForwardMovementSpeed();
+            cmd.SideMoveSpeed = Math.Clamp(analogInput.Y * m_config.Controller.GameControllerStrafeScale, -1, 1) * Player.GetSideMovementSpeed();
             cmd.AngleTurn = analogInput.Z * Player.FastTurnSpeed * m_config.Controller.GameControllerTurnScale;
             cmd.PitchTurn = analogInput.W * Player.FastTurnSpeed * m_config.Controller.GameControllerPitchScale;
         }
