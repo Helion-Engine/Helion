@@ -10,6 +10,7 @@
   - Save game improvements: Saves can be named, pagination added to Save/Load dialog, rotating auto/quicksaves added
   - Expanded support for music formats and more synthesizer options, via ZMusic
   - Game controller support
+  - TRANSLATION1 and TRANSLATION2 flag support for true-color rendering
 
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
@@ -45,3 +46,4 @@
   - Fix random crash from sounds trying to play while loading a new map
   - Fix dehacked to correctly use A_SPosAttack function with hard-coded shotgun sound
   - Fix map start specials not getting written to autosaves
+  - Fix boom generic specials to allow monsters to trigger of off model if change is 0
