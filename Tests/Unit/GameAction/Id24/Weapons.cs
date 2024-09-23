@@ -38,9 +38,10 @@ public class Weapons
         Player.Weapon!.Definition.Name.Should().Be("Shotgun");
     }
 
-    [Fact(DisplayName = "Initial owned")]
-    public void SlotAndSlotPriority()
+    [Fact(DisplayName = "Slot and sub slot priority")]
+    public void SlotAndSubSlotPriority()
     {
+        // Rocket launcher, chaingun, shotgun sub slots
         Player.GiveAllWeapons(World.EntityManager.DefinitionComposer);
         var weapon = Player.Inventory.Weapons.GetWeapon(5, Player.Inventory.Weapons.GetBestSubSlot(5));
         weapon.Should().NotBeNull();
@@ -48,13 +49,32 @@ public class Weapons
         Player.ChangeWeapon(weapon);
         GameActions.TickWorld(World, 35);
 
-        var nextSlot = Player.Inventory.Weapons.GetNextSlot(Player);
+        var nextSlot = Player.Inventory.Weapons.GetNextSubSlot(Player);
         weapon = Player.Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
         weapon.Should().NotBeNull();
         weapon!.Definition.Name.Should().Be("RocketLauncher");
         Player.ChangeWeapon(weapon);
         GameActions.TickWorld(World, 35);
 
+        nextSlot = Player.Inventory.Weapons.GetNextSubSlot(Player);
+        weapon = Player.Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
+        weapon.Should().NotBeNull();
+        weapon!.Definition.Name.Should().Be("Chaingun");
+        Player.ChangeWeapon(weapon);
+        GameActions.TickWorld(World, 35);
+
+        nextSlot = Player.Inventory.Weapons.GetNextSubSlot(Player);
+        weapon = Player.Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
+        weapon.Should().NotBeNull();
+        weapon!.Definition.Name.Should().Be("Shotgun");
+        Player.ChangeWeapon(weapon);
+        GameActions.TickWorld(World, 35);
+
+        // GetNextSlot
+        weapon = Player.Inventory.Weapons.GetWeapon(5, Player.Inventory.Weapons.GetFirstSubSlot(5));
+        weapon.Should().NotBeNull();
+        weapon!.Definition.Name.Should().Be("RocketLauncher");
+        Player.ChangeWeapon(weapon);
         nextSlot = Player.Inventory.Weapons.GetNextSlot(Player);
         weapon = Player.Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
         weapon.Should().NotBeNull();
@@ -68,6 +88,12 @@ public class Weapons
         weapon!.Definition.Name.Should().Be("Shotgun");
         Player.ChangeWeapon(weapon);
         GameActions.TickWorld(World, 35);
+
+        nextSlot = Player.Inventory.Weapons.GetNextSlot(Player);
+        weapon = Player.Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
+        weapon.Should().NotBeNull();
+        weapon!.Definition.Name.Should().Be("PlasmaRifle");
+        Player.ChangeWeapon(weapon);
     }
 
     [Fact(DisplayName = "No switch with owned weapon")]

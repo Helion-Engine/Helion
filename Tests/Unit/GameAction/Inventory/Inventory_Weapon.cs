@@ -574,22 +574,35 @@ namespace Helion.Tests.Unit.GameAction
             Player.GiveAllWeapons(World.EntityManager.DefinitionComposer);
             Player.ChangeWeapon(InventoryUtil.GetWeapon(Player, "Fist"));
             GameActions.TickWorld(World, 35);
-            var changeWeapon = Player.Inventory.Weapons.GetWeapon(3, Player.Inventory.Weapons.GetBestSubSlot(3));
-            changeWeapon!.Definition.Name.Equals("SuperShotgun", StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+            var changeWeapon = Player.Inventory.Weapons.GetWeapon(3, Player.Inventory.Weapons.GetFirstSubSlot(3));
+            changeWeapon!.Definition.Name.Equals("Shotgun", StringComparison.OrdinalIgnoreCase).Should().BeTrue();
             Player.ChangeWeapon(changeWeapon!);
 
             var nextSlot = Player.Inventory.Weapons.GetNextSlot(Player);
             nextSlot.Slot.Should().Be(3);
-            nextSlot.SubSlot.Should().Be(0);
-            changeWeapon = Player.Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
-            changeWeapon!.Definition.Name.Equals("Shotgun", StringComparison.OrdinalIgnoreCase).Should().BeTrue();
-            Player.ChangeWeapon(changeWeapon!);
-
-            nextSlot = Player.Inventory.Weapons.GetNextSlot(Player);
-            nextSlot.Slot.Should().Be(3);
             nextSlot.SubSlot.Should().Be(1);
             changeWeapon = Player.Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
             changeWeapon!.Definition.Name.Equals("SuperShotgun", StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+            Player.ChangeWeapon(changeWeapon!);
+
+            nextSlot = Player.Inventory.Weapons.GetNextSlot(Player);
+            nextSlot.Slot.Should().Be(4);
+            nextSlot.SubSlot.Should().Be(0);
+            changeWeapon = Player.Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
+            changeWeapon!.Definition.Name.Equals("Chaingun", StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+        }
+
+        [Fact(DisplayName = "Cycle sub slot with single sub slot")]
+        public void CycleSubSlotSingle()
+        {
+            Player.GiveAllWeapons(World.EntityManager.DefinitionComposer);
+            Player.ChangeWeapon(InventoryUtil.GetWeapon(Player, "Chaingun"));
+
+            Player.WeaponSlot.Should().Be(4);
+            Player.WeaponSubSlot.Should().Be(0);
+            var nextSlot = Player.Inventory.Weapons.GetNextSubSlot(Player);
+            nextSlot.Slot.Should().Be(4);
+            nextSlot.SubSlot.Should().Be(0);
         }
 
         [Fact(DisplayName = "Best weapon subslot")]
