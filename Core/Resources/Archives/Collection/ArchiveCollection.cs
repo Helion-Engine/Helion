@@ -237,7 +237,7 @@ public class ArchiveCollection : IResources, IPathResolver
     {
         map = null;
         string file = ExtractEmbeddedFile(mapEntry);
-        Archive? mapArchive = LoadArchive(file, null);
+        Archive? mapArchive = LoadArchive(file);
         if (mapArchive == null)
             return false;
 
@@ -318,7 +318,7 @@ public class ArchiveCollection : IResources, IPathResolver
         // if we have already loaded it.
         if (loadDefaultAssets && m_archives.Empty())
         {
-            Archive? assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, Files.CalculateMD5(Constants.AssetsFileName));
+            Archive? assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, shouldCalculateMd5: true);
             if (assetsArchive == null)
                 return false;
 
@@ -335,7 +335,7 @@ public class ArchiveCollection : IResources, IPathResolver
         }
         else if (iwad != null)
         {
-            iwadArchive = LoadSpecial(iwad, ArchiveType.IWAD, Files.CalculateMD5(iwad));
+            iwadArchive = LoadSpecial(iwad, ArchiveType.IWAD, shouldCalculateMd5: true);
             if (iwadArchive == null)
                 return false;
 
@@ -346,7 +346,7 @@ public class ArchiveCollection : IResources, IPathResolver
 
         foreach (string filePath in filePaths)
         {
-            Archive? archive = LoadArchive(filePath, Files.CalculateMD5(filePath));
+            Archive? archive = LoadArchive(filePath, shouldCalculateMd5: true);
             if (archive == null)
                 continue;
 
@@ -387,7 +387,7 @@ public class ArchiveCollection : IResources, IPathResolver
     }
 
     /// <summary>
-    /// Adds extras.wad and potentially id24res.wad to the WAD list
+    /// Adds required resource WADs to the WAD list
     /// if a GAMECONF is present in the specified WADs
     /// </summary>
     private List<Archive> LoadGameConfArchives(string? iwad, IEnumerable<string> pwads)
@@ -401,7 +401,7 @@ public class ArchiveCollection : IResources, IPathResolver
         GameConfDefinition gameConfDef = new();
         foreach (string wad in wads)
         {
-            Archive? archive = LoadArchive(wad, null, isLoadEvent: false);
+            Archive? archive = LoadArchive(wad, isLoadEvent: false);
             var entry = archive?.GetEntryByName("GAMECONF");
             if (entry != null)
                 gameConfDef.Parse(entry);
@@ -409,19 +409,10 @@ public class ArchiveCollection : IResources, IPathResolver
 
         // add whichever archives are needed
         List<Archive> gameConfArchives = [];
-        if (gameConfDef.Data != null)
-        {
-            const string ExtrasName = "extras.wad";
-            Archive? extrasArchive = LoadArchive(ExtrasName, null);
-            if (extrasArchive == null)
-                HelionLog.Error($"Unable to open {ExtrasName} for GAMECONF config");
-            else
-                gameConfArchives.Add(extrasArchive);
-        }
         if (gameConfDef.Data?.Executable == GameConfConstants.Executable.Id24)
         {
             const string Id24ResName = "id24res.wad";
-            Archive? id24ResArchive = LoadArchive(Id24ResName, null);
+            Archive? id24ResArchive = LoadArchive(Id24ResName, shouldCalculateMd5: true);
             if (id24ResArchive == null)
                 HelionLog.Error($"Unable to open {Id24ResName} for ID24 config");
             else
@@ -457,7 +448,7 @@ public class ArchiveCollection : IResources, IPathResolver
     {
         foreach (string file in files)
         {
-            Archive? newArchive = LoadArchive(file, null);
+            Archive? newArchive = LoadArchive(file);
             if (newArchive == null)
                 continue;
 
@@ -532,9 +523,9 @@ public class ArchiveCollection : IResources, IPathResolver
         }
     }
 
-    private Archive? LoadSpecial(string file, ArchiveType archiveType, string? md5)
+    private Archive? LoadSpecial(string file, ArchiveType archiveType, bool shouldCalculateMd5 = false)
     {
-        Archive? archive = LoadArchive(file, md5);
+        Archive? archive = LoadArchive(file, shouldCalculateMd5);
         if (archive == null)
             return null;
 
@@ -542,7 +533,7 @@ public class ArchiveCollection : IResources, IPathResolver
         return archive;
     }
 
-    private Archive? LoadArchive(string filePath, string? md5, bool isLoadEvent = true)
+    private Archive? LoadArchive(string filePath, bool shouldCalculateMd5 = false, bool isLoadEvent = true)
     {
         Archive? archive = m_archiveLocator.Locate(filePath);
         if (archive == null)
@@ -552,8 +543,12 @@ public class ArchiveCollection : IResources, IPathResolver
         }
 
         archive.OriginalFilePath = Path.GetFullPath(filePath);
-        if (md5 != null)
-            archive.MD5 = md5;
+        if (shouldCalculateMd5)
+        {
+            string? md5 = Files.CalculateMD5(archive.Path.FullPath);
+            if (md5 != null)
+                archive.MD5 = md5;
+        }
 
         if (isLoadEvent)
             ArchiveLoaded?.Invoke(this, archive);
@@ -625,7 +620,7 @@ public class ArchiveCollection : IResources, IPathResolver
         GameConfDefinition parser = new();
         void ApplyWadsFromWadGameConf(string wad)
         {
-            using var archive = LoadArchive(wad, null);
+            using var archive = LoadArchive(wad);
             var entry = archive?.GetEntryByName("GAMECONF");
             if (entry == null)
                 return;
