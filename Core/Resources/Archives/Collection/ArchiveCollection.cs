@@ -387,7 +387,7 @@ public class ArchiveCollection : IResources, IPathResolver
     }
 
     /// <summary>
-    /// Adds extras.wad and potentially id24res.wad to the WAD list
+    /// Adds required resource WADs to the WAD list
     /// if a GAMECONF is present in the specified WADs
     /// </summary>
     private List<Archive> LoadGameConfArchives(string? iwad, IEnumerable<string> pwads)
@@ -409,15 +409,6 @@ public class ArchiveCollection : IResources, IPathResolver
 
         // add whichever archives are needed
         List<Archive> gameConfArchives = [];
-        if (gameConfDef.Data != null)
-        {
-            const string ExtrasName = "extras.wad";
-            Archive? extrasArchive = LoadArchive(ExtrasName, shouldCalculateMd5: true);
-            if (extrasArchive == null)
-                HelionLog.Error($"Unable to open {ExtrasName} for GAMECONF config");
-            else
-                gameConfArchives.Add(extrasArchive);
-        }
         if (gameConfDef.Data?.Executable == GameConfConstants.Executable.Id24)
         {
             const string Id24ResName = "id24res.wad";
