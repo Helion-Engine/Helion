@@ -7,6 +7,7 @@
     public unsafe partial class ZMusic
     {
         private static bool RegisteredResolver;
+        private static IntPtr m_dllHandle = IntPtr.Zero;
 
         static ZMusic()
         {
@@ -40,10 +41,10 @@
         {
 #pragma warning disable IDE0046 // if/else collapsing produces very dense code here
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return ["zmusic.dll"];
+                return ["zmusic.dll", "libzmusic.dll"];
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return ["libzmusic.so"];
+                return ["libzmusic.so", "zmusic.so"];
 
             throw new NotSupportedException("This library does not support the current OS.");
 #pragma warning restore IDE0046
@@ -55,28 +56,36 @@
 
             if (libraryName == LibraryName)
             {
+                if (m_dllHandle != IntPtr.Zero)
+                {
+                    return m_dllHandle;
+                }
+
                 string runtimePath = GetRuntimePath();
                 string[] libraryNames = GetExpectedLibraryNames();
 
-                string primaryLibrary = libraryNames[0];
-                if (NativeLibrary.TryLoad($"{baseDirectory}{runtimePath}{primaryLibrary}", out nint handle))
+                foreach (string library in libraryNames)
                 {
-                    foreach (string secondaryLibrary in libraryNames[1..])
+                    // e.g. appdir/runtimes/linux-x64/native/fluidsynth.so
+                    if (NativeLibrary.TryLoad($"{baseDirectory}{runtimePath}{library}", out m_dllHandle))
                     {
-                        _ = NativeLibrary.TryLoad($"{baseDirectory}{runtimePath}{secondaryLibrary}", out _);
+                        return m_dllHandle;
                     }
 
-                    return handle;
+                    // e.g. appdir/fluidsynth.so
+                    if (NativeLibrary.TryLoad($"{baseDirectory}{library}", out m_dllHandle))
+                    {
+                        return m_dllHandle;
+                    }
                 }
 
-                if (NativeLibrary.TryLoad($"{baseDirectory}{primaryLibrary}", out handle))
+                foreach (string primaryLibrary in libraryNames)
                 {
-                    foreach (string secondaryLibrary in libraryNames[1..])
+                    // default runtime search paths
+                    if (NativeLibrary.TryLoad(primaryLibrary, out m_dllHandle))
                     {
-                        _ = NativeLibrary.TryLoad($"{baseDirectory}{secondaryLibrary}", out _);
+                        return m_dllHandle;
                     }
-
-                    return handle;
                 }
 
                 throw new DllNotFoundException($"Could not load a suitable substitute for DllImport {libraryName}.");
