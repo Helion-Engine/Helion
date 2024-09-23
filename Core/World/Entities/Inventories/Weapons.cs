@@ -67,8 +67,9 @@ public sealed class Weapons
         return weapons;
     }
 
-    public WeaponSlot GetNextSlot(Player player) => CycleSlot(player, player.WeaponSlot, player.WeaponSubSlot, true, true);
+    public WeaponSlot GetNextSlot(Player player) => CycleSlot(player, player.WeaponSlot, player.WeaponSubSlot, true, false);
     public WeaponSlot GetPreviousSlot(Player player) => CycleSlot(player, player.WeaponSlot, player.WeaponSubSlot, false, false);
+    public WeaponSlot GetNextSubSlot(Player player) => CycleSlot(player, player.WeaponSlot, player.WeaponSubSlot, true, true);
 
     public WeaponSlot GetNextSlot(Player player, int amount)
     {
@@ -104,9 +105,11 @@ public sealed class Weapons
                 return new(slot, nextSubSlot);
         }
 
+        if (wrapSubSlot)
+            return new(slot, subSlot);
+
         var nextSlot = GetNextSlot(slot, next);
         nextSubSlot = next ? GetFirstSubSlot(nextSlot) : GetBestSubSlot(nextSlot);
-
         return new(nextSlot, nextSubSlot);
     }
 

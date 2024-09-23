@@ -828,10 +828,7 @@ public class Player : Entity
             Weapon? weapon = null;
             if (WeaponSlot == slot)
             {
-                var nextSlot = Inventory.Weapons.GetNextSlot(this);
-                if (nextSlot.Slot != slot)
-                    nextSlot.SubSlot = Inventory.Weapons.GetFirstSubSlot(slot);
-
+                var nextSlot = Inventory.Weapons.GetNextSubSlot(this);
                 if (nextSlot.Slot != -1)
                     weapon = Inventory.Weapons.GetWeapon(nextSlot.Slot, nextSlot.SubSlot);
             }
