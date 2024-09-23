@@ -99,12 +99,12 @@ public static class BoomLineSpecTranslator
         if (special >= FloorBase)
         {
             type = ZDoomLineSpecialType.GenericFloor;
-            SetGenericPlat(special, ref argsToMutate);
+            SetGenericPlat(special, ref argsToMutate, ref lineFlags);
         }
         else if (special >= CeilingBase)
         {
             type = ZDoomLineSpecialType.GenericCeiling;
-            SetGenericPlat(special, ref argsToMutate);
+            SetGenericPlat(special, ref argsToMutate, ref lineFlags);
         }
         else if (special >= DoorBase)
         {
@@ -160,7 +160,7 @@ public static class BoomLineSpecTranslator
             argsToMutate.Arg3 |= 2;
     }
 
-    private static void SetGenericPlat(ushort special, ref SpecialArgs argsToMutate)
+    private static void SetGenericPlat(ushort special, ref SpecialArgs argsToMutate, ref LineFlags lineFlags)
     {
         argsToMutate.Arg1 = GetPlatSpeed(special);
         // Target
@@ -179,6 +179,10 @@ public static class BoomLineSpecTranslator
         // ZDoomGenericFlags - Include change, direction, model, and crush
         // Change lines up with ZDoomGenericFlags
         argsToMutate.Arg4 = (special & PlatChangeMask) >> PlatChangeShift;
+
+        // PlatModelMask is "Allow Monsters" if PlatChangeMask is 0
+        if ((special & PlatChangeMask) == 0 && (special & PlatModelMask) != 0)
+            lineFlags.Activations |= LineActivations.Monster;
 
         if ((special & PlatDirectionMask) >> PlatDirectionShift != 0)
             argsToMutate.Arg4 |= (int)ZDoomGenericFlags.Raise;

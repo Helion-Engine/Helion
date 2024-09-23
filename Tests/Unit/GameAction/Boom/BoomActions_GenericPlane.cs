@@ -150,4 +150,48 @@ public partial class BoomActions
         monster.Health.Should().Be(0);
         sector.Ceiling.Z.Should().Be(0);
     }
+
+    [Fact(DisplayName = "Monster can't activate generic floor without numeric model")]
+    public void MonsterCantActivateGenericFloor()
+    {
+        var monsterSector = GameActions.GetSectorByTag(World, 42);
+        var monster = GameActions.GetSectorEntity(World, monsterSector.Id, "DoomImp");
+        var moveSector = GameActions.GetSectorByTag(World, 44);
+
+        GameActions.ActivateLine(World, monster, 621, ActivationContext.CrossLine).Should().BeFalse();
+        moveSector.ActiveFloorMove.Should().BeNull();
+    }
+
+    [Fact(DisplayName = "Monster can activate generic floor with numeric model")]
+    public void MonsterCanActivateGenericFloor()
+    {
+        var monsterSector = GameActions.GetSectorByTag(World, 43);
+        var monster = GameActions.GetSectorEntity(World, monsterSector.Id, "DoomImp");
+        var moveSector = GameActions.GetSectorByTag(World, 45);
+
+        GameActions.ActivateLine(World, monster, 624, ActivationContext.CrossLine).Should().BeTrue();
+        moveSector.ActiveFloorMove.Should().NotBeNull();
+    }
+
+    [Fact(DisplayName = "Monster can't activate generic ceiling without numeric model")]
+    public void MonsterCantActivateGenericCeiling()
+    {
+        var monsterSector = GameActions.GetSectorByTag(World, 46);
+        var monster = GameActions.GetSectorEntity(World, monsterSector.Id, "DoomImp");
+        var moveSector = GameActions.GetSectorByTag(World, 48);
+
+        GameActions.ActivateLine(World, monster, 644, ActivationContext.CrossLine).Should().BeFalse();
+        moveSector.ActiveCeilingMove.Should().BeNull();
+    }
+
+    [Fact(DisplayName = "Monster can activate generic ceiling with numeric model")]
+    public void MonsterCanActivateGenericCeiling()
+    {
+        var monsterSector = GameActions.GetSectorByTag(World, 47);
+        var monster = GameActions.GetSectorEntity(World, monsterSector.Id, "DoomImp");
+        var moveSector = GameActions.GetSectorByTag(World, 49);
+
+        GameActions.ActivateLine(World, monster, 633, ActivationContext.CrossLine).Should().BeTrue();
+        moveSector.ActiveCeilingMove.Should().NotBeNull();
+    }
 }
