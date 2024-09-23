@@ -8,6 +8,7 @@ namespace NFluidsynth.Native
     {
         public const string LibraryName = "fluidsynth";
         private static bool RegisteredResolver;
+        private static IntPtr m_dllHandle = IntPtr.Zero;
 
         // Supports both ABI 2 and ABI 3 of Fluid Synth
         // https://abi-laboratory.pro/index.php?view=timeline&l=fluidsynth
@@ -48,10 +49,10 @@ namespace NFluidsynth.Native
         {
 #pragma warning disable IDE0046 // if/else collapsing produces very dense code here
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return ["fluidsynth.dll"];
+                return ["fluidsynth.dll", "fluidsynth64.dll", "libfluidsynth.dll", "libfluidsynth64.dll"];
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return ["libfluidsynth.so"];
+                return ["libfluidsynth.so", "libfluidsynth.so.2", "libfluidsynth.so.3", "fluidsynth.so", "fluidsynth.so.2", "fluidsynth.so.3"];
 
             throw new NotSupportedException("This library does not support the current OS.");
 #pragma warning restore IDE0046
@@ -63,28 +64,40 @@ namespace NFluidsynth.Native
 
             if (libraryName == LibraryName)
             {
+                if (m_dllHandle != IntPtr.Zero)
+                {
+                    return m_dllHandle;
+                }
+
                 string runtimePath = GetRuntimePath();
                 string[] libraryNames = GetExpectedLibraryNames();
 
-                string primaryLibrary = libraryNames[0];
-                if (NativeLibrary.TryLoad($"{baseDirectory}{runtimePath}{primaryLibrary}", out nint handle))
+                foreach (string library in libraryNames)
                 {
-                    foreach (string secondaryLibrary in libraryNames[1..])
+                    LibraryVersion = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && library.EndsWith("3") ? 3 : 2;
+
+                    // e.g. appdir/runtimes/linux-x64/native/fluidsynth.so
+                    if (NativeLibrary.TryLoad($"{baseDirectory}{runtimePath}{library}", out m_dllHandle))
                     {
-                        _ = NativeLibrary.TryLoad($"{baseDirectory}{runtimePath}{secondaryLibrary}", out _);
+                        return m_dllHandle;
                     }
 
-                    return handle;
+                    // e.g. appdir/fluidsynth.so
+                    if (NativeLibrary.TryLoad($"{baseDirectory}{library}", out m_dllHandle))
+                    {
+                        return m_dllHandle;
+                    }
                 }
 
-                if (NativeLibrary.TryLoad($"{baseDirectory}{primaryLibrary}", out handle))
+                foreach(string primaryLibrary in libraryNames)
                 {
-                    foreach (string secondaryLibrary in libraryNames[1..])
-                    {
-                        _ = NativeLibrary.TryLoad($"{baseDirectory}{secondaryLibrary}", out _);
-                    }
+                    LibraryVersion = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && primaryLibrary.EndsWith("3") ? 3 : 2;
 
-                    return handle;
+                    // default runtime search paths
+                    if (NativeLibrary.TryLoad(primaryLibrary, out m_dllHandle))
+                    {
+                        return m_dllHandle;
+                    }
                 }
 
                 throw new DllNotFoundException($"Could not load a suitable substitute for DllImport {libraryName}.");
