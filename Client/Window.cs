@@ -52,8 +52,7 @@ public class Window : GameWindow, IWindow
         m_inputManagement = inputManagement;
         CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;
         Renderer = new(this, config, archiveCollection, tracker);
-        RenderFrequency = config.Render.MaxFPS;
-        SetVsync(config.Render.VSync.Value);
+        SetSyncMode(config.Render.MaxFPS, config.Render.VSync);
 
         KeyDown += Window_KeyDown;
         KeyUp += Window_KeyUp;
@@ -113,24 +112,7 @@ public class Window : GameWindow, IWindow
             return;
 
         CurrentMonitor = GetMonitorHandle(display);
-    }
-
-    private void SetVsync(RenderVsyncMode mode)
-    {
-        switch (mode)
-        {
-            case RenderVsyncMode.Off:
-                VSync = VSyncMode.Off;
-                break;
-            case RenderVsyncMode.On:
-                VSync = VSyncMode.On;
-                break;
-            case RenderVsyncMode.Adaptive:
-                VSync = VSyncMode.Adaptive;
-                break;
-            default:
-                break;
-        }
+        SetSyncMode(m_config.Render.MaxFPS, m_config.Render.VSync);
     }
 
     public List<MonitorData> GetMonitors(out MonitorData? currentMonitor)
@@ -142,7 +124,7 @@ public class Window : GameWindow, IWindow
         int i = 0;
         foreach (var info in windowMonitors)
         {
-            var monitorData = new MonitorData(i, info.HorizontalResolution, info.VerticalResolution, info.Handle);
+            var monitorData = new MonitorData(i, info.HorizontalResolution, info.VerticalResolution, info.CurrentVideoMode.RefreshRate, info.Handle);
             monitors.Add(monitorData);
 
             if (info.Handle.Pointer == currentHandle.Handle.Pointer)
@@ -282,12 +264,41 @@ public class Window : GameWindow, IWindow
 
     private void OnMaxFpsChanged(object? sender, int maxFps)
     {
-        RenderFrequency = maxFps;
+        SetSyncMode(maxFps, m_config.Render.VSync.Value);
     }
 
     private void OnVSyncChanged(object? sender, RenderVsyncMode mode)
     {
-        SetVsync(mode);
+        SetSyncMode(m_config.Render.MaxFPS, mode);
+    }
+
+    private void SetSyncMode(int maxFps, RenderVsyncMode vsync)
+    {
+        switch (vsync)
+        {
+            case RenderVsyncMode.Off:
+                VSync = VSyncMode.Off;
+                break;
+            case RenderVsyncMode.On:
+                VSync = VSyncMode.On;
+                break;
+            case RenderVsyncMode.Adaptive:
+                VSync = VSyncMode.Adaptive;
+                break;
+            default:
+                break;
+        }
+
+        if (maxFps == 0)
+        {
+            _ = GetMonitors(out MonitorData? current);
+            RenderFrequency = current?.RefreshRate > 0 && vsync != RenderVsyncMode.Off
+                ? current.RefreshRate
+                : 0;
+
+            return;
+        }
+        RenderFrequency = maxFps;
     }
 
     private void GameControllerDeadZone_OnChanged(object? sender, double e)

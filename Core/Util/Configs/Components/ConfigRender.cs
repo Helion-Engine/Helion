@@ -46,9 +46,9 @@ public class ConfigRender
     [OptionMenu(OptionSectionType.Render, "VSync")]
     public readonly ConfigValue<RenderVsyncMode> VSync = new(RenderVsyncMode.On);
 
-    [ConfigInfo("Maximum frames per second. Zero is equivalent to no cap.")]
+    [ConfigInfo("Maximum frames per second. Zero is equivalent to no cap if vsync is off (or monitor refresh rate if vsync is on/adaptive).")]
     [OptionMenu(OptionSectionType.Render, "Max FPS")]
-    public readonly ConfigValue<int> MaxFPS = new(250, fps =>
+    public readonly ConfigValue<int> MaxFPS = new(0, fps =>
     {
         return fps switch
         {
