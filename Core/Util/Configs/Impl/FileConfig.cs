@@ -137,7 +137,7 @@ public class FileConfig : Config
 
         bool AddEngineFields(IniData data)
         {
-            if (!data.Sections.AddSection(EngineSectionName))
+            if (!data.Sections.Add(EngineSectionName))
             {
                 Log.Error("Failed to add engine section header when writing config");
                 return false;
@@ -153,7 +153,7 @@ public class FileConfig : Config
 
         bool AddKeyFields(IniData data)
         {
-            if (!data.Sections.AddSection(KeysSectionName))
+            if (!data.Sections.Add(KeysSectionName))
             {
                 Log.Error("Failed to add key section header when writing config");
                 return false;
