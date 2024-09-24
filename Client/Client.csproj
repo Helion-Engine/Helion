@@ -10,7 +10,6 @@
     <ApplicationIcon>helion.ico</ApplicationIcon>
 
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <NoWarn>1701;1702;NU1701</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(SelfContainedRelease)' == 'true'">

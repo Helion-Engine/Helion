@@ -8,7 +8,7 @@
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
 
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NoWarn>1701;1702;NU1701;CS1591;CS8714;CS8500</NoWarn>
+    <NoWarn>CS1591;CS8714;CS8500</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -23,8 +23,8 @@
   <ItemGroup>
     <PackageReference Include="BmpSharp" Version="0.2.0" />
     <PackageReference Include="Crc32.NET" Version="1.2.0" />
-    <PackageReference Include="GlmSharp" Version="0.9.8" />
-    <PackageReference Include="ini-parser" Version="2.5.2" />
+    <PackageReference Include="GlmSharp-netstandard" Version="0.9.8.1" />
+    <PackageReference Include="ini-parser-new" Version="2.6.2" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog" Version="5.2.8" />
