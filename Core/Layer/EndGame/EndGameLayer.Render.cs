@@ -192,17 +192,17 @@ public partial class EndGameLayer
 
     private void DrawBackground(string image, IHudRenderContext hud)
     {
-        if (!hud.Textures.TryGet(image, out var flatHandle, ResourceNamespace.Flats))
+        if (!hud.Textures.TryGet(image, out var imageHandle, ResourceNamespace.Flats) && !hud.Textures.TryGet(image, out imageHandle))
             return;
 
-        var (width, height) = flatHandle.Dimension;
+        var (width, height) = imageHandle.Dimension;
         if (width != 64 || height != 64)
         {
             hud.RenderFullscreenImage(image);
             return;
         }
 
-        hud.DoomVirtualResolution(m_virtualDrawBackgroundImage, new HudVirtualBackgroundImage(image, flatHandle, width, height, hud));
+        hud.DoomVirtualResolution(m_virtualDrawBackgroundImage, new HudVirtualBackgroundImage(image, imageHandle, width, height, hud));
     }
 
     private static void VirtualDrawBackgroundImage(HudVirtualBackgroundImage data)
