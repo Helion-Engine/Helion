@@ -1,15 +1,44 @@
 ﻿using Helion.Maps.Specials.Vanilla;
+using Helion.Resources.IWad;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
+using System.Collections.Generic;
 
 namespace Helion.Resources.Definitions.MapInfo;
 
 public partial class MapInfoDefinition
 {
-    public void ParseUniversalMapInfo(MapInfo mapInfo, string data)
+    private readonly Dictionary<string, ClusterDef> m_newClusterDefs = [];
+    private readonly ClusterDef Ep1 = new(0)
+    {
+        Flat = "$BGFLATE1",
+        ExitText = ["$E1TEXT"]
+    };
+    private readonly ClusterDef Ep2 = new(0)
+    {
+        Flat = "$BGFLATE2",
+        ExitText = ["$E2TEXT"]
+    };
+    private readonly ClusterDef Ep3 = new(0)
+    {
+        Flat = "$BGFLATE3",
+        ExitText = ["$E3TEXT"]
+    };
+    private readonly ClusterDef Ep4 = new(0)
+    {
+        Flat = "$BGFLATE4",
+        ExitText = ["$E4TEXT"]
+    };
+    private readonly ClusterDef Doom2 = new(0)
+    {
+        Flat = "$BGFLAT30",
+        ExitText = ["$C4TEXT"]
+    };
+
+    public void ParseUniversalMapInfo(IWadBaseType iwadType, string data)
     {
         m_legacy = false;
-        SimpleParser parser = new SimpleParser();
+        SimpleParser parser = new();
         parser.Parse(data);
 
         while (!parser.IsDone())
@@ -24,18 +53,26 @@ public partial class MapInfoDefinition
                 mapDef = existing;
             MapInfo.AddOrReplaceMap(mapDef);
 
-            mapDef.TitlePatch = string.Empty;
+            bool specifiedTitlePatch = false;
+            bool specifiedLevelName = false;
+
             while (!IsBlockComplete(parser, true))
             {
                 int line = parser.GetCurrentLine();
                 string item = parser.ConsumeString();
                 parser.ConsumeString("=");
                 if (item.EqualsIgnoreCase("levelname"))
+                {
                     mapDef.NiceName = parser.ConsumeString();
+                    specifiedLevelName = true;
+                }
+                else if (item.EqualsIgnoreCase("levelpic"))
+                {
+                    specifiedTitlePatch = true;
+                    mapDef.TitlePatch = parser.ConsumeString();
+                }
                 else if (item.EqualsIgnoreCase("label"))
                     ParseLabel(parser, mapDef);
-                else if (item.EqualsIgnoreCase("levelpic"))
-                    mapDef.TitlePatch = parser.ConsumeString();
                 else if (item.EqualsIgnoreCase("next"))
                     mapDef.Next = parser.ConsumeString();
                 else if (item.EqualsIgnoreCase("nextsecret"))
@@ -51,9 +88,9 @@ public partial class MapInfoDefinition
                 else if (item.EqualsIgnoreCase("partime"))
                     mapDef.ParTime = parser.ConsumeInteger();
                 else if (item.EqualsIgnoreCase("endgame"))
-                    ParseEndGame(parser, mapDef);
+                    ParseEndGame(parser, mapDef, iwadType);
                 else if (item.EqualsIgnoreCase("endpic"))
-                    mapDef.EndPic = parser.ConsumeString();
+                    ParseEndPic(parser, mapDef);
                 else if (item.EqualsIgnoreCase("endbunny"))
                     ParseEndBunny(parser, mapDef);
                 else if (item.EqualsIgnoreCase("endcast"))
@@ -84,8 +121,17 @@ public partial class MapInfoDefinition
                 }
             }
 
+            if (specifiedLevelName && !specifiedTitlePatch)
+                mapDef.TitlePatch = string.Empty;
+
             ConsumeBrace(parser, false);
         }
+    }
+
+    private void ParseEndPic(SimpleParser parser, MapInfoDef mapDef)
+    {
+        mapDef.Next = "EndPic";
+        mapDef.EndPic = parser.ConsumeString();
     }
 
     private static void ParseBossAction(SimpleParser parser, MapInfoDef mapDef)
@@ -185,17 +231,40 @@ public partial class MapInfoDefinition
 
     private ClusterDef GetOrCreateClusterDef(MapInfoDef mapDef)
     {
-        if (!MapInfo.TryGetCluster(mapDef.Cluster, out var clusterDef))
-        {
-            clusterDef = new ClusterDef(MapInfo.GetNewClusterNumber());
-            mapDef.Cluster = clusterDef.ClusterNum;
-            MapInfo.AddCluster(clusterDef);
-        }
+        if (m_newClusterDefs.TryGetValue(mapDef.MapName, out var clusterDef))
+            return clusterDef;
 
+        if (!IsChangingCluster(mapDef))
+            return CreateNewClusterDef(mapDef, null);
+
+        if (MapInfo.TryGetCluster(mapDef.Cluster, out clusterDef))
+            return CreateNewClusterDef(mapDef, clusterDef);
+
+        return CreateNewClusterDef(mapDef, null);
+    }
+
+    private ClusterDef CreateNewClusterDef(MapInfoDef mapDef, ClusterDef? cloneCluster)
+    {
+        var newClusterNum = MapInfo.GetNewClusterNumber();
+        var clusterDef = cloneCluster != null ? cloneCluster.Clone(newClusterNum) : new ClusterDef(newClusterNum);
+        mapDef.ClusterDef = clusterDef;
+        MapInfo.AddCluster(clusterDef);
+        m_newClusterDefs[mapDef.MapName] = clusterDef;
         return clusterDef;
     }
 
-    private void ParseNoIntermission(SimpleParser parser, MapInfoDef mapDef)
+    private bool IsChangingCluster(MapInfoDef mapDef)
+    {
+        var nextMap = MapInfo.GetNextMap(mapDef);
+        if (nextMap.MapInfo == null)
+            return false;
+
+        var thisCluster = mapDef.ClusterDef?.ClusterNum ?? nextMap.MapInfo.Cluster;
+        var nextCluster = nextMap.MapInfo.ClusterDef?.ClusterNum ?? nextMap.MapInfo.Cluster;
+        return thisCluster != nextCluster;
+    }
+
+    private static void ParseNoIntermission(SimpleParser parser, MapInfoDef mapDef)
     {
         bool set = parser.ConsumeString().EqualsIgnoreCase("true");
         mapDef.SetOption(MapOptions.NoIntermission, set);
@@ -219,14 +288,50 @@ public partial class MapInfoDefinition
         GetOrCreateClusterDef(mapDef);
     }
 
-    private void ParseEndGame(SimpleParser parser, MapInfoDef mapDef)
+    private void ParseEndGame(SimpleParser parser, MapInfoDef mapDef, IWadBaseType iwadType)
     {
         if (!parser.ConsumeString().EqualsIgnoreCase("true"))
             return;
 
-        mapDef.SetOption(MapOptions.NoIntermission, true);
-        mapDef.Next = "EndGameW";
-        GetOrCreateClusterDef(mapDef);
+        bool shouldClone = !m_newClusterDefs.ContainsKey(mapDef.MapName);
+        var clusterDef = GetOrCreateClusterDef(mapDef);
+        mapDef.Next = GetEndGame(mapDef, iwadType, out var episodeCluster);
+
+        if (shouldClone && episodeCluster != null)
+        {
+            clusterDef = episodeCluster.Clone(clusterDef.ClusterNum);
+            mapDef.ClusterDef = clusterDef;
+            m_newClusterDefs[mapDef.MapName] = clusterDef;
+        }
+    }
+
+    private string GetEndGame(MapInfoDef mapDef, IWadBaseType iwadType, out ClusterDef? episodeCluster)
+    {
+        // Setting just endgame = true triggers the default endgame for the episode. 
+        var mapName = mapDef.MapName;
+        if (iwadType == IWadBaseType.Doom1 && mapName.Length >= 4 && 
+            char.ToUpperInvariant(mapName[0]) == 'E' && char.ToUpperInvariant(mapName[2]) == 'M' && 
+            int.TryParse(mapName[1].ToString(), out var episode))
+        {
+            switch (episode)
+            {
+                case 1:
+                    episodeCluster = Ep1;
+                    return "EndGame1";
+                case 2:
+                    episodeCluster = Ep2;
+                    return "EndGame2";
+                case 3:
+                    episodeCluster = Ep3;
+                    return "EndGame3";
+                case 4:
+                    episodeCluster = Ep4;
+                    return "EndGame4";
+            }
+        }
+
+        episodeCluster = Doom2;
+        return "EndGameW";
     }
 
     private static void ParseLabel(SimpleParser parser, MapInfoDef mapDef)

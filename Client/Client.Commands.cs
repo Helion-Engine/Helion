@@ -965,7 +965,10 @@ public partial class Client
             if (nextMapInfo != null)
                 nextCluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(nextMapInfo.Cluster);
 
-            bool isChangingClusters = cluster != null && nextMapInfo != null && world.MapInfo.Cluster != nextMapInfo.Cluster;
+            if (world.MapInfo.ClusterDef != null)
+                cluster = world.MapInfo.ClusterDef;
+
+            bool isChangingClusters = cluster != null && nextMapInfo != null && cluster.ClusterNum != nextMapInfo.Cluster;
             if (cluster != null && isChangingClusters)
             {
                 bool hasExitText = m_isSecretExit ? cluster.SecretExitText.Count > 0 : cluster.ExitText.Count > 0;
