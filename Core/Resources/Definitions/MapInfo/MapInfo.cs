@@ -1,6 +1,7 @@
 using Helion.Maps.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
+using Helion.World;
 using Helion.World.Util;
 using System;
 using System.Collections.Generic;
@@ -136,6 +137,30 @@ public class MapInfo
             return mapInfoDef;
 
         return GetMapInfoOrDefault(mapName);
+    }
+
+    public bool IsChangingClusters(MapInfoDef mapDef, FindMapResult nextMapResult, bool secret, out ClusterDef? cluster, out ClusterDef? nextCluster)
+    {
+        var nextMapInfo = nextMapResult.MapInfo;
+        cluster = GetCluster(mapDef.Cluster);
+        nextCluster = null;
+        if (nextMapInfo != null)
+            nextCluster = GetCluster(nextMapInfo.Cluster);
+
+        if (mapDef.ClusterDef != null)
+            cluster = mapDef.ClusterDef;
+
+        bool isChangingClusters = cluster != null && nextCluster != null && cluster != nextCluster;
+        if (cluster != null && isChangingClusters)
+        {
+            bool hasExitText = secret ? cluster.SecretExitText.Count > 0 : cluster.ExitText.Count > 0;
+            if (!hasExitText && nextCluster == null)
+                isChangingClusters = false;
+            if (!hasExitText && nextCluster != null && nextCluster.EnterText.Count == 0)
+                isChangingClusters = false;
+        }
+
+        return isChangingClusters || mapDef.EndGame != null || nextMapResult.Options.HasFlag(FindMapResultOptions.EndGame);
     }
 
     private static void AddOrReplace<T>(List<T> items, T newItem)

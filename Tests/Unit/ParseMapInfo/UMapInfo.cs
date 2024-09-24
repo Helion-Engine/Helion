@@ -123,10 +123,8 @@ public class UMapInfo
         e1m2.HasOption(MapOptions.NoIntermission).Should().BeTrue();
         e1m2.Author.Should().Be("");
         e1m2.EnterPic.Should().Be("TESTINTERPIC");
-        var cluster = mapInfoDef.MapInfo.GetCluster(e1m2.Cluster);
-        cluster.Should().NotBeNull();
-        cluster!.ExitText.Count.Should().Be(0);
-        cluster!.SecretExitText.Count.Should().Be(0);
+        var cluster = e1m2.ClusterDef;
+        cluster.Should().BeNull();
 
         getMap = mapInfoDef.MapInfo.GetMap("E1M3").MapInfo;
         getMap.Should().NotBeNull();
@@ -228,6 +226,15 @@ public class UMapInfo
         cluster!.Flat.Should().Be("$BGFLATE3");
         cluster.ExitText[0].Should().Be("$E3TEXT");
 
+        getMap = mapInfoDef.MapInfo.GetMap("E3M2").MapInfo;
+        getMap.Should().NotBeNull();
+        var e3m8 = getMap!;
+        e3m8.Next.Should().Be("EndGame3");
+        cluster = e3m2.ClusterDef;
+        cluster.Should().NotBeNull();
+        cluster!.Flat.Should().Be("$BGFLATE3");
+        cluster.ExitText[0].Should().Be("$E3TEXT");
+
         getMap = mapInfoDef.MapInfo.GetMap("E4M1").MapInfo;
         getMap.Should().NotBeNull();
         var e4m1 = getMap!;
@@ -244,6 +251,11 @@ public class UMapInfo
         cluster = map01.ClusterDef;
         cluster.Should().NotBeNull();
         cluster!.Flat.Should().Be("$BGFLAT30");
-        cluster.ExitText[0].Should().Be("$C4TEXT");
+        cluster!.ExitText[0].Should().Be("map01 intertext");
+
+        getMap = mapInfoDef.MapInfo.GetMap("MAP02").MapInfo;
+        getMap.Should().NotBeNull();
+        var map02 = getMap!;
+        map02.ClusterDef.Should().BeNull();
     }
 }

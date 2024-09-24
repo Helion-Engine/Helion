@@ -12,6 +12,7 @@ public class ClusterDef
     public string Music { get; set; } = string.Empty;
     public string Flat { get; set; } = string.Empty;
     public string Pic { get; set; } = string.Empty;
+    public string EndGameNext { get; set; } = string.Empty;
     public bool IsHub { get; set; }
     public bool IsExitTextLump { get; set; }
     public bool AllowIntermission { get; set; }
@@ -32,7 +33,8 @@ public class ClusterDef
             Pic = Pic,
             IsHub = IsHub,
             IsExitTextLump = IsExitTextLump,
-            AllowIntermission = AllowIntermission
+            AllowIntermission = AllowIntermission,
+            EndGameNext = EndGameNext
         };
     }
 

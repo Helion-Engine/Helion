@@ -110,6 +110,11 @@ map e3m2
 	nointermission = true
 }
 
+map e3m8
+{
+	intertextsecret = clear
+}
+
 map e2m1
 {
 	endgame = true
@@ -218,5 +223,11 @@ map e5m9
 
 map map01
 {
+	intertext = "map01 intertext"
 	endgame = true
+}
+
+map map02
+{
+	intertextsecret = clear
 }
