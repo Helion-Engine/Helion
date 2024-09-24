@@ -150,7 +150,7 @@ public partial class IntermissionLayer
         }
     }
 
-    private void DrawMapTitle(IHudRenderContext hud, MapInfoDef mapInfo, ref int offsetY)
+    private static void DrawMapTitle(IHudRenderContext hud, MapInfoDef mapInfo, ref int offsetY)
     {
         if (!string.IsNullOrEmpty(mapInfo.TitlePatch))
         {
@@ -162,11 +162,17 @@ public partial class IntermissionLayer
         // TODO would look nicer if there was a large font for the level text
         const int LevelInfoFontSize = 8;
 
-        hud.Text(mapInfo.NiceName, LevelInfoFont, LevelInfoFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
-        offsetY += hud.MeasureText(mapInfo.Author, LevelInfoFont, LevelInfoFontSize).Height;
+        if (mapInfo.NiceName.Length > 0)
+        {
+            hud.Text(mapInfo.NiceName, LevelInfoFont, LevelInfoFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
+            offsetY += hud.MeasureText(mapInfo.NiceName, LevelInfoFont, LevelInfoFontSize).Height;
+        }
 
-        hud.Text(mapInfo.Author, LevelInfoFont, LevelInfoFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
-        offsetY += hud.MeasureText(mapInfo.Author, LevelInfoFont, LevelInfoFontSize).Height + 1;
+        if (mapInfo.Author.Length > 0)
+        {
+            hud.Text(mapInfo.Author, LevelInfoFont, LevelInfoFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
+            offsetY += hud.MeasureText(mapInfo.Author, LevelInfoFont, LevelInfoFontSize).Height + 1;
+        }
     }
 
     private void DrawStatistics(IHudRenderContext hud)
