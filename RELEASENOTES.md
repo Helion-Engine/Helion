@@ -47,3 +47,5 @@
   - Fix dehacked to correctly use A_SPosAttack function with hard-coded shotgun sound
   - Fix map start specials not getting written to autosaves
   - Fix boom generic specials to allow monsters to trigger of off model if change is 0
+  - Fix various UMAPINFO issues dealing with nointermission intertext, intertextsecret, endgame, endpic, and intermusic
+  - Fix berserk only restoring to initial health when modified through dehacked
