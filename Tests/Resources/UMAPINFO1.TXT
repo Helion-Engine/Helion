@@ -231,3 +231,8 @@ map map02
 {
 	intertextsecret = clear
 }
+
+map map03
+{
+	intertextsecret = "secret exit"
+}

@@ -247,15 +247,23 @@ public class UMapInfo
         getMap = mapInfoDef.MapInfo.GetMap("MAP01").MapInfo;
         getMap.Should().NotBeNull();
         var map01 = getMap!;
-        map01.Next.Should().Be("EndGameW");
+        map01.Next.Should().Be("EndGame1");
         cluster = map01.ClusterDef;
         cluster.Should().NotBeNull();
-        cluster!.Flat.Should().Be("$BGFLAT30");
+        cluster!.Flat.Should().Be("$BGFLATE1");
         cluster!.ExitText[0].Should().Be("map01 intertext");
 
         getMap = mapInfoDef.MapInfo.GetMap("MAP02").MapInfo;
         getMap.Should().NotBeNull();
         var map02 = getMap!;
         map02.ClusterDef.Should().BeNull();
+
+        getMap = mapInfoDef.MapInfo.GetMap("MAP03").MapInfo;
+        getMap.Should().NotBeNull();
+        var map03 = getMap!;
+        map03.ClusterDef.Should().NotBeNull();
+        cluster = map03.ClusterDef;
+        cluster!.SecretExitText[0].Should().Be("secret exit");
+        cluster!.ExitText.Count.Should().Be(0);
     }
 }

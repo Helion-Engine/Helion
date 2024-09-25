@@ -4,6 +4,7 @@ using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 
 namespace Helion.Resources.Definitions.MapInfo;
 
@@ -33,12 +34,6 @@ public partial class MapInfoDefinition
         Flat = "$BGFLATE4",
         ExitText = ["$E4TEXT"],
         EndGameNext = "EndGame4"
-    };
-    private readonly ClusterDef Doom2 = new(0)
-    {
-        Flat = "$BGFLAT30",
-        ExitText = ["$C4TEXT"],
-        EndGameNext = "EndGameW"
     };
 
     public void ParseUniversalMapInfo(IWadBaseType iwadType, string data)
@@ -220,7 +215,7 @@ public partial class MapInfoDefinition
         {
             if (!m_newClusterDefs.TryGetValue(mapDef.MapName, out var existingCluster))
             {
-                if (IsChangingCluster(mapDef, secret) && MapInfo.TryGetCluster(mapDef.Cluster, out existingCluster))
+                if (IsChangingCluster(mapDef) && MapInfo.TryGetCluster(mapDef.Cluster, out existingCluster))
                 {
                     existingCluster = existingCluster.Clone(MapInfo.GetNewClusterNumber());
                     m_newClusterDefs[mapDef.MapName] = existingCluster;
@@ -238,24 +233,45 @@ public partial class MapInfoDefinition
             return;
         }
 
-        var clusterDef = GetOrCreateClusterDef(mapDef, iwadType);
+        var clusterDef = GetOrCreateClusterDef(mapDef, iwadType, out var isNew);
         if (secret)
+        {
             clusterDef.SecretExitText = GetClusterText(parser);
+            if (isNew)
+                clusterDef.ExitText.Clear();
+        }
         else
+        {
             clusterDef.ExitText = GetClusterText(parser);
+            if (isNew)
+                clusterDef.SecretExitText.Clear();
+        }
     }
 
-    private bool IsChangingCluster(MapInfoDef mapDef, bool secret)
+    private bool IsChangingCluster(MapInfoDef mapDef)
     {
-        var nextMap = MapInfo.GetNextMap(mapDef);
-        return MapInfo.IsChangingClusters(mapDef, nextMap, secret, out _, out _);
+        var nextMapResult = MapInfo.GetNextMap(mapDef);
+        var nextMapInfo = nextMapResult.MapInfo;
+        if (nextMapInfo == null)
+            return false;
+
+        var cluster = MapInfo.GetCluster(mapDef.Cluster);
+        var nextCluster = MapInfo.GetCluster(nextMapInfo.Cluster);
+        return cluster != null && nextCluster != null && cluster != nextCluster;
     }
 
-    private ClusterDef GetOrCreateClusterDef(MapInfoDef mapDef, IWadBaseType iwadType)
+    private ClusterDef GetOrCreateClusterDef(MapInfoDef mapDef, IWadBaseType iwadType) =>
+        GetOrCreateClusterDef(mapDef, iwadType, out _);
+
+    private ClusterDef GetOrCreateClusterDef(MapInfoDef mapDef, IWadBaseType iwadType, out bool isNew)
     {
         if (m_newClusterDefs.TryGetValue(mapDef.MapName, out var clusterDef))
+        {
+            isNew = false;
             return clusterDef;
+        }
 
+        isNew = true;
         return CreateNewClusterDef(mapDef, iwadType);
     }
 
@@ -290,7 +306,7 @@ public partial class MapInfoDefinition
             }
         }
 
-        return Doom2;
+        return Ep1;
     }
 
     private static void ParseNoIntermission(SimpleParser parser, MapInfoDef mapDef)
