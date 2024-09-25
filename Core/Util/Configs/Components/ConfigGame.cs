@@ -36,6 +36,9 @@ public class ConfigGame
     [OptionMenu(OptionSectionType.General, "Transition Type")]
     public readonly ConfigValue<World.TransitionType> TransitionType = new(World.TransitionType.Melt);
 
+    [ConfigInfo("Display ENDOOM text screen on quit.")]
+    [OptionMenu(OptionSectionType.General, "Display ENDOOM")]
+    public readonly ConfigValue<bool> DisplayEndoom = new(true);
 
     // Saving and loading
 

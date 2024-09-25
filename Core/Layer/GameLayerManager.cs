@@ -53,6 +53,7 @@ public class GameLayerManager : IGameLayerManager
     public MenuLayer? MenuLayer { get; private set; }
     public ReadThisLayer? ReadThisLayer { get; private set; }
     public TitlepicLayer? TitlepicLayer { get; private set; }
+    public EndoomLayer? EndoomLayer { get; private set; }
     public EndGameLayer? EndGameLayer { get; private set; }
     public IntermissionLayer? IntermissionLayer { get; private set; }
     public IwadSelectionLayer? IwadSelectionLayer { get; private set; }
@@ -82,7 +83,7 @@ public class GameLayerManager : IGameLayerManager
 
     private IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
     {
-        ConsoleLayer, OptionsLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, TransitionLayer, WorldLayer, LoadingLayer
+        ConsoleLayer, OptionsLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, TransitionLayer, WorldLayer, LoadingLayer, EndoomLayer
     }.WhereNotNull();
 
     public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ConsoleCommands consoleCommands,
@@ -207,6 +208,10 @@ public class GameLayerManager : IGameLayerManager
                 Remove(TransitionLayer);
                 TransitionLayer = layer;
                 break;
+            case EndoomLayer layer:
+                Remove(EndoomLayer);
+                EndoomLayer = layer;
+                break;
             case null:
                 break;
             default:
@@ -310,6 +315,11 @@ public class GameLayerManager : IGameLayerManager
             LoadingLayer?.Dispose();
             LoadingLayer = null;
         }
+        else if (ReferenceEquals(layer, EndoomLayer))
+        {
+            EndoomLayer?.Dispose();
+            EndoomLayer = null;
+        }
     }
 
     private void RemoveAnimatedLayer(object layer)
@@ -377,6 +387,8 @@ public class GameLayerManager : IGameLayerManager
     {
         if (input.HandleKeyInput)
         {
+            EndoomLayer?.HandleInput(input);
+
             if (OptionsLayer?.CurrentlyBindingKey != true && ConsumeCommandPressed(Constants.Input.Screenshot, input))
                 m_console.SubmitInputText(Constants.Input.Screenshot);
 
@@ -575,6 +587,13 @@ public class GameLayerManager : IGameLayerManager
         MenuLayer!.ShowOptionsMenu();
     }
 
+    public void ShowEndoom(Action closeAction)
+    {
+        Remove(MenuLayer);
+        Remove(TitlepicLayer);
+        Add(new EndoomLayer(closeAction));
+    }
+
     public void QuickSave()
     {
         if (!CanSave)
@@ -667,6 +686,7 @@ public class GameLayerManager : IGameLayerManager
         TitlepicLayer?.RunLogic(tickerInfo);
         IntermissionLayer?.RunLogic(tickerInfo);
         WorldLayer?.RunLogic(tickerInfo);
+        EndoomLayer?.RunLogic(tickerInfo);
 
         if (!HasMenuOrConsole() && m_stopwatch.ElapsedMilliseconds >= 1000.0 / Constants.TicksPerSecond)
         {
@@ -732,6 +752,7 @@ public class GameLayerManager : IGameLayerManager
             DrawHudStatusAndAutomap(WorldLayer);
 
         StartDrawHud();
+        EndoomLayer?.Render(hudCtx);
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
@@ -851,6 +872,7 @@ public class GameLayerManager : IGameLayerManager
         Remove(ConsoleLayer);
         Remove(LoadingLayer);
         Remove(TransitionLayer);
+        Remove(EndoomLayer);
 
         m_disposed = true;
     }
