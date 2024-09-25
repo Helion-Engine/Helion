@@ -39,4 +39,21 @@ public interface IRendererTextureManager : IDisposable
     /// <param name="specificNamespace">Namespace to filter to</param>
     /// <returns>A list of texture names</returns>
     IEnumerable<string> GetNames(ResourceNamespace specificNamespace);
+
+    /// <summary>
+    /// Stores a new image in the texture manager.  It is the consumer's responsibility to remove and dispose this texture when it is no longer needed.
+    /// </summary>
+    /// <param name="name">Name to assign the texture</param>
+    /// <param name="resourceNamespace">Resource namespace to store the texture in</param>
+    /// <param name="image">Image data</param>
+    /// <param name="repeatY">Whether the image should repeat vertically</param>
+    /// <returns>A handle to the created texture</returns>
+    IRenderableTextureHandle CreateAndTrackTexture(string name, ResourceNamespace resourceNamespace, Graphics.Image image, bool repeatY = true);
+
+    /// <summary>
+    /// Remove a texture from the texture manager
+    /// </summary>
+    /// <param name="name">Name of the texture</param>
+    /// <param name="resourceNamespace">Namespace for the texture</param>
+    void RemoveTexture(string name, ResourceNamespace resourceNamespace);
 }

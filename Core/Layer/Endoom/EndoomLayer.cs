@@ -1,6 +1,8 @@
 ﻿namespace Helion.Layer.Endoom
 {
     using Helion.Render.Common.Renderers;
+    using Helion.Render.Common.Textures;
+    using Helion.Render.OpenGL.Texture;
     using Helion.Resources.Archives.Collection;
     using Helion.Util.Extensions;
     using Helion.Util.Timing;
@@ -26,26 +28,35 @@
         const int ENDOOMROWS = ENDOOMBYTES / ENDOOMCOLUMNS / 2;
         const string FONTNAME = "flexi-ibm-vga-true.regular";
         const string LUMPNAME = "ENDOOM";
-        const int SCALE = 3;
+        private const string IMAGENAME1 = "ENDOOM_RENDERED_1";
+        private const string IMAGENAME2 = "ENDOOM_RENDERED_2";
+        const int SCALE = 4;
 
-        Action m_closeAction;
-        ArchiveCollection m_archiveCollection;
-        Graphics.Image? m_endoomImage1;
-        Graphics.Image? m_endoomImage2;
-        Graphics.Image? m_selectedImage;
+        private readonly Action m_closeAction;
+        private readonly ArchiveCollection m_archiveCollection;
+        private Graphics.Image? m_endoomImage1;
+        private Graphics.Image? m_endoomImage2;
+
+        private IRenderableTextureHandle? m_texture1;
+        private IRenderableTextureHandle? m_texture2;
 
         public EndoomLayer(Action closeAction, ArchiveCollection archiveCollection)
         {
             m_closeAction = closeAction;
             m_archiveCollection = archiveCollection;
+
             ComputeImages(
-                m_archiveCollection.FindEntry(LUMPNAME)?.ReadData() ?? [], 
+                m_archiveCollection.FindEntry(LUMPNAME)?.ReadData() ?? [],
                 m_archiveCollection.FindEntry(FONTNAME)?.ReadData() ?? [],
                 scale: 3);
         }
 
         public void Dispose()
         {
+            m_endoomImage1 = null;
+            m_endoomImage2 = null;
+            (m_texture1 as GLTexture)?.Dispose();
+            (m_texture2 as GLTexture)?.Dispose();
         }
 
         public void HandleInput(IConsumableInput input)
@@ -54,6 +65,8 @@
             {
                 m_closeAction();
             }
+
+            input.ConsumeAll();
         }
 
         public void RunLogic(TickerInfo tickerInfo)
@@ -62,19 +75,25 @@
             {
                 m_closeAction();
             }
-
-            // Alternate between the two images
-            m_selectedImage = tickerInfo.Ticks > 17
-                ? m_endoomImage1
-                : m_endoomImage2;
         }
 
         public virtual void Render(IHudRenderContext hud)
         {
             hud.Clear(Graphics.Color.Black);
 
-            // Just a test
-            hud.RenderFullscreenImage("FIREBLU1");
+            if (m_endoomImage1 == null || m_endoomImage2 == null)
+            {
+                return;
+            }
+
+            if ((DateTime.Now.Millisecond / 500) == 0) // cycle 2x/second
+            {
+                hud.RenderFullscreenImage(m_endoomImage1, IMAGENAME1, Resources.ResourceNamespace.Textures, out m_texture1);
+            }
+            else
+            {
+                hud.RenderFullscreenImage(m_endoomImage2, IMAGENAME2, Resources.ResourceNamespace.Textures, out m_texture2);
+            }
         }
 
         private void ComputeImages(byte[] endoomBytes, byte[] fontBytes, int scale)
