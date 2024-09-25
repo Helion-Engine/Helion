@@ -11,6 +11,7 @@
   - Expanded support for music formats and more synthesizer options, via ZMusic
   - Game controller support
   - TRANSLATION1 and TRANSLATION2 flag support for true-color rendering
+  - ENDOOM text screen on quit
 
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
