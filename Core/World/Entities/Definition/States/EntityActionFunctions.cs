@@ -2739,7 +2739,7 @@ public static class EntityActionFunctions
             return;
 
         int healAmount = entity.Frame.Args.GetInt(0);
-        if (entity.PickupPlayer.Health < healAmount)
+        if (healAmount > 0 && entity.PickupPlayer.Health < healAmount)
             entity.PickupPlayer.Health = healAmount;
     }
 
