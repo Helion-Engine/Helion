@@ -1,4 +1,5 @@
 using Helion.Geometry.Boxes;
+using Helion.Layer;
 using Helion.Layer.EndGame;
 using Helion.Layer.Transition;
 using Helion.Layer.Worlds;
@@ -305,7 +306,15 @@ public partial class Client
     [ConsoleCommand("exit", "Exits Helion")]
     private void CommandExit(ConsoleCommandEventArgs args)
     {
-        m_window.Close();
+        if (m_config.Game.DisplayEndoom)
+        {
+            m_audioSystem.Music.Stop();
+            m_layerManager.ShowEndoom(m_window.Close);
+        }
+        else
+        {
+            m_window.Close();
+        }
     }
 
     [ConsoleCommand("load", "Loads a save game file into a new world")]

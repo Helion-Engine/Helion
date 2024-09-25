@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Helion.Audio.Sounds;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Layer.Consoles;
 using Helion.Layer.EndGame;
+using Helion.Layer.Endoom;
 using Helion.Layer.Images;
 using Helion.Layer.IwadSelection;
 using Helion.Layer.Menus;
@@ -16,10 +14,12 @@ using Helion.Menus.Impl;
 using Helion.Render;
 using Helion.Render.Common.Context;
 using Helion.Render.Common.Renderers;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
@@ -29,10 +29,11 @@ using Helion.Window;
 using Helion.Window.Input;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Save;
-using Helion.Geometry.Boxes;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using static Helion.Util.Assertion.Assert;
-using Helion.Util.Configs.Components;
 
 namespace Helion.Layer;
 
@@ -53,6 +54,7 @@ public class GameLayerManager : IGameLayerManager
     public MenuLayer? MenuLayer { get; private set; }
     public ReadThisLayer? ReadThisLayer { get; private set; }
     public TitlepicLayer? TitlepicLayer { get; private set; }
+    public EndoomLayer? EndoomLayer { get; private set; }
     public EndGameLayer? EndGameLayer { get; private set; }
     public IntermissionLayer? IntermissionLayer { get; private set; }
     public IwadSelectionLayer? IwadSelectionLayer { get; private set; }
@@ -82,7 +84,7 @@ public class GameLayerManager : IGameLayerManager
 
     private IEnumerable<IGameLayer> Layers => new List<IGameLayer?>
     {
-        ConsoleLayer, OptionsLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, TransitionLayer, WorldLayer, LoadingLayer
+        ConsoleLayer, OptionsLayer, MenuLayer, ReadThisLayer, TitlepicLayer, EndGameLayer, IntermissionLayer, TransitionLayer, WorldLayer, LoadingLayer, EndoomLayer
     }.WhereNotNull();
 
     public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ConsoleCommands consoleCommands,
@@ -207,6 +209,10 @@ public class GameLayerManager : IGameLayerManager
                 Remove(TransitionLayer);
                 TransitionLayer = layer;
                 break;
+            case EndoomLayer layer:
+                Remove(EndoomLayer);
+                EndoomLayer = layer;
+                break;
             case null:
                 break;
             default:
@@ -310,6 +316,11 @@ public class GameLayerManager : IGameLayerManager
             LoadingLayer?.Dispose();
             LoadingLayer = null;
         }
+        else if (ReferenceEquals(layer, EndoomLayer))
+        {
+            EndoomLayer?.Dispose();
+            EndoomLayer = null;
+        }
     }
 
     private void RemoveAnimatedLayer(object layer)
@@ -377,6 +388,8 @@ public class GameLayerManager : IGameLayerManager
     {
         if (input.HandleKeyInput)
         {
+            EndoomLayer?.HandleInput(input);
+
             if (OptionsLayer?.CurrentlyBindingKey != true && ConsumeCommandPressed(Constants.Input.Screenshot, input))
                 m_console.SubmitInputText(Constants.Input.Screenshot);
 
@@ -575,6 +588,13 @@ public class GameLayerManager : IGameLayerManager
         MenuLayer!.ShowOptionsMenu();
     }
 
+    public void ShowEndoom(Action closeAction)
+    {
+        Remove(MenuLayer);
+        Remove(TitlepicLayer);
+        Add(new EndoomLayer(closeAction, m_archiveCollection));
+    }
+
     public void QuickSave()
     {
         if (!CanSave)
@@ -667,6 +687,7 @@ public class GameLayerManager : IGameLayerManager
         TitlepicLayer?.RunLogic(tickerInfo);
         IntermissionLayer?.RunLogic(tickerInfo);
         WorldLayer?.RunLogic(tickerInfo);
+        EndoomLayer?.RunLogic(tickerInfo);
 
         if (!HasMenuOrConsole() && m_stopwatch.ElapsedMilliseconds >= 1000.0 / Constants.TicksPerSecond)
         {
@@ -732,6 +753,7 @@ public class GameLayerManager : IGameLayerManager
             DrawHudStatusAndAutomap(WorldLayer);
 
         StartDrawHud();
+        EndoomLayer?.Render(hudCtx);
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
@@ -851,6 +873,7 @@ public class GameLayerManager : IGameLayerManager
         Remove(ConsoleLayer);
         Remove(LoadingLayer);
         Remove(TransitionLayer);
+        Remove(EndoomLayer);
 
         m_disposed = true;
     }
