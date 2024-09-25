@@ -33,6 +33,7 @@ using Helion.Geometry.Boxes;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using static Helion.Util.Assertion.Assert;
 using Helion.Util.Configs.Components;
+using Helion.Layer.Endoom;
 
 namespace Helion.Layer;
 
@@ -591,7 +592,7 @@ public class GameLayerManager : IGameLayerManager
     {
         Remove(MenuLayer);
         Remove(TitlepicLayer);
-        Add(new EndoomLayer(closeAction));
+        Add(new EndoomLayer(closeAction, m_archiveCollection));
     }
 
     public void QuickSave()
