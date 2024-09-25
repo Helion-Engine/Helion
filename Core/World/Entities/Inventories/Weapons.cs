@@ -36,6 +36,9 @@ public sealed class Weapons
             int subSlot = 0;
             foreach (string weapon in item.Value)
             {
+                if (string.IsNullOrEmpty(weapon))
+                    continue;
+
                 var weaponDef = composer.GetByName(weapon);
                 if (weaponDef == null)
                 {
