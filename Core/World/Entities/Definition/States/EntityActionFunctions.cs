@@ -2738,8 +2738,9 @@ public static class EntityActionFunctions
         if (entity.PickupPlayer == null)
             return;
 
-        if (entity.PickupPlayer.Health < entity.PickupPlayer.Properties.Health)
-            entity.PickupPlayer.Health = entity.PickupPlayer.Properties.Health;
+        int healAmount = entity.Frame.Args.GetInt(0);
+        if (entity.PickupPlayer.Health < healAmount)
+            entity.PickupPlayer.Health = healAmount;
     }
 
     private static void A_Die(Entity entity)
