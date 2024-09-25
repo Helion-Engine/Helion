@@ -179,7 +179,7 @@ public class DefinitionEntries
         if (!m_parseUniversalMapInfo)
             return;
 
-        MapInfoDefinition.ParseUniversalMapInfo(MapInfoDefinition.MapInfo, text);
+        MapInfoDefinition.ParseUniversalMapInfo(m_archiveCollection.IWadInfo.IWadBaseType, text);
     }
 
     private void ParseTextures(string text)

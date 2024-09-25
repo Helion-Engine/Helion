@@ -960,22 +960,8 @@ public partial class Client
         {
             var nextMapResult = getNextMapInfo();
             var nextMapInfo = nextMapResult.MapInfo;
-            ClusterDef? cluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(world.MapInfo.Cluster);
-            ClusterDef? nextCluster = null;
-            if (nextMapInfo != null)
-                nextCluster = m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetCluster(nextMapInfo.Cluster);
 
-            bool isChangingClusters = cluster != null && nextMapInfo != null && world.MapInfo.Cluster != nextMapInfo.Cluster;
-            if (cluster != null && isChangingClusters)
-            {
-                bool hasExitText = m_isSecretExit ? cluster.SecretExitText.Count > 0 : cluster.ExitText.Count > 0;
-                if (!hasExitText && nextCluster == null)
-                    isChangingClusters = false;
-                if (!hasExitText && nextCluster != null && nextCluster.EnterText.Count == 0)
-                    isChangingClusters = false;
-            }
-
-            if (isChangingClusters || world.MapInfo.EndGame != null || nextMapResult.Options.HasFlag(FindMapResultOptions.EndGame))
+            if (m_archiveCollection.MapInfo.MapInfo.IsChangingClusters(world.MapInfo, nextMapResult, m_isSecretExit, out var cluster, out var nextCluster))
             {
                 HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
                 PrepareTransition();

@@ -3,6 +3,7 @@ using System.IO;
 using FluentAssertions;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.IWad;
 using Xunit;
 
 namespace Helion.Tests.Unit.ParseMapInfo;
@@ -58,6 +59,15 @@ public class UMapInfo
             MapSpecialAction = MapSpecialAction.LowerFloor
         });
 
+        mapInfoDef.MapInfo.AddOrReplaceMap(new MapInfoDef()
+        {
+            MapName = "E2M1",
+            TitlePatch = "Default E2M1 titlepatch",
+            Label = "Default E2M1 label",
+            Next = "Default E2M1 Next",
+            Sky1 = new SkyDef() { Name = "Default E1M1 Sky" }
+        });
+
         mapInfoDef.MapInfo.Episodes.Count.Should().Be(1);
 
         var getMap = mapInfoDef.MapInfo.GetMap("E1M2").MapInfo;
@@ -75,7 +85,7 @@ public class UMapInfo
         var mapInfoDef = new MapInfoDefinition();
         SetupMapInfo(mapInfoDef);
 
-        mapInfoDef.ParseUniversalMapInfo(mapInfoDef.MapInfo, File.ReadAllText("Resources/UMAPINFO1.TXT"));
+        mapInfoDef.ParseUniversalMapInfo(IWadBaseType.Doom1, File.ReadAllText("Resources/UMAPINFO1.TXT"));
 
         var episodes = mapInfoDef.MapInfo.Episodes;
         episodes.Count.Should().Be(2);
@@ -113,16 +123,14 @@ public class UMapInfo
         e1m2.HasOption(MapOptions.NoIntermission).Should().BeTrue();
         e1m2.Author.Should().Be("");
         e1m2.EnterPic.Should().Be("TESTINTERPIC");
-        var cluster = mapInfoDef.MapInfo.GetCluster(e1m2.Cluster);
-        cluster.Should().NotBeNull();
-        cluster!.ExitText.Count.Should().Be(0);
-        cluster!.SecretExitText.Count.Should().Be(0);
+        var cluster = e1m2.ClusterDef;
+        cluster.Should().BeNull();
 
         getMap = mapInfoDef.MapInfo.GetMap("E1M3").MapInfo;
         getMap.Should().NotBeNull();
         var e1m3 = getMap!;
-        e1m3.Cluster.Should().NotBe(0);
-        cluster = mapInfoDef.MapInfo.GetCluster(e1m3.Cluster);
+        e1m3.ClusterDef.Should().NotBeNull();
+        cluster = e1m3.ClusterDef;
         cluster.Should().NotBeNull();
         cluster!.SecretExitText[0].Should().Be("super secret");
         cluster!.SecretExitText[1].Should().Be("really secret");
@@ -130,7 +138,7 @@ public class UMapInfo
         getMap = mapInfoDef.MapInfo.GetMap("E1M8").MapInfo;
         getMap.Should().NotBeNull();
         var e1m8 = getMap!;
-        e1m8.Next.Should().BeEquivalentTo("EndGameW");
+        e1m8.Next.Should().BeEquivalentTo("EndPic");
         e1m8.EndPic.Should().Be("CREDIT");
         e1m8.BossActions.Count.Should().Be(2);
         e1m8.MapSpecial.Should().Be(MapSpecial.None);
@@ -146,7 +154,7 @@ public class UMapInfo
         bossActionEdNum.Action.Should().Be(VanillaLineSpecialType.WR_FastCrusherCeilingSlowDamage);
         bossActionEdNum.Tag.Should().Be(999);
 
-        cluster = mapInfoDef.MapInfo.GetCluster(e1m8.Cluster);
+        cluster = e1m8.ClusterDef;
         cluster.Should().NotBeNull();
         cluster!.ExitText[0].Should().Be("Despite your victory, you rot along with the");
         cluster!.ExitText[1].Should().Be("core and everything goes black.");
@@ -169,7 +177,7 @@ public class UMapInfo
         e5m1.BossActions.Count.Should().Be(0);
         e5m1.MapSpecial.Should().Be(MapSpecial.None);
         e5m1.MapSpecialAction.Should().Be(MapSpecialAction.None);
-        cluster = mapInfoDef.MapInfo.GetCluster(e5m1.Cluster);
+        cluster = e5m1.ClusterDef;
         cluster.Should().NotBeNull();
         cluster!.Music.Should().Be("D_TEST");
 
@@ -178,7 +186,7 @@ public class UMapInfo
         var e5m8 = getMap!;
         e5m8.Next.Should().BeEquivalentTo("EndGameC");
         e5m8.EndPic.Should().BeEquivalentTo("CREDIT");
-        cluster = mapInfoDef.MapInfo.GetCluster(e5m8.Cluster);
+        cluster = e5m8.ClusterDef;
         cluster.Should().NotBeNull();
         cluster!.Flat.Should().BeEquivalentTo("FLAT_69");
         cluster!.ExitText[0].Should().Be("Deimos has become fully corrupted,");
@@ -186,5 +194,76 @@ public class UMapInfo
         cluster!.ExitText[2].Should().Be("of hell!");
         cluster!.ExitText[3].Should().Be("");
         cluster!.ExitText[4].Should().Be("Join us for the next episode: Fever Dream!");
+
+        getMap = mapInfoDef.MapInfo.GetMap("E1M4").MapInfo;
+        getMap.Should().NotBeNull();
+        var e1m4 = getMap!;
+        e1m4.Next.Should().Be("EndGame1");
+        cluster = e1m4.ClusterDef;
+        cluster.Should().NotBeNull();
+        cluster!.Flat.Should().Be("$BGFLATE1");
+        cluster.ExitText[0].Should().Be("$E1TEXT");
+
+        getMap = mapInfoDef.MapInfo.GetMap("E2M1").MapInfo;
+        getMap.Should().NotBeNull();
+        var e2m1 = getMap!;
+        e2m1.Next.Should().Be("EndGame2");
+        e2m1.TitlePatch.Should().Be("Default E2M1 titlepatch");
+        e2m1.NiceName.Length.Should().Be(0);
+        e2m1.HasOption(MapOptions.NoIntermission).Should().BeFalse();
+        cluster = e2m1.ClusterDef;
+        cluster.Should().NotBeNull();
+        cluster!.Flat.Should().Be("$BGFLATE2");
+        cluster.ExitText[0].Should().Be("$E2TEXT");
+
+        getMap = mapInfoDef.MapInfo.GetMap("E3M2").MapInfo;
+        getMap.Should().NotBeNull();
+        var e3m2 = getMap!;
+        e3m2.HasOption(MapOptions.NoIntermission).Should().BeTrue();
+        e3m2.Next.Should().Be("EndGame3");
+        cluster = e3m2.ClusterDef;
+        cluster.Should().NotBeNull();
+        cluster!.Flat.Should().Be("$BGFLATE3");
+        cluster.ExitText[0].Should().Be("$E3TEXT");
+
+        getMap = mapInfoDef.MapInfo.GetMap("E3M2").MapInfo;
+        getMap.Should().NotBeNull();
+        var e3m8 = getMap!;
+        e3m8.Next.Should().Be("EndGame3");
+        cluster = e3m2.ClusterDef;
+        cluster.Should().NotBeNull();
+        cluster!.Flat.Should().Be("$BGFLATE3");
+        cluster.ExitText[0].Should().Be("$E3TEXT");
+
+        getMap = mapInfoDef.MapInfo.GetMap("E4M1").MapInfo;
+        getMap.Should().NotBeNull();
+        var e4m1 = getMap!;
+        e4m1.Next.Should().Be("EndGame4");
+        cluster = e4m1.ClusterDef;
+        cluster.Should().NotBeNull();
+        cluster!.Flat.Should().Be("$BGFLATE4");
+        cluster.ExitText[0].Should().Be("$E4TEXT");
+
+        getMap = mapInfoDef.MapInfo.GetMap("MAP01").MapInfo;
+        getMap.Should().NotBeNull();
+        var map01 = getMap!;
+        map01.Next.Should().Be("EndGame1");
+        cluster = map01.ClusterDef;
+        cluster.Should().NotBeNull();
+        cluster!.Flat.Should().Be("$BGFLATE1");
+        cluster!.ExitText[0].Should().Be("map01 intertext");
+
+        getMap = mapInfoDef.MapInfo.GetMap("MAP02").MapInfo;
+        getMap.Should().NotBeNull();
+        var map02 = getMap!;
+        map02.ClusterDef.Should().BeNull();
+
+        getMap = mapInfoDef.MapInfo.GetMap("MAP03").MapInfo;
+        getMap.Should().NotBeNull();
+        var map03 = getMap!;
+        map03.ClusterDef.Should().NotBeNull();
+        cluster = map03.ClusterDef;
+        cluster!.SecretExitText[0].Should().Be("secret exit");
+        cluster!.ExitText.Count.Should().Be(0);
     }
 }

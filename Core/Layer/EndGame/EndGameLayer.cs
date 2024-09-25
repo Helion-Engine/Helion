@@ -146,7 +146,6 @@ public partial class EndGameLayer : IGameLayer
 
     private void PlayMusic(string music)
     {
-        m_musicPlayer.Stop();
         if (music.Empty())
             return;
 

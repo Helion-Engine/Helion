@@ -42,6 +42,7 @@ map e1m4
 	music = "D_E1M4"
 	next = "E1M5"
 	levelpic = "WILV03"
+	endgame = true
 }
 
 map e1m5
@@ -103,6 +104,26 @@ map e3m1
 	episode = clear
 }
 
+map e3m2
+{
+	endgame = true
+	nointermission = true
+}
+
+map e3m8
+{
+	intertextsecret = clear
+}
+
+map e2m1
+{
+	endgame = true
+}
+
+map e4m1
+{
+	endgame = true
+}
 
 // ANOMALY ASYLUM
 map e5m1
@@ -199,3 +220,19 @@ map e5m9
 	levelpic = "WILV48"
 }
 
+
+map map01
+{
+	intertext = "map01 intertext"
+	endgame = true
+}
+
+map map02
+{
+	intertextsecret = clear
+}
+
+map map03
+{
+	intertextsecret = "secret exit"
+}

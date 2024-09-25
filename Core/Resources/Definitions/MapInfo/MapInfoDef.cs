@@ -34,7 +34,8 @@ public class MapInfoDef : ICloneable
     public string ExitPic { get; set; } = string.Empty;
     public string EndPic { get; set; } = string.Empty;
     public string Author { get; set; } = string.Empty;
-    public List<BossAction> BossActions { get; set; } = new List<BossAction>();
+    public List<BossAction> BossActions { get; set; } = [];
+    public ClusterDef? ClusterDef { get; set; }
 
     public bool HasOption(MapOptions option) => m_levelOptions[(int)option];
     public void SetOption(MapOptions option, bool set) => m_levelOptions[(int)option] = set;
@@ -65,7 +66,8 @@ public class MapInfoDef : ICloneable
             Sky1 = (SkyDef)Sky1.Clone(),
             Sky2 = (SkyDef)Sky2.Clone(),
 
-            BossActions = BossActions.ToList()
+            BossActions = [.. BossActions],
+            ClusterDef = ClusterDef,
         };
     }
 
