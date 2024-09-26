@@ -1,4 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using Helion.Render.OpenGL.Context;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -30,9 +31,10 @@ public class GlVersionTest
                     throw new ArgumentOutOfRangeException();
             }
 
-            GLFW.WindowHint(WindowHintInt.ContextVersionMajor, 3);
-            GLFW.WindowHint(WindowHintInt.ContextVersionMinor, 3);
-            GLFW.WindowHint(WindowHintBool.OpenGLForwardCompat, value: true);
+            bool forwardCompatible = GlVersion.Flags.HasFlag(GLContextFlags.ForwardCompatible);
+            GLFW.WindowHint(WindowHintInt.ContextVersionMajor, settings.APIVersion.Major);
+            GLFW.WindowHint(WindowHintInt.ContextVersionMinor, settings.APIVersion.Major);
+            GLFW.WindowHint(WindowHintBool.OpenGLForwardCompat, value: forwardCompatible);
 
             GLFW.WindowHint(WindowHintOpenGlProfile.OpenGlProfile, OpenGlProfile.Compat);
             GLFW.WindowHint(WindowHintBool.Visible, false);
@@ -47,10 +49,19 @@ public class GlVersionTest
             LoadBindings(assembly, "OpenGL");
             LoadBindings(assembly, "OpenGL4");
 
-            GetGlVersion(out int major, out int minor);
+            // Pull the version string from the created context to get the version since it was requested at the lowest (MacOS).
+            // Otherwise the context is created with this version and no test is required (Windows/Linux).
+            if (forwardCompatible)
+            {
+                GetGlVersion(out int major, out int minor);
+                GlVersion.Major = major;
+                GlVersion.Minor = minor;
+            }
+
             onSuccess?.Invoke();
             GLFW.DestroyWindow(windowPtr);
-            return IsVersionSupported(major, minor, settings.APIVersion.Major, settings.APIVersion.Minor);
+
+            return true;
         }
         catch
         {

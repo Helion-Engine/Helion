@@ -152,7 +152,6 @@ public partial class Client : IDisposable, IInputManagement
 
     private static void CheckOpenGLSupport()
     {
-        Log.Info("CheckOpenGLSupport {0}{1}", GlVersion.Major, GlVersion.Minor);
         GLInfo.ClipControlSupported = GlVersion.IsVersionSupported(4, 5) || GLExtensions.Supports("GL_ARB_clip_control");
         GLInfo.MapPersistentBitSupported = GlVersion.IsVersionSupported(4, 4);
     }
