@@ -1,49 +1,36 @@
 ﻿namespace Helion.Layer.Endoom
 {
-    using System;
     using SixLabors.ImageSharp;
 
     internal static class Conversions
     {
+        const byte low = 85;
+        const byte med = 170;
+        const byte hi = 255;
+
+        // References:
+        // https://doomwiki.org/wiki/ENDOOM
+        // https://joeysbytes.net/reference/dos_colors.html
         public static readonly Color[] TextColors =
-       {
-            Color.Black,
-            Color.DarkBlue,
-            Color.DarkGreen,
-            Color.DarkCyan,
-            Color.DarkRed,
-            Color.DarkMagenta,
-            Color.Brown,
-            Color.Gray,
-            Color.DarkGray,
-            Color.Blue,
-            Color.Green,
-            Color.Cyan,
-            Color.Red,
-            Color.Magenta,
-            Color.Yellow,
-            Color.White,
+        {
+            Color.FromRgb(0, 0, 0),       // black
+            Color.FromRgb(0, 0, med),     // blue
+            Color.FromRgb(0, med, 0),     // green
+            Color.FromRgb(0, med, med),   // cyan
+            Color.FromRgb(med, 0, 0),     // red
+            Color.FromRgb(med, 0, med),   // magenta
+            Color.FromRgb(med, low, 0),   // brown
+            Color.FromRgb(med, med, med), // gray (white?)
+            Color.FromRgb(low, low, low), // dark gray
+            Color.FromRgb(low, low, hi),  // light blue
+            Color.FromRgb(low, hi, low),  // light green
+            Color.FromRgb(low, hi, hi),   // light cyan
+            Color.FromRgb(hi, low, low),  // light red
+            Color.FromRgb(hi, low, hi),   // light magenta
+            Color.FromRgb(hi, hi, low),   // light yellow
+            Color.FromRgb(hi, hi, hi),    // white
         };
 
-        public static readonly ConsoleColor[] ConsoleTextColors =
-        {
-            ConsoleColor.Black,
-            ConsoleColor.DarkBlue,
-            ConsoleColor.DarkGreen,
-            ConsoleColor.DarkCyan,
-            ConsoleColor.DarkRed,
-            ConsoleColor.DarkMagenta,
-            ConsoleColor.DarkYellow, // Should be brown, but we don't have that
-            ConsoleColor.Gray,
-            ConsoleColor.DarkGray,
-            ConsoleColor.Blue,
-            ConsoleColor.Green,
-            ConsoleColor.Cyan,
-            ConsoleColor.Red,
-            ConsoleColor.Magenta,
-            ConsoleColor.Yellow,
-            ConsoleColor.White,
-        };
 
         // Segment below adapted from GZDoom source, copyright notification follows:
         /*

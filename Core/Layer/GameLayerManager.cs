@@ -592,7 +592,7 @@ public class GameLayerManager : IGameLayerManager
     {
         Remove(MenuLayer);
         Remove(TitlepicLayer);
-        Add(new EndoomLayer(closeAction, m_archiveCollection));
+        Add(new EndoomLayer(closeAction, m_archiveCollection, m_window.Dimension.Height));
     }
 
     public void QuickSave()
