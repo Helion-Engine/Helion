@@ -11,26 +11,26 @@ public static class HudExtensions
     private readonly record struct HudImage(IHudRenderContext Hud, string Image, IRenderableTextureHandle Handle, Align Window, Align Anchor, float Alpha = 1f);
 
     public static bool RenderFullscreenImage(this IHudRenderContext hud, Image image, string imageName, ResourceNamespace resourceNamespace, out IRenderableTextureHandle? handle,
-        Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1f)
+        Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1f, float aspectRatioDivisor = 1.2f)
     {
         if (!hud.Textures.TryGet(imageName, out handle))
         {
             handle = hud.Textures.CreateAndTrackTexture(imageName, resourceNamespace, image, repeatY: true);
         }
 
-        hud.VirtualDimension(handle.Dimension, ResolutionScale.Center, handle.Dimension.AspectRatio / 1.2f, HudVirtualFullscreenImage,
+        hud.VirtualDimension(handle.Dimension, ResolutionScale.Center, handle.Dimension.AspectRatio / aspectRatioDivisor, HudVirtualFullscreenImage,
             new HudImage(hud, imageName, handle, window, anchor, alpha));
-        
+
         return true;
     }
 
-    public static bool RenderFullscreenImage(this IHudRenderContext hud, string image, 
-        Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1f)
+    public static bool RenderFullscreenImage(this IHudRenderContext hud, string image,
+        Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1f, float aspectRatioDivisor = 1.2f)
     {
         if (!hud.Textures.TryGet(image, out var handle))
             return false;
 
-        hud.VirtualDimension(handle.Dimension, ResolutionScale.Center, handle.Dimension.AspectRatio / 1.2f, HudVirtualFullscreenImage,
+        hud.VirtualDimension(handle.Dimension, ResolutionScale.Center, handle.Dimension.AspectRatio / aspectRatioDivisor, HudVirtualFullscreenImage,
             new HudImage(hud, image, handle, window, anchor, alpha));
         return true;
     }

@@ -30,17 +30,18 @@
         const string LUMPNAME = "ENDOOM";
         private const string IMAGENAME1 = "ENDOOM_RENDERED_1";
         private const string IMAGENAME2 = "ENDOOM_RENDERED_2";
-        const int SCALE = 4;
 
         private readonly Action m_closeAction;
         private readonly ArchiveCollection m_archiveCollection;
+        private readonly decimal m_scale;
+
         private Graphics.Image? m_endoomImage1;
         private Graphics.Image? m_endoomImage2;
 
         private IRenderableTextureHandle? m_texture1;
         private IRenderableTextureHandle? m_texture2;
 
-        public EndoomLayer(Action closeAction, ArchiveCollection archiveCollection)
+        public EndoomLayer(Action closeAction, ArchiveCollection archiveCollection, int height)
         {
             m_closeAction = closeAction;
             m_archiveCollection = archiveCollection;
@@ -48,7 +49,7 @@
             ComputeImages(
                 m_archiveCollection.FindEntry(LUMPNAME)?.ReadData() ?? [],
                 m_archiveCollection.FindEntry(FONTNAME)?.ReadData() ?? [],
-                scale: 3);
+                height);
         }
 
         public void Dispose()
@@ -88,15 +89,15 @@
 
             if ((DateTime.Now.Millisecond / 500) == 0) // cycle 2x/second
             {
-                hud.RenderFullscreenImage(m_endoomImage1, IMAGENAME1, Resources.ResourceNamespace.Textures, out m_texture1);
+                hud.RenderFullscreenImage(m_endoomImage1, IMAGENAME1, Resources.ResourceNamespace.Textures, out m_texture1, aspectRatioDivisor: 1f);
             }
             else
             {
-                hud.RenderFullscreenImage(m_endoomImage2, IMAGENAME2, Resources.ResourceNamespace.Textures, out m_texture2);
+                hud.RenderFullscreenImage(m_endoomImage2, IMAGENAME2, Resources.ResourceNamespace.Textures, out m_texture2, aspectRatioDivisor: 1f);
             }
         }
 
-        private void ComputeImages(byte[] endoomBytes, byte[] fontBytes, int scale)
+        private void ComputeImages(byte[] endoomBytes, byte[] fontBytes, int height)
         {
             // In what might be one of the silliest performance regressions possible, we're emulating the ENDOOM screen,
             // which was originally a sequence of bytes that could be copied directly to video memory, by rendering it
@@ -120,7 +121,7 @@
             {
                 FontCollection fontCollection = new();
                 FontFamily consoleFontFamily = fontCollection.Add(fontDataStream);
-                Font consoleFont = consoleFontFamily.CreateFont(scale * 8);
+                Font consoleFont = consoleFontFamily.CreateFont(height / 25); // Use whatever pixel value gets us 25 lines
                 RichTextOptions textOptions = new(consoleFont);
                 // Assume we are using a monospace font, so all upper-case chars have the same effective dimensions.  
                 // We're intentionally going to pack characters just a little too close together, so that any "block" characters don't end up with 
@@ -132,7 +133,7 @@
                 for (int imageCount = 0; imageCount < 2; imageCount++)
                 {
                     float xOffset = 0, yOffset = 0;
-                    using (Image<Rgba32> endoomBitmap = new Image<Rgba32>((int)charWidth * ENDOOMCOLUMNS, (int)charHeight * ENDOOMROWS))
+                    using (Image<Rgba32> endoomBitmap = new Image<Rgba32>((int)charWidth * ENDOOMCOLUMNS, height))
                     {
                         endoomBitmap.Mutate(ctx =>
                         {
