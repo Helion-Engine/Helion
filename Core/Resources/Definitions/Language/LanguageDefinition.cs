@@ -158,7 +158,7 @@ public class LanguageDefinition
         return message;
     }
 
-    public bool GetKeyByValue(string text, out string? key)
+    public bool GetKeyByValue(string text, [NotNullWhen(true)] out string? key)
     {
         const int Length = 32;
         key = null;
