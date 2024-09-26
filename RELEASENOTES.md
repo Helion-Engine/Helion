@@ -51,3 +51,4 @@
   - Fix various UMAPINFO issues dealing with nointermission intertext, intertextsecret, endgame, endpic, and intermusic
   - Fix berserk only restoring to initial health when modified through dehacked
   - Fix OpenGL context using 3.3 with Intel iGPUs when a higher version is supported
+  - Fix dehacked level string replacement for automap/console/loading displays
