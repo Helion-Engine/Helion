@@ -590,8 +590,6 @@ public class GameLayerManager : IGameLayerManager
 
     public void ShowEndoom(Action closeAction)
     {
-        Remove(MenuLayer);
-        Remove(TitlepicLayer);
         Add(new EndoomLayer(closeAction, m_archiveCollection, m_window.Dimension.Height));
     }
 
@@ -753,7 +751,6 @@ public class GameLayerManager : IGameLayerManager
             DrawHudStatusAndAutomap(WorldLayer);
 
         StartDrawHud();
-        EndoomLayer?.Render(hudCtx);
         IntermissionLayer?.Render(m_ctx, hudCtx);
         TitlepicLayer?.Render(hudCtx);
         EndGameLayer?.Render(m_ctx, hudCtx);
@@ -779,6 +776,8 @@ public class GameLayerManager : IGameLayerManager
         LoadingLayer?.RenderProgress(m_ctx, m_hudRenderCtx);
 
         RenderConsole(hudCtx);
+
+        EndoomLayer?.Render(hudCtx);
 
         EndDrawHud();
     }

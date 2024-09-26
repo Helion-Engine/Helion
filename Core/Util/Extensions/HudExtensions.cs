@@ -3,6 +3,7 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Resources;
+using System;
 
 namespace Helion.Util.Extensions;
 
@@ -10,18 +11,9 @@ public static class HudExtensions
 {
     private readonly record struct HudImage(IHudRenderContext Hud, string Image, IRenderableTextureHandle Handle, Align Window, Align Anchor, float Alpha = 1f);
 
-    public static bool RenderFullscreenImage(this IHudRenderContext hud, Image image, string imageName, ResourceNamespace resourceNamespace, out IRenderableTextureHandle? handle,
-        Align window = Align.TopLeft, Align anchor = Align.TopLeft, float alpha = 1f, float aspectRatioDivisor = 1.2f)
+    public static IRenderableTextureHandle CreateImage(this IHudRenderContext hud, Image image, string imageName, ResourceNamespace resourceNamespace, out Action removeAction, bool repeatY = true)
     {
-        if (!hud.Textures.TryGet(imageName, out handle))
-        {
-            handle = hud.Textures.CreateAndTrackTexture(imageName, resourceNamespace, image, repeatY: true);
-        }
-
-        hud.VirtualDimension(handle.Dimension, ResolutionScale.Center, handle.Dimension.AspectRatio / aspectRatioDivisor, HudVirtualFullscreenImage,
-            new HudImage(hud, imageName, handle, window, anchor, alpha));
-
-        return true;
+        return hud.Textures.CreateAndTrackTexture(imageName, resourceNamespace, image, out removeAction, repeatY: repeatY);
     }
 
     public static bool RenderFullscreenImage(this IHudRenderContext hud, string image,

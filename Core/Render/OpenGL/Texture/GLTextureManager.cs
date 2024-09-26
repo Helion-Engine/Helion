@@ -291,10 +291,11 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         return NullFont;
     }
 
-    public IRenderableTextureHandle CreateAndTrackTexture(string name, ResourceNamespace resourceNamespace, Image image, bool repeatY = true)
+    public IRenderableTextureHandle CreateAndTrackTexture(string name, ResourceNamespace resourceNamespace, Image image, out Action removeAction, bool repeatY = true)
     {
         GLTextureType texture = CreateTexture(image, repeatY);
         TextureTracker.Insert(name, resourceNamespace, texture);
+        removeAction = () => RemoveTexture(name, resourceNamespace);
         return texture;
     }
 

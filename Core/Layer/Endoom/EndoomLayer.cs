@@ -33,13 +33,15 @@
 
         private readonly Action m_closeAction;
         private readonly ArchiveCollection m_archiveCollection;
-        private readonly decimal m_scale;
 
         private Graphics.Image? m_endoomImage1;
         private Graphics.Image? m_endoomImage2;
-
         private IRenderableTextureHandle? m_texture1;
         private IRenderableTextureHandle? m_texture2;
+        private Action? m_texture1Remove;
+        private Action? m_texture2Remove;
+
+        private bool m_disposed;
 
         public EndoomLayer(Action closeAction, ArchiveCollection archiveCollection, int height)
         {
@@ -50,14 +52,6 @@
                 m_archiveCollection.FindEntry(LUMPNAME)?.ReadData() ?? [],
                 m_archiveCollection.FindEntry(FONTNAME)?.ReadData() ?? [],
                 height);
-        }
-
-        public void Dispose()
-        {
-            m_endoomImage1 = null;
-            m_endoomImage2 = null;
-            (m_texture1 as GLTexture)?.Dispose();
-            (m_texture2 as GLTexture)?.Dispose();
         }
 
         public void HandleInput(IConsumableInput input)
@@ -72,10 +66,6 @@
 
         public void RunLogic(TickerInfo tickerInfo)
         {
-            if (m_endoomImage1 == null)
-            {
-                m_closeAction();
-            }
         }
 
         public virtual void Render(IHudRenderContext hud)
@@ -84,17 +74,19 @@
 
             if (m_endoomImage1 == null || m_endoomImage2 == null)
             {
-                return;
+                m_closeAction();
+                return; // This may never actually get reached
             }
 
-            if ((DateTime.Now.Millisecond / 500) == 0) // cycle 2x/second
+            if (m_texture1 == null)
             {
-                hud.RenderFullscreenImage(m_endoomImage1, IMAGENAME1, Resources.ResourceNamespace.Textures, out m_texture1, aspectRatioDivisor: 1f);
+                m_texture1 = hud.CreateImage(m_endoomImage1, IMAGENAME1, Resources.ResourceNamespace.Textures, out m_texture1Remove);
+                m_texture2 = hud.CreateImage(m_endoomImage2, IMAGENAME2, Resources.ResourceNamespace.Textures, out m_texture2Remove);
             }
-            else
-            {
-                hud.RenderFullscreenImage(m_endoomImage2, IMAGENAME2, Resources.ResourceNamespace.Textures, out m_texture2, aspectRatioDivisor: 1f);
-            }
+
+            _ = ((DateTime.Now.Millisecond / 500) == 0) // cycle 2x/second
+                ? hud.RenderFullscreenImage(IMAGENAME1, aspectRatioDivisor: 1f)
+                : hud.RenderFullscreenImage(IMAGENAME2, aspectRatioDivisor: 1f);
         }
 
         private void ComputeImages(byte[] endoomBytes, byte[] fontBytes, int height)
@@ -196,6 +188,30 @@
                     }
                 }
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!m_disposed)
+            {
+                if (disposing)
+                {
+                    m_endoomImage1 = null;
+                    m_endoomImage2 = null;
+                    m_texture1Remove?.Invoke();
+                    m_texture2Remove?.Invoke();
+                    (m_texture1 as GLTexture)?.Dispose();
+                    (m_texture2 as GLTexture)?.Dispose();
+                }
+
+                m_disposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

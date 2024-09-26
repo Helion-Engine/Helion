@@ -47,8 +47,9 @@ public interface IRendererTextureManager : IDisposable
     /// <param name="resourceNamespace">Resource namespace to store the texture in</param>
     /// <param name="image">Image data</param>
     /// <param name="repeatY">Whether the image should repeat vertically</param>
+    /// <param name="removeAction">An action, that when invoked, will remove the texture from tracking.</param>
     /// <returns>A handle to the created texture</returns>
-    IRenderableTextureHandle CreateAndTrackTexture(string name, ResourceNamespace resourceNamespace, Graphics.Image image, bool repeatY = true);
+    IRenderableTextureHandle CreateAndTrackTexture(string name, ResourceNamespace resourceNamespace, Graphics.Image image, out Action removeAction, bool repeatY = true);
 
     /// <summary>
     /// Remove a texture from the texture manager
