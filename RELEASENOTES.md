@@ -52,3 +52,4 @@
   - Fix berserk only restoring to initial health when modified through dehacked
   - Fix OpenGL context using 3.3 with Intel iGPUs when a higher version is supported
   - Fix dehacked level string replacement for automap/console/loading displays
+  - Fix reversed x/y scroll values for MBF21 1024 scroll special
