@@ -1,9 +1,9 @@
 ﻿using Helion.Resources.Archives.Entries;
 using Helion.Util;
-using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace Helion.Resources.Definitions.Id24;
 
@@ -21,7 +21,7 @@ public class Id24TranslationDefinition
         string data = entry.ReadDataAsString();
         try
         {
-            var translation = JsonConvert.DeserializeObject<TranslationDef>(data, JsonSerializationSettings.IgnoreNull);
+            var translation = JsonSerializer.Deserialize<TranslationDef>(data, JsonSerializationSettings.IgnoreNull);
             if (translation == null)
             {
                 Log.Error(ParseUtil.GetParseError(entry, "translation"));

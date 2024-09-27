@@ -1,13 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Helion.Util;
 
-public class JsonSerializationSettings
+public static  class JsonSerializationSettings
 {
-    public static readonly JsonSerializerSettings IgnoreNull = new()
+    public static readonly JsonSerializerOptions IgnoreNull = new()
     {
-        NullValueHandling = NullValueHandling.Ignore,
-        MissingMemberHandling = MissingMemberHandling.Ignore,
-        DefaultValueHandling = DefaultValueHandling.Ignore
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull | JsonIgnoreCondition.WhenWritingDefault,
+        PropertyNameCaseInsensitive = true
     };
 }

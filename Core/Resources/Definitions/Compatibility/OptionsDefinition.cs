@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Helion.Resources.Archives.Entries;
-using Newtonsoft.Json;
 using NLog;
+using System;
 
 namespace Helion.Resources.Definitions.Compatibility;
 

@@ -1,7 +1,6 @@
 using Helion.World;
 using Helion.World.Special;
-using Helion.World.Special.Specials;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Helion.Models;
 
@@ -13,11 +12,11 @@ public class SectorMoveSpecialModel : ISpecialModel
     public double Speed { get; set; }
     public double ReturnSpeed { get; set; }
     public int Delay { get; set; }
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? FloorChange { get; set; }
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? CeilingChange { get; set; }
-    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SectorDamageSpecialModel? DamageSpecial { get; set; }
     public int StartDirection { get; set; }
     public int Flags { get; set; }

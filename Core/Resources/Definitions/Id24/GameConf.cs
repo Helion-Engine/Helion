@@ -1,8 +1,7 @@
-using System;
-using System.Collections.Generic;
 using Helion.Resources.Definitions.Compatibility;
-using Helion.Util.Parser;
-using Newtonsoft.Json;
+using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Helion.Resources.Definitions.Id24;
 
@@ -29,19 +28,6 @@ public class GameConfData
 
     [JsonConverter(typeof(OptionsConverter))]
     public Options Options { get; set; } = new();
-}
-
-public class OptionsConverter : JsonConverter<Options>
-{
-    public override void WriteJson(JsonWriter writer, Options? value, JsonSerializer serializer) => throw new NotImplementedException();
-
-    public override Options? ReadJson(JsonReader reader, Type objectType, Options? existingValue, bool hasExistingValue, JsonSerializer serializer)
-    {
-        string? token = (reader.TokenType == JsonToken.String)
-            ? reader.Value?.ToString()
-            : null;
-        return new Options(token);
-    }
 }
 
 public static class GameConfConstants

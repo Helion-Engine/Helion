@@ -1,12 +1,11 @@
+using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.Compatibility;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Helion.Resources.Archives;
-using Helion.Resources.Archives.Entries;
-using Helion.Resources.Definitions.Compatibility;
-using Newtonsoft.Json;
-using NLog;
+using System.Text.Json;
 
 namespace Helion.Resources.Definitions.Id24;
 
@@ -26,7 +25,7 @@ public class GameConfDefinition
         string data = entry.ReadDataAsString();
         try
         {
-            var converted = JsonConvert.DeserializeObject<GameConf>(data)
+            var converted = JsonSerializer.Deserialize<GameConf>(data, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true })
                 ?? throw new Exception($"Gameconf was null");
             var newData = converted.Data;
 
