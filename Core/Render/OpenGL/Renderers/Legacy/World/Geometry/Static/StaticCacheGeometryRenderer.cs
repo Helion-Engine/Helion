@@ -428,7 +428,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_skyGeometry.AddSide(sky, side, wallLocation, vertices);
     }
 
-    private static unsafe void AddVertices(DynamicArray<StaticVertex> staticVertices, DynamicVertex[] vertices, int sectorIndex)
+    private static unsafe void AddVertices(DynamicArray<StaticVertex> staticVertices, DynamicVertex[] vertices)
     {
         int staticStartIndex = staticVertices.Length;
         fixed(DynamicVertex* startVertex = &vertices[0])
@@ -438,7 +438,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 DynamicVertex* v = startVertex + i;
                 staticVertices.Data[staticStartIndex + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V, 
-                    v->Options, v->LightLevelAdd, sectorIndex);
+                    v->Options, v->LightLevelAdd, v->ColorMapIndex);
             }
 
             staticVertices.SetLength(staticVertices.Length + vertices.Length);
@@ -453,7 +453,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 DynamicVertex* v = startVertex + i;
                 staticVertices[index + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
-                    v->Options, v->LightLevelAdd, v->SectorIndex);
+                    v->Options, v->LightLevelAdd, v->ColorMapIndex);
             }
         }
     }
@@ -476,7 +476,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 
         var vertices = GetTextureVertices(type, wall.TextureHandle, repeatY);
         SetSideData(ref wall.Static, type, wall.TextureHandle, vertices.Length, sideVertices.Length, repeatY, null);
-        AddVertices(vertices, sideVertices, side.Sector.Id + 1);
+        AddVertices(vertices, sideVertices);
     }
 
     private static GeometryType GetWallType(Side side, Wall wall) => 
@@ -602,7 +602,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             plane.Static.Length = renderedVertices.Length;
         }
 
-        AddVertices(vertices, renderedVertices, sector.Id + 1);
+        AddVertices(vertices, renderedVertices);
     }
 
 
@@ -918,7 +918,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             coverGeometry = new StaticGeometryData(m_coverFlatGeometry, vbo.Data.Length, vertices.Length);
             m_coverFlatLookup[key] = coverGeometry;
-            AddVertices(vbo.Data, vertices, sector.Id + 1);
+            AddVertices(vbo.Data, vertices);
         }
     }
 
@@ -940,7 +940,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_textureToGeometryLookup.TryGetValue(geometryType, textureHandle, repeat, out GeometryData? data))
         {
             SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
-            AddVertices(data.Vbo.Data, vertices, sector.Id + 1);
+            AddVertices(data.Vbo.Data, vertices);
             // TODO this causes the entire vbo to be uploaded when we could use sub-buffer
             data.Vbo.SetNotUploaded();
             return;
@@ -948,7 +948,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         data = AllocateGeometryData(geometryType, textureHandle, repeat);
         SetRuntimeGeometryData(plane, side, wall, textureHandle, data, vertices, repeat);
-        AddVertices(data.Vbo.Data, vertices, sector.Id + 1);
+        AddVertices(data.Vbo.Data, vertices);
         data.Vbo.SetNotUploaded();
     }
 
