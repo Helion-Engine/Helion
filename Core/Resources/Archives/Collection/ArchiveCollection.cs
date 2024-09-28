@@ -659,8 +659,8 @@ public class ArchiveCollection : IResources, IPathResolver
         }
         foreach (string pwad in originalPwads)
         {
-            ApplyWadsFromWadGameConf(pwad);
             pwads.Add(pwad);
+            ApplyWadsFromWadGameConf(pwad);
         }
 
         return (iwad, pwads);
