@@ -27,7 +27,7 @@ lightLevelFrag = clamp(lightLevelBufferValue" + (options.HasFlag(VertexLightBuff
     public static string VertexDist(string posVariable) => $"dist = (mvpNoPitch * {posVariable}).{ShaderVars.Depth};";
 
     public static string FragVariables(LightLevelOptions options) =>
-$"flat in float lightLevelFrag;{(options.HasFlag(LightLevelOptions.NoDist) ? "" : "in float dist;")}uniform float lightLevelMix;uniform int extraLight;uniform float distanceOffset;uniform samplerBuffer colormapTexture;uniform int lightMode;";
+$"flat in float lightLevelFrag;{(options.HasFlag(LightLevelOptions.NoDist) ? "" : "in float dist;")}uniform float lightLevelMix;uniform int extraLight;uniform float distanceOffset;uniform samplerBuffer colormapTexture;uniform int lightMode;uniform float gammaCorrection;";
 
     // Light projection calculation is: (projection >> LIGHTSCALESHIFT) / distance
     // 160 * 65536 / 4096 / distance

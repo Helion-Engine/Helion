@@ -59,6 +59,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
         (Key.Pause,         Constants.Input.Pause),
         (Key.F6,            Constants.Input.QuickSave),
         (Key.Escape,        Constants.Input.Menu),
+        (Key.F11,           Constants.Input.GammaCorrection),
         // Automap bindings
         (Key.Left,          Constants.Input.AutoMapLeft),
         (Key.Right,         Constants.Input.AutoMapRight),

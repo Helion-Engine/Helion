@@ -467,6 +467,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_interpolationProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         m_interpolationProgram.LightMode(renderInfo.Uniforms.LightMode);
+        m_interpolationProgram.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
     }
 
     private void SetStaticUniforms(RenderInfo renderInfo)
@@ -485,6 +486,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_staticProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         m_staticProgram.LightMode(renderInfo.Uniforms.LightMode);
+        m_staticProgram.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
     }
 
     private void ReleaseUnmanagedResources()
