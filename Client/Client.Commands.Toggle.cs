@@ -54,6 +54,6 @@ public partial class Client
         m_config.Render.GammaCorrection.Set(value + 0.1);
         if (value == m_config.Render.GammaCorrection)
             m_config.Render.GammaCorrection.Set(1);
-        HelionLog.Info($"Gamma correction level {value:F1}");
+        HelionLog.Info($"Gamma correction level {m_config.Render.GammaCorrection:F1}");
     }
 }
