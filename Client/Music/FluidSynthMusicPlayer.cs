@@ -30,6 +30,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
     private IOutputStream? m_stream;
     private Player? m_player;
+    private bool m_enabled = true;
 
     public FluidSynthMusicPlayer(string soundFontFile, IOutputStreamFactory streamFactory, float sourceVolume)
     {
@@ -53,9 +54,22 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         m_stream?.SetVolume(newVolume);
     }
 
+    public bool Enabled
+    {
+        get => m_enabled;
+        set
+        {
+            m_enabled = value;
+            if (!value)
+            {
+                Stop();
+            }
+        }
+    }
+
     public unsafe bool Play(byte[] data, MusicPlayerOptions options)
     {
-        if (m_disposed)
+        if (m_disposed || !m_enabled)
             return false;
 
         try

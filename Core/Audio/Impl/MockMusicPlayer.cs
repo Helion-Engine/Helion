@@ -33,5 +33,7 @@ namespace Helion.Audio.Impl
         {
 
         }
+
+        public bool Enabled { get; set; }
     }
 }
