@@ -121,6 +121,7 @@ public sealed class AudioStream : IOutputStream
 
     public void SetVolume(float volume)
     {
+        AL.Source(m_alSource, ALSourcef.MaxGain, volume);
         AL.Source(m_alSource, ALSourcef.Gain, volume);
     }
 

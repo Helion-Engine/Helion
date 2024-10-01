@@ -86,9 +86,23 @@ public class OpenALAudioSystem : IAudioSystem
     {
         Gain = volume;
 
-        foreach(var sourceManager in m_sourceManagers)
+        if (volume == 0)
         {
-            sourceManager.SetGain(Gain);
+            SetSourceManagerGains(0);
+            AL.Listener(ALListenerf.Gain, 1);
+        }
+        else
+        {
+            SetSourceManagerGains(1);
+            AL.Listener(ALListenerf.Gain, (float)volume);
+        }
+    }
+
+    private void SetSourceManagerGains(float gain)
+    {
+        foreach (var sourceManager in m_sourceManagers)
+        {
+            sourceManager.SetGain(gain);
         }
     }
 
