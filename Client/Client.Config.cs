@@ -97,13 +97,9 @@ public partial class Client
 
     private void UpdateVolume()
     {
-        var musicVolume = (float)(m_config.Audio.MusicVolume * m_config.Audio.Volume);
         var soundVolume = m_config.Audio.SoundVolume * m_config.Audio.Volume;
-
-        musicVolume = soundVolume == 0 ? musicVolume : (float)(musicVolume / soundVolume);
-
         m_audioSystem.SetVolume(soundVolume);
-        m_audioSystem.Music.SetVolume(musicVolume);
+        m_audioSystem.Music.SetVolume((float)m_config.Audio.MusicVolumeNormalized);
     }
 
     private void SoundFont_OnChanged(object? sender, string _)
