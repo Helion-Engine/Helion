@@ -86,9 +86,25 @@ public class OpenALAudioSystem : IAudioSystem
     {
         Gain = volume;
 
-        foreach(var sourceManager in m_sourceManagers)
+        if (volume == 0)
         {
-            sourceManager.SetGain(Gain);
+            // Shut off all the sources but set the main gain to 1 so the music can still come through
+            SetSourceManagerGains(0);
+            AL.Listener(ALListenerf.Gain, 1);
+        }
+        else
+        {
+            // Set listener gain based on sound effects volume; music is scaled as a multiple of effects volume
+            SetSourceManagerGains(1);
+            AL.Listener(ALListenerf.Gain, (float)volume);
+        }
+    }
+
+    private void SetSourceManagerGains(float gain)
+    {
+        foreach (var sourceManager in m_sourceManagers)
+        {
+            sourceManager.SetGain(gain);
         }
     }
 

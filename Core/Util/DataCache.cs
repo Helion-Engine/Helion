@@ -205,6 +205,10 @@ public class DataCache
         if (audioSource is not OpenALAudioSource)
             return;
 
+        // Clear any positional audio effects
+        audioSource.SetVelocity(0, 0, 0);
+        audioSource.SetPosition(0, 0, 0);
+
         audioSource.AudioData.SoundSource.ClearSound(audioSource, audioSource.AudioData.SoundChannelType);
         audioSource.CacheFree();
         m_audioSources.Add(audioSource);

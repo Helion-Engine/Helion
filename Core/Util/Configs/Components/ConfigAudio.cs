@@ -45,4 +45,6 @@ public class ConfigAudio
     [ConfigInfo("SoundFont file to use for MIDI/MUS music playback.")]
     [OptionMenu(OptionSectionType.Audio, "SoundFont File", dialogType: DialogType.SoundFontPicker)]
     public readonly ConfigValue<string> SoundFontFile = new($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");
+
+    public double MusicVolumeNormalized => (SoundVolume == 0 ? MusicVolume : (MusicVolume / SoundVolume)) * Volume;
 }

@@ -147,7 +147,7 @@ public class MusicPlayer : IMusicPlayer
         m_lastDataHash = hash;
 
         Stop();
-        SetVolume((float)m_configAudio.MusicVolume.Value);
+        SetVolume((float)m_configAudio.MusicVolumeNormalized);
         bool isMidi = m_zMusicPlayer.IsMIDI(data, out string? error);
 
         if (!string.IsNullOrEmpty(error))
