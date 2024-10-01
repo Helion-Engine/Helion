@@ -8,6 +8,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Fonts.Definition;
 using Helion.Resources.Images;
 using Helion.Util.Extensions;
+using OpenTK.Graphics.ES20;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.Fonts;
@@ -20,7 +21,7 @@ public static class BitmapFont
     /// <param name="definition">The font definition.</param>
     /// <param name="archiveCollection">The source of the images.</param>
     /// <returns>The font, or null if it cannot be made.</returns>
-    public static Font? From(FontDefinition definition, ArchiveCollection archiveCollection)
+    public static Font? From(FontDefinition definition, ArchiveCollection archiveCollection, int scale)
     {
         if (!definition.IsValid())
             return null;
@@ -34,7 +35,7 @@ public static class BitmapFont
                 return null;
 
             AddSpaceGlyphIfMissing(charImages, definition, maxHeight, imageType);
-            var (glyphs, image) = CreateGlyphs(definition, charImages, maxHeight, imageType);
+            var (glyphs, image) = CreateGlyphs(definition, charImages, maxHeight, imageType, scale);
 
             // SmallGrayscaleFont has colors applied and needs to be full color to support different colors.
             if (definition.Grayscale)
@@ -42,8 +43,8 @@ public static class BitmapFont
                 image.ConvertToGrayscale(definition.GrayscaleNormalization);
                 image.DisableIndexedUpload();
             }
-            
-            return new Font(definition.Name, glyphs, image, fixedWidth: definition.FixedWidth, fixedHeight: definition.FixedHeight, fixedWidthChar: definition.FixedWidthChar);
+
+            return new Font(definition.Name, glyphs, image, fixedWidth: definition.FixedWidth, fixedHeight: definition.FixedHeight, fixedWidthChar: definition.FixedWidthChar, scale: scale);
         }
         catch
         {
@@ -114,7 +115,7 @@ public static class BitmapFont
     }
 
     private static (Dictionary<char, Glyph>, Image) CreateGlyphs(FontDefinition definition, Dictionary<char, Image> charImages,
-        int maxHeight, ImageType imageType)
+        int maxHeight, ImageType imageType, int scale)
     {
         Dictionary<char, Glyph> glyphs = new();
         int atlasOffsetX = 0;
@@ -126,15 +127,21 @@ public static class BitmapFont
         if (definition.FixedHeight != null)
             maxHeight = definition.FixedHeight.Value;
 
+        bool canUpscale = charImages.All(img => img.Value.ImageType == ImageType.Argb);
+        width = canUpscale ? width * scale : width;
+        maxHeight = canUpscale ? maxHeight * scale : maxHeight;
+
         Dimension atlasDimension = (width, maxHeight);
         Image atlas = new(width, maxHeight, imageType);
 
         foreach ((char c, Image image) in charImages)
         {
-            var charImage = image;
+            var charImage = scale != 1 && canUpscale
+                ? image.GetUpscaled(scale)
+                : image;
             atlasOffsetX += padding;
 
-            int charWidth = definition.FixedWidth ?? charImage.Width;
+            int charWidth = definition.FixedWidth * scale ?? charImage.Width;
 
             charImage.DrawOnTopOf(atlas, (atlasOffsetX, 0));
             var glyphDimension = charImage.Dimension;

@@ -181,6 +181,9 @@ public class ConfigHud
     [OptionMenu(OptionSectionType.Hud, "Horizontal Margin Percent")]
     public readonly ConfigValue<double> HorizontalMargin = new(0, ClampNormalized);
 
+    [ConfigInfo("Font upscaling ratio (1 - 5)")]
+    [OptionMenu(OptionSectionType.Hud, "Font Upscale Ratio")]
+    public readonly ConfigValue<int> FontUpscaleRatio = new(4, Clamp(1, 5));
 
     // Stats and diagnostics
 

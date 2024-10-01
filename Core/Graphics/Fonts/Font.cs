@@ -11,6 +11,8 @@ namespace Helion.Graphics.Fonts;
 /// </summary>
 public class Font : IEnumerable<(char, Glyph)>
 {
+    public int Scale { get; }
+
     public const char DefaultChar = '?';
 
     public readonly string Name;
@@ -24,7 +26,7 @@ public class Font : IEnumerable<(char, Glyph)>
     private readonly Glyph m_defaultGlyph;
 
     public Font(string name, Dictionary<char, Glyph> glyphs, Image image, char defaultChar = DefaultChar,
-        bool isTrueTypeFont = false, int? fixedWidth = null, int? fixedHeight = null, char? fixedWidthChar = null)
+        bool isTrueTypeFont = false, int? fixedWidth = null, int? fixedHeight = null, char? fixedWidthChar = null, int scale =1)
     {
         Name = name;
         m_glyphs = glyphs;
@@ -38,6 +40,7 @@ public class Font : IEnumerable<(char, Glyph)>
 
         FixedWidth = fixedWidth;
         FixedHeight = fixedHeight;
+        Scale = scale;
         if (fixedWidthChar.HasValue && TryGet(fixedWidthChar.Value, out var fixedChar))
             FixedWidthChar = fixedChar;
     }
