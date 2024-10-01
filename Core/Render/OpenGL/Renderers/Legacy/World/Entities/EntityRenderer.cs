@@ -264,6 +264,7 @@ public class EntityRenderer : IDisposable
         m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         m_program.LightMode(renderInfo.Uniforms.LightMode);
+        m_program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
     }
 
     public void RenderAlpha(RenderInfo renderInfo)

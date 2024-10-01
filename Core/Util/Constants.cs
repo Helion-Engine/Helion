@@ -159,6 +159,7 @@ public static class Constants
         public const string QuickSave = "QuickSave";
         public const string OptionsMenu = "OptionsMenu";
         public const string Menu = "Menu";
+        public const string GammaCorrection = "GammaCorrection";
     }
 
     public static class Fonts
