@@ -68,6 +68,12 @@ public class OpenALAudioSource : IAudioSource
         OpenALDebug.Start("Creating new source");
         m_sourceId = AL.GenSource();
         AL.Source(m_sourceId, ALSourcef.MinGain, 0.0f);
+        if (owner.AudioSystem.Gain == 0)
+        {
+            // If sound effects gain is set to zero, we attenuate at the source to avoid muting the music.
+            // Else, all volume attenuation is done at the listener.
+            AL.Source(m_sourceId, ALSourcef.Gain, 0.0f);
+        }
         AL.Source(m_sourceId, ALSourcef.RolloffFactor, rolloffFactor);
         AL.Source(m_sourceId, ALSourcef.ReferenceDistance, referenceDistance);
         AL.Source(m_sourceId, SourceRadius, radius);
