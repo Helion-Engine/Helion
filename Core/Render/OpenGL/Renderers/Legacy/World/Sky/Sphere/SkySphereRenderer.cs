@@ -176,6 +176,7 @@ public class SkySphereRenderer : IDisposable
         m_skyProgram.Scale(new Vec2F(skyTexture.ScaleU * skyTransform.Scale.X, 0));
         m_skyProgram.FlipU(flipSkyHorizontal);
         m_skyProgram.ColorMix(renderInfo.Uniforms.ColorMix.Sky);
+        m_skyProgram.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
 
         if (ShaderVars.PaletteColorMode)
         {
@@ -212,6 +213,7 @@ public class SkySphereRenderer : IDisposable
         m_foregroundProgram.Scale(new Vec2F(skyTexture.ScaleU * foregroundTransform.Scale.X, 0));
         m_foregroundProgram.FlipU(flipSkyHorizontal);
         m_foregroundProgram.ColorMix(renderInfo.Uniforms.ColorMix.Sky);
+        m_foregroundProgram.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
 
         if (ShaderVars.PaletteColorMode)
         {

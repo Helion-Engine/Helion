@@ -23,6 +23,7 @@ public class SkySphereShader : RenderProgram
     private readonly int m_skyMin;
     private readonly int m_skyMax;
     private readonly int m_colorMixLocation;
+    private readonly int m_gammaCorrectionLocation;
 
     public SkySphereShader() : base("Sky sphere")
     {
@@ -41,6 +42,7 @@ public class SkySphereShader : RenderProgram
         m_skyMin = Uniforms.GetLocation("skyMin");
         m_skyMax = Uniforms.GetLocation("skyMax");
         m_colorMixLocation = Uniforms.GetLocation("colorMix");
+        m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -58,6 +60,7 @@ public class SkySphereShader : RenderProgram
     public void SkyMin(float value) => Uniforms.Set(value, m_skyMin);
     public void SkyMax(float value) => Uniforms.Set(value, m_skyMax);
     public void ColorMix(Vec3F value) => Uniforms.Set(value, m_colorMixLocation);
+    public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -112,6 +115,7 @@ vec4 bottomFetchColor = bottomColor;
         uniform float skyMin;
         uniform float skyMax;
         uniform vec3 colorMix;
+        uniform float gammaCorrection;
 
         uniform vec4 topColor;
         uniform vec4 bottomColor;
@@ -163,9 +167,11 @@ vec4 bottomFetchColor = bottomColor;
             fragColor = blendSky(fragColor, topFetchColor, bottomFetchColor);
             fragColor.xyz *= min(colorMix, 1);
             ${InvulnerabilityFragColor}
+            ${GammaCorrection}
         }
     "
     .Replace("${FetchTopBottomColors}", FetchTopBottomColors)
     .Replace("${InvulnerabilityFragColor}", FragFunction.InvulnerabilityFragColor)
-    .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false, ColorMapFetchContext.Default));
+    .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false, ColorMapFetchContext.Default))
+    .Replace("${GammaCorrection}", FragFunction.GammaCorrection());
 }

@@ -34,6 +34,8 @@ public class RenderInfo
         Config = null!;
         ViewerEntity = null!;
         ViewSector = null!;
+
+        Uniforms.GammaCorrection = 1f;
     }
 
     public void Set(OldCamera? camera, float tickFraction, Rectangle viewport, Entity viewerEntity, bool drawAutomap,
