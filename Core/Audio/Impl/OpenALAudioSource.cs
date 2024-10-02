@@ -68,7 +68,6 @@ public class OpenALAudioSource : IAudioSource
         OpenALDebug.Start("Creating new source");
         m_sourceId = AL.GenSource();
         AL.Source(m_sourceId, ALSourcef.MinGain, 0.0f);
-        AL.Source(m_sourceId, ALSourcef.Gain, (float)Owner.AudioSystem.Gain);
         AL.Source(m_sourceId, ALSourcef.RolloffFactor, rolloffFactor);
         AL.Source(m_sourceId, ALSourcef.ReferenceDistance, referenceDistance);
         AL.Source(m_sourceId, SourceRadius, radius);
