@@ -184,6 +184,7 @@ public sealed class AudioStream : IOutputStream
         if (m_pollingTask != null)
         {
             m_pollingCts!.Cancel();
+            m_pollingTask.Wait();
         }
     }
 
