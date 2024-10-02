@@ -77,7 +77,7 @@ public class FloodFillProgram : RenderProgram
         layout(location = 4) in float prevZ;
         layout(location = 5) in float prevPlaneZ;
         layout(location = 6) in float lightLevelBufferIndex;
-        layout(location = 7) in float sectorIndex;
+        layout(location = 7) in float colorMapIndex;
 
         flat out float planeZFrag;
         out vec3 vertexPosFrag;

@@ -1,7 +1,5 @@
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
-using Helion.Util.Container;
-using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
 using static Helion.Util.Assertion.Assert;
 
@@ -16,7 +14,6 @@ public class Subsector
     public readonly Box2D BoundingBox;    
     public readonly int SegIndex;
     public readonly int SegCount;
-    public readonly LinkableList<Entity> Entities = new();
     public bool Flood;
 
     public Subsector(int id, Sector sector, Box2D boundingBox, int index, int count)
@@ -28,15 +25,6 @@ public class Subsector
         BoundingBox = boundingBox;
         SegIndex = index;
         SegCount = count;
-    }
-
-    public LinkableNode<Entity> Link(Entity entity)
-    {
-        Precondition(!Entities.ContainsReference(entity), "Trying to link an entity to a sector twice");
-
-        LinkableNode<Entity> node = WorldStatic.DataCache.GetLinkableNodeEntity(entity);
-        Entities.Add(node);
-        return node;
     }
 }
  

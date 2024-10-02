@@ -296,8 +296,8 @@ public partial class Renderer : IDisposable
             skyColormap = globalColormap;
         }
 
-        if (viewer.Sector.Colormap != null)
-            sectorColormap = viewer.Sector.Colormap;
+        if (viewer.Sector.TransferFloorLightSector.Colormap != null)
+            sectorColormap = viewer.Sector.TransferFloorLightSector.Colormap;
     }
 
     public static mat4 CalculateMvpMatrix(RenderInfo renderInfo, bool onlyXY = false)
