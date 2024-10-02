@@ -13,6 +13,7 @@
   - TRANSLATION1 and TRANSLATION2 flag support for true-color rendering
   - ENDOOM text screen on quit
   - Gamma correction
+  - Sound velocity option
 
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
@@ -54,3 +55,4 @@
   - Fix OpenGL context using 3.3 with Intel iGPUs when a higher version is supported
   - Fix dehacked level string replacement for automap/console/loading displays
   - Fix reversed x/y scroll values for MBF21 1024 scroll special
+  - Fix velocity being set for certain sounds and not cleared that can cause pitch variations

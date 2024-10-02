@@ -1352,7 +1352,6 @@ public abstract partial class WorldBase : IWorld
         // Doom set the owner as the target
         projectile.SetOwner(shooter);
         projectile.SetTarget(shooter);
-        projectile.PlaySeeSound();
 
         if (projectile.Flags.Randomize)
             projectile.SetRandomizeTicks();
@@ -1361,11 +1360,11 @@ public abstract partial class WorldBase : IWorld
             projectile.Properties.FastSpeed : projectile.Properties.MissileMovementSpeed;
 
         Vec3D velocity = Vec3D.UnitSphere(angle, pitch) * speed;
+        projectile.Velocity = velocity;
+        projectile.PlaySeeSound();
+
         if (projectile.Flags.NoClip)
-        {
-            projectile.Velocity = velocity;
             return projectile;
-        }
         
         Vec3D testPos = projectile.Position;
         if (projectile.Properties.MissileMovementSpeed > 0)
