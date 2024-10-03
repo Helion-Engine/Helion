@@ -1,7 +1,8 @@
-﻿using FluentAssertions;
-using Xunit;
+﻿namespace Helion.Tests.Unit.Dehacked;
 
-namespace Helion.Dehacked;
+using FluentAssertions;
+using Xunit;
+using Helion.Dehacked;
 
 public class DehackedPar
 {
