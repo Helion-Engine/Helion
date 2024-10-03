@@ -45,7 +45,7 @@ public class Scroll
         var line = GameActions.GetLine(World, 8);
         AssertTwoSidedScroll(line, (0, 0));
         GameActions.TickWorld(World, 1);
-        AssertTwoSidedScroll(line, (-0.5, 1));
+        AssertTwoSidedScroll(line, (-1, 0.5));
     }
 
     [Fact(DisplayName = "2085 ScrollSidesToSectorMovement")]

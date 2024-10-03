@@ -19,6 +19,10 @@ public class ConfigAudio
     [ConfigInfo("Overall volume. 0.0 is Off, 1.0 is Maximum.")]
     public readonly ConfigValue<double> Volume = new(1.0, ClampNormalized);
 
+    [ConfigInfo("Enables sound velocity.")]
+    [OptionMenu(OptionSectionType.Audio, "Sound Velocity", spacer: true)]
+    public readonly ConfigValue<bool> Velocity = new(false);
+
     [ConfigInfo("Randomize sound pitch.")]
     [OptionMenu(OptionSectionType.Audio, "Randomize Pitch", spacer: true)]
     public readonly ConfigValue<RandomPitch> RandomizePitch = new(RandomPitch.None);
@@ -45,4 +49,6 @@ public class ConfigAudio
     [ConfigInfo("SoundFont file to use for MIDI/MUS music playback.")]
     [OptionMenu(OptionSectionType.Audio, "SoundFont File", dialogType: DialogType.SoundFontPicker)]
     public readonly ConfigValue<string> SoundFontFile = new($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");
+
+    public double MusicVolumeNormalized => (SoundVolume == 0 ? MusicVolume : (MusicVolume / SoundVolume)) * Volume;
 }

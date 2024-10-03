@@ -175,9 +175,9 @@ public partial class BoomActions
         line2.Front.ScrollData.Should().NotBeNull();
         line3.Front.ScrollData.Should().NotBeNull();
 
-        AssertScrollDiffOffsets(line1.Front.ScrollData!, new Vec2D(0.25, -0.125));
-        AssertScrollDiffOffsets(line2.Front.ScrollData!, new Vec2D(0.125, -0.25));
-        AssertScrollDiffOffsets(line3.Front.ScrollData!, new Vec2D(-0.25, 0.125));
+        AssertScrollDiffOffsets(line1.Front.ScrollData!, new Vec2D(0.125, - 0.25));
+        AssertScrollDiffOffsets(line2.Front.ScrollData!, new Vec2D(0.25, - 0.125));
+        AssertScrollDiffOffsets(line3.Front.ScrollData!, new Vec2D(-0.125, 0.25));
     }
 
     [Fact(DisplayName = "Boom Action 1025 Scroll tagged wall using offsets displacement")]

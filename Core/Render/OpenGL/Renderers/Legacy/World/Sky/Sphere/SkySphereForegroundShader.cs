@@ -24,6 +24,7 @@ internal class SkySphereForegroundShader : RenderProgram
     private readonly int m_skyMin;
     private readonly int m_skyMax;
     private readonly int m_colorMixLocation;
+    private readonly int m_gammaCorrectionLocation;
 
     public SkySphereForegroundShader() : base("Sky foreground texture")
     {
@@ -43,6 +44,7 @@ internal class SkySphereForegroundShader : RenderProgram
         m_skyMin = Uniforms.GetLocation("skyMin");
         m_skyMax = Uniforms.GetLocation("skyMax");
         m_colorMixLocation = Uniforms.GetLocation("colorMix");
+        m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -61,6 +63,7 @@ internal class SkySphereForegroundShader : RenderProgram
     public void SkyMin(float value) => Uniforms.Set(value, m_skyMin);
     public void SkyMax(float value) => Uniforms.Set(value, m_skyMax);
     public void ColorMix(Vec3F value) => Uniforms.Set(value, m_colorMixLocation);
+    public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -103,6 +106,7 @@ internal class SkySphereForegroundShader : RenderProgram
         uniform float skyMin;
         uniform float skyMax;
         uniform vec3 colorMix;
+        uniform float gammaCorrection;
         
         uniform vec4 topColor;
         uniform vec4 bottomColor;
@@ -136,5 +140,6 @@ internal class SkySphereForegroundShader : RenderProgram
     "
     .Replace("${FetchTopBottomColors}", SkySphereShader.FetchTopBottomColors)
     .Replace("${InvulnerabilityFragColor}", FragFunction.InvulnerabilityFragColor)
-    .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false, ColorMapFetchContext.Default));
+    .Replace("${ColorMapFetch}", FragFunction.ColorMapFetch(false, ColorMapFetchContext.Default))
+    .Replace("${GammaCorrection}", FragFunction.GammaCorrection());
 }

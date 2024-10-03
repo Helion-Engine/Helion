@@ -855,25 +855,17 @@ public sealed class SpecialManager : ITickable, IDisposable
             if (line.Id == setLine.Id)
                 continue;
 
+            ScrollSpeeds speeds;
             if ((flags & ZDoomScroll.LineOffset) != 0)
-            {
-                ScrollSpeeds speeds = GetScrollOffsetSpeedsFromLine(setLine, flags);
-                if (!speeds.ScrollSpeed.HasValue)
-                    continue;
-
-                AddSpecial(new ScrollSpecial(line, speeds.ScrollSpeed.Value,
-                    lineScroll, accelSector: changeScroll, scrollFlags: flags));
-                continue;
-            }
+                speeds = GetScrollOffsetSpeedsFromLine(setLine, flags);
             else
-            {
-                ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(setLine, line);
-                if (!speeds.ScrollSpeed.HasValue)
-                    continue;
+                speeds = ScrollUtil.GetScrollLineSpeed(setLine, line);
 
-                AddSpecial(new ScrollSpecial(line, speeds.ScrollSpeed.Value,
-                    lineScroll, accelSector: changeScroll, scrollFlags: flags));
-            }
+            if (!speeds.ScrollSpeed.HasValue)
+                continue;
+
+            AddSpecial(new ScrollSpecial(line, speeds.ScrollSpeed.Value,
+                lineScroll, accelSector: changeScroll, scrollFlags: flags));
         }
     }
 
@@ -885,7 +877,8 @@ public sealed class SpecialManager : ITickable, IDisposable
         if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)
             return new ScrollSpeeds() { ScrollSpeed = new(-setLine.Front.Offset.X / 8.0, setLine.Front.Offset.Y / 8.0) };
 
-        return new ScrollSpeeds() { ScrollSpeed = new(-setLine.Front.Offset.Y / 8.0, setLine.Front.Offset.X / 8.0) };
+        // TODO why is this backwards
+        return new ScrollSpeeds() { ScrollSpeed = new(-setLine.Front.Offset.X / 8.0, setLine.Front.Offset.Y / 8.0) };
     }
 
     private void CreateScrollPlane(Line line, SectorPlaneFace planeType)

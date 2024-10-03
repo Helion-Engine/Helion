@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
@@ -226,7 +227,7 @@ public class EntityRenderer : IDisposable
             vertex->LightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? 255 :
                 ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
             vertex->Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
-            vertex->SectorIndex = sector.Id + 1;
+            vertex->SectorIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
         }
         arrayData.Length = length + 1;
     }
@@ -264,6 +265,7 @@ public class EntityRenderer : IDisposable
         m_program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         m_program.LightMode(renderInfo.Uniforms.LightMode);
+        m_program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
     }
 
     public void RenderAlpha(RenderInfo renderInfo)

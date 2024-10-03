@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using Helion.Resources.Archives.Collection;
 using Helion.Resources.IWad;
 using Helion.Util.Extensions;
 using Helion.World.Impl.SinglePlayer;
@@ -16,6 +15,18 @@ public class GameConf
     public GameConf()
     {
         World = WorldAllocator.LoadMap("Resources/id24gameconf.zip", "id24gameconf.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, gameConf: true);
+    }
+
+    [Fact(DisplayName = "Pwad load order")]
+    public void Pwads()
+    {
+        var archives = World.ArchiveCollection.AllArchives.ToArray();
+        archives.Length.Should().Be(5);
+        archives[0].Path.Name.ToLower().Should().Be("assets");
+        archives[1].Path.Name.ToLower().Should().Be("doom2");
+        archives[2].Path.Name.ToLower().Should().Be("id24gameconf");
+        archives[3].Path.Name.ToLower().Should().Be("pwad1");
+        archives[4].Path.Name.ToLower().Should().Be("pwad2");
     }
 
     [Fact(DisplayName = "Wad translation")]
