@@ -5,7 +5,6 @@
     <UseWindowsForms>false</UseWindowsForms>
     <RootNamespace>Helion.Client</RootNamespace>
 
-    <TieredCompilation>false</TieredCompilation>
     <AssemblyName>Helion</AssemblyName>
     <ApplicationIcon>helion.ico</ApplicationIcon>
 
