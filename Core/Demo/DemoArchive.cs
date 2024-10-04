@@ -44,7 +44,7 @@ public static class DemoArchive
             using ZipArchive zipArchive = ZipFile.Open(demoArchiveName, ZipArchiveMode.Create);
             ZipArchiveEntry entry = zipArchive.CreateEntry(DemoInfoFile);
             using (Stream stream = entry.Open())
-                stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(demoModel)));
+                stream.Write(Encoding.UTF8.GetBytes(JsonSerialization.Serialize(demoModel)));
 
             entry = zipArchive.CreateEntry(DemoDataFile);
             using (Stream stream = entry.Open())
@@ -81,7 +81,7 @@ public static class DemoArchive
             if (info == null || data == null)
                 return false;
 
-            demoModel = JsonSerializer.Deserialize<DemoModel>(info.ReadDataAsString());
+            demoModel = JsonSerialization.Deserialize<DemoModel>(info.ReadDataAsString());
             if (demoModel == null)
                 return false;
 
