@@ -300,5 +300,5 @@ public static class Constants
 
     public const int MaxTextureHeight = 16384;
 
-    public static readonly int MaxSoundChannels = Enum.GetValues(typeof(SoundChannel)).Length;
+    public static readonly int MaxSoundChannels = Enum.GetValues<SoundChannel>().Length;
 }

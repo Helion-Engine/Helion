@@ -36,7 +36,7 @@ public sealed class Inventory
     private static List<string> GetPowerEnumValues()
     {
         List<string> values = new();
-        var enumValues = Enum.GetValues(typeof(PowerupType));
+        var enumValues = Enum.GetValues<PowerupType>();
         foreach (PowerupType value in enumValues)
             values.Add(value.ToString());
         return values;

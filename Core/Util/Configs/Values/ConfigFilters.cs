@@ -11,7 +11,7 @@ namespace Helion.Util.Configs.Values;
 /// </summary>
 public static class ConfigFilters
 {
-    public static Func<E, E, bool> OnlyValidEnums<E>() where E : struct
+    public static Func<E, E, bool> OnlyValidEnums<E>() where E : struct, Enum
     {
         if (!typeof(E).IsEnum)
             throw new Exception($"{typeof(E).Name} is supposed to be an enum for config filter {nameof(OnlyValidEnums)}");
@@ -21,7 +21,7 @@ public static class ConfigFilters
             // Can't do Enum.GetValues<E> since `where E : Enum` doesn't work
             // with Func<E, E, E?>'s third nullable parameter at the time of
             // writing.
-            IEnumerable<E> enumValues = Enum.GetValues(typeof(E)).Cast<E>();
+            IEnumerable<E> enumValues = Enum.GetValues<E>();
             foreach (E enumValue in enumValues)
                 if (value.Equals(enumValue))
                     return true;
