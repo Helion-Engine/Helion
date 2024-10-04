@@ -4,7 +4,6 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
-using System.Reflection;
 
 namespace Helion.Client;
 
@@ -42,12 +41,11 @@ public class GlVersionTest
             OpenTK.Windowing.GraphicsLibraryFramework.Window* windowPtr = GLFW.CreateWindow(640, 480, "", null, (OpenTK.Windowing.GraphicsLibraryFramework.Window*)(void*)IntPtr.Zero);
             GLFW.MakeContextCurrent(windowPtr);
 
-            var assembly = Assembly.Load("OpenTK.Graphics");
-            LoadBindings(assembly, "ES11");
-            LoadBindings(assembly, "ES20");
-            LoadBindings(assembly, "ES30");
-            LoadBindings(assembly, "OpenGL");
-            LoadBindings(assembly, "OpenGL4");
+            LoadBindingsES11();
+            LoadBindingsES20();
+            LoadBindingsES30();
+            LoadBindingsOpenGL();
+            LoadBindingsOpenGL4();
 
             // Pull the version string from the created context to get the version since it was requested at the lowest (MacOS).
             // Otherwise the context is created with this version and no test is required (Windows/Linux).
@@ -100,11 +98,33 @@ public class GlVersionTest
         return glMajor == major && glMinor >= minor;
     }
 
-    static void LoadBindings(Assembly assembly, string typeNamespace)
+    static void LoadBindingsES11()
     {
         GLFWBindingsContext provider = new();
-        var type = assembly.GetType("OpenTK.Graphics." + typeNamespace + ".GL");
-        var bindings = (type?.GetMethod("LoadBindings")) ?? throw new Exception("Failed to load OpenTK.Graphics");
-        bindings.Invoke(null, [provider]);
+        OpenTK.Graphics.ES11.GL.LoadBindings(provider);
+    }
+
+    static void LoadBindingsES20()
+    {
+        GLFWBindingsContext provider = new();
+        OpenTK.Graphics.ES20.GL.LoadBindings(provider);
+    }
+
+    static void LoadBindingsES30()
+    {
+        GLFWBindingsContext provider = new();
+        OpenTK.Graphics.ES30.GL.LoadBindings(provider);
+    }
+
+    static void LoadBindingsOpenGL()
+    {
+        GLFWBindingsContext provider = new();
+        OpenTK.Graphics.OpenGL.GL.LoadBindings(provider);
+    }
+
+    static void LoadBindingsOpenGL4()
+    {
+        GLFWBindingsContext provider = new();
+        OpenTK.Graphics.OpenGL4.GL.LoadBindings(provider);
     }
 }
