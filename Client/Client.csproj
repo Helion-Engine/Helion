@@ -18,6 +18,11 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile >
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(AOT)' == 'true'">
+    <PublishAot>True</PublishAot>
+    <OptimizationPreference>Speed</OptimizationPreference>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
@@ -53,7 +58,8 @@
   <Target Name="SetPublishDir" BeforeTargets="Build">
     <PropertyGroup>
       <PublishDir Condition="'$(SelfContainedRelease)' == 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)_SelfContained\</PublishDir>
-      <PublishDir Condition="'$(SelfContainedRelease)' != 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)\</PublishDir>
+      <PublishDir Condition="'$(AOT)' == 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)_AOT\</PublishDir>
+      <PublishDir Condition="'$(SelfContainedRelease)' != 'true' AND '$(AOT)' != 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)\</PublishDir>
     </PropertyGroup>
   </Target>
 
