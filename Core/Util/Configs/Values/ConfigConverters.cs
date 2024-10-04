@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.Json;
 using Helion.Util.Extensions;
+using Helion.Util.SerializationContexts;
 
 namespace Helion.Util.Configs.Values;
 
@@ -132,7 +133,7 @@ public static class ConfigConverters
             // Windows backslashes break the JSON parser, so convert them.
             str = str.Replace('\\', '/');
 
-            List<string> elements = JsonSerializer.Deserialize<List<string>>(str) ??
+            List<string> elements = (List<string>?)JsonSerializer.Deserialize(str, typeof(List<string>), StringListSerializationContext.Default) ??
                                     throw new Exception("List is malformed");
             return (T)(object)elements;
         }
