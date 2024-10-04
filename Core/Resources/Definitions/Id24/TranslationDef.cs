@@ -1,8 +1,4 @@
 ﻿namespace Helion.Resources.Definitions.Id24;
-
-using System;
-using System.Collections.Generic;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 public class TranslationData
@@ -12,6 +8,7 @@ public class TranslationData
     public bool SBarTranslate { get; set; }
     public string InterBack { get; set; } = string.Empty;
     [JsonConverter(typeof(ByteArrayConverter))]
+    public bool InterTranslate { get; set; }
     public byte[] Table { get; set; } = [];
 }
 

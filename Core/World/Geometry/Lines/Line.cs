@@ -141,7 +141,7 @@ public sealed class Line
         if ((side.DataChanges & SideDataTypes.UpperTexture) != 0)
         {
             if (sideModel.UpperTex != null)
-                side.SetWallTexture(tx.GetTexture(sideModel.UpperTex, ResourceNamespace.Global).Index, WallLocation.Upper);
+                side.SetWallTexture(tx.GetTexture(sideModel.UpperTex, ResourceNamespace.Global, ResourceNamespace.Textures).Index, WallLocation.Upper);
             else if (sideModel.UpperTexture.HasValue)
                 side.SetWallTexture(sideModel.UpperTexture.Value, WallLocation.Upper);
         }
@@ -149,7 +149,7 @@ public sealed class Line
         if ((side.DataChanges & SideDataTypes.MiddleTexture) != 0)
         {
             if(sideModel.MiddelTex != null)
-                side.SetWallTexture(tx.GetTexture(sideModel.MiddelTex, ResourceNamespace.Global).Index, WallLocation.Middle);
+                side.SetWallTexture(tx.GetTexture(sideModel.MiddelTex, ResourceNamespace.Global, ResourceNamespace.Textures).Index, WallLocation.Middle);
             else if (sideModel.MiddleTexture.HasValue)
                 side.SetWallTexture(sideModel.MiddleTexture.Value, WallLocation.Middle);
         }
@@ -157,7 +157,7 @@ public sealed class Line
         if ((side.DataChanges & SideDataTypes.LowerTexture) != 0)
         {
             if(sideModel.LowerTex != null)
-                side.SetWallTexture(tx.GetTexture(sideModel.LowerTex, ResourceNamespace.Global).Index, WallLocation.Lower);
+                side.SetWallTexture(tx.GetTexture(sideModel.LowerTex, ResourceNamespace.Global, ResourceNamespace.Textures).Index, WallLocation.Lower);
             else if (sideModel.LowerTexture.HasValue)
                 side.SetWallTexture(sideModel.LowerTexture.Value, WallLocation.Lower);
         }    
