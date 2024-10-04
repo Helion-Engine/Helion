@@ -54,7 +54,7 @@ public class ConsoleCommands : IEnumerable<(string command, ConsoleCommandData d
     /// <exception cref="Exception">If any attributed method has the improper
     /// parameter count or type. It must have exactly one parameter that is
     /// of type ConsoleCommandEventArgs.</exception>
-    public void RegisterMethodsOrThrow<T>(T obj) where T : notnull
+    public void RegisterMethodsOrThrow<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)] T>(T obj) where T : notnull
     {
         // For some dumb reason, you must have both the binding flags of
         // BindingFlags.NonPublic | BindingFlags.Instance or else it will
