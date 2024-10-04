@@ -7,8 +7,8 @@ public class TranslationData
     public string SBarBack { get; set; } = string.Empty;
     public bool SBarTranslate { get; set; }
     public string InterBack { get; set; } = string.Empty;
-    [JsonConverter(typeof(ByteArrayConverter))]
     public bool InterTranslate { get; set; }
+    [JsonConverter(typeof(ByteArrayConverter))]
     public byte[] Table { get; set; } = [];
 }
 
