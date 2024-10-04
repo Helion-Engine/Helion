@@ -3,6 +3,8 @@ using Helion.Util;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using Helion.Util.SerializationContexts;
 
 namespace Helion.Resources.Definitions.Id24;
 
@@ -17,7 +19,7 @@ public class Id24SkyDefinition
         string data = entry.ReadDataAsString();
         try
         {
-            var converted = JsonSerialization.Deserialize<SkyDefinitions>(data) ?? throw new Exception("Data was null");
+            var converted = (SkyDefinitions?)JsonSerializer.Deserialize(data, typeof(SkyDefinitions), SkyDefinitionSerializationContext.Default) ?? throw new Exception("Data was null");
             Data = converted.Data;
 
             foreach (var item in Data.FlatMapping)

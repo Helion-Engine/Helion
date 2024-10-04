@@ -1,5 +1,6 @@
 ﻿namespace Helion.Models
 {
+    using Helion.Util.SerializationContexts;
     using System;
     using System.Collections.Generic;
     using System.Text.Json;
@@ -61,7 +62,8 @@
                 throw new JsonException($"Unknown type: {typeName}");
             }
 
-            object? deserialized = JsonSerializer.Deserialize(ref reader, implementationType, options);
+
+            object? deserialized = JsonSerializer.Deserialize(ref reader, implementationType, WorldModelSerializationContext.Default);
             return (ISpecialModel?)deserialized;
         }
 
@@ -73,7 +75,7 @@
             Type type = value.GetType();
 
             writer.WriteStartObject();
-            using (JsonDocument subDocument = JsonDocument.Parse(JsonSerializer.Serialize(value, type, options)))
+            using (JsonDocument subDocument = JsonDocument.Parse(JsonSerializer.Serialize(value, type, WorldModelSerializationContext.Default)))
             {
                 writer.WriteString("$type", $"{type.FullName}, Core");  // Imitate Newtonsoft.Json format
                 foreach (var element in subDocument.RootElement.EnumerateObject())

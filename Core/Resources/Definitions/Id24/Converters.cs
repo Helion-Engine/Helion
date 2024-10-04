@@ -32,19 +32,19 @@ public class ByteArrayConverter : JsonConverter<byte[]>
     }
 }
 
-public class OptionsConverter : JsonConverter<Options>
+public class OptionsConverter : JsonConverter<OptionsModel>
 {
-    public override void Write(Utf8JsonWriter writer, Options value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, OptionsModel value, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }
 
-    public override Options? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override OptionsModel? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         string? token = (reader.TokenType == JsonTokenType.String)
             ? reader.GetString()
             : null;
-        return new Options(token);
+        return new OptionsModel(token);
     }
 }
 

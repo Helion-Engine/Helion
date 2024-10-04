@@ -8,7 +8,7 @@ public class OptionsDefinition
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public Options Data { get; set; } = new();
+    public OptionsModel Data { get; set; } = new();
 
     public void Parse(Entry entry)
     {

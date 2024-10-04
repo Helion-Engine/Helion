@@ -1,11 +1,13 @@
 using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
+using Helion.Util.SerializationContexts;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 
 namespace Helion.World.Save;
 
@@ -45,7 +47,7 @@ public class SaveGame
             if (saveDataEntry == null)
                 return;
 
-            Model = JsonSerialization.Deserialize<SaveGameModel>(saveDataEntry.ReadDataAsString());
+            Model = (SaveGameModel?)JsonSerializer.Deserialize(saveDataEntry.ReadDataAsString(), typeof(SaveGameModel), SaveGameModelSerializationContext.Default);
         }
         catch
         {
@@ -65,7 +67,7 @@ public class SaveGame
             if (entry == null)
                 return null;
 
-            return JsonSerialization.Deserialize<WorldModel>(entry.ReadDataAsString());
+            return (WorldModel?)JsonSerializer.Deserialize(entry.ReadDataAsString(), typeof(WorldModel), WorldModelSerializationContext.Default);
         }
         catch
         {
@@ -93,11 +95,11 @@ public class SaveGame
             using ZipArchive zipArchive = ZipFile.Open(saveTempFile, ZipArchiveMode.Create);
             ZipArchiveEntry entry = zipArchive.CreateEntry(SaveDataFile);
             using (Stream stream = entry.Open())
-                stream.Write(Encoding.UTF8.GetBytes(JsonSerialization.Serialize(saveGameModel)));
+                stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(saveGameModel, typeof(SaveGameModel), SaveGameModelSerializationContext.Default)));
 
             entry = zipArchive.CreateEntry(WorldDataFile);
             using (Stream stream = entry.Open())
-                stream.Write(Encoding.UTF8.GetBytes(JsonSerialization.Serialize(worldModel)));
+                stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(worldModel, typeof(WorldModel), WorldModelSerializationContext.Default)));
         }
         catch (Exception ex)
         {

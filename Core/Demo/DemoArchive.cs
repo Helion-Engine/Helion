@@ -1,6 +1,7 @@
 ﻿using Helion.Models;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.SerializationContexts;
 using Helion.World;
 using Helion.World.Util;
 using NLog;
@@ -44,7 +45,7 @@ public static class DemoArchive
             using ZipArchive zipArchive = ZipFile.Open(demoArchiveName, ZipArchiveMode.Create);
             ZipArchiveEntry entry = zipArchive.CreateEntry(DemoInfoFile);
             using (Stream stream = entry.Open())
-                stream.Write(Encoding.UTF8.GetBytes(JsonSerialization.Serialize(demoModel)));
+                stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(demoModel, typeof(DemoModel), DemoModelSerializationContext.Default)));
 
             entry = zipArchive.CreateEntry(DemoDataFile);
             using (Stream stream = entry.Open())
@@ -81,7 +82,7 @@ public static class DemoArchive
             if (info == null || data == null)
                 return false;
 
-            demoModel = JsonSerialization.Deserialize<DemoModel>(info.ReadDataAsString());
+            demoModel = (DemoModel?)JsonSerializer.Deserialize(info.ReadDataAsString(), typeof(DemoModel), DemoModelSerializationContext.Default);
             if (demoModel == null)
                 return false;
 

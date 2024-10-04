@@ -1,5 +1,6 @@
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Compatibility;
+using Helion.Util.SerializationContexts;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,7 @@ public class GameConfDefinition
         string data = entry.ReadDataAsString();
         try
         {
-            var converted = JsonSerializer.Deserialize<GameConf>(data, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true })
+            var converted = (GameConf?)JsonSerializer.Deserialize(data, typeof(GameConf), GameConfSerializationContext.Default)
                 ?? throw new Exception($"Gameconf was null");
             var newData = converted.Data;
 
@@ -57,7 +58,7 @@ public class GameConfDefinition
             newData.Mode = Max(ModeValues, newData.Mode, Data?.Mode);
 
             // merge options
-            Options options = Data?.Options ?? new();
+            OptionsModel options = Data?.Options ?? new();
             foreach (var item in newData.Options.Items)
                 options.Set(item.Key, item.Value);
             newData.Options = options;

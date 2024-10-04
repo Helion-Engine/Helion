@@ -225,7 +225,7 @@ public partial class Client
         // TODO: gameconf's options care about the executable level,
         // should a regular options lump care about the compatlvl?
         var compat = m_config.Compatibility;
-        Options options = gameConfDef.Data?.Options ?? optionsDef.Data;
+        OptionsModel options = gameConfDef.Data?.Options ?? optionsDef.Data;
         if (options.OptionEnabled(OptionsConstants.Comp.Pain, compLevelDef.CompLevel))
             compat.PainElementalLostSoulLimit.Set(true, writeToConfig: false);
         if (options.OptionEnabled(OptionsConstants.Comp.Stairs, compLevelDef.CompLevel))
