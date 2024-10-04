@@ -394,7 +394,7 @@ public sealed class Sector
             if ((DataChanges & SectorDataTypes.FloorTexture) != 0)
             {
                 if (sectorModel.FloorTex != null)
-                    Floor.SetTexture(world.TextureManager.GetTexture(sectorModel.FloorTex, ResourceNamespace.Global).Index, 0);
+                    Floor.SetTexture(world.TextureManager.GetTexture(sectorModel.FloorTex, ResourceNamespace.Global, ResourceNamespace.Flats).Index, 0);
                 else if (sectorModel.FloorTexture.HasValue)
                     Floor.SetTexture(sectorModel.FloorTexture.Value, 0);
             }
@@ -402,7 +402,7 @@ public sealed class Sector
             if ((DataChanges & SectorDataTypes.CeilingTexture) != 0)
             {
                 if (sectorModel.CeilingTex != null)
-                    Ceiling.SetTexture(world.TextureManager.GetTexture(sectorModel.CeilingTex, ResourceNamespace.Global).Index, 0);
+                    Ceiling.SetTexture(world.TextureManager.GetTexture(sectorModel.CeilingTex, ResourceNamespace.Global, ResourceNamespace.Flats).Index, 0);
                 else if (sectorModel.CeilingTexture.HasValue)
                     Ceiling.SetTexture(sectorModel.CeilingTexture.Value, 0);
             }
