@@ -6,6 +6,7 @@ public class TranslationData
     public string SBarBack { get; set; } = string.Empty;
     public bool SBarTranslate { get; set; }
     public string InterBack { get; set; } = string.Empty;
+    public bool InterTranslate { get; set; }
     public byte[] Table { get; set; } = [];
 }
 
