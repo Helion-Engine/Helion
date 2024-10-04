@@ -15,7 +15,7 @@
     <SelfContained>True</SelfContained>
     <PublishSingleFile>True</PublishSingleFile>
     <PublishReadyToRun>True</PublishReadyToRun>
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile >
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(AOT)' == 'true'">
