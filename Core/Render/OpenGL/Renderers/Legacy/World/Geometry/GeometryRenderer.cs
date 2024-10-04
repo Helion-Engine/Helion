@@ -1713,7 +1713,7 @@ public class GeometryRenderer : IDisposable
     private static unsafe void GetFlatVertices(DynamicVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
         int lightLevelBufferIndex, int colorMapIndex)
     {
-        var options = VertexOptions.World(1, 0, lightLevelBufferIndex);
+        var options = VertexOptions.World(1, 1, lightLevelBufferIndex);
         fixed (DynamicVertex* startVertex = &vertices[startIndex])
         {
             DynamicVertex* vertex = startVertex;
