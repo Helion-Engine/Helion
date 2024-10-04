@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Util.Container;
@@ -11,7 +12,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 /// to track vertices for alpha and non-alpha, but keep them in separate lists.
 /// Instead of copy pasting the logic, they're now in their own class.
 /// </summary>
-public class RenderDataCollection<TVertex> : IDisposable where TVertex : struct
+public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : IDisposable where TVertex : struct
 {
     private readonly DynamicArray<RenderData<TVertex>?> m_allRenderData = new();
     private readonly DynamicArray<RenderData<TVertex>> m_dataToRender = new();
