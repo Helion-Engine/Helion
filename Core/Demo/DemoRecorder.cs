@@ -21,7 +21,7 @@ public class DemoRecorder : IDemoRecorder
             File.Delete(file);
 
         m_fileStream = File.OpenWrite(file);
-        m_buffer = new byte[Marshal.SizeOf(typeof(DemoCommand))];
+        m_buffer = new byte[Marshal.SizeOf<DemoCommand>()];
         m_file = file;
     }
 
@@ -43,10 +43,23 @@ public class DemoRecorder : IDemoRecorder
         demoCommand.ForwardMoveSpeed = command.ForwardMoveSpeed;
         demoCommand.SideMoveSpeed = command.SideMoveSpeed;
 
-        m_fileStream.WriteStructure(demoCommand, m_buffer);
+        WriteCommand(m_fileStream, demoCommand, m_buffer);
         m_fileStream.Flush();
 
         CommandIndex++;
+    }
+
+    private static void WriteCommand(Stream stream, DemoCommand obj, byte[]? buffer = null)
+    {
+        int size = Marshal.SizeOf<DemoCommand>();
+        if (buffer == null)
+            buffer = new byte[size];
+
+        IntPtr ptr = Marshal.AllocHGlobal(size);
+        Marshal.StructureToPtr(obj, ptr, true);
+        Marshal.Copy(ptr, buffer, 0, size);
+        stream.Write(buffer, 0, size);
+        Marshal.FreeHGlobal(ptr);
     }
 
     public void Start() => Recording = true;

@@ -24,7 +24,7 @@ public class DemoPlayer : IDemoPlayer
     public DemoPlayer(string file, IList<DemoCheat> cheats)
     {
         m_fileStream = File.OpenRead(file);
-        m_buffer = new byte[Marshal.SizeOf(typeof(DemoCommand))];
+        m_buffer = new byte[Marshal.SizeOf<DemoCommand>()];
         m_cheats = cheats;
     }
 
@@ -45,7 +45,7 @@ public class DemoPlayer : IDemoPlayer
         AddActivatedCheats();
 
         command.Clear();
-        DemoCommand demoCommand = m_fileStream.ReadStructure<DemoCommand>(m_buffer);
+        DemoCommand demoCommand = ReadCommand(m_fileStream, m_buffer);
         for (int i = 0; i < 32; i++)
         {
             if (((1 << i) & demoCommand.Buttons) == 0)
@@ -64,6 +64,20 @@ public class DemoPlayer : IDemoPlayer
         return DemoTickResult.SuccessStopReading;
     }
 
+    private static DemoCommand ReadCommand(Stream stream, byte[]? buffer = null)
+    {
+        buffer = new byte[Marshal.SizeOf<DemoCommand>()];
+
+        int offset = 0;
+        while (offset < buffer.Length)
+            offset += stream.Read(buffer, offset, buffer.Length - offset);
+
+        GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+        DemoCommand? obj = Marshal.PtrToStructure<DemoCommand>(handle.AddrOfPinnedObject());
+        handle.Free();
+        return obj ?? default;
+    }
+
     private void AddActivatedCheats()
     {
         while (m_cheatIndex < m_cheats.Count && m_cheats[m_cheatIndex].CommandIndex == CommandIndex)
@@ -75,7 +89,7 @@ public class DemoPlayer : IDemoPlayer
 
     public bool SetCommandIndex(int index)
     {
-        long offset = Marshal.SizeOf(typeof(DemoCommand)) * index;
+        long offset = Marshal.SizeOf<DemoCommand>() * index;
         if (offset >= m_fileStream.Length)
             return false;
 
