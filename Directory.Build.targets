@@ -2,4 +2,9 @@
   <PropertyGroup>
     <HelionRootDir>$(MSBuildThisFileDirectory)</HelionRootDir>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(MSBuildProjectName)' != 'Tests'">
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+  </PropertyGroup>
 </Project>
