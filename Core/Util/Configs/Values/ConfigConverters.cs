@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Text.Json;
 using Helion.Util.Extensions;
 using Helion.Util.SerializationContexts;
+using Helion.Geometry.Vectors;
+using Helion.Geometry;
 
 namespace Helion.Util.Configs.Values;
 
@@ -30,11 +32,10 @@ public static class ConfigConverters
             return MakeThrowableStringListConverter<T>();
         if (typeof(T) == typeof(FileInfo))
             return MakeThrowableFileInfoConverter<T>();
-
-        // Last ditch attempt at a converter.
-        MethodInfo? method = typeof(T).GetMethod("FromConfigString", BindingFlags.Static | BindingFlags.Public);
-        if (method != null && method.ReturnType == typeof(T))
-            return arg => ((T)method.Invoke(null, new[] { arg })!);
+        if (typeof(T) == typeof(Vec3I))
+            return MakeThrowableVec3IConverter<T>();
+        if (typeof(T) == typeof(Dimension))
+            return MakeThrowableDimensionConverter<T>();
 
         throw new Exception($"No known way for config to convert type {typeof(T).Name}, add code to {nameof(ConfigConverters)} to fix this or add a 'public static {typeof(T).Name} FromConfigString(string s)' to the type");
     }
@@ -149,5 +150,26 @@ public static class ConfigConverters
         }
 
         return ThrowableFileInfoConverter;
+    }
+
+    private static Func<object, T> MakeThrowableVec3IConverter<T>() where T : notnull
+    {
+        static T ThrowableVec3IConverter(object obj)
+        {
+            return (T)(object)Vec3I.FromConfigString(obj.ToString() ?? string.Empty);
+        }
+
+        return ThrowableVec3IConverter;
+    }
+
+
+    private static Func<object, T> MakeThrowableDimensionConverter<T>() where T : notnull
+    {
+        static T ThrowableDimensionConverter(object obj)
+        {
+            return (T)(object)Dimension.FromConfigString(obj.ToString() ?? string.Empty);
+        }
+
+        return ThrowableDimensionConverter;
     }
 }
