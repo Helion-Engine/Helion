@@ -5,7 +5,7 @@
 
   <PropertyGroup Condition="'$(MSBuildProjectName)' != 'Tests'">
     <PublishTrimmed>true</PublishTrimmed>
-    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <TrimmerSingleWarn>true</TrimmerSingleWarn>  <!-- Set this to false for more detail on libraries used -->
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 </Project>
