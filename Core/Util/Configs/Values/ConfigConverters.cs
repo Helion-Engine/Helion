@@ -88,7 +88,7 @@ public static class ConfigConverters
     }
     private static Func<object, T> MakeThrowableEnumConverter<T>() where T : notnull
     {
-        Array enumValues = Enum.GetValues(typeof(T));
+        Array enumValues = ConfigEnums.KnownEnumValues[typeof(T)];
 
         Dictionary<string, T> nameToEnum = new(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < enumValues.Length; i++)

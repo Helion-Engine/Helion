@@ -298,9 +298,10 @@ public class ListedConfigSection : IOptionSection
             return;
 
         object currentEnumValue = cfgValue.ObjectValue;
-        Array enumValues = Enum.GetValues(cfgValue.ValueType);
-        if (enumValues.Length <= 0)
+        if(!ConfigEnums.KnownEnumValues.TryGetValue(cfgValue.ValueType, out Array? enumValues))
+        {
             return;
+        }
 
         int enumIndex = 0;
         if (m_currentEnumIndex.HasValue)
@@ -467,11 +468,18 @@ public class ListedConfigSection : IOptionSection
         // not be a valid enum when setting, so we use the index instead.
         if (m_currentEnumIndex.HasValue)
         {
-            var enumValue = Enum.GetValues(cfgValue.ValueType).GetValue(m_currentEnumIndex.Value);
-            if (enumValue == null)
-                result = ConfigSetResult.NotSetByBadConversion;
+            if(ConfigEnums.KnownEnumValues.TryGetValue(cfgValue.ValueType, out Array? enumValues))
+            {
+                var enumValue = enumValues.GetValue(m_currentEnumIndex.Value);
+                if (enumValue == null)
+                    result = ConfigSetResult.NotSetByBadConversion;
+                else
+                    result = cfgValue.Set(enumValue);
+            }
             else
-                result = cfgValue.Set(enumValue);
+            {
+                result = ConfigSetResult.NotSetByBadConversion;
+            }
         }
         else
         {

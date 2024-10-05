@@ -1,5 +1,6 @@
 using Helion.Graphics;
 using Helion.Util;
+using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
@@ -212,8 +213,11 @@ public partial class ConsoleLayer
                     if (componentType.IsEnum)
                     {
                         EmitMessage((Color.SaddleBrown, "Eligible values:"));
-                        foreach (object? enumValue in Enum.GetValues(componentType))
-                            EmitMessage((Color.SaddleBrown, $"    {(int)enumValue} ({enumValue})"));
+                        if (ConfigEnums.KnownEnumValues.TryGetValue(componentType, out Array? values))
+                        {
+                            foreach (object? enumValue in values)
+                                EmitMessage((Color.SaddleBrown, $"    {(int)enumValue} ({enumValue})"));
+                        }
                     }
                 }
                 else if (path.StartsWith(input, StringComparison.OrdinalIgnoreCase))
