@@ -82,7 +82,7 @@ public partial class Client
     [ConsoleCommand("inputkeys", "List all input keys")]
     private void InputKeys(ConsoleCommandEventArgs args)
     {
-        var values = Enum.GetValues(typeof(Key));
+        var values = Enum.GetValues<Key>();
         foreach (var value in values)
             Log.Info(value);
     }
