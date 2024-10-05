@@ -1,10 +1,11 @@
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.Resources.Definitions;
+using Helion.Util.Configs.Impl;
 
 namespace Helion.Util.Configs.Components;
 
-public class ConfigCompat
+public class ConfigCompat: ConfigElement<ConfigCompat>
 {
     [ConfigInfo("Compatibility level for this session.  This setting is not saved to disk.", save: false)]
     [OptionMenu(OptionSectionType.Compatibility, "Compatibility Level")]

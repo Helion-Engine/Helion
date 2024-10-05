@@ -1,10 +1,11 @@
-﻿using Helion.Util.Configs.Options;
+﻿using Helion.Util.Configs.Impl;
+using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
 
-public class ConfigSlowTick
+public class ConfigSlowTick: ConfigElement<ConfigSlowTick>
 {
     private const int SlowTickMultiplierMax = 10;
 

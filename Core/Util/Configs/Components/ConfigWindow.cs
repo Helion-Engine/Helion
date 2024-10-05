@@ -1,4 +1,5 @@
 using Helion.Geometry;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using OpenTK.Windowing.Common;
@@ -14,7 +15,7 @@ public enum RenderWindowState
     Fullscreen,
 }
 
-public class ConfigWindowVirtual
+public class ConfigWindowVirtual: ConfigElement<ConfigWindowVirtual>
 {
     [ConfigInfo("Virtual screen size.")]
     [OptionMenu(OptionSectionType.Video, "Virtual Size", spacer: true)]
@@ -29,7 +30,7 @@ public class ConfigWindowVirtual
     public readonly ConfigValue<bool> Stretch = new(false);
 }
 
-public class ConfigWindow
+public class ConfigWindow: ConfigElement<ConfigWindow>
 {
     [ConfigInfo("Display fullscreen or windowed.")]
     [OptionMenu(OptionSectionType.Video, "Fullscreen/Window", allowReset: false)]

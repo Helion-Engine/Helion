@@ -1,4 +1,5 @@
 using Helion.Render.Common.Textures;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using System.ComponentModel;
@@ -26,7 +27,7 @@ public enum RenderLightMode
     Smooth
 }
 
-public class ConfigRenderFilter
+public class ConfigRenderFilter : ConfigElement<ConfigRenderFilter>
 {
     [ConfigInfo("Filter applied to fonts.")]
     // TODO need to implement to take effect
@@ -38,7 +39,7 @@ public class ConfigRenderFilter
     public readonly ConfigValue<FilterType> Texture = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 }
 
-public class ConfigRender
+public class ConfigRender: ConfigElement<ConfigRender>
 {
     // VSync and rate limiting
 

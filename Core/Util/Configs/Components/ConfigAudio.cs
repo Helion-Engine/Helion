@@ -1,4 +1,5 @@
 using Helion.Audio;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using System.IO;
@@ -6,7 +7,7 @@ using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
 
-public class ConfigAudio
+public class ConfigAudio: ConfigElement<ConfigAudio>
 {
     [ConfigInfo("Music volume. 0.0 is Off, 1.0 is Maximum.")]
     [OptionMenu(OptionSectionType.Audio, "Music Volume")]

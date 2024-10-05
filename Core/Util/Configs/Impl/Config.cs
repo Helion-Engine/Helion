@@ -1,20 +1,21 @@
+using Helion.Models;
+using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Options;
+using Helion.Util.Configs.Values;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using Helion.Models;
-using Helion.Util.Configs.Components;
-using Helion.Util.Configs.Options;
-using Helion.Util.Configs.Values;
-using NLog;
 
 namespace Helion.Util.Configs.Impl;
 
 /// <summary>
 /// A basic config file.
 /// </summary>
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 public class Config : IConfig
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -186,35 +187,35 @@ public class Config : IConfig
             if (childObj == null)
                 continue;
 
-            PopulateComponentsRecursively(childObj, fields);
+            (childObj as IConfigElement)?.PopulateComponentsRecursively(fields, 1);
         }
     }
 
-    private static void PopulateComponentsRecursively(object obj, List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields, int depth = 1)
-    {
-        const int RecursiveOverflowLimit = 100;
-        if (depth > RecursiveOverflowLimit)
-            throw new($"Overflow when trying to get options from the config: {obj} ({obj.GetType()})");
+    //private static void PopulateComponentsRecursively(object obj, List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields, int depth = 1)
+    //{
+    //    const int RecursiveOverflowLimit = 100;
+    //    if (depth > RecursiveOverflowLimit)
+    //        throw new($"Overflow when trying to get options from the config: {obj} ({obj.GetType()})");
 
-        foreach (FieldInfo fieldInfo in obj.GetType().GetFields())
-        {
-            if (!fieldInfo.IsPublic)
-                continue;
+    //    foreach (FieldInfo fieldInfo in obj.GetType().GetFields())
+    //    {
+    //        if (!fieldInfo.IsPublic)
+    //            continue;
 
-            object? childObj = fieldInfo.GetValue(obj);
-            if (childObj == null || childObj == obj)
-                continue;
+    //        object? childObj = fieldInfo.GetValue(obj);
+    //        if (childObj == null || childObj == obj)
+    //            continue;
 
-            if (childObj is IConfigValue configValue)
-            {
-                OptionMenuAttribute? attribute = fieldInfo.GetCustomAttribute<OptionMenuAttribute>();
-                ConfigInfoAttribute? configAttribute = fieldInfo.GetCustomAttribute<ConfigInfoAttribute>();
-                if (attribute != null && configAttribute != null)
-                    fields.Add((configValue, attribute, configAttribute));
-                continue;
-            }
+    //        if (childObj is IConfigValue configValue)
+    //        {
+    //            OptionMenuAttribute? attribute = fieldInfo.GetCustomAttribute<OptionMenuAttribute>();
+    //            ConfigInfoAttribute? configAttribute = fieldInfo.GetCustomAttribute<ConfigInfoAttribute>();
+    //            if (attribute != null && configAttribute != null)
+    //                fields.Add((configValue, attribute, configAttribute));
+    //            continue;
+    //        }
 
-            PopulateComponentsRecursively(childObj, fields, depth + 1);
-        }
-    }
+    //        PopulateComponentsRecursively(childObj, fields, depth + 1);
+    //    }
+    //}
 }

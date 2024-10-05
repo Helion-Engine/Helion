@@ -1,8 +1,9 @@
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 
 namespace Helion.Util.Configs.Components;
 
-public class ConfigDeveloperRender
+public class ConfigDeveloperRender: ConfigElement<ConfigDeveloperRender>
 {
     [ConfigInfo("Draw rendering debug information.", save: false)]
     public readonly ConfigValue<bool> Debug = new(false);
@@ -11,7 +12,7 @@ public class ConfigDeveloperRender
     public readonly ConfigValue<bool> Tracers = new(false);
 }
 
-public class ConfigDeveloper
+public class ConfigDeveloper: ConfigElement<ConfigDeveloper>
 {
     public readonly ConfigDeveloperRender Render = new();
 
