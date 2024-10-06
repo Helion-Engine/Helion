@@ -18,10 +18,7 @@ using Helion.Window.Input;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using static Helion.Util.Constants;
@@ -298,7 +295,7 @@ public class ListedConfigSection : IOptionSection
             return;
 
         object currentEnumValue = cfgValue.ObjectValue;
-        if(!ConfigEnums.KnownEnumValues.TryGetValue(cfgValue.ValueType, out Array? enumValues))
+        if (!ConfigEnums.KnownEnumValues.TryGetValue(cfgValue.ValueType, out Array? enumValues))
         {
             return;
         }
@@ -391,12 +388,12 @@ public class ListedConfigSection : IOptionSection
         if (type.BaseType != typeof(Enum))
             return value;
 
-        var fi = type.GetField(value.ToString() ?? "");
-        if (fi == null)
-            return value;
-        var descAttr = fi.GetCustomAttribute<DescriptionAttribute>();
-        if (descAttr != null)
-            return descAttr.Description;
+        if (ConfigEnums.KnownEnumLabels.TryGetValue(type, out Dictionary<Enum, string>? labels)
+            && labels.TryGetValue((Enum)value, out string? label))
+        {
+            return label;
+        }
+
         return value;
     }
 
@@ -468,7 +465,7 @@ public class ListedConfigSection : IOptionSection
         // not be a valid enum when setting, so we use the index instead.
         if (m_currentEnumIndex.HasValue)
         {
-            if(ConfigEnums.KnownEnumValues.TryGetValue(cfgValue.ValueType, out Array? enumValues))
+            if (ConfigEnums.KnownEnumValues.TryGetValue(cfgValue.ValueType, out Array? enumValues))
             {
                 var enumValue = enumValues.GetValue(m_currentEnumIndex.Value);
                 if (enumValue == null)
