@@ -16,11 +16,13 @@
     <PublishSingleFile>True</PublishSingleFile>
     <PublishReadyToRun>True</PublishReadyToRun>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(AOT)' == 'true'">
-    <PublishAot>True</PublishAot>
+    <PublishAot>true</PublishAot>
     <OptimizationPreference>Speed</OptimizationPreference>
+    <NoWarn>$(NoWarn);IL3000;IL3002</NoWarn> <!-- NLog tries to get the path incorrectly.  We don't care.  -->
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
