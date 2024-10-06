@@ -24,8 +24,9 @@
         /// <summary>
         /// Plays the specified output, asking for new blocks of data as needed
         /// </summary>
-        /// <param name="fillBlockAction">An action that, when called, fills a buffer of 16-bit integers with streaming audio data</param>
-        void Play(Action<short[]> fillBlockAction);
+        /// <param name="fillBlockAction">An action that, when called, fills a buffer of 16-bit integers with streaming audio data.
+        /// This action should return "false" if it has no more data.</param>
+        void Play(Func<short[], bool> fillBlockAction);
 
         /// <summary>
         /// When called, the output stream must end playback and stop asking for more buffer data.

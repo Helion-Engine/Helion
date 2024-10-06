@@ -22,7 +22,7 @@ public class ZMusicPlayer : IDisposable
     private float m_sourceVolume;
     private string m_soundFontPath;
 
-    private Action<short[]>? m_fillBlockAction;
+    private Func<short[], bool>? m_fillBlockAction;
     private Action? m_stoppedAction;
     private IOutputStream? m_activeStream;
     private IntPtr m_zMusicSong;
@@ -325,7 +325,7 @@ public class ZMusicPlayer : IDisposable
         }
     }
 
-    private unsafe void FillStreamFromFloatSource(short[] buffer)
+    private unsafe bool FillStreamFromFloatSource(short[] buffer)
     {
         if (IsPlayingImpl())
         {
@@ -338,14 +338,16 @@ public class ZMusicPlayer : IDisposable
                 short sample = (short)Math.Clamp((int)(32768 * m_floatSampleData[i]), short.MinValue, short.MaxValue);
                 buffer[i] = sample;
             }
+            return true;
         }
         else
         {
             HandleEndOfTrack(buffer);
+            return false;
         }
     }
 
-    private unsafe void FillStreamBufferDirectly(short[] buffer)
+    private unsafe bool FillStreamBufferDirectly(short[] buffer)
     {
         if (IsPlayingImpl())
         {
@@ -353,10 +355,12 @@ public class ZMusicPlayer : IDisposable
             {
                 _ = ZMusic.ZMusic_FillStream((_ZMusic_MusicStream_Struct*)m_zMusicSong, b, sizeof(short) * buffer.Length);
             }
+            return true;
         }
         else
         {
             HandleEndOfTrack(buffer);
+            return false;
         }
     }
 
@@ -368,7 +372,6 @@ public class ZMusicPlayer : IDisposable
             buffer[i] = 0;
         }
 
-        m_activeStream?.Stop();
         m_stoppedAction?.Invoke();
         m_stoppedAction = null;
     }
