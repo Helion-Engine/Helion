@@ -22,7 +22,11 @@
   <PropertyGroup Condition="'$(AOT)' == 'true'">
     <PublishAot>true</PublishAot>
     <OptimizationPreference>Speed</OptimizationPreference>
-    <NoWarn>$(NoWarn);IL3000;IL3002</NoWarn> <!-- NLog tries to get the path incorrectly.  We don't care.  -->
+    <NoWarn>$(NoWarn);IL3000;IL3002</NoWarn> <!-- NLog tries to get the path incorrectly -->
+
+    <!-- Avoid copying symbols for release AOT builds, as these are miserable to debug even with symbols (and the files are huge) -->
+    <CopyOutputSymbolsToPublishDirectory Condition="'$(Configuration)'=='Release'">false</CopyOutputSymbolsToPublishDirectory>
+    <AllowedReferenceRelatedFileExtensions Condition="'$(Configuration)'=='Release'">none</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
