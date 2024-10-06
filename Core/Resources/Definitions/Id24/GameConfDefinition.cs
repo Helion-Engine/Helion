@@ -1,11 +1,11 @@
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Compatibility;
+using Helion.Util;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 
 namespace Helion.Resources.Definitions.Id24;
 
@@ -25,7 +25,7 @@ public class GameConfDefinition
         string data = entry.ReadDataAsString();
         try
         {
-            var converted = JsonSerializer.Deserialize<GameConf>(data, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true })
+            var converted = JsonSerialization.Deserialize<GameConf>(data)
                 ?? throw new Exception($"Gameconf was null");
             var newData = converted.Data;
 
@@ -58,8 +58,13 @@ public class GameConfDefinition
 
             // merge options
             Options options = Data?.Options ?? new();
-            foreach (var item in newData.Options.Items)
-                options.Set(item.Key, item.Value);
+
+            // Note:  Options actually _can_ be null if the Json explicitly set it so.
+            if (newData.Options != null)
+            {
+                foreach (var item in newData.Options.Items)
+                    options.Set(item.Key, item.Value);
+            }
             newData.Options = options;
 
             Data = newData;

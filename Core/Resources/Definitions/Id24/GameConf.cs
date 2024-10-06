@@ -27,7 +27,7 @@ public class GameConfData
     public string? Mode { get; set; }
 
     [JsonConverter(typeof(OptionsConverter))]
-    public Options Options { get; set; } = new();
+    public Options? Options { get; set; } = new();
 }
 
 public static class GameConfConstants

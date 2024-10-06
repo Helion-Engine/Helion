@@ -39,7 +39,7 @@ public class OptionsConverter : JsonConverter<Options>
         throw new NotImplementedException();
     }
 
-    public override Options? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override Options Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         string? token = (reader.TokenType == JsonTokenType.String)
             ? reader.GetString()
