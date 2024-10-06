@@ -59,8 +59,11 @@ public class GameConfDefinition
 
             // merge options
             OptionsModel options = Data?.Options ?? new();
-            foreach (var item in newData.Options.Items)
-                options.Set(item.Key, item.Value);
+            if (newData.Options != null)
+            {
+                foreach (var item in newData.Options.Items)
+                    options.Set(item.Key, item.Value);
+            }
             newData.Options = options;
 
             Data = newData;
