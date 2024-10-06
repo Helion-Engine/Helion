@@ -106,7 +106,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         return false;
     }
 
-    private void FillBlock(short[] sampleBlock)
+    private bool FillBlock(short[] sampleBlock)
     {
         if (m_player?.Status == FluidPlayerStatus.Playing)
         {
@@ -116,10 +116,12 @@ public class FluidSynthMusicPlayer : IMusicPlayer
                 short sample = (short)Math.Clamp((int)(32768 * m_sampleBuffer[i]), short.MinValue, short.MaxValue);
                 sampleBlock[i] = sample;
             }
+
+            return true;
         }
         else
         {
-            m_stream?.Stop();
+            return false;
         }
     }
 
