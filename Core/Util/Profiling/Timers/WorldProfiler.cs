@@ -1,6 +1,6 @@
 namespace Helion.Util.Profiling.Timers;
 
-public class WorldProfiler
+public class WorldProfiler : ProfileComponent<WorldProfiler>
 {
     public readonly ProfilerStopwatch TickEntity = new();
     public readonly ProfilerStopwatch TickPlayer = new();

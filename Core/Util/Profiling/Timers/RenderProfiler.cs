@@ -1,6 +1,6 @@
 namespace Helion.Util.Profiling.Timers;
 
-public class RenderProfiler
+public class RenderProfiler: ProfileComponent<RenderProfiler>
 {
     public readonly ProfilerStopwatch FlushPipeline = new();
     public readonly ProfilerStopwatch Hud = new();

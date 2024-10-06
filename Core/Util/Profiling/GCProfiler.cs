@@ -1,6 +1,6 @@
 namespace Helion.Util.Profiling;
 
-public class GCProfiler
+public class GCProfiler: ProfileComponent<GCProfiler>
 {
     // TODO
 }
