@@ -22,6 +22,9 @@
   <PropertyGroup Condition="'$(AOT)' == 'true'">
     <PublishAot>true</PublishAot>
     <OptimizationPreference>Speed</OptimizationPreference>
+    <!-- See https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/optimizing.md for instruction set info -->
+    <!-- x86-x64-v3: Haswell and newer (~2013) with FMA and AVX2.  x86-64-v4: AVX-512 required. -->
+    <IlcInstructionSet>x86-x64-v3</IlcInstructionSet>
     <NoWarn>$(NoWarn);IL3000;IL3002</NoWarn> <!-- NLog tries to get the path incorrectly -->
 
     <!-- Avoid copying symbols for release AOT builds, as these are miserable to debug even with symbols (and the files are huge) -->
