@@ -30,6 +30,7 @@ public class MusicPlayer : IMusicPlayer
     private FluidSynthMusicPlayer m_fluidSynthPlayer;
     private bool m_genMidiPatchLoaded;
     private PlayParams? m_currentTrack;
+    private bool m_enabled = true;
 
     public MusicPlayer(ConfigAudio configAudio, ArchiveCollection archiveCollection)
     {
@@ -73,7 +74,7 @@ public class MusicPlayer : IMusicPlayer
 
     public bool Play(byte[] data, MusicPlayerOptions options)
     {
-        if (m_disposed)
+        if (m_disposed || !m_enabled)
             return false;
 
         m_playQueue.Clear();
@@ -130,6 +131,9 @@ public class MusicPlayer : IMusicPlayer
 
     private void CreateAndPlayMusic(PlayParams playParams)
     {
+        if (!m_enabled)
+            return;
+
         m_currentTrack = playParams;
         var data = playParams.Data;
         var options = playParams.Options;
@@ -143,7 +147,7 @@ public class MusicPlayer : IMusicPlayer
         m_lastDataHash = hash;
 
         Stop();
-        SetVolume((float)m_configAudio.MusicVolume.Value);
+        SetVolume((float)m_configAudio.MusicVolumeNormalized);
         bool isMidi = m_zMusicPlayer.IsMIDI(data, out string? error);
 
         if (!string.IsNullOrEmpty(error))
@@ -237,6 +241,24 @@ public class MusicPlayer : IMusicPlayer
     {
         m_zMusicPlayer.Volume = (float)(volume * .5);
         m_fluidSynthPlayer.SetVolume(volume);
+    }
+
+    public bool Enabled
+    {
+        get => m_enabled;
+        set
+        {
+            m_enabled = value;
+            if (m_fluidSynthPlayer != null)
+            {
+                m_fluidSynthPlayer.Enabled = value;
+            }
+
+            if (!value)
+            {
+                Stop();
+            }
+        }
     }
 
     public void Stop()

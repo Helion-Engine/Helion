@@ -1,6 +1,7 @@
 ﻿using Helion.Util.Consoles.Commands;
 using Helion.Util.Consoles;
-using System;
+using Helion.Util.Loggers;
+using Helion.Util;
 
 namespace Helion.Client;
 
@@ -44,5 +45,15 @@ public partial class Client
     private void ToggleMarkSecrets(ConsoleCommandEventArgs args)
     {
         m_config.Game.MarkSecrets.Set(!m_config.Game.MarkSecrets.Value);
+    }
+
+    [ConsoleCommand(Constants.Input.GammaCorrection, "Cycles the gamma correction value")]
+    private void GammaCorrection(ConsoleCommandEventArgs args)
+    {
+        var value = m_config.Render.GammaCorrection.Value;
+        m_config.Render.GammaCorrection.Set(value + 0.1);
+        if (value == m_config.Render.GammaCorrection)
+            m_config.Render.GammaCorrection.Set(1);
+        HelionLog.Info($"Gamma correction level {m_config.Render.GammaCorrection:F1}");
     }
 }

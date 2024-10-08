@@ -100,6 +100,10 @@ public class ConfigRender
 
     // Misc. Visual effects
 
+    [ConfigInfo("Gamma correction level.")]
+    [OptionMenu(OptionSectionType.Render, "Gamma correction")]
+    public readonly ConfigValue<double> GammaCorrection = new(1, Clamp(1.0, 4.0));
+
     [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
     [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Contrast", spacer: true)]
     public readonly ConfigValue<bool> FakeContrast = new(true);

@@ -34,6 +34,17 @@ public partial class Renderer
         };
     }
 
+    public static int GetColorMapBufferIndex(Sector sector, LightBufferType type)
+    {
+        return type switch
+        {
+            LightBufferType.Floor => (sector.TransferFloorLightSector.Id + 1) * Constants.LightBuffer.BufferSize + Constants.LightBuffer.FloorOffset,
+            LightBufferType.Ceiling => (sector.TransferCeilingLightSector.Id + 1) * Constants.LightBuffer.BufferSize + Constants.LightBuffer.CeilingOffset,
+            LightBufferType.Wall => (sector.Id + 1) * Constants.LightBuffer.BufferSize + Constants.LightBuffer.WallOffset,
+            _ => sector.Id + 1,
+        };
+    }
+
     public void UpdateToNewWorld(IWorld world)
     {
         m_updateLightSectors.ClearAndReset();
@@ -68,10 +79,11 @@ public partial class Renderer
     {
         bool usePalette = ShaderVars.PaletteColorMode;
         // First index will always map to default colormap
-        int sectorBufferCount = world.Sectors.Count + 1;
+        const int FloatSize = 4;
+        int sectorBufferCount = world.Sectors.Count + 1 * Constants.LightBuffer.BufferSize;
         // PaletteColorMode is index to colormap, true color will be RGB mix
         int size = usePalette ? 1 : 3;
-        var sectorBuffer = new float[sectorBufferCount * 4];
+        var sectorBuffer = new float[sectorBufferCount * FloatSize * size];
 
         m_sectorColorMapsBuffer?.Dispose();
         m_sectorColorMapsBuffer = new("Sector colormaps", sectorBuffer, usePalette ? SizedInternalFormat.R32f : SizedInternalFormat.Rgb32f, GLInfo.MapPersistentBitSupported);
@@ -84,7 +96,7 @@ public partial class Renderer
                 for (int i = 0; i < world.Sectors.Count; i++)
                 {
                     var sector = world.Sectors[i];
-                    SetSectorColorMap(colorMapBuffer, sector.Id, sector.Colormap);
+                    SetSectorColorMap(colorMapBuffer, sector, sector.Colormap);
                 }
             });
         }
@@ -98,25 +110,29 @@ public partial class Renderer
                 for (int i = 0; i < world.Sectors.Count; i++)
                 {
                     var sector = world.Sectors[i];
-                    SetSectorColorMap(colorMapBuffer, sector.Id, sector.Colormap);
+                    SetSectorColorMap(colorMapBuffer, sector, sector.Colormap);
                 }
             });
         }
     }
 
-    private static unsafe void SetSectorColorMap(float* colorMapBuffer, int sectorId, Colormap? colormap)
+    private static unsafe void SetSectorColorMap(float* colorMapBuffer, Sector sector, Colormap? colormap)
     {
+        int index = (sector.Id + 1) * Constants.LightBuffer.BufferSize;
         if (ShaderVars.PaletteColorMode)
         {
-            colorMapBuffer[sectorId + 1] = colormap == null ? 0 : colormap.Index;
+            int colorMapIndex = colormap == null ? 0 : colormap.Index;
+            colorMapBuffer[index + Constants.LightBuffer.FloorOffset] = colorMapIndex;
+            colorMapBuffer[index + Constants.LightBuffer.CeilingOffset] = colorMapIndex;
+            colorMapBuffer[index + Constants.LightBuffer.WallOffset] = colorMapIndex;
             return;
         }
 
-        Vec3F* color = (Vec3F*)&colorMapBuffer[(sectorId + 1) * 3];
-        if (colormap == null)
-            *color = Vec3F.One;
-        else
-            *color = colormap.ColorMix;
+        const int VectorSize = 3;
+        Vec3F setColor = colormap == null ? Vec3F.One : colormap.ColorMix;
+        *(Vec3F*)&colorMapBuffer[(index + Constants.LightBuffer.FloorOffset) * VectorSize] = setColor;
+        *(Vec3F*)&colorMapBuffer[(index + Constants.LightBuffer.CeilingOffset) * VectorSize] = setColor;
+        *(Vec3F*)&colorMapBuffer[(index + Constants.LightBuffer.WallOffset) * VectorSize] = setColor;
     }
 
     private unsafe void SetSectorLightBuffer(IWorld world)
@@ -195,7 +211,7 @@ public partial class Renderer
         for (int i = 0; i < m_updateColorMapSectors.UpdateSectors.Length; i++)
         {
             Sector sector = m_updateColorMapSectors.UpdateSectors[i];
-            SetSectorColorMap(colorMapBuffer, sector.Id, sector.Colormap);
+            SetSectorColorMap(colorMapBuffer, sector, sector.Colormap);
         }
 
         m_sectorColorMapsBuffer.Unbind();

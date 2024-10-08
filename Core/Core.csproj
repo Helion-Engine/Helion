@@ -21,23 +21,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BmpSharp" Version="0.2.0" />
     <PackageReference Include="Crc32.NET" Version="1.2.0" />
     <PackageReference Include="GlmSharp-netstandard" Version="0.9.8.1" />
     <PackageReference Include="ini-parser-new" Version="2.6.2" />
-    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="NAudio.Core" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NLog" Version="5.2.8" />
+    <PackageReference Include="NLog" Version="5.3.4" />
     <PackageReference Include="OpenTK.Graphics" Version="4.7.4" />
     <PackageReference Include="OpenTK.OpenAL" Version="4.7.4" />
     <PackageReference Include="OpenTK.Windowing.Common" Version="4.7.4" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.3" />
     <PackageReference Include="TextCopy" Version="6.2.1" />
     <PackageReference Include="xBRZNet" Version="1.2.0" />
-    <PackageReference Include="zdbspSharp" Version="1.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    <PackageReference Include="zdbspSharp" Version="1.0.3" />
   </ItemGroup>
 </Project>

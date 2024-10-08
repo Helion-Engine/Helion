@@ -129,10 +129,14 @@ public class FragFunction
             if (fragColor.w <= 0.0)
                 discard;
 
-            fragColor.xyz *= min(colorMix, 1);"
+            fragColor.xyz *= min(colorMix, 1);
+"
             + (ShaderVars.PaletteColorMode ? "" : "fragColor.xyz *= min(sectorColorMapIndexFrag, 1);")
-            + InvulnerabilityFragColor;
+            + InvulnerabilityFragColor
+            + GammaCorrection();
     }
+
+    public static string GammaCorrection() => "fragColor.rgb = pow(fragColor.rgb, vec3(1.0/gammaCorrection));";
 
     public static string InvulnerabilityFragColor =>
         ShaderVars.PaletteColorMode ? "" :
@@ -142,5 +146,6 @@ public class FragFunction
         float gray = fragColor.x * 0.299 + fragColor.y * 0.587 + fragColor.z * 0.144;
         gray = 1 - gray;
         fragColor.xyz = vec3(gray, gray, gray);
-    }";
+    }
+";
 }

@@ -23,6 +23,7 @@ public class StaticShader : RenderProgram
     private readonly int m_paletteIndexLocation;
     private readonly int m_colorMapIndexLocation;
     private readonly int m_lightModeLocation;
+    private readonly int m_gammaCorrectionLocation;
 
     public StaticShader() : base("WorldStatic")
     {
@@ -40,6 +41,7 @@ public class StaticShader : RenderProgram
         m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
         m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
         m_lightModeLocation = Uniforms.GetLocation("lightMode");
+        m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -57,6 +59,7 @@ public class StaticShader : RenderProgram
     public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
     public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
     public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
+    public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -65,7 +68,7 @@ public class StaticShader : RenderProgram
         layout(location = 1) in vec2 uv; 
         layout(location = 2) in float lightLevelAdd;
         layout(location = 3) in float options;
-        layout(location = 4) in float sectorIndex;
+        layout(location = 4) in float colorMapIndex;
 
         out vec2 uvFrag;
         flat out float alphaFrag;

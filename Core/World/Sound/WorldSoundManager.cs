@@ -162,6 +162,7 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
         if (m_world.IsDisposed)
             return;
 
+        m_setVelocity = ArchiveCollection.Config.Audio.Velocity;
         var listener = m_world.GetListener();
         AudioManager.SetListener(listener.Position, listener.Angle, listener.Pitch);
         UpdateWaitingLoopSounds();

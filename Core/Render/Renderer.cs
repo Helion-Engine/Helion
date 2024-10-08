@@ -195,7 +195,8 @@ public partial class Renderer : IDisposable
         return new ShaderUniforms(CalculateMvpMatrix(renderInfo),
             CalculateMvpMatrix(renderInfo, true),
             GetTimeFrac(), drawInvulnerability, mix, extraLight, GetDistanceOffset(renderInfo),
-            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), colorMapUniforms, paletteIndex, config.Render.LightMode);
+            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), colorMapUniforms, paletteIndex, config.Render.LightMode, 
+            (float)config.Render.GammaCorrection);
     }
 
     private static PaletteIndex GetPalette(IConfig config, Player player)
@@ -295,8 +296,8 @@ public partial class Renderer : IDisposable
             skyColormap = globalColormap;
         }
 
-        if (viewer.Sector.Colormap != null)
-            sectorColormap = viewer.Sector.Colormap;
+        if (viewer.Sector.TransferFloorLightSector.Colormap != null)
+            sectorColormap = viewer.Sector.TransferFloorLightSector.Colormap;
     }
 
     public static mat4 CalculateMvpMatrix(RenderInfo renderInfo, bool onlyXY = false)

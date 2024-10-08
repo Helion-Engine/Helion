@@ -35,6 +35,11 @@ public interface IMusicPlayer : IDisposable
     void Stop();
 
     /// <summary>
+    /// Enables or disables the music system.  If disabled, the system will ignore requests to play music.
+    /// </summary>
+    bool Enabled { get; set; }
+
+    /// <summary>
     /// Ask the music player to stop playback temporarily and discard any outputs it is currently using
     /// </summary>
     void OutputChanging();

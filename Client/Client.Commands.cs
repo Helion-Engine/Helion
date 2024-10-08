@@ -309,6 +309,7 @@ public partial class Client
         if (m_config.Game.DisplayEndoom)
         {
             m_audioSystem.Music.Stop();
+            m_audioSystem.Music.Enabled = false;
             m_layerManager.ShowEndoom(m_window.Close);
         }
         else

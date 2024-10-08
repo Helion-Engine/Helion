@@ -4,7 +4,6 @@ using Helion.Geometry.Vectors;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
-using Helion.Util.Extensions;
 using Helion.Util.RandomGenerators;
 using Helion.World.Sound;
 using static Helion.Util.Assertion.Assert;
@@ -22,6 +21,8 @@ public class SoundManager : IDisposable
 
     // The sounds that are currently playing
     protected readonly SoundList PlayingSounds = new();
+
+    protected bool m_setVelocity;
 
     // The sounds that are generated in the same gametic that are waiting to be played as a group
     private readonly SoundList m_soundsToPlay = new();
@@ -373,7 +374,7 @@ public class SoundManager : IDisposable
         {
             if (pos != null)
                 audioSource.SetPosition((float)pos.Value.X, (float)pos.Value.Y, (float)pos.Value.Z);
-            if (velocity != null)
+            if (m_setVelocity && velocity != null)
                 audioSource.SetVelocity((float)velocity.Value.X, (float)velocity.Value.Y, (float)velocity.Value.Z);
         }
 
