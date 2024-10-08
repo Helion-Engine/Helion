@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Resources;
@@ -8,7 +5,9 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Fonts.Definition;
 using Helion.Resources.Images;
 using Helion.Util.Extensions;
-using OpenTK.Graphics.ES20;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.Fonts;
@@ -127,17 +126,18 @@ public static class BitmapFont
         if (definition.FixedHeight != null)
             maxHeight = definition.FixedHeight.Value;
 
-        bool canUpscale = charImages.All(img => img.Value.ImageType == ImageType.Argb);
+        bool canUpscale = definition.Grayscale
+            || charImages.All(img => img.Value.ImageType == ImageType.Argb || img.Value.ImageType == ImageType.PaletteWithArgb);
         width = canUpscale ? width * scale : width;
         maxHeight = canUpscale ? maxHeight * scale : maxHeight;
 
         Dimension atlasDimension = (width, maxHeight);
-        Image atlas = new(width, maxHeight, imageType);
+        Image atlas = new(width, maxHeight, definition.Grayscale ? ImageType.Argb : imageType);
 
         foreach ((char c, Image image) in charImages)
         {
             var charImage = scale != 1 && canUpscale
-                ? image.GetUpscaled(scale)
+                ? image.GetUpscaled(scale, ResourceNamespace.Fonts)
                 : image;
             atlasOffsetX += padding;
 

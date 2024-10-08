@@ -120,9 +120,9 @@ public class Image
         return new(pixels, dimension, ImageType.Argb, offset, ns);
     }
 
-    public Image GetUpscaled(int scaleFactor)
+    public Image GetUpscaled(int scaleFactor, ResourceNamespace ns)
     {
-        if (ImageType != ImageType.Argb)
+        if (ImageType == ImageType.Palette)
         {
             throw new ArgumentException("Can only upscale ARGB images.");
         }
@@ -140,7 +140,7 @@ public class Image
         using xBRZNet.Image dest = new xBRZNet.Image(scaledWidth, scaledHeight, scaledPixels);
         xBRZNet.xBRZScaler scaler = new xBRZNet.xBRZScaler(
             scaleFactor,
-            new xBRZNet.ScalerCfg() { ColorMode = xBRZNet.Common.ColorMode.ARGB });
+            new xBRZNet.ScalerCfg() { ColorMode = xBRZNet.Common.ColorMode.RGBA });
         scaler.ScaleImage(src, dest);
 
         return new Image(
@@ -148,7 +148,7 @@ public class Image
             new Dimension(scaledWidth, scaledHeight),
             ImageType.Argb,
             this.Offset * scaleFactor,
-            ResourceNamespace.Fonts);
+            ns);
     }
 
     public static Image PaletteToArgb(PaletteImage image, Palette palette, bool[] fullBright, bool storeIndices, bool clearBlackPixels, byte[]? colorTranslation = null)
