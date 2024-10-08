@@ -126,8 +126,7 @@ public static class BitmapFont
         if (definition.FixedHeight != null)
             maxHeight = definition.FixedHeight.Value;
 
-        bool canUpscale = definition.Grayscale
-            || charImages.All(img => img.Value.ImageType == ImageType.Argb || img.Value.ImageType == ImageType.PaletteWithArgb);
+        bool canUpscale = definition.Grayscale;
         width = canUpscale ? width * scale : width;
         maxHeight = canUpscale ? maxHeight * scale : maxHeight;
 
