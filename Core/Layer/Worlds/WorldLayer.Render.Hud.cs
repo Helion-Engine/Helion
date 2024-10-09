@@ -111,7 +111,7 @@ public partial class WorldLayer
     {
         m_scale = (float)m_config.Hud.Scale.Value;
         m_hudAlpha = 1f - (float)m_config.Hud.Transparency.Value;
-        m_infoFontSize = Math.Max((int)(m_scale * DebugFontSize), 12);
+        m_infoFontSize = Math.Max((int)(m_scale * DebugFontSize), 16);
         m_mapHeaderFontSize = Math.Max((int)(m_scale * MapFontSize), 20);
         m_padding = (int)(4 * m_scale);
         m_fontHeight = (int)(16 * m_scale);
