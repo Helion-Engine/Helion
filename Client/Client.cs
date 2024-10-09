@@ -145,9 +145,9 @@ public partial class Client : IDisposable, IInputManagement
             }
         }
 
-        // Everything failed so use 3.3. This happens on fake 
-        GlVersion.Major = 3;
-        GlVersion.Minor = 3;
+        var minVersion = Versions[^1];
+        GlVersion.Major = minVersion.Major;
+        GlVersion.Minor = minVersion.Minor;
     }
 
     private static void CheckOpenGLSupport()
@@ -520,7 +520,14 @@ public partial class Client : IDisposable, IInputManagement
     {
         Logger errorLogger = LogManager.GetLogger(HelionLoggers.ErrorLoggerName);
         errorLogger.Error(e, "Fatal error occurred");
-        ShowFatalError(e.ToString());
+        var showError = e.ToString();
+        if (e.GetType() == typeof(GLFWException))
+        {
+            var minVersion = Versions[^1];
+            showError = $"Helion requires a minimum of OpenGL {minVersion.Major}.{minVersion.Minor}\n\n" + showError;
+        }
+
+        ShowFatalError(showError);
     }
 
     private static void ShowFatalError(string msg)
@@ -561,6 +568,10 @@ public partial class Client : IDisposable, IInputManagement
 
             using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);
             client.Run();
+        }
+        catch (Exception e)
+        {
+            HandleFatalException(e);
         }
         finally
         {
