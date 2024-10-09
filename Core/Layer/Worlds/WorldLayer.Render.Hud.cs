@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
@@ -29,8 +31,6 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.StatusBar;
-using System;
-using System.Collections.Generic;
 using static Helion.Render.Common.RenderDimensions;
 
 namespace Helion.Layer.Worlds;
@@ -50,8 +50,8 @@ public partial class WorldLayer
     private static readonly Color PickupColor = (255, 255, 128);
     private static readonly Color DamageColor = (255, 0, 0);
     private const string SmallHudFont = Constants.Fonts.Small;
-    private const string SmallGrayFont = Constants.Fonts.SmallGray;
     private const string LargeHudFont = Constants.Fonts.LargeHud;
+    private const string ConsoleFont = Constants.Fonts.Console;
     private int m_fontHeight = 16;
     private int m_padding = 4;
     private int m_hudPaddingX = 0;
@@ -111,7 +111,7 @@ public partial class WorldLayer
     {
         m_scale = (float)m_config.Hud.Scale.Value;
         m_hudAlpha = 1f - (float)m_config.Hud.Transparency.Value;
-        m_infoFontSize = Math.Clamp((int)(m_scale * DebugFontSize), 8, 24);
+        m_infoFontSize = Math.Max((int)(m_scale * DebugFontSize), 12);
         m_mapHeaderFontSize = Math.Max((int)(m_scale * MapFontSize), 20);
         m_padding = (int)(4 * m_scale);
         m_fontHeight = (int)(16 * m_scale);
@@ -178,7 +178,7 @@ public partial class WorldLayer
         pos.Y -= offsetY;
 
         string text = World.MapInfo.GetDisplayNameWithPrefix(World.ArchiveCollection);
-        hud.Text(text, SmallGrayFont, m_mapHeaderFontSize, pos, both: Align.BottomLeft);
+        hud.Text(text, SmallHudFont, m_mapHeaderFontSize, pos, both: Align.BottomLeft);
     }
 
     private void DrawPause(IHudRenderContext hud)
@@ -216,14 +216,14 @@ public partial class WorldLayer
             StatValues[2] = AppendStatString(m_secretString, World.LevelStats.SecretCount, World.LevelStats.TotalSecrets);
 
             for (int i = 0; i < RenderableStatLabels.Length; i++)
-                RenderableStatLabels[i] = SetRenderableString(StatLabels[i], RenderableStatLabels[i], SmallGrayFont, m_infoFontSize,
+                RenderableStatLabels[i] = SetRenderableString(StatLabels[i], RenderableStatLabels[i], ConsoleFont, m_infoFontSize, 
                     useDoomScale: false);
 
-            RenderableStatValues[0] = SetRenderableString(m_killString.AsSpan(), m_renderKillString, SmallGrayFont, m_infoFontSize,
+            RenderableStatValues[0] = SetRenderableString(m_killString.AsSpan(), m_renderKillString, ConsoleFont, m_infoFontSize,
                 GetStatColor(World.LevelStats.KillCount, World.LevelStats.TotalMonsters), useDoomScale: false);
-            RenderableStatValues[1] = SetRenderableString(m_itemString.AsSpan(), m_renderItemString, SmallGrayFont, m_infoFontSize,
+            RenderableStatValues[1] = SetRenderableString(m_itemString.AsSpan(), m_renderItemString, ConsoleFont, m_infoFontSize,
                 GetStatColor(World.LevelStats.ItemCount, World.LevelStats.TotalItems), useDoomScale: false);
-            RenderableStatValues[2] = SetRenderableString(m_secretString.AsSpan(), m_renderSecretString, SmallGrayFont, m_infoFontSize,
+            RenderableStatValues[2] = SetRenderableString(m_secretString.AsSpan(), m_renderSecretString, ConsoleFont, m_infoFontSize,
                 GetStatColor(World.LevelStats.SecretCount, World.LevelStats.TotalSecrets), useDoomScale: false);
         }
 
@@ -261,7 +261,7 @@ public partial class WorldLayer
             m_timeString.Append(':');
             m_timeString.Append(ts.Seconds, 2);
 
-            SetRenderableString(m_timeString.AsSpan(), m_renderTimeString, SmallGrayFont, m_infoFontSize, useDoomScale: false);
+            SetRenderableString(m_timeString.AsSpan(), m_renderTimeString, ConsoleFont, m_infoFontSize, useDoomScale: false);
         }
 
         hud.Text(m_renderTimeString, labelPos, both: align, alpha: m_hudAlpha);
@@ -296,7 +296,7 @@ public partial class WorldLayer
 
     private void DrawFPS(IHudRenderContext hud, ref int topRightY)
     {
-        if (!m_config.Hud.ShowFPS && !m_config.Hud.ShowMinMaxFPS)
+        if (!m_config.Hud.ShowFPS && !m_config.Hud.ShowMinMaxFPS)   
             return;
 
         if (m_config.Hud.ShowFPS)
@@ -318,7 +318,7 @@ public partial class WorldLayer
         str.Append("FPS: ");
         str.Append((int)Math.Round(fps));
 
-        SetRenderableString(str.AsSpan(), renderableString, SmallGrayFont, m_infoFontSize, useDoomScale: false);
+        SetRenderableString(str.AsSpan(), renderableString, ConsoleFont, m_infoFontSize, useDoomScale: false);
         hud.Text(renderableString, (-m_padding - m_hudPaddingX, y), both: Align.TopRight, alpha: m_hudAlpha);
 
         y += renderableString.DrawArea.Height + FpsMessageSpacing;
@@ -339,7 +339,7 @@ public partial class WorldLayer
 
     void DrawCoordinate(IHudRenderContext hud, char axis, double position, ref int y)
     {
-        hud.Text($"{axis}: {Math.Floor(position * 10000) / 10000}", SmallGrayFont, m_infoFontSize,
+        hud.Text($"{axis}: {Math.Floor(position * 10000)/10000}", ConsoleFont, m_infoFontSize,
             (-m_padding - m_hudPaddingX, y), out Dimension area, TextAlign.Right, both: Align.TopRight,
             color: Color.White, alpha: m_hudAlpha);
         y += area.Height + FpsMessageSpacing;
@@ -422,9 +422,9 @@ public partial class WorldLayer
         if (colorMixUniforms.Sector != Vec3F.One)
             colorMix = colorMixUniforms.Sector;
 
-        Color lightLevelColor = ShaderVars.PaletteColorMode ? Color.White :
-            ((byte)Math.Min(lightLevel * colorMix.X, 255),
-            (byte)Math.Min(lightLevel * colorMix.Y, 255),
+        Color lightLevelColor = ShaderVars.PaletteColorMode ? Color.White :            
+            ((byte)Math.Min(lightLevel * colorMix.X, 255), 
+            (byte)Math.Min(lightLevel * colorMix.Y, 255), 
             (byte)Math.Min(lightLevel * colorMix.Z, 255));
 
         string sprite = GetHudWeaponSpriteString(frameState, flash);
@@ -813,7 +813,7 @@ public partial class WorldLayer
         if (!hud.Textures.TryGet(m_config.Hud.BackgroundTexture, out var backgroundHandle))
             return;
 
-        hud.DoomVirtualResolution(m_virtualStatusBarBackgroundAction, new HudStatusBarbackground(hud, barHandle, backgroundHandle),
+        hud.DoomVirtualResolution(m_virtualStatusBarBackgroundAction, new HudStatusBarbackground(hud, barHandle, backgroundHandle), 
             ResolutionScale.None);
     }
 
@@ -877,7 +877,7 @@ public partial class WorldLayer
 
     private void DrawFullHudWeaponSlots(IHudRenderContext hud)
     {
-        if (m_statusBarSizeType == StatusBarSizeType.Full)
+        if (m_statusBarSizeType ==  StatusBarSizeType.Full)
             HudImageWithOffset(hud, "STARMS", (104, 168), both: Align.TopLeft);
 
         for (int slot = 2; slot <= 7; slot++)
@@ -1074,7 +1074,7 @@ public partial class WorldLayer
 
     private int CalculateSlide(IHudRenderContext hud, long timeSinceMessage)
     {
-        const long SlideNanoRange = MaxVisibleTimeNanos - MessageTransitionSpan;
+        const long SlideNanoRange = MaxVisibleTimeNanos - MessageTransitionSpan;        
         if (timeSinceMessage < SlideNanoRange)
             return 0;
 
