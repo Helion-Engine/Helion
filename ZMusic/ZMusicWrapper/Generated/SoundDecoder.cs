@@ -1,4 +1,4 @@
-namespace ZMusicInterop;
+namespace ZMusicWrapper.Generated;
 
 public partial struct SoundDecoder
 {
