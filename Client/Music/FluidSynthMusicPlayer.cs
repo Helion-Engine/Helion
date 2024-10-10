@@ -19,7 +19,6 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
     private bool m_disposed;
     private float m_volume = 1;
-    private readonly float[] m_sampleBuffer;
     private string m_lastFile = string.Empty;
     private string m_soundFontLoaded = string.Empty;
     private uint m_soundFontCounter = 0;
@@ -40,7 +39,6 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         m_synth = new(m_settings);
 
         m_streamFactory = streamFactory;
-        m_sampleBuffer = new float[BlockLength];
 
         EnsureSoundFont(soundFontFile);
     }
