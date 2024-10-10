@@ -34,8 +34,11 @@ public class BlockmapTraverser
     public void UpdateTo(IWorld world, BlockMap blockmap)
     {
         m_world = world;
+        Blockmap = blockmap;
         BlockmapGrid = blockmap.Blocks;
         m_blocks = blockmap.Blocks.Blocks;
+        m_blockEntities = blockmap.BlockEntities;
+        m_blockmapWidth = blockmap.Blocks.Width;
         if (world.Lines.Count > m_checkedLines.Length)
             m_checkedLines = new int[m_world.Lines.Count];
     }
