@@ -51,7 +51,7 @@ public partial class WorldLayer
     private static readonly Color DamageColor = (255, 0, 0);
     private const string SmallHudFont = Constants.Fonts.Small;
     private const string LargeHudFont = Constants.Fonts.LargeHud;
-    private const string ConsoleFont = Constants.Fonts.Console;
+    private const string FixedNumberFont = Constants.Fonts.SmallGrayFixedWidthNumbers;
     private int m_fontHeight = 16;
     private int m_padding = 4;
     private int m_hudPaddingX = 0;
@@ -216,14 +216,14 @@ public partial class WorldLayer
             StatValues[2] = AppendStatString(m_secretString, World.LevelStats.SecretCount, World.LevelStats.TotalSecrets);
 
             for (int i = 0; i < RenderableStatLabels.Length; i++)
-                RenderableStatLabels[i] = SetRenderableString(StatLabels[i], RenderableStatLabels[i], ConsoleFont, m_infoFontSize, 
+                RenderableStatLabels[i] = SetRenderableString(StatLabels[i], RenderableStatLabels[i], FixedNumberFont, m_infoFontSize,
                     useDoomScale: false);
 
-            RenderableStatValues[0] = SetRenderableString(m_killString.AsSpan(), m_renderKillString, ConsoleFont, m_infoFontSize,
+            RenderableStatValues[0] = SetRenderableString(m_killString.AsSpan(), m_renderKillString, FixedNumberFont, m_infoFontSize,
                 GetStatColor(World.LevelStats.KillCount, World.LevelStats.TotalMonsters), useDoomScale: false);
-            RenderableStatValues[1] = SetRenderableString(m_itemString.AsSpan(), m_renderItemString, ConsoleFont, m_infoFontSize,
+            RenderableStatValues[1] = SetRenderableString(m_itemString.AsSpan(), m_renderItemString, FixedNumberFont, m_infoFontSize,
                 GetStatColor(World.LevelStats.ItemCount, World.LevelStats.TotalItems), useDoomScale: false);
-            RenderableStatValues[2] = SetRenderableString(m_secretString.AsSpan(), m_renderSecretString, ConsoleFont, m_infoFontSize,
+            RenderableStatValues[2] = SetRenderableString(m_secretString.AsSpan(), m_renderSecretString, FixedNumberFont, m_infoFontSize,
                 GetStatColor(World.LevelStats.SecretCount, World.LevelStats.TotalSecrets), useDoomScale: false);
         }
 
@@ -261,7 +261,7 @@ public partial class WorldLayer
             m_timeString.Append(':');
             m_timeString.Append(ts.Seconds, 2);
 
-            SetRenderableString(m_timeString.AsSpan(), m_renderTimeString, ConsoleFont, m_infoFontSize, useDoomScale: false);
+            SetRenderableString(m_timeString.AsSpan(), m_renderTimeString, FixedNumberFont, m_infoFontSize, useDoomScale: false);
         }
 
         hud.Text(m_renderTimeString, labelPos, both: align, alpha: m_hudAlpha);
@@ -296,7 +296,7 @@ public partial class WorldLayer
 
     private void DrawFPS(IHudRenderContext hud, ref int topRightY)
     {
-        if (!m_config.Hud.ShowFPS && !m_config.Hud.ShowMinMaxFPS)   
+        if (!m_config.Hud.ShowFPS && !m_config.Hud.ShowMinMaxFPS)
             return;
 
         if (m_config.Hud.ShowFPS)
@@ -316,9 +316,9 @@ public partial class WorldLayer
         str.Clear();
         str.Append(prefix);
         str.Append("FPS: ");
-        str.Append((int)Math.Round(fps));
+        str.Append($"{(int)Math.Round(fps),5:#####}");
 
-        SetRenderableString(str.AsSpan(), renderableString, ConsoleFont, m_infoFontSize, useDoomScale: false);
+        SetRenderableString(str.AsSpan(), renderableString, FixedNumberFont, m_infoFontSize, useDoomScale: false);
         hud.Text(renderableString, (-m_padding - m_hudPaddingX, y), both: Align.TopRight, alpha: m_hudAlpha);
 
         y += renderableString.DrawArea.Height + FpsMessageSpacing;
@@ -339,7 +339,7 @@ public partial class WorldLayer
 
     void DrawCoordinate(IHudRenderContext hud, char axis, double position, ref int y)
     {
-        hud.Text($"{axis}: {Math.Floor(position * 10000)/10000}", ConsoleFont, m_infoFontSize,
+        hud.Text($"{axis}: {Math.Floor(position * 10000) / 10000,9:#####.000}", FixedNumberFont, m_infoFontSize,
             (-m_padding - m_hudPaddingX, y), out Dimension area, TextAlign.Right, both: Align.TopRight,
             color: Color.White, alpha: m_hudAlpha);
         y += area.Height + FpsMessageSpacing;

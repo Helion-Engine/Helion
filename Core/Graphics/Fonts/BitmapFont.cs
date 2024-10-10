@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Resources;
@@ -8,12 +5,17 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Fonts.Definition;
 using Helion.Resources.Images;
 using Helion.Util.Extensions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.Fonts;
 
 public static class BitmapFont
 {
+    private static readonly char[] NumberChars = [' ', '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
     /// <summary>
     /// Reads a bitmap font.
     /// </summary>
@@ -28,13 +30,13 @@ public static class BitmapFont
         try
         {
             Dictionary<char, Image> charImages = GetCharacterImages(definition, archiveCollection,
-                out int maxHeight, out ImageType imageType);
+                out int maxHeight, out int? numberFixedWidth, out ImageType imageType);
 
             if (charImages.Empty())
                 return null;
 
             AddSpaceGlyphIfMissing(charImages, definition, maxHeight, imageType);
-            var (glyphs, image) = CreateGlyphs(definition, charImages, maxHeight, imageType);
+            var (glyphs, image) = CreateGlyphs(definition, charImages, maxHeight, numberFixedWidth, imageType);
 
             // SmallGrayscaleFont has colors applied and needs to be full color to support different colors.
             if (definition.Grayscale)
@@ -42,7 +44,7 @@ public static class BitmapFont
                 image.ConvertToGrayscale(definition.GrayscaleNormalization);
                 image.DisableIndexedUpload();
             }
-            
+
             return new Font(definition.Name, glyphs, image, fixedWidth: definition.FixedWidth, fixedHeight: definition.FixedHeight, fixedWidthChar: definition.FixedWidthChar);
         }
         catch
@@ -75,11 +77,11 @@ public static class BitmapFont
     }
 
     private static Dictionary<char, Image> GetCharacterImages(FontDefinition definition,
-        ArchiveCollection archiveCollection, out int maxHeight, out ImageType imageType)
+        ArchiveCollection archiveCollection, out int maxHeight, out int? numberFixedWidth, out ImageType imageType)
     {
         imageType = ImageType.Argb;
         maxHeight = 0;
-
+        numberFixedWidth = null;
         Dictionary<char, Image> charImages = new();
 
         // TODO: TEMPORARY: The texture manager should do all of this for us later on!
@@ -87,6 +89,7 @@ public static class BitmapFont
 
         // Unfortunately we need to know the max height, and require all of
         // the images beforehand to make such a calculation.
+
         foreach ((char c, CharDefinition charDef) in definition.CharDefinitions)
         {
             Image? image = imageRetriever.Get(charDef.ImageName, ResourceNamespace.Graphics);
@@ -103,6 +106,12 @@ public static class BitmapFont
         if (NotAllSameImageType(imageType, charImages))
             throw new Exception("Mixing different image types when making bitmap font");
 
+        if (definition.FixedWidthNumber != null
+            && definition.FixedWidth == null
+            && charImages.TryGetValue(definition.FixedWidthNumber.Value, out Image? fixedWidthImage)
+            && fixedWidthImage != null)
+            numberFixedWidth = fixedWidthImage.Width;
+
         Dictionary<char, Image> processedCharImages = new();
         foreach ((char c, Image charImage) in charImages)
         {
@@ -114,14 +123,29 @@ public static class BitmapFont
     }
 
     private static (Dictionary<char, Glyph>, Image) CreateGlyphs(FontDefinition definition, Dictionary<char, Image> charImages,
-        int maxHeight, ImageType imageType)
+        int maxHeight, int? numberFixedWidth, ImageType imageType)
     {
         Dictionary<char, Glyph> glyphs = new();
         int atlasOffsetX = 0;
         const int padding = 1;
-        int width = charImages.Values.Select(i => i.Width).Sum() + padding * charImages.Count * 2;
+        int width = 0;
         if (definition.FixedWidth != null)
+        {
+            // All chars are fixed width
             width = (charImages.Count * definition.FixedWidth.Value) + (padding * charImages.Count * 2);
+        }
+        else if (numberFixedWidth != null)
+        {
+            // Chars are variable width except for numbers
+            width = charImages.Where(c => !NumberChars.Contains(c.Key)).Select(i => i.Value.Width).Sum();
+            width += numberFixedWidth.Value * 10;
+            width += padding * charImages.Count * 2;
+        }
+        else
+        {
+            // All chars are variable width
+            width = charImages.Values.Select(i => i.Width).Sum() + padding * charImages.Count * 2;
+        }
 
         if (definition.FixedHeight != null)
             maxHeight = definition.FixedHeight.Value;
@@ -134,9 +158,21 @@ public static class BitmapFont
             var charImage = image;
             atlasOffsetX += padding;
 
-            int charWidth = definition.FixedWidth ?? charImage.Width;
+            int? numberWidth = numberFixedWidth != null && NumberChars.Contains(c)
+                ? numberFixedWidth
+                : null;
 
-            charImage.DrawOnTopOf(atlas, (atlasOffsetX, 0));
+            int charWidth = definition.FixedWidth ?? numberWidth ?? charImage.Width;
+            if (numberWidth != null)
+            {
+                // Center-align within a fixed-width cell
+                charImage.DrawOnTopOf(atlas, (atlasOffsetX + (charWidth - charImage.Width) / 2, 0));
+            }
+            else
+            {
+                charImage.DrawOnTopOf(atlas, (atlasOffsetX, 0));
+            }
+
             var glyphDimension = charImage.Dimension;
             glyphDimension.Width = charWidth;
             var offset = definition.UseOffset ? new Vec2I(charImage.Offset.X, -charImage.Offset.Y) : Vec2I.Zero;
