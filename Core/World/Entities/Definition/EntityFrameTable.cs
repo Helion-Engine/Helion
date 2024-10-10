@@ -72,14 +72,14 @@ public class EntityFrameTable
         entityFrame.SpriteIndex = GetSpriteIndex(entityFrame.Sprite);
     }
 
-    public void AddCustomFrames()
+    public void AddCustomFrames(DataCache dataCache)
     {
-        EntityFrame entityFrame = new(this, Constants.InvisibleSprite, 0, 16, EntityFrameProperties.Default, EntityActionFunctions.A_ClosetLook, 0, string.Empty);
+        var entityFrame = dataCache.GetEntityFrame(this, Constants.InvisibleSprite, 0, 16, EntityFrameProperties.Default, EntityActionFunctions.A_ClosetLook, 0, string.Empty);
         AddFrame(entityFrame, false);
         entityFrame.NextFrameIndex = entityFrame.MasterFrameIndex;
         ClosetLookFrameIndex = entityFrame.MasterFrameIndex;
 
-        entityFrame = new(this, Constants.InvisibleSprite, 0, 16, EntityFrameProperties.Default, EntityActionFunctions.A_ClosetChase, 0, string.Empty);
+        entityFrame = dataCache.GetEntityFrame(this, Constants.InvisibleSprite, 0, 16, EntityFrameProperties.Default, EntityActionFunctions.A_ClosetChase, 0, string.Empty);
         AddFrame(entityFrame, false);
         entityFrame.NextFrameIndex = entityFrame.MasterFrameIndex;
         ClosetChaseFrameIndex = entityFrame.MasterFrameIndex;

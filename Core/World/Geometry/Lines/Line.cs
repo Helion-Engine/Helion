@@ -44,7 +44,15 @@ public sealed class Line
     public int AmountArg => Args.Arg2;
     public bool SeenForAutomap => (DataChanges & LineDataTypes.Automap) != 0;
 
+    public Line() { }
+
     public Line(int id, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial,
+        SpecialArgs args)
+    {
+        Set(id, segment, front, back, flags, lineSpecial, args);
+    }
+
+    public void Set(int id, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial,
         SpecialArgs args)
     {
         Id = id;

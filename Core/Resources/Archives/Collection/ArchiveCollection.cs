@@ -363,7 +363,7 @@ public class ArchiveCollection : IResources, IPathResolver
             // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
             EntityDefinitionComposer.LoadAllDefinitions();
             ApplyDehackedPatch();
-            EntityFrameTable.AddCustomFrames();
+            EntityFrameTable.AddCustomFrames(DataCache);
 
             if (iwad != null || files.Any())
                 Definitions.BuildTranslationColorMaps(Data.Palette, Data.Colormap);

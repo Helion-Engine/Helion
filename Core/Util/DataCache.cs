@@ -28,6 +28,15 @@ using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.World.Geometry.Islands;
 using System.Diagnostics;
+using Helion.World.Entities.Definition.States;
+using static Helion.World.Entities.Definition.States.EntityActionFunctions;
+using Helion.Maps.Specials.ZDoom;
+using Helion.Maps.Specials;
+using Helion.Geometry.Segments;
+using Helion.World.Geometry.Sides;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using IniParser.Model;
+using SixLabors.Fonts.Tables.AdvancedTypographic;
 
 namespace Helion.Util;
 
@@ -37,6 +46,8 @@ public class DataCache
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private readonly DynamicArray<Entity> m_entities = new(DefaultLength);
+    private readonly DynamicArray<EntityDefinition> m_entityDefinitions = new(DefaultLength);
+    private readonly DynamicArray<EntityFrame> m_entityFrames = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Entity>> m_entityNodes = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Sector>> m_sectorNodes = new(DefaultLength);
     private readonly DynamicArray<LinkableNode<Island>> m_islandNodes = new(DefaultLength);
@@ -69,6 +80,68 @@ public class DataCache
             m_consoleMessages.Add(new ConsoleMessage());
             m_consoleMessageNodes.Add(new LinkedListNode<ConsoleMessage>(null!));
         }
+
+        const int SoundCount = 32;
+        for (int i = 0; i < SoundCount; i++)
+            m_audioSources.Add(new OpenALAudioSource());
+
+        for (int i = 0; i < SoundCount; i++)
+            m_audioNodes.Add(new LinkedListNode<IAudioSource>(null!));
+    }
+
+    public void InitEntities(int count)
+    {
+        count = (int)(count * 1.5);
+        if (count < m_entities.Length)
+            return;
+
+        m_entities.FlushReferences();
+        m_entityNodes.FlushReferences();
+
+        for (int i = 0; i < count; i++)
+            m_entities.Add(new Entity());
+
+        for (int i = 0; i < count * 2; i++)
+            m_entityNodes.Add(new LinkableNode<Entity>(null!));
+    }
+
+    public void InitEntityDefinitions(int count)
+    {
+        count += 10;
+        for (int i = 0; i < count; i++)
+            m_entityDefinitions.Add(new EntityDefinition());
+    }
+
+    public void InitEntityFrames(int count)
+    {
+        count += 10;
+        for (int i = 0; i < count; i++)
+            m_entityFrames.Add(new EntityFrame());
+    }
+
+    public EntityDefinition GetEntityDefinition(int id, string name, int? editorId, IList<string> parentClassNames)
+    {
+        if (m_entityDefinitions.Length > 0)
+        {
+            var def = m_entityDefinitions.RemoveLast();
+            def.Set(id, name, editorId, parentClassNames);
+            return def;
+        }
+        
+        return new(id, name, editorId, parentClassNames);
+    }
+
+    public EntityFrame GetEntityFrame(EntityFrameTable table, string sprite, int frame, int ticks, in EntityFrameProperties properties,
+        ActionFunction? actionFunction, int nextFrameIndex, string vanillaActorName, IList<object>? frameArgs = null)
+    {
+        if (m_entityFrames.Length > 0)
+        {
+            var entityFrame = m_entityFrames.RemoveLast();
+            entityFrame.Set(table, sprite, frame, ticks, properties, actionFunction, nextFrameIndex, vanillaActorName, frameArgs);
+            return entityFrame;
+        }
+
+        return new(table, sprite, frame, ticks, properties, actionFunction, nextFrameIndex, vanillaActorName, frameArgs);
     }
 
     // Clear pointers to references that could keep the world around and prevent garbage collection.

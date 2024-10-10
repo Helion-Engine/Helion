@@ -17,9 +17,9 @@ public class EntityDefinition
     public string Name;
     public EntityFlags Flags;
     public EntityProperties Properties;
-    public readonly EntityStates States;
-    public readonly IList<string> ParentClassNames;
-    public readonly bool IsBulletPuff;
+    public EntityStates States;
+    public IList<string> ParentClassNames;
+    public bool IsBulletPuff;
     public bool IsInventory;
     public int? SpawnState;
     public int? MissileState;
@@ -41,7 +41,18 @@ public class EntityDefinition
 
     private readonly HashSet<string> ParentClassLookup = new(StringComparer.OrdinalIgnoreCase);
 
+    public EntityDefinition()
+    {
+
+    }
+
+
     public EntityDefinition(int id, string name, int? editorId, IList<string> parentClassNames)
+    {
+        Set(id, name, editorId, parentClassNames);
+    }
+
+    public void Set(int id, string name, int? editorId, IList<string> parentClassNames)
     {
         Precondition(!string.IsNullOrEmpty(name), "Cannot have an entity definition with an empty name");
 

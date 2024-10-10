@@ -36,13 +36,21 @@ public class EntityFrame
     public FrameArgs Args = FrameArgs.Default;
     public EntityFrame NextFrame => m_table.Frames[NextFrameIndex];
     public bool IsNullFrame => MasterFrameIndex == Constants.NullFrameIndex;
-    public readonly bool IsSlowTickChase;
-    public readonly bool IsSlowTickLook;
-    public readonly bool IsSlowTickTracer;
+    public bool IsSlowTickChase;
+    public bool IsSlowTickLook;
+    public bool IsSlowTickTracer;
 
-    private readonly EntityFrameTable m_table;
+    private EntityFrameTable m_table;
+
+    public EntityFrame() { }
 
     public EntityFrame(EntityFrameTable table, string sprite, int frame, int ticks, in EntityFrameProperties properties,
+        ActionFunction? actionFunction, int nextFrameIndex, string vanillaActorName, IList<object>? frameArgs = null)
+    {
+        Set(table, sprite, frame, ticks, properties, actionFunction, nextFrameIndex, vanillaActorName, frameArgs);
+    }
+
+    public void Set(EntityFrameTable table, string sprite, int frame, int ticks, in EntityFrameProperties properties,
         ActionFunction? actionFunction, int nextFrameIndex, string vanillaActorName, IList<object>? frameArgs = null)
     {
         Precondition(nextFrameIndex >= 0, "Cannot have a negative 'next frame index' for an entity frame");

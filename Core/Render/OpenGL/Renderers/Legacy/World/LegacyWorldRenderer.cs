@@ -149,7 +149,8 @@ public class LegacyWorldRenderer : WorldRenderer
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = renderBlocks[by * it.Width + bx];
+                int blockIndex = by * it.Width + bx;
+                Block block = renderBlocks[blockIndex];
                 if (occlude && !block.Box.InView(occluder, m_renderData.ViewDirection))
                     continue;
 
@@ -203,7 +204,7 @@ public class LegacyWorldRenderer : WorldRenderer
                 }
                 m_geometryRenderer.SetBufferCoverWall(true);
 
-                for (var entity = block.HeadEntity; entity != null; entity = entity.RenderBlockNext)
+                for (var entity = world.RenderBlockmap.HeadEntities[blockIndex]; entity != null; entity = entity.RenderBlockNext)
                     RenderEntity(world, entity);
             }
         }

@@ -3,6 +3,7 @@ using Helion.Geometry.Planes;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
@@ -35,10 +36,17 @@ public sealed class SectorPlane : ISoundSource
     private IAudioSource? m_audio;
     private SoundInfo? m_soundInfo;
 
-    private readonly double m_initialZ;
-    private readonly int m_initialTextureHandle;
+    private double m_initialZ;
+    private int m_initialTextureHandle;
+
+    public SectorPlane() { }
 
     public SectorPlane(SectorPlaneFace facing, double z, int textureHandle, short lightLevel)
+    {
+        Set(facing, z, textureHandle, lightLevel);  
+    }
+
+    public void Set(SectorPlaneFace facing, double z, int textureHandle, short lightLevel)
     {
         Facing = facing;
         Z = z;

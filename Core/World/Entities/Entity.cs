@@ -43,7 +43,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
 
     public Entity? RenderBlockNext;
     public Entity? RenderBlockPrevious;
-    public Block? RenderBlock;
+    public int? RenderBlockIndex;
 
     public int BlockmapCount;
     public EntityFlags Flags;
@@ -364,10 +364,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         }
         BlockmapNodes.Clear();
 
-        if (RenderBlock != null)
+        if (RenderBlockIndex != null)
         {
-            RenderBlock.RemoveLink(this);
-            RenderBlock = null;
+            WorldStatic.World.RenderBlockmap.RemoveLink(this, RenderBlockIndex.Value);
+            RenderBlockIndex = null;
         }
 
         IntersectSectors.Clear();

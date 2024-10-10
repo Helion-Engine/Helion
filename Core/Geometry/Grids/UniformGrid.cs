@@ -100,7 +100,7 @@ public class UniformGrid<T> where T : new()
     /// </param>
     public void Iterate(Seg2D seg, Action<T> func)
     {
-        Iterate(seg, block =>
+        Iterate(seg, (block, blockIndex) =>
         {
             func(block);
             return GridIterationStatus.Continue;
@@ -117,7 +117,7 @@ public class UniformGrid<T> where T : new()
     /// (true) or continue (false).</param>
     /// <returns>True if it terminated due to a `Stop` condition from the
     /// function, false otherwise.</returns>
-    public bool Iterate(Seg2D seg, Func<T, GridIterationStatus> func)
+    public bool Iterate(Seg2D seg, Func<T, int, GridIterationStatus> func)
     {
         // This algorithm requires us to be on the unit interval range for
         // our block coordinates. We also want them to be positive, since
@@ -202,7 +202,7 @@ public class UniformGrid<T> where T : new()
         for (int i = 0; i < numBlocks && blockIndex < Blocks.Length && blockIndex > 0; i++)
         {
             T gridElement = Blocks[blockIndex];
-            if (func(gridElement) == GridIterationStatus.Stop)
+            if (func(gridElement, blockIndex) == GridIterationStatus.Stop)
                 return true;
 
             // Unfortunately this algorithm will act weird on corners. If
@@ -286,6 +286,17 @@ public class UniformGrid<T> where T : new()
             return default(T);
 
         return Blocks[index];
+    }
+
+    public int? GetBlockIndex(Vec3D position)
+    {
+        int x = (int)((position.X - Origin.X) / Dimension);
+        int y = (int)((position.Y - Origin.Y) / Dimension);
+        int index = y * Width + x;
+        if (index < 0 || index >= Blocks.Length)
+            return null;
+
+        return index;
     }
 
     private Box2D ToBounds(Box2D bounds)
@@ -431,5 +442,27 @@ public ref struct BlockmapSegIterator<T>  where T : new()
         }
 
         return m_blocks[currentBlockIndex];
+    }
+
+    public int? NextIndex()
+    {
+        if (m_blocksVisited >= m_numBlocks || m_blockIndex < 0 || m_blockIndex >= m_totalBlocks)
+            return null;
+
+        int currentBlockIndex = m_blockIndex;
+        m_blocksVisited++;
+
+        if (m_error > 0)
+        {
+            m_blockIndex += m_verticalStep;
+            m_error -= m_absDelta.X;
+        }
+        else
+        {
+            m_blockIndex += m_horizontalStep;
+            m_error += m_absDelta.Y;
+        }
+
+        return currentBlockIndex;
     }
 }

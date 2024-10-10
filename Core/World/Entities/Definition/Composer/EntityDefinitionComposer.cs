@@ -50,6 +50,9 @@ public class EntityDefinitionComposer
         var normalDefinitions = actorDefinitions.Where(x => string.IsNullOrEmpty(x.Replaces));
         var replaceDefinitions = actorDefinitions.Where(x => !string.IsNullOrEmpty(x.Replaces));
 
+        m_archiveCollection.DataCache.InitEntityDefinitions(actorDefinitions.Count);
+        m_archiveCollection.DataCache.InitEntityFrames(actorDefinitions.Sum(x => x.States.Frames.Count));
+
         foreach (ActorDefinition definition in normalDefinitions)
             GetByName(definition.Name);
 
@@ -214,10 +217,10 @@ public class EntityDefinitionComposer
 
         int id = m_indexTracker.Next();
         var parentClassNames = definitions.Select(d => d.Name).ToArray();
-        EntityDefinition definition = new(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
+        var definition = m_archiveCollection.DataCache.GetEntityDefinition(id, actorDefinition.Name, actorDefinition.EditorNumber, parentClassNames);
 
         ApplyFlagsAndPropertiesFrom(definition, definitions);
-        m_definitionStateApplier.Apply(m_archiveCollection.Definitions.EntityFrameTable, definition, definitions);
+        m_definitionStateApplier.Apply(m_archiveCollection.DataCache, m_archiveCollection.Definitions.EntityFrameTable, definition, definitions);
 
         // TODO: Check if well formed after everything was added.
 

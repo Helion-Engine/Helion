@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Util.Assertion;
 using Helion.Util.Container;
-using Helion.Util.Extensions;
 using Helion.World.Entities;
-using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
@@ -22,18 +19,50 @@ namespace Helion.World.Blockmap;
 /// blocks only will check the blocks they are in for collision detection
 /// or line intersections to optimize computational cost.
 /// </summary>
+
+
+public struct BlockMapLines
+{
+    public BlockLine[] BlockLines;
+    public int BlockLineCount;
+}
+
 public class BlockMap
 {
     public readonly Box2D Bounds;
     private readonly UniformGrid<Block> m_blocks;
     public UniformGrid<Block> Blocks => m_blocks;
-    
+
+    public readonly LinkableList<Entity>[] BlockEntities;
+    public readonly BlockMapLines[] BlockMapLines;
+    public readonly Entity?[] HeadEntities;
+
     public BlockMap(IList<Line> lines, int blockDimension)
     {
         Bounds = FindMapBoundingBox(lines) ?? new Box2D(Vec2D.Zero, Vec2D.One);
         m_blocks = new UniformGrid<Block>(Bounds, blockDimension);
+        BlockEntities = new LinkableList<Entity>[m_blocks.Blocks.Length];
+        InitBlockEntities(BlockEntities);
+        BlockMapLines = new BlockMapLines[m_blocks.Blocks.Length];
+        HeadEntities = new Entity[m_blocks.Blocks.Length];
+        InitBlockMapLines(BlockMapLines);
         SetBlockCoordinates();
         AddLinesToBlocks(lines);
+    }
+
+    private static void InitBlockMapLines(BlockMapLines[] blockMapLines)
+    {
+        for (int i = 0; i < blockMapLines.Length; i++)
+        {
+            ref var blockLines = ref blockMapLines[i];
+            blockLines.BlockLines = new BlockLine[8];
+        }
+    }
+
+    private static void InitBlockEntities(LinkableList<Entity>[] linkableList)
+    {
+        for (int i = 0; i < linkableList.Length; i++)
+            linkableList[i] = new();
     }
 
     public unsafe void Clear()
@@ -59,6 +88,11 @@ public class BlockMap
     {
         Bounds = bounds;
         m_blocks = new UniformGrid<Block>(Bounds, blockDimension);
+        BlockEntities = new LinkableList<Entity>[m_blocks.Blocks.Length];
+        InitBlockEntities(BlockEntities);
+        BlockMapLines = new BlockMapLines[m_blocks.Blocks.Length];
+        HeadEntities = new Entity[m_blocks.Blocks.Length];
+        InitBlockMapLines(BlockMapLines);
         SetBlockCoordinates();
     }
 
@@ -66,9 +100,9 @@ public class BlockMap
     {
         for (int i = 0; i < m_blocks.Blocks.Length; i++)
         {
-            var block = m_blocks.Blocks[i];
-            for (int j = 0; j < block.BlockLineCount; j++)
-                block.BlockLines[j] = default;
+            ref var blockLines = ref BlockMapLines[i];
+            for (int j = 0; j < blockLines.BlockLineCount; j++)
+                blockLines.BlockLines[j] = default;
         }
     }
     
@@ -91,9 +125,8 @@ public class BlockMap
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = m_blocks[by * it.Width + bx];
                 LinkableNode<Entity> blockEntityNode = WorldStatic.DataCache.GetLinkableNodeEntity(entity);
-                block.Entities.Add(blockEntityNode);
+                BlockEntities[by * it.Width + bx].Add(blockEntityNode);
                 entity.BlockmapNodes.Add(blockEntityNode);
             }
         }
@@ -101,12 +134,49 @@ public class BlockMap
 
     public void RenderLink(Entity entity)
     {
-        Assert.Precondition(entity.RenderBlock == null, "Forgot to unlink entity from render blockmap");
-        entity.RenderBlock = m_blocks.GetBlock(entity.Position);
-        if (entity.RenderBlock == null)
+        Assert.Precondition(entity.RenderBlockIndex == null, "Forgot to unlink entity from render blockmap");
+        entity.RenderBlockIndex = m_blocks.GetBlockIndex(entity.Position);
+        if (entity.RenderBlockIndex == null)
             return;
 
-        entity.RenderBlock.AddLink(entity);
+        AddLink(entity, entity.RenderBlockIndex.Value);
+    }
+
+    public void AddLink(Entity entity, int blockIndex)
+    {
+        var headEntity = HeadEntities[blockIndex];
+        if (headEntity == null)
+        {
+            HeadEntities[blockIndex] = entity;
+            return;
+        }
+
+        entity.RenderBlockNext = headEntity;
+        headEntity.RenderBlockPrevious = entity;
+        HeadEntities[blockIndex] = entity;
+    }
+
+    public void RemoveLink(Entity entity, int blockIndex)
+    {
+        var headEntity = HeadEntities[blockIndex];
+        if (entity == headEntity)
+        {
+            headEntity = entity.RenderBlockNext;
+            HeadEntities[blockIndex] = headEntity;
+            if (headEntity != null)
+                headEntity.RenderBlockPrevious = null;
+            entity.RenderBlockNext = null;
+            entity.RenderBlockPrevious = null;
+            return;
+        }
+
+        if (entity.RenderBlockNext != null)
+            entity.RenderBlockNext.RenderBlockPrevious = entity.RenderBlockPrevious;
+        if (entity.RenderBlockPrevious != null)
+            entity.RenderBlockPrevious.RenderBlockNext = entity.RenderBlockNext;
+
+        entity.RenderBlockNext = null;
+        entity.RenderBlockPrevious = null;
     }
 
     public void Link(IWorld world, Sector sector)
@@ -169,16 +239,17 @@ public class BlockMap
     {
         foreach (Line line in lines)
         {
-            m_blocks.Iterate(line.Segment, block =>
+            m_blocks.Iterate(line.Segment, (block, blockIndex) =>
             {
-                if (block.BlockLines.Length == block.BlockLineCount)
+                ref var blockLines = ref BlockMapLines[blockIndex];
+                if (blockLines.BlockLines.Length == blockLines.BlockLineCount)
                 {
-                    var newLines = new BlockLine[block.BlockLines.Length * 2];
-                    Array.Copy(block.BlockLines, newLines, block.BlockLines.Length);
-                    block.BlockLines = newLines;
+                    var newLines = new BlockLine[blockLines.BlockLines.Length * 2];
+                    Array.Copy(blockLines.BlockLines, newLines, blockLines.BlockLines.Length);
+                    blockLines.BlockLines = newLines;
                 }
 
-                block.BlockLines[block.BlockLineCount++] = new BlockLine(line.Segment, line, line.Back == null, line.Front.Sector, line.Back?.Sector);
+                blockLines.BlockLines[blockLines.BlockLineCount++] = new BlockLine(line.Segment, line, line.Back == null, line.Front.Sector, line.Back?.Sector);
                 return GridIterationStatus.Continue;
             });
         }

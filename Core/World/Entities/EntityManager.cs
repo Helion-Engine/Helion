@@ -182,7 +182,9 @@ public class EntityManager : IDisposable
 
     public void PopulateFrom(IMap map, LevelStats levelStats)
     {
-        List<Entity> relinkEntities = new();
+        List<Entity> relinkEntities = [];
+        var things = map.GetThings();
+        World.DataCache.InitEntities(things.Count);
 
         foreach (IThing mapThing in map.GetThings())
         {
@@ -245,8 +247,9 @@ public class EntityManager : IDisposable
 
     public WorldModelPopulateResult PopulateFrom(WorldModel worldModel)
     {
-        List<Player> players = new();
-        Dictionary<int, EntityModelPair> entities = new();
+        World.DataCache.InitEntities(worldModel.Entities.Count);
+        List<Player> players = [];
+        Dictionary<int, EntityModelPair> entities = [];
         // Entities are serialized backwards because of the linked list implementation
         for (int i = worldModel.Entities.Count - 1; i >= 0; i--)
         {

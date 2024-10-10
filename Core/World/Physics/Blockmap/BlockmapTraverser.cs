@@ -12,16 +12,22 @@ namespace Helion.World.Physics.Blockmap;
 public class BlockmapTraverser
 {
     public UniformGrid<Block> BlockmapGrid;
+    public BlockMap Blockmap;
 
     private IWorld m_world;
     private Block[] m_blocks;
+    private LinkableList<Entity>[] m_blockEntities;
+    private int m_blockmapWidth;
     private int[] m_checkedLines;
 
     public BlockmapTraverser(IWorld world, BlockMap blockmap)
     {
         m_world = world;
+        Blockmap = blockmap;
         BlockmapGrid = blockmap.Blocks;
         m_blocks = blockmap.Blocks.Blocks;
+        m_blockEntities = blockmap.BlockEntities;
+        m_blockmapWidth = blockmap.Blocks.Width;
         m_checkedLines = new int[m_world.Lines.Count];
     }
 
@@ -43,8 +49,8 @@ public class BlockmapTraverser
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = m_blocks[by * it.Width + bx];
-                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                var blockEntities = m_blockEntities[by * it.Width + bx];
+                for (LinkableNode<Entity>? entityNode = blockEntities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
                     if (entity.BlockmapCount == m_checkCounter || !entity.Flags.Solid)
@@ -65,21 +71,22 @@ public class BlockmapTraverser
         int length = 0;
         int capacity = intersections.Capacity;
         BlockmapSegIterator<Block> it = BlockmapGrid.Iterate(seg);
-        var block = it.Next();
+        var blockIndex = it.NextIndex();
 
         fixed (BlockmapIntersect* startIntersect = &intersections.Data[0])
         {
             BlockmapIntersect* bi = startIntersect;
-            while (block != null)
+            while (blockIndex != null)
             {
-                int blockLineCount = block.BlockLineCount;
+                ref var blockLines = ref Blockmap.BlockMapLines[blockIndex.Value];
+                int blockLineCount = blockLines.BlockLineCount;
                 if (capacity < length + blockLineCount)
                 {
                     intersections.EnsureCapacity(length + blockLineCount);
                     capacity = intersections.Capacity;
                 }
 
-                fixed (BlockLine* lineStart = &block.BlockLines[0])
+                fixed (BlockLine* lineStart = &blockLines.BlockLines[0])
                 {
                     BlockLine* line = lineStart;
                     for (int i = 0; i < blockLineCount; i++, line++)
@@ -105,7 +112,7 @@ public class BlockmapTraverser
                         }
                     }
                 }
-                block = it.Next();
+                blockIndex = it.NextIndex();
             }
         }
 
@@ -124,17 +131,18 @@ public class BlockmapTraverser
         int length = 0;
         int capacity = intersections.Capacity;
         BlockmapSegIterator<Block> it = BlockmapGrid.Iterate(seg);
-        var block = it.Next();
+        var blockIndex = it.NextIndex();
 
         fixed (BlockmapIntersect* startIntersect = &intersections.Data[0])
         {
             BlockmapIntersect* bi = startIntersect;
-            while (block != null)
+            while (blockIndex != null)
             {
-                fixed (BlockLine* lineStart = &block.BlockLines[0])
+                ref var blockLines = ref Blockmap.BlockMapLines[blockIndex.Value];
+                fixed (BlockLine* lineStart = &blockLines.BlockLines[0])
                 {
                     BlockLine* line = lineStart;
-                    for (int i = 0; i < block.BlockLineCount; i++, line++)
+                    for (int i = 0; i < blockLines.BlockLineCount; i++, line++)
                     {
                         if (seg.Intersection(line->Segment.Start.X, line->Segment.Start.Y, line->Segment.End.X, line->Segment.End.Y, out double t))
                         {
@@ -152,7 +160,8 @@ public class BlockmapTraverser
                     }
                 }
 
-                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                var blockEntities = m_blockEntities[blockIndex.Value];
+                for (LinkableNode<Entity>? entityNode = blockEntities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
                     if (entity.BlockmapCount == checkCounter)
@@ -171,7 +180,7 @@ public class BlockmapTraverser
                         length++;
                     }
                 }
-                block = it.Next();
+                blockIndex = it.NextIndex();
             }
         }
 
@@ -187,8 +196,9 @@ public class BlockmapTraverser
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = m_blocks[by * it.Width + bx];
-                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                //Block block = m_blocks[by * it.Width + bx];
+                var blockEntities = m_blockEntities[by * it.Width + bx];
+                for (LinkableNode<Entity>? entityNode = blockEntities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
                     if (entity.BlockmapCount == checkCounter)
@@ -212,8 +222,8 @@ public class BlockmapTraverser
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = m_blocks[by * it.Width + bx];
-                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                var blockEntities = m_blockEntities[by * it.Width + bx];
+                for (LinkableNode<Entity>? entityNode = blockEntities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
                     if (entity.BlockmapCount == checkCounter)
@@ -238,8 +248,8 @@ public class BlockmapTraverser
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = m_blocks[by * it.Width + bx];
-                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                var blockEntities = m_blockEntities[by * it.Width + bx];
+                for (LinkableNode<Entity>? entityNode = blockEntities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
                     if (entity.BlockmapCount == checkCounter)
@@ -272,8 +282,8 @@ public class BlockmapTraverser
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = m_blocks[by * it.Width + bx];
-                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                var blockEntities = m_blockEntities[by * it.Width + bx];
+                for (LinkableNode<Entity>? entityNode = blockEntities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
                     if (entity.BlockmapCount == checkCounter)
@@ -303,8 +313,8 @@ public class BlockmapTraverser
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = m_blocks[by * it.Width + bx];
-                for (LinkableNode<Entity>? entityNode = block.Entities.Head; entityNode != null; entityNode = entityNode.Next)
+                var blockEntities = m_blockEntities[by * it.Width + bx];
+                for (LinkableNode<Entity>? entityNode = blockEntities.Head; entityNode != null; entityNode = entityNode.Next)
                 {
                     Entity entity = entityNode.Value;
                     if (entity.BlockmapCount == checkCounter)
@@ -345,12 +355,13 @@ public class BlockmapTraverser
     {
         int checkCounter = ++WorldStatic.CheckCounter;
         var it = BlockmapGrid.Iterate(seg);
-        var block = it.Next();
-        while (block != null)
+        var blockIndex = it.NextIndex();
+        while (blockIndex != null)
         {
-            for (int i = 0; i < block.BlockLineCount; i++)
+            ref var blockLines = ref Blockmap.BlockMapLines[blockIndex.Value];
+            for (int i = 0; i < blockLines.BlockLineCount; i++)
             {
-                fixed (BlockLine* line = &block.BlockLines[i])
+                fixed (BlockLine* line = &blockLines.BlockLines[i])
                 {
                     if (m_checkedLines[line->LineId] == checkCounter)
                         continue;
@@ -363,7 +374,7 @@ public class BlockmapTraverser
                     }
                 }
             }
-            block = it.Next();
+            blockIndex = it.NextIndex();
         }
         intersections.Sort();
     }

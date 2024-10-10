@@ -6,6 +6,7 @@ using Helion.Maps.Bsp.Builder.GLBSP;
 using Helion.Maps.Doom;
 using Helion.Maps.Hexen;
 using Helion.Resources;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.Util.Loggers;

@@ -9,6 +9,7 @@ using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.Util.Loggers;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
@@ -22,9 +23,17 @@ namespace Helion.World.Geometry.Builder;
 
 public static class DoomGeometryBuilder
 {
-    public static MapGeometry? Create(DoomMap map, GeometryBuilder builder, TextureManager textureManager, 
+    private static int SectorIndex;
+    private static int PlaneIndex;
+    private static int LineIndex;
+    private static readonly DynamicArray<Sector> Sectors = new(1024);
+    private static readonly DynamicArray<SectorPlane> Planes = new(2048);
+    private static readonly DynamicArray<Line> Lines = new(2048);
+
+    public static MapGeometry? Create(DoomMap map, GeometryBuilder builder, TextureManager textureManager,
         Func<(CompactBspTree, BspTreeNew)?> createBspTree)
     {
+        InitCache(map);
         PopulateSectorData(map, builder, textureManager);
         PopulateLineData(map, builder, textureManager);
 
@@ -35,13 +44,42 @@ public static class DoomGeometryBuilder
         return new(map, builder, bspTree.Value.Item1, bspTree.Value.Item2);
     }
 
+    private static void InitCache(DoomMap map)
+    {
+        SectorIndex = 0;
+        PlaneIndex = 0;
+        LineIndex = 0;
+
+        if (Sectors.Length < map.Sectors.Count)
+        {
+            Sectors.FlushReferences();
+            Planes.FlushReferences();
+
+            for (int i = 0; i < map.Sectors.Count; i++)
+                Sectors.Add(new Sector());
+
+            for (int i = 0; i < map.Sectors.Count * 2; i++)
+                Planes.Add(new SectorPlane());
+        }
+
+        if (Lines.Length < map.Lines.Count)
+        {
+            Lines.FlushReferences();
+
+            for (int i = 0; i < map.Lines.Count; i++)
+                Lines.Add(new Line());
+        }
+    }
+
     private static SectorPlane CreateSectorPlane(DoomSector doomSector, SectorPlaneFace face,
         TextureManager textureManager)
     {
         double z = (face == SectorPlaneFace.Floor ? doomSector.FloorZ : doomSector.CeilingZ);
         string texture = (face == SectorPlaneFace.Floor ? doomSector.FloorTexture : doomSector.CeilingTexture);
         int handle = textureManager.GetTexture(texture, ResourceNamespace.Global, ResourceNamespace.Flats).Index;
-        return new SectorPlane(face, z, handle, doomSector.LightLevel);
+        var plane = Planes[PlaneIndex++];
+        plane.Set(face, z, handle, doomSector.LightLevel);
+        return plane;
     }
 
     private static void PopulateSectorData(DoomMap map, GeometryBuilder builder, TextureManager textureManager)
@@ -53,7 +91,8 @@ public static class DoomGeometryBuilder
             SectorPlane ceilingPlane = CreateSectorPlane(doomSector, SectorPlaneFace.Ceiling, textureManager);
             ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, sectorData);
 
-            Sector sector = new(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
+            var sector = Sectors[SectorIndex++];
+            sector.Set(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
                 floorPlane, ceilingPlane, sectorSpecial, sectorData);
             builder.Sectors.Add(sector);
             sectorData.Clear();
@@ -195,7 +234,8 @@ public static class DoomGeometryBuilder
             else
                 special = new LineSpecial(zdoomType, activationType, compatibility);
 
-            Line line = new(builder.Lines.Count, seg, front, back, flags, special, specialArgs);
+            var line = Lines[LineIndex++];
+            line.Set(builder.Lines.Count, seg, front, back, flags, special, specialArgs);
             VanillaLineSpecTranslator.FinalizeLine(doomLine, line);
             builder.Lines.Add(line);
         }

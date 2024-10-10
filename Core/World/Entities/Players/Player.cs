@@ -575,16 +575,16 @@ public class Player : Entity
     {
         ViewLineClip = false;
         var box = new Box2D(pos.X, pos.Y, Radius);
-        var grid = WorldStatic.World.BlockmapTraverser.BlockmapGrid;
-        var it = grid.CreateBoxIteration(box);
+        var blockmap = WorldStatic.World.BlockmapTraverser.Blockmap;
+        var it = WorldStatic.World.BlockmapTraverser.BlockmapGrid.CreateBoxIteration(box);
         for (int by = it.BlockStart.Y; by <= it.BlockEnd.Y; by++)
         {
             for (int bx = it.BlockStart.X; bx <= it.BlockEnd.X; bx++)
             {
-                Block block = grid[by * it.Width + bx];
-                for (int i = 0; i < block.BlockLineCount; i++)
+                ref var blockLines = ref blockmap.BlockMapLines[by * it.Width + bx];
+                for (int i = 0; i < blockLines.BlockLineCount; i++)
                 {
-                    fixed (BlockLine* blockLine = &block.BlockLines[i])
+                    fixed (BlockLine* blockLine = &blockLines.BlockLines[i])
                     {
                         if (!box.Intersects(blockLine->Segment))
                             continue;

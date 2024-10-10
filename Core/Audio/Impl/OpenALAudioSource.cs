@@ -31,6 +31,8 @@ public class OpenALAudioSource : IAudioSource
 
     public int ID => m_sourceId;
 
+    public OpenALAudioSource() { }
+
     public OpenALAudioSource(OpenALAudioSourceManager owner, OpenALBuffer buffer, in AudioData audioData)
     {
         Set(owner, buffer, audioData);

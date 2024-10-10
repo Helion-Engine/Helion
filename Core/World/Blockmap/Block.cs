@@ -39,20 +39,8 @@ public struct BlockLine
 
 public class Block
 {
-    /// <summary>
-    /// All the lines for this block.
-    /// </summary>  
-    public BlockLine[] BlockLines = new BlockLine[8];
-    public int BlockLineCount;
-
-    /// <summary>
-    /// All the entities in this block.
-    /// </summary>
-    public readonly LinkableList<Entity> Entities = new();
     public readonly LinkableList<Island> DynamicSectors = new();
     public readonly DynamicArray<Side> DynamicSides = new();
-
-    public Entity? HeadEntity;
 
     public Box2D Box;
 
@@ -91,39 +79,5 @@ public class Block
 
         Vec2D point = new Vec2D(x * dimension, y * dimension) + origin;
         Box = new(point, point + (dimension, dimension));
-    }
-
-    public void AddLink(Entity entity)
-    {
-        if (HeadEntity == null)
-        {
-            HeadEntity = entity;
-            return;
-        }
-
-        entity.RenderBlockNext = HeadEntity;
-        HeadEntity.RenderBlockPrevious = entity;
-        HeadEntity = entity;
-    }
-
-    public void RemoveLink(Entity entity)
-    {
-        if (entity == HeadEntity)
-        {
-            HeadEntity = entity.RenderBlockNext;
-            if (HeadEntity != null)
-                HeadEntity.RenderBlockPrevious = null;
-            entity.RenderBlockNext = null;
-            entity.RenderBlockPrevious = null;
-            return;
-        }
-
-        if (entity.RenderBlockNext != null)
-            entity.RenderBlockNext.RenderBlockPrevious = entity.RenderBlockPrevious;
-        if (entity.RenderBlockPrevious != null)
-            entity.RenderBlockPrevious.RenderBlockNext = entity.RenderBlockNext;
-
-        entity.RenderBlockNext = null;
-        entity.RenderBlockPrevious = null;
     }
 }

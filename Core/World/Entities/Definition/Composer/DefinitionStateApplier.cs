@@ -31,7 +31,7 @@ public class DefinitionStateApplier
         public int LocalIndex { get; set; }
     }
 
-    public void Apply(EntityFrameTable entityFrameTable, EntityDefinition definition, IList<ActorDefinition> actorDefinitions)
+    public void Apply(DataCache dataCache, EntityFrameTable entityFrameTable, EntityDefinition definition, IList<ActorDefinition> actorDefinitions)
     {
         if (actorDefinitions.Count < 2 || actorDefinitions[0] == null)
         {
@@ -59,7 +59,7 @@ public class DefinitionStateApplier
         // the user has done something critically wrong.
         int offset = 0;
         ActorDefinition baseActor = actorDefinitions[0];
-        ApplyActorDefinition(entityFrameTable, definition, baseActor, baseActor, masterLabelTable, offset, vanillaActorName, true);
+        ApplyActorDefinition(dataCache, entityFrameTable, definition, baseActor, baseActor, masterLabelTable, offset, vanillaActorName, true);
         offset += baseActor.States.Frames.Count;
 
         HashSet<ActorDefinition> skipActors = new();
@@ -78,7 +78,7 @@ public class DefinitionStateApplier
             ActorDefinition current = actorDefinitions[i+1];
             bool includeGenericLabels = !skipActors.Contains(current);
 
-            ApplyActorDefinition(entityFrameTable, definition, current, parent, masterLabelTable, offset, vanillaActorName,
+            ApplyActorDefinition(dataCache, entityFrameTable, definition, current, parent, masterLabelTable, offset, vanillaActorName,
                 includeGenericLabels);
 
             offset += current.States.Frames.Count;
@@ -135,7 +135,7 @@ public class DefinitionStateApplier
     // Note: this frame index is the LOCAL index to the definition
     private static string GetProcessedFrameKey(string name, int frame) => $"{name}::{frame}";
 
-    private void AddFrameAndNonGotoFlowControl(EntityFrameTable entityFrameTable, ActorDefinition current, EntityDefinition definition,
+    private void AddFrameAndNonGotoFlowControl(DataCache dataCache, EntityFrameTable entityFrameTable, ActorDefinition current, EntityDefinition definition,
         IList<UnresolvedGotoFrame> unresolvedGotoFrames, Dictionary<string, FrameLabel> masterLabelTable, int offset,
         string vanillaActorName)
     {
@@ -167,7 +167,7 @@ public class DefinitionStateApplier
 
             EntityFrameProperties properties = new(frame.Properties);
             ActionFunction? actionFunction = Find(frame.ActionFunction?.FunctionName);
-            EntityFrame entityFrame = new(entityFrameTable, frame.Sprite, frame.Frame, frame.Ticks, properties,
+            var entityFrame = dataCache.GetEntityFrame(entityFrameTable, frame.Sprite, frame.Frame, frame.Ticks, properties,
                 actionFunction, entityFrameTable.Frames.Count + 1, vanillaActorName, frame.ActionFunction?.Args);
 
             HandleNonGotoFlowControl(frame, entityFrame, absoluteFrameOffset, lastLabelIndex, unresolvedGotoFrames);
@@ -366,7 +366,7 @@ public class DefinitionStateApplier
         }
     }
 
-    private void ApplyActorDefinition(EntityFrameTable entityFrameTable, EntityDefinition definition, ActorDefinition current,
+    private void ApplyActorDefinition(DataCache dataCache, EntityFrameTable entityFrameTable, EntityDefinition definition, ActorDefinition current,
         ActorDefinition parent, Dictionary<string, FrameLabel> masterLabelTable, int offset, string vanillaActorName, bool includeGenericLabels)
     {
         UnresolvedGotoFrames.Clear();
@@ -389,7 +389,7 @@ public class DefinitionStateApplier
 
         // FrameLabel pointer will exist in both masterLabelTable and offsetMasterTable
         // Any modifications to offsetMasterTable will be automatically applied to masterLabelTable
-        AddFrameAndNonGotoFlowControl(entityFrameTable, current, definition, UnresolvedGotoFrames, offsetMasterTable, offset, vanillaActorName);
+        AddFrameAndNonGotoFlowControl(dataCache, entityFrameTable, current, definition, UnresolvedGotoFrames, offsetMasterTable, offset, vanillaActorName);
         PurgeAnyControlFlowStopOverride(current, offsetMasterTable);
         HandleGotoFlowOverrides(current, parent.Name, offsetMasterTable);
         ApplyGotoOffsets(entityFrameTable, UnresolvedGotoFrames, offsetMasterTable, parent.Name, definition);
