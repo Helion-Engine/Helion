@@ -138,7 +138,7 @@ public static class BitmapFont
         {
             // Chars are variable width except for numbers
             width = charImages.Where(c => !NumberChars.Contains(c.Key)).Select(i => i.Value.Width).Sum();
-            width += numberFixedWidth.Value * 10;
+            width += numberFixedWidth.Value * NumberChars.Length;
             width += padding * charImages.Count * 2;
         }
         else
