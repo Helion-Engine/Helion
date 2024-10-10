@@ -93,7 +93,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
             m_stream ??= m_streamFactory.GetOutputStream(SampleRate, Channels);
             m_stream.SetVolume(m_volume);
 
-            m_stream.Play(FillBlock);
+            m_stream.Play(FillBlockShort);
 
             return true;
         }
@@ -106,17 +106,12 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         return false;
     }
 
-    private bool FillBlock(short[] sampleBlock)
+    private unsafe bool FillBlockShort(short[] sampleBlock)
     {
         if (m_player?.Status == FluidPlayerStatus.Playing)
         {
-            m_synth.WriteSampleFloat(m_stream!.BlockLength, m_sampleBuffer, 0, 2, m_sampleBuffer, 1, 2);
-            for (int i = 0; i < sampleBlock.Length; i++)
-            {
-                short sample = (short)Math.Clamp((int)(32768 * m_sampleBuffer[i]), short.MinValue, short.MaxValue);
-                sampleBlock[i] = sample;
-            }
-
+            fixed (short* ptr = sampleBlock)
+                m_synth.WriteSample16(m_stream!.BlockLength, (IntPtr)ptr, 0, sampleBlock.Length, 2, (IntPtr)ptr, 1, sampleBlock.Length, 2);
             return true;
         }
         else
@@ -200,7 +195,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
 
         if (m_player?.Status == FluidPlayerStatus.Playing)
         {
-            m_stream.Play(FillBlock);
+            m_stream.Play(FillBlockShort);
         }
     }
 
