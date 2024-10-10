@@ -54,6 +54,8 @@ public static class DoomGeometryBuilder
         {
             Sectors.FlushReferences();
             Planes.FlushReferences();
+            Sectors.Length = 0;
+            Planes.Length = 0;
 
             for (int i = 0; i < map.Sectors.Count; i++)
                 Sectors.Add(new Sector());
@@ -65,6 +67,7 @@ public static class DoomGeometryBuilder
         if (Lines.Length < map.Lines.Count)
         {
             Lines.FlushReferences();
+            Lines.Length = 0;
 
             for (int i = 0; i < map.Lines.Count; i++)
                 Lines.Add(new Line());
