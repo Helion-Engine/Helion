@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
@@ -31,6 +29,8 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using Helion.World.StatusBar;
+using System;
+using System.Collections.Generic;
 using static Helion.Render.Common.RenderDimensions;
 
 namespace Helion.Layer.Worlds;
@@ -316,7 +316,7 @@ public partial class WorldLayer
         str.Clear();
         str.Append(prefix);
         str.Append("FPS: ");
-        str.Append($"{(int)Math.Round(fps),5:#####}");
+        str.Append($"{Math.Min((int)Math.Round(fps), 9999),4:####}");
 
         SetRenderableString(str.AsSpan(), renderableString, FixedNumberFont, m_infoFontSize, useDoomScale: false);
         hud.Text(renderableString, (-m_padding - m_hudPaddingX, y), both: Align.TopRight, alpha: m_hudAlpha);
@@ -422,9 +422,9 @@ public partial class WorldLayer
         if (colorMixUniforms.Sector != Vec3F.One)
             colorMix = colorMixUniforms.Sector;
 
-        Color lightLevelColor = ShaderVars.PaletteColorMode ? Color.White :            
-            ((byte)Math.Min(lightLevel * colorMix.X, 255), 
-            (byte)Math.Min(lightLevel * colorMix.Y, 255), 
+        Color lightLevelColor = ShaderVars.PaletteColorMode ? Color.White :
+            ((byte)Math.Min(lightLevel * colorMix.X, 255),
+            (byte)Math.Min(lightLevel * colorMix.Y, 255),
             (byte)Math.Min(lightLevel * colorMix.Z, 255));
 
         string sprite = GetHudWeaponSpriteString(frameState, flash);
@@ -813,7 +813,7 @@ public partial class WorldLayer
         if (!hud.Textures.TryGet(m_config.Hud.BackgroundTexture, out var backgroundHandle))
             return;
 
-        hud.DoomVirtualResolution(m_virtualStatusBarBackgroundAction, new HudStatusBarbackground(hud, barHandle, backgroundHandle), 
+        hud.DoomVirtualResolution(m_virtualStatusBarBackgroundAction, new HudStatusBarbackground(hud, barHandle, backgroundHandle),
             ResolutionScale.None);
     }
 
@@ -877,7 +877,7 @@ public partial class WorldLayer
 
     private void DrawFullHudWeaponSlots(IHudRenderContext hud)
     {
-        if (m_statusBarSizeType ==  StatusBarSizeType.Full)
+        if (m_statusBarSizeType == StatusBarSizeType.Full)
             HudImageWithOffset(hud, "STARMS", (104, 168), both: Align.TopLeft);
 
         for (int slot = 2; slot <= 7; slot++)
@@ -1074,7 +1074,7 @@ public partial class WorldLayer
 
     private int CalculateSlide(IHudRenderContext hud, long timeSinceMessage)
     {
-        const long SlideNanoRange = MaxVisibleTimeNanos - MessageTransitionSpan;        
+        const long SlideNanoRange = MaxVisibleTimeNanos - MessageTransitionSpan;
         if (timeSinceMessage < SlideNanoRange)
             return 0;
 
