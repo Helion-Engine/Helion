@@ -24,6 +24,7 @@ using Helion.World.Blockmap;
 using Helion.World.Geometry.Subsectors;
 using Helion.Graphics.Palettes;
 using System.Runtime.CompilerServices;
+using Helion.World.Special.Specials;
 
 namespace Helion.World.Entities;
 
@@ -75,6 +76,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
     public EntityDefinition? ArmorDefinition;
     public int FrozenTics;
     public Sector Sector;
+    public SectorDamageSpecial? SectorDamageSpecial;
     public Sector HighestFloorSector;
     public Sector LowestCeilingSector;
     // Can be Sector or Entity
@@ -374,6 +376,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource, IRenderObjec
         BlockingLine = null;
         BlockingEntity = null;
         BlockingSectorPlane = null;
+        SectorDamageSpecial = null;
     }
 
     public virtual void Tick()

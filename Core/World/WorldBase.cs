@@ -859,8 +859,7 @@ public abstract partial class WorldBase : IWorld
                 if (entity.Respawn)
                     HandleRespawn(entity);
 
-                if (entity.Sector.SectorDamageSpecial != null)
-                    entity.Sector.SectorDamageSpecial.Tick(entity);
+                entity.SectorDamageSpecial?.Tick(entity);
             }
 
             entity = nextEntity;
