@@ -1,4 +1,5 @@
 namespace ZMusicWrapper.Generated;
+
 using System;
 using System.Diagnostics;
 

@@ -1,6 +1,5 @@
-using ZMusicInterop;
-
 namespace ZMusicWrapper.Generated;
+
 using System.Runtime.InteropServices;
 
 public static unsafe partial class ZMusic
