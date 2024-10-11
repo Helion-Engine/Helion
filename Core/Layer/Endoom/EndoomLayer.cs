@@ -4,6 +4,7 @@
     using Helion.Render.Common.Textures;
     using Helion.Render.OpenGL.Texture;
     using Helion.Resources.Archives.Collection;
+    using Helion.Util;
     using Helion.Util.Extensions;
     using Helion.Util.Timing;
     using Helion.Window;
@@ -26,7 +27,7 @@
         const int ENDOOMBYTES = 4000;
         const int ENDOOMCOLUMNS = 80;
         const int ENDOOMROWS = ENDOOMBYTES / ENDOOMCOLUMNS / 2;
-        const string FONTNAME = "flexi-ibm-vga-true.regular";
+        const string FONTNAME = Constants.Fonts.VGA;
         const string LUMPNAME = "ENDOOM";
         private const string IMAGENAME1 = "ENDOOM_RENDERED_1";
         private const string IMAGENAME2 = "ENDOOM_RENDERED_2";
