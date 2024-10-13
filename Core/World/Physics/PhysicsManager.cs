@@ -1132,7 +1132,7 @@ doneLinkToSectors:
             }
 
             success = false;
-            if (ShouldClearSlide(TryMoveData))
+            if (ShouldClearSlide(entity, TryMoveData))
                 ClearVelocityXY(entity);
             break;
         }
@@ -1451,7 +1451,7 @@ doneLinkToSectors:
 
         // If we cannot find the line or thing that is blocking us, then we
         // are fully done moving horizontally.
-        if (ShouldClearSlide(tryMove))
+        if (ShouldClearSlide(entity, tryMove))
             ClearVelocityXY(entity);
         stepDelta.X = 0;
         stepDelta.Y = 0;
@@ -1650,7 +1650,7 @@ doneLinkToSectors:
             if (IsPositionValid(entity, nextX, entity.Position.Y, tryMove))
             {
                 MoveTo(entity, nextX, entity.Position.Y, tryMove);
-                if (ShouldClearSlide(tryMove))
+                if (ShouldClearSlide(entity, tryMove))
                     entity.Velocity.Y = 0;
                 stepDelta.Y = 0;
                 return true;
@@ -1662,7 +1662,7 @@ doneLinkToSectors:
             if (IsPositionValid(entity, entity.Position.X, nextY, tryMove))
             {
                 MoveTo(entity, entity.Position.X, nextY, tryMove);
-                if (ShouldClearSlide(tryMove))
+                if (ShouldClearSlide(entity, tryMove))
                     entity.Velocity.X = 0;
                 stepDelta.X = 0;
                 return true;
@@ -1672,8 +1672,12 @@ doneLinkToSectors:
         return false;
     }
 
-    private static bool ShouldClearSlide(TryMoveData tryMove)
+    private static bool ShouldClearSlide(Entity entity, TryMoveData tryMove)
     {
+        // Don't clear for voodoo dolls on lines issue #790
+        if (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll)
+            return !WorldStatic.VanillaMovementPhysics || tryMove.BlockingEntity == null;
+
         return !WorldStatic.VanillaMovementPhysics && tryMove.BlockingEntity != null;
     }
 

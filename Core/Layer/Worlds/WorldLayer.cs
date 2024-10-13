@@ -221,6 +221,7 @@ public partial class WorldLayer : IGameLayerParent
     private static void ApplyConfiguration(IConfig config, ArchiveCollection archiveCollection, SkillDef skillDef, WorldModel? worldModel)
     {
         config.Game.Skill.Set(archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(skillDef));
+        config.Game.SelectedSkillDefinition = skillDef;
 
         if (worldModel == null)
             return;

@@ -128,3 +128,13 @@
 		norenderfloorsector 699;
 	}
 }
+
+//Eviternity II final
+"3df11d6deb9d5935aba5f9a8a4bb9549"
+{
+	map "MAP24"
+	{
+		maxdistanceoverride 7000;
+		maxdistanceovveridetag 64;
+	}
+}

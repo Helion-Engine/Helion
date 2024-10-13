@@ -64,6 +64,16 @@ public class CompatibilityParser : ParserBase
             m_mapDefinition.NoRenderCeilingSectors.Add(ConsumeInteger());
             Consume(';');
         }
+        else if (ConsumeIf("maxdistanceoverride"))
+        {
+            m_mapDefinition.MaxDistanceOverride = ConsumeInteger();
+            Consume(';');
+        }
+        else if (ConsumeIf("maxdistanceovveridetag"))
+        {
+            m_mapDefinition.MaxDistanceOverrideTags.Add(ConsumeInteger());
+            Consume(';');
+        }
     }
 
     private void ConsumeLineMapElement()

@@ -34,9 +34,11 @@ public class SinglePlayerWorld : WorldBase
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly CheatType[] ChaseCameraCheats = [CheatType.AutoMapModeShowAllLines, CheatType.AutoMapModeShowAllLinesAndThings];
     private readonly AutomapMarker m_automapMarker;
+    private readonly Dictionary<string, byte[]> m_musicLookup = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<int> m_renderDistanceOverrideTags = [];
     private bool m_chaseCamMode;
     private WorldType m_worldType = WorldType.SinglePlayer;
-    private readonly Dictionary<string, byte[]> m_musicLookup = new(StringComparer.OrdinalIgnoreCase);
+    private int m_renderDistanceOverride;
 
     public override WorldType WorldType => m_worldType;
     public override Player Player { get; protected set; }
@@ -121,18 +123,38 @@ public class SinglePlayerWorld : WorldBase
         config.Player.Gender.OnChanged += PlayerGender_OnChanged;
         config.Render.AutomapBspThread.OnChanged += AutomapBspThread_OnChanged;
         config.Game.MarkSpecials.OnChanged += MarkSpecials_OnChanged;
-        
-        ChaseCamPlayer = EntityManager.CreateCameraPlayer(Player);
-        ChaseCamPlayer.Flags.Invisible = true;
-        ChaseCamPlayer.Flags.NoClip = true;
-        ChaseCamPlayer.Flags.NoGravity = true;
-        ChaseCamPlayer.Flags.Fly = true;
-        ChaseCamPlayer.Flags.NoBlockmap = true;
-        ChaseCamPlayer.Flags.NoSector = true;
+
+        ChaseCamPlayer = CreateChaseCamPlayer();
+
+        CheckDistanceOverride();
+
+        config.Render.MaxDistance.ResetToUserValue();
 
         m_automapMarker = new AutomapMarker(ArchiveCollection);
         CacheSounds();
         CacheMusic();
+    }
+
+    private void CheckDistanceOverride()
+    {
+        if (Map.CompatibilityDefinition != null && Map.CompatibilityDefinition.MaxDistanceOverride > 0)
+        {
+            foreach (var tag in Map.CompatibilityDefinition.MaxDistanceOverrideTags)
+                m_renderDistanceOverrideTags.Add(tag);
+            m_renderDistanceOverride = Map.CompatibilityDefinition.MaxDistanceOverride;
+        }
+    }
+
+    private CameraPlayer CreateChaseCamPlayer()
+    {
+        var player = EntityManager.CreateCameraPlayer(Player);
+        player.Flags.Invisible = true;
+        player.Flags.NoClip = true;
+        player.Flags.NoGravity = true;
+        player.Flags.Fly = true;
+        player.Flags.NoBlockmap = true;
+        player.Flags.NoSector = true;
+        return player;
     }
 
     // Intended for unit testing
@@ -441,7 +463,12 @@ public class SinglePlayerWorld : WorldBase
     public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, bool fromFront)
     {
         MarkSpecials.Mark(this, entity, line, Gametick);
-        return base.ActivateSpecialLine(entity, line, context, fromFront);
+
+        bool success = base.ActivateSpecialLine(entity, line, context, fromFront);
+        if (success && m_renderDistanceOverride > 0 && m_renderDistanceOverrideTags.Contains(line.TagArg))
+            ArchiveCollection.Config.Render.MaxDistance.Set(m_renderDistanceOverride, false);
+
+        return success;
     }
 
     public override void ToggleChaseCameraMode()
