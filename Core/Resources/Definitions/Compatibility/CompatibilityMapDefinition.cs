@@ -6,9 +6,11 @@ namespace Helion.Resources.Definitions.Compatibility;
 
 public class CompatibilityMapDefinition
 {
-    public readonly List<ILineDefinition> Lines = new();
-    public readonly List<ISideDefinition> Sides = new();
-    public readonly List<int> MidTextureHackSectors = new();
-    public readonly List<int> NoRenderFloorSectors = new();
-    public readonly List<int> NoRenderCeilingSectors = new();
+    public readonly List<ILineDefinition> Lines = [];
+    public readonly List<ISideDefinition> Sides = [];
+    public readonly List<int> MidTextureHackSectors = [];
+    public readonly List<int> NoRenderFloorSectors = [];
+    public readonly List<int> NoRenderCeilingSectors = [];
+    public readonly List<int> MaxDistanceOverrideTags = [];
+    public int MaxDistanceOverride;
 }
