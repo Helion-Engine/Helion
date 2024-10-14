@@ -1,21 +1,22 @@
+using Helion.Models;
+using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Options;
+using Helion.Util.Configs.Values;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using Helion.Models;
-using Helion.Util.Configs.Components;
-using Helion.Util.Configs.Options;
-using Helion.Util.Configs.Values;
-using NLog;
 
 namespace Helion.Util.Configs.Impl;
 
 /// <summary>
 /// A basic config file.
 /// </summary>
-public class Config : IConfig
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+public class Config : ConfigElement<Config>, IConfig
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -57,7 +58,7 @@ public class Config : IConfig
 
     private void PopulateTopLevelComponentsRecursively()
     {
-        foreach (PropertyInfo propertyInfo in GetType().GetProperties())
+        foreach (PropertyInfo propertyInfo in typeof(Config).GetProperties())
         {
             MethodInfo? getMethod = propertyInfo.GetMethod;
             if (getMethod?.IsPublic == null)
@@ -70,39 +71,7 @@ public class Config : IConfig
             if (obj == null)
                 continue;
 
-            PopulateComponentsRecursively(obj, propertyInfo.Name.ToLower(), 1);
-        }
-    }
-
-    private void PopulateComponentsRecursively(object obj, string path, int depth)
-    {
-        const int RecursiveOverflowLimit = 100;
-
-        if (depth > RecursiveOverflowLimit)
-            throw new Exception($"A public instance is missing the [ConfigComponentIgnore] attribute, possibly at: {path}");
-
-        foreach (FieldInfo fieldInfo in obj.GetType().GetFields())
-        {
-            if (!fieldInfo.IsPublic)
-                continue;
-
-            object? childObj = fieldInfo.GetValue(obj);
-            if (childObj == null)
-                throw new Exception($"Missing config object instantiation {fieldInfo.Name} at '{path}'");
-
-            string newPath = (path != "" ? $"{path}." : "") + fieldInfo.Name.ToLower();
-
-            if (childObj is IConfigValue configValue)
-            {
-                ConfigInfoAttribute? attribute = fieldInfo.GetCustomAttribute<ConfigInfoAttribute>();
-                if (attribute == null)
-                    throw new Exception($"Config field at '{newPath}' is missing attribute {nameof(ConfigInfoAttribute)}");
-
-                Components[newPath] = new ConfigComponent(newPath, attribute, configValue);
-                continue;
-            }
-
-            PopulateComponentsRecursively(childObj, newPath, depth + 1);
+            (obj as IConfigElement)?.PopulateComponentsRecursively(Components, propertyInfo.Name.ToLower(), 1);
         }
     }
 
@@ -167,13 +136,8 @@ public class Config : IConfig
     public List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> GetAllConfigFields()
     {
         List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields = new();
-        RecursivelyGetConfigFieldsOrThrow(this, fields);
-        return fields;
-    }
 
-    private static void RecursivelyGetConfigFieldsOrThrow(object obj, List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields)
-    {
-        foreach (PropertyInfo propertyInfo in obj.GetType().GetProperties())
+        foreach (PropertyInfo propertyInfo in typeof(Config).GetProperties())
         {
             MethodInfo? getMethod = propertyInfo.GetMethod;
             if (getMethod?.IsPublic == null)
@@ -182,39 +146,13 @@ public class Config : IConfig
             if (!getMethod.ReturnType.Name.StartsWith("Config", StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            object? childObj = getMethod.Invoke(obj, null);
+            object? childObj = getMethod.Invoke(this, null);
             if (childObj == null)
                 continue;
 
-            PopulateComponentsRecursively(childObj, fields);
+            (childObj as IConfigElement)?.RecursivelyGetConfigFieldsOrThrow(fields, depth: 1);
         }
-    }
 
-    private static void PopulateComponentsRecursively(object obj, List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields, int depth = 1)
-    {
-        const int RecursiveOverflowLimit = 100;
-        if (depth > RecursiveOverflowLimit)
-            throw new($"Overflow when trying to get options from the config: {obj} ({obj.GetType()})");
-
-        foreach (FieldInfo fieldInfo in obj.GetType().GetFields())
-        {
-            if (!fieldInfo.IsPublic)
-                continue;
-
-            object? childObj = fieldInfo.GetValue(obj);
-            if (childObj == null || childObj == obj)
-                continue;
-
-            if (childObj is IConfigValue configValue)
-            {
-                OptionMenuAttribute? attribute = fieldInfo.GetCustomAttribute<OptionMenuAttribute>();
-                ConfigInfoAttribute? configAttribute = fieldInfo.GetCustomAttribute<ConfigInfoAttribute>();
-                if (attribute != null && configAttribute != null)
-                    fields.Add((configValue, attribute, configAttribute));
-                continue;
-            }
-
-            PopulateComponentsRecursively(childObj, fields, depth + 1);
-        }
+        return fields;
     }
 }

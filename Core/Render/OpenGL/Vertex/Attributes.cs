@@ -5,6 +5,7 @@ using Helion.Render.OpenGL.Shader;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -17,7 +18,7 @@ public static class Attributes
 
     private static readonly HashSet<int> IndexUsed = new();
 
-    private static List<VaoAttribute> ReadStructAttributes<TVertex>() where TVertex : struct
+    private static List<VaoAttribute> ReadStructAttributes<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex>() where TVertex : struct
     {
         Type type = typeof(TVertex);
         if (TypeToData.TryGetValue(type, out var result))
@@ -143,7 +144,7 @@ public static class Attributes
         return nextAvailableIndex;
     }
 
-    private static void AssertCorrectMappingOrThrow<TVertex>(ProgramAttributes shaderAttribs) where TVertex : struct
+    private static void AssertCorrectMappingOrThrow<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex>(ProgramAttributes shaderAttribs) where TVertex : struct
     {
         Type type = typeof(TVertex);
         if (IsValid.Contains(type))
@@ -170,7 +171,7 @@ public static class Attributes
     }
 
     // Assumes the VBO and VAO have been bound.
-    public static void Apply<TVertex>(ProgramAttributes shaderAttribs) where TVertex : struct
+    public static void Apply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex>(ProgramAttributes shaderAttribs) where TVertex : struct
     {
         AssertCorrectMappingOrThrow<TVertex>(shaderAttribs);
 
@@ -185,7 +186,7 @@ public static class Attributes
         }
     }
 
-    public static void BindAndApply<TVertex>(VertexBufferObject<TVertex> vbo, VertexArrayObject vao, ProgramAttributes shaderAttribs)
+    public static void BindAndApply<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex>(VertexBufferObject<TVertex> vbo, VertexArrayObject vao, ProgramAttributes shaderAttribs)
         where TVertex : struct
     {
         vao.Bind();

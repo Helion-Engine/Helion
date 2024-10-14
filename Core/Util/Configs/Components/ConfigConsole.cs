@@ -1,10 +1,11 @@
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
 
-public class ConfigConsole
+public class ConfigConsole: ConfigElement<ConfigConsole>
 {
     [ConfigInfo("Number of messages the console buffer holds before discarding old ones.")]
     [OptionMenu(OptionSectionType.Console, "Max Messages")]

@@ -23,9 +23,8 @@
   <ItemGroup>
     <PackageReference Include="Crc32.NET" Version="1.2.0" />
     <PackageReference Include="GlmSharp-netstandard" Version="0.9.8.1" />
-    <PackageReference Include="ini-parser-new" Version="2.6.2" />
+    <PackageReference Include="ini-parser-net8" Version="2.6.2.1" />
     <PackageReference Include="NAudio.Core" Version="2.2.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog" Version="5.3.4" />
     <PackageReference Include="OpenTK.Graphics" Version="4.7.4" />
     <PackageReference Include="OpenTK.OpenAL" Version="4.7.4" />

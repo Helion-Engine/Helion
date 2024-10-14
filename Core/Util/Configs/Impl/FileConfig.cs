@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Helion.Util.SerializationContexts;
 
 namespace Helion.Util.Configs.Impl;
 
@@ -278,7 +279,7 @@ public class FileConfig : Config
 
     private static string[]? GetCommandArray(KeyData keyData)
     {
-        var deserialized = JsonSerializer.Deserialize<string[]>(keyData.Value);
+        var deserialized = (string[]?)JsonSerializer.Deserialize(keyData.Value, typeof(string[]), StringArraySerializationContext.Default);
         if (deserialized == null)
             return null;
 

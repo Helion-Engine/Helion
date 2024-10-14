@@ -118,6 +118,11 @@ public partial class TextureManager
         const int FireImageWidth = 320;
         const int FireImageHeight = 168;
         var skyDefinition = m_archiveCollection.Definitions.Id24SkyDefinition;
+        if (skyDefinition.Data.Skies == null)
+        {
+            return;
+        }
+
         foreach (var sky in skyDefinition.Data.Skies)
         {
             if (sky.Type != SkyType.Fire || sky.Fire == null)
@@ -199,6 +204,11 @@ public partial class TextureManager
             return null;
         }
 
+        if (skyDefinition.Data.Skies == null)
+        {
+            return null;
+        }
+
         for (int i = 0; i < skyDefinition.Data.Skies.Count; i++)
         {
             var sky = skyDefinition.Data.Skies[i];
@@ -230,7 +240,7 @@ public partial class TextureManager
             return null;
         }
 
-        var fireSkyDef = m_archiveCollection.Definitions.Id24SkyDefinition.Data.Skies
+        var fireSkyDef = m_archiveCollection.Definitions.Id24SkyDefinition.Data.Skies?
             .FirstOrDefault(x => x.Type == SkyType.Fire && x.Name.Equals(skyForeTex.Name, StringComparison.OrdinalIgnoreCase));
 
         if (fireSkyDef != null)

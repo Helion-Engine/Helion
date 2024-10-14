@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 
 namespace Helion.Util.Configs.Components;
 
-public class ConfigFiles
+public class ConfigFiles: ConfigElement<ConfigFiles>
 {
     [ConfigInfo("Locations to look for archives. Earlier paths are checked before later ones.")]
     public readonly ConfigValue<List<string>> Directories = new(new List<string> { ".", "wads" },

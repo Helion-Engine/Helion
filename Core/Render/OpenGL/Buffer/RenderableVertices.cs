@@ -2,6 +2,7 @@
 using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Vertex;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Render.OpenGL.Buffer;
 
@@ -9,7 +10,7 @@ namespace Helion.Render.OpenGL.Buffer;
 /// A simple collection of a VBO and VAO. In the future it can be trivially
 /// upgraded to having an EBO.
 /// </summary>
-public abstract class RenderableVertices<TVertex> : IDisposable where TVertex : struct
+public abstract class RenderableVertices<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : IDisposable where TVertex : struct
 {
     public readonly VertexBufferObject<TVertex> Vbo;
     public readonly VertexArrayObject Vao;
@@ -46,7 +47,7 @@ public abstract class RenderableVertices<TVertex> : IDisposable where TVertex : 
     }
 }
 
-public class RenderableDynamicVertices<TVertex> : RenderableVertices<TVertex> where TVertex : struct
+public class RenderableDynamicVertices<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : RenderableVertices<TVertex> where TVertex : struct
 {
     public RenderableDynamicVertices(string label, ProgramAttributes attributes) :
         base(label, new DynamicVertexBuffer<TVertex>(label), attributes)
@@ -54,7 +55,7 @@ public class RenderableDynamicVertices<TVertex> : RenderableVertices<TVertex> wh
     }
 }
 
-public class RenderableStaticVertices<TVertex> : RenderableVertices<TVertex> where TVertex : struct
+public class RenderableStaticVertices<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : RenderableVertices<TVertex> where TVertex : struct
 {
     public RenderableStaticVertices(string label, ProgramAttributes attributes) :
         base(label, new StaticVertexBuffer<TVertex>(label), attributes)
@@ -62,7 +63,7 @@ public class RenderableStaticVertices<TVertex> : RenderableVertices<TVertex> whe
     }
 }
 
-public class RenderableStreamVertices<TVertex> : RenderableVertices<TVertex> where TVertex : struct
+public class RenderableStreamVertices<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : RenderableVertices<TVertex> where TVertex : struct
 {
     public RenderableStreamVertices(string label, ProgramAttributes attributes) :
         base(label, new StreamVertexBuffer<TVertex>(label), attributes)

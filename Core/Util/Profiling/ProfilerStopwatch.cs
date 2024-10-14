@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace Helion.Util.Profiling;
 
-public class ProfilerStopwatch
+public class ProfilerStopwatch: ProfileComponent<ProfilerStopwatch>
 {
     private static readonly double TicksToMs = 1000.0 / Stopwatch.Frequency;
 

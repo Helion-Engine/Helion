@@ -1,10 +1,11 @@
 ﻿namespace Helion.Util.Configs.Components;
 
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
-public class ConfigController
+public class ConfigController: ConfigElement<ConfigController>
 {
     // Controller
 

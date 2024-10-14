@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Helion.Resources.Archives.Entries;
-using Newtonsoft.Json;
 using NLog;
+using System;
 
 namespace Helion.Resources.Definitions.Compatibility;
 
@@ -12,7 +8,7 @@ public class OptionsDefinition
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public Options Data { get; set; } = new();
+    public OptionsModel Data { get; set; } = new();
 
     public void Parse(Entry entry)
     {

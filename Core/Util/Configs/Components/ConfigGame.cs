@@ -1,12 +1,13 @@
 using Helion.Maps.Shared;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
 
-public class ConfigGame
+public class ConfigGame: ConfigElement<ConfigGame>
 {
     // Controls/input
 

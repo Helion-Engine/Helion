@@ -2,10 +2,11 @@
 using Helion.Render.OpenGL.Texture.Legacy;
 using OpenTK.Graphics.OpenGL;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
-public class RenderDataManager<TVertex> : IDisposable where TVertex : struct
+public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : IDisposable where TVertex : struct
 {
     private readonly RenderDataCollection<TVertex> m_nonAlphaData;
     private readonly RenderDataCollection<TVertex> m_alphaData;

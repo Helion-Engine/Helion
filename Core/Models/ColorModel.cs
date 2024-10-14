@@ -1,4 +1,5 @@
 ﻿using Helion.Graphics;
+using System.Text.Json.Serialization;
 
 namespace Helion.Models;
 
@@ -9,6 +10,7 @@ public readonly struct ColorModel
     public readonly byte G;
     public readonly byte B;
 
+    [JsonConstructor]
     public ColorModel(byte a, byte r, byte g, byte b)
     {
         A = a;

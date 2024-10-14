@@ -3,8 +3,11 @@
     <HelionRootDir>$(MSBuildThisFileDirectory)</HelionRootDir>
   </PropertyGroup>
 
-  <!-- Set OS/Target dependent constants for use in source files -->
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' != 'Tests'">
+    <TrimmerSingleWarn>true</TrimmerSingleWarn>  <!-- Set this to false for more detail on libraries used -->
+    <IsTrimmable>true</IsTrimmable>
+    <IsAotCompatible>true</IsAotCompatible>
+
     <DefineConstants Condition="'$(RuntimeIdentifier)' == 'linux-x64'">LINUX</DefineConstants>
     <DefineConstants Condition="'$(RuntimeIdentifier)' == 'win-x64'">WINDOWS</DefineConstants>
   </PropertyGroup>

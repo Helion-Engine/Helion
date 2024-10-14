@@ -20,7 +20,7 @@ public class PrimitiveWorldRenderer : IDisposable
 
     public PrimitiveWorldRenderer()
     {
-        var values = (PrimitiveRenderType[])Enum.GetValues(typeof(PrimitiveRenderType));
+        var values = Enum.GetValues<PrimitiveRenderType>();
         foreach (var value in values)
         {
             int lineWidth = 2;

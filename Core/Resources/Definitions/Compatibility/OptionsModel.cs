@@ -4,16 +4,16 @@ using Helion.Util.Parser;
 
 namespace Helion.Resources.Definitions.Compatibility;
 
-public class Options
+public class OptionsModel
 {
     public Dictionary<string, string> Items { get; }
 
-    public Options()
+    public OptionsModel()
     {
         Items = new(StringComparer.OrdinalIgnoreCase);
     }
 
-    public Options(string? input)
+    public OptionsModel(string? input)
     {
         Items = new(StringComparer.OrdinalIgnoreCase);
         if (input != null)

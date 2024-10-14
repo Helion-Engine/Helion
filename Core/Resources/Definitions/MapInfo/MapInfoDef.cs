@@ -7,7 +7,7 @@ namespace Helion.Resources.Definitions.MapInfo;
 
 public class MapInfoDef : ICloneable
 {
-    private BitArray m_levelOptions = new(Enum.GetValues(typeof(MapOptions)).Length);
+    private BitArray m_levelOptions = new(Enum.GetValues<MapOptions>().Length);
 
     public string Map { get; set; } = string.Empty;
     public string MapName { get; set; } = string.Empty;

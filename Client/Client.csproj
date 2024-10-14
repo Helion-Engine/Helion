@@ -15,7 +15,21 @@
     <SelfContained>True</SelfContained>
     <PublishSingleFile>True</PublishSingleFile>
     <PublishReadyToRun>True</PublishReadyToRun>
-    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile >
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishTrimmed>true</PublishTrimmed>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(AOT)' == 'true'">
+    <PublishAot>true</PublishAot>
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <!-- See https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/optimizing.md for instruction set info -->
+    <!-- x86-x64-v3: Haswell and newer (~2013) with FMA and AVX2.  x86-64-v4: AVX-512 required. -->
+    <IlcInstructionSet>x86-x64-v3</IlcInstructionSet>
+    <NoWarn>$(NoWarn);IL3000;IL3002</NoWarn> <!-- NLog tries to get the path incorrectly -->
+
+    <!-- Avoid copying symbols for release AOT builds, as these are miserable to debug even with symbols (and the files are huge) -->
+    <CopyOutputSymbolsToPublishDirectory Condition="'$(Configuration)'=='Release'">false</CopyOutputSymbolsToPublishDirectory>
+    <AllowedReferenceRelatedFileExtensions Condition="'$(Configuration)'=='Release'">none</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -53,7 +67,8 @@
   <Target Name="SetPublishDir" BeforeTargets="Build">
     <PropertyGroup>
       <PublishDir Condition="'$(SelfContainedRelease)' == 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)_SelfContained\</PublishDir>
-      <PublishDir Condition="'$(SelfContainedRelease)' != 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)\</PublishDir>
+      <PublishDir Condition="'$(AOT)' == 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)_AOT\</PublishDir>
+      <PublishDir Condition="'$(SelfContainedRelease)' != 'true' AND '$(AOT)' != 'true'">$(HelionRootDir)\Publish\$(RuntimeIdentifier)\</PublishDir>
     </PropertyGroup>
   </Target>
 

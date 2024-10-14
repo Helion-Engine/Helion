@@ -1,10 +1,11 @@
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
 
-public class ConfigMouse
+public class ConfigMouse: ConfigElement<ConfigMouse>
 {
     [ConfigInfo("Player can look up and down with the mouse.", demo: true)]
     [OptionMenu(OptionSectionType.Mouse, "Mouse Look")]

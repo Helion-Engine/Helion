@@ -1,12 +1,12 @@
+using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.Compatibility;
+using Helion.Util.SerializationContexts;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Helion.Resources.Archives;
-using Helion.Resources.Archives.Entries;
-using Helion.Resources.Definitions.Compatibility;
-using Newtonsoft.Json;
-using NLog;
+using System.Text.Json;
 
 namespace Helion.Resources.Definitions.Id24;
 
@@ -26,7 +26,7 @@ public class GameConfDefinition
         string data = entry.ReadDataAsString();
         try
         {
-            var converted = JsonConvert.DeserializeObject<GameConf>(data)
+            var converted = (GameConf?)JsonSerializer.Deserialize(data, typeof(GameConf), GameConfSerializationContext.Default)
                 ?? throw new Exception($"Gameconf was null");
             var newData = converted.Data;
 
@@ -58,9 +58,12 @@ public class GameConfDefinition
             newData.Mode = Max(ModeValues, newData.Mode, Data?.Mode);
 
             // merge options
-            Options options = Data?.Options ?? new();
-            foreach (var item in newData.Options.Items)
-                options.Set(item.Key, item.Value);
+            OptionsModel options = Data?.Options ?? new();
+            if (newData.Options != null)
+            {
+                foreach (var item in newData.Options.Items)
+                    options.Set(item.Key, item.Value);
+            }
             newData.Options = options;
 
             Data = newData;

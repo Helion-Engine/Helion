@@ -1,12 +1,13 @@
 using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
-using Newtonsoft.Json;
+using Helion.Util.SerializationContexts;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 
 namespace Helion.World.Save;
 
@@ -14,14 +15,6 @@ public class SaveGame
 {
     private static readonly string SaveDataFile = "save.json";
     private static readonly string WorldDataFile = "world.json";
-
-    private static readonly JsonSerializerSettings DefaultSerializerSettings = new JsonSerializerSettings
-    {
-        NullValueHandling = NullValueHandling.Ignore,
-        MissingMemberHandling = MissingMemberHandling.Ignore,
-        TypeNameHandling = TypeNameHandling.Auto,
-        DefaultValueHandling = DefaultValueHandling.Ignore
-    };
 
     public readonly SaveGameModel? Model;
 
@@ -54,7 +47,7 @@ public class SaveGame
             if (saveDataEntry == null)
                 return;
 
-            Model = JsonConvert.DeserializeObject<SaveGameModel>(saveDataEntry.ReadDataAsString(), DefaultSerializerSettings);
+            Model = (SaveGameModel?)JsonSerializer.Deserialize(saveDataEntry.ReadDataAsString(), typeof(SaveGameModel), SaveGameModelSerializationContext.Default);
         }
         catch
         {
@@ -74,7 +67,7 @@ public class SaveGame
             if (entry == null)
                 return null;
 
-            return JsonConvert.DeserializeObject<WorldModel>(entry.ReadDataAsString(), DefaultSerializerSettings);
+            return (WorldModel?)JsonSerializer.Deserialize(entry.ReadDataAsString(), typeof(WorldModel), WorldModelSerializationContext.Default);
         }
         catch
         {
@@ -102,11 +95,11 @@ public class SaveGame
             using ZipArchive zipArchive = ZipFile.Open(saveTempFile, ZipArchiveMode.Create);
             ZipArchiveEntry entry = zipArchive.CreateEntry(SaveDataFile);
             using (Stream stream = entry.Open())
-                stream.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(saveGameModel, DefaultSerializerSettings)));
+                stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(saveGameModel, typeof(SaveGameModel), SaveGameModelSerializationContext.Default)));
 
             entry = zipArchive.CreateEntry(WorldDataFile);
             using (Stream stream = entry.Open())
-                stream.Write(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(worldModel, DefaultSerializerSettings)));
+                stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(worldModel, typeof(WorldModel), WorldModelSerializationContext.Default)));
         }
         catch (Exception ex)
         {

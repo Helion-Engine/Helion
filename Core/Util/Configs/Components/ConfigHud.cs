@@ -1,5 +1,6 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.World.StatusBar;
@@ -19,7 +20,7 @@ public static class HudView
     }
 }
 
-public class ConfigHudAutoMap
+public class ConfigHudAutoMap: ConfigElement<ConfigHudAutoMap>
 {
     [ConfigInfo("Overlay automap over game window.")]
     [OptionMenu(OptionSectionType.Automap, "Overlay")]
@@ -53,7 +54,7 @@ public class ConfigHudAutoMap
     public AutomapLineColors OverlayColors = new(true);
 }
 
-public class AutomapLineColors(bool overlay)
+public class AutomapLineColors(bool overlay): ConfigElement<AutomapLineColors>
 {
     [ConfigInfo("", save: false, legacy: true)]
     [OptionMenu(OptionSectionType.Automap, "", disabled: true, spacer: true)]
@@ -104,7 +105,7 @@ public class AutomapLineColors(bool overlay)
     public readonly ConfigValue<Vec3I> AltMakerColor = new((0xAD, 0xD8, 0xE6), ClampColor);
 }
 
-public class ConfigHud
+public class ConfigHud: ConfigElement<ConfigHud>
 {
     // Crosshair
 
