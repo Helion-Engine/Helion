@@ -6,16 +6,22 @@ namespace NFluidsynth.Native
 {
     internal static partial class LibFluidsynth
     {
-        public const string LibraryName = "fluidsynth";
-        private static bool RegisteredResolver;
-        private static IntPtr m_dllHandle = IntPtr.Zero;
-
         // Supports both ABI 2 and ABI 3 of Fluid Synth
         // https://abi-laboratory.pro/index.php?view=timeline&l=fluidsynth
         public static int LibraryVersion { get; private set; } = 3;
 
         public const int FluidOk = 0;
         public const int FluidFailed = -1;
+
+#if LINUX
+        public const string LibraryName = "libfluidsynth.so";
+#else
+        public const string LibraryName = "fluidsynth.dll";
+#endif
+
+#if !LINUX && !WINDOWS
+        private static bool RegisteredResolver;
+        private static IntPtr m_dllHandle = IntPtr.Zero;
 
         static LibFluidsynth()
         {
@@ -105,5 +111,6 @@ namespace NFluidsynth.Native
 
             return IntPtr.Zero;
         }
+#endif
     }
 }
