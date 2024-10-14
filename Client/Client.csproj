@@ -32,6 +32,21 @@
     <AllowedReferenceRelatedFileExtensions Condition="'$(Configuration)'=='Release'">none</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(RuntimeIdentifier)'=='win-x64'">
+    <DirectPInvoke Include="zmusic" />
+    <NativeLibrary Include="Unmanaged\win-x64\zmusic.lib" />
+
+    <DirectPInvoke Include="fluidsynth" />
+    <NativeLibrary Include="Unmanaged\win-x64\fluidsynth.lib" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RuntimeIdentifier)'=='linux-x64'">
+    <DirectPInvoke Include="libzmusic" />
+    <NativeLibrary Include="Unmanaged\linux-x64\libzmusic.a" />
+
+    <DirectPInvoke Include="libfluidsynth" />
+    <NativeLibrary Include="Unmanaged\linux-x64\libfluidsynth.a" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
@@ -50,7 +65,8 @@
 
     <!-- FluidSynth and ZMusic native libs -->
     <Content Include="$(ProjectDir)Unmanaged\**\*" Link="runtimes\%(RecursiveDir)\native\%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == ''" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="$(ProjectDir)Unmanaged\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' != ''" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(ProjectDir)Unmanaged\$(RuntimeIdentifier)\*.dll" Link="%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == 'win-x64'" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(ProjectDir)Unmanaged\$(RuntimeIdentifier)\*.so*" Link="%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

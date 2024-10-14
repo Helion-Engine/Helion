@@ -14,9 +14,9 @@ namespace NFluidsynth.Native
         public const int FluidFailed = -1;
 
 #if LINUX
-        public const string LibraryName = "libfluidsynth.so";
+        public const string LibraryName = "libfluidsynth.so.3";
 #else
-        public const string LibraryName = "fluidsynth.dll";
+        public const string LibraryName = "fluidsynth-3.dll";
 #endif
 
 #if !LINUX && !WINDOWS
@@ -55,7 +55,7 @@ namespace NFluidsynth.Native
         {
 #pragma warning disable IDE0046 // if/else collapsing produces very dense code here
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return ["fluidsynth.dll", "fluidsynth64.dll", "libfluidsynth.dll", "libfluidsynth64.dll"];
+                return ["fluidsynth.dll", "fluidsynth64.dll", "libfluidsynth.dll", "libfluidsynth64.dll", "fluidsynth-3.dll"];
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 return ["libfluidsynth.so", "libfluidsynth.so.2", "libfluidsynth.so.3", "fluidsynth.so", "fluidsynth.so.2", "fluidsynth.so.3"];
