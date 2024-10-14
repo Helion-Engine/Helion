@@ -2,4 +2,10 @@
   <PropertyGroup>
     <HelionRootDir>$(MSBuildThisFileDirectory)</HelionRootDir>
   </PropertyGroup>
+
+  <!-- Set OS/Target dependent constants for use in source files -->
+  <PropertyGroup>
+    <DefineConstants Condition="'$(RuntimeIdentifier)' == 'linux-x64'">LINUX</DefineConstants>
+    <DefineConstants Condition="'$(RuntimeIdentifier)' == 'win-x64'">WINDOWS</DefineConstants>
+  </PropertyGroup>
 </Project>

@@ -6,6 +6,15 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(RuntimeIdentifier)'=='win-x64'">
+    <DirectPInvoke Include="zmusic" />
+    <NativeLibrary Include="..\..\Client\Unmanaged\win-x64\zmusic.lib" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RuntimeIdentifier)'=='linux-x64'">
+    <DirectPInvoke Include="libzmusic" />
+    <NativeLibrary Include="..\..\Client\Unmanaged\linux-x64\libzmusic.a" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="OpenTK.OpenAL" Version="4.7.4" />
     <PackageReference Include="OpenAL.Soft" Version="1.19.1" />
@@ -20,8 +29,12 @@
     <Compile Include="..\..\Client\Music\PlaybackState.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
-    <Content Include="..\..\Client\Unmanaged\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <Content Include="..\..\Client\Unmanaged\win-x64\*.dll" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
+    <Content Include="..\..\Client\Unmanaged\linux-x64\*.so" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(RuntimeIdentifier)' == ''">

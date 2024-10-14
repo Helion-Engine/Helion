@@ -6,6 +6,13 @@
 
     public unsafe partial class ZMusic
     {
+#if LINUX
+        internal const string LibraryName = "libzmusic.so";
+#else
+        internal const string LibraryName = "zmusic.dll";
+#endif
+
+#if !LINUX && !WINDOWS
         private static bool RegisteredResolver;
         private static IntPtr m_dllHandle = IntPtr.Zero;
 
@@ -93,5 +100,6 @@
 
             return IntPtr.Zero;
         }
+#endif
     }
 }

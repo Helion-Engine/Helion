@@ -4,8 +4,6 @@ using System.Runtime.InteropServices;
 
 public static unsafe partial class ZMusic
 {
-    internal const string LibraryName = "zmusic.dll";
-
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
     [return: NativeTypeName("const char *")]
     public static extern sbyte* ZMusic_GetLastError();
