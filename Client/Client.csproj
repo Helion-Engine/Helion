@@ -25,26 +25,22 @@
     <!-- See https://github.com/dotnet/runtime/blob/main/src/coreclr/nativeaot/docs/optimizing.md for instruction set info -->
     <!-- x86-x64-v3: Haswell and newer (~2013) with FMA and AVX2.  x86-64-v4: AVX-512 required. -->
     <IlcInstructionSet>x86-x64-v3</IlcInstructionSet>
-    <NoWarn>$(NoWarn);IL3000;IL3002</NoWarn> <!-- NLog tries to get the path incorrectly -->
+    <!-- NLog tries to get the path incorrectly -->
+    <NoWarn>$(NoWarn);IL3000;IL3002</NoWarn>
 
     <!-- Avoid copying symbols for release AOT builds, as these are miserable to debug even with symbols (and the files are huge) -->
     <CopyOutputSymbolsToPublishDirectory Condition="'$(Configuration)'=='Release'">false</CopyOutputSymbolsToPublishDirectory>
     <AllowedReferenceRelatedFileExtensions Condition="'$(Configuration)'=='Release'">none</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(RuntimeIdentifier)'=='win-x64'">
+  <ItemGroup Condition="'$(AOT)' == 'true'">
     <DirectPInvoke Include="zmusic" />
-    <NativeLibrary Include="Unmanaged\win-x64\zmusic.lib" />
-
     <DirectPInvoke Include="fluidsynth" />
-    <NativeLibrary Include="Unmanaged\win-x64\fluidsynth.lib" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(RuntimeIdentifier)'=='linux-x64'">
-    <DirectPInvoke Include="libzmusic" />
-    <NativeLibrary Include="Unmanaged\linux-x64\libzmusic.a" />
+    <DirectPInvoke Include="glfw3" />
+    <DirectPInvoke Condition="'$(RuntimeIdentifier)'=='win-x64'" Include="AL" />
 
-    <DirectPInvoke Include="libfluidsynth" />
-    <NativeLibrary Include="Unmanaged\linux-x64\libfluidsynth.a" />
+    <NativeLibrary Condition="'$(RuntimeIdentifier)'=='win-x64'" Include="Unmanaged\win-x64\*.lib" />
+    <NativeLibrary Condition="'$(RuntimeIdentifier)'=='linux-x64'" Include="Unmanaged\linux-x64\*.a" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
