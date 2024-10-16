@@ -13,7 +13,6 @@ public partial class Client
     {
         m_config.Audio.MusicVolume.OnChanged += MusicVolume_OnChanged;
         m_config.Audio.SoundVolume.OnChanged += SoundVolume_OnChanged;
-        m_config.Audio.Volume.OnChanged += Volume_OnChanged;
         m_config.Audio.SoundFontFile.OnChanged += SoundFont_OnChanged;
         m_config.Audio.Synthesizer.OnChanged += this.UseOPLEmulation_OnChanged;
 
@@ -97,8 +96,7 @@ public partial class Client
 
     private void UpdateVolume()
     {
-        var soundVolume = m_config.Audio.SoundVolume * m_config.Audio.Volume;
-        m_audioSystem.SetVolume(soundVolume);
+        m_audioSystem.SetVolume(m_config.Audio.SoundVolume);
         m_audioSystem.Music.SetVolume((float)m_config.Audio.MusicVolumeNormalized);
     }
 
