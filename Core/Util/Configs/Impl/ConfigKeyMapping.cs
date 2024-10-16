@@ -69,6 +69,19 @@ public class ConfigKeyMapping : IConfigKeyMapping
         (Key.Minus,         Constants.Input.AutoMapDecrease),
         (Key.MouseWheelUp,  Constants.Input.AutoMapIncrease),
         (Key.MouseWheelDown, Constants.Input.AutoMapDecrease),
+        // Default controller bindings
+        (Key.Axis2Minus,    Constants.Input.Forward),
+        (Key.Axis2Plus,     Constants.Input.Backward),
+        (Key.Axis1Minus,    Constants.Input.Left),
+        (Key.Axis1Plus,     Constants.Input.Right),
+        (Key.Axis3Minus,    Constants.Input.TurnLeft),
+        (Key.Axis3Plus,     Constants.Input.TurnRight),
+        (Key.Button3,       Constants.Input.Use),
+        (Key.Button1,       Constants.Input.Attack),
+        (Key.Axis6Plus,     Constants.Input.Attack),
+        (Key.DPad1Up,       Constants.Input.NextWeapon),
+        (Key.DPad1Down,     Constants.Input.PreviousWeapon),
+        (Key.Button8,       Constants.Input.Menu),
     };
 
     public void SetInitialDefaultKeyBindings()
