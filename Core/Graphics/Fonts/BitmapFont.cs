@@ -45,6 +45,12 @@ public static class BitmapFont
                 image.DisableIndexedUpload();
             }
 
+            if (scale > 1)
+            {
+                // If we've upscaled the font, it has interpolated colors in it now, and doesn't follow the palette.
+                image.DisableIndexedUpload();
+            }
+
             return new Font(definition.Name, glyphs, image, fixedWidth: definition.FixedWidth, fixedHeight: definition.FixedHeight, fixedWidthChar: definition.FixedWidthChar, scale: scale);
         }
         catch
