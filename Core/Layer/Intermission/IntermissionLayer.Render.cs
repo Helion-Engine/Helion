@@ -184,7 +184,7 @@ public partial class IntermissionLayer
         if (fontObject == null)
             return;
 
-        int RowOffsetY = 3 * fontObject.Get('0').Area.Height / 2;
+        int RowOffsetY = 3 * fontObject.Get('0').Area.Height / fontObject.Scale / 2;
 
         if (IntermissionState >= IntermissionState.NextMap)
             return;
