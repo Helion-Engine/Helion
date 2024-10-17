@@ -22,7 +22,7 @@ public static class BitmapFont
     /// <param name="definition">The font definition.</param>
     /// <param name="archiveCollection">The source of the images.</param>
     /// <returns>The font, or null if it cannot be made.</returns>
-    public static Font? From(FontDefinition definition, ArchiveCollection archiveCollection, int scale)
+    public static Font? From(FontDefinition definition, ArchiveCollection archiveCollection)
     {
         if (!definition.IsValid())
             return null;
@@ -36,7 +36,7 @@ public static class BitmapFont
                 return null;
 
             AddSpaceGlyphIfMissing(charImages, definition, maxHeight, imageType);
-            var (glyphs, image) = CreateGlyphs(definition, charImages, maxHeight, numberFixedWidth, imageType, scale);
+            var (glyphs, image) = CreateGlyphs(definition, charImages, maxHeight, numberFixedWidth, imageType);
 
             // SmallGrayscaleFont has colors applied and needs to be full color to support different colors.
             if (definition.Grayscale)
@@ -45,13 +45,7 @@ public static class BitmapFont
                 image.DisableIndexedUpload();
             }
 
-            if (scale > 1)
-            {
-                // If we've upscaled the font, it has interpolated colors in it now, and doesn't follow the palette.
-                image.DisableIndexedUpload();
-            }
-
-            return new Font(definition.Name, glyphs, image, fixedWidth: definition.FixedWidth, fixedHeight: definition.FixedHeight, fixedWidthChar: definition.FixedWidthChar, scale: scale);
+            return new Font(definition.Name, glyphs, image, fixedWidth: definition.FixedWidth, fixedHeight: definition.FixedHeight, fixedWidthChar: definition.FixedWidthChar);
         }
         catch
         {
@@ -129,7 +123,7 @@ public static class BitmapFont
     }
 
     private static (Dictionary<char, Glyph>, Image) CreateGlyphs(FontDefinition definition, Dictionary<char, Image> charImages,
-        int maxHeight, int? numberFixedWidth, ImageType imageType, int scale)
+        int maxHeight, int? numberFixedWidth, ImageType imageType)
     {
         Dictionary<char, Glyph> glyphs = new();
         int atlasOffsetX = 0;
@@ -156,26 +150,19 @@ public static class BitmapFont
         if (definition.FixedHeight != null)
             maxHeight = definition.FixedHeight.Value;
 
-        bool canUpscale = definition.Grayscale || charImages.All(img => img.Value.ImageType == ImageType.Argb || img.Value.ImageType == ImageType.PaletteWithArgb);
-        width = canUpscale ? width * scale : width;
-        maxHeight = canUpscale ? maxHeight * scale : maxHeight;
-
         Dimension atlasDimension = (width, maxHeight);
-        Image atlas = new(width, maxHeight, definition.Grayscale ? ImageType.Argb : imageType);
+        Image atlas = new(width, maxHeight, imageType);
 
         foreach ((char c, Image image) in charImages)
         {
-            var charImage = scale != 1 && canUpscale
-                ? image.GetUpscaled(scale, ResourceNamespace.Fonts)
-                : image;
+            var charImage = image;
             atlasOffsetX += padding;
 
-
             int? numberWidth = numberFixedWidth != null && NumberChars.Contains(c)
-                ? numberFixedWidth * scale
+                ? numberFixedWidth
                 : null;
 
-            int charWidth = definition.FixedWidth * scale ?? numberWidth ?? charImage.Width;
+            int charWidth = definition.FixedWidth ?? numberWidth ?? charImage.Width;
             if (numberWidth != null)
             {
                 // Center-align within a fixed-width cell

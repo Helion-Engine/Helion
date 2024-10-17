@@ -263,7 +263,7 @@ public class ArchiveCollection : IResources, IPathResolver
         FontDefinition? definition = Definitions.Fonts.Get(name);
         if (definition != null)
         {
-            Font? bitmapFont = BitmapFont.From(definition, this, m_config.Hud.FontUpscaleRatio);
+            Font? bitmapFont = BitmapFont.From(definition, this);
             m_fonts[name] = bitmapFont;
             return bitmapFont;
         }
