@@ -140,7 +140,12 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         // we check the GL texture cache first, we will find the texture
         // and miss the flat and then never know that there is a specific
         // flat that should have been used.
-        Image? imageForNamespace = ArchiveCollection.ImageRetriever.GetOnly(name, priorityNamespace);
+        Image? imageForNamespace;
+        if (priorityNamespace == ResourceNamespace.Undefined)
+            imageForNamespace = ArchiveCollection.ImageRetriever.Get(name, priorityNamespace);
+        else
+            imageForNamespace = ArchiveCollection.ImageRetriever.GetOnly(name, priorityNamespace);
+
         if (imageForNamespace != null)
         {
             texture = CreateTexture(imageForNamespace, name, priorityNamespace);

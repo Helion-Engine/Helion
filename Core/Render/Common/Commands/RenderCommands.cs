@@ -9,6 +9,7 @@ using Helion.Render.Common.Enums;
 using Helion.Render.OpenGL.Commands.Types;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Fonts;
+using Helion.Resources;
 using Helion.Util.Configs;
 using Helion.Util.Timing;
 using Helion.World;
@@ -115,11 +116,11 @@ public class RenderCommands
         ClearCommands.Add(ClearRenderCommand.DepthOnly());
     }
 
-    public void DrawImage(string textureName, int left, int top, int width, int height, Color color,
+    public void DrawImage(string textureName, ResourceNamespace ns, int left, int top, int width, int height, Color color,
         float alpha = 1.0f, bool drawColorMap = false, bool drawFuzz = false, bool drawPalette = true, int colorMapIndex = 0)
     {
         ImageBox2I drawArea = TranslateDoomImageDimensions(left, top, width, height);
-        DrawImageCommand cmd = new(textureName, drawArea, color, alpha * m_alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+        DrawImageCommand cmd = new(textureName, ns, drawArea, color, alpha * m_alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
         Commands.Add(new RenderCommand(RenderCommandType.Image, ImageCommands.Count));
         ImageCommands.Add(cmd);
     }

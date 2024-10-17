@@ -54,17 +54,17 @@ public class LegacyHudRenderer : HudRenderer
         m_drawBuffer.Clear();
     }
 
-    public override void DrawImage(string textureName, ImageBox2I drawArea, Color multiplyColor,
+    public override void DrawImage(string textureName, ResourceNamespace ns, ImageBox2I drawArea, Color multiplyColor,
         float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex)
     {
-        m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
+        m_textureManager.TryGet(textureName, ns, out GLLegacyTexture texture);
         AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
     }
 
-    public override void DrawImage(string textureName, Vec2I topLeft, Color multiplyColor,
+    public override void DrawImage(string textureName, ResourceNamespace ns, Vec2I topLeft, Color multiplyColor,
         float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex)
     {
-        m_textureManager.TryGet(textureName, ResourceNamespace.Graphics, out GLLegacyTexture texture);
+        m_textureManager.TryGet(textureName, ns, out GLLegacyTexture texture);
         (int width, int height) = texture.Dimension;
         ImageBox2I drawArea = new ImageBox2I(topLeft.X, topLeft.Y, topLeft.X + width, topLeft.Y + height);
         AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
