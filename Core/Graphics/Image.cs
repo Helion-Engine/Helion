@@ -1,9 +1,9 @@
+using System;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Resources;
 using Helion.Util.Extensions;
-using System;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics;
@@ -31,7 +31,6 @@ public class Image
     public readonly ResourceNamespace Namespace;
     public readonly uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
     public readonly byte[] m_indices;
-    public readonly int UpscaleFactor;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
@@ -52,11 +51,10 @@ public class Image
         Precondition(h >= 0, "Tried providing a negative height for an image");
     }
 
-    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, ushort[]? indices = null, int upscaleFactor = 1)
+    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, ushort[]? indices = null)
     {
         Precondition(pixels.Length == dimension.Area, "Image size mismatch");
 
-        UpscaleFactor = upscaleFactor;
         Dimension = dimension;
         ImageType = imageType;
         Offset = offset;
@@ -120,38 +118,6 @@ public class Image
         }
 
         return new(pixels, dimension, ImageType.Argb, offset, ns);
-    }
-
-    public Image GetUpscaled(int scaleFactor)
-    {
-        if (ImageType == ImageType.Palette)
-        {
-            throw new ArgumentException("Can only upscale ARGB images.");
-        }
-
-        if (scaleFactor < 2 || scaleFactor > 5)
-        {
-            throw new ArgumentException("Invalid scale factor", nameof(scaleFactor));
-        }
-
-        int scaledWidth = Width * scaleFactor;
-        int scaledHeight = Height * scaleFactor;
-
-        uint[] scaledPixels = new uint[scaledWidth * scaledHeight];
-        using xBRZNet.Image src = new xBRZNet.Image(Width, Height, m_pixels);
-        using xBRZNet.Image dest = new xBRZNet.Image(scaledWidth, scaledHeight, scaledPixels);
-        xBRZNet.xBRZScaler scaler = new xBRZNet.xBRZScaler(
-            scaleFactor,
-            new xBRZNet.ScalerCfg() { ColorMode = xBRZNet.Common.ColorMode.RGBA });
-        scaler.ScaleImage(src, dest);
-
-        return new Image(
-            scaledPixels,
-            new Dimension(scaledWidth, scaledHeight),
-            ImageType.Argb,
-            this.Offset * scaleFactor,
-            this.Namespace,
-            upscaleFactor: scaleFactor);
     }
 
     public static Image PaletteToArgb(PaletteImage image, Palette palette, bool[] fullBright, bool storeIndices, bool clearBlackPixels, byte[]? colorTranslation = null)
@@ -284,7 +250,7 @@ public class Image
     public int TransparentPixelCount()
     {
         int count = 0;
-        for (int i = 0; i < m_pixels.Length; i++)
+        for (int i = 0; i < m_pixels.Length ; i++)
         {
             if ((m_pixels[i] & 0xFF000000) == 0)
                 count++;
@@ -362,7 +328,7 @@ public class Image
 
         uint minGrayscale = 255;
         uint maxGrayscale = 0;
-
+        
         for (int i = 0; i < m_pixels.Length; i++)
         {
             uint argb = m_pixels[i];
@@ -378,7 +344,7 @@ public class Image
             if (a > 0)
             {
                 minGrayscale = Math.Min(minGrayscale, grayscale);
-                maxGrayscale = Math.Max(maxGrayscale, grayscale);
+                maxGrayscale = Math.Max(maxGrayscale, grayscale);    
             }
         }
 
@@ -398,7 +364,7 @@ public class Image
                 uint alphaComponent = argb & 0xFF000000;
                 if (alphaComponent == 0)
                     continue;
-
+                
                 uint currentGrayscale = argb & 0x000000FF;
                 double factor = (currentGrayscale - minGrayscale) * deltaInverse;
                 uint adjustedGrayscale = minGrayscale + (uint)(minToByteMax * factor);

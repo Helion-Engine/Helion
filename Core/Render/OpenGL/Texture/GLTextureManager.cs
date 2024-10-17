@@ -82,9 +82,9 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         Dispose();
     }
 
-    public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int scaleFactor = 1)
+    public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null)
     {
-        if (TryGet(name, specificNamespace ?? ResourceNamespace.Undefined, out GLTextureType texture, scaleFactor))
+        if (TryGet(name, specificNamespace ?? ResourceNamespace.Undefined, out GLTextureType texture))
         {
             handle = texture;
             return true;
@@ -120,7 +120,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     /// the texture you want, or it will be the null image texture.</param>
     /// <returns>True if the texture was found, false if it was not found
     /// and the out value is the null texture handle.</returns>
-    public bool TryGet(string name, ResourceNamespace priorityNamespace, out GLTextureType texture, int scaleFactor = 1)
+    public bool TryGet(string name, ResourceNamespace priorityNamespace, out GLTextureType texture)
     {
         texture = NullTexture;
         if (name == Constants.NoTexture)
@@ -143,11 +143,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         Image? imageForNamespace = ArchiveCollection.ImageRetriever.GetOnly(name, priorityNamespace);
         if (imageForNamespace != null)
         {
-            if (scaleFactor > 1)
-            {
-                imageForNamespace = imageForNamespace.GetUpscaled(scaleFactor);
-            }
-            texture = CreateTexture(imageForNamespace, name, imageForNamespace.Namespace);
+            texture = CreateTexture(imageForNamespace, name, priorityNamespace);
             return true;
         }
 
@@ -167,10 +163,6 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         if (image == null)
             return false;
 
-        if (scaleFactor > 1)
-        {
-            image = image.GetUpscaled(scaleFactor);
-        }
         texture = CreateTexture(image, name, image.Namespace);
         return true;
     }
