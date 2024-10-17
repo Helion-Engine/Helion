@@ -630,6 +630,9 @@ public partial class TextureManager : ITickable
     private void LoadTextureImage(int textureIndex, GetImageOptions options = GetImageOptions.Default)
     {
         var texture = m_textures[textureIndex];
+        if (texture.Name == Constants.NoTexture)
+            return;
+
         texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
     }
 
