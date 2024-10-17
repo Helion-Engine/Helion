@@ -31,6 +31,7 @@ public class Image
     public readonly ResourceNamespace Namespace;
     public readonly uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
     public readonly byte[] m_indices;
+    public readonly int UpscaleFactor;
 
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
@@ -51,10 +52,11 @@ public class Image
         Precondition(h >= 0, "Tried providing a negative height for an image");
     }
 
-    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, ushort[]? indices = null)
+    public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, ushort[]? indices = null, int upscaleFactor = 1)
     {
         Precondition(pixels.Length == dimension.Area, "Image size mismatch");
 
+        UpscaleFactor = upscaleFactor;
         Dimension = dimension;
         ImageType = imageType;
         Offset = offset;
@@ -120,7 +122,7 @@ public class Image
         return new(pixels, dimension, ImageType.Argb, offset, ns);
     }
 
-    public Image GetUpscaled(int scaleFactor, ResourceNamespace ns)
+    public Image GetUpscaled(int scaleFactor)
     {
         if (ImageType == ImageType.Palette)
         {
@@ -148,7 +150,8 @@ public class Image
             new Dimension(scaledWidth, scaledHeight),
             ImageType.Argb,
             this.Offset * scaleFactor,
-            ns);
+            this.Namespace,
+            upscaleFactor: scaleFactor);
     }
 
     public static Image PaletteToArgb(PaletteImage image, Palette palette, bool[] fullBright, bool storeIndices, bool clearBlackPixels, byte[]? colorTranslation = null)

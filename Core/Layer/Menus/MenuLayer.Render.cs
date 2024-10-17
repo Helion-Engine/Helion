@@ -42,7 +42,7 @@ public partial class MenuLayer
             switch (component)
             {
                 case MenuImageComponent imageComponent:
-                    DrawImage(hud, imageComponent, isSelected, ref offsetY);
+                    DrawImage(hud, imageComponent, isSelected, ref offsetY, m_config.Hud.FontUpscaleRatio);
                     break;
                 case MenuPaddingComponent paddingComponent:
                     offsetY += paddingComponent.PixelAmount;
@@ -68,18 +68,18 @@ public partial class MenuLayer
         offsetY += area.Height;
     }
 
-    private void DrawImage(IHudRenderContext hud, MenuImageComponent image, bool isSelected, ref int offsetY)
+    private void DrawImage(IHudRenderContext hud, MenuImageComponent image, bool isSelected, ref int offsetY, int scaleFactor)
     {
         int drawY = image.PaddingTopY + offsetY;
         if (image.AddToOffsetY)
             offsetY += image.PaddingTopY;
 
-        if (hud.Textures.TryGet(image.ImageName, out var handle))
+        if (hud.Textures.TryGet(image.ImageName, out var handle, upscaleFactor: scaleFactor))
         {
             Vec2I offset = TranslateDoomOffset(handle.Offset);
             int offsetX = offset.X + image.OffsetX;
 
-            hud.Image(image.ImageName, (offsetX, drawY + offset.Y), out HudBox area, both: image.ImageAlign);
+            hud.Image(image.ImageName, (offsetX, drawY + offset.Y), out HudBox area, both: image.ImageAlign, textureUpscaleFactor: scaleFactor);
 
             if (isSelected)
                 DrawSelectedImage(hud, image, drawY, offsetX);

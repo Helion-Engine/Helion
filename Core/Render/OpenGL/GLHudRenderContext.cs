@@ -111,22 +111,22 @@ public class GLHudRenderContext : IHudRenderContext
 
     public void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
-        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0)
+        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int textureUpscaleFactor = 1)
     {
-        Image(texture, out drawArea, area, null, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex);
+        Image(texture, out drawArea, area, null, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex, textureUpscaleFactor);
     }
 
     public void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
-        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0)
+        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int textureUpscaleFactor = 1)
     {
-        Image(texture, out drawArea, null, origin, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex);
+        Image(texture, out drawArea, null, origin, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex, textureUpscaleFactor);
     }
 
     private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null,
         Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null,
         ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null,
-        float scale = 1.0f, float alpha = 1.0f, bool drawFuzz = false, int colorMapIndex = 0)
+        float scale = 1.0f, float alpha = 1.0f, bool drawFuzz = false, int colorMapIndex = 0, int textureUpscaleFactor = 1)
     {
         drawArea = default;
 
@@ -140,10 +140,10 @@ public class GLHudRenderContext : IHudRenderContext
         Dimension drawDim = (0, 0);
         if (area != null)
             drawDim = area.Value.Dimension;
-        else if (Textures.TryGet(texture, out var handle, resourceNamespace))
+        else if (Textures.TryGet(texture, out var handle, resourceNamespace, textureUpscaleFactor))
             drawDim = handle.Dimension;
 
-        drawDim.Scale(scale);
+        drawDim.Scale(scale / textureUpscaleFactor);
 
         Vec2I pos = GetDrawingCoordinateFromAlign(location.X, location.Y, drawDim.Width, drawDim.Height,
             window, anchor);

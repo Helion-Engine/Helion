@@ -43,6 +43,7 @@ public partial class IntermissionLayer : IGameLayer
     private int m_tics;
     private int m_delayStateTics;
     private readonly IConfigKeyMapping m_keys;
+    private int m_textUpscaleFactor;
 
     public event EventHandler? Exited;
 
@@ -52,7 +53,7 @@ public partial class IntermissionLayer : IGameLayer
     private bool IsNextMap => IntermissionState == IntermissionState.NextMap;
 
     public IntermissionLayer(GameLayerManager parent, IWorld world, IConfigKeyMapping keys, SoundManager soundManager,
-        IMusicPlayer musicPlayer, MapInfoDef currentMapInfo, Func<FindMapResult> getNextMapInfo)
+        IMusicPlayer musicPlayer, MapInfoDef currentMapInfo, Func<FindMapResult> getNextMapInfo, int textUpscaleFactor)
     {
         m_gameLayerManager = parent;
         World = world;
@@ -65,6 +66,7 @@ public partial class IntermissionLayer : IGameLayer
         m_totalLevelTime = World.LevelTime / (int)Constants.TicksPerSecond;
         m_renderVirtualIntermissionAction = new(RenderVirtualIntermission);
         m_keys = keys;
+        m_textUpscaleFactor = textUpscaleFactor;
 
         IntermissionPic = string.IsNullOrEmpty(currentMapInfo.ExitPic) ? "INTERPIC" : currentMapInfo.ExitPic;
         CalculatePercentages();
