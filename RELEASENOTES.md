@@ -14,7 +14,6 @@
   - ENDOOM text screen on quit
   - Gamma correction
   - Sound velocity option
-  - Optional xBRZ upscaling on menu and HUD text elements
 
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
