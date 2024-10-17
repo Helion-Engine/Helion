@@ -166,7 +166,7 @@ public static class BitmapFont
         foreach ((char c, Image image) in charImages)
         {
             var charImage = scale != 1 && canUpscale
-                ? image.GetUpscaled(scale, ResourceNamespace.Fonts)
+                ? image.GetUpscaled(scale)
                 : image;
             atlasOffsetX += padding;
 
