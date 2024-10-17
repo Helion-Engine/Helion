@@ -30,9 +30,8 @@ public interface IRendererTextureManager : IDisposable
     /// or null if it returns false.</param>
     /// <param name="specificNamespace">If null, will search all namespaces,
     /// otherwise will search only in the provided one.</param>
-    /// <param name="upscaleFactor">Upscale factor to apply if retrieving the image for the first time.</param>
     /// <returns>True if found, false if not.</returns>
-    bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscaleFactor = 1);
+    bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null);
 
     /// <summary>
     /// Get a list of texture names

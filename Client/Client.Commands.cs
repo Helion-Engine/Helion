@@ -939,7 +939,7 @@ public partial class Client
             PrepareTransition();
             PlayTransition();
             IntermissionLayer intermissionLayer = new(m_layerManager, world, m_config.Keys, m_soundManager,
-                m_audioSystem.Music, world.MapInfo, getNextMapInfo, m_config.Hud.FontUpscaleRatio);
+                m_audioSystem.Music, world.MapInfo, getNextMapInfo);
             intermissionLayer.Exited += IntermissionLayer_Exited;
             m_layerManager.Add(intermissionLayer);
         }
