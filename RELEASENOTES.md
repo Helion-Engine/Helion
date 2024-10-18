@@ -57,3 +57,4 @@
   - Fix reversed x/y scroll values for MBF21 1024 scroll special
   - Fix velocity being set for certain sounds and not cleared that can cause pitch variations
   - Fix MAP24 sky rendering issue during ship fire sequence for Eviternity II final
+  - Fix MAPINFO/ZMAPINFO defaultmap clearing properties (fixes Eviternity MAP30 endgame sequence)

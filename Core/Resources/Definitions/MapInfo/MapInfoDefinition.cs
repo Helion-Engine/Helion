@@ -24,7 +24,7 @@ public partial class MapInfoDefinition
     {
         m_legacy = true;
         m_parseWeapons = parseWeapons;
-        SimpleParser parser = new SimpleParser();
+        SimpleParser parser = new();
         parser.Parse(data);
 
         MapInfo.SetDefaultMap(null);
@@ -89,8 +89,7 @@ public partial class MapInfoDefinition
     private MapInfoDef ParseMapDef(SimpleParser parser, bool parseHeader, MapInfoDef? mapDef = null)
     {
         bool hasDefaultMap = mapDef != null;
-        if (mapDef == null)
-            mapDef = new();
+        mapDef ??= new();
 
         if (parseHeader)
         {
@@ -237,14 +236,44 @@ public partial class MapInfoDefinition
         if (existing == null)
             return mapDef;
 
-        // Need to carry over some things even with default map. Not exactly clear and couldn't find anything in the wiki...
         if (hasDefaultMap)
         {
-            mapDef.MapSpecial = existing.MapSpecial;
-            mapDef.Music = existing.Music;
-            mapDef.TitlePatch = existing.TitlePatch;
-            mapDef.ParTime = existing.ParTime;
-            mapDef.SuckTime = existing.SuckTime;
+            if (mapDef.MapSpecial == MapSpecial.None)
+                mapDef.MapSpecial = existing.MapSpecial;
+            if (mapDef.MapSpecialAction == MapSpecialAction.None)
+                mapDef.MapSpecialAction = existing.MapSpecialAction;
+            if (string.IsNullOrEmpty(mapDef.TitlePatch))
+                mapDef.TitlePatch = existing.TitlePatch;
+            if (string.IsNullOrEmpty(mapDef.Next))
+                mapDef.Next = existing.Next;
+            if (string.IsNullOrEmpty(mapDef.SecretNext))
+                mapDef.SecretNext = existing.SecretNext;
+            if (string.IsNullOrEmpty(mapDef.Sky1.Name))
+                mapDef.Sky1 = (SkyDef)existing.Sky1.Clone();
+            if (string.IsNullOrEmpty(mapDef.Sky2.Name))
+                mapDef.Sky2 = (SkyDef)existing.Sky2.Clone();
+            if (string.IsNullOrEmpty(mapDef.Music))
+                mapDef.Music = existing.Music;
+            if (string.IsNullOrEmpty(mapDef.LookupName))
+                mapDef.LookupName = existing.LookupName;
+            if (string.IsNullOrEmpty(mapDef.NiceName))
+                mapDef.NiceName = existing.NiceName;
+            if (string.IsNullOrEmpty(mapDef.Label))
+                mapDef.Label = existing.Label;
+            if (string.IsNullOrEmpty(mapDef.EnterPic))
+                mapDef.EnterPic = existing.EnterPic;
+            if (string.IsNullOrEmpty(mapDef.ExitPic))
+                mapDef.ExitPic = existing.ExitPic;
+            if (string.IsNullOrEmpty(mapDef.EndPic))
+                mapDef.EndPic = existing.EndPic;
+            if (string.IsNullOrEmpty(mapDef.Author))
+                mapDef.Author = existing.Author;
+            if (mapDef.ParTime == 0)
+                mapDef.ParTime = existing.ParTime;
+            if (mapDef.SuckTime == 0)
+                mapDef.SuckTime = existing.SuckTime;
+            if (mapDef.HasOptions())
+                mapDef.SetOptions(existing);
         }
         else
         {
