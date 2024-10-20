@@ -58,3 +58,4 @@
   - Fix velocity being set for certain sounds and not cleared that can cause pitch variations
   - Fix MAP24 sky rendering issue during ship fire sequence for Eviternity II final
   - Fix MAPINFO/ZMAPINFO defaultmap clearing properties (fixes Eviternity MAP30 endgame sequence)
+  - Fix clicking/popping noises in WAV audio files (credit: sinshu)
