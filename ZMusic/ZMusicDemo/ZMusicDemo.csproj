@@ -21,11 +21,11 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
-    <Content Include="..\native\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\Client\Unmanaged\$(RuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(RuntimeIdentifier)' == ''">
-    <Content Include="..\native\**\*" Link="runtimes\%(RecursiveDir)\native\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\Client\Unmanaged\**\*" Link="runtimes\%(RecursiveDir)\native\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

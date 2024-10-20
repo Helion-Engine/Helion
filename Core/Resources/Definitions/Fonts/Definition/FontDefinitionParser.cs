@@ -17,6 +17,8 @@ namespace Helion.Resources.Definitions.Fonts.Definition;
 /// ALIGNCHAR = "align" POSITION
 /// CHARDEF: STRING STRING ["default"] [ALIGNCHAR] ";"
 /// CHARACTERS: "characters" "{" CHARDEF "}"
+/// FIXEDWIDTHCHAR: "fixedwidthchar" "=" STRING ";"
+/// FIXEDWIDTHNUMBER: "fixedwidthnumber" "=" STRING ";"
 /// FONTDEF: ALIGN | SPACING | GRAYSCALE | CHARACTERS
 /// FONT: "font" IDENTIFIER "{" FONTDEF* "}"
 /// </code>
@@ -132,6 +134,13 @@ public class FontDefinitionParser : ParserBase
         Consume(';');
     }
 
+    private void ConsumeFixedWidthNumber()
+    {
+        Consume('=');
+        CurrentDefinition.FixedWidthNumber = ConsumeString()[0];
+        Consume(';');
+    }
+
     private void ConsumeFixedHeight()
     {
         Consume('=');
@@ -174,6 +183,9 @@ public class FontDefinitionParser : ParserBase
                 break;
             case "FIXEDWIDTHCHAR":
                 ConsumeFixedWidthChar();
+                break;
+            case "FIXEDWIDTHNUMBER":
+                ConsumeFixedWidthNumber();
                 break;
             case "USEOFFSET":
                 ConsumeUseOffset();

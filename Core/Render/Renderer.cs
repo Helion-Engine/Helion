@@ -594,10 +594,10 @@ public partial class Renderer : IDisposable
         if (cmd.AreaIsTextureDimension)
         {
             Vec2I topLeft = (cmd.DrawArea.Top, cmd.DrawArea.Left);
-            m_hudRenderer.DrawImage(cmd.TextureName, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex);
+            m_hudRenderer.DrawImage(cmd.TextureName, cmd.ResourceNamespace, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex);
         }
         else
-            m_hudRenderer.DrawImage(cmd.TextureName, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex);
+            m_hudRenderer.DrawImage(cmd.TextureName, cmd.ResourceNamespace, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex);
     }
 
     private void HandleDrawShape(DrawShapeCommand cmd)

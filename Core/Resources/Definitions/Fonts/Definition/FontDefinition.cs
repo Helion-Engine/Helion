@@ -19,6 +19,7 @@ public class FontDefinition
     public int? FixedWidth;
     public int? FixedHeight;
     public char? FixedWidthChar;
+    public char? FixedWidthNumber;
     public FontAlignment Alignment = FontAlignment.Bottom;
 
     public FontDefinition(string name)

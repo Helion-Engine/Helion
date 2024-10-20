@@ -66,27 +66,16 @@ public static class AudioHelper
 
         try
         {
-            using WaveFileReader wave = new WaveFileReader(new MemoryStream(data));
-            using MemoryStream writeStream = new MemoryStream();
-            using WaveFileWriter writer = new WaveFileWriter(writeStream, wave.WaveFormat);
+            using MemoryStream ms = new MemoryStream(data);
+            using WaveFileReader reader = new WaveFileReader(ms);
 
-            byte[] buffer = new byte[WavBufferSize];
-            int readAmount = buffer.Length - (buffer.Length % wave.WaveFormat.BlockAlign);
-            int length = wave.Read(buffer, 0, readAmount);
-            while (length > 0)
-            {
-                writer.Write(buffer, 0, length);
-                length = wave.Read(buffer, 0, readAmount);
-            }
+            format.Channels = reader.WaveFormat.Channels;
+            format.SampleRate = reader.WaveFormat.SampleRate;
+            format.BitsPerSample = reader.WaveFormat.BitsPerSample;
 
-            int mod = (int)writeStream.Length % WavBufferSize;
-            if (mod != 0)
-                writeStream.Write(new byte[mod], 0, mod);
-
-            format.Channels = wave.WaveFormat.Channels;
-            format.SampleRate = wave.WaveFormat.SampleRate;
-            format.BitsPerSample = wave.WaveFormat.BitsPerSample;
-            sampleData = new Span<byte>(writeStream.ToArray());
+            var buffer = new byte[reader.Length];
+            reader.Read(buffer);
+            sampleData = buffer;
             return true;
         }
         catch

@@ -167,7 +167,7 @@ public class OpenALAudioSystem : IAudioSystem
     {
         OpenALAudioSourceManager sourceManager = new(this, m_archiveCollection, m_config);
         m_sourceManagers.Add(sourceManager);
-        SetVolume(m_config.Audio.SoundVolume * m_config.Audio.Volume);
+        SetVolume(m_config.Audio.SoundVolume);
         return sourceManager;
     }
 

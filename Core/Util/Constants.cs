@@ -168,6 +168,8 @@ public static class Constants
         public const string SmallGray = "SmallFontGrayscale";
         public const string LargeHud = "LargeHudFont";
         public const string Console = "Console";
+        public const string SmallGrayFixedWidthNumbers = "SmallFontGrayscaleFixedWidthNumbers";
+        public const string VGA = "flexi-ibm-vga-true.regular";
     };
 
     public static class LightBuffer

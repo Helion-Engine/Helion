@@ -8,6 +8,7 @@ namespace Helion.Resources.Definitions.MapInfo;
 public class MapInfoDef : ICloneable
 {
     private BitArray m_levelOptions = new(Enum.GetValues<MapOptions>().Length);
+    private bool m_hasOptions;
 
     public string Map { get; set; } = string.Empty;
     public string MapName { get; set; } = string.Empty;
@@ -38,7 +39,14 @@ public class MapInfoDef : ICloneable
     public ClusterDef? ClusterDef { get; set; }
 
     public bool HasOption(MapOptions option) => m_levelOptions[(int)option];
-    public void SetOption(MapOptions option, bool set) => m_levelOptions[(int)option] = set;
+    public void SetOption(MapOptions option, bool set)
+    {
+        if (set)
+            m_hasOptions = true;
+        m_levelOptions[(int)option] = set;
+    }
+    public bool HasOptions() => m_hasOptions;
+    public void SetOptions(MapInfoDef mapInfo) => m_levelOptions = (BitArray)mapInfo.m_levelOptions.Clone();
 
     public object Clone()
     {
@@ -58,6 +66,7 @@ public class MapInfoDef : ICloneable
             MapSpecial = MapSpecial,
             MapSpecialAction = MapSpecialAction,
             m_levelOptions = (BitArray)m_levelOptions.Clone(),
+            m_hasOptions = m_hasOptions,
             EndGame = EndGame,
             EnterPic = EnterPic,
             ExitPic = ExitPic,

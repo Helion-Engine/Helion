@@ -55,5 +55,6 @@ public enum EIntConfigKey_
     zmusic_snd_streambuffersize,
     zmusic_snd_mididevice,
     zmusic_snd_outputrate,
+    zmusic_mod_preferredplayer,
     NUM_ZMUSIC_INT_CONFIGS,
 }
