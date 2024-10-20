@@ -148,7 +148,7 @@ public class GLHudRenderContext : IHudRenderContext
         Vec2I pos = GetDrawingCoordinateFromAlign(location.X, location.Y, drawDim.Width, drawDim.Height,
             window, anchor);
 
-        m_commands.DrawImage(texture, pos.X, pos.Y, drawDim.Width, drawDim.Height,
+        m_commands.DrawImage(texture, resourceNamespace, pos.X, pos.Y, drawDim.Width, drawDim.Height,
             color ?? Color.White, alpha, m_context.DrawColorMap, m_context.DrawFuzz, m_context.DrawPalette, colorMapIndex);
 
         drawArea = (location, location + drawDim.Vector);

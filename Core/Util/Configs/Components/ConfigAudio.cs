@@ -9,16 +9,13 @@ namespace Helion.Util.Configs.Components;
 
 public class ConfigAudio: ConfigElement<ConfigAudio>
 {
-    [ConfigInfo("Music volume. 0.0 is Off, 1.0 is Maximum.")]
+    [ConfigInfo("Music volume. 0.0 is Off, 2.0 is Maximum.")]
     [OptionMenu(OptionSectionType.Audio, "Music Volume")]
-    public readonly ConfigValue<double> MusicVolume = new(1.0, ClampNormalized);
+    public readonly ConfigValue<double> MusicVolume = new(1.0, Clamp(0, 2.0));
 
-    [ConfigInfo("Sound effect volume. 0.0 is Off, 1.0 is Maximum.")]
+    [ConfigInfo("Sound effect volume. 0.0 is Off, 2.0 is Maximum.")]
     [OptionMenu(OptionSectionType.Audio, "Sound Volume")]
-    public readonly ConfigValue<double> SoundVolume = new(1.0, ClampNormalized);
-
-    [ConfigInfo("Overall volume. 0.0 is Off, 1.0 is Maximum.")]
-    public readonly ConfigValue<double> Volume = new(1.0, ClampNormalized);
+    public readonly ConfigValue<double> SoundVolume = new(1.0, Clamp(0, 2.0));
 
     [ConfigInfo("Enables sound velocity.")]
     [OptionMenu(OptionSectionType.Audio, "Sound Velocity", spacer: true)]
@@ -51,5 +48,6 @@ public class ConfigAudio: ConfigElement<ConfigAudio>
     [OptionMenu(OptionSectionType.Audio, "SoundFont File", dialogType: DialogType.SoundFontPicker)]
     public readonly ConfigValue<string> SoundFontFile = new($"SoundFonts{Path.DirectorySeparatorChar}Default.sf2");
 
-    public double MusicVolumeNormalized => (SoundVolume == 0 ? MusicVolume : (MusicVolume / SoundVolume)) * Volume;
+    // Music volume is treated as a multiple of sound effects volume, because effects volume controls the master gain.
+    public double MusicVolumeNormalized => SoundVolume == 0 ? MusicVolume : (MusicVolume / SoundVolume);
 }
