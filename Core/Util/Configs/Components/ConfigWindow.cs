@@ -14,6 +14,13 @@ public enum RenderWindowState
     Fullscreen,
 }
 
+public enum BlitFilter
+{
+    Auto,
+    Nearest,
+    Linear
+}
+
 public class ConfigWindowVirtual
 {
     [ConfigInfo("Virtual screen size.")]
@@ -27,6 +34,10 @@ public class ConfigWindowVirtual
     [ConfigInfo("Stretch the image if widescreen, or render black bars on the sides.")]
     [OptionMenu(OptionSectionType.Video, "Stretch Virtual Size")]
     public readonly ConfigValue<bool> Stretch = new(false);
+
+    [ConfigInfo("Filter algorithm for virtual screens size.")]
+    [OptionMenu(OptionSectionType.Video, "Virtual Filter")]
+    public readonly ConfigValue<BlitFilter> Filter = new(BlitFilter.Auto);
 }
 
 public class ConfigWindow
