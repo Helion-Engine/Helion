@@ -1,10 +1,11 @@
 # This workflow will build, publish, and update the "nightly" tag of Helion.
+# GitHub is supposed to use UTC time; 7:35 UTC is 2:35 AM EST
 
 name: Nightly Prerelease
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '35 7 * * *'
   workflow_dispatch:
 
 jobs:
