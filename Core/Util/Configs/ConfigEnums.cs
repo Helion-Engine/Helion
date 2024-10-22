@@ -37,7 +37,8 @@ namespace Helion.Util.Configs
             { typeof(RenderLightMode), Enum.GetValues<RenderLightMode>() },
             { typeof(RenderWindowState), Enum.GetValues<RenderWindowState>() },
             { typeof(WindowBorder), Enum.GetValues<WindowBorder>() },
-            { typeof(RenderColorMode), Enum.GetValues<RenderColorMode>() }
+            { typeof(RenderColorMode), Enum.GetValues<RenderColorMode>() },
+            { typeof(BlitFilter), Enum.GetValues<BlitFilter>() }
         };
 
         public static Dictionary<Type, Dictionary<Enum, string>> KnownEnumLabels { get; } = new Dictionary<Type, Dictionary<Enum, string>>()
@@ -56,7 +57,8 @@ namespace Helion.Util.Configs
             { typeof(RenderLightMode), GetDescriptions<RenderLightMode>() },
             { typeof(RenderWindowState), GetDescriptions<RenderWindowState>() },
             { typeof(WindowBorder), GetDescriptions<WindowBorder>() },
-            { typeof(RenderColorMode), GetDescriptions<RenderColorMode>() }
+            { typeof(RenderColorMode), GetDescriptions<RenderColorMode>() },
+            { typeof(BlitFilter), GetDescriptions<BlitFilter>() }
         };
 
         private static Dictionary<Enum, string> GetDescriptions<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>() where T : struct, Enum

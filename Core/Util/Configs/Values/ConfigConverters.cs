@@ -88,7 +88,10 @@ public static class ConfigConverters
     }
     private static Func<object, T> MakeThrowableEnumConverter<T>() where T : notnull
     {
-        Array enumValues = ConfigEnums.KnownEnumValues[typeof(T)];
+        if (!ConfigEnums.KnownEnumValues.TryGetValue(typeof(T), out Array? enumValues))
+        {
+            throw new Exception($"Cannot parse value of type {typeof(T).Name}.  If this is an enum, ensure that it is added to ConfigEnums.cs");
+        }
 
         Dictionary<string, T> nameToEnum = new(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < enumValues.Length; i++)
