@@ -102,11 +102,11 @@ public class ConfigRender: ConfigElement<ConfigRender>
     // Misc. Visual effects
 
     [ConfigInfo("Gamma correction level.")]
-    [OptionMenu(OptionSectionType.Render, "Gamma correction")]
+    [OptionMenu(OptionSectionType.Render, "Gamma correction", spacer: true)]
     public readonly ConfigValue<double> GammaCorrection = new(1, Clamp(1.0, 4.0));
 
     [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
-    [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Contrast", spacer: true)]
+    [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Contrast")]
     public readonly ConfigValue<bool> FakeContrast = new(true);
 
     [ConfigInfo("Render sprites over floors/ceilings. Sprites always clipped to walls. May slow down rendering.", mapRestartRequired: true)]
@@ -121,6 +121,9 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Sprite Z-fighting Check")]
     public readonly ConfigValue<bool> SpriteZCheck = new(true);
 
+    [ConfigInfo("Enable sprite transparency.")]
+    [OptionMenu(OptionSectionType.Render, "Sprite Transparency")]
+    public readonly ConfigValue<bool> SpriteTransparency = new(true);
 
     // Settings below are believed to be less frequently used and thus are not on the menus.
 
@@ -141,9 +144,6 @@ public class ConfigRender: ConfigElement<ConfigRender>
 
     [ConfigInfo("Minimum sprite height to allow to clip the floor.")]
     public readonly ConfigValue<int> SpriteClipMin = new(16, GreaterOrEqual(0));
-
-    [ConfigInfo("Enable sprite transparency.")]
-    public readonly ConfigValue<bool> SpriteTransparency = new(true);
 
     [ConfigInfo("Enable texture transparency.")]
     public readonly ConfigValue<bool> TextureTransparency = new(true);

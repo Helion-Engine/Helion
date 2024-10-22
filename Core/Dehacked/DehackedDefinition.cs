@@ -256,95 +256,95 @@ public partial class DehackedDefinition
         {
             lineNumber = parser.GetCurrentLine();
             string line = parser.PeekLine();
-            if (line.StartsWith(IDNumber, StringComparison.OrdinalIgnoreCase))
+            if (line.StartsWithIgnoreCase(IDNumber))
                 thing.ID = GetIntProperty(parser, IDNumber);
-            else if (line.StartsWith(InitFrame, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(InitFrame))
                 thing.InitFrame = GetIntProperty(parser, InitFrame);
-            else if (line.StartsWith(Hitpoints, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(Hitpoints))
                 thing.Hitpoints = GetIntProperty(parser, Hitpoints);
-            else if (line.StartsWith(FirstMovingFrame, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(FirstMovingFrame))
                 thing.FirstMovingFrame = GetIntProperty(parser, FirstMovingFrame);
-            else if (line.StartsWith(AlertSound, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(AlertSound))
                 thing.AlertSound = GetIntProperty(parser, AlertSound);
-            else if (line.StartsWith(ReactionTime, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(ReactionTime))
                 thing.ReactionTime = GetIntProperty(parser, ReactionTime);
-            else if (line.StartsWith(AttackSound, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(AttackSound))
                 thing.AttackSound = GetIntProperty(parser, AttackSound);
-            else if (line.StartsWith(InjuryFrame, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(InjuryFrame))
                 thing.InjuryFrame = GetIntProperty(parser, InjuryFrame);
-            else if (line.StartsWith(PainChance, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(PainChance))
                 thing.PainChance = GetIntProperty(parser, PainChance);
-            else if (line.StartsWith(PainSound, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(PainSound))
                 thing.PainSound = GetIntProperty(parser, PainSound);
-            else if (line.StartsWith(CloseAttackFrame, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(CloseAttackFrame))
                 thing.CloseAttackFrame = GetIntProperty(parser, CloseAttackFrame);
-            else if (line.StartsWith(FarAttackFrame, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(FarAttackFrame))
                 thing.FarAttackFrame = GetIntProperty(parser, FarAttackFrame);
-            else if (line.StartsWith(DeathFrame, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(DeathFrame))
                 thing.DeathFrame = GetIntProperty(parser, DeathFrame);
-            else if (line.StartsWith(ExplodingFrame, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(ExplodingFrame))
                 thing.ExplodingFrame = GetIntProperty(parser, ExplodingFrame);
-            else if (line.StartsWith(DeathSound, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(DeathSound))
                 thing.DeathSound = GetIntProperty(parser, DeathSound);
-            else if (line.StartsWith(Speed, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(Speed))
                 thing.Speed = GetIntProperty(parser, Speed);
-            else if (line.StartsWith(Width, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(Width))
                 thing.Width = GetIntProperty(parser, Width);
-            else if (line.StartsWith(Height, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(Height))
                 thing.Height = GetIntProperty(parser, Height);
-            else if (line.StartsWith(Mass, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(Mass))
                 thing.Mass = GetIntProperty(parser, Mass);
-            else if (line.StartsWith(MisileDamage, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(MisileDamage))
                 thing.MisileDamage = GetIntProperty(parser, MisileDamage);
-            else if (line.StartsWith(ActionSound, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(ActionSound))
                 thing.ActionSound = GetIntProperty(parser, ActionSound);
-            else if (line.StartsWith(RespawnFrame, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(RespawnFrame))
                 thing.RespawnFrame = GetIntProperty(parser, RespawnFrame);
-            else if (line.StartsWith(DroppedItem, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(DroppedItem))
                 thing.DroppedItem = GetIntProperty(parser, DroppedItem);
-            else if (line.StartsWith(GibHealth, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(GibHealth))
                 thing.GibHealth = GetIntProperty(parser, GibHealth);
-            else if (line.StartsWith(Bits, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(Bits))
                 thing.Bits = GetBits(parser, Bits, ThingPropertyStrings);
-            else if (line.StartsWith(Mbf21Bits, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(Mbf21Bits))
                 thing.Mbf21Bits = GetBits(parser, Mbf21Bits, ThingPropertyStringsMbf21);
-            else if (line.StartsWith(InfightingGroup, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(InfightingGroup))
                 thing.InfightingGroup = GetIntProperty(parser, InfightingGroup);
-            else if (line.StartsWith(ProjectileGroup, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(ProjectileGroup))
                 thing.ProjectileGroup = GetIntProperty(parser, ProjectileGroup);
-            else if (line.StartsWith(SplashGroup, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(SplashGroup))
                 thing.SplashGroup = GetIntProperty(parser, SplashGroup);
-            else if (line.StartsWith(RipSound, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(RipSound))
                 thing.RipSound = GetIntProperty(parser, RipSound);
-            else if (line.StartsWith(FastSpeed, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(FastSpeed))
                 thing.FastSpeed = GetIntProperty(parser, FastSpeed);
-            else if (line.StartsWith(MeleeRange, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(MeleeRange))
                 thing.MeleeRange = GetIntProperty(parser, MeleeRange);
-            else if (line.StartsWith(Id24Bits, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(Id24Bits))
                 thing.Id24Bits = GetBits(parser, Id24Bits, ThingPropertyStringsId24);
-            else if (line.StartsWith(MinRespawnTicks, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(MinRespawnTicks))
                 thing.MinRespawnTicks = GetIntProperty(parser, MinRespawnTicks);
-            else if (line.StartsWith(RespawnDice, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(RespawnDice))
                 thing.RespawnDice = GetIntProperty(parser, RespawnDice);
-            else if (line.StartsWith(PickupAmmoType, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(PickupAmmoType))
                 thing.PickupAmmoType = GetIntProperty(parser, PickupAmmoType);
-            else if (line.StartsWith(PickupAmmoCategory, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(PickupAmmoCategory))
                 thing.PickupAmmoCategory = (Id24AmmoCategory)GetIntProperty(parser, PickupAmmoCategory);
-            else if (line.StartsWith(PickupWeaponType, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(PickupWeaponType))
                 thing.PickupWeaponType = GetIntProperty(parser, PickupWeaponType);
-            else if (line.StartsWith(PickupItemType, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(PickupItemType))
                 thing.PickupItemType = (Id24PickupType?)GetIntProperty(parser, PickupItemType);
-            else if (line.StartsWith(PickupBonusCount, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(PickupBonusCount))
                 thing.PickupBonusCount = GetIntProperty(parser, PickupBonusCount);
-            else if (line.StartsWith(PickupSound, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(PickupSound))
                 thing.PickupSound = GetIntProperty(parser, PickupSound);
-            else if (line.StartsWith(PickupMessage, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(PickupMessage))
                 thing.PickupMessage = GetStringProperty(parser, PickupMessage);
-            else if (line.StartsWith(TranslationLump, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(TranslationLump))
                 thing.TranslationLump = GetStringProperty(parser, TranslationLump);
-            else if (line.StartsWith(SelfDamageFactor, StringComparison.OrdinalIgnoreCase))
+            else if (line.StartsWithIgnoreCase(SelfDamageFactor))
                 thing.SelfDamageFactor = MathHelper.FromFixed(GetIntProperty(parser, SelfDamageFactor));
-            else
+            else if (!IgnoreLine(line))
                 UnknownWarning(parser, "thing type");
 
             ConsumeLine(parser, lineNumber);
@@ -352,6 +352,9 @@ public partial class DehackedDefinition
 
         Things.Add(thing);
     }
+
+    private static bool IgnoreLine(string line) =>
+        line.StartsWithIgnoreCase(Plural) || line.StartsWithIgnoreCase(Name1) || line.StartsWithIgnoreCase(RetroBits);
 
     private void ParseFrame(SimpleParser parser)
     {

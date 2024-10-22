@@ -14,6 +14,7 @@
   - ENDOOM text screen on quit
   - Gamma correction
   - Sound velocity option
+  - Option to control filter type for virtual screen scaling
 
 ## Bug fixes:
   - Fix various issues with intermission screen and end-game screen formatting, including use of widescreen assets, text flow, alignment, pillarbox masking on scrolling finales
@@ -58,3 +59,4 @@
   - Fix velocity being set for certain sounds and not cleared that can cause pitch variations
   - Fix MAP24 sky rendering issue during ship fire sequence for Eviternity II final
   - Fix MAPINFO/ZMAPINFO defaultmap clearing properties (fixes Eviternity MAP30 endgame sequence)
+  - Fix clicking/popping noises in WAV audio files (credit: sinshu)

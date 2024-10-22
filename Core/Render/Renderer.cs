@@ -685,9 +685,7 @@ public partial class Renderer : IDisposable
             : Math.Min(virtualDimension.AspectRatio / mainDimension.AspectRatio, 1.0f);
         int destWidth = (int)(mainDimension.Width * scaleX);
         int offsetX = (mainDimension.Width - destWidth) / 2;
-        var filterType = (m_config.Render.Filter.Texture == FilterType.Nearest)
-            ? BlitFramebufferFilter.Nearest
-            : BlitFramebufferFilter.Linear;
+        var filterType = GetFilterType();
 
         m_mainFramebuffer.BindDraw();
         m_virtualFramebuffer.BindRead();
@@ -699,13 +697,19 @@ public partial class Renderer : IDisposable
             ClearBufferMask.ColorBufferBit, filterType);
     }
 
-    // private void BlitMainFramebufferToDefault()
-    // {
-    //     m_mainFramebuffer.BindRead();
-    //     GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-    //     GL.BlitFramebuffer(0, 0, Window.Dimension.Width, Window.Dimension.Height, 0, 0, Window.Dimension.Width, Window.Dimension.Height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Linear);
-    //     m_mainFramebuffer.UnbindRead();
-    // }
+    private BlitFramebufferFilter GetFilterType()
+    {
+        if (m_config.Window.Virtual.Filter == BlitFilter.Auto)
+        {
+            return (m_config.Render.Filter.Texture == FilterType.Nearest)
+                            ? BlitFramebufferFilter.Nearest
+                            : BlitFramebufferFilter.Linear;
+        }
+
+        return (m_config.Window.Virtual.Filter == BlitFilter.Nearest)
+                    ? BlitFramebufferFilter.Nearest
+                    : BlitFramebufferFilter.Linear;
+    }
 
     protected virtual void Dispose(bool disposing)
     {

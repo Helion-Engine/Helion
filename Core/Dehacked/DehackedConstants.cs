@@ -4888,6 +4888,9 @@ public partial class DehackedDefinition
     private static readonly string PickupMessage = "Pickup message";
     private static readonly string TranslationLump = "Translation";
     private static readonly string SelfDamageFactor = "Self damage factor";
+    private static readonly string Plural = "Plural";
+    private static readonly string Name1 = "Name1";
+    private static readonly string RetroBits = "Retro Bits";
 
     private static readonly string Duration = "Duration";
     private static readonly string SpriteNum = "Sprite number";
