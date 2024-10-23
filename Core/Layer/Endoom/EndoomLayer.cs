@@ -44,7 +44,13 @@
         {
             m_closeAction = closeAction;
             m_archiveCollection = archiveCollection;
-            m_pixelHeight = height;
+
+            // Find an integer scale for pixel height that keeps the render at or under 1080 px tall.  Rendering text to image is VERY slow.
+            for (int scaleFactor = 1; m_pixelHeight == 0; scaleFactor++)
+            {
+                int scaled = height / scaleFactor;
+                m_pixelHeight = scaled <= 1080 ? scaled : 0;
+            }
 
             byte[]? endoomData = m_archiveCollection.FindEntry(LUMPNAME)?.ReadData();
             if (endoomData != null)
