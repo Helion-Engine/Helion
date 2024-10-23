@@ -220,7 +220,7 @@ public class ConfigKeyMapping : IConfigKeyMapping
             if (!cmd.Command.Equals(command, StringComparison.OrdinalIgnoreCase))
                 continue;
 
-            if (input.ConsumeKeyPressed(cmd.Key) || input.Manager.IsKeyContinuousHold(cmd.Key))
+            if (input.ConsumePressOrContinuousHold(cmd.Key))
                 return true;
 
             if (ConsumeMouseWheel(cmd.Key, input, out scrollAmount))
