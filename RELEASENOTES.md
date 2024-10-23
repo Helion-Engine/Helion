@@ -60,3 +60,4 @@
   - Fix MAP24 sky rendering issue during ship fire sequence for Eviternity II final
   - Fix MAPINFO/ZMAPINFO defaultmap clearing properties (fixes Eviternity MAP30 endgame sequence)
   - Fix clicking/popping noises in WAV audio files (credit: sinshu)
+  - Fix A_KeenDie to call A_Fall (fixes blocking alien eggs in Tricking & Tearing at Warpspeed MAP05)

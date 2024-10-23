@@ -1451,6 +1451,8 @@ public static class EntityActionFunctions
 
     public static void A_KeenDie(Entity entity)
     {
+        A_Fall(entity);
+
         var world = WorldStatic.World;
         if (world.EntityAliveCount(entity.Definition.Id) == 0)
         {
