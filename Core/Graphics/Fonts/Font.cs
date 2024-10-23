@@ -1,8 +1,7 @@
+using Helion.Util.Extensions;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Util.Extensions;
-using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.Fonts;
 
@@ -17,6 +16,7 @@ public class Font : IEnumerable<(char, Glyph)>
     public readonly int MaxHeight;
     public readonly int? FixedWidth;
     public readonly int? FixedHeight;
+    public readonly int UpscalingFactor;
     public readonly Glyph? FixedWidthChar;
     public readonly Glyph? FixedWidthNumber;
     public readonly Image Image;
@@ -25,7 +25,7 @@ public class Font : IEnumerable<(char, Glyph)>
     private readonly Glyph m_defaultGlyph;
 
     public Font(string name, Dictionary<char, Glyph> glyphs, Image image, char defaultChar = DefaultChar,
-        bool isTrueTypeFont = false, int? fixedWidth = null, int? fixedHeight = null, char? fixedWidthChar = null, char? fixedWidthNumber = null)
+        bool isTrueTypeFont = false, int? fixedWidth = null, int? fixedHeight = null, char? fixedWidthChar = null, int upscalingFactor = 1, char? fixedWidthNumber = null)
     {
         Name = name;
         m_glyphs = glyphs;
@@ -36,6 +36,8 @@ public class Font : IEnumerable<(char, Glyph)>
 
         if (!glyphs.TryGetValue(defaultChar, out m_defaultGlyph))
             m_defaultGlyph = glyphs.Values.FirstOrDefault();
+
+        UpscalingFactor = upscalingFactor;
 
         FixedWidth = fixedWidth;
         FixedHeight = fixedHeight;

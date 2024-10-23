@@ -872,7 +872,7 @@ public partial class WorldLayer
     {
         if (!font.FixedWidthChar.HasValue)
             return offsetX - 1;
-        return offsetX + font.FixedWidthChar.Value.Area.Width - 1;
+        return offsetX + font.FixedWidthChar.Value.Area.Width / font.UpscalingFactor - 1;
     }
 
     private void DrawFullHudWeaponSlots(IHudRenderContext hud)

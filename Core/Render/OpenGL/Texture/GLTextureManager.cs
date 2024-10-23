@@ -82,9 +82,9 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         Dispose();
     }
 
-    public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null)
+    public bool TryGet(string name, [NotNullWhen(true)] out IRenderableTextureHandle? handle, ResourceNamespace? specificNamespace = null, int upscalingFactor = 1)
     {
-        if (TryGet(name, specificNamespace ?? ResourceNamespace.Undefined, out GLTextureType texture))
+        if (TryGet(name, specificNamespace ?? ResourceNamespace.Undefined, out GLTextureType texture, upscalingFactor))
         {
             handle = texture;
             return true;
@@ -120,7 +120,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     /// the texture you want, or it will be the null image texture.</param>
     /// <returns>True if the texture was found, false if it was not found
     /// and the out value is the null texture handle.</returns>
-    public bool TryGet(string name, ResourceNamespace priorityNamespace, out GLTextureType texture)
+    public bool TryGet(string name, ResourceNamespace priorityNamespace, out GLTextureType texture, int upscalingFactor = 1)
     {
         texture = NullTexture;
         if (name == Constants.NoTexture)
@@ -148,6 +148,11 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
 
         if (imageForNamespace != null)
         {
+            if (upscalingFactor > 1)
+            {
+                imageForNamespace = imageForNamespace.GetUpscaled(upscalingFactor);
+            }
+
             texture = CreateTexture(imageForNamespace, name, priorityNamespace);
             return true;
         }
@@ -167,6 +172,11 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         Image? image = ArchiveCollection.ImageRetriever.Get(name, priorityNamespace);
         if (image == null)
             return false;
+
+        if (upscalingFactor > 1)
+        {
+            image = image.GetUpscaled(upscalingFactor);
+        }
 
         texture = CreateTexture(image, name, image.Namespace);
         return true;

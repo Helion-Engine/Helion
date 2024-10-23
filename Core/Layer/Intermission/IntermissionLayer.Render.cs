@@ -139,22 +139,22 @@ public partial class IntermissionLayer
 
         if (IntermissionState >= IntermissionState.NextMap && NextMapInfo != null)
         {
-            hud.Image(NowEnteringImage, (0, offsetY), out HudBox drawArea, both: Align.TopMiddle);
+            hud.Image(NowEnteringImage, (0, offsetY), out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
             offsetY += (5 * drawArea.Height) / 4;
-            DrawMapTitle(hud, NextMapInfo, ref offsetY);
+            DrawMapTitle(hud, NextMapInfo, ref offsetY, m_textUpscalingFactor);
         }
         else
         {
-            DrawMapTitle(hud, CurrentMapInfo, ref offsetY);
-            hud.Image(FinishedImage, (0, offsetY), both: Align.TopMiddle);
+            DrawMapTitle(hud, CurrentMapInfo, ref offsetY, m_textUpscalingFactor);
+            hud.Image(FinishedImage, (0, offsetY), both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
         }
     }
 
-    private static void DrawMapTitle(IHudRenderContext hud, MapInfoDef mapInfo, ref int offsetY)
+    private static void DrawMapTitle(IHudRenderContext hud, MapInfoDef mapInfo, ref int offsetY, int textUpscalingFactor)
     {
         if (!string.IsNullOrEmpty(mapInfo.TitlePatch))
         {
-            hud.Image(mapInfo.TitlePatch, (0, offsetY), out HudBox drawArea, both: Align.TopMiddle);
+            hud.Image(mapInfo.TitlePatch, (0, offsetY), out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: textUpscalingFactor);
             offsetY += (5 * drawArea.Height) / 4;
             return;
         }
@@ -184,14 +184,14 @@ public partial class IntermissionLayer
         if (fontObject == null)
             return;
 
-        int RowOffsetY = 3 * fontObject.Get('0').Area.Height / 2;
+        int RowOffsetY = 3 * fontObject.Get('0').Area.Height / fontObject.UpscalingFactor / 2;
 
         if (IntermissionState >= IntermissionState.NextMap)
             return;
 
-        hud.Image("WIOSTK", (LeftOffsetX, OffsetY));
-        hud.Image("WIOSTI", (LeftOffsetX, OffsetY + RowOffsetY));
-        hud.Image("WISCRT2", (LeftOffsetX, OffsetY + (2 * RowOffsetY)));
+        hud.Image("WIOSTK", (LeftOffsetX, OffsetY), upscalingFactor: m_textUpscalingFactor);
+        hud.Image("WIOSTI", (LeftOffsetX, OffsetY + RowOffsetY), upscalingFactor: m_textUpscalingFactor);
+        hud.Image("WISCRT2", (LeftOffsetX, OffsetY + (2 * RowOffsetY)), upscalingFactor: m_textUpscalingFactor);
 
         if (IntermissionState >= IntermissionState.TallyingKills)
             DrawNumber(KillPercent, OffsetY);
@@ -220,18 +220,18 @@ public partial class IntermissionLayer
         if (IntermissionState >= IntermissionState.NextMap || IntermissionState < IntermissionState.TallyingTime)
             return;
 
-        hud.Image("WITIME", (LeftOffsetTimeX, -OffsetY), Align.BottomLeft);
+        hud.Image("WITIME", (LeftOffsetTimeX, -OffsetY), Align.BottomLeft, upscalingFactor: m_textUpscalingFactor);
         RenderTime(LevelTimeSeconds, RightOffsetLevelTimeX, -OffsetY);
 
         if (ParTimeSeconds != 0)
         {
-            hud.Image("WIPAR", (LeftOffsetParX, -OffsetY), Align.BottomLeft);
+            hud.Image("WIPAR", (LeftOffsetParX, -OffsetY), Align.BottomLeft, upscalingFactor: m_textUpscalingFactor);
             RenderTime(ParTimeSeconds, 320 - LeftOffsetTimeX, -OffsetY);
         }
 
         if (IntermissionState >= IntermissionState.ShowAllStats)
         {
-            hud.Image("WIMSTT", (LeftOffsetTimeX, -TotalOffsetY), Align.BottomLeft);
+            hud.Image("WIMSTT", (LeftOffsetTimeX, -TotalOffsetY), Align.BottomLeft, upscalingFactor: m_textUpscalingFactor);
 
             int seconds = World.GlobalData.TotalTime / (int)Constants.TicksPerSecond;
             RenderTime(seconds, RightOffsetLevelTimeX, -TotalOffsetY);

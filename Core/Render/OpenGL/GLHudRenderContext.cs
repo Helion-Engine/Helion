@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
@@ -15,6 +13,8 @@ using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
+using System;
+using System.Collections.Generic;
 using Font = Helion.Graphics.Fonts.Font;
 
 namespace Helion.Render.OpenGL;
@@ -111,22 +111,22 @@ public class GLHudRenderContext : IHudRenderContext
 
     public void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
-        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0)
+         Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1)
     {
-        Image(texture, out drawArea, area, null, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex);
+        Image(texture, out drawArea, area, null, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex, upscalingFactor);
     }
 
     public void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
-        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0)
+        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1)
     {
-        Image(texture, out drawArea, null, origin, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex);
+        Image(texture, out drawArea, null, origin, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex, upscalingFactor);
     }
 
     private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null,
         Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null,
         ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null,
-        float scale = 1.0f, float alpha = 1.0f, bool drawFuzz = false, int colorMapIndex = 0)
+        float scale = 1.0f, float alpha = 1.0f, bool drawFuzz = false, int colorMapIndex = 0, int upscalingFactor = 1)
     {
         drawArea = default;
 
@@ -140,10 +140,10 @@ public class GLHudRenderContext : IHudRenderContext
         Dimension drawDim = (0, 0);
         if (area != null)
             drawDim = area.Value.Dimension;
-        else if (Textures.TryGet(texture, out var handle, resourceNamespace))
+        else if (Textures.TryGet(texture, out var handle, resourceNamespace, upscalingFactor))
             drawDim = handle.Dimension;
 
-        drawDim.Scale(scale);
+        drawDim.Scale(scale / upscalingFactor);
 
         Vec2I pos = GetDrawingCoordinateFromAlign(location.X, location.Y, drawDim.Width, drawDim.Height,
             window, anchor);
@@ -218,7 +218,11 @@ public class GLHudRenderContext : IHudRenderContext
         m_commands.DrawText(renderableString, pos.X, pos.Y, alpha, m_context.DrawPalette);
     }
 
-    public int GetFontMaxHeight(string font) => m_archiveCollection.GetFont(font)?.MaxHeight ?? 0;
+    public int GetFontMaxHeight(string font)
+    {
+        Font? fontObj = m_archiveCollection.GetFont(font);
+        return fontObj?.MaxHeight / fontObj?.UpscalingFactor ?? 0;
+    }
 
     public Dimension MeasureText(ReadOnlySpan<char> text, string font, int fontSize, int maxWidth = int.MaxValue,
         int maxHeight = int.MaxValue, float scale = 1.0f)
