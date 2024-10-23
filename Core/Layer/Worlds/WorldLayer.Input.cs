@@ -157,23 +157,23 @@ public partial class WorldLayer
     private void HandleAutoMapInput(IConsumableInput input)
     {
         int scrollAmount = 0;
-        if (IsCommandContinuousHold(Constants.Input.AutoMapDecrease, input, out scrollAmount))
+        if (IsCommandContinuousHold(Input.AutoMapDecrease, input, out scrollAmount))
             ChangeAutoMapSize(GetChangeAmount(input, -1, scrollAmount));
-        else if (IsCommandContinuousHold(Constants.Input.AutoMapIncrease, input, out scrollAmount))
+        else if (IsCommandContinuousHold(Input.AutoMapIncrease, input, out scrollAmount))
             ChangeAutoMapSize(GetChangeAmount(input, 1, scrollAmount));
-        else if (IsCommandContinuousHold(Constants.Input.AutoMapUp, input))
+        else if (IsCommandContinuousHold(Input.AutoMapUp, input))
             ChangeAutoMapOffsetY(true);
-        else if (IsCommandContinuousHold(Constants.Input.AutoMapDown, input))
+        else if (IsCommandContinuousHold(Input.AutoMapDown, input))
             ChangeAutoMapOffsetY(false);
-        else if (IsCommandContinuousHold(Constants.Input.AutoMapRight, input))
+        else if (IsCommandContinuousHold(Input.AutoMapRight, input))
             ChangeAutoMapOffsetX(true);
-        else if (IsCommandContinuousHold(Constants.Input.AutoMapLeft, input))
+        else if (IsCommandContinuousHold(Input.AutoMapLeft, input))
             ChangeAutoMapOffsetX(false);
-        else if (IsCommandPressed(Constants.Input.AutoMapAddMarker, input))
+        else if (IsCommandPressed(Input.AutoMapAddMarker, input))
             m_console.SubmitInputText("mark.add");
-        else if (IsCommandPressed(Constants.Input.AutoMapRemoveNearbyMarkers, input))
+        else if (IsCommandPressed(Input.AutoMapRemoveNearbyMarkers, input))
             m_console.SubmitInputText("mark.remove");
-        else if (IsCommandPressed(Constants.Input.AutoMapClearAllMarkers, input))
+        else if (IsCommandPressed(Input.AutoMapClearAllMarkers, input))
             m_console.SubmitInputText("mark.clear");
     }
 
