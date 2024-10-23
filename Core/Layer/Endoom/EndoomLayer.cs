@@ -8,14 +8,7 @@
     using Helion.Util.Extensions;
     using Helion.Util.Timing;
     using Helion.Window;
-    using SixLabors.Fonts;
-    using SixLabors.ImageSharp;
-    using SixLabors.ImageSharp.Advanced;
-    using SixLabors.ImageSharp.Drawing.Processing;
-    using SixLabors.ImageSharp.PixelFormats;
-    using SixLabors.ImageSharp.Processing;
     using System;
-    using System.IO;
 
     public class EndoomLayer : IGameLayer
     {
@@ -35,24 +28,36 @@
         private readonly Action m_closeAction;
         private readonly ArchiveCollection m_archiveCollection;
 
-        private Graphics.Image? m_endoomImage1;
-        private Graphics.Image? m_endoomImage2;
+
         private IRenderableTextureHandle? m_texture1;
         private IRenderableTextureHandle? m_texture2;
         private Action? m_texture1Remove;
         private Action? m_texture2Remove;
 
+        private int m_pixelHeight;
         private bool m_disposed;
+
+        private TextScreen? m_endoomScreen;
+        private byte[]? m_fontBytes;
 
         public EndoomLayer(Action closeAction, ArchiveCollection archiveCollection, int height)
         {
             m_closeAction = closeAction;
             m_archiveCollection = archiveCollection;
 
-            ComputeImages(
-                m_archiveCollection.FindEntry(LUMPNAME)?.ReadData() ?? [],
-                m_archiveCollection.FindEntry(FONTNAME)?.ReadData() ?? [],
-                height);
+            // Find an integer scale for pixel height that keeps the render at or under 1080 px tall.  Rendering text to image is VERY slow.
+            for (int scaleFactor = 1; m_pixelHeight == 0; scaleFactor++)
+            {
+                int scaled = height / scaleFactor;
+                m_pixelHeight = scaled <= 1080 ? scaled : 0;
+            }
+
+            byte[]? endoomData = m_archiveCollection.FindEntry(LUMPNAME)?.ReadData();
+            if (endoomData != null)
+            {
+                m_endoomScreen = new TextScreen(endoomData, ENDOOMROWS, ENDOOMCOLUMNS);
+                m_fontBytes = m_archiveCollection.FindEntry(FONTNAME)?.ReadData();
+            }
         }
 
         public void HandleInput(IConsumableInput input)
@@ -73,122 +78,32 @@
         {
             hud.Clear(Graphics.Color.Black);
 
-            if (m_endoomImage1 == null || m_endoomImage2 == null)
+            if (m_endoomScreen == null || m_fontBytes == null)
             {
+                // If we don't have anything to render, just bail out
                 m_closeAction();
-                return; // This may never actually get reached
-            }
-
-            if (m_texture1 == null)
-            {
-                m_texture1 = hud.CreateImage(m_endoomImage1, IMAGENAME1, Resources.ResourceNamespace.Textures, out m_texture1Remove);
-                m_texture2 = hud.CreateImage(m_endoomImage2, IMAGENAME2, Resources.ResourceNamespace.Textures, out m_texture2Remove);
-            }
-
-            _ = ((DateTime.Now.Millisecond / 500) == 0) // cycle 2x/second
-                ? hud.RenderFullscreenImage(IMAGENAME1, aspectRatioDivisor: 1f)
-                : hud.RenderFullscreenImage(IMAGENAME2, aspectRatioDivisor: 1f);
-        }
-
-        private void ComputeImages(byte[] endoomBytes, byte[] fontBytes, int height)
-        {
-            // In what might be one of the silliest performance regressions possible, we're emulating the ENDOOM screen,
-            // which was originally a sequence of bytes that could be copied directly to video memory, by rendering it
-            // into a bitmap.
-            if (endoomBytes.Length != ENDOOMBYTES)
-            {
-                // Not valid ENDOOM lump
                 return;
             }
 
-            byte[] textBytes = new byte[ENDOOMBYTES / 2];
-            byte[] colorBytes = new byte[ENDOOMBYTES / 2];
+            bool blinkPhase = ((DateTime.Now.Millisecond / 500) == 0) && m_endoomScreen.HasBlink; // cycle 2x/second IF there is something to blink
 
-            for (int i = 0; i < endoomBytes.Length; i += 2)
+            string textureName = blinkPhase ? IMAGENAME2 : IMAGENAME1;
+            ref IRenderableTextureHandle? handle = ref (blinkPhase ? ref m_texture2 : ref m_texture1);
+            ref Action? removeAction = ref (blinkPhase ? ref m_texture2Remove : ref m_texture2Remove);
+
+            EnsureTexture(hud, textureName, blinkPhase, ref handle, ref removeAction);
+            hud.RenderFullscreenImage(textureName, aspectRatioDivisor: 1f);
+        }
+
+        public void EnsureTexture(IHudRenderContext hud, string textureName, bool blink, ref IRenderableTextureHandle? handle, ref Action? removeAction)
+        {
+            if (handle != null)
             {
-                textBytes[i / 2] = endoomBytes[i];
-                colorBytes[i / 2] = endoomBytes[i + 1];
+                return;
             }
 
-            using (MemoryStream fontDataStream = new MemoryStream(fontBytes))
-            {
-                FontCollection fontCollection = new();
-                FontFamily consoleFontFamily = fontCollection.Add(fontDataStream);
-                Font consoleFont = consoleFontFamily.CreateFont(height / 25); // Use whatever pixel value gets us 25 lines
-                RichTextOptions textOptions = new(consoleFont);
-                // Assume we are using a monospace font, so all upper-case chars have the same effective dimensions.  
-                // We're intentionally going to pack characters just a little too close together, so that any "block" characters don't end up with 
-                // fine lines in between.
-                FontRectangle dimensions = TextMeasurer.MeasureAdvance("A", textOptions);
-                float charHeight = dimensions.Height - 1;
-                float charWidth = dimensions.Width - 1;
-
-                for (int imageCount = 0; imageCount < 2; imageCount++)
-                {
-                    float xOffset = 0, yOffset = 0;
-                    using (Image<Rgba32> endoomBitmap = new Image<Rgba32>((int)charWidth * ENDOOMCOLUMNS, height))
-                    {
-                        endoomBitmap.Mutate(ctx =>
-                        {
-                            for (int row = 0; row < ENDOOMROWS; row++)
-                            {
-                                xOffset = 0;
-                                for (int column = 0; column < ENDOOMCOLUMNS; column++)
-                                {
-                                    byte colorByte = colorBytes[(row * ENDOOMCOLUMNS) + column];
-                                    byte blink = (byte)(colorByte >> 7);
-                                    Color backColor = Conversions.TextColors[(byte)((byte)(colorByte << 1) >> 5)]; // Bits 4-6 (discard 7)
-                                    Color foreColor = blink == 0 || imageCount == 0
-                                        ? Conversions.TextColors[(byte)((byte)(colorByte << 4) >> 4)] // Bits 0-3
-                                        : backColor;
-
-                                    ctx.FillPolygon(
-                                        backColor,
-                                        new PointF(xOffset, yOffset),
-                                        new PointF(xOffset + charWidth, yOffset),
-                                        new PointF(xOffset + charWidth, yOffset + charHeight),
-                                        new PointF(xOffset, yOffset + charHeight));
-
-                                    ctx.DrawText(
-                                        $"{Convert.ToChar(Conversions.UnicodeByteMappings[textBytes[(row * ENDOOMCOLUMNS) + column]])}",
-                                        consoleFont,
-                                        foreColor,
-                                        new PointF() { X = xOffset, Y = yOffset });
-                                    xOffset += charWidth;
-                                }
-                                yOffset += charHeight;
-                            }
-                        });
-
-
-                        byte[] argbData = new byte[endoomBitmap.Height * endoomBitmap.Width * 4];
-                        int offset = 0;
-                        for (int y = 0; y < endoomBitmap.Height; y++)
-                        {
-                            Span<Rgba32> pixelRow = endoomBitmap.DangerousGetPixelRowMemory(y).Span;
-                            foreach (ref Rgba32 pixel in pixelRow)
-                            {
-                                argbData[offset] = pixel.A;
-                                argbData[offset + 1] = pixel.R;
-                                argbData[offset + 2] = pixel.G;
-                                argbData[offset + 3] = pixel.B;
-                                offset += 4;
-                            }
-                        }
-
-                        Graphics.Image? convertedImage = Graphics.Image.FromArgbBytes((endoomBitmap.Width, endoomBitmap.Height), argbData);
-
-                        if (imageCount == 0)
-                        {
-                            m_endoomImage1 = convertedImage;
-                        }
-                        else
-                        {
-                            m_endoomImage2 = convertedImage;
-                        }
-                    }
-                }
-            }
+            Graphics.Image image = m_endoomScreen!.GenerateImage(m_fontBytes!, m_pixelHeight, blink);
+            handle = hud.CreateImage(image, textureName, Resources.ResourceNamespace.Textures, out m_texture1Remove);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -197,8 +112,6 @@
             {
                 if (disposing)
                 {
-                    m_endoomImage1 = null;
-                    m_endoomImage2 = null;
                     m_texture1Remove?.Invoke();
                     m_texture2Remove?.Invoke();
                     (m_texture1 as GLTexture)?.Dispose();
