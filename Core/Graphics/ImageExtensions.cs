@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp;
+﻿using Helion.Geometry.Vectors;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.IO;
 
@@ -35,5 +36,30 @@ public static class ImageExtensions
         {
             return false;
         }
+    }
+
+    public static Color GetAverageColor(this Image image)
+    {
+        int pixelCount = 0;
+        Vec3F color = Vec3F.Zero;
+        for (int x = 0; x < image.Width; x++)
+        {
+            for (int y = 0; y < image.Height; y++)
+            {
+                var pixelColor = image.GetPixel(x, y);
+                if (pixelColor.A == 0)
+                    continue;
+
+                color.X += pixelColor.R;
+                color.Y += pixelColor.G;
+                color.Z += pixelColor.B;
+                pixelCount++;
+            }
+        }
+
+        color.X = color.X / pixelCount / 255;
+        color.Y = color.Y / pixelCount / 255;
+        color.Z = color.Z / pixelCount / 255;
+        return new Color(new Vec4F(1, color.X, color.Y, color.Z));
     }
 }
