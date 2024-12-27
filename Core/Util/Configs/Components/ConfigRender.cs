@@ -27,6 +27,15 @@ public enum RenderLightMode
     Smooth
 }
 
+public enum LaptopGpuMode
+{
+    Auto,
+    [Description("Power Saving")]
+    PowerSaving,
+    [Description("High Performance")]
+    HighPerformance
+}
+
 public class ConfigRenderFilter : ConfigElement<ConfigRenderFilter>
 {
     [ConfigInfo("Filter applied to fonts.")]

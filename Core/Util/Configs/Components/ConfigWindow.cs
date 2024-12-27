@@ -68,4 +68,8 @@ public class ConfigWindow: ConfigElement<ConfigWindow>
     [ConfigInfo("Color rendering mode: Palette uses Doom's colormaps and disables texture filtering, producing output that resembles software rendering. True Color interpolates color values. Application restart required.", restartRequired: true)]
     [OptionMenu(OptionSectionType.Video, "Color Mode", allowReset: false)]
     public readonly ConfigValue<RenderColorMode> ColorMode = new(RenderColorMode.TrueColor);
+
+    [ConfigInfo("Changes which laptop GPU is used. Computer restart required.", computerRestartRequired: true)]
+    [OptionMenu(OptionSectionType.Video, "Laptop GPU", spacer: true, allowReset: false)]
+    public readonly ConfigValue<LaptopGpuMode> LaptopGpu = new(LaptopGpuMode.Auto);
 }

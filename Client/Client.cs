@@ -21,6 +21,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.CommandLine;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
@@ -32,6 +33,7 @@ using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Save;
+using Microsoft.Win32;
 using NLog;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -88,6 +90,9 @@ public partial class Client : IDisposable, IInputManagement
         m_saveGameManager = new SaveGameManager(config, m_archiveCollection, commandLineArgs.SaveDir);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
 
+        m_config.Window.LaptopGpu.Set(LaptopGpuSettings.GetGpuMode(AppInfo));
+        m_config.Window.LaptopGpu.OnChanged += LaptopGpu_OnChanged;
+
         if (commandLineArgs.GlVersion.HasValue)
         {
             GlVersion.Major = commandLineArgs.GlVersion.Value / 10;
@@ -116,6 +121,11 @@ public partial class Client : IDisposable, IInputManagement
         RegisterConfigChanges();
         UpdateVolume();
         m_ticker.Start();
+    }
+
+    private void LaptopGpu_OnChanged(object? sender, LaptopGpuMode mode)
+    {
+        LaptopGpuSettings.SetGpuMode(AppInfo, mode);
     }
 
     private static void SetOpenGLVersion(IConfig config)
