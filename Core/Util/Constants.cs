@@ -1,6 +1,7 @@
 using Helion.World.Sound;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.Util;
 
@@ -119,21 +120,25 @@ public static class Constants
 
     public static class Input
     {
+        // Movement
         public const string Forward = "Forward";
         public const string Backward = "Backward";
         public const string Left = "Left";
         public const string Right = "Right";
-        public const string Use = "Use";
         public const string Run = "Run";
         public const string Strafe = "Strafe";
         public const string TurnLeft = "TurnLeft";
         public const string TurnRight = "TurnRight";
         public const string LookUp = "LookUp";
         public const string LookDown = "LookDown";
+        public const string CenterView = "CenterView";
         public const string Jump = "Jump";
         public const string Crouch = "Crouch";
-        public const string Console = "Console";
         public const string Attack = "Attack";
+        public const string Use = "Use";
+        public const string GyroButton = "GyroButton";
+
+        // Weapons/inventory
         public const string NextWeapon = "NextWeapon";
         public const string PreviousWeapon = "PreviousWeapon";
         public const string WeaponSlot1 = "WeaponSlot1";
@@ -147,9 +152,9 @@ public static class Constants
         public const string WeaponGroup2 = "WeaponGroup2";
         public const string WeaponGroup3 = "WeaponGroup3";
         public const string WeaponGroup4 = "WeaponGroup4";
-        public const string Screenshot = "Screenshot";
-        public const string HudIncrease = "HudIncrease";
-        public const string HudDecrease = "HudDecrease";
+
+        // Automap
+        public const string Automap = "Automap";
         public const string AutoMapIncrease = "AutoMapIncrease";
         public const string AutoMapDecrease = "AutoMapDecrease";
         public const string AutoMapUp = "AutoMapUp";
@@ -159,16 +164,23 @@ public static class Constants
         public const string AutoMapAddMarker = "AutoMapAddMarker";
         public const string AutoMapRemoveNearbyMarkers = "AutoMapRemoveNearbyMarkers";
         public const string AutoMapClearAllMarkers = "AutoMapClearAllMarkers";
+
+        // Files
         public const string Save = "Save";
-        public const string Load = "Load";
-        public const string Automap = "Automap";
-        public const string CenterView = "CenterView";
-        public const string Pause = "Pause";
         public const string QuickSave = "QuickSave";
+        public const string Load = "Load";
+
+        // HUD and in-game UI
+        public const string HudIncrease = "HudIncrease";
+        public const string HudDecrease = "HudDecrease";
+        public const string GammaCorrection = "GammaCorrection";
+
+        // System
+        public const string Pause = "Pause";
+        public const string Screenshot = "Screenshot";
+        public const string Console = "Console";
         public const string OptionsMenu = "OptionsMenu";
         public const string Menu = "Menu";
-        public const string GammaCorrection = "GammaCorrection";
-        public const string GyroButton = "GyroButton";
     }
 
     public static class Fonts
@@ -194,58 +206,11 @@ public static class Constants
         public const int ColorMapCount = 32;
     }
 
-    public static readonly HashSet<string> BaseCommands = new(StringComparer.OrdinalIgnoreCase)
-    {
-        Input.Forward,
-        Input.Backward,
-        Input.Left,
-        Input.Right,
-        Input.Use,
-        Input.Run,
-        Input.Strafe,
-        Input.TurnLeft,
-        Input.TurnRight,
-        Input.LookUp,
-        Input.LookDown,
-        Input.Jump,
-        Input.Crouch,
-        Input.Console,
-        Input.Attack,
-        Input.NextWeapon,
-        Input.PreviousWeapon,
-        Input.WeaponSlot1,
-        Input.WeaponSlot2,
-        Input.WeaponSlot3,
-        Input.WeaponSlot4,
-        Input.WeaponSlot5,
-        Input.WeaponSlot6,
-        Input.WeaponSlot7,
-        Input.WeaponGroup1,
-        Input.WeaponGroup2,
-        Input.WeaponGroup3,
-        Input.WeaponGroup4,
-        Input.Screenshot,
-        Input.HudIncrease,
-        Input.HudDecrease,
-        Input.AutoMapIncrease,
-        Input.AutoMapDecrease,
-        Input.AutoMapUp,
-        Input.AutoMapDown,
-        Input.AutoMapLeft,
-        Input.AutoMapRight,
-        Input.AutoMapAddMarker,
-        Input.AutoMapRemoveNearbyMarkers,
-        Input.AutoMapClearAllMarkers,
-        Input.Save,
-        Input.Load,
-        Input.Automap,
-        Input.Pause,
-        Input.QuickSave,
-        Input.OptionsMenu,
-        Input.Menu,
-        Input.CenterView,
-        Input.GyroButton,
-    };
+    public static readonly HashSet<string> BaseCommands = new(
+        typeof(Input)
+            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Select(f => f.GetValue(null) as string ?? string.Empty),
+        StringComparer.OrdinalIgnoreCase);
 
     public static readonly HashSet<string> InGameCommands = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -317,7 +282,7 @@ public static class Constants
     public const float DoomVirtualAspectRatio = 1.33333337f;
 
     public const int MaxTextureHeight = 16384;
-  
+
     public const double DoomSlowCrushSpeed = 0.125;
 
     public static readonly int MaxSoundChannels = Enum.GetValues<SoundChannel>().Length;
