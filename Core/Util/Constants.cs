@@ -118,69 +118,158 @@ public static class Constants
         public const string Pickup = "Pickup";
     }
 
+    public enum InputType
+    {
+        Movement = 0,
+        WeaponsAndInventory = 1,
+        Automap = 2,
+        Files = 3,
+        HudAndUI = 4,
+        System = 5
+    };
+
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
+    public class InputGroupAttribute(InputType inputGroup): Attribute
+    {
+        public InputType InputGroup = inputGroup;
+    }
+
     public static class Input
     {
         // Movement
+        [InputGroup(InputType.Movement)]
         public const string Forward = "Forward";
+        [InputGroup(InputType.Movement)]
         public const string Backward = "Backward";
+        [InputGroup(InputType.Movement)]
         public const string Left = "Left";
+        [InputGroup(InputType.Movement)]
         public const string Right = "Right";
+        [InputGroup(InputType.Movement)]
         public const string Run = "Run";
+        [InputGroup(InputType.Movement)]
         public const string Strafe = "Strafe";
+        [InputGroup(InputType.Movement)]
         public const string TurnLeft = "TurnLeft";
+        [InputGroup(InputType.Movement)]
         public const string TurnRight = "TurnRight";
+        [InputGroup(InputType.Movement)]
         public const string LookUp = "LookUp";
+        [InputGroup(InputType.Movement)]
         public const string LookDown = "LookDown";
+        [InputGroup(InputType.Movement)]
         public const string CenterView = "CenterView";
+        [InputGroup(InputType.Movement)]
         public const string Jump = "Jump";
+        [InputGroup(InputType.Movement)]
         public const string Crouch = "Crouch";
-        public const string Attack = "Attack";
+        [InputGroup(InputType.Movement)]
+        public const string Attack = "Attack"; 
+        [InputGroup(InputType.Movement)]
         public const string Use = "Use";
+        [InputGroup(InputType.Movement)]
         public const string GyroButton = "GyroButton";
 
         // Weapons/inventory
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string NextWeapon = "NextWeapon";
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string PreviousWeapon = "PreviousWeapon";
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string WeaponSlot1 = "WeaponSlot1";
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string WeaponSlot2 = "WeaponSlot2";
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string WeaponSlot3 = "WeaponSlot3";
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string WeaponSlot4 = "WeaponSlot4";
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string WeaponSlot5 = "WeaponSlot5";
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string WeaponSlot6 = "WeaponSlot6";
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string WeaponSlot7 = "WeaponSlot7";
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string WeaponGroup1 = "WeaponGroup1";
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string WeaponGroup2 = "WeaponGroup2";
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string WeaponGroup3 = "WeaponGroup3";
+        [InputGroup(InputType.WeaponsAndInventory)]
         public const string WeaponGroup4 = "WeaponGroup4";
 
         // Automap
+        [InputGroup(InputType.Automap)]
         public const string Automap = "Automap";
+        [InputGroup(InputType.Automap)]
         public const string AutoMapIncrease = "AutoMapIncrease";
+        [InputGroup(InputType.Automap)]
         public const string AutoMapDecrease = "AutoMapDecrease";
+        [InputGroup(InputType.Automap)]
         public const string AutoMapUp = "AutoMapUp";
+        [InputGroup(InputType.Automap)]
         public const string AutoMapDown = "AutoMapDown";
+        [InputGroup(InputType.Automap)]
         public const string AutoMapLeft = "AutoMapLeft";
+        [InputGroup(InputType.Automap)]
         public const string AutoMapRight = "AutoMapRight";
+        [InputGroup(InputType.Automap)]
         public const string AutoMapAddMarker = "AutoMapAddMarker";
+        [InputGroup(InputType.Automap)]
         public const string AutoMapRemoveNearbyMarkers = "AutoMapRemoveNearbyMarkers";
+        [InputGroup(InputType.Automap)]
         public const string AutoMapClearAllMarkers = "AutoMapClearAllMarkers";
 
         // Files
+        [InputGroup(InputType.Files)]
         public const string Save = "Save";
+        [InputGroup(InputType.Files)]
         public const string QuickSave = "QuickSave";
+        [InputGroup(InputType.Files)]
         public const string Load = "Load";
 
         // HUD and in-game UI
+        [InputGroup(InputType.HudAndUI)]
         public const string HudIncrease = "HudIncrease";
+        [InputGroup(InputType.HudAndUI)]
         public const string HudDecrease = "HudDecrease";
+        [InputGroup(InputType.HudAndUI)]
         public const string GammaCorrection = "GammaCorrection";
 
         // System
+        [InputGroup(InputType.System)]
         public const string Pause = "Pause";
+        [InputGroup(InputType.System)]
         public const string Screenshot = "Screenshot";
+        [InputGroup(InputType.System)]
         public const string Console = "Console";
+        [InputGroup(InputType.System)]
         public const string OptionsMenu = "OptionsMenu";
+        [InputGroup(InputType.System)]
         public const string Menu = "Menu";
+    }
+
+    public static readonly HashSet<string> BaseCommands = new(
+        typeof(Input)
+            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Select(f => f.GetValue(null) as string ?? string.Empty),
+        StringComparer.OrdinalIgnoreCase);
+
+    public static readonly Dictionary<InputType?, string[]> CommandsByGroup =
+        typeof(Input)
+            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .GroupBy(f => f.GetCustomAttributes(true).Select(a => (a as InputGroupAttribute)?.InputGroup).First())
+            .Where(g => g.Key != null)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(f => f.GetValue(null) as string ?? string.Empty).ToArray());
+
+    public static readonly HashSet<string> InGameCommands =
+        new HashSet<string>(CommandsByGroup[InputType.Movement].Concat(CommandsByGroup[InputType.WeaponsAndInventory]), StringComparer.OrdinalIgnoreCase);
+
+    public static class ConsoleCommands
+    {
+        public const string Commands = "commands";
     }
 
     public static class Fonts
@@ -204,46 +293,6 @@ public static class Constants
         public const int CeilingOffset = 1;
         public const int WallOffset = 2;
         public const int ColorMapCount = 32;
-    }
-
-    public static readonly HashSet<string> BaseCommands = new(
-        typeof(Input)
-            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
-            .Select(f => f.GetValue(null) as string ?? string.Empty),
-        StringComparer.OrdinalIgnoreCase);
-
-    public static readonly HashSet<string> InGameCommands = new(StringComparer.OrdinalIgnoreCase)
-    {
-        Input.Forward,
-        Input.Backward,
-        Input.Left,
-        Input.Right,
-        Input.Use,
-        Input.Run,
-        Input.Strafe,
-        Input.TurnLeft,
-        Input.TurnRight,
-        Input.LookUp,
-        Input.LookDown,
-        Input.Jump,
-        Input.Crouch,
-        Input.Attack,
-        Input.NextWeapon,
-        Input.PreviousWeapon,
-        Input.WeaponSlot1,
-        Input.WeaponSlot2,
-        Input.WeaponSlot3,
-        Input.WeaponSlot4,
-        Input.WeaponSlot5,
-        Input.WeaponSlot6,
-        Input.WeaponSlot7,
-        Input.CenterView,
-        Input.GyroButton,
-    };
-
-    public static class ConsoleCommands
-    {
-        public const string Commands = "commands";
     }
 
     public const double Epsilon = 0.00001;
