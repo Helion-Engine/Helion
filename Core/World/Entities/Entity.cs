@@ -742,9 +742,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (Flags.Ripper)
             return false;
 
-        // Ignore solid checks for missiles
         if (Flags.Missile)
+        {
+            if (!other.Flags.Shootable && !other.Flags.Solid)
+                return false;
+
             return true;
+        }
 
         return other.Flags.Solid;
     }
