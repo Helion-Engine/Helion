@@ -40,6 +40,11 @@ public static class StringExtensions
         return text.Equals(other, StringComparison.OrdinalIgnoreCase);
     }
 
+    public static bool EqualsIgnoreCase(this ReadOnlySpan<char> text, string other)
+    {
+        return text.Equals(other, StringComparison.OrdinalIgnoreCase);
+    }
+
     public static bool StartsWithIgnoreCase(this string text, string other)
     {
         return text.StartsWith(other, StringComparison.OrdinalIgnoreCase);
