@@ -452,6 +452,21 @@ public class SimpleParser
         return m_lines[token.Line][token.Index..];
     }
 
+    public ReadOnlySpan<char> ConsumeLineSpan(bool keepBeginningSpaces = false)
+    {
+        AssertData();
+
+        ParserToken token = m_tokens[m_index];
+        int startLine = m_tokens[m_index].Line;
+        while (m_index < m_tokens.Count && m_tokens[m_index].Line == startLine)
+            m_index++;
+
+        if (keepBeginningSpaces)
+            return m_lines[token.Line];
+
+        return m_lines[token.Line].AsSpan(token.Index);
+    }
+
     /// <summary>
     /// Returns all tokens until the next line is hit.
     /// </summary>

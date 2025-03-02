@@ -440,7 +440,7 @@ public class UdmfMap : IMap
     private static void ConsumeBlock(SimpleParser parser)
     {
         while (parser.PeekStringSpan() != "}")
-            parser.ConsumeLine();
+            parser.ConsumeLineSpan();
     }
 
     private static Property ParseProperty(SimpleParser parser)
