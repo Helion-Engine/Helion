@@ -423,8 +423,16 @@ public class EntityManager : IDisposable
             return true;
 
         // TODO: These should be offloaded into SinglePlayerWorld...
-        if (mapThing.Flags.MultiPlayer)
-            return false;
+        if (World.Map.MapType == MapType.Doom)
+        {
+            if (mapThing.Flags.MultiPlayer)
+                return false;
+        }
+        else
+        {
+            if (!mapThing.Flags.SinglePlayer)
+                return false;
+        }
 
         return (SkillLevel)World.SkillDefinition.SpawnFilter switch
         {
