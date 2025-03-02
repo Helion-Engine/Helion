@@ -238,7 +238,9 @@ public class Serialization : IDisposable
             first.Middle.TextureHandle.Should().Be(second.Middle.TextureHandle);
             first.Lower.TextureHandle.Should().Be(second.Lower.TextureHandle);
 
-            first.Offset.Should().Be(second.Offset);
+            first.OffsetUpper.Should().Be(second.OffsetUpper);
+            first.OffsetMiddle.Should().Be(second.OffsetMiddle);
+            first.OffsetLower.Should().Be(second.OffsetLower);
             first.DataChanges.Should().Be(second.DataChanges);
             first.ScrollData?.OffsetUpper.Should().Be(second.ScrollData?.OffsetUpper);
             first.ScrollData?.OffsetMiddle.Should().Be(second.ScrollData?.OffsetMiddle);
