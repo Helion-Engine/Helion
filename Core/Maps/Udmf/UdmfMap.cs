@@ -303,6 +303,10 @@ public class UdmfMap : IMap
                 sector.Silent = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("gravity"))
                 sector.Gravity = Convert.ToDouble(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("lightfloor"))
+                sector.LightFloor = Convert.ToInt16(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("lightceiling"))
+                sector.LightCeiling = Convert.ToInt16(prop.Value);
         }
 
         sectors.Add(sector);

@@ -28,4 +28,6 @@ public class UdmfSector : ISector
     public bool LightCeilingAbsolute;
     public bool LightFloorAbsolute;
     public bool Silent;
+    public short LightCeiling;
+    public short LightFloor;
 }
