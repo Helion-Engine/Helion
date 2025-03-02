@@ -28,17 +28,24 @@ public class SimpleParser
         public int EndIndex { get; private set; }
     }
 
-    private readonly List<ParserToken> m_tokens = new();
-    private readonly HashSet<char> m_special = new();
+    private readonly List<ParserToken> m_tokens = [];
+    private readonly HashSet<char> m_special = [];
     private readonly ParseType m_parseType;
-    private string[] m_lines = Array.Empty<string>();
+    private readonly StringBuilder m_sb = new();
+    private string[] m_lines = [];
     private Func<string, int, bool>? m_commentCallback;
 
     private int m_index = 0;
+    private int m_startLine;
+    private bool m_isQuote;
+    private bool m_quotedString;
+    private bool m_split;
 
     private static readonly NumberFormatInfo DecimalFormat = new NumberFormatInfo { NumberDecimalSeparator = "." };
 
     public static bool TryParseDouble(string text, out double d) =>
+        double.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out d);
+    public static bool TryParseDouble(ReadOnlySpan<char> text, out double d) =>
         double.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out d);
 
     public static bool TryParseFloat(string text, out float f) =>
@@ -69,32 +76,33 @@ public class SimpleParser
         m_lines = data.Split(SplitLines, StringSplitOptions.None);
         bool multiLineComment = false;
         int lineCount = 0;
-        int startLine = 0;
-
-        bool isQuote = false;
-        bool quotedString = false;
-        bool split = false;
+        m_startLine = 0;
+        m_isQuote = false;
+        m_quotedString = false;
+        m_split = false;
         int startIndex;
         int saveStartIndex = 0;
+
+        m_tokens.EnsureCapacity(m_lines.Length * 2);
 
         foreach (string line in m_lines)
         {
             if (line.Length == 0)
             {
-                if (keepEmptyLines && !quotedString)
+                if (keepEmptyLines && !m_quotedString)
                     m_tokens.Add(new ParserToken(lineCount, 0, 0));
                 lineCount++;
                 continue;
             }
 
-            if (!isQuote)
-                ResetQuote();
+            if (!m_isQuote)
+                ResetQuote(lineCount);
 
             startIndex = 0;
 
             for (int i = 0; i < line.Length; i++)
             {
-                if (!isQuote && IsSingleLineComment(line, i))
+                if (!m_isQuote && IsSingleLineComment(line, i))
                 {
                     if (i > 0)
                         AddToken(startIndex, i, lineCount, false);
@@ -102,7 +110,7 @@ public class SimpleParser
                     break;
                 }
 
-                if (!isQuote && IsStartMultiLineComment(line, ref i))
+                if (!m_isQuote && IsStartMultiLineComment(line, ref i))
                     multiLineComment = true;
 
                 if (multiLineComment && IsEndMultiLineComment(line, ref i))
@@ -119,58 +127,58 @@ public class SimpleParser
 
                 if (parseQuotes && line[i] == '"')
                 {
-                    quotedString = true;
-                    isQuote = !isQuote;
-                    if (isQuote)
+                    m_quotedString = true;
+                    m_isQuote = !m_isQuote;
+                    if (m_isQuote)
                     {
                         AddToken(startIndex, i, lineCount, false);
                         saveStartIndex = i;
                     }
                     else
                     {
-                        split = true;
+                        m_split = true;
                     }
                 }
 
-                if (!isQuote)
+                if (!m_isQuote)
                 {
                     bool special = CheckSpecial(line[i]);
-                    if (split || special || CheckSplit(line[i]))
+                    if (m_split || special || CheckSplit(line[i]))
                     {
-                        if (startLine == lineCount)
-                            AddToken(startIndex, i, lineCount, quotedString);
+                        if (m_startLine == lineCount)
+                            AddToken(startIndex, i, lineCount, m_quotedString);
                         else
-                            AddToken(saveStartIndex, startLine, lineCount, i, quotedString);
+                            AddToken(saveStartIndex, m_startLine, lineCount, i, m_quotedString);
                         startIndex = i + 1;
-                        split = false;
+                        m_split = false;
 
-                        ResetQuote();
+                        ResetQuote(lineCount);
                     }
 
                     // Also add the special char as a token (e.g. '{')
                     if (special)
-                        AddToken(i, i + 1, lineCount, quotedString);
+                        AddToken(i, i + 1, lineCount, m_quotedString);
                 }
             }
 
-            if (!isQuote && !multiLineComment)
+            if (!m_isQuote && !multiLineComment)
             {
-                if (startLine == lineCount)
-                    AddToken(startIndex, line.Length, lineCount, quotedString);
+                if (m_startLine == lineCount)
+                    AddToken(startIndex, line.Length, lineCount, m_quotedString);
                 else if (line.Length != startIndex)
-                    AddToken(saveStartIndex, startLine, lineCount, startIndex, quotedString);
+                    AddToken(saveStartIndex, m_startLine, lineCount, startIndex, m_quotedString);
             }
 
             lineCount++;
         }
+    }
 
-        void ResetQuote()
-        {
-            isQuote = false;
-            quotedString = false;
-            split = false;
-            startLine = lineCount;
-        }
+    void ResetQuote(int lineCount)
+    {
+        m_isQuote = false;
+        m_quotedString = false;
+        m_split = false;
+        m_startLine = lineCount;
     }
 
     // Just for debugging purposes
@@ -271,10 +279,19 @@ public class SimpleParser
         if (IsDone())
             return false;
 
-        if (GetData(m_index).Equals(str, StringComparison.OrdinalIgnoreCase))
+        if (GetDataSpan(m_index).Equals(str, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;
+    }
+
+    public ReadOnlySpan<char> PeekStringSpan()
+    {
+        if (IsDone())
+            return string.Empty;
+
+        AssertData();
+        return GetDataSpan(m_index);
     }
 
     public string PeekString()
@@ -305,7 +322,7 @@ public class SimpleParser
         }
 
         AssertData();
-        return int.TryParse(GetData(m_index), out i);
+        return int.TryParse(GetDataSpan(m_index), out i);
     }
 
     public string ConsumeString()
@@ -314,12 +331,18 @@ public class SimpleParser
         return GetData(m_index++);
     }
 
+    public ReadOnlySpan<char> ConsumeStringSpan()
+    {
+        AssertData();
+        return GetDataSpan(m_index++);
+    }
+
     public void ConsumeString(string str)
     {
         AssertData();
 
         ParserToken token = m_tokens[m_index];
-        string data = GetData(m_index);
+        var data = GetDataSpan(m_index);
         if (!data.Equals(str, StringComparison.OrdinalIgnoreCase))
             throw new ParserException(token.Line, token.Index, -1, $"Expected {str} but got {data}");
 
@@ -331,9 +354,9 @@ public class SimpleParser
         if (IsDone())
             return false;
 
-        if (str.Equals(PeekString(), StringComparison.OrdinalIgnoreCase))
+        if (PeekStringSpan().Equals(str, StringComparison.OrdinalIgnoreCase))
         {
-            ConsumeString();
+            ConsumeStringSpan();
             return true;
         }
 
@@ -347,7 +370,7 @@ public class SimpleParser
 
         if (PeekInteger(out int i))
         {
-            ConsumeString();
+            ConsumeStringSpan();
             return i;
         }
 
@@ -359,7 +382,7 @@ public class SimpleParser
         AssertData();
 
         ParserToken token = m_tokens[m_index];
-        string data = GetData(m_index);
+        var data = GetDataSpan(m_index);
         if (int.TryParse(data, out int i))
         {
             m_index++;
@@ -374,7 +397,7 @@ public class SimpleParser
         AssertData();
 
         ParserToken token = m_tokens[m_index];
-        string data = GetData(m_index);
+        var data = GetDataSpan(m_index);
         if (TryParseDouble(data, out double d))
         {
             m_index++;
@@ -389,7 +412,7 @@ public class SimpleParser
         AssertData();
 
         ParserToken token = m_tokens[m_index];
-        string data = GetData(m_index);
+        var data = GetDataSpan(m_index);
         if (bool.TryParse(data, out bool b))
         {
             m_index++;
@@ -404,7 +427,7 @@ public class SimpleParser
         AssertData();
 
         ParserToken token = m_tokens[m_index];
-        string data = GetData(m_index);
+        var data = GetDataSpan(m_index);
         if (data.Length != 1 || char.ToUpperInvariant(data[0]) != char.ToUpperInvariant(c))
             throw new ParserException(token.Line, token.Index, -1, $"Expected {c} but got {data}.");
 
@@ -465,7 +488,7 @@ public class SimpleParser
         }
     }
 
-    private string GetData(int index)
+    private ReadOnlySpan<char> GetDataSpan(int index)
     {
         ParserToken token = m_tokens[index];
 
@@ -494,6 +517,37 @@ public class SimpleParser
             }
 
             return sb.ToString();
+        }
+    }
+
+    private string GetData(int index)
+    {
+        ParserToken token = m_tokens[index];
+
+        if (token.EndLine == -1)
+        {
+            return m_lines[token.Line].Substring(token.Index, token.Length);
+        }
+        else
+        {
+            for (int i = token.Line; i < token.EndLine + 1; i++)
+            {
+                if (i == token.EndLine)
+                {
+                    m_sb.Append(m_lines[i].AsSpan(0, token.EndIndex));
+                }
+                else
+                {
+                    if (i == token.Line)
+                        m_sb.Append(m_lines[i].AsSpan(token.Index));
+                    else
+                        m_sb.Append(m_lines[i]);
+
+                    m_sb.Append('\n');
+                }
+            }
+
+            return m_sb.ToString();
         }
     }
 
