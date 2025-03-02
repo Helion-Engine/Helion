@@ -53,7 +53,6 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
         int checkCounter = ++WorldStatic.CheckCounter;
         hitOneSidedLine = false;
         int length = 0;
-        int capacity = intersections.Capacity;
         var it = new BlockmapSegIterator(Blockmap, seg);
         var arrayData = intersections.Data;
 
@@ -64,14 +63,6 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                 break;
 
             ref var block = ref Blockmap.Lines[index];
-
-            int blockLineCount = block.BlockLineCount;
-            if (capacity < length + blockLineCount)
-            {
-                intersections.EnsureCapacity(length + blockLineCount);
-                capacity = intersections.Capacity;
-            }
-
             int count = block.BlockLineIndex + block.BlockLineCount;
             for (int i = block.BlockLineIndex; i < count; i++)
             {

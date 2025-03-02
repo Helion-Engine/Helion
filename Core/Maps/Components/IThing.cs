@@ -24,7 +24,7 @@ public interface IThing
     /// The position in the map. The Z coordinate will be the most negative
     /// number in implementations that do not support the third dimension.
     /// </summary>
-    Vec3Fixed Position { get; }
+    Vec3D Position { get; }
 
     /// <summary>
     /// The angle (in degrees).

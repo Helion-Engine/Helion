@@ -63,7 +63,7 @@ public class EntityManager : IDisposable
 
     private static bool ZHeightSet(double z)
     {
-        return z != Fixed.Lowest().ToDouble() && z != 0.0;
+        return z != double.MinValue && z != 0.0;
     }
 
     public IEnumerable<Entity> FindByTid(int tid)
@@ -211,7 +211,7 @@ public class EntityManager : IDisposable
                 levelStats.TotalItems++;
 
             double angleRadians = MathHelper.ToRadians(mapThing.Angle);
-            Vec3D position = mapThing.Position.Double;
+            Vec3D position = mapThing.Position;
             // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
             Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, initSpawn: true);
             if (mapThing.Flags.Ambush)

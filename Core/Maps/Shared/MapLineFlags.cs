@@ -40,6 +40,9 @@ public class MapLineFlags
     public bool BlockEverything;
     public bool BlockPlayersMbf21;
     public bool BlockLandMonstersMbf21;
+    public bool BlockFloatMonsters;
+    public bool BlockLandMonsters;
+    public bool BlockHitscan;
     public bool TwoSided;
 
     public LineActivations Activations;

@@ -1511,7 +1511,7 @@ public abstract partial class WorldBase : IWorld
                 intersect.Y = point.Y;
                 intersect.Z = start.Z + (Math.Tan(pitch) * bi.SegTime * segLength);
 
-                if (line.BackSector == null)
+                if (line.BackSector == null || line.Flags.Hitscan)
                 {
                     floorZ = line.FrontSector.ToFloorZ(intersect);
                     ceilingZ = line.FrontSector.ToCeilingZ(intersect);

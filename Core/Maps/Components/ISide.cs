@@ -16,7 +16,13 @@ public interface ISide
     /// <summary>
     /// The texture offsets.
     /// </summary>
-    Vec2I Offset { get; }
+    Vec2F UpperOffset { get; }
+    Vec2F MiddleOffset { get; }
+    Vec2F BottomOffset { get; }
+
+    Vec2F UpperScale { get; }
+    Vec2F MiddleScale { get; }
+    Vec2F BottomScale { get; }
 
     /// <summary>
     /// The upper texture name.

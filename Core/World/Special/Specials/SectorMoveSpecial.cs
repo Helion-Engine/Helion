@@ -337,11 +337,17 @@ public class SectorMoveSpecial : ISectorSpecial
 
     private void CreateSound(string sound, bool loop = false)
     {
+        if (Sector.Silent)
+            return;
+
         m_world.SoundManager.CreateSoundOn(SectorPlane, sound, new SoundParams(SectorPlane, loop));
     }
 
     private void StopSound(string sound)
     {
+        if (Sector.Silent)
+            return;
+
         m_world.SoundManager.StopSoundBySource(SectorPlane, SoundChannel.Default, sound);
     }
 

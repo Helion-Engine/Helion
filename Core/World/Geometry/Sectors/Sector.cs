@@ -52,7 +52,7 @@ public sealed class Sector
     public int? FloorSkyTextureHandle;
     public int? CeilingSkyTextureHandle;
     public SkyOptions SkyOptions = SkyOptions.Flip;
-    public Vec2I SkyOffset;
+    public Vec2F SkyOffset;
     public bool IsFloorStatic => Floor.Dynamic == SectorDynamic.None;
     public bool IsCeilingStatic => Ceiling.Dynamic == SectorDynamic.None;
     public bool AreFlatsStatic => IsFloorStatic && IsCeilingStatic;
@@ -68,12 +68,14 @@ public sealed class Sector
     public int CheckCount;
     public bool MarkAutomap;
     public bool Flood;
+    public bool Silent;
     public int ActivatedByLineId = -1;
     public WeakEntity SoundTarget = WeakEntity.Default;
     public InstantKillEffect KillEffect;
     public SectorEffect SectorEffect;
 
     public double Friction = Constants.DefaultFriction;
+    public double Gravity = 1;
 
     public Sector TransferFloorLightSector;
     public Sector TransferCeilingLightSector;
@@ -138,6 +140,7 @@ public sealed class Sector
         ActivatedByLineId = -1;
         Floor.Reset(m_initialLightLevel);
         Ceiling.Reset(m_initialLightLevel);
+        Gravity = 1;
     }
 
     public static Sector CreateDefault() =>
@@ -276,7 +279,7 @@ public sealed class Sector
             DataChanges |= SectorDataTypes.CeilingTexture;
     }
 
-    public void SetSkyTexture(int texture, SkyOptions options, Vec2I offset, int gametick)
+    public void SetSkyTexture(int texture, SkyOptions options, Vec2F offset, int gametick)
     {
         FloorSkyTextureHandle = texture;
         CeilingSkyTextureHandle = texture;

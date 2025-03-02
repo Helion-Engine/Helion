@@ -10,14 +10,14 @@ public class HexenThing : IThing
 {
     public int Id { get; }
     public int ThingId { get; }
-    public Vec3Fixed Position { get; }
+    public Vec3D Position { get; }
     public ushort Angle { get; }
     public ushort EditorNumber { get; }
     public ThingFlags Flags { get; }
     public readonly ZDoomLineSpecialType Special;
     public readonly SpecialArgs Args;
 
-    internal HexenThing(int id, ushort tid, Vec3Fixed position, ushort angle, ushort editorNumber,
+    internal HexenThing(int id, ushort tid, Vec3D position, ushort angle, ushort editorNumber,
         ThingFlags flags, ZDoomLineSpecialType special, SpecialArgs args)
     {
         Id = id;

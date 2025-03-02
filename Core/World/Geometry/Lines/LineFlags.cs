@@ -21,12 +21,14 @@ public struct LineFlags
         Automap.NeverDraw = flags.NoDrawAutomap;
         Automap.DrawAsOneSided = flags.DrawAsOneSidedAutomap;
 
-        Blocking.Hitscan = false;
+        Blocking.Hitscan = flags.BlockHitscan;
         Blocking.Monsters = flags.BlockPlayersAndMonsters || flags.BlockMonsters;
         Blocking.Players = flags.BlockPlayersAndMonsters || flags.BlockPlayers;
         Blocking.PlayersMbf21 = flags.BlockPlayersMbf21;
         Blocking.LandMonstersMbf21 = flags.BlockLandMonstersMbf21;
         Blocking.Projectiles = false;
+        Blocking.LandMonsters = flags.BlockLandMonsters;
+        Blocking.FloatMonsters = flags.BlockFloatMonsters;
 
         Unpegged.Upper = flags.UpperUnpegged;
         Unpegged.Lower = flags.LowerUnpegged;

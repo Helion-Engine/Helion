@@ -49,7 +49,7 @@ public class LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLText
             m_skyComponentsList[i].Clear();
     }
 
-    public bool GetOrCreateSky(int? textureHandle, SkyOptions options, Vec2I offset, [NotNullWhen(true)] out ISkyComponent? sky)
+    public bool GetOrCreateSky(int? textureHandle, SkyOptions options, Vec2F offset, [NotNullWhen(true)] out ISkyComponent? sky)
     {
         if (m_skyComponents.Count >= MaxSkyTextures)
         {
@@ -69,7 +69,7 @@ public class LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLText
         return true;
     }
 
-    public void Add(SkyGeometryVertex[] data, int length, int? textureHandle, SkyOptions options, Vec2I offset)
+    public void Add(SkyGeometryVertex[] data, int length, int? textureHandle, SkyOptions options, Vec2F offset)
     {
         if (!GetOrCreateSky(textureHandle, options, offset, out var sky))
             return;

@@ -9,7 +9,7 @@ public class DoomThing : IThing
 {
     public int Id { get; }
     public int ThingId { get; } = 0;
-    public Vec3Fixed Position { get; }
+    public Vec3D Position { get; }
     public ushort Angle { get; }
     public ushort EditorNumber { get; }
     public ThingFlags Flags { get; }
@@ -17,7 +17,7 @@ public class DoomThing : IThing
     internal DoomThing(int id, Vec2Fixed position, ushort angle, ushort editorNumber, ThingFlags flags)
     {
         Id = id;
-        Position = new Vec3Fixed(position.X, position.Y, Fixed.Lowest());
+        Position = new Vec3D(position.X.ToDouble(), position.Y.ToDouble(), double.MinValue);
         Angle = angle;
         EditorNumber = editorNumber;
         Flags = flags;

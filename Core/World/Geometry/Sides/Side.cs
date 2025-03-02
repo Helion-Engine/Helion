@@ -1,3 +1,4 @@
+using Helion.Dehacked;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
@@ -23,7 +24,12 @@ public sealed class Side
     public Wall Upper;
     public Wall Middle;
     public Wall Lower;
-    public Vec2I Offset;
+    public Vec2F OffsetUpper;
+    public Vec2F OffsetMiddle;
+    public Vec2F OffsetLower;
+    public Vec2F ScaleUpper;
+    public Vec2F ScaleMiddle;
+    public Vec2F ScaleLower;
     public Line Line;
     public SideDataTypes DataChanges;
     public bool DataChanged => DataChanges > 0;
@@ -52,18 +58,37 @@ public sealed class Side
     public bool UpperSky;
     public SectorPlanes MidTextureFlood;
 
-    private readonly Vec2I m_initialOffset;
+    private readonly Vec2F m_initialOffsetUpper;
+    private readonly Vec2F m_initialOffsetMiddle;
+    private readonly Vec2F m_initialOffsetLower;
 
-    public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
+    public Side(int id, Vec2F offset,
+        Wall upper, Wall middle, Wall lower, Sector sector)
+        : this(id, offset, offset, offset, Vec2F.One, Vec2F.One, Vec2F.One,
+              upper, middle, lower, sector)
+    {
+
+    }
+
+    public Side(int id, Vec2F offsetUpper, Vec2F offsetMiddle, Vec2F offsetLower, 
+        Vec2F scaleUpper, Vec2F scaleMiddle, Vec2F scaleLower,
+        Wall upper, Wall middle, Wall lower, Sector sector)
     {
         Id = id;
         Sector = sector;
-        Offset = offset;
+        OffsetUpper = offsetUpper;
+        OffsetMiddle = offsetMiddle;
+        OffsetLower = offsetLower;
+        ScaleUpper = scaleUpper;
+        ScaleMiddle = scaleMiddle;
+        ScaleLower = scaleLower;
         Upper = upper;
         Middle = middle;
         Lower = lower;
 
-        m_initialOffset = offset;
+        m_initialOffsetUpper = offsetUpper;
+        m_initialOffsetMiddle = offsetMiddle;
+        m_initialOffsetLower = offsetLower;
 
         // We are okay with things blowing up violently if someone forgets
         // to assign it, because that is such a critical error on the part
@@ -78,7 +103,9 @@ public sealed class Side
     {
         DataChanges = default;
         ScrollData = default;
-        Offset = m_initialOffset;
+        OffsetUpper = m_initialOffsetUpper;
+        OffsetMiddle = m_initialOffsetMiddle;
+        OffsetLower = m_initialOffsetLower;
         LastRenderGametick = default;
         LastRenderGametickAlpha = default;
         BlockmapCount = default;

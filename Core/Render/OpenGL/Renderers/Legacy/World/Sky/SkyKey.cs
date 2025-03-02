@@ -4,11 +4,11 @@ using System;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 
-readonly struct SkyKey(int id, SkyOptions options, Vec2I offset) : IEquatable<SkyKey>
+readonly struct SkyKey(int id, SkyOptions options, Vec2F offset) : IEquatable<SkyKey>
 {
     public readonly int Id = id;
     public readonly SkyOptions Options = options;
-    public readonly Vec2I Offset = offset;
+    public readonly Vec2F Offset = offset;
 
     public override int GetHashCode()
     {

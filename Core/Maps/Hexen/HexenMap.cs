@@ -35,13 +35,12 @@ public class HexenMap : IMap
     public readonly List<DoomSide> Sides;
     public readonly List<HexenThing> Things;
     public readonly List<DoomVertex> Vertices;
-    public readonly IReadOnlyList<DoomNode> Nodes;
     public GLComponents? GL { get; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
 
     private HexenMap(Archive archive, string name, List<DoomVertex> vertices, List<DoomSector> sectors, List<DoomSide> sides,
-        List<HexenLine> lines, List<HexenThing> things, IReadOnlyList<DoomNode> nodes, GLComponents? gl, byte[]? reject,
+        List<HexenLine> lines, List<HexenThing> things, GLComponents? gl, byte[]? reject,
         CompatibilityMapDefinition? compatibility)
     {
         Archive = archive;
@@ -51,7 +50,6 @@ public class HexenMap : IMap
         Sides = sides;
         Lines = lines;
         Things = things;
-        Nodes = nodes;
         GL = gl;
         Reject = reject;
         CompatibilityDefinition = compatibility;
@@ -89,13 +87,12 @@ public class HexenMap : IMap
         if (things == null)
             return null;
 
-        IReadOnlyList<DoomNode> nodes = DoomMap.CreateNodes(map.Nodes?.ReadData());
         GLComponents? gl = GLComponents.Read(map);
-        return new HexenMap(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl, map.Reject?.ReadData(), compatibility);
+        return new HexenMap(archive, map.Name, vertices, sectors, sides, lines, things, gl, map.Reject?.ReadData(), compatibility);
     }
 
     public IReadOnlyList<ILine> GetLines() => Lines;
-    public IReadOnlyList<INode> GetNodes() => Nodes;
+    public IReadOnlyList<INode> GetNodes() => [];
     public IReadOnlyList<ISector> GetSectors() => Sectors;
     public IReadOnlyList<ISide> GetSides() => Sides;
     public IReadOnlyList<IThing> GetThings() => Things;
@@ -277,7 +274,7 @@ public class HexenMap : IMap
                 specialType = ZDoomLineSpecialType.None;
             }
 
-            HexenThing thing = new(id, tid, position, angle, editorNumber, flags, specialType, args);
+            HexenThing thing = new(id, tid, position.Double, angle, editorNumber, flags, specialType, args);
             things.Add(thing);
         }
 

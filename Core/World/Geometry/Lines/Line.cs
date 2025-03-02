@@ -220,7 +220,7 @@ public sealed class Line
 
         bool isPlayerOrFriendly = entity.IsPlayer || entity.Flags.Friendly;
         if (!isPlayerOrFriendly && !entity.Flags.Missile &&
-            (blockFlags.Monsters || (mbf21 && blockFlags.LandMonstersMbf21 && !entity.Flags.Float)))
+            (blockFlags.Monsters || (mbf21 && blockFlags.LandMonstersMbf21 && !entity.Flags.Float) || (blockFlags.LandMonsters && !entity.Flags.Float) || (blockFlags.FloatMonsters && entity.Flags.Float)))
             return true;
 
         if (entity.IsPlayer && (blockFlags.Players || (mbf21 && blockFlags.PlayersMbf21)))

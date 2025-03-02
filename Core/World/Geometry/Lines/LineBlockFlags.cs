@@ -8,4 +8,6 @@ public struct LineBlockFlags
     public bool Projectiles;
     public bool PlayersMbf21;
     public bool LandMonstersMbf21;
+    public bool FloatMonsters;
+    public bool LandMonsters;
 }

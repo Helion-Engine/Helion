@@ -1,7 +1,5 @@
 using System;
 using Helion.Geometry;
-using Helion.Geometry.Boxes;
-using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
@@ -17,7 +15,6 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
-using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using static Helion.Util.Assertion.Assert;
@@ -1727,7 +1724,7 @@ doneLinkToSectors:
         if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
             entity.Velocity.Z *= Constants.DefaultFriction;
         if (shouldApplyGravity)
-            entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity;
+            entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity * entity.Sector.Gravity;
 
         double floatZ = entity.GetEnemyFloatMove();
         // Only return if OnEntity is null. Need to apply clamping to prevent issues with this entity floating when the entity beneath is no longer blocking.
