@@ -11,7 +11,7 @@ public class UdmfSector : ISector
     public short CeilingZ { get; set; }
     public string FloorTexture { get; set; } = Constants.NoTexture;
     public string CeilingTexture { get; set; } = Constants.NoTexture;
-    public short LightLevel { get; set; }
+    public short LightLevel { get; set; } = 160;
     public ushort Tag { get; set; }
     public ZDoomSectorSpecialType Special;
     public double RotationFloor;
