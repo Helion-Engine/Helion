@@ -1,11 +1,13 @@
-﻿using Helion.Audio.Sounds;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Helion.Audio.Sounds;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
-using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Impl;
@@ -14,11 +16,6 @@ using Helion.Util.Extensions;
 using Helion.Window;
 using Helion.Window.Input;
 using NLog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options.Sections;
@@ -48,19 +45,6 @@ public class KeyBindingSection : IOptionSection
         }
     }
 
-    private static readonly Dictionary<string, string> RemapNames = new()
-    {
-        { Constants.Input.AutoMapIncrease, "AutoMap Zoom In" },
-        { Constants.Input.AutoMapDecrease, "AutoMap Zoom Out" },
-        { Constants.Input.AutoMapUp, "AutoMap Up" },
-        { Constants.Input.AutoMapDown, "AutoMap Down" },
-        { Constants.Input.AutoMapLeft, "AutoMap Left" },
-        { Constants.Input.AutoMapRight, "AutoMap Right" },
-        { Constants.Input.AutoMapAddMarker, "AutoMap Add Marker" },
-        { Constants.Input.AutoMapRemoveNearbyMarkers, "AutoMap Remove Nearby" },
-        { Constants.Input.AutoMapClearAllMarkers, "AutoMap Clear All" },
-    };
-
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public event EventHandler<LockEvent>? OnLockChanged;
@@ -75,8 +59,6 @@ public class KeyBindingSection : IOptionSection
     private readonly SoundManager m_soundManager;
     private readonly List<CommandKeys> m_commandToKeys = new();
     private readonly HashSet<string> m_mappedCommands = new();
-    private readonly HashSet<string> m_allCommands;
-    private readonly StringBuilder m_builder = new();
     private Vec2I m_mousePos;
     private int m_renderHeight;
     private (int, int) m_selectedRender;
@@ -91,7 +73,6 @@ public class KeyBindingSection : IOptionSection
     {
         m_config = config;
         m_soundManager = soundManager;
-        m_allCommands = GetAllCommandNames();
         m_configUpdated = true;
     }
 
@@ -99,33 +80,13 @@ public class KeyBindingSection : IOptionSection
     {
         OnRowChanged?.Invoke(this, new(m_currentRow, string.Empty));
         m_configUpdated = true;
+        CheckForConfigUpdates();
     }
 
     public void ResetSelection() => m_currentRow = 0;
 
     public bool OnClickableItem(Vec2I mousePosition) =>
         m_menuPositionList.GetIndex(mousePosition, out _);
-
-    private static HashSet<string> GetAllCommandNames()
-    {
-        HashSet<string> commandNames = new();
-
-        foreach (FieldInfo fieldInfo in typeof(Input).GetFields())
-        {
-            if (fieldInfo is not { IsPublic: true, IsStatic: true })
-                continue;
-
-            if (fieldInfo.GetValue(null) is not string commandName)
-            {
-                Log.Error($"Unable to get constant command name field '{fieldInfo.Name}' for options menu, should never happen");
-                continue;
-            }
-
-            commandNames.Add(commandName);
-        }
-
-        return commandNames;
-    }
 
     private void MapCommands()
     {
@@ -147,10 +108,7 @@ public class KeyBindingSection : IOptionSection
         if (string.IsNullOrWhiteSpace(command) || m_mappedCommands.Contains(command))
             return;
 
-        if (!RemapNames.TryGetValue(command, out var name))
-            name = command.WithWordSpaces(m_builder);
-
-        m_commandToKeys.Add(new(command, name));
+        m_commandToKeys.Add(new(command, CommandUILabels[command]));
         m_mappedCommands.Add(command);
     }
 
@@ -164,7 +122,7 @@ public class KeyBindingSection : IOptionSection
         foreach ((Key key, string command) in m_config.Keys.GetKeyMapping())
         {
             List<Key> keys;
-            string name = command.WithWordSpaces(m_builder);
+            string name = CommandUILabels[command];
 
             if (!m_mappedCommands.Contains(command))
                 continue;
@@ -189,9 +147,9 @@ public class KeyBindingSection : IOptionSection
                 keys.Add(key);
         }
 
-        foreach (string command in m_allCommands.Where(cmd => !m_mappedCommands.Contains(cmd)))
+        foreach (string command in BaseCommands.Where(cmd => !m_mappedCommands.Contains(cmd)))
         {
-            string name = command.WithWordSpaces(m_builder);
+            string name = CommandUILabels[command];
             m_commandToKeys.Add(new(command, name));
             m_mappedCommands.Add(command);
         }
@@ -403,73 +361,77 @@ public class KeyBindingSection : IOptionSection
 
         hud.Text("Press enter to start binding and press a key or button", Font, fontSize, (0, y), out Dimension enterArea,
             both: Align.TopMiddle, color: Color.Firebrick);
-        y += enterArea.Height + m_config.Window.GetMenuScaled(12);
+        y += enterArea.Height;
 
-        for (int cmdIndex = 0; cmdIndex < m_commandToKeys.Count; cmdIndex++)
+        int cmdIndex = 0;
+        foreach (string group in CommandsByGroup.Keys)
         {
-            var commandKeys = m_commandToKeys[cmdIndex];
+            y += m_config.Window.GetMenuScaled(12);
 
             Dimension commandArea;
-            if (cmdIndex == m_currentRow && m_updatingKeyBinding)
-            {
-                hud.Text(commandKeys.Name, Font, fontSize, (-xOffset, y), out commandArea,
-                    window: Align.TopMiddle, anchor: Align.TopRight, color: Color.Yellow);
-            }
-            else
-            {
-                hud.Text(commandKeys.Name, Font, fontSize, (-xOffset, y), out commandArea,
-                    window: Align.TopMiddle, anchor: Align.TopRight, color: Color.Red);
-            }
+            hud.Text(group, Font, fontSize, (-xOffset, y), out commandArea,
+                window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);
+            y += commandArea.Height;
 
-            if (cmdIndex == m_currentRow)
-                m_selectedRender = (y - startY, y + commandArea.Height - startY);
-
-            if (cmdIndex == m_currentRow && !m_updatingKeyBinding)
+            foreach (string command in CommandsByGroup[group])
             {
-                var arrowSize = hud.MeasureText("<", Font, fontSize);
-                Vec2I arrowLeft = (-xOffset - commandArea.Width - m_config.Window.GetMenuScaled(2), y);
-                hud.Text(">", Font, fontSize, arrowLeft, window: Align.TopMiddle,
-                    anchor: Align.TopRight, color: Color.White);
-                Vec2I arrowRight = (-xOffset + arrowSize.Width + m_config.Window.GetMenuScaled(2), y);
-                hud.Text("<", Font, fontSize, arrowRight, window: Align.TopMiddle,
-                    anchor: Align.TopRight, color: Color.White);
-            }
+                hud.Text(CommandUILabels[command], Font, fontSize, (-xOffset, y), out commandArea,
+                    window: Align.TopMiddle, anchor: Align.TopRight,
+                    color: cmdIndex == m_currentRow && m_updatingKeyBinding ? Color.Yellow : Color.Red);
 
-            if (commandKeys.Keys.Empty())
-            {
-                hud.Text("No binding", Font, fontSize, (xOffset, y), out Dimension noBindingArea,
-                    window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Gray);
+                if (cmdIndex == m_currentRow)
+                    m_selectedRender = (y - startY, y + commandArea.Height - startY);
 
-                int rowHeight = Math.Max(noBindingArea.Height, commandArea.Height);
-                var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + rowHeight));
-                m_menuPositionList.Add(rowDimensions, cmdIndex);
-                y += Math.Max(noBindingArea.Height, commandArea.Height);
-            }
-            else
-            {
-                Dimension totalKeyArea = (0, 0);
-                for (int keyIndex = 0; keyIndex < commandKeys.Keys.Count; keyIndex++)
+                if (cmdIndex == m_currentRow && !m_updatingKeyBinding)
                 {
-                    Key key = commandKeys.Keys[keyIndex];
-                    hud.Text(key.ToString(), Font, fontSize, (xOffset + totalKeyArea.Width, y),
-                        out Dimension keyArea,
-                        window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.White);
-                    totalKeyArea.Width += keyArea.Width;
-
-                    if (keyIndex != commandKeys.Keys.Count - 1)
-                    {
-                        hud.Text(", ", Font, fontSize, (xOffset + totalKeyArea.Width, y),
-                            out Dimension commaArea,
-                            window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Red);
-                        totalKeyArea.Width += commaArea.Width;
-                    }
+                    var arrowSize = hud.MeasureText("<", Font, fontSize);
+                    Vec2I arrowLeft = (-xOffset - commandArea.Width - m_config.Window.GetMenuScaled(2), y);
+                    hud.Text(">", Font, fontSize, arrowLeft, window: Align.TopMiddle,
+                        anchor: Align.TopRight, color: Color.White);
+                    Vec2I arrowRight = (-xOffset + arrowSize.Width + m_config.Window.GetMenuScaled(2), y);
+                    hud.Text("<", Font, fontSize, arrowRight, window: Align.TopMiddle,
+                        anchor: Align.TopRight, color: Color.White);
                 }
 
-                int rowHeight = Math.Max(totalKeyArea.Height, commandArea.Height);
-                var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + rowHeight));
-                m_menuPositionList.Add(rowDimensions, cmdIndex);
+                CommandKeys commandKeys = m_commandToKeys[cmdIndex];
 
-                y += rowHeight;
+                if (commandKeys.Keys.Empty())
+                {
+                    hud.Text("No binding", Font, fontSize, (xOffset, y), out Dimension noBindingArea,
+                        window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Gray);
+
+                    int rowHeight = Math.Max(noBindingArea.Height, commandArea.Height);
+                    var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + rowHeight));
+                    m_menuPositionList.Add(rowDimensions, cmdIndex);
+                    y += Math.Max(noBindingArea.Height, commandArea.Height);
+                }
+                else
+                {
+                    Dimension totalKeyArea = (0, 0);
+                    for (int keyIndex = 0; keyIndex < commandKeys.Keys.Count; keyIndex++)
+                    {
+                        Key key = commandKeys.Keys[keyIndex];
+                        hud.Text(key.ToString(), Font, fontSize, (xOffset + totalKeyArea.Width, y),
+                            out Dimension keyArea,
+                            window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.White);
+                        totalKeyArea.Width += keyArea.Width;
+
+                        if (keyIndex != commandKeys.Keys.Count - 1)
+                        {
+                            hud.Text(", ", Font, fontSize, (xOffset + totalKeyArea.Width, y),
+                                out Dimension commaArea,
+                                window: Align.TopMiddle, anchor: Align.TopLeft, color: Color.Red);
+                            totalKeyArea.Width += commaArea.Width;
+                        }
+                    }
+
+                    int rowHeight = Math.Max(totalKeyArea.Height, commandArea.Height);
+                    var rowDimensions = new Box2I((0, y), (hud.Dimension.Width, y + rowHeight));
+                    m_menuPositionList.Add(rowDimensions, cmdIndex);
+                    y += commandArea.Height;
+                }
+
+                cmdIndex++;
             }
         }
 
@@ -492,6 +454,7 @@ public class KeyBindingSection : IOptionSection
             m_updateRow = false;
         }
     }
+
 
     private void ResetAllKeyBindings()
     {
