@@ -220,12 +220,12 @@ public class SimpleParser
         return tokens;
     }
 
-    private static bool IsEndMultiLineComment(string line, ref int i)
+    private static bool IsEndMultiLineComment(string data, ref int i)
     {
-        if (line.Length < 2 || i >= line.Length)
+        if (i >= data.Length)
             return false;
 
-        if (line[i] != '*' || !CheckNext(line, i, '/'))
+        if (data[i] != '*' || !CheckNext(data, i, '/'))
             return false;
 
         i += 2;
@@ -234,9 +234,6 @@ public class SimpleParser
 
     private static bool IsStartMultiLineComment(string data, ref int i)
     {
-        if (data.Length < 2)
-            return false;
-
         if (data[i] != '/' || !CheckNext(data, i, '*'))
             return false;
 
