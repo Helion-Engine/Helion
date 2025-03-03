@@ -142,6 +142,19 @@ Line2 Data2";
         parser.ConsumeLine().Should().Be("Data2 Data22");
     }
 
+    [Fact(DisplayName = "Starts with multiple line returns")]
+    public void MultipleLineReturns()
+    {
+        const string data = @"
+
+Line1 Data1";
+        SimpleParser parser = new();
+        parser.Parse(data);
+
+        parser.ConsumeString().Should().Be("Line1");
+        parser.ConsumeString().Should().Be("Data1");
+    }
+
     [Fact(DisplayName = "Consume single line comment on its own line")]
     public void SingleLineCommentTest()
     {
@@ -386,7 +399,7 @@ YEAH, I BROKE THE PARSER...""
         parser.Parse(data);
 
         parser.ConsumeString().Should().Be("exittext");
-        parser.ConsumeString().Should().Be("*RING RING*\n\nHELLO?\nYEAH, I BROKE THE PARSER...");
+        parser.ConsumeString().Should().Be("*RING RING*\r\n\r\nHELLO?\r\nYEAH, I BROKE THE PARSER...");
         parser.IsDone().Should().Be(true);
     }
 }
