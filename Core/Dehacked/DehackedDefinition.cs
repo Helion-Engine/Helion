@@ -202,7 +202,7 @@ public partial class DehackedDefinition
         return false;
     }
 
-    private static bool IsComment(string line, int i) => i == 0 && line[i] == '#';
+    private static bool IsComment(ReadOnlySpan<char> line, int i) => i == 0 && line[i] == '#';
 
     private static void UnknownWarning(SimpleParser parser, string type, string? prefix = null)
     {

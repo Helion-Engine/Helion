@@ -327,7 +327,7 @@ http://someurl.com
         parser.Parse(data);
 
         parser.ConsumeString().Should().Be("exittext");
-        parser.ConsumeString().Should().Be("\ntest1\nhttp://someurl.com\n");
+        parser.ConsumeString().Should().Be("\r\ntest1\r\nhttp://someurl.com\r\n");
         parser.IsDone().Should().Be(true);
     }
 
@@ -348,7 +348,7 @@ test3";
         parser.Parse(data);
 
         parser.ConsumeString().Should().Be("exittext");
-        parser.ConsumeString().Should().Be("\ntest1\nhello/*notacomment*/\ntest2\n");
+        parser.ConsumeString().Should().Be("\r\ntest1\r\nhello/*notacomment*/\r\ntest2\r\n");
         parser.ConsumeString().Should().Be("test3");
         parser.IsDone().Should().Be(true);
     }
@@ -367,7 +367,7 @@ I hope this parses"";";
 
         parser.ConsumeString().Should().Be("E1TEXT");
         parser.ConsumeString().Should().Be("=");
-        parser.ConsumeString().Should().Be("Multiline text blocks\n\nshould still work even with blank lines...\n\nI hope this parses");
+        parser.ConsumeString().Should().Be("Multiline text blocks\r\n\r\nshould still work even with blank lines...\r\n\r\nI hope this parses");
         parser.ConsumeString().Should().Be(";");
         parser.IsDone().Should().Be(true);
     }
