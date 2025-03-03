@@ -31,6 +31,7 @@ public class SimpleParser
     private bool m_isQuote;
     private bool m_quotedString;
     private bool m_split;
+    private bool m_keepBeginningSpaces;
     private string m_data = string.Empty;
 
     private static readonly NumberFormatInfo DecimalFormat = new NumberFormatInfo { NumberDecimalSeparator = "." };
@@ -44,11 +45,11 @@ public class SimpleParser
         float.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out f);
 
     private static readonly char[] SpecialChars = ['{', '}', '=', ';', ',', '[', ']'];
-    private static readonly string[] SplitLines = ["\r\n", "\n"];
 
-    public SimpleParser(ParseType parseType = ParseType.Normal)
+    public SimpleParser(ParseType parseType = ParseType.Normal, bool keepBeginningSpaces = false)
     {
         m_parseType = parseType;
+        m_keepBeginningSpaces = keepBeginningSpaces;
         SetSpecialChars(SpecialChars);
     }
 
@@ -77,7 +78,8 @@ public class SimpleParser
         int lineStartIndex = 0;
 
         m_tokens.EnsureCapacity(data.Length / 8);
-        m_lines.EnsureCapacity(data.Length / 16);
+        if (m_keepBeginningSpaces)
+            m_lines.EnsureCapacity(data.Length / 16);
 
         for (int i = 0; i < data.Length; i++)
         {
@@ -182,7 +184,8 @@ public class SimpleParser
                 AddToken(saveStartIndex, m_startLine, lineCount, startIndex, m_quotedString);
         }
 
-        m_lines.Add(lineSpan);
+        if (m_keepBeginningSpaces)
+            m_lines.Add(lineSpan);
     }
 
     private static LineSpan GetLineSpan(string data, int start)
@@ -469,16 +472,19 @@ public class SimpleParser
         AssertData();
 
         var token = m_tokens[m_index];
+
         int startLine = m_tokens[m_index].Line;
         while (m_index < m_tokens.Count && m_tokens[m_index].Line == startLine)
             m_index++;
 
-        var lineSpan = m_lines[token.Line];
-
-        if (keepBeginningSpaces)
+        if (m_keepBeginningSpaces && keepBeginningSpaces)
+        {
+            var lineSpan = m_lines[token.Line];
             return m_data.Substring(lineSpan.Index, lineSpan.Length);
+        }
 
-        return m_data.Substring(token.Index, lineSpan.Index + lineSpan.Length - token.Index);
+        var endToken = m_tokens[m_index - 1];
+        return m_data.Substring(token.Index, endToken.Index + endToken.Length - token.Index);
     }
 
     public ReadOnlySpan<char> ConsumeLineSpan(bool keepBeginningSpaces = false)
@@ -486,16 +492,19 @@ public class SimpleParser
         AssertData();
 
         var token = m_tokens[m_index];
+
         int startLine = m_tokens[m_index].Line;
         while (m_index < m_tokens.Count && m_tokens[m_index].Line == startLine)
             m_index++;
 
-        var lineSpan = m_lines[token.Line];
+        if (m_keepBeginningSpaces && keepBeginningSpaces)
+        {
+            var lineSpan = m_lines[token.Line];
+            return m_data.Substring(lineSpan.Index, lineSpan.Length);
+        }
 
-        if (keepBeginningSpaces)
-            return m_data.AsSpan(lineSpan.Index, lineSpan.Length);
-
-        return m_data.AsSpan(token.Index, lineSpan.Index + lineSpan.Length - token.Index);
+        var endToken = m_tokens[m_index - 1];
+        return m_data.Substring(token.Index, endToken.Index + endToken.Length - token.Index);
     }
 
     /// <summary>
@@ -532,10 +541,7 @@ public class SimpleParser
     private void AssertData()
     {
         if (IsDone())
-        {
-            int line = m_tokens.Count == 0 ? 0 : m_tokens[^1].Line;
-            throw new ParserException(line, m_lines[^1].Length - 1, -1, "Hit end of file when expecting data.");
-        }
+            throw new ParserException(GetCurrentLine(), GetCurrentCharOffset(), -1, "Hit end of file when expecting data.");
     }
 
     private ReadOnlySpan<char> GetDataSpan(int index)
