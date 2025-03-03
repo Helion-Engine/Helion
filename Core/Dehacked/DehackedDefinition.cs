@@ -119,7 +119,7 @@ public partial class DehackedDefinition
 
     private static SimpleParser CreateDehackedParser(string data)
     {
-        SimpleParser parser = new();
+        SimpleParser parser = new(keepBeginningSpaces: true);
         parser.SetSpecialChars(SpecialChars);
         parser.SetCommentCallback(IsComment);
         parser.Parse(data, keepEmptyLines: true, parseQuotes: false);
