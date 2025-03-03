@@ -3003,7 +3003,13 @@ public static class EntityActionFunctions
 
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
         if (WorldStatic.Random.NextByte() < chance && entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
-            entity.PlayerObj!.Weapon!.FrameState.SetState(entity, newFrame);
+        {
+            var player = entity.PlayerObj!;
+            if (player.WeaponFlashState)
+                player.Weapon!.FlashState.SetState(entity, newFrame);
+            else
+                player.Weapon!.FrameState.SetState(entity, newFrame);
+        }
     }
 
     private static void A_ConsumeAmmo(Entity entity)
@@ -3032,7 +3038,13 @@ public static class EntityActionFunctions
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
         if (entity.PlayerObj!.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType) < amount &&
             entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
-            weapon.FrameState.SetState(entity, newFrame);
+        {
+            var player = entity.PlayerObj!;
+            if (player.WeaponFlashState)
+                weapon.FlashState.SetState(entity, newFrame);
+            else
+                weapon.FrameState.SetState(entity, newFrame);
+        }
     }
 
     public static void A_FireRailGun(Entity entity)
