@@ -361,15 +361,12 @@ public class KeyBindingSection : IOptionSection
 
         hud.Text("Press enter to start binding and press a key or button", Font, fontSize, (0, y), out Dimension enterArea,
             both: Align.TopMiddle, color: Color.Firebrick);
-        y += enterArea.Height + m_config.Window.GetMenuScaled(12);
+        y += enterArea.Height;
 
         int cmdIndex = 0;
-        int groupIndex = 0;
         foreach (string group in CommandsByGroup.Keys)
         {
-            if (groupIndex != 0)
-                y += m_config.Window.GetMenuScaled(12);
-            groupIndex++;
+            y += m_config.Window.GetMenuScaled(12);
 
             Dimension commandArea;
             hud.Text(group, Font, fontSize, (-xOffset, y), out commandArea,
