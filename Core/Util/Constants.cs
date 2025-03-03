@@ -1,7 +1,10 @@
-using Helion.World.Sound;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Text;
+using Helion.Util.Extensions;
+using Helion.World.Sound;
 
 namespace Helion.Util;
 
@@ -120,152 +123,171 @@ public static class Constants
 
     public enum InputType
     {
-        Movement = 0,
-        WeaponsAndInventory = 1,
-        Automap = 2,
-        Files = 3,
-        HudAndUI = 4,
-        System = 5
+        Uncategorized = 0,
+        Movement = 1,
+        WeaponsAndInventory = 2,
+        Automap = 3,
+        Files = 4,
+        HudAndUI = 5,
+        System = 6,
     };
 
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-    public class InputGroupAttribute(InputType inputGroup): Attribute
+    public class InputAttribute(InputType inputGroup, string? uiString = null) : Attribute
     {
         public InputType InputGroup = inputGroup;
+        public string? UIString = uiString;
     }
 
     public static class Input
     {
         // Movement
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string Forward = "Forward";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string Backward = "Backward";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string Left = "Left";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string Right = "Right";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string Run = "Run";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string Strafe = "Strafe";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string TurnLeft = "TurnLeft";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string TurnRight = "TurnRight";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string LookUp = "LookUp";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string LookDown = "LookDown";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string CenterView = "CenterView";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string Jump = "Jump";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string Crouch = "Crouch";
-        [InputGroup(InputType.Movement)]
-        public const string Attack = "Attack"; 
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
+        public const string Attack = "Attack";
+        [Input(InputType.Movement)]
         public const string Use = "Use";
-        [InputGroup(InputType.Movement)]
+        [Input(InputType.Movement)]
         public const string GyroButton = "GyroButton";
 
         // Weapons/inventory
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string NextWeapon = "NextWeapon";
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string PreviousWeapon = "PreviousWeapon";
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string WeaponSlot1 = "WeaponSlot1";
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string WeaponSlot2 = "WeaponSlot2";
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string WeaponSlot3 = "WeaponSlot3";
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string WeaponSlot4 = "WeaponSlot4";
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string WeaponSlot5 = "WeaponSlot5";
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string WeaponSlot6 = "WeaponSlot6";
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string WeaponSlot7 = "WeaponSlot7";
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string WeaponGroup1 = "WeaponGroup1";
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string WeaponGroup2 = "WeaponGroup2";
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string WeaponGroup3 = "WeaponGroup3";
-        [InputGroup(InputType.WeaponsAndInventory)]
+        [Input(InputType.WeaponsAndInventory)]
         public const string WeaponGroup4 = "WeaponGroup4";
 
         // Automap
-        [InputGroup(InputType.Automap)]
+        [Input(InputType.Automap, "Automap")]
         public const string Automap = "Automap";
-        [InputGroup(InputType.Automap)]
+        [Input(InputType.Automap, "Automap Zoom In")]
         public const string AutoMapIncrease = "AutoMapIncrease";
-        [InputGroup(InputType.Automap)]
+        [Input(InputType.Automap, "Automap Zoom Out")]
         public const string AutoMapDecrease = "AutoMapDecrease";
-        [InputGroup(InputType.Automap)]
+        [Input(InputType.Automap, "Automap Up")]
         public const string AutoMapUp = "AutoMapUp";
-        [InputGroup(InputType.Automap)]
+        [Input(InputType.Automap, "Automap Down")]
         public const string AutoMapDown = "AutoMapDown";
-        [InputGroup(InputType.Automap)]
+        [Input(InputType.Automap, "Automap Left")]
         public const string AutoMapLeft = "AutoMapLeft";
-        [InputGroup(InputType.Automap)]
+        [Input(InputType.Automap, "Automap Right")]
         public const string AutoMapRight = "AutoMapRight";
-        [InputGroup(InputType.Automap)]
+        [Input(InputType.Automap, "Automap Add Marker")]
         public const string AutoMapAddMarker = "AutoMapAddMarker";
-        [InputGroup(InputType.Automap)]
+        [Input(InputType.Automap, "Automap Remove Nearby Markers")]
         public const string AutoMapRemoveNearbyMarkers = "AutoMapRemoveNearbyMarkers";
-        [InputGroup(InputType.Automap)]
+        [Input(InputType.Automap, "Automap Clear All Markers")]
         public const string AutoMapClearAllMarkers = "AutoMapClearAllMarkers";
 
         // Files
-        [InputGroup(InputType.Files)]
+        [Input(InputType.Files)]
         public const string Save = "Save";
-        [InputGroup(InputType.Files)]
+        [Input(InputType.Files)]
         public const string QuickSave = "QuickSave";
-        [InputGroup(InputType.Files)]
+        [Input(InputType.Files)]
         public const string Load = "Load";
 
         // HUD and in-game UI
-        [InputGroup(InputType.HudAndUI)]
+        [Input(InputType.HudAndUI)]
         public const string HudIncrease = "HudIncrease";
-        [InputGroup(InputType.HudAndUI)]
+        [Input(InputType.HudAndUI)]
         public const string HudDecrease = "HudDecrease";
-        [InputGroup(InputType.HudAndUI)]
+        [Input(InputType.HudAndUI)]
         public const string GammaCorrection = "GammaCorrection";
 
         // System
-        [InputGroup(InputType.System)]
+        [Input(InputType.System)]
         public const string Pause = "Pause";
-        [InputGroup(InputType.System)]
+        [Input(InputType.System)]
         public const string Screenshot = "Screenshot";
-        [InputGroup(InputType.System)]
+        [Input(InputType.System)]
         public const string Console = "Console";
-        [InputGroup(InputType.System)]
+        [Input(InputType.System)]
         public const string OptionsMenu = "OptionsMenu";
-        [InputGroup(InputType.System)]
+        [Input(InputType.System)]
         public const string Menu = "Menu";
     }
 
+    private static StringBuilder m_builder = new();
+
+    /// <summary>
+    /// All regular, bindable commands available in the game
+    /// </summary>
     public static readonly HashSet<string> BaseCommands = new(
         typeof(Input)
-            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .GetFields(BindingFlags.Public | BindingFlags.Static)
             .Select(f => f.GetValue(null) as string ?? string.Empty),
         StringComparer.OrdinalIgnoreCase);
 
-    public static readonly Dictionary<InputType?, string[]> CommandsByGroup =
+    /// <summary>
+    /// Commands, grouped by purpose (e.g. movement)
+    /// </summary>
+    public static readonly Dictionary<string, string[]> CommandsByGroup =
         typeof(Input)
-            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
-            .GroupBy(f => f.GetCustomAttributes(true).Select(a => (a as InputGroupAttribute)?.InputGroup).First())
-            .Where(g => g.Key != null)
+            .GetFields(BindingFlags.Public | BindingFlags.Static)
+            .GroupBy(f => f.GetCustomAttribute<InputAttribute>()?.InputGroup ?? InputType.Uncategorized)
             .ToDictionary(
-                g => g.Key,
-                g => g.Select(f => f.GetValue(null) as string ?? string.Empty).ToArray());
+                g => StringExtensions.WithWordSpaces(g.Key.ToString(), m_builder),
+                g => g.Select(f => f.GetValue(null) as string ?? string.Empty).ToArray(),
+                StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Commands, with their corresponding UI labels, if specified (else, just spaces added before each upper-case letter)
+    /// </summary>
+    public static readonly Dictionary<string, string> CommandUILabels =
+        typeof(Input)
+            .GetFields(BindingFlags.Public | BindingFlags.Static)
+            .GroupBy(f => f.GetValue(null) as string ?? string.Empty)
+            .ToDictionary(g => g.Key, g => g.First().GetCustomAttribute<InputAttribute>()?.UIString ?? StringExtensions.WithWordSpaces(g.Key, m_builder));
 
     public static readonly HashSet<string> InGameCommands =
-        new HashSet<string>(CommandsByGroup[InputType.Movement].Concat(CommandsByGroup[InputType.WeaponsAndInventory]), StringComparer.OrdinalIgnoreCase);
+        new HashSet<string>(CommandsByGroup["Movement"].Concat(CommandsByGroup["Weapons And Inventory"]), StringComparer.OrdinalIgnoreCase);
 
     public static class ConsoleCommands
     {
