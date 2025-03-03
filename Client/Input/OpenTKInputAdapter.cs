@@ -113,6 +113,7 @@ public static class OpenTKInputAdapter
             Keys.LeftBracket => Key.BracketLeft,
             Keys.RightBracket => Key.BracketRight,
             Keys.Semicolon => Key.Semicolon,
+            Keys.Apostrophe => Key.Apostrophe,
             Keys.Comma => Key.Comma,
             Keys.Period => Key.Period,
             Keys.Slash => Key.Slash,
