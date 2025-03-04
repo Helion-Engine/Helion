@@ -175,24 +175,6 @@ public class UdmfMap : IMap
         things.Add(thing);
     }
 
-    private static int ConvertInt32(ReadOnlySpan<char> str)
-    {
-        int.TryParse(str, out int value);
-        return value;
-    }
-
-    private static float ConvertSingle(ReadOnlySpan<char> str)
-    {
-        float.TryParse(str, out float value);
-        return value;
-    }
-
-    private static double ConvertDouble(ReadOnlySpan<char> str)
-    {
-        double.TryParse(str, out double value);
-        return value;
-    }
-
     private static void MapLines(List<UdmfLine> lines, List<UdmfVertex> vertices, List<UdmfSide> sides, List<Linedef> linedefs)
     {
         lines.EnsureCapacity(linedefs.Count);
@@ -453,4 +435,22 @@ public class UdmfMap : IMap
     }
 
     private static bool IsBlockComplete(SimpleParser parser) => parser.Peek('}');
+
+    private static int ConvertInt32(ReadOnlySpan<char> str)
+    {
+        int.TryParse(str, out int value);
+        return value;
+    }
+
+    private static float ConvertSingle(ReadOnlySpan<char> str)
+    {
+        SimpleParser.TryParseFloat(str, out float value);
+        return value;
+    }
+
+    private static double ConvertDouble(ReadOnlySpan<char> str)
+    {
+        SimpleParser.TryParseDouble(str, out double value);
+        return value;
+    }
 }

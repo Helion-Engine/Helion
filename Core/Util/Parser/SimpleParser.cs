@@ -43,6 +43,8 @@ public class SimpleParser
 
     public static bool TryParseFloat(string text, out float f) =>
         float.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out f);
+    public static bool TryParseFloat(ReadOnlySpan<char> text, out float f) =>
+        float.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out f);
 
     private static readonly char[] SpecialChars = ['{', '}', '=', ';', ',', '[', ']'];
 
