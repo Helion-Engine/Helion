@@ -313,9 +313,7 @@ public sealed class Sector
             TransferHeightsColormapUpper = TransferHeights?.UpperColormap?.Entry?.Path.Name,
             TransferHeightsColormapMiddle = TransferHeights?.MiddleColormap?.Entry?.Path.Name,
             TransferHeightsColormapLower = TransferHeights?.LowerColormap?.Entry?.Path.Name,
-            SectorEffect = SectorEffect,
-            FloorRotate = Floor.RenderOffsets.Rotate,
-            CeilingRotate = Ceiling.RenderOffsets.Rotate,
+            SectorEffect = SectorEffect
         };
 
         if (DataChanged)
@@ -469,11 +467,6 @@ public sealed class Sector
             textureManager.TryGetColormap(sectorModel.TransferHeightsColormapLower, out var lower);
             TransferHeights = new TransferHeights(this, sectors[sectorModel.TransferHeights.Value], upper, middle, lower);
         }
-
-        if (sectorModel.FloorRotate.HasValue)
-            Floor.RenderOffsets.Rotate = sectorModel.FloorRotate.Value;
-        if (sectorModel.CeilingRotate.HasValue)
-            Ceiling.RenderOffsets.Rotate = sectorModel.CeilingRotate.Value;
     }
 
     private static bool IsSectorIdValid(IList<Sector> sectors, int id) => id >= 0 && id < sectors.Count;

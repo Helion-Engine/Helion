@@ -63,10 +63,12 @@ public sealed class SectorPlane : ISoundSource
         LastRenderGametick = default;
         Dynamic = default;
         Static = default;
-        RenderOffsets = default;
         MidTextureHack = default;
         NoRender = default;
         SkyGeometry = default;
+
+        RenderOffsets.Offset = default;
+        RenderOffsets.LastOffset = default;
     }
 
     public void SetZ(double z)
