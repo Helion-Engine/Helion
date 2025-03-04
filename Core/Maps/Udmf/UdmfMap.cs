@@ -137,19 +137,19 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("height"))
                 z = double.Parse(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("angle"))
-                thing.Angle = (ushort)ConvertInt32(prop.Value);
+                thing.Angle = (ushort)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("type"))
-                thing.EditorNumber = (ushort)ConvertInt32(prop.Value);
+                thing.EditorNumber = (ushort)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg0"))
-                thing.Args.Arg0 = ConvertInt32(prop.Value);
+                thing.Args.Arg0 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg1"))
-                thing.Args.Arg1 = ConvertInt32(prop.Value);
+                thing.Args.Arg1 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg2"))
-                thing.Args.Arg2 = ConvertInt32(prop.Value);
+                thing.Args.Arg2 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg3"))
-                thing.Args.Arg3 = ConvertInt32(prop.Value);
+                thing.Args.Arg3 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg4"))
-                thing.Args.Arg4 = ConvertInt32(prop.Value);
+                thing.Args.Arg4 = parser.ParseInt(prop.Value);
             // TODO skills not split in thing flags
             else if (prop.Name.EqualsIgnoreCase("skill1"))
                 thing.Flags.Easy = thing.Flags.Easy || prop.Value.EqualsIgnoreCase("true");
@@ -223,7 +223,7 @@ public class UdmfMap : IMap
         {
             var prop = ParseProperty(parser);
             if (prop.Name.EqualsIgnoreCase("sector"))
-                side.Sector = ConvertInt32(prop.Value);
+                side.Sector = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturetop"))
                 side.TextureTop = prop.Value.ToString();
             else if (prop.Name.EqualsIgnoreCase("texturemiddle"))
@@ -231,29 +231,29 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("texturebottom"))
                 side.TextureBottom = prop.Value.ToString();
             else if (prop.Name.EqualsIgnoreCase("offsetx_top"))
-                side.TopOffsetX = ConvertSingle(prop.Value);
+                side.TopOffsetX = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsety_top"))
-                side.TopOffsetY = ConvertSingle(prop.Value);
+                side.TopOffsetY = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsetx_mid"))
-                side.MiddleOffsetX = ConvertSingle(prop.Value);
+                side.MiddleOffsetX = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsety_mid"))
-                side.MiddleOffsetY = ConvertSingle(prop.Value);
+                side.MiddleOffsetY = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsetx_bottom"))
-                side.BottomOffsetX = ConvertSingle(prop.Value);
+                side.BottomOffsetX = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsety_bottom"))
-                side.BottomOffsetY = ConvertSingle(prop.Value);
+                side.BottomOffsetY = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("scalex_top"))
-                side.TopScaleX = ConvertSingle(prop.Value);
+                side.TopScaleX = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("scaley_top"))
-                side.TopScaleY = ConvertSingle(prop.Value);
+                side.TopScaleY = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("scalex_mid"))
-                side.MiddleScaleX = ConvertSingle(prop.Value);
+                side.MiddleScaleX = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("scaley_mid"))
-                side.MiddleScaleY = ConvertSingle(prop.Value);
+                side.MiddleScaleY = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("scalex_bottom"))
-                side.BottomScaleX = ConvertSingle(prop.Value);
+                side.BottomScaleX = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("scaley_bottom"))
-                side.BottomScaleY = ConvertSingle(prop.Value);
+                side.BottomScaleY = parser.ParseFloat(prop.Value);
         }
 
         sides.Add(side);
@@ -266,37 +266,37 @@ public class UdmfMap : IMap
         {
             var prop = ParseProperty(parser);
             if (prop.Name.EqualsIgnoreCase("heightfloor"))
-                sector.FloorZ = (short)ConvertInt32(prop.Value);
+                sector.FloorZ = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("heightceiling"))
-                sector.CeilingZ = (short)ConvertSingle(prop.Value);
+                sector.CeilingZ = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturefloor"))
                 sector.FloorTexture = prop.Value.ToString();
             else if (prop.Name.EqualsIgnoreCase("textureceiling"))
                 sector.CeilingTexture = prop.Value.ToString();
             else if (prop.Name.EqualsIgnoreCase("lightlevel"))
-                sector.LightLevel = (short)ConvertInt32(prop.Value);
+                sector.LightLevel = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("id"))
-                sector.Tag = (ushort)ConvertSingle(prop.Value);
+                sector.Tag = (ushort)parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("special"))
-                sector.Special = (ZDoomSectorSpecialType)ConvertSingle(prop.Value);
+                sector.Special = (ZDoomSectorSpecialType)parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("rotationfloor"))
-                sector.RotationFloor = ConvertDouble(prop.Value);
+                sector.RotationFloor = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("rotationceiling"))
-                sector.RotationCeiling = ConvertDouble(prop.Value);
+                sector.RotationCeiling = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("xpanningfloor"))
-                sector.PanningFloorX = ConvertDouble(prop.Value);
+                sector.PanningFloorX = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("ypanningfloor"))
-                sector.PanningFloorY = ConvertDouble(prop.Value);
+                sector.PanningFloorY = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("xpanningceiling"))
-                sector.PanningCeilingX = ConvertDouble(prop.Value);
+                sector.PanningCeilingX = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("xscalefloor"))
-                sector.ScaleFloorX = ConvertDouble(prop.Value);
+                sector.ScaleFloorX = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("yscalefloor"))
-                sector.ScaleFloorY = ConvertDouble(prop.Value);
+                sector.ScaleFloorY = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("xscaleceiling"))
-                sector.ScaleCeilingX = ConvertDouble(prop.Value);
+                sector.ScaleCeilingX = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("yscaleceiling"))
-                sector.ScaleCeilingY = ConvertDouble(prop.Value);
+                sector.ScaleCeilingY = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("lightfloorabsolute"))
                 sector.LightFloorAbsolute = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("lightceilingabsolute"))
@@ -304,11 +304,11 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("silent"))
                 sector.Silent = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("gravity"))
-                sector.Gravity = ConvertDouble(prop.Value);
+                sector.Gravity = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("lightfloor"))
-                sector.LightFloor = (short)ConvertInt32(prop.Value);
+                sector.LightFloor = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("lightceiling"))
-                sector.LightCeiling = (short)ConvertInt32(prop.Value);
+                sector.LightCeiling = (short)parser.ParseInt(prop.Value);
         }
 
         sectors.Add(sector);
@@ -321,25 +321,25 @@ public class UdmfMap : IMap
         {
             var prop = ParseProperty(parser);
             if (prop.Name.EqualsIgnoreCase("v1"))
-                line.StartVertex = ConvertInt32(prop.Value);
+                line.StartVertex = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("v2"))
-                line.EndVertex = ConvertInt32(prop.Value);
+                line.EndVertex = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("sidefront"))
-                line.SideFront = ConvertInt32(prop.Value);
+                line.SideFront = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("sideback"))
-                line.SideBack = ConvertInt32(prop.Value);
+                line.SideBack = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("special"))
-                line.Special = (ZDoomLineSpecialType)ConvertInt32(prop.Value);
+                line.Special = (ZDoomLineSpecialType)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg0"))
-                line.Args.Arg0 = ConvertInt32(prop.Value);
+                line.Args.Arg0 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg1"))
-                line.Args.Arg1 = ConvertInt32(prop.Value);
+                line.Args.Arg1 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg2"))
-                line.Args.Arg2 = ConvertInt32(prop.Value);
+                line.Args.Arg2 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg3"))
-                line.Args.Arg3 = ConvertInt32(prop.Value);
+                line.Args.Arg3 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg4"))
-                line.Args.Arg4 = ConvertInt32(prop.Value);
+                line.Args.Arg4 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("blocking"))
                 line.Flags.BlockEverything = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("blockmonsters"))
@@ -435,22 +435,4 @@ public class UdmfMap : IMap
     }
 
     private static bool IsBlockComplete(SimpleParser parser) => parser.Peek('}');
-
-    private static int ConvertInt32(ReadOnlySpan<char> str)
-    {
-        int.TryParse(str, out int value);
-        return value;
-    }
-
-    private static float ConvertSingle(ReadOnlySpan<char> str)
-    {
-        SimpleParser.TryParseFloat(str, out float value);
-        return value;
-    }
-
-    private static double ConvertDouble(ReadOnlySpan<char> str)
-    {
-        SimpleParser.TryParseDouble(str, out double value);
-        return value;
-    }
 }

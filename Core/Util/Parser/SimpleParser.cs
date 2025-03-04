@@ -24,6 +24,7 @@ public class SimpleParser
     private readonly HashSet<char> m_special = [];
     private readonly ParseType m_parseType;
     private readonly List<LineSpan> m_lines = [];
+    private readonly bool m_keepBeginningSpaces;
     private Func<string, int, int, bool>? m_commentCallback;
 
     private int m_index = 0;
@@ -31,20 +32,19 @@ public class SimpleParser
     private bool m_isQuote;
     private bool m_quotedString;
     private bool m_split;
-    private bool m_keepBeginningSpaces;
     private string m_data = string.Empty;
 
-    private static readonly NumberFormatInfo DecimalFormat = new NumberFormatInfo { NumberDecimalSeparator = "." };
+    private static readonly NumberFormatInfo DecimalFormat = new() { NumberDecimalSeparator = "." };
 
     public static bool TryParseDouble(string text, out double d) =>
-        double.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out d);
+        double.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, DecimalFormat, out d);
     public static bool TryParseDouble(ReadOnlySpan<char> text, out double d) =>
-        double.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out d);
+        double.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, DecimalFormat, out d);
 
     public static bool TryParseFloat(string text, out float f) =>
-        float.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out f);
+        float.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, DecimalFormat, out f);
     public static bool TryParseFloat(ReadOnlySpan<char> text, out float f) =>
-        float.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out f);
+        float.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, DecimalFormat, out f);
 
     private static readonly char[] SpecialChars = ['{', '}', '=', ';', ',', '[', ']'];
 
@@ -216,7 +216,7 @@ public class SimpleParser
     // Just for debugging purposes
     public List<string> GetAllTokenStrings()
     {
-        List<string> tokens = new();
+        List<string> tokens = new(m_tokens.Count);
         for (int i = 0; i < m_tokens.Count; i++)
             tokens.Add(GetData(i));
         return tokens;
@@ -449,6 +449,27 @@ public class SimpleParser
         }
 
         throw new ParserException(token.Line, token.Index, -1, $"Could not parse {data} as a bool.");
+    }
+
+    public double ParseDouble(ReadOnlySpan<char> data)
+    {
+        if (!TryParseDouble(data, out var d))
+            throw new ParserException(GetCurrentLine(), -1, -1, $"Could not parse {data} as a double.");
+        return d;
+    }
+
+    public float ParseFloat(ReadOnlySpan<char> data)
+    {
+        if (!TryParseFloat(data, out var d))
+            throw new ParserException(GetCurrentLine(), -1, -1, $"Could not parse {data} as a float.");
+        return d;
+    }
+
+    public int ParseInt(ReadOnlySpan<char> data)
+    {
+        if (!int.TryParse(data, out var d))
+            throw new ParserException(GetCurrentLine(), -1, -1, $"Could not parse {data} as a int.");
+        return d;
     }
 
     public void Consume(char c)
