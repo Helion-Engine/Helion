@@ -59,6 +59,7 @@ public class KeyBindingSection : IOptionSection
     private readonly SoundManager m_soundManager;
     private readonly List<CommandKeys> m_commandToKeys = new();
     private readonly HashSet<string> m_mappedCommands = new();
+    private readonly HashSet<string> m_customCommands = new();
     private Vec2I m_mousePos;
     private int m_renderHeight;
     private (int, int) m_selectedRender;
@@ -92,6 +93,7 @@ public class KeyBindingSection : IOptionSection
     {
         m_commandToKeys.Clear();
         m_mappedCommands.Clear();
+        m_customCommands.Clear();
 
         // These should always exist, and should report being unbound if not by
         // having an empty list of keys assigned to it.
@@ -100,7 +102,9 @@ public class KeyBindingSection : IOptionSection
 
         // Search for items that were bound by the user
         foreach ((_, string command) in m_config.Keys.GetKeyMapping())
+        {
             MapCommand(command);
+        }
     }
 
     private void MapCommand(string command)
@@ -108,7 +112,16 @@ public class KeyBindingSection : IOptionSection
         if (string.IsNullOrWhiteSpace(command) || m_mappedCommands.Contains(command))
             return;
 
-        m_commandToKeys.Add(new(command, CommandUILabels[command]));
+        if (CommandUILabels.TryGetValue(command, out string? label))
+        {
+            m_commandToKeys.Add(new(command, label));
+        }
+        else
+        {
+            m_commandToKeys.Add(new(command, command));
+            m_customCommands.Add(command);
+        }
+
         m_mappedCommands.Add(command);
     }
 
@@ -122,7 +135,7 @@ public class KeyBindingSection : IOptionSection
         foreach ((Key key, string command) in m_config.Keys.GetKeyMapping())
         {
             List<Key> keys;
-            string name = CommandUILabels[command];
+            string name = CommandUILabels.TryGetValue(command, out string? label) ? label : command;
 
             if (!m_mappedCommands.Contains(command))
                 continue;
@@ -364,8 +377,9 @@ public class KeyBindingSection : IOptionSection
         y += enterArea.Height;
 
         int cmdIndex = 0;
-        foreach (string group in CommandsByGroup.Keys)
+        for (int groupIndex = 0; groupIndex < CommandGroupLabels.Count && cmdIndex < m_commandToKeys.Count; groupIndex++)
         {
+            string group = CommandGroupLabels[groupIndex];
             y += m_config.Window.GetMenuScaled(12);
 
             Dimension commandArea;
@@ -373,9 +387,15 @@ public class KeyBindingSection : IOptionSection
                 window: Align.TopMiddle, anchor: Align.TopRight, color: Color.White);
             y += commandArea.Height;
 
-            foreach (string command in CommandsByGroup[group])
+            // Assume that "custom" command bindings are at the end of m_commandToKeys
+            string[] commands = group == "Custom"
+                ? m_customCommands.ToArray()
+                : CommandsByGroup[group];
+
+            foreach (string command in commands)
             {
-                hud.Text(CommandUILabels[command], Font, fontSize, (-xOffset, y), out commandArea,
+                string label = CommandUILabels.TryGetValue(command, out string? cmdLabel) ? cmdLabel : command;
+                hud.Text(label, Font, fontSize, (-xOffset, y), out commandArea,
                     window: Align.TopMiddle, anchor: Align.TopRight,
                     color: cmdIndex == m_currentRow && m_updatingKeyBinding ? Color.Yellow : Color.Red);
 
