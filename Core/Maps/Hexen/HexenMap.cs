@@ -107,7 +107,7 @@ public class HexenMap : IMap
         int zdoomLineSpecialCount = Enum.GetNames(typeof(ZDoomLineSpecialType)).Length;
         int numLines = lineData.Length / BytesPerLine;
         using ByteReader reader = new(lineData);
-        List<HexenLine> lines = new();
+        List<HexenLine> lines = new(numLines);
 
         for (int id = 0; id < numLines; id++)
         {
@@ -119,25 +119,20 @@ public class HexenMap : IMap
             ushort rightSidedef = reader.ReadUInt16();
             ushort leftSidedef = reader.ReadUInt16();
 
-            if (startVertexId >= vertices.Count || endVertexId >= vertices.Count)
-                return null;
-            if (rightSidedef >= sides.Count)
-                return null;
+            if (startVertexId >= vertices.Count)
+                startVertexId = 0;
+            if (endVertexId >= vertices.Count)
+                endVertexId = 0;
+            if (rightSidedef >= sides.Count && rightSidedef != DoomMap.NoSidedef)
+                rightSidedef = DoomMap.NoSidedef;
             if (leftSidedef >= sides.Count && leftSidedef != DoomMap.NoSidedef)
-                return null;
+                leftSidedef = DoomMap.NoSidedef;
 
             DoomVertex startVertex = vertices[startVertexId];
             DoomVertex endVertex = vertices[endVertexId];
             DoomSide front = sides[rightSidedef];
             DoomSide? back = null;
             MapLineFlags lineFlags = MapLineFlags.ZDoom(flags);
-
-            if (startVertexId == endVertexId || startVertex.PositionFixed == endVertex.PositionFixed)
-            {
-                Log.Warn("Zero length line segment (id = {0}) detected, skipping malformed line", id);
-                id--; // We want a continuous chain of IDs.
-                continue;
-            }
 
             if (leftSidedef != DoomMap.NoSidedef)
                 back = sides[leftSidedef];
@@ -267,12 +262,6 @@ public class HexenMap : IMap
             ThingFlags flags = ThingFlags.ZDoom(reader.ReadUInt16());
             ZDoomLineSpecialType specialType = (ZDoomLineSpecialType)reader.ReadByte();
             SpecialArgs args = new(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte());
-
-            if ((int)specialType >= Enum.GetNames(typeof(ZDoomLineSpecialType)).Length)
-            {
-                Log.Warn("Line {0} has corrupt line value (type = {1}), setting line type to 'None'", id, specialType);
-                specialType = ZDoomLineSpecialType.None;
-            }
 
             HexenThing thing = new(id, tid, position.Double, angle, editorNumber, flags, specialType, args);
             things.Add(thing);

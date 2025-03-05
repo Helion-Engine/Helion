@@ -225,7 +225,7 @@ public class DoomMap : IMap
 
         int numLines = lineData.Length / BytesPerLine;
         using ByteReader lineReader = new(lineData);
-        List<DoomLine> lines = new();
+        List<DoomLine> lines = new(numLines);
 
         for (int id = 0; id < numLines; id++)
         {
@@ -237,12 +237,14 @@ public class DoomMap : IMap
             ushort rightSidedef = lineReader.ReadUInt16();
             ushort leftSidedef = lineReader.ReadUInt16();
 
-            if (startVertexId >= vertices.Count || endVertexId >= vertices.Count)
-                continue;
+            if (startVertexId >= vertices.Count)
+                startVertexId = 0;
+            if (endVertexId >= vertices.Count)
+                endVertexId = 0;
             if (rightSidedef >= sides.Count && rightSidedef != NoSidedef)
-                continue;
+                rightSidedef = NoSidedef;
             if (leftSidedef >= sides.Count && leftSidedef != NoSidedef)
-                continue;
+                leftSidedef = NoSidedef;
 
             DoomVertex startVertex = vertices[startVertexId];
             DoomVertex endVertex = vertices[endVertexId];
