@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Bsp.Geometry;
@@ -27,6 +26,7 @@ public class GLBspBuilder : IBspBuilder
     private readonly List<BspNode> m_subsectors = new();
     private readonly List<BspNode> m_nodes = new();
     private readonly IMap m_map;
+    private int m_nodeId;
 
     public GLBspBuilder(IMap map)
     {
@@ -73,38 +73,36 @@ public class GLBspBuilder : IBspBuilder
 
     private void CreateVertices(List<Vec2D> glVertices)
     {
-        IEnumerable<GLVertex> vertices = glVertices.Select(v => new GLVertex(new Fixed(v.X), new Fixed(v.Y)));
-        m_glVertices.AddRange(vertices);
+        m_glVertices.EnsureCapacity(glVertices.Count);
+        for (int i = 0; i <  glVertices.Count; i++)
+        {
+            var v = glVertices[i];
+            m_glVertices.Add(new GLVertex(new Fixed(v.X), new Fixed(v.Y)));
+        }
     }
 
     private void CreateSegments(IReadOnlyList<GLSegment> segments, IReadOnlyList<IVertex> vertices,
         IReadOnlyList<ILine> lines)
     {
+        m_segments.EnsureCapacity(segments.Count);
         foreach (GLSegment glSegment in segments)
         {
-            Vec2D start = MakeVertex(glSegment.StartVertex, glSegment.IsStartVertexGL);
-            Vec2D end = MakeVertex(glSegment.EndVertex, glSegment.IsEndVertexGL);
-            IBspUsableLine? line = FindLine(glSegment.Linedef);
+            var start = glSegment.IsStartVertexGL ? m_glVertices[(int)glSegment.StartVertex].ToDouble() : vertices[(int)glSegment.StartVertex].Position;
+            var end = glSegment.IsEndVertexGL ? m_glVertices[(int)glSegment.EndVertex].ToDouble() : vertices[(int)glSegment.EndVertex].Position;
+            var line = glSegment.Linedef == null ? null : lines[(int)glSegment.Linedef];
 
             SubsectorEdge edge = new(start, end, line, glSegment.IsRightSide);
             m_segments.Add(edge);
         }
-
-        Vec2D MakeVertex(uint index, bool isGL)
-        {
-            return isGL ? m_glVertices[(int)index].ToDouble() : vertices[(int)index].Position;
-        }
-
-        IBspUsableLine? FindLine(uint? index) => index == null ? null : lines[(int)index.Value];
     }
-
-    private int m_nodeId;
 
     private void CreateSubsectors(List<GLSubsector> subsectors)
     {
+        m_subsectors.EnsureCapacity(subsectors.Count);
+
         foreach (GLSubsector glSubsector in subsectors)
         {
-            List<SubsectorEdge> edges = new();
+            List<SubsectorEdge> edges = new(glSubsector.Count);
             int start = glSubsector.FirstSegmentIndex;
             int end = start + glSubsector.Count;
             for (int i = start; i < end; i++)
@@ -142,6 +140,7 @@ public class GLBspBuilder : IBspBuilder
 
     private void CreateNodes(List<GLBspNode> glNodes)
     {
+        m_nodes.EnsureCapacity(glNodes.Count);
         // Note: This assumes for node i, that 0..i-1 have been solved.
         // This is supposed to be the case for node building due to the
         // nature of how it is written.
