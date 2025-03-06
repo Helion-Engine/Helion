@@ -59,6 +59,7 @@ using Helion.Util.Loggers;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Shared;
 using Helion.World.Geometry.Islands;
+using Helion.Maps.Specials.ZDoom;
 
 namespace Helion.World;
 
@@ -1763,7 +1764,16 @@ public abstract partial class WorldBase : IWorld
             PlayerPickedUpItem(entity.PlayerObj, item, health, definition);
 
         if (!shouldStay)
+        {
+            ActivateEntitySpecial(item);
             EntityManager.Destroy(item);
+        }
+    }
+
+    private void ActivateEntitySpecial(Entity entity)
+    {
+        if (entity.Special != ZDoomLineSpecialType.None)
+            SpecialManager.AddActivatedLineSpecial(entity.Special, entity.Args);
     }
 
     private bool ShouldItemStay(Entity item)
@@ -2084,6 +2094,8 @@ public abstract partial class WorldBase : IWorld
 
             ApplyVooDooKill(deathEntity.PlayerObj, deathSource, gibbed);
         }
+
+        ActivateEntitySpecial(deathEntity);
     }
 
     private void CheckDropItem(Entity deathEntity)

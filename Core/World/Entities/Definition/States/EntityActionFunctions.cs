@@ -2921,7 +2921,7 @@ public static class EntityActionFunctions
 
         // MBF used the first line in the map - this is a little too janky so instead create a dummy inaccessible one...
         // Because the same line was reused single activations will be broken with further calls of A_LineEffect
-        DummyLine ??= CreateDummyLine(flags, specialArgs, DummySector);
+        DummyLine ??= SpecialManager.CreateDummyLine(flags, DummyLineSpecial, specialArgs, DummySector);
 
         DummyLine.Special = DummyLineSpecial;
         DummyLine.Args = specialArgs;
@@ -2943,14 +2943,6 @@ public static class EntityActionFunctions
 
         lineSpecial.Set(specialType, activationType, compat);
         return true;
-    }
-
-    public static Line CreateDummyLine(LineFlags flags, SpecialArgs args, Sector sector)
-    {
-        var wall = new Wall(Constants.NoTextureIndex, WallLocation.Middle);
-        var side = new Side(0, default, wall, wall, wall, sector);
-        var seg = new Seg2D(Vec2D.Zero, Vec2D.One);
-        return new Line(0, seg, side, null, flags, LineSpecial.Default, args);
     }
 
     public static void A_WeaponBulletAttack(Entity entity)

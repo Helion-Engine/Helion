@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
@@ -16,6 +18,8 @@ using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
@@ -68,9 +72,10 @@ public sealed class SpecialManager : ITickable, IDisposable
     public const int MinDest = -32000;
 
     private readonly LinkedList<ISpecial> m_specials = new();
-    private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new();
-    private readonly List<Sector> m_sectorList = new();
+    private readonly List<ISectorSpecial> m_destroyedMoveSpecials = [];
+    private readonly List<Sector> m_sectorList = [];
     private readonly List<(Sector, SectorPlane)> m_sectorPlanes = new();
+    private readonly Line m_dummyLine;
     private IRandom m_random;
     private WorldBase m_world;
     private DataCache m_dataCache;
@@ -109,6 +114,17 @@ public sealed class SpecialManager : ITickable, IDisposable
         m_world = world;
         m_random = random;
         m_dataCache = m_world.DataCache;
+
+        m_dummyLine = CreateDummyLine(new LineFlags(MapLineFlags.Doom(0)),
+            new(ZDoomLineSpecialType.None, LineActivationType.Tag, LineSpecialCompatibility.Default), default, Sector.CreateDefault());
+    }
+
+    public static Line CreateDummyLine(LineFlags flags, LineSpecial special, SpecialArgs args, Sector sector)
+    {
+        var wall = new Wall(Constants.NoTextureIndex, WallLocation.Middle);
+        var side = new Side(0, default, wall, wall, wall, sector);
+        var seg = new Seg2D(Vec2D.Zero, Vec2D.One);
+        return new Line(0, seg, side, null, flags, special, args);
     }
 
     public void UpdateTo(WorldBase world, IRandom random)
@@ -241,6 +257,15 @@ public sealed class SpecialManager : ITickable, IDisposable
             sectorSpecial.ResetInterpolation();
             SectorSpecialDestroyed?.Invoke(this, sectorSpecial);
         }
+    }
+
+    public bool AddActivatedLineSpecial(ZDoomLineSpecialType specialType, in SpecialArgs specialArgs, LineSpecialCompatibility? compat = null, bool resetActivation = true)
+    {
+        if (resetActivation)
+            m_dummyLine.Activated = false;
+        m_dummyLine.Args = specialArgs;
+        m_dummyLine.Special.Set(specialType, LineActivationType.Tag, compat ?? LineSpecialCompatibility.Default);
+        return TryAddActivatedLineSpecial(new(ActivationContext.CrossLine, m_world.Player, m_dummyLine, true));
     }
 
     public bool TryAddActivatedLineSpecial(in EntityActivateSpecial args)
