@@ -380,6 +380,8 @@ public class LineSpecial
             case ZDoomLineSpecialType.ElevatorLowerToNearest:
             case ZDoomLineSpecialType.ElevatorMoveToFloor:
             case ZDoomLineSpecialType.PlatDownWaitUpStayLip:
+            case ZDoomLineSpecialType.FloorMoveToValue:
+            case ZDoomLineSpecialType.CeilingMoveToValue:
                 return true;
 
             default:
