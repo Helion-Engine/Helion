@@ -20,6 +20,8 @@ using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
 using Helion.Graphics.Palettes;
 using System.Runtime.CompilerServices;
+using Helion.Maps.Specials.ZDoom;
+using Helion.Maps.Specials;
 
 namespace Helion.World.Entities;
 
@@ -95,6 +97,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public bool Respawn;
     public bool HadOnEntity;
     public float Alpha;
+
+    public ZDoomLineSpecialType Special;
+    public SpecialArgs Args;
 
     public int LastRenderGametick;
     public double RenderDistanceSquared = double.MaxValue;
@@ -980,6 +985,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         SlowTickMultiplier = 1;
         ChaseFailureSkipCount = 0;
         ClosetChaseSpeed = DefaultClosetChaseSpeed;
+        Special = ZDoomLineSpecialType.None;
     }
 
     private void Unlink()

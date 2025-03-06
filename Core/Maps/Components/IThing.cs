@@ -1,5 +1,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Maps.Shared;
+using Helion.Maps.Specials;
+using Helion.Maps.Specials.ZDoom;
 
 namespace Helion.Maps.Components;
 
@@ -40,4 +42,7 @@ public interface IThing
     /// The flags for the thing.
     /// </summary>
     ThingFlags Flags { get; }
+
+    ZDoomLineSpecialType Special { get; }
+    ref SpecialArgs Args { get; }
 }

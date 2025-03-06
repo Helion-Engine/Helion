@@ -14,8 +14,10 @@ public class HexenThing : IThing
     public ushort Angle { get; }
     public ushort EditorNumber { get; }
     public ThingFlags Flags { get; }
-    public readonly ZDoomLineSpecialType Special;
-    public readonly SpecialArgs Args;
+    public ZDoomLineSpecialType Special { get; set; }
+    public ref SpecialArgs Args => ref _args;
+
+    private SpecialArgs _args;
 
     internal HexenThing(int id, ushort tid, Vec3D position, ushort angle, ushort editorNumber,
         ThingFlags flags, ZDoomLineSpecialType special, SpecialArgs args)

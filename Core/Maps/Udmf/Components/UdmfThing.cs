@@ -2,6 +2,7 @@
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
+using Helion.Maps.Specials.ZDoom;
 
 namespace Helion.Maps.Udmf.Components;
 
@@ -18,5 +19,8 @@ public class UdmfThing : IThing
     public ushort EditorNumber { get; set; }
 
     public ThingFlags Flags { get; set; } = new();
-    public SpecialArgs Args;
+    public ZDoomLineSpecialType Special { get; set; }
+    public ref SpecialArgs Args => ref _args;
+
+    private SpecialArgs _args;
 }

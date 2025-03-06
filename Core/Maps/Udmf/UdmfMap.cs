@@ -1,7 +1,5 @@
-﻿using Helion.Geometry;
-using Helion.Maps.Components;
+﻿using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
-using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Maps.Udmf.Components;
@@ -140,6 +138,8 @@ public class UdmfMap : IMap
                 thing.Angle = (ushort)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("type"))
                 thing.EditorNumber = (ushort)parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("special"))
+                thing.Special = (ZDoomLineSpecialType)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg0"))
                 thing.Args.Arg0 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg1"))
@@ -169,6 +169,8 @@ public class UdmfMap : IMap
                 thing.Flags.Deathmatch = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("ambush"))
                 thing.Flags.Ambush = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("id"))
+                thing.Id = parser.ParseInt(prop.Value);
         }
 
         thing.Position = new(x, y, z);

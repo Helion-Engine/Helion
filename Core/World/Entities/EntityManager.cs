@@ -3,6 +3,7 @@ using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
@@ -190,8 +191,8 @@ public class EntityManager : IDisposable
             if (mapThing.EditorNumber == (int)EditorId.MusicChangerStart)
                 continue;
 
-            bool isMusicChanger = EditorIds.IsMusicChanger(mapThing.EditorNumber);
-            EntityDefinition? definition = isMusicChanger ? 
+            var isMusicChanger = EditorIds.IsMusicChanger(mapThing.EditorNumber);
+            var definition = isMusicChanger ? 
                 DefinitionComposer.GetByName(Constants.MusicChanger) : DefinitionComposer.GetByID(mapThing.EditorNumber);
             if (definition == null)
             {
@@ -210,10 +211,14 @@ public class EntityManager : IDisposable
             if (definition.Flags.CountItem)
                 levelStats.TotalItems++;
 
-            double angleRadians = MathHelper.ToRadians(mapThing.Angle);
-            Vec3D position = mapThing.Position;
+            var angleRadians = MathHelper.ToRadians(mapThing.Angle);
+            var position = mapThing.Position;
             // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
-            Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, initSpawn: true);
+            var entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, initSpawn: true);
+            entity.Special = mapThing.Special;
+            entity.Args = mapThing.Args;
+            entity.ThingId = mapThing.Id;
+
             if (mapThing.Flags.Ambush)
                 entity.Flags.Ambush = mapThing.Flags.Ambush;
             if (mapThing.Flags.Friendly)
