@@ -10,7 +10,7 @@ record struct LineSpan(int Index, int Length, int NextIndex);
 
 public class SimpleParser
 {
-    private class ParserToken(int line, int index, int length,
+    private struct ParserToken(int line, int index, int length,
         int endLine = -1, int endIndex = -1)
     {
         public int Index = index;
