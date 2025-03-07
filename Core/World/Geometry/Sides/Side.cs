@@ -15,6 +15,31 @@ public record class SideColormaps(Colormap? Upper, Colormap? Middle, Colormap? L
 
 public record struct FloodKeys(int Key1, int Key2);
 
+public struct SideLight
+{
+    public int Level;
+    public int LevelUpper;
+    public int LevelMiddle;
+    public int LevelLower;
+    public bool LevelAbsolute;
+    public bool LevelUpperAbsolute;
+    public bool LevelMiddleAbsolute;
+    public bool LevelLowerAbsolute;
+
+    public SideLight(int lightLevel, int lightLevelUpper, int lightLevelMiddle, int lightLevelLower, 
+        bool lightLevelAbsolute, bool lightLevelUpperAbsolute, bool lightLevelMiddleAbsolute, bool lightLevelLowerAbsolute)
+    {
+        Level = lightLevel;
+        LevelUpper = lightLevelUpper;
+        LevelMiddle = lightLevelMiddle;
+        LevelLower = lightLevelLower;
+        LevelAbsolute = lightLevelAbsolute;
+        LevelUpperAbsolute = lightLevelUpperAbsolute;
+        LevelMiddleAbsolute = lightLevelMiddleAbsolute;
+        LevelLowerAbsolute = lightLevelLowerAbsolute;
+    }
+}
+
 public sealed class Side
 {
     public static readonly FloodKeys NoFloodKeys = new(0, 0);
@@ -24,12 +49,14 @@ public sealed class Side
     public Wall Upper;
     public Wall Middle;
     public Wall Lower;
+    public Vec2I Offset;
     public Vec2F OffsetUpper;
     public Vec2F OffsetMiddle;
     public Vec2F OffsetLower;
     public Vec2F ScaleUpper;
     public Vec2F ScaleMiddle;
     public Vec2F ScaleLower;
+    public SideLight Light;
     public Line Line;
     public SideDataTypes DataChanges;
     public bool DataChanged => DataChanges > 0;
@@ -62,20 +89,23 @@ public sealed class Side
     private readonly Vec2F m_initialOffsetMiddle;
     private readonly Vec2F m_initialOffsetLower;
 
-    public Side(int id, Vec2F offset,
+    public Side(int id, Vec2I offset,
         Wall upper, Wall middle, Wall lower, Sector sector)
-        : this(id, offset, offset, offset, Vec2F.One, Vec2F.One, Vec2F.One,
-              upper, middle, lower, sector)
+        : this(id, offset, default, default, default, Vec2F.One, Vec2F.One, Vec2F.One,
+            default,
+            upper, middle, lower, sector)
     {
 
     }
 
-    public Side(int id, Vec2F offsetUpper, Vec2F offsetMiddle, Vec2F offsetLower, 
+    public Side(int id, Vec2I offset, Vec2F offsetUpper, Vec2F offsetMiddle, Vec2F offsetLower, 
         Vec2F scaleUpper, Vec2F scaleMiddle, Vec2F scaleLower,
+        in SideLight light,
         Wall upper, Wall middle, Wall lower, Sector sector)
     {
         Id = id;
         Sector = sector;
+        Offset = offset;
         OffsetUpper = offsetUpper;
         OffsetMiddle = offsetMiddle;
         OffsetLower = offsetLower;
@@ -85,6 +115,7 @@ public sealed class Side
         Upper = upper;
         Middle = middle;
         Lower = lower;
+        Light = light;
 
         m_initialOffsetUpper = offsetUpper;
         m_initialOffsetMiddle = offsetMiddle;

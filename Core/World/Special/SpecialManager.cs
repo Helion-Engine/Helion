@@ -74,7 +74,7 @@ public sealed class SpecialManager : ITickable, IDisposable
     private readonly LinkedList<ISpecial> m_specials = new();
     private readonly List<ISectorSpecial> m_destroyedMoveSpecials = [];
     private readonly List<Sector> m_sectorList = [];
-    private readonly List<(Sector, SectorPlane)> m_sectorPlanes = new();
+    private readonly List<(Sector, SectorPlane)> m_sectorPlanes = [];
     private readonly Line m_dummyLine;
     private IRandom m_random;
     private WorldBase m_world;

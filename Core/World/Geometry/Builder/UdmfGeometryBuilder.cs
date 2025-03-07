@@ -93,6 +93,8 @@ public class UdmfGeometryBuilder
             else
                 special = new LineSpecial(mapLine.Special, mapLine.ActivationType, LineSpecialCompatibility.Default);
 
+            LineSpecial.ValidateActivationFlags(special.LineSpecialType, ref flags);
+
             var line = new Line(mapLine.Id, seg, front, back, flags, special, mapLine.Args)
             {
                 Alpha = mapLine.Alpha
@@ -107,8 +109,8 @@ public class UdmfGeometryBuilder
         if (line.Back == null)
             return CreateSingleSide(line, builder, ref nextSideId, textureManager);
 
-        Side front = CreateTwoSided(line, line.Front, builder, ref nextSideId, textureManager);
-        Side back = CreateTwoSided(line, line.Back, builder, ref nextSideId, textureManager);
+        Side front = CreateTwoSided(line.Front, builder, ref nextSideId, textureManager);
+        Side back = CreateTwoSided(line.Back, builder, ref nextSideId, textureManager);
         return (front, back);
     }
 
@@ -125,8 +127,10 @@ public class UdmfGeometryBuilder
         Wall upper = new(upperTexture.Index, WallLocation.Upper);
         Wall lower = new(lowerTexture.Index, WallLocation.Lower);
 
-        Side front = new(nextSideId, side.UpperOffset, side.MiddleOffset, side.BottomOffset,
+        Side front = new(nextSideId, side.Offset, side.UpperOffset, side.MiddleOffset, side.BottomOffset,
             side.UpperScale, side.MiddleScale, side.BottomScale,
+            new SideLight(side.LightLevel, side.LightLevelUpper, side.LightLevelMiddle, side.LightLevelLower,
+                side.LightLevelAbsolute, side.LightLevelUpperAbsolute, side.LightLevelMiddleAbsolute, side.LightLevelLowerAbsolute),
             upper, middle, lower, sector);
         builder.Sides.Add(front);
 
@@ -135,28 +139,27 @@ public class UdmfGeometryBuilder
         return (front, null);
     }
 
-
-    private static Side CreateTwoSided(UdmfLine line, UdmfSide facingSide, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager)
+    private static Side CreateTwoSided(UdmfSide side, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager)
     {
-        Sector facingSector = builder.Sectors[facingSide.Sector.Id];
+        Sector facingSector = builder.Sectors[side.Sector.Id];
 
-        var middleTexture = GetWallTexture(textureManager, facingSide.MiddleTexture);
-        var upperTexture = GetWallTexture(textureManager, facingSide.UpperTexture);
-        var lowerTexture = GetWallTexture(textureManager, facingSide.LowerTexture);
+        var middleTexture = GetWallTexture(textureManager, side.MiddleTexture);
+        var upperTexture = GetWallTexture(textureManager, side.UpperTexture);
+        var lowerTexture = GetWallTexture(textureManager, side.LowerTexture);
 
         Wall middle = new(middleTexture.Index, WallLocation.Middle);
         Wall upper = new(upperTexture.Index, WallLocation.Upper);
         Wall lower = new(lowerTexture.Index, WallLocation.Lower);
 
-        Side side = new(nextSideId, facingSide.UpperOffset, facingSide.MiddleOffset, facingSide.BottomOffset,
-            facingSide.UpperScale, facingSide.MiddleScale, facingSide.BottomScale,
+        Side addSide = new(nextSideId, side.Offset, side.UpperOffset, side.MiddleOffset, side.BottomOffset,
+            side.UpperScale, side.MiddleScale, side.BottomScale,
+            new SideLight(side.LightLevel, side.LightLevelUpper, side.LightLevelMiddle, side.LightLevelLower,
+                side.LightLevelAbsolute, side.LightLevelUpperAbsolute, side.LightLevelMiddleAbsolute, side.LightLevelLowerAbsolute),
             upper, middle, lower, facingSector);
-        builder.Sides.Add(side);
-
-        //SetColorMaps(line, textureManager, facingSide, side);
+        builder.Sides.Add(addSide);
 
         nextSideId++;
-        return side;
+        return addSide;
     }
 
     private static Texture GetWallTexture(TextureManager textureManager, string textureName)

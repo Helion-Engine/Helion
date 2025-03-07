@@ -308,7 +308,7 @@ public static class WorldTriangulator
             prevTopZ = prevBottomZ + textureDimension.Height;
         }
 
-        var offsetY = facingSide.OffsetMiddle.Y / facingSide.ScaleMiddle.Y;
+        var offsetY = (facingSide.Offset.Y + facingSide.OffsetMiddle.Y) / facingSide.ScaleMiddle.Y;
         topZ += offsetY + offset;
         bottomZ += offsetY + offset;
         prevTopZ += offsetY + prevOffset;
@@ -327,8 +327,8 @@ public static class WorldTriangulator
     public static WallUV CalculateOneSidedWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double spanZ, bool previous)
     {
-        var offsetU = side.OffsetMiddle.X * textureUVInverse.X / side.ScaleMiddle.X;
-        var offsetV = side.OffsetMiddle.Y * textureUVInverse.Y / side.ScaleMiddle.Y;
+        var offsetU = (side.Offset.X + side.OffsetMiddle.X) * textureUVInverse.X / side.ScaleMiddle.X;
+        var offsetV = (side.Offset.Y + side.OffsetMiddle.Y) * textureUVInverse.Y / side.ScaleMiddle.Y;
         if (side.ScrollData != null)
         {
             if (previous)
@@ -368,8 +368,8 @@ public static class WorldTriangulator
     public static WallUV CalculateTwoSidedLowerWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double topZ, double bottomZ, bool previous)
     {
-        var offsetU = side.OffsetLower.X * textureUVInverse.X / side.ScaleLower.X;
-        var offsetV = side.OffsetLower.Y * textureUVInverse.Y / side.ScaleLower.Y;
+        var offsetU = (side.Offset.X + side.OffsetLower.X) * textureUVInverse.X / side.ScaleLower.X;
+        var offsetV = (side.Offset.Y + side.OffsetLower.Y) * textureUVInverse.Y / side.ScaleLower.Y;
         if (side.ScrollData != null)
         {
             if (previous)
@@ -411,7 +411,7 @@ public static class WorldTriangulator
     private static WallUV CalculateTwoSidedMiddleWallUV(Side side, double length, double topZ, double bottomZ, 
         double visibleTopZ, double visibleBottomZ, in Vec2F textureUVInverse, bool previous)
     {
-        var offsetU = side.OffsetMiddle.X * textureUVInverse.X / side.ScaleMiddle.X;
+        var offsetU = (side.Offset.X + side.OffsetMiddle.X) * textureUVInverse.X / side.ScaleMiddle.X;
         if (side.ScrollData != null)
         {
             if (previous)
@@ -439,8 +439,8 @@ public static class WorldTriangulator
     public static WallUV CalculateTwoSidedUpperWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double spanZ, bool previous)
     {
-        var offsetU = side.OffsetUpper.X * textureUVInverse.X / side.ScaleUpper.X;
-        var offsetV = side.OffsetUpper.Y * textureUVInverse.Y / side.ScaleUpper.Y;
+        var offsetU = (side.Offset.X + side.OffsetUpper.X) * textureUVInverse.X / side.ScaleUpper.X;
+        var offsetV = (side.Offset.Y + side.OffsetUpper.Y) * textureUVInverse.Y / side.ScaleUpper.Y;
         if (side.ScrollData != null)
         {
             if (previous)

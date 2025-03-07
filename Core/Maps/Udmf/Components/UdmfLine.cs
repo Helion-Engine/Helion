@@ -18,9 +18,13 @@ public class UdmfLine : ILine
     public UdmfSide Front { get; set; } = null!;
     public UdmfSide? Back { get; set; }
     public ZDoomLineSpecialType Special;
-    public LineActivationType ActivationType;
+    public LineActivationType ActivationType = LineActivationType.Any;
     public SpecialArgs Args;
     public float Alpha = 1f;
+    public int StartVertex;
+    public int EndVertex;
+    public int SideFront;
+    public int? SideBack;
 
     public ISide GetFront() => Front;
 

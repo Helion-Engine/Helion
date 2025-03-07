@@ -7,6 +7,7 @@ using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
+using OpenTK.Graphics.ES11;
 using System;
 using System.Collections.Generic;
 
@@ -90,9 +91,6 @@ public class UdmfMap : IMap
         if (!ns.EqualsIgnoreCase("zdoom") && !ns.EqualsIgnoreCase("dsda"))
             throw new Exception($"Unsupported udmf namespace: {ns}");
 
-        List<Sidedef> sidedefs = new(sides.Capacity);
-        List<Linedef> linedefs = new(lines.Capacity);
-
         while (!parser.IsDone())
         {
             var type = parser.ConsumeStringSpan();
@@ -101,9 +99,9 @@ public class UdmfMap : IMap
             if (type.EqualsIgnoreCase("vertex"))
                 ParseVertex(parser, vertices);
             else if (type.EqualsIgnoreCase("linedef"))
-                ParseLine(parser, linedefs);
+                ParseLine(parser, lines);
             else if (type.EqualsIgnoreCase("sidedef"))
-                ParseSide(parser, sidedefs);
+                ParseSide(parser, sides);
             else if (type.EqualsIgnoreCase("sector"))
                 ParseSector(parser, sectors);
             else if (type.EqualsIgnoreCase("thing"))
@@ -114,11 +112,13 @@ public class UdmfMap : IMap
             parser.Consume('}');
         }
 
-        sides.EnsureCapacity(sidedefs.Count);
-        foreach (var side in sidedefs)
-            sides.Add(CreateSide(sides.Count, side, sectors));
+        foreach (var side in sides)
+        {
+            if (side.SectorId >= 0 && side.SectorId < sectors.Count)
+                side.Sector = sectors[side.SectorId];
+        }
 
-        MapLines(lines, vertices, sides, linedefs);
+        MapLines(lines, vertices, sides);
     }
 
     private static void ParseThing(SimpleParser parser, List<UdmfThing> things)
@@ -177,85 +177,77 @@ public class UdmfMap : IMap
         things.Add(thing);
     }
 
-    private static void MapLines(List<UdmfLine> lines, List<UdmfVertex> vertices, List<UdmfSide> sides, List<Linedef> linedefs)
+    private static void MapLines(List<UdmfLine> lines, List<UdmfVertex> vertices, List<UdmfSide> sides)
     {
-        lines.EnsureCapacity(linedefs.Count);
-        foreach (var line in linedefs)
+        for (int i = 0; i < lines.Count; i++)
         {
-            UdmfLine udmfLine = new()
-            {
-                Id = lines.Count,
-                StartPosition = vertices[line.StartVertex].Position,
-                EndPosition = vertices[line.EndVertex].Position,
-                Front = sides[line.SideFront],
-                Back = line.SideBack.HasValue ? sides[line.SideBack.Value] : null,
-                Flags = line.Flags,
-                Special = line.Special,
-                ActivationType = line.ActivationType,
-                Args = line.Args,
-                Alpha = line.Alpha
-            };
-
-            lines.Add(udmfLine);
+            var line = lines[i];
+            line.Id = i;
+            line.StartPosition = vertices[line.StartVertex].Position;
+            line.EndPosition = vertices[line.EndVertex].Position;
+            line.Front = sides[line.SideFront];
+            line.Back = line.SideBack.HasValue ? sides[line.SideBack.Value] : null;
         }
     }
 
-    private static UdmfSide CreateSide(int id, Sidedef sidedef, List<UdmfSector> sectors)
+    private static void ParseSide(SimpleParser parser, List<UdmfSide> sides)
     {
-        return new()
-        {
-            Id = id,
-            Sector = sectors[sidedef.Sector],
-            UpperTexture = sidedef.TextureTop,
-            MiddleTexture = sidedef.TextureMiddle,
-            LowerTexture = sidedef.TextureBottom,
-            UpperOffset = new(sidedef.TopOffsetX, sidedef.TopOffsetY),
-            MiddleOffset = new(sidedef.MiddleOffsetX, sidedef.MiddleOffsetY),
-            BottomOffset = new(sidedef.BottomOffsetX, sidedef.BottomOffsetY),
-            UpperScale = new(sidedef.TopScaleX, sidedef.TopScaleY),
-            MiddleScale = new(sidedef.MiddleScaleX, sidedef.MiddleScaleY),
-            BottomScale = new(sidedef.BottomScaleX, sidedef.BottomScaleY),
-        };
-    }
-
-    private static void ParseSide(SimpleParser parser, List<Sidedef> sides)
-    {
-        Sidedef side = new();
+        UdmfSide side = new();
         while (!IsBlockComplete(parser))
         {
             var prop = ParseProperty(parser);
             if (prop.Name.EqualsIgnoreCase("sector"))
-                side.Sector = parser.ParseInt(prop.Value);
+                side.SectorId = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturetop"))
-                side.TextureTop = prop.Value.ToString();
+                side.UpperTexture = prop.Value.ToString();
             else if (prop.Name.EqualsIgnoreCase("texturemiddle"))
-                side.TextureMiddle = prop.Value.ToString();
+                side.MiddleTexture = prop.Value.ToString();
             else if (prop.Name.EqualsIgnoreCase("texturebottom"))
-                side.TextureBottom = prop.Value.ToString();
+                side.LowerTexture = prop.Value.ToString();
+            else if (prop.Name.EqualsIgnoreCase("offsetx"))
+                side.Offset.X = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("offsety"))
+                side.Offset.Y = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsetx_top"))
-                side.TopOffsetX = parser.ParseFloat(prop.Value);
+                side.UpperOffset.X = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsety_top"))
-                side.TopOffsetY = parser.ParseFloat(prop.Value);
+                side.UpperOffset.Y = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsetx_mid"))
-                side.MiddleOffsetX = parser.ParseFloat(prop.Value);
+                side.MiddleOffset.X = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsety_mid"))
-                side.MiddleOffsetY = parser.ParseFloat(prop.Value);
+                side.MiddleOffset.Y = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsetx_bottom"))
-                side.BottomOffsetX = parser.ParseFloat(prop.Value);
+                side.BottomOffset.X = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsety_bottom"))
-                side.BottomOffsetY = parser.ParseFloat(prop.Value);
+                side.BottomOffset.Y = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("scalex_top"))
-                side.TopScaleX = parser.ParseFloat(prop.Value);
+                side.UpperScale.X = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("scaley_top"))
-                side.TopScaleY = parser.ParseFloat(prop.Value);
+                side.UpperScale.Y = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("scalex_mid"))
-                side.MiddleScaleX = parser.ParseFloat(prop.Value);
+                side.MiddleScale.X = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("scaley_mid"))
-                side.MiddleScaleY = parser.ParseFloat(prop.Value);
+                side.MiddleScale.Y = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("scalex_bottom"))
-                side.BottomScaleX = parser.ParseFloat(prop.Value);
+                side.BottomScale.X = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("scaley_bottom"))
-                side.BottomScaleY = parser.ParseFloat(prop.Value);
+                side.BottomScale.Y = parser.ParseFloat(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("light"))
+                side.LightLevel = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("light_top"))
+                side.LightLevelUpper = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("light_mid"))
+                side.LightLevelMiddle = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("light_bottom"))
+                side.LightLevelLower = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("lightabsolute"))
+                side.LightLevelAbsolute = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("lightabsolute_top"))
+                side.LightLevelUpperAbsolute = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("lightabsolute_mid"))
+                side.LightLevelMiddleAbsolute = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("lightabsolute_bottom"))
+                side.LightLevelLowerAbsolute = prop.Value.EqualsIgnoreCase("true");
         }
 
         sides.Add(side);
@@ -316,9 +308,9 @@ public class UdmfMap : IMap
         sectors.Add(sector);
     }
 
-    private static void ParseLine(SimpleParser parser, List<Linedef> lines)
+    private static void ParseLine(SimpleParser parser, List<UdmfLine> lines)
     {
-        Linedef line = new();
+        UdmfLine line = new();
         while (!IsBlockComplete(parser))
         {
             var prop = ParseProperty(parser);

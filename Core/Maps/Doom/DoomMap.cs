@@ -214,7 +214,7 @@ public class DoomMap : IMap
         if (sideSetDefinition.Upper != null)
             side.UpperTexture = sideSetDefinition.Upper;
         if (sideSetDefinition.Offset != null)
-            side.Offset = sideSetDefinition.Offset.Value.Float;
+            side.Offset = sideSetDefinition.Offset.Value;
     }
 
     private static List<DoomLine>? CreateLines(byte[]? lineData, List<DoomVertex> vertices, List<DoomSide> sides,
