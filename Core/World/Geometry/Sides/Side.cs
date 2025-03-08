@@ -8,6 +8,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Static;
+using System;
 
 namespace Helion.World.Geometry.Sides;
 
@@ -33,6 +34,7 @@ public sealed class Side
     public SectorDynamic Dynamic;
     public bool IsDynamic => Dynamic != SectorDynamic.None;
     public SideTexture FloodTextures;
+    public byte LightLevel;
 
     public bool IsFront => this == Line.Front;
     public Side? PartnerSide => IsFront ? Line.Back : Line.Front;
@@ -51,10 +53,16 @@ public sealed class Side
     public int CeilingFloodKey;
     public bool BlockmapLinked;
     public bool UpperSky;
+    public bool LightLevelAbsolute;
     public SectorPlanes MidTextureFlood;
 
-    public Side(int id, Vec2I offset,
-        Wall upper, Wall middle, Wall lower, Sector sector)
+    public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
+        : this(id, offset, upper, middle, lower, sector, 0, false)
+    {
+
+    }
+
+    public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector, int lightLevel, bool lightLevelAbsolute)
     {
         Id = id;
         Sector = sector;
@@ -70,6 +78,9 @@ public sealed class Side
         // to a parent object, it will add itself for us. If this can be
         // fixed in the future with non-messy code, go for it.
         Line = null!;
+
+        LightLevel = (byte)Math.Clamp(lightLevel, 0, 255);
+        LightLevelAbsolute = lightLevelAbsolute;
     }
 
     public void Reset()

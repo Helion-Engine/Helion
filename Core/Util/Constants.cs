@@ -314,6 +314,22 @@ public static class Constants
         public const int FloorOffset = 0;
         public const int CeilingOffset = 1;
         public const int WallOffset = 2;
+        public const int UpperWallOffset = 0;
+        public const int MiddleWallOffset = 1;
+        public const int LowerWallOffset = 2;
+        public const int ColorMapCount = 32;
+    }
+
+    public static class ColormapBuffer
+    {
+        public const int DarkIndex = 0;
+        public const int FullBrightIndex = 1;
+        public const int ColorMapStartIndex = 2;
+        public const int BufferSize = 3;
+        public const int SectorIndexStart = ColorMapStartIndex + ColorMapCount;
+        public const int FloorOffset = 0;
+        public const int CeilingOffset = 1;
+        public const int WallOffset = 2;
         public const int ColorMapCount = 32;
     }
 

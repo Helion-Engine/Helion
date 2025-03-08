@@ -1,5 +1,6 @@
 using Helion.Geometry.Vectors;
 using Helion.World.Static;
+using System;
 
 namespace Helion.World.Geometry.Walls;
 
@@ -7,7 +8,7 @@ public sealed class Wall
 {
     public readonly WallLocation Location;
     public int TextureHandle;
-    public int LightLevel;
+    public byte LightLevel;
     public bool LightLevelAbsolute;
 
     public Vec2F Offset;
@@ -27,7 +28,7 @@ public sealed class Wall
         TextureHandle = textureHandle;
         Location = location;
         m_initialTextureHandle = textureHandle;
-        LightLevel = lightLevel;
+        LightLevel = (byte)Math.Clamp(lightLevel, 0, 255);
         LightLevelAbsolute = lightLevelAbsolute;
         Offset = offset;
         Scale = scale;

@@ -294,7 +294,7 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("lightfloorabsolute"))
                 sector.LightFloorAbsolute = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("lightceilingabsolute"))
-                sector.LightFloorAbsolute = prop.Value.EqualsIgnoreCase("true");
+                sector.LightCeilingAbsolute = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("silent"))
                 sector.Silent = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("gravity"))

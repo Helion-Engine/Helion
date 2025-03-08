@@ -30,6 +30,7 @@ public sealed class SectorPlane : ISoundSource
 
     public bool MidTextureHack;
     public bool NoRender;
+    public bool LightLevelAbsolute;
     public StaticSkyGeometryData? SkyGeometry;
 
     private IAudioSource? m_audio;
@@ -49,6 +50,7 @@ public sealed class SectorPlane : ISoundSource
         m_initialZ = z;
         m_initialTextureHandle = textureHandle;
         Sector = null!;
+        LightLevelAbsolute = true;
     }
 
     public void Reset(short lightLevel)

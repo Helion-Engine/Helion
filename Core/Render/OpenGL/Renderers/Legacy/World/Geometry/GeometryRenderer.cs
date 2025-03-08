@@ -623,12 +623,12 @@ public class GeometryRenderer : IDisposable
         if (side.OffsetChanged || m_sectorChangedLine || data == null)
         {
             int colorMapIndex = Renderer.GetColorMapBufferIndex(renderSector, LightBufferType.Wall);
-            int lightIndex = Renderer.GetLightBufferIndex(renderSector, LightBufferType.Wall);
+            int lightIndex = Renderer.GetLightBufferIndex(side, side.Middle, renderSector);
             WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, ref wall, isFront: isFront);
             if (data == null)
-                data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, colorMapIndex);
+                data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle));
             else
-                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, colorMapIndex);
+                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle));
 
             m_vertexLookup[side.Id] = data;
         }
@@ -842,16 +842,16 @@ public class GeometryRenderer : IDisposable
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
                 int colorMapIndex = Renderer.GetColorMapBufferIndex(facingSector, LightBufferType.Wall);
-                int lightIndex = Renderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
+                int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Lower, facingSector);
                 // This lower would clip into the upper texture. Pick the upper as the priority and stop at the ceiling.
                 if (top.Z > otherSector.Ceiling.Z && !TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                     top = otherSector.Ceiling;
 
                 WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse, isFrontSide, ref wall);
                 if (data == null)
-                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex);
+                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Lower));
                 else
-                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex);
+                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Lower));
 
                 m_vertexLowerLookup[facingSide.Id] = data;
             }
@@ -959,12 +959,12 @@ public class GeometryRenderer : IDisposable
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
                 int colorMapIndex = Renderer.GetColorMapBufferIndex(facingSector, LightBufferType.Wall);
-                int lightIndex = Renderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
+                int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Upper, facingSector);
                 WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse, isFrontSide, ref wall);
                 if (data == null)
-                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex);
+                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Upper));
                 else
-                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex);
+                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Upper));
 
                 m_vertexUpperLookup[facingSide.Id] = data;
             }
@@ -1015,7 +1015,7 @@ public class GeometryRenderer : IDisposable
             WorldTriangulator.HandleTwoSidedUpper(facingSide, facingSector.Ceiling, otherSector.Ceiling, texture.UVInverse, isFrontSide, ref wall);
         else
             WorldTriangulator.HandleTwoSidedLower(facingSide, otherSector.Floor, facingSector.Floor, texture.UVInverse, isFrontSide, ref wall);
-        SetWallVertices(m_wallVertices, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex);
+        SetWallVertices(m_wallVertices, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, 0);
         return m_wallVertices;
     }
 
@@ -1116,16 +1116,16 @@ public class GeometryRenderer : IDisposable
                 prevOffset = GetTransferHeightHackOffset(facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: true);
 
             int colorMapIndex = Renderer.GetColorMapBufferIndex(facingSector, LightBufferType.Wall);
-            int lightIndex = Renderer.GetLightBufferIndex(facingSector, LightBufferType.Wall);
+            int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Middle, facingSector);
             WallVertices wall = default;
             WorldTriangulator.HandleTwoSidedMiddle(facingSide,
                 texture.Dimension, texture.UVInverse, opening, prevOpening, isFrontSide, ref wall, out _, offset, prevOffset, 
                 clipPlanes: GetTwoSidedMiddleClipPlanes(facingSide, otherSide, facingSector, otherSector));
 
             if (data == null)
-                data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, alpha, addAlpha: 0);
+                data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), alpha, addAlpha: 0);
             else
-                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, alpha, addAlpha: 0);
+                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), alpha, addAlpha: 0);
 
             m_vertexLookup[facingSide.Id] = data;
             facingSide.Line.Segment = segSave;
@@ -1303,15 +1303,16 @@ public class GeometryRenderer : IDisposable
             if (generate || flatChanged)
             {
                 int colorMapIndex, lightIndex;
+                var flatLightLevel = (byte)Math.Clamp(flat.LightLevel, (short)0, (short)255);
 
                 if (floor)
                 {
-                    lightIndex = Renderer.GetLightBufferIndex(renderSector, LightBufferType.Floor);
+                    lightIndex = Renderer.GetLightBufferIndex(sector, renderSector, flat, LightBufferType.Floor);
                     colorMapIndex = Renderer.GetColorMapBufferIndex(renderSector, LightBufferType.Floor);
                 }
                 else
                 {
-                    lightIndex = Renderer.GetLightBufferIndex(renderSector, LightBufferType.Ceiling);
+                    lightIndex = Renderer.GetLightBufferIndex(sector, renderSector, flat, LightBufferType.Ceiling);
                     colorMapIndex = Renderer.GetColorMapBufferIndex(renderSector, LightBufferType.Ceiling);
                 }
 
@@ -1328,7 +1329,7 @@ public class GeometryRenderer : IDisposable
                     {
                         ref var second = ref m_subsectorVertices.Data[i];
                         ref var third = ref m_subsectorVertices.Data[i + 1];
-                        GetFlatVertices(lookupData, indexStart, ref root, ref second, ref third, lightIndex, colorMapIndex);
+                        GetFlatVertices(lookupData, indexStart, ref root, ref second, ref third, lightIndex, colorMapIndex, flatLightLevel);
                         indexStart += 3;
                     }
                 }
@@ -1511,10 +1512,11 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private static unsafe void SetWallVertices(DynamicVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex, int colorMapIndex,
+    private static unsafe void SetWallVertices(DynamicVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex, int colorMapIndex, byte wallLightLevel,
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
         var options = VertexOptions.World(alpha, addAlpha, lightBufferIndex);
+        colorMapIndex = VertexOptions.ColorMapIndex(colorMapIndex, wallLightLevel);
         fixed (DynamicVertex* startVertex = &data[0])
         {
             DynamicVertex* vertex = startVertex;
@@ -1609,10 +1611,11 @@ public class GeometryRenderer : IDisposable
         }
     }
 
-    private static unsafe DynamicVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex, int colorMapIndex,
+    private static unsafe DynamicVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex, int colorMapIndex, byte wallLightLevel,
         float alpha = 1.0f, float addAlpha = 1.0f)
     {
         var options = VertexOptions.World(alpha, addAlpha, lightBufferIndex);
+        colorMapIndex = VertexOptions.ColorMapIndex(colorMapIndex, wallLightLevel);
         var data = WorldStatic.DataCache.GetWallVertices();
         fixed (DynamicVertex* startVertex = &data[0])
         {
@@ -1717,9 +1720,10 @@ public class GeometryRenderer : IDisposable
     }
 
     private static unsafe void GetFlatVertices(DynamicVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
-        int lightLevelBufferIndex, int colorMapIndex)
+        int lightLevelBufferIndex, int colorMapIndex, int flatLightLevel)
     {
         var options = VertexOptions.World(1, 1, lightLevelBufferIndex);
+        colorMapIndex = VertexOptions.ColorMapIndex(colorMapIndex, flatLightLevel);
         fixed (DynamicVertex* startVertex = &vertices[startIndex])
         {
             DynamicVertex* vertex = startVertex;
@@ -1764,6 +1768,15 @@ public class GeometryRenderer : IDisposable
             vertex->Options = options;
             vertex->ColorMapIndex = colorMapIndex;
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static byte GetWallLightLevel(Side side, Wall wall)
+    {
+        if (wall.LightLevelAbsolute)
+            return wall.LightLevel;
+
+        return (byte)Math.Clamp(wall.LightLevel + side.LightLevel, 0 , 255);
     }
 
     private void ReleaseUnmanagedResources()

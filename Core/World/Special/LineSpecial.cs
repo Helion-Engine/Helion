@@ -67,6 +67,15 @@ public class LineSpecial
             case ZDoomLineSpecialType.ScrollTextureDown:
             case ZDoomLineSpecialType.ScrollFloor:
             case ZDoomLineSpecialType.ScrollCeiling:
+            case ZDoomLineSpecialType.TransferLight:
+            case ZDoomLineSpecialType.TransferFloorLight:
+            case ZDoomLineSpecialType.TransferCeilingLight:
+            case ZDoomLineSpecialType.TransferHeights:
+            case ZDoomLineSpecialType.ScrollWall:
+            case ZDoomLineSpecialType.ScrollTextureBoth:
+            case ZDoomLineSpecialType.ScrollTextureModel:
+            case ZDoomLineSpecialType.ScrollUsingTextureOffsets:
+            case ZDoomLineSpecialType.ScrollTextureModelBothSides:
                 flags.Activations = LineActivations.LevelStart;
                 break;
 

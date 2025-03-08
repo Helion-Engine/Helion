@@ -46,6 +46,7 @@ public class UdmfGeometryBuilder
             };
 
             floorPlane.LightLevel = mapSector.LightFloor != 0 ? mapSector.LightFloor : sector.LightLevel;
+            floorPlane.LightLevelAbsolute = mapSector.LightFloorAbsolute;
             floorPlane.RenderOffsets.Offset.X = mapSector.PanningFloorX;
             floorPlane.RenderOffsets.LastOffset.X = mapSector.PanningFloorX;
             floorPlane.RenderOffsets.Offset.Y = mapSector.PanningFloorY;
@@ -55,6 +56,7 @@ public class UdmfGeometryBuilder
             floorPlane.RenderOffsets.Scale.Y = mapSector.ScaleFloorY;
 
             ceilingPlane.LightLevel = mapSector.LightCeiling != 0 ? mapSector.LightCeiling : sector.LightLevel;
+            ceilingPlane.LightLevelAbsolute = mapSector.LightCeilingAbsolute;
             ceilingPlane.RenderOffsets.Offset.X = mapSector.PanningCeilingX;
             ceilingPlane.RenderOffsets.LastOffset.X = mapSector.PanningCeilingX;
             ceilingPlane.RenderOffsets.Offset.Y = mapSector.PanningCeilingY;
@@ -127,7 +129,7 @@ public class UdmfGeometryBuilder
         Wall upper = new(upperTexture.Index, WallLocation.Upper, side.LightLevelUpper, side.LightLevelUpperAbsolute, side.UpperOffset, side.UpperScale);
         Wall lower = new(lowerTexture.Index, WallLocation.Lower, side.LightLevelLower, side.LightLevelLowerAbsolute, side.BottomOffset, side.BottomScale);
 
-        Side front = new(nextSideId, side.Offset, upper, middle, lower, sector);
+        Side front = new(nextSideId, side.Offset, upper, middle, lower, sector, side.LightLevel, side.LightLevelAbsolute);
         builder.Sides.Add(front);
 
         nextSideId++;
@@ -147,7 +149,7 @@ public class UdmfGeometryBuilder
         Wall upper = new(upperTexture.Index, WallLocation.Upper, side.LightLevelUpper, side.LightLevelUpperAbsolute, side.UpperOffset, side.UpperScale);
         Wall lower = new(lowerTexture.Index, WallLocation.Lower, side.LightLevelLower, side.LightLevelLowerAbsolute, side.BottomOffset, side.BottomScale);
 
-        Side addSide = new(nextSideId, side.Offset, upper, middle, lower, facingSector);
+        Side addSide = new(nextSideId, side.Offset, upper, middle, lower, facingSector, side.LightLevel, side.LightLevelAbsolute);
         builder.Sides.Add(addSide);
 
         nextSideId++;
