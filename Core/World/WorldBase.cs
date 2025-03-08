@@ -1235,7 +1235,7 @@ public abstract partial class WorldBase : IWorld
                     if ((line.Flags.Activations & LineActivations.CheckSwitchRange) != 0 && !CheckSwitchRange(entity, line, openFloorZ, openCeilingZ))                    
                         continue;                    
 
-                    activateSuccess = ActivateSpecialLine(entity, line, ActivationContext.UseLine, true) || activateSuccess;
+                    activateSuccess = ActivateSpecialLine(entity, line, ActivationContext.UseLine, entity.Position.X, entity.Position.Y) || activateSuccess;
                 }
 
                 if (activateSuccess && !line.Flags.PassThrough)
@@ -1336,8 +1336,11 @@ public abstract partial class WorldBase : IWorld
 
     private static bool SideHasActiveMove(Sector sector) => sector.ActiveCeilingMove != null || sector.ActiveFloorMove != null;
 
-    public bool CanActivate(Entity entity, Line line, ActivationContext context)
+    public bool CanActivate(Entity entity, Line line, ActivationContext context, double originX, double originY)
     {
+        if ((line.Flags.Activations & LineActivations.FirstSideOnly) != 0 && line.Segment.PerpDot(originX, originY) > 0)
+            return false;
+
         bool success = line.Special.CanActivate(entity, line, context,
             ArchiveCollection.Definitions.LockDefinitions, out LockDef? lockFail);
         if (entity.PlayerObj != null && lockFail != null)
@@ -1367,12 +1370,12 @@ public abstract partial class WorldBase : IWorld
     /// <param name="line">The line containing the special to execute.</param>
     /// <param name="context">The ActivationContext to attempt to execute the special.</param>
     /// <param name="fromFront">If the line was activated from the front side.</param>
-    public virtual bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, bool fromFront)
+    public virtual bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, double originX, double originY)
     {
-        if (!CanActivate(entity, line, context))
+        if (!CanActivate(entity, line, context, originX, originY))
             return false;
 
-        EntityActivateSpecial args = new(context, entity, line, fromFront);
+        EntityActivateSpecial args = new(context, entity, line, line.Segment.PerpDot(originX, originY) <= 0);
         return EntityActivatedSpecial(args);
     }
 
@@ -1529,9 +1532,11 @@ public abstract partial class WorldBase : IWorld
             if (isLine)
             {
                 ref var line = ref Blockmap.BlockLines[index];
-                if (damage != Constants.HitscanTestDamage && line.HasSpecial && 
-                    CanActivate(shooter, Lines[line.LineId], ActivationContext.HitscanImpactsWall))
+                if (damage != Constants.HitscanTestDamage && line.HasSpecial
+                    && CanActivate(shooter, Lines[line.LineId], ActivationContext.HitscanImpactsWall, shooter.Position.X, shooter.Position.Y)
+                    )
                 {
+                    ActivateSpecialLine(shooter, Lines[line.LineId], ActivationContext.HitscanImpactsWall, shooter.Position.X, shooter.Position.Y);
                     var args = new EntityActivateSpecial(ActivationContext.HitscanImpactsWall, shooter, Lines[line.LineId], true);
                     EntityActivatedSpecial(args);
                 }
@@ -1859,7 +1864,7 @@ public abstract partial class WorldBase : IWorld
         if (tryMove != null && (entity.Flags.Missile || entity.IsPlayer))
         {
             for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
-                ActivateSpecialLine(entity, Lines[tryMove.ImpactSpecialLines[i]], ActivationContext.EntityImpactsWall, true);
+                ActivateSpecialLine(entity, Lines[tryMove.ImpactSpecialLines[i]], ActivationContext.EntityImpactsWall, entity.Position.X, entity.Position.Y);
 
             if (entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll && Config.Game.BumpUse)
                 PlayerBumpUse(entity);

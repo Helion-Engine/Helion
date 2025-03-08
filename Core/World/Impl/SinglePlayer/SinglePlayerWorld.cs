@@ -465,11 +465,11 @@ public class SinglePlayerWorld : WorldBase
         base.OnTryEntityUseLine(entity, line);
     }
 
-    public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, bool fromFront)
+    public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, double originX, double originY)
     {
         MarkSpecials.Mark(this, entity, line, Gametick);
 
-        bool success = base.ActivateSpecialLine(entity, line, context, fromFront);
+        bool success = base.ActivateSpecialLine(entity, line, context, originX, originY);
         if (success && m_renderDistanceOverride > 0 && m_renderDistanceOverrideTags.Contains(line.TagArg))
             ArchiveCollection.Config.Render.MaxDistance.Set(m_renderDistanceOverride, false);
 

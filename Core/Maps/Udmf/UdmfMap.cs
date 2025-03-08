@@ -412,8 +412,8 @@ public class UdmfMap : IMap
                 line.Flags.Activations |= LineActivations.UseLineBack;
             else if (prop.Name.EqualsIgnoreCase("checkswitchrange") && prop.Value.EqualsIgnoreCase("true"))
                 line.Flags.Activations |= LineActivations.CheckSwitchRange;
-            //else if (prop.Name.Equals("firstsideonly") && prop.Value.EqualsIgnoreCase("true"))
-            //    line.Flags.Activations |= LineActivations.Projectile | LineActivations.CrossLine;
+            else if (prop.Name.EqualsIgnoreCase("firstsideonly") && prop.Value.EqualsIgnoreCase("true"))
+                line.Flags.Activations |= LineActivations.FirstSideOnly;
         }
 
         lines.Add(line);

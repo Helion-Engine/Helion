@@ -1373,10 +1373,7 @@ doneLinkToSectors:
                 if (!fromFront && m_world.Lines[lineId].Special.IsTeleport())
                     continue;
 
-                if (!m_world.CanActivate(entity, m_world.Lines[lineId], ActivationContext.CrossLine))
-                    continue;
-
-                m_world.ActivateSpecialLine(entity, m_world.Lines[lineId], ActivationContext.CrossLine, fromFront);
+                m_world.ActivateSpecialLine(entity, m_world.Lines[lineId], ActivationContext.CrossLine, prevX, prevY);
             }
         }
     }
