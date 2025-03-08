@@ -1211,6 +1211,8 @@ public abstract partial class WorldBase : IWorld
         Vec2D start = entity.Position.XY;
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
         var intersections = WorldStatic.Intersections;
+        double openFloorZ = double.MinValue;
+        double openCeilingZ = double.MaxValue;
         intersections.Clear();
         BlockmapTraverser.UseTraverse(new Seg2D(start, end), intersections);
 
@@ -1229,7 +1231,12 @@ public abstract partial class WorldBase : IWorld
             if ((entity.IsPlayer && (line.Flags.Activations & LineActivations.UseLineBack) != 0) || line.Segment.OnRight(start))
             {
                 if (line.HasSpecial)
+                {
+                    if ((line.Flags.Activations & LineActivations.CheckSwitchRange) != 0 && !CheckSwitchRange(entity, line, openFloorZ, openCeilingZ))                    
+                        continue;                    
+
                     activateSuccess = ActivateSpecialLine(entity, line, ActivationContext.UseLine, true) || activateSuccess;
+                }
 
                 if (activateSuccess && !line.Flags.PassThrough)
                     break;
@@ -1243,12 +1250,17 @@ public abstract partial class WorldBase : IWorld
 
             if (line.Back != null)
             {
-                LineOpening opening = PhysicsManager.GetLineOpening(line.Front.Sector, line.Back.Sector!);
+                var opening = PhysicsManager.GetLineOpening(line.Front.Sector, line.Back.Sector!);
                 if (opening.OpeningHeight <= 0)
                 {
                     hitBlockLine = true;
                     break;
                 }
+
+                if (opening.FloorZ > openFloorZ)
+                    openFloorZ = opening.FloorZ;
+                if (opening.CeilingZ < openCeilingZ)
+                    openCeilingZ = opening.CeilingZ;
 
                 // Keep checking if hit two-sided blocking line - this way the PlayerUserFail will be raised if no line special is hit
                 if (!opening.CanPassOrStepThrough(entity))
@@ -1260,6 +1272,20 @@ public abstract partial class WorldBase : IWorld
             entity.PlayerObj.PlayUseFailSound();
 
         return activateSuccess;
+    }
+
+    private static bool CheckSwitchRange(Entity entity, Line line, double openFloorZ, double openCeilingZ)
+    {
+        var bottomZ = entity.Position.Z;
+        var topZ = entity.Position.Z + entity.Height;
+
+        if (topZ < openFloorZ)
+            return false;
+
+        if (bottomZ > openCeilingZ)
+            return false;
+
+        return true;
     }
 
     public virtual void OnTryEntityUseLine(Entity entity, Line line)

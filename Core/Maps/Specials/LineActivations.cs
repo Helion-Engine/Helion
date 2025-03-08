@@ -14,5 +14,6 @@ public enum LineActivations
     UseLine = 32,
     ImpactLine = 64,
     UseLineBack = 128,
-    LevelStart = 256,
+    CheckSwitchRange = 256,
+    LevelStart = 512,
 }
