@@ -217,7 +217,6 @@ public class EntityManager : IDisposable
             var entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, initSpawn: true);
             entity.Special = mapThing.Special;
             entity.Args = mapThing.Args;
-            entity.ThingId = mapThing.Id;
             entity.Alpha = mapThing.Alpha;
 
             if (mapThing.Flags.Ambush)

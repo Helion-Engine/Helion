@@ -178,7 +178,7 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("nocount"))
                 thing.Flags.CountKill = thing.Flags.CountItem = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("id"))
-                thing.Id = parser.ParseInt(prop.Value);
+                thing.ThingId = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("alpha"))
                 thing.Alpha = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("translucent"))
@@ -410,13 +410,9 @@ public class UdmfMap : IMap
                 line.Flags.Activations |= LineActivations.CrossLine | LineActivations.Player | LineActivations.Monster | LineActivations.Hitscan;
             else if (prop.Name.EqualsIgnoreCase("playeruseback") && prop.Value.EqualsIgnoreCase("true"))
                 line.Flags.Activations |= LineActivations.UseLineBack;
-            //else if (prop.Name.Equals("checkswitchrange") && prop.Value.EqualsIgnoreCase("true"))
-            //    line.Flags.Activations |= LineActivations.Projectile | LineActivations.CrossLine;
+            else if (prop.Name.EqualsIgnoreCase("checkswitchrange") && prop.Value.EqualsIgnoreCase("true"))
+                line.Flags.Activations |= LineActivations.CheckSwitchRange;
             //else if (prop.Name.Equals("firstsideonly") && prop.Value.EqualsIgnoreCase("true"))
-            //    line.Flags.Activations |= LineActivations.Projectile | LineActivations.CrossLine;
-            //else if (prop.Name.Equals("playeruseback") && prop.Value.EqualsIgnoreCase("true"))
-            //    line.Flags.Activations |= LineActivations.Projectile | LineActivations.CrossLine;
-            //else if (prop.Name.Equals("jumpover") && prop.Value.EqualsIgnoreCase("true"))
             //    line.Flags.Activations |= LineActivations.Projectile | LineActivations.CrossLine;
         }
 
