@@ -123,15 +123,11 @@ public class UdmfGeometryBuilder
         var upperTexture = GetWallTexture(textureManager, side.UpperTexture);
         var lowerTexture = GetWallTexture(textureManager, side.LowerTexture);
 
-        Wall middle = new(middleTexture.Index, WallLocation.Middle);
-        Wall upper = new(upperTexture.Index, WallLocation.Upper);
-        Wall lower = new(lowerTexture.Index, WallLocation.Lower);
+        Wall middle = new(middleTexture.Index, WallLocation.Middle, side.LightLevelMiddle, side.LightLevelMiddleAbsolute, side.MiddleOffset, side.MiddleScale);
+        Wall upper = new(upperTexture.Index, WallLocation.Upper, side.LightLevelUpper, side.LightLevelUpperAbsolute, side.UpperOffset, side.UpperScale);
+        Wall lower = new(lowerTexture.Index, WallLocation.Lower, side.LightLevelLower, side.LightLevelLowerAbsolute, side.BottomOffset, side.BottomScale);
 
-        Side front = new(nextSideId, side.Offset, side.UpperOffset, side.MiddleOffset, side.BottomOffset,
-            side.UpperScale, side.MiddleScale, side.BottomScale,
-            new SideLight(side.LightLevel, side.LightLevelUpper, side.LightLevelMiddle, side.LightLevelLower,
-                side.LightLevelAbsolute, side.LightLevelUpperAbsolute, side.LightLevelMiddleAbsolute, side.LightLevelLowerAbsolute),
-            upper, middle, lower, sector);
+        Side front = new(nextSideId, side.Offset, upper, middle, lower, sector);
         builder.Sides.Add(front);
 
         nextSideId++;
@@ -147,15 +143,11 @@ public class UdmfGeometryBuilder
         var upperTexture = GetWallTexture(textureManager, side.UpperTexture);
         var lowerTexture = GetWallTexture(textureManager, side.LowerTexture);
 
-        Wall middle = new(middleTexture.Index, WallLocation.Middle);
-        Wall upper = new(upperTexture.Index, WallLocation.Upper);
-        Wall lower = new(lowerTexture.Index, WallLocation.Lower);
+        Wall middle = new(middleTexture.Index, WallLocation.Middle, side.LightLevelMiddle, side.LightLevelMiddleAbsolute, side.MiddleOffset, side.MiddleScale);
+        Wall upper = new(upperTexture.Index, WallLocation.Upper, side.LightLevelUpper, side.LightLevelUpperAbsolute, side.UpperOffset, side.UpperScale);
+        Wall lower = new(lowerTexture.Index, WallLocation.Lower, side.LightLevelLower, side.LightLevelLowerAbsolute, side.BottomOffset, side.BottomScale);
 
-        Side addSide = new(nextSideId, side.Offset, side.UpperOffset, side.MiddleOffset, side.BottomOffset,
-            side.UpperScale, side.MiddleScale, side.BottomScale,
-            new SideLight(side.LightLevel, side.LightLevelUpper, side.LightLevelMiddle, side.LightLevelLower,
-                side.LightLevelAbsolute, side.LightLevelUpperAbsolute, side.LightLevelMiddleAbsolute, side.LightLevelLowerAbsolute),
-            upper, middle, lower, facingSector);
+        Side addSide = new(nextSideId, side.Offset, upper, middle, lower, facingSector);
         builder.Sides.Add(addSide);
 
         nextSideId++;

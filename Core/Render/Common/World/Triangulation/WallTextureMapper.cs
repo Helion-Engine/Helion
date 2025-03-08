@@ -14,7 +14,7 @@ public static class WallTextureMapper
     public static Box2F OneSidedWallUV(Line line, Side side, float length, float spanZ, IRenderableTextureHandle textureHandle)
     {
         Vec2F uvInverse = textureHandle.UV.Sides.Inverse();
-        Vec2F offsetUV = side.OffsetMiddle * uvInverse;
+        Vec2F offsetUV = side.Offset.Float * uvInverse;
         if (side.ScrollData != null)
         {
             // TODO

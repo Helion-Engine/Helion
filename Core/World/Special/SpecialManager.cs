@@ -748,7 +748,7 @@ public sealed class SpecialManager : ITickable, IDisposable
                 CreateLineScroll(line, new(0.0, line.Args.Arg0 * -VisualScrollFactor), (ZDoomLineScroll)line.Args.Arg1, false);
                 break;
             case ZDoomLineSpecialType.ScrollUsingTextureOffsets:
-                CreateLineScroll(line, new(-line.Front.OffsetMiddle.X, line.Front.OffsetMiddle.Y), ZDoomLineScroll.All, false);
+                CreateLineScroll(line, new(-line.Front.Offset.X, line.Front.Offset.Y), ZDoomLineScroll.All, false);
                 break;
             case ZDoomLineSpecialType.ScrollTextureModel:
                 CreateScrollTextureModel(line, false);
@@ -946,7 +946,7 @@ public sealed class SpecialManager : ITickable, IDisposable
             {
                 var options = line.Args.Arg2 != 0 ? SkyOptions.Flip : SkyOptions.None;
                 options |= SkyOptions.SkyTransfer;
-                sector.SetSkyTexture(line.Front.Upper.TextureHandle, options, (0, line.Front.OffsetMiddle.Y), m_world.Gametick);
+                sector.SetSkyTexture(line.Front.Upper.TextureHandle, options, (0, line.Front.Offset.Y), m_world.Gametick);
             }
         }
     }
@@ -1001,10 +1001,10 @@ public sealed class SpecialManager : ITickable, IDisposable
             return new ScrollSpeeds() { ScrollSpeed = Vec2D.Zero };
 
         if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)
-            return new ScrollSpeeds() { ScrollSpeed = new(-setLine.Front.OffsetMiddle.X / 8.0, setLine.Front.OffsetMiddle.Y / 8.0) };
+            return new ScrollSpeeds() { ScrollSpeed = new(-setLine.Front.Offset.X / 8.0, setLine.Front.Offset.Y / 8.0) };
 
         // TODO why is this backwards
-        return new ScrollSpeeds() { ScrollSpeed = new(-setLine.Front.OffsetMiddle.X / 8.0, setLine.Front.OffsetMiddle.Y / 8.0) };
+        return new ScrollSpeeds() { ScrollSpeed = new(-setLine.Front.Offset.X / 8.0, setLine.Front.Offset.Y / 8.0) };
     }
 
     private void CreateScrollPlane(Line line, SectorPlaneFace planeType)
