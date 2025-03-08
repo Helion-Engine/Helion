@@ -161,6 +161,8 @@ public class UdmfMap : IMap
                 thing.Flags.Hard = thing.Flags.Hard || prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("skill5"))
                 thing.Flags.Hard = thing.Flags.Hard || prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("friend"))
+                thing.Flags.Friendly = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("single"))
                 thing.Flags.SinglePlayer = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("coop"))
@@ -169,8 +171,18 @@ public class UdmfMap : IMap
                 thing.Flags.Deathmatch = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("ambush"))
                 thing.Flags.Ambush = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("invisible"))
+                thing.Flags.Invisible = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("dormant"))
+                thing.Flags.Dormant = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("nocount"))
+                thing.Flags.CountKill = thing.Flags.CountItem = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("id"))
                 thing.Id = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("alpha"))
+                thing.Alpha = parser.ParseFloat(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("translucent"))
+                thing.Alpha = 0.25f;
         }
 
         thing.Position = new(x, y, z);
@@ -335,6 +347,8 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("arg4"))
                 line.Args.Arg4 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("blocking"))
+                line.Flags.BlockPlayers = line.Flags.BlockMonsters = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("blockeverything"))
                 line.Flags.BlockEverything = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("blockmonsters"))
                 line.Flags.BlockMonsters = prop.Value.EqualsIgnoreCase("true");
@@ -346,8 +360,14 @@ public class UdmfMap : IMap
                 line.Flags.BlockLandMonsters = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("blockhitscan"))
                 line.Flags.BlockHitscan = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("blockprojectiles"))
+                line.Flags.BlockProjectiles = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("blocksound"))
                 line.Flags.BlockSound = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("blockuse"))
+                line.Flags.BlockUse = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("blocksight"))
+                line.Flags.BlockSight = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("twosided"))
                 line.Flags.TwoSided = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("dontpegtop"))
@@ -358,6 +378,8 @@ public class UdmfMap : IMap
                 line.Alpha = 0.75f;
             else if (prop.Name.EqualsIgnoreCase("transparent"))
                 line.Alpha = 0.25f;
+            else if (prop.Name.EqualsIgnoreCase("alpha"))
+                line.Alpha = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("secret"))
                 line.Flags.DrawAsOneSidedAutomap = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("mapped"))
@@ -372,6 +394,8 @@ public class UdmfMap : IMap
                 line.Flags.Activations |= LineActivations.Monster | LineActivations.CrossLine;
             else if (prop.Name.EqualsIgnoreCase("monsteruse") && prop.Value.EqualsIgnoreCase("true"))
                 line.Flags.Activations |= LineActivations.Monster | LineActivations.UseLine;
+            else if (prop.Name.EqualsIgnoreCase("monsteractivate") && prop.Value.EqualsIgnoreCase("true"))
+                line.Flags.Activations |= LineActivations.Monster;
             else if (prop.Name.EqualsIgnoreCase("impact") && prop.Value.EqualsIgnoreCase("true"))
                 line.Flags.Activations |= LineActivations.ImpactLine;
             else if (prop.Name.EqualsIgnoreCase("playerpush") && prop.Value.EqualsIgnoreCase("true"))
@@ -382,8 +406,10 @@ public class UdmfMap : IMap
                 line.Flags.Activations |= LineActivations.Projectile | LineActivations.CrossLine;
             else if (prop.Name.EqualsIgnoreCase("passuse") && prop.Value.EqualsIgnoreCase("true"))
                 line.Flags.PassThrough = true;
-            //else if (prop.Name.Equals("anycross") && prop.Value.EqualsIgnoreCase("true"))
-            //    line.Flags.Activations |= LineActivations.Projectile | LineActivations.CrossLine;
+            else if (prop.Name.EqualsIgnoreCase("anycross") && prop.Value.EqualsIgnoreCase("true"))
+                line.Flags.Activations |= LineActivations.CrossLine | LineActivations.Player | LineActivations.Monster | LineActivations.Hitscan;
+            else if (prop.Name.EqualsIgnoreCase("playeruseback") && prop.Value.EqualsIgnoreCase("true"))
+                line.Flags.Activations |= LineActivations.UseLineBack;
             //else if (prop.Name.Equals("checkswitchrange") && prop.Value.EqualsIgnoreCase("true"))
             //    line.Flags.Activations |= LineActivations.Projectile | LineActivations.CrossLine;
             //else if (prop.Name.Equals("firstsideonly") && prop.Value.EqualsIgnoreCase("true"))

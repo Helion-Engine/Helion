@@ -599,7 +599,7 @@ public sealed class PhysicsManager
 
     private LineBlock LineBlocksEntity(Entity entity, double x, double y, ref BlockLine line, TryMoveData? tryMove)
     {
-        if (Line.BlocksEntity(entity, x, y, line.Segment, line.OneSided, line.Flags, WorldStatic.Mbf21))
+        if (Line.BlocksEntity(entity, x, y, line.Segment, line.OneSided, line.BlockFlags, WorldStatic.Mbf21))
             return LineBlock.BlockStopChecking;
 
         if (line.OneSided)
@@ -996,7 +996,7 @@ public sealed class PhysicsManager
                         if (line.Segment.Intersects(minX, minY, maxX, maxY))
                         {
                             // Doomism: Ignore for moving sectors if blocked by flags only.
-                            if (Line.BlocksEntity(entity, entity.Position.X, entity.Position.Y, line.Segment, line.OneSided, line.Flags, WorldStatic.Mbf21))
+                            if (Line.BlocksEntity(entity, entity.Position.X, entity.Position.Y, line.Segment, line.OneSided, line.BlockFlags, WorldStatic.Mbf21))
                                 goto doneLinkToSectors;
 
                             if (line.FrontSector.CheckCount != checkCounter)
@@ -1291,7 +1291,7 @@ doneLinkToSectors:
         {
             ref var blockLine = ref m_blockmap.BlockLines[blockLineIndex];
             if (Line.BlocksEntity(entity, entity.Position.X, entity.Position.Y, blockLine.Segment,
-                blockLine.OneSided, blockLine.Flags, WorldStatic.Mbf21))
+                blockLine.OneSided, blockLine.BlockFlags, WorldStatic.Mbf21))
             {
                 tryMove.Subsector = null;
                 tryMove.Success = false;

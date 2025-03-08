@@ -45,4 +45,5 @@ public interface IThing
 
     ZDoomLineSpecialType Special { get; }
     ref SpecialArgs Args { get; }
+    float Alpha { get; }
 }

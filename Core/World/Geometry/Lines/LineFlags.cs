@@ -26,9 +26,10 @@ public struct LineFlags
         Blocking.Players = flags.BlockPlayersAndMonsters || flags.BlockPlayers;
         Blocking.PlayersMbf21 = flags.BlockPlayersMbf21;
         Blocking.LandMonstersMbf21 = flags.BlockLandMonstersMbf21;
-        Blocking.Projectiles = false;
+        Blocking.Projectiles = flags.BlockProjectiles;
         Blocking.LandMonsters = flags.BlockLandMonsters;
         Blocking.FloatMonsters = flags.BlockFloatMonsters;
+        Blocking.Everything = flags.BlockEverything;
 
         Unpegged.Upper = flags.UpperUnpegged;
         Unpegged.Lower = flags.LowerUnpegged;

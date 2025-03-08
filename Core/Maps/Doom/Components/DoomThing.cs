@@ -19,6 +19,7 @@ public class DoomThing : IThing
     public ref SpecialArgs Args => ref _args;
 
     private SpecialArgs _args;
+    public float Alpha { get; } = 1f;
 
     internal DoomThing(int id, Vec2Fixed position, ushort angle, ushort editorNumber, ThingFlags flags)
     {

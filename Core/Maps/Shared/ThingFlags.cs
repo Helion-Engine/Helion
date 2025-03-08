@@ -56,6 +56,9 @@ public class ThingFlags
     public bool AltShadow;
     public bool Friendly;
     public bool StandStill;
+    public bool Invisible;
+    public bool CountKill;
+    public bool CountItem;
 
     public ThingFlags()
     {

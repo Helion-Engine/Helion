@@ -43,6 +43,9 @@ public class MapLineFlags
     public bool BlockFloatMonsters;
     public bool BlockLandMonsters;
     public bool BlockHitscan;
+    public bool BlockProjectiles;
+    public bool BlockUse;
+    public bool BlockSight;
     public bool TwoSided;
 
     public LineActivations Activations;

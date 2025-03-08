@@ -74,7 +74,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
 
                     WorldStatic.CheckedLines[line.LineId] = checkCounter;
 
-                    if (line.OneSided)
+                    if (line.OneSided || line.BlockFlags.Sight)
                     {
                         hitOneSidedLine = true;
                         goto sightTraverseEndOfLoop;

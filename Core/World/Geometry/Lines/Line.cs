@@ -215,8 +215,11 @@ public sealed class Line
 
     public static bool BlocksEntity(Entity entity, double x, double y, in Seg2D seg, bool oneSided, in LineBlockFlags blockFlags, bool mbf21)
     {
-        if (oneSided)
+        if (oneSided || blockFlags.Everything)
             return !CanMoveOutOf(entity, x, y, seg, oneSided);
+
+        if (entity.Flags.Missile && blockFlags.Projectiles)
+            return true;
 
         bool isPlayerOrFriendly = entity.IsPlayer || entity.Flags.Friendly;
         if (!isPlayerOrFriendly && !entity.Flags.Missile &&

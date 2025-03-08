@@ -1223,7 +1223,10 @@ public abstract partial class WorldBase : IWorld
             var line = Lines[Blockmap.BlockLines[lineIndex].LineId];
             OnTryEntityUseLine(entity, line);
 
-            if (line.Segment.OnRight(start))
+            if (line.Flags.Blocking.Everything || line.Flags.Blocking.Use)
+                continue;
+
+            if ((entity.IsPlayer && (line.Flags.Activations & LineActivations.UseLineBack) != 0) || line.Segment.OnRight(start))
             {
                 if (line.HasSpecial)
                     activateSuccess = ActivateSpecialLine(entity, line, ActivationContext.UseLine, true) || activateSuccess;
@@ -1283,7 +1286,7 @@ public abstract partial class WorldBase : IWorld
                 continue;
 
             var line = Lines[Blockmap.BlockLines[lineIndex].LineId];
-            bool specialActivate = line.HasSpecial && line.Segment.OnRight(start);
+            bool specialActivate = line.HasSpecial && ((line.Flags.Activations & LineActivations.UseLineBack) != 0 || line.Segment.OnRight(start));
             if (specialActivate)
                 shouldUse = true;
 
@@ -1512,7 +1515,7 @@ public abstract partial class WorldBase : IWorld
                 intersect.Y = point.Y;
                 intersect.Z = start.Z + (Math.Tan(pitch) * bi.SegTime * segLength);
 
-                if (line.BackSector == null || line.Flags.Hitscan)
+                if (line.BackSector == null || line.BlockFlags.Hitscan || line.BlockFlags.Everything)
                 {
                     floorZ = line.FrontSector.ToFloorZ(intersect);
                     ceilingZ = line.FrontSector.ToCeilingZ(intersect);
@@ -1602,7 +1605,7 @@ public abstract partial class WorldBase : IWorld
         if (source != null && source.Owner() == target)
             damage = (int)(damage * source.Properties.SelfDamageFactor);
 
-        if (!target.Flags.Shootable || damage == 0 || target.IsDead)
+        if (!target.Flags.Shootable || target.Flags.Dormant || damage == 0 || target.IsDead)
             return false;
 
         Vec3D thrustVelocity = Vec3D.Zero;
@@ -2370,7 +2373,7 @@ public abstract partial class WorldBase : IWorld
         if (entity != null && entity.IsDisposed)
             return;
 
-        bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood;
+        bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood || entity.Flags.Dormant;
         EntityDefinition? def;
         if (bulletPuff)
         {
@@ -2525,7 +2528,7 @@ public abstract partial class WorldBase : IWorld
             if (bi.GetIndex(out int index) == IntersectType.Line)
             {
                 ref var line = ref Blockmap.BlockLines[index];
-                if (line.BackSector == null)
+                if (line.BackSector == null || line.BlockFlags.Everything)
                     return TraversalPitchStatus.Blocked;
 
                 if (line.FrontSector == line.BackSector)

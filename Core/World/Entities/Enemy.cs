@@ -45,7 +45,7 @@ public partial class Entity
 
     public bool SetNewTarget(bool allAround)
     {
-        if (IsFrozen)
+        if (IsFrozen || Flags.Dormant)
             return false;
 
         Entity? newTarget = null;

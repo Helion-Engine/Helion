@@ -10,7 +10,7 @@ public struct BlockLine(int blockIndex, in Seg2D segment, Line line, bool oneSid
     public int BlockIndex = blockIndex;
     public int LineId = line.Id;
     public Seg2D Segment = segment;
-    public LineBlockFlags Flags = line.Flags.Blocking;
+    public LineBlockFlags BlockFlags = line.Flags.Blocking;
     public bool OneSided = oneSided;
     public bool HasSpecial = line.HasSpecial;
     public Sector FrontSector = frontSector;

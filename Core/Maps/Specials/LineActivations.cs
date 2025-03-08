@@ -13,5 +13,6 @@ public enum LineActivations
     CrossLine = 16,
     UseLine = 32,
     ImpactLine = 64,
-    LevelStart = 128,
+    UseLineBack = 128,
+    LevelStart = 256,
 }

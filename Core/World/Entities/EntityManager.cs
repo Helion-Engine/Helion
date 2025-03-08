@@ -218,11 +218,20 @@ public class EntityManager : IDisposable
             entity.Special = mapThing.Special;
             entity.Args = mapThing.Args;
             entity.ThingId = mapThing.Id;
+            entity.Alpha = mapThing.Alpha;
 
             if (mapThing.Flags.Ambush)
                 entity.Flags.Ambush = mapThing.Flags.Ambush;
             if (mapThing.Flags.Friendly)
                 entity.Flags.Friendly = mapThing.Flags.Friendly;
+            if (mapThing.Flags.Invisible)
+                entity.Flags.Invisible = mapThing.Flags.Invisible;
+            if (mapThing.Flags.CountKill)
+                entity.Flags.CountKill = mapThing.Flags.CountKill;
+            if (mapThing.Flags.CountItem)
+                entity.Flags.CountItem = mapThing.Flags.CountItem;
+            if (mapThing.Flags.Dormant)
+                entity.Flags.Dormant = mapThing.Flags.Dormant;
 
             if (entity.FrameState.Frame.Ticks > 0)
                 entity.FrameState.SetTics((World.Random.NextByte() % entity.FrameState.Frame.Ticks) + 1);
