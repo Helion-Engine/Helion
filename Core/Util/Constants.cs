@@ -277,6 +277,8 @@ public static class Constants
                 g => g.Select(f => f.GetValue(null) as string ?? string.Empty).ToArray(),
                 StringComparer.OrdinalIgnoreCase);
 
+    public static readonly List<string> CommandGroupLabels = CommandsByGroup.Keys.Append("Custom").ToList();
+
     /// <summary>
     /// Commands, with their corresponding UI labels, if specified (else, just spaces added before each upper-case letter)
     /// </summary>
