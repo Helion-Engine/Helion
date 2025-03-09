@@ -7,6 +7,12 @@ public static class LockSpecialUtil
 {
     public static bool IsLockSpecial(Line line, out int key)
     {
+        if (line.LockNumber != ZDoomKeyType.None)
+        {
+            key = (int)line.LockNumber;
+            return true;
+        }
+
         if (line.Special.LineSpecialType == ZDoomLineSpecialType.DoorLockedRaise)
         {
             key = line.Args.Arg3;

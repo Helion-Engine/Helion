@@ -166,7 +166,7 @@ public class LineSpecial
                     contextSuccess = (flags.Activations & LineActivations.ImpactLine) != 0;
             }
 
-            if (contextSuccess && IsLockType(line, out int keyNumber))
+            if (contextSuccess && IsLockType(line, out var keyNumber))
             {
                 LockDef? lockDef = lockDefinitions.GetLockDef(keyNumber);
                 if (lockDef == null || !PlayerCanUnlock(entity.PlayerObj, lockDef))
@@ -182,6 +182,9 @@ public class LineSpecial
 
     private static bool PlayerCanUnlock(Player player, LockDef lockDef)
     {
+        if (lockDef.KeyNumber == ZDoomKeyType.Impossible)
+            return false;
+
         foreach (var definitions in lockDef.AnyKeyDefinitionNames)
         {
             if (!player.Inventory.HasAnyItem(definitions))
@@ -197,17 +200,23 @@ public class LineSpecial
         return true;
     }
 
-    private static bool IsLockType(Line line, out int keyNumber)
+    private static bool IsLockType(Line line, out ZDoomKeyType keyNumber)
     {
+        if (line.LockNumber != ZDoomKeyType.None)
+        {
+            keyNumber = line.LockNumber;
+            return true;
+        }
+
         switch (line.Special.LineSpecialType)
         {
             case ZDoomLineSpecialType.DoorLockedRaise:
-                keyNumber = line.Args.Arg3;
+                keyNumber = (ZDoomKeyType)line.Args.Arg3;
                 return true;
 
             case ZDoomLineSpecialType.DoorGeneric:
-                keyNumber = line.Args.Arg4;
-                return (ZDoomKeyType)keyNumber != ZDoomKeyType.None;
+                keyNumber = (ZDoomKeyType)line.Args.Arg4;
+                return keyNumber != ZDoomKeyType.None;
 
             default:
                 keyNumber = 0;

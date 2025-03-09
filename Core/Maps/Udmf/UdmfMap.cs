@@ -380,6 +380,8 @@ public class UdmfMap : IMap
                 line.Alpha = 0.25f;
             else if (prop.Name.EqualsIgnoreCase("alpha"))
                 line.Alpha = parser.ParseFloat(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("locknumber"))
+                line.LockNumber = (ZDoomKeyType)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("secret"))
                 line.Flags.DrawAsOneSidedAutomap = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("mapped"))

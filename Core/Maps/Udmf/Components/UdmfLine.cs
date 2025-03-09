@@ -25,6 +25,7 @@ public class UdmfLine : ILine
     public int EndVertex;
     public int SideFront;
     public int? SideBack;
+    public ZDoomKeyType LockNumber;
 
     public ISide GetFront() => Front;
 

@@ -98,7 +98,8 @@ public class UdmfGeometryBuilder
             LineSpecial.ValidateActivationFlags(special.LineSpecialType, ref flags, map.MapType);
             var line = new Line(mapLine.Id, seg, front, back, flags, special, mapLine.Args)
             {
-                Alpha = mapLine.Alpha
+                Alpha = mapLine.Alpha,
+                LockNumber = mapLine.LockNumber
             };
             builder.Lines.Add(line);
         }

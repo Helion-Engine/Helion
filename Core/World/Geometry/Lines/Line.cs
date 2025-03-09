@@ -26,6 +26,7 @@ public sealed class Line
     public bool Activated;
     public LineDataTypes DataChanges;
     public float Alpha;
+    public ZDoomKeyType LockNumber;
     public bool DataChanged => DataChanges > 0;
     public int BlockmapCount;
     public int PhysicsCount;
