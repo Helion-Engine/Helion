@@ -45,6 +45,7 @@ namespace Helion.Util.Configs
             { typeof(ConfigWeaponSlots), Enum.GetValues<ConfigWeaponSlots>() },
             { typeof(RngMethod), Enum.GetValues<RngMethod>() },
             { typeof(SkyRenderMode), Enum.GetValues<SkyRenderMode>() },
+            { typeof(RenderContrastMode), Enum.GetValues<RenderContrastMode>() },
         };
 
         public static Dictionary<Type, Dictionary<Enum, string>> KnownEnumLabels { get; } = new Dictionary<Type, Dictionary<Enum, string>>()

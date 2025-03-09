@@ -29,7 +29,7 @@ public partial class Renderer
     {
         // The shader will add the light level at this index plus the vertex light level.
         // Return LightBuffer.DarkIndex (lightlevel=0) to not add the sectors light level if absolute.
-        if (side.LightLevelAbsolute || wall.LightLevelAbsolute)
+        if (side.Flags.LightLevelAbsolute || wall.LightLevelAbsolute)
             return LightBuffer.DarkIndex;
 
         return GetLightBufferIndex(sector, LightBufferType.Wall);

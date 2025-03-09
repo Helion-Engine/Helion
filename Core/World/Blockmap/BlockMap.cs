@@ -302,10 +302,10 @@ public class BlockMap
 
     public void LinkDynamicSide(Side side)
     {
-        if (side.BlockmapLinked)
+        if (side.Flags.BlockmapLinked)
             return;
 
-        side.BlockmapLinked = true;
+        side.Flags.BlockmapLinked = true;
         
         var it = new BlockmapSegIterator(this, side.Line.Segment);
         while (true)

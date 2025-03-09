@@ -259,6 +259,10 @@ public class UdmfMap : IMap
                 side.LightLevelMiddleAbsolute = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("lightabsolute_bottom"))
                 side.LightLevelLowerAbsolute = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("nofakecontrast"))
+                side.NoFakeConstrast = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("smoothlighting"))
+                side.SmoothLighting = prop.Value.EqualsIgnoreCase("true");
         }
 
         sides.Add(side);

@@ -19,6 +19,7 @@ using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Lines;
@@ -58,7 +59,7 @@ public class GeometryRenderer : IDisposable
     private bool m_floorChanged;
     private bool m_ceilingChanged;
     private bool m_sectorChangedLine;
-    private bool m_fakeContrast;
+    private RenderContrastMode m_contrastMode;
     private bool m_vanillaRender;
     private bool m_renderCoverOnly;
     private GeometryRenderMode m_renderMode;
@@ -180,7 +181,7 @@ public class GeometryRenderer : IDisposable
         for (int i = 0; i < world.Sides.Count; i++)
             m_drawnSides[i] = -1;
 
-        m_fakeContrast = world.Config.Render.FakeContrast;
+        m_contrastMode = world.Config.Render.ContrastMode;
 
         Clear(m_tickFraction, true);
         SetRenderCompatibility(world);
@@ -645,13 +646,24 @@ public class GeometryRenderer : IDisposable
 
     private int GetLightLevelAdd(Side side)
     {
-        if (!m_fakeContrast)
+        if (m_contrastMode == RenderContrastMode.Off)
+            return 0;
+
+        const int LightContrast = 16;
+        const int DoubleLightContrast = LightContrast * 2;
+        if (m_contrastMode == RenderContrastMode.Smooth || side.Flags.SmoothLighting)
+        {
+            var delta = side.Line.Segment.Delta;
+            return (int)(Math.Abs(Math.Atan(delta.Y / delta.X)) / MathHelper.HalfPi * DoubleLightContrast - LightContrast);
+        }
+
+        if (side.Flags.NoFakeContrast)
             return 0;
 
         if (side.Line.StartPosition.Y == side.Line.EndPosition.Y)
-            return -16;
+            return -LightContrast;
         else if (side.Line.StartPosition.X == side.Line.EndPosition.X)
-            return 16;
+            return LightContrast;
 
         return 0;
     }

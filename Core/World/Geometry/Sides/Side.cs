@@ -2,7 +2,6 @@ using Helion.Dehacked;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
-using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -15,6 +14,15 @@ namespace Helion.World.Geometry.Sides;
 public record class SideColormaps(Colormap? Upper, Colormap? Middle, Colormap? Lower);
 
 public record struct FloodKeys(int Key1, int Key2);
+
+public struct SideFlags
+{
+    public bool BlockmapLinked;
+    public bool UpperSky;
+    public bool LightLevelAbsolute;
+    public bool NoFakeContrast;
+    public bool SmoothLighting;
+}
 
 public sealed class Side
 {
@@ -51,18 +59,17 @@ public sealed class Side
     public FloodKeys LowerFloodKeys;
     public int FloorFloodKey;
     public int CeilingFloodKey;
-    public bool BlockmapLinked;
-    public bool UpperSky;
-    public bool LightLevelAbsolute;
     public SectorPlanes MidTextureFlood;
+    public SideFlags Flags;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
-        : this(id, offset, upper, middle, lower, sector, 0, false)
+        : this(id, offset, upper, middle, lower, sector, 0, false, false, false)
     {
 
     }
 
-    public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector, int lightLevel, bool lightLevelAbsolute)
+    public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector, int lightLevel, 
+        bool lightLevelAbsolute, bool noFakeContrast, bool smoothLighting)
     {
         Id = id;
         Sector = sector;
@@ -80,7 +87,9 @@ public sealed class Side
         Line = null!;
 
         LightLevel = (byte)Math.Clamp(lightLevel, 0, 255);
-        LightLevelAbsolute = lightLevelAbsolute;
+        Flags.LightLevelAbsolute = lightLevelAbsolute;
+        Flags.NoFakeContrast = noFakeContrast;
+        Flags.SmoothLighting = smoothLighting;
     }
 
     public void Reset()
@@ -94,9 +103,9 @@ public sealed class Side
         LowerFloodKeys = default;
         FloorFloodKey = default;
         CeilingFloodKey = default;
-        BlockmapLinked = default;
         MidTextureFlood = default;
-        UpperSky = default;
+        Flags.BlockmapLinked = default;
+        Flags.UpperSky = default;
 
         Upper.Reset();
         Middle.Reset();

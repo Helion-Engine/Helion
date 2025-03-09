@@ -50,6 +50,12 @@ public class FileConfig : Config
             Hud.WeaponBob.Set(Hud.MoveBob.Value);
             Hud.MoveBob.Set(1.0);
         }
+
+        if (Render.FakeContrast == false)
+        {
+            Render.ContrastMode.Set(RenderContrastMode.Off);
+            Render.FakeContrast.Set(true);
+        }
     }
 
     public static string GetDefaultConfigPath()

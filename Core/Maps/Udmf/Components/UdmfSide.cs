@@ -34,6 +34,8 @@ public class UdmfSide : ISide
     public bool LightLevelUpperAbsolute { get; set; }
     public bool LightLevelMiddleAbsolute { get; set; }
     public bool LightLevelLowerAbsolute { get; set; }
+    public bool NoFakeConstrast { get; set; }
+    public bool SmoothLighting { get; set; }
 
     public UdmfSector Sector = null!;
 
