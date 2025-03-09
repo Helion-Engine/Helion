@@ -105,7 +105,7 @@ public class SimpleParser
             if (i >= data.Length)
                 break;
 
-            if (!m_isQuote && IsSingleLineComment(data, lineStartIndex - i,  i))
+            if (!m_isQuote && IsSingleLineComment(data, lineStartIndex - i, i))
             {
                 if (i > 0)
                     AddToken(startIndex, i, lineCount, false);
@@ -113,6 +113,8 @@ public class SimpleParser
                 startIndex = lineSpan.NextIndex;
                 lineStartIndex = startIndex;
                 i = startIndex - 1;
+                lineCount++;
+                ResetQuote(lineCount);
                 continue;
             }
 
@@ -277,7 +279,7 @@ public class SimpleParser
         if (quotedString)
             startIndex++;
 
-        m_tokens.Add(new ParserToken(startLine, startIndex, endIndex, endLine, endIndex));
+        m_tokens.Add(new ParserToken(startLine, startIndex, endIndex - startIndex, endLine, endIndex));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

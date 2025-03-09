@@ -142,6 +142,37 @@ Line2 Data2";
         parser.ConsumeLine().Should().Be("Data2 Data22");
     }
 
+    [Fact(DisplayName = "Consumes lines with comments")]
+    public void ConsumeLineWithComments()
+    {
+        const string data = @"Line1 Data1 //comment1
+            Line2 Data2 Data22 //comment2
+            {
+                test; //important
+            }";
+        SimpleParser parser = new();
+        parser.Parse(data);
+
+        string[] checkTokens = ["Line1", "Data1", "Line2", "Data2", "Data22", "{", "test", ";", "}"];
+        foreach (var token in checkTokens)
+            parser.ConsumeString().Should().Be(token);
+
+        parser = new();
+        parser.Parse(data);
+
+        parser.GetCurrentLine().Should().Be(0);
+        parser.ConsumeLine().Should().Be("Line1 Data1");
+        parser.GetCurrentLine().Should().Be(1);
+        parser.ConsumeLine().Should().Be("Line2 Data2 Data22");
+        parser.GetCurrentLine().Should().Be(2);
+        parser.ConsumeLine().Should().Be("{");
+        parser.GetCurrentLine().Should().Be(3);
+        parser.ConsumeLine().Should().Be("test;");
+        parser.GetCurrentLine().Should().Be(4);
+        parser.ConsumeLine().Should().Be("}");
+    }
+
+
     [Fact(DisplayName = "Starts with multiple line returns")]
     public void MultipleLineReturns()
     {
