@@ -452,6 +452,8 @@ PD_ANY = "Any key will open this door";
 PD_ALL3 = "You need all three keys to open this door";
 PD_ALL6 = "You need all six keys to open this door";
 
+TXT_DOES_NOT_WORK = "That doesn't seem to work";
+
 // Cast call names
 CC_ZOMBIE = "Zombieman";
 CC_SHOTGUN = "Shotgun Guy";
