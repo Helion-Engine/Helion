@@ -112,6 +112,9 @@ public class LineSpecial
     {
         lockFail = null;
 
+        if (context == ActivationContext.Always)
+            return true;
+
         if (entity.Flags.NoTeleport && IsTeleport())
             return false;
 

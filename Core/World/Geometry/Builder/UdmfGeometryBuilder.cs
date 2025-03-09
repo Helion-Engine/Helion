@@ -101,6 +101,19 @@ public class UdmfGeometryBuilder
                 Alpha = mapLine.Alpha,
                 LockNumber = mapLine.LockNumber
             };
+
+            if (mapLine.Health > 0)
+            {
+                line.ObjectHealth = new()
+                {
+                    Health = mapLine.Health,
+                    OriginalHealth = mapLine.Health,
+                    HealthGroup = mapLine.HealthGroup,
+                    DamageSpecial = mapLine.DamageSpecial,
+                    DeathSpecial = mapLine.DeathSpecial,
+                };
+            }
+
             builder.Lines.Add(line);
         }
     }

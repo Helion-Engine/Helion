@@ -1267,13 +1267,8 @@ doneLinkToSectors:
                                 goto doneIsPositionValid;
                         }
 
-                        if (!entity.Flags.NoClip && blockLine.HasSpecial)
-                        {
-                            if (blockType == LineBlock.NoBlock)
-                                tryMove.IntersectSpecialLines.Add(blockLine.LineId);
-                            else
-                                tryMove.ImpactSpecialLines.Add(blockLine.LineId);
-                        }
+                        if (!entity.Flags.NoClip && blockLine.HasSpecial && blockType == LineBlock.NoBlock)
+                            tryMove.IntersectSpecialLines.Add(blockLine.LineId);
 
                         tryMove.IntersectSectors.Data[intersectSectorLength++] = blockLine.FrontSector;
                         if (blockLine.BackSector != null && blockLine.BackSector != blockLine.FrontSector)

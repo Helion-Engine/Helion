@@ -7,7 +7,6 @@ using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
-using OpenTK.Graphics.ES11;
 using System;
 using System.Collections.Generic;
 
@@ -416,6 +415,16 @@ public class UdmfMap : IMap
                 line.Flags.Activations |= LineActivations.CheckSwitchRange;
             else if (prop.Name.EqualsIgnoreCase("firstsideonly") && prop.Value.EqualsIgnoreCase("true"))
                 line.Flags.Activations |= LineActivations.FrontSideOnly;
+            else if (prop.Name.EqualsIgnoreCase("revealed") && prop.Value.EqualsIgnoreCase("true"))
+                line.Flags.AlwaysDrawAutomap = true;
+            else if (prop.Name.EqualsIgnoreCase("damagespecial") && prop.Value.EqualsIgnoreCase("true"))
+                line.DamageSpecial = true;
+            else if (prop.Name.EqualsIgnoreCase("deathspecial") && prop.Value.EqualsIgnoreCase("true"))
+                line.DeathSpecial = true;
+            else if (prop.Name.EqualsIgnoreCase("health"))
+                line.Health = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("healthgroup"))
+                line.HealthGroup = parser.ParseInt(prop.Value);
         }
 
         lines.Add(line);

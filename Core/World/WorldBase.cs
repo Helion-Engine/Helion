@@ -177,13 +177,17 @@ public abstract partial class WorldBase : IWorld
     private readonly Dictionary<int, MusInfoDef> m_sectorToMusicChange = [];
     private readonly DynamicArray<Entity> m_fallCheckEntities = new(32);
     private readonly Dictionary<int, Player> m_itemPickupIndexToPlayers = [];
+    private readonly Entity m_checkRadiusEntity;
+    private readonly Dictionary<int, LineHealthGroup> m_lineHealthGroups = [];
     private MusInfoDef? m_lastMusicChange;
     private int m_changeMusicTicks = 0;
     private int m_losDistance = DefaultLineOfSightDistance;
     private string m_activeMusic = string.Empty;
+    private bool m_explosionTraverseLines;
 
     private RadiusExplosionData m_radiusExplosion;
-    private readonly Action<Entity> m_radiusExplosionAction;
+    private readonly Action<Entity> m_radiusExplosionEntityAction;
+    private readonly Action<int> m_radiusExplosionLineAction;
 
     private HealChaseData m_healChaseData;
     private readonly Action<Entity> m_healChaseAction;
@@ -240,7 +244,8 @@ public abstract partial class WorldBase : IWorld
         IsFastMonsters = skillDef.IsFastMonsters(config);
 
         m_defaultDamageAction = DefaultDamage;
-        m_radiusExplosionAction = HandleRadiusExplosion;
+        m_radiusExplosionEntityAction = HandleRadiusExplosionEntity;
+        m_radiusExplosionLineAction = HandleRadiusExplosionLine;
         m_healChaseAction = HandleHealChase;
         m_setNewTracerTargetAction = HandleSetNewTracerTarget;
         m_lineOfSightEnemyAction = HandleLineOfSightEnemy;
@@ -251,6 +256,9 @@ public abstract partial class WorldBase : IWorld
 
         RegisterConfigChanges();
         SetWorldStatic();
+
+        m_checkRadiusEntity = new Entity();
+        m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this);
 
         if (worldModel != null)
         {
@@ -376,16 +384,34 @@ public abstract partial class WorldBase : IWorld
         {
             for (int i = 0; i < Lines.Count; i++)
             {
+                var line = Lines[i];
                 ref StructLine structLine = ref StructLines.Data[i];
                 structLine.Flags &= ~StructLineFlags.SeenForAutomap;
-                structLine.Update(Lines[i]);
+                structLine.Update(line);
+                m_explosionTraverseLines = m_explosionTraverseLines || line.ObjectHealth != ObjectHealth.Default;
             }
             return;
         }
 
         LastStructLines.Clear();
         for (int i = 0; i < Lines.Count; i++)
-            LastStructLines.Add(new StructLine(Lines[i]));
+        {
+            var line = Lines[i];
+            LastStructLines.Add(new StructLine(line));
+            var objectHealth = line.ObjectHealth != ObjectHealth.Default;
+            m_explosionTraverseLines = m_explosionTraverseLines || objectHealth;
+
+            if (objectHealth && line.ObjectHealth.HealthGroup != 0)
+            {
+                if (!m_lineHealthGroups.TryGetValue(line.ObjectHealth.HealthGroup, out var group))
+                {
+                    group = new();
+                    m_lineHealthGroups[line.ObjectHealth.HealthGroup] = group;
+                }
+
+                group.Lines.Add(line);
+            }
+        }
 
         for (int i = 0; i < Sectors.Count; i++)
         {
@@ -1335,7 +1361,7 @@ public abstract partial class WorldBase : IWorld
 
     public bool CanActivate(Entity entity, Line line, ActivationContext context, double originX, double originY)
     {
-        if ((line.Flags.Activations & LineActivations.FrontSideOnly) != 0 && line.Segment.PerpDot(originX, originY) > 0)
+        if (context != ActivationContext.Always && (line.Flags.Activations & LineActivations.FrontSideOnly) != 0 && line.Segment.PerpDot(originX, originY) > 0)
             return false;
 
         bool success = line.Special.CanActivate(entity, line, context,
@@ -1507,6 +1533,33 @@ public abstract partial class WorldBase : IWorld
         return null;
     }
 
+    private void DamageMapObject(Entity entity, Line line, int damage)
+    {
+        var objectHealth = line.ObjectHealth;
+        LineHealthGroup? group = null;
+        if (line.ObjectHealth.HealthGroup > 0)
+            m_lineHealthGroups.TryGetValue(line.ObjectHealth.HealthGroup, out group);
+
+        if (!objectHealth.Damage(damage))
+            return;
+
+        bool killed = objectHealth.Health <= 0;
+        if (objectHealth.DamageSpecial || killed)
+        {
+            ActivateSpecialLine(entity, line, ActivationContext.Always, 0, 0);
+            if (group == null || !killed)
+                return;
+
+            for (int i = 0; i < group.Lines.Count; i++)
+            {
+                var groupLine = group.Lines[i];
+                groupLine.ObjectHealth.Health = 0;
+                if (line != groupLine)
+                    ActivateSpecialLine(entity, groupLine, ActivationContext.Always, 0, 0);
+            }
+        }
+    }
+
     public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double angle, double pitch, double distance, int damage,
         HitScanOptions options, ref Vec3D intersect, out Sector? hitSector)
     {
@@ -1515,7 +1568,7 @@ public abstract partial class WorldBase : IWorld
         double floorZ, ceilingZ;
         bool passThrough = (options & HitScanOptions.PassThroughEntities) != 0;
         Seg2D seg = new(start.XY, end.XY);
-        double segLength = seg.Length;
+        double segLength = seg.Length();
         var intersections = WorldStatic.Intersections;
         intersections.Clear();
         BlockmapTraverser.ShootTraverse(seg, intersections);
@@ -1529,13 +1582,13 @@ public abstract partial class WorldBase : IWorld
             if (isLine)
             {
                 ref var line = ref Blockmap.BlockLines[index];
-                if (damage != Constants.HitscanTestDamage && line.HasSpecial
-                    && CanActivate(shooter, Lines[line.LineId], ActivationContext.HitscanImpactsWall, shooter.Position.X, shooter.Position.Y)
-                    )
+                if (damage != Constants.HitscanTestDamage && line.HasSpecial)
                 {
-                    ActivateSpecialLine(shooter, Lines[line.LineId], ActivationContext.HitscanImpactsWall, shooter.Position.X, shooter.Position.Y);
-                    var args = new EntityActivateSpecial(ActivationContext.HitscanImpactsWall, shooter, Lines[line.LineId], true);
-                    EntityActivatedSpecial(args);
+                    var mapLine = Lines[line.LineId];
+                    if (mapLine.ObjectHealth != ObjectHealth.Default)
+                        DamageMapObject(shooter, mapLine, damage);
+
+                    ActivateSpecialLine(shooter, mapLine, ActivationContext.HitscanImpactsWall, shooter.Position.X, shooter.Position.Y);
                 }
 
                 var point = line.Segment.FromTime(bi.SegTime);
@@ -1861,7 +1914,10 @@ public abstract partial class WorldBase : IWorld
         if (tryMove != null && (entity.Flags.Missile || entity.IsPlayer))
         {
             for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
-                ActivateSpecialLine(entity, Lines[tryMove.ImpactSpecialLines[i]], ActivationContext.EntityImpactsWall, entity.Position.X, entity.Position.Y);
+            {
+                var line = Lines[tryMove.ImpactSpecialLines[i]];
+                ActivateSpecialLine(entity, line, ActivationContext.EntityImpactsWall, entity.Position.X, entity.Position.Y);
+            }
 
             if (entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll && Config.Game.BumpUse)
                 PlayerBumpUse(entity);
@@ -1869,10 +1925,22 @@ public abstract partial class WorldBase : IWorld
 
         if (entity.ShouldDieOnCollision())
         {
-            if (entity.BlockingEntity != null)
+            if (entity.BlockingEntity != null || (tryMove != null && tryMove.ImpactSpecialLines.Length > 0))
             {
                 int damage = entity.Properties.Damage.Get(m_random);
-                DamageEntity(entity.BlockingEntity, entity, damage, DamageType.Normal);
+                if (entity.BlockingEntity != null)
+                    DamageEntity(entity.BlockingEntity, entity, damage, DamageType.Normal);
+
+                if (tryMove != null)
+                {
+                    for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
+                    {
+                        var line = Lines[tryMove.ImpactSpecialLines[i]];
+                        if (line.ObjectHealth == ObjectHealth.Default)
+                            continue;
+                        DamageMapObject(entity, line, damage);
+                    }
+                }
             }
 
             bool skyClip = false;
@@ -1979,7 +2047,7 @@ public abstract partial class WorldBase : IWorld
 
         bool hitOneSidedLine;
         var seg = new Seg2D(start, end);
-        var segLength = seg.Length;
+        var segLength = seg.Length();
         var intersections = WorldStatic.Intersections;
 
         Vec3D sightPos = new(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
@@ -1988,7 +2056,7 @@ public abstract partial class WorldBase : IWorld
         double topPitch = sightPos.Pitch(endSightPos.Z + to.Height, segLength);
         double bottomPitch = sightPos.Pitch(endSightPos.Z, segLength);
 
-        if (seg.Length <= m_losDistance)
+        if (segLength <= m_losDistance)
         {
             BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
             if (hitOneSidedLine)
@@ -2024,6 +2092,44 @@ public abstract partial class WorldBase : IWorld
         var sector = heights.ControlSector;
         return (from.Position.Z + from.Height <= sector.Floor.Z && to.Position.Z >= sector.Floor.Z) ||
                (from.Position.Z >= sector.Ceiling.Z && to.Position.Z + to.Height <= sector.Ceiling.Z);
+    }
+
+    private bool CheckLineOfSight(Entity from, in BlockLine line)
+    {
+        if (line.Segment.OnRight(from.Position))
+            return false;
+
+        var fromPos = from.Position.XY;
+        var closestPoint = line.Segment.ClosestPoint(fromPos);
+        if (fromPos.DistanceSquared(closestPoint) > m_radiusExplosion.MaxDamage * m_radiusExplosion.MaxDamage)
+            return false;
+
+        Sector front;
+        Sector? back = null;
+        if (line.OneSided)
+            front = line.FrontSector;
+        else
+            GetOrderedSectors(line, from.Position, out front, out back);
+
+        double floorZ, ceilingZ;
+        if (back == null)
+        {
+            floorZ = line.FrontSector.Floor.Z;
+            ceilingZ = line.FrontSector.Ceiling.Z;
+        }
+        else
+        {
+            floorZ = front.Floor.Z;
+            ceilingZ = front.Ceiling.Z;
+        }
+
+        m_checkRadiusEntity.Position.X = closestPoint.X;
+        m_checkRadiusEntity.Position.Y = closestPoint.Y;
+        m_checkRadiusEntity.Position.Z = floorZ;
+        m_checkRadiusEntity.Height = ceilingZ - floorZ;
+
+        var success = CheckLineOfSight(from, m_checkRadiusEntity);
+        return success;
     }
 
     private bool IsLineOfSightRejected(Entity from, Entity to)
@@ -2073,10 +2179,13 @@ public abstract partial class WorldBase : IWorld
         Vec2D radius2D = new(radius, radius);
         Box2D explosionBox = new(pos2D - radius2D, pos2D + radius2D);
 
-        BlockmapTraverser.ExplosionTraverse(explosionBox, m_radiusExplosionAction);
+        if (m_explosionTraverseLines)
+            BlockmapTraverser.ExplosionTraverseWithLines(explosionBox, m_radiusExplosionEntityAction, m_radiusExplosionLineAction);
+        else
+            BlockmapTraverser.ExplosionTraverse(explosionBox, m_radiusExplosionEntityAction);
     }
 
-    private void HandleRadiusExplosion(Entity entity)
+    private void HandleRadiusExplosionEntity(Entity entity)
     {
         if (!ShouldApplyExplosionDamage(entity, m_radiusExplosion.DamageSource))
             return;
@@ -2084,6 +2193,22 @@ public abstract partial class WorldBase : IWorld
         ApplyExplosionDamageAndThrust(m_radiusExplosion.DamageSource, m_radiusExplosion.AttackSource, entity,
             m_radiusExplosion.Radius, m_radiusExplosion.MaxDamage, m_radiusExplosion.Thrust,
             WorldStatic.OriginalExplosion || m_radiusExplosion.DamageSource.Flags.OldRadiusDmg || entity.Flags.OldRadiusDmg);
+    }
+
+    private void HandleRadiusExplosionLine(int blockLineIndex)
+    {
+        int lineId = Blockmap.BlockLines[blockLineIndex].LineId;
+        var line = Lines[lineId];
+
+        if (line.ObjectHealth == ObjectHealth.Default || line.ObjectHealth.Health <= 0)
+            return;
+
+        ref var blockLine = ref Blockmap.BlockLines[blockLineIndex];
+        if (!CheckLineOfSight(m_radiusExplosion.DamageSource, blockLine))
+            return;
+
+        var applyDamage = CalcRadiusExplosionDamage(m_radiusExplosion.DamageSource, m_checkRadiusEntity, m_radiusExplosion.Radius, m_radiusExplosion.MaxDamage, Thrust.None, true);
+        DamageMapObject(m_radiusExplosion.AttackSource, line, applyDamage);
     }
 
     private bool ShouldApplyExplosionDamage(Entity entity, Entity damageSource)
@@ -2339,6 +2464,16 @@ public abstract partial class WorldBase : IWorld
     private void ApplyExplosionDamageAndThrust(Entity source, Entity attackSource, Entity entity, double radius, int maxDamage, Thrust thrust,
         bool approxDistance2D)
     {
+        var applyDamage = CalcRadiusExplosionDamage(source, entity, radius, maxDamage, thrust, approxDistance2D);
+
+        Entity? originalOwner = source.Owner();
+        source.SetOwner(attackSource);
+        DamageEntity(entity, source, applyDamage, DamageType.AlwaysApply, thrust);
+        source.SetOwner(originalOwner);
+    }
+
+    private static int CalcRadiusExplosionDamage(Entity source, Entity entity, double radius, int maxDamage, Thrust thrust, bool approxDistance2D)
+    {
         double distance;
         if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.Position.Z + entity.Height))
         {
@@ -2363,12 +2498,8 @@ public abstract partial class WorldBase : IWorld
 
         int applyDamage = Math.Clamp((int)(radius - distance), 0, maxDamage);
         if (applyDamage <= 0)
-            return;
-
-        Entity? originalOwner = source.Owner();
-        source.SetOwner(attackSource);
-        DamageEntity(entity, source, applyDamage, DamageType.AlwaysApply, thrust);
-        source.SetOwner(originalOwner);
+            return 0;
+        return applyDamage;
     }
 
     protected bool ChangeToMusic(int number)

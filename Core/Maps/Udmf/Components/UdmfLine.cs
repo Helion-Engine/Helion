@@ -26,6 +26,10 @@ public class UdmfLine : ILine
     public int SideFront;
     public int? SideBack;
     public ZDoomKeyType LockNumber;
+    public int Health;
+    public int HealthGroup;
+    public bool DamageSpecial;
+    public bool DeathSpecial;
 
     public ISide GetFront() => Front;
 

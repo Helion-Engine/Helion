@@ -23,6 +23,7 @@ public sealed class Line
     public SpecialArgs Args;
     public LineFlags Flags;
     public LineSpecial Special;
+    public ObjectHealth ObjectHealth = ObjectHealth.Default;
     public bool Activated;
     public LineDataTypes DataChanges;
     public float Alpha;
@@ -74,6 +75,9 @@ public sealed class Line
         DataChanges = default;
         BlockmapCount = default;
         PhysicsCount = default;
+
+        if (ObjectHealth != ObjectHealth.Default)
+            ObjectHealth.Health = ObjectHealth.OriginalHealth;
     }
 
     // Same as Segment.Length, but caches the value.
@@ -82,7 +86,7 @@ public sealed class Line
         if (m_length.HasValue)
             return m_length.Value;
 
-        m_length = Segment.Length;
+        m_length = Segment.Length();
         return m_length.Value;
     }
 
