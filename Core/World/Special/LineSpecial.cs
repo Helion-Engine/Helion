@@ -1,3 +1,4 @@
+using Helion.Maps;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Hexen.Components;
 using Helion.Maps.Specials;
@@ -55,7 +56,7 @@ public class LineSpecial
         m_ceilingMove = SetCeilingMove();
     }
 
-    public static void ValidateActivationFlags(ZDoomLineSpecialType type, ref LineFlags flags)
+    public static void ValidateActivationFlags(ZDoomLineSpecialType type, ref LineFlags flags, MapType mapType)
     {
         switch (type)
         {
@@ -81,8 +82,9 @@ public class LineSpecial
 
             case ZDoomLineSpecialType.Teleport:
             case ZDoomLineSpecialType.TeleportNoFog:
-                if (flags.Activations == (LineActivations.Player | LineActivations.CrossLine))
+                if (mapType != MapType.UDMF && flags.Activations == (LineActivations.Player | LineActivations.CrossLine))
                     flags.Activations |= LineActivations.Monster;
+                flags.Activations |= LineActivations.FrontSideOnly;
                 break;
         }
     }

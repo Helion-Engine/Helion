@@ -1369,12 +1369,7 @@ doneLinkToSectors:
             ref var lineSeg = ref m_world.StructLines.Data[lineId].Segment;
             bool fromFront = lineSeg.PerpDot(prevX, prevY) <= 0;
             if (fromFront != (lineSeg.PerpDot(entity.Position.X, entity.Position.Y) <= 0))
-            {
-                if (!fromFront && m_world.Lines[lineId].Special.IsTeleport())
-                    continue;
-
                 m_world.ActivateSpecialLine(entity, m_world.Lines[lineId], ActivationContext.CrossLine, prevX, prevY);
-            }
         }
     }
 

@@ -413,7 +413,7 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("checkswitchrange") && prop.Value.EqualsIgnoreCase("true"))
                 line.Flags.Activations |= LineActivations.CheckSwitchRange;
             else if (prop.Name.EqualsIgnoreCase("firstsideonly") && prop.Value.EqualsIgnoreCase("true"))
-                line.Flags.Activations |= LineActivations.FirstSideOnly;
+                line.Flags.Activations |= LineActivations.FrontSideOnly;
         }
 
         lines.Add(line);

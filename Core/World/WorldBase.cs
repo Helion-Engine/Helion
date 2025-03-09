@@ -1338,7 +1338,7 @@ public abstract partial class WorldBase : IWorld
 
     public bool CanActivate(Entity entity, Line line, ActivationContext context, double originX, double originY)
     {
-        if ((line.Flags.Activations & LineActivations.FirstSideOnly) != 0 && line.Segment.PerpDot(originX, originY) > 0)
+        if ((line.Flags.Activations & LineActivations.FrontSideOnly) != 0 && line.Segment.PerpDot(originX, originY) > 0)
             return false;
 
         bool success = line.Special.CanActivate(entity, line, context,

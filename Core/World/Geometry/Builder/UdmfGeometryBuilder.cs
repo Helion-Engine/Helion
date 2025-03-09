@@ -95,8 +95,7 @@ public class UdmfGeometryBuilder
             else
                 special = new LineSpecial(mapLine.Special, mapLine.ActivationType, LineSpecialCompatibility.Default);
 
-            LineSpecial.ValidateActivationFlags(special.LineSpecialType, ref flags);
-
+            LineSpecial.ValidateActivationFlags(special.LineSpecialType, ref flags, map.MapType);
             var line = new Line(mapLine.Id, seg, front, back, flags, special, mapLine.Args)
             {
                 Alpha = mapLine.Alpha
