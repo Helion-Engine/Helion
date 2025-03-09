@@ -10,6 +10,7 @@ public struct LineFlags
     public UnpeggedFlags Unpegged;
     public LineActivations Activations;
     public bool BlockSound;
+    public bool BlockUse;
     public bool Repeat;
     public bool PassThrough;
     public bool TwoSided;
@@ -30,6 +31,7 @@ public struct LineFlags
         Blocking.LandMonsters = flags.BlockLandMonsters;
         Blocking.FloatMonsters = flags.BlockFloatMonsters;
         Blocking.Everything = flags.BlockEverything;
+        Blocking.Use = flags.BlockUse;
 
         Unpegged.Upper = flags.UpperUnpegged;
         Unpegged.Lower = flags.LowerUnpegged;

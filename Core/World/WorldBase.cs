@@ -1225,14 +1225,11 @@ public abstract partial class WorldBase : IWorld
             var line = Lines[Blockmap.BlockLines[lineIndex].LineId];
             OnTryEntityUseLine(entity, line);
 
-            if (line.Flags.Blocking.Everything || line.Flags.Blocking.Use)
-                continue;
-
             if ((entity.IsPlayer && (line.Flags.Activations & LineActivations.UseLineBack) != 0) || line.Segment.OnRight(start))
             {
                 if (line.HasSpecial)
                 {
-                    if ((line.Flags.Activations & LineActivations.CheckSwitchRange) != 0 && !CheckSwitchRange(entity, line, openFloorZ, openCeilingZ))                    
+                    if ((line.Flags.Activations & LineActivations.CheckSwitchRange) != 0 && !CheckSwitchRange(entity, openFloorZ, openCeilingZ))                    
                         continue;                    
 
                     activateSuccess = ActivateSpecialLine(entity, line, ActivationContext.UseLine, entity.Position.X, entity.Position.Y) || activateSuccess;
@@ -1240,12 +1237,12 @@ public abstract partial class WorldBase : IWorld
 
                 if (activateSuccess && !line.Flags.PassThrough)
                     break;
+            }
 
-                if (line.Back == null)
-                {
-                    hitBlockLine = true;
-                    break;
-                }
+            if (line.Back == null || line.Flags.Blocking.Everything || line.Flags.Blocking.Use)
+            {
+                hitBlockLine = true;
+                break;
             }
 
             if (line.Back != null)
@@ -1274,7 +1271,7 @@ public abstract partial class WorldBase : IWorld
         return activateSuccess;
     }
 
-    private static bool CheckSwitchRange(Entity entity, Line line, double openFloorZ, double openCeilingZ)
+    private static bool CheckSwitchRange(Entity entity, double openFloorZ, double openCeilingZ)
     {
         var bottomZ = entity.Position.Z;
         var topZ = entity.Position.Z + entity.Height;
