@@ -51,7 +51,7 @@ public class UdmfGeometryBuilder
                 SkyCeiling = mapSector.SkyCeiling,
             };
             
-            floorPlane.LightLevel = mapSector.LightFloor != 0 ? mapSector.LightFloor : sector.LightLevel;
+            floorPlane.LightLevel = mapSector.LightFloor;
             floorPlane.LightLevelAbsolute = mapSector.LightFloorAbsolute;
             floorPlane.RenderOffsets.Offset.X = mapSector.PanningFloorX;
             floorPlane.RenderOffsets.LastOffset.X = mapSector.PanningFloorX;
@@ -61,7 +61,7 @@ public class UdmfGeometryBuilder
             floorPlane.RenderOffsets.Scale.X = mapSector.ScaleFloorX;
             floorPlane.RenderOffsets.Scale.Y = mapSector.ScaleFloorY;
 
-            ceilingPlane.LightLevel = mapSector.LightCeiling != 0 ? mapSector.LightCeiling : sector.LightLevel;
+            ceilingPlane.LightLevel = mapSector.LightCeiling;
             ceilingPlane.LightLevelAbsolute = mapSector.LightCeilingAbsolute;
             ceilingPlane.RenderOffsets.Offset.X = mapSector.PanningCeilingX;
             ceilingPlane.RenderOffsets.LastOffset.X = mapSector.PanningCeilingX;
