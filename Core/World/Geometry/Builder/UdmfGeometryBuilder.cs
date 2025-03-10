@@ -42,6 +42,7 @@ public class UdmfGeometryBuilder
                 floorPlane, ceilingPlane, mapSector.Special, sectorData)
             {
                 Silent = mapSector.Silent,
+                NoAttack = mapSector.NoAttack,
                 Gravity = mapSector.Gravity,
                 DamageAmount = mapSector.DamageAmount,
                 DamageInterval = mapSector.DamageInterval,

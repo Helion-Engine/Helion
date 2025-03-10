@@ -71,6 +71,7 @@ public sealed class Sector
     public bool MarkAutomap;
     public bool Flood;
     public bool Silent;
+    public bool NoAttack;
     public int ActivatedByLineId = -1;
     public WeakEntity SoundTarget = WeakEntity.Default;
     public InstantKillEffect KillEffect;

@@ -28,6 +28,7 @@ public class UdmfSector : ISector
     public bool LightCeilingAbsolute;
     public bool LightFloorAbsolute;
     public bool Silent;
+    public bool NoAttack;
     public short LightCeiling;
     public short LightFloor;
     public int DamageAmount;
