@@ -26,6 +26,7 @@ public class SimpleParser
     private readonly List<LineSpan> m_lines = [];
     private readonly bool m_keepBeginningSpaces;
     private Func<string, int, int, bool>? m_commentCallback;
+    private Func<char, bool>? m_specialCallback;
 
     private int m_index = 0;
     private int m_startLine;
@@ -65,7 +66,10 @@ public class SimpleParser
     public void SetCommentCallback(Func<string, int, int, bool> callback) =>
         m_commentCallback = callback;
 
-    public void Parse(string data, bool keepEmptyLines = false, bool parseQuotes = true)
+    public void SetSpecialCallback(Func<char, bool> callback) =>
+        m_specialCallback = callback;
+
+    public unsafe void Parse(string data, bool keepEmptyLines = false, bool parseQuotes = true)
     {
         m_data = data;
         m_index = 0;
@@ -78,101 +82,125 @@ public class SimpleParser
         int startIndex = 0;
         int saveStartIndex = 0;
         int lineStartIndex = 0;
+        int length = data.Length;
+        char currentChar = ' ', nextChar = ' ';
 
-        m_tokens.EnsureCapacity(data.Length / 8);
+        m_tokens.EnsureCapacity(length / 8);
         if (m_keepBeginningSpaces)
-            m_lines.EnsureCapacity(data.Length / 16);
+            m_lines.EnsureCapacity(length / 16);
 
-        for (int i = 0; i < data.Length; i++)
+        fixed (char* pStartChar = data)
         {
-            bool newLine = data[i] == '\n';
-            bool lineReturn = i < data.Length - 1 && data[i] == '\r' && data[i + 1] == '\n';
-            if (newLine || lineReturn)
+            for (int i = 0; i < length; i++)
             {
-                AddEndLineToken(keepEmptyLines, multiLineComment, lineCount, startIndex, saveStartIndex, lineStartIndex, i);
+                ReadChars(pStartChar, i, length, ref currentChar, ref nextChar);
+                bool newLine = currentChar == '\n';
+                bool lineReturn = i < length - 1 && currentChar == '\r' && nextChar == '\n';
+                if (newLine || lineReturn)
+                {
+                    AddEndLineToken(keepEmptyLines, multiLineComment, lineCount, startIndex, saveStartIndex, lineStartIndex, i);
 
-                lineCount++;
-                if (lineReturn)
-                    i++;
-                startIndex = i + 1;
-                lineStartIndex = startIndex;
+                    lineCount++;
+                    if (lineReturn)
+                        i++;
+                    startIndex = i + 1;
+                    lineStartIndex = startIndex;
+
+                    if (!m_isQuote)
+                        ResetQuote(lineCount);
+                    continue;
+                }
+
+                if (i >= length)
+                    break;
+
+                if (!m_isQuote &&
+                    (m_commentCallback == null && currentChar == '/' && nextChar == '/') || (m_commentCallback != null && m_commentCallback(data, lineStartIndex - i, i)))
+                {
+                    if (i > 0)
+                        AddToken(startIndex, i, lineCount, false);
+                    var lineSpan = GetLineSpan(pStartChar, length, startIndex);
+                    if (m_keepBeginningSpaces)
+                        m_lines.Add(lineSpan);
+                    startIndex = lineSpan.NextIndex;
+                    lineStartIndex = startIndex;
+                    i = startIndex - 1;
+                    lineCount++;
+                    ResetQuote(lineCount);
+                    continue;
+                }
+
+                if (!m_isQuote && IsStartMultiLineComment(currentChar, nextChar, ref i))
+                {
+                    multiLineComment = true;
+                    ReadChars(pStartChar, i, length, ref currentChar, ref nextChar);
+                }
+
+                if (multiLineComment && IsEndMultiLineComment(currentChar, nextChar, ref i))
+                {
+                    multiLineComment = false;
+                    startIndex = i + 1;
+                    continue;
+                }
+
+                if (i >= length)
+                    break;
+
+                if (multiLineComment)
+                    continue;
+
+                if (parseQuotes && currentChar == '"')
+                {
+                    m_quotedString = true;
+                    m_isQuote = !m_isQuote;
+                    if (m_isQuote)
+                    {
+                        AddToken(startIndex, i, lineCount, false);
+                        saveStartIndex = i;
+                    }
+                    else
+                    {
+                        m_split = true;
+                    }
+                }
 
                 if (!m_isQuote)
-                    ResetQuote(lineCount);
-                continue;
-            }
-
-            if (i >= data.Length)
-                break;
-
-            if (!m_isQuote && IsSingleLineComment(data, lineStartIndex - i, i))
-            {
-                if (i > 0)
-                    AddToken(startIndex, i, lineCount, false);
-                var lineSpan = GetLineSpan(data, startIndex);
-                if (m_keepBeginningSpaces)
-                    m_lines.Add(lineSpan);
-                startIndex = lineSpan.NextIndex;
-                lineStartIndex = startIndex;
-                i = startIndex - 1;
-                lineCount++;
-                ResetQuote(lineCount);
-                continue;
-            }
-
-            if (!m_isQuote && IsStartMultiLineComment(data, ref i))
-                multiLineComment = true;
-
-            if (multiLineComment && IsEndMultiLineComment(data, ref i))
-            {
-                multiLineComment = false;
-                startIndex = i + 1;
-                continue;
-            }
-
-            if (i >= data.Length)
-                break;
-
-            if (multiLineComment)
-                continue;
-
-            if (parseQuotes && data[i] == '"')
-            {
-                m_quotedString = true;
-                m_isQuote = !m_isQuote;
-                if (m_isQuote)
                 {
-                    AddToken(startIndex, i, lineCount, false);
-                    saveStartIndex = i;
-                }
-                else
-                {
-                    m_split = true;
-                }
-            }
+                    bool special = CheckSpecial(currentChar);
+                    if (m_split || special || CheckSplit(currentChar))
+                    {
+                        if (m_startLine == lineCount)
+                            AddToken(startIndex, i, lineCount, m_quotedString);
+                        else
+                            AddToken(saveStartIndex, m_startLine, lineCount, i, m_quotedString);
+                        startIndex = i + 1;
+                        m_split = false;
 
-            if (!m_isQuote)
-            {
-                bool special = CheckSpecial(data[i]);
-                if (m_split || special || CheckSplit(data[i]))
-                {
-                    if (m_startLine == lineCount)
-                        AddToken(startIndex, i, lineCount, m_quotedString);
-                    else
-                        AddToken(saveStartIndex, m_startLine, lineCount, i, m_quotedString);
-                    startIndex = i + 1;
-                    m_split = false;
+                        ResetQuote(lineCount);
+                    }
 
-                    ResetQuote(lineCount);
+                    // Also add the special char as a token (e.g. '{')
+                    if (special)
+                        AddToken(i, i + 1, lineCount, m_quotedString);
                 }
-
-                // Also add the special char as a token (e.g. '{')
-                if (special)
-                    AddToken(i, i + 1, lineCount, m_quotedString);
             }
         }
 
-        AddEndLineToken(keepEmptyLines, multiLineComment, lineCount, startIndex, saveStartIndex, lineStartIndex, data.Length);
+        AddEndLineToken(keepEmptyLines, multiLineComment, lineCount, startIndex, saveStartIndex, lineStartIndex, length);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe void ReadChars(char* pChar, int i, int length, ref char currentChar, ref char nextChar)
+    {
+        pChar += i;
+        currentChar = *pChar;
+        if (i < length)
+        {
+            pChar++;
+            nextChar = *pChar;
+        }
+        else
+            nextChar = '\0';
     }
 
     private void AddEndLineToken(bool keepEmptyLines, bool multiLineComment, int lineCount, int startIndex, int saveStartIndex, int lineStartIndex, int i)
@@ -194,15 +222,16 @@ public class SimpleParser
             m_lines.Add(lineSpan);
     }
 
-    private static LineSpan GetLineSpan(string data, int start)
+    private static unsafe LineSpan GetLineSpan(char* pStartChar, int length, int start)
     {
         int i = start;
-        for (; i < data.Length; i++)
+        for (; i < length; i++)
         {
-            if (data[i] == '\n')
+            char currentChar = *(pStartChar + i);
+            if (currentChar == '\n')
                 return new LineSpan(start, i - start, i + 1);
 
-            if (i < data.Length - 1 && data[i] == '\r' && data[i + 1] == '\n')
+            if (i < length - 1 && currentChar == '\r' && *(pStartChar + 1) == '\n')
                 return new LineSpan(start, i - start, i + 2);
         }
 
@@ -226,29 +255,23 @@ public class SimpleParser
         return tokens;
     }
 
-    private static bool IsEndMultiLineComment(string data, ref int i)
+    private static bool IsEndMultiLineComment(char currentChar, char nextChar, ref int i)
     {
-        if (i >= data.Length)
-            return false;
-
-        if (data[i] != '*' || !CheckNext(data, i, '/'))
+        if (currentChar != '*' || nextChar != '/')
             return false;
 
         i += 2;
         return true;
     }
 
-    private static bool IsStartMultiLineComment(string data, ref int i)
+    private static bool IsStartMultiLineComment(char currentChar, char nextChar, ref int i)
     {
-        if (data[i] != '/' || !CheckNext(data, i, '*'))
+        if (currentChar != '/' || nextChar != '*')
             return false;
 
         i += 2;
         return true;
     }
-
-    private bool IsSingleLineComment(string data, int lineStartIndex, int index)
-        => (m_commentCallback != null && m_commentCallback(data, lineStartIndex, index)) || (data[index] == '/' && CheckNext(data, index, '/'));
 
     private bool CheckSplit(char c)
     {
@@ -260,6 +283,9 @@ public class SimpleParser
 
     private bool CheckSpecial(char c)
     {
+        if (m_specialCallback != null)
+            return m_specialCallback(c);
+
         if (m_parseType != ParseType.Normal)
             return false;
 
@@ -283,9 +309,6 @@ public class SimpleParser
 
         m_tokens.Add(new ParserToken(startLine, startIndex, endIndex - startIndex, endLine, endIndex));
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool CheckNext(string str, int i, char c) => i + 1 < str.Length && str[i + 1] == c;
 
     public int GetCurrentLine() => IsDone() ? -1 : m_tokens[m_index].Line;
     public int GetCurrentCharOffset() => IsDone() ? -1 : m_tokens[m_index].Index;

@@ -75,11 +75,13 @@ public class UdmfMap : IMap
         MD5 = string.Empty;
     }
 
+    private static bool CheckSpecial(char c) => c == '=' || c == '{' || c == '}' || c == ';';
+
     private static void Parse(string textmap, List<UdmfVertex> vertices, List<UdmfSector> sectors, List<UdmfSide> sides,
         List<UdmfLine> lines, List<UdmfThing> things)
     {
         var parser = new SimpleParser();
-        parser.SetSpecialChars(['{', '}', ';', '=']);
+        parser.SetSpecialCallback(CheckSpecial);
         parser.Parse(textmap);
 
         parser.ConsumeString("namespace");
