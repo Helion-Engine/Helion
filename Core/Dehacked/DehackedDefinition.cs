@@ -749,6 +749,8 @@ public partial class DehackedDefinition
     {
         DehackedSound sound = new();
         sound.Number = parser.ConsumeInteger();
+        if (parser.Peek('('))
+           parser.ConsumeLine();
 
         while (!IsBlockComplete(parser))
         {
