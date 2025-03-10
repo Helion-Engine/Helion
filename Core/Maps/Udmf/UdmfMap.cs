@@ -416,7 +416,7 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("monsteractivate") && prop.Value.EqualsIgnoreCase("true"))
                 line.Flags.Activations |= LineActivations.Monster;
             else if (prop.Name.EqualsIgnoreCase("impact") && prop.Value.EqualsIgnoreCase("true"))
-                line.Flags.Activations |= LineActivations.ImpactLine;
+                line.Flags.Activations |= LineActivations.ImpactLine | LineActivations.Hitscan;
             else if (prop.Name.EqualsIgnoreCase("playerpush") && prop.Value.EqualsIgnoreCase("true"))
                 line.Flags.Activations |= LineActivations.Player | LineActivations.ImpactLine;
             else if (prop.Name.EqualsIgnoreCase("monsterpush") && prop.Value.EqualsIgnoreCase("true"))
