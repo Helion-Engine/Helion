@@ -10,6 +10,7 @@ public class DehackedText
     public void DehackedTextBlock()
     {
         string data = @"
+# Dehacked comment
 Doom version = 19
 Patch format = 6
 
