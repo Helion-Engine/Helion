@@ -49,6 +49,8 @@ public sealed class Sector
     public ZDoomSectorSpecialType SectorSpecialType;
     public bool Secret => (SectorEffect & SectorEffect.Secret) != 0;
     public int DamageAmount;
+    public int DamageInterval;
+    public int DamageLeakiness;
     public int? FloorSkyTextureHandle;
     public int? CeilingSkyTextureHandle;
     public SkyOptions SkyOptions = SkyOptions.Flip;

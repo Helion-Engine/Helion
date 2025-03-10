@@ -320,6 +320,12 @@ public class UdmfMap : IMap
                 sector.LightFloor = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("lightceiling"))
                 sector.LightCeiling = (short)parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("damageamount"))
+                sector.DamageAmount = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("damageinterval"))
+                sector.DamageInterval = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("leakiness"))
+                sector.Leakiness = parser.ParseInt(prop.Value);
         }
 
         sectors.Add(sector);

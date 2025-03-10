@@ -43,8 +43,11 @@ public class UdmfGeometryBuilder
             {
                 Silent = mapSector.Silent,
                 Gravity = mapSector.Gravity,
+                DamageAmount = mapSector.DamageAmount,
+                DamageInterval = mapSector.DamageInterval,
+                DamageLeakiness = mapSector.Leakiness
             };
-
+            
             floorPlane.LightLevel = mapSector.LightFloor != 0 ? mapSector.LightFloor : sector.LightLevel;
             floorPlane.LightLevelAbsolute = mapSector.LightFloorAbsolute;
             floorPlane.RenderOffsets.Offset.X = mapSector.PanningFloorX;

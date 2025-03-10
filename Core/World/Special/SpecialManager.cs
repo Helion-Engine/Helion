@@ -1098,7 +1098,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
 
         if (sector.DamageAmount > 0)
-            sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.DamageAmount);
+            sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.DamageAmount, sector.DamageLeakiness, sector.DamageInterval);
 
         if (sector.KillEffect != InstantKillEffect.None)
             sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.KillEffect);

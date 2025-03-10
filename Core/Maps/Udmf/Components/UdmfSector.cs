@@ -30,4 +30,7 @@ public class UdmfSector : ISector
     public bool Silent;
     public short LightCeiling;
     public short LightFloor;
+    public int DamageAmount;
+    public int DamageInterval = 32;
+    public int Leakiness;
 }

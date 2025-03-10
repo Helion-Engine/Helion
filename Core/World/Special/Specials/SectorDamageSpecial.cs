@@ -18,20 +18,25 @@ public class SectorDamageSpecial
     protected readonly Sector m_sector;
     protected readonly int m_damage;
     private readonly int m_radSuitLeakChance;
+    private readonly int m_damageInterval;
     protected bool m_alwaysDamage;
 
-    public SectorDamageSpecial(IWorld world, Sector sector, int damage, int radSuitLeakChance = 0)
+    const int DefaultDamageInterval = 32;
+
+    public SectorDamageSpecial(IWorld world, Sector sector, int damage, int radSuitLeakChance = 0, int damageInterval = DefaultDamageInterval)
     {
         m_world = world;
         m_sector = sector;
         m_damage = damage;
         m_radSuitLeakChance = radSuitLeakChance;
+        m_damageInterval = damageInterval;
     }
 
     public SectorDamageSpecial(IWorld world, Sector sector, InstantKillEffect instantKillEffect)
     {
         m_world = world;
         m_sector = sector;
+        m_damageInterval = DefaultDamageInterval;
         InstantKillEffect = instantKillEffect;
     }
 
@@ -81,7 +86,7 @@ public class SectorDamageSpecial
             m_world.DamageEntity(player, null, m_damage, DamageType.Normal, sectorSource: m_sector);
     }
 
-    protected bool ShouldDamage(Entity entity) => entity.OnSectorFloorZ(m_sector) && (m_world.LevelTime & 31) == 0 && m_damage > 0;
+    protected bool ShouldDamage(Entity entity) => entity.OnSectorFloorZ(m_sector) && (m_world.LevelTime % m_damageInterval) == 0 && m_damage > 0;
 
     private void CheckInstantKillEffect(Entity entity)
     {
