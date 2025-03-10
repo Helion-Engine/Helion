@@ -110,6 +110,8 @@ public class SimpleParser
                 if (i > 0)
                     AddToken(startIndex, i, lineCount, false);
                 var lineSpan = GetLineSpan(data, startIndex);
+                if (m_keepBeginningSpaces)
+                    m_lines.Add(lineSpan);
                 startIndex = lineSpan.NextIndex;
                 lineStartIndex = startIndex;
                 i = startIndex - 1;
