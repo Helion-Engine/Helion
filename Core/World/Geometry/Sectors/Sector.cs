@@ -51,6 +51,8 @@ public sealed class Sector
     public int DamageAmount;
     public int DamageInterval;
     public int DamageLeakiness;
+    public string SkyFloor;
+    public string SkyCeiling;
     public int? FloorSkyTextureHandle;
     public int? CeilingSkyTextureHandle;
     public SkyOptions SkyOptions = SkyOptions.Flip;

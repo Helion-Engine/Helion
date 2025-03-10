@@ -461,8 +461,13 @@ public class GeometryRenderer : IDisposable
 
         for (int i = 0; i < world.Sectors.Count; i++)
         {
-            textures.Add(world.Sectors[i].Floor.TextureHandle);
-            textures.Add(world.Sectors[i].Ceiling.TextureHandle);
+            var sector = world.Sectors[i];
+            textures.Add(sector.Floor.TextureHandle);
+            textures.Add(sector.Ceiling.TextureHandle);
+            if (sector.FloorSkyTextureHandle.HasValue)
+                textures.Add(sector.FloorSkyTextureHandle.Value);
+            if (sector.CeilingSkyTextureHandle.HasValue)
+                textures.Add(sector.CeilingSkyTextureHandle.Value);
         }
 
         TextureManager.LoadTextureImages(textures);

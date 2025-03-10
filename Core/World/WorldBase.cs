@@ -642,11 +642,25 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < Sectors.Count; i++)
         {
             var sector = Sectors[i];
-            if (GetSectorSkyTextureHandle(sector.Floor.TextureHandle, out int skyTextureHandle))
+            if (!string.IsNullOrEmpty(sector.SkyFloor) &&
+                GetSectorSkyTextureHandle(sector.Floor.TextureHandle, sector.SkyFloor, out var skyTextureHandle))
+            {
                 sector.FloorSkyTextureHandle = skyTextureHandle;
+            }
+            else if (GetSectorSkyTextureHandle(sector.Floor.TextureHandle, out skyTextureHandle))
+            {
+                sector.FloorSkyTextureHandle = skyTextureHandle;
+            }
 
-            if (GetSectorSkyTextureHandle(sector.Ceiling.TextureHandle, out skyTextureHandle))
+            if (!string.IsNullOrEmpty(sector.SkyCeiling) &&
+                GetSectorSkyTextureHandle(sector.Ceiling.TextureHandle, sector.SkyCeiling, out skyTextureHandle))
+            {
                 sector.CeilingSkyTextureHandle = skyTextureHandle;
+            }
+            else if (GetSectorSkyTextureHandle(sector.Ceiling.TextureHandle, out skyTextureHandle))
+            {
+                sector.CeilingSkyTextureHandle = skyTextureHandle;
+            }
         }
     }
 
@@ -655,6 +669,20 @@ public abstract partial class WorldBase : IWorld
         skyTextureHandle = 0;
         return TextureManager.IsSkyTexture(textureHandle) && !TextureManager.IsDefaultSkyTexture(textureHandle) &&
                 TextureManager.GetSkyTextureFromFlat(textureHandle, out skyTextureHandle);
+    }
+
+    private bool GetSectorSkyTextureHandle(int textureHandle, string textureName, out int skyTextureHandle)
+    {
+        skyTextureHandle = 0;
+        if (!TextureManager.IsSkyTexture(textureHandle))
+            return false;
+        
+        var texture = TextureManager.GetTexture(textureName, ResourceNamespace.Textures);
+        if (texture == null)
+            return false;
+
+        skyTextureHandle = texture.Index;
+        return true;
     }
 
     private void SpecialManager_SectorSpecialDestroyed(object? sender, ISectorSpecial special)

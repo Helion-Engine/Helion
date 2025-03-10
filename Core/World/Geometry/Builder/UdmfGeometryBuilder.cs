@@ -46,7 +46,9 @@ public class UdmfGeometryBuilder
                 Gravity = mapSector.Gravity,
                 DamageAmount = mapSector.DamageAmount,
                 DamageInterval = mapSector.DamageInterval,
-                DamageLeakiness = mapSector.Leakiness
+                DamageLeakiness = mapSector.Leakiness,
+                SkyFloor = mapSector.SkyFloor,
+                SkyCeiling = mapSector.SkyCeiling,
             };
             
             floorPlane.LightLevel = mapSector.LightFloor != 0 ? mapSector.LightFloor : sector.LightLevel;

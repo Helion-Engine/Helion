@@ -328,6 +328,10 @@ public class UdmfMap : IMap
                 sector.DamageInterval = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("leakiness"))
                 sector.Leakiness = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("skyfloor"))
+                sector.SkyFloor = prop.Value.ToString();
+            else if (prop.Name.EqualsIgnoreCase("skyceiling"))
+                sector.SkyCeiling = prop.Value.ToString();
         }
 
         sectors.Add(sector);

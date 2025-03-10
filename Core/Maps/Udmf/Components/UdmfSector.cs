@@ -34,4 +34,6 @@ public class UdmfSector : ISector
     public int DamageAmount;
     public int DamageInterval = 32;
     public int Leakiness;
+    public string SkyFloor = string.Empty;
+    public string SkyCeiling = string.Empty;
 }
