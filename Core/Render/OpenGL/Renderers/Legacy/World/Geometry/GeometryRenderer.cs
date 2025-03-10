@@ -292,7 +292,7 @@ public class GeometryRenderer : IDisposable
 
     private void SetRenderCompatibility(IWorld world)
     {
-        var def = world.Map.CompatibilityDefinition;
+        var def = world.CompatibilityMapDefinition;
         if (def == null)
             return;
 

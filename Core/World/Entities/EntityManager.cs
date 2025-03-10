@@ -436,7 +436,7 @@ public class EntityManager : IDisposable
             return true;
 
         // TODO: These should be offloaded into SinglePlayerWorld...
-        if (World.Map.MapType == MapType.Doom)
+        if (World.MapType == MapType.Doom)
         {
             if (mapThing.Flags.MultiPlayer)
                 return false;

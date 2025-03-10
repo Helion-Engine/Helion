@@ -139,11 +139,11 @@ public class SinglePlayerWorld : WorldBase
 
     private void CheckDistanceOverride()
     {
-        if (Map.CompatibilityDefinition != null && Map.CompatibilityDefinition.MaxDistanceOverride > 0)
+        if (CompatibilityMapDefinition != null && CompatibilityMapDefinition.MaxDistanceOverride > 0)
         {
-            foreach (var tag in Map.CompatibilityDefinition.MaxDistanceOverrideTags)
+            foreach (var tag in CompatibilityMapDefinition.MaxDistanceOverrideTags)
                 m_renderDistanceOverrideTags.Add(tag);
-            m_renderDistanceOverride = Map.CompatibilityDefinition.MaxDistanceOverride;
+            m_renderDistanceOverride = CompatibilityMapDefinition.MaxDistanceOverride;
         }
     }
 

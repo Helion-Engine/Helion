@@ -60,6 +60,7 @@ using Helion.Graphics.Palettes;
 using Helion.Maps.Shared;
 using Helion.World.Geometry.Islands;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Definitions.Compatibility;
 
 namespace Helion.World;
 
@@ -155,7 +156,9 @@ public abstract partial class WorldBase : IWorld
 
     public MapGeometry Geometry { get; }
     public PhysicsManager PhysicsManager { get; private set; }
-    public IMap Map { get; private set; }
+    public CompatibilityMapDefinition? CompatibilityMapDefinition { get; private set; }
+    public MapType MapType { get; private set; }
+
     public bool HasDehacked;
 
     protected readonly IAudioSystem AudioSystem;
@@ -220,15 +223,16 @@ public abstract partial class WorldBase : IWorld
         MapName = map.Name;
         Profiler = profiler;
         Geometry = geometry;
-        Map = map;
+        CompatibilityMapDefinition = map.CompatibilityDefinition;
+        MapType = map.MapType;
         BspTree = Geometry.CompactBspTree;
 
-        if (Map.Reject != null && Map.Reject.Length > 0)
+        if (map.Reject != null && map.Reject.Length > 0)
         {
             int rejectSize = (Sectors.Count * Sectors.Count + 7) / 8;
-            if (Map.Reject.Length != rejectSize)
-                HelionLog.Warn($"Expected reject size to be {rejectSize} but read {Map.Reject.Length} bytes");
-            m_lineOfSightReject = Map.Reject;
+            if (map.Reject.Length != rejectSize)
+                HelionLog.Warn($"Expected reject size to be {rejectSize} but read {map.Reject.Length} bytes");
+            m_lineOfSightReject = map.Reject;
         }
 
         Blockmap = CreateBlockMap();
@@ -319,11 +323,11 @@ public abstract partial class WorldBase : IWorld
     {
         if (LastPhysicManager != null)
         {
-            LastPhysicManager.UpdateTo(this, BspTree, Blockmap, Random, Map is DoomMap);
+            LastPhysicManager.UpdateTo(this, BspTree, Blockmap, Random, MapType == MapType.Doom);
             return LastPhysicManager;
         }
 
-        LastPhysicManager = new(this, BspTree, Blockmap, Random, Map is DoomMap);
+        LastPhysicManager = new(this, BspTree, Blockmap, Random, MapType == MapType.Doom);
         return LastPhysicManager;
     }
 
@@ -542,7 +546,7 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.RespawnTicks = SkillDefinition.RespawnTime.Seconds * (int)Constants.TicksPerSecond;
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
-        WorldStatic.Udmf = Map.MapType == MapType.UDMF;
+        WorldStatic.Udmf = MapType == MapType.UDMF;
 
         WorldStatic.DoomImpBall = EntityManager.DefinitionComposer.GetByNameOrDefault("DoomImpBall");
         WorldStatic.ArachnotronPlasma = EntityManager.DefinitionComposer.GetByNameOrDefault("ArachnotronPlasma");

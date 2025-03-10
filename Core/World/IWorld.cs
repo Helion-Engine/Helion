@@ -34,6 +34,7 @@ using Helion.Util.Container;
 using Helion.Maps.Shared;
 using Helion.World.Geometry.Subsectors;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Resources.Definitions.Compatibility;
 
 namespace Helion.World;
 
@@ -108,7 +109,8 @@ public interface IWorld : IDisposable
     bool SameAsPreviousMap { get; set; }
     MarkSpecials MarkSpecials { get; }
     MapGeometry Geometry { get; }
-    IMap Map { get; }
+    CompatibilityMapDefinition? CompatibilityMapDefinition { get; }
+    MapType MapType { get; }
 
     void Link(Entity entity);
     void LinkClamped(Entity entity);
