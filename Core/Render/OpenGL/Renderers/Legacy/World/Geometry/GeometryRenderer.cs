@@ -1320,25 +1320,22 @@ public class GeometryRenderer : IDisposable
             if (generate || flatChanged)
             {
                 int colorMapIndex, lightIndex;
-                Sector transferSector;
-                SectorPlane transferPlane;
+                SectorPlane lightPlane;
 
                 if (floor)
                 {
-                    lightIndex = Renderer.GetLightBufferIndex(sector, renderSector, flat, LightBufferType.Floor);
+                    lightIndex = Renderer.GetLightBufferIndex(sector, SectorPlaneFace.Floor, LightBufferType.Floor);
                     colorMapIndex = Renderer.GetColorMapBufferIndex(renderSector, LightBufferType.Floor);
-                    transferSector = sector.TransferFloorLightSector;
-                    transferPlane = sector.TransferFloorLightSector.Floor;
+                    lightPlane = sector.TransferFloorLightSector.Floor;
                 }
                 else
                 {
-                    lightIndex = Renderer.GetLightBufferIndex(sector, renderSector, flat, LightBufferType.Ceiling);
+                    lightIndex = Renderer.GetLightBufferIndex(sector, SectorPlaneFace.Floor, LightBufferType.Ceiling);
                     colorMapIndex = Renderer.GetColorMapBufferIndex(renderSector, LightBufferType.Ceiling);
-                    transferSector = sector.TransferCeilingLightSector;
-                    transferPlane = sector.TransferCeilingLightSector.Ceiling;
+                    lightPlane = sector.TransferCeilingLightSector.Ceiling;
                 }
 
-                var flatLightLevel = (byte)Math.Clamp(transferSector == sector ? transferPlane.LightLevel : transferSector.LightLevel, (short)0, (short)255);
+                var flatLightLevel = (byte)Math.Clamp(lightPlane.LightLevelAbsolute ? lightPlane.LightLevel : (short)0, (short)0, (short)255);
 
                 for (int j = 0; j < subsectors.Length; j++)
                 {

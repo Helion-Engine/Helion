@@ -35,12 +35,10 @@ public partial class Renderer
         return GetLightBufferIndex(sector, LightBufferType.Wall);
     }
 
-    public static int GetLightBufferIndex(Sector sector, Sector renderSector, SectorPlane plane, LightBufferType type)
+    public static int GetLightBufferIndex(Sector sector, SectorPlaneFace planeType, LightBufferType type)
     {
-        // Transfer light needs to be absolute and not add with the sectors light level
-        var transferLightSector = plane.Facing == SectorPlaneFace.Floor ? sector.TransferFloorLightSector : sector.TransferCeilingLightSector;
-        if (transferLightSector != sector)
-            return LightBuffer.DarkIndex;
+        var transferLightSector = planeType == SectorPlaneFace.Floor ? sector.TransferFloorLightSector : sector.TransferCeilingLightSector;
+        var plane = transferLightSector.GetSectorPlane(planeType);
 
         if (plane.LightLevelAbsolute)
             return LightBuffer.DarkIndex;
