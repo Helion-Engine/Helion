@@ -61,6 +61,7 @@ public class ThingFlags
     public bool Invisible;
     public bool CountKill;
     public bool CountItem;
+    public bool CountSecret;
 
     public ThingFlags()
     {

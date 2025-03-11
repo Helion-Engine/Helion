@@ -177,6 +177,8 @@ public class UdmfMap : IMap
                 thing.Flags.Dormant = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("nocount"))
                 thing.Flags.CountKill = thing.Flags.CountItem = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("countsecret"))
+                thing.Flags.CountSecret = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("id"))
                 thing.ThingId = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("alpha"))

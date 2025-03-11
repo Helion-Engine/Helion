@@ -966,11 +966,8 @@ public abstract partial class WorldBase : IWorld
 
             if (player.Sector.Secret && player.OnSectorFloorZ(player.Sector))
             {
-                DisplayMessage(player, null, "$SECRETMESSAGE");
-                SoundManager.PlayStaticSound("misc/secret");
                 player.Sector.SetSecret(false);
-                LevelStats.SecretCount++;
-                player.SecretsFound++;
+                PlayerSecret(player);
             }
 
             if (m_sectorToMusicChange.TryGetValue(player.Sector.Id, out var musInfo) && !ReferenceEquals(musInfo, m_lastMusicChange))
@@ -981,6 +978,14 @@ public abstract partial class WorldBase : IWorld
         }
 
         Profiler.World.TickPlayer.Stop();
+    }
+
+    private void PlayerSecret(Player player)
+    {
+        DisplayMessage(player, null, "$SECRETMESSAGE");
+        SoundManager.PlayStaticSound("misc/secret");
+        LevelStats.SecretCount++;
+        player.SecretsFound++;
     }
 
     public void SectorInstantKillEffect(Entity entity, InstantKillEffect effect)
@@ -1934,6 +1939,12 @@ public abstract partial class WorldBase : IWorld
         {
             SoundManager.CreateSoundOn(player, definition.Properties.Inventory.PickupSound,
                 new SoundParams(player, channel: SoundChannel.Item));
+        }
+
+        if (item.Flags.CountSecret)
+        {
+            PlayerSecret(Player);
+            item.Flags.CountSecret = false;
         }
     }
 

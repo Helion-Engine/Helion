@@ -232,6 +232,12 @@ public class EntityManager : IDisposable
             if (mapThing.Flags.Dormant)
                 entity.Flags.Dormant = mapThing.Flags.Dormant;
 
+            if (mapThing.Flags.CountSecret)
+            {
+                entity.Flags.CountSecret = mapThing.Flags.CountSecret;
+                levelStats.TotalSecrets++;
+            }
+
             if (entity.FrameState.Frame.Ticks > 0)
                 entity.FrameState.SetTics((World.Random.NextByte() % entity.FrameState.Frame.Ticks) + 1);
 
