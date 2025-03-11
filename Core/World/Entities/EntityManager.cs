@@ -449,9 +449,11 @@ public class EntityManager : IDisposable
 
         return (SkillLevel)World.SkillDefinition.SpawnFilter switch
         {
-            SkillLevel.VeryEasy or SkillLevel.Easy => mapThing.Flags.Easy,
-            SkillLevel.Medium => mapThing.Flags.Medium,
-            SkillLevel.Hard or SkillLevel.Nightmare => mapThing.Flags.Hard,
+            SkillLevel.VeryEasy => mapThing.Flags.Skill1,
+            SkillLevel.Easy => mapThing.Flags.Skill2,
+            SkillLevel.Medium => mapThing.Flags.Skill3,
+            SkillLevel.Hard => mapThing.Flags.Skill4,
+            SkillLevel.Nightmare => mapThing.Flags.Skill5,
             _ => false,
         };
     }

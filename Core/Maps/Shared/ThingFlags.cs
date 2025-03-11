@@ -39,9 +39,11 @@ public class ThingFlags
     }
 
     // Doom
-    public bool Easy;
-    public bool Medium;
-    public bool Hard;
+    public bool Skill1;
+    public bool Skill2;
+    public bool Skill3;
+    public bool Skill4;
+    public bool Skill5;
     public bool Ambush;
     public bool MultiPlayer;
     // ZDoom/Hexen
@@ -69,9 +71,11 @@ public class ThingFlags
         bool reserved = (flags & DoomFlags.ReservedFlag) != 0;
         return new ThingFlags
         {
-            Easy = (flags & DoomFlags.EasyFlag) == DoomFlags.EasyFlag,
-            Medium = (flags & DoomFlags.MediumFlag) == DoomFlags.MediumFlag,
-            Hard = (flags & DoomFlags.HardFlag) == DoomFlags.HardFlag,
+            Skill1 = (flags & DoomFlags.EasyFlag) == DoomFlags.EasyFlag,
+            Skill2 = (flags & DoomFlags.EasyFlag) == DoomFlags.EasyFlag,
+            Skill3 = (flags & DoomFlags.MediumFlag) == DoomFlags.MediumFlag,
+            Skill4 = (flags & DoomFlags.HardFlag) == DoomFlags.HardFlag,
+            Skill5 = (flags & DoomFlags.HardFlag) == DoomFlags.HardFlag,
             Ambush = (flags & DoomFlags.AmbushFlag) == DoomFlags.AmbushFlag,
             MultiPlayer = (flags & DoomFlags.MultiPlayerFlag) == DoomFlags.MultiPlayerFlag,
             Deathmatch = (flags & DoomFlags.NotDeathmatchFlag) == DoomFlags.NotDeathmatchFlag,
@@ -84,9 +88,11 @@ public class ThingFlags
     {
         return new ThingFlags
         {
-            Easy = (flags & ZDoomFlags.EasyFlag) == ZDoomFlags.EasyFlag,
-            Medium = (flags & ZDoomFlags.MediumFlag) == ZDoomFlags.MediumFlag,
-            Hard = (flags & ZDoomFlags.HardFlag) == ZDoomFlags.HardFlag,
+            Skill1 = (flags & ZDoomFlags.EasyFlag) == ZDoomFlags.EasyFlag,
+            Skill2 = (flags & ZDoomFlags.EasyFlag) == ZDoomFlags.EasyFlag,
+            Skill3 = (flags & ZDoomFlags.MediumFlag) == ZDoomFlags.MediumFlag,
+            Skill4 = (flags & ZDoomFlags.HardFlag) == ZDoomFlags.HardFlag,
+            Skill5 = (flags & ZDoomFlags.HardFlag) == ZDoomFlags.HardFlag,
             Ambush = (flags & ZDoomFlags.AmbushFlag) == ZDoomFlags.AmbushFlag,
             Dormant = (flags & ZDoomFlags.DormantFlag) == ZDoomFlags.DormantFlag,
             Fighter = (flags & ZDoomFlags.FighterFlag) == ZDoomFlags.FighterFlag,

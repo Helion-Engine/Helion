@@ -4,10 +4,8 @@ using Helion.Maps.Doom.Components;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Vanilla;
-using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sides;
 using System.Collections.Generic;
 using System.IO;
 
@@ -17,18 +15,6 @@ public static class UdmfMapWriter
 {
     private static readonly MapLineFlags DefaultMapLineFlags = MapLineFlags.Doom(0);
     private static readonly SectorData SectorData = new();
-
-    public static bool WriteMap(ArchiveCollection archiveCollection, string mapName, string outputFile)
-    {
-        var map = archiveCollection.FindMap(mapName);
-        if (map == null)
-            return false;
-
-        using var textWriter = new StreamWriter(outputFile);
-        WriteMap(map, textWriter);
-
-        return true;
-    }
 
     public static void WriteMap(IMap map, TextWriter writer)
     {
@@ -112,19 +98,23 @@ public static class UdmfMapWriter
         if (back != null)
             writer.WriteLine($"sideback = {back.Id};");
         if (line.Flags.TwoSided)
-            writer.WriteLine($"twosided = true;");
+            writer.WriteLine("twosided = true;");
         if (line.Flags.BlockPlayersAndMonsters)
-            writer.WriteLine($"blocking = true;");
+            writer.WriteLine("blocking = true;");
         if (line.Flags.UpperUnpegged)
-            writer.WriteLine($"dontpegtop = true;");
+            writer.WriteLine("dontpegtop = true;");
         if (line.Flags.LowerUnpegged)
-            writer.WriteLine($"dontpegbottom = true;");
+            writer.WriteLine("dontpegbottom = true;");
         if (line.Flags.BlockSound)
-            writer.WriteLine($"blocksound = true;");
+            writer.WriteLine("blocksound = true;");
         if (line.Flags.DrawAsOneSidedAutomap)
-            writer.WriteLine($"secret = true;");
+            writer.WriteLine("secret = true;");
         if (line.Flags.NoDrawAutomap)
-            writer.WriteLine($"dontdraw = true;");
+            writer.WriteLine("dontdraw = true;");
+        if (line.Flags.AlwaysDrawAutomap)
+            writer.WriteLine("mapped = true;");
+        if (line.Flags.BlockMonsters)
+            writer.WriteLine("blockmonsters = true;");
 
         if (line is DoomLine doomLine && doomLine.LineType != VanillaLineSpecialType.None)
         {
@@ -182,33 +172,30 @@ public static class UdmfMapWriter
         writer.WriteLine($"y = {thing.Position.Y};");
         writer.WriteLine($"angle = {thing.Angle};");
         writer.WriteLine($"type = {thing.EditorNumber};");
+        if (thing.Flags.Skill1)
+            writer.WriteLine("skill1 = true;");
+        if (thing.Flags.Skill2)
+            writer.WriteLine("skill2 = true;");
+        if (thing.Flags.Skill3)
+            writer.WriteLine("skill3 = true;");
+        if (thing.Flags.Skill4)
+            writer.WriteLine("skill4 = true;");
+        if (thing.Flags.Skill5)
+            writer.WriteLine("skill5 = true;");
         if (thing is DoomThing)
         {
-            if (thing.Flags.Easy)
-            {
-                writer.WriteLine($"skill1 = true;");
-                writer.WriteLine($"skill2 = true;");
-            }
-            if (thing.Flags.Medium)
-                writer.WriteLine($"skill3 = true;");
-            if (thing.Flags.Hard)
-            {
-                writer.WriteLine($"skill4 = true;");
-                writer.WriteLine($"skill5 = true;");
-            }
-
             if (!thing.Flags.MultiPlayer)
-                writer.WriteLine($"single = true;");
+                writer.WriteLine("single = true;");
         }
         else
         {
             if (thing.Flags.SinglePlayer)
-                writer.WriteLine($"single = true;");
+                writer.WriteLine("single = true;");
         }
         if (thing.Flags.Cooperative)
-            writer.WriteLine($"coop = true;");
+            writer.WriteLine("coop = true;");
         if (thing.Flags.Deathmatch)
-            writer.WriteLine($"dm = true;");
+            writer.WriteLine("dm = true;");
         if (thing.Flags.Ambush)
             writer.WriteLine("ambush = true;");
         writer.WriteLine("}");

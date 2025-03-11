@@ -151,17 +151,16 @@ public class UdmfMap : IMap
                 thing.Args.Arg3 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg4"))
                 thing.Args.Arg4 = parser.ParseInt(prop.Value);
-            // TODO skills not split in thing flags
             else if (prop.Name.EqualsIgnoreCase("skill1"))
-                thing.Flags.Easy = thing.Flags.Easy || prop.Value.EqualsIgnoreCase("true");
+                thing.Flags.Skill1 = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("skill2"))
-                thing.Flags.Easy = thing.Flags.Easy || prop.Value.EqualsIgnoreCase("true");
+                thing.Flags.Skill2 = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("skill3"))
-                thing.Flags.Medium = prop.Value.EqualsIgnoreCase("true");
+                thing.Flags.Skill3 = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("skill4"))
-                thing.Flags.Hard = thing.Flags.Hard || prop.Value.EqualsIgnoreCase("true");
+                thing.Flags.Skill4 = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("skill5"))
-                thing.Flags.Hard = thing.Flags.Hard || prop.Value.EqualsIgnoreCase("true");
+                thing.Flags.Skill5 = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("friend"))
                 thing.Flags.Friendly = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("single"))
