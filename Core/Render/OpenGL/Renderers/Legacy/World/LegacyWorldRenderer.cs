@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
@@ -16,13 +17,14 @@ using Helion.Util.Configs;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Geometry.Sectors;
+using NLog;
 using OpenTK.Graphics.OpenGL;
-using zdbspSharp;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
 public class LegacyWorldRenderer : WorldRenderer
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly IConfig m_config;
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly EntityRenderer m_entityRenderer;
@@ -34,6 +36,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly RenderWorldDataManager m_worldDataManager = new();
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
+    private readonly Stopwatch m_stopwatch = new();
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
     private bool m_vanillaRender;
@@ -68,6 +71,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
     public override void UpdateToNewWorld(IWorld world)
     {
+        m_stopwatch.Restart();
         m_vanillaRender = m_config.Render.VanillaRender;
         TransferHeights.FlushSectorReferences();
         m_lastRenderedWorld.SetTarget(world);
@@ -90,6 +94,9 @@ public class LegacyWorldRenderer : WorldRenderer
         world.OnResetInterpolation += World_OnResetInterpolation;
         m_previousWorld = world;
         m_lastTicker = -1;
+
+        m_stopwatch.Stop();
+        Log.Info($"Completed level geometry {m_stopwatch.Elapsed}");
     }
 
     private void World_OnResetInterpolation(object? sender, EventArgs e)
