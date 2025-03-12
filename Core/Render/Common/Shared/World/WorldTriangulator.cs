@@ -102,6 +102,7 @@ public static class WorldTriangulator
         bool isFrontSide, ref WallVertices wall, out bool nothingVisible, double offset = 0, double prevOffset = 0, 
         SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling)
     {
+
         if (LineOpening.IsRenderingBlocked(facingSide.Line))
         {
             nothingVisible = true;
@@ -293,6 +294,9 @@ public static class WorldTriangulator
     private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, Side facingSide, in MidTexOpening opening, in MidTexOpening prevOpening, 
         in Dimension textureDimension, double offset, double prevOffset, SectorPlanes clipPlanes)
     {
+        if (facingSide.Flags.WrapMidTex)
+            return new(opening.BottomZ, opening.TopZ, opening.BottomZ, opening.TopZ, prevOpening.BottomZ, prevOpening.TopZ, prevOpening.BottomZ, prevOpening.TopZ);
+
         // Default rendering top down. Unpegged.Lower renders bottom up
         // TopZ is the top of the texture to render and BottomZ is the bottom
         // MaxTopZ and MinBottomZ are the min/max areas to render with Y offset. (e.g. a middle texture can render over a missing lower texture)
@@ -321,7 +325,7 @@ public static class WorldTriangulator
         var visibleBottomZ = (clipPlanes & SectorPlanes.Floor) == 0 ? bottomZ : Math.Max(bottomZ, opening.MinBottomZ);
         var visiblePrevBottomZ = (clipPlanes & SectorPlanes.Floor) == 0 ? prevBottomZ : Math.Max(prevBottomZ, prevOpening.MinBottomZ);
 
-        return new MiddleDrawSpan(bottomZ, topZ, visibleBottomZ, visibleTopZ, prevBottomZ, prevTopZ, visiblePrevBottomZ, visiblePrevTopZ);
+        return new(bottomZ, topZ, visibleBottomZ, visibleTopZ, prevBottomZ, prevTopZ, visiblePrevBottomZ, visiblePrevTopZ);
     }
 
     public static WallUV CalculateOneSidedWallUV(Line line, Side side, double length,
@@ -411,6 +415,9 @@ public static class WorldTriangulator
     private static WallUV CalculateTwoSidedMiddleWallUV(Side side, double length, double topZ, double bottomZ, 
         double visibleTopZ, double visibleBottomZ, in Vec2F textureUVInverse, bool previous)
     {
+        if (side.Flags.WrapMidTex)
+            return CalculateOneSidedWallUV(side.Line, side, length, textureUVInverse, visibleTopZ - visibleBottomZ, previous);
+
         var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / side.Middle.Scale.X;
         if (side.ScrollData != null)
         {

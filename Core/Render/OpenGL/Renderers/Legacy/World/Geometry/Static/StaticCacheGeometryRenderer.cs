@@ -374,7 +374,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex && ShouldRenderStaticMiddle(side))
         {
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
-            SetSideVertices(side, side.Middle, update, sideVertices, true, repeatY: false);
+            SetSideVertices(side, side.Middle, update, sideVertices, true, repeatY: side.Flags.WrapMidTex);
         }
     }
 

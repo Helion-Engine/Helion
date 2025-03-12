@@ -268,6 +268,8 @@ public class UdmfMap : IMap
                 side.NoFakeConstrast = prop.Value.EqualsIgnoreCase("true");
             else if (prop.Name.EqualsIgnoreCase("smoothlighting"))
                 side.SmoothLighting = prop.Value.EqualsIgnoreCase("true");
+            else if (prop.Name.EqualsIgnoreCase("wrapmidtex"))
+                side.WrapMidTex = prop.Value.EqualsIgnoreCase("true");
         }
 
         sides.Add(side);
@@ -442,6 +444,8 @@ public class UdmfMap : IMap
                 line.DamageSpecial = true;
             else if (prop.Name.EqualsIgnoreCase("deathspecial") && prop.Value.EqualsIgnoreCase("true"))
                 line.DeathSpecial = true;
+            else if (prop.Name.EqualsIgnoreCase("wrapmidtex") && prop.Value.EqualsIgnoreCase("true"))
+                line.WrapMidTex = true;
             else if (prop.Name.EqualsIgnoreCase("health"))
                 line.Health = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("healthgroup"))

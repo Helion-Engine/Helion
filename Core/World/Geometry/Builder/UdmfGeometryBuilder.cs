@@ -130,8 +130,8 @@ public class UdmfGeometryBuilder
         if (line.Back == null)
             return CreateSingleSide(line, builder, ref nextSideId, textureManager);
 
-        Side front = CreateTwoSided(line.Front, builder, ref nextSideId, textureManager);
-        Side back = CreateTwoSided(line.Back, builder, ref nextSideId, textureManager);
+        Side front = CreateTwoSided(line, line.Front, builder, ref nextSideId, textureManager);
+        Side back = CreateTwoSided(line, line.Back, builder, ref nextSideId, textureManager);
         return (front, back);
     }
 
@@ -148,7 +148,8 @@ public class UdmfGeometryBuilder
         Wall upper = new(upperTexture.Index, WallLocation.Upper, side.LightLevelUpper, side.LightLevelUpperAbsolute, side.UpperOffset, side.UpperScale);
         Wall lower = new(lowerTexture.Index, WallLocation.Lower, side.LightLevelLower, side.LightLevelLowerAbsolute, side.BottomOffset, side.BottomScale);
 
-        Side front = new(nextSideId, side.Offset, upper, middle, lower, sector, side.LightLevel, side.LightLevelAbsolute, side.NoFakeConstrast, side.SmoothLighting);
+        Side front = new(nextSideId, side.Offset, upper, middle, lower, sector, side.LightLevel, side.LightLevelAbsolute, side.NoFakeConstrast, side.SmoothLighting, 
+            line.WrapMidTex || side.WrapMidTex);
         builder.Sides.Add(front);
 
         nextSideId++;
@@ -156,7 +157,7 @@ public class UdmfGeometryBuilder
         return (front, null);
     }
 
-    private static Side CreateTwoSided(UdmfSide side, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager)
+    private static Side CreateTwoSided(UdmfLine line, UdmfSide side, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager)
     {
         Sector facingSector = builder.Sectors[side.Sector.Id];
 
@@ -168,7 +169,8 @@ public class UdmfGeometryBuilder
         Wall upper = new(upperTexture.Index, WallLocation.Upper, side.LightLevelUpper, side.LightLevelUpperAbsolute, side.UpperOffset, side.UpperScale);
         Wall lower = new(lowerTexture.Index, WallLocation.Lower, side.LightLevelLower, side.LightLevelLowerAbsolute, side.BottomOffset, side.BottomScale);
 
-        Side addSide = new(nextSideId, side.Offset, upper, middle, lower, facingSector, side.LightLevel, side.LightLevelAbsolute, side.NoFakeConstrast, side.SmoothLighting);
+        Side addSide = new(nextSideId, side.Offset, upper, middle, lower, facingSector, side.LightLevel, side.LightLevelAbsolute, side.NoFakeConstrast, side.SmoothLighting, 
+            line.WrapMidTex || side.WrapMidTex);
         builder.Sides.Add(addSide);
 
         nextSideId++;

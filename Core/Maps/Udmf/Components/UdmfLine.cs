@@ -30,6 +30,7 @@ public class UdmfLine : ILine
     public int HealthGroup;
     public bool DamageSpecial;
     public bool DeathSpecial;
+    public bool WrapMidTex;
 
     public ISide GetFront() => Front;
 

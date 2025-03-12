@@ -22,6 +22,7 @@ public struct SideFlags
     public bool LightLevelAbsolute;
     public bool NoFakeContrast;
     public bool SmoothLighting;
+    public bool WrapMidTex;
 }
 
 public sealed class Side
@@ -63,13 +64,13 @@ public sealed class Side
     public SideFlags Flags;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
-        : this(id, offset, upper, middle, lower, sector, 0, false, false, false)
+        : this(id, offset, upper, middle, lower, sector, 0, false, false, false, false)
     {
 
     }
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector, int lightLevel, 
-        bool lightLevelAbsolute, bool noFakeContrast, bool smoothLighting)
+        bool lightLevelAbsolute, bool noFakeContrast, bool smoothLighting, bool wrapMidTex)
     {
         Id = id;
         Sector = sector;
@@ -90,6 +91,7 @@ public sealed class Side
         Flags.LightLevelAbsolute = lightLevelAbsolute;
         Flags.NoFakeContrast = noFakeContrast;
         Flags.SmoothLighting = smoothLighting;
+        Flags.WrapMidTex = wrapMidTex;
     }
 
     public void Reset()

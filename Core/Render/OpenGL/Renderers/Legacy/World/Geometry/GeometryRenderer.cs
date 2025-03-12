@@ -1108,7 +1108,7 @@ public class GeometryRenderer : IDisposable
         out DynamicVertex[]? vertices)
     {
         Wall middleWall = facingSide.Middle;
-        GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle, repeatY: false);
+        GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle, repeatY: facingSide.Flags.WrapMidTex);
 
         float alpha = m_config.Render.TextureTransparency ? facingSide.Line.Alpha : 1.0f;
         DynamicVertex[]? data = m_vertexLookup[facingSide.Id];
