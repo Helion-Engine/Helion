@@ -932,7 +932,7 @@ public abstract partial class WorldBase : IWorld
         if (entity.IsDead || (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll))
             return;
 
-        if (!entity.IsPlayer && (effect & InstantKillEffect.KillMonsters) != 0)
+        if (entity.Flags.Shootable && !entity.IsPlayer && (effect & InstantKillEffect.KillMonsters) != 0)
         {
             entity.ForceGib();
             return;

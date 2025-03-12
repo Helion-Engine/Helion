@@ -8,3 +8,4 @@
 - Fix line of sight array capacity check that could cause crash
 - Organize key binding menu for clarity
 - Fix apostrophe key not registering
+- Fix monster kill sectors (type 8192) to not kill things without shootable flag 
