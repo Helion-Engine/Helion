@@ -9,6 +9,8 @@ namespace Helion.World.Special.Specials;
 
 public class SectorDamageSpecial
 {
+    public const int DefaultDamageInterval = 32;
+
     public int Damage => m_damage;
     public int RadSuitLeakChance => m_radSuitLeakChance;
     public bool AlwaysDamage => m_alwaysDamage;
@@ -20,8 +22,6 @@ public class SectorDamageSpecial
     private readonly int m_radSuitLeakChance;
     private readonly int m_damageInterval;
     protected bool m_alwaysDamage;
-
-    const int DefaultDamageInterval = 32;
 
     public SectorDamageSpecial(IWorld world, Sector sector, int damage, int radSuitLeakChance = 0, int damageInterval = DefaultDamageInterval)
     {
@@ -40,13 +40,14 @@ public class SectorDamageSpecial
         InstantKillEffect = instantKillEffect;
     }
 
-    public SectorDamageSpecial(IWorld world, Sector sector, SectorDamageSpecialModel sectorDamageSpecialModel)
+    public SectorDamageSpecial(IWorld world, Sector sector, SectorDamageSpecialModel model)
     {
         m_world = world;
         m_sector = sector;
-        m_damage = sectorDamageSpecialModel.Damage;
-        m_radSuitLeakChance = sectorDamageSpecialModel.RadSuitLeak;
-        InstantKillEffect = sectorDamageSpecialModel.InstantKillEffect;
+        m_damage = model.Damage;
+        m_damageInterval = model.DamageInterval ?? DefaultDamageInterval;
+        m_radSuitLeakChance = model.RadSuitLeak;
+        InstantKillEffect = model.InstantKillEffect;
     }
 
     public static SectorDamageSpecial CreateNoDamage(IWorld world, Sector sector) =>
@@ -58,6 +59,7 @@ public class SectorDamageSpecial
         {
             SectorId = m_sector.Id,
             Damage = m_damage,
+            DamageInterval = m_damageInterval,
             RadSuitLeak = m_radSuitLeakChance,
             InstantKillEffect = InstantKillEffect,
             End = false,
@@ -86,7 +88,7 @@ public class SectorDamageSpecial
             m_world.DamageEntity(player, null, m_damage, DamageType.Normal, sectorSource: m_sector);
     }
 
-    protected bool ShouldDamage(Entity entity) => entity.OnSectorFloorZ(m_sector) && (m_world.LevelTime % m_damageInterval) == 0 && m_damage > 0;
+    protected bool ShouldDamage(Entity entity) => m_damageInterval > 0 && m_damage > 0 && entity.OnSectorFloorZ(m_sector) && (m_world.LevelTime % m_damageInterval) == 0;
 
     private void CheckInstantKillEffect(Entity entity)
     {
@@ -113,6 +115,7 @@ public class SectorDamageSpecial
             return false;
 
         return damage.Damage == Damage &&
+            damage.m_damageInterval == m_damageInterval &&
             damage.RadSuitLeakChance == RadSuitLeakChance &&
             damage.AlwaysDamage == AlwaysDamage &&
             damage.m_sector.Id == m_sector.Id &&
