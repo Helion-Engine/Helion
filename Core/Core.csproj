@@ -33,6 +33,6 @@
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.4" />
     <PackageReference Include="TextCopy" Version="6.2.1" />
     <PackageReference Include="xBRZNet" Version="1.2.0" />
-    <PackageReference Include="zdbspSharp" Version="1.0.4" />
+    <PackageReference Include="zdbspSharp" Version="1.0.5" />
   </ItemGroup>
 </Project>
