@@ -217,8 +217,10 @@ public class EntityManager : IDisposable
             var entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, initSpawn: true);
             entity.Special = mapThing.Special;
             entity.Args = mapThing.Args;
-            entity.Alpha = mapThing.Alpha;
             entity.Gravity = mapThing.Gravity;
+
+            if (mapThing.Alpha.HasValue)
+                entity.Alpha = mapThing.Alpha.Value;
 
             if (mapThing.Flags.Ambush)
                 entity.Flags.Ambush = mapThing.Flags.Ambush;

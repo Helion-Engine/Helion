@@ -232,13 +232,17 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         HighestFloorObject = Sector;
         LowestCeilingObject = Sector;
 
-        Alpha = (float)Properties.Alpha;
         MonsterMovementSpeed = Properties.MonsterMovementSpeed;
 
         FrameState = new(this, entityModel.Frame);
 
         if (entityModel.OnGround.HasValue)
             OnGround = entityModel.OnGround.Value;
+
+        if (entityModel.Alpha.HasValue)
+            Alpha = entityModel.Alpha.Value;
+        else
+            Alpha = (float)Properties.Alpha;
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -276,6 +280,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.LowEntity = GetBoundingEntityForModel(LowestCeilingObject);
         entityModel.OnGround = OnGround;
         entityModel.Gravity = Gravity;
+        entityModel.Alpha = Alpha;
         return entityModel;
     }
 

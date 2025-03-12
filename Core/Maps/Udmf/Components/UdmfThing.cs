@@ -23,6 +23,6 @@ public class UdmfThing : IThing
     public ref SpecialArgs Args => ref _args;
 
     private SpecialArgs _args;
-    public float Alpha { get; set; } = 1f;
+    public float? Alpha { get; set; }
     public float Gravity { get; set; } = 1f;
 }
