@@ -218,6 +218,7 @@ public class EntityManager : IDisposable
             entity.Special = mapThing.Special;
             entity.Args = mapThing.Args;
             entity.Alpha = mapThing.Alpha;
+            entity.Gravity = mapThing.Gravity;
 
             if (mapThing.Flags.Ambush)
                 entity.Flags.Ambush = mapThing.Flags.Ambush;

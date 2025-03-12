@@ -24,4 +24,5 @@ public class UdmfThing : IThing
 
     private SpecialArgs _args;
     public float Alpha { get; set; } = 1f;
+    public float Gravity { get; set; } = 1f;
 }

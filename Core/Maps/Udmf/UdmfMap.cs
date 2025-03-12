@@ -185,6 +185,8 @@ public class UdmfMap : IMap
                 thing.Alpha = parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("translucent"))
                 thing.Alpha = 0.25f;
+            else if (prop.Name.EqualsIgnoreCase("gravity"))
+                thing.Gravity = parser.ParseFloat(prop.Value);
         }
 
         thing.Position = new(x, y, z);

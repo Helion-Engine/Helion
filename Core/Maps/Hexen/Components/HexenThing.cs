@@ -18,7 +18,8 @@ public class HexenThing : IThing
     public ref SpecialArgs Args => ref _args;
 
     private SpecialArgs _args;
-    public float Alpha { get; }
+    public float Alpha => 1f;
+    public float Gravity => 1f;
 
     internal HexenThing(int id, ushort tid, Vec3D position, ushort angle, ushort editorNumber,
         ThingFlags flags, ZDoomLineSpecialType special, SpecialArgs args)

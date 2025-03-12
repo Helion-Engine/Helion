@@ -117,6 +117,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public double Height;
     public double Radius;
+    public double Gravity;
     public bool IsFrozen => FrozenTics > 0;
     public bool IsDead => Health <= 0;
     public virtual double ViewZ => 8.0;
@@ -184,6 +185,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         CheckOnGround();
 
         Properties.Threshold = 0;
+        Gravity = 1;
 
         Alpha = (float)Properties.Alpha;
         MonsterMovementSpeed = Properties.MonsterMovementSpeed;
@@ -223,6 +225,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         Flags.InFloat = entityModel.BlockFloat;
         MoveCount = entityModel.MoveCount;
         FrozenTics = entityModel.FrozenTics;
+        Gravity = entityModel.Gravity;
 
         HighestFloorSector = Sector;
         LowestCeilingSector = Sector;
@@ -272,6 +275,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.HighEntity = GetBoundingEntityForModel(HighestFloorObject);
         entityModel.LowEntity = GetBoundingEntityForModel(LowestCeilingObject);
         entityModel.OnGround = OnGround;
+        entityModel.Gravity = Gravity;
         return entityModel;
     }
 

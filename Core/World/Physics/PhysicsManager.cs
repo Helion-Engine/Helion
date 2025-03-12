@@ -1710,8 +1710,14 @@ doneLinkToSectors:
 
         if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
             entity.Velocity.Z *= Constants.DefaultFriction;
+
         if (shouldApplyGravity)
-            entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity * entity.Sector.Gravity;
+        {
+            if (entity.Gravity < 0)
+                entity.Velocity.Z -= entity.Gravity * -1;
+            else
+                entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity * entity.Sector.Gravity * entity.Gravity;
+        }
 
         double floatZ = entity.GetEnemyFloatMove();
         // Only return if OnEntity is null. Need to apply clamping to prevent issues with this entity floating when the entity beneath is no longer blocking.
