@@ -325,6 +325,7 @@ public static class MathHelper
     /// </summary>
     /// <param name="value">Fixed point value to convert.</param>
     /// <returns>Converted double.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double FromFixed(int value)
     {
         return value / 65536.0;
