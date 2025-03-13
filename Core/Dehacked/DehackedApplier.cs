@@ -108,7 +108,7 @@ public class DehackedApplier
 
     private const int DehExtraSpriteStart = 145;
     private const int DehExtraSoundStart = 500;
-    private const double TranslucentValue = 0.38;
+    private const double TranslucentValue = 0.38069;
 
     public DehackedApplier(DefinitionEntries definitionEntries, DehackedDefinition dehacked)
     {
@@ -1343,7 +1343,7 @@ public class DehackedApplier
         flags.Translation2 = GetNewFlagValue(flags.Translation2, (thingProperties & ThingProperties.TRANSLATION2) != 0, opAnd);
         flags.InFloat = GetNewFlagValue(flags.InFloat, (thingProperties & ThingProperties.INFLOAT) != 0, opAnd);
 
-        properties.Alpha = GetNewFlagValue(flags.Friendly, (thingProperties & ThingProperties.TRANSLUCENT) != 0, opAnd) ? TranslucentValue : 1;
+        properties.Alpha = GetNewFlagValue(properties.Alpha == TranslucentValue, (thingProperties & ThingProperties.TRANSLUCENT) != 0, opAnd) ? TranslucentValue : 1;
     }
 
     public static bool CheckEntityFlags(Entity entity, uint flags)
