@@ -67,6 +67,11 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
             for (int i = block.BlockLineIndex; i < count; i++)
             {
                 ref var line = ref Blockmap.BlockLines[i];
+                if (line.LineId == 15356)
+                {
+                    int lol = 1;
+                }
+
                 if (seg.Intersection(line.Segment.Start.X, line.Segment.Start.Y, line.Segment.End.X, line.Segment.End.Y, out double t))
                 {
                     if (WorldStatic.CheckedLines[line.LineId] == checkCounter)

@@ -18,6 +18,7 @@ namespace Helion.Tests.Unit.GameAction
         private Player Player => World.Player;
         private Entity SightThing => GameActions.GetEntity(World, 1);
         private Entity SightThing2 => GameActions.GetEntity(World, 2);
+        private Entity SightThing3 => GameActions.GetEntity(World, 3);
 
         public LineOfSight()
         {
@@ -246,6 +247,16 @@ namespace Helion.Tests.Unit.GameAction
         {
             GameActions.SetEntityPosition(World, Player, new Vec2D(1024, -224));
             World.GetLineOfSightPlayer(SightThing2, false).Should().Be(Player);
+        }
+
+        [Fact(DisplayName = "Line of sight is blocked when exactly on a vertex")]
+        public void LineOfSightExactlyOnVertex()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec2D(1664, -224));
+            World.GetLineOfSightPlayer(SightThing3, false).Should().BeNull();
+            var sector = GameActions.GetSector(World, 9);
+            sector.Floor.Z = 0;
+            World.GetLineOfSightPlayer(SightThing3, false).Should().Be(Player);
         }
     }
 }
