@@ -26,16 +26,10 @@ public class EntityManager : IDisposable
 {
     public record class EntityModelPair(EntityModel Model, Entity Entity);
 
-    public class WorldModelPopulateResult
+    public class WorldModelPopulateResult(IList<Player> players, Dictionary<int, EntityModelPair> entities)
     {
-        public WorldModelPopulateResult(IList<Player> players, Dictionary<int, EntityModelPair> entities)
-        {
-            Players = players;
-            Entities = entities;
-        }
-
-        public IList<Player> Players;
-        public Dictionary<int, EntityModelPair> Entities;
+        public IList<Player> Players = players;
+        public Dictionary<int, EntityModelPair> Entities = entities;
     }
 
     public const int NoTid = 0;
@@ -247,8 +241,6 @@ public class EntityManager : IDisposable
             if (!entity.Flags.ActLikeBridge && ZHeightSet(position.Z))
                 relinkEntities.Add(entity);
 
-            PostProcessEntity(entity);
-
             if (isMusicChanger)
                 entity.ThingId = mapThing.EditorNumber - (int)EditorId.MusicChangerStart;
         }
@@ -370,7 +362,6 @@ public class EntityManager : IDisposable
             setOnGround = pair.Model.OnGround;
         }
 
-        PostProcessEntity(entity);
         FinalizeEntity(entity, false, initSpawn: false);
         if (setOnGround != null)
             entity.OnGround = setOnGround.Value;
@@ -512,10 +503,7 @@ public class EntityManager : IDisposable
 
         if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
             MusicChangers.Add(entity);
-    }
 
-    private void PostProcessEntity(Entity entity)
-    {
         SpawnLocations.AddPossibleSpawnLocation(entity);
 
         if (entity.ThingId != NoTid)

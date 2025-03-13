@@ -3099,25 +3099,25 @@ public static class EntityActionFunctions
         if (!GetDehackedActorDefinition(entity, entity.FrameState.Frame.DehackedArgs1, out var def))
             return;
 
-        double angle = entity.AngleRadians + MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
-        double forwadDist = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs3);
-        double sideDist = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs4);
-        double forwardVel = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs6);
-        double sideVel = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs7);
-        double zOffset = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs5);
-        double zVelocity = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs8);
+        var angle = entity.AngleRadians + MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
+        var xOffset = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs3);
+        var yOffset = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs4);
+        var zOffset = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs5);
+        var xVelocity = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs6);
+        var yVelocity = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs7);
+        var zVelocity = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs8);
 
-        Vec2D forwardUnit = Vec2D.UnitCircle(angle);
-        Vec2D sideUnit = Vec2D.UnitCircle(angle + MathHelper.QuarterPi);
-        Vec3D offset = ((forwardUnit * forwadDist) + (sideUnit * sideDist)).To3D(zOffset);
-        Vec3D velocity = ((forwardUnit * forwardVel) + (sideUnit * sideVel)).To3D(zVelocity);
+        var offset = Vec2D.Rotate(xOffset, yOffset, angle);
+        var velocity = Vec2D.Rotate(xVelocity, yVelocity, angle);
+        var spawnPos = new Vec3D(entity.Position.X + offset.X, entity.Position.Y + offset.Y, entity.Position.Z + zOffset);
 
-        Entity? createdEntity = WorldStatic.EntityManager.Create(def, entity.Position + offset, 0, 0, 0);
+        var createdEntity = WorldStatic.EntityManager.Create(def, spawnPos, 0, angle, 0);
         if (createdEntity == null)
             return;
-
-        createdEntity.AngleRadians = angle;
-        createdEntity.Velocity = velocity;
+        
+        createdEntity.Velocity.X = velocity.X;
+        createdEntity.Velocity.Y = velocity.Y;
+        createdEntity.Velocity.Z = zVelocity;
 
         if (!createdEntity.Flags.Missile && !createdEntity.Flags.MbfBouncer)
             return;

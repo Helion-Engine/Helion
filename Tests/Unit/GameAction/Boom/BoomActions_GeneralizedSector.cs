@@ -112,4 +112,18 @@ public partial class BoomActions
         GameActions.TickWorld(World, 1);
         Player.IsDead.Should().BeFalse();
     }
+
+    [Fact(DisplayName = "Kill grounded monsters doesn't kill not shootable")]
+    public void KillGroundedMonstersNotShootable()
+    {
+        var monsters = GameActions.GetSectorEntities(World, 146);
+        var imp = GameActions.CreateEntity(World, "DoomImp", (704, 1472, 0));
+        imp.Flags.Shootable = false;
+        GameActions.TickWorld(World, 1);
+        imp.IsDead.Should().BeFalse();
+
+        imp.Flags.Shootable = true;
+        GameActions.TickWorld(World, 1);
+        imp.IsDead.Should().BeTrue();
+    }
 }
