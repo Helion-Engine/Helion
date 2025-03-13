@@ -11,3 +11,4 @@
 - Fix monster kill sectors (type 8192) to not kill things without shootable flag
 - Fix teleport destinations not being mapped when created through A_SpawnObject
 - Fix A_SpawnObject x/y offset and x/y velocity calculations
+- Fix line intersection check to be inclusive (fixes Eviternity II boss activating on map start)
