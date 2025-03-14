@@ -63,6 +63,13 @@ public class MapLineFlags
         TwoSided = (flags & TwoSidedMask) == TwoSidedMask;
     }
 
+    private MapLineFlags()
+    {
+
+    }
+
+    public static MapLineFlags Empty() => new();
+
     public static MapLineFlags Doom(ushort flags)
     {
         // Fun doom compatibility. If the garbage reserved bit is on then turn non-vanilla flags off.

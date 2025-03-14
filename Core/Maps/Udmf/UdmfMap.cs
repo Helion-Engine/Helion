@@ -187,6 +187,8 @@ public class UdmfMap : IMap
                 thing.Alpha = 0.25f;
             else if (prop.Name.EqualsIgnoreCase("gravity"))
                 thing.Gravity = parser.ParseFloat(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("health"))
+                thing.Health = (int)parser.ParseFloat(prop.Value);
         }
 
         thing.Position = new(x, y, z);
@@ -305,6 +307,8 @@ public class UdmfMap : IMap
                 sector.PanningFloorY = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("xpanningceiling"))
                 sector.PanningCeilingX = parser.ParseDouble(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("ypanningceiling"))
+                sector.PanningCeilingY = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("xscalefloor"))
                 sector.ScaleFloorX = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("yscalefloor"))
@@ -450,6 +454,8 @@ public class UdmfMap : IMap
                 line.Health = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("healthgroup"))
                 line.HealthGroup = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("id"))
+                line.LineId = parser.ParseInt(prop.Value);
         }
 
         lines.Add(line);

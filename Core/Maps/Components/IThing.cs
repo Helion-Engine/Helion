@@ -20,4 +20,5 @@ public interface IThing
     ref SpecialArgs Args { get; }
     float? Alpha { get; }
     float Gravity { get; }
+    int? Health { get; }
 }

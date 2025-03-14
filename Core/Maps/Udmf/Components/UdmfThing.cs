@@ -25,4 +25,5 @@ public class UdmfThing : IThing
     private SpecialArgs _args;
     public float? Alpha { get; set; }
     public float Gravity { get; set; } = 1f;
+    public int? Health { get; set; }
 }

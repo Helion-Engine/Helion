@@ -20,6 +20,7 @@ public class HexenThing : IThing
     private SpecialArgs _args;
     public float? Alpha => null;
     public float Gravity => 1f;
+    public int? Health => null;
 
     internal HexenThing(int id, ushort tid, Vec3D position, ushort angle, ushort editorNumber,
         ThingFlags flags, ZDoomLineSpecialType special, SpecialArgs args)

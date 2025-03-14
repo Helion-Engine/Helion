@@ -105,7 +105,8 @@ public class UdmfGeometryBuilder
             var line = new Line(mapLine.Id, seg, front, back, flags, special, mapLine.Args)
             {
                 Alpha = mapLine.Alpha,
-                LockNumber = mapLine.LockNumber
+                LockNumber = mapLine.LockNumber,
+                LineId = mapLine.LineId
             };
 
             if (mapLine.Health > 0)

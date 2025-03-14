@@ -32,6 +32,7 @@ public struct LineFlags
         Blocking.FloatMonsters = flags.BlockFloatMonsters;
         Blocking.Everything = flags.BlockEverything;
         Blocking.Use = flags.BlockUse;
+        Blocking.Sight = flags.BlockSight;
 
         Unpegged.Upper = flags.UpperUnpegged;
         Unpegged.Lower = flags.LowerUnpegged;

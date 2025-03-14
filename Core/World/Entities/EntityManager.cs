@@ -228,6 +228,8 @@ public class EntityManager : IDisposable
                 entity.Flags.CountItem = mapThing.Flags.CountItem;
             if (mapThing.Flags.Dormant)
                 entity.Flags.Dormant = mapThing.Flags.Dormant;
+            if (mapThing.Health.HasValue)
+                entity.Health = mapThing.Health.Value;
 
             if (mapThing.Flags.CountSecret)
             {

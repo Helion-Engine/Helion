@@ -21,6 +21,7 @@ public class DoomThing : IThing
     private SpecialArgs _args;
     public float? Alpha => null;
     public float Gravity => 1f;
+    public int? Health => null;
 
     internal DoomThing(int id, Vec2Fixed position, ushort angle, ushort editorNumber, ThingFlags flags)
     {

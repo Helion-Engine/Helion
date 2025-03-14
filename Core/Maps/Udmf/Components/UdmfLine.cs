@@ -9,7 +9,7 @@ namespace Helion.Maps.Udmf.Components;
 
 public class UdmfLine : ILine
 {
-    public MapLineFlags Flags { get; set; } = MapLineFlags.ZDoom(0);
+    public MapLineFlags Flags { get; set; } = MapLineFlags.Empty();
     public int Id { get; set; }
     public Vec2D StartPosition { get; set; }
     public Vec2D EndPosition { get; set; }
@@ -28,6 +28,7 @@ public class UdmfLine : ILine
     public ZDoomKeyType LockNumber;
     public int Health;
     public int HealthGroup;
+    public int LineId;
     public bool DamageSpecial;
     public bool DeathSpecial;
     public bool WrapMidTex;
