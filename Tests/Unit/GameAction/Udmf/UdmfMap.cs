@@ -22,7 +22,7 @@ public class UdmfMap
 
     public UdmfMap()
     {
-        World = WorldAllocator.LoadMap(ResourceZip, "udmfmap.WAD", MapName, GetType().Name, (world) => { }, IWadType.Doom2);
+        World = WorldAllocator.LoadMap(ResourceZip, "udmfmap.wad", MapName, GetType().Name, (world) => { }, IWadType.Doom2);
     }
 
     [Fact(DisplayName = "UDMF side offsets")]
