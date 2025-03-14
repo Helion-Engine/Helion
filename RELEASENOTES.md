@@ -4,6 +4,7 @@
 - Upgrade to .NET 9
 - UDMF implementation
 - Improvements to initial map load times
+- Line contrast mode (off, vanilla, smooth)
 
 ## Bug fixes:
 - Correct missile blocking checks to match original behavior (fixes radsuits blocking rockets etc)
