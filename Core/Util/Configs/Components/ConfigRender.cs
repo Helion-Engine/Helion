@@ -33,6 +33,13 @@ public enum SkyRenderMode
     Dynamic
 }
 
+public enum RenderContrastMode
+{
+    Off,
+    Vanilla,
+    Smooth
+}
+
 public class ConfigRenderFilter : ConfigElement<ConfigRenderFilter>
 {
     [ConfigInfo("Filter applied to fonts.")]
@@ -111,8 +118,11 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Gamma correction", spacer: true, sliderMin: 1.0, sliderMax: 4.0, sliderStep: .1)]
     public readonly ConfigValue<double> GammaCorrection = new(1, Clamp(1.0, 4.0));
 
-    [ConfigInfo("Emulate fake contrast like vanilla Doom.")]
-    [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Contrast")]
+    [ConfigInfo("Line contrast mode.", mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Line contrast mode")]
+    public readonly ConfigValue<RenderContrastMode> ContrastMode = new(RenderContrastMode.Vanilla);
+
+    [ConfigInfo("Emulate fake contrast like vanilla Doom.", legacy: true)]
     public readonly ConfigValue<bool> FakeContrast = new(true);
 
     [ConfigInfo("Render sprites over floors/ceilings. Sprites always clipped to walls. May slow down rendering.", mapRestartRequired: true)]

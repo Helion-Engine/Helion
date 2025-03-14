@@ -329,7 +329,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (skyVertices2 != null)
             {
                 // The side has to be marked to be re-calculated on movement because it can completely change how the sky is rendered.
-                side.UpperSky = true;
+                side.Flags.UpperSky = true;
                 skyVertices = skyVertices2;
             }
 
@@ -374,7 +374,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (middle && side.Middle.TextureHandle != Constants.NoTextureIndex && ShouldRenderStaticMiddle(side))
         {
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
-            SetSideVertices(side, side.Middle, update, sideVertices, true, repeatY: false);
+            SetSideVertices(side, side.Middle, update, sideVertices, true, repeatY: side.Flags.WrapMidTex);
         }
     }
 
@@ -739,7 +739,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             var line = plane.Sector.Lines[i];
             UpdateSectorPlaneFloodFill(line);
 
-            if (line.Front.IsDynamic || line.Front.UpperSky)
+            if (line.Front.IsDynamic || line.Front.Flags.UpperSky)
             {
                 ClearSideGeometryVertices(line.Front, line.Front.Upper);
                 m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Upper);
@@ -756,7 +756,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (line.Back == null)
                 continue;
 
-            if (line.Back.IsDynamic || line.Back.UpperSky)
+            if (line.Back.IsDynamic || line.Back.Flags.UpperSky)
             {
                 ClearSideGeometryVertices(line.Back, line.Back.Upper);
                 m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Upper);

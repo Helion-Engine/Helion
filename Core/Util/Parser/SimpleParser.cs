@@ -1,55 +1,58 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
+using System.Runtime.CompilerServices;
 
 namespace Helion.Util.Parser;
 
 public readonly record struct ParserOffset(int Line, int Char);
+record struct LineSpan(int Index, int Length, int NextIndex);
 
 public class SimpleParser
 {
-    private class ParserToken
+    private struct ParserToken(int line, int index, int length,
+        int endLine = -1, int endIndex = -1)
     {
-        public ParserToken(int line, int index, int length,
-            int endLine = -1, int endIndex = -1)
-        {
-            Line = line;
-            Index = index;
-            Length = length;
-            EndLine = endLine;
-            EndIndex = endIndex;
-        }
-
-        public int Index { get; private set; }
-        public int Line { get; private set; }
-        public int Length { get; private set; }
-        public int EndLine { get; private set; }
-        public int EndIndex { get; private set; }
+        public int Index = index;
+        public int Line = line;
+        public int Length = length;
+        public int EndLine = endLine;
+        public int EndIndex = endIndex;
     }
 
-    private readonly List<ParserToken> m_tokens = new();
-    private readonly HashSet<char> m_special = new();
+    private readonly List<ParserToken> m_tokens = [];
+    private readonly HashSet<char> m_special = [];
     private readonly ParseType m_parseType;
-    private string[] m_lines = Array.Empty<string>();
-    private Func<string, int, bool>? m_commentCallback;
+    private readonly List<LineSpan> m_lines = [];
+    private readonly bool m_keepBeginningSpaces;
+    private Func<string, int, int, bool>? m_commentCallback;
+    private Func<char, bool>? m_specialCallback;
 
     private int m_index = 0;
+    private int m_startLine;
+    private bool m_isQuote;
+    private bool m_quotedString;
+    private bool m_split;
+    private string m_data = string.Empty;
 
-    private static readonly NumberFormatInfo DecimalFormat = new NumberFormatInfo { NumberDecimalSeparator = "." };
+    private static readonly NumberFormatInfo DecimalFormat = new() { NumberDecimalSeparator = "." };
 
     public static bool TryParseDouble(string text, out double d) =>
-        double.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out d);
+        double.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, DecimalFormat, out d);
+    public static bool TryParseDouble(ReadOnlySpan<char> text, out double d) =>
+        double.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, DecimalFormat, out d);
 
     public static bool TryParseFloat(string text, out float f) =>
-        float.TryParse(text, NumberStyles.AllowDecimalPoint, DecimalFormat, out f);
+        float.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, DecimalFormat, out f);
+    public static bool TryParseFloat(ReadOnlySpan<char> text, out float f) =>
+        float.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, DecimalFormat, out f);
 
     private static readonly char[] SpecialChars = ['{', '}', '=', ';', ',', '[', ']'];
-    private static readonly string[] SplitLines = ["\r\n", "\n"];
 
-    public SimpleParser(ParseType parseType = ParseType.Normal)
+    public SimpleParser(ParseType parseType = ParseType.Normal, bool keepBeginningSpaces = false)
     {
         m_parseType = parseType;
+        m_keepBeginningSpaces = keepBeginningSpaces;
         SetSpecialChars(SpecialChars);
     }
 
@@ -60,155 +63,215 @@ public class SimpleParser
             m_special.Add(c);
     }
 
-    public void SetCommentCallback(Func<string, int, bool> callback) =>
+    public void SetCommentCallback(Func<string, int, int, bool> callback) =>
         m_commentCallback = callback;
 
-    public void Parse(string data, bool keepEmptyLines = false, bool parseQuotes = true)
+    public void SetSpecialCallback(Func<char, bool> callback) =>
+        m_specialCallback = callback;
+
+    public unsafe void Parse(string data, bool keepEmptyLines = false, bool parseQuotes = true)
     {
+        m_data = data;
         m_index = 0;
-        m_lines = data.Split(SplitLines, StringSplitOptions.None);
+        m_startLine = 0;
+        m_isQuote = false;
+        m_quotedString = false;
+        m_split = false;
         bool multiLineComment = false;
         int lineCount = 0;
-        int startLine = 0;
-
-        bool isQuote = false;
-        bool quotedString = false;
-        bool split = false;
-        int startIndex;
+        int startIndex = 0;
         int saveStartIndex = 0;
+        int lineStartIndex = 0;
+        int length = data.Length;
+        char currentChar = ' ', nextChar = ' ';
 
-        foreach (string line in m_lines)
+        m_tokens.EnsureCapacity(length / 8);
+        if (m_keepBeginningSpaces)
+            m_lines.EnsureCapacity(length / 16);
+
+        fixed (char* pStartChar = data)
         {
-            if (line.Length == 0)
+            for (int i = 0; i < length; i++)
             {
-                if (keepEmptyLines && !quotedString)
-                    m_tokens.Add(new ParserToken(lineCount, 0, 0));
-                lineCount++;
-                continue;
-            }
+                ReadChars(pStartChar, i, length, ref currentChar, ref nextChar);
+                bool newLine = currentChar == '\n';
+                bool lineReturn = i < length - 1 && currentChar == '\r' && nextChar == '\n';
+                if (newLine || lineReturn)
+                {
+                    AddEndLineToken(keepEmptyLines, multiLineComment, lineCount, startIndex, saveStartIndex, lineStartIndex, i);
 
-            if (!isQuote)
-                ResetQuote();
+                    lineCount++;
+                    if (lineReturn)
+                        i++;
+                    startIndex = i + 1;
+                    lineStartIndex = startIndex;
 
-            startIndex = 0;
+                    if (!m_isQuote)
+                        ResetQuote(lineCount);
+                    continue;
+                }
 
-            for (int i = 0; i < line.Length; i++)
-            {
-                if (!isQuote && IsSingleLineComment(line, i))
+                if (i >= length)
+                    break;
+
+                if (!m_isQuote &&
+                    (m_commentCallback == null && currentChar == '/' && nextChar == '/') || (m_commentCallback != null && m_commentCallback(data, lineStartIndex - i, i)))
                 {
                     if (i > 0)
                         AddToken(startIndex, i, lineCount, false);
-                    startIndex = line.Length;
-                    break;
+                    var lineSpan = GetLineSpan(pStartChar, length, startIndex);
+                    if (m_keepBeginningSpaces)
+                        m_lines.Add(lineSpan);
+                    startIndex = lineSpan.NextIndex;
+                    lineStartIndex = startIndex;
+                    i = startIndex - 1;
+                    lineCount++;
+                    ResetQuote(lineCount);
+                    continue;
                 }
 
-                if (!isQuote && IsStartMultiLineComment(line, ref i))
+                if (!m_isQuote && IsStartMultiLineComment(currentChar, nextChar, ref i))
+                {
                     multiLineComment = true;
+                    ReadChars(pStartChar, i, length, ref currentChar, ref nextChar);
+                }
 
-                if (multiLineComment && IsEndMultiLineComment(line, ref i))
+                if (multiLineComment && IsEndMultiLineComment(currentChar, nextChar, ref i))
                 {
                     multiLineComment = false;
-                    startIndex = i;
+                    startIndex = i + 1;
+                    continue;
                 }
 
-                if (i >= line.Length)
+                if (i >= length)
                     break;
 
                 if (multiLineComment)
                     continue;
 
-                if (parseQuotes && line[i] == '"')
+                if (parseQuotes && currentChar == '"')
                 {
-                    quotedString = true;
-                    isQuote = !isQuote;
-                    if (isQuote)
+                    m_quotedString = true;
+                    m_isQuote = !m_isQuote;
+                    if (m_isQuote)
                     {
                         AddToken(startIndex, i, lineCount, false);
                         saveStartIndex = i;
                     }
                     else
                     {
-                        split = true;
+                        m_split = true;
                     }
                 }
 
-                if (!isQuote)
+                if (!m_isQuote)
                 {
-                    bool special = CheckSpecial(line[i]);
-                    if (split || special || CheckSplit(line[i]))
+                    bool special = CheckSpecial(currentChar);
+                    if (m_split || special || CheckSplit(currentChar))
                     {
-                        if (startLine == lineCount)
-                            AddToken(startIndex, i, lineCount, quotedString);
+                        if (m_startLine == lineCount)
+                            AddToken(startIndex, i, lineCount, m_quotedString);
                         else
-                            AddToken(saveStartIndex, startLine, lineCount, i, quotedString);
+                            AddToken(saveStartIndex, m_startLine, lineCount, i, m_quotedString);
                         startIndex = i + 1;
-                        split = false;
+                        m_split = false;
 
-                        ResetQuote();
+                        ResetQuote(lineCount);
                     }
 
                     // Also add the special char as a token (e.g. '{')
                     if (special)
-                        AddToken(i, i + 1, lineCount, quotedString);
+                        AddToken(i, i + 1, lineCount, m_quotedString);
                 }
             }
-
-            if (!isQuote && !multiLineComment)
-            {
-                if (startLine == lineCount)
-                    AddToken(startIndex, line.Length, lineCount, quotedString);
-                else if (line.Length != startIndex)
-                    AddToken(saveStartIndex, startLine, lineCount, startIndex, quotedString);
-            }
-
-            lineCount++;
         }
 
-        void ResetQuote()
+        AddEndLineToken(keepEmptyLines, multiLineComment, lineCount, startIndex, saveStartIndex, lineStartIndex, length);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe void ReadChars(char* pChar, int i, int length, ref char currentChar, ref char nextChar)
+    {
+        pChar += i;
+        currentChar = *pChar;
+        if (i < length)
         {
-            isQuote = false;
-            quotedString = false;
-            split = false;
-            startLine = lineCount;
+            pChar++;
+            nextChar = *pChar;
         }
+        else
+            nextChar = '\0';
+    }
+
+    private void AddEndLineToken(bool keepEmptyLines, bool multiLineComment, int lineCount, int startIndex, int saveStartIndex, int lineStartIndex, int i)
+    {
+        var lineSpan = new LineSpan(lineStartIndex, i - lineStartIndex, i + 1);
+        if (lineSpan.Length == 0 && keepEmptyLines && !m_quotedString)
+        {
+            m_tokens.Add(new ParserToken(lineCount, lineStartIndex, 0));
+        }
+        else if (!m_isQuote && !multiLineComment)
+        {
+            if (m_startLine == lineCount)
+                AddToken(startIndex, lineSpan.Index + lineSpan.Length, lineCount, m_quotedString);
+            else if (lineSpan.Index + lineSpan.Length != startIndex)
+                AddToken(saveStartIndex, m_startLine, lineCount, startIndex, m_quotedString);
+        }
+
+        if (m_keepBeginningSpaces)
+            m_lines.Add(lineSpan);
+    }
+
+    private static unsafe LineSpan GetLineSpan(char* pStartChar, int length, int start)
+    {
+        int i = start;
+        for (; i < length; i++)
+        {
+            char currentChar = *(pStartChar + i);
+            if (currentChar == '\n')
+                return new LineSpan(start, i - start, i + 1);
+
+            if (i < length - 1 && currentChar == '\r' && *(pStartChar + 1) == '\n')
+                return new LineSpan(start, i - start, i + 2);
+        }
+
+        return new LineSpan(start, i - start, i);
+    }
+
+    void ResetQuote(int lineCount)
+    {
+        m_isQuote = false;
+        m_quotedString = false;
+        m_split = false;
+        m_startLine = lineCount;
     }
 
     // Just for debugging purposes
     public List<string> GetAllTokenStrings()
     {
-        List<string> tokens = new();
+        List<string> tokens = new(m_tokens.Count);
         for (int i = 0; i < m_tokens.Count; i++)
             tokens.Add(GetData(i));
         return tokens;
     }
 
-    private static bool IsEndMultiLineComment(string line, ref int i)
+    private static bool IsEndMultiLineComment(char currentChar, char nextChar, ref int i)
     {
-        if (line.Length < 2 || i >= line.Length)
-            return false;
-
-        if (line[i] != '*' || !CheckNext(line, i, '/'))
+        if (currentChar != '*' || nextChar != '/')
             return false;
 
         i += 2;
         return true;
     }
 
-
-    private static bool IsStartMultiLineComment(string line, ref int i)
+    private static bool IsStartMultiLineComment(char currentChar, char nextChar, ref int i)
     {
-        if (line.Length < 2)
-            return false;
-
-        if (line[i] != '/' || !CheckNext(line, i, '*'))
+        if (currentChar != '/' || nextChar != '*')
             return false;
 
         i += 2;
         return true;
     }
-
-    private bool IsSingleLineComment(string line, int i)
-        => (m_commentCallback != null && m_commentCallback(line, i)) || (line[i] == '/' && CheckNext(line, i, '/'));
 
     private bool CheckSplit(char c)
     {
@@ -220,6 +283,9 @@ public class SimpleParser
 
     private bool CheckSpecial(char c)
     {
+        if (m_specialCallback != null)
+            return m_specialCallback(c);
+
         if (m_parseType != ParseType.Normal)
             return false;
 
@@ -241,10 +307,8 @@ public class SimpleParser
         if (quotedString)
             startIndex++;
 
-        m_tokens.Add(new ParserToken(startLine, startIndex, endIndex, endLine, endIndex));
+        m_tokens.Add(new ParserToken(startLine, startIndex, endIndex - startIndex, endLine, endIndex));
     }
-
-    private static bool CheckNext(string str, int i, char c) => i + 1 < str.Length && str[i + 1] == c;
 
     public int GetCurrentLine() => IsDone() ? -1 : m_tokens[m_index].Line;
     public int GetCurrentCharOffset() => IsDone() ? -1 : m_tokens[m_index].Index;
@@ -271,10 +335,19 @@ public class SimpleParser
         if (IsDone())
             return false;
 
-        if (GetData(m_index).Equals(str, StringComparison.OrdinalIgnoreCase))
+        if (GetDataSpan(m_index).Equals(str, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;
+    }
+
+    public ReadOnlySpan<char> PeekStringSpan()
+    {
+        if (IsDone())
+            return string.Empty;
+
+        AssertData();
+        return GetDataSpan(m_index);
     }
 
     public string PeekString()
@@ -305,7 +378,7 @@ public class SimpleParser
         }
 
         AssertData();
-        return int.TryParse(GetData(m_index), out i);
+        return int.TryParse(GetDataSpan(m_index), out i);
     }
 
     public string ConsumeString()
@@ -314,12 +387,18 @@ public class SimpleParser
         return GetData(m_index++);
     }
 
+    public ReadOnlySpan<char> ConsumeStringSpan()
+    {
+        AssertData();
+        return GetDataSpan(m_index++);
+    }
+
     public void ConsumeString(string str)
     {
         AssertData();
 
         ParserToken token = m_tokens[m_index];
-        string data = GetData(m_index);
+        var data = GetDataSpan(m_index);
         if (!data.Equals(str, StringComparison.OrdinalIgnoreCase))
             throw new ParserException(token.Line, token.Index, -1, $"Expected {str} but got {data}");
 
@@ -331,9 +410,9 @@ public class SimpleParser
         if (IsDone())
             return false;
 
-        if (str.Equals(PeekString(), StringComparison.OrdinalIgnoreCase))
+        if (PeekStringSpan().Equals(str, StringComparison.OrdinalIgnoreCase))
         {
-            ConsumeString();
+            ConsumeStringSpan();
             return true;
         }
 
@@ -347,7 +426,7 @@ public class SimpleParser
 
         if (PeekInteger(out int i))
         {
-            ConsumeString();
+            ConsumeStringSpan();
             return i;
         }
 
@@ -358,8 +437,8 @@ public class SimpleParser
     {
         AssertData();
 
-        ParserToken token = m_tokens[m_index];
-        string data = GetData(m_index);
+        var token = m_tokens[m_index];
+        var data = GetDataSpan(m_index);
         if (int.TryParse(data, out int i))
         {
             m_index++;
@@ -373,8 +452,8 @@ public class SimpleParser
     {
         AssertData();
 
-        ParserToken token = m_tokens[m_index];
-        string data = GetData(m_index);
+        var token = m_tokens[m_index];
+        var data = GetDataSpan(m_index);
         if (TryParseDouble(data, out double d))
         {
             m_index++;
@@ -389,7 +468,7 @@ public class SimpleParser
         AssertData();
 
         ParserToken token = m_tokens[m_index];
-        string data = GetData(m_index);
+        var data = GetDataSpan(m_index);
         if (bool.TryParse(data, out bool b))
         {
             m_index++;
@@ -399,12 +478,33 @@ public class SimpleParser
         throw new ParserException(token.Line, token.Index, -1, $"Could not parse {data} as a bool.");
     }
 
+    public double ParseDouble(ReadOnlySpan<char> data)
+    {
+        if (!TryParseDouble(data, out var d))
+            throw new ParserException(GetCurrentLine(), -1, -1, $"Could not parse {data} as a double.");
+        return d;
+    }
+
+    public float ParseFloat(ReadOnlySpan<char> data)
+    {
+        if (!TryParseFloat(data, out var d))
+            throw new ParserException(GetCurrentLine(), -1, -1, $"Could not parse {data} as a float.");
+        return d;
+    }
+
+    public int ParseInt(ReadOnlySpan<char> data)
+    {
+        if (!int.TryParse(data, out var d))
+            throw new ParserException(GetCurrentLine(), -1, -1, $"Could not parse {data} as a int.");
+        return d;
+    }
+
     public void Consume(char c)
     {
         AssertData();
 
         ParserToken token = m_tokens[m_index];
-        string data = GetData(m_index);
+        var data = GetDataSpan(m_index);
         if (data.Length != 1 || char.ToUpperInvariant(data[0]) != char.ToUpperInvariant(c))
             throw new ParserException(token.Line, token.Index, -1, $"Expected {c} but got {data}.");
 
@@ -418,15 +518,40 @@ public class SimpleParser
     {
         AssertData();
 
-        ParserToken token = m_tokens[m_index];
+        var token = m_tokens[m_index];
+
         int startLine = m_tokens[m_index].Line;
         while (m_index < m_tokens.Count && m_tokens[m_index].Line == startLine)
             m_index++;
 
-        if (keepBeginningSpaces)
-            return m_lines[token.Line];
+        if (m_keepBeginningSpaces && keepBeginningSpaces)
+        {
+            var lineSpan = m_lines[token.Line];
+            return m_data.Substring(lineSpan.Index, lineSpan.Length);
+        }
 
-        return m_lines[token.Line][token.Index..];
+        var endToken = m_tokens[m_index - 1];
+        return m_data.Substring(token.Index, endToken.Index + endToken.Length - token.Index);
+    }
+
+    public ReadOnlySpan<char> ConsumeLineSpan(bool keepBeginningSpaces = false)
+    {
+        AssertData();
+
+        var token = m_tokens[m_index];
+
+        int startLine = m_tokens[m_index].Line;
+        while (m_index < m_tokens.Count && m_tokens[m_index].Line == startLine)
+            m_index++;
+
+        if (m_keepBeginningSpaces && keepBeginningSpaces)
+        {
+            var lineSpan = m_lines[token.Line];
+            return m_data.Substring(lineSpan.Index, lineSpan.Length);
+        }
+
+        var endToken = m_tokens[m_index - 1];
+        return m_data.Substring(token.Index, endToken.Index + endToken.Length - token.Index);
     }
 
     /// <summary>
@@ -437,12 +562,16 @@ public class SimpleParser
         AssertData();
         int index = m_index;
 
-        ParserToken token = m_tokens[index];
-        int startLine = m_tokens[index].Line;
-        while (index < m_tokens.Count && m_tokens[index].Line == startLine)
+        var token = m_tokens[index];
+        int startLine = m_tokens[m_index].Line;
+        while (index < m_tokens.Count - 1 && m_tokens[index].Line == startLine)
             index++;
 
-        return m_lines[token.Line][token.Index..];
+        if (m_tokens[index].Line != startLine)
+            index--;
+
+        var endToken = m_tokens[index];
+        return m_data.Substring(token.Index, endToken.Index - token.Index + endToken.Length);
     }
 
     public ParserException MakeException(string reason)
@@ -459,56 +588,37 @@ public class SimpleParser
     private void AssertData()
     {
         if (IsDone())
-        {
-            int line = m_tokens.Count == 0 ? 0 : m_tokens[^1].Line;
-            throw new ParserException(line, m_lines[^1].Length - 1, -1, "Hit end of file when expecting data.");
-        }
+            throw new ParserException(GetCurrentLine(), GetCurrentCharOffset(), -1, "Hit end of file when expecting data.");
+    }
+
+    private ReadOnlySpan<char> GetDataSpan(int index)
+    {
+        var token = m_tokens[index];
+        if (token.EndLine == -1)
+            return m_data.AsSpan(token.Index, token.Length);
+        else
+            return m_data.AsSpan(token.Index, token.EndIndex - token.Index);
     }
 
     private string GetData(int index)
     {
-        ParserToken token = m_tokens[index];
-
+        var token = m_tokens[index];
         if (token.EndLine == -1)
-        {
-            return m_lines[token.Line].Substring(token.Index, token.Length);
-        }
+            return m_data.Substring(token.Index, token.Length);
         else
-        {
-            StringBuilder sb = new();
-            for (int i = token.Line; i < token.EndLine + 1; i++)
-            {
-                if (i == token.EndLine)
-                {
-                    sb.Append(m_lines[i].AsSpan(0, token.EndIndex));
-                }
-                else
-                {
-                    if (i == token.Line)
-                        sb.Append(m_lines[i].AsSpan(token.Index));
-                    else
-                        sb.Append(m_lines[i]);
-
-                    sb.Append('\n');
-                }
-            }
-
-            return sb.ToString();
-        }
+            return m_data.Substring(token.Index, token.EndIndex - token.Index);
     }
 
     private bool GetCharData(int index, out char c)
     {
-        ParserToken token = m_tokens[index];
-        var line = m_lines[token.Line];
-
-        if (token.Index >= line.Length)
+        var token = m_tokens[index];
+        if (token.Index >= m_data.Length)
         {
             c = ' ';
             return false;
         }
 
-        c = line[token.Index];
+        c = m_data[token.Index];
         return true;
     }
 }

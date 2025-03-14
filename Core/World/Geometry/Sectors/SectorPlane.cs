@@ -30,6 +30,7 @@ public sealed class SectorPlane : ISoundSource
 
     public bool MidTextureHack;
     public bool NoRender;
+    public bool LightLevelAbsolute;
     public StaticSkyGeometryData? SkyGeometry;
 
     private IAudioSource? m_audio;
@@ -63,10 +64,12 @@ public sealed class SectorPlane : ISoundSource
         LastRenderGametick = default;
         Dynamic = default;
         Static = default;
-        RenderOffsets = default;
         MidTextureHack = default;
         NoRender = default;
         SkyGeometry = default;
+
+        RenderOffsets.Offset = default;
+        RenderOffsets.LastOffset = default;
     }
 
     public void SetZ(double z)

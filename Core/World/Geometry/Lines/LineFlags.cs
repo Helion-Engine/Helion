@@ -10,6 +10,7 @@ public struct LineFlags
     public UnpeggedFlags Unpegged;
     public LineActivations Activations;
     public bool BlockSound;
+    public bool BlockUse;
     public bool Repeat;
     public bool PassThrough;
     public bool TwoSided;
@@ -21,12 +22,17 @@ public struct LineFlags
         Automap.NeverDraw = flags.NoDrawAutomap;
         Automap.DrawAsOneSided = flags.DrawAsOneSidedAutomap;
 
-        Blocking.Hitscan = false;
+        Blocking.Hitscan = flags.BlockHitscan;
         Blocking.Monsters = flags.BlockPlayersAndMonsters || flags.BlockMonsters;
         Blocking.Players = flags.BlockPlayersAndMonsters || flags.BlockPlayers;
         Blocking.PlayersMbf21 = flags.BlockPlayersMbf21;
         Blocking.LandMonstersMbf21 = flags.BlockLandMonstersMbf21;
-        Blocking.Projectiles = false;
+        Blocking.Projectiles = flags.BlockProjectiles;
+        Blocking.LandMonsters = flags.BlockLandMonsters;
+        Blocking.FloatMonsters = flags.BlockFloatMonsters;
+        Blocking.Everything = flags.BlockEverything;
+        Blocking.Use = flags.BlockUse;
+        Blocking.Sight = flags.BlockSight;
 
         Unpegged.Upper = flags.UpperUnpegged;
         Unpegged.Lower = flags.LowerUnpegged;

@@ -10,6 +10,7 @@ public class DehackedText
     public void DehackedTextBlock()
     {
         string data = @"
+# Dehacked comment
 Doom version = 19
 Patch format = 6
 
@@ -30,13 +31,20 @@ HOSTAGE.YOU STEPPED THROUGH ENOUGH LAVA TO COOK
 YOUR BOOTS TO A NICE MEDIUM RARE. YOU
 ARE ALREADY EXCITED FOR THE NICE COOL
 BATH YOU HAVE PREPARED BACK AT HOME.
+
+Text 21 4
+   STRING WITH SPACES   REPLACEMENT STRING WITH SPACES
 ";
         var dehacked = new DehackedDefinition();
         dehacked.Parse(data);
 
-        dehacked.Strings.Count.Should().Be(1);
+        dehacked.Strings.Count.Should().Be(2);
         var str = dehacked.Strings[0];
         str.OldString.Should().Be("YOU HAVE ENTERED DEEPLY INTO THE INFESTED\nSTARPORT. BUT SOMETHING IS WRONG. THE\nMONSTERS HAVE BROUGHT THEIR OWN REALITY\nWITH THEM, AND THE STARPORT'S TECHNOLOGY\nIS BEING SUBVERTED BY THEIR PRESENCE.\n\nAHEAD, YOU SEE AN OUTPOST OF HELL, A\nFORTIFIED ZONE. IF YOU CAN GET PAST IT,\nYOU CAN PENETRATE INTO THE HAUNTED HEART\nOF THE STARBASE AND FIND THE CONTROLLING\nSWITCH WHICH HOLDS EARTH'S POPULATION\nHOSTAGE.");
         str.NewString.Should().Be("YOU STEPPED THROUGH ENOUGH LAVA TO COOK\nYOUR BOOTS TO A NICE MEDIUM RARE. YOU\nARE ALREADY EXCITED FOR THE NICE COOL\nBATH YOU HAVE PREPARED BACK AT HOME.");
+
+        str = dehacked.Strings[1];
+        str.OldString.Should().Be("   STRING WITH SPACES");
+        str.NewString.Should().Be("   REPLACEMENT STRING WITH SPACES");
     }
 }

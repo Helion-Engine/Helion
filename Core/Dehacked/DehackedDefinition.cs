@@ -20,6 +20,8 @@ public partial class DehackedDefinition
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly Regex PointerRegex = new(@"^\(\S+ (\d+)\)");
 
+    public event EventHandler<string>? OnUnknownItem;
+
     public readonly List<DehackedThing> Things = new();
     public readonly List<DehackedFrame> Frames = new();
     public readonly List<DehackedAmmo> Ammo = new();
@@ -117,7 +119,7 @@ public partial class DehackedDefinition
 
     private static SimpleParser CreateDehackedParser(string data)
     {
-        SimpleParser parser = new();
+        SimpleParser parser = new(keepBeginningSpaces: true);
         parser.SetSpecialChars(SpecialChars);
         parser.SetCommentCallback(IsComment);
         parser.Parse(data, keepEmptyLines: true, parseQuotes: false);
@@ -202,16 +204,17 @@ public partial class DehackedDefinition
         return false;
     }
 
-    private static bool IsComment(string line, int i) => i == 0 && line[i] == '#';
+    private static bool IsComment(string data, int lineStartIndex, int index) => lineStartIndex == 0 && data[index] == '#';
 
-    private static void UnknownWarning(SimpleParser parser, string type, string? prefix = null)
+    private void UnknownWarning(SimpleParser parser, string type, string? prefix = null)
     {
-        int lineNumber = parser.GetCurrentLine();
-        string line = parser.ConsumeLine();
+        var lineNumber = parser.GetCurrentLine();
+        var line = parser.ConsumeLine();
+        if (string.IsNullOrWhiteSpace(line) && string.IsNullOrWhiteSpace(prefix))
+            return;
         if (prefix != null)
             line = prefix + " " + line;
-        if (string.IsNullOrWhiteSpace(line))
-            return;
+        OnUnknownItem?.Invoke(this, line);
         Log.Warn($"Dehacked: Skipping unknown {type}: {line} line:{lineNumber}");
     }
 
@@ -746,6 +749,8 @@ public partial class DehackedDefinition
     {
         DehackedSound sound = new();
         sound.Number = parser.ConsumeInteger();
+        if (parser.Peek('('))
+           parser.ConsumeLine();
 
         while (!IsBlockComplete(parser))
         {

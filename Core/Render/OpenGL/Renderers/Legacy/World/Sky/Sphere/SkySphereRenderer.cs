@@ -50,7 +50,7 @@ public class SkySphereRenderer : IDisposable
         ReleaseUnmanagedResources();
     }
 
-    public void Render(RenderInfo renderInfo, SkyOptions options, Vec2I offset)
+    public void Render(RenderInfo renderInfo, SkyOptions options, Vec2F offset)
     {
         m_mode = renderInfo.Config.SkyMode.Value;
         GL.ActiveTexture(TextureUnit.Texture0);

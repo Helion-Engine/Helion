@@ -74,7 +74,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
 
                     WorldStatic.CheckedLines[line.LineId] = checkCounter;
 
-                    if (line.OneSided)
+                    if (line.OneSided || line.BlockFlags.Sight)
                     {
                         hitOneSidedLine = true;
                         goto sightTraverseEndOfLoop;
@@ -139,7 +139,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                     bi.Index = i;
                     bi.SegTime = t;
                     length++;
-                }                
+                }
             }
 
             ref var blockEntities = ref Blockmap.Entities[blockIndex];
@@ -192,6 +192,45 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                     entity.BlockmapCount = checkCounter;
                     if (entity.Overlaps2D(box))
                         action(entity);
+                }
+            }
+        }
+    }
+
+    public void ExplosionTraverseWithLines(Box2D box, Action<Entity> entityAction, Action<int> blockLineAction)
+    {
+        int checkCounter = ++WorldStatic.CheckCounter;
+        var it = Blockmap.CreateBoxIteration(box);
+        for (int by = it.BlockStartY; by <= it.BlockEndY; by++)
+        {
+            for (int bx = it.BlockStartX; bx <= it.BlockEndX; bx++)
+            {
+                var blockIndex = by * it.Width + bx;
+                ref var block = ref Blockmap.Entities[blockIndex];
+                for (int i = block.EntityIndicesLength - 1; i >= 0; i--)
+                {
+                    var entity = m_dataCache.Entities[block.EntityIndices[i]];
+                    if (entity.BlockmapCount == checkCounter)
+                        continue;
+                    if (!entity.Flags.Shootable)
+                        continue;
+
+                    entity.BlockmapCount = checkCounter;
+                    if (entity.Overlaps2D(box))
+                        entityAction(entity);
+                }
+
+                ref var blockLines = ref Blockmap.Lines[blockIndex];
+                int count = blockLines.BlockLineIndex + blockLines.BlockLineCount;
+                for (int i = blockLines.BlockLineIndex; i < count; i++)
+                {
+                    ref var line = ref Blockmap.BlockLines[i];
+                    if (WorldStatic.CheckedLines[line.LineId] == checkCounter)
+                        continue;
+
+                    WorldStatic.CheckedLines[line.LineId] = checkCounter;
+                    if (box.Intersects(line.Segment))
+                        blockLineAction(i);
                 }
             }
         }

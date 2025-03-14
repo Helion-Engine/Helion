@@ -3,6 +3,7 @@ using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
 using Helion.Maps.Doom;
 using Helion.Maps.Hexen;
+using Helion.Maps.Udmf;
 using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 
@@ -42,6 +43,7 @@ public interface IMap
         {
             MapType.Doom => DoomMap.Create(archive, mapEntries, compatibility),
             MapType.Hexen => HexenMap.Create(archive, mapEntries, compatibility),
+            MapType.UDMF => UdmfMap.Create(archive, mapEntries, compatibility),
             _ => null
         };
     }

@@ -40,6 +40,12 @@ public class MapLineFlags
     public bool BlockEverything;
     public bool BlockPlayersMbf21;
     public bool BlockLandMonstersMbf21;
+    public bool BlockFloatMonsters;
+    public bool BlockLandMonsters;
+    public bool BlockHitscan;
+    public bool BlockProjectiles;
+    public bool BlockUse;
+    public bool BlockSight;
     public bool TwoSided;
 
     public LineActivations Activations;
@@ -56,6 +62,13 @@ public class MapLineFlags
         AlwaysDrawAutomap = (flags & AlwaysDrawAutomapMask) == AlwaysDrawAutomapMask;
         TwoSided = (flags & TwoSidedMask) == TwoSidedMask;
     }
+
+    private MapLineFlags()
+    {
+
+    }
+
+    public static MapLineFlags Empty() => new();
 
     public static MapLineFlags Doom(ushort flags)
     {

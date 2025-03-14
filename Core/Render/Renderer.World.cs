@@ -9,6 +9,9 @@ using Helion.Render.OpenGL.Util;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.Graphics.Palettes;
 using Helion.Geometry.Vectors;
+using static Helion.Util.Constants;
+using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Walls;
 
 namespace Helion.Render;
 
@@ -22,15 +25,35 @@ public partial class Renderer
 
     private float[] m_lightBufferData = [];
 
+    public static int GetLightBufferIndex(Side side, Wall wall, Sector sector)
+    {
+        // The shader will add the light level at this index plus the vertex light level.
+        // Return LightBuffer.DarkIndex (lightlevel=0) to not add the sectors light level if absolute.
+        if (side.Flags.LightLevelAbsolute || wall.LightLevelAbsolute)
+            return LightBuffer.DarkIndex;
+
+        return GetLightBufferIndex(sector, LightBufferType.Wall);
+    }
+
+    public static int GetLightBufferIndex(Sector sector, SectorPlaneFace planeType, LightBufferType type)
+    {
+        var transferLightSector = planeType == SectorPlaneFace.Floor ? sector.TransferFloorLightSector : sector.TransferCeilingLightSector;
+        var plane = transferLightSector.GetSectorPlane(planeType);
+
+        if (plane.LightLevelAbsolute)
+            return LightBuffer.DarkIndex;
+
+        return GetLightBufferIndex(sector, type);
+    }
+
     public static int GetLightBufferIndex(Sector sector, LightBufferType type)
     {
-        int index = sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart;
         return type switch
         {
-            LightBufferType.Floor => sector.TransferFloorLightSector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart + Constants.LightBuffer.FloorOffset,
-            LightBufferType.Ceiling => sector.TransferCeilingLightSector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart + Constants.LightBuffer.CeilingOffset,
-            LightBufferType.Wall => sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart + Constants.LightBuffer.WallOffset,
-            _ => index,
+            LightBufferType.Floor => sector.TransferFloorLightSector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart + LightBuffer.FloorOffset,
+            LightBufferType.Ceiling => sector.TransferCeilingLightSector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart + LightBuffer.CeilingOffset,
+            LightBufferType.Wall => sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart + LightBuffer.WallOffset,
+            _ => sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart,
         };
     }
 
@@ -38,9 +61,9 @@ public partial class Renderer
     {
         return type switch
         {
-            LightBufferType.Floor => (sector.TransferFloorLightSector.Id + 1) * Constants.LightBuffer.BufferSize + Constants.LightBuffer.FloorOffset,
-            LightBufferType.Ceiling => (sector.TransferCeilingLightSector.Id + 1) * Constants.LightBuffer.BufferSize + Constants.LightBuffer.CeilingOffset,
-            LightBufferType.Wall => (sector.Id + 1) * Constants.LightBuffer.BufferSize + Constants.LightBuffer.WallOffset,
+            LightBufferType.Floor => (sector.TransferFloorLightSector.Id + 1) * LightBuffer.BufferSize + LightBuffer.FloorOffset,
+            LightBufferType.Ceiling => (sector.TransferCeilingLightSector.Id + 1) * LightBuffer.BufferSize + LightBuffer.CeilingOffset,
+            LightBufferType.Wall => (sector.Id + 1) * LightBuffer.BufferSize + LightBuffer.WallOffset,
             _ => sector.Id + 1,
         };
     }
@@ -68,7 +91,7 @@ public partial class Renderer
         if (!m_world.SameAsPreviousMap)
         {
             const int FloatSize = 4;
-            m_lightBufferData = new float[world.Sectors.Count * Constants.LightBuffer.BufferSize * FloatSize + (Constants.LightBuffer.SectorIndexStart * FloatSize)];
+            m_lightBufferData = new float[world.Sectors.Count * LightBuffer.BufferSize * FloatSize + (LightBuffer.SectorIndexStart * FloatSize)];
         }
 
         SetSectorLightBuffer(world);
@@ -118,21 +141,21 @@ public partial class Renderer
 
     private static unsafe void SetSectorColorMap(float* colorMapBuffer, Sector sector, Colormap? colormap)
     {
-        int index = (sector.Id + 1) * Constants.LightBuffer.BufferSize;
+        int index = (sector.Id + 1) * LightBuffer.BufferSize;
         if (ShaderVars.PaletteColorMode)
         {
             int colorMapIndex = colormap == null ? 0 : colormap.Index;
-            colorMapBuffer[index + Constants.LightBuffer.FloorOffset] = colorMapIndex;
-            colorMapBuffer[index + Constants.LightBuffer.CeilingOffset] = colorMapIndex;
-            colorMapBuffer[index + Constants.LightBuffer.WallOffset] = colorMapIndex;
+            colorMapBuffer[index + LightBuffer.FloorOffset] = colorMapIndex;
+            colorMapBuffer[index + LightBuffer.CeilingOffset] = colorMapIndex;
+            colorMapBuffer[index + LightBuffer.WallOffset] = colorMapIndex;
             return;
         }
 
         const int VectorSize = 3;
         Vec3F setColor = colormap == null ? Vec3F.One : colormap.ColorMix;
-        *(Vec3F*)&colorMapBuffer[(index + Constants.LightBuffer.FloorOffset) * VectorSize] = setColor;
-        *(Vec3F*)&colorMapBuffer[(index + Constants.LightBuffer.CeilingOffset) * VectorSize] = setColor;
-        *(Vec3F*)&colorMapBuffer[(index + Constants.LightBuffer.WallOffset) * VectorSize] = setColor;
+        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.FloorOffset) * VectorSize] = setColor;
+        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.CeilingOffset) * VectorSize] = setColor;
+        *(Vec3F*)&colorMapBuffer[(index + LightBuffer.WallOffset) * VectorSize] = setColor;
     }
 
     private unsafe void SetSectorLightBuffer(IWorld world)
@@ -143,20 +166,20 @@ public partial class Renderer
         m_lightBufferStorage.Map(data =>
         {
             float* lightBuffer = (float*)data.ToPointer();
-            lightBuffer[Constants.LightBuffer.DarkIndex] = 0;
-            lightBuffer[Constants.LightBuffer.FullBrightIndex] = 255;
+            lightBuffer[LightBuffer.DarkIndex] = 0;
+            lightBuffer[LightBuffer.FullBrightIndex] = 255;
 
             for (int i = 0; i < Constants.LightBuffer.ColorMapCount; i++)
-                lightBuffer[Constants.LightBuffer.ColorMapStartIndex + i] =
-                    256 - ((Constants.LightBuffer.ColorMapCount - i) * 256 / Constants.LightBuffer.ColorMapCount);
+                lightBuffer[LightBuffer.ColorMapStartIndex + i] =
+                    256 - ((LightBuffer.ColorMapCount - i) * 256 / LightBuffer.ColorMapCount);
 
             for (int i = 0; i < world.Sectors.Count; i++)
             {
                 Sector sector = world.Sectors[i];
-                int index = sector.Id * Constants.LightBuffer.BufferSize + Constants.LightBuffer.SectorIndexStart;
-                lightBuffer[index + Constants.LightBuffer.FloorOffset] = sector.Floor.LightLevel;
-                lightBuffer[index + Constants.LightBuffer.CeilingOffset] = sector.Ceiling.LightLevel;
-                lightBuffer[index + Constants.LightBuffer.WallOffset] = sector.LightLevel;
+                int index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
+                lightBuffer[index + LightBuffer.FloorOffset] = sector.LightLevel;
+                lightBuffer[index + LightBuffer.CeilingOffset] = sector.LightLevel;
+                lightBuffer[index + LightBuffer.WallOffset] = sector.LightLevel;
             }
         });
     }

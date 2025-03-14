@@ -34,6 +34,7 @@ using Helion.Util.Container;
 using Helion.Maps.Shared;
 using Helion.World.Geometry.Subsectors;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Resources.Definitions.Compatibility;
 
 namespace Helion.World;
 
@@ -108,7 +109,8 @@ public interface IWorld : IDisposable
     bool SameAsPreviousMap { get; set; }
     MarkSpecials MarkSpecials { get; }
     MapGeometry Geometry { get; }
-    IMap Map { get; }
+    CompatibilityMapDefinition? CompatibilityMapDefinition { get; }
+    MapType MapType { get; }
 
     void Link(Entity entity);
     void LinkClamped(Entity entity);
@@ -125,8 +127,8 @@ public interface IWorld : IDisposable
     void TelefragBlockingEntities(Entity entity);
     bool EntityUse(Entity entity);
     void OnTryEntityUseLine(Entity entity, Line line);
-    bool CanActivate(Entity entity, Line line, ActivationContext context);
-    bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, bool fromFront);
+    bool CanActivate(Entity entity, Line line, ActivationContext context, double originX, double originY);
+    bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, double originX, double originY);
     bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity);
     Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, EntityDefinition projectileDef, out Entity? autoAimEntity,
         double addAngle = 0, double addPitch = 0, double zOffset = 0);

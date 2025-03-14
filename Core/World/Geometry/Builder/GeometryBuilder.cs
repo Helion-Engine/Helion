@@ -5,6 +5,7 @@ using Helion.Maps.Bsp;
 using Helion.Maps.Bsp.Builder.GLBSP;
 using Helion.Maps.Doom;
 using Helion.Maps.Hexen;
+using Helion.Maps.Udmf;
 using Helion.Resources;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
@@ -46,6 +47,8 @@ public class GeometryBuilder
                 return DoomGeometryBuilder.Create(doomMap, geometryBuilder, textureManager, CreateBspTree);
             case HexenMap hexenMap:
                 return HexenGeometryBuilder.Create(hexenMap, geometryBuilder, textureManager, CreateBspTree);
+            case UdmfMap udmfMap:
+                return UdmfGeometryBuilder.Create(udmfMap, geometryBuilder, textureManager, CreateBspTree);
             default:
                 Log.Error("Do not support map type {0} yet", map.MapType);
                 return null;

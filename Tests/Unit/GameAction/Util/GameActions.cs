@@ -231,7 +231,8 @@ namespace Helion.Tests.Unit.GameAction
         {
             var line = world.Lines.First(x => x.SectorTag == tag);
             line.SetActivated(false);
-            return world.ActivateSpecialLine(entity, line, context, fromFront);
+            var frontPos = PointOnLineSide(line, fromFront);
+            return world.ActivateSpecialLine(entity, line, context, frontPos.X, frontPos.Y);
         }
 
         // Activates the line given the context. Will force even if not repeatable.
@@ -239,7 +240,23 @@ namespace Helion.Tests.Unit.GameAction
         {
             Line line = GetLine(world, lineId);
             line.SetActivated(false);
-            return world.ActivateSpecialLine(entity, line, context, fromFront);
+            var frontPos = PointOnLineSide(line, fromFront);
+            return world.ActivateSpecialLine(entity, line, context, frontPos.X, frontPos.Y);
+        }
+
+        private static Vec2D PointOnLineSide(Line line, bool fromFront)
+        {
+            var pos = line.Segment.FromTime(0.5);
+            var lineAngle = line.Segment.Start.Angle(line.Segment.End);
+
+            if (fromFront)
+                lineAngle -= MathHelper.HalfPi;
+            else
+                lineAngle += MathHelper.HalfPi;
+
+            var unit = Vec2D.UnitCircle(lineAngle);
+            pos += unit * 8;
+            return pos;
         }
 
         public static bool PlayerFirePistol(WorldBase world, Player player)

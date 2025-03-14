@@ -12,7 +12,8 @@ public enum ActivationContext
     UseLine,
     HitscanCrossLine,
     HitscanImpactsWall,
-    EntityImpactsWall
+    EntityImpactsWall,
+    Always,
 }
 
 /// <summary>

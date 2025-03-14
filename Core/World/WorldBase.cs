@@ -59,6 +59,8 @@ using Helion.Util.Loggers;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Shared;
 using Helion.World.Geometry.Islands;
+using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Definitions.Compatibility;
 
 namespace Helion.World;
 
@@ -154,7 +156,9 @@ public abstract partial class WorldBase : IWorld
 
     public MapGeometry Geometry { get; }
     public PhysicsManager PhysicsManager { get; private set; }
-    public IMap Map { get; private set; }
+    public CompatibilityMapDefinition? CompatibilityMapDefinition { get; private set; }
+    public MapType MapType { get; private set; }
+
     public bool HasDehacked;
 
     protected readonly IAudioSystem AudioSystem;
@@ -176,13 +180,17 @@ public abstract partial class WorldBase : IWorld
     private readonly Dictionary<int, MusInfoDef> m_sectorToMusicChange = [];
     private readonly DynamicArray<Entity> m_fallCheckEntities = new(32);
     private readonly Dictionary<int, Player> m_itemPickupIndexToPlayers = [];
+    private readonly Entity m_checkRadiusEntity;
+    private readonly Dictionary<int, LineHealthGroup> m_lineHealthGroups = [];
     private MusInfoDef? m_lastMusicChange;
     private int m_changeMusicTicks = 0;
     private int m_losDistance = DefaultLineOfSightDistance;
     private string m_activeMusic = string.Empty;
+    private bool m_explosionTraverseLines;
 
     private RadiusExplosionData m_radiusExplosion;
-    private readonly Action<Entity> m_radiusExplosionAction;
+    private readonly Action<Entity> m_radiusExplosionEntityAction;
+    private readonly Action<int> m_radiusExplosionLineAction;
 
     private HealChaseData m_healChaseData;
     private readonly Action<Entity> m_healChaseAction;
@@ -215,15 +223,16 @@ public abstract partial class WorldBase : IWorld
         MapName = map.Name;
         Profiler = profiler;
         Geometry = geometry;
-        Map = map;
+        CompatibilityMapDefinition = map.CompatibilityDefinition;
+        MapType = map.MapType;
         BspTree = Geometry.CompactBspTree;
 
-        if (Map.Reject != null && Map.Reject.Length > 0)
+        if (map.Reject != null && map.Reject.Length > 0)
         {
             int rejectSize = (Sectors.Count * Sectors.Count + 7) / 8;
-            if (Map.Reject.Length != rejectSize)
-                HelionLog.Warn($"Expected reject size to be {rejectSize} but read {Map.Reject.Length} bytes");
-            m_lineOfSightReject = Map.Reject;
+            if (map.Reject.Length != rejectSize)
+                HelionLog.Warn($"Expected reject size to be {rejectSize} but read {map.Reject.Length} bytes");
+            m_lineOfSightReject = map.Reject;
         }
 
         Blockmap = CreateBlockMap();
@@ -239,7 +248,8 @@ public abstract partial class WorldBase : IWorld
         IsFastMonsters = skillDef.IsFastMonsters(config);
 
         m_defaultDamageAction = DefaultDamage;
-        m_radiusExplosionAction = HandleRadiusExplosion;
+        m_radiusExplosionEntityAction = HandleRadiusExplosionEntity;
+        m_radiusExplosionLineAction = HandleRadiusExplosionLine;
         m_healChaseAction = HandleHealChase;
         m_setNewTracerTargetAction = HandleSetNewTracerTarget;
         m_lineOfSightEnemyAction = HandleLineOfSightEnemy;
@@ -250,6 +260,9 @@ public abstract partial class WorldBase : IWorld
 
         RegisterConfigChanges();
         SetWorldStatic();
+
+        m_checkRadiusEntity = new Entity();
+        m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this);
 
         if (worldModel != null)
         {
@@ -310,11 +323,11 @@ public abstract partial class WorldBase : IWorld
     {
         if (LastPhysicManager != null)
         {
-            LastPhysicManager.UpdateTo(this, BspTree, Blockmap, Random, Map is DoomMap);
+            LastPhysicManager.UpdateTo(this, BspTree, Blockmap, Random, MapType == MapType.Doom);
             return LastPhysicManager;
         }
 
-        LastPhysicManager = new(this, BspTree, Blockmap, Random, Map is DoomMap);
+        LastPhysicManager = new(this, BspTree, Blockmap, Random, MapType == MapType.Doom);
         return LastPhysicManager;
     }
 
@@ -375,16 +388,34 @@ public abstract partial class WorldBase : IWorld
         {
             for (int i = 0; i < Lines.Count; i++)
             {
+                var line = Lines[i];
                 ref StructLine structLine = ref StructLines.Data[i];
                 structLine.Flags &= ~StructLineFlags.SeenForAutomap;
-                structLine.Update(Lines[i]);
+                structLine.Update(line);
+                m_explosionTraverseLines = m_explosionTraverseLines || line.ObjectHealth != ObjectHealth.Default;
             }
             return;
         }
 
         LastStructLines.Clear();
         for (int i = 0; i < Lines.Count; i++)
-            LastStructLines.Add(new StructLine(Lines[i]));
+        {
+            var line = Lines[i];
+            LastStructLines.Add(new StructLine(line));
+            var objectHealth = line.ObjectHealth != ObjectHealth.Default;
+            m_explosionTraverseLines = m_explosionTraverseLines || objectHealth;
+
+            if (objectHealth && line.ObjectHealth.HealthGroup != 0)
+            {
+                if (!m_lineHealthGroups.TryGetValue(line.ObjectHealth.HealthGroup, out var group))
+                {
+                    group = new();
+                    m_lineHealthGroups[line.ObjectHealth.HealthGroup] = group;
+                }
+
+                group.Lines.Add(line);
+            }
+        }
 
         for (int i = 0; i < Sectors.Count; i++)
         {
@@ -515,6 +546,7 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.RespawnTicks = SkillDefinition.RespawnTime.Seconds * (int)Constants.TicksPerSecond;
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
+        WorldStatic.Udmf = MapType == MapType.UDMF;
 
         WorldStatic.DoomImpBall = EntityManager.DefinitionComposer.GetByNameOrDefault("DoomImpBall");
         WorldStatic.ArachnotronPlasma = EntityManager.DefinitionComposer.GetByNameOrDefault("ArachnotronPlasma");
@@ -614,11 +646,25 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < Sectors.Count; i++)
         {
             var sector = Sectors[i];
-            if (GetSectorSkyTextureHandle(sector.Floor.TextureHandle, out int skyTextureHandle))
+            if (!string.IsNullOrEmpty(sector.SkyFloor) &&
+                GetSectorSkyTextureHandle(sector.Floor.TextureHandle, sector.SkyFloor, out var skyTextureHandle))
+            {
                 sector.FloorSkyTextureHandle = skyTextureHandle;
+            }
+            else if (GetSectorSkyTextureHandle(sector.Floor.TextureHandle, out skyTextureHandle))
+            {
+                sector.FloorSkyTextureHandle = skyTextureHandle;
+            }
 
-            if (GetSectorSkyTextureHandle(sector.Ceiling.TextureHandle, out skyTextureHandle))
+            if (!string.IsNullOrEmpty(sector.SkyCeiling) &&
+                GetSectorSkyTextureHandle(sector.Ceiling.TextureHandle, sector.SkyCeiling, out skyTextureHandle))
+            {
                 sector.CeilingSkyTextureHandle = skyTextureHandle;
+            }
+            else if (GetSectorSkyTextureHandle(sector.Ceiling.TextureHandle, out skyTextureHandle))
+            {
+                sector.CeilingSkyTextureHandle = skyTextureHandle;
+            }
         }
     }
 
@@ -627,6 +673,20 @@ public abstract partial class WorldBase : IWorld
         skyTextureHandle = 0;
         return TextureManager.IsSkyTexture(textureHandle) && !TextureManager.IsDefaultSkyTexture(textureHandle) &&
                 TextureManager.GetSkyTextureFromFlat(textureHandle, out skyTextureHandle);
+    }
+
+    private bool GetSectorSkyTextureHandle(int textureHandle, string textureName, out int skyTextureHandle)
+    {
+        skyTextureHandle = 0;
+        if (!TextureManager.IsSkyTexture(textureHandle))
+            return false;
+        
+        var texture = TextureManager.GetTexture(textureName, ResourceNamespace.Textures);
+        if (texture == null)
+            return false;
+
+        skyTextureHandle = texture.Index;
+        return true;
     }
 
     private void SpecialManager_SectorSpecialDestroyed(object? sender, ISectorSpecial special)
@@ -906,11 +966,8 @@ public abstract partial class WorldBase : IWorld
 
             if (player.Sector.Secret && player.OnSectorFloorZ(player.Sector))
             {
-                DisplayMessage(player, null, "$SECRETMESSAGE");
-                SoundManager.PlayStaticSound("misc/secret");
                 player.Sector.SetSecret(false);
-                LevelStats.SecretCount++;
-                player.SecretsFound++;
+                PlayerSecret(player);
             }
 
             if (m_sectorToMusicChange.TryGetValue(player.Sector.Id, out var musInfo) && !ReferenceEquals(musInfo, m_lastMusicChange))
@@ -921,6 +978,14 @@ public abstract partial class WorldBase : IWorld
         }
 
         Profiler.World.TickPlayer.Stop();
+    }
+
+    private void PlayerSecret(Player player)
+    {
+        DisplayMessage(player, null, "$SECRETMESSAGE");
+        SoundManager.PlayStaticSound("misc/secret");
+        LevelStats.SecretCount++;
+        player.SecretsFound++;
     }
 
     public void SectorInstantKillEffect(Entity entity, InstantKillEffect effect)
@@ -1210,6 +1275,8 @@ public abstract partial class WorldBase : IWorld
         Vec2D start = entity.Position.XY;
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
         var intersections = WorldStatic.Intersections;
+        double openFloorZ = double.MinValue;
+        double openCeilingZ = double.MaxValue;
         intersections.Clear();
         BlockmapTraverser.UseTraverse(new Seg2D(start, end), intersections);
 
@@ -1222,29 +1289,39 @@ public abstract partial class WorldBase : IWorld
             var line = Lines[Blockmap.BlockLines[lineIndex].LineId];
             OnTryEntityUseLine(entity, line);
 
-            if (line.Segment.OnRight(start))
+            if ((entity.IsPlayer && (line.Flags.Activations & LineActivations.UseLineBack) != 0) || line.Segment.OnRight(start))
             {
                 if (line.HasSpecial)
-                    activateSuccess = ActivateSpecialLine(entity, line, ActivationContext.UseLine, true) || activateSuccess;
+                {
+                    if ((line.Flags.Activations & LineActivations.CheckSwitchRange) != 0 && !CheckSwitchRange(entity, openFloorZ, openCeilingZ))                    
+                        continue;                    
+
+                    activateSuccess = ActivateSpecialLine(entity, line, ActivationContext.UseLine, entity.Position.X, entity.Position.Y) || activateSuccess;
+                }
 
                 if (activateSuccess && !line.Flags.PassThrough)
                     break;
+            }
 
-                if (line.Back == null)
-                {
-                    hitBlockLine = true;
-                    break;
-                }
+            if (line.Back == null || line.Flags.Blocking.Everything || line.Flags.Blocking.Use)
+            {
+                hitBlockLine = true;
+                break;
             }
 
             if (line.Back != null)
             {
-                LineOpening opening = PhysicsManager.GetLineOpening(line.Front.Sector, line.Back.Sector!);
+                var opening = PhysicsManager.GetLineOpening(line.Front.Sector, line.Back.Sector!);
                 if (opening.OpeningHeight <= 0)
                 {
                     hitBlockLine = true;
                     break;
                 }
+
+                if (opening.FloorZ > openFloorZ)
+                    openFloorZ = opening.FloorZ;
+                if (opening.CeilingZ < openCeilingZ)
+                    openCeilingZ = opening.CeilingZ;
 
                 // Keep checking if hit two-sided blocking line - this way the PlayerUserFail will be raised if no line special is hit
                 if (!opening.CanPassOrStepThrough(entity))
@@ -1256,6 +1333,20 @@ public abstract partial class WorldBase : IWorld
             entity.PlayerObj.PlayUseFailSound();
 
         return activateSuccess;
+    }
+
+    private static bool CheckSwitchRange(Entity entity, double openFloorZ, double openCeilingZ)
+    {
+        var bottomZ = entity.Position.Z;
+        var topZ = entity.Position.Z + entity.Height;
+
+        if (topZ < openFloorZ)
+            return false;
+
+        if (bottomZ > openCeilingZ)
+            return false;
+
+        return true;
     }
 
     public virtual void OnTryEntityUseLine(Entity entity, Line line)
@@ -1282,7 +1373,7 @@ public abstract partial class WorldBase : IWorld
                 continue;
 
             var line = Lines[Blockmap.BlockLines[lineIndex].LineId];
-            bool specialActivate = line.HasSpecial && line.Segment.OnRight(start);
+            bool specialActivate = line.HasSpecial && ((line.Flags.Activations & LineActivations.UseLineBack) != 0 || line.Segment.OnRight(start));
             if (specialActivate)
                 shouldUse = true;
 
@@ -1306,8 +1397,11 @@ public abstract partial class WorldBase : IWorld
 
     private static bool SideHasActiveMove(Sector sector) => sector.ActiveCeilingMove != null || sector.ActiveFloorMove != null;
 
-    public bool CanActivate(Entity entity, Line line, ActivationContext context)
+    public bool CanActivate(Entity entity, Line line, ActivationContext context, double originX, double originY)
     {
+        if (context != ActivationContext.Always && (line.Flags.Activations & LineActivations.FrontSideOnly) != 0 && line.Segment.PerpDot(originX, originY) > 0)
+            return false;
+
         bool success = line.Special.CanActivate(entity, line, context,
             ArchiveCollection.Definitions.LockDefinitions, out LockDef? lockFail);
         if (entity.PlayerObj != null && lockFail != null)
@@ -1337,12 +1431,12 @@ public abstract partial class WorldBase : IWorld
     /// <param name="line">The line containing the special to execute.</param>
     /// <param name="context">The ActivationContext to attempt to execute the special.</param>
     /// <param name="fromFront">If the line was activated from the front side.</param>
-    public virtual bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, bool fromFront)
+    public virtual bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, double originX, double originY)
     {
-        if (!CanActivate(entity, line, context))
+        if (!CanActivate(entity, line, context, originX, originY))
             return false;
 
-        EntityActivateSpecial args = new(context, entity, line, fromFront);
+        EntityActivateSpecial args = new(context, entity, line, line.Segment.PerpDot(originX, originY) <= 0);
         return EntityActivatedSpecial(args);
     }
 
@@ -1477,6 +1571,33 @@ public abstract partial class WorldBase : IWorld
         return null;
     }
 
+    private void DamageMapObject(Entity entity, Line line, int damage)
+    {
+        var objectHealth = line.ObjectHealth;
+        LineHealthGroup? group = null;
+        if (line.ObjectHealth.HealthGroup > 0)
+            m_lineHealthGroups.TryGetValue(line.ObjectHealth.HealthGroup, out group);
+
+        if (!objectHealth.Damage(damage))
+            return;
+
+        bool killed = objectHealth.Health <= 0;
+        if (objectHealth.DamageSpecial || killed)
+        {
+            ActivateSpecialLine(entity, line, ActivationContext.Always, 0, 0);
+            if (group == null || !killed)
+                return;
+
+            for (int i = 0; i < group.Lines.Count; i++)
+            {
+                var groupLine = group.Lines[i];
+                groupLine.ObjectHealth.Health = 0;
+                if (line != groupLine)
+                    ActivateSpecialLine(entity, groupLine, ActivationContext.Always, 0, 0);
+            }
+        }
+    }
+
     public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double angle, double pitch, double distance, int damage,
         HitScanOptions options, ref Vec3D intersect, out Sector? hitSector)
     {
@@ -1485,7 +1606,7 @@ public abstract partial class WorldBase : IWorld
         double floorZ, ceilingZ;
         bool passThrough = (options & HitScanOptions.PassThroughEntities) != 0;
         Seg2D seg = new(start.XY, end.XY);
-        double segLength = seg.Length;
+        double segLength = seg.Length();
         var intersections = WorldStatic.Intersections;
         intersections.Clear();
         BlockmapTraverser.ShootTraverse(seg, intersections);
@@ -1499,11 +1620,13 @@ public abstract partial class WorldBase : IWorld
             if (isLine)
             {
                 ref var line = ref Blockmap.BlockLines[index];
-                if (damage != Constants.HitscanTestDamage && line.HasSpecial && 
-                    CanActivate(shooter, Lines[line.LineId], ActivationContext.HitscanImpactsWall))
+                if (damage != Constants.HitscanTestDamage && line.HasSpecial)
                 {
-                    var args = new EntityActivateSpecial(ActivationContext.HitscanImpactsWall, shooter, Lines[line.LineId], true);
-                    EntityActivatedSpecial(args);
+                    var mapLine = Lines[line.LineId];
+                    if (mapLine.ObjectHealth != ObjectHealth.Default)
+                        DamageMapObject(shooter, mapLine, damage);
+
+                    ActivateSpecialLine(shooter, mapLine, ActivationContext.HitscanImpactsWall, shooter.Position.X, shooter.Position.Y);
                 }
 
                 var point = line.Segment.FromTime(bi.SegTime);
@@ -1511,7 +1634,7 @@ public abstract partial class WorldBase : IWorld
                 intersect.Y = point.Y;
                 intersect.Z = start.Z + (Math.Tan(pitch) * bi.SegTime * segLength);
 
-                if (line.BackSector == null)
+                if (line.BackSector == null || line.BlockFlags.Hitscan || line.BlockFlags.Everything)
                 {
                     floorZ = line.FrontSector.ToFloorZ(intersect);
                     ceilingZ = line.FrontSector.ToCeilingZ(intersect);
@@ -1601,7 +1724,7 @@ public abstract partial class WorldBase : IWorld
         if (source != null && source.Owner() == target)
             damage = (int)(damage * source.Properties.SelfDamageFactor);
 
-        if (!target.Flags.Shootable || damage == 0 || target.IsDead)
+        if (!target.Flags.Shootable || target.Flags.Dormant || damage == 0 || target.IsDead)
             return false;
 
         Vec3D thrustVelocity = Vec3D.Zero;
@@ -1763,7 +1886,16 @@ public abstract partial class WorldBase : IWorld
             PlayerPickedUpItem(entity.PlayerObj, item, health, definition);
 
         if (!shouldStay)
+        {
+            ActivateEntitySpecial(item);
             EntityManager.Destroy(item);
+        }
+    }
+
+    private void ActivateEntitySpecial(Entity entity)
+    {
+        if (entity.Special != ZDoomLineSpecialType.None)
+            SpecialManager.AddActivatedLineSpecial(entity.Special, entity.Args);
     }
 
     private bool ShouldItemStay(Entity item)
@@ -1808,6 +1940,12 @@ public abstract partial class WorldBase : IWorld
             SoundManager.CreateSoundOn(player, definition.Properties.Inventory.PickupSound,
                 new SoundParams(player, channel: SoundChannel.Item));
         }
+
+        if (item.Flags.CountSecret)
+        {
+            PlayerSecret(Player);
+            item.Flags.CountSecret = false;
+        }
     }
 
     public virtual void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove)
@@ -1820,7 +1958,10 @@ public abstract partial class WorldBase : IWorld
         if (tryMove != null && (entity.Flags.Missile || entity.IsPlayer))
         {
             for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
-                ActivateSpecialLine(entity, Lines[tryMove.ImpactSpecialLines[i]], ActivationContext.EntityImpactsWall, true);
+            {
+                var line = Lines[tryMove.ImpactSpecialLines[i]];
+                ActivateSpecialLine(entity, line, ActivationContext.EntityImpactsWall, entity.Position.X, entity.Position.Y);
+            }
 
             if (entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll && Config.Game.BumpUse)
                 PlayerBumpUse(entity);
@@ -1828,10 +1969,22 @@ public abstract partial class WorldBase : IWorld
 
         if (entity.ShouldDieOnCollision())
         {
-            if (entity.BlockingEntity != null)
+            if (entity.BlockingEntity != null || (tryMove != null && tryMove.ImpactSpecialLines.Length > 0))
             {
                 int damage = entity.Properties.Damage.Get(m_random);
-                DamageEntity(entity.BlockingEntity, entity, damage, DamageType.Normal);
+                if (entity.BlockingEntity != null)
+                    DamageEntity(entity.BlockingEntity, entity, damage, DamageType.Normal);
+
+                if (tryMove != null)
+                {
+                    for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
+                    {
+                        var line = Lines[tryMove.ImpactSpecialLines[i]];
+                        if (line.ObjectHealth == ObjectHealth.Default)
+                            continue;
+                        DamageMapObject(entity, line, damage);
+                    }
+                }
             }
 
             bool skyClip = false;
@@ -1938,7 +2091,7 @@ public abstract partial class WorldBase : IWorld
 
         bool hitOneSidedLine;
         var seg = new Seg2D(start, end);
-        var segLength = seg.Length;
+        var segLength = seg.Length();
         var intersections = WorldStatic.Intersections;
 
         Vec3D sightPos = new(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
@@ -1947,7 +2100,7 @@ public abstract partial class WorldBase : IWorld
         double topPitch = sightPos.Pitch(endSightPos.Z + to.Height, segLength);
         double bottomPitch = sightPos.Pitch(endSightPos.Z, segLength);
 
-        if (seg.Length <= m_losDistance)
+        if (segLength <= m_losDistance)
         {
             BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
             if (hitOneSidedLine)
@@ -1983,6 +2136,44 @@ public abstract partial class WorldBase : IWorld
         var sector = heights.ControlSector;
         return (from.Position.Z + from.Height <= sector.Floor.Z && to.Position.Z >= sector.Floor.Z) ||
                (from.Position.Z >= sector.Ceiling.Z && to.Position.Z + to.Height <= sector.Ceiling.Z);
+    }
+
+    private bool CheckLineOfSight(Entity from, in BlockLine line)
+    {
+        if (line.Segment.OnRight(from.Position))
+            return false;
+
+        var fromPos = from.Position.XY;
+        var closestPoint = line.Segment.ClosestPoint(fromPos);
+        if (fromPos.DistanceSquared(closestPoint) > m_radiusExplosion.MaxDamage * m_radiusExplosion.MaxDamage)
+            return false;
+
+        Sector front;
+        Sector? back = null;
+        if (line.OneSided)
+            front = line.FrontSector;
+        else
+            GetOrderedSectors(line, from.Position, out front, out back);
+
+        double floorZ, ceilingZ;
+        if (back == null)
+        {
+            floorZ = line.FrontSector.Floor.Z;
+            ceilingZ = line.FrontSector.Ceiling.Z;
+        }
+        else
+        {
+            floorZ = front.Floor.Z;
+            ceilingZ = front.Ceiling.Z;
+        }
+
+        m_checkRadiusEntity.Position.X = closestPoint.X;
+        m_checkRadiusEntity.Position.Y = closestPoint.Y;
+        m_checkRadiusEntity.Position.Z = floorZ;
+        m_checkRadiusEntity.Height = ceilingZ - floorZ;
+
+        var success = CheckLineOfSight(from, m_checkRadiusEntity);
+        return success;
     }
 
     private bool IsLineOfSightRejected(Entity from, Entity to)
@@ -2032,10 +2223,13 @@ public abstract partial class WorldBase : IWorld
         Vec2D radius2D = new(radius, radius);
         Box2D explosionBox = new(pos2D - radius2D, pos2D + radius2D);
 
-        BlockmapTraverser.ExplosionTraverse(explosionBox, m_radiusExplosionAction);
+        if (m_explosionTraverseLines)
+            BlockmapTraverser.ExplosionTraverseWithLines(explosionBox, m_radiusExplosionEntityAction, m_radiusExplosionLineAction);
+        else
+            BlockmapTraverser.ExplosionTraverse(explosionBox, m_radiusExplosionEntityAction);
     }
 
-    private void HandleRadiusExplosion(Entity entity)
+    private void HandleRadiusExplosionEntity(Entity entity)
     {
         if (!ShouldApplyExplosionDamage(entity, m_radiusExplosion.DamageSource))
             return;
@@ -2043,6 +2237,22 @@ public abstract partial class WorldBase : IWorld
         ApplyExplosionDamageAndThrust(m_radiusExplosion.DamageSource, m_radiusExplosion.AttackSource, entity,
             m_radiusExplosion.Radius, m_radiusExplosion.MaxDamage, m_radiusExplosion.Thrust,
             WorldStatic.OriginalExplosion || m_radiusExplosion.DamageSource.Flags.OldRadiusDmg || entity.Flags.OldRadiusDmg);
+    }
+
+    private void HandleRadiusExplosionLine(int blockLineIndex)
+    {
+        int lineId = Blockmap.BlockLines[blockLineIndex].LineId;
+        var line = Lines[lineId];
+
+        if (line.ObjectHealth == ObjectHealth.Default || line.ObjectHealth.Health <= 0)
+            return;
+
+        ref var blockLine = ref Blockmap.BlockLines[blockLineIndex];
+        if (!CheckLineOfSight(m_radiusExplosion.DamageSource, blockLine))
+            return;
+
+        var applyDamage = CalcRadiusExplosionDamage(m_radiusExplosion.DamageSource, m_checkRadiusEntity, m_radiusExplosion.Radius, m_radiusExplosion.MaxDamage, Thrust.None, true);
+        DamageMapObject(m_radiusExplosion.AttackSource, line, applyDamage);
     }
 
     private bool ShouldApplyExplosionDamage(Entity entity, Entity damageSource)
@@ -2084,6 +2294,8 @@ public abstract partial class WorldBase : IWorld
 
             ApplyVooDooKill(deathEntity.PlayerObj, deathSource, gibbed);
         }
+
+        ActivateEntitySpecial(deathEntity);
     }
 
     private void CheckDropItem(Entity deathEntity)
@@ -2296,6 +2508,16 @@ public abstract partial class WorldBase : IWorld
     private void ApplyExplosionDamageAndThrust(Entity source, Entity attackSource, Entity entity, double radius, int maxDamage, Thrust thrust,
         bool approxDistance2D)
     {
+        var applyDamage = CalcRadiusExplosionDamage(source, entity, radius, maxDamage, thrust, approxDistance2D);
+
+        Entity? originalOwner = source.Owner();
+        source.SetOwner(attackSource);
+        DamageEntity(entity, source, applyDamage, DamageType.AlwaysApply, thrust);
+        source.SetOwner(originalOwner);
+    }
+
+    private static int CalcRadiusExplosionDamage(Entity source, Entity entity, double radius, int maxDamage, Thrust thrust, bool approxDistance2D)
+    {
         double distance;
         if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.Position.Z + entity.Height))
         {
@@ -2320,12 +2542,8 @@ public abstract partial class WorldBase : IWorld
 
         int applyDamage = Math.Clamp((int)(radius - distance), 0, maxDamage);
         if (applyDamage <= 0)
-            return;
-
-        Entity? originalOwner = source.Owner();
-        source.SetOwner(attackSource);
-        DamageEntity(entity, source, applyDamage, DamageType.AlwaysApply, thrust);
-        source.SetOwner(originalOwner);
+            return 0;
+        return applyDamage;
     }
 
     protected bool ChangeToMusic(int number)
@@ -2358,7 +2576,7 @@ public abstract partial class WorldBase : IWorld
         if (entity != null && entity.IsDisposed)
             return;
 
-        bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood;
+        bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood || entity.Flags.Dormant;
         EntityDefinition? def;
         if (bulletPuff)
         {
@@ -2513,7 +2731,7 @@ public abstract partial class WorldBase : IWorld
             if (bi.GetIndex(out int index) == IntersectType.Line)
             {
                 ref var line = ref Blockmap.BlockLines[index];
-                if (line.BackSector == null)
+                if (line.BackSector == null || line.BlockFlags.Everything)
                     return TraversalPitchStatus.Blocked;
 
                 if (line.FrontSector == line.BackSector)

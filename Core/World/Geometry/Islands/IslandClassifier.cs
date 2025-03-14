@@ -10,13 +10,16 @@ namespace Helion.World.Geometry.Islands;
 /// <summary>
 /// A helper class that classifies subsectors into islands.
 /// </summary>
-public static class IslandClassifier
+public class IslandClassifier
 {
-    static int IslandId = 0;
-    static int SectorIslandId = 0;
-    static HashSet<BspSubsector> ProcessedSubsectors = new();
+    int IslandId = 0;
+    int SectorIslandId = 0;
+    int SubsectorCounter = 1;
+    int LineCounter = 1;
+    int[] ProcessedSubsectors = [];
+    int[] VisitedLines = [];
 
-    public static List<Island>[] ClassifySectors(List<BspSubsector> subsectors, List<Sector> sectors)
+    public List<Island>[] ClassifySectors(List<BspSubsector> subsectors, List<Sector> sectors, int lineCount)
     {
         List<Island>[] islands = new List<Island>[sectors.Count];
         var subsectorLookup = subsectors.Where(x => x.SectorId.HasValue).GroupBy(x => x.SectorId!.Value).ToDictionary(x => x.Key, x => x.ToList());
@@ -25,32 +28,39 @@ public static class IslandClassifier
         {
             if (!subsectorLookup.TryGetValue(sectorId, out var sectorSubsectors))
             {
-                islands[sectorId] = new List<Island>();
+                islands[sectorId] = [];
                 continue;
             }
 
-            islands[sectorId] = Classify(sectorSubsectors, sectors, sectorId);
+            islands[sectorId] = Classify(sectorSubsectors, sectors, lineCount, sectorId);
         }
 
         return islands;
     }
 
-    public static List<Island> Classify(List<BspSubsector> subsectors, List<Sector> sectors, int sectorId = -1)
+    public List<Island> Classify(List<BspSubsector> subsectors, List<Sector> sectors, int lineCount, int sectorId = -1)
     {
         IslandId = 0;
         SectorIslandId = 0;
-        List<Island> islands = new();
+        List<Island> islands = [];
+        SubsectorCounter++;
+
+        if (ProcessedSubsectors.Length < subsectors.Count)
+            ProcessedSubsectors = new int[subsectors.Count];
+
+        if (VisitedLines.Length < lineCount)
+            VisitedLines = new int[lineCount];
 
         foreach (BspSubsector subsector in subsectors)
         {
-            if (ProcessedSubsectors.Contains(subsector)) 
+            if (ProcessedSubsectors[subsector.Id] == SubsectorCounter) 
                 continue;
 
             Island island = new(sectorId == -1 ? IslandId++ : SectorIslandId++);
             islands.Add(island);
             if (sectorId != -1)
                 island.SectorId = sectorId;
-            TraverseSubsectors(subsector, island, ProcessedSubsectors, sectors, sectorId);
+            TraverseSubsectors(subsector, island, sectors, sectorId);
         }
 
         foreach (var island in islands)
@@ -71,14 +81,13 @@ public static class IslandClassifier
             island.Box = new(min, max);
         }
 
-        ProcessedSubsectors.Clear();
         return islands;
     }
 
-    private static void TraverseSubsectors(BspSubsector initialSubsector, Island island, HashSet<BspSubsector> processedSubsectors, 
+    private void TraverseSubsectors(BspSubsector initialSubsector, Island island, 
         List<Sector> sectors, int sectorId)
     {
-        HashSet<int> visitedLines = new();
+        LineCounter++;
         Stack<BspSubsector> subsectorsToVisit = new();
         subsectorsToVisit.Push(initialSubsector);
 
@@ -86,10 +95,10 @@ public static class IslandClassifier
         {
             BspSubsector subsector = subsectorsToVisit.Pop();
 
-            if (processedSubsectors.Contains(subsector))
+            if (ProcessedSubsectors[subsector.Id] == SubsectorCounter)
                 continue;
 
-            processedSubsectors.Add(subsector);
+            ProcessedSubsectors[subsector.Id] = SubsectorCounter;
             island.Subsectors.Add(subsector);
             if (sectorId == -1 && subsector.SectorId.HasValue)
             {
@@ -104,13 +113,13 @@ public static class IslandClassifier
 
             foreach (BspSubsectorSeg seg in subsector.Segments)
             {
-                if (seg.LineId != null && !visitedLines.Contains(seg.LineId.Value))
+                if (seg.LineId != null && VisitedLines[seg.LineId.Value] != LineCounter)
                 {
                     island.LineIds.Add(seg.LineId.Value);
-                    visitedLines.Add(seg.LineId.Value);
+                    VisitedLines[seg.LineId.Value] = LineCounter;
                 }
 
-                if (seg.Partner != null && !processedSubsectors.Contains(seg.Partner.Subsector))
+                if (seg.Partner != null && ProcessedSubsectors[seg.Partner.Subsector.Id] != SubsectorCounter)
                 {
                     if (sectorId == -1 || sectorId == seg.Partner.Subsector.SectorId)
                         subsectorsToVisit.Push(seg.Partner.Subsector);

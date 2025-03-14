@@ -139,11 +139,11 @@ public class SinglePlayerWorld : WorldBase
 
     private void CheckDistanceOverride()
     {
-        if (Map.CompatibilityDefinition != null && Map.CompatibilityDefinition.MaxDistanceOverride > 0)
+        if (CompatibilityMapDefinition != null && CompatibilityMapDefinition.MaxDistanceOverride > 0)
         {
-            foreach (var tag in Map.CompatibilityDefinition.MaxDistanceOverrideTags)
+            foreach (var tag in CompatibilityMapDefinition.MaxDistanceOverrideTags)
                 m_renderDistanceOverrideTags.Add(tag);
-            m_renderDistanceOverride = Map.CompatibilityDefinition.MaxDistanceOverride;
+            m_renderDistanceOverride = CompatibilityMapDefinition.MaxDistanceOverride;
         }
     }
 
@@ -465,11 +465,11 @@ public class SinglePlayerWorld : WorldBase
         base.OnTryEntityUseLine(entity, line);
     }
 
-    public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, bool fromFront)
+    public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, double originX, double originY)
     {
         MarkSpecials.Mark(this, entity, line, Gametick);
 
-        bool success = base.ActivateSpecialLine(entity, line, context, fromFront);
+        bool success = base.ActivateSpecialLine(entity, line, context, originX, originY);
         if (success && m_renderDistanceOverride > 0 && m_renderDistanceOverrideTags.Contains(line.TagArg))
             ArchiveCollection.Config.Render.MaxDistance.Set(m_renderDistanceOverride, false);
 

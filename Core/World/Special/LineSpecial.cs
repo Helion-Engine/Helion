@@ -1,3 +1,4 @@
+using Helion.Maps;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Hexen.Components;
 using Helion.Maps.Specials;
@@ -55,7 +56,7 @@ public class LineSpecial
         m_ceilingMove = SetCeilingMove();
     }
 
-    public static void ValidateActivationFlags(ZDoomLineSpecialType type, ref LineFlags flags)
+    public static void ValidateActivationFlags(ZDoomLineSpecialType type, ref LineFlags flags, MapType mapType)
     {
         switch (type)
         {
@@ -67,13 +68,23 @@ public class LineSpecial
             case ZDoomLineSpecialType.ScrollTextureDown:
             case ZDoomLineSpecialType.ScrollFloor:
             case ZDoomLineSpecialType.ScrollCeiling:
+            case ZDoomLineSpecialType.TransferLight:
+            case ZDoomLineSpecialType.TransferFloorLight:
+            case ZDoomLineSpecialType.TransferCeilingLight:
+            case ZDoomLineSpecialType.TransferHeights:
+            case ZDoomLineSpecialType.ScrollWall:
+            case ZDoomLineSpecialType.ScrollTextureBoth:
+            case ZDoomLineSpecialType.ScrollTextureModel:
+            case ZDoomLineSpecialType.ScrollUsingTextureOffsets:
+            case ZDoomLineSpecialType.ScrollTextureModelBothSides:
                 flags.Activations = LineActivations.LevelStart;
                 break;
 
             case ZDoomLineSpecialType.Teleport:
             case ZDoomLineSpecialType.TeleportNoFog:
-                if (flags.Activations == (LineActivations.Player | LineActivations.CrossLine))
+                if (mapType != MapType.UDMF && flags.Activations == (LineActivations.Player | LineActivations.CrossLine))
                     flags.Activations |= LineActivations.Monster;
+                flags.Activations |= LineActivations.FrontSideOnly;
                 break;
         }
     }
@@ -100,6 +111,9 @@ public class LineSpecial
     public bool CanActivate(Entity entity, Line line, ActivationContext context, LockDefinitions lockDefinitions, out LockDef? lockFail)
     {
         lockFail = null;
+
+        if (context == ActivationContext.Always)
+            return true;
 
         if (entity.Flags.NoTeleport && IsTeleport())
             return false;
@@ -155,7 +169,7 @@ public class LineSpecial
                     contextSuccess = (flags.Activations & LineActivations.ImpactLine) != 0;
             }
 
-            if (contextSuccess && IsLockType(line, out int keyNumber))
+            if (contextSuccess && IsLockType(line, out var keyNumber))
             {
                 LockDef? lockDef = lockDefinitions.GetLockDef(keyNumber);
                 if (lockDef == null || !PlayerCanUnlock(entity.PlayerObj, lockDef))
@@ -171,6 +185,9 @@ public class LineSpecial
 
     private static bool PlayerCanUnlock(Player player, LockDef lockDef)
     {
+        if (lockDef.KeyNumber == ZDoomKeyType.Impossible)
+            return false;
+
         foreach (var definitions in lockDef.AnyKeyDefinitionNames)
         {
             if (!player.Inventory.HasAnyItem(definitions))
@@ -186,17 +203,23 @@ public class LineSpecial
         return true;
     }
 
-    private static bool IsLockType(Line line, out int keyNumber)
+    private static bool IsLockType(Line line, out ZDoomKeyType keyNumber)
     {
+        if (line.LockNumber != ZDoomKeyType.None)
+        {
+            keyNumber = line.LockNumber;
+            return true;
+        }
+
         switch (line.Special.LineSpecialType)
         {
             case ZDoomLineSpecialType.DoorLockedRaise:
-                keyNumber = line.Args.Arg3;
+                keyNumber = (ZDoomKeyType)line.Args.Arg3;
                 return true;
 
             case ZDoomLineSpecialType.DoorGeneric:
-                keyNumber = line.Args.Arg4;
-                return (ZDoomKeyType)keyNumber != ZDoomKeyType.None;
+                keyNumber = (ZDoomKeyType)line.Args.Arg4;
+                return keyNumber != ZDoomKeyType.None;
 
             default:
                 keyNumber = 0;
@@ -380,6 +403,8 @@ public class LineSpecial
             case ZDoomLineSpecialType.ElevatorLowerToNearest:
             case ZDoomLineSpecialType.ElevatorMoveToFloor:
             case ZDoomLineSpecialType.PlatDownWaitUpStayLip:
+            case ZDoomLineSpecialType.FloorMoveToValue:
+            case ZDoomLineSpecialType.CeilingMoveToValue:
                 return true;
 
             default:

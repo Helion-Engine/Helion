@@ -49,11 +49,10 @@ namespace Helion.Maps.Bsp.Zdbsp
                 Log.Info("Loading compiled map...");
                 m_stopwatch.Restart();
 
-                if (m_lastBspCollection != null)
-                    m_lastBspCollection.Dispose();
+                m_lastBspCollection?.Dispose();
 
                 m_lastBspCollection = new ArchiveCollection(new FilesystemArchiveLocator(), new(), ArchiveCollection.StaticDataCache);
-                if (!m_lastBspCollection.Load(new string[] { outputFile }, loadDefaultAssets: false))
+                if (!m_lastBspCollection.Load([outputFile], loadDefaultAssets: false))
                     return false;
 
                 outputMap = m_lastBspCollection.FindMap(mapName);

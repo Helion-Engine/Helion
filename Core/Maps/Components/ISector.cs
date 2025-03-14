@@ -42,6 +42,4 @@ public interface ISector
     /// The tag lookup ID for the sector.
     /// </summary>
     ushort Tag { get; }
-
-    SectorDamageSpecial? SectorDamageSpecial { get; set; }
 }

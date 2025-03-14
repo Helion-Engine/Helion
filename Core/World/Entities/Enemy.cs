@@ -1,5 +1,6 @@
 using System;
 using Helion.Geometry.Vectors;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.World.Entities.Definition.Flags;
@@ -45,7 +46,7 @@ public partial class Entity
 
     public bool SetNewTarget(bool allAround)
     {
-        if (IsFrozen)
+        if (IsFrozen || Flags.Dormant)
             return false;
 
         Entity? newTarget = null;
@@ -428,6 +429,9 @@ public partial class Entity
         if (entity == null)
             return false;
 
+        if (WorldStatic.Udmf && Sector.NoAttack)
+            return false;
+
         if (range == -1)
             range = Properties.MeleeRange;
 
@@ -446,6 +450,9 @@ public partial class Entity
 
     public bool CheckMissileRange()
     {
+        if (WorldStatic.Udmf && Sector.NoAttack)
+            return false;
+
         var target = Target();
         if (target == null || IsFriend(target) || !WorldStatic.World.CheckLineOfSight(this, target))
             return false;
@@ -489,10 +496,10 @@ public partial class Entity
             if (tryMove != null)
             {
                 for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
-                    WorldStatic.World.ActivateSpecialLine(this, WorldStatic.World.Lines[tryMove.ImpactSpecialLines[i]], ActivationContext.UseLine, true);
+                    WorldStatic.World.ActivateSpecialLine(this, WorldStatic.World.Lines[tryMove.ImpactSpecialLines[i]], ActivationContext.UseLine, Position.X, Position.Y);
 
                 for (int i = 0; i < tryMove.IntersectSpecialLines.Length; i++)
-                    WorldStatic.World.ActivateSpecialLine(this, WorldStatic.World.Lines[tryMove.IntersectSpecialLines[i]], ActivationContext.UseLine, true);
+                    WorldStatic.World.ActivateSpecialLine(this, WorldStatic.World.Lines[tryMove.IntersectSpecialLines[i]], ActivationContext.UseLine, Position.X, Position.Y);
             }
 
             return false;

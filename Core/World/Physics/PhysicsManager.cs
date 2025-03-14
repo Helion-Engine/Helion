@@ -1,7 +1,5 @@
 using System;
 using Helion.Geometry;
-using Helion.Geometry.Boxes;
-using Helion.Geometry.Grids;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
@@ -17,7 +15,6 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
-using Helion.World.Special;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using static Helion.Util.Assertion.Assert;
@@ -602,7 +599,7 @@ public sealed class PhysicsManager
 
     private LineBlock LineBlocksEntity(Entity entity, double x, double y, ref BlockLine line, TryMoveData? tryMove)
     {
-        if (Line.BlocksEntity(entity, x, y, line.Segment, line.OneSided, line.Flags, WorldStatic.Mbf21))
+        if (Line.BlocksEntity(entity, x, y, line.Segment, line.OneSided, line.BlockFlags, WorldStatic.Mbf21))
             return LineBlock.BlockStopChecking;
 
         if (line.OneSided)
@@ -999,7 +996,7 @@ public sealed class PhysicsManager
                         if (line.Segment.Intersects(minX, minY, maxX, maxY))
                         {
                             // Doomism: Ignore for moving sectors if blocked by flags only.
-                            if (Line.BlocksEntity(entity, entity.Position.X, entity.Position.Y, line.Segment, line.OneSided, line.Flags, WorldStatic.Mbf21))
+                            if (Line.BlocksEntity(entity, entity.Position.X, entity.Position.Y, line.Segment, line.OneSided, line.BlockFlags, WorldStatic.Mbf21))
                                 goto doneLinkToSectors;
 
                             if (line.FrontSector.CheckCount != checkCounter)
@@ -1270,13 +1267,8 @@ doneLinkToSectors:
                                 goto doneIsPositionValid;
                         }
 
-                        if (!entity.Flags.NoClip && blockLine.HasSpecial)
-                        {
-                            if (blockType == LineBlock.NoBlock)
-                                tryMove.IntersectSpecialLines.Add(blockLine.LineId);
-                            else
-                                tryMove.ImpactSpecialLines.Add(blockLine.LineId);
-                        }
+                        if (!entity.Flags.NoClip && blockLine.HasSpecial && blockType == LineBlock.NoBlock)
+                            tryMove.IntersectSpecialLines.Add(blockLine.LineId);
 
                         tryMove.IntersectSectors.Data[intersectSectorLength++] = blockLine.FrontSector;
                         if (blockLine.BackSector != null && blockLine.BackSector != blockLine.FrontSector)
@@ -1294,7 +1286,7 @@ doneLinkToSectors:
         {
             ref var blockLine = ref m_blockmap.BlockLines[blockLineIndex];
             if (Line.BlocksEntity(entity, entity.Position.X, entity.Position.Y, blockLine.Segment,
-                blockLine.OneSided, blockLine.Flags, WorldStatic.Mbf21))
+                blockLine.OneSided, blockLine.BlockFlags, WorldStatic.Mbf21))
             {
                 tryMove.Subsector = null;
                 tryMove.Success = false;
@@ -1372,15 +1364,7 @@ doneLinkToSectors:
             ref var lineSeg = ref m_world.StructLines.Data[lineId].Segment;
             bool fromFront = lineSeg.PerpDot(prevX, prevY) <= 0;
             if (fromFront != (lineSeg.PerpDot(entity.Position.X, entity.Position.Y) <= 0))
-            {
-                if (!fromFront && m_world.Lines[lineId].Special.IsTeleport())
-                    continue;
-
-                if (!m_world.CanActivate(entity, m_world.Lines[lineId], ActivationContext.CrossLine))
-                    continue;
-
-                m_world.ActivateSpecialLine(entity, m_world.Lines[lineId], ActivationContext.CrossLine, fromFront);
-            }
+                m_world.ActivateSpecialLine(entity, m_world.Lines[lineId], ActivationContext.CrossLine, prevX, prevY);
         }
     }
 
@@ -1726,8 +1710,14 @@ doneLinkToSectors:
 
         if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
             entity.Velocity.Z *= Constants.DefaultFriction;
+
         if (shouldApplyGravity)
-            entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity;
+        {
+            if (entity.Gravity < 0)
+                entity.Velocity.Z -= entity.Gravity * -1;
+            else
+                entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity * entity.Sector.Gravity * entity.Gravity;
+        }
 
         double floatZ = entity.GetEnemyFloatMove();
         // Only return if OnEntity is null. Need to apply clamping to prevent issues with this entity floating when the entity beneath is no longer blocking.

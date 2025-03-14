@@ -82,6 +82,8 @@ public class FloodFillProgram : RenderProgram
         flat out float planeZFrag;
         out vec3 vertexPosFrag;
         flat out float distanceOffsetFrag;
+        flat out float colorMapIndexFrag;
+        flat out float vertexLightLevelFrag;
 
         ${SectorColorMapVertexFragVariables}
         ${LightLevelVertexVariables}
@@ -97,6 +99,9 @@ public class FloodFillProgram : RenderProgram
             vec3 prevPos = vec3(pos.x, pos.y, prevZ);
             planeZFrag = mix(prevPlaneZ, planeZ, timeFrac);
             vertexPosFrag = mix(prevPos, pos, timeFrac);
+
+            colorMapIndexFrag = trunc(colorMapIndex / 256);
+            vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
 
             ${VertexLightBuffer}
             ${SectorColorMapVertexFunction}

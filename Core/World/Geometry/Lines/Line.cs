@@ -23,9 +23,11 @@ public sealed class Line
     public SpecialArgs Args;
     public LineFlags Flags;
     public LineSpecial Special;
+    public ObjectHealth ObjectHealth = ObjectHealth.Default;
     public bool Activated;
     public LineDataTypes DataChanges;
     public float Alpha;
+    public ZDoomKeyType LockNumber;
     public bool DataChanged => DataChanges > 0;
     public int BlockmapCount;
     public int PhysicsCount;
@@ -73,6 +75,9 @@ public sealed class Line
         DataChanges = default;
         BlockmapCount = default;
         PhysicsCount = default;
+
+        if (ObjectHealth != ObjectHealth.Default)
+            ObjectHealth.Health = ObjectHealth.OriginalHealth;
     }
 
     // Same as Segment.Length, but caches the value.
@@ -81,7 +86,7 @@ public sealed class Line
         if (m_length.HasValue)
             return m_length.Value;
 
-        m_length = Segment.Length;
+        m_length = Segment.Length();
         return m_length.Value;
     }
 
@@ -215,12 +220,15 @@ public sealed class Line
 
     public static bool BlocksEntity(Entity entity, double x, double y, in Seg2D seg, bool oneSided, in LineBlockFlags blockFlags, bool mbf21)
     {
-        if (oneSided)
+        if (oneSided || blockFlags.Everything)
             return !CanMoveOutOf(entity, x, y, seg, oneSided);
+
+        if (entity.Flags.Missile && blockFlags.Projectiles)
+            return true;
 
         bool isPlayerOrFriendly = entity.IsPlayer || entity.Flags.Friendly;
         if (!isPlayerOrFriendly && !entity.Flags.Missile &&
-            (blockFlags.Monsters || (mbf21 && blockFlags.LandMonstersMbf21 && !entity.Flags.Float)))
+            (blockFlags.Monsters || (mbf21 && blockFlags.LandMonstersMbf21 && !entity.Flags.Float) || (blockFlags.LandMonsters && !entity.Flags.Float) || (blockFlags.FloatMonsters && entity.Flags.Float)))
             return true;
 
         if (entity.IsPlayer && (blockFlags.Players || (mbf21 && blockFlags.PlayersMbf21)))

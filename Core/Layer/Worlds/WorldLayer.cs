@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using Helion.Audio;
 using Helion.Geometry;
@@ -9,7 +10,6 @@ using Helion.Maps;
 using Helion.Models;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions;
@@ -21,7 +21,6 @@ using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
-using Helion.Util.Loggers;
 using Helion.Util.Profiling;
 using Helion.Util.RandomGenerators;
 using Helion.Util.Timing;
@@ -56,6 +55,7 @@ public partial class WorldLayer : IGameLayerParent
     public IntermissionLayer? Intermission { get; private set; }
     public MapInfoDef CurrentMap { get; }
     public SinglePlayerWorld World { get; }
+    public bool SameAsPreviousMap {  get; private set; }
 
     public bool DrawAutomap { get; private set; }
 
@@ -164,11 +164,8 @@ public partial class WorldLayer : IGameLayerParent
         FpsTracker fpsTracker, Profiler profiler, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map,
         Player? existingPlayer, WorldModel? worldModel, IRandom? random)
     {
-        string displayName = mapInfoDef.GetMapNameWithPrefix(archiveCollection.Language);
-
-        bool sameAsPreviousMap = mapInfoDef.MapName.EqualsIgnoreCase(LastMapName); if (!sameAsPreviousMap)
-            HelionLog.Info(displayName);
-
+        var stopwatch = Stopwatch.StartNew();
+        var sameAsPreviousMap = mapInfoDef.MapName.EqualsIgnoreCase(LastMapName);
         SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, profiler,
             mapInfoDef, skillDef, map, existingPlayer, worldModel, random, sameAsPreviousMap: sameAsPreviousMap);
         if (world == null)
@@ -187,7 +184,15 @@ public partial class WorldLayer : IGameLayerParent
         LastMapName = mapInfoDef.MapName;
         ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
         config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
-        return new WorldLayer(parent, config, console, fpsTracker, world, mapInfoDef, profiler);
+
+        var worldLayer = new WorldLayer(parent, config, console, fpsTracker, world, mapInfoDef, profiler)
+        {
+            SameAsPreviousMap = sameAsPreviousMap
+        };
+
+
+        Log.Info($"Completed world load {stopwatch.Elapsed}");
+        return worldLayer;
     }
 
     private static void SetCompatibilityOptions(IConfig config, IMap map, MapInfoDef mapInfoDef, ArchiveCollection archiveCollection)

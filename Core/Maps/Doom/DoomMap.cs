@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Boxes;
@@ -41,13 +42,12 @@ public class DoomMap : IMap
     public readonly List<DoomSide> Sides;
     public readonly List<DoomThing> Things;
     public readonly List<DoomVertex> Vertices;
-    public readonly IReadOnlyList<DoomNode> Nodes;
     public GLComponents? GL { get; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
 
     private DoomMap(Archive archive, string name, List<DoomVertex> vertices, List<DoomSector> sectors, List<DoomSide> sides, 
-        List<DoomLine> lines,  List<DoomThing> things, IReadOnlyList<DoomNode> nodes, GLComponents? gl, byte[]? reject,
+        List<DoomLine> lines,  List<DoomThing> things, GLComponents? gl, byte[]? reject,
         CompatibilityMapDefinition? compatibility)
     {
         Archive = archive;
@@ -57,7 +57,6 @@ public class DoomMap : IMap
         Sides = sides;
         Lines = lines;
         Things = things;
-        Nodes = nodes;
         GL = gl;
         Reject = reject;
         CompatibilityDefinition = compatibility;
@@ -95,13 +94,12 @@ public class DoomMap : IMap
         if (things == null)
             return null;
 
-        IReadOnlyList<DoomNode> nodes = CreateNodes(map.Nodes?.ReadData());
         GLComponents? gl = GLComponents.Read(map);
-        return new(archive, map.Name, vertices, sectors, sides, lines, things, nodes, gl, map.Reject?.ReadData(), compatibility);
+        return new(archive, map.Name, vertices, sectors, sides, lines, things, gl, map.Reject?.ReadData(), compatibility);
     }
 
     public IReadOnlyList<ILine> GetLines() => Lines;
-    public IReadOnlyList<INode> GetNodes() => Nodes;
+    public IReadOnlyList<INode> GetNodes() => [];
     public IReadOnlyList<ISector> GetSectors() => Sectors;
     public IReadOnlyList<ISide> GetSides() => Sides;
     public IReadOnlyList<IThing> GetThings() => Things;
@@ -114,7 +112,7 @@ public class DoomMap : IMap
 
         int numVertices = vertexData.Length / BytesPerVertex;
         using ByteReader reader = new(vertexData);
-        List<DoomVertex> vertices = new();
+        List<DoomVertex> vertices = new(numVertices);
 
         for (int id = 0; id < numVertices; id++)
         {
@@ -134,7 +132,7 @@ public class DoomMap : IMap
 
         int numSectors = sectorData.Length / BytesPerSector;
         using ByteReader reader = new(sectorData);
-        List<DoomSector> sectors = new();
+        List<DoomSector> sectors = new(numSectors);
 
         for (int id = 0; id < numSectors; id++)
         {
@@ -160,7 +158,7 @@ public class DoomMap : IMap
 
         int numSides = sideData.Length / BytesPerSide;
         using ByteReader reader = new(sideData);
-        List<DoomSide> sides = new();
+        List<DoomSide> sides = new(numSides);
 
         for (int id = 0; id < numSides; id++)
         {
@@ -227,7 +225,7 @@ public class DoomMap : IMap
 
         int numLines = lineData.Length / BytesPerLine;
         using ByteReader lineReader = new(lineData);
-        List<DoomLine> lines = new();
+        List<DoomLine> lines = new(numLines);
 
         for (int id = 0; id < numLines; id++)
         {
@@ -239,12 +237,14 @@ public class DoomMap : IMap
             ushort rightSidedef = lineReader.ReadUInt16();
             ushort leftSidedef = lineReader.ReadUInt16();
 
-            if (startVertexId >= vertices.Count || endVertexId >= vertices.Count)
-                continue;
+            if (startVertexId >= vertices.Count)
+                startVertexId = 0;
+            if (endVertexId >= vertices.Count)
+                endVertexId = 0;
             if (rightSidedef >= sides.Count && rightSidedef != NoSidedef)
-                continue;
+                rightSidedef = NoSidedef;
             if (leftSidedef >= sides.Count && leftSidedef != NoSidedef)
-                continue;
+                leftSidedef = NoSidedef;
 
             DoomVertex startVertex = vertices[startVertexId];
             DoomVertex endVertex = vertices[endVertexId];
@@ -376,43 +376,5 @@ public class DoomMap : IMap
         }
 
         return things;
-    }
-
-    internal static IReadOnlyList<DoomNode> CreateNodes(byte[]? nodeData)
-    {
-        List<DoomNode> nodes = new();
-
-        if (nodeData == null || nodeData.Length % BytesPerNode != 0)
-            return nodes;
-
-        int numNodes = nodeData.Length / BytesPerNode;
-        using ByteReader reader = new(nodeData);
-
-        for (int id = 0; id < numNodes; id++)
-        {
-            short x = reader.ReadInt16();
-            short y = reader.ReadInt16();
-            short dx = reader.ReadInt16();
-            short dy = reader.ReadInt16();
-            short rightBoxTop = reader.ReadInt16();
-            short rightBoxBottom = reader.ReadInt16();
-            short rightBoxLeft = reader.ReadInt16();
-            short rightBoxRight = reader.ReadInt16();
-            short leftBoxTop = reader.ReadInt16();
-            short leftBoxBottom = reader.ReadInt16();
-            short leftBoxLeft = reader.ReadInt16();
-            short leftBoxRight = reader.ReadInt16();
-            ushort rightChild = reader.ReadUInt16();
-            ushort leftChild = reader.ReadUInt16();
-
-            Seg2D segment = new((x, y), (x + dx, y + dy));
-            Box2D rightBox = new((rightBoxLeft, rightBoxBottom), (rightBoxRight, rightBoxTop));
-            Box2D leftBox = new((leftBoxLeft, leftBoxBottom), (leftBoxRight, leftBoxTop));
-
-            DoomNode node = new(segment, rightBox, leftBox, leftChild, rightChild);
-            nodes.Add(node);
-        }
-
-        return nodes;
     }
 }

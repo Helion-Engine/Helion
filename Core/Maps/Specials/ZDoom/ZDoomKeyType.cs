@@ -11,6 +11,7 @@ public enum ZDoomKeyType
     YellowSkullKey,
     AnyKey = 100,
     AllSixKeys,
+    Impossible,
     RedAny = 129,
     BlueAny,
     YellowAny,

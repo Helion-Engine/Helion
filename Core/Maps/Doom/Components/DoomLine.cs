@@ -33,8 +33,6 @@ public class DoomLine : ILine
         SectorTag = sectorTag;
     }
 
-    public IVertex GetStart() => Start;
-    public IVertex GetEnd() => End;
     public ISide GetFront() => Front;
     public ISide? GetBack() => Back;
 }

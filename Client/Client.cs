@@ -340,6 +340,7 @@ public partial class Client : IDisposable, IInputManagement
             return;
         }
 
+        m_console.ForceExpireMessages(true);
         FinalizeWorldLayerLoad(m_loadMapResult);
 
         // Note: StaticDataApplier happens through this start and needs to happen before UpdateToNewWorld
@@ -353,6 +354,12 @@ public partial class Client : IDisposable, IInputManagement
         // Flag the WorldLayer that it is safe to render now that everything has been loaded
         worldLayer.ShouldRender = true;
         m_layerManager.Remove(m_layerManager.LoadingLayer);
+
+        string displayName = worldLayer.World.MapInfo.GetMapNameWithPrefix(m_archiveCollection.Language);
+        if (!worldLayer.SameAsPreviousMap)
+            HelionLog.Info(displayName);
+
+        m_console.ForceExpireMessages(false);
 
         var changeEvent = m_loadMapResult.EventContext;
         if (changeEvent != null && (changeEvent.ChangeType == LevelChangeType.Next || changeEvent.ChangeType == LevelChangeType.SecretNext))

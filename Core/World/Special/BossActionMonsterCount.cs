@@ -51,7 +51,6 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
     private void ExecuteSpecial()
     {
         ZDoomLineSpecialType specialType = ZDoomLineSpecialType.None;
-        LineActivationType activationType = LineActivationType.Tag;
         LineSpecialCompatibility compat = LineSpecialCompatibility.Default;
         SpecialArgs specialArgs = new();
         var flags = new LineFlags(MapLineFlags.Doom(0));
@@ -59,7 +58,7 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
         if (m_bossAction.Action.HasValue)
         {
             specialType = VanillaLineSpecTranslator.Translate(ref flags, (VanillaLineSpecialType)m_bossAction.Action,
-                m_bossAction.Tag, ref specialArgs, out activationType, out compat);
+                m_bossAction.Tag, ref specialArgs, out _, out compat);
         }
         else if (m_bossAction.ZDoomAction.HasValue)
         {
@@ -70,18 +69,7 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
         if (specialType == ZDoomLineSpecialType.None)
             return;
 
-        activationType = LineActivationType.Tag;
-        LineSpecial lineSpecial = new(specialType, activationType, compat);
-        EntityActivateSpecial args = new(ActivationContext.CrossLine, m_world.Player, CreateDummyLine(flags, lineSpecial, specialArgs, m_world.Sectors[0]), true);
-        m_world.SpecialManager.TryAddActivatedLineSpecial(args);
-    }
-
-    public static Line CreateDummyLine(LineFlags flags, LineSpecial special, SpecialArgs args, Sector sector)
-    {
-        var wall = new Wall(Constants.NoTextureIndex, WallLocation.Middle);
-        var side = new Side(0, Vec2I.Zero, wall, wall, wall, sector);
-        var seg = new Seg2D(Vec2D.Zero, Vec2D.One);
-        return new Line(0, seg, side, null, flags, special, args);
+        m_world.SpecialManager.AddActivatedLineSpecial(specialType, specialArgs, compat);
     }
 
     public bool Use(Entity entity)

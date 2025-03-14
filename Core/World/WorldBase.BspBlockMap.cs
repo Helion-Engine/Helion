@@ -72,11 +72,7 @@ public partial class WorldBase
         for (int i = subsector.SegIndex; i < subsector.SegIndex + subsector.SegCount; i++)
         {
             ref var seg = ref BspTree.Segments.Data[i];
-            var dx = seg.End.X - seg.Start.X;
-            var dy = seg.End.Y - seg.Start.Y;
-
-            if (OnRight(dx, dy, seg.Start, min.X, min.Y) && OnRight(dx, dy, seg.Start, max.X, max.Y) &&
-                OnRight(dx, dy, seg.Start, max.X, min.Y) && OnRight(dx, dy, seg.Start, min.X, max.Y))
+            if (seg.Start.X >= min.X && seg.Start.Y >= min.Y && seg.End.X <= max.X && seg.End.Y <= max.Y)
                 continue;
 
             containsSubsector = false;
@@ -84,12 +80,6 @@ public partial class WorldBase
         }
 
         return containsSubsector;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool OnRight(double dx, double dy, in Vec2D start, double x, double y)
-    {
-        return (dx * (y - start.Y)) - (dy * (x - start.X)) <= 0;
     }
 
     public Subsector ToSubsector(double xPos, double yPos)

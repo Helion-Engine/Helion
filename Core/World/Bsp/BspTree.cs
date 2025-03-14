@@ -7,6 +7,7 @@ using Helion.Util.Extensions;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Subsectors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -99,13 +100,15 @@ public class BspTreeNew
         var vertices = map.GetVertices();
         var glVertices = map.GL.Vertices;
 
+        Segments.EnsureCapacity(map.GL.Segments.Count);
+
         // Create them so they can be indexed.
         int id = 0;
         for (int i = 0; i < map.GL.Segments.Count; i++)
         {
             var seg = map.GL.Segments[i];
-            Vec2D start = GetVertex(seg.IsStartVertexGL, seg.StartVertex);
-            Vec2D end = GetVertex(seg.IsEndVertexGL, seg.EndVertex);
+            Vec2D start = seg.IsStartVertexGL ? glVertices[(int)seg.StartVertex] : vertices[(int)seg.StartVertex].Position;
+            Vec2D end = seg.IsEndVertexGL ? glVertices[(int)seg.EndVertex] : vertices[(int)seg.EndVertex].Position;
             Line? line = null;
             Sector? sector = null;
 
@@ -136,16 +139,15 @@ public class BspTreeNew
                 segment.Partner = Segments[(int)seg.PartnerSegment.Value];
         }
 
-        Vec2D GetVertex(bool isGL, uint index)
-        {
-            return isGL ? glVertices[(int)index] : vertices[(int)index].Position;
-        }
+
     }
 
     private void CreateSubsectors(IMap map)
     {
         if (map.GL == null)
             return;
+
+        Subsectors.EnsureCapacity(map.GL.Subsectors.Count);
 
         int subsectorId = 0;
         for (int i = 0; i < map.GL.Subsectors.Count; i++)
@@ -189,6 +191,7 @@ public class BspTreeNew
 
         // Create them so we can index into them, in case the BSP indices are not
         // in the expected order.
+        Nodes.EnsureCapacity(map.GL.Nodes.Count);
         int id = 0;
         for (int i = 0; i <  map.GL.Nodes.Count; i++)
         {
@@ -202,13 +205,8 @@ public class BspTreeNew
         {
             var glNode = map.GL.Nodes[i];
             BspNodeNew node = Nodes[id++];
-            node.Left = GetChild(glNode.LeftChild, glNode.IsLeftSubsector);
-            node.Right = GetChild(glNode.RightChild, glNode.IsRightSubsector);
-        }
-
-        (BspNodeNew?, BspSubsector?) GetChild(uint index, bool isSubsector) 
-        {
-            return isSubsector ? (null, Subsectors[(int)index]) : (Nodes[(int)index], null);
+            node.Left = glNode.IsLeftSubsector ? (null, Subsectors[(int)glNode.LeftChild]) : (Nodes[(int)glNode.LeftChild], null);
+            node.Right = glNode.IsRightSubsector ? (null, Subsectors[(int)glNode.RightChild]) : (Nodes[(int)glNode.RightChild], null);
         }
     }
 

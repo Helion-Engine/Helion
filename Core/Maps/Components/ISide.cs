@@ -16,7 +16,24 @@ public interface ISide
     /// <summary>
     /// The texture offsets.
     /// </summary>
-    Vec2I Offset { get; }
+    ref Vec2I Offset { get; }
+    ref Vec2F UpperOffset { get; }
+    ref Vec2F MiddleOffset { get; }
+    ref Vec2F BottomOffset { get; }
+
+    ref Vec2F UpperScale { get; }
+    ref Vec2F MiddleScale { get; }
+    ref Vec2F BottomScale { get; }
+
+    int LightLevel { get; }
+    int LightLevelUpper { get; }
+    int LightLevelMiddle { get; }
+    int LightLevelLower { get; }
+
+    bool LightLevelAbsolute { get; }
+    bool LightLevelUpperAbsolute { get; }
+    bool LightLevelMiddleAbsolute { get; }
+    bool LightLevelLowerAbsolute { get; }
 
     /// <summary>
     /// The upper texture name.

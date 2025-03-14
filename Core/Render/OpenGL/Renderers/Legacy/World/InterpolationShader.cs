@@ -85,6 +85,8 @@ public class InterpolationShader : RenderProgram
         out vec2 uvFrag;
         flat out float alphaFrag;
         flat out float addAlphaFrag;
+        flat out float colorMapIndexFrag;
+        flat out float vertexLightLevelFrag;
 
         ${SectorColorMapVertexFragVariables}
         ${LightLevelVertexVariables}
@@ -99,8 +101,11 @@ public class InterpolationShader : RenderProgram
             float lightLevelBufferIndex = trunc(splitOptions / 4);
             splitOptions -= (lightLevelBufferIndex * 4);
             addAlphaFrag = trunc(splitOptions / 2);
-            alphaFrag = splitOptions - (addAlphaFrag * 2);      
+            alphaFrag = splitOptions - (addAlphaFrag * 2);
             uvFrag = mix(prevUV, uv, timeFrac);
+
+            colorMapIndexFrag = trunc(colorMapIndex / 256);
+            vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
             
             vec4 mixPos = vec4(mix(prevPos, pos, timeFrac), 1.0);
             ${VertexLightBuffer}

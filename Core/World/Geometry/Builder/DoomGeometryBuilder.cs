@@ -191,6 +191,7 @@ public static class DoomGeometryBuilder
 
             Line line = new(builder.Lines.Count, seg, front, back, flags, special, specialArgs);
             VanillaLineSpecTranslator.FinalizeLine(doomLine, line);
+            LineSpecial.ValidateActivationFlags(zdoomType, ref flags, map.MapType);
             builder.Lines.Add(line);
         }
     }

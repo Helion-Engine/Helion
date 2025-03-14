@@ -20,7 +20,7 @@ namespace Helion.Geometry.Segments
 
         public Vec2D Delta;
         public Box2D Box;
-        public double Length => Start.Distance(End);
+        public double Length() => Start.Distance(End);
         public bool IsAxisAligned => Start.X.ApproxEquals(End.X) || Start.Y.ApproxEquals(End.Y);
         public IEnumerable<Vec2D> Vertices => GetVertices();
 

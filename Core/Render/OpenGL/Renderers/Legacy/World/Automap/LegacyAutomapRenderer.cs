@@ -4,6 +4,7 @@ using GlmSharp;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Vertex;
@@ -46,7 +47,7 @@ public class LegacyAutomapRenderer : IDisposable
     private Box2D m_boundingBox = default;
 
     private readonly Dictionary<string, Color> m_keysByName = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<int, Color> m_keysByNumber = [];
+    private readonly Dictionary<ZDoomKeyType, Color> m_keysByNumber = [];
 
     private Color m_wallColor;
     private Color m_twoSidedWallColor;
@@ -407,7 +408,7 @@ public class LegacyAutomapRenderer : IDisposable
         if (keyNumber == 0)
             return false;
 
-        if (m_keysByNumber.TryGetValue(keyNumber, out var color))
+        if (m_keysByNumber.TryGetValue((ZDoomKeyType)keyNumber, out var color))
         {
             AddLine(color, start, end);
             return true;

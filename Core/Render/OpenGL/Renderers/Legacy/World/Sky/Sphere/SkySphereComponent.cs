@@ -16,13 +16,13 @@ public class SkySphereComponent : ISkyComponent
     private readonly SkySphereGeometryShader m_geometryProgram;
     private readonly SkySphereRenderer m_skySphereRenderer;
     private readonly SkyOptions m_options;
-    private readonly Vec2I m_offset;
+    private readonly Vec2F m_offset;
 
     public bool HasGeometry => !m_geometryVbo.Empty;
     public VertexBufferObject<SkyGeometryVertex> Vbo => m_geometryVbo;
 
     public SkySphereComponent(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle,
-        SkyOptions options, Vec2I offset)
+        SkyOptions options, Vec2F offset)
     {
         m_skySphereRenderer = new(archiveCollection, textureManager, textureHandle);
         m_geometryVao = new("Sky geometry");

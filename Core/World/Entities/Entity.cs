@@ -20,6 +20,8 @@ using System.Diagnostics;
 using static Helion.Util.Assertion.Assert;
 using Helion.Graphics.Palettes;
 using System.Runtime.CompilerServices;
+using Helion.Maps.Specials.ZDoom;
+using Helion.Maps.Specials;
 
 namespace Helion.World.Entities;
 
@@ -96,6 +98,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public bool HadOnEntity;
     public float Alpha;
 
+    public ZDoomLineSpecialType Special;
+    public SpecialArgs Args;
+
     public int LastRenderGametick;
     public double RenderDistanceSquared = double.MaxValue;
     public short SlowTickMultiplier = 1;
@@ -112,6 +117,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public double Height;
     public double Radius;
+    public double Gravity;
     public bool IsFrozen => FrozenTics > 0;
     public bool IsDead => Health <= 0;
     public virtual double ViewZ => 8.0;
@@ -179,6 +185,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         CheckOnGround();
 
         Properties.Threshold = 0;
+        Gravity = 1;
 
         Alpha = (float)Properties.Alpha;
         MonsterMovementSpeed = Properties.MonsterMovementSpeed;
@@ -218,19 +225,24 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         Flags.InFloat = entityModel.BlockFloat;
         MoveCount = entityModel.MoveCount;
         FrozenTics = entityModel.FrozenTics;
+        Gravity = entityModel.Gravity;
 
         HighestFloorSector = Sector;
         LowestCeilingSector = Sector;
         HighestFloorObject = Sector;
         LowestCeilingObject = Sector;
 
-        Alpha = (float)Properties.Alpha;
         MonsterMovementSpeed = Properties.MonsterMovementSpeed;
 
         FrameState = new(this, entityModel.Frame);
 
         if (entityModel.OnGround.HasValue)
             OnGround = entityModel.OnGround.Value;
+
+        if (entityModel.Alpha.HasValue)
+            Alpha = entityModel.Alpha.Value;
+        else
+            Alpha = (float)Properties.Alpha;
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -267,6 +279,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.HighEntity = GetBoundingEntityForModel(HighestFloorObject);
         entityModel.LowEntity = GetBoundingEntityForModel(LowestCeilingObject);
         entityModel.OnGround = OnGround;
+        entityModel.Gravity = Gravity;
+        entityModel.Alpha = Alpha;
         return entityModel;
     }
 
@@ -980,6 +994,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         SlowTickMultiplier = 1;
         ChaseFailureSkipCount = 0;
         ClosetChaseSpeed = DefaultClosetChaseSpeed;
+        Special = ZDoomLineSpecialType.None;
     }
 
     private void Unlink()
