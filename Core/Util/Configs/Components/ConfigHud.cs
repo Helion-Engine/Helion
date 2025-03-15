@@ -45,6 +45,10 @@ public class ConfigHudAutoMap: ConfigElement<ConfigHudAutoMap>
     [ConfigInfo("Show map title on the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Show Map Title")]
     public readonly ConfigValue<bool> MapTitle = new(true);
+    
+    [ConfigInfo("Use average color from key icon image.")]
+    [OptionMenu(OptionSectionType.Automap, "Key Image Color")]
+    public readonly ConfigValue<bool> ImageKeyColor = new(true);
 
     // Internal to the client
     [ConfigInfo("Amount to scale automap.", save: false)]

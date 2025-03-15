@@ -9,7 +9,6 @@ using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
-using Helion.Resources.Definitions.Locks;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Container;
@@ -20,7 +19,6 @@ using Helion.World.Entities.Definition;
 using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sides;
 using Helion.World.Impl.SinglePlayer;
 using OpenTK.Graphics.OpenGL;
 
@@ -28,26 +26,32 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 
 public class LegacyAutomapRenderer : IDisposable
 {
+    readonly record struct KeyColors(Color Color, Color ImageColor);
+    readonly record struct ColorRange(int Start, Vec3F Color);
     private readonly ArchiveCollection m_archiveCollection;
     private readonly StreamVertexBuffer<AutomapVertex> m_vbo;
     private readonly VertexArrayObject m_vao;
     private readonly AutomapShader m_shader;
-    private readonly List<(int start, Vec3F color)> m_vboRanges = [];
+    private readonly List<ColorRange> m_vboRanges = [];
+    private readonly List<ColorRange> m_highlightVboRanges = [];
     private readonly DynamicArray<vec2> m_points = new();
     private readonly AutomapColorPoints m_colorPoints = new();
+    private readonly AutomapColorPoints m_highlightColorPoints = new();
     private readonly HashSet<int> m_teleportLines = [];
     private readonly HashSet<int> m_exitLines = [];
     private readonly List<Color> m_transferColors = [];
+
     private float m_offsetX;
     private float m_offsetY;
     private int m_lastOffsetX;
     private int m_lastOffsetY;
     private bool m_disposed;
     private bool m_rotate;
+    private bool m_keyImageColor;
     private Box2D m_boundingBox = default;
 
-    private readonly Dictionary<string, Color> m_keysByName = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<ZDoomKeyType, Color> m_keysByNumber = [];
+    private readonly Dictionary<string, KeyColors> m_keysByName = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<ZDoomKeyType, KeyColors> m_keysByNumber = [];
 
     private Color m_wallColor;
     private Color m_twoSidedWallColor;
@@ -80,6 +84,7 @@ public class LegacyAutomapRenderer : IDisposable
         m_deadMonsterColor = new(colors.DeadMonsterColor.Value);
         m_markerColor = new(colors.MakerColor.Value);
         m_markerColorAlt = new(colors.AltMakerColor.Value);
+        m_keyImageColor = automap.ImageKeyColor;
     }
 
     public LegacyAutomapRenderer(ArchiveCollection archiveCollection)
@@ -90,13 +95,6 @@ public class LegacyAutomapRenderer : IDisposable
         m_shader = new();
 
         Attributes.BindAndApply(m_vbo, m_vao, m_shader.Attributes);
-
-        foreach (var lockDef in m_archiveCollection.Definitions.LockDefinitions.LockDefs)
-        {
-            m_keysByNumber[lockDef.KeyNumber] = lockDef.MapColor;
-            foreach (var item in lockDef.KeyDefinitionNames)
-                m_keysByName[item] = lockDef.MapColor;
-        }
     }
 
     ~LegacyAutomapRenderer()
@@ -132,13 +130,31 @@ public class LegacyAutomapRenderer : IDisposable
         SetBoundingBox(renderInfo);
         PopulateData(world, renderInfo, out _);
 
+        GL.LineWidth(1);
+        RenderElements(world, renderInfo, m_vboRanges);
+
+        GL.LineWidth(4);
+        RenderElements(world, renderInfo, m_highlightVboRanges, true);
+
+        GL.LineWidth(2);
+        RenderElements(world, renderInfo, m_highlightVboRanges);
+    }
+
+    private void RenderElements(IWorld world, RenderInfo renderInfo, List<ColorRange> vboRanges, bool lighten = false)
+    {
         m_shader.Bind();
         m_shader.Mvp(CalculateMvp(renderInfo, world.Config));
-
-        for (int i = 0; i < m_vboRanges.Count; i++)
+        for (int i = 0; i < vboRanges.Count; i++)
         {
-            (int first, Vec3F color) = m_vboRanges[i];
-            int count = i == m_vboRanges.Count - 1 ? m_vbo.Count - first : m_vboRanges[i + 1].start - first;
+            (int first, Vec3F color) = vboRanges[i];
+            int count = i == vboRanges.Count - 1 ? m_vbo.Count - first : vboRanges[i + 1].Start - first;
+
+            if (lighten)
+            {
+                color.X += 0.25f;
+                color.Y += 0.25f;
+                color.Z += 0.25f;
+            }
 
             m_shader.Color(color);
             m_vao.Bind();
@@ -161,12 +177,19 @@ public class LegacyAutomapRenderer : IDisposable
             if (line.Special.IsExitSpecial())
                 m_exitLines.Add(line.Id);
         }
+
+        foreach (var lockDef in m_archiveCollection.Definitions.LockDefinitions.LockDefs)
+        {
+            m_keysByNumber[lockDef.KeyNumber] = new(lockDef.MapColor, lockDef.KeyImageColor);
+            foreach (var item in lockDef.KeyDefinitionNames)
+                m_keysByName[item] = new(lockDef.MapColor, lockDef.KeyImageColor);
+        }
     }
 
     private void SetBoundingBox(RenderInfo renderInfo)
     {
         // Not optimally correct but works well enough. Would be best if this used the same method as static rendering.
-        var center = new Vec2D(renderInfo.Camera.PositionInterpolated.X + m_offsetX, renderInfo.Camera.PositionInterpolated.Y + m_offsetY);        
+        var center = new Vec2D(renderInfo.Camera.PositionInterpolated.X + m_offsetX, renderInfo.Camera.PositionInterpolated.Y + m_offsetY);
         var scale = m_archiveCollection.Config.Hud.AutoMap.Scale;
         double BoxScale = m_rotate ? 2.2 / scale : 2 / scale;
         var width = (renderInfo.Viewport.Width * BoxScale) / 2;
@@ -181,12 +204,12 @@ public class LegacyAutomapRenderer : IDisposable
         m_boundingBox = new Box2D((center.X - width, center.Y - height), (center.X + width, center.Y + height));
     }
 
-    private mat4 CalculateMvp(RenderInfo renderInfo, IConfig config)
+    private mat4 CalculateMvp(RenderInfo renderInfo, IConfig config, float scaleFactor = 1f)
     {
         vec2 scale = CalculateScale(renderInfo);
         vec3 camera = renderInfo.Camera.PositionInterpolated.GlmVector;
 
-        mat4 model = mat4.Scale(scale.x, scale.y, 1.0f);
+        mat4 model = mat4.Scale(scale.x * scaleFactor, scale.y * scaleFactor, 1.0f);
         if (m_rotate)
             model *= mat4.RotateZ(-renderInfo.Camera.YawRadians + MathF.PI / 2);
         mat4 view = mat4.Translate(-camera.x - m_offsetX, -camera.y - m_offsetY, 0);
@@ -211,7 +234,7 @@ public class LegacyAutomapRenderer : IDisposable
         Player? player = renderInfo.ViewerEntity.PlayerObj;
 
         m_vbo.Clear();
-        PopulateColoredLines(renderInfo, world, player);
+        PopulateColoredLines(world, player);
         PopulateThings(world, player, renderInfo);
         DrawEntity(player, renderInfo.TickFraction);
         DrawHighlightAreas(world, renderInfo);
@@ -222,7 +245,8 @@ public class LegacyAutomapRenderer : IDisposable
         if (player != null && (m_offsetX != 0 || m_offsetY != 0))
             DrawCenterCross(player, renderInfo);
 
-        TransferLineDataIntoBuffer(out box2F);
+        TransferLineDataIntoBuffer(m_colorPoints, m_vboRanges, out box2F);
+        TransferLineDataIntoBuffer(m_highlightColorPoints, m_highlightVboRanges, out _);
         m_vbo.UploadIfNeeded();
     }
 
@@ -281,9 +305,10 @@ public class LegacyAutomapRenderer : IDisposable
         }
     }
 
-    private void PopulateColoredLines(RenderInfo renderInfo, IWorld world, Player? player)
+    private void PopulateColoredLines(IWorld world, Player? player)
     {
         m_colorPoints.Clear();
+        m_highlightColorPoints.Clear();
 
         bool allMap = false;
         if (player != null)
@@ -343,7 +368,7 @@ public class LegacyAutomapRenderer : IDisposable
                 return m_exitLineColor;
             else
                 return m_wallColor;
-        
+
         return m_unseenWallColor;
     }
 
@@ -410,11 +435,18 @@ public class LegacyAutomapRenderer : IDisposable
 
         if (m_keysByNumber.TryGetValue((ZDoomKeyType)keyNumber, out var color))
         {
-            AddLine(color, start, end);
+            AddKeyLine(m_keyImageColor ? color.ImageColor : color.Color, start, end);
             return true;
         }
 
         return false;
+    }
+
+    void AddKeyLine(Color color, Vec2D start, Vec2D end)
+    {
+        DynamicArray<vec2> array = m_highlightColorPoints.GetPoints(color);
+        array.Add(new vec2((float)start.X, (float)start.Y));
+        array.Add(new vec2((float)end.X, (float)end.Y));
     }
 
     void AddLine(Color color, Vec2D start, Vec2D end)
@@ -449,10 +481,10 @@ public class LegacyAutomapRenderer : IDisposable
         Color color = m_thingColor;
         bool flash = false;
 
-        if (m_keysByName.TryGetValue(entity.Definition.Name, out Color keyColor))
+        if (m_keysByName.TryGetValue(entity.Definition.Name, out var keyColors))
         {
             flash = true;
-            color = keyColor;
+            color = m_keyImageColor ? keyColors.ImageColor : keyColors.Color;
         }
         else if (entity.Flags.CountKill)
         {
@@ -544,30 +576,30 @@ public class LegacyAutomapRenderer : IDisposable
         m_points.Add(e.xy);
     }
 
-    private void TransferLineDataIntoBuffer(out Box2F box2F)
+    private void TransferLineDataIntoBuffer(AutomapColorPoints colorPoints, List<ColorRange> vboRanges, out Box2F box2F)
     {
         float minX = float.PositiveInfinity;
         float minY = float.PositiveInfinity;
         float maxX = float.NegativeInfinity;
         float maxY = float.NegativeInfinity;
 
-        m_vboRanges.Clear();
+        vboRanges.Clear();
         m_transferColors.Clear();
 
-        m_colorPoints.GetColors(m_transferColors);
+        colorPoints.GetColors(m_transferColors);
 
         for (int i = 0; i < m_transferColors.Count; i++)
         {
             var color = m_transferColors[i];
-            DynamicArray<vec2> lines = m_colorPoints.GetPoints(m_transferColors[i]);
+            DynamicArray<vec2> lines = colorPoints.GetPoints(m_transferColors[i]);
             if (lines.Length == 0)
                 continue;
 
             Vec3F colorVec = new(color.R / 255f, color.G / 255f, color.B / 255f);
-            m_vboRanges.Add((m_vbo.Count, colorVec));
+            vboRanges.Add(new(m_vbo.Count, colorVec));
 
             for (int j = 0; j < lines.Length; j++)
-                AddLine(lines[j]);
+                AddLineToVbo(lines[j], ref minX, ref minY, ref maxX, ref maxY);
         }
 
         // This is a backup case in the event there are no lines.
@@ -580,20 +612,20 @@ public class LegacyAutomapRenderer : IDisposable
         }
 
         box2F = ((minX, minY), (maxX, maxY));
+    }
 
-        void AddLine(vec2 line)
-        {
-            m_vbo.Add(new AutomapVertex(line.x, line.y));
+    void AddLineToVbo(vec2 line, ref float minX, ref float minY, ref float maxX, ref float maxY)
+    {
+        m_vbo.Add(new AutomapVertex(line.x, line.y));
 
-            if (line.x < minX)
-                minX = line.x;
-            if (line.y < minY)
-                minY = line.y;
-            if (line.x > maxX)
-                maxX = line.x;
-            if (line.y > maxY)
-                maxY = line.y;
-        }
+        if (line.x < minX)
+            minX = line.x;
+        if (line.y < minY)
+            minY = line.y;
+        if (line.x > maxX)
+            maxX = line.x;
+        if (line.y > maxY)
+            maxY = line.y;
     }
 
     public void Dispose()

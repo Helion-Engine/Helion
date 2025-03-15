@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Helion.Dehacked;
+using Helion.Geometry.Vectors;
+using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.Palettes;
 using Helion.Maps;
@@ -362,6 +364,7 @@ public class ArchiveCollection : IResources, IPathResolver
             EntityDefinitionComposer.LoadAllDefinitions();
             ApplyDehackedPatch();
             EntityFrameTable.AddCustomFrames();
+            SetCustomKeyColors();
 
             if (iwad != null || files.Any())
                 Definitions.BuildTranslationColorMaps(Data.Palette, Data.Colormap);
@@ -382,6 +385,23 @@ public class ArchiveCollection : IResources, IPathResolver
         }
 
         return true;
+    }
+
+    private void SetCustomKeyColors()
+    {
+        var keyDefs = EntityDefinitionComposer.GetKeyDefinitions();
+        for (int i = 0; i < keyDefs.Count; i++)
+        {
+            var keyDef = keyDefs[i];
+            if (!Definitions.LockDefinitions.TryGetLockDef(keyDef.Name, out var lockDef))
+                continue;
+
+            var image = ImageRetriever.GetOnly(keyDef.Properties.Inventory.Icon, ResourceNamespace.Undefined);
+            if (image == null)
+                continue;
+
+            lockDef.MapColor = image.GetAverageColor();
+        }
     }
 
     /// <summary>
