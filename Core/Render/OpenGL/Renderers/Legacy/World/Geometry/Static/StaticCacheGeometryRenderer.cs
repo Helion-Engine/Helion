@@ -21,6 +21,7 @@ using OpenTK.Graphics.OpenGL;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
+using System.Linq;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -55,7 +56,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private IWorld m_world = null!;
     private bool m_vanillaRender;
 
-    public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, 
+    public StaticCacheGeometryRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager,
         RenderProgram program, GeometryRenderer geometryRenderer)
     {
         m_textureManager = textureManager;
@@ -144,6 +145,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void SetupCoverGeometry(IWorld world)
     {
+        if (!world.Config.Render.VanillaRender)
+            return;
+
         var texture = m_textureManager.WhiteTexture;
         var textureIndex = 0;
 
@@ -156,10 +160,13 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (!world.SameAsPreviousMap || (world.SameAsPreviousMap && m_vanillaRender && m_coverWallGeometry == null))
         {
+            var oneSided = world.Lines.Count(x => x.Back == null);
+            var sidesWithTextures = world.Sides.Count(x => x.Upper.TextureHandle != 0 || x.Lower.TextureHandle != 0);
+
             m_coverWallGeometry = AllocateGeometryData(GeometryType.Wall, textureIndex,
-                repeat: true, addToGeometry: false, world.Sides.Count * 3 * WallVertices, overrideTexture: texture);
+                repeat: true, addToGeometry: false, sidesWithTextures * WallVertices, overrideTexture: texture);
             m_coverWallGeometryOneSided = AllocateGeometryData(GeometryType.Wall, textureIndex,
-                repeat: true, addToGeometry: false, world.Lines.Count * WallVertices, overrideTexture: texture);
+                repeat: true, addToGeometry: false, oneSided * WallVertices, overrideTexture: texture);
         }
     }
 
@@ -213,7 +220,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 facingSide.UpperFloodKeys = Side.NoFloodKeys;
             else
                 facingSide.LowerFloodKeys = Side.NoFloodKeys;
-        }  
+        }
     }
 
     private void AddTransferSector(Sector sector)
@@ -336,11 +343,11 @@ public class StaticCacheGeometryRenderer : IDisposable
             SetSideVertices(side, side.Upper, update, sideVertices, upperVisible, true);
             // Skyhack and skyVertices2 are done from the facingSector, otherwise use the otherSector like normal.
             // Required for id24 flat mapping using different floor/ceiling textures.
-            AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, skyHack || skyVertices2 != null ? facingSector: otherSector, update);
+            AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, skyHack || skyVertices2 != null ? facingSector : otherSector, update);
 
             if (!update)
             {
-                if ((side.FloodTextures & SideTexture.Upper) != 0) 
+                if ((side.FloodTextures & SideTexture.Upper) != 0)
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide, m_floodFillRenderer);
             }
 
@@ -445,13 +452,13 @@ public class StaticCacheGeometryRenderer : IDisposable
     private static unsafe void AddVertices(DynamicArray<StaticVertex> staticVertices, DynamicVertex[] vertices)
     {
         int staticStartIndex = staticVertices.Length;
-        fixed(DynamicVertex* startVertex = &vertices[0])
+        fixed (DynamicVertex* startVertex = &vertices[0])
         {
             staticVertices.EnsureCapacity(staticVertices.Length + vertices.Length);
             for (int i = 0; i < vertices.Length; i++)
             {
                 DynamicVertex* v = startVertex + i;
-                staticVertices.Data[staticStartIndex + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V, 
+                staticVertices.Data[staticStartIndex + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
                     v->Options, v->LightLevelAdd, v->ColorMapIndex);
             }
 
@@ -480,20 +487,20 @@ public class StaticCacheGeometryRenderer : IDisposable
         var type = GetWallType(side, wall);
         if (m_vanillaRender && type != GeometryType.TwoSidedMiddleWall)
             AddOrUpdateCoverWall(side, wall, sideVertices);
-        
+
         if (update)
         {
             UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices,
                 null, side, wall, repeatY, side.Sector);
             return;
         }
-                
+
         var vertices = GetTextureVertices(type, wall.TextureHandle, repeatY);
         SetSideData(ref wall.Static, type, wall.TextureHandle, vertices.Length, sideVertices.Length, repeatY, null);
         AddVertices(vertices, sideVertices);
     }
 
-    private static GeometryType GetWallType(Side side, Wall wall) => 
+    private static GeometryType GetWallType(Side side, Wall wall) =>
         wall.Location == WallLocation.Middle && side.PartnerSide != null ? GeometryType.TwoSidedMiddleWall : GeometryType.Wall;
 
     private void SetSideData(ref StaticGeometryData staticGeometry, GeometryType type, int textureHandle, int vboIndex, int vertexCount, bool repeatY, GeometryData? geometryData)
@@ -514,13 +521,12 @@ public class StaticCacheGeometryRenderer : IDisposable
         return geometryData.Vbo.Data;
     }
 
-    private GeometryData AllocateGeometryData(GeometryType type, int textureHandle, bool repeat, bool addToGeometry = true, int vboSize = 0, 
+    private GeometryData AllocateGeometryData(GeometryType type, int textureHandle, bool repeat, bool addToGeometry = true, int vboSize = 0,
         GLLegacyTexture? overrideTexture = null)
     {
         VertexArrayObject vao = new($"Geometry (handle {textureHandle}, repeat {repeat})");
-        vboSize = Math.Max(vboSize, 1024);
+        vboSize = Math.Max(vboSize, 32);
         StaticVertexBuffer<StaticVertex> vbo = new($"Geometry (handle {textureHandle}, repeat {repeat})", vboSize);
-
         Attributes.BindAndApply(vbo, vao, m_program.Attributes);
 
         var texture = overrideTexture ?? m_textureManager.GetTexture(textureHandle, repeat);
@@ -540,7 +546,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     }
 
     private void ClearData(IWorld world)
-    { 
+    {
         if (m_world != null)
         {
             m_world.SectorMoveStart -= World_SectorMoveStart;
@@ -694,7 +700,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_disposed)
             return;
 
-        m_geometry.DisposeAndClear();        
+        m_geometry.DisposeAndClear();
         m_disposed = true;
     }
 
@@ -888,7 +894,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         var key = CoverKey.MakeCoverWallKey(side.Id, wall.Location);
         int length = sideVertices.Length;
         if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData))
-        {            
+        {
             CoverWallUtil.CopyCoverWallVertices(side, vbo.Data.Data, sideVertices, staticGeometryData.Index, wall.Location);
             vbo.Bind();
             vbo.UploadSubData(staticGeometryData.Index, length);
@@ -896,6 +902,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         var vertices = vbo.Data;
+        vbo.Data.EnsureCapacity(vertices.Length + sideVertices.Length);
         staticGeometryData = new(useGeometry, vertices.Length, length);
         CoverWallUtil.CopyCoverWallVertices(side, vertices.Data, sideVertices, staticGeometryData.Index, wall.Location);
         vertices.Length += length;
