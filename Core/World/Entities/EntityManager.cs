@@ -364,6 +364,7 @@ public class EntityManager : IDisposable
             setOnGround = pair.Model.OnGround;
         }
 
+        PostProcessEntity(entity);
         FinalizeEntity(entity, false, initSpawn: false);
         if (setOnGround != null)
             entity.OnGround = setOnGround.Value;
@@ -506,6 +507,11 @@ public class EntityManager : IDisposable
         if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
             MusicChangers.Add(entity);
 
+        PostProcessEntity(entity);
+    }
+
+    private void PostProcessEntity(Entity entity)
+    {
         SpawnLocations.AddPossibleSpawnLocation(entity);
 
         if (entity.ThingId != NoTid)
