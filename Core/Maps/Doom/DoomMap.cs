@@ -37,12 +37,12 @@ public class DoomMap : IMap
     public string MD5 { get; set; }
     public string Name { get; }
     public MapType MapType => MapType.Doom;
-    public readonly List<DoomLine> Lines;
-    public readonly List<DoomSector> Sectors;
-    public readonly List<DoomSide> Sides;
-    public readonly List<DoomThing> Things;
-    public readonly List<DoomVertex> Vertices;
-    public GLComponents? GL { get; }
+    public List<DoomLine> Lines;
+    public List<DoomSector> Sectors;
+    public List<DoomSide> Sides;
+    public List<DoomThing> Things;
+    public List<DoomVertex> Vertices;
+    public GLComponents? GL { get; private set; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
 
@@ -61,6 +61,15 @@ public class DoomMap : IMap
         Reject = reject;
         CompatibilityDefinition = compatibility;
         MD5 = string.Empty;
+    }
+
+    public void ClearAllExceptThings()
+    {
+        Lines = [];
+        Sectors = [];
+        Sides = [];
+        Vertices = [];
+        GL = null;
     }
 
     /// <summary>

@@ -28,6 +28,7 @@ public interface IMap
     GLComponents? GL { get; }
     byte[]? Reject { get; set; }
     CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
+    void ClearAllExceptThings();
 
     public static IMap? Read(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null)
     {

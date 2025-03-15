@@ -25,12 +25,12 @@ public class UdmfMap : IMap
     public string Name { get; }
 
     public MapType MapType => MapType.UDMF;
-    public readonly List<UdmfLine> Lines;
-    public readonly List<UdmfSector> Sectors;
-    public readonly List<UdmfSide> Sides;
-    public readonly List<UdmfThing> Things;
-    public readonly List<UdmfVertex> Vertices;
-    public GLComponents? GL { get; }
+    public List<UdmfLine> Lines;
+    public List<UdmfSector> Sectors;
+    public List<UdmfSide> Sides;
+    public List<UdmfThing> Things;
+    public List<UdmfVertex> Vertices;
+    public GLComponents? GL { get; private set; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
 
@@ -40,6 +40,15 @@ public class UdmfMap : IMap
     public IReadOnlyList<ISide> GetSides() => Sides;
     public IReadOnlyList<IThing> GetThings() => Things;
     public IReadOnlyList<IVertex> GetVertices() => Vertices;
+
+    public void ClearAllExceptThings()
+    {
+        Lines = [];
+        Sectors = [];
+        Sides = [];
+        Vertices = [];
+        GL = null;
+    }
 
     public static UdmfMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility)
     {

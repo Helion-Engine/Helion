@@ -108,6 +108,8 @@ public class ArchiveCollection : IResources, IPathResolver
         m_config = config;
     }
 
+    public IMap? GetLastLoadedMap() => m_lastLoadedMap;
+
     public void InitTextureManager(MapInfoDef mapInfo, bool unitTest = false)
     {
         if (unitTest)

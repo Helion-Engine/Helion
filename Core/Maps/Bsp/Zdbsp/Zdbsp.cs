@@ -17,7 +17,7 @@ namespace Helion.Maps.Bsp.Zdbsp
 
         private string m_lastMapName = string.Empty;
 
-        private ArchiveCollection? m_lastBspCollection;
+        private IMap? m_lastMap;
         private readonly Stopwatch m_stopwatch = new();
 
         public bool RunZdbsp(IMap map, string mapName, MapInfoDef mapInfoDef, [NotNullWhen(true)] out IMap? outputMap)
@@ -27,10 +27,10 @@ namespace Helion.Maps.Bsp.Zdbsp
 
             try
             {
-                if (m_lastBspCollection != null && File.Exists(outputFile) && m_lastMapName.Equals(mapInfoDef.MapName, StringComparison.OrdinalIgnoreCase))
+                if (m_lastMap != null && File.Exists(outputFile) && m_lastMapName.Equals(mapInfoDef.MapName, StringComparison.OrdinalIgnoreCase))
                 {
-                    outputMap = m_lastBspCollection.FindMap(mapName);
-                    return outputMap != null;
+                    outputMap = m_lastMap;
+                    return true;
                 }
 
                 CleanZdbspData(outputFile);
@@ -49,16 +49,15 @@ namespace Helion.Maps.Bsp.Zdbsp
                 Log.Info("Loading compiled map...");
                 m_stopwatch.Restart();
 
-                m_lastBspCollection?.Dispose();
-
-                m_lastBspCollection = new ArchiveCollection(new FilesystemArchiveLocator(), new(), ArchiveCollection.StaticDataCache);
-                if (!m_lastBspCollection.Load([outputFile], loadDefaultAssets: false))
+                using var archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(), new(), ArchiveCollection.StaticDataCache);
+                if (!archiveCollection.Load([outputFile], loadDefaultAssets: false))
                     return false;
 
-                outputMap = m_lastBspCollection.FindMap(mapName);
+                outputMap = archiveCollection.FindMap(mapName);
                 if (outputMap != null)
                     outputMap.CompatibilityDefinition = map.CompatibilityDefinition;
 
+                m_lastMap = outputMap;
                 m_stopwatch.Stop();
                 Log.Info($"Completed map load {m_stopwatch.Elapsed}");
                 return outputMap != null;
@@ -99,9 +98,7 @@ namespace Helion.Maps.Bsp.Zdbsp
 
         private void CleanZdbspData(string outputFile)
         {
-            if (m_lastBspCollection != null)
-                m_lastBspCollection.Dispose();
-
+            m_lastMap = null;
             TempFileManager.DeleteFile(outputFile);
         }
     }

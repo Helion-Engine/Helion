@@ -519,7 +519,7 @@ public partial class Client
         AddWorldTickCommand(DoUseCommand, args);
 
     private void DoUseCommand(ConsoleCommandEventArgs args)
-    {        
+    {
         if (m_layerManager.WorldLayer == null || args.Args.Count == 0)
             return;
 
@@ -811,6 +811,11 @@ public partial class Client
             var worldLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
                 m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
                 players.FirstOrDefault(), worldModel, random);
+
+            // This isn't great but the map reference is everywhere and difficult to unwind.
+            // This dumps all the map specific data that isn't needed instead of wasting the memory. (zdbsp and archive collection can have separate ones)
+            m_archiveCollection.GetLastLoadedMap()?.ClearAllExceptThings();
+            map.ClearAllExceptThings();
             return new(worldLayer, worldModel, eventContext, players, random, startRandomIndex);
         }
         catch (Exception ex)
