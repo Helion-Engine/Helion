@@ -400,7 +400,7 @@ public class ArchiveCollection : IResources, IPathResolver
             if (image == null)
                 continue;
 
-            lockDef.MapColor = image.GetAverageColor();
+            lockDef.KeyImageColor = image.GetAverageColor();
         }
     }
 

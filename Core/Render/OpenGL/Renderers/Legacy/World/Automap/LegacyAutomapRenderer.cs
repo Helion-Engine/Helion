@@ -48,6 +48,7 @@ public class LegacyAutomapRenderer : IDisposable
     private bool m_disposed;
     private bool m_rotate;
     private bool m_keyImageColor;
+    private bool m_flashTime;
     private Box2D m_boundingBox = default;
 
     private readonly Dictionary<string, KeyColors> m_keysByName = new(StringComparer.OrdinalIgnoreCase);
@@ -104,6 +105,7 @@ public class LegacyAutomapRenderer : IDisposable
 
     public void Render(IWorld world, RenderInfo renderInfo)
     {
+        m_flashTime = WorldStatic.World.GameTicker / (int)(Constants.TicksPerSecond / 3) % 2 == 0;
         SetColors();
 
         // Consider both offsets at zero a reset
@@ -133,14 +135,11 @@ public class LegacyAutomapRenderer : IDisposable
         GL.LineWidth(1);
         RenderElements(world, renderInfo, m_vboRanges);
 
-        GL.LineWidth(4);
-        RenderElements(world, renderInfo, m_highlightVboRanges, true);
-
-        GL.LineWidth(2);
-        RenderElements(world, renderInfo, m_highlightVboRanges);
+        GL.LineWidth(1.25f);
+        RenderElements(world, renderInfo, m_highlightVboRanges, m_flashTime ? 0.25f : 0);
     }
 
-    private void RenderElements(IWorld world, RenderInfo renderInfo, List<ColorRange> vboRanges, bool lighten = false)
+    private void RenderElements(IWorld world, RenderInfo renderInfo, List<ColorRange> vboRanges, float changeColorAmount = 0)
     {
         m_shader.Bind();
         m_shader.Mvp(CalculateMvp(renderInfo, world.Config));
@@ -149,11 +148,11 @@ public class LegacyAutomapRenderer : IDisposable
             (int first, Vec3F color) = vboRanges[i];
             int count = i == vboRanges.Count - 1 ? m_vbo.Count - first : vboRanges[i + 1].Start - first;
 
-            if (lighten)
+            if (changeColorAmount > 0)
             {
-                color.X += 0.25f;
-                color.Y += 0.25f;
-                color.Z += 0.25f;
+                color.X = ChangeColor(color.X, 0.25f);
+                color.Y = ChangeColor(color.Y, 0.25f);
+                color.Z = ChangeColor(color.Z, 0.25f);
             }
 
             m_shader.Color(color);
@@ -163,6 +162,14 @@ public class LegacyAutomapRenderer : IDisposable
         }
 
         m_shader.Unbind();
+    }
+
+    private static float ChangeColor(float color, float amount)
+    {
+        var changeAmount = color + amount;
+        if (changeAmount > 1 + amount / 2)
+            return color - amount;
+        return changeAmount;
     }
 
     public void UpdateTo(IWorld world)
@@ -345,11 +352,11 @@ public class LegacyAutomapRenderer : IDisposable
 
             if (line.BackSector == null || line.Secret || line.AutomapFlags.AlwaysDraw)
             {
-                AddLine(GetOneSidedColor(world, ref line, forceDraw, markedLine), start, end);
+                AddLine(GetOneSidedColor(ref line, forceDraw, markedLine), start, end);
                 continue;
             }
 
-            var color = GetTwoSidedColor(world, ref line, forceDraw, markedLine, out var specialColor);
+            var color = GetTwoSidedColor(ref line, forceDraw, markedLine, out var specialColor);
             if (!allMap && !specialColor && line.BackFloorPlane != null && line.BackCeilingPlane != null &&
                 line.FrontFloorPlane.Z == line.BackFloorPlane.Z && line.FrontCeilingPlane.Z == line.BackCeilingPlane.Z)
                 continue;
@@ -358,10 +365,10 @@ public class LegacyAutomapRenderer : IDisposable
         }
     }
 
-    private Color GetOneSidedColor(IWorld world, ref StructLine line, bool forceDraw, bool marked)
+    private Color GetOneSidedColor(ref StructLine line, bool forceDraw, bool marked)
     {
         if (marked)
-            return GetMarkedColor(world);
+            return GetMarkedColor();
 
         if (line.SeenForAutomap || forceDraw)
             if (m_exitLines.Contains(line.Id))
@@ -372,14 +379,14 @@ public class LegacyAutomapRenderer : IDisposable
         return m_unseenWallColor;
     }
 
-    private Color GetTwoSidedColor(IWorld world, ref StructLine line, bool forceDraw, bool marked, out bool specialColor)
+    private Color GetTwoSidedColor(ref StructLine line, bool forceDraw, bool marked, out bool specialColor)
     {
         specialColor = false;
 
         if (marked)
         {
             specialColor = true;
-            return GetMarkedColor(world);
+            return GetMarkedColor();
         }
 
         if (line.SeenForAutomap || forceDraw)
@@ -401,12 +408,7 @@ public class LegacyAutomapRenderer : IDisposable
         return m_unseenWallColor;
     }
 
-    private Color GetMarkedColor(IWorld world)
-    {
-        if (world.GameTicker / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
-            return m_markerColor;
-        return m_markerColorAlt;
-    }
+    private Color GetMarkedColor() => m_flashTime ? m_markerColor : m_markerColorAlt;
 
     private static bool IsLineMarked(ref StructLine line, bool markSecrets, bool markFlood, bool checkMarkedSectors)
     {
@@ -508,7 +510,7 @@ public class LegacyAutomapRenderer : IDisposable
         else if (flash)
         {
             // Draw a square for keys, make it flash
-            if (WorldStatic.World.GameTicker / (int)(Constants.TicksPerSecond / 3) % 2 == 0)
+            if (m_flashTime)
                 AddSquare(-quarterWidth, -quarterHeight, halfWidth, halfHeight, transform);
         }
         else if (entity.IsPlayer)
