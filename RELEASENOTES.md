@@ -5,6 +5,7 @@
 - UDMF implementation
 - Improvements to initial map load times
 - Line contrast mode (off, vanilla, smooth)
+- Calculate locked key door color by using key icon image
 
 ## Bug fixes:
 - Correct missile blocking checks to match original behavior (fixes radsuits blocking rockets etc)
