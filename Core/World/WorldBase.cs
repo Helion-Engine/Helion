@@ -3049,11 +3049,11 @@ public abstract partial class WorldBase : IWorld
         if (teleportEntity.PlayerObj == null || teleportEntity.PlayerObj.IsVooDooDoll)
             return;
 
-        var playerSubsector = Geometry.BspTree.Find(teleportEntity.Position);
+        var playerSubsector = Geometry.BspTree.Subsectors[ToSubsector(teleportEntity.Position.X, teleportEntity.Position.Y).Id];
         if (playerSubsector.IslandId < 0 || playerSubsector.IslandId >= Geometry.IslandGeometry.Islands.Count)
             return;
 
-        var island = WorldStatic.World.Geometry.IslandGeometry.Islands[playerSubsector.IslandId];
+        var island = Geometry.IslandGeometry.Islands[playerSubsector.IslandId];
         bool wasMonsterCloset = island.IsMonsterCloset;
         bool wasVooDooCloset = island.IsVooDooCloset;
 
