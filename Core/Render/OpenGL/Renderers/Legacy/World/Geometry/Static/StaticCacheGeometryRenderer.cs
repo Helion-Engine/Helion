@@ -145,9 +145,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void SetupCoverGeometry(IWorld world)
     {
-        if (!world.Config.Render.VanillaRender)
-            return;
-
         var texture = m_textureManager.WhiteTexture;
         var textureIndex = 0;
 
@@ -158,7 +155,14 @@ public class StaticCacheGeometryRenderer : IDisposable
                 repeat: true, addToGeometry: false, overrideTexture: texture);
         }
 
-        if (!world.SameAsPreviousMap || (world.SameAsPreviousMap && m_vanillaRender && m_coverWallGeometry == null))
+        if (!m_vanillaRender)
+        {
+            m_coverWallGeometry = null;
+            m_coverWallGeometryOneSided = null;
+            return;
+        }
+
+        if (!world.SameAsPreviousMap || (world.SameAsPreviousMap && m_coverWallGeometry == null))
         {
             var oneSided = world.Lines.Count(x => x.Back == null);
             var sidesWithTextures = world.Sides.Count(x => x.Upper.TextureHandle != 0 || x.Lower.TextureHandle != 0);
