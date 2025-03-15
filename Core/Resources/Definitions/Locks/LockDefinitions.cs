@@ -1,6 +1,10 @@
 using Helion.Graphics;
 using Helion.Maps.Specials.ZDoom;
 using System.Collections.Generic;
+using Helion.Util.Extensions;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace Helion.Resources.Definitions.Locks;
 
@@ -144,5 +148,25 @@ public class LockDefinitions
                 return LockDefs[i];
         }
         return null;
+    }
+
+    public bool TryGetLockDef(string definitionName, [NotNullWhen(true)] out LockDef? lockDef)
+    {
+        for (int i = 0; i <  LockDefs.Count; i++)
+        {
+            var def = LockDefs[i];
+            for (int j = 0; j < def.KeyDefinitionNames.Count; j++)
+            {
+                var name = def.KeyDefinitionNames[j];
+                if (definitionName.EqualsIgnoreCase(name))
+                {
+                    lockDef = def;
+                    return true;
+                }
+            }
+        }
+
+        lockDef = null;
+        return false;
     }
 }
