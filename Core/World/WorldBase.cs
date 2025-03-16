@@ -398,10 +398,12 @@ public abstract partial class WorldBase : IWorld
         }
 
         LastStructLines.Clear();
+        LastStructLines.EnsureCapacityExact(Lines.Count);
+        var arrayData = LastStructLines.Data;
         for (int i = 0; i < Lines.Count; i++)
         {
             var line = Lines[i];
-            LastStructLines.Add(new StructLine(line));
+            arrayData[i] = new StructLine(line);
             var objectHealth = line.ObjectHealth != ObjectHealth.Default;
             m_explosionTraverseLines = m_explosionTraverseLines || objectHealth;
 
