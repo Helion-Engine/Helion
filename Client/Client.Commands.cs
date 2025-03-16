@@ -521,6 +521,10 @@ public partial class Client
     private void Use(ConsoleCommandEventArgs args) =>
         AddWorldTickCommand(DoUseCommand, args);
 
+    [ConsoleCommand("gc", "Forces Garbage Collection.")]
+    private void GarbageCollect(ConsoleCommandEventArgs args) =>
+        GCUtil.ForceGarbageCollection();
+
     private void DoUseCommand(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer == null || args.Args.Count == 0)
