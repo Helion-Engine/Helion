@@ -21,17 +21,24 @@ public class GLBspBuilder : IBspBuilder
 {
     private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
-    private readonly List<GLVertex> m_glVertices = new();
-    private readonly List<SubsectorEdge> m_segments = new();
-    private readonly List<BspNode> m_subsectors = new();
-    private readonly List<BspNode> m_nodes = new();
+    private readonly List<GLVertex> m_glVertices = [];
+    private readonly List<SubsectorEdge> m_segments = [];
+    private readonly List<BspNode> m_subsectors = [];
+    private readonly List<BspNode> m_nodes = [];
     private readonly IMap m_map;
     private int m_nodeId;
+    private int m_segmentCount;
 
     public GLBspBuilder(IMap map)
     {
         m_map = map;
     }
+
+    public int GetNodeCount() => m_nodes.Count;
+
+    public int GetSubsectorCount() => m_subsectors.Count;
+
+    public int GetSegmentCount() => m_segmentCount;
 
     public BspNode? Build()
     {
@@ -113,6 +120,8 @@ public class GLBspBuilder : IBspBuilder
 
             BspNode subsector = new(m_nodeId++, edges);
             m_subsectors.Add(subsector);
+
+            m_segmentCount += edges.Count;
         }
     }
 

@@ -399,6 +399,7 @@ public abstract partial class WorldBase : IWorld
 
         LastStructLines.Clear();
         LastStructLines.EnsureCapacityExact(Lines.Count);
+        LastStructLines.SetLength(Lines.Count);
         var arrayData = LastStructLines.Data;
         for (int i = 0; i < Lines.Count; i++)
         {

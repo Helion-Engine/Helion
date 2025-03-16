@@ -70,6 +70,12 @@ public class BspBuilder : IBspBuilder
         CreateInitialWorkItem(segments);
     }
 
+    public int GetNodeCount() => 0;
+
+    public int GetSubsectorCount() => 0;
+
+    public int GetSegmentCount() => SegmentAllocator.Count;
+
     /// <summary>
     /// Moves until either the current work item is the branch provided, or
     /// the building is done.

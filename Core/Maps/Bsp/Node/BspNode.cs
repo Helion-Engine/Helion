@@ -127,41 +127,6 @@ public class BspNode
             ClearChildren();
     }
 
-    /// <summary>
-    /// Recursively counts how many subsectors there are.
-    /// </summary>
-    /// <returns>The number of subsectors at and under this node.</returns>
-    public int CalculateSubsectorCount()
-    {
-        if (Left != null && Right != null)
-            return Left.CalculateSubsectorCount() + Right.CalculateSubsectorCount();
-        else
-            return IsSubsector ? 1 : 0;
-    }
-
-    /// <summary>
-    /// Recursively counts how many parent nodes there are.
-    /// </summary>
-    /// <returns>The number of parents at and under this node.</returns>
-    public int CalculateParentNodeCount()
-    {
-        if (Left != null && Right != null)
-            return 1 + Left.CalculateParentNodeCount() + Right.CalculateParentNodeCount();
-        else
-            return 0;
-    }
-
-    /// <summary>
-    /// Recursively counts how many nodes there are.
-    /// </summary>
-    /// <returns>The number of nodes at and under this node.</returns>
-    public int CalculateTotalNodeCount()
-    {
-        int left = Left?.CalculateTotalNodeCount() ?? 0;
-        int right = Right?.CalculateTotalNodeCount() ?? 0;
-        return 1 + left + right;
-    }
-
     private static bool EdgesAreHeadToTail(IList<SubsectorEdge> edges)
     {
         for (int i = 1; i < edges.Count; i++)
