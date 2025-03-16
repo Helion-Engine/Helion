@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Helion.Geometry;
-using Helion.Geometry.Boxes;
-using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
@@ -72,6 +70,12 @@ public class DoomMap : IMap
         GL = null;
     }
 
+    public void ClearAll()
+    {
+        ClearAllExceptThings();
+        Things = [];
+    }
+
     /// <summary>
     /// Creates a doom map from the entry collection provided.
     /// </summary>
@@ -108,7 +112,6 @@ public class DoomMap : IMap
     }
 
     public IReadOnlyList<ILine> GetLines() => Lines;
-    public IReadOnlyList<INode> GetNodes() => [];
     public IReadOnlyList<ISector> GetSectors() => Sectors;
     public IReadOnlyList<ISide> GetSides() => Sides;
     public IReadOnlyList<IThing> GetThings() => Things;

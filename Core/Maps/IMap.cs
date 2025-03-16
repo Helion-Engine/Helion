@@ -20,7 +20,6 @@ public interface IMap
     public string MD5 { get; set; }
     public string ArchivePath { get; set; }
     IReadOnlyList<ILine> GetLines();
-    IReadOnlyList<INode> GetNodes();
     IReadOnlyList<ISector> GetSectors();
     IReadOnlyList<ISide> GetSides();
     IReadOnlyList<IThing> GetThings();
@@ -29,6 +28,7 @@ public interface IMap
     byte[]? Reject { get; set; }
     CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
     void ClearAllExceptThings();
+    void ClearAll();
 
     public static IMap? Read(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null)
     {

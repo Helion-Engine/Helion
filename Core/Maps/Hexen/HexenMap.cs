@@ -65,6 +65,12 @@ public class HexenMap : IMap
         GL = null;
     }
 
+    public void ClearAll()
+    {
+        ClearAllExceptThings();
+        Things = [];
+    }
+
     /// <summary>
     /// Creates a hexen map from the entry collection provided.
     /// </summary>
@@ -101,7 +107,6 @@ public class HexenMap : IMap
     }
 
     public IReadOnlyList<ILine> GetLines() => Lines;
-    public IReadOnlyList<INode> GetNodes() => [];
     public IReadOnlyList<ISector> GetSectors() => Sectors;
     public IReadOnlyList<ISide> GetSides() => Sides;
     public IReadOnlyList<IThing> GetThings() => Things;

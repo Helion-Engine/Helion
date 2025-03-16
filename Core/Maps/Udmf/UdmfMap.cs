@@ -36,7 +36,6 @@ public class UdmfMap : IMap
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
 
     public IReadOnlyList<ILine> GetLines() => Lines;
-    public IReadOnlyList<INode> GetNodes() => [];
     public IReadOnlyList<ISector> GetSectors() => Sectors;
     public IReadOnlyList<ISide> GetSides() => Sides;
     public IReadOnlyList<IThing> GetThings() => Things;
@@ -49,6 +48,12 @@ public class UdmfMap : IMap
         Sides = [];
         Vertices = [];
         GL = null;
+    }
+
+    public void ClearAll()
+    {
+        ClearAllExceptThings();
+        Things = [];
     }
 
     public static UdmfMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility)

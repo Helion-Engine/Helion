@@ -789,11 +789,16 @@ public partial class Client
             if (!sameMap)
             {
                 var mapCompat = map.CompatibilityDefinition;
-                if (!m_zdbsp.RunZdbsp(map.ArchivePath, map.Name, out map))
+                if (!m_zdbsp.RunZdbsp(map.ArchivePath, map.Name, out var compiledMap))
                 {
                     Log.Error("Failed to run zdbsp.");
                     return result;
                 }
+
+                // Large UDMF maps don't seem to free the memory without this.
+                map.ClearAll();
+                map.Reject = null;
+                map = compiledMap;
 
                 if (map != null)
                     map.CompatibilityDefinition = mapCompat;
