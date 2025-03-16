@@ -20,9 +20,10 @@ public class UdmfMap : IMap
         public readonly ReadOnlySpan<char> Value = value;
     }
 
-    public Archive Archive { get; }
+    public string ArchivePath { get; set; }
     public string MD5 { get; set; }
     public string Name { get; }
+
 
     public MapType MapType => MapType.UDMF;
     public List<UdmfLine> Lines;
@@ -71,7 +72,7 @@ public class UdmfMap : IMap
         List<UdmfLine> lines, List<UdmfThing> things, GLComponents? gl, byte[]? reject,
         CompatibilityMapDefinition? compatibility)
     {
-        Archive = archive;
+        ArchivePath = archive.FullPath;
         Name = name;
         Vertices = vertices;
         Sectors = sectors;

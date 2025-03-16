@@ -1,105 +1,86 @@
-﻿using System;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using Helion.Resources.Archives.Collection;
+﻿using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Locator;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using NLog;
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using zdbspSharp;
 
-namespace Helion.Maps.Bsp.Zdbsp
+namespace Helion.Maps.Bsp.Zdbsp;
+
+public class Zdbsp
 {
-    public class Zdbsp
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    private readonly Stopwatch m_stopwatch = new();
+
+    public bool RunZdbsp(string filePath, string mapName, [NotNullWhen(true)] out IMap? outputMap)
     {
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        string outputFile = TempFileManager.GetFile();
+        outputMap = null;
 
-        private string m_lastMapName = string.Empty;
-
-        private IMap? m_lastMap;
-        private readonly Stopwatch m_stopwatch = new();
-
-        public bool RunZdbsp(IMap map, string mapName, MapInfoDef mapInfoDef, [NotNullWhen(true)] out IMap? outputMap)
+        try
         {
-            string outputFile = TempFileManager.GetFile();
-            outputMap = null;
+            Log.Info($"Building nodes [{filePath}]...");
+            m_stopwatch.Restart();
+            if (!RunZdbsp(filePath, mapName, outputFile))
+                return false;
 
-            try
+            m_stopwatch.Stop();
+            Log.Info($"Completed nodes {m_stopwatch.Elapsed}");
+            Log.Debug("Zdbsp output:");
+
+            Log.Info("Loading compiled map...");
+            m_stopwatch.Restart();
+
+            var archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(), new(), ArchiveCollection.StaticDataCache);
+            if (!archiveCollection.Load([outputFile], loadDefaultAssets: false))
             {
-                if (m_lastMap != null && File.Exists(outputFile) && m_lastMapName.Equals(mapInfoDef.MapName, StringComparison.OrdinalIgnoreCase))
-                {
-                    outputMap = m_lastMap;
-                    return true;
-                }
-
-                CleanZdbspData(outputFile);
-
-                Log.Info($"Building nodes [{map.Archive.Path}]...");
-                m_stopwatch.Restart();
-                if (!RunZdbsp(map.Archive.Path.FullPath, mapName, outputFile))
-                    return false;
-
-                m_stopwatch.Stop();
-                Log.Info($"Completed nodes {m_stopwatch.Elapsed}");
-                Log.Debug("Zdbsp output:");
-
-                m_lastMapName = mapInfoDef.MapName;
-
-                Log.Info("Loading compiled map...");
-                m_stopwatch.Restart();
-
-                using var archiveCollection = new ArchiveCollection(new FilesystemArchiveLocator(), new(), ArchiveCollection.StaticDataCache);
-                if (!archiveCollection.Load([outputFile], loadDefaultAssets: false))
-                    return false;
-
-                outputMap = archiveCollection.FindMap(mapName);
-                if (outputMap != null)
-                    outputMap.CompatibilityDefinition = map.CompatibilityDefinition;
-
-                m_lastMap = outputMap;
-                m_stopwatch.Stop();
-                Log.Info($"Completed map load {m_stopwatch.Elapsed}");
-                return outputMap != null;
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Zdbsp critical failure: {e.Message}");
+                TempFileManager.DeleteFile(outputFile);
+                return false;
             }
 
-            return false;
-        }
-
-        private static bool RunZdbsp(string file, string map, string outputFile)
-        {
-            using FWadReader inwad = new(File.Open(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
-            using FWadWriter outwad = new(File.Open(outputFile, FileMode.CreateNew), inwad.IsIWAD());
-
-            ProcessorOptions options = new()
-            {
-                GLOnly = true,
-                BuildGLNodes = true,
-                ConformNodes = false
-            };
-
-            int lumpCount = inwad.NumLumps();
-            for (int i = 0; i < lumpCount - 1; i++)
-            {
-                if (!inwad.IsMap(i) || !inwad.LumpName(i).EqualsIgnoreCase(map))
-                    continue;
-
-                FProcessor builder = new(inwad, i, options);
-                builder.Write(outwad);
-                return true;
-            }
-
-            return false;
-        }
-
-        private void CleanZdbspData(string outputFile)
-        {
-            m_lastMap = null;
+            outputMap = archiveCollection.FindMap(mapName);
+            m_stopwatch.Stop();
+            Log.Info($"Completed map load {m_stopwatch.Elapsed}");
+            archiveCollection.Dispose();
             TempFileManager.DeleteFile(outputFile);
+            return outputMap != null;
         }
+        catch (Exception e)
+        {
+            Log.Error($"Zdbsp critical failure: {e.Message}");
+        }
+
+        return false;
+    }
+
+    private static bool RunZdbsp(string file, string map, string outputFile)
+    {
+        using FWadReader inwad = new(File.Open(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+        using FWadWriter outwad = new(File.Open(outputFile, FileMode.OpenOrCreate), inwad.IsIWAD());
+
+        ProcessorOptions options = new()
+        {
+            GLOnly = true,
+            BuildGLNodes = true,
+            ConformNodes = false
+        };
+
+        int lumpCount = inwad.NumLumps();
+        for (int i = 0; i < lumpCount - 1; i++)
+        {
+            if (!inwad.IsMap(i) || !inwad.LumpName(i).EqualsIgnoreCase(map))
+                continue;
+
+            FProcessor builder = new(inwad, i, options);
+            builder.Write(outwad);
+            return true;
+        }
+
+        return false;
     }
 }

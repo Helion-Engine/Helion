@@ -45,6 +45,9 @@ public partial class Client
     private bool m_isSecretExit;
     private LevelChangeEvent m_levelChangeEvent = LevelChangeEvent.Default;
 
+    private string m_lastMapName = string.Empty;
+    private IMap? m_lastLoadedMap;
+
     [ConsoleCommand("setpos", "Sets the player's position (x y z). Ex setpos 100 100 0")]
     private void SetPosition(ConsoleCommandEventArgs args)
     {
@@ -774,21 +777,30 @@ public partial class Client
                 players = previousWorld.EntityManager.Players;
 
             m_lastWorldModel = worldModel;
-            IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
+            var sameMap = m_lastMapName.EqualsIgnoreCase(mapInfoDef.MapName) && m_lastLoadedMap != null;
+            var map = sameMap ? m_lastLoadedMap : m_archiveCollection.FindMap(mapInfoDef.MapName);
+
             if (map == null)
             {
                 LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
                 return result;
             }
 
-            if (!m_zdbsp.RunZdbsp(map, map.Name, mapInfoDef, out map))
+            if (!sameMap)
             {
-                Log.Error("Failed to run zdbsp.");
-                return result;
+                var mapCompat = map.CompatibilityDefinition;
+                if (!m_zdbsp.RunZdbsp(map.ArchivePath, map.Name, out map))
+                {
+                    Log.Error("Failed to run zdbsp.");
+                    return result;
+                }
+
+                if (map != null)
+                    map.CompatibilityDefinition = mapCompat;
             }
 
             m_config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
-            SkillDef? skillDef = GetSkillDefinition(worldModel);
+            var skillDef = GetSkillDefinition(worldModel);
             if (skillDef == null)
             {
                 LogError($"Could not find skill definition for {m_config.Game.Skill}");
@@ -804,6 +816,9 @@ public partial class Client
                 return result;
             }
 
+            m_lastMapName = mapInfoDef.MapName;
+            m_lastLoadedMap = map;
+
             // Don't show the spinner here. The final steps requires OpenGL calls that are required to be executed on the main thread for now so the spinner can't update.
             if (m_layerManager.LoadingLayer != null)
                 m_layerManager.LoadingLayer.ShowSpinner = false;
@@ -813,8 +828,7 @@ public partial class Client
                 players.FirstOrDefault(), worldModel, random);
 
             // This isn't great but the map reference is everywhere and difficult to unwind.
-            // This dumps all the map specific data that isn't needed instead of wasting the memory. (zdbsp and archive collection can have separate ones)
-            m_archiveCollection.GetLastLoadedMap()?.ClearAllExceptThings();
+            // This dumps all the map specific data that isn't needed instead of wasting the memory.
             map.ClearAllExceptThings();
             return new(worldLayer, worldModel, eventContext, players, random, startRandomIndex);
         }

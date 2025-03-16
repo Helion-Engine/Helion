@@ -26,7 +26,7 @@ public class HexenMap : IMap
 
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public Archive Archive { get; }
+    public string ArchivePath { get; set; }
     public string MD5 { get; set; }
     public string Name { get; }
     public MapType MapType => MapType.Hexen;
@@ -43,7 +43,7 @@ public class HexenMap : IMap
         List<HexenLine> lines, List<HexenThing> things, GLComponents? gl, byte[]? reject,
         CompatibilityMapDefinition? compatibility)
     {
-        Archive = archive;
+        ArchivePath = archive.FullPath;
         Name = name;
         Vertices = vertices;
         Sectors = sectors;

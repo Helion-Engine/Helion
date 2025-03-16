@@ -91,8 +91,7 @@ public class ArchiveCollection : IResources, IPathResolver
     private readonly List<Archive> m_archives = new();
     private readonly Dictionary<string, Font?> m_fonts = new(StringComparer.OrdinalIgnoreCase);
     private readonly IConfig m_config;
-    private string m_lastLoadedMapName = string.Empty;
-    private IMap? m_lastLoadedMap;
+    private string? m_lastLoadedMapPath;
     private bool m_lastLoadedMapIsTemp;
     private bool m_initTextureManager;
 
@@ -107,8 +106,6 @@ public class ArchiveCollection : IResources, IPathResolver
         DataCache = dataCache;
         m_config = config;
     }
-
-    public IMap? GetLastLoadedMap() => m_lastLoadedMap;
 
     public void InitTextureManager(MapInfoDef mapInfo, bool unitTest = false)
     {
@@ -169,9 +166,6 @@ public class ArchiveCollection : IResources, IPathResolver
 
     public IMap? FindMap(string mapName)
     {
-        if (m_lastLoadedMapName.EqualsIgnoreCase(mapName) && m_lastLoadedMap != null)
-            return m_lastLoadedMap;
-
         ClearLastLoadedTempMap();
 
         string mapPathEquals = $"maps/{mapName}.wad";
@@ -185,7 +179,7 @@ public class ArchiveCollection : IResources, IPathResolver
             if (mapEntry != null && ExtractAndLoadEmbeddedMapEntry(mapEntry, mapName, out IMap? map))
             {
                 m_lastLoadedMapIsTemp = true;
-                SetMapLoaded(mapName, map);
+                SetMapLoaded(map);
                 return map;
             }
 
@@ -206,7 +200,7 @@ public class ArchiveCollection : IResources, IPathResolver
                 if (map != null)
                 {
                     m_lastLoadedMapIsTemp = false;
-                    SetMapLoaded(mapName, map);
+                    SetMapLoaded(map);
                     return map;
                 }
 
@@ -220,19 +214,17 @@ public class ArchiveCollection : IResources, IPathResolver
 
     private void ClearLastLoadedTempMap()
     {
-        if (!m_lastLoadedMapIsTemp || m_lastLoadedMap == null)
+        if (!m_lastLoadedMapIsTemp || string.IsNullOrEmpty(m_lastLoadedMapPath))
             return;
 
-        TempFileManager.DeleteFile(m_lastLoadedMap.Archive.FullPath);
-        m_lastLoadedMap.Archive.Dispose();
-        m_lastLoadedMap = null;
+        TempFileManager.DeleteFile(m_lastLoadedMapPath);
+        m_lastLoadedMapPath = string.Empty;
         m_lastLoadedMapIsTemp = false;
     }
 
-    private void SetMapLoaded(string mapName, IMap? extractedMap)
+    private void SetMapLoaded(IMap? extractedMap)
     {
-        m_lastLoadedMap = extractedMap;
-        m_lastLoadedMapName = mapName;
+        m_lastLoadedMapPath = extractedMap?.ArchivePath ?? string.Empty;
     }
 
     private bool ExtractAndLoadEmbeddedMapEntry(Entry mapEntry, string mapName, [NotNullWhen(true)] out IMap? map)

@@ -33,7 +33,7 @@ public class DoomMap : IMap
     private static readonly DoomSector EmptySector = new(0, 0, 0, "", "", 0, 0, 0);
     private static readonly DoomSide EmptySide = new(0, (0, 0), Constants.NoTexture, Constants.NoTexture, Constants.NoTexture, EmptySector);
 
-    public Archive Archive { get; }
+    public string ArchivePath { get; set; }
     public string MD5 { get; set; }
     public string Name { get; }
     public MapType MapType => MapType.Doom;
@@ -50,7 +50,7 @@ public class DoomMap : IMap
         List<DoomLine> lines,  List<DoomThing> things, GLComponents? gl, byte[]? reject,
         CompatibilityMapDefinition? compatibility)
     {
-        Archive = archive;
+        ArchivePath = archive.FullPath;
         Name = name;
         Vertices = vertices;
         Sectors = sectors;

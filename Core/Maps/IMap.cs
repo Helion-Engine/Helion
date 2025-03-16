@@ -17,8 +17,8 @@ public interface IMap
 {
     string Name { get; }
     MapType MapType { get; }
-    public Archive Archive { get; }
     public string MD5 { get; set; }
+    public string ArchivePath { get; set; }
     IReadOnlyList<ILine> GetLines();
     IReadOnlyList<INode> GetNodes();
     IReadOnlyList<ISector> GetSectors();
