@@ -232,11 +232,11 @@ public class UdmfMap : IMap
             if (prop.Name.EqualsIgnoreCase("sector"))
                 side.SectorId = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturetop"))
-                side.UpperTexture = prop.Value.ToString();
+                side.UpperTexture = string.Intern(prop.Value.ToString());
             else if (prop.Name.EqualsIgnoreCase("texturemiddle"))
-                side.MiddleTexture = prop.Value.ToString();
+                side.MiddleTexture = string.Intern(prop.Value.ToString());
             else if (prop.Name.EqualsIgnoreCase("texturebottom"))
-                side.LowerTexture = prop.Value.ToString();
+                side.LowerTexture = string.Intern(prop.Value.ToString());
             else if (prop.Name.EqualsIgnoreCase("offsetx"))
                 side.Offset.X = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsety"))
@@ -303,9 +303,9 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("heightceiling"))
                 sector.CeilingZ = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturefloor"))
-                sector.FloorTexture = prop.Value.ToString();
+                sector.FloorTexture = string.Intern(prop.Value.ToString());
             else if (prop.Name.EqualsIgnoreCase("textureceiling"))
-                sector.CeilingTexture = prop.Value.ToString();
+                sector.CeilingTexture = string.Intern(prop.Value.ToString());
             else if (prop.Name.EqualsIgnoreCase("lightlevel"))
                 sector.LightLevel = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("id"))
@@ -353,9 +353,9 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("leakiness"))
                 sector.Leakiness = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("skyfloor"))
-                sector.SkyFloor = prop.Value.ToString();
+                sector.SkyFloor = string.Intern(prop.Value.ToString());
             else if (prop.Name.EqualsIgnoreCase("skyceiling"))
-                sector.SkyCeiling = prop.Value.ToString();
+                sector.SkyCeiling = string.Intern(prop.Value.ToString());
         }
 
         sectors.Add(sector);
