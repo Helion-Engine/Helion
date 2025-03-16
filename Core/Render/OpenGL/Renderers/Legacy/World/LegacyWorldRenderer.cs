@@ -118,7 +118,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_renderData.ViewPosInterpolated3D = renderInfo.Camera.PositionInterpolated.Double;
         m_renderData.ViewPos3D = renderInfo.Camera.Position.Double;
         m_renderData.ViewDirection = renderInfo.Camera.Direction.XY.Double;
-        m_renderData.ViewIsland = world.Geometry.IslandGeometry.Islands[world.Geometry.BspTree.Subsectors[renderInfo.ViewerEntity.SubsectorId].IslandId];
+        m_renderData.ViewIsland = world.Geometry.IslandGeometry.Islands[world.Geometry.SubsectorToIslandId[renderInfo.ViewerEntity.SubsectorId]];
 
         m_viewerEntity = renderInfo.ViewerEntity;
         m_geometryRenderer.Clear(renderInfo.TickFraction, true);

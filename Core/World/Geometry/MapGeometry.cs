@@ -32,21 +32,36 @@ public class MapGeometry
     public readonly List<Line> Lines;
     public readonly List<Side> Sides;
     public readonly List<Sector> Sectors;
-    public readonly BspTreeNew BspTree;
     public readonly CompactBspTree CompactBspTree;
+    public int[] SubsectorToIslandId = [];
 
     public IslandGeometry IslandGeometry = new();
 
     private readonly Dictionary<int, IList<Sector>> m_tagToSector = [];
     private readonly Dictionary<int, IList<Line>> m_idToLine = [];
+    private BspTreeNew? m_bspTree;
 
-    internal MapGeometry(IMap map, GeometryBuilder builder, CompactBspTree bspTree, BspTreeNew bspTreeNew)
+    public BspTreeNew? GetBspTree() => m_bspTree;
+    public void ClearBspTree()
+    {
+        if (m_bspTree == null)
+            return;
+
+        m_bspTree.Nodes = null!;
+        m_bspTree.Segments = null!;
+        foreach (var subsector in m_bspTree.Subsectors)
+            subsector.Segments = null!;
+        m_bspTree.Subsectors = null!;
+        m_bspTree = null;
+    }
+
+    internal MapGeometry(GeometryBuilder builder, CompactBspTree bspTree, BspTreeNew bspTreeNew)
     {
         Lines = builder.Lines;
         Sides = builder.Sides;
         Sectors = builder.Sectors;
         CompactBspTree = bspTree;
-        BspTree = bspTreeNew;
+        m_bspTree = bspTreeNew;
 
         TrackSectorsByTag();
         TrackLinesByLineId();
@@ -54,9 +69,16 @@ public class MapGeometry
 
     public void ClassifyIslands()
     {
+        if (m_bspTree == null)
+            return;
+
         var islandClassifier = new IslandClassifier();
-        IslandGeometry.Islands = islandClassifier.Classify(BspTree.Subsectors, Sectors, Lines.Count);
-        IslandGeometry.SectorIslands = islandClassifier.ClassifySectors(BspTree.Subsectors, Sectors, Lines.Count);
+        IslandGeometry.Islands = islandClassifier.Classify(m_bspTree.Subsectors, Sectors, Lines.Count);
+        IslandGeometry.SectorIslands = islandClassifier.ClassifySectors(m_bspTree.Subsectors, Sectors, Lines.Count);
+
+        SubsectorToIslandId = new int[m_bspTree.Subsectors.Count];
+        foreach (var subsector in m_bspTree.Subsectors)
+            SubsectorToIslandId[subsector.Id] = subsector.IslandId;
 
         for (int sectorId = 0; sectorId < IslandGeometry.SectorIslands.Length; sectorId++)
         {

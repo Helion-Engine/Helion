@@ -3049,11 +3049,15 @@ public abstract partial class WorldBase : IWorld
         if (teleportEntity.PlayerObj == null || teleportEntity.PlayerObj.IsVooDooDoll)
             return;
 
-        var playerSubsector = Geometry.BspTree.Subsectors[ToSubsector(teleportEntity.Position.X, teleportEntity.Position.Y).Id];
-        if (playerSubsector.IslandId < 0 || playerSubsector.IslandId >= Geometry.IslandGeometry.Islands.Count)
+        var playerSubsectorId = teleportEntity.SubsectorId;
+        if (playerSubsectorId < 0 || playerSubsectorId >= Geometry.SubsectorToIslandId.Length)
             return;
 
-        var island = Geometry.IslandGeometry.Islands[playerSubsector.IslandId];
+        var playerIslandId = Geometry.SubsectorToIslandId[playerSubsectorId];
+        if (playerIslandId < 0 || playerIslandId >= Geometry.IslandGeometry.Islands.Count)
+            return;
+
+        var island = Geometry.IslandGeometry.Islands[playerIslandId];
         bool wasMonsterCloset = island.IsMonsterCloset;
         bool wasVooDooCloset = island.IsVooDooCloset;
 
@@ -3072,14 +3076,14 @@ public abstract partial class WorldBase : IWorld
             if ((entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0)
                 continue;
 
-            if (entity.SubsectorId < 0 || entity.SubsectorId >= Geometry.BspTree.Subsectors.Count)
+            if (entity.SubsectorId < 0 || entity.SubsectorId >= Geometry.SubsectorToIslandId.Length)
                 continue;
 
-            var subsector = Geometry.BspTree.Subsectors[entity.SubsectorId];
-            if (subsector.IslandId < 0 || subsector.IslandId >= Geometry.IslandGeometry.Islands.Count)
+            var islandId = Geometry.SubsectorToIslandId[entity.SubsectorId];
+            if (islandId < 0 || islandId >= Geometry.IslandGeometry.Islands.Count)
                 continue;
 
-            if (subsector.IslandId != island.Id)
+            if (islandId != island.Id)
                 continue;
 
             entity.ClearMonsterCloset();

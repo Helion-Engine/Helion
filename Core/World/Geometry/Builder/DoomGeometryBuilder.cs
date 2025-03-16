@@ -33,7 +33,7 @@ public static class DoomGeometryBuilder
         if (!bspTree.HasValue)
             return null;
 
-        return new(map, builder, bspTree.Value.Item1, bspTree.Value.Item2);
+        return new(builder, bspTree.Value.Item1, bspTree.Value.Item2);
     }
 
     private static SectorPlane CreateSectorPlane(DoomSector doomSector, SectorPlaneFace face,

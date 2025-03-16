@@ -287,14 +287,9 @@ public partial class WorldLayer : IGameLayerParent
             var world = new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, profiler, geometry,
                 mapDef, skillDef, map, sameAsPreviousMap, existingPlayer, worldModel, random, reuse);
 
-            // Dump data is no longer needed
+            // Dump data that is no longer needed
             if (!sameAsPreviousMap)
-            {
-                geometry.BspTree.Nodes = [];
-                geometry.BspTree.Segments = [];
-                foreach (var subsector in geometry.BspTree.Subsectors)
-                    subsector.Segments = null!;
-            }
+                geometry.ClearBspTree();
 
             return world;
         }

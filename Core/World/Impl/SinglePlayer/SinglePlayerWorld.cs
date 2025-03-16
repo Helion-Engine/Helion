@@ -114,8 +114,9 @@ public class SinglePlayerWorld : WorldBase
             SpecialManager.AddSpecialModels(worldModel);
         }
 
-        if (config.Game.MonsterCloset.Value)
-            ClosetClassifier.Classify(this, worldModel != null);
+        var bspTree = Geometry.GetBspTree();
+        if (config.Game.MonsterCloset.Value && bspTree != null)
+            ClosetClassifier.Classify(this, bspTree, worldModel != null);
         else if (worldModel != null)
             ClearMonsterClosets();
 
