@@ -26,16 +26,16 @@ public class HexenMap : IMap
 
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public Archive Archive { get; }
+    public string ArchivePath { get; set; }
     public string MD5 { get; set; }
     public string Name { get; }
     public MapType MapType => MapType.Hexen;
-    public readonly List<HexenLine> Lines;
-    public readonly List<DoomSector> Sectors;
-    public readonly List<DoomSide> Sides;
-    public readonly List<HexenThing> Things;
-    public readonly List<DoomVertex> Vertices;
-    public GLComponents? GL { get; }
+    public List<HexenLine> Lines;
+    public List<DoomSector> Sectors;
+    public List<DoomSide> Sides;
+    public List<HexenThing> Things;
+    public List<DoomVertex> Vertices;
+    public GLComponents? GL { get; private set; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
 
@@ -43,7 +43,7 @@ public class HexenMap : IMap
         List<HexenLine> lines, List<HexenThing> things, GLComponents? gl, byte[]? reject,
         CompatibilityMapDefinition? compatibility)
     {
-        Archive = archive;
+        ArchivePath = archive.FullPath;
         Name = name;
         Vertices = vertices;
         Sectors = sectors;
@@ -54,6 +54,21 @@ public class HexenMap : IMap
         Reject = reject;
         CompatibilityDefinition = compatibility;
         MD5 = string.Empty;
+    }
+
+    public void ClearAllExceptThings()
+    {
+        Lines = [];
+        Sectors = [];
+        Sides = [];
+        Vertices = [];
+        GL = null;
+    }
+
+    public void ClearAll()
+    {
+        ClearAllExceptThings();
+        Things = [];
     }
 
     /// <summary>
@@ -92,7 +107,6 @@ public class HexenMap : IMap
     }
 
     public IReadOnlyList<ILine> GetLines() => Lines;
-    public IReadOnlyList<INode> GetNodes() => [];
     public IReadOnlyList<ISector> GetSectors() => Sectors;
     public IReadOnlyList<ISide> GetSides() => Sides;
     public IReadOnlyList<IThing> GetThings() => Things;

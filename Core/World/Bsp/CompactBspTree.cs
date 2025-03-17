@@ -36,13 +36,13 @@ public class CompactBspTree
     /// All the subsectors, the convex leaves at the bottom of the BSP
     /// tree.
     /// </summary>
-    public Subsector[] Subsectors = new Subsector[0];
+    public Subsector[] Subsectors = [];
 
     /// <summary>
     /// A compact struct for all the nodes, specifically to speed up all
     /// recursive BSP traversal.
     /// </summary>
-    public BspNodeCompact[] Nodes = new BspNodeCompact[0];
+    public BspNodeCompact[] Nodes = [];
 
     /// <summary>
     /// The next available subsector index. This is used only for building
@@ -65,11 +65,10 @@ public class CompactBspTree
     /// </remarks>
     public BspNodeCompact Root => Nodes[^1];
 
-    private CompactBspTree(BspNode root, GeometryBuilder builder)
+    private CompactBspTree(BspNode root, GeometryBuilder builder, int nodeCount, int subsectorCount, int segmentCount)
     {
         Precondition(!root.IsDegenerate, "Cannot make a BSP tree from a degenerate build");
-
-        CreateComponents(root, builder);
+        CreateComponents(root, builder, nodeCount, subsectorCount, segmentCount);
 
         if (Subsectors.Length == 1)
             HandleSingleSubsectorTree();
@@ -119,7 +118,7 @@ public class CompactBspTree
             return null;
         }
 
-        return new CompactBspTree(root, builder);
+        return new CompactBspTree(root, builder, bspBuilder.GetNodeCount(), bspBuilder.GetSubsectorCount(), bspBuilder.GetSegmentCount());
     }
 
     public unsafe Subsector ToSubsector(uint nodeIndex, double x, double y)
@@ -171,16 +170,11 @@ public class CompactBspTree
         return edge.IsFront ? line.Front : line.Back;
     }
 
-    private void CreateComponents(BspNode root, GeometryBuilder builder)
+    private void CreateComponents(BspNode root, GeometryBuilder builder, int nodeCount, int subsectorCount, int segmentsCount)
     {
-        // Since it's a full binary tree, N nodes implies N + 1 leaves.
-        int parentNodeCount = root.CalculateParentNodeCount();
-        int subsectorNodeCount = parentNodeCount + 1;
-        int segmentCountGuess = subsectorNodeCount * 4;
-
-        Segments = new(segmentCountGuess);
-        Subsectors = new Subsector[subsectorNodeCount];
-        Nodes = new BspNodeCompact[parentNodeCount];
+        Segments = new(segmentsCount);
+        Subsectors = new Subsector[subsectorCount];
+        Nodes = new BspNodeCompact[nodeCount];
 
         RecursivelyCreateComponents(root, builder);
     }
@@ -193,24 +187,43 @@ public class CompactBspTree
         return node.IsSubsector ? CreateSubsector(node, builder) : CreateNode(node, builder);
     }
 
-    private readonly List<Seg2D> m_segs = [];
-
     private BspCreateResultCompact CreateSubsector(BspNode node, GeometryBuilder builder)
     {
         int index = Segments.Length;
         CreateClockwiseSegments(node, builder);
 
-        m_segs.Clear();
+        var minX = double.MaxValue;
+        var minY = double.MaxValue;
+        var maxX = double.MinValue;
+        var maxY = double.MinValue;
+
         for (int i = 0; i < node.ClockwiseEdges.Count; i++)
         {
             var edge = node.ClockwiseEdges[i];
-            m_segs.Add(new Seg2D(edge.Start, edge.End));
+            if (edge.Start.X < minX)
+                minX = edge.Start.X;
+            if (edge.Start.X > maxX)
+                maxX = edge.Start.X;
+
+            if (edge.End.X < minX)
+                minX = edge.End.X;
+            if (edge.End.X > maxX)
+                maxX = edge.End.X;
+
+            if (edge.Start.Y < minY)
+                minY = edge.Start.Y;
+            if (edge.Start.Y > maxY)
+                maxY = edge.Start.Y;
+
+            if (edge.End.Y < minY)
+                minY = edge.End.Y;
+            if (edge.End.Y > maxY)
+                maxY = edge.End.Y;
         }
 
-        Box2D bbox = Box2D.Bound(m_segs) ?? Box2D.UnitBox;
-
+        Box2D box = new(new Vec2D(minX, minY), new Vec2D(maxX, maxY));
         Sector sector = GetSectorFrom(node, builder);
-        Subsector subsector = new(node.Id, sector, bbox, index, node.ClockwiseEdges.Count);
+        Subsector subsector = new(node.Id, sector, box, index, node.ClockwiseEdges.Count);
         Subsectors[m_nextSubsectorIndex] = subsector;
 
         return BspCreateResultCompact.Subsector(m_nextSubsectorIndex++);

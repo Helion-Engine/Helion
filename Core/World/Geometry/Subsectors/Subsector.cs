@@ -1,5 +1,4 @@
 using Helion.Geometry.Boxes;
-using Helion.Geometry.Vectors;
 using Helion.World.Geometry.Sectors;
 using static Helion.Util.Assertion.Assert;
 

@@ -197,6 +197,14 @@ public class DynamicArray<T>
         SetCapacity(newCapacity);
     }
 
+    public void EnsureCapacityExact(int desiredCapacity)
+    {
+        if (Capacity >= desiredCapacity)
+            return;
+
+        SetCapacity(desiredCapacity);
+    }
+
     public void SetLength(int length)
     {
         Length = length;

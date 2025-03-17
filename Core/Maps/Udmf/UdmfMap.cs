@@ -20,26 +20,41 @@ public class UdmfMap : IMap
         public readonly ReadOnlySpan<char> Value = value;
     }
 
-    public Archive Archive { get; }
+    public string ArchivePath { get; set; }
     public string MD5 { get; set; }
     public string Name { get; }
 
+
     public MapType MapType => MapType.UDMF;
-    public readonly List<UdmfLine> Lines;
-    public readonly List<UdmfSector> Sectors;
-    public readonly List<UdmfSide> Sides;
-    public readonly List<UdmfThing> Things;
-    public readonly List<UdmfVertex> Vertices;
-    public GLComponents? GL { get; }
+    public List<UdmfLine> Lines;
+    public List<UdmfSector> Sectors;
+    public List<UdmfSide> Sides;
+    public List<UdmfThing> Things;
+    public List<UdmfVertex> Vertices;
+    public GLComponents? GL { get; private set; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
 
     public IReadOnlyList<ILine> GetLines() => Lines;
-    public IReadOnlyList<INode> GetNodes() => [];
     public IReadOnlyList<ISector> GetSectors() => Sectors;
     public IReadOnlyList<ISide> GetSides() => Sides;
     public IReadOnlyList<IThing> GetThings() => Things;
     public IReadOnlyList<IVertex> GetVertices() => Vertices;
+
+    public void ClearAllExceptThings()
+    {
+        Lines = [];
+        Sectors = [];
+        Sides = [];
+        Vertices = [];
+        GL = null;
+    }
+
+    public void ClearAll()
+    {
+        ClearAllExceptThings();
+        Things = [];
+    }
 
     public static UdmfMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility)
     {
@@ -62,7 +77,7 @@ public class UdmfMap : IMap
         List<UdmfLine> lines, List<UdmfThing> things, GLComponents? gl, byte[]? reject,
         CompatibilityMapDefinition? compatibility)
     {
-        Archive = archive;
+        ArchivePath = archive.FullPath;
         Name = name;
         Vertices = vertices;
         Sectors = sectors;
@@ -217,11 +232,11 @@ public class UdmfMap : IMap
             if (prop.Name.EqualsIgnoreCase("sector"))
                 side.SectorId = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturetop"))
-                side.UpperTexture = prop.Value.ToString();
+                side.UpperTexture = string.Intern(prop.Value.ToString());
             else if (prop.Name.EqualsIgnoreCase("texturemiddle"))
-                side.MiddleTexture = prop.Value.ToString();
+                side.MiddleTexture = string.Intern(prop.Value.ToString());
             else if (prop.Name.EqualsIgnoreCase("texturebottom"))
-                side.LowerTexture = prop.Value.ToString();
+                side.LowerTexture = string.Intern(prop.Value.ToString());
             else if (prop.Name.EqualsIgnoreCase("offsetx"))
                 side.Offset.X = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsety"))
@@ -288,9 +303,9 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("heightceiling"))
                 sector.CeilingZ = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturefloor"))
-                sector.FloorTexture = prop.Value.ToString();
+                sector.FloorTexture = string.Intern(prop.Value.ToString());
             else if (prop.Name.EqualsIgnoreCase("textureceiling"))
-                sector.CeilingTexture = prop.Value.ToString();
+                sector.CeilingTexture = string.Intern(prop.Value.ToString());
             else if (prop.Name.EqualsIgnoreCase("lightlevel"))
                 sector.LightLevel = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("id"))
@@ -338,9 +353,9 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("leakiness"))
                 sector.Leakiness = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("skyfloor"))
-                sector.SkyFloor = prop.Value.ToString();
+                sector.SkyFloor = string.Intern(prop.Value.ToString());
             else if (prop.Name.EqualsIgnoreCase("skyceiling"))
-                sector.SkyCeiling = prop.Value.ToString();
+                sector.SkyCeiling = string.Intern(prop.Value.ToString());
         }
 
         sectors.Add(sector);

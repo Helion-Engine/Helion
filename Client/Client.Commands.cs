@@ -45,6 +45,9 @@ public partial class Client
     private bool m_isSecretExit;
     private LevelChangeEvent m_levelChangeEvent = LevelChangeEvent.Default;
 
+    private string m_lastMapName = string.Empty;
+    private IMap? m_lastLoadedMap;
+
     [ConsoleCommand("setpos", "Sets the player's position (x y z). Ex setpos 100 100 0")]
     private void SetPosition(ConsoleCommandEventArgs args)
     {
@@ -518,8 +521,12 @@ public partial class Client
     private void Use(ConsoleCommandEventArgs args) =>
         AddWorldTickCommand(DoUseCommand, args);
 
+    [ConsoleCommand("gc", "Forces Garbage Collection.")]
+    private void GarbageCollect(ConsoleCommandEventArgs args) =>
+        GCUtil.ForceGarbageCollection();
+
     private void DoUseCommand(ConsoleCommandEventArgs args)
-    {        
+    {
         if (m_layerManager.WorldLayer == null || args.Args.Count == 0)
             return;
 
@@ -774,21 +781,35 @@ public partial class Client
                 players = previousWorld.EntityManager.Players;
 
             m_lastWorldModel = worldModel;
-            IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
+            var sameMap = m_lastMapName.EqualsIgnoreCase(mapInfoDef.MapName) && m_lastLoadedMap != null;
+            var map = sameMap ? m_lastLoadedMap : m_archiveCollection.FindMap(mapInfoDef.MapName);
+
             if (map == null)
             {
                 LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
                 return result;
             }
 
-            if (!m_zdbsp.RunZdbsp(map, map.Name, mapInfoDef, out map))
+            if (!sameMap)
             {
-                Log.Error("Failed to run zdbsp.");
-                return result;
+                var mapCompat = map.CompatibilityDefinition;
+                if (!m_zdbsp.RunZdbsp(map.ArchivePath, map.Name, out var compiledMap))
+                {
+                    Log.Error("Failed to run zdbsp.");
+                    return result;
+                }
+
+                // Large UDMF maps don't seem to free the memory without this.
+                map.ClearAll();
+                map.Reject = null;
+                map = compiledMap;
+
+                if (map != null)
+                    map.CompatibilityDefinition = mapCompat;
             }
 
             m_config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
-            SkillDef? skillDef = GetSkillDefinition(worldModel);
+            var skillDef = GetSkillDefinition(worldModel);
             if (skillDef == null)
             {
                 LogError($"Could not find skill definition for {m_config.Game.Skill}");
@@ -804,6 +825,9 @@ public partial class Client
                 return result;
             }
 
+            m_lastMapName = mapInfoDef.MapName;
+            m_lastLoadedMap = map;
+
             // Don't show the spinner here. The final steps requires OpenGL calls that are required to be executed on the main thread for now so the spinner can't update.
             if (m_layerManager.LoadingLayer != null)
                 m_layerManager.LoadingLayer.ShowSpinner = false;
@@ -811,6 +835,10 @@ public partial class Client
             var worldLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
                 m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
                 players.FirstOrDefault(), worldModel, random);
+
+            // This isn't great but the map reference is everywhere and difficult to unwind.
+            // This dumps all the map specific data that isn't needed instead of wasting the memory.
+            map.ClearAllExceptThings();
             return new(worldLayer, worldModel, eventContext, players, random, startRandomIndex);
         }
         catch (Exception ex)

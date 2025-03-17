@@ -398,10 +398,13 @@ public abstract partial class WorldBase : IWorld
         }
 
         LastStructLines.Clear();
+        LastStructLines.EnsureCapacityExact(Lines.Count);
+        LastStructLines.SetLength(Lines.Count);
+        var arrayData = LastStructLines.Data;
         for (int i = 0; i < Lines.Count; i++)
         {
             var line = Lines[i];
-            LastStructLines.Add(new StructLine(line));
+            arrayData[i] = new StructLine(line);
             var objectHealth = line.ObjectHealth != ObjectHealth.Default;
             m_explosionTraverseLines = m_explosionTraverseLines || objectHealth;
 
@@ -3049,11 +3052,15 @@ public abstract partial class WorldBase : IWorld
         if (teleportEntity.PlayerObj == null || teleportEntity.PlayerObj.IsVooDooDoll)
             return;
 
-        var playerSubsector = Geometry.BspTree.Find(teleportEntity.Position);
-        if (playerSubsector.IslandId < 0 || playerSubsector.IslandId >= Geometry.IslandGeometry.Islands.Count)
+        var playerSubsectorId = teleportEntity.SubsectorId;
+        if (playerSubsectorId < 0 || playerSubsectorId >= Geometry.SubsectorToIslandId.Length)
             return;
 
-        var island = WorldStatic.World.Geometry.IslandGeometry.Islands[playerSubsector.IslandId];
+        var playerIslandId = Geometry.SubsectorToIslandId[playerSubsectorId];
+        if (playerIslandId < 0 || playerIslandId >= Geometry.IslandGeometry.Islands.Count)
+            return;
+
+        var island = Geometry.IslandGeometry.Islands[playerIslandId];
         bool wasMonsterCloset = island.IsMonsterCloset;
         bool wasVooDooCloset = island.IsVooDooCloset;
 
@@ -3072,14 +3079,14 @@ public abstract partial class WorldBase : IWorld
             if ((entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0)
                 continue;
 
-            if (entity.SubsectorId < 0 || entity.SubsectorId >= Geometry.BspTree.Subsectors.Count)
+            if (entity.SubsectorId < 0 || entity.SubsectorId >= Geometry.SubsectorToIslandId.Length)
                 continue;
 
-            var subsector = Geometry.BspTree.Subsectors[entity.SubsectorId];
-            if (subsector.IslandId < 0 || subsector.IslandId >= Geometry.IslandGeometry.Islands.Count)
+            var islandId = Geometry.SubsectorToIslandId[entity.SubsectorId];
+            if (islandId < 0 || islandId >= Geometry.IslandGeometry.Islands.Count)
                 continue;
 
-            if (subsector.IslandId != island.Id)
+            if (islandId != island.Id)
                 continue;
 
             entity.ClearMonsterCloset();

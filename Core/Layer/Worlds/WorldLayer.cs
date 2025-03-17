@@ -55,7 +55,7 @@ public partial class WorldLayer : IGameLayerParent
     public IntermissionLayer? Intermission { get; private set; }
     public MapInfoDef CurrentMap { get; }
     public SinglePlayerWorld World { get; }
-    public bool SameAsPreviousMap {  get; private set; }
+    public bool SameAsPreviousMap { get; private set; }
 
     public bool DrawAutomap { get; private set; }
 
@@ -284,8 +284,14 @@ public partial class WorldLayer : IGameLayerParent
         try
         {
             bool reuse = !unitTest;
-            return new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, profiler, geometry,
+            var world = new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, profiler, geometry,
                 mapDef, skillDef, map, sameAsPreviousMap, existingPlayer, worldModel, random, reuse);
+
+            // Dump data that is no longer needed
+            if (!sameAsPreviousMap)
+                geometry.ClearBspTree();
+
+            return world;
         }
         catch (HelionException e)
         {

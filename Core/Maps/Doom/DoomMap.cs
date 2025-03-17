@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Helion.Geometry;
-using Helion.Geometry.Boxes;
-using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
@@ -33,16 +31,16 @@ public class DoomMap : IMap
     private static readonly DoomSector EmptySector = new(0, 0, 0, "", "", 0, 0, 0);
     private static readonly DoomSide EmptySide = new(0, (0, 0), Constants.NoTexture, Constants.NoTexture, Constants.NoTexture, EmptySector);
 
-    public Archive Archive { get; }
+    public string ArchivePath { get; set; }
     public string MD5 { get; set; }
     public string Name { get; }
     public MapType MapType => MapType.Doom;
-    public readonly List<DoomLine> Lines;
-    public readonly List<DoomSector> Sectors;
-    public readonly List<DoomSide> Sides;
-    public readonly List<DoomThing> Things;
-    public readonly List<DoomVertex> Vertices;
-    public GLComponents? GL { get; }
+    public List<DoomLine> Lines;
+    public List<DoomSector> Sectors;
+    public List<DoomSide> Sides;
+    public List<DoomThing> Things;
+    public List<DoomVertex> Vertices;
+    public GLComponents? GL { get; private set; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
 
@@ -50,7 +48,7 @@ public class DoomMap : IMap
         List<DoomLine> lines,  List<DoomThing> things, GLComponents? gl, byte[]? reject,
         CompatibilityMapDefinition? compatibility)
     {
-        Archive = archive;
+        ArchivePath = archive.FullPath;
         Name = name;
         Vertices = vertices;
         Sectors = sectors;
@@ -61,6 +59,21 @@ public class DoomMap : IMap
         Reject = reject;
         CompatibilityDefinition = compatibility;
         MD5 = string.Empty;
+    }
+
+    public void ClearAllExceptThings()
+    {
+        Lines = [];
+        Sectors = [];
+        Sides = [];
+        Vertices = [];
+        GL = null;
+    }
+
+    public void ClearAll()
+    {
+        ClearAllExceptThings();
+        Things = [];
     }
 
     /// <summary>
@@ -99,7 +112,6 @@ public class DoomMap : IMap
     }
 
     public IReadOnlyList<ILine> GetLines() => Lines;
-    public IReadOnlyList<INode> GetNodes() => [];
     public IReadOnlyList<ISector> GetSectors() => Sectors;
     public IReadOnlyList<ISide> GetSides() => Sides;
     public IReadOnlyList<IThing> GetThings() => Things;

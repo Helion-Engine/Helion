@@ -2,9 +2,7 @@ using Helion.Graphics;
 using Helion.Maps.Specials.ZDoom;
 using System.Collections.Generic;
 using Helion.Util.Extensions;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace Helion.Resources.Definitions.Locks;
 

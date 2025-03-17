@@ -17,10 +17,9 @@ public interface IMap
 {
     string Name { get; }
     MapType MapType { get; }
-    public Archive Archive { get; }
     public string MD5 { get; set; }
+    public string ArchivePath { get; set; }
     IReadOnlyList<ILine> GetLines();
-    IReadOnlyList<INode> GetNodes();
     IReadOnlyList<ISector> GetSectors();
     IReadOnlyList<ISide> GetSides();
     IReadOnlyList<IThing> GetThings();
@@ -28,6 +27,8 @@ public interface IMap
     GLComponents? GL { get; }
     byte[]? Reject { get; set; }
     CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
+    void ClearAllExceptThings();
+    void ClearAll();
 
     public static IMap? Read(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null)
     {

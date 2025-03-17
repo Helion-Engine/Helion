@@ -1,6 +1,5 @@
 using System;
 using Helion.Geometry.Segments;
-using Helion.Graphics.Palettes;
 using Helion.Maps.Doom;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
@@ -8,8 +7,6 @@ using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
-using Helion.Util;
-using Helion.Util.Extensions;
 using Helion.Util.Loggers;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
@@ -33,7 +30,7 @@ public static class DoomGeometryBuilder
         if (!bspTree.HasValue)
             return null;
 
-        return new(map, builder, bspTree.Value.Item1, bspTree.Value.Item2);
+        return new(builder, bspTree.Value.Item1, bspTree.Value.Item2);
     }
 
     private static SectorPlane CreateSectorPlane(DoomSector doomSector, SectorPlaneFace face,

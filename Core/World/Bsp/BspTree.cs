@@ -4,10 +4,8 @@ using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Components.GL;
 using Helion.Util.Extensions;
-using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Subsectors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -37,7 +35,7 @@ public class BspSubsector
 {
     public readonly int Id;
     public readonly int? SectorId;
-    public readonly List<BspSubsectorSeg> Segments;
+    public List<BspSubsectorSeg> Segments;
     public readonly Box2D Box;
     public int IslandId;
     public int SectorIslandId;
@@ -71,9 +69,9 @@ public class BspNodeNew
 
 public class BspTreeNew
 {
-    public readonly List<BspSubsectorSeg> Segments = new();
-    public readonly List<BspSubsector> Subsectors = new();
-    public readonly List<BspNodeNew> Nodes = new();
+    public List<BspSubsectorSeg> Segments = [];
+    public List<BspSubsector> Subsectors = [];
+    public List<BspNodeNew> Nodes = [];
 
     public BspNodeNew Root => Nodes[^1];
 

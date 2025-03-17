@@ -94,7 +94,7 @@ internal static class WorldAllocator
         var skillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skillLevel) ?? throw new Exception("Failed to load skill definition");
         var map = archiveCollection.FindMap(mapDef.MapName) ?? throw new Exception("Failed to load map");
         Zdbsp zdbsp = new();
-        if (!zdbsp.RunZdbsp(map, mapName, mapDef, out var outputMap) || outputMap == null)
+        if (!zdbsp.RunZdbsp(map.ArchivePath, mapName, out var outputMap) || outputMap == null)
             throw new Exception("Failed to create bsp");
 
         onBeforeInit?.Invoke(archiveCollection);
