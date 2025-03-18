@@ -82,6 +82,7 @@ public class LineSpecial
 
             case ZDoomLineSpecialType.Teleport:
             case ZDoomLineSpecialType.TeleportNoFog:
+            case ZDoomLineSpecialType.TeleportLine:
                 if (mapType != MapType.UDMF && flags.Activations == (LineActivations.Player | LineActivations.CrossLine))
                     flags.Activations |= LineActivations.Monster;
                 flags.Activations |= LineActivations.FrontSideOnly;
