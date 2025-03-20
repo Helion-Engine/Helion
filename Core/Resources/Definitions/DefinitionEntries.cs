@@ -69,7 +69,7 @@ public class DefinitionEntries
     private PnamesTextureXCollection m_pnamesTextureXCollection = new();
     private bool m_parseDehacked;
     private bool m_parseDecorate;
-    private bool m_parseUniversalMapInfo;
+    private bool m_parseZDoomMapInfo;
     private bool m_parseLegacyMapInfo;
     private bool m_parseWeapons;
 
@@ -158,24 +158,24 @@ public class DefinitionEntries
     private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
     private void ParseLanguage(string text) => Language.Parse(text);
     private void ParseLanguageCompatibility(string text) => Language.ParseCompatibility(text);
-    private void ParseZMapInfo(string text) => MapInfoDefinition.Parse(m_archiveCollection, text, ShouldParseWeapons);
     private void ParseCompLevel(string data) => CompLevelDefinition.Parse(data);
     private void ParseMusInfo(string text) => MusInfoDefinition.Parse(text);
+    private void ParseUniversalMapInfo(string text) => MapInfoDefinition.ParseUniversalMapInfo(m_archiveCollection.IWadInfo.IWadBaseType, text);
 
-    private void ParseMapInfo(string text)
+    private void ParseZMapInfo(string text)
     {
-        if (!m_parseLegacyMapInfo)
+        if (!m_parseZDoomMapInfo)
             return;
 
         MapInfoDefinition.Parse(m_archiveCollection, text, ShouldParseWeapons);
     }
 
-    private void ParseUniversalMapInfo(string text)
+    private void ParseMapInfo(string text)
     {
-        if (!m_parseUniversalMapInfo)
+        if (!m_parseLegacyMapInfo || !m_parseZDoomMapInfo)
             return;
 
-        MapInfoDefinition.ParseUniversalMapInfo(m_archiveCollection.IWadInfo.IWadBaseType, text);
+        MapInfoDefinition.Parse(m_archiveCollection, text, ShouldParseWeapons);
     }
 
     private void ParseTextures(string text)
@@ -228,7 +228,7 @@ public class DefinitionEntries
     {
         m_parseDecorate = true;
         m_parseDehacked = true;
-        m_parseUniversalMapInfo = true;
+        m_parseZDoomMapInfo = true;
         m_parseLegacyMapInfo = true;
 
         bool skyDefs = archive.AnyEntryByName("SKYDEFS");
@@ -248,7 +248,7 @@ public class DefinitionEntries
                 m_parseLegacyMapInfo = false;
 
             if (hasZmapinfo || archive.AnyEntryByName("MAPINFO"))
-                m_parseUniversalMapInfo = false;
+                m_parseZDoomMapInfo = false;
         }
 
         m_pnamesTextureXCollection = new PnamesTextureXCollection();
