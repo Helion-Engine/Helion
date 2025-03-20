@@ -18,5 +18,6 @@ public interface IPowerup
     public int EffectTicks { get; }
     InventoryTickStatus Tick(Player player);
     void Reset();
+    void Destroy();
     PowerupModel ToPowerupModel();
 }

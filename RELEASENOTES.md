@@ -17,3 +17,4 @@
 - Fix A_SpawnObject x/y offset and x/y velocity calculations
 - Fix line intersection check to be inclusive (fixes Eviternity II boss activating on map start)
 - Fix dehacked check for applying translucent flag (fixes Dominus Diabolicus chairs being translucent)
+- Fix partial invisibility cheat when toggled off to clear shadow flag from player

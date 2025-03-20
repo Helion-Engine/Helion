@@ -196,6 +196,7 @@ public sealed class Inventory
     {
         Powerups.Remove(powerup);
         SetPriorityPowerupEffects();
+        powerup.Destroy();
     }
 
     public void ClearPowerups()

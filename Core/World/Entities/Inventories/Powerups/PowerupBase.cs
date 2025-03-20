@@ -143,7 +143,7 @@ public class PowerupBase : IPowerup
 
         if (m_tics <= 0)
         {
-            HandleDestroy();
+            Destroy();
             return InventoryTickStatus.Destroy;
         }
 
@@ -174,7 +174,7 @@ public class PowerupBase : IPowerup
         }
     }
 
-    private void HandleDestroy()
+    public void Destroy()
     {
         if (PowerupType == PowerupType.Invisibility)
             m_player.Flags.Shadow = false;
