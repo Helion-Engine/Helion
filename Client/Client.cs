@@ -51,6 +51,7 @@ public partial class Client : IDisposable, IInputManagement
     private readonly ArchiveCollection m_archiveCollection;
     private readonly IAudioSystem m_audioSystem;
     private readonly CommandLineArgs m_commandLineArgs;
+    private readonly PathsManager m_pathsManager;
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
     private readonly GameLayerManager m_layerManager;
@@ -79,15 +80,16 @@ public partial class Client : IDisposable, IInputManagement
         new VersionTest(3, 3)
     ];
 
-    private Client(CommandLineArgs commandLineArgs, IConfig config, HelionConsole console, IAudioSystem audioSystem,
+    private Client(CommandLineArgs commandLineArgs, PathsManager pathsManager, IConfig config, HelionConsole console, IAudioSystem audioSystem,
         ArchiveCollection archiveCollection)
     {
         m_commandLineArgs = commandLineArgs;
+        m_pathsManager = pathsManager;
         m_config = config;
         m_console = console;
         m_audioSystem = audioSystem;
         m_archiveCollection = archiveCollection;
-        m_saveGameManager = new SaveGameManager(config, m_archiveCollection, commandLineArgs.SaveDir);
+        m_saveGameManager = new SaveGameManager(config, m_pathsManager, m_archiveCollection, commandLineArgs.SaveDir);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
 
         m_config.Game.Rng.OnChanged += Rng_OnChanged;
@@ -108,7 +110,7 @@ public partial class Client : IDisposable, IInputManagement
         SetIcon(m_window);
 
         m_layerManager = new GameLayerManager(config, m_window, console, m_consoleCommands, archiveCollection,
-            m_soundManager, m_saveGameManager, m_profiler, m_screenshotGenerator);
+            m_pathsManager, m_soundManager, m_saveGameManager, m_profiler, m_screenshotGenerator);
 
         m_layerManager.GameLayerAdded += GameLayerManager_GameLayerAdded;
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
@@ -219,7 +221,7 @@ public partial class Client : IDisposable, IInputManagement
         if (!m_takeScreenshot)
             return;
 
-        string path = $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.png";
+        string path = Path.Combine(m_pathsManager.ConfigFolder, $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.png");
         HelionLog.Info($"Saving screenshot to {path}");
 
         m_takeScreenshot = false;
@@ -584,20 +586,23 @@ public partial class Client : IDisposable, IInputManagement
 
     private static void Run(CommandLineArgs commandLineArgs, string workingDirectory)
     {
-        var configPath = string.IsNullOrWhiteSpace(commandLineArgs.ConfigFileName) ? FileConfig.GetDefaultConfigPath() : commandLineArgs.ConfigFileName.Trim();
+        PathsManager pathsManager = new(commandLineArgs.ForcePortableMode);
+        var configPath = !string.IsNullOrWhiteSpace(commandLineArgs.ConfigFileName)
+            ? commandLineArgs.ConfigFileName.Trim()
+            : FileConfig.GetDefaultConfigPath(pathsManager.ConfigFolder);
         FileConfig config = ReadConfigFileOrTerminate(configPath);
 
         try
         {
-            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config, GetSearchPaths(workingDirectory)), config, ArchiveCollection.StaticDataCache);
+            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config, pathsManager.AssetsFolders), config, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(archiveCollection.DataCache, config, commandLineArgs);
             LogClientInfo();
             using IMusicPlayer musicPlayer = commandLineArgs.NoMusic ?
                 new MockMusicPlayer() :
-                new MusicPlayer(config.Audio, archiveCollection);
+                new MusicPlayer(pathsManager, config.Audio, archiveCollection);
             using IAudioSystem audioPlayer = new OpenALAudioSystem(config, archiveCollection, musicPlayer, Log);
 
-            using Client client = new(commandLineArgs, config, console, audioPlayer, archiveCollection);
+            using Client client = new(commandLineArgs, pathsManager, config, console, audioPlayer, archiveCollection);
             client.Run();
         }
         catch (Exception e)
@@ -611,13 +616,6 @@ public partial class Client : IDisposable, IInputManagement
 
             TempFileManager.DeleteAllFiles();
         }
-    }
-
-    private static IList<string> GetSearchPaths(string workingDirectory)
-    {
-        if (workingDirectory == Directory.GetCurrentDirectory())
-            return [];
-        return [workingDirectory];
     }
 
     private void SaveGameManager_GameSaved(object? sender, SaveGameEvent e)

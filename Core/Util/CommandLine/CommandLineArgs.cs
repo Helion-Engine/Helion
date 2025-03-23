@@ -17,6 +17,7 @@ public class CommandLineArgs
     public readonly List<string> Files = [];
     public string? Iwad { get; set; }
     public string? Map { get; set; }
+    public bool ForcePortableMode { get; set; }
     public string? ConfigFileName { get; set; }
     public string? SaveDir { get; set; }
     public string? LogFileName { get; set; }
@@ -100,6 +101,8 @@ public class CommandLineArgs
                 commandLineArgs.Iwad = GetString(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "-file"))
                 commandLineArgs.Files.AddRange(parsedArg.Values);
+            else if (IsArgMatch(parsedArg, "-portable"))
+                commandLineArgs.ForcePortableMode = true;
             else if (IsArgMatch(parsedArg, "-config"))
                 commandLineArgs.ConfigFileName = GetString(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "-savedir"))

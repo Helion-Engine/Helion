@@ -39,6 +39,7 @@ public class SaveGameManager
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly SaveGameEvent ActiveSaveError = new(null!, null!, "file", false, null, "(Save in progress)");
     private readonly IConfig m_config;
+    private readonly PathsManager m_pathsManager;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly string? m_saveDirCommandLineArg;
     private readonly List<SaveGame> m_currentSaves = [];
@@ -51,9 +52,10 @@ public class SaveGameManager
 
     public event EventHandler<SaveGameEvent>? GameSaved;
 
-    public SaveGameManager(IConfig config, ArchiveCollection archiveCollection, string? saveDirCommandLineArg)
+    public SaveGameManager(IConfig config, PathsManager pathsManager, ArchiveCollection archiveCollection, string? saveDirCommandLineArg)
     {
         m_config = config;
+        m_pathsManager = pathsManager;
         m_archiveCollection = archiveCollection;
         m_saveDirCommandLineArg = saveDirCommandLineArg;
         m_saveFunc = new Func<SaveGameEvent>(WriteSaveGameForTask);
@@ -61,13 +63,10 @@ public class SaveGameManager
 
     private string GetSaveDir()
     {
-        if (string.IsNullOrEmpty(m_saveDirCommandLineArg))
-            return Directory.GetCurrentDirectory();
+        if (!string.IsNullOrEmpty(m_saveDirCommandLineArg) && EnsureDirectoryExists(m_saveDirCommandLineArg))
+            return m_saveDirCommandLineArg;
 
-        if (!EnsureDirectoryExists(m_saveDirCommandLineArg))
-            return Directory.GetCurrentDirectory();
-
-        return m_saveDirCommandLineArg;
+        return m_pathsManager.ConfigFolder;
     }
 
     private static bool EnsureDirectoryExists(string path)

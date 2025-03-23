@@ -39,6 +39,7 @@ public class ListedConfigSection : IOptionSection
     private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr, ConfigInfoAttribute ConfigAttr)> m_configValues = new();
     private readonly BoxList m_menuPositionList = new();
     private readonly IConfig m_config;
+    private readonly PathsManager m_pathsManager;
     private readonly SoundManager m_soundManager;
     private readonly IInputManager m_inputManager;
     private readonly Stopwatch m_stopwatch = new();
@@ -55,10 +56,11 @@ public class ListedConfigSection : IOptionSection
     private IConfigValue? m_currentEditValue;
     private IDialog? m_dialog;
 
-    public ListedConfigSection(IConfig config, OptionSectionType optionType, SoundManager soundManager, IInputManager inputManager)
+    public ListedConfigSection(IConfig config, OptionSectionType optionType, PathsManager pathsManager, SoundManager soundManager, IInputManager inputManager)
     {
         m_config = config;
         OptionType = optionType;
+        m_pathsManager = pathsManager;
         m_soundManager = soundManager;
         m_inputManager = inputManager;
 
@@ -200,7 +202,7 @@ public class ListedConfigSection : IOptionSection
                             string fileFilter = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                                 ? ".SF2,.SF3"
                                 : ".SF2";
-                            m_dialog = new FileListDialog(m_config.Window, configData.CfgValue, configData.Attr, fileFilter);
+                            m_dialog = new FileListDialog(m_config.Window, m_pathsManager, configData.CfgValue, configData.Attr, fileFilter);
                             break;
                         case DialogType.GyroCalibrationDialog:
                             m_dialog = new GyroCalibrationDialog(m_config.Window, m_config.Controller, m_inputManager);
@@ -263,10 +265,11 @@ public class ListedConfigSection : IOptionSection
             }
             if (sender is FileListDialog fileDialog)
             {
-                if (fileDialog.SelectedFile?.Exists == true)
+                string? selectedFilePath = fileDialog.GetSelectedFilePath();
+                if (selectedFilePath != null)
                 {
                     m_rowEditText.Clear();
-                    m_rowEditText.Append(fileDialog.SelectedFile.ToString());
+                    m_rowEditText.Append(selectedFilePath);
                 }
             }
             if (sender is TexturePickerDialog textureDialog)

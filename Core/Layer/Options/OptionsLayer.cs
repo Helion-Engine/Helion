@@ -8,6 +8,7 @@ using Helion.Layer.Options.Sections;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Resources;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
@@ -42,6 +43,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private readonly GameLayerManager m_manager;
     private readonly IConfig m_config;
+    private readonly PathsManager m_pathsManager;
     private readonly SoundManager m_soundManager;
     private readonly IWindow m_window;
     private readonly List<IOptionSection> m_sections;
@@ -67,10 +69,11 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private bool m_didMouseWheelScroll;
     private IDialog? m_dialog;
 
-    public OptionsLayer(GameLayerManager manager, IConfig config, SoundManager soundManager, IWindow window)
+    public OptionsLayer(GameLayerManager manager, IConfig config, PathsManager pathsManager, SoundManager soundManager, IWindow window)
     {
         m_manager = manager;
         m_config = config;
+        m_pathsManager = pathsManager;
         m_soundManager = soundManager;
         m_window = window;
         m_sections = GenerateSections();
@@ -135,8 +138,8 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             return optionSection as ListedConfigSection ?? throw new($"Expected a listed config for {optionSection.GetType().FullName}");
 
         ListedConfigSection listedConfigSection = (section == OptionSectionType.Compatibility)
-            ? new CompatibilitySection(m_config, section, m_soundManager, m_window.InputManager)
-            : new ListedConfigSection(m_config, section, m_soundManager, m_window.InputManager);
+            ? new CompatibilitySection(m_config, section, m_pathsManager, m_soundManager, m_window.InputManager)
+            : new ListedConfigSection(m_config, section, m_pathsManager, m_soundManager, m_window.InputManager);
 
         listedConfigSection.OnAttributeChanged += ListedConfigSection_OnAttributeChanged;
         sectionMap[section] = listedConfigSection;
