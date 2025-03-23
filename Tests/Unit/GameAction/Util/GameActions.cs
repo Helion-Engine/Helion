@@ -14,6 +14,7 @@ using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -235,13 +236,19 @@ namespace Helion.Tests.Unit.GameAction
             return world.ActivateSpecialLine(entity, line, context, frontPos.X, frontPos.Y);
         }
 
-        // Activates the line given the context. Will force even if not repeatable.
-        public static bool ActivateLine(WorldBase world, Entity entity, int lineId, ActivationContext context, bool fromFront = true)
+        public static bool ActivateLine(WorldBase world, Entity entity, int lineId, ActivationContext context, bool fromFront = true, bool force = true)
         {
             Line line = GetLine(world, lineId);
-            line.SetActivated(false);
+            if (force)
+                line.SetActivated(false);
             var frontPos = PointOnLineSide(line, fromFront);
             return world.ActivateSpecialLine(entity, line, context, frontPos.X, frontPos.Y);
+        }
+
+        public static void BumpLine(WorldBase world, Entity entity, int lineId, bool fromBack = false)
+        {
+            SetEntityToLine(world, entity, lineId, entity.Radius + 1, fromBack);
+            MoveEntity(world, entity, entity.Radius);
         }
 
         private static Vec2D PointOnLineSide(Line line, bool fromFront)
@@ -289,6 +296,48 @@ namespace Helion.Tests.Unit.GameAction
             }, () => { });
 
             return true;
+        }
+
+        public static bool PlayerFirePlasma(WorldBase world, Player player, [NotNullWhen(true)] out Entity? plasma)
+        {
+            plasma = null;
+            var rifle = player.Inventory.Weapons.GetWeapon("PlasmaRifle");
+            if (rifle == null)
+            {
+                player.GiveWeapon(world.EntityManager.DefinitionComposer.GetByName("PlasmaRifle")!);
+                rifle = player.Inventory.Weapons.GetWeapon("PlasmaRifle");
+                if (rifle == null)
+                    return false;
+            }
+
+            player.ChangeWeapon(rifle);
+            if (player.Inventory.Amount("Cell") <= 0)
+                player.Inventory.Add(world.EntityManager.DefinitionComposer.GetByName("Cell")!, 100);
+
+            TickWorld(world, () =>
+            {
+                if (player.PendingWeapon != null)
+                    return true;
+                if (player.Weapon == null)
+                    return true;
+                if (!player.Weapon.ReadyToFire)
+                    return true;
+                return false;
+            }, () => { });
+
+            player.FireWeapon();
+            world.Tick();
+
+            Entity? plasmaBall = null;
+
+            TickWorld(world, () =>
+            {
+                plasmaBall = GetEntity(world, "PlasmaBall");
+                return plasmaBall == null;
+            }, () => { });
+
+            plasma = plasmaBall;
+            return plasma != null;
         }
 
         public static BlockmapIntersect? FireHitscanTest(WorldBase world, Entity entity)
