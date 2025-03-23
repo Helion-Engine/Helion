@@ -1958,7 +1958,7 @@ public abstract partial class WorldBase : IWorld
 
         entity.Hit(previousVelocity);
 
-        if (tryMove != null && (entity.Flags.Missile || entity.IsPlayer))
+        if (tryMove != null && (entity.Flags.Missile || entity.Flags.CountKill || entity.IsPlayer))
         {
             for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
             {

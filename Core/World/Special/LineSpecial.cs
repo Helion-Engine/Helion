@@ -152,10 +152,17 @@ public class LineSpecial
                 return false;
 
             if (context == ActivationContext.CrossLine)
+            {
                 contextSuccess = (flags.Activations & LineActivations.CrossLine) != 0;
+            }
             // Based on testing this implementation appears to be goofed. Only works with two-sided lines.
-            else if (context == ActivationContext.UseLine && line.Back != null)
-                contextSuccess = (flags.Activations & LineActivations.UseLine) != 0;
+            else if (line.Back != null)
+            {
+                if (context == ActivationContext.UseLine)
+                    contextSuccess = (flags.Activations & LineActivations.UseLine) != 0;
+                else if (context == ActivationContext.EntityImpactsWall)
+                    contextSuccess = (flags.Activations & LineActivations.ImpactLine) != 0;
+            }
         }
 
         if (entity.PlayerObj != null)
