@@ -3,7 +3,6 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render;
 using Helion.Render.Common.Shared;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Resources.Archives.Collection;
@@ -32,7 +31,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
         public readonly double PitchRadians = pitchRadians;
     }
 
-    private readonly LineDrawnTracker m_lineDrawnTracker = new();
+    private uint[] m_hitLines = [];
     private readonly Stopwatch m_stopwatch = new();
     private readonly ViewClipper m_viewClipper = new(archiveCollection.DataCache);
     private readonly RenderInfo m_renderInfo = new();
@@ -42,6 +41,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
     private CancellationTokenSource m_cancelTasks = new();
     private IWorld m_world = null!;
     private FrustumPlanes m_frustumPlanes = new();
+    private uint m_counter;
 
     private readonly ConcurrentQueue<PlayerPosition> m_positions = new();
 
@@ -54,7 +54,9 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
 
         world.OnDestroying += World_OnDestroying;
         m_world = world;
-        m_lineDrawnTracker.UpdateToWorld(world);
+
+        if (m_hitLines.Length < world.Lines.Count)
+            m_hitLines = new uint[world.Lines.Count];
 
         m_dummyEntity.Set(0, 0, 0, EntityDefinition.Default, default, 0, m_world.Sectors[0], m_world);
 
@@ -89,7 +91,6 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
 
     private void ClearData()
     {
-        m_lineDrawnTracker.ClearDrawnLines();
         m_positions.Clear();
         m_viewClipper.Clear();
     }
@@ -115,11 +116,9 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                 if (token.IsCancellationRequested)
                     return;
 
-                m_lineDrawnTracker.ClearDrawnLines();
+                m_counter++;
                 m_viewClipper.Clear();
                 m_viewClipper.Center = pos.Position.XY;
-
-                m_lineDrawnTracker.ClearDrawnLines();
 
                 SetFrustum(viewport, pos);
                 MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position.XY, m_world, token);
@@ -189,7 +188,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                 var lineId = getLineId.Value;
 
                 ref var line = ref lineArray[lineId];
-                if (m_lineDrawnTracker.HasDrawn(lineId))
+                if (m_hitLines[lineId] == m_counter)
                 {
                     AddLineClip(edge, ref line);
                     continue;
@@ -202,7 +201,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                     continue;
 
                 AddLineClip(edge, ref line);
-                m_lineDrawnTracker.MarkDrawn(lineId);
+                m_hitLines[line.Id] = m_counter;
 
                 if (line.SeenForAutomap)
                     continue;
