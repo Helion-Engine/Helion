@@ -80,7 +80,7 @@ public abstract partial class WorldBase : IWorld
     private static EntityManager? LastEntityManager;
     private static PhysicsManager? LastPhysicManager;
     private static SpecialManager? LastSpecialManager;
-    private static int?[]? LastBspSegLines;
+    private static int[]? LastBspSegLines;
     private static DynamicArray<StructLine> LastStructLines = new();
 
     public event EventHandler<LevelChangeEvent>? LevelExit;
@@ -123,7 +123,7 @@ public abstract partial class WorldBase : IWorld
     public IList<Side> Sides => Geometry.Sides;
     public IList<Sector> Sectors => Geometry.Sectors;
     public DynamicArray<StructLine> StructLines => LastStructLines;
-    public int?[] BspSegLines { get; } = [];
+    public int[] BspSegLines { get; } = [];
     public IList<HighlightArea> HighlightAreas { get; } = new List<HighlightArea>();
     public CompactBspTree BspTree { get; private set; }
     public EntityManager EntityManager { get; }
@@ -285,12 +285,12 @@ public abstract partial class WorldBase : IWorld
     }
 
     // Used by the automap marker to prevent cache misses by needing to fetch the side first.
-    private int?[] CreateBspSegLines(bool reuse)
+    private int[] CreateBspSegLines(bool reuse)
     {
         if (reuse && LastBspSegLines != null)
             return LastBspSegLines;
 
-        LastBspSegLines = new int?[BspTree.Segments.Length];
+        LastBspSegLines = new int[BspTree.Segments.Length];
         for (int i = 0; i < BspTree.Subsectors.Length; i++)
         {
             var subsector = BspTree.Subsectors[i];
@@ -298,7 +298,10 @@ public abstract partial class WorldBase : IWorld
             {
                 var edge = BspTree.Segments[subsector.SegIndex + j];
                 if (!edge.SideId.HasValue)
+                {
+                    LastBspSegLines[subsector.SegIndex + j] = -1;
                     continue;
+                }
                 var side = Sides[edge.SideId.Value];
                 LastBspSegLines[subsector.SegIndex + j] = side.Line.Id;
             }

@@ -146,7 +146,11 @@ public class ViewClipper
     /// <param name="second">The second vertex of a line segment.</param>
     public void AddLine(in Vec2D first, in Vec2D second)
     {
-        (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(ToDiamondAngle(Center, first), ToDiamondAngle(Center, second));
+        var smallerAngle = ToDiamondAngle(Center, first);
+        var largerAngle = ToDiamondAngle(Center, second);
+
+        if (largerAngle < smallerAngle)
+            (smallerAngle, largerAngle) = (largerAngle, smallerAngle);
 
         if (AnglesSpanOriginVector(smallerAngle, largerAngle))
         {
@@ -165,10 +169,14 @@ public class ViewClipper
     /// <returns>True if they are in a range, false if not.</returns>
     public bool InsideAnyRange(in Vec2D first, in Vec2D second)
     {
-        if (m_nodes.Empty())
+        if (m_nodes.Count == 0)
             return false;
 
-        (uint smallerAngle, uint largerAngle) = MathHelper.MinMax(GetDiamondAngle(first), GetDiamondAngle(second));
+        var smallerAngle = ToDiamondAngle(Center, first);
+        var largerAngle = ToDiamondAngle(Center, second);
+
+        if (largerAngle < smallerAngle)
+            (smallerAngle, largerAngle) = (largerAngle, smallerAngle);
 
         if (AnglesSpanOriginVector(smallerAngle, largerAngle))
             return InRange(0, smallerAngle) && InRange(largerAngle, uint.MaxValue);

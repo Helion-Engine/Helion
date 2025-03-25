@@ -172,8 +172,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                 return;
         }
 
-        Subsector subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
-
+        var subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
         var subsectorLines = m_world.BspSegLines;
         var lineArray = world.StructLines.Data;
         fixed (SubsectorSegment* startEdge = &world.BspTree.Segments.Data[subsector.SegIndex])
@@ -181,11 +180,9 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
             SubsectorSegment* edge = startEdge;
             for (int i = 0; i < subsector.SegCount; i++, edge++)
             {
-                var getLineId = subsectorLines[subsector.SegIndex + i];
-                if (getLineId == null)
+                var lineId = subsectorLines[subsector.SegIndex + i];
+                if (lineId == -1)
                     continue;
-
-                var lineId = getLineId.Value;
 
                 ref var line = ref lineArray[lineId];
                 if (m_hitLines[lineId] == m_counter)
