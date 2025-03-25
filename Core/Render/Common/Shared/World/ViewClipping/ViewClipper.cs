@@ -161,6 +161,17 @@ public class ViewClipper
             AddRange(smallerAngle, largerAngle);
     }
 
+    public void AddLine(uint smallerAngle, uint largerAngle)
+    {
+        if (AnglesSpanOriginVector(smallerAngle, largerAngle))
+        {
+            AddRange(0, smallerAngle);
+            AddRange(largerAngle, uint.MaxValue);
+        }
+        else
+            AddRange(smallerAngle, largerAngle);
+    }
+
     /// <summary>
     /// Checks if the two points provided are encased in any ranges.
     /// </summary>
@@ -181,6 +192,24 @@ public class ViewClipper
         if (AnglesSpanOriginVector(smallerAngle, largerAngle))
             return InRange(0, smallerAngle) && InRange(largerAngle, uint.MaxValue);
         return InRange(smallerAngle, largerAngle);
+    }
+
+    public bool InsideAnyRange(uint smallerAngle, uint largerAngle)
+    {
+        if (AnglesSpanOriginVector(smallerAngle, largerAngle))
+            return InRange(0, smallerAngle) && InRange(largerAngle, uint.MaxValue);
+        return InRange(smallerAngle, largerAngle);
+    }
+
+    public (uint, uint) GetAngles(in Vec2D first, in Vec2D second)
+    {
+        var smallerAngle = ToDiamondAngle(Center, first);
+        var largerAngle = ToDiamondAngle(Center, second);
+
+        if (largerAngle < smallerAngle)
+            (smallerAngle, largerAngle) = (largerAngle, smallerAngle);
+
+        return (smallerAngle, largerAngle);
     }
 
     /// <summary>

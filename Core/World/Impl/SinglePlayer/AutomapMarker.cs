@@ -7,6 +7,7 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
+using Helion.Util.Loggers;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
@@ -14,6 +15,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -31,7 +33,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
         public readonly double PitchRadians = pitchRadians;
     }
 
-    private uint[] m_hitLines = [];
+    private BitArray m_hitLines = new(0);
     private readonly Stopwatch m_stopwatch = new();
     private readonly ViewClipper m_viewClipper = new(archiveCollection.DataCache);
     private readonly RenderInfo m_renderInfo = new();
@@ -55,8 +57,9 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
         world.OnDestroying += World_OnDestroying;
         m_world = world;
 
-        if (m_hitLines.Length < world.Lines.Count)
-            m_hitLines = new uint[world.Lines.Count];
+        //if (m_hitLines.Length < world.Lines.Count)
+        //    m_hitLines = new uint[world.Lines.Count];
+        m_hitLines = new(world.Lines.Count);
 
         m_dummyEntity.Set(0, 0, 0, EntityDefinition.Default, default, 0, m_world.Sectors[0], m_world);
 
@@ -108,7 +111,6 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
             if (token.IsCancellationRequested)
                 return;
 
-            m_stopwatch.Restart();
             var viewport = GetViewport();
 
             while (m_world != null && m_positions.TryDequeue(out PlayerPosition pos))
@@ -116,15 +118,18 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                 if (token.IsCancellationRequested)
                     return;
 
+                m_stopwatch.Restart();
                 m_counter++;
                 m_viewClipper.Clear();
                 m_viewClipper.Center = pos.Position.XY;
+                m_hitLines.SetAll(false);
 
                 SetFrustum(viewport, pos);
                 MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position.XY, m_world, token);
+                m_stopwatch.Stop();
+                HelionLog.Info(m_stopwatch.Elapsed.TotalMilliseconds.ToString());
             }
 
-            m_stopwatch.Stop();
             if (m_stopwatch.ElapsedMilliseconds >= ticks)
                 continue;
 
@@ -185,20 +190,22 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                     continue;
 
                 ref var line = ref lineArray[lineId];
-                if (m_hitLines[lineId] == m_counter)
-                {
-                    AddLineClip(edge, ref line);
+                if (m_hitLines.Get(lineId))
                     continue;
-                }
 
                 if (line.BackSector == null && !line.Segment.OnRight(position))
                     continue;
 
-                if (m_viewClipper.InsideAnyRange(line.Segment.Start, line.Segment.End))
+                (var smallerAngle, var largerAngle) = m_viewClipper.GetAngles(line.Segment.Start, line.Segment.End);
+                if (m_viewClipper.InsideAnyRange(smallerAngle, largerAngle))
                     continue;
 
-                AddLineClip(edge, ref line);
-                m_hitLines[line.Id] = m_counter;
+                if (line.BackCeilingPlane == null)
+                    m_viewClipper.AddLine(smallerAngle, largerAngle);
+                else if (IsRenderingBlocked(ref line))
+                    m_viewClipper.AddLine(smallerAngle, largerAngle);
+
+                m_hitLines.Set(line.Id, true);
 
                 if (line.SeenForAutomap)
                     continue;
@@ -211,14 +218,6 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                 line.Line.DataChanges |= LineDataTypes.Automap;
             }
         }
-    }
-
-    private unsafe void AddLineClip(SubsectorSegment* edge, ref StructLine line)
-    {
-        if (line.BackCeilingPlane == null)
-            m_viewClipper.AddLine(edge->Start, edge->End);
-        else if (IsRenderingBlocked(ref line))
-            m_viewClipper.AddLine(edge->Start, edge->End);
     }
 
     private static bool IsRenderingBlocked(ref StructLine line)
