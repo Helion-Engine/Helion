@@ -7,7 +7,6 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
-using Helion.Util.Loggers;
 using Helion.World.Bsp;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
@@ -43,7 +42,6 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
     private CancellationTokenSource m_cancelTasks = new();
     private IWorld m_world = null!;
     private FrustumPlanes m_frustumPlanes = new();
-    private uint m_counter;
 
     private readonly ConcurrentQueue<PlayerPosition> m_positions = new();
 
@@ -56,9 +54,6 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
 
         world.OnDestroying += World_OnDestroying;
         m_world = world;
-
-        //if (m_hitLines.Length < world.Lines.Count)
-        //    m_hitLines = new uint[world.Lines.Count];
         m_hitLines = new(world.Lines.Count);
 
         m_dummyEntity.Set(0, 0, 0, EntityDefinition.Default, default, 0, m_world.Sectors[0], m_world);
@@ -105,6 +100,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
 
     private void AutomapTask(CancellationToken token)
     {
+        const int ClearCount = 5;
         int ticks = (int)(1000 / Constants.TicksPerSecond);
         while (true)
         {
@@ -112,24 +108,26 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                 return;
 
             var viewport = GetViewport();
+            m_stopwatch.Restart();
 
             while (m_world != null && m_positions.TryDequeue(out PlayerPosition pos))
             {
+                // Don't let the queue fill up indefinitely when processing too slowly
+                if (m_positions.Count > ClearCount)
+                    m_positions.Clear();
+
                 if (token.IsCancellationRequested)
                     return;
 
-                m_stopwatch.Restart();
-                m_counter++;
                 m_viewClipper.Clear();
                 m_viewClipper.Center = pos.Position.XY;
                 m_hitLines.SetAll(false);
 
                 SetFrustum(viewport, pos);
                 MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position.XY, m_world, token);
-                m_stopwatch.Stop();
-                HelionLog.Info(m_stopwatch.Elapsed.TotalMilliseconds.ToString());
             }
 
+            m_stopwatch.Stop();
             if (m_stopwatch.ElapsedMilliseconds >= ticks)
                 continue;
 
