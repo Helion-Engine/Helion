@@ -178,6 +178,8 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
         var subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
         var subsectorLines = m_world.BspSegLines;
         var lineArray = world.StructLines.Data;
+        uint smallerAngle;
+        uint largerAngle;
         fixed (SubsectorSegment* startEdge = &world.BspTree.Segments.Data[subsector.SegIndex])
         {
             SubsectorSegment* edge = startEdge;
@@ -191,10 +193,12 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                 if (m_hitLines.Get(lineId))
                     continue;
 
-                if (line.BackSector == null && !line.Segment.OnRight(position))
+                m_hitLines.Set(line.Id, true);
+
+                if (line.BackSector == null && line.Segment.PerpDot(position) > 0)
                     continue;
 
-                (var smallerAngle, var largerAngle) = m_viewClipper.GetAngles(line.Segment.Start, line.Segment.End);
+                (smallerAngle, largerAngle) = m_viewClipper.GetAngles(line.Segment.Start, line.Segment.End);
                 if (m_viewClipper.InsideAnyRange(smallerAngle, largerAngle))
                     continue;
 
@@ -202,8 +206,6 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                     m_viewClipper.AddLine(smallerAngle, largerAngle);
                 else if (IsRenderingBlocked(ref line))
                     m_viewClipper.AddLine(smallerAngle, largerAngle);
-
-                m_hitLines.Set(line.Id, true);
 
                 if (line.SeenForAutomap)
                     continue;
