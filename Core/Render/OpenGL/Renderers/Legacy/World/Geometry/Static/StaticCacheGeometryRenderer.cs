@@ -157,7 +157,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (!m_vanillaRender)
         {
+            m_coverWallGeometry?.Dispose();
             m_coverWallGeometry = null;
+            m_coverWallGeometryOneSided?.Dispose();
             m_coverWallGeometryOneSided = null;
             return;
         }
@@ -354,12 +356,6 @@ public class StaticCacheGeometryRenderer : IDisposable
                 if ((side.FloodTextures & SideTexture.Upper) != 0)
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide, m_floodFillRenderer);
             }
-
-            if (m_vanillaRender && ((side.FloodTextures & SideTexture.Upper) == 0))
-            {
-                sideVertices = m_geometryRenderer.RenderTwoSidedUpperOrLowerRaw(WallLocation.Upper, side, facingSector, otherSector, isFrontSide);
-                AddOrUpdateCoverWall(side, side.Upper, sideVertices);
-            }
         }
 
         bool lowerVisible = m_geometryRenderer.IsLowerVisibleWithTransferHeights(side, otherSide, facingSector, otherSector);
@@ -375,7 +371,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower, isFrontSide, m_floodFillRenderer);
             }
 
-            if (m_vanillaRender && ((side.FloodTextures & SideTexture.Lower) == 0 || skyVertices != null))
+            if (m_vanillaRender && skyVertices != null)
             {
                 sideVertices = m_geometryRenderer.RenderTwoSidedUpperOrLowerRaw(WallLocation.Lower, side, facingSector, otherSector, isFrontSide);
                 AddOrUpdateCoverWall(side, side.Lower, sideVertices);
@@ -488,16 +484,16 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (sideVertices == null || !visible)
             return;
 
-        var type = GetWallType(side, wall);
-        if (m_vanillaRender && type != GeometryType.TwoSidedMiddleWall)
-            AddOrUpdateCoverWall(side, wall, sideVertices);
-
         if (update)
         {
             UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices,
                 null, side, wall, repeatY, side.Sector);
             return;
         }
+
+        var type = GetWallType(side, wall);
+        if (m_vanillaRender && type != GeometryType.TwoSidedMiddleWall)
+            AddOrUpdateCoverWall(side, wall, sideVertices);
 
         var vertices = GetTextureVertices(type, wall.TextureHandle, repeatY);
         SetSideData(ref wall.Static, type, wall.TextureHandle, vertices.Length, sideVertices.Length, repeatY, null);
