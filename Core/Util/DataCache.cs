@@ -77,6 +77,9 @@ public class DataCache
             m_consoleMessageNodes.Add(new LinkedListNode<ConsoleMessage>(null!));
         }
 
+        for (int i = 0; i < 1024; i++)
+            m_clipSpans.Add(new LinkedListNode<ClipSpan>(default));
+
         // Index zero is reserved for null
         for (int i = 1; i < Entities.Length; i++)
         {

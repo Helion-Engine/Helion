@@ -44,7 +44,6 @@ public class GeometryRenderer : IDisposable
     private readonly IConfig m_config;
     private readonly RenderProgram m_program;
     private readonly LegacyGLTextureManager m_glTextureManager;
-    private readonly LineDrawnTracker m_lineDrawnTracker = new();
     private readonly StaticCacheGeometryRenderer m_staticCacheGeometryRenderer;
     private readonly DynamicArray<TriangulatedWorldVertex> m_subsectorVertices = new();
     private readonly DynamicVertex[] m_wallVertices = new DynamicVertex[6];
@@ -129,7 +128,6 @@ public class GeometryRenderer : IDisposable
         m_world = world;
         if (!world.SameAsPreviousMap)
             m_skyRenderer.Reset();
-        m_lineDrawnTracker.UpdateToWorld(world);
 
         m_vanillaRender = world.Config.Render.VanillaRender;
 
@@ -325,7 +323,6 @@ public class GeometryRenderer : IDisposable
         m_tickFraction = tickFraction;
         if (newTick)
             m_skyRenderer.Clear();
-        m_lineDrawnTracker.ClearDrawnLines();
     }
 
     public void RenderStaticGeometryWalls() =>

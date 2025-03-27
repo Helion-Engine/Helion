@@ -3,7 +3,6 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Render;
 using Helion.Render.Common.Shared;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Resources.Archives.Collection;
@@ -15,6 +14,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -32,7 +32,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
         public readonly double PitchRadians = pitchRadians;
     }
 
-    private readonly LineDrawnTracker m_lineDrawnTracker = new();
+    private BitArray m_hitLines = new(0);
     private readonly Stopwatch m_stopwatch = new();
     private readonly ViewClipper m_viewClipper = new(archiveCollection.DataCache);
     private readonly RenderInfo m_renderInfo = new();
@@ -54,7 +54,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
 
         world.OnDestroying += World_OnDestroying;
         m_world = world;
-        m_lineDrawnTracker.UpdateToWorld(world);
+        m_hitLines = new(world.Lines.Count);
 
         m_dummyEntity.Set(0, 0, 0, EntityDefinition.Default, default, 0, m_world.Sectors[0], m_world);
 
@@ -89,7 +89,6 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
 
     private void ClearData()
     {
-        m_lineDrawnTracker.ClearDrawnLines();
         m_positions.Clear();
         m_viewClipper.Clear();
     }
@@ -101,25 +100,28 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
 
     private void AutomapTask(CancellationToken token)
     {
+        const int ClearCount = 5;
         int ticks = (int)(1000 / Constants.TicksPerSecond);
         while (true)
         {
             if (token.IsCancellationRequested)
                 return;
 
-            m_stopwatch.Restart();
             var viewport = GetViewport();
+            m_stopwatch.Restart();
 
             while (m_world != null && m_positions.TryDequeue(out PlayerPosition pos))
             {
+                // Don't let the queue fill up indefinitely when processing too slowly
+                if (m_positions.Count > ClearCount)
+                    m_positions.Clear();
+
                 if (token.IsCancellationRequested)
                     return;
 
-                m_lineDrawnTracker.ClearDrawnLines();
                 m_viewClipper.Clear();
                 m_viewClipper.Center = pos.Position.XY;
-
-                m_lineDrawnTracker.ClearDrawnLines();
+                m_hitLines.SetAll(false);
 
                 SetFrustum(viewport, pos);
                 MarkBspLineClips((uint)m_world.BspTree.Nodes.Length - 1, pos.Position.XY, m_world, token);
@@ -173,38 +175,37 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
                 return;
         }
 
-        Subsector subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
-
-        var subsectorLines = m_world.BspSegLines;
+        var subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
         var lineArray = world.StructLines.Data;
+        uint smallerAngle;
+        uint largerAngle;
         fixed (SubsectorSegment* startEdge = &world.BspTree.Segments.Data[subsector.SegIndex])
         {
             SubsectorSegment* edge = startEdge;
             for (int i = 0; i < subsector.SegCount; i++, edge++)
             {
-                var getLineId = subsectorLines[subsector.SegIndex + i];
-                if (getLineId == null)
+                if (edge->LineId == -1)
                     continue;
 
-                var lineId = getLineId.Value;
-
-                ref var line = ref lineArray[lineId];
-                if (m_lineDrawnTracker.HasDrawn(lineId))
-                {
-                    AddLineClip(edge, ref line);
-                    continue;
-                }
-
-                if (line.BackSector == null && !line.Segment.OnRight(position))
+                ref var line = ref lineArray[edge->LineId];
+                if (m_hitLines.Get(edge->LineId))
                     continue;
 
-                if (m_viewClipper.InsideAnyRange(line.Segment.Start, line.Segment.End))
+                m_hitLines.Set(line.Id, true);
+
+                if (line.BackSector == null && line.Segment.PerpDot(position) > 0)
                     continue;
 
-                AddLineClip(edge, ref line);
-                m_lineDrawnTracker.MarkDrawn(lineId);
+                (smallerAngle, largerAngle) = m_viewClipper.GetAngles(line.Segment.Start, line.Segment.End);
+                if (m_viewClipper.InsideAnyRange(smallerAngle, largerAngle))
+                    continue;
 
-                if (line.SeenForAutomap)
+                if (line.BackCeilingPlane == null)
+                    m_viewClipper.AddLine(smallerAngle, largerAngle);
+                else if (IsRenderingBlocked(world, edge, ref line))
+                    m_viewClipper.AddLine(smallerAngle, largerAngle);
+
+                if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)
                     continue;
 
                 if (!m_frustumPlanes.PointInFrustum(line.Segment.Start.X, line.Segment.Start.Y) &&
@@ -217,22 +218,26 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
         }
     }
 
-    private unsafe void AddLineClip(SubsectorSegment* edge, ref StructLine line)
+    private static unsafe bool IsRenderingBlocked(IWorld world, SubsectorSegment* edge, ref StructLine line)
     {
-        if (line.BackCeilingPlane == null)
-            m_viewClipper.AddLine(edge->Start, edge->End);
-        else if (IsRenderingBlocked(ref line))
-            m_viewClipper.AddLine(edge->Start, edge->End);
-    }
-
-    private static bool IsRenderingBlocked(ref StructLine line)
-    {
-        if (line.BackCeilingPlane == null || line.BackFloorPlane == null)
+        if (line.BackCeilingPlane == null || line.BackFloorPlane == null || edge->SideId == -1)
             return true;
 
-        // Closed door check. This check isn't really correct, but is required for some old rendering tricks to work.
-        // E.g. TNT Map02 - see through window that opens as a door
-        return line.BackCeilingPlane.Z <= line.FrontFloorPlane.Z || line.BackFloorPlane.Z >= line.FrontCeilingPlane.Z;
+        if (line.BackCeilingPlane.Z <= line.BackFloorPlane.Z)
+        {
+            // Check null texture handle for rendering tricks. Not blocked if missing texture.
+            // Works around issue the original game had not adding blocking lines to view clipper.
+            // E.g. TNT Map02 - see through window that opens as a door
+            if (line.BackCeilingPlane.Z < line.FrontFloorPlane.Z)
+                return world.Sides[edge->SideId].Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
+
+            if (line.BackCeilingPlane.Z > line.FrontFloorPlane.Z)
+                return world.Sides[edge->SideId].Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
+
+            return true;
+        }
+
+        return false;
     }
 
     private bool Occluded(in Box2D box, in Vec2D position)
