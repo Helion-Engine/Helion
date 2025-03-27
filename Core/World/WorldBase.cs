@@ -296,13 +296,13 @@ public abstract partial class WorldBase : IWorld
             var subsector = BspTree.Subsectors[i];
             for (int j = 0; j < subsector.SegCount; j++)
             {
-                var edge = BspTree.Segments[subsector.SegIndex + j];
-                if (!edge.SideId.HasValue)
+                ref var edge = ref BspTree.Segments.Data[subsector.SegIndex + j];
+                if (edge.SideId == -1)
                 {
                     LastBspSegLines[subsector.SegIndex + j] = -1;
                     continue;
                 }
-                var side = Sides[edge.SideId.Value];
+                var side = Sides[edge.SideId];
                 LastBspSegLines[subsector.SegIndex + j] = side.Line.Id;
             }
         }

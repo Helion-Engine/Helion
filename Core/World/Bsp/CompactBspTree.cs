@@ -233,8 +233,8 @@ public class CompactBspTree
     {
         foreach (SubsectorEdge edge in node.ClockwiseEdges)
         {
-            Side? side = GetSideFromEdge(edge, builder);
-            SubsectorSegment subsectorEdge = new(side?.Id, edge.Start, edge.End);
+            var side = GetSideFromEdge(edge, builder);
+            var subsectorEdge = new SubsectorSegment(side == null ? -1 : side.Id, edge.Start, edge.End);
             Segments.Add(subsectorEdge);
         }
     }

@@ -204,10 +204,10 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
 
                 if (line.BackCeilingPlane == null)
                     m_viewClipper.AddLine(smallerAngle, largerAngle);
-                else if (IsRenderingBlocked(ref line))
+                else if (IsRenderingBlocked(world, edge, ref line))
                     m_viewClipper.AddLine(smallerAngle, largerAngle);
 
-                if (line.SeenForAutomap)
+                if ((line.Flags & StructLineFlags.SeenForAutomap) != 0)
                     continue;
 
                 if (!m_frustumPlanes.PointInFrustum(line.Segment.Start.X, line.Segment.Start.Y) &&
@@ -220,14 +220,26 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
         }
     }
 
-    private static bool IsRenderingBlocked(ref StructLine line)
+    private static unsafe bool IsRenderingBlocked(IWorld world, SubsectorSegment* edge, ref StructLine line)
     {
-        if (line.BackCeilingPlane == null || line.BackFloorPlane == null)
+        if (line.BackCeilingPlane == null || line.BackFloorPlane == null || edge->SideId == -1)
             return true;
 
-        // Closed door check. This check isn't really correct, but is required for some old rendering tricks to work.
-        // E.g. TNT Map02 - see through window that opens as a door
-        return line.BackCeilingPlane.Z <= line.FrontFloorPlane.Z || line.BackFloorPlane.Z >= line.FrontCeilingPlane.Z;
+        if (line.BackCeilingPlane.Z <= line.BackFloorPlane.Z)
+        {
+            // Check null texture handle for rendering tricks. Not blocked if missing texture.
+            // Works around issue the original game had not adding blocking lines to view clipper.
+            // E.g. TNT Map02 - see through window that opens as a door
+            if (line.BackCeilingPlane.Z < line.FrontFloorPlane.Z)
+                return world.Sides[edge->SideId].Upper.TextureHandle > Constants.NullCompatibilityTextureIndex;
+
+            if (line.BackCeilingPlane.Z > line.FrontFloorPlane.Z)
+                return world.Sides[edge->SideId].Lower.TextureHandle > Constants.NullCompatibilityTextureIndex;
+
+            return true;
+        }
+
+        return false;
     }
 
     private bool Occluded(in Box2D box, in Vec2D position)
