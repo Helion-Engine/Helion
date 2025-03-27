@@ -157,7 +157,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (!m_vanillaRender)
         {
+            m_coverWallGeometry?.Dispose();
             m_coverWallGeometry = null;
+            m_coverWallGeometryOneSided?.Dispose();
             m_coverWallGeometryOneSided = null;
             return;
         }
