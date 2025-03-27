@@ -231,10 +231,22 @@ public class CompactBspTree
 
     private void CreateClockwiseSegments(BspNode node, GeometryBuilder builder)
     {
+        int sideId, lineId;
         foreach (SubsectorEdge edge in node.ClockwiseEdges)
         {
             var side = GetSideFromEdge(edge, builder);
-            var subsectorEdge = new SubsectorSegment(side == null ? -1 : side.Id, edge.Start, edge.End);
+            if (side == null)
+            {
+                sideId = -1;
+                lineId = -1;
+            }
+            else
+            {
+                sideId = side.Id;
+                lineId = builder.Sides[sideId].Line.Id;
+            }
+
+            var subsectorEdge = new SubsectorSegment(sideId, lineId, edge.Start, edge.End);
             Segments.Add(subsectorEdge);
         }
     }

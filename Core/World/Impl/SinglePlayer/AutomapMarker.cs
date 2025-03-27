@@ -176,7 +176,6 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
         }
 
         var subsector = world.BspTree.Subsectors[nodeIndex & BspNodeCompact.SubsectorMask];
-        var subsectorLines = m_world.BspSegLines;
         var lineArray = world.StructLines.Data;
         uint smallerAngle;
         uint largerAngle;
@@ -185,12 +184,11 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
             SubsectorSegment* edge = startEdge;
             for (int i = 0; i < subsector.SegCount; i++, edge++)
             {
-                var lineId = subsectorLines[subsector.SegIndex + i];
-                if (lineId == -1)
+                if (edge->LineId == -1)
                     continue;
 
-                ref var line = ref lineArray[lineId];
-                if (m_hitLines.Get(lineId))
+                ref var line = ref lineArray[edge->LineId];
+                if (m_hitLines.Get(edge->LineId))
                     continue;
 
                 m_hitLines.Set(line.Id, true);
