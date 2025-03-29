@@ -31,9 +31,12 @@ Minimum requirements are Windows 7 and an Open GL 3.3 capable GPU.
 
 [Full Benchmark Spreadsheet](https://docs.google.com/spreadsheets/d/19INwMjrppDO-n90HOc-Hhrs1tcqphrItQ_LhzRgurZc)
 
-|   |   |
-| - | - |
-| ![Sunder MAP15](https://i.imgur.com/DbxGlNy.png) | ![Summer of Slaughter MAP32](https://i.imgur.com/QYXFuz4.png) |
+<table><tbody>
+<tr>
+<td><img alt="Sunder MAP15" src="https://i.imgur.com/DbxGlNy.png"/></td>
+<td><img alt="Summer of Slaughter MAP32" src="https://i.imgur.com/QYXFuz4.png"/></td>
+</tr>
+</tbody></table>
 
 ## Installing and Playing
 
