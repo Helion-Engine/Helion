@@ -42,9 +42,14 @@ https://docs.google.com/spreadsheets/d/19INwMjrppDO-n90HOc-Hhrs1tcqphrItQ_LhzRgu
 
 ## Installing and Playing
 
-The latest stable release for Windows and most Linux distros can be https://github.com/Helion-Engine/Helion/releases/latest[downloaded here]. Nightly experimental builds are also https://github.com/Helion-Engine/Helion/releases/tag/nightly[available here] for users who want to test the latest features.
+The latest stable release for Windows and most Linux distros can be https://github.com/Helion-Engine/Helion/releases/latest[downloaded here]. Nightly experimental builds are also https://github.com/Helion-Engine/Helion/releases/tag/nightly[available here] for users who want to test the latest features before they're ready.
 
 For information on setting up and playing, see the bundled https://github.com/Helion-Engine/Helion/blob/dev/Assets/Documentation/README.md[game documentation].
 
-If you want to build from source, see the https://github.com/Helion-Engine/Helion/blob/dev/INSTALL.adoc[build instructions].
+If you want to compile from source, see the https://github.com/Helion-Engine/Helion/blob/dev/INSTALL.adoc[build instructions].
 
+## Contact Us
+
+If you want to talk about the game, follow development, or get involved, we have https://discord.gg/sb8P7Nuby8[a Discord server] as well as https://www.doomworld.com/forum/topic/132153-helion-c-0940-824-goodbye-bsp-tree-rendering/[a thread on the Doomworld forums].
+
+If you encounter issues using Helion and would like to report a bug, you can do so either https://github.com/Helion-Engine/Helion/issues[here on GitHub Issues] or in the Doomworld thread above.
