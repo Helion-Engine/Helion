@@ -12,19 +12,19 @@ Minimum requirements are Windows 7 and an Open GL 3.3 capable GPU.
 
 <table><tbody>
 <tr>
-<td><img src="https://i.imgur.com/YBQJAc2.png" alt="Doom E1M1 - True Color Mode"/>Doom E1M1 - True Color Mode</td>
-<td><img src="https://i.imgur.com/WfNu68M.png" alt="Doom E1M1 - Palette Color Mode"/>Doom E1M1 - Palette Color Mode</td>
+<td style="width: 50%"><img src="https://i.imgur.com/YBQJAc2.png" alt="Doom E1M1 - True Color Mode"/>Doom E1M1 - True Color Mode</td>
+<td style="width: 50%"><img src="https://i.imgur.com/WfNu68M.png" alt="Doom E1M1 - Palette Color Mode"/>Doom E1M1 - Palette Color Mode</td>
 </tr>
 <tr>
-<td><img src="https://i.imgur.com/lrksM1C.png" alt="Eviternity MAP26 - Automap Overlay"/>Eviternity MAP26 - Automap Overlay</td>
-<td><img src="https://i.imgur.com/iA4bVzs.png" alt="Knee-Deep in Knee-Deep in ZDoom Z1M1"/>Knee-Deep in Knee-Deep in ZDoom Z1M1</td>
+<td style="width: 50%"><img src="https://i.imgur.com/lrksM1C.png" alt="Eviternity MAP26 - Automap Overlay"/>Eviternity MAP26 - Automap Overlay</td>
+<td style="width: 50%"><img src="https://i.imgur.com/iA4bVzs.png" alt="Knee-Deep in Knee-Deep in ZDoom Z1M1"/>Knee-Deep in Knee-Deep in ZDoom Z1M1</td>
 </tr>
 <tr>
-<td><img src="https://i.imgur.com/dVbYPg4.png" alt="PUSSX Summer of Slaught MAP32"/>PUSS X Summer of Slaughter MAP32 (SOS_BOOM.wad)</td>
-<td><img src="https://i.imgur.com/XyD6UA2.png" alt="Sunlust MAP28"/>Sunlust MAP28</td>
+<td style="width: 50%"><img src="https://i.imgur.com/dVbYPg4.png" alt="PUSSX Summer of Slaught MAP32"/>PUSS X Summer of Slaughter MAP32 (SOS_BOOM.wad)</td>
+<td style="width: 50%"><img src="https://i.imgur.com/XyD6UA2.png" alt="Sunlust MAP28"/>Sunlust MAP28</td>
 </tr>
 <tr>
-<td><img src="https://i.imgur.com/1w9t5N1.png" alt="Eviternity II MAP32"/>Eviternity II MAP32</td>
+<td style="width: 50%"><img src="https://i.imgur.com/1w9t5N1.png" alt="Eviternity II MAP32"/>Eviternity II MAP32</td>
 </tr>
 </tbody>
 <table>
