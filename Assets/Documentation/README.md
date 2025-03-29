@@ -13,32 +13,32 @@
 
 These parameters can be added to a shortcut or in your preferred Doom launcher:
 
-| Option                    | Description |
-| ------------------------- | ----------- |
-| -iwad [iwad]              | Loads an IWAD |
-| -file [pwad1] [pwad2] ... | Loads PWAD(s) |
-| -deh [file]               | Loads a DEH file |
-| -config [file]            | Uses a specific config file
-| -savedir [folder]         | Saves to a specific folder (default is the user data folder)
-| -loadgame [savefile]      | Loads a save game
-| -skill [level]            | Sets the skill level, 1-5 (5 = Nightmare)
-| -warp [map]               | Loads directly into a specified map
-| +map [map]                | Same as above
-| -record [demofile]        | Records a demo file
-| -playdemo [demofile]      | Plays a demo file
-| -pistolstart              | Weapons are not kept between levels
-| +sv_fastmonsters          | Monsters are faster, like in Nightmare
-| -nomonsters               | No monsters will be spawned
-| -levelstat                | Writes gameplay stats to file
-| -nomusic                  | Disables music
-| +setpos
-| +cheats
-| +setangle
-| +setpitch
-| +glversion
-| -log
-| -loglevel
-| -logprofiler
+| Option                        | Description |
+| ----------------------------- | ----------- |
+| -iwad [iwad]                  | Loads an IWAD |
+| -file [pwad1] [pwad2] ...     | Loads PWAD(s) |
+| -deh [file]                   | Loads a DEH file |
+| -config [file]                | Uses a specific config file
+| -savedir [folder]             | Saves to a specific folder (default is the user data folder)
+| -loadgame [savefile]          | Loads a save game
+| -skill [level]                | Sets the skill level, 1-5 (5 = Nightmare)
+| -warp [map]                   | Loads directly into a specified map
+| +map [map]                    | Same as above
+| -record [demofile]            | Records a demo file
+| -playdemo [demofile]          | Plays a demo file
+| -pistolstart                  | Weapons are not kept between levels
+| +cheats [cheat1] [cheat2] ... | Enables specific cheats (e.g. IDKFA)
+| +sv_fastmonsters              | Monsters are faster, like in Nightmare
+| -nomonsters                   | No monsters will be spawned
+| -levelstat                    | Writes gameplay stats to file
+| -nomusic                      | Disables music
+| +glversion [version]          | Forces an OpenGL version (e.g. +glversion 33 forces OpenGL 3.3)
+| -loglevel [level]             | Sets which log levels are logged, can be used for debugging
+| -log [file]                   | Saves log output to file, can be used for debugging
+| -logprofiler [file]           | Saves performance data to file
+| +setpos [x,y,z]               | Sets the player's start position
+| +setangle [deg]               | Sets the player's start angle
+| +setpitch [deg]               | Sets the player's start pitch
 
 # Common issues
 
