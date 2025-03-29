@@ -29,7 +29,7 @@ These parameters can be added to a shortcut or in your preferred Doom launcher:
 | -pistolstart              | Weapons are not kept between levels
 | +sv_fastmonsters          | Monsters are faster, like in Nightmare
 | -nomonsters               | No monsters will be spawned
-| -levelstat                | Writes stats file for use with *Doom Launcher* (https://github.com/nstlaurent/DoomLauncher)
+| -levelstat                | Writes gameplay stats to file
 | -nomusic                  | Disables music
 | +setpos
 | +cheats
