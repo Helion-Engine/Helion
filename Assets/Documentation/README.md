@@ -4,10 +4,41 @@
 2. Obtain one or more of the official IWADs (Doom, Doom II, Plutonia, TNT, etc.).  If you've bought the games via Steam, we'll try to automatically find them.  If that doesn't work, you can also (PICK ONE):
     1. Copy the IWADs to the same directory as Helion
     2. Run Helion.exe (or just "./Helion", on Linux) with the -iwad parameter, followed by the path to the IWAD you want to use
-    3. Configure your Doom launcher of choice to pass the -iwad parameter
+    3. Configure your Doom launcher of choice to pass the -iwad parameter (see below)
     4. Set values for the `DOOMWADDIR` or `DOOMWADPATH` environment variables
     5. Launch the Helion executable using one of the other methods described above, then edit the `files.directories = [".", "wads"]` line in `config.ini` to include the directory that contains your IWADs.
 4. Run the Helion executable (Helion.exe on Windows, ./Helion on Linux) to play.
+
+# Launch Parameters
+
+These parameters can be added to a shortcut or in your preferred Doom launcher:
+
+| Option                    | Description |
+| ------------------------- | ----------- |
+| -iwad [iwad]              | Loads an IWAD |
+| -file [pwad1] [pwad2] ... | Loads PWAD(s) |
+| -deh [file]               | Loads a DEH file |
+| -config [file]            | Uses a specific config file
+| -savedir [folder]         | Saves to a specific folder (default is the user data folder)
+| -loadgame [savefile]      | Loads a save game
+| -skill [level]            | Sets the skill level, 1-5 (5 = Nightmare)
+| -warp [map]               | Loads directly into a specified map
+| +map [map]                | Same as above
+| -record [demofile]        | Records a demo file
+| -playdemo [demofile]      | Plays a demo file
+| -pistolstart              | Weapons are not kept between levels
+| +sv_fastmonsters          | Monsters are faster, like in Nightmare
+| -nomonsters               | No monsters will be spawned
+| -levelstat                | Writes stats file for use with *Doom Launcher* (https://github.com/nstlaurent/DoomLauncher)
+| -nomusic                  | Disables music
+| +setpos
+| +cheats
+| +setangle
+| +setpitch
+| +glversion
+| -log
+| -loglevel
+| -logprofiler
 
 # Common issues
 
