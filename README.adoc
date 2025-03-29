@@ -47,8 +47,11 @@ image::https://i.imgur.com/1w9t5N1.png[Eviternity II MAP32]
 
 https://docs.google.com/spreadsheets/d/19INwMjrppDO-n90HOc-Hhrs1tcqphrItQ_LhzRgurZc[Full Benchmark Spreadsheet]
 
-image::https://i.imgur.com/DbxGlNy.png["Sunder MAP15", role="left", width=50%]
-image::https://i.imgur.com/QYXFuz4.png["Summer of Slaughter MAP32", role="right", width=50%]
+[cols="1,1" frame=none, grid=none]
+|===
+|image:https://i.imgur.com/DbxGlNy.png["Sunder MAP15"]
+|image:https://i.imgur.com/QYXFuz4.png["Summer of Slaughter MAP32"]
+|===
 
 ## Build Instructions
 
