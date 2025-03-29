@@ -21,7 +21,7 @@ Eviternity MAP26 - Automap Overlay
 a|image::https://i.imgur.com/iA4bVzs.png[Knee-Deep in Knee-Deep in ZDoom Z1M1]
 Knee-Deep in Knee-Deep in ZDoom Z1M1
 a|image::https://i.imgur.com/dVbYPg4.png[PUSSX Summer of Slaught MAP32]
-PUSS X Summer of Slaughter MAP32
+PUSS X Summer of Slaughter MAP32 +
 (SOS_BOOM.wad)
 a|image::https://i.imgur.com/XyD6UA2.png[Sunlust MAP28]
 Sunlust MAP28
