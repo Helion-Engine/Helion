@@ -29,6 +29,31 @@ Minimum requirements are Windows 7 and an Open GL 3.3 capable GPU.
 </tbody>
 <table>
 
+<table>
+  <caption>
+    Superheros and sidekicks
+  </caption>
+  <colgroup>
+    <col />
+    <col span="2" class="batman" />
+    <col span="2" class="flash" />
+  </colgroup>
+  <tr>
+    <td></td>
+    <th scope="col">Batman</th>
+    <th scope="col">Robin</th>
+    <th scope="col">The Flash</th>
+    <th scope="col">Kid Flash</th>
+  </tr>
+  <tr>
+    <th scope="row">Skill</th>
+    <td>Smarts, strong</td>
+    <td>Dex, acrobat</td>
+    <td>Super speed</td>
+    <td>Super speed</td>
+  </tr>
+</table>
+
 ## Benchmarks
 
 [Full Benchmark Spreadsheet](https://docs.google.com/spreadsheets/d/19INwMjrppDO-n90HOc-Hhrs1tcqphrItQ_LhzRgurZc)
