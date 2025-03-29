@@ -713,7 +713,7 @@ public class GeometryRenderer : IDisposable
         }
 
         bool dynamic = m_renderMode == GeometryRenderMode.All || facingSide.IsDynamic;
-        if (dynamic && IsLowerVisibleWithTransferHeights(facingSide, otherSide, facingSector, otherSector))
+        if (dynamic && IsLowerVisibleWithTransferHeights(facingSide, otherSide, facingSector, otherSector, out _))
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
         if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex &&
             dynamic)
@@ -724,14 +724,18 @@ public class GeometryRenderer : IDisposable
 
     // Trick with putting monsters in a lower sector and setting the transfer heights to the surrounding floor.
     // Need to render normal lower textures to block the sprites in this case. Only matters with vanilla render.
-    public bool IsLowerVisibleWithTransferHeights(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
+    public bool IsLowerVisibleWithTransferHeights(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, out bool transferHeights)
     {
+        transferHeights = false;
         if (LowerIsVisible(facingSide, facingSector, otherSector))
             return true;
 
         if (m_vanillaRender && (facingSide.Sector.TransferHeights != null || otherSide.Sector.TransferHeights != null) &&
             (facingSide.Sector.TransferHeights == null || otherSide.Sector.TransferHeights == null))
+        {
+            transferHeights = true;
             return LowerIsVisible(facingSide, facingSide.Sector, otherSide.Sector);
+        }
 
         return false;
     }

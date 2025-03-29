@@ -358,10 +358,15 @@ public class StaticCacheGeometryRenderer : IDisposable
             }
         }
 
-        bool lowerVisible = m_geometryRenderer.IsLowerVisibleWithTransferHeights(side, otherSide, facingSector, otherSector);
+        bool lowerVisible = m_geometryRenderer.IsLowerVisibleWithTransferHeights(side, otherSide, facingSector, otherSector, out var transferHeights);
         if (lower && lowerVisible)
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
+
+            // Handle transfer heights monster hiding trick. See GeometryRenderer.IsLowerVisibleWithTransferHeights
+            if (m_vanillaRender && transferHeights && sideVertices == null)
+                sideVertices = m_geometryRenderer.RenderTwoSidedUpperOrLowerRaw(WallLocation.Lower, side, facingSector, otherSector, isFrontSide);
+
             SetSideVertices(side, side.Lower, update, sideVertices, lowerVisible, true);
             AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, otherSector, update);
 
@@ -494,6 +499,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         var type = GetWallType(side, wall);
         if (m_vanillaRender && type != GeometryType.TwoSidedMiddleWall)
             AddOrUpdateCoverWall(side, wall, sideVertices);
+
+        if (wall.TextureHandle <= Constants.NullCompatibilityTextureIndex)
+            return;
 
         var vertices = GetTextureVertices(type, wall.TextureHandle, repeatY);
         SetSideData(ref wall.Static, type, wall.TextureHandle, vertices.Length, sideVertices.Length, repeatY, null);
@@ -871,6 +879,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         var geometryType = side != null && wall != null ? GetWallType(side, wall) : GeometryType.Flat;
         if (side != null && wall != null && geometryType != GeometryType.TwoSidedMiddleWall)
             AddOrUpdateCoverWall(side, wall, vertices);
+
+        if (textureHandle <= Constants.NullCompatibilityTextureIndex)
+            return;
 
         if (geometryData == null)
         {
