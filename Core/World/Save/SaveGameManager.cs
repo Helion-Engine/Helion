@@ -66,7 +66,7 @@ public class SaveGameManager
         if (!string.IsNullOrEmpty(m_saveDirCommandLineArg) && EnsureDirectoryExists(m_saveDirCommandLineArg))
             return m_saveDirCommandLineArg;
 
-        return m_pathsManager.ConfigFolder;
+        return m_pathsManager.UserDataFolder;
     }
 
     private static bool EnsureDirectoryExists(string path)

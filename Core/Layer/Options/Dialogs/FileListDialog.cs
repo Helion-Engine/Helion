@@ -57,7 +57,7 @@ internal class FileListDialog : ListDialog
         }
     }
 
-    private string GetFullPath(string path) => Path.GetFullPath(Path.Combine(m_pathsManager.ConfigFolder, path));
+    private string GetFullPath(string path) => Path.GetFullPath(Path.Combine(m_pathsManager.UserDataFolder, path));
 
     public string? GetSelectedFilePath()
     {
@@ -98,8 +98,8 @@ internal class FileListDialog : ListDialog
     private void ChangeDirectory()
     {
         m_path = GetFullPath(Path.Combine(m_path, m_file));
-        if (m_path.StartsWith(m_pathsManager.ConfigFolder))
-            m_path = Path.GetRelativePath(m_pathsManager.ConfigFolder, m_path);
+        if (m_path.StartsWith(m_pathsManager.UserDataFolder))
+            m_path = Path.GetRelativePath(m_pathsManager.UserDataFolder, m_path);
         m_file = string.Empty;
         m_listsNeedUpdate = true;
     }

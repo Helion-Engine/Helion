@@ -221,7 +221,7 @@ public partial class Client : IDisposable, IInputManagement
         if (!m_takeScreenshot)
             return;
 
-        string path = Path.Combine(m_pathsManager.ConfigFolder, $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.png");
+        string path = Path.Combine(m_pathsManager.UserDataFolder, $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.png");
         HelionLog.Info($"Saving screenshot to {path}");
 
         m_takeScreenshot = false;
@@ -589,12 +589,12 @@ public partial class Client : IDisposable, IInputManagement
         PathsManager pathsManager = new(commandLineArgs.ForcePortableMode);
         var configPath = !string.IsNullOrWhiteSpace(commandLineArgs.ConfigFileName)
             ? commandLineArgs.ConfigFileName.Trim()
-            : FileConfig.GetDefaultConfigPath(pathsManager.ConfigFolder);
+            : FileConfig.GetDefaultConfigPath(pathsManager.UserDataFolder);
         FileConfig config = ReadConfigFileOrTerminate(configPath);
 
         try
         {
-            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config, pathsManager.AssetsFolders), config, ArchiveCollection.StaticDataCache);
+            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(pathsManager, config, pathsManager.AssetsFolders), config, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(archiveCollection.DataCache, config, commandLineArgs);
             LogClientInfo();
             using IMusicPlayer musicPlayer = commandLineArgs.NoMusic ?

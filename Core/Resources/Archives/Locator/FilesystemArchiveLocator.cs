@@ -1,5 +1,6 @@
 using Helion.Resources.Archives.Directories;
 using Helion.Resources.Archives.Entries;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using NLog;
@@ -46,19 +47,17 @@ public class FilesystemArchiveLocator : IArchiveLocator
     /// <param name="config">The config to get the additional directories
     /// <param name="paths">Additional paths to add outside of the user configuration
     /// from.</param>
-    public FilesystemArchiveLocator(IConfig config, IList<string> paths)
+    public FilesystemArchiveLocator(PathsManager pathsManager, IConfig config, IList<string> paths)
     {
-        List<string> allPaths =
-            config.Files.SearchCommonDirectories
+        List<string> allPaths = config.Files.SearchCommonDirectories
             ? [
                 .. paths,
                 .. config.Files.Directories.Value,
-                .. WadPaths.GetFromSteamAndLinuxDirs(),
-                .. WadPaths.GetFromEnvVars()]
+                .. pathsManager.WadFolders]
             : [
                 .. paths,
                 .. config.Files.Directories.Value,
-                .. WadPaths.GetFromEnvVars()];
+                .. pathsManager.WadFoldersExceptCommon];
 
         m_paths.AddRange(allPaths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct());
     }

@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Helion.Resources.Archives;
+using Helion.Util;
+using Helion.Util.Configs;
 
 namespace Helion.Resources.IWad;
 
@@ -10,18 +11,15 @@ public class IWadLocator
 {
     private readonly List<string> m_directories;
 
-    public static IWadLocator CreateDefault(IEnumerable<string> configDirectories, bool searchCommonDirectories)
+    public static IWadLocator CreateDefault(PathsManager pathsManager, IConfig config)
     {
-        List<string> paths = searchCommonDirectories
+        List<string> paths = config.Files.SearchCommonDirectories
             ? [
-                Directory.GetCurrentDirectory(),
-                .. configDirectories,
-                .. WadPaths.GetFromSteamAndLinuxDirs(),
-                .. WadPaths.GetFromEnvVars()]
+                .. config.Files.Directories.Value,
+                .. pathsManager.WadFolders]
             : [
-                Directory.GetCurrentDirectory(),
-                .. configDirectories,
-                .. WadPaths.GetFromEnvVars()];
+                .. config.Files.Directories.Value,
+                .. pathsManager.WadFoldersExceptCommon];
         return new IWadLocator(paths);
     }
 
@@ -32,8 +30,8 @@ public class IWadLocator
 
     public List<IWadPath> Locate()
     {
-        List<IWadPath> iwads = new();
-        HashSet<IWadType> foundTypes = new();
+        List<IWadPath> iwads = [];
+        HashSet<IWadType> foundTypes = [];
         foreach (var dir in m_directories)
         {
             if (!Directory.Exists(dir))
