@@ -42,9 +42,9 @@ https://docs.google.com/spreadsheets/d/19INwMjrppDO-n90HOc-Hhrs1tcqphrItQ_LhzRgu
 
 ## Installing and Playing
 
-The latest release can be https://github.com/helion/Helion/releases/latest[downloaded here].
+The latest precompiled release for Windows and most Linux distros can be https://github.com/Helion-Engine/Helion/releases/latest[downloaded here].
 
-See the https://github.com/helion/Helion/Assets/Documentation/README.md[game documentation] for information on setting up and playing.
+See the bundled https://github.com/Helion-Engine/Helion/blob/dev/Assets/Documentation/README.md[game documentation] for information on setting up and playing.
 
-If you want to build from source, see the https://github.com/helion/Helion/Assets/Documentation/README.md[Build Instructions].
+If you want to build from source, see the https://github.com/Helion-Engine/Helion/blob/dev/INSTALL.adoc[build instructions].
 
