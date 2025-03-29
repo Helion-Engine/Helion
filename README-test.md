@@ -10,8 +10,6 @@ Minimum requirements are Windows 7 and an Open GL 3.3 capable GPU.
 
 ## Images
 
-[cols="2*" frame=none, grid=none]
-|===
 | image:https://i.imgur.com/YBQJAc2.png[Doom E1M1 - True Color Mode] +
   Doom E1M1 - True Color Mode
 | image:https://i.imgur.com/WfNu68M.png[Doom E1M1 - Palette Color Mode] +
@@ -31,13 +29,11 @@ Minimum requirements are Windows 7 and an Open GL 3.3 capable GPU.
 
 ## Benchmarks
 
-https://docs.google.com/spreadsheets/d/19INwMjrppDO-n90HOc-Hhrs1tcqphrItQ_LhzRgurZc[Full Benchmark Spreadsheet]
+[Full Benchmark Spreadsheet](https://docs.google.com/spreadsheets/d/19INwMjrppDO-n90HOc-Hhrs1tcqphrItQ_LhzRgurZc)
 
-[cols="2*" frame=none, grid=none]
-|===
-|image:https://i.imgur.com/DbxGlNy.png[Sunder MAP15]
-|image:https://i.imgur.com/QYXFuz4.png[Summer of Slaughter MAP32]
-|===
+|   |   |
+| - | - |
+| ![Sunder MAP15](https://i.imgur.com/DbxGlNy.png) | ![Summer of Slaughter MAP32](https://i.imgur.com/QYXFuz4.png) |
 
 ## Installing and Playing
 
