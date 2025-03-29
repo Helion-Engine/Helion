@@ -122,6 +122,7 @@ public class FluidSynthMusicPlayer : IMusicPlayer
         }
         else
         {
+            Array.Clear(sampleBlock);
             return false;
         }
     }
