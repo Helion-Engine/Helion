@@ -9,6 +9,37 @@
     5. Launch the Helion executable using one of the other methods described above, then edit the `files.directories = [".", "wads"]` line in `config.ini` to include the directory that contains your IWADs.
 4. Run the Helion executable (Helion.exe on Windows, ./Helion on Linux) to play.
 
+# Launch Parameters
+
+These parameters can be added to a shortcut or in your preferred Doom launcher:
+
+| Option                        | Description |
+| ----------------------------- | ----------- |
+| -iwad [iwad]                  | Loads an IWAD |
+| -file [pwad1] [pwad2] ...     | Loads PWAD(s) |
+| -deh [file]                   | Loads a DEH file |
+| -config [file]                | Uses a specific config file
+| -savedir [folder]             | Saves to a specific folder (default is the user data folder)
+| -loadgame [savefile]          | Loads a save game
+| -skill [level]                | Sets the skill level, 1-5 (5 = Nightmare)
+| -warp [map]                   | Loads directly into a specified map
+| +map [map]                    | Same as above
+| -record [demofile]            | Records a demo file
+| -playdemo [demofile]          | Plays a demo file
+| -pistolstart                  | Weapons are not kept between levels
+| +cheats [cheat1] [cheat2] ... | Enables specific cheats (e.g. IDKFA)
+| +sv_fastmonsters              | Monsters are faster, like in Nightmare
+| -nomonsters                   | No monsters will be spawned
+| -levelstat                    | Writes gameplay stats to file
+| -nomusic                      | Disables music
+| +glversion [version]          | Forces an OpenGL version (e.g. +glversion 33 forces OpenGL 3.3)
+| -loglevel [level]             | Sets which log levels are logged, can be used for debugging
+| -log [file]                   | Saves log output to file, can be used for debugging
+| -logprofiler [file]           | Saves performance data to file
+| +setpos [x,y,z]               | Sets the player's start position
+| +setangle [deg]               | Sets the player's start angle
+| +setpitch [deg]               | Sets the player's start pitch
+
 # Common issues
 
 ## Windows
@@ -19,7 +50,7 @@
 ## Linux
 
 1.  We have provided binaries for libzmusic and libfluidsynth, which are used for music playback.  If these are not compatible with the specific version of Linux you are using, you may need to obtain or build your own.  If you choose to do so, you can either install these dependencies and delete the ones provided, or overwrite the provided .so files with your own; either should work.  You can also run with `-nomusic` to disable music support.
-2.  Similar to the Windows ZIP files, the standard `Helion-<version>-linux-x64.zip` file requires a .NET 8.x runtime.  See https://learn.microsoft.com/en-us/dotnet/core/install/linux .  The `Helion-<version>-linux-x64_SelfContained.zip` file provides its own self-contained runtime and does not require this.
+2.  Similar to the Windows ZIP files, the standard `Helion-<version>-linux-x64.zip` file requires a .NET 9.x runtime.  See https://learn.microsoft.com/en-us/dotnet/core/install/linux .  The `Helion-<version>-linux-x64_SelfContained.zip` file provides its own self-contained runtime and does not require this.
 3.  Helion requires OpenGL (GLFW) and OpenAL runtime components.  You must install these if they are not present, otherwise Helion will fail to start.  On a barebones Ubuntu install, OpenAL may need to be installed (`sudo apt-get install libopenal1`)  Additionally, the music library (ZMusic) requires libsndfile and libmpg123.  These are usually already installed by major Linux distributions (including Ubuntu) but may need to be installed manually on less common configurations.  The included music libraries were built on Ubuntu 22.04.
 4.  While we _do_ test with Linux environments, we are limited in how many different distributions we can test.  You are most likely to have success with distributions based on the latest Ubuntu LTS branch (24.04 at the time of this writing); other versions may work if you build your own native libraries.
 

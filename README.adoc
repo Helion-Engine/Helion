@@ -2,103 +2,55 @@
 
 A modern Doom engine written from the ground up with a focus on performance.
 
+Content creators have created maps that struggle to render at high framerates with even the latest and most expensive hardware. With Helion, Doom's most complex maps are no longer stressful on modern GPUs and playable on old hardware that was previously impossible.
+
 Helion uses static rendering with a state management system to reconcile dynamic map changes in Doom. In contrast to the typical BSP tree rendering that requires significant CPU processing, Helion is able to manage dynamic changes and optimally utilize the GPU resulting in dramatic performance increases.
 
-Content creators have created maps that struggle to render at high framerates with even the latest and most expensive hardware. With Helion, Doom's most complex maps are no longer stressful on modern GPUs and playable on old hardware that was previously impossible.
+Helion supports WADs targeting vanilla, Boom, MBF, MBF21, UDMF (partial support), and ID24.
 
 Minimum requirements are Windows 7 and an Open GL 3.3 capable GPU.
 
-## Images
+## Screenshots
 
+image:https://i.imgur.com/YBQJAc2.png[Doom E1M1 - True Color Mode] +
 Doom E1M1 - True Color Mode
 
-image::https://i.imgur.com/YBQJAc2.png[Doom E1M1 - True Color Mode]
-
-
+image:https://i.imgur.com/WfNu68M.png[Doom E1M1 - Palette Color Mode] +
 Doom E1M1 - Palette Color Mode
 
-image::https://i.imgur.com/WfNu68M.png[Doom E1M1 - Palette Color Mode]
-
-
+image:https://i.imgur.com/lrksM1C.png[Eviternity MAP26 - Automap Overlay] +
 Eviternity MAP26 - Automap Overlay
 
-image::https://i.imgur.com/lrksM1C.png[Eviternity MAP26 - Automap Overlay]
-
-
+image:https://i.imgur.com/iA4bVzs.png[Knee-Deep in Knee-Deep in ZDoom Z1M1] +
 Knee-Deep in Knee-Deep in ZDoom Z1M1
 
-
-image::https://i.imgur.com/iA4bVzs.png[Knee-Deep in Knee-Deep in ZDoom Z1M1]
-
+image:https://i.imgur.com/dVbYPg4.png[PUSSX Summer of Slaught MAP32] +
 PUSS X Summer of Slaughter MAP32 (SOS_BOOM.wad)
 
-image::https://i.imgur.com/dVbYPg4.png[PUSSX Summer of Slaught MAP32]
-
-
+image:https://i.imgur.com/XyD6UA2.png[Sunlust MAP28] +
 Sunlust MAP28
 
-image::https://i.imgur.com/XyD6UA2.png[Sunlust MAP28]
-
+image:https://i.imgur.com/1w9t5N1.png[Eviternity II MAP32] +
 Eviternity II MAP32
-
-image::https://i.imgur.com/1w9t5N1.png[Eviternity II MAP32]
 
 ## Benchmarks
 
 https://docs.google.com/spreadsheets/d/19INwMjrppDO-n90HOc-Hhrs1tcqphrItQ_LhzRgurZc[Full Benchmark Spreadsheet]
 
-image::https://i.imgur.com/DbxGlNy.png[Sunder MAP15]
-image::https://i.imgur.com/QYXFuz4.png[Summer of Slaughter MAP32]
+image:https://i.imgur.com/DbxGlNy.png[Sunder MAP15]
 
-## Build Instructions
+image:https://i.imgur.com/QYXFuz4.png[Summer of Slaughter MAP32]
 
-### Windows
+## Installing and Playing
 
-If using **Visual Studio 2022+** or **Rider**, press Run and it will do everything.
+The latest stable release for Windows and most Linux distros can be https://github.com/Helion-Engine/Helion/releases/latest[downloaded here]. Nightly experimental builds are also https://github.com/Helion-Engine/Helion/releases/tag/nightly[available here] for users who want to test the latest features before they're ready.
 
-### Linux
+For information on setting up and playing, see the bundled link:/Assets/Documentation/README.md[game documentation].
 
-Install dependencies first:
+If you want to compile from source, see the link:/INSTALL.adoc[build instructions].
 
-#### Debian/Ubuntu
+## Contact Us
 
-```sh
-sudo apt install dotnet-sdk-9.0 libopenal-dev
-```
+If you want to talk about the game, follow development, or get involved, we have https://discord.gg/sb8P7Nuby8[a Discord server] as well as https://www.doomworld.com/forum/topic/132153-helion-c-0940-824-goodbye-bsp-tree-rendering/[a thread on the Doomworld forums].
 
-Then go to the "Command Line Build" section below.
-
-#### Fedora
-
-```sh
-sudo dnf install dotnet-sdk-9.0 openal-devel
-```
-
-After installing dependencies, if you have an IDE that supports C# (like Rider), you can open Helion and build/run directly.  You can also build from the command line, as described in the section below.
-
-Note that we have provided copies of various binaries we depend upon.  If you experience difficulties using the provided .so files, you may need to build your own. Symptoms may include nonfunctional music, or issues with controller input.  Please see link:Assets/Documentation/Building-Linux-Native-Dependencies.md[this document] for help with native dependencies.
-
-### Mac
-
-Macintosh is not supported at this time.
-
-### Command Line Build
-
-Once any platform-specific prerequisites are installed, you can build or publish using the `dotnet` commands available with the .NET SDK.  By default, `dotnet build` will build an "any" binary that uses the installed version of the .NET runtime.  However, you can also build versions with a prepackaged runtime for easy installation onto machines that do not have the .NET 9 runtime installed.  
-
-Note that it only makes sense to run the following from the `Client` subdirectory, as this is the only one that actually builds an executable (and can therefore be published).
-
-.Common Build Parameters
-* `-r <runtimeID>`:  Build an executable for the specific runtime.  Tested choices include `win-x64`, `win-x86`, and `linux-x64`.
-* `--self-contained=true`:  Includes support files for the specified runtime, so that you do not need to install the .NET runtime onto the machine where you're going to run this (helps to make installs more portable)
-* `-p:PublishSingleFile=true`:  Bundles all of the .NET dependencies into a single file, resulting in fewer files in the output directory.  Can be combined with `--self-contained=true`.
-* `-p:EnableCompressionInSingleFile=true`:  When combined with single-file publish, this will also compress the resulting executable file.  This can result in a much smaller file size, but may result in the app taking longer to start. 
-* `-p:SelfContainedRelease=true`:  This will turn on _all_ of the recommended single-file publish optimizations mentioned above.
-* `-p:AOT=true`:  Builds a fully "native" binary.  Note that this requires the full VS 2022 environment on Windows, or Clang on Linux.  Cross-OS targets are not supported for this.  See https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot
-
-Example (making a compressed, self-contained release build for Windows x64):
-```
-cd Client
-dotnet publish -c Release -r win-x64 -p:SelfContainedRelease=true
-```
-In this example, the "published" output would end up in `(repo root)\Publish\win-x64_SelfContained`.
+If you encounter issues using Helion and would like to report a bug, you can do so either https://github.com/Helion-Engine/Helion/issues[here on GitHub Issues] or in the Doomworld thread above.
