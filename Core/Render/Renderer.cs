@@ -101,9 +101,16 @@ public partial class Renderer : IDisposable
         // Temporary frame buffer for smaller save game screenshots. Significantly than pulling the full sized pixel buffer and downsizing using image sharp.
         m_screenshotFramebuffer = new("Screenshot", (Constants.ScreenshotSaveWidth, Constants.ScreenshotSaveHeight), 1);
 
+        m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
+
+        SetPixelGapCorrection(m_config.Render.PixelGapCorrection.Value);
+
         PrintGLInfo();
         SetGLStates();
     }
+
+    private void PixelGapCorrection_OnChanged(object? sender, bool e) => SetPixelGapCorrection(e);
+    private static void SetPixelGapCorrection(bool set) => WorldStatic.LineVertexGap = set ? Constants.VertexGapPush : 0;
 
     private GLFramebuffer GenerateMainFramebuffer() => new("Main", Window.Dimension, 1);
     private GLFramebuffer GenerateVirtualFramebuffer() => new("Virtual", RenderDimension, 1, GLFrameBufferOptions.DepthStencilAttachment);
@@ -713,6 +720,8 @@ public partial class Renderer : IDisposable
     {
         if (m_disposed)
             return;
+
+        m_config.Render.PixelGapCorrection.OnChanged -= PixelGapCorrection_OnChanged;
 
         m_mainFramebuffer.Dispose();
         m_virtualFramebuffer.Dispose();

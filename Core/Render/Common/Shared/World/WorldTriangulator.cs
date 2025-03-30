@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Shared.World;
-using Helion.Util;
 using Helion.Util.Container;
+using Helion.World;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -26,10 +25,10 @@ public static class WorldTriangulator
 
         Vec2F left = isFront ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
         Vec2F right = isFront ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
-        double topZ = overrideCeiling == NoOverride ? ceiling.Z : overrideCeiling;
-        double bottomZ = overrideFloor == NoOverride ? floor.Z : overrideFloor;
-        double prevTopZ = overrideCeiling == NoOverride ? ceiling.PrevZ : overrideCeiling;
-        double prevBottomZ = overrideFloor == NoOverride ? floor.PrevZ : overrideFloor;
+        double topZ = overrideCeiling == NoOverride ? ceiling.Z + WorldStatic.LineVertexGap : overrideCeiling;
+        double bottomZ = overrideFloor == NoOverride ? floor.Z - WorldStatic.LineVertexGap : overrideFloor;
+        double prevTopZ = overrideCeiling == NoOverride ? ceiling.PrevZ + WorldStatic.LineVertexGap : overrideCeiling;
+        double prevBottomZ = overrideFloor == NoOverride ? floor.PrevZ - WorldStatic.LineVertexGap : overrideFloor;
 
         double length = line.GetLength();
         double spanZ = topZ - bottomZ;
@@ -66,10 +65,10 @@ public static class WorldTriangulator
 
         Vec2F left = isFrontSide ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
         Vec2F right = isFrontSide ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
-        double topZ = topFlat.Z;
-        double bottomZ = bottomFlat.Z;
-        double prevTopZ = topFlat.PrevZ;
-        double prevBottomZ = bottomFlat.PrevZ;
+        double topZ = topFlat.Z + WorldStatic.LineVertexGap;
+        double bottomZ = bottomFlat.Z - WorldStatic.LineVertexGap;
+        double prevTopZ = topFlat.PrevZ + WorldStatic.LineVertexGap;
+        double prevBottomZ = bottomFlat.PrevZ - WorldStatic.LineVertexGap;
 
         double length = line.GetLength();
         WallUV uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ, previous: false);
@@ -161,10 +160,10 @@ public static class WorldTriangulator
 
         Vec2F left = isFrontSide ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
         Vec2F right = isFrontSide ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
-        double topZ = overrideTopZ == NoOverride ? topPlane.Z : overrideTopZ;
-        double bottomZ = bottomPlane.Z;
-        double prevTopZ = overrideTopZ == NoOverride ? topPlane.PrevZ : overrideTopZ;
-        double prevBottomZ = bottomPlane.PrevZ;
+        double topZ = overrideTopZ == NoOverride ? topPlane.Z + WorldStatic.LineVertexGap : overrideTopZ;
+        double bottomZ = bottomPlane.Z - WorldStatic.LineVertexGap;
+        double prevTopZ = overrideTopZ == NoOverride ? topPlane.PrevZ + WorldStatic.LineVertexGap : overrideTopZ;
+        double prevBottomZ = bottomPlane.PrevZ - WorldStatic.LineVertexGap;
 
         double length = line.GetLength();
         double spanZ = topZ - bottomZ;
@@ -331,8 +330,8 @@ public static class WorldTriangulator
     public static WallUV CalculateOneSidedWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double spanZ, bool previous)
     {
-        var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / side.Middle.Scale.X;
-        var offsetV = (side.Offset.Y + side.Middle.Offset.Y) * textureUVInverse.Y / side.Middle.Scale.Y;
+        var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / side.Middle.Scale.X + ((float)WorldStatic.LineVertexGap * textureUVInverse.X);
+        var offsetV = (side.Offset.Y + side.Middle.Offset.Y) * textureUVInverse.Y / side.Middle.Scale.Y + ((float)WorldStatic.LineVertexGap * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
             if (previous)
@@ -372,8 +371,8 @@ public static class WorldTriangulator
     public static WallUV CalculateTwoSidedLowerWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double topZ, double bottomZ, bool previous)
     {
-        var offsetU = (side.Offset.X + side.Lower.Offset.X) * textureUVInverse.X / side.Lower.Scale.X;
-        var offsetV = (side.Offset.Y + side.Lower.Offset.Y) * textureUVInverse.Y / side.Lower.Scale.Y;
+        var offsetU = (side.Offset.X + side.Lower.Offset.X) * textureUVInverse.X / side.Lower.Scale.X + ((float)WorldStatic.LineVertexGap * textureUVInverse.X);
+        var offsetV = (side.Offset.Y + side.Lower.Offset.Y) * textureUVInverse.Y / side.Lower.Scale.Y + ((float)WorldStatic.LineVertexGap * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
             if (previous)
@@ -446,8 +445,8 @@ public static class WorldTriangulator
     public static WallUV CalculateTwoSidedUpperWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double spanZ, bool previous)
     {
-        var offsetU = (side.Offset.X + side.Upper.Offset.X) * textureUVInverse.X / side.Upper.Scale.X;
-        var offsetV = (side.Offset.Y + side.Upper.Offset.Y) * textureUVInverse.Y / side.Upper.Scale.Y;
+        var offsetU = (side.Offset.X + side.Upper.Offset.X) * textureUVInverse.X / side.Upper.Scale.X + ((float)WorldStatic.LineVertexGap * textureUVInverse.X);
+        var offsetV = (side.Offset.Y + side.Upper.Offset.Y) * textureUVInverse.Y / side.Upper.Scale.Y + ((float)WorldStatic.LineVertexGap * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
             if (previous)

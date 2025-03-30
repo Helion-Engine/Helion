@@ -40,7 +40,6 @@ public partial class WorldLayer : IGameLayerParent
 {
     private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private static string LastMapName = string.Empty;
     private static MapGeometry? LastMapGeometry;
     private static IslandGeometry LastIslandGeometry = new();
 
@@ -162,10 +161,9 @@ public partial class WorldLayer : IGameLayerParent
     public static WorldLayer? Create(GameLayerManager parent, GlobalData globalData, IConfig config,
         HelionConsole console, IAudioSystem audioSystem, ArchiveCollection archiveCollection,
         FpsTracker fpsTracker, Profiler profiler, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map,
-        Player? existingPlayer, WorldModel? worldModel, IRandom? random)
+        Player? existingPlayer, WorldModel? worldModel, IRandom? random, bool sameAsPreviousMap)
     {
         var stopwatch = Stopwatch.StartNew();
-        var sameAsPreviousMap = mapInfoDef.MapName.EqualsIgnoreCase(LastMapName);
         SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, profiler,
             mapInfoDef, skillDef, map, existingPlayer, worldModel, random, sameAsPreviousMap: sameAsPreviousMap);
         if (world == null)
@@ -181,7 +179,6 @@ public partial class WorldLayer : IGameLayerParent
             SetCompatibilityOptions(config, map, mapInfoDef, archiveCollection);
 
         archiveCollection.TextureManager.InitSprites(world);
-        LastMapName = mapInfoDef.MapName;
         ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
         config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
 

@@ -46,6 +46,7 @@ public static class WorldStatic
     public static WorldSoundManager SoundManager = null!;
     public static List<EntityFrame> Frames = null!;
     public static int[] CheckedLines = [];
+    public static double LineVertexGap = 0;
 
     public static EntityDefinition DoomImpBall = EntityDefinition.Default;
     public static EntityDefinition ArachnotronPlasma = EntityDefinition.Default;
