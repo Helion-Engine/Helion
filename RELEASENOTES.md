@@ -3,6 +3,7 @@
 ## Features:
 - Upgrade to .NET 9
 - UDMF implementation
+- User data folder (config, save games, etc.) now defaults to `(user)/Saved Games/Helion` on Windows. The previous "portable mode" behavior of storing user data in the Helion folder is used if a `config.ini` file exists in the Helion folder, or if `-portable` is passed as a launch parameter.
 - Improvements to initial map load times
 - Line contrast mode (off, vanilla, smooth)
 - Calculate locked key door color by using key icon image
