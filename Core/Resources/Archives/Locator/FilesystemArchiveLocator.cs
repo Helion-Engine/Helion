@@ -20,16 +20,9 @@ public class FilesystemArchiveLocator : IArchiveLocator
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     /// <summary>
-    /// The search paths for files.
+    /// The search paths for files, in descending priority order.
     /// </summary>
-    /// <remarks>
-    /// This contains an empty string because we want to search the current
-    /// directory first, or if the user provides a full path then we want
-    /// searching to be done at the path first. This is also a list because
-    /// we assume priority is meant to be given to the beginning of what is
-    /// provided.
-    /// </remarks>
-    private readonly List<string> m_paths = [""];
+    private readonly List<string> m_paths;
     private readonly IndexGenerator m_indexGenerator = new();
 
     /// <summary>
@@ -38,14 +31,16 @@ public class FilesystemArchiveLocator : IArchiveLocator
     /// </summary>
     public FilesystemArchiveLocator()
     {
+        m_paths = [""];
     }
 
     /// <summary>
-    /// Creates a file system locator that looks in the working directory
-    /// and any additional directories that are in the config or commonly used envvars.
+    /// Creates a file system locator that looks in the launch directory
+    /// and any additional directories that are in the config,
+    /// commonly used envvars, Steam installs, etc.
     /// </summary>
     /// <param name="config">The config to get the additional directories
-    /// <param name="paths">Additional paths to add outside of the user configuration
+    /// <param name="paths">Additional paths to add before the main dir priority
     /// from.</param>
     public FilesystemArchiveLocator(PathsManager pathsManager, IConfig config, IList<string> paths)
     {
@@ -53,7 +48,7 @@ public class FilesystemArchiveLocator : IArchiveLocator
             .. paths,
             .. pathsManager.GetArchiveFolders(config)];
 
-        m_paths.AddRange(allPaths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct());
+        m_paths = [.. allPaths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct()];
     }
 
     public Archive? Locate(string uri)

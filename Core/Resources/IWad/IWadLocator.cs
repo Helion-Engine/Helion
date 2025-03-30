@@ -19,7 +19,7 @@ public class IWadLocator
 
     public IWadLocator(IEnumerable<string> directories)
     {
-        m_directories = directories.ToList();
+        m_directories = [.. directories];
     }
 
     public List<IWadPath> Locate()
