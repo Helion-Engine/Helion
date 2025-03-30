@@ -151,7 +151,7 @@ public class ConfigRender: ConfigElement<ConfigRender>
 
     [ConfigInfo("Pushes line vertices a tiny amount to cover potential pixel gaps from rendering precision errors.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Pixel Gap Correction", spacer: true)]
-    public readonly ConfigValue<bool> PixelGapCorrection = new(false);
+    public readonly ConfigValue<bool> PixelGapCorrection = new(true);
 
     // Settings below are believed to be less frequently used and thus are not on the menus.
 
