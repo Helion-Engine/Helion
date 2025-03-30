@@ -586,7 +586,7 @@ public partial class Client : IDisposable, IInputManagement
 
     private static void Run(CommandLineArgs commandLineArgs, string workingDirectory)
     {
-        PathsManager pathsManager = new(commandLineArgs.ForcePortableMode);
+        PathsManager pathsManager = new(workingDirectory, commandLineArgs.ForcePortableMode);
         var configPath = !string.IsNullOrWhiteSpace(commandLineArgs.ConfigFileName)
             ? commandLineArgs.ConfigFileName.Trim()
             : FileConfig.GetDefaultConfigPath(pathsManager.UserDataFolder);

@@ -14,6 +14,7 @@ namespace Helion.Util;
 /// </summary>
 public class PathsManager
 {
+    private readonly string m_workingDirectory;
     private readonly string m_userDataFolder;
     private readonly List<string> m_assetsFolders;
     private readonly List<string> m_soundFontsFolders;
@@ -27,12 +28,12 @@ public class PathsManager
     /// </summary>
     public List<string> SoundFontsFolders => m_soundFontsFolders;
 
-    public List<string> WadFolders => [AppContext.BaseDirectory, m_userDataFolder, ..m_envWadFolders, ..m_commonWadFolders];
+    public List<string> WadFolders => [..WadFoldersExceptCommon, ..m_commonWadFolders];
 
     /// <remarks>
     /// Doesn't include found Doom installations (e.g. Steam)
     /// </remarks>
-    public List<string> WadFoldersExceptCommon => [AppContext.BaseDirectory, m_userDataFolder, ..m_envWadFolders];
+    public List<string> WadFoldersExceptCommon => [m_workingDirectory, AppContext.BaseDirectory, m_userDataFolder, ..m_envWadFolders];
 
     private const string WindowsShellFoldersKey = @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders";
     private const string WindowsSavedGamesFolderGuid = "{4C5C32FF-BB9D-43b0-B5B4-2D72E54EAAA4}";
@@ -67,8 +68,9 @@ public class PathsManager
         "/usr/share/games/doom3bfg/base/wads",
     ];
 
-    public PathsManager(bool forcePortableMode = false)
+    public PathsManager(string workingDirectory = ".", bool forcePortableMode = false)
     {
+        m_workingDirectory = workingDirectory;
         var portableConfigFile = Path.Combine(AppContext.BaseDirectory, FileConfig.IniFile);
         m_userDataFolder = GetConfigFolder(forcePortableMode || File.Exists(portableConfigFile));
         m_assetsFolders = [AppContext.BaseDirectory];
