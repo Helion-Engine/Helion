@@ -330,8 +330,8 @@ public static class WorldTriangulator
     public static WallUV CalculateOneSidedWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double spanZ, bool previous)
     {
-        var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / side.Middle.Scale.X + ((float)WorldStatic.LineVertexGap * textureUVInverse.X);
-        var offsetV = (side.Offset.Y + side.Middle.Offset.Y) * textureUVInverse.Y / side.Middle.Scale.Y + ((float)WorldStatic.LineVertexGap * textureUVInverse.Y);
+        var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / side.Middle.Scale.X + (WorldStatic.LineVertexOffset * textureUVInverse.X);
+        var offsetV = (side.Offset.Y + side.Middle.Offset.Y) * textureUVInverse.Y / side.Middle.Scale.Y + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
             if (previous)
@@ -371,8 +371,8 @@ public static class WorldTriangulator
     public static WallUV CalculateTwoSidedLowerWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double topZ, double bottomZ, bool previous)
     {
-        var offsetU = (side.Offset.X + side.Lower.Offset.X) * textureUVInverse.X / side.Lower.Scale.X + ((float)WorldStatic.LineVertexGap * textureUVInverse.X);
-        var offsetV = (side.Offset.Y + side.Lower.Offset.Y) * textureUVInverse.Y / side.Lower.Scale.Y + ((float)WorldStatic.LineVertexGap * textureUVInverse.Y);
+        var offsetU = (side.Offset.X + side.Lower.Offset.X) * textureUVInverse.X / side.Lower.Scale.X + (WorldStatic.LineVertexOffset * textureUVInverse.X);
+        var offsetV = (side.Offset.Y + side.Lower.Offset.Y) * textureUVInverse.Y / side.Lower.Scale.Y + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
             if (previous)
@@ -445,8 +445,8 @@ public static class WorldTriangulator
     public static WallUV CalculateTwoSidedUpperWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double spanZ, bool previous)
     {
-        var offsetU = (side.Offset.X + side.Upper.Offset.X) * textureUVInverse.X / side.Upper.Scale.X + ((float)WorldStatic.LineVertexGap * textureUVInverse.X);
-        var offsetV = (side.Offset.Y + side.Upper.Offset.Y) * textureUVInverse.Y / side.Upper.Scale.Y + ((float)WorldStatic.LineVertexGap * textureUVInverse.Y);
+        var offsetU = (side.Offset.X + side.Upper.Offset.X) * textureUVInverse.X / side.Upper.Scale.X + (WorldStatic.LineVertexOffset * textureUVInverse.X);
+        var offsetV = (side.Offset.Y + side.Upper.Offset.Y) * textureUVInverse.Y / side.Upper.Scale.Y + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
             if (previous)

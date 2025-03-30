@@ -110,7 +110,19 @@ public partial class Renderer : IDisposable
     }
 
     private void PixelGapCorrection_OnChanged(object? sender, bool e) => SetPixelGapCorrection(e);
-    private static void SetPixelGapCorrection(bool set) => WorldStatic.LineVertexGap = set ? Constants.VertexGapPush : 0;
+    private static void SetPixelGapCorrection(bool set)
+    {
+        if (set)
+        {
+            WorldStatic.LineVertexGap = Constants.VertexGapPush;
+            WorldStatic.LineVertexOffset = -(float)Constants.VertexGapPush;
+        }
+        else
+        {
+            WorldStatic.LineVertexGap = 0;
+            WorldStatic.LineVertexOffset = 0;
+        }
+    }
 
     private GLFramebuffer GenerateMainFramebuffer() => new("Main", Window.Dimension, 1);
     private GLFramebuffer GenerateVirtualFramebuffer() => new("Virtual", RenderDimension, 1, GLFrameBufferOptions.DepthStencilAttachment);

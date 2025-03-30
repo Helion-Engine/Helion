@@ -47,6 +47,7 @@ public static class WorldStatic
     public static List<EntityFrame> Frames = null!;
     public static int[] CheckedLines = [];
     public static double LineVertexGap = 0;
+    public static float LineVertexOffset = 0;
 
     public static EntityDefinition DoomImpBall = EntityDefinition.Default;
     public static EntityDefinition ArachnotronPlasma = EntityDefinition.Default;
