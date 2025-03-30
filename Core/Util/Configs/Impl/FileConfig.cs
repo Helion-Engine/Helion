@@ -200,6 +200,10 @@ public class FileConfig : Config
             Log.Error($"Unable to parse config file: {e.Message}");
         }
 
+        // can happen with a blank/truncated config file
+        if (KeyMapping.NoKeysBound)
+            KeyMapping.SetInitialDefaultKeyBindings();
+
         void ReadEngineValues(IniData iniData)
         {
             foreach (KeyData keyData in iniData.Sections[EngineSectionName])

@@ -17,10 +17,11 @@ public partial class ConfigKeyMapping : IConfigKeyMapping
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public bool Changed { get; private set; }
-    private readonly List<KeyCommandItem> m_commands = new();
+    private readonly List<KeyCommandItem> m_commands = [];
+    public bool NoKeysBound => m_commands.Count == 0;
 
-    private static readonly (Key key, string command)[] DefaultBindingsByKey = new[]
-    {
+    private static readonly (Key key, string command)[] DefaultBindingsByKey =
+    [
         (Key.W,             Constants.Input.Forward),
         (Key.A,             Constants.Input.Left),
         (Key.S,             Constants.Input.Backward),
@@ -87,7 +88,7 @@ public partial class ConfigKeyMapping : IConfigKeyMapping
         (Key.ButtonStart,       Constants.Input.Menu),
         (Key.ButtonLeftShoulder,Constants.Input.GyroButton),
         (Key.LeftTriggerPlus,   Constants.Input.GyroButton),
-    };
+    ];
 
     public void SetInitialDefaultKeyBindings()
     {
