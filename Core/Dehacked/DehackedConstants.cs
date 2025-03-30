@@ -2135,7 +2135,7 @@ public partial class DehackedDefinition
         { ThingState.FATT_RUN10, "A_Chase" },
         { ThingState.FATT_RUN11, "A_Chase" },
         { ThingState.FATT_RUN12, "A_Chase" },
-        { ThingState.FATT_ATK1, "A_FatAttack1" },
+        { ThingState.FATT_ATK1, "A_FatRaise" },
         { ThingState.FATT_ATK2, "A_FatAttack1" },
         { ThingState.FATT_ATK3, "A_FaceTarget" },
         { ThingState.FATT_ATK4, "A_FaceTarget" },
