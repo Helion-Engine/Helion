@@ -91,6 +91,7 @@ public partial class Client : IDisposable, IInputManagement
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
 
         m_config.Game.Rng.OnChanged += Rng_OnChanged;
+        m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
 
         if (commandLineArgs.GlVersion.HasValue)
         {
@@ -121,6 +122,12 @@ public partial class Client : IDisposable, IInputManagement
         RegisterConfigChanges();
         UpdateVolume();
         m_ticker.Start();
+    }
+
+    private void PixelGapCorrection_OnChanged(object? sender, bool e)
+    {
+        m_lastLoadedMap = null;
+        m_lastMapName = string.Empty;
     }
 
     private void Rng_OnChanged(object? sender, RngMethod e) =>  m_invalidateRng = true;

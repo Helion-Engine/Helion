@@ -22,6 +22,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using System.Linq;
+using Helion.Geometry.Vectors;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -118,7 +119,18 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
 
         for (int i = 0; i < world.Lines.Count; i++)
-            AddLine(world.Lines[i]);
+        {
+            var line = world.Lines[i];
+            if (WorldStatic.LineVertexGap > 0 && !world.SameAsPreviousMap)
+            {
+                var unit = Vec2D.UnitCircle(line.Segment.Start.Angle(line.Segment.End));
+                var push = unit * WorldStatic.LineVertexGap;
+                line.Segment.Start -= push;
+                line.Segment.End += push;
+            }
+
+            AddLine(line);
+        }
 
         // Sectors can be actively moving loading a save game.
         WorldBase worldBase = (WorldBase)world;

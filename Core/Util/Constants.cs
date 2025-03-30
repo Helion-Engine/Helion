@@ -42,6 +42,8 @@ public static class Constants
 
     public const short ClearBlock = short.MaxValue;
 
+    public const double VertexGapPush = 0.015f;
+
     /// <summary>
     /// The name of the decorate player class.
     /// </summary>

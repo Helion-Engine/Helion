@@ -78,11 +78,15 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [ConfigInfo("Anisotropic filtering amount. A value of 1 is the same as being off. True color required.")]
     [OptionMenu(OptionSectionType.Render, "Anisotropy", spacer: true, sliderMin: 0, sliderMax: 16, sliderStep: 1)]
     public readonly ConfigValue<int> Anisotropy = new(8, GreaterOrEqual(1));
-    
+
+    [ConfigInfo("Multisampling amount. A value of 1 is the same as being off.")]
+    [OptionMenu(OptionSectionType.Render, "Multisample", sliderMin: 0, sliderMax: 32, sliderStep: 1)]
+    public readonly ConfigValue<int> Multisample = new(1, GreaterOrEqual(1));
+
     public readonly ConfigRenderFilter Filter = new();
 
     [ConfigInfo("Render missing textures as a red/black checkered texture.", mapRestartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Render Null Textures")]
+    [OptionMenu(OptionSectionType.Render, "Render Null Textures", spacer: true)]
     public readonly ConfigValue<bool> NullTexture = new(false);
 
 
@@ -145,6 +149,10 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Sky Render Mode", spacer: true)]
     public readonly ConfigValue<SkyRenderMode> SkyMode = new(SkyRenderMode.Dynamic);
 
+    [ConfigInfo("Pushes line vertices a tiny amount to cover potential pixel gaps from rendering precision errors.", mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Pixel Gap Correction", spacer: true)]
+    public readonly ConfigValue<bool> PixelGapCorrection = new(true);
+
     // Settings below are believed to be less frequently used and thus are not on the menus.
 
     [ConfigInfo("Cache all sprites. Prevents stuttering compared to loading them at runtime.", restartRequired: true)]
@@ -152,9 +160,6 @@ public class ConfigRender: ConfigElement<ConfigRender>
 
     [ConfigInfo("Force pipeline flush after rendering each frame. May fix a laggy buffered feeling on lower end computers.")]
     public readonly ConfigValue<bool> ForcePipelineFlush = new(false);
-
-    [ConfigInfo("Multisampling amount. A value of 1 is the same as being off.")]
-    public readonly ConfigValue<int> Multisample = new(1, GreaterOrEqual(1));
 
     [ConfigInfo("Clip sprites against the floor.")]
     public readonly ConfigValue<bool> SpriteClip = new(true);

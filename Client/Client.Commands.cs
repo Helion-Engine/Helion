@@ -834,7 +834,7 @@ public partial class Client
 
             var worldLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
                 m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
-                players.FirstOrDefault(), worldModel, random);
+                players.FirstOrDefault(), worldModel, random, sameAsPreviousMap: sameMap);
 
             // This isn't great but the map reference is everywhere and difficult to unwind.
             // This dumps all the map specific data that isn't needed instead of wasting the memory.
