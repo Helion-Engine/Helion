@@ -94,7 +94,7 @@ public class GameLayerManager : IGameLayerManager
     }.WhereNotNull();
 
     public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ConsoleCommands consoleCommands,
-        ArchiveCollection archiveCollection, SoundManager soundManager, SaveGameManager saveGameManager,
+        ArchiveCollection archiveCollection, PathsManager pathsManager, SoundManager soundManager, SaveGameManager saveGameManager,
         Profiler profiler, IScreenshotGenerator screenshotGenerator)
     {
         m_config = config;
@@ -113,7 +113,7 @@ public class GameLayerManager : IGameLayerManager
         m_ctx = null!;
         m_hudRenderCtx = null!;
 
-        m_optionsLayer = new(this, m_config, m_soundManager, m_window);
+        m_optionsLayer = new(this, m_config, pathsManager, m_soundManager, m_window);
         m_consoleLayer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
 
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;

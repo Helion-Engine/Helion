@@ -1,5 +1,6 @@
 using Helion.Resources.Archives.Directories;
 using Helion.Resources.Archives.Entries;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using NLog;
@@ -19,16 +20,14 @@ public class FilesystemArchiveLocator : IArchiveLocator
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     /// <summary>
-    /// The search paths for files.
+    /// The search paths for files, in descending priority order.
     /// </summary>
-    /// <remarks>
-    /// This contains an empty string because we want to search the current
-    /// directory first, or if the user provides a full path then we want
-    /// searching to be done at the path first. This is also a list because
-    /// we assume priority is meant to be given to the beginning of what is
-    /// provided.
-    /// </remarks>
-    private readonly List<string> m_paths = [""];
+    private readonly List<string> m_paths;
+
+    /// <summary>
+    /// The search paths for files bundled with Helion, in descending priority order.
+    /// </summary>
+    private readonly List<string> m_bundledPaths;
     private readonly IndexGenerator m_indexGenerator = new();
 
     /// <summary>
@@ -37,36 +36,32 @@ public class FilesystemArchiveLocator : IArchiveLocator
     /// </summary>
     public FilesystemArchiveLocator()
     {
+        m_paths = [""];
+        m_bundledPaths = [""];
     }
 
     /// <summary>
-    /// Creates a file system locator that looks in the working directory
-    /// and any additional directories that are in the config or commonly used envvars.
+    /// Creates a file system locator that looks in the launch directory
+    /// and any additional directories that are in the config,
+    /// commonly used envvars, Steam installs, etc.
     /// </summary>
     /// <param name="config">The config to get the additional directories
-    /// <param name="paths">Additional paths to add outside of the user configuration
+    /// <param name="paths">Additional paths to add before the main dir priority
     /// from.</param>
-    public FilesystemArchiveLocator(IConfig config, IList<string> paths)
+    public FilesystemArchiveLocator(PathsManager pathsManager, IConfig config, IList<string> paths)
     {
-        List<string> allPaths =
-            config.Files.SearchCommonDirectories
-            ? [
-                .. paths,
-                .. config.Files.Directories.Value,
-                .. WadPaths.GetFromSteamAndLinuxDirs(),
-                .. WadPaths.GetFromEnvVars()]
-            : [
-                .. paths,
-                .. config.Files.Directories.Value,
-                .. WadPaths.GetFromEnvVars()];
+        List<string> allPaths = [
+            .. paths,
+            .. pathsManager.GetArchiveFolders(config)];
 
-        m_paths.AddRange(allPaths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct());
+        m_paths = [.. allPaths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct()];
+        m_bundledPaths = [.. pathsManager.ApplicationFolders];
     }
 
-    public Archive? Locate(string uri)
+    public Archive? Locate(string uri, bool isBundled)
     {
         bool exists = false;
-        foreach (string basePath in m_paths)
+        foreach (string basePath in isBundled ? m_bundledPaths : m_paths)
         {
             string path = Path.Combine(basePath, uri);
             if (!CheckPathExists(path))
@@ -97,10 +92,10 @@ public class FilesystemArchiveLocator : IArchiveLocator
     /// <summary>
     /// Checks the search paths for the archive, without opening it or confirming its type.
     /// </summary>
-    public string? LocateWithoutLoading(string uri)
+    public string? LocateWithoutLoading(string uri, bool isBundled)
     {
         string? foundPath = null;
-        foreach (string basePath in m_paths)
+        foreach (string basePath in isBundled ? m_bundledPaths : m_paths)
         {
             string path = Path.Combine(basePath, uri);
             if (!CheckPathExists(path))

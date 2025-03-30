@@ -2,6 +2,7 @@
 
 using Helion.Audio;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
 using Helion.Util.Sounds.Mus;
@@ -9,6 +10,7 @@ using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,6 +21,7 @@ public class MusicPlayer : IMusicPlayer
     private uint m_lastDataHash;
     private bool m_disposed;
 
+    private readonly PathsManager m_pathsManager;
     private readonly ConfigAudio m_configAudio;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly ConcurrentQueue<PlayParams> m_playQueue = [];
@@ -31,9 +34,11 @@ public class MusicPlayer : IMusicPlayer
     private bool m_genMidiPatchLoaded;
     private PlayParams? m_currentTrack;
     private bool m_enabled = true;
+    private const string DefaultSoundFont = "SoundFonts/Default.sf2";
 
-    public MusicPlayer(ConfigAudio configAudio, ArchiveCollection archiveCollection)
+    public MusicPlayer(PathsManager pathsManager, ConfigAudio configAudio, ArchiveCollection archiveCollection)
     {
+        m_pathsManager = pathsManager;
         m_configAudio = configAudio;
         m_archiveCollection = archiveCollection;
         m_playQueueTask = Task.Factory.StartNew(PlayQueueTask, m_cancelPlayQueue.Token,
@@ -46,20 +51,39 @@ public class MusicPlayer : IMusicPlayer
         m_configAudio.EnableChorus.OnChanged += EnableChorus_OnChanged;
         m_configAudio.EnableReverb.OnChanged += EnableReverb_OnChanged;
         m_configAudio.Synthesizer.OnChanged += Synthesizer_OnChanged;
+        string soundFontPath = GetFullSoundFontPathOrFallback(configAudio.SoundFontFile);
 
         m_zMusicPlayer = new ZMusicWrapper.ZMusicPlayer(
             streamFactory,
             configAudio.Synthesizer == Synth.OPL3 ? ZMusicWrapper.MidiDevice.OPL3 : ZMusicWrapper.MidiDevice.FluidSynth,
-            configAudio.SoundFontFile,
+            soundFontPath,
             null,
             (float)(configAudio.MusicVolume.Value * .5));
         m_fluidSynthPlayer = new FluidSynthMusicPlayer(
-            configAudio.SoundFontFile.Value,
+            soundFontPath,
             streamFactory,
             (float)m_configAudio.MusicVolume,
             m_configAudio.EnableChorus,
             m_configAudio.EnableReverb);
         SetSynthesizer();
+    }
+
+    private string GetFullSoundFontPathOrFallback(string soundFontPath)
+    {
+        foreach (var folder in m_pathsManager.SoundFontsFolders)
+        {
+            string fullPath = Path.Combine(folder, soundFontPath);
+            if (Path.Exists(fullPath))
+                return fullPath;
+        }
+        // if not found, get the fallback in one of the search folders
+        foreach (var folder in m_pathsManager.SoundFontsFolders)
+        {
+            string fullPath = Path.Combine(folder, DefaultSoundFont);
+            if (Path.Exists(fullPath))
+                return fullPath;
+        }
+        return DefaultSoundFont;
     }
 
     private void Synthesizer_OnChanged(object? sender, Synth e) => SetSynthesizer();
@@ -102,7 +126,8 @@ public class MusicPlayer : IMusicPlayer
             return;
         }
 
-        m_fluidSynthPlayer.EnsureSoundFont(m_configAudio.SoundFontFile);
+        string soundFontPath = GetFullSoundFontPathOrFallback(m_configAudio.SoundFontFile);
+        m_fluidSynthPlayer.EnsureSoundFont(soundFontPath);
     }
 
     public void SetSynthesizer()

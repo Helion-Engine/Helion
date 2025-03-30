@@ -14,13 +14,15 @@ public interface IArchiveLocator
     /// Finds the resource at the URI provided.
     /// </summary>
     /// <param name="uri">The resource locator index.</param>
+    /// <param name="isBundled">Whether the file is bundled with Helion
+    /// (i.e. we should restrict the search paths).</param>
     /// <returns>The archive, or an error reason on why it cannot be found.
     /// </returns>
-    Archive? Locate(string uri);
+    Archive? Locate(string uri, bool isBundled = false);
 
     /// <summary>
     /// Checks the search paths for the archive, without opening it or confirming its type,
     /// returning its path if found.
     /// </summary>
-    string? LocateWithoutLoading(string uri);
+    string? LocateWithoutLoading(string uri, bool isBundled = false);
 }

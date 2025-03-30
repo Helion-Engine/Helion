@@ -9,36 +9,41 @@
     5. Launch the Helion executable using one of the other methods described above, then edit the `files.directories = [".", "wads"]` line in `config.ini` to include the directory that contains your IWADs.
 4. Run the Helion executable (Helion.exe on Windows, ./Helion on Linux) to play.
 
+# Portable Mode
+
+Helion will run in portable mode (user data is stored in the application folder) if it finds a `config.ini` file in the same folder, or if `-portable` is passed as a launch parameter. Otherwise, user data is stored in `Saved Games\Helion` in the user folder on Windows, and (most commonly) `~/.config/helion` on Linux.
+
 # Launch Parameters
 
 These parameters can be added to a shortcut or in your preferred Doom launcher:
 
-| Option                        | Description |
-| ----------------------------- | ----------- |
-| -iwad [iwad]                  | Loads an IWAD |
-| -file [pwad1] [pwad2] ...     | Loads PWAD(s) |
-| -deh [file]                   | Loads a DEH file |
-| -config [file]                | Uses a specific config file
-| -savedir [folder]             | Saves to a specific folder (default is the user data folder)
-| -loadgame [savefile]          | Loads a save game
-| -skill [level]                | Sets the skill level, 1-5 (5 = Nightmare)
-| -warp [map]                   | Loads directly into a specified map
-| +map [map]                    | Same as above
-| -record [demofile]            | Records a demo file
-| -playdemo [demofile]          | Plays a demo file
-| -pistolstart                  | Weapons are not kept between levels
-| +cheats [cheat1] [cheat2] ... | Enables specific cheats (e.g. IDKFA)
-| +sv_fastmonsters              | Monsters are faster, like in Nightmare
-| -nomonsters                   | No monsters will be spawned
-| -levelstat                    | Writes gameplay stats to file
-| -nomusic                      | Disables music
-| +glversion [version]          | Forces an OpenGL version (e.g. +glversion 33 forces OpenGL 3.3)
-| -loglevel [level]             | Sets which log levels are logged, can be used for debugging
-| -log [file]                   | Saves log output to file, can be used for debugging
-| -logprofiler [file]           | Saves performance data to file
-| +setpos [x,y,z]               | Sets the player's start position
-| +setangle [deg]               | Sets the player's start angle
-| +setpitch [deg]               | Sets the player's start pitch
+Option                        | Description
+----------------------------- | -----------
+-iwad [iwad]                  | Loads an IWAD
+-file [pwad1] [pwad2] ...     | Loads PWAD(s)
+-deh [file]                   | Loads a DEH file
+-portable                     | Runs in portable mode
+-config [file]                | Uses a specific config file
+-savedir [folder]             | Saves to a specific folder (default is the user data folder)
+-loadgame [savefile]          | Loads a save game
+-skill [level]                | Sets the skill level, 1-5 (5 = Nightmare)
+-warp [map]                   | Loads directly into a specified map
++map [map]                    | Same as above
+-record [demofile]            | Records a demo file
+-playdemo [demofile]          | Plays a demo file
+-pistolstart                  | Weapons are not kept between levels
++cheats [cheat1] [cheat2] ... | Enables specific cheats (e.g. IDKFA)
++sv_fastmonsters              | Monsters are faster, like in Nightmare
+-nomonsters                   | No monsters will be spawned
+-levelstat                    | Writes gameplay stats to file
+-nomusic                      | Disables music
++glversion [version]          | Forces an OpenGL version (e.g. +glversion 33 forces OpenGL 3.3)
+-loglevel [level]             | Sets which log levels are logged, can be used for debugging
+-log [file]                   | Saves log output to file, can be used for debugging
+-logprofiler [file]           | Saves performance data to file
++setpos [x,y,z]               | Sets the player's start position
++setangle [deg]               | Sets the player's start angle
++setpitch [deg]               | Sets the player's start pitch
 
 # Common issues
 

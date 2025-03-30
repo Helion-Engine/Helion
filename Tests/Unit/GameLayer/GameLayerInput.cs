@@ -30,6 +30,7 @@ public class GameLayerInput
     private readonly WorldLayer WorldLayer;
     private readonly InputManager InputManager;
     private readonly FakeAnalogAdapter AnalogAdapter;
+    private readonly PathsManager PathsManager;
 
     private Player Player => World.Player;
 
@@ -96,8 +97,9 @@ public class GameLayerInput
         InputManager.AnalogAdapter = AnalogAdapter;
         MockWindow window = new(InputManager);
         HelionConsole console = new(new DataCache(), World.Config);
-        SaveGameManager saveGameManager = new(World.Config, World.ArchiveCollection, null);
-        GameLayerManager = new(World.Config, window, console, new(), World.ArchiveCollection, World.SoundManager, saveGameManager, new(), new MockScreenshotGenerator());
+        PathsManager = new();
+        SaveGameManager saveGameManager = new(World.Config, PathsManager, World.ArchiveCollection, null);
+        GameLayerManager = new(World.Config, window, console, new(), World.ArchiveCollection, PathsManager, World.SoundManager, saveGameManager, new(), new MockScreenshotGenerator());
 
         WorldLayer = new(GameLayerManager, World.Config, console, new(), World, World.MapInfo, new());
         GameLayerManager.Add(WorldLayer);

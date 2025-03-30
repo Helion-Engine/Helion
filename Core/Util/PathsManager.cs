@@ -1,18 +1,59 @@
-using Helion.Util.Parser;
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Helion.Util.Configs;
+using Helion.Util.Configs.Impl;
+using Helion.Util.Parser;
+using Microsoft.Win32;
 
-namespace Helion.Resources.Archives;
+namespace Helion.Util;
 
 /// <summary>
-/// Utility class for getting WAD paths.
+/// Manages folders for assets, user data/configs, WADs, except for any paths listed in the config.
 /// </summary>
-public static class WadPaths
+public class PathsManager
 {
+    private readonly string m_workingDirectory;
+    private readonly string m_userDataFolder;
+    private readonly List<string> m_applicationFolders;
+    private readonly List<string> m_wadEnvFolders;
+    private readonly List<string> m_wadCommonFolders;
+
+    /// <summary>
+    /// The working directory when Helion was launched
+    /// </summary>
+    public string LaunchFolder => m_workingDirectory;
+
+    /// <summary>
+    /// Where the config, save games, screenshots etc. are stored
+    /// </summary>
+    public string UserDataFolder => m_userDataFolder;
+
+    /// <summary>
+    /// Helion's folder as well as its resource folder on Linux
+    /// </summary>
+    public List<string> ApplicationFolders => m_applicationFolders;
+
+    /// <summary>
+    /// Soundfonts can be in the user data folder or application folders.
+    /// The paths here do not include the /SoundFonts subfolder.
+    /// </summary>
+    public List<string> SoundFontsFolders => [m_userDataFolder, .. m_applicationFolders];
+
+    /// <summary>
+    /// Environment variable search paths
+    /// </summary>
+    public List<string> WadEnvFolders => m_wadEnvFolders;
+
+    /// <summary>
+    /// Doom installations (e.g. Steam)
+    /// </summary>
+    public List<string> WadCommonFolders => m_wadCommonFolders;
+
+    private const string WindowsShellFoldersKey = @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders";
+    private const string WindowsSavedGamesFolderGuid = "{4C5C32FF-BB9D-43b0-B5B4-2D72E54EAAA4}";
     private const string SteamLibraryFile = "config/libraryfolders.vdf";
     private const string SteamAppsCommon = "steamapps/common";
     private static readonly Dictionary<string, string[]> SteamIdLocationLookup = new() {
@@ -44,10 +85,79 @@ public static class WadPaths
         "/usr/share/games/doom3bfg/base/wads",
     ];
 
+    public PathsManager(string workingDirectory = ".", bool forcePortableMode = false)
+    {
+        m_workingDirectory = Path.GetFullPath(workingDirectory);
+        string portableConfigFile = Path.Combine(AppContext.BaseDirectory, FileConfig.IniFile);
+        m_userDataFolder = Path.GetFullPath(GetConfigFolder(forcePortableMode || File.Exists(portableConfigFile)));
+        m_applicationFolders = [AppContext.BaseDirectory];
+        if (OperatingSystem.IsLinux())
+            m_applicationFolders.Add("/usr/share/helion");
+        m_wadEnvFolders = [.. GetWadFoldersFromEnvVars().Select(Path.GetFullPath)];
+        m_wadCommonFolders = [.. GetWadFoldersFromSteamAndLinuxDirs().Select(Path.GetFullPath)];
+    }
+
+    /// <summary>
+    /// Builds a folder search list for WADs and other archives:
+    /// <list type="bullet">
+    /// <item>launch directory</item>
+    /// <item>user config folders (relative to the user data folder)</item>
+    /// <item>Helion application folders</item>
+    /// <item>WAD envvar folders (e.g. DOOMWADDIR)</item>
+    /// <item>DOOM install/common folders (e.g. Steam), if enabled in the config</item>
+    /// </list>
+    /// </summary>
+    public List<string> GetArchiveFolders(IConfig config)
+    {
+        // relative config folders are relative to the user data folder;
+        // convert them to full paths since our CWD is likely elsewhere
+        var configFolders = config.Files.Directories.Value
+            .Select(x => Path.IsPathRooted(x) ? x : Path.Combine(m_userDataFolder, x));
+        return [
+            LaunchFolder,
+            .. configFolders,
+            .. ApplicationFolders,
+            .. WadEnvFolders,
+            .. config.Files.SearchCommonDirectories ? WadCommonFolders : []
+        ];
+    }
+
+    private static string GetConfigFolder(bool portableMode = false)
+    {
+        if (portableMode)
+            return AppContext.BaseDirectory;
+
+        // on Windows, use "~/Saved Games/Helion"
+        if (OperatingSystem.IsWindows())
+        {
+            var registrySavedGamesFolder = (string?)Registry.GetValue(WindowsShellFoldersKey, WindowsSavedGamesFolderGuid, null);
+            if (registrySavedGamesFolder != null)
+                return Path.Combine(registrySavedGamesFolder, "Helion");
+            var userDir = Environment.GetEnvironmentVariable("USERPROFILE");
+            if (userDir != null)
+                return Path.Combine(userDir, "Saved Games", "Helion");
+        }
+
+        // On Linux, default to "$XDG_CONFIG_HOME/helion"
+        else if (OperatingSystem.IsLinux())
+        {
+            var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+            if (!string.IsNullOrWhiteSpace(xdgConfigHome))
+                return $"{xdgConfigHome}/helion";
+
+            // Fallback to "$HOME/.config/helion"
+            var home = Environment.GetEnvironmentVariable("HOME");
+            if (!string.IsNullOrWhiteSpace(home))
+                return $"{home}/.config/helion";
+        }
+
+        return AppContext.BaseDirectory;
+    }
+
     /// <remarks>
     /// https://doomwiki.org/wiki/Environment_variables
     /// </remarks>
-    public static List<string> GetFromEnvVars()
+    public static List<string> GetWadFoldersFromEnvVars()
     {
         List<string> paths = [];
 
@@ -64,7 +174,7 @@ public static class WadPaths
         return paths;
     }
 
-    public static List<string> GetFromSteamAndLinuxDirs()
+    public static List<string> GetWadFoldersFromSteamAndLinuxDirs()
     {
         List<string> paths = [];
 

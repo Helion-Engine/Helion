@@ -155,7 +155,7 @@ public class WarpTest
     private static ArchiveCollection GetArchiveCollection(Action<MapInfo> setMapInfo, string? wadFile = null)
     {
         var config = new Config();
-        ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(config, []), config, new DataCache());
+        ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(new PathsManager(), config, []), config, new DataCache());
 
         if (wadFile != null)
             archiveCollection.Load(new[] { wadFile }, loadDefaultAssets: false);
