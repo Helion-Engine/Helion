@@ -594,7 +594,7 @@ public partial class Client : IDisposable, IInputManagement
 
         try
         {
-            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(pathsManager, config, pathsManager.AssetsFolders), config, ArchiveCollection.StaticDataCache);
+            ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(pathsManager, config, []), config, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(archiveCollection.DataCache, config, commandLineArgs);
             LogClientInfo();
             using IMusicPlayer musicPlayer = commandLineArgs.NoMusic ?

@@ -13,13 +13,7 @@ public class IWadLocator
 
     public static IWadLocator CreateDefault(PathsManager pathsManager, IConfig config)
     {
-        List<string> paths = config.Files.SearchCommonDirectories
-            ? [
-                .. config.Files.Directories.Value,
-                .. pathsManager.WadFolders]
-            : [
-                .. config.Files.Directories.Value,
-                .. pathsManager.WadFoldersExceptCommon];
+        List<string> paths = pathsManager.GetArchiveFolders(config);
         return new IWadLocator(paths);
     }
 

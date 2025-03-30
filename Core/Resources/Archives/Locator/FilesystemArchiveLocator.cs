@@ -49,15 +49,9 @@ public class FilesystemArchiveLocator : IArchiveLocator
     /// from.</param>
     public FilesystemArchiveLocator(PathsManager pathsManager, IConfig config, IList<string> paths)
     {
-        List<string> allPaths = config.Files.SearchCommonDirectories
-            ? [
-                .. paths,
-                .. config.Files.Directories.Value,
-                .. pathsManager.WadFolders]
-            : [
-                .. paths,
-                .. config.Files.Directories.Value,
-                .. pathsManager.WadFoldersExceptCommon];
+        List<string> allPaths = [
+            .. paths,
+            .. pathsManager.GetArchiveFolders(config)];
 
         m_paths.AddRange(allPaths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct());
     }

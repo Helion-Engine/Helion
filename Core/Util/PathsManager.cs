@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Helion.Util.Configs;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Parser;
 using Microsoft.Win32;
@@ -16,24 +17,39 @@ public class PathsManager
 {
     private readonly string m_workingDirectory;
     private readonly string m_userDataFolder;
-    private readonly List<string> m_assetsFolders;
-    private readonly List<string> m_soundFontsFolders;
-    private readonly List<string> m_envWadFolders;
-    private readonly List<string> m_commonWadFolders;
+    private readonly List<string> m_applicationFolders;
+    private readonly List<string> m_wadEnvFolders;
+    private readonly List<string> m_wadInstallFolders;
 
-    public string UserDataFolder => m_userDataFolder;
-    public List<string> AssetsFolders => m_assetsFolders;
     /// <summary>
-    /// Soundfonts can be in assets or config folders. The paths here do not include the /SoundFonts subfolder.
+    /// The working directory when Helion was launched
     /// </summary>
-    public List<string> SoundFontsFolders => m_soundFontsFolders;
+    public string LaunchFolder => m_workingDirectory;
 
-    public List<string> WadFolders => [..WadFoldersExceptCommon, ..m_commonWadFolders];
+    /// <summary>
+    /// Where the config, save games, screenshots etc. are stored
+    /// </summary>
+    public string UserDataFolder => m_userDataFolder;
 
-    /// <remarks>
-    /// Doesn't include found Doom installations (e.g. Steam)
-    /// </remarks>
-    public List<string> WadFoldersExceptCommon => [m_workingDirectory, AppContext.BaseDirectory, m_userDataFolder, ..m_envWadFolders];
+    /// <summary>
+    /// Helion's folder as well as its resource folder on Linux
+    /// </summary>
+    public List<string> ApplicationFolders => m_applicationFolders;
+
+    /// <summary>
+    /// Soundfonts can be in application or config folders. The paths here do not include the /SoundFonts subfolder.
+    /// </summary>
+    public List<string> SoundFontsFolders => [.. m_applicationFolders, m_userDataFolder];
+
+    /// <summary>
+    /// Environment variable search paths
+    /// </summary>
+    public List<string> WadEnvFolders => m_wadEnvFolders;
+
+    /// <summary>
+    /// Doom installations (e.g. Steam)
+    /// </summary>
+    public List<string> WadInstallFolders => m_wadInstallFolders;
 
     private const string WindowsShellFoldersKey = @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders";
     private const string WindowsSavedGamesFolderGuid = "{4C5C32FF-BB9D-43b0-B5B4-2D72E54EAAA4}";
@@ -73,12 +89,36 @@ public class PathsManager
         m_workingDirectory = workingDirectory;
         var portableConfigFile = Path.Combine(AppContext.BaseDirectory, FileConfig.IniFile);
         m_userDataFolder = GetConfigFolder(forcePortableMode || File.Exists(portableConfigFile));
-        m_assetsFolders = [AppContext.BaseDirectory];
+        m_applicationFolders = [AppContext.BaseDirectory];
         if (OperatingSystem.IsLinux())
-            m_assetsFolders.Add("/usr/share/helion");
-        m_soundFontsFolders = [.. m_assetsFolders, m_userDataFolder];
-        m_envWadFolders = GetWadFoldersFromEnvVars();
-        m_commonWadFolders = GetWadFoldersFromSteamAndLinuxDirs();
+            m_applicationFolders.Add("/usr/share/helion");
+        m_wadEnvFolders = GetWadFoldersFromEnvVars();
+        m_wadInstallFolders = GetWadFoldersFromSteamAndLinuxDirs();
+    }
+
+    /// <summary>
+    /// Builds a folder search list for WADs and other archives:
+    /// <list type="bullet">
+    /// <item>launch CWD</item>
+    /// <item>user config folders</item>
+    /// <item>Helion application folders</item>
+    /// <item>WAD envvar folders (e.g. DOOMWADDIR)</item>
+    /// <item>WAD common folders (e.g. Steam), if enabled in the config</item>
+    /// </list>
+    /// </summary>
+    public List<string> GetArchiveFolders(IConfig config)
+    {
+        // relative config folders are relative to the user data folder;
+        // convert them to full paths since our CWD is likely elsewhere
+        var configFolders = config.Files.Directories.Value
+            .Select(x => Path.IsPathRooted(x) ? x : Path.Combine(m_userDataFolder, x));
+        return [
+            LaunchFolder,
+            .. configFolders,
+            .. ApplicationFolders,
+            .. WadEnvFolders,
+            .. config.Files.SearchCommonDirectories ? WadInstallFolders : []
+        ];
     }
 
     private static string GetConfigFolder(bool portableMode = false)
