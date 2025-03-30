@@ -221,8 +221,9 @@ public partial class Client : IDisposable, IInputManagement
         if (!m_takeScreenshot)
             return;
 
-        string path = Path.Combine(m_pathsManager.UserDataFolder, $"helion_{DateTime.Now:yyyyMMdd_hh.mm.ss.FFFF}.png");
-        HelionLog.Info($"Saving screenshot to {path}");
+        string filename = $"helion_{DateTime.Now:yyyyMMdd_HH.mm.ss.FFFF}.png";
+        string path = Path.Combine(m_pathsManager.UserDataFolder, filename);
+        HelionLog.Info($"Saving screenshot to {filename}");
 
         m_takeScreenshot = false;
         var image = m_window.Renderer.GetMainFramebufferData();
