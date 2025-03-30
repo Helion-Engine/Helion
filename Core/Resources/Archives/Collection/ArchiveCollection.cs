@@ -312,7 +312,7 @@ public class ArchiveCollection : IResources, IPathResolver
         // if we have already loaded it.
         if (loadDefaultAssets && m_archives.Empty())
         {
-            Archive? assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, shouldCalculateMd5: true);
+            Archive? assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, shouldCalculateMd5: true, isBundled: true);
             if (assetsArchive == null)
                 return false;
 
@@ -535,7 +535,7 @@ public class ArchiveCollection : IResources, IPathResolver
         }
     }
 
-    private Archive? LoadSpecial(string file, ArchiveType archiveType, bool shouldCalculateMd5 = false)
+    private Archive? LoadSpecial(string file, ArchiveType archiveType, bool shouldCalculateMd5 = false, bool isBundled = false)
     {
         Archive? archive = LoadArchive(file, shouldCalculateMd5);
         if (archive == null)
@@ -545,9 +545,9 @@ public class ArchiveCollection : IResources, IPathResolver
         return archive;
     }
 
-    private Archive? LoadArchive(string filePath, bool shouldCalculateMd5 = false, bool isLoadEvent = true)
+    private Archive? LoadArchive(string filePath, bool shouldCalculateMd5 = false, bool isLoadEvent = true, bool isBundled = false)
     {
-        Archive? archive = m_archiveLocator.Locate(filePath);
+        Archive? archive = m_archiveLocator.Locate(filePath, isBundled);
         if (archive == null)
         {
             Log.Error($"Failure when loading {filePath}");

@@ -23,6 +23,11 @@ public class FilesystemArchiveLocator : IArchiveLocator
     /// The search paths for files, in descending priority order.
     /// </summary>
     private readonly List<string> m_paths;
+
+    /// <summary>
+    /// The search paths for files bundled with Helion, in descending priority order.
+    /// </summary>
+    private readonly List<string> m_bundledPaths;
     private readonly IndexGenerator m_indexGenerator = new();
 
     /// <summary>
@@ -32,6 +37,7 @@ public class FilesystemArchiveLocator : IArchiveLocator
     public FilesystemArchiveLocator()
     {
         m_paths = [""];
+        m_bundledPaths = [""];
     }
 
     /// <summary>
@@ -49,12 +55,13 @@ public class FilesystemArchiveLocator : IArchiveLocator
             .. pathsManager.GetArchiveFolders(config)];
 
         m_paths = [.. allPaths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct()];
+        m_bundledPaths = [.. pathsManager.ApplicationFolders];
     }
 
-    public Archive? Locate(string uri)
+    public Archive? Locate(string uri, bool isBundled)
     {
         bool exists = false;
-        foreach (string basePath in m_paths)
+        foreach (string basePath in isBundled ? m_bundledPaths : m_paths)
         {
             string path = Path.Combine(basePath, uri);
             if (!CheckPathExists(path))
@@ -85,10 +92,10 @@ public class FilesystemArchiveLocator : IArchiveLocator
     /// <summary>
     /// Checks the search paths for the archive, without opening it or confirming its type.
     /// </summary>
-    public string? LocateWithoutLoading(string uri)
+    public string? LocateWithoutLoading(string uri, bool isBundled)
     {
         string? foundPath = null;
-        foreach (string basePath in m_paths)
+        foreach (string basePath in isBundled ? m_bundledPaths : m_paths)
         {
             string path = Path.Combine(basePath, uri);
             if (!CheckPathExists(path))
