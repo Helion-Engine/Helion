@@ -470,7 +470,7 @@ public partial class MapInfoDefinition
         return clusterDef;
     }
 
-    private static readonly string[] TextSplit = ["\\n", "\n"];
+    private static readonly string[] TextSplit = ["\\n", "\n", "\\r\\n", "\r\n"];
 
     private List<string> GetClusterText(SimpleParser parser)
     {
