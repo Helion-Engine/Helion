@@ -478,9 +478,9 @@ public partial class MapInfoDefinition
         {
             string text = parser.ConsumeString();
             if (text.Equals("lookup", StringComparison.OrdinalIgnoreCase))
-                return new List<string>(["$" + parser.ConsumeString()]);
+                return ["$" + parser.ConsumeString()];
 
-            return new List<string>(text.Split('\n'));
+            return [.. text.Split(TextSplit, StringSplitOptions.None)];
         }
 
         List<string> textItems = [];
