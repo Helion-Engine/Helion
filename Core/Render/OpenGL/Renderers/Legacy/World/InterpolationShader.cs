@@ -28,6 +28,7 @@ public class InterpolationShader : RenderProgram
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_accumTextureLocation;
     private readonly int m_accumCountTextureLocation;
+    private readonly int m_vertexGapClampUV;
 
     public InterpolationShader() : base("World")
     {
@@ -49,6 +50,7 @@ public class InterpolationShader : RenderProgram
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_accumTextureLocation = Uniforms.GetLocation("accum");
         m_accumCountTextureLocation = Uniforms.GetLocation("accumCount");
+        m_vertexGapClampUV = Uniforms.GetLocation("vertexGapClampUV");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -70,6 +72,7 @@ public class InterpolationShader : RenderProgram
     public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
     public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
+    public void VertexGapClampUV(bool value) => Uniforms.Set(value, m_vertexGapClampUV);
 
     protected override string VertexShader() => @"
         #version 330
@@ -149,6 +152,7 @@ public class InterpolationShader : RenderProgram
         uniform vec3 colorMix;
         uniform int paletteIndex;
         uniform int colormapIndex;
+        uniform float vertexGapClampUV;
 
         ${LightLevelFragVariables}
         ${SectorColorMapFragVariables}

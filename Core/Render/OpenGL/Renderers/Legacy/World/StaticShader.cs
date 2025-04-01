@@ -24,6 +24,7 @@ public class StaticShader : RenderProgram
     private readonly int m_colorMapIndexLocation;
     private readonly int m_lightModeLocation;
     private readonly int m_gammaCorrectionLocation;
+    private readonly int m_vertexGapClampUV;
 
     public StaticShader() : base("WorldStatic")
     {
@@ -42,6 +43,7 @@ public class StaticShader : RenderProgram
         m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
         m_lightModeLocation = Uniforms.GetLocation("lightMode");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
+        m_vertexGapClampUV = Uniforms.GetLocation("vertexGapClampUV");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -60,6 +62,7 @@ public class StaticShader : RenderProgram
     public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
     public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
+    public void VertexGapClampUV(bool value) => Uniforms.Set(value, m_vertexGapClampUV);
 
     protected override string VertexShader() => @"
         #version 330
@@ -137,6 +140,7 @@ public class StaticShader : RenderProgram
         uniform vec3 colorMix;
         uniform int paletteIndex;
         uniform int colormapIndex;
+        uniform float vertexGapClampUV;
 
         ${LightLevelFragVariables}
         ${SectorColorMapFragVariables}

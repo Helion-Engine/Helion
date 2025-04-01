@@ -277,7 +277,9 @@ public class LegacyWorldRenderer : WorldRenderer
             m_interpolationProgram.Bind();
             GL.ActiveTexture(TextureUnit.Texture0);
             SetInterpolationUniforms(m_interpolationProgram, renderInfo);
+            SetRenderWalls();
             m_worldDataManager.RenderWalls();
+            SetRenderFlats();
             m_worldDataManager.RenderFlats();
 
             if (m_renderStatic)
@@ -285,10 +287,13 @@ public class LegacyWorldRenderer : WorldRenderer
                 m_staticProgram.Bind();
                 GL.ActiveTexture(TextureUnit.Texture0);
                 SetStaticUniforms(renderInfo);
+                SetRenderWalls();
                 m_geometryRenderer.RenderStaticGeometryWalls();
+                SetRenderFlats();
                 m_geometryRenderer.RenderStaticGeometryFlats();
             }
 
+            SetRenderWalls();
             RenderTwoSidedMiddleWalls(renderInfo);
             m_entityRenderer.RenderOpaque(renderInfo);
             RenderTransparent(renderInfo, framebuffer, false);
@@ -299,7 +304,9 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetInterpolationUniforms(m_interpolationProgram, renderInfo);
+        SetRenderWalls();
         m_worldDataManager.RenderWalls();
+        SetRenderFlats();
         m_worldDataManager.RenderFlats();
 
         if (m_renderStatic)
@@ -307,10 +314,13 @@ public class LegacyWorldRenderer : WorldRenderer
             m_staticProgram.Bind();
             GL.ActiveTexture(TextureUnit.Texture0);
             SetStaticUniforms(renderInfo);
+            SetRenderWalls();
             m_geometryRenderer.RenderStaticGeometryWalls();
+            SetRenderFlats();
             m_geometryRenderer.RenderStaticGeometryFlats();
         }
 
+        SetRenderWalls();
         RenderTwoSidedMiddleWalls(renderInfo);
 
         GL.Clear(ClearBufferMask.DepthBufferBit);
@@ -556,6 +566,22 @@ public class LegacyWorldRenderer : WorldRenderer
         m_staticProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         m_staticProgram.LightMode(renderInfo.Uniforms.LightMode);
         m_staticProgram.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
+    }
+
+    private void SetRenderWalls()
+    {
+        m_staticProgram.VertexGapClampUV(true);
+        m_interpolationProgram.VertexGapClampUV(true);
+        m_interpolationCompositeProgram.VertexGapClampUV(true);
+        m_interpolationTransparentProgram.VertexGapClampUV(true);
+    }
+
+    private void SetRenderFlats()
+    {
+        m_staticProgram.VertexGapClampUV(false);
+        m_interpolationProgram.VertexGapClampUV(false);
+        m_interpolationCompositeProgram.VertexGapClampUV(false);
+        m_interpolationTransparentProgram.VertexGapClampUV(false);
     }
 
     private void ReleaseUnmanagedResources()

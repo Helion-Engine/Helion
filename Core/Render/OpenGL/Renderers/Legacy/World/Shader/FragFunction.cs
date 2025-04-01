@@ -153,24 +153,28 @@ public class FragFunction
             return "vec2 texUV = uvFrag;";
 
         return @"
-            const float VertexGap = 0.015;
-            ivec2 texSize = textureSize(boundTexture, 0);
-            float gapX = VertexGap / texSize.x;
-            float gapY = VertexGap / texSize.y;
-            vec2 uvClampMin = vec2(-999, -999);
-            vec2 uvClampMax = vec2(999, 999);
+            vec2 texUV = uvFrag;
+            if (vertexGapClampUV == 1)
+            {
+                const float VertexGap = 0.015;
+                ivec2 texSize = textureSize(boundTexture, 0);
+                float gapX = VertexGap / texSize.x;
+                float gapY = VertexGap / texSize.y;
+                vec2 uvClampMin = vec2(-999, -999);
+                vec2 uvClampMax = vec2(999, 999);
 
-            if (topFrag == 1)
-                uvClampMin.y = uvFlatFrag.y + gapY;
-            else
-                uvClampMax.y = uvFlatFrag.y - gapY;
+                if (topFrag == 1)
+                    uvClampMin.y = uvFlatFrag.y + gapY;
+                else
+                    uvClampMax.y = uvFlatFrag.y - gapY;
             
-            if (leftFrag == 1)
-                uvClampMin.x = uvFlatFrag.x + gapX;
-            else
-                uvClampMax.x = uvFlatFrag.x - gapX;
+                if (leftFrag == 1)
+                    uvClampMin.x = uvFlatFrag.x + gapX;
+                else
+                    uvClampMax.x = uvFlatFrag.x - gapX;
 
-            vec2 texUV = clamp(uvFrag, uvClampMin, uvClampMax);
+                texUV = clamp(uvFrag, uvClampMin, uvClampMax);
+            }
         ";
     }
 
