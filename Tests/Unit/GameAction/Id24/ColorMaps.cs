@@ -26,15 +26,26 @@ public class ColorMaps
         AssertColorMap(sector, "BLUMAP");
     }
 
-    [Fact(DisplayName = "2076 - W1 Set sector colormap")]
-    public void Action2076_SetSectorColorMap()
+    [Fact(DisplayName = "2076 - W1 Set sector colormap - Front")]
+    public void Action2076_SetSectorColorMapFront()
     {
         var sector = GameActions.GetSectorByTag(World, 2);
         AssertColorMap(sector, "BLUMAP");
 
         GameActions.GetLine(World, 24).Flags.Repeat.Should().BeFalse();
-        GameActions.ActivateLine(World, Player, 24, ActivationContext.CrossLine).Should().BeTrue();
+        GameActions.ActivateLine(World, Player, 24, ActivationContext.CrossLine, fromFront: true).Should().BeTrue();
         AssertColorMap(sector, "REDMAP");
+    }
+
+    [Fact(DisplayName = "2076 - W1 Set sector colormap - Back")]
+    public void Action2076_SetSectorColorMapBack()
+    {
+        var sector = GameActions.GetSectorByTag(World, 2);
+        AssertColorMap(sector, "BLUMAP");
+
+        GameActions.GetLine(World, 24).Flags.Repeat.Should().BeFalse();
+        GameActions.ActivateLine(World, Player, 24, ActivationContext.CrossLine, fromFront: false).Should().BeTrue();
+        AssertColorMap(sector, "CYAMAP");
     }
 
     [Fact(DisplayName = "2077 - WR Set sector colormap")]

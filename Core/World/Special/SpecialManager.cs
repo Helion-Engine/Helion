@@ -803,7 +803,7 @@ public sealed class SpecialManager : ITickable, IDisposable
                 break;
 
             case ZDoomLineSpecialType.SetSectorColorMap:
-                SetSectorColorMap(line);
+                SetSectorColorMap(line, true);
                 break;
         }
     }
@@ -818,9 +818,9 @@ public sealed class SpecialManager : ITickable, IDisposable
         AddSpecial(new ScrollSpecial(line, speed, lineScroll));
     }
 
-    private void SetSectorColorMap(Line line)
+    private void SetSectorColorMap(Line line, bool fromFront)
     {
-        var colormap = line.Front.Colormaps?.Upper;
+        var colormap = fromFront ? line.Front.Colormaps?.Upper : line.Front.Colormaps?.Lower;
         var sectors = GetSectorsFromSpecialLine(line);
         for (int i = 0; i < sectors.Count; i++)
         {
@@ -1154,7 +1154,7 @@ public sealed class SpecialManager : ITickable, IDisposable
                 return true;
 
             case ZDoomLineSpecialType.SetSectorColorMap:
-                SetSectorColorMap(args.ActivateLineSpecial);
+                SetSectorColorMap(args.ActivateLineSpecial, args.FromFront);
                 return true;
 
             case ZDoomLineSpecialType.ChangeMusic:
