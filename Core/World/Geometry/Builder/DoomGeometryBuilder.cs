@@ -103,8 +103,13 @@ public static class DoomGeometryBuilder
                 front.Colormaps = new(upperColormap, middleColormap, lowerColormap);
         }
 
-        if (IsSetColorMap(doomLine) && textureManager.TryGetColormap(doomSide.UpperTexture, out var colormap))
-            front.Colormaps = new(colormap, null, null);
+        if (IsSetColorMap(doomLine))
+        {
+            textureManager.TryGetColormap(doomSide.UpperTexture, out var upperColormap);
+            textureManager.TryGetColormap(doomSide.LowerTexture, out var lowerColormap);
+            if (upperColormap != null || lowerColormap != null)
+                front.Colormaps = new(upperColormap, null, lowerColormap);
+        }
     }
 
     private static bool IsSetColorMap(DoomLine line)
