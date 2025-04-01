@@ -65,16 +65,19 @@ public class StaticShader : RenderProgram
         #version 330
 
         layout(location = 0) in vec3 pos;
-        layout(location = 1) in vec2 uv; 
+        layout(location = 1) in vec2 uv;
         layout(location = 2) in float lightLevelAdd;
         layout(location = 3) in float options;
         layout(location = 4) in float colorMapIndex;
 
         out vec2 uvFrag;
+        flat out vec2 uvFlatFrag;
         flat out float alphaFrag;
         flat out float addAlphaFrag;
         flat out float colorMapIndexFrag;
         flat out float vertexLightLevelFrag;
+        flat out float topFrag;
+        flat out float leftFrag;
 
         ${SectorColorMapVertexFragVariables}
         ${LightLevelVertexVariables}
@@ -86,12 +89,18 @@ public class StaticShader : RenderProgram
 
         void main() {
             uvFrag = uv;
+            uvFlatFrag = uv;
 
             float splitOptions = options;
-            float lightLevelBufferIndex = trunc(splitOptions / 4);
-            splitOptions -= (lightLevelBufferIndex * 4);
-            addAlphaFrag = trunc(splitOptions / 2);
-            alphaFrag = splitOptions - (addAlphaFrag * 2);  
+            float lightLevelBufferIndex = trunc(splitOptions / 16);
+            splitOptions -= (lightLevelBufferIndex * 16);
+            addAlphaFrag = trunc(splitOptions / 8);
+            splitOptions -= (addAlphaFrag * 8);
+            alphaFrag = trunc(splitOptions / 4);
+            splitOptions -= (alphaFrag * 4);
+            topFrag = trunc(splitOptions / 2);
+            splitOptions -= (topFrag * 2);
+            leftFrag = splitOptions;
 
             colorMapIndexFrag = trunc(colorMapIndex / 256);
             vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
@@ -115,8 +124,11 @@ public class StaticShader : RenderProgram
         #version 330
 
         in vec2 uvFrag;
+        flat in vec2 uvFlatFrag;
         flat in float alphaFrag;
         flat in float addAlphaFrag;
+        flat in float topFrag;
+        flat in float leftFrag;
 
         out vec4 fragColor;
 
@@ -137,7 +149,7 @@ public class StaticShader : RenderProgram
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap))
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV))
     .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
     .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction);
 }
