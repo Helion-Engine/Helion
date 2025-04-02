@@ -13,6 +13,7 @@ public enum IWadType
     DoomShareware,
     DoomRegistered,
     NoRestForTheLiving,
+    NoRestForTheLivingPwad,
     FreeDoom1,
     FreeDoom2,
 }

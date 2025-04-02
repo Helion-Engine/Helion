@@ -147,7 +147,7 @@ public class DehackedApplier
         ApplyBexPars(dehacked, definitionEntries.MapInfoDefinition);
 
         foreach (var definition in composer.GetEntityDefinitions())
-            DefinitionStateApplier.SetDefinitionStateIndicies(definitionEntries.EntityFrameTable, definition);
+            DefinitionStateApplier.SetDefinitionStateIndices(definitionEntries.EntityFrameTable, definition);
 
         RemoveLabels.Clear();
         m_dehacked.NewSpriteLookup.Clear();

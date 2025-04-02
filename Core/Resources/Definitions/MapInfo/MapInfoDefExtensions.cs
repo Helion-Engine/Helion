@@ -31,7 +31,7 @@ public static class MapInfoDefExtensions
         return mapInfo.GetDisplayNameWithPrefix(language);    
     }
 
-    private static string GetNiceNameOrLookup(this MapInfoDef mapInfo, LanguageDefinition language)
+    public static string GetNiceNameOrLookup(this MapInfoDef mapInfo, LanguageDefinition language)
     {
         if (mapInfo.DisplayName != null)
             return mapInfo.DisplayName;
