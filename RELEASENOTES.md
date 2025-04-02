@@ -24,3 +24,4 @@
 - Fix potential issue where AudioStream might play garbage data
 - Fix FATT_ATK1 to map to A_FatRaise for dehacked
 - Fix id24 colormap walk specials to set colormap to lower texture when crossing from the backside of the line
+- Fix monster movement to account for sector friction with Boom's 223 line type

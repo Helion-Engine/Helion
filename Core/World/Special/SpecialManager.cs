@@ -885,8 +885,9 @@ public sealed class SpecialManager : ITickable, IDisposable
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
-            double length = line.GetLength();
+            var length = line.GetLength();
             sector.SetFriction(Math.Clamp((0x1EB8 * length / 0x80 + 0xD000) / 65536.0, 0.0, 1.0));
+            WorldStatic.SectorFriction = true;
         }
     }
 

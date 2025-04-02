@@ -356,6 +356,8 @@ public static class Constants
     public const int TeleportOffsetDist = 16;
     public const int NullFrameIndex = 0;
     public const double DefaultFriction = 0.90625;
+    public const double DefaultMoveFactor = 1.0;
+    public const double DefaultFrictionFactor = 2048.0 / 65536.0;
     public const int DefaultGroupNumber = 0;
 
     public const int WeaponLowerSpeed = 6;

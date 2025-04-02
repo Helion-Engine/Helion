@@ -327,7 +327,7 @@ public partial class Entity
         m_direction = MoveDir.None;
     }
 
-    public void GetEnemySpeed(out double speedX, out double speedY)
+    public void GetEnemySpeed(MoveFactor moveFactor, out double speedX, out double speedY)
     {
         if (m_direction == MoveDir.None || ((Flags.Flags1 & EntityFlags.FloatFlag) == 0 && !OnGround))
         {
@@ -336,8 +336,16 @@ public partial class Entity
             return;
         }
 
-        double speed = (ClosetFlags & ClosetFlags.ClosetChase) != 0 ? ClosetChaseSpeed :
+        var speed = (ClosetFlags & ClosetFlags.ClosetChase) != 0 ? ClosetChaseSpeed :
             Math.Clamp(MonsterMovementSpeed * SlowTickMultiplier, -128, 128);
+
+        if (moveFactor.Friction < Constants.DefaultFriction)
+        {
+            moveFactor.Factor *= Constants.DefaultFrictionFactor;
+            var friction = (Constants.DefaultFrictionFactor - (Constants.DefaultFrictionFactor - moveFactor.Factor) / 2);
+            speed = Math.Max(1, friction * speed / Constants.DefaultFrictionFactor);
+        }
+
         speedX = Speeds[(int)m_direction] * speed;
         speedY = Speeds[(int)m_direction + 8] * speed;
     }
@@ -346,18 +354,33 @@ public partial class Entity
     {
         bool floatFlag = (Flags.Flags1 & EntityFlags.FloatFlag) != 0;
         if (m_direction == MoveDir.None || (!floatFlag && !OnGround) || IsFrozen)
-        {
+        { 
             tryMove = null;
             return false;
         }
 
-        GetEnemySpeed(out double speedX, out double speedY);
+        var moveFactor = WorldStatic.SectorFriction ? PhysicsManager.GetMoveFactor(this) : 
+            new MoveFactor(Constants.DefaultMoveFactor, Constants.DefaultFriction);
+        GetEnemySpeed(moveFactor, out double speedX, out double speedY);
+
         bool isMoving = speedX != 0 || speedY != 0;
+        bool setZ = true;
         Flags.MonsterMove = true;
         tryMove = WorldStatic.World.PhysicsManager.TryMoveXY(this, Position.X + speedX, Position.Y + speedY);
         Flags.MonsterMove = false;
+
         if (Flags.Teleported)
             return true;
+
+        if (tryMove.Success && moveFactor.Friction > Constants.DefaultFriction)
+        {
+            moveFactor.Factor *= Constants.DefaultFriction / 4;
+            Position.X = PrevPosition.X;
+            Position.Y = PrevPosition.Y;
+            Velocity.X += speedX * moveFactor.Factor;
+            Velocity.Y += speedY * moveFactor.Factor;
+            setZ = false;
+        }
 
         if (!tryMove.Success && floatFlag && tryMove.CanFloat)
         {
@@ -370,7 +393,7 @@ public partial class Entity
             Flags.InFloat = false;
         }
 
-        if (tryMove.Success && !floatFlag && isMoving)
+        if (setZ && tryMove.Success && !floatFlag && isMoving)
             Position.Z = tryMove.HighestFloorZ;
 
         // With increased speeds using the TickMultiplier TryMove will iterate and can have partial successes.

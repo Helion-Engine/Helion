@@ -810,9 +810,9 @@ public class Player : Entity
 
         if (TickCommand.ForwardMoveSpeed != 0 || TickCommand.SideMoveSpeed != 0)
         {
-            double moveFactor = PhysicsManager.GetMoveFactor(this);
-            movement.X *= moveFactor;
-            movement.Y *= moveFactor;
+            var moveFactor = PhysicsManager.GetMoveFactor(this);
+            movement.X *= moveFactor.Factor;
+            movement.Y *= moveFactor.Factor;
         }
 
         if (TickCommand.Has(TickCommands.Jump))
