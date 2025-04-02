@@ -21,6 +21,11 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics;
 
+public struct MoveFactor(double moveFactor, double friction)
+{
+    public double Factor = moveFactor;
+    public double Friction = friction;
+}
 readonly record struct SectorMoveEntityData(Entity Entity, double SaveZ, double PrevSaveZ, bool WasCrushing);
 
 /// <summary>
@@ -34,7 +39,6 @@ public sealed class PhysicsManager
     private const double MinMovement = 0.0625;
     private const double SetEntityToFloorSpeedMax = 8;
     private const double MinMoveFactor = 32 / 65536.0;
-    private const double DefaultMoveFactor = 1.0;
     private const double MudMoveFactorLow = 15000 / 65536.0;
     private const double MudMoveFactorMed = MudMoveFactorLow * 2;
     private const double MudMoveFactorHigh = MudMoveFactorLow * 4;
@@ -428,10 +432,10 @@ public sealed class PhysicsManager
 
     // Constants and logic from WinMBF.
     // Credit to Lee Killough et al.
-    public static double GetMoveFactor(Entity entity)
+    public static MoveFactor GetMoveFactor(Entity entity)
     {
         double sectorFriction = GetFrictionFromSectors(entity);
-        double moveFactor = DefaultMoveFactor;
+        double moveFactor = Constants.DefaultMoveFactor;
 
         if (sectorFriction != Constants.DefaultFriction)
         {
@@ -442,21 +446,21 @@ public sealed class PhysicsManager
 
             moveFactor = Math.Clamp(moveFactor, MinMoveFactor, double.MaxValue);
             // The move factor was based on 2048 being default in Boom.
-            moveFactor /= 2048.0 / 65536.0;
+            moveFactor /= Constants.DefaultFrictionFactor;
         }
 
         if (sectorFriction < Constants.DefaultFriction)
         {
-            double momentum = entity.Velocity.XY.Length();
-            if (momentum > MudMoveFactorHigh)
+            double momentum = entity.Velocity.XY.LengthSquared();
+            if (momentum > MudMoveFactorHigh * MudMoveFactorHigh)
                 moveFactor *= 8;
-            else if (momentum > MudMoveFactorMed)
+            else if (momentum > MudMoveFactorMed * MudMoveFactorMed)
                 moveFactor *= 4;
-            else if (momentum > MudMoveFactorLow)
+            else if (momentum > MudMoveFactorLow * MudMoveFactorLow)
                 moveFactor *= 2;
         }
 
-        return moveFactor;
+        return new(moveFactor, sectorFriction);
     }
 
     private static bool IsSectorMovementBlocked(Sector sector, double startZ, double destZ, SectorMoveSpecial moveSpecial)
@@ -1675,7 +1679,7 @@ doneLinkToSectors:
 
     private static double GetFrictionFromSectors(Entity entity)
     {
-        if (entity.Flags.NoClip)
+        if (entity.Flags.NoClip || !WorldStatic.SectorFriction)
             return Constants.DefaultFriction;
 
         double lowestFriction = double.MaxValue;

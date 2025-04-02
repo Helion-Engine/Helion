@@ -87,15 +87,20 @@ public class PathsManager
 
     public PathsManager(string workingDirectory = ".", bool forcePortableMode = false)
     {
-        m_workingDirectory = Path.GetFullPath(workingDirectory);
+        m_workingDirectory = StandardizePath(workingDirectory);
         string portableConfigFile = Path.Combine(AppContext.BaseDirectory, FileConfig.IniFile);
-        m_userDataFolder = Path.GetFullPath(GetConfigFolder(forcePortableMode || File.Exists(portableConfigFile)));
-        m_applicationFolders = [AppContext.BaseDirectory];
+        m_userDataFolder = StandardizePath(GetConfigFolder(forcePortableMode || File.Exists(portableConfigFile)));
+        m_applicationFolders = [StandardizePath(AppContext.BaseDirectory)];
         if (OperatingSystem.IsLinux())
-            m_applicationFolders.Add("/usr/share/helion");
-        m_wadEnvFolders = [.. GetWadFoldersFromEnvVars().Select(Path.GetFullPath)];
-        m_wadCommonFolders = [.. GetWadFoldersFromSteamAndLinuxDirs().Select(Path.GetFullPath)];
+            m_applicationFolders.Add(StandardizePath("/usr/share/helion"));
+        m_wadEnvFolders = [.. GetWadFoldersFromEnvVars().Select(StandardizePath)];
+        m_wadCommonFolders = [.. GetWadFoldersFromSteamAndLinuxDirs().Select(StandardizePath)];
     }
+
+    /// <summary>
+    /// Converts relative to absolute paths if needed, and removes any trailing directory separators.
+    /// </summary>
+    private static string StandardizePath(string path) => Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar);
 
     /// <summary>
     /// Builds a folder search list for WADs and other archives:
@@ -113,13 +118,16 @@ public class PathsManager
         // convert them to full paths since our CWD is likely elsewhere
         var configFolders = config.Files.Directories.Value
             .Select(x => Path.IsPathRooted(x) ? x : Path.Combine(m_userDataFolder, x));
-        return [
+        List<string> allFolders = [
             LaunchFolder,
             .. configFolders,
             .. ApplicationFolders,
             .. WadEnvFolders,
             .. config.Files.SearchCommonDirectories ? WadCommonFolders : []
         ];
+        // if launch dir == app dir, or when running in portable mode, we can have dupes
+        List<string> deduped = [.. allFolders.Select(StandardizePath).Distinct()];
+        return deduped;
     }
 
     private static string GetConfigFolder(bool portableMode = false)
