@@ -536,6 +536,7 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.BFGBall = EntityManager.DefinitionComposer.GetByNameOrDefault("BFGBall");
         WorldStatic.PlasmaBall = EntityManager.DefinitionComposer.GetByNameOrDefault("PlasmaBall");
         WorldStatic.WeaponBfg = EntityManager.DefinitionComposer.GetByNameOrDefault(BFG900Class);
+        WorldStatic.SectorFriction = false;
 
         if (WorldStatic.CheckedLines.Length < Lines.Count)
             WorldStatic.CheckedLines = new int[Lines.Count];
@@ -2967,7 +2968,8 @@ public abstract partial class WorldBase : IWorld
         m_healChaseData.HealState = healState;
         m_healChaseData.HealSound = healSound;
         m_healChaseData.Healed = false;
-        entity.GetEnemySpeed(out var speedX, out var speedY);
+        var moveFactor = PhysicsManager.GetMoveFactor(entity);
+        entity.GetEnemySpeed(moveFactor, out var speedX, out var speedY);
         Box2D nextBox = new(entity.Position.X + speedX, entity.Position.Y + speedY, entity.Radius);
         BlockmapTraverser.HealTraverse(nextBox, m_healChaseAction);
 
