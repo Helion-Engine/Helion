@@ -7,7 +7,8 @@
 - Improvements to initial map load times
 - Line contrast mode (off, vanilla, smooth)
 - Calculate locked key door color by using key icon image
-- Added pixel gap correction to rendering that is on by default. Prevents most pixel gap problems caused by floating point precision.
+- Added pixel gap correction to rendering that is on by default. Prevents most pixel gap problems caused by floating point precision
+- Added MAPINFO and md5 to have correct level names and progression for nerve.wad (No Rest for the Living)
 
 ## Bug fixes:
 - Correct missile blocking checks to match original behavior (fixes radsuits blocking rockets etc)
