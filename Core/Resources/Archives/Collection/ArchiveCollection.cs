@@ -581,16 +581,25 @@ public class ArchiveCollection : IResources, IPathResolver
 
             Definitions.Track(archive);
 
-            if (archive.ArchiveType == ArchiveType.Assets && GetIWadInfo(iwadArchive, out IWadInfo? info))
+            if (archive.ArchiveType == ArchiveType.Assets && GetIWadInfo(iwadArchive, archives, out var iwadInfo))
             {
-                Definitions.LoadMapInfo(archive, info.MapInfoResource);
-                Definitions.LoadDecorate(archive, info.DecorateResource);
+                Definitions.LoadMapInfo(archive, iwadInfo.MapInfoResource);
+                Definitions.LoadDecorate(archive, iwadInfo.DecorateResource);
             }
         }
     }
 
-    private static bool GetIWadInfo(Archive? iwadArchive, [NotNullWhen(true)] out IWadInfo? info)
+    private static bool GetIWadInfo(Archive? iwadArchive, List<Archive> archives, [NotNullWhen(true)] out IWadInfo? info)
     {
+        // Check for special cases like NERVE.wad (No Rest for the Living)
+        info = GetSpecialPwadInfo(iwadArchive, archives);
+        if (info != null)
+        {
+            if (iwadArchive != null)
+                iwadArchive.IWadInfo = info;
+            return true;
+        }
+
         if (iwadArchive != null)
         {
             iwadArchive.IWadInfo = IWadInfo.GetIWadInfo(iwadArchive.FullPath);
@@ -600,6 +609,21 @@ public class ArchiveCollection : IResources, IPathResolver
 
         info = null;
         return false;
+    }
+
+    private static IWadInfo? GetSpecialPwadInfo(Archive? iwadArchive, List<Archive> archives)
+    {
+        foreach (var archive in archives)
+        {
+            if (archive == iwadArchive)
+                continue;
+
+            var info = IWadInfo.GetIWadInfo(archive.FullPath, IWadInfoOptions.IncludePwadAddOn);
+            if (info != IWadInfo.DefaultIWadInfo)
+                return info;
+        }
+
+        return null;
     }
 
     /// <summary>

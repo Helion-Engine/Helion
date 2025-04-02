@@ -150,7 +150,7 @@ public partial class IntermissionLayer
         }
     }
 
-    private static void DrawMapTitle(IHudRenderContext hud, MapInfoDef mapInfo, ref int offsetY, int textUpscalingFactor)
+    private void DrawMapTitle(IHudRenderContext hud, MapInfoDef mapInfo, ref int offsetY, int textUpscalingFactor)
     {
         if (!string.IsNullOrEmpty(mapInfo.TitlePatch))
         {
@@ -162,11 +162,9 @@ public partial class IntermissionLayer
         // TODO would look nicer if there was a large font for the level text
         const int LevelInfoFontSize = 8;
 
-        if (mapInfo.NiceName.Length > 0)
-        {
-            hud.Text(mapInfo.NiceName, LevelInfoFont, LevelInfoFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
-            offsetY += hud.MeasureText(mapInfo.NiceName, LevelInfoFont, LevelInfoFontSize).Height;
-        }
+        string name = mapInfo.GetNiceNameOrLookup(m_archiveCollection.Language);
+        hud.Text(name, LevelInfoFont, LevelInfoFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
+        offsetY += hud.MeasureText(name, LevelInfoFont, LevelInfoFontSize).Height;
 
         if (mapInfo.Author.Length > 0)
         {

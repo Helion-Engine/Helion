@@ -5,6 +5,12 @@ using System.IO;
 
 namespace Helion.Resources.IWad;
 
+public enum IWadInfoOptions
+{
+    Default,
+    IncludePwadAddOn
+}
+
 public class IWadInfo
 {
     private class IWadData
@@ -34,7 +40,8 @@ public class IWadInfo
         { IWadType.ChexQuest, new("Chex Quest", "MapInfo/Chex.txt", "Decorate/ChexDecorate.txt", "CHEX.WAD") },
         { IWadType.DoomShareware, new("Doom Shareware", "MapInfo/Doom1.txt", DoomDecorate, "DOOM1.WAD") },
         { IWadType.DoomRegistered, new("Doom", "MapInfo/DoomRegistered.txt", DoomDecorate, string.Empty) },
-        { IWadType.NoRestForTheLiving, new("No Rest for the Living", "MapInfo/Doom2.txt", DoomDecorate, string.Empty) },
+        { IWadType.NoRestForTheLivingPwad, new("No Rest for the Living", "MapInfo/NERVE.txt", DoomDecorate, string.Empty) },
+        { IWadType.NoRestForTheLiving, new("No Rest for the Living", "MapInfo/NERVE.txt", DoomDecorate, string.Empty) },
         { IWadType.FreeDoom1, new("Free Doom Phase 1", "MapInfo/DoomRegistered.txt", DoomDecorate, "freedoom1.wad") },
         { IWadType.FreeDoom2, new("Free Doom Phase 2", "MapInfo/Doom2.txt", DoomDecorate, "freedoom2.wad") },
     };
@@ -78,7 +85,12 @@ public class IWadInfo
         { "4e158d9953c79ccf97bd0663244cc6b6", IWadType.TNT },
         { "1d39e405bf6ee3df69a8d2646c8d5c49", IWadType.TNT },
 
-        { "967d5ae23daf45196212ae1b605da3b0", IWadType.NoRestForTheLiving },
+        { "967d5ae23daf45196212ae1b605da3b0", IWadType.NoRestForTheLivingPwad },
+        { "4214c47651b63ee2257b1c2490a518c9", IWadType.NoRestForTheLivingPwad },
+        { "3544e1903091c50ba50049db74cd7d25", IWadType.NoRestForTheLivingPwad },
+        { "9143b392392a7ac870c2ca36ac65af45", IWadType.NoRestForTheLivingPwad },
+        { "23422eb42833ac7b0dd59c0c7ae18a6f", IWadType.NoRestForTheLivingPwad },
+        { "53d180803ae34b16a63c5f1c97faf562", IWadType.NoRestForTheLiving },
 
         { "25485721882b050afa96a56e5758dd52", IWadType.ChexQuest },
     };
@@ -103,12 +115,14 @@ public class IWadInfo
         VanillaCompatibility = vanillaCompatibility;
     }
 
+    public bool IsPWadAddOn() => IWadType == IWadType.NoRestForTheLivingPwad;
+
     public static IWadInfo GetIWadInfo(IWadType type) => InfoFromType(type);
 
-    public static IWadInfo GetIWadInfo(string path)
+    public static IWadInfo GetIWadInfo(string path, IWadInfoOptions options = IWadInfoOptions.Default)
     {
-        IWadInfo info = GetIWadInforFromMd5(path);
-        if (info != DefaultIWadInfo)
+        var info = GetIWadInforFromMd5(path);
+        if (info != DefaultIWadInfo && ValidateOptions(info, options))
             return info;
 
         // If failed to lookup by MD5 then assume the type by the filename
@@ -118,11 +132,22 @@ public class IWadInfo
             if (string.IsNullOrEmpty(data.DefaultFileName))
                 continue;
 
+            if (!ValidateOptions(info, options))
+                continue;
+
             if (data.DefaultFileName.Equals(fileName, StringComparison.OrdinalIgnoreCase))
                 return InfoFromType(type);
         }
 
         return DefaultIWadInfo;
+    }
+
+    private static bool ValidateOptions(IWadInfo info, IWadInfoOptions options)
+    {
+        if ((options & IWadInfoOptions.IncludePwadAddOn) == 0)
+            return !info.IsPWadAddOn();
+
+        return true;
     }
 
     public static string GetDefaultFileName(IWadType type)
@@ -150,7 +175,7 @@ public class IWadInfo
         IWadBaseType baseType = (IWadBaseType)iwadType;
         if (iwadType == IWadType.DoomShareware || iwadType == IWadType.DoomRegistered)
             baseType = IWadBaseType.Doom1;
-        else if (iwadType == IWadType.NoRestForTheLiving)
+        else if (iwadType == IWadType.NoRestForTheLiving || iwadType == IWadType.NoRestForTheLivingPwad)
             baseType = IWadBaseType.Doom2;
 
         if (IWadDataLookup.TryGetValue(iwadType, out IWadData? data))

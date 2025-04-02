@@ -101,7 +101,7 @@ public class DefinitionStateApplier
         return actorDefinitions.Last().Name;
     }
 
-    public static void SetDefinitionStateIndicies(EntityFrameTable entityFrameTable, EntityDefinition definition)
+    public static void SetDefinitionStateIndices(EntityFrameTable entityFrameTable, EntityDefinition definition)
     {
         definition.SpawnState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Spawn);
         definition.MissileState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Missile);
@@ -113,7 +113,7 @@ public class DefinitionStateApplier
         definition.PainState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Pain);
         definition.HealState = GetEntityFrame(entityFrameTable, definition, Constants.FrameStates.Heal);
 
-        if (definition.HealState.HasValue)
+        if (definition.HealState.HasValue && definition.HealState.Value < entityFrameTable.Frames.Count)
             definition.HealFrame = entityFrameTable.Frames[definition.HealState.Value];
     }
 
@@ -121,7 +121,7 @@ public class DefinitionStateApplier
     {
         foreach (var pair in masterLabelTable)
             definition.States.Labels[pair.Key] = pair.Value.Index;
-        SetDefinitionStateIndicies(entityFrameTable, definition);
+        SetDefinitionStateIndices(entityFrameTable, definition);
     }
 
     public static int? GetEntityFrame(EntityFrameTable entityFrameTable, EntityDefinition definition, string label)

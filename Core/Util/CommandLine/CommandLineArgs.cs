@@ -86,7 +86,7 @@ public class CommandLineArgs
                 break;
 
             var iwadInfo = IWadInfo.GetIWadInfo(arg);
-            if (iwadInfo == IWadInfo.DefaultIWadInfo || iwadInfo.IWadType == IWadType.NoRestForTheLiving)
+            if (iwadInfo == IWadInfo.DefaultIWadInfo || iwadInfo.IsPWadAddOn())
                 commandLineArgs.Files.Add(arg);
             else
                 commandLineArgs.Iwad = arg;

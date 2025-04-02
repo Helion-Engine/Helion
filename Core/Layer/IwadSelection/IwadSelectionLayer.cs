@@ -51,7 +51,7 @@ public class IwadSelectionLayer : IGameLayer
         var hasDoom2 = iwadData.Any(x => x.Info.IWadType == IWadType.Doom2 || x.Info.IWadType == IWadType.FreeDoom2);
         foreach (var data in iwadData)
         {
-            if (data.Info.IWadType == IWadType.NoRestForTheLiving && !hasDoom2)
+            if (data.Info.IsPWadAddOn() && !hasDoom2)
                 continue;
 
             m_iwadData.Add(new(data.Path, $"{Path.GetFileName(data.Path)}: {data.Info.Title}", data.Info));
@@ -134,10 +134,10 @@ public class IwadSelectionLayer : IGameLayer
             string iwad = selection.FullPath;
             var pwad = string.Empty;
             // No Rest for the Living is a special case where it's a PWAD requiring Doom2 IWAD
-            if (selection.IWadInfo.IWadType == IWadType.NoRestForTheLiving)
+            if (selection.IWadInfo.IsPWadAddOn())
             {
                 pwad = iwad;
-                iwad = GetIWadPathForNoRestForTheLiving();
+                iwad = GetIWadForPWadAddOn();
             }
 
             OnIwadSelected?.Invoke(this, new(iwad, pwad));
@@ -152,7 +152,7 @@ public class IwadSelectionLayer : IGameLayer
             m_selectedIndex = m_iwadData.Count + m_selectedIndex;
     }
 
-    private string GetIWadPathForNoRestForTheLiving()
+    private string GetIWadForPWadAddOn()
     {
         var doom2 = m_iwadData.Where(x => x.IWadInfo.IWadType == IWadType.Doom2).Cast<IwadData?>().FirstOrDefault();
         if (doom2 != null)

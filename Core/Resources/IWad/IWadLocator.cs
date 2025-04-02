@@ -50,7 +50,7 @@ public class IWadLocator
                 // and there aren't any IWADS that large
                 if (new FileInfo(file).Length > 25_000_000)
                     continue;
-                IWadInfo iwadInfo = IWadInfo.GetIWadInfo(file);
+                var iwadInfo = IWadInfo.GetIWadInfo(file, IWadInfoOptions.IncludePwadAddOn);
                 if (iwadInfo != IWadInfo.DefaultIWadInfo && !foundTypes.Contains(iwadInfo.IWadType))
                 {
                     foundTypes.Add(iwadInfo.IWadType);
