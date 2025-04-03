@@ -34,6 +34,6 @@ public static class VertexFunction
             splitOptions -= (lightLevelBufferIndex * 8);
             addAlphaFrag = trunc(splitOptions / 4);
             splitOptions -= (addAlphaFrag * 4);
-            alphaFrag = trunc(splitOptions / 2);
-            float topLeft = splitOptions - (alphaFrag * 2);";
+            float topLeft = trunc(splitOptions / 2);
+            alphaFrag = splitOptions - (topLeft * 2);";
 }

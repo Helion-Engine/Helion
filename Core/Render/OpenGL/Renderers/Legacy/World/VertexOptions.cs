@@ -7,7 +7,8 @@ public static class VertexOptions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float World(float topLeft, float alpha, float addAlpha, int lightLevelBufferIndex)
     {
-        return topLeft + (alpha * 2) + (addAlpha * 4) + (lightLevelBufferIndex * 8);
+        // Alpha must be first since it's < 1
+        return alpha + (topLeft * 2) + (addAlpha * 4) + (lightLevelBufferIndex * 8);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

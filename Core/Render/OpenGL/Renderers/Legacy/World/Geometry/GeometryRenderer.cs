@@ -1112,7 +1112,7 @@ public class GeometryRenderer : IDisposable
         Wall middleWall = facingSide.Middle;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle, repeatY: facingSide.Flags.WrapMidTex);
 
-        float alpha = m_config.Render.TextureTransparency ? facingSide.Line.Alpha : 1.0f;
+        float alpha = m_config.Render.TextureTransparency ? Math.Clamp(facingSide.Line.Alpha, 0, 1) : 1.0f;
         DynamicVertex[]? data = m_vertexLookup[facingSide.Id];
         var geometryType = alpha < 1 ? GeometryType.AlphaWall : GeometryType.TwoSidedMiddleWall;
 

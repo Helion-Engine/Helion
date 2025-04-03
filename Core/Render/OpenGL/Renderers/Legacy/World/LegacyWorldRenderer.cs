@@ -389,7 +389,7 @@ public class LegacyWorldRenderer : WorldRenderer
             RenderFlatsToDepth(renderInfo);
 
         m_interpolationTransparentProgram.Bind();
-        m_interpolationTransparentProgram.VertexGapClampUV(false);
+        m_interpolationTransparentProgram.VertexGapClampUV(m_pixelGapCorrection);
         SetInterpolationUniforms(m_interpolationTransparentProgram, renderInfo);
         GL.ActiveTexture(TextureUnit.Texture0);
         m_worldDataManager.RenderAlphaWalls();
@@ -405,7 +405,7 @@ public class LegacyWorldRenderer : WorldRenderer
                 RenderFlatsToDepth(renderInfo);
 
             m_interpolationCompositeProgram.Bind();
-            m_interpolationCompositeProgram.VertexGapClampUV(false);
+            m_interpolationCompositeProgram.VertexGapClampUV(m_pixelGapCorrection);
             SetInterpolationUniforms(m_interpolationCompositeProgram, renderInfo);
             GL.ActiveTexture(TextureUnit.Texture0);
             m_worldDataManager.RenderAlphaWalls();
