@@ -243,7 +243,12 @@ public class LegacyAutomapRenderer : IDisposable
         m_vbo.Clear();
         PopulateColoredLines(world, player);
         PopulateThings(world, player, renderInfo);
-        DrawEntity(player, renderInfo.TickFraction);
+        // Prevent the player arrow from being too small, perceptually targeting 1080p;
+        // Since we're scaling based on that, the cube root prevents too-small minimums
+        // for smaller resolutions and too-high minimums for higher resolutions
+        float minPlayerScale = (float)Math.Pow(renderInfo.Viewport.Height / 1080f, 0.33);
+        float playerScaleMultipler = Math.Max(1, minPlayerScale / (float)renderInfo.AutomapScale);
+        DrawEntity(player, renderInfo.TickFraction, playerScaleMultipler);
         DrawHighlightAreas(world, renderInfo);
 
         if (world is SinglePlayerWorld singlePlayerWorld)
@@ -458,7 +463,7 @@ public class LegacyAutomapRenderer : IDisposable
         array.Add(new vec2((float)end.X, (float)end.Y));
     }
 
-    private void DrawEntity(Entity? entity, float interpolateFrac)
+    private void DrawEntity(Entity? entity, float interpolateFrac, float scaleMultiplier = 1)
     {
         if (entity == null)
             return;
@@ -472,7 +477,7 @@ public class LegacyAutomapRenderer : IDisposable
         // We start with the arrow facing along the positive X axis direction.
         // This way, our rotation can be easily done.
         var center = entity.PrevPosition.Interpolate(entity.Position, interpolateFrac);
-        var radius = (float)entity.Radius;
+        var radius = (float)entity.Radius * scaleMultiplier;
         var (centerX, centerY) = center.XY.Float;
         float halfWidth = radius / 2;
         float halfHeight = radius / 2;
