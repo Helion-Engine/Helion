@@ -41,6 +41,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private bool m_occlude;
     private bool m_vanillaRender;
     private bool m_renderStatic;
+    private bool m_pixelGapCorrection;
     private int m_lastTicker = -1;
     private Entity? m_viewerEntity;
     private IWorld? m_previousWorld;
@@ -251,6 +252,7 @@ public class LegacyWorldRenderer : WorldRenderer
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
         // Render all sectors dynamically instead.
         m_renderStatic = renderInfo.TransferHeightView == TransferHeightView.Middle;
+        m_pixelGapCorrection = m_config.Render.PixelGapCorrection.Value;
         Clear(world, renderInfo);
 
         if (framebuffer.DepthTexture == null)
@@ -570,18 +572,18 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void SetRenderWalls()
     {
-        m_staticProgram.VertexGapClampUV(true);
-        m_interpolationProgram.VertexGapClampUV(true);
-        m_interpolationCompositeProgram.VertexGapClampUV(true);
-        m_interpolationTransparentProgram.VertexGapClampUV(true);
+        // Always push one pixel to ensure it doesn't roll over to the next row/column
+        float gapCorrection = m_pixelGapCorrection ? (float)Math.Ceiling(Constants.VertexGapPush) : 0f;
+        m_staticProgram.VertexGapClampUV(gapCorrection);
+        m_interpolationProgram.VertexGapClampUV(gapCorrection);
+        m_interpolationTransparentProgram.VertexGapClampUV(gapCorrection);
     }
 
     private void SetRenderFlats()
     {
-        m_staticProgram.VertexGapClampUV(false);
-        m_interpolationProgram.VertexGapClampUV(false);
-        m_interpolationCompositeProgram.VertexGapClampUV(false);
-        m_interpolationTransparentProgram.VertexGapClampUV(false);
+        m_staticProgram.VertexGapClampUV(0);
+        m_interpolationProgram.VertexGapClampUV(0);
+        m_interpolationTransparentProgram.VertexGapClampUV(0);
     }
 
     private void ReleaseUnmanagedResources()

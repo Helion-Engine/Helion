@@ -62,7 +62,7 @@ public class StaticShader : RenderProgram
     public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
     public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
-    public void VertexGapClampUV(bool value) => Uniforms.Set(value, m_vertexGapClampUV);
+    public void VertexGapClampUV(float value) => Uniforms.Set(value, m_vertexGapClampUV);
 
     protected override string VertexShader() => @"
         #version 330
@@ -87,7 +87,7 @@ public class StaticShader : RenderProgram
 
         uniform mat4 mvp;
         uniform float timeFrac;
-        uniform int vertexGapClampUV;
+        uniform float vertexGapClampUV;
         uniform sampler2D boundTexture;
 
         void main() {
