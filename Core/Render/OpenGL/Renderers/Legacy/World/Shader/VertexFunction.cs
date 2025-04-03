@@ -4,6 +4,9 @@ public static class VertexFunction
 {
     public static string VertexGapVariables => "flat out vec2 uvClampMinFrag; flat out vec2 uvClampMaxFrag;";
 
+    // Clamps the uv coordintes so that the extended ranges repeat pixels instead of reading the next row/col of pixels.
+    // The uv clamp frag variables are not interpolated but are only set by the provoking vertex.
+    // This means it can only clamp by the top left and bottom right values, making the top right and bottom left edges incorrect.
     public static string VertexGapSet =>
     @"      
             uvClampMinFrag = vec2(-1.0 / 0.0, -1.0 / 0.0);
@@ -14,12 +17,11 @@ public static class VertexFunction
                 ivec2 texSize = textureSize(boundTexture, 0);
                 vec2 uvGap = vec2(VertexGap / texSize.x, VertexGap / texSize.y);
                 
-                // These are only based off the first vertex of the triangle
-                uvClampMinFrag.x = mix(uvClampMinFrag.x, uvFlatFrag.x + uvGap.x, topLeft == 1);
-                uvClampMinFrag.y = mix(uvClampMinFrag.y, uvFlatFrag.y + uvGap.y, topLeft == 1);
+                uvClampMinFrag.x = mix(uvClampMinFrag.x, uvFrag.x + uvGap.x, topLeft == 1);
+                uvClampMinFrag.y = mix(uvClampMinFrag.y, uvFrag.y + uvGap.y, topLeft == 1);
 
-                uvClampMaxFrag.x = mix(uvClampMaxFrag.x, uvFlatFrag.x - uvGap.x, topLeft == 0);
-                uvClampMaxFrag.y = mix(uvClampMaxFrag.y, uvFlatFrag.y - uvGap.y, topLeft == 0);
+                uvClampMaxFrag.x = mix(uvClampMaxFrag.x, uvFrag.x - uvGap.x, topLeft == 0);
+                uvClampMaxFrag.y = mix(uvClampMaxFrag.y, uvFrag.y - uvGap.y, topLeft == 0);
             }
 ";
 
