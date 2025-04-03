@@ -156,12 +156,12 @@ public class FragFunction
             vec2 texUV = uvFrag;
             if (vertexGapClampUV == 1)
             {
-                const float VertexGap = 0.015;
+                const float VertexGap = 0.015 * 2;
                 ivec2 texSize = textureSize(boundTexture, 0);
                 float gapX = VertexGap / texSize.x;
                 float gapY = VertexGap / texSize.y;
-                vec2 uvClampMin = vec2(-999, -999);
-                vec2 uvClampMax = vec2(999, 999);
+                vec2 uvClampMin = vec2(-1.0 / 0.0, -1.0 / 0.0);
+                vec2 uvClampMax = vec2(1.0 / 0.0, 1.0 / 0.0);
 
                 if (topFrag == 1)
                     uvClampMin.y = uvFlatFrag.y + gapY;

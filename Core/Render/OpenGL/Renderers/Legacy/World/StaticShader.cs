@@ -140,7 +140,7 @@ public class StaticShader : RenderProgram
         uniform vec3 colorMix;
         uniform int paletteIndex;
         uniform int colormapIndex;
-        uniform float vertexGapClampUV;
+        uniform int vertexGapClampUV;
 
         ${LightLevelFragVariables}
         ${SectorColorMapFragVariables}

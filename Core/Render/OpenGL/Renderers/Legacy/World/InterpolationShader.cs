@@ -115,7 +115,7 @@ public class InterpolationShader : RenderProgram
             leftFrag = splitOptions;
 
             uvFrag = mix(prevUV, uv, timeFrac);
-            uvFlatFrag = uv;
+            uvFlatFrag = uvFrag;
 
             colorMapIndexFrag = trunc(colorMapIndex / 256);
             vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
@@ -152,7 +152,7 @@ public class InterpolationShader : RenderProgram
         uniform vec3 colorMix;
         uniform int paletteIndex;
         uniform int colormapIndex;
-        uniform float vertexGapClampUV;
+        uniform int vertexGapClampUV;
 
         ${LightLevelFragVariables}
         ${SectorColorMapFragVariables}

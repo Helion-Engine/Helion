@@ -1589,6 +1589,21 @@ public class GeometryRenderer : IDisposable
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.BottomRight.Z;
+            vertex->PrevX = wv.BottomRight.X;
+            vertex->PrevY = wv.BottomRight.Y;
+            vertex->PrevZ = wv.PrevBottomZ;
+            vertex->U = wv.BottomRight.U;
+            vertex->V = wv.BottomRight.V;
+            vertex->PrevU = wv.BottomRight.PrevU;
+            vertex->PrevV = wv.BottomRight.PrevV;
+            vertex->Options = VertexOptions.World(0, 0, alpha, addAlpha, lightBufferIndex);
+            vertex->LightLevelAdd = lightLevelAdd;
+            vertex->ColorMapIndex = colorMapIndex;
+
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
             vertex->Z = wv.TopLeft.Z;
             vertex->PrevX = wv.BottomRight.X;
             vertex->PrevY = wv.BottomRight.Y;
@@ -1613,21 +1628,6 @@ public class GeometryRenderer : IDisposable
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->Options = VertexOptions.World(0, 1, alpha, addAlpha, lightBufferIndex);
-            vertex->LightLevelAdd = lightLevelAdd;
-            vertex->ColorMapIndex = colorMapIndex;
-
-            vertex++;
-            vertex->X = wv.BottomRight.X;
-            vertex->Y = wv.BottomRight.Y;
-            vertex->Z = wv.BottomRight.Z;
-            vertex->PrevX = wv.BottomRight.X;
-            vertex->PrevY = wv.BottomRight.Y;
-            vertex->PrevZ = wv.PrevBottomZ;
-            vertex->U = wv.BottomRight.U;
-            vertex->V = wv.BottomRight.V;
-            vertex->PrevU = wv.BottomRight.PrevU;
-            vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Options = VertexOptions.World(0, 0, alpha, addAlpha, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
         }
@@ -1695,6 +1695,23 @@ public class GeometryRenderer : IDisposable
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
+
+            // 5
+            vertex++;
+            vertex->X = wv.BottomRight.X;
+            vertex->Y = wv.BottomRight.Y;
+            vertex->Z = wv.BottomRight.Z;
+            vertex->PrevX = wv.BottomRight.X;
+            vertex->PrevY = wv.BottomRight.Y;
+            vertex->PrevZ = wv.PrevBottomZ;
+            vertex->U = wv.BottomRight.U;
+            vertex->V = wv.BottomRight.V;
+            vertex->PrevU = wv.BottomRight.PrevU;
+            vertex->PrevV = wv.BottomRight.PrevV;
+            vertex->Options = VertexOptions.World(0, 0, alpha, addAlpha, lightBufferIndex);
+            vertex->LightLevelAdd = lightLevelAdd;
+            vertex->ColorMapIndex = colorMapIndex;
+
             // 3
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1724,22 +1741,6 @@ public class GeometryRenderer : IDisposable
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
             vertex->Options = VertexOptions.World(0, 1, alpha, addAlpha, lightBufferIndex);
-            vertex->LightLevelAdd = lightLevelAdd;
-            vertex->ColorMapIndex = colorMapIndex;
-
-            // 5
-            vertex++;
-            vertex->X = wv.BottomRight.X;
-            vertex->Y = wv.BottomRight.Y;
-            vertex->Z = wv.BottomRight.Z;
-            vertex->PrevX = wv.BottomRight.X;
-            vertex->PrevY = wv.BottomRight.Y;
-            vertex->PrevZ = wv.PrevBottomZ;
-            vertex->U = wv.BottomRight.U;
-            vertex->V = wv.BottomRight.V;
-            vertex->PrevU = wv.BottomRight.PrevU;
-            vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Options = VertexOptions.World(0, 0, alpha, addAlpha, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
         }

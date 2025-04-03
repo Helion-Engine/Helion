@@ -89,6 +89,8 @@ public partial class Renderer : IDisposable
         SetGLDebugger();
         SetShaderVars();
 
+        GL.ProvokingVertex(ProvokingVertexMode.FirstVertexConvention);
+
         Textures = new LegacyGLTextureManager(config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
