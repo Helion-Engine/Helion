@@ -102,19 +102,11 @@ public class InterpolationShader : RenderProgram
 
         uniform mat4 mvp;
         uniform float timeFrac;
+        uniform int vertexGapClampUV;
         uniform sampler2D boundTexture;
 
         void main() {
-            float splitOptions = options;
-            float lightLevelBufferIndex = trunc(splitOptions / 16);
-            splitOptions -= (lightLevelBufferIndex * 16);
-            addAlphaFrag = trunc(splitOptions / 8);
-            splitOptions -= (addAlphaFrag * 8);
-            alphaFrag = trunc(splitOptions / 4);
-            splitOptions -= (alphaFrag * 4);
-            topFrag = trunc(splitOptions / 2);
-            splitOptions -= (topFrag * 2);
-            leftFrag = splitOptions;
+            ${VertexOptionsSet}
 
             uvFrag = mix(prevUV, uv, timeFrac);
             uvFlatFrag = uvFrag;
@@ -139,7 +131,8 @@ public class InterpolationShader : RenderProgram
     .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
     .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
     .Replace("${VertexGapVariables}", VertexFunction.VertexGapVariables)
-    .Replace("${VertexGapSet}", VertexFunction.VertexGapSet);
+    .Replace("${VertexGapSet}", VertexFunction.VertexGapSet)
+    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet);
 
     protected override string FragmentShader() => @"
         #version 330
@@ -159,7 +152,6 @@ public class InterpolationShader : RenderProgram
         uniform vec3 colorMix;
         uniform int paletteIndex;
         uniform int colormapIndex;
-        uniform int vertexGapClampUV;
 
         ${LightLevelFragVariables}
         ${SectorColorMapFragVariables}
