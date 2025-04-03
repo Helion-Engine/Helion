@@ -13,9 +13,11 @@ public static class VertexFunction
             uvClampMaxFrag = vec2(1.0 / 0.0, 1.0 / 0.0);
 
             if (vertexGapClampUV == 1) {
-                const float VertexGap = 0.015*4;
+                // Push y further since it's more likely to show t-junction issue with subsector flat splits.
+                const float VertexGapX = 0.1;
+                const float VertexGapY = 0.9;
                 ivec2 texSize = textureSize(boundTexture, 0);
-                vec2 uvGap = vec2(VertexGap / texSize.x, VertexGap / texSize.y);
+                vec2 uvGap = vec2(VertexGapX / texSize.x, VertexGapY / texSize.y);
                 
                 uvClampMinFrag.x = mix(uvClampMinFrag.x, uvFrag.x + uvGap.x, topLeft == 1);
                 uvClampMinFrag.y = mix(uvClampMinFrag.y, uvFrag.y + uvGap.y, topLeft == 1);
