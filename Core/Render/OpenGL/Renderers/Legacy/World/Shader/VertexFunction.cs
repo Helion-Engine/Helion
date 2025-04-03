@@ -12,9 +12,10 @@ public static class VertexFunction
             uvClampMinFrag = vec2(-1.0 / 0.0, -1.0 / 0.0);
             uvClampMaxFrag = vec2(1.0 / 0.0, 1.0 / 0.0);
 
-            if (vertexGapClampUV > 0) {
+            if (vertexGapClampUV == 1) {
+                const float VertexGap = 0.015*4;
                 ivec2 texSize = textureSize(boundTexture, 0);
-                vec2 uvGap = vec2(vertexGapClampUV / texSize.x, vertexGapClampUV / texSize.y);
+                vec2 uvGap = vec2(VertexGap / texSize.x, VertexGap / texSize.y);
                 
                 uvClampMinFrag.x = mix(uvClampMinFrag.x, uvFrag.x + uvGap.x, topLeft == 1);
                 uvClampMinFrag.y = mix(uvClampMinFrag.y, uvFrag.y + uvGap.y, topLeft == 1);
