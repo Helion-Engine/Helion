@@ -93,6 +93,7 @@ public class InterpolationShader : RenderProgram
         flat out float vertexLightLevelFrag;
         flat out float topFrag;
         flat out float leftFrag;
+        ${VertexGapVariables}
 
         ${SectorColorMapVertexFragVariables}
         ${LightLevelVertexVariables}
@@ -101,6 +102,7 @@ public class InterpolationShader : RenderProgram
 
         uniform mat4 mvp;
         uniform float timeFrac;
+        uniform sampler2D boundTexture;
 
         void main() {
             float splitOptions = options;
@@ -119,6 +121,8 @@ public class InterpolationShader : RenderProgram
 
             colorMapIndexFrag = trunc(colorMapIndex / 256);
             vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
+
+            ${VertexGapSet}
             
             vec4 mixPos = vec4(mix(prevPos, pos, timeFrac), 1.0);
             ${VertexLightBuffer}
@@ -133,7 +137,9 @@ public class InterpolationShader : RenderProgram
     .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"))
     .Replace("${SectorColorMapVertexFragVariables}", SectorColorMap.VertexFragVariables)
     .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
-    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction);
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
+    .Replace("${VertexGapVariables}", VertexFunction.VertexGapVariables)
+    .Replace("${VertexGapSet}", VertexFunction.VertexGapSet);
 
     protected override string FragmentShader() => @"
         #version 330
@@ -144,6 +150,7 @@ public class InterpolationShader : RenderProgram
         flat in float addAlphaFrag;
         flat in float topFrag;
         flat in float leftFrag;
+        ${VertexGapVariables}
 
         ${OutFragColor}
 
@@ -170,7 +177,8 @@ public class InterpolationShader : RenderProgram
     .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
     .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
     .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
-    .Replace("${OutFragColor}", GetOutFragColor());
+    .Replace("${OutFragColor}", GetOutFragColor())
+    .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);
 
     private OitOptions GetOitOptions()
     {

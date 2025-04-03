@@ -156,22 +156,15 @@ public class FragFunction
             vec2 texUV = uvFrag;
             if (vertexGapClampUV == 1)
             {
-                const float VertexGap = 0.015 * 2;
-                ivec2 texSize = textureSize(boundTexture, 0);
-                float gapX = VertexGap / texSize.x;
-                float gapY = VertexGap / texSize.y;
                 vec2 uvClampMin = vec2(-1.0 / 0.0, -1.0 / 0.0);
                 vec2 uvClampMax = vec2(1.0 / 0.0, 1.0 / 0.0);
 
-                if (topFrag == 1)
-                    uvClampMin.y = uvFlatFrag.y + gapY;
-                else
-                    uvClampMax.y = uvFlatFrag.y - gapY;
-            
-                if (leftFrag == 1)
-                    uvClampMin.x = uvFlatFrag.x + gapX;
-                else
-                    uvClampMax.x = uvFlatFrag.x - gapX;
+                // These are only based off the first vertex of the triangle
+                uvClampMin.y = mix(uvClampMin.y, uvFlatFrag.y + gapFrag.y, topFrag == 1);
+                uvClampMax.y = mix(uvClampMax.y, uvFlatFrag.y - gapFrag.y, topFrag == 0);
+
+                uvClampMin.x = mix(uvClampMin.x, uvFlatFrag.x + gapFrag.x, topFrag == 1);
+                uvClampMax.x = mix(uvClampMax.x, uvFlatFrag.x - gapFrag.x, topFrag == 0);
 
                 texUV = clamp(uvFrag, uvClampMin, uvClampMax);
             }
@@ -348,4 +341,6 @@ public class FragFunction
         fragColor.xyz = vec3(gray, gray, gray);
     }
 ";
+
+    public static string VertexGapVariables => "flat in vec2 gapFrag;";
 }
