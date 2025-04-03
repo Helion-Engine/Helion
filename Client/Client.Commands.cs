@@ -390,7 +390,11 @@ public partial class Client
     private void ListMaps(ConsoleCommandEventArgs args)
     {
         foreach (var map in m_archiveCollection.MapInfo.MapInfo.Maps)
-            HelionLog.Info(map.GetDisplayNameWithPrefix(m_archiveCollection.Language));
+        {
+            string mapName = map.GetDisplayNameWithPrefix(m_archiveCollection.Language);
+            string? mapWad = Path.GetFileName(m_archiveCollection.FindMap(map.MapName)?.ArchivePath);
+            HelionLog.Info((mapWad != null) ? $"{mapName} ({mapWad})" : mapName);
+        }
     }
 
     [ConsoleCommand("printmap", "Prints the current map")]
@@ -403,11 +407,20 @@ public partial class Client
             HelionLog.Info("No map loaded");
     }
 
-    [ConsoleCommand("printgame", "Prints the current game title, when available")]
+    [ConsoleCommand("printgame", "Prints the current game title (or WAD filename)")]
     private void PrintGame(ConsoleCommandEventArgs args)
     {
-        // TODO: some exist in gameinfo.txt `startuptitle` as well
+        // try gameconf (rare)
         string? title = m_archiveCollection.Definitions.GameConfDefinition.Data?.Title;
+        // then gameinfo (uncommon)
+        title ??= m_archiveCollection.Definitions.GameInfoDefinition.StartupTitle;
+        // fall back to WAD title
+        if (title == null)
+        {
+            var map = m_layerManager.WorldLayer?.CurrentMap;
+            if (map != null)
+                title = Path.GetFileName(m_archiveCollection.FindMap(map.MapName)?.ArchivePath);
+        }
         if (title != null)
             HelionLog.Info(title);
     }

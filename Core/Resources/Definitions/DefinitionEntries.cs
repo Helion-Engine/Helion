@@ -1,31 +1,32 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Helion.Dehacked;
+using Helion.Graphics.Palettes;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
+using Helion.Resources.Definitions.Boom;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Decorate;
-using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.Fonts;
+using Helion.Resources.Definitions.Id24;
 using Helion.Resources.Definitions.Language;
+using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.Definitions.MusInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.Definitions.Texture;
-using Helion.Util.Extensions;
-using NLog;
-using Helion.Util.Parser;
-using Helion.Resources.Definitions.Boom;
-using Helion.Dehacked;
-using Helion.World.Entities.Definition;
-using Helion.Util.Configs.Components;
-using static Helion.Util.Assertion.Assert;
-using Helion.Graphics.Palettes;
-using Helion.Resources.Definitions.MusInfo;
-using Helion.Resources.Definitions.Id24;
+using Helion.Resources.Definitions.Zdoom;
 using Helion.Resources.IWad;
-using System.Diagnostics.CodeAnalysis;
+using Helion.Util.Configs.Components;
+using Helion.Util.Extensions;
+using Helion.Util.Parser;
+using Helion.World.Entities.Definition;
+using NLog;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Definitions;
 
@@ -58,9 +59,14 @@ public class DefinitionEntries
     public readonly MusInfoDefinition MusInfoDefinition = new();
     public readonly Id24SkyDefinition Id24SkyDefinition = new();
     public readonly Id24TranslationDefinition Id24TranslationDefinition = new();
-    public readonly GameConfDefinition GameConfDefinition = new();
-    public PnamesTextureXCollection PnamesTextureXCollection => m_pnamesTextureXCollection;
 
+    /// <inheritdoc cref="Id24.GameConfDefinition"/>
+    public readonly GameConfDefinition GameConfDefinition = new();
+
+    /// <inheritdoc cref="Zdoom.GameInfoDefinition"/>
+    public readonly GameInfoDefinition GameInfoDefinition = new();
+
+    public PnamesTextureXCollection PnamesTextureXCollection => m_pnamesTextureXCollection;
     public DehackedDefinition? DehackedDefinition { get; set; }
 
     private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
@@ -108,6 +114,7 @@ public class DefinitionEntries
         m_entryNameToAction["MUSINFO"] = entry => ParseEntry(ParseMusInfo, entry);
         m_entryNameToAction["SKYDEFS"] = Id24SkyDefinition.Parse;
         m_entryNameToAction["GAMECONF"] = GameConfDefinition.Parse;
+        m_entryNameToAction["GAMEINFO"] = entry => ParseEntry(GameInfoDefinition.Parse, entry);
     }
 
     public void ParseDehackedPatch(string data)
