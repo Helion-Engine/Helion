@@ -89,8 +89,6 @@ public partial class Renderer : IDisposable
         SetGLDebugger();
         SetShaderVars();
 
-        GL.ProvokingVertex(ProvokingVertexMode.FirstVertexConvention);
-
         Textures = new LegacyGLTextureManager(config, archiveCollection);
         m_worldRenderer = new LegacyWorldRenderer(config, archiveCollection, Textures);
         m_hudRenderer = new LegacyHudRenderer(config, Textures, archiveCollection.DataCache);
@@ -477,6 +475,9 @@ public partial class Renderer : IDisposable
         GL.FrontFace(FrontFaceDirection.Ccw);
         GL.CullFace(CullFaceMode.Back);
         GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+
+        // Required for uv clamping in the vertex shader for pixel gap correction
+        GL.ProvokingVertex(ProvokingVertexMode.FirstVertexConvention);
     }
 
     private void SetGLDebugger()
