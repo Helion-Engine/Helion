@@ -833,7 +833,7 @@ public sealed class SpecialManager : ITickable, IDisposable
     {
         SectorPlanes planes = (SectorPlanes)line.Args.Arg1;
         var sectors = GetSectorsFromSpecialLine(line);
-        var rotate = -line.StartPosition.Angle(line.EndPosition);
+        var rotate = -line.GetAngle();
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);

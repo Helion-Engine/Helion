@@ -5,9 +5,10 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 public static class VertexOptions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float World(float alpha, float addAlpha, int lightLevelBufferIndex)
+    public static float World(float topLeft, float alpha, float addAlpha, int lightLevelBufferIndex)
     {
-        return alpha + (addAlpha * 2) + (lightLevelBufferIndex * 4);
+        // Alpha must be first since it's < 1
+        return alpha + (topLeft * 2) + (addAlpha * 4) + (lightLevelBufferIndex * 8);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

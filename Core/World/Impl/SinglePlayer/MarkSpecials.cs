@@ -296,7 +296,7 @@ public class MarkSpecials
     private static Vec3D GetActivatedLinePoint(IWorld world, Line line)
     {
         var lineCenter = line.Segment.FromTime(0.5);
-        var lineAngle = line.Segment.Start.Angle(line.Segment.End);
+        var lineAngle = line.GetAngle();
         lineCenter = lineCenter + Vec2D.UnitCircle(lineAngle - MathHelper.HalfPi) * 8;
 
         if (line.Back == null)

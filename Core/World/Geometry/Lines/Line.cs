@@ -33,7 +33,8 @@ public sealed class Line
     public int PhysicsCount;
     public string? MusicChangeFront;
     public string? MusicChangeBack;
-    private double? m_length;
+    private double m_length;
+    private double m_angle;
 
     public Vec2D StartPosition => Segment.Start;
     public Vec2D EndPosition => Segment.End;
@@ -66,6 +67,9 @@ public sealed class Line
             back.Line = this;
             back.Sector.Lines.Add(this);
         }
+
+        m_length = -1;
+        m_angle = double.MinValue;
     }
 
     public void Reset()
@@ -83,11 +87,21 @@ public sealed class Line
     // Same as Segment.Length, but caches the value.
     public double GetLength()
     {
-        if (m_length.HasValue)
-            return m_length.Value;
+        if (m_length != -1)
+            return m_length;
 
         m_length = Segment.Length();
-        return m_length.Value;
+        return m_length;
+    }
+
+    // Same as Segment.Start.Angle(Segment.End), but caches the value.
+    public double GetAngle()
+    {
+        if (m_angle != double.MinValue)
+            return m_angle;
+
+        m_angle = Segment.Start.Angle(Segment.End);
+        return m_angle;
     }
 
     public LineModel ToLineModel(IWorld world)

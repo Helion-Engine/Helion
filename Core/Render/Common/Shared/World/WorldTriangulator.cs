@@ -324,7 +324,8 @@ public static class WorldTriangulator
         var visibleBottomZ = (clipPlanes & SectorPlanes.Floor) == 0 ? bottomZ : Math.Max(bottomZ, opening.MinBottomZ);
         var visiblePrevBottomZ = (clipPlanes & SectorPlanes.Floor) == 0 ? prevBottomZ : Math.Max(prevBottomZ, prevOpening.MinBottomZ);
 
-        return new(bottomZ, topZ, visibleBottomZ, visibleTopZ, prevBottomZ, prevTopZ, visiblePrevBottomZ, visiblePrevTopZ);
+        return new(bottomZ - WorldStatic.LineVertexGap, topZ + WorldStatic.LineVertexGap, visibleBottomZ - WorldStatic.LineVertexGap, visibleTopZ + WorldStatic.LineVertexGap, 
+            prevBottomZ - WorldStatic.LineVertexGap, prevTopZ + WorldStatic.LineVertexGap, visiblePrevBottomZ - WorldStatic.LineVertexGap, visiblePrevTopZ + WorldStatic.LineVertexGap);
     }
 
     public static WallUV CalculateOneSidedWallUV(Line line, Side side, double length,
@@ -417,7 +418,7 @@ public static class WorldTriangulator
         if (side.Flags.WrapMidTex)
             return CalculateOneSidedWallUV(side.Line, side, length, textureUVInverse, visibleTopZ - visibleBottomZ, previous);
 
-        var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / side.Middle.Scale.X;
+        var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / side.Middle.Scale.X + (WorldStatic.LineVertexOffset * textureUVInverse.X);
         if (side.ScrollData != null)
         {
             if (previous)

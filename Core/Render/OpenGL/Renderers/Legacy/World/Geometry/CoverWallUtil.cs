@@ -28,12 +28,13 @@ public class CoverWallUtil
             v->PrevZ += heights.Add;
             v++;
 
-            v->Z += heights.Add;
-            v->PrevZ += heights.Add;
-            v++;
 
             v->Z -= heights.Sub;
             v->PrevZ -= heights.Sub;
+            v++;
+
+            v->Z += heights.Add;
+            v->PrevZ += heights.Add;
             v++;
 
             v->Z -= heights.Sub;
@@ -86,10 +87,10 @@ public class CoverWallUtil
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
                 v->Options, v->LightLevelAdd, 0);
             v++;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
+            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
                 v->Options, v->LightLevelAdd, 0);
             v++;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
+            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
                 v->Options, v->LightLevelAdd, 0);
             v++;
             staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
