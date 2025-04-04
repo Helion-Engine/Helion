@@ -123,7 +123,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             var line = world.Lines[i];
             if (WorldStatic.LineVertexGap > 0 && !world.SameAsPreviousMap)
             {
-                var unit = Vec2D.UnitCircle(line.Segment.Start.Angle(line.Segment.End));
+                var unit = Vec2D.UnitCircle(line.GetAngle());
                 var push = unit * WorldStatic.LineVertexGap;
                 line.Segment.Start -= push;
                 line.Segment.End += push;

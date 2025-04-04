@@ -240,18 +240,6 @@ public class PortalRenderer : IDisposable
         return result;
     }
 
-    private static void PushSeg(Line line, Side facingSide, PushDir dir, double amount)
-    {
-        // Push it out to prevent potential z-fighting. Default pushes out from the sector.
-        var angle = facingSide == line.Front ? line.Segment.Start.Angle(line.Segment.End) : line.Segment.End.Angle(line.Segment.Start);
-        if (dir == PushDir.Forward)
-            angle += MathHelper.Pi;
-
-        var pushUnit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * amount;
-        line.Segment.Start += pushUnit;
-        line.Segment.End += pushUnit;
-    }
-
     private bool IgnoreAltFloodFill(Side facingSide, Side otherSide, SectorPlaneFace face)
     {
         return IsSky(facingSide.Sector.GetSectorPlane(face)) || IsSky(otherSide.Sector.GetSectorPlane(face));

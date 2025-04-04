@@ -115,7 +115,7 @@ public class GeometryRenderer : IDisposable
     public static void PushSeg(Line line, Side facingSide, PushDir dir)
     {
         // Push it out to prevent potential z-fighting. Default pushes out from the sector.
-        var angle = facingSide == line.Front ? line.Segment.Start.Angle(line.Segment.End) : line.Segment.End.Angle(line.Segment.Start);
+        var angle = facingSide == line.Front ? line.GetAngle() : line.GetAngle() + MathHelper.Pi;
         if (dir == PushDir.Forward)
             angle += MathHelper.Pi;
 
@@ -1143,7 +1143,7 @@ public class GeometryRenderer : IDisposable
             // Restore the original position for alpha walls. Touching walls look bad with the overlap and it's not necessary.
             if (m_pixelGapCorrection && alpha < 1)
             {
-                var unit = Vec2D.UnitCircle(line.Segment.Start.Angle(line.Segment.End));
+                var unit = Vec2D.UnitCircle(line.GetAngle());
                 var push = unit * WorldStatic.LineVertexGap;
                 line.Segment.Start += push;
                 line.Segment.End -= push;
