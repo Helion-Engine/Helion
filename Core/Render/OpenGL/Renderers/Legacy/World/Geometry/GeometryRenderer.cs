@@ -61,6 +61,7 @@ public class GeometryRenderer : IDisposable
     private RenderContrastMode m_contrastMode;
     private bool m_vanillaRender;
     private bool m_renderCoverOnly;
+    private bool m_pixelGapCorrection;
     private GeometryRenderMode m_renderMode;
     private bool m_buffer = true;
     private Vec3D m_viewPosition;
@@ -131,6 +132,7 @@ public class GeometryRenderer : IDisposable
             m_skyRenderer.Reset();
 
         m_vanillaRender = world.Config.Render.VanillaRender;
+        m_pixelGapCorrection = world.Config.Render.PixelGapCorrection;
 
         PreloadAllTextures(world);
 
@@ -1112,7 +1114,8 @@ public class GeometryRenderer : IDisposable
         Wall middleWall = facingSide.Middle;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle, repeatY: facingSide.Flags.WrapMidTex);
 
-        float alpha = m_config.Render.TextureTransparency ? Math.Clamp(facingSide.Line.Alpha, 0, 1) : 1.0f;
+        var line = facingSide.Line;
+        float alpha = m_config.Render.TextureTransparency ? Math.Clamp(line.Alpha, 0, 1) : 1.0f;
         DynamicVertex[]? data = m_vertexLookup[facingSide.Id];
         var geometryType = alpha < 1 ? GeometryType.AlphaWall : GeometryType.TwoSidedMiddleWall;
 
@@ -1121,10 +1124,10 @@ public class GeometryRenderer : IDisposable
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
         {
             // Push forward to cover flood fill side and prevent z-fighting (ex Doom2 MAP25 bloodfall)
-            var segSave = facingSide.Line.Segment;
+            var segSave = line.Segment;
             // Don't push with flood plane. This is different from flood fill side and are already pushed.
             if (!facingSector.Flood)
-                PushSeg(facingSide.Line, facingSide, PushDir.Forward);
+                PushSeg(line, facingSide, PushDir.Forward);
 
             var opening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector, false);
             var prevOpening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector, true);
@@ -1136,6 +1139,16 @@ public class GeometryRenderer : IDisposable
 
             int colorMapIndex = Renderer.GetColorMapBufferIndex(facingSector, LightBufferType.Wall);
             int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Middle, facingSector);
+            
+            // Restore the original position for alpha walls. Touching walls look bad with the overlap and it's not necessary.
+            if (m_pixelGapCorrection && alpha < 1)
+            {
+                var unit = Vec2D.UnitCircle(line.Segment.Start.Angle(line.Segment.End));
+                var push = unit * WorldStatic.LineVertexGap;
+                line.Segment.Start += push;
+                line.Segment.End -= push;
+            }
+
             WallVertices wall = default;
             WorldTriangulator.HandleTwoSidedMiddle(facingSide,
                 texture.Dimension, texture.UVInverse, opening, prevOpening, isFrontSide, ref wall, out _, offset, prevOffset, 
@@ -1147,7 +1160,7 @@ public class GeometryRenderer : IDisposable
                 SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), alpha, addAlpha: 0);
 
             m_vertexLookup[facingSide.Id] = data;
-            facingSide.Line.Segment = segSave;
+            line.Segment = segSave;
         }
 
         // See RenderOneSided() for an ASCII image of why we do this.
@@ -1643,10 +1656,10 @@ public class GeometryRenderer : IDisposable
             DynamicVertex* vertex = startVertex;
             // Our triangle is added like:
             //    0--2
-            //    | /  3
+            //    | /  4
             //    |/  /|
             //    1  / |
-            //      4--5
+            //      5--3
 
             // 0
             vertex->X = wv.TopLeft.X;
@@ -1695,8 +1708,7 @@ public class GeometryRenderer : IDisposable
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
-
-            // 5
+            // 3
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
@@ -1712,7 +1724,7 @@ public class GeometryRenderer : IDisposable
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
-            // 3
+            // 4
             vertex++;
             vertex->X = wv.BottomRight.X;
             vertex->Y = wv.BottomRight.Y;
@@ -1728,7 +1740,7 @@ public class GeometryRenderer : IDisposable
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
-            // 4
+            // 5
             vertex++;
             vertex->X = wv.TopLeft.X;
             vertex->Y = wv.TopLeft.Y;
