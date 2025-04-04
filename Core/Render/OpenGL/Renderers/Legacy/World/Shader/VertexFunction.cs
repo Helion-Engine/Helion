@@ -9,8 +9,9 @@ public static class VertexFunction
     // This means it can only clamp by the top left and bottom right values, making the top right and bottom left edges incorrect.
     public static string VertexGapSet =>
     @"      
-            uvClampMinFrag = vec2(-1.0 / 0.0, -1.0 / 0.0);
-            uvClampMaxFrag = vec2(1.0 / 0.0, 1.0 / 0.0);
+            const float MaxValue = 1e30;
+            uvClampMinFrag = vec2(-MaxValue, -MaxValue);
+            uvClampMaxFrag = vec2(MaxValue, MaxValue);
 
             if (vertexGapClampUV == 1) {
                 // Push y further since it's more likely to show t-junction issue with subsector flat splits.
