@@ -1339,13 +1339,13 @@ public class GeometryRenderer : IDisposable
 
                 if (floor)
                 {
-                    lightIndex = Renderer.GetLightBufferIndex(sector, SectorPlaneFace.Floor, LightBufferType.Floor);
+                    lightIndex = Renderer.GetLightBufferIndex(renderSector, SectorPlaneFace.Floor, LightBufferType.Floor);
                     colorMapIndex = Renderer.GetColorMapBufferIndex(renderSector, LightBufferType.Floor);
                     lightPlane = sector.TransferFloorLightSector.Floor;
                 }
                 else
                 {
-                    lightIndex = Renderer.GetLightBufferIndex(sector, SectorPlaneFace.Floor, LightBufferType.Ceiling);
+                    lightIndex = Renderer.GetLightBufferIndex(renderSector, SectorPlaneFace.Floor, LightBufferType.Ceiling);
                     colorMapIndex = Renderer.GetColorMapBufferIndex(renderSector, LightBufferType.Ceiling);
                     lightPlane = sector.TransferCeilingLightSector.Ceiling;
                 }

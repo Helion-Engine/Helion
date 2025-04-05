@@ -815,13 +815,16 @@ public class StaticCacheGeometryRenderer : IDisposable
                 var sector = sectors[i];
                 // Ignore if sector controlled by this moving transfer heights sector is still moving.
                 // Movement clearing functions need to be handled when that move is complete.
-                if (plane.Facing == SectorPlaneFace.Floor && sector.ActiveFloorMove != null)
+                if (sector.IsPlaneMoving(plane.Facing))
                     continue;
-                else if (plane.Facing == SectorPlaneFace.Ceiling && sector.ActiveCeilingMove != null)
-                    continue;
+
                 HandleSectorMoveComplete(world, sector, sector.GetSectorPlane(plane.Facing));
             }
         }
+
+        // Control sector is still moving. That sector needs to finalize the movement for this sector.
+        if (plane.Sector.TransferHeights != null && plane.Sector.TransferHeights.ControlSector.IsPlaneMoving(plane.Facing))
+            return;
 
         HandleSectorMoveComplete(world, plane.Sector, plane);
     }
