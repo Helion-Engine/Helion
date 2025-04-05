@@ -535,6 +535,14 @@ public sealed class Sector
             ActiveCeilingMove = special;
     }
 
+    public bool IsPlaneMoving(SectorPlaneFace planeFace)
+    {
+        if (planeFace == SectorPlaneFace.Floor)
+            return ActiveFloorMove != null;
+        else
+            return ActiveCeilingMove != null;
+    }
+
     public Sector? GetLowestAdjacentFloor()
     {
         double lowestZ = Floor.Z;
