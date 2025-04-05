@@ -180,13 +180,11 @@ public partial class WorldLayer : IGameLayerParent
 
         archiveCollection.TextureManager.InitSprites(world);
         ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
-        config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
 
         var worldLayer = new WorldLayer(parent, config, console, fpsTracker, world, mapInfoDef, profiler)
         {
             SameAsPreviousMap = sameAsPreviousMap
         };
-
 
         Log.Info($"Completed world load {stopwatch.Elapsed}");
         return worldLayer;
@@ -243,7 +241,6 @@ public partial class WorldLayer : IGameLayerParent
     private static void ApplyConfiguration(IConfig config, ArchiveCollection archiveCollection, SkillDef skillDef, WorldModel? worldModel)
     {
         config.Game.Skill.Set(archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(skillDef));
-        config.Game.SelectedSkillDefinition = skillDef;
 
         if (worldModel == null)
             return;
