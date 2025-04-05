@@ -697,7 +697,6 @@ public partial class Client
                 HelionLog.Info($"{args.Command} set to the same value as before");
                 break;
             case ConfigSetResult.Queued:
-                HelionLog.Info($"{args.Command} has been queued up for change: {component.Value.SetFlags}");
                 break;
             case ConfigSetResult.NotSetByBadConversion:
                 success = false;
@@ -709,7 +708,7 @@ public partial class Client
                 break;
             default:
                 success = false;
-                HelionLog.Error($"{args.Command} unexpected setting result, report to a developer!");
+                HelionLog.Error($"{args.Command} unexpected setting result");
                 break;
         }
 
@@ -829,6 +828,9 @@ public partial class Client
                 return result;
             }
 
+            m_config.Game.Skill.Set(m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(skillDef));
+            m_config.Game.Skill.ApplyQueuedChange(ConfigSetFlags.OnNewWorld);
+            m_config.Game.SelectedSkillDefinition = null;
             m_window.InputManager.Clear();
             m_tickCommands.Clear();
 

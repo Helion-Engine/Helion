@@ -109,7 +109,7 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [ConfigInfo("Write stats to levelstat.txt.", save: false)]
     public readonly ConfigValue<bool> LevelStat = new(false);
 
-    [ConfigInfo("Skill level to use when starting a map.", save: false, demo: true)]
+    [ConfigInfo("Skill level to use when starting a map.", save: false, demo: true, mapRestartRequired: true)]
     public readonly ConfigValue<SkillLevel> Skill = new(SkillLevel.Medium, ConfigSetFlags.OnNewWorld, OnlyValidEnums<SkillLevel>());
 
     [ConfigInfo("Enable monster closet detection and limited monster AI (Map restart required).", mapRestartRequired: true, demo: true)]
