@@ -10,7 +10,8 @@ public enum FragColorFunctionOptions
     AddAlpha = 1,
     Alpha = 2,
     Fuzz = 4,
-    Colormap = 8
+    Colormap = 8,
+    VertexGapClampUV = 16
 }
 
 public enum ColorMapFetchContext { Default, Hud, Entity }
@@ -146,12 +147,23 @@ public class FragFunction
                 .Replace("${IndexAdd}", indexAdd);
     }
 
+    private static string GetTextureMappingClamp(FragColorFunctionOptions options)
+    {
+        if ((options & FragColorFunctionOptions.VertexGapClampUV) == 0)
+            return "vec2 texUV = uvFrag;";
+
+        return @"vec2 texUV = clamp(uvFrag, uvClampMinFrag, uvClampMaxFrag);";
+    }
+
     public static string FragColorFunction(FragColorFunctionOptions options, ColorMapFetchContext ctx = ColorMapFetchContext.Default,
         OitOptions oitOptions = OitOptions.None, string postProcess = "")
     {
-        var fragColor = @"fragColor = texture(boundTexture, uvFrag.st);";
-        if (oitOptions == OitOptions.OitTransparentPass)
-            fragColor = "vec4 fragColor = texture(boundTexture, uvFrag.st);";
+        var declareFragColor = oitOptions == OitOptions.OitTransparentPass ? "vec4 fragColor" : "fragColor";
+        var textureMappingClamp = GetTextureMappingClamp(options);
+
+        var fragColor = @$"
+        {textureMappingClamp}
+        {declareFragColor} = texture(boundTexture, texUV);";
 
         return
             fragColor +
@@ -313,4 +325,6 @@ public class FragFunction
         fragColor.xyz = vec3(gray, gray, gray);
     }
 ";
+
+    public static string VertexGapVariables => "flat in vec2 uvClampMinFrag; flat in vec2 uvClampMaxFrag;";
 }

@@ -39,7 +39,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_renderFuzzRefractionColorLocation;
     private readonly int m_screenBoundsLocation;
 
-    public EntityProgram() : base("Entity")
+    public EntityProgram(string name) : base($"Entity - {name}")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");

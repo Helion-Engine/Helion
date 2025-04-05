@@ -2,4 +2,8 @@
 
 internal class EntityCompositeProgram : EntityProgram
 {
+    public EntityCompositeProgram() : base("OIT Composite")
+    {
+
+    }
 }

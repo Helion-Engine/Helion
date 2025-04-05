@@ -24,6 +24,7 @@ public class StaticShader : RenderProgram
     private readonly int m_colorMapIndexLocation;
     private readonly int m_lightModeLocation;
     private readonly int m_gammaCorrectionLocation;
+    private readonly int m_vertexGapClampUV;
 
     public StaticShader() : base("WorldStatic")
     {
@@ -42,6 +43,7 @@ public class StaticShader : RenderProgram
         m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
         m_lightModeLocation = Uniforms.GetLocation("lightMode");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
+        m_vertexGapClampUV = Uniforms.GetLocation("vertexGapClampUV");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -60,12 +62,13 @@ public class StaticShader : RenderProgram
     public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
     public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
+    public void VertexGapClampUV(bool value) => Uniforms.Set(value, m_vertexGapClampUV);
 
     protected override string VertexShader() => @"
         #version 330
 
         layout(location = 0) in vec3 pos;
-        layout(location = 1) in vec2 uv; 
+        layout(location = 1) in vec2 uv;
         layout(location = 2) in float lightLevelAdd;
         layout(location = 3) in float options;
         layout(location = 4) in float colorMapIndex;
@@ -75,6 +78,7 @@ public class StaticShader : RenderProgram
         flat out float addAlphaFrag;
         flat out float colorMapIndexFrag;
         flat out float vertexLightLevelFrag;
+        ${VertexGapVariables}
 
         ${SectorColorMapVertexFragVariables}
         ${LightLevelVertexVariables}
@@ -83,18 +87,18 @@ public class StaticShader : RenderProgram
 
         uniform mat4 mvp;
         uniform float timeFrac;
+        uniform int vertexGapClampUV;
+        uniform sampler2D boundTexture;
 
         void main() {
             uvFrag = uv;
 
-            float splitOptions = options;
-            float lightLevelBufferIndex = trunc(splitOptions / 4);
-            splitOptions -= (lightLevelBufferIndex * 4);
-            addAlphaFrag = trunc(splitOptions / 2);
-            alphaFrag = splitOptions - (addAlphaFrag * 2);  
+            ${VertexOptionsSet}
 
             colorMapIndexFrag = trunc(colorMapIndex / 256);
             vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
+            
+            ${VertexGapSet}
             
             vec4 mixPos = vec4(pos, 1.0);
             ${VertexLightBuffer}
@@ -109,7 +113,10 @@ public class StaticShader : RenderProgram
     .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"))
     .Replace("${SectorColorMapVertexFragVariables}", SectorColorMap.VertexFragVariables)
     .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
-    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction);
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
+    .Replace("${VertexGapVariables}", VertexFunction.VertexGapVariables)
+    .Replace("${VertexGapSet}", VertexFunction.VertexGapSet)
+    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet);
 
     protected override string FragmentShader() => @"
         #version 330
@@ -117,6 +124,7 @@ public class StaticShader : RenderProgram
         in vec2 uvFrag;
         flat in float alphaFrag;
         flat in float addAlphaFrag;
+        ${VertexGapVariables}
 
         out vec4 fragColor;
 
@@ -137,7 +145,8 @@ public class StaticShader : RenderProgram
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap))
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV))
     .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
-    .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction);
+    .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
+    .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);
 }

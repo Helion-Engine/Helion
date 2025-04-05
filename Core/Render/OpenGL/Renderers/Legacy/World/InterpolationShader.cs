@@ -28,8 +28,9 @@ public class InterpolationShader : RenderProgram
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_accumTextureLocation;
     private readonly int m_accumCountTextureLocation;
+    private readonly int m_vertexGapClampUV;
 
-    public InterpolationShader() : base("World")
+    public InterpolationShader(string name) : base($"World Interpolation - {name}")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
@@ -49,6 +50,7 @@ public class InterpolationShader : RenderProgram
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_accumTextureLocation = Uniforms.GetLocation("accum");
         m_accumCountTextureLocation = Uniforms.GetLocation("accumCount");
+        m_vertexGapClampUV = Uniforms.GetLocation("vertexGapClampUV");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -70,6 +72,7 @@ public class InterpolationShader : RenderProgram
     public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
     public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
+    public void VertexGapClampUV(bool value) => Uniforms.Set(value, m_vertexGapClampUV);
 
     protected override string VertexShader() => @"
         #version 330
@@ -87,6 +90,7 @@ public class InterpolationShader : RenderProgram
         flat out float addAlphaFrag;
         flat out float colorMapIndexFrag;
         flat out float vertexLightLevelFrag;
+        ${VertexGapVariables}
 
         ${SectorColorMapVertexFragVariables}
         ${LightLevelVertexVariables}
@@ -95,17 +99,18 @@ public class InterpolationShader : RenderProgram
 
         uniform mat4 mvp;
         uniform float timeFrac;
+        uniform int vertexGapClampUV;
+        uniform sampler2D boundTexture;
 
         void main() {
-            float splitOptions = options;
-            float lightLevelBufferIndex = trunc(splitOptions / 4);
-            splitOptions -= (lightLevelBufferIndex * 4);
-            addAlphaFrag = trunc(splitOptions / 2);
-            alphaFrag = splitOptions - (addAlphaFrag * 2);
+            ${VertexOptionsSet}
+
             uvFrag = mix(prevUV, uv, timeFrac);
 
             colorMapIndexFrag = trunc(colorMapIndex / 256);
             vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
+
+            ${VertexGapSet}
             
             vec4 mixPos = vec4(mix(prevPos, pos, timeFrac), 1.0);
             ${VertexLightBuffer}
@@ -120,7 +125,10 @@ public class InterpolationShader : RenderProgram
     .Replace("${LightLevelVertexDist}", LightLevel.VertexDist("mixPos"))
     .Replace("${SectorColorMapVertexFragVariables}", SectorColorMap.VertexFragVariables)
     .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
-    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction);
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
+    .Replace("${VertexGapVariables}", VertexFunction.VertexGapVariables)
+    .Replace("${VertexGapSet}", VertexFunction.VertexGapSet)
+    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet);
 
     protected override string FragmentShader() => @"
         #version 330
@@ -128,6 +136,7 @@ public class InterpolationShader : RenderProgram
         in vec2 uvFrag;
         flat in float alphaFrag;
         flat in float addAlphaFrag;
+        ${VertexGapVariables}
 
         ${OutFragColor}
 
@@ -149,11 +158,12 @@ public class InterpolationShader : RenderProgram
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap, oitOptions: GetOitOptions()))
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV, oitOptions: GetOitOptions()))
     .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
     .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
     .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
-    .Replace("${OutFragColor}", GetOutFragColor());
+    .Replace("${OutFragColor}", GetOutFragColor())
+    .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);
 
     private OitOptions GetOitOptions()
     {

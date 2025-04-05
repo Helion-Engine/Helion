@@ -20,7 +20,7 @@ public class EntityRenderer : IDisposable
 {
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
-    private readonly EntityProgram m_program = new();
+    private readonly EntityProgram m_program = new("Main");
     private readonly EntityTransparentProgram m_programTransparent = new();
     private readonly EntityCompositeProgram m_programComposite = new();
     private readonly EntityFuzzRefractionProgram m_programFuzzRefraction = new();
@@ -336,7 +336,6 @@ public class EntityRenderer : IDisposable
         GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(m_programComposite, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
-        //m_dataManager.RenderFuzz(PrimitiveType.Points);
         m_programComposite.Unbind();
     }
 

@@ -475,6 +475,9 @@ public partial class Renderer : IDisposable
         GL.FrontFace(FrontFaceDirection.Ccw);
         GL.CullFace(CullFaceMode.Back);
         GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+
+        // Required for uv clamping in the vertex shader for pixel gap correction
+        GL.ProvokingVertex(ProvokingVertexMode.FirstVertexConvention);
     }
 
     private void SetGLDebugger()

@@ -9,9 +9,11 @@
     5. Launch the Helion executable using one of the other methods described above, then edit the `files.directories = [".", "wads"]` line in `config.ini` to include the directory that contains your IWADs.
 4. Run the Helion executable (Helion.exe on Windows, ./Helion on Linux) to play.
 
-# Portable Mode
+# User Data Folder / Portable Mode
 
-Helion will run in portable mode (user data is stored in the application folder) if it finds a `config.ini` file in the same folder, or if `-portable` is passed as a launch parameter. Otherwise, user data is stored in `Saved Games\Helion` in the user folder on Windows, and (most commonly) `~/.config/helion` on Linux.
+By default, user data is stored in `<user folder>\Saved Games\Helion` on Windows and (most commonly) `~/.config/helion` on Linux.
+
+Helion will run in portable mode (user data is stored in the application folder) if it finds a `config.ini` file in its folder, or if `-portable` is passed as a launch parameter.
 
 # Launch Parameters
 
@@ -44,6 +46,34 @@ Option                        | Description
 +setpos [x,y,z]               | Sets the player's start position
 +setangle [deg]               | Sets the player's start angle
 +setpitch [deg]               | Sets the player's start pitch
+
+# Console Commands
+
+Helion's console can be opened with the tilde key (~) and features tab-completion. Here is a non-exhaustive list of
+useful commands:
+
+Command                 | Description
+------------------------|------------
+[option] [value]        | Changes a config option (e.g. hud.showfps 1)
+[option]                | Prints the value of a config option
+chasecam                | Toggles a 3rd person camera and pauses the game
+fly                     | Toggles fly mode
+god                     | Toggles god mode
+noclip                  | Toggles noclip mode
+findexits               | Highlights exits on the automap
+findkeys                | Highlights keys on the automap
+findkeylines            | Highlights key lines on the automap
+marksecrets             | Toggles secret highlighting on the automap
+markspecials            | Toggles ingame and automap highlighting of specials (shown when crossing a line special or pressing use on a sector triggered by one)
+map [mapname]           | Changes the map (health/inventory are reset)
+exitlevel               | Exits to the next level (health/inventory are preserved)
+exitlevelsecret         | Exits to the next level, using the secret exit if one exists
+bind [key] [command]    | Sets a keybind, replacing any existing for the key
+bindadd [key] [command] | Adds an additional keybind for a key
+unbind [key]            | Removes keybinds for a key
+listmaps                | Lists available maps
+printmap                | Prints the current map name
+printgame               | Prints the current game/WAD name
 
 # Common issues
 

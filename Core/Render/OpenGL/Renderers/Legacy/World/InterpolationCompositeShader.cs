@@ -2,4 +2,8 @@
 
 internal class InterpolationCompositeShader : InterpolationShader
 {
+    public InterpolationCompositeShader() : base("OIT Composite")
+    {
+
+    }
 }

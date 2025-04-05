@@ -2,4 +2,8 @@
 
 public class InterpolationTransparentShader : InterpolationShader
 {
+    public InterpolationTransparentShader() : base("OIT Transparent")
+    {
+
+    }
 }

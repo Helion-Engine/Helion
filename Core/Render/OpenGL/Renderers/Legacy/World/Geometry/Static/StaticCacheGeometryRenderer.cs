@@ -123,7 +123,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             var line = world.Lines[i];
             if (WorldStatic.LineVertexGap > 0 && !world.SameAsPreviousMap)
             {
-                var unit = Vec2D.UnitCircle(line.Segment.Start.Angle(line.Segment.End));
+                var unit = Vec2D.UnitCircle(line.GetAngle());
                 var push = unit * WorldStatic.LineVertexGap;
                 line.Segment.Start -= push;
                 line.Segment.End += push;
@@ -815,13 +815,16 @@ public class StaticCacheGeometryRenderer : IDisposable
                 var sector = sectors[i];
                 // Ignore if sector controlled by this moving transfer heights sector is still moving.
                 // Movement clearing functions need to be handled when that move is complete.
-                if (plane.Facing == SectorPlaneFace.Floor && sector.ActiveFloorMove != null)
+                if (sector.IsPlaneMoving(plane.Facing))
                     continue;
-                else if (plane.Facing == SectorPlaneFace.Ceiling && sector.ActiveCeilingMove != null)
-                    continue;
+
                 HandleSectorMoveComplete(world, sector, sector.GetSectorPlane(plane.Facing));
             }
         }
+
+        // Control sector is still moving. That sector needs to finalize the movement for this sector.
+        if (plane.Sector.TransferHeights != null && plane.Sector.TransferHeights.ControlSector.IsPlaneMoving(plane.Facing))
+            return;
 
         HandleSectorMoveComplete(world, plane.Sector, plane);
     }
