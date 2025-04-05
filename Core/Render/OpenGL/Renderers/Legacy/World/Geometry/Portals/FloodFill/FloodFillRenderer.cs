@@ -149,14 +149,17 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         int lightIndex, colorMapIndex;
         if (sectorPlane.Facing == SectorPlaneFace.Floor)
         {
-            lightIndex = Renderer.GetLightBufferIndex(sectorPlane.Sector, LightBufferType.Floor);
+            lightIndex = Renderer.GetLightBufferIndex(sectorPlane.Sector, SectorPlaneFace.Floor, LightBufferType.Floor);
             colorMapIndex = Renderer.GetColorMapBufferIndex(sectorPlane.Sector, LightBufferType.Floor);
         }
         else
         {
-            lightIndex = Renderer.GetLightBufferIndex(sectorPlane.Sector, LightBufferType.Ceiling);
+            lightIndex = Renderer.GetLightBufferIndex(sectorPlane.Sector, SectorPlaneFace.Ceiling, LightBufferType.Ceiling);
             colorMapIndex = Renderer.GetColorMapBufferIndex(sectorPlane.Sector, LightBufferType.Ceiling);
         }
+
+        var flatLightLevel = (byte)Math.Clamp(sectorPlane.LightLevelAbsolute ? sectorPlane.LightLevel : (short)0, (short)0, (short)255);
+        colorMapIndex = VertexOptions.ColorMapIndex(colorMapIndex, flatLightLevel);
 
         for (var node = m_freeData.First; node != null; node = node.Next)
         {
