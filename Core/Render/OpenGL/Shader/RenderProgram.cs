@@ -112,7 +112,7 @@ public abstract class RenderProgram : IDisposable
         GL.ShaderSource(shaderHandle, source);
         GL.CompileShader(shaderHandle);
         ThrowIfShaderCompileFailure(shaderHandle, type);
-
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Shader, shaderHandle, $"{type} - {Label}");
         GL.AttachShader(m_program, shaderHandle);
         return shaderHandle;
     }

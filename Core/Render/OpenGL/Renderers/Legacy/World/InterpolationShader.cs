@@ -30,7 +30,7 @@ public class InterpolationShader : RenderProgram
     private readonly int m_accumCountTextureLocation;
     private readonly int m_vertexGapClampUV;
 
-    public InterpolationShader() : base("World")
+    public InterpolationShader(string name) : base($"World Interpolation - {name}")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");

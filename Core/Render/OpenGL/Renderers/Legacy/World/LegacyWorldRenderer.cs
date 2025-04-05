@@ -29,7 +29,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly GeometryRenderer m_geometryRenderer;
     private readonly EntityRenderer m_entityRenderer;
     private readonly PrimitiveWorldRenderer m_primitiveRenderer;
-    private readonly InterpolationShader m_interpolationProgram = new();
+    private readonly InterpolationShader m_interpolationProgram = new("Main");
     private readonly InterpolationTransparentShader m_interpolationTransparentProgram = new();
     private readonly InterpolationCompositeShader m_interpolationCompositeProgram = new();
     private readonly StaticShader m_staticProgram = new();

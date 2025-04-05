@@ -2,4 +2,8 @@
 
 class EntityTransparentProgram : EntityProgram
 {
+    public EntityTransparentProgram() : base("OIT Transparent")
+    {
+
+    }
 }
