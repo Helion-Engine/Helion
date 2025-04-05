@@ -52,28 +52,29 @@ Option                        | Description
 Helion's console can be opened with the tilde key (~) and features tab-completion. Here is a non-exhaustive list of
 useful commands:
 
-Command                 | Description
-------------------------|------------
-[option] [value]        | Changes a config option (e.g. hud.showfps 1)
-[option]                | Prints the value of a config option
-chasecam                | Toggles a 3rd person camera and pauses the game
-fly                     | Toggles fly mode
-god                     | Toggles god mode
-noclip                  | Toggles noclip mode
-findexits               | Highlights exits on the automap
-findkeys                | Highlights keys on the automap
-findkeylines            | Highlights key lines on the automap
-marksecrets             | Toggles secret highlighting on the automap
-markspecials            | Toggles ingame and automap highlighting of specials (shown when crossing a line special or pressing use on a sector triggered by one)
-map [mapname]           | Changes the map (health/inventory are reset)
-exitlevel               | Exits to the next level (health/inventory are preserved)
-exitlevelsecret         | Exits to the next level, using the secret exit if one exists
-bind [key] [command]    | Sets a keybind, replacing any existing for the key
-bindadd [key] [command] | Adds an additional keybind for a key
-unbind [key]            | Removes keybinds for a key
-listmaps                | Lists available maps
-printmap                | Prints the current map name
-printgame               | Prints the current game/WAD name
+Command                         | Description
+--------------------------------|------------
+[option] [value]                | Changes a config option (e.g. hud.showfps 1)
+[option]                        | Prints the value of a config option
+toggle [option] [value1] [...]  | Cycles a config option through a list of values (e.g. toggle audio.musicvolume 1 0.5 0)
+chasecam                        | Toggles a 3rd person camera and pauses the game
+fly                             | Toggles fly mode
+god                             | Toggles god mode
+noclip                          | Toggles noclip mode
+findexits                       | Highlights exits on the automap
+findkeys                        | Highlights keys on the automap
+findkeylines                    | Highlights key lines on the automap
+marksecrets                     | Toggles secret highlighting on the automap
+markspecials                    | Toggles ingame and automap highlighting of specials (shown when crossing a line special or pressing use on a sector triggered by one)
+map [mapname]                   | Changes the map (health/inventory are reset)
+exitlevel                       | Exits to the next level (health/inventory are preserved)
+exitlevelsecret                 | Exits to the next level, using the secret exit if one exists
+bind [key] [command]            | Sets a keybind, replacing any existing for the key
+bindadd [key] [command]         | Adds an additional keybind for a key
+unbind [key]                    | Removes keybinds for a key
+listmaps                        | Lists available maps
+printmap                        | Prints the current map name
+printgame                       | Prints the current game/WAD name
 
 # Common issues
 

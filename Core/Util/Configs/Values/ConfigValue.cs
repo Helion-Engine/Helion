@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 using static Helion.Util.Configs.Values.ConfigConverters;
@@ -89,26 +90,9 @@ public class ConfigValue<T> : IConfigValue where T : notnull
 
     public ConfigSetResult Set(object newValue, bool writeToConfig = true)
     {
-        try
-        {
-            if (typeof(T) == newValue.GetType())
-            {
-                return Set((T)newValue, writeToConfig);
-            }
-
-            if (typeof(T) == typeof(bool) && newValue is string str && str.Length == 1 && str[0] == '*')
-            {
-                bool value = Convert.ToBoolean(Value);
-                return Set(!value, writeToConfig);
-            }
-
-            T converted = ObjectToTypeConverterOrThrow(newValue);
-            return Set(converted, writeToConfig);
-        }
-        catch
-        {
-            return ConfigSetResult.NotSetByBadConversion;
-        }
+        return TryConvert(newValue, out T? convertedValue)
+            ? Set(convertedValue, writeToConfig)
+            : ConfigSetResult.NotSetByBadConversion;
     }
 
     public ConfigSetResult Set(T newValue, bool writeToConfig = true)
@@ -125,6 +109,39 @@ public class ConfigValue<T> : IConfigValue where T : notnull
             HasTemporaryValue = true;
         }
         return result;
+    }
+
+    public bool TryConvert(object value, [NotNullWhen(true)] out object? converted)
+    {
+        try
+        {
+            if (typeof(T) == value.GetType())
+            {
+                converted = value;
+                return true;
+            }
+
+            if (typeof(T) == typeof(bool) && value is string str && str == "*")
+            {
+                converted = !Convert.ToBoolean(Value);
+                return true;
+            }
+
+            converted = ObjectToTypeConverterOrThrow(value);
+            return true;
+        }
+        catch
+        {
+            converted = null;
+            return false;
+        }
+    }
+
+    public bool TryConvert(object value, [NotNullWhen(true)] out T? converted)
+    {
+        bool successful = TryConvert(value, out object? convertedObj);
+        converted = (T?)convertedObj;
+        return successful;
     }
 
     public void ResetToUserValue()
@@ -184,7 +201,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     }
 
     public IConfigValue Clone()
-    {        
+    {
         return new ConfigValue<T>(Value, m_filter!);
     }
 }
