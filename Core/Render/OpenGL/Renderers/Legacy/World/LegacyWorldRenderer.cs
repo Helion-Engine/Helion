@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
@@ -32,11 +33,13 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly InterpolationShader m_interpolationProgram = new("Main");
     private readonly InterpolationTransparentShader m_interpolationTransparentProgram = new();
     private readonly InterpolationCompositeShader m_interpolationCompositeProgram = new();
-    private readonly StaticShader m_staticProgram = new();
+    private readonly StaticShader m_staticProgram = new("Main");
+    private readonly StaticPlaneZShader m_staticPlaneZProgram = new();
     private readonly RenderWorldDataManager m_worldDataManager = new();
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly Stopwatch m_stopwatch = new();
+    private readonly OitFrameBuffer m_oitFrameBuffer = new();
     private Vec2D m_occludeViewPos;
     private bool m_occlude;
     private bool m_vanillaRender;
@@ -46,8 +49,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private Entity? m_viewerEntity;
     private IWorld? m_previousWorld;
     private RenderBlockMapData m_renderData;
-
-    private readonly OitFrameBuffer m_oitFrameBuffer = new();
+    private PlaneZFrameBuffer? m_planeZFrameBuffer;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
@@ -76,6 +78,11 @@ public class LegacyWorldRenderer : WorldRenderer
         m_vanillaRender = m_config.Render.VanillaRender;
         TransferHeights.FlushSectorReferences();
         m_lastRenderedWorld.SetTarget(world);
+
+        if (m_vanillaRender && m_planeZFrameBuffer == null)
+            m_planeZFrameBuffer = new();
+        else
+            m_planeZFrameBuffer?.Dispose();
 
         if (m_previousWorld != null)
             m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
@@ -258,7 +265,9 @@ public class LegacyWorldRenderer : WorldRenderer
         if (framebuffer.DepthTexture == null)
             throw new Exception("Framebuffer must have a depth texture.");
 
-        m_oitFrameBuffer.CreateOrUpdate((renderInfo.Viewport.Width, renderInfo.Viewport.Height), framebuffer.DepthTexture);
+        var dimension = new Dimension(renderInfo.Viewport.Width, renderInfo.Viewport.Height);
+        m_oitFrameBuffer.CreateOrUpdate(dimension, framebuffer.DepthTexture);
+        m_planeZFrameBuffer?.CreateOrUpdate(dimension);
 
         if (m_lastTicker != world.GameTicker)
             m_entityRenderer.Start(renderInfo);
@@ -288,7 +297,7 @@ public class LegacyWorldRenderer : WorldRenderer
             {
                 m_staticProgram.Bind();
                 GL.ActiveTexture(TextureUnit.Texture0);
-                SetStaticUniforms(renderInfo);
+                SetStaticUniforms(m_staticProgram, renderInfo);
                 m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
                 m_geometryRenderer.RenderStaticGeometryWalls();
                 m_staticProgram.VertexGapClampUV(false);
@@ -314,7 +323,7 @@ public class LegacyWorldRenderer : WorldRenderer
         {
             m_staticProgram.Bind();
             GL.ActiveTexture(TextureUnit.Texture0);
-            SetStaticUniforms(renderInfo);
+            SetStaticUniforms(m_staticProgram, renderInfo);
             m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
             m_geometryRenderer.RenderStaticGeometryWalls();
             m_staticProgram.VertexGapClampUV(false);
@@ -349,6 +358,23 @@ public class LegacyWorldRenderer : WorldRenderer
 
         RenderTwoSidedMiddleWalls(renderInfo);
         GL.ColorMask(true, true, true, true);
+
+        if (m_planeZFrameBuffer != null)
+        {
+            GL.Disable(EnableCap.Blend);
+            m_planeZFrameBuffer.StartRender();
+            m_planeZFrameBuffer.BindFrameBuffer();
+            m_staticPlaneZProgram.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
+            SetStaticUniforms(m_staticPlaneZProgram, renderInfo);
+            m_geometryRenderer.RenderStaticGeometryFloors();
+            m_staticPlaneZProgram.Unbind();
+            m_planeZFrameBuffer.UnbindFrameBuffer();
+            framebuffer.Bind();
+            m_planeZFrameBuffer.BindPlaneZTexture(TextureUnit.Texture8);
+            ResetBlendEquations();
+            GL.Enable(EnableCap.Blend);
+        }
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer, true);
@@ -434,7 +460,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_staticProgram.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
-        SetStaticUniforms(renderInfo);
+        SetStaticUniforms(m_staticProgram, renderInfo);
         m_geometryRenderer.RenderStaticGeometryFlats();
 
         m_interpolationProgram.Bind();
@@ -457,7 +483,7 @@ public class LegacyWorldRenderer : WorldRenderer
         {
             m_staticProgram.Bind();
             GL.ActiveTexture(TextureUnit.Texture0);
-            SetStaticUniforms(renderInfo);
+            SetStaticUniforms(m_staticProgram, renderInfo);
             m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
             m_geometryRenderer.RenderStaticTwoSidedWalls();
         }
@@ -555,23 +581,23 @@ public class LegacyWorldRenderer : WorldRenderer
         }
     }
 
-    private void SetStaticUniforms(RenderInfo renderInfo)
+    private void SetStaticUniforms(StaticShader program, RenderInfo renderInfo)
     {
-        m_staticProgram.BoundTexture(TextureUnit.Texture0);
-        m_staticProgram.SectorLightTexture(TextureUnit.Texture1);
-        m_staticProgram.ColormapTexture(TextureUnit.Texture2);
-        m_staticProgram.SectorColormapTexture(TextureUnit.Texture3);
-        m_staticProgram.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
-        m_staticProgram.Mvp(renderInfo.Uniforms.Mvp);
-        m_staticProgram.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
-        m_staticProgram.LightLevelMix(renderInfo.Uniforms.Mix);
-        m_staticProgram.ExtraLight(renderInfo.Uniforms.ExtraLight);
-        m_staticProgram.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
-        m_staticProgram.ColorMix(renderInfo.Uniforms.ColorMix.Global);
-        m_staticProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
-        m_staticProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
-        m_staticProgram.LightMode(renderInfo.Uniforms.LightMode);
-        m_staticProgram.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
+        program.BoundTexture(TextureUnit.Texture0);
+        program.SectorLightTexture(TextureUnit.Texture1);
+        program.ColormapTexture(TextureUnit.Texture2);
+        program.SectorColormapTexture(TextureUnit.Texture3);
+        program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
+        program.Mvp(renderInfo.Uniforms.Mvp);
+        program.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
+        program.LightLevelMix(renderInfo.Uniforms.Mix);
+        program.ExtraLight(renderInfo.Uniforms.ExtraLight);
+        program.DistanceOffset(renderInfo.Uniforms.DistanceOffset);
+        program.ColorMix(renderInfo.Uniforms.ColorMix.Global);
+        program.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
+        program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
+        program.LightMode(renderInfo.Uniforms.LightMode);
+        program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
     }
 
     private void ReleaseUnmanagedResources()

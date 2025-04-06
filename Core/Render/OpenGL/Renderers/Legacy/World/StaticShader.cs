@@ -26,7 +26,7 @@ public class StaticShader : RenderProgram
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_vertexGapClampUV;
 
-    public StaticShader() : base("WorldStatic")
+    public StaticShader(string name) : base($"WorldStatic - {name}")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
@@ -78,6 +78,7 @@ public class StaticShader : RenderProgram
         flat out float addAlphaFrag;
         flat out float colorMapIndexFrag;
         flat out float vertexLightLevelFrag;
+        flat out float zPos;
         ${VertexGapVariables}
 
         ${SectorColorMapVertexFragVariables}
@@ -105,6 +106,7 @@ public class StaticShader : RenderProgram
             ${LightLevelVertexDist}
             ${SectorColorMapVertexFunction}
             gl_Position = mvp * mixPos;
+            zPos = pos.z;
         }
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
@@ -118,35 +120,85 @@ public class StaticShader : RenderProgram
     .Replace("${VertexGapSet}", VertexFunction.VertexGapSet)
     .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet);
 
-    protected override string FragmentShader() => @"
-        #version 330
+    protected override string FragmentShader()
+    {
+        if (this is StaticPlaneZShader)
+        {
+            return @"
+                #version 330
 
-        in vec2 uvFrag;
-        flat in float alphaFrag;
-        flat in float addAlphaFrag;
-        ${VertexGapVariables}
+                flat in float zPos;
 
-        out vec4 fragColor;
+                layout (location = 0) out float outPlaneZ;
 
-        uniform int hasInvulnerability;
-        uniform sampler2D boundTexture;
-        uniform vec3 colorMix;
-        uniform int paletteIndex;
-        uniform int colormapIndex;
-
-        ${LightLevelFragVariables}
-        ${SectorColorMapFragVariables}
-
-        void main() {
-            ${LightLevelFragFunction}
-            ${SectorColorMapFragFunction}
-            ${FragColorFunction}
+                void main() {
+                    outPlaneZ = zPos;
+                }";
         }
-    "
-    .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
-    .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV))
-    .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
-    .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
-    .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);
+
+
+        return @"
+            #version 330
+
+            in vec2 uvFrag;
+            flat in float alphaFrag;
+            flat in float addAlphaFrag;
+            flat in float zPos;
+            ${VertexGapVariables}
+
+            ${OutFragColor}
+
+            ${OutPlaneZ}
+
+            uniform int hasInvulnerability;
+            uniform sampler2D boundTexture;
+            uniform vec3 colorMix;
+            uniform int paletteIndex;
+            uniform int colormapIndex;
+
+            ${LightLevelFragVariables}
+            ${SectorColorMapFragVariables}
+
+            void main() {
+                ${LightLevelFragFunction}
+                ${SectorColorMapFragFunction}
+                ${FragColorFunction}
+                ${SetPlaneZ}
+            }
+        "
+        .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
+        .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
+        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV,
+            declareFragColorHack: this is StaticPlaneZShader))
+        .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
+        .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
+        .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables)
+        .Replace("${OutFragColor}", GetOutFragColor())
+        .Replace("${OutPlaneZ}", GetOutPlaneZ())
+        .Replace("${SetPlaneZ}", GetSetPlaneZ());
+    }
+
+    private string GetOutFragColor()
+    {
+        if (this is StaticPlaneZShader)
+            return "";
+
+        return "out vec4 fragColor;";
+    }
+
+    private string GetOutPlaneZ()
+    {
+        if (this is StaticPlaneZShader)
+            return "layout (location = 0) out float planeZ;";
+
+        return "";
+    }
+
+    private string GetSetPlaneZ()
+    {
+        if (this is StaticPlaneZShader)
+            return "planeZ = zPos;";
+
+        return "";
+    }
 }

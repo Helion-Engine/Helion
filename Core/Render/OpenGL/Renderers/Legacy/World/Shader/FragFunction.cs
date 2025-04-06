@@ -156,9 +156,9 @@ public class FragFunction
     }
 
     public static string FragColorFunction(FragColorFunctionOptions options, ColorMapFetchContext ctx = ColorMapFetchContext.Default,
-        OitOptions oitOptions = OitOptions.None, string postProcess = "")
+        OitOptions oitOptions = OitOptions.None, string postProcess = "", bool declareFragColorHack = false)
     {
-        var declareFragColor = oitOptions == OitOptions.OitTransparentPass ? "vec4 fragColor" : "fragColor";
+        var declareFragColor = (declareFragColorHack || oitOptions == OitOptions.OitTransparentPass) ? "vec4 fragColor" : "fragColor";
         var textureMappingClamp = GetTextureMappingClamp(options);
 
         var fragColor = @$"

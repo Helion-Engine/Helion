@@ -38,6 +38,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_renderFuzzLocation;
     private readonly int m_renderFuzzRefractionColorLocation;
     private readonly int m_screenBoundsLocation;
+    private readonly int m_planeZTextureLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -70,6 +71,7 @@ public class EntityProgram : RenderProgram
         m_renderFuzzLocation = Uniforms.GetLocation("renderFuzz");
         m_renderFuzzRefractionColorLocation = Uniforms.GetLocation("renderFuzzRefractionColor");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
+        m_planeZTextureLocation = Uniforms.GetLocation("planeZTexture");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -79,6 +81,7 @@ public class EntityProgram : RenderProgram
     public void AccumCountTextre(TextureUnit unit) => Uniforms.Set(unit, m_accumCountTextureLocation);
     public void FuzzTexture(TextureUnit unit) => Uniforms.Set(unit, m_fuzzTextureLocation);
     public void OpaqueTexture(TextureUnit unit) => Uniforms.Set(unit, m_opaqueTextureLocation);
+    public void PlaneZTexture(TextureUnit unit) => Uniforms.Set(unit, m_planeZTextureLocation);
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
@@ -116,6 +119,7 @@ public class EntityProgram : RenderProgram
         out float fuzzOut;
         out float flipUOut;
         out float colorMapTranslationOut;
+        out float zPosOut;
         ${SectorColorMapVar}
 
         uniform float timeFrac;
@@ -136,6 +140,7 @@ public class EntityProgram : RenderProgram
             fuzzOut = fuzz;
             flipUOut = flipU;
             colorMapTranslationOut = colorMapTranslation;
+            zPosOut = pos.z;
             ${SectorColorMap}
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
         }
@@ -156,6 +161,7 @@ public class EntityProgram : RenderProgram
         in float fuzzOut[];
         in float flipUOut[];
         in float colorMapTranslationOut[];
+        in float zPosOut[];
         ${SectorColorMapVar}
 
         out vec2 uvFrag;
@@ -166,6 +172,7 @@ public class EntityProgram : RenderProgram
         flat out float alphaFrag;
         flat out float fuzzFrag;
         flat out float colorMapTranslationFrag;
+        flat out float zPosFrag;
         ${SectorColorMapFrag}
 
         uniform mat4 mvp;
@@ -212,6 +219,7 @@ public class EntityProgram : RenderProgram
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
             sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
+            zPosFrag = colorMapTranslationOut[0];
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1);
@@ -222,6 +230,7 @@ public class EntityProgram : RenderProgram
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
             sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
+            zPosFrag = colorMapTranslationOut[0];
             EmitVertex();
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
@@ -232,6 +241,7 @@ public class EntityProgram : RenderProgram
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
             sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
+            zPosFrag = colorMapTranslationOut[0];
             EmitVertex();
 
             gl_Position = glPosMax;
@@ -242,6 +252,7 @@ public class EntityProgram : RenderProgram
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
             sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
+            zPosFrag = colorMapTranslationOut[0];
             EmitVertex();
     
             EndPrimitive();
@@ -262,6 +273,7 @@ public class EntityProgram : RenderProgram
         flat in float alphaFrag;
         flat in float fuzzFrag;
         flat in float colorMapTranslationFrag;
+        flat in float zPosFrag;
 
         ${SectorColorMapFragVariables}
 
@@ -286,6 +298,8 @@ public class EntityProgram : RenderProgram
         uniform int renderFuzzRefractionColor;
         uniform ivec2 screenBounds;
 
+        uniform sampler2D planeZTexture;
+
         ${OitVariables}
         ${FuzzFunction}
 
@@ -306,7 +320,7 @@ public class EntityProgram : RenderProgram
 
     private string GetPostProcess() 
     {
-        string clearAlpha = @"        
+        string clearAlpha = @"  
         fragColor.a = fragColor.a > 0.5 ? 1.0 : 0.0;
         if (fragColor.a <= 0)
             discard;";
@@ -315,6 +329,11 @@ public class EntityProgram : RenderProgram
             clearAlpha = string.Empty;
 
         return clearAlpha + @"
+        ivec2 getCoords = ivec2(gl_FragCoord.xy);
+        float planeZ = texelFetch(planeZTexture, getCoords, 0).r;
+        if (planeZ > zPosFrag)
+            discard;
+
         if (renderDistSquared > maxDistanceSquared - fadeDistance) {
             float fade = (maxDistanceSquared - renderDistSquared) / fadeDistance;
             fragColor.a *= fade;

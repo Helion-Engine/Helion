@@ -298,6 +298,8 @@ public class EntityRenderer : IDisposable
             program.FuzzTexture(TextureUnit.Texture6);
             program.OpaqueTexture(TextureUnit.Texture7);
         }
+
+        program.PlaneZTexture(TextureUnit.Texture8);
     }
 
     public void RenderOpaque(RenderInfo renderInfo)
