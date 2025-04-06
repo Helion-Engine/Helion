@@ -119,8 +119,8 @@ public class GeometryRenderer : IDisposable
         if (dir == PushDir.Forward)
             angle += MathHelper.Pi;
 
-        // ReversedZ allows for a much smaller push amount
-        var pushUnit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * (ShaderVars.ReversedZ ? 0.005 : 0.05);
+        // ReversedZ allows for a much smaller push amount. Always max to LineVertexGap to close the middle texture with extended inside wall.
+        var pushUnit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * Math.Max(ShaderVars.ReversedZ ? 0.005 : 0.05, WorldStatic.LineVertexGap);
         line.Segment.Start += pushUnit;
         line.Segment.End += pushUnit;
     }
