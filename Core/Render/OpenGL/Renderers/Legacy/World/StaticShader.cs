@@ -79,6 +79,7 @@ public class StaticShader : RenderProgram
         flat out float colorMapIndexFrag;
         flat out float vertexLightLevelFrag;
         flat out float zPos;
+        out float distFrag;
         ${VertexGapVariables}
 
         ${SectorColorMapVertexFragVariables}
@@ -107,6 +108,7 @@ public class StaticShader : RenderProgram
             ${SectorColorMapVertexFunction}
             gl_Position = mvp * mixPos;
             zPos = pos.z;
+            distFrag = gl_Position.w;
         }
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
@@ -128,14 +130,14 @@ public class StaticShader : RenderProgram
                 #version 330
 
                 flat in float zPos;
+                in float distFrag;
 
-                layout (location = 0) out float outPlaneZ;
+                layout (location = 0) out vec2 outPlaneZ;
 
                 void main() {
-                    outPlaneZ = zPos;
+                    outPlaneZ = vec2(zPos, distFrag);
                 }";
         }
-
 
         return @"
             #version 330
@@ -144,6 +146,7 @@ public class StaticShader : RenderProgram
             flat in float alphaFrag;
             flat in float addAlphaFrag;
             flat in float zPos;
+            flat in float distFrag;
             ${VertexGapVariables}
 
             ${OutFragColor}

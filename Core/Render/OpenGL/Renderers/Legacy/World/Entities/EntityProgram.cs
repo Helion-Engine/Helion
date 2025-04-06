@@ -112,14 +112,16 @@ public class EntityProgram : RenderProgram
         layout(location = 1) in float lightLevel;
         layout(location = 2) in float options;
         layout(location = 3) in vec3 prevPos;
-        layout(location = 4) in vec3 sectorIndex;
+        layout(location = 4) in float offsetZ;
+        layout(location = 5) in vec3 sectorIndex;
 
         out float lightLevelOut;
         out float alphaOut;
         out float fuzzOut;
         out float flipUOut;
         out float colorMapTranslationOut;
-        out float zPosOut;
+        out float positionZOut;
+        out float offsetZOut;
         ${SectorColorMapVar}
 
         uniform float timeFrac;
@@ -140,9 +142,10 @@ public class EntityProgram : RenderProgram
             fuzzOut = fuzz;
             flipUOut = flipU;
             colorMapTranslationOut = colorMapTranslation;
-            zPosOut = pos.z;
+            offsetZOut = offsetZ;
             ${SectorColorMap}
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
+            positionZOut = gl_Position.z;
         }
     "
     .Replace("${SectorColorMapVar}", ShaderVars.PaletteColorMode ? "out int sectorColorMapIndexOut;" : "out vec3 sectorColorMapIndexOut;")
@@ -161,7 +164,8 @@ public class EntityProgram : RenderProgram
         in float fuzzOut[];
         in float flipUOut[];
         in float colorMapTranslationOut[];
-        in float zPosOut[];
+        in float positionZOut[];
+        in float offsetZOut[];
         ${SectorColorMapVar}
 
         out vec2 uvFrag;
@@ -173,6 +177,7 @@ public class EntityProgram : RenderProgram
         flat out float fuzzFrag;
         flat out float colorMapTranslationFrag;
         flat out float zPosFrag;
+        out float depthFrag;
         ${SectorColorMapFrag}
 
         uniform mat4 mvp;
@@ -194,6 +199,8 @@ public class EntityProgram : RenderProgram
             float rightU = 1 - clamp(flipUOut[0], 0, 1);
 
             vec3 pos = gl_in[0].gl_Position.xyz;
+            zPosFrag = pos.z;
+            pos.z += offsetZOut[0];
             ivec2 textureDim = textureSize(boundTexture, 0);
             vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
             vec3 minPos = pos;
@@ -219,7 +226,7 @@ public class EntityProgram : RenderProgram
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
             sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
-            zPosFrag = colorMapTranslationOut[0];
+            depthFrag = gl_Position.${Depth};
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1);
@@ -230,7 +237,7 @@ public class EntityProgram : RenderProgram
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
             sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
-            zPosFrag = colorMapTranslationOut[0];
+            depthFrag = gl_Position.${Depth};
             EmitVertex();
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
@@ -241,7 +248,7 @@ public class EntityProgram : RenderProgram
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
             sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
-            zPosFrag = colorMapTranslationOut[0];
+            depthFrag = gl_Position.${Depth};
             EmitVertex();
 
             gl_Position = glPosMax;
@@ -252,7 +259,7 @@ public class EntityProgram : RenderProgram
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
             sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
-            zPosFrag = colorMapTranslationOut[0];
+            depthFrag = gl_Position.${Depth};
             EmitVertex();
     
             EndPrimitive();
@@ -274,6 +281,7 @@ public class EntityProgram : RenderProgram
         flat in float fuzzFrag;
         flat in float colorMapTranslationFrag;
         flat in float zPosFrag;
+        in float depthFrag;
 
         ${SectorColorMapFragVariables}
 
@@ -330,8 +338,10 @@ public class EntityProgram : RenderProgram
 
         return clearAlpha + @"
         ivec2 getCoords = ivec2(gl_FragCoord.xy);
-        float planeZ = texelFetch(planeZTexture, getCoords, 0).r;
-        if (planeZ > zPosFrag)
+        // r = floor's z position, g = floor's depth value
+        vec2 planeZ = texelFetch(planeZTexture, getCoords, 0).rg;
+        // If this pixel would be discarded to depth and the plane is higher than the z position then discard.
+        if (planeZ.r > zPosFrag && planeZ.g < depthFrag)
             discard;
 
         if (renderDistSquared > maxDistanceSquared - fadeDistance) {

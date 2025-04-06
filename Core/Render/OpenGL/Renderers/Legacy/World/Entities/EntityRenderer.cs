@@ -230,11 +230,12 @@ public class EntityRenderer : IDisposable
         vertex.Pos = new Vec3F(
             (float)(entity.Position.X - nudgeAmount.X) - (m_viewRightNormal.X * texture.Offset.X),
             (float)(entity.Position.Y - nudgeAmount.Y) - (m_viewRightNormal.Y * texture.Offset.X),
-            (float)entity.Position.Z + offsetZ);
+            (float)entity.Position.Z);
         vertex.PrevPos = new Vec3F(
             (float)(entity.PrevPosition.X - nudgeAmount.X) - (m_prevViewRightNormal.X * texture.Offset.X),
             (float)(entity.PrevPosition.Y - nudgeAmount.Y) - (m_prevViewRightNormal.Y * texture.Offset.X),
-            (float)entity.PrevPosition.Z + offsetZ);
+            (float)entity.PrevPosition.Z);
+        vertex.OffsetZ = offsetZ;
         vertex.LightLevel = entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright ? 255 :
             ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);

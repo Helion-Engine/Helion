@@ -361,7 +361,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         if (m_planeZFrameBuffer != null)
         {
-            GL.Disable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactor.One, BlendingFactor.Zero);
             m_planeZFrameBuffer.StartRender();
             m_planeZFrameBuffer.BindFrameBuffer();
             m_staticPlaneZProgram.Bind();
@@ -373,7 +373,6 @@ public class LegacyWorldRenderer : WorldRenderer
             framebuffer.Bind();
             m_planeZFrameBuffer.BindPlaneZTexture(TextureUnit.Texture8);
             ResetBlendEquations();
-            GL.Enable(EnableCap.Blend);
         }
 
         m_entityRenderer.RenderOpaque(renderInfo);
