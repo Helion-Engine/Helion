@@ -218,47 +218,33 @@ public class EntityProgram : RenderProgram
             // Render distance squared in 2d space for fade in/out effect
             renderDistSquared = distSquared(viewPos.xy, pos.xy);
 
-            gl_Position = glPosMin;
-            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).${Depth};
-            uvFrag = vec2(leftU, 1);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
             sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
+
+            gl_Position = glPosMin;
+            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).${Depth};
+            uvFrag = vec2(leftU, 1);
             depthFrag = gl_Position.${Depth};
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1);
             dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1)).${Depth};
             uvFrag = vec2(rightU, 1);
-            lightLevelFrag = lightLevelOut[0];
-            alphaFrag = alphaOut[0];
-            fuzzFrag = fuzzOut[0];
-            colorMapTranslationFrag = colorMapTranslationOut[0];
-            sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
             depthFrag = gl_Position.${Depth};
             EmitVertex();
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
             dist = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1)).${Depth};
             uvFrag = vec2(leftU, 0);
-            lightLevelFrag = lightLevelOut[0];
-            alphaFrag = alphaOut[0];
-            fuzzFrag = fuzzOut[0];
-            colorMapTranslationFrag = colorMapTranslationOut[0];
-            sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
             depthFrag = gl_Position.${Depth};
             EmitVertex();
 
             gl_Position = glPosMax;
             dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, maxPos.z, 1)).${Depth};
             uvFrag = vec2(rightU, 0);
-            lightLevelFrag = lightLevelOut[0];
-            alphaFrag = alphaOut[0];
-            fuzzFrag = fuzzOut[0];
-            colorMapTranslationFrag = colorMapTranslationOut[0];
-            sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
             depthFrag = gl_Position.${Depth};
             EmitVertex();
     

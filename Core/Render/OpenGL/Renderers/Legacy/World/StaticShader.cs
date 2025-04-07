@@ -79,7 +79,7 @@ public class StaticShader : RenderProgram
         flat out float colorMapIndexFrag;
         flat out float vertexLightLevelFrag;
         flat out float zPos;
-        out float distFrag;
+        out float depthFrag;
         ${VertexGapVariables}
 
         ${SectorColorMapVertexFragVariables}
@@ -108,7 +108,7 @@ public class StaticShader : RenderProgram
             ${SectorColorMapVertexFunction}
             gl_Position = mvp * mixPos;
             zPos = pos.z;
-            distFrag = gl_Position.w;
+            depthFrag = gl_Position.w;
         }
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
@@ -125,19 +125,7 @@ public class StaticShader : RenderProgram
     protected override string FragmentShader()
     {
         if (this is StaticPlaneZShader)
-        {
-            return @"
-                #version 330
-
-                flat in float zPos;
-                in float distFrag;
-
-                layout (location = 0) out vec2 outPlaneZ;
-
-                void main() {
-                    outPlaneZ = vec2(zPos, distFrag);
-                }";
-        }
+            return PlaneClip.WritePlaneFragFunction();
 
         return @"
             #version 330
@@ -176,32 +164,8 @@ public class StaticShader : RenderProgram
         .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
         .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
         .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables)
-        .Replace("${OutFragColor}", GetOutFragColor())
-        .Replace("${OutPlaneZ}", GetOutPlaneZ())
-        .Replace("${SetPlaneZ}", GetSetPlaneZ());
-    }
-
-    private string GetOutFragColor()
-    {
-        if (this is StaticPlaneZShader)
-            return "";
-
-        return "out vec4 fragColor;";
-    }
-
-    private string GetOutPlaneZ()
-    {
-        if (this is StaticPlaneZShader)
-            return "layout (location = 0) out float planeZ;";
-
-        return "";
-    }
-
-    private string GetSetPlaneZ()
-    {
-        if (this is StaticPlaneZShader)
-            return "planeZ = zPos;";
-
-        return "";
-    }
+        .Replace("${OutFragColor}", PlaneClip.GetOutFragColor(this is StaticPlaneZShader))
+        .Replace("${OutPlaneZ}", PlaneClip.GetOutPlaneZ(this is StaticPlaneZShader))
+        .Replace("${SetPlaneZ}", PlaneClip.GetSetPlaneZ(this is StaticPlaneZShader));
+    }  
 }
