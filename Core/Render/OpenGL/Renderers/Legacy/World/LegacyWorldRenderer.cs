@@ -568,7 +568,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_primitiveRenderer.AddSegment(seg, color, alpha, type);
     }
 
-    private void SetInterpolationUniforms(InterpolationShader program, RenderInfo renderInfo)
+    private static void SetInterpolationUniforms(InterpolationShader program, RenderInfo renderInfo)
     {
         program.Bind();
         program.BoundTexture(TextureUnit.Texture0);
@@ -595,7 +595,7 @@ public class LegacyWorldRenderer : WorldRenderer
         }
     }
 
-    private void SetStaticUniforms(StaticShader program, RenderInfo renderInfo)
+    private static void SetStaticUniforms(StaticShader program, RenderInfo renderInfo)
     {
         program.BoundTexture(TextureUnit.Texture0);
         program.SectorLightTexture(TextureUnit.Texture1);
