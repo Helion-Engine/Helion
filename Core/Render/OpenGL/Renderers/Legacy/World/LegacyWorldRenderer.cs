@@ -33,6 +33,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly InterpolationShader m_interpolationProgram = new("Main");
     private readonly InterpolationTransparentShader m_interpolationTransparentProgram = new();
     private readonly InterpolationCompositeShader m_interpolationCompositeProgram = new();
+    private readonly InterpolationPlaneZShader m_interpolationPlaneZShader = new();
     private readonly StaticShader m_staticProgram = new("Main");
     private readonly StaticPlaneZShader m_staticPlaneZProgram = new();
     private readonly RenderWorldDataManager m_worldDataManager = new();
@@ -360,24 +361,38 @@ public class LegacyWorldRenderer : WorldRenderer
         GL.ColorMask(true, true, true, true);
 
         if (m_planeZFrameBuffer != null)
+            WritePlaneData(m_planeZFrameBuffer, renderInfo, framebuffer);        
+
+        m_entityRenderer.RenderOpaque(renderInfo);
+        RenderTransparent(renderInfo, framebuffer, true);
+        m_primitiveRenderer.Render(renderInfo);
+    }
+
+    private void WritePlaneData(PlaneZFrameBuffer planeZFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer)
+    {
+        GL.BlendFunc(BlendingFactor.One, BlendingFactor.Zero);
+        planeZFrameBuffer.StartRender();
+        planeZFrameBuffer.BindFrameBuffer();
+
+        if (m_renderStatic)
         {
-            GL.BlendFunc(BlendingFactor.One, BlendingFactor.Zero);
-            m_planeZFrameBuffer.StartRender();
-            m_planeZFrameBuffer.BindFrameBuffer();
             m_staticPlaneZProgram.Bind();
             GL.ActiveTexture(TextureUnit.Texture0);
             SetStaticUniforms(m_staticPlaneZProgram, renderInfo);
             m_geometryRenderer.RenderStaticGeometryFloors();
             m_staticPlaneZProgram.Unbind();
-            m_planeZFrameBuffer.UnbindFrameBuffer();
-            framebuffer.Bind();
-            m_planeZFrameBuffer.BindPlaneZTexture(TextureUnit.Texture8);
-            ResetBlendEquations();
         }
 
-        m_entityRenderer.RenderOpaque(renderInfo);
-        RenderTransparent(renderInfo, framebuffer, true);
-        m_primitiveRenderer.Render(renderInfo);
+        m_interpolationPlaneZShader.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        SetInterpolationUniforms(m_interpolationPlaneZShader, renderInfo);
+        m_worldDataManager.RenderFloors();
+        m_interpolationPlaneZShader.Unbind();
+
+        planeZFrameBuffer.UnbindFrameBuffer();
+        framebuffer.Bind();
+        planeZFrameBuffer.BindPlaneZTexture(TextureUnit.Texture8);
+        ResetBlendEquations();
     }
 
     private unsafe void RenderTransparent(RenderInfo renderInfo, GLFramebuffer framebuffer, bool vanillaRender)

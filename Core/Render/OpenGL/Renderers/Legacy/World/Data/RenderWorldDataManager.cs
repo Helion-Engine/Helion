@@ -83,6 +83,11 @@ public class RenderWorldDataManager : IDisposable
         m_lookup.Get(GeometryType.Ceiling).Draw();
     }
 
+    public void RenderFloors()
+    {
+        m_lookup.Get(GeometryType.Floor).Draw();
+    }
+
     public void RenderCoverWalls()
     {
         m_coverWalls?.Draw();

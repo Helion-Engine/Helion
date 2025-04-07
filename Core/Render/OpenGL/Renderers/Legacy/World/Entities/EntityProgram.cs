@@ -39,6 +39,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_renderFuzzRefractionColorLocation;
     private readonly int m_screenBoundsLocation;
     private readonly int m_planeZTextureLocation;
+    private readonly int m_checkPlaneClipLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -72,6 +73,7 @@ public class EntityProgram : RenderProgram
         m_renderFuzzRefractionColorLocation = Uniforms.GetLocation("renderFuzzRefractionColor");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
         m_planeZTextureLocation = Uniforms.GetLocation("planeZTexture");
+        m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -104,6 +106,7 @@ public class EntityProgram : RenderProgram
     public void RenderFuzz(bool value) => Uniforms.Set(value, m_renderFuzzLocation);
     public void RenderFuzzRefractionColor(bool value) => Uniforms.Set(value, m_renderFuzzRefractionColorLocation);
     public void ScreenBounds(Vec2I value) => Uniforms.Set(value, m_screenBoundsLocation);
+    public void CheckPlaneClip(bool value) => Uniforms.Set(value, m_checkPlaneClipLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -291,6 +294,7 @@ public class EntityProgram : RenderProgram
         uniform float renderFuzz;
         uniform int renderFuzzRefractionColor;
         uniform ivec2 screenBounds;
+        uniform int checkPlaneClip;
 
         uniform sampler2D planeZTexture;
 
@@ -323,12 +327,14 @@ public class EntityProgram : RenderProgram
             clearAlpha = string.Empty;
 
         return clearAlpha + @"
-        ivec2 getCoords = ivec2(gl_FragCoord.xy);
-        // r = floor's z position, g = floor's depth value
-        vec2 planeZ = texelFetch(planeZTexture, getCoords, 0).rg;
-        // If this pixel would be discarded to depth and the plane is higher than the z position then discard.
-        if (planeZ.r > zPosFrag && planeZ.g < depthFrag)
-            discard;
+        if (checkPlaneClip == 1) {
+            ivec2 getCoords = ivec2(gl_FragCoord.xy);
+            // r = floor's z position, g = floor's depth value
+            vec2 planeZ = texelFetch(planeZTexture, getCoords, 0).rg;
+            // If this pixel would be discarded to depth and the plane is higher than the z position then discard.
+            if (planeZ.r > zPosFrag && planeZ.g < depthFrag)
+                discard;
+        }
 
         if (renderDistSquared > maxDistanceSquared - fadeDistance) {
             float fade = (maxDistanceSquared - renderDistSquared) / fadeDistance;

@@ -137,9 +137,7 @@ public class StaticShader : RenderProgram
             flat in float distFrag;
             ${VertexGapVariables}
 
-            ${OutFragColor}
-
-            ${OutPlaneZ}
+            out vec4 fragColor;
 
             uniform int hasInvulnerability;
             uniform sampler2D boundTexture;
@@ -154,7 +152,6 @@ public class StaticShader : RenderProgram
                 ${LightLevelFragFunction}
                 ${SectorColorMapFragFunction}
                 ${FragColorFunction}
-                ${SetPlaneZ}
             }
         "
         .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
@@ -163,9 +160,6 @@ public class StaticShader : RenderProgram
             declareFragColorHack: this is StaticPlaneZShader))
         .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
         .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
-        .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables)
-        .Replace("${OutFragColor}", PlaneClip.GetOutFragColor(this is StaticPlaneZShader))
-        .Replace("${OutPlaneZ}", PlaneClip.GetOutPlaneZ(this is StaticPlaneZShader))
-        .Replace("${SetPlaneZ}", PlaneClip.GetSetPlaneZ(this is StaticPlaneZShader));
+        .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);
     }  
 }

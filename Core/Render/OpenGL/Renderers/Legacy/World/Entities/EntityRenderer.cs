@@ -280,6 +280,7 @@ public class EntityRenderer : IDisposable
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.ViewPos(renderInfo.Camera.Position);
         program.ScreenBounds((renderInfo.Viewport.Width, renderInfo.Viewport.Height));
+        program.CheckPlaneClip(m_vanillaRender);
 
         // The fade distance calculations work using squared distances
         float maxDistanceSquared = renderInfo.Uniforms.MaxDistance * renderInfo.Uniforms.MaxDistance;

@@ -14,28 +14,4 @@ public static class PlaneClip
             void main() {
                 outPlaneZ = vec2(zPos, depthFrag);
             }";
-
-    public static string GetOutFragColor(bool clipPlaneZ)
-    {
-        if (clipPlaneZ)
-            return "";
-
-        return "out vec4 fragColor;";
-    }
-
-    public static string GetOutPlaneZ(bool clipPlaneZ)
-    {
-        if (clipPlaneZ)
-            return "layout (location = 0) out float planeZ;";
-
-        return "";
-    }
-
-    public static string GetSetPlaneZ(bool clipPlaneZ)
-    {
-        if (clipPlaneZ)
-            return "planeZ = zPos;";
-
-        return "";
-    }
 }
