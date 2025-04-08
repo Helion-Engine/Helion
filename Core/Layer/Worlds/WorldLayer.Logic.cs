@@ -35,7 +35,7 @@ public partial class WorldLayer
             return;
 
         TickWorld(tickerInfo);
-        HandlePauseOrResume();
+        CheckPauseOrResume();
     }
 
     public bool StartRecording(IDemoRecorder recorder)
@@ -210,7 +210,7 @@ public partial class WorldLayer
         return true;
     }
 
-    private void HandlePauseOrResume()
+    public void CheckPauseOrResume()
     {
         if (m_stopped)
             return;
