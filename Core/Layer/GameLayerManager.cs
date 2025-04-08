@@ -233,6 +233,8 @@ public class GameLayerManager : IGameLayerManager
             gameLayer.OnShow();
             GameLayerAdded?.Invoke(this, gameLayer);
         }
+
+        WorldLayer?.CheckPauseOrResume();
     }
 
     private void World_OnTick(object? sender, EventArgs e)
@@ -356,6 +358,8 @@ public class GameLayerManager : IGameLayerManager
             EndoomLayer?.Dispose();
             EndoomLayer = null;
         }
+
+        WorldLayer?.CheckPauseOrResume();
     }
 
     private void RemoveAnimatedLayer(object layer)
@@ -390,6 +394,8 @@ public class GameLayerManager : IGameLayerManager
             LoadingLayer?.Dispose();
             LoadingLayer = null;
         }
+
+        WorldLayer?.CheckPauseOrResume();
     }
 
     private void ResetAndGrabMouse()

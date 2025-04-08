@@ -29,3 +29,4 @@
 - Fix transfer heights movement issue when a sector completes movement before it's control sector completes
 - Fix changing skill during gameplay to correctly set on next level load
 - Fix setting skill from command line changing the skill level from a save when a new map is loaded
+- Fix issue where players view can be unintentionally changed from mouse input during melt transition
