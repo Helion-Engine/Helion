@@ -32,7 +32,7 @@ public class PlaneZFrameBuffer : IDisposable
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
         GL.BindTexture(TextureTarget.Texture2D, 0);
 
-        m_depthTexture = new GLTexture2D("FrameZ Depth Stencil Attachment", dimension);
+        m_depthTexture = new GLTexture2D("PlaneZ Depth Stencil Attachment", dimension);
         m_depthTexture.Bind();
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Depth32fStencil8, width, height, 0, PixelFormat.DepthStencil, PixelType.Float32UnsignedInt248Rev, IntPtr.Zero);
         m_depthTexture.Unbind();
@@ -51,14 +51,14 @@ public class PlaneZFrameBuffer : IDisposable
 
     public unsafe void StartRender()
     {
-        var error = GL.GetError();
-        var min = stackalloc float[2] { -65536f, 1e30f };
+        // Writes plane z to r, depth to g
+        var clear = stackalloc float[2] { -1e30f, -1e30f };
         BindFrameBuffer();
 
-        GL.ClearBuffer(ClearBuffer.Color, 0, min);
+        GL.ClearBuffer(ClearBuffer.Color, 0, clear);
         GL.Clear(ClearBufferMask.DepthBufferBit);
-
-        error = GL.GetError();
+        GL.BlendEquation(BlendEquationMode.FuncAdd);
+        GL.BlendFunc(BlendingFactor.One, BlendingFactor.Zero);
     }
 
     public void BindPlaneZTexture(TextureUnit textureUnit)

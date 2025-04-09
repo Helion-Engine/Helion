@@ -80,6 +80,7 @@ public class LegacyWorldRenderer : WorldRenderer
         TransferHeights.FlushSectorReferences();
         m_lastRenderedWorld.SetTarget(world);
 
+        // Note: The plane z discard check isn't correct if the GPU doesnt support clip control for reversed-z depth
         if (m_vanillaRender && m_planeZFrameBuffer == null)
             m_planeZFrameBuffer = new();
         else
@@ -370,7 +371,6 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void WritePlaneData(PlaneZFrameBuffer planeZFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
-        GL.BlendFunc(BlendingFactor.One, BlendingFactor.Zero);
         planeZFrameBuffer.StartRender();
         planeZFrameBuffer.BindFrameBuffer();
 
