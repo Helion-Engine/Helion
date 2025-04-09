@@ -371,6 +371,8 @@ public partial class Client : IDisposable, IInputManagement
 
         m_console.ForceExpireMessages(false);
 
+        Render();
+
         var changeEvent = m_loadMapResult.EventContext;
         if (changeEvent != null && (changeEvent.ChangeType == LevelChangeType.Next || changeEvent.ChangeType == LevelChangeType.SecretNext))
         {

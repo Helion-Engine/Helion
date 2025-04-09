@@ -26,7 +26,7 @@ public class StaticShader : RenderProgram
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_vertexGapClampUV;
 
-    public StaticShader() : base("WorldStatic")
+    public StaticShader(string name) : base($"WorldStatic - {name}")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
@@ -78,6 +78,8 @@ public class StaticShader : RenderProgram
         flat out float addAlphaFrag;
         flat out float colorMapIndexFrag;
         flat out float vertexLightLevelFrag;
+        flat out float zPos;
+        out float depthFrag;
         ${VertexGapVariables}
 
         ${SectorColorMapVertexFragVariables}
@@ -105,6 +107,8 @@ public class StaticShader : RenderProgram
             ${LightLevelVertexDist}
             ${SectorColorMapVertexFunction}
             gl_Position = mvp * mixPos;
+            zPos = pos.z;
+            depthFrag = gl_Position.${Depth};
         }
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
@@ -116,37 +120,46 @@ public class StaticShader : RenderProgram
     .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
     .Replace("${VertexGapVariables}", VertexFunction.VertexGapVariables)
     .Replace("${VertexGapSet}", VertexFunction.VertexGapSet)
-    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet);
+    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
+    .Replace("${Depth}", ShaderVars.Depth);
 
-    protected override string FragmentShader() => @"
-        #version 330
+    protected override string FragmentShader()
+    {
+        if (this is StaticPlaneClipShader)
+            return PlaneClip.WritePlaneFragFunction();
 
-        in vec2 uvFrag;
-        flat in float alphaFrag;
-        flat in float addAlphaFrag;
-        ${VertexGapVariables}
+        return @"
+            #version 330
 
-        out vec4 fragColor;
+            in vec2 uvFrag;
+            flat in float alphaFrag;
+            flat in float addAlphaFrag;
+            flat in float zPos;
+            flat in float distFrag;
+            ${VertexGapVariables}
 
-        uniform int hasInvulnerability;
-        uniform sampler2D boundTexture;
-        uniform vec3 colorMix;
-        uniform int paletteIndex;
-        uniform int colormapIndex;
+            out vec4 fragColor;
 
-        ${LightLevelFragVariables}
-        ${SectorColorMapFragVariables}
+            uniform int hasInvulnerability;
+            uniform sampler2D boundTexture;
+            uniform vec3 colorMix;
+            uniform int paletteIndex;
+            uniform int colormapIndex;
 
-        void main() {
-            ${LightLevelFragFunction}
-            ${SectorColorMapFragFunction}
-            ${FragColorFunction}
-        }
-    "
-    .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
-    .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV))
-    .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
-    .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
-    .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);
+            ${LightLevelFragVariables}
+            ${SectorColorMapFragVariables}
+
+            void main() {
+                ${LightLevelFragFunction}
+                ${SectorColorMapFragFunction}
+                ${FragColorFunction}
+            }
+        "
+        .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
+        .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
+        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV))
+        .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
+        .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
+        .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);
+    }  
 }

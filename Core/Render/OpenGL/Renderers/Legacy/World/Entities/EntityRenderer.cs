@@ -230,11 +230,12 @@ public class EntityRenderer : IDisposable
         vertex.Pos = new Vec3F(
             (float)(entity.Position.X - nudgeAmount.X) - (m_viewRightNormal.X * texture.Offset.X),
             (float)(entity.Position.Y - nudgeAmount.Y) - (m_viewRightNormal.Y * texture.Offset.X),
-            (float)entity.Position.Z + offsetZ);
+            (float)entity.Position.Z);
         vertex.PrevPos = new Vec3F(
             (float)(entity.PrevPosition.X - nudgeAmount.X) - (m_prevViewRightNormal.X * texture.Offset.X),
             (float)(entity.PrevPosition.Y - nudgeAmount.Y) - (m_prevViewRightNormal.Y * texture.Offset.X),
-            (float)entity.PrevPosition.Z + offsetZ);
+            (float)entity.PrevPosition.Z);
+        vertex.OffsetZ = offsetZ;
         vertex.LightLevel = entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright ? 255 :
             ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
@@ -279,6 +280,7 @@ public class EntityRenderer : IDisposable
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.ViewPos(renderInfo.Camera.Position);
         program.ScreenBounds((renderInfo.Viewport.Width, renderInfo.Viewport.Height));
+        program.CheckPlaneClip(m_vanillaRender);
 
         // The fade distance calculations work using squared distances
         float maxDistanceSquared = renderInfo.Uniforms.MaxDistance * renderInfo.Uniforms.MaxDistance;
@@ -298,6 +300,8 @@ public class EntityRenderer : IDisposable
             program.FuzzTexture(TextureUnit.Texture6);
             program.OpaqueTexture(TextureUnit.Texture7);
         }
+
+        program.PlaneZTexture(TextureUnit.Texture8);
     }
 
     public void RenderOpaque(RenderInfo renderInfo)

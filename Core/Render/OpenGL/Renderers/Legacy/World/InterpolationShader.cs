@@ -1,6 +1,5 @@
 using GlmSharp;
 using Helion.Geometry.Vectors;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shader;
 using Helion.Util.Configs.Components;
@@ -90,6 +89,8 @@ public class InterpolationShader : RenderProgram
         flat out float addAlphaFrag;
         flat out float colorMapIndexFrag;
         flat out float vertexLightLevelFrag;
+        flat out float zPos;
+        out float depthFrag;
         ${VertexGapVariables}
 
         ${SectorColorMapVertexFragVariables}
@@ -117,6 +118,8 @@ public class InterpolationShader : RenderProgram
             ${LightLevelVertexDist}
             ${SectorColorMapVertexFunction}
             gl_Position = mvp * mixPos;
+            zPos = mixPos.z;
+            depthFrag = gl_Position.${Depth};
         }
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
@@ -128,42 +131,52 @@ public class InterpolationShader : RenderProgram
     .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
     .Replace("${VertexGapVariables}", VertexFunction.VertexGapVariables)
     .Replace("${VertexGapSet}", VertexFunction.VertexGapSet)
-    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet);
+    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
+    .Replace("${Depth}", ShaderVars.Depth);
 
-    protected override string FragmentShader() => @"
-        #version 330
+    protected override string FragmentShader()
+    {
+        if (this is InterpolationPlaneClipShader)
+            return PlaneClip.WritePlaneFragFunction();
 
-        in vec2 uvFrag;
-        flat in float alphaFrag;
-        flat in float addAlphaFrag;
-        ${VertexGapVariables}
+        return
+            @"
+            #version 330
 
-        ${OutFragColor}
+            in vec2 uvFrag;
+            flat in float alphaFrag;
+            flat in float addAlphaFrag;
+            flat in float zPos;
+            flat in float distFrag;
+            ${VertexGapVariables}
 
-        uniform int hasInvulnerability;
-        uniform sampler2D boundTexture;
-        uniform vec3 colorMix;
-        uniform int paletteIndex;
-        uniform int colormapIndex;
+            ${OutFragColor}
 
-        ${LightLevelFragVariables}
-        ${SectorColorMapFragVariables}
-        ${OitVariables}
+            uniform int hasInvulnerability;
+            uniform sampler2D boundTexture;
+            uniform vec3 colorMix;
+            uniform int paletteIndex;
+            uniform int colormapIndex;
 
-        void main() {
-            ${LightLevelFragFunction}
-            ${SectorColorMapFragFunction}
-            ${FragColorFunction}
-        }
-    "
-    .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
-    .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV, oitOptions: GetOitOptions()))
-    .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
-    .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
-    .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
-    .Replace("${OutFragColor}", GetOutFragColor())
-    .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);
+            ${LightLevelFragVariables}
+            ${SectorColorMapFragVariables}
+            ${OitVariables}
+
+            void main() {
+                ${LightLevelFragFunction}
+                ${SectorColorMapFragFunction}
+                ${FragColorFunction}
+            }
+        "
+        .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
+        .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
+        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV, oitOptions: GetOitOptions()))
+        .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
+        .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
+        .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
+        .Replace("${OutFragColor}", GetOutFragColor())
+        .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);
+    }
 
     private OitOptions GetOitOptions()
     {

@@ -38,6 +38,8 @@ public class EntityProgram : RenderProgram
     private readonly int m_renderFuzzLocation;
     private readonly int m_renderFuzzRefractionColorLocation;
     private readonly int m_screenBoundsLocation;
+    private readonly int m_planeZTextureLocation;
+    private readonly int m_checkPlaneClipLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -70,6 +72,8 @@ public class EntityProgram : RenderProgram
         m_renderFuzzLocation = Uniforms.GetLocation("renderFuzz");
         m_renderFuzzRefractionColorLocation = Uniforms.GetLocation("renderFuzzRefractionColor");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
+        m_planeZTextureLocation = Uniforms.GetLocation("planeZTexture");
+        m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -79,6 +83,7 @@ public class EntityProgram : RenderProgram
     public void AccumCountTextre(TextureUnit unit) => Uniforms.Set(unit, m_accumCountTextureLocation);
     public void FuzzTexture(TextureUnit unit) => Uniforms.Set(unit, m_fuzzTextureLocation);
     public void OpaqueTexture(TextureUnit unit) => Uniforms.Set(unit, m_opaqueTextureLocation);
+    public void PlaneZTexture(TextureUnit unit) => Uniforms.Set(unit, m_planeZTextureLocation);
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
@@ -101,6 +106,7 @@ public class EntityProgram : RenderProgram
     public void RenderFuzz(bool value) => Uniforms.Set(value, m_renderFuzzLocation);
     public void RenderFuzzRefractionColor(bool value) => Uniforms.Set(value, m_renderFuzzRefractionColorLocation);
     public void ScreenBounds(Vec2I value) => Uniforms.Set(value, m_screenBoundsLocation);
+    public void CheckPlaneClip(bool value) => Uniforms.Set(value, m_checkPlaneClipLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -109,13 +115,16 @@ public class EntityProgram : RenderProgram
         layout(location = 1) in float lightLevel;
         layout(location = 2) in float options;
         layout(location = 3) in vec3 prevPos;
-        layout(location = 4) in vec3 sectorIndex;
+        layout(location = 4) in float offsetZ;
+        layout(location = 5) in vec3 sectorIndex;
 
         out float lightLevelOut;
         out float alphaOut;
         out float fuzzOut;
         out float flipUOut;
         out float colorMapTranslationOut;
+        out float positionZOut;
+        out float offsetZOut;
         ${SectorColorMapVar}
 
         uniform float timeFrac;
@@ -136,8 +145,10 @@ public class EntityProgram : RenderProgram
             fuzzOut = fuzz;
             flipUOut = flipU;
             colorMapTranslationOut = colorMapTranslation;
+            offsetZOut = offsetZ;
             ${SectorColorMap}
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
+            positionZOut = gl_Position.z;
         }
     "
     .Replace("${SectorColorMapVar}", ShaderVars.PaletteColorMode ? "out int sectorColorMapIndexOut;" : "out vec3 sectorColorMapIndexOut;")
@@ -156,6 +167,8 @@ public class EntityProgram : RenderProgram
         in float fuzzOut[];
         in float flipUOut[];
         in float colorMapTranslationOut[];
+        in float positionZOut[];
+        in float offsetZOut[];
         ${SectorColorMapVar}
 
         out vec2 uvFrag;
@@ -166,6 +179,8 @@ public class EntityProgram : RenderProgram
         flat out float alphaFrag;
         flat out float fuzzFrag;
         flat out float colorMapTranslationFrag;
+        flat out float zPosFrag;
+        out float depthFrag;
         ${SectorColorMapFrag}
 
         uniform mat4 mvp;
@@ -187,6 +202,8 @@ public class EntityProgram : RenderProgram
             float rightU = 1 - clamp(flipUOut[0], 0, 1);
 
             vec3 pos = gl_in[0].gl_Position.xyz;
+            zPosFrag = pos.z;
+            pos.z += offsetZOut[0];
             ivec2 textureDim = textureSize(boundTexture, 0);
             vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
             vec3 minPos = pos;
@@ -204,44 +221,34 @@ public class EntityProgram : RenderProgram
             // Render distance squared in 2d space for fade in/out effect
             renderDistSquared = distSquared(viewPos.xy, pos.xy);
 
-            gl_Position = glPosMin;
-            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).${Depth};
-            uvFrag = vec2(leftU, 1);
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
             fuzzFrag = fuzzOut[0];
             colorMapTranslationFrag = colorMapTranslationOut[0];
             sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
+
+            gl_Position = glPosMin;
+            dist = (mvpNoPitch * vec4(minPos.x, minPos.y, minPos.z, 1)).${Depth};
+            uvFrag = vec2(leftU, 1);
+            depthFrag = gl_Position.${Depth};
             EmitVertex();
 
             gl_Position = mvp * vec4(maxPos.x, maxPos.y, minPos.z, 1);
             dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, minPos.z, 1)).${Depth};
             uvFrag = vec2(rightU, 1);
-            lightLevelFrag = lightLevelOut[0];
-            alphaFrag = alphaOut[0];
-            fuzzFrag = fuzzOut[0];
-            colorMapTranslationFrag = colorMapTranslationOut[0];
-            sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
+            depthFrag = gl_Position.${Depth};
             EmitVertex();
 
             gl_Position = mvp * vec4(minPos.x, minPos.y, maxPos.z, 1);
             dist = (mvpNoPitch * vec4(minPos.x, minPos.y, maxPos.z, 1)).${Depth};
             uvFrag = vec2(leftU, 0);
-            lightLevelFrag = lightLevelOut[0];
-            alphaFrag = alphaOut[0];
-            fuzzFrag = fuzzOut[0];
-            colorMapTranslationFrag = colorMapTranslationOut[0];
-            sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
+            depthFrag = gl_Position.${Depth};
             EmitVertex();
 
             gl_Position = glPosMax;
             dist = (mvpNoPitch * vec4(maxPos.x, maxPos.y, maxPos.z, 1)).${Depth};
             uvFrag = vec2(rightU, 0);
-            lightLevelFrag = lightLevelOut[0];
-            alphaFrag = alphaOut[0];
-            fuzzFrag = fuzzOut[0];
-            colorMapTranslationFrag = colorMapTranslationOut[0];
-            sectorColorMapIndexFrag = sectorColorMapIndexOut[0];
+            depthFrag = gl_Position.${Depth};
             EmitVertex();
     
             EndPrimitive();
@@ -262,6 +269,8 @@ public class EntityProgram : RenderProgram
         flat in float alphaFrag;
         flat in float fuzzFrag;
         flat in float colorMapTranslationFrag;
+        flat in float zPosFrag;
+        in float depthFrag;
 
         ${SectorColorMapFragVariables}
 
@@ -285,6 +294,9 @@ public class EntityProgram : RenderProgram
         uniform float renderFuzz;
         uniform int renderFuzzRefractionColor;
         uniform ivec2 screenBounds;
+        uniform int checkPlaneClip;
+
+        uniform sampler2D planeZTexture;
 
         ${OitVariables}
         ${FuzzFunction}
@@ -306,7 +318,7 @@ public class EntityProgram : RenderProgram
 
     private string GetPostProcess() 
     {
-        string clearAlpha = @"        
+        string clearAlpha = @"  
         fragColor.a = fragColor.a > 0.5 ? 1.0 : 0.0;
         if (fragColor.a <= 0)
             discard;";
@@ -315,6 +327,15 @@ public class EntityProgram : RenderProgram
             clearAlpha = string.Empty;
 
         return clearAlpha + @"
+        if (checkPlaneClip == 1) {
+            ivec2 getCoords = ivec2(gl_FragCoord.xy);
+            // r = floor's z position, g = floor's depth value
+            vec2 planeZ = texelFetch(planeZTexture, getCoords, 0).rg;
+            // If this pixel would be discarded to depth and the plane is higher than the z position then discard.
+            if (planeZ.r > zPosFrag && planeZ.g < depthFrag)
+                discard;
+        }
+
         if (renderDistSquared > maxDistanceSquared - fadeDistance) {
             float fade = (maxDistanceSquared - renderDistSquared) / fadeDistance;
             fragColor.a *= fade;

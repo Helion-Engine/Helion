@@ -334,6 +334,9 @@ public class GeometryRenderer : IDisposable
     public void RenderStaticGeometryFlats() =>
         m_staticCacheGeometryRenderer.RenderFlats();
 
+    public void RenderStaticGeometryFloors() =>
+        m_staticCacheGeometryRenderer.RenderFloors();
+
     public void RenderStaticCoverWalls() =>
         m_staticCacheGeometryRenderer.RenderCoverWalls();
 
@@ -1285,7 +1288,7 @@ public class GeometryRenderer : IDisposable
     {
         bool isSky = TextureManager.IsSkyTexture(flat.TextureHandle);
         GLLegacyTexture texture = m_glTextureManager.GetTexture(flat.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Flat);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, floor ? GeometryType.Floor : GeometryType.Ceiling);
         bool flatChanged = FlatChanged(flat);
         var sector = subsectors[0].Sector;
         int id = sector.Id;

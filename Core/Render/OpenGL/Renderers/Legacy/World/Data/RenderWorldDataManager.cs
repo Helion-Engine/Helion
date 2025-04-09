@@ -79,7 +79,13 @@ public class RenderWorldDataManager : IDisposable
 
     public void RenderFlats()
     {
-        m_lookup.Get(GeometryType.Flat).Draw();
+        m_lookup.Get(GeometryType.Floor).Draw();
+        m_lookup.Get(GeometryType.Ceiling).Draw();
+    }
+
+    public void RenderFloors()
+    {
+        m_lookup.Get(GeometryType.Floor).Draw();
     }
 
     public void RenderCoverWalls()
