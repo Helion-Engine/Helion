@@ -119,7 +119,7 @@ public class InterpolationShader : RenderProgram
             ${SectorColorMapVertexFunction}
             gl_Position = mvp * mixPos;
             zPos = mixPos.z;
-            depthFrag = gl_Position.w;
+            depthFrag = gl_Position.${Depth};
         }
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
@@ -131,11 +131,12 @@ public class InterpolationShader : RenderProgram
     .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
     .Replace("${VertexGapVariables}", VertexFunction.VertexGapVariables)
     .Replace("${VertexGapSet}", VertexFunction.VertexGapSet)
-    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet);
+    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
+    .Replace("${Depth}", ShaderVars.Depth);
 
     protected override string FragmentShader()
     {
-        if (this is InterpolationPlaneZShader)
+        if (this is InterpolationPlaneClipShader)
             return PlaneClip.WritePlaneFragFunction();
 
         return

@@ -6,7 +6,7 @@ using System;
 
 namespace Helion.Render.OpenGL.Framebuffer;
 
-public class PlaneZFrameBuffer : IDisposable
+public class PlaneClipFrameBuffer : IDisposable
 {
     private int m_framebuffer;
     private int m_texture;
@@ -26,19 +26,19 @@ public class PlaneZFrameBuffer : IDisposable
 
         m_texture = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, m_texture);
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, m_texture, "PlaneZ Texture");
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, m_texture, "PlaneClip Texture");
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rg32f, width, height, 0, PixelFormat.Rg, PixelType.Float, IntPtr.Zero);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
         GL.BindTexture(TextureTarget.Texture2D, 0);
 
-        m_depthTexture = new GLTexture2D("PlaneZ Depth Stencil Attachment", dimension);
+        m_depthTexture = new GLTexture2D("PlaneClip Depth Stencil Attachment", dimension);
         m_depthTexture.Bind();
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Depth32fStencil8, width, height, 0, PixelFormat.DepthStencil, PixelType.Float32UnsignedInt248Rev, IntPtr.Zero);
         m_depthTexture.Unbind();
 
         m_framebuffer = GL.GenFramebuffer();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Framebuffer, m_framebuffer, "PlaneZ Framebuffer");
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Framebuffer, m_framebuffer, "PlaneClip Framebuffer");
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_framebuffer);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, m_texture, 0);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, m_depthTexture.Name, 0);
@@ -46,7 +46,7 @@ public class PlaneZFrameBuffer : IDisposable
 
         var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
         if (status != FramebufferErrorCode.FramebufferComplete)
-            throw new Exception("Failed to complete planeZ framebuffer");
+            throw new Exception("Failed to complete PlaneClip framebuffer");
     }
 
     public unsafe void StartRender()

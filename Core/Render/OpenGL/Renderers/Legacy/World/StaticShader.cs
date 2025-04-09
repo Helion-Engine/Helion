@@ -108,7 +108,7 @@ public class StaticShader : RenderProgram
             ${SectorColorMapVertexFunction}
             gl_Position = mvp * mixPos;
             zPos = pos.z;
-            depthFrag = gl_Position.w;
+            depthFrag = gl_Position.${Depth};
         }
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.Default))
@@ -120,11 +120,12 @@ public class StaticShader : RenderProgram
     .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
     .Replace("${VertexGapVariables}", VertexFunction.VertexGapVariables)
     .Replace("${VertexGapSet}", VertexFunction.VertexGapSet)
-    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet);
+    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
+    .Replace("${Depth}", ShaderVars.Depth);
 
     protected override string FragmentShader()
     {
-        if (this is StaticPlaneZShader)
+        if (this is StaticPlaneClipShader)
             return PlaneClip.WritePlaneFragFunction();
 
         return @"

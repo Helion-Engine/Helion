@@ -33,9 +33,9 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly InterpolationShader m_interpolationProgram = new("Main");
     private readonly InterpolationTransparentShader m_interpolationTransparentProgram = new();
     private readonly InterpolationCompositeShader m_interpolationCompositeProgram = new();
-    private readonly InterpolationPlaneZShader m_interpolationPlaneZShader = new();
+    private readonly InterpolationPlaneClipShader m_interpolationPlaneClipShader = new();
     private readonly StaticShader m_staticProgram = new("Main");
-    private readonly StaticPlaneZShader m_staticPlaneZProgram = new();
+    private readonly StaticPlaneClipShader m_staticPlaneClipProgram = new();
     private readonly RenderWorldDataManager m_worldDataManager = new();
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
@@ -50,7 +50,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private Entity? m_viewerEntity;
     private IWorld? m_previousWorld;
     private RenderBlockMapData m_renderData;
-    private PlaneZFrameBuffer? m_planeZFrameBuffer;
+    private PlaneClipFrameBuffer? m_planeClipFrameBuffer;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
@@ -80,11 +80,10 @@ public class LegacyWorldRenderer : WorldRenderer
         TransferHeights.FlushSectorReferences();
         m_lastRenderedWorld.SetTarget(world);
 
-        // Note: The plane z discard check isn't correct if the GPU doesnt support clip control for reversed-z depth
-        if (m_vanillaRender && m_planeZFrameBuffer == null)
-            m_planeZFrameBuffer = new();
+        if (m_vanillaRender && m_planeClipFrameBuffer == null)
+            m_planeClipFrameBuffer = new();
         else
-            m_planeZFrameBuffer?.Dispose();
+            m_planeClipFrameBuffer?.Dispose();
 
         if (m_previousWorld != null)
             m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
@@ -269,7 +268,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         var dimension = new Dimension(renderInfo.Viewport.Width, renderInfo.Viewport.Height);
         m_oitFrameBuffer.CreateOrUpdate(dimension, framebuffer.DepthTexture);
-        m_planeZFrameBuffer?.CreateOrUpdate(dimension);
+        m_planeClipFrameBuffer?.CreateOrUpdate(dimension);
 
         if (m_lastTicker != world.GameTicker)
             m_entityRenderer.Start(renderInfo);
@@ -361,37 +360,37 @@ public class LegacyWorldRenderer : WorldRenderer
         RenderTwoSidedMiddleWalls(renderInfo);
         GL.ColorMask(true, true, true, true);
 
-        if (m_planeZFrameBuffer != null)
-            WritePlaneData(m_planeZFrameBuffer, renderInfo, framebuffer);        
+        if (m_planeClipFrameBuffer != null)
+            WritePlaneData(m_planeClipFrameBuffer, renderInfo, framebuffer);        
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer, true);
         m_primitiveRenderer.Render(renderInfo);
     }
 
-    private void WritePlaneData(PlaneZFrameBuffer planeZFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer)
+    private void WritePlaneData(PlaneClipFrameBuffer planeClipFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
-        planeZFrameBuffer.StartRender();
-        planeZFrameBuffer.BindFrameBuffer();
+        planeClipFrameBuffer.StartRender();
+        planeClipFrameBuffer.BindFrameBuffer();
 
         if (m_renderStatic)
         {
-            m_staticPlaneZProgram.Bind();
+            m_staticPlaneClipProgram.Bind();
             GL.ActiveTexture(TextureUnit.Texture0);
-            SetStaticUniforms(m_staticPlaneZProgram, renderInfo);
+            SetStaticUniforms(m_staticPlaneClipProgram, renderInfo);
             m_geometryRenderer.RenderStaticGeometryFloors();
-            m_staticPlaneZProgram.Unbind();
+            m_staticPlaneClipProgram.Unbind();
         }
 
-        m_interpolationPlaneZShader.Bind();
+        m_interpolationPlaneClipShader.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
-        SetInterpolationUniforms(m_interpolationPlaneZShader, renderInfo);
+        SetInterpolationUniforms(m_interpolationPlaneClipShader, renderInfo);
         m_worldDataManager.RenderFloors();
-        m_interpolationPlaneZShader.Unbind();
+        m_interpolationPlaneClipShader.Unbind();
 
-        planeZFrameBuffer.UnbindFrameBuffer();
+        planeClipFrameBuffer.UnbindFrameBuffer();
         framebuffer.Bind();
-        planeZFrameBuffer.BindPlaneZTexture(TextureUnit.Texture8);
+        planeClipFrameBuffer.BindPlaneZTexture(TextureUnit.Texture8);
         ResetBlendEquations();
     }
 
