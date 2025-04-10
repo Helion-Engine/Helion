@@ -153,13 +153,15 @@ public partial class WorldLayer
 
     private void SetHudPadding(IHudRenderContext hud)
     {
-        m_hudPaddingX = (int)(hud.Dimension.Width * m_config.Hud.HorizontalMargin);
-        if (!m_config.Window.Virtual.Enable || m_config.Window.Virtual.Stretch)
+        if (m_config.Hud.Width == 0)
+        {
+            m_hudPaddingX = 0;
             return;
+        }
 
-        var virtualDim = m_config.Window.Virtual.Dimension.Value;
-        m_hudPaddingX = (int)(virtualDim.Width * m_config.Hud.HorizontalMargin);
-        m_hudPaddingX += Math.Max(0, (int)(hud.Dimension.Height * (hud.Dimension.AspectRatio - virtualDim.AspectRatio)) / 2);
+        var scale = GetDoomScale(hud, out _);
+        var width = m_config.Hud.Width.Value * 320.0 * scale.X;
+        m_hudPaddingX = Math.Max((hud.Dimension.Width - (int)width) / 2, 0);
     }
 
     private void DrawMapHeader(IHudRenderContext hud)

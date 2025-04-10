@@ -10,6 +10,7 @@
 - Added pixel gap correction to rendering that is on by default. Prevents most pixel gap problems caused by floating point precision
 - Added MAPINFO and md5 to have correct level names and progression for nerve.wad (No Rest for the Living)
 - Added fix for sprites clipping through lower floors with emulate vanilla rendering (issue #907)
+- Replaced HUD horizontal margin with HUD width option. 
 
 ## Bug fixes:
 - Correct missile blocking checks to match original behavior (fixes radsuits blocking rockets etc)

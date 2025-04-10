@@ -190,9 +190,9 @@ public class ConfigHud: ConfigElement<ConfigHud>
     [OptionMenu(OptionSectionType.Hud, "Max HUD Messages", sliderMin: 0, sliderMax: 50, sliderStep: 1)]
     public readonly ConfigValue<int> MaxMessages = new(4, GreaterOrEqual(0));
 
-    [ConfigInfo("Horizontal HUD margin percentage  (0.0 - 1.0).")]
-    [OptionMenu(OptionSectionType.Hud, "Horizontal Margin Percent", sliderMin: 0, sliderMax: 1.0, sliderStep: .05)]
-    public readonly ConfigValue<double> HorizontalMargin = new(0, ClampNormalized);
+    [ConfigInfo("HUD width as a percentage of the original Doom status bar width; 0 = Max screen width.")]
+    [OptionMenu(OptionSectionType.Hud, "Width", sliderMin: 0, sliderMax: 10.0, sliderStep: .05)]
+    public readonly ConfigValue<double> Width = new(1, Clamp(0, double.MaxValue));
 
     [ConfigInfo("Font upscaling ratio (1 - 5); uses xBRZ algorithm to improve text readability", restartRequired: true)]
     [OptionMenu(OptionSectionType.Hud, "Font Upscale Ratio", sliderMin: 1, sliderMax: 5, sliderStep: 1)]
