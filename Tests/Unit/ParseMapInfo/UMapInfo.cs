@@ -353,18 +353,18 @@ public class UMapInfo
         map31.Next.Should().Be("MAP32");
         map31.ClusterDef.Should().NotBeNull();
         cluster = map31.ClusterDef;
-        cluster!.Flat.Should().Be("$BGFLAT15");
-        cluster.ExitText.Count.Should().Be(1);
-        cluster.ExitText[0].Should().Be("$C5TEXT");
+        cluster!.Flat.Should().Be("$BGFLAT31");
+        cluster.ExitText.Count.Should().Be(0);
+        cluster.SecretExitText.Count.Should().Be(1);
+        cluster.SecretExitText[0].Should().Be("$C6TEXT");
 
         getMap = mapInfoDef.MapInfo.GetMap("MAP32").MapInfo;
         getMap.Should().NotBeNull();
         var map32 = getMap!;
         map32.ClusterDef.Should().NotBeNull();
         cluster = map32.ClusterDef;
-        cluster!.Flat.Should().Be("$BGFLAT31");
-        cluster.ExitText.Count.Should().Be(1);
-        cluster.ExitText[0].Should().Be("$C6TEXT");
+        cluster!.ExitText.Count.Should().Be(0);
+        cluster.SecretExitText.Count.Should().Be(0);
     }
 
     [Fact(DisplayName = "UMapInfo label")]

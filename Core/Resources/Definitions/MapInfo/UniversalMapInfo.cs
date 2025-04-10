@@ -323,38 +323,45 @@ public partial class MapInfoDefinition
         };
 
         string flat = "$BGFLAT06";
-        string exitText = prefix + "1TEXT";
+        List<string>? exitText = null;
+        List<string>? secretExitText = null;
 
+        if (mapName.EqualsIgnoreCase("MAP06"))
+        {
+            flat = "$BGFLAT06";
+            exitText = [prefix + "1TEXT"];
+        }
         if (mapName.EqualsIgnoreCase("MAP11"))
         {
             flat = "$BGFLAT11";
-            exitText = prefix + "2TEXT";
+            exitText = [prefix + "2TEXT"];
+        }
+        if (mapName.EqualsIgnoreCase("MAP15"))
+        {
+            flat = "$BGFLAT15";
+            secretExitText = [prefix + "5TEXT"];
         }
         else if (mapName.EqualsIgnoreCase("MAP20"))
         {
             flat = "$BGFLAT20";
-            exitText = prefix + "3TEXT";
+            exitText = [prefix + "3TEXT"];
         }
         else if (mapName.EqualsIgnoreCase("MAP30"))
         {
             flat = "$BGFLAT30";
-            exitText = prefix + "4TEXT";
+            exitText = [prefix + "4TEXT"];
         }
         else if (mapName.EqualsIgnoreCase("MAP31"))
         {
-            flat = "$BGFLAT15";
-            exitText = prefix + "5TEXT";
-        }
-        else if (mapName.EqualsIgnoreCase("MAP32"))
-        {
             flat = "$BGFLAT31";
-            exitText = prefix + "6TEXT";
+            secretExitText = [prefix + "6TEXT"];
         }
 
         return new(0)
         {
             Flat = flat,
-            ExitText = [exitText]
+            ExitText = exitText ?? [],
+            SecretExitText = secretExitText ?? []
         };
     }
 
