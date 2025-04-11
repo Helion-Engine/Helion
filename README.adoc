@@ -45,6 +45,8 @@ image:https://i.imgur.com/QYXFuz4.png[Summer of Slaughter MAP32]
 
 The latest stable release for Windows and most Linux distros can be https://github.com/Helion-Engine/Helion/releases/latest[downloaded here]. Nightly experimental builds are also https://github.com/Helion-Engine/Helion/releases/tag/nightly[available here] for users who want to test the latest features before they're ready.
 
+Helion uses https://dotnet.microsoft.com/en-us/download/dotnet/9.0[.NET 9]. The self-contained Helion releases include it, otherwise you will need to install the Desktop Runtime. On Linux, you will also need to make sure OpenAL, libsndfile, and libmpg123 are installed.
+
 For information on setting up and playing, see the bundled link:/Assets/Documentation/README.md[game documentation].
 
 If you want to compile from source, see the link:/INSTALL.adoc[build instructions].
