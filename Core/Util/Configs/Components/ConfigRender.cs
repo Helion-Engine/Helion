@@ -79,10 +79,6 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Anisotropy", spacer: true, sliderMin: 0, sliderMax: 16, sliderStep: 1)]
     public readonly ConfigValue<int> Anisotropy = new(8, GreaterOrEqual(1));
 
-    [ConfigInfo("Multisampling amount. A value of 1 is the same as being off.")]
-    [OptionMenu(OptionSectionType.Render, "Multisample", sliderMin: 0, sliderMax: 32, sliderStep: 1)]
-    public readonly ConfigValue<int> Multisample = new(1, GreaterOrEqual(1));
-
     public readonly ConfigRenderFilter Filter = new();
 
     [ConfigInfo("Render missing textures as a red/black checkered texture.", mapRestartRequired: true)]
