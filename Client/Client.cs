@@ -604,8 +604,6 @@ public partial class Client : IDisposable, IInputManagement
 
         try
         {
-            throw new Exception("hi");
-
             ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(pathsManager, config, []), config, ArchiveCollection.StaticDataCache);
             using HelionConsole console = new(archiveCollection.DataCache, config, commandLineArgs);
             LogClientInfo();
