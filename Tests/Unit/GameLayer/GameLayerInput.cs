@@ -90,7 +90,7 @@ public class GameLayerInput
 
     public GameLayerInput()
     {
-        HelionLoggers.Initialize(new());
+        HelionLoggers.Initialize(new(), ".");
         World = WorldAllocator.LoadMap("Resources/playermovement.zip", "playermovement.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
         InputManager = new InputManager();
         AnalogAdapter = new FakeAnalogAdapter();
