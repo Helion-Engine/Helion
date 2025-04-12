@@ -44,6 +44,7 @@ public class CommandLineArgs
     [
         "-iwad",
         "-file",
+        "-portable",
         "-config",
         "-savedir",
         "-log",
