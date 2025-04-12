@@ -140,7 +140,6 @@ public class Window : GameWindow, IWindow
             Profile = ContextProfile.Core,
             APIVersion = new Version(glMajor, glMinor),
             Flags = settingsFlags,
-            NumberOfSamples = config.Render.Multisample.Value,
             Size = new Vector2i(windowWidth, windowHeight),
             Title = title,
             WindowBorder = config.Window.Border,

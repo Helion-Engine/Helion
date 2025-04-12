@@ -463,9 +463,6 @@ public partial class Renderer : IDisposable
     {
         GL.Enable(EnableCap.DepthTest);
 
-        if (m_config.Render.Multisample > 1)
-            GL.Enable(EnableCap.Multisample);
-
         GL.Enable(EnableCap.TextureCubeMapSeamless);
 
         GL.Enable(EnableCap.Blend);
