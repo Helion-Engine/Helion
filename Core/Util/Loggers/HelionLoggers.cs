@@ -1,3 +1,4 @@
+using System.IO;
 using Helion.Util.CommandLine;
 using Helion.Util.Extensions;
 using NLog;
@@ -23,6 +24,7 @@ public static class HelionLoggers
 
     private static readonly FileTarget ErrorFileTarget = new("errorFileTarget")
     {
+        // Note: The file name is overridden, but is here as a safeguard.
         FileName = "errorlog.txt",
         DeleteOldFileOnStartup = true,
         Layout = "${time} ${message} ${exception:format=ToString,StackTrace}"
@@ -44,19 +46,20 @@ public static class HelionLoggers
         Layout = "${message}"
     };
 
-    public static void Initialize(CommandLineArgs args)
+    public static void Initialize(CommandLineArgs args, string userDataFolder)
     {
         LoggingConfiguration config = new();
 
         AddClassLoggers(config, args);
-        AddErrorFileLogger(config);
+        AddErrorFileLogger(config, userDataFolder);
         AddProfilerLogger(config, args);
 
         LogManager.Configuration = config;
     }
 
-    private static void AddErrorFileLogger(LoggingConfiguration config)
+    private static void AddErrorFileLogger(LoggingConfiguration config, string userDataFolder)
     {
+        ErrorFileTarget.FileName = Path.Combine(userDataFolder, "errorlog.txt");
         config.AddTarget(ErrorFileTarget);
         config.AddRuleForAllLevels(ErrorFileTarget, ErrorLoggerName);
     }
