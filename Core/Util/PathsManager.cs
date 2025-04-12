@@ -135,15 +135,20 @@ public class PathsManager
         if (portableMode)
             return AppContext.BaseDirectory;
 
+        string? folder = null;
+
         // on Windows, use "~/Saved Games/Helion"
         if (OperatingSystem.IsWindows())
         {
             var registrySavedGamesFolder = (string?)Registry.GetValue(WindowsShellFoldersKey, WindowsSavedGamesFolderGuid, null);
             if (registrySavedGamesFolder != null)
-                return Path.Combine(registrySavedGamesFolder, "Helion");
-            var userDir = Environment.GetEnvironmentVariable("USERPROFILE");
-            if (userDir != null)
-                return Path.Combine(userDir, "Saved Games", "Helion");
+                folder = Path.Combine(registrySavedGamesFolder, "Helion");
+            else
+            {
+                var userDir = Environment.GetEnvironmentVariable("USERPROFILE");
+                if (userDir != null)
+                    folder = Path.Combine(userDir, "Saved Games", "Helion");
+            }
         }
 
         // On Linux, default to "$XDG_CONFIG_HOME/helion"
@@ -151,14 +156,28 @@ public class PathsManager
         {
             var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
             if (!string.IsNullOrWhiteSpace(xdgConfigHome))
-                return $"{xdgConfigHome}/helion";
-
+                folder = $"{xdgConfigHome}/helion";
             // Fallback to "$HOME/.config/helion"
-            var home = Environment.GetEnvironmentVariable("HOME");
-            if (!string.IsNullOrWhiteSpace(home))
-                return $"{home}/.config/helion";
+            else
+            {
+                var home = Environment.GetEnvironmentVariable("HOME");
+                if (!string.IsNullOrWhiteSpace(home))
+                    folder = $"{home}/.config/helion";
+            }
         }
 
+        // ensure the folder exists
+        if (folder != null)
+        {
+            try
+            {
+                Directory.CreateDirectory(folder);
+                return folder;
+            }
+            catch { }
+        }
+
+        // fall back to portable mode
         return AppContext.BaseDirectory;
     }
 
