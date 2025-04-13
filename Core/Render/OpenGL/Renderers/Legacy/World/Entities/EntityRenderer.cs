@@ -36,6 +36,7 @@ public class EntityRenderer : IDisposable
     private bool m_spriteClip;
     private bool m_spriteZCheck;
     private bool m_vanillaRender;
+    private bool m_healthBars;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
     private bool m_disposed;
@@ -81,6 +82,7 @@ public class EntityRenderer : IDisposable
         m_spriteZCheck = m_config.Render.SpriteZCheck;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
+        m_healthBars = m_config.Render.HealthBars;
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -245,7 +247,7 @@ public class EntityRenderer : IDisposable
         
         arrayData.Length = length + 1;
 
-        if (entity.Flags.Shootable)
+        if (m_healthBars && entity.Flags.Shootable)
             RenderHealthBar(entity, texture, vertex);
     }
 
@@ -323,6 +325,9 @@ public class EntityRenderer : IDisposable
 
     public void RenderHealthBars(RenderInfo renderInfo)
     {
+        if (!m_healthBars)
+            return;
+
         m_program.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(m_program, renderInfo);
