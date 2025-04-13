@@ -11,6 +11,7 @@ public struct EntityVertex
     public Vec3F Pos;
 
     [VertexAttribute]
+    // Health Percent Normalized
     public float LightLevel;
 
     [VertexAttribute]
@@ -20,8 +21,10 @@ public struct EntityVertex
     public Vec3F PrevPos;
 
     [VertexAttribute]
+    // Texture Height
     public float OffsetZ;
 
     [VertexAttribute(required: false)]
+    // Texture Width
     public float SectorIndex;
 }

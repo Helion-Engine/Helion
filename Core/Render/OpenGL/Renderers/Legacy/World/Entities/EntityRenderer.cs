@@ -46,7 +46,7 @@ public class EntityRenderer : IDisposable
         m_config = config;
         m_textureManager = textureManager;
         m_nullSpriteRotation = m_textureManager.NullSpriteRotation;
-        m_dataManager = new(m_program);
+        m_dataManager = new(m_program, textureManager.BlackTexture);
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteZCheck = m_config.Render.SpriteZCheck;
@@ -62,6 +62,8 @@ public class EntityRenderer : IDisposable
 
     public bool HasFuzz() => m_dataManager.HasFuzz();
     public bool HasAlpha() => m_dataManager.HasAlpha();
+
+    public void HealthBarMode(bool set) => m_program.HealthBarMode(set);
 
     public void UpdateTo(IWorld world)
     {
@@ -242,6 +244,21 @@ public class EntityRenderer : IDisposable
         vertex.SectorIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
         
         arrayData.Length = length + 1;
+
+        if (entity.Flags.Shootable)
+            RenderHealthBar(entity, texture, vertex);
+    }
+
+    private void RenderHealthBar(Entity entity, GLLegacyTexture texture, EntityVertex vertex)
+    {
+        var healthBarData = m_dataManager.GetHealthBarData();
+        vertex.OffsetZ = texture.Height + 1;
+        vertex.LightLevel = entity.Health / (float)entity.Properties.Health;
+        vertex.Options = VertexOptions.Entity(1, 0, 0, texture.Width / 2);
+
+        healthBarData.ArrayData.EnsureCapacity(healthBarData.ArrayData.Length + 1);
+        healthBarData.ArrayData.Data[healthBarData.ArrayData.Length] = vertex;
+        healthBarData.ArrayData.SetLength(healthBarData.ArrayData.Length + 1);
     }
 
     public void Start(RenderInfo renderInfo)
@@ -304,11 +321,22 @@ public class EntityRenderer : IDisposable
         program.PlaneZTexture(TextureUnit.Texture8);
     }
 
+    public void RenderHealthBars(RenderInfo renderInfo)
+    {
+        m_program.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        SetUniforms(m_program, renderInfo);
+        m_program.HealthBarMode(true);
+        m_dataManager.RenderHealthBars();
+        m_program.Unbind();
+    }
+
     public void RenderOpaque(RenderInfo renderInfo)
     {
         m_program.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(m_program, renderInfo);
+        m_program.HealthBarMode(false);
         m_dataManager.RenderNonAlpha(PrimitiveType.Points);
         m_program.Unbind();
     }
