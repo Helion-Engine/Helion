@@ -254,9 +254,11 @@ public class EntityRenderer : IDisposable
     private void RenderHealthBar(Entity entity, GLLegacyTexture texture, EntityVertex vertex)
     {
         var healthBarData = m_dataManager.GetHealthBarData();
-        vertex.OffsetZ = texture.Height + 1;
+        // Normalized health percent
         vertex.LightLevel = entity.Health / (float)entity.Properties.Health;
+        // Write original texture width since they are drawn from the right to center the bar
         vertex.Options = VertexOptions.Entity(1, 0, 0, texture.Width / 2);
+        vertex.OffsetZ = texture.Height + 1;
 
         healthBarData.ArrayData.EnsureCapacity(healthBarData.ArrayData.Length + 1);
         healthBarData.ArrayData.Data[healthBarData.ArrayData.Length] = vertex;
