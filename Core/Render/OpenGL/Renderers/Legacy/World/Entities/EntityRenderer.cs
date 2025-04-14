@@ -249,28 +249,49 @@ public class EntityRenderer : IDisposable
         arrayData.Length = length + 1;
 
         if (m_healthBars && entity.Flags.Shootable)
-            RenderHealthBar(entity, texture, vertex);
+            RenderHealthBar(entity, texture, vertex, nudgeAmount);
     }
 
-    private void RenderHealthBar(Entity entity, GLLegacyTexture texture, EntityVertex vertex)
+    private void RenderHealthBar(Entity entity, GLLegacyTexture texture, EntityVertex vertex, Vec2D nudgeAmount)
     {
         // Don't let the bar bounce back and forth in height (eg Lost Soul)
-        var height = texture.Height - texture.BlankRowsFromTop + 4;
-        if (height > entity.Properties.HealthBarHeight)
-            entity.Properties.HealthBarHeight = height;
+        var offset = (int)vertex.OffsetZ + texture.Height - texture.BlankRowsFromTop + 4;
+        if (offset > entity.Properties.HealthBarOffset)
+            entity.Properties.HealthBarOffset = offset;
         else
-            height = entity.Properties.HealthBarHeight;
+            offset = entity.Properties.HealthBarOffset;
+
+        if (entity.Properties.HealthBarWidth == -1)
+            entity.Properties.HealthBarWidth = ScaleHealthBarWidth(entity.Properties.Health);
 
         var healthBarData = m_dataManager.GetHealthBarData();
+        // Prevent small health values from rendering zero pixels
+        float min = 1f / (entity.Properties.HealthBarWidth + MinBarWidth - 5);
         // Normalized health percent
-        vertex.LightLevel = entity.Health / (float)entity.Properties.Health;
-        // Write original texture width since they are drawn from the right to center the bar
-        vertex.Options = VertexOptions.Entity(1, 0, 0, texture.Width / 2);
-        vertex.OffsetZ += height;
+        vertex.LightLevel = Math.Max(min, entity.Health / (float)entity.Properties.Health);
+        vertex.Options = VertexOptions.Entity(1, 0, 0, entity.Properties.HealthBarWidth);
+        vertex.OffsetZ = offset;
+        vertex.Pos.X = (float)(entity.Position.X + nudgeAmount.X);
+        vertex.Pos.Y = (float)(entity.Position.Y + nudgeAmount.Y);
+        vertex.Pos.Z = (float)entity.Position.Z;
+        vertex.PrevPos.X = (float)(entity.PrevPosition.X + nudgeAmount.X);
+        vertex.PrevPos.Y = (float)(entity.PrevPosition.Y + nudgeAmount.Y);
+        vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
 
         healthBarData.ArrayData.EnsureCapacity(healthBarData.ArrayData.Length + 1);
         healthBarData.ArrayData.Data[healthBarData.ArrayData.Length] = vertex;
         healthBarData.ArrayData.SetLength(healthBarData.ArrayData.Length + 1);
+    }
+
+    const int MinBarWidth = 20;
+    const int MaxBarWidth = 80;
+    const int MinHealth = 20;
+    const int MaxHealth = 4000;
+
+    private static int ScaleHealthBarWidth(int health)
+    {
+        return (int)((MaxBarWidth - MinBarWidth) *
+               (Math.Sqrt(health - MinHealth) / Math.Sqrt(MaxHealth - MinHealth)));
     }
 
     public void Start(RenderInfo renderInfo)

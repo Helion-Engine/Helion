@@ -112,8 +112,8 @@ public class EntityProgram : RenderProgram
     public void HealthBarMode(bool value) => Uniforms.Set(value, m_healthBarModeLocation);
 
     private const string BoxDefines = @"
-        const float BoxWidth = 40;
-        const float HalfBoxWidth = 20;
+        const float BoxWidth = 20;
+        const float HalfBoxWidth = 10;
         const float BoxHeight = 8;";
 
     protected override string VertexShader() => @"
@@ -220,7 +220,7 @@ public class EntityProgram : RenderProgram
             vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y);
 
             if (healthBarMode == 1) {
-                minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) - (posMoveDir * colorMapTranslationOut[0]);
+                minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
                 maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
             }
 
@@ -358,11 +358,11 @@ public class EntityProgram : RenderProgram
 
         if (healthBarMode == 1) {
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
-            const float BorderThickness = 1.5;
-            const float BorderWidthUV = 1 / BoxWidth;
-            const float BorderHeightUV = 1 / BoxHeight;
             const float RedAmount = 0.33;
             const float YellowAmount = 0.66;
+            const float BorderThickness = 1.5;
+            const float BorderHeightUV = 1 / BoxHeight;
+            float BorderWidthUV = 1 / (BoxWidth + colorMapTranslationFrag * 2);
             fragColor.r = mix(0, 0.3, float((lightLevelFrag <= RedAmount) || (lightLevelFrag > RedAmount && lightLevelFrag < YellowAmount)));
             fragColor.g = mix(0, 0.3, float(lightLevelFrag >= YellowAmount || (lightLevelFrag > RedAmount && lightLevelFrag < YellowAmount)));
             fragColor.b = 0;
