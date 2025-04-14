@@ -338,8 +338,8 @@ public class EntityProgram : RenderProgram
 
     private string GetPostProcess() 
     {
-        string clearAlpha = @"  
-        fragColor.a = fragColor.a > 0.5 ? 1.0 : 0.0;
+        string clearAlpha = @"
+        fragColor.a = mix(0.0, 1.0, float(fragColor.a > 0.5));
         if (fragColor.a <= 0)
             discard;";
 

@@ -18,6 +18,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
 public class EntityRenderer : IDisposable
 {
+    const int MinBarWidth = 20;
+    const int MaxBarWidth = 80;
+    const int MinHealth = 20;
+    const int MaxHealth = 4000;
+
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly EntityProgram m_program = new("Main");
@@ -283,16 +288,8 @@ public class EntityRenderer : IDisposable
         healthBarData.ArrayData.SetLength(healthBarData.ArrayData.Length + 1);
     }
 
-    const int MinBarWidth = 20;
-    const int MaxBarWidth = 80;
-    const int MinHealth = 20;
-    const int MaxHealth = 4000;
-
-    private static int ScaleHealthBarWidth(int health)
-    {
-        return (int)((MaxBarWidth - MinBarWidth) *
-               (Math.Sqrt(health - MinHealth) / Math.Sqrt(MaxHealth - MinHealth)));
-    }
+    private static int ScaleHealthBarWidth(int health) =>
+        (int)((MaxBarWidth - MinBarWidth) * (Math.Sqrt(health - MinHealth) / Math.Sqrt(MaxHealth - MinHealth)));
 
     public void Start(RenderInfo renderInfo)
     {

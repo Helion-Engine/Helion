@@ -198,7 +198,7 @@ public class FragFunction
             return "";
 
         return @"// Don't write partially transparent pixels for two-sided middle to fix issues with texture filtering.
-                fragColor.w = mix(fragColor.a > 0.5 ? 1.0 : 0.0, fragColor.w, addAlphaFrag);";
+                fragColor.w = mix(mix(0.0, 1.0, float(fragColor.a > 0.5)), fragColor.w, addAlphaFrag);";
     }
 
     private static string FuzzDist(FuzzRefractionOptions options) =>
