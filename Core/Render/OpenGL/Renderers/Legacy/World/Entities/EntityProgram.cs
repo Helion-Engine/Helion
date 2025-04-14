@@ -322,6 +322,7 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
+            ${HealthBarCheck}
             ${LightLevelFragFunction}
             ${SectorColorMapFragFunction}
             ${FragColorFunction}
@@ -334,7 +335,8 @@ public class EntityProgram : RenderProgram
     .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
     .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
     .Replace("${OutFragColor}", GetOutFragColor())
-    .Replace("${BoxDefines}", BoxDefines);
+    .Replace("${BoxDefines}", BoxDefines)
+    .Replace("${HealthBarCheck}", GetOitOptions() == OitOptions.None ? "if (healthBarMode == 0) {" : "");
 
     private string GetPostProcess() 
     {
@@ -355,8 +357,18 @@ public class EntityProgram : RenderProgram
             if (planeZ.r > zPosFrag && planeZ.g < depthFrag)
                 discard;
         }
+       
+        ${HealthBar}
 
+        float fade = (maxDistanceSquared - renderDistSquared) / fadeDistance;
+        fragColor.a = mix(fragColor.a, fragColor.a * fade, float(renderDistSquared > maxDistanceSquared - fadeDistance));
+        ".Replace("${HealthBar}", GetOitOptions() == OitOptions.None ? GetHealthBar() : "");
+    }
+
+    private string GetHealthBar() => @"
+        }
         if (healthBarMode == 1) {
+            fragColor = vec4(0, 0, 0, 1);
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
             const float RedAmount = 0.33;
             const float YellowAmount = 0.66;
@@ -365,8 +377,6 @@ public class EntityProgram : RenderProgram
             float BorderWidthUV = 1 / (BoxWidth + colorMapTranslationFrag * 2);
             fragColor.r = mix(0, 0.3, float((lightLevelFrag <= RedAmount) || (lightLevelFrag > RedAmount && lightLevelFrag < YellowAmount)));
             fragColor.g = mix(0, 0.3, float(lightLevelFrag >= YellowAmount || (lightLevelFrag > RedAmount && lightLevelFrag < YellowAmount)));
-            fragColor.b = 0;
-            fragColor.a = 1;
 
             // Health bar gradient
             fragColor.rgb += mix(fragColor.rgb, vec3(1, 1, 1), min(0.5, 1 - (float(uvFrag.x < lightLevelFrag) - (uvFrag.x / lightLevelFrag / 2))));
@@ -375,12 +385,7 @@ public class EntityProgram : RenderProgram
             // Black box border
             fragColor.rgb = mix(fragColor.rgb, vec3(0, 0, 0), 
                 float(uvFrag.x < BorderWidthUV || uvFrag.y < BorderHeightUV || uvFrag.x > 1 - BorderWidthUV || uvFrag.y > 1 - BorderHeightUV));
-        }
-
-        float fade = (maxDistanceSquared - renderDistSquared) / fadeDistance;
-        fragColor.a = mix(fragColor.a, fragColor.a * fade, float(renderDistSquared > maxDistanceSquared - fadeDistance));
-        ";
-    }
+        }";
 
     private OitOptions GetOitOptions()
     {
