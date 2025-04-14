@@ -111,6 +111,11 @@ public class EntityProgram : RenderProgram
     public void CheckPlaneClip(bool value) => Uniforms.Set(value, m_checkPlaneClipLocation);
     public void HealthBarMode(bool value) => Uniforms.Set(value, m_healthBarModeLocation);
 
+    private const string BoxDefines = @"
+        const float BoxWidth = 40;
+        const float HalfBoxWidth = 20;
+        const float BoxHeight = 8;";
+
     protected override string VertexShader() => @"
         #version 330
 
@@ -161,6 +166,7 @@ public class EntityProgram : RenderProgram
 
     protected override string? GeometryShader() => @"
         #version 330 core
+        ${BoxDefines}
 
         layout(points) in;
         layout(triangle_strip, max_vertices = 4) out;
@@ -214,10 +220,8 @@ public class EntityProgram : RenderProgram
             vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y);
 
             if (healthBarMode == 1) {
-                //minPos = vec3(minPos.x, minPos.y, pos.z);
-                //maxPos = vec3(maxPos.x, maxPos.y, minPos.z + 8);
-                minPos -= (posMoveDir * 20) + (vec3(0, 0, 1) * 2) - (posMoveDir * colorMapTranslationOut[0]);
-                maxPos += (posMoveDir * 20) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
+                minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) - (posMoveDir * colorMapTranslationOut[0]);
+                maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
             }
 
             // Triangle strip ordering is: v0 v1 v2, v2 v1 v3
@@ -267,10 +271,13 @@ public class EntityProgram : RenderProgram
     "
     .Replace("${SectorColorMapVar}", ShaderVars.PaletteColorMode ? "in int sectorColorMapIndexOut[];" : "in vec3 sectorColorMapIndexOut[];")
     .Replace("${SectorColorMapFrag}", ShaderVars.PaletteColorMode ? "flat out int sectorColorMapIndexFrag;" : "flat out vec3 sectorColorMapIndexFrag;")
-    .Replace("${Depth}", ShaderVars.Depth);
+    .Replace("${Depth}", ShaderVars.Depth)
+    .Replace("${BoxDefines}", BoxDefines);
 
     protected override string? FragmentShader() => @"
         #version 330
+    
+        ${BoxDefines}
 
         in vec2 uvFrag;
         in float dist;
@@ -326,7 +333,8 @@ public class EntityProgram : RenderProgram
     .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
     .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
     .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
-    .Replace("${OutFragColor}", GetOutFragColor());
+    .Replace("${OutFragColor}", GetOutFragColor())
+    .Replace("${BoxDefines}", BoxDefines);
 
     private string GetPostProcess() 
     {
@@ -351,24 +359,22 @@ public class EntityProgram : RenderProgram
         if (healthBarMode == 1) {
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
             const float BorderThickness = 1.5;
-            const float BoxWidth = 76;
-            const float BoxHeight = 16;
             const float BorderWidthUV = 1 / BoxWidth;
-            const float BorderHeightUV = 1/ BoxHeight;
+            const float BorderHeightUV = 1 / BoxHeight;
             const float RedAmount = 0.33;
             const float YellowAmount = 0.66;
-            fragColor.r = mix(0, 1, float((lightLevelFrag <= RedAmount) || (lightLevelFrag > RedAmount && lightLevelFrag < YellowAmount)));
-            fragColor.g = mix(0, 1, float(lightLevelFrag >= YellowAmount || (lightLevelFrag > RedAmount && lightLevelFrag < YellowAmount)));
+            fragColor.r = mix(0, 0.3, float((lightLevelFrag <= RedAmount) || (lightLevelFrag > RedAmount && lightLevelFrag < YellowAmount)));
+            fragColor.g = mix(0, 0.3, float(lightLevelFrag >= YellowAmount || (lightLevelFrag > RedAmount && lightLevelFrag < YellowAmount)));
             fragColor.b = 0;
             fragColor.a = 1;
 
             // Health bar gradient
-            fragColor.rgb = mix(fragColor.rgb, vec3(1, 1, 1), min(0.7, 1 - (float(uvFrag.x < lightLevelFrag) - (uvFrag.x / lightLevelFrag))));
+            fragColor.rgb += mix(fragColor.rgb, vec3(1, 1, 1), min(0.5, 1 - (float(uvFrag.x < lightLevelFrag) - (uvFrag.x / lightLevelFrag / 2))));
             // Gray background as health bar depletes
-            fragColor.rgb = mix(fragColor.rgb, vec3(0.4, 0.4, 0.4), uvFrag.x > lightLevelFrag);
+            fragColor.rgb = mix(fragColor.rgb, vec3(0.4, 0.4, 0.4), float(uvFrag.x > lightLevelFrag));
             // Black box border
             fragColor.rgb = mix(fragColor.rgb, vec3(0, 0, 0), 
-                uvFrag.x < BorderWidthUV || uvFrag.y < BorderHeightUV || uvFrag.x > 1 - BorderWidthUV || uvFrag.y > 1 - BorderHeightUV);
+                float(uvFrag.x < BorderWidthUV || uvFrag.y < BorderHeightUV || uvFrag.x > 1 - BorderWidthUV || uvFrag.y > 1 - BorderHeightUV));
         }
 
         float fade = (maxDistanceSquared - renderDistSquared) / fadeDistance;

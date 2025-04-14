@@ -43,6 +43,7 @@ public class Image
     public Span<byte> Indices => m_indices;
 
     public int BlankRowsFromBottom;
+    public int BlankRowsFromTop;
 
     public Image(Dimension dimension, ImageType imageType, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global) :
         this(new uint[dimension.Area], dimension, imageType, offset, ns)

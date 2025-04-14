@@ -63,6 +63,7 @@ public class EntityProperties
     public EntityDefinition? TranslatedPickupDisplay;
     public string? TranslationEntry;
     public int? ColormapIndex;
+    public int HealthBarHeight;
 
     public double MonsterMovementSpeed;
     public double MissileMovementSpeed;

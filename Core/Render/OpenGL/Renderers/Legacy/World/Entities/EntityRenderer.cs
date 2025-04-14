@@ -151,9 +151,10 @@ public class EntityRenderer : IDisposable
         return m_textureManager.GetSpriteRotation(spriteDefinition, frame, rotation, colorMapIndex);
     }
 
+    const double NudgeFactor = 0.0001;
+
     public void RenderEntity(Entity entity, in Vec2D position)
     {
-        const double NudgeFactor = 0.0001;
         
         Vec3D centerBottom = entity.Position;
         Vec2D entityPos = new(centerBottom.X, centerBottom.Y);
@@ -253,12 +254,19 @@ public class EntityRenderer : IDisposable
 
     private void RenderHealthBar(Entity entity, GLLegacyTexture texture, EntityVertex vertex)
     {
+        // Don't let the bar bounce back and forth in height (eg Lost Soul)
+        var height = texture.Height - texture.BlankRowsFromTop + 4;
+        if (height > entity.Properties.HealthBarHeight)
+            entity.Properties.HealthBarHeight = height;
+        else
+            height = entity.Properties.HealthBarHeight;
+
         var healthBarData = m_dataManager.GetHealthBarData();
         // Normalized health percent
         vertex.LightLevel = entity.Health / (float)entity.Properties.Health;
         // Write original texture width since they are drawn from the right to center the bar
         vertex.Options = VertexOptions.Entity(1, 0, 0, texture.Width / 2);
-        vertex.OffsetZ = texture.Height + 1;
+        vertex.OffsetZ += height;
 
         healthBarData.ArrayData.EnsureCapacity(healthBarData.ArrayData.Length + 1);
         healthBarData.ArrayData.Data[healthBarData.ArrayData.Length] = vertex;

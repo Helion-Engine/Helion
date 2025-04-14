@@ -10,6 +10,7 @@ using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Image = Helion.Graphics.Image;
@@ -107,6 +108,7 @@ public class ArchiveImageRetriever : IImageRetriever
         {
             Image? subImage = null;
             Entry? entry = m_archiveCollection.Entries.FindByNamespace(component.Name, definition.Namespace);
+
             if (entry != null)
                 subImage = ImageFromEntry(entry, cacheEntry: false, options, colorTranslation: colorTranslation);
 
@@ -128,16 +130,44 @@ public class ArchiveImageRetriever : IImageRetriever
 
     private static void SetSpriteOffset(Image image)
     {
-        int blankRows = GetBlankRowsFromBottom(image);
-        if (blankRows > image.Dimension.Height || blankRows < 0)
-            return;
+        int blankRowsFromBottom = GetBlankRowsFromBottom(image);
+        if (blankRowsFromBottom <= image.Dimension.Height && blankRowsFromBottom >= 0)
+            image.BlankRowsFromBottom = blankRowsFromBottom;
 
-        image.BlankRowsFromBottom = blankRows;
+        int blankRowsFromTop = GetBlankRowsFromTop(image);
+        if (blankRowsFromTop <= image.Dimension.Height && blankRowsFromTop >= 0)
+            image.BlankRowsFromTop = blankRowsFromTop;
+
+    }
+    private static int GetBlankRowsFromTop(Image image)
+    {
+        if (image.ImageType != ImageType.Argb && image.ImageType != ImageType.PaletteWithArgb)
+            return 0;
+
+        bool done = false;
+        int y = 0;
+        for (; y < image.Height; y++)
+        {
+            for (int x = 0; x < image.Width; x++)
+            {
+                // Did we find a row that has a non-blank pixel?
+                if (image.GetPixel(x, y).A != 0)
+                {
+                    done = true;
+                    break;
+                }
+            }
+
+            if (done)
+                break;
+        }
+
+        return Math.Max(0, y);
     }
 
     private static int GetBlankRowsFromBottom(Image image)
     {
-        if (image.ImageType != ImageType.Argb)
+        if (image.ImageType != ImageType.Argb && image.ImageType != ImageType.PaletteWithArgb)
             return 0;
 
         bool done = false;

@@ -26,10 +26,11 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
     public int Width => Dimension.Width;
     public int Height => Dimension.Height;
 
+    public int BlankRowsFromTop;
     public int BlankRowsFromBottom;
 
     protected GLTexture(int textureId, string name, Dimension dimension, Vec2I offset, ResourceNamespace ns, TextureTarget target, 
-        int transparentPixelCount, int blankRowsFromBottom)
+        int transparentPixelCount, int blankRowsFromTop, int blankRowsFromBottom)
     {
         TextureId = textureId;
         Name = name;
@@ -39,6 +40,7 @@ public abstract class GLTexture : IRenderableTextureHandle, IDisposable
         UVInverse = Vec2F.One / dimension.Vector.Float;
         Target = target;
         TransparentPixelCount = transparentPixelCount;
+        BlankRowsFromTop = blankRowsFromTop;
         BlankRowsFromBottom = blankRowsFromBottom;
     }
 
