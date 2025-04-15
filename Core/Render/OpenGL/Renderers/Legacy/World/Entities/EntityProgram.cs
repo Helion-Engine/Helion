@@ -365,7 +365,7 @@ public class EntityProgram : RenderProgram
         ".Replace("${HealthBar}", GetOitOptions() == OitOptions.None ? GetHealthBar() : "");
     }
 
-    private string GetHealthBar() => @"
+    private static string GetHealthBar() => @"
         }
         if (healthBarMode == 1) {
             fragColor = vec4(0, 0, 0, 1);
@@ -375,15 +375,16 @@ public class EntityProgram : RenderProgram
             const float BorderThickness = 1.5;
             const float BorderHeightUV = 1 / BoxHeight;
             float BorderWidthUV = 1 / (BoxWidth + colorMapTranslationFrag * 2);
-            fragColor.r = mix(0, 0.3, float((lightLevelFrag <= RedAmount) || (lightLevelFrag > RedAmount && lightLevelFrag < YellowAmount)));
-            fragColor.g = mix(0, 0.3, float(lightLevelFrag >= YellowAmount || (lightLevelFrag > RedAmount && lightLevelFrag < YellowAmount)));
+            float nearestAmount = mix(mix(RedAmount, YellowAmount, step(RedAmount, lightLevelFrag)), 1, step(YellowAmount, lightLevelFrag));
+            fragColor.r = mix(0, 0.3, float(nearestAmount == YellowAmount || nearestAmount == RedAmount));
+            fragColor.g = mix(0, 0.3, float(nearestAmount == YellowAmount || nearestAmount == 1));
 
             // Health bar gradient
-            fragColor.rgb += mix(fragColor.rgb, vec3(1, 1, 1), min(0.5, 1 - (float(uvFrag.x < lightLevelFrag) - (uvFrag.x / lightLevelFrag / 2))));
+            fragColor.rgb += mix(fragColor.rgb, vec3(1, 1, 1), min(0.5, 1 - (float(uvFrag.x < lightLevelFrag) - (uvFrag.x / nearestAmount / 2))));
             // Gray background as health bar depletes
             fragColor.rgb = mix(fragColor.rgb, vec3(0.4, 0.4, 0.4), float(uvFrag.x > lightLevelFrag));
             // Black box border
-            fragColor.rgb = mix(fragColor.rgb, vec3(0, 0, 0), 
+            fragColor.rgb = mix(fragColor.rgb, mix(vec3(0, 0, 0), vec3(0.7, 0, 0), fuzzFrag), 
                 float(uvFrag.x < BorderWidthUV || uvFrag.y < BorderHeightUV || uvFrag.x > 1 - BorderWidthUV || uvFrag.y > 1 - BorderHeightUV));
         }";
 

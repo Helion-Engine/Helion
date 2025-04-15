@@ -106,6 +106,7 @@ public struct EntityFlags
     public bool InFloat { get => (Flags3 & FlagValue.Flag19) != 0; set { if (value) Flags3 |= FlagValue.Flag19; else Flags3 &= FlagValue.InvFlag19; } }
     public bool Dormant { get => (Flags3 & FlagValue.Flag20) != 0; set { if (value) Flags3 |= FlagValue.Flag20; else Flags3 &= FlagValue.InvFlag20; } }
     public bool CountSecret { get => (Flags3 & FlagValue.Flag21) != 0; set { if (value) Flags3 |= FlagValue.Flag21; else Flags3 &= FlagValue.InvFlag21; } }
+    public bool Attacking { get => (Flags3 & FlagValue.Flag22) != 0; set { if (value) Flags3 |= FlagValue.Flag22; else Flags3 &= FlagValue.InvFlag22; } }
 
     public EntityFlags(EntityFlagsModel model)
     {

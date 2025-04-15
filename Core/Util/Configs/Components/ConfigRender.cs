@@ -52,6 +52,17 @@ public class ConfigRenderFilter : ConfigElement<ConfigRenderFilter>
     public readonly ConfigValue<FilterType> Texture = new(FilterType.Nearest, OnlyValidEnums<FilterType>());
 }
 
+public class ConfigRenderHealthBar : ConfigElement<ConfigRenderHealthBar>
+{
+    [ConfigInfo("Renders health bars above shootable things.")]
+    [OptionMenu(OptionSectionType.Render, "Enable", spacer: true)]
+    public readonly ConfigValue<bool> Enable = new(false);
+
+    [ConfigInfo("Flashes health bar when enemy is attacking.")]
+    [OptionMenu(OptionSectionType.Render, "Attack Indicator")]
+    public readonly ConfigValue<bool> AttackIndicator = new(false);
+}
+
 public class ConfigRender: ConfigElement<ConfigRender>
 {
     // VSync and rate limiting
@@ -145,13 +156,11 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Sky Render Mode", spacer: true)]
     public readonly ConfigValue<SkyRenderMode> SkyMode = new(SkyRenderMode.Dynamic);
 
-    [ConfigInfo("Renders health bars above shootable things.")]
-    [OptionMenu(OptionSectionType.Render, "Health Bars", spacer: true)]
-    public readonly ConfigValue<bool> HealthBars = new(false);
-
     [ConfigInfo("Pushes line vertices a tiny amount to cover potential pixel gaps from rendering precision errors.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Pixel Gap Correction", spacer: true)]
     public readonly ConfigValue<bool> PixelGapCorrection = new(true);
+
+    public readonly ConfigRenderHealthBar HealthBar = new();
 
     // Settings below are believed to be less frequently used and thus are not on the menus.
 

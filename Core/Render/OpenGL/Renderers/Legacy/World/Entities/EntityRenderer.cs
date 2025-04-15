@@ -42,6 +42,7 @@ public class EntityRenderer : IDisposable
     private bool m_spriteZCheck;
     private bool m_vanillaRender;
     private bool m_healthBars;
+    private bool m_attackIndicator;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
     private bool m_disposed;
@@ -87,7 +88,8 @@ public class EntityRenderer : IDisposable
         m_spriteZCheck = m_config.Render.SpriteZCheck;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
-        m_healthBars = m_config.Render.HealthBars;
+        m_healthBars = m_config.Render.HealthBar.Enable;
+        m_attackIndicator = m_config.Render.HealthBar.AttackIndicator;
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -159,8 +161,7 @@ public class EntityRenderer : IDisposable
     const double NudgeFactor = 0.0001;
 
     public void RenderEntity(Entity entity, in Vec2D position)
-    {
-        
+    {        
         Vec3D centerBottom = entity.Position;
         Vec2D entityPos = new(centerBottom.X, centerBottom.Y);
         Vec2D nudgeAmount = default;
@@ -254,13 +255,13 @@ public class EntityRenderer : IDisposable
         arrayData.Length = length + 1;
 
         if (m_healthBars && entity.Flags.Shootable)
-            RenderHealthBar(entity, texture, vertex, nudgeAmount);
+            RenderHealthBar(entity, texture, offsetZ, nudgeAmount);
     }
 
-    private void RenderHealthBar(Entity entity, GLLegacyTexture texture, EntityVertex vertex, Vec2D nudgeAmount)
+    private void RenderHealthBar(Entity entity, GLLegacyTexture texture, float offsetZ, Vec2D nudgeAmount)
     {
         // Don't let the bar bounce back and forth in height (eg Lost Soul)
-        var offset = (int)vertex.OffsetZ + texture.Height - texture.BlankRowsFromTop + 4;
+        var offset = (int)offsetZ + texture.Height - texture.BlankRowsFromTop + 4;
         if (offset > entity.Properties.HealthBarOffset)
             entity.Properties.HealthBarOffset = offset;
         else
@@ -269,12 +270,16 @@ public class EntityRenderer : IDisposable
         if (entity.Properties.HealthBarWidth == -1)
             entity.Properties.HealthBarWidth = ScaleHealthBarWidth(entity.Properties.Health);
 
+        var attackFlash = m_attackIndicator && entity.Flags.Attacking && ((entity.World.GameTicker / 3) & 3) == 0;
         var healthBarData = m_dataManager.GetHealthBarData();
+        var array = healthBarData.ArrayData;
+        array.EnsureCapacity(array.Length + 1);
+        ref var vertex = ref array.Data[array.Length];
         // Prevent small health values from rendering zero pixels
         float min = 1f / (entity.Properties.HealthBarWidth + MinBarWidth - 5);
         // Normalized health percent
         vertex.LightLevel = Math.Max(min, entity.Health / (float)entity.Properties.Health);
-        vertex.Options = VertexOptions.Entity(1, 0, 0, entity.Properties.HealthBarWidth);
+        vertex.Options = VertexOptions.Entity(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth);
         vertex.OffsetZ = offset;
         vertex.Pos.X = (float)(entity.Position.X + nudgeAmount.X);
         vertex.Pos.Y = (float)(entity.Position.Y + nudgeAmount.Y);
@@ -283,9 +288,7 @@ public class EntityRenderer : IDisposable
         vertex.PrevPos.Y = (float)(entity.PrevPosition.Y + nudgeAmount.Y);
         vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
 
-        healthBarData.ArrayData.EnsureCapacity(healthBarData.ArrayData.Length + 1);
-        healthBarData.ArrayData.Data[healthBarData.ArrayData.Length] = vertex;
-        healthBarData.ArrayData.SetLength(healthBarData.ArrayData.Length + 1);
+        array.SetLength(array.Length + 1);
     }
 
     private static int ScaleHealthBarWidth(int health) =>
