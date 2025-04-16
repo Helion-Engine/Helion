@@ -11,13 +11,15 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
     private readonly RenderDataCollection<TVertex> m_nonAlphaData;
     private readonly RenderDataCollection<TVertex> m_alphaData;
     private readonly RenderDataCollection<TVertex> m_fuzzData;
+    private readonly RenderData<TVertex> m_healthBarData;
     private bool m_disposed;
 
-    public RenderDataManager(RenderProgram program)
+    public RenderDataManager(RenderProgram program, GLLegacyTexture healthBarTexture)
     {
         m_nonAlphaData = new(program);
         m_alphaData = new(program);
         m_fuzzData = new(program);
+        m_healthBarData = new(healthBarTexture, program);
     }
 
     ~RenderDataManager()
@@ -33,6 +35,14 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
         m_nonAlphaData.Clear();
         m_alphaData.Clear();
         m_fuzzData.Clear();
+        m_healthBarData.Clear();
+    }
+
+    public RenderData<TVertex> GetHealthBarData() => m_healthBarData;
+
+    public void RenderHealthBars()
+    {
+        m_healthBarData.Draw(PrimitiveType.Points);
     }
 
     public RenderData<TVertex> GetNonAlpha(GLLegacyTexture texture)

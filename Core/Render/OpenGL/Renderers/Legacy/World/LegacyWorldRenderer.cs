@@ -306,6 +306,7 @@ public class LegacyWorldRenderer : WorldRenderer
             }
 
             RenderTwoSidedMiddleWalls(renderInfo);
+            m_entityRenderer.RenderHealthBars(renderInfo);
             m_entityRenderer.RenderOpaque(renderInfo);
             RenderTransparent(renderInfo, framebuffer, false);
             m_primitiveRenderer.Render(renderInfo);
@@ -363,6 +364,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (m_planeClipFrameBuffer != null)
             WritePlaneData(m_planeClipFrameBuffer, renderInfo, framebuffer);        
 
+        m_entityRenderer.RenderHealthBars(renderInfo);
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer, true);
         m_primitiveRenderer.Render(renderInfo);

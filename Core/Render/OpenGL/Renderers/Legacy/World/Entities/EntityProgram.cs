@@ -40,6 +40,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_screenBoundsLocation;
     private readonly int m_planeZTextureLocation;
     private readonly int m_checkPlaneClipLocation;
+    private readonly int m_healthBarModeLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -74,6 +75,7 @@ public class EntityProgram : RenderProgram
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
         m_planeZTextureLocation = Uniforms.GetLocation("planeZTexture");
         m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
+        m_healthBarModeLocation = Uniforms.GetLocation("healthBarMode");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -107,6 +109,12 @@ public class EntityProgram : RenderProgram
     public void RenderFuzzRefractionColor(bool value) => Uniforms.Set(value, m_renderFuzzRefractionColorLocation);
     public void ScreenBounds(Vec2I value) => Uniforms.Set(value, m_screenBoundsLocation);
     public void CheckPlaneClip(bool value) => Uniforms.Set(value, m_checkPlaneClipLocation);
+    public void HealthBarMode(bool value) => Uniforms.Set(value, m_healthBarModeLocation);
+
+    private const string BoxDefines = @"
+        const float BoxWidth = 20;
+        const float HalfBoxWidth = 10;
+        const float BoxHeight = 8;";
 
     protected override string VertexShader() => @"
         #version 330
@@ -158,6 +166,7 @@ public class EntityProgram : RenderProgram
 
     protected override string? GeometryShader() => @"
         #version 330 core
+        ${BoxDefines}
 
         layout(points) in;
         layout(triangle_strip, max_vertices = 4) out;
@@ -190,6 +199,7 @@ public class EntityProgram : RenderProgram
         uniform sampler2D boundTexture;
         uniform float timeFrac;
         uniform vec3 viewPos;
+        uniform int healthBarMode;
 
         float distSquared(vec2 v1, vec2 v2) {
             vec2 length = v1.xy - v2.xy;
@@ -208,6 +218,11 @@ public class EntityProgram : RenderProgram
             vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
             vec3 minPos = pos;
             vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y);
+
+            if (healthBarMode == 1) {
+                minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
+                maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
+            }
 
             // Triangle strip ordering is: v0 v1 v2, v2 v1 v3
             // We also need to be going counter-clockwise.
@@ -256,10 +271,13 @@ public class EntityProgram : RenderProgram
     "
     .Replace("${SectorColorMapVar}", ShaderVars.PaletteColorMode ? "in int sectorColorMapIndexOut[];" : "in vec3 sectorColorMapIndexOut[];")
     .Replace("${SectorColorMapFrag}", ShaderVars.PaletteColorMode ? "flat out int sectorColorMapIndexFrag;" : "flat out vec3 sectorColorMapIndexFrag;")
-    .Replace("${Depth}", ShaderVars.Depth);
+    .Replace("${Depth}", ShaderVars.Depth)
+    .Replace("${BoxDefines}", BoxDefines);
 
     protected override string? FragmentShader() => @"
         #version 330
+    
+        ${BoxDefines}
 
         in vec2 uvFrag;
         in float dist;
@@ -295,6 +313,7 @@ public class EntityProgram : RenderProgram
         uniform int renderFuzzRefractionColor;
         uniform ivec2 screenBounds;
         uniform int checkPlaneClip;
+        uniform int healthBarMode;
 
         uniform sampler2D planeZTexture;
 
@@ -303,6 +322,7 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
+            ${HealthBarCheck}
             ${LightLevelFragFunction}
             ${SectorColorMapFragFunction}
             ${FragColorFunction}
@@ -314,12 +334,14 @@ public class EntityProgram : RenderProgram
     .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
     .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
     .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
-    .Replace("${OutFragColor}", GetOutFragColor());
+    .Replace("${OutFragColor}", GetOutFragColor())
+    .Replace("${BoxDefines}", BoxDefines)
+    .Replace("${HealthBarCheck}", GetOitOptions() == OitOptions.None ? "if (healthBarMode == 0) {" : "");
 
     private string GetPostProcess() 
     {
-        string clearAlpha = @"  
-        fragColor.a = fragColor.a > 0.5 ? 1.0 : 0.0;
+        string clearAlpha = @"
+        fragColor.a = mix(0.0, 1.0, float(fragColor.a > 0.5));
         if (fragColor.a <= 0)
             discard;";
 
@@ -335,12 +357,36 @@ public class EntityProgram : RenderProgram
             if (planeZ.r > zPosFrag && planeZ.g < depthFrag)
                 discard;
         }
+       
+        ${HealthBar}
 
-        if (renderDistSquared > maxDistanceSquared - fadeDistance) {
-            float fade = (maxDistanceSquared - renderDistSquared) / fadeDistance;
-            fragColor.a *= fade;
-        }";
+        float fade = (maxDistanceSquared - renderDistSquared) / fadeDistance;
+        fragColor.a = mix(fragColor.a, fragColor.a * fade, float(renderDistSquared > maxDistanceSquared - fadeDistance));
+        ".Replace("${HealthBar}", GetOitOptions() == OitOptions.None ? GetHealthBar() : "");
     }
+
+    private static string GetHealthBar() => @"
+        }
+        if (healthBarMode == 1) {
+            fragColor = vec4(0, 0, 0, 1);
+            ivec2 getCoords = ivec2(gl_FragCoord.xy);
+            const float RedAmount = 0.33;
+            const float YellowAmount = 0.66;
+            const float BorderThickness = 1.5;
+            const float BorderHeightUV = 1 / BoxHeight;
+            float BorderWidthUV = 1 / (BoxWidth + colorMapTranslationFrag * 2);
+            float nearestAmount = mix(mix(RedAmount, YellowAmount, step(RedAmount, lightLevelFrag)), 1, step(YellowAmount, lightLevelFrag));
+            fragColor.r = mix(0, 0.3, float(nearestAmount == YellowAmount || nearestAmount == RedAmount));
+            fragColor.g = mix(0, 0.3, float(nearestAmount == YellowAmount || nearestAmount == 1));
+
+            // Health bar gradient
+            fragColor.rgb += mix(fragColor.rgb, vec3(1, 1, 1), min(0.5, 1 - (float(uvFrag.x < lightLevelFrag) - (uvFrag.x / nearestAmount / 2))));
+            // Gray background as health bar depletes
+            fragColor.rgb = mix(fragColor.rgb, vec3(0.4, 0.4, 0.4), float(uvFrag.x > lightLevelFrag));
+            // Black box border
+            fragColor.rgb = mix(fragColor.rgb, mix(vec3(0, 0, 0), vec3(0.7, 0, 0), fuzzFrag), 
+                float(uvFrag.x < BorderWidthUV || uvFrag.y < BorderHeightUV || uvFrag.x > 1 - BorderWidthUV || uvFrag.y > 1 - BorderHeightUV));
+        }";
 
     private OitOptions GetOitOptions()
     {

@@ -18,6 +18,11 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
 public class EntityRenderer : IDisposable
 {
+    const int MinBarWidth = 20;
+    const int MaxBarWidth = 80;
+    const int MinHealth = 20;
+    const int MaxHealth = 4000;
+
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
     private readonly EntityProgram m_program = new("Main");
@@ -36,6 +41,9 @@ public class EntityRenderer : IDisposable
     private bool m_spriteClip;
     private bool m_spriteZCheck;
     private bool m_vanillaRender;
+    private bool m_healthBars;
+    private bool m_attackIndicator;
+    private int m_healthBarLimit;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
     private bool m_disposed;
@@ -46,7 +54,7 @@ public class EntityRenderer : IDisposable
         m_config = config;
         m_textureManager = textureManager;
         m_nullSpriteRotation = m_textureManager.NullSpriteRotation;
-        m_dataManager = new(m_program);
+        m_dataManager = new(m_program, textureManager.BlackTexture);
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteZCheck = m_config.Render.SpriteZCheck;
@@ -62,6 +70,8 @@ public class EntityRenderer : IDisposable
 
     public bool HasFuzz() => m_dataManager.HasFuzz();
     public bool HasAlpha() => m_dataManager.HasAlpha();
+
+    public void HealthBarMode(bool set) => m_program.HealthBarMode(set);
 
     public void UpdateTo(IWorld world)
     {
@@ -79,6 +89,9 @@ public class EntityRenderer : IDisposable
         m_spriteZCheck = m_config.Render.SpriteZCheck;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
+        m_healthBars = m_config.Render.HealthBar.Enable;
+        m_attackIndicator = m_config.Render.HealthBar.AttackIndicator;
+        m_healthBarLimit = m_config.Render.HealthBar.HealthLimit;
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -147,10 +160,10 @@ public class EntityRenderer : IDisposable
         return m_textureManager.GetSpriteRotation(spriteDefinition, frame, rotation, colorMapIndex);
     }
 
+    const double NudgeFactor = 0.0001;
+
     public void RenderEntity(Entity entity, in Vec2D position)
-    {
-        const double NudgeFactor = 0.0001;
-        
+    {        
         Vec3D centerBottom = entity.Position;
         Vec2D entityPos = new(centerBottom.X, centerBottom.Y);
         Vec2D nudgeAmount = default;
@@ -242,7 +255,46 @@ public class EntityRenderer : IDisposable
         vertex.SectorIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
         
         arrayData.Length = length + 1;
+
+        if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
+            RenderHealthBar(entity, texture, offsetZ, nudgeAmount);
     }
+
+    private void RenderHealthBar(Entity entity, GLLegacyTexture texture, float offsetZ, Vec2D nudgeAmount)
+    {
+        // Don't let the bar bounce back and forth in height (eg Lost Soul)
+        var offset = (int)offsetZ + texture.Height - texture.BlankRowsFromTop + 4;
+        if (offset > entity.Properties.HealthBarOffset)
+            entity.Properties.HealthBarOffset = offset;
+        else
+            offset = entity.Properties.HealthBarOffset;
+
+        if (entity.Properties.HealthBarWidth == -1)
+            entity.Properties.HealthBarWidth = ScaleHealthBarWidth(entity.Properties.Health);
+
+        var attackFlash = m_attackIndicator && entity.Flags.Attacking && ((entity.World.GameTicker / 3) & 3) == 0;
+        var healthBarData = m_dataManager.GetHealthBarData();
+        var array = healthBarData.ArrayData;
+        array.EnsureCapacity(array.Length + 1);
+        ref var vertex = ref array.Data[array.Length];
+        // Prevent small health values from rendering zero pixels
+        float min = 1f / (entity.Properties.HealthBarWidth + MinBarWidth - 5);
+        // Normalized health percent
+        vertex.LightLevel = Math.Max(min, entity.Health / (float)entity.Properties.Health);
+        vertex.Options = VertexOptions.Entity(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth);
+        vertex.OffsetZ = offset;
+        vertex.Pos.X = (float)(entity.Position.X + nudgeAmount.X);
+        vertex.Pos.Y = (float)(entity.Position.Y + nudgeAmount.Y);
+        vertex.Pos.Z = (float)entity.Position.Z;
+        vertex.PrevPos.X = (float)(entity.PrevPosition.X + nudgeAmount.X);
+        vertex.PrevPos.Y = (float)(entity.PrevPosition.Y + nudgeAmount.Y);
+        vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
+
+        array.SetLength(array.Length + 1);
+    }
+
+    private static int ScaleHealthBarWidth(int health) =>
+        (int)((MaxBarWidth - MinBarWidth) * (Math.Sqrt(health - MinHealth) / Math.Sqrt(MaxHealth - MinHealth)));
 
     public void Start(RenderInfo renderInfo)
     {
@@ -304,11 +356,25 @@ public class EntityRenderer : IDisposable
         program.PlaneZTexture(TextureUnit.Texture8);
     }
 
+    public void RenderHealthBars(RenderInfo renderInfo)
+    {
+        if (!m_healthBars)
+            return;
+
+        m_program.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        SetUniforms(m_program, renderInfo);
+        m_program.HealthBarMode(true);
+        m_dataManager.RenderHealthBars();
+        m_program.Unbind();
+    }
+
     public void RenderOpaque(RenderInfo renderInfo)
     {
         m_program.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetUniforms(m_program, renderInfo);
+        m_program.HealthBarMode(false);
         m_dataManager.RenderNonAlpha(PrimitiveType.Points);
         m_program.Unbind();
     }

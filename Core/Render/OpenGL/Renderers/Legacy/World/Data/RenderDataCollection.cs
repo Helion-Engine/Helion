@@ -40,6 +40,8 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
         
         m_renderCount++;
     }
+
+    public DynamicArray<RenderData<TVertex>> GetDataToRender() => m_dataToRender;
     
     public RenderData<TVertex> Get(GLLegacyTexture texture)
     {

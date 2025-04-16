@@ -735,6 +735,7 @@ public static class EntityActionFunctions
 
     public static void A_Chase(Entity entity)
     {
+        entity.Flags.Attacking = false;
         if (entity.ReactionTime > 0)
             entity.ReactionTime -= entity.SlowTickMultiplier;
 
@@ -770,6 +771,7 @@ public static class EntityActionFunctions
 
         if (target != null && entity.Definition.MeleeState != null && entity.InMeleeRange(target))
         {
+            entity.Flags.Attacking = true;
             entity.PlayAttackSound();
             entity.FrameState.SetFrameIndex(entity, entity.Definition.MeleeState.Value);
         }
@@ -784,6 +786,7 @@ public static class EntityActionFunctions
         if ((entity.MoveCount == 0 || WorldStatic.IsFastMonsters) &&
             entity.Definition.MissileState != null && entity.CheckMissileRange())
         {
+            entity.Flags.Attacking = true;
             entity.Flags.JustAttacked = true;
             entity.FrameState.SetFrameIndex(entity, entity.Definition.MissileState.Value);
         }

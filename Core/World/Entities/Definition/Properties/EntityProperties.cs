@@ -63,12 +63,15 @@ public class EntityProperties
     public EntityDefinition? TranslatedPickupDisplay;
     public string? TranslationEntry;
     public int? ColormapIndex;
+    public int HealthBarOffset;
+    public int HealthBarWidth;
 
     public double MonsterMovementSpeed;
     public double MissileMovementSpeed;
 
     public EntityProperties()
     {
+        HealthBarWidth = -1;
     }
 
     public void AddTranslatedPickup(EntityDefinition definition)

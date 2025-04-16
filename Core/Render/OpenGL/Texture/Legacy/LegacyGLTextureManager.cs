@@ -150,7 +150,8 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         ResourceNamespace resourceNamespace, TextureFlags flags = TextureFlags.Default)
     {
         int textureId = GL.GenTexture();
-        GLLegacyTexture texture = new(textureId, name, image.Dimension, image.Offset, image.Namespace, TextureTarget.Texture2D, image.TransparentPixelCount(), image.BlankRowsFromBottom);
+        GLLegacyTexture texture = new(textureId, name, image.Dimension, image.Offset, image.Namespace, TextureTarget.Texture2D, 
+            image.TransparentPixelCount(), image.BlankRowsFromTop, image.BlankRowsFromBottom);
         UploadAndSetParameters(texture, image, name, resourceNamespace, flags);
 
         return texture;

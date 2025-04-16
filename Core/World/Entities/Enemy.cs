@@ -49,6 +49,7 @@ public partial class Entity
         if (IsFrozen || Flags.Dormant)
             return false;
 
+        Flags.Attacking = false;
         Entity? newTarget = null;
         var soundTarget = Sector.SoundTarget.Get();
         if (soundTarget != null && ValidEnemyTarget(soundTarget))
