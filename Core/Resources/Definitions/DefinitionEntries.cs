@@ -226,12 +226,7 @@ public class DefinitionEntries
         }
     }
 
-    /// <summary>
-    /// Tracks all the resources from an archive.
-    /// </summary>
-    /// <param name="archive">The archive to examine for any texture
-    /// definitions.</param>
-    public void Track(Archive archive)
+    public void Track(ArchiveCollection archiveCollection, Archive archive)
     {
         m_parseDecorate = true;
         m_parseDehacked = true;
@@ -269,7 +264,7 @@ public class DefinitionEntries
         }
 
         if (m_pnamesTextureXCollection.Valid)
-            CreateImageDefinitionsFrom(archive, m_pnamesTextureXCollection);
+            CreateImageDefinitionsFrom(archiveCollection, m_pnamesTextureXCollection);
 
         // Vanilla IWADS will have this set. If a PWAD is loaded this will get clear it.
         ConfigCompatibility.VanillaShortestTexture.Set(archive.IWadInfo.VanillaCompatibility);
@@ -506,7 +501,7 @@ public class DefinitionEntries
         }
     }
 
-    private void CreateImageDefinitionsFrom(Archive archive, PnamesTextureXCollection collection)
+    private void CreateImageDefinitionsFrom(ArchiveCollection archiveCollection, PnamesTextureXCollection collection)
     {
         Precondition(!collection.Pnames.Empty(), "Expecting pnames to exist when reading TextureX definitions");
 
@@ -515,8 +510,6 @@ public class DefinitionEntries
         // pnames exist. If so, the logic will need to change here a bit.
         Pnames pnames = collection.Pnames.First();
         var processed = new HashSet<string>();
-
-        ClearNegativePatchOffsets(archive, collection);
 
         foreach (var textureX in collection.TextureX)
         {
@@ -528,25 +521,22 @@ public class DefinitionEntries
                 if (processed.Contains(def.Name))
                     continue;
 
+                ClearNegativePatchOffsets(archiveCollection, def);
                 processed.Add(def.Name);
                 Textures.Insert(def.Name, def.Namespace, def);
             }
         }
     }
 
-    private static void ClearNegativePatchOffsets(Archive archive, PnamesTextureXCollection collection)
+    private static void ClearNegativePatchOffsets(ArchiveCollection archiveCollection, TextureDefinition texture)
     {
-        if (archive.IWadInfo.IWadBaseType != IWadBaseType.Doom1)
-            return;
-
-        foreach (var textures in collection.TextureX)
-            foreach (var texture in textures.Definitions)
-                ClearPatchOffsetsDoom1(texture);
+        if (archiveCollection.IWadInfo.IWadBaseType == IWadBaseType.Doom1)
+            ClearPatchOffsetsDoom1(texture);
     }
 
-    private static void ClearPatchOffsetsDoom1(TextureXImage texture)
+    private static void ClearPatchOffsetsDoom1(TextureDefinition texture)
     {
-        var patches = texture.Patches;
+        var patches = texture.Components;
         if (texture.Name.Equals("SKY1"))
         {
             if (patches.Count == 1 && patches[0].Offset.Y == -8)
