@@ -32,4 +32,7 @@ public struct DynamicVertex
 
     [VertexAttribute(required: false)]
     public float ColorMapIndex;
+
+    [VertexAttribute(required: false)]
+    public float MapId;
 }

@@ -476,7 +476,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 DynamicVertex* v = startVertex + i;
                 staticVertices.Data[staticStartIndex + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
-                    v->Options, v->LightLevelAdd, v->ColorMapIndex);
+                    v->Options, v->LightLevelAdd, v->ColorMapIndex, v->MapId);
             }
 
             staticVertices.SetLength(staticVertices.Length + vertices.Length);
@@ -491,7 +491,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 DynamicVertex* v = startVertex + i;
                 staticVertices[index + i] = new StaticVertex(v->X, v->Y, v->Z, v->U, v->V,
-                    v->Options, v->LightLevelAdd, v->ColorMapIndex);
+                    v->Options, v->LightLevelAdd, v->ColorMapIndex, v->MapId);
             }
         }
     }

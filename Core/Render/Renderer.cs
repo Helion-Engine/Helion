@@ -71,6 +71,7 @@ public partial class Renderer : IDisposable
 
     private IWorld? m_world;
     private GLBufferTextureStorage? m_colorMapBuffer;
+    private GLBufferTextureStorage? m_mapDataBuffer;
     private Rectangle m_viewport = new(0, 0, 800, 600);
     private uint[] m_frameBufferPixelData = [];
     private bool m_disposed;
@@ -354,6 +355,7 @@ public partial class Renderer : IDisposable
         BindColorMapBuffer();
         BindSectorColorMapBuffer();
         BindLightBuffer();
+        BindMapDataBuffer();
 
         // This has to be tracked beyond just the rendering command, and it
         // also prevents something from going terribly wrong if there is no
@@ -429,6 +431,11 @@ public partial class Renderer : IDisposable
     private void BindLightBuffer()
     {
         m_lightBufferStorage?.BindTexture(TextureUnit.Texture1);
+    }
+
+    private void BindMapDataBuffer()
+    {
+        m_mapDataBuffer?.BindTexture(TextureUnit.Texture9);
     }
 
     public void PerformThrowableErrorChecks()
@@ -745,6 +752,7 @@ public partial class Renderer : IDisposable
         m_lightBufferStorage?.Dispose();
         m_sectorColorMapsBuffer?.Dispose();
         m_transitionRenderer?.Dispose();
+        m_mapDataBuffer?.Dispose();
 
         m_disposed = true;
     }

@@ -72,6 +72,7 @@ public class StaticShader : RenderProgram
         layout(location = 2) in float lightLevelAdd;
         layout(location = 3) in float options;
         layout(location = 4) in float colorMapIndex;
+        layout(location = 5) in float mapId;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
@@ -79,6 +80,7 @@ public class StaticShader : RenderProgram
         flat out float colorMapIndexFrag;
         flat out float vertexLightLevelFrag;
         flat out float zPos;
+        flat out float mapIdFrag;
         out float depthFrag;
         ${VertexGapVariables}
 
@@ -94,6 +96,7 @@ public class StaticShader : RenderProgram
 
         void main() {
             uvFrag = uv;
+            mapIdFrag = mapId;
 
             ${VertexOptionsSet}
 
@@ -136,6 +139,7 @@ public class StaticShader : RenderProgram
             flat in float addAlphaFrag;
             flat in float zPos;
             flat in float distFrag;
+            flat in float mapIdFrag;
             ${VertexGapVariables}
 
             out vec4 fragColor;
