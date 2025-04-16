@@ -90,7 +90,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
 
     public ConfigSetResult Set(object newValue, bool writeToConfig = true)
     {
-        return TryConvert(newValue, out T? convertedValue)
+        return TryConvertInternal(newValue, out var convertedValue)
             ? Set(convertedValue, writeToConfig)
             : ConfigSetResult.NotSetByBadConversion;
     }
@@ -111,19 +111,26 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         return result;
     }
 
-    public bool TryConvert(object value, [NotNullWhen(true)] out object? converted)
+    public bool TryConvert(object value, out object? converted)
+    {
+        var success = TryConvertInternal(value, out var convertedValue);
+        converted = convertedValue;
+        return success;
+    }
+
+    private bool TryConvertInternal(object value, [NotNullWhen(true)] out T? converted)
     {
         try
         {
             if (typeof(T) == value.GetType())
             {
-                converted = value;
+                converted = (T)value;
                 return true;
             }
 
             if (typeof(T) == typeof(bool) && value is string str && str == "*")
             {
-                converted = !Convert.ToBoolean(Value);
+                converted = (T)(object)!Convert.ToBoolean(Value);
                 return true;
             }
 
@@ -132,16 +139,9 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         }
         catch
         {
-            converted = null;
+            converted = default;
             return false;
         }
-    }
-
-    public bool TryConvert(object value, [NotNullWhen(true)] out T? converted)
-    {
-        bool successful = TryConvert(value, out object? convertedObj);
-        converted = (T?)convertedObj;
-        return successful;
     }
 
     public void ResetToUserValue()
