@@ -36,6 +36,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly InterpolationPlaneClipShader m_interpolationPlaneClipShader = new();
     private readonly StaticShader m_staticProgram = new("Main");
     private readonly StaticPlaneClipShader m_staticPlaneClipProgram = new();
+    private readonly StaticWallClipShader m_staticWallClipProgram = new();
     private readonly RenderWorldDataManager m_worldDataManager = new();
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
@@ -268,7 +269,14 @@ public class LegacyWorldRenderer : WorldRenderer
 
         var dimension = new Dimension(renderInfo.Viewport.Width, renderInfo.Viewport.Height);
         m_oitFrameBuffer.CreateOrUpdate(dimension, framebuffer.DepthTexture);
-        m_planeClipFrameBuffer?.CreateOrUpdate(dimension);
+
+        if (m_planeClipFrameBuffer != null)
+        {
+            m_planeClipFrameBuffer.CreateOrUpdate(dimension);
+            m_planeClipFrameBuffer.BindFrameBuffer();
+            m_planeClipFrameBuffer.Clear();
+            framebuffer.Bind();
+        }
 
         if (m_lastTicker != world.GameTicker)
             m_entityRenderer.Start(renderInfo);
@@ -338,27 +346,27 @@ public class LegacyWorldRenderer : WorldRenderer
         GL.ColorMask(false, false, false, false);
         GL.Disable(EnableCap.CullFace);
 
-        if (m_renderStatic)
-        {
-            m_staticProgram.Bind();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            m_geometryRenderer.RenderStaticCoverWalls();
-        }
+        //if (m_renderStatic)
+        //{
+        //    m_staticProgram.Bind();
+        //    GL.ActiveTexture(TextureUnit.Texture0);
+        //    m_geometryRenderer.RenderStaticCoverWalls();
+        //}
 
-        m_interpolationProgram.Bind();
-        m_worldDataManager.RenderCoverWalls();
-        // Need to render flood fill again. Sprites need to be blocked by flood filling if visible.
-        m_geometryRenderer.Portals.Render(renderInfo);
+        //m_interpolationProgram.Bind();
+        //m_worldDataManager.RenderCoverWalls();
+        //// Need to render flood fill again. Sprites need to be blocked by flood filling if visible.
+        //m_geometryRenderer.Portals.Render(renderInfo);
         GL.Enable(EnableCap.CullFace);
 
-        if (m_renderStatic)
-        {
-            m_staticProgram.Bind();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            m_geometryRenderer.RenderStaticOneSidedCoverWalls();
-        }
+        //if (m_renderStatic)
+        //{
+        //    m_staticProgram.Bind();
+        //    GL.ActiveTexture(TextureUnit.Texture0);
+        //    m_geometryRenderer.RenderStaticOneSidedCoverWalls();
+        //}
 
-        RenderTwoSidedMiddleWalls(renderInfo);
+        //RenderTwoSidedMiddleWalls(renderInfo);
         GL.ColorMask(true, true, true, true);
 
         if (m_planeClipFrameBuffer != null)
@@ -372,8 +380,8 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void WritePlaneData(PlaneClipFrameBuffer planeClipFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
-        planeClipFrameBuffer.StartRender();
         planeClipFrameBuffer.BindFrameBuffer();
+        planeClipFrameBuffer.StartRender();
 
         if (m_renderStatic)
         {
@@ -382,6 +390,12 @@ public class LegacyWorldRenderer : WorldRenderer
             SetStaticUniforms(m_staticPlaneClipProgram, renderInfo);
             m_geometryRenderer.RenderStaticGeometryFloors();
             m_staticPlaneClipProgram.Unbind();
+
+            m_staticWallClipProgram.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
+            SetStaticUniforms(m_staticWallClipProgram, renderInfo);
+            m_geometryRenderer.RenderStaticOneSidedCoverWalls();
+            m_staticWallClipProgram.Unbind();
         }
 
         m_interpolationPlaneClipShader.Bind();
@@ -392,7 +406,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         planeClipFrameBuffer.UnbindFrameBuffer();
         framebuffer.Bind();
-        planeClipFrameBuffer.BindPlaneZTexture(TextureUnit.Texture8);
+        planeClipFrameBuffer.BindPlaneTexture(TextureUnit.Texture8);
         ResetBlendEquations();
     }
 

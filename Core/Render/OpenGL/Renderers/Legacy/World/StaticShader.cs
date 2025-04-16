@@ -131,6 +131,9 @@ public class StaticShader : RenderProgram
         if (this is StaticPlaneClipShader)
             return PlaneClip.WritePlaneFragFunction();
 
+        if (this is StaticWallClipShader)
+            return PlaneClip.WriteWallFragFunction();
+
         return @"
             #version 330
 

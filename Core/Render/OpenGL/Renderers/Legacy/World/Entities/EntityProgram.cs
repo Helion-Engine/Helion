@@ -41,6 +41,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_planeZTextureLocation;
     private readonly int m_checkPlaneClipLocation;
     private readonly int m_healthBarModeLocation;
+    private readonly int m_mapDataTextureLoaction;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -76,6 +77,7 @@ public class EntityProgram : RenderProgram
         m_planeZTextureLocation = Uniforms.GetLocation("planeZTexture");
         m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
         m_healthBarModeLocation = Uniforms.GetLocation("healthBarMode");
+        m_mapDataTextureLoaction = Uniforms.GetLocation("mapData");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -86,6 +88,7 @@ public class EntityProgram : RenderProgram
     public void FuzzTexture(TextureUnit unit) => Uniforms.Set(unit, m_fuzzTextureLocation);
     public void OpaqueTexture(TextureUnit unit) => Uniforms.Set(unit, m_opaqueTextureLocation);
     public void PlaneZTexture(TextureUnit unit) => Uniforms.Set(unit, m_planeZTextureLocation);
+    public void MapDataTexture(TextureUnit unit) => Uniforms.Set(unit, m_mapDataTextureLoaction);
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
@@ -316,6 +319,7 @@ public class EntityProgram : RenderProgram
         uniform int healthBarMode;
 
         uniform sampler2D planeZTexture;
+        uniform samplerBuffer mapData;
 
         ${OitVariables}
         ${FuzzFunction}
@@ -352,10 +356,16 @@ public class EntityProgram : RenderProgram
         if (checkPlaneClip == 1) {
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
             // r = floor's z position, g = floor's depth value
-            vec2 planeZ = texelFetch(planeZTexture, getCoords, 0).rg;
+            vec3 planeClip = texelFetch(planeZTexture, getCoords, 0).rgb;
             // If this pixel would be discarded to depth and the plane is higher than the z position then discard.
-            if (planeZ.r > zPosFrag && planeZ.g < depthFrag)
+            if (planeClip.b == 0 && planeClip.r > zPosFrag && planeClip.g < depthFrag)
                 discard;
+
+            // zPosDepthFrag is the distance from the thing's center pointer. If the wall is in front then we can discard to depth.
+            if (planeClip.b == 1) {
+                vec2 lineNormal = texelFetch(mapData, int(planeClip.r) * 2).rg;
+                //discard;
+            }
         }
        
         ${HealthBar}

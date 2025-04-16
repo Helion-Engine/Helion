@@ -354,6 +354,7 @@ public class EntityRenderer : IDisposable
         }
 
         program.PlaneZTexture(TextureUnit.Texture8);
+        program.MapDataTexture(TextureUnit.Texture9);
     }
 
     public void RenderHealthBars(RenderInfo renderInfo)
