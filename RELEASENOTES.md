@@ -33,3 +33,4 @@
 - Fix setting skill from command line changing the skill level from a save when a new map is loaded
 - Fix issue where players view can be unintentionally changed from mouse input during melt transition
 - Fix UMAPINFO default mapping for secret exit text levels
+- Fix crash when setting enum config value from console as a number and it's out of range 
