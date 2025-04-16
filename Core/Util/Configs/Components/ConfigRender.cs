@@ -55,12 +55,16 @@ public class ConfigRenderFilter : ConfigElement<ConfigRenderFilter>
 public class ConfigRenderHealthBar : ConfigElement<ConfigRenderHealthBar>
 {
     [ConfigInfo("Renders health bars above shootable things.")]
-    [OptionMenu(OptionSectionType.Render, "Enable", spacer: true)]
+    [OptionMenu(OptionSectionType.Render, "Enable")]
     public readonly ConfigValue<bool> Enable = new(false);
 
-    [ConfigInfo("Flashes health bar when enemy is attacking.")]
+    [ConfigInfo("Flashes health bar while enemy is attacking.")]
     [OptionMenu(OptionSectionType.Render, "Attack Indicator")]
     public readonly ConfigValue<bool> AttackIndicator = new(false);
+
+    [ConfigInfo("Shows health bar when max health is equal to or over this limit.")]
+    [OptionMenu(OptionSectionType.Render, "Health Limit")]
+    public readonly ConfigValue<int> HealthLimit = new(0, GreaterOrEqual(0));
 }
 
 public class ConfigRender: ConfigElement<ConfigRender>
@@ -129,16 +133,8 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Gamma correction", spacer: true, sliderMin: 1.0, sliderMax: 4.0, sliderStep: .1)]
     public readonly ConfigValue<double> GammaCorrection = new(1, Clamp(1.0, 4.0));
 
-    [ConfigInfo("Line contrast mode.", mapRestartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Line contrast mode")]
-    public readonly ConfigValue<RenderContrastMode> ContrastMode = new(RenderContrastMode.Vanilla);
-
     [ConfigInfo("Emulate fake contrast like vanilla Doom.", legacy: true)]
     public readonly ConfigValue<bool> FakeContrast = new(true);
-
-    [ConfigInfo("Render sprites over floors/ceilings. Sprites always clipped to walls. May slow down rendering.", mapRestartRequired: true)]
-    [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Rendering")]
-    public readonly ConfigValue<bool> VanillaRender = new(false);
 
     [ConfigInfo("Fuzz amount for partial invisibility effect.")]
     [OptionMenu(OptionSectionType.Render, "Fuzz Amount", sliderMin: 0, sliderMax: 5.0, sliderStep: .1)]
@@ -152,14 +148,25 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Sprite Transparency")]
     public readonly ConfigValue<bool> SpriteTransparency = new(true);
 
+    [ConfigInfo("Render sprites over floors/ceilings. Sprites always clipped to walls. May slow down rendering.", mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Rendering", spacer: true)]
+    public readonly ConfigValue<bool> VanillaRender = new(false);
+
+    [ConfigInfo("Line contrast mode.", mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.Render, "Line contrast mode")]
+    public readonly ConfigValue<RenderContrastMode> ContrastMode = new(RenderContrastMode.Vanilla);
+
     [ConfigInfo("Sky render mode")]
-    [OptionMenu(OptionSectionType.Render, "Sky Render Mode", spacer: true)]
+    [OptionMenu(OptionSectionType.Render, "Sky Render Mode")]
     public readonly ConfigValue<SkyRenderMode> SkyMode = new(SkyRenderMode.Dynamic);
 
     [ConfigInfo("Pushes line vertices a tiny amount to cover potential pixel gaps from rendering precision errors.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Pixel Gap Correction", spacer: true)]
     public readonly ConfigValue<bool> PixelGapCorrection = new(true);
 
+    [ConfigInfo("", save: false, legacy: true)]
+    [OptionMenu(OptionSectionType.Render, "", disabled: true, spacer: true)]
+    public readonly ConfigValueHeader HealthBarHeader = new("Health Bar");
     public readonly ConfigRenderHealthBar HealthBar = new();
 
     // Settings below are believed to be less frequently used and thus are not on the menus.

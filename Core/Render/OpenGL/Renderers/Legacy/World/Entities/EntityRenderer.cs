@@ -43,6 +43,7 @@ public class EntityRenderer : IDisposable
     private bool m_vanillaRender;
     private bool m_healthBars;
     private bool m_attackIndicator;
+    private int m_healthBarLimit;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
     private bool m_disposed;
@@ -90,6 +91,7 @@ public class EntityRenderer : IDisposable
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
         m_healthBars = m_config.Render.HealthBar.Enable;
         m_attackIndicator = m_config.Render.HealthBar.AttackIndicator;
+        m_healthBarLimit = m_config.Render.HealthBar.HealthLimit;
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -254,7 +256,7 @@ public class EntityRenderer : IDisposable
         
         arrayData.Length = length + 1;
 
-        if (m_healthBars && entity.Flags.Shootable)
+        if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
             RenderHealthBar(entity, texture, offsetZ, nudgeAmount);
     }
 
