@@ -579,7 +579,7 @@ public class ArchiveCollection : IResources, IPathResolver
                 Data.Read(entry);
             }
 
-            Definitions.Track(archive);
+            Definitions.Track(this, archive);
 
             if (archive.ArchiveType == ArchiveType.Assets && GetIWadInfo(iwadArchive, archives, out var iwadInfo))
             {
