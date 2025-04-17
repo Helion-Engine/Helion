@@ -83,7 +83,6 @@ public class InterpolationShader : RenderProgram
         layout(location = 4) in vec3 prevPos;
         layout(location = 5) in vec2 prevUV;
         layout(location = 6) in float colorMapIndex;
-        layout(location = 7) in float mapId;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
@@ -109,10 +108,13 @@ public class InterpolationShader : RenderProgram
             ${VertexOptionsSet}
 
             uvFrag = mix(prevUV, uv, timeFrac);
-            mapIdFrag = mapId;
 
             colorMapIndexFrag = trunc(colorMapIndex / 256);
             vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
+
+            mapIdFrag = trunc(lightLevelAdd / 256);
+            float lightLevelAddValue = lightLevelAdd - (mapIdFrag * 256);
+            mapIdFrag = abs(mapIdFrag);
 
             ${VertexGapSet}
             

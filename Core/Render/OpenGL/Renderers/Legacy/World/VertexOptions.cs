@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
@@ -17,6 +18,16 @@ public static class VertexOptions
         // Packs the vertexLightLevel used for UDMF with the colormap index.
         // The static vertex is on the edge of the optimal size for performance so this prevents adding another float prop.
         return vertexLightLevel + 256 * colorMapIndex;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float LightLevelAdd(int mapId, float lightLevelAdd)
+    {
+        // Packs LightLevelAdd with MapId
+        if (lightLevelAdd < 0)
+            return -(Math.Abs(lightLevelAdd) + 256 * mapId);
+
+        return lightLevelAdd + 256 * mapId;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
