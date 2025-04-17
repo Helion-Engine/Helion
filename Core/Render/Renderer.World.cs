@@ -199,7 +199,7 @@ public partial class Renderer
             {
                 var line = world.Lines[i];
                 *(Vec2F*)&buffer[i * 4] = line.Segment.Start.Float;
-                *(Vec2F*)&buffer[i * 4 + 2] = line.Segment.Delta.Float;
+                *(Vec2F*)&buffer[i * 4 + 2] = line.Segment.End.Float;
             }
         });
     }

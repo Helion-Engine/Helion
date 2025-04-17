@@ -38,7 +38,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_renderFuzzLocation;
     private readonly int m_renderFuzzRefractionColorLocation;
     private readonly int m_screenBoundsLocation;
-    private readonly int m_planeZTextureLocation;
+    private readonly int m_planeClipTextureLocation;
     private readonly int m_checkPlaneClipLocation;
     private readonly int m_healthBarModeLocation;
     private readonly int m_mapDataTextureLoaction;
@@ -74,7 +74,7 @@ public class EntityProgram : RenderProgram
         m_renderFuzzLocation = Uniforms.GetLocation("renderFuzz");
         m_renderFuzzRefractionColorLocation = Uniforms.GetLocation("renderFuzzRefractionColor");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
-        m_planeZTextureLocation = Uniforms.GetLocation("planeZTexture");
+        m_planeClipTextureLocation = Uniforms.GetLocation("planeClipTexture");
         m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
         m_healthBarModeLocation = Uniforms.GetLocation("healthBarMode");
         m_mapDataTextureLoaction = Uniforms.GetLocation("mapDataTexture");
@@ -87,7 +87,7 @@ public class EntityProgram : RenderProgram
     public void AccumCountTextre(TextureUnit unit) => Uniforms.Set(unit, m_accumCountTextureLocation);
     public void FuzzTexture(TextureUnit unit) => Uniforms.Set(unit, m_fuzzTextureLocation);
     public void OpaqueTexture(TextureUnit unit) => Uniforms.Set(unit, m_opaqueTextureLocation);
-    public void PlaneZTexture(TextureUnit unit) => Uniforms.Set(unit, m_planeZTextureLocation);
+    public void PlaneClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_planeClipTextureLocation);
     public void MapDataTexture(TextureUnit unit) => Uniforms.Set(unit, m_mapDataTextureLoaction);
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
@@ -127,7 +127,8 @@ public class EntityProgram : RenderProgram
         layout(location = 2) in float options;
         layout(location = 3) in vec3 prevPos;
         layout(location = 4) in float offsetZ;
-        layout(location = 5) in vec3 sectorIndex;
+        layout(location = 5) in vec3 centerPos;
+        layout(location = 6) in vec3 sectorIndex;
 
         out float lightLevelOut;
         out float alphaOut;
@@ -136,6 +137,7 @@ public class EntityProgram : RenderProgram
         out float colorMapTranslationOut;
         out float positionZOut;
         out float offsetZOut;
+        out vec3 centerPosOut;
         ${SectorColorMapVar}
 
         uniform float timeFrac;
@@ -157,6 +159,7 @@ public class EntityProgram : RenderProgram
             flipUOut = flipU;
             colorMapTranslationOut = colorMapTranslation;
             offsetZOut = offsetZ;
+            centerPosOut = centerPos;
             ${SectorColorMap}
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;
@@ -181,6 +184,7 @@ public class EntityProgram : RenderProgram
         in float colorMapTranslationOut[];
         in float positionZOut[];
         in float offsetZOut[];
+        in vec3 centerPosOut[];
         ${SectorColorMapVar}
 
         out vec2 uvFrag;
@@ -241,7 +245,7 @@ public class EntityProgram : RenderProgram
             // Render distance squared in 2d space for fade in/out effect
             renderDistSquared = distSquared(viewPos.xy, pos.xy);
 
-            centerPosFrag = minPos + ((maxPos - minPos) / 2);    
+            centerPosFrag = centerPosOut[0];
             zPosDepthFrag = (mvp * vec4(centerPosFrag.x, centerPosFrag.y, centerPosFrag.z, 1)).${Depth};
 
             lightLevelFrag = lightLevelOut[0];
@@ -326,7 +330,7 @@ public class EntityProgram : RenderProgram
         uniform int healthBarMode;
         uniform vec3 viewPos;
 
-        uniform sampler2D planeZTexture;
+        uniform sampler2D planeClipTexture;
         uniform samplerBuffer mapDataTexture;
 
         ${OitVariables}
@@ -363,8 +367,7 @@ public class EntityProgram : RenderProgram
         return clearAlpha + @"
         if (checkPlaneClip == 1) {
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
-            // r = floor's z position, g = floor's depth value
-            vec3 planeClip = texelFetch(planeZTexture, getCoords, 0).rgb;
+            vec3 planeClip = texelFetch(planeClipTexture, getCoords, 0).rgb;
 
             if (planeClip.g < depthFrag) {
                 // If floor this pixel would be discarded to depth and the plane is higher than the z position then discard.
@@ -375,15 +378,22 @@ public class EntityProgram : RenderProgram
                 if (planeClip.b == 1) {
                     vec4 linePoints = texelFetch(mapDataTexture, int(planeClip.r));
                     vec2 lineStart = linePoints.rg;
-                    vec2 lineDelta = linePoints.ba;
+                    vec2 lineEnd = linePoints.ba;
+                    vec2 lineDelta = lineEnd - lineStart;
 
                     float viewDotProduct = (lineDelta.x * (viewPos.y - lineStart.y)) - (lineDelta.y * (viewPos.x - lineStart.x));                
                     float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
 
-                    // If the sprite isn't on the same side of the line as the camera discard
-                    float viewFront = float(viewDotProduct < 0);
-                    float entityFront = float(entityDotProduct < 0);
+                    // If the sprite isn't on the same side of the line as the camera then discard
+                    float viewFront = float(viewDotProduct <= 0);
+                    float entityFront = float(entityDotProduct <= 0);
                     if (viewFront != entityFront)
+                        discard;
+                    
+                    // If the sprite isn't between the lines start and end points then discard
+                    float dotProductStart = (centerPosFrag.x - lineStart.x) * (lineDelta.x) + (centerPosFrag.y - lineStart.y) * (lineDelta.y);
+                    float dotProductEnd = (centerPosFrag.x - lineEnd.x) * (-lineDelta.x) + (centerPosFrag.y - lineEnd.y) * (-lineDelta.y);
+                    if (dotProductStart < 0 || dotProductEnd < 0)
                         discard;
                 }
             }

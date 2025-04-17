@@ -24,6 +24,9 @@ public struct EntityVertex
     [VertexAttribute]
     public float OffsetZ;
 
+    [VertexAttribute]
+    public Vec3F CenterPos;
+
     [VertexAttribute(required: false)]
     public float SectorIndex;
 }

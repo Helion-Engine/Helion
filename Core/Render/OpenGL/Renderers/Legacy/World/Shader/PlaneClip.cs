@@ -9,10 +9,10 @@ public static class PlaneClip
             flat in float zPos;
             in float depthFrag;
 
-            layout (location = 0) out vec3 outPlaneZ;
+            layout (location = 0) out vec3 outPlane;
 
             void main() {
-                outPlaneZ = vec3(zPos, depthFrag, 0);
+                outPlane = vec3(zPos, depthFrag, 0);
             }";
 
     public static string WriteWallFragFunction() =>
@@ -22,9 +22,9 @@ public static class PlaneClip
             flat in float mapIdFrag;
             in float depthFrag;
 
-            layout (location = 0) out vec3 outPlaneZ;
+            layout (location = 0) out vec3 outPlane;
 
             void main() {
-                outPlaneZ = vec3(mapIdFrag, depthFrag, 1);
+                outPlane = vec3(mapIdFrag, depthFrag, 1);
             }";
 }

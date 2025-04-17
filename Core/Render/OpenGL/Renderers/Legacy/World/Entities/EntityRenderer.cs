@@ -248,6 +248,7 @@ public class EntityRenderer : IDisposable
             (float)(entity.PrevPosition.X - nudgeAmount.X) - (m_prevViewRightNormal.X * texture.Offset.X),
             (float)(entity.PrevPosition.Y - nudgeAmount.Y) - (m_prevViewRightNormal.Y * texture.Offset.X),
             (float)entity.PrevPosition.Z);
+        vertex.CenterPos = entity.Position.Float;
         vertex.OffsetZ = offsetZ;
         vertex.LightLevel = entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright ? 255 :
             ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
@@ -353,7 +354,7 @@ public class EntityRenderer : IDisposable
             program.OpaqueTexture(TextureUnit.Texture7);
         }
 
-        program.PlaneZTexture(TextureUnit.Texture8);
+        program.PlaneClipTexture(TextureUnit.Texture8);
         program.MapDataTexture(TextureUnit.Texture9);
     }
 
