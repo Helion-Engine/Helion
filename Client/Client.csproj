@@ -37,7 +37,7 @@
 
   <ItemGroup Condition="'$(AOT)' == 'true'">
     <DirectPInvoke Include="zmusic" />
-    <DirectPInvoke Include="fluidsynth" />
+    <DirectPInvoke Include="fluidsynth-3" />
     <DirectPInvoke Include="glfw3" />
     <DirectPInvoke Include="sdl2" />
     <DirectPInvoke Condition="'$(RuntimeIdentifier)'=='win-x64'" Include="AL" />
