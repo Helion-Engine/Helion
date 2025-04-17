@@ -12,7 +12,6 @@ using Helion.Geometry.Vectors;
 using static Helion.Util.Constants;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
-using System;
 
 namespace Helion.Render;
 
@@ -94,7 +93,7 @@ public partial class Renderer
         {
             const int FloatSize = 4;
             m_lightBufferData = new float[world.Sectors.Count * LightBuffer.BufferSize * FloatSize + (LightBuffer.SectorIndexStart * FloatSize)];
-            m_mapBufferData = new float[world.Sides.Count * FloatSize * 2];
+            m_mapBufferData = new float[world.Sides.Count * FloatSize];
             SetMapDataBuffer(world);
         }
 
@@ -191,21 +190,26 @@ public partial class Renderer
     public unsafe void SetMapDataBuffer(IWorld world)
     {
         m_mapDataBuffer?.Dispose();
-        m_mapDataBuffer = new("Map data buffer", m_mapBufferData, SizedInternalFormat.Rg32f, false);
+        m_mapDataBuffer = new("Map data buffer", m_mapBufferData, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
 
         m_mapDataBuffer.Map(data =>
         {
             float* buffer = (float*)data.ToPointer();
-            for (int i = 0; i < world.StructLines.Length; i++)
+            for (int i = 0; i < world.Sides.Count; i++)
             {
-                ref var line = ref world.StructLines.Data[i];
-                var normal = new Vec2F((float)line.Segment.Delta.X, (float)-line.Segment.Delta.Y);
+                var side = world.Sides[i];
+                var line = side.Line;
 
-                var length = (float)Math.Sqrt(normal.X * normal.X + normal.Y * normal.Y);
-                normal.X /= length;
-                normal.Y /= length;
-
-                *(Vec2F*)&buffer[i * 2] = normal;
+                if (line.Front == side)
+                {
+                    *(Vec2F*)&buffer[i * 4] = side.Line.Segment.Start.Float;
+                    *(Vec2F*)&buffer[i * 4 + 2] = (side.Line.Segment.End - side.Line.Segment.Start).Float;
+                }
+                else
+                {
+                    *(Vec2F*)&buffer[i * 4] = side.Line.Segment.End.Float;
+                    *(Vec2F*)&buffer[i * 4 + 2] = (side.Line.Segment.Start - side.Line.Segment.End).Float;
+                }
             }
         });
     }

@@ -680,6 +680,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         RenderCoverInternal(m_coverFlatGeometry);
     }
 
+    public void RenderCoverFlats()
+    {
+        RenderCoverInternal(m_coverFlatGeometry);
+    }
+
     private static void RenderCoverInternal(GeometryData? data)
     {
         if (data == null)

@@ -1158,9 +1158,9 @@ public class GeometryRenderer : IDisposable
                 clipPlanes: GetTwoSidedMiddleClipPlanes(facingSide, otherSide, facingSector, otherSector));
 
             if (data == null)
-                data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), alpha, addAlpha: 0);
+                data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), facingSide.Id, alpha, addAlpha: 0);
             else
-                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), alpha, addAlpha: 0);
+                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), facingSide.Id, alpha, addAlpha: 0);
 
             m_vertexLookup[facingSide.Id] = data;
             line.Segment = segSave;
@@ -1552,7 +1552,7 @@ public class GeometryRenderer : IDisposable
     }
 
     private static unsafe void SetWallVertices(DynamicVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex, int colorMapIndex, byte wallLightLevel,
-        float mapId, float alpha = 1.0f, float addAlpha = 1.0f)
+        int mapId, float alpha = 1.0f, float addAlpha = 1.0f)
     {
         colorMapIndex = VertexOptions.ColorMapIndex(colorMapIndex, wallLightLevel);
         fixed (DynamicVertex* startVertex = &data[0])
@@ -1571,6 +1571,7 @@ public class GeometryRenderer : IDisposable
             vertex->Options = VertexOptions.World(1, alpha, addAlpha, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
+            vertex->MapId = mapId;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
@@ -1586,6 +1587,7 @@ public class GeometryRenderer : IDisposable
             vertex->Options = VertexOptions.World(1, alpha, addAlpha, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
+            vertex->MapId = mapId;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1601,6 +1603,7 @@ public class GeometryRenderer : IDisposable
             vertex->Options = VertexOptions.World(1, alpha, addAlpha, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
+            vertex->MapId = mapId;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1616,6 +1619,7 @@ public class GeometryRenderer : IDisposable
             vertex->Options = VertexOptions.World(0, alpha, addAlpha, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
+            vertex->MapId = mapId;
 
             vertex++;
             vertex->X = wv.BottomRight.X;
@@ -1631,6 +1635,7 @@ public class GeometryRenderer : IDisposable
             vertex->Options = VertexOptions.World(0, alpha, addAlpha, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
+            vertex->MapId = mapId;
 
             vertex++;
             vertex->X = wv.TopLeft.X;
@@ -1646,11 +1651,12 @@ public class GeometryRenderer : IDisposable
             vertex->Options = VertexOptions.World(0, alpha, addAlpha, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
+            vertex->MapId = mapId;
         }
     }
 
     private static unsafe DynamicVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex, int colorMapIndex, byte wallLightLevel,
-        float mapId,  float alpha = 1.0f, float addAlpha = 1.0f)
+        int mapId,  float alpha = 1.0f, float addAlpha = 1.0f)
     {
         colorMapIndex = VertexOptions.ColorMapIndex(colorMapIndex, wallLightLevel);
         var data = WorldStatic.DataCache.GetWallVertices();

@@ -34,6 +34,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly InterpolationTransparentShader m_interpolationTransparentProgram = new();
     private readonly InterpolationCompositeShader m_interpolationCompositeProgram = new();
     private readonly InterpolationPlaneClipShader m_interpolationPlaneClipShader = new();
+    private readonly InterpolationWallClipShader m_interpolationWallClipShader = new();
     private readonly StaticShader m_staticProgram = new("Main");
     private readonly StaticPlaneClipShader m_staticPlaneClipProgram = new();
     private readonly StaticWallClipShader m_staticWallClipProgram = new();
@@ -344,7 +345,11 @@ public class LegacyWorldRenderer : WorldRenderer
 
         GL.Clear(ClearBufferMask.DepthBufferBit);
         GL.ColorMask(false, false, false, false);
-        GL.Disable(EnableCap.CullFace);
+
+        // Write two-sided middle walls to depth as these generally look better with normal discard handling
+        RenderTwoSidedMiddleWalls(renderInfo);
+
+        //GL.Disable(EnableCap.CullFace);
 
         //if (m_renderStatic)
         //{
@@ -357,7 +362,7 @@ public class LegacyWorldRenderer : WorldRenderer
         //m_worldDataManager.RenderCoverWalls();
         //// Need to render flood fill again. Sprites need to be blocked by flood filling if visible.
         //m_geometryRenderer.Portals.Render(renderInfo);
-        GL.Enable(EnableCap.CullFace);
+        //GL.Enable(EnableCap.CullFace);
 
         //if (m_renderStatic)
         //{
@@ -370,7 +375,7 @@ public class LegacyWorldRenderer : WorldRenderer
         GL.ColorMask(true, true, true, true);
 
         if (m_planeClipFrameBuffer != null)
-            WritePlaneData(m_planeClipFrameBuffer, renderInfo, framebuffer);        
+            WritePlaneClipData(m_planeClipFrameBuffer, renderInfo, framebuffer);        
 
         m_entityRenderer.RenderHealthBars(renderInfo);
         m_entityRenderer.RenderOpaque(renderInfo);
@@ -378,25 +383,32 @@ public class LegacyWorldRenderer : WorldRenderer
         m_primitiveRenderer.Render(renderInfo);
     }
 
-    private void WritePlaneData(PlaneClipFrameBuffer planeClipFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer)
+    private void WritePlaneClipData(PlaneClipFrameBuffer planeClipFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
         planeClipFrameBuffer.BindFrameBuffer();
         planeClipFrameBuffer.StartRender();
 
         if (m_renderStatic)
         {
+            m_staticWallClipProgram.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
+            SetStaticUniforms(m_staticWallClipProgram, renderInfo);
+            m_geometryRenderer.RenderStaticOneSidedCoverWalls();
+            m_geometryRenderer.RenderStaticCoverWalls();
+            m_staticWallClipProgram.Unbind();
+
             m_staticPlaneClipProgram.Bind();
             GL.ActiveTexture(TextureUnit.Texture0);
             SetStaticUniforms(m_staticPlaneClipProgram, renderInfo);
             m_geometryRenderer.RenderStaticGeometryFloors();
             m_staticPlaneClipProgram.Unbind();
-
-            m_staticWallClipProgram.Bind();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            SetStaticUniforms(m_staticWallClipProgram, renderInfo);
-            m_geometryRenderer.RenderStaticOneSidedCoverWalls();
-            m_staticWallClipProgram.Unbind();
         }
+
+        m_interpolationWallClipShader.Bind();
+        GL.ActiveTexture(TextureUnit.Texture0);
+        SetInterpolationUniforms(m_interpolationWallClipShader, renderInfo);
+        m_worldDataManager.RenderCoverWalls();
+        m_interpolationWallClipShader.Unbind();
 
         m_interpolationPlaneClipShader.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
@@ -412,7 +424,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private unsafe void RenderTransparent(RenderInfo renderInfo, GLFramebuffer framebuffer, bool vanillaRender)
     {
-        bool fuzzData = m_entityRenderer.HasFuzz();
+        bool fuzzData = m_entityRenderer.HasFuzz(); 
         bool alphaData = m_entityRenderer.HasAlpha();
         bool alphaWalls = m_worldDataManager.HasAlphaWalls();
         if (!fuzzData && !alphaData && !alphaWalls)

@@ -77,7 +77,7 @@ public class EntityProgram : RenderProgram
         m_planeZTextureLocation = Uniforms.GetLocation("planeZTexture");
         m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
         m_healthBarModeLocation = Uniforms.GetLocation("healthBarMode");
-        m_mapDataTextureLoaction = Uniforms.GetLocation("mapData");
+        m_mapDataTextureLoaction = Uniforms.GetLocation("mapDataTexture");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -192,6 +192,8 @@ public class EntityProgram : RenderProgram
         flat out float fuzzFrag;
         flat out float colorMapTranslationFrag;
         flat out float zPosFrag;
+        flat out float zPosDepthFrag;
+        out vec3 centerPosFrag;
         out float depthFrag;
         ${SectorColorMapFrag}
 
@@ -238,6 +240,9 @@ public class EntityProgram : RenderProgram
             fuzzDist = (glPosMin.${Depth} + glPosMax.${Depth}) / 2;
             // Render distance squared in 2d space for fade in/out effect
             renderDistSquared = distSquared(viewPos.xy, pos.xy);
+
+            centerPosFrag = minPos + ((maxPos - minPos) / 2);    
+            zPosDepthFrag = (mvp * vec4(centerPosFrag.x, centerPosFrag.y, centerPosFrag.z, 1)).${Depth};
 
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -291,6 +296,8 @@ public class EntityProgram : RenderProgram
         flat in float fuzzFrag;
         flat in float colorMapTranslationFrag;
         flat in float zPosFrag;
+        flat in float zPosDepthFrag;
+        in vec3 centerPosFrag;
         in float depthFrag;
 
         ${SectorColorMapFragVariables}
@@ -319,7 +326,7 @@ public class EntityProgram : RenderProgram
         uniform int healthBarMode;
 
         uniform sampler2D planeZTexture;
-        uniform samplerBuffer mapData;
+        uniform samplerBuffer mapDataTexture;
 
         ${OitVariables}
         ${FuzzFunction}
@@ -357,14 +364,19 @@ public class EntityProgram : RenderProgram
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
             // r = floor's z position, g = floor's depth value
             vec3 planeClip = texelFetch(planeZTexture, getCoords, 0).rgb;
-            // If this pixel would be discarded to depth and the plane is higher than the z position then discard.
+            // If floor this pixel would be discarded to depth and the plane is higher than the z position then discard.
             if (planeClip.b == 0 && planeClip.r > zPosFrag && planeClip.g < depthFrag)
                 discard;
 
-            // zPosDepthFrag is the distance from the thing's center pointer. If the wall is in front then we can discard to depth.
-            if (planeClip.b == 1) {
-                vec2 lineNormal = texelFetch(mapData, int(planeClip.r) * 2).rg;
-                //discard;
+            // If wall this pixel would be discarded to depth check which side of the line the camera is on
+            if (planeClip.b == 1 && planeClip.g < depthFrag) {
+                vec4 linePoints = texelFetch(mapDataTexture, int(planeClip.r));
+                vec2 lineStart = linePoints.rg;
+                vec2 lineDelta = linePoints.ba;
+                
+                float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
+                if (entityDotProduct > 0)
+                    discard;
             }
         }
        

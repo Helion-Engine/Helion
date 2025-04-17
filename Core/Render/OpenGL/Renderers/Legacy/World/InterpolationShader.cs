@@ -83,6 +83,7 @@ public class InterpolationShader : RenderProgram
         layout(location = 4) in vec3 prevPos;
         layout(location = 5) in vec2 prevUV;
         layout(location = 6) in float colorMapIndex;
+        layout(location = 7) in float mapId;
 
         out vec2 uvFrag;
         flat out float alphaFrag;
@@ -90,6 +91,7 @@ public class InterpolationShader : RenderProgram
         flat out float colorMapIndexFrag;
         flat out float vertexLightLevelFrag;
         flat out float zPos;
+        flat out float mapIdFrag;
         out float depthFrag;
         ${VertexGapVariables}
 
@@ -107,6 +109,7 @@ public class InterpolationShader : RenderProgram
             ${VertexOptionsSet}
 
             uvFrag = mix(prevUV, uv, timeFrac);
+            mapIdFrag = mapId;
 
             colorMapIndexFrag = trunc(colorMapIndex / 256);
             vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
@@ -138,6 +141,9 @@ public class InterpolationShader : RenderProgram
     {
         if (this is InterpolationPlaneClipShader)
             return PlaneClip.WritePlaneFragFunction();
+
+        if (this is InterpolationWallClipShader)
+            return PlaneClip.WriteWallFragFunction();
 
         return
             @"
