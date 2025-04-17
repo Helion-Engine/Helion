@@ -324,6 +324,7 @@ public class EntityProgram : RenderProgram
         uniform ivec2 screenBounds;
         uniform int checkPlaneClip;
         uniform int healthBarMode;
+        uniform vec3 viewPos;
 
         uniform sampler2D planeZTexture;
         uniform samplerBuffer mapDataTexture;
@@ -364,19 +365,27 @@ public class EntityProgram : RenderProgram
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
             // r = floor's z position, g = floor's depth value
             vec3 planeClip = texelFetch(planeZTexture, getCoords, 0).rgb;
-            // If floor this pixel would be discarded to depth and the plane is higher than the z position then discard.
-            if (planeClip.b == 0 && planeClip.r > zPosFrag && planeClip.g < depthFrag)
-                discard;
 
-            // If wall this pixel would be discarded to depth check which side of the line the camera is on
-            if (planeClip.b == 1 && planeClip.g < depthFrag) {
-                vec4 linePoints = texelFetch(mapDataTexture, int(planeClip.r));
-                vec2 lineStart = linePoints.rg;
-                vec2 lineDelta = linePoints.ba;
-                
-                float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
-                if (entityDotProduct > 0)
+            if (planeClip.g < depthFrag) {
+                // If floor this pixel would be discarded to depth and the plane is higher than the z position then discard.
+                if (planeClip.b == 0 && planeClip.r > zPosFrag)
                     discard;
+
+                // If wall this pixel would be discarded to depth check which side of the line the camera is on
+                if (planeClip.b == 1) {
+                    vec4 linePoints = texelFetch(mapDataTexture, int(planeClip.r));
+                    vec2 lineStart = linePoints.rg;
+                    vec2 lineDelta = linePoints.ba;
+
+                    float viewDotProduct = (lineDelta.x * (viewPos.y - lineStart.y)) - (lineDelta.y * (viewPos.x - lineStart.x));                
+                    float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
+
+                    // If the sprite isn't on the same side of the line as the camera discard
+                    float viewFront = float(viewDotProduct < 0);
+                    float entityFront = float(entityDotProduct < 0);
+                    if (viewFront != entityFront)
+                        discard;
+                }
             }
         }
        

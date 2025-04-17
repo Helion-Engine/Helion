@@ -93,7 +93,7 @@ public partial class Renderer
         {
             const int FloatSize = 4;
             m_lightBufferData = new float[world.Sectors.Count * LightBuffer.BufferSize * FloatSize + (LightBuffer.SectorIndexStart * FloatSize)];
-            m_mapBufferData = new float[world.Sides.Count * FloatSize];
+            m_mapBufferData = new float[world.Lines.Count * FloatSize];
             SetMapDataBuffer(world);
         }
 
@@ -195,21 +195,11 @@ public partial class Renderer
         m_mapDataBuffer.Map(data =>
         {
             float* buffer = (float*)data.ToPointer();
-            for (int i = 0; i < world.Sides.Count; i++)
+            for (int i = 0; i < world.Lines.Count; i++)
             {
-                var side = world.Sides[i];
-                var line = side.Line;
-
-                if (line.Front == side)
-                {
-                    *(Vec2F*)&buffer[i * 4] = side.Line.Segment.Start.Float;
-                    *(Vec2F*)&buffer[i * 4 + 2] = (side.Line.Segment.End - side.Line.Segment.Start).Float;
-                }
-                else
-                {
-                    *(Vec2F*)&buffer[i * 4] = side.Line.Segment.End.Float;
-                    *(Vec2F*)&buffer[i * 4 + 2] = (side.Line.Segment.Start - side.Line.Segment.End).Float;
-                }
+                var line = world.Lines[i];
+                *(Vec2F*)&buffer[i * 4] = line.Segment.Start.Float;
+                *(Vec2F*)&buffer[i * 4 + 2] = line.Segment.Delta.Float;
             }
         });
     }

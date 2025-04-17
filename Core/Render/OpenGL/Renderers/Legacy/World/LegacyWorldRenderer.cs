@@ -345,33 +345,8 @@ public class LegacyWorldRenderer : WorldRenderer
 
         GL.Clear(ClearBufferMask.DepthBufferBit);
         GL.ColorMask(false, false, false, false);
-
         // Write two-sided middle walls to depth as these generally look better with normal discard handling
         RenderTwoSidedMiddleWalls(renderInfo);
-
-        //GL.Disable(EnableCap.CullFace);
-
-        //if (m_renderStatic)
-        //{
-        //    m_staticProgram.Bind();
-        //    GL.ActiveTexture(TextureUnit.Texture0);
-        //    m_geometryRenderer.RenderStaticCoverWalls();
-        //}
-
-        //m_interpolationProgram.Bind();
-        //m_worldDataManager.RenderCoverWalls();
-        //// Need to render flood fill again. Sprites need to be blocked by flood filling if visible.
-        //m_geometryRenderer.Portals.Render(renderInfo);
-        //GL.Enable(EnableCap.CullFace);
-
-        //if (m_renderStatic)
-        //{
-        //    m_staticProgram.Bind();
-        //    GL.ActiveTexture(TextureUnit.Texture0);
-        //    m_geometryRenderer.RenderStaticOneSidedCoverWalls();
-        //}
-
-        //RenderTwoSidedMiddleWalls(renderInfo);
         GL.ColorMask(true, true, true, true);
 
         if (m_planeClipFrameBuffer != null)
@@ -394,7 +369,9 @@ public class LegacyWorldRenderer : WorldRenderer
             GL.ActiveTexture(TextureUnit.Texture0);
             SetStaticUniforms(m_staticWallClipProgram, renderInfo);
             m_geometryRenderer.RenderStaticOneSidedCoverWalls();
+            GL.Disable(EnableCap.CullFace);
             m_geometryRenderer.RenderStaticCoverWalls();
+            GL.Enable(EnableCap.CullFace);
             m_staticWallClipProgram.Unbind();
 
             m_staticPlaneClipProgram.Bind();
