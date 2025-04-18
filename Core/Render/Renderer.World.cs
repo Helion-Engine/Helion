@@ -91,9 +91,7 @@ public partial class Renderer
 
         if (!m_world.SameAsPreviousMap)
         {
-            const int FloatSize = 4;
-            m_lightBufferData = new float[world.Sectors.Count * LightBuffer.BufferSize * FloatSize + (LightBuffer.SectorIndexStart * FloatSize)];
-            m_mapBufferData = new float[world.Lines.Count * FloatSize];
+            m_lightBufferData = new float[world.Sectors.Count * LightBuffer.BufferSize + LightBuffer.SectorIndexStart];
             SetMapDataBuffer(world);
         }
 
@@ -105,11 +103,10 @@ public partial class Renderer
     {
         bool usePalette = ShaderVars.PaletteColorMode;
         // First index will always map to default colormap
-        const int FloatSize = 4;
-        int sectorBufferCount = world.Sectors.Count + 1 * Constants.LightBuffer.BufferSize;
+        int sectorBufferCount = (world.Sectors.Count + 1) * LightBuffer.BufferSize;
         // PaletteColorMode is index to colormap, true color will be RGB mix
         int size = usePalette ? 1 : 3;
-        var sectorBuffer = new float[sectorBufferCount * FloatSize * size];
+        var sectorBuffer = new float[sectorBufferCount * size];
 
         m_sectorColorMapsBuffer?.Dispose();
         m_sectorColorMapsBuffer = new("Sector colormaps", sectorBuffer, usePalette ? SizedInternalFormat.R32f : SizedInternalFormat.Rgb32f, GLInfo.MapPersistentBitSupported);
@@ -172,7 +169,7 @@ public partial class Renderer
             lightBuffer[LightBuffer.DarkIndex] = 0;
             lightBuffer[LightBuffer.FullBrightIndex] = 255;
 
-            for (int i = 0; i < Constants.LightBuffer.ColorMapCount; i++)
+            for (int i = 0; i < LightBuffer.ColorMapCount; i++)
                 lightBuffer[LightBuffer.ColorMapStartIndex + i] =
                     256 - ((LightBuffer.ColorMapCount - i) * 256 / LightBuffer.ColorMapCount);
 
@@ -190,16 +187,20 @@ public partial class Renderer
     public unsafe void SetMapDataBuffer(IWorld world)
     {
         m_mapDataBuffer?.Dispose();
-        m_mapDataBuffer = new("Map data buffer", m_mapBufferData, SizedInternalFormat.Rgba32f, GLInfo.MapPersistentBitSupported);
+        m_mapBufferData = new float[world.Lines.Count * 4];
+        m_mapDataBuffer = new("Map data buffer", m_mapBufferData, SizedInternalFormat.Rgba32f, false);
 
         m_mapDataBuffer.Map(data =>
         {
             float* buffer = (float*)data.ToPointer();
-            for (int i = 0; i < world.Lines.Count; i++)
+            for (int i = 0; i < world.StructLines.Length; i++)
             {
-                var line = world.Lines[i];
-                *(Vec2F*)&buffer[i * 4] = line.Segment.Start.Float;
-                *(Vec2F*)&buffer[i * 4 + 2] = line.Segment.End.Float;
+                ref var line = ref world.StructLines.Data[i];
+                int index = i * 4;
+                buffer[index] = (float)line.Segment.Start.X;
+                buffer[index + 1] = (float)line.Segment.Start.Y;
+                buffer[index + 2] = (float)line.Segment.End.X;
+                buffer[index + 3] = (float)line.Segment.End.Y;
             }
         });
     }
