@@ -384,7 +384,9 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationWallClipShader.Bind();
         GL.ActiveTexture(TextureUnit.Texture0);
         SetInterpolationUniforms(m_interpolationWallClipShader, renderInfo, false);
+        GL.Disable(EnableCap.CullFace);
         m_worldDataManager.RenderCoverWalls();
+        GL.Enable(EnableCap.CullFace);
         m_interpolationWallClipShader.Unbind();
 
         m_interpolationPlaneClipShader.Bind();
