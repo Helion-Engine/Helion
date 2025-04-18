@@ -198,6 +198,8 @@ public class EntityProgram : RenderProgram
         flat out float zPosFrag;
         flat out float zPosDepthFrag;
         out vec3 centerPosFrag;
+        out vec3 minPosFrag;
+        out vec3 maxPosFrag;
         out float depthFrag;
         ${SectorColorMapFrag}
 
@@ -245,6 +247,8 @@ public class EntityProgram : RenderProgram
             renderDistSquared = distSquared(viewPos.xy, pos.xy);
 
             centerPosFrag = pos;
+            minPosFrag = minPos;
+            maxPosFrag = maxPos;
             zPosDepthFrag = (mvp * vec4(centerPosFrag.x, centerPosFrag.y, centerPosFrag.z, 1)).${Depth};
 
             lightLevelFrag = lightLevelOut[0];
@@ -301,6 +305,8 @@ public class EntityProgram : RenderProgram
         flat in float zPosFrag;
         flat in float zPosDepthFrag;
         in vec3 centerPosFrag;
+        in vec3 minPosFrag;
+        in vec3 maxPosFrag;
         in float depthFrag;
 
         ${SectorColorMapFragVariables}
@@ -360,7 +366,17 @@ public class EntityProgram : RenderProgram
 
     private static string GetDiscardPlaneClipFunction()
     {
-        return @"bool discardPlaneClip() {
+        return @"
+        bool lineIntersection(vec2 A, vec2 B, vec2 C, vec2 D) {
+            vec2 dir1 = B - A;
+            vec2 dir2 = D - C;
+            float d = dir1.x * -dir2.y + dir1.y * dir2.x;
+            float t = ((C.x - A.x) * (C.y - D.y) - (C.y - A.y) * (C.x - D.x)) / d;
+            float u = ((C.x - A.x) * (A.y - B.y) - (C.y - A.y) * (A.x - B.x)) / d;            
+            return t >= 0.0 && t <= 1.0 && u >= 0.0 && u <= 1.0;
+        }
+
+        bool discardPlaneClip() {
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
             vec3 planeClip = texelFetch(planeClipTexture, getCoords, 0).rgb;
 
@@ -380,17 +396,26 @@ public class EntityProgram : RenderProgram
                     float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
 
                     // If the sprite isn't on the same side of the line as the camera then discard
-                    float viewFront = float(viewDotProduct <= 0);
-                    float entityFront = float(entityDotProduct <= 0);
+                    bool viewFront = viewDotProduct < 0;
+                    bool entityFront = entityDotProduct < 0;
                     if (viewFront != entityFront)
                         return true;
-                    
-                    // If the sprite isn't between the lines start and end points then discard
-                    float dotProductStart = (centerPosFrag.x - lineStart.x) * (lineDelta.x) + (centerPosFrag.y - lineStart.y) * (lineDelta.y);
-                    float dotProductEnd = (centerPosFrag.x - lineEnd.x) * (-lineDelta.x) + (centerPosFrag.y - lineEnd.y) * (-lineDelta.y);
-                    if (dotProductStart < 0 || dotProductEnd < 0)
+
+                    if (!lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy))
                         return true;
                 }
+            }
+            else if (planeClip.b == 1) {
+                vec4 linePoints = texelFetch(mapDataTexture, int(planeClip.r));
+                vec2 lineStart = linePoints.rg;
+                vec2 lineEnd = linePoints.ba;
+                vec2 lineDelta = lineEnd - lineStart;
+                float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
+                bool entityFront = entityDotProduct < 0;
+
+                float dotProductStart = (centerPosFrag.x - lineStart.x) * (lineDelta.x) + (centerPosFrag.y - lineStart.y) * (lineDelta.y);
+                float dotProductEnd = (centerPosFrag.x - lineEnd.x) * (-lineDelta.x) + (centerPosFrag.y - lineEnd.y) * (-lineDelta.y);
+                return (dotProductStart < 0 || dotProductEnd < 0) && !entityFront && lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
             }
             
             return false;
