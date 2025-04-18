@@ -335,6 +335,7 @@ public class EntityProgram : RenderProgram
 
         ${OitVariables}
         ${FuzzFunction}
+        ${DiscardPlaneClipFunction}
 
         void main()
         {
@@ -352,27 +353,18 @@ public class EntityProgram : RenderProgram
     .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
     .Replace("${OutFragColor}", GetOutFragColor())
     .Replace("${BoxDefines}", BoxDefines)
-    .Replace("${HealthBarCheck}", GetOitOptions() == OitOptions.None ? "if (healthBarMode == 0) {" : "");
+    .Replace("${HealthBarCheck}", GetOitOptions() == OitOptions.None ? "if (healthBarMode == 0) {" : "")
+    .Replace("${DiscardPlaneClipFunction}", GetDiscardPlaneClipFunction());
 
-    private string GetPostProcess() 
+    private static string GetDiscardPlaneClipFunction()
     {
-        string clearAlpha = @"
-        fragColor.a = mix(0.0, 1.0, float(fragColor.a > 0.5));
-        if (fragColor.a <= 0)
-            discard;";
-
-        if (GetOitOptions() != OitOptions.None)
-            clearAlpha = string.Empty;
-
-        return clearAlpha + @"
-        if (checkPlaneClip == 1) {
-            ivec2 getCoords = ivec2(gl_FragCoord.xy);
+        return @"bool discardPlaneClip(ivec2 getCoords) {
             vec3 planeClip = texelFetch(planeClipTexture, getCoords, 0).rgb;
 
             if (planeClip.g < depthFrag) {
                 // If floor this pixel would be discarded to depth and the plane is higher than the z position then discard.
                 if (planeClip.b == 0 && planeClip.r > zPosFrag)
-                    discard;
+                    return true;
 
                 // If wall this pixel would be discarded to depth check which side of the line the camera is on
                 if (planeClip.b == 1) {
@@ -388,16 +380,33 @@ public class EntityProgram : RenderProgram
                     float viewFront = float(viewDotProduct <= 0);
                     float entityFront = float(entityDotProduct <= 0);
                     if (viewFront != entityFront)
-                        discard;
+                        return true;
                     
                     // If the sprite isn't between the lines start and end points then discard
                     float dotProductStart = (centerPosFrag.x - lineStart.x) * (lineDelta.x) + (centerPosFrag.y - lineStart.y) * (lineDelta.y);
                     float dotProductEnd = (centerPosFrag.x - lineEnd.x) * (-lineDelta.x) + (centerPosFrag.y - lineEnd.y) * (-lineDelta.y);
                     if (dotProductStart < 0 || dotProductEnd < 0)
-                        discard;
+                        return true;
                 }
             }
-        }
+            
+            return false;
+        }";
+    }
+
+    private string GetPostProcess() 
+    {
+        string clearAlpha = @"
+        fragColor.a = mix(0.0, 1.0, float(fragColor.a > 0.5));
+        if (fragColor.a <= 0)
+            discard;";
+
+        if (GetOitOptions() != OitOptions.None)
+            clearAlpha = string.Empty;
+
+        return clearAlpha + @"
+        if (checkPlaneClip == 1 && discardPlaneClip(ivec2(gl_FragCoord.xy)))
+            discard;        
        
         ${HealthBar}
 
@@ -409,8 +418,11 @@ public class EntityProgram : RenderProgram
     private static string GetHealthBar() => @"
         }
         if (healthBarMode == 1) {
-            fragColor = vec4(0, 0, 0, 1);
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
+            if (checkPlaneClip == 1 && discardPlaneClip(getCoords))
+                discard;
+
+            fragColor = vec4(0, 0, 0, 1);
             const float RedAmount = 0.33;
             const float YellowAmount = 0.66;
             const float BorderThickness = 1.5;
