@@ -339,6 +339,9 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
+            if (checkPlaneClip == 1 && discardPlaneClip())
+                discard;
+
             ${HealthBarCheck}
             ${LightLevelFragFunction}
             ${SectorColorMapFragFunction}
@@ -358,7 +361,8 @@ public class EntityProgram : RenderProgram
 
     private static string GetDiscardPlaneClipFunction()
     {
-        return @"bool discardPlaneClip(ivec2 getCoords) {
+        return @"bool discardPlaneClip() {
+            ivec2 getCoords = ivec2(gl_FragCoord.xy);
             vec3 planeClip = texelFetch(planeClipTexture, getCoords, 0).rgb;
 
             if (planeClip.g < depthFrag) {
@@ -404,10 +408,7 @@ public class EntityProgram : RenderProgram
         if (GetOitOptions() != OitOptions.None)
             clearAlpha = string.Empty;
 
-        return clearAlpha + @"
-        if (checkPlaneClip == 1 && discardPlaneClip(ivec2(gl_FragCoord.xy)))
-            discard;        
-       
+        return clearAlpha + @"   
         ${HealthBar}
 
         float fade = (maxDistanceSquared - renderDistSquared) / fadeDistance;
@@ -418,10 +419,6 @@ public class EntityProgram : RenderProgram
     private static string GetHealthBar() => @"
         }
         if (healthBarMode == 1) {
-            ivec2 getCoords = ivec2(gl_FragCoord.xy);
-            if (checkPlaneClip == 1 && discardPlaneClip(getCoords))
-                discard;
-
             fragColor = vec4(0, 0, 0, 1);
             const float RedAmount = 0.33;
             const float YellowAmount = 0.66;

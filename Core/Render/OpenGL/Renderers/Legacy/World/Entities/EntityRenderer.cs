@@ -358,19 +358,6 @@ public class EntityRenderer : IDisposable
         program.MapDataTexture(TextureUnit.Texture9);
     }
 
-    public void RenderHealthBars(RenderInfo renderInfo)
-    {
-        if (!m_healthBars)
-            return;
-
-        m_program.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
-        SetUniforms(m_program, renderInfo);
-        m_program.HealthBarMode(true);
-        m_dataManager.RenderHealthBars();
-        m_program.Unbind();
-    }
-
     public void RenderOpaque(RenderInfo renderInfo)
     {
         m_program.Bind();
@@ -378,6 +365,13 @@ public class EntityRenderer : IDisposable
         SetUniforms(m_program, renderInfo);
         m_program.HealthBarMode(false);
         m_dataManager.RenderNonAlpha(PrimitiveType.Points);
+
+        if (m_healthBars)
+        {
+            m_program.HealthBarMode(true);
+            m_dataManager.RenderHealthBars();
+        }
+
         m_program.Unbind();
     }
 
