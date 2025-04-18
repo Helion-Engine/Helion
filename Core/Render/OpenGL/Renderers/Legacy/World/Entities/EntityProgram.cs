@@ -126,9 +126,9 @@ public class EntityProgram : RenderProgram
         layout(location = 1) in float lightLevel;
         layout(location = 2) in float options;
         layout(location = 3) in vec3 prevPos;
-        layout(location = 4) in float offsetZ;
-        layout(location = 5) in vec3 centerPos;
-        layout(location = 6) in vec3 sectorIndex;
+        layout(location = 4) in float offsetXY;
+        layout(location = 5) in float offsetZ;
+        layout(location = 6) in float sectorIndex;
 
         out float lightLevelOut;
         out float alphaOut;
@@ -137,7 +137,7 @@ public class EntityProgram : RenderProgram
         out float colorMapTranslationOut;
         out float positionZOut;
         out float offsetZOut;
-        out vec3 centerPosOut;
+        out float offsetXYOut;
         ${SectorColorMapVar}
 
         uniform float timeFrac;
@@ -159,7 +159,7 @@ public class EntityProgram : RenderProgram
             flipUOut = flipU;
             colorMapTranslationOut = colorMapTranslation;
             offsetZOut = offsetZ;
-            centerPosOut = centerPos;
+            offsetXYOut = offsetXY;
             ${SectorColorMap}
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;
@@ -184,7 +184,7 @@ public class EntityProgram : RenderProgram
         in float colorMapTranslationOut[];
         in float positionZOut[];
         in float offsetZOut[];
-        in vec3 centerPosOut[];
+        in float offsetXYOut[];
         ${SectorColorMapVar}
 
         out vec2 uvFrag;
@@ -225,17 +225,16 @@ public class EntityProgram : RenderProgram
             pos.z += offsetZOut[0];
             ivec2 textureDim = textureSize(boundTexture, 0);
             vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
-            vec3 minPos = pos;
-            vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y);
+            vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOut[0], 0);
+            vec3 minPos = pos - offsetXY;
+            vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;
 
             if (healthBarMode == 1) {
+                minPos = pos;
+                maxPos = pos;
                 minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
                 maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
             }
-
-            // Triangle strip ordering is: v0 v1 v2, v2 v1 v3
-            // We also need to be going counter-clockwise.
-            // Also the UV's are inverted, so draw from 1 down to 0 along the Y.
 
             // fuzzDist is going to be the center of min/max.
             // This keeps the fuzz consistent across the texture.
@@ -245,7 +244,7 @@ public class EntityProgram : RenderProgram
             // Render distance squared in 2d space for fade in/out effect
             renderDistSquared = distSquared(viewPos.xy, pos.xy);
 
-            centerPosFrag = centerPosOut[0];
+            centerPosFrag = pos;
             zPosDepthFrag = (mvp * vec4(centerPosFrag.x, centerPosFrag.y, centerPosFrag.z, 1)).${Depth};
 
             lightLevelFrag = lightLevelOut[0];

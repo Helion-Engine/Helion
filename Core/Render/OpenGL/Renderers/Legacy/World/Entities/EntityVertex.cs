@@ -22,10 +22,10 @@ public struct EntityVertex
     public Vec3F PrevPos;
 
     [VertexAttribute]
-    public float OffsetZ;
+    public float OffsetXY;
 
     [VertexAttribute]
-    public Vec3F CenterPos;
+    public float OffsetZ;
 
     [VertexAttribute(required: false)]
     public float SectorIndex;

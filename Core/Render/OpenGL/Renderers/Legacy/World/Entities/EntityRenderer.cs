@@ -241,15 +241,15 @@ public class EntityRenderer : IDisposable
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
         // Doom graphics are drawn left to right and not centered
         vertex.Pos = new Vec3F(
-            (float)(entity.Position.X - nudgeAmount.X) - (m_viewRightNormal.X * texture.Offset.X),
-            (float)(entity.Position.Y - nudgeAmount.Y) - (m_viewRightNormal.Y * texture.Offset.X),
+            (float)(entity.Position.X - nudgeAmount.X),
+            (float)(entity.Position.Y - nudgeAmount.Y),
             (float)entity.Position.Z);
         vertex.PrevPos = new Vec3F(
-            (float)(entity.PrevPosition.X - nudgeAmount.X) - (m_prevViewRightNormal.X * texture.Offset.X),
-            (float)(entity.PrevPosition.Y - nudgeAmount.Y) - (m_prevViewRightNormal.Y * texture.Offset.X),
+            (float)(entity.PrevPosition.X - nudgeAmount.X),
+            (float)(entity.PrevPosition.Y - nudgeAmount.Y),
             (float)entity.PrevPosition.Z);
-        vertex.CenterPos = entity.Position.Float;
         vertex.OffsetZ = offsetZ;
+        vertex.OffsetXY = texture.Offset.X;
         vertex.LightLevel = entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright ? 255 :
             ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
@@ -258,10 +258,10 @@ public class EntityRenderer : IDisposable
         arrayData.Length = length + 1;
 
         if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
-            RenderHealthBar(entity, texture, offsetZ, nudgeAmount);
+            RenderHealthBar(entity, texture, offsetZ, vertex);
     }
 
-    private void RenderHealthBar(Entity entity, GLLegacyTexture texture, float offsetZ, Vec2D nudgeAmount)
+    private void RenderHealthBar(Entity entity, GLLegacyTexture texture, float offsetZ, in EntityVertex entityVertex)
     {
         // Don't let the bar bounce back and forth in height (eg Lost Soul)
         var offset = (int)offsetZ + texture.Height - texture.BlankRowsFromTop + 4;
@@ -283,13 +283,10 @@ public class EntityRenderer : IDisposable
         // Normalized health percent
         vertex.LightLevel = Math.Max(min, entity.Health / (float)entity.Properties.Health);
         vertex.Options = VertexOptions.Entity(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth);
+        vertex.Pos = entityVertex.Pos;
+        vertex.PrevPos = entityVertex.PrevPos;
         vertex.OffsetZ = offset;
-        vertex.Pos.X = (float)(entity.Position.X + nudgeAmount.X);
-        vertex.Pos.Y = (float)(entity.Position.Y + nudgeAmount.Y);
-        vertex.Pos.Z = (float)entity.Position.Z;
-        vertex.PrevPos.X = (float)(entity.PrevPosition.X + nudgeAmount.X);
-        vertex.PrevPos.Y = (float)(entity.PrevPosition.Y + nudgeAmount.Y);
-        vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
+        vertex.OffsetXY = 0;
 
         array.SetLength(array.Length + 1);
     }
