@@ -367,12 +367,12 @@ public class EntityProgram : RenderProgram
     private static string GetDiscardPlaneClipFunction()
     {
         return @"
-        bool lineIntersection(vec2 A, vec2 B, vec2 C, vec2 D) {
-            vec2 dir1 = B - A;
-            vec2 dir2 = D - C;
-            float d = dir1.x * -dir2.y + dir1.y * dir2.x;
-            float t = ((C.x - A.x) * (C.y - D.y) - (C.y - A.y) * (C.x - D.x)) / d;
-            float u = ((C.x - A.x) * (A.y - B.y) - (C.y - A.y) * (A.x - B.x)) / d;            
+        bool lineIntersection(vec2 startA, vec2 endA, vec2 startB, vec2 endB) {
+            vec2 deltaA = endA - startA;
+            vec2 deltaB = endB - startB;
+            float d = deltaA.x * -deltaB.y + deltaA.y * deltaB.x;
+            float t = ((startB.x - startA.x) * (startB.y - endB.y) - (startB.y - startA.y) * (startB.x - endB.x)) / d;
+            float u = ((startB.x - startA.x) * (startA.y - endA.y) - (startB.y - startA.y) * (startA.x - endA.x)) / d;
             return t >= 0.0 && t <= 1.0 && u >= 0.0 && u <= 1.0;
         }
 
@@ -380,42 +380,37 @@ public class EntityProgram : RenderProgram
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
             vec3 planeClip = texelFetch(planeClipTexture, getCoords, 0).rgb;
 
-            if (planeClip.g < depthFrag) {
+            // 0 = floor, 1 = line
+            if (planeClip.b == 0) {
                 // If floor this pixel would be discarded to depth and the plane is higher than the z position then discard.
-                if (planeClip.b == 0 && planeClip.r > zPosFrag)
-                    return true;
-
-                // If wall this pixel would be discarded to depth check which side of the line the camera is on
-                if (planeClip.b == 1) {
-                    vec4 linePoints = texelFetch(mapDataTexture, int(planeClip.r));
-                    vec2 lineStart = linePoints.rg;
-                    vec2 lineEnd = linePoints.ba;
-                    vec2 lineDelta = lineEnd - lineStart;
-
-                    float viewDotProduct = (lineDelta.x * (viewPos.y - lineStart.y)) - (lineDelta.y * (viewPos.x - lineStart.x));                
-                    float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
-
-                    // If the sprite isn't on the same side of the line as the camera then discard
-                    bool viewFront = viewDotProduct < 0;
-                    bool entityFront = entityDotProduct < 0;
-                    if (viewFront != entityFront)
-                        return true;
-
-                    if (!lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy))
-                        return true;
-                }
+                return planeClip.g < depthFrag && planeClip.r > zPosFrag;
             }
-            else if (planeClip.b == 1) {
+            else {
                 vec4 linePoints = texelFetch(mapDataTexture, int(planeClip.r));
                 vec2 lineStart = linePoints.rg;
                 vec2 lineEnd = linePoints.ba;
                 vec2 lineDelta = lineEnd - lineStart;
+
+                float viewDotProduct = (lineDelta.x * (viewPos.y - lineStart.y)) - (lineDelta.y * (viewPos.x - lineStart.x));                
                 float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
+
+                bool viewFront = viewDotProduct < 0;
                 bool entityFront = entityDotProduct < 0;
 
-                float dotProductStart = (centerPosFrag.x - lineStart.x) * (lineDelta.x) + (centerPosFrag.y - lineStart.y) * (lineDelta.y);
-                float dotProductEnd = (centerPosFrag.x - lineEnd.x) * (-lineDelta.x) + (centerPosFrag.y - lineEnd.y) * (-lineDelta.y);
-                return (dotProductStart < 0 || dotProductEnd < 0) && !entityFront && lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
+                if (planeClip.g < depthFrag) {
+                    // If the sprite isn't on the same side of the line as the camera then discard
+                    if (viewFront != entityFront)
+                        return true;
+
+                    // Discard to depth when the sprite line doesn't intersect the line
+                    return !lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
+                }
+                else {
+                    float dotProductStart = (centerPosFrag.x - lineStart.x) * (lineDelta.x) + (centerPosFrag.y - lineStart.y) * (lineDelta.y);
+                    float dotProductEnd = (centerPosFrag.x - lineEnd.x) * (-lineDelta.x) + (centerPosFrag.y - lineEnd.y) * (-lineDelta.y);
+                    // If the sprite is behind the line and is not within the line bounds and intersects then discard
+                    return (dotProductStart < 0 || dotProductEnd < 0) && !entityFront && lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
+                }
             }
             
             return false;
