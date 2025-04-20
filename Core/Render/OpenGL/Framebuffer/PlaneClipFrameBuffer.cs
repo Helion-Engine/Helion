@@ -52,7 +52,7 @@ public class PlaneClipFrameBuffer : IDisposable
     public unsafe void Clear()
     {
         GL.Clear(ClearBufferMask.DepthBufferBit);
-        var clear = stackalloc float[2] { -1e30f, -1e30f };
+        var clear = stackalloc float[2] { -1e30f, 1e30f };
         GL.ClearBuffer(ClearBuffer.Color, 0, clear);
         GL.Clear(ClearBufferMask.DepthBufferBit);
     }

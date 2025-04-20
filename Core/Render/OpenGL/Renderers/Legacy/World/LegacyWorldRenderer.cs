@@ -351,6 +351,9 @@ public class LegacyWorldRenderer : WorldRenderer
         if (m_wallClipFrameBuffer != null)
             WritePlaneClipData(m_wallClipFrameBuffer, renderInfo, framebuffer, true);
 
+        if (m_planeClipFrameBuffer != null)
+            WritePlaneClipData(m_planeClipFrameBuffer, renderInfo, framebuffer, false);
+
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer, true);
         m_primitiveRenderer.Render(renderInfo);
@@ -428,7 +431,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         planeClipFrameBuffer.UnbindFrameBuffer();
         framebuffer.Bind();
-        planeClipFrameBuffer.BindPlaneTexture(BindTextures.WallClipTexture);
+        planeClipFrameBuffer.BindPlaneTexture(walls ? BindTextures.WallClipTexture : BindTextures.PlaneClipTexture);
         ResetBlendEquations();
     }
 

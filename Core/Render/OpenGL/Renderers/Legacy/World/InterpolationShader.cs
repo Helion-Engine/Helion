@@ -187,10 +187,10 @@ public class InterpolationShader : RenderProgram
                 if (checkPlaneClip == 1) {
                     ivec2 getCoords = ivec2(gl_FragCoord.xy);
                     float wallClipDepth = texelFetch(wallClipTexture, getCoords, 0).g;
-                    //float planeClipDepth = texelFetch(planeClipTexture, getCoords, 0).g;
+                    float planeClipDepth = texelFetch(planeClipTexture, getCoords, 0).g;
                     // This is for alpha walls and vanilla rendering
                     // There is no depth buffer at this point so sample the plane clip texture to discard
-                    if (wallClipDepth < depthFrag)// || planeClipDepth < depthFrag)
+                    if (wallClipDepth < depthFrag || planeClipDepth < depthFrag)
                         discard;
                 }
 
