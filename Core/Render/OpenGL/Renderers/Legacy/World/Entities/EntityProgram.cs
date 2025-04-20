@@ -413,7 +413,7 @@ public class EntityProgram : RenderProgram
                     float dotProductStart = (centerPosFrag.x - lineStart.x) * (lineDelta.x) + (centerPosFrag.y - lineStart.y) * (lineDelta.y);
                     float dotProductEnd = (centerPosFrag.x - lineEnd.x) * (-lineDelta.x) + (centerPosFrag.y - lineEnd.y) * (-lineDelta.y);
                     // If the sprite is behind the line and is not within the line bounds and intersects then discard
-                    return (dotProductStart < 0 || dotProductEnd < 0) && !entityFront && lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
+                    return (dotProductStart < 0 || dotProductEnd < 0) && viewFront != entityFront && lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
                 }
             }
             
