@@ -384,9 +384,14 @@ public class EntityProgram : RenderProgram
         bool discardPlaneClip() {
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
             vec2 wallClip = texelFetch(wallClipTexture, getCoords, 0).rg;
-            vec2 planeClip = texelFetch(planeClipTexture, getCoords, 0).rg;
+            vec3 planeClip = texelFetch(planeClipTexture, getCoords, 0).rgb;
 
-            if (planeClip.g < depthFrag && planeClip.r > zPosFrag)
+            // Floor
+            if (planeClip.b == 0 && planeClip.g < depthFrag && planeClip.r > zPosFrag)
+                return true;
+
+            // Ceiling
+            if (planeClip.b == 1 && planeClip.g < depthFrag && zPosFrag >= planeClip.r)
                 return true;
 
             if (wallClip.r >= 0) {

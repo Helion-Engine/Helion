@@ -13,7 +13,7 @@ public class PlaneClipFrameBuffer : IDisposable
     private Dimension m_dimension;
     private GLTexture2D? m_depthTexture;
 
-    public void CreateOrUpdate(Dimension dimension)
+    public void CreateOrUpdate(string name, Dimension dimension)
     {
         if (m_framebuffer != 0 && dimension.Width == m_dimension.Width && dimension.Height == m_dimension.Height)
             return;
@@ -26,19 +26,19 @@ public class PlaneClipFrameBuffer : IDisposable
 
         m_texture = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, m_texture);
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, m_texture, "PlaneClip Texture");
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rg32f, width, height, 0, PixelFormat.Rg, PixelType.Float, IntPtr.Zero);
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, m_texture, $"{name} Texture");
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb32f, width, height, 0, PixelFormat.Rgb, PixelType.Float, IntPtr.Zero);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
         GL.BindTexture(TextureTarget.Texture2D, 0);
 
-        m_depthTexture = new GLTexture2D("PlaneClip Depth Stencil Attachment", dimension);
+        m_depthTexture = new GLTexture2D($"{name} Depth Stencil Attachment", dimension);
         m_depthTexture.Bind();
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Depth32fStencil8, width, height, 0, PixelFormat.DepthStencil, PixelType.Float32UnsignedInt248Rev, IntPtr.Zero);
         m_depthTexture.Unbind();
 
         m_framebuffer = GL.GenFramebuffer();
-        GLHelper.ObjectLabel(ObjectLabelIdentifier.Framebuffer, m_framebuffer, "PlaneClip Framebuffer");
+        GLHelper.ObjectLabel(ObjectLabelIdentifier.Framebuffer, m_framebuffer, $"{name} Framebuffer");
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_framebuffer);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, m_texture, 0);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, m_depthTexture.Name, 0);
@@ -52,7 +52,7 @@ public class PlaneClipFrameBuffer : IDisposable
     public unsafe void Clear()
     {
         GL.Clear(ClearBufferMask.DepthBufferBit);
-        var clear = stackalloc float[2] { -1e30f, 1e30f };
+        var clear = stackalloc float[3] { -1e30f, 1e30f, -1 };
         GL.ClearBuffer(ClearBuffer.Color, 0, clear);
         GL.Clear(ClearBufferMask.DepthBufferBit);
     }

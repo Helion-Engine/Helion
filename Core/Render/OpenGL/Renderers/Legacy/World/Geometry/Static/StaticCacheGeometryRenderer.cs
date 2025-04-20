@@ -671,6 +671,9 @@ public class StaticCacheGeometryRenderer : IDisposable
     public void RenderFloors() =>
         RenderGeometry(m_geometry.GetGeometry(GeometryType.Floor));
 
+    public void RenderCeilings() =>
+        RenderGeometry(m_geometry.GetGeometry(GeometryType.Ceiling));
+
     public void RenderCoverWalls() =>
         RenderCoverInternal(m_coverWallGeometry);
 

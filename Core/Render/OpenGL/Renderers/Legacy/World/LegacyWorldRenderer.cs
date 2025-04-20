@@ -364,7 +364,7 @@ public class LegacyWorldRenderer : WorldRenderer
         bool bind = false;
         if (m_planeClipFrameBuffer != null)
         {
-            m_planeClipFrameBuffer.CreateOrUpdate(dimension);
+            m_planeClipFrameBuffer.CreateOrUpdate("PlaneClip", dimension);
             m_planeClipFrameBuffer.BindFrameBuffer();
             m_planeClipFrameBuffer.Clear();
             bind = true;
@@ -372,7 +372,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         if (m_wallClipFrameBuffer != null)
         {
-            m_wallClipFrameBuffer.CreateOrUpdate(dimension);
+            m_wallClipFrameBuffer.CreateOrUpdate("WallClip", dimension);
             m_wallClipFrameBuffer.BindFrameBuffer();
             m_wallClipFrameBuffer.Clear();
             bind = true;
@@ -405,7 +405,12 @@ public class LegacyWorldRenderer : WorldRenderer
                 m_staticPlaneClipProgram.Bind();
                 GL.ActiveTexture(BindTextures.BoundTexture);
                 SetStaticUniforms(m_staticPlaneClipProgram, renderInfo);
+                m_staticPlaneClipProgram.PlaneType(0);
                 m_geometryRenderer.RenderStaticGeometryFloors();
+
+                m_staticPlaneClipProgram.PlaneType(1);
+                m_geometryRenderer.RenderStaticGeometryCeilings();
+
                 m_staticPlaneClipProgram.Unbind();
             }
         }

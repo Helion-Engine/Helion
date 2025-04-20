@@ -25,6 +25,7 @@ public class StaticShader : RenderProgram
     private readonly int m_lightModeLocation;
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_vertexGapClampUV;
+    private readonly int m_planeTypeLocation;
 
     public StaticShader(string name) : base($"WorldStatic - {name}")
     {
@@ -44,6 +45,7 @@ public class StaticShader : RenderProgram
         m_lightModeLocation = Uniforms.GetLocation("lightMode");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_vertexGapClampUV = Uniforms.GetLocation("vertexGapClampUV");
+        m_planeTypeLocation = Uniforms.GetLocation("planeType");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -63,6 +65,7 @@ public class StaticShader : RenderProgram
     public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
     public void VertexGapClampUV(bool value) => Uniforms.Set(value, m_vertexGapClampUV);
+    public void PlaneType(int value) => Uniforms.Set(value, m_planeTypeLocation);
 
     protected override string VertexShader() => @"
         #version 330

@@ -337,6 +337,9 @@ public class GeometryRenderer : IDisposable
     public void RenderStaticGeometryFloors() =>
         m_staticCacheGeometryRenderer.RenderFloors();
 
+    public void RenderStaticGeometryCeilings() =>
+        m_staticCacheGeometryRenderer.RenderCeilings();
+
     public void RenderStaticCoverWalls() =>
         m_staticCacheGeometryRenderer.RenderCoverWalls();
 
