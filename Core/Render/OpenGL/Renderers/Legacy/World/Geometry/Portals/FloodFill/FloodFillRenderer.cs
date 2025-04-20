@@ -294,11 +294,11 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
     {
         m_program.Bind();
 
-        GL.ActiveTexture(TextureUnit.Texture0);
-        m_program.BoundTexture(TextureUnit.Texture0);
-        m_program.SectorLightTexture(TextureUnit.Texture1);
-        m_program.ColormapTexture(TextureUnit.Texture2);
-        m_program.SectorColormapTexture(TextureUnit.Texture3);
+        GL.ActiveTexture(BindTextures.BoundTexture);
+        m_program.BoundTexture(BindTextures.BoundTexture);
+        m_program.SectorLightTexture(BindTextures.SectorLight);
+        m_program.ColormapTexture(BindTextures.Colormap);
+        m_program.SectorColormapTexture(BindTextures.SectorColormap);
         m_program.Camera(renderInfo.Camera.PositionInterpolated);
         m_program.Mvp(renderInfo.Uniforms.Mvp);
         m_program.TimeFrac(renderInfo.TickFraction);

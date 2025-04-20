@@ -690,7 +690,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data == null)
             return;
 
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         GLLegacyTexture texture = data.Texture;
         texture.Bind();
 
@@ -707,7 +707,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             var data = geometry[i];
 
-            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.ActiveTexture(BindTextures.BoundTexture);
             // Special case for one-sided walls with no texture. Uses black texture to block rendering so use directly.
             var texture = data.TextureHandle <= Constants.NullCompatibilityTextureIndex ? data.Texture :
                 m_textureManager.GetTexture(data.TextureHandle, (data.Texture.Flags & TextureFlags.ClampY) == 0);

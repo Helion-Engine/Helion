@@ -309,9 +309,9 @@ public class EntityRenderer : IDisposable
 
     private void SetUniforms(EntityProgram program, RenderInfo renderInfo)
     {
-        program.BoundTexture(TextureUnit.Texture0);
-        program.ColormapTexture(TextureUnit.Texture2);
-        program.SectorColormapTexture(TextureUnit.Texture3);
+        program.BoundTexture(BindTextures.BoundTexture);
+        program.ColormapTexture(BindTextures.Colormap);
+        program.SectorColormapTexture(BindTextures.SectorColormap);
         program.ExtraLight(renderInfo.Uniforms.ExtraLight);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         program.LightLevelMix(renderInfo.Uniforms.Mix);
@@ -339,16 +339,16 @@ public class EntityRenderer : IDisposable
 
         if (program is EntityCompositeProgram)
         {
-            program.AccumTexture(TextureUnit.Texture4);
-            program.AccumCountTextre(TextureUnit.Texture5);
+            program.AccumTexture(BindTextures.AccumTexture);
+            program.AccumCountTextre(BindTextures.AccumCountTexture);
         }
 
         if (program is EntityFuzzRefractionProgram)
         {
-            program.AccumTexture(TextureUnit.Texture4);
-            program.AccumCountTextre(TextureUnit.Texture5);
-            program.FuzzTexture(TextureUnit.Texture6);
-            program.OpaqueTexture(TextureUnit.Texture7);
+            program.AccumTexture(BindTextures.AccumTexture);
+            program.AccumCountTextre(BindTextures.AccumCountTexture);
+            program.FuzzTexture(BindTextures.FuzzTexture);
+            program.OpaqueTexture(BindTextures.OpaqueTexture);
         }
 
         program.WallClipTexture(BindTextures.WallClipTexture);
@@ -359,7 +359,7 @@ public class EntityRenderer : IDisposable
     public void RenderOpaque(RenderInfo renderInfo)
     {
         m_program.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_program, renderInfo);
         m_program.HealthBarMode(false);
         m_dataManager.RenderNonAlpha(PrimitiveType.Points);
@@ -377,7 +377,7 @@ public class EntityRenderer : IDisposable
     {
         m_programTransparent.Bind();
         m_programTransparent.RenderFuzz(false);
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
@@ -388,7 +388,7 @@ public class EntityRenderer : IDisposable
     {
         m_programTransparent.Bind();
         m_programTransparent.RenderFuzz(true);
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
         m_programTransparent.Unbind();
@@ -397,7 +397,7 @@ public class EntityRenderer : IDisposable
     public void RenderOitCompositePass(RenderInfo renderInfo)
     {
         m_programComposite.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programComposite, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
         m_programComposite.Unbind();
@@ -406,7 +406,7 @@ public class EntityRenderer : IDisposable
     public void RenderOitFuzzRefractionPass(RenderInfo renderInfo, bool renderColor)
     {
         m_programFuzzRefraction.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         m_programFuzzRefraction.RenderFuzzRefractionColor(renderColor);
         SetUniforms(m_programFuzzRefraction, renderInfo);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
@@ -416,7 +416,7 @@ public class EntityRenderer : IDisposable
     public void RenderTransparent(RenderInfo renderInfo)
     {
         m_program.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_program, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
         m_dataManager.RenderFuzz(PrimitiveType.Points);

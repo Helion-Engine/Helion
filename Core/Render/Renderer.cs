@@ -420,17 +420,17 @@ public partial class Renderer : IDisposable
 
     private void BindColorMapBuffer()
     {
-        m_colorMapBuffer?.BindTexture(TextureUnit.Texture2);
+        m_colorMapBuffer?.BindTexture(BindTextures.Colormap);
     }
 
     private void BindSectorColorMapBuffer()
     {
-        m_sectorColorMapsBuffer?.BindTexture(TextureUnit.Texture3);
+        m_sectorColorMapsBuffer?.BindTexture(BindTextures.SectorColormap);
     }
 
     private void BindLightBuffer()
     {
-        m_lightBufferStorage?.BindTexture(TextureUnit.Texture1);
+        m_lightBufferStorage?.BindTexture(BindTextures.SectorLight);
     }
 
     private void BindMapDataBuffer()
@@ -676,7 +676,7 @@ public partial class Renderer : IDisposable
     private void DrawHudImagesIfAnyQueued(Rectangle viewport, ShaderUniforms uniforms)
     {
         // Bind main buffer for fuzz refraction sampling when player has partial invisibility
-        GL.ActiveTexture(TextureUnit.Texture7);
+        GL.ActiveTexture(BindTextures.OpaqueTexture);
         GL.BindTexture(TextureTarget.Texture2D, m_mainFramebuffer.ColorAttachment0.Name);
         m_hudRenderer.Render(viewport, m_mainFramebuffer.Dimension, uniforms);
         m_hudRenderer.Clear();
