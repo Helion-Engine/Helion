@@ -53,6 +53,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private IWorld? m_previousWorld;
     private RenderBlockMapData m_renderData;
     private PlaneClipFrameBuffer? m_planeClipFrameBuffer;
+    private PlaneClipFrameBuffer? m_wallClipFrameBuffer;
 
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
@@ -86,6 +87,11 @@ public class LegacyWorldRenderer : WorldRenderer
             m_planeClipFrameBuffer = new();
         else
             m_planeClipFrameBuffer?.Dispose();
+
+        if (m_vanillaRender && m_wallClipFrameBuffer == null)
+            m_wallClipFrameBuffer = new();
+        else
+            m_wallClipFrameBuffer?.Dispose();
 
         if (m_previousWorld != null)
             m_previousWorld.OnResetInterpolation -= World_OnResetInterpolation;
@@ -259,7 +265,7 @@ public class LegacyWorldRenderer : WorldRenderer
     }
 
     protected override void PerformRender(IWorld world, RenderInfo renderInfo, GLFramebuffer framebuffer)
-    {   
+    {
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
         // Render all sectors dynamically instead.
         m_renderStatic = renderInfo.TransferHeightView == TransferHeightView.Middle;
@@ -271,13 +277,7 @@ public class LegacyWorldRenderer : WorldRenderer
         var dimension = new Dimension(renderInfo.Viewport.Width, renderInfo.Viewport.Height);
         m_oitFrameBuffer.CreateOrUpdate(dimension, framebuffer.DepthTexture);
 
-        if (m_planeClipFrameBuffer != null)
-        {
-            m_planeClipFrameBuffer.CreateOrUpdate(dimension);
-            m_planeClipFrameBuffer.BindFrameBuffer();
-            m_planeClipFrameBuffer.Clear();
-            framebuffer.Bind();
-        }
+        SetupClipBuffers(framebuffer, dimension);
 
         if (m_lastTicker != world.GameTicker)
             m_entityRenderer.Start(renderInfo);
@@ -348,54 +348,87 @@ public class LegacyWorldRenderer : WorldRenderer
         RenderTwoSidedMiddleWalls(renderInfo);
         GL.ColorMask(true, true, true, true);
 
-        if (m_planeClipFrameBuffer != null)
-            WritePlaneClipData(m_planeClipFrameBuffer, renderInfo, framebuffer);        
-        
+        if (m_wallClipFrameBuffer != null)
+            WritePlaneClipData(m_wallClipFrameBuffer, renderInfo, framebuffer, true);
+
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer, true);
         m_primitiveRenderer.Render(renderInfo);
     }
 
-    private void WritePlaneClipData(PlaneClipFrameBuffer planeClipFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer)
+    private void SetupClipBuffers(GLFramebuffer framebuffer, Dimension dimension)
+    {
+        bool bind = false;
+        if (m_planeClipFrameBuffer != null)
+        {
+            m_planeClipFrameBuffer.CreateOrUpdate(dimension);
+            m_planeClipFrameBuffer.BindFrameBuffer();
+            m_planeClipFrameBuffer.Clear();
+            bind = true;
+        }
+
+        if (m_wallClipFrameBuffer != null)
+        {
+            m_wallClipFrameBuffer.CreateOrUpdate(dimension);
+            m_wallClipFrameBuffer.BindFrameBuffer();
+            m_wallClipFrameBuffer.Clear();
+            bind = true;
+        }
+
+        if (bind)
+            framebuffer.Bind();
+    }
+
+    private void WritePlaneClipData(PlaneClipFrameBuffer planeClipFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer, bool walls)
     {
         planeClipFrameBuffer.BindFrameBuffer();
         planeClipFrameBuffer.StartRender();
 
         if (m_renderStatic)
         {
-            m_staticWallClipProgram.Bind();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            SetStaticUniforms(m_staticWallClipProgram, renderInfo);
-            m_geometryRenderer.RenderStaticOneSidedCoverWalls();
-            GL.Disable(EnableCap.CullFace);
-            m_geometryRenderer.RenderStaticCoverWalls();
-            GL.Enable(EnableCap.CullFace);
-            m_staticWallClipProgram.Unbind();
-
-            m_staticPlaneClipProgram.Bind();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            SetStaticUniforms(m_staticPlaneClipProgram, renderInfo);
-            m_geometryRenderer.RenderStaticGeometryFloors();
-            m_staticPlaneClipProgram.Unbind();
+            if (walls)
+            {
+                m_staticWallClipProgram.Bind();
+                GL.ActiveTexture(TextureUnit.Texture0);
+                SetStaticUniforms(m_staticWallClipProgram, renderInfo);
+                m_geometryRenderer.RenderStaticOneSidedCoverWalls();
+                GL.Disable(EnableCap.CullFace);
+                m_geometryRenderer.RenderStaticCoverWalls();
+                GL.Enable(EnableCap.CullFace);
+                m_staticWallClipProgram.Unbind();
+            }
+            else
+            {
+                m_staticPlaneClipProgram.Bind();
+                GL.ActiveTexture(TextureUnit.Texture0);
+                SetStaticUniforms(m_staticPlaneClipProgram, renderInfo);
+                m_geometryRenderer.RenderStaticGeometryFloors();
+                m_staticPlaneClipProgram.Unbind();
+            }
         }
 
-        m_interpolationWallClipShader.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
-        SetInterpolationUniforms(m_interpolationWallClipShader, renderInfo, false);
-        GL.Disable(EnableCap.CullFace);
-        m_worldDataManager.RenderCoverWalls();
-        GL.Enable(EnableCap.CullFace);
-        m_interpolationWallClipShader.Unbind();
-
-        m_interpolationPlaneClipShader.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
-        SetInterpolationUniforms(m_interpolationPlaneClipShader, renderInfo, false);
-        m_worldDataManager.RenderFloors();
-        m_interpolationPlaneClipShader.Unbind();
+        if (walls)
+        {
+            m_interpolationWallClipShader.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
+            SetInterpolationUniforms(m_interpolationWallClipShader, renderInfo, false);
+            GL.Disable(EnableCap.CullFace);
+            m_worldDataManager.RenderCoverWalls();
+            GL.Enable(EnableCap.CullFace);
+            m_interpolationWallClipShader.Unbind();
+        }
+        else
+        {
+            m_interpolationPlaneClipShader.Bind();
+            GL.ActiveTexture(TextureUnit.Texture0);
+            SetInterpolationUniforms(m_interpolationPlaneClipShader, renderInfo, false);
+            m_worldDataManager.RenderFloors();
+            m_interpolationPlaneClipShader.Unbind();
+        }
 
         planeClipFrameBuffer.UnbindFrameBuffer();
         framebuffer.Bind();
-        planeClipFrameBuffer.BindPlaneTexture(TextureUnit.Texture8);
+        planeClipFrameBuffer.BindPlaneTexture(BindTextures.WallClipTexture);
         ResetBlendEquations();
     }
 
@@ -553,7 +586,8 @@ public class LegacyWorldRenderer : WorldRenderer
         program.SectorLightTexture(TextureUnit.Texture1);
         program.ColormapTexture(TextureUnit.Texture2);
         program.SectorColormapTexture(TextureUnit.Texture3);
-        program.PlaneClipTexture(TextureUnit.Texture8);
+        program.PlaneClipTexture(BindTextures.PlaneClipTexture);
+        program.WallClipTexture(BindTextures.WallClipTexture);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         program.Mvp(renderInfo.Uniforms.Mvp);
         program.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);

@@ -351,8 +351,8 @@ public class EntityRenderer : IDisposable
             program.OpaqueTexture(TextureUnit.Texture7);
         }
 
-        program.PlaneClipTexture(TextureUnit.Texture8);
-        program.MapDataTexture(TextureUnit.Texture9);
+        program.WallClipTexture(BindTextures.WallClipTexture);
+        program.MapDataTexture(BindTextures.MapLineData);
     }
 
     public void RenderOpaque(RenderInfo renderInfo)

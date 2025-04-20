@@ -42,6 +42,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_checkPlaneClipLocation;
     private readonly int m_healthBarModeLocation;
     private readonly int m_mapDataTextureLoaction;
+    private readonly int m_wallClipTextureLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -78,6 +79,7 @@ public class EntityProgram : RenderProgram
         m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
         m_healthBarModeLocation = Uniforms.GetLocation("healthBarMode");
         m_mapDataTextureLoaction = Uniforms.GetLocation("mapDataTexture");
+        m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -88,6 +90,7 @@ public class EntityProgram : RenderProgram
     public void FuzzTexture(TextureUnit unit) => Uniforms.Set(unit, m_fuzzTextureLocation);
     public void OpaqueTexture(TextureUnit unit) => Uniforms.Set(unit, m_opaqueTextureLocation);
     public void PlaneClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_planeClipTextureLocation);
+    public void WallClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_wallClipTextureLocation);
     public void MapDataTexture(TextureUnit unit) => Uniforms.Set(unit, m_mapDataTextureLoaction);
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
@@ -336,6 +339,7 @@ public class EntityProgram : RenderProgram
         uniform vec3 viewPos;
 
         uniform sampler2D planeClipTexture;
+        uniform sampler2D wallClipTexture;
         uniform samplerBuffer mapDataTexture;
 
         ${OitVariables}
@@ -378,15 +382,15 @@ public class EntityProgram : RenderProgram
 
         bool discardPlaneClip() {
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
-            vec3 planeClip = texelFetch(planeClipTexture, getCoords, 0).rgb;
+            vec2 wallClip = texelFetch(wallClipTexture, getCoords, 0).rg;
 
             // 0 = floor, 1 = line
-            if (planeClip.b == 0) {
-                // If floor this pixel would be discarded to depth and the plane is higher than the z position then discard.
-                return planeClip.g < depthFrag && planeClip.r > zPosFrag;
-            }
-            else {
-                vec4 linePoints = texelFetch(mapDataTexture, int(planeClip.r));
+            //if (planeClip.b == 0) {
+            //    // If floor this pixel would be discarded to depth and the plane is higher than the z position then discard.
+            //    return planeClip.g < depthFrag && planeClip.r > zPosFrag;
+            //}
+            //else {
+                vec4 linePoints = texelFetch(mapDataTexture, int(wallClip.r));
                 vec2 lineStart = linePoints.rg;
                 vec2 lineEnd = linePoints.ba;
                 vec2 lineDelta = lineEnd - lineStart;
@@ -397,7 +401,7 @@ public class EntityProgram : RenderProgram
                 bool viewFront = viewDotProduct < 0;
                 bool entityFront = entityDotProduct < 0;
 
-                if (planeClip.g < depthFrag) {
+                if (wallClip.g < depthFrag) {
                     // If the sprite isn't on the same side of the line as the camera then discard
                     if (viewFront != entityFront)
                         return true;
@@ -411,7 +415,7 @@ public class EntityProgram : RenderProgram
                     // If the sprite is behind the line and is not within the line bounds and intersects then discard
                     return (dotProductStart < 0 || dotProductEnd < 0) && !entityFront && lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
                 }
-            }
+            //}
             
             return false;
         }";

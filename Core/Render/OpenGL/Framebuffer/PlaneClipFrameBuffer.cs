@@ -27,7 +27,7 @@ public class PlaneClipFrameBuffer : IDisposable
         m_texture = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, m_texture);
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, m_texture, "PlaneClip Texture");
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb32f, width, height, 0, PixelFormat.Rgb, PixelType.Float, IntPtr.Zero);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rg32f, width, height, 0, PixelFormat.Rg, PixelType.Float, IntPtr.Zero);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
         GL.BindTexture(TextureTarget.Texture2D, 0);
@@ -52,8 +52,7 @@ public class PlaneClipFrameBuffer : IDisposable
     public unsafe void Clear()
     {
         GL.Clear(ClearBufferMask.DepthBufferBit);
-        // Writes plane z to r, depth to g, type (0 = floor/ceiling, 1 = wall)
-        var clear = stackalloc float[3] { -1e30f, -1e30f, 0 };
+        var clear = stackalloc float[2] { -1e30f, -1e30f };
         GL.ClearBuffer(ClearBuffer.Color, 0, clear);
         GL.Clear(ClearBufferMask.DepthBufferBit);
     }

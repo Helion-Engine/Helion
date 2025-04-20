@@ -30,6 +30,7 @@ public class InterpolationShader : RenderProgram
     private readonly int m_vertexGapClampUV;
     private readonly int m_planeClipTextureLocation;
     private readonly int m_checkPlaneClipLocation;
+    private readonly int m_wallClipTextureLocation;
 
     public InterpolationShader(string name) : base($"World Interpolation - {name}")
     {
@@ -54,6 +55,7 @@ public class InterpolationShader : RenderProgram
         m_vertexGapClampUV = Uniforms.GetLocation("vertexGapClampUV");
         m_planeClipTextureLocation = Uniforms.GetLocation("planeClipTexture");
         m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
+        m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -63,6 +65,7 @@ public class InterpolationShader : RenderProgram
     public void AccumTexture(TextureUnit unit) => Uniforms.Set(unit, m_accumTextureLocation);
     public void AccumCountTextre(TextureUnit unit) => Uniforms.Set(unit, m_accumCountTextureLocation);
     public void PlaneClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_planeClipTextureLocation);
+    public void WallClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_wallClipTextureLocation);
 
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
@@ -173,6 +176,7 @@ public class InterpolationShader : RenderProgram
             uniform int paletteIndex;
             uniform int colormapIndex;
             uniform sampler2D planeClipTexture;
+            uniform sampler2D wallClipTexture;
             uniform int checkPlaneClip;
 
             ${LightLevelFragVariables}
@@ -182,10 +186,11 @@ public class InterpolationShader : RenderProgram
             void main() {
                 if (checkPlaneClip == 1) {
                     ivec2 getCoords = ivec2(gl_FragCoord.xy);
-                    float planeClipDepth = texelFetch(planeClipTexture, getCoords, 0).g;
+                    float wallClipDepth = texelFetch(wallClipTexture, getCoords, 0).g;
+                    //float planeClipDepth = texelFetch(planeClipTexture, getCoords, 0).g;
                     // This is for alpha walls and vanilla rendering
                     // There is no depth buffer at this point so sample the plane clip texture to discard
-                    if (planeClipDepth < depthFrag)
+                    if (wallClipDepth < depthFrag)// || planeClipDepth < depthFrag)
                         discard;
                 }
 

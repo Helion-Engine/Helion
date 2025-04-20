@@ -435,7 +435,7 @@ public partial class Renderer : IDisposable
 
     private void BindMapDataBuffer()
     {
-        m_mapDataBuffer?.BindTexture(TextureUnit.Texture9);
+        m_mapDataBuffer?.BindTexture(BindTextures.MapLineData);
     }
 
     public void PerformThrowableErrorChecks()
