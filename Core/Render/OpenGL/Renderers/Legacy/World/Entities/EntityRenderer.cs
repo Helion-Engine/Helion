@@ -253,7 +253,7 @@ public class EntityRenderer : IDisposable
         vertex.LightLevel = entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright ? 255 :
             ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
-        vertex.SectorIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
+        vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
         
         arrayData.Length = length + 1;
 

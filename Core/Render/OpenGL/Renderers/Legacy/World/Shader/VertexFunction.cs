@@ -36,7 +36,7 @@ public static class VertexFunction
             upperFrag = trunc(splitOptions / 16);
             splitOptions -= (upperFrag * 16);
             lowerFrag = trunc(splitOptions / 8);
-            splitOptions -= (upperFrag - 8);
+            splitOptions -= (lowerFrag * 8);
             addAlphaFrag = trunc(splitOptions / 4);
             splitOptions -= (addAlphaFrag * 4);
             float topLeft = trunc(splitOptions / 2);

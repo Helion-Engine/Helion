@@ -361,6 +361,20 @@ public class EntityProgram : RenderProgram
             float u = ((startB.x - startA.x) * (startA.y - endA.y) - (startB.y - startA.y) * (startA.x - endA.x)) / d;
             return t >= 0.0 && t <= 1.0 && u >= 0.0 && u <= 1.0;
         }
+        
+        float pointToSegmentDistance(vec2 P, vec2 A, vec2 B) {
+            vec2 AB = B - A;
+            vec2 AP = P - A;
+    
+            // Compute projection scalar t (clamped between 0 and 1)
+            float t = clamp(dot(AP, AB) / dot(AB, AB), 0.0, 1.0);
+    
+            // Compute closest point on the segment
+            vec2 closestPoint = A + t * AB;
+    
+            // Return distance from point to closest point
+            return distance(P, closestPoint);
+        }
 
         bool discardPlaneClip() {
             ivec2 getCoords = ivec2(gl_FragCoord.xy);
@@ -384,17 +398,17 @@ public class EntityProgram : RenderProgram
 
                 float viewDotProduct = (lineDelta.x * (viewPos.y - lineStart.y)) - (lineDelta.y * (viewPos.x - lineStart.x));                
                 float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
-                float distanceToWall = fuzzDist - wallClip.g;                
+                float distanceToWall = pointToSegmentDistance(centerPosFrag.xy, lineStart, lineEnd);                
 
                 bool viewFront = viewDotProduct < 0;
                 bool entityFront = entityDotProduct < 0;
 
                 // lower wall
-                if (distanceToWall < textureWidthFrag && viewFront && wallClip.b == 1 && viewPos.z > centerPosFrag.z && lineHeights.r <= zPosFrag)
+                if (distanceToWall <= max(textureWidthFrag,32) && wallClip.b == 1 && viewPos.z > lineHeights.r && lineHeights.r <= zPosFrag)
                     return false;
 
                 // upper wall
-                if (distanceToWall < textureWidthFrag && viewFront && wallClip.b == 2 && viewPos.z < lineHeights.g)// && lineHeights.g >= zPosFrag)
+                if (distanceToWall <= max(textureWidthFrag,32) && wallClip.b == 2 && viewPos.z < lineHeights.g)// && lineHeights.g >= zPosFrag)
                     return false;
 
                 if (wallClip.g < depthFrag) {

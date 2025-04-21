@@ -28,5 +28,5 @@ public struct EntityVertex
     public float OffsetZ;
 
     [VertexAttribute(required: false)]
-    public float SectorIndex;
+    public float ColorMapIndex;
 }
