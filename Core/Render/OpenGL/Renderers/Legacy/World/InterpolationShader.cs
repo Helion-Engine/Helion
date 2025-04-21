@@ -100,6 +100,8 @@ public class InterpolationShader : RenderProgram
         flat out float vertexLightLevelFrag;
         flat out float zPos;
         flat out float mapIdFrag;
+        flat out float upperFrag;
+        flat out float lowerFrag;
         out float depthFrag;
         ${VertexGapVariables}
 

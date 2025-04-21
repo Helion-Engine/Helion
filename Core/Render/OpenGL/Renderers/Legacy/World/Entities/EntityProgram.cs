@@ -43,6 +43,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_healthBarModeLocation;
     private readonly int m_mapDataTextureLoaction;
     private readonly int m_wallClipTextureLocation;
+    private readonly int m_lineHeightsTextureLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -80,6 +81,7 @@ public class EntityProgram : RenderProgram
         m_healthBarModeLocation = Uniforms.GetLocation("healthBarMode");
         m_mapDataTextureLoaction = Uniforms.GetLocation("mapDataTexture");
         m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
+        m_lineHeightsTextureLocation = Uniforms.GetLocation("lineHeightsTexture");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -92,6 +94,7 @@ public class EntityProgram : RenderProgram
     public void PlaneClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_planeClipTextureLocation);
     public void WallClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_wallClipTextureLocation);
     public void MapDataTexture(TextureUnit unit) => Uniforms.Set(unit, m_mapDataTextureLoaction);
+    public void LineHeightsTexture(TextureUnit unit) => Uniforms.Set(unit, m_lineHeightsTextureLocation);
 
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
@@ -201,6 +204,7 @@ public class EntityProgram : RenderProgram
         flat out float colorMapTranslationFrag;
         flat out float zPosFrag;
         flat out float zPosDepthFrag;
+        flat out float textureWidthFrag;
         out vec3 centerPosFrag;
         out vec3 minPosFrag;
         out vec3 maxPosFrag;
@@ -250,6 +254,7 @@ public class EntityProgram : RenderProgram
             // Render distance squared in 2d space for fade in/out effect
             renderDistSquared = distSquared(viewPos.xy, pos.xy);
 
+            textureWidthFrag = textureDim.x;
             centerPosFrag = pos;
             minPosFrag = minPos;
             maxPosFrag = maxPos;
@@ -308,6 +313,7 @@ public class EntityProgram : RenderProgram
         flat in float colorMapTranslationFrag;
         flat in float zPosFrag;
         flat in float zPosDepthFrag;
+        flat in float textureWidthFrag;
         in vec3 centerPosFrag;
         in vec3 minPosFrag;
         in vec3 maxPosFrag;
@@ -342,10 +348,67 @@ public class EntityProgram : RenderProgram
         uniform sampler2D planeClipTexture;
         uniform sampler2D wallClipTexture;
         uniform samplerBuffer mapDataTexture;
+        uniform samplerBuffer lineHeightsTexture;
 
         ${OitVariables}
         ${FuzzFunction}
-        ${DiscardPlaneClipFunction}
+
+        bool lineIntersection(vec2 startA, vec2 endA, vec2 startB, vec2 endB) {
+            vec2 deltaA = endA - startA;
+            vec2 deltaB = endB - startB;
+            float d = deltaA.x * -deltaB.y + deltaA.y * deltaB.x;
+            float t = ((startB.x - startA.x) * (startB.y - endB.y) - (startB.y - startA.y) * (startB.x - endB.x)) / d;
+            float u = ((startB.x - startA.x) * (startA.y - endA.y) - (startB.y - startA.y) * (startA.x - endA.x)) / d;
+            return t >= 0.0 && t <= 1.0 && u >= 0.0 && u <= 1.0;
+        }
+
+        bool discardPlaneClip() {
+            ivec2 getCoords = ivec2(gl_FragCoord.xy);
+            vec3 wallClip = texelFetch(wallClipTexture, getCoords, 0).rgb;
+            vec3 planeClip = texelFetch(planeClipTexture, getCoords, 0).rgb;
+
+            // Floor
+            if (planeClip.b == 0 && planeClip.g < depthFrag && planeClip.r > zPosFrag)
+                return true;
+
+            // Ceiling
+            if (planeClip.b == 1 && planeClip.g < depthFrag && zPosFrag >= planeClip.r)
+                return true;
+            
+            if (wallClip.r >= 0) {
+                vec4 linePoints = texelFetch(mapDataTexture, int(wallClip.r));
+                vec2 lineHeights = texelFetch(lineHeightsTexture, int(wallClip.r)).rg;
+                vec2 lineStart = linePoints.rg;
+                vec2 lineEnd = linePoints.ba;
+                vec2 lineDelta = lineEnd - lineStart;
+
+                float viewDotProduct = (lineDelta.x * (viewPos.y - lineStart.y)) - (lineDelta.y * (viewPos.x - lineStart.x));                
+                float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
+                float distanceToWall = fuzzDist - wallClip.g;                
+
+                bool viewFront = viewDotProduct < 0;
+                bool entityFront = entityDotProduct < 0;
+
+                // lower wall
+                if (distanceToWall < textureWidthFrag && viewFront && wallClip.b == 1 && viewPos.z > centerPosFrag.z && lineHeights.r <= zPosFrag)
+                    return false;
+
+                // upper wall
+                if (distanceToWall < textureWidthFrag && viewFront && wallClip.b == 2 && viewPos.z < lineHeights.g)// && lineHeights.g >= zPosFrag)
+                    return false;
+
+                if (wallClip.g < depthFrag) {
+                    // Discard if the sprite isn't on the same side of the line as the camera or when the sprite line doesn't intersect the line
+                    return viewFront != entityFront || !lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
+                }
+                else {
+                    // Discard if the sprite is behind the line and intersects
+                    return viewFront != entityFront && lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
+                }
+            }
+            
+            return false;
+        }
 
         void main()
         {
@@ -366,65 +429,7 @@ public class EntityProgram : RenderProgram
     .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
     .Replace("${OutFragColor}", GetOutFragColor())
     .Replace("${BoxDefines}", BoxDefines)
-    .Replace("${HealthBarCheck}", GetOitOptions() == OitOptions.None ? "if (healthBarMode == 0) {" : "")
-    .Replace("${DiscardPlaneClipFunction}", GetDiscardPlaneClipFunction());
-
-    private static string GetDiscardPlaneClipFunction()
-    {
-        return @"
-        bool lineIntersection(vec2 startA, vec2 endA, vec2 startB, vec2 endB) {
-            vec2 deltaA = endA - startA;
-            vec2 deltaB = endB - startB;
-            float d = deltaA.x * -deltaB.y + deltaA.y * deltaB.x;
-            float t = ((startB.x - startA.x) * (startB.y - endB.y) - (startB.y - startA.y) * (startB.x - endB.x)) / d;
-            float u = ((startB.x - startA.x) * (startA.y - endA.y) - (startB.y - startA.y) * (startA.x - endA.x)) / d;
-            return t >= 0.0 && t <= 1.0 && u >= 0.0 && u <= 1.0;
-        }
-
-        bool discardPlaneClip() {
-            ivec2 getCoords = ivec2(gl_FragCoord.xy);
-            vec2 wallClip = texelFetch(wallClipTexture, getCoords, 0).rg;
-            vec3 planeClip = texelFetch(planeClipTexture, getCoords, 0).rgb;
-
-            // Floor
-            if (planeClip.b == 0 && planeClip.g < depthFrag && planeClip.r > zPosFrag)
-                return true;
-
-            // Ceiling
-            if (planeClip.b == 1 && planeClip.g < depthFrag && zPosFrag >= planeClip.r)
-                return true;
-
-            if (wallClip.r >= 0) {
-                vec4 linePoints = texelFetch(mapDataTexture, int(wallClip.r));
-                vec2 lineStart = linePoints.rg;
-                vec2 lineEnd = linePoints.ba;
-                vec2 lineDelta = lineEnd - lineStart;
-
-                float viewDotProduct = (lineDelta.x * (viewPos.y - lineStart.y)) - (lineDelta.y * (viewPos.x - lineStart.x));                
-                float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
-
-                bool viewFront = viewDotProduct < 0;
-                bool entityFront = entityDotProduct < 0;
-
-                if (wallClip.g < depthFrag) {
-                    // If the sprite isn't on the same side of the line as the camera then discard
-                    if (viewFront != entityFront)
-                        return true;
-
-                    // Discard to depth when the sprite line doesn't intersect the line
-                    return !lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
-                }
-                else {
-                    float dotProductStart = (centerPosFrag.x - lineStart.x) * (lineDelta.x) + (centerPosFrag.y - lineStart.y) * (lineDelta.y);
-                    float dotProductEnd = (centerPosFrag.x - lineEnd.x) * (-lineDelta.x) + (centerPosFrag.y - lineEnd.y) * (-lineDelta.y);
-                    // If the sprite is behind the line and is not within the line bounds and intersects then discard
-                    return (dotProductStart < 0 || dotProductEnd < 0) && viewFront != entityFront && lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
-                }
-            }
-            
-            return false;
-        }";
-    }
+    .Replace("${HealthBarCheck}", GetOitOptions() == OitOptions.None ? "if (healthBarMode == 0) {" : "");
 
     private string GetPostProcess() 
     {

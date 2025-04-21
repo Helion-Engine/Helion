@@ -24,11 +24,13 @@ public static class PlaneClip
             uniform int planeType;
 
             flat in float mapIdFrag;
+            flat in float upperFrag;
+            flat in float lowerFrag;
             in float depthFrag;
 
             layout (location = 0) out vec3 outPlane;
 
             void main() {
-                outPlane = vec3(mapIdFrag, depthFrag, 0);
+                outPlane = vec3(mapIdFrag, depthFrag, lowerFrag + (upperFrag * 2));
             }";
 }

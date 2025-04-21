@@ -83,6 +83,8 @@ public class StaticShader : RenderProgram
         flat out float vertexLightLevelFrag;
         flat out float zPos;
         flat out float mapIdFrag;
+        flat out float upperFrag;
+        flat out float lowerFrag;
         out float depthFrag;
         ${VertexGapVariables}
 
@@ -148,6 +150,8 @@ public class StaticShader : RenderProgram
             flat in float zPos;
             flat in float distFrag;
             flat in float mapIdFrag;
+            flat in float upperFrag;
+            flat in float lowerFrag;
             ${VertexGapVariables}
 
             out vec4 fragColor;

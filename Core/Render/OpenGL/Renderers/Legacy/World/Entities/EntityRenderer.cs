@@ -354,6 +354,7 @@ public class EntityRenderer : IDisposable
         program.WallClipTexture(BindTextures.WallClipTexture);
         program.PlaneClipTexture(BindTextures.PlaneClipTexture);
         program.MapDataTexture(BindTextures.MapLineData);
+        program.LineHeightsTexture(BindTextures.LineHeights);
     }
 
     public void RenderOpaque(RenderInfo renderInfo)

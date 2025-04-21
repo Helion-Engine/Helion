@@ -29,6 +29,7 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Static;
+using NLog;
 using static Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -100,7 +101,7 @@ public class GeometryRenderer : IDisposable
         m_archiveCollection = archiveCollection;
         m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);
 
-        var options = VertexOptions.World(1, 1, 0, 0);
+        var options = VertexOptions.World(1, 1, 0, 0, 0, 0);
         for (int i = 0; i < m_wallVertices.Length; i++)
             m_wallVertices[i].Options = options;
 
@@ -638,9 +639,9 @@ public class GeometryRenderer : IDisposable
             int lightIndex = Renderer.GetLightBufferIndex(side, side.Middle, renderSector);
             WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, ref wall, isFront: isFront);
             if (data == null)
-                data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id);
+                data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle);
             else
-                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id);
+                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle);
 
             m_vertexLookup[side.Id] = data;
         }
@@ -876,9 +877,9 @@ public class GeometryRenderer : IDisposable
 
                 WorldTriangulator.HandleTwoSidedLower(facingSide, top, bottom, texture.UVInverse, isFrontSide, ref wall);
                 if (data == null)
-                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Lower), facingSide.Line.Id);
+                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Lower), facingSide.Line.Id, WallLocation.Lower);
                 else
-                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Lower), facingSide.Line.Id);
+                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Lower), facingSide.Line.Id, WallLocation.Lower);
 
                 m_vertexLowerLookup[facingSide.Id] = data;
             }
@@ -989,9 +990,9 @@ public class GeometryRenderer : IDisposable
                 int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Upper, facingSector);
                 WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse, isFrontSide, ref wall);
                 if (data == null)
-                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Upper), facingSide.Line.Id);
+                    data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Upper), facingSide.Line.Id, WallLocation.Upper);
                 else
-                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Upper), facingSide.Line.Id);
+                    SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Upper), facingSide.Line.Id, WallLocation.Upper);
 
                 m_vertexUpperLookup[facingSide.Id] = data;
             }
@@ -1042,7 +1043,7 @@ public class GeometryRenderer : IDisposable
             WorldTriangulator.HandleTwoSidedUpper(facingSide, facingSector.Ceiling, otherSector.Ceiling, texture.UVInverse, isFrontSide, ref wall);
         else
             WorldTriangulator.HandleTwoSidedLower(facingSide, otherSector.Floor, facingSector.Floor, texture.UVInverse, isFrontSide, ref wall);
-        SetWallVertices(m_wallVertices, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, 0, facingSide.Line.Id);
+        SetWallVertices(m_wallVertices, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, 0, facingSide.Line.Id, location);
         return m_wallVertices;
     }
 
@@ -1161,9 +1162,9 @@ public class GeometryRenderer : IDisposable
                 clipPlanes: GetTwoSidedMiddleClipPlanes(facingSide, otherSide, facingSector, otherSector));
 
             if (data == null)
-                data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), line.Id, alpha, addAlpha: 0);
+                data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), line.Id, WallLocation.None, alpha, addAlpha: 0);
             else
-                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), line.Id, alpha, addAlpha: 0);
+                SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), line.Id, WallLocation.None, alpha, addAlpha: 0);
 
             m_vertexLookup[facingSide.Id] = data;
             line.Segment = segSave;
@@ -1555,10 +1556,12 @@ public class GeometryRenderer : IDisposable
     }
 
     private static unsafe void SetWallVertices(DynamicVertex[] data, in WallVertices wv, float lightLevelAdd, int lightBufferIndex, int colorMapIndex, byte wallLightLevel,
-        int mapId, float alpha = 1.0f, float addAlpha = 1.0f)
+        int mapId, WallLocation location, float alpha = 1.0f, float addAlpha = 1.0f)
     {
         colorMapIndex = VertexOptions.ColorMapIndex(colorMapIndex, wallLightLevel);
         lightLevelAdd = VertexOptions.LightLevelAdd(mapId, lightLevelAdd);
+        int lower = location == WallLocation.Lower ? 1 : 0;
+        int upper = location == WallLocation.Upper ? 1 : 0;
         fixed (DynamicVertex* startVertex = &data[0])
         {
             DynamicVertex* vertex = startVertex;
@@ -1572,7 +1575,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->Options = VertexOptions.World(1, alpha, addAlpha, lightBufferIndex);
+            vertex->Options = VertexOptions.World(1, alpha, addAlpha, upper, lower, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
@@ -1587,7 +1590,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Options = VertexOptions.World(1, alpha, addAlpha, lightBufferIndex);
+            vertex->Options = VertexOptions.World(1, alpha, addAlpha, upper, lower, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
@@ -1602,7 +1605,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->Options = VertexOptions.World(1, alpha, addAlpha, lightBufferIndex);
+            vertex->Options = VertexOptions.World(1, alpha, addAlpha, upper, lower, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
@@ -1617,7 +1620,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Options = VertexOptions.World(0, alpha, addAlpha, lightBufferIndex);
+            vertex->Options = VertexOptions.World(0, alpha, addAlpha, upper, lower, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
@@ -1632,7 +1635,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->Options = VertexOptions.World(0, alpha, addAlpha, lightBufferIndex);
+            vertex->Options = VertexOptions.World(0, alpha, addAlpha, upper, lower, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
@@ -1647,17 +1650,19 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Options = VertexOptions.World(0, alpha, addAlpha, lightBufferIndex);
+            vertex->Options = VertexOptions.World(0, alpha, addAlpha, upper, lower, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
         }
     }
 
     private static unsafe DynamicVertex[] GetWallVertices(in WallVertices wv, float lightLevelAdd, int lightBufferIndex, int colorMapIndex, byte wallLightLevel,
-        int mapId,  float alpha = 1.0f, float addAlpha = 1.0f)
+        int mapId, WallLocation location, float alpha = 1.0f, float addAlpha = 1.0f)
     {
         colorMapIndex = VertexOptions.ColorMapIndex(colorMapIndex, wallLightLevel);
         lightLevelAdd = VertexOptions.LightLevelAdd(mapId, lightLevelAdd);
+        int lower = location == WallLocation.Lower ? 1 : 0;
+        int upper = location == WallLocation.Upper ? 1 : 0;
         var data = WorldStatic.DataCache.GetWallVertices();
         fixed (DynamicVertex* startVertex = &data[0])
         {
@@ -1680,7 +1685,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->Options = VertexOptions.World(1, alpha, addAlpha, lightBufferIndex);
+            vertex->Options = VertexOptions.World(1, alpha, addAlpha, upper, lower, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
@@ -1696,7 +1701,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Options = VertexOptions.World(1, alpha, addAlpha, lightBufferIndex);
+            vertex->Options = VertexOptions.World(1, alpha, addAlpha, upper, lower, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
@@ -1712,7 +1717,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->Options = VertexOptions.World(1, alpha, addAlpha, lightBufferIndex);
+            vertex->Options = VertexOptions.World(1, alpha, addAlpha, upper, lower, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
@@ -1728,7 +1733,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Options = VertexOptions.World(0, alpha, addAlpha, lightBufferIndex);
+            vertex->Options = VertexOptions.World(0, alpha, addAlpha, upper, lower, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
@@ -1744,7 +1749,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.TopLeft.V;
             vertex->PrevU = wv.BottomRight.PrevU;
             vertex->PrevV = wv.TopLeft.PrevV;
-            vertex->Options = VertexOptions.World(0, alpha, addAlpha, lightBufferIndex);
+            vertex->Options = VertexOptions.World(0, alpha, addAlpha, upper, lower, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
 
@@ -1760,7 +1765,7 @@ public class GeometryRenderer : IDisposable
             vertex->V = wv.BottomRight.V;
             vertex->PrevU = wv.TopLeft.PrevU;
             vertex->PrevV = wv.BottomRight.PrevV;
-            vertex->Options = VertexOptions.World(0, alpha, addAlpha, lightBufferIndex);
+            vertex->Options = VertexOptions.World(0, alpha, addAlpha, upper, lower, lightBufferIndex);
             vertex->LightLevelAdd = lightLevelAdd;
             vertex->ColorMapIndex = colorMapIndex;
         }
@@ -1771,7 +1776,7 @@ public class GeometryRenderer : IDisposable
     private static unsafe void GetFlatVertices(DynamicVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
         int lightLevelBufferIndex, int colorMapIndex, int flatLightLevel)
     {
-        var options = VertexOptions.World(0, 1, 1, lightLevelBufferIndex);
+        var options = VertexOptions.World(0, 1, 1, 0, 0, lightLevelBufferIndex);
         colorMapIndex = VertexOptions.ColorMapIndex(colorMapIndex, flatLightLevel);
         fixed (DynamicVertex* startVertex = &vertices[startIndex])
         {

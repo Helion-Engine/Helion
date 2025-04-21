@@ -26,13 +26,17 @@ public static class VertexFunction
                 uvClampMaxFrag.x = mix(uvClampMaxFrag.x, uvFrag.x - uvGap.x, topLeft == 0);
                 uvClampMaxFrag.y = mix(uvClampMaxFrag.y, uvFrag.y - uvGap.y, topLeft == 0);
             }
-";
+    ";
 
     public static string VertexOptionsSet =>
         @"  
             float splitOptions = options;
-            float lightLevelBufferIndex = trunc(splitOptions / 8);
-            splitOptions -= (lightLevelBufferIndex * 8);
+            float lightLevelBufferIndex = trunc(splitOptions / 32);
+            splitOptions -= (lightLevelBufferIndex * 32);
+            upperFrag = trunc(splitOptions / 16);
+            splitOptions -= (upperFrag * 16);
+            lowerFrag = trunc(splitOptions / 8);
+            splitOptions -= (upperFrag - 8);
             addAlphaFrag = trunc(splitOptions / 4);
             splitOptions -= (addAlphaFrag * 4);
             float topLeft = trunc(splitOptions / 2);
