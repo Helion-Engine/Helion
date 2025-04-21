@@ -212,7 +212,7 @@ public partial class Renderer
 
         m_lineHeightsBuffer?.Dispose();
         m_lineHeightsBufferData = new float[world.Lines.Count * 2];
-        m_lineHeightsBuffer = new("Plane data buffer", m_lineHeightsBufferData, SizedInternalFormat.Rg32f, true);
+        m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.Rg32f, true);
         m_lineHeightsBuffer.Map(data =>
         {
             float* buffer = (float*)data.ToPointer();
@@ -253,8 +253,10 @@ public partial class Renderer
     {
         UpdateLights();
         UpdateColorMaps();
+        UpdateLineHeights();
         m_updateLightSectors.Clear();
         m_updateColorMapSectors.Clear();
+        m_updateLineHeights.Clear();
     }
 
     private unsafe void UpdateLights()
@@ -317,7 +319,7 @@ public partial class Renderer
                     ceilingZ = Math.Min(ceilingZ, (float)line.Back.Sector.Ceiling.Z);
                 }
 
-                int index = i * 2;
+                int index = line.Id * 2;
                 buffer[index] = floorZ;
                 buffer[index + 1] = ceilingZ;
             }
