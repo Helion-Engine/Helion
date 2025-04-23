@@ -362,18 +362,11 @@ public class EntityProgram : RenderProgram
             return t >= 0.0 && t <= 1.0 && u >= 0.0 && u <= 1.0;
         }
         
-        float pointToSegmentDistance(vec2 P, vec2 A, vec2 B) {
-            vec2 AB = B - A;
-            vec2 AP = P - A;
-    
-            // Compute projection scalar t (clamped between 0 and 1)
-            float t = clamp(dot(AP, AB) / dot(AB, AB), 0.0, 1.0);
-    
-            // Compute closest point on the segment
-            vec2 closestPoint = A + t * AB;
-    
-            // Return distance from point to closest point
-            return distance(P, closestPoint);
+        vec2 closestPoint(vec2 point, vec2 lineStart, vec2 lineEnd) {
+            vec2 lineDelta = lineEnd - lineStart;
+            vec2 pointDelta = point - lineStart;    
+            float t = clamp(dot(pointDelta, lineDelta) / dot(lineDelta, lineDelta), 0.0, 1.0);    
+            return lineStart + t * lineDelta;
         }
 
         bool discardPlaneClip() {
@@ -391,24 +384,20 @@ public class EntityProgram : RenderProgram
             
             if (wallClip.r >= 0) {
                 vec4 linePoints = texelFetch(mapDataTexture, int(wallClip.r));
-                vec2 lineHeights = texelFetch(lineHeightsTexture, int(wallClip.r)).rg;
+                float floorHeight = texelFetch(lineHeightsTexture, int(wallClip.r)).r;
                 vec2 lineStart = linePoints.rg;
                 vec2 lineEnd = linePoints.ba;
                 vec2 lineDelta = lineEnd - lineStart;
 
                 float viewDotProduct = (lineDelta.x * (viewPos.y - lineStart.y)) - (lineDelta.y * (viewPos.x - lineStart.x));                
                 float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
-                float distanceToWall = pointToSegmentDistance(centerPosFrag.xy, lineStart, lineEnd);                
+                float distanceToWall = distance(centerPosFrag.xy, closestPoint(centerPosFrag.xy, lineStart, lineEnd));                
 
                 bool viewFront = viewDotProduct < 0;
                 bool entityFront = entityDotProduct < 0;
 
                 // lower wall
-                if (distanceToWall <= max(textureWidthFrag,32) && wallClip.b == 1 && viewPos.z > lineHeights.r && lineHeights.r <= zPosFrag)
-                    return false;
-
-                // upper wall
-                if (distanceToWall <= max(textureWidthFrag,32) && wallClip.b == 2 && viewPos.z < lineHeights.g)// && lineHeights.g >= zPosFrag)
+                if (distanceToWall <= max(40, textureWidthFrag) && wallClip.b == 1 && viewPos.z > floorHeight && floorHeight <= zPosFrag)
                     return false;
 
                 if (wallClip.g < depthFrag) {

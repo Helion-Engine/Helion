@@ -21,8 +21,6 @@ public static class PlaneClip
          @"
             #version 330
 
-            uniform int planeType;
-
             flat in float mapIdFrag;
             flat in float upperFrag;
             flat in float lowerFrag;
