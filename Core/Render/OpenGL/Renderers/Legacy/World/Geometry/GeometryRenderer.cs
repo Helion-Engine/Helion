@@ -359,6 +359,9 @@ public class GeometryRenderer : IDisposable
     public void RenderPortals(RenderInfo renderInfo) =>
         Portals.Render(renderInfo);
 
+    public void RenderWallClipPortals(RenderInfo renderInfo) =>
+        Portals.RenderWallClip(renderInfo);
+
     public void RenderSector(Sector sector, in Vec3D viewPosition, in Vec3D prevViewPosition)
     {
         m_buffer = true;

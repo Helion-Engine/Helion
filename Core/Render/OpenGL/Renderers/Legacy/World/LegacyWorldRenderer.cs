@@ -316,7 +316,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
             RenderTwoSidedMiddleWalls(renderInfo);
             m_entityRenderer.RenderOpaque(renderInfo);
-            RenderTransparent(renderInfo, framebuffer, false);
+            RenderTransparent(renderInfo, framebuffer);
             m_primitiveRenderer.Render(renderInfo);
             return;
         }
@@ -355,7 +355,7 @@ public class LegacyWorldRenderer : WorldRenderer
             WritePlaneClipData(m_planeClipFrameBuffer, renderInfo, framebuffer, false);
 
         m_entityRenderer.RenderOpaque(renderInfo);
-        RenderTransparent(renderInfo, framebuffer, true);
+        RenderTransparent(renderInfo, framebuffer);
         m_primitiveRenderer.Render(renderInfo);
     }
 
@@ -422,6 +422,7 @@ public class LegacyWorldRenderer : WorldRenderer
             SetInterpolationUniforms(m_interpolationWallClipShader, renderInfo, false);
             GL.Disable(EnableCap.CullFace);
             m_worldDataManager.RenderCoverWalls();
+            m_geometryRenderer.RenderWallClipPortals(renderInfo);
             GL.Enable(EnableCap.CullFace);
             m_interpolationWallClipShader.Unbind();
         }
@@ -440,7 +441,7 @@ public class LegacyWorldRenderer : WorldRenderer
         ResetBlendEquations();
     }
 
-    private unsafe void RenderTransparent(RenderInfo renderInfo, GLFramebuffer framebuffer, bool vanillaRender)
+    private unsafe void RenderTransparent(RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
         bool fuzzData = m_entityRenderer.HasFuzz(); 
         bool alphaData = m_entityRenderer.HasAlpha();
