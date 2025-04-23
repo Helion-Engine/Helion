@@ -12,6 +12,7 @@ using static Helion.Util.Constants;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using System;
+using Helion.World.Geometry.Lines;
 
 namespace Helion.Render;
 
@@ -212,26 +213,25 @@ public partial class Renderer
 
         m_lineHeightsBuffer?.Dispose();
         m_lineHeightsBufferData = new float[world.Lines.Count * 2];
-        m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.Rg32f, true);
+        m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.R32f, true);
         m_lineHeightsBuffer.Map(data =>
         {
             float* buffer = (float*)data.ToPointer();
             for (int i = 0; i < world.StructLines.Length; i++)
             {
                 ref var line = ref world.StructLines.Data[i];
-                float floorZ = (float)line.FrontFloorPlane.Z;
-                if (line.BackFloorPlane != null)
-                    floorZ = Math.Max(floorZ, (float)line.BackFloorPlane.Z);
-
-                float ceilingZ = (float)line.FrontCeilingPlane.Z;
-                if (line.BackCeilingPlane != null)
-                    ceilingZ = Math.Min(ceilingZ, (float)line.BackCeilingPlane.Z);
-
-                int index = i * 2;
-                buffer[index] = floorZ;
-                buffer[index + 1] = ceilingZ;
+                SetLineHeightBuffer(buffer, i, ref line);
             }
         });
+    }
+
+    private static unsafe void SetLineHeightBuffer(float* buffer, int index, ref StructLine line)
+    {
+        var floorZ = (float)line.FrontFloorPlane.Z;
+        if (line.BackFloorPlane != null)
+            floorZ = Math.Max(floorZ, (float)line.BackFloorPlane.Z);
+
+        buffer[index] = floorZ;
     }
 
     private void World_SectorLightChanged(object? sender, Sector sector)
@@ -299,29 +299,26 @@ public partial class Renderer
 
     private unsafe void UpdateLineHeights()
     {
-        if (m_updateLineHeights.UpdateSectors.Length == 0 || m_lineHeightsBuffer == null)
+        if (m_updateLineHeights.UpdateSectors.Length == 0 || m_lineHeightsBuffer == null || m_world == null)
             return;
 
+        var checkCounter = ++WorldStatic.CheckCounter;
         var mappedBuffer = m_lineHeightsBuffer.GetMappedBufferAndBind();
+        var lineArray = m_world.StructLines.Data;
         float* buffer = mappedBuffer.MappedMemoryPtr;
 
         for (int i = 0; i < m_updateLineHeights.UpdateSectors.Length; i++)
         {
             var sector = m_updateLineHeights.UpdateSectors[i];
-            for (int j = 0; j < sector.Lines.Count; j++)
+            for (int j = 0; j < sector.LineIds.Length; j++)
             {
-                var line = sector.Lines[j];
-                float floorZ = (float)line.Front.Sector.Floor.Z;
-                float ceilingZ = (float)line.Front.Sector.Ceiling.Z;
-                if (line.Back != null)
-                {
-                    floorZ = Math.Max(floorZ, (float)line.Back.Sector.Floor.Z);
-                    ceilingZ = Math.Min(ceilingZ, (float)line.Back.Sector.Ceiling.Z);
-                }
+                var lineId = sector.LineIds[j];
+                if (WorldStatic.CheckedLines[lineId] == checkCounter)
+                    continue;
 
-                int index = line.Id * 2;
-                buffer[index] = floorZ;
-                buffer[index + 1] = ceilingZ;
+                ref var line = ref lineArray[lineId];
+                WorldStatic.CheckedLines[lineId] = checkCounter;
+                SetLineHeightBuffer(buffer, lineId, ref line);
             }
         }
 
