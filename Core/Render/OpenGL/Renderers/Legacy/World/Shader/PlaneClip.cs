@@ -29,6 +29,10 @@ public static class PlaneClip
             layout (location = 0) out vec3 outPlane;
 
             void main() {
+                // This is required for flood fill rendering that doesn't separate planes(floor/ceiling) from walls
+                // Planes are written with -1 and need to be discarded
+                if (mapIdFrag < 0)
+                    discard;
                 outPlane = vec3(mapIdFrag, depthFrag, lowerFrag + (upperFrag * 2));
             }";
 }
