@@ -213,7 +213,7 @@ public partial class Renderer
 
         m_lineHeightsBuffer?.Dispose();
         m_lineHeightsBufferData = new float[world.Lines.Count * 2];
-        m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.R32f, true);
+        m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.R32f, GLInfo.MapPersistentBitSupported);
         m_lineHeightsBuffer.Map(data =>
         {
             float* buffer = (float*)data.ToPointer();
