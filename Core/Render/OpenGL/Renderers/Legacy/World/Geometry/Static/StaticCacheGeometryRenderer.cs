@@ -163,7 +163,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         // Cover flat geometry is always allocated to ensure sprites are covered/clipped to transfer heights
         if (!world.SameAsPreviousMap)
         {
-            m_coverFlatGeometry = AllocateGeometryData(GeometryType.Floor, textureIndex,
+            m_coverFlatGeometry = AllocateGeometryData(GeometryType.Flat, textureIndex,
                 repeat: true, addToGeometry: false, overrideTexture: texture);
         }
 
@@ -638,10 +638,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
         }
 
-        var type = floor ? GeometryType.Floor : GeometryType.Ceiling;
-
-        var vertices = GetTextureVertices(type, renderPlane.TextureHandle, true);
-        if (m_textureToGeometryLookup.TryGetValue(type, renderPlane.TextureHandle, true, out var geometryData))
+        var vertices = GetTextureVertices(GeometryType.Flat, renderPlane.TextureHandle, true);
+        if (m_textureToGeometryLookup.TryGetValue(GeometryType.Flat, renderPlane.TextureHandle, true, out var geometryData))
         {
             plane.Static.GeometryData = geometryData;
             plane.Static.Index = vertices.Length;
@@ -662,17 +660,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         RenderGeometry(m_geometry.GetGeometry(GeometryType.TwoSidedMiddleWall));
     }
 
-    public void RenderFlats()
-    {
-        RenderGeometry(m_geometry.GetGeometry(GeometryType.Floor));
-        RenderGeometry(m_geometry.GetGeometry(GeometryType.Ceiling));
-    }
-
-    public void RenderFloors() =>
-        RenderGeometry(m_geometry.GetGeometry(GeometryType.Floor));
-
-    public void RenderCeilings() =>
-        RenderGeometry(m_geometry.GetGeometry(GeometryType.Ceiling));
+    public void RenderFlats() => 
+        RenderGeometry(m_geometry.GetGeometry(GeometryType.Flat));
 
     public void RenderCoverWalls() =>
         RenderCoverInternal(m_coverWallGeometry);
@@ -905,7 +894,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, DynamicVertex[] vertices,
         SectorPlane? plane, Side? side, Wall? wall, bool repeat, Sector sector, GLLegacyTexture? texture = null)
     {
-        var geometryType = side != null && wall != null ? GetWallType(side, wall) : (plane == null || plane.Facing == SectorPlaneFace.Floor ? GeometryType.Floor : GeometryType.Ceiling);
+        var geometryType = side != null && wall != null ? GetWallType(side, wall) : GeometryType.Flat;
         if (side != null && wall != null && geometryType != GeometryType.TwoSidedMiddleWall)
             AddOrUpdateCoverWall(side, wall, vertices);
 

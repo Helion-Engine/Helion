@@ -362,8 +362,7 @@ public class EntityProgram : RenderProgram
             return t >= 0.0 && t <= 1.0 && u >= 0.0 && u <= 1.0;
         }
         
-        vec2 closestPoint(vec2 point, vec2 lineStart, vec2 lineEnd) {
-            vec2 lineDelta = lineEnd - lineStart;
+        vec2 closestPoint(vec2 point, vec2 lineStart, vec2 lineDelta) {
             vec2 pointDelta = point - lineStart;    
             float t = clamp(dot(pointDelta, lineDelta) / dot(lineDelta, lineDelta), 0.0, 1.0);    
             return lineStart + t * lineDelta;
@@ -375,11 +374,11 @@ public class EntityProgram : RenderProgram
             vec3 planeClip = texelFetch(planeClipTexture, getCoords, 0).rgb;
 
             // Floor
-            if (planeClip.b == 0 && planeClip.g < depthFrag && planeClip.r > zPosFrag)
+            if (planeClip.b == 1 && planeClip.g < depthFrag && planeClip.r > zPosFrag)
                 return true;
 
             // Ceiling
-            if (planeClip.b == 1 && planeClip.g < depthFrag && zPosFrag >= planeClip.r)
+            if (planeClip.b == 2 && planeClip.g < depthFrag && zPosFrag >= planeClip.r)
                 return true;
             
             if (wallClip.r >= 0) {
@@ -391,7 +390,7 @@ public class EntityProgram : RenderProgram
 
                 float viewDotProduct = (lineDelta.x * (viewPos.y - lineStart.y)) - (lineDelta.y * (viewPos.x - lineStart.x));                
                 float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
-                float distanceToWall = distance(centerPosFrag.xy, closestPoint(centerPosFrag.xy, lineStart, lineEnd));                
+                float distanceToWall = distance(centerPosFrag.xy, closestPoint(centerPosFrag.xy, lineStart, lineDelta));                
 
                 bool viewFront = viewDotProduct < 0;
                 bool entityFront = entityDotProduct < 0;

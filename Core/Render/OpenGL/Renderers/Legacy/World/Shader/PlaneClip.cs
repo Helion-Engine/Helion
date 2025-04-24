@@ -6,15 +6,15 @@ public static class PlaneClip
          @"
             #version 330
 
-            uniform int planeType;
-
             flat in float zPos;
+            flat in float upperFrag;
+            flat in float lowerFrag;
             in float depthFrag;
 
             layout (location = 0) out vec3 outPlane;
 
             void main() {
-                outPlane = vec3(zPos, depthFrag, planeType);
+                outPlane = vec3(zPos, depthFrag, lowerFrag + (upperFrag * 2));
             }";
 
     public static string WriteWallFragFunction() =>

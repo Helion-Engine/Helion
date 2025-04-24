@@ -405,12 +405,7 @@ public class LegacyWorldRenderer : WorldRenderer
                 m_staticPlaneClipProgram.Bind();
                 GL.ActiveTexture(BindTextures.BoundTexture);
                 SetStaticUniforms(m_staticPlaneClipProgram, renderInfo);
-                m_staticPlaneClipProgram.PlaneType(0);
-                m_geometryRenderer.RenderStaticGeometryFloors();
-
-                m_staticPlaneClipProgram.PlaneType(1);
-                m_geometryRenderer.RenderStaticGeometryCeilings();
-
+                m_geometryRenderer.RenderStaticGeometryFlats();
                 m_staticPlaneClipProgram.Unbind();
             }
         }
@@ -431,7 +426,7 @@ public class LegacyWorldRenderer : WorldRenderer
             m_interpolationPlaneClipShader.Bind();
             GL.ActiveTexture(BindTextures.BoundTexture);
             SetInterpolationUniforms(m_interpolationPlaneClipShader, renderInfo, false);
-            m_worldDataManager.RenderFloors();
+            m_worldDataManager.RenderFlats();
             m_interpolationPlaneClipShader.Unbind();
         }
 

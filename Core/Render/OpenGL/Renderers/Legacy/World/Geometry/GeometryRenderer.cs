@@ -335,12 +335,6 @@ public class GeometryRenderer : IDisposable
     public void RenderStaticGeometryFlats() =>
         m_staticCacheGeometryRenderer.RenderFlats();
 
-    public void RenderStaticGeometryFloors() =>
-        m_staticCacheGeometryRenderer.RenderFloors();
-
-    public void RenderStaticGeometryCeilings() =>
-        m_staticCacheGeometryRenderer.RenderCeilings();
-
     public void RenderStaticCoverWalls() =>
         m_staticCacheGeometryRenderer.RenderCoverWalls();
 
@@ -1295,7 +1289,7 @@ public class GeometryRenderer : IDisposable
     {
         bool isSky = TextureManager.IsSkyTexture(flat.TextureHandle);
         GLLegacyTexture texture = m_glTextureManager.GetTexture(flat.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, floor ? GeometryType.Floor : GeometryType.Ceiling);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Flat);
         bool flatChanged = FlatChanged(flat);
         var sector = subsectors[0].Sector;
         int id = sector.Id;
@@ -1361,6 +1355,8 @@ public class GeometryRenderer : IDisposable
                 }
 
                 var flatLightLevel = (byte)Math.Clamp(lightPlane.LightLevelAbsolute ? lightPlane.LightLevel : (short)0, (short)0, (short)255);
+                int upper = floor ? 0 : 1;
+                int lower = 1 - upper;
 
                 for (int j = 0; j < subsectors.Length; j++)
                 {
@@ -1375,7 +1371,7 @@ public class GeometryRenderer : IDisposable
                     {
                         ref var second = ref m_subsectorVertices.Data[i];
                         ref var third = ref m_subsectorVertices.Data[i + 1];
-                        GetFlatVertices(lookupData, indexStart, ref root, ref second, ref third, lightIndex, colorMapIndex, flatLightLevel);
+                        GetFlatVertices(lookupData, indexStart, ref root, ref second, ref third, lightIndex, colorMapIndex, flatLightLevel, upper, lower);
                         indexStart += 3;
                     }
                 }
@@ -1777,9 +1773,9 @@ public class GeometryRenderer : IDisposable
     }
 
     private static unsafe void GetFlatVertices(DynamicVertex[] vertices, int startIndex, ref TriangulatedWorldVertex root, ref TriangulatedWorldVertex second, ref TriangulatedWorldVertex third,
-        int lightLevelBufferIndex, int colorMapIndex, int flatLightLevel)
+        int lightLevelBufferIndex, int colorMapIndex, int flatLightLevel, int upper, int lower)
     {
-        var options = VertexOptions.World(0, 1, 1, 0, 0, lightLevelBufferIndex);
+        var options = VertexOptions.World(0, 1, 1, upper, lower, lightLevelBufferIndex);
         colorMapIndex = VertexOptions.ColorMapIndex(colorMapIndex, flatLightLevel);
         fixed (DynamicVertex* startVertex = &vertices[startIndex])
         {
