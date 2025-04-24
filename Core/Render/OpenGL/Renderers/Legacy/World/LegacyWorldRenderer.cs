@@ -469,7 +469,7 @@ public class LegacyWorldRenderer : WorldRenderer
         m_interpolationTransparentProgram.Bind();
         // Alpha walls are the exception to pixel gap correction. Only required for opaque walls.
         m_interpolationTransparentProgram.VertexGapClampUV(false);
-        SetInterpolationUniforms(m_interpolationTransparentProgram, renderInfo, true);
+        SetInterpolationUniforms(m_interpolationTransparentProgram, renderInfo, m_vanillaRender);
         GL.ActiveTexture(BindTextures.BoundTexture);
         m_worldDataManager.RenderAlphaWalls();
 
@@ -482,7 +482,7 @@ public class LegacyWorldRenderer : WorldRenderer
         {
             m_interpolationCompositeProgram.Bind();
             m_interpolationCompositeProgram.VertexGapClampUV(false);
-            SetInterpolationUniforms(m_interpolationCompositeProgram, renderInfo, true);
+            SetInterpolationUniforms(m_interpolationCompositeProgram, renderInfo, m_vanillaRender);
             GL.ActiveTexture(BindTextures.BoundTexture);
             m_worldDataManager.RenderAlphaWalls();
         }
