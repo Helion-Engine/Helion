@@ -79,6 +79,9 @@ public class StaticShader : RenderProgram
         flat out float colorMapIndexFrag;
         flat out float vertexLightLevelFrag;
         flat out float zPos;
+        flat out float mapIdFrag;
+        flat out float upperFrag;
+        flat out float lowerFrag;
         out float depthFrag;
         ${VertexGapVariables}
 
@@ -99,10 +102,14 @@ public class StaticShader : RenderProgram
 
             colorMapIndexFrag = trunc(colorMapIndex / 256);
             vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
-            
-            ${VertexGapSet}
+
+            mapIdFrag = trunc(lightLevelAdd / 256);
+            float lightLevelAddValue = lightLevelAdd - (mapIdFrag * 256);
+            mapIdFrag = abs(mapIdFrag);
             
             vec4 mixPos = vec4(pos, 1.0);
+            ${VertexGapSet}
+            
             ${VertexLightBuffer}
             ${LightLevelVertexDist}
             ${SectorColorMapVertexFunction}
@@ -128,6 +135,9 @@ public class StaticShader : RenderProgram
         if (this is StaticPlaneClipShader)
             return PlaneClip.WritePlaneFragFunction();
 
+        if (this is StaticWallClipShader)
+            return PlaneClip.WriteWallFragFunction();
+
         return @"
             #version 330
 
@@ -136,6 +146,9 @@ public class StaticShader : RenderProgram
             flat in float addAlphaFrag;
             flat in float zPos;
             flat in float distFrag;
+            flat in float mapIdFrag;
+            flat in float upperFrag;
+            flat in float lowerFrag;
             ${VertexGapVariables}
 
             out vec4 fragColor;

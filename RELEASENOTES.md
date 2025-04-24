@@ -12,6 +12,7 @@
 - Added fix for sprites clipping through lower floors with emulate vanilla rendering (issue #907)
 - Replaced HUD horizontal margin with HUD width option
 - Added optional health bars to render above shootable things
+- Upgraded vanilla rendering emulation to draw sprites over walls similar to vanilla
 
 ## Bug fixes:
 - Correct missile blocking checks to match original behavior (fixes radsuits blocking rockets etc)

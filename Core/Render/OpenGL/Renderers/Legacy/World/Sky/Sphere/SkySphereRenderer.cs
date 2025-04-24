@@ -53,7 +53,7 @@ public class SkySphereRenderer : IDisposable
     public void Render(RenderInfo renderInfo, SkyOptions options, Vec2F offset)
     {
         m_mode = renderInfo.Config.SkyMode.Value;
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
 
         var skyTexture = m_texture.GetSkyTexture(out var skyTransform);
         skyTransform.Sky.Offset.X += offset.X;
@@ -78,7 +78,7 @@ public class SkySphereRenderer : IDisposable
             return;
 
         m_foregroundProgram.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
 
         var foregroundTexture = m_texture.GetForegroundTexture(skyTransform.Foreground);
         if (skyTransform.Foreground.Type == SkyTransformType.Fire)
@@ -195,8 +195,8 @@ public class SkySphereRenderer : IDisposable
         var offset = SkySphereTexture.CalcOffset(skyTexture, skyTransform, m_mode, scaleUV, options);
         var skyHeight = SkySphereTexture.CalcSkyHeight(texture.Dimension.Height, m_mode);
 
-        m_skyProgram.BoundTexture(TextureUnit.Texture0);
-        m_skyProgram.ColormapTexture(TextureUnit.Texture2);
+        m_skyProgram.BoundTexture(BindTextures.BoundTexture);
+        m_skyProgram.ColormapTexture(BindTextures.Colormap);
         m_skyProgram.Mvp(CalculateMvp(renderInfo));
         m_skyProgram.Scale(scaleUV);
         m_skyProgram.FlipU((options & SkyOptions.Flip) != 0);
@@ -234,8 +234,8 @@ public class SkySphereRenderer : IDisposable
         var offset = SkySphereTexture.CalcOffset(foregroundTexture, foregroundTransform, m_mode, scaleUV);
         var textureHeight = SkySphereTexture.CalcSkyHeight(foregroundTexture.GlTexture.Dimension.Height, m_mode);
 
-        m_foregroundProgram.BoundTexture(TextureUnit.Texture0);
-        m_foregroundProgram.ColormapTexture(TextureUnit.Texture2);
+        m_foregroundProgram.BoundTexture(BindTextures.BoundTexture);
+        m_foregroundProgram.ColormapTexture(BindTextures.Colormap);
         m_foregroundProgram.Mvp(CalculateMvp(renderInfo));
         m_foregroundProgram.Scale(scaleUV);
         m_foregroundProgram.FlipU(flipSkyHorizontal);
@@ -276,8 +276,8 @@ public class SkySphereRenderer : IDisposable
         var offset = SkySphereTexture.CalcFireOffset(foregroundTexture, foregroundTransform);
         var textureHeight = SkySphereTexture.CalcSkyHeight(foregroundTexture.GlTexture.Dimension.Height, m_mode);
 
-        m_foregroundProgram.BoundTexture(TextureUnit.Texture0);
-        m_foregroundProgram.ColormapTexture(TextureUnit.Texture2);
+        m_foregroundProgram.BoundTexture(BindTextures.BoundTexture);
+        m_foregroundProgram.ColormapTexture(BindTextures.Colormap);
         m_foregroundProgram.Mvp(CalculateMvp(renderInfo));
         m_foregroundProgram.Scale(scaleUV);
         m_foregroundProgram.FlipU(flipSkyHorizontal);

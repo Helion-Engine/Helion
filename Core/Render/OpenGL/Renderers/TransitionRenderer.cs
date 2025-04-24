@@ -96,19 +96,19 @@ public class TransitionRenderer : IDisposable
         GL.Viewport(0, 0, targetBuffer.Dimension.Width, targetBuffer.Dimension.Height);
         m_program.Bind();
 
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         m_startBuffer.ColorAttachment0.Bind();
         if (m_program is MeltTransitionProgram meltProgram)
         {
             // the melt shader uses ticks, so convert [0,1] to [0,42] ticks
             float loopElapsedTicks = progress * 42;
             // TODO: would be nice here to align strips with the virtual res
-            meltProgram.SetUniforms(TextureUnit.Texture0, mat4.Identity, loopElapsedTicks, targetBuffer.Dimension.Width / 4);
+            meltProgram.SetUniforms(BindTextures.BoundTexture, mat4.Identity, loopElapsedTicks, targetBuffer.Dimension.Width / 4);
         }
         else if (m_program is FadeTransitionProgram fadeProgram)
-            fadeProgram.SetUniforms(TextureUnit.Texture0, mat4.Identity, progress);
+            fadeProgram.SetUniforms(BindTextures.BoundTexture, mat4.Identity, progress);
         else
-            m_program.SetUniforms(TextureUnit.Texture0, mat4.Identity);
+            m_program.SetUniforms(BindTextures.BoundTexture, mat4.Identity);
 
         m_vao.Bind();
         m_vbo.DrawArrays();

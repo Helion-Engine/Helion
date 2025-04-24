@@ -22,8 +22,11 @@ public struct EntityVertex
     public Vec3F PrevPos;
 
     [VertexAttribute]
+    public float OffsetXY;
+
+    [VertexAttribute]
     public float OffsetZ;
 
     [VertexAttribute(required: false)]
-    public float SectorIndex;
+    public float ColorMapIndex;
 }

@@ -241,26 +241,27 @@ public class EntityRenderer : IDisposable
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
         // Doom graphics are drawn left to right and not centered
         vertex.Pos = new Vec3F(
-            (float)(entity.Position.X - nudgeAmount.X) - (m_viewRightNormal.X * texture.Offset.X),
-            (float)(entity.Position.Y - nudgeAmount.Y) - (m_viewRightNormal.Y * texture.Offset.X),
+            (float)(entity.Position.X - nudgeAmount.X),
+            (float)(entity.Position.Y - nudgeAmount.Y),
             (float)entity.Position.Z);
         vertex.PrevPos = new Vec3F(
-            (float)(entity.PrevPosition.X - nudgeAmount.X) - (m_prevViewRightNormal.X * texture.Offset.X),
-            (float)(entity.PrevPosition.Y - nudgeAmount.Y) - (m_prevViewRightNormal.Y * texture.Offset.X),
+            (float)(entity.PrevPosition.X - nudgeAmount.X),
+            (float)(entity.PrevPosition.Y - nudgeAmount.Y),
             (float)entity.PrevPosition.Z);
         vertex.OffsetZ = offsetZ;
+        vertex.OffsetXY = texture.Offset.X;
         vertex.LightLevel = entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright ? 255 :
             ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
-        vertex.SectorIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
+        vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
         
         arrayData.Length = length + 1;
 
         if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
-            RenderHealthBar(entity, texture, offsetZ, nudgeAmount);
+            RenderHealthBar(entity, texture, offsetZ, vertex);
     }
 
-    private void RenderHealthBar(Entity entity, GLLegacyTexture texture, float offsetZ, Vec2D nudgeAmount)
+    private void RenderHealthBar(Entity entity, GLLegacyTexture texture, float offsetZ, in EntityVertex entityVertex)
     {
         // Don't let the bar bounce back and forth in height (eg Lost Soul)
         var offset = (int)offsetZ + texture.Height - texture.BlankRowsFromTop + 4;
@@ -282,13 +283,10 @@ public class EntityRenderer : IDisposable
         // Normalized health percent
         vertex.LightLevel = Math.Max(min, entity.Health / (float)entity.Properties.Health);
         vertex.Options = VertexOptions.Entity(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth);
+        vertex.Pos = entityVertex.Pos;
+        vertex.PrevPos = entityVertex.PrevPos;
         vertex.OffsetZ = offset;
-        vertex.Pos.X = (float)(entity.Position.X + nudgeAmount.X);
-        vertex.Pos.Y = (float)(entity.Position.Y + nudgeAmount.Y);
-        vertex.Pos.Z = (float)entity.Position.Z;
-        vertex.PrevPos.X = (float)(entity.PrevPosition.X + nudgeAmount.X);
-        vertex.PrevPos.Y = (float)(entity.PrevPosition.Y + nudgeAmount.Y);
-        vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
+        vertex.OffsetXY = 0;
 
         array.SetLength(array.Length + 1);
     }
@@ -311,9 +309,9 @@ public class EntityRenderer : IDisposable
 
     private void SetUniforms(EntityProgram program, RenderInfo renderInfo)
     {
-        program.BoundTexture(TextureUnit.Texture0);
-        program.ColormapTexture(TextureUnit.Texture2);
-        program.SectorColormapTexture(TextureUnit.Texture3);
+        program.BoundTexture(BindTextures.BoundTexture);
+        program.ColormapTexture(BindTextures.Colormap);
+        program.SectorColormapTexture(BindTextures.SectorColormap);
         program.ExtraLight(renderInfo.Uniforms.ExtraLight);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         program.LightLevelMix(renderInfo.Uniforms.Mix);
@@ -341,41 +339,38 @@ public class EntityRenderer : IDisposable
 
         if (program is EntityCompositeProgram)
         {
-            program.AccumTexture(TextureUnit.Texture4);
-            program.AccumCountTextre(TextureUnit.Texture5);
+            program.AccumTexture(BindTextures.AccumTexture);
+            program.AccumCountTextre(BindTextures.AccumCountTexture);
         }
 
         if (program is EntityFuzzRefractionProgram)
         {
-            program.AccumTexture(TextureUnit.Texture4);
-            program.AccumCountTextre(TextureUnit.Texture5);
-            program.FuzzTexture(TextureUnit.Texture6);
-            program.OpaqueTexture(TextureUnit.Texture7);
+            program.AccumTexture(BindTextures.AccumTexture);
+            program.AccumCountTextre(BindTextures.AccumCountTexture);
+            program.FuzzTexture(BindTextures.FuzzTexture);
+            program.OpaqueTexture(BindTextures.OpaqueTexture);
         }
 
-        program.PlaneZTexture(TextureUnit.Texture8);
-    }
-
-    public void RenderHealthBars(RenderInfo renderInfo)
-    {
-        if (!m_healthBars)
-            return;
-
-        m_program.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
-        SetUniforms(m_program, renderInfo);
-        m_program.HealthBarMode(true);
-        m_dataManager.RenderHealthBars();
-        m_program.Unbind();
+        program.WallClipTexture(BindTextures.WallClipTexture);
+        program.PlaneClipTexture(BindTextures.PlaneClipTexture);
+        program.MapDataTexture(BindTextures.MapLineData);
+        program.LineHeightsTexture(BindTextures.LineHeights);
     }
 
     public void RenderOpaque(RenderInfo renderInfo)
     {
         m_program.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_program, renderInfo);
         m_program.HealthBarMode(false);
         m_dataManager.RenderNonAlpha(PrimitiveType.Points);
+
+        if (m_healthBars)
+        {
+            m_program.HealthBarMode(true);
+            m_dataManager.RenderHealthBars();
+        }
+
         m_program.Unbind();
     }
 
@@ -383,7 +378,7 @@ public class EntityRenderer : IDisposable
     {
         m_programTransparent.Bind();
         m_programTransparent.RenderFuzz(false);
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
@@ -394,7 +389,7 @@ public class EntityRenderer : IDisposable
     {
         m_programTransparent.Bind();
         m_programTransparent.RenderFuzz(true);
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
         m_programTransparent.Unbind();
@@ -403,7 +398,7 @@ public class EntityRenderer : IDisposable
     public void RenderOitCompositePass(RenderInfo renderInfo)
     {
         m_programComposite.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programComposite, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
         m_programComposite.Unbind();
@@ -412,7 +407,7 @@ public class EntityRenderer : IDisposable
     public void RenderOitFuzzRefractionPass(RenderInfo renderInfo, bool renderColor)
     {
         m_programFuzzRefraction.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         m_programFuzzRefraction.RenderFuzzRefractionColor(renderColor);
         SetUniforms(m_programFuzzRefraction, renderInfo);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
@@ -422,7 +417,7 @@ public class EntityRenderer : IDisposable
     public void RenderTransparent(RenderInfo renderInfo)
     {
         m_program.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_program, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
         m_dataManager.RenderFuzz(PrimitiveType.Points);

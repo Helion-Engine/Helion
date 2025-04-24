@@ -5,41 +5,32 @@ using Helion.Render.OpenGL.Vertex;
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public struct FloodFillVertex
+public struct FloodFillVertex(Vec3F pos, float prevZ, float planeZ, float prevPlaneZ, float minPlaneZ, float maxPlaneZ, float options, int colorMapIndex, int mapId)
 {
     [VertexAttribute("pos", size: 3)]
-    public Vec3F Pos;
+    public Vec3F Pos = pos;
     
     [VertexAttribute("planeZ", size: 1)]
-    public float PlaneZ;
+    public float PlaneZ = planeZ;
     
     [VertexAttribute("minViewZ", size: 1)]
-    public float MinViewZ;
+    public float MinViewZ = minPlaneZ;
     
     [VertexAttribute("maxViewZ", size: 1)]
-    public float MaxViewZ;
+    public float MaxViewZ = maxPlaneZ;
 
     [VertexAttribute("prevZ", size: 1)]
-    public float PrevZ;
+    public float PrevZ = prevZ;
 
     [VertexAttribute("prevPlaneZ", size: 1)]
-    public float PrevPlaneZ;
+    public float PrevPlaneZ = prevPlaneZ;
 
-    [VertexAttribute("lightLevelBufferIndex", size: 1)]
-    public float LightLevelBufferIndex;
+    [VertexAttribute("options", size: 1)]
+    public float Options = options;
 
     [VertexAttribute("colorMapIndex", size: 1, required: false)]
-    public float ColorMapIndex;
+    public float ColorMapIndex = colorMapIndex;
 
-    public FloodFillVertex(Vec3F pos, float prevZ, float planeZ, float prevPlaneZ, float minPlaneZ, float maxPlaneZ, int lightIndex, int colorMapIndex)
-    {
-        Pos = pos;
-        PrevZ = prevZ;
-        PlaneZ = planeZ;
-        PrevPlaneZ = prevPlaneZ;
-        MinViewZ = minPlaneZ;
-        MaxViewZ = maxPlaneZ;
-        LightLevelBufferIndex = lightIndex;
-        ColorMapIndex = colorMapIndex;
-    }
+    [VertexAttribute("mapId", size: 1, required: false)]
+    public float MapId = mapId;
 }

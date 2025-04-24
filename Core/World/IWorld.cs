@@ -50,6 +50,7 @@ public interface IWorld : IDisposable
     event EventHandler? OnResetInterpolation;
     event EventHandler<SectorPlane>? SectorMoveStart;
     event EventHandler<SectorPlane>? SectorMoveComplete;
+    event EventHandler<SectorPlane>? SectorMove;
     event EventHandler<SideTextureEvent>? SideTextureChanged;
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     event EventHandler<Sector>? SectorLightChanged;

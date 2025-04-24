@@ -337,14 +337,15 @@ public partial class WorldLayer
         if (!Player.Cheats.IsCheatActive(Helion.World.Cheats.CheatType.ShowPosition))
             return;
 
-        DrawCoordinate(hud, "X", Player.Position.X, ref topRightY);
-        DrawCoordinate(hud, "Y", Player.Position.Y, ref topRightY);
-        DrawCoordinate(hud, "Z", Player.Position.Z, ref topRightY);
-        DrawCoordinate(hud, "A", Player.AngleRadians % Math.PI * 180 / MathHelper.Pi, ref topRightY);
-        DrawCoordinate(hud, "P", Player.PitchRadians % Math.PI * 180 / MathHelper.Pi, ref topRightY);
-        DrawCoordinate(hud, "VX", Player.Velocity.X, ref topRightY);
-        DrawCoordinate(hud, "VY", Player.Velocity.Y, ref topRightY);
-        DrawCoordinate(hud, "VZ", Player.Velocity.Z, ref topRightY);
+        var player = Player.World.GetCameraPlayer();
+        DrawCoordinate(hud, "X", player.Position.X, ref topRightY);
+        DrawCoordinate(hud, "Y", player.Position.Y, ref topRightY);
+        DrawCoordinate(hud, "Z", player.Position.Z, ref topRightY);
+        DrawCoordinate(hud, "A", player.AngleRadians % Math.PI * 180 / MathHelper.Pi, ref topRightY);
+        DrawCoordinate(hud, "P", player.PitchRadians % Math.PI * 180 / MathHelper.Pi, ref topRightY);
+        DrawCoordinate(hud, "VX", player.Velocity.X, ref topRightY);
+        DrawCoordinate(hud, "VY", player.Velocity.Y, ref topRightY);
+        DrawCoordinate(hud, "VZ", player.Velocity.Z, ref topRightY);
         topRightY += m_padding;
     }
 

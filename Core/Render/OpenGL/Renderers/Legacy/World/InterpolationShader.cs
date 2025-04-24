@@ -28,6 +28,9 @@ public class InterpolationShader : RenderProgram
     private readonly int m_accumTextureLocation;
     private readonly int m_accumCountTextureLocation;
     private readonly int m_vertexGapClampUV;
+    private readonly int m_planeClipTextureLocation;
+    private readonly int m_checkPlaneClipLocation;
+    private readonly int m_wallClipTextureLocation;
 
     public InterpolationShader(string name) : base($"World Interpolation - {name}")
     {
@@ -50,6 +53,9 @@ public class InterpolationShader : RenderProgram
         m_accumTextureLocation = Uniforms.GetLocation("accum");
         m_accumCountTextureLocation = Uniforms.GetLocation("accumCount");
         m_vertexGapClampUV = Uniforms.GetLocation("vertexGapClampUV");
+        m_planeClipTextureLocation = Uniforms.GetLocation("planeClipTexture");
+        m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
+        m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -58,6 +64,8 @@ public class InterpolationShader : RenderProgram
     public void SectorColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorColormapTextureLocation);
     public void AccumTexture(TextureUnit unit) => Uniforms.Set(unit, m_accumTextureLocation);
     public void AccumCountTextre(TextureUnit unit) => Uniforms.Set(unit, m_accumCountTextureLocation);
+    public void PlaneClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_planeClipTextureLocation);
+    public void WallClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_wallClipTextureLocation);
 
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
@@ -72,6 +80,7 @@ public class InterpolationShader : RenderProgram
     public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
     public void VertexGapClampUV(bool value) => Uniforms.Set(value, m_vertexGapClampUV);
+    public void CheckPlaneClip(bool value) => Uniforms.Set(value, m_checkPlaneClipLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -90,6 +99,9 @@ public class InterpolationShader : RenderProgram
         flat out float colorMapIndexFrag;
         flat out float vertexLightLevelFrag;
         flat out float zPos;
+        flat out float mapIdFrag;
+        flat out float upperFrag;
+        flat out float lowerFrag;
         out float depthFrag;
         ${VertexGapVariables}
 
@@ -111,9 +123,14 @@ public class InterpolationShader : RenderProgram
             colorMapIndexFrag = trunc(colorMapIndex / 256);
             vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
 
+            mapIdFrag = trunc(lightLevelAdd / 256);
+            float lightLevelAddValue = lightLevelAdd - (mapIdFrag * 256);
+            mapIdFrag = abs(mapIdFrag);
+
+            vec4 mixPos = vec4(mix(prevPos, pos, timeFrac), 1.0);
+
             ${VertexGapSet}
             
-            vec4 mixPos = vec4(mix(prevPos, pos, timeFrac), 1.0);
             ${VertexLightBuffer}
             ${LightLevelVertexDist}
             ${SectorColorMapVertexFunction}
@@ -139,6 +156,9 @@ public class InterpolationShader : RenderProgram
         if (this is InterpolationPlaneClipShader)
             return PlaneClip.WritePlaneFragFunction();
 
+        if (this is InterpolationWallClipShader)
+            return PlaneClip.WriteWallFragFunction();
+
         return
             @"
             #version 330
@@ -148,6 +168,7 @@ public class InterpolationShader : RenderProgram
             flat in float addAlphaFrag;
             flat in float zPos;
             flat in float distFrag;
+            in float depthFrag;
             ${VertexGapVariables}
 
             ${OutFragColor}
@@ -157,12 +178,25 @@ public class InterpolationShader : RenderProgram
             uniform vec3 colorMix;
             uniform int paletteIndex;
             uniform int colormapIndex;
+            uniform sampler2D planeClipTexture;
+            uniform sampler2D wallClipTexture;
+            uniform int checkPlaneClip;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}
             ${OitVariables}
 
             void main() {
+                if (checkPlaneClip == 1) {
+                    ivec2 getCoords = ivec2(gl_FragCoord.xy);
+                    float wallClipDepth = texelFetch(wallClipTexture, getCoords, 0).g;
+                    float planeClipDepth = texelFetch(planeClipTexture, getCoords, 0).g;
+                    // This is for alpha walls and vanilla rendering
+                    // There is no depth buffer at this point so sample the plane clip texture to discard
+                    if (wallClipDepth < depthFrag || planeClipDepth < depthFrag)
+                        discard;
+                }
+
                 ${LightLevelFragFunction}
                 ${SectorColorMapFragFunction}
                 ${FragColorFunction}

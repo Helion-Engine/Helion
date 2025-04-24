@@ -156,9 +156,9 @@ public class FramebufferRenderer : IDisposable
 
         m_program.Bind();
 
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         Framebuffer.ColorAttachment0.Bind();
-        m_program.BoundTexture(TextureUnit.Texture0);
+        m_program.BoundTexture(BindTextures.BoundTexture);
         m_program.Mvp(mvp);
 
         m_vao.Bind();

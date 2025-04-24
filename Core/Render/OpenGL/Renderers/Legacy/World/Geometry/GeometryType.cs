@@ -4,8 +4,7 @@ public enum GeometryType
 {
     Wall,
     TwoSidedMiddleWall,
-    Floor,
-    Ceiling,
+    Flat,
     AlphaWall,
     Count
 }

@@ -38,9 +38,12 @@ public class EntityProgram : RenderProgram
     private readonly int m_renderFuzzLocation;
     private readonly int m_renderFuzzRefractionColorLocation;
     private readonly int m_screenBoundsLocation;
-    private readonly int m_planeZTextureLocation;
+    private readonly int m_planeClipTextureLocation;
     private readonly int m_checkPlaneClipLocation;
     private readonly int m_healthBarModeLocation;
+    private readonly int m_mapDataTextureLoaction;
+    private readonly int m_wallClipTextureLocation;
+    private readonly int m_lineHeightsTextureLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -73,9 +76,12 @@ public class EntityProgram : RenderProgram
         m_renderFuzzLocation = Uniforms.GetLocation("renderFuzz");
         m_renderFuzzRefractionColorLocation = Uniforms.GetLocation("renderFuzzRefractionColor");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
-        m_planeZTextureLocation = Uniforms.GetLocation("planeZTexture");
+        m_planeClipTextureLocation = Uniforms.GetLocation("planeClipTexture");
         m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
         m_healthBarModeLocation = Uniforms.GetLocation("healthBarMode");
+        m_mapDataTextureLoaction = Uniforms.GetLocation("mapDataTexture");
+        m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
+        m_lineHeightsTextureLocation = Uniforms.GetLocation("lineHeightsTexture");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -85,7 +91,11 @@ public class EntityProgram : RenderProgram
     public void AccumCountTextre(TextureUnit unit) => Uniforms.Set(unit, m_accumCountTextureLocation);
     public void FuzzTexture(TextureUnit unit) => Uniforms.Set(unit, m_fuzzTextureLocation);
     public void OpaqueTexture(TextureUnit unit) => Uniforms.Set(unit, m_opaqueTextureLocation);
-    public void PlaneZTexture(TextureUnit unit) => Uniforms.Set(unit, m_planeZTextureLocation);
+    public void PlaneClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_planeClipTextureLocation);
+    public void WallClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_wallClipTextureLocation);
+    public void MapDataTexture(TextureUnit unit) => Uniforms.Set(unit, m_mapDataTextureLoaction);
+    public void LineHeightsTexture(TextureUnit unit) => Uniforms.Set(unit, m_lineHeightsTextureLocation);
+
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
@@ -123,8 +133,9 @@ public class EntityProgram : RenderProgram
         layout(location = 1) in float lightLevel;
         layout(location = 2) in float options;
         layout(location = 3) in vec3 prevPos;
-        layout(location = 4) in float offsetZ;
-        layout(location = 5) in vec3 sectorIndex;
+        layout(location = 4) in float offsetXY;
+        layout(location = 5) in float offsetZ;
+        layout(location = 6) in float sectorIndex;
 
         out float lightLevelOut;
         out float alphaOut;
@@ -133,6 +144,7 @@ public class EntityProgram : RenderProgram
         out float colorMapTranslationOut;
         out float positionZOut;
         out float offsetZOut;
+        out float offsetXYOut;
         ${SectorColorMapVar}
 
         uniform float timeFrac;
@@ -154,6 +166,7 @@ public class EntityProgram : RenderProgram
             flipUOut = flipU;
             colorMapTranslationOut = colorMapTranslation;
             offsetZOut = offsetZ;
+            offsetXYOut = offsetXY;
             ${SectorColorMap}
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;
@@ -178,6 +191,7 @@ public class EntityProgram : RenderProgram
         in float colorMapTranslationOut[];
         in float positionZOut[];
         in float offsetZOut[];
+        in float offsetXYOut[];
         ${SectorColorMapVar}
 
         out vec2 uvFrag;
@@ -189,6 +203,11 @@ public class EntityProgram : RenderProgram
         flat out float fuzzFrag;
         flat out float colorMapTranslationFrag;
         flat out float zPosFrag;
+        flat out float zPosDepthFrag;
+        flat out float textureWidthFrag;
+        out vec3 centerPosFrag;
+        out vec3 minPosFrag;
+        out vec3 maxPosFrag;
         out float depthFrag;
         ${SectorColorMapFrag}
 
@@ -216,17 +235,16 @@ public class EntityProgram : RenderProgram
             pos.z += offsetZOut[0];
             ivec2 textureDim = textureSize(boundTexture, 0);
             vec3 posMoveDir = vec3(mix(prevViewRightNormal, viewRightNormal, timeFrac), 0);
-            vec3 minPos = pos;
-            vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y);
+            vec3 offsetXY = vec3(posMoveDir.xy * offsetXYOut[0], 0);
+            vec3 minPos = pos - offsetXY;
+            vec3 maxPos = pos + (posMoveDir * textureDim.x) + (vec3(0, 0, 1) * textureDim.y) - offsetXY;
 
             if (healthBarMode == 1) {
+                minPos = pos;
+                maxPos = pos;
                 minPos -= (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
                 maxPos += (posMoveDir * HalfBoxWidth) + (vec3(0, 0, 1) * 2) + (posMoveDir * colorMapTranslationOut[0]);
             }
-
-            // Triangle strip ordering is: v0 v1 v2, v2 v1 v3
-            // We also need to be going counter-clockwise.
-            // Also the UV's are inverted, so draw from 1 down to 0 along the Y.
 
             // fuzzDist is going to be the center of min/max.
             // This keeps the fuzz consistent across the texture.
@@ -235,6 +253,12 @@ public class EntityProgram : RenderProgram
             fuzzDist = (glPosMin.${Depth} + glPosMax.${Depth}) / 2;
             // Render distance squared in 2d space for fade in/out effect
             renderDistSquared = distSquared(viewPos.xy, pos.xy);
+
+            textureWidthFrag = textureDim.x;
+            centerPosFrag = pos;
+            minPosFrag = minPos;
+            maxPosFrag = maxPos;
+            zPosDepthFrag = (mvp * vec4(centerPosFrag.x, centerPosFrag.y, centerPosFrag.z, 1)).${Depth};
 
             lightLevelFrag = lightLevelOut[0];
             alphaFrag = alphaOut[0];
@@ -288,6 +312,11 @@ public class EntityProgram : RenderProgram
         flat in float fuzzFrag;
         flat in float colorMapTranslationFrag;
         flat in float zPosFrag;
+        flat in float zPosDepthFrag;
+        flat in float textureWidthFrag;
+        in vec3 centerPosFrag;
+        in vec3 minPosFrag;
+        in vec3 maxPosFrag;
         in float depthFrag;
 
         ${SectorColorMapFragVariables}
@@ -314,14 +343,80 @@ public class EntityProgram : RenderProgram
         uniform ivec2 screenBounds;
         uniform int checkPlaneClip;
         uniform int healthBarMode;
+        uniform vec3 viewPos;
 
-        uniform sampler2D planeZTexture;
+        uniform sampler2D planeClipTexture;
+        uniform sampler2D wallClipTexture;
+        uniform samplerBuffer mapDataTexture;
+        uniform samplerBuffer lineHeightsTexture;
 
         ${OitVariables}
         ${FuzzFunction}
 
+        bool lineIntersection(vec2 startA, vec2 endA, vec2 startB, vec2 endB) {
+            vec2 deltaA = endA - startA;
+            vec2 deltaB = endB - startB;
+            float d = deltaA.x * -deltaB.y + deltaA.y * deltaB.x;
+            float t = ((startB.x - startA.x) * (startB.y - endB.y) - (startB.y - startA.y) * (startB.x - endB.x)) / d;
+            float u = ((startB.x - startA.x) * (startA.y - endA.y) - (startB.y - startA.y) * (startA.x - endA.x)) / d;
+            return t >= 0.0 && t <= 1.0 && u >= 0.0 && u <= 1.0;
+        }
+        
+        vec2 closestPoint(vec2 point, vec2 lineStart, vec2 lineDelta) {
+            vec2 pointDelta = point - lineStart;    
+            float t = clamp(dot(pointDelta, lineDelta) / dot(lineDelta, lineDelta), 0.0, 1.0);    
+            return lineStart + t * lineDelta;
+        }
+
+        bool discardPlaneClip() {
+            ivec2 getCoords = ivec2(gl_FragCoord.xy);
+            vec3 wallClip = texelFetch(wallClipTexture, getCoords, 0).rgb;
+            vec3 planeClip = texelFetch(planeClipTexture, getCoords, 0).rgb;
+
+            // Floor
+            if (planeClip.b == 1 && planeClip.g < depthFrag && planeClip.r > zPosFrag)
+                return true;
+
+            // Ceiling
+            if (planeClip.b == 2 && planeClip.g < depthFrag && zPosFrag >= planeClip.r)
+                return true;
+            
+            if (wallClip.r >= 0) {
+                vec4 linePoints = texelFetch(mapDataTexture, int(wallClip.r));
+                float floorHeight = texelFetch(lineHeightsTexture, int(wallClip.r)).r;
+                vec2 lineStart = linePoints.rg;
+                vec2 lineEnd = linePoints.ba;
+                vec2 lineDelta = lineEnd - lineStart;
+
+                float viewDotProduct = (lineDelta.x * (viewPos.y - lineStart.y)) - (lineDelta.y * (viewPos.x - lineStart.x));                
+                float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
+                float distanceToWall = distance(centerPosFrag.xy, closestPoint(centerPosFrag.xy, lineStart, lineDelta));                
+
+                bool viewFront = viewDotProduct < 0;
+                bool entityFront = entityDotProduct < 0;
+
+                // lower wall
+                if (distanceToWall <= max(40, textureWidthFrag) && wallClip.b == 1 && viewPos.z > floorHeight && floorHeight <= zPosFrag)
+                    return false;
+
+                if (wallClip.g < depthFrag) {
+                    // Discard if the sprite isn't on the same side of the line as the camera or when the sprite line doesn't intersect the line
+                    return viewFront != entityFront || !lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
+                }
+                else {
+                    // Discard if the sprite is behind the line and intersects
+                    return viewFront != entityFront && lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
+                }
+            }
+            
+            return false;
+        }
+
         void main()
         {
+            if (checkPlaneClip == 1 && discardPlaneClip())
+                discard;
+
             ${HealthBarCheck}
             ${LightLevelFragFunction}
             ${SectorColorMapFragFunction}
@@ -348,16 +443,7 @@ public class EntityProgram : RenderProgram
         if (GetOitOptions() != OitOptions.None)
             clearAlpha = string.Empty;
 
-        return clearAlpha + @"
-        if (checkPlaneClip == 1) {
-            ivec2 getCoords = ivec2(gl_FragCoord.xy);
-            // r = floor's z position, g = floor's depth value
-            vec2 planeZ = texelFetch(planeZTexture, getCoords, 0).rg;
-            // If this pixel would be discarded to depth and the plane is higher than the z position then discard.
-            if (planeZ.r > zPosFrag && planeZ.g < depthFrag)
-                discard;
-        }
-       
+        return clearAlpha + @"   
         ${HealthBar}
 
         float fade = (maxDistanceSquared - renderDistSquared) / fadeDistance;
@@ -369,7 +455,6 @@ public class EntityProgram : RenderProgram
         }
         if (healthBarMode == 1) {
             fragColor = vec4(0, 0, 0, 1);
-            ivec2 getCoords = ivec2(gl_FragCoord.xy);
             const float RedAmount = 0.33;
             const float YellowAmount = 0.66;
             const float BorderThickness = 1.5;

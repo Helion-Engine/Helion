@@ -71,6 +71,8 @@ public partial class Renderer : IDisposable
 
     private IWorld? m_world;
     private GLBufferTextureStorage? m_colorMapBuffer;
+    private GLBufferTextureStorage? m_mapDataBuffer;
+    private GLBufferTextureStorage? m_lineHeightsBuffer;
     private Rectangle m_viewport = new(0, 0, 800, 600);
     private uint[] m_frameBufferPixelData = [];
     private bool m_disposed;
@@ -354,6 +356,8 @@ public partial class Renderer : IDisposable
         BindColorMapBuffer();
         BindSectorColorMapBuffer();
         BindLightBuffer();
+        BindMapDataBuffer();
+        BindLineHeightsBuffer();
 
         // This has to be tracked beyond just the rendering command, and it
         // also prevents something from going terribly wrong if there is no
@@ -418,17 +422,27 @@ public partial class Renderer : IDisposable
 
     private void BindColorMapBuffer()
     {
-        m_colorMapBuffer?.BindTexture(TextureUnit.Texture2);
+        m_colorMapBuffer?.BindTexture(BindTextures.Colormap);
     }
 
     private void BindSectorColorMapBuffer()
     {
-        m_sectorColorMapsBuffer?.BindTexture(TextureUnit.Texture3);
+        m_sectorColorMapsBuffer?.BindTexture(BindTextures.SectorColormap);
     }
 
     private void BindLightBuffer()
     {
-        m_lightBufferStorage?.BindTexture(TextureUnit.Texture1);
+        m_lightBufferStorage?.BindTexture(BindTextures.SectorLight);
+    }
+
+    private void BindMapDataBuffer()
+    {
+        m_mapDataBuffer?.BindTexture(BindTextures.MapLineData);
+    }
+
+    private void BindLineHeightsBuffer()
+    {
+        m_lineHeightsBuffer?.BindTexture(BindTextures.LineHeights);
     }
 
     public void PerformThrowableErrorChecks()
@@ -669,7 +683,7 @@ public partial class Renderer : IDisposable
     private void DrawHudImagesIfAnyQueued(Rectangle viewport, ShaderUniforms uniforms)
     {
         // Bind main buffer for fuzz refraction sampling when player has partial invisibility
-        GL.ActiveTexture(TextureUnit.Texture7);
+        GL.ActiveTexture(BindTextures.OpaqueTexture);
         GL.BindTexture(TextureTarget.Texture2D, m_mainFramebuffer.ColorAttachment0.Name);
         m_hudRenderer.Render(viewport, m_mainFramebuffer.Dimension, uniforms);
         m_hudRenderer.Clear();
@@ -745,6 +759,8 @@ public partial class Renderer : IDisposable
         m_lightBufferStorage?.Dispose();
         m_sectorColorMapsBuffer?.Dispose();
         m_transitionRenderer?.Dispose();
+        m_mapDataBuffer?.Dispose();
+        m_lineHeightsBuffer?.Dispose();
 
         m_disposed = true;
     }
