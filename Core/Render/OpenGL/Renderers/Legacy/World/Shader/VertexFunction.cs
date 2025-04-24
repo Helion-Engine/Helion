@@ -19,12 +19,16 @@ public static class VertexFunction
                 const float VertexGapY = 0.9;
                 ivec2 texSize = textureSize(boundTexture, 0);
                 vec2 uvGap = vec2(VertexGapX / texSize.x, VertexGapY / texSize.y);
+
+                // Account for when z is in between pixel values
+                float minOffsetV = (1 - fract(mixPos.z)) / texSize.y;
+                float maxOffsetV = fract(mixPos.z) / texSize.y;
                 
                 uvClampMinFrag.x = mix(uvClampMinFrag.x, uvFrag.x + uvGap.x, topLeft == 1);
-                uvClampMinFrag.y = mix(uvClampMinFrag.y, uvFrag.y + uvGap.y, topLeft == 1);
+                uvClampMinFrag.y = mix(uvClampMinFrag.y, uvFrag.y + uvGap.y - minOffsetV, topLeft == 1);
 
                 uvClampMaxFrag.x = mix(uvClampMaxFrag.x, uvFrag.x - uvGap.x, topLeft == 0);
-                uvClampMaxFrag.y = mix(uvClampMaxFrag.y, uvFrag.y - uvGap.y, topLeft == 0);
+                uvClampMaxFrag.y = mix(uvClampMaxFrag.y, uvFrag.y - uvGap.y + maxOffsetV, topLeft == 0);
             }
     ";
 

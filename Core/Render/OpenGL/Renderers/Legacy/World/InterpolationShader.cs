@@ -127,9 +127,10 @@ public class InterpolationShader : RenderProgram
             float lightLevelAddValue = lightLevelAdd - (mapIdFrag * 256);
             mapIdFrag = abs(mapIdFrag);
 
+            vec4 mixPos = vec4(mix(prevPos, pos, timeFrac), 1.0);
+
             ${VertexGapSet}
             
-            vec4 mixPos = vec4(mix(prevPos, pos, timeFrac), 1.0);
             ${VertexLightBuffer}
             ${LightLevelVertexDist}
             ${SectorColorMapVertexFunction}

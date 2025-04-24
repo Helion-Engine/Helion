@@ -107,9 +107,9 @@ public class StaticShader : RenderProgram
             float lightLevelAddValue = lightLevelAdd - (mapIdFrag * 256);
             mapIdFrag = abs(mapIdFrag);
             
+            vec4 mixPos = vec4(pos, 1.0);
             ${VertexGapSet}
             
-            vec4 mixPos = vec4(pos, 1.0);
             ${VertexLightBuffer}
             ${LightLevelVertexDist}
             ${SectorColorMapVertexFunction}
