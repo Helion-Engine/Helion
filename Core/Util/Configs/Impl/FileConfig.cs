@@ -268,10 +268,17 @@ public class FileConfig : Config
 
     private static string[]? GetCommandArray(KeyData keyData)
     {
-        var deserialized = (string[]?)JsonSerializer.Deserialize(keyData.Value, typeof(string[]), StringArraySerializationContext.Default);
-        if (deserialized == null)
-            return null;
+        try
+        {
+            var deserialized = (string[]?)JsonSerializer.Deserialize(keyData.Value, typeof(string[]), StringArraySerializationContext.Default);
+            if (deserialized == null)
+                return null;
 
-        return deserialized.Where(x => x.Trim().Length > 0).ToArray();
+            return deserialized.Where(x => x.Trim().Length > 0).ToArray();
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

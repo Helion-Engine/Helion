@@ -20,7 +20,7 @@ public class ConsoleCommandEventArgs : EventArgs
     /// <summary>
     /// The arguments (if any) that came with the command.
     /// </summary>
-    public readonly List<string> Args = new();
+    public readonly List<string> Args = [];
 
     /// <summary>
     /// Parses the text provided into a console command event.
@@ -40,7 +40,7 @@ public class ConsoleCommandEventArgs : EventArgs
 
     private static IList<string> GetCommandLineArgs(string commandLine)
     {
-        List<string> args = new();
+        List<string> args = [];
         int start = 0;
         int lastAddedIndex = -1;
         bool quote = false;
@@ -50,7 +50,7 @@ public class ConsoleCommandEventArgs : EventArgs
             {
                 lastAddedIndex = i;
                 if (i != start)
-                    AddArg(args, commandLine.Substring(start, i - start));
+                    AddArg(args, commandLine[start..i]);
                 start = i + 1;
             }
 
@@ -60,7 +60,7 @@ public class ConsoleCommandEventArgs : EventArgs
                 {
                     lastAddedIndex = i;
                     if (i != start)
-                        AddArg(args, commandLine.Substring(start, i - start));
+                        AddArg(args, commandLine[start..i]);
                     quote = false;
                 }
                 else
@@ -71,8 +71,8 @@ public class ConsoleCommandEventArgs : EventArgs
             }
         }
 
-        if (lastAddedIndex != commandLine.Length)
-            AddArg(args, commandLine.Substring(start, commandLine.Length - start));
+        if (lastAddedIndex != commandLine.Length - 1)
+            AddArg(args, commandLine[start..]);
 
         return args;
     }
