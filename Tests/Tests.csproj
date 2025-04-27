@@ -4,7 +4,6 @@
     <IsPackable>false</IsPackable>
     <RootNamespace>Helion.Tests</RootNamespace>
     <AssemblyName>Tests</AssemblyName>
-    <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

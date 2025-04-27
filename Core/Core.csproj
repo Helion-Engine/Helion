@@ -9,7 +9,6 @@
 
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>CS1591;CS8714;CS8500</NoWarn>
-    <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

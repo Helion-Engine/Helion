@@ -9,8 +9,6 @@
     <ApplicationIcon>helion.ico</ApplicationIcon>
 
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-
-    <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(SelfContainedRelease)' == 'true'">
