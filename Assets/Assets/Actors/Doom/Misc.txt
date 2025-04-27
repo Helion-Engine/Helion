@@ -33,5 +33,3 @@ ACTOR PointPuller 5002
   +INVISIBLE
   +NOCLIP
 }
-
-ACTOR MusicChanger 14165 {}
