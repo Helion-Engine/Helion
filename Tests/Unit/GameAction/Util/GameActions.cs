@@ -556,5 +556,19 @@ namespace Helion.Tests.Unit.GameAction
 
             trueCount.Should().Be(trueField.Length);
         }
+
+
+        public static void AssertBlockingLine(Entity entity, int lineId, bool blocks)
+        {
+            if (blocks)
+            {
+                entity.BlockingBlockLineIndex.Should().NotBe(-1);
+                entity.World.Blockmap.BlockLines[entity.BlockingBlockLineIndex].LineId.Should().Be(lineId);
+            }
+            else
+            {
+                entity.BlockingBlockLineIndex.Should().NotBe(lineId);
+            }
+        }
     }
 }
