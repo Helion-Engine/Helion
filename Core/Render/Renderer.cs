@@ -118,11 +118,13 @@ public partial class Renderer : IDisposable
         {
             WorldStatic.LineVertexGap = Constants.VertexGapPush;
             WorldStatic.LineVertexOffset = -(float)Constants.VertexGapPush;
+            WorldStatic.CoverWallOffset = -(float)Constants.VertexGapPush * 2;
         }
         else
         {
             WorldStatic.LineVertexGap = 0;
             WorldStatic.LineVertexOffset = 0;
+            WorldStatic.CoverWallOffset = 0;
         }
     }
 
