@@ -81,7 +81,8 @@ printgame                       | Prints the current game/WAD name
 ## Windows
 
 1. If you have downloaded a file named `Helion-<version>-win-x64.zip`, you must install a Microsoft .NET 9.x runtime.  Please see https://dotnet.microsoft.com/en-us/download/dotnet/9.0 .  If you have downloaded a file named `Helion-<version>-win-x64_SelfContained.zip`, then this is not required.
-2. One of our dependencies, OpenTK, needs the Microsoft Visual C Runtime.  If Helion appears to simply _not launch_, please consult errorlog.txt.  If it mentions being unable to load MSVCRT140.dll (or similar), please install the latest redistributable package: https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022
+2. One of our dependencies, OpenTK, needs the Microsoft Visual C Runtime.  If Helion appears to simply _not launch_, please consult errorlog.txt in the user data folder.
+If it mentions being unable to load MSVCRT140.dll (or similar), please install the latest redistributable package: https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#visual-studio-2015-2017-2019-and-2022
 
 ## Linux
 
