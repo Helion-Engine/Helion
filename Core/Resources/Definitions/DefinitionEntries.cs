@@ -66,6 +66,9 @@ public class DefinitionEntries
     /// <inheritdoc cref="Zdoom.GameInfoDefinition"/>
     public readonly GameInfoDefinition GameInfoDefinition = new();
 
+    /// <inheritdoc cref="Zdoom.GldefsDefinition"/>
+    public readonly GldefsDefinition GldefsDefinition = new();
+
     public PnamesTextureXCollection PnamesTextureXCollection => m_pnamesTextureXCollection;
     public DehackedDefinition? DehackedDefinition { get; set; }
 
@@ -115,6 +118,7 @@ public class DefinitionEntries
         m_entryNameToAction["SKYDEFS"] = Id24SkyDefinition.Parse;
         m_entryNameToAction["GAMECONF"] = GameConfDefinition.Parse;
         m_entryNameToAction["GAMEINFO"] = entry => ParseEntry(GameInfoDefinition.Parse, entry);
+        m_entryNameToAction["GLDEFS"] = GldefsDefinition.Parse;
     }
 
     public void ParseDehackedPatch(string data)
