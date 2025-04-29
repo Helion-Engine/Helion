@@ -192,18 +192,32 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         var texture = TextureManager.GetTexture(index);
         var renderTexture = repeatY ? texture.RenderStore : texture.RenderStoreClamp;
 
-        if (renderTexture != null)
-            return (GLTextureType)renderTexture;
-
-        if (texture.Image == null)
+        if (renderTexture == null)
         {
-            renderTexture = CreateTexture(texture.Image, repeatY);
+            renderTexture = (texture.Image != null)
+                ? CreateTexture(texture.Image, texture.Name, texture.Image.Namespace, repeatY)
+                : CreateTexture(texture.Image, repeatY);
             texture.SetGLTexture(renderTexture, repeatY);
-            return (GLTextureType)renderTexture;
         }
 
-        renderTexture = CreateTexture(texture.Image, texture.Name, texture.Image.Namespace, repeatY);
-        texture.SetGLTexture(renderTexture, repeatY);
+        return (GLTextureType)renderTexture;
+    }
+
+    public GLTextureType GetBrightmapTexture(int index, bool repeatY = true)
+    {
+        var texture = TextureManager.GetTexture(index);
+        var renderTexture = repeatY ? texture.BrightmapRenderStore : texture.BrightmapRenderStoreClamp;
+
+        if (renderTexture == null)
+        {
+            // TODO: remove
+            System.Diagnostics.Debug.WriteLine($"GL {texture.Name}: {texture.BrightmapImage != null}");
+            renderTexture = (texture.BrightmapImage != null)
+                ? CreateTexture(texture.BrightmapImage, texture.Name, texture.BrightmapImage.Namespace, repeatY)
+                : CreateTexture(texture.BrightmapImage, repeatY);
+            texture.SetBrightmapGLTexture(renderTexture, repeatY);
+        }
+
         return (GLTextureType)renderTexture;
     }
 

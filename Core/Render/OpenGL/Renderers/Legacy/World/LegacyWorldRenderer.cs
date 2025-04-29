@@ -619,6 +619,7 @@ public class LegacyWorldRenderer : WorldRenderer
         program.SectorLightTexture(BindTextures.SectorLight);
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
+        program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         program.Mvp(renderInfo.Uniforms.Mvp);
         program.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);

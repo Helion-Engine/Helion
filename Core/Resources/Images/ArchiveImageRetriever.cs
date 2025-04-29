@@ -91,9 +91,15 @@ public class ArchiveImageRetriever : IImageRetriever
         if (compiledImage != null)
             return compiledImage;
 
-        TextureDefinition? definition = m_archiveCollection.Definitions.Textures.GetOnly(mappedName, targetNamespace);
-        if (definition != null)
-            return ImageFromDefinition(definition, options);
+        // TODO: remove log and kludge
+        if (entryName == "MID_126U")
+            ;
+        if (targetNamespace != ResourceNamespace.Brightmaps)
+        {
+            TextureDefinition? definition = m_archiveCollection.Definitions.Textures.GetOnly(mappedName, targetNamespace);
+            if (definition != null)
+                return ImageFromDefinition(definition, options);
+        }
 
         Entry? entry = m_archiveCollection.Entries.FindByNamespace(entryName, targetNamespace);
         return entry != null ? ImageFromEntry(entry, colorTranslation: colorTranslation) : null;

@@ -88,11 +88,15 @@ public class ArchiveCollectionEntries
     /// <param name="priorityNamespace">The namespace to look in first
     /// before any other namespaces.</param>
     /// <returns>The entry if it exists, null if not.</returns>
-    public Entry? FindByNamespace(string name, ResourceNamespace priorityNamespace)
+    public Entry? FindByNamespace(string name, ResourceNamespace priorityNamespace, bool namespaceOnly = false) // TODO: remove kludge
     {
         var entry = m_namespaceEntries.Get(name, priorityNamespace);
         if (entry != null)
             return entry;
+
+        // TODO: remove kludge
+        if (priorityNamespace == ResourceNamespace.Brightmaps)
+            return null;
 
         m_nameToEntries.TryGetValue(name, out entry);
         return entry;

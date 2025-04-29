@@ -364,6 +364,8 @@ public partial class TextureManager : ITickable
 
         texture = new(name, ResourceNamespace.Textures, m_textures.Count);
         texture.Image = image;
+        texture.BrightmapImage = m_archiveCollection.ImageRetriever.GetOnly(name, ResourceNamespace.Brightmaps);
+
         m_textures.Add(texture);
         m_translations.Add(m_translations.Count);
         m_patchLookup[name] = texture;
@@ -663,6 +665,14 @@ public partial class TextureManager : ITickable
             return;
 
         texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
+        
+        // TODO: remove
+        var brightmap = m_archiveCollection.ImageRetriever.GetOnly(texture.Name, ResourceNamespace.Brightmaps);
+        System.Diagnostics.Debug.WriteLine($"Load {texture.Name}: {brightmap != null}");
+        if (texture.Name == "MID_126U")
+            ;
+
+        texture.BrightmapImage ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, ResourceNamespace.Brightmaps);
     }
 
     public void SetSkyTexture()

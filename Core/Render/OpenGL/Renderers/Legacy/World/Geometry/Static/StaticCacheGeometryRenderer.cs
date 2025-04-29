@@ -700,10 +700,22 @@ public class StaticCacheGeometryRenderer : IDisposable
             var data = geometry[i];
 
             GL.ActiveTexture(BindTextures.BoundTexture);
+            bool isNullCompatTex = data.TextureHandle <= Constants.NullCompatibilityTextureIndex;
+            bool repeatY = (data.Texture.Flags & TextureFlags.ClampY) == 0;
             // Special case for one-sided walls with no texture. Uses black texture to block rendering so use directly.
-            var texture = data.TextureHandle <= Constants.NullCompatibilityTextureIndex ? data.Texture :
-                m_textureManager.GetTexture(data.TextureHandle, (data.Texture.Flags & TextureFlags.ClampY) == 0);
+            var texture = isNullCompatTex
+                ? data.Texture
+                : m_textureManager.GetTexture(data.TextureHandle, repeatY);
             texture.Bind();
+
+            GL.ActiveTexture(BindTextures.BrightmapTexture);
+            // TODO: remove
+            if (isNullCompatTex)
+                ;
+            var brightmapTexture = isNullCompatTex
+                ? data.Texture // TODO: black should work for brightmap, confirm this is the only case
+                : m_textureManager.GetBrightmapTexture(data.TextureHandle, repeatY);
+            brightmapTexture.Bind();
 
             data.Vbo.UploadIfNeeded();
 

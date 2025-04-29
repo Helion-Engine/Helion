@@ -50,6 +50,7 @@ public class SpriteDefinition
         {
             texture = new(entry.Path.Name, ResourceNamespace.Sprites, 0);
             texture.Image = imageRetriever.GetOnly(entry.Path.Name, ResourceNamespace.Sprites);
+            // TODO: handle brightmaps
             SpriteTextureLookup[entry.Path.Name] = texture;
         }
 
