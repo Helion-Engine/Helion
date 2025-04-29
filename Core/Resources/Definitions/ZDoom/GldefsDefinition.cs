@@ -31,6 +31,10 @@ public class GldefsDefinition
 
     public void Parse(Entry entry)
     {
+        // for GZDoom brightmaps, only parse DOOM's and not Hexen etc
+        if (entry.Path.FullPath.StartsWithIgnoreCase("filter/") && !entry.Path.FullPath.StartsWithIgnoreCase("filter/doom.id/"))
+            return;
+
         string data = entry.ReadDataAsString();
         SimpleParser parser = new();
         parser.Parse(data);
