@@ -70,9 +70,6 @@ public partial class Renderer : IDisposable
     private readonly TransitionRenderer m_transitionRenderer;
 
     private IWorld? m_world;
-    private GLBufferTextureStorage? m_colorMapBuffer;
-    private GLBufferTextureStorage? m_mapDataBuffer;
-    private GLBufferTextureStorage? m_lineHeightsBuffer;
     private Rectangle m_viewport = new(0, 0, 800, 600);
     private uint[] m_frameBufferPixelData = [];
     private bool m_disposed;
@@ -100,7 +97,7 @@ public partial class Renderer : IDisposable
         Default = new(window, this);
         m_mainFramebuffer = GenerateMainFramebuffer();
         m_virtualFramebuffer = GenerateVirtualFramebuffer();
-        // Temporary frame buffer for smaller save game screenshots. Significantly than pulling the full sized pixel buffer and downsizing using image sharp.
+        // Temporary frame buffer for smaller save game screenshots. Significantly faster than pulling the full sized pixel buffer and downsizing using image sharp.
         m_screenshotFramebuffer = new("Screenshot", (Constants.ScreenshotSaveWidth, Constants.ScreenshotSaveHeight), 1);
 
         m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
