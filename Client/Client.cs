@@ -521,13 +521,14 @@ public partial class Client : IDisposable, IInputManagement
         var workingDirectory = Directory.GetCurrentDirectory();
         SetToExecutingDirectory();
         CommandLineArgs commandLineArgs = CommandLineArgs.Parse(args);
-        HelionLoggers.Initialize(commandLineArgs);
+        PathsManager pathsManager = new(workingDirectory, commandLineArgs.ForcePortableMode);
+        HelionLoggers.Initialize(commandLineArgs, pathsManager.UserDataFolder);
         LogAnyCommandLineErrors(commandLineArgs);
 
 #if DEBUG
-        Run(commandLineArgs, workingDirectory);
+        Run(commandLineArgs, workingDirectory, pathsManager);
 #else
-        RunRelease(commandLineArgs, workingDirectory);
+        RunRelease(commandLineArgs, workingDirectory, pathsManager);
 #endif
 
         ForceFinalizersIfDebugMode();
@@ -547,11 +548,11 @@ public partial class Client : IDisposable, IInputManagement
         Directory.SetCurrentDirectory(dir);
     }
 
-    private static void RunRelease(CommandLineArgs commandLineArgs, string workingDirectory)
+    private static void RunRelease(CommandLineArgs commandLineArgs, string workingDirectory, PathsManager pathsManager)
     {
         try
         {
-            Run(commandLineArgs, workingDirectory);
+            Run(commandLineArgs, workingDirectory, pathsManager);
         }
         catch (Exception e)
         {
@@ -594,9 +595,8 @@ public partial class Client : IDisposable, IInputManagement
         }
     }
 
-    private static void Run(CommandLineArgs commandLineArgs, string workingDirectory)
+    private static void Run(CommandLineArgs commandLineArgs, string workingDirectory, PathsManager pathsManager)
     {
-        PathsManager pathsManager = new(workingDirectory, commandLineArgs.ForcePortableMode);
         var configPath = !string.IsNullOrWhiteSpace(commandLineArgs.ConfigFileName)
             ? commandLineArgs.ConfigFileName.Trim()
             : FileConfig.GetDefaultConfigPath(pathsManager.UserDataFolder);
