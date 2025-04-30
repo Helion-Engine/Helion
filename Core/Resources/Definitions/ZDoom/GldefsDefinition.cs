@@ -48,7 +48,7 @@ public class GldefsDefinition
             string defType = parser.ConsumeString();
             if (defType.EqualsIgnoreCase("brightmap"))
                 ParseBrightmapBlock(entry, parser);
-            else
+            else if (!parser.IsDone())
                 parser.ConsumeLine();
         }
     }
