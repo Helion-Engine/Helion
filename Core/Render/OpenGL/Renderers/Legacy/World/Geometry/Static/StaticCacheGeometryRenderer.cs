@@ -709,13 +709,10 @@ public class StaticCacheGeometryRenderer : IDisposable
             texture.Bind();
 
             GL.ActiveTexture(BindTextures.BrightmapTexture);
-            // TODO: remove
-            if (isNullCompatTex)
-                ;
             var brightmapTexture = isNullCompatTex
-                ? data.Texture // TODO: black should work for brightmap, confirm this is the only case
+                ? null
                 : m_textureManager.GetBrightmapTexture(data.TextureHandle, repeatY);
-            brightmapTexture.Bind();
+            brightmapTexture?.Bind();
 
             data.Vbo.UploadIfNeeded();
 

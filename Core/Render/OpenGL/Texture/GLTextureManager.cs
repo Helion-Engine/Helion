@@ -203,20 +203,18 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         return (GLTextureType)renderTexture;
     }
 
-    public GLTextureType GetBrightmapTexture(int index, bool repeatY = true)
+    public GLTextureType? GetBrightmapTexture(int index, bool repeatY = true)
     {
         var texture = TextureManager.GetTexture(index);
         var renderTexture = repeatY ? texture.BrightmapRenderStore : texture.BrightmapRenderStoreClamp;
 
-        if (renderTexture == null)
+        if (renderTexture == null && texture.BrightmapImage != null)
         {
-            renderTexture = (texture.BrightmapImage != null)
-                ? CreateTexture(texture.BrightmapImage, texture.Name, texture.BrightmapImage.Namespace, repeatY)
-                : CreateTexture(texture.BrightmapImage, repeatY);
+            renderTexture = CreateTexture(texture.BrightmapImage, texture.Name, texture.BrightmapImage.Namespace, repeatY);
             texture.SetBrightmapGLTexture(renderTexture, repeatY);
         }
 
-        return (GLTextureType)renderTexture;
+        return (GLTextureType?)renderTexture;
     }
 
     /// <summary>
