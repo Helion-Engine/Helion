@@ -170,13 +170,12 @@ public class FragFunction
             fragColor +
             ((options & FragColorFunctionOptions.Colormap) != 0 ? ColorMapFetch(true, ctx) : "")
             + AlphaFlag(true) +
-            (ShaderVars.PaletteColorMode ? "\n" : "fragColor.xyz *= lightLevel;\n") +
-            // TODO: not actually changing on map restart
-            // TODO: this seems too bright
-            ((options & FragColorFunctionOptions.Brightmap) != 0 && ShaderVars.Brightmaps ?
-                "fragColor.rgb = min(fragColor.rgb + texture(brightmapTexture, texUV).rgb, 1.0);\n"
-                :
-                "") +
+            (ShaderVars.PaletteColorMode ? "\n" : ((options & FragColorFunctionOptions.Brightmap) != 0 && ShaderVars.Brightmaps)
+                // TODO: fullbright toggle not actually changing on map restart
+                // TODO: this seems a little dim
+                ? "fragColor.rgb *= max(texture(brightmapTexture, texUV).rgb, vec3(lightLevel));\n"
+                : "fragColor.rgb *= lightLevel;\n"
+            ) +
             ((options & FragColorFunctionOptions.AddAlpha) != 0 ?
                 @"fragColor.w = fragColor.w * alphaFrag + addAlphaFrag;"
                 +
