@@ -171,7 +171,7 @@ public class FragFunction
             ((options & FragColorFunctionOptions.Colormap) != 0 ? ColorMapFetch(true, ctx) : "")
             + AlphaFlag(true) +
             (ShaderVars.PaletteColorMode ? "\n" : ((options & FragColorFunctionOptions.Brightmap) != 0 && ShaderVars.Brightmaps)
-                // TODO: fullbright toggle not actually changing on map restart
+                // TODO: brightmap toggle not actually changing on map restart
                 ? "fragColor.rgb *= min(vec3(1.0), texture(brightmapTexture, texUV).rgb + vec3(lightLevel));\n"
                 // TODO: this seems a little dim
                 // ? "fragColor.rgb *= max(texture(brightmapTexture, texUV).rgb, vec3(lightLevel));\n"
