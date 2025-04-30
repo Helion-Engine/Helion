@@ -687,11 +687,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         GLLegacyTexture? brightmapTexture = data.BrightmapTexture;
         GL.ActiveTexture(BindTextures.BoundTexture);
         texture.Bind();
+        GL.ActiveTexture(BindTextures.BrightmapTexture);
         if (brightmapTexture != null)
-        {
-            GL.ActiveTexture(BindTextures.BrightmapTexture);
             brightmapTexture.Bind();
-        }
+        else
+            GL.BindTexture(TextureTarget.Texture2D, 0);
 
         data.Vbo.UploadCapacity();
 
@@ -718,11 +718,11 @@ public class StaticCacheGeometryRenderer : IDisposable
             var brightmapTexture = isNullCompatTex
                 ? null
                 : m_textureManager.GetBrightmapTexture(data.TextureHandle, repeatY);
+            GL.ActiveTexture(BindTextures.BrightmapTexture);
             if (brightmapTexture != null)
-            {
-                GL.ActiveTexture(BindTextures.BrightmapTexture);
                 brightmapTexture.Bind();
-            }
+            else
+                GL.BindTexture(TextureTarget.Texture2D, 0);
 
             data.Vbo.UploadIfNeeded();
 

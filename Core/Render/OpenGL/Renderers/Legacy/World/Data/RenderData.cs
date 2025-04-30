@@ -47,11 +47,11 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
 
         GL.ActiveTexture(BindTextures.BoundTexture);
         Texture.Bind();
+        GL.ActiveTexture(BindTextures.BrightmapTexture);
         if (BrightmapTexture != null)
-        {
-            GL.ActiveTexture(BindTextures.BrightmapTexture);
             BrightmapTexture.Bind();
-        }
+        else
+            GL.BindTexture(TextureTarget.Texture2D, 0);
         Vao.Bind();
         Vbo.Bind();
 

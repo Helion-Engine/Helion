@@ -321,11 +321,11 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
             GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(info.TextureHandle);
             GL.ActiveTexture(BindTextures.BoundTexture);
             texture.Bind();
+            GL.ActiveTexture(BindTextures.BrightmapTexture);
             if (brightmapTexture != null)
-            {
-                GL.ActiveTexture(BindTextures.BrightmapTexture);
-                brightmapTexture?.Bind();
-            }
+                brightmapTexture.Bind();
+            else
+                GL.BindTexture(TextureTarget.Texture2D, 0);
 
             info.Vertices.Vbo.UploadIfNeeded();
             info.Vertices.Vao.Bind();

@@ -46,11 +46,11 @@ public class RenderWorldData : IDisposable
         // this means we get O(N) actions for N used textures.
         GL.ActiveTexture(BindTextures.BoundTexture);
         Texture.Bind();
+        GL.ActiveTexture(BindTextures.BrightmapTexture);
         if (BrightmapTexture != null)
-        {
-            GL.ActiveTexture(BindTextures.BrightmapTexture);
             BrightmapTexture.Bind();
-        }
+        else
+            GL.BindTexture(TextureTarget.Texture2D, 0);
         Vao.Bind();
         Vbo.Bind();
 
