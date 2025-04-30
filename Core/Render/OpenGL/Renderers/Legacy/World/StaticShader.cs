@@ -178,7 +178,7 @@ public class StaticShader : RenderProgram
         "
         .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
         .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
-        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV | FragColorFunctionOptions.Brightmap))
+        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV | FragColorFunctionOptions.Brightmaps))
         .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
         .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
         .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);

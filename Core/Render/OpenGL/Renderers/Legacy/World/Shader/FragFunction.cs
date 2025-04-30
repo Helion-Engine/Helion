@@ -12,7 +12,7 @@ public enum FragColorFunctionOptions
     Fuzz = 4,
     Colormap = 8,
     VertexGapClampUV = 16,
-    Brightmap = 32
+    Brightmaps = 32
 }
 
 public enum ColorMapFetchContext { Default, Hud, Entity }
@@ -170,7 +170,7 @@ public class FragFunction
             fragColor +
             ((options & FragColorFunctionOptions.Colormap) != 0 ? ColorMapFetch(true, ctx) : "")
             + AlphaFlag(true) +
-            (ShaderVars.PaletteColorMode ? "\n" : ((options & FragColorFunctionOptions.Brightmap) != 0)
+            (ShaderVars.PaletteColorMode ? "\n" : ((options & FragColorFunctionOptions.Brightmaps) != 0)
                 ? "if (useBrightmaps == 1) { fragColor.rgb *= min(vec3(1.0), texture(brightmapTexture, texUV).rgb + vec3(lightLevel)); }\n" +
                   "else { fragColor.rgb *= lightLevel; }\n"
                 : "fragColor.rgb *= lightLevel;\n"

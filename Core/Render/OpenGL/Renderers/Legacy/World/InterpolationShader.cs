@@ -31,6 +31,7 @@ public class InterpolationShader : RenderProgram
     private readonly int m_planeClipTextureLocation;
     private readonly int m_checkPlaneClipLocation;
     private readonly int m_wallClipTextureLocation;
+    private readonly int m_useBrightmapsLocation;
 
     public InterpolationShader(string name) : base($"World Interpolation - {name}")
     {
@@ -56,6 +57,7 @@ public class InterpolationShader : RenderProgram
         m_planeClipTextureLocation = Uniforms.GetLocation("planeClipTexture");
         m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
         m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
+        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -81,6 +83,7 @@ public class InterpolationShader : RenderProgram
     public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
     public void VertexGapClampUV(bool value) => Uniforms.Set(value, m_vertexGapClampUV);
     public void CheckPlaneClip(bool value) => Uniforms.Set(value, m_checkPlaneClipLocation);
+    public void UseBrightmaps(bool value) => Uniforms.Set(value, m_useBrightmapsLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -181,6 +184,7 @@ public class InterpolationShader : RenderProgram
             uniform sampler2D planeClipTexture;
             uniform sampler2D wallClipTexture;
             uniform int checkPlaneClip;
+            uniform int useBrightmaps;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}
@@ -204,7 +208,7 @@ public class InterpolationShader : RenderProgram
         "
         .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
         .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
-        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV, oitOptions: GetOitOptions()))
+        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV | FragColorFunctionOptions.Brightmaps, oitOptions: GetOitOptions()))
         .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
         .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
         .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))

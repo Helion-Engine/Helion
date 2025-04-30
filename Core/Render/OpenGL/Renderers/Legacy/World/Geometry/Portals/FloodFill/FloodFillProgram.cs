@@ -1,4 +1,4 @@
-﻿using GlmSharp;
+using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shader;
@@ -26,6 +26,7 @@ public class FloodFillProgram : RenderProgram
     private readonly int m_colorMapIndexLocation;
     private readonly int m_lightModeLocation;
     private readonly int m_gammaCorrectionLocation;
+    private readonly int m_useBrightmapsLocation;
 
     public FloodFillProgram(string name) : base($"FloodFill - {name}")
     {
@@ -46,6 +47,7 @@ public class FloodFillProgram : RenderProgram
         m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
         m_lightModeLocation = Uniforms.GetLocation("lightMode");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
+        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -66,6 +68,7 @@ public class FloodFillProgram : RenderProgram
     public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
     public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
+    public void UseBrightmaps(bool value) => Uniforms.Set(value, m_useBrightmapsLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -156,6 +159,7 @@ public class FloodFillProgram : RenderProgram
             uniform vec3 colorMix;
             uniform int paletteIndex;
             uniform int colormapIndex;
+            uniform int useBrightmaps;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}
@@ -180,7 +184,7 @@ public class FloodFillProgram : RenderProgram
         "
         .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
         .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.NoDist))
-        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Colormap))
+        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Colormap | FragColorFunctionOptions.Brightmaps))
         .Replace("${Depth}", ShaderVars.Depth)
         .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
         .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction);

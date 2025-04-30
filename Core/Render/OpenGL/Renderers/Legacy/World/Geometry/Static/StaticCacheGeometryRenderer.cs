@@ -550,7 +550,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         Attributes.BindAndApply(vbo, vao, m_program.Attributes);
 
         var texture = overrideTexture ?? m_textureManager.GetTexture(textureHandle, repeat);
-        var data = new GeometryData(textureHandle, texture, vbo, vao);
+        var brightmapTexture = m_textureManager.GetBrightmapTexture(textureHandle, repeat);
+        var data = new GeometryData(textureHandle, texture, vbo, vao, brightmapTexture);
 
         if (addToGeometry)
         {
@@ -682,9 +683,15 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data == null)
             return;
 
-        GL.ActiveTexture(BindTextures.BoundTexture);
         GLLegacyTexture texture = data.Texture;
+        GLLegacyTexture? brightmapTexture = data.BrightmapTexture;
+        GL.ActiveTexture(BindTextures.BoundTexture);
         texture.Bind();
+        if (brightmapTexture != null)
+        {
+            GL.ActiveTexture(BindTextures.BrightmapTexture);
+            brightmapTexture.Bind();
+        }
 
         data.Vbo.UploadCapacity();
 
@@ -708,11 +715,14 @@ public class StaticCacheGeometryRenderer : IDisposable
                 : m_textureManager.GetTexture(data.TextureHandle, repeatY);
             texture.Bind();
 
-            GL.ActiveTexture(BindTextures.BrightmapTexture);
             var brightmapTexture = isNullCompatTex
                 ? null
                 : m_textureManager.GetBrightmapTexture(data.TextureHandle, repeatY);
-            brightmapTexture?.Bind();
+            if (brightmapTexture != null)
+            {
+                GL.ActiveTexture(BindTextures.BrightmapTexture);
+                brightmapTexture.Bind();
+            }
 
             data.Vbo.UploadIfNeeded();
 
