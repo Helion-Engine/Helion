@@ -38,13 +38,14 @@ public abstract class Archive : IDisposable
         if (!path.GetLastFolder(out var folder))
             return ResourceNamespace.Global;
 
+        if (path.StartsWithIgnoreCase("brightmaps/"))
+            return ResourceNamespace.Brightmaps;
+
         foreach (var item in FolderToNamespace)
         {
             if (folder.Equals(item.Item1, StringComparison.OrdinalIgnoreCase))
                 return item.Item2;
         }
-        if (path.StartsWithIgnoreCase("brightmaps/"))
-            return ResourceNamespace.Brightmaps;
 
         return ResourceNamespace.Global;
     }

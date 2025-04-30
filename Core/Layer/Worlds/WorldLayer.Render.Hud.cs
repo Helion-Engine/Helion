@@ -46,7 +46,7 @@ public partial class WorldLayer
     private const int FpsMessageSpacing = 2;
     private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
     private const long MessageTransitionSpan = 350L * 1000L * 1000L;
-    private const ResourceNamespace LookupNamespace = ResourceNamespace.Undefined;
+    private const ResourceNamespace SpriteLookupNamespace = ResourceNamespace.Sprites;
     private static readonly Color PickupColor = (255, 255, 128);
     private static readonly Color DamageColor = (255, 0, 0);
     private const string SmallHudFont = Constants.Fonts.Small;
@@ -441,7 +441,7 @@ public partial class WorldLayer
 
         string sprite = GetHudWeaponSpriteString(frameState, flash);
 
-        if (!hud.Textures.TryGet(sprite, out var handle, LookupNamespace))
+        if (!hud.Textures.TryGet(sprite, out var handle, SpriteLookupNamespace))
             return;
 
         var offset = handle.Offset;
@@ -449,7 +449,7 @@ public partial class WorldLayer
         offset = TranslateDoomOffset(offset);
         var hudBox = GetInterpolatePlayerWeaponBox(hud, handle, offset);
 
-        hud.Image(sprite, hudBox, color: lightLevelColor, colorMapIndex: colorMapIndex);
+        hud.Image(sprite, hudBox, color: lightLevelColor, colorMapIndex: colorMapIndex, resourceNamespace: SpriteLookupNamespace);
     }
 
     private HudBox GetInterpolatePlayerWeaponBox(IHudRenderContext hud, IRenderableTextureHandle handle, Vec2I offset)
@@ -712,7 +712,7 @@ public partial class WorldLayer
 
     private void DrawDoomScaledImage(IHudRenderContext hud, string image, Vec2I origin, out HudBox area, Align? both = null, float alpha = 1)
     {
-        if (!hud.Textures.TryGet(image, out var handle, LookupNamespace))
+        if (!hud.Textures.TryGet(image, out var handle, SpriteLookupNamespace))
         {
             area = default;
             return;
@@ -727,7 +727,7 @@ public partial class WorldLayer
 
     private Dimension GetDoomScaledImageArea(IHudRenderContext hud, string image)
     {
-        if (!hud.Textures.TryGet(image, out var handle, LookupNamespace))
+        if (!hud.Textures.TryGet(image, out var handle, SpriteLookupNamespace))
             return default;
 
         var scale = new Vec2D(1 * m_scale, DoomVerticalScale * m_scale);
