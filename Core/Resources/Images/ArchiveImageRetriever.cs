@@ -91,9 +91,7 @@ public class ArchiveImageRetriever : IImageRetriever
         if (compiledImage != null)
             return compiledImage;
 
-        // TODO: remove log and kludge
-        if (entryName == "MID_126U")
-            ;
+        // TODO: remove kludge?
         if (targetNamespace != ResourceNamespace.Brightmaps)
         {
             TextureDefinition? definition = m_archiveCollection.Definitions.Textures.GetOnly(mappedName, targetNamespace);
@@ -101,7 +99,7 @@ public class ArchiveImageRetriever : IImageRetriever
                 return ImageFromDefinition(definition, options);
         }
 
-        Entry? entry = m_archiveCollection.Entries.FindByNamespace(entryName, targetNamespace);
+        Entry? entry = m_archiveCollection.Entries.FindByNamespace(entryName, targetNamespace, noFallback: targetNamespace == ResourceNamespace.Brightmaps);
         return entry != null ? ImageFromEntry(entry, colorTranslation: colorTranslation) : null;
     }
 

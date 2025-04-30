@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Entries;
@@ -28,18 +29,21 @@ public class GldefsTests
         definition.BrightMaps.Sprites.Count.Should().Be(1);
         definition.BrightMaps.Textures.Count.Should().Be(1);
 
-        var sprite = definition.BrightMaps.Sprites[0];
+        var sprite = definition.BrightMaps.Sprites.First().Value;
         sprite.TargetTexture.Should().Be("POSSA1");
+        sprite.BrightmapName.Should().Be("POSSA1");
         sprite.BrightmapFilename.Should().Be("brightmaps/enemies/zombieman/POSSA1.png");
         sprite.IwadOnly.Should().Be(true);
 
-        var texture = definition.BrightMaps.Textures[0];
+        var texture = definition.BrightMaps.Textures.First().Value;
         texture.TargetTexture.Should().Be("BRICKLIT");
+        texture.BrightmapName.Should().Be("BRICKLIT");
         texture.BrightmapFilename.Should().Be("brightmaps/level/BRICKLIT.png");
         texture.SpecificWad.Should().Be(Path.GetFileNameWithoutExtension(Resource));
 
-        var flat = definition.BrightMaps.Flats[0];
+        var flat = definition.BrightMaps.Flats.First().Value;
         flat.TargetTexture.Should().Be("GATE2");
+        flat.BrightmapName.Should().Be("GATE2");
         flat.BrightmapFilename.Should().Be("brightmaps/level/GATE2.png");
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
@@ -665,14 +666,24 @@ public partial class TextureManager : ITickable
             return;
 
         texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
-        
-        // TODO: remove
-        var brightmap = m_archiveCollection.ImageRetriever.GetOnly(texture.Name, ResourceNamespace.Brightmaps);
-        System.Diagnostics.Debug.WriteLine($"Load {texture.Name}: {brightmap != null}");
-        if (texture.Name == "MID_126U")
-            ;
+        string brightmapName = GetAssociatedBrightmapName(texture);
+        texture.BrightmapImage ??= m_archiveCollection.ImageRetriever.GetOnly(brightmapName, ResourceNamespace.Brightmaps);
+    }
 
-        texture.BrightmapImage ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, ResourceNamespace.Brightmaps);
+    private string GetAssociatedBrightmapName(Texture texture)
+    {
+        var bmapsDef = m_archiveCollection.Definitions.GldefsDefinition.BrightMaps;
+        var source = texture.Namespace switch
+        {
+            ResourceNamespace.Flats => bmapsDef.Flats,
+            ResourceNamespace.Sprites => bmapsDef.Sprites,
+            ResourceNamespace.Textures => bmapsDef.Textures,
+            _ => null
+        };
+        // TODO: handle iwad only, specific wad only, etc
+        return (source != null && source.TryGetValue(texture.Name, out var result))
+            ? result.BrightmapName
+            : texture.Name;
     }
 
     public void SetSkyTexture()

@@ -210,8 +210,6 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
 
         if (renderTexture == null)
         {
-            // TODO: remove
-            System.Diagnostics.Debug.WriteLine($"GL {texture.Name}: {texture.BrightmapImage != null}");
             renderTexture = (texture.BrightmapImage != null)
                 ? CreateTexture(texture.BrightmapImage, texture.Name, texture.BrightmapImage.Namespace, repeatY)
                 : CreateTexture(texture.BrightmapImage, repeatY);

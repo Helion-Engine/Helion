@@ -152,6 +152,7 @@ public partial class Renderer : IDisposable
         SetReverseZ();
         ShaderVars.Depth = ShaderVars.ReversedZ ? "w" : "z";
         ShaderVars.PaletteColorMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
+        ShaderVars.Brightmaps = m_config.Render.Brightmaps;
     }
 
     private void SetReverseZ()

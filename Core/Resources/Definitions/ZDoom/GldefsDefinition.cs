@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
@@ -8,6 +10,8 @@ namespace Helion.Resources.Definitions.Zdoom;
 public class BrightmapDefinition
 {
     public string TargetTexture { get; set; } = "";
+    public string BrightmapName { get; set; } = "";
+    // TODO: needed?
     public string BrightmapFilename { get; set; } = "";
     public bool IwadOnly { get; set; }
     public string? SpecificWad { get; set; }
@@ -16,9 +20,9 @@ public class BrightmapDefinition
 
 public class BrightmapDefinitions
 {
-    public List<BrightmapDefinition> Sprites { get; set; } = [];
-    public List<BrightmapDefinition> Textures { get; set; } = [];
-    public List<BrightmapDefinition> Flats { get; set; } = [];
+    public Dictionary<string, BrightmapDefinition> Flats { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, BrightmapDefinition> Sprites { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, BrightmapDefinition> Textures { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
 /// <summary>
@@ -61,6 +65,8 @@ public class GldefsDefinition
             if (token == "map")
             {
                 string filename = parser.ConsumeString();
+                // TODO: check
+                def.BrightmapName = Path.GetFileNameWithoutExtension(filename);
                 def.BrightmapFilename = filename;
             }
             else if (token == "iwad")
@@ -71,7 +77,7 @@ public class GldefsDefinition
                 def.DisableFullbright = true;
             else if (token == "}")
             {
-                if (def.BrightmapFilename != "")
+                if (def.BrightmapName != "")
                 {
                     var destination = textureType switch
                     {
@@ -80,7 +86,8 @@ public class GldefsDefinition
                         "texture" => BrightMaps.Textures,
                         _ => null
                     };
-                    destination?.Add(def);
+                    if (destination != null)
+                        destination[def.TargetTexture] = def;
                 }
                 return;
             }
