@@ -152,7 +152,6 @@ public partial class Renderer : IDisposable
         SetReverseZ();
         ShaderVars.Depth = ShaderVars.ReversedZ ? "w" : "z";
         ShaderVars.PaletteColorMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
-        ShaderVars.Brightmaps = m_config.Render.Brightmaps;
     }
 
     private void SetReverseZ()
@@ -224,7 +223,7 @@ public partial class Renderer : IDisposable
             CalculateMvpMatrix(renderInfo, true),
             GetTimeFrac(), drawInvulnerability, mix, extraLight, GetDistanceOffset(renderInfo),
             colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), colorMapUniforms, paletteIndex, config.Render.LightMode, 
-            (float)config.Render.GammaCorrection, maxDistance);
+            (float)config.Render.GammaCorrection, maxDistance, config.Render.Brightmaps);
     }
 
     private static ColorMapUniforms GetColorMapUniforms(Entity viewer, OldCamera camera)

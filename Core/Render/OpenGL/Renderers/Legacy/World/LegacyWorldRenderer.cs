@@ -631,6 +631,7 @@ public class LegacyWorldRenderer : WorldRenderer
         program.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.GlobalIndex);
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
+        program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
     }
 
     private void ReleaseUnmanagedResources()

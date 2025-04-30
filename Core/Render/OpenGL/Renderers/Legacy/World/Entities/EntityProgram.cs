@@ -45,6 +45,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_mapDataTextureLoaction;
     private readonly int m_wallClipTextureLocation;
     private readonly int m_lineHeightsTextureLocation;
+    private readonly int m_useBrightmapsLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -84,6 +85,7 @@ public class EntityProgram : RenderProgram
         m_mapDataTextureLoaction = Uniforms.GetLocation("mapDataTexture");
         m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
         m_lineHeightsTextureLocation = Uniforms.GetLocation("lineHeightsTexture");
+        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
@@ -123,6 +125,7 @@ public class EntityProgram : RenderProgram
     public void ScreenBounds(Vec2I value) => Uniforms.Set(value, m_screenBoundsLocation);
     public void CheckPlaneClip(bool value) => Uniforms.Set(value, m_checkPlaneClipLocation);
     public void HealthBarMode(bool value) => Uniforms.Set(value, m_healthBarModeLocation);
+    public void UseBrightmaps(bool value) => Uniforms.Set(value, m_useBrightmapsLocation);
 
     private const string BoxDefines = @"
         const float BoxWidth = 20;
@@ -347,6 +350,7 @@ public class EntityProgram : RenderProgram
         uniform ivec2 screenBounds;
         uniform int checkPlaneClip;
         uniform int healthBarMode;
+        uniform int useBrightmaps;
         uniform vec3 viewPos;
         uniform float timeFrac;
 
