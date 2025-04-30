@@ -217,6 +217,7 @@ public class EntityRenderer : IDisposable
         int colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
         SpriteRotation spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.FrameState.Frame.Frame, rotation, colorMapIndex);
         GLLegacyTexture texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
+        GLLegacyTexture brightmapTexture = (spriteRotation.BrightmapRenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
         Sector sector = entity.Sector.GetRenderSector(m_transferHeightView);
 
         float offsetZ = GetOffsetZ(entity, texture);
@@ -225,9 +226,11 @@ public class EntityRenderer : IDisposable
         bool useAlpha = m_spriteAlpha && entity.Alpha < 1.0f;
         RenderData<EntityVertex> renderData;
         if (shadow)
-            renderData = m_dataManager.GetFuzz(texture);
+            renderData = m_dataManager.GetFuzz(texture, brightmapTexture);
+        else if (useAlpha)
+            renderData = m_dataManager.GetAlpha(texture, brightmapTexture);
         else
-            renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
+            renderData = m_dataManager.GetNonAlpha(texture, brightmapTexture);
 
         float alpha = useAlpha ? entity.Alpha : 1.0f;
         float fuzz = shadow ? 1.0f : 0.0f;
