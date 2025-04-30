@@ -178,6 +178,7 @@ public class InterpolationShader : RenderProgram
 
             uniform int hasInvulnerability;
             uniform sampler2D boundTexture;
+            uniform sampler2D brightmapTexture;
             uniform vec3 colorMix;
             uniform int paletteIndex;
             uniform int colormapIndex;

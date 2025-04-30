@@ -612,6 +612,7 @@ public class GeometryRenderer : IDisposable
 
         WallVertices wall = default;
         texture = m_glTextureManager.GetTexture(side.Middle.TextureHandle);
+        GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(side.Middle.TextureHandle);
         DynamicVertex[]? data = m_vertexLookup[side.Id];
 
         var renderSector = side.Sector.GetRenderSector(m_transferHeightsView);
@@ -628,6 +629,7 @@ public class GeometryRenderer : IDisposable
             floor = m_fakeFloor;
             ceiling = m_fakeCeiling;
             texture = m_glTextureManager.BlackTexture;
+            brightmapTexture = null;
         }
 
         if (side.OffsetChanged || m_sectorChangedLine || data == null)
@@ -645,7 +647,7 @@ public class GeometryRenderer : IDisposable
 
         if (m_buffer)
         {
-            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall);
+            RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
             renderData.Vbo.Add(data);
             if (m_vanillaRender)
                 m_worldDataManager.AddCoverWallVertices(side, data, WallLocation.Middle);
@@ -836,7 +838,8 @@ public class GeometryRenderer : IDisposable
             return;
 
         GLLegacyTexture texture = m_glTextureManager.GetTexture(lowerWall.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall);
+        GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(lowerWall.TextureHandle);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
 
         SectorPlane top = otherSector.Floor;
         SectorPlane bottom = facingSector.Floor;
@@ -931,7 +934,8 @@ public class GeometryRenderer : IDisposable
 
         WallVertices wall = default;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(upperWall.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall);
+        GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(upperWall.TextureHandle);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
 
         SectorPlane top = facingSector.Ceiling;
         SectorPlane bottom = otherSector.Ceiling;
@@ -1117,13 +1121,14 @@ public class GeometryRenderer : IDisposable
     {
         Wall middleWall = facingSide.Middle;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle, repeatY: facingSide.Flags.WrapMidTex);
+        GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(middleWall.TextureHandle, repeatY: facingSide.Flags.WrapMidTex);
 
         var line = facingSide.Line;
         float alpha = m_config.Render.TextureTransparency ? Math.Clamp(line.Alpha, 0, 1) : 1.0f;
         DynamicVertex[]? data = m_vertexLookup[facingSide.Id];
         var geometryType = alpha < 1 ? GeometryType.AlphaWall : GeometryType.TwoSidedMiddleWall;
 
-        var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType);
+        var renderData = m_worldDataManager.GetRenderData(texture, m_program, geometryType, brightmapTexture);
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
         {
@@ -1289,7 +1294,8 @@ public class GeometryRenderer : IDisposable
     {
         bool isSky = TextureManager.IsSkyTexture(flat.TextureHandle);
         GLLegacyTexture texture = m_glTextureManager.GetTexture(flat.TextureHandle);
-        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Flat);
+        GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(flat.TextureHandle);
+        RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Flat, brightmapTexture);
         bool flatChanged = FlatChanged(flat);
         var sector = subsectors[0].Sector;
         int id = sector.Id;

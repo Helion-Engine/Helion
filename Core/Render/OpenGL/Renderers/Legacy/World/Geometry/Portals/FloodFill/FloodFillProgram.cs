@@ -153,6 +153,7 @@ public class FloodFillProgram : RenderProgram
             out vec4 fragColor;
 
             uniform sampler2D boundTexture;
+            uniform sampler2D brightmapTexture;
             uniform vec3 camera;
             uniform mat4 mvpNoPitch;
             uniform int hasInvulnerability;
