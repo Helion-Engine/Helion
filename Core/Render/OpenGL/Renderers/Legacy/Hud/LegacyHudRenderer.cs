@@ -65,6 +65,7 @@ public class LegacyHudRenderer : HudRenderer
         float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex)
     {
         m_textureManager.TryGet(textureName, ns, out GLLegacyTexture texture);
+        // TODO: weapon brightmaps here
         (int width, int height) = texture.Dimension;
         ImageBox2I drawArea = new ImageBox2I(topLeft.X, topLeft.Y, topLeft.X + width, topLeft.Y + height);
         AddImage(texture, drawArea, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
