@@ -219,7 +219,6 @@ public class EntityProgram : RenderProgram
         uniform vec2 viewRightNormal;
         uniform vec2 prevViewRightNormal;
         uniform sampler2D boundTexture;
-        uniform sampler2D brightmapTexture;
         uniform float timeFrac;
         uniform vec3 viewPos;
         uniform int healthBarMode;

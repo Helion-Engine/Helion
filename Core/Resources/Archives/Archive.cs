@@ -31,7 +31,6 @@ public abstract class Archive : IDisposable
         ("TEXTURES", ResourceNamespace.Textures),
         ("PATCHES", ResourceNamespace.Textures),
         ("COLORMAPS", ResourceNamespace.Colormaps),
-        ("BRIGHTMAPS", ResourceNamespace.Brightmaps)
     ];
 
     protected static ResourceNamespace NamespaceFromEntryPath(string path)
@@ -44,6 +43,8 @@ public abstract class Archive : IDisposable
             if (folder.Equals(item.Item1, StringComparison.OrdinalIgnoreCase))
                 return item.Item2;
         }
+        if (path.StartsWithIgnoreCase("brightmaps/"))
+            return ResourceNamespace.Brightmaps;
 
         return ResourceNamespace.Global;
     }

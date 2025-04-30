@@ -217,7 +217,7 @@ public class EntityRenderer : IDisposable
         int colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
         SpriteRotation spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.FrameState.Frame.Frame, rotation, colorMapIndex);
         GLLegacyTexture texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
-        GLLegacyTexture brightmapTexture = (spriteRotation.BrightmapRenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
+        GLLegacyTexture? brightmapTexture = spriteRotation.BrightmapRenderStore as GLLegacyTexture;
         Sector sector = entity.Sector.GetRenderSector(m_transferHeightView);
 
         float offsetZ = GetOffsetZ(entity, texture);
