@@ -10,6 +10,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 public class EntityProgram : RenderProgram
 {
     private readonly int m_boundTextureLocation;
+    private readonly int m_brightmapTextureLocation;
     private readonly int m_colormapTextureLocation;
     private readonly int m_sectorColormapTextureLocation;
     private readonly int m_mvpLocation;
@@ -48,6 +49,7 @@ public class EntityProgram : RenderProgram
     public EntityProgram(string name) : base($"Entity - {name}")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
@@ -85,6 +87,7 @@ public class EntityProgram : RenderProgram
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
+    public void BrightmapTexture(TextureUnit unit) => Uniforms.Set(unit, m_brightmapTextureLocation);
     public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorColormapTextureLocation);
     public void AccumTexture(TextureUnit unit) => Uniforms.Set(unit, m_accumTextureLocation);
@@ -216,6 +219,7 @@ public class EntityProgram : RenderProgram
         uniform vec2 viewRightNormal;
         uniform vec2 prevViewRightNormal;
         uniform sampler2D boundTexture;
+        uniform sampler2D brightmapTexture;
         uniform float timeFrac;
         uniform vec3 viewPos;
         uniform int healthBarMode;
@@ -326,6 +330,7 @@ public class EntityProgram : RenderProgram
         uniform int hasInvulnerability;
         uniform float fuzzFrac;
         uniform sampler2D boundTexture;
+        uniform sampler2D brightmapTexture;
         uniform samplerBuffer colormapTexture;
         uniform float lightLevelMix;
         uniform int extraLight;
@@ -427,7 +432,7 @@ public class EntityProgram : RenderProgram
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha | FragColorFunctionOptions.Colormap, ColorMapFetchContext.Entity, GetOitOptions(), GetPostProcess()))
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.Brightmap, ColorMapFetchContext.Entity, GetOitOptions(), GetPostProcess()))
     .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
     .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
     .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))

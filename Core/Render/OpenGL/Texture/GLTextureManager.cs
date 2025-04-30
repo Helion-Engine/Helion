@@ -250,7 +250,8 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
 
             translationRotation = new SpriteRotation(texture, spriteRotation.Mirror)
             {
-                RenderStore = CreateTexture(texture.Image, translatedName, ResourceNamespace.Sprites)
+                RenderStore = CreateTexture(texture.Image, translatedName, ResourceNamespace.Sprites),
+                BrightmapRenderStore = CreateTexture(texture.BrightmapImage, translatedName, ResourceNamespace.Brightmaps)
             };
 
             spriteRotation.SetTranslationRotation(colorMapIndex, translationRotation);
@@ -259,6 +260,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         else
         {
             spriteRotation.RenderStore ??= CreateTexture(spriteRotation.Texture.Image, spriteRotation.Texture.Name, ResourceNamespace.Sprites);
+            spriteRotation.BrightmapRenderStore ??= CreateTexture(spriteRotation.Texture.BrightmapImage, spriteRotation.Texture.Name, ResourceNamespace.Brightmaps);
         }
 
         return spriteRotation;
@@ -278,6 +280,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
                     continue;
 
                 rotation.Texture.RenderStore = CreateTexture(rotation.Texture.Image, rotation.Texture.Name, ResourceNamespace.Sprites);
+                rotation.Texture.BrightmapRenderStore = CreateTexture(rotation.Texture.BrightmapImage, rotation.Texture.Name, ResourceNamespace.Brightmaps);
             }
         }
     }

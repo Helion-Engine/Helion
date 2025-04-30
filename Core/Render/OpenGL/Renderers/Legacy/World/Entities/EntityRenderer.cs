@@ -310,6 +310,7 @@ public class EntityRenderer : IDisposable
     private void SetUniforms(EntityProgram program, RenderInfo renderInfo)
     {
         program.BoundTexture(BindTextures.BoundTexture);
+        program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
         program.ExtraLight(renderInfo.Uniforms.ExtraLight);

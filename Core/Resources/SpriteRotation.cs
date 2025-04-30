@@ -9,6 +9,7 @@ public class SpriteRotation(Texture texture, bool mirror)
     public bool Mirror = mirror;
     public float FlipU = mirror ? 1 : 0;
     public object? RenderStore;
+    public object? BrightmapRenderStore;
     private LookupArray<SpriteRotation>? m_translationRotations;
 
     public bool TryGetTranslationRotation(int index, [NotNullWhen(true)] out SpriteRotation? rotation)
