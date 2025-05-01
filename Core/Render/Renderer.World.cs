@@ -12,7 +12,6 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using System;
 using Helion.World.Geometry.Lines;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Helion.Render;
 
@@ -148,11 +147,19 @@ public partial class Renderer
 
     private unsafe void SetLineHeights(IWorld world, bool alloc)
     {
+        if (!world.Config.Render.VanillaRender)
+        {
+            m_lineHeightsBufferData = [];
+            m_lineHeightsBuffer?.Dispose();
+            m_lineHeightsBuffer = null;
+            return;
+        }
+
         if (alloc || m_lineHeightsBuffer == null)
         {
             m_lineHeightsBuffer?.Dispose();
             m_lineHeightsBufferData = new float[world.Lines.Count * 2];
-            m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.R32f, GLInfo.MapPersistentBitSupported);
+            m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.Rg32f, GLInfo.MapPersistentBitSupported);
 
             m_lineHeightsBuffer.Map(data =>
             {
@@ -268,10 +275,15 @@ public partial class Renderer
 
     private static unsafe void SetLineHeightBuffer(float* buffer, int index, ref StructLine line)
     {
+        var prevFloorZ = (float)line.FrontFloorPlane.PrevZ;
         var floorZ = (float)line.FrontFloorPlane.Z;
         if (line.BackFloorPlane != null)
+        {
+            prevFloorZ = Math.Max(prevFloorZ, (float)line.BackFloorPlane.PrevZ);
             floorZ = Math.Max(floorZ, (float)line.BackFloorPlane.Z);
+        }
 
+        buffer[index] = prevFloorZ;
         buffer[index] = floorZ;
     }
 

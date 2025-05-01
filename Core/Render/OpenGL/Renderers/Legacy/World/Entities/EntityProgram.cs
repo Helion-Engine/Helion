@@ -344,6 +344,7 @@ public class EntityProgram : RenderProgram
         uniform int checkPlaneClip;
         uniform int healthBarMode;
         uniform vec3 viewPos;
+        uniform float timeFrac;
 
         uniform sampler2D planeClipTexture;
         uniform sampler2D wallClipTexture;
@@ -383,7 +384,8 @@ public class EntityProgram : RenderProgram
             
             if (wallClip.r >= 0) {
                 vec4 linePoints = texelFetch(mapDataTexture, int(wallClip.r));
-                float floorHeight = texelFetch(lineHeightsTexture, int(wallClip.r)).r;
+                vec2 floorHeights = texelFetch(lineHeightsTexture, int(wallClip.r)).rg;
+                float floorHeight = mix(floorHeights.r, floorHeights.g, timeFrac);
                 vec2 lineStart = linePoints.rg;
                 vec2 lineEnd = linePoints.ba;
                 vec2 lineDelta = lineEnd - lineStart;
