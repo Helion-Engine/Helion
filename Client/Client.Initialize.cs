@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DiscordRPC;
 using Helion.Layer.Consoles;
 using Helion.Layer.Images;
 using Helion.Layer.IwadSelection;
@@ -13,6 +14,7 @@ using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.CommandLine;
 using Helion.Util.Configs.Components;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
 using Helion.World;
 using Helion.World.Util;
@@ -78,6 +80,10 @@ public partial class Client
 
             if (m_commandLineArgs.LevelStat)
                 ClearStatsFile();
+
+            InitializeDiscordClient();
+            UpdateDiscordRichPresence();
+            m_config.Game.DiscordIntegration.OnChanged += DiscordIntegration_OnChanged;
 
             if (m_commandLineArgs.LoadGame != null)
             {
@@ -305,5 +311,25 @@ public partial class Client
             world.Player.PitchRadians = MathHelper.ToRadians(args.SetPitch.Value);
             world.Player.ResetInterpolation();
         }
+    }
+
+    private void InitializeDiscordClient()
+    {
+        if (!m_config.Game.DiscordIntegration)
+            return;
+        m_discordClient ??= new DiscordRpcClient("1367261916359299102");
+        // discordRpcClientclient.Logger = new ConsoleLogger() { Level = DiscordRPC.Logging.LogLevel.Warning };
+        m_discordClient.Initialize();
+    }
+
+    private void DiscordIntegration_OnChanged(object? sender, bool enabled)
+    {
+        if (enabled)
+        {
+            InitializeDiscordClient();
+            UpdateDiscordRichPresence();
+        }
+        else
+            DisableDiscord();
     }
 }

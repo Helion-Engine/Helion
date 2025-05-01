@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using DiscordRPC;
 using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Audio.Sounds;
@@ -71,6 +72,7 @@ public partial class Client : IDisposable, IInputManagement
     private OnLoadMapComplete? m_onLoadMapComplete;
     private LoadMapResult? m_loadMapResult;
     private QueueLoadMapParams? m_queueMapLoad;
+    private DiscordRpcClient? m_discordClient;
 
     record struct VersionTest(int Major, int Minor);
     private static readonly VersionTest[] Versions =
@@ -384,6 +386,7 @@ public partial class Client : IDisposable, IInputManagement
         m_levelChangeEvent = LevelChangeEvent.Default;
         PlayTransition();
         UpdateVolume();
+        UpdateDiscordRichPresence();
 
         m_onLoadMapComplete?.OnComplete(m_onLoadMapComplete.CompleteParam);
         m_onLoadMapComplete = null;
@@ -632,5 +635,47 @@ public partial class Client : IDisposable, IInputManagement
     {
         if (e.Success)
             m_lastWorldModel = e.WorldModel;
+    }
+
+    private string? GetGameName()
+    {
+        // try gameconf (rare)
+        string? title = m_archiveCollection.Definitions.GameConfDefinition.Data?.Title;
+        // then gameinfo (uncommon)
+        if (string.IsNullOrWhiteSpace(title))
+            title = m_archiveCollection.Definitions.GameInfoDefinition.StartupTitle;
+        // fall back to WAD title
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            var map = m_layerManager.WorldLayer?.CurrentMap;
+            if (map != null)
+                title = Path.GetFileName(m_archiveCollection.FindMap(map.MapName)?.ArchivePath);
+        }
+        return title;
+    }
+
+    private string? GetMapName()
+    {
+        var map = m_layerManager.WorldLayer?.CurrentMap;
+        if (map != null)
+            return map.GetDisplayNameWithPrefix(m_archiveCollection.Language);
+        return null;
+    }
+
+    private void UpdateDiscordRichPresence()
+    {
+        if (m_discordClient == null)
+            InitializeDiscordClient();
+
+        m_discordClient?.SetPresence(new RichPresence()
+        {
+            Details = GetGameName(),
+            State = GetMapName(),
+        });
+    }
+
+    private void DisableDiscord()
+    {
+        m_discordClient?.Deinitialize();
     }
 }

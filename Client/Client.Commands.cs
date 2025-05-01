@@ -400,29 +400,13 @@ public partial class Client
     [ConsoleCommand("printmap", "Prints the current map")]
     private void PrintMap(ConsoleCommandEventArgs args)
     {
-        var map = m_layerManager.WorldLayer?.CurrentMap;
-        if (map != null)
-            HelionLog.Info(map.GetDisplayNameWithPrefix(m_archiveCollection.Language));
-        else
-            HelionLog.Info("No map loaded");
+        HelionLog.Info(GetMapName() ?? "No map loaded");
     }
 
     [ConsoleCommand("printgame", "Prints the current game title (or WAD filename)")]
     private void PrintGame(ConsoleCommandEventArgs args)
     {
-        // try gameconf (rare)
-        string? title = m_archiveCollection.Definitions.GameConfDefinition.Data?.Title;
-        // then gameinfo (uncommon)
-        title ??= m_archiveCollection.Definitions.GameInfoDefinition.StartupTitle;
-        // fall back to WAD title
-        if (title == null)
-        {
-            var map = m_layerManager.WorldLayer?.CurrentMap;
-            if (map != null)
-                title = Path.GetFileName(m_archiveCollection.FindMap(map.MapName)?.ArchivePath);
-        }
-        if (title != null)
-            HelionLog.Info(title);
+        HelionLog.Info(GetGameName() ?? "No map loaded");
     }
 
     [ConsoleCommand("startGame", "Starts a new game")]
