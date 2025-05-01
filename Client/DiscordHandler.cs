@@ -18,7 +18,7 @@ public class DiscordHandler
         UpdateRichPresence();
     }
 
-    private void Deinitialize()
+    private void Dispose()
     {
         m_client?.Dispose();
         m_client = null;
@@ -29,7 +29,7 @@ public class DiscordHandler
         if (enabled)
             Initialize();
         else
-            Deinitialize();
+            Dispose();
     }
 
     public void UpdateRichPresence(string? gameName = null, string? mapName = null)
@@ -44,5 +44,5 @@ public class DiscordHandler
         });
     }
 
-    ~DiscordHandler() => Deinitialize();
+    ~DiscordHandler() => Dispose();
 }

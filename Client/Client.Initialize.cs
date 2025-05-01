@@ -80,7 +80,11 @@ public partial class Client
                 ClearStatsFile();
 
             m_discord.SetEnabled(m_config.Game.DiscordIntegration);
-            m_config.Game.DiscordIntegration.OnChanged += (s, e) => m_discord.SetEnabled(e);
+            m_config.Game.DiscordIntegration.OnChanged += (s, e) =>
+            {
+                m_discord.SetEnabled(e);
+                m_discord.UpdateRichPresence(GetGameName(), GetMapName());
+            };
 
             if (m_commandLineArgs.LoadGame != null)
             {
