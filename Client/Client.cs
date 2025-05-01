@@ -5,7 +5,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using DiscordRPC;
 using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Audio.Sounds;
@@ -64,6 +63,7 @@ public partial class Client : IDisposable, IInputManagement
     private readonly Profiler m_profiler = new();
     private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
     private readonly SaveGameScreenshotGenerator m_screenshotGenerator;
+    private readonly DiscordHandler m_discord = new();
     private bool m_disposed;
     private bool m_takeScreenshot;
     private bool m_loadComplete;
@@ -72,7 +72,6 @@ public partial class Client : IDisposable, IInputManagement
     private OnLoadMapComplete? m_onLoadMapComplete;
     private LoadMapResult? m_loadMapResult;
     private QueueLoadMapParams? m_queueMapLoad;
-    private DiscordRpcClient? m_discordClient;
 
     record struct VersionTest(int Major, int Minor);
     private static readonly VersionTest[] Versions =
@@ -386,7 +385,7 @@ public partial class Client : IDisposable, IInputManagement
         m_levelChangeEvent = LevelChangeEvent.Default;
         PlayTransition();
         UpdateVolume();
-        UpdateDiscordRichPresence();
+        m_discord.UpdateRichPresence(GetGameName(), GetMapName());
 
         m_onLoadMapComplete?.OnComplete(m_onLoadMapComplete.CompleteParam);
         m_onLoadMapComplete = null;
@@ -660,22 +659,5 @@ public partial class Client : IDisposable, IInputManagement
         if (map != null)
             return map.GetDisplayNameWithPrefix(m_archiveCollection.Language);
         return null;
-    }
-
-    private void UpdateDiscordRichPresence()
-    {
-        if (m_discordClient == null)
-            InitializeDiscordClient();
-
-        m_discordClient?.SetPresence(new RichPresence()
-        {
-            Details = GetGameName(),
-            State = GetMapName(),
-        });
-    }
-
-    private void DisableDiscord()
-    {
-        m_discordClient?.Deinitialize();
     }
 }
