@@ -273,7 +273,7 @@ public partial class Renderer
         });
     }
 
-    private static unsafe void SetLineHeightBuffer(float* buffer, int index, ref StructLine line)
+    private static unsafe void SetLineHeightBuffer(float* buffer, int lineId, ref StructLine line)
     {
         var prevFloorZ = (float)line.FrontFloorPlane.PrevZ;
         var floorZ = (float)line.FrontFloorPlane.Z;
@@ -283,8 +283,9 @@ public partial class Renderer
             floorZ = Math.Max(floorZ, (float)line.BackFloorPlane.Z);
         }
 
+        var index = lineId * 2;
         buffer[index] = prevFloorZ;
-        buffer[index] = floorZ;
+        buffer[index + 1] = floorZ;
     }
 
     private void World_SectorLightChanged(object? sender, Sector sector)
