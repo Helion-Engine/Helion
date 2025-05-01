@@ -385,10 +385,11 @@ public partial class Client : IDisposable, IInputManagement
         m_levelChangeEvent = LevelChangeEvent.Default;
         PlayTransition();
         UpdateVolume();
-        m_discord.UpdateRichPresence(GetGameName(), GetMapName());
 
         m_onLoadMapComplete?.OnComplete(m_onLoadMapComplete.CompleteParam);
         m_onLoadMapComplete = null;
+
+        m_discord.UpdateRichPresence(GetGameName(), GetMapName());
 
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, false);
         GCUtil.SetGameplayLatencyMode();
