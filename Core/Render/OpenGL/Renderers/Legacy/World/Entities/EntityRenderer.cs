@@ -253,6 +253,7 @@ public class EntityRenderer : IDisposable
             (float)entity.PrevPosition.Z);
         vertex.OffsetZ = offsetZ;
         vertex.OffsetXY = texture.Offset.X;
+        // TODO: handle nofullbright
         vertex.LightLevel = entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright ? 255 :
             ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);

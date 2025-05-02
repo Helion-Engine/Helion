@@ -414,6 +414,7 @@ public partial class WorldLayer
     {
         int lightLevel;
         int colorMapIndex;
+        // TODO: handle nofullbright
         if (frameState.Frame.Properties.Bright || Player.DrawFullBright())
         {
             lightLevel = 255;
