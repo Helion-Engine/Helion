@@ -674,17 +674,27 @@ public partial class TextureManager : ITickable
     public Image? GetBrightmapImageFor(Texture texture)
     {
         var bmapsDef = m_archiveCollection.Definitions.GldefsDefinition.BrightMaps;
-        var source = texture.Namespace switch
+        var brightmapsOfType = texture.Namespace switch
         {
             ResourceNamespace.Flats => bmapsDef.Flats,
             ResourceNamespace.Sprites => bmapsDef.Sprites,
             ResourceNamespace.Textures => bmapsDef.Textures,
             _ => null
         };
-        // TODO: handle iwad only, specific wad only, etc
-        string? brightmapName = (source != null && source.TryGetValue(texture.Name, out var result))
-            ? result.BrightmapName
-            : null;
+
+        // brightmaps can optionally apply to only an IWAD or specific WAD
+        var sourceWad = m_archiveCollection.Entries.FindByNamespace(texture.Name, texture.Namespace, noFallback: true)?.Parent;
+        bool sourceIsIwad = sourceWad?.ArchiveType == Archives.ArchiveType.IWAD;
+        string? sourceWadHash = sourceWad?.MD5;
+
+        string? brightmapName = brightmapsOfType?.FirstOrDefault(x => (
+            x.BrightmapName.EqualsIgnoreCase(texture.Name)
+            && (
+                (!x.IwadOnly && x.SpecificWadMd5 == null)
+                || (x.IwadOnly && sourceIsIwad)
+                || (x.SpecificWadMd5 == sourceWadHash)
+            )
+        ))?.BrightmapName;
 
         return (brightmapName != null)
             ? m_archiveCollection.ImageRetriever.GetOnly(brightmapName, ResourceNamespace.Brightmaps)
