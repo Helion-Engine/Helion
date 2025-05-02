@@ -293,6 +293,8 @@ public class LegacyWorldRenderer : WorldRenderer
         if (m_renderStatic)
             m_geometryRenderer.RenderStaticSkies(renderInfo);
 
+        m_primitiveRenderer.Render(renderInfo);
+
         if (!m_vanillaRender)
         {
             m_interpolationProgram.Bind();
@@ -317,7 +319,6 @@ public class LegacyWorldRenderer : WorldRenderer
             RenderTwoSidedMiddleWalls(renderInfo);
             m_entityRenderer.RenderOpaque(renderInfo);
             RenderTransparent(renderInfo, framebuffer);
-            m_primitiveRenderer.Render(renderInfo);
             return;
         }
 
@@ -356,7 +357,6 @@ public class LegacyWorldRenderer : WorldRenderer
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer);
-        m_primitiveRenderer.Render(renderInfo);
     }
 
     private void SetupClipBuffers(GLFramebuffer framebuffer, Dimension dimension)
