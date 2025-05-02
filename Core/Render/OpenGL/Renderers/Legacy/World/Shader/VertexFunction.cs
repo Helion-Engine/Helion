@@ -14,21 +14,19 @@ public static class VertexFunction
             uvClampMaxFrag = vec2(MaxValue, MaxValue);
 
             if (vertexGapClampUV == 1) {
-                // Push y further since it's more likely to show t-junction issue with subsector flat splits.
+                ivec2 texSize = textureSize(boundTexture, 0);                
                 const float VertexGapX = 0.1;
-                const float VertexGapY = 0.9;
-                ivec2 texSize = textureSize(boundTexture, 0);
+                float pixelSize = uvFrag.y * texSize.y;
+                // Push y further since it's more likely to show t-junction issue with subsector flat splits
+                // But don't push if on a fractional part of a pixel
+                float VertexGapY = mix(0.9, 0, float(1 - abs(fract(pixelSize)) > 0.05));
                 vec2 uvGap = vec2(VertexGapX / texSize.x, VertexGapY / texSize.y);
-
-                // Account for when z is in between pixel values
-                float minOffsetV = (1 - fract(mixPos.z)) / texSize.y;
-                float maxOffsetV = fract(mixPos.z) / texSize.y;
                 
                 uvClampMinFrag.x = mix(uvClampMinFrag.x, uvFrag.x + uvGap.x, topLeft == 1);
-                uvClampMinFrag.y = mix(uvClampMinFrag.y, uvFrag.y + uvGap.y - minOffsetV, topLeft == 1);
+                uvClampMinFrag.y = mix(uvClampMinFrag.y, uvFrag.y + uvGap.y, topLeft == 1);
 
                 uvClampMaxFrag.x = mix(uvClampMaxFrag.x, uvFrag.x - uvGap.x, topLeft == 0);
-                uvClampMaxFrag.y = mix(uvClampMaxFrag.y, uvFrag.y - uvGap.y + maxOffsetV, topLeft == 0);
+                uvClampMaxFrag.y = mix(uvClampMaxFrag.y, uvFrag.y - uvGap.y, topLeft == 0);
             }
     ";
 
