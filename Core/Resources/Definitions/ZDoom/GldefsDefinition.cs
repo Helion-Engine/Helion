@@ -32,6 +32,7 @@ public class BrightmapDefinitions
 /// <seealso href="https://zdoom.org/wiki/GLDEFS"/> 
 public class GldefsDefinition
 {
+    // TODO: handle brightmaps from "auto" folder
     public BrightmapDefinitions BrightMaps = new();
 
     public void Parse(Entry entry)
