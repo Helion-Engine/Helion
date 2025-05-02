@@ -118,7 +118,7 @@ public class DefinitionEntries
         m_entryNameToAction["SKYDEFS"] = Id24SkyDefinition.Parse;
         m_entryNameToAction["GAMECONF"] = GameConfDefinition.Parse;
         m_entryNameToAction["GAMEINFO"] = entry => ParseEntry(GameInfoDefinition.Parse, entry);
-        m_entryNameToAction["GLDEFS"] = GldefsDefinition.Parse;
+        m_entryNameToAction["GLDEFS"] = entry => GldefsDefinition.Parse(entry, m_archiveCollection.IWadInfo.IWadBaseType);
     }
 
     public void ParseDehackedPatch(string data)

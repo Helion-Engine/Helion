@@ -23,27 +23,24 @@ public class GldefsTests
         var gldefsLump = archive.Entries.Find(x => x.Path.Name.EqualsIgnoreCase("gldefs"));
         gldefsLump.Should().NotBeNull();
 
-        definition.Parse(gldefsLump!);
+        definition.Parse(gldefsLump!, Resources.IWad.IWadBaseType.Doom2);
 
         definition.BrightMaps.Flats.Count.Should().Be(1);
         definition.BrightMaps.Sprites.Count.Should().Be(1);
         definition.BrightMaps.Textures.Count.Should().Be(1);
 
-        var sprite = definition.BrightMaps.Sprites.First().Value;
+        var sprite = definition.BrightMaps.Sprites.First();
         sprite.TargetTexture.Should().Be("POSSA1");
         sprite.BrightmapName.Should().Be("POSSA1");
-        sprite.BrightmapFilename.Should().Be("brightmaps/enemies/zombieman/POSSA1.png");
         sprite.IwadOnly.Should().Be(true);
 
-        var texture = definition.BrightMaps.Textures.First().Value;
+        var texture = definition.BrightMaps.Textures.First();
         texture.TargetTexture.Should().Be("BRICKLIT");
         texture.BrightmapName.Should().Be("BRICKLIT");
-        texture.BrightmapFilename.Should().Be("brightmaps/level/BRICKLIT.png");
-        texture.SpecificWad.Should().Be(Path.GetFileNameWithoutExtension(Resource));
+        texture.SpecificWadMd5.Should().NotBeNull();
 
-        var flat = definition.BrightMaps.Flats.First().Value;
+        var flat = definition.BrightMaps.Flats.First();
         flat.TargetTexture.Should().Be("GATE2");
         flat.BrightmapName.Should().Be("GATE2");
-        flat.BrightmapFilename.Should().Be("brightmaps/level/GATE2.png");
     }
 }
