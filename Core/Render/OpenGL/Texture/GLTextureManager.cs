@@ -244,7 +244,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
             {
                 Image = ArchiveCollection.ImageRetriever.GetOnlyMapped(translatedName, spriteRotation.Texture.Name, ResourceNamespace.Sprites,
                     colorTranslation: ArchiveCollection.Definitions.Colormaps[colorMapIndex].IndexLayer(0)),
-                BrightmapImage = ArchiveCollection.ImageRetriever.GetOnly(spriteRotation.Texture.Name, ResourceNamespace.Brightmaps)
+                BrightmapImage = TextureManager.GetBrightmapImageFor(spriteRotation.Texture)
             };
 
             translationRotation = new SpriteRotation(texture, spriteRotation.Mirror)

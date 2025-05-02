@@ -45,6 +45,8 @@ public partial class TextureManager : ITickable
 
     public List<Animation> GetAnimations() => m_animations;
 
+    public IImageRetriever ImageRetriever => m_archiveCollection.ImageRetriever;
+
     public string SkyTextureName;
     public int NullCompatibilityTextureIndex = Constants.NullCompatibilityTextureIndex;
 
@@ -365,7 +367,7 @@ public partial class TextureManager : ITickable
 
         texture = new(name, ResourceNamespace.Textures, m_textures.Count);
         texture.Image = image;
-        texture.BrightmapImage = m_archiveCollection.ImageRetriever.GetOnly(name, ResourceNamespace.Brightmaps);
+        texture.BrightmapImage = GetBrightmapImageFor(texture);
 
         m_textures.Add(texture);
         m_translations.Add(m_translations.Count);
@@ -461,7 +463,7 @@ public partial class TextureManager : ITickable
         if (!m_spriteIndexEntries.TryGetValue(spriteIndex, out var entries))
             return null;
 
-        SpriteDefinitions.Data[spriteIndex] = new SpriteDefinition(entries, m_archiveCollection.ImageRetriever);
+        SpriteDefinitions.Data[spriteIndex] = new SpriteDefinition(entries, this);
         return SpriteDefinitions.Data[spriteIndex];
     }
 
@@ -666,11 +668,10 @@ public partial class TextureManager : ITickable
             return;
 
         texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
-        string brightmapName = GetAssociatedBrightmapName(texture);
-        texture.BrightmapImage ??= m_archiveCollection.ImageRetriever.GetOnly(brightmapName, ResourceNamespace.Brightmaps);
+        texture.BrightmapImage ??= GetBrightmapImageFor(texture);
     }
 
-    private string GetAssociatedBrightmapName(Texture texture)
+    public Image? GetBrightmapImageFor(Texture texture)
     {
         var bmapsDef = m_archiveCollection.Definitions.GldefsDefinition.BrightMaps;
         var source = texture.Namespace switch
@@ -681,9 +682,13 @@ public partial class TextureManager : ITickable
             _ => null
         };
         // TODO: handle iwad only, specific wad only, etc
-        return (source != null && source.TryGetValue(texture.Name, out var result))
+        string? brightmapName = (source != null && source.TryGetValue(texture.Name, out var result))
             ? result.BrightmapName
-            : texture.Name;
+            : null;
+
+        return (brightmapName != null)
+            ? m_archiveCollection.ImageRetriever.GetOnly(brightmapName, ResourceNamespace.Brightmaps)
+            : null;
     }
 
     public void SetSkyTexture()

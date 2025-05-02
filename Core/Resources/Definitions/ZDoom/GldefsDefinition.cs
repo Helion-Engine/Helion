@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Helion.Resources.Archives.Entries;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
@@ -36,21 +37,32 @@ public class GldefsDefinition
     public void Parse(Entry entry)
     {
         // for GZDoom brightmaps, only parse DOOM's and not Hexen etc
-        if (entry.Path.FullPath.StartsWithIgnoreCase("filter/") && !entry.Path.FullPath.StartsWithIgnoreCase("filter/doom.id/"))
+        if (entry.Path.FullPath.StartsWithIgnoreCase("filter/") && !entry.Path.FullPath.StartsWithIgnoreCase("filter/doom.id"))
             return;
 
         string data = entry.ReadDataAsString();
         SimpleParser parser = new();
+        parser.SetSpecialChars(['{', '}']); // remove most special chars, particularly [ ] since they may be part of a sprite name
         parser.Parse(data);
 
         while (!parser.IsDone())
         {
             string defType = parser.ConsumeString();
-            if (defType.EqualsIgnoreCase("brightmap"))
+            if (defType.EqualsIgnoreCase("#include"))
+                ParseInclude(entry, parser);
+            else if (defType.EqualsIgnoreCase("brightmap"))
                 ParseBrightmapBlock(entry, parser);
             else if (!parser.IsDone())
                 parser.ConsumeLine();
         }
+    }
+
+    private void ParseInclude(Entry entry, SimpleParser parser)
+    {
+        string path = parser.ConsumeString();
+        Entry? includeEntry = entry.Parent.Entries.FirstOrDefault(x => x.Path.FullPath.EqualsIgnoreCase(path));
+        if (includeEntry != null)
+            Parse(includeEntry);
     }
 
     private void ParseBrightmapBlock(Entry entry, SimpleParser parser)
