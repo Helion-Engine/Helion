@@ -5,6 +5,7 @@
 - UDMF implementation
 - User data folder (config, save games, etc.) now defaults to `(user)/Saved Games/Helion` on Windows. The previous "portable mode" behavior of storing user data in the Helion folder is used if a `config.ini` file exists in the Helion folder, or if `-portable` is passed as a launch parameter.
 - Improvements to initial map load times
+- Added Discord rich presence integration (can be disabled)
 - Line contrast mode (off, vanilla, smooth)
 - Calculate locked key door color by using key icon image
 - Added pixel gap correction to rendering that is on by default. Prevents most pixel gap problems caused by floating point precision

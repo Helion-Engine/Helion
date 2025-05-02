@@ -105,6 +105,10 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [OptionMenu(OptionSectionType.General, "RNG Method", spacer: true)]
     public readonly ConfigValue<RngMethod> Rng = new(RngMethod.Boom);
 
+    [ConfigInfo("Shows the currently played WAD/map in Discord.")]
+    [OptionMenu(OptionSectionType.General, "Discord Integration", spacer: true)]
+    public readonly ConfigValue<bool> DiscordIntegration = new(true);
+
     // Non-menu items
     [ConfigInfo("Write stats to levelstat.txt.", save: false)]
     public readonly ConfigValue<bool> LevelStat = new(false);

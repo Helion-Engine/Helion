@@ -79,6 +79,13 @@ public partial class Client
             if (m_commandLineArgs.LevelStat)
                 ClearStatsFile();
 
+            m_discord.SetEnabled(m_config.Game.DiscordIntegration);
+            m_config.Game.DiscordIntegration.OnChanged += (s, e) =>
+            {
+                m_discord.SetEnabled(e);
+                m_discord.UpdateRichPresence(GetGameName(), GetMapName());
+            };
+
             if (m_commandLineArgs.LoadGame != null)
             {
                 ConsoleCommandEventArgs args = new($"load \"{m_commandLineArgs.LoadGame}\"");

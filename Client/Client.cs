@@ -63,6 +63,7 @@ public partial class Client : IDisposable, IInputManagement
     private readonly Profiler m_profiler = new();
     private readonly Ticker m_ticker = new(Constants.TicksPerSecond);
     private readonly SaveGameScreenshotGenerator m_screenshotGenerator;
+    private readonly DiscordHandler m_discord = new();
     private bool m_disposed;
     private bool m_takeScreenshot;
     private bool m_loadComplete;
@@ -388,6 +389,8 @@ public partial class Client : IDisposable, IInputManagement
         m_onLoadMapComplete?.OnComplete(m_onLoadMapComplete.CompleteParam);
         m_onLoadMapComplete = null;
 
+        m_discord.UpdateRichPresence(GetGameName(), GetMapName());
+
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, false);
         GCUtil.SetGameplayLatencyMode();
     }
@@ -632,5 +635,30 @@ public partial class Client : IDisposable, IInputManagement
     {
         if (e.Success)
             m_lastWorldModel = e.WorldModel;
+    }
+
+    private string? GetGameName()
+    {
+        // try gameconf (rare)
+        string? title = m_archiveCollection.Definitions.GameConfDefinition.Data?.Title;
+        // then gameinfo (uncommon)
+        if (string.IsNullOrWhiteSpace(title))
+            title = m_archiveCollection.Definitions.GameInfoDefinition.StartupTitle;
+        // fall back to WAD title
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            var map = m_layerManager.WorldLayer?.CurrentMap;
+            if (map != null)
+                title = Path.GetFileName(m_archiveCollection.FindMap(map.MapName)?.ArchivePath);
+        }
+        return title;
+    }
+
+    private string? GetMapName()
+    {
+        var map = m_layerManager.WorldLayer?.CurrentMap;
+        if (map != null)
+            return map.GetDisplayNameWithPrefix(m_archiveCollection.Language);
+        return null;
     }
 }
