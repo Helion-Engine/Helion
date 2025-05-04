@@ -1,4 +1,4 @@
-using System.IO;
+using System;
 using System.Linq;
 using FluentAssertions;
 using Helion.Resources.Archives;
@@ -11,15 +11,16 @@ namespace Helion.Tests.Unit.Definitions;
 
 public class GldefsTests
 {
-    private const string Resource = "Resources/gldefs.zip";
+    private const string MainResource = "Resources/gldefs.zip";
+    private const string LoopResource = "Resources/gldefs-recursion-loop.zip";
 
-    [Fact(DisplayName = "GLDEFS parsing")]
+    [Fact(DisplayName = "GLDEFS should parse")]
     public void ParseGldefs()
     {
         GldefsDefinition definition = new();
         IndexGenerator m_indexGenerator = new();
 
-        var archive = new PK3(new EntryPath(Resource), m_indexGenerator);
+        var archive = new PK3(new EntryPath(MainResource), m_indexGenerator);
         var gldefsLump = archive.Entries.Find(x => x.Path.Name.EqualsIgnoreCase("gldefs"));
         gldefsLump.Should().NotBeNull();
 
@@ -42,5 +43,22 @@ public class GldefsTests
         var flat = definition.BrightMaps.Flats.First();
         flat.TargetTexture.Should().Be("GATE2");
         flat.BrightmapName.Should().Be("GATE2");
+    }
+
+    [Fact(DisplayName = "GLDEFS parsing should error for infinitely looping #includes")]
+    public void ParseGldefsWithInfiniteLoop()
+    {
+        GldefsDefinition definition = new();
+        IndexGenerator m_indexGenerator = new();
+
+        var archive = new PK3(new EntryPath(LoopResource), m_indexGenerator);
+        var gldefsLump = archive.Entries.Find(x => x.Path.Name.EqualsIgnoreCase("gldefs"));
+        gldefsLump.Should().NotBeNull();
+
+        try
+        {
+            definition.Parse(gldefsLump!, Resources.IWad.IWadBaseType.Doom2);
+        }
+        catch (Exception e) when (e.Message.Contains("infinite loop")) { }
     }
 }

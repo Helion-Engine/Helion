@@ -36,39 +36,49 @@ public class GldefsDefinition
     // TODO: handle brightmaps from "auto" folder
     public BrightmapDefinitions BrightMaps = new();
 
+    private readonly Stack<string> m_includeStack = new();
+
     public void Parse(Entry entry, IWadBaseType iwadType)
     {
-        // for GZDoom brightmaps, only parse DOOM's and not Hexen etc
-        if (entry.Path.FullPath.StartsWithIgnoreCase("filter/"))
+        m_includeStack.Push(entry.Path.FullPath);
+        try
         {
-            string[] validFilterPaths = iwadType switch
+            // for GZDoom brightmaps, only parse DOOM's and not Hexen etc
+            if (entry.Path.FullPath.StartsWithIgnoreCase("filter/"))
             {
-                IWadBaseType.Doom1 => ["doom.id", "doom.id.doom1"],
-                IWadBaseType.Doom2 => ["doom.id", "doom.id.doom2"],
-                IWadBaseType.Plutonia => ["doom.id", "doom.id.doom2", "doom.id.doom2.plutonia"],
-                IWadBaseType.TNT => ["doom.id", "doom.id.doom2", "doom.id.doom2.tnt"],
-                // could be chex.chex1 or chex.chex3 based on https://www.chexquest3.com/downloads/cq3gldef.zip
-                IWadBaseType.ChexQuest => ["chex"],
-                _ => []
-            };
-            if (!validFilterPaths.Any(x => entry.Path.FullPath.StartsWithIgnoreCase($"filter/{x}/")))
-                return;
+                string[] validFilterPaths = iwadType switch
+                {
+                    IWadBaseType.Doom1 => ["doom.id", "doom.id.doom1"],
+                    IWadBaseType.Doom2 => ["doom.id", "doom.id.doom2"],
+                    IWadBaseType.Plutonia => ["doom.id", "doom.id.doom2", "doom.id.doom2.plutonia"],
+                    IWadBaseType.TNT => ["doom.id", "doom.id.doom2", "doom.id.doom2.tnt"],
+                    // could be chex.chex1 or chex.chex3 based on https://www.chexquest3.com/downloads/cq3gldef.zip
+                    IWadBaseType.ChexQuest => ["chex"],
+                    _ => []
+                };
+                if (!validFilterPaths.Any(x => entry.Path.FullPath.StartsWithIgnoreCase($"filter/{x}/")))
+                    return;
+            }
+
+            string data = entry.ReadDataAsString();
+            SimpleParser parser = new();
+            parser.SetSpecialChars(['{', '}']); // remove most special chars, particularly [ ] since they may be part of a sprite name
+            parser.Parse(data);
+
+            while (!parser.IsDone())
+            {
+                string defType = parser.ConsumeString();
+                if (defType.EqualsIgnoreCase("#include"))
+                    ParseInclude(entry, iwadType, parser);
+                else if (defType.EqualsIgnoreCase("brightmap"))
+                    ParseBrightmapBlock(entry, parser);
+                else if (!parser.IsDone())
+                    parser.ConsumeLine();
+            }
         }
-
-        string data = entry.ReadDataAsString();
-        SimpleParser parser = new();
-        parser.SetSpecialChars(['{', '}']); // remove most special chars, particularly [ ] since they may be part of a sprite name
-        parser.Parse(data);
-
-        while (!parser.IsDone())
+        finally
         {
-            string defType = parser.ConsumeString();
-            if (defType.EqualsIgnoreCase("#include"))
-                ParseInclude(entry, iwadType, parser);
-            else if (defType.EqualsIgnoreCase("brightmap"))
-                ParseBrightmapBlock(entry, parser);
-            else if (!parser.IsDone())
-                parser.ConsumeLine();
+            m_includeStack.Pop();
         }
     }
 
@@ -77,7 +87,11 @@ public class GldefsDefinition
         string path = parser.ConsumeString();
         Entry? includeEntry = entry.Parent.Entries.FirstOrDefault(x => x.Path.FullPath.EqualsIgnoreCase(path));
         if (includeEntry != null)
+        {
+            if (m_includeStack.Contains(includeEntry.Path.FullPath))
+                throw new Exception($"GLDEFS in {entry.Parent.FullPath} contains an infinite loop ({entry.Path.FullPath} -> {includeEntry.Path.FullPath})");
             Parse(includeEntry, iwadType);
+        }
     }
 
     private void ParseBrightmapBlock(Entry entry, SimpleParser parser)
