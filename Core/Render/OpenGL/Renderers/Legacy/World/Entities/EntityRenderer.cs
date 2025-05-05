@@ -253,7 +253,8 @@ public class EntityRenderer : IDisposable
             (float)entity.PrevPosition.Z);
         vertex.OffsetZ = offsetZ;
         vertex.OffsetXY = texture.Offset.X;
-        vertex.LightLevel = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !spriteRotation.BrightmapNoFullbright
+        bool disableFullbright = m_config.Render.Brightmaps && spriteRotation.BrightmapNoFullbright;
+        vertex.LightLevel = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright
             ? 255
             : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);

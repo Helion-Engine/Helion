@@ -36,7 +36,8 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     private readonly Dictionary<string, GLFontTexture<GLTextureType>> m_fonts = new(StringComparer.OrdinalIgnoreCase);
     private bool m_disposed;
 
-    private TextureManager TextureManager => ArchiveCollection.TextureManager;
+    // TODO: revert to private
+    public TextureManager TextureManager => ArchiveCollection.TextureManager;
 
     public abstract IImageDrawInfoProvider ImageDrawInfoProvider { get; }
 
@@ -240,7 +241,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
                 return NullSpriteRotation;
 
             string translatedName = spriteRotation.Texture.Name + "-ColorMap-" + colorMapIndex;
-            var brightmap = TextureManager.GetBrightmapFor(spriteRotation.Texture);
+            var brightmap = TextureManager.GetBrightmapFor(spriteRotation.Texture.Name, ResourceNamespace.Sprites);
             var texture = new Resources.Texture(translatedName, ResourceNamespace.Sprites, 0)
             {
                 Image = ArchiveCollection.ImageRetriever.GetOnlyMapped(translatedName, spriteRotation.Texture.Name, ResourceNamespace.Sprites,

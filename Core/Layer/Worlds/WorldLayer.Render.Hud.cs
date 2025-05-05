@@ -11,6 +11,7 @@ using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Texture.Fonts;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Definitions.Decorate.States;
@@ -412,10 +413,19 @@ public partial class WorldLayer
 
     private void DrawHudWeapon(IHudRenderContext hud, FrameState frameState, int yOffset, bool flash)
     {
+
+        string sprite = GetHudWeaponSpriteString(frameState, flash);
+
+        if (!hud.Textures.TryGet(sprite, out var handle, SpriteLookupNamespace))
+            return;
+
+        // TODO: remove this lookup
+        var brightmap = (hud.Textures as LegacyGLTextureManager)?.TextureManager.GetBrightmapFor(sprite, ResourceNamespace.Sprites);
+        
         int lightLevel;
         int colorMapIndex;
-        // TODO: handle nofullbright
-        if (frameState.Frame.Properties.Bright || Player.DrawFullBright())
+        bool disableFullbright = m_config.Render.Brightmaps && brightmap?.DisableFullbright == true;
+        if ((frameState.Frame.Properties.Bright && !disableFullbright) || Player.DrawFullBright())
         {
             lightLevel = 255;
             colorMapIndex = 0;
@@ -440,17 +450,12 @@ public partial class WorldLayer
             (byte)Math.Min(lightLevel * colorMix.Y, 255),
             (byte)Math.Min(lightLevel * colorMix.Z, 255));
 
-        string sprite = GetHudWeaponSpriteString(frameState, flash);
-
-        if (!hud.Textures.TryGet(sprite, out var handle, SpriteLookupNamespace))
-            return;
-
         var offset = handle.Offset;
         offset.Y += yOffset;
         offset = TranslateDoomOffset(offset);
         var hudBox = GetInterpolatePlayerWeaponBox(hud, handle, offset);
 
-        hud.Image(sprite, hudBox, color: lightLevelColor, colorMapIndex: colorMapIndex, resourceNamespace: SpriteLookupNamespace);
+        hud.Image(sprite, hudBox, color: lightLevelColor, colorMapIndex: colorMapIndex, resourceNamespace: SpriteLookupNamespace, brightmapName: brightmap?.Name);
     }
 
     private HudBox GetInterpolatePlayerWeaponBox(IHudRenderContext hud, IRenderableTextureHandle handle, Vec2I offset)

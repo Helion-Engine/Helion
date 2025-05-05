@@ -59,25 +59,27 @@ public interface IHudRenderContext : IDisposable
 
     void Image(string texture, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
         Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Undefined, Color? color = null,
-        float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1)
+        float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1, string? brightmapName = null)
     {
-        Image(texture, origin, out _, window, anchor, both, resourceNamespace, color, scale, alpha, colorMapIndex, upscalingFactor);
+        Image(texture, origin, out _, window, anchor, both, resourceNamespace, color, scale, alpha, colorMapIndex, upscalingFactor, brightmapName);
     }
 
     void Image(string texture, HudBox area, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
         Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Undefined, Color? color = null,
-        float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1)
+        float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1, string? brightmapName = null)
     {
-        Image(texture, area, out _, window, anchor, both, resourceNamespace, color, scale, alpha, colorMapIndex, upscalingFactor);
+        Image(texture, area, out _, window, anchor, both, resourceNamespace, color, scale, alpha, colorMapIndex, upscalingFactor, brightmapName);
     }
 
     void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Undefined,
-        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1);
+        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1,
+        string? brightmapName = null);
 
     void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Undefined,
-        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1);
+        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1,
+        string? brightmapName = null);
 
     void Text(RenderableString str, Vec2I origin, Align window = Align.TopLeft, Align anchor = Align.TopLeft,
         Align? both = null, float alpha = 1);

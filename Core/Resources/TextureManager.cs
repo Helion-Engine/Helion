@@ -368,7 +368,7 @@ public partial class TextureManager : ITickable
 
         texture = new(name, ResourceNamespace.Textures, m_textures.Count);
         texture.Image = image;
-        texture.BrightmapImage = GetBrightmapFor(texture).Image;
+        texture.BrightmapImage = GetBrightmapFor(texture.Name, texture.Namespace).Image;
 
         m_textures.Add(texture);
         m_translations.Add(m_translations.Count);
@@ -669,13 +669,14 @@ public partial class TextureManager : ITickable
             return;
 
         texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
-        texture.BrightmapImage ??= GetBrightmapFor(texture).Image;
+        texture.BrightmapImage ??= GetBrightmapFor(texture.Name, texture.Namespace).Image;
     }
 
-    public (Image? Image, bool DisableFullbright) GetBrightmapFor(Texture texture)
+    // TODO: revise this
+    public (Image? Image, string? Name, bool DisableFullbright) GetBrightmapFor(string textureName, ResourceNamespace textureNamespace)
     {
         var bmapsDef = m_archiveCollection.Definitions.GldefsDefinition.BrightMaps;
-        var brightmapsOfType = texture.Namespace switch
+        var brightmapsOfType = textureNamespace switch
         {
             ResourceNamespace.Flats => bmapsDef.Flats,
             ResourceNamespace.Sprites => bmapsDef.Sprites,
@@ -684,12 +685,12 @@ public partial class TextureManager : ITickable
         };
 
         // brightmaps can optionally apply to only an IWAD or specific WAD
-        var sourceWad = m_archiveCollection.Entries.FindByNamespace(texture.Name, texture.Namespace, noFallback: true)?.Parent;
+        var sourceWad = m_archiveCollection.Entries.FindByNamespace(textureName, textureNamespace, noFallback: true)?.Parent;
         bool sourceIsIwad = sourceWad?.ArchiveType == Archives.ArchiveType.IWAD;
         string? sourceWadHash = sourceWad?.MD5;
 
         BrightmapDefinition? brightmap = brightmapsOfType?.FirstOrDefault(x => (
-            x.BrightmapName.EqualsIgnoreCase(texture.Name)
+            x.BrightmapName.EqualsIgnoreCase(textureName)
             && (
                 (!x.IwadOnly && x.SpecificWadMd5 == null)
                 || (x.IwadOnly && sourceIsIwad)
@@ -698,8 +699,9 @@ public partial class TextureManager : ITickable
         ));
 
         return (brightmap != null)
-            ? (m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps), brightmap.DisableFullbright)
-            : (null, false);
+            ? (m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps),
+                brightmap.BrightmapName, brightmap.DisableFullbright)
+            : (null, null, false);
     }
 
     public void SetSkyTexture()

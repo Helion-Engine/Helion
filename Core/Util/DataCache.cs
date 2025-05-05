@@ -334,16 +334,16 @@ public class DataCache
         renderableString.Font = null!;
     }
 
-    public HudDrawBufferData GetDrawHudBufferData(GLLegacyTexture texture)
+    public HudDrawBufferData GetDrawHudBufferData(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
         if (m_hudDrawBufferData.Length > 0)
         {
             var buffer = m_hudDrawBufferData.RemoveLast();
-            buffer.Set(texture);
+            buffer.Set(texture, brightmapTexture);
             return buffer;
         }
 
-        return new HudDrawBufferData(texture);
+        return new HudDrawBufferData(texture, brightmapTexture);
     }
 
     public void FreeDrawHudBufferData(HudDrawBufferData data)
