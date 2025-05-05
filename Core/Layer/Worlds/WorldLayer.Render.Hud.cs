@@ -418,8 +418,7 @@ public partial class WorldLayer
         if (!hud.Textures.TryGet(sprite, out var handle, SpriteLookupNamespace))
             return;
 
-        // TODO: remove this lookup
-        var brightmap = (hud.Textures as LegacyGLTextureManager)?.TextureManager.GetBrightmapFor(sprite, ResourceNamespace.Sprites);
+        var brightmap = hud.ArchiveCollection.GetBrightmapFor(sprite, ResourceNamespace.Sprites);
         
         int lightLevel;
         int colorMapIndex;

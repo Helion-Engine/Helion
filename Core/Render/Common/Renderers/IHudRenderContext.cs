@@ -7,6 +7,7 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
 
 namespace Helion.Render.Common.Renderers;
@@ -27,6 +28,7 @@ public interface IHudRenderContext : IDisposable
     /// The texture manager that this context uses.
     /// </summary>
     IRendererTextureManager Textures { get; }
+    ArchiveCollection ArchiveCollection { get; }
 
     int Width => Dimension.Width;
     int Height => Dimension.Height;

@@ -369,7 +369,7 @@ public partial class TextureManager : ITickable
         texture = new(name, ResourceNamespace.Textures, m_textures.Count);
         texture.Image = image;
 
-        var brightmap = GetBrightmapFor(texture.Name, texture.Namespace);
+        var brightmap = m_archiveCollection.GetBrightmapFor(texture.Name, texture.Namespace);
         if (brightmap?.BrightmapName != null)
             texture.BrightmapImage = ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
 
@@ -467,7 +467,7 @@ public partial class TextureManager : ITickable
         if (!m_spriteIndexEntries.TryGetValue(spriteIndex, out var entries))
             return null;
 
-        SpriteDefinitions.Data[spriteIndex] = new SpriteDefinition(entries, this);
+        SpriteDefinitions.Data[spriteIndex] = new SpriteDefinition(entries, ImageRetriever, m_archiveCollection);
         return SpriteDefinitions.Data[spriteIndex];
     }
 
@@ -674,41 +674,10 @@ public partial class TextureManager : ITickable
         texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
         if (texture.BrightmapImage == null)
         {
-            var brightmap = GetBrightmapFor(texture.Name, texture.Namespace);
+            var brightmap = m_archiveCollection.GetBrightmapFor(texture.Name, texture.Namespace);
             if (brightmap?.BrightmapName != null)
                 texture.BrightmapImage = m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps, options);
         }
-    }
-
-    // TODO: revise this
-    public BrightmapDefinition? GetBrightmapFor(string textureName, ResourceNamespace textureNamespace)
-    {
-        var bmapsDef = m_archiveCollection.Definitions.GldefsDefinition.BrightMaps;
-        var brightmapsOfType = textureNamespace switch
-        {
-            ResourceNamespace.Flats => bmapsDef.Flats,
-            ResourceNamespace.Sprites => bmapsDef.Sprites,
-            ResourceNamespace.Textures => bmapsDef.Textures,
-            _ => null
-        };
-
-        // brightmaps can optionally apply to only an IWAD or specific WAD
-        var sourceWad = m_archiveCollection.Entries.FindByNamespace(textureName, textureNamespace, noFallback: true)?.Parent;
-        bool sourceIsIwad = sourceWad?.ArchiveType == Archives.ArchiveType.IWAD;
-        string? sourceWadHash = sourceWad?.MD5;
-
-        BrightmapDefinition? brightmap = brightmapsOfType?.FirstOrDefault(x => (
-            x.TargetTexture.EqualsIgnoreCase(textureName)
-            && (
-                (!x.IwadOnly && x.SpecificWadMd5 == null)
-                || (x.IwadOnly && sourceIsIwad)
-                || (x.SpecificWadMd5 == sourceWadHash)
-            )
-        ));
-        if (brightmap == null && bmapsDef.Auto.TryGetValue(textureName, out BrightmapDefinition? val))
-            brightmap = val;
-
-        return brightmap;
     }
 
     public void SetSkyTexture()

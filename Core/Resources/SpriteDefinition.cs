@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.Images;
 
 namespace Helion.Resources;
 
@@ -12,7 +14,7 @@ public class SpriteDefinition
 
     private static readonly Dictionary<string, Texture> SpriteTextureLookup = [];
 
-    public SpriteDefinition(IList<Entry> entries, TextureManager textureManager)
+    public SpriteDefinition(IList<Entry> entries, IImageRetriever imageRetriever, ArchiveCollection archiveCollection)
     {
         int frame;
         int rotation;
@@ -26,13 +28,13 @@ public class SpriteDefinition
             frame = entry.Path.Name[4] - 'A';
             rotation = entry.Path.Name[5] - '0';
 
-            CreateRotations(entry, textureManager, frame, rotation, false);
+            CreateRotations(entry, imageRetriever, archiveCollection, frame, rotation, false);
 
             if (entry.Path.Name.Length > 7)
             {
                 frame = entry.Path.Name[6] - 'A';
                 rotation = entry.Path.Name[7] - '0';
-                CreateRotations(entry, textureManager, frame, rotation, true);
+                CreateRotations(entry, imageRetriever, archiveCollection, frame, rotation, true);
             }
         }
     }
@@ -40,7 +42,7 @@ public class SpriteDefinition
     public SpriteRotation? GetSpriteRotation(int frame, uint rotation) =>
         Rotations[frame, rotation];
 
-    private void CreateRotations(Entry entry, TextureManager textureManager, int frame, int rotation, bool mirror)
+    private void CreateRotations(Entry entry, IImageRetriever imageRetriever, ArchiveCollection archiveCollection, int frame, int rotation, bool mirror)
     {
         if (frame < 0 || frame >= MaxFrames)
             return;
@@ -49,12 +51,12 @@ public class SpriteDefinition
         if (!SpriteTextureLookup.TryGetValue(entry.Path.Name, out var texture))
         {
             texture = new(entry.Path.Name, ResourceNamespace.Sprites, 0);
-            texture.Image = textureManager.ImageRetriever.GetOnly(entry.Path.Name, ResourceNamespace.Sprites);
+            texture.Image = imageRetriever.GetOnly(entry.Path.Name, ResourceNamespace.Sprites);
 
-            var brightmap = textureManager.GetBrightmapFor(texture.Name, ResourceNamespace.Sprites);
+            var brightmap = archiveCollection.GetBrightmapFor(texture.Name, ResourceNamespace.Sprites);
             if (brightmap?.BrightmapName != null)
             {
-                texture.BrightmapImage = textureManager.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
+                texture.BrightmapImage = imageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
                 brightmapNoFullbright = brightmap.DisableFullbright;
             }
 

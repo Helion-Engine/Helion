@@ -25,6 +25,7 @@ public class GLHudRenderContext : IHudRenderContext
     private readonly Stack<ResolutionInfo> m_resolutionInfos = new();
     private readonly ArchiveCollection m_archiveCollection;
     public IRendererTextureManager Textures { get; }
+    public ArchiveCollection ArchiveCollection => m_archiveCollection;
     private HudRenderContext? m_context;
 
     public Dimension Dimension
