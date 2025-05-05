@@ -37,7 +37,7 @@ public class BrightmapDefinitions
 /// <seealso href="https://zdoom.org/wiki/GLDEFS"/> 
 public class GldefsDefinition
 {
-    public BrightmapDefinitions BrightMaps = new();
+    public readonly BrightmapDefinitions BrightMaps = new();
 
     private readonly Stack<string> m_includeStack = new();
     private IWadBaseType m_iwadType;
@@ -60,9 +60,8 @@ public class GldefsDefinition
             };
             if (!validFilterPaths.Any(x => entry.Path.FullPath.StartsWithIgnoreCase($"filter/{x}/")))
                 return;
-
-            ParseEntry(entry);
         }
+        ParseEntry(entry);
     }
 
     public void AddAutoBrightmaps(Archive archive)
