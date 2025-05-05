@@ -392,7 +392,7 @@ public partial class Client
         foreach (var map in m_archiveCollection.MapInfo.MapInfo.Maps)
         {
             string mapName = map.GetDisplayNameWithPrefix(m_archiveCollection.Language);
-            string? mapWad = Path.GetFileName(m_archiveCollection.FindMap(map.MapName)?.ArchivePath);
+            string? mapWad = m_archiveCollection.FindEntry(map.MapName)?.Parent.Path.NameWithExtension;
             HelionLog.Info((mapWad != null) ? $"{mapName} ({mapWad})" : mapName);
         }
     }
