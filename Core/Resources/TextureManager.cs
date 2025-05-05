@@ -705,6 +705,8 @@ public partial class TextureManager : ITickable
                 || (x.SpecificWadMd5 == sourceWadHash)
             )
         ));
+        if (brightmap == null && bmapsDef.Auto.TryGetValue(textureName, out BrightmapDefinition? val))
+            brightmap = val;
 
         return brightmap;
     }

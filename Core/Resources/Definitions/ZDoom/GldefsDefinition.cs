@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Helion.Resources.Archives;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.IWad;
 using Helion.Util.Extensions;
@@ -25,6 +26,8 @@ public class BrightmapDefinitions
     public List<BrightmapDefinition> Flats { get; set; } = [];
     public List<BrightmapDefinition> Sprites { get; set; } = [];
     public List<BrightmapDefinition> Textures { get; set; } = [];
+    /// <summary>Brightmaps placed in brightmaps/auto whose type is indeterminate</summary>
+    public Dictionary<string, BrightmapDefinition> Auto { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
 /// <summary>
@@ -33,32 +36,48 @@ public class BrightmapDefinitions
 /// <seealso href="https://zdoom.org/wiki/GLDEFS"/> 
 public class GldefsDefinition
 {
-    // TODO: handle brightmaps from "auto" folder
     public BrightmapDefinitions BrightMaps = new();
 
     private readonly Stack<string> m_includeStack = new();
+    private IWadBaseType m_iwadType;
 
     public void Parse(Entry entry, IWadBaseType iwadType)
+    {
+        m_iwadType = iwadType;
+        // for directory filters (e.g. GZDoom's brightmaps), only parse DOOM's and not Hexen etc
+        if (entry.Path.FullPath.StartsWithIgnoreCase("filter/"))
+        {
+            string[] validFilterPaths = m_iwadType switch
+            {
+                IWadBaseType.Doom1 => ["doom.id", "doom.id.doom1"],
+                IWadBaseType.Doom2 => ["doom.id", "doom.id.doom2"],
+                IWadBaseType.Plutonia => ["doom.id", "doom.id.doom2", "doom.id.doom2.plutonia"],
+                IWadBaseType.TNT => ["doom.id", "doom.id.doom2", "doom.id.doom2.tnt"],
+                // could be chex.chex1 or chex.chex3 based on https://www.chexquest3.com/downloads/cq3gldef.zip
+                IWadBaseType.ChexQuest => ["chex"],
+                _ => []
+            };
+            if (!validFilterPaths.Any(x => entry.Path.FullPath.StartsWithIgnoreCase($"filter/{x}/")))
+                return;
+
+            ParseEntry(entry);
+        }
+    }
+
+    public void AddAutoBrightmaps(Archive archive)
+    {
+        foreach (Entry entry in archive.Entries.Where(x => x.Path.FullPath.StartsWithIgnoreCase("brightmaps/auto/")))
+        {
+            string name = entry.Path.Name;
+            BrightMaps.Auto[name] = new BrightmapDefinition() { TargetTexture = name, BrightmapName = name };
+        }
+    }
+
+    private void ParseEntry(Entry entry)
     {
         m_includeStack.Push(entry.Path.FullPath);
         try
         {
-            // for directory filters (e.g. GZDoom's brightmaps), only parse DOOM's and not Hexen etc
-            if (entry.Path.FullPath.StartsWithIgnoreCase("filter/"))
-            {
-                string[] validFilterPaths = iwadType switch
-                {
-                    IWadBaseType.Doom1 => ["doom.id", "doom.id.doom1"],
-                    IWadBaseType.Doom2 => ["doom.id", "doom.id.doom2"],
-                    IWadBaseType.Plutonia => ["doom.id", "doom.id.doom2", "doom.id.doom2.plutonia"],
-                    IWadBaseType.TNT => ["doom.id", "doom.id.doom2", "doom.id.doom2.tnt"],
-                    // could be chex.chex1 or chex.chex3 based on https://www.chexquest3.com/downloads/cq3gldef.zip
-                    IWadBaseType.ChexQuest => ["chex"],
-                    _ => []
-                };
-                if (!validFilterPaths.Any(x => entry.Path.FullPath.StartsWithIgnoreCase($"filter/{x}/")))
-                    return;
-            }
 
             string data = entry.ReadDataAsString();
             SimpleParser parser = new();
@@ -69,7 +88,7 @@ public class GldefsDefinition
             {
                 string defType = parser.ConsumeString();
                 if (defType.EqualsIgnoreCase("#include"))
-                    ParseInclude(entry, iwadType, parser);
+                    ParseInclude(entry, parser);
                 else if (defType.EqualsIgnoreCase("brightmap"))
                     ParseBrightmapBlock(entry, parser);
                 else if (!parser.IsDone())
@@ -82,7 +101,7 @@ public class GldefsDefinition
         }
     }
 
-    private void ParseInclude(Entry entry, IWadBaseType iwadType, SimpleParser parser)
+    private void ParseInclude(Entry entry, SimpleParser parser)
     {
         string path = parser.ConsumeString();
         Entry? includeEntry = entry.Parent.Entries.FirstOrDefault(x => x.Path.FullPath.EqualsIgnoreCase(path));
@@ -90,7 +109,7 @@ public class GldefsDefinition
         {
             if (m_includeStack.Contains(includeEntry.Path.FullPath))
                 throw new Exception($"GLDEFS in {entry.Parent.FullPath} contains an infinite loop ({entry.Path.FullPath} -> {includeEntry.Path.FullPath})");
-            Parse(includeEntry, iwadType);
+            ParseEntry(includeEntry);
         }
     }
 

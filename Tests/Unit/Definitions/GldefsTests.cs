@@ -13,6 +13,7 @@ public class GldefsTests
 {
     private const string MainResource = "Resources/gldefs.zip";
     private const string LoopResource = "Resources/gldefs-recursion-loop.zip";
+    private const string AutoResource = "Resources/gldefs-auto-brightmaps.zip";
 
     [Fact(DisplayName = "GLDEFS should parse")]
     public void ParseGldefs()
@@ -60,5 +61,24 @@ public class GldefsTests
             definition.Parse(gldefsLump!, Resources.IWad.IWadBaseType.Doom2);
         }
         catch (Exception e) when (e.Message.Contains("infinite loop")) { }
+    }
+
+    [Fact(DisplayName = "GLDEFS should support automatic brightmaps")]
+    public void LoadAutomaticBrightmaps()
+    {
+        GldefsDefinition definition = new();
+        IndexGenerator m_indexGenerator = new();
+
+        var archive = new PK3(new EntryPath(AutoResource), m_indexGenerator);
+        var gldefsLump = archive.Entries.Find(x => x.Path.Name.EqualsIgnoreCase("gldefs"));
+        gldefsLump.Should().BeNull();
+
+        definition.AddAutoBrightmaps(archive);
+        definition.BrightMaps.Auto.Count.Should().Be(1);
+        var brightmap = definition.BrightMaps.Auto.First();
+        string name = "blank";
+        brightmap.Key.Should().Be(name);
+        brightmap.Value.BrightmapName.Should().Be(name);
+        brightmap.Value.TargetTexture.Should().Be(name);
     }
 }
