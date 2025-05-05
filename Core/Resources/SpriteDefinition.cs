@@ -47,7 +47,6 @@ public class SpriteDefinition
         if (frame < 0 || frame >= MaxFrames)
             return;
 
-        bool brightmapNoFullbright = false;
         if (!SpriteTextureLookup.TryGetValue(entry.Path.Name, out var texture))
         {
             texture = new(entry.Path.Name, ResourceNamespace.Sprites, 0);
@@ -55,13 +54,10 @@ public class SpriteDefinition
             SpriteTextureLookup[entry.Path.Name] = texture;
         }
 
-        bool brightmapNoFullbright = false;
         var brightmap = archiveCollection.GetBrightmapFor(texture.Name, ResourceNamespace.Sprites);
         if (brightmap?.BrightmapName != null)
-        {
             texture.BrightmapImage ??= imageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
-            brightmapNoFullbright = brightmap.DisableFullbright;
-        }
+        bool brightmapNoFullbright = brightmap?.DisableFullbright ?? false;
 
         // Does not have any rotations, just fill all 8 with the same texture for easier lookups
         if (rotation == 0)
