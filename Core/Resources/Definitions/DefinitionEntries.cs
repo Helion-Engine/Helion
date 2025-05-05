@@ -118,7 +118,8 @@ public class DefinitionEntries
         m_entryNameToAction["SKYDEFS"] = Id24SkyDefinition.Parse;
         m_entryNameToAction["GAMECONF"] = GameConfDefinition.Parse;
         m_entryNameToAction["GAMEINFO"] = entry => ParseEntry(GameInfoDefinition.Parse, entry);
-        m_entryNameToAction["GLDEFS"] = entry => GldefsDefinition.Parse(entry, m_archiveCollection.IWadInfo.IWadBaseType);
+        m_entryNameToAction["GLDEFS"] = ParseGldefs;
+        m_entryNameToAction["DOOMDEFS"] = ParseGldefs;
     }
 
     public void ParseDehackedPatch(string data)
@@ -172,6 +173,7 @@ public class DefinitionEntries
     private void ParseCompLevel(string data) => CompLevelDefinition.Parse(data);
     private void ParseMusInfo(string text) => MusInfoDefinition.Parse(text);
     private void ParseUniversalMapInfo(string text) => MapInfoDefinition.ParseUniversalMapInfo(m_archiveCollection.IWadInfo.IWadBaseType, text);
+    private void ParseGldefs(Entry entry) => GldefsDefinition.Parse(entry, m_archiveCollection.IWadInfo.IWadBaseType);
 
     private void ParseZMapInfo(string text)
     {
