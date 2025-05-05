@@ -109,7 +109,10 @@ public class FragFunction
 
         string indexAdd = lightLevel ?
             // sectorColorMapIndexFrag is overriding the colormapIndex uniform
+            // Only use brightmap if grayscale to increase the light level
             @"
+            ${BrigthmapFetch}
+
             int useColormap = int(mix(colormapIndex, sectorColorMapIndexFrag, float(sectorColorMapIndexFrag > 0)));
             ${EntityColorMapFrag}
             int usePalette = paletteIndex;
@@ -120,11 +123,14 @@ public class FragFunction
                 // if useColormap is not default(0) then override with the uniform colormap. This overrides translations with boom colormaps etc.
                 @"useColormap = int(mix(useColormap, colorMapTranslationFrag, float(useColormap == 0)));"
                 : "")
+            .Replace("${BrigthmapFetch}", BrigthMapLightColorIndexFetch("texUV"))
+
             :
+
             @"
             int useColormap = colormapIndex${HudClearColorMap};
             int usePalette = paletteIndex;
-            int lightLevelOffset = ${LightOffset};
+            ${LightOffset}
             lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability${HudDrawColorMapFrag})));
             ${HudClearPalette}"
             .Replace("${HudClearColorMap}", ctx == ColorMapFetchContext.Hud && ShaderVars.PaletteColorMode ? "* int(drawColorMapFrag)" : "")
@@ -132,7 +138,14 @@ public class FragFunction
             .Replace("${HudClearPalette}", ctx == ColorMapFetchContext.Hud && ShaderVars.PaletteColorMode ?
                 @"usePalette = int(mix(0, usePalette, float(drawPaletteFrag)));"
                 : "")
-            .Replace("${LightOffset}", ctx == ColorMapFetchContext.Hud ? "int(hudColorMapIndexFrag) * 256" : "0");
+            .Replace("${LightOffset}", ctx == ColorMapFetchContext.Hud ?
+                @"
+                int lightColorIndex = int(hudColorMapIndexFrag);
+                ${BrigthmapFetch}
+                int lightLevelOffset = lightColorIndex * 256;"
+                .Replace("${BrigthmapFetch}", BrigthMapLightColorIndexFetch("uvFrag.st"))
+                : 
+                "int lightLevelOffset = 0;");
 
         // Use the alpha flag to indicate we need to fetch from the colormap buffer since we don't need it for fullbright.
         return @"
@@ -147,6 +160,14 @@ public class FragFunction
                 "
                 .Replace("${IndexAdd}", indexAdd);
     }
+
+    static string BrigthMapLightColorIndexFetch(string uvVar) =>
+        @$"
+        if (useBrightmaps == 1) {{
+            vec3 brightColor = texture(brightmapTexture, {uvVar}).rgb;
+            float hasBrightColor = float(brightColor.r != 0 && brightColor.r == brightColor.g && brightColor.g == brightColor.b);
+            lightColorIndex = int(mix(lightColorIndex, min(int((1 - brightColor.r) * 31), lightColorIndex), hasBrightColor));
+        }}";
 
     private static string GetTextureMappingClamp(FragColorFunctionOptions options)
     {
@@ -170,11 +191,7 @@ public class FragFunction
             fragColor +
             ((options & FragColorFunctionOptions.Colormap) != 0 ? ColorMapFetch(true, ctx) : "")
             + AlphaFlag(true) +
-            (ShaderVars.PaletteColorMode ? "\n" : ((options & FragColorFunctionOptions.Brightmaps) != 0)
-                ? "if (useBrightmaps == 1) { fragColor.rgb *= min(vec3(1.0), texture(brightmapTexture, texUV).rgb + vec3(lightLevel)); }\n" +
-                  "else { fragColor.rgb *= lightLevel; }\n"
-                : "fragColor.rgb *= lightLevel;\n"
-            ) +
+            GetBrightMapBlend(options) +
             ((options & FragColorFunctionOptions.AddAlpha) != 0 ?
                 @"fragColor.w = fragColor.w * alphaFrag + addAlphaFrag;"
                 +
@@ -195,6 +212,21 @@ public class FragFunction
             + GammaCorrection()
             + postProcess
             + Oit(oitOptions, options);
+    }
+
+    private static string GetBrightMapBlend(FragColorFunctionOptions options)
+    {
+        if (ShaderVars.PaletteColorMode)
+            return "\n";
+
+        if ((options & FragColorFunctionOptions.Brightmaps) == 0)
+            return "fragColor.rgb *= lightLevel;";
+
+        return @"
+            if (useBrightmaps == 1)
+                fragColor.rgb *= min(vec3(1.0), texture(brightmapTexture, texUV).rgb + vec3(lightLevel));
+            else
+                fragColor.rgb *= lightLevel;";
     }
 
     private static string GetClearAlpha(OitOptions oitOptions)

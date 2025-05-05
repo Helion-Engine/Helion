@@ -95,6 +95,18 @@ public class LegacyHudShader : RenderProgram
             fragColor.xyz = vec3(maxColor, maxColor, maxColor);
         }";
 
+    private static string GetBrightmapColorBlend()
+    {
+        if (ShaderVars.PaletteColorMode)
+            return "fragColor.xyz *= mix(vec3(1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);";
+
+        return @"
+            if (useBrightmaps == 1)
+                fragColor.rgb *= mix(vec3(1.0), min(vec3(1.0), texture(brightmapTexture, uvFrag.st).rgb + rgbMultiplierFrag.rgb), rgbMultiplierFrag.w);
+            else
+                fragColor.xyz *= mix(vec3(1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);";
+    }
+
     private readonly string ShaderFrag = @"
         #version 330
 
@@ -127,9 +139,7 @@ public class LegacyHudShader : RenderProgram
             ${ColorMapFetch}
             ${AlphaFlag}
             fragColor.w *= alphaFrag;
-            if (useBrightmaps == 1) { fragColor.rgb *= mix(vec3(1.0), min(vec3(1.0), texture(brightmapTexture, uvFrag.st).rgb + rgbMultiplierFrag.rgb), rgbMultiplierFrag.w); }
-            else { fragColor.xyz *= mix(vec3(1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w); }
-            
+            ${BrightmapTrueColorBlend}        
             ${TrueColorInvul}
             if (fuzzFrag > 0) {
                 if (fragColor.a <= 0)
@@ -148,5 +158,6 @@ public class LegacyHudShader : RenderProgram
     .Replace("${AlphaFlag}", FragFunction.AlphaFlag(false))
     .Replace("${TrueColorInvul}", ShaderVars.PaletteColorMode ? "" : TrueColorInvul)
     .Replace("${GammaCorrection}", FragFunction.GammaCorrection())
-    .Replace("${FuzzRefraction}", FragFunction.FuzzRefractionFunction(FuzzRefractionOptions.Hud));
+    .Replace("${FuzzRefraction}", FragFunction.FuzzRefractionFunction(FuzzRefractionOptions.Hud))
+    .Replace("${BrightmapTrueColorBlend}", GetBrightmapColorBlend());
 }

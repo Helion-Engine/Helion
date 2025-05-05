@@ -413,7 +413,6 @@ public partial class WorldLayer
 
     private void DrawHudWeapon(IHudRenderContext hud, FrameState frameState, int yOffset, bool flash)
     {
-
         string sprite = GetHudWeaponSpriteString(frameState, flash);
 
         if (!hud.Textures.TryGet(sprite, out var handle, SpriteLookupNamespace))
