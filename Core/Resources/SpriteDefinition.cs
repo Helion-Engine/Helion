@@ -52,15 +52,15 @@ public class SpriteDefinition
         {
             texture = new(entry.Path.Name, ResourceNamespace.Sprites, 0);
             texture.Image = imageRetriever.GetOnly(entry.Path.Name, ResourceNamespace.Sprites);
-
-            var brightmap = archiveCollection.GetBrightmapFor(texture.Name, ResourceNamespace.Sprites);
-            if (brightmap?.BrightmapName != null)
-            {
-                texture.BrightmapImage = imageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
-                brightmapNoFullbright = brightmap.DisableFullbright;
-            }
-
             SpriteTextureLookup[entry.Path.Name] = texture;
+        }
+
+        bool brightmapNoFullbright = false;
+        var brightmap = archiveCollection.GetBrightmapFor(texture.Name, ResourceNamespace.Sprites);
+        if (brightmap?.BrightmapName != null)
+        {
+            texture.BrightmapImage ??= imageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
+            brightmapNoFullbright = brightmap.DisableFullbright;
         }
 
         // Does not have any rotations, just fill all 8 with the same texture for easier lookups
