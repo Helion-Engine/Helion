@@ -95,6 +95,7 @@ public class ArchiveCollection : IResources, IPathResolver
     private string? m_lastLoadedMapPath;
     private bool m_lastLoadedMapIsTemp;
     private bool m_initTextureManager;
+    private readonly Dictionary<(string, ResourceNamespace), BrightmapDefinition?> m_brightmapLookupCache = [];
 
     public ArchiveCollection(IArchiveLocator archiveLocator, Config config, DataCache dataCache)
     {
@@ -704,8 +705,9 @@ public class ArchiveCollection : IResources, IPathResolver
 
     public BrightmapDefinition? GetBrightmapFor(string textureName, ResourceNamespace textureNamespace)
     {
-        // TODO: cache
-        System.Diagnostics.Debug.WriteLine($"lookup for {textureName}");
+        if (m_brightmapLookupCache.TryGetValue((textureName, textureNamespace), out BrightmapDefinition? cached))
+            return cached;
+
         var bmapsDef = Definitions.GldefsDefinition.BrightMaps;
         var brightmapsOfType = textureNamespace switch
         {
@@ -731,6 +733,7 @@ public class ArchiveCollection : IResources, IPathResolver
         if (brightmap == null && bmapsDef.Auto.TryGetValue(textureName, out BrightmapDefinition? val))
             brightmap = val;
 
+        m_brightmapLookupCache[(textureName, textureNamespace)] = brightmap;
         return brightmap;
     }
 }
