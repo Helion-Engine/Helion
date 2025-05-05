@@ -726,7 +726,7 @@ public partial class WorldLayer
         var scale = new Vec2D(1 * m_scale, verticalScale * m_scale);
         var imageArea = new Box2D(handle.Area.Min.Double * scale, handle.Area.Max.Double * scale).Int;
         area = new HudBox(origin + imageArea.Min, origin + imageArea.Max);
-        hud.Image(image, area, both: both, alpha: alpha);
+        hud.Image(image, area, resourceNamespace: SpriteLookupNamespace, both: both, alpha: alpha);
     }
 
     private Dimension GetDoomScaledImageArea(IHudRenderContext hud, string image)
