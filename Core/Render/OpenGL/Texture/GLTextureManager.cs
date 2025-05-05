@@ -248,7 +248,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
             };
 
             var brightmap = TextureManager.GetBrightmapFor(spriteRotation.Texture.Name, ResourceNamespace.Sprites);
-            if (brightmap != null)
+            if (brightmap?.BrightmapName != null)
                 texture.BrightmapImage = ArchiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
             bool brightmapNoFullbright = brightmap?.DisableFullbright ?? false;
 

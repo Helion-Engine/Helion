@@ -370,7 +370,7 @@ public partial class TextureManager : ITickable
         texture.Image = image;
 
         var brightmap = GetBrightmapFor(texture.Name, texture.Namespace);
-        if (brightmap != null)
+        if (brightmap?.BrightmapName != null)
             texture.BrightmapImage = ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
 
         m_textures.Add(texture);
@@ -675,7 +675,7 @@ public partial class TextureManager : ITickable
         if (texture.BrightmapImage == null)
         {
             var brightmap = GetBrightmapFor(texture.Name, texture.Namespace);
-            if (brightmap != null)
+            if (brightmap?.BrightmapName != null)
                 texture.BrightmapImage = m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps, options);
         }
     }
@@ -698,7 +698,7 @@ public partial class TextureManager : ITickable
         string? sourceWadHash = sourceWad?.MD5;
 
         BrightmapDefinition? brightmap = brightmapsOfType?.FirstOrDefault(x => (
-            x.BrightmapName.EqualsIgnoreCase(textureName)
+            x.TargetTexture.EqualsIgnoreCase(textureName)
             && (
                 (!x.IwadOnly && x.SpecificWadMd5 == null)
                 || (x.IwadOnly && sourceIsIwad)

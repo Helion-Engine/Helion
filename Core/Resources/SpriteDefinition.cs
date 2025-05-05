@@ -52,7 +52,7 @@ public class SpriteDefinition
             texture.Image = textureManager.ImageRetriever.GetOnly(entry.Path.Name, ResourceNamespace.Sprites);
 
             var brightmap = textureManager.GetBrightmapFor(texture.Name, ResourceNamespace.Sprites);
-            if (brightmap != null)
+            if (brightmap?.BrightmapName != null)
             {
                 texture.BrightmapImage = textureManager.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
                 brightmapNoFullbright = brightmap.DisableFullbright;

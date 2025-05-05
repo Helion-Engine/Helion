@@ -13,7 +13,8 @@ namespace Helion.Resources.Definitions.Zdoom;
 public class BrightmapDefinition
 {
     public string TargetTexture { get; set; } = "";
-    public string BrightmapName { get; set; } = "";
+    // some brightmaps packs will not have a brightmap, but will disable the fullbright
+    public string? BrightmapName { get; set; }
     public bool IwadOnly { get; set; }
     /// <summary>Used for `thiswad` option</summary>
     public string? SpecificWadMd5 { get; set; }
@@ -135,17 +136,14 @@ public class GldefsDefinition
                 def.DisableFullbright = true;
             else if (token == "}")
             {
-                if (def.BrightmapName != "")
+                var destination = textureType switch
                 {
-                    var destination = textureType switch
-                    {
-                        "flat" => BrightMaps.Flats,
-                        "sprite" => BrightMaps.Sprites,
-                        "texture" => BrightMaps.Textures,
-                        _ => null
-                    };
-                    destination?.Add(def);
-                }
+                    "flat" => BrightMaps.Flats,
+                    "sprite" => BrightMaps.Sprites,
+                    "texture" => BrightMaps.Textures,
+                    _ => null
+                };
+                destination?.Add(def);
                 return;
             }
         }
