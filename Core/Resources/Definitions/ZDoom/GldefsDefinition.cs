@@ -10,18 +10,6 @@ using Helion.Util.Parser;
 
 namespace Helion.Resources.Definitions.Zdoom;
 
-public class BrightmapDefinition
-{
-    public string TargetTexture { get; set; } = "";
-    // some brightmaps packs will not have a brightmap, but will disable the fullbright
-    public string? BrightmapName { get; set; }
-    public bool IwadOnly { get; set; }
-    /// <summary>Used for `thiswad` option</summary>
-    public string? SpecificWadMd5 { get; set; }
-    // TODO: handle
-    public bool DisableFullbright { get; set; }
-}
-
 public class BrightmapDefinitions
 {
     public List<BrightmapDefinition> Flats { get; set; } = [];
@@ -38,6 +26,8 @@ public class BrightmapDefinitions
 public class GldefsDefinition
 {
     public readonly BrightmapDefinitions BrightMaps = new();
+    // TODO: implement rendering
+    public readonly Dictionary<string, SkyboxDefinition> Skyboxes = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly Stack<string> m_includeStack = new();
     private IWadBaseType m_iwadType;
@@ -91,6 +81,8 @@ public class GldefsDefinition
                     ParseInclude(entry, parser);
                 else if (defType.EqualsIgnoreCase("brightmap"))
                     ParseBrightmapBlock(entry, parser);
+                else if (defType.EqualsIgnoreCase("skybox"))
+                    ParseSkyboxBlock(entry, parser);
                 else if (!parser.IsDone())
                     parser.ConsumeLine();
             }
@@ -143,6 +135,49 @@ public class GldefsDefinition
                     _ => null
                 };
                 destination?.Add(def);
+                return;
+            }
+        }
+    }
+
+    private void ParseSkyboxBlock(Entry entry, SimpleParser parser)
+    {
+        string name = parser.ConsumeString();
+        SkyboxDefinition def = new() { Name = name };
+        if (parser.PeekString().EqualsIgnoreCase("fliptop"))
+        {
+            def.FlipTop = true;
+            parser.ConsumeString();
+        }
+        parser.ConsumeString("{");
+        List<string> textures = [];
+        while (!parser.IsDone())
+        {
+            string token = parser.ConsumeString();
+            if (token != "}")
+            {
+                textures.Add(token);
+            }
+            else
+            {
+                if (textures.Count == 6)
+                {
+                    def.North = textures[0];
+                    def.East = textures[1];
+                    def.South = textures[2];
+                    def.West = textures[3];
+                    def.Top = textures[4];
+                    def.Bottom = textures[5];
+                }
+                else if (textures.Count == 3)
+                {
+                    def.North = def.East = def.South = def.West = textures[0];
+                    def.Top = textures[1];
+                    def.Bottom = textures[2];
+                }
+
+                if (textures.Count > 0)
+                    Skyboxes[name] = def;
                 return;
             }
         }
