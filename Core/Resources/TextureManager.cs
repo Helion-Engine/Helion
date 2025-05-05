@@ -368,7 +368,10 @@ public partial class TextureManager : ITickable
 
         texture = new(name, ResourceNamespace.Textures, m_textures.Count);
         texture.Image = image;
-        texture.BrightmapImage = GetBrightmapFor(texture.Name, texture.Namespace).Image;
+
+        var brightmap = GetBrightmapFor(texture.Name, texture.Namespace);
+        if (brightmap != null)
+            texture.BrightmapImage = ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
 
         m_textures.Add(texture);
         m_translations.Add(m_translations.Count);
@@ -669,11 +672,16 @@ public partial class TextureManager : ITickable
             return;
 
         texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
-        texture.BrightmapImage ??= GetBrightmapFor(texture.Name, texture.Namespace).Image;
+        if (texture.BrightmapImage == null)
+        {
+            var brightmap = GetBrightmapFor(texture.Name, texture.Namespace);
+            if (brightmap != null)
+                texture.BrightmapImage = m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps, options);
+        }
     }
 
     // TODO: revise this
-    public (Image? Image, string? Name, bool DisableFullbright) GetBrightmapFor(string textureName, ResourceNamespace textureNamespace)
+    public BrightmapDefinition? GetBrightmapFor(string textureName, ResourceNamespace textureNamespace)
     {
         var bmapsDef = m_archiveCollection.Definitions.GldefsDefinition.BrightMaps;
         var brightmapsOfType = textureNamespace switch
@@ -698,10 +706,7 @@ public partial class TextureManager : ITickable
             )
         ));
 
-        return (brightmap != null)
-            ? (m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps),
-                brightmap.BrightmapName, brightmap.DisableFullbright)
-            : (null, null, false);
+        return brightmap;
     }
 
     public void SetSkyTexture()

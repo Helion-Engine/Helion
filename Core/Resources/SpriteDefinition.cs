@@ -50,9 +50,14 @@ public class SpriteDefinition
         {
             texture = new(entry.Path.Name, ResourceNamespace.Sprites, 0);
             texture.Image = textureManager.ImageRetriever.GetOnly(entry.Path.Name, ResourceNamespace.Sprites);
+
             var brightmap = textureManager.GetBrightmapFor(texture.Name, ResourceNamespace.Sprites);
-            texture.BrightmapImage = brightmap.Image;
-            brightmapNoFullbright = brightmap.DisableFullbright;
+            if (brightmap != null)
+            {
+                texture.BrightmapImage = textureManager.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
+                brightmapNoFullbright = brightmap.DisableFullbright;
+            }
+
             SpriteTextureLookup[entry.Path.Name] = texture;
         }
 

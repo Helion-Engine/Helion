@@ -241,15 +241,18 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
                 return NullSpriteRotation;
 
             string translatedName = spriteRotation.Texture.Name + "-ColorMap-" + colorMapIndex;
-            var brightmap = TextureManager.GetBrightmapFor(spriteRotation.Texture.Name, ResourceNamespace.Sprites);
             var texture = new Resources.Texture(translatedName, ResourceNamespace.Sprites, 0)
             {
                 Image = ArchiveCollection.ImageRetriever.GetOnlyMapped(translatedName, spriteRotation.Texture.Name, ResourceNamespace.Sprites,
                     colorTranslation: ArchiveCollection.Definitions.Colormaps[colorMapIndex].IndexLayer(0)),
-                BrightmapImage = brightmap.Image
             };
 
-            translationRotation = new SpriteRotation(texture, spriteRotation.Mirror, brightmap.DisableFullbright)
+            var brightmap = TextureManager.GetBrightmapFor(spriteRotation.Texture.Name, ResourceNamespace.Sprites);
+            if (brightmap != null)
+                texture.BrightmapImage = ArchiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
+            bool brightmapNoFullbright = brightmap?.DisableFullbright ?? false;
+
+            translationRotation = new SpriteRotation(texture, spriteRotation.Mirror, brightmapNoFullbright)
             {
                 RenderStore = CreateTexture(texture.Image, translatedName, ResourceNamespace.Sprites),
                 BrightmapRenderStore = CreateTexture(texture.BrightmapImage, spriteRotation.Texture.Name, ResourceNamespace.Brightmaps)

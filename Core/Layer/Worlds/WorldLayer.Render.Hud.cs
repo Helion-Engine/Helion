@@ -455,7 +455,7 @@ public partial class WorldLayer
         offset = TranslateDoomOffset(offset);
         var hudBox = GetInterpolatePlayerWeaponBox(hud, handle, offset);
 
-        hud.Image(sprite, hudBox, color: lightLevelColor, colorMapIndex: colorMapIndex, resourceNamespace: SpriteLookupNamespace, brightmapName: brightmap?.Name);
+        hud.Image(sprite, hudBox, color: lightLevelColor, colorMapIndex: colorMapIndex, resourceNamespace: SpriteLookupNamespace, brightmapName: brightmap?.BrightmapName);
     }
 
     private HudBox GetInterpolatePlayerWeaponBox(IHudRenderContext hud, IRenderableTextureHandle handle, Vec2I offset)
