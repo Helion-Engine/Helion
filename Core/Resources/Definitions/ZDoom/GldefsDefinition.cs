@@ -43,7 +43,7 @@ public class GldefsDefinition
         m_includeStack.Push(entry.Path.FullPath);
         try
         {
-            // for GZDoom brightmaps, only parse DOOM's and not Hexen etc
+            // for directory filters (e.g. GZDoom's brightmaps), only parse DOOM's and not Hexen etc
             if (entry.Path.FullPath.StartsWithIgnoreCase("filter/"))
             {
                 string[] validFilterPaths = iwadType switch
