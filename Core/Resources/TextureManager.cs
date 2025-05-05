@@ -9,6 +9,7 @@ using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.Definitions.Texture;
+using Helion.Resources.Definitions.Zdoom;
 using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Container;
@@ -367,7 +368,7 @@ public partial class TextureManager : ITickable
 
         texture = new(name, ResourceNamespace.Textures, m_textures.Count);
         texture.Image = image;
-        texture.BrightmapImage = GetBrightmapImageFor(texture);
+        texture.BrightmapImage = GetBrightmapFor(texture).Image;
 
         m_textures.Add(texture);
         m_translations.Add(m_translations.Count);
@@ -668,10 +669,10 @@ public partial class TextureManager : ITickable
             return;
 
         texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
-        texture.BrightmapImage ??= GetBrightmapImageFor(texture);
+        texture.BrightmapImage ??= GetBrightmapFor(texture).Image;
     }
 
-    public Image? GetBrightmapImageFor(Texture texture)
+    public (Image? Image, bool DisableFullbright) GetBrightmapFor(Texture texture)
     {
         var bmapsDef = m_archiveCollection.Definitions.GldefsDefinition.BrightMaps;
         var brightmapsOfType = texture.Namespace switch
@@ -687,18 +688,18 @@ public partial class TextureManager : ITickable
         bool sourceIsIwad = sourceWad?.ArchiveType == Archives.ArchiveType.IWAD;
         string? sourceWadHash = sourceWad?.MD5;
 
-        string? brightmapName = brightmapsOfType?.FirstOrDefault(x => (
+        BrightmapDefinition? brightmap = brightmapsOfType?.FirstOrDefault(x => (
             x.BrightmapName.EqualsIgnoreCase(texture.Name)
             && (
                 (!x.IwadOnly && x.SpecificWadMd5 == null)
                 || (x.IwadOnly && sourceIsIwad)
                 || (x.SpecificWadMd5 == sourceWadHash)
             )
-        ))?.BrightmapName;
+        ));
 
-        return (brightmapName != null)
-            ? m_archiveCollection.ImageRetriever.GetOnly(brightmapName, ResourceNamespace.Brightmaps)
-            : null;
+        return (brightmap != null)
+            ? (m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps), brightmap.DisableFullbright)
+            : (null, false);
     }
 
     public void SetSkyTexture()

@@ -45,18 +45,21 @@ public class SpriteDefinition
         if (frame < 0 || frame >= MaxFrames)
             return;
 
+        bool disableFullbright = false;
         if (!SpriteTextureLookup.TryGetValue(entry.Path.Name, out var texture))
         {
             texture = new(entry.Path.Name, ResourceNamespace.Sprites, 0);
             texture.Image = textureManager.ImageRetriever.GetOnly(entry.Path.Name, ResourceNamespace.Sprites);
-            texture.BrightmapImage = textureManager.GetBrightmapImageFor(texture);
+            var brightmap = textureManager.GetBrightmapFor(texture);
+            texture.BrightmapImage = brightmap.Image;
+            disableFullbright = brightmap.DisableFullbright;
             SpriteTextureLookup[entry.Path.Name] = texture;
         }
 
         // Does not have any rotations, just fill all 8 with the same texture for easier lookups
         if (rotation == 0)
         {
-            SpriteRotation sr = new(texture, mirror);
+            SpriteRotation sr = new(texture, mirror, disableFullbright);
             for (int i = 0; i < 8; i++)
                 Rotations[frame, i] = sr;
         }
@@ -67,7 +70,7 @@ public class SpriteDefinition
             if (rotation < 0 || rotation >= MaxRotations)
                 return;
 
-            Rotations[frame, rotation] = new SpriteRotation(texture, mirror);
+            Rotations[frame, rotation] = new SpriteRotation(texture, mirror, disableFullbright);
         }
     }
 }

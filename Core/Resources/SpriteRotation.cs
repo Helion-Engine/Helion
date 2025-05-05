@@ -3,13 +3,14 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Resources;
 
-public class SpriteRotation(Texture texture, bool mirror)
+public class SpriteRotation(Texture texture, bool mirror, bool noFullbright = false)
 {
     public Texture Texture = texture;
     public bool Mirror = mirror;
     public float FlipU = mirror ? 1 : 0;
     public object? RenderStore;
     public object? BrightmapRenderStore;
+    public bool BrightmapNoFullbright = noFullbright;
     private LookupArray<SpriteRotation>? m_translationRotations;
 
     public bool TryGetTranslationRotation(int index, [NotNullWhen(true)] out SpriteRotation? rotation)
