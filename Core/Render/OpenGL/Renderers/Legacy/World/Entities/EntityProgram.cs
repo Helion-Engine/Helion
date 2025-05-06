@@ -10,6 +10,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 public class EntityProgram : RenderProgram
 {
     private readonly int m_boundTextureLocation;
+    private readonly int m_brightmapTextureLocation;
     private readonly int m_colormapTextureLocation;
     private readonly int m_sectorColormapTextureLocation;
     private readonly int m_mvpLocation;
@@ -44,10 +45,12 @@ public class EntityProgram : RenderProgram
     private readonly int m_mapDataTextureLoaction;
     private readonly int m_wallClipTextureLocation;
     private readonly int m_lineHeightsTextureLocation;
+    private readonly int m_useBrightmapsLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
+        m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
@@ -82,9 +85,11 @@ public class EntityProgram : RenderProgram
         m_mapDataTextureLoaction = Uniforms.GetLocation("mapDataTexture");
         m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
         m_lineHeightsTextureLocation = Uniforms.GetLocation("lineHeightsTexture");
+        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
     }
     
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
+    public void BrightmapTexture(TextureUnit unit) => Uniforms.Set(unit, m_brightmapTextureLocation);
     public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorColormapTextureLocation);
     public void AccumTexture(TextureUnit unit) => Uniforms.Set(unit, m_accumTextureLocation);
@@ -120,6 +125,7 @@ public class EntityProgram : RenderProgram
     public void ScreenBounds(Vec2I value) => Uniforms.Set(value, m_screenBoundsLocation);
     public void CheckPlaneClip(bool value) => Uniforms.Set(value, m_checkPlaneClipLocation);
     public void HealthBarMode(bool value) => Uniforms.Set(value, m_healthBarModeLocation);
+    public void UseBrightmaps(bool value) => Uniforms.Set(value, m_useBrightmapsLocation);
 
     private const string BoxDefines = @"
         const float BoxWidth = 20;
@@ -326,6 +332,7 @@ public class EntityProgram : RenderProgram
         uniform int hasInvulnerability;
         uniform float fuzzFrac;
         uniform sampler2D boundTexture;
+        uniform sampler2D brightmapTexture;
         uniform samplerBuffer colormapTexture;
         uniform float lightLevelMix;
         uniform int extraLight;
@@ -343,6 +350,7 @@ public class EntityProgram : RenderProgram
         uniform ivec2 screenBounds;
         uniform int checkPlaneClip;
         uniform int healthBarMode;
+        uniform int useBrightmaps;
         uniform vec3 viewPos;
         uniform float timeFrac;
 
@@ -427,7 +435,7 @@ public class EntityProgram : RenderProgram
     "
     .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
     .Replace("${FuzzFunction}", FragFunction.FuzzFunction)
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha | FragColorFunctionOptions.Colormap, ColorMapFetchContext.Entity, GetOitOptions(), GetPostProcess()))
+    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Fuzz | FragColorFunctionOptions.Alpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.Brightmaps, ColorMapFetchContext.Entity, GetOitOptions(), GetPostProcess()))
     .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
     .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
     .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))

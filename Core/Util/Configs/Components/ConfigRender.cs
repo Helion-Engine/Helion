@@ -126,6 +126,10 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Full Brightness")]
     public readonly ConfigValue<bool> Fullbright = new(false);
 
+    [ConfigInfo("Use ZDoom-compatible brightmaps, if loaded. True color required.")]
+    [OptionMenu(OptionSectionType.Render, "Use Brightmaps")]
+    public readonly ConfigValue<bool> Brightmaps = new(true);
+
 
     // Misc. Visual effects
 

@@ -19,15 +19,15 @@ public class RenderWorldDataManager : IDisposable
         ReleaseUnmanagedResources();
     }
 
-    public void InitCoverWallRenderData(GLLegacyTexture texture, RenderProgram program)
+    public void InitCoverWallRenderData(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
     {
-        m_coverWalls ??= new(texture, program);
+        m_coverWalls ??= new(texture, program, brightmapTexture);
     }
 
-    public RenderWorldData GetRenderData(GLLegacyTexture texture, RenderProgram program, GeometryType type)
+    public RenderWorldData GetRenderData(GLLegacyTexture texture, RenderProgram program, GeometryType type, GLLegacyTexture? brightmapTexture = null)
     {
         var renderDataList = m_lookup.Get(type);
-        return renderDataList.Add(texture, program);
+        return renderDataList.Add(texture, program, brightmapTexture);
     }
 
     public void AddCoverWallVertices(Side side, DynamicVertex[] vertices, WallLocation location)

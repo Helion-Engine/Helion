@@ -223,7 +223,7 @@ public partial class Renderer : IDisposable
             CalculateMvpMatrix(renderInfo, true),
             GetTimeFrac(), drawInvulnerability, mix, extraLight, GetDistanceOffset(renderInfo),
             colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), colorMapUniforms, paletteIndex, config.Render.LightMode, 
-            (float)config.Render.GammaCorrection, maxDistance);
+            (float)config.Render.GammaCorrection, maxDistance, config.Render.Brightmaps);
     }
 
     private static ColorMapUniforms GetColorMapUniforms(Entity viewer, OldCamera camera)
@@ -603,10 +603,10 @@ public partial class Renderer : IDisposable
         if (cmd.AreaIsTextureDimension)
         {
             Vec2I topLeft = (cmd.DrawArea.Top, cmd.DrawArea.Left);
-            m_hudRenderer.DrawImage(cmd.TextureName, cmd.ResourceNamespace, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex);
+            m_hudRenderer.DrawImage(cmd.TextureName, cmd.ResourceNamespace, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex, cmd.BrightmapName);
         }
         else
-            m_hudRenderer.DrawImage(cmd.TextureName, cmd.ResourceNamespace, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex);
+            m_hudRenderer.DrawImage(cmd.TextureName, cmd.ResourceNamespace, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex, cmd.BrightmapName);
     }
 
     private void HandleDrawShape(DrawShapeCommand cmd)

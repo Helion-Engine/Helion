@@ -11,6 +11,7 @@ using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Texture.Fonts;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Definitions.Decorate.States;
@@ -46,7 +47,7 @@ public partial class WorldLayer
     private const int FpsMessageSpacing = 2;
     private const long MaxVisibleTimeNanos = 4 * 1000L * 1000L * 1000L;
     private const long MessageTransitionSpan = 350L * 1000L * 1000L;
-    private const ResourceNamespace LookupNamespace = ResourceNamespace.Undefined;
+    private const ResourceNamespace SpriteLookupNamespace = ResourceNamespace.Sprites;
     private static readonly Color PickupColor = (255, 255, 128);
     private static readonly Color DamageColor = (255, 0, 0);
     private const string SmallHudFont = Constants.Fonts.Small;
@@ -412,9 +413,17 @@ public partial class WorldLayer
 
     private void DrawHudWeapon(IHudRenderContext hud, FrameState frameState, int yOffset, bool flash)
     {
+        string sprite = GetHudWeaponSpriteString(frameState, flash);
+
+        if (!hud.Textures.TryGet(sprite, out var handle, SpriteLookupNamespace))
+            return;
+
+        var brightmap = hud.ArchiveCollection.GetBrightmapFor(sprite, ResourceNamespace.Sprites);
+        
         int lightLevel;
         int colorMapIndex;
-        if (frameState.Frame.Properties.Bright || Player.DrawFullBright())
+        bool disableFullbright = m_config.Render.Brightmaps && brightmap?.DisableFullbright == true;
+        if ((frameState.Frame.Properties.Bright && !disableFullbright) || Player.DrawFullBright())
         {
             lightLevel = 255;
             colorMapIndex = 0;
@@ -439,17 +448,12 @@ public partial class WorldLayer
             (byte)Math.Min(lightLevel * colorMix.Y, 255),
             (byte)Math.Min(lightLevel * colorMix.Z, 255));
 
-        string sprite = GetHudWeaponSpriteString(frameState, flash);
-
-        if (!hud.Textures.TryGet(sprite, out var handle, LookupNamespace))
-            return;
-
         var offset = handle.Offset;
         offset.Y += yOffset;
         offset = TranslateDoomOffset(offset);
         var hudBox = GetInterpolatePlayerWeaponBox(hud, handle, offset);
 
-        hud.Image(sprite, hudBox, color: lightLevelColor, colorMapIndex: colorMapIndex);
+        hud.Image(sprite, hudBox, color: lightLevelColor, colorMapIndex: colorMapIndex, resourceNamespace: SpriteLookupNamespace, brightmapName: brightmap?.BrightmapName);
     }
 
     private HudBox GetInterpolatePlayerWeaponBox(IHudRenderContext hud, IRenderableTextureHandle handle, Vec2I offset)
@@ -712,7 +716,7 @@ public partial class WorldLayer
 
     private void DrawDoomScaledImage(IHudRenderContext hud, string image, Vec2I origin, out HudBox area, Align? both = null, float alpha = 1)
     {
-        if (!hud.Textures.TryGet(image, out var handle, LookupNamespace))
+        if (!hud.Textures.TryGet(image, out var handle, SpriteLookupNamespace))
         {
             area = default;
             return;
@@ -722,12 +726,12 @@ public partial class WorldLayer
         var scale = new Vec2D(1 * m_scale, verticalScale * m_scale);
         var imageArea = new Box2D(handle.Area.Min.Double * scale, handle.Area.Max.Double * scale).Int;
         area = new HudBox(origin + imageArea.Min, origin + imageArea.Max);
-        hud.Image(image, area, both: both, alpha: alpha);
+        hud.Image(image, area, resourceNamespace: SpriteLookupNamespace, both: both, alpha: alpha);
     }
 
     private Dimension GetDoomScaledImageArea(IHudRenderContext hud, string image)
     {
-        if (!hud.Textures.TryGet(image, out var handle, LookupNamespace))
+        if (!hud.Textures.TryGet(image, out var handle, SpriteLookupNamespace))
             return default;
 
         var scale = new Vec2D(1 * m_scale, DoomVerticalScale * m_scale);

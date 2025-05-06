@@ -3,18 +3,15 @@ using Helion.Render.OpenGL.Texture.Legacy;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.Hud;
 
-public class HudDrawBufferData
+public class HudDrawBufferData(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
 {
-    public GLLegacyTexture Texture;
-    public readonly List<HudVertex> Vertices = new();
+    public GLLegacyTexture Texture = texture;
+    public GLLegacyTexture? BrightmapTexture = brightmapTexture;
+    public readonly List<HudVertex> Vertices = [];
 
-    public HudDrawBufferData(GLLegacyTexture texture)
+    public void Set(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
         Texture = texture;
-    }
-
-    public void Set(GLLegacyTexture texture)
-    {
-        Texture = texture;
+        BrightmapTexture = brightmapTexture;
     }
 }

@@ -45,19 +45,19 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
         m_healthBarData.Draw(PrimitiveType.Points);
     }
 
-    public RenderData<TVertex> GetNonAlpha(GLLegacyTexture texture)
+    public RenderData<TVertex> GetNonAlpha(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
-        return m_nonAlphaData.Get(texture);
+        return m_nonAlphaData.Get(texture, brightmapTexture);
     }
     
-    public RenderData<TVertex> GetAlpha(GLLegacyTexture texture)
+    public RenderData<TVertex> GetAlpha(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
-        return m_alphaData.Get(texture);
+        return m_alphaData.Get(texture, brightmapTexture);
     }
 
-    public RenderData<TVertex> GetFuzz(GLLegacyTexture texture)
+    public RenderData<TVertex> GetFuzz(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
-        return m_fuzzData.Get(texture);
+        return m_fuzzData.Get(texture, brightmapTexture);
     }
 
     public void RenderNonAlpha(PrimitiveType primitive)

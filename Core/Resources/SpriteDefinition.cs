@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Images;
 
@@ -13,7 +14,7 @@ public class SpriteDefinition
 
     private static readonly Dictionary<string, Texture> SpriteTextureLookup = [];
 
-    public SpriteDefinition(IList<Entry> entries, IImageRetriever imageRetriever)
+    public SpriteDefinition(IList<Entry> entries, IImageRetriever imageRetriever, ArchiveCollection archiveCollection)
     {
         int frame;
         int rotation;
@@ -27,13 +28,13 @@ public class SpriteDefinition
             frame = entry.Path.Name[4] - 'A';
             rotation = entry.Path.Name[5] - '0';
 
-            CreateRotations(entry, imageRetriever, frame, rotation, false);
+            CreateRotations(entry, imageRetriever, archiveCollection, frame, rotation, false);
 
             if (entry.Path.Name.Length > 7)
             {
                 frame = entry.Path.Name[6] - 'A';
                 rotation = entry.Path.Name[7] - '0';
-                CreateRotations(entry, imageRetriever, frame, rotation, true);
+                CreateRotations(entry, imageRetriever, archiveCollection, frame, rotation, true);
             }
         }
     }
@@ -41,7 +42,7 @@ public class SpriteDefinition
     public SpriteRotation? GetSpriteRotation(int frame, uint rotation) =>
         Rotations[frame, rotation];
 
-    private void CreateRotations(Entry entry, IImageRetriever imageRetriever, int frame, int rotation, bool mirror)
+    private void CreateRotations(Entry entry, IImageRetriever imageRetriever, ArchiveCollection archiveCollection, int frame, int rotation, bool mirror)
     {
         if (frame < 0 || frame >= MaxFrames)
             return;
@@ -53,10 +54,15 @@ public class SpriteDefinition
             SpriteTextureLookup[entry.Path.Name] = texture;
         }
 
+        var brightmap = archiveCollection.GetBrightmapFor(texture.Name, ResourceNamespace.Sprites);
+        if (brightmap?.BrightmapName != null)
+            texture.BrightmapImage ??= imageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
+        bool brightmapNoFullbright = brightmap?.DisableFullbright ?? false;
+
         // Does not have any rotations, just fill all 8 with the same texture for easier lookups
         if (rotation == 0)
         {
-            SpriteRotation sr = new(texture, mirror);
+            SpriteRotation sr = new(texture, mirror, brightmapNoFullbright);
             for (int i = 0; i < 8; i++)
                 Rotations[frame, i] = sr;
         }
@@ -67,7 +73,7 @@ public class SpriteDefinition
             if (rotation < 0 || rotation >= MaxRotations)
                 return;
 
-            Rotations[frame, rotation] = new SpriteRotation(texture, mirror);
+            Rotations[frame, rotation] = new SpriteRotation(texture, mirror, brightmapNoFullbright);
         }
     }
 }

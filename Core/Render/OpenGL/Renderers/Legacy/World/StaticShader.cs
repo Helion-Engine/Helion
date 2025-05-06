@@ -13,6 +13,7 @@ public class StaticShader : RenderProgram
     private readonly int m_sectorLightTextureLocation;
     private readonly int m_colormapTextureLocation;
     private readonly int m_sectorColormapTextureLocation;
+    private readonly int m_brightmapTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_hasInvulnerabilityLocation;
     private readonly int m_mvpNoPitchLocation;
@@ -25,6 +26,7 @@ public class StaticShader : RenderProgram
     private readonly int m_lightModeLocation;
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_vertexGapClampUV;
+    private readonly int m_useBrightmapsLocation;
 
     public StaticShader(string name) : base($"WorldStatic - {name}")
     {
@@ -32,6 +34,7 @@ public class StaticShader : RenderProgram
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_sectorColormapTextureLocation = Uniforms.GetLocation("sectorColormapTexture");
+        m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
         m_mvpNoPitchLocation = Uniforms.GetLocation("mvpNoPitch");
@@ -44,12 +47,14 @@ public class StaticShader : RenderProgram
         m_lightModeLocation = Uniforms.GetLocation("lightMode");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_vertexGapClampUV = Uniforms.GetLocation("vertexGapClampUV");
+        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
     public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorLightTextureLocation);
     public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
     public void SectorColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorColormapTextureLocation);
+    public void BrightmapTexture(TextureUnit unit) => Uniforms.Set(unit, m_brightmapTextureLocation);
 
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
@@ -63,6 +68,7 @@ public class StaticShader : RenderProgram
     public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
     public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
     public void VertexGapClampUV(bool value) => Uniforms.Set(value, m_vertexGapClampUV);
+    public void UseBrightmaps(bool value) => Uniforms.Set(value, m_useBrightmapsLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -155,9 +161,11 @@ public class StaticShader : RenderProgram
 
             uniform int hasInvulnerability;
             uniform sampler2D boundTexture;
+            uniform sampler2D brightmapTexture;
             uniform vec3 colorMix;
             uniform int paletteIndex;
             uniform int colormapIndex;
+            uniform int useBrightmaps;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}
@@ -170,7 +178,7 @@ public class StaticShader : RenderProgram
         "
         .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
         .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.Default))
-        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV))
+        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV | FragColorFunctionOptions.Brightmaps))
         .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
         .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
         .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);

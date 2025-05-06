@@ -550,7 +550,8 @@ public class StaticCacheGeometryRenderer : IDisposable
         Attributes.BindAndApply(vbo, vao, m_program.Attributes);
 
         var texture = overrideTexture ?? m_textureManager.GetTexture(textureHandle, repeat);
-        var data = new GeometryData(textureHandle, texture, vbo, vao);
+        var brightmapTexture = m_textureManager.GetBrightmapTexture(textureHandle, repeat);
+        var data = new GeometryData(textureHandle, texture, vbo, vao, brightmapTexture);
 
         if (addToGeometry)
         {
@@ -682,9 +683,15 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (data == null)
             return;
 
-        GL.ActiveTexture(BindTextures.BoundTexture);
         GLLegacyTexture texture = data.Texture;
+        GLLegacyTexture? brightmapTexture = data.BrightmapTexture;
+        GL.ActiveTexture(BindTextures.BoundTexture);
         texture.Bind();
+        GL.ActiveTexture(BindTextures.BrightmapTexture);
+        if (brightmapTexture != null)
+            brightmapTexture.Bind();
+        else
+            GL.BindTexture(TextureTarget.Texture2D, 0);
 
         data.Vbo.UploadCapacity();
 
@@ -700,10 +707,22 @@ public class StaticCacheGeometryRenderer : IDisposable
             var data = geometry[i];
 
             GL.ActiveTexture(BindTextures.BoundTexture);
+            bool isNullCompatTex = data.TextureHandle <= Constants.NullCompatibilityTextureIndex;
+            bool repeatY = (data.Texture.Flags & TextureFlags.ClampY) == 0;
             // Special case for one-sided walls with no texture. Uses black texture to block rendering so use directly.
-            var texture = data.TextureHandle <= Constants.NullCompatibilityTextureIndex ? data.Texture :
-                m_textureManager.GetTexture(data.TextureHandle, (data.Texture.Flags & TextureFlags.ClampY) == 0);
+            var texture = isNullCompatTex
+                ? data.Texture
+                : m_textureManager.GetTexture(data.TextureHandle, repeatY);
             texture.Bind();
+
+            var brightmapTexture = isNullCompatTex
+                ? null
+                : m_textureManager.GetBrightmapTexture(data.TextureHandle, repeatY);
+            GL.ActiveTexture(BindTextures.BrightmapTexture);
+            if (brightmapTexture != null)
+                brightmapTexture.Bind();
+            else
+                GL.BindTexture(TextureTarget.Texture2D, 0);
 
             data.Vbo.UploadIfNeeded();
 

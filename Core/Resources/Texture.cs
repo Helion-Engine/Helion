@@ -19,6 +19,14 @@ public class Texture
             RenderStoreClamp = glTexture;
     }
 
+    public void SetBrightmapGLTexture(object glTexture, bool repeatY)
+    {
+        if (repeatY)
+            BrightmapRenderStore = glTexture;
+        else
+            BrightmapRenderStoreClamp = glTexture;
+    }
+
     /// <summary>
     /// Name of the texture.
     /// </summary>
@@ -44,4 +52,14 @@ public class Texture
     /// </summary>
     public object? RenderStore;
     public object? RenderStoreClamp;
+
+    /// <summary>
+    /// Cached image of the brightmap texture.
+    /// </summary>
+    public Image? BrightmapImage;
+    /// <summary>
+    /// Cached rendering object of the brightmap texture.
+    /// </summary>
+    public object? BrightmapRenderStore;
+    public object? BrightmapRenderStoreClamp;
 }

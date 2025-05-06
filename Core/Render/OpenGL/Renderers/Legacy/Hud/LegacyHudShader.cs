@@ -19,6 +19,8 @@ public class LegacyHudShader : RenderProgram
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_opaqueTextureLocation;
     private readonly int m_screenBoundsLocation;
+    private readonly int m_brightmapTextureLocation;
+    private readonly int m_useBrightmapsLocation;
 
     public LegacyHudShader() : base("Hud")
     {
@@ -33,11 +35,14 @@ public class LegacyHudShader : RenderProgram
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_opaqueTextureLocation = Uniforms.GetLocation("opaqueTexture");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
+        m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
+        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
     }
 
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
     public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
     public void OpaqueTexture(TextureUnit unit) => Uniforms.Set(unit, m_opaqueTextureLocation);
+    public void BrightmapTexture(TextureUnit unit) => Uniforms.Set(unit, m_brightmapTextureLocation);
     public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
     public void FuzzFrac(float frac) => Uniforms.Set(frac, m_fuzzFracLocation);
     public void FuzzDiv(float div) => Uniforms.Set(div, m_fuzzDivLocation);
@@ -46,6 +51,7 @@ public class LegacyHudShader : RenderProgram
     public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
     public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
     public void ScreenBounds(Vec2I value) => Uniforms.Set(value, m_screenBoundsLocation);
+    public void UseBrightmaps(bool value) => Uniforms.Set(value, m_useBrightmapsLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -89,6 +95,18 @@ public class LegacyHudShader : RenderProgram
             fragColor.xyz = vec3(maxColor, maxColor, maxColor);
         }";
 
+    private static string GetBrightmapColorBlend()
+    {
+        if (ShaderVars.PaletteColorMode)
+            return "fragColor.xyz *= mix(vec3(1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);";
+
+        return @"
+            if (useBrightmaps == 1)
+                fragColor.rgb *= mix(vec3(1.0), min(vec3(1.0), texture(brightmapTexture, uvFrag.st).rgb + rgbMultiplierFrag.rgb), rgbMultiplierFrag.w);
+            else
+                fragColor.xyz *= mix(vec3(1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);";
+    }
+
     private readonly string ShaderFrag = @"
         #version 330
 
@@ -103,12 +121,14 @@ public class LegacyHudShader : RenderProgram
 
         uniform sampler2D boundTexture;
         uniform sampler2D opaqueTexture;
+        uniform sampler2D brightmapTexture;
         uniform samplerBuffer colormapTexture;
         uniform float fuzzFrac;
         uniform float fuzzDiv;
         uniform int paletteIndex;
         uniform int colormapIndex;
         uniform int hasInvulnerability;
+        uniform int useBrightmaps;
         uniform float gammaCorrection;
         uniform ivec2 screenBounds;
 
@@ -119,8 +139,7 @@ public class LegacyHudShader : RenderProgram
             ${ColorMapFetch}
             ${AlphaFlag}
             fragColor.w *= alphaFrag;
-            fragColor.xyz *= mix(vec3(1.0, 1.0, 1.0), rgbMultiplierFrag.xyz, rgbMultiplierFrag.w);
-            
+            ${BrightmapTrueColorBlend}        
             ${TrueColorInvul}
             if (fuzzFrag > 0) {
                 if (fragColor.a <= 0)
@@ -139,5 +158,6 @@ public class LegacyHudShader : RenderProgram
     .Replace("${AlphaFlag}", FragFunction.AlphaFlag(false))
     .Replace("${TrueColorInvul}", ShaderVars.PaletteColorMode ? "" : TrueColorInvul)
     .Replace("${GammaCorrection}", FragFunction.GammaCorrection())
-    .Replace("${FuzzRefraction}", FragFunction.FuzzRefractionFunction(FuzzRefractionOptions.Hud));
+    .Replace("${FuzzRefraction}", FragFunction.FuzzRefractionFunction(FuzzRefractionOptions.Hud))
+    .Replace("${BrightmapTrueColorBlend}", GetBrightmapColorBlend());
 }

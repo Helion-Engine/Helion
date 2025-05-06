@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
@@ -8,6 +9,7 @@ using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.Definitions.Texture;
+using Helion.Resources.Definitions.Zdoom;
 using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Container;
@@ -43,6 +45,8 @@ public partial class TextureManager : ITickable
     public DynamicArray<SpriteDefinition> SpriteDefinitions = new();
 
     public List<Animation> GetAnimations() => m_animations;
+
+    public IImageRetriever ImageRetriever => m_archiveCollection.ImageRetriever;
 
     public string SkyTextureName;
     public int NullCompatibilityTextureIndex = Constants.NullCompatibilityTextureIndex;
@@ -364,6 +368,11 @@ public partial class TextureManager : ITickable
 
         texture = new(name, ResourceNamespace.Textures, m_textures.Count);
         texture.Image = image;
+
+        var brightmap = m_archiveCollection.GetBrightmapFor(texture.Name, texture.Namespace);
+        if (brightmap?.BrightmapName != null)
+            texture.BrightmapImage = ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
+
         m_textures.Add(texture);
         m_translations.Add(m_translations.Count);
         m_patchLookup[name] = texture;
@@ -458,7 +467,7 @@ public partial class TextureManager : ITickable
         if (!m_spriteIndexEntries.TryGetValue(spriteIndex, out var entries))
             return null;
 
-        SpriteDefinitions.Data[spriteIndex] = new SpriteDefinition(entries, m_archiveCollection.ImageRetriever);
+        SpriteDefinitions.Data[spriteIndex] = new SpriteDefinition(entries, ImageRetriever, m_archiveCollection);
         return SpriteDefinitions.Data[spriteIndex];
     }
 
@@ -663,6 +672,12 @@ public partial class TextureManager : ITickable
             return;
 
         texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
+        if (texture.BrightmapImage == null)
+        {
+            var brightmap = m_archiveCollection.GetBrightmapFor(texture.Name, texture.Namespace);
+            if (brightmap?.BrightmapName != null)
+                texture.BrightmapImage = m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps, options);
+        }
     }
 
     public void SetSkyTexture()

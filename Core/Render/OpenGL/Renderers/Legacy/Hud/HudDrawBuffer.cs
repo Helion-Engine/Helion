@@ -28,9 +28,9 @@ public class HudDrawBuffer
         m_dataCache = dataCache;
     }
 
-    public void Add(GLLegacyTexture texture, HudQuad quad)
+    public void Add(GLLegacyTexture texture, HudQuad quad, GLLegacyTexture? brightmapTexture = null)
     {
-        HudDrawBufferData data = GetOrCreate(texture);
+        HudDrawBufferData data = GetOrCreate(texture, brightmapTexture);
 
         // TODO: Can we add the two triangles in one go?
         data.Vertices.Add(quad.TopLeft);
@@ -48,18 +48,18 @@ public class HudDrawBuffer
         DrawBuffer.Clear();
     }
 
-    private HudDrawBufferData GetOrCreate(GLLegacyTexture texture)
+    private HudDrawBufferData GetOrCreate(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
         if (DrawBuffer.Empty())
-            return AllocateNewAndAdd(texture);
+            return AllocateNewAndAdd(texture, brightmapTexture);
 
         HudDrawBufferData front = DrawBuffer[^1];
-        return front.Texture == texture ? front : AllocateNewAndAdd(texture);
+        return front.Texture == texture ? front : AllocateNewAndAdd(texture, brightmapTexture);
     }
 
-    private HudDrawBufferData AllocateNewAndAdd(GLLegacyTexture texture)
+    private HudDrawBufferData AllocateNewAndAdd(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
-        HudDrawBufferData newData = m_dataCache.GetDrawHudBufferData(texture);
+        HudDrawBufferData newData = m_dataCache.GetDrawHudBufferData(texture, brightmapTexture);
         DrawBuffer.Add(newData);
         return newData;
     }

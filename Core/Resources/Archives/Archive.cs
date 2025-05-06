@@ -30,13 +30,16 @@ public abstract class Archive : IDisposable
         ("SPRITES", ResourceNamespace.Sprites),
         ("TEXTURES", ResourceNamespace.Textures),
         ("PATCHES", ResourceNamespace.Textures),
-        ("COLORMAPS", ResourceNamespace.Colormaps)
+        ("COLORMAPS", ResourceNamespace.Colormaps),
     ];
 
     protected static ResourceNamespace NamespaceFromEntryPath(string path)
     {
         if (!path.GetLastFolder(out var folder))
             return ResourceNamespace.Global;
+
+        if (path.StartsWithIgnoreCase("brightmaps/"))
+            return ResourceNamespace.Brightmaps;
 
         foreach (var item in FolderToNamespace)
         {

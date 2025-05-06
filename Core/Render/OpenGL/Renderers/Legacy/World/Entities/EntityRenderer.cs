@@ -217,6 +217,7 @@ public class EntityRenderer : IDisposable
         int colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
         SpriteRotation spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.FrameState.Frame.Frame, rotation, colorMapIndex);
         GLLegacyTexture texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
+        GLLegacyTexture? brightmapTexture = spriteRotation.BrightmapRenderStore as GLLegacyTexture;
         Sector sector = entity.Sector.GetRenderSector(m_transferHeightView);
 
         float offsetZ = GetOffsetZ(entity, texture);
@@ -225,9 +226,11 @@ public class EntityRenderer : IDisposable
         bool useAlpha = m_spriteAlpha && entity.Alpha < 1.0f;
         RenderData<EntityVertex> renderData;
         if (shadow)
-            renderData = m_dataManager.GetFuzz(texture);
+            renderData = m_dataManager.GetFuzz(texture, brightmapTexture);
+        else if (useAlpha)
+            renderData = m_dataManager.GetAlpha(texture, brightmapTexture);
         else
-            renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
+            renderData = m_dataManager.GetNonAlpha(texture, brightmapTexture);
 
         float alpha = useAlpha ? entity.Alpha : 1.0f;
         float fuzz = shadow ? 1.0f : 0.0f;
@@ -250,8 +253,10 @@ public class EntityRenderer : IDisposable
             (float)entity.PrevPosition.Z);
         vertex.OffsetZ = offsetZ;
         vertex.OffsetXY = texture.Offset.X;
-        vertex.LightLevel = entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright ? 255 :
-            ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
+        bool disableFullbright = m_config.Render.Brightmaps && spriteRotation.BrightmapNoFullbright;
+        vertex.LightLevel = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright
+            ? 255
+            : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
         
@@ -310,6 +315,7 @@ public class EntityRenderer : IDisposable
     private void SetUniforms(EntityProgram program, RenderInfo renderInfo)
     {
         program.BoundTexture(BindTextures.BoundTexture);
+        program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.ColormapTexture(BindTextures.Colormap);
         program.SectorColormapTexture(BindTextures.SectorColormap);
         program.ExtraLight(renderInfo.Uniforms.ExtraLight);
@@ -331,6 +337,7 @@ public class EntityRenderer : IDisposable
         program.ViewPos(renderInfo.Camera.Position);
         program.ScreenBounds((renderInfo.Viewport.Width, renderInfo.Viewport.Height));
         program.CheckPlaneClip(m_vanillaRender);
+        program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
 
         // The fade distance calculations work using squared distances
         float maxDistanceSquared = renderInfo.Uniforms.MaxDistance * renderInfo.Uniforms.MaxDistance;
