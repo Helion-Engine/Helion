@@ -179,7 +179,7 @@ public class DefinitionEntries
 
     private void ParseMapInfo(string text)
     {
-        if (!m_parseLegacyMapInfo || !m_parseZDoomMapInfo)
+        if (!m_parseLegacyMapInfo)
             return;
 
         MapInfoDefinition.Parse(m_archiveCollection, text, ShouldParseWeapons);
@@ -233,24 +233,22 @@ public class DefinitionEntries
         m_parseZDoomMapInfo = true;
         m_parseLegacyMapInfo = true;
 
-        bool skyDefs = archive.AnyEntryByName("SKYDEFS");
-        bool umapInfo = archive.AnyEntryByName("UMAPINFO");
-
         bool hasBoth = archive.AnyEntryByName("DEHACKED") && archive.AnyEntryByName("DECORATE");
         if (ConfigCompatibility.PreferDehacked && hasBoth)
             m_parseDecorate = false;
         else if (!ConfigCompatibility.PreferDehacked && hasBoth)
             m_parseDehacked = false;
 
-        // Prioritize UMAPINFO when SKYDEFS is present since MAPINFO can conflict with SKYDEFS.
-        if (!(umapInfo && skyDefs))
-        {
-            var hasZmapinfo = archive.AnyEntryByName("ZMAPINFO");
-            if (hasZmapinfo)
-                m_parseLegacyMapInfo = false;
+        if (archive.AnyEntryByName("ZMAPINFO"))
+            m_parseLegacyMapInfo = false;
 
-            if (hasZmapinfo || archive.AnyEntryByName("MAPINFO"))
-                m_parseZDoomMapInfo = false;
+        // Prioritize UMAPINFO when SKYDEFS is present since MAPINFO can conflict with SKYDEFS.
+        bool skyDefs = archive.AnyEntryByName("SKYDEFS");
+        bool umapInfo = archive.AnyEntryByName("UMAPINFO");
+        if (umapInfo && skyDefs)
+        {
+            m_parseZDoomMapInfo = false;
+            m_parseLegacyMapInfo = false;
         }
 
         m_pnamesTextureXCollection = new PnamesTextureXCollection();
@@ -269,7 +267,6 @@ public class DefinitionEntries
         // Vanilla IWADS will have this set. If a PWAD is loaded this will get clear it.
         ConfigCompatibility.VanillaShortestTexture.Set(archive.IWadInfo.VanillaCompatibility);
     }
-
 
     public void BuildTranslationColorMaps(Palette palette, Colormap baseColorMap)
     {
