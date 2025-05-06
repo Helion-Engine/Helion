@@ -27,6 +27,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Definitions.Zdoom;
+using Helion.Resources.Definitions.ZDoom;
 using Helion.Resources.Images;
 using Helion.Resources.IWad;
 using Helion.Resources.Textures;
@@ -95,7 +96,7 @@ public class ArchiveCollection : IResources, IPathResolver
     private string? m_lastLoadedMapPath;
     private bool m_lastLoadedMapIsTemp;
     private bool m_initTextureManager;
-    private readonly Dictionary<(string, ResourceNamespace), BrightmapDefinition?> m_brightmapLookupCache = [];
+    private readonly Dictionary<BrightmapLookupCacheKey, BrightmapDefinition?> m_brightmapLookupCache = [];
 
     public ArchiveCollection(IArchiveLocator archiveLocator, Config config, DataCache dataCache)
     {
@@ -705,7 +706,7 @@ public class ArchiveCollection : IResources, IPathResolver
 
     public BrightmapDefinition? GetBrightmapFor(string textureName, ResourceNamespace textureNamespace)
     {
-        if (m_brightmapLookupCache.TryGetValue((textureName, textureNamespace), out BrightmapDefinition? cached))
+        if (m_brightmapLookupCache.TryGetValue(new BrightmapLookupCacheKey(textureName, textureNamespace), out BrightmapDefinition? cached))
             return cached;
 
         var bmapsDef = Definitions.GldefsDefinition.BrightMaps;
@@ -733,7 +734,7 @@ public class ArchiveCollection : IResources, IPathResolver
         if (brightmap == null && bmapsDef.Auto.TryGetValue(textureName, out BrightmapDefinition? val))
             brightmap = val;
 
-        m_brightmapLookupCache[(textureName, textureNamespace)] = brightmap;
+        m_brightmapLookupCache[new BrightmapLookupCacheKey(textureName, textureNamespace)] = brightmap;
         return brightmap;
     }
 }
