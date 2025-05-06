@@ -8,7 +8,8 @@ namespace Helion.Resources.Definitions.ZDoom
         public string TextureName = textureName;
         public ResourceNamespace TextureNamespace = textureNamespace;
 
-        public override readonly int GetHashCode() => HashCode.Combine(TextureName, TextureNamespace);
+        public override readonly int GetHashCode()
+            => HashCode.Combine(StringComparer.OrdinalIgnoreCase.GetHashCode(TextureName), TextureNamespace);
         public readonly bool Equals(BrightmapLookupCacheKey other)
             => TextureNamespace == other.TextureNamespace && TextureName.EqualsIgnoreCase(other.TextureName);
         public readonly override bool Equals(object? obj) => obj is not null && obj is BrightmapLookupCacheKey v && Equals(v);
