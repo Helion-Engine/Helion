@@ -107,13 +107,13 @@ public class GldefsDefinition
 
     private void ParseBrightmapBlock(Entry entry, SimpleParser parser)
     {
-        string textureType = parser.ConsumeString().ToLowerInvariant();
+        string textureType = parser.ConsumeString();
         string texture = parser.ConsumeString();
         parser.ConsumeString("{");
         BrightmapDefinition def = new() { TargetTexture = texture };
         while (!parser.IsDone())
         {
-            string token = parser.ConsumeString().ToLowerInvariant();
+            string token = parser.ConsumeString();
             if (token.EqualsIgnoreCase("map"))
             {
                 string filename = parser.ConsumeString();
@@ -127,13 +127,13 @@ public class GldefsDefinition
                 def.DisableFullbright = true;
             else if (token == "}")
             {
-                var destination = textureType switch
-                {
-                    "flat" => BrightMaps.Flats,
-                    "sprite" => BrightMaps.Sprites,
-                    "texture" => BrightMaps.Textures,
-                    _ => null
-                };
+                List<BrightmapDefinition>? destination = null;
+                if (textureType.EqualsIgnoreCase("flat"))
+                    destination = BrightMaps.Flats;
+                else if (textureType.EqualsIgnoreCase("sprite"))
+                    destination = BrightMaps.Sprites;
+                else if (textureType.EqualsIgnoreCase("texture"))
+                    destination = BrightMaps.Textures;
                 destination?.Add(def);
                 return;
             }
