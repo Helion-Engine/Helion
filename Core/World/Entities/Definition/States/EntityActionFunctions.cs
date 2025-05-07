@@ -18,6 +18,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
+using Helion.World.Sound;
 using Helion.World.Special;
 using NLog;
 using System;
@@ -2821,7 +2822,7 @@ public static class EntityActionFunctions
         int soundIndex = entity.FrameState.Frame.DehackedMisc1;
 
         Attenuation attenuation = entity.FrameState.Frame.DehackedMisc2 > 0 ? Attenuation.None : Attenuation.Default;
-        PlayDehackedSound(entity, soundIndex, attenuation);
+        PlayDehackedSound(entity, soundIndex, attenuation, SoundChannel.Default);
     }
 
     private static void A_Detonate(Entity entity)
@@ -2862,7 +2863,7 @@ public static class EntityActionFunctions
         A_FaceTarget(entity);
         if (entity.InMeleeRange(target))
         {
-            PlayDehackedSound(entity, entity.FrameState.Frame.DehackedMisc2, Attenuation.Default);
+            PlayDehackedSound(entity, entity.FrameState.Frame.DehackedMisc2, Attenuation.Default, SoundChannel.Default);
             WorldStatic.World.DamageEntity(target, entity, entity.FrameState.Frame.DehackedMisc1, DamageType.AlwaysApply, Thrust.Horizontal);
         }
     }
@@ -2960,7 +2961,7 @@ public static class EntityActionFunctions
         int mod = Math.Clamp(frame.DehackedArgs5, 0, int.MaxValue);
 
         WorldStatic.World.FirePlayerHitscanBullets(entity.PlayerObj, bullets, spreadAngle, spreadPitch, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, true, DamageAttackFunction,
-            new DamageFuncParams(entity, damage, mod));
+            new DamageFuncParams(true, entity, damage, mod));
     }
 
     public static void A_WeaponMeleeAttack(Entity entity)
@@ -2985,7 +2986,7 @@ public static class EntityActionFunctions
 
         int sound = frame.DehackedArgs1;
         Attenuation attenuation = frame.DehackedArgs2 == 0 ? Attenuation.Default : Attenuation.None;
-        PlayDehackedSound(entity, sound, attenuation);
+        PlayDehackedSound(entity, sound, attenuation, SoundChannel.Weapon);
     }
 
     private static void A_WeaponJump(Entity entity)
@@ -3492,12 +3493,12 @@ public static class EntityActionFunctions
         return true;
     }
 
-    private static void PlayDehackedSound(Entity entity, int soundIndex, Attenuation attenuation)
+    private static void PlayDehackedSound(Entity entity, int soundIndex, Attenuation attenuation, SoundChannel channel)
     {
         if (!GetDehackedSound(entity, soundIndex, out string? soundName))
             return;
 
-        WorldStatic.SoundManager.CreateSoundOn(entity, soundName, new SoundParams(entity, attenuation: attenuation));
+        WorldStatic.SoundManager.CreateSoundOn(entity, soundName, new SoundParams(entity, attenuation: attenuation, channel: channel));
     }
 
     private static bool GetDehackedSound(Entity entity, int soundIndex, [NotNullWhen(true)] out string? soundName)

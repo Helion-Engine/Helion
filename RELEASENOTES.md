@@ -42,3 +42,5 @@
 - Fix duplicate MusicChanger definition in assets that was clearing it's flags that allowed it to interact with map scrollers and activate line specials
 - Fix demo recordings not saving
 - Fix A_SpawnObject to check missile and bouncer from definition instead of the object itself
+- Fix A_WeaponSound to pass weapon sound channel (fixes Doomed Marine chainsaw incorrectly playing sawfull)
+- Fix A_WeaponBulletAttack to ignore player refire check (fixes Doomed Marine chaingun replacement always being 100% accurate)
