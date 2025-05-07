@@ -1493,8 +1493,7 @@ public abstract partial class WorldBase : IWorld
     {
         double originalPitch = pitch;
 
-        if (damageFunc == null)
-            damageFunc = m_defaultDamageAction;
+        damageFunc ??= m_defaultDamageAction;
 
         if (autoAim)
         {
@@ -1512,7 +1511,7 @@ public abstract partial class WorldBase : IWorld
             shooter.PlayerObj.Tracers.AddAutoAimPath(shooter.HitscanAttackPos, shooter.AngleRadians, pitch, distance, Gametick);
         }
 
-        if (!shooter.Refire && bulletCount == 1)
+        if (!damageParams.IgnorePlayerRefire && !shooter.Refire && bulletCount == 1)
         {
             int damage = damageFunc(damageParams);
             FireHitscan(shooter, shooter.AngleRadians, pitch, distance, damage);

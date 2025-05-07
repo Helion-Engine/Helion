@@ -2961,7 +2961,7 @@ public static class EntityActionFunctions
         int mod = Math.Clamp(frame.DehackedArgs5, 0, int.MaxValue);
 
         WorldStatic.World.FirePlayerHitscanBullets(entity.PlayerObj, bullets, spreadAngle, spreadPitch, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, true, DamageAttackFunction,
-            new DamageFuncParams(entity, damage, mod));
+            new DamageFuncParams(true, entity, damage, mod));
     }
 
     public static void A_WeaponMeleeAttack(Entity entity)
