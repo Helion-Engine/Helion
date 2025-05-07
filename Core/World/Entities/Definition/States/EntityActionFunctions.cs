@@ -3122,10 +3122,10 @@ public static class EntityActionFunctions
         createdEntity.Velocity.Y = velocity.Y;
         createdEntity.Velocity.Z = zVelocity;
 
-        if (!createdEntity.Flags.Missile && !createdEntity.Flags.MbfBouncer)
+        if (!createdEntity.Definition.Flags.Missile && !createdEntity.Definition.Flags.MbfBouncer)
             return;
 
-        if (entity.Flags.Missile || entity.Flags.MbfBouncer)
+        if (entity.Definition.Flags.Missile || entity.Definition.Flags.MbfBouncer)
         {
             createdEntity.SetOwner(entity.Owner());
             createdEntity.SetTracer(entity.Tracer());

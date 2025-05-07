@@ -41,3 +41,4 @@
 - Fix crash when setting enum config value from console as a number and it's out of range
 - Fix duplicate MusicChanger definition in assets that was clearing it's flags that allowed it to interact with map scrollers and activate line specials
 - Fix demo recordings not saving
+- Fix A_SpawnObject to check missile and bouncer from definition instead of the object itself
