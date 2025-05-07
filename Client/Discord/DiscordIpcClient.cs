@@ -92,13 +92,13 @@ public class DiscordIpcClient(string clientId) : IDisposable
             }
             catch (Exception e)
             {
-                Log.Info($"Discord: Failed to open pipe {m_pipeName}: {e.Message}");
+                Log.Debug($"Discord: Failed to open pipe {m_pipeName}: {e.Message}");
                 DisposePipe();
             }
         }
         if (m_pipe?.IsConnected != true)
         {
-            Log.Info($"Discord: Failed to open any pipe");
+            Log.Debug($"Discord: Failed to open any pipe");
             return;
         }
         try
@@ -111,7 +111,7 @@ public class DiscordIpcClient(string clientId) : IDisposable
         }
         catch (Exception e)
         {
-            Log.Info($"Discord: Failed to connect: {e.Message}");
+            Log.Debug($"Discord: Failed to connect: {e.Message}");
             DisposePipe();
         }
     }
@@ -133,7 +133,7 @@ public class DiscordIpcClient(string clientId) : IDisposable
             }
             catch (Exception e)
             {
-                Log.Info($"Discord: Failed to send disconnect message: {e.Message}");
+                Log.Debug($"Discord: Failed to send disconnect message: {e.Message}");
             }
         }
         DisposePipe();
@@ -170,7 +170,7 @@ public class DiscordIpcClient(string clientId) : IDisposable
         }
         catch (Exception e)
         {
-            Log.Info($"Discord: Failed to update rich presence: {e.Message}");
+            Log.Debug($"Discord: Failed to update rich presence: {e.Message}");
         }
     }
 
