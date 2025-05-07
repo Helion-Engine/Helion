@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Helion.Audio;
 using Helion.Audio.Impl;
 using Helion.Audio.Sounds;
+using Helion.Client.Discord;
 using Helion.Client.Input;
 using Helion.Client.Music;
 using Helion.Graphics;
@@ -459,6 +460,7 @@ public partial class Client : IDisposable, IInputManagement
         PackageDemo();
 
         m_demoPlayer?.Dispose();
+        m_discord.Dispose();
 
         m_window.SetGrabCursor(false);
         m_window.WindowState = WindowState.Minimized;
