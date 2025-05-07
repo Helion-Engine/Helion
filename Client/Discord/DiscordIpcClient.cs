@@ -4,6 +4,8 @@ using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using NLog;
 using static Helion.Util.Assertion.Assert;
 
@@ -15,48 +17,64 @@ public class DiscordIpcClient(string clientId) : IDisposable
     private readonly int m_processId = Environment.ProcessId;
     private NamedPipeClientStream? m_pipe;
     private string? m_pipeName;
-    public bool Connected => m_pipe?.IsConnected ?? false;
     private bool m_disposed;
+    private readonly CancellationTokenSource canceller = new();
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+    private async Task SendAsync<T>(DiscordMessageType type, T payload, CancellationToken cancellationToken) where T : DiscordMessage
+    {
+        if (m_pipe?.IsConnected != true)
+            return;
+        byte[] encodedPayload = EncodePayload(type, payload);
+        await m_pipe.WriteAsync(encodedPayload, cancellationToken);
+    }
 
     private void Send<T>(DiscordMessageType type, T payload) where T : DiscordMessage
     {
-        if (m_pipe == null || !Connected)
+        if (m_pipe?.IsConnected != true)
             return;
+        byte[] encodedPayload = EncodePayload(type, payload);
+        m_pipe.Write(encodedPayload);
+    }
 
+    private static byte[] EncodePayload<T>(DiscordMessageType type, T payload) where T : DiscordMessage
+    {
         int opcode = (int)type;
         string jsonPayload = JsonSerializer.Serialize(payload, typeof(T), DiscordSerializationContext.Default);
         byte[] payloadBytes = Encoding.UTF8.GetBytes(jsonPayload);
         byte[] header = [.. BitConverter.GetBytes(opcode), .. BitConverter.GetBytes(payloadBytes.Length)];
         byte[] encodedPayload = [.. header, .. payloadBytes];
-        m_pipe.Write(encodedPayload, 0, encodedPayload.Length);
+        return encodedPayload;
     }
 
     /// <remarks>
     /// We don't actually do anything with responses, so the JSON payload is not deserialized
     /// </remarks>
-    private string? Receive()
+    private async Task<string?> ReceiveAsync(CancellationToken cancellationToken)
     {
-        if (m_pipe == null || !Connected)
+        if (m_pipe?.IsConnected != true)
             return null;
 
         byte[] header = new byte[8];
-        m_pipe.ReadExactly(header, 0, 8);
+        await m_pipe.ReadExactlyAsync(header, 0, 8, cancellationToken);
         int opcode = BitConverter.ToInt32(header, 0);
-        if (opcode < 0 || opcode > 2)
-            return null;
         int length = BitConverter.ToInt32(header, 4);
+        if (opcode < 0 || opcode > 2 || length > 65536)
+            return null;
 
         byte[] data = new byte[length];
-        m_pipe.ReadExactly(data, 0, length);
+        await m_pipe.ReadExactlyAsync(data, 0, length, cancellationToken);
         string jsonData = Encoding.UTF8.GetString(data);
         return jsonData;
     }
 
-    public void Connect()
+    private async Task ConnectAsync(CancellationToken cancellationToken)
     {
-        if (Connected)
+        if (m_pipe?.IsConnected == true)
             return;
+
+        if (m_pipe != null)
+            DisposePipe();
 
         bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         for (int i = 0; i <= 9; i++)
@@ -69,7 +87,7 @@ public class DiscordIpcClient(string clientId) : IDisposable
                 if (!File.Exists(path))
                     continue;
                 m_pipe = new NamedPipeClientStream(m_pipeName);
-                m_pipe.Connect(0); // do not wait for missing pipe
+                await m_pipe.ConnectAsync(0, cancellationToken); // do not wait for missing pipe
                 break;
             }
             catch (Exception e)
@@ -78,15 +96,18 @@ public class DiscordIpcClient(string clientId) : IDisposable
                 DisposePipe();
             }
         }
-        if (!Connected)
+        if (m_pipe?.IsConnected != true)
         {
             Log.Info($"Discord: Failed to open any pipe");
             return;
         }
         try
         {
-            Send(DiscordMessageType.Connect, new DiscordConnectMessage { V = 1, ClientId = m_clientId });
-            // Receive();
+            await SendAsync(DiscordMessageType.Connect, new DiscordConnectMessage { V = 1, ClientId = m_clientId }, cancellationToken);
+            // We don't care about a response in most places, but we'll want the server to be in a ready state
+            // before continuing and sending any status. Discord seems to have an anti-spam protection that can cause
+            // this to take 15-20s if a connection is made multiple times in short period.
+            await ReceiveAsync(cancellationToken);
         }
         catch (Exception e)
         {
@@ -102,14 +123,13 @@ public class DiscordIpcClient(string clientId) : IDisposable
         m_pipeName = null;
     }
 
-    public void Disconnect()
+    private void Disconnect()
     {
-        if (Connected)
+        if (m_pipe?.IsConnected == true)
         {
             try
             {
                 Send(DiscordMessageType.Disconnect, new DiscordDisconnectMessage());
-                // Receive();
             }
             catch (Exception e)
             {
@@ -119,8 +139,16 @@ public class DiscordIpcClient(string clientId) : IDisposable
         DisposePipe();
     }
 
-    public void UpdateActivity(string? details = null, string? state = null)
+    /// <summary>
+    /// Connects to Discord if needed and then updates the current status.
+    /// </summary>
+    public async Task UpdateActivityAsync(string? details = null, string? state = null)
     {
+        CancellationToken cancellationToken = canceller.Token;
+        if (m_pipe?.IsConnected != true)
+        {
+            await ConnectAsync(cancellationToken);
+        }
         try
         {
             DiscordCommandMessage payload = new()
@@ -138,8 +166,7 @@ public class DiscordIpcClient(string clientId) : IDisposable
                 Nonce = Guid.NewGuid()
             };
 
-            Send(DiscordMessageType.Activity, payload);
-            // Receive();
+            await SendAsync(DiscordMessageType.Activity, payload, cancellationToken);
         }
         catch (Exception e)
         {
@@ -152,6 +179,7 @@ public class DiscordIpcClient(string clientId) : IDisposable
         if (m_disposed)
             return;
 
+        canceller.Cancel();
         Disconnect();
         m_disposed = true;
     }

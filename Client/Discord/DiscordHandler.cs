@@ -10,31 +10,22 @@ public class DiscordHandler : IDisposable
     private DiscordIpcClient? m_client;
     private bool m_disposed;
 
-    private void Initialize()
-    {
-        if (m_client != null)
-            return;
-        m_client = new DiscordIpcClient(AppId);
-        m_client.Connect();
-    }
-
     public void SetEnabled(bool enabled)
     {
         if (enabled)
-            Task.Run(Initialize);
+            m_client ??= new DiscordIpcClient(AppId);
         else
         {
-            m_client?.Disconnect();
+            m_client?.Dispose();
             m_client = null;
         }
     }
 
     public void UpdateRichPresence(string? gameName = null, string? mapName = null)
     {
-        if (m_client == null || !m_client.Connected)
+        if (m_client == null)
             return;
-
-        Task.Run(() => m_client.UpdateActivity(gameName, mapName));
+        Task.Run(() => m_client.UpdateActivityAsync(gameName, mapName));
     }
 
     void PerformDispose()
