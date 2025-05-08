@@ -82,11 +82,25 @@ public class DiscordIpcClient(string clientId) : IDisposable
             m_pipeName = $"discord-ipc-{i}";
             try
             {
-                string path = isWindows ? $@"\\.\pipe\{m_pipeName}" : $"/tmp/{m_pipeName}";
+                string? path = null;
+                if (isWindows)
+                    path = Path.Combine($@"\\.\pipe", m_pipeName);
+                else
+                {
+                    string? runtimeDir = Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR");
+                    if (runtimeDir == null)
+                    {
+                        string? uid = Environment.GetEnvironmentVariable("UID");
+                        if (uid != null)
+                            runtimeDir = Path.Combine("/run/user", uid);
+                    }
+                    if (runtimeDir != null)
+                        path = Path.Combine(runtimeDir, m_pipeName);
+                }
                 // check for file rather than throwing exception if missing
                 if (!File.Exists(path))
                     continue;
-                m_pipe = new NamedPipeClientStream(m_pipeName);
+                m_pipe = new NamedPipeClientStream(isWindows ? m_pipeName : path);
                 await m_pipe.ConnectAsync(0, cancellationToken); // do not wait for missing pipe
                 break;
             }
