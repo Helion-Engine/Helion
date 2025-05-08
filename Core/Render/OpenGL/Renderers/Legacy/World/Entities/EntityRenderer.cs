@@ -124,7 +124,7 @@ public class EntityRenderer : IDisposable
         if (m_vanillaRender)
             return offsetAmount;
 
-        if (offsetAmount >= 0 || entity.Definition.Flags.Missile)
+        if (offsetAmount >= 0 || entity.Definition.Flags.Missile || entity.Definition.Flags.NoGravity)
             return offsetAmount;
 
         if (entity.Sector.Flood || entity.Sector.Floor.NoRender)
