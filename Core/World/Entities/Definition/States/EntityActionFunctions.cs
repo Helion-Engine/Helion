@@ -3155,7 +3155,7 @@ public static class EntityActionFunctions
         double pitch = GetDehackedProjectilePitch(frame.DehackedArgs3);
         double offsetXY = MathHelper.FromFixed(frame.DehackedArgs4);
         double zOffset = MathHelper.FromFixed(frame.DehackedArgs5);
-        FireProjectile(entity, null, projectileDef, angle, pitch, offsetXY, zOffset);
+        FireProjectile(entity, null, projectileDef, angle, pitch, offsetXY, zOffset, WorldStatic.World.Config.Game.AutoAim);
     }
 
     private static void A_MonsterProjectile(Entity entity)
@@ -3170,9 +3170,8 @@ public static class EntityActionFunctions
         double zOffset = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs5);
 
         A_FaceTarget(entity);
-        var projectile = FireProjectile(entity, target, projectileDef, angle, pitchOffset, offsetXY, zOffset);
-        if (projectile != null)
-            projectile.SetTracer(target);
+        var projectile = FireProjectile(entity, target, projectileDef, angle, pitchOffset, offsetXY, zOffset, true);
+        projectile?.SetTracer(target);
     }
 
     private static void A_MonsterBulletAttack(Entity entity)
@@ -3431,7 +3430,7 @@ public static class EntityActionFunctions
             Constants.EntityShootDistance, false, def, out _, zOffset: zOffset);
     }
 
-    private static Entity? FireProjectile(Entity entity, Entity? target, EntityDefinition projectileDef, double addAngle, double addPitch, double offsetXY, double zOffset)
+    private static Entity? FireProjectile(Entity entity, Entity? target, EntityDefinition projectileDef, double addAngle, double addPitch, double offsetXY, double zOffset, bool autoAim)
     {
         double firePitch = 0;
         if (entity.PlayerObj != null)
@@ -3440,7 +3439,7 @@ public static class EntityActionFunctions
         if (target != null)
             firePitch = entity.PitchTo(entity.Position, target);
 
-        Entity? createdEntity = WorldStatic.World.FireProjectile(entity, entity.AngleRadians, firePitch, Constants.EntityShootDistance, true, projectileDef,
+        Entity? createdEntity = WorldStatic.World.FireProjectile(entity, entity.AngleRadians, firePitch, Constants.EntityShootDistance, autoAim, projectileDef,
             out Entity? autoAimEntity, addAngle: addAngle, addPitch: addPitch, zOffset: zOffset);
         if (createdEntity == null)
             return null;
