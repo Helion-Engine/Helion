@@ -15,6 +15,7 @@
 - Replaced HUD horizontal margin with HUD width option
 - Added optional health bars to render above shootable things
 - Upgraded vanilla rendering emulation to draw sprites over walls similar to vanilla
+- Add damage receive and apply multipliers for players
 
 ## Bug fixes:
 - Correct missile blocking checks to match original behavior (fixes radsuits blocking rockets etc)
