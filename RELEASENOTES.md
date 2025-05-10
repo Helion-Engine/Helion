@@ -44,5 +44,6 @@
 - Fix A_SpawnObject to check missile and bouncer from definition instead of the object itself
 - Fix A_WeaponSound to pass weapon sound channel (fixes Doomed Marine chainsaw incorrectly playing sawfull)
 - Fix A_WeaponBulletAttack to ignore player refire check (fixes Doomed Marine chaingun replacement always being 100% accurate)
+- Fix A_WeaponBulletAttack to correctly use autoaim setting for player
 - Fix A_WeaponProjectile to correctly use autoaim setting for player
 - Fix sprite offsets with nogravity flag to not have vertical offset adjusted
