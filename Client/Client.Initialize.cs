@@ -79,12 +79,8 @@ public partial class Client
             if (m_commandLineArgs.LevelStat)
                 ClearStatsFile();
 
-            m_discord.SetEnabled(m_config.Game.DiscordIntegration);
-            m_config.Game.DiscordIntegration.OnChanged += (s, e) =>
-            {
-                m_discord.SetEnabled(e);
-                m_discord.UpdateRichPresence(GetGameName(), GetMapName());
-            };
+            HandleDiscord(m_config.Game.DiscordIntegration);
+            m_config.Game.DiscordIntegration.OnChanged += (s, enabled) => HandleDiscord(enabled);
 
             if (m_commandLineArgs.LoadGame != null)
             {
@@ -312,5 +308,12 @@ public partial class Client
             world.Player.PitchRadians = MathHelper.ToRadians(args.SetPitch.Value);
             world.Player.ResetInterpolation();
         }
+    }
+
+    private void HandleDiscord(bool enabled)
+    {
+        m_discord.SetEnabled(enabled);
+        if (enabled)
+            m_discord.UpdateRichPresence(GetGameName(), GetMapName());
     }
 }
