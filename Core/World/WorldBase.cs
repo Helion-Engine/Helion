@@ -462,6 +462,8 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.VanillaSectorSound.OnChanged += VanillaSectorSound_OnChanged;
 
         Config.Game.FastMonsters.OnChanged += FastMonsters_OnChanged;
+        Config.Game.DamageApplyMultiplier.OnChanged += DamageApplyMultiplier_OnChanged;
+        Config.Game.DamageReceiveMultiplier.OnChanged += DamageReceiveMultiplier_OnChanged;
     }
 
     private void UnRegisterConfigChanges()
@@ -485,6 +487,8 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.VanillaSectorSound.OnChanged -= VanillaSectorSound_OnChanged;
 
         Config.Game.FastMonsters.OnChanged -= FastMonsters_OnChanged;
+        Config.Game.DamageApplyMultiplier.OnChanged -= DamageApplyMultiplier_OnChanged;
+        Config.Game.DamageReceiveMultiplier.OnChanged -= DamageReceiveMultiplier_OnChanged;
     }
 
     private void SetWorldStatic()
@@ -524,6 +528,8 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
         WorldStatic.Udmf = MapType == MapType.UDMF;
+        WorldStatic.DamageApplyMultiplier = (float)Config.Game.DamageApplyMultiplier;
+        WorldStatic.DamageReceiveMultiplier = (float)Config.Game.DamageReceiveMultiplier;
 
         WorldStatic.DoomImpBall = EntityManager.DefinitionComposer.GetByNameOrDefault("DoomImpBall");
         WorldStatic.ArachnotronPlasma = EntityManager.DefinitionComposer.GetByNameOrDefault("ArachnotronPlasma");
@@ -574,6 +580,10 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.SlowTickLookMultiplier = (short)value;
     private void SlowTickTracerMultiplier_OnChanged(object? sender, int value) =>
         WorldStatic.SlowTickTracerMultiplier = (short)value;
+    private void DamageReceiveMultiplier_OnChanged(object? sender, double value) =>
+        WorldStatic.DamageReceiveMultiplier = (float)value;
+    private void DamageApplyMultiplier_OnChanged(object? sender, double value) =>
+        WorldStatic.DamageApplyMultiplier = (float)value;
     private void FastMonsters_OnChanged(object? sender, bool enabled)
     {
         IsFastMonsters = SkillDefinition.IsFastMonsters(Config);
@@ -1773,12 +1783,17 @@ public abstract partial class WorldBase : IWorld
         bool setPainState = m_random.NextByte() < target.Properties.PainChance;
         if (target.PlayerObj != null)
         {
+            damage = (int)(damage * WorldStatic.DamageReceiveMultiplier);
             // Voodoo dolls did not take sector damage in the original
             if (target.PlayerObj.IsVooDooDoll && sectorSource != null)
                 return false;
             // Sector damage is applied to real players, but not their voodoo dolls
             if (sectorSource == null)
                 ApplyVooDooDamage(target.PlayerObj, damage, setPainState);
+        }
+        else if (source?.PlayerObj != null)
+        {
+            damage = (int)(damage * WorldStatic.DamageApplyMultiplier);
         }
 
         if (target.Damage(source, damage, setPainState, damageType) || target.IsInvulnerable)

@@ -101,6 +101,14 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [OptionMenu(OptionSectionType.General, "Fast Monsters")]
     public readonly ConfigValue<bool> FastMonsters = new(false);
 
+    [ConfigInfo("Modifies damage to players.")]
+    [OptionMenu(OptionSectionType.General, "Damage Receive Multiplier", sliderMin: 0, sliderMax: 10.0, sliderStep: .1)]
+    public readonly ConfigValue<double> DamageReceiveMultiplier = new(1.0, GreaterOrEqual(0.0));
+
+    [ConfigInfo("Modifies damage to non-players from players.")]
+    [OptionMenu(OptionSectionType.General, "Damage Multiplier", sliderMin: 0, sliderMax: 10.0, sliderStep: .1)]
+    public readonly ConfigValue<double> DamageApplyMultiplier = new(1.0, GreaterOrEqual(0.0));
+
     [ConfigInfo("Random number generator method.", save: false, demo: true, serialize: true, mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.General, "RNG Method", spacer: true)]
     public readonly ConfigValue<RngMethod> Rng = new(RngMethod.Boom);

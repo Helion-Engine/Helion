@@ -1655,7 +1655,7 @@ public class Player : Entity
 
     private int ApplyArmorDamage(int damage)
     {
-        if (ArmorProperties == null || Armor == 0)
+        if (ArmorProperties == null || Armor == 0 || damage <= 0)
             return damage;
         if (ArmorProperties.Armor.SavePercent == 0)
             return damage;
