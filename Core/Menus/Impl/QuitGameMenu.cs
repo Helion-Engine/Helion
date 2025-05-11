@@ -43,14 +43,12 @@ public class QuitGameMenu : Menu
         var quitMessages = archiveCollection.Definitions.MapInfoDefinition.GameDefinition.QuitMessages;
         if (quitMessages.Count > 0)
         {
-            TrueRandom random = new TrueRandom();
-            string[] lines = archiveCollection.Definitions.Language.GetMessages(quitMessages[random.NextByte() % quitMessages.Count]);
+            var random = new TrueRandom();
+            var lines = archiveCollection.Definitions.Language.GetMessages(quitMessages[random.NextByte() % quitMessages.Count]);
             foreach (string line in lines)
-            {
-                Components = Components.Add(new MenuSmallTextComponent(line));
-                Components = Components.Add(new MenuPaddingComponent(8));
-            }
+                Components = Components.Add(new MenuSmallTextComponent(line, lineWrap: true));
 
+            Components = Components.Add(new MenuPaddingComponent(8));
             Components = Components.Add(new MenuSmallTextComponent(archiveCollection.Definitions.Language.GetMessage("$DOSY")));
         }
         else

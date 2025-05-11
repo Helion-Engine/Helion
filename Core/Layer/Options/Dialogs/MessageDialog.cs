@@ -10,7 +10,8 @@ internal class MessageDialog(ConfigWindow config, string title, IList<string> me
 {
     private readonly string m_title = title;
     private readonly IList<string> m_message = message;
-    private readonly List<string> m_messageFormatted = new List<string>();
+    private readonly List<string> m_messageFormatted = [];
+    private readonly List<string> m_lines = [];
 
     protected override void RenderDialogContents(IRenderableSurfaceContext ctx, IHudRenderContext hud, bool sizeChanged)
     {
@@ -21,12 +22,18 @@ internal class MessageDialog(ConfigWindow config, string title, IList<string> me
         if (sizeChanged)
         {
             m_messageFormatted.Clear();
+            m_lines.Clear();
 
-            List<string> temp = new List<string>();
             foreach (string str in m_message)
             {
-                WrapTextToDialogWidth(str, hud, temp);
-                m_messageFormatted.AddRange(temp);
+                if (str.Length == 0)
+                {
+                    m_messageFormatted.Add(str);
+                    continue;
+                }
+
+                WrapTextToDialogWidth(str, hud, m_lines);
+                m_messageFormatted.AddRange(m_lines);
             }
         }
 

@@ -27,6 +27,8 @@ public partial class MenuLayer
 
     private readonly List<string> m_mapNameLines = [];
     private readonly StringBuilder m_mapNameStringBuilder = new();
+    private readonly static StringBuilder m_lineWrapStringBuilder = new();
+    private readonly static List<string> m_lineWrapLines = new();
 
     private IMenuComponent? m_previousSelectedComponent;
     private IRenderableTextureHandle? m_saveGameTexture;
@@ -101,10 +103,27 @@ public partial class MenuLayer
         if (align != Align.TopMiddle)
             offsetY = 0;
 
-        hud.Text(text.Text, text.FontName, text.Size, (0, offsetY), out Dimension area, both: align);
+        int addHeight;
+        if (text.LineWrap)
+        {
+            int rowHeight = 0;
+            var height = hud.MeasureText("0", text.FontName, text.Size).Height;
+            hud.LineWrap(text.Text, text.FontName, text.Size, hud.Dimension.Width, m_lineWrapLines, m_lineWrapStringBuilder, out addHeight);
+
+            foreach (var line in m_lineWrapLines)
+            {
+                hud.Text(line, text.FontName, text.Size, (0, offsetY + rowHeight), out _, both: align);
+                rowHeight += height;
+            }
+        }
+        else
+        {
+            hud.Text(text.Text, text.FontName, text.Size, (0, offsetY), out Dimension area, both: align);
+            addHeight = area.Height;
+        }
 
         if (align == Align.TopMiddle)
-            offsetY += area.Height;
+            offsetY += addHeight;
     }
 
     private void DrawImage(IHudRenderContext hud, MenuImageComponent image, bool isSelected, ref int offsetY, int upscalingFactor)

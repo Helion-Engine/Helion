@@ -48,3 +48,4 @@
 - Fix A_WeaponBulletAttack to correctly use autoaim setting for player
 - Fix A_WeaponProjectile to correctly use autoaim setting for player
 - Fix sprite offsets with nogravity flag to not have vertical offset adjusted
+- Automatically line wrap custom quit messages
