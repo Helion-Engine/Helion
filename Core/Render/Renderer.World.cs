@@ -12,6 +12,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using System;
 using Helion.World.Geometry.Lines;
+using Helion.Util;
 
 namespace Helion.Render;
 
@@ -91,12 +92,14 @@ public partial class Renderer
             m_world.SectorLightChanged -= World_SectorLightChanged;
             m_world.SectorColorMapChanged -= World_SectorColorMapChanged;
             m_world.SectorMove -= World_SectorMove;
+            m_world.SectorMoveComplete -= World_SectorMoveComplete;
         }
 
         m_world = world;
         m_world.SectorLightChanged += World_SectorLightChanged;
         m_world.SectorColorMapChanged += World_SectorColorMapChanged;
         m_world.SectorMove += World_SectorMove;
+        m_world.SectorMoveComplete += World_SectorMoveComplete;
 
         var alloc = !m_world.SameAsPreviousMap;
         SetMapDataBuffer(world, alloc);
@@ -158,8 +161,8 @@ public partial class Renderer
         if (alloc || m_lineHeightsBuffer == null)
         {
             m_lineHeightsBuffer?.Dispose();
-            m_lineHeightsBufferData = new float[world.Lines.Count * 2];
-            m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.Rg32f, GLInfo.MapPersistentBitSupported);
+            m_lineHeightsBufferData = new float[world.Lines.Count * 3];
+            m_lineHeightsBuffer = new("Line heights data buffer", m_lineHeightsBufferData, SizedInternalFormat.Rgb32f, GLInfo.MapPersistentBitSupported);
 
             m_lineHeightsBuffer.Map(data =>
             {
@@ -167,7 +170,7 @@ public partial class Renderer
                 for (int i = 0; i < world.StructLines.Length; i++)
                 {
                     ref var line = ref world.StructLines.Data[i];
-                    SetLineHeightBuffer(buffer, i, ref line);
+                    SetLineHeightBuffer(buffer, i, ref line, true);
                 }
             });
         }
@@ -179,7 +182,7 @@ public partial class Renderer
             for (int i = 0; i < world.StructLines.Length; i++)
             {
                 ref var line = ref world.StructLines.Data[i];
-                SetLineHeightBuffer(buffer, i, ref line);
+                SetLineHeightBuffer(buffer, i, ref line, true);
             }
         }
     }
@@ -273,7 +276,7 @@ public partial class Renderer
         });
     }
 
-    private static unsafe void SetLineHeightBuffer(float* buffer, int lineId, ref StructLine line)
+    private static unsafe void SetLineHeightBuffer(float* buffer, int lineId, ref StructLine line, bool init)
     {
         var prevFloorZ = (float)line.FrontFloorPlane.PrevZ;
         var floorZ = (float)line.FrontFloorPlane.Z;
@@ -283,9 +286,19 @@ public partial class Renderer
             floorZ = Math.Max(floorZ, (float)line.BackFloorPlane.Z);
         }
 
-        var index = lineId * 2;
+        var index = lineId * 3;
         buffer[index] = prevFloorZ;
         buffer[index + 1] = floorZ;
+
+        if (init)
+        {
+            int midTex = 0;
+            if (line.Line.Front.Middle.TextureHandle != NoTextureIndex)
+                midTex += 1;
+            if (line.Line.Back != null && line.Line.Back.Middle.TextureHandle != NoTextureIndex)
+                midTex += 2;
+            buffer[index + 2] = midTex;
+        }
     }
 
     private void World_SectorLightChanged(object? sender, Sector sector)
@@ -299,6 +312,11 @@ public partial class Renderer
     }
 
     private void World_SectorMove(object? sender, SectorPlane e)
+    {
+        m_updateLineHeights.Add(e.Sector);
+    }
+
+    private void World_SectorMoveComplete(object? sender, SectorPlane e)
     {
         m_updateLineHeights.Add(e.Sector);
     }
@@ -372,7 +390,7 @@ public partial class Renderer
 
                 ref var line = ref lineArray[lineId];
                 WorldStatic.CheckedLines[lineId] = checkCounter;
-                SetLineHeightBuffer(buffer, lineId, ref line);
+                SetLineHeightBuffer(buffer, lineId, ref line, false);
             }
         }
 

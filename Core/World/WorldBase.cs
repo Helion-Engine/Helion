@@ -89,7 +89,8 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler? ClearConsole;
     public event EventHandler? OnResetInterpolation;
     public event EventHandler<SectorPlane>? SectorMoveStart;
-    public event EventHandler<SectorPlane>? SectorMoveComplete;    public event EventHandler<SectorPlane>? SectorMove;
+    public event EventHandler<SectorPlane>? SectorMoveComplete;
+    public event EventHandler<SectorPlane>? SectorMove;
     public event EventHandler<SideTextureEvent>? SideTextureChanged;
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     public event EventHandler<Sector>? SectorLightChanged;

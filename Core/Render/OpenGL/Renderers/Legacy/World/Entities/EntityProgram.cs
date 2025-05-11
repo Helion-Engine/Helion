@@ -392,7 +392,8 @@ public class EntityProgram : RenderProgram
             
             if (wallClip.r >= 0) {
                 vec4 linePoints = texelFetch(mapDataTexture, int(wallClip.r));
-                vec2 floorHeights = texelFetch(lineHeightsTexture, int(wallClip.r)).rg;
+                vec3 floorHeights = texelFetch(lineHeightsTexture, int(wallClip.r)).rgb;
+                float midTex = floorHeights.b;
                 float floorHeight = mix(floorHeights.r, floorHeights.g, timeFrac);
                 vec2 lineStart = linePoints.rg;
                 vec2 lineEnd = linePoints.ba;
@@ -406,7 +407,9 @@ public class EntityProgram : RenderProgram
                 bool entityFront = entityDotProduct < 0;
 
                 // lower wall
-                if (distanceToWall <= max(40, textureWidthFrag) && wallClip.b == 1 && viewPos.z > floorHeight && floorHeight <= zPosFrag)
+                // midTex: 1 = front side midtex, 2 = backside midtex, 3 = both. Doom will clip if there is midtex.
+                float midTexFront = mix(2, 1, float(viewFront));
+                if (distanceToWall <= max(40, textureWidthFrag) && wallClip.b == 1 && viewPos.z > floorHeight && floorHeight <= zPosFrag && midTex != 3 && midTex != midTexFront)
                     return false;
 
                 if (wallClip.g < depthFrag) {
