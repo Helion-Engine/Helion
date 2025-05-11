@@ -66,9 +66,13 @@ public class Window : GameWindow, IWindow
             (float)m_config.Controller.GameControllerDeadZone.Value,
             m_config.Controller.EnableGameController,
             m_config.Controller.EnableRumble,
+            m_config.Controller.GyroSmoothingEnabled,
+            (float)m_config.Controller.GyroSmoothingThreshold,
             m_config.Controller.GyroNoise,
             m_config.Controller.GyroDrift,
             m_inputManager);
+        m_config.Controller.GyroSmoothingEnabled.OnChanged += OnGyroSmoothEnableChanged;
+        m_config.Controller.GyroSmoothingThreshold.OnChanged += OnGyroSmoothFactorChanged;
 
         m_config.Render.MaxFPS.OnChanged += OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
@@ -280,6 +284,16 @@ public class Window : GameWindow, IWindow
         SetSyncMode(m_config.Render.MaxFPS, mode);
     }
 
+    private void OnGyroSmoothEnableChanged(object? sender, bool e)
+    {
+        JoystickAdapter.SmoothingEnabled = e;
+    }
+
+    private void OnGyroSmoothFactorChanged(object? sender, double e)
+    {
+        JoystickAdapter.SmoothingThreshold = (float)e;
+    }
+
     private void SetSyncMode(int maxFps, RenderVsyncMode vsync)
     {
         switch (vsync)
@@ -324,6 +338,9 @@ public class Window : GameWindow, IWindow
 
         m_config.Render.MaxFPS.OnChanged -= OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged -= OnVSyncChanged;
+
+        m_config.Controller.GyroSmoothingEnabled.OnChanged -= OnGyroSmoothEnableChanged;
+        m_config.Controller.GyroSmoothingThreshold.OnChanged -= OnGyroSmoothFactorChanged;
 
         Renderer.Dispose();
         JoystickAdapter.Dispose();

@@ -62,6 +62,14 @@ public class ConfigController : ConfigElement<ConfigController>
     [OptionMenu(OptionSectionType.Controller, "Gyro On By Default")]
     public readonly ConfigValue<bool> GyroAimOnByDefault = new(true);
 
+    [ConfigInfo("Whether gyro smoothing should be enabled to reduce twitchiness.")]
+    [OptionMenu(OptionSectionType.Controller, "Gyro Smoothing")]
+    public readonly ConfigValue<bool> GyroSmoothingEnabled = new(false);
+
+    [ConfigInfo("Gyro smoothing threshold; applies when smoothing is enabled.")]
+    [OptionMenu(OptionSectionType.Controller, "Gyro Smoothing Threshold")]
+    public readonly ConfigValue<double> GyroSmoothingThreshold = new(.5f, Clamp(0f, 10.0f));
+
     [ConfigInfo("Perform gyro calibration, if controller has a gyro.")]
     [OptionMenu(OptionSectionType.Controller, "Gyro Calibration", dialogType: DialogType.GyroCalibrationDialog)]
     public readonly ConfigValue<string> GyroCalibrationDummy = new("Calibrate");

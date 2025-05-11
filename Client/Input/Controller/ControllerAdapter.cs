@@ -1,12 +1,11 @@
 ﻿namespace Helion.Client.Input.Controller
 {
-    using Helion.Audio.Sounds;
-    using Helion.Geometry.Vectors;
-    using Helion.Maps.Bsp.States.Miniseg;
-    using Helion.Window.Input;
-    using SDLControllerWrapper;
     using System;
     using System.Linq;
+    using Helion.Audio.Sounds;
+    using Helion.Geometry.Vectors;
+    using Helion.Window.Input;
+    using SDLControllerWrapper;
 
     public class ControllerAdapter : IGameControlAdapter, IDisposable
     {
@@ -16,6 +15,8 @@
         private SDLControllerWrapper m_controllerWrapper;
         private bool m_disposedValue;
         private bool m_gyroEnabled;
+        private float m_smoothingThreshold;
+        private bool m_smoothingEnabled;
         private Vec3F m_gyroNoise;
         private Vec3F m_gyroDrift;
 
@@ -63,6 +64,32 @@
             }
         }
 
+        public bool SmoothingEnabled
+        {
+            get
+            {
+                return m_smoothingEnabled;
+            }
+            set
+            {
+                m_smoothingEnabled = value;
+                m_controllerWrapper.SetSmoothing(m_smoothingEnabled, m_smoothingThreshold);
+            }
+        }
+
+        public float SmoothingThreshold
+        {
+            get
+            {
+                return m_smoothingThreshold;
+            }
+            set
+            {
+                m_smoothingThreshold = value;
+                m_controllerWrapper.SetSmoothing(m_smoothingEnabled, m_smoothingThreshold);
+            }
+        }
+
         public bool HasGyro => m_activeController?.HasGyro ?? false;
 
         public bool CalibrateGyro(int durationMilliseconds, Action<Vec3F, Vec3F> callback)
@@ -81,7 +108,15 @@
             externalCallback(m_gyroNoise, m_gyroDrift);
         }
 
-        public ControllerAdapter(float analogDeadZone, bool enabled, bool rumbleEnabled, Vec3F gyroNoise, Vec3F gyroDrift, InputManager inputManager)
+        public ControllerAdapter(
+            float analogDeadZone,
+            bool enabled,
+            bool rumbleEnabled,
+            bool gyroSmoothingEnabled,
+            float gyroSmoothingThreshold,
+            Vec3F gyroNoise,
+            Vec3F gyroDrift,
+            InputManager inputManager)
         {
             AnalogDeadZone = analogDeadZone;
             m_enabled = enabled;
@@ -93,6 +128,10 @@
             m_activeController = m_controllerWrapper.Controllers.FirstOrDefault();
 
             SetGyroCalibration(gyroNoise, gyroDrift);
+            
+            m_smoothingEnabled = gyroSmoothingEnabled;
+            m_smoothingThreshold = gyroSmoothingThreshold;
+            m_controllerWrapper.SetSmoothing(gyroSmoothingEnabled, gyroSmoothingThreshold);
         }
 
         private void HandleConfigChange(object? sender, ConfigurationEvent configEvent)
