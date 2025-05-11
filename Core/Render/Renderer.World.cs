@@ -12,12 +12,19 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using System;
 using Helion.World.Geometry.Lines;
-using Helion.Util;
+using Helion.World.Physics;
 
 namespace Helion.Render;
 
 public partial class Renderer
 {
+    enum BlockSide
+    {
+        Front = 1,
+        Back = 2,
+        Both = 3
+    }
+
     private readonly SectorUpdates m_updateLightSectors = new();
     private readonly SectorUpdates m_updateColorMapSectors = new();
     private readonly SectorUpdates m_updateLineHeights = new();
@@ -182,7 +189,7 @@ public partial class Renderer
             for (int i = 0; i < world.StructLines.Length; i++)
             {
                 ref var line = ref world.StructLines.Data[i];
-                SetLineHeightBuffer(buffer, i, ref line, true);
+                SetLineHeightBuffer(buffer, i, ref line, false);
             }
         }
     }
@@ -290,14 +297,21 @@ public partial class Renderer
         buffer[index] = prevFloorZ;
         buffer[index + 1] = floorZ;
 
+        // CoverWallUtil.GetProjectHeights forces top and bottom projection to cover. Ensure it's set to blocked for the shader.
+        if (LineOpening.IsRenderingBlocked(line))
+        {
+            buffer[index + 2] = (int)BlockSide.Both;
+            return;
+        }
+
         if (init)
         {
-            int midTex = 0;
+            int blockSide = 0;
             if (line.Line.Front.Middle.TextureHandle != NoTextureIndex)
-                midTex += 1;
+                blockSide |= (int)BlockSide.Front;
             if (line.Line.Back != null && line.Line.Back.Middle.TextureHandle != NoTextureIndex)
-                midTex += 2;
-            buffer[index + 2] = midTex;
+                blockSide |= (int)BlockSide.Back;
+            buffer[index + 2] = blockSide;
         }
     }
 
