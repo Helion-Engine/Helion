@@ -259,7 +259,15 @@ public class EntityRenderer : IDisposable
             : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
-        
+
+        if (entity.Definition.Flags.SpawnCeiling && m_vanillaRender)
+        {
+            // Set position and offset from ceiling to not clip to floors
+            vertex.Pos.Z = (float)entity.Sector.Ceiling.Z;
+            vertex.PrevPos.Z = (float)entity.Sector.Ceiling.PrevZ;
+            vertex.OffsetZ = -texture.Offset.Y;
+        }
+
         arrayData.Length = length + 1;
 
         if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
