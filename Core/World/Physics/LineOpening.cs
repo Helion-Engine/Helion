@@ -48,6 +48,17 @@ public class LineOpening
         return false;
     }
 
+    public static bool IsRenderingBlocked(in StructLine line)
+    {
+        if (line.BackCeilingPlane == null || line.BackFloorPlane == null)
+            return true;
+
+        if (line.BackCeilingPlane.Z <= line.FrontFloorPlane.Z || line.BackFloorPlane.Z >= line.FrontCeilingPlane.Z)
+            return true;
+
+        return false;
+    }
+
     public LineOpening()
     {
         CeilingZ = 0;
