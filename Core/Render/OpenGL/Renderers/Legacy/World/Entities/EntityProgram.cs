@@ -363,12 +363,15 @@ public class EntityProgram : RenderProgram
         ${FuzzFunction}
 
         bool lineIntersection(vec2 startA, vec2 endA, vec2 startB, vec2 endB) {
+            // use epsilon for approximate checks to deal with sprites that are exactly on lines / points
+            const float MinEpsilon = 0.001;
+            const float MaxEpsilon = 0.999;
             vec2 deltaA = endA - startA;
             vec2 deltaB = endB - startB;
             float d = deltaA.x * -deltaB.y + deltaA.y * deltaB.x;
             float t = ((startB.x - startA.x) * (startB.y - endB.y) - (startB.y - startA.y) * (startB.x - endB.x)) / d;
             float u = ((startB.x - startA.x) * (startA.y - endA.y) - (startB.y - startA.y) * (startA.x - endA.x)) / d;
-            return t >= 0.0 && t <= 1.0 && u >= 0.0 && u <= 1.0;
+            return t > MinEpsilon && t < MaxEpsilon && u > MinEpsilon && u < MaxEpsilon;
         }
         
         vec2 closestPoint(vec2 point, vec2 lineStart, vec2 lineDelta) {
@@ -401,7 +404,7 @@ public class EntityProgram : RenderProgram
 
                 float viewDotProduct = (lineDelta.x * (viewPos.y - lineStart.y)) - (lineDelta.y * (viewPos.x - lineStart.x));                
                 float entityDotProduct = (lineDelta.x * (centerPosFrag.y - lineStart.y)) - (lineDelta.y * (centerPosFrag.x - lineStart.x));
-                float distanceToWall = distance(centerPosFrag.xy, closestPoint(centerPosFrag.xy, lineStart, lineDelta));                
+                float distanceToWall = distance(centerPosFrag.xy, closestPoint(centerPosFrag.xy, lineStart, lineDelta)) + 0.01;                
 
                 bool viewFront = viewDotProduct < 0;
                 bool entityFront = entityDotProduct < 0;
