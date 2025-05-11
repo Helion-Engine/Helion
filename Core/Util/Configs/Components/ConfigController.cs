@@ -67,7 +67,7 @@ public class ConfigController : ConfigElement<ConfigController>
     public readonly ConfigValue<bool> GyroSmoothingEnabled = new(false);
 
     [ConfigInfo("Gyro smoothing threshold; applies when smoothing is enabled.")]
-    [OptionMenu(OptionSectionType.Controller, "Gyro Smoothing Threshold")]
+    [OptionMenu(OptionSectionType.Controller, "Gyro Smoothing Threshold", sliderMin: 0, sliderMax: 10, sliderStep: .1)]
     public readonly ConfigValue<double> GyroSmoothingThreshold = new(.5f, Clamp(0f, 10.0f));
 
     [ConfigInfo("Perform gyro calibration, if controller has a gyro.")]
