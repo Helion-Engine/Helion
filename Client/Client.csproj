@@ -69,7 +69,7 @@
   <ItemGroup>
     <PackageReference Include="OpenTK" Version="4.7.4" />
     <PackageReference Include="Helion.NFluidsynth" Version="1.0.0.1" />
-    <PackageReference Include="Helion.SDLControllerWrapper" Version="1.2.0.1" />
+    <PackageReference Include="Helion.SDLControllerWrapper" Version="1.3.0.1" />
     <PackageReference Include="Helion.ZMusic" Version="1.0.0.1" />
   </ItemGroup>
 
