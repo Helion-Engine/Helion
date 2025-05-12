@@ -73,7 +73,7 @@
             set
             {
                 m_smoothingEnabled = value;
-                m_controllerWrapper.SetSmoothing(m_smoothingEnabled, m_smoothingThreshold);
+                SetGyroSmoothing(m_smoothingEnabled, m_smoothingThreshold);
             }
         }
 
@@ -86,7 +86,7 @@
             set
             {
                 m_smoothingThreshold = value;
-                m_controllerWrapper.SetSmoothing(m_smoothingEnabled, m_smoothingThreshold);
+                SetGyroSmoothing(m_smoothingEnabled, m_smoothingThreshold);
             }
         }
 
@@ -113,7 +113,7 @@
             bool enabled,
             bool rumbleEnabled,
             bool gyroSmoothingEnabled,
-            float gyroSmoothingThreshold,
+            float gyroSmoothingThresholdDegrees,
             Vec3F gyroNoise,
             Vec3F gyroDrift,
             InputManager inputManager)
@@ -128,11 +128,14 @@
             m_activeController = m_controllerWrapper.Controllers.FirstOrDefault();
 
             SetGyroCalibration(gyroNoise, gyroDrift);
-            
+
             m_smoothingEnabled = gyroSmoothingEnabled;
-            m_smoothingThreshold = gyroSmoothingThreshold;
-            m_controllerWrapper.SetSmoothing(gyroSmoothingEnabled, gyroSmoothingThreshold);
+            m_smoothingThreshold = gyroSmoothingThresholdDegrees;
+
+            SetGyroSmoothing(m_smoothingEnabled, m_smoothingThreshold);
         }
+
+        private static float DegreesToRads(float degrees) => (float)(degrees / 360 * (2 * Math.PI));
 
         private void HandleConfigChange(object? sender, ConfigurationEvent configEvent)
         {
@@ -240,6 +243,17 @@
             m_activeController.GyroDrift[0] = m_gyroDrift.X;
             m_activeController.GyroDrift[1] = m_gyroDrift.Y;
             m_activeController.GyroDrift[2] = m_gyroDrift.Z;
+        }
+
+        private void SetGyroSmoothing(bool enable, float thresholdDegrees)
+        {
+            if (m_activeController==null)
+            {
+                return;
+            }
+
+            m_activeController.PerformSmoothing = enable;
+            m_activeController.SmoothingThreshold = DegreesToRads(thresholdDegrees);
         }
 
         public bool TryGetAnalogValueForAxis(Key key, out float axisAnalogValue)
