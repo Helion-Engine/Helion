@@ -46,6 +46,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private readonly SkyGeometryManager m_skyGeometry = new();
     private readonly LookupArray<List<Sector>?> m_transferHeightsLookup = new();
     private readonly List<Sector> m_initMoveSectors = [];
+    private readonly Action<Side, DynamicVertex[], WallLocation> m_renderCoverWallAction;
 
     private readonly Dictionary<CoverKey, StaticGeometryData> m_coverWallLookup = [];
     private readonly Dictionary<CoverKey, StaticGeometryData> m_coverFlatLookup = [];
@@ -65,6 +66,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_floodFillRenderer = geometryRenderer.Portals.GetStaticFloodFillRenderer();
         m_program = program;
         m_skyRenderer = new(archiveCollection, textureManager);
+        m_renderCoverWallAction = AddOrUpdateCoverWall;
     }
 
     private static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
@@ -391,7 +393,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (m_vanillaRender && skyVertices != null)
             {
                 sideVertices = m_geometryRenderer.RenderTwoSidedUpperOrLowerRaw(WallLocation.Lower, side, facingSector, otherSector, isFrontSide);
-                AddOrUpdateCoverWall(side, side.Lower, sideVertices);
+                AddOrUpdateCoverWall(side, sideVertices, WallLocation.Lower);
             }
         }
 
@@ -399,6 +401,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
             SetSideVertices(side, side.Middle, update, sideVertices, true, repeatY: side.Flags.WrapMidTex);
+
+            if (m_vanillaRender && sideVertices != null)
+                m_geometryRenderer.RenderMidTexCoverWalls(side, facingSector, otherSector, sideVertices, upperVisible, lowerVisible, m_renderCoverWallAction);
         }
     }
 
@@ -510,7 +515,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         var type = GetWallType(side, wall);
         if (m_vanillaRender && type != GeometryType.TwoSidedMiddleWall)
-            AddOrUpdateCoverWall(side, wall, sideVertices);
+            AddOrUpdateCoverWall(side, sideVertices, wall.Location);
 
         if (wall.TextureHandle <= Constants.NullCompatibilityTextureIndex)
             return;
@@ -915,7 +920,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     {
         var geometryType = side != null && wall != null ? GetWallType(side, wall) : GeometryType.Flat;
         if (side != null && wall != null && geometryType != GeometryType.TwoSidedMiddleWall)
-            AddOrUpdateCoverWall(side, wall, vertices);
+            AddOrUpdateCoverWall(side, vertices, wall.Location);
 
         if (textureHandle <= Constants.NullCompatibilityTextureIndex)
             return;
@@ -931,19 +936,19 @@ public class StaticCacheGeometryRenderer : IDisposable
         geometryData.Vbo.UploadSubData(startIndex, vertices.Length);
     }
 
-    private void AddOrUpdateCoverWall(Side side, Wall wall, DynamicVertex[] sideVertices)
+    private void AddOrUpdateCoverWall(Side side, DynamicVertex[] sideVertices, WallLocation location)
     {
         if (m_coverWallGeometry == null || m_coverWallGeometryOneSided == null)
             return;
 
-        var useGeometry = wall.Location == WallLocation.Middle && side.PartnerSide == null ? m_coverWallGeometryOneSided : m_coverWallGeometry;
+        var useGeometry = location == WallLocation.Middle && side.PartnerSide == null ? m_coverWallGeometryOneSided : m_coverWallGeometry;
         // This is uploaded as the max possible value so UploadSubData can be used even if it's new.
         var vbo = useGeometry.Vbo;
-        var key = CoverKey.MakeCoverWallKey(side.Id, wall.Location);
+        var key = CoverKey.MakeCoverWallKey(side.Id, location);
         int length = sideVertices.Length;
         if (m_coverWallLookup.TryGetValue(key, out var staticGeometryData))
         {
-            CoverWallUtil.CopyCoverWallVertices(side, vbo.Data.Data, sideVertices, staticGeometryData.Index, wall.Location);
+            CoverWallUtil.CopyCoverWallVertices(side, vbo.Data.Data, sideVertices, staticGeometryData.Index, location);
             vbo.Bind();
             vbo.UploadSubData(staticGeometryData.Index, length);
             return;
@@ -952,9 +957,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         var vertices = vbo.Data;
         vbo.Data.EnsureCapacity(vertices.Length + sideVertices.Length);
         staticGeometryData = new(useGeometry, vertices.Length, length);
-        CoverWallUtil.CopyCoverWallVertices(side, vertices.Data, sideVertices, staticGeometryData.Index, wall.Location);
+        CoverWallUtil.CopyCoverWallVertices(side, vertices.Data, sideVertices, staticGeometryData.Index, location);
         vertices.Length += length;
-        m_coverWallLookup[CoverKey.MakeCoverWallKey(side.Id, wall.Location)] = staticGeometryData;
+        m_coverWallLookup[CoverKey.MakeCoverWallKey(side.Id, location)] = staticGeometryData;
         vbo.Bind();
         vbo.UploadSubData(staticGeometryData.Index, length);
     }

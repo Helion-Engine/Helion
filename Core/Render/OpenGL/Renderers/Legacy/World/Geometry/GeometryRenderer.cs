@@ -55,6 +55,7 @@ public class GeometryRenderer : IDisposable
     private readonly MidTextureHack m_midTextureHack = new();
     private readonly SectorPlane m_fakeFloor = new(SectorPlaneFace.Floor, 0, 0, 0);
     private readonly SectorPlane m_fakeCeiling = new(SectorPlaneFace.Ceiling, 0, 0, 0);
+    private readonly Action<Side, DynamicVertex[], WallLocation> m_renderCoverWallAction;
     private double m_tickFraction;
     private bool m_floorChanged;
     private bool m_ceilingChanged;
@@ -100,6 +101,7 @@ public class GeometryRenderer : IDisposable
         m_skyRenderer = new LegacySkyRenderer(archiveCollection, glTextureManager);
         m_archiveCollection = archiveCollection;
         m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);
+        m_renderCoverWallAction = m_worldDataManager.AddCoverWallVertices;
 
         var options = VertexOptions.World(1, 1, 0, 0, 0, 0);
         for (int i = 0; i < m_wallVertices.Length; i++)
@@ -722,13 +724,59 @@ public class GeometryRenderer : IDisposable
         }
 
         bool dynamic = m_renderMode == GeometryRenderMode.All || facingSide.IsDynamic;
-        if (dynamic && IsLowerVisibleWithTransferHeights(facingSide, otherSide, facingSector, otherSector, out _))
+        bool lower = dynamic && IsLowerVisibleWithTransferHeights(facingSide, otherSide, facingSector, otherSector, out _);
+        bool upper = dynamic && UpperIsVisibleOrFlood(TextureManager, facingSide, otherSide, facingSector, otherSector, out _);
+        bool middle = dynamic && (!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex;
+
+        if (lower)
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
-        if ((!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex &&
-            dynamic)
-            RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _);
-        if (dynamic && UpperIsVisibleOrFlood(TextureManager, facingSide, otherSide, facingSector, otherSector, out _))
+
+        if (upper)
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
+
+        if (middle)
+        {
+            RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out var midTexVertices);
+
+            if (midTexVertices != null && m_vanillaRender && m_buffer)
+                RenderMidTexCoverWalls(facingSide, facingSector, otherSector, midTexVertices, upper, lower, m_renderCoverWallAction);
+        }
+    }
+
+    public void RenderMidTexCoverWalls(Side side, Sector facingSector, Sector otherSector, DynamicVertex[] midTexVertices, 
+        bool upperVisible, bool lowerVisible, Action<Side, DynamicVertex[], WallLocation> render)
+    {
+        var clipPlanes = GetMidTexClipPlanes(side, facingSector, otherSector, out var opening, out var prevOpening);
+        if ((!lowerVisible || (side.FloodTextures & SideTexture.Lower) != 0) && (clipPlanes & SectorPlanes.Floor) != 0)
+        {
+            var bottomZ = (float)opening.MinBottomZ;
+            var prevBottomZ = (float)prevOpening.MinBottomZ;
+            for (int i = 0; i < midTexVertices.Length; i++)
+            {
+                midTexVertices[i].Z = bottomZ - WorldStatic.CoverWallOffset;
+                midTexVertices[i].PrevZ = prevBottomZ - WorldStatic.CoverWallOffset;
+            }
+            render(side, midTexVertices, WallLocation.Lower);
+        }
+
+        if ((!upperVisible || (side.FloodTextures & SideTexture.Upper) != 0) && (clipPlanes & SectorPlanes.Ceiling) != 0)
+        {
+            var topZ = (float)opening.MaxTopZ;
+            var prevTopZ = (float)prevOpening.MaxTopZ;
+            for (int i = 0; i < midTexVertices.Length; i++)
+            {
+                midTexVertices[i].Z = topZ + WorldStatic.CoverWallOffset;
+                midTexVertices[i].PrevZ = prevTopZ + WorldStatic.CoverWallOffset;
+            }
+            render(side, midTexVertices, WallLocation.Upper);
+        }
+    }
+
+    public SectorPlanes GetMidTexClipPlanes(Side side, Sector facingSector, Sector otherSector, out MidTexOpening opening, out MidTexOpening prevOpening)
+    {
+        opening = GetMidTexOpening(m_archiveCollection.TextureManager, side, facingSector, otherSector, false);
+        prevOpening = GetMidTexOpening(m_archiveCollection.TextureManager, side, facingSector, otherSector, true);
+        return GetTwoSidedMiddleClipPlanesVanilla(facingSector, otherSector);
     }
 
     // Trick with putting monsters in a lower sector and setting the transfer heights to the surrounding floor.
@@ -1068,7 +1116,7 @@ public class GeometryRenderer : IDisposable
         SectorPlane ceiling = facingSector.Ceiling;
 
         WallVertices wall = default;
-        if (facingSide.Line.Back != null && otherSector != null && LineOpening.IsRenderingBlocked(facingSide.Line) &&
+        if (facingSide.Line.Back != null && otherSector != null && RenderBlock.IsBlocked(facingSide.Line) &&
             SkyUpperRenderFromFloorCheck(facingSide, facingSector, otherSector))
         {
             WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, ref wall,
@@ -1195,6 +1243,24 @@ public class GeometryRenderer : IDisposable
 
         if (!UpperOrSkySideIsVisible(TextureManager, facingSide, facingSector, otherSector, out _))
             clipPlanes &= ~SectorPlanes.Ceiling;
+
+        return clipPlanes;
+    }
+
+    private SectorPlanes GetTwoSidedMiddleClipPlanesVanilla(Sector facingSector, Sector otherSector)
+    {
+        var floor = facingSector.Floor;
+        var otherFloor = otherSector.Floor;
+        var ceiling = facingSector.Ceiling;
+        var otherCeil = otherSector.Ceiling;
+        var clipPlanes = SectorPlanes.None;
+        var isCeilingSky = TextureManager.IsSkyTexture(otherCeil.TextureHandle) && TextureManager.IsSkyTexture(ceiling.TextureHandle);
+
+        if (floor.LightLevel != otherFloor.LightLevel || floor.Z != otherSector.Floor.Z || floor.TextureHandle != otherFloor.TextureHandle)
+            clipPlanes |= SectorPlanes.Floor;
+
+        if (!isCeilingSky && (ceiling.LightLevel != otherCeil.LightLevel || ceiling.Z != otherCeil.Z || ceiling.TextureHandle != otherCeil.TextureHandle))
+            clipPlanes |= SectorPlanes.Ceiling;        
 
         return clipPlanes;
     }
