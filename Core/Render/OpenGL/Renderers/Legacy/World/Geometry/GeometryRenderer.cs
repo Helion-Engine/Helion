@@ -48,6 +48,7 @@ public class GeometryRenderer : IDisposable
     private readonly StaticCacheGeometryRenderer m_staticCacheGeometryRenderer;
     private readonly DynamicArray<TriangulatedWorldVertex> m_subsectorVertices = new();
     private readonly DynamicVertex[] m_wallVertices = new DynamicVertex[6];
+    private readonly DynamicVertex[] m_coverWallVertices = new DynamicVertex[6];
     private readonly SkyGeometryVertex[] m_skyWallVertices = new SkyGeometryVertex[6];
     private readonly RenderWorldDataManager m_worldDataManager;
     private readonly LegacySkyRenderer m_skyRenderer;
@@ -571,7 +572,7 @@ public class GeometryRenderer : IDisposable
         if (side.Line.Back == null || side.Middle.TextureHandle == Constants.NoTextureIndex)
             return;
 
-        Side otherSide = side.PartnerSide!;
+        var otherSide = side.PartnerSide!;
         m_sectorChangedLine = otherSide.Sector.CheckRenderingChanged(side.LastRenderGametickAlpha) || side.Sector.CheckRenderingChanged(side.LastRenderGametickAlpha);
 
         var invalidated = m_vertexAlphaLookupInvalidated[side.Id];
@@ -581,10 +582,27 @@ public class GeometryRenderer : IDisposable
             m_sectorChangedLine = true;
         }
 
-        Sector facingSector = side.Sector.GetRenderSector(m_transferHeightsView);
-        Sector otherSector = otherSide.Sector.GetRenderSector(m_transferHeightsView);
-        RenderTwoSidedMiddle(side, side.PartnerSide!, facingSector, otherSector, isFrontSide, out _);
+        var facingSector = side.Sector.GetRenderSector(m_transferHeightsView);
+        var otherSector = otherSide.Sector.GetRenderSector(m_transferHeightsView);
+        RenderTwoSidedMiddle(side, side.PartnerSide!, facingSector, otherSector, isFrontSide, out var midTexVertices);
         side.LastRenderGametickAlpha = m_world.Gametick;
+
+        if (midTexVertices != null && m_vanillaRender)
+        {
+            var visibility = GetSideVisibility(side, otherSide, facingSector, otherSector);
+            var upper = (visibility & SideTexture.Upper) != 0;
+            var lower = (visibility & SideTexture.Lower) != 0;
+
+            if (!upper || !lower)
+            {
+                SetBufferCoverWall(true);
+                // Need to copy since the vertices may be part of member variable cache
+                for (int i = 0; i < midTexVertices.Length; i++) 
+                    m_coverWallVertices[i] = midTexVertices[i];
+                RenderMidTexCoverWalls(side, facingSector, otherSector, m_coverWallVertices, upper, lower, m_renderCoverWallAction);
+                SetBufferCoverWall(false);
+            }
+        }
     }
 
     public void RenderSide(Side side, bool isFrontSide)
@@ -723,24 +741,37 @@ public class GeometryRenderer : IDisposable
             m_sectorChangedLine = true;
         }
 
-        bool dynamic = m_renderMode == GeometryRenderMode.All || facingSide.IsDynamic;
-        bool lower = dynamic && IsLowerVisibleWithTransferHeights(facingSide, otherSide, facingSector, otherSector, out _);
-        bool upper = dynamic && UpperIsVisibleOrFlood(TextureManager, facingSide, otherSide, facingSector, otherSector, out _);
-        bool middle = dynamic && (!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex;
+        var visibility = GetSideVisibility(facingSide, otherSide, facingSector, otherSector);
 
-        if (lower)
+        if ((visibility & SideTexture.Lower) != 0)
             RenderTwoSidedLower(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _);
 
-        if (upper)
+        if ((visibility & SideTexture.Upper) != 0)
             RenderTwoSidedUpper(facingSide, otherSide, facingSector, otherSector, isFrontSide, out _, out _, out _);
 
-        if (middle)
+        if ((visibility & SideTexture.Middle) != 0)
         {
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out var midTexVertices);
 
             if (midTexVertices != null && m_vanillaRender && m_buffer)
-                RenderMidTexCoverWalls(facingSide, facingSector, otherSector, midTexVertices, upper, lower, m_renderCoverWallAction);
+            {
+                RenderMidTexCoverWalls(facingSide, facingSector, otherSector, midTexVertices,
+                    (visibility & SideTexture.Upper) != 0, (visibility & SideTexture.Lower) != 0, m_renderCoverWallAction);
+            }
         }
+    }
+
+    private SideTexture GetSideVisibility(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector)
+    {
+        var visibility = SideTexture.None;
+        bool dynamic = m_renderMode == GeometryRenderMode.All || facingSide.IsDynamic;
+        if (dynamic && IsLowerVisibleWithTransferHeights(facingSide, otherSide, facingSector, otherSector, out _))
+            visibility |= SideTexture.Lower;
+        if (dynamic && UpperIsVisibleOrFlood(TextureManager, facingSide, otherSide, facingSector, otherSector, out _))
+            visibility |= SideTexture.Upper;
+        if (dynamic && (!m_config.Render.TextureTransparency || facingSide.Line.Alpha >= 1) && facingSide.Middle.TextureHandle != Constants.NoTextureIndex)
+            visibility |= SideTexture.Middle;
+        return visibility;
     }
 
     public void RenderMidTexCoverWalls(Side side, Sector facingSector, Sector otherSector, DynamicVertex[] midTexVertices, 
