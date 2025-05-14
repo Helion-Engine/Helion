@@ -101,8 +101,7 @@ public static class WorldTriangulator
         bool isFrontSide, ref WallVertices wall, out bool nothingVisible, double offset = 0, double prevOffset = 0, 
         SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling)
     {
-
-        if (LineOpening.IsRenderingBlocked(facingSide.Line))
+        if (RenderBlock.IsBlocked(facingSide.Line))
         {
             nothingVisible = true;
             return;
@@ -115,6 +114,7 @@ public static class WorldTriangulator
             offset += facingSide.ScrollData.OffsetMiddle.Y;
             prevOffset += facingSide.ScrollData.LastOffsetMiddle.Y;
         }
+
         MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, opening, prevOpening, textureDimension, offset, prevOffset, clipPlanes);
         if (drawSpan.NotVisible())
         {

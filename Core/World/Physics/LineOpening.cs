@@ -26,39 +26,6 @@ public class LineOpening
             Math.Max(line.Front.Sector.Floor.Z, line.Back!.Sector.Floor.Z);
     }
 
-    /// <summary>
-    ///  This function is required for rendering because of an oversight in the 'closed door check' in the original game.
-    ///  Rendering tricks work based off of this oversight and needs to be used in rendering checks in place of GetOpeningHeight.
-    /// </summary>
-    /// <param name="line">The line to check against</param>
-    /// <returns>True if the rendering is blocked.</returns>
-    public static bool IsRenderingBlocked(Line line)
-    {
-        Assert.Precondition(line.Back != null, "Cannot create LineOpening with one sided line");
-
-        // TODO This can be smarter. This is just to allow rendering tricks for invisible platforms.
-        if (line.Front.Sector.TransferHeights != null || line.Back!.Sector.TransferHeights != null)
-            return false;
-
-        // Closed door check. This check isn't really correct, but is required for some old rendering tricks to work.
-        // E.g. TNT Map02 - see through window that opens as a door
-        if (line.Back!.Sector.Ceiling.Z <= line.Front.Sector.Floor.Z || line.Back.Sector.Floor.Z >=  line.Front.Sector.Ceiling.Z)
-            return true;
-
-        return false;
-    }
-
-    public static bool IsRenderingBlocked(in StructLine line)
-    {
-        if (line.BackCeilingPlane == null || line.BackFloorPlane == null)
-            return true;
-
-        if (line.BackCeilingPlane.Z <= line.FrontFloorPlane.Z || line.BackFloorPlane.Z >= line.FrontCeilingPlane.Z)
-            return true;
-
-        return false;
-    }
-
     public LineOpening()
     {
         CeilingZ = 0;
