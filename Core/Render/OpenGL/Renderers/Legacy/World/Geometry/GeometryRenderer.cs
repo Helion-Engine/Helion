@@ -590,16 +590,13 @@ public class GeometryRenderer : IDisposable
         if (midTexVertices != null && m_vanillaRender)
         {
             var visibility = GetSideVisibility(side, otherSide, facingSector, otherSector);
-            var upper = (visibility & SideTexture.Upper) != 0;
-            var lower = (visibility & SideTexture.Lower) != 0;
-
-            if (!upper || !lower)
+            if ((visibility & SideTexture.Upper) == 0 || (visibility & SideTexture.Lower) == 0)
             {
                 SetBufferCoverWall(true);
                 // Need to copy since the vertices may be part of member variable cache
                 for (int i = 0; i < midTexVertices.Length; i++) 
                     m_coverWallVertices[i] = midTexVertices[i];
-                RenderMidTexCoverWalls(side, facingSector, otherSector, m_coverWallVertices, upper, lower, m_renderCoverWallAction);
+                RenderMidTexCoverWalls(side, facingSector, otherSector, m_coverWallVertices, visibility, m_renderCoverWallAction);
                 SetBufferCoverWall(false);
             }
         }
@@ -754,10 +751,7 @@ public class GeometryRenderer : IDisposable
             RenderTwoSidedMiddle(facingSide, otherSide, facingSector, otherSector, isFrontSide, out var midTexVertices);
 
             if (midTexVertices != null && m_vanillaRender && m_buffer)
-            {
-                RenderMidTexCoverWalls(facingSide, facingSector, otherSector, midTexVertices,
-                    (visibility & SideTexture.Upper) != 0, (visibility & SideTexture.Lower) != 0, m_renderCoverWallAction);
-            }
+                RenderMidTexCoverWalls(facingSide, facingSector, otherSector, midTexVertices, visibility, m_renderCoverWallAction);
         }
     }
 
@@ -775,10 +769,10 @@ public class GeometryRenderer : IDisposable
     }
 
     public void RenderMidTexCoverWalls(Side side, Sector facingSector, Sector otherSector, DynamicVertex[] midTexVertices, 
-        bool upperVisible, bool lowerVisible, Action<Side, DynamicVertex[], WallLocation> render)
+        SideTexture visibleTextures, Action<Side, DynamicVertex[], WallLocation> render)
     {
         var clipPlanes = GetMidTexClipPlanes(side, facingSector, otherSector, out var opening, out var prevOpening);
-        if ((!lowerVisible || (side.FloodTextures & SideTexture.Lower) != 0) && (clipPlanes & SectorPlanes.Floor) != 0)
+        if (((visibleTextures & SideTexture.Lower) == 0 || (side.FloodTextures & SideTexture.Lower) != 0) && (clipPlanes & SectorPlanes.Floor) != 0)
         {
             var bottomZ = (float)opening.MinBottomZ;
             var prevBottomZ = (float)prevOpening.MinBottomZ;
@@ -790,7 +784,7 @@ public class GeometryRenderer : IDisposable
             render(side, midTexVertices, WallLocation.Lower);
         }
 
-        if ((!upperVisible || (side.FloodTextures & SideTexture.Upper) != 0) && (clipPlanes & SectorPlanes.Ceiling) != 0)
+        if (((visibleTextures & SideTexture.Upper) == 0 || (side.FloodTextures & SideTexture.Upper) != 0) && (clipPlanes & SectorPlanes.Ceiling) != 0)
         {
             var topZ = (float)opening.MaxTopZ;
             var prevTopZ = (float)prevOpening.MaxTopZ;

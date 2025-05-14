@@ -402,8 +402,14 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
             SetSideVertices(side, side.Middle, update, sideVertices, true, repeatY: side.Flags.WrapMidTex);
 
+            var sideVisibility = SideTexture.None;
+            if (upperVisible)
+                sideVisibility |= SideTexture.Upper;
+            if (lowerVisible)
+                sideVisibility |= SideTexture.Lower;
+
             if (m_vanillaRender && sideVertices != null)
-                m_geometryRenderer.RenderMidTexCoverWalls(side, facingSector, otherSector, sideVertices, upperVisible, lowerVisible, m_renderCoverWallAction);
+                m_geometryRenderer.RenderMidTexCoverWalls(side, facingSector, otherSector, sideVertices, sideVisibility, m_renderCoverWallAction);
         }
     }
 
