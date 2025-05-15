@@ -1141,7 +1141,7 @@ public class GeometryRenderer : IDisposable
         SectorPlane ceiling = facingSector.Ceiling;
 
         WallVertices wall = default;
-        if (facingSide.Line.Back != null && otherSector != null && RenderBlock.IsBlocked(facingSide.Line) &&
+        if (facingSide.Line.Back != null && otherSector != null && RenderBlock.IsSkyBlocked(facingSide.Line) &&
             SkyUpperRenderFromFloorCheck(facingSide, facingSector, otherSector))
         {
             WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, ref wall,
