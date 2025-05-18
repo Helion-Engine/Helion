@@ -647,12 +647,9 @@ public partial class Client : IDisposable, IInputManagement
         if (string.IsNullOrWhiteSpace(title))
             title = m_archiveCollection.Definitions.GameInfoDefinition.StartupTitle;
         // fall back to WAD title
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            var map = m_layerManager.WorldLayer?.CurrentMap;
-            if (map != null)
-                title = Path.GetFileName(m_archiveCollection.FindMap(map.MapName)?.ArchivePath);
-        }
+        if (string.IsNullOrWhiteSpace(title) && m_lastLoadedMap != null)
+            title = Path.GetFileName(m_lastLoadedMap.ArchivePath);
+
         return title;
     }
 
