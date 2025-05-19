@@ -88,7 +88,7 @@ public class GLBspBuilder : IBspBuilder
         }
     }
 
-    private void CreateSegments(IReadOnlyList<GLSegment> segments, IReadOnlyList<IVertex> vertices,
+    private void CreateSegments(List<GLSegment> segments, IReadOnlyList<IVertex> vertices,
         IReadOnlyList<ILine> lines)
     {
         m_segments.EnsureCapacity(segments.Count);
