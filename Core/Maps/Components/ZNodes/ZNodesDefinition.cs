@@ -7,13 +7,16 @@ using Helion.Util;
 using Helion.Util.Bytes;
 using System;
 using System.Collections.Generic;
+using System.IO.Compression;
+using System.IO;
 
 namespace Helion.Maps.Components.ZNodes;
 
 public class ZNodesDefinition
 {
-    static bool _fracSplitters;
-    static bool _largeLineCount;
+    private bool m_fracSplitters;
+    private bool m_largeLineCount;
+    private bool m_compressed;
 
     struct ZNodeSeg(uint v1, uint partner, uint line, byte side)
     {
@@ -23,21 +26,29 @@ public class ZNodesDefinition
         public byte Side = side;
     }
 
-    public static GLComponents? Read(Entry entry)
+    public ZNodesDefinition() { }
+
+    public GLComponents? Read(Entry entry)
     {
-        var reader = new ByteReader(entry.ReadData());
+        var data = entry.ReadData();
+        var reader = new ByteReader(data);
         if (!ReadHeader(reader))
             throw new Exception("Invalid header");
+
+        if (m_compressed)
+        {
+            data = Decompress(data, 4, data.Length - 4);
+            reader.Dispose();
+            reader = new ByteReader(data);
+        }
 
         var components = new GLComponents();
         var originalVertexCount = reader.ReadInt32();
         var vertexCount = reader.ReadInt32();
-
         components.Vertices.EnsureCapacity(vertexCount);
         ReadVertices(reader, components, vertexCount);
 
         var nodeSegCount = reader.ReadInt32();
-
         components.Subsectors.EnsureCapacity(nodeSegCount);
         ReadSegNodes(reader, components, nodeSegCount);
 
@@ -49,30 +60,36 @@ public class ZNodesDefinition
         components.Nodes.EnsureCapacity(nodeCount);
         ReadNodes(reader, components, nodeCount);
 
+        reader.Dispose();
         return components;
     }
 
-    private static bool ReadHeader(ByteReader reader)
+    private bool ReadHeader(ByteReader reader)
     {
         var header = reader.ReadChars(4);
 
         // XGLN, XGL2, XGL3
-        if (header[0] != 'X' || header[1] != 'G' || header[2] != 'L')
+        if (header[0] == 'X' && header[1] == 'G' && header[2] == 'L')
+            m_compressed = false;
+        // ZGLN, ZGL2, ZGL3
+        else if (header[0] == 'Z' && header[1] == 'G' && header[2] == 'L')
+            m_compressed = true;
+        else
             return false;
 
         switch (header[3])
         {
             case '2':
-                _largeLineCount = true;
-                _fracSplitters = false;
+                m_largeLineCount = true;
+                m_fracSplitters = false;
                 break;
             case '3':
-                _largeLineCount = true;
-                _fracSplitters = true;
+                m_largeLineCount = true;
+                m_fracSplitters = true;
                 break;
             case 'N':
-                _largeLineCount = false;
-                _fracSplitters = false;
+                m_largeLineCount = false;
+                m_fracSplitters = false;
                 break;
             default:
                 return false;
@@ -81,12 +98,12 @@ public class ZNodesDefinition
         return true;
     }
 
-    private static void ReadNodes(ByteReader reader, GLComponents components, int nodeCount)
+    private void ReadNodes(ByteReader reader, GLComponents components, int nodeCount)
     {
         for (int i = 0; i < nodeCount; i++)
         {
             double x, y, dx, dy;
-            if (_fracSplitters)
+            if (m_fracSplitters)
             {
                 x = MathHelper.FromFixed(reader.ReadInt32());
                 y = MathHelper.FromFixed(reader.ReadInt32());
@@ -143,7 +160,7 @@ public class ZNodesDefinition
             new Vec2D(reader.ReadInt16(), reader.ReadInt16()));
     }
 
-    private static void ReadSegments(ByteReader reader, List<GLSubsector> susbectors, List<GLSegment> segs, int originalVertexCount)
+    private void ReadSegments(ByteReader reader, List<GLSubsector> susbectors, List<GLSegment> segs, int originalVertexCount)
     {
         for (int i = 0; i < susbectors.Count; i++)
         {
@@ -188,12 +205,12 @@ public class ZNodesDefinition
             isGlStart, isGlEnd);
     }
 
-    private static ZNodeSeg ReadSeg(ByteReader reader)
+    private ZNodeSeg ReadSeg(ByteReader reader)
     {
         var v1 = reader.ReadUInt32();
         var partner = reader.ReadUInt32();
         uint line;
-        if (_largeLineCount)
+        if (m_largeLineCount)
         {
             line = reader.ReadUInt32();
         }
@@ -206,5 +223,16 @@ public class ZNodesDefinition
 
         var side = reader.ReadByte();
         return new(v1, partner, line, side);
+    }
+    private static byte[] Decompress(byte[] data, int index, int count)
+    {
+        using var dataStream = new MemoryStream(data, index, count);
+        using var reader = new BinaryReader(dataStream);
+        reader.ReadUInt16(); // Skip zlib header
+
+        using var decompressedStream = new MemoryStream();
+        using var deflateStream = new DeflateStream(dataStream, CompressionMode.Decompress);
+        deflateStream.CopyTo(decompressedStream);
+        return decompressedStream.ToArray();
     }
 }

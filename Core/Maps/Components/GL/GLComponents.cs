@@ -62,7 +62,8 @@ public class GLComponents
             else if (entryCollection.Znodes != null)
             {
                 type = "ZNODES";
-                return ZNodesDefinition.Read(entryCollection.Znodes);
+                var znodes = new ZNodesDefinition();
+                return znodes.Read(entryCollection.Znodes);
             }
 
             return null;
