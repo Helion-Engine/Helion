@@ -592,12 +592,13 @@ public class GeometryRenderer : IDisposable
             var visibility = GetSideVisibility(side, otherSide, facingSector, otherSector);
             if ((visibility & SideTexture.Upper) == 0 || (visibility & SideTexture.Lower) == 0)
             {
+                var bufferCoverWall = m_worldDataManager.BufferCoverWalls;
                 SetBufferCoverWall(true);
                 // Need to copy since the vertices may be part of member variable cache
                 for (int i = 0; i < midTexVertices.Length; i++) 
                     m_coverWallVertices[i] = midTexVertices[i];
                 RenderMidTexCoverWalls(side, facingSector, otherSector, m_coverWallVertices, visibility, m_renderCoverWallAction);
-                SetBufferCoverWall(false);
+                SetBufferCoverWall(bufferCoverWall);
             }
         }
     }
@@ -1354,6 +1355,7 @@ public class GeometryRenderer : IDisposable
             m_ceilingVertexLookupInvalidated.SetAll(true);
         }
         Portals.SetTransferHeightView(view);
+        SetBufferCoverWall(true);
     }
 
     public void SetBuffer(bool set) => m_buffer = set;

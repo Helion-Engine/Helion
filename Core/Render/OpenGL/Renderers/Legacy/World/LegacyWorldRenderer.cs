@@ -47,6 +47,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private bool m_occlude;
     private bool m_vanillaRender;
     private bool m_renderStatic;
+    private bool m_lastRenderStatic;
     private bool m_pixelGapCorrection;
     private int m_lastTicker = -1;
     private Entity? m_viewerEntity;
@@ -125,7 +126,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private void IterateBlockmap(IWorld world, RenderInfo renderInfo)
     {
-        bool shouldRender = m_lastTicker != world.GameTicker;
+        bool shouldRender = m_lastTicker != world.GameTicker || m_renderStatic != m_lastRenderStatic;
         if (!shouldRender)
             return;
 
@@ -268,6 +269,7 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         // If the transfer height view is not the middle then the cached static geometry cannot be used.
         // Render all sectors dynamically instead.
+        m_lastRenderStatic = m_renderStatic;
         m_renderStatic = renderInfo.TransferHeightView == TransferHeightView.Middle;
         Clear(world, renderInfo);
 
