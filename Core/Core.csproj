@@ -25,7 +25,7 @@
     <PackageReference Include="GlmSharp-netstandard" Version="0.9.8.1" />
     <PackageReference Include="ini-parser-net8" Version="2.6.2.1" />
     <PackageReference Include="NAudio.Core" Version="2.2.1" />
-    <PackageReference Include="NLog" Version="5.3.4" />
+    <PackageReference Include="NLog" Version="6.0.0-preview1" />
     <PackageReference Include="OpenTK.Graphics" Version="4.7.4" />
     <PackageReference Include="OpenTK.OpenAL" Version="4.7.4" />
     <PackageReference Include="OpenTK.Windowing.Common" Version="4.7.4" />
