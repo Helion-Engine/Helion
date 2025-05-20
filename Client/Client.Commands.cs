@@ -786,7 +786,7 @@ public partial class Client
                 return result;
             }
 
-            if (!sameMap)
+            if (!sameMap && map.GL == null)
             {
                 var mapCompat = map.CompatibilityDefinition;
                 if (!m_zdbsp.RunZdbsp(map.ArchivePath, map.Name, out var compiledMap))

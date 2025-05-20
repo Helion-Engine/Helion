@@ -17,22 +17,17 @@ namespace Helion.Maps.Bsp.Builder.GLBSP;
 /// An implementation of a BSP builder that takes GL nodes from the GLBSP
 /// application and builds a BSP tree from it that we can use.
 /// </summary>
-public class GLBspBuilder : IBspBuilder
+public class GLBspBuilder(IMap map) : IBspBuilder
 {
     private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
-    private readonly List<GLVertex> m_glVertices = [];
+    private readonly IMap m_map = map;
     private readonly List<SubsectorEdge> m_segments = [];
     private readonly List<BspNode> m_subsectors = [];
     private readonly List<BspNode> m_nodes = [];
-    private readonly IMap m_map;
+    private List<Vec2D> m_glVertices = [];
     private int m_nodeId;
     private int m_segmentCount;
-
-    public GLBspBuilder(IMap map)
-    {
-        m_map = map;
-    }
 
     public int GetNodeCount() => m_nodes.Count;
 
@@ -53,7 +48,7 @@ public class GLBspBuilder : IBspBuilder
 
         try
         {
-            CreateVertices(m_map.GL.Vertices);
+            m_glVertices = m_map.GL.Vertices;
             CreateSegments(m_map.GL.Segments, m_map.GetVertices(), m_map.GetLines());
             CreateSubsectors(m_map.GL.Subsectors);
             CreateNodes(m_map.GL.Nodes);
@@ -78,24 +73,14 @@ public class GLBspBuilder : IBspBuilder
         return root.IsDegenerate ? null : root;
     }
 
-    private void CreateVertices(List<Vec2D> glVertices)
-    {
-        m_glVertices.EnsureCapacity(glVertices.Count);
-        for (int i = 0; i <  glVertices.Count; i++)
-        {
-            var v = glVertices[i];
-            m_glVertices.Add(new GLVertex(new Fixed(v.X), new Fixed(v.Y)));
-        }
-    }
-
-    private void CreateSegments(IReadOnlyList<GLSegment> segments, IReadOnlyList<IVertex> vertices,
+    private void CreateSegments(List<GLSegment> segments, IReadOnlyList<IVertex> vertices,
         IReadOnlyList<ILine> lines)
     {
         m_segments.EnsureCapacity(segments.Count);
         foreach (GLSegment glSegment in segments)
         {
-            var start = glSegment.IsStartVertexGL ? m_glVertices[(int)glSegment.StartVertex].ToDouble() : vertices[(int)glSegment.StartVertex].Position;
-            var end = glSegment.IsEndVertexGL ? m_glVertices[(int)glSegment.EndVertex].ToDouble() : vertices[(int)glSegment.EndVertex].Position;
+            var start = glSegment.IsStartVertexGL ? m_glVertices[(int)glSegment.StartVertex] : vertices[(int)glSegment.StartVertex].Position;
+            var end = glSegment.IsEndVertexGL ? m_glVertices[(int)glSegment.EndVertex] : vertices[(int)glSegment.EndVertex].Position;
             var line = glSegment.Linedef == null ? null : lines[(int)glSegment.Linedef];
 
             SubsectorEdge edge = new(start, end, line, glSegment.IsRightSide);

@@ -78,7 +78,7 @@ public class GeometryBuilder
         if (map.GL != null)
             return new GLBspBuilder(map);
 
-        Log.Warn("Unable to find GL nodes from ZDBSP");
+        Log.Warn("Unable to find GL nodes");
         return null;
     }
 }

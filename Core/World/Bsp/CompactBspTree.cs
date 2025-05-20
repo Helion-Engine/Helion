@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using Helion.Geometry.Boxes;
-using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Bsp;

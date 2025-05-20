@@ -14,6 +14,19 @@ public class GLSegment
 
     public bool IsMiniseg => Linedef == null;
 
+    public GLSegment(uint startVertex, uint endVertex, uint? linedef, bool isRightSide, uint? partnerSegment, bool start, bool end)
+    {
+        StartVertex = startVertex;
+        IsStartVertexGL = true;
+        EndVertex = endVertex;
+        IsEndVertexGL = true;
+        Linedef = linedef;
+        IsRightSide = isRightSide;
+        PartnerSegment = partnerSegment;
+        IsStartVertexGL = start;
+        IsEndVertexGL = end;
+    }
+
     private GLSegment(uint startVertex, bool isStartGL, uint endVertex, bool isEndGL, uint? linedef, bool isRightSide,
         uint? partnerSegment)
     {
