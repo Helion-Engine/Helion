@@ -1355,6 +1355,7 @@ public class GeometryRenderer : IDisposable
             m_ceilingVertexLookupInvalidated.SetAll(true);
         }
         Portals.SetTransferHeightView(view);
+        SetBufferCoverWall(true);
     }
 
     public void SetBuffer(bool set) => m_buffer = set;
