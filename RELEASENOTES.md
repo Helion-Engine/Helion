@@ -50,3 +50,4 @@
 - Fix A_WeaponProjectile to correctly use autoaim setting for player
 - Fix sprite offsets with nogravity flag to not have vertical offset adjusted
 - Automatically line wrap custom quit messages
+- Fix issue with texture buffers not being uploaded on resize that could causing issues with rendering after sector movement

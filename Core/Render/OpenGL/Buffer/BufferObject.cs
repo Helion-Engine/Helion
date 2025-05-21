@@ -20,7 +20,7 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     public DynamicArray<T> Data;
     protected readonly int BufferId;
     protected bool Uploaded;
-    private int m_dataVersion;
+    protected int m_dataVersion;
     private IntPtr m_vboArrayPtr;
     private GCHandle m_pinnedArray;
     private bool m_disposed;

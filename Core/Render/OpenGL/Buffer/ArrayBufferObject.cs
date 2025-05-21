@@ -24,6 +24,14 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
 
     protected override void BufferSubData(int index, int length)
     {
+        // If the underlying array was resized then the new array needs to be uploaded
+        if (m_dataVersion != Data.Version)
+        {
+            Uploaded = false;
+            Upload();
+            return;
+        }
+
         IntPtr offset = new(BytesPerElement * index);
         int size = BytesPerElement * length;
         IntPtr ptr = GetVboArray() + (BytesPerElement * index);
