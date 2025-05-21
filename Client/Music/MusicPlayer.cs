@@ -11,6 +11,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,14 +19,14 @@ public class MusicPlayer : IMusicPlayer
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    private uint m_lastDataHash;
+    private UInt128 m_lastDataHash;
     private bool m_disposed;
 
     private readonly PathsManager m_pathsManager;
     private readonly ConfigAudio m_configAudio;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly ConcurrentQueue<PlayParams> m_playQueue = [];
-    private readonly Dictionary<uint, byte[]> m_convertedMus = [];
+    private readonly Dictionary<UInt128, byte[]> m_convertedMus = [];
     private readonly CancellationTokenSource m_cancelPlayQueue = new();
     private readonly Task m_playQueueTask;
     private Thread? m_playStartThread;
@@ -35,6 +36,7 @@ public class MusicPlayer : IMusicPlayer
     private PlayParams? m_currentTrack;
     private bool m_enabled = true;
     private const string DefaultSoundFont = "SoundFonts/Default.sf2";
+    private MD5 m_md5 = MD5.Create();
 
     public MusicPlayer(PathsManager pathsManager, ConfigAudio configAudio, ArchiveCollection archiveCollection)
     {
@@ -188,7 +190,8 @@ public class MusicPlayer : IMusicPlayer
         m_currentTrack = playParams;
         var data = playParams.Data;
         var options = playParams.Options;
-        uint hash = data.CalculateCrc32();
+        UInt128 hash = BitConverter.ToUInt128(m_md5.ComputeHash(data));
+
         if ((options & MusicPlayerOptions.IgnoreAlreadyPlaying) != 0)
         {
             if (hash == m_lastDataHash)
@@ -290,6 +293,7 @@ public class MusicPlayer : IMusicPlayer
         m_playQueueTask.Wait(1000);
 
         m_zMusicPlayer.Dispose();
+        m_md5.Dispose();
         m_disposed = true;
     }
 

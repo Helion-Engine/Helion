@@ -1,4 +1,3 @@
-using Force.Crc32;
 using Helion.Util.Container;
 using Helion.Window.Input;
 
@@ -19,16 +18,6 @@ public static class ArrayExtensions
     {
         for (int i = 0; i < array.Length; i++)
             array[i] = element;
-    }
-
-    /// <summary>
-    /// Calculates the CRC32 hash of a bunch of bytes.
-    /// </summary>
-    /// <param name="bytes">The bytes to hash.</param>
-    /// <returns>The hashed uint.</returns>
-    public static uint CalculateCrc32(this byte[] bytes)
-    {
-        return Crc32Algorithm.Compute(bytes);
     }
 
     public static bool Contains(this DynamicArray<Key> keys, Key key)

@@ -11,14 +11,13 @@ using Helion.World.Cheats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TextCopy;
+using TextCopyLite;
 
 namespace Helion.Layer.Consoles;
 
 public partial class ConsoleLayer
 {
     private const int NoInputMessageIndex = -1;
-    private static readonly Clipboard Clipboard = new Clipboard();
 
     private readonly List<string> m_bestOptions = new();
     private DateTime m_lastTabTime = DateTime.Now;
