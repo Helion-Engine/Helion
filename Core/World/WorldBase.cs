@@ -1286,10 +1286,10 @@ public abstract partial class WorldBase : IWorld
                         continue;                    
 
                     activateSuccess = ActivateSpecialLine(entity, line, ActivationContext.UseLine, entity.Position.X, entity.Position.Y) || activateSuccess;
-                }
 
-                if (activateSuccess && !line.Flags.PassThrough)
-                    break;
+                    if (activateSuccess && !line.Flags.PassThrough)
+                        break;
+                }
             }
 
             if (line.Back == null || line.Flags.Blocking.Everything || line.Flags.Blocking.Use)
