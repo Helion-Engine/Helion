@@ -131,7 +131,7 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
         {
             string playerSound = SoundInfoDefinition.GetPlayerSound(player.Info.GetGender(), sound);
             SoundInfo? soundInfo = ArchiveCollection.Definitions.SoundInfo.Lookup(playerSound, m_world.Random);
-            if (soundInfo != null && ArchiveCollection.Entries.FindByName(playerSound) != null)
+            if (soundInfo != null && ArchiveCollection.Entries.FindByName(soundInfo.EntryName) != null)
                 return soundInfo;
 
             // Sound likely does not exist for user selected gender - fallback to default
