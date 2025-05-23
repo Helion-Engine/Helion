@@ -25,10 +25,10 @@ public abstract class ArrayBufferObject<T> : BufferObject<T> where T : struct
     protected override void BufferSubData(int index, int length)
     {
         // If the underlying array was resized then the new array needs to be uploaded
+        // This should be handled with BufferObject.UploadIfNeeded
         if (m_dataVersion != Data.Version)
         {
             Uploaded = false;
-            Upload();
             return;
         }
 
