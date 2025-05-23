@@ -390,7 +390,7 @@ public partial class Client : IDisposable, IInputManagement
         m_onLoadMapComplete?.OnComplete(m_onLoadMapComplete.CompleteParam);
         m_onLoadMapComplete = null;
 
-        m_discord.UpdateRichPresence(GetGameName(), GetMapName());
+        m_discord.UpdateRichPresence(GetCurrentGameName(), GetCurrentMapName());
 
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, false);
         GCUtil.SetGameplayLatencyMode();
@@ -639,7 +639,7 @@ public partial class Client : IDisposable, IInputManagement
             m_lastWorldModel = e.WorldModel;
     }
 
-    private string? GetGameName()
+    private string? GetCurrentGameName()
     {
         // try gameconf (rare)
         string? title = m_archiveCollection.Definitions.GameConfDefinition.Data?.Title;
@@ -648,12 +648,17 @@ public partial class Client : IDisposable, IInputManagement
             title = m_archiveCollection.Definitions.GameInfoDefinition.StartupTitle;
         // fall back to WAD title
         if (string.IsNullOrWhiteSpace(title) && m_lastLoadedMap != null)
-            title = Path.GetFileName(m_lastLoadedMap.ArchivePath);
+            title = GetMapWad(m_lastLoadedMap.Name);
 
         return title;
     }
 
-    private string? GetMapName()
+    private string? GetMapWad(string mapName)
+    {
+        return m_archiveCollection.FindEntry(mapName)?.Parent.Path.NameWithExtension;
+    }
+
+    private string? GetCurrentMapName()
     {
         var map = m_layerManager.WorldLayer?.CurrentMap;
         if (map != null)
