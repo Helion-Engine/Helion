@@ -314,6 +314,6 @@ public partial class Client
     {
         m_discord.SetEnabled(enabled);
         if (enabled)
-            m_discord.UpdateRichPresence(GetGameName(), GetMapName());
+            m_discord.UpdateRichPresence(GetCurrentGameName(), GetCurrentMapName());
     }
 }

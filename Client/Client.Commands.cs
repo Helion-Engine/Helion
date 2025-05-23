@@ -392,7 +392,7 @@ public partial class Client
         foreach (var map in m_archiveCollection.MapInfo.MapInfo.Maps)
         {
             string mapName = map.GetDisplayNameWithPrefix(m_archiveCollection.Language);
-            string? mapWad = m_archiveCollection.FindEntry(map.MapName)?.Parent.Path.NameWithExtension;
+            string? mapWad = GetMapWad(map.MapName);
             HelionLog.Info((mapWad != null) ? $"{mapName} ({mapWad})" : mapName);
         }
     }
@@ -400,13 +400,13 @@ public partial class Client
     [ConsoleCommand("printmap", "Prints the current map")]
     private void PrintMap(ConsoleCommandEventArgs args)
     {
-        HelionLog.Info(GetMapName() ?? "No map loaded");
+        HelionLog.Info(GetCurrentMapName() ?? "No map loaded");
     }
 
     [ConsoleCommand("printgame", "Prints the current game title (or WAD filename)")]
     private void PrintGame(ConsoleCommandEventArgs args)
     {
-        HelionLog.Info(GetGameName() ?? "No map loaded");
+        HelionLog.Info(GetCurrentGameName() ?? "No map loaded");
     }
 
     [ConsoleCommand("startGame", "Starts a new game")]
