@@ -271,7 +271,7 @@ public class ScrollSpecial : ISpecial
 
     private void ScrollPlane(SectorPlane sectorPlane, double x, double y)
     {
-        ref RenderOffsets scroll = ref sectorPlane.RenderOffsets;
+        ref var scroll = ref sectorPlane.RenderOffsets;
         if (m_type == ScrollType.Scroll)
         {
             if (x == 0 && y == 0)
@@ -291,22 +291,23 @@ public class ScrollSpecial : ISpecial
         }
         else if (m_type == ScrollType.Carry && sectorPlane == sectorPlane.Sector.Floor)
         {
-            LinkableNode<Entity>? node = sectorPlane.Sector.Entities.Head;
+            var node = sectorPlane.Sector.Entities.Head;
             while (node != null)
             {
-                Entity entity = node.Value;
+                var entity = node.Value;
                 node = node.Next;
-                
-                // Boom would carry anything that was considered 'underwater'
-                double waterHeight = double.MinValue;
-                if (sectorPlane.Sector.TransferHeights != null)
-                    waterHeight = sectorPlane.Sector.TransferHeights.ControlSector.Floor.Z > sectorPlane.Sector.Floor.Z ?
-                        sectorPlane.Sector.TransferHeights.ControlSector.Floor.Z : double.MinValue;
 
-                if (entity.Flags.NoClip)
+                if (entity.Flags.NoClip || entity.Flags.NoBlockmap)
                     continue;
+
+                // Boom would carry anything that was considered 'underwater'
+                var waterHeight = double.MinValue;
+                var transfer = sectorPlane.Sector.TransferHeights;
+                if (transfer != null)
+                    waterHeight = transfer.ControlSector.Floor.Z > sectorPlane.Sector.Floor.Z ?
+                        transfer.ControlSector.Floor.Z : double.MinValue;
                 
-                if (entity.Position.Z >= waterHeight && (entity.Flags.NoBlockmap || entity.Flags.NoGravity || !entity.OnGround || !entity.OnSectorFloorZ(sectorPlane.Sector)))
+                if (entity.Position.Z >= waterHeight && (entity.Flags.NoGravity || !entity.OnGround || !entity.OnSectorFloorZ(sectorPlane.Sector)))
                     continue;
 
                 entity.Velocity.X += x;
