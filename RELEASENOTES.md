@@ -52,3 +52,4 @@
 - Automatically line wrap custom quit messages
 - Fix issue with texture buffers not being uploaded on resize that could causing issues with rendering after sector movement
 - Fix custom sndinfo definitions not removing random flag from base sndinfo
+- Fix things with no blockmap flag (teleport destinations) being moved in transfer heights sectors considered underwater

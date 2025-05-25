@@ -57,16 +57,16 @@ public partial class BoomActions
         World.EntityManager.Destroy(rocket);
     }
 
-    [Fact(DisplayName = "Rocket that is considered underwater should move with scrolling floor")]
+    [Fact(DisplayName = "Thing that is considered underwater should move with scrolling floor")]
     public void ScrollingFloorUnderwater()
     {
         var scrollSector = GameActions.GetSectorByTag(World, 10);
-        var rocket = GameActions.CreateEntity(World, "Rocket", (-192, 736, 0));
+        var rocket = GameActions.CreateEntity(World, "LostSoul", (-192, 736, 0));
         rocket.Sector.Should().Be(scrollSector);
 
         GameActions.TickWorld(World, 1);
 
-        rocket.Velocity.Should().Be(Vec3D.Zero);
+        rocket.Velocity.XY.Should().Be(Vec2D.Zero);
 
         rocket.UnlinkFromWorld();
         rocket.Position = (-192, 736, -48);
@@ -75,9 +75,33 @@ public partial class BoomActions
         GameActions.TickWorld(World, 1);
 
         rocket.OnGround.Should().BeFalse();
-        rocket.Velocity.Should().NotBe(Vec3D.Zero);
+        rocket.Velocity.XY.Should().NotBe(Vec2D.Zero);
 
         World.EntityManager.Destroy(rocket);
+    }
+
+    [Fact(DisplayName = "NoBlockmap thing that is considered underwater should not move with scrolling floor")]
+    public void ScrollingFloorUnderwaterNoBlockmap()
+    {
+        var scrollSector = GameActions.GetSectorByTag(World, 10);
+        var teleport = GameActions.CreateEntity(World, "Rocket", (-192, 736, 0));
+        teleport.Flags.NoBlockmap.Should().BeTrue();
+        teleport.Sector.Should().Be(scrollSector);
+
+        GameActions.TickWorld(World, 1);
+
+        teleport.Velocity.XY.Should().Be(Vec2D.Zero);
+
+        teleport.UnlinkFromWorld();
+        teleport.Position = (-192, 736, -48);
+        World.Link(teleport);
+
+        GameActions.TickWorld(World, 1);
+
+        teleport.OnGround.Should().BeFalse();
+        teleport.Velocity.XY.Should().Be(Vec2D.Zero);
+
+        World.EntityManager.Destroy(teleport);
     }
 
     [Fact(DisplayName = "Scrolling floor that pushes the velocity past MaxMoveXY")]
