@@ -24,7 +24,7 @@ public sealed class Line
     public LineFlags Flags;
     public LineSpecial Special;
     public ObjectHealth ObjectHealth = ObjectHealth.Default;
-    public bool Activated;
+    public bool Activated => (DataChanges & LineDataTypes.Activated) != 0;
     public LineDataTypes DataChanges;
     public float Alpha;
     public ZDoomKeyType LockNumber;
@@ -75,7 +75,6 @@ public sealed class Line
     public void Reset()
     {
         Alpha = 1;
-        Activated = default;
         DataChanges = default;
         BlockmapCount = default;
         PhysicsCount = default;
@@ -112,9 +111,6 @@ public sealed class Line
             DataChanges = (int)DataChanges,
         };
 
-        if ((DataChanges & LineDataTypes.Activated) != 0)
-            lineModel.Activated = Activated;
-
         if ((DataChanges & LineDataTypes.Texture) != 0)
         {
             if (Front.DataChanged)
@@ -135,8 +131,6 @@ public sealed class Line
     public void ApplyLineModel(IWorld world, in LineModel lineModel)
     {
         DataChanges = (LineDataTypes)lineModel.DataChanges;
-        if ((DataChanges & LineDataTypes.Activated) != 0 && lineModel.Activated.HasValue)
-            Activated = lineModel.Activated.Value;
 
         if ((DataChanges & LineDataTypes.Texture) != 0)
         {
@@ -197,8 +191,10 @@ public sealed class Line
 
     public void SetActivated(bool set)
     {
-        Activated = set;
-        DataChanges |= LineDataTypes.Activated;
+        if (set)
+            DataChanges |= LineDataTypes.Activated;
+        else
+            DataChanges &= ~LineDataTypes.Activated;
     }
 
     public void SetAlpha(float alpha)
