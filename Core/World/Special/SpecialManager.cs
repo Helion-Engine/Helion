@@ -262,7 +262,7 @@ public sealed class SpecialManager : ITickable, IDisposable
     public bool AddActivatedLineSpecial(ZDoomLineSpecialType specialType, in SpecialArgs specialArgs, LineSpecialCompatibility? compat = null, bool resetActivation = true)
     {
         if (resetActivation)
-            m_dummyLine.Activated = false;
+            m_dummyLine.SetActivated(false);
         m_dummyLine.Args = specialArgs;
         m_dummyLine.Special.Set(specialType, LineActivationType.Tag, compat ?? LineSpecialCompatibility.Default);
         return TryAddActivatedLineSpecial(new(ActivationContext.CrossLine, m_world.Player, m_dummyLine, true));
