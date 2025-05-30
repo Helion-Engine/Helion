@@ -1414,7 +1414,7 @@ doneLinkToSectors:
             for (int i = block.BlockLineIndex; i < count; i++)
             {
                 ref var line = ref m_blockmap.BlockLines[i];             
-                if (cornerTracer.Intersection(line.Segment, out double time) && time > 0 && time < 1 &&
+                if (cornerTracer.IntersectionExclusive(line.Segment, out double time) && time > 0 && time < 1 &&
                     LineBlocksEntity(entity, entity.Position.X, entity.Position.Y, ref line, null) != LineBlock.NoBlock &&
                     time < hitTime)
                 {

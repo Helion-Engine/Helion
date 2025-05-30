@@ -67,7 +67,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
             for (int i = block.BlockLineIndex; i < count; i++)
             {
                 ref var line = ref Blockmap.BlockLines[i];
-                if (seg.Intersection(line.Segment.Start.X, line.Segment.Start.Y, line.Segment.End.X, line.Segment.End.Y, out double t))
+                if (seg.IntersectionInclusive(line.Segment.Start.X, line.Segment.Start.Y, line.Segment.End.X, line.Segment.End.Y, out double t))
                 {
                     if (WorldStatic.CheckedLines[line.LineId] == checkCounter)
                         continue;
@@ -122,7 +122,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
             for (int i = block.BlockLineIndex; i < count; i++)
             {
                 ref var line = ref Blockmap.BlockLines[i];
-                if (seg.Intersection(line.Segment.Start.X, line.Segment.Start.Y, line.Segment.End.X, line.Segment.End.Y, out double t))
+                if (seg.IntersectionInclusive(line.Segment.Start.X, line.Segment.Start.Y, line.Segment.End.X, line.Segment.End.Y, out double t))
                 {
                     if (WorldStatic.CheckedLines[line.LineId] == checkCounter)
                         continue;
@@ -394,7 +394,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                 if (WorldStatic.CheckedLines[line.LineId] == checkCounter)
                     continue;
 
-                if (seg.Intersection(line.Segment, out double t))
+                if (seg.IntersectionInclusive(line.Segment, out double t))
                 {
                     WorldStatic.CheckedLines[line.LineId] = checkCounter;
 
