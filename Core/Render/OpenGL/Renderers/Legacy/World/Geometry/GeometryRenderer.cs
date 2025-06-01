@@ -125,8 +125,8 @@ public class GeometryRenderer : IDisposable
 
         // ReversedZ allows for a much smaller push amount. Always max to LineVertexGap to close the middle texture with extended inside wall.
         var pushUnit = Vec2D.UnitCircle(angle + MathHelper.HalfPi) * Math.Max(ShaderVars.ReversedZ ? 0.005 : 0.05, WorldStatic.LineVertexGap);
-        line.Segment.Start += pushUnit;
-        line.Segment.End += pushUnit;
+        line.RenderSegStart += pushUnit;
+        line.RenderSegEnd += pushUnit;
     }
 
     public void UpdateTo(IWorld world)
@@ -689,9 +689,9 @@ public class GeometryRenderer : IDisposable
         if (side.Flags.NoFakeContrast)
             return 0;
 
-        if (side.Line.StartPosition.Y == side.Line.EndPosition.Y)
+        if (side.Line.Segment.Start.Y == side.Line.Segment.End.Y)
             return -LightContrast;
-        else if (side.Line.StartPosition.X == side.Line.EndPosition.X)
+        else if (side.Line.Segment.Start.X == side.Line.Segment.End.X)
             return LightContrast;
 
         return 0;
@@ -1207,7 +1207,8 @@ public class GeometryRenderer : IDisposable
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
         {
             // Push forward to cover flood fill side and prevent z-fighting (ex Doom2 MAP25 bloodfall)
-            var segSave = line.Segment;
+            var saveStart = line.RenderSegStart;
+            var saveEnd = line.RenderSegEnd;
             // Don't push with flood plane. This is different from flood fill side and are already pushed.
             if (!facingSector.Flood)
                 PushSeg(line, facingSide, PushDir.Forward);
@@ -1222,14 +1223,14 @@ public class GeometryRenderer : IDisposable
 
             int colorMapIndex = Renderer.GetColorMapBufferIndex(facingSector, LightBufferType.Wall);
             int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Middle, facingSector);
-            
+
             // Restore the original position for alpha walls. Touching walls look bad with the overlap and it's not necessary.
             if (m_pixelGapCorrection && alpha < 1)
             {
                 var unit = Vec2D.UnitCircle(line.GetAngle());
                 var push = unit * WorldStatic.LineVertexGap;
-                line.Segment.Start += push;
-                line.Segment.End -= push;
+                line.RenderSegStart += push;
+                line.RenderSegEnd -= push;
             }
 
             WallVertices wall = default;
@@ -1243,7 +1244,8 @@ public class GeometryRenderer : IDisposable
                 SetWallVertices(data, wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), line.Id, WallLocation.None, alpha, addAlpha: 0);
 
             m_vertexLookup[facingSide.Id] = data;
-            line.Segment = segSave;
+            line.RenderSegStart = saveStart;
+            line.RenderSegEnd = saveEnd;
         }
 
         // See RenderOneSided() for an ASCII image of why we do this.

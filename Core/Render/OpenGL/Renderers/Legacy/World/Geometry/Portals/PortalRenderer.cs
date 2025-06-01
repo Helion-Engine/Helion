@@ -95,8 +95,8 @@ public class PortalRenderer : IDisposable
     {
         var renderer = useRenderer ?? m_floodFillRenderer;
         var line = facingSide.Line;
-        var saveStart = line.Segment.Start;
-        var saveEnd = line.Segment.End;
+        var saveStart = line.RenderSegStart;
+        var saveEnd = line.RenderSegEnd;
         WallVertices wall = default;
 
         GeometryRenderer.PushSeg(line, facingSide, PushDir.Forward);
@@ -132,8 +132,8 @@ public class PortalRenderer : IDisposable
                 facingSide.CeilingFloodKey = renderer.AddStaticWall(floodSector.Ceiling, wall, double.MinValue, bottom.Z, SideTexture.None, -1, isFloodFillPlane: true);
         }
 
-        line.Segment.Start = saveStart;
-        line.Segment.End = saveEnd;
+        line.RenderSegStart = saveStart;
+        line.RenderSegEnd = saveEnd;
     }
 
     private FloodSet HandleStaticFloodFillSide(Side facingSide, Side otherSide, Sector floodSector, SideTexture sideTexture, bool isFront, bool update,
@@ -146,8 +146,8 @@ public class PortalRenderer : IDisposable
         Sector otherSector = otherSide.Sector.GetRenderSector(m_transferHeightView);
 
         var line = facingSide.Line;
-        var saveStart = line.Segment.Start;
-        var saveEnd = line.Segment.End;
+        var saveStart = line.RenderSegStart;
+        var saveEnd = line.RenderSegEnd;
         var lineId = line.Id;
 
         if (sideTexture == SideTexture.Upper)
@@ -167,8 +167,8 @@ public class PortalRenderer : IDisposable
 
             if (IgnoreAltFloodFill(facingSide, otherSide, SectorPlaneFace.Ceiling))
             {
-                facingSide.Line.Segment.Start = saveStart;
-                facingSide.Line.Segment.End = saveEnd;
+                facingSide.Line.RenderSegStart = saveStart;
+                facingSide.Line.RenderSegEnd = saveEnd;
                 return result;
             }
 
@@ -214,8 +214,8 @@ public class PortalRenderer : IDisposable
 
             if (IgnoreAltFloodFill(facingSide, otherSide, SectorPlaneFace.Floor))
             {
-                facingSide.Line.Segment.Start = saveStart;
-                facingSide.Line.Segment.End = saveEnd;
+                facingSide.Line.RenderSegStart = saveStart;
+                facingSide.Line.RenderSegEnd = saveEnd;
                 return result;
             }
 
@@ -237,8 +237,8 @@ public class PortalRenderer : IDisposable
                 facingSide.LowerFloodKeys.Key2 = renderer.AddStaticWall(facingSector.Floor, wall, min, max, sideTexture, lineId);
         }
 
-        facingSide.Line.Segment.Start = saveStart;
-        facingSide.Line.Segment.End = saveEnd;
+        facingSide.Line.RenderSegStart = saveStart;
+        facingSide.Line.RenderSegEnd = saveEnd;
         return result;
     }
 

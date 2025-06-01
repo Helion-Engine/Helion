@@ -23,8 +23,8 @@ public static class WorldTriangulator
     {
         Line line = side.Line;
 
-        Vec2F left = isFront ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
-        Vec2F right = isFront ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
+        Vec2F left = isFront ? new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y) : new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
+        Vec2F right = isFront ? new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y) : new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
         double topZ = overrideCeiling == NoOverride ? ceiling.Z + WorldStatic.LineVertexGap : overrideCeiling;
         double bottomZ = overrideFloor == NoOverride ? floor.Z - WorldStatic.LineVertexGap : overrideFloor;
         double prevTopZ = overrideCeiling == NoOverride ? ceiling.PrevZ + WorldStatic.LineVertexGap : overrideCeiling;
@@ -63,8 +63,8 @@ public static class WorldTriangulator
     {
         Line line = facingSide.Line;
 
-        Vec2F left = isFrontSide ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
-        Vec2F right = isFrontSide ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
+        Vec2F left = isFrontSide ? new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y) : new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
+        Vec2F right = isFrontSide ? new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y) : new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
         double topZ = topFlat.Z + WorldStatic.LineVertexGap;
         double bottomZ = bottomFlat.Z - WorldStatic.LineVertexGap;
         double prevTopZ = topFlat.PrevZ + WorldStatic.LineVertexGap;
@@ -122,8 +122,8 @@ public static class WorldTriangulator
             return;
         }
 
-        Vec2F left = isFrontSide ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
-        Vec2F right = isFrontSide ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
+        Vec2F left = isFrontSide ? new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y) : new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
+        Vec2F right = isFrontSide ? new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y) : new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
         double length = line.GetLength();
         WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan.TopZ, drawSpan.BottomZ, 
             drawSpan.VisibleTopZ, drawSpan.VisibleBottomZ, textureUVInverse, previous: false);
@@ -158,8 +158,8 @@ public static class WorldTriangulator
     {
         Line line = facingSide.Line;
 
-        Vec2F left = isFrontSide ? new((float)line.Segment.Start.X, (float)line.Segment.Start.Y) : new((float)line.Segment.End.X, (float)line.Segment.End.Y);
-        Vec2F right = isFrontSide ? new((float)line.Segment.End.X, (float)line.Segment.End.Y) : new((float)line.Segment.Start.X, (float)line.Segment.Start.Y);
+        Vec2F left = isFrontSide ? new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y) : new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
+        Vec2F right = isFrontSide ? new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y) : new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
         double topZ = overrideTopZ == NoOverride ? topPlane.Z + WorldStatic.LineVertexGap : overrideTopZ;
         double bottomZ = bottomPlane.Z - WorldStatic.LineVertexGap;
         double prevTopZ = overrideTopZ == NoOverride ? topPlane.PrevZ + WorldStatic.LineVertexGap : overrideTopZ;
