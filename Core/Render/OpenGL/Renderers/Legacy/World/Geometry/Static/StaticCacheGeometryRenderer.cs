@@ -365,7 +365,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             // Required for id24 flat mapping using different floor/ceiling textures.
             AddSkyGeometry(side, WallLocation.Upper, null, skyVertices, skyHack || skyVertices2 != null ? facingSector : otherSector, update);
 
-            if (!update && skyVertices == null)
+            if (!update)
             {
                 if ((side.FloodTextures & SideTexture.Upper) != 0)
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Upper, isFrontSide, m_floodFillRenderer);
