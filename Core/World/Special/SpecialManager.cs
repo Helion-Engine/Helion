@@ -848,7 +848,7 @@ public sealed class SpecialManager : ITickable, IDisposable
     {
         SectorPlanes planes = (SectorPlanes)line.Args.Arg1;
         var sectors = GetSectorsFromSpecialLine(line);
-        var offset = line.EndPosition - line.StartPosition;
+        var offset = line.Segment.Delta;
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
@@ -930,7 +930,7 @@ public sealed class SpecialManager : ITickable, IDisposable
     private static Vec2D GetPushFactor(Line line)
     {
         if (line.Args.Arg3 != 0)
-            return line.EndPosition - line.StartPosition;
+            return line.Segment.Delta;
         
         // Arg2 = angle, Arg1 = amount
         return Vec2D.UnitCircle(line.Args.Arg2) * line.Args.Arg1;

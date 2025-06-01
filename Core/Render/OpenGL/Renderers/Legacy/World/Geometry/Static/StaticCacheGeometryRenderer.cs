@@ -127,8 +127,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 var unit = Vec2D.UnitCircle(line.GetAngle());
                 var push = unit * WorldStatic.LineVertexGap;
-                line.Segment.Start -= push;
-                line.Segment.End += push;
+                line.RenderSegStart -= push;
+                line.RenderSegEnd += push;
             }
 
             AddLine(line);

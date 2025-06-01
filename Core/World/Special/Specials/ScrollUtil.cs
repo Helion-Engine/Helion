@@ -22,7 +22,7 @@ public static class ScrollUtil
         Vec2D diff;
         if ((flags & ZDoomScroll.Line) != 0)
         {
-            diff = line.EndPosition - line.StartPosition;
+            diff = line.Segment.Delta;
             diff /= 32;
         }
         else
@@ -49,8 +49,8 @@ public static class ScrollUtil
 
     public static ScrollSpeeds GetScrollLineSpeed(Line from, Line to)
     {
-        Vec2D fromDiff = (from.EndPosition - from.StartPosition) / 32;
-        Vec2D toDiff = to.EndPosition - to.StartPosition;
+        Vec2D fromDiff = (from.Segment.Delta) / 32;
+        Vec2D toDiff = to.Segment.Delta;
         Vec2D toDiffOrig = toDiff;
         toDiff.X = Math.Abs(toDiff.X);
         toDiff.Y = Math.Abs(toDiff.Y);

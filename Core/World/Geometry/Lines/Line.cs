@@ -17,6 +17,8 @@ public sealed class Line
 
     public int Id;
     public Seg2D Segment;
+    public Vec2D RenderSegStart;
+    public Vec2D RenderSegEnd;
     public Side Front;
     public Side? Back;
     public int LineId;
@@ -36,8 +38,6 @@ public sealed class Line
     private double m_length;
     private double m_angle;
 
-    public Vec2D StartPosition => Segment.Start;
-    public Vec2D EndPosition => Segment.End;
     public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;
     public bool HasSectorTag => SectorTag > 0;
     public int SectorTag => Args.Arg0;
@@ -52,6 +52,8 @@ public sealed class Line
     {
         Id = id;
         Segment = segment;
+        RenderSegStart = segment.Start;
+        RenderSegEnd = segment.End;
         Front = front;
         Back = back;
         Flags = flags;
@@ -249,6 +251,6 @@ public sealed class Line
 
     public override string ToString()
     {
-        return $"Id={Id} [{StartPosition}] [{EndPosition}]";
+        return $"Id={Id} [{Segment.Start}] [{Segment.End}]";
     }
 }
