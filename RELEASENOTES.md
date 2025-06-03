@@ -17,6 +17,7 @@
 - Upgraded vanilla rendering emulation to draw sprites over walls similar to vanilla
 - Add damage receive and apply multipliers for players
 - Read GL nodes from archive including ZNODES both compressed and uncompressed
+- Support sky scroll from MapInfo
 
 ## Bug fixes:
 - Correct missile blocking checks to match original behavior (fixes radsuits blocking rockets etc)

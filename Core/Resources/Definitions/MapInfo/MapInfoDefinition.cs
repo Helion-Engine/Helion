@@ -420,7 +420,7 @@ public partial class MapInfoDefinition
     {
         SkyDef sky = new();
         sky.Name = parser.ConsumeString();
-        if (!MapNames.Contains(parser.PeekString()) && parser.PeekInteger(out _))
+        if (!MapNames.Contains(parser.PeekString()) && parser.PeekDouble(out _))
             sky.ScrollSpeed = parser.ConsumeDouble();
         else if (parser.ConsumeIf(","))
             sky.ScrollSpeed = parser.ConsumeDouble();

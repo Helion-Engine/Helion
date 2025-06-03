@@ -10,7 +10,7 @@ public class SkyFlatMapping
 
 public class SkyDefinitionData
 {
-    public List<SkyDef>? Skies { get; set; } = [];
+    public List<Id24SkyDef>? Skies { get; set; } = [];
     public List<SkyFlatMapping>? FlatMapping { get; set; }
 }
 
