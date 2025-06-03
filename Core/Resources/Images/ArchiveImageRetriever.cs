@@ -95,7 +95,7 @@ public class ArchiveImageRetriever : IImageRetriever
         if (definition != null)
             return ImageFromDefinition(definition, options);
 
-        Entry? entry = m_archiveCollection.Entries.FindByNamespace(entryName, targetNamespace, noFallback: true);
+        Entry? entry = m_archiveCollection.Entries.FindByNamespace(entryName, targetNamespace);
         return entry != null ? ImageFromEntry(entry, colorTranslation: colorTranslation) : null;
     }
 
