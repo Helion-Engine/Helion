@@ -372,8 +372,11 @@ public class FragFunction
         {
             // Map brightness to white + white + gray ramp (32x) + low grays (3x) + black
             // in invuln color map, to emulate palette mode's invuln effect.
-            // Since this only covers the colormap's grays, the degree to which
-            // the original effect is matched can vary.
+            // These grays are not completely evenly spaced (most are 8 apart,
+            // some are 4), but it's even enough to work.
+            // Since some colormaps customize non-gray colors instead of just
+            // mapping to brightness, the degree to which the original effect
+            // is matched can vary by WAD.
             const float maxIndex = 38 - 1;
             int indexA = int(gray * maxIndex);
             int indexB = indexA + 1;
