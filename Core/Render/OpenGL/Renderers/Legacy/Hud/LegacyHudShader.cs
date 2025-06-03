@@ -92,11 +92,12 @@ public class LegacyHudShader : RenderProgram
     .Replace("${ColorMapFragSet}", ShaderVars.PaletteColorMode ? "drawPaletteFrag = drawPalette; hudColorMapIndexFrag = hudColorMapIndex;" : "");
 
     private static readonly string TrueColorInvul =
-        @"if (drawColorMapFrag != 0) {
-            float maxColor = max(max(fragColor.x, fragColor.y), fragColor.z);
-            maxColor *= 1.5;
-            fragColor.xyz = vec3(maxColor, maxColor, maxColor);
-        }";
+        """
+        if (drawColorMapFrag != 0)
+        {
+            {InvulnerabilityFragColorInner}
+        }
+        """.Replace("{InvulnerabilityFragColorInner}", FragFunction.InvulnerabilityFragColorInner);
 
     private static string GetBrightmapColorBlend()
     {
