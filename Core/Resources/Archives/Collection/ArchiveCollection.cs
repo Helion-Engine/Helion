@@ -114,18 +114,18 @@ public class ArchiveCollection : IResources, IPathResolver
     {
         if (unitTest)
         {
-            TextureManager = new TextureManager(this, m_config.Render.CacheSprites, GetSkyTexture(mapInfo), unitTest);
+            TextureManager = new TextureManager(this, m_config.Render.CacheSprites, GetSkyTexture(mapInfo), mapInfo, unitTest);
             return;
         }
 
         if (m_initTextureManager)
         {
             TextureManager.SetSkyTexture(GetSkyTexture(mapInfo));
-            TextureManager.MapInit();
+            TextureManager.MapInit(mapInfo);
             return;
         }
 
-        TextureManager = new TextureManager(this, m_config.Render.CacheSprites, GetSkyTexture(mapInfo), unitTest);
+        TextureManager = new TextureManager(this, m_config.Render.CacheSprites, GetSkyTexture(mapInfo), mapInfo, unitTest);
         m_initTextureManager = true;
     }
 

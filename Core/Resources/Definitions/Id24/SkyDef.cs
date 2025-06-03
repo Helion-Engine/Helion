@@ -25,7 +25,7 @@ public enum SkyType
     WithForeground
 }
 
-public class SkyDef
+public class Id24SkyDef
 {
     public SkyType Type { get; set; }
     public string Name { get; set; } = string.Empty;

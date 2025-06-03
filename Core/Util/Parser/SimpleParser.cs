@@ -381,6 +381,18 @@ public class SimpleParser
         return int.TryParse(GetDataSpan(m_index), out i);
     }
 
+    public bool PeekDouble(out double d)
+    {
+        if (IsDone())
+        {
+            d = 0;
+            return false;
+        }
+
+        AssertData();
+        return TryParseDouble(GetDataSpan(m_index), out d);
+    }
+
     public string ConsumeString()
     {
         AssertData();

@@ -8,6 +8,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Animdefs.Textures;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Definitions.Zdoom;
 using Helion.Resources.Images;
@@ -57,7 +58,7 @@ public partial class TextureManager : ITickable
         SkyTextureName = Constants.DefaultSkyTextureName;
     }
 
-    public TextureManager(ArchiveCollection archiveCollection, bool cacheAllSprites, string skyTexture, bool unitTest = false)
+    public TextureManager(ArchiveCollection archiveCollection, bool cacheAllSprites, string skyTexture, MapInfoDef mapInfo, bool unitTest = false)
     {
         SkyTextureName = skyTexture;
         m_archiveCollection = archiveCollection;
@@ -84,7 +85,7 @@ public partial class TextureManager : ITickable
             m_translations.Add(i);
 
         foreach (var flat in flatEntries)
-            MapSkyFlat(flat.Path.Name, flatIndexStart++);
+            MapSkyFlat(flat.Path.Name, flatIndexStart++, mapInfo);
 
         InitAnimations();
         InitSwitches();
@@ -94,12 +95,12 @@ public partial class TextureManager : ITickable
             InitSprites(spriteNames, spriteEntries);
     }
 
-    public void MapInit()
+    public void MapInit(MapInfoDef mapInfo)
     {
         foreach (var skyFire in m_skyFireTextures)
             skyFire.RenderUpdate = true;
 
-        MapSkyFlat(m_archiveCollection.GameInfo.SkyFlatName, m_skyIndex);
+        MapSkyFlat(m_archiveCollection.GameInfo.SkyFlatName, m_skyIndex, mapInfo);
     }
 
     private void MapSpriteIndexToEntries(List<Entry> spriteEntries, List<string> spriteNames)

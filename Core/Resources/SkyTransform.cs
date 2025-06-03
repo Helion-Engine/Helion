@@ -35,7 +35,7 @@ public class SkyTransform
     public SkyTransformTexture Sky = null!;
     public SkyTransformTexture? Foreground;
 
-    public static SkyTransform FromId24SkyDef(int textureIndex, int? foregroundTextureIndex, SkyDef skyDef)
+    public static SkyTransform FromId24SkyDef(int textureIndex, int? foregroundTextureIndex, Id24SkyDef skyDef)
     {
         return new()
         {
@@ -53,6 +53,22 @@ public class SkyTransform
         };
     }
 
+    public static SkyTransform FromMapInfoSky(int textureIndex, Definitions.MapInfo.MapInfoDef mapInfo)
+    {
+        return new()
+        {
+            Sky = new()
+            {
+                TextureName = mapInfo.Sky1.Name,
+                TextureIndex = textureIndex,
+                Offset = default,
+                Scroll = new ((float)mapInfo.Sky1.ScrollSpeed, 0),
+                Scale = Vec2F.One,
+                Type = SkyTransformType.Normal
+            }
+        };
+    }
+
     private static SkyTransformType FromId24SkyType(SkyType type)
     {
         return type switch
@@ -62,7 +78,7 @@ public class SkyTransform
         };
     }
 
-    private static SkyTransformTexture? CreateSkyTextureFromForegroundTexture(SkyDef skyDef, int? foregroundTextureIndex)
+    private static SkyTransformTexture? CreateSkyTextureFromForegroundTexture(Id24SkyDef skyDef, int? foregroundTextureIndex)
     {
         var foreground = skyDef.ForegroundTex;
         if (foregroundTextureIndex == null || foreground == null)
