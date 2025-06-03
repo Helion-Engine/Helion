@@ -8,9 +8,23 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 public record struct ColorMapUniforms(int GlobalIndex, int SkyIndex, int SectorIndex);
 public record struct ColorMixUniforms(Vec3F Global, Vec3F Sky, Vec3F Sector);
 
-public struct ShaderUniforms(mat4 mvp, mat4 mvpNoPitch, float timeFrac, bool drawInvulnerability, float mix, int extraLight, float distanceOffset,
-    ColorMixUniforms colorMix, float fuzzDiv, ColorMapUniforms colorMapUniforms, PaletteIndex paletteIndex, RenderLightMode lightMode, float gammaCorrection,
-    int maxDistance, bool useBrightmaps)
+public struct ShaderUniforms(
+    mat4 mvp,
+    mat4 mvpNoPitch,
+    float timeFrac,
+    bool drawInvulnerability,
+    float mix,
+    int extraLight,
+    float distanceOffset,
+    ColorMixUniforms colorMix,
+    float fuzzDiv,
+    ColorMapUniforms colorMapUniforms,
+    PaletteIndex paletteIndex,
+    RenderLightMode lightMode,
+    float gammaCorrection,
+    int maxDistance,
+    bool useBrightmaps,
+    bool emulateInvulnerabilityColorMap)
 {
     public mat4 Mvp = mvp;
     public mat4 MvpNoPitch = mvpNoPitch;
@@ -27,4 +41,5 @@ public struct ShaderUniforms(mat4 mvp, mat4 mvpNoPitch, float timeFrac, bool dra
     public float GammaCorrection = gammaCorrection;
     public int MaxDistance = maxDistance;
     public bool UseBrightmaps = useBrightmaps;
+    public bool EmulateInvulnerabilityColorMap = emulateInvulnerabilityColorMap;
 }

@@ -156,6 +156,10 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Rendering", spacer: true)]
     public readonly ConfigValue<bool> VanillaRender = new(false);
 
+    [ConfigInfo("Emulates custom invulnerability palettes in true color mode. May not work well with all WADs.")]
+    [OptionMenu(OptionSectionType.Render, "Emulate Invulnerability Colormap")]
+    public readonly ConfigValue<bool> EmulateInvulnerabilityColorMap = new(false);
+
     [ConfigInfo("Line contrast mode.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Line contrast mode")]
     public readonly ConfigValue<RenderContrastMode> ContrastMode = new(RenderContrastMode.Vanilla);

@@ -130,9 +130,6 @@ public partial class Renderer : IDisposable
 
     public unsafe void UploadColorMap()
     {
-        if (!ShaderVars.PaletteColorMode)
-            return;
-
         var colorMapData = ColorMapBuffer.Create(m_archiveCollection.Palette, m_archiveCollection.Definitions.Colormaps);
         m_colorMapBuffer = new("Colormap buffer", colorMapData, SizedInternalFormat.Rgb32f, GLInfo.MapPersistentBitSupported);
 
@@ -219,11 +216,23 @@ public partial class Renderer : IDisposable
         if (maxDistance <= 0)
             maxDistance = Constants.DefaultMaxDistance;
 
-        return new ShaderUniforms(CalculateMvpMatrix(renderInfo),
+        return new ShaderUniforms(
+            CalculateMvpMatrix(renderInfo),
             CalculateMvpMatrix(renderInfo, true),
-            GetTimeFrac(), drawInvulnerability, mix, extraLight, GetDistanceOffset(renderInfo),
-            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), colorMapUniforms, paletteIndex, config.Render.LightMode, 
-            (float)config.Render.GammaCorrection, maxDistance, config.Render.Brightmaps);
+            GetTimeFrac(),
+            drawInvulnerability,
+            mix,
+            extraLight,
+            GetDistanceOffset(renderInfo),
+            colorMix,
+            GetFuzzDiv(renderInfo.Config, renderInfo.Viewport),
+            colorMapUniforms,
+            paletteIndex,
+            config.Render.LightMode, 
+            (float)config.Render.GammaCorrection,
+            maxDistance,
+            config.Render.Brightmaps,
+            config.Render.EmulateInvulnerabilityColorMap);
     }
 
     private static ColorMapUniforms GetColorMapUniforms(Entity viewer, OldCamera camera)

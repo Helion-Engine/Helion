@@ -328,6 +328,7 @@ public class EntityRenderer : IDisposable
         program.SectorColormapTexture(BindTextures.SectorColormap);
         program.ExtraLight(renderInfo.Uniforms.ExtraLight);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
+        program.EmulateInvulnerabilityColorMap(renderInfo.Uniforms.EmulateInvulnerabilityColorMap);
         program.LightLevelMix(renderInfo.Uniforms.Mix);
         program.Mvp(renderInfo.Uniforms.Mvp);
         program.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);

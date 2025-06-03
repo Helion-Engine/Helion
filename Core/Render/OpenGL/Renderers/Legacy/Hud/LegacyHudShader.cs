@@ -16,6 +16,7 @@ public class LegacyHudShader : RenderProgram
     private readonly int m_paletteIndexLocation;
     private readonly int m_colorMapIndexLocation;
     private readonly int m_hasInvulnerabilityLocation;
+    private readonly int m_emulateInvulnerabilityColorMapLocation;
     private readonly int m_gammaCorrectionLocation;
     private readonly int m_opaqueTextureLocation;
     private readonly int m_screenBoundsLocation;
@@ -32,6 +33,7 @@ public class LegacyHudShader : RenderProgram
         m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
         m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
+        m_emulateInvulnerabilityColorMapLocation = Uniforms.GetLocation("emulateInvulnerabilityColorMap");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
         m_opaqueTextureLocation = Uniforms.GetLocation("opaqueTexture");
         m_screenBoundsLocation = Uniforms.GetLocation("screenBounds");
@@ -48,6 +50,7 @@ public class LegacyHudShader : RenderProgram
     public void FuzzDiv(float div) => Uniforms.Set(div, m_fuzzDivLocation);
     public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
+    public void EmulateInvulnerabilityColorMap(bool value) => Uniforms.Set(value, m_emulateInvulnerabilityColorMapLocation);
     public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
     public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
     public void ScreenBounds(Vec2I value) => Uniforms.Set(value, m_screenBoundsLocation);
@@ -128,6 +131,7 @@ public class LegacyHudShader : RenderProgram
         uniform int paletteIndex;
         uniform int colormapIndex;
         uniform int hasInvulnerability;
+        uniform int emulateInvulnerabilityColorMap;
         uniform int useBrightmaps;
         uniform float gammaCorrection;
         uniform ivec2 screenBounds;

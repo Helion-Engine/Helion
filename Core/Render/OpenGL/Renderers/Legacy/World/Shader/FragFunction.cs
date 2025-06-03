@@ -359,7 +359,36 @@ public class FragFunction
     {
         float gray = fragColor.x * 0.299 + fragColor.y * 0.587 + fragColor.z * 0.144;
         gray = 1 - gray;
-        fragColor.xyz = vec3(gray, gray, gray);
+        if (emulateInvulnerabilityColorMap == 0)
+        {
+            fragColor.xyz = vec3(gray, gray, gray);
+        }
+        else
+        {
+            // Map brightness to black + black + gray ramp (32x) + white + white
+            // in invuln color map, to emulate palette mode's invuln effect.
+            // Since this only covers the colormap's grays, the degree to which
+            // the original effect is matched can vary.
+            float maxIndex = 36 - 1;
+            int indexA = int(gray * maxIndex);
+            int indexB = indexA + 1;
+            float localPos = (gray - float(indexA) / maxIndex) * maxIndex;
+
+            // [ 0,  1] => [ 4,   4]
+            // [ 2, 33] => [80, 111]
+            // [34, 35] => [ 0,   0]
+            if (indexA <= 1) { indexA = 4; }
+            else if (indexA <= 33) { indexA += 78; }
+            else { indexA = 0; }
+            if (indexB <= 1) { indexB = 4; }
+            else if (indexB <= 33) { indexB += 78; }
+            else { indexB = 0; }
+
+            int colorMapOffset = 256 * 32; // invuln colormap start
+            vec3 blendA = texelFetch(colormapTexture, colorMapOffset + indexA).rgb;
+            vec3 blendB = texelFetch(colormapTexture, colorMapOffset + indexB).rgb;
+            fragColor.rgb = mix(blendA, blendB, localPos);
+        }
     }
 ";
 

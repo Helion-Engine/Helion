@@ -215,6 +215,7 @@ public class SkySphereRenderer : IDisposable
         }
 
         m_skyProgram.HasInvulnerability(invulnerability);
+        m_skyProgram.EmulateInvulnerabilityColorMap(renderInfo.Uniforms.EmulateInvulnerabilityColorMap);
         m_skyProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_skyProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
         m_skyProgram.ScrollOffset(offset);
@@ -254,6 +255,7 @@ public class SkySphereRenderer : IDisposable
         }
 
         m_foregroundProgram.HasInvulnerability(invulnerability);
+        m_foregroundProgram.EmulateInvulnerabilityColorMap(renderInfo.Uniforms.EmulateInvulnerabilityColorMap);
         m_foregroundProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_foregroundProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
         m_foregroundProgram.ScrollOffset(offset);
@@ -285,6 +287,7 @@ public class SkySphereRenderer : IDisposable
         m_foregroundProgram.TopColor(Vec4F.Zero);
         m_foregroundProgram.BottomColor(Vec4F.Zero);
         m_foregroundProgram.HasInvulnerability(invulnerability);
+        m_foregroundProgram.EmulateInvulnerabilityColorMap(renderInfo.Uniforms.EmulateInvulnerabilityColorMap);
         m_foregroundProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
         m_foregroundProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
         m_foregroundProgram.ScrollOffset(offset);
