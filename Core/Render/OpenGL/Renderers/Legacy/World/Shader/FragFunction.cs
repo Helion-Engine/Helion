@@ -374,7 +374,7 @@ public class FragFunction
             // in invuln color map, to emulate palette mode's invuln effect.
             // Since this only covers the colormap's grays, the degree to which
             // the original effect is matched can vary.
-            float maxIndex = 38 - 1;
+            const float maxIndex = 38 - 1;
             int indexA = int(gray * maxIndex);
             int indexB = indexA + 1;
             float localPos = (gray - float(indexA) / maxIndex) * maxIndex;
@@ -392,7 +392,7 @@ public class FragFunction
             else if (indexB <= 36) { indexB -= 29; }
             else { indexB = 0; }
 
-            int colorMapOffset = 256 * 32; // invuln colormap start
+            const int colorMapOffset = 256 * 32; // invuln colormap start
             vec3 blendA = texelFetch(colormapTexture, colorMapOffset + indexA).rgb;
             vec3 blendB = texelFetch(colormapTexture, colorMapOffset + indexB).rgb;
             fragColor.rgb = mix(blendA, blendB, localPos);
