@@ -9,6 +9,8 @@ namespace Helion.Util.Configs.Values;
 
 public class ConfigValue<T> : IConfigValue where T : notnull
 {
+
+
     // This value could be passed any type. To avoid many creations, this
     // is cached between different generic types.
     private static readonly Func<object, T> ObjectToTypeConverterOrThrow;
@@ -128,10 +130,23 @@ public class ConfigValue<T> : IConfigValue where T : notnull
                 return true;
             }
 
-            if (typeof(T) == typeof(bool) && value is string str && str == "*")
+            if (typeof(T) == typeof(bool) && value is string str)
             {
-                converted = (T)(object)!Convert.ToBoolean(Value);
-                return true;
+                if (str == "*")
+                {
+                    converted = (T)(object)!Convert.ToBoolean(Value);
+                    return true;
+                }
+                else if (str.Equals(ConfigConstants.Yes, StringComparison.OrdinalIgnoreCase))
+                {
+                    converted = (T)(object)true;
+                    return true;
+                }
+                else if (str.Equals(ConfigConstants.No, StringComparison.OrdinalIgnoreCase))
+                {
+                    converted = (T)(object)false;
+                    return true;
+                }
             }
 
             converted = ObjectToTypeConverterOrThrow(value);
