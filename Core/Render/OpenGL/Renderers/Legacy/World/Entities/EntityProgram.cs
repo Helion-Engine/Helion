@@ -16,6 +16,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_mvpLocation;
     private readonly int m_timeFracLocation;
     private readonly int m_hasInvulnerabilityLocation;
+    private readonly int m_emulateInvulnerabilityColorMapLocation;
     private readonly int m_mvpNoPitchLocation;
     private readonly int m_fuzzFracLocation;
     private readonly int m_lightLevelMixLocation;
@@ -56,6 +57,7 @@ public class EntityProgram : RenderProgram
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_timeFracLocation = Uniforms.GetLocation("timeFrac");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
+        m_emulateInvulnerabilityColorMapLocation = Uniforms.GetLocation("emulateInvulnerabilityColorMap");
         m_mvpNoPitchLocation = Uniforms.GetLocation("mvpNoPitch");
         m_fuzzFracLocation = Uniforms.GetLocation("fuzzFrac");
         m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
@@ -103,6 +105,7 @@ public class EntityProgram : RenderProgram
 
     public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
+    public void EmulateInvulnerabilityColorMap(bool value) => Uniforms.Set(value, m_emulateInvulnerabilityColorMapLocation);
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
     public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
@@ -330,6 +333,7 @@ public class EntityProgram : RenderProgram
         ${OutFragColor}
 
         uniform int hasInvulnerability;
+        uniform int emulateInvulnerabilityColorMap;
         uniform float fuzzFrac;
         uniform sampler2D boundTexture;
         uniform sampler2D brightmapTexture;

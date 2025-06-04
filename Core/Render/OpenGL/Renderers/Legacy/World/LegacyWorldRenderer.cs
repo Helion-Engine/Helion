@@ -595,6 +595,7 @@ public class LegacyWorldRenderer : WorldRenderer
         program.PlaneClipTexture(BindTextures.PlaneClipTexture);
         program.WallClipTexture(BindTextures.WallClipTexture);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
+        program.EmulateInvulnerabilityColorMap(renderInfo.Uniforms.EmulateInvulnerabilityColorMap);
         program.Mvp(renderInfo.Uniforms.Mvp);
         program.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
         program.TimeFrac(renderInfo.TickFraction);
@@ -623,6 +624,7 @@ public class LegacyWorldRenderer : WorldRenderer
         program.SectorColormapTexture(BindTextures.SectorColormap);
         program.BrightmapTexture(BindTextures.BrightmapTexture);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
+        program.EmulateInvulnerabilityColorMap(renderInfo.Uniforms.EmulateInvulnerabilityColorMap);
         program.Mvp(renderInfo.Uniforms.Mvp);
         program.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
         program.LightLevelMix(renderInfo.Uniforms.Mix);
