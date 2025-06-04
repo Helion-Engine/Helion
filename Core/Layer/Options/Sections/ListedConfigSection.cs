@@ -153,7 +153,7 @@ public class ListedConfigSection : IOptionSection
             if (input.ConsumePressOrContinuousHold(Key.Down) || input.ConsumePressOrContinuousHold(Key.DPadDown))
                 AdvanceToValidRow(1);
 
-            if ((input.ConsumeKeyPressed(Key.R) || input.ConsumeKeyPressed(Key.Delete)) && 
+            if ((input.ConsumeKeyPressed(Key.R) || input.ConsumeKeyPressed(Key.Delete)) &&
                 m_currentRowIndex < m_configValues.Count)
             {
                 ResetSelectedRowDefaults();
@@ -319,7 +319,7 @@ public class ListedConfigSection : IOptionSection
         bool newValue = !cfgValue.Value;
         cfgValue.Set(newValue);
         m_rowEditText.Clear();
-        m_rowEditText.Append(newValue);
+        m_rowEditText.Append(newValue ? ConfigConstants.Yes : ConfigConstants.No);
     }
 
     private void UpdateEnumOption(IConsumableInput input, IConfigValue cfgValue)
@@ -382,6 +382,9 @@ public class ListedConfigSection : IOptionSection
 
     private static string GetDisplayStringForCurrentValue(IConfigValue configValue, OptionMenuAttribute attr)
     {
+        if (configValue.ValueType == typeof(bool))
+            return ((bool)configValue.ObjectValue) ? ConfigConstants.Yes : ConfigConstants.No;
+
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectValue).ToString() ?? "??";
 
@@ -406,6 +409,9 @@ public class ListedConfigSection : IOptionSection
 
     private static string GetDisplayStringForDefaultValue(IConfigValue configValue, OptionMenuAttribute attr)
     {
+        if (configValue.ValueType == typeof(bool))
+            return ((bool)configValue.ObjectDefaultValue) ? ConfigConstants.Yes : ConfigConstants.No;
+
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectDefaultValue).ToString()
                 ?? configValue.ObjectDefaultValue?.ToString()
