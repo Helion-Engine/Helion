@@ -75,7 +75,7 @@ public class DefinitionEntries
     private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
     private readonly ArchiveCollection m_archiveCollection;
     private readonly Dictionary<string, Colormap> m_processedTranslationColormaps = [];
-    private PnamesTextureXCollection m_pnamesTextureXCollection = new();
+    private readonly PnamesTextureXCollection m_pnamesTextureXCollection = new();
     private bool m_parseDehacked;
     private bool m_parseDecorate;
     private bool m_parseZDoomMapInfo;
@@ -100,10 +100,6 @@ public class DefinitionEntries
         m_entryNameToAction["COMPATIBILITY"] = entry => Compatibility.AddDefinitions(entry);
         m_entryNameToAction["DECORATE"] = entry => ParseDecorate(entry);
         m_entryNameToAction["FONTS"] = entry => Fonts.AddFontDefinitions(entry);
-        m_entryNameToAction["PNAMES"] = entry => m_pnamesTextureXCollection.AddPnames(entry);
-        m_entryNameToAction["TEXTURE1"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
-        m_entryNameToAction["TEXTURE2"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
-        m_entryNameToAction["TEXTURE3"] = entry => m_pnamesTextureXCollection.AddTextureX(entry);
         m_entryNameToAction["SNDINFO"] = entry => ParseEntry(ParseSoundInfo, entry);
         m_entryNameToAction["LANGUAGE"] = entry => ParseEntry(ParseLanguage, entry);
         m_entryNameToAction["LANGUAGECOMPAT"] = entry => ParseEntry(ParseLanguageCompatibility, entry);
@@ -124,9 +120,7 @@ public class DefinitionEntries
 
     public void ParseDehackedPatch(string data)
     {
-        if (DehackedDefinition == null)
-            DehackedDefinition = new();
-
+        DehackedDefinition ??= new();
         DehackedDefinition.Parse(data);
     }
 
@@ -232,7 +226,7 @@ public class DefinitionEntries
         }
     }
 
-    public void Track(ArchiveCollection archiveCollection, Archive archive)
+    public void Track(Archive archive)
     {
         m_parseDecorate = true;
         m_parseDehacked = true;
@@ -257,8 +251,6 @@ public class DefinitionEntries
             m_parseLegacyMapInfo = false;
         }
 
-        m_pnamesTextureXCollection = new PnamesTextureXCollection();
-
         foreach (Entry entry in archive.Entries)
         {
             if (m_entryNameToAction.TryGetValue(entry.Path.Name, out var action))
@@ -267,13 +259,28 @@ public class DefinitionEntries
                 AddColormap(entry);
         }
 
-        if (m_pnamesTextureXCollection.Valid)
-            CreateImageDefinitionsFrom(archiveCollection, m_pnamesTextureXCollection);
-
         // Vanilla IWADS will have this set. If a PWAD is loaded this will get clear it.
         ConfigCompatibility.VanillaShortestTexture.Set(archive.IWadInfo.VanillaCompatibility);
 
         GldefsDefinition.AddAutoBrightmaps(archive);
+    }
+
+    public void Finalize(ArchiveCollection archiveCollection)
+    {
+        AddFinalizeEntry(archiveCollection, "PNAMES", m_pnamesTextureXCollection.AddPnames);
+        AddFinalizeEntry(archiveCollection, "TEXTURE1", m_pnamesTextureXCollection.AddTextureX);
+        AddFinalizeEntry(archiveCollection, "TEXTURE2", m_pnamesTextureXCollection.AddTextureX);
+        AddFinalizeEntry(archiveCollection, "TEXTURE3", m_pnamesTextureXCollection.AddTextureX);
+
+        if (m_pnamesTextureXCollection.Valid)
+            CreateImageDefinitionsFrom(archiveCollection, m_pnamesTextureXCollection);
+    }
+
+    private static void AddFinalizeEntry(ArchiveCollection archiveCollection, string name, Action<Entry> action)
+    {
+        var entry = archiveCollection.FindEntry(name);
+        if (entry != null)
+            action(entry);
     }
 
     public void BuildTranslationColorMaps(Palette palette, Colormap baseColorMap)
