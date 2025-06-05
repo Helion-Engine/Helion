@@ -55,6 +55,19 @@ public static class StringExtensions
         return text.EndsWith(other, StringComparison.OrdinalIgnoreCase);
     }
 
+    public static bool GetFirstFolder(this string path, out ReadOnlySpan<char> folder)
+    {
+        int endIndex = FirstIndexOf(path, 0, '/', '\\');
+        if (endIndex == -1)
+        {
+            folder = new ReadOnlySpan<char>();
+            return false;
+        }
+
+        folder = path.AsSpan(0, endIndex);
+        return true;
+    }
+
     public static bool GetLastFolder(this string path, out ReadOnlySpan<char> folder)
     {
         int endIndex = LastIndexOf(path, path.Length - 1, '/', '\\');
@@ -82,6 +95,20 @@ public static class StringExtensions
     {
         int startIndex = -1;
         for (int i = start; i >= 0; i--)
+        {
+            if (text[i] != value && text[i] != alt)
+                continue;
+            startIndex = i;
+            break;
+        }
+
+        return startIndex;
+    }
+
+    private static int FirstIndexOf(string text, int start, char value, char alt)
+    {
+        int startIndex = -1;
+        for (int i = start; i < text.Length; i++)
         {
             if (text[i] != value && text[i] != alt)
                 continue;

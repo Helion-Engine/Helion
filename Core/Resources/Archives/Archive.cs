@@ -31,15 +31,13 @@ public abstract class Archive : IDisposable
         ("TEXTURES", ResourceNamespace.Textures),
         ("PATCHES", ResourceNamespace.Textures),
         ("COLORMAPS", ResourceNamespace.Colormaps),
+        ("BRIGHTMAPS", ResourceNamespace.Brightmaps)
     ];
 
     protected static ResourceNamespace NamespaceFromEntryPath(string path)
     {
-        if (!path.GetLastFolder(out var folder))
+        if (!path.GetFirstFolder(out var folder))
             return ResourceNamespace.Global;
-
-        if (path.StartsWithIgnoreCase("brightmaps/"))
-            return ResourceNamespace.Brightmaps;
 
         foreach (var item in FolderToNamespace)
         {

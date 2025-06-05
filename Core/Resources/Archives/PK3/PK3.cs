@@ -53,7 +53,7 @@ public class PK3 : Archive, IDisposable
             return;
 
         EntryPath entryPath = new(zipEntry.FullName);
-        ResourceNamespace resourceNamespace = NamespaceFromEntryPath(entryPath.FullPath);
+        var resourceNamespace = NamespaceFromEntryPath(entryPath.FullPath);
         Entries.Add(new PK3Entry(this, zipEntry, entryPath, resourceNamespace, m_indexGenerator.GetIndex(this)));
     }
 
