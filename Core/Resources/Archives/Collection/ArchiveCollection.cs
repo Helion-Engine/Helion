@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Helion.Dehacked;
-using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.Palettes;
@@ -582,7 +581,7 @@ public class ArchiveCollection : IResources, IPathResolver
                 Data.Read(entry);
             }
 
-            Definitions.Track(this, archive);
+            Definitions.Track(archive);
 
             if (archive.ArchiveType == ArchiveType.Assets && GetIWadInfo(iwadArchive, archives, out var iwadInfo))
             {
@@ -590,6 +589,8 @@ public class ArchiveCollection : IResources, IPathResolver
                 Definitions.LoadDecorate(archive, iwadInfo.DecorateResource);
             }
         }
+
+        Definitions.Finalize(this);
     }
 
     private static bool GetIWadInfo(Archive? iwadArchive, List<Archive> archives, [NotNullWhen(true)] out IWadInfo? info)

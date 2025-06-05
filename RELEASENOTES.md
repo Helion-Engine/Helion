@@ -56,3 +56,4 @@
 - Fix custom sndinfo definitions not removing random flag from base sndinfo
 - Fix things with no blockmap flag (teleport destinations) being moved in transfer heights sectors considered underwater
 - Fix active switch change specials not being serialized to saves
+- Fix issue with sky textures not loading from a patch name if last archive had no pnames lump
