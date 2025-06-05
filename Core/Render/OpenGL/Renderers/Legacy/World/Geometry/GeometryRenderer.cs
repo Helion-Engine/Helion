@@ -1209,6 +1209,14 @@ public class GeometryRenderer : IDisposable
             // Push forward to cover flood fill side and prevent z-fighting (ex Doom2 MAP25 bloodfall)
             var saveStart = line.RenderSegStart;
             var saveEnd = line.RenderSegEnd;
+
+            // Restore the original position for alpha walls. Touching walls look bad with the overlap and it's not necessary.
+            if (m_pixelGapCorrection && alpha < 1)
+            {
+                line.RenderSegStart = line.Segment.Start;
+                line.RenderSegEnd = line.Segment.End;
+            }
+
             // Don't push with flood plane. This is different from flood fill side and are already pushed.
             if (!facingSector.Flood)
                 PushSeg(line, facingSide, PushDir.Forward);
@@ -1223,15 +1231,6 @@ public class GeometryRenderer : IDisposable
 
             int colorMapIndex = Renderer.GetColorMapBufferIndex(facingSector, LightBufferType.Wall);
             int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Middle, facingSector);
-
-            // Restore the original position for alpha walls. Touching walls look bad with the overlap and it's not necessary.
-            if (m_pixelGapCorrection && alpha < 1)
-            {
-                var unit = Vec2D.UnitCircle(line.GetAngle());
-                var push = unit * WorldStatic.LineVertexGap;
-                line.RenderSegStart += push;
-                line.RenderSegEnd -= push;
-            }
 
             WallVertices wall = default;
             WorldTriangulator.HandleTwoSidedMiddle(facingSide,
