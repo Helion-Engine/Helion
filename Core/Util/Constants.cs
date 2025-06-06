@@ -85,6 +85,8 @@ public static class Constants
 
     public const string DefaultSkyTextureName = "SKY1";
 
+    public const string DefaultBackgroundImage = "background";
+
     public static class MenuSounds
     {
         public const string Activate = "menu/activate";

@@ -65,7 +65,7 @@ public class IwadSelectionLayer : IGameLayer
         int fontSize = m_config.Window.GetMenuLargeFontSize();
         int spacer = m_config.Window.GetMenuScaled(8);
 
-        hud.RenderFullscreenImage("background");
+        hud.RenderFullscreenImage(Constants.DefaultBackgroundImage);
         hud.FillBox(new(new Vec2I(0, 0), new Vec2I(hud.Dimension.Width, hud.Dimension.Height)), Color.Black, alpha: 0.8f);
 
         Dimension dim;
