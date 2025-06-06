@@ -392,6 +392,10 @@ public partial class Client
         foreach (var map in m_archiveCollection.MapInfo.MapInfo.Maps)
         {
             string mapName = map.GetDisplayNameWithPrefix(m_archiveCollection.Language);
+            // include actual map ID if the display name is different (e.g. KDIKDIZD MAP13 is "Z1M1")
+            string idPrefix = $"{map.MapName}: ";
+            if (!mapName.StartsWithIgnoreCase(idPrefix))
+                mapName = idPrefix + mapName;
             string? mapWad = GetMapWad(map.MapName);
             HelionLog.Info((mapWad != null) ? $"{mapName} ({mapWad})" : mapName);
         }
