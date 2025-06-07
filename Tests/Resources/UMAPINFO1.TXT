@@ -6,6 +6,7 @@ map e1m1
 	music = "D_E1M0"
 	next = "E1M2"
 	levelpic = "WILV00"
+	episode = clear
 	episode = "M_EPI1", "1"
 	author = "the author"
 	partime = 420
@@ -101,7 +102,6 @@ map e3m1
 {
 	levelname = "The lone map"
 	unknownitem = "test"
-	episode = clear
 }
 
 map e3m2
