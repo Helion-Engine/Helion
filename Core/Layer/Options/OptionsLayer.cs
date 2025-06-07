@@ -358,13 +358,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         }
     }
 
-    private static void RenderBackground(IRenderableSurfaceContext ctx, IHudRenderContext hud)
-    {
-        (int w, int h) = ctx.Surface.Dimension;
-        hud.RenderFullscreenImage(DefaultBackgroundImage);
-        hud.FillBox((0, 0, w, h), Color.Black, alpha: 0.85f);
-    }
-
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
         Animation.Tick();
@@ -375,7 +368,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         SetMouseFromRender(hud);
 
-        RenderBackground(ctx, hud);
+        hud.RenderFullscreenImage(DefaultBackgroundImage);
 
         int fontSize = m_config.Window.GetMenuMediumFontSize();
         int largeFontSize = m_config.Window.GetMenuLargeFontSize();
