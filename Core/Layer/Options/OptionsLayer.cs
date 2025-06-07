@@ -368,7 +368,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         SetMouseFromRender(hud);
 
-        hud.RenderFullscreenImage(DefaultBackgroundImage);
+        hud.RenderFullscreenImageStretched(DefaultBackgroundImage);
 
         int fontSize = m_config.Window.GetMenuMediumFontSize();
         int largeFontSize = m_config.Window.GetMenuLargeFontSize();
