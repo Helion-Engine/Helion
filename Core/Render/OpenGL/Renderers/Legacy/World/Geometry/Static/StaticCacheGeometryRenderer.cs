@@ -378,15 +378,11 @@ public class StaticCacheGeometryRenderer : IDisposable
             }
         }
 
-        bool lowerVisible = m_geometryRenderer.IsLowerVisibleWithTransferHeights(side, otherSide, facingSector, otherSector, out var transferHeights);
+        bool lowerVisible = GeometryRenderer.LowerIsVisible(side, facingSector, otherSector);
         if (lower && lowerVisible)
         {
             m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
-
-            // Handle transfer heights monster hiding trick. See GeometryRenderer.IsLowerVisibleWithTransferHeights
-            if (m_vanillaRender && transferHeights && sideVertices == null)
-                sideVertices = m_geometryRenderer.RenderTwoSidedUpperOrLowerRaw(WallLocation.Lower, side, facingSector, otherSector, isFrontSide);
-
+         
             SetSideVertices(side, side.Lower, update, sideVertices, lowerVisible, true);
             AddSkyGeometry(side, WallLocation.Lower, null, skyVertices, otherSector, update);
 
@@ -394,7 +390,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 if ((side.FloodTextures & SideTexture.Lower) != 0)
                     m_geometryRenderer.Portals.AddStaticFloodFillSide(side, otherSide, otherSector, SideTexture.Lower, isFrontSide, m_floodFillRenderer);
-            }
+            }            
 
             if (m_vanillaRender && skyVertices != null)
             {
