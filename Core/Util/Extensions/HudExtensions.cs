@@ -28,6 +28,10 @@ public static class HudExtensions
             new HudImage(hud, image, handle, window, anchor, alpha));
         return true;
     }
+    public static void RenderFullscreenImageStretched(this IHudRenderContext hud, string image)
+    {
+        hud.Image(image, (0, 0, hud.Dimension.Width, hud.Dimension.Height));
+    }
 
     public static bool RenderStatusBar(this IHudRenderContext hud, string image)
     {
