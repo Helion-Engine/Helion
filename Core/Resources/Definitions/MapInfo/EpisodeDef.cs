@@ -22,4 +22,9 @@ public class EpisodeDef
     {
         return StartMap.GetHashCode();
     }
+
+    public override string ToString()
+    {
+        return $"{StartMap} - {Name}";
+    }
 }

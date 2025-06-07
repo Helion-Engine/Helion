@@ -58,3 +58,5 @@
 - Fix active switch change specials not being serialized to saves
 - Fix issue with sky textures not loading from a patch name if last archive had no pnames lump
 - Fix namespace with pk3 entries and nested folders
+- Fix UMAPINFO clear episode
+- Fix default background for options menu

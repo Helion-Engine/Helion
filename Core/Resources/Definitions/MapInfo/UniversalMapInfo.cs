@@ -162,7 +162,7 @@ public partial class MapInfoDefinition
     {
         if (parser.ConsumeIf("clear"))
         {
-            MapInfo.RemoveEpisodeByMapName(mapDef.MapName);
+            MapInfo.ClearEpisodes();
             return;
         }
 

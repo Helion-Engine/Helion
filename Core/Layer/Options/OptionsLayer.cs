@@ -34,7 +34,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     public long LastClosedNanos;
     public bool CurrentlyBindingKey => m_sections[m_currentSectionIndex] is KeyBindingSection x && x.CurrentlyBinding;
 
-    private const string TiledBackgroundFlat = "FLOOR5_1";
     private const int BackIndex = 0;
     private const int ForwardIndex = 1;
     private const string Font = Fonts.SmallGray;
@@ -359,17 +358,11 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         }
     }
 
-    private static void FillBackgroundRepeatingImages(IRenderableSurfaceContext ctx, IHudRenderContext hud)
+    private static void RenderBackground(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
-        if (!hud.Textures.HasImage(TiledBackgroundFlat))
-            return;
-
         (int w, int h) = ctx.Surface.Dimension;
-        for (int y = 0; y < (h / 64) + 1; y++)
-            for (int x = 0; x < (w / 64) + 1; x++)
-                hud.Image(TiledBackgroundFlat, (x * 64, y * 64));
-
-        hud.FillBox((0, 0, w, h), Color.Black, alpha: 0.8f);
+        hud.RenderFullscreenImage(DefaultBackgroundImage);
+        hud.FillBox((0, 0, w, h), Color.Black, alpha: 0.85f);
     }
 
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
@@ -382,7 +375,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         SetMouseFromRender(hud);
 
-        FillBackgroundRepeatingImages(ctx, hud);
+        RenderBackground(ctx, hud);
 
         int fontSize = m_config.Window.GetMenuMediumFontSize();
         int largeFontSize = m_config.Window.GetMenuLargeFontSize();
