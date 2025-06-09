@@ -287,6 +287,8 @@ public partial class Client : IDisposable, IInputManagement
 
         m_filesLoaded = false;
         m_window.Renderer.UploadColorMap();
+        // preload menu background to prevent hitch when opening options for first time
+        m_window.Renderer.Textures.TryGet(Constants.DefaultBackgroundImage, out _);
         m_saveGameManager.LoadCurrentSaveFiles();
     }
 
