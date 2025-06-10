@@ -110,12 +110,15 @@ public class Image
         return new(indices, dimension, ImageType.Palette, offset, ns);
     }
 
-    public static Image? FromImageSharp<TPixel>(SixLabors.ImageSharp.Image<TPixel> data, Vec2I imageOffset = default, ResourceNamespace ns = ResourceNamespace.Global)
+    public static Image? FromImageSharp<TPixel>(SixLabors.ImageSharp.Image<TPixel> data, Vec2I imageOffset = default, ResourceNamespace ns = ResourceNamespace.Global,
+        Colormap? colormap = null)
         where TPixel : unmanaged, IPixel<TPixel>
     {
+        var indices = colormap == null ? null : new ushort[data.Height * data.Width];
         byte[] argbData = new byte[data.Height * data.Width * 4];
         int offset = 0;
         Rgba32 tempPixel = new();
+        int index = 0;
         for (int y = 0; y < data.Height; y++)
         {
             Span<TPixel> pixelRow = SixLabors.ImageSharp.Advanced.AdvancedImageExtensions.DangerousGetPixelRowMemory(data, y).Span;
@@ -127,14 +130,19 @@ public class Image
                 argbData[offset + 1] = tempPixel.R;
                 argbData[offset + 2] = tempPixel.G;
                 argbData[offset + 3] = tempPixel.B;
+
+                if (indices != null && colormap != null && tempPixel.A != 0)
+                    indices[index] = colormap.GetNearestColorIndex(tempPixel.R, tempPixel.G, tempPixel.B);
+
+                index++;
                 offset += 4;
             }
         }
 
-        return FromArgbBytes((data.Width, data.Height), argbData, imageOffset, ns);
+        return FromArgbBytes((data.Width, data.Height), argbData, imageOffset, ns, indices);
     }
 
-    public static Image? FromArgbBytes(Dimension dimension, byte[] argbData, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
+    public static Image? FromArgbBytes(Dimension dimension, byte[] argbData, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global, ushort[]? indices = null)
     {
         if (dimension.Area * 4 != argbData.Length)
             return null;
@@ -155,7 +163,8 @@ public class Image
             argbByteOffset += 4;
         }
 
-        return new(pixels, dimension, ImageType.Argb, offset, ns);
+        var imageType = indices == null ? ImageType.Rgba : ImageType.PaletteWithArgb;
+        return new(pixels, dimension, imageType, offset, ns, indices);
     }
 
     public Image GetUpscaled(int upscalingFactor)

@@ -1,8 +1,7 @@
 ﻿using Helion.Geometry.Vectors;
-using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
-using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace Helion.Graphics.Palettes;
 
@@ -18,6 +17,8 @@ public class Colormap
     private readonly List<Color[]> m_layers;
     private readonly List<byte[]> m_indexLayers;
     public readonly bool[] FullBright = new bool[NumColors];
+
+    private readonly Vector3[] PaletteNormalized = new Vector3[256];
 
     public int Index;
     public Vec3F ColorMix;
@@ -38,20 +39,27 @@ public class Colormap
         ColorMix = colorMix;
         Entry = entry;
         FullBright = fullBright;
-    }
 
-    public byte GetNearestColorIndex(Color color)
-    {
-        byte bestIndex = 0;
         var colors = Layer(0);
-        double nearest = int.MaxValue;
-        var colorNormalized = color.Normalized3;
         for (int i = 0; i < colors.Length; i++)
         {
-            var paletteColor = colors[i];
-            var value = paletteColor.Normalized3 - colorNormalized;
-            var calc = Math.Pow(value.X, 2) + Math.Pow(value.Y, 2) + Math.Pow(value.Z, 2);
+            var c = colors[i];
+            PaletteNormalized[i] = new Vector3(c.R / 255f, c.G / 255f, c.B / 255f);
+        }
+    }
 
+    public byte GetNearestColorIndex(Color color) => GetNearestColorIndex(color.R, color.G, color.B);
+
+    public byte GetNearestColorIndex(byte r, byte g, byte b)
+    {
+        byte bestIndex = 0;
+        float nearest = int.MaxValue;
+        var colorNormalized = new Vector3(r / 255f, g / 255f, b / 255f);
+
+        for (int i = 0; i < PaletteNormalized.Length; i++)
+        {
+            var paletteColor = PaletteNormalized[i];
+            var calc = Vector3.DistanceSquared(colorNormalized, paletteColor);
             if (calc < nearest)
             {
                 bestIndex = (byte)i;

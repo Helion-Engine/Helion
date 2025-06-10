@@ -1,6 +1,7 @@
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Texture;
@@ -23,15 +24,12 @@ public class ArchiveImageRetriever : IImageRetriever
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly ResourceTracker<Image> m_compiledImages = new();
+    private readonly bool m_findNearestPaletteIndex;
 
-    /// <summary>
-    /// Creates an image reader that uses the archive collection for its
-    /// image data retrieval.
-    /// </summary>
-    /// <param name="archiveCollection">The collection to utilize.</param>
-    public ArchiveImageRetriever(ArchiveCollection archiveCollection)
+    public ArchiveImageRetriever(ArchiveCollection archiveCollection, bool findNearestPaletteIndex)
     {
         m_archiveCollection = archiveCollection;
+        m_findNearestPaletteIndex = findNearestPaletteIndex;
     }
 
     public static bool IsPng(byte[] data)
@@ -204,7 +202,8 @@ public class ArchiveImageRetriever : IImageRetriever
                 Vec2I offset = default;
                 if (isPng)
                     offset = PngChunk.GetPngOffset(new BinaryReader(inputStream));
-                image = Image.FromImageSharp(img, offset, entry.Namespace);
+                image = Image.FromImageSharp(img, offset, entry.Namespace, 
+                    colormap: m_findNearestPaletteIndex ? m_archiveCollection.Colormap : null);
             }
             catch
             {

@@ -33,6 +33,7 @@ using Helion.Resources.Textures;
 using Helion.Util;
 using Helion.Util.Bytes;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
 using Helion.Util.Loggers;
@@ -103,7 +104,7 @@ public class ArchiveCollection : IResources, IPathResolver
         Definitions = new DefinitionEntries(this, config.Compatibility);
         Textures = new ResourceTextureManager(this, config);
         EntityDefinitionComposer = new EntityDefinitionComposer(this);
-        ImageRetriever = new ArchiveImageRetriever(this);
+        ImageRetriever = new ArchiveImageRetriever(this, config.Window.ColorMode.Value == RenderColorMode.Palette);
         TextureManager = new TextureManager(this);
         DataCache = dataCache;
         m_config = config;
