@@ -433,7 +433,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
                 hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetIndex(m_cursorPos, out _);
             }
 
-            string cursor = hover ? "pointer" : "cursor";
+            string cursor = hover ? "helion-pointer" : "helion-cursor";
             if (hud.Textures.TryGet(cursor, out var cursorHandle, ResourceNamespace.Graphics))
             {
                 int size = hover ? 32 : 24;

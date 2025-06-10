@@ -115,7 +115,7 @@ public class Image
         where TPixel : unmanaged, IPixel<TPixel>
     {
         var indices = colormap == null ? null : new ushort[data.Height * data.Width];
-        byte[] argbData = new byte[data.Height * data.Width * 4];
+        var argbData = new byte[data.Height * data.Width * 4];
         int offset = 0;
         Rgba32 tempPixel = new();
         int index = 0;
@@ -132,7 +132,7 @@ public class Image
                 argbData[offset + 3] = tempPixel.B;
 
                 if (indices != null && colormap != null && tempPixel.A != 0)
-                    indices[index] = colormap.GetNearestColorIndex(tempPixel.R, tempPixel.G, tempPixel.B);
+                    indices[index] = colormap.GetNearestColorIndex(new(tempPixel.R, tempPixel.G, tempPixel.B));
 
                 index++;
                 offset += 4;

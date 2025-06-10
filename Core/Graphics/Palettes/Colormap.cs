@@ -18,7 +18,8 @@ public class Colormap
     private readonly List<byte[]> m_indexLayers;
     public readonly bool[] FullBright = new bool[NumColors];
 
-    private readonly Vector3[] PaletteNormalized = new Vector3[256];
+    private readonly Vector3[] m_paletteNormalized = new Vector3[256];
+    private readonly Dictionary<Color, byte> m_colorToIndex = [];
 
     public int Index;
     public Vec3F ColorMix;
@@ -44,21 +45,23 @@ public class Colormap
         for (int i = 0; i < colors.Length; i++)
         {
             var c = colors[i];
-            PaletteNormalized[i] = new Vector3(c.R / 255f, c.G / 255f, c.B / 255f);
+            m_paletteNormalized[i] = new Vector3(c.R / 255f, c.G / 255f, c.B / 255f);
+            m_colorToIndex[c] = (byte)i;
         }
     }
 
-    public byte GetNearestColorIndex(Color color) => GetNearestColorIndex(color.R, color.G, color.B);
-
-    public byte GetNearestColorIndex(byte r, byte g, byte b)
+    public byte GetNearestColorIndex(Color color)
     {
-        byte bestIndex = 0;
-        float nearest = int.MaxValue;
-        var colorNormalized = new Vector3(r / 255f, g / 255f, b / 255f);
+        if (m_colorToIndex.TryGetValue(color, out var index))
+            return index;
 
-        for (int i = 0; i < PaletteNormalized.Length; i++)
+        byte bestIndex = 0;
+        var nearest = float.MaxValue;
+        var colorNormalized = new Vector3(color.R / 255f, color.G / 255f, color.B / 255f);
+
+        for (int i = 0; i < m_paletteNormalized.Length; i++)
         {
-            var paletteColor = PaletteNormalized[i];
+            var paletteColor = m_paletteNormalized[i];
             var calc = Vector3.DistanceSquared(colorNormalized, paletteColor);
             if (calc < nearest)
             {
@@ -67,6 +70,7 @@ public class Colormap
             }
         }
 
+        m_colorToIndex[color] = bestIndex;
         return bestIndex;
     }
 
