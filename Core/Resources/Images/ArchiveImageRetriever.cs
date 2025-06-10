@@ -1,16 +1,13 @@
+using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
-using Helion.Resources.Data;
 using Helion.Resources.Definitions.Texture;
 using NLog;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Image = Helion.Graphics.Image;
@@ -197,13 +194,17 @@ public class ArchiveImageRetriever : IImageRetriever
         Image? image = null;
         byte[] data = entry.ReadData();
 
-        if (IsPng(data) || IsBmp(data) || IsJpg(data))
+        bool isPng = IsPng(data);
+        if (isPng || IsBmp(data) || IsJpg(data))
         {
             try
             {
-                using MemoryStream inputStream = new MemoryStream(data);
-                using Image<Rgba32> img = SixLabors.ImageSharp.Image.Load<Rgba32>(inputStream);
-                image = Image.FromImageSharp(img, (0, 0), entry.Namespace);
+                using var inputStream = new MemoryStream(data);
+                using var img = SixLabors.ImageSharp.Image.Load<Rgba32>(inputStream);
+                Vec2I offset = default;
+                if (isPng)
+                    offset = PngChunk.GetPngOffset(new BinaryReader(inputStream));
+                image = Image.FromImageSharp(img, offset, entry.Namespace);
             }
             catch
             {
