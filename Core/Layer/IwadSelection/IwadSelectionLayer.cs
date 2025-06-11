@@ -110,7 +110,7 @@ public class IwadSelectionLayer : IGameLayer
             m_stopwatch.Restart();
         }
 
-        hud.Image("arrow-right", (-maxWidth / 2 - (fontSize / 2) - spacer, selectedY), both: Align.Center, scale: fontSize / 100.0f,
+        hud.Image("helion-arrow-right", (-maxWidth / 2 - (fontSize / 2) - spacer, selectedY), both: Align.Center, scale: fontSize / 100.0f,
             alpha: m_indicator ? 1.0f : 0.5f);
     }
 

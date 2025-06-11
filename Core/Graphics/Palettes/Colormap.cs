@@ -1,8 +1,7 @@
 ﻿using Helion.Geometry.Vectors;
-using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
-using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace Helion.Graphics.Palettes;
 
@@ -18,6 +17,7 @@ public class Colormap
     private readonly List<Color[]> m_layers;
     private readonly List<byte[]> m_indexLayers;
     public readonly bool[] FullBright = new bool[NumColors];
+
 
     public int Index;
     public Vec3F ColorMix;
@@ -38,28 +38,6 @@ public class Colormap
         ColorMix = colorMix;
         Entry = entry;
         FullBright = fullBright;
-    }
-
-    public byte GetNearestColorIndex(Color color)
-    {
-        byte bestIndex = 0;
-        var colors = Layer(0);
-        double nearest = int.MaxValue;
-        var colorNormalized = color.Normalized3;
-        for (int i = 0; i < colors.Length; i++)
-        {
-            var paletteColor = colors[i];
-            var value = paletteColor.Normalized3 - colorNormalized;
-            var calc = Math.Pow(value.X, 2) + Math.Pow(value.Y, 2) + Math.Pow(value.Z, 2);
-
-            if (calc < nearest)
-            {
-                bestIndex = (byte)i;
-                nearest = calc;
-            }
-        }
-
-        return bestIndex;
     }
 
     public static Colormap? From(Palette palette, byte[] data, Entry? entry)

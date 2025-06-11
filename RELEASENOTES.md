@@ -20,6 +20,7 @@
 - Read GL nodes from archive including ZNODES both compressed and uncompressed
 - Support sky scroll from MapInfo
 - Read offset from PNG
+- Recolor PNG images to custom palettes when using palette color video mode
 
 ## Bug fixes:
 - Correct missile blocking checks to match original behavior (fixes radsuits blocking rockets etc)

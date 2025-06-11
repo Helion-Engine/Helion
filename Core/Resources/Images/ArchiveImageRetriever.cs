@@ -17,22 +17,13 @@ namespace Helion.Resources.Images;
 /// <summary>
 /// Performs image retrieval from an archive collection.
 /// </summary>
-public class ArchiveImageRetriever : IImageRetriever
+public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool findNearestPaletteIndex) : IImageRetriever
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    private readonly ArchiveCollection m_archiveCollection;
+    private readonly ArchiveCollection m_archiveCollection = archiveCollection;
     private readonly ResourceTracker<Image> m_compiledImages = new();
-
-    /// <summary>
-    /// Creates an image reader that uses the archive collection for its
-    /// image data retrieval.
-    /// </summary>
-    /// <param name="archiveCollection">The collection to utilize.</param>
-    public ArchiveImageRetriever(ArchiveCollection archiveCollection)
-    {
-        m_archiveCollection = archiveCollection;
-    }
+    private readonly bool m_findNearestPaletteIndex = findNearestPaletteIndex;
 
     public static bool IsPng(byte[] data)
     {
@@ -189,11 +180,14 @@ public class ArchiveImageRetriever : IImageRetriever
         return Math.Max(0, image.Height - y - 1);
     }
 
+    // Forces helion graphics like the options background to always be true color
+    private static bool AlwaysTrueColor(Entry entry) =>
+        entry.Path.Name.StartsWith("helion");
+
     private Image? ImageFromEntry(Entry entry, bool cacheEntry = true, GetImageOptions options = GetImageOptions.Default, byte[]? colorTranslation = null)
     {
         Image? image = null;
         byte[] data = entry.ReadData();
-
         bool isPng = IsPng(data);
         if (isPng || IsBmp(data) || IsJpg(data))
         {
@@ -204,7 +198,8 @@ public class ArchiveImageRetriever : IImageRetriever
                 Vec2I offset = default;
                 if (isPng)
                     offset = PngChunk.GetPngOffset(new BinaryReader(inputStream));
-                image = Image.FromImageSharp(img, offset, entry.Namespace);
+                image = Image.FromImageSharp(img, offset, entry.Namespace, 
+                    palette: m_findNearestPaletteIndex && !AlwaysTrueColor(entry) ? m_archiveCollection.Palette : null);
             }
             catch
             {
