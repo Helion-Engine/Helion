@@ -199,7 +199,7 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
                 if (isPng)
                     offset = PngChunk.GetPngOffset(new BinaryReader(inputStream));
                 image = Image.FromImageSharp(img, offset, entry.Namespace, 
-                    colormap: m_findNearestPaletteIndex && !AlwaysTrueColor(entry) ? m_archiveCollection.Colormap : null);
+                    palette: m_findNearestPaletteIndex && !AlwaysTrueColor(entry) ? m_archiveCollection.Palette : null);
             }
             catch
             {

@@ -111,10 +111,10 @@ public class Image
     }
 
     public static Image? FromImageSharp<TPixel>(SixLabors.ImageSharp.Image<TPixel> data, Vec2I imageOffset = default, ResourceNamespace ns = ResourceNamespace.Global,
-        Colormap? colormap = null)
+        Palette? palette = null)
         where TPixel : unmanaged, IPixel<TPixel>
     {
-        var indices = colormap == null ? null : new ushort[data.Height * data.Width];
+        var indices = palette == null ? null : new ushort[data.Height * data.Width];
         var argbData = new byte[data.Height * data.Width * 4];
         int offset = 0;
         Rgba32 tempPixel = new();
@@ -131,8 +131,8 @@ public class Image
                 argbData[offset + 2] = tempPixel.G;
                 argbData[offset + 3] = tempPixel.B;
 
-                if (indices != null && colormap != null && tempPixel.A != 0)
-                    indices[index] = colormap.GetNearestColorIndex(new(tempPixel.R, tempPixel.G, tempPixel.B));
+                if (indices != null && palette != null && tempPixel.A != 0)
+                    indices[index] = palette.GetNearestColorIndex(new(tempPixel.R, tempPixel.G, tempPixel.B));
 
                 index++;
                 offset += 4;
@@ -364,11 +364,11 @@ public class Image
             m_indices[offset] = index;
     }
 
-    public void SetPixel(int x, int y, Color color, Colormap colormap)
+    public void SetPixel(int x, int y, Color color, Palette palette)
     {
         byte index = 0;
         if (ImageType == ImageType.PaletteWithArgb)
-            index = colormap.GetNearestColorIndex(color);
+            index = palette.GetNearestColorIndex(color);
 
         int offset = (y * Width) + x;
         if (offset >= 0 && offset < m_pixels.Length)
@@ -459,11 +459,11 @@ public class Image
 
         for (int y = 0; y < HalfDimension; y++)
             for (int x = 0; x < HalfDimension; x++)
-                image.SetPixel(x, y, Color.Red, Colormap.GetDefaultColormap());
+                image.SetPixel(x, y, Color.Red, Palette.GetDefaultPalette());
 
         for (int y = HalfDimension; y < Dimension; y++)
             for (int x = HalfDimension; x < Dimension; x++)
-                image.SetPixel(x, y, Color.Red, Colormap.GetDefaultColormap());
+                image.SetPixel(x, y, Color.Red, Palette.GetDefaultPalette());
 
         return image;
     }
