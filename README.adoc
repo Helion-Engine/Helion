@@ -8,7 +8,7 @@ Helion uses static rendering with a state management system to reconcile dynamic
 
 Helion supports WADs targeting vanilla, Boom, MBF, MBF21, UDMF (partial support), and ID24.
 
-Minimum requirements are Windows 7 and an Open GL 3.3 capable GPU.
+Minimum requirements are Windows 7 or Linux and an Open GL 3.3 capable GPU.
 
 ## Screenshots
 
@@ -45,7 +45,7 @@ image:https://i.imgur.com/QYXFuz4.png[Summer of Slaughter MAP32]
 
 The latest stable release for Windows and most Linux distros can be https://github.com/Helion-Engine/Helion/releases/latest[downloaded here]. Nightly experimental builds are also https://github.com/Helion-Engine/Helion/releases/tag/nightly[available here] for users who want to test the latest features before they're ready.
 
-Helion uses https://dotnet.microsoft.com/en-us/download/dotnet/9.0[.NET 9]. The self-contained Helion releases include it, otherwise Windows users will need to install the Desktop Runtime, and Linux users will need to follow the https://learn.microsoft.com/en-us/dotnet/core/install/linux[instructions for their distro]. On Linux, you will also need to make sure OpenAL, libsndfile, and libmpg123 are installed.
+Helion uses .NET 9. The self-contained Helion releases include it, otherwise Windows users will need to https://dotnet.microsoft.com/en-us/download/dotnet/9.0[install the Desktop Runtime], and Linux users will need to follow the https://learn.microsoft.com/en-us/dotnet/core/install/linux[instructions for their distro]. On Linux, you will also need to make sure OpenAL, libsndfile, and libmpg123 are installed.
 
 For information on setting up and playing, see the bundled link:/Assets/Documentation/README.md[game documentation].
 
