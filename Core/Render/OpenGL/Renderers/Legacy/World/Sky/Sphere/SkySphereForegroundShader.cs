@@ -12,7 +12,6 @@ internal class SkySphereForegroundShader : RenderProgram
     private readonly int m_colormapTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_hasInvulnerabilityLocation;
-    private readonly int m_emulateInvulnerabilityColorMapLocation;
     private readonly int m_scaleLocation;
     private readonly int m_flipULocation;
     private readonly int m_paletteIndexLocation;
@@ -34,7 +33,6 @@ internal class SkySphereForegroundShader : RenderProgram
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
-        m_emulateInvulnerabilityColorMapLocation = Uniforms.GetLocation("emulateInvulnerabilityColorMap");
         m_scaleLocation = Uniforms.GetLocation("scale");
         m_flipULocation = Uniforms.GetLocation("flipU");
         m_paletteIndexLocation = Uniforms.GetLocation("paletteIndex");
@@ -54,7 +52,6 @@ internal class SkySphereForegroundShader : RenderProgram
     public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
     public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
-    public void EmulateInvulnerabilityColorMap(bool value) => Uniforms.Set(value, m_emulateInvulnerabilityColorMapLocation);
     public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
     public void Scale(Vec2F v) => Uniforms.Set(v, m_scaleLocation);
     public void FlipU(bool flip) => Uniforms.Set(flip, m_flipULocation);
@@ -105,7 +102,6 @@ internal class SkySphereForegroundShader : RenderProgram
         uniform sampler2D boundTexture;
         uniform samplerBuffer colormapTexture;
         uniform int hasInvulnerability;
-        uniform int emulateInvulnerabilityColorMap;
         uniform int paletteIndex;
         uniform int colormapIndex;
         uniform float textureHeight;

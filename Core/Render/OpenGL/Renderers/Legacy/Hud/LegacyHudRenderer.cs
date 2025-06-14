@@ -137,7 +137,6 @@ public class LegacyHudRenderer : HudRenderer
         m_program.PaletteIndex((int)uniforms.PaletteIndex);
         m_program.ColorMapIndex(uniforms.ColorMapUniforms.SectorIndex == 0 ? uniforms.ColorMapUniforms.GlobalIndex : uniforms.ColorMapUniforms.SectorIndex);
         m_program.HasInvulnerability(uniforms.DrawInvulnerability);
-        m_program.EmulateInvulnerabilityColorMap(uniforms.EmulateInvulnerabilityColorMap);
         m_program.GammaCorrection(uniforms.GammaCorrection);
         m_program.ScreenBounds((framebufferDimension.Width, framebufferDimension.Height));
         m_program.UseBrightmaps(uniforms.UseBrightmaps);

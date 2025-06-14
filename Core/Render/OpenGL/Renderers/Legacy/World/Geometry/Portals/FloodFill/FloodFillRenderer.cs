@@ -344,7 +344,6 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         program.Mvp(renderInfo.Uniforms.Mvp);
         program.TimeFrac(renderInfo.TickFraction);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
-        program.EmulateInvulnerabilityColorMap(renderInfo.Uniforms.EmulateInvulnerabilityColorMap);
         program.MvpNoPitch(renderInfo.Uniforms.MvpNoPitch);
         program.TimeFrac(renderInfo.TickFraction);
         program.LightLevelMix(renderInfo.Uniforms.Mix);
