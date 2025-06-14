@@ -130,6 +130,9 @@ public partial class Renderer : IDisposable
 
     public unsafe void UploadColorMap()
     {
+        if (!(ShaderVars.PaletteColorMode || ShaderVars.EmulateInvulnerabilityColorMap))
+            return;
+
         var colorMapData = ColorMapBuffer.Create(m_archiveCollection.Palette, m_archiveCollection.Definitions.Colormaps);
         m_colorMapBuffer = new("Colormap buffer", colorMapData, SizedInternalFormat.Rgb32f, GLInfo.MapPersistentBitSupported);
 
@@ -149,6 +152,7 @@ public partial class Renderer : IDisposable
         SetReverseZ();
         ShaderVars.Depth = ShaderVars.ReversedZ ? "w" : "z";
         ShaderVars.PaletteColorMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
+        ShaderVars.EmulateInvulnerabilityColorMap = m_config.Render.EmulateInvulnerabilityColorMap;
     }
 
     private void SetReverseZ()
@@ -231,8 +235,7 @@ public partial class Renderer : IDisposable
             config.Render.LightMode, 
             (float)config.Render.GammaCorrection,
             maxDistance,
-            config.Render.Brightmaps,
-            config.Render.EmulateInvulnerabilityColorMap);
+            config.Render.Brightmaps);
     }
 
     private static ColorMapUniforms GetColorMapUniforms(Entity viewer, OldCamera camera)

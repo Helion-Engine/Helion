@@ -16,7 +16,6 @@ public class StaticShader : RenderProgram
     private readonly int m_brightmapTextureLocation;
     private readonly int m_mvpLocation;
     private readonly int m_hasInvulnerabilityLocation;
-    private readonly int m_emulateInvulnerabilityColorMapLocation;
     private readonly int m_mvpNoPitchLocation;
     private readonly int m_lightLevelMixLocation;
     private readonly int m_extraLightLocation;
@@ -38,7 +37,6 @@ public class StaticShader : RenderProgram
         m_brightmapTextureLocation = Uniforms.GetLocation("brightmapTexture");
         m_mvpLocation = Uniforms.GetLocation("mvp");
         m_hasInvulnerabilityLocation = Uniforms.GetLocation("hasInvulnerability");
-        m_emulateInvulnerabilityColorMapLocation = Uniforms.GetLocation("emulateInvulnerabilityColorMap");
         m_mvpNoPitchLocation = Uniforms.GetLocation("mvpNoPitch");
         m_lightLevelMixLocation = Uniforms.GetLocation("lightLevelMix");
         m_extraLightLocation = Uniforms.GetLocation("extraLight");
@@ -59,7 +57,6 @@ public class StaticShader : RenderProgram
     public void BrightmapTexture(TextureUnit unit) => Uniforms.Set(unit, m_brightmapTextureLocation);
 
     public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
-    public void EmulateInvulnerabilityColorMap(bool value) => Uniforms.Set(value, m_emulateInvulnerabilityColorMapLocation);
     public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
     public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
     public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
@@ -163,7 +160,6 @@ public class StaticShader : RenderProgram
             out vec4 fragColor;
 
             uniform int hasInvulnerability;
-            uniform int emulateInvulnerabilityColorMap;
             uniform sampler2D boundTexture;
             uniform sampler2D brightmapTexture;
             uniform vec3 colorMix;

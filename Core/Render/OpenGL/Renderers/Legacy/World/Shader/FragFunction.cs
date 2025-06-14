@@ -364,43 +364,41 @@ public class FragFunction
         """
         float gray = fragColor.x * 0.299 + fragColor.y * 0.587 + fragColor.z * 0.144;
         gray = 1 - gray;
-        if (emulateInvulnerabilityColorMap == 0)
-        {
-            fragColor.xyz = vec3(gray, gray, gray);
-        }
-        else
-        {
-            // Map brightness to white + white + gray ramp (32x) + low grays (3x) + black
-            // in invuln color map, to emulate palette mode's invuln effect.
-            // These grays are not completely evenly spaced (most are 8 apart,
-            // some are 4), but it's even enough to work.
-            // Since some colormaps customize non-gray colors instead of just
-            // mapping to brightness, the degree to which the original effect
-            // is matched can vary by WAD.
-            const float maxIndex = 38 - 1;
-            int indexA = int(gray * maxIndex);
-            int indexB = indexA + 1;
-            float localPos = (gray - float(indexA) / maxIndex) * maxIndex;
+        """
+        + (!ShaderVars.EmulateInvulnerabilityColorMap
+        ? """
+        fragColor.xyz = vec3(gray, gray, gray);
+        """ : """
+        // Map brightness to white + white + gray ramp (32x) + low grays (3x) + black
+        // in invuln color map, to emulate palette mode's invuln effect.
+        // These grays are not completely evenly spaced (most are 8 apart,
+        // some are 4), but it's even enough to work.
+        // Since some colormaps customize non-gray colors instead of just
+        // mapping to brightness, the degree to which the original effect
+        // is matched can vary by WAD.
+        const float maxIndex = 38 - 1;
+        int indexA = int(gray * maxIndex);
+        int indexB = indexA + 1;
+        float localPos = (gray - float(indexA) / maxIndex) * maxIndex;
 
-            // [ 0,  1] => [ 4,   4]
-            // [ 2, 33] => [80, 111]
-            // [34, 36] => [ 5,   7]
-            // [37, 37] => [ 0,   0]
-            if (indexA <= 1) { indexA = 4; }
-            else if (indexA <= 33) { indexA += 78; }
-            else if (indexA <= 36) { indexA -= 29; }
-            else { indexA = 0; }
-            if (indexB <= 1) { indexB = 4; }
-            else if (indexB <= 33) { indexB += 78; }
-            else if (indexB <= 36) { indexB -= 29; }
-            else { indexB = 0; }
+        // [ 0,  1] => [ 4,   4]
+        // [ 2, 33] => [80, 111]
+        // [34, 36] => [ 5,   7]
+        // [37, 37] => [ 0,   0]
+        if (indexA <= 1) { indexA = 4; }
+        else if (indexA <= 33) { indexA += 78; }
+        else if (indexA <= 36) { indexA -= 29; }
+        else { indexA = 0; }
+        if (indexB <= 1) { indexB = 4; }
+        else if (indexB <= 33) { indexB += 78; }
+        else if (indexB <= 36) { indexB -= 29; }
+        else { indexB = 0; }
 
-            const int colorMapOffset = 256 * 32; // invuln colormap start
-            vec3 blendA = texelFetch(colormapTexture, colorMapOffset + indexA).rgb;
-            vec3 blendB = texelFetch(colormapTexture, colorMapOffset + indexB).rgb;
-            fragColor.rgb = mix(blendA, blendB, localPos);
-        }
-        """;
+        const int colorMapOffset = 256 * 32; // invuln colormap start
+        vec3 blendA = texelFetch(colormapTexture, colorMapOffset + indexA).rgb;
+        vec3 blendB = texelFetch(colormapTexture, colorMapOffset + indexB).rgb;
+        fragColor.rgb = mix(blendA, blendB, localPos);
+        """);
 
     public static string VertexGapVariables => "flat in vec2 uvClampMinFrag; flat in vec2 uvClampMaxFrag;";
 }
