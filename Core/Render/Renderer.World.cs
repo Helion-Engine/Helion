@@ -133,6 +133,7 @@ public partial class Renderer
         {
             var lightBuffer = m_lightBufferStorage.GetMappedBufferAndBind();
             SetLightBuffer(world, lightBuffer.MappedMemoryPtr);
+            m_lightBufferStorage.Unbind();
         }
     }
 
@@ -191,6 +192,7 @@ public partial class Renderer
                 ref var line = ref world.StructLines.Data[i];
                 SetLineHeightBuffer(buffer, i, ref line, false);
             }
+            m_lineHeightsBuffer.Unbind();
         }
     }
 
@@ -222,6 +224,7 @@ public partial class Renderer
             var mappedBuffer = m_sectorColorMapsBuffer.GetMappedBufferAndBind();
             float* colorMapBuffer = mappedBuffer.MappedMemoryPtr;
             InitSectorColorMap(world, colorMapBuffer, usePalette);
+            m_sectorColorMapsBuffer.Unbind();
         }
     }
 
@@ -261,6 +264,14 @@ public partial class Renderer
 
     public unsafe void SetMapDataBuffer(IWorld world, bool alloc)
     {
+        if (!world.Config.Render.VanillaRender)
+        {
+            m_mapBufferData = [];
+            m_mapDataBuffer?.Dispose();
+            m_mapDataBuffer = null;
+            return;
+        }
+
         if (!alloc)
             return;
 
