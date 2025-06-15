@@ -42,11 +42,11 @@ public class GLBufferTexture : IDisposable
         Dispose(false);
     }
 
-    private BufferAccessMask GetAccess()
+    private MapBufferAccessMask GetAccess()
     {
         if (PersistentBufferStorage)
-            return BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit | BufferAccessMask.MapPersistentBit;
-        return BufferAccessMask.MapWriteBit | BufferAccessMask.MapUnsynchronizedBit;
+            return MapBufferAccessMask.MapWriteBit | MapBufferAccessMask.MapUnsynchronizedBit | MapBufferAccessMask.MapPersistentBit;
+        return MapBufferAccessMask.MapWriteBit | MapBufferAccessMask.MapUnsynchronizedBit;
     }
 
     public void Map(Action<IntPtr> action)

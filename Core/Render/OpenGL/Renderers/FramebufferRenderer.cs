@@ -138,7 +138,7 @@ public class FramebufferRenderer : IDisposable
         // How much we stretch depends on the window resolution, and the virtual
         // dimension's resolution. Also don't let it be larger than the NDC box.
         // Since our vertices are in NDC coordinates, 1.0 is the max we can go.
-        Dimension windowDim = m_window.Dimension;
+        Dimension windowDim = m_window.ClientDimension;
         Dimension textureDim = Framebuffer.ColorAttachment0.Dimension;
         float scaleX = Math.Min(textureDim.AspectRatio / windowDim.AspectRatio, 1.0f);
         
@@ -150,7 +150,7 @@ public class FramebufferRenderer : IDisposable
         mat4 mvp = CalculateMvp();
         (float a, float r, float g, float b) = Color.Black.Normalized;
 
-        GL.Viewport(0, 0, m_window.Dimension.Width, m_window.Dimension.Height);
+        GL.Viewport(0, 0, m_window.ClientDimension.Width, m_window.ClientDimension.Height);
         GL.ClearColor(r, g, b, a);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
