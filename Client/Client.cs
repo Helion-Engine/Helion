@@ -35,6 +35,7 @@ using Helion.World.Entities.Players;
 using Helion.World.Save;
 using NLog;
 using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using static Helion.Util.Assertion.Assert;
 
@@ -85,6 +86,8 @@ public partial class Client : IDisposable, IInputManagement
     private Client(CommandLineArgs commandLineArgs, PathsManager pathsManager, IConfig config, HelionConsole console, IAudioSystem audioSystem,
         ArchiveCollection archiveCollection)
     {
+        GLFWProvider.SetErrorCallback(GLFWErrorCallback);
+
         m_commandLineArgs = commandLineArgs;
         m_pathsManager = pathsManager;
         m_config = config;
@@ -126,6 +129,11 @@ public partial class Client : IDisposable, IInputManagement
         RegisterConfigChanges();
         UpdateVolume();
         m_ticker.Start();
+    }
+
+    private static void GLFWErrorCallback(ErrorCode error, string description)
+    {
+        Log.Error($"GLFW error: {error}: {description}");
     }
 
     private void PixelGapCorrection_OnChanged(object? sender, bool e)
