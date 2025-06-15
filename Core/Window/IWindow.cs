@@ -21,14 +21,9 @@ public interface IWindow : IDisposable
     Renderer Renderer { get; }
 
     /// <summary>
-    /// The current dimensions of this window.
+    /// The current dimensions of inner client window (does not include titlebar).
     /// </summary>
-    Dimension Dimension { get; }
-
-    /// <summary>
-    /// The current dimension of the framebuffer for the window.
-    /// </summary>
-    Dimension FramebufferDimension { get; }
+    Dimension ClientDimension { get; }
 
     void SetMousePosition(Vec2I pos);
 }

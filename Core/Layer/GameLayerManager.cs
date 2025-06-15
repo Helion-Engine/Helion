@@ -631,7 +631,7 @@ public class GameLayerManager : IGameLayerManager
 
     public void ShowEndoom(Action closeAction)
     {
-        Add(new EndoomLayer(closeAction, m_archiveCollection, m_window.Dimension.Height));
+        Add(new EndoomLayer(closeAction, m_archiveCollection, m_window.ClientDimension.Height));
     }
 
     public async Task QuickSave()
@@ -792,11 +792,11 @@ public class GameLayerManager : IGameLayerManager
         m_hudRenderCtx.DrawPalette(true);
         // Only use virtual dimensions when drawing the world.
         // Restore back to window dimensions when drawing anything else so that text etc are not stretched.
-        bool resetViewport = m_ctx.Surface.Dimension != m_renderer.Window.Dimension;
+        bool resetViewport = m_ctx.Surface.Dimension != m_renderer.Window.ClientDimension;
         if (resetViewport)
         {
-            m_hudContext.Dimension = m_renderer.Window.Dimension;
-            m_ctx.Surface.SetOverrideDimension(m_renderer.Window.Dimension);
+            m_hudContext.Dimension = m_renderer.Window.ClientDimension;
+            m_ctx.Surface.SetOverrideDimension(m_renderer.Window.ClientDimension);
             m_ctx.Viewport(m_ctx.Surface.Dimension.Box);
         }
 

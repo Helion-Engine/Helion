@@ -33,11 +33,11 @@ public class TransitionRenderer : IDisposable
         Dispose(false);
     }
 
-    private GLFramebuffer GetNewFramebuffer() => new("Transition", m_window.Dimension, 1);
+    private GLFramebuffer GetNewFramebuffer() => new("Transition", m_window.ClientDimension, 1);
 
     public void UpdateFramebufferDimensionsIfNeeded()
     {
-        if (m_startBuffer.Dimension != m_window.Dimension && m_window.Dimension.HasPositiveArea)
+        if (m_startBuffer.Dimension != m_window.ClientDimension && m_window.ClientDimension.HasPositiveArea)
         {
             m_startBuffer.Dispose();
             m_startBuffer = GetNewFramebuffer();

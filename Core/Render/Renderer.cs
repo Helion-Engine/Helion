@@ -74,7 +74,7 @@ public partial class Renderer : IDisposable
     private uint[] m_frameBufferPixelData = [];
     private bool m_disposed;
 
-    public Dimension RenderDimension => UseVirtualResolution ? m_config.Window.Virtual.Dimension : Window.Dimension;
+    public Dimension RenderDimension => UseVirtualResolution ? m_config.Window.Virtual.Dimension : Window.ClientDimension;
     public IImageDrawInfoProvider DrawInfo => Textures.ImageDrawInfoProvider;
     private bool UseVirtualResolution => (m_config.Window.Virtual.Enable && m_config.Window.Virtual.Dimension.Value.HasPositiveArea);
 
@@ -125,7 +125,7 @@ public partial class Renderer : IDisposable
         }
     }
 
-    private GLFramebuffer GenerateMainFramebuffer() => new("Main", Window.Dimension, 1);
+    private GLFramebuffer GenerateMainFramebuffer() => new("Main", Window.ClientDimension, 1);
     private GLFramebuffer GenerateVirtualFramebuffer() => new("Virtual", RenderDimension, 1, GLFrameBufferOptions.DepthStencilAttachment);
 
     public unsafe void UploadColorMap()
@@ -346,7 +346,7 @@ public partial class Renderer : IDisposable
 
     private void UpdateFramebufferDimensionsIfNeeded()
     {
-        if (m_mainFramebuffer.Dimension != Window.Dimension && Window.Dimension.HasPositiveArea)
+        if (m_mainFramebuffer.Dimension != Window.ClientDimension && Window.ClientDimension.HasPositiveArea)
         {
             m_mainFramebuffer.Dispose();
             m_mainFramebuffer = GenerateMainFramebuffer();
@@ -495,8 +495,8 @@ public partial class Renderer : IDisposable
 
         GL.Enable(EnableCap.CullFace);
         GL.FrontFace(FrontFaceDirection.Ccw);
-        GL.CullFace(CullFaceMode.Back);
-        GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+        GL.CullFace(TriangleFace.Back);
+        GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
 
         // Required for uv clamping in the vertex shader for pixel gap correction
         GL.ProvokingVertex(ProvokingVertexMode.FirstVertexConvention);

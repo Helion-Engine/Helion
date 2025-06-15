@@ -33,12 +33,11 @@ public class Window : GameWindow, IWindow
 
     public IInputManager InputManager => m_inputManager;
     public Renderer Renderer { get; }
-    public Dimension Dimension => new(Bounds.Max.X - Bounds.Min.X, Bounds.Max.Y - Bounds.Min.Y);
-    public Dimension FramebufferDimension => Dimension; // Note: In the future, use `GLFW.GetFramebufferSize` maybe.
+    public Dimension ClientDimension => new(ClientSize.X, ClientSize.Y);
     private readonly IConfig m_config;
     private readonly IInputManagement m_inputManagement;
     private readonly InputManager m_inputManager = new();
-    private SpanString m_textInput = new();
+    private readonly SpanString m_textInput = new();
     private bool m_disposed;
     public readonly ControllerAdapter JoystickAdapter;
 
@@ -90,7 +89,7 @@ public class Window : GameWindow, IWindow
         if (WindowState != WindowState.Fullscreen)
             return;
 
-        CurrentMonitor = GetMonitorHandle(display);
+        MakeFullscreen(GetMonitorHandle(display));
         UpdateWindow();
     }
 
@@ -125,7 +124,7 @@ public class Window : GameWindow, IWindow
     {
         return new GameWindowSettings
         {
-            RenderFrequency = 500
+            UpdateFrequency = 500
         };
     }
 
@@ -144,7 +143,7 @@ public class Window : GameWindow, IWindow
             Profile = ContextProfile.Core,
             APIVersion = new Version(glMajor, glMinor),
             Flags = settingsFlags,
-            Size = new Vector2i(windowWidth, windowHeight),
+            ClientSize = new Vector2i(windowWidth, windowHeight),
             Title = title,
             WindowBorder = config.Window.Border,
             WindowState = GetWindowState(config.Window.State.Value),
@@ -178,7 +177,8 @@ public class Window : GameWindow, IWindow
                 WindowState oldWindowState = WindowState;
                 WindowState = WindowState.Normal;
                 Dimension dimension = m_config.Window.Dimension.Value;
-                Size = (dimension.Width, dimension.Height);
+                ClientSize = (dimension.Width, dimension.Height);
+                //Size
                 if (WindowState != oldWindowState)
                 {
                     CenterWindow();
@@ -190,7 +190,7 @@ public class Window : GameWindow, IWindow
                 WindowState = WindowState.Normal;
                 WindowBorder = WindowBorder.Hidden;
                 MonitorInfo monitorInfo = Monitors.GetMonitorFromWindow(this);
-                Size = (monitorInfo.HorizontalResolution, monitorInfo.VerticalResolution);
+                ClientSize = (monitorInfo.HorizontalResolution, monitorInfo.VerticalResolution);
                 break;
         }
 
@@ -314,13 +314,13 @@ public class Window : GameWindow, IWindow
         if (maxFps == 0)
         {
             _ = GetMonitors(out MonitorData? current);
-            RenderFrequency = current?.RefreshRate > 0 && vsync != RenderVsyncMode.Off
+            UpdateFrequency = current?.RefreshRate > 0 && vsync != RenderVsyncMode.Off
                 ? current.RefreshRate
                 : 0;
 
             return;
         }
-        RenderFrequency = maxFps;
+        UpdateFrequency = maxFps;
     }
 
     private void PerformDispose()
