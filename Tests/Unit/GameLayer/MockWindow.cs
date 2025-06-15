@@ -20,9 +20,7 @@ public class MockWindow : IWindow
 
     public Renderer Renderer => throw new NotImplementedException();
 
-    public Dimension Dimension => new(0, 0);
-
-    public Dimension FramebufferDimension => new(0, 0);
+    public Dimension ClientDimension => new(0, 0);
     
     public void SetMousePosition(Vec2I pos)
     {
