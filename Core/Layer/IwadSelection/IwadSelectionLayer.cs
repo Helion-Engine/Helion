@@ -75,7 +75,7 @@ public class IwadSelectionLayer : IGameLayer
             y += spacer * 3;
             hud.Text($"No IWADs found :(", ConsoleFont, fontSize, (0, y), out dim, both: Align.Center);
             y += dim.Height + spacer;
-            hud.Text($"Copy DOOM2.WAD to the Helion directory or launch with -iwad", ConsoleFont, fontSize, (0, y), out dim, both: Align.Center);
+            hud.Text($"Copy DOOM2.WAD to the Helion directory or launch with -iwad [wadpath]", ConsoleFont, fontSize, (0, y), out dim, both: Align.Center);
             y += dim.Height + spacer;
             hud.Text("Press any key to exit", ConsoleFont, fontSize, (0, y), both: Align.Center);
             return;
