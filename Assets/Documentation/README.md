@@ -1,12 +1,14 @@
 # Installation
 
 1. Extract the contents of this archive to a directory of your choice.
-2. Obtain one or more of the official IWADs (Doom, Doom II, Plutonia, TNT, etc.).  If you've bought the games via Steam, we'll try to automatically find them.  If that doesn't work, you can also (PICK ONE):
-    1. Copy the IWADs to the same directory as Helion
-    2. Run Helion.exe (or just "./Helion", on Linux) with the -iwad parameter, followed by the path to the IWAD you want to use
-    3. Configure your Doom launcher of choice to pass the -iwad parameter
-    4. Set values for the `DOOMWADDIR` or `DOOMWADPATH` environment variables
-    5. Launch the Helion executable using one of the other methods described above, then edit the `files.directories = [".", "wads"]` line in `config.ini` to include the directory that contains your IWADs.
+2. Ensure that you've placed your IWADs (files that contain Doom game data) somewhere we can find them.
+    1. Obtain one or more of the IWADs we support.  Doom, Doom II, Plutonia, and TNT are available in the [Doom + Doom II](https://store.steampowered.com/app/2280/DOOM__DOOM_II/) package on Steam for a reasonably low price.  We also support Doom1.WAD [from the shareware release](https://github.com/Doom-Utils/shareware-collection), and [Freedoom](https://freedoom.github.io/download.html).
+    2. If you've purchased the games on Steam, you should just be able to launch Helion, and we'll automatically find the data files.  If that doesn't work, or your files are in some other location, you can (PICK ONE):
+    3. Copy the IWADs to the same directory as Helion
+    4. Run Helion.exe (or just "./Helion", on Linux) with the -iwad parameter, followed by the path to the IWAD you want to use
+    5. Configure your Doom launcher of choice to pass the -iwad parameter
+    6. Set values for the `DOOMWADDIR` or `DOOMWADPATH` environment variables
+    7. Launch the Helion executable using one of the other methods described above, then edit the `files.directories = [".", "wads"]` line in `config.ini` to include the directory that contains your IWADs.
 4. Run the Helion executable (Helion.exe on Windows, ./Helion on Linux) to play.
 
 # User Data Folder / Portable Mode

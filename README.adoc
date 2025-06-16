@@ -47,7 +47,7 @@ The latest stable release for Windows and most Linux distros can be https://gith
 
 Helion uses .NET 9. The AOT and self-contained Helion releases include it, otherwise Windows users will need to https://dotnet.microsoft.com/en-us/download/dotnet/9.0[install the Desktop Runtime], and Linux users will need to follow the https://learn.microsoft.com/en-us/dotnet/core/install/linux[instructions for their distro]. On Linux, you will also need to make sure OpenAL, libsndfile, and libmpg123 are installed.
 
-For information on setting up and playing, see the bundled link:/Assets/Documentation/README.md[game documentation].
+For information on setting up and playing, see the bundled link:/Assets/Documentation/README.md[game documentation].  Note that you will need to provide an IWAD (game data file); we do not distribute these.  Options include https://store.steampowered.com/app/2280/DOOM__DOOM_II/[Doom + Doom II], https://github.com/Doom-Utils/shareware-collection[Doom shareware], and https://freedoom.github.io/download.html[Freedoom].
 
 If you want to compile from source, see the link:/INSTALL.adoc[build instructions].
 
