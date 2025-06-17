@@ -294,7 +294,7 @@ public class Window : GameWindow, IWindow
 
     private void Window_MouseMove(MouseMoveEventArgs args)
     {
-        m_inputManager.SetMousePosition(((int)args.Position.X, (int)args.Position.Y));
+        m_inputManager.SetMousePosition(((int)(args.Position.X * m_clientScaling.X), (int)(args.Position.Y * m_clientScaling.Y)));
         if (!m_inputManagement.ShouldHandleMouseMovement())
             return;
 
