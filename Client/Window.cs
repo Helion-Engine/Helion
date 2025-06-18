@@ -44,6 +44,7 @@ public class Window : GameWindow, IWindow
     public Dimension ClientDimension => new((int)(ClientSize.X * m_clientScaling.X), (int)(ClientSize.Y * m_clientScaling.Y));
     private bool m_firstResizeEvent = true;
     private bool m_updatingWindowState;
+    private readonly bool m_isLinuxWayland = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.Wayland;
     private Vec2F m_clientScaling = new(1, 1);
     private bool m_disposed;
     private RenderWindowState m_renderWindowState;
@@ -174,6 +175,10 @@ public class Window : GameWindow, IWindow
 
     private void UpdateScaling()
     {
+        if (!m_isLinuxWayland)
+        {
+            return;
+        }
         unsafe
         {
             // This mainly applies to Wayland on Linux, which uses some odd "virtual resolution" logic for window size.
