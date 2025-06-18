@@ -217,12 +217,17 @@ public class Window : GameWindow, IWindow
         RenderWindowState oldWindowState = m_renderWindowState;
         m_renderWindowState = m_config.Window.State.Value;
 
+        // We're using GLFW directly rather than going through OpenTK because there seem to be some quirks in
+        // the WindowMode abstraction and how it caches the underlying window state.  Also, we can set resolution, 
+        // position, and fullscreen/windowed in a single call, rather than one at a time.
         unsafe
         {
             Monitor* monitor = CurrentMonitor.Handle.ToUnsafePtr<Monitor>();
             VideoMode* modePtr = GLFW.GetVideoMode(monitor);
             GLFW.GetWindowPos(WindowPtr, out int windowX, out int windowY);
 
+            // Keep a "known good" coordinate for transitions into Normal (windowed) mode, based on the last time we were in
+            // Normal mode.
             if (oldWindowState == RenderWindowState.Normal)
             {
                 m_knownGoodWindowPos = new(windowX, windowY);
@@ -240,6 +245,7 @@ public class Window : GameWindow, IWindow
                     GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
                     break;
                 case RenderWindowState.BorderlessFullscreenWindow:
+                    // Hide border before going fullscreen, otherwise taskbar gets stuck on Windows
                     WindowBorder = WindowBorder.Hidden;
                     GLFW.GetMonitorPos(monitor, out int monitorX, out int monitorY);
                     GLFW.SetWindowMonitor(WindowPtr, null, monitorX, monitorY, modePtr->Width, modePtr->Height, GLFW.DontCare);
