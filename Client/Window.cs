@@ -233,20 +233,16 @@ public class Window : GameWindow, IWindow
             }
 
             GLFW.RestoreWindow(WindowPtr);
-            LinuxWait();
 
             switch (m_renderWindowState)
             {
                 case RenderWindowState.Fullscreen:
                     GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
-                    LinuxWait();
                     break;
                 case RenderWindowState.BorderlessFullscreenWindow:
+                    WindowBorder = WindowBorder.Hidden;
                     GLFW.GetMonitorPos(monitor, out int monitorX, out int monitorY);
                     GLFW.SetWindowMonitor(WindowPtr, null, monitorX, monitorY, modePtr->Width, modePtr->Height, GLFW.DontCare);
-                    LinuxWait();
-                    WindowBorder = WindowBorder.Hidden;
-                    LinuxWait();
                     break;
                 case RenderWindowState.Normal:
                 default:
@@ -261,29 +257,16 @@ public class Window : GameWindow, IWindow
                     {
                         // This seems to mess up something on X11 unless we cycle through true fullscreen first
                         GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
-                        LinuxWait();
                     }
 
-                    GLFW.SetWindowMonitor(WindowPtr, null, windowX, windowY, (int)(windowDimension.Width / m_clientScaling.X), (int)(windowDimension.Height / m_clientScaling.Y), GLFW.DontCare);
-                    LinuxWait();
                     WindowBorder = m_config.Window.Border;
-                    LinuxWait();
+                    GLFW.SetWindowMonitor(WindowPtr, null, windowX, windowY, (int)(windowDimension.Width / m_clientScaling.X), (int)(windowDimension.Height / m_clientScaling.Y), GLFW.DontCare);
                     break;
             }
         }
 
         SetSyncMode(m_config.Render.MaxFPS.Value, m_config.Render.VSync.Value);
         m_updatingWindowState = false;
-    }
-
-    private void LinuxWait()
-    {
-        // Window state changes are largely asynchronous on Linux OSes, and we need to wait
-        // until the state change events fire before changing more stuff.
-        if (OperatingSystem.IsLinux())
-        {
-            GLFW.WaitEventsTimeout(100);
-        }
     }
 
     private static void SetDisplay(int display, NativeWindowSettings settings)
