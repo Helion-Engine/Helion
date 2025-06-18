@@ -242,7 +242,8 @@ public class Window : GameWindow, IWindow
                     LinuxWait();
                     break;
                 case RenderWindowState.BorderlessFullscreenWindow:
-                    GLFW.SetWindowMonitor(WindowPtr, null, windowX, windowY, modePtr->Width, modePtr->Height, GLFW.DontCare);
+                    GLFW.GetMonitorPos(monitor, out int monitorX, out int monitorY);
+                    GLFW.SetWindowMonitor(WindowPtr, null, monitorX, monitorY, modePtr->Width, modePtr->Height, GLFW.DontCare);
                     LinuxWait();
                     WindowBorder = WindowBorder.Hidden;
                     LinuxWait();
@@ -254,6 +255,13 @@ public class Window : GameWindow, IWindow
                     {
                         windowX = m_knownGoodWindowPos.Value.X;
                         windowY = m_knownGoodWindowPos.Value.Y;
+                    }
+
+                    if (oldWindowState == RenderWindowState.BorderlessFullscreenWindow)
+                    {
+                        // This seems to mess up something on X11 unless we cycle through true fullscreen first
+                        GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
+                        LinuxWait();
                     }
 
                     GLFW.SetWindowMonitor(WindowPtr, null, windowX, windowY, (int)(windowDimension.Width / m_clientScaling.X), (int)(windowDimension.Height / m_clientScaling.Y), GLFW.DontCare);
