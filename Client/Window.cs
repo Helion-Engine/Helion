@@ -215,6 +215,7 @@ public class Window : GameWindow, IWindow
     /// </summary>
     public void UpdateWindow()
     {
+        m_updatingWindowState = true;
         UpdateScaling();
 
         // Apply fullscreen / window / borderless fullscreen window mode, ensure size and borders
@@ -246,6 +247,7 @@ public class Window : GameWindow, IWindow
         }
 
         SetSyncMode(m_config.Render.MaxFPS.Value, m_config.Render.VSync.Value);
+        m_updatingWindowState = false;
     }
 
     private static void SetDisplay(int display, NativeWindowSettings settings)
