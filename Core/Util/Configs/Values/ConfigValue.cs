@@ -90,17 +90,17 @@ public class ConfigValue<T> : IConfigValue where T : notnull
 
     public static implicit operator T(ConfigValue<T> val) => val.Value;
 
-    public ConfigSetResult Set(object newValue, bool writeToConfig = true)
+    public ConfigSetResult Set(object newValue, bool writeToConfig = true, bool fireChangeEvents = true)
     {
         return TryConvertInternal(newValue, out var convertedValue)
-            ? Set(convertedValue, writeToConfig)
+            ? Set(convertedValue, writeToConfig, fireChangeEvents)
             : ConfigSetResult.NotSetByBadConversion;
     }
 
-    public ConfigSetResult Set(T newValue, bool writeToConfig = true)
+    public ConfigSetResult Set(T newValue, bool writeToConfig = true, bool fireChangeEvents = true)
     {
         WriteToConfig = writeToConfig;
-        var result = SetValue(newValue, false);
+        var result = SetValue(newValue, false, fireChangeEvents);
         if (WriteToConfig)
         {
             UserValue = Value;
@@ -165,7 +165,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         HasTemporaryValue = false;
     }
 
-    private ConfigSetResult SetValue(T newValue, bool ignoreSetFlags)
+    private ConfigSetResult SetValue(T newValue, bool ignoreSetFlags, bool fireChangeEvents = true)
     {
         if (Equals(newValue, Value))
             return ConfigSetResult.Unchanged;
@@ -186,8 +186,11 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         T oldValue = Value;
         Value = newValue;
         Changed = true;
-        OnChanged?.Invoke(this, newValue);
-        OnChangedBeforeAfter?.Invoke(this, (oldValue, newValue));
+        if (fireChangeEvents)
+        {
+            OnChanged?.Invoke(this, newValue);
+            OnChangedBeforeAfter?.Invoke(this, (oldValue, newValue));
+        }
 
         m_queuedChange = default(T);
         m_hasQueuedChange = false;

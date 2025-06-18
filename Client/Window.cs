@@ -17,6 +17,7 @@ using NLog;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client;
@@ -31,15 +32,22 @@ public class Window : GameWindow, IWindow
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public IInputManager InputManager => m_inputManager;
     public Renderer Renderer { get; }
-    public Dimension ClientDimension => new(ClientSize.X, ClientSize.Y);
     private readonly IConfig m_config;
+
+    public IInputManager InputManager => m_inputManager;
     private readonly IInputManagement m_inputManagement;
     private readonly InputManager m_inputManager = new();
     private readonly SpanString m_textInput = new();
-    private bool m_disposed;
     public readonly ControllerAdapter JoystickAdapter;
+
+    public Dimension ClientDimension => new((int)(ClientSize.X * m_clientScaling.X), (int)(ClientSize.Y * m_clientScaling.Y));
+    private bool m_firstResizeEvent = true;
+    private bool m_updatingWindowState;
+    private bool m_isLinuxWayland = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.Wayland;
+    private Vec2F m_clientScaling = new(1, 1);
+
+    private bool m_disposed;
 
     public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement,
         int glMajor, int glMinor, GLContextFlags flags, Action onCreate) :
@@ -162,11 +170,53 @@ public class Window : GameWindow, IWindow
         };
     }
 
+
+    private void UpdateScaling()
+    {
+        if (!m_isLinuxWayland)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            // This mainly applies to Wayland on Linux, which uses some odd "virtual resolution" logic for window size.
+            GLFW.GetWindowContentScale(WindowPtr, out float xScale, out float yScale);
+            m_clientScaling = new(xScale, yScale);
+        }
+    }
+
+
+    protected override void OnResize(ResizeEventArgs e)
+    {
+        if (m_firstResizeEvent)
+        {
+            // OpenTK fires a dummy window-resize event on startup.  Ignore whatever size the window is then.
+            m_firstResizeEvent = false;
+        }
+
+        UpdateScaling();
+
+        if (!m_updatingWindowState && m_config.Window.State.Value == RenderWindowState.Normal && WindowBorder == WindowBorder.Resizable)
+        {
+            // If the user resizes the window manually by dragging the handles, update the config file.
+            // This allows the user to persist their window resize.
+            Dimension scaledDimension = ((int)(m_clientScaling.X * e.Width), (int)(m_clientScaling.Y * e.Height));
+
+            string resolutionString = $"{scaledDimension.Width}x{scaledDimension.Height}";
+            m_config.Window.Dimension.Set(resolutionString, fireChangeEvents: false);
+        }
+
+        base.OnResize(e);
+    }
+
     /// <summary>
     /// Update the window, ensuring that all of the border/dimension/screen state parameters remain logically consistent
     /// </summary>
     public void UpdateWindow()
     {
+        UpdateScaling();
+
         // Apply fullscreen / window / borderless fullscreen window mode, ensure size and borders
         switch (m_config.Window.State.Value)
         {
@@ -177,7 +227,7 @@ public class Window : GameWindow, IWindow
                 WindowState oldWindowState = WindowState;
                 WindowState = WindowState.Normal;
                 Dimension dimension = m_config.Window.Dimension.Value;
-                ClientSize = (dimension.Width, dimension.Height);
+                ClientSize = ((int)(dimension.Width / m_clientScaling.X), (int)(dimension.Height / m_clientScaling.Y));
                 //Size
                 if (WindowState != oldWindowState)
                 {
@@ -190,7 +240,8 @@ public class Window : GameWindow, IWindow
                 WindowState = WindowState.Normal;
                 WindowBorder = WindowBorder.Hidden;
                 MonitorInfo monitorInfo = Monitors.GetMonitorFromWindow(this);
-                ClientSize = (monitorInfo.HorizontalResolution, monitorInfo.VerticalResolution);
+                ClientSize = ((int)(monitorInfo.HorizontalResolution / m_clientScaling.X),
+                    (int)(monitorInfo.VerticalResolution / m_clientScaling.Y));
                 break;
         }
 
@@ -243,7 +294,7 @@ public class Window : GameWindow, IWindow
 
     private void Window_MouseMove(MouseMoveEventArgs args)
     {
-        m_inputManager.SetMousePosition(((int)args.Position.X, (int)args.Position.Y));
+        m_inputManager.SetMousePosition(((int)(args.Position.X * m_clientScaling.X), (int)(args.Position.Y * m_clientScaling.Y)));
         if (!m_inputManagement.ShouldHandleMouseMovement())
             return;
 
