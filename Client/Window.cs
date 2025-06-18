@@ -46,8 +46,9 @@ public class Window : GameWindow, IWindow
     private bool m_updatingWindowState;
     private bool m_isLinuxWayland = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.Wayland;
     private Vec2F m_clientScaling = new(1, 1);
-
     private bool m_disposed;
+    private RenderWindowState m_renderWindowState;
+    private Vector2i? m_knownGoodWindowPos = null;
 
     public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement,
         int glMajor, int glMinor, GLContextFlags flags, Action onCreate) :
@@ -56,6 +57,7 @@ public class Window : GameWindow, IWindow
         Log.Debug("Creating client window");
         onCreate();
         m_config = config;
+        m_renderWindowState = config.Window.State;
         UpdateWindow();
         m_inputManagement = inputManagement;
         CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;
@@ -218,36 +220,68 @@ public class Window : GameWindow, IWindow
         m_updatingWindowState = true;
         UpdateScaling();
 
-        // Apply fullscreen / window / borderless fullscreen window mode, ensure size and borders
-        switch (m_config.Window.State.Value)
+        RenderWindowState oldWindowState = m_renderWindowState;
+        m_renderWindowState = m_config.Window.State.Value;
+        
+        unsafe
         {
-            case RenderWindowState.Fullscreen:
-                WindowState = WindowState.Fullscreen;
-                break;
-            case RenderWindowState.Normal:
-                WindowState oldWindowState = WindowState;
-                WindowState = WindowState.Normal;
-                Dimension dimension = m_config.Window.Dimension.Value;
-                ClientSize = ((int)(dimension.Width / m_clientScaling.X), (int)(dimension.Height / m_clientScaling.Y));
-                //Size
-                if (WindowState != oldWindowState)
-                {
-                    CenterWindow();
-                }
-                WindowBorder = m_config.Window.Border;
-                break;
-            case RenderWindowState.BorderlessFullscreenWindow:
-                CenterWindow();
-                WindowState = WindowState.Normal;
-                WindowBorder = WindowBorder.Hidden;
-                MonitorInfo monitorInfo = Monitors.GetMonitorFromWindow(this);
-                ClientSize = ((int)(monitorInfo.HorizontalResolution / m_clientScaling.X),
-                    (int)(monitorInfo.VerticalResolution / m_clientScaling.Y));
-                break;
+            Monitor* monitor = CurrentMonitor.Handle.ToUnsafePtr<Monitor>();
+            VideoMode* modePtr = GLFW.GetVideoMode(monitor);
+            GLFW.GetWindowPos(WindowPtr, out int windowX, out int windowY);
+
+            if (oldWindowState == RenderWindowState.Normal)
+            {
+                m_knownGoodWindowPos = new(windowX, windowY);
+            }
+            else
+            {
+                m_knownGoodWindowPos ??= new(windowX, windowY);
+            }
+
+            GLFW.RestoreWindow(WindowPtr);
+            LinuxWait();
+
+            switch (m_renderWindowState)
+            {
+                case RenderWindowState.Fullscreen:
+                    GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
+                    LinuxWait();
+                    break;
+                case RenderWindowState.BorderlessFullscreenWindow:
+                    GLFW.SetWindowMonitor(WindowPtr, null, windowX, windowY, modePtr->Width, modePtr->Height, GLFW.DontCare);
+                    LinuxWait();
+                    WindowBorder = WindowBorder.Hidden;
+                    LinuxWait();
+                    break;
+                case RenderWindowState.Normal:
+                default:
+                    Dimension windowDimension = m_config.Window.Dimension.Value;
+                    if (oldWindowState != RenderWindowState.Normal)
+                    {
+                        windowX = m_knownGoodWindowPos.Value.X;
+                        windowY = m_knownGoodWindowPos.Value.Y;
+                    }
+
+                    GLFW.SetWindowMonitor(WindowPtr, null, windowX, windowY, (int)(windowDimension.Width / m_clientScaling.X), (int)(windowDimension.Height / m_clientScaling.Y), GLFW.DontCare);
+                    LinuxWait();
+                    WindowBorder = m_config.Window.Border;
+                    LinuxWait();
+                    break;
+            }
         }
 
         SetSyncMode(m_config.Render.MaxFPS.Value, m_config.Render.VSync.Value);
         m_updatingWindowState = false;
+    }
+
+    private void LinuxWait()
+    {
+        // Window state changes are largely asynchronous on Linux OSes, and we need to wait
+        // until the state change events fire before changing more stuff.
+        if (OperatingSystem.IsLinux())
+        {
+            GLFW.WaitEventsTimeout(100);
+        }
     }
 
     private static void SetDisplay(int display, NativeWindowSettings settings)
