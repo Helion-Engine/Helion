@@ -60,6 +60,7 @@ Command                         | Description
 [option]                        | Prints the value of a config option
 toggle [option] [value1] [...]  | Cycles a config option through a list of values (e.g. toggle audio.musicvolume 1 0.5 0)
 chasecam                        | Toggles a 3rd person camera and pauses the game
+iddqd, idkfa, etc.              | Applies the corresponding Doom cheat
 fly                             | Toggles fly mode
 god                             | Toggles god mode
 noclip                          | Toggles noclip mode

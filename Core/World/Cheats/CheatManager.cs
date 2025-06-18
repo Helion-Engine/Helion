@@ -104,7 +104,7 @@ public class CheatManager
     {
         for (int i = 0; i < Cheats.Length; i++)
         {
-            if (!command.Equals(Cheats[i].ConsoleCommand, StringComparison.OrdinalIgnoreCase))
+            if (!command.Equals(Cheats[i].ConsoleCommand, StringComparison.OrdinalIgnoreCase) && !Cheats[i].IsMatch(command))
                 continue;
 
             ActivateCheat(player, Cheats[i].CheatType);
