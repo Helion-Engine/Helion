@@ -44,10 +44,10 @@ public class Window : GameWindow, IWindow
     public Dimension ClientDimension => new((int)(ClientSize.X * m_clientScaling.X), (int)(ClientSize.Y * m_clientScaling.Y));
     private bool m_firstResizeEvent = true;
     private bool m_updatingWindowState;
-    private bool m_isLinuxWayland = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.Wayland;
     private Vec2F m_clientScaling = new(1, 1);
-
     private bool m_disposed;
+    private RenderWindowState m_renderWindowState;
+    private Vector2i? m_knownGoodWindowPos = null;
 
     public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement,
         int glMajor, int glMinor, GLContextFlags flags, Action onCreate) :
@@ -56,6 +56,7 @@ public class Window : GameWindow, IWindow
         Log.Debug("Creating client window");
         onCreate();
         m_config = config;
+        m_renderWindowState = config.Window.State;
         UpdateWindow();
         m_inputManagement = inputManagement;
         CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;
@@ -173,11 +174,6 @@ public class Window : GameWindow, IWindow
 
     private void UpdateScaling()
     {
-        if (!m_isLinuxWayland)
-        {
-            return;
-        }
-
         unsafe
         {
             // This mainly applies to Wayland on Linux, which uses some odd "virtual resolution" logic for window size.
@@ -218,32 +214,61 @@ public class Window : GameWindow, IWindow
         m_updatingWindowState = true;
         UpdateScaling();
 
-        // Apply fullscreen / window / borderless fullscreen window mode, ensure size and borders
-        switch (m_config.Window.State.Value)
+        RenderWindowState oldWindowState = m_renderWindowState;
+        m_renderWindowState = m_config.Window.State.Value;
+
+        // We're using GLFW directly rather than going through OpenTK because there seem to be some quirks in
+        // the WindowMode abstraction and how it caches the underlying window state.  Also, we can set resolution, 
+        // position, and fullscreen/windowed in a single call, rather than one at a time.
+        unsafe
         {
-            case RenderWindowState.Fullscreen:
-                WindowState = WindowState.Fullscreen;
-                break;
-            case RenderWindowState.Normal:
-                WindowState oldWindowState = WindowState;
-                WindowState = WindowState.Normal;
-                Dimension dimension = m_config.Window.Dimension.Value;
-                ClientSize = ((int)(dimension.Width / m_clientScaling.X), (int)(dimension.Height / m_clientScaling.Y));
-                //Size
-                if (WindowState != oldWindowState)
-                {
-                    CenterWindow();
-                }
-                WindowBorder = m_config.Window.Border;
-                break;
-            case RenderWindowState.BorderlessFullscreenWindow:
-                CenterWindow();
-                WindowState = WindowState.Normal;
-                WindowBorder = WindowBorder.Hidden;
-                MonitorInfo monitorInfo = Monitors.GetMonitorFromWindow(this);
-                ClientSize = ((int)(monitorInfo.HorizontalResolution / m_clientScaling.X),
-                    (int)(monitorInfo.VerticalResolution / m_clientScaling.Y));
-                break;
+            Monitor* monitor = CurrentMonitor.Handle.ToUnsafePtr<Monitor>();
+            VideoMode* modePtr = GLFW.GetVideoMode(monitor);
+            GLFW.GetWindowPos(WindowPtr, out int windowX, out int windowY);
+
+            // Keep a "known good" coordinate for transitions into Normal (windowed) mode, based on the last time we were in
+            // Normal mode.
+            if (oldWindowState == RenderWindowState.Normal)
+            {
+                m_knownGoodWindowPos = new(windowX, windowY);
+            }
+            else
+            {
+                m_knownGoodWindowPos ??= new(windowX, windowY);
+            }
+
+            GLFW.RestoreWindow(WindowPtr);
+
+            switch (m_renderWindowState)
+            {
+                case RenderWindowState.Fullscreen:
+                    GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
+                    break;
+                case RenderWindowState.BorderlessFullscreenWindow:
+                    // Hide border before going fullscreen, otherwise taskbar gets stuck on Windows
+                    WindowBorder = WindowBorder.Hidden;
+                    GLFW.GetMonitorPos(monitor, out int monitorX, out int monitorY);
+                    GLFW.SetWindowMonitor(WindowPtr, null, monitorX, monitorY, modePtr->Width, modePtr->Height, GLFW.DontCare);
+                    break;
+                case RenderWindowState.Normal:
+                default:
+                    Dimension windowDimension = m_config.Window.Dimension.Value;
+                    if (oldWindowState != RenderWindowState.Normal)
+                    {
+                        windowX = m_knownGoodWindowPos.Value.X;
+                        windowY = m_knownGoodWindowPos.Value.Y;
+                    }
+
+                    if (oldWindowState == RenderWindowState.BorderlessFullscreenWindow)
+                    {
+                        // This seems to mess up something on X11 unless we cycle through true fullscreen first
+                        GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
+                    }
+
+                    WindowBorder = m_config.Window.Border;
+                    GLFW.SetWindowMonitor(WindowPtr, null, windowX, windowY, (int)(windowDimension.Width / m_clientScaling.X), (int)(windowDimension.Height / m_clientScaling.Y), GLFW.DontCare);
+                    break;
+            }
         }
 
         SetSyncMode(m_config.Render.MaxFPS.Value, m_config.Render.VSync.Value);
