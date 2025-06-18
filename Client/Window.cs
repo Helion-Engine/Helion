@@ -34,7 +34,7 @@ public class Window : GameWindow, IWindow
 
     public Renderer Renderer { get; }
     private readonly IConfig m_config;
-    
+
     public IInputManager InputManager => m_inputManager;
     private readonly IInputManagement m_inputManagement;
     private readonly InputManager m_inputManager = new();
@@ -197,7 +197,7 @@ public class Window : GameWindow, IWindow
 
         UpdateScaling();
 
-        if (!m_updatingWindowState && m_config.Window.State.Value == RenderWindowState.Normal)
+        if (!m_updatingWindowState && m_config.Window.State.Value == RenderWindowState.Normal && WindowBorder == WindowBorder.Resizable)
         {
             // If the user resizes the window manually by dragging the handles, update the config file.
             // This allows the user to persist their window resize.
