@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Helion
+Comment=Doom source port focused on performance
+Icon=Helion
+TryExec=Helion
+Exec=Helion %f
+Categories=Game;ActionGame;
+MimeType=application/x-doom-wad
+Keywords=first;person;shooter;doom;boom;mbf;
