@@ -47,7 +47,7 @@ public class Window : GameWindow, IWindow
     private bool m_firstResizeEvent = true;
     private DateTime m_windowStateUpdateTimestamp;
     private readonly bool m_isLinuxWayland = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.Wayland;
-    private readonly bool m_isX11 = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.X11;
+    private readonly bool m_isLinuxX11 = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.X11;
     private readonly bool m_isWindows = OperatingSystem.IsWindows();
     private Vec2F m_clientScaling = new(1, 1);
     private bool m_disposed;
@@ -281,23 +281,17 @@ public class Window : GameWindow, IWindow
                         GLFW.RestoreWindow(WindowPtr);
                     }
 
-                    if (m_isX11)
+                    if (m_isLinuxX11 && oldWindowState == RenderWindowState.BorderlessFullscreenWindow)
                     {
-                        switch (oldWindowState)
-                        {
-                            case RenderWindowState.Fullscreen:
-                                // Must ensure window isn't maximized
-                                GLFW.RestoreWindow(WindowPtr);
-                                break;
-                            case RenderWindowState.BorderlessFullscreenWindow:
-                                // Need to quickly bounce through full-screen for...reasons?
-                                GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
-                                break;
-                            default:
-                                break;
-                        }
+                        // Note:  There seems to be a weird bug here where if the application is started in borderless, 
+                        // and then the user goes to Windowed _without ever moving their mouse_, the mouse cursor gets "stuck"
+                        // in a narrow range and cannot be moved.
+
+                        // Need to quickly bounce through full-screen for...reasons?
+                        GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
                     }
 
+                    // Note: Wayland (at least on Gnome, Ubuntu 24.04) seems to ignore window decor settings.
                     WindowBorder = m_config.Window.Border;
                     GLFW.SetWindowMonitor(WindowPtr, null, windowX, windowY, (int)(windowDimension.Width / m_clientScaling.X), (int)(windowDimension.Height / m_clientScaling.Y), GLFW.DontCare);
 
