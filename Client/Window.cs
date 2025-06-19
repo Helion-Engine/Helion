@@ -48,6 +48,7 @@ public class Window : GameWindow, IWindow
     private DateTime m_windowStateUpdateTimestamp;
     private readonly bool m_isLinuxWayland = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.Wayland;
     private readonly bool m_isX11 = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.X11;
+    private readonly bool m_isWindows = OperatingSystem.IsWindows();
     private Vec2F m_clientScaling = new(1, 1);
     private bool m_disposed;
     private RenderWindowState m_renderWindowState;
@@ -299,6 +300,12 @@ public class Window : GameWindow, IWindow
 
                     WindowBorder = m_config.Window.Border;
                     GLFW.SetWindowMonitor(WindowPtr, null, windowX, windowY, (int)(windowDimension.Width / m_clientScaling.X), (int)(windowDimension.Height / m_clientScaling.Y), GLFW.DontCare);
+
+                    if (m_isWindows && (oldWindowState != RenderWindowState.Normal))
+                    {
+                        // Titlebar tends to get stuck off-screen; just center the window to ensure that doesn't happen
+                        CenterWindow();
+                    }
                     break;
             }
         }
