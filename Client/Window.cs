@@ -30,6 +30,8 @@ namespace Helion.Client;
 /// </remarks>
 public class Window : GameWindow, IWindow
 {
+    const int WINDOW_RESIZE_GRACE_MS = 2000;
+
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public Renderer Renderer { get; }
@@ -43,8 +45,10 @@ public class Window : GameWindow, IWindow
 
     public Dimension ClientDimension => new((int)(ClientSize.X * m_clientScaling.X), (int)(ClientSize.Y * m_clientScaling.Y));
     private bool m_firstResizeEvent = true;
-    private bool m_updatingWindowState;
+    private DateTime m_windowStateUpdateTimestamp;
     private readonly bool m_isLinuxWayland = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.Wayland;
+    private readonly bool m_isLinuxX11 = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.X11;
+    private readonly bool m_isWindows = OperatingSystem.IsWindows();
     private Vec2F m_clientScaling = new(1, 1);
     private bool m_disposed;
     private RenderWindowState m_renderWindowState;
@@ -58,7 +62,6 @@ public class Window : GameWindow, IWindow
         onCreate();
         m_config = config;
         m_renderWindowState = config.Window.State;
-        UpdateWindow();
         m_inputManagement = inputManagement;
         CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;
         Renderer = new(this, config, archiveCollection, tracker);
@@ -87,8 +90,18 @@ public class Window : GameWindow, IWindow
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
     }
 
+    public override void Run()
+    {
+        UpdateWindow();
+        base.Run();
+    }
+
     public void SetMousePosition(Vec2I pos)
     {
+        // Wayland does not support setting mouse position
+        if (m_isLinuxWayland)
+            return;
+
         MousePosition = (pos.X, pos.Y);
         InputManager.MousePosition = pos;
     }
@@ -198,7 +211,9 @@ public class Window : GameWindow, IWindow
 
         UpdateScaling();
 
-        if (!m_updatingWindowState && m_config.Window.State.Value == RenderWindowState.Normal && WindowBorder == WindowBorder.Resizable)
+        if ((DateTime.Now - m_windowStateUpdateTimestamp).TotalMilliseconds > WINDOW_RESIZE_GRACE_MS
+            && m_config.Window.State.Value == RenderWindowState.Normal
+            && WindowBorder == WindowBorder.Resizable)
         {
             // If the user resizes the window manually by dragging the handles, update the config file.
             // This allows the user to persist their window resize.
@@ -216,7 +231,7 @@ public class Window : GameWindow, IWindow
     /// </summary>
     public void UpdateWindow()
     {
-        m_updatingWindowState = true;
+        m_windowStateUpdateTimestamp = DateTime.Now;
         UpdateScaling();
 
         RenderWindowState oldWindowState = m_renderWindowState;
@@ -229,20 +244,20 @@ public class Window : GameWindow, IWindow
         {
             Monitor* monitor = CurrentMonitor.Handle.ToUnsafePtr<Monitor>();
             VideoMode* modePtr = GLFW.GetVideoMode(monitor);
-            GLFW.GetWindowPos(WindowPtr, out int windowX, out int windowY);
+            int windowX = 0, windowY = 0;
+
+            // Wayland does not support querying window position
+            if (!m_isLinuxWayland)
+            {
+                GLFW.GetWindowPos(WindowPtr, out windowX, out windowY);
+            }
 
             // Keep a "known good" coordinate for transitions into Normal (windowed) mode, based on the last time we were in
             // Normal mode.
-            if (oldWindowState == RenderWindowState.Normal)
+            if (oldWindowState == RenderWindowState.Normal || m_knownGoodWindowPos == null)
             {
                 m_knownGoodWindowPos = new(windowX, windowY);
             }
-            else
-            {
-                m_knownGoodWindowPos ??= new(windowX, windowY);
-            }
-
-            GLFW.RestoreWindow(WindowPtr);
 
             switch (m_renderWindowState)
             {
@@ -262,22 +277,34 @@ public class Window : GameWindow, IWindow
                     {
                         windowX = m_knownGoodWindowPos.Value.X;
                         windowY = m_knownGoodWindowPos.Value.Y;
+
+                        GLFW.RestoreWindow(WindowPtr);
                     }
 
-                    if (oldWindowState == RenderWindowState.BorderlessFullscreenWindow)
+                    if (m_isLinuxX11 && oldWindowState == RenderWindowState.BorderlessFullscreenWindow)
                     {
-                        // This seems to mess up something on X11 unless we cycle through true fullscreen first
+                        // Note:  There seems to be a weird bug here where if the application is started in borderless, 
+                        // and then the user goes to Windowed _without ever moving their mouse_, the mouse cursor gets "stuck"
+                        // in a narrow range and cannot be moved.
+
+                        // Need to quickly bounce through full-screen for...reasons?
                         GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
                     }
 
+                    // Note: Wayland (at least on Gnome, Ubuntu 24.04) seems to ignore window decor settings.
                     WindowBorder = m_config.Window.Border;
                     GLFW.SetWindowMonitor(WindowPtr, null, windowX, windowY, (int)(windowDimension.Width / m_clientScaling.X), (int)(windowDimension.Height / m_clientScaling.Y), GLFW.DontCare);
+
+                    if (m_isWindows && (oldWindowState != RenderWindowState.Normal))
+                    {
+                        // Titlebar tends to get stuck off-screen; just center the window to ensure that doesn't happen
+                        CenterWindow();
+                    }
                     break;
             }
         }
 
         SetSyncMode(m_config.Render.MaxFPS.Value, m_config.Render.VSync.Value);
-        m_updatingWindowState = false;
     }
 
     private static void SetDisplay(int display, NativeWindowSettings settings)
