@@ -60,7 +60,6 @@ public class Window : GameWindow, IWindow
         onCreate();
         m_config = config;
         m_renderWindowState = config.Window.State;
-        UpdateWindow();
         m_inputManagement = inputManagement;
         CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;
         Renderer = new(this, config, archiveCollection, tracker);
@@ -89,8 +88,18 @@ public class Window : GameWindow, IWindow
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
     }
 
+    public override void Run()
+    {
+        UpdateWindow();
+        base.Run();
+    }
+
     public void SetMousePosition(Vec2I pos)
     {
+        // Wayland does not support setting mouse position
+        if (m_isLinuxWayland)
+            return;
+
         MousePosition = (pos.X, pos.Y);
         InputManager.MousePosition = pos;
     }
@@ -233,17 +242,19 @@ public class Window : GameWindow, IWindow
         {
             Monitor* monitor = CurrentMonitor.Handle.ToUnsafePtr<Monitor>();
             VideoMode* modePtr = GLFW.GetVideoMode(monitor);
-            GLFW.GetWindowPos(WindowPtr, out int windowX, out int windowY);
+            int windowX = 0, windowY = 0;
+
+            // Wayland does not support querying window position
+            if (!m_isLinuxWayland)
+            {
+                GLFW.GetWindowPos(WindowPtr, out windowX, out windowY);
+            }
 
             // Keep a "known good" coordinate for transitions into Normal (windowed) mode, based on the last time we were in
             // Normal mode.
-            if (oldWindowState == RenderWindowState.Normal)
+            if (oldWindowState == RenderWindowState.Normal || m_knownGoodWindowPos == null)
             {
                 m_knownGoodWindowPos = new(windowX, windowY);
-            }
-            else
-            {
-                m_knownGoodWindowPos ??= new(windowX, windowY);
             }
 
             GLFW.RestoreWindow(WindowPtr);
