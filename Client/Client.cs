@@ -108,6 +108,8 @@ public partial class Client : IDisposable, IInputManagement
         else
         {
             SetOpenGLVersion(config);
+            GLFWProvider.EnsureInitialized();
+            GLFW.WindowHint(WindowHintString.WaylandAppID, "Helion");
         }
 
         m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor, GlVersion.Flags, CheckOpenGLSupport);
