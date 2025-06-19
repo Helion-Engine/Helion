@@ -263,9 +263,9 @@ public class EntityRenderer : IDisposable
         if (entity.Definition.Flags.SpawnCeiling && m_vanillaRender)
         {
             // Set position and offset from ceiling to not clip to floors
+            vertex.OffsetZ = vertex.Pos.Z + offsetZ - (float)entity.Sector.Ceiling.Z;
             vertex.Pos.Z = (float)entity.Sector.Ceiling.Z;
             vertex.PrevPos.Z = (float)entity.Sector.Ceiling.PrevZ;
-            vertex.OffsetZ = -texture.Offset.Y;
         }
 
         arrayData.Length = length + 1;
