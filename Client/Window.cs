@@ -47,6 +47,7 @@ public class Window : GameWindow, IWindow
     private bool m_firstResizeEvent = true;
     private DateTime m_windowStateUpdateTimestamp;
     private readonly bool m_isLinuxWayland = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.Wayland;
+    private readonly bool m_isX11 = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.X11;
     private Vec2F m_clientScaling = new(1, 1);
     private bool m_disposed;
     private RenderWindowState m_renderWindowState;
@@ -257,8 +258,6 @@ public class Window : GameWindow, IWindow
                 m_knownGoodWindowPos = new(windowX, windowY);
             }
 
-            GLFW.RestoreWindow(WindowPtr);
-
             switch (m_renderWindowState)
             {
                 case RenderWindowState.Fullscreen:
@@ -277,12 +276,25 @@ public class Window : GameWindow, IWindow
                     {
                         windowX = m_knownGoodWindowPos.Value.X;
                         windowY = m_knownGoodWindowPos.Value.Y;
+
+                        GLFW.RestoreWindow(WindowPtr);
                     }
 
-                    if (oldWindowState == RenderWindowState.BorderlessFullscreenWindow)
+                    if (m_isX11)
                     {
-                        // This seems to mess up something on X11 unless we cycle through true fullscreen first
-                        GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
+                        switch (oldWindowState)
+                        {
+                            case RenderWindowState.Fullscreen:
+                                // Must ensure window isn't maximized
+                                GLFW.RestoreWindow(WindowPtr);
+                                break;
+                            case RenderWindowState.BorderlessFullscreenWindow:
+                                // Need to quickly bounce through full-screen for...reasons?
+                                GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
+                                break;
+                            default:
+                                break;
+                        }
                     }
 
                     WindowBorder = m_config.Window.Border;
