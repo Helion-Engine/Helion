@@ -30,6 +30,8 @@ namespace Helion.Client;
 /// </remarks>
 public class Window : GameWindow, IWindow
 {
+    const int WINDOW_RESIZE_GRACE_MS = 2000;
+
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public Renderer Renderer { get; }
@@ -43,7 +45,7 @@ public class Window : GameWindow, IWindow
 
     public Dimension ClientDimension => new((int)(ClientSize.X * m_clientScaling.X), (int)(ClientSize.Y * m_clientScaling.Y));
     private bool m_firstResizeEvent = true;
-    private bool m_updatingWindowState;
+    private DateTime m_windowStateUpdateTimestamp;
     private readonly bool m_isLinuxWayland = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.Wayland;
     private Vec2F m_clientScaling = new(1, 1);
     private bool m_disposed;
@@ -198,7 +200,9 @@ public class Window : GameWindow, IWindow
 
         UpdateScaling();
 
-        if (!m_updatingWindowState && m_config.Window.State.Value == RenderWindowState.Normal && WindowBorder == WindowBorder.Resizable)
+        if ((DateTime.Now - m_windowStateUpdateTimestamp).TotalMilliseconds > WINDOW_RESIZE_GRACE_MS
+            && m_config.Window.State.Value == RenderWindowState.Normal
+            && WindowBorder == WindowBorder.Resizable)
         {
             // If the user resizes the window manually by dragging the handles, update the config file.
             // This allows the user to persist their window resize.
@@ -216,7 +220,7 @@ public class Window : GameWindow, IWindow
     /// </summary>
     public void UpdateWindow()
     {
-        m_updatingWindowState = true;
+        m_windowStateUpdateTimestamp = DateTime.Now;
         UpdateScaling();
 
         RenderWindowState oldWindowState = m_renderWindowState;
@@ -277,7 +281,6 @@ public class Window : GameWindow, IWindow
         }
 
         SetSyncMode(m_config.Render.MaxFPS.Value, m_config.Render.VSync.Value);
-        m_updatingWindowState = false;
     }
 
     private static void SetDisplay(int display, NativeWindowSettings settings)
