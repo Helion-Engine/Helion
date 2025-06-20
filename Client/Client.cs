@@ -108,10 +108,10 @@ public partial class Client : IDisposable, IInputManagement
         else
         {
             SetOpenGLVersion(config);
-            GLFWProvider.EnsureInitialized();
-            GLFW.WindowHint(WindowHintString.WaylandAppID, "Helion");
         }
 
+        GLFWProvider.EnsureInitialized();
+        GLFW.WindowHint(WindowHintString.WaylandAppID, "Helion");
         m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor, GlVersion.Flags, CheckOpenGLSupport);
         m_screenshotGenerator = new(m_window.Renderer);
         m_soundManager.SoundCreated += m_window.JoystickAdapter.RumbleForSoundCreated;
