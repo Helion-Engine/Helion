@@ -1,5 +1,5 @@
 build:
-	dotnet publish -c Release -r linux-x64 --self-contained=true -p:AOT=true
+	dotnet publish -c Release -r linux-x64 -p:AOT=true
 install-system-wide: build
 	ln -s Publish/linux-x64_AOT/Helion /usr/local/bin
 	cp Assets/Misc/helion.svg /usr/share/icons/hicolor/scalable/apps/Helion.svg
