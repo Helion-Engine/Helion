@@ -57,7 +57,7 @@
                         m_dialogIsLocked = true;
                         m_calibrationStatus = 1;
                         m_timerCountdown = 5;
-                        m_calibrationCountdown = 10;
+                        m_calibrationCountdown = 5;
 
                         m_timer.Start();
                         break;
@@ -88,7 +88,7 @@
                 {
                     m_timerMessage = string.Empty;
                     m_calibrationStatus = 2;
-                    m_inputManager.AnalogAdapter?.CalibrateGyro(4000, CalibrationFinished);
+                    m_inputManager.AnalogAdapter?.CalibrateGyro(5000, CalibrationFinished);
                 }
             }
             else if (m_calibrationStatus == 2)
