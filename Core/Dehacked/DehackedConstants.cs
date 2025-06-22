@@ -4883,6 +4883,7 @@ public partial class DehackedDefinition
     private static readonly string Plural = "Plural";
     private static readonly string Name1 = "Name1";
     private static readonly string RetroBits = "Retro Bits";
+    private static readonly string BloodColor = "Blood color";
 
     private static readonly string Duration = "Duration";
     private static readonly string SpriteNum = "Sprite number";

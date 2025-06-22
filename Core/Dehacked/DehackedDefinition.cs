@@ -1,3 +1,4 @@
+using Helion.Graphics.Palettes;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -47,6 +48,8 @@ public partial class DehackedDefinition
     public DehackedMisc? Misc { get; private set; }
     public int DoomVersion { get; private set; }
     public int PatchFormat { get; set; }
+    public bool HasBloodColor => BloodColors.Count > 0;
+    public readonly HashSet<PaletteColor> BloodColors = [];
 
     public DehackedDefinition()
     {
@@ -347,6 +350,11 @@ public partial class DehackedDefinition
                 thing.TranslationLump = GetStringProperty(parser, TranslationLump);
             else if (line.StartsWithIgnoreCase(SelfDamageFactor))
                 thing.SelfDamageFactor = MathHelper.FromFixed(GetIntProperty(parser, SelfDamageFactor));
+            else if (line.StartsWithIgnoreCase(BloodColor))
+            {
+                thing.BloodColor = GetIntProperty(parser, BloodColor);
+                BloodColors.Add((PaletteColor)thing.BloodColor);
+            }
             else if (!IgnoreLine(line))
                 UnknownWarning(parser, "thing type");
 

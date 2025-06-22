@@ -7,6 +7,7 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
+using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.World;
@@ -34,6 +35,7 @@ public class EntityRenderer : IDisposable
     private readonly HashSet<SpritePosKey> m_spriteRenderPositions = new(1024);
     private readonly DynamicArray<SpriteDefinition?> m_spriteDefs = new(1024);
     private readonly SpriteRotation m_nullSpriteRotation;
+    private readonly ArchiveCollection m_archiveCollection;
     private Vec2F m_viewRightNormal;
     private Vec2F m_prevViewRightNormal;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
@@ -49,10 +51,11 @@ public class EntityRenderer : IDisposable
     private bool m_disposed;
     private int m_lastViewerEntityId;
 
-    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager)
+    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, ArchiveCollection archiveCollection)
     {
         m_config = config;
         m_textureManager = textureManager;
+        m_archiveCollection = archiveCollection;
         m_nullSpriteRotation = m_textureManager.NullSpriteRotation;
         m_dataManager = new(m_program, textureManager.BlackTexture);
         m_spriteAlpha = m_config.Render.SpriteTransparency;
@@ -168,7 +171,7 @@ public class EntityRenderer : IDisposable
         Vec2D entityPos = new(centerBottom.X, centerBottom.Y);
         Vec2D nudgeAmount = default;
 
-        SpriteDefinition? spriteDef = null;
+        SpriteDefinition? spriteDef;
         int spriteIndex = entity.FrameState.Frame.SpriteIndex;
         if (spriteIndex >= m_spriteDefs.Capacity)
         {
@@ -214,11 +217,18 @@ public class EntityRenderer : IDisposable
             }
         }
 
-        int colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
-        SpriteRotation spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.FrameState.Frame.Frame, rotation, colorMapIndex);
-        GLLegacyTexture texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
-        GLLegacyTexture? brightmapTexture = spriteRotation.BrightmapRenderStore as GLLegacyTexture;
-        Sector sector = entity.Sector.GetRenderSector(m_transferHeightView);
+        var colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
+        if (WorldStatic.BloodColor && entity.Definition.IsBlood)
+        {
+            var owner = entity.Owner();
+            if (owner != null && owner.Properties.BloodPaletteColor.HasValue)
+                colorMapIndex = m_archiveCollection.Definitions.GetBloodColormap(owner.Properties.BloodPaletteColor.Value).Index;
+        }
+
+        var spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.FrameState.Frame.Frame, rotation, colorMapIndex);
+        var texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
+        var brightmapTexture = spriteRotation.BrightmapRenderStore as GLLegacyTexture;
+        var sector = entity.Sector.GetRenderSector(m_transferHeightView);
 
         float offsetZ = GetOffsetZ(entity, texture);
 
@@ -257,6 +267,7 @@ public class EntityRenderer : IDisposable
         vertex.LightLevel = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright
             ? 255
             : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
+        //vertex.LightLevel = 80;
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
 

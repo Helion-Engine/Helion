@@ -22,6 +22,7 @@ using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Definitions.Zdoom;
 using Helion.Resources.IWad;
 using Helion.Util.Configs.Components;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using Helion.World.Entities.Definition;
@@ -71,11 +72,13 @@ public class DefinitionEntries
 
     public PnamesTextureXCollection PnamesTextureXCollection => m_pnamesTextureXCollection;
     public DehackedDefinition? DehackedDefinition { get; set; }
+    public LookupArray<Colormap> BloodColorMaps => m_bloodColorMaps;
 
     private readonly Dictionary<string, Action<Entry>> m_entryNameToAction = new(StringComparer.OrdinalIgnoreCase);
     private readonly ArchiveCollection m_archiveCollection;
     private readonly Dictionary<string, Colormap> m_processedTranslationColormaps = [];
     private readonly PnamesTextureXCollection m_pnamesTextureXCollection = new();
+    private readonly LookupArray<Colormap> m_bloodColorMaps = new();
     private bool m_parseDehacked;
     private bool m_parseDecorate;
     private bool m_parseZDoomMapInfo;
@@ -365,6 +368,30 @@ public class DefinitionEntries
         translatedColormaps.AddRange(Colormaps);
         Colormaps.Clear();
         Colormaps.AddRange(translatedColormaps);
+
+        if (DehackedDefinition != null && DehackedDefinition.HasBloodColor)
+            CreateBloodColorMaps(palette, colormapBytes, DehackedDefinition.BloodColors);
+    }
+
+    private void CreateBloodColorMaps(Palette palette, byte[] colormapBytes, IEnumerable<PaletteColor> paletteColors)
+    {
+        foreach (var paletteColor in paletteColors)
+        {
+            var colormap = Colormap.TranslateToNearestMatch(palette, colormapBytes, paletteColor);
+            if (colormap == null)
+                continue;
+
+            m_bloodColorMaps.Set((int)paletteColor, colormap);
+            Colormaps.Add(colormap);
+        }
+    }
+
+    public Colormap GetBloodColormap(PaletteColor color)
+    {
+        if (m_bloodColorMaps.TryGetValue((int)color, out var bloodColorMap))
+            return bloodColorMap;
+
+        return Colormaps[0];
     }
 
     private void SetGameConfTranslations()

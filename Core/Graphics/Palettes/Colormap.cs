@@ -1,7 +1,8 @@
-﻿using Helion.Geometry.Vectors;
+﻿using ColorMine.ColorSpaces;
+using Helion.Geometry.Vectors;
 using Helion.Resources.Archives.Entries;
+using System;
 using System.Collections.Generic;
-using System.Numerics;
 
 namespace Helion.Graphics.Palettes;
 
@@ -129,6 +130,77 @@ public class Colormap
     {
         var translated = TranslateIndices(colorMap, color);
         return From(palette, translated, null);
+    }
+
+    public static Colormap? TranslateToNearestMatch(Palette palette, byte[] colorMap, PaletteColor translateColor)
+    {
+        var translated = TranslateIndicesNearest(palette, colorMap, translateColor);
+        return From(palette, translated, null);
+    }
+
+    private static byte[] TranslateIndicesNearest(Palette palette, byte[] colorMap, PaletteColor translateColor)
+    {
+        var hsl = ToHsl(translateColor);
+        var translate = new byte[colorMap.Length];
+        var lookup = new Dictionary<Color, byte>();
+        var colors = palette.Layer(0);
+        int dataIndex = 0;
+
+        for (int layer = 0; layer < NumLayers; layer++)
+        {
+            for (int colorIndex = 0; colorIndex < NumColors; colorIndex++, dataIndex++)
+            {
+                if (dataIndex >= translate.Length)
+                    return translate;
+
+                var color = colors[colorMap[dataIndex]];
+                if (lookup.TryGetValue(color, out var value))
+                {
+                    translate[dataIndex] = value;
+                    continue;
+                }
+
+                var newIndex = ShiftToHsl(palette, color, hsl);
+                translate[dataIndex] = newIndex;
+                lookup[color] = newIndex;
+            }
+        }
+        return translate;
+    }
+
+    private static HslShift ToHsl(PaletteColor paletteColor)
+    {
+        return paletteColor switch
+        {
+            PaletteColor.Blue => new(260, null, null, 0.1),
+            PaletteColor.Yellow => new(60, null, null, 0.1),
+            PaletteColor.Orange => new(30, null, null, 0),
+            PaletteColor.Purple => new(280, null, null, 0),
+            PaletteColor.Green => new(100, null, null, 0),
+            PaletteColor.Gray => new(null, 0, null, 0),
+            PaletteColor.Black => new(null, 0, null, -0.2),
+            PaletteColor.White => new(null, 0, null, 0.5),
+            _ => new(null, null, null, 0),
+        };
+    }
+
+    private static byte ShiftToHsl(Palette palette, Color color, HslShift toHsl)
+    {
+        var rgb = new Rgb { R = color.R, G = color.G, B = color.B };
+        var hsl = rgb.To<Hsl>();
+
+        if (toHsl.H.HasValue)
+            hsl.H = toHsl.H.Value;
+        if (toHsl.S.HasValue)
+            hsl.S = toHsl.S.Value;
+        if (toHsl.L.HasValue)
+            hsl.L = toHsl.L.Value;
+
+        hsl.L = Math.Clamp(hsl.L + toHsl.AddL, 0, 1);
+
+        var newRgb = hsl.To<Rgb>();
+        var newColor = new Color((byte)newRgb.R, (byte)newRgb.G, (byte)newRgb.B);
+        return palette.GetNearestColorIndex(newColor);
     }
 
     public static Colormap? CreateTranslatedColormap(Palette palette, byte[] colorMap, byte[] translateTable)

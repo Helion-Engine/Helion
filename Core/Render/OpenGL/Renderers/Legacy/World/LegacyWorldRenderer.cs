@@ -59,7 +59,7 @@ public class LegacyWorldRenderer : WorldRenderer
     public LegacyWorldRenderer(IConfig config, ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager)
     {
         m_config = config;
-        m_entityRenderer = new(config, textureManager);
+        m_entityRenderer = new(config, textureManager, archiveCollection);
         m_primitiveRenderer = new();
         m_geometryRenderer = new(config, archiveCollection, textureManager, m_interpolationProgram, m_staticProgram, m_worldDataManager);
         m_archiveCollection = archiveCollection;

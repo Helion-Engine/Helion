@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.World.Entities.Definition.Properties.Components;
 
@@ -63,6 +64,7 @@ public class EntityProperties
     public EntityDefinition? TranslatedPickupDisplay;
     public string? TranslationEntry;
     public int? ColormapIndex;
+    public PaletteColor? BloodPaletteColor;
     public int HealthBarOffset;
     public int HealthBarWidth;
 

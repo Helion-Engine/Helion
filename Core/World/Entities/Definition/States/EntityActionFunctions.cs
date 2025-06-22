@@ -1,13 +1,11 @@
 using Helion.Audio;
 using Helion.Dehacked;
-using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities.Inventories;
@@ -3122,6 +3120,12 @@ public static class EntityActionFunctions
         createdEntity.Velocity.X = velocity.X;
         createdEntity.Velocity.Y = velocity.Y;
         createdEntity.Velocity.Z = zVelocity;
+
+        if (entity.Definition.IsBlood)
+        {
+            createdEntity.Definition.IsBlood = true;
+            createdEntity.SetOwner(entity.Owner());
+        }
 
         if (!createdEntity.Definition.Flags.Missile && !createdEntity.Definition.Flags.MbfBouncer)
             return;

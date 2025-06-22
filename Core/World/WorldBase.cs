@@ -544,6 +544,7 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.PlasmaBall = EntityManager.DefinitionComposer.GetByNameOrDefault("PlasmaBall");
         WorldStatic.WeaponBfg = EntityManager.DefinitionComposer.GetByNameOrDefault(BFG900Class);
         WorldStatic.SectorFriction = false;
+        WorldStatic.BloodColor = ArchiveCollection.Dehacked != null && ArchiveCollection.Dehacked.HasBloodColor;
 
         if (WorldStatic.CheckedLines.Length < Lines.Count)
             WorldStatic.CheckedLines = new int[Lines.Count];
@@ -2612,6 +2613,7 @@ public abstract partial class WorldBase : IWorld
 
     private void SetBloodValues(Entity? entity, Entity blood, int damage, bool ripper)
     {
+        blood.SetOwner(entity);
         if (ripper)
         {
             if (entity != null)

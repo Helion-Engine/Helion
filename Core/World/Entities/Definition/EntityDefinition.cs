@@ -19,7 +19,8 @@ public class EntityDefinition
     public EntityProperties Properties;
     public readonly EntityStates States;
     public readonly IList<string> ParentClassNames;
-    public readonly bool IsBulletPuff;
+    public bool IsBulletPuff;
+    public bool IsBlood;
     public bool IsInventory;
     public int? SpawnState;
     public int? MissileState;
@@ -54,6 +55,7 @@ public class EntityDefinition
         foreach (var parentClass in ParentClassNames)
             ParentClassLookup.Add(parentClass);
         IsBulletPuff = Name.EqualsIgnoreCase("BulletPuff");
+        IsBlood = Name.Equals("Blood");
         IsInventory = IsType(EntityDefinitionType.Inventory);
     }
 

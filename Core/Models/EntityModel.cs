@@ -31,6 +31,7 @@ public class EntityModel
 
     public int MoveDir { get; set; }
     public bool BlockFloat { get; set; }
+    public bool? IsBlood { get; set; }
 
     public FrameStateModel Frame { get; set; }
     public EntityFlagsModel Flags { get; set; }
