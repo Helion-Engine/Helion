@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Helion.Util.Extensions
 {
@@ -169,11 +170,13 @@ namespace Helion.Util.Extensions
             return Math.Abs(self);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ApproxEquals(this double value, double target, double epsilon = Constants.Epsilon)
         {
             return value >= target - epsilon && value <= target + epsilon;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool ApproxZero(this double value, double epsilon = Constants.Epsilon)
         {
             return value.ApproxEquals(0, epsilon);
