@@ -198,8 +198,15 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
                 Vec2I offset = default;
                 if (isPng)
                     offset = PngChunk.GetPngOffset(new BinaryReader(inputStream));
-                image = Image.FromImageSharp(img, offset, entry.Namespace, 
-                    palette: m_findNearestPaletteIndex && !AlwaysTrueColor(entry) ? m_archiveCollection.Palette : null);
+
+                Palette? paletteTransltion = null;
+                if (m_findNearestPaletteIndex && !AlwaysTrueColor(entry))
+                    paletteTransltion = m_archiveCollection.Palette;
+                // Only search for nearest palette colors if colorTranslation is set (e.g. for blood colors)
+                else if (!m_findNearestPaletteIndex && !AlwaysTrueColor(entry) && colorTranslation != null)
+                    paletteTransltion = m_archiveCollection.Palette;
+
+                image = Image.FromImageSharp(img, offset, entry.Namespace, paletteTransltion, colorTranslation);
             }
             catch
             {

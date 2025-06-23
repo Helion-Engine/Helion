@@ -19,6 +19,7 @@ using System.Text.RegularExpressions;
 using Helion.World.Entities.Definition.Properties.Components;
 using static Helion.Dehacked.DehackedDefinition;
 using Helion.Maps.Shared;
+using Helion.Graphics.Palettes;
 
 namespace Helion.Dehacked;
 
@@ -748,6 +749,8 @@ public class DehackedApplier
                 ApplyPickupAmmoType(thing, dehacked, composer, definition, thing.PickupAmmoType.Value, thing.PickupAmmoCategory.Value);
             if (thing.SelfDamageFactor.HasValue)
                 properties.SelfDamageFactor = thing.SelfDamageFactor.Value;
+            if (thing.BloodColor.HasValue)
+                properties.BloodPaletteColor = (PaletteColor)thing.BloodColor.Value;
 
             properties.TranslationEntry = thing.TranslationLump;
         }

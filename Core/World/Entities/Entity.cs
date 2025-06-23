@@ -243,6 +243,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             Alpha = entityModel.Alpha.Value;
         else
             Alpha = (float)Properties.Alpha;
+
+        if (entityModel.IsBlood.HasValue)
+            Definition.IsBlood = entityModel.IsBlood.Value;
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -281,6 +284,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.OnGround = OnGround;
         entityModel.Gravity = Gravity;
         entityModel.Alpha = Alpha;
+        entityModel.IsBlood = Definition.IsBlood;
         return entityModel;
     }
 
