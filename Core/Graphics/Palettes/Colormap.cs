@@ -172,7 +172,7 @@ public class Colormap
     {
         return paletteColor switch
         {
-            PaletteColor.Blue => new(260, null, null, 0.1),
+            PaletteColor.Blue => new(240, null, null, 0.1),
             PaletteColor.Yellow => new(60, null, null, 0.1),
             PaletteColor.Orange => new(30, null, null, 0),
             PaletteColor.Purple => new(280, null, null, 0),
