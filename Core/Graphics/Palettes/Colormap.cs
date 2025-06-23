@@ -1,5 +1,5 @@
-﻿using ColorMine.ColorSpaces;
-using Helion.Geometry.Vectors;
+﻿using Helion.Geometry.Vectors;
+using Helion.Graphics.ColorSpaces;
 using Helion.Resources.Archives.Entries;
 using System;
 using System.Collections.Generic;
@@ -186,20 +186,18 @@ public class Colormap
 
     private static byte ShiftToHsl(Palette palette, Color color, HslShift toHsl)
     {
-        var rgb = new Rgb { R = color.R, G = color.G, B = color.B };
-        var hsl = rgb.To<Hsl>();
+        var hsl = HslConverter.ToHsl(color);
 
         if (toHsl.H.HasValue)
-            hsl.H = toHsl.H.Value;
+            hsl.X = toHsl.H.Value;
         if (toHsl.S.HasValue)
-            hsl.S = toHsl.S.Value;
+            hsl.Y = toHsl.S.Value;
         if (toHsl.L.HasValue)
-            hsl.L = toHsl.L.Value;
+            hsl.Z = toHsl.L.Value;
 
-        hsl.L = Math.Clamp(hsl.L + toHsl.AddL, 0, 1);
+        hsl.Z = Math.Clamp(hsl.Z + toHsl.AddL, 0, 1);
 
-        var newRgb = hsl.To<Rgb>();
-        var newColor = new Color((byte)newRgb.R, (byte)newRgb.G, (byte)newRgb.B);
+        var newColor = HslConverter.ToColor(hsl);
         return palette.GetNearestColorIndex(newColor);
     }
 
