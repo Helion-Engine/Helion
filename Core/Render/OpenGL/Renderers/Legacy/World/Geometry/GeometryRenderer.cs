@@ -1348,7 +1348,7 @@ public class GeometryRenderer : IDisposable
         WallVertices wall = default;
         var opening = GetMidTexOpening(textureManager, front, front.Sector, backSector, false);
         var offset = GetTransferHeightHackOffset(textureManager, front, back, opening.BottomZ, opening.TopZ, false);
-        WorldTriangulator.HandleTwoSidedMiddle(front, dimension, default, opening, opening, true, ref wall, out _, offset: front.Offset.Y, vertexGap: false);
+        WorldTriangulator.HandleTwoSidedMiddle(front, dimension, default, opening, opening, true, ref wall, out _, offset: offset, vertexGap: false);
         return new(wall.BottomRight.Z, wall.TopLeft.Z);
     }
 

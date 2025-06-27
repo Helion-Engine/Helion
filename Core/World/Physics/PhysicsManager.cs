@@ -812,8 +812,8 @@ public sealed class PhysicsManager
                 // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
                 m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_canPassTraverseFunc);
 
-                for (int i = 0; i < entity.MidTexLines.Length; i++)
-                    CanPassTraverse(GetMidTexEntity(entity.MidTexLines[i]));
+                for (int i = 0; i < entity.IntersectMidTexLines.Length; i++)
+                    CanPassTraverse(GetMidTexEntity(entity.IntersectMidTexLines[i]));
             }
             else
             {
@@ -1028,11 +1028,10 @@ public sealed class PhysicsManager
                 entity.SectorNodes.Data[intersectSectorLength++] = sector.Link(entity);
             }
 
-            for (int i = 0; i < tryMove.IntersectMidTexLines.Length; i++)
-                entity.MidTexLines.Add(tryMove.IntersectMidTexLines[i]);
-
             entity.IntersectSectors.Length = intersectSectorLength;
             entity.SectorNodes.Length = intersectSectorLength;
+
+            entity.IntersectMidTexLines.AddRange(tryMove.IntersectMidTexLines);
         }
         else
         {
@@ -1062,7 +1061,7 @@ public sealed class PhysicsManager
                                 goto doneLinkToSectors;
 
                             if (line.BlockFlags.MidTex3D)
-                                entity.MidTexLines.Add(line.LineId);
+                                entity.IntersectMidTexLines.Add(line.LineId);
 
                             if (line.FrontSector.CheckCount != checkCounter)
                             {
@@ -1323,9 +1322,6 @@ doneLinkToSectors:
                     WorldStatic.CheckedLines[blockLine.LineId] = checkCounter;
                     if (blockLine.Segment.Intersects(boxMinX, boxMinY, boxMaxX, boxMaxY))
                     {
-                        if (blockLine.BlockFlags.MidTex3D)
-                            tryMove.IntersectMidTexLines.Add(blockLine.LineId);
-
                         var blockType = LineBlocksEntity(entity, x, y, ref blockLine, tryMove, true);
                         if (blockType != LineBlock.NoBlock)
                         {
@@ -1338,8 +1334,14 @@ doneLinkToSectors:
                                 goto doneIsPositionValid;
                         }
 
-                        if (!entity.Flags.NoClip && blockLine.HasSpecial && blockType == LineBlock.NoBlock)
-                            tryMove.IntersectSpecialLines.Add(blockLine.LineId);
+                        if (blockType == LineBlock.NoBlock && !entity.Flags.NoClip)
+                        {
+                            if (blockLine.BlockFlags.MidTex3D)
+                                tryMove.IntersectMidTexLines.Add(blockLine.LineId);
+
+                            if (blockLine.HasSpecial)
+                                tryMove.IntersectSpecialLines.Add(blockLine.LineId);
+                        }
 
                         tryMove.IntersectSectors.Data[intersectSectorLength++] = blockLine.FrontSector;
                         if (blockLine.BackSector != null && blockLine.BackSector != blockLine.FrontSector)

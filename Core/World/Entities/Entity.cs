@@ -113,7 +113,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public bool IsBlocked() => BlockingEntity != null || BlockingBlockLineIndex != -1 || BlockingSectorPlane != null;
     public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new();
-    public readonly DynamicArray<int> MidTexLines = new(); 
+    public readonly DynamicArray<int> IntersectMidTexLines = new(); 
     public bool IsDisposed;
 
     public ClosetFlags ClosetFlags;
@@ -404,7 +404,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         }
 
         IntersectSectors.Clear();
-        MidTexLines.Clear();
+        IntersectMidTexLines.Clear();
         BlockingBlockLineIndex = -1;
         BlockingEntity = null;
         BlockingSectorPlane = null;
@@ -963,7 +963,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         SectorNodes.Clear();
         IntersectSectors.Clear();
-        MidTexLines.Clear();
+        IntersectMidTexLines.Clear();
 
         m_target = null;
         m_targetId = 0;
