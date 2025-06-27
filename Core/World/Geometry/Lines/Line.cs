@@ -5,6 +5,7 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Resources;
+using Helion.Util;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
@@ -225,9 +226,12 @@ public sealed class Line
         }
 
         MidTexSpan span = default;
-        var texture = world.TextureManager.GetTexture(Front.Middle.TextureHandle);
-        if (texture != null && texture.Image != null && Back != null)
-            span = GeometryRenderer.GetMidTexSpan(world.TextureManager, texture.Image.Dimension, Front, Back, Front.Sector, Back.Sector);
+        if (Front.Middle.TextureHandle > Constants.NullCompatibilityTextureIndex)
+        {
+            var texture = world.TextureManager.GetTexture(Front.Middle.TextureHandle);
+            if (texture != null && texture.Image != null && Back != null)
+                span = GeometryRenderer.GetMidTexSpan(world.TextureManager, texture.Image.Dimension, Front, Back, Front.Sector, Back.Sector);
+        }
 
         MidTexEntity.Position.Z = span.BottomZ;
         MidTexEntity.Height = span.TopZ - span.BottomZ;
