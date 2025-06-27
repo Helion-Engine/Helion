@@ -785,7 +785,7 @@ public sealed class PhysicsManager
         GetEntityClampValues(entity, intersectSectors, clampToLinkedSectors, tryMove, out Sector highestFloor, out Sector lowestCeiling, 
             out double highestFloorZ, out double lowestCeilZ);
 
-        if (WorldStatic.InfinitelyTallThings)
+        if (WorldStatic.InfinitelyTallThings && (tryMove == null || tryMove.IntersectMidTexLines.Length == 0))
         {
             entity.HighestFloorZ = highestFloorZ;
             entity.LowestCeilingZ = lowestCeilZ;
