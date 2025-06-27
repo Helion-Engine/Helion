@@ -34,7 +34,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
             {
                 var index = by * it.Width + bx;
                 ref var block = ref Blockmap.Entities[index];
-                for (int i = 0; i < block.EntityIndicesLength; i++)
+                for (int i = block.EntityIndicesLength - 1; i >= 0; i--)
                 {
                     var entity = m_dataCache.Entities[block.EntityIndices[i]];
                     if (entity.BlockmapCount == m_checkCounter || !entity.Flags.Solid)

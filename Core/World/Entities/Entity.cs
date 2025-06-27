@@ -385,7 +385,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     /// </remarks>
     public void UnlinkFromWorld(bool unlinkBlockmapBlocks = true)
     {
-        for (int i = 0; i < SectorNodes.Length; i++)
+        for (int i = SectorNodes.Length - 1; i >= 0; i--)
         {
             LinkableNode<Entity> node = SectorNodes[i];
             node.Unlink();
@@ -813,7 +813,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         DynamicArray<Entity> entities = WorldStatic.DataCache.GetEntityList();
         WorldStatic.World.BlockmapTraverser.GetSolidEntityIntersections2D(this, entities);
-        for (int i = 0; i < entities.Length; i++)
+        for (int i = entities.Length - 1; i >= 0; i--)
         {
             if (entities[i].OverlapsZ(this))
             {
@@ -854,7 +854,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         Entity? highestWalk = null;
         // Walking on things test
-        for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
+        for (int i = tryMove.IntersectEntities2D.Length - 1; i >= 0; i--)
         {
             Entity entity = tryMove.IntersectEntities2D[i];
             double topZ = entity.Position.Z + entity.Height;

@@ -146,7 +146,7 @@ public sealed class PhysicsManager
 
     public void EntityFallCheck(DynamicArray<Entity> entities)
     {
-        for (int i = 0; i < entities.Length; i++)
+        for (int i = entities.Length - 1; i >= 0; i--)
         {
             var entity = entities[i];
             var onEntity = entity.OnEntity();
@@ -365,7 +365,7 @@ public sealed class PhysicsManager
 
         double currentZ = checkEntity.Position.Z;
         // Find the original Z value if this entity is currently being moved by a sector.
-        for (int i = 0; i < m_sectorMoveEntitiesData.Length; i++)
+        for (int i = m_sectorMoveEntitiesData.Length - 1; i >= 0; i--)
         {
             if (m_sectorMoveEntitiesData[i].Entity != checkEntity)
                 continue;
@@ -430,7 +430,7 @@ public sealed class PhysicsManager
 
     private static bool EntityHasMovementSector(Entity entity, Sector sector)
     {
-        for (int i = 0; i < entity.IntersectSectors.Length; i++)
+        for (int i = entity.IntersectSectors.Length - 1; i >= 0; i--)
             if (entity.IntersectSectors[i] == sector)
                 return true;
 
@@ -554,7 +554,7 @@ public sealed class PhysicsManager
 
     private static bool ContainsEntity(DynamicArray<Entity> entities, Entity entity)
     {
-        for (int i = 0; i < entities.Length; i++)
+        for (int i = entities.Length - 1; i >= 0; i--)
         {
             if (entities[i] == entity)
                 return true;
@@ -754,7 +754,7 @@ public sealed class PhysicsManager
                 entity.SetOnEntity(highestEntity);
             }
 
-            for (int i = 0; i < m_onEntities.Length; i++)
+            for (int i = m_onEntities.Length - 1; i >= 0; i--)
                 m_onEntities[i].SetOverEntity(entity);
 
             if (clippedFloor)
@@ -812,15 +812,15 @@ public sealed class PhysicsManager
                 // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
                 m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_canPassTraverseFunc);
 
-                for (int i = 0; i < entity.IntersectMidTexLines.Length; i++)
+                for (int i = entity.IntersectMidTexLines.Length - 1; i >= 0; i--)
                     CanPassTraverse(GetMidTexEntity(entity.IntersectMidTexLines[i]));
             }
             else
             {
-                for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
+                for (int i = tryMove.IntersectEntities2D.Length - 1; i >= 0; i--)
                     CanPassTraverse(tryMove.IntersectEntities2D[i]);
 
-                for (int i = 0; i < tryMove.IntersectMidTexLines.Length; i++)
+                for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
                     CanPassTraverse(GetMidTexEntity(tryMove.IntersectMidTexLines[i]));
             }
 
@@ -875,7 +875,7 @@ public sealed class PhysicsManager
         if (!intersectEntity.Flags.Solid || intersectEntity.Flags.Corpse || intersectEntity.Flags.NoClip || entity == intersectEntity)
             return GridIterationStatus.Continue;
 
-        for (int i = 0; i < m_clampIgnoreEntities.Length; i++)
+        for (int i = m_clampIgnoreEntities.Length - 1; i >= 0; i--)
         {
             if (m_clampIgnoreEntities[i] == intersectEntity)
                 return GridIterationStatus.Continue;
@@ -975,7 +975,7 @@ public sealed class PhysicsManager
         lowestCeiling = entity.Sector;
         highestFloorZ = highestFloor.Floor.Z;
         lowestCeilZ = lowestCeiling.Ceiling.Z;
-        for (int i = 0; i < intersectSectors.Length; i++)
+        for (int i = intersectSectors.Length - 1; i >= 0; i--)
         {
             Sector sector = intersectSectors[i];
             double floorZ = sector.Floor.Z;
@@ -1018,7 +1018,7 @@ public sealed class PhysicsManager
             int intersectSectorLength = 0;
             entity.IntersectSectors.EnsureCapacity(tryMove.IntersectSectors.Length);
             entity.SectorNodes.EnsureCapacity(tryMove.IntersectSectors.Length);
-            for (int i = 0; i < tryMove.IntersectSectors.Length; i++)
+            for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
             {
                 var sector = tryMove.IntersectSectors[i];
                 if (sector.CheckCount == checkCounter)
@@ -1753,7 +1753,7 @@ doneLinkToSectors:
             return Constants.DefaultFriction;
 
         double lowestFriction = double.MaxValue;
-        for (int i = 0; i < entity.IntersectSectors.Length; i++)
+        for (int i = entity.IntersectSectors.Length - 1; i >= 0; i--)
         {
             Sector sector = entity.IntersectSectors[i];
             if (entity.Position.Z != sector.ToFloorZ(entity.Position))
