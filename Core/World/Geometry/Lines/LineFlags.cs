@@ -33,6 +33,8 @@ public struct LineFlags
         Blocking.Everything = flags.BlockEverything;
         Blocking.Use = flags.BlockUse;
         Blocking.Sight = flags.BlockSight;
+        Blocking.MidTex3D = flags.MidTex3D;
+        Blocking.BlockMissileMidTex3D = flags.MidTex3DImpassible;
 
         Unpegged.Upper = flags.UpperUnpegged;
         Unpegged.Lower = flags.LowerUnpegged;

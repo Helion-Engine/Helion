@@ -21,7 +21,7 @@ public sealed class Line
     public Vec2D RenderSegEnd;
     public Side Front;
     public Side? Back;
-    public int LineId;
+    public int MapLineId;
     public SpecialArgs Args;
     public LineFlags Flags;
     public LineSpecial Special;
@@ -35,6 +35,7 @@ public sealed class Line
     public int PhysicsCount;
     public string? MusicChangeFront;
     public string? MusicChangeBack;
+    public Entity? MidTexEntity;
     private double m_length;
     private double m_angle;
 

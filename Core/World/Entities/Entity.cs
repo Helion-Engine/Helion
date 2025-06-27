@@ -22,6 +22,7 @@ using Helion.Graphics.Palettes;
 using System.Runtime.CompilerServices;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Maps.Specials;
+using Helion.World.Geometry.Lines;
 
 namespace Helion.World.Entities;
 
@@ -40,6 +41,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public IWorld World;
     public Entity? Next;
     public Entity? Previous;
+    public Line? MidTexLine;
 
     public Entity? RenderBlockNext;
     public Entity? RenderBlockPrevious;
@@ -111,6 +113,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public bool IsBlocked() => BlockingEntity != null || BlockingBlockLineIndex != -1 || BlockingSectorPlane != null;
     public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new();
+    public readonly DynamicArray<int> MidTexLines = new(); 
     public bool IsDisposed;
 
     public ClosetFlags ClosetFlags;
@@ -401,6 +404,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         }
 
         IntersectSectors.Clear();
+        MidTexLines.Clear();
         BlockingBlockLineIndex = -1;
         BlockingEntity = null;
         BlockingSectorPlane = null;
@@ -959,6 +963,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         SectorNodes.Clear();
         IntersectSectors.Clear();
+        MidTexLines.Clear();
 
         m_target = null;
         m_targetId = 0;
@@ -975,7 +980,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         m_overEntity = null;
         m_overEntityId = 0;
 
-        if (World.DataCache.FreeEntity(this))
+        if (Index > 0 && World.DataCache.FreeEntity(this))
             Definition = null!;
 
         Velocity = Vec3D.Zero;

@@ -103,6 +103,10 @@ public partial class Entity
         Position.Z + Height > other.Position.Z &&
         Position.Z < other.Position.Z + otherHeight;
 
+    public bool OverlapsZ(double bottomZ, double topZ) =>
+        Position.Z + Height > bottomZ &&
+        Position.Z < topZ;
+
     public bool OverlapsMissileClipZ(Entity other, bool missileClipCompat) =>
         OverlapsZ(other, other.GetMissileClipHeight(missileClipCompat));
 

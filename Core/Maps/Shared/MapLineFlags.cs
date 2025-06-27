@@ -47,6 +47,8 @@ public class MapLineFlags
     public bool BlockUse;
     public bool BlockSight;
     public bool TwoSided;
+    public bool MidTex3D;
+    public bool MidTex3DImpassible;
 
     public LineActivations Activations;
 

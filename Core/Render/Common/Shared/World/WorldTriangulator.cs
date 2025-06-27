@@ -99,7 +99,7 @@ public static class WorldTriangulator
     public static void HandleTwoSidedMiddle(Side facingSide,
         in Dimension textureDimension, in Vec2F textureUVInverse, in MidTexOpening opening, in MidTexOpening prevOpening,
         bool isFrontSide, ref WallVertices wall, out bool nothingVisible, double offset = 0, double prevOffset = 0, 
-        SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling)
+        SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling, bool vertexGap = true)
     {
         if (RenderBlock.IsBlocked(facingSide.Line))
         {
@@ -115,7 +115,7 @@ public static class WorldTriangulator
             prevOffset += facingSide.ScrollData.LastOffsetMiddle.Y;
         }
 
-        MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, opening, prevOpening, textureDimension, offset, prevOffset, clipPlanes);
+        MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, opening, prevOpening, textureDimension, offset, prevOffset, clipPlanes, vertexGap);
         if (drawSpan.NotVisible())
         {
             nothingVisible = true;
@@ -291,7 +291,7 @@ public static class WorldTriangulator
     }
 
     private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, Side facingSide, in MidTexOpening opening, in MidTexOpening prevOpening, 
-        in Dimension textureDimension, double offset, double prevOffset, SectorPlanes clipPlanes)
+        in Dimension textureDimension, double offset, double prevOffset, SectorPlanes clipPlanes, bool vertexGap)
     {
         if (facingSide.Flags.WrapMidTex)
             return new(opening.BottomZ, opening.TopZ, opening.BottomZ, opening.TopZ, prevOpening.BottomZ, prevOpening.TopZ, prevOpening.BottomZ, prevOpening.TopZ);
@@ -324,8 +324,14 @@ public static class WorldTriangulator
         var visibleBottomZ = (clipPlanes & SectorPlanes.Floor) == 0 ? bottomZ : Math.Max(bottomZ, opening.MinBottomZ);
         var visiblePrevBottomZ = (clipPlanes & SectorPlanes.Floor) == 0 ? prevBottomZ : Math.Max(prevBottomZ, prevOpening.MinBottomZ);
 
-        return new(bottomZ - WorldStatic.LineVertexGap, topZ + WorldStatic.LineVertexGap, visibleBottomZ - WorldStatic.LineVertexGap, visibleTopZ + WorldStatic.LineVertexGap, 
-            prevBottomZ - WorldStatic.LineVertexGap, prevTopZ + WorldStatic.LineVertexGap, visiblePrevBottomZ - WorldStatic.LineVertexGap, visiblePrevTopZ + WorldStatic.LineVertexGap);
+        if (vertexGap)
+        {
+            return new(bottomZ - WorldStatic.LineVertexGap, topZ + WorldStatic.LineVertexGap, visibleBottomZ - WorldStatic.LineVertexGap, visibleTopZ + WorldStatic.LineVertexGap,
+                prevBottomZ - WorldStatic.LineVertexGap, prevTopZ + WorldStatic.LineVertexGap, visiblePrevBottomZ - WorldStatic.LineVertexGap, visiblePrevTopZ + WorldStatic.LineVertexGap);
+        }
+
+        return new(bottomZ, topZ , visibleBottomZ, visibleTopZ ,
+            prevBottomZ, prevTopZ, visiblePrevBottomZ, visiblePrevTopZ);
     }
 
     public static WallUV CalculateOneSidedWallUV(Line line, Side side, double length,

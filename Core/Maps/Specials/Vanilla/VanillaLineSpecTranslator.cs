@@ -826,7 +826,7 @@ public static class VanillaLineSpecTranslator
     public static void FinalizeLine(DoomLine doomLine, Line line)
     {
         // Based on testing boom seems to do this for every line...
-        line.LineId = doomLine.SectorTag;
+        line.MapLineId = doomLine.SectorTag;
 
         if (IsMusicChange(doomLine))
         {

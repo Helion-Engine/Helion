@@ -13,4 +13,6 @@ public struct LineBlockFlags
     public bool Everything;
     public bool Use;
     public bool Sight;
+    public bool MidTex3D;
+    public bool BlockMissileMidTex3D;
 }

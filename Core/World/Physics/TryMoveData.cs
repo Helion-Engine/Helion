@@ -1,7 +1,6 @@
 using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 using Helion.World.Entities;
-using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Subsectors;
 
@@ -28,6 +27,7 @@ public class TryMoveData
     public DynamicArray<Entity> IntersectEntities2D = new(16);
     public DynamicArray<int> IntersectSpecialLines = new(16);
     public DynamicArray<int> ImpactSpecialLines = new(16);
+    public DynamicArray<int> IntersectMidTexLines = new(16);
     public DynamicArray<Sector> IntersectSectors = new(16);
 
     public void SetPosition(double x, double y)
@@ -40,6 +40,7 @@ public class TryMoveData
         IntersectSpecialLines.Clear();
         ImpactSpecialLines.Clear();
         IntersectSectors.Clear();
+        IntersectMidTexLines.Clear();
         HighestFloorZ = int.MinValue;
         LowestCeilingZ = int.MaxValue;
         DropOffEntity = null;
