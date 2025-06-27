@@ -778,15 +778,24 @@ public sealed class PhysicsManager
         GetEntityClampValues(entity, intersectSectors, clampToLinkedSectors, tryMove, out Sector highestFloor, out Sector lowestCeiling, 
             out double highestFloorZ, out double lowestCeilZ);
 
-        if (WorldStatic.InfinitelyTallThings && (tryMove == null || tryMove.IntersectMidTexLines.Length == 0))
+        if (WorldStatic.InfinitelyTallThings)
         {
-            entity.HighestFloorZ = highestFloorZ;
-            entity.LowestCeilingZ = lowestCeilZ;
-            entity.HighestFloorSector = highestFloor;
-            entity.LowestCeilingSector = lowestCeiling;
-            entity.HighestFloorObject = highestFloor;
-            entity.LowestCeilingObject = lowestCeiling;
-            return;
+            bool hasIntersectMidTexLines;
+            if (tryMove != null)
+                hasIntersectMidTexLines = tryMove.IntersectMidTexLines.Length > 0;
+            else
+                hasIntersectMidTexLines = entity.IntersectMidTexLines.Length > 0;
+
+            if (!hasIntersectMidTexLines)
+            {
+                entity.HighestFloorZ = highestFloorZ;
+                entity.LowestCeilingZ = lowestCeilZ;
+                entity.HighestFloorSector = highestFloor;
+                entity.LowestCeilingSector = lowestCeiling;
+                entity.HighestFloorObject = highestFloor;
+                entity.LowestCeilingObject = lowestCeiling;
+                return;
+            }
         }
 
         // Only check against other entities if CanPass is set (height sensitive clip detection)
