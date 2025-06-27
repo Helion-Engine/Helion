@@ -20,6 +20,7 @@ using Helion.World.Physics.Blockmap;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
 using System;
+using System.Runtime.CompilerServices;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics;
@@ -209,7 +210,7 @@ public sealed class PhysicsManager
                 if (onEntity != null)
                 {
                     if (onEntity.MidTexLine != null)
-                        onEntity = GetMidTexEntity(onEntity.MidTexLine.Id);
+                        onEntity = onEntity.MidTexLine.GetMidTexEntity(m_world);
                     top = onEntity.Position.Z + onEntity.Height;
                 }
                 entity.Position.Z = top;
@@ -640,17 +641,9 @@ public sealed class PhysicsManager
         return LineBlock.BlockContinue;
     }
 
-    private MidTexSpan GetMidTexSpan(int lineId)
-    {
-        // Maybe worth caching in the future
-        var mapLine = m_world.Lines[lineId];
-        var texture = m_world.TextureManager.GetTexture(mapLine.Front.Middle.TextureHandle);
-
-        if (texture != null && texture.Image != null && mapLine.Back != null)
-            return GeometryRenderer.GetMidTexSpan(m_world.TextureManager, texture.Image.Dimension, mapLine.Front, mapLine.Back, mapLine.Front.Sector, mapLine.Back.Sector);
-
-        return default;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Entity GetMidTexEntity(int lineId) =>
+        m_world.Lines[lineId].GetMidTexEntity(m_world);
 
     public LineOpening GetLineOpening(Sector front, Sector back)
     {
@@ -844,29 +837,6 @@ public sealed class PhysicsManager
             entity.LowestCeilingObject = lowestCeilingEntity;
         else
             entity.LowestCeilingObject = lowestCeiling;
-    }
-
-    // Fake an entity to use for 3d physics handling of MidTex3D lines
-    // Position.Z = MidTexSpan.BottomZ
-    // Height = MidTexSpan.TopZ - MidTexSpan.BottomZ
-    private Entity GetMidTexEntity(int lineId)
-    {
-        var line = m_world.Lines[lineId];
-        if (line.MidTexEntity == null)
-        {            
-            line.MidTexEntity = new();
-            line.MidTexEntity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, m_world);
-            line.MidTexEntity.Id = -1;
-            line.MidTexEntity.MidTexLine = line;
-            line.MidTexEntity.Flags.Solid = true;
-            line.MidTexEntity.Flags.ActLikeBridge = true;
-        }
-
-        var span = GetMidTexSpan(lineId);
-        line.MidTexEntity.Position.Z = span.BottomZ;
-        line.MidTexEntity.Height = span.TopZ - span.BottomZ;
-
-        return line.MidTexEntity;
     }
 
     private GridIterationStatus CanPassTraverse(Entity intersectEntity)
