@@ -3,15 +3,12 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
-using Helion.Render.OpenGL.Shared.World;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
-using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -120,6 +117,9 @@ public sealed class PhysicsManager
 
     public void LinkToWorld(Entity entity, TryMoveData? tryMove = null, bool clampToLinkedSectors = true, bool checkLastBlock = false)
     {
+        if (entity.Id < 0)
+            return;
+
         if (!entity.Flags.NoBlockmap)
             m_blockmap.Link(entity, checkLastBlock);
 
@@ -173,6 +173,11 @@ public sealed class PhysicsManager
         if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
             return SectorMoveStatus.BlockedAndStop;
 
+        // Move lower entities first to handle stacked entities
+        // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
+        GetSectorMoveOrderedEntities(m_sectorMoveEntities, sector);
+        m_sectorMoveEntitiesData.Clear();
+
         // Save the Z value because we are only checking if the dest is valid
         // If the move is invalid because of a blocking entity then it will not be set to destZ
         Entity? highestBlockEntity = null;
@@ -190,20 +195,15 @@ public sealed class PhysicsManager
             status = SectorMoveStatus.BlockedAndStop;
         }
 
-        // Move lower entities first to handle stacked entities
-        // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
-        GetSectorMoveOrderedEntities(m_sectorMoveEntities, sector);
-        m_sectorMoveEntitiesData.Clear();
         for (int i = 0; i < m_sectorMoveEntities.Length; i++)
         {
-            Entity entity = m_sectorMoveEntities[i];
+            var entity = m_sectorMoveEntities[i];
             var sectorMoveEntityData = new SectorMoveEntityData(entity, entity.Position.Z, entity.PrevPosition.Z, entity.IsCrushing());
             m_sectorMoveEntitiesData.Add(sectorMoveEntityData);
 
             // At slower speeds we need to set entities to the floor
             // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
-            if (moveType == SectorPlaneFace.Floor && startZ > destZ && (m_alwaysStickEntitiesToFloor || SpeedShouldStickToFloor(speed)) &&
-                entity.OnGround && entity.HighestFloorSector == sector)
+            if (moveType == SectorPlaneFace.Floor && startZ > destZ && entity.OnGround && (m_alwaysStickEntitiesToFloor || SpeedShouldStickToFloor(speed)))
             {
                 double top = destZ;
                 var onEntity = entity.OnEntity();
@@ -243,7 +243,7 @@ public sealed class PhysicsManager
 
         for (int i = 0; i < m_sectorMoveEntities.Length; i++)
         {
-            Entity entity = m_sectorMoveEntities[i];
+            var entity = m_sectorMoveEntities[i];
             if (entity.IsDisposed)
                 continue;
 
@@ -328,9 +328,9 @@ public sealed class PhysicsManager
             // Entity blocked movement, reset all entities in moving sector after resetting sector Z
             for (int i = 0; i < m_sectorMoveEntities.Length; i++)
             {
-                Entity relinkEntity = m_sectorMoveEntities[i];
+                var relinkEntity = m_sectorMoveEntities[i];
                 // Check for entities that may be dead from being crushed
-                if (relinkEntity.IsDisposed)
+                if (relinkEntity.IsDisposed || relinkEntity.Id < 0)
                     continue;
                 relinkEntity.UnlinkFromWorld();
                 relinkEntity.Position.Z = m_sectorMoveEntitiesData[i].SaveZ + diff;
@@ -426,6 +426,14 @@ public sealed class PhysicsManager
                 m_sectorMoveEntities.Add(entity);
             node = node.Next;
         }
+
+        for (int i = sector.MidTex3DLines.Count - 1; i >= 0; i--)
+        {
+            var entity = sector.MidTex3DLines[i].GetMidTexEntity(m_world);
+            entity.PrevPosition.Z = entity.Position.Z;
+            entities.Add(entity);
+        }
+
         entities.Sort(m_sectorMoveOrderComparer);
     }
 
@@ -864,7 +872,7 @@ public sealed class PhysicsManager
         if (entity.Flags.Missile && WorldStatic.MissileClip)
             intersectTopZ = intersectEntity.GetMissileClipHeight(true);
         bool above = entity.PrevPosition.Z >= intersectTopZ;
-        bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Position.Z;
+        bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.PrevPosition.Z;
         bool clipped = false;
         bool addedOnEntity = false;
         if (above && entity.Position.Z < intersectTopZ)

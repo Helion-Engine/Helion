@@ -32,7 +32,8 @@ public sealed class Sector
     public int Tag;
     public SectorPlane Floor;
     public SectorPlane Ceiling;
-    public List<Line> Lines = new();
+    public List<Line> Lines = [];
+    public List<Line> MidTex3DLines = [];
     public LinkableList<Entity> Entities = new();
     public DynamicArray<LinkableNode<Island>> BlockmapNodes = new();
     public int[] LineIds = [];

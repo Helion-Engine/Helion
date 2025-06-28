@@ -400,7 +400,12 @@ public abstract partial class WorldBase : IWorld
             var sector = Sectors[i];
             sector.LineIds = new int[sector.Lines.Count];
             for (int j = 0; j < sector.Lines.Count; j++)
-                sector.LineIds[j] = sector.Lines[j].Id;
+            {
+                var line = sector.Lines[j];
+                sector.LineIds[j] = line.Id;
+                if (line.Flags.Blocking.MidTex3D)
+                    sector.MidTex3DLines.Add(line);
+            }
         }
     }
 
