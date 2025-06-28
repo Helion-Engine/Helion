@@ -143,7 +143,7 @@ public sealed class SectorPlane : ISoundSource
         double minDist = double.MaxValue;
         Line? minLine = null;
 
-        for (int i = 0; i < Sector.Lines.Count; i++)
+        for (int i = 0; i < Sector.Lines.Length; i++)
         {
             var line = Sector.Lines[i];
             if (line.Back != null && line.Front.Sector == line.Back.Sector)

@@ -427,7 +427,7 @@ public sealed class PhysicsManager
             node = node.Next;
         }
 
-        for (int i = sector.MidTex3DLines.Count - 1; i >= 0; i--)
+        for (int i = sector.MidTex3DLines.Length - 1; i >= 0; i--)
         {
             var entity = sector.MidTex3DLines[i].GetMidTexEntity(m_world);
             entity.PrevPosition.Z = entity.Position.Z;

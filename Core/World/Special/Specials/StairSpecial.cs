@@ -78,7 +78,7 @@ public class StairSpecial : SectorMoveSpecial
         do
         {
             keepBuilding = false;
-            for (int i = 0; i < sector.Lines.Count; i++)
+            for (int i = 0; i < sector.Lines.Length; i++)
             {
                 Line line = sector.Lines[i];
                 if (line.Back == null)

@@ -68,13 +68,9 @@ public sealed class Line
         Alpha = 1;
 
         front.Line = this;
-        front.Sector.Lines.Add(this);
 
         if (back != null)
-        {
             back.Line = this;
-            back.Sector.Lines.Add(this);
-        }
 
         m_length = -1;
         m_angle = double.MinValue;

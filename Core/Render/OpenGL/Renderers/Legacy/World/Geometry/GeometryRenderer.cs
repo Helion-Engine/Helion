@@ -489,7 +489,7 @@ public class GeometryRenderer : IDisposable
 
     private void RenderSectorWalls(Sector sector, Vec2D pos2D, Vec2D prevPos2D)
     {
-        for (int i = 0; i < sector.Lines.Count; i++)
+        for (int i = 0; i < sector.Lines.Length; i++)
         {
             Line line = sector.Lines[i];
             bool onFront = line.Segment.OnRight(pos2D);

@@ -53,7 +53,6 @@ using Helion.Resources.Definitions.MusInfo;
 using Helion.Util.Extensions;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Resources.Archives.Entries;
-using Helion.Maps.Doom;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Util.Loggers;
 using Helion.Graphics.Palettes;
@@ -236,7 +235,7 @@ public abstract partial class WorldBase : IWorld
 
         Blockmap = CreateBlockMap();
         RenderBlockmap = CreateRenderBlockMap();
-        BuildStructLines();
+        BuildLines();
 
         SoundManager = CreateSoundManager();
         EntityManager = CreateEntityManager(reuse);
@@ -357,7 +356,7 @@ public abstract partial class WorldBase : IWorld
         return LastRenderBlockMap;
     }
 
-    private void BuildStructLines()
+    private void BuildLines()
     {
         if (SameAsPreviousMap)
         {
@@ -376,6 +375,8 @@ public abstract partial class WorldBase : IWorld
         LastStructLines.EnsureCapacityExact(Lines.Count);
         LastStructLines.SetLength(Lines.Count);
         var arrayData = LastStructLines.Data;
+        var lineCounts = new LineCounts[Sectors.Count];
+
         for (int i = 0; i < Lines.Count; i++)
         {
             var line = Lines[i];
@@ -393,18 +394,59 @@ public abstract partial class WorldBase : IWorld
 
                 group.Lines.Add(line);
             }
+
+            var midtex = line.Flags.Blocking.MidTex3D;
+            ref var counts = ref lineCounts[line.Front.Sector.Id];
+            counts.LineCount++;
+            if (midtex)
+                counts.MidTexCount++;
+
+            if (line.Back != null)
+            {
+                counts = ref lineCounts[line.Back.Sector.Id];
+                counts.LineCount++;
+                if (midtex)
+                    counts.MidTexCount++;
+            }
         }
 
         for (int i = 0; i < Sectors.Count; i++)
         {
             var sector = Sectors[i];
-            sector.LineIds = new int[sector.Lines.Count];
-            for (int j = 0; j < sector.Lines.Count; j++)
+            var counts = lineCounts[i];
+            lineCounts[i] = default;
+
+            if (counts.LineCount == 0)
+                continue;
+
+            sector.Lines = new Line[counts.LineCount];
+            sector.LineIds = new int[counts.LineCount];
+
+            if (counts.MidTexCount > 0)
+                sector.MidTex3DLines = new Line[counts.MidTexCount];
+        }
+
+        for (int i = 0; i < Lines.Count; i++)
+        {
+            var line = Lines[i];
+            var frontSector = line.Front.Sector;
+            var midtex = line.Flags.Blocking.MidTex3D;
+            ref var counts = ref lineCounts[frontSector.Id];
+            frontSector.Lines[counts.LineCount] = line;
+            frontSector.LineIds[counts.LineCount++] = i;
+
+            if (midtex)
+                frontSector.MidTex3DLines[counts.MidTexCount++] = line;
+
+            if (line.Back != null)
             {
-                var line = sector.Lines[j];
-                sector.LineIds[j] = line.Id;
-                if (line.Flags.Blocking.MidTex3D)
-                    sector.MidTex3DLines.Add(line);
+                var backSector = line.Back.Sector;
+                counts = ref lineCounts[backSector.Id];
+                backSector.Lines[counts.LineCount] = line;
+                backSector.LineIds[counts.LineCount++] = i;
+
+                if (midtex)
+                    backSector.MidTex3DLines[counts.MidTexCount++] = line;
             }
         }
     }

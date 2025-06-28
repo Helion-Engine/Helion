@@ -795,7 +795,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_skyGeometry.ClearGeometryVertices(plane);
 
-        for (int i = 0; i < plane.Sector.Lines.Count; i++)
+        for (int i = 0; i < plane.Sector.Lines.Length; i++)
         {
             var line = plane.Sector.Lines[i];
             UpdateSectorPlaneFloodFill(line);
@@ -877,7 +877,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             m_geometryRenderer.SetRenderCeiling(plane);
 
         AddSectorPlane(sector, floor, true);
-        int lineCount = sector.Lines.Count;
+        int lineCount = sector.Lines.Length;
         for (int i = 0; i < lineCount; i++)
         {
             var line = sector.Lines[i];
