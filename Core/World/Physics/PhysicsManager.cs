@@ -430,7 +430,6 @@ public sealed class PhysicsManager
         for (int i = sector.MidTex3DLines.Length - 1; i >= 0; i--)
         {
             var entity = sector.MidTex3DLines[i].GetMidTexEntity(m_world);
-            entity.PrevPosition.Z = entity.Position.Z;
             entities.Add(entity);
         }
 
@@ -1206,7 +1205,6 @@ doneLinkToSectors:
         tryMove.Success = true;
         tryMove.LowestCeiling = entity.Sector;
         tryMove.HighestFloor = entity.Sector;
-        tryMove.LowestCeilingZ = entity.LowestCeilingZ;
         tryMove.Subsector = null;
         tryMove.IntersectSectors.Length = 0;
         tryMove.IntersectEntities2D.Length = 0;

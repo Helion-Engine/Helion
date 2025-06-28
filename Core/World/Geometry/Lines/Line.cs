@@ -229,6 +229,7 @@ public sealed class Line
                 span = GeometryRenderer.GetMidTexSpan(world.TextureManager, texture.Image.Dimension, Front, Back, Front.Sector, Back.Sector);
         }
 
+        MidTexEntity.PrevPosition.Z = span.BottomZ;
         MidTexEntity.Position.Z = span.BottomZ;
         MidTexEntity.Height = span.TopZ - span.BottomZ;
         return MidTexEntity;
