@@ -1347,9 +1347,11 @@ public class GeometryRenderer : IDisposable
     {
         WallVertices wall = default;
         var opening = GetMidTexOpening(textureManager, front, front.Sector, backSector, false);
+        var prevOpening = GetMidTexOpening(textureManager, front, front.Sector, backSector, true);
         var offset = GetTransferHeightHackOffset(textureManager, front, back, opening.BottomZ, opening.TopZ, false);
-        WorldTriangulator.HandleTwoSidedMiddle(front, dimension, default, opening, opening, true, ref wall, out _, offset: offset, vertexGap: false);
-        return new(wall.BottomRight.Z, wall.TopLeft.Z);
+        var prevOffset = GetTransferHeightHackOffset(textureManager, front, back, prevOpening.BottomZ, prevOpening.TopZ, true);
+        WorldTriangulator.HandleTwoSidedMiddle(front, dimension, default, opening, prevOpening, true, ref wall, out _, offset: offset, prevOffset: prevOffset, vertexGap: false);
+        return new(wall.BottomRight.Z, wall.TopLeft.Z, wall.PrevBottomZ, wall.PrevTopZ);
     }
 
     public void SetRenderMode(GeometryRenderMode renderMode, TransferHeightView view)
