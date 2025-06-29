@@ -852,27 +852,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (tryMove.DropOffEntity != null && !tryMove.DropOffEntity.Flags.ActLikeBridge)
             return false;
 
-        Entity? highestWalk = null;
         // Walking on things test
+        Entity? highestWalk = null;
         for (int i = tryMove.IntersectEntities2D.Length - 1; i >= 0; i--)
-        {
-            Entity entity = tryMove.IntersectEntities2D[i];
-            double topZ = entity.Position.Z + entity.Height;
+            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, tryMove.IntersectEntities2D[i]);
 
-            if (!CanBlockEntity(entity))
-                continue;
-            if (topZ >= tryMove.DropOffZ)
-            {
-                // ActLikeBridge takes precedence when z is equal
-                if (topZ == tryMove.DropOffZ && (highestWalk == null || !highestWalk.Flags.ActLikeBridge))
-                    highestWalk = entity;
-                else
-                    highestWalk = entity;
-
-                if (entity.Flags.ActLikeBridge)
-                    tryMove.DropOffZ = topZ;
-            }
-        }
+        for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
+            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, World.Lines[tryMove.IntersectMidTexLines[i]].GetMidTexEntity(World));
 
         if (highestWalk != null && !highestWalk.Flags.ActLikeBridge &&
             highestWalk.Position.Z + highestWalk.Height > tryMove.DropOffZ &&
@@ -883,6 +869,28 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             return false;
 
         return tryMove.HighestFloorZ - tryMove.DropOffZ <= GetMaxStepHeight();
+    }
+
+    private Entity? GetHighestWalkEntity(TryMoveData tryMove, Entity? highestWalk, Entity entity)
+    {
+        var topZ = entity.Position.Z + entity.Height;
+
+        if (CanBlockEntity(entity) && topZ >= tryMove.DropOffZ)
+        {
+            if (topZ > Position.Z && topZ - Position.Z > entity.GetMaxStepHeight())
+                return highestWalk;
+
+            // ActLikeBridge takes precedence when z is equal
+            if (topZ == tryMove.DropOffZ && (highestWalk == null || !highestWalk.Flags.ActLikeBridge))
+                highestWalk = entity;
+            else
+                highestWalk = entity;
+
+            if (entity.Flags.ActLikeBridge)
+                tryMove.DropOffZ = topZ;
+        }
+
+        return highestWalk;
     }
 
     public virtual void Hit(in Vec3D velocity)
