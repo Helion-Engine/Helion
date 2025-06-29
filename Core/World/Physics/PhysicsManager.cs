@@ -166,11 +166,11 @@ public sealed class PhysicsManager
 
     public SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
     {
-        Sector sector = moveSpecial.Sector;
-        SectorPlane sectorPlane = moveSpecial.SectorPlane;
-        SectorMoveData moveData = moveSpecial.MoveData;
-        SectorPlaneFace moveType = moveSpecial.MoveData.SectorMoveType;
-        double startZ = sectorPlane.Z;
+        var sector = moveSpecial.Sector;
+        var sectorPlane = moveSpecial.SectorPlane;
+        var moveData = moveSpecial.MoveData;
+        var moveType = moveSpecial.MoveData.SectorMoveType;
+        var startZ = sectorPlane.Z;
         if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
             return SectorMoveStatus.BlockedAndStop;
 
@@ -202,19 +202,22 @@ public sealed class PhysicsManager
             var sectorMoveEntityData = new SectorMoveEntityData(entity, entity.Position.Z, entity.PrevPosition.Z, entity.IsCrushing());
             m_sectorMoveEntitiesData.Add(sectorMoveEntityData);
 
+            var entityShouldStick = startZ > destZ && entity.OnGround &&
+                (m_alwaysStickEntitiesToFloor || SpeedShouldStickToFloor(speed));
+
             // At slower speeds we need to set entities to the floor
-            // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
-            if (moveType == SectorPlaneFace.Floor && startZ > destZ && entity.OnGround && (m_alwaysStickEntitiesToFloor || SpeedShouldStickToFloor(speed)))
+            // Otherwise the entity will fall and hit the floor repeatedly creating a weird bouncing effect
+            if (entityShouldStick && (entity.IntersectMidTexLines.Length > 0 || moveType == SectorPlaneFace.Floor))
             {
-                double top = destZ;
+                var floorZ = moveType == SectorPlaneFace.Floor ? destZ : entity.Position.Z;
                 var onEntity = entity.OnEntity();
                 if (onEntity != null)
                 {
                     if (onEntity.MidTexLine != null)
                         onEntity = onEntity.MidTexLine.GetMidTexEntity(m_world);
-                    top = onEntity.Position.Z + onEntity.Height;
+                    floorZ = onEntity.Position.Z + onEntity.Height;
                 }
-                entity.Position.Z = top;
+                entity.Position.Z = floorZ;
                 // Setting this so SetEntityBoundsZ does not mess with forcing this entity to to the floor
                 // Otherwise this is a problem with the instant lift hack
                 entity.PrevPosition.Z = entity.Position.Z;
@@ -228,7 +231,7 @@ public sealed class PhysicsManager
 
             ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
 
-            double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
+            var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
             if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
             {
                 if (moveType == SectorPlaneFace.Ceiling)
@@ -259,8 +262,7 @@ public sealed class PhysicsManager
                 (moveType == SectorPlaneFace.Floor && startZ > destZ))
                 continue;
 
-            double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
-
+            var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
             if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
             {
                 if (entity.Flags.Dropped)
@@ -331,7 +333,7 @@ public sealed class PhysicsManager
             {
                 var relinkEntity = m_sectorMoveEntities[i];
                 // Check for entities that may be dead from being crushed
-                if (relinkEntity.IsDisposed || relinkEntity.Id < 0)
+                if (relinkEntity.IsDisposed)
                     continue;
                 relinkEntity.UnlinkFromWorld();
                 relinkEntity.Position.Z = m_sectorMoveEntitiesData[i].SaveZ + diff;
@@ -428,12 +430,6 @@ public sealed class PhysicsManager
             node = node.Next;
         }
 
-        for (int i = sector.MidTex3DLines.Length - 1; i >= 0; i--)
-        {
-            var entity = sector.MidTex3DLines[i].GetMidTexEntity(m_world);
-            entities.Add(entity);
-        }
-
         entities.Sort(m_sectorMoveOrderComparer);
     }
 
@@ -504,6 +500,7 @@ public sealed class PhysicsManager
         sectorPlane.SetZ(sector.Floor.Z);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool SpeedShouldStickToFloor(double speed) =>
         -speed <= SetEntityToFloorSpeedMax || -speed == SectorMoveData.InstantToggleSpeed;
 
