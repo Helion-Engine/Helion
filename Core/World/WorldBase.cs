@@ -186,6 +186,9 @@ public abstract partial class WorldBase : IWorld
     private string m_activeMusic = string.Empty;
     private bool m_explosionTraverseLines;
 
+    const int HighlightSize = 112;
+    private readonly List<object> m_findObjects = [];
+
     private RadiusExplosionData m_radiusExplosion;
     private readonly Action<Entity> m_radiusExplosionEntityAction;
     private readonly Action<int> m_radiusExplosionLineAction;
@@ -198,8 +201,6 @@ public abstract partial class WorldBase : IWorld
 
     private LineOfSightEnemyData m_lineOfSightEnemyData;
     private readonly Func<Entity, GridIterationStatus> m_lineOfSightEnemyAction;
-
-    private readonly TryMoveData EmptyTryMove = new();
 
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
@@ -235,7 +236,6 @@ public abstract partial class WorldBase : IWorld
 
         Blockmap = CreateBlockMap();
         RenderBlockmap = CreateRenderBlockMap();
-        BuildLines();
 
         SoundManager = CreateSoundManager();
         EntityManager = CreateEntityManager(reuse);
@@ -255,8 +255,9 @@ public abstract partial class WorldBase : IWorld
 
         HasDehacked = ArchiveCollection.Definitions.DehackedDefinition != null;
 
-        RegisterConfigChanges();
         SetWorldStatic();
+        BuildLines(); // MidTex3D lines creating entities makes it dependent on WorldStatic
+        RegisterConfigChanges();
 
         m_checkRadiusEntity = new Entity();
         m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this);
@@ -408,6 +409,10 @@ public abstract partial class WorldBase : IWorld
                 if (midtex)
                     counts.MidTexCount++;
             }
+
+            // Allocate entity ahead of time
+            if (midtex)
+                line.GetMidTexEntity(this);
         }
 
         for (int i = 0; i < Sectors.Count; i++)
@@ -2317,7 +2322,7 @@ public abstract partial class WorldBase : IWorld
         => PhysicsManager.TryMoveXY(entity, position.X, position.Y);
 
     public virtual bool IsPositionValid(Entity entity, Vec2D position) =>
-        PhysicsManager.IsPositionValid(entity, position.X, position.Y, PhysicsManager.TryMoveData);
+        PhysicsManager.IsPositionValid(entity, position.X, position.Y);
 
     public virtual SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
     {
@@ -2459,16 +2464,13 @@ public abstract partial class WorldBase : IWorld
         if (blocked)
             return true;
 
-        if (!PhysicsManager.IsPositionValid(entity, entity.Position.X, entity.Position.Y, EmptyTryMove))
+        if (!PhysicsManager.IsPositionValid(entity, entity.Position.X, entity.Position.Y))
             return true;
 
         return false;
     }
 
     public void ResetGametick() => Gametick = 0;
-
-    const int HighlightSize = 112;
-    private List<object> m_findObjects = new();
 
     public void FindKeys()
     {

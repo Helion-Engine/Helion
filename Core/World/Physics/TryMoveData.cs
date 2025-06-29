@@ -8,7 +8,6 @@ namespace Helion.World.Physics;
 
 public class TryMoveData
 {
-    public Vec2D Position;
     public bool Success;
     public bool CanFloat;
     public bool BlockedLineClearsVelocity;
@@ -30,10 +29,8 @@ public class TryMoveData
     public DynamicArray<int> IntersectMidTexLines = new(16);
     public DynamicArray<Sector> IntersectSectors = new(16);
 
-    public void SetPosition(double x, double y)
+    public void Clear()
     {
-        Position.X = x;
-        Position.Y = y;
         CanFloat = false;
         BlockedLineClearsVelocity = true;
         IntersectEntities2D.Clear();

@@ -70,6 +70,7 @@ public sealed class PhysicsManager
     private MoveLinkData m_moveLinkData;
     private CanPassData m_canPassData;
     private Entity m_clampIgnoreEntity;
+    private bool m_stepMoving;
     private readonly Func<Entity, GridIterationStatus> m_canPassTraverseFunc;
     private readonly Func<Entity, GridIterationStatus> m_sectorMoveLinkClampAction;
     private readonly Func<Entity, GridIterationStatus> m_ignoreClampEntityTraverseAction;
@@ -1084,7 +1085,7 @@ doneLinkToSectors:
 
     public TryMoveData TryMoveXY(Entity entity, double x, double y)
     {
-        TryMoveData.SetPosition(x, y);
+        TryMoveData.Clear();
         if (entity.Flags.NoClip)
         {
             entity.UnlinkFromWorld();
@@ -1124,6 +1125,7 @@ doneLinkToSectors:
         Vec3D saveVelocity = entity.Velocity;
         int slideBlockLineId = -1;
         Entity? slideBlockEntity = null;
+        m_stepMoving = true;
 
         for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
         {
@@ -1186,6 +1188,7 @@ doneLinkToSectors:
             m_world.HandleEntityHit(entity, saveVelocity, TryMoveData);
         }
 
+        m_stepMoving = false;
         TryMoveData.Success = success;
         return TryMoveData;
     }
@@ -1193,7 +1196,13 @@ doneLinkToSectors:
     private const int PositionValidFlags1 = EntityFlags.SpecialFlag | EntityFlags.SolidFlag | EntityFlags.ShootableFlag;
     private const int PositionValidFlags2 = EntityFlags.TouchyFlag;
 
-    public bool IsPositionValid(Entity entity, double x, double y, TryMoveData tryMove)
+    public bool IsPositionValid(Entity entity, double x, double y)
+    {
+        TryMoveData.Clear();
+        return IsPositionValid(entity, x, y, TryMoveData);
+    }
+
+    private bool IsPositionValid(Entity entity, double x, double y, TryMoveData tryMove)
     {
         if (!WorldStatic.InfinitelyTallThings && (entity.Flags.Flags1 & EntityFlags.FloatFlag) == 0 && !entity.IsPlayer)
         {
@@ -1206,8 +1215,15 @@ doneLinkToSectors:
         tryMove.LowestCeiling = entity.Sector;
         tryMove.HighestFloor = entity.Sector;
         tryMove.Subsector = null;
-        tryMove.IntersectSectors.Length = 0;
         tryMove.IntersectEntities2D.Length = 0;
+        tryMove.IntersectSpecialLines.Length = 0;
+        tryMove.IntersectMidTexLines.Length = 0;
+        tryMove.IntersectSectors.Length = 0;
+
+        // Kind of a hack for when a player is sliding on a wall since this gets called continually
+        if (!m_stepMoving)
+            tryMove.ImpactSpecialLines.Length = 0;
+
         int blockLineIndex = -1;
 
         if (entity.HighestFloorObject is Entity highFloorEntity)
