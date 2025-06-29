@@ -273,14 +273,14 @@ public class HelionConsole : Target
                 rule = new LoggingRule("*", LogLevel.Debug, this);
         }
 
-        LogManager.Configuration.LoggingRules.Add(rule);
-        LogManager.Configuration.AddTarget(TargetName, this);
+        LogManager.Configuration?.LoggingRules.Add(rule);
+        LogManager.Configuration?.AddTarget(TargetName, this);
         LogManager.ReconfigExistingLoggers();
     }
 
     private void RemoveLogger()
     {
-        LogManager.Configuration.RemoveTarget(TargetName);
+        LogManager.Configuration?.RemoveTarget(TargetName);
     }
 
     private void RemoveExcessMessagesIfAny()
