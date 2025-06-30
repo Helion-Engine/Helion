@@ -395,7 +395,10 @@ public partial class Entity
         }
 
         if (setZ && tryMove.Success && !floatFlag && isMoving)
+        {
             Position.Z = tryMove.HighestFloorZ;
+            OnGround = true;
+        }
 
         // With increased speeds using the TickMultiplier TryMove will iterate and can have partial successes.
         // A partial success needs be considered true in this case.
