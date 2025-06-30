@@ -1403,8 +1403,8 @@ doneLinkToSectors:
         tryMove.SetIntersectionData(m_lineOpening);
 
         bool isPlayer = entity.IsPlayer;
-        // If blocking and not a player, do not check step passing below. Non-players can't step onto other things.
-        if (overlapsZ && !isPlayer)
+        // If blocking and not a player, do not check step passing below. Non-players can't step onto other things. (Exclude MidTex lines)
+        if (overlapsZ && !isPlayer && other.MidTexLine == null)
             return true;
 
         if (!overlapsZ)
