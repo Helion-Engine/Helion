@@ -5,6 +5,8 @@ using Helion.Resources.IWad;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction.Udmf;
@@ -17,7 +19,7 @@ public class MidTex3D
 
     private readonly SinglePlayerWorld World;
     private Player Player => World.Player;
-    private Entity Imp => GameActions.GetEntity(World, 1);
+    private Entity Imp => GameActions.GetEntities(World, "DoomImp").First();
 
     public MidTex3D()
     {
@@ -29,6 +31,15 @@ public class MidTex3D
 
         texture = World.TextureManager.GetTexture("BRNSMALC", ResourceNamespace.Textures);
         texture.Image = CreateImage(64, 64);
+
+        // Entities with a z height aren't initialized correctly since the above texture sizes aren't populated when it loaded
+        var entity = World.EntityManager.Head;
+        while (entity != null)
+        {
+            entity.UnlinkFromWorld();
+            World.Link(entity);
+            entity = entity.Next;
+        }
     }
 
     private static Helion.Graphics.Image CreateImage(int width, int height) =>
@@ -231,6 +242,68 @@ public class MidTex3D
         sector.Ceiling.Z.Should().Be(0);
     }
 
+    [Fact(DisplayName = "Stacked midtex entity movement through ceiling")]
+    public void StackedMidTexMovement()
+    {
+        GameActions.TickWorld(World, 1);
+        var sector = GameActions.GetSectorByTag(World, 3);
+        var demons = GameActions.GetEntities(World, "DEMON");
+        var zombies = GameActions.GetEntities(World, "ZOMBIEMAN");
+        demons.Count.Should().Be(4);
+        demons.Count.Should().Be(4);
+        AssertZ(demons, 288, true);
+        AssertZ(zombies, 416, true);
+
+        GameActions.ActivateLine(World, Player, 154, Helion.World.Physics.ActivationContext.UseLine);
+        sector.ActiveCeilingMove.Should().NotBeNull();
+
+        GameActions.TickWorld(World, () => { return demons[0].Position.Z > 0; }, () => { });
+
+        AssertZ(demons, 0, true);
+        AssertZ(zombies, 128, true);
+
+        sector.Ceiling.Z.Should().Be(192);
+        zombies[0].LowestCeilingZ.Should().Be(192);
+
+        GameActions.TickWorld(World, () => { return demons[0].LowestCeilingZ > 56; }, () => { });
+        GameActions.TickWorld(World, 5);
+
+        sector.Ceiling.Z.Should().Be(184);
+        zombies[0].LowestCeilingZ.Should().Be(184);
+        demons[0].LowestCeilingZ.Should().Be(56);
+
+        AssertZ(demons, 0, true);
+        AssertZ(zombies, 120, true);
+
+        foreach (var entity in demons)
+            entity.Kill(null);
+
+        GameActions.TickWorld(World, () => { return zombies[0].Position.Z > 0; }, () => { });
+
+        sector.Ceiling.Z.Should().Be(64);
+        zombies[0].LowestCeilingZ.Should().Be(64);
+
+        GameActions.TickWorld(World, () => { return zombies[0].LowestCeilingZ > 56; }, () => { });
+        GameActions.TickWorld(World, 5);
+
+        zombies[0].LowestCeilingZ.Should().Be(56);
+
+        foreach (var entity in zombies)
+            entity.Kill(null);
+
+        GameActions.RunSectorPlaneSpecial(World, sector);
+        sector.Ceiling.Z.Should().Be(0);
+        sector.ActiveCeilingMove.Should().BeNull();
+    }
+
+    private static void AssertZ(List<Entity> entities, double z, bool onGround)
+    {
+        foreach (var entity in entities)
+        {
+            entity.Position.Z.Should().Be(z);
+            entity.OnGround.Should().Be(onGround);
+        }
+    }
 
     [Fact(DisplayName = "Projectile blocked by midtex")]
     public void ProjectileBlockedByMidTex()
