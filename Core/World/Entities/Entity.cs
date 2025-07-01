@@ -291,10 +291,21 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         return entityModel;
     }
 
+    private int? GetMidTexLine(object obj)
+    {
+        if (obj is not Entity entity || entity.MidTexLine == null)
+            return null;
+
+        return entity.MidTexLine.Id;
+    }
+
     private static int? GetBoundingEntityForModel(object obj)
     {
         if (obj is not Entity entity)
             return null;
+
+        if (entity.MidTexLine != null)
+            return entity.MidTexLine.Id | EntityModel.MidTexEntityFlag;
 
         return entity.Id;
     }
