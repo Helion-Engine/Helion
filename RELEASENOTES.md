@@ -4,7 +4,7 @@
 - Update OpenTK to 4.9.4
 - Dehacked blood color support for both palette and true color images.
 - Blood color is passed to children through A_SpawnObject so Smooth Doom MBF21 blood spawners with blood color match parent blood.
-- UMDF midtex3d and midtex3dimpassible line flags support. Includes physics for monsters to walk on without dropping off.
+- UDMF midtex3d and midtex3dimpassible line flags support. Includes physics for monsters to walk on without dropping off.
 
 ## Bug Fixes:
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering
