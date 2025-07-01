@@ -250,9 +250,10 @@ public class EntityManager : IDisposable
         //Relink entities with a z-height only, this way they can properly stack with other things in the map now that everything exists
         for (int i = 0; i < relinkEntities.Count; i++)
         {
-            relinkEntities[i].UnlinkFromWorld();
-            World.Link(relinkEntities[i]);
-            relinkEntities[i].PrevPosition = relinkEntities[i].Position;
+            var relink = relinkEntities[i];
+            relink.UnlinkFromWorld();
+            World.Link(relink);
+            relink.PrevPosition = relinkEntities[i].Position;
         }
     }
 
@@ -386,10 +387,23 @@ public class EntityManager : IDisposable
         return default;
     }
 
-    private static object GetBoundingObject(WorldModelPopulateResult result, Sector sector, int? entityId)
+    private object GetBoundingObject(WorldModelPopulateResult result, Sector sector, int? entityId)
     {
         if (!entityId.HasValue)
             return sector;
+
+        if ((entityId & EntityModel.MidTexEntityFlag) != 0)
+        {
+            int lineId = entityId.Value & ~EntityModel.MidTexEntityFlag;
+            if (!World.IsLineIdValid(lineId))
+                return sector;
+
+            var line = World.Lines[lineId];
+            if (!line.Flags.Blocking.MidTex3D)
+                return sector;
+
+            return World.Lines[lineId].GetMidTexEntity(World);
+        }
 
         if (!result.Entities.TryGetValue(entityId.Value, out var pair))
             return false;

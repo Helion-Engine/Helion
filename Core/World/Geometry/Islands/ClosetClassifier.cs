@@ -148,7 +148,7 @@ public static class ClosetClassifier
 
         foreach (Sector sector in sectors)
         {
-            if (sector.Lines.Count > MaxBridgeLines)
+            if (sector.Lines.Length > MaxBridgeLines)
                 continue;
             if (!sector.AreFlatsStatic)
                 continue;

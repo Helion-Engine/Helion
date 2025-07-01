@@ -1,13 +1,17 @@
 using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
-using Helion.World.Entities;
-using Helion.World.Geometry.Sides;
-using Helion.World.Special;
-using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Resources;
+using Helion.Util;
+using Helion.World.Entities;
+using Helion.World.Entities.Definition;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using Helion.World.Special;
 
 namespace Helion.World.Geometry.Lines;
 
@@ -21,7 +25,7 @@ public sealed class Line
     public Vec2D RenderSegEnd;
     public Side Front;
     public Side? Back;
-    public int LineId;
+    public int MapLineId;
     public SpecialArgs Args;
     public LineFlags Flags;
     public LineSpecial Special;
@@ -35,8 +39,6 @@ public sealed class Line
     public int PhysicsCount;
     public string? MusicChangeFront;
     public string? MusicChangeBack;
-    private double m_length;
-    private double m_angle;
 
     public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;
     public bool HasSectorTag => SectorTag > 0;
@@ -46,6 +48,10 @@ public sealed class Line
     public int DelayArg => Args.Arg2;
     public int AmountArg => Args.Arg2;
     public bool SeenForAutomap => (DataChanges & LineDataTypes.Automap) != 0;
+
+    private Entity? MidTexEntity;
+    private double m_length;
+    private double m_angle;
 
     public Line(int id, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial,
         SpecialArgs args)
@@ -62,13 +68,9 @@ public sealed class Line
         Alpha = 1;
 
         front.Line = this;
-        front.Sector.Lines.Add(this);
 
         if (back != null)
-        {
             back.Line = this;
-            back.Sector.Lines.Add(this);
-        }
 
         m_length = -1;
         m_angle = double.MinValue;
@@ -203,6 +205,34 @@ public sealed class Line
     {
         Alpha = alpha;
         DataChanges |= LineDataTypes.Alpha;
+    }
+
+    // Create an entity to use for 3d physics handling of MidTex3D lines
+    // Position.Z = MidTexSpan.BottomZ
+    // Height = MidTexSpan.TopZ - MidTexSpan.BottomZ
+    public Entity GetMidTexEntity(IWorld world)
+    {
+        if (MidTexEntity == null)
+        {
+            MidTexEntity = new();
+            MidTexEntity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world);
+            MidTexEntity.MidTexLine = this;
+            MidTexEntity.Flags.Solid = true;
+            MidTexEntity.Flags.ActLikeBridge = true;
+        }
+
+        MidTexSpan span = default;
+        if (Front.Middle.TextureHandle > Constants.NullCompatibilityTextureIndex)
+        {
+            var texture = world.TextureManager.GetTexture(Front.Middle.TextureHandle);
+            if (texture != null && texture.Image != null && Back != null)
+                span = GeometryRenderer.GetMidTexSpan(world.TextureManager, texture.Image.Dimension, Front, Back, Front.Sector, Back.Sector);
+        }
+
+        MidTexEntity.PrevPosition.Z = span.PrevBottomZ;
+        MidTexEntity.Position.Z = span.BottomZ;
+        MidTexEntity.Height = span.TopZ - span.BottomZ;
+        return MidTexEntity;
     }
 
     public static bool CanMoveOutOf(Entity entity, double x, double y, in Seg2D seg, bool oneSided)

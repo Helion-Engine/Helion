@@ -1,4 +1,3 @@
-using System;
 using Helion.Geometry;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
@@ -17,6 +16,8 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
+using System;
+using System.Runtime.CompilerServices;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Physics;
@@ -69,6 +70,7 @@ public sealed class PhysicsManager
     private MoveLinkData m_moveLinkData;
     private CanPassData m_canPassData;
     private Entity m_clampIgnoreEntity;
+    private bool m_stepMoving;
     private readonly Func<Entity, GridIterationStatus> m_canPassTraverseFunc;
     private readonly Func<Entity, GridIterationStatus> m_sectorMoveLinkClampAction;
     private readonly Func<Entity, GridIterationStatus> m_ignoreClampEntityTraverseAction;
@@ -116,6 +118,9 @@ public sealed class PhysicsManager
 
     public void LinkToWorld(Entity entity, TryMoveData? tryMove = null, bool clampToLinkedSectors = true, bool checkLastBlock = false)
     {
+        if (entity.Id < 0)
+            return;
+
         if (!entity.Flags.NoBlockmap)
             m_blockmap.Link(entity, checkLastBlock);
 
@@ -143,7 +148,7 @@ public sealed class PhysicsManager
 
     public void EntityFallCheck(DynamicArray<Entity> entities)
     {
-        for (int i = 0; i < entities.Length; i++)
+        for (int i = entities.Length - 1; i >= 0; i--)
         {
             var entity = entities[i];
             var onEntity = entity.OnEntity();
@@ -161,13 +166,18 @@ public sealed class PhysicsManager
 
     public SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
     {
-        Sector sector = moveSpecial.Sector;
-        SectorPlane sectorPlane = moveSpecial.SectorPlane;
-        SectorMoveData moveData = moveSpecial.MoveData;
-        SectorPlaneFace moveType = moveSpecial.MoveData.SectorMoveType;
-        double startZ = sectorPlane.Z;
+        var sector = moveSpecial.Sector;
+        var sectorPlane = moveSpecial.SectorPlane;
+        var moveData = moveSpecial.MoveData;
+        var moveType = moveSpecial.MoveData.SectorMoveType;
+        var startZ = sectorPlane.Z;
         if (!m_world.Config.Compatibility.VanillaSectorPhysics && IsSectorMovementBlocked(sector, startZ, destZ, moveSpecial))
             return SectorMoveStatus.BlockedAndStop;
+
+        // Move lower entities first to handle stacked entities
+        // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
+        GetSectorMoveOrderedEntities(m_sectorMoveEntities, sector);
+        m_sectorMoveEntitiesData.Clear();
 
         // Save the Z value because we are only checking if the dest is valid
         // If the move is invalid because of a blocking entity then it will not be set to destZ
@@ -186,26 +196,28 @@ public sealed class PhysicsManager
             status = SectorMoveStatus.BlockedAndStop;
         }
 
-        // Move lower entities first to handle stacked entities
-        // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
-        GetSectorMoveOrderedEntities(m_sectorMoveEntities, sector);
-        m_sectorMoveEntitiesData.Clear();
         for (int i = 0; i < m_sectorMoveEntities.Length; i++)
         {
-            Entity entity = m_sectorMoveEntities[i];
+            var entity = m_sectorMoveEntities[i];
             var sectorMoveEntityData = new SectorMoveEntityData(entity, entity.Position.Z, entity.PrevPosition.Z, entity.IsCrushing());
             m_sectorMoveEntitiesData.Add(sectorMoveEntityData);
 
+            var entityShouldStick = startZ > destZ && entity.OnGround &&
+                (m_alwaysStickEntitiesToFloor || SpeedShouldStickToFloor(speed));
+
             // At slower speeds we need to set entities to the floor
-            // Otherwise the player will fall and hit the floor repeatedly creating a weird bouncing effect
-            if (moveType == SectorPlaneFace.Floor && startZ > destZ && (m_alwaysStickEntitiesToFloor || SpeedShouldStickToFloor(speed)) &&
-                entity.OnGround && entity.HighestFloorSector == sector)
+            // Otherwise the entity will fall and hit the floor repeatedly creating a weird bouncing effect
+            if (entityShouldStick && (entity.IntersectMidTexLines.Length > 0 || moveType == SectorPlaneFace.Floor))
             {
-                double top = destZ;
+                var floorZ = moveType == SectorPlaneFace.Floor ? destZ : entity.Position.Z;
                 var onEntity = entity.OnEntity();
                 if (onEntity != null)
-                    top = onEntity.Position.Z + onEntity.Height;
-                entity.Position.Z = top;
+                {
+                    if (onEntity.MidTexLine != null)
+                        onEntity = onEntity.MidTexLine.GetMidTexEntity(m_world);
+                    floorZ = onEntity.Position.Z + onEntity.Height;
+                }
+                entity.Position.Z = floorZ;
                 // Setting this so SetEntityBoundsZ does not mess with forcing this entity to to the floor
                 // Otherwise this is a problem with the instant lift hack
                 entity.PrevPosition.Z = entity.Position.Z;
@@ -219,7 +231,7 @@ public sealed class PhysicsManager
 
             ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
 
-            double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
+            var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
             if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
             {
                 if (moveType == SectorPlaneFace.Ceiling)
@@ -235,7 +247,7 @@ public sealed class PhysicsManager
 
         for (int i = 0; i < m_sectorMoveEntities.Length; i++)
         {
-            Entity entity = m_sectorMoveEntities[i];
+            var entity = m_sectorMoveEntities[i];
             if (entity.IsDisposed)
                 continue;
 
@@ -250,8 +262,7 @@ public sealed class PhysicsManager
                 (moveType == SectorPlaneFace.Floor && startZ > destZ))
                 continue;
 
-            double thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
-
+            var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
             if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
             {
                 if (entity.Flags.Dropped)
@@ -320,7 +331,7 @@ public sealed class PhysicsManager
             // Entity blocked movement, reset all entities in moving sector after resetting sector Z
             for (int i = 0; i < m_sectorMoveEntities.Length; i++)
             {
-                Entity relinkEntity = m_sectorMoveEntities[i];
+                var relinkEntity = m_sectorMoveEntities[i];
                 // Check for entities that may be dead from being crushed
                 if (relinkEntity.IsDisposed)
                     continue;
@@ -358,7 +369,7 @@ public sealed class PhysicsManager
 
         double currentZ = checkEntity.Position.Z;
         // Find the original Z value if this entity is currently being moved by a sector.
-        for (int i = 0; i < m_sectorMoveEntitiesData.Length; i++)
+        for (int i = m_sectorMoveEntitiesData.Length - 1; i >= 0; i--)
         {
             if (m_sectorMoveEntitiesData[i].Entity != checkEntity)
                 continue;
@@ -418,12 +429,13 @@ public sealed class PhysicsManager
                 m_sectorMoveEntities.Add(entity);
             node = node.Next;
         }
+
         entities.Sort(m_sectorMoveOrderComparer);
     }
 
     private static bool EntityHasMovementSector(Entity entity, Sector sector)
     {
-        for (int i = 0; i < entity.IntersectSectors.Length; i++)
+        for (int i = entity.IntersectSectors.Length - 1; i >= 0; i--)
             if (entity.IntersectSectors[i] == sector)
                 return true;
 
@@ -488,6 +500,7 @@ public sealed class PhysicsManager
         sectorPlane.SetZ(sector.Floor.Z);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool SpeedShouldStickToFloor(double speed) =>
         -speed <= SetEntityToFloorSpeedMax || -speed == SectorMoveData.InstantToggleSpeed;
 
@@ -547,7 +560,7 @@ public sealed class PhysicsManager
 
     private static bool ContainsEntity(DynamicArray<Entity> entities, Entity entity)
     {
-        for (int i = 0; i < entities.Length; i++)
+        for (int i = entities.Length - 1; i >= 0; i--)
         {
             if (entities[i] == entity)
                 return true;
@@ -601,7 +614,7 @@ public sealed class PhysicsManager
         }
     }
 
-    private LineBlock LineBlocksEntity(Entity entity, double x, double y, ref BlockLine line, TryMoveData? tryMove)
+    private LineBlock LineBlocksEntity(Entity entity, double x, double y, ref BlockLine line, TryMoveData tryMove, bool dropoff)
     {
         if (Line.BlocksEntity(entity, x, y, line.Segment, line.OneSided, line.BlockFlags, WorldStatic.Mbf21))
             return LineBlock.BlockStopChecking;
@@ -610,7 +623,7 @@ public sealed class PhysicsManager
             return LineBlock.NoBlock;
 
         LineOpening opening;
-        if (tryMove != null)
+        if (dropoff)
         {
             opening = GetLineOpeningWithDropoff(x, y, ref line);
             tryMove.SetIntersectionData(opening);
@@ -620,11 +633,22 @@ public sealed class PhysicsManager
             opening = GetLineOpening(line.FrontSector, line.BackSector!);
         }
 
+        if (line.BlockFlags.MidTex3D && !line.OneSided && (!entity.Flags.Missile || !line.BlockFlags.BlockMissileMidTex3D))
+        {
+            var midTexEntity = GetMidTexEntity(line.LineId);
+            if (BlocksEntityZ(entity, midTexEntity, tryMove, entity.OverlapsZ(midTexEntity)))
+                return LineBlock.BlockContinue;    
+        }
+
         if (opening.CanPassOrStepThrough(entity))
             return LineBlock.NoBlock;
 
         return LineBlock.BlockContinue;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Entity GetMidTexEntity(int lineId) =>
+        m_world.Lines[lineId].GetMidTexEntity(m_world);
 
     public LineOpening GetLineOpening(Sector front, Sector back)
     {
@@ -728,7 +752,7 @@ public sealed class PhysicsManager
                 entity.SetOnEntity(highestEntity);
             }
 
-            for (int i = 0; i < m_onEntities.Length; i++)
+            for (int i = m_onEntities.Length - 1; i >= 0; i--)
                 m_onEntities[i].SetOverEntity(entity);
 
             if (clippedFloor)
@@ -761,13 +785,22 @@ public sealed class PhysicsManager
 
         if (WorldStatic.InfinitelyTallThings)
         {
-            entity.HighestFloorZ = highestFloorZ;
-            entity.LowestCeilingZ = lowestCeilZ;
-            entity.HighestFloorSector = highestFloor;
-            entity.LowestCeilingSector = lowestCeiling;
-            entity.HighestFloorObject = highestFloor;
-            entity.LowestCeilingObject = lowestCeiling;
-            return;
+            bool hasIntersectMidTexLines;
+            if (tryMove != null)
+                hasIntersectMidTexLines = tryMove.IntersectMidTexLines.Length > 0;
+            else
+                hasIntersectMidTexLines = entity.IntersectMidTexLines.Length > 0;
+
+            if (!hasIntersectMidTexLines)
+            {
+                entity.HighestFloorZ = highestFloorZ;
+                entity.LowestCeilingZ = lowestCeilZ;
+                entity.HighestFloorSector = highestFloor;
+                entity.LowestCeilingSector = lowestCeiling;
+                entity.HighestFloorObject = highestFloor;
+                entity.LowestCeilingObject = lowestCeiling;
+                return;
+            }
         }
 
         // Only check against other entities if CanPass is set (height sensitive clip detection)
@@ -785,11 +818,17 @@ public sealed class PhysicsManager
             {
                 // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
                 m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_canPassTraverseFunc);
+
+                for (int i = entity.IntersectMidTexLines.Length - 1; i >= 0; i--)
+                    CanPassTraverse(GetMidTexEntity(entity.IntersectMidTexLines[i]));
             }
             else
             {
-                for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
+                for (int i = tryMove.IntersectEntities2D.Length - 1; i >= 0; i--)
                     CanPassTraverse(tryMove.IntersectEntities2D[i]);
+
+                for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
+                    CanPassTraverse(GetMidTexEntity(tryMove.IntersectMidTexLines[i]));
             }
 
             highestFloorEntity = m_canPassData.HighestFloorEntity;
@@ -820,7 +859,7 @@ public sealed class PhysicsManager
         if (!intersectEntity.Flags.Solid || intersectEntity.Flags.Corpse || intersectEntity.Flags.NoClip || entity == intersectEntity)
             return GridIterationStatus.Continue;
 
-        for (int i = 0; i < m_clampIgnoreEntities.Length; i++)
+        for (int i = m_clampIgnoreEntities.Length - 1; i >= 0; i--)
         {
             if (m_clampIgnoreEntities[i] == intersectEntity)
                 return GridIterationStatus.Continue;
@@ -830,7 +869,7 @@ public sealed class PhysicsManager
         if (entity.Flags.Missile && WorldStatic.MissileClip)
             intersectTopZ = intersectEntity.GetMissileClipHeight(true);
         bool above = entity.PrevPosition.Z >= intersectTopZ;
-        bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.Position.Z;
+        bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.PrevPosition.Z;
         bool clipped = false;
         bool addedOnEntity = false;
         if (above && entity.Position.Z < intersectTopZ)
@@ -920,7 +959,7 @@ public sealed class PhysicsManager
         lowestCeiling = entity.Sector;
         highestFloorZ = highestFloor.Floor.Z;
         lowestCeilZ = lowestCeiling.Ceiling.Z;
-        for (int i = 0; i < intersectSectors.Length; i++)
+        for (int i = intersectSectors.Length - 1; i >= 0; i--)
         {
             Sector sector = intersectSectors[i];
             double floorZ = sector.Floor.Z;
@@ -963,7 +1002,7 @@ public sealed class PhysicsManager
             int intersectSectorLength = 0;
             entity.IntersectSectors.EnsureCapacity(tryMove.IntersectSectors.Length);
             entity.SectorNodes.EnsureCapacity(tryMove.IntersectSectors.Length);
-            for (int i = 0; i < tryMove.IntersectSectors.Length; i++)
+            for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
             {
                 var sector = tryMove.IntersectSectors[i];
                 if (sector.CheckCount == checkCounter)
@@ -975,6 +1014,8 @@ public sealed class PhysicsManager
 
             entity.IntersectSectors.Length = intersectSectorLength;
             entity.SectorNodes.Length = intersectSectorLength;
+
+            entity.IntersectMidTexLines.AddRange(tryMove.IntersectMidTexLines);
         }
         else
         {
@@ -1002,6 +1043,9 @@ public sealed class PhysicsManager
                             // Doomism: Ignore for moving sectors if blocked by flags only.
                             if (Line.BlocksEntity(entity, entity.Position.X, entity.Position.Y, line.Segment, line.OneSided, line.BlockFlags, WorldStatic.Mbf21))
                                 goto doneLinkToSectors;
+
+                            if (line.BlockFlags.MidTex3D)
+                                entity.IntersectMidTexLines.Add(line.LineId);
 
                             if (line.FrontSector.CheckCount != checkCounter)
                             {
@@ -1038,7 +1082,7 @@ doneLinkToSectors:
 
     public TryMoveData TryMoveXY(Entity entity, double x, double y)
     {
-        TryMoveData.SetPosition(x, y);
+        TryMoveData.Clear();
         if (entity.Flags.NoClip)
         {
             entity.UnlinkFromWorld();
@@ -1078,6 +1122,7 @@ doneLinkToSectors:
         Vec3D saveVelocity = entity.Velocity;
         int slideBlockLineId = -1;
         Entity? slideBlockEntity = null;
+        m_stepMoving = true;
 
         for (int movesLeft = numMoves; movesLeft > 0; movesLeft--)
         {
@@ -1100,7 +1145,7 @@ doneLinkToSectors:
             if (entity.BlockingBlockLineIndex != -1 && entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll)
             {
                 ref var line = ref m_world.Blockmap.BlockLines[entity.BlockingBlockLineIndex];
-                if (Line.CanMoveOutOf(entity, nextX, nextY, line.Segment, line.BackSector == null))
+                if (Line.CanMoveOutOf(entity, nextX, nextY, line.Segment, line.BackSector == null) && !line.BlockFlags.MidTex3D)
                 {
                     TryMoveData.BlockedLineClearsVelocity = false;
                     continue;
@@ -1140,6 +1185,7 @@ doneLinkToSectors:
             m_world.HandleEntityHit(entity, saveVelocity, TryMoveData);
         }
 
+        m_stepMoving = false;
         TryMoveData.Success = success;
         return TryMoveData;
     }
@@ -1147,7 +1193,13 @@ doneLinkToSectors:
     private const int PositionValidFlags1 = EntityFlags.SpecialFlag | EntityFlags.SolidFlag | EntityFlags.ShootableFlag;
     private const int PositionValidFlags2 = EntityFlags.TouchyFlag;
 
-    public bool IsPositionValid(Entity entity, double x, double y, TryMoveData tryMove)
+    public bool IsPositionValid(Entity entity, double x, double y)
+    {
+        TryMoveData.Clear();
+        return IsPositionValid(entity, x, y, TryMoveData);
+    }
+
+    private bool IsPositionValid(Entity entity, double x, double y, TryMoveData tryMove)
     {
         if (!WorldStatic.InfinitelyTallThings && (entity.Flags.Flags1 & EntityFlags.FloatFlag) == 0 && !entity.IsPlayer)
         {
@@ -1159,14 +1211,23 @@ doneLinkToSectors:
         tryMove.Success = true;
         tryMove.LowestCeiling = entity.Sector;
         tryMove.HighestFloor = entity.Sector;
-        tryMove.LowestCeilingZ = entity.LowestCeilingZ;
         tryMove.Subsector = null;
-        tryMove.IntersectSectors.Length = 0;
         tryMove.IntersectEntities2D.Length = 0;
+        tryMove.IntersectSpecialLines.Length = 0;
+        tryMove.IntersectMidTexLines.Length = 0;
+        tryMove.IntersectSectors.Length = 0;
+
+        // Kind of a hack for when a player is sliding on a wall since this gets called continually
+        if (!m_stepMoving)
+            tryMove.ImpactSpecialLines.Length = 0;
+
         int blockLineIndex = -1;
 
         if (entity.HighestFloorObject is Entity highFloorEntity)
         {
+            if (highFloorEntity.MidTexLine != null)
+                highFloorEntity = GetMidTexEntity(highFloorEntity.MidTexLine.Id);
+
             tryMove.HighestFloorZ = highFloorEntity.Position.Z + highFloorEntity.Height;
             tryMove.DropOffZ = entity.Sector.Floor.Z;
         }
@@ -1259,7 +1320,7 @@ doneLinkToSectors:
                     WorldStatic.CheckedLines[blockLine.LineId] = checkCounter;
                     if (blockLine.Segment.Intersects(boxMinX, boxMinY, boxMaxX, boxMaxY))
                     {
-                        var blockType = LineBlocksEntity(entity, x, y, ref blockLine, tryMove);
+                        var blockType = LineBlocksEntity(entity, x, y, ref blockLine, tryMove, true);
                         if (blockType != LineBlock.NoBlock)
                         {
                             entity.BlockingBlockLineIndex = i;
@@ -1271,8 +1332,14 @@ doneLinkToSectors:
                                 goto doneIsPositionValid;
                         }
 
-                        if (!entity.Flags.NoClip && blockLine.HasSpecial && blockType == LineBlock.NoBlock)
-                            tryMove.IntersectSpecialLines.Add(blockLine.LineId);
+                        if (blockType == LineBlock.NoBlock && !entity.Flags.NoClip)
+                        {
+                            if (blockLine.BlockFlags.MidTex3D)
+                                tryMove.IntersectMidTexLines.Add(blockLine.LineId);
+
+                            if (blockLine.HasSpecial)
+                                tryMove.IntersectSpecialLines.Add(blockLine.LineId);
+                        }
 
                         tryMove.IntersectSectors.Data[intersectSectorLength++] = blockLine.FrontSector;
                         if (blockLine.BackSector != null && blockLine.BackSector != blockLine.FrontSector)
@@ -1318,25 +1385,26 @@ doneLinkToSectors:
 
     private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ)
     {
-        if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile && !other.Flags.Missile)
+        if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile && !other.Flags.Missile && other.MidTexLine == null)
             return true;
 
         if (entity.Position.Z + entity.Height > other.Position.Z)
         {
             // This entity is higher than the other entity and requires step up checking
-            m_lineOpening.SetTop(tryMove, other, entity.Flags.Missile && WorldStatic.MissileClip);
+            var otherHeight = WorldStatic.MissileClip ? other.GetMissileClipHeight(WorldStatic.MissileClip) : other.Height;
+            m_lineOpening.SetTop(tryMove, other.Position.Z + otherHeight);
         }
         else
         {
             // This entity is within the other entity's Z or below
-            m_lineOpening.SetBottom(tryMove, other);
+            m_lineOpening.SetBottom(tryMove, other.Position.Z);
         }
 
         tryMove.SetIntersectionData(m_lineOpening);
 
         bool isPlayer = entity.IsPlayer;
-        // If blocking and not a player, do not check step passing below. Non-players can't step onto other things.
-        if (overlapsZ && !isPlayer)
+        // If blocking and not a player, do not check step passing below. Non-players can't step onto other things. (Exclude MidTex lines)
+        if (overlapsZ && !isPlayer && other.MidTexLine == null)
             return true;
 
         if (!overlapsZ)
@@ -1374,7 +1442,7 @@ doneLinkToSectors:
 
     private void HandleSlide(Entity entity, ref Vec2D stepDelta, ref int movesLeft, TryMoveData tryMove)
     {
-        if (FindClosestBlockingLine(entity, stepDelta, out MoveInfo moveInfo) &&
+        if (FindClosestBlockingLine(entity, stepDelta, tryMove, out MoveInfo moveInfo) &&
             MoveCloseToBlockingLine(entity, stepDelta, moveInfo, out Vec2D residualStep, tryMove) &&
             !entity.Flags.Teleported)
         {
@@ -1396,7 +1464,7 @@ doneLinkToSectors:
         movesLeft = 0;
     }
 
-    private void CheckCornerTracerIntersection(in Seg2D cornerTracer, Entity entity, ref MoveInfo moveInfo)
+    private void CheckCornerTracerIntersection(in Seg2D cornerTracer, Entity entity, TryMoveData tryMove, ref MoveInfo moveInfo)
     {
         bool hit = false;
         double hitTime = double.MaxValue;
@@ -1415,7 +1483,7 @@ doneLinkToSectors:
             {
                 ref var line = ref m_blockmap.BlockLines[i];             
                 if (cornerTracer.IntersectionExclusive(line.Segment, out double time) && time > 0 && time < 1 &&
-                    LineBlocksEntity(entity, entity.Position.X, entity.Position.Y, ref line, null) != LineBlock.NoBlock &&
+                    LineBlocksEntity(entity, entity.Position.X, entity.Position.Y, ref line, tryMove, false) != LineBlock.NoBlock &&
                     time < hitTime)
                 {
                     hit = true;
@@ -1429,7 +1497,7 @@ doneLinkToSectors:
             moveInfo = MoveInfo.From(blockLineIndex, hitTime);
     }
 
-    private bool FindClosestBlockingLine(Entity entity, Vec2D stepDelta, out MoveInfo moveInfo)
+    private bool FindClosestBlockingLine(Entity entity, Vec2D stepDelta, TryMoveData tryMove, out MoveInfo moveInfo)
     {
         moveInfo = MoveInfo.Empty();
 
@@ -1500,9 +1568,9 @@ doneLinkToSectors:
         var second = new Seg2D(corners[1], new Vec2D(corners[1].X + stepDelta.X, corners[1].Y + stepDelta.Y));
         var third = new Seg2D(corners[2], new Vec2D(corners[2].X + stepDelta.X, corners[2].Y + stepDelta.Y));
 
-        CheckCornerTracerIntersection(first, entity, ref moveInfo);
-        CheckCornerTracerIntersection(second, entity, ref moveInfo);
-        CheckCornerTracerIntersection(third, entity, ref moveInfo);
+        CheckCornerTracerIntersection(first, entity, tryMove, ref moveInfo);
+        CheckCornerTracerIntersection(second, entity, tryMove, ref moveInfo);
+        CheckCornerTracerIntersection(third, entity, tryMove, ref moveInfo);
 
         return moveInfo.IntersectionFound;
     }
@@ -1683,7 +1751,7 @@ doneLinkToSectors:
             return Constants.DefaultFriction;
 
         double lowestFriction = double.MaxValue;
-        for (int i = 0; i < entity.IntersectSectors.Length; i++)
+        for (int i = entity.IntersectSectors.Length - 1; i >= 0; i--)
         {
             Sector sector = entity.IntersectSectors[i];
             if (entity.Position.Z != sector.ToFloorZ(entity.Position))

@@ -276,10 +276,10 @@ public class MarkSpecials
 
     private static bool SectorHasLine(Sector sector, Line line)
     {
-        for (int i = 0; i < sector.Lines.Count; i++)
+        for (int i = 0; i < sector.Lines.Length; i++)
         {
             var sectorLine = sector.Lines[i];
-            if (sectorLine.Id == line.Id)
+            if (sectorLine == line)
                 return true;
         }
 

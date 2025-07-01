@@ -216,7 +216,7 @@ public class Serialization : IDisposable
         {
             var newLine = GameActions.GetLine(world, line.Id);
 
-            line.LineId.Should().Be(newLine.LineId);
+            line.MapLineId.Should().Be(newLine.MapLineId);
             line.Args.Should().Be(newLine.Args);
             line.Flags.Should().Be(newLine.Flags);
             line.Special.LineSpecialType.Should().Be(newLine.Special.LineSpecialType);

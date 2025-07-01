@@ -154,7 +154,7 @@ public class UdmfMap
         line = GameActions.GetLine(World, 19);
         line.Alpha.Should().Be(0.5f);
         line.LockNumber.Should().Be(ZDoomKeyType.RedKeyCard);
-        line.LineId.Should().Be(69);
+        line.MapLineId.Should().Be(69);
     }
 
     [Fact(DisplayName = "UDMF line special")]

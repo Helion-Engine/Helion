@@ -1,8 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Shared.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
@@ -29,7 +25,11 @@ using Helion.World.Geometry.Subsectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Static;
-using NLog;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using static Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -489,7 +489,7 @@ public class GeometryRenderer : IDisposable
 
     private void RenderSectorWalls(Sector sector, Vec2D pos2D, Vec2D prevPos2D)
     {
-        for (int i = 0; i < sector.Lines.Count; i++)
+        for (int i = 0; i < sector.Lines.Length; i++)
         {
             Line line = sector.Lines[i];
             bool onFront = line.Segment.OnRight(pos2D);
@@ -1223,11 +1223,11 @@ public class GeometryRenderer : IDisposable
 
             var opening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector, false);
             var prevOpening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector, true);
-            double offset = GetTransferHeightHackOffset(facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: false);
+            double offset = GetTransferHeightHackOffset(TextureManager, facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: false);
             double prevOffset = 0;
 
             if (offset != 0)
-                prevOffset = GetTransferHeightHackOffset(facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: true);
+                prevOffset = GetTransferHeightHackOffset(TextureManager,facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: true);
 
             int colorMapIndex = Renderer.GetColorMapBufferIndex(facingSector, LightBufferType.Wall);
             int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Middle, facingSector);
@@ -1295,12 +1295,12 @@ public class GeometryRenderer : IDisposable
     // There is some issue with how the original code renders middle textures with transfer heights.
     // It appears to incorrectly draw from the floor of the original sector instead of the transfer heights sector.
     // Alternatively, I could be dumb and this is dumb but it appears to work.
-    private double GetTransferHeightHackOffset(Side facingSide, Side otherSide, double bottomZ, double topZ, bool previous)
+    public static double GetTransferHeightHackOffset(TextureManager textureManager, Side facingSide, Side otherSide, double bottomZ, double topZ, bool previous)
     {
         if (otherSide.Sector.TransferHeights == null && facingSide.Sector.TransferHeights == null)
             return 0;
 
-        var openingFlats = GetMidTexOpening(TextureManager, facingSide, facingSide.Sector, otherSide.Sector, previous);
+        var openingFlats = GetMidTexOpening(textureManager, facingSide, facingSide.Sector, otherSide.Sector, previous);
         if (facingSide.Line.Flags.Unpegged.Lower)
             return openingFlats.BottomZ - bottomZ;
 
@@ -1341,6 +1341,17 @@ public class GeometryRenderer : IDisposable
             maxTopZ = Math.Max(facingCeilingZ, otherCeilingZ);
 
         return new(bottomZ, topZ, minBottomZ, maxTopZ);
+    }
+
+    public static MidTexSpan GetMidTexSpan(TextureManager textureManager, Dimension dimension, Side front, Side back, Sector frontSector, Sector backSector)
+    {
+        WallVertices wall = default;
+        var opening = GetMidTexOpening(textureManager, front, front.Sector, backSector, false);
+        var prevOpening = GetMidTexOpening(textureManager, front, front.Sector, backSector, true);
+        var offset = GetTransferHeightHackOffset(textureManager, front, back, opening.BottomZ, opening.TopZ, false);
+        var prevOffset = GetTransferHeightHackOffset(textureManager, front, back, prevOpening.BottomZ, prevOpening.TopZ, true);
+        WorldTriangulator.HandleTwoSidedMiddle(front, dimension, default, opening, prevOpening, true, ref wall, out _, offset: offset, prevOffset: prevOffset, vertexGap: false);
+        return new(wall.BottomRight.Z, wall.TopLeft.Z, wall.PrevBottomZ, wall.PrevTopZ);
     }
 
     public void SetRenderMode(GeometryRenderMode renderMode, TransferHeightView view)

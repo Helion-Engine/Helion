@@ -4,6 +4,7 @@ namespace Helion.Models;
 
 public class EntityModel
 {
+    public const int MidTexEntityFlag = 1 << 31;
     public string Name { get; set; } = string.Empty;
     public int Id { get; set; }
     public int ThingId { get; set; }

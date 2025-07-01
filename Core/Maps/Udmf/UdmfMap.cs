@@ -465,6 +465,10 @@ public class UdmfMap : IMap
                 line.DeathSpecial = true;
             else if (prop.Name.EqualsIgnoreCase("wrapmidtex") && prop.Value.EqualsIgnoreCase("true"))
                 line.WrapMidTex = true;
+            else if (prop.Name.EqualsIgnoreCase("midtex3d") && prop.Value.EqualsIgnoreCase("true"))
+                line.Flags.MidTex3D = true;
+            else if (prop.Name.EqualsIgnoreCase("midtex3dimpassible") && prop.Value.EqualsIgnoreCase("true"))
+                line.Flags.MidTex3DImpassible = true;
             else if (prop.Name.EqualsIgnoreCase("health"))
                 line.Health = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("healthgroup"))

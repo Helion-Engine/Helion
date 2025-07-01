@@ -32,7 +32,8 @@ public sealed class Sector
     public int Tag;
     public SectorPlane Floor;
     public SectorPlane Ceiling;
-    public List<Line> Lines = new();
+    public Line[] Lines = [];
+    public Line[] MidTex3DLines = [];
     public LinkableList<Entity> Entities = new();
     public DynamicArray<LinkableNode<Island>> BlockmapNodes = new();
     public int[] LineIds = [];
@@ -548,7 +549,7 @@ public sealed class Sector
         double lowestZ = Floor.Z;
         Sector? lowestSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Floor.Z < lowestZ)
@@ -572,7 +573,7 @@ public sealed class Sector
         double highestZ = double.MinValue;
         Sector? highestSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Floor.Z > highestZ)
@@ -596,7 +597,7 @@ public sealed class Sector
         double lowestZ = double.MaxValue;
         Sector? lowestSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if ((includeThis || line.Front.Sector != this) && line.Front.Sector.Ceiling.Z < lowestZ)
@@ -620,7 +621,7 @@ public sealed class Sector
         double highestZ = double.MinValue;
         Sector? highestSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z > highestZ)
@@ -645,7 +646,7 @@ public sealed class Sector
         double thisZ = Floor.Z;
         Sector? currentSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Floor.Z < Floor.Z && line.Front.Sector.Floor.Z > currentZ &&
@@ -672,7 +673,7 @@ public sealed class Sector
         double thisZ = Ceiling.Z;
         Sector? currentSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z < Ceiling.Z && line.Front.Sector.Ceiling.Z > currentZ &&
@@ -699,7 +700,7 @@ public sealed class Sector
         double thisZ = Floor.Z;
         Sector? currentSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Floor.Z > Floor.Z && line.Front.Sector.Floor.Z < currentZ &&
@@ -726,7 +727,7 @@ public sealed class Sector
         double thisZ = Ceiling.Z;
         Sector? currentSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z > Ceiling.Z && line.Front.Sector.Ceiling.Z < currentZ &&
@@ -751,7 +752,7 @@ public sealed class Sector
     {
         short min = LightLevel;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.LightLevel < min)
@@ -767,7 +768,7 @@ public sealed class Sector
     {
         short max = LightLevel;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.LightLevel > max)
@@ -782,7 +783,7 @@ public sealed class Sector
     public double GetShortestTexture(TextureManager textureManager, bool byLowerTx, ConfigCompat config)
     {
         double min = double.MaxValue;
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Back != null)
@@ -834,7 +835,7 @@ public sealed class Sector
         Vec2D min = new(double.MaxValue, double.MaxValue);
         Vec2D max = new(double.MinValue, double.MinValue);
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Segment.Start.X < min.X)

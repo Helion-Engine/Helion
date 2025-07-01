@@ -66,20 +66,19 @@ public class LineOpening
     }
 
 
-    public void SetTop(TryMoveData tryMove, Entity other, bool missileClipCompat)
+    public void SetTop(TryMoveData tryMove, double topZ)
     {
         CeilingZ = tryMove.LowestCeilingZ;
-        double otherHeight = missileClipCompat ? other.GetMissileClipHeight(missileClipCompat) : other.Height;
-        FloorZ = other.Position.Z + otherHeight;
+        FloorZ = topZ;
         OpeningHeight = CeilingZ - FloorZ;
         DropOffZ = FloorZ;
         CeilingSector = null;
         FloorSector = null;
     }
 
-    public void SetBottom(TryMoveData tryMove, Entity other)
+    public void SetBottom(TryMoveData tryMove, double bottomZ)
     {
-        CeilingZ = other.Position.Z;
+        CeilingZ = bottomZ;
         FloorZ = tryMove.HighestFloorZ;
         OpeningHeight = CeilingZ - FloorZ;
         DropOffZ = FloorZ;

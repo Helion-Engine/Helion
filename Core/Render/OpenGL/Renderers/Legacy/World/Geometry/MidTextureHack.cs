@@ -47,7 +47,7 @@ public class MidTextureHack
         bool clippedFloor = false;
         bool clippedCeiling = false;
 
-        for (int i = 0; i < sector.Lines.Count; i++)
+        for (int i = 0; i < sector.Lines.Length; i++)
         {
             var line = sector.Lines[i];
             if (m_midTextureHackLines.Contains(line.Id))
@@ -150,7 +150,7 @@ public class MidTextureHack
 
     private void SetSectorLinesForMidTextureHack(IWorld world, GeometryRenderer geometryRenderer, Sector sector, SectorPlaneFace face)
     {
-        for (int i = 0; i < sector.Lines.Count; i++)
+        for (int i = 0; i < sector.Lines.Length; i++)
         {
             var line = sector.Lines[i];
             if (line.Back != null && ReferenceEquals(line.Front.Sector, line.Back.Sector))

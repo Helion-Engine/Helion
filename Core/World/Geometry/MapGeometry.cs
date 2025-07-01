@@ -163,7 +163,7 @@ public class MapGeometry
 
     public void SetLineId(Line line, int lineId)
     {
-        line.LineId = lineId;
+        line.MapLineId = lineId;
         TrackLineId(line);
     }
 
@@ -182,7 +182,7 @@ public class MapGeometry
     {
         foreach (Line line in Lines)
         {
-            if (line.LineId == Line.NoLineId)
+            if (line.MapLineId == Line.NoLineId)
                 continue;
 
             TrackLineId(line);
@@ -191,9 +191,9 @@ public class MapGeometry
 
     private void TrackLineId(Line line)
     {
-        if (m_idToLine.TryGetValue(line.LineId, out IList<Line>? lines))
+        if (m_idToLine.TryGetValue(line.MapLineId, out IList<Line>? lines))
             lines.Add(line);
         else
-            m_idToLine[line.LineId] = new List<Line> { line };
+            m_idToLine[line.MapLineId] = [line];
     }
 }

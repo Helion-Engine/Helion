@@ -22,6 +22,7 @@ using Helion.Graphics.Palettes;
 using System.Runtime.CompilerServices;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Maps.Specials;
+using Helion.World.Geometry.Lines;
 
 namespace Helion.World.Entities;
 
@@ -40,6 +41,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public IWorld World;
     public Entity? Next;
     public Entity? Previous;
+    public Line? MidTexLine;
 
     public Entity? RenderBlockNext;
     public Entity? RenderBlockPrevious;
@@ -111,6 +113,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public bool IsBlocked() => BlockingEntity != null || BlockingBlockLineIndex != -1 || BlockingSectorPlane != null;
     public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new();
+    public readonly DynamicArray<int> IntersectMidTexLines = new(); 
     public bool IsDisposed;
 
     public ClosetFlags ClosetFlags;
@@ -288,10 +291,21 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         return entityModel;
     }
 
+    private int? GetMidTexLine(object obj)
+    {
+        if (obj is not Entity entity || entity.MidTexLine == null)
+            return null;
+
+        return entity.MidTexLine.Id;
+    }
+
     private static int? GetBoundingEntityForModel(object obj)
     {
         if (obj is not Entity entity)
             return null;
+
+        if (entity.MidTexLine != null)
+            return entity.MidTexLine.Id | EntityModel.MidTexEntityFlag;
 
         return entity.Id;
     }
@@ -382,7 +396,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     /// </remarks>
     public void UnlinkFromWorld(bool unlinkBlockmapBlocks = true)
     {
-        for (int i = 0; i < SectorNodes.Length; i++)
+        for (int i = SectorNodes.Length - 1; i >= 0; i--)
         {
             LinkableNode<Entity> node = SectorNodes[i];
             node.Unlink();
@@ -401,6 +415,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         }
 
         IntersectSectors.Clear();
+        IntersectMidTexLines.Clear();
         BlockingBlockLineIndex = -1;
         BlockingEntity = null;
         BlockingSectorPlane = null;
@@ -809,7 +824,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         DynamicArray<Entity> entities = WorldStatic.DataCache.GetEntityList();
         WorldStatic.World.BlockmapTraverser.GetSolidEntityIntersections2D(this, entities);
-        for (int i = 0; i < entities.Length; i++)
+        for (int i = entities.Length - 1; i >= 0; i--)
         {
             if (entities[i].OverlapsZ(this))
             {
@@ -848,27 +863,14 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (tryMove.DropOffEntity != null && !tryMove.DropOffEntity.Flags.ActLikeBridge)
             return false;
 
-        Entity? highestWalk = null;
+        var maxStepHeight = GetMaxStepHeight();
         // Walking on things test
-        for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
-        {
-            Entity entity = tryMove.IntersectEntities2D[i];
-            double topZ = entity.Position.Z + entity.Height;
+        Entity? highestWalk = null;
+        for (int i = tryMove.IntersectEntities2D.Length - 1; i >= 0; i--)
+            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, tryMove.IntersectEntities2D[i], maxStepHeight);
 
-            if (!CanBlockEntity(entity))
-                continue;
-            if (topZ >= tryMove.DropOffZ)
-            {
-                // ActLikeBridge takes precedence when z is equal
-                if (topZ == tryMove.DropOffZ && (highestWalk == null || !highestWalk.Flags.ActLikeBridge))
-                    highestWalk = entity;
-                else
-                    highestWalk = entity;
-
-                if (entity.Flags.ActLikeBridge)
-                    tryMove.DropOffZ = topZ;
-            }
-        }
+        for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
+            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, World.Lines[tryMove.IntersectMidTexLines[i]].GetMidTexEntity(World), maxStepHeight);
 
         if (highestWalk != null && !highestWalk.Flags.ActLikeBridge &&
             highestWalk.Position.Z + highestWalk.Height > tryMove.DropOffZ &&
@@ -878,7 +880,35 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (tryMove.IntersectEntities2D.Length == 0 && tryMove.DropOffEntity != null)
             return false;
 
-        return tryMove.HighestFloorZ - tryMove.DropOffZ <= GetMaxStepHeight();
+        return tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight;
+    }
+
+    private Entity? GetHighestWalkEntity(TryMoveData tryMove, Entity? highestWalk, Entity entity, double maxStepHeight)
+    {
+        var topZ = entity.Position.Z + entity.Height;
+
+        if (CanBlockEntity(entity) && topZ >= tryMove.DropOffZ)
+        {
+            // Ignore if can't step up
+            if (topZ > Position.Z && topZ - Position.Z > maxStepHeight)
+                return highestWalk;
+
+            // ActLikeBridge takes precedence when z is equal
+            if (topZ == tryMove.DropOffZ)
+            {
+                if (highestWalk == null || !highestWalk.Flags.ActLikeBridge)
+                    highestWalk = entity;
+            }
+            else
+            {
+                highestWalk = entity;
+            }
+
+            if (entity.Flags.ActLikeBridge)
+                tryMove.DropOffZ = topZ;
+        }
+
+        return highestWalk;
     }
 
     public virtual void Hit(in Vec3D velocity)
@@ -959,6 +989,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         SectorNodes.Clear();
         IntersectSectors.Clear();
+        IntersectMidTexLines.Clear();
 
         m_target = null;
         m_targetId = 0;
@@ -975,7 +1006,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         m_overEntity = null;
         m_overEntityId = 0;
 
-        if (World.DataCache.FreeEntity(this))
+        if (Index > 0 && World.DataCache.FreeEntity(this))
             Definition = null!;
 
         Velocity = Vec3D.Zero;
