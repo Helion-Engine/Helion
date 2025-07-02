@@ -880,7 +880,14 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (tryMove.IntersectEntities2D.Length == 0 && tryMove.DropOffEntity != null)
             return false;
 
-        return tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight;
+        if (tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight)
+        {
+            // When crossing off thing to a ledge it's possible for the check to skip lines since it's allow to move beyond the ledge.
+            // If on ground check it's current z position instead of highest floor
+            return Position.Z - tryMove.DropOffZ <= maxStepHeight;
+        }
+
+        return false;
     }
 
     private Entity? GetHighestWalkEntity(TryMoveData tryMove, Entity? highestWalk, Entity entity, double maxStepHeight)
