@@ -1,3 +1,4 @@
+using Helion.World.Entities.Players;
 using System.Collections.Generic;
 
 namespace Helion.Models;
@@ -45,4 +46,5 @@ public class PlayerModel : EntityModel
     public FrameStateModel? WeaponFlashFrame { get; set; }
     public List<int> Cheats { get; set; } = null!;
     public bool AttackDown { get; set; }
+    public PlayerStats PlayerStats { get; set; }
 }

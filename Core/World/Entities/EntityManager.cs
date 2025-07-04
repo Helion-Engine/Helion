@@ -135,6 +135,7 @@ public class EntityManager : IDisposable
             throw new HelionException("Missing the default player class, should never happen");
         }
 
+        bool addedPlayer = Players.Count <= playerIndex;
         player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
         player.IsVooDooDoll = isVoodooDoll;
 
@@ -144,7 +145,16 @@ public class EntityManager : IDisposable
             return player;
         }
 
-        AddRealPlayer(player);
+
+        if (addedPlayer)
+        {
+            AddRealPlayer(player);
+        }
+        else
+        {
+            Players[playerIndex] = player;
+            RealPlayersByNumber.Set(player.PlayerNumber, player);
+        }
 
         return player;
     }
@@ -452,17 +462,8 @@ public class EntityManager : IDisposable
         if ((mapThing.EditorNumber > 0 && mapThing.EditorNumber < 5) || mapThing.EditorNumber == 1)
             return true;
 
-        // TODO: These should be offloaded into SinglePlayerWorld...
-        if (World.MapType == MapType.Doom)
-        {
-            if (mapThing.Flags.MultiPlayer)
-                return false;
-        }
-        else
-        {
-            if (!mapThing.Flags.SinglePlayer)
-                return false;
-        }
+        if (!World.ShouldSpawn(mapThing))
+            return false;
 
         return (SkillLevel)World.SkillDefinition.SpawnFilter switch
         {

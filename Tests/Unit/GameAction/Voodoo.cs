@@ -91,8 +91,8 @@ public partial class Voodoo : IDisposable
 
         World.PerformItemPickup(VoodooDoll2, mega[0]);
         mega[0].IsDisposed.Should().BeTrue();
-        World.LevelStats.ItemCount.Should().Be(1);
-        Player.ItemCount.Should().Be(1);
+        World.LevelStats.ItemCount.Should().Be(1); 
+        Player.PlayerStats.ItemCount.Should().Be(1);
         Player.Health.Should().Be(200);
         Player.Armor.Should().Be(200);
         Player.BonusCount.Should().Be(6);
@@ -102,7 +102,7 @@ public partial class Voodoo : IDisposable
         World.PerformItemPickup(VoodooDoll3, mega[1]);
         mega[1].IsDisposed.Should().BeTrue();
         World.LevelStats.ItemCount.Should().Be(2);
-        Player.ItemCount.Should().Be(2);
+        Player.PlayerStats.ItemCount.Should().Be(2);
         Player.Health.Should().Be(200);
         Player.Armor.Should().Be(200);
         Player.BonusCount.Should().Be(6);

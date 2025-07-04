@@ -46,6 +46,8 @@ public class ThingFlags
     public bool Skill5;
     public bool Ambush;
     public bool MultiPlayer;
+    public bool NotCooperative;
+    public bool NotDeathmatch;
     // ZDoom/Hexen
     public bool SinglePlayer;
     public bool Deathmatch;
@@ -79,8 +81,8 @@ public class ThingFlags
             Skill5 = (flags & DoomFlags.HardFlag) == DoomFlags.HardFlag,
             Ambush = (flags & DoomFlags.AmbushFlag) == DoomFlags.AmbushFlag,
             MultiPlayer = (flags & DoomFlags.MultiPlayerFlag) == DoomFlags.MultiPlayerFlag,
-            Deathmatch = (flags & DoomFlags.NotDeathmatchFlag) == DoomFlags.NotDeathmatchFlag,
-            Cooperative = (flags & DoomFlags.NotCooperativeFlag) == DoomFlags.NotCooperativeFlag,
+            NotDeathmatch = (flags & DoomFlags.NotDeathmatchFlag) == DoomFlags.NotDeathmatchFlag,
+            NotCooperative = (flags & DoomFlags.NotCooperativeFlag) == DoomFlags.NotCooperativeFlag,
             Friendly = !reserved && (flags & DoomFlags.FriendFlag) == DoomFlags.FriendFlag,
         };
     }

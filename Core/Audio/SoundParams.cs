@@ -14,6 +14,7 @@ public struct SoundParams
 
     public ISoundSource SoundSource { get; set; }
     public bool Loop { get; set; }
+    public bool Relative { get; set; }
     public float Volume { get; set; }
     public Attenuation Attenuation { get; set; }
     public SoundType SoundType { get; set; }

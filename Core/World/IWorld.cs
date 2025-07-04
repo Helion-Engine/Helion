@@ -35,6 +35,7 @@ using Helion.Maps.Shared;
 using Helion.World.Geometry.Subsectors;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Resources.Definitions.Compatibility;
+using Helion.Maps.Components;
 
 namespace Helion.World;
 
@@ -184,6 +185,9 @@ public interface IWorld : IDisposable
     bool SetSkillLevel(SkillLevel skill);
     Subsector ToSubsector(double x, double y);
     bool GetPickupPlayer(Entity entity, [NotNullWhen(true)] out Player? player);
+    bool ShouldSpawn(IThing thing);
+    bool ShouldItemStay(Entity entity);
+    Player? RespawnPlayer(Player player);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

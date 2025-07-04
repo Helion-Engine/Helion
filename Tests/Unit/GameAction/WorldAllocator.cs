@@ -130,7 +130,7 @@ internal static class WorldAllocator
         TotalTicks++;
     }
 
-    private static Config CreateConfig()
+    public static Config CreateConfig()
     {
         Config config = new();
         config.Render.AutomapBspThread.Set(false);

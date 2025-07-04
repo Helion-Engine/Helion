@@ -48,6 +48,7 @@ Option                        | Description
 +setpos [x,y,z]               | Sets the player's start position
 +setangle [deg]               | Sets the player's start angle
 +setpitch [deg]               | Sets the player's start pitch
+-solo-net                     | Starts cooperatrive game in single player.
 
 # Console Commands
 

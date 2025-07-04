@@ -73,6 +73,7 @@ public partial class Client
             m_config.Game.LevelStat.Set(m_commandLineArgs.LevelStat);
             m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
             m_config.Game.PistolStart.Set(m_commandLineArgs.PistolStart);
+            m_config.Game.SoloNet.Set(m_commandLineArgs.SoloNet);
 
             ApplyFeatureSet();
 

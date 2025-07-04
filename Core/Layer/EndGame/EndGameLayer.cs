@@ -89,8 +89,11 @@ public partial class EndGameLayer : IGameLayer
         IList<string> clusterText = Array.Empty<string>();
         if (nextCluster != null && nextCluster.EnterText.Count > 0)
         {
+            if (isNextMapSecret)
+                clusterText = currentCluster.SecretExitText;
+            if (clusterText.Count == 0)
+                clusterText = nextCluster.EnterText;
             currentCluster = nextCluster;
-            clusterText = nextCluster.EnterText;
         }
         else
         {

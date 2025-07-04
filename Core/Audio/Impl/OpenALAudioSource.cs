@@ -16,12 +16,20 @@ public class OpenALAudioSource : IAudioSource
     private const float DefaultRadius = 32.0f;
     private const ALSourcef SourceRadius = (ALSourcef)0x1031;
     private const ALSourcei SourceDistanceModel = (ALSourcei)53248;
+    private const ALSourcei SourceRelative = (ALSourcei)0x202;
+
+    private AudioData m_audioData;
+
 
     public event EventHandler? Completed;
 
     public Vec3F Velocity { get; set; }
 
-    public AudioData AudioData { get; set; }
+    public AudioData AudioData
+    {
+        get => m_audioData;
+        set => m_audioData = value;
+    }
     public OpenALAudioSourceManager Owner { get; private set; }
     public IAudioSource? Previous { get; set; }
     public IAudioSource? Next { get; set; }
@@ -81,6 +89,10 @@ public class OpenALAudioSource : IAudioSource
         AL.Source(m_sourceId, ALSourcef.Pitch, 1.0f);
         AL.Source(m_sourceId, ALSourceb.Looping, audioData.Loop);
         AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
+
+        if (audioData.Relative)
+            SetRelative(true);
+
         OpenALDebug.End("Creating new source");
     }
 
@@ -94,6 +106,8 @@ public class OpenALAudioSource : IAudioSource
     public void SetPosition(float x, float y, float z)
     {
         OpenALDebug.Start("Setting sound position");
+        if (m_audioData.Relative)
+            return;
         AL.Source(m_sourceId, ALSource3f.Position, x, y, z);
         OpenALDebug.End("Setting sound position");
     }
@@ -111,6 +125,20 @@ public class OpenALAudioSource : IAudioSource
         OpenALDebug.Start("Setting sound pitch");
         AL.Source(m_sourceId, ALSourcef.Pitch, pitch);
         OpenALDebug.End("Setting sound pitch");
+    }
+
+    public void SetRelative(bool set)
+    {
+        m_audioData.Relative = set;
+        if (set)
+        {
+            AL.Source(m_sourceId, SourceRelative, 1);
+            AL.Source(m_sourceId, ALSource3f.Position, 0f, 0f, 0f);
+        }
+        else
+        {
+            AL.Source(m_sourceId, SourceRelative, 0);
+        }
     }
 
     public Vec3F GetPosition()

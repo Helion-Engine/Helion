@@ -60,6 +60,8 @@ using Helion.Maps.Shared;
 using Helion.World.Geometry.Islands;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Definitions.Compatibility;
+using Helion.Maps.Components;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World;
 
@@ -1027,7 +1029,7 @@ public abstract partial class WorldBase : IWorld
         DisplayMessage(player, null, "$SECRETMESSAGE");
         SoundManager.PlayStaticSound("misc/secret");
         LevelStats.SecretCount++;
-        player.SecretsFound++;
+        player.PlayerStats.SecretCount++;
     }
 
     public void SectorInstantKillEffect(Entity entity, InstantKillEffect effect)
@@ -1923,7 +1925,7 @@ public abstract partial class WorldBase : IWorld
         if (entity.PlayerObj == null)
             return;
 
-        bool shouldStay = ShouldItemStay(item);
+        var shouldStay = ShouldItemStay(item);
         if (shouldStay && entity.PlayerObj.HasItemOrWeapon(item.Definition))
             return;
 
@@ -1950,15 +1952,19 @@ public abstract partial class WorldBase : IWorld
             SpecialManager.AddActivatedLineSpecial(entity.Special, entity.Args);
     }
 
-    private bool ShouldItemStay(Entity item)
+    public virtual bool ShouldItemStay(Entity item)
     {
         return WorldType switch
         {
-            WorldType.Cooperative => item.Flags.SpecialStayCooperative,
-            WorldType.Deathmatch => item.Flags.SpecialStayDeathmatch,
+            WorldType.Cooperative => item.Flags.SpecialStayCooperative || ShouldItemStayMultiplayer(item),
+            WorldType.Deathmatch => item.Flags.SpecialStayDeathmatch || ShouldItemStayMultiplayer(item),
             _ => item.Flags.SpecialStaySingle,
         };
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ShouldItemStayMultiplayer(Entity item) =>
+        item.Definition.IsType(Inventory.KeyClassName) || (item.Definition.IsType(Inventory.WeaponClassName) && !item.Flags.Dropped);
 
     private void PlayerPickedUpItem(Player player, Entity item, int previousHealth, EntityDefinition definition)
     {
@@ -1970,6 +1976,7 @@ public abstract partial class WorldBase : IWorld
             player = findPlayer;
         }
 
+        // TODO
         m_itemPickupIndexToPlayers[item.Index] = player;
         item.FrameState.SetState(item, item.Definition, Constants.FrameStates.Pickup, warn: false);
         m_itemPickupIndexToPlayers.Remove(item.Index);
@@ -1977,7 +1984,7 @@ public abstract partial class WorldBase : IWorld
         if (item.Flags.CountItem)
         {
             LevelStats.ItemCount++;
-            player.ItemCount++;
+            player.PlayerStats.ItemCount++;
         }
 
         string message = definition.Properties.Inventory.PickupMessage;
@@ -2338,8 +2345,22 @@ public abstract partial class WorldBase : IWorld
     {
         CheckDropItem(deathEntity);
 
-        if (deathEntity.Flags.CountKill && !deathEntity.Flags.Friendly)
-            LevelStats.KillCount++;
+        if (deathEntity.Flags.CountKill)
+        {
+            var player = deathSource?.PlayerObj;
+
+            if (!deathEntity.Flags.Friendly)
+            {
+                LevelStats.KillCount++;
+                if (player != null)
+                    player.PlayerStats.MonsterKillCount++;
+            }
+            else
+            {
+                if (player != null)
+                    player.PlayerStats.FriendlyKillCount++;
+            }
+        }
 
         if (deathEntity.PlayerObj != null)
         {
@@ -3492,5 +3513,54 @@ public abstract partial class WorldBase : IWorld
 
     public virtual Player GetCameraPlayer() => Player;
 
-    public bool GetPickupPlayer(Entity entity, [NotNullWhen(true)] out Player? player) => m_itemPickupIndexToPlayers.TryGetValue(entity.Index, out player);
+    public bool GetPickupPlayer(Entity entity, [NotNullWhen(true)] out Player? player) => 
+        m_itemPickupIndexToPlayers.TryGetValue(entity.Index, out player);
+
+    public bool ShouldSpawn(IThing mapThing)
+    {
+        var flags = mapThing.Flags;
+        if (WorldType == WorldType.SinglePlayer)
+        {
+            if (MapType != MapType.Doom)
+                return flags.SinglePlayer;
+
+            return !flags.MultiPlayer;
+        }
+
+        if (flags.MultiPlayer)
+        {
+            if (MapType == MapType.Doom)
+            {
+                if (WorldType == WorldType.Cooperative)
+                    return !flags.NotCooperative;
+                if (WorldType == WorldType.Deathmatch)
+                    return !flags.NotDeathmatch;
+            }
+            else
+            {
+                if (WorldType == WorldType.Cooperative)
+                    return flags.Cooperative;
+                if (WorldType == WorldType.Deathmatch)
+                    return flags.Deathmatch;
+            }
+        }
+
+        return true;
+    }
+
+    public Player? RespawnPlayer(Player player)
+    {
+        var spawn = EntityManager.SpawnLocations.GetPlayerSpawn(player.PlayerNumber);
+        if (spawn == null)
+            return null;
+
+        var stats = player.PlayerStats;
+        player.PlayerState = PlayerState.Ignore;
+        SoundManager.MakeSoundsNotRelativeTo(player);
+        player = EntityManager.CreatePlayer(0, spawn, false);
+        player.PlayerStats = stats;
+        player.SetDefaultInventory();
+        CreateTeleportFog(player.Position);
+        return player;
+    }
 }

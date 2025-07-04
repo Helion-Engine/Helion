@@ -26,6 +26,8 @@ public interface IAudioSource : IDisposable
     float GetPitch();
     void SetPitch(float pitch);
 
+    void SetRelative(bool set);
+
     AudioData AudioData { get; set; }
 
     void Play();

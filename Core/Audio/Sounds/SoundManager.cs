@@ -371,7 +371,7 @@ public class SoundManager : IDisposable
         if (soundInfo == null)
             return null;
 
-        AttenuateIfNeeded(source, soundInfo, ref soundParams);
+        SetSoundParams(source, soundInfo, ref soundParams);
 
         int priority = GetPriority(source, soundInfo, soundParams);
         if (!CheckDistanceAndPriority(source, pos, velocity, soundInfo, soundParams, priority))
@@ -380,7 +380,7 @@ public class SoundManager : IDisposable
         if (HitSoundLimit(soundInfo) && !StopSoundsBySource(source, soundInfo, soundParams))
             return null;
 
-        AudioData audioData = new(source, soundInfo, soundParams.Channel, soundParams.Attenuation, priority, soundParams.Loop);
+        AudioData audioData = new(source, soundInfo, soundParams.Channel, soundParams.Attenuation, priority, soundParams.Loop, soundParams.Relative);
         IAudioSource? audioSource = AudioManager.Create(soundInfo.EntryName, audioData);
         if (audioSource == null)
             return null;
@@ -428,7 +428,7 @@ public class SoundManager : IDisposable
         source.SoundCreated(soundInfo, null, soundParams.Channel);
     }
 
-    protected virtual void AttenuateIfNeeded(ISoundSource source, SoundInfo info, ref SoundParams soundParams)
+    protected virtual void SetSoundParams(ISoundSource source, SoundInfo info, ref SoundParams soundParams)
     {
         // To be overridden if needed.
     }

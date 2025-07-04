@@ -107,10 +107,18 @@ public class SpawnLocations
         return null;
     }
 
+    public Entity? GetPlayerSpawn(int playerIndex)
+    {
+        if (m_playerStarts.TryGetValue(playerIndex, out var spawns))
+            return GetLastPlayerSpawn(spawns);
+
+        return null;
+    }
+
     public IList<Entity> GetPlayerSpawns(int playerIndex)
     {
         if (m_playerStarts.TryGetValue(playerIndex, out IList<WeakEntity>? spawns))
-            return spawns.Where(x => x.Get() != null).Select(x => x.Get()!).ToList();
+            return [.. spawns.Where(x => x.Get() != null).Select(x => x.Get()!)];
 
         return Array.Empty<Entity>();
     }
