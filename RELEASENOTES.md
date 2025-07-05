@@ -7,4 +7,5 @@
 - UDMF midtex3d and midtex3dimpassible line flags support. Includes physics for monsters to walk on without dropping off.
 
 ## Bug Fixes:
-- Fix spawn ceiling sprite offsets for vanilla sprite rendering
+- Fix spawn ceiling sprite offsets for vanilla sprite rendering.
+- Ignore GL nodes in archive and always build nodes internally to fix maps with bad GL nodes.
