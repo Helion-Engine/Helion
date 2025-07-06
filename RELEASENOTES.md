@@ -11,3 +11,4 @@
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.
 - Ignore GL nodes in archive and always build nodes internally to fix maps with bad GL nodes.
 - Fix id24 pickups to skip using the sprite name for lookup.
+- Fix incorrect warnings for sounds and invalid bex string memonic with custom sounds prefixed with USER_ 
