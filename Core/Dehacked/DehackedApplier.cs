@@ -752,6 +752,9 @@ public class DehackedApplier
             if (thing.BloodColor.HasValue)
                 properties.BloodPaletteColor = (PaletteColor)thing.BloodColor.Value;
 
+            // id24 pickup types override dehacked vanilla sprite lookup
+            definition.IgnoreVanillaSpriteLookup = thing.PickupItemType.HasValue || thing.PickupWeaponType.HasValue || thing.PickupAmmoType.HasValue;
+
             properties.TranslationEntry = thing.TranslationLump;
         }
     }

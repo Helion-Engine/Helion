@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Resources.Definitions;
 using Helion.Resources.IWad;
 using Helion.Tests.Unit.GameAction.Util;
 using Helion.World;
@@ -7,6 +8,7 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using Xunit;
+using static Helion.Dehacked.DehackedDefinition;
 
 namespace Helion.Tests.Unit.GameAction.Id24;
 
@@ -109,10 +111,13 @@ public class Pickups
 
     [Fact(DisplayName = "Pickup message")]
     public void PickupMessage()
-    {
+    {        
         PlayerMessageEvent? messageEvent = null;
         World.PlayerMessage += World_PlayerMessage;
         var item = GameActions.CreateEntity(World, "*deh/entity42068", ItemPos);
+        // Use megasphere frame index to test that vanilla lookup by sprite is ignored for id24
+        var frameIndex = World.ArchiveCollection.Definitions.EntityFrameTable.VanillaFrameMap[(int)ThingState.MEGA].MasterFrameIndex;
+        item.FrameState.Frame = World.ArchiveCollection.Definitions.EntityFrameTable.Frames[frameIndex];
         item.Definition.Properties.Inventory.PickupMessage.Should().Be("$*deh/USER_PICKUPITEM1");
         World.PerformItemPickup(Player, item);
         messageEvent.HasValue.Should().BeTrue();
@@ -245,6 +250,7 @@ public class Pickups
 
     private static readonly string Dehacked =
 @"Thing 42069 (PickupThing)
+Initial frame = 2772
 Bits = SPECIAL
 Pickup item type = 0
 Pickup bonus count = 20
