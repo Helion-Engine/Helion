@@ -3,9 +3,9 @@ using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Resources;
+using Helion.Strings;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Helion.Util.Extensions;
 
@@ -115,11 +115,10 @@ public static class HudExtensions
         return inputText;
     }
 
-    public static void LineWrap(this IHudRenderContext hud, string inputText, string font, int fontSize, int maxWidth, List<string> lines, StringBuilder builder,
+    public static void LineWrap(this IHudRenderContext hud, string inputText, string font, int fontSize, int maxWidth, List<StringSlice> lines,
         out int requiredHeight)
     {
         lines.Clear();
-        builder.Clear();
         if (string.IsNullOrEmpty(inputText))
         {
             requiredHeight = 0;
@@ -128,9 +127,13 @@ public static class HudExtensions
 
         int maxTokenHeight = 0;
         int widthCounter = 0;
-
         int splitStart;
         int splitEnd = 0;
+        int sliceStart = 0;
+        int sliceLength = 0;
+
+        var spaceWidth = hud.MeasureText(" ", font, fontSize).Width;
+
         for (int i = 0; i < inputText.Length; i++)
         {
             if (inputText[i] == ' ' || i == inputText.Length - 1)
@@ -144,24 +147,28 @@ public static class HudExtensions
             }
 
             splitEnd++;
-            var token = inputText.AsSpan(splitStart, splitEnd - splitStart);
+            var token = inputText.AsSpan(splitStart, splitEnd - splitStart - 1);
             var tokenSize = hud.MeasureText(token, font, fontSize);
             maxTokenHeight = Math.Max(maxTokenHeight, tokenSize.Height);
 
             if (widthCounter + tokenSize.Width > maxWidth)
             {
-                lines.Add(builder.ToString());
-                builder.Clear();
+                lines.Add(new(inputText, sliceStart, sliceLength));
+                sliceLength = splitEnd - splitStart;
+                sliceStart = splitStart;
                 widthCounter = 0;
             }
+            else
+            {
+                sliceLength += token.Length + 1;
+            }
 
-            builder.Append(token);
-            widthCounter += tokenSize.Width;
+            widthCounter += tokenSize.Width + spaceWidth;
         }
 
-        // Flush the last line out of the StringBuilder
-        if (builder.Length > 0)
-            lines.Add(builder.ToString());
+        // Flush the last line out
+        if (sliceLength > 0)
+            lines.Add(new(inputText, sliceStart, sliceLength));
 
         requiredHeight = lines.Count * maxTokenHeight;
     }

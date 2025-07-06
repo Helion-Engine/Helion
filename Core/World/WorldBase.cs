@@ -1858,7 +1858,9 @@ public abstract partial class WorldBase : IWorld
 
     public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true)
     {
-        if (ArchiveCollection.Definitions.DehackedDefinition != null && GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item, out var vanillaDef))
+        if (!item.Definition.IgnoreVanillaSpriteLookup &&
+            ArchiveCollection.Definitions.DehackedDefinition != null &&
+            GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item, out var vanillaDef))
         {
             definition = vanillaDef;
             flags = GetCombinedPickupFlags(vanillaDef.Flags, flags);

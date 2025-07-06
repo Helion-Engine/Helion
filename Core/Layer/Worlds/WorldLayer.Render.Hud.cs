@@ -11,7 +11,6 @@ using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Texture.Fonts;
-using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources;
 using Helion.Resources.Definitions.Decorate.States;
@@ -105,6 +104,7 @@ public partial class WorldLayer
     private readonly RenderableString[] RenderableStatLabels;
     private readonly RenderableString[] RenderableStatValues;
     private readonly Font m_largeHudFont;
+    private readonly List<StringSlice> m_lineWrapStrings = [];
 
     private readonly record struct HudDrawWeapon(IHudRenderContext Hud, FrameState FrameState, int yOffset, bool Flash);
 
@@ -1077,11 +1077,23 @@ public partial class WorldLayer
 
             int fontSize = (int)(1.25 * hud.GetFontMaxHeight(SmallHudFont));
             int slideOffsetY = m_messages.Count <= 1 ? 0 : CalculateSlide(hud, lastMessageTime);
+            var scale = GetDoomScale(hud, out _);
+            var width = m_config.Hud.Width.Value * 320.0 * scale.X / m_scale;
+
+            if (m_config.Hud.Width.Value == 0)
+                width = hud.Dimension.Width / m_scale;
+
             for (int i = m_messages.Count - 1; i >= 0; i--)
             {
-                hud.Text(m_messages[i].message, SmallHudFont, fontSize, (LeftOffset + m_hudPaddingX, offsetY + slideOffsetY),
-                    out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: m_messages[i].alpha * m_hudAlpha);
-                offsetY += drawArea.Height + MessageSpacing;
+                (var message, var alpha) = m_messages[i];
+                hud.LineWrap(message, SmallHudFont, fontSize, (int)width, m_lineWrapStrings, out var drawHeight);
+
+                foreach (var line in m_lineWrapStrings)
+                {
+                    hud.Text(line.Source.AsSpan(line.Start, line.Length), SmallHudFont, fontSize, (LeftOffset + m_hudPaddingX, offsetY + slideOffsetY),
+                        out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: alpha * m_hudAlpha);
+                    offsetY += drawArea.Height + MessageSpacing;
+                }
             }
 
             m_lastMessageCount = m_messages.Count;

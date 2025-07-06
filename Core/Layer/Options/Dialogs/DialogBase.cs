@@ -5,6 +5,7 @@ using Helion.Graphics;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
@@ -14,7 +15,6 @@ using Helion.Window;
 using Helion.Window.Input;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Helion.Layer.Options.Dialogs;
 
@@ -37,10 +37,9 @@ internal abstract class DialogBase(ConfigWindow config, string? acceptButton, st
     protected Dimension m_box;
     protected Box2I m_dialogBox;
     protected Vec2I m_dialogOffset;
-    private BoxList m_buttonPosList = new();
-    private List<Action> m_buttonActionList = new();
+    private readonly BoxList m_buttonPosList = new();
+    private readonly List<Action> m_buttonActionList = [];
     private int m_buttonIndex = 0;
-    private StringBuilder m_textWrapBuilder = new();
 
     public void Dispose()
     {
@@ -158,6 +157,24 @@ internal abstract class DialogBase(ConfigWindow config, string? acceptButton, st
         hud.AddOffset((0, m_rowHeight + m_padding));
     }
 
+    protected void RenderDialogText(
+        IHudRenderContext hud,
+        ReadOnlySpan<char> message,
+        Color? color = null,
+        TextAlign textAlign = TextAlign.Left,
+        Align windowAlign = Align.TopLeft,
+        Align anchorAlign = Align.TopLeft)
+    {
+        if (!(message.Length > 0))
+        {
+            hud.AddOffset((0, m_rowHeight));
+            return;
+        }
+
+        hud.Text(message, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width);
+        hud.AddOffset((0, m_rowHeight + m_padding));
+    }
+
     protected void RenderDialogImage(
         IHudRenderContext hud,
         string imageName,
@@ -174,9 +191,9 @@ internal abstract class DialogBase(ConfigWindow config, string? acceptButton, st
         return hud.TruncateText(text, Font, m_fontSize, m_box.Width).ToString();
     }
 
-    protected void WrapTextToDialogWidth(string text, IHudRenderContext hud, List<string> wrappedLines)
+    protected void WrapTextToDialogWidth(string text, IHudRenderContext hud, List<StringSlice> wrappedLines)
     {
-        hud.LineWrap(text, Font, m_fontSize, m_box.Width, wrappedLines, m_textWrapBuilder, out _);
+        hud.LineWrap(text, Font, m_fontSize, m_box.Width, wrappedLines, out _);
     }
 
     public virtual void RunLogic(TickerInfo tickerInfo)
