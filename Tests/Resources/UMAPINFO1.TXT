@@ -78,13 +78,13 @@ map e1m8
 	EndPic = "CREDIT"
 	levelpic = "WILV07"
 	InterText = "Despite your victory, you rot along with the",
-	"core and everything goes black.",
+	"core and everything goes black.\,",
 	"",
 	"You awaken on what appears to be Deimos,",
 	"but something has changed. Time to get",
 	"to the bottom of this.",
 	"",
-	"Join us for Episode 2: Deimos Corrupted!"
+	"Join us for Episode 2: \"Deimos Corrupted\"!"
 	bossaction = "cyberdemon", 69, 42069
 	bossactionednum = 65, 77, 999
 }

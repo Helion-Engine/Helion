@@ -188,7 +188,7 @@ public class UMapInfo
         cluster!.ExitText[4].Should().Be("but something has changed. Time to get");
         cluster!.ExitText[5].Should().Be("to the bottom of this.");
         cluster!.ExitText[6].Should().Be("");
-        cluster!.ExitText[7].Should().Be("Join us for Episode 2: Deimos Corrupted!");
+        cluster!.ExitText[7].Should().Be("Join us for Episode 2: \"Deimos Corrupted\"!");
 
         getMap = mapInfoDef.MapInfo.GetMap("E1M9").MapInfo;
         getMap.Should().NotBeNull();
