@@ -59,7 +59,6 @@ public class SkySphereRenderer : IDisposable
         skyTransform.Sky.Offset.X += offset.X;
         skyTransform.Sky.Offset.Y += offset.Y;
 
-
         if (skyTransform.Sky.Type == SkyTransformType.Fire)
         {
             m_foregroundProgram.Bind();
