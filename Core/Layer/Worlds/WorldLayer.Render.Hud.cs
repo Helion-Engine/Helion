@@ -91,6 +91,7 @@ public partial class WorldLayer
     private RenderStat[] m_renderStats;
 
     private readonly Font m_largeHudFont;
+    private readonly List<StringSlice> m_lineWrapStrings = [];
 
     private readonly record struct HudDrawWeapon(IHudRenderContext Hud, FrameState FrameState, int yOffset, bool Flash);
 
@@ -1062,11 +1063,23 @@ public partial class WorldLayer
 
             int fontSize = (int)(1.25 * hud.GetFontMaxHeight(SmallHudFont));
             int slideOffsetY = m_messages.Count <= 1 ? 0 : CalculateSlide(hud, lastMessageTime);
+            var scale = GetDoomScale(hud, out _);
+            var width = m_config.Hud.Width.Value * 320.0 * scale.X / m_scale;
+
+            if (m_config.Hud.Width.Value == 0)
+                width = hud.Dimension.Width / m_scale;
+
             for (int i = m_messages.Count - 1; i >= 0; i--)
             {
-                hud.Text(m_messages[i].message, SmallHudFont, fontSize, (LeftOffset + m_hudPaddingX, offsetY + slideOffsetY),
-                    out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: m_messages[i].alpha * m_hudAlpha);
-                offsetY += drawArea.Height + MessageSpacing;
+                (var message, var alpha) = m_messages[i];
+                hud.LineWrap(message, SmallHudFont, fontSize, (int)width, m_lineWrapStrings, out var drawHeight);
+
+                foreach (var line in m_lineWrapStrings)
+                {
+                    hud.Text(line.Source.AsSpan(line.Start, line.Length), SmallHudFont, fontSize, (LeftOffset + m_hudPaddingX, offsetY + slideOffsetY),
+                        out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: alpha * m_hudAlpha);
+                    offsetY += drawArea.Height + MessageSpacing;
+                }
             }
 
             m_lastMessageCount = m_messages.Count;

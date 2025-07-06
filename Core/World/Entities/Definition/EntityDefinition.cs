@@ -34,6 +34,7 @@ public class EntityDefinition
     public string? BaseInventoryName;
     public string DehackedName = string.Empty;
     public bool DefinitionSet;
+    public bool IgnoreVanillaSpriteLookup;
 
     public EntityFrame? HealFrame;
 

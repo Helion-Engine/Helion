@@ -20,6 +20,8 @@ public class SimpleParser
         public int EndIndex = endIndex;
     }
 
+    const char EscapeChar = '\\';
+
     private readonly List<ParserToken> m_tokens = [];
     private readonly HashSet<char> m_special = [];
     private readonly ParseType m_parseType;
@@ -83,7 +85,7 @@ public class SimpleParser
         int saveStartIndex = 0;
         int lineStartIndex = 0;
         int length = data.Length;
-        char currentChar = ' ', nextChar = ' ';
+        char currentChar = ' ', nextChar = ' ', prevChar = ' ';
 
         m_tokens.EnsureCapacity(length / 8);
         if (m_keepBeginningSpaces)
@@ -93,6 +95,7 @@ public class SimpleParser
         {
             for (int i = 0; i < length; i++)
             {
+                prevChar = currentChar;
                 ReadChars(pStartChar, i, length, ref currentChar, ref nextChar);
                 bool newLine = currentChar == '\n';
                 bool lineReturn = i < length - 1 && currentChar == '\r' && nextChar == '\n';
@@ -151,16 +154,19 @@ public class SimpleParser
 
                 if (parseQuotes && currentChar == '"')
                 {
-                    m_quotedString = true;
-                    m_isQuote = !m_isQuote;
-                    if (m_isQuote)
+                    if (!m_isQuote || (m_isQuote && prevChar != EscapeChar))
                     {
-                        AddToken(startIndex, i, lineCount, false);
-                        saveStartIndex = i;
-                    }
-                    else
-                    {
-                        m_split = true;
+                        m_quotedString = true;
+                        m_isQuote = !m_isQuote;
+                        if (m_isQuote)
+                        {
+                            AddToken(startIndex, i, lineCount, false);
+                            saveStartIndex = i;
+                        }
+                        else
+                        {
+                            m_split = true;
+                        }
                     }
                 }
 

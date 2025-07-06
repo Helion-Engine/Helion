@@ -131,8 +131,8 @@ public class DehackedApplier
         m_playerDefinition = composer.GetByName("DoomPlayer");
         ApplyVanillaIndex(dehacked, definitionEntries.EntityFrameTable);
 
-        ApplySounds(dehacked, definitionEntries.SoundInfo);
         ApplyBexSounds(dehacked, definitionEntries.SoundInfo);
+        ApplySounds(dehacked, definitionEntries.SoundInfo);
         ApplyBexSprites(dehacked);
 
         ApplyThings(dehacked, definitionEntries.EntityFrameTable, composer);
@@ -751,6 +751,9 @@ public class DehackedApplier
                 properties.SelfDamageFactor = thing.SelfDamageFactor.Value;
             if (thing.BloodColor.HasValue)
                 properties.BloodPaletteColor = (PaletteColor)thing.BloodColor.Value;
+
+            // id24 pickup types override dehacked vanilla sprite lookup
+            definition.IgnoreVanillaSpriteLookup = thing.PickupItemType.HasValue || thing.PickupWeaponType.HasValue || thing.PickupAmmoType.HasValue;
 
             properties.TranslationEntry = thing.TranslationLump;
         }
@@ -1599,8 +1602,7 @@ public class DehackedApplier
         {
             if (text.Mnemonic.StartsWith("USER_", StringComparison.OrdinalIgnoreCase))
                 language.Add(GetDehackedMessageLookup(text.Mnemonic, false), text.Value);
-
-            if (!language.SetValue(text.Mnemonic, text.Value))
+            else if (!language.SetValue(text.Mnemonic, text.Value))
                 Log.Warn($"Unknown bex string mnemonic:{text.Mnemonic}");
         }
     }

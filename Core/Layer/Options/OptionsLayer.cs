@@ -8,6 +8,7 @@ using Helion.Layer.Options.Sections;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Resources;
+using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
@@ -21,7 +22,6 @@ using Helion.Window;
 using Helion.Window.Input;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
@@ -47,8 +47,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private readonly IWindow m_window;
     private readonly List<IOptionSection> m_sections;
     private readonly BoxList m_backForwardPos = new();
-    private readonly List<string> m_footerLines = [];
-    private readonly StringBuilder m_footerStringBuilder = new();
+    private readonly List<StringSlice> m_footerLines = [];
     private Dimension m_windowSize;
     private Vec2I m_cursorPos;
     private int m_currentSectionIndex;
@@ -406,7 +405,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         m_headerHeight += pageInstrArea.Height + m_config.Window.GetMenuScaled(16);
         if (m_lastSelectedRowDescription != m_selectedRowDescription)
-            GenerateFooterLines(m_selectedRowDescription, FooterFont, fontSize, hud, m_footerLines, m_footerStringBuilder, out m_footerHeight);
+            GenerateFooterLines(m_selectedRowDescription, FooterFont, fontSize, hud, m_footerLines, out m_footerHeight);
         m_lastSelectedRowDescription = m_selectedRowDescription;
 
         y += m_headerHeight;
@@ -457,21 +456,21 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         }
     }
 
-    private void GenerateFooterLines(string inputText, string font, int fontSize, IHudRenderContext hud, List<string> lines, StringBuilder builder,
+    private void GenerateFooterLines(string inputText, string font, int fontSize, IHudRenderContext hud, List<StringSlice> lines,
         out int requiredHeight)
     {
         // Setting descriptions may be verbose, and may need multiple lines to render.  This method precomputes 
         // the dimensions we'll need for a footer, so we can reserve room when doing rendering and scroll offset
         // calculations.  It also returns the split text, since we need to figure that out anyway and are going to
         // need it later when we actually render the footer.
-        hud.LineWrap(inputText, font, fontSize, hud.Width, lines, builder, out requiredHeight);
+        hud.LineWrap(inputText, font, fontSize, hud.Width, lines, out requiredHeight);
 
         // Calculate how much room we need for the footer, with padding both above and below the text
         int padding = m_config.Window.GetMenuScaled(8);
         requiredHeight += padding * 2;
     }
 
-    private void RenderFooter(List<string> lines, int startY, string font, int fontSize, IHudRenderContext hud)
+    private void RenderFooter(List<StringSlice> lines, int startY, string font, int fontSize, IHudRenderContext hud)
     {
         int padding = m_config.Window.GetMenuScaled(8);
 
@@ -483,10 +482,11 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         int y = hud.Height - m_footerHeight + padding;
 
-        foreach (string line in lines)
+        foreach (var line in lines)
         {
-            Dimension tokenSize = hud.MeasureText(line, font, fontSize);
-            hud.Text(line, font, fontSize, (0, y), out Dimension drawArea, both: Align.TopMiddle, color: Color.White);
+            var span = line.AsSpan();
+            Dimension tokenSize = hud.MeasureText(span, font, fontSize);
+            hud.Text(span, font, fontSize, (0, y), out Dimension drawArea, both: Align.TopMiddle, color: Color.White);
             y += drawArea.Height;
         }
     }

@@ -1,5 +1,6 @@
 ﻿using Helion.Graphics;
 using Helion.Render.Common.Renderers;
+using Helion.Strings;
 using Helion.Util.Configs.Components;
 using System.Collections.Generic;
 
@@ -10,8 +11,8 @@ internal class MessageDialog(ConfigWindow config, string title, IList<string> me
 {
     private readonly string m_title = title;
     private readonly IList<string> m_message = message;
-    private readonly List<string> m_messageFormatted = [];
-    private readonly List<string> m_lines = [];
+    private readonly List<StringSlice> m_messageFormatted = [];
+    private readonly List<StringSlice> m_lines = [];
 
     protected override void RenderDialogContents(IRenderableSurfaceContext ctx, IHudRenderContext hud, bool sizeChanged)
     {
@@ -24,11 +25,11 @@ internal class MessageDialog(ConfigWindow config, string title, IList<string> me
             m_messageFormatted.Clear();
             m_lines.Clear();
 
-            foreach (string str in m_message)
+            foreach (var str in m_message)
             {
                 if (str.Length == 0)
                 {
-                    m_messageFormatted.Add(str);
+                    m_messageFormatted.Add(StringSlice.Empty);
                     continue;
                 }
 
@@ -38,8 +39,6 @@ internal class MessageDialog(ConfigWindow config, string title, IList<string> me
         }
 
         foreach (var message in m_messageFormatted)
-        {
-            RenderDialogText(hud, message);
-        }
+            RenderDialogText(hud, message.AsSpan());
     }
 }
