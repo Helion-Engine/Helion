@@ -24,11 +24,11 @@ namespace Helion.World.Entities;
 
 public class EntityManager : IDisposable
 {
-    public record class EntityModelPair(EntityModel Model, Entity Entity);
+    public record struct EntityModelPair(EntityModel Model, Entity Entity);
 
-    public class WorldModelPopulateResult(IList<Player> players, Dictionary<int, EntityModelPair> entities)
+    public class WorldModelPopulateResult(List<Player> players, Dictionary<int, EntityModelPair> entities)
     {
-        public IList<Player> Players = players;
+        public List<Player> Players = players;
         public Dictionary<int, EntityModelPair> Entities = entities;
     }
 
@@ -269,12 +269,11 @@ public class EntityManager : IDisposable
 
     public WorldModelPopulateResult PopulateFrom(WorldModel worldModel)
     {
-        List<Player> players = [];
-        Dictionary<int, EntityModelPair> entities = [];
-
         var maxEntityId = worldModel.Entities.Max(x => x.Id);
         var maxPlayerId = worldModel.Players.Max(x => x.Id);
         World.DataCache.SetEntitiesForMapLoad(worldModel.Entities.Count + worldModel.Players.Count);
+        List<Player> players = new(worldModel.Players.Count);
+        Dictionary<int, EntityModelPair> entities = new(worldModel.Entities.Count + worldModel.Players.Count);
 
         // Entities are serialized backwards because of the linked list implementation
         for (int i = worldModel.Entities.Count - 1; i >= 0; i--)
@@ -312,27 +311,24 @@ public class EntityManager : IDisposable
         for (int i = 0; i < worldModel.Entities.Count; i++)
         {
             var entityModel = worldModel.Entities[i];
-            if (!entities.TryGetValue(entityModel.Id, out EntityModelPair? entity))
+            if (!entities.TryGetValue(entityModel.Id, out var entity))
                 continue;
 
             if (entityModel.Owner.HasValue)
             {
-                entities.TryGetValue(entityModel.Owner.Value, out var entityOwner);
-                if (entityOwner != null)
+                if (!entities.TryGetValue(entityModel.Owner.Value, out var entityOwner))
                     entity.Entity.SetOwner(entityOwner.Entity);
             }
 
             if (entityModel.Target.HasValue)
             {
-                entities.TryGetValue(entityModel.Target.Value, out var entityTarget);
-                if (entityTarget != null)
+                if (!entities.TryGetValue(entityModel.Target.Value, out var entityTarget))
                     entity.Entity.SetTarget(entityTarget.Entity);
             }
 
             if (entityModel.Tracer.HasValue)
             {
-                entities.TryGetValue(entityModel.Tracer.Value, out var tracerTarget);
-                if (tracerTarget != null)
+                if (!entities.TryGetValue(entityModel.Tracer.Value, out var tracerTarget))
                     entity.Entity.SetTracer(tracerTarget.Entity);
             }
 
@@ -357,31 +353,37 @@ public class EntityManager : IDisposable
         Head = entity;
     }
 
-    public void FinalizeFromWorldLoad(WorldModelPopulateResult result, Entity entity)
+    public void FinalizeFromWorldLoad(WorldModelPopulateResult result)
     {
-        World.Link(entity);
-        bool? setOnGround = null;
-
-        if (result.Entities.TryGetValue(entity.Id, out var pair))
+        for (var entity = Head; entity != null; entity = entity.Next)
         {
-            entity.HighestFloorSector = GetValidSector(World, entity.Sector, pair.Model.HighSec);
-            entity.LowestCeilingSector = GetValidSector(World, entity.Sector, pair.Model.LowSec);
-            entity.HighestFloorZ = entity.HighestFloorSector.ToFloorZ(entity.Position);
-            entity.LowestCeilingZ = entity.LowestCeilingSector.ToCeilingZ(entity.Position);
+            World.Link(entity);
+            bool? setOnGround = null;
 
-            entity.HighestFloorObject = GetBoundingObject(result, entity.HighestFloorSector, pair.Model.HighEntity);
-            entity.LowestCeilingObject = GetBoundingObject(result, entity.LowestCeilingSector, pair.Model.LowEntity);
-            entity.Position = new Vec3D(pair.Model.Box.CenterX, pair.Model.Box.CenterY, pair.Model.Box.CenterZ);
-            setOnGround = pair.Model.OnGround;
+            if (result.Entities.TryGetValue(entity.Id, out var pair))
+            {
+                entity.HighestFloorSector = GetValidSector(World, entity.Sector, pair.Model.HighSec);
+                entity.LowestCeilingSector = GetValidSector(World, entity.Sector, pair.Model.LowSec);
+                entity.HighestFloorZ = entity.HighestFloorSector.ToFloorZ(entity.Position);
+                entity.LowestCeilingZ = entity.LowestCeilingSector.ToCeilingZ(entity.Position);
+
+                entity.HighestFloorObject = GetBoundingObject(result, entity.HighestFloorSector, pair.Model.HighEntity);
+                entity.LowestCeilingObject = GetBoundingObject(result, entity.LowestCeilingSector, pair.Model.LowEntity);
+                entity.Position = new Vec3D(pair.Model.Box.CenterX, pair.Model.Box.CenterY, pair.Model.Box.CenterZ);
+                setOnGround = pair.Model.OnGround;
+            }
+
+            PostProcessEntity(entity);
+            FinalizeEntity(entity, false, initSpawn: false);
+            if (setOnGround != null)
+                entity.OnGround = setOnGround.Value;
+
+            if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
+                MusicChangers.Add(entity);
         }
 
-        PostProcessEntity(entity);
-        FinalizeEntity(entity, false, initSpawn: false);
-        if (setOnGround != null)
-            entity.OnGround = setOnGround.Value;
-
-        if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
-            MusicChangers.Add(entity);
+        // The linked list is backwards so the starts have to be reversed
+        SpawnLocations.ReversePlayerStarts();
     }
 
     public Player? GetRealPlayer(int playerNumber)

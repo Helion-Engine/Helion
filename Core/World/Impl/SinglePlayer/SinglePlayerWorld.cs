@@ -113,9 +113,7 @@ public class SinglePlayerWorld : WorldBase
             ApplyLineModels(worldModel);
             CreateDamageSpecials(worldModel);
 
-            for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
-                EntityManager.FinalizeFromWorldLoad(result, entity);
-
+            EntityManager.FinalizeFromWorldLoad(result);
             SpecialManager.AddSpecialModels(worldModel);
         }
 
