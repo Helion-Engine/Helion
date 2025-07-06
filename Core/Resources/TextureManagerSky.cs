@@ -1,17 +1,16 @@
-﻿using System;
+﻿using Helion.Geometry.Vectors;
+using Helion.Graphics;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Resources.Definitions.Id24;
+using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.Images;
+using Helion.Util;
+using Helion.Util.Extensions;
+using Helion.Util.RandomGenerators;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Helion.Resources.Archives.Entries;
-using Helion.Resources.Images;
-using Helion.Resources.Definitions.Id24;
 using System.Linq;
-using Helion.Graphics;
-using Helion.Util.RandomGenerators;
-using Helion.Util;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
-using Helion.Util.Extensions;
-using Helion.Geometry.Vectors;
-using Helion.Resources.Definitions.MapInfo;
 
 namespace Helion.Resources;
 
@@ -240,6 +239,8 @@ public partial class TextureManager
 
         if (skyTransform == null && mapInfo.Sky1.ScrollSpeed != 0)
             skyTransform = SkyTransform.FromMapInfoSky(texture.Index, mapInfo);
+
+        skyTransform ??= SkyTransform.Default;
 
         if (skyTransform != null)
         {
