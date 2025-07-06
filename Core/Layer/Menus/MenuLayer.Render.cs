@@ -10,11 +10,11 @@ using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Render.Common.Textures;
+using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using static Helion.Render.Common.RenderDimensions;
 
 namespace Helion.Layer.Menus;
@@ -25,10 +25,7 @@ public partial class MenuLayer
     private const int SelectedOffsetX = -32;
     private const int SelectedOffsetY = 5;
 
-    private readonly List<string> m_mapNameLines = [];
-    private readonly StringBuilder m_mapNameStringBuilder = new();
-    private readonly static StringBuilder m_lineWrapStringBuilder = new();
-    private readonly static List<string> m_lineWrapLines = new();
+    private readonly static List<StringSlice> m_lineWrapLines = [];
 
     private IMenuComponent? m_previousSelectedComponent;
     private IRenderableTextureHandle? m_saveGameTexture;
@@ -108,11 +105,11 @@ public partial class MenuLayer
         {
             int rowHeight = 0;
             var height = hud.MeasureText("0", text.FontName, text.Size).Height;
-            hud.LineWrap(text.Text, text.FontName, text.Size, hud.Dimension.Width, m_lineWrapLines, m_lineWrapStringBuilder, out addHeight);
+            hud.LineWrap(text.Text, text.FontName, text.Size, hud.Dimension.Width, m_lineWrapLines, out addHeight);
 
             foreach (var line in m_lineWrapLines)
             {
-                hud.Text(line, text.FontName, text.Size, (0, offsetY + rowHeight), out _, both: align);
+                hud.Text(line.AsSpan(), text.FontName, text.Size, (0, offsetY + rowHeight), out _, both: align);
                 rowHeight += height;
             }
         }
@@ -271,7 +268,7 @@ public partial class MenuLayer
         int boxHeight = thumbnailHeight + 5 * textSize + 3;
 
         var centerOffset = GetSaveMenuOffset(hud);
-        hud.LineWrap(m_saveGameSummary.MapName, Font, textSize, boxWidth - 4, m_mapNameLines, m_mapNameStringBuilder, 
+        hud.LineWrap(m_saveGameSummary.MapName, Font, textSize, boxWidth - 4, m_lineWrapLines, 
             out var requiredHeight);
         boxHeight += requiredHeight;
 
@@ -301,9 +298,9 @@ public partial class MenuLayer
 
         Vec2I offset = boxUpperLeft + (2, thumbnailHeight + 2);
 
-        for (int i = 0; i < m_mapNameLines.Count; i++)
+        for (int i = 0; i < m_lineWrapLines.Count; i++)
         {
-            hud.Text(m_mapNameLines[i], Font, textSize, offset, out var drawArea);
+            hud.Text(m_lineWrapLines[i].AsSpan(), Font, textSize, offset, out var drawArea);
             offset += (0, drawArea.Height);
         }
 
