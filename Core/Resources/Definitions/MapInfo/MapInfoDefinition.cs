@@ -503,6 +503,9 @@ public partial class MapInfoDefinition
                 break;
         }
 
+        for (int i = 0; i < textItems.Count; i++)
+            textItems[i] = textItems[i].Replace("\\\"", "\"").Replace("\\", string.Empty);
+
         return textItems;
     }
 

@@ -182,13 +182,13 @@ public class UMapInfo
         cluster = e1m8.ClusterDef;
         cluster.Should().NotBeNull();
         cluster!.ExitText[0].Should().Be("Despite your victory, you rot along with the");
-        cluster!.ExitText[1].Should().Be("core and everything goes black.");
+        cluster!.ExitText[1].Should().Be("core and everything goes black.,");
         cluster!.ExitText[2].Should().Be("");
         cluster!.ExitText[3].Should().Be("You awaken on what appears to be Deimos,");
         cluster!.ExitText[4].Should().Be("but something has changed. Time to get");
         cluster!.ExitText[5].Should().Be("to the bottom of this.");
         cluster!.ExitText[6].Should().Be("");
-        cluster!.ExitText[7].Should().Be("Join us for Episode 2: Deimos Corrupted!");
+        cluster!.ExitText[7].Should().Be("Join us for Episode 2: \"Deimos Corrupted\"!");
 
         getMap = mapInfoDef.MapInfo.GetMap("E1M9").MapInfo;
         getMap.Should().NotBeNull();
