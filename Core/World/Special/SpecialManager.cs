@@ -838,9 +838,15 @@ public sealed class SpecialManager : ITickable, IDisposable
         {
             var sector = sectors.GetSector(i);
             if ((planes & SectorPlanes.Floor) != 0)
+            {
+                sector.DataChanges |= SectorDataTypes.Rotate;
                 sector.Floor.RenderOffsets.Rotate += rotate;
+            }
             if ((planes & SectorPlanes.Ceiling) != 0)
+            {
+                sector.DataChanges |= SectorDataTypes.Rotate;
                 sector.Ceiling.RenderOffsets.Rotate += rotate;
+            }
         }
     }
 
@@ -853,14 +859,15 @@ public sealed class SpecialManager : ITickable, IDisposable
         {
             var sector = sectors.GetSector(i);
             if ((planes & SectorPlanes.Floor) != 0)
-                SetPlaneOffset(sector.Floor, offset);
+                SetPlaneOffset(sector, sector.Floor, offset);
             if ((planes & SectorPlanes.Ceiling) != 0)
-                SetPlaneOffset(sector.Ceiling, offset);
+                SetPlaneOffset(sector, sector.Ceiling, offset);
         }
     }
 
-    private static void SetPlaneOffset(SectorPlane plane, Vec2D offset)
+    private static void SetPlaneOffset(Sector sector, SectorPlane plane, Vec2D offset)
     {
+        sector.DataChanges |= SectorDataTypes.Offset;
         offset = new(-offset.X, offset.Y);
         plane.RenderOffsets.Offset += offset;
         plane.RenderOffsets.LastOffset += offset;

@@ -353,6 +353,13 @@ public sealed class Sector
                 if (Ceiling.RenderOffsets.Offset.X != 0 || Ceiling.RenderOffsets.Offset.Y != 0)
                     sectorModel.CeilingOffset = new Vector2D(Ceiling.RenderOffsets.Offset);
             }
+            if ((DataChanges & SectorDataTypes.Rotate) != 0)
+            {
+                if (Floor.RenderOffsets.Rotate != 0)
+                    sectorModel.FloorRotate = Floor.RenderOffsets.Rotate;
+                if (Ceiling.RenderOffsets.Rotate != 0)
+                    sectorModel.CeilingRotate = Floor.RenderOffsets.Rotate;
+            }
 
             sectorModel.Secret = Secret;
             sectorModel.DamageAmount = DamageAmount;
@@ -457,6 +464,14 @@ public sealed class Sector
                     Ceiling.RenderOffsets.Offset = new Vec2D(sectorModel.CeilingOffset.Value.X, sectorModel.CeilingOffset.Value.Y);
                     Ceiling.RenderOffsets.LastOffset = Ceiling.RenderOffsets.Offset;
                 }
+            }
+
+            if ((DataChanges & SectorDataTypes.Rotate) != 0)
+            {
+                if (sectorModel.FloorRotate.HasValue)
+                    Floor.RenderOffsets.Rotate = sectorModel.FloorRotate.Value;
+                if (sectorModel.CeilingRotate.HasValue)
+                    Ceiling.RenderOffsets.Rotate = sectorModel.CeilingRotate.Value;
             }
         }
 
