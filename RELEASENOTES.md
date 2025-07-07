@@ -12,7 +12,8 @@
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.
 - Ignore GL nodes in archive and always build nodes internally to fix maps with bad GL nodes.
 - Fix id24 pickups to skip using the sprite name for lookup.
-- Fix incorrect warnings for sounds and invalid bex string memonic with custom sounds prefixed with USER_.
 - Fix id24 skies to have defaults set for when not defined outside of flatmapping and correct lookup for animations.
+- Fix id24 sector offset/rotations not restoring after loading a save.
+- Fix incorrect warnings for sounds and invalid bex string memonic with custom sounds prefixed with USER_.
 - Fix UMAPINFO/MAPINFO EnterText/ExitText/SecretExitText/ExitText with escaped double quotes.
 - Fix setting vanilla sky render mode with skydefs when only flatmapping is defined with no skies.

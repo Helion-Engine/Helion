@@ -38,4 +38,6 @@ public struct SectorModel
     public SectorEffect? SectorEffect;
     public Vector2D? FloorOffset;
     public Vector2D? CeilingOffset;
+    public double? FloorRotate;
+    public double? CeilingRotate;
 }
