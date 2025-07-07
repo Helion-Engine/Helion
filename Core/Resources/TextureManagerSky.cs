@@ -21,7 +21,7 @@ public class SkyFireAnimation(int[] firePalette, Texture texture, Image fireImag
     public Image FireImage = fireImage;
     public int Ticks = ticks;
     public int CurrentTick;
-    public bool RenderUpdate = true;
+    public int RenderUpdate;
 }
 
 public partial class TextureManager
@@ -52,7 +52,7 @@ public partial class TextureManager
                 continue;
                         
             skyFire.CurrentTick = 0;
-            skyFire.RenderUpdate = true;
+            skyFire.RenderUpdate = Ticks;
             UpdateSkyFire(skyFire);
             var palette = m_archiveCollection.Data.Palette.DefaultLayer;
             WriteSkyFireToTexture(palette, skyFire.FirePalette, skyFire.FireImage, skyFire.Texture.Image);

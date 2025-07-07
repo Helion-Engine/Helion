@@ -21,9 +21,12 @@ public class SkySphereComponent : ISkyComponent
     public bool HasGeometry => !m_geometryVbo.Empty;
     public VertexBufferObject<SkyGeometryVertex> Vbo => m_geometryVbo;
 
+    public readonly string Name;
+
     public SkySphereComponent(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle,
         SkyOptions options, Vec2F offset)
     {
+        Name = textureManager.GetTexture(textureHandle).Name;
         m_skySphereRenderer = new(archiveCollection, textureManager, textureHandle);
         m_geometryVao = new("Sky geometry");
         m_geometryVbo = new("Sky geometry");
@@ -84,4 +87,6 @@ public class SkySphereComponent : ISkyComponent
 
         m_skySphereRenderer.Dispose();
     }
+
+    public override string ToString() => Name;
 }

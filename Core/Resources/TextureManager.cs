@@ -10,7 +10,6 @@ using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Animdefs.Textures;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
-using Helion.Resources.Definitions.Zdoom;
 using Helion.Resources.Images;
 using Helion.Util;
 using Helion.Util.Container;
@@ -43,6 +42,7 @@ public partial class TextureManager : ITickable
     private readonly bool m_unitTest;
     private readonly bool m_cacheAllSprites;
 
+    public int Ticks;
     public DynamicArray<SpriteDefinition> SpriteDefinitions = new();
 
     public List<Animation> GetAnimations() => m_animations;
@@ -98,7 +98,7 @@ public partial class TextureManager : ITickable
     public void MapInit(MapInfoDef mapInfo)
     {
         foreach (var skyFire in m_skyFireTextures)
-            skyFire.RenderUpdate = true;
+            skyFire.RenderUpdate = Ticks;
 
         MapSkyFlat(m_archiveCollection.GameInfo.SkyFlatName, m_skyIndex, mapInfo);
     }
@@ -421,6 +421,7 @@ public partial class TextureManager : ITickable
 
     public void Tick()
     {
+        Ticks++;
         for (int i = 0; i < m_animations.Count; i++)
         {
             Animation anim = m_animations[i];

@@ -108,10 +108,8 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         {
             var skyFire = skyFireTextures[i];
             var texture = skyFire.Texture;
-            if (!skyFire.RenderUpdate || texture.Image == null || texture.Index != textureIndex)
+            if (skyFire.RenderUpdate != m_archiveCollection.TextureManager.Ticks || texture.Image == null || texture.Index != textureIndex)
                 continue;
-
-            skyFire.RenderUpdate = false;
 
             m_textureManager.ReUpload(skyTexture, texture.Image, texture.Image.m_pixels);
         }
@@ -175,14 +173,17 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         // This can't be right. The kex port has some weird offset stuff going on with fire textures specifically.
         var offset = transform.Offset + transform.CurrentScroll;
 
-        const float fireTextureHeight = 200f;
-        offset.Y += fireTextureHeight - StandardHeight;
+        offset.Y += skyTexture.GlTexture.Height - StandardHeight;
 
+        // Calculate the offset so that the midtexel is in the center of the sphere projection
         if (transform.MidTexel.HasValue)
-        {
-            var midOffset = skyTexture.GlTexture.Height * transform.MidTexel.Value / fireTextureHeight;
-            offset.Y += 32 + midOffset;
-        }
+            offset.Y += transform.MidTexel.Value + 28 + 8;
+
+        //if (transform.MidTexel.HasValue)
+        //{
+        //    var midOffset = skyTexture.GlTexture.Height * transform.MidTexel.Value / fireTextureHeight;
+        //    offset.Y += 32 + midOffset;
+        //}
 
         // Offset needs to be in texture coordinates
         offset.X /= skyTexture.GlTexture.Width;
@@ -263,7 +264,7 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
 
         GetAverageColors(skyImage, out var topColor, out var bottomColor);
         var palette = m_archiveCollection.Palette;
-        var glTexture = CreateTexture(skyImage, $"[SKY][{textureIndex}] {m_archiveCollection.TextureManager.SkyTextureName}");
+        var glTexture = CreateTexture(skyImage, $"[SKY][{textureIndex}]");
         texture = new(glTexture, textureIndex, topColor, bottomColor,
             palette.GetNearestColorIndex(FromRgba(topColor)), palette.GetNearestColorIndex(FromRgba(bottomColor)));
         return true;

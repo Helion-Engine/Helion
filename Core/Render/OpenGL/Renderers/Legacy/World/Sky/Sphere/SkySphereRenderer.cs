@@ -229,9 +229,9 @@ public class SkySphereRenderer : IDisposable
         if (renderInfo.ViewerEntity.PlayerObj != null)
             invulnerability = renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap();
 
-        var scaleUV = SkySphereTexture.CalcScale(foregroundTexture, foregroundTransform);
-        var offset = SkySphereTexture.CalcOffset(foregroundTexture, foregroundTransform, m_mode, scaleUV);
-        var textureHeight = SkySphereTexture.CalcSkyHeight(foregroundTexture.GlTexture.Dimension.Height, m_mode);
+        var scaleUV = SkySphereTexture.CalcScale(skyTexture, foregroundTransform);
+        var offset = SkySphereTexture.CalcOffset(skyTexture, foregroundTransform, m_mode, scaleUV);
+        var textureHeight = SkySphereTexture.CalcSkyHeight(skyTexture.GlTexture.Dimension.Height, m_mode);
 
         m_foregroundProgram.BoundTexture(BindTextures.BoundTexture);
         m_foregroundProgram.ColormapTexture(BindTextures.Colormap);
