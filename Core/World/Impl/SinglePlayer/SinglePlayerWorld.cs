@@ -1,6 +1,7 @@
 using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
+using Helion.Maps.Components;
 using Helion.Models;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
@@ -53,20 +54,24 @@ public class SinglePlayerWorld : WorldBase
         return Player;
     }
 
+    private bool IsMultiPlayer => m_worldType != WorldType.SinglePlayer;
+
     public SinglePlayerWorld(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef,
         IMap map, bool sameAsPreviousMap, Player? existingPlayer = null, WorldModel? worldModel = null, IRandom? random = null, bool reuse = true)
         : base(globalData, config, archiveCollection, audioSystem, profiler, geometry, mapDef, skillDef, map, worldModel, random, sameAsPreviousMap, reuse)
     {
+        m_worldType = config.Game.SoloNet ? WorldType.Cooperative : WorldType.SinglePlayer;
+
         if (worldModel == null)
         {
             EntityManager.PopulateFrom(map, LevelStats);
 
-            IList<Entity> spawns = EntityManager.SpawnLocations.GetPlayerSpawns(0);
+            var spawns = EntityManager.SpawnLocations.GetPlayerSpawns(0);
             if (spawns.Count == 0)
                 throw new HelionException("No player 1 starts.");
+            Player = EntityManager.CreatePlayer(0, spawns[^1], false);
 
-            Player = EntityManager.CreatePlayer(0, spawns.Last(), false);
             // Make voodoo dolls
             for (int i = spawns.Count - 2; i >= 0; i--)
             {
@@ -108,9 +113,7 @@ public class SinglePlayerWorld : WorldBase
             ApplyLineModels(worldModel);
             CreateDamageSpecials(worldModel);
 
-            for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
-                EntityManager.FinalizeFromWorldLoad(result, entity);
-
+            EntityManager.FinalizeFromWorldLoad(result);
             SpecialManager.AddSpecialModels(worldModel);
         }
 
@@ -455,7 +458,20 @@ public class SinglePlayerWorld : WorldBase
     public override bool EntityUse(Entity entity)
     {
         if (entity.IsPlayer && entity.IsDead)
-            ResetLevel(Config.Game.LoadLatestOnDeath);
+        {
+            if (IsMultiPlayer)
+            {
+                var respawnPlayer = RespawnPlayer(Player);
+                if (respawnPlayer != null)
+                    Player = respawnPlayer;
+            }
+            else
+            {
+                ResetLevel(Config.Game.LoadLatestOnDeath);
+            }
+
+            return false;
+        }
 
         return base.EntityUse(entity);
     }

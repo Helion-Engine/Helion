@@ -39,6 +39,7 @@ public class CommandLineArgs
     public IList<string> Cheats { get; set; } = Array.Empty<string>();
     public int? GlVersion { get; set; }
     public bool NoMusic { get; set; }
+    public bool SoloNet { get; set; }
 
     private static readonly string[] Options =
     [
@@ -66,7 +67,8 @@ public class CommandLineArgs
         "+setangle",
         "+setpitch",
         "+glversion",
-        "-pistolstart"
+        "-pistolstart",
+        "-solo-net",
     ];
 
     /// <summary>
@@ -148,6 +150,8 @@ public class CommandLineArgs
                 commandLineArgs.SetPitch = ParseDouble(GetString(commandLineArgs, parsedArg));
             else if (IsArgMatch(parsedArg, "+glversion"))
                 commandLineArgs.GlVersion = ParseInt(commandLineArgs, parsedArg);
+            else if (IsArgMatch(parsedArg, "-solo-net"))
+                commandLineArgs.SoloNet = true;
             else
                 commandLineArgs.Errors.Add("Unknown command: " + parsedArg.Key);
         }

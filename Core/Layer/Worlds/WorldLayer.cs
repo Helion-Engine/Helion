@@ -108,6 +108,11 @@ public partial class WorldLayer : IGameLayerParent
         font ??= new Font("Empty", [], new((0, 0), Graphics.ImageType.Argb));
         DefaultFont = font;
 
+        StatType[] stats = [StatType.Kills, StatType.Items, StatType.Secrets, StatType.Deaths];
+        m_renderStats = new RenderStat[stats.Length];
+        for (int i = 0; i < stats.Length; i++)
+            m_renderStats[i] = new(stats[i], InitRenderableString(), InitRenderableString(TextAlign.Right));
+
         m_renderHealthString = InitRenderableString();
         m_renderArmorString = InitRenderableString();
         m_renderAmmoString = InitRenderableString();
@@ -115,16 +120,7 @@ public partial class WorldLayer : IGameLayerParent
         m_renderFpsMinString = InitRenderableString(TextAlign.Right);
         m_renderFpsMaxString = InitRenderableString(TextAlign.Right);
         m_renderTimeString = InitRenderableString(TextAlign.Right);
-        m_renderKillString = InitRenderableString(TextAlign.Right);
-        m_renderItemString = InitRenderableString(TextAlign.Right);
-        m_renderSecretString = InitRenderableString(TextAlign.Right);
-        m_renderKillLabel = InitRenderableString(TextAlign.Right);
-        m_renderItemLabel = InitRenderableString(TextAlign.Right);
-        m_renderSecretLabel = InitRenderableString(TextAlign.Right);
 
-        StatValues = [m_killString, m_itemString, m_secretString];
-        RenderableStatLabels = [m_renderKillLabel, m_renderItemLabel, m_renderSecretLabel];
-        RenderableStatValues = [m_renderKillString, m_renderItemString, m_renderSecretString];
         m_largeHudFont = GetFontOrDefault(LargeHudFont);
 
         World.LevelExiting += World_LevelExiting;
@@ -164,6 +160,12 @@ public partial class WorldLayer : IGameLayerParent
         Player? existingPlayer, WorldModel? worldModel, IRandom? random, bool sameAsPreviousMap)
     {
         var stopwatch = Stopwatch.StartNew();
+
+        ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
+
+        if (!sameAsPreviousMap && archiveCollection.Definitions.CompLevelDefinition.CompLevel == CompLevel.Undefined)
+            SetCompatibilityOptions(config, map, mapInfoDef, archiveCollection);
+
         SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, profiler,
             mapInfoDef, skillDef, map, existingPlayer, worldModel, random, sameAsPreviousMap: sameAsPreviousMap);
         if (world == null)
@@ -175,11 +177,7 @@ public partial class WorldLayer : IGameLayerParent
             world.SoundManager.SoundCreated += listener;
         }
 
-        if (!sameAsPreviousMap && archiveCollection.Definitions.CompLevelDefinition.CompLevel == CompLevel.Undefined)
-            SetCompatibilityOptions(config, map, mapInfoDef, archiveCollection);
-
         archiveCollection.TextureManager.InitSprites(world);
-        ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
 
         var worldLayer = new WorldLayer(parent, config, console, fpsTracker, world, mapInfoDef, profiler)
         {

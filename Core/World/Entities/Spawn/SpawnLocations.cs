@@ -1,5 +1,4 @@
 using Helion.Util.Container;
-using Helion.World.Entities.Players;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,11 +11,11 @@ namespace Helion.World.Entities.Spawn;
 /// </summary>
 public class SpawnLocations
 {
-    private IWorld m_world;
+    private readonly IWorld m_world;
 
-    private readonly Dictionary<int, IList<WeakEntity>> m_playerStarts = new();
-    private readonly IList<Entity> m_deathmatchStarts = new List<Entity>();
-    private readonly IList<Entity> m_cooperativeStarts = new List<Entity>();
+    private readonly Dictionary<int, IList<WeakEntity>> m_playerStarts = [];
+    private readonly IList<Entity> m_deathmatchStarts = [];
+    private readonly IList<Entity> m_cooperativeStarts = [];
 
     public SpawnLocations(IWorld world)
     {
@@ -28,6 +27,23 @@ public class SpawnLocations
         m_playerStarts.Clear();
         m_deathmatchStarts.Clear();
         m_cooperativeStarts.Clear();
+    }
+
+    public void ReversePlayerStarts()
+    {
+        foreach (var item in m_playerStarts)
+        {
+            var list = item.Value;
+            int left = 0;
+            int right = list.Count - 1;
+            while (left < right)
+            {
+                // Swap
+                (list[left], list[right]) = (list[right], list[left]);
+                left++;
+                right--;
+            }
+        }
     }
 
     /// <summary>
@@ -107,10 +123,18 @@ public class SpawnLocations
         return null;
     }
 
+    public Entity? GetPlayerSpawn(int playerIndex)
+    {
+        if (m_playerStarts.TryGetValue(playerIndex, out var spawns))
+            return GetLastPlayerSpawn(spawns);
+
+        return null;
+    }
+
     public IList<Entity> GetPlayerSpawns(int playerIndex)
     {
         if (m_playerStarts.TryGetValue(playerIndex, out IList<WeakEntity>? spawns))
-            return spawns.Where(x => x.Get() != null).Select(x => x.Get()!).ToList();
+            return [.. spawns.Where(x => x.Get() != null).Select(x => x.Get()!)];
 
         return Array.Empty<Entity>();
     }

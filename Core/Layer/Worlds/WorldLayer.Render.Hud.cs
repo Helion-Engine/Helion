@@ -81,28 +81,15 @@ public partial class WorldLayer
     private SpanString m_fpsString = new();
     private SpanString m_fpsMinString = new();
     private SpanString m_fpsMaxString = new();
+    private SpanString m_timeString = new();
 
     private RenderableString m_renderFpsString;
     private RenderableString m_renderFpsMinString;
     private RenderableString m_renderFpsMaxString;
-
-    private SpanString m_killString = new();
-    private SpanString m_itemString = new();
-    private SpanString m_secretString = new();
-    private SpanString m_timeString = new();
-
-    private RenderableString m_renderKillLabel;
-    private RenderableString m_renderItemLabel;
-    private RenderableString m_renderSecretLabel;
-    private RenderableString m_renderKillString;
-    private RenderableString m_renderItemString;
-    private RenderableString m_renderSecretString;
     private RenderableString m_renderTimeString;
 
-    private static readonly string[] StatLabels = ["Kills: ", "Items: ", "Secrets: "];
-    private readonly SpanString[] StatValues;
-    private readonly RenderableString[] RenderableStatLabels;
-    private readonly RenderableString[] RenderableStatValues;
+    private RenderStat[] m_renderStats;
+
     private readonly Font m_largeHudFont;
     private readonly List<StringSlice> m_lineWrapStrings = [];
 
@@ -210,47 +197,44 @@ public partial class WorldLayer
 
         if (HasTicks)
         {
-            m_killString.Clear();
-            m_itemString.Clear();
-            m_secretString.Clear();
-
-            StatValues[0] = AppendStatString(m_killString, World.LevelStats.KillCount, World.LevelStats.TotalMonsters);
-            StatValues[1] = AppendStatString(m_itemString, World.LevelStats.ItemCount, World.LevelStats.TotalItems);
-            StatValues[2] = AppendStatString(m_secretString, World.LevelStats.SecretCount, World.LevelStats.TotalSecrets);
-
-            for (int i = 0; i < RenderableStatLabels.Length; i++)
-                RenderableStatLabels[i] = SetRenderableString(StatLabels[i], RenderableStatLabels[i], FixedNumberFont, m_infoFontSize,
-                    useDoomScale: false);
-
-            RenderableStatValues[0] = SetRenderableString(m_killString.AsSpan(), m_renderKillString, FixedNumberFont, m_infoFontSize,
-                GetStatColor(World.LevelStats.KillCount, World.LevelStats.TotalMonsters), useDoomScale: false);
-            RenderableStatValues[1] = SetRenderableString(m_itemString.AsSpan(), m_renderItemString, FixedNumberFont, m_infoFontSize,
-                GetStatColor(World.LevelStats.ItemCount, World.LevelStats.TotalItems), useDoomScale: false);
-            RenderableStatValues[2] = SetRenderableString(m_secretString.AsSpan(), m_renderSecretString, FixedNumberFont, m_infoFontSize,
-                GetStatColor(World.LevelStats.SecretCount, World.LevelStats.TotalSecrets), useDoomScale: false);
+            for (int i = 0; i < m_renderStats.Length; i++)
+            {
+                var renderStat = m_renderStats[i];
+                renderStat.String.Clear();
+                (var current, var max) = renderStat.GetValues(World);
+                renderStat.String = AppendStatString(renderStat.String, current, max);
+                renderStat.RenderLabel = SetRenderableString(renderStat.Label, renderStat.RenderLabel, FixedNumberFont, m_infoFontSize, useDoomScale: false);
+                renderStat.RenderValue = SetRenderableString(renderStat.String.AsSpan(), renderStat.RenderValue, FixedNumberFont, m_infoFontSize,
+                    GetStatColor(World.LevelStats.KillCount, World.LevelStats.TotalMonsters), useDoomScale: false);
+            }
         }
 
-        for (int i = 0; i < RenderableStatValues.Length; i++)
+        for (int i =0; i < m_renderStats.Length; i++)
         {
-            maxLabelWidth = Math.Max(RenderableStatLabels[i].DrawArea.Width, maxLabelWidth);
-            maxValueWidth = Math.Max(RenderableStatValues[i].DrawArea.Width, maxValueWidth);
+            var renderStat = m_renderStats[i];
+            maxLabelWidth = Math.Max(renderStat.RenderLabel.DrawArea.Width, maxLabelWidth);
+            maxValueWidth = Math.Max(renderStat.RenderValue.DrawArea.Width, maxValueWidth);
         }
 
         labelPos.X = -(maxValueWidth + m_padding + m_hudPaddingX);
-
-        for (int i = 0; i < RenderableStatLabels.Length; i++)
+        for (int i = 0; i < m_renderStats.Length; i++)
         {
-            var str = RenderableStatLabels[i];
-            hud.Text(RenderableStatLabels[i], labelPos, both: align, alpha: m_hudAlpha);
-            labelPos.Y += str.DrawArea.Height;
+            var renderStat = m_renderStats[i];
+            if (!renderStat.ShouldRender(World))
+                continue;
+            hud.Text(renderStat.RenderLabel, labelPos, both: align, alpha: m_hudAlpha);
+            labelPos.Y += renderStat.RenderLabel.DrawArea.Height;
         }
 
         labelPos = start;
-        for (int i = 0; i < RenderableStatValues.Length; i++)
+
+        for (int i = 0; i < m_renderStats.Length; i++)
         {
-            var str = RenderableStatValues[i];
-            hud.Text(RenderableStatValues[i], labelPos, both: align, alpha: m_hudAlpha);
-            labelPos.Y += str.DrawArea.Height;
+            var renderStat = m_renderStats[i];
+            if (!renderStat.ShouldRender(World))
+                continue;
+            hud.Text(renderStat.RenderValue, labelPos, both: align, alpha: m_hudAlpha);
+            labelPos.Y += renderStat.RenderValue.DrawArea.Height;
         }
         labelPos.Y += m_padding;
 
@@ -276,6 +260,8 @@ public partial class WorldLayer
     private static SpanString AppendStatString(SpanString str, int current, int max)
     {
         str.Append(current);
+        if (max == int.MinValue)
+            return str;
         str.Append(" / ");
         str.Append(max);
         return str;

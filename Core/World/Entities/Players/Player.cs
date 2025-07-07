@@ -7,12 +7,10 @@ using Helion.Models;
 using Helion.Render.Common.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
-using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Config.Components;
-using Helion.World.Blockmap;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
@@ -22,7 +20,6 @@ using Helion.World.Entities.Definition.Properties.Components;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Inventories.Powerups;
-using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Sound;
@@ -70,11 +67,10 @@ public class Player : Entity
     public TickCommand TickCommand = new();
     public int ExtraLight;
     public int TurnTics;
-    public int KillCount;
-    public int ItemCount;
-    public int SecretsFound;
     public EntityProperties? ArmorProperties => ArmorDefinition?.Properties;
     public EntityDefinition? ArmorDefinition;
+    public PlayerState PlayerState;
+    public PlayerStats PlayerStats;
 
     protected double m_prevPitch;
     protected double m_viewZ;
@@ -200,12 +196,10 @@ public class Player : Entity
         PrevWeaponOffset = (playerModel.WeaponOffsetX, playerModel.WeaponOffsetY);
         WeaponSlot = playerModel.WeaponSlot;
         WeaponSubSlot = playerModel.WeaponSubSlot;
-        KillCount = playerModel.KillCount;
-        ItemCount = playerModel.ItemCount;
-        SecretsFound = playerModel.SecretsFound;
         AttackDown = playerModel.AttackDown;
         Refire = playerModel.Refire;
         Armor = playerModel.Armor;
+        PlayerStats = playerModel.PlayerStats;
 
         Inventory = new Inventory(playerModel, this, world.EntityManager.DefinitionComposer);
 
@@ -303,9 +297,6 @@ public class Player : Entity
         playerModel.WeaponBobY = WeaponBobOffset.Y;
         playerModel.Killer = m_killer.Get()?.Id;
         playerModel.Attacker = Attacker.Get()?.Id;
-        playerModel.KillCount = KillCount;
-        playerModel.ItemCount = ItemCount;
-        playerModel.SecretsFound = SecretsFound;
         playerModel.Weapon = Weapon?.Definition.Name;
         playerModel.PendingWeapon = PendingWeapon?.Definition.Name;
         playerModel.AnimationWeapon = AnimationWeapon?.Definition.Name;
@@ -319,6 +310,7 @@ public class Player : Entity
         playerModel.Refire = Refire;
         playerModel.ArmorDefinition = ArmorDefinition?.Name;
         playerModel.Armor = Armor;
+        playerModel.PlayerStats = PlayerStats;
 
         Inventory.ToInventoryModel(playerModel.Inventory);
 
@@ -1642,6 +1634,7 @@ public class Player : Entity
 
     protected override void SetDeath(Entity? source, bool gibbed)
     {
+        PlayerStats.DeathCount++;
         base.SetDeath(source, gibbed);
         m_deathTics = MathHelper.Clamp((int)(Definition.Properties.Player.ViewHeight - DeathHeight), 0, (int)Definition.Properties.Player.ViewHeight);
 
@@ -1722,9 +1715,7 @@ public class Player : Entity
             player.DamageCount == DamageCount &&
             player.BonusCount == BonusCount &&
             player.ExtraLight == ExtraLight &&
-            player.KillCount == KillCount &&
-            player.ItemCount == ItemCount &&
-            player.SecretsFound == SecretsFound &&
+            player.PlayerStats == PlayerStats &&
             player.m_isJumping == m_isJumping &&
             player.m_jumpTics == m_jumpTics &&
             player.m_deathTics == m_deathTics &&

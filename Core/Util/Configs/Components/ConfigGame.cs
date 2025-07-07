@@ -97,6 +97,10 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [OptionMenu(OptionSectionType.General, "Pistol Starts")]
     public readonly ConfigValue<bool> PistolStart = new(false);
 
+    [ConfigInfo("Starts a cooperative game in single player.", save: false, serialize: true)]
+    [OptionMenu(OptionSectionType.General, "Solo-Net")]
+    public readonly ConfigValue<bool> SoloNet = new(false);
+
     [ConfigInfo("Enable fast monsters.", save: false, demo: true, serialize: true)]
     [OptionMenu(OptionSectionType.General, "Fast Monsters")]
     public readonly ConfigValue<bool> FastMonsters = new(false);

@@ -6,7 +6,7 @@ namespace Helion.Audio;
 public struct AudioData
 {
     public AudioData(ISoundSource soundSource, SoundInfo soundInfo, SoundChannel channel, Attenuation attenuation,
-        int priority, bool loop)
+        int priority, bool loop, bool relative)
     {
         SoundSource = soundSource;
         SoundInfo = soundInfo;
@@ -14,6 +14,7 @@ public struct AudioData
         Attenuation = attenuation;
         Priority = priority;
         Loop = loop;
+        Relative = relative;
     }
 
     /// <summary>
@@ -45,4 +46,6 @@ public struct AudioData
     /// If this sound should loop after completion.
     /// </summary>
     public bool Loop { get; set; }
+
+    public bool Relative { get; set; }
 }

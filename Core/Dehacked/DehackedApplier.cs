@@ -1268,7 +1268,7 @@ public class DehackedApplier
     {
         Id24ThingFlags thingProperties = (Id24ThingFlags)value;
         flags.NoRespawn = GetNewFlagValue(flags.NoRespawn, (thingProperties & Id24ThingFlags.NORESPAWN) != 0, opAnd);
-        flags.SpecialStaySingle = GetNewFlagValue(flags.NoRespawn, (thingProperties & Id24ThingFlags.SPECIALSTAYSSINGLE) != 0, opAnd);
+        flags.SpecialStaySingle = GetNewFlagValue(flags.SpecialStaySingle, (thingProperties & Id24ThingFlags.SPECIALSTAYSSINGLE) != 0, opAnd);
         flags.SpecialStayCooperative = GetNewFlagValue(flags.SpecialStayCooperative, (thingProperties & Id24ThingFlags.SPECIALSTAYSCOOP) != 0, opAnd);
         flags.SpecialStayDeathmatch = GetNewFlagValue(flags.SpecialStayDeathmatch, (thingProperties & Id24ThingFlags.SPECIALSTAYSDM) != 0, opAnd);
     }

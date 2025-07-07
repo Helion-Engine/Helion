@@ -89,6 +89,11 @@ namespace Helion.Audio.Impl
 
         }
 
+        public void SetRelative(bool set)
+        {
+
+        }
+
         public void Stop()
         {
             if (m_playing)
