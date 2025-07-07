@@ -136,14 +136,13 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         if (mode == SkyRenderMode.Vanilla)
         {
             offset.X += StandardWidth;
-            transform.MidTexel = 0;
-            // Set offset to draw from bottom up (only for skytransfer specials or id24 skies with midtexel property)
-            if ((options & SkyOptions.SkyTransfer) != 0 || transform.MidTexel.HasValue)
-                offset.Y += skyTexture.GlTexture.Height - StandardHeight;
+            offset.Y += skyTexture.GlTexture.Height - StandardHeight;
 
             // Calculate the offset so that the midtexel is in the center of the sphere projection
             if (transform.MidTexel.HasValue)
-                offset.Y += 24 - (skyTexture.GlTexture.Height - transform.MidTexel.Value);
+                offset.Y += transform.MidTexel.Value + 28;
+
+            // TODO something for options & SkyOptions.SkyTransfer ?
         }
         else
         {
