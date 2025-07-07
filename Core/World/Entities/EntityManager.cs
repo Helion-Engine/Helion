@@ -316,19 +316,19 @@ public class EntityManager : IDisposable
 
             if (entityModel.Owner.HasValue)
             {
-                if (!entities.TryGetValue(entityModel.Owner.Value, out var entityOwner))
+                if (entities.TryGetValue(entityModel.Owner.Value, out var entityOwner))
                     entity.Entity.SetOwner(entityOwner.Entity);
             }
 
             if (entityModel.Target.HasValue)
             {
-                if (!entities.TryGetValue(entityModel.Target.Value, out var entityTarget))
+                if (entities.TryGetValue(entityModel.Target.Value, out var entityTarget))
                     entity.Entity.SetTarget(entityTarget.Entity);
             }
 
             if (entityModel.Tracer.HasValue)
             {
-                if (!entities.TryGetValue(entityModel.Tracer.Value, out var tracerTarget))
+                if (entities.TryGetValue(entityModel.Tracer.Value, out var tracerTarget))
                     entity.Entity.SetTracer(tracerTarget.Entity);
             }
 
