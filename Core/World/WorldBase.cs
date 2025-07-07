@@ -3562,7 +3562,12 @@ public abstract partial class WorldBase : IWorld
         player = EntityManager.CreatePlayer(0, spawn, false);
         player.PlayerStats = stats;
         player.SetDefaultInventory();
-        CreateTeleportFog(player.Position);
+
+        var fogDist = Vec2D.UnitCircle(player.AngleRadians) * 20;
+        var teleportFogPos = player.Position;
+        teleportFogPos.X += fogDist.X;
+        teleportFogPos.Y += fogDist.Y;
+        CreateTeleportFog(teleportFogPos);
         return player;
     }
 }
