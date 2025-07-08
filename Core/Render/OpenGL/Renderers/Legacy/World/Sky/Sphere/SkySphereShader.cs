@@ -25,7 +25,7 @@ public class SkySphereShader : RenderProgram
     private readonly int m_colorMixLocation;
     private readonly int m_gammaCorrectionLocation;
 
-    public SkySphereShader() : base("Sky sphere")
+    public SkySphereShader(string? name = null) : base(name ?? "Sky sphere")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
