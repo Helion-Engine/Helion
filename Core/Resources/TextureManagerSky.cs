@@ -1,6 +1,4 @@
-﻿using Helion.Geometry.Vectors;
-using Helion.Graphics;
-using Helion.Graphics.Palettes;
+﻿using Helion.Graphics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Resources.Definitions.Id24;
 using Helion.Resources.Definitions.MapInfo;

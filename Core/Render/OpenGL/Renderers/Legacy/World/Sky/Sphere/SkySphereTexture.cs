@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
