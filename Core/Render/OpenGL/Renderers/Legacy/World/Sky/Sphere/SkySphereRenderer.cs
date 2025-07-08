@@ -1,5 +1,6 @@
 using System;
 using GlmSharp;
+using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
@@ -59,19 +60,10 @@ public class SkySphereRenderer : IDisposable
         skyTransform.Sky.Offset.X += offset.X;
         skyTransform.Sky.Offset.Y += offset.Y;
 
-        if (skyTransform.Sky.Type == SkyTransformType.Fire)
-        {
-            m_foregroundProgram.Bind();
-            RenderFire(renderInfo, skyTexture, skyTransform.Sky);
-            m_foregroundProgram.Unbind();
-        }
-        else
-        {
-            m_skyProgram.Bind();
-            SetSkyUniforms(renderInfo, options, skyTexture, skyTransform.Sky);
-            DrawSphere(skyTexture.GlTexture);
-            m_skyProgram.Unbind();
-        }
+        m_skyProgram.Bind();
+        SetSkyUniforms(m_skyProgram, renderInfo, options, m_mode, skyTexture, skyTexture, skyTransform.Sky);
+        DrawSphere(skyTexture.GlTexture);
+        m_skyProgram.Unbind();
 
         if (skyTransform.Foreground == null)
             return;
@@ -80,25 +72,10 @@ public class SkySphereRenderer : IDisposable
         GL.ActiveTexture(BindTextures.BoundTexture);
 
         var foregroundTexture = m_texture.GetForegroundTexture(skyTransform.Foreground);
-        if (skyTransform.Foreground.Type == SkyTransformType.Fire)
-        {
-            RenderFire(renderInfo, foregroundTexture, skyTransform.Foreground);
-        }
-        else
-        {
-            SetForegroundUniforms(renderInfo, true, skyTexture, foregroundTexture, skyTransform.Foreground);
-            DrawSphere(foregroundTexture.GlTexture);
-        }
+        SetSkyUniforms(m_foregroundProgram, renderInfo, SkyOptions.Flip, m_mode, foregroundTexture, skyTexture, skyTransform.Foreground);
+        DrawSphere(foregroundTexture.GlTexture);
 
         m_foregroundProgram.Unbind();
-    }
-
-    private void RenderFire(RenderInfo renderInfo, in SkyTexture foregroundTexture, SkyTransformTexture foregroundTransform)
-    {
-        SetForegroundFireUniforms(renderInfo, true, foregroundTexture, foregroundTransform, topFire: true);
-        DrawSphere(foregroundTexture.GlTexture);
-        SetForegroundFireUniforms(renderInfo, true, foregroundTexture, foregroundTransform, topFire: false);
-        DrawSphere(foregroundTexture.GlTexture);
     }
 
     public void Dispose()
@@ -183,127 +160,50 @@ public class SkySphereRenderer : IDisposable
         }
     }
 
-    private void SetSkyUniforms(RenderInfo renderInfo, SkyOptions options, in SkyTexture skyTexture, SkyTransformTexture skyTransform)
+    private static void SetSkyUniforms(SkySphereShader skyProgram, RenderInfo renderInfo, SkyOptions options, SkyRenderMode skyRenderMode,
+        in SkyTexture skyTexture, in SkyTexture blendSkyTexture, SkyTransformTexture skyTransform)
     {
         bool invulnerability = false;
         if (renderInfo.ViewerEntity.PlayerObj != null)
             invulnerability = renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap();
 
-        var texture = skyTexture.GlTexture;
-        var scaleUV = SkySphereTexture.CalcScale(skyTexture, skyTransform);
-        var offset = SkySphereTexture.CalcOffset(skyTexture, skyTransform, m_mode, scaleUV, options);
-        var skyHeight = SkySphereTexture.CalcSkyHeight(texture.Dimension.Height, m_mode);
+        var dimension = GetSkyTextureDimension(skyTexture);
+        var scaleUV = SkySphereTexture.CalcScale(dimension, skyTransform);
+        var offset = SkySphereTexture.CalcOffset(dimension, skyTransform, skyRenderMode, scaleUV, options);
+        var skyHeight = SkySphereTexture.CalcSkyHeight(dimension.Height, skyRenderMode);
 
-        m_skyProgram.BoundTexture(BindTextures.BoundTexture);
-        m_skyProgram.ColormapTexture(BindTextures.Colormap);
-        m_skyProgram.Mvp(CalculateMvp(renderInfo));
-        m_skyProgram.Scale(scaleUV);
-        m_skyProgram.FlipU((options & SkyOptions.Flip) != 0);
-        m_skyProgram.ColorMix(renderInfo.Uniforms.ColorMix.Sky);
-        m_skyProgram.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
+        skyProgram.BoundTexture(BindTextures.BoundTexture);
+        skyProgram.ColormapTexture(BindTextures.Colormap);
+        skyProgram.Mvp(CalculateMvp(renderInfo));
+        skyProgram.Scale(scaleUV);
+        skyProgram.FlipU((options & SkyOptions.Flip) != 0);
+        skyProgram.ColorMix(renderInfo.Uniforms.ColorMix.Sky);
+        skyProgram.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
 
         if (ShaderVars.PaletteColorMode)
         {
-            m_skyProgram.TopColor(new Vec4F(skyTexture.TopColorIndex / 255f, 0, 0, 0));
-            m_skyProgram.BottomColor(new Vec4F(skyTexture.BottomColorIndex / 255f, 0, 0, 0));
+            skyProgram.TopColor(new Vec4F(blendSkyTexture.TopColorIndex / 255f, 0, 0, 0));
+            skyProgram.BottomColor(new Vec4F(blendSkyTexture.BottomColorIndex / 255f, 0, 0, 0));
         }
         else
         {
-            m_skyProgram.TopColor(skyTexture.TopColor);
-            m_skyProgram.BottomColor(skyTexture.BottomColor);
+            skyProgram.TopColor(blendSkyTexture.TopColor);
+            skyProgram.BottomColor(blendSkyTexture.BottomColor);
         }
 
-        m_skyProgram.HasInvulnerability(invulnerability);
-        m_skyProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
-        m_skyProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
-        m_skyProgram.ScrollOffset(offset);
-        m_skyProgram.SkyHeight(skyHeight);
-        m_skyProgram.SkyMin(0.5f - skyHeight);
-        m_skyProgram.SkyMax(0.5f + skyHeight);
+        skyProgram.HasInvulnerability(invulnerability);
+        skyProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
+        skyProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
+        skyProgram.ScrollOffset(offset);
+        skyProgram.SkyHeight(skyHeight);
+        skyProgram.SkyMin(0.5f - skyHeight);
+        skyProgram.SkyMax(0.5f + skyHeight);
     }
 
-    private void SetForegroundUniforms(RenderInfo renderInfo, bool flipSkyHorizontal, 
-        in SkyTexture skyTexture, in SkyTexture foregroundTexture, SkyTransformTexture foregroundTransform)
+    private static Dimension GetSkyTextureDimension(SkyTexture skyTexture)
     {
-        bool invulnerability = false;
-        if (renderInfo.ViewerEntity.PlayerObj != null)
-            invulnerability = renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap();
-
-        var scaleUV = SkySphereTexture.CalcScale(foregroundTexture, foregroundTransform);
-        var offset = SkySphereTexture.CalcOffset(foregroundTexture, foregroundTransform, m_mode, scaleUV);
-        var textureHeight = SkySphereTexture.CalcSkyHeight(foregroundTexture.GlTexture.Dimension.Height, m_mode);
-
-        m_foregroundProgram.BoundTexture(BindTextures.BoundTexture);
-        m_foregroundProgram.ColormapTexture(BindTextures.Colormap);
-        m_foregroundProgram.Mvp(CalculateMvp(renderInfo));
-        m_foregroundProgram.Scale(scaleUV);
-        m_foregroundProgram.FlipU(flipSkyHorizontal);
-        m_foregroundProgram.ColorMix(renderInfo.Uniforms.ColorMix.Sky);
-        m_foregroundProgram.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
-
-        if (ShaderVars.PaletteColorMode)
-        {
-            m_foregroundProgram.TopColor(new Vec4F(skyTexture.TopColorIndex / 255f, 0, 0, 0));
-            m_foregroundProgram.BottomColor(new Vec4F(skyTexture.BottomColorIndex / 255f, 0, 0, 0));
-        }
-        else
-        {
-            m_foregroundProgram.TopColor(skyTexture.TopColor);
-            m_foregroundProgram.BottomColor(skyTexture.BottomColor);
-        }
-
-        m_foregroundProgram.HasInvulnerability(invulnerability);
-        m_foregroundProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
-        m_foregroundProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
-        m_foregroundProgram.ScrollOffset(offset);
-
-        m_foregroundProgram.TextureHeight(textureHeight);
-        m_foregroundProgram.SkyHeight(textureHeight);
-        m_foregroundProgram.SkyMin(0.5f - textureHeight);
-        m_foregroundProgram.SkyMax(0.5f + textureHeight);
-        m_foregroundProgram.TextureStart(0.5f);
-    }
-
-    private void SetForegroundFireUniforms(RenderInfo renderInfo, bool flipSkyHorizontal,
-        in SkyTexture foregroundTexture, SkyTransformTexture foregroundTransform, bool topFire)
-    {
-        bool invulnerability = false;
-        if (renderInfo.ViewerEntity.PlayerObj != null)
-            invulnerability = renderInfo.ViewerEntity.PlayerObj.DrawInvulnerableColorMap();
-
-        var scaleUV = SkySphereTexture.CalcScale(foregroundTexture, foregroundTransform);
-        var offset = SkySphereTexture.CalcFireOffset(foregroundTexture, foregroundTransform);
-        var textureHeight = SkySphereTexture.CalcSkyHeight(foregroundTexture.GlTexture.Dimension.Height, m_mode);
-
-        m_foregroundProgram.BoundTexture(BindTextures.BoundTexture);
-        m_foregroundProgram.ColormapTexture(BindTextures.Colormap);
-        m_foregroundProgram.Mvp(CalculateMvp(renderInfo));
-        m_foregroundProgram.Scale(scaleUV);
-        m_foregroundProgram.FlipU(flipSkyHorizontal);
-        m_foregroundProgram.ColorMix(renderInfo.Uniforms.ColorMix.Sky);
-        m_foregroundProgram.TopColor(Vec4F.Zero);
-        m_foregroundProgram.BottomColor(Vec4F.Zero);
-        m_foregroundProgram.HasInvulnerability(invulnerability);
-        m_foregroundProgram.PaletteIndex((int)renderInfo.Uniforms.PaletteIndex);
-        m_foregroundProgram.ColorMapIndex(renderInfo.Uniforms.ColorMapUniforms.SkyIndex);
-        m_foregroundProgram.ScrollOffset(offset);
-
-        m_foregroundProgram.TextureHeight(textureHeight);
-
-        if (topFire)
-        {
-            m_foregroundProgram.TextureHeight(textureHeight);
-            m_foregroundProgram.SkyHeight(textureHeight);
-            m_foregroundProgram.SkyMin(0.5f - textureHeight);
-            m_foregroundProgram.SkyMax(0.5f + textureHeight);
-            m_foregroundProgram.TextureStart(0.5f);
-        }
-        else
-        {
-            m_foregroundProgram.SkyMin(textureHeight);
-            m_foregroundProgram.SkyMax(0.5f);
-            m_foregroundProgram.TextureStart(0.5f);
-        }
+        // The sky fire is a special case where it's rendered at the standard dimenion but it's actual dimension differs.
+        return skyTexture.IsFire ? SkySphereTexture.StandardDimension : skyTexture.GlTexture.Dimension;
     }
 
     private void ReleaseUnmanagedResources()

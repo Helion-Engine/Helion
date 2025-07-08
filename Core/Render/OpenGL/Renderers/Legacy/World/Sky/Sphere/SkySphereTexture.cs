@@ -1,5 +1,5 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
+using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.OpenGL.Texture;
@@ -13,7 +13,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
-public record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIndex, Vec4F TopColor, Vec4F BottomColor, int TopColorIndex, int BottomColorIndex);
+public record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIndex, Vec4F TopColor, Vec4F BottomColor, int TopColorIndex, int BottomColorIndex, bool IsFire);
 
 // The sky texture looks like this (p = padding):
 //
@@ -34,6 +34,7 @@ public record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIn
 //
 public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle) : IDisposable
 {
+    public static readonly Dimension StandardDimension = new((int)StandardWidth, (int)StandardHeight);
     private const float StaticSkySize = 0.25f;
     private const float StandardWidth = 256;
     private const float StandardHeight = 128;
@@ -75,45 +76,52 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         return GetSkyTextureFromTextureIndex(animationIndex, m_textureHandleIndex);
     }
 
-    private SkyTexture GetSkyTextureFromTextureIndex(int animationIndex, int textureIndex)
+    private unsafe SkyTexture GetSkyTextureFromTextureIndex(int animationIndex, int textureIndex)
     {
-        SkyTexture? findSkyTexture = null;
+        bool foundSkyTexture = false;
+        SkyTexture findSkyTexture = default;
         var skyArray = m_skyTextures.Data;
         for (int i = 0; i < m_skyTextures.Length; i++)
         {
             ref var checkSkyTexture = ref skyArray[i];
             if (checkSkyTexture.AnimatedTextureIndex == animationIndex)
             {
+                foundSkyTexture = true;
                 findSkyTexture = checkSkyTexture;
                 break;
             }
         }
 
-        if (findSkyTexture == null && GenerateSkyTexture(textureIndex, out var skyTexture))
+        if (!foundSkyTexture)
         {
-            m_skyTextures.Add(skyTexture.Value);
-            findSkyTexture = skyTexture;
+            foundSkyTexture = GenerateSkyTexture(textureIndex, out var skyTexture);
+            if (foundSkyTexture)
+            {
+                m_skyTextures.Add(skyTexture);
+                findSkyTexture = skyTexture;
+            }
         }
 
-        if (findSkyTexture != null)
-            CheckSkyFireUpdate(findSkyTexture.Value.GlTexture, textureIndex);
+        var isFire = false;
+        if (foundSkyTexture)
+        {
 
-        return findSkyTexture ?? new SkyTexture(m_textureManager.NullTexture, 0, Vec4F.Zero, Vec4F.Zero, 0, 0);
+            CheckSkyFireUpdate(findSkyTexture.GlTexture, textureIndex, out isFire);
+            findSkyTexture.IsFire = isFire;
+            return findSkyTexture;
+        }
+
+        return new SkyTexture(m_textureManager.NullTexture, 0, Vec4F.Zero, Vec4F.Zero, 0, 0, isFire);
     }
 
-    private void CheckSkyFireUpdate(GLLegacyTexture skyTexture, int textureIndex)
+    private void CheckSkyFireUpdate(GLLegacyTexture skyTexture, int textureIndex, out bool isFire)
     {
-        var skyFireTextures = m_archiveCollection.TextureManager.GetSkyFireTextures();
-        for (int i = 0; i < skyFireTextures.Count; i++)
+        isFire = false;
+        if (m_archiveCollection.TextureManager.SkyFireNeedsUpdate(textureIndex, out var texture, out var needsUpdate))
         {
-            var skyFire = skyFireTextures[i];
-            var texture = skyFire.Texture;
-            if (!skyFire.RenderUpdate || texture.Image == null || texture.Index != textureIndex)
-                continue;
-
-            skyFire.RenderUpdate = false;
-
-            m_textureManager.ReUpload(skyTexture, texture.Image, texture.Image.m_pixels);
+            isFire = true;
+            if (needsUpdate && texture.Image != null)
+                m_textureManager.ReUpload(skyTexture, texture.Image, texture.Image.m_pixels);
         }
     }
 
@@ -129,14 +137,14 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         GC.SuppressFinalize(this);
     }
 
-    public static Vec2F CalcOffset(in SkyTexture skyTexture, SkyTransformTexture transform, SkyRenderMode mode, Vec2F scaleUV, SkyOptions options = SkyOptions.None)
+    public static Vec2F CalcOffset(Dimension dimension, SkyTransformTexture transform, SkyRenderMode mode, Vec2F scaleUV, SkyOptions options = SkyOptions.None)
     {
         var offset = transform.Offset + transform.CurrentScroll;
 
-        if (mode == SkyRenderMode.Vanilla)
+        if (mode == SkyRenderMode.Vanilla || dimension.Height < 128)
         {
             offset.X += StandardWidth;
-            offset.Y += skyTexture.GlTexture.Height - StandardHeight;
+            offset.Y += dimension.Height - StandardHeight;
 
             // Calculate the offset so that the midtexel is in the center of the sphere projection
             if (transform.MidTexel.HasValue)
@@ -146,17 +154,17 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         }
         else
         {
-            var adjustY = skyTexture.GlTexture.Height - StandardHeight;
+            var adjustY = dimension.Height - StandardHeight;
             offset.Y += adjustY / 2;
-            offset.X += GetTextureAdjustmentX(skyTexture.GlTexture.Width, skyTexture.GlTexture.Height);
+            offset.X += GetTextureAdjustmentX(dimension.Width, dimension.Height);
         }
 
         if (transform.Scale.Y != 1)
             offset.Y += (StandardHeight * transform.Scale.Y - StandardHeight) * StandardAspectRatio;
 
         // Offset needs to be in texture coordinates
-        offset.X /= skyTexture.GlTexture.Width;
-        offset.Y /= skyTexture.GlTexture.Height;
+        offset.X /= dimension.Width;
+        offset.Y /= dimension.Height;
         return offset;
     }
 
@@ -170,38 +178,18 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         return -offsetX;
     }
 
-    public static Vec2F CalcFireOffset(in SkyTexture skyTexture, SkyTransformTexture transform)
+    public static Vec2F CalcScale(Dimension dimension, SkyTransformTexture skyTransform)
     {
-        // This can't be right. The kex port has some weird offset stuff going on with fire textures specifically.
-        var offset = transform.Offset + transform.CurrentScroll;
-
-        const float fireTextureHeight = 200f;
-        offset.Y += fireTextureHeight - StandardHeight;
-
-        if (transform.MidTexel.HasValue)
-        {
-            var midOffset = skyTexture.GlTexture.Height * transform.MidTexel.Value / fireTextureHeight;
-            offset.Y += 32 + midOffset;
-        }
-
-        // Offset needs to be in texture coordinates
-        offset.X /= skyTexture.GlTexture.Width;
-        offset.Y /= skyTexture.GlTexture.Height;
-        return offset;
-    }
-
-    public static Vec2F CalcScale(in SkyTexture skyTexture, SkyTransformTexture skyTransform)
-    {
-        double roundedExponent = Math.Round(Math.Log(skyTexture.GlTexture.Dimension.Width, 2));
+        double roundedExponent = Math.Round(Math.Log(dimension.Width, 2));
         float scalingFactor = (float)Math.Pow(2, 10 - roundedExponent);
         float u = 1 / scalingFactor;
-        float v = (skyTexture.GlTexture.Dimension.Height / StandardHeight) * StaticSkySize;
+        float v = (dimension.Height / StandardHeight) * StaticSkySize;
         return (u, v) * skyTransform.Scale;
     }
 
     public static float CalcSkyHeight(float textureHeight, SkyRenderMode mode)
     {
-        if (mode == SkyRenderMode.Vanilla)
+        if (mode == SkyRenderMode.Vanilla || textureHeight < 128)
             return StaticSkySize;
 
         float pad = StandardHeight / textureHeight * StaticSkySize;
@@ -247,25 +235,25 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
             {
                 int animatedTextureIndex = components[j].TextureIndex;
                 if (GenerateSkyTexture(animatedTextureIndex, out var skyTexture))
-                    m_skyTextures.Add(skyTexture.Value);
+                    m_skyTextures.Add(skyTexture);
             }
         }
     }
 
-    private bool GenerateSkyTexture(int textureIndex, [NotNullWhen(true)] out SkyTexture? texture)
+    private bool GenerateSkyTexture(int textureIndex, out SkyTexture texture)
     {
         Image? skyImage = m_archiveCollection.TextureManager.GetNonAnimatedTexture(textureIndex).Image;
         if (skyImage == null)
         {
-            texture = null;
+            texture = default;
             return false;
         }
 
         GetAverageColors(skyImage, out var topColor, out var bottomColor);
         var palette = m_archiveCollection.Palette;
-        var glTexture = CreateTexture(skyImage, $"[SKY][{textureIndex}] {m_archiveCollection.TextureManager.SkyTextureName}");
+        var glTexture = CreateTexture(skyImage, $"[SKY][{textureIndex}]");
         texture = new(glTexture, textureIndex, topColor, bottomColor,
-            palette.GetNearestColorIndex(FromRgba(topColor)), palette.GetNearestColorIndex(FromRgba(bottomColor)));
+            palette.GetNearestColorIndex(FromRgba(topColor)), palette.GetNearestColorIndex(FromRgba(bottomColor)), false);
         return true;
     }
 

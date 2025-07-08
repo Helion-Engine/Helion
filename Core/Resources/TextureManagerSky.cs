@@ -1,5 +1,4 @@
-﻿using Helion.Geometry.Vectors;
-using Helion.Graphics;
+﻿using Helion.Graphics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Resources.Definitions.Id24;
 using Helion.Resources.Definitions.MapInfo;
@@ -21,13 +20,11 @@ public class SkyFireAnimation(int[] firePalette, Texture texture, Image fireImag
     public Image FireImage = fireImage;
     public int Ticks = ticks;
     public int CurrentTick;
-    public bool RenderUpdate = true;
+    public int RenderUpdate;
 }
 
 public partial class TextureManager
 {
-    public List<SkyFireAnimation> GetSkyFireTextures() => m_skyFireTextures;
-
     private readonly Dictionary<int, int> m_flatIndexToSkyTextureIndex = [];
     private readonly Dictionary<int, SkyTransform> m_textureIndexToSkyTransform = [];
     private readonly List<SkyTransform> m_skyTransforms = [];
@@ -37,6 +34,26 @@ public partial class TextureManager
     public bool TryGetSkyTransform(int textureIndex, [NotNullWhen(true)] out SkyTransform? skyTransform)
     {
         return m_textureIndexToSkyTransform.TryGetValue(textureIndex, out skyTransform);
+    }
+
+    public bool SkyFireNeedsUpdate(int textureIndex, [NotNullWhen(true)] out Texture? skyFireTexture, out bool needsUpdate)
+    {
+        needsUpdate = false;
+        skyFireTexture = null;
+        for (int i = 0; i < m_skyFireTextures.Count; i++)
+        {
+            var skyFire = m_skyFireTextures[i];
+            var texture = skyFire.Texture;
+
+            if (texture.Index == textureIndex)
+            {
+                skyFireTexture = texture;
+                needsUpdate = skyFire.RenderUpdate == m_archiveCollection.TextureManager.Ticks;
+                return true;
+            }
+        }
+
+        return false;
     }
     
     private void TickSkyFire()
@@ -52,7 +69,7 @@ public partial class TextureManager
                 continue;
                         
             skyFire.CurrentTick = 0;
-            skyFire.RenderUpdate = true;
+            skyFire.RenderUpdate = Ticks;
             UpdateSkyFire(skyFire);
             var palette = m_archiveCollection.Data.Palette.DefaultLayer;
             WriteSkyFireToTexture(palette, skyFire.FirePalette, skyFire.FireImage, skyFire.Texture.Image);
@@ -94,7 +111,7 @@ public partial class TextureManager
         var texturePixels = textureImage.m_pixels;
         var transparentColor = Color.Transparent.Uint;
         int skyFirePaletteLength = skyFirePalette.Length;
-        for (int p = 0; p < fireIndices.Length; p++)
+        for (int p = fireIndices.Length - 1; p >= 0; p--)
         {
             if (fireIndices[p] == 0)
             {
@@ -146,22 +163,6 @@ public partial class TextureManager
 
             var palette = m_archiveCollection.Data.Palette.DefaultLayer;
             WriteSkyFireToTexture(palette, sky.Fire.Palette, fireImage, texture.Image);
-
-            FlagSkyTrasformForegroundAsFire(sky);
-        }
-    }
-
-    private void FlagSkyTrasformForegroundAsFire(Id24SkyDef sky)
-    {
-        foreach (var skyTransform in m_skyTransforms)
-        {
-            if (skyTransform.Foreground == null || !skyTransform.Foreground.TextureName.EqualsIgnoreCase(sky.Name))
-                continue;
-
-            skyTransform.Foreground.Type = SkyTransformType.Fire;
-            skyTransform.Foreground.Scale.Y = 1;
-            skyTransform.Foreground.Scale.X = 1;
-            skyTransform.Foreground.Offset = Vec2F.Zero;
         }
     }
 
