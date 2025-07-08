@@ -1,3 +1,4 @@
+using Helion.Resources.Archives;
 using Helion.Util.Bytes;
 using System;
 using System.Collections.Generic;
@@ -95,7 +96,7 @@ public class IWadInfo
         { "25485721882b050afa96a56e5758dd52", IWadType.ChexQuest },
     };
 
-    public static readonly IWadInfo DefaultIWadInfo = new IWadInfo(string.Empty, IWadBaseType.None, IWadType.None, "MapInfo/Doom2.txt", DoomDecorate,
+    public static readonly IWadInfo DefaultIWadInfo = new(string.Empty, IWadBaseType.None, IWadType.None, "MapInfo/Doom2.txt", DoomDecorate,
         vanillaCompatibility : false);
 
     public readonly string Title;
@@ -142,6 +143,25 @@ public class IWadInfo
         return DefaultIWadInfo;
     }
 
+    public static IWadInfo GetIWadInfo(Archive archive)
+    {
+        if (archive.GetEntryByName("FREEDOOM") != null)
+        {
+            if (archive.GetEntryByName("E1M1") != null)
+                return InfoFromType(IWadType.FreeDoom1);
+            return InfoFromType(IWadType.FreeDoom2);
+        }
+
+        if (archive.GetEntryByName("E1M1") != null)
+        {
+            if (archive.GetEntryByName("E2M1") == null)
+                return InfoFromType(IWadType.DoomShareware);
+            return InfoFromType(IWadType.DoomRegistered);
+        }
+
+        return DefaultIWadInfo;
+    }
+
     private static bool ValidateOptions(IWadInfo info, IWadInfoOptions options)
     {
         if ((options & IWadInfoOptions.IncludePwadAddOn) == 0)
@@ -176,6 +196,10 @@ public class IWadInfo
         if (iwadType == IWadType.DoomShareware || iwadType == IWadType.DoomRegistered)
             baseType = IWadBaseType.Doom1;
         else if (iwadType == IWadType.NoRestForTheLiving || iwadType == IWadType.NoRestForTheLivingPwad)
+            baseType = IWadBaseType.Doom2;
+        else if (iwadType == IWadType.FreeDoom1)
+            baseType = IWadBaseType.Doom1;
+        else if (iwadType == IWadType.FreeDoom2)
             baseType = IWadBaseType.Doom2;
 
         if (IWadDataLookup.TryGetValue(iwadType, out IWadData? data))

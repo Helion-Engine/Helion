@@ -608,6 +608,9 @@ public class ArchiveCollection : IResources, IPathResolver
         if (iwadArchive != null)
         {
             iwadArchive.IWadInfo = IWadInfo.GetIWadInfo(iwadArchive.FullPath);
+            // If check failed on file MD5/filename then try to determine by archive contents
+            if (iwadArchive.IWadInfo == IWadInfo.DefaultIWadInfo)
+                iwadArchive.IWadInfo = IWadInfo.GetIWadInfo(iwadArchive);
             info = iwadArchive.IWadInfo;
             return true;
         }
