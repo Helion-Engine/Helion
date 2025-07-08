@@ -3371,6 +3371,7 @@ public static class EntityActionFunctions
 
         DehackedApplier.SetEntityFlags(entity.Properties, ref entity.Flags, flags1, false);
         DehackedApplier.SetEntityFlagsMbf21(entity.Properties, ref entity.Flags, flags2, false);
+        entity.Alpha = (float)entity.Properties.Alpha;
     }
 
     private static void A_RemoveFlags(Entity entity)
@@ -3380,6 +3381,7 @@ public static class EntityActionFunctions
 
         DehackedApplier.SetEntityFlags(entity.Properties, ref entity.Flags, flags1, true);
         DehackedApplier.SetEntityFlagsMbf21(entity.Properties, ref entity.Flags, flags2, true);
+        entity.Alpha = (float)entity.Properties.Alpha;
     }
 
     public static void A_ClosetLook(Entity entity)

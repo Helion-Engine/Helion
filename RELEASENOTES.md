@@ -17,5 +17,6 @@
 - Fix incorrect warnings for sounds and invalid bex string memonic with custom sounds prefixed with USER_.
 - Fix UMAPINFO/MAPINFO EnterText/ExitText/SecretExitText/ExitText with escaped double quotes.
 - Fix setting vanilla sky render mode with skydefs when only flatmapping is defined with no skies.
-- Fix alignment with id24 skies
-- Fix sky fire foregrounds not rendering when used on two different sky backings
+- Fix alignment with id24 skies.
+- Fix sky fire foregrounds not rendering when used on two different sky backings.
+- Fix A_AddFlags/A_RemoveFlags not updating sprite transparency when changing TRANSLUCENT flag.
