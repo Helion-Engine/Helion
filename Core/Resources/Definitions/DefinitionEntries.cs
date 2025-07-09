@@ -165,7 +165,7 @@ public class DefinitionEntries
 
     private void ParseAnimDefs(string text) => Animdefs.Parse(text);
     private void ParseSoundInfo(string text) => SoundInfo.Parse(text);
-    private void ParseLanguage(string text) => Language.Parse(text);
+    private void ParseLanguage(string text) => Language.Parse(text, m_archiveCollection.IWadInfo);
     private void ParseLanguageCompatibility(string text) => Language.ParseCompatibility(text);
     private void ParseCompLevel(string data) => CompLevelDefinition.Parse(data);
     private void ParseMusInfo(string text) => MusInfoDefinition.Parse(text);

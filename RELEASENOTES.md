@@ -7,6 +7,8 @@
 - UDMF midtex3d and midtex3dimpassible line flags support. Includes physics for monsters to walk on without dropping off.
 - Solo-net command that allows for cooperative gameplay rules in a single player game.
 - HUD message text will wrap to HUD width.
+- IWAD detection will fallback to reading lumps when MD5/filename checks fail for freedoom.
+- Show IWAD selection screen IWAD fails to load with the -iwad parameter.
 
 ## Bug Fixes:
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.
@@ -20,3 +22,4 @@
 - Fix alignment with id24 skies.
 - Fix sky fire foregrounds not rendering when used on two different sky backings.
 - Fix A_AddFlags/A_RemoveFlags not updating sprite transparency when changing TRANSLUCENT flag.
+- Fix reading $ifgame in language file.

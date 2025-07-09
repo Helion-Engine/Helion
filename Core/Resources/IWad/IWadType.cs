@@ -8,8 +8,10 @@ public enum IWadType
     TNT,
     UltimateDoom,
     ChexQuest,
+    Heretic,
+    Hexen,
 
-    // ZDoom lanauage stuff doesn't distinguish between doom 1 iwads
+    // ZDoom language stuff doesn't distinguish between doom 1 iwads
     DoomShareware,
     DoomRegistered,
     NoRestForTheLiving,

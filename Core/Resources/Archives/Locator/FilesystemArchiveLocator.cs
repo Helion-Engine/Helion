@@ -58,10 +58,10 @@ public class FilesystemArchiveLocator : IArchiveLocator
         m_bundledPaths = [.. pathsManager.ApplicationFolders];
     }
 
-    public Archive? Locate(string uri, bool isBundled)
+    public Archive? Locate(string uri, ArchiveLocatorOptions options)
     {
         bool exists = false;
-        foreach (string basePath in isBundled ? m_bundledPaths : m_paths)
+        foreach (string basePath in (options & ArchiveLocatorOptions.IsBundled) != 0 ? m_bundledPaths : m_paths)
         {
             string path = Path.Combine(basePath, uri);
             if (!CheckPathExists(path))
@@ -85,17 +85,18 @@ public class FilesystemArchiveLocator : IArchiveLocator
             }
         }
 
-        Log.Error("Could not load {0}. The file {1}.", uri, exists ? "type is not supported" : "does not exist");
+        if ((options & ArchiveLocatorOptions.IgnoreError) == 0)
+            Log.Error("Could not load {0}. The file {1}.", uri, exists ? "type is not supported" : "does not exist");
         return null;
     }
 
     /// <summary>
     /// Checks the search paths for the archive, without opening it or confirming its type.
     /// </summary>
-    public string? LocateWithoutLoading(string uri, bool isBundled)
+    public string? LocateWithoutLoading(string uri, ArchiveLocatorOptions options)
     {
         string? foundPath = null;
-        foreach (string basePath in isBundled ? m_bundledPaths : m_paths)
+        foreach (string basePath in (options & ArchiveLocatorOptions.IsBundled) != 0 ? m_bundledPaths : m_paths)
         {
             string path = Path.Combine(basePath, uri);
             if (!CheckPathExists(path))

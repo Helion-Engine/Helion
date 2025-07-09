@@ -66,7 +66,7 @@ public partial class ConsoleLayer
         }
         else
         {
-            hud.FillBox((0, 0, hud.Width, hud.Height), Color.Gray);
+            hud.FillBox(drawArea, Color.Black, alpha: 0.85f);
         }
     }
 

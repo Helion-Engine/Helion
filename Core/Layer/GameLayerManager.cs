@@ -436,7 +436,7 @@ public class GameLayerManager : IGameLayerManager
 
             CheckToggleFullscreen(input);
 
-            if (IwadSelectionLayer == null && ConsumeCommandPressed(Constants.Input.Console, input))
+            if (ConsumeCommandPressed(Constants.Input.Console, input))
                 ToggleConsoleLayer(input);
 
             if (ConsoleLayer != null && ConsoleLayer.Animation.State != InterpolationAnimationState.Out)

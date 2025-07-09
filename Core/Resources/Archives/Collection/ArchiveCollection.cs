@@ -234,7 +234,7 @@ public class ArchiveCollection : IResources, IPathResolver
     {
         map = null;
         string file = ExtractEmbeddedFile(mapEntry);
-        Archive? mapArchive = LoadArchive(file);
+        Archive? mapArchive = LoadArchive(file, LoadArchiveOptions.Default);
         if (mapArchive == null)
             return false;
 
@@ -315,7 +315,7 @@ public class ArchiveCollection : IResources, IPathResolver
         // if we have already loaded it.
         if (loadDefaultAssets && m_archives.Empty())
         {
-            Archive? assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, shouldCalculateMd5: true, isBundled: true);
+            var assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, LoadArchiveOptions.CalculateMd5 | LoadArchiveOptions.IsBundled);
             if (assetsArchive == null)
                 return false;
 
@@ -332,7 +332,7 @@ public class ArchiveCollection : IResources, IPathResolver
         }
         else if (iwad != null)
         {
-            iwadArchive = LoadSpecial(iwad, ArchiveType.IWAD, shouldCalculateMd5: true);
+            iwadArchive = LoadSpecial(iwad, ArchiveType.IWAD, LoadArchiveOptions.CalculateMd5);
             if (iwadArchive == null)
                 return false;
 
@@ -343,7 +343,7 @@ public class ArchiveCollection : IResources, IPathResolver
 
         foreach (string filePath in filePaths)
         {
-            Archive? archive = LoadArchive(filePath, shouldCalculateMd5: true);
+            Archive? archive = LoadArchive(filePath, LoadArchiveOptions.CalculateMd5);
             if (archive == null)
                 continue;
 
@@ -416,7 +416,7 @@ public class ArchiveCollection : IResources, IPathResolver
         GameConfDefinition gameConfDef = new();
         foreach (string wad in wads)
         {
-            Archive? archive = LoadArchive(wad, isLoadEvent: false);
+            Archive? archive = LoadArchive(wad, LoadArchiveOptions.IgnoreLoadEvent | LoadArchiveOptions.IgnoreError);
             var entry = archive?.GetEntryByName("GAMECONF");
             if (entry != null)
                 gameConfDef.Parse(entry);
@@ -427,7 +427,7 @@ public class ArchiveCollection : IResources, IPathResolver
         if (gameConfDef.Data?.Executable == GameConfConstants.Executable.Id24)
         {
             const string Id24ResName = "id24res.wad";
-            Archive? id24ResArchive = LoadArchive(Id24ResName, shouldCalculateMd5: true);
+            Archive? id24ResArchive = LoadArchive(Id24ResName, LoadArchiveOptions.CalculateMd5);
             if (id24ResArchive == null)
                 HelionLog.Error($"Unable to open {Id24ResName} for ID24 config");
             else
@@ -463,7 +463,7 @@ public class ArchiveCollection : IResources, IPathResolver
     {
         foreach (string file in files)
         {
-            Archive? newArchive = LoadArchive(file);
+            Archive? newArchive = LoadArchive(file, LoadArchiveOptions.Default);
             if (newArchive == null)
                 continue;
 
@@ -538,9 +538,9 @@ public class ArchiveCollection : IResources, IPathResolver
         }
     }
 
-    private Archive? LoadSpecial(string file, ArchiveType archiveType, bool shouldCalculateMd5 = false, bool isBundled = false)
+    private Archive? LoadSpecial(string file, ArchiveType archiveType, LoadArchiveOptions options)
     {
-        Archive? archive = LoadArchive(file, shouldCalculateMd5);
+        Archive? archive = LoadArchive(file, options);
         if (archive == null)
             return null;
 
@@ -548,23 +548,20 @@ public class ArchiveCollection : IResources, IPathResolver
         return archive;
     }
 
-    private Archive? LoadArchive(string filePath, bool shouldCalculateMd5 = false, bool isLoadEvent = true, bool isBundled = false)
+    private Archive? LoadArchive(string filePath, LoadArchiveOptions options)
     {
-        Archive? archive = m_archiveLocator.Locate(filePath, isBundled);
+        var archive = m_archiveLocator.Locate(filePath, options.ToArchiveLocatorOptions());
         if (archive == null)
-        {
-            Log.Error($"Failure when loading {filePath}");
             return null;
-        }
 
-        if (shouldCalculateMd5)
+        if ((options & LoadArchiveOptions.CalculateMd5) != 0)
         {
             string? md5 = Files.CalculateMD5(archive.Path.FullPath);
             if (md5 != null)
                 archive.MD5 = md5;
         }
 
-        if (isLoadEvent)
+        if ((options & LoadArchiveOptions.IgnoreLoadEvent) == 0)
             ArchiveLoaded?.Invoke(this, archive);
         else
             ArchiveRead?.Invoke(this, archive);
@@ -608,6 +605,9 @@ public class ArchiveCollection : IResources, IPathResolver
         if (iwadArchive != null)
         {
             iwadArchive.IWadInfo = IWadInfo.GetIWadInfo(iwadArchive.FullPath);
+            // If check failed on file MD5/filename then try to determine by archive contents
+            if (iwadArchive.IWadInfo == IWadInfo.DefaultIWadInfo)
+                iwadArchive.IWadInfo = IWadInfo.GetIWadInfo(iwadArchive);
             info = iwadArchive.IWadInfo;
             return true;
         }
@@ -641,26 +641,10 @@ public class ArchiveCollection : IResources, IPathResolver
         string? iwad = originalIwad;
         List<string> pwads = [];
 
-        string? LocateReferencedWad(string wadName, string? referencingWadPath)
-        {
-            // first check in the same folder
-            var siblingPath = Path.Join(referencingWadPath, wadName);
-            if (Path.Exists(siblingPath))
-                return siblingPath;
-            // check in other search paths
-            else
-            {
-                string? otherPath = m_archiveLocator.LocateWithoutLoading(wadName);
-                if (otherPath != null)
-                    return otherPath;
-            }
-            return null;
-        }
-
         GameConfDefinition parser = new();
         void ApplyWadsFromWadGameConf(string wad)
         {
-            using var archive = LoadArchive(wad);
+            using var archive = LoadArchive(wad, LoadArchiveOptions.IgnoreError);
             var entry = archive?.GetEntryByName("GAMECONF");
             if (entry == null)
                 return;
@@ -704,6 +688,22 @@ public class ArchiveCollection : IResources, IPathResolver
         }
 
         return (iwad, pwads);
+    }
+
+    string? LocateReferencedWad(string wadName, string? referencingWadPath)
+    {
+        // first check in the same folder
+        var siblingPath = Path.Join(referencingWadPath, wadName);
+        if (Path.Exists(siblingPath))
+            return siblingPath;
+        // check in other search paths
+        else
+        {
+            string? otherPath = m_archiveLocator.LocateWithoutLoading(wadName, ArchiveLocatorOptions.Default);
+            if (otherPath != null)
+                return otherPath;
+        }
+        return null;
     }
 
     public BrightmapDefinition? GetBrightmapFor(string textureName, ResourceNamespace textureNamespace)
