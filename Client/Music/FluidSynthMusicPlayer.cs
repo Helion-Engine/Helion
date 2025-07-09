@@ -9,7 +9,7 @@ using System.IO;
 using ZMusicWrapper;
 using static Helion.Util.Assertion.Assert;
 
-public class FluidSynthMusicPlayer : IMusicPlayer
+public class FluidSynthMusicPlayer
 {
     private const int Channels = 2;
     private const int SampleRate = 44100;

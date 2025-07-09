@@ -201,7 +201,6 @@ public class MusicPlayer : IMusicPlayer
         m_lastDataHash = hash;
 
         Stop();
-        SetVolume((float)m_configAudio.MusicVolumeNormalized);
         bool isMidi = m_zMusicPlayer.IsMIDI(data, out string? error);
 
         if (!string.IsNullOrEmpty(error))
@@ -297,10 +296,10 @@ public class MusicPlayer : IMusicPlayer
         m_disposed = true;
     }
 
-    public void SetVolume(float volume)
+    public void SetVolume()
     {
-        m_zMusicPlayer.Volume = (float)(volume * .5);
-        m_fluidSynthPlayer.SetVolume(volume);
+        m_zMusicPlayer.Volume = (float)(m_configAudio.ZMusicVolumeNormalized * .5);
+        m_fluidSynthPlayer.SetVolume((float)m_configAudio.MusicVolumeNormalized);
     }
 
     public bool Enabled

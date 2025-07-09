@@ -12,6 +12,7 @@ public partial class Client
     private void RegisterConfigChanges()
     {
         m_config.Audio.MusicVolume.OnChanged += MusicVolume_OnChanged;
+        m_config.Audio.ZMusicVolume.OnChanged += ZMusicVolume_OnChanged;
         m_config.Audio.SoundVolume.OnChanged += SoundVolume_OnChanged;
 
         m_config.Mouse.Look.OnChanged += Look_OnChanged;
@@ -92,6 +93,7 @@ public partial class Client
     private void UnregisterConfigChanges()
     {
         m_config.Audio.MusicVolume.OnChanged -= MusicVolume_OnChanged;
+        m_config.Audio.ZMusicVolume.OnChanged -= ZMusicVolume_OnChanged;
         m_config.Audio.SoundVolume.OnChanged -= SoundVolume_OnChanged;
 
         m_config.Mouse.Look.OnChanged -= Look_OnChanged;
@@ -118,10 +120,12 @@ public partial class Client
 
     private void MusicVolume_OnChanged(object? sender, double volume) => UpdateVolume();
 
+    private void ZMusicVolume_OnChanged(object? sender, double volume) => UpdateVolume();
+
     private void UpdateVolume()
     {
         m_audioSystem.SetVolume(m_config.Audio.SoundVolume);
-        m_audioSystem.Music.SetVolume((float)m_config.Audio.MusicVolumeNormalized);
+        m_audioSystem.Music.SetVolume();
     }
 
     private void SessionCompatLevel_OnChanged(object? sender, Resources.Definitions.CompLevel e)
