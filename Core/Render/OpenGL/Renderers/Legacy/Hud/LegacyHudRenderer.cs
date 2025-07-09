@@ -96,13 +96,14 @@ public class LegacyHudRenderer : HudRenderer
         var drawAreaTop = drawArea.Min.Y;
         for (int i = 0; i < text.Sentences.Count; i++)
         {
+            var offset = text.Sentences[i].Offset;
             for (int j = 0; j < text.Sentences[i].Glyphs.Length; j++)
             {
                 ref var glyph = ref text.Sentences[i].Glyphs.Data[j];
-                float left = drawAreaLeft + (glyph.Location.Min.X * drawAreaWidth);
-                float top = drawAreaTop + (glyph.Location.Min.Y * drawAreaHeight);
-                float right = drawAreaLeft + (glyph.Location.Max.X * drawAreaWidth);
-                float bottom = drawAreaTop + (glyph.Location.Max.Y * drawAreaHeight);
+                float left = drawAreaLeft + (glyph.Location.Min.X * drawAreaWidth) + offset.X;
+                float top = drawAreaTop + (glyph.Location.Min.Y * drawAreaHeight) + offset.Y;
+                float right = drawAreaLeft + (glyph.Location.Max.X * drawAreaWidth) + offset.X;
+                float bottom = drawAreaTop + (glyph.Location.Max.Y * drawAreaHeight) + offset.Y;
                 float uvLeft = glyph.UV.Min.X;
                 float uvTop = glyph.UV.Min.Y;
                 float uvRight = glyph.UV.Max.X;

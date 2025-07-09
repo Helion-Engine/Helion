@@ -1,4 +1,5 @@
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 
 namespace Helion.Render.OpenGL.Texture.Fonts;
@@ -8,7 +9,7 @@ namespace Helion.Render.OpenGL.Texture.Fonts;
 /// characters, meaning it's not an actual sentence ended by a period, but
 /// rather a single line of characters.
 /// </summary>
-public readonly struct RenderableSentence(DynamicArray<RenderableGlyph> glyphs, Dimension drawArea)
+public readonly struct RenderableSentence(DynamicArray<RenderableGlyph> glyphs, Dimension drawArea, Vec2I offset = default)
 {
     /// <summary>
     /// The enclosing box around all the glyphs.
@@ -19,6 +20,8 @@ public readonly struct RenderableSentence(DynamicArray<RenderableGlyph> glyphs, 
     /// The glyphs and their draw positions.
     /// </summary>
     public readonly DynamicArray<RenderableGlyph> Glyphs = glyphs;
+
+    public readonly Vec2I Offset = offset;
 
     public override string ToString()
     {

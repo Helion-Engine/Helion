@@ -117,6 +117,7 @@ public class RenderableString
                 // We want to make sure each sentence has one character to avoid infinite looping cases where width is too small.
                 if (endX > maxWidth && currentSentence != null && currentSentence.Length > 0)
                 {
+                    i--;
                     CreateAndAddSentenceIfPossible(sentences, ref currentSentence, ref drawAreaWidth, ref drawAreaHeight, ref currentWidth, ref currentHeight);
                     continue;
                 }
@@ -322,7 +323,7 @@ public class RenderableString
         {
             var sentence = Sentences[i];
             int gutter = (DrawArea.Width - sentence.DrawArea.Width) / 2;
-            AdjustOffsetsBy(sentence, gutter);
+            Sentences[i] = new RenderableSentence(sentence.Glyphs, sentence.DrawArea, new(gutter, 0));
         }
     }       
 
@@ -332,22 +333,7 @@ public class RenderableString
         {
             var sentence = Sentences[i];
             int gutter = DrawArea.Width - sentence.DrawArea.Width;
-            AdjustOffsetsBy(sentence, gutter);
-        }
-    }
-
-    private static void AdjustOffsetsBy(RenderableSentence sentence, int pixelAdjustmentWidth)
-    {
-        // I am afraid of ending up with copies because this is a
-        // struct, so I'll do this to make sure we don't have bugs.
-        //foreach (RenderedGlyph glyph in sentence.Glyphs)
-        for (int i = 0; i < sentence.Glyphs.Length; i++)
-        {
-            RenderableGlyph glyph = sentence.Glyphs.Data[i];
-
-            ImageBox2I pos = glyph.Coordinates;
-            ImageBox2I newCoordinate = new(pos.Left + pixelAdjustmentWidth, pos.Top, pos.Right, pos.Bottom);
-            sentence.Glyphs.Data[i] = new RenderableGlyph(glyph.Character, newCoordinate, glyph.Location, glyph.UV, glyph.Color);
+            Sentences[i] = new RenderableSentence(sentence.Glyphs, sentence.DrawArea, new(gutter, 0));
         }
     }
 
@@ -365,10 +351,8 @@ public class RenderableString
             for (int i = 0; i < sentence.Glyphs.Length; i++)
             {
                 ref var renderGlyph = ref sentence.Glyphs.Data[i];
-                var location = new Box2F(renderGlyph.Coordinates.Min.X * inverse.X, renderGlyph.Coordinates.Min.Y * inverse.Y,
+                renderGlyph.Location = new Box2F(renderGlyph.Coordinates.Min.X * inverse.X, renderGlyph.Coordinates.Min.Y * inverse.Y,
                     renderGlyph.Coordinates.Max.X * inverse.X, renderGlyph.Coordinates.Max.Y * inverse.Y);
-
-                renderGlyph.Location = location;
             }
         }
     }
