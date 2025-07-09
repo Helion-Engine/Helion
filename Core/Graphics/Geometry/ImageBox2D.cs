@@ -59,9 +59,12 @@ public readonly struct ImageBox2D
         Max = max;
     }
 
-    public ImageBox2D(double startX, double startY, double endX, double endY) :
-        this(new Vec2D(startX, startY), new Vec2D(endX, endY))
+    public ImageBox2D(double startX, double startY, double endX, double endY)
     {
+        Min.X = startX;
+        Min.Y = startY;
+        Max.X = endX;
+        Max.Y = endY;
     }
 
     public override string ToString() => $"({Min}, {Max})";

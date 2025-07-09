@@ -20,27 +20,27 @@ public struct RenderableSentence
     /// </summary>
     public readonly DynamicArray<RenderableGlyph> Glyphs;
 
-    public RenderableSentence(DynamicArray<RenderableGlyph> glyphs)
+    public RenderableSentence(DynamicArray<RenderableGlyph> glyphs, Dimension drawArea)
     {
         Glyphs = glyphs;
-        DrawArea = CalculateDrawArea(glyphs);
+        DrawArea = drawArea;
     }
 
-    private static Dimension CalculateDrawArea(DynamicArray<RenderableGlyph> glyphs)
-    {
-        int width = 0;
-        int height = 0;
-        for (int i = 0; i < glyphs.Length; i++)
-        {
-            var glyph = glyphs[i];
-            if (glyph.AreaCoordinates.Right > width)
-                width = glyph.AreaCoordinates.Right;
-            if (glyph.AreaCoordinates.Height > height)
-                height = glyph.AreaCoordinates.Height;
-        }
+    //private static Dimension CalculateDrawArea(DynamicArray<RenderableGlyph> glyphs)
+    //{
+    //    int width = 0;
+    //    int height = 0;
+    //    for (int i = 0; i < glyphs.Length; i++)
+    //    {
+    //        ref var glyph = ref glyphs.Data[i];
+    //        if (glyph.AreaCoordinates.Right > width)
+    //            width = glyph.AreaCoordinates.Right;
+    //        if (glyph.AreaCoordinates.Height > height)
+    //            height = glyph.AreaCoordinates.Height;
+    //    }
 
-        return new Dimension(width, height);
-    }
+    //    return new Dimension(width, height);
+    //}
 
     public override string ToString()
     {

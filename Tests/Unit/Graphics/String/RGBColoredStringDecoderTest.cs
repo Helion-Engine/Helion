@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using FluentAssertions;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
@@ -88,5 +89,30 @@ public class RGBColoredStringDecoderTest
     public void CannotUseNegatives()
     {
         AssertMatches(@"\c[0,-5,1]hi", Tuple.Create(@"\c[0,-5,1]hi", RenderableString.DefaultColor));
+    }
+
+    [Fact]
+    public void Perf()
+    {
+        Dictionary<char, Glyph> glyphs = [];
+
+        for (int i = 'A'; i < 'z'; i++)
+            glyphs[(char)i] = new((char)i, new Geometry.Boxes.Box2F((0,0), (1,1)), new Geometry.Boxes.Box2I((0,0), (16,16)));
+
+        var image = new Image((16, 16), ImageType.Argb);
+        var font = new Font("test", glyphs, image);
+        var dataCache = new DataCache();
+
+        var sw = Stopwatch.StartNew();
+
+        for (int i = 0; i <100000; i++)
+        {
+            var str = dataCache.GetRenderableString("This is a test string. This is a test string. This is a test string. This is a test string. This is a test string.", font, 16, maxWidth: 480);
+            dataCache.FreeRenderableString(str);
+        }
+
+        sw.Stop();
+        var elapsed = sw.Elapsed.TotalMilliseconds;
+        int lol = 1;
     }
 }

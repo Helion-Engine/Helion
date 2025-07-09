@@ -53,7 +53,7 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
     public void Viewport(Box2I area)
     {
         m_viewport = area;
-        Commands.Viewport(area.Dimension, area.Min);
+        Commands.Viewport((area.Width, area.Height), area.Min);
     }
 
     public void Viewport(Box2I area, Action action)

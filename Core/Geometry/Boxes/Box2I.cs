@@ -33,7 +33,6 @@ namespace Helion.Geometry.Boxes
         public int Height => Max.Y - Min.Y;
         public Box2F Float => new(Min.Float, Max.Float);
         public Box2D Double => new(Min.Double, Max.Double);
-        public Dimension Dimension => new(Width, Height);
         public Vec2I Sides => Max - Min;
 
         public Box2I(Vec2I min, Vec2I max)
