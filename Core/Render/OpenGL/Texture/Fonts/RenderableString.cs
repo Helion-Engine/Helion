@@ -119,17 +119,14 @@ public class RenderableString
                     continue;
                 }
 
-                // We use a dummy box temporarily, and calculate it at the end properly (for code clarity reasons).
                 ImageBox2I drawLoc = new(currentWidth - offsetX, currentHeight + offsetY, endX - offsetX, endY + offsetY);
                 ImageBox2I drawLocFixed = charFixedWidth.HasValue ? new(currentWidth, currentHeight + offsetY, currentWidth + charFixedWidth.Value, endY + offsetY) : drawLoc;
-                ImageBox2D uv = new(glyph.UV.Min.X, glyph.UV.Min.Y, glyph.UV.Max.X, glyph.UV.Max.Y);
 
-                RenderableGlyph renderGlyph = new(c, drawLocFixed, drawLoc, ImageBox2D.ZeroToOne, uv, colorRange.Color);
-
-                if (renderGlyph.AreaCoordinates.Right > drawAreaWidth)
-                    drawAreaWidth = renderGlyph.AreaCoordinates.Right;
-                if (renderGlyph.AreaCoordinates.Height > drawAreaHeight)
-                    drawAreaHeight = renderGlyph.AreaCoordinates.Height;
+                if (drawLocFixed.Max.X > drawAreaWidth)
+                    drawAreaWidth = drawLocFixed.Max.X;
+                int renderGlyphHeight = drawLocFixed.Max.Y - drawLocFixed.Min.Y;
+                if (renderGlyphHeight > drawAreaHeight)
+                    drawAreaHeight = renderGlyphHeight;
 
                 if (currentSentence == null)
                 {
@@ -137,7 +134,13 @@ public class RenderableString
                     currentSentence.EnsureCapacity(str.Length);
                 }
 
-                currentSentence.Data[currentSentence.Length++] = renderGlyph;
+                ref var renderableGlyph = ref currentSentence.Data[currentSentence.Length++];
+                renderableGlyph.Character = c;
+                renderableGlyph.AreaCoordinates = drawLocFixed;
+                renderableGlyph.Coordinates = drawLoc;
+                renderableGlyph.Location = ImageBox2D.ZeroToOne;
+                renderableGlyph.UV = new(glyph.UV.Min.X, glyph.UV.Min.Y, glyph.UV.Max.X, glyph.UV.Max.Y);
+                renderableGlyph.Color = colorRange.Color;
 
                 if (charFixedWidth.HasValue)
                     currentWidth += charFixedWidth.Value;
@@ -151,8 +154,7 @@ public class RenderableString
     }
 
     private static void CreateAndAddSentenceIfPossible(List<RenderableSentence> sentences, ref DynamicArray<RenderableGlyph>? currentSentence,
-        ref int drawAreaWidth, ref int drawAreaHeight,
-        ref int currentWidth, ref int currentHeight)
+        ref int drawAreaWidth, ref int drawAreaHeight, ref int currentWidth, ref int currentHeight)
     {
         if (currentSentence == null || currentSentence.Length == 0)
             return;

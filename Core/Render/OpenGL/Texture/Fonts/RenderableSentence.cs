@@ -8,39 +8,17 @@ namespace Helion.Render.OpenGL.Texture.Fonts;
 /// characters, meaning it's not an actual sentence ended by a period, but
 /// rather a single line of characters.
 /// </summary>
-public struct RenderableSentence
+public readonly struct RenderableSentence(DynamicArray<RenderableGlyph> glyphs, Dimension drawArea)
 {
     /// <summary>
     /// The enclosing box around all the glyphs.
     /// </summary>
-    public readonly Dimension DrawArea;
+    public readonly Dimension DrawArea = drawArea;
 
     /// <summary>
     /// The glyphs and their draw positions.
     /// </summary>
-    public readonly DynamicArray<RenderableGlyph> Glyphs;
-
-    public RenderableSentence(DynamicArray<RenderableGlyph> glyphs, Dimension drawArea)
-    {
-        Glyphs = glyphs;
-        DrawArea = drawArea;
-    }
-
-    //private static Dimension CalculateDrawArea(DynamicArray<RenderableGlyph> glyphs)
-    //{
-    //    int width = 0;
-    //    int height = 0;
-    //    for (int i = 0; i < glyphs.Length; i++)
-    //    {
-    //        ref var glyph = ref glyphs.Data[i];
-    //        if (glyph.AreaCoordinates.Right > width)
-    //            width = glyph.AreaCoordinates.Right;
-    //        if (glyph.AreaCoordinates.Height > height)
-    //            height = glyph.AreaCoordinates.Height;
-    //    }
-
-    //    return new Dimension(width, height);
-    //}
+    public readonly DynamicArray<RenderableGlyph> Glyphs = glyphs;
 
     public override string ToString()
     {
