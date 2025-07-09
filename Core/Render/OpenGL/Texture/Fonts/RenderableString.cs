@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
@@ -19,7 +20,7 @@ public class RenderableString
 {
     public static readonly Color DefaultColor = Color.White;
 
-    private static readonly List<ColorRange> ColorRanges = new();
+    private static readonly List<ColorRange> ColorRanges = [];
 
     /// <summary>
     /// The font used when rendering this.
@@ -81,8 +82,10 @@ public class RenderableString
     {
         int currentWidth = 0;
         int currentHeight = 0;
+        int drawAreaWidth = 0;
+        int drawAreaHeight = 0;
 
-        List<RenderableSentence> sentences = dataCache.GetRenderableSentences();
+        var sentences = dataCache.GetRenderableSentences();
         if (str.Length == 0)
             return sentences;
 
@@ -98,11 +101,15 @@ public class RenderableString
             for (int i = colorRange.StartIndex; i < colorRange.EndIndex; i++)
             {
                 char c = str[i];
-                Glyph glyph = font.Get(c);
-                (int glyphW, int glyphH) = glyph.Area.Dimension;
+                if (!font.TryGet(c, out var glyph))
+                    glyph = font.DefaultGlyph;
+                int glyphW = glyph.Area.Max.X - glyph.Area.Min.X;
+                int glyphH = glyph.Area.Max.Y - glyph.Area.Min.Y;
 
-                double scale = (double)fontSize / (glyph.Area.Height);
-                Vec2I offset = new((int)(scale * glyph.Offset.X), (int)(scale * glyph.Offset.Y));
+                var scale = (float)fontSize / glyphH;
+                int offsetX = (int)(scale * glyph.Offset.X);
+                int offsetY = (int)(scale * glyph.Offset.Y);
+
                 int endX = currentWidth + (int)(glyphW * scale);
                 int endY = currentHeight + (int)(glyphH * scale);
                 int? charFixedWidth = fixedWidth.HasValue ? (int)(fixedWidth.Value * scale) : null;
@@ -110,18 +117,31 @@ public class RenderableString
                 // We want to make sure each sentence has one character to avoid infinite looping cases where width is too small.
                 if (endX > maxWidth && currentSentence != null && currentSentence.Length > 0)
                 {
-                    CreateAndAddSentenceIfPossible(sentences, ref currentSentence, ref currentWidth, ref currentHeight);
+                    i--;
+                    CreateAndAddSentenceIfPossible(sentences, ref currentSentence, ref drawAreaWidth, ref drawAreaHeight, ref currentWidth, ref currentHeight);
                     continue;
                 }
 
-                // We use a dummy box temporarily, and calculate it at the end properly (for code clarity reasons).
-                ImageBox2I drawLoc = new(currentWidth - offset.X, currentHeight + offset.Y, endX - offset.X, endY + offset.Y);
-                ImageBox2I drawLocFixed = charFixedWidth.HasValue ? new(currentWidth, currentHeight + offset.Y, currentWidth + charFixedWidth.Value, endY + offset.Y) : drawLoc;
-                ImageBox2D uv = new(glyph.UV.Min.Double, glyph.UV.Max.Double);
+                // Force width to fixed width char. Doom fixed fonts to the width of the 0 char.
+                var glyphAreaWidth = charFixedWidth.HasValue  ? currentWidth + charFixedWidth.Value : endX - offsetX;
+                var glyAreaHeight = (endY + offsetY) - (currentHeight + offsetY);
+                if (glyphAreaWidth > drawAreaWidth)
+                    drawAreaWidth = glyphAreaWidth;
+                if (glyAreaHeight > drawAreaHeight)
+                    drawAreaHeight = glyAreaHeight;
 
-                RenderableGlyph renderGlyph = new(c, drawLocFixed, drawLoc, ImageBox2D.ZeroToOne, uv, colorRange.Color);
-                currentSentence ??= dataCache.GetRenderableGlyphs();
-                currentSentence.Add(renderGlyph);
+                if (currentSentence == null)
+                {
+                    currentSentence = dataCache.GetRenderableGlyphs();
+                    currentSentence.EnsureCapacity(str.Length);
+                }
+
+                ref var renderableGlyph = ref currentSentence.Data[currentSentence.Length++];
+                renderableGlyph.Character = c;
+                renderableGlyph.Coordinates = new(currentWidth - offsetX, currentHeight + offsetY, endX - offsetX, endY + offsetY);
+                renderableGlyph.Location = Box2F.ZeroToOne;
+                renderableGlyph.UV = glyph.UV;
+                renderableGlyph.Color = colorRange.Color;
 
                 if (charFixedWidth.HasValue)
                     currentWidth += charFixedWidth.Value;
@@ -130,21 +150,23 @@ public class RenderableString
             }
         }
 
-        CreateAndAddSentenceIfPossible(sentences, ref currentSentence, ref currentWidth, ref currentHeight);
+        CreateAndAddSentenceIfPossible(sentences, ref currentSentence, ref drawAreaWidth, ref drawAreaHeight, ref currentWidth, ref currentHeight);
         return sentences;
     }
 
     private static void CreateAndAddSentenceIfPossible(List<RenderableSentence> sentences, ref DynamicArray<RenderableGlyph>? currentSentence,
-        ref int currentWidth, ref int currentHeight)
+        ref int drawAreaWidth, ref int drawAreaHeight, ref int currentWidth, ref int currentHeight)
     {
         if (currentSentence == null || currentSentence.Length == 0)
             return;
 
-        RenderableSentence sentence = new(currentSentence);
+        RenderableSentence sentence = new(currentSentence, (drawAreaWidth, drawAreaHeight));
         sentences.Add(sentence);
         currentSentence = null;
 
         currentWidth = 0;
+        drawAreaHeight = 0;
+        drawAreaWidth = 0;
         currentHeight += sentence.DrawArea.Height;
     }
 
@@ -301,7 +323,7 @@ public class RenderableString
         {
             var sentence = Sentences[i];
             int gutter = (DrawArea.Width - sentence.DrawArea.Width) / 2;
-            AdjustOffsetsBy(sentence, gutter);
+            Sentences[i] = new RenderableSentence(sentence.Glyphs, sentence.DrawArea, new(gutter, 0));
         }
     }       
 
@@ -311,22 +333,7 @@ public class RenderableString
         {
             var sentence = Sentences[i];
             int gutter = DrawArea.Width - sentence.DrawArea.Width;
-            AdjustOffsetsBy(sentence, gutter);
-        }
-    }
-
-    private static void AdjustOffsetsBy(RenderableSentence sentence, int pixelAdjustmentWidth)
-    {
-        // I am afraid of ending up with copies because this is a
-        // struct, so I'll do this to make sure we don't have bugs.
-        //foreach (RenderedGlyph glyph in sentence.Glyphs)
-        for (int i = 0; i < sentence.Glyphs.Length; i++)
-        {
-            RenderableGlyph glyph = sentence.Glyphs[i];
-
-            ImageBox2I pos = glyph.Coordinates;
-            ImageBox2I newCoordinate = new(pos.Left + pixelAdjustmentWidth, pos.Top, pos.Right, pos.Bottom);
-            sentence.Glyphs[i] = new RenderableGlyph(glyph.Character, newCoordinate, newCoordinate, glyph.Location, glyph.UV, glyph.Color);
+            Sentences[i] = new RenderableSentence(sentence.Glyphs, sentence.DrawArea, new(gutter, 0));
         }
     }
 
@@ -336,21 +343,16 @@ public class RenderableString
         // construction would require a ton of reading ahead, alignment,
         // and calculations which would complicate the code. Instead, we
         // do one final recalculation of the normalized coordinates here.
-        Vec2D inverse = new(1.0 / DrawArea.Width, 1.0 / DrawArea.Height);
+        Vec2F inverse = new(1.0f / DrawArea.Width, 1.0f / DrawArea.Height);
 
         for (int sentenceIndex = 0; sentenceIndex < Sentences.Count; sentenceIndex++)
         {
             var sentence = Sentences[sentenceIndex];
             for (int i = 0; i < sentence.Glyphs.Length; i++)
             {
-                RenderableGlyph renderGlyph = sentence.Glyphs[i];
-
-                ImageBox2I coordinates = renderGlyph.Coordinates;
-                Vec2D topLeft = coordinates.Min.Double * inverse;
-                Vec2D bottomRight = coordinates.Max.Double * inverse;
-                ImageBox2D location = new(topLeft, bottomRight);
-
-                sentence.Glyphs[i] = new RenderableGlyph(renderGlyph, location);
+                ref var renderGlyph = ref sentence.Glyphs.Data[i];
+                renderGlyph.Location = new Box2F(renderGlyph.Coordinates.Min.X * inverse.X, renderGlyph.Coordinates.Min.Y * inverse.Y,
+                    renderGlyph.Coordinates.Max.X * inverse.X, renderGlyph.Coordinates.Max.Y * inverse.Y);
             }
         }
     }

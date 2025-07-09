@@ -2,13 +2,13 @@
 // CHANGES WILL NOT BE PROPAGATED.
 // ----------------------------------------------------------------------------
 
+using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
+using Helion.Util.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Helion.Geometry.Segments;
-using Helion.Geometry.Vectors;
-using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Geometry.Boxes
@@ -17,6 +17,7 @@ namespace Helion.Geometry.Boxes
     public readonly struct Box2F
     {
         public static readonly Box2F UnitBox = ((0, 0), (1, 1));
+        public static readonly Box2F ZeroToOne = new(Vec2F.Zero, Vec2F.One);
 
         public readonly Vec2F Min;
         public readonly Vec2F Max;
@@ -85,6 +86,14 @@ namespace Helion.Geometry.Boxes
 
             Min = new(center.X - radius, center.Y - radius);
             Max = new(center.X + radius, center.Y + radius);
+        }
+
+        public Box2F(float minX, float minY, float maxX, float maxY)
+        {
+            Min.X = minX;
+            Min.Y = minY;
+            Max.X = maxX;
+            Max.Y = maxY;
         }
 
         public static implicit operator Box2F(ValueTuple<float, float, float, float> tuple)
