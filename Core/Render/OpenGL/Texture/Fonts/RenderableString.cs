@@ -84,7 +84,7 @@ public class RenderableString
         int drawAreaWidth = 0;
         int drawAreaHeight = 0;
 
-        List<RenderableSentence> sentences = dataCache.GetRenderableSentences();
+        var sentences = dataCache.GetRenderableSentences();
         if (str.Length == 0)
             return sentences;
 
@@ -101,10 +101,10 @@ public class RenderableString
             {
                 char c = str[i];
                 Glyph glyph = font.Get(c);
-                int glyphW = glyph.Area.Width;
-                int glyphH = glyph.Area.Height;
+                int glyphW = glyph.Area.Max.X - glyph.Area.Min.X;
+                int glyphH = glyph.Area.Max.Y - glyph.Area.Min.Y;
 
-                double scale = (double)fontSize / (glyph.Area.Height);
+                var scale = (float)fontSize / glyphH;
                 int offsetX = (int)(scale * glyph.Offset.X);
                 int offsetY = (int)(scale * glyph.Offset.Y);
 
@@ -119,14 +119,13 @@ public class RenderableString
                     continue;
                 }
 
-                ImageBox2I drawLoc = new(currentWidth - offsetX, currentHeight + offsetY, endX - offsetX, endY + offsetY);
-                ImageBox2I drawLocFixed = charFixedWidth.HasValue ? new(currentWidth, currentHeight + offsetY, currentWidth + charFixedWidth.Value, endY + offsetY) : drawLoc;
-
-                if (drawLocFixed.Max.X > drawAreaWidth)
-                    drawAreaWidth = drawLocFixed.Max.X;
-                int renderGlyphHeight = drawLocFixed.Max.Y - drawLocFixed.Min.Y;
-                if (renderGlyphHeight > drawAreaHeight)
-                    drawAreaHeight = renderGlyphHeight;
+                // Force width to fixed width char. Doom fixed fonts to the width of the 0 char.
+                var glyphAreaWidth = charFixedWidth.HasValue  ? currentWidth + charFixedWidth.Value : endX - offsetX;
+                var glyAreaHeight = (endY + offsetY) - (currentHeight + offsetY);
+                if (glyphAreaWidth > drawAreaWidth)
+                    drawAreaWidth = glyphAreaWidth;
+                if (glyAreaHeight > drawAreaHeight)
+                    drawAreaHeight = glyAreaHeight;
 
                 if (currentSentence == null)
                 {
@@ -136,8 +135,7 @@ public class RenderableString
 
                 ref var renderableGlyph = ref currentSentence.Data[currentSentence.Length++];
                 renderableGlyph.Character = c;
-                renderableGlyph.AreaCoordinates = drawLocFixed;
-                renderableGlyph.Coordinates = drawLoc;
+                renderableGlyph.Coordinates = new(currentWidth - offsetX, currentHeight + offsetY, endX - offsetX, endY + offsetY);
                 renderableGlyph.Location = ImageBox2D.ZeroToOne;
                 renderableGlyph.UV = new(glyph.UV.Min.X, glyph.UV.Min.Y, glyph.UV.Max.X, glyph.UV.Max.Y);
                 renderableGlyph.Color = colorRange.Color;

@@ -22,10 +22,6 @@ public struct RenderableGlyph
     /// </summary>
     public ImageBox2I Coordinates;
 
-    // The coordinates used to determine the render area of the box for alignment.
-    // Required to handle weirdness of how Doom rendered the LargeHudFont being a fixed width to the size of the 0 char.
-    public ImageBox2I AreaCoordinates;
-
     /// <summary>
     /// The location in the font's atlas as normalized coordinates. This is
     /// normalized since renderers will need to scale it based on the size
@@ -48,7 +44,6 @@ public struct RenderableGlyph
     public RenderableGlyph(char character, ImageBox2I areaCoordinates, ImageBox2I coordinates, ImageBox2D location, ImageBox2D uv, Color color)
     {
         Character = character;
-        AreaCoordinates = areaCoordinates;
         Coordinates = coordinates;
         Location = location;
         UV = uv;
@@ -59,7 +54,6 @@ public struct RenderableGlyph
     {
         Character = parent.Character;
         Coordinates = parent.Coordinates;
-        AreaCoordinates = parent.AreaCoordinates;
         Location = newLocation;
         UV = parent.UV;
         Color = parent.Color;
