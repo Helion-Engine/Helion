@@ -101,7 +101,8 @@ public class RenderableString
             for (int i = colorRange.StartIndex; i < colorRange.EndIndex; i++)
             {
                 char c = str[i];
-                Glyph glyph = font.Get(c);
+                if (!font.TryGet(c, out var glyph))
+                    glyph = font.DefaultGlyph;
                 int glyphW = glyph.Area.Max.X - glyph.Area.Min.X;
                 int glyphH = glyph.Area.Max.Y - glyph.Area.Min.Y;
 

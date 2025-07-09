@@ -2,6 +2,7 @@ using Helion.Util.Extensions;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Helion.Graphics.Fonts;
 
@@ -21,8 +22,8 @@ public class Font : IEnumerable<(char, Glyph)>
     public readonly Glyph? FixedWidthNumber;
     public readonly Image Image;
     public readonly bool IsTrueTypeFont;
+    public readonly Glyph DefaultGlyph;
     private readonly Dictionary<char, Glyph> m_glyphs;
-    private readonly Glyph m_defaultGlyph;
 
     public Font(string name, Dictionary<char, Glyph> glyphs, Image image, char defaultChar = DefaultChar,
         bool isTrueTypeFont = false, int? fixedWidth = null, int? fixedHeight = null, char? fixedWidthChar = null, int upscalingFactor = 1, char? fixedWidthNumber = null)
@@ -34,8 +35,8 @@ public class Font : IEnumerable<(char, Glyph)>
         if (glyphs.Count > 0)
             MaxHeight = glyphs.Values.Max(g => g.Area.Height);
 
-        if (!glyphs.TryGetValue(defaultChar, out m_defaultGlyph))
-            m_defaultGlyph = glyphs.Values.FirstOrDefault();
+        if (!glyphs.TryGetValue(defaultChar, out DefaultGlyph))
+            DefaultGlyph = glyphs.Values.FirstOrDefault();
 
         UpscalingFactor = upscalingFactor;
 
@@ -48,8 +49,9 @@ public class Font : IEnumerable<(char, Glyph)>
             FixedWidthNumber = fixedNumber;
     }
 
-    public Glyph Get(char c) => TryGet(c, out Glyph result) ? result : m_defaultGlyph;
+    public Glyph Get(char c) => TryGet(c, out Glyph result) ? result : DefaultGlyph;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGet(char c, out Glyph glyph) => m_glyphs.TryGetValue(c, out glyph);
 
     public override string ToString() => $"{Name}, Glyphs: {m_glyphs.Count}, Atlas: {Image.Dimension}";
