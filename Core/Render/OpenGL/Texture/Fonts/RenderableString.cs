@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Helion.Geometry;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
@@ -136,8 +137,8 @@ public class RenderableString
                 ref var renderableGlyph = ref currentSentence.Data[currentSentence.Length++];
                 renderableGlyph.Character = c;
                 renderableGlyph.Coordinates = new(currentWidth - offsetX, currentHeight + offsetY, endX - offsetX, endY + offsetY);
-                renderableGlyph.Location = ImageBox2D.ZeroToOne;
-                renderableGlyph.UV = new(glyph.UV.Min.X, glyph.UV.Min.Y, glyph.UV.Max.X, glyph.UV.Max.Y);
+                renderableGlyph.Location = Box2F.ZeroToOne;
+                renderableGlyph.UV = glyph.UV;
                 renderableGlyph.Color = colorRange.Color;
 
                 if (charFixedWidth.HasValue)
@@ -345,7 +346,7 @@ public class RenderableString
 
             ImageBox2I pos = glyph.Coordinates;
             ImageBox2I newCoordinate = new(pos.Left + pixelAdjustmentWidth, pos.Top, pos.Right, pos.Bottom);
-            sentence.Glyphs.Data[i] = new RenderableGlyph(glyph.Character, newCoordinate, newCoordinate, glyph.Location, glyph.UV, glyph.Color);
+            sentence.Glyphs.Data[i] = new RenderableGlyph(glyph.Character, newCoordinate, glyph.Location, glyph.UV, glyph.Color);
         }
     }
 
@@ -355,7 +356,7 @@ public class RenderableString
         // construction would require a ton of reading ahead, alignment,
         // and calculations which would complicate the code. Instead, we
         // do one final recalculation of the normalized coordinates here.
-        Vec2D inverse = new(1.0 / DrawArea.Width, 1.0 / DrawArea.Height);
+        Vec2F inverse = new(1.0f / DrawArea.Width, 1.0f / DrawArea.Height);
 
         for (int sentenceIndex = 0; sentenceIndex < Sentences.Count; sentenceIndex++)
         {
@@ -363,7 +364,7 @@ public class RenderableString
             for (int i = 0; i < sentence.Glyphs.Length; i++)
             {
                 ref var renderGlyph = ref sentence.Glyphs.Data[i];
-                var location = new ImageBox2D(renderGlyph.Coordinates.Min.X * inverse.X, renderGlyph.Coordinates.Min.Y * inverse.Y,
+                var location = new Box2F(renderGlyph.Coordinates.Min.X * inverse.X, renderGlyph.Coordinates.Min.Y * inverse.Y,
                     renderGlyph.Coordinates.Max.X * inverse.X, renderGlyph.Coordinates.Max.Y * inverse.Y);
 
                 renderGlyph.Location = location;

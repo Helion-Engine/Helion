@@ -1,3 +1,4 @@
+using Helion.Geometry.Boxes;
 using Helion.Graphics;
 using Helion.Graphics.Geometry;
 
@@ -29,19 +30,19 @@ public struct RenderableGlyph
     /// each character and manually set it. This has its origin at the top
     /// left of the character.
     /// </summary>
-    public ImageBox2D Location;
+    public Box2F Location;
 
     /// <summary>
     /// The UV coordinates in the font's atlas.
     /// </summary>
-    public ImageBox2D UV;
+    public Box2F UV;
 
     /// <summary>
     /// The color of the letter.
     /// </summary>
     public Color Color;
 
-    public RenderableGlyph(char character, ImageBox2I areaCoordinates, ImageBox2I coordinates, ImageBox2D location, ImageBox2D uv, Color color)
+    public RenderableGlyph(char character, ImageBox2I coordinates, Box2F location, Box2F uv, Color color)
     {
         Character = character;
         Coordinates = coordinates;
@@ -50,7 +51,7 @@ public struct RenderableGlyph
         Color = color;
     }
 
-    public RenderableGlyph(RenderableGlyph parent, ImageBox2D newLocation)
+    public RenderableGlyph(RenderableGlyph parent, Box2F newLocation)
     {
         Character = parent.Character;
         Coordinates = parent.Coordinates;

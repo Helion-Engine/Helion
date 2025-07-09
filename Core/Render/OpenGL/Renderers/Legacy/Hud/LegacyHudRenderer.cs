@@ -99,14 +99,14 @@ public class LegacyHudRenderer : HudRenderer
             for (int j = 0; j < text.Sentences[i].Glyphs.Length; j++)
             {
                 ref var glyph = ref text.Sentences[i].Glyphs.Data[j];
-                float left = drawAreaLeft + (float)(glyph.Location.Min.X * drawAreaWidth);
-                float top = drawAreaTop + (float)(glyph.Location.Min.Y * drawAreaHeight);
-                float right = drawAreaLeft + (float)(glyph.Location.Max.X * drawAreaWidth);
-                float bottom = drawAreaTop + (float)(glyph.Location.Max.Y * drawAreaHeight);
-                float uvLeft = (float)glyph.UV.Min.X;
-                float uvTop = (float)glyph.UV.Min.Y;
-                float uvRight = (float)glyph.UV.Max.X;
-                float uvBottom = (float)glyph.UV.Max.Y;
+                float left = drawAreaLeft + (glyph.Location.Min.X * drawAreaWidth);
+                float top = drawAreaTop + (glyph.Location.Min.Y * drawAreaHeight);
+                float right = drawAreaLeft + (glyph.Location.Max.X * drawAreaWidth);
+                float bottom = drawAreaTop + (glyph.Location.Max.Y * drawAreaHeight);
+                float uvLeft = glyph.UV.Min.X;
+                float uvTop = glyph.UV.Min.Y;
+                float uvRight = glyph.UV.Max.X;
+                float uvBottom = glyph.UV.Max.Y;
 
                 HudVertex topLeft = MakeVertex(left, top, uvLeft, uvTop, glyph, alpha, drawPalette);
                 HudVertex topRight = MakeVertex(right, top, uvRight, uvTop, glyph, alpha, drawPalette);
