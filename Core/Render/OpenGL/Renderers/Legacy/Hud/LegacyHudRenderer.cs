@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -88,21 +89,24 @@ public class LegacyHudRenderer : HudRenderer
 
     public override void DrawText(RenderableString text, ImageBox2I drawArea, float alpha, bool drawPalette)
     {
-        GLFontTexture<GLLegacyTexture> font = m_textureManager.GetFont(text.Font.Name);
-
+        var font = m_textureManager.GetFont(text.Font.Name);
+        var drawAreaWidth = drawArea.Width;
+        var drawAreaHeight = drawArea.Height;
+        var drawAreaLeft = drawArea.Min.X;
+        var drawAreaTop = drawArea.Min.Y;
         for (int i = 0; i < text.Sentences.Count; i++)
         {
             for (int j = 0; j < text.Sentences[i].Glyphs.Length; j++)
             {
-                RenderableGlyph glyph = text.Sentences[i].Glyphs[j];
-                float left = drawArea.Left + (float)(glyph.Location.Left * drawArea.Width);
-                float top = drawArea.Top + (float)(glyph.Location.Top * drawArea.Height);
-                float right = drawArea.Left + (float)(glyph.Location.Right * drawArea.Width);
-                float bottom = drawArea.Top + (float)(glyph.Location.Bottom * drawArea.Height);
-                float uvLeft = (float)glyph.UV.Left;
-                float uvTop = (float)glyph.UV.Top;
-                float uvRight = (float)glyph.UV.Right;
-                float uvBottom = (float)glyph.UV.Bottom;
+                ref var glyph = ref text.Sentences[i].Glyphs.Data[j];
+                float left = drawAreaLeft + (float)(glyph.Location.Min.X * drawAreaWidth);
+                float top = drawAreaTop + (float)(glyph.Location.Min.Y * drawAreaHeight);
+                float right = drawAreaLeft + (float)(glyph.Location.Max.X * drawAreaWidth);
+                float bottom = drawAreaTop + (float)(glyph.Location.Max.Y * drawAreaHeight);
+                float uvLeft = (float)glyph.UV.Min.X;
+                float uvTop = (float)glyph.UV.Min.Y;
+                float uvRight = (float)glyph.UV.Max.X;
+                float uvBottom = (float)glyph.UV.Max.Y;
 
                 HudVertex topLeft = MakeVertex(left, top, uvLeft, uvTop, glyph, alpha, drawPalette);
                 HudVertex topRight = MakeVertex(right, top, uvRight, uvTop, glyph, alpha, drawPalette);
@@ -117,7 +121,8 @@ public class LegacyHudRenderer : HudRenderer
         }
     }
 
-    private HudVertex MakeVertex(float x, float y, float u, float v, RenderableGlyph glyph, float alpha, bool drawPalette)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private HudVertex MakeVertex(float x, float y, float u, float v, in RenderableGlyph glyph, float alpha, bool drawPalette)
     {
         return new(x, y, DrawDepth, u, v, glyph.Color, alpha, false, false, drawPalette, 0);
     }
