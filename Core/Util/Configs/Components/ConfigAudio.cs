@@ -9,9 +9,13 @@ namespace Helion.Util.Configs.Components;
 
 public class ConfigAudio: ConfigElement<ConfigAudio>
 {
-    [ConfigInfo("Music volume. 0.0 is Off, 2.0 is Maximum.")]
-    [OptionMenu(OptionSectionType.Audio, "Music Volume", sliderMin: 0, sliderMax: 2.0, sliderStep: .05)]
+    [ConfigInfo("Music volume for FluidSynth MIDI. 0.0 is Off, 2.0 is Maximum.")]
+    [OptionMenu(OptionSectionType.Audio, "Music Volume (FluidSynth)", sliderMin: 0, sliderMax: 2.0, sliderStep: .05)]
     public readonly ConfigValue<double> MusicVolume = new(1.0, Clamp(0, 2.0));
+
+    [ConfigInfo("Music volume for OPL, MOD, MP3, etc. 0.0 is Off, 2.0 is Maximum.")]
+    [OptionMenu(OptionSectionType.Audio, "Music Volume (Other)", sliderMin: 0, sliderMax: 2.0, sliderStep: .05)]
+    public readonly ConfigValue<double> ZMusicVolume = new(1.0, Clamp(0, 2.0));
 
     [ConfigInfo("Sound effect volume. 0.0 is Off, 2.0 is Maximum.")]
     [OptionMenu(OptionSectionType.Audio, "Sound Volume", sliderMin: 0, sliderMax: 2.0, sliderStep: .05)]
@@ -58,4 +62,5 @@ public class ConfigAudio: ConfigElement<ConfigAudio>
 
     // Music volume is treated as a multiple of sound effects volume, because effects volume controls the master gain.
     public double MusicVolumeNormalized => SoundVolume == 0 ? MusicVolume : (MusicVolume / SoundVolume);
+    public double ZMusicVolumeNormalized => SoundVolume == 0 ? ZMusicVolume : (ZMusicVolume / SoundVolume);
 }
