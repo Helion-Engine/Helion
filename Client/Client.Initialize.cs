@@ -51,16 +51,20 @@ public partial class Client
 
             if (m_iwad == null)
             {
-                IwadSelectionLayer selectionlayer = new(m_config, m_installedIwads);
-                selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
-                m_layerManager.Add(selectionlayer);
-                m_layerManager.Remove(m_layerManager.LoadingLayer);
+                ShowIWadSelection();
                 return;
             }
 
-            bool success = await Task.Run(LoadFiles);
+            var status = await Task.Run(LoadFiles);
+            if (status == LoadFileStatus.IWadFail)
+            {
+                m_archiveCollection.Load(Array.Empty<string>());
+                ShowIWadSelection();
+                return;
+            }
+
             m_layerManager.Remove(m_layerManager.LoadingLayer);
-            if (!success)
+            if (status != LoadFileStatus.Success)
             {
                 ShowConsole();
                 return;
@@ -104,6 +108,14 @@ public partial class Client
         }
     }
 
+    private void ShowIWadSelection()
+    {
+        IwadSelectionLayer selectionlayer = new(m_config, m_installedIwads);
+        selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
+        m_layerManager.Add(selectionlayer);
+        m_layerManager.Remove(m_layerManager.LoadingLayer);
+    }
+
     private void FindInstalledIWads()
     {
         var iwadLocator = IWadLocator.CreateDefault(m_pathsManager, m_config);
@@ -119,31 +131,31 @@ public partial class Client
         await Initialize();
     }
 
-    private bool LoadFiles()
+    private LoadFileStatus LoadFiles()
     {
         m_archiveCollection.ArchiveLoaded += ArchiveCollection_ArchiveLoaded;
         m_archiveCollection.ArchiveRead += ArchiveCollection_ArchiveRead;
-        bool success = HandleArchiveLoad();
+        var status = HandleArchiveLoad();
         m_archiveCollection.ArchiveLoaded -= ArchiveCollection_ArchiveLoaded;
         m_archiveCollection.ArchiveRead -= ArchiveCollection_ArchiveRead;
-        m_filesLoaded = true;
-        return success;
+        m_filesLoaded = status == LoadFileStatus.Success;
+        return status;
+    }
 
-        bool HandleArchiveLoad()
+    private LoadFileStatus HandleArchiveLoad()
+    {
+        if (!m_archiveCollection.Load(m_pwads, m_iwad, dehackedPatch: m_commandLineArgs.DehackedPatch, checkGameConfArchives: true))
         {
-            if (!m_archiveCollection.Load(m_pwads, m_iwad, dehackedPatch: m_commandLineArgs.DehackedPatch, checkGameConfArchives: true))
-            {
-                if (m_archiveCollection.Assets == null)
-                    ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
-                else if (m_archiveCollection.IWad == null)
-                    ShowFatalError("Failed to load IWAD.");
-                else
-                    ShowFatalError("Failed to load files.");
-                return false;
-            }
-
-            return true;
+            if (m_archiveCollection.Assets == null)
+                ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
+            else if (m_archiveCollection.IWad == null)
+                return LoadFileStatus.IWadFail;
+            else
+                ShowFatalError("Failed to load files.");
+            return LoadFileStatus.Fail;
         }
+
+        return LoadFileStatus.Success;
     }
 
     private void ArchiveCollection_ArchiveRead(object? sender, Archive archive)
