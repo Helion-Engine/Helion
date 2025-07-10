@@ -20,7 +20,7 @@ public class RenderableString
 {
     public static readonly Color DefaultColor = Color.White;
 
-    private static readonly List<ColorRange> ColorRanges = [];
+    private static readonly DynamicArray<ColorRange> ColorRanges = new();
 
     /// <summary>
     /// The font used when rendering this.
@@ -95,9 +95,9 @@ public class RenderableString
 
         DynamicArray<RenderableGlyph>? currentSentence = null;
         var colorRanges = GetColorRanges(str, drawColor);
-        for (int colorRangeIndex = 0; colorRangeIndex < colorRanges.Count; colorRangeIndex++)
+        for (int colorRangeIndex = 0; colorRangeIndex < colorRanges.Length; colorRangeIndex++)
         {
-            var colorRange = colorRanges[colorRangeIndex];
+            ref var colorRange = ref colorRanges.Data[colorRangeIndex];
             for (int i = colorRange.StartIndex; i < colorRange.EndIndex; i++)
             {
                 char c = str[i];
@@ -170,7 +170,7 @@ public class RenderableString
         currentHeight += sentence.DrawArea.Height;
     }
 
-    private static List<ColorRange> GetColorRanges(ReadOnlySpan<char> str, Color? drawColor)
+    private static DynamicArray<ColorRange> GetColorRanges(ReadOnlySpan<char> str, Color? drawColor)
     {
         ColorRanges.Clear();
         if (drawColor != null)
@@ -184,9 +184,9 @@ public class RenderableString
         bool success = FindNextColorIndex(str, 0, out int startIndex, out int endIndex);
         while (success)
         {
-            ColorRange currentColorInfo = ColorRanges.Last();
+            ColorRange currentColorInfo = ColorRanges[ColorRanges.Length - 1];
             currentColorInfo.EndIndex = startIndex;
-            ColorRanges[^1] = currentColorInfo;
+            ColorRanges[ColorRanges.Length - 1] = currentColorInfo;
 
             Color color = ColorDefinitionToColor(str.Slice(startIndex, endIndex - startIndex));
             ColorRanges.Add(new ColorRange(endIndex, color));
@@ -196,12 +196,12 @@ public class RenderableString
 
         // Since we never set the very last element's ending point due to
         // the loop invariant, we do that now.
-        var last = ColorRanges.Last();
+        var last = ColorRanges[ColorRanges.Length - 1];
         last.EndIndex = str.Length;
-        ColorRanges[^1] = last;
+        ColorRanges[ColorRanges.Length - 1] = last;
 
         if (last.StartIndex == last.EndIndex)
-            ColorRanges.RemoveAt(ColorRanges.Count - 1);
+            ColorRanges.Length--;
 
         return ColorRanges;
     }
