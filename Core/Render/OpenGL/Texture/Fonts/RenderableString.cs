@@ -35,7 +35,7 @@ public class RenderableString
     /// <summary>
     /// All the glyphs and their positions to be drawn.
     /// </summary>
-    public List<RenderableSentence> Sentences;
+    public DynamicArray<RenderableSentence> Sentences;
 
     public readonly bool ShouldFree;
 
@@ -77,7 +77,7 @@ public class RenderableString
         RecalculateGlyphLocations();
     }
 
-    public static List<RenderableSentence> PopulateSentences(DataCache dataCache, ReadOnlySpan<char> str, Font font, int fontSize,
+    public static DynamicArray<RenderableSentence> PopulateSentences(DataCache dataCache, ReadOnlySpan<char> str, Font font, int fontSize,
         int maxWidth, Color? drawColor)
     {
         int currentWidth = 0;
@@ -154,7 +154,7 @@ public class RenderableString
         return sentences;
     }
 
-    private static void CreateAndAddSentenceIfPossible(List<RenderableSentence> sentences, ref DynamicArray<RenderableGlyph>? currentSentence,
+    private static void CreateAndAddSentenceIfPossible(DynamicArray<RenderableSentence> sentences, ref DynamicArray<RenderableGlyph>? currentSentence,
         ref int drawAreaWidth, ref int drawAreaHeight, ref int currentWidth, ref int currentHeight)
     {
         if (currentSentence == null || currentSentence.Length == 0)
@@ -284,14 +284,14 @@ public class RenderableString
     }
 
 
-    private static Dimension CalculateDrawArea(List<RenderableSentence> sentences)
+    private static Dimension CalculateDrawArea(DynamicArray<RenderableSentence> sentences)
     {
-        if (sentences.Count == 0)
+        if (sentences.Length == 0)
             return default;
 
         // We want to pick the largest X, but sum up the Y.
         Vec2I point = Vec2I.Zero;
-        for (int i = 0; i < sentences.Count; i++)
+        for (int i = 0; i < sentences.Length; i++)
         {
             var sentence = sentences[i];
             if (sentence.DrawArea.Vector.X > point.X)
@@ -319,9 +319,9 @@ public class RenderableString
 
     private void AlignCenter()
     {
-        for (int i = 0; i < Sentences.Count; i++)
+        for (int i = 0; i < Sentences.Length; i++)
         {
-            var sentence = Sentences[i];
+            ref var sentence = ref Sentences.Data[i];
             int gutter = (DrawArea.Width - sentence.DrawArea.Width) / 2;
             Sentences[i] = new RenderableSentence(sentence.Glyphs, sentence.DrawArea, new(gutter, 0));
         }
@@ -329,9 +329,9 @@ public class RenderableString
 
     private void AlignRight()
     {
-        for (int i = 0; i < Sentences.Count; i++)
+        for (int i = 0; i < Sentences.Length; i++)
         {
-            var sentence = Sentences[i];
+            ref var sentence = ref Sentences.Data[i];
             int gutter = DrawArea.Width - sentence.DrawArea.Width;
             Sentences[i] = new RenderableSentence(sentence.Glyphs, sentence.DrawArea, new(gutter, 0));
         }
@@ -345,7 +345,7 @@ public class RenderableString
         // do one final recalculation of the normalized coordinates here.
         Vec2F inverse = new(1.0f / DrawArea.Width, 1.0f / DrawArea.Height);
 
-        for (int sentenceIndex = 0; sentenceIndex < Sentences.Count; sentenceIndex++)
+        for (int sentenceIndex = 0; sentenceIndex < Sentences.Length; sentenceIndex++)
         {
             var sentence = Sentences[sentenceIndex];
             for (int i = 0; i < sentence.Glyphs.Length; i++)
@@ -359,7 +359,7 @@ public class RenderableString
 
     public override string ToString()
     {
-        return string.Join("\n", Sentences.Select(s => s.ToString()));
+        return string.Join("\n", Sentences.Data.Take(Sentences.Length).Select(s => s.ToString()));
     }
 
     /// <summary>

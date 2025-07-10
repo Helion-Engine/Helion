@@ -46,7 +46,7 @@ public class DataCache
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
     private readonly DynamicArray<DynamicArray<Entity>> m_entityLists = new();
     private readonly DynamicArray<DynamicArray<RenderableGlyph>> m_glyphs = new();
-    private readonly DynamicArray<List<RenderableSentence>> m_sentences = new();
+    private readonly DynamicArray<DynamicArray<RenderableSentence>> m_sentences = new();
     private readonly DynamicArray<RenderableString> m_strings = new();
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
     private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new();
@@ -274,15 +274,15 @@ public class DataCache
         m_entityLists.Add(list);
     }
 
-    public List<RenderableSentence> GetRenderableSentences()
+    public DynamicArray<RenderableSentence> GetRenderableSentences()
     {
         if (m_sentences.Length > 0)
             return m_sentences.RemoveLast();
 
-        return new List<RenderableSentence>();
+        return new DynamicArray<RenderableSentence>();
     }
 
-    private void FreeRenderableSentences(List<RenderableSentence> list)
+    private void FreeRenderableSentences(DynamicArray<RenderableSentence> list)
     {
         list.Clear();
         m_sentences.Add(list);
@@ -326,7 +326,7 @@ public class DataCache
 
     public void FreeRenderableStringData(RenderableString renderableString)
     {
-        for (int i = 0; i < renderableString.Sentences.Count; i++)
+        for (int i = 0; i < renderableString.Sentences.Length; i++)
             FreeRenderableGlyphs(renderableString.Sentences[i].Glyphs);
         FreeRenderableSentences(renderableString.Sentences);
 
