@@ -60,35 +60,34 @@ public partial class WorldLayer
     private int m_infoFontSize = DebugFontSize;
     private int m_mapHeaderFontSize = MapFontSize;
     private Dimension m_viewport;
-    private readonly List<(string message, float alpha)> m_messages = new();
+    private readonly List<(string message, float alpha)> m_messages = [];
 
     private int m_healthWidth;
     private string m_weaponSprite = StringBuffer.GetStringExact(6);
     private string m_weaponFlashSprite = StringBuffer.GetStringExact(6);
-    private string m_weaponNumberTexture = StringBuffer.GetString(16);
-    private SpanString m_weaponSpriteSpan = new("123456");
-    private SpanString m_weaponFlashSpriteSpan = new("123456");
+    private readonly SpanString m_weaponSpriteSpan = new("123456");
+    private readonly SpanString m_weaponFlashSpriteSpan = new("123456");
 
-    private SpanString m_healthString = new();
-    private SpanString m_armorString = new();
-    private SpanString m_ammoString = new();
-    private SpanString m_maxAmmoString = new();
+    private readonly SpanString m_healthString = new();
+    private readonly SpanString m_armorString = new();
+    private readonly SpanString m_ammoString = new();
+    private readonly SpanString m_maxAmmoString = new();
 
-    private RenderableString m_renderHealthString;
-    private RenderableString m_renderArmorString;
-    private RenderableString m_renderAmmoString;
+    private readonly RenderableString m_renderHealthString;
+    private readonly RenderableString m_renderArmorString;
+    private readonly RenderableString m_renderAmmoString;
 
-    private SpanString m_fpsString = new();
-    private SpanString m_fpsMinString = new();
-    private SpanString m_fpsMaxString = new();
-    private SpanString m_timeString = new();
+    private readonly SpanString m_fpsString = new();
+    private readonly SpanString m_fpsMinString = new();
+    private readonly SpanString m_fpsMaxString = new();
+    private readonly SpanString m_timeString = new();
 
-    private RenderableString m_renderFpsString;
-    private RenderableString m_renderFpsMinString;
-    private RenderableString m_renderFpsMaxString;
-    private RenderableString m_renderTimeString;
+    private readonly RenderableString m_renderFpsString;
+    private readonly RenderableString m_renderFpsMinString;
+    private readonly RenderableString m_renderFpsMaxString;
+    private readonly RenderableString m_renderTimeString;
 
-    private RenderStat[] m_renderStats;
+    private readonly RenderStat[] m_renderStats;
 
     private readonly Font m_largeHudFont;
     private readonly List<StringSlice> m_lineWrapStrings = [];
@@ -205,7 +204,7 @@ public partial class WorldLayer
                 renderStat.String = AppendStatString(renderStat.String, current, max);
                 renderStat.RenderLabel = SetRenderableString(renderStat.Label, renderStat.RenderLabel, FixedNumberFont, m_infoFontSize, useDoomScale: false);
                 renderStat.RenderValue = SetRenderableString(renderStat.String.AsSpan(), renderStat.RenderValue, FixedNumberFont, m_infoFontSize,
-                    GetStatColor(World.LevelStats.KillCount, World.LevelStats.TotalMonsters), useDoomScale: false);
+                    GetStatColor(current, max), useDoomScale: false);
             }
         }
 
@@ -619,7 +618,7 @@ public partial class WorldLayer
 
     private static Color GetStatColor(int current, int total)
     {
-        if (current >= total)
+        if (current >= total && total != int.MinValue)
             return Color.LightGreen;
         return Color.White;
     }
