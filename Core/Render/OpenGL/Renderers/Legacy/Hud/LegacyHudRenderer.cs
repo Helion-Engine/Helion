@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -89,43 +90,57 @@ public class LegacyHudRenderer : HudRenderer
 
     public override void DrawText(RenderableString text, ImageBox2I drawArea, float alpha, bool drawPalette)
     {
+        if (text.Sentences.Length == 0)
+            return;
+
         var font = m_textureManager.GetFont(text.Font.Name);
         var drawAreaWidth = drawArea.Width;
         var drawAreaHeight = drawArea.Height;
         var drawAreaLeft = drawArea.Min.X;
         var drawAreaTop = drawArea.Min.Y;
-        for (int i = 0; i < text.Sentences.Count; i++)
+
+        var hudDrawBuffer = m_drawBuffer.GetOrCreate(font.Texture).Vertices;
+        int writeIndex = hudDrawBuffer.Length;
+
+        for (int i = 0; i < text.Sentences.Length; i++)
         {
-            var offset = text.Sentences[i].Offset;
-            for (int j = 0; j < text.Sentences[i].Glyphs.Length; j++)
+            ref var sentence = ref text.Sentences.Data[i];
+            hudDrawBuffer.EnsureCapacity(writeIndex + (sentence.Glyphs.Length * 6));
+            for (int j = 0; j < sentence.Glyphs.Length; j++)
             {
-                ref var glyph = ref text.Sentences[i].Glyphs.Data[j];
-                float left = drawAreaLeft + (glyph.Location.Min.X * drawAreaWidth) + offset.X;
-                float top = drawAreaTop + (glyph.Location.Min.Y * drawAreaHeight) + offset.Y;
-                float right = drawAreaLeft + (glyph.Location.Max.X * drawAreaWidth) + offset.X;
-                float bottom = drawAreaTop + (glyph.Location.Max.Y * drawAreaHeight) + offset.Y;
+                ref var glyph = ref sentence.Glyphs.Data[j];
+                float left = drawAreaLeft + (glyph.Location.Min.X * drawAreaWidth) + sentence.Offset.X;
+                float top = drawAreaTop + (glyph.Location.Min.Y * drawAreaHeight) + sentence.Offset.Y;
+                float right = drawAreaLeft + (glyph.Location.Max.X * drawAreaWidth) + sentence.Offset.X;
+                float bottom = drawAreaTop + (glyph.Location.Max.Y * drawAreaHeight) + sentence.Offset.Y;
                 float uvLeft = glyph.UV.Min.X;
                 float uvTop = glyph.UV.Min.Y;
                 float uvRight = glyph.UV.Max.X;
                 float uvBottom = glyph.UV.Max.Y;
 
-                HudVertex topLeft = MakeVertex(left, top, uvLeft, uvTop, glyph, alpha, drawPalette);
-                HudVertex topRight = MakeVertex(right, top, uvRight, uvTop, glyph, alpha, drawPalette);
-                HudVertex bottomLeft = MakeVertex(left, bottom, uvLeft, uvBottom, glyph, alpha, drawPalette);
-                HudVertex bottomRight = MakeVertex(right, bottom, uvRight, uvBottom, glyph, alpha, drawPalette);
+                var topLeft = MakeVertex(left, top, uvLeft, uvTop, glyph, alpha, drawPalette);
+                var topRight = MakeVertex(right, top, uvRight, uvTop, glyph, alpha, drawPalette);
+                var bottomLeft = MakeVertex(left, bottom, uvLeft, uvBottom, glyph, alpha, drawPalette);
+                var bottomRight = MakeVertex(right, bottom, uvRight, uvBottom, glyph, alpha, drawPalette);
 
-                HudQuad quad = new(topLeft, topRight, bottomLeft, bottomRight);
-                m_drawBuffer.Add(font.Texture, quad);
+                hudDrawBuffer.Data[writeIndex++] = topLeft;
+                hudDrawBuffer.Data[writeIndex++] = bottomLeft;
+                hudDrawBuffer.Data[writeIndex++] = topRight;
+                hudDrawBuffer.Data[writeIndex++] = topRight;
+                hudDrawBuffer.Data[writeIndex++] = bottomLeft;
+                hudDrawBuffer.Data[writeIndex++] = bottomRight;
 
                 DrawDepth += 1.0f;
             }
         }
+
+        hudDrawBuffer.Length = writeIndex;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private HudVertex MakeVertex(float x, float y, float u, float v, in RenderableGlyph glyph, float alpha, bool drawPalette)
     {
-        return new(x, y, DrawDepth, u, v, glyph.Color, alpha, false, false, drawPalette, 0);
+        return new(x, y, DrawDepth, u, v, glyph.Color.R, glyph.Color.G, glyph.Color.B, glyph.Color.A, alpha, false, false, drawPalette, 0);
     }
 
     public override void Render(Rectangle viewport, Dimension framebufferDimension, ShaderUniforms uniforms)
@@ -174,17 +189,24 @@ public class LegacyHudRenderer : HudRenderer
         GC.SuppressFinalize(this);
     }
 
-    private void UploadVerticesToVbo(HudDrawBufferData data)
+    private unsafe void UploadVerticesToVbo(HudDrawBufferData data)
     {
         Precondition(!data.Vertices.Empty(), "Should have at least some vertices to draw for some hud texture");
 
         m_vbo.Clear();
-
         m_vbo.Bind();
 
-        List<HudVertex> vertices = data.Vertices;
-        for (int i = 0; i < vertices.Count; i++)
-            m_vbo.Add(vertices[i]);
+        var vertices = data.Vertices;
+        m_vbo.Data.EnsureCapacity(vertices.Length);
+
+        fixed (HudVertex* pSrc = &vertices.Data[0])
+        fixed (HudVertex* pDst = &m_vbo.Data.Data[0])
+        {
+            var bufferSize = vertices.Length * sizeof(HudVertex);
+            System.Buffer.MemoryCopy(pSrc, pDst, bufferSize, bufferSize);
+        }
+
+        m_vbo.Data.Length = vertices.Length;
 
         m_vbo.Upload();
         m_vbo.Unbind();
@@ -194,10 +216,10 @@ public class LegacyHudRenderer : HudRenderer
         float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex, GLLegacyTexture? brightmapTexture = null)
     {
         // Remember that we are drawing along the Z for visual depth now.
-        var topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
-        var topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
-        var bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
-        var bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, multiplyColor, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+        var topLeft = new HudVertex(drawArea.Left, drawArea.Top, DrawDepth, 0.0f, 0.0f, multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+        var topRight = new HudVertex(drawArea.Right, drawArea.Top, DrawDepth, 1.0f, 0.0f, multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+        var bottomLeft = new HudVertex(drawArea.Left, drawArea.Bottom, DrawDepth, 0.0f, 1.0f, multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
+        var bottomRight = new HudVertex(drawArea.Right, drawArea.Bottom, DrawDepth, 1.0f, 1.0f, multiplyColor.R, multiplyColor.G, multiplyColor.B, multiplyColor.A, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex);
 
         var quad = new HudQuad(topLeft, topRight, bottomLeft, bottomRight);
         m_drawBuffer.Add(texture, quad, brightmapTexture);

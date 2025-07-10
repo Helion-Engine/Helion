@@ -20,7 +20,7 @@ public class RenderableString
 {
     public static readonly Color DefaultColor = Color.White;
 
-    private static readonly List<ColorRange> ColorRanges = [];
+    private static readonly DynamicArray<ColorRange> ColorRanges = new();
 
     /// <summary>
     /// The font used when rendering this.
@@ -35,7 +35,7 @@ public class RenderableString
     /// <summary>
     /// All the glyphs and their positions to be drawn.
     /// </summary>
-    public List<RenderableSentence> Sentences;
+    public DynamicArray<RenderableSentence> Sentences;
 
     public readonly bool ShouldFree;
 
@@ -77,7 +77,7 @@ public class RenderableString
         RecalculateGlyphLocations();
     }
 
-    public static List<RenderableSentence> PopulateSentences(DataCache dataCache, ReadOnlySpan<char> str, Font font, int fontSize,
+    public static DynamicArray<RenderableSentence> PopulateSentences(DataCache dataCache, ReadOnlySpan<char> str, Font font, int fontSize,
         int maxWidth, Color? drawColor)
     {
         int currentWidth = 0;
@@ -95,9 +95,9 @@ public class RenderableString
 
         DynamicArray<RenderableGlyph>? currentSentence = null;
         var colorRanges = GetColorRanges(str, drawColor);
-        for (int colorRangeIndex = 0; colorRangeIndex < colorRanges.Count; colorRangeIndex++)
+        for (int colorRangeIndex = 0; colorRangeIndex < colorRanges.Length; colorRangeIndex++)
         {
-            var colorRange = colorRanges[colorRangeIndex];
+            ref var colorRange = ref colorRanges.Data[colorRangeIndex];
             for (int i = colorRange.StartIndex; i < colorRange.EndIndex; i++)
             {
                 char c = str[i];
@@ -154,7 +154,7 @@ public class RenderableString
         return sentences;
     }
 
-    private static void CreateAndAddSentenceIfPossible(List<RenderableSentence> sentences, ref DynamicArray<RenderableGlyph>? currentSentence,
+    private static void CreateAndAddSentenceIfPossible(DynamicArray<RenderableSentence> sentences, ref DynamicArray<RenderableGlyph>? currentSentence,
         ref int drawAreaWidth, ref int drawAreaHeight, ref int currentWidth, ref int currentHeight)
     {
         if (currentSentence == null || currentSentence.Length == 0)
@@ -170,7 +170,7 @@ public class RenderableString
         currentHeight += sentence.DrawArea.Height;
     }
 
-    private static List<ColorRange> GetColorRanges(ReadOnlySpan<char> str, Color? drawColor)
+    private static DynamicArray<ColorRange> GetColorRanges(ReadOnlySpan<char> str, Color? drawColor)
     {
         ColorRanges.Clear();
         if (drawColor != null)
@@ -184,9 +184,9 @@ public class RenderableString
         bool success = FindNextColorIndex(str, 0, out int startIndex, out int endIndex);
         while (success)
         {
-            ColorRange currentColorInfo = ColorRanges.Last();
+            ColorRange currentColorInfo = ColorRanges[ColorRanges.Length - 1];
             currentColorInfo.EndIndex = startIndex;
-            ColorRanges[^1] = currentColorInfo;
+            ColorRanges[ColorRanges.Length - 1] = currentColorInfo;
 
             Color color = ColorDefinitionToColor(str.Slice(startIndex, endIndex - startIndex));
             ColorRanges.Add(new ColorRange(endIndex, color));
@@ -196,12 +196,12 @@ public class RenderableString
 
         // Since we never set the very last element's ending point due to
         // the loop invariant, we do that now.
-        var last = ColorRanges.Last();
+        var last = ColorRanges[ColorRanges.Length - 1];
         last.EndIndex = str.Length;
-        ColorRanges[^1] = last;
+        ColorRanges[ColorRanges.Length - 1] = last;
 
         if (last.StartIndex == last.EndIndex)
-            ColorRanges.RemoveAt(ColorRanges.Count - 1);
+            ColorRanges.Length--;
 
         return ColorRanges;
     }
@@ -284,14 +284,14 @@ public class RenderableString
     }
 
 
-    private static Dimension CalculateDrawArea(List<RenderableSentence> sentences)
+    private static Dimension CalculateDrawArea(DynamicArray<RenderableSentence> sentences)
     {
-        if (sentences.Count == 0)
+        if (sentences.Length == 0)
             return default;
 
         // We want to pick the largest X, but sum up the Y.
         Vec2I point = Vec2I.Zero;
-        for (int i = 0; i < sentences.Count; i++)
+        for (int i = 0; i < sentences.Length; i++)
         {
             var sentence = sentences[i];
             if (sentence.DrawArea.Vector.X > point.X)
@@ -319,9 +319,9 @@ public class RenderableString
 
     private void AlignCenter()
     {
-        for (int i = 0; i < Sentences.Count; i++)
+        for (int i = 0; i < Sentences.Length; i++)
         {
-            var sentence = Sentences[i];
+            ref var sentence = ref Sentences.Data[i];
             int gutter = (DrawArea.Width - sentence.DrawArea.Width) / 2;
             Sentences[i] = new RenderableSentence(sentence.Glyphs, sentence.DrawArea, new(gutter, 0));
         }
@@ -329,9 +329,9 @@ public class RenderableString
 
     private void AlignRight()
     {
-        for (int i = 0; i < Sentences.Count; i++)
+        for (int i = 0; i < Sentences.Length; i++)
         {
-            var sentence = Sentences[i];
+            ref var sentence = ref Sentences.Data[i];
             int gutter = DrawArea.Width - sentence.DrawArea.Width;
             Sentences[i] = new RenderableSentence(sentence.Glyphs, sentence.DrawArea, new(gutter, 0));
         }
@@ -345,7 +345,7 @@ public class RenderableString
         // do one final recalculation of the normalized coordinates here.
         Vec2F inverse = new(1.0f / DrawArea.Width, 1.0f / DrawArea.Height);
 
-        for (int sentenceIndex = 0; sentenceIndex < Sentences.Count; sentenceIndex++)
+        for (int sentenceIndex = 0; sentenceIndex < Sentences.Length; sentenceIndex++)
         {
             var sentence = Sentences[sentenceIndex];
             for (int i = 0; i < sentence.Glyphs.Length; i++)
@@ -359,7 +359,7 @@ public class RenderableString
 
     public override string ToString()
     {
-        return string.Join("\n", Sentences.Select(s => s.ToString()));
+        return string.Join("\n", Sentences.Data.Take(Sentences.Length).Select(s => s.ToString()));
     }
 
     /// <summary>

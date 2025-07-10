@@ -55,10 +55,4 @@ public readonly struct HudVertex
         DrawPalette = drawPalette ? 1.0f : 0.0f;
         ColorMapIndex = colorMapIndex;
     }
-
-    // TODO: Updated color to be RGBA, but still need to do step 2 and abandon division for RGBA.
-    public HudVertex(float x, float y, float z, float u, float v, Color multiplierColor, float alpha, bool drawColorMap, bool drawFuzz, bool drawPalette, int colorMapIndex) : 
-        this(x, y, z, u, v, multiplierColor.R, multiplierColor.G, multiplierColor.B, multiplierColor.A, alpha, drawColorMap, drawFuzz, drawPalette, colorMapIndex)
-    {
-    }
 }

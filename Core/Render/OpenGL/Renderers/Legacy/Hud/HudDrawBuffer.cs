@@ -30,15 +30,17 @@ public class HudDrawBuffer
 
     public void Add(GLLegacyTexture texture, HudQuad quad, GLLegacyTexture? brightmapTexture = null)
     {
-        HudDrawBufferData data = GetOrCreate(texture, brightmapTexture);
+        var hudDrawBuffer = GetOrCreate(texture, brightmapTexture);
 
-        // TODO: Can we add the two triangles in one go?
-        data.Vertices.Add(quad.TopLeft);
-        data.Vertices.Add(quad.BottomLeft);
-        data.Vertices.Add(quad.TopRight);
-        data.Vertices.Add(quad.TopRight);
-        data.Vertices.Add(quad.BottomLeft);
-        data.Vertices.Add(quad.BottomRight);
+        var length = hudDrawBuffer.Vertices.Length;
+        hudDrawBuffer.Vertices.EnsureCapacity(length + 6);
+        hudDrawBuffer.Vertices.Data[length] = quad.TopLeft;
+        hudDrawBuffer.Vertices.Data[length + 1] = quad.BottomLeft;
+        hudDrawBuffer.Vertices.Data[length + 2] = quad.TopRight;
+        hudDrawBuffer.Vertices.Data[length + 3] = quad.TopRight;
+        hudDrawBuffer.Vertices.Data[length + 4] = quad.BottomLeft;
+        hudDrawBuffer.Vertices.Data[length + 5] = quad.BottomRight;
+        hudDrawBuffer.Vertices.Length = length + 6;
     }
 
     public void Clear()
@@ -48,7 +50,7 @@ public class HudDrawBuffer
         DrawBuffer.Clear();
     }
 
-    private HudDrawBufferData GetOrCreate(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
+    public HudDrawBufferData GetOrCreate(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
         if (DrawBuffer.Empty())
             return AllocateNewAndAdd(texture, brightmapTexture);
