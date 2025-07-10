@@ -105,7 +105,7 @@ public class LegacyHudRenderer : HudRenderer
         for (int i = 0; i < text.Sentences.Length; i++)
         {
             ref var sentence = ref text.Sentences.Data[i];
-            hudDrawBuffer.EnsureCapacity(hudDrawBuffer.Length + sentence.Glyphs.Length * 6);
+            hudDrawBuffer.EnsureCapacity(writeIndex + (sentence.Glyphs.Length * 6));
             for (int j = 0; j < sentence.Glyphs.Length; j++)
             {
                 ref var glyph = ref sentence.Glyphs.Data[j];
