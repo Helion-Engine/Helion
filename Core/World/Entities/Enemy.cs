@@ -498,7 +498,7 @@ public partial class Entity
         if (Definition.MissileState == null)
             distance -= 128;
 
-        if (Definition.MeleeState != null && distance < Definition.Properties.MeleeThreshold)
+        if (Definition.MeleeState != null && distance < MeleeThreshold)
             return false;
 
         if (Definition.Flags.MissileMore)
@@ -506,13 +506,13 @@ public partial class Entity
         if (Definition.Flags.MissileEvenMore)
             distance /= 8;
 
-        if (Definition.Properties.MaxTargetRange > 0 && distance > Definition.Properties.MaxTargetRange)
+        if (MaxTargetRange > 0 && distance > MaxTargetRange)
             return false;
 
         if (SlowTickMultiplier > 0)
             distance /= SlowTickMultiplier;
 
-        distance = Math.Min(distance, Definition.Properties.MinMissileChance);
+        distance = Math.Min(distance, MinMissileChance);
         return WorldStatic.Random.NextByte() >= distance;
     }
 
