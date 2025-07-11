@@ -1,5 +1,8 @@
 using Helion.Audio;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.Palettes;
+using Helion.Maps.Specials;
+using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
@@ -12,17 +15,14 @@ using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Sound;
 using System;
 using System.Diagnostics;
-using static Helion.Util.Assertion.Assert;
-using Helion.Graphics.Palettes;
 using System.Runtime.CompilerServices;
-using Helion.Maps.Specials.ZDoom;
-using Helion.Maps.Specials;
-using Helion.World.Geometry.Lines;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities;
 
@@ -121,6 +121,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public double Height;
     public double Radius;
     public double Gravity;
+    public int MaxTargetRange;
+    public int MinMissileChance;
+    public int MeleeThreshold;
+
     public bool IsFrozen => FrozenTics > 0;
     public bool IsDead => Health <= 0;
     public virtual double ViewZ => 8.0;
@@ -187,11 +191,14 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         LowestCeilingObject = sector;
         CheckOnGround();
 
-        Properties.Threshold = 0;
+        Threshold = 0;
         Gravity = 1;
 
         Alpha = (float)Properties.Alpha;
         MonsterMovementSpeed = Properties.MonsterMovementSpeed;
+        MaxTargetRange = Properties.MaxTargetRange;
+        MinMissileChance = Properties.MinMissileChance;
+        MeleeThreshold = Properties.MeleeThreshold;
 
         FrameState = new(FrameStateOptions.DestroyOnStop);
     }
@@ -242,10 +249,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (entityModel.OnGround.HasValue)
             OnGround = entityModel.OnGround.Value;
 
-        if (entityModel.Alpha.HasValue)
-            Alpha = entityModel.Alpha.Value;
-        else
-            Alpha = (float)Properties.Alpha;
+        Alpha = entityModel.Alpha ?? (float)Properties.Alpha;
+        MaxTargetRange = entityModel.MaxTargetRange ?? Properties.MaxTargetRange;
+        MinMissileChance = entityModel.MinMissileChance ?? Properties.MinMissileChance;
+        MeleeThreshold = entityModel.MeleeThreshold ?? Properties.MeleeThreshold;
 
         if (entityModel.IsBlood.HasValue)
             Definition.IsBlood = entityModel.IsBlood.Value;
@@ -287,6 +294,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.OnGround = OnGround;
         entityModel.Gravity = Gravity;
         entityModel.Alpha = Alpha;
+        entityModel.MaxTargetRange = MaxTargetRange;
+        entityModel.MinMissileChance = MinMissileChance;
+        entityModel.MeleeThreshold = MeleeThreshold;
         entityModel.IsBlood = Definition.IsBlood;
         return entityModel;
     }

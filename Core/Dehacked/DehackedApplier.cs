@@ -20,6 +20,8 @@ using Helion.World.Entities.Definition.Properties.Components;
 using static Helion.Dehacked.DehackedDefinition;
 using Helion.Maps.Shared;
 using Helion.Graphics.Palettes;
+using System.Runtime.CompilerServices;
+using System.Linq;
 
 namespace Helion.Dehacked;
 
@@ -109,7 +111,7 @@ public class DehackedApplier
 
     private const int DehExtraSpriteStart = 145;
     private const int DehExtraSoundStart = 500;
-    private const double TranslucentValue = 0.38069;
+    private const float TranslucentValue = 0.38069f;
 
     public DehackedApplier(DefinitionEntries definitionEntries, DehackedDefinition dehacked)
     {
@@ -648,12 +650,12 @@ public class DehackedApplier
             if (thing.Bits.HasValue)
             {
                 ClearEntityFlags(ref definition.Flags);
-                SetEntityFlags(properties, ref definition.Flags, thing.Bits.Value, false);
+                SetEntityFlags(properties, null, ref definition.Flags, thing.Bits.Value, false);
             }
             if (thing.Mbf21Bits.HasValue)
             {
                 ClearEntityFlagsMbf21(ref definition.Flags);
-                SetEntityFlagsMbf21(properties, ref definition.Flags, thing.Mbf21Bits.Value, false);
+                SetEntityFlagsMbf21(properties, null, ref definition.Flags, thing.Mbf21Bits.Value, false);
             }
             if (thing.Id24Bits.HasValue)
             {
@@ -1230,13 +1232,24 @@ public class DehackedApplier
         flags.FullVolDeath = false;
     }
 
-    public static void SetEntityFlagsMbf21(EntityProperties properties, ref EntityFlags flags, uint value, bool opAnd)
+    public static void SetEntityFlagsMbf21(EntityProperties? properties, Entity? entity, ref EntityFlags flags, uint value, bool opAnd)
     {
         Mbf21ThingFlags thingProperties = (Mbf21ThingFlags)value;
-        properties.Gravity = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.LOGRAV) != 0, opAnd) ? 1 / 8.0 : 1.0; // Lower gravity (1/8)
-        properties.MaxTargetRange = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.SHORTMRANGE) != 0, opAnd) ? 896 : 0; // Short missile range (archvile)
-        properties.MinMissileChance = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.HIGHERMPROB) != 0, opAnd) ? 160 : 200; // Higher missile attack probability (cyberdemon)
-        properties.MeleeThreshold = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.LONGMELEE) != 0, opAnd) ? 196 : 0; // Has long melee range (revenant)
+        
+        if (entity != null)
+        {
+            entity.Gravity = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.LOGRAV) != 0, opAnd) ? 1 / 8.0 : 1.0; // Lower gravity (1/8)
+            entity.MaxTargetRange = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.SHORTMRANGE) != 0, opAnd) ? 896 : 0; // Short missile range (archvile)
+            entity.MinMissileChance = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.HIGHERMPROB) != 0, opAnd) ? 160 : 200; // Higher missile attack probability (cyberdemon)
+            entity.MeleeThreshold = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.LONGMELEE) != 0, opAnd) ? 196 : 0; // Has long melee range (revenant)
+        }
+        else if (properties != null)
+        {
+            properties.Gravity = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.LOGRAV) != 0, opAnd) ? 1 / 8.0 : 1.0; // Lower gravity (1/8)
+            properties.MaxTargetRange = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.SHORTMRANGE) != 0, opAnd) ? 896 : 0; // Short missile range (archvile)
+            properties.MinMissileChance = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.HIGHERMPROB) != 0, opAnd) ? 160 : 200; // Higher missile attack probability (cyberdemon)
+            properties.MeleeThreshold = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.LONGMELEE) != 0, opAnd) ? 196 : 0; // Has long melee range (revenant)
+        }
 
         flags.NoTarget = GetNewFlagValue(flags.NoTarget, (thingProperties & Mbf21ThingFlags.DMGIGNORED) != 0, opAnd);
         flags.NoRadiusDmg = GetNewFlagValue(flags.NoRadiusDmg, (thingProperties & Mbf21ThingFlags.NORADIUSDMG) != 0, opAnd);
@@ -1273,6 +1286,7 @@ public class DehackedApplier
         flags.SpecialStayDeathmatch = GetNewFlagValue(flags.SpecialStayDeathmatch, (thingProperties & Id24ThingFlags.SPECIALSTAYSDM) != 0, opAnd);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool GetNewFlagValue(bool existingFlag, bool newFlag, bool opAnd)
     {
         if (opAnd)
@@ -1314,7 +1328,7 @@ public class DehackedApplier
         flags.InFloat = false;
     }
 
-    public static void SetEntityFlags(EntityProperties properties, ref EntityFlags flags, uint value, bool opAnd)
+    public static void SetEntityFlags(EntityProperties? properties, Entity? entity, ref EntityFlags flags, uint value, bool opAnd)
     {
         ThingProperties thingProperties = (ThingProperties)value;
         flags.Special = GetNewFlagValue(flags.Special, (thingProperties & ThingProperties.SPECIAL) != 0, opAnd);
@@ -1349,7 +1363,10 @@ public class DehackedApplier
         flags.Translation2 = GetNewFlagValue(flags.Translation2, (thingProperties & ThingProperties.TRANSLATION2) != 0, opAnd);
         flags.InFloat = GetNewFlagValue(flags.InFloat, (thingProperties & ThingProperties.INFLOAT) != 0, opAnd);
 
-        properties.Alpha = GetNewFlagValue(properties.Alpha == TranslucentValue, (thingProperties & ThingProperties.TRANSLUCENT) != 0, opAnd) ? TranslucentValue : 1;
+        if (entity != null)
+            entity.Alpha = GetNewFlagValue(entity.Alpha == TranslucentValue, (thingProperties & ThingProperties.TRANSLUCENT) != 0, opAnd) ? TranslucentValue : 1;
+        else if (properties != null)
+            properties.Alpha = GetNewFlagValue(properties.Alpha == TranslucentValue, (thingProperties & ThingProperties.TRANSLUCENT) != 0, opAnd) ? TranslucentValue : 1;
     }
 
     public static bool CheckEntityFlags(Entity entity, uint flags)

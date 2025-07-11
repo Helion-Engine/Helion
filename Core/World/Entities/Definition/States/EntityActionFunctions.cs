@@ -3369,9 +3369,8 @@ public static class EntityActionFunctions
         uint flags1 = (uint)entity.FrameState.Frame.DehackedArgs1;
         uint flags2 = (uint)entity.FrameState.Frame.DehackedArgs2;
 
-        DehackedApplier.SetEntityFlags(entity.Properties, ref entity.Flags, flags1, false);
-        DehackedApplier.SetEntityFlagsMbf21(entity.Properties, ref entity.Flags, flags2, false);
-        entity.Alpha = (float)entity.Properties.Alpha;
+        DehackedApplier.SetEntityFlags(null, entity, ref entity.Flags, flags1, false);
+        DehackedApplier.SetEntityFlagsMbf21(null, entity, ref entity.Flags, flags2, false);
     }
 
     private static void A_RemoveFlags(Entity entity)
@@ -3379,9 +3378,8 @@ public static class EntityActionFunctions
         uint flags1 = ~(uint)entity.FrameState.Frame.DehackedArgs1;
         uint flags2 = ~(uint)entity.FrameState.Frame.DehackedArgs2;
 
-        DehackedApplier.SetEntityFlags(entity.Properties, ref entity.Flags, flags1, true);
-        DehackedApplier.SetEntityFlagsMbf21(entity.Properties, ref entity.Flags, flags2, true);
-        entity.Alpha = (float)entity.Properties.Alpha;
+        DehackedApplier.SetEntityFlags(null, entity, ref entity.Flags, flags1, true);
+        DehackedApplier.SetEntityFlagsMbf21(null, entity, ref entity.Flags, flags2, true);
     }
 
     public static void A_ClosetLook(Entity entity)

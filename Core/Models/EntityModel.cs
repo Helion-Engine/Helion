@@ -47,6 +47,9 @@ public class EntityModel
     public bool? OnGround { get; set; }
     public double Gravity { get; set; } = 1;
     public float? Alpha { get; set; }
+    public int? MaxTargetRange { get; set; }
+    public int? MinMissileChance { get; set; }
+    public int? MeleeThreshold { get; set; }
 
     public Vec3D GetVelocity() => (VelocityX, VelocityY, VelocityZ);
 

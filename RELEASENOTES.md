@@ -22,5 +22,6 @@
 - Fix alignment with id24 skies.
 - Fix sky fire foregrounds not rendering when used on two different sky backings.
 - Fix A_AddFlags/A_RemoveFlags not updating sprite transparency when changing TRANSLUCENT flag.
+- Fix A_AddFlags/A_RemoveFlags MaxTargetRange, MinMissileChance, and MeleeThreshold, Translucent editing globabl properties.
 - Fix reading $ifgame in language file.
 - Fix intermission patch graphics not using offset. Fixes Hell To Pay intermission screen.
