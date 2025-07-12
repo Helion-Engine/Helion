@@ -1,4 +1,3 @@
-using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Components;
@@ -125,7 +124,10 @@ public class EntityManager : IDisposable
         entity.Dispose();
     }
 
-    public Player CreatePlayer(int playerIndex, Entity spawnSpot, bool isVoodooDoll)
+    public Player RespawnPlayer(int playerIndex, Entity spawnSpot) =>
+        CreatePlayer(playerIndex, spawnSpot, CreatePlayerOptions.Respawn);
+
+    public Player CreatePlayer(int playerIndex, Entity spawnSpot, CreatePlayerOptions options = CreatePlayerOptions.None)
     {
         Player player;
         EntityDefinition? playerDefinition = DefinitionComposer.GetByName(Constants.PlayerClass);
@@ -135,10 +137,11 @@ public class EntityManager : IDisposable
             throw new HelionException("Missing the default player class, should never happen");
         }
                 
-        bool addedPlayer = Players.Count <= playerIndex;
-        if (!addedPlayer)
+        var addedPlayer = Players.Count <= playerIndex;
+        if (!addedPlayer && (options & CreatePlayerOptions.Respawn) != 0)
             RemovedPlayers.Add(Players[playerIndex]);
 
+        var isVoodooDoll = (options & CreatePlayerOptions.VooDooDoll) != 0;
         player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
         player.IsVooDooDoll = isVoodooDoll;
 

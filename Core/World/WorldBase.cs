@@ -3559,7 +3559,7 @@ public abstract partial class WorldBase : IWorld
         var stats = player.PlayerStats;
         player.PlayerState = PlayerState.Ignore;
         SoundManager.MakeSoundsNotRelativeTo(player);
-        player = EntityManager.CreatePlayer(0, spawn, false);
+        player = EntityManager.RespawnPlayer(0, spawn);
         player.PlayerStats = stats;
         player.SetDefaultInventory();
 

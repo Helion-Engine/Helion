@@ -70,12 +70,12 @@ public class SinglePlayerWorld : WorldBase
             var spawns = EntityManager.SpawnLocations.GetPlayerSpawns(0);
             if (spawns.Count == 0)
                 throw new HelionException("No player 1 starts.");
-            Player = EntityManager.CreatePlayer(0, spawns[^1], false);
+            Player = EntityManager.CreatePlayer(0, spawns[^1]);
 
             // Make voodoo dolls
             for (int i = spawns.Count - 2; i >= 0; i--)
             {
-                Player player = EntityManager.CreatePlayer(0, spawns[i], true);
+                Player player = EntityManager.CreatePlayer(0, spawns[i], CreatePlayerOptions.VooDooDoll);
                 player.SetDefaultInventory();
             }
 
