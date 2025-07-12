@@ -21,7 +21,6 @@ using static Helion.Dehacked.DehackedDefinition;
 using Helion.Maps.Shared;
 using Helion.Graphics.Palettes;
 using System.Runtime.CompilerServices;
-using System.Linq;
 
 namespace Helion.Dehacked;
 

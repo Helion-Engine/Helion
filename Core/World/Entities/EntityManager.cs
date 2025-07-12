@@ -1,9 +1,7 @@
-using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
-using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
@@ -43,6 +41,7 @@ public class EntityManager : IDisposable
 
     public EntityDefinitionComposer DefinitionComposer;
     public List<Player> Players = [];
+    public List<Player> RemovedPlayers = [];
     public List<Player> VoodooDolls = [];
     public List<Entity> MusicChangers = [];
     private readonly LookupArray<Player?> RealPlayersByNumber = new();
@@ -125,7 +124,10 @@ public class EntityManager : IDisposable
         entity.Dispose();
     }
 
-    public Player CreatePlayer(int playerIndex, Entity spawnSpot, bool isVoodooDoll)
+    public Player RespawnPlayer(int playerIndex, Entity spawnSpot) =>
+        CreatePlayer(playerIndex, spawnSpot, CreatePlayerOptions.Respawn);
+
+    public Player CreatePlayer(int playerIndex, Entity spawnSpot, CreatePlayerOptions options = CreatePlayerOptions.None)
     {
         Player player;
         EntityDefinition? playerDefinition = DefinitionComposer.GetByName(Constants.PlayerClass);
@@ -134,8 +136,12 @@ public class EntityManager : IDisposable
             Log.Error("Missing player definition class {0}, cannot create player {1}", Constants.PlayerClass, playerIndex);
             throw new HelionException("Missing the default player class, should never happen");
         }
+                
+        var addedPlayer = Players.Count <= playerIndex;
+        if (!addedPlayer && (options & CreatePlayerOptions.Respawn) != 0)
+            RemovedPlayers.Add(Players[playerIndex]);
 
-        bool addedPlayer = Players.Count <= playerIndex;
+        var isVoodooDoll = (options & CreatePlayerOptions.VooDooDoll) != 0;
         player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
         player.IsVooDooDoll = isVoodooDoll;
 
@@ -144,7 +150,6 @@ public class EntityManager : IDisposable
             VoodooDolls.Add(player);
             return player;
         }
-
 
         if (addedPlayer)
         {
@@ -570,6 +575,7 @@ public class EntityManager : IDisposable
         SpawnLocations.Clear();
         TidToEntity.Clear();
         Players.Clear();
+        RemovedPlayers.Clear();
         VoodooDolls.Clear();
         MusicChangers.Clear();
         RealPlayersByNumber.SetAll(null);

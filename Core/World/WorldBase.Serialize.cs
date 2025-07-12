@@ -1,5 +1,6 @@
 ﻿using Helion.Models;
 using Helion.Resources.Archives;
+using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special;
@@ -149,6 +150,8 @@ public partial class WorldBase
             if (!entity.IsPlayer)
                 s_entityModels.Add(entity.ToEntityModel(DataCache.GetEntityModel()));
         }
+        for (int i = 0; i < EntityManager.RemovedPlayers.Count; i++)
+            s_entityModels.Add(EntityManager.RemovedPlayers[i].ToEntityModel(DataCache.GetEntityModel()));
         return s_entityModels;
     }
 

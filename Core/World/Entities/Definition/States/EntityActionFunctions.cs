@@ -3395,8 +3395,12 @@ public static class EntityActionFunctions
     public static void A_ClosetChase(Entity entity)
     {
         var target = entity.Target();
-        if (target != null && target.IsDead)
+        if (target == null || target.IsDead)
+        {
+            if (!entity.SetNewTarget(true))
+                entity.SetClosetLook();
             return;
+        }
 
         entity.SetNewChaseDirection();
     }
