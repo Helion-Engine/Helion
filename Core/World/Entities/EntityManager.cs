@@ -3,7 +3,6 @@ using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
-using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
@@ -43,6 +42,7 @@ public class EntityManager : IDisposable
 
     public EntityDefinitionComposer DefinitionComposer;
     public List<Player> Players = [];
+    public List<Player> RemovedPlayers = [];
     public List<Player> VoodooDolls = [];
     public List<Entity> MusicChangers = [];
     private readonly LookupArray<Player?> RealPlayersByNumber = new();
@@ -134,8 +134,11 @@ public class EntityManager : IDisposable
             Log.Error("Missing player definition class {0}, cannot create player {1}", Constants.PlayerClass, playerIndex);
             throw new HelionException("Missing the default player class, should never happen");
         }
-
+                
         bool addedPlayer = Players.Count <= playerIndex;
+        if (!addedPlayer)
+            RemovedPlayers.Add(Players[playerIndex]);
+
         player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
         player.IsVooDooDoll = isVoodooDoll;
 
@@ -144,7 +147,6 @@ public class EntityManager : IDisposable
             VoodooDolls.Add(player);
             return player;
         }
-
 
         if (addedPlayer)
         {
@@ -570,6 +572,7 @@ public class EntityManager : IDisposable
         SpawnLocations.Clear();
         TidToEntity.Clear();
         Players.Clear();
+        RemovedPlayers.Clear();
         VoodooDolls.Clear();
         MusicChangers.Clear();
         RealPlayersByNumber.SetAll(null);
