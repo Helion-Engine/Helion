@@ -139,14 +139,14 @@ public partial class IntermissionLayer
 
         if (IntermissionState >= IntermissionState.NextMap && NextMapInfo != null)
         {
-            hud.Image(NowEnteringImage, (0, offsetY) + GetPatchOffset(hud, NowEnteringImage), out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
+            hud.Image(NowEnteringImage, (0, offsetY) + GetPatchOffset(hud, NowEnteringImage, m_textUpscalingFactor), out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
             offsetY += (5 * drawArea.Height) / 4;
             DrawMapTitle(hud, NextMapInfo, ref offsetY, m_textUpscalingFactor);
         }
         else
         {
             DrawMapTitle(hud, CurrentMapInfo, ref offsetY, m_textUpscalingFactor);
-            hud.Image(FinishedImage, (0, offsetY) + GetPatchOffset(hud, FinishedImage), both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
+            hud.Image(FinishedImage, (0, offsetY) + GetPatchOffset(hud, FinishedImage, m_textUpscalingFactor), both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
         }
     }
 
@@ -154,7 +154,7 @@ public partial class IntermissionLayer
     {
         if (!string.IsNullOrEmpty(mapInfo.TitlePatch))
         {
-            hud.Image(mapInfo.TitlePatch, (0, offsetY) + GetPatchOffset(hud, mapInfo.TitlePatch), 
+            hud.Image(mapInfo.TitlePatch, (0, offsetY) + GetPatchOffset(hud, mapInfo.TitlePatch, m_textUpscalingFactor),
                 out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: textUpscalingFactor);
             offsetY += (5 * drawArea.Height) / 4;
             return;
@@ -174,9 +174,9 @@ public partial class IntermissionLayer
         }
     }
 
-    private static Vec2I GetPatchOffset(IHudRenderContext hud, string name)
+    private static Vec2I GetPatchOffset(IHudRenderContext hud, string name, int upscalingFactor)
     {
-        if (hud.Textures.TryGet(name, out var text))
+        if (hud.Textures.TryGet(name, out var text, upscalingFactor: upscalingFactor))
             return TranslateDoomOffset(text.Offset);
         return Vec2I.Zero;
     }
