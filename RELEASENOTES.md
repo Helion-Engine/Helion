@@ -25,3 +25,5 @@
 - Fix A_AddFlags/A_RemoveFlags MaxTargetRange, MinMissileChance, and MeleeThreshold, Translucent editing globabl properties.
 - Fix reading $ifgame in language file.
 - Fix intermission patch graphics not using offset. Fixes Hell To Pay intermission screen.
+- Fix middle textures not correctly blocking sprites from bleeding over lower textures with emulate vanilla rendering.
+- Fix middle textures not rendering when moving sector is paused with emulate vanilla rendering.

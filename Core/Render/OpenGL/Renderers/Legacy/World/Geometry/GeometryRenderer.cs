@@ -769,7 +769,7 @@ public class GeometryRenderer : IDisposable
         return visibility;
     }
 
-    public void RenderMidTexCoverWalls(Side side, Sector facingSector, Sector otherSector, DynamicVertex[] midTexVertices, 
+    public void RenderMidTexCoverWalls(Side side, Sector facingSector, Sector otherSector, DynamicVertex[] midTexVertices,
         SideTexture visibleTextures, Action<Side, DynamicVertex[], WallLocation> render)
     {
         var clipPlanes = GetMidTexClipPlanes(side, facingSector, otherSector, out var opening, out var prevOpening);
@@ -777,24 +777,30 @@ public class GeometryRenderer : IDisposable
         {
             var bottomZ = (float)opening.MinBottomZ;
             var prevBottomZ = (float)prevOpening.MinBottomZ;
-            for (int i = 0; i < midTexVertices.Length; i++)
+            for (int i = 0; i < m_wallVertices.Length; i++)
             {
-                midTexVertices[i].Z = bottomZ - WorldStatic.CoverWallOffset;
-                midTexVertices[i].PrevZ = prevBottomZ - WorldStatic.CoverWallOffset;
+                m_wallVertices[i] = midTexVertices[i];
+                m_wallVertices[i].Z = bottomZ + WorldStatic.CoverWallOffset;
+                m_wallVertices[i].PrevZ = prevBottomZ + WorldStatic.CoverWallOffset;
             }
-            render(side, midTexVertices, WallLocation.Lower);
+
+            CoverWallUtil.SetCoverWallVertices(side, m_wallVertices, 0, WallLocation.Lower);
+            render(side, m_wallVertices, WallLocation.Lower);
         }
 
         if (((visibleTextures & SideTexture.Upper) == 0 || (side.FloodTextures & SideTexture.Upper) != 0) && (clipPlanes & SectorPlanes.Ceiling) != 0)
         {
             var topZ = (float)opening.MaxTopZ;
             var prevTopZ = (float)prevOpening.MaxTopZ;
-            for (int i = 0; i < midTexVertices.Length; i++)
+            for (int i = 0; i < m_wallVertices.Length; i++)
             {
-                midTexVertices[i].Z = topZ + WorldStatic.CoverWallOffset;
-                midTexVertices[i].PrevZ = prevTopZ + WorldStatic.CoverWallOffset;
+                m_wallVertices[i] = midTexVertices[i];
+                m_wallVertices[i].Z = topZ - WorldStatic.CoverWallOffset;
+                m_wallVertices[i].PrevZ = prevTopZ - WorldStatic.CoverWallOffset;
             }
-            render(side, midTexVertices, WallLocation.Upper);
+
+            CoverWallUtil.SetCoverWallVertices(side, m_wallVertices, 0, WallLocation.Upper);
+            render(side, m_wallVertices, WallLocation.Upper);
         }
     }
 
