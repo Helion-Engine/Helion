@@ -746,7 +746,7 @@ public class Player : Entity
 
     private void SetRunningFrameState()
     {
-        if (!Definition.SeeState.HasValue)
+        if (!Definition.SeeState.HasValue || IsDead)
             return;
 
         bool hasMoveSpeed = TickCommand.ForwardMoveSpeed > 0 || TickCommand.SideMoveSpeed > 0;
