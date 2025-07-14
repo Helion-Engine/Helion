@@ -152,7 +152,8 @@ public interface IWorld : IDisposable
     // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
     bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
     bool IsPositionBlocked(Entity entity);
-    void CreateTeleportFog(in Vec3D pos, bool playSound = true);
+    void CreateTeleportFog(in Vec3D pos);
+    void CreateTeleportFog(Entity entity);
     void ActivateCheat(Player player, ICheat cheat);
     bool IsSectorIdValid(int sectorId) => sectorId >= 0 && sectorId < Sectors.Count;
     bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
