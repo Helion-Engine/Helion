@@ -26,7 +26,7 @@ public class Image
     public static readonly Image WhiteImage = CreateWhiteImage();
     public static readonly Image TransparentImage = CreateTransparentImage();
 
-    public static Image CreateBlackImage() => new([Color.Black.Value], (1, 1), ImageType.PaletteWithArgb, (0, 0), ResourceNamespace.Global, indices: [0]);
+    public static Image CreateBlackImage() => new([Color.Black.Uint], (1, 1), ImageType.PaletteWithArgb, (0, 0), ResourceNamespace.Global, indices: [0]);
 
     public Dimension Dimension;
     public ImageType ImageType;
@@ -227,7 +227,7 @@ public class Image
             if (argb != TransparentIndex && argb < fullBright.Length && fullBright[argb])
             {
                 var color = layer[argb];
-                if (color.R != 0 && color.G != 0 && color.B != 0)
+                if (color.R != 0 || color.G != 0 || color.B != 0)
                 {
                     uint newPixel = (pixel & 0x00FFFFFF) | ((uint)AlphaFlag << 24);
                     pixel = newPixel;

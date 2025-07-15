@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
 using Helion.Dehacked;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
@@ -39,7 +34,13 @@ using Helion.Util.Extensions;
 using Helion.Util.Loggers;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
+using Helion.World.Entities.Definition.States;
 using NLog;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
 
 namespace Helion.Resources.Archives.Collection;
 
@@ -536,6 +537,10 @@ public class ArchiveCollection : IResources, IPathResolver
             DehackedApplier dehackedApplier = new(Definitions, Definitions.DehackedDefinition);
             dehackedApplier.Apply(Definitions.DehackedDefinition, Definitions, EntityDefinitionComposer);
         }
+
+        // Frame states need vanilla index mapped for weapon state mapping from the retro brightmaps definitions
+        if (Definitions.RetroBrightmapsDefinition != null && Dehacked == null)
+            DehackedApplier.ApplyVanillaIndex(new(), Definitions.EntityFrameTable);
     }
 
     private Archive? LoadSpecial(string file, ArchiveType archiveType, LoadArchiveOptions options)
@@ -738,5 +743,36 @@ public class ArchiveCollection : IResources, IPathResolver
 
         m_brightmapLookupCache[new BrightmapLookupCacheKey(textureName, textureNamespace)] = brightmap;
         return brightmap;
+    }
+
+    public BrightmapDefinition? CreateBrightmap(Image image, string name, ResourceNamespace resourceNamespace, bool[] fullBrightLookup, bool addToDictionary = true)
+    {
+        var key = new BrightmapLookupCacheKey(name, resourceNamespace);
+        if (addToDictionary && m_brightmapLookupCache.TryGetValue(key, out var brightmapDefinition))
+            return brightmapDefinition;
+
+        var brightmapImage = BrightmapCreator.Create(image, fullBrightLookup);
+        ImageRetriever.Add(name, ResourceNamespace.Brightmaps, brightmapImage);
+
+        var brightmap = new BrightmapDefinition()
+        {
+            TargetTexture = name,
+            BrightmapName = name,
+        };
+
+        if (addToDictionary)
+            m_brightmapLookupCache[key] = brightmap;
+        return brightmap;
+    }
+
+    public bool TryGetWeaponFullBrightLookup(EntityFrame frame, string spriteName, [NotNullWhen(true)] out BrightmapDefinition? brightmap)
+    {
+        if (Definitions.RetroBrightmapsDefinition == null)
+        {
+            brightmap = null;
+            return false;
+        }
+
+        return Definitions.RetroBrightmapsDefinition.TryGetWeaponFullBrightDefinition(this, frame.VanillaIndex, spriteName, out brightmap);
     }
 }

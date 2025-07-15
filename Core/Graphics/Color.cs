@@ -40,12 +40,10 @@ public struct Color : IEquatable<Color>
 
     public uint m_value;
 
-    public byte A => (byte)((m_value & 0xFF000000) >> 24);
-    public byte R => (byte)((m_value & 0x00FF0000) >> 16);
-    public byte G => (byte)((m_value & 0x0000FF00) >> 8);
-    public byte B => (byte)(m_value & 0x000000FF);
-
-    public uint Value => m_value;
+    public readonly byte A => (byte)((m_value & 0xFF000000) >> 24);
+    public readonly byte R => (byte)((m_value & 0x00FF0000) >> 16);
+    public readonly byte G => (byte)((m_value & 0x0000FF00) >> 8);
+    public readonly byte B => (byte)(m_value & 0x000000FF);
 
     public Color(byte a, byte r, byte g, byte b)
     {
@@ -54,10 +52,10 @@ public struct Color : IEquatable<Color>
 
     public static uint FromBytes(byte a, byte r, byte g, byte b) => (uint)((a << 24) | (r << 16) | (g << 8) | b);
 
-    public uint Uint => m_value;
-    public Vec4F Normalized => new(A / 255.0f, R / 255.0f, G / 255.0f, B / 255.0f);
-    public Vec3F Normalized3 => new(R / 255.0f, G / 255.0f, B / 255.0f);
-    public SixLabors.ImageSharp.Color ToImageSharp => new(new Rgba32(R, G, B, A));
+    public readonly uint Uint => m_value;
+    public readonly Vec4F Normalized => new(A / 255.0f, R / 255.0f, G / 255.0f, B / 255.0f);
+    public readonly Vec3F Normalized3 => new(R / 255.0f, G / 255.0f, B / 255.0f);
+    public readonly SixLabors.ImageSharp.Color ToImageSharp => new(new Rgba32(R, G, B, A));
 
     public Color(Vec4F normalized) :
         this((byte)(normalized.X * 255), (byte)(normalized.Y * 255), (byte)(normalized.Z * 255), (byte)(normalized.W * 255))
@@ -91,7 +89,7 @@ public struct Color : IEquatable<Color>
         return new(tuple.Item1, tuple.Item2, tuple.Item3, tuple.Item4);
     }
 
-    public void Deconstruct(out byte a, out byte r, out byte g, out byte b)
+    public readonly void Deconstruct(out byte a, out byte r, out byte g, out byte b)
     {
         a = A;
         r = R;
@@ -180,13 +178,27 @@ public struct Color : IEquatable<Color>
 
     public override readonly int GetHashCode() => (int)m_value;
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return $"{R} {G} {B} [{A}]";
     }
 
-    public bool Equals(Color other)
+    public readonly bool Equals(Color other)
     {
         return m_value == other.m_value;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Color color && Equals(color);
+    }
+    public static bool operator ==(Color left, Color right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Color left, Color right)
+    {
+        return !(left == right);
     }
 }

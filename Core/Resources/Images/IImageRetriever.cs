@@ -47,4 +47,6 @@ public interface IImageRetriever
     /// <param name="specificNamespace">The desired namespace</param>
     /// <returns>A list of image names</returns>
     IEnumerable<string> GetNames(ResourceNamespace specificNamespace);
+
+    public void Add(string name, ResourceNamespace resourceNamespace, Image image);
 }
