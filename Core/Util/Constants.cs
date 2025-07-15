@@ -355,7 +355,7 @@ public static class Constants
     public const double TracerAngle = 16.0 * Math.PI / 180;
     public const double MeleeAngle = 5 * Math.PI / 180;
     public const double PuffRandZ = (1 << 10) / 65536.0;
-    public const int TeleportOffsetDist = 16;
+    public const int TeleportOffsetDist = 20;
     public const int NullFrameIndex = 0;
     public const double DefaultFriction = 0.90625;
     public const double DefaultMoveFactor = 1.0;

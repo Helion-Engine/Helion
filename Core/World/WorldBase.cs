@@ -2916,12 +2916,27 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    public void CreateTeleportFog(in Vec3D pos, bool playSound = true)
+    public void CreateTeleportFog(in Vec3D pos)
     {
         if (m_teleportFogDef == null)
             return;
 
         var teleport = EntityManager.Create(m_teleportFogDef, pos, 0.0, 0.0, 0);
+        SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
+    }
+
+    public void CreateTeleportFog(Entity entity)
+    {
+        if (m_teleportFogDef == null)
+            return;
+
+        var fogDist = Vec2D.UnitCircle(entity.AngleRadians) * Constants.TeleportOffsetDist;
+        var teleportFogPos = entity.Position;
+        teleportFogPos.X += fogDist.X;
+        teleportFogPos.Y += fogDist.Y;
+        CreateTeleportFog(teleportFogPos);
+
+        var teleport = EntityManager.Create(m_teleportFogDef, teleportFogPos, 0.0, 0.0, 0);
         SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
     }
 
@@ -3550,7 +3565,7 @@ public abstract partial class WorldBase : IWorld
         return true;
     }
 
-    public Player? RespawnPlayer(Player player)
+    public virtual Player? RespawnPlayer(Player player)
     {
         var spawn = EntityManager.SpawnLocations.GetPlayerSpawn(player.PlayerNumber);
         if (spawn == null)
@@ -3558,16 +3573,11 @@ public abstract partial class WorldBase : IWorld
 
         var stats = player.PlayerStats;
         player.PlayerState = PlayerState.Ignore;
-        SoundManager.MakeSoundsNotRelativeTo(player);
         player = EntityManager.RespawnPlayer(0, spawn);
         player.PlayerStats = stats;
         player.SetDefaultInventory();
 
-        var fogDist = Vec2D.UnitCircle(player.AngleRadians) * 20;
-        var teleportFogPos = player.Position;
-        teleportFogPos.X += fogDist.X;
-        teleportFogPos.Y += fogDist.Y;
-        CreateTeleportFog(teleportFogPos);
+        CreateTeleportFog(player);
         return player;
     }
 }

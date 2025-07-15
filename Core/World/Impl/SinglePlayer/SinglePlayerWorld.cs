@@ -51,7 +51,7 @@ public class SinglePlayerWorld : WorldBase
     {
         if (m_chaseCamMode)
             return ChaseCamPlayer;
-        return Player;
+        return EntityManager.GetRealPlayer(0) ?? Player;
     }
 
     private bool IsMultiPlayer => m_worldType != WorldType.SinglePlayer;
@@ -463,7 +463,10 @@ public class SinglePlayerWorld : WorldBase
             {
                 var respawnPlayer = RespawnPlayer(Player);
                 if (respawnPlayer != null)
+                {
+                    SoundManager.MakeSoundsNotRelativeTo(Player);
                     Player = respawnPlayer;
+                }
             }
             else
             {

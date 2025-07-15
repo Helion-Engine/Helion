@@ -93,10 +93,7 @@ public struct TeleportSpecial
                 m_world.CreateTeleportFog(oldPosition);
 
             if ((m_fogFlags & TeleportFog.Dest) != 0)
-            {
-                Vec3D offsetUnit = Vec2D.UnitCircle(entity.AngleRadians).To3D(0);
-                m_world.CreateTeleportFog(entity.Position + (offsetUnit * Constants.TeleportOffsetDist));
-            }
+                m_world.CreateTeleportFog(entity);
 
             if (m_keepHeight)
             {
