@@ -9,6 +9,7 @@
 - HUD message text will wrap to HUD width.
 - IWAD detection will fallback to reading lumps when MD5/filename checks fail for freedoom.
 - Show IWAD selection screen IWAD fails to load with the -iwad parameter.
+- Support BRGHTMPS from Doom Retro.
 
 ## Bug Fixes:
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.
