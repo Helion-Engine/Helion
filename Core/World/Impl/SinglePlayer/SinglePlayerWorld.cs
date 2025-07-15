@@ -607,14 +607,7 @@ public class SinglePlayerWorld : WorldBase
                 && (input.Manager.AnalogAdapter.TryGetGyroAbsolute(GyroAxis.Pitch, out pitch) == true);
             if (hasYaw)
             {
-                if (hasPitch)
-                {
-                    gyroSpeed = Math.Sqrt(yaw * yaw + pitch * pitch) * 365 / Math.Tau;
-                }
-                else
-                {
-                    gyroSpeed = yaw * 365 / Math.Tau;
-                }
+                gyroSpeed = hasPitch ? Math.Sqrt(yaw * yaw + pitch * pitch) * 365 / Math.Tau : gyroSpeed = yaw * 365 / Math.Tau;
                 slowFastFactor = (gyroSpeed - Config.Controller.LowerGyroThreshold) / (Config.Controller.UpperGyroThreshold - Config.Controller.LowerGyroThreshold);
             }
             
