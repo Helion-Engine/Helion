@@ -45,6 +45,7 @@ public class EntityRenderer : IDisposable
     private bool m_vanillaRender;
     private bool m_healthBars;
     private bool m_attackIndicator;
+    private bool m_brightMaps;
     private int m_healthBarLimit;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
@@ -64,6 +65,7 @@ public class EntityRenderer : IDisposable
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_vanillaRender = m_config.Render.VanillaRender;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
+        m_brightMaps = m_config.Render.Brightmaps;
     }
 
     ~EntityRenderer()
@@ -95,6 +97,7 @@ public class EntityRenderer : IDisposable
         m_healthBars = m_config.Render.HealthBar.Enable;
         m_attackIndicator = m_config.Render.HealthBar.AttackIndicator;
         m_healthBarLimit = m_config.Render.HealthBar.HealthLimit;
+        m_brightMaps = m_config.Render.Brightmaps;
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -263,7 +266,7 @@ public class EntityRenderer : IDisposable
             (float)entity.PrevPosition.Z);
         vertex.OffsetZ = offsetZ;
         vertex.OffsetXY = texture.Offset.X;
-        bool disableFullbright = m_config.Render.Brightmaps && spriteRotation.BrightmapNoFullbright;
+        bool disableFullbright = m_brightMaps && spriteRotation.BrightmapNoFullbright;
         vertex.LightLevel = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright
             ? 255
             : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);

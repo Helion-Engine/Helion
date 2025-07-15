@@ -673,12 +673,12 @@ public partial class TextureManager : ITickable
         if (texture.Name == Constants.NoTexture)
             return;
 
-        texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
+        texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options: options);
         if (texture.BrightmapImage == null)
         {
             var brightmap = m_archiveCollection.GetBrightmapFor(texture.Name, texture.Namespace);
             if (brightmap?.BrightmapName != null)
-                texture.BrightmapImage = m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps, options);
+                texture.BrightmapImage = m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps, options: options);
         }
     }
 

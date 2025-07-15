@@ -170,7 +170,7 @@ public class DehackedApplier
         }
     }
 
-    private static void ApplyVanillaIndex(DehackedDefinition dehacked, EntityFrameTable table)
+    public static void ApplyVanillaIndex(DehackedDefinition dehacked, EntityFrameTable table)
     {
         for (int i = 0; i < (int)ThingState.Count; i++)
         {

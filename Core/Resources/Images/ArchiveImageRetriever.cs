@@ -217,9 +217,9 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
         {
             bool clearBlackPixels = (options & GetImageOptions.ClearBlackPixels) != 0;
             var dataEntries = m_archiveCollection.Data;
-            var storeIndices = m_archiveCollection.StoreImageIndices;
+            var storeIndices = m_archiveCollection.StoreImageIndices || m_archiveCollection.Definitions.RetroBrightmapsDefinition != null;
             var palette = entry.Parent.TranslationPalette ?? dataEntries.Palette;
-
+            
             if (colorTranslation == null && palette.Translation != null)
                 colorTranslation = palette.Translation;
 
@@ -264,4 +264,7 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
             indices[i] = translation[value];
         }
     }
+
+    public void Add(string name, ResourceNamespace resourceNamespace, Image image) =>
+        m_compiledImages.Insert(name, resourceNamespace, image);
 }

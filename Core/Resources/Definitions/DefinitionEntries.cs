@@ -17,6 +17,7 @@ using Helion.Resources.Definitions.Language;
 using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.MusInfo;
+using Helion.Resources.Definitions.Retro;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Definitions.Zdoom;
@@ -70,6 +71,8 @@ public class DefinitionEntries
     /// <inheritdoc cref="Zdoom.GldefsDefinition"/>
     public readonly GldefsDefinition GldefsDefinition = new();
 
+    public RetroBrightmapsDefinition? RetroBrightmapsDefinition;
+
     public PnamesTextureXCollection PnamesTextureXCollection => m_pnamesTextureXCollection;
     public DehackedDefinition? DehackedDefinition { get; set; }
     public LookupArray<Colormap> BloodColorMaps => m_bloodColorMaps;
@@ -119,6 +122,13 @@ public class DefinitionEntries
         m_entryNameToAction["GAMEINFO"] = entry => ParseEntry(GameInfoDefinition.Parse, entry);
         m_entryNameToAction["GLDEFS"] = ParseGldefs;
         m_entryNameToAction["DOOMDEFS"] = ParseGldefs;
+        m_entryNameToAction["BRGHTMPS"] = ParseRetroBrightmaps;
+    }
+
+    private void ParseRetroBrightmaps(Entry entry)
+    {
+        RetroBrightmapsDefinition ??= new();
+        RetroBrightmapsDefinition.Parse(entry.ReadDataAsString(), m_archiveCollection.IWadInfo.IWadBaseType);
     }
 
     public void ParseDehackedPatch(string data)
@@ -277,6 +287,8 @@ public class DefinitionEntries
 
         if (m_pnamesTextureXCollection.Valid)
             CreateImageDefinitionsFrom(archiveCollection, m_pnamesTextureXCollection);
+
+        RetroBrightmapsDefinition?.CreateTextureBrightMaps(m_archiveCollection);
     }
 
     private static void AddFinalizeEntry(ArchiveCollection archiveCollection, string name, Action<Entry> action)

@@ -54,6 +54,13 @@ public class SpriteDefinition
             SpriteTextureLookup[entry.Path.Name] = texture;
         }
 
+        if (texture.Image != null &&
+            archiveCollection.Definitions.RetroBrightmapsDefinition != null &&
+            archiveCollection.Definitions.RetroBrightmapsDefinition.TryGetTextureFullBright(ResourceNamespace.Sprites, entry.Path.Name, out var brightMapLookup))
+        {
+            archiveCollection.CreateBrightmap(texture.Image, entry.Path.Name, ResourceNamespace.Sprites, brightMapLookup);
+        }
+
         var brightmap = archiveCollection.GetBrightmapFor(texture.Name, ResourceNamespace.Sprites);
         if (brightmap?.BrightmapName != null)
             texture.BrightmapImage ??= imageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
