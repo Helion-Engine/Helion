@@ -605,17 +605,17 @@ public class SinglePlayerWorld : WorldBase
             double pitch = 0.0;
             double gyroSpeed;
             double slowFastFactor = 0.0;
+
             bool hasYaw = input.Manager.AnalogAdapter.TryGetGyroAbsolute((GyroAxis)(int)Config.Controller.GyroAimTurnAxis.Value, out double yaw);
             bool hasPitch = ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsChaseCamMode)
-                && (input.Manager.AnalogAdapter.TryGetGyroAbsolute(GyroAxis.Pitch, out pitch) == true);
+                && input.Manager.AnalogAdapter.TryGetGyroAbsolute(GyroAxis.Pitch, out pitch);
+
             if (hasYaw)
             {
-                gyroSpeed = hasPitch ? Math.Sqrt(yaw * yaw + pitch * pitch) * 365 / Math.Tau : gyroSpeed = yaw * 365 / Math.Tau;
+                gyroSpeed = hasPitch
+                    ? Math.Sqrt(yaw * yaw + pitch * pitch) * 365 / Math.Tau 
+                    : yaw * 365 / Math.Tau;
                 slowFastFactor = (gyroSpeed - Config.Controller.LowerGyroThreshold) / (Config.Controller.UpperGyroThreshold - Config.Controller.LowerGyroThreshold);
-            }
-            
-            if (hasYaw)
-            {
                 player.AddToYaw((float)(yaw * (Config.Controller.GyroAimHorizontalSensitivity + (Config.Controller.GyroAcceleration * slowFastFactor))), true);
             }
 
