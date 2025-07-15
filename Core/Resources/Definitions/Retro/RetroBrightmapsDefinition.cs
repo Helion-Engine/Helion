@@ -3,7 +3,6 @@ using Helion.Resources.Definitions.Zdoom;
 using Helion.Resources.IWad;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
-using Helion.World.Entities.Definition.States;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -21,7 +20,7 @@ public class RetroBrightmapsDefinition
     private readonly Dictionary<int, string> m_stateToBrightmap = [];
     private readonly Dictionary<SpriteKey, BrightmapDefinition> m_spriteToBrightmapDefinition = [];
 
-    public Dictionary<BrightmapKey, string> GetTexturesLookup() => m_textureToBrightmap;
+    public bool TryGetFullBright(string name, out bool[]? fullBrightLookup) => m_nameToFullbright.TryGetValue(name, out fullBrightLookup);
 
     public bool TryGetTextureFullBright(ResourceNamespace type, string name, [NotNullWhen(true)] out bool[]? fullBrightLookup)
     {
@@ -147,6 +146,7 @@ public class RetroBrightmapsDefinition
 
     private static void LogError(string error) => Log.Error($"RetroBrightmap: {error}");
 
+    [Flags]
     private enum GameType
     {
         None = 0,
@@ -198,20 +198,20 @@ public class RetroBrightmapsDefinition
         }
     }
 
-    public bool TryGetWeaponFullBrightDefinition(ArchiveCollection archiveCollection, EntityFrame frame, string spriteName, [NotNullWhen(true)] out BrightmapDefinition? brightmap)
+    public bool TryGetWeaponFullBrightDefinition(ArchiveCollection archiveCollection, int vanillaState, string spriteName, [NotNullWhen(true)] out BrightmapDefinition? brightmap)
     {
         brightmap = null;
-        if (frame.VanillaIndex == 0)
+        if (vanillaState == 0)
             return false;
 
-        if (!TryGetBrightmapStateName(frame.VanillaIndex, out var brightMapName))
+        if (!TryGetBrightmapStateName(vanillaState, out var brightMapName))
             return false;
 
         var spriteKey = new SpriteKey(spriteName, brightMapName);
         if (m_spriteToBrightmapDefinition.TryGetValue(spriteKey, out brightmap))
             return true;
 
-        if (!TryGetStateFullBright(frame.VanillaIndex, out var fullBrightLookup))
+        if (!TryGetStateFullBright(vanillaState, out var fullBrightLookup))
             return false;
 
         var image = archiveCollection.ImageRetriever.Get(spriteName, ResourceNamespace.Sprites);

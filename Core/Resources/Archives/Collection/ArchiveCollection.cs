@@ -773,6 +773,6 @@ public class ArchiveCollection : IResources, IPathResolver
             return false;
         }
 
-        return Definitions.RetroBrightmapsDefinition.TryGetWeaponFullBrightDefinition(this, frame, spriteName, out brightmap);
+        return Definitions.RetroBrightmapsDefinition.TryGetWeaponFullBrightDefinition(this, frame.VanillaIndex, spriteName, out brightmap);
     }
 }
