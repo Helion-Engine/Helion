@@ -62,6 +62,18 @@ public class ConfigController : ConfigElement<ConfigController>
     [OptionMenu(OptionSectionType.Controller, "Gyro On By Default")]
     public readonly ConfigValue<bool> GyroAimOnByDefault = new(true);
 
+    [ConfigInfo("How much to add to sensitivity at the upper gyro threshold. Set to 0 to disable gyro acceleration")]
+    [OptionMenu(OptionSectionType.Controller, "Gyro Acceleration")]
+    public readonly ConfigValue<double> GyroAcceleration = new(2.0);
+
+    [ConfigInfo("Lower threshold for gyro acceleration. If the speed of the controller falls below this, no acceleration will be applied.")]
+    [OptionMenu(OptionSectionType.Controller, "Lower Gyro Threshold")]
+    public readonly ConfigValue<double> LowerGyroThreshold = new(0.0);
+
+    [ConfigInfo("Upper threshold for gyro acceleration. Beyond this point, no more acceleration will be applied.")]
+    [OptionMenu(OptionSectionType.Controller, "Upper Gyro Threshold")]
+    public readonly ConfigValue<double> UpperGyroThreshold = new(75.0);
+
     [ConfigInfo("Whether gyro smoothing should be enabled to reduce twitchiness.")]
     [OptionMenu(OptionSectionType.Controller, "Gyro Smoothing")]
     public readonly ConfigValue<bool> GyroSmoothingEnabled = new(false);

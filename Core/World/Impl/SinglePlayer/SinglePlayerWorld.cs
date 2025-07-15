@@ -602,15 +602,26 @@ public class SinglePlayerWorld : WorldBase
 
         if (input.Manager.AnalogAdapter != null)
         {
-            if (input.Manager.AnalogAdapter.TryGetGyroAbsolute((GyroAxis)(int)Config.Controller.GyroAimTurnAxis.Value, out double yaw) == true)
+            double pitch = 0.0;
+            double gyroSpeed;
+            double slowFastFactor = 0.0;
+            bool hasYaw = input.Manager.AnalogAdapter.TryGetGyroAbsolute((GyroAxis)(int)Config.Controller.GyroAimTurnAxis.Value, out double yaw);
+            bool hasPitch = ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsChaseCamMode)
+                && (input.Manager.AnalogAdapter.TryGetGyroAbsolute(GyroAxis.Pitch, out pitch) == true);
+            if (hasYaw)
             {
-                player.AddToYaw((float)(yaw * Config.Controller.GyroAimHorizontalSensitivity), true);
+                gyroSpeed = hasPitch ? Math.Sqrt(yaw * yaw + pitch * pitch) * 365 / Math.Tau : gyroSpeed = yaw * 365 / Math.Tau;
+                slowFastFactor = (gyroSpeed - Config.Controller.LowerGyroThreshold) / (Config.Controller.UpperGyroThreshold - Config.Controller.LowerGyroThreshold);
+            }
+            
+            if (hasYaw)
+            {
+                player.AddToYaw((float)(yaw * (Config.Controller.GyroAimHorizontalSensitivity + (Config.Controller.GyroAcceleration * slowFastFactor))), true);
             }
 
-            if (((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsChaseCamMode)
-                && (input.Manager.AnalogAdapter.TryGetGyroAbsolute(GyroAxis.Pitch, out double pitch) == true))
+            if (hasPitch)
             {
-                player.AddToPitch((float)(pitch * Config.Controller.GyroAimVerticalSensitivity), true);
+                player.AddToPitch((float)(pitch * (Config.Controller.GyroAimVerticalSensitivity + (Config.Controller.GyroAcceleration * slowFastFactor))), true);
             }
 
             input.Manager.AnalogAdapter.ZeroGyroAbsolute();
