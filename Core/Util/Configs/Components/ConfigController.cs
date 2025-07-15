@@ -70,7 +70,7 @@ public class ConfigController : ConfigElement<ConfigController>
     [OptionMenu(OptionSectionType.Controller, "Lower Gyro Threshold")]
     public readonly ConfigValue<double> LowerGyroThreshold = new(0.0);
 
-    [ConfigInfo("Upper threshold for gyro acceleration. Beyond this point")]
+    [ConfigInfo("Upper threshold for gyro acceleration. Beyond this point, no more acceleration will be applied.")]
     [OptionMenu(OptionSectionType.Controller, "Upper Gyro Threshold")]
     public readonly ConfigValue<double> UpperGyroThreshold = new(75.0);
 
