@@ -68,6 +68,9 @@ public sealed class Weapons
 
     public WeaponSlot GetNextSlot(Player player, int amount)
     {
+        if (m_ownedWeapons.Count == 0)
+            return DefaultSlot;
+
         WeaponSlot slot = new(player.WeaponSlot, player.WeaponSubSlot);
         if (amount == 0)
             return slot;

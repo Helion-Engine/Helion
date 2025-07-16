@@ -31,3 +31,4 @@
 - Fix brightmaps not working with moving sectors.
 - Fix PNG brightmaps not working in palette color mode.
 - Fix crusher damage from 8 to 10 for doom specials 25,49,73, and 184.
+- Fix crash when cycling weapons while in chasecam mode.
