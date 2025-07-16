@@ -263,7 +263,7 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg0 = tag;
                 argsToMutate.Arg1 = 8; // Distance above floor
                 argsToMutate.Arg2 = GetSectorMoveSpeed(type);
-                argsToMutate.Arg3 = 8; // Damage
+                argsToMutate.Arg3 = 10; // Damage
                 argsToMutate.Arg4 = (byte)ZDoomCrushMode.DoomWithSlowDown;
                 return ZDoomLineSpecialType.CeilingCrushAndRaiseDist;
 
