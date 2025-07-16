@@ -210,7 +210,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
 
         if (renderTexture == null && texture.BrightmapImage != null)
         {
-            renderTexture = CreateTexture(texture.BrightmapImage, texture.Name, texture.BrightmapImage.Namespace, repeatY);
+            renderTexture = CreateTexture(texture.BrightmapImage, $"[BRIGHTMAP] {texture.Name}", ResourceNamespace.Brightmaps, repeatY);
             texture.SetBrightmapGLTexture(renderTexture, repeatY);
         }
 
