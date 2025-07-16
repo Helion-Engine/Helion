@@ -697,14 +697,10 @@ public class StaticCacheGeometryRenderer : IDisposable
             return;
 
         GLLegacyTexture texture = data.Texture;
-        GLLegacyTexture? brightmapTexture = data.BrightmapTexture;
         GL.ActiveTexture(BindTextures.BoundTexture);
         texture.Bind();
         GL.ActiveTexture(BindTextures.BrightmapTexture);
-        if (brightmapTexture != null)
-            brightmapTexture.Bind();
-        else
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+        GL.BindTexture(TextureTarget.Texture2D, 0);
 
         data.Vbo.UploadCapacity();
 
