@@ -30,3 +30,4 @@
 - Fix middle textures not rendering when moving sector is paused with emulate vanilla rendering.
 - Fix brightmaps not working with moving sectors.
 - Fix PNG brightmaps not working in palette color mode.
+- Fix crusher damage from 8 to 10 for doom specials 25,49,73, and 184.
