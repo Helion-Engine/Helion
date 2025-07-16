@@ -26,20 +26,24 @@ public sealed class Inventory
     public const string PowerupClassName = "POWERUP";
     public const string RadSuitClassName = "RADSUIT";
 
-    private static readonly List<string> PowerupEnumStringValues = GetPowerEnumValues();
-    private static readonly Dictionary<string, string> PowerupLookup = new();
+    private static string[]? s_powerEnumValues;
+    private static readonly string[] PowerupEnumStringValues = GetPowerEnumValues();
+    private static readonly Dictionary<string, string> PowerupLookup = [];
     private static readonly string PowerString = "Power";
 
-    private readonly List<string> m_addedBaseNames = new();
+    private readonly List<string> m_addedBaseNames = [];
     private readonly Comparison<InventoryItem> m_sortKeyCompare = new(CompareKeys);
 
-    private static List<string> GetPowerEnumValues()
+    private static string[] GetPowerEnumValues()
     {
-        List<string> values = new();
+        if (s_powerEnumValues != null)
+            return s_powerEnumValues;
+
         var enumValues = Enum.GetValues<PowerupType>();
-        foreach (PowerupType value in enumValues)
-            values.Add(value.ToString());
-        return values;
+        s_powerEnumValues = new string[enumValues.Length];
+        for (int i = 0; i < enumValues.Length; i++)
+            s_powerEnumValues[i] = enumValues[i].ToString();
+        return s_powerEnumValues;
     }
 
     /// <summary>
@@ -337,7 +341,7 @@ public sealed class Inventory
 
     private static PowerupType GetPowerupType(ReadOnlySpan<char> type)
     {
-        for (int i = 0; i < PowerupEnumStringValues.Count; i++)
+        for (int i = 0; i < PowerupEnumStringValues.Length; i++)
         {
             if (MemoryExtensions.Equals(type, PowerupEnumStringValues[i], StringComparison.OrdinalIgnoreCase))
                 return (PowerupType)i;
