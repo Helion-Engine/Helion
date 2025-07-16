@@ -123,7 +123,7 @@ public class FragFunction
                 // if useColormap is not default(0) then override with the uniform colormap. This overrides translations with boom colormaps etc.
                 @"useColormap = int(mix(useColormap, colorMapTranslationFrag, float(useColormap == 0)));"
                 : "")
-            .Replace("${BrigthmapFetch}", BrigthMapLightColorIndexFetch("texUV"))
+            .Replace("${BrigthmapFetch}", BrightMapLightColorIndexFetch("texUV"))
 
             :
 
@@ -143,7 +143,7 @@ public class FragFunction
                 int lightColorIndex = int(hudColorMapIndexFrag);
                 ${BrigthmapFetch}
                 int lightLevelOffset = lightColorIndex * 256;"
-                .Replace("${BrigthmapFetch}", BrigthMapLightColorIndexFetch("uvFrag.st"))
+                .Replace("${BrigthmapFetch}", BrightMapLightColorIndexFetch("uvFrag.st"))
                 : 
                 "int lightLevelOffset = 0;");
 
@@ -161,7 +161,7 @@ public class FragFunction
                 .Replace("${IndexAdd}", indexAdd);
     }
 
-    static string BrigthMapLightColorIndexFetch(string uvVar) =>
+    static string BrightMapLightColorIndexFetch(string uvVar) =>
         @$"
         if (useBrightmaps == 1) {{
             vec3 brightColor = texture(brightmapTexture, {uvVar}).rgb;
