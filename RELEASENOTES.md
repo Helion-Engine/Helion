@@ -28,3 +28,5 @@
 - Fix intermission patch graphics not using offset. Fixes Hell To Pay intermission screen.
 - Fix middle textures not correctly blocking sprites from bleeding over lower textures with emulate vanilla rendering.
 - Fix middle textures not rendering when moving sector is paused with emulate vanilla rendering.
+- Fix brightmaps not working with moving sectors.
+- Fix PNG brightmaps not working in palette color mode.
