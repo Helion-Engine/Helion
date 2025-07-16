@@ -180,9 +180,9 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
         return Math.Max(0, image.Height - y - 1);
     }
 
-    // Forces helion graphics like the options background to always be true color
+    // Forces helion graphics like the options background, and brightmaps, to always be true color
     private static bool AlwaysTrueColor(Entry entry) =>
-        entry.Path.Name.StartsWith("helion");
+        entry.Path.Name.StartsWith("helion") || entry.Namespace == ResourceNamespace.Brightmaps;
 
     private Image? ImageFromEntry(Entry entry, bool cacheEntry = true, GetImageOptions options = GetImageOptions.Default, byte[]? colorTranslation = null)
     {

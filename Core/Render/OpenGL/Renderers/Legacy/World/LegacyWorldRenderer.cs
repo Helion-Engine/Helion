@@ -607,6 +607,7 @@ public class LegacyWorldRenderer : WorldRenderer
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.CheckPlaneClip(checkPlaneClip);
+        program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
 
         if (program is InterpolationCompositeShader)
         {
