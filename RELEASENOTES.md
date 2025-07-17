@@ -10,6 +10,7 @@
 - IWAD detection will fallback to reading lumps when MD5/filename checks fail for freedoom.
 - Show IWAD selection screen IWAD fails to load with the -iwad parameter.
 - Support BRGHTMPS from Doom Retro.
+- Use sound decoder from ZMusic to support more sound formats including Ogg and MP3: https://zdoom.org/wiki/Sound_format
 
 ## Bug Fixes:
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.

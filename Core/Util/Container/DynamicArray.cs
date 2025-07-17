@@ -120,6 +120,24 @@ public class DynamicArray<T>
         Length += length;
     }
 
+    public void Add(Span<T> elements)
+    {
+        var length = elements.Length;
+        EnsureCapacity(Length + length);
+
+        if (length < 10)
+        {
+            for (int i = 0; i < length; i++)
+                Data[Length + i] = elements[i];
+        }
+        else
+        {
+            elements.CopyTo(Data.AsSpan(Length));
+        }
+
+        Length += length;
+    }
+
     public void AddRange(IList<T> elements)
     {
         EnsureCapacity(Length + elements.Count);
