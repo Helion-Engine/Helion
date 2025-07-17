@@ -45,18 +45,18 @@
   </ItemGroup>
 
   <ItemGroup Condition="('$(AOT)' == 'true') AND ('$(RuntimeIdentifier)'=='win-x64')">
-	<!-- These are all .libs that would normally get included if we were building DLLs from one or more of our native deps using CMake; 
-	All of these come from the Windows SDK, e.g. C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64 -->
-	<LinkerArg Include="Gdi32.lib" />
-	<LinkerArg Include="WinSpool.lib" />
-	<LinkerArg Include="shell32.lib" />
-	<LinkerArg Include="Uuid.lib" />
-	<LinkerArg Include="ComDlg32.lib" />
-	<LinkerArg Include="avrt.lib" />
-	<LinkerArg Include="WinMM.lib" />
-	<LinkerArg Include="Imm32.lib" />
-	<LinkerArg Include="Shlwapi.lib" />
-	<LinkerArg Include="Setupapi.lib" />
+    <!-- These are all .libs that would normally get included if we were building DLLs from one or more of our native deps using CMake;
+    All of these come from the Windows SDK, e.g. C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64 -->
+    <LinkerArg Include="Gdi32.lib" />
+    <LinkerArg Include="WinSpool.lib" />
+    <LinkerArg Include="shell32.lib" />
+    <LinkerArg Include="Uuid.lib" />
+    <LinkerArg Include="ComDlg32.lib" />
+    <LinkerArg Include="avrt.lib" />
+    <LinkerArg Include="WinMM.lib" />
+    <LinkerArg Include="Imm32.lib" />
+    <LinkerArg Include="Shlwapi.lib" />
+    <LinkerArg Include="Setupapi.lib" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -100,35 +100,35 @@
   </Target>
 
   <Target Name="RemoveGLFW3ForWinAOT" BeforeTargets="ResolveLockFileCopyLocalFiles" Condition="('$(RuntimeIdentifier)' == 'win-x64') AND ('$(AOT)' == 'true')">
-	<!-- Win AOT build is fully static and does not need a local copy of GLFW.  Note that this effectively clears out the entire NativeCopyLocalItems group. -->
-	<ItemGroup>
-		<NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" />
-	</ItemGroup>
-  </Target>
-
-  <Target Name="GetAssetsIncludeFiles">
+    <!-- Win AOT build is fully static and does not need a local copy of GLFW.  Note that this effectively clears out the entire NativeCopyLocalItems group. -->
     <ItemGroup>
-      <AssetSources Include="$(HelionRootDir)Assets\Assets\**\*" />
-    </ItemGroup>
-  </Target>
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" />
+      </ItemGroup>
+    </Target>
 
-  <Target Name="MakeAssetsFile" AfterTargets="Build" DependsOnTargets="GetAssetsIncludeFiles" Inputs="@(AssetSources)" Outputs="$(TargetDir)\assets.pk3">
-    <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="$(TargetDir)\assets.pk3" Overwrite="true" />
-  </Target>
+    <Target Name="GetAssetsIncludeFiles">
+      <ItemGroup>
+        <AssetSources Include="$(HelionRootDir)Assets\Assets\**\*" />
+      </ItemGroup>
+    </Target>
 
-  <Target Name="CopyAssetsFileAfterPublish" AfterTargets="Publish" Inputs="$(TargetDir)\assets.pk3" Outputs="$(PublishDir)\assets.pk3">
-    <Copy SourceFiles="$(TargetDir)\assets.pk3" DestinationFiles="$(PublishDir)\assets.pk3" SkipUnchangedFiles="true" />
-  </Target>
+    <Target Name="MakeAssetsFile" AfterTargets="Build" DependsOnTargets="GetAssetsIncludeFiles" Inputs="@(AssetSources)" Outputs="$(TargetDir)\assets.pk3">
+      <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="$(TargetDir)\assets.pk3" Overwrite="true" />
+    </Target>
 
-  <Target Name="GetFilesForPostPublishCopy" DependsOnTargets="PublishItemsOutputGroup">
-    <ItemGroup>
-      <PostPublishFiles Include="@(Content)" Destination="$(PublishDir)%(Link)" Condition="'%(CopyToOutputDirectory)' != 'Never'" />
-      <!-- Deal with an annoying case where redoing a single-file publish deletes openal32.dll and some other native files -->
-      <PostPublishFiles Include="@(NativeCopyLocalItems)" Destination="$(PublishDir)%(NativeCopyLocalItems.DestinationSubPath)" />
-    </ItemGroup>
-  </Target>
+    <Target Name="CopyAssetsFileAfterPublish" AfterTargets="Publish" Inputs="$(TargetDir)\assets.pk3" Outputs="$(PublishDir)\assets.pk3">
+      <Copy SourceFiles="$(TargetDir)\assets.pk3" DestinationFiles="$(PublishDir)\assets.pk3" SkipUnchangedFiles="true" />
+    </Target>
 
-  <Target Name="EnsureContentFilesAfterPublish" AfterTargets="Publish" DependsOnTargets="GetFilesForPostPublishCopy" Inputs="@(PostPublishFiles)" Outputs="@(PostPublishFiles -> '%(Destination)')">
+    <Target Name="GetFilesForPostPublishCopy" DependsOnTargets="PublishItemsOutputGroup">
+      <ItemGroup>
+        <PostPublishFiles Include="@(Content)" Destination="$(PublishDir)%(Link)" Condition="'%(CopyToOutputDirectory)' != 'Never'" />
+        <!-- Deal with an annoying case where redoing a single-file publish deletes openal32.dll and some other native files -->
+        <PostPublishFiles Include="@(NativeCopyLocalItems)" Destination="$(PublishDir)%(NativeCopyLocalItems.DestinationSubPath)" />
+      </ItemGroup>
+    </Target>
+
+    <Target Name="EnsureContentFilesAfterPublish" AfterTargets="Publish" DependsOnTargets="GetFilesForPostPublishCopy" Inputs="@(PostPublishFiles)" Outputs="@(PostPublishFiles -> '%(Destination)')">
     <Copy SourceFiles="@(PostPublishFiles)" DestinationFiles="%(Destination)" SkipUnchangedFiles="true" />
   </Target>
 </Project>
