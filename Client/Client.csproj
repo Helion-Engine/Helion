@@ -99,6 +99,13 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="RemoveGLFW3ForWinAOT" BeforeTargets="ResolveLockFileCopyLocalFiles" Condition="('$(RuntimeIdentifier)' == 'win-x64') AND ('$(AOT)' == 'true')">
+	<!-- Win AOT build is fully static and does not need a local copy of GLFW.  Note that this effectively clears out the entire NativeCopyLocalItems group. -->
+	<ItemGroup>
+		<NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" />
+	</ItemGroup>
+  </Target>
+
   <Target Name="GetAssetsIncludeFiles">
     <ItemGroup>
       <AssetSources Include="$(HelionRootDir)Assets\Assets\**\*" />
