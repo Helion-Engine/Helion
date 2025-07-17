@@ -38,7 +38,7 @@
     <DirectPInvoke Include="fluidsynth-3" />
     <DirectPInvoke Include="glfw3" />
     <DirectPInvoke Include="sdl2" />
-    <DirectPInvoke Condition="'$(RuntimeIdentifier)'=='win-x64'" Include="AL" />
+    <DirectPInvoke Include="AL" />
 
     <NativeLibrary Condition="'$(RuntimeIdentifier)'=='win-x64'" Include="Unmanaged\lib\win-x64\*.lib" />
     <NativeLibrary Condition="'$(RuntimeIdentifier)'=='linux-x64'" Include="Unmanaged\lib\linux-x64\*.a" />
@@ -57,6 +57,10 @@
     <LinkerArg Include="Imm32.lib" />
     <LinkerArg Include="Shlwapi.lib" />
     <LinkerArg Include="Setupapi.lib" />
+  </ItemGroup>
+
+  <ItemGroup Condition="('$(AOT)' == 'true') AND ('$(RuntimeIdentifier)'=='linux-x64')">
+    <LinkerArg Include="-lstdc++" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -79,6 +83,7 @@
     <Content Include="$(ProjectDir)Unmanaged\binary\**\*" Link="runtimes\%(RecursiveDir)\native\%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == ''" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\*.dll" Link="%(Filename)%(Extension)" Condition="('$(RuntimeIdentifier)' == 'win-x64') AND ('$(AOT)' != 'true')" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\*.so*" Link="%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" CopyToOutputDirectory="PreserveNewest" />
+    <Content Remove="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\libopenal.so.1" Condition="('$(RuntimeIdentifier)' == 'linux-x64') AND ('$(AOT)' == 'true')" />
   </ItemGroup>
 
   <ItemGroup>
