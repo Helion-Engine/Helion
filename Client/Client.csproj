@@ -37,7 +37,7 @@
     <DirectPInvoke Include="zmusic" />
     <DirectPInvoke Include="fluidsynth-3" />
     <DirectPInvoke Include="glfw3.dll" />
-    <DirectPInvoke Include="sdl2" />
+    <DirectPInvoke Include="SDL2.dll" />
     <DirectPInvoke Include="AL" />
 
     <NativeLibrary Condition="'$(RuntimeIdentifier)'=='win-x64'" Include="Unmanaged\lib\win-x64\*.lib" />
@@ -84,6 +84,7 @@
     <Content Include="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\*.dll" Link="%(Filename)%(Extension)" Condition="('$(RuntimeIdentifier)' == 'win-x64') AND ('$(AOT)' != 'true')" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\*.so*" Link="%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" CopyToOutputDirectory="PreserveNewest" />
     <Content Remove="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\libopenal.so.1" Condition="('$(RuntimeIdentifier)' == 'linux-x64') AND ('$(AOT)' == 'true')" />
+    <Content Remove="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\libSDL2.so" Condition="('$(RuntimeIdentifier)' == 'linux-x64') AND ('$(AOT)' == 'true')" />
   </ItemGroup>
 
   <ItemGroup>
