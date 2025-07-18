@@ -91,6 +91,15 @@ public static class AudioHelper
     public static unsafe bool TryConvertThroughZMusic(byte[] data, out int sampleRate, out bool stereo, out SampleType sampleType, out Span<byte> convertedData)
     {
         using var decoder = new ZSoundDecoder(data);
+        if (decoder.SampleRate == 0)
+        {
+            convertedData = default;
+            sampleRate = 0;
+            stereo = false;
+            sampleType = default;
+            return false;
+        }
+
         var stream = new DynamicArray<byte>(32768 * 16, arrayPool: true);
         while (true)
         {

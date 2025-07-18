@@ -12,6 +12,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{A0043EF8-C339-4FC4-958A-A2548681184B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZMusicWrapper", "..\ZMusicWrapper\ZMusicWrapper\ZMusicWrapper.csproj", "{015EA47E-1A60-F12E-2418-4650892C5D74}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,6 +32,10 @@ Global
 		{A0043EF8-C339-4FC4-958A-A2548681184B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A0043EF8-C339-4FC4-958A-A2548681184B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A0043EF8-C339-4FC4-958A-A2548681184B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{015EA47E-1A60-F12E-2418-4650892C5D74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{015EA47E-1A60-F12E-2418-4650892C5D74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{015EA47E-1A60-F12E-2418-4650892C5D74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{015EA47E-1A60-F12E-2418-4650892C5D74}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
