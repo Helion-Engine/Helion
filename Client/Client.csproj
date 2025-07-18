@@ -36,7 +36,7 @@
   <ItemGroup Condition="'$(AOT)' == 'true'">
     <DirectPInvoke Include="zmusic" />
     <DirectPInvoke Include="fluidsynth-3" />
-    <DirectPInvoke Include="glfw3" />
+    <DirectPInvoke Include="glfw3.dll" />
     <DirectPInvoke Include="sdl2" />
     <DirectPInvoke Include="AL" />
 
@@ -103,8 +103,9 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="RemoveGLFW3ForWinAOT" BeforeTargets="ResolveLockFileCopyLocalFiles" Condition="('$(RuntimeIdentifier)' == 'win-x64') AND ('$(AOT)' == 'true')">
+  <Target Name="RemoveGLFW3ForAOT" BeforeTargets="ResolveLockFileCopyLocalFiles" Condition="('$(AOT)' == 'true')">
     <!-- Win AOT build is fully static and does not need a local copy of GLFW.  Note that this effectively clears out the entire NativeCopyLocalItems group. -->
+    <!-- Linux AOT build also statically links GLFW -->
     <ItemGroup>
       <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" />
       </ItemGroup>
