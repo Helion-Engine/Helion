@@ -28,7 +28,8 @@ public class MusicPlayer : IMusicPlayer
     private readonly Dictionary<UInt128, byte[]> m_convertedMus = [];
     private readonly CancellationTokenSource m_cancelPlayQueue = new();
     private readonly Task m_playQueueTask;
-    private readonly ZMusicPlayer m_zMusicPlayer;
+    private readonly AudioStreamFactory m_audioStreamFactory = new();
+    private ZMusicPlayer m_zMusicPlayer;
     private readonly MD5 m_md5 = MD5.Create();
     private bool m_genMidiPatchLoaded;
     private PlayParams? m_currentTrack;
@@ -43,8 +44,6 @@ public class MusicPlayer : IMusicPlayer
         m_playQueueTask = Task.Factory.StartNew(PlayQueueTask, m_cancelPlayQueue.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
-        var streamFactory = new AudioStreamFactory();
-
         // Hook up event handlers
         m_configAudio.SoundFontFile.OnChanged += SoundFontFile_OnChanged;
         m_configAudio.EnableChorus.OnChanged += EnableChorus_OnChanged;
@@ -52,13 +51,19 @@ public class MusicPlayer : IMusicPlayer
         m_configAudio.Synthesizer.OnChanged += Synthesizer_OnChanged;
         string soundFontPath = GetFullSoundFontPathOrFallback(configAudio.SoundFontFile);
 
-        m_zMusicPlayer = new ZMusicWrapper.ZMusicPlayer(
+        m_zMusicPlayer = CreateZMusicPlayer(configAudio, m_audioStreamFactory, soundFontPath);
+    }
+
+    private ZMusicPlayer CreateZMusicPlayer(ConfigAudio configAudio, AudioStreamFactory streamFactory, string soundFontPath)
+    {
+        var player = new ZMusicPlayer(
             streamFactory,
-            configAudio.Synthesizer == Synth.OPL3 ? ZMusicWrapper.MidiDevice.OPL3 : ZMusicWrapper.MidiDevice.FluidSynth,
+            configAudio.Synthesizer == Synth.OPL3 ? MidiDevice.OPL3 : MidiDevice.FluidSynth,
             soundFontPath,
             null,
             (float)(configAudio.MusicVolume.Value * .5));
-        SetSynthesizer();
+        SetSynthesizer(player);
+        return player;
     }
 
     private string GetFullSoundFontPathOrFallback(string soundFontPath)
@@ -79,7 +84,7 @@ public class MusicPlayer : IMusicPlayer
         return DefaultSoundFont;
     }
 
-    private void Synthesizer_OnChanged(object? sender, Synth e) => SetSynthesizer();
+    private void Synthesizer_OnChanged(object? sender, Synth e) => SetSynthesizer(m_zMusicPlayer);
     private void EnableReverb_OnChanged(object? sender, bool e) => SetChorusAndReverb();
     private void EnableChorus_OnChanged(object? sender, bool e) => SetChorusAndReverb();
     private void SoundFontFile_OnChanged(object? sender, string e) => ChangeSoundFont();
@@ -129,25 +134,26 @@ public class MusicPlayer : IMusicPlayer
             return;
                 
         m_zMusicPlayer.Stop();
+        m_zMusicPlayer = CreateZMusicPlayer(m_configAudio, m_audioStreamFactory, m_configAudio.SoundFontFile);
         if (m_currentTrack.HasValue)
             m_zMusicPlayer.Play(m_currentTrack.Value.Data, (m_currentTrack.Value.Options & MusicPlayerOptions.Loop) != 0);
     }
 
-    public void SetSynthesizer()
+    public void SetSynthesizer(ZMusicPlayer player)
     {
         if (m_disposed)
         {
             return;
         }
 
-        MidiDevice currentDevice = m_zMusicPlayer.PreferredDevice;
+        MidiDevice currentDevice = player.PreferredDevice;
         MidiDevice newDevice = m_configAudio.Synthesizer == Synth.OPL3
             ? MidiDevice.OPL3
             : MidiDevice.FluidSynth;
 
         if (currentDevice != newDevice)
         {
-            m_zMusicPlayer.PreferredDevice = newDevice;
+            player.PreferredDevice = newDevice;
             if (m_currentTrack?.Data != null)
             {
                 var newOptions = (m_currentTrack?.Options ?? MusicPlayerOptions.None) & ~MusicPlayerOptions.IgnoreAlreadyPlaying;
