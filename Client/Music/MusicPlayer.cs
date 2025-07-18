@@ -33,6 +33,7 @@ public class MusicPlayer : IMusicPlayer
     private readonly MD5 m_md5 = MD5.Create();
     private bool m_genMidiPatchLoaded;
     private PlayParams? m_currentTrack;
+    private bool m_isMidi;
     private bool m_enabled = true;
     private const string DefaultSoundFont = "SoundFonts/Default.sf2";
 
@@ -61,7 +62,7 @@ public class MusicPlayer : IMusicPlayer
             configAudio.Synthesizer == Synth.OPL3 ? MidiDevice.OPL3 : MidiDevice.FluidSynth,
             soundFontPath,
             null,
-            (float)(configAudio.MusicVolume.Value * .5));
+            (float)configAudio.MusicVolume.Value);
         SetSynthesizer(player);
         return player;
     }
@@ -125,18 +126,22 @@ public class MusicPlayer : IMusicPlayer
         string soundFontPath = GetFullSoundFontPathOrFallback(m_configAudio.SoundFontFile);
         m_zMusicPlayer.ChangeSoundFont(soundFontPath);
 
-        RestartZMusicPlayer();
+        var playing = m_zMusicPlayer.IsPlaying;
+        if (playing)
+            m_zMusicPlayer.Stop();
+
+        m_zMusicPlayer.Dispose();
+        m_zMusicPlayer = CreateZMusicPlayer(m_configAudio, m_audioStreamFactory, soundFontPath);
+
+        if (playing)
+            RestartZMusicPlayer();
     }
 
     private void RestartZMusicPlayer()
     {
-        if (!m_zMusicPlayer.IsPlaying)
-            return;
-                
         m_zMusicPlayer.Stop();
-        m_zMusicPlayer = CreateZMusicPlayer(m_configAudio, m_audioStreamFactory, m_configAudio.SoundFontFile);
         if (m_currentTrack.HasValue)
-            m_zMusicPlayer.Play(m_currentTrack.Value.Data, (m_currentTrack.Value.Options & MusicPlayerOptions.Loop) != 0);
+            PlayMusic(m_currentTrack.Value, m_currentTrack.Value.Data);
     }
 
     public void SetSynthesizer(ZMusicPlayer player)
@@ -171,7 +176,8 @@ public class MusicPlayer : IMusicPlayer
             options |= FluidMidiOptions.Reverb;
 
         m_zMusicPlayer.SetFluidMidiOptions(options);
-        RestartZMusicPlayer();
+        if (m_zMusicPlayer.IsPlaying)
+            RestartZMusicPlayer();
     }
 
     private void PlayQueueTask()
@@ -196,7 +202,7 @@ public class MusicPlayer : IMusicPlayer
         }
     }
 
-    private void CreateAndPlayMusic(PlayParams playParams)
+    private void CreateAndPlayMusic(in PlayParams playParams)
     {
         if (!m_enabled)
             return;
@@ -219,6 +225,13 @@ public class MusicPlayer : IMusicPlayer
         if (m_configAudio.Synthesizer == Synth.OPL3 && !EnsurePatchSetLoaded())
             return;
 
+        m_isMidi = m_zMusicPlayer.IsMIDI(data, out _);
+        PlayMusic(playParams, data);
+    }
+
+    private void PlayMusic(in PlayParams playParams, byte[] data)
+    {
+        SetVolume();
         m_zMusicPlayer.Play(data, (playParams.Options & MusicPlayerOptions.Loop) != 0);
     }
 
@@ -280,7 +293,8 @@ public class MusicPlayer : IMusicPlayer
 
     public void SetVolume()
     {
-        m_zMusicPlayer.Volume = (float)(m_configAudio.ZMusicVolumeNormalized * .5);
+        float mod = m_isMidi ? 1f : 0.5f;
+        m_zMusicPlayer.Volume = (float)(m_configAudio.ZMusicVolumeNormalized * mod);
     }
 
     public bool Enabled
