@@ -158,13 +158,13 @@ public class MusicPlayer : IMusicPlayer
 
     public void SetChorusAndReverb()
     {
-        MidiOptions options = MidiOptions.None;
+        var options = FluidMidiOptions.None;
         if (m_configAudio.EnableChorus)
-            options |= MidiOptions.Chorus;
+            options |= FluidMidiOptions.Chorus;
         if (m_configAudio.EnableReverb)
-            options |= MidiOptions.Reverb;
+            options |= FluidMidiOptions.Reverb;
 
-        m_zMusicPlayer.SetMidiOptions(options);
+        m_zMusicPlayer.SetFluidMidiOptions(options);
         RestartZMusicPlayer();
     }
 
@@ -209,14 +209,6 @@ public class MusicPlayer : IMusicPlayer
         m_lastDataHash = hash;
 
         Stop();
-        //bool isMidi = m_zMusicPlayer.IsMIDI(data, out string? error);
-
-        //if (!string.IsNullOrEmpty(error))
-        //{
-        //    // ZMusic can't make sense of this, so just log it and give up.
-        //    Log.Warn("Unknown/unsupported music format.");
-        //    return;
-        //}
 
         if (m_configAudio.Synthesizer == Synth.OPL3 && !EnsurePatchSetLoaded())
             return;
