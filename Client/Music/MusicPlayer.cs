@@ -7,7 +7,6 @@ using Helion.Util.Configs.Components;
 using NLog;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
@@ -25,7 +24,6 @@ public class MusicPlayer : IMusicPlayer
     private readonly ConfigAudio m_configAudio;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly ConcurrentQueue<PlayParams> m_playQueue = [];
-    private readonly Dictionary<UInt128, byte[]> m_convertedMus = [];
     private readonly CancellationTokenSource m_cancelPlayQueue = new();
     private readonly Task m_playQueueTask;
     private readonly AudioStreamFactory m_audioStreamFactory = new();
@@ -34,6 +32,7 @@ public class MusicPlayer : IMusicPlayer
     private bool m_genMidiPatchLoaded;
     private PlayParams? m_currentTrack;
     private bool m_isMidi;
+    private bool m_soundFontChanged;
     private bool m_enabled = true;
     private const string DefaultSoundFont = "SoundFonts/Default.sf2";
 
@@ -119,7 +118,12 @@ public class MusicPlayer : IMusicPlayer
     public void ChangeSoundFont()
     {
         if (m_disposed)
+            return;
+
+        // This requires a reset of ZMusic so only trigger the change when playing a midi through fluidsynth.
+        if (!m_isMidi || m_configAudio.Synthesizer.Value != Synth.FluidSynth)
         {
+            m_soundFontChanged = true;
             return;
         }
 
@@ -231,6 +235,12 @@ public class MusicPlayer : IMusicPlayer
 
     private void PlayMusic(in PlayParams playParams, byte[] data)
     {
+        if (m_soundFontChanged)
+        {
+            m_soundFontChanged = false;
+            ChangeSoundFont();
+        }
+
         SetVolume();
         m_zMusicPlayer.Play(data, (playParams.Options & MusicPlayerOptions.Loop) != 0);
     }
