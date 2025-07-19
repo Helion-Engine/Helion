@@ -293,8 +293,14 @@ public class MusicPlayer : IMusicPlayer
 
     public void SetVolume()
     {
-        float mod = m_isMidi ? 1f : 0.5f;
-        m_zMusicPlayer.Volume = (float)(m_configAudio.ZMusicVolumeNormalized * mod);
+        m_zMusicPlayer.Volume = CalcVolume();
+    }
+
+    private float CalcVolume()
+    {
+        if (m_isMidi && m_configAudio.Synthesizer.Value == Synth.FluidSynth)
+            return (float)m_configAudio.FluidSynthVolumeNormalized;
+        return (float)m_configAudio.DefaultMusicVolumeNormalized * 0.5f;
     }
 
     public bool Enabled

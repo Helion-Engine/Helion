@@ -61,6 +61,6 @@ public class ConfigAudio: ConfigElement<ConfigAudio>
     public readonly ConfigValue<bool> EnableReverb = new(true);
 
     // Music volume is treated as a multiple of sound effects volume, because effects volume controls the master gain.
-    public double MusicVolumeNormalized => SoundVolume == 0 ? MusicVolume : (MusicVolume / SoundVolume);
-    public double ZMusicVolumeNormalized => SoundVolume == 0 ? ZMusicVolume : (ZMusicVolume / SoundVolume);
+    public double FluidSynthVolumeNormalized => SoundVolume == 0 ? MusicVolume : (MusicVolume / SoundVolume);
+    public double DefaultMusicVolumeNormalized => SoundVolume == 0 ? ZMusicVolume : (ZMusicVolume / SoundVolume);
 }
