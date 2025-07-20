@@ -29,6 +29,7 @@ ldd Publish/linux-x64_AOT/Helion | awk 'NF == 4 { system("cp " $3 " AppImage/lib
 # Copy icon and .desktop file
 cp -r Scripts/appImageResources/* AppImage;
 chmod +x AppImage/AppRun;
+cp Assets/Misc/Helion.desktop AppImage;
 
 # Download AppImage tool
 if [ ! -f appimagetool-x86_64.AppImage ]; then
