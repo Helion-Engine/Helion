@@ -230,7 +230,7 @@ public partial class MenuLayer
 
     private static void DrawSaveMenuBox(IHudRenderContext hud, bool detailsEnabled)
     {
-        int height = 167;
+        int height = 164;
         hud.PushOffset((16, 20));
         hud.AddOffset(GetSaveMenuOffset(hud));
         int saveRowWidth = GetSaveRowWidth(detailsEnabled);
