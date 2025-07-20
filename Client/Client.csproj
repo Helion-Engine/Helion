@@ -35,7 +35,6 @@
 
   <ItemGroup Condition="'$(AOT)' == 'true'">
     <DirectPInvoke Include="zmusic" />
-    <DirectPInvoke Include="fluidsynth-3" />
     <DirectPInvoke Include="glfw3.dll" />
     <DirectPInvoke Include="SDL2.dll" />
     <DirectPInvoke Include="AL" />
@@ -79,7 +78,7 @@
     <Content Include="$(HelionRootDir)Assets\Documentation\README.md" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(ProjectDir)SoundFonts\*" Link="SoundFonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 
-    <!-- FluidSynth and ZMusic native libs -->
+    <!-- Native libs, like ZMusic, OpenAL, etc. -->
     <Content Include="$(ProjectDir)Unmanaged\binary\**\*" Link="runtimes\%(RecursiveDir)\native\%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == ''" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\*.dll" Link="%(Filename)%(Extension)" Condition="('$(RuntimeIdentifier)' == 'win-x64') AND ('$(AOT)' != 'true')" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\*.so*" Link="%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" CopyToOutputDirectory="PreserveNewest" />
@@ -88,7 +87,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Helion.NFluidsynth" Version="1.0.0.2" />
     <PackageReference Include="Helion.SDLControllerWrapper" Version="2.0.0.0" />
   </ItemGroup>
 
