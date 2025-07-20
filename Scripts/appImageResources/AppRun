@@ -1,0 +1,4 @@
+#!/bin/bash
+export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+export LD_LIBRARY_PATH=$APPDIR/lib
+exec $APPDIR/usr/bin/Helion $@
