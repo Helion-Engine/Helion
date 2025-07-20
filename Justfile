@@ -11,3 +11,5 @@ install-single-user: build
 	cp Assets/Misc/helion.svg ~/.local/share/icons/hicolor/scalable/apps/Helion.svg
 	cp Assets/Misc/Helion.desktop ~/.local/share/applications/Helion.desktop
 	gtk-update-icon-cache /usr/share/icons/hicolor
+create-appimage:
+	./Scripts/buildAndPackageAppImage.sh
