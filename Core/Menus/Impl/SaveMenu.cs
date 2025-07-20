@@ -26,7 +26,7 @@ public class SaveMenu : Menu
 {
     public const string SaveMessage = "Game saved.";
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private const int RowsPerPage = 15;
+    private const int RowsPerPage = 18;
     private const string UnknownSavedGameName = "Unknown";
     private const string EmptySlotText = "Empty slot";
     private const string NoSavedGamesText = "There are no saved games.";

@@ -34,3 +34,4 @@
 - Fix crusher damage from 8 to 10 for doom specials 25,49,73, and 184.
 - Fix crash when cycling weapons while in chasecam mode.
 - Fix crash when parsing files with a multiline comment that starts and terminates on same line.
+- Fix save/load menu max rows not filling the box.
