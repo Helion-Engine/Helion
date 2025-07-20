@@ -7,7 +7,8 @@ public enum MusicPlayerOptions
 {
     None,
     Loop = 1,
-    IgnoreAlreadyPlaying = 2
+    IgnoreAlreadyPlaying = 2,
+    Reload = 4
 }
 
 /// <summary>

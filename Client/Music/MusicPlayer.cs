@@ -127,18 +127,15 @@ public class MusicPlayer : IMusicPlayer
             return;
         }
 
-        string soundFontPath = GetFullSoundFontPathOrFallback(m_configAudio.SoundFontFile);
+        var isPlaying = m_zMusicPlayer.IsPlaying;
+        var soundFontPath = GetFullSoundFontPathOrFallback(m_configAudio.SoundFontFile);
         m_zMusicPlayer.ChangeSoundFont(soundFontPath);
 
-        var playing = m_zMusicPlayer.IsPlaying;
-        if (playing)
-            m_zMusicPlayer.Stop();
-
-        m_zMusicPlayer.Dispose();
-        m_zMusicPlayer = CreateZMusicPlayer(m_configAudio, m_audioStreamFactory, soundFontPath);
-
-        if (playing)
-            RestartZMusicPlayer();
+        if (isPlaying && m_currentTrack.HasValue)
+        {
+            var track = m_currentTrack.Value;
+            m_playQueue.Enqueue(new(track.Data, track.Options | MusicPlayerOptions.Reload));
+        }
     }
 
     private void RestartZMusicPlayer()
@@ -165,7 +162,7 @@ public class MusicPlayer : IMusicPlayer
             player.PreferredDevice = newDevice;
             if (m_currentTrack?.Data != null)
             {
-                var newOptions = (m_currentTrack?.Options ?? MusicPlayerOptions.None) & ~MusicPlayerOptions.IgnoreAlreadyPlaying;
+                var newOptions = (m_currentTrack?.Options ?? MusicPlayerOptions.None) | MusicPlayerOptions.Reload;
                 Play(m_currentTrack?.Data!, newOptions);
             }
         }
@@ -211,12 +208,12 @@ public class MusicPlayer : IMusicPlayer
         if (!m_enabled)
             return;
 
-        m_currentTrack = playParams;
+        m_currentTrack = new(playParams.Data, playParams.Options & ~MusicPlayerOptions.Reload);
         var data = playParams.Data;
         var options = playParams.Options;
         UInt128 hash = BitConverter.ToUInt128(m_md5.ComputeHash(data));
 
-        if ((options & MusicPlayerOptions.IgnoreAlreadyPlaying) != 0)
+        if ((options & MusicPlayerOptions.IgnoreAlreadyPlaying) != 0 && (options & MusicPlayerOptions.Reload) == 0)
         {
             if (hash == m_lastDataHash)
                 return;
