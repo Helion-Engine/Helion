@@ -1,5 +1,5 @@
 #!/bin/sh
-$startdir=$PWD;
+startdir=$PWD;
 scriptdir=$(dirname $0);
 cd $scriptdir;
 
@@ -12,9 +12,12 @@ if ! (dotnet publish -c Release -r linux-x64 -p:AOT=true); then
     exit 1;
 fi
 
+# Remove any existing AppImage
+rm -rf AppImage;
+rm -rf Helion.AppImage;
+
 # Copy executable and support files
 cd ..
-rm -rf AppImage;
 echo 'Copying files for AppImage';
 mkdir -p AppImage/usr/bin;
 cp -r Publish/linux-x64_AOT/* AppImage/usr/bin;
@@ -28,19 +31,21 @@ cp -r Scripts/appImageResources/* AppImage;
 chmod +x AppImage/AppRun;
 
 # Download AppImage tool
-wget https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage;
-chmod +x appimagetool-x86_64.AppImage;
+if [ ! -f appimagetool-x86_64.AppImage ]; then
+    echo 'Downloading AppImage tool from GitHub';
+    wget https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage;
+    chmod +x appimagetool-x86_64.AppImage;
+fi
 
 ARCH=x86_64;
 if ! (./appimagetool-x86_64.AppImage AppImage Helion.AppImage); then
     echo 'AppImage pack failed!';
     exit 1;
 else
-    echo 'AppImage created!';
+    echo 'AppImage created: Helion.AppImage';
 fi
 
 # Clean up
 rm -rf AppImage;
-rm appimagetool-x86_64.AppImage;
 
 cd $startdir;
