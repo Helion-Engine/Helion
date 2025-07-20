@@ -33,3 +33,4 @@
 - Fix PNG brightmaps not working in palette color mode.
 - Fix crusher damage from 8 to 10 for doom specials 25,49,73, and 184.
 - Fix crash when cycling weapons while in chasecam mode.
+- Fix crash when parsing files with a multiline comment that starts and terminates on same line.
