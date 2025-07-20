@@ -433,4 +433,20 @@ YEAH, I BROKE THE PARSER...""
         parser.ConsumeString().Replace("\r\n", "\n").Should().Be("*RING RING*\n\nHELLO?\nYEAH, I BROKE THE PARSER...");
         parser.IsDone().Should().Be(true);
     }
+
+    [Fact(DisplayName = "Multiline comment on single line")]
+    public void MultilineCommentOnSingleLine()
+    {
+        string data = @"
+/* ------------------------- */
+something
+
+/* ------------------------- */";
+
+        SimpleParser parser = new();
+        parser.Parse(data);
+
+        parser.ConsumeString().Should().Be("something");
+        parser.IsDone().Should().BeTrue();
+    }
 }
