@@ -34,7 +34,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(AOT)' == 'true'">
-    <DirectPInvoke Include="zmusic" />
+    <DirectPInvoke Include="zmusic.dll" />
     <DirectPInvoke Include="glfw3.dll" />
     <DirectPInvoke Include="SDL2.dll" />
     <DirectPInvoke Include="AL" />
@@ -60,6 +60,10 @@
 
   <ItemGroup Condition="('$(AOT)' == 'true') AND ('$(RuntimeIdentifier)'=='linux-x64')">
     <LinkerArg Include="-lstdc++" />
+    <LinkerArg Include="-lsndfile" />
+    <LinkerArg Include="-lmpg123" />
+    <LinkerArg Include="-lasound" />
+    <LinkerArg Include="-lglib-2.0" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -81,9 +85,7 @@
     <!-- Native libs, like ZMusic, OpenAL, etc. -->
     <Content Include="$(ProjectDir)Unmanaged\binary\**\*" Link="runtimes\%(RecursiveDir)\native\%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == ''" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\*.dll" Link="%(Filename)%(Extension)" Condition="('$(RuntimeIdentifier)' == 'win-x64') AND ('$(AOT)' != 'true')" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\*.so*" Link="%(Filename)%(Extension)" Condition="'$(RuntimeIdentifier)' == 'linux-x64'" CopyToOutputDirectory="PreserveNewest" />
-    <Content Remove="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\libopenal.so.1" Condition="('$(RuntimeIdentifier)' == 'linux-x64') AND ('$(AOT)' == 'true')" />
-    <Content Remove="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\libSDL2.so" Condition="('$(RuntimeIdentifier)' == 'linux-x64') AND ('$(AOT)' == 'true')" />
+    <Content Include="$(ProjectDir)Unmanaged\binary\$(RuntimeIdentifier)\*.so*" Link="%(Filename)%(Extension)" Condition="('$(RuntimeIdentifier)' == 'linux-x64') AND ('$(AOT)' != 'true')" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
@@ -107,32 +109,32 @@
     <!-- Linux AOT build also statically links GLFW -->
     <ItemGroup>
       <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" />
-      </ItemGroup>
-    </Target>
+    </ItemGroup>
+  </Target>
 
-    <Target Name="GetAssetsIncludeFiles">
-      <ItemGroup>
-        <AssetSources Include="$(HelionRootDir)Assets\Assets\**\*" />
-      </ItemGroup>
-    </Target>
+  <Target Name="GetAssetsIncludeFiles">
+    <ItemGroup>
+      <AssetSources Include="$(HelionRootDir)Assets\Assets\**\*" />
+    </ItemGroup>
+  </Target>
 
-    <Target Name="MakeAssetsFile" AfterTargets="Build" DependsOnTargets="GetAssetsIncludeFiles" Inputs="@(AssetSources)" Outputs="$(TargetDir)\assets.pk3">
-      <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="$(TargetDir)\assets.pk3" Overwrite="true" />
-    </Target>
+  <Target Name="MakeAssetsFile" AfterTargets="Build" DependsOnTargets="GetAssetsIncludeFiles" Inputs="@(AssetSources)" Outputs="$(TargetDir)\assets.pk3">
+    <ZipDirectory SourceDirectory="$(HelionRootDir)Assets\Assets" DestinationFile="$(TargetDir)\assets.pk3" Overwrite="true" />
+  </Target>
 
-    <Target Name="CopyAssetsFileAfterPublish" AfterTargets="Publish" Inputs="$(TargetDir)\assets.pk3" Outputs="$(PublishDir)\assets.pk3">
-      <Copy SourceFiles="$(TargetDir)\assets.pk3" DestinationFiles="$(PublishDir)\assets.pk3" SkipUnchangedFiles="true" />
-    </Target>
+  <Target Name="CopyAssetsFileAfterPublish" AfterTargets="Publish" Inputs="$(TargetDir)\assets.pk3" Outputs="$(PublishDir)\assets.pk3">
+    <Copy SourceFiles="$(TargetDir)\assets.pk3" DestinationFiles="$(PublishDir)\assets.pk3" SkipUnchangedFiles="true" />
+  </Target>
 
-    <Target Name="GetFilesForPostPublishCopy" DependsOnTargets="PublishItemsOutputGroup">
-      <ItemGroup>
-        <PostPublishFiles Include="@(Content)" Destination="$(PublishDir)%(Link)" Condition="'%(CopyToOutputDirectory)' != 'Never'" />
-        <!-- Deal with an annoying case where redoing a single-file publish deletes openal32.dll and some other native files -->
-        <PostPublishFiles Include="@(NativeCopyLocalItems)" Destination="$(PublishDir)%(NativeCopyLocalItems.DestinationSubPath)" />
-      </ItemGroup>
-    </Target>
+  <Target Name="GetFilesForPostPublishCopy" DependsOnTargets="PublishItemsOutputGroup">
+    <ItemGroup>
+      <PostPublishFiles Include="@(Content)" Destination="$(PublishDir)%(Link)" Condition="'%(CopyToOutputDirectory)' != 'Never'" />
+      <!-- Deal with an annoying case where redoing a single-file publish deletes openal32.dll and some other native files -->
+      <PostPublishFiles Include="@(NativeCopyLocalItems)" Destination="$(PublishDir)%(NativeCopyLocalItems.DestinationSubPath)" />
+    </ItemGroup>
+  </Target>
 
-    <Target Name="EnsureContentFilesAfterPublish" AfterTargets="Publish" DependsOnTargets="GetFilesForPostPublishCopy" Inputs="@(PostPublishFiles)" Outputs="@(PostPublishFiles -> '%(Destination)')">
+  <Target Name="EnsureContentFilesAfterPublish" AfterTargets="Publish" DependsOnTargets="GetFilesForPostPublishCopy" Inputs="@(PostPublishFiles)" Outputs="@(PostPublishFiles -> '%(Destination)')">
     <Copy SourceFiles="@(PostPublishFiles)" DestinationFiles="%(Destination)" SkipUnchangedFiles="true" />
   </Target>
 </Project>
