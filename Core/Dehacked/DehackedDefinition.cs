@@ -789,14 +789,17 @@ public partial class DehackedDefinition
         while (!IsBlockComplete(parser, isBex: true))
         {
             BexString bexString = new();
-            bexString.Mnemonic = ConsumeBexStringMnemonic(parser);
-            parser.ConsumeString("=");
-            bexString.Value = ConsumeBexTextValue(parser);
-            BexStrings.Add(bexString);
+            if (ConsumeBexStringMnemonic(parser, out var mnemonic))
+            {
+                bexString.Mnemonic = mnemonic;
+                parser.ConsumeString("=");
+                bexString.Value = ConsumeBexTextValue(parser);
+                BexStrings.Add(bexString);
+            }
         }
     }
 
-    private string ConsumeBexStringMnemonic(SimpleParser parser)
+    private bool ConsumeBexStringMnemonic(SimpleParser parser, [NotNullWhen(true)] out string? mnemonic)
     {
         var startLine = parser.GetCurrentLine();
         var line = parser.PeekLine();
@@ -808,10 +811,18 @@ public partial class DehackedDefinition
                 parser.ConsumeString();
 
             if (startLine == parser.GetCurrentLine())
-                return value;
+            {
+                mnemonic = value;
+                return true;
+            }
+        }
+        else
+        {
+            parser.ConsumeLineSpan();
         }
 
-        throw new ParserException(parser.GetCurrentLine(), parser.GetCurrentCharOffset(), 0, "Expected '='");
+        mnemonic = null;
+        return false;
     }
 
     private string ConsumeBexTextValue(SimpleParser parser)
