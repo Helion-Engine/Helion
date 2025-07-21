@@ -39,3 +39,4 @@
 - Fix crash when cycling weapons while in chasecam mode.
 - Fix crash when parsing files with a multiline comment that starts and terminates on same line.
 - Fix save/load menu max rows not filling the box.
+- Fix dehacked parsing issue with [STRINGS] block that would stop parsing when it encountered bad data (fixes Sunder 2407 dehacked).

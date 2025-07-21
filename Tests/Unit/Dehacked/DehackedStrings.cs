@@ -23,6 +23,8 @@ E1TEXT = This is the\n\
 E2TEXT = This is the\n\
          e2text
 
+// not a comment but ignored
+
 Frame 185
 Sprite subnumber = 32773
 ";
