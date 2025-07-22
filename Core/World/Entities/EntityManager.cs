@@ -3,6 +3,7 @@ using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
 using Helion.Models;
+using Helion.Resources.Archives.Collection;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -44,6 +45,7 @@ public class EntityManager : IDisposable
     public List<Player> RemovedPlayers = [];
     public List<Player> VoodooDolls = [];
     public List<Entity> MusicChangers = [];
+    public List<Entity> AmbientSounds = [];
     private readonly LookupArray<Player?> RealPlayersByNumber = new();
     private readonly Dictionary<int, ISet<Entity>> TidToEntity = [];
     private readonly Dictionary<int, Vec3D> m_spawnPoints = [];
@@ -201,8 +203,16 @@ public class EntityManager : IDisposable
                 continue;
 
             var isMusicChanger = EditorIds.IsMusicChanger(mapThing.EditorNumber);
-            var definition = isMusicChanger ? 
-                DefinitionComposer.GetByName(Constants.MusicChanger) : DefinitionComposer.GetByID(mapThing.EditorNumber);
+            var isAmbientSound = EditorIds.IsAmbientSound(mapThing.EditorNumber);
+            EntityDefinition? definition;
+
+            if (isMusicChanger)
+                definition = DefinitionComposer.GetByName(Constants.MusicChanger);
+            else if (isAmbientSound)
+                definition = DefinitionComposer.GetByName(Constants.AmbientSound);
+            else
+                definition = DefinitionComposer.GetByID(mapThing.EditorNumber);
+
             if (definition == null)
             {
                 Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.XY);
@@ -259,7 +269,14 @@ public class EntityManager : IDisposable
                 relinkEntities.Add(entity);
 
             if (isMusicChanger)
+            {
                 entity.ThingId = mapThing.EditorNumber - (int)EditorId.MusicChangerStart;
+            }
+            else if (isAmbientSound)
+            {
+                entity.ThingId = mapThing.EditorNumber - (int)EditorId.AmbientSoundStart + 1;
+                World.ArchiveCollection.SoundInfo.TryGetAmbientSound(entity.ThingId, out entity.AmbientSound);
+            }
         }
 
         //Relink entities with a z-height only, this way they can properly stack with other things in the map now that everything exists
@@ -384,7 +401,14 @@ public class EntityManager : IDisposable
                 entity.OnGround = setOnGround.Value;
 
             if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
+            {
                 MusicChangers.Add(entity);
+            }
+            else if (entity.Definition.Name.EqualsIgnoreCase(Constants.AmbientSound))
+            {
+                World.ArchiveCollection.SoundInfo.TryGetAmbientSound(entity.ThingId, out entity.AmbientSound);
+                AmbientSounds.Add(entity);
+            }
         }
 
         // The linked list is backwards so the starts have to be reversed
@@ -528,6 +552,8 @@ public class EntityManager : IDisposable
 
         if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
             MusicChangers.Add(entity);
+        else if (entity.Definition.Name.EqualsIgnoreCase(Constants.AmbientSound))
+            AmbientSounds.Add(entity);
 
         PostProcessEntity(entity);
     }
@@ -578,6 +604,7 @@ public class EntityManager : IDisposable
         RemovedPlayers.Clear();
         VoodooDolls.Clear();
         MusicChangers.Clear();
+        AmbientSounds.Clear();
         RealPlayersByNumber.SetAll(null);
         TeleportSpots.Clear();
         m_spawnPoints.Clear();

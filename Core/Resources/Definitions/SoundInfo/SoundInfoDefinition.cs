@@ -12,6 +12,7 @@ public class SoundInfoDefinition
     private readonly Dictionary<string, SoundInfo> m_lookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<string>> m_randomLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> m_playerCompatLookup = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<int, AmbientSoundInfo> m_ambientSoundLookup = [];
 
     private int m_pitchShiftRange = 0;
 
@@ -74,7 +75,11 @@ public class SoundInfoDefinition
 
     private void ParseSound(SimpleParser parser)
     {
-        AddSound(parser.ConsumeString(), parser.ConsumeString());
+        var key = parser.ConsumeString();
+        if (parser.Peek('='))
+            parser.Consume('=');
+        var entryName = parser.ConsumeString();
+        AddSound(key, entryName);
     }
 
     private void ParseCommand(SimpleParser parser)
@@ -135,7 +140,12 @@ public class SoundInfoDefinition
         else if (type.EqualsIgnoreCase("$volume"))
             ParseIgnore(parser, 2);
         else
-            throw new ParserException(parser.GetCurrentLine(), 0, 0, $"SoundInfo - Bad command. {type}");
+           ThrowParserException(parser, "Bad command. {type}");
+    }
+
+    private void ThrowParserException(SimpleParser parser, string text)
+    {
+        throw new ParserException(parser.GetCurrentLine(), 0, 0, $"SoundInfo: {text}");
     }
 
     private void ParseIgnore(SimpleParser parser, int argCount = 0)
@@ -156,13 +166,63 @@ public class SoundInfoDefinition
 
     private void ParseAmbient(SimpleParser parser)
     {
-        // Not supported
+        float? minSecs = null;
+        float? maxSecs = null;
+        var attenuation = 1f;
         var index = parser.ConsumeInteger();
-        var logicalSound = parser.ConsumeStringSpan();
-        var type = parser.ConsumeStringSpan();
-        var mode = parser.ConsumeStringSpan();
-        var volume = parser.ConsumeDouble();
+        var logicalSound = parser.ConsumeString();
+        var type = ParseAmbientType(parser);
+
+        if (parser.PeekDouble(out var peekAttenuation) && type == AmbientSoundType.Point)
+        {
+            parser.ConsumeStringSpan();
+            attenuation = (float)peekAttenuation;
+        }
+
+        var mode = ParseAmbientMode(parser, ref minSecs, ref maxSecs);
+        var volume = (float)parser.ConsumeDouble();
+        m_ambientSoundLookup[index] = new(index, logicalSound, type, mode, volume, attenuation, minSecs, maxSecs);
     }
+
+    private AmbientSoundMode ParseAmbientMode(SimpleParser parser, ref float? minSecs, ref float? maxSecs)
+    {
+        var mode = parser.ConsumeStringSpan();
+        if (mode.EqualsIgnoreCase("continuous"))
+        {
+            return AmbientSoundMode.Continuous;
+        }
+        else if (mode.EqualsIgnoreCase("random"))
+        {
+            minSecs = (float)parser.ConsumeDouble();
+            maxSecs = (float)parser.ConsumeDouble();
+            return AmbientSoundMode.Random;
+        }
+        else if (mode.EqualsIgnoreCase("periodic"))
+        {
+            minSecs = (float)parser.ConsumeDouble();
+            return AmbientSoundMode.Periodic;
+        }
+
+        ThrowParserException(parser, $"Invalid abmient mode {mode}");
+        return AmbientSoundMode.Continuous;
+    }
+
+    private AmbientSoundType ParseAmbientType(SimpleParser parser)
+    {
+        var type = parser.ConsumeStringSpan();
+        if (type.EqualsIgnoreCase("point"))
+            return AmbientSoundType.Point;
+        else if (type.EqualsIgnoreCase("surround"))
+            return AmbientSoundType.Surround;
+        else if (type.EqualsIgnoreCase("world"))
+            return AmbientSoundType.World;
+        
+        ThrowParserException(parser, $"Invalid abmient type {type}");
+        return AmbientSoundType.World;
+    }
+
+    public bool TryGetAmbientSound(int index, [NotNullWhen(true)] out AmbientSoundInfo? info) =>
+        m_ambientSoundLookup.TryGetValue(index, out info);
 
     private void ParsePitchSet(SimpleParser parser)
     {

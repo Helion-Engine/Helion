@@ -55,6 +55,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public double AngleRadians;
     public Vec3D Position;
     public Vec3D Velocity;
+    public IAudioSource? AudioSource;
+    public int Ticks;
 
     public int Health;
     public int MoveCount;
@@ -89,6 +91,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public int BlockingBlockLineIndex;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
+    public AmbientSoundInfo? AmbientSound;
 
     // Values that are modified from EntityProperties
     public int Threshold;
@@ -201,6 +204,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         MeleeThreshold = Properties.MeleeThreshold;
 
         FrameState = new(FrameStateOptions.DestroyOnStop);
+        Ticks = 0;
     }
 
     public void Set(int index, EntityModel entityModel, EntityDefinition definition, IWorld world)
@@ -256,6 +260,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         if (entityModel.IsBlood.HasValue)
             Definition.IsBlood = entityModel.IsBlood.Value;
+
+        Ticks = 0;
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -1111,18 +1117,19 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public virtual void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)
     {
-
+        AudioSource = audioSource;
     }
 
     public virtual bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound)
     {
+        AudioSource = null;
         clearedSound = null;
         return false;
     }
 
     public virtual void ClearSound(IAudioSource audioSource, SoundChannel channel)
     {
-        
+        AudioSource = null;
     }
 
     public Vec3D? GetSoundPosition(Entity listenerEntity)

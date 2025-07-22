@@ -62,6 +62,7 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Maps.Components;
 using System.Runtime.CompilerServices;
+using Helion.Resources.Definitions.SoundInfo;
 
 namespace Helion.World;
 
@@ -890,6 +891,7 @@ public abstract partial class WorldBase : IWorld
         {
             TickEntities();
             TickPlayers();
+            TickAmbientSounds();
             SpecialManager.Tick();
 
             if (WorldState != WorldState.Exit)
@@ -913,6 +915,59 @@ public abstract partial class WorldBase : IWorld
         GameTicker++;
 
         Profiler.World.Total.Stop();
+    }
+
+    private void TickAmbientSounds()
+    {
+        for (int i = 0; i < EntityManager.AmbientSounds.Count; i++)
+        {            
+            var entity = EntityManager.AmbientSounds[i];
+            if (entity.AmbientSound == null)
+                continue;
+
+            var info = entity.AmbientSound;
+            if (info.Mode == AmbientSoundMode.Continuous)
+            {
+                if (entity.Ticks > 0)
+                    continue;
+
+                entity.Ticks = int.MaxValue;
+                CreateAmbientSound(entity, info);
+            }
+            if (info.Mode == AmbientSoundMode.Periodic)
+            {
+                if (entity.Ticks > 1)
+                {
+                    if (entity.AudioSource == null || !entity.AudioSource.IsPlaying())
+                        entity.Ticks--;
+                    continue;
+                }
+
+                entity.Ticks = info.MinTicks;
+                CreateAmbientSound(entity, info);
+            }
+            else if (info.Mode == AmbientSoundMode.Random)
+            {
+                if (entity.Ticks > 1)
+                {
+                    if (entity.AudioSource == null || !entity.AudioSource.IsPlaying())
+                        entity.Ticks--;
+                    continue;
+                }
+
+                if (entity.Ticks == 1)
+                    CreateAmbientSound(entity, info);
+                var range = Math.Max(info.MaxTicks - info.MinTicks, 0);
+                entity.Ticks = info.MinTicks + (int)(range * (Random.NextByte() / 255f)) + 1;
+            }
+        }
+    }
+
+    private void CreateAmbientSound(Entity entity, AmbientSoundInfo info)
+    {
+        var attenution = info.Type == AmbientSoundType.Point ? Attenuation.Default : Attenuation.None;
+        SoundManager.CreateSoundOn(entity, info.LogicalSound, new(entity, info.Mode == AmbientSoundMode.Continuous, attenution, info.Volume, 
+            attenuationFactor: info.Attenuation));
     }
 
     public virtual bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop)

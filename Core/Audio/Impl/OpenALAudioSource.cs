@@ -1,25 +1,22 @@
-using System;
 using Helion.Audio.Impl.Components;
 using Helion.Geometry.Vectors;
-using Helion.Util;
+using Helion.World.Entities;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Mathematics;
+using System;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Audio.Impl;
 
 public class OpenALAudioSource : IAudioSource
 {
-    private const float DefaultRolloff = 2.5f;
-    private const float DefaultReference = 296.0f;
-    private const float DefaultMaxDistance = (float)Constants.MaxSoundDistance;
-    private const float DefaultRadius = 32.0f;
+    private const float DefaultReference = 200f;
+    private const float MaxAudibleDistance = 1200f;
     private const ALSourcef SourceRadius = (ALSourcef)0x1031;
     private const ALSourcei SourceDistanceModel = (ALSourcei)53248;
     private const ALSourcei SourceRelative = (ALSourcei)0x202;
 
     private AudioData m_audioData;
-
 
     public event EventHandler? Completed;
 
@@ -36,6 +33,7 @@ public class OpenALAudioSource : IAudioSource
 
     private int m_sourceId;
     private bool m_disposed;
+    private float m_gain = 1f;
 
     public int ID => m_sourceId;
 
@@ -51,27 +49,9 @@ public class OpenALAudioSource : IAudioSource
         Owner = owner;
         AudioData = audioData;
 
-        float rolloffFactor = DefaultRolloff;
-        float referenceDistance = DefaultReference;
-        float maxDistance = DefaultMaxDistance;
-        float radius = audioData.SoundSource.GetSoundRadius();
-
-        switch (audioData.Attenuation)
-        {
-            case Attenuation.None:
-                // Max out the distance to prevent directional sound from taking effect
-                radius = 65536.0f;
-                referenceDistance = 0.0f;
-                maxDistance = 0.0f;
-                rolloffFactor = 0.0f;
-                break;
-            case Attenuation.Rapid:
-                rolloffFactor = DefaultRolloff * 2.0f;
-                break;
-            case Attenuation.Default:
-            default:
-                break;
-        }
+        var rolloffFactor = 1f;
+        var maxDistance = 65536.0f;
+        var radius = audioData.SoundSource.GetSoundRadius();
 
         OpenALDebug.Start("Creating new source");
         m_sourceId = AL.GenSource();
@@ -82,15 +62,20 @@ public class OpenALAudioSource : IAudioSource
             // Else, all volume attenuation is done at the listener.
             AL.Source(m_sourceId, ALSourcef.Gain, 0.0f);
         }
-        AL.Source(m_sourceId, ALSourcef.RolloffFactor, rolloffFactor);
-        AL.Source(m_sourceId, ALSourcef.ReferenceDistance, referenceDistance);
+        else
+        {
+            AL.Source(m_sourceId, ALSourcef.Gain, audioData.Volume);
+        }
+
+        AL.DistanceModel(ALDistanceModel.None);
         AL.Source(m_sourceId, SourceRadius, radius);
         AL.Source(m_sourceId, ALSourcef.MaxDistance, maxDistance);
-        AL.Source(m_sourceId, ALSourcef.Pitch, 1.0f);
+        AL.Source(m_sourceId, ALSourcef.RolloffFactor, rolloffFactor);
+        AL.Source(m_sourceId, ALSourcef.Pitch, 1f);
         AL.Source(m_sourceId, ALSourceb.Looping, audioData.Loop);
         AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
 
-        if (audioData.Relative)
+        if (audioData.Relative || audioData.Attenuation == Attenuation.None)
             SetRelative(true);
 
         OpenALDebug.End("Creating new source");
@@ -98,8 +83,9 @@ public class OpenALAudioSource : IAudioSource
 
     public void SetGain(double gain)
     {
+        m_gain = (float)gain;
         OpenALDebug.Start("Setting sound gain");
-        AL.Source(m_sourceId, ALSourcef.Gain, (float)gain);
+        AL.Source(m_sourceId, ALSourcef.Gain, m_gain * m_audioData.Volume);
         OpenALDebug.End("Setting sound gain");
     }
 
@@ -164,6 +150,30 @@ public class OpenALAudioSource : IAudioSource
         OpenALDebug.End("Getting sound velocity");
 
         return new Vec3F(vel.X, vel.Y, vel.Z);
+    }
+
+    public void Update(Entity listenerEntity)
+    {
+        if (m_audioData.Attenuation == Attenuation.None)
+        {
+            AL.Source(m_sourceId, ALSourcef.Gain, m_gain * m_audioData.Volume);
+            return;
+        }
+
+        const float NoGain = 0.0001f;
+        var dist = (float)m_audioData.SoundSource.GetDistanceFrom(listenerEntity) * m_audioData.AttenuationFactor;
+        if (dist > MaxAudibleDistance)
+        {
+            AL.Source(m_sourceId, ALSourcef.Gain, NoGain);
+        }
+        else
+        { 
+            // Doom's original linear scaling
+            var linearGain = (MaxAudibleDistance - dist) / (MaxAudibleDistance - DefaultReference);
+            // Push curve to dropoff faster to sound more appropriate
+            var gain = Math.Max(linearGain * Math.Min(linearGain * 2f, linearGain), 0.005f);
+            AL.Source(m_sourceId, ALSourcef.Gain, Math.Max(gain * m_gain * m_audioData.Volume, NoGain));
+        }
     }
 
     ~OpenALAudioSource()
