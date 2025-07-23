@@ -145,11 +145,11 @@ public class UdmfMap : IMap
         {
             var prop = ParseProperty(parser);
             if (prop.Name.EqualsIgnoreCase("x"))
-                x = double.Parse(prop.Value);
+                x = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("y"))
-                y = double.Parse(prop.Value);
+                y = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("height"))
-                z = double.Parse(prop.Value);
+                z = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("angle"))
                 thing.Angle = (ushort)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("type"))
@@ -488,9 +488,9 @@ public class UdmfMap : IMap
         {
             var prop = ParseProperty(parser);
             if (prop.Name.EqualsIgnoreCase("x"))
-                x = double.Parse(prop.Value);
+                x = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("y"))
-                y = double.Parse(prop.Value);
+                y = parser.ParseDouble(prop.Value);
         }
 
         vertices.Add(new(vertices.Count, new(x, y)));
