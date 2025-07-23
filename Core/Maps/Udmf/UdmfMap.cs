@@ -110,6 +110,15 @@ public class UdmfMap : IMap
         while (!parser.IsDone())
         {
             var type = parser.ConsumeStringSpan();
+
+            if (type.EqualsIgnoreCase("ee_compat")) // flag indicating that map is compatible with Eternity Engine
+            {
+                parser.Consume('=');
+                parser.ConsumeStringSpan(); // this will normally be "true" but we don't care about the value
+                parser.Consume(';');
+                continue;
+            }
+            
             parser.Consume('{');
 
             if (type.EqualsIgnoreCase("vertex"))
