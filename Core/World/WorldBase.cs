@@ -891,7 +891,6 @@ public abstract partial class WorldBase : IWorld
         {
             TickEntities();
             TickPlayers();
-            TickAmbientSounds();
             SpecialManager.Tick();
 
             if (WorldState != WorldState.Exit)
@@ -915,52 +914,6 @@ public abstract partial class WorldBase : IWorld
         GameTicker++;
 
         Profiler.World.Total.Stop();
-    }
-
-    private void TickAmbientSounds()
-    {
-        for (int i = 0; i < EntityManager.AmbientSounds.Count; i++)
-        {            
-            var entity = EntityManager.AmbientSounds[i];
-            if (entity.AmbientSound == null)
-                continue;
-
-            var info = entity.AmbientSound;
-            if (info.Mode == AmbientSoundMode.Continuous)
-            {
-                if (entity.Ticks > 0)
-                    continue;
-
-                entity.Ticks = int.MaxValue;
-                CreateAmbientSound(entity, info);
-            }
-            if (info.Mode == AmbientSoundMode.Periodic)
-            {
-                if (entity.Ticks > 1)
-                {
-                    if (entity.AudioSource == null || !entity.AudioSource.IsPlaying())
-                        entity.Ticks--;
-                    continue;
-                }
-
-                entity.Ticks = info.MinTicks;
-                CreateAmbientSound(entity, info);
-            }
-            else if (info.Mode == AmbientSoundMode.Random)
-            {
-                if (entity.Ticks > 1)
-                {
-                    if (entity.AudioSource == null || !entity.AudioSource.IsPlaying())
-                        entity.Ticks--;
-                    continue;
-                }
-
-                if (entity.Ticks == 1)
-                    CreateAmbientSound(entity, info);
-                var range = Math.Max(info.MaxTicks - info.MinTicks, 0);
-                entity.Ticks = info.MinTicks + (int)(range * (Random.NextByte() / 255f)) + 1;
-            }
-        }
     }
 
     private void CreateAmbientSound(Entity entity, AmbientSoundInfo info)

@@ -91,7 +91,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public int BlockingBlockLineIndex;
     public Entity? BlockingEntity;
     public SectorPlane? BlockingSectorPlane;
-    public AmbientSoundInfo? AmbientSound;
 
     // Values that are modified from EntityProperties
     public int Threshold;
@@ -127,6 +126,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public int MaxTargetRange;
     public int MinMissileChance;
     public int MeleeThreshold;
+    public int EditorId;
 
     public bool IsFrozen => FrozenTics > 0;
     public bool IsDead => Health <= 0;
@@ -205,6 +205,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         FrameState = new(FrameStateOptions.DestroyOnStop);
         Ticks = 0;
+        EditorId = 0;
     }
 
     public void Set(int index, EntityModel entityModel, EntityDefinition definition, IWorld world)
@@ -257,9 +258,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         MaxTargetRange = entityModel.MaxTargetRange ?? Properties.MaxTargetRange;
         MinMissileChance = entityModel.MinMissileChance ?? Properties.MinMissileChance;
         MeleeThreshold = entityModel.MeleeThreshold ?? Properties.MeleeThreshold;
+        EditorId = entityModel.EditorId ?? 0;
 
-        if (entityModel.IsBlood.HasValue)
-            Definition.IsBlood = entityModel.IsBlood.Value;
+        if (entityModel.IsBlood.HasValue && entityModel.IsBlood.Value)
+            Definition.Type = EntityType.Blood;
 
         Ticks = 0;
     }
@@ -303,7 +305,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.MaxTargetRange = MaxTargetRange;
         entityModel.MinMissileChance = MinMissileChance;
         entityModel.MeleeThreshold = MeleeThreshold;
-        entityModel.IsBlood = Definition.IsBlood;
+        entityModel.IsBlood = Definition.Type == EntityType.Blood;
+        entityModel.EditorId = EditorId == 0 ? null : EditorId;
         return entityModel;
     }
 

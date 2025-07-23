@@ -3,7 +3,7 @@ using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
 using Helion.Models;
-using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -45,7 +45,6 @@ public class EntityManager : IDisposable
     public List<Player> RemovedPlayers = [];
     public List<Player> VoodooDolls = [];
     public List<Entity> MusicChangers = [];
-    public List<Entity> AmbientSounds = [];
     private readonly LookupArray<Player?> RealPlayersByNumber = new();
     private readonly Dictionary<int, ISet<Entity>> TidToEntity = [];
     private readonly Dictionary<int, Vec3D> m_spawnPoints = [];
@@ -64,7 +63,7 @@ public class EntityManager : IDisposable
 
     public IEnumerable<Entity> FindByTid(int tid)
     {
-        return TidToEntity.TryGetValue(tid, out ISet<Entity>? entities) ? entities : Enumerable.Empty<Entity>();
+        return TidToEntity.TryGetValue(tid, out ISet<Entity>? entities) ? entities : [];
     }
 
     public Entity? FindById(int id)
@@ -85,13 +84,16 @@ public class EntityManager : IDisposable
         return def != null ? Create(def, pos, 0.0, 0.0, 0, initSpawn: initSpawn) : null;
     }
 
-    public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool initSpawn = false)
+    public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool initSpawn = false, int editorId = -1)
     {
         EntityCount++;
         var sector = World.ToSubsector(position.X, position.Y).Sector;
 
         position.Z = GetPositionZ(sector, in position, zHeight);
-        Entity entity = World.DataCache.GetEntity(tid, definition, position, angle, sector, World);
+        var entity = 
+            definition.Type == EntityType.AmbientSound ? 
+            CreateAmbientSound(World.DataCache.EntityId++, tid, definition, position, angle, sector, World, editorId) :
+            World.DataCache.GetEntity(tid, definition, position, angle, sector, World);
 
         if (entity.Definition.Properties.FastSpeed > 0 && World.IsFastMonsters)
             entity.Properties.MonsterMovementSpeed = entity.Definition.Properties.FastSpeed;
@@ -104,6 +106,15 @@ public class EntityManager : IDisposable
         }
 
         FinishCreatingEntity(entity, zHeight, false, true, initSpawn);
+        return entity;
+    }
+
+    private AmbientSound CreateAmbientSound(int id, int thingId, EntityDefinition definition, Vec3D position, double angle, Sector sector, IWorld world, int editorId)
+    {
+        var entity = new AmbientSound();
+        entity.Set(-1, id, thingId, definition, position, angle, sector, world);
+        entity.EditorId = editorId;
+        World.ArchiveCollection.SoundInfo.TryGetAmbientSound(editorId - (int)EditorId.AmbientSoundStart + 1, out entity.AmbientSoundInfo);
         return entity;
     }
 
@@ -233,7 +244,7 @@ public class EntityManager : IDisposable
             var angleRadians = MathHelper.ToRadians(mapThing.Angle);
             var position = mapThing.Position;
             // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
-            var entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, initSpawn: true);
+            var entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, initSpawn: true, editorId: mapThing.EditorNumber);
             entity.Special = mapThing.Special;
             entity.Args = mapThing.Args;
             entity.Gravity = mapThing.Gravity;
@@ -269,14 +280,7 @@ public class EntityManager : IDisposable
                 relinkEntities.Add(entity);
 
             if (isMusicChanger)
-            {
                 entity.ThingId = mapThing.EditorNumber - (int)EditorId.MusicChangerStart;
-            }
-            else if (isAmbientSound)
-            {
-                entity.ThingId = mapThing.EditorNumber - (int)EditorId.AmbientSoundStart + 1;
-                World.ArchiveCollection.SoundInfo.TryGetAmbientSound(entity.ThingId, out entity.AmbientSound);
-            }
         }
 
         //Relink entities with a z-height only, this way they can properly stack with other things in the map now that everything exists
@@ -308,11 +312,21 @@ public class EntityManager : IDisposable
                 continue;
             }
 
-            int index = World.DataCache.EntityLength++;
-            var entity = World.DataCache.Entities[index];
-            entity.Set(index, entityModel, definition, World);
-            AddEntityToList(entity);
+            Entity entity;
+            if (definition.Type == EntityType.AmbientSound)
+            {
+                entity = CreateAmbientSound(entityModel.Id, entityModel.ThingId, definition, default, 0, Sector.Default, World, entityModel.EditorId ?? 0);
+                entity.Set(-1, entityModel, definition, World);
 
+            }
+            else
+            {
+                int index = World.DataCache.EntityLength++;
+                entity = World.DataCache.Entities[index];
+                entity.Set(index, entityModel, definition, World);
+            }
+
+            AddEntityToList(entity);
             entities.Add(entityModel.Id, new(entityModel, entity));
         }
 
@@ -401,14 +415,7 @@ public class EntityManager : IDisposable
                 entity.OnGround = setOnGround.Value;
 
             if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
-            {
                 MusicChangers.Add(entity);
-            }
-            else if (entity.Definition.Name.EqualsIgnoreCase(Constants.AmbientSound))
-            {
-                World.ArchiveCollection.SoundInfo.TryGetAmbientSound(entity.ThingId, out entity.AmbientSound);
-                AmbientSounds.Add(entity);
-            }
         }
 
         // The linked list is backwards so the starts have to be reversed
@@ -552,8 +559,6 @@ public class EntityManager : IDisposable
 
         if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
             MusicChangers.Add(entity);
-        else if (entity.Definition.Name.EqualsIgnoreCase(Constants.AmbientSound))
-            AmbientSounds.Add(entity);
 
         PostProcessEntity(entity);
     }
@@ -604,7 +609,6 @@ public class EntityManager : IDisposable
         RemovedPlayers.Clear();
         VoodooDolls.Clear();
         MusicChangers.Clear();
-        AmbientSounds.Clear();
         RealPlayersByNumber.SetAll(null);
         TeleportSpots.Clear();
         m_spawnPoints.Clear();
