@@ -108,7 +108,7 @@ public partial class TextureManager : ITickable
         foreach (var spriteName in spriteNames)
         {
             int spriteIndex = m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName);
-            m_spriteIndexEntries[spriteIndex] = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName, StringComparison.Ordinal)).ToArray();
+            m_spriteIndexEntries[spriteIndex] = spriteEntries.Where(entry => entry.Path.Name.StartsWithIgnoreCase(spriteName)).ToArray();
         }
     }
 
@@ -143,7 +143,7 @@ public partial class TextureManager : ITickable
         SpriteDefinitions.Resize(m_archiveCollection.EntityFrameTable.SpriteIndexCount + 32);
         foreach (var spriteName in spriteNames)
         {
-            var spriteDefEntries = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName, StringComparison.Ordinal)).ToList();
+            var spriteDefEntries = spriteEntries.Where(entry => entry.Path.Name.StartsWithIgnoreCase(spriteName)).ToList();
             int spriteIndex = m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName);
             if (spriteIndex >= SpriteDefinitions.Capacity)
                 SpriteDefinitions.Resize(spriteIndex + 32);

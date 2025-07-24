@@ -11,6 +11,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Config.Components;
+using Helion.Util.Extensions;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
@@ -463,7 +464,7 @@ public class Player : Entity
             CheckIcyBounceLineAngle(World.Blockmap.BlockLines[BlockingBlockLineIndex].Segment, velocity))
         {
             var existingSound = SoundChannels[(int)SoundChannel.Default];
-            if (existingSound == null || !existingSound.AudioData.SoundInfo.Name.EndsWith("*grunt", StringComparison.Ordinal))
+            if (existingSound == null || !existingSound.AudioData.SoundInfo.Name.EndsWithIgnoreCase("*grunt"))
                 PlayGruntSound();
             var bounceVelocity = MathHelper.BounceVelocity(velocity.XY);
             Velocity.X = bounceVelocity.X / 2;
