@@ -195,7 +195,7 @@ namespace Helion.Tests.Unit.GameAction
         {
             GameActions.TickWorld(World, () =>
             {
-                return rocket.FrameState.Frame.ActionFunction == null || !rocket.FrameState.Frame.ActionFunction.Method.Name.Equals("A_Explode");
+                return rocket.FrameState.Frame.ActionFunction == null || !rocket.FrameState.Frame.ActionFunction.Method.Name.Equals("A_Explode", System.StringComparison.Ordinal);
             }, () => { });
         }
 
@@ -204,7 +204,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.TickWorld(World, () => {  return !rocket.IsDisposed; }, () =>
             {
                 if (rocket.FrameState.Frame.ActionFunction != null)
-                    rocket.FrameState.Frame.ActionFunction.Method.Name.Equals("A_Explode").Should().BeFalse();
+                    rocket.FrameState.Frame.ActionFunction.Method.Name.Equals("A_Explode", System.StringComparison.Ordinal).Should().BeFalse();
             });
         }
 

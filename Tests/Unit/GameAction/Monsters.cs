@@ -1,4 +1,7 @@
-﻿using FluentAssertions;
+﻿using System;
+using System.Globalization;
+using System.Linq;
+using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
 using Helion.Util.Extensions;
@@ -9,8 +12,6 @@ using Helion.World.Entities;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
-using System;
-using System.Linq;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -548,13 +549,13 @@ namespace Helion.Tests.Unit.GameAction
                     dest.Target().Should().Be(source);
 
                 DebugLog("Missile - Damaged");
-                DebugLog(string.Format("Missile - {0}", dest.Target() == null ? "No Target" : "Targeted"));
+                DebugLog(string.Format(CultureInfo.InvariantCulture, "Missile - {0}", dest.Target() == null ? "No Target" : "Targeted"));
                 dest.Health.Should().NotBe(int.MaxValue);
                 return;
             }
 
             // Pain elementals shoot lost souls, the dest should be damaged by one
-            if (sourceData.Name.Equals("PainElemental"))
+            if (sourceData.Name.Equals("PainElemental", StringComparison.Ordinal))
             {
                 DebugLog("Missile - Damaged and Targeted (Lost Soul)");
                 dest.Target().Should().NotBeNull();
