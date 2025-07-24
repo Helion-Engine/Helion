@@ -110,31 +110,38 @@ public class UdmfMap : IMap
         while (!parser.IsDone())
         {
             var type = parser.ConsumeStringSpan();
-
-            if (type.EqualsIgnoreCase("ee_compat")) // flag indicating that map is compatible with Eternity Engine
-            {
-                parser.Consume('=');
-                parser.ConsumeStringSpan(); // this will normally be "true" but we don't care about the value
-                parser.Consume(';');
-                continue;
-            }
-            
-            parser.Consume('{');
-
             if (type.EqualsIgnoreCase("vertex"))
+            {
+                parser.Consume('{');
                 ParseVertex(parser, vertices);
+                parser.Consume('}');
+            }
             else if (type.EqualsIgnoreCase("linedef"))
+            {
+                parser.Consume('{');
                 ParseLine(parser, lines);
+                parser.Consume('}');
+            }
             else if (type.EqualsIgnoreCase("sidedef"))
+            {
+                parser.Consume('{');
                 ParseSide(parser, sides);
+                parser.Consume('}');
+            }
             else if (type.EqualsIgnoreCase("sector"))
+            {
+                parser.Consume('{');
                 ParseSector(parser, sectors);
+                parser.Consume('}');
+            }
             else if (type.EqualsIgnoreCase("thing"))
+            {
+                parser.Consume('{');
                 ParseThing(parser, things);
+                parser.Consume('}');
+            }
             else
-                ConsumeBlock(parser);
-
-            parser.Consume('}');
+                ConsumeUnknownBlockOrProperty(parser);
         }
 
         foreach (var side in sides)
@@ -144,6 +151,32 @@ public class UdmfMap : IMap
         }
 
         MapLines(lines, vertices, sides);
+    }
+
+    private static void ConsumeUnknownBlockOrProperty(SimpleParser parser)
+    {
+        if (parser.Peek("="))
+            ConsumeUnknownProperty(parser);
+        else if (parser.Peek("{"))
+            ConsumeUnknownBlock(parser);
+        else
+            throw new Exception("Malformed UDMF TEXTMAP. Expected '=' or '{' but found: " + parser.PeekString());
+    }
+
+    private static void ConsumeUnknownProperty(SimpleParser parser)
+    {
+        parser.Consume('=');
+        parser.ConsumeStringSpan();
+        parser.Consume(';');
+    }
+
+    private static void ConsumeUnknownBlock(SimpleParser parser)
+    {
+        parser.Consume('{');
+        while (!parser.Peek('}'))
+            parser.ConsumeStringSpan();
+
+        parser.Consume('}');
     }
 
     private static void ParseThing(SimpleParser parser, List<UdmfThing> things)
@@ -503,12 +536,6 @@ public class UdmfMap : IMap
         }
 
         vertices.Add(new(vertices.Count, new(x, y)));
-    }
-
-    private static void ConsumeBlock(SimpleParser parser)
-    {
-        while (parser.PeekStringSpan() != "}")
-            parser.ConsumeLineSpan();
     }
 
     private static Property ParseProperty(SimpleParser parser)
