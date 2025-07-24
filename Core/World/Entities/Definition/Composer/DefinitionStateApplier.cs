@@ -265,7 +265,7 @@ public class DefinitionStateApplier
             HashSet<string> keysToRemove = new(StringComparer.OrdinalIgnoreCase);
             foreach (var pair in masterLabelTable)
             {
-                if (pair.Key.EndsWith(suffix))
+                if (pair.Key.EndsWith(suffix, StringComparison.Ordinal))
                     keysToRemove.Add(pair.Key);
             }
 

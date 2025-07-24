@@ -295,7 +295,7 @@ public partial class EndGameLayer
 
     private static bool ShouldUseMeleeState(Entity entity, bool melee)
     {
-        if (melee && entity.Definition.Name.Equals("Revenant"))
+        if (melee && entity.Definition.Name.Equals("Revenant", StringComparison.Ordinal))
             return entity.Definition.MeleeState != null;
 
         if (entity.Definition.MissileState == null)

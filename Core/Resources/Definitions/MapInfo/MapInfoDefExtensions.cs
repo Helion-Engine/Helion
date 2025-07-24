@@ -1,5 +1,5 @@
-using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.Language;
+using System;
 using System.Text.RegularExpressions;
 
 namespace Helion.Resources.Definitions.MapInfo;
@@ -65,7 +65,7 @@ public static class MapInfoDefExtensions
 
     private static string ReplaceMapNamePrefix(MapInfoDef mapInfo, string displayName)
     {
-        if (displayName.StartsWith(mapInfo.MapName))
+        if (displayName.StartsWith(mapInfo.MapName, StringComparison.Ordinal))
         {
             displayName = displayName.Replace(mapInfo.MapName, string.Empty).Trim();
             displayName = displayName.TrimStart(':').TrimStart('-').Trim();

@@ -71,7 +71,7 @@ public class Config : ConfigElement<Config>, IConfig
             if (obj == null)
                 continue;
 
-            (obj as IConfigElement)?.PopulateComponentsRecursively(Components, propertyInfo.Name.ToLower(), 1);
+            (obj as IConfigElement)?.PopulateComponentsRecursively(Components, propertyInfo.Name.ToLowerInvariant(), 1);
         }
     }
 

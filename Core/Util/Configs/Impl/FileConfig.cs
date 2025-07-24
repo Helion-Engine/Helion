@@ -208,7 +208,7 @@ public class FileConfig : Config
         {
             foreach (KeyData keyData in iniData.Sections[EngineSectionName])
             {
-                string identifier = keyData.KeyName.ToLower();
+                string identifier = keyData.KeyName.ToLowerInvariant();
 
                 if (!Components.TryGetValue(identifier, out ConfigComponent? configComponent))
                 {

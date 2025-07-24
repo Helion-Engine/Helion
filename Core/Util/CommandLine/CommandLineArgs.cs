@@ -85,7 +85,7 @@ public class CommandLineArgs
         // Drag and drop files will be specified as the file. Assume anything in front with -/+ is a file.
         foreach (var arg in args)
         {
-            if (argStart.Any(x => arg.StartsWith(x)))
+            if (argStart.Any(x => arg.StartsWith(x, StringComparison.Ordinal)))
                 break;
 
             var iwadInfo = IWadInfo.GetIWadInfo(arg);

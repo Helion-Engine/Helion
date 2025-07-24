@@ -17,7 +17,7 @@ public partial class DecorateParser
 
         if (ConsumeIf('.'))
         {
-            switch (flagName.ToUpper())
+            switch (flagName.ToUpperInvariant())
             {
             case "INVENTORY":
                 SetInventoryFlag(flagValue);
@@ -40,7 +40,7 @@ public partial class DecorateParser
     private void SetInventoryFlag(bool flagValue)
     {
         string nestedFlag = ConsumeIdentifier();
-        switch (nestedFlag.ToUpper())
+        switch (nestedFlag.ToUpperInvariant())
         {
         case "ADDITIVETIME":
             m_currentDefinition.Flags.Inventory.AdditiveTime = flagValue;
@@ -132,7 +132,7 @@ public partial class DecorateParser
     private void SetPlayerPawnFlag(bool flagValue)
     {
         string nestedFlag = ConsumeIdentifier();
-        switch (nestedFlag.ToUpper())
+        switch (nestedFlag.ToUpperInvariant())
         {
         case "CANSUPERMORPH":
             m_currentDefinition.Flags.PlayerPawn.CanSuperMorph = flagValue;
@@ -152,7 +152,7 @@ public partial class DecorateParser
     private void SetWeaponFlag(bool flagValue)
     {
         string nestedFlag = ConsumeIdentifier();
-        switch (nestedFlag.ToUpper())
+        switch (nestedFlag.ToUpperInvariant())
         {
         case "ALTAMMOOPTIONAL":
             m_currentDefinition.Flags.Weapon.AltAmmoOptional = flagValue;
@@ -228,7 +228,7 @@ public partial class DecorateParser
 
     private void SetTopLevelFlag(string flagName, bool flagValue)
     {
-        switch (flagName.ToUpper())
+        switch (flagName.ToUpperInvariant())
         {
             case "ABSMASKANGLE":
                 m_currentDefinition.Flags.AbsMaskAngle = flagValue;

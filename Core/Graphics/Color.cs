@@ -1,7 +1,8 @@
-﻿using Helion.Geometry.Vectors;
-using SixLabors.ImageSharp.PixelFormats;
-using System;
+﻿using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
+using Helion.Geometry.Vectors;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace Helion.Graphics;
 
@@ -141,7 +142,7 @@ public struct Color : IEquatable<Color>
 
     public static Color FromName(string name)
     {
-        return name.ToLower() switch
+        return name.ToLower(CultureInfo.InvariantCulture) switch
         {
             "black" => Black,
             "blue" => Blue,

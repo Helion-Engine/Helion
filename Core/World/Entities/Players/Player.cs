@@ -463,7 +463,7 @@ public class Player : Entity
             CheckIcyBounceLineAngle(World.Blockmap.BlockLines[BlockingBlockLineIndex].Segment, velocity))
         {
             var existingSound = SoundChannels[(int)SoundChannel.Default];
-            if (existingSound == null || !existingSound.AudioData.SoundInfo.Name.EndsWith("*grunt"))
+            if (existingSound == null || !existingSound.AudioData.SoundInfo.Name.EndsWith("*grunt", StringComparison.Ordinal))
                 PlayGruntSound();
             var bounceVelocity = MathHelper.BounceVelocity(velocity.XY);
             Velocity.X = bounceVelocity.X / 2;

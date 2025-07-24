@@ -25,7 +25,7 @@ public partial class DecorateParser
 
     private Color ConvertStringToColor(string colorString)
     {
-        switch (colorString.ToUpper())
+        switch (colorString.ToUpperInvariant())
         {
         case "BLACK":
             return Color.Black;
@@ -94,7 +94,7 @@ public partial class DecorateParser
     private WeaponBob ConsumeBobStyleProperty()
     {
         string bobStyleText = ConsumeString();
-        switch (bobStyleText.ToUpper())
+        switch (bobStyleText.ToUpperInvariant())
         {
         case "ALPHA":
             return WeaponBob.Alpha;
@@ -117,7 +117,7 @@ public partial class DecorateParser
     {
         // TODO: This supports combinations, but gives no example of how...
         string mode = ConsumeString();
-        switch (mode.ToUpper())
+        switch (mode.ToUpperInvariant())
         {
         case "NONE":
             return PowerupModeType.None;
@@ -246,7 +246,7 @@ public partial class DecorateParser
     private DecorateHealRadius? ConsumePlayerHealRadiusType()
     {
         string mode = ConsumeString();
-        switch (mode.ToUpper())
+        switch (mode.ToUpperInvariant())
         {
         case "ARMOR":
             return DecorateHealRadius.Armor;
@@ -296,7 +296,7 @@ public partial class DecorateParser
     private DecorateSpecialActivationType? ConsumeDecorateSpecialActivationType()
     {
         string value = ConsumeString();
-        switch (value.ToUpper())
+        switch (value.ToUpperInvariant())
         {
         case "THINGSPEC_DEFAULT":
             return DecorateSpecialActivationType.Default;
@@ -387,7 +387,7 @@ public partial class DecorateParser
     private DecorateBounceType? ConsumeDecorateBounceType()
     {
         string bounce = ConsumeString();
-        switch (bounce.ToUpper())
+        switch (bounce.ToUpperInvariant())
         {
         case "NONE":
             return DecorateBounceType.None;
@@ -415,7 +415,7 @@ public partial class DecorateParser
     private RenderStyle? ConsumeRenderStyle()
     {
         string style = ConsumeString();
-        switch (style.ToUpper())
+        switch (style.ToUpperInvariant())
         {
         case "NONE":
             return RenderStyle.None;
@@ -477,7 +477,7 @@ public partial class DecorateParser
     private MorphStyle? ConsumeMorphStyleProperty()
     {
         string style = ConsumeString();
-        switch (style.ToUpper())
+        switch (style.ToUpperInvariant())
         {
         case "MRF_ADDSTAMINA":
             return MorphStyle.AddStamina;
@@ -516,11 +516,11 @@ public partial class DecorateParser
     {
         if (PeekInteger())
         {
-            string r = ((byte)ConsumeInteger()).ToString("X2");
+            string r = ((byte)ConsumeInteger()).ToString("X2", CultureInfo.InvariantCulture);
             Consume(',');
-            string g = ((byte)ConsumeInteger()).ToString("X2");
+            string g = ((byte)ConsumeInteger()).ToString("X2", CultureInfo.InvariantCulture);
             Consume(',');
-            string b = ((byte)ConsumeInteger()).ToString("X2");
+            string b = ((byte)ConsumeInteger()).ToString("X2", CultureInfo.InvariantCulture);
             m_currentDefinition.Properties.Powerup.Color = new PowerupColor($"{r} {g} {b}");
         }
         else if (PeekString())
@@ -576,7 +576,7 @@ public partial class DecorateParser
 
         if (ConsumeIf('.'))
         {
-            switch (property.ToUpper())
+            switch (property.ToUpperInvariant())
             {
             case "AMMO":
                 ConsumeAmmoProperty();
@@ -625,7 +625,7 @@ public partial class DecorateParser
     private void ConsumeAmmoProperty()
     {
         string ammoProperty = ConsumeIdentifier();
-        switch (ammoProperty.ToUpper())
+        switch (ammoProperty.ToUpperInvariant())
         {
         case "BACKPACKAMOUNT":
             m_currentDefinition.Properties.Ammo.BackpackAmount = ConsumeInteger();
@@ -644,7 +644,7 @@ public partial class DecorateParser
     private void ConsumeArmorProperty()
     {
         string armorProperty = ConsumeIdentifier();
-        switch (armorProperty.ToUpper())
+        switch (armorProperty.ToUpperInvariant())
         {
         case "MAXABSORB":
             m_currentDefinition.Properties.Armor.MaxAbsorb = ConsumeInteger();
@@ -711,7 +711,7 @@ public partial class DecorateParser
     private void ConsumeInventoryProperty()
     {
         string inventoryProperty = ConsumeIdentifier();
-        switch (inventoryProperty.ToUpper())
+        switch (inventoryProperty.ToUpperInvariant())
         {
         case "ALTHUDICON":
             m_currentDefinition.Properties.Inventory.AltHUDIcon = ConsumeString();
@@ -763,7 +763,7 @@ public partial class DecorateParser
     private void ConsumeMorphProjectileProperty()
     {
         string morphProperty = ConsumeIdentifier();
-        switch (morphProperty.ToUpper())
+        switch (morphProperty.ToUpperInvariant())
         {
         case "DURATION":
             m_currentDefinition.Properties.MorphProjectile.Duration = ConsumeSignedInteger();
@@ -792,7 +792,7 @@ public partial class DecorateParser
     {
         List<string> translations = new List<string> { ConsumeString() };
 
-        if (translations.First().ToUpper() != "ICE")
+        if (translations.First().ToUpperInvariant() != "ICE")
             while (ConsumeIf(','))
                 translations.Add(ConsumeString());
 
@@ -812,7 +812,7 @@ public partial class DecorateParser
     private void ConsumePlayerProperty()
     {
         string property = ConsumeIdentifier();
-        switch (property.ToUpper())
+        switch (property.ToUpperInvariant())
         {
         case "AIRCAPACITY":
             m_currentDefinition.Properties.Player.AirCapacity = ConsumeFloat();
@@ -934,7 +934,7 @@ public partial class DecorateParser
     private void ConsumePowerupProperty()
     {
         string nestedProperty = ConsumeIdentifier();
-        switch (nestedProperty.ToUpper())
+        switch (nestedProperty.ToUpperInvariant())
         {
         case "COLOR":
             ConsumeAndHandlePowerupColor();
@@ -963,7 +963,7 @@ public partial class DecorateParser
     private void ConsumePuzzleItemProperty()
     {
         string nestedProperty = ConsumeIdentifier();
-        switch (nestedProperty.ToUpper())
+        switch (nestedProperty.ToUpperInvariant())
         {
         case "NUMBER":
             m_currentDefinition.Properties.PuzzleItem.Number = ConsumeInteger();
@@ -980,7 +980,7 @@ public partial class DecorateParser
     private void ConsumeWeaponProperty()
     {
         string nestedProperty = ConsumeIdentifier();
-        switch (nestedProperty.ToUpper())
+        switch (nestedProperty.ToUpperInvariant())
         {
         case "AMMOGIVE":
             m_currentDefinition.Properties.Weapons.AmmoGive = ConsumeSignedInteger();
@@ -1066,7 +1066,7 @@ public partial class DecorateParser
     private void ConsumeWeaponPieceProperty()
     {
         string nestedProperty = ConsumeIdentifier();
-        switch (nestedProperty.ToUpper())
+        switch (nestedProperty.ToUpperInvariant())
         {
         case "NUMBER":
             m_currentDefinition.Properties.WeaponPieces.Number = ConsumeInteger();
@@ -1082,7 +1082,7 @@ public partial class DecorateParser
 
     private void ConsumeTopLevelPropertyOrCombo(string property)
     {
-        switch (property.ToUpper())
+        switch (property.ToUpperInvariant())
         {
             // To reduce logic and be efficient, we do combos in this switch
             // statement as well since the property reader is the 'catch-all'.

@@ -588,12 +588,12 @@ public class DefinitionEntries
     private static void ClearPatchOffsetsDoom1(TextureDefinition texture)
     {
         var patches = texture.Components;
-        if (texture.Name.Equals("SKY1"))
+        if (texture.Name.Equals("SKY1", StringComparison.Ordinal))
         {
             if (patches.Count == 1 && patches[0].Offset.Y == -8)
                 patches[0].Offset.Y = 0;
         }
-        else if (texture.Name.Equals("BIGDOOR7"))
+        else if (texture.Name.Equals("BIGDOOR7", StringComparison.Ordinal))
         {
             if (patches.Count == 2 && patches[0].Offset.Y == -4 && patches[1].Offset.Y == -4)
             {

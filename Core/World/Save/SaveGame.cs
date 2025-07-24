@@ -50,7 +50,7 @@ public class SaveGame
         try
         {
             using ZipArchive zipArchive = ZipFile.Open(FilePath, ZipArchiveMode.Read);
-            ZipArchiveEntry? saveDataEntry = zipArchive.Entries.FirstOrDefault(x => x.Name.Equals(SaveDataFile));
+            ZipArchiveEntry? saveDataEntry = zipArchive.Entries.FirstOrDefault(x => x.Name.Equals(SaveDataFile, StringComparison.Ordinal));
             if (saveDataEntry == null)
                 return;
 
@@ -67,7 +67,7 @@ public class SaveGame
         try
         {
             using ZipArchive zipArchive = ZipFile.Open(FilePath, ZipArchiveMode.Read);
-            ZipArchiveEntry? imageFileEntry = zipArchive.Entries.FirstOrDefault(x => x.Name.Equals(ImageFile));
+            ZipArchiveEntry? imageFileEntry = zipArchive.Entries.FirstOrDefault(x => x.Name.Equals(ImageFile, StringComparison.Ordinal));
 
             if (imageFileEntry == null)
             {
@@ -89,9 +89,9 @@ public class SaveGame
     private static SaveGameType GetFileType(string fileName)
     {
         var file = Path.GetFileName(fileName);
-        if (file.StartsWith(AutoPrefix))
+        if (file.StartsWith(AutoPrefix, StringComparison.Ordinal))
             return SaveGameType.Auto;
-        else if (file.StartsWith(QuickPrefix))
+        else if (file.StartsWith(QuickPrefix, StringComparison.Ordinal))
             return SaveGameType.Quick;
         return SaveGameType.Default;
     }
@@ -104,7 +104,7 @@ public class SaveGame
         try
         {
             using ZipArchive zipArchive = ZipFile.Open(FilePath, ZipArchiveMode.Read);
-            ZipArchiveEntry? entry = zipArchive.Entries.FirstOrDefault(x => x.Name.Equals(Model.WorldFile));
+            ZipArchiveEntry? entry = zipArchive.Entries.FirstOrDefault(x => x.Name.Equals(Model.WorldFile, StringComparison.Ordinal));
             if (entry == null)
                 return null;
 
