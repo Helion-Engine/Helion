@@ -95,9 +95,17 @@ public class SectorDamageSpecial
         if (entity.PlayerObj == null && (InstantKillEffect & InstantKillEffect.KillMonsters) == 0)
             return;
 
-        // The entity doesn't need to be on the kill sector floor z, but the highest floor z.
-        if (entity.HighestFloorSector.Floor.Z != entity.Position.Z)
-            return;
+        if ((InstantKillEffect & InstantKillEffect.KillMonsters) != 0)
+        {
+            // The entity doesn't need to be on the kill sector floor z, but the highest floor z.
+            if (entity.HighestFloorSector.Floor.Z != entity.Position.Z)
+                return;
+        }
+        else
+        {
+            if (!entity.OnSectorFloorZ(m_sector))
+                return;
+        }
 
         m_world.SectorInstantKillEffect(entity, InstantKillEffect);
     }
