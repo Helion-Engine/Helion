@@ -45,6 +45,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     /// cannot be found.
     /// </summary>
     public GLTextureType NullTexture { get; }
+    public GLTextureType TransparentNullTexture { get; }
 
     /// <summary>
     /// A fully white texture that can be used for drawing shapes of a
@@ -69,6 +70,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         Config = config;
         ArchiveCollection = archiveCollection;
         NullTexture = config.Render.NullTexture ? CreateNullTexture() : CreateTransparentNullTexture();
+        TransparentNullTexture = config.Render.NullTexture ? CreateTransparentNullTexture() : NullTexture;
         WhiteTexture = CreateWhiteTexture();
         BlackTexture = GenerateTexture(Image.CreateBlackImage(), "NULLBLACK", ResourceNamespace.Global);
         NullSpriteRotation = CreateNullSpriteRotation();
@@ -251,10 +253,15 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
                 texture.BrightmapImage = ArchiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
             bool brightmapNoFullbright = brightmap?.DisableFullbright ?? false;
 
+            // Ensure that the brightmap texture is the null transparent texture. The debug option creates red/black checker texture for NullTexture.
+            var brightmapTexture = CreateTexture(texture.BrightmapImage, spriteRotation.Texture.Name, ResourceNamespace.Brightmaps);
+            if (brightmapTexture == NullTexture)
+                brightmapTexture = TransparentNullTexture;
+
             translationRotation = new SpriteRotation(texture, spriteRotation.Mirror, brightmapNoFullbright)
             {
                 RenderStore = CreateTexture(texture.Image, translatedName, ResourceNamespace.Sprites),
-                BrightmapRenderStore = CreateTexture(texture.BrightmapImage, spriteRotation.Texture.Name, ResourceNamespace.Brightmaps)
+                BrightmapRenderStore = brightmapTexture
             };
 
             spriteRotation.SetTranslationRotation(colorMapIndex, translationRotation);
