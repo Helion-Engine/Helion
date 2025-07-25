@@ -9,10 +9,15 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Subsectors;
-using Helion.World.Physics;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shared.World;
+
+public enum FlatTransformMethod
+{
+    RotateThenOffset,
+    OffsetThenRotate
+}
 
 public static class WorldTriangulator
 {
@@ -193,7 +198,7 @@ public static class WorldTriangulator
     }
 
     public static unsafe void HandleSubsector(CompactBspTree bspTree, Subsector subsector, SectorPlane sectorPlane, in Vec2F textureVector,
-        DynamicArray<TriangulatedWorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
+        DynamicArray<TriangulatedWorldVertex> verticesToPopulate, FlatTransformMethod transformMethod, double overrideZ = int.MaxValue)
     {
         Precondition(subsector.SegCount >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
 
@@ -250,16 +255,34 @@ public static class WorldTriangulator
                 else
                 {
                     var uvVertex = vertex;
-                    uvVertex.X += offset.X;
-                    uvVertex.Y -= offset.Y;
-                    uvVertex = uvVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
+                    if (transformMethod == FlatTransformMethod.OffsetThenRotate)
+                    {
+                        uvVertex.X += offset.X;
+                        uvVertex.Y -= offset.Y;
+                        uvVertex = uvVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
+                    }
+                    else
+                    {
+                        uvVertex = uvVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
+                        uvVertex.X += offset.X;
+                        uvVertex.Y -= offset.Y;
+                    }
                     uv.X = uvVertex.X / textureVector.X;
                     uv.Y = -(uvVertex.Y / textureVector.Y);
 
                     var prevUVVertex = vertex;
-                    prevUVVertex.X += lastOffset.X;
-                    prevUVVertex.Y -= lastOffset.Y;
-                    prevUVVertex = prevUVVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
+                    if (transformMethod == FlatTransformMethod.OffsetThenRotate)
+                    {
+                        prevUVVertex.X += lastOffset.X;
+                        prevUVVertex.Y -= lastOffset.Y;
+                        prevUVVertex = prevUVVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
+                    }
+                    else
+                    {
+                        prevUVVertex = prevUVVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
+                        prevUVVertex.X += lastOffset.X;
+                        prevUVVertex.Y -= lastOffset.Y;
+                    }
                     prevUV.X = uvVertex.X / textureVector.X;
                     prevUV.Y = -(uvVertex.Y / textureVector.Y);
                 }
