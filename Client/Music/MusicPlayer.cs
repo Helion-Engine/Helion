@@ -184,8 +184,6 @@ public class MusicPlayer : IMusicPlayer
             options |= FluidMidiOptions.Reverb;
 
         m_zMusicPlayer.SetFluidMidiOptions(options);
-        if (m_zMusicPlayer.IsPlaying)
-            RestartZMusicPlayer();
     }
 
     private void PlayQueueTask()

@@ -23,7 +23,7 @@
   <ItemGroup>
     <PackageReference Include="GlmSharp-netstandard" Version="0.9.8.1" />
     <PackageReference Include="Helion.TextCopyLite" Version="1.0.0" />
-    <PackageReference Include="Helion.ZMusic" Version="2.0.1.1" />
+    <PackageReference Include="Helion.ZMusic" Version="2.0.1.2" />
     <PackageReference Include="NAudio.Core" Version="2.2.1" />
     <PackageReference Include="NLog" Version="6.0.0" />
     <PackageReference Include="OpenTK" Version="4.9.4" />
