@@ -43,3 +43,5 @@
 - Fix 'kill grounded monsters' to match behavior from dsda where it needs to be on it's highest floor (fixes Sunless MAP01 sphere exit).
 - Fix UDMF decimal parsing when on machines don't use dot as a separator.
 - Fix UDMF parser to ignore unknown properties / sections (e.g. ee_compat = true;).
+- Fix UDMF to rotate flats before applying offsets.
+- Fix null debug texture being applied to sprite brightmaps when render.nulltexture is on.
