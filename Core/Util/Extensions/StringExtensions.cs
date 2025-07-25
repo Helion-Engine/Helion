@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -18,6 +19,7 @@ public static class StringExtensions
     /// <param name="str">The string to check.</param>
     /// <returns>True if it has no characters, false if it has one or more
     /// characters.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool Empty(this string str) => str.Length == 0;
 
     /// <summary>
@@ -35,21 +37,25 @@ public static class StringExtensions
     /// <param name="text">The text to use.</param>
     /// <param name="other">The text to compare against.</param>
     /// <returns>True if so, false if not.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool EqualsIgnoreCase(this string text, string other)
     {
         return text.Equals(other, StringComparison.OrdinalIgnoreCase);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool EqualsIgnoreCase(this ReadOnlySpan<char> text, string other)
     {
         return text.Equals(other, StringComparison.OrdinalIgnoreCase);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool StartsWithIgnoreCase(this string text, string other)
     {
         return text.StartsWith(other, StringComparison.OrdinalIgnoreCase);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool EndsWithIgnoreCase(this string text, string other)
     {
         return text.EndsWith(other, StringComparison.OrdinalIgnoreCase);
