@@ -20,7 +20,7 @@ public partial class EndGameLayer
     private const string FontName = Constants.Fonts.Small;
     private static readonly Vec2I TextStartCorner = new(10, 10);
 
-    private IList<string> m_images = Array.Empty<string>();
+    private string[] m_images = Array.Empty<string>();
     private Vec2I m_theEndOffset = Vec2I.Zero;
     private bool m_initRenderPages;
     private uint m_charsToDraw;
@@ -161,19 +161,19 @@ public partial class EndGameLayer
         DrawText(hud.displayText, hud.ticker, hud.showAllText, hud.hud);
     }
 
-    private void DrawBackgroundImages(IList<string> images, int xOffset, IHudRenderContext hud,
+    private void DrawBackgroundImages(string[] images, int xOffset, IHudRenderContext hud,
         IRenderableSurfaceContext ctx)
     {
         ctx.ClearDepth();
         hud.Clear(Color.Black);
 
-        if (m_drawState == EndGameDrawState.Complete && images.Count == 1)
+        if (m_drawState == EndGameDrawState.Complete && images.Length == 1)
         {
             hud.RenderFullscreenImage(images[0]);
             return;
         }
         int imagesRunningWidth = 0;
-        for (int i = 0; i < images.Count; i++)
+        for (int i = 0; i < images.Length; i++)
         {
             string image = images[i];
             if (!hud.Textures.TryGet(image, out var handle))

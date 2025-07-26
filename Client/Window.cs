@@ -52,7 +52,7 @@ public class Window : GameWindow, IWindow
     private Vec2F m_clientScaling = new(1, 1);
     private bool m_disposed;
     private RenderWindowState m_renderWindowState;
-    private Vector2i? m_knownGoodWindowPos = null;
+    private Vector2i? m_knownGoodWindowPos;
 
     public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement,
         int glMajor, int glMinor, GLContextFlags flags, Action onCreate) :

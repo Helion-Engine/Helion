@@ -28,7 +28,7 @@ public class SplitterStates
     /// The index into <see cref="Segments"/> that we will be looking at
     /// next. This will be out of range at the very end of the iteration.
     /// </summary>
-    public int CurrentSegmentIndex = 0;
+    public int CurrentSegmentIndex;
 
     /// <summary>
     /// The lowest segment splitter score seen so far.

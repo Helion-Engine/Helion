@@ -28,7 +28,7 @@ public class VertexArrayObject : IDisposable
         GL.BindVertexArray(m_name);
     }
 
-    public void Unbind()
+    public static void Unbind()
     {
         GL.BindVertexArray(0);
     }

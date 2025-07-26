@@ -39,8 +39,8 @@ public class FramebufferProgram : RenderProgram
         m_mvpLocation = Uniforms.GetLocation("mvp");
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
-    public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
+    public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
+    public void Mvp(mat4 mvp) => ProgramUniforms.Set(mvp, m_mvpLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -163,9 +163,9 @@ public class FramebufferRenderer : IDisposable
 
         m_vao.Bind();
         m_vbo.DrawArrays();
-        m_vao.Unbind();
+        VertexArrayObject.Unbind();
 
-        m_program.Unbind();
+        RenderProgram.Unbind();
     }
 
     protected virtual void Dispose(bool disposing)

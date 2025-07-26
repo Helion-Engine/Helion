@@ -62,31 +62,31 @@ public class InterpolationShader : RenderProgram
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
-    public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorLightTextureLocation);
-    public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
-    public void SectorColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorColormapTextureLocation);
-    public void BrightmapTexture(TextureUnit unit) => Uniforms.Set(unit, m_brightmapTextureLocation);
-    public void AccumTexture(TextureUnit unit) => Uniforms.Set(unit, m_accumTextureLocation);
-    public void AccumCountTextre(TextureUnit unit) => Uniforms.Set(unit, m_accumCountTextureLocation);
-    public void PlaneClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_planeClipTextureLocation);
-    public void WallClipTexture(TextureUnit unit) => Uniforms.Set(unit, m_wallClipTextureLocation);
+    public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
+    public void SectorLightTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorLightTextureLocation);
+    public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
+    public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);
+    public void BrightmapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_brightmapTextureLocation);
+    public void AccumTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumTextureLocation);
+    public void AccumCountTextre(TextureUnit unit) => ProgramUniforms.Set(unit, m_accumCountTextureLocation);
+    public void PlaneClipTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_planeClipTextureLocation);
+    public void WallClipTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_wallClipTextureLocation);
 
-    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
-    public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
-    public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
-    public void TimeFrac(float frac) => Uniforms.Set(frac, m_timeFracLocation);
-    public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
-    public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
-    public void DistanceOffset(float distance) => Uniforms.Set(distance, m_distanceOffsetLocation);
-    public void ColorMix(Vec3F color) => Uniforms.Set(color, m_colorMixLocation);
-    public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
-    public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
-    public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
-    public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
-    public void VertexGapClampUV(bool value) => Uniforms.Set(value, m_vertexGapClampUV);
-    public void CheckPlaneClip(bool value) => Uniforms.Set(value, m_checkPlaneClipLocation);
-    public void UseBrightmaps(bool value) => Uniforms.Set(value, m_useBrightmapsLocation);
+    public void HasInvulnerability(bool invul) => ProgramUniforms.Set(invul, m_hasInvulnerabilityLocation);
+    public void Mvp(mat4 mvp) => ProgramUniforms.Set(mvp, m_mvpLocation);
+    public void MvpNoPitch(mat4 mvpNoPitch) => ProgramUniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
+    public void TimeFrac(float frac) => ProgramUniforms.Set(frac, m_timeFracLocation);
+    public void LightLevelMix(float lightLevelMix) => ProgramUniforms.Set(lightLevelMix, m_lightLevelMixLocation);
+    public void ExtraLight(int extraLight) => ProgramUniforms.Set(extraLight, m_extraLightLocation);
+    public void DistanceOffset(float distance) => ProgramUniforms.Set(distance, m_distanceOffsetLocation);
+    public void ColorMix(Vec3F color) => ProgramUniforms.Set(color, m_colorMixLocation);
+    public void PaletteIndex(int index) => ProgramUniforms.Set(index, m_paletteIndexLocation);
+    public void ColorMapIndex(int index) => ProgramUniforms.Set(index, m_colorMapIndexLocation);
+    public void LightMode(RenderLightMode mode) => ProgramUniforms.Set((int)mode, m_lightModeLocation);
+    public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
+    public void VertexGapClampUV(bool value) => ProgramUniforms.Set(value, m_vertexGapClampUV);
+    public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
+    public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
 
     protected override string VertexShader() => @"
         #version 330

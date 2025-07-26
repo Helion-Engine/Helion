@@ -254,7 +254,7 @@ public partial class Client
         return m_demoModel.Maps.FirstOrDefault(x => x.Map == mapName);
     }
 
-    record class AdvanceDemoParams(int CommandIndex, bool IsPaused, bool ConsoleShowing);
+    sealed record class AdvanceDemoParams(int CommandIndex, bool IsPaused, bool ConsoleShowing);
 
     private void AdvanceDemo(int advanceAmount)
     {

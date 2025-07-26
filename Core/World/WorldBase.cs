@@ -183,7 +183,7 @@ public abstract partial class WorldBase : IWorld
     private readonly Entity m_checkRadiusEntity;
     private readonly Dictionary<int, LineHealthGroup> m_lineHealthGroups = [];
     private MusInfoDef? m_lastMusicChange;
-    private int m_changeMusicTicks = 0;
+    private int m_changeMusicTicks;
     private int m_losDistance = DefaultLineOfSightDistance;
     private string m_activeMusic = string.Empty;
     private bool m_explosionTraverseLines;
@@ -646,7 +646,7 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.IsFastMonsters = IsFastMonsters;
     }
 
-    private IList<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
+    private List<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
     {
         List<MapInfoDef> maps = [];
         foreach (string mapName in visitedMaps)
@@ -3282,7 +3282,7 @@ public abstract partial class WorldBase : IWorld
             var armor = EntityManager.DefinitionComposer.GetEntityDefinitions().Where(x => x.IsType(Inventory.ArmorClassName) && x.EditorId.HasValue)
                 .OrderByDescending(x => x.Properties.Armor.SaveAmount).ToList();
 
-            if (armor.Any())
+            if (armor.Count != 0)
                 player.GiveItem(armor.First(), null, pickupFlash: false);
         }
 

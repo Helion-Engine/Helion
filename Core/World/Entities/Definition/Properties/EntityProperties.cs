@@ -11,9 +11,9 @@ public class EntityProperties
     public string ActiveSound = string.Empty;
     public string RipSound = String.Empty;
     public double Alpha = 1.0;
-    public AmmoProperty Ammo = default;
-    public SpecialArgs Args = default;
-    public ArmorProperty Armor = default;
+    public AmmoProperty Ammo;
+    public SpecialArgs Args;
+    public ArmorProperty Armor;
     public string AttackSound = string.Empty;
     public string BloodColor = string.Empty;
     public string BloodType = string.Empty;

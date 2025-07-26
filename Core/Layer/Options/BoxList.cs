@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Helion.Layer.Options;
 
-internal class BoxList
+internal sealed class BoxList
 {
     private readonly List<(Box2I, int)> m_posToRowIndex = new();
 

@@ -142,7 +142,7 @@ public class MarkSpecials
         }
     }
 
-    public void FindKeys(IWorld world, List<object> keys)
+    public static void FindKeys(IWorld world, List<object> keys)
     {
         var node = world.EntityManager.Head;
         while (node != null)
@@ -153,7 +153,7 @@ public class MarkSpecials
         }
     }
 
-    public void FindKeyLines(IWorld world, List<object> lines)
+    public static void FindKeyLines(IWorld world, List<object> lines)
     {
         for (int i = 0; i < world.Lines.Count; i++)
         {
@@ -166,7 +166,7 @@ public class MarkSpecials
         }
     }
 
-    public void FindExits(IWorld world, List<object> items)
+    public static void FindExits(IWorld world, List<object> items)
     {
         for (int i = 0; i < world.Lines.Count; i++)
         {
@@ -322,7 +322,7 @@ public class MarkSpecials
     private static string GetLineSpecialDescription(Line line) =>
         $"[{(int)line.Special.LineSpecialType}]{line.Special.LineSpecialType} - {GetArgs(line)} - {GetActivations(line)} - Activated[{GetIntBool(line.Activated)}] Repeat[{GetIntBool(line.Flags.Repeat)}]";
 
-    private static object GetArgs(Line line) =>
+    private static string GetArgs(Line line) =>
         $"{line.Args.Arg0},{line.Args.Arg1},{line.Args.Arg2},{line.Args.Arg3},{line.Args.Arg4}";
 
     private static int GetIntBool(bool b) => b ? 1 : 0;
@@ -403,7 +403,7 @@ public class MarkSpecials
         MarkedLines.Clear();
     }
 
-    private void UpdateLineMark(IWorld world, Line line, bool set)
+    private static void UpdateLineMark(IWorld world, Line line, bool set)
     {
         ref var structLine = ref world.StructLines.Data[line.Id];
         if (set)

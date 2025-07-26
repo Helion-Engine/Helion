@@ -1699,7 +1699,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private ISpecial? CreatePlatToggleCeiling(Sector sector)
+    private SectorMoveSpecial? CreatePlatToggleCeiling(Sector sector)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Ceiling);
         return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new(SectorPlaneFace.Floor, MoveDirection.Up,

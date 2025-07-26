@@ -8,11 +8,11 @@
     using Helion.Util.Configs.Components;
     using Helion.Window;
 
-    internal class GyroCalibrationDialog : DialogBase
+    internal sealed class GyroCalibrationDialog : DialogBase
     {
         private readonly ConfigController m_controllerConfig;
         private readonly IInputManager m_inputManager;
-        private int m_calibrationStatus = 0; // 0 = inactive, 1 = in pre-calibration countdown, 2 = calibrating, 3 = done
+        private int m_calibrationStatus; // 0 = inactive, 1 = in pre-calibration countdown, 2 = calibrating, 3 = done
 
         private readonly Timer m_timer;
         private int m_timerCountdown;

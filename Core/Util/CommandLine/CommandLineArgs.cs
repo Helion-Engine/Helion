@@ -70,6 +70,9 @@ public class CommandLineArgs
         "-pistolstart",
         "-solo-net",
     ];
+    
+    private static readonly char[] spaceSeparator = new char[] { ' ' };
+    private static readonly char[] commaSeparator = new char[] { ',' };
 
     /// <summary>
     /// Parses the command line arguments and returns an object with the
@@ -167,12 +170,12 @@ public class CommandLineArgs
         return dValue;
     }
 
-    private static IList<string> ParseCheats(string? str)
+    private static string[] ParseCheats(string? str)
     {
         if (str == null)
             return Array.Empty<string>();
 
-        return str.Split(new char[] { ' ' });
+        return str.Split(spaceSeparator);
     }
 
     private static Vec3D? GetPosition(string? value)
@@ -180,7 +183,7 @@ public class CommandLineArgs
         if (value == null)
             return null;
 
-        string[] items = value.Split(new char[] { ',' });
+        string[] items = value.Split(commaSeparator);
         if (items.Length < 3)
             return null;
         if (!Parsing.TryParseDouble(items[0], out var x) || !Parsing.TryParseDouble(items[1], out var y) || !Parsing.TryParseDouble(items[2], out var z))

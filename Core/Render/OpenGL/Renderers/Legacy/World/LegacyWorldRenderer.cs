@@ -387,7 +387,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private void WritePlaneClipData(PlaneClipFrameBuffer planeClipFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer, bool walls)
     {
         planeClipFrameBuffer.BindFrameBuffer();
-        planeClipFrameBuffer.StartRender();
+        PlaneClipFrameBuffer.StartRender();
 
         if (m_renderStatic)
         {
@@ -400,7 +400,7 @@ public class LegacyWorldRenderer : WorldRenderer
                 GL.Disable(EnableCap.CullFace);
                 m_geometryRenderer.RenderStaticCoverWalls();
                 GL.Enable(EnableCap.CullFace);
-                m_staticWallClipProgram.Unbind();
+                OpenGL.Shader.RenderProgram.Unbind();
             }
             else
             {
@@ -408,7 +408,7 @@ public class LegacyWorldRenderer : WorldRenderer
                 GL.ActiveTexture(BindTextures.BoundTexture);
                 SetStaticUniforms(m_staticPlaneClipProgram, renderInfo);
                 m_geometryRenderer.RenderStaticGeometryFlats();
-                m_staticPlaneClipProgram.Unbind();
+                OpenGL.Shader.RenderProgram.Unbind();
             }
         }
 
@@ -421,7 +421,7 @@ public class LegacyWorldRenderer : WorldRenderer
             m_worldDataManager.RenderCoverWalls();
             m_geometryRenderer.RenderWallClipPortals(renderInfo);
             GL.Enable(EnableCap.CullFace);
-            m_interpolationWallClipShader.Unbind();
+            OpenGL.Shader.RenderProgram.Unbind();
         }
         else
         {
@@ -429,10 +429,10 @@ public class LegacyWorldRenderer : WorldRenderer
             GL.ActiveTexture(BindTextures.BoundTexture);
             SetInterpolationUniforms(m_interpolationPlaneClipShader, renderInfo, false);
             m_worldDataManager.RenderFlats();
-            m_interpolationPlaneClipShader.Unbind();
+            OpenGL.Shader.RenderProgram.Unbind();
         }
 
-        planeClipFrameBuffer.UnbindFrameBuffer();
+        PlaneClipFrameBuffer.UnbindFrameBuffer();
         framebuffer.Bind();
         planeClipFrameBuffer.BindPlaneTexture(walls ? BindTextures.WallClipTexture : BindTextures.PlaneClipTexture);
         ResetBlendEquations();
@@ -462,7 +462,7 @@ public class LegacyWorldRenderer : WorldRenderer
             // Refract pixels in the opaque framebuffer
             m_entityRenderer.RenderOitFuzzRefractionPass(renderInfo, false);
 
-            m_oitFrameBuffer.SetBlendEquations();
+            OitFrameBuffer.SetBlendEquations();
             m_oitFrameBuffer.BindFrameBuffer();
 
             m_entityRenderer.RenderOitTransparentFuzzPass(renderInfo);
@@ -492,7 +492,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (fuzzData)
             m_entityRenderer.RenderOitFuzzRefractionPass(renderInfo, true);
 
-        m_oitFrameBuffer.UnbindFrameBuffer();
+        OitFrameBuffer.UnbindFrameBuffer();
         GL.DepthMask(true);
     }
 

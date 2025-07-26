@@ -112,7 +112,7 @@ public class SwitchChangeSpecial : ISpecial
         return false;
     }
 
-    private void PlaySwitchSound(WorldSoundManager soundManager, Line line)
+    private static void PlaySwitchSound(WorldSoundManager soundManager, Line line)
     {
         Vec2D pos = line.Segment.FromTime(0.5);
         DefaultSoundSource soundSource = new(pos.To3D(line.Front.Sector.ToFloorZ(pos)));

@@ -19,7 +19,7 @@ public class DefinitionStateApplier
     private readonly List<UnresolvedGotoFrame> UnresolvedGotoFrames = new();
     private readonly List<string> ModifiedLabels = new();
 
-    private class FrameLabel
+    private sealed class FrameLabel
     {
         public FrameLabel(int index, int localIndex)
         {

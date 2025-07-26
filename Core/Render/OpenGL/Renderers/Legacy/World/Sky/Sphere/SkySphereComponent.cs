@@ -63,9 +63,9 @@ public class SkySphereComponent : ISkyComponent
 
         m_geometryVao.Bind();
         m_geometryVbo.DrawArrays();
-        m_geometryVao.Unbind();
+        VertexArrayObject.Unbind();
 
-        m_geometryProgram.Unbind();
+        OpenGL.Shader.RenderProgram.Unbind();
     }
 
     public void RenderSky(RenderInfo renderInfo)

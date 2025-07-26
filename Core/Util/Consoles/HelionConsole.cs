@@ -278,7 +278,7 @@ public class HelionConsole : Target
         LogManager.ReconfigExistingLoggers();
     }
 
-    private void RemoveLogger()
+    private static void RemoveLogger()
     {
         LogManager.Configuration?.RemoveTarget(TargetName);
     }

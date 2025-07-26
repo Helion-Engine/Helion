@@ -14,8 +14,8 @@ public class SkySphereGeometryShader : RenderProgram
         m_timeFracLocation = Uniforms.GetLocation("timeFrac");
     }
 
-    public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
-    public void TimeFrac(float value) => Uniforms.Set(value, m_timeFracLocation);
+    public void Mvp(mat4 mat) => ProgramUniforms.Set(mat, m_mvpLocation);
+    public void TimeFrac(float value) => ProgramUniforms.Set(value, m_timeFracLocation);
 
     protected override string VertexShader() => @"
         #version 330

@@ -38,7 +38,9 @@ public class ConsoleCommandEventArgs : EventArgs
             Args.Add(tokens[i]);
     }
 
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
     private static IList<string> GetCommandLineArgs(string commandLine)
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
     {
         List<string> args = [];
         int start = 0;

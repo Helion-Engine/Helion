@@ -29,7 +29,7 @@ namespace Helion.Tests.Unit.GameAction;
 internal static class WorldAllocator
 {
     public static int TotalTicks;
-    private static SinglePlayerWorld? StaticWorld = null;
+    private static SinglePlayerWorld? StaticWorld;
     private static string LastResource = string.Empty;
     private static string LastFileName = string.Empty;
     private static string LastMapName = string.Empty;

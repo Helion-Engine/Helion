@@ -24,7 +24,7 @@ public class GameConfDefinition
     private static readonly Dictionary<string, int> ModeValues = GameConfConstants.ValidModes
         .Select((x, i) => (x, i))
         .ToDictionary(pair => pair.x, pair => pair.i);
-    public GameConfData? Data { get; set; } = null;
+    public GameConfData? Data { get; set; }
 
     public void Parse(Entry entry)
     {

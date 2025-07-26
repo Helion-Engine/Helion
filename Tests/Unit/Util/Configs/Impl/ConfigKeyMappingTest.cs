@@ -298,7 +298,7 @@ public class ConfigKeyMappingTest
             actual[key].Should().Equal(values);
     }
 
-    private static IList<string> GetKeyCommands(ConfigKeyMapping keys, Key key)
+    private static List<string> GetKeyCommands(ConfigKeyMapping keys, Key key)
     {
         List<string> commands = new();
         foreach (var item in keys.GetKeyMapping())
@@ -310,7 +310,7 @@ public class ConfigKeyMappingTest
         return commands;
     }
 
-    private static IList<Key> GetCommandKeys(ConfigKeyMapping keys, string command)
+    private static List<Key> GetCommandKeys(ConfigKeyMapping keys, string command)
     {
         List<Key> key = new();
         foreach (var item in keys.GetKeyMapping())

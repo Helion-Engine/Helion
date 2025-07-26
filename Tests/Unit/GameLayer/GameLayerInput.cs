@@ -37,7 +37,7 @@ public class GameLayerInput
     private static readonly TickerInfo ZeroTick = new(0, 0);
     private static readonly TickerInfo SingleTick = new(1, 0);
 
-    private class FakeAnalogAdapter : IGameControlAdapter
+    private sealed class FakeAnalogAdapter : IGameControlAdapter
     {
         public List<(Key, float)> AxisValues { get; set; } = new List<(Key, float)>();
 
@@ -47,7 +47,7 @@ public class GameLayerInput
 
         public bool HasGyro => true; 
 
-        public bool KeyIsAnalogAxis(Key key)
+        public static bool KeyIsAnalogAxis(Key key)
         {
             return key.ToString().StartsWith("Axis", StringComparison.Ordinal);
         }

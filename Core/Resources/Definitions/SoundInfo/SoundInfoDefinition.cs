@@ -13,7 +13,7 @@ public class SoundInfoDefinition
     private readonly Dictionary<string, List<string>> m_randomLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> m_playerCompatLookup = new(StringComparer.OrdinalIgnoreCase);
 
-    private int m_pitchShiftRange = 0;
+    private int m_pitchShiftRange;
 
     public static string GetPlayerSound(string gender, string sound)
     {
@@ -138,23 +138,23 @@ public class SoundInfoDefinition
             throw new ParserException(parser.GetCurrentLine(), 0, 0, $"SoundInfo - Bad command. {type}");
     }
 
-    private void ParseIgnore(SimpleParser parser, int argCount = 0)
+    private static void ParseIgnore(SimpleParser parser, int argCount = 0)
     {
         for (int i = 0; i < argCount; i++)
             parser.ConsumeString();
     }
 
-    private void ParseAttenuation(SimpleParser parser)
+    private static void ParseAttenuation(SimpleParser parser)
     {
         parser.ConsumeDouble();
     }
 
-    private void ParseArchivePath(SimpleParser parser)
+    private static void ParseArchivePath(SimpleParser parser)
     {
         parser.ConsumeStringSpan();
     }
 
-    private void ParseAmbient(SimpleParser parser)
+    private static void ParseAmbient(SimpleParser parser)
     {
         // Not supported
         var index = parser.ConsumeInteger();
@@ -172,7 +172,7 @@ public class SoundInfoDefinition
             soundInfo.PitchSet = (float)pitch;
     }
 
-    private void ParsePlayerAlias(SimpleParser parser)
+    private static void ParsePlayerAlias(SimpleParser parser)
     {
         var playerClass = parser.ConsumeStringSpan();
         var gender = parser.ConsumeStringSpan();
@@ -180,7 +180,7 @@ public class SoundInfoDefinition
         var otherLogicalSound = parser.ConsumeStringSpan();
     }
 
-    private void ParseRolloff(SimpleParser parser)
+    private static void ParseRolloff(SimpleParser parser)
     {
         var sound = parser.ConsumeStringSpan();
         if (parser.PeekInteger(out int i))

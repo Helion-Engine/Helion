@@ -68,14 +68,14 @@ public class PrimitiveWorldRenderer : IDisposable
             item.Vbo.UploadIfNeeded();
             item.Vao.Bind();
             item.Vbo.DrawArrays(PrimitiveType.Lines);
-            item.Vao.Unbind();
+            VertexArrayObject.Unbind();
 
             item.Vbo.Clear();
         }
         
         GL.LineWidth(1); // Any automap drawing should return to normal afterwards.
 
-        m_program.Unbind();
+        OpenGL.Shader.RenderProgram.Unbind();
         m_hasData = false;
     }
 

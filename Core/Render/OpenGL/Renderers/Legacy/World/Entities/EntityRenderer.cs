@@ -31,7 +31,7 @@ public class EntityRenderer : IDisposable
     private readonly EntityCompositeProgram m_programComposite = new();
     private readonly EntityFuzzRefractionProgram m_programFuzzRefraction = new();
     private readonly RenderDataManager<EntityVertex> m_dataManager;
-    private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
+    private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DComparer());
     private readonly HashSet<SpritePosKey> m_spriteRenderPositions = new(1024);
     private readonly DynamicArray<SpriteDefinition?> m_spriteDefs = new(1024);
     private readonly SpriteRotation m_nullSpriteRotation;
@@ -400,7 +400,7 @@ public class EntityRenderer : IDisposable
             m_dataManager.RenderHealthBars();
         }
 
-        m_program.Unbind();
+        OpenGL.Shader.RenderProgram.Unbind();
     }
 
     public void RenderOitTransparentPass(RenderInfo renderInfo)
@@ -411,7 +411,7 @@ public class EntityRenderer : IDisposable
         SetUniforms(m_programTransparent, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
-        m_programTransparent.Unbind();
+        OpenGL.Shader.RenderProgram.Unbind();
     }
 
     public void RenderOitTransparentFuzzPass(RenderInfo renderInfo)
@@ -421,7 +421,7 @@ public class EntityRenderer : IDisposable
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
-        m_programTransparent.Unbind();
+        OpenGL.Shader.RenderProgram.Unbind();
     }
 
     public void RenderOitCompositePass(RenderInfo renderInfo)
@@ -430,7 +430,7 @@ public class EntityRenderer : IDisposable
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programComposite, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
-        m_programComposite.Unbind();
+        OpenGL.Shader.RenderProgram.Unbind();
     }
 
     public void RenderOitFuzzRefractionPass(RenderInfo renderInfo, bool renderColor)
@@ -440,7 +440,7 @@ public class EntityRenderer : IDisposable
         m_programFuzzRefraction.RenderFuzzRefractionColor(renderColor);
         SetUniforms(m_programFuzzRefraction, renderInfo);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
-        m_programFuzzRefraction.Unbind();
+        OpenGL.Shader.RenderProgram.Unbind();
     }
 
     public void RenderTransparent(RenderInfo renderInfo)
@@ -450,7 +450,7 @@ public class EntityRenderer : IDisposable
         SetUniforms(m_program, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
-        m_program.Unbind();
+        OpenGL.Shader.RenderProgram.Unbind();
     }
 
     public void ResetInterpolation(IWorld world)
@@ -475,7 +475,7 @@ public class EntityRenderer : IDisposable
         GC.SuppressFinalize(this);
     }
     
-    private class Vec2DCompararer : IEqualityComparer<Vec2D>
+    private sealed class Vec2DComparer : IEqualityComparer<Vec2D>
     {
         public bool Equals(Vec2D x, Vec2D y) => x.X == y.X && x.Y == y.Y;
         public int GetHashCode(Vec2D obj) => HashCode.Combine(obj.X, obj.Y);

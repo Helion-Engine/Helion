@@ -66,7 +66,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
     }
 
 
-    private FloodGeometry NoGeometry = default;
+    private FloodGeometry NoGeometry;
 
     private ref FloodGeometry TryGetFloodGeometry(int floodKey, out bool success)
     {

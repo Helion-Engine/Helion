@@ -48,9 +48,9 @@ public static class WorldStatic
     public static WorldSoundManager SoundManager = null!;
     public static List<EntityFrame> Frames = null!;
     public static int[] CheckedLines = [];
-    public static double LineVertexGap = 0;
-    public static float LineVertexOffset = 0;
-    public static float CoverWallOffset = 0;
+    public static double LineVertexGap;
+    public static float LineVertexOffset;
+    public static float CoverWallOffset;
     public static float DamageApplyMultiplier = 1;
     public static float DamageReceiveMultiplier = 1;
 

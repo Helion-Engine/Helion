@@ -132,7 +132,7 @@ public abstract class RenderProgram : IDisposable
         GL.UseProgram(m_program);
     }
 
-    public void Unbind()
+    public static void Unbind()
     {
         GL.UseProgram(0);
     }

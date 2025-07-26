@@ -14,7 +14,7 @@ public enum IWadInfoOptions
 
 public class IWadInfo
 {
-    private class IWadData
+    private sealed class IWadData
     {
         public readonly string Title;
         public readonly string MapInfo;

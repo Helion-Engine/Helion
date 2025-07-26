@@ -61,9 +61,9 @@ public class BasicFramebufferRenderer : IDisposable
 
         m_vao.Bind();
         m_vbo.DrawArrays();
-        m_vao.Unbind();
+        VertexArrayObject.Unbind();
 
-        m_program.Unbind();
+        Shader.RenderProgram.Unbind();
     }
 
     protected virtual void Dispose(bool disposing)

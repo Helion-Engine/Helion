@@ -60,7 +60,7 @@ public struct FrameState
             entity.ClosetFlags |= ClosetFlags.MonsterCloset;
     }
 
-    public EntityFrame? GetStateFrame(EntityDefinition def, string label)
+    public static EntityFrame? GetStateFrame(EntityDefinition def, string label)
     {
         if (def.States.Labels.TryGetValue(label, out int index))
             return WorldStatic.Frames[index];

@@ -792,7 +792,7 @@ public partial class DecorateParser
     {
         List<string> translations = new List<string> { ConsumeString() };
 
-        if (translations.First().ToUpperInvariant() != "ICE")
+        if (!translations.First().Equals("ICE", StringComparison.OrdinalIgnoreCase))
             while (ConsumeIf(','))
                 translations.Add(ConsumeString());
 

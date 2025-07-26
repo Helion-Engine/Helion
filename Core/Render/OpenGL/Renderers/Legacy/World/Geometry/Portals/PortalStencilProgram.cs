@@ -16,7 +16,7 @@ public class PortalStencilProgram : RenderProgram
         m_mvpLocation = Uniforms.GetLocation("mvp");
     }
 
-    public void SetMvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
+    public void SetMvp(mat4 mvp) => ProgramUniforms.Set(mvp, m_mvpLocation);
 
     protected override string VertexShader() => @"
         #version 330

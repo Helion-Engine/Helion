@@ -58,7 +58,7 @@ public class RenderWorldData : IDisposable
         Vbo.DrawArrays();
 
         Vbo.Unbind();
-        Vao.Unbind();
+        VertexArrayObject.Unbind();
         Texture.Unbind();
     }
 
