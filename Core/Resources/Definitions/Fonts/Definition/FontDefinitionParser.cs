@@ -39,7 +39,7 @@ public class FontDefinitionParser : ParserBase
     private FontAlignment ConsumeFontAlignmentType()
     {
         string alignName = ConsumeString();
-        switch (alignName.ToUpper())
+        switch (alignName.ToUpperInvariant())
         {
             case "BOTTOM":
                 return FontAlignment.Bottom;
@@ -158,7 +158,7 @@ public class FontDefinitionParser : ParserBase
     private void ConsumeFontDefinitionElement()
     {
         string identifier = ConsumeString();
-        switch (identifier.ToUpper())
+        switch (identifier.ToUpperInvariant())
         {
             case "ALIGN":
                 ConsumeAlignDefinition();

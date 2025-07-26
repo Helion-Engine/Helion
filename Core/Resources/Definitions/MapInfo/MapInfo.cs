@@ -1,12 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
 using Helion.Maps.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Util;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace Helion.Resources.Definitions.MapInfo;
 
@@ -114,7 +115,7 @@ public class MapInfo
     public FindMapResult GetNextMap(MapInfoDef map) => GetMap(map.Next);
     public FindMapResult GetNextSecretMap(MapInfoDef map) => GetMap(map.SecretNext);
     public ClusterDef? GetCluster(int clusterNumber) => m_clusters.FirstOrDefault(c => c.ClusterNum == clusterNumber);
-    public static bool IsWarpTrans(string mapName) => mapName.StartsWith(WarpTrans);
+    public static bool IsWarpTrans(string mapName) => mapName.StartsWithIgnoreCase(WarpTrans);
 
     public FindMapResult GetMap(string name)
     {

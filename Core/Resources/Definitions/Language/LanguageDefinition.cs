@@ -83,7 +83,7 @@ public class LanguageDefinition
     {
         const string IfGame = "$ifgame(";
         var start = key.IndexOf(IfGame, StringComparison.OrdinalIgnoreCase);
-        var end = key.IndexOf(")");
+        var end = key.IndexOf(")", StringComparison.OrdinalIgnoreCase);
 
         if (start != -1 && end != -1)
             return key.AsSpan(start + IfGame.Length, end - start - IfGame.Length);
@@ -125,7 +125,7 @@ public class LanguageDefinition
 
     private string GetCurrentLanguageSection(string data)
     {
-        Regex currentLanguage = new(string.Format("\\[{0}\\w?(\\s+default)?]", CultureInfo.TwoLetterISOLanguageName));
+        Regex currentLanguage = new(string.Format(CultureInfo.InvariantCulture, "\\[{0}\\w?(\\s+default)?]", CultureInfo.TwoLetterISOLanguageName));
         Regex defaultLanguage = new("\\[\\w+\\s+default]");
         Regex anyLanguage = new("\\[\\w+(\\s+default)?]");
 

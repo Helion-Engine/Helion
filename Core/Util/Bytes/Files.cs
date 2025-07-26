@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -35,7 +36,7 @@ public static class Files
 
         StringBuilder hex = new(data.Length * 2);
         foreach (byte b in data)
-            hex.AppendFormat("{0:x2}", b);
+            hex.AppendFormat(CultureInfo.InvariantCulture, "{0:x2}", b);
         return hex.ToString();
     }
 }

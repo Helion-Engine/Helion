@@ -25,7 +25,7 @@ namespace Helion.Util
             {
                 for (int i = 0; i < TempFiles.Count; i++)
                 {
-                    if (!TempFiles[i].Equals(file))
+                    if (!TempFiles[i].Equals(file, System.StringComparison.OrdinalIgnoreCase))
                         continue;
 
                     TryDelete(file);

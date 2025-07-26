@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Globalization;
+using FluentAssertions;
 using Helion.Util.Container;
 using Xunit;
 
@@ -64,9 +65,9 @@ public class LookupArrayTest
 
         for (int i = 0; i < count; i++)
         {
-            array.Set(i, i.ToString());
+            array.Set(i, i.ToString(CultureInfo.InvariantCulture));
             array.TryGetValue(i, out var value).Should().BeTrue();
-            value.Should().Be(i.ToString());
+            value.Should().Be(i.ToString(CultureInfo.InvariantCulture));
         }
     }
 
@@ -78,7 +79,7 @@ public class LookupArrayTest
         for (int i = 0; i < count; i++)
         {
             if (i % 2 == 0)
-                array.Set(i, i.ToString());
+                array.Set(i, i.ToString(CultureInfo.InvariantCulture));
         }
 
         string? value;
@@ -87,7 +88,7 @@ public class LookupArrayTest
             if (i % 2 == 0)
             {
                 array.TryGetValue(i, out value).Should().BeTrue();
-                value.Should().Be(i.ToString());
+                value.Should().Be(i.ToString(CultureInfo.InvariantCulture));
                 continue;
             }
 
@@ -104,9 +105,9 @@ public class LookupArrayTest
 
         for (int i = 0; i < count; i++)
         {
-            array.Set(i, i.ToString());
+            array.Set(i, i.ToString(CultureInfo.InvariantCulture));
             array.TryGetValue(i, out var value).Should().BeTrue();
-            value.Should().Be(i.ToString());
+            value.Should().Be(i.ToString(CultureInfo.InvariantCulture));
         }
 
         array.SetAll(null);

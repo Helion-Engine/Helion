@@ -19,6 +19,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using static Helion.Util.Constants;
@@ -282,7 +283,7 @@ public class ListedConfigSection : IOptionSection
             if (sender is SingleSliderDialog sliderDialog)
             {
                 m_rowEditText.Clear();
-                m_rowEditText.Append(sliderDialog.SliderValue.ToString());
+                m_rowEditText.Append(sliderDialog.SliderValue.ToString(CultureInfo.InvariantCulture));
             }
             SubmitEditRow();
         }
@@ -389,11 +390,11 @@ public class ListedConfigSection : IOptionSection
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectValue).ToString() ?? "??";
 
-        var doubleValue = Convert.ToDouble(configValue.ObjectValue);
+        var doubleValue = Convert.ToDouble(configValue.ObjectValue, CultureInfo.CurrentCulture);
         if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
-            return doubleValue.ToString() + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
+            return doubleValue.ToString(CultureInfo.CurrentCulture) + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
 
-        return doubleValue.ToString();
+        return doubleValue.ToString(CultureInfo.CurrentCulture);
     }
 
     private static string GetDisplayStringForUserValue(IConfigValue configValue, OptionMenuAttribute attr)
@@ -401,11 +402,11 @@ public class ListedConfigSection : IOptionSection
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectUserValue).ToString() ?? "??";
 
-        var doubleValue = Convert.ToDouble(configValue.ObjectUserValue);
+        var doubleValue = Convert.ToDouble(configValue.ObjectUserValue, CultureInfo.CurrentCulture);
         if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
-            return doubleValue.ToString() + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
+            return doubleValue.ToString(CultureInfo.CurrentCulture) + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
 
-        return doubleValue.ToString();
+        return doubleValue.ToString(CultureInfo.CurrentCulture);
     }
 
     private static string GetDisplayStringForDefaultValue(IConfigValue configValue, OptionMenuAttribute attr)
@@ -418,11 +419,11 @@ public class ListedConfigSection : IOptionSection
                 ?? configValue.ObjectDefaultValue?.ToString()
                 ?? string.Empty;
 
-        var doubleValue = Convert.ToDouble(configValue.ObjectDefaultValue);
+        var doubleValue = Convert.ToDouble(configValue.ObjectDefaultValue, CultureInfo.CurrentCulture);
         if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
-            return doubleValue.ToString() + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
+            return doubleValue.ToString(CultureInfo.CurrentCulture) + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
 
-        return doubleValue.ToString();
+        return doubleValue.ToString(CultureInfo.CurrentCulture);
     }
 
     private static object GetEnumDescription(object value)

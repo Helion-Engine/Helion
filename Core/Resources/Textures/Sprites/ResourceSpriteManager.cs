@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using NLog;
 using static Helion.Util.Assertion.Assert;
@@ -59,7 +60,7 @@ public class ResourceSpriteManager : IResourceSpriteManager
         if (!PopulateMissingFrames(name, frames))
         {
             // Since we had all null, then there is no sprite that exists for this.
-            Log.Warn($"Cannot find any sprite textures for {name.ToUpper()}");
+            Log.Warn($"Cannot find any sprite textures for {name.ToUpper(CultureInfo.CurrentCulture)}");
             sprite = null;
             return false;
         }
@@ -118,7 +119,7 @@ public class ResourceSpriteManager : IResourceSpriteManager
             if (frames[i] != null)
                 continue;
             
-            Log.Warn($"Missing sprite {sprite.ToUpper()}{i} (and/or mirror as well)");
+            Log.Warn($"Missing sprite {sprite.ToUpper(CultureInfo.CurrentCulture)}{i} (and/or mirror as well)");
             frames[i] = rotation;
         }
 

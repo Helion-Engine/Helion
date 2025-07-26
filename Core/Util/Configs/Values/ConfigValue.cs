@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Helion.Util.Extensions;
@@ -134,7 +135,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
             {
                 if (str == "*")
                 {
-                    converted = (T)(object)!Convert.ToBoolean(Value);
+                    converted = (T)(object)!Convert.ToBoolean(Value, CultureInfo.InvariantCulture);
                     return true;
                 }
                 else if (str.Equals(ConfigConstants.Yes, StringComparison.OrdinalIgnoreCase))

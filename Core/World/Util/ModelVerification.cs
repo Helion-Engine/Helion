@@ -37,7 +37,7 @@ public static class ModelVerification
     {
         foreach (var archive in fileArchives)
         {
-            if (filesModel.Files.Any(x => archive.MD5.Equals(x.MD5)))
+            if (filesModel.Files.Any(x => archive.MD5.Equals(x.MD5, System.StringComparison.Ordinal)))
                 continue;
             log.Error($"Loaded '{Path.GetFileName(archive.FullPath)}' that is not part of this save.");
         }
@@ -47,7 +47,7 @@ public static class ModelVerification
     {
         foreach (var file in filesModel.Files)
         {
-            if (fileArchives.Any(x => x.MD5.Equals(file.MD5)))
+            if (fileArchives.Any(x => x.MD5.Equals(file.MD5, System.StringComparison.Ordinal)))
                 continue;
             log.Error($"Required archive '{file.FileName}' for this save is not loaded.");
         }
@@ -74,7 +74,7 @@ public static class ModelVerification
             return true;
         }
 
-        if (!fileModel.MD5.Equals(archive.MD5))
+        if (!fileModel.MD5.Equals(archive.MD5, System.StringComparison.Ordinal))
         {
             log?.Error($"Required archive {fileModel.FileName} did not match MD5 for save game.");
             log?.Error($"Save MD5: {fileModel.MD5} - Loaded MD5: {archive.MD5}");

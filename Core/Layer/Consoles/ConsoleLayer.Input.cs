@@ -155,7 +155,7 @@ public partial class ConsoleLayer
             return;
 
         var partial = GetAutoCompletePathText(input, path);
-        if (m_bestOptions.Count > 0 && m_bestOptions[0].Equals(partial))
+        if (m_bestOptions.Count > 0 && m_bestOptions[0].Equals(partial, StringComparison.Ordinal))
             return;
 
         m_bestOptions.Add(partial);

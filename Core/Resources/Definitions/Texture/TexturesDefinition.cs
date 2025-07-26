@@ -68,27 +68,27 @@ namespace Helion.Resources.Definitions.Texture
                     double value = parser.ConsumeDouble();
                     m_options.Scale = new(m_options.Scale.X, value);
                 }
-                else if (item.Equals("Offset"))
+                else if (item.EqualsIgnoreCase("Offset"))
                 {
                     ParseOffset(parser, out double x, out double y);
                     m_options.Offset = new(x, y);
                 }
-                else if (item.Equals("WorldPanning"))
+                else if (item.EqualsIgnoreCase("WorldPanning"))
                 {
                     CheckSetUseTextureOptions(ref useOptions, ref m_options);
                     m_options.Flags |= TextureOptionFlags.WorldPanning;
                 }
-                else if (item.Equals("NoDecals"))
+                else if (item.EqualsIgnoreCase("NoDecals"))
                 {
                     CheckSetUseTextureOptions(ref useOptions, ref m_options);
                     m_options.Flags |= TextureOptionFlags.NoDecals;
                 }
-                else if (item.Equals("NullTexture"))
+                else if (item.EqualsIgnoreCase("NullTexture"))
                 {
                     CheckSetUseTextureOptions(ref useOptions, ref m_options);
                     m_options.Flags |= TextureOptionFlags.NullTexture;
                 }
-                else if (item.Equals("NoTrim"))
+                else if (item.EqualsIgnoreCase("NoTrim"))
                 {
                     CheckSetUseTextureOptions(ref useOptions, ref m_options);
                     m_options.Flags |= TextureOptionFlags.NoTrim;

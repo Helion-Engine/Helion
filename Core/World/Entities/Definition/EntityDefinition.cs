@@ -56,7 +56,7 @@ public class EntityDefinition
         foreach (var parentClass in ParentClassNames)
             ParentClassLookup.Add(parentClass);
         IsBulletPuff = Name.EqualsIgnoreCase("BulletPuff");
-        IsBlood = Name.Equals("Blood");
+        IsBlood = Name.EqualsIgnoreCase("Blood");
         IsInventory = IsType(EntityDefinitionType.Inventory);
     }
 

@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Globalization;
+using FluentAssertions;
 using Helion.Strings;
 using Xunit;
 
@@ -28,10 +29,10 @@ public class StringBufferTests
         string str = StringBuffer.GetString(16);
         int length = str.Length * 2;
         for (int i = 0; i < length; i++)
-            str = StringBuffer.Append(str, (i % 10).ToString()[0]);
+            str = StringBuffer.Append(str, (i % 10).ToString(CultureInfo.InvariantCulture)[0]);
 
         for (int i = 0; i < length; i++)
-            str[i].Should().Be((i % 10).ToString()[0]);
+            str[i].Should().Be((i % 10).ToString(CultureInfo.InvariantCulture)[0]);
     }
 
     [Fact(DisplayName = "ToStringExact")]

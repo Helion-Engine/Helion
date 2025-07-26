@@ -689,7 +689,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (Properties.ProjectileGroup.HasValue)
             return !ProjectileGroupEquals(Properties.ProjectileGroup, damageSource.Properties.ProjectileGroup);
 
-        if (GetSpeciesName().Equals(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies)
+        if (GetSpeciesName().EqualsIgnoreCase(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies)
             return false;
 
         return true;

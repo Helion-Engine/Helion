@@ -22,11 +22,11 @@ public class GameConf
     {
         var archives = World.ArchiveCollection.AllArchives.ToArray();
         archives.Length.Should().Be(5);
-        archives[0].Path.Name.ToLower().Should().Be("assets");
-        archives[1].Path.Name.ToLower().Should().Be("doom2");
-        archives[2].Path.Name.ToLower().Should().Be("id24gameconf");
-        archives[3].Path.Name.ToLower().Should().Be("pwad1");
-        archives[4].Path.Name.ToLower().Should().Be("pwad2");
+        archives[0].Path.Name.ToLowerInvariant().Should().Be("assets");
+        archives[1].Path.Name.ToLowerInvariant().Should().Be("doom2");
+        archives[2].Path.Name.ToLowerInvariant().Should().Be("id24gameconf");
+        archives[3].Path.Name.ToLowerInvariant().Should().Be("pwad1");
+        archives[4].Path.Name.ToLowerInvariant().Should().Be("pwad2");
     }
 
     [Fact(DisplayName = "Wad translation")]

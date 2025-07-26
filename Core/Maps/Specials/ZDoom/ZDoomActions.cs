@@ -10,7 +10,7 @@ public static class ZDoomActions
 {
     public static ZDoomLineSpecialType ParseZDoomAction(string action)
     {
-        switch (action.ToLower())
+        switch (action.ToLowerInvariant())
         {
             case "polyobj_startline":
                 return (ZDoomLineSpecialType)1;

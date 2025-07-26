@@ -1,13 +1,14 @@
 ﻿namespace Helion.Layer.Endoom
 {
+    using System;
+    using System.Globalization;
+    using System.IO;
     using SixLabors.Fonts;
     using SixLabors.ImageSharp;
     using SixLabors.ImageSharp.Advanced;
     using SixLabors.ImageSharp.Drawing.Processing;
     using SixLabors.ImageSharp.PixelFormats;
     using SixLabors.ImageSharp.Processing;
-    using System;
-    using System.IO;
 
     public class TextScreen
     {
@@ -76,7 +77,7 @@
             using (MemoryStream fontDataStream = new MemoryStream(fontData))
             {
                 FontCollection fontCollection = new();
-                FontFamily consoleFontFamily = fontCollection.Add(fontDataStream);
+                FontFamily consoleFontFamily = fontCollection.Add(fontDataStream, CultureInfo.InvariantCulture);
                 consoleFont = consoleFontFamily.CreateFont(pixelHeight / m_height); // Use whatever pixel value fits all the lines
             }
 

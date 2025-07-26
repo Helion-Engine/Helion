@@ -80,7 +80,7 @@ public class CompatibilityParser : ParserBase
     {
         int id = ConsumeInteger();
 
-        switch (ConsumeIdentifier().ToUpper())
+        switch (ConsumeIdentifier().ToUpperInvariant())
         {
         case "DELETE":
             m_mapDefinition.Lines.Add(new LineDeleteDefinition(id));
@@ -135,7 +135,7 @@ public class CompatibilityParser : ParserBase
     {
         int id = ConsumeInteger();
 
-        switch (ConsumeIdentifier().ToUpper())
+        switch (ConsumeIdentifier().ToUpperInvariant())
         {
         case "SET":
             ConsumeSideSetDefinition(id);
