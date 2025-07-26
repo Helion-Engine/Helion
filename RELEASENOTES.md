@@ -15,6 +15,8 @@
 - Windows AOT builds are statically linked to all dependencies above the Windows API itself
 - Linux AOT builds are statically linked to all dependencies above libsndfile/libmpg123
 - AppImage build support for Linux AOT
+- Ambient sound support from SNDINFO
+- Sound more accurately matches Doom's sound curve and cutoff
 
 ## Bug Fixes:
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.
