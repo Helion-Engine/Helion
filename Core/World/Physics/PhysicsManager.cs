@@ -9,6 +9,7 @@ using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -713,7 +714,7 @@ public sealed class PhysicsManager
     {
         Invariant(intersectSectors == null || ReferenceEquals(entity.IntersectSectors, intersectSectors), $"Intersect sectors not owned by entity.");
 
-        if (entity.IsDisposed || entity.Definition.IsBulletPuff)
+        if (entity.IsDisposed || entity.Definition.Type == EntityType.BulletPuff)
             return;
         if (entity.Flags.NoClip && entity.Flags.NoGravity)
             return;

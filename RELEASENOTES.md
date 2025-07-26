@@ -15,6 +15,8 @@
 - Windows AOT builds are statically linked to all dependencies above the Windows API itself
 - Linux AOT builds are statically linked to all dependencies above libsndfile/libmpg123
 - AppImage build support for Linux AOT
+- Ambient sound support from SNDINFO
+- Sound more accurately matches Doom's sound curve and cutoff
 
 ## Bug Fixes:
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.
@@ -45,3 +47,4 @@
 - Fix UDMF parser to ignore unknown properties / sections (e.g. ee_compat = true;).
 - Fix UDMF to rotate flats before applying offsets.
 - Fix null debug texture being applied to sprite brightmaps when render.nulltexture is on.
+- Fix issue with looping sounds being removed entirely when out of range that prevented them from being added when back in range.

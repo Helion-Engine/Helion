@@ -55,6 +55,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public double AngleRadians;
     public Vec3D Position;
     public Vec3D Velocity;
+    public IAudioSource? AudioSource;
+    public int Ticks;
 
     public int Health;
     public int MoveCount;
@@ -124,6 +126,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public int MaxTargetRange;
     public int MinMissileChance;
     public int MeleeThreshold;
+    public int EditorId;
 
     public bool IsFrozen => FrozenTics > 0;
     public bool IsDead => Health <= 0;
@@ -201,6 +204,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         MeleeThreshold = Properties.MeleeThreshold;
 
         FrameState = new(FrameStateOptions.DestroyOnStop);
+        Ticks = 0;
+        EditorId = 0;
     }
 
     public void Set(int index, EntityModel entityModel, EntityDefinition definition, IWorld world)
@@ -253,9 +258,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         MaxTargetRange = entityModel.MaxTargetRange ?? Properties.MaxTargetRange;
         MinMissileChance = entityModel.MinMissileChance ?? Properties.MinMissileChance;
         MeleeThreshold = entityModel.MeleeThreshold ?? Properties.MeleeThreshold;
+        EditorId = entityModel.EditorId ?? 0;
 
-        if (entityModel.IsBlood.HasValue)
-            Definition.IsBlood = entityModel.IsBlood.Value;
+        if (entityModel.IsBlood.HasValue && entityModel.IsBlood.Value)
+            Definition.Type = EntityType.Blood;
+
+        Ticks = 0;
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -297,7 +305,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.MaxTargetRange = MaxTargetRange;
         entityModel.MinMissileChance = MinMissileChance;
         entityModel.MeleeThreshold = MeleeThreshold;
-        entityModel.IsBlood = Definition.IsBlood;
+        entityModel.IsBlood = Definition.Type == EntityType.Blood;
+        entityModel.EditorId = EditorId == 0 ? null : EditorId;
         return entityModel;
     }
 
@@ -1111,18 +1120,19 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public virtual void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)
     {
-
+        AudioSource = audioSource;
     }
 
     public virtual bool TryClearSound(string sound, SoundChannel channel, out IAudioSource? clearedSound)
     {
+        AudioSource = null;
         clearedSound = null;
         return false;
     }
 
     public virtual void ClearSound(IAudioSource audioSource, SoundChannel channel)
     {
-        
+        AudioSource = null;
     }
 
     public Vec3D? GetSoundPosition(Entity listenerEntity)

@@ -3121,9 +3121,9 @@ public static class EntityActionFunctions
         createdEntity.Velocity.Y = velocity.Y;
         createdEntity.Velocity.Z = zVelocity;
 
-        if (entity.Definition.IsBlood)
+        if (entity.Definition.Type == EntityType.Blood)
         {
-            createdEntity.Definition.IsBlood = true;
+            createdEntity.Definition.Type = EntityType.Blood;
             createdEntity.SetOwner(entity.Owner());
         }
 
