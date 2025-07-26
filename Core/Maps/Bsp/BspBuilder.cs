@@ -83,7 +83,7 @@ public class BspBuilder : IBspBuilder
     /// <param name="branch">The branch path to go to.</param>
     public void ExecuteUntilBranch(string branch)
     {
-        string upperBranch = branch.ToUpper();
+        string upperBranch = branch.ToUpperInvariant();
         while (!Done)
         {
             WorkItem? item = CurrentWorkItem;

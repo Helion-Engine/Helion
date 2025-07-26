@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using Helion.Geometry.Boxes;
 using Helion.Util.Configs.Impl;
@@ -65,9 +66,9 @@ namespace Helion.Geometry.Vectors
             try
             {
                 var tokens = s.Split(Config.FindSplitValue(s));
-                var x = int.Parse(tokens[0].Trim());
-                var y = int.Parse(tokens[1].Trim());
-                var z = int.Parse(tokens[2].Trim());
+                var x = int.Parse(tokens[0].Trim(), CultureInfo.InvariantCulture);
+                var y = int.Parse(tokens[1].Trim(), CultureInfo.InvariantCulture);
+                var z = int.Parse(tokens[2].Trim(), CultureInfo.InvariantCulture);
                 return (x, y, z);
             }
             catch

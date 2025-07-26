@@ -182,7 +182,7 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
 
     // Forces helion graphics like the options background, and brightmaps, to always be true color
     private static bool AlwaysTrueColor(Entry entry) =>
-        entry.Path.Name.StartsWith("helion") || entry.Namespace == ResourceNamespace.Brightmaps;
+        entry.Path.Name.StartsWith("helion", StringComparison.Ordinal) || entry.Namespace == ResourceNamespace.Brightmaps;
 
     private Image? ImageFromEntry(Entry entry, bool cacheEntry = true, GetImageOptions options = GetImageOptions.Default, byte[]? colorTranslation = null)
     {

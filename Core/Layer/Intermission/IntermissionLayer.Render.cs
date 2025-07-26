@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
@@ -10,8 +13,6 @@ using Helion.Resources.Definitions.Intermission;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Extensions;
-using System.Collections.Generic;
-using System.Linq;
 using static Helion.Render.Common.RenderDimensions;
 
 namespace Helion.Layer.Worlds;
@@ -246,7 +247,7 @@ public partial class IntermissionLayer
         string GetTimeString(int seconds)
         {
             int minutes = seconds / 60;
-            string secondsStr = (seconds % 60).ToString().PadLeft(2, '0');
+            string secondsStr = (seconds % 60).ToString(CultureInfo.CurrentCulture).PadLeft(2, '0');
             return $"{minutes}:{secondsStr}";
         }
 

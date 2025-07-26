@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Util.Configs.Impl;
@@ -72,8 +73,8 @@ public struct Dimension
         try
         {
             var tokens = s.Split(Config.FindSplitValue(s));
-            int w = int.Parse(tokens[0].Trim());
-            int h = int.Parse(tokens[1].Trim());
+            int w = int.Parse(tokens[0].Trim(), CultureInfo.InvariantCulture);
+            int h = int.Parse(tokens[1].Trim(), CultureInfo.InvariantCulture);
             return (w, h);
         }
         catch

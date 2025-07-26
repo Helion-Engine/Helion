@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -162,7 +163,7 @@ public class OpenALAudioSystem : IAudioSystem
         ALError error = AL.GetError();
         if (error != ALError.NoError)
         {
-            string reason = string.Format(debugInfo, objs);
+            string reason = string.Format(CultureInfo.InvariantCulture, debugInfo, objs);
             Fail($"Unexpected OpenAL error: {error} (reason: {AL.GetErrorString(error)}) {reason}");
         }
     }

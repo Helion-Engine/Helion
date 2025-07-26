@@ -170,7 +170,7 @@ public class Tokenizer
         }
 
         string text = numberBuilder.ToString();
-        if (text.EndsWith("."))
+        if (text.EndsWith(".", System.StringComparison.Ordinal))
             throw new ParserException(m_lineNumber, m_lineCharOffset - 1, m_textIndex - 1, "Decimal number cannot end with a period");
 
         if (isFloat)

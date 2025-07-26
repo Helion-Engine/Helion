@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Globalization;
 using System.Text.Json;
 using Helion.Util.Extensions;
 using Helion.Util.SerializationContexts;
@@ -68,7 +68,7 @@ public static class ConfigConverters
                 return (T)(object)1;
             if (Parsing.TryParseDouble(text, out double d))
                 return (T)(object)(int)d;
-            return (T)(object)int.Parse(text);
+            return (T)(object)int.Parse(text, CultureInfo.InvariantCulture);
         }
 
         return ThrowableIntConverter;

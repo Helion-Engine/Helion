@@ -110,22 +110,38 @@ public class UdmfMap : IMap
         while (!parser.IsDone())
         {
             var type = parser.ConsumeStringSpan();
-            parser.Consume('{');
-
             if (type.EqualsIgnoreCase("vertex"))
+            {
+                parser.Consume('{');
                 ParseVertex(parser, vertices);
+                parser.Consume('}');
+            }
             else if (type.EqualsIgnoreCase("linedef"))
+            {
+                parser.Consume('{');
                 ParseLine(parser, lines);
+                parser.Consume('}');
+            }
             else if (type.EqualsIgnoreCase("sidedef"))
+            {
+                parser.Consume('{');
                 ParseSide(parser, sides);
+                parser.Consume('}');
+            }
             else if (type.EqualsIgnoreCase("sector"))
+            {
+                parser.Consume('{');
                 ParseSector(parser, sectors);
+                parser.Consume('}');
+            }
             else if (type.EqualsIgnoreCase("thing"))
+            {
+                parser.Consume('{');
                 ParseThing(parser, things);
+                parser.Consume('}');
+            }
             else
-                ConsumeBlock(parser);
-
-            parser.Consume('}');
+                ConsumeUnknownBlockOrProperty(parser);
         }
 
         foreach (var side in sides)
@@ -137,6 +153,32 @@ public class UdmfMap : IMap
         MapLines(lines, vertices, sides);
     }
 
+    private static void ConsumeUnknownBlockOrProperty(SimpleParser parser)
+    {
+        if (parser.Peek("="))
+            ConsumeUnknownProperty(parser);
+        else if (parser.Peek("{"))
+            ConsumeUnknownBlock(parser);
+        else
+            throw new Exception("Malformed UDMF TEXTMAP. Expected '=' or '{' but found: " + parser.PeekString());
+    }
+
+    private static void ConsumeUnknownProperty(SimpleParser parser)
+    {
+        parser.Consume('=');
+        parser.ConsumeStringSpan();
+        parser.Consume(';');
+    }
+
+    private static void ConsumeUnknownBlock(SimpleParser parser)
+    {
+        parser.Consume('{');
+        while (!parser.Peek('}'))
+            parser.ConsumeStringSpan();
+
+        parser.Consume('}');
+    }
+
     private static void ParseThing(SimpleParser parser, List<UdmfThing> things)
     {
         var thing = new UdmfThing();
@@ -145,11 +187,11 @@ public class UdmfMap : IMap
         {
             var prop = ParseProperty(parser);
             if (prop.Name.EqualsIgnoreCase("x"))
-                x = double.Parse(prop.Value);
+                x = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("y"))
-                y = double.Parse(prop.Value);
+                y = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("height"))
-                z = double.Parse(prop.Value);
+                z = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("angle"))
                 thing.Angle = (ushort)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("type"))
@@ -488,18 +530,12 @@ public class UdmfMap : IMap
         {
             var prop = ParseProperty(parser);
             if (prop.Name.EqualsIgnoreCase("x"))
-                x = double.Parse(prop.Value);
+                x = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("y"))
-                y = double.Parse(prop.Value);
+                y = parser.ParseDouble(prop.Value);
         }
 
         vertices.Add(new(vertices.Count, new(x, y)));
-    }
-
-    private static void ConsumeBlock(SimpleParser parser)
-    {
-        while (parser.PeekStringSpan() != "}")
-            parser.ConsumeLineSpan();
     }
 
     private static Property ParseProperty(SimpleParser parser)

@@ -56,12 +56,19 @@ public class MusicPlayer : IMusicPlayer
 
     private ZMusicPlayer CreateZMusicPlayer(ConfigAudio configAudio, AudioStreamFactory streamFactory, string soundFontPath)
     {
+        FluidMidiOptions midiOptions = FluidMidiOptions.None;
+        if (configAudio.EnableChorus)
+            midiOptions |= FluidMidiOptions.Chorus;
+        if (configAudio.EnableReverb)
+            midiOptions |= FluidMidiOptions.Reverb;
+
         var player = new ZMusicPlayer(
             streamFactory,
             configAudio.Synthesizer == Synth.OPL3 ? MidiDevice.OPL3 : MidiDevice.FluidSynth,
             soundFontPath,
             null,
-            (float)configAudio.MusicVolume.Value);
+            (float)configAudio.MusicVolume.Value,
+            fluidMidiOptions: midiOptions);
         SetSynthesizer(player);
         return player;
     }
@@ -177,8 +184,6 @@ public class MusicPlayer : IMusicPlayer
             options |= FluidMidiOptions.Reverb;
 
         m_zMusicPlayer.SetFluidMidiOptions(options);
-        if (m_zMusicPlayer.IsPlaying)
-            RestartZMusicPlayer();
     }
 
     private void PlayQueueTask()

@@ -49,7 +49,7 @@ public class GameLayerInput
 
         public bool KeyIsAnalogAxis(Key key)
         {
-            return key.ToString().StartsWith("Axis");
+            return key.ToString().StartsWith("Axis", StringComparison.Ordinal);
         }
 
         public bool TryGetAnalogValueForAxis(Key key, out float axisAnalogValue)

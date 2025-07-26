@@ -40,3 +40,8 @@
 - Fix crash when parsing files with a multiline comment that starts and terminates on same line.
 - Fix save/load menu max rows not filling the box.
 - Fix dehacked parsing issue with [STRINGS] block that would stop parsing when it encountered bad data (fixes Sunder 2407 dehacked).
+- Fix 'kill grounded monsters' to match behavior from dsda where it needs to be on it's highest floor (fixes Sunless MAP01 sphere exit).
+- Fix UDMF decimal parsing when on machines don't use dot as a separator.
+- Fix UDMF parser to ignore unknown properties / sections (e.g. ee_compat = true;).
+- Fix UDMF to rotate flats before applying offsets.
+- Fix null debug texture being applied to sprite brightmaps when render.nulltexture is on.

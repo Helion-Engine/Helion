@@ -31,7 +31,7 @@ public partial class DecorateParser
 
     private static bool TryGetStateBranch(string text, out ActorStateBranch branchType)
     {
-        switch (text.ToUpper())
+        switch (text.ToUpperInvariant())
         {
         case "FAIL":
             branchType = ActorStateBranch.Fail;
@@ -99,7 +99,7 @@ public partial class DecorateParser
             if (value == null)
                 throw MakeException($"Ran out of tokens when reading actor frame properties on actor '{m_currentDefinition.Name}'");
 
-            string upperKeyword = value.ToUpper();
+            string upperKeyword = value.ToUpperInvariant();
             if (!FramePropertyKeywords.Contains(upperKeyword))
                 break;
 
@@ -251,8 +251,8 @@ public partial class DecorateParser
 
         // It is possible that no such action function exists and we would
         // be reading a label or frame.
-        string upperText = text.ToUpper();
-        if (upperText.StartsWith("A_") || ActionSpecialHelper.Exists(upperText))
+        string upperText = text.ToUpperInvariant();
+        if (upperText.StartsWith("A_", StringComparison.Ordinal) || ActionSpecialHelper.Exists(upperText))
         {
             string functionName = string.Intern(ConsumeIdentifier());
             return new ActorActionFunction(functionName, ConsumeActionFunctionArguments());
@@ -263,7 +263,7 @@ public partial class DecorateParser
 
     private void HandleLabelOverride(ActorStateBranch branchType)
     {
-        string upperImmediateLabel = m_immediatelySeenLabel?.ToUpper() ?? "";
+        string upperImmediateLabel = m_immediatelySeenLabel?.ToUpperInvariant() ?? "";
         Invariant(!upperImmediateLabel.Empty(), "Forgot to set immediate label when parsing actor states");
 
         if (branchType != ActorStateBranch.Goto)

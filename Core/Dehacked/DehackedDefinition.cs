@@ -910,7 +910,7 @@ public partial class DehackedDefinition
         if (parser.PeekString(0, out string? frame) && parser.PeekString(2, out string? equal)
             && frame != null && equal != null)
         {
-            return !frame.Equals("Frame", StringComparison.OrdinalIgnoreCase) || !equal.Equals("=");
+            return !frame.Equals("Frame", StringComparison.OrdinalIgnoreCase) || !equal.Equals("=", StringComparison.Ordinal);
         }
 
         return true;

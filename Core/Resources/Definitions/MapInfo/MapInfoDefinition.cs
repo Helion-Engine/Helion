@@ -144,9 +144,9 @@ public partial class MapInfoDefinition
                 mapDef.MapSpecialAction = MapSpecialAction.OpenDoor;
             else if (item.Equals("specialaction", StringComparison.OrdinalIgnoreCase))
                 ParseSpecialAction(parser, mapDef);
-            else if (item.Equals("ResetHealth"))
+            else if (item.Equals("ResetHealth", StringComparison.OrdinalIgnoreCase))
                 mapDef.SetOption(MapOptions.ResetHealth, true);
-            else if (item.Equals("ResetInventory"))
+            else if (item.Equals("ResetInventory", StringComparison.OrdinalIgnoreCase))
                 mapDef.SetOption(MapOptions.ResetInventory, true);
             else if (item.Equals("normalinfighting", StringComparison.OrdinalIgnoreCase))
             {

@@ -1,13 +1,14 @@
-﻿using Helion.Render.Common.Renderers;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using Helion.Render.Common.Renderers;
 using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.Window;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace Helion.Layer.Options.Dialogs;
 
@@ -98,7 +99,7 @@ internal class FileListDialog : ListDialog
     private void ChangeDirectory()
     {
         m_path = GetFullPath(Path.Combine(m_path, m_file));
-        if (m_path.StartsWith(m_pathsManager.UserDataFolder))
+        if (m_path.StartsWith(m_pathsManager.UserDataFolder, StringComparison.Ordinal))
             m_path = Path.GetRelativePath(m_pathsManager.UserDataFolder, m_path);
         m_file = string.Empty;
         m_listsNeedUpdate = true;

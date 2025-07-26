@@ -367,7 +367,7 @@ public partial class Inventory
         {
             if (!weapon.FlashState.Frame.IsNullFrame)
                 flashFrame = true;
-            if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol"))
+            if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol", StringComparison.Ordinal))
                 fireFunction = true;
         });
 
@@ -399,7 +399,7 @@ public partial class Inventory
         {
             if (!weapon.FlashState.Frame.IsNullFrame)
                 flash = true;
-            if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol"))
+            if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol", StringComparison.Ordinal))
                 fire = true;
         });
 
@@ -418,7 +418,7 @@ public partial class Inventory
         {
             if (!weapon.FlashState.Frame.IsNullFrame)
                 flash = true;
-            if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol"))
+            if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol", StringComparison.Ordinal))
                 fire = true;
         });
 
@@ -456,7 +456,7 @@ public partial class Inventory
             Player.TickCommand.Add(TickCommands.Attack);
             if (Player.Refire)
                 hitRefire = true;
-            if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol") && 
+            if (weapon.FrameState.Frame.ActionFunction != null && weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_FirePistol", StringComparison.Ordinal) && 
                 weapon.FrameState.CurrentTick == 6)
                 fireCount++;
         });
@@ -673,7 +673,7 @@ public partial class Inventory
         var weapon = Player.Weapon!;
         GameActions.TickWorld(World, () =>
         {
-            return weapon.FrameState.Frame.ActionFunction == null || !weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_ReFire");
+            return weapon.FrameState.Frame.ActionFunction == null || !weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_ReFire", StringComparison.Ordinal);
         }, onTick);
     }
 
@@ -685,7 +685,7 @@ public partial class Inventory
         {
             if (weapon.FrameState.Frame.ActionFunction == null)
                 return false;
-            if (!weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_ReFire"))
+            if (!weapon.FrameState.Frame.ActionFunction.Method.Name.Equals("A_ReFire", StringComparison.Ordinal))
                 return false;
             return true;
         }, onTick);

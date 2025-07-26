@@ -21,6 +21,7 @@ using static Helion.Dehacked.DehackedDefinition;
 using Helion.Maps.Shared;
 using Helion.Graphics.Palettes;
 using System.Runtime.CompilerServices;
+using System.Globalization;
 
 namespace Helion.Dehacked;
 
@@ -117,13 +118,13 @@ public class DehackedApplier
         m_dehacked = dehacked;
 
         for (int i = 0; i < 100; i++)
-            dehacked.NewSpriteLookup[DehExtraSpriteStart + i] = $"SP{i.ToString().PadLeft(2, '0')}";
+            dehacked.NewSpriteLookup[DehExtraSpriteStart + i] = $"SP{i.ToString(CultureInfo.InvariantCulture).PadLeft(2, '0')}";
 
         for (int i = 0; i < 200; i++)
         {
             string name = $"*deh/{i}";
             dehacked.NewSoundLookup[DehExtraSoundStart + i] = name;
-            definitionEntries.SoundInfo.Add(name, new SoundInfo(name, $"dsfre{i.ToString().PadLeft(3, '0')}", 0));
+            definitionEntries.SoundInfo.Add(name, new SoundInfo(name, $"dsfre{i.ToString(CultureInfo.InvariantCulture).PadLeft(3, '0')}", 0));
         }
     }
 
@@ -614,7 +615,7 @@ public class DehackedApplier
             if (lookup.Frame != null && lookup.Frame != frameItem.Frame)
                 continue;
 
-            if (lookup.ActorName != null && !lookup.ActorName.Equals(frameItem.VanillaActorName))
+            if (lookup.ActorName != null && !lookup.ActorName.Equals(frameItem.VanillaActorName, StringComparison.Ordinal))
                 continue;
 
             if (frameItem.OriginalSprite.Equals(lookup.Sprite, StringComparison.OrdinalIgnoreCase))
@@ -920,7 +921,7 @@ public class DehackedApplier
         RemoveLabels.Clear();
         foreach (var pair in definition.States.Labels)
         {
-            int index = pair.Key.IndexOf("::");
+            int index = pair.Key.IndexOf("::", StringComparison.Ordinal);
             if (index == -1 && !pair.Key.Equals(actionLabel, StringComparison.OrdinalIgnoreCase))
                 continue;
             else if (index != -1 && !pair.Key[(index + 2)..].Equals(actionLabel, StringComparison.OrdinalIgnoreCase))
@@ -1204,7 +1205,7 @@ public class DehackedApplier
 
         foreach (var frame in entityFrameTable.Frames)
         {
-            if (!frame.Sprite.Equals(text.OldString))
+            if (!frame.Sprite.Equals(text.OldString, StringComparison.Ordinal))
                 continue;
 
             frame.SetSprite(text.NewString);
@@ -1631,7 +1632,7 @@ public class DehackedApplier
             if (par.Episode.HasValue)
                 mapName = $"e{par.Episode.Value}m{par.Map}";
             else
-                mapName = $"map{par.Map.ToString().PadLeft(2, '0')}";
+                mapName = $"map{par.Map.ToString(CultureInfo.InvariantCulture).PadLeft(2, '0')}";
 
             var findMapInfo = mapInfoDefinition.MapInfo.GetMap(mapName);
             if (!string.IsNullOrEmpty(findMapInfo.Error))

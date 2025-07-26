@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Resources;
@@ -8,10 +13,6 @@ using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace Helion.Graphics.Fonts;
 
@@ -39,7 +40,7 @@ public static class TrueTypeFont
             FontCollection fontCollection = new();
             using (MemoryStream stream = new(data))
             {
-                FontFamily fontFamily = fontCollection.Add(stream);
+                FontFamily fontFamily = fontCollection.Add(stream, CultureInfo.InvariantCulture);
                 SixLabors.Fonts.Font imageSharpFont = fontFamily.CreateFont(RenderFontSize);
                 RichTextOptions richTextOptions = new(imageSharpFont);
 

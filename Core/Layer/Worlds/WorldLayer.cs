@@ -218,7 +218,7 @@ public partial class WorldLayer : IGameLayerParent
 
         foreach (var mapCompat in MapCompat)
         {
-            if (map.Name.EqualsIgnoreCase(mapCompat.MapName) && map.MD5.Equals(mapCompat.MD5))
+            if (map.Name.EqualsIgnoreCase(mapCompat.MapName) && map.MD5.Equals(mapCompat.MD5, StringComparison.Ordinal))
             {
                 ApplyCompatOptions(config, mapCompat.Values);
                 break;
