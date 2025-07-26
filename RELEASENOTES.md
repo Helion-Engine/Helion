@@ -47,3 +47,4 @@
 - Fix UDMF parser to ignore unknown properties / sections (e.g. ee_compat = true;).
 - Fix UDMF to rotate flats before applying offsets.
 - Fix null debug texture being applied to sprite brightmaps when render.nulltexture is on.
+- Fix issue with looping sounds being removed entirely whe out of range that prevented them from being added when back in range.
