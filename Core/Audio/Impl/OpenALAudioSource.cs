@@ -81,7 +81,7 @@ public class OpenALAudioSource : IAudioSource
             var bitsPerSample = AL.GetBuffer(m_sourceId, ALGetBufferi.Bits);
 
             var offset = audioData.OffsetSeconds;
-            var totalDuration = buffer.Bytes / (buffer.SampleRate * channels * (bitsPerSample / 8f));
+            var totalDuration = buffer.Bytes / Math.Max(buffer.SampleRate * channels * (bitsPerSample / 8f), 1);
             offset %= totalDuration;
 
             AL.Source(m_sourceId, ALSourcef.SecOffset, Math.Max(offset, 0));
