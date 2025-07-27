@@ -158,10 +158,10 @@ public class LegacyAutomapRenderer : IDisposable
             m_shader.Color(color);
             m_vao.Bind();
             GL.DrawArrays(PrimitiveType.Lines, first, count);
-            VertexArrayObject.Unbind();
+            m_vao.Unbind();
         }
 
-        OpenGL.Shader.RenderProgram.Unbind();
+        m_shader.Unbind();
     }
 
     private static float ChangeColor(float color, float amount)

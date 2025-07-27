@@ -132,7 +132,9 @@ public abstract class RenderProgram : IDisposable
         GL.UseProgram(m_program);
     }
 
-    public static void Unbind()
+#pragma warning disable CA1822 // Mark members as static
+    public void Unbind()
+#pragma warning restore CA1822 // Mark members as static
     {
         GL.UseProgram(0);
     }

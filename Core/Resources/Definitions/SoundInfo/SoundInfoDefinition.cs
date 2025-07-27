@@ -143,7 +143,7 @@ public class SoundInfoDefinition
            ThrowParserException(parser, "Bad command. {type}");
     }
 
-    private void ThrowParserException(SimpleParser parser, string text)
+    private static void ThrowParserException(SimpleParser parser, string text)
     {
         throw new ParserException(parser.GetCurrentLine(), 0, 0, $"SoundInfo: {text}");
     }
@@ -164,7 +164,7 @@ public class SoundInfoDefinition
         parser.ConsumeStringSpan();
     }
 
-    private static void ParseAmbient(SimpleParser parser)
+    private void ParseAmbient(SimpleParser parser)
     {
         float? minSecs = null;
         float? maxSecs = null;
@@ -184,7 +184,7 @@ public class SoundInfoDefinition
         m_ambientSoundLookup[index] = new(index, logicalSound, type, mode, volume, attenuation, minSecs, maxSecs);
     }
 
-    private AmbientSoundMode ParseAmbientMode(SimpleParser parser, ref float? minSecs, ref float? maxSecs)
+    private static AmbientSoundMode ParseAmbientMode(SimpleParser parser, ref float? minSecs, ref float? maxSecs)
     {
         var mode = parser.ConsumeStringSpan();
         if (mode.EqualsIgnoreCase("continuous"))
@@ -207,7 +207,7 @@ public class SoundInfoDefinition
         return AmbientSoundMode.Continuous;
     }
 
-    private AmbientSoundType ParseAmbientType(SimpleParser parser)
+    private static AmbientSoundType ParseAmbientType(SimpleParser parser)
     {
         var type = parser.ConsumeStringSpan();
         if (type.EqualsIgnoreCase("point"))

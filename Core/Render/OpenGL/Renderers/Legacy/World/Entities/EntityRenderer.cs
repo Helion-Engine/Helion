@@ -401,7 +401,7 @@ public class EntityRenderer : IDisposable
             m_dataManager.RenderHealthBars();
         }
 
-        OpenGL.Shader.RenderProgram.Unbind();
+        m_program.Unbind();
     }
 
     public void RenderOitTransparentPass(RenderInfo renderInfo)
@@ -412,7 +412,7 @@ public class EntityRenderer : IDisposable
         SetUniforms(m_programTransparent, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
-        OpenGL.Shader.RenderProgram.Unbind();
+        m_programTransparent.Unbind();
     }
 
     public void RenderOitTransparentFuzzPass(RenderInfo renderInfo)
@@ -422,7 +422,7 @@ public class EntityRenderer : IDisposable
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
-        OpenGL.Shader.RenderProgram.Unbind();
+        m_programTransparent.Unbind();
     }
 
     public void RenderOitCompositePass(RenderInfo renderInfo)
@@ -431,7 +431,7 @@ public class EntityRenderer : IDisposable
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programComposite, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
-        OpenGL.Shader.RenderProgram.Unbind();
+        m_programComposite.Unbind();
     }
 
     public void RenderOitFuzzRefractionPass(RenderInfo renderInfo, bool renderColor)
@@ -441,7 +441,7 @@ public class EntityRenderer : IDisposable
         m_programFuzzRefraction.RenderFuzzRefractionColor(renderColor);
         SetUniforms(m_programFuzzRefraction, renderInfo);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
-        OpenGL.Shader.RenderProgram.Unbind();
+        m_programFuzzRefraction.Unbind();
     }
 
     public void RenderTransparent(RenderInfo renderInfo)
@@ -451,7 +451,7 @@ public class EntityRenderer : IDisposable
         SetUniforms(m_program, renderInfo);
         m_dataManager.RenderAlpha(PrimitiveType.Points);
         m_dataManager.RenderFuzz(PrimitiveType.Points);
-        OpenGL.Shader.RenderProgram.Unbind();
+        m_program.Unbind();
     }
 
     public void ResetInterpolation(IWorld world)

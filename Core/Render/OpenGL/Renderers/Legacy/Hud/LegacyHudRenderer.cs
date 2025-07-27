@@ -176,11 +176,11 @@ public class LegacyHudRenderer : HudRenderer
                 GL.BindTexture(TextureTarget.Texture2D, 0);
             m_vao.Bind();
             m_vbo.DrawArrays();
-            VertexArrayObject.Unbind();
+            m_vao.Unbind();
             data.Texture.Unbind();
         }
 
-        Shader.RenderProgram.Unbind();
+        m_program.Unbind();
     }
 
     public override void Dispose()

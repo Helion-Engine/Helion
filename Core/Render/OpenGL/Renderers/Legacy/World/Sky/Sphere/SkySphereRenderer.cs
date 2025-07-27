@@ -63,7 +63,7 @@ public class SkySphereRenderer : IDisposable
         m_skyProgram.Bind();
         SetSkyUniforms(m_skyProgram, renderInfo, options, m_mode, skyTexture, skyTexture, skyTransform.Sky);
         DrawSphere(skyTexture.GlTexture);
-        OpenGL.Shader.RenderProgram.Unbind();
+        m_skyProgram.Unbind();
 
         if (skyTransform.Foreground == null)
             return;
@@ -75,7 +75,7 @@ public class SkySphereRenderer : IDisposable
         SetSkyUniforms(m_foregroundProgram, renderInfo, SkyOptions.Flip, m_mode, foregroundTexture, skyTexture, skyTransform.Foreground);
         DrawSphere(foregroundTexture.GlTexture);
 
-        OpenGL.Shader.RenderProgram.Unbind();
+        m_foregroundProgram.Unbind();
     }
 
     public void Dispose()
@@ -114,7 +114,7 @@ public class SkySphereRenderer : IDisposable
         texture.Bind();
         m_vao.Bind();
         m_vbo.DrawArrays();
-        VertexArrayObject.Unbind();
+        m_vao.Unbind();
         texture.Unbind();
     }
 

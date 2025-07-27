@@ -59,7 +59,7 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
         Vbo.DrawArrays(primitive);
 
         Vbo.Unbind();
-        VertexArrayObject.Unbind();
+        Vao.Unbind();
         Texture.Unbind();
     }
 

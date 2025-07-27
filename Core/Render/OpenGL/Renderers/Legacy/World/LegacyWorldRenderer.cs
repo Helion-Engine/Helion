@@ -400,7 +400,7 @@ public class LegacyWorldRenderer : WorldRenderer
                 GL.Disable(EnableCap.CullFace);
                 m_geometryRenderer.RenderStaticCoverWalls();
                 GL.Enable(EnableCap.CullFace);
-                OpenGL.Shader.RenderProgram.Unbind();
+                m_staticWallClipProgram.Unbind();
             }
             else
             {
@@ -408,7 +408,7 @@ public class LegacyWorldRenderer : WorldRenderer
                 GL.ActiveTexture(BindTextures.BoundTexture);
                 SetStaticUniforms(m_staticPlaneClipProgram, renderInfo);
                 m_geometryRenderer.RenderStaticGeometryFlats();
-                OpenGL.Shader.RenderProgram.Unbind();
+                m_staticPlaneClipProgram.Unbind();
             }
         }
 
@@ -421,7 +421,7 @@ public class LegacyWorldRenderer : WorldRenderer
             m_worldDataManager.RenderCoverWalls();
             m_geometryRenderer.RenderWallClipPortals(renderInfo);
             GL.Enable(EnableCap.CullFace);
-            OpenGL.Shader.RenderProgram.Unbind();
+            m_interpolationWallClipShader.Unbind();
         }
         else
         {
@@ -429,7 +429,7 @@ public class LegacyWorldRenderer : WorldRenderer
             GL.ActiveTexture(BindTextures.BoundTexture);
             SetInterpolationUniforms(m_interpolationPlaneClipShader, renderInfo, false);
             m_worldDataManager.RenderFlats();
-            OpenGL.Shader.RenderProgram.Unbind();
+            m_interpolationPlaneClipShader.Unbind();
         }
 
         PlaneClipFrameBuffer.UnbindFrameBuffer();

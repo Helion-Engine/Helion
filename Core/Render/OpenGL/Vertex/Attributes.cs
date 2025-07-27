@@ -195,7 +195,7 @@ public static class Attributes
         Apply<TVertex>(shaderAttribs);
 
         vbo.Unbind();
-        VertexArrayObject.Unbind();
+        vao.Unbind();
     }
 
     private static ProgramAttribute? FindShaderAttribute(ProgramAttributes shaderAttribs, string name)

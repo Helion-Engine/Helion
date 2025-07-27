@@ -28,7 +28,9 @@ public class VertexArrayObject : IDisposable
         GL.BindVertexArray(m_name);
     }
 
-    public static void Unbind()
+#pragma warning disable CA1822 // Mark members as static
+    public void Unbind()
+#pragma warning restore CA1822 // Mark members as static
     {
         GL.BindVertexArray(0);
     }
