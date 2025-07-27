@@ -387,7 +387,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private void WritePlaneClipData(PlaneClipFrameBuffer planeClipFrameBuffer, RenderInfo renderInfo, GLFramebuffer framebuffer, bool walls)
     {
         planeClipFrameBuffer.BindFrameBuffer();
-        planeClipFrameBuffer.StartRender();
+        PlaneClipFrameBuffer.StartRender();
 
         if (m_renderStatic)
         {
@@ -432,7 +432,7 @@ public class LegacyWorldRenderer : WorldRenderer
             m_interpolationPlaneClipShader.Unbind();
         }
 
-        planeClipFrameBuffer.UnbindFrameBuffer();
+        PlaneClipFrameBuffer.UnbindFrameBuffer();
         framebuffer.Bind();
         planeClipFrameBuffer.BindPlaneTexture(walls ? BindTextures.WallClipTexture : BindTextures.PlaneClipTexture);
         ResetBlendEquations();
@@ -462,7 +462,7 @@ public class LegacyWorldRenderer : WorldRenderer
             // Refract pixels in the opaque framebuffer
             m_entityRenderer.RenderOitFuzzRefractionPass(renderInfo, false);
 
-            m_oitFrameBuffer.SetBlendEquations();
+            OitFrameBuffer.SetBlendEquations();
             m_oitFrameBuffer.BindFrameBuffer();
 
             m_entityRenderer.RenderOitTransparentFuzzPass(renderInfo);
@@ -492,7 +492,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (fuzzData)
             m_entityRenderer.RenderOitFuzzRefractionPass(renderInfo, true);
 
-        m_oitFrameBuffer.UnbindFrameBuffer();
+        OitFrameBuffer.UnbindFrameBuffer();
         GL.DepthMask(true);
     }
 

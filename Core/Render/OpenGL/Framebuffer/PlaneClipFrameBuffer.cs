@@ -57,7 +57,7 @@ public class PlaneClipFrameBuffer : IDisposable
         GL.Clear(ClearBufferMask.DepthBufferBit);
     }
 
-    public unsafe void StartRender()
+    public static unsafe void StartRender()
     {
         GL.BlendEquation(BlendEquationMode.FuncAdd);
         GL.BlendFunc(BlendingFactor.One, BlendingFactor.Zero);
@@ -74,7 +74,7 @@ public class PlaneClipFrameBuffer : IDisposable
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_framebuffer);
     }
 
-    public void UnbindFrameBuffer()
+    public static void UnbindFrameBuffer()
     {
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     }

@@ -3,7 +3,7 @@ using Helion.World.Geometry.Sectors;
 
 namespace Helion.Render;
 
-internal class SectorUpdates
+internal sealed class SectorUpdates
 {
     public DynamicArray<Sector> UpdateSectors = new();
 

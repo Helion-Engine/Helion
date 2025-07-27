@@ -271,9 +271,9 @@ public partial class EndGameLayer
 
         EntityFrame? frame;
         if (ShouldUseMeleeState(m_castEntity, m_castIsMelee))
-            frame = m_castEntity.FrameState.GetStateFrame(m_castEntity.Definition, Constants.FrameStates.Melee);
+            frame = FrameState.GetStateFrame(m_castEntity.Definition, Constants.FrameStates.Melee);
         else
-            frame = m_castEntity.FrameState.GetStateFrame(m_castEntity.Definition, Constants.FrameStates.Missile);
+            frame = FrameState.GetStateFrame(m_castEntity.Definition, Constants.FrameStates.Missile);
 
         return frame;
     }

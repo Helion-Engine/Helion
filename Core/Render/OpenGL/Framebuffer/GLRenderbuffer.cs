@@ -30,7 +30,7 @@ public class GLRenderbuffer : IDisposable
         GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, Name);
     }
 
-    public void Unbind()
+    public static void Unbind()
     {
         GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
     }

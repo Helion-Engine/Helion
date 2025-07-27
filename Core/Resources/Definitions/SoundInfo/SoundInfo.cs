@@ -11,7 +11,7 @@ public class SoundInfo
     public readonly bool PlayerEntry;
     public readonly bool Random;
     public int PitchShift { get; set; }
-    public int Limit { get; set; } = 0;
+    public int Limit { get; set; }
     public float PitchSet { get; set; }
 
     public SoundInfo(string name, string entry, int pitchShift, bool playerEntry = false, bool random = false)

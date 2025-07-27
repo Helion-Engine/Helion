@@ -2,7 +2,7 @@
 
 namespace Helion.Tests.Unit.GameAction.Util;
 
-internal class TestTickCommand : TickCommand
+internal sealed class TestTickCommand : TickCommand
 {
     public override void TickHandled()
     {

@@ -57,7 +57,7 @@ public static class IntermissionParser
         return def;
     }
 
-    private static IList<IntermissionSpot> ParseSpots(SimpleParser parser)
+    private static List<IntermissionSpot> ParseSpots(SimpleParser parser)
     {
         List<IntermissionSpot> spots = new();
         parser.Consume('{');
@@ -111,7 +111,7 @@ public static class IntermissionParser
         return animation;
     }
 
-    private static IList<string> GetPointer(SimpleParser parser)
+    private static List<string> GetPointer(SimpleParser parser)
     {
         List<string> pointers = new();
         while (!Items.Contains(parser.PeekString()))

@@ -4,7 +4,6 @@ using Helion.Geometry.Planes;
 using Helion.Geometry.Quads;
 using Helion.Geometry.Rays;
 using Helion.Geometry.Segments;
-using Helion.Geometry.Spheres;
 using Helion.Geometry.Triangles;
 using Helion.Graphics;
 using Helion.World;
@@ -36,10 +35,6 @@ public interface IWorldRenderContext : IDisposable
     void DrawBoxes(Box3D[] boxes, Color color);
     void FillBox(Box3D box, Color color);
     void FillBoxes(Box3D[] boxes, Color color);
-    void DrawSphere(Sphere3D sphere, Color color);
-    void DrawSpheres(Sphere3D[] spheres, Color color);
-    void FillSphere(Sphere3D sphere, Color color);
-    void FillSpheres(Sphere3D[] spheres, Color color);
     void DrawImage(string texture, Quad3D quad, Color? color = null);
     void DrawSurface(string surfaceName, Quad3D quad, Color? color = null);
 }

@@ -524,7 +524,7 @@ public partial class Client
         AddWorldTickCommand(DoUseCommand, args);
 
     [ConsoleCommand("gc", "Forces Garbage Collection.")]
-    private void GarbageCollect(ConsoleCommandEventArgs args) =>
+    private static void GarbageCollect(ConsoleCommandEventArgs args) =>
         GCUtil.ForceGarbageCollection();
 
     private void DoUseCommand(ConsoleCommandEventArgs args)

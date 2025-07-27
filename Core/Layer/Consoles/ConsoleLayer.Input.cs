@@ -258,7 +258,7 @@ public partial class ConsoleLayer
             m_console.AddMessage(color, message);
     }
 
-    private string GetAutoCompletePathText(string input, string path)
+    private static string GetAutoCompletePathText(string input, string path)
     {
         int pathCount = input.Count(x => x == '.') + 1;
         if (input.EndsWith('.'))

@@ -41,7 +41,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
     private Task? m_task;
     private CancellationTokenSource m_cancelTasks = new();
     private IWorld m_world = null!;
-    private FrustumPlanes m_frustumPlanes = new();
+    private FrustumPlanes m_frustumPlanes;
 
     private readonly ConcurrentQueue<PlayerPosition> m_positions = new();
 

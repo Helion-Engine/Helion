@@ -65,7 +65,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private bool m_resetMouse;
     private bool m_setMouse;
     private bool m_didMouseWheelScroll;
-    private IDialog? m_dialog;
+    private MessageDialog? m_dialog;
 
     public OptionsLayer(GameLayerManager manager, IConfig config, PathsManager pathsManager, SoundManager soundManager, IWindow window)
     {

@@ -30,7 +30,7 @@ public class SimpleParser
     private Func<string, int, int, bool>? m_commentCallback;
     private Func<char, bool>? m_specialCallback;
 
-    private int m_index = 0;
+    private int m_index;
     private int m_startLine;
     private bool m_isQuote;
     private bool m_quotedString;

@@ -15,8 +15,8 @@ public class AutomapShader : RenderProgram
         m_mvpLocation = Uniforms.GetLocation("mvp");
     }
 
-    public void Color(Vec3F color) => Uniforms.Set(color, m_colorLocation);
-    public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
+    public void Color(Vec3F color) => ProgramUniforms.Set(color, m_colorLocation);
+    public void Mvp(mat4 mat) => ProgramUniforms.Set(mat, m_mvpLocation);
 
     protected override string VertexShader() => @"
         #version 330

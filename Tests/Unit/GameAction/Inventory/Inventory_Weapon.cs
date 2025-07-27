@@ -12,7 +12,7 @@ namespace Helion.Tests.Unit.GameAction;
 
 public partial class Inventory
 {
-    private class WeaponData(string name, string ammo, int amount, int use)
+    private sealed class WeaponData(string name, string ammo, int amount, int use)
     {
         public string Name { get; set; } = name;
         public string Ammo { get; set; } = ammo;

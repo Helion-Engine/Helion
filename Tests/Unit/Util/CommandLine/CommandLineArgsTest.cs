@@ -4,9 +4,11 @@ using Xunit;
 
 namespace Helion.Tests.Unit.Util.CommandLine;
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments", Justification = "Ease of test code maintenance")]
 public class CommandLineArgsTest
 {
     [Fact(DisplayName = "Can set many command line arguments")]
+
     public void CanSetMany()
     {
         CommandLineArgs args = CommandLineArgs.Parse(new[]

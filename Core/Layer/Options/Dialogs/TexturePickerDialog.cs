@@ -9,7 +9,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    internal class TexturePickerDialog : ListDialog
+    internal sealed class TexturePickerDialog : ListDialog
     {
         private const int BlinkIntervalMilliseconds = 500;
 

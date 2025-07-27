@@ -58,7 +58,7 @@ public class GLBufferTexture : IDisposable
         GLMappedBuffer<float> buffer = new(m_data, BufferTarget.TextureBuffer, GetAccess());
         action(buffer.Pointer);
         buffer.Dispose();
-        
+
         UnbindBuffer();
     }
     
@@ -74,7 +74,7 @@ public class GLBufferTexture : IDisposable
         GL.BindBuffer(BufferTarget.TextureBuffer, m_name);
     }
     
-    public void UnbindBuffer()
+    public static void UnbindBuffer()
     {
         GL.BindBuffer(BufferTarget.TextureBuffer, 0);
     }
@@ -84,7 +84,7 @@ public class GLBufferTexture : IDisposable
         GL.BindTexture(TextureTarget.TextureBuffer, m_textureName);
     }
     
-    public void UnbindTexture()
+    public static void UnbindTexture()
     {
         GL.BindTexture(TextureTarget.TextureBuffer, 0);
     }

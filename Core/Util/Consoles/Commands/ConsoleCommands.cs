@@ -109,7 +109,7 @@ public class ConsoleCommands : IEnumerable<(string command, ConsoleCommandData d
         return GetEnumerator();
     }
 
-    public void NotImplemented(ConsoleCommandEventArgs args)
+    public static void NotImplemented(ConsoleCommandEventArgs args)
     {
         Log.Warn($"No such command or config variable: {args.Command}");
     }

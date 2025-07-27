@@ -49,7 +49,7 @@ public class LegacyAutomapRenderer : IDisposable
     private bool m_rotate;
     private bool m_keyImageColor;
     private bool m_flashTime;
-    private Box2D m_boundingBox = default;
+    private Box2D m_boundingBox;
 
     private readonly Dictionary<string, KeyColors> m_keysByName = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<ZDoomKeyType, KeyColors> m_keysByNumber = [];

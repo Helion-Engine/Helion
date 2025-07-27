@@ -12,8 +12,8 @@ namespace Helion.World.Geometry.Islands;
 /// </summary>
 public class IslandClassifier
 {
-    int IslandId = 0;
-    int SectorIslandId = 0;
+    int IslandId;
+    int SectorIslandId;
     int SubsectorCounter = 1;
     int LineCounter = 1;
     int[] ProcessedSubsectors = [];

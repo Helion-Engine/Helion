@@ -22,8 +22,8 @@ public abstract class TransitionProgram : RenderProgram
 
     public void SetUniforms(TextureUnit unit, mat4 mvp)
     {
-        Uniforms.Set(unit, m_boundTextureLocation);
-        Uniforms.Set(mvp, m_mvpLocation);
+        ProgramUniforms.Set(unit, m_boundTextureLocation);
+        ProgramUniforms.Set(mvp, m_mvpLocation);
     }
 
     protected override string VertexShader() => @"
@@ -89,9 +89,9 @@ public class MeltTransitionProgram : TransitionProgram
     public void SetUniforms(TextureUnit unit, mat4 mvp, float elapsedTicks, int stripCount)
     {
         SetUniforms(unit, mvp);
-        Uniforms.Set(elapsedTicks, m_ticksLocation);
-        Uniforms.Set(stripCount, m_stripCountLocation);
-        Uniforms.Set(m_stripDelays, m_stripDelaysLocation);
+        ProgramUniforms.Set(elapsedTicks, m_ticksLocation);
+        ProgramUniforms.Set(stripCount, m_stripCountLocation);
+        ProgramUniforms.Set(m_stripDelays, m_stripDelaysLocation);
     }
 
     protected override string FragmentShader() => @"
@@ -137,7 +137,7 @@ public class FadeTransitionProgram : TransitionProgram
     public void SetUniforms(TextureUnit unit, mat4 mvp, float progress)
     {
         SetUniforms(unit, mvp);
-        Uniforms.Set(progress, m_progressLocation);
+        ProgramUniforms.Set(progress, m_progressLocation);
     }
 
     protected override string FragmentShader() => @"

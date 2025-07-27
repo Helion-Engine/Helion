@@ -81,7 +81,7 @@ public partial class Client
     }
 
     [ConsoleCommand("inputkeys", "List all input keys")]
-    private void InputKeys(ConsoleCommandEventArgs args)
+    private static void InputKeys(ConsoleCommandEventArgs args)
     {
         var values = Enum.GetValues<Key>();
         foreach (var value in values)
@@ -90,7 +90,7 @@ public partial class Client
 
 
     [ConsoleCommand("inputcommands", "List all input commands")]
-    private void InputCommands(ConsoleCommandEventArgs args)
+    private static void InputCommands(ConsoleCommandEventArgs args)
     {
         var inputCommands = GetAvailableInputCommands();
         foreach (var inputCommand in inputCommands)
@@ -111,7 +111,7 @@ public partial class Client
         return true;
     }
 
-    private static IList<string> GetAvailableInputCommands()
+    private static string[] GetAvailableInputCommands()
     {
         var properties = typeof(Constants.Input).GetFields();
         return properties.Select(x => x.Name).OrderBy(x => x).ToArray();

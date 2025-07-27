@@ -45,22 +45,22 @@ public class SkySphereShader : RenderProgram
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
-    public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
-    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
-    public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
-    public void Scale(Vec2F v) => Uniforms.Set(v, m_scaleLocation);
-    public void FlipU(bool flip) => Uniforms.Set(flip, m_flipULocation);
-    public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
-    public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
-    public void ScrollOffset(Vec2F offset) => Uniforms.Set(offset, m_scrollOffsetLocation);
-    public void TopColor(Vec4F topColor) => Uniforms.Set(topColor, m_topColorLocation);
-    public void BottomColor(Vec4F bottomColor) => Uniforms.Set(bottomColor, m_bottomColorLocation);
-    public void SkyHeight(float height) => Uniforms.Set(height, m_skyHeightLocation);
-    public void SkyMin(float value) => Uniforms.Set(value, m_skyMin);
-    public void SkyMax(float value) => Uniforms.Set(value, m_skyMax);
-    public void ColorMix(Vec3F value) => Uniforms.Set(value, m_colorMixLocation);
-    public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
+    public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
+    public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
+    public void HasInvulnerability(bool invul) => ProgramUniforms.Set(invul, m_hasInvulnerabilityLocation);
+    public void Mvp(mat4 mat) => ProgramUniforms.Set(mat, m_mvpLocation);
+    public void Scale(Vec2F v) => ProgramUniforms.Set(v, m_scaleLocation);
+    public void FlipU(bool flip) => ProgramUniforms.Set(flip, m_flipULocation);
+    public void PaletteIndex(int index) => ProgramUniforms.Set(index, m_paletteIndexLocation);
+    public void ColorMapIndex(int index) => ProgramUniforms.Set(index, m_colorMapIndexLocation);
+    public void ScrollOffset(Vec2F offset) => ProgramUniforms.Set(offset, m_scrollOffsetLocation);
+    public void TopColor(Vec4F topColor) => ProgramUniforms.Set(topColor, m_topColorLocation);
+    public void BottomColor(Vec4F bottomColor) => ProgramUniforms.Set(bottomColor, m_bottomColorLocation);
+    public void SkyHeight(float height) => ProgramUniforms.Set(height, m_skyHeightLocation);
+    public void SkyMin(float value) => ProgramUniforms.Set(value, m_skyMin);
+    public void SkyMax(float value) => ProgramUniforms.Set(value, m_skyMax);
+    public void ColorMix(Vec3F value) => ProgramUniforms.Set(value, m_colorMixLocation);
+    public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
 
     protected override string VertexShader() => @"
         #version 330

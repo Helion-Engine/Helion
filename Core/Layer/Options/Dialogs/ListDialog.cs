@@ -23,7 +23,7 @@ internal abstract class ListDialog : DialogBase
     private int m_selectedRow;
     private int m_firstVisibleRow;
     private int m_lastVisibleRow;
-    private bool m_hasScrollBar = false;
+    private bool m_hasScrollBar;
     private Dimension? m_scrollBarDimension;
 
     public IConfigValue ConfigValue => m_configValue;

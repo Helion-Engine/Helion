@@ -24,5 +24,9 @@
   <!--See https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#analysismodecategory -->
   <PropertyGroup>
     <AnalysisModeGlobalization>Recommended</AnalysisModeGlobalization>
+    <AnalysisModeSingleFile>Recommended</AnalysisModeSingleFile>
+    <AnalysisModeSecurity>Recommended</AnalysisModeSecurity>
+    <AnalysisModeInteroperability>Recommended</AnalysisModeInteroperability>
+    <AnalysisModePerformance>Recommended</AnalysisModePerformance>
   </PropertyGroup>
 </Project>

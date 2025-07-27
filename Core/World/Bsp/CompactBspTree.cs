@@ -249,7 +249,7 @@ public class CompactBspTree
         }
     }
 
-    private Sector GetSectorFrom(BspNode node, GeometryBuilder builder)
+    private static Sector GetSectorFrom(BspNode node, GeometryBuilder builder)
     {
         foreach (SubsectorEdge edge in node.ClockwiseEdges)
         {

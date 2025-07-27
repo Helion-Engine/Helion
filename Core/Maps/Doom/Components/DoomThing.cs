@@ -10,7 +10,7 @@ namespace Helion.Maps.Doom.Components;
 public class DoomThing : IThing
 {
     public int Id { get; }
-    public int ThingId { get; } = 0;
+    public int ThingId { get; }
     public Vec3D Position { get; }
     public ushort Angle { get; }
     public ushort EditorNumber { get; }

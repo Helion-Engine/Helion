@@ -33,7 +33,7 @@ public static class ModelVerification
         return true;
     }
 
-    private static void LogExtraLoadedArchives(GameFilesModel filesModel, ILogger log, IList<Archive> fileArchives)
+    private static void LogExtraLoadedArchives(GameFilesModel filesModel, Logger log, IList<Archive> fileArchives)
     {
         foreach (var archive in fileArchives)
         {
@@ -43,7 +43,7 @@ public static class ModelVerification
         }
     }
 
-    private static void LogMissingFiles(GameFilesModel filesModel, ILogger log, IList<Archive> fileArchives)
+    private static void LogMissingFiles(GameFilesModel filesModel, Logger log, IList<Archive> fileArchives)
     {
         foreach (var file in filesModel.Files)
         {
@@ -53,7 +53,7 @@ public static class ModelVerification
         }
     }
 
-    private static bool VerifyFileModel(ArchiveCollection archiveCollection, FileModel fileModel, ILogger? log)
+    private static bool VerifyFileModel(ArchiveCollection archiveCollection, FileModel fileModel, Logger? log)
     {
         if (fileModel.FileName == null)
         {

@@ -14,7 +14,7 @@ public class SoundInfoDefinition
     private readonly Dictionary<string, string> m_playerCompatLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<int, AmbientSoundInfo> m_ambientSoundLookup = [];
 
-    private int m_pitchShiftRange = 0;
+    private int m_pitchShiftRange;
 
     public static string GetPlayerSound(string gender, string sound)
     {
@@ -143,23 +143,23 @@ public class SoundInfoDefinition
            ThrowParserException(parser, "Bad command. {type}");
     }
 
-    private void ThrowParserException(SimpleParser parser, string text)
+    private static void ThrowParserException(SimpleParser parser, string text)
     {
         throw new ParserException(parser.GetCurrentLine(), 0, 0, $"SoundInfo: {text}");
     }
 
-    private void ParseIgnore(SimpleParser parser, int argCount = 0)
+    private static void ParseIgnore(SimpleParser parser, int argCount = 0)
     {
         for (int i = 0; i < argCount; i++)
             parser.ConsumeString();
     }
 
-    private void ParseAttenuation(SimpleParser parser)
+    private static void ParseAttenuation(SimpleParser parser)
     {
         parser.ConsumeDouble();
     }
 
-    private void ParseArchivePath(SimpleParser parser)
+    private static void ParseArchivePath(SimpleParser parser)
     {
         parser.ConsumeStringSpan();
     }
@@ -184,7 +184,7 @@ public class SoundInfoDefinition
         m_ambientSoundLookup[index] = new(index, logicalSound, type, mode, volume, attenuation, minSecs, maxSecs);
     }
 
-    private AmbientSoundMode ParseAmbientMode(SimpleParser parser, ref float? minSecs, ref float? maxSecs)
+    private static AmbientSoundMode ParseAmbientMode(SimpleParser parser, ref float? minSecs, ref float? maxSecs)
     {
         var mode = parser.ConsumeStringSpan();
         if (mode.EqualsIgnoreCase("continuous"))
@@ -207,7 +207,7 @@ public class SoundInfoDefinition
         return AmbientSoundMode.Continuous;
     }
 
-    private AmbientSoundType ParseAmbientType(SimpleParser parser)
+    private static AmbientSoundType ParseAmbientType(SimpleParser parser)
     {
         var type = parser.ConsumeStringSpan();
         if (type.EqualsIgnoreCase("point"))
@@ -232,7 +232,7 @@ public class SoundInfoDefinition
             soundInfo.PitchSet = (float)pitch;
     }
 
-    private void ParsePlayerAlias(SimpleParser parser)
+    private static void ParsePlayerAlias(SimpleParser parser)
     {
         var playerClass = parser.ConsumeStringSpan();
         var gender = parser.ConsumeStringSpan();
@@ -240,7 +240,7 @@ public class SoundInfoDefinition
         var otherLogicalSound = parser.ConsumeStringSpan();
     }
 
-    private void ParseRolloff(SimpleParser parser)
+    private static void ParseRolloff(SimpleParser parser)
     {
         var sound = parser.ConsumeStringSpan();
         if (parser.PeekInteger(out int i))

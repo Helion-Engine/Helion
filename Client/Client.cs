@@ -43,9 +43,9 @@ namespace Helion.Client;
 
 public partial class Client : IDisposable, IInputManagement
 {
-    private record class OnLoadMapComplete(Action<object?> OnComplete, object? CompleteParam);
-    private record class LoadMapResult(WorldLayer? WorldLayer, WorldModel? WorldModel, LevelChangeEvent? EventContext, IList<Player> Players, IRandom Random, int StartRandomIndex, Exception? Exception = null);
-    private record class QueueLoadMapParams(MapInfoDef MapInfoDef, WorldModel? WorldModel, IWorld? PreviousWorld, LevelChangeEvent EventContext, bool Transition);
+    private sealed record class OnLoadMapComplete(Action<object?> OnComplete, object? CompleteParam);
+    private sealed record class LoadMapResult(WorldLayer? WorldLayer, WorldModel? WorldModel, LevelChangeEvent? EventContext, IList<Player> Players, IRandom Random, int StartRandomIndex, Exception? Exception = null);
+    private sealed record class QueueLoadMapParams(MapInfoDef MapInfoDef, WorldModel? WorldModel, IWorld? PreviousWorld, LevelChangeEvent EventContext, bool Transition);
 
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly AppInfo AppInfo = new();
@@ -262,7 +262,7 @@ public partial class Client : IDisposable, IInputManagement
 
         m_profiler.Render.FlushPipeline.Start();
         if (m_config.Render.ForcePipelineFlush)
-            m_window.Renderer.FlushPipeline();
+            Helion.Render.Renderer.FlushPipeline();
         m_profiler.Render.FlushPipeline.Stop();
 
         m_fpsTracker.FinishFrame();

@@ -39,7 +39,7 @@ internal abstract class DialogBase(ConfigWindow config, string? acceptButton, st
     protected Vec2I m_dialogOffset;
     private readonly BoxList m_buttonPosList = new();
     private readonly List<Action> m_buttonActionList = [];
-    private int m_buttonIndex = 0;
+    private int m_buttonIndex;
 
     public void Dispose()
     {

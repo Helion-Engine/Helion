@@ -84,7 +84,7 @@ public class ArchiveCollection : IResources, IPathResolver
     public DataCache DataCache { get; }
     public IImageRetriever ImageRetriever { get; }
     public bool Loaded { get; private set; }
-    public bool StoreImageIndices => ShaderVars.PaletteColorMode;
+    public static bool StoreImageIndices => ShaderVars.PaletteColorMode;
     public IConfig Config => m_config;
     public DehackedDefinition? Dehacked => Definitions.DehackedDefinition;
     public ArchiveCollectionEntries Entries = new();
@@ -93,7 +93,7 @@ public class ArchiveCollection : IResources, IPathResolver
     private readonly IArchiveLocator m_archiveLocator;
     private readonly List<Archive> m_archives = new();
     private readonly Dictionary<string, Font?> m_fonts = new(StringComparer.OrdinalIgnoreCase);
-    private readonly IConfig m_config;
+    private readonly Config m_config;
     private string? m_lastLoadedMapPath;
     private bool m_lastLoadedMapIsTemp;
     private bool m_initTextureManager;

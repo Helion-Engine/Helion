@@ -106,7 +106,7 @@ public class MidTextureHack
         sector.Ceiling.NoRender = sector.Ceiling.NoRender || clippedCeiling;
     }
 
-    private void FindContainingFloodSectors(IWorld world, Sector sector, List<Sector> sectors, bool floor, bool ceiling)
+    private static void FindContainingFloodSectors(IWorld world, Sector sector, List<Sector> sectors, bool floor, bool ceiling)
     {
         if (sector.Id >= world.Geometry.IslandGeometry.SectorIslands.Length)
             return;

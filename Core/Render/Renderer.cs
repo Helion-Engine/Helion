@@ -462,7 +462,7 @@ public partial class Renderer : IDisposable
             GLHelper.AssertNoGLError();
     }
 
-    public void FlushPipeline()
+    public static void FlushPipeline()
     {
         GL.Finish();
     }
@@ -484,7 +484,7 @@ public partial class Renderer : IDisposable
         InfoPrinted = true;
     }
 
-    private void SetGLStates()
+    private static void SetGLStates()
     {
         GL.Enable(EnableCap.DepthTest);
 

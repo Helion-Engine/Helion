@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
-internal class TextureGeometryLookup
+internal sealed class TextureGeometryLookup
 {
     private readonly Dictionary<int, GeometryData> m_textureToGeometryLookup = [];
     private readonly Dictionary<int, GeometryData> m_textureToGeometryLookupClamp = [];

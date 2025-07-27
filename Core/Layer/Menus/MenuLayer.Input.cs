@@ -58,14 +58,6 @@ public partial class MenuLayer
         if (input.ConsumeKeyPressed(Key.Down) || input.ConsumeKeyPressed(Key.DPadDown))
             menu.MoveToNextComponent();
 
-        if (menu.CurrentComponent is MenuOptionListComponent options)
-        {
-            if (input.ConsumeKeyPressed(Key.Left) || input.ConsumeKeyPressed(Key.DPadLeft))
-                options.MoveToPrevious();
-            else if (input.ConsumeKeyPressed(Key.Right) || input.ConsumeKeyPressed(Key.DPadRight))
-                options.MoveToNext();
-        }
-
         if ((input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.ButtonA)) && menu.CurrentComponent?.Action != null)
         {
             if (menu.CurrentComponent.PlaySelectedSound)
