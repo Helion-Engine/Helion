@@ -85,7 +85,7 @@ public partial class WorldBase
         return s_visitedMaps;
     }
 
-    private IList<ConfigValueModel> GetConfigValuesModel()
+    private List<ConfigValueModel> GetConfigValuesModel()
     {
         s_configValueModels.Clear();
         foreach (var (path, component) in Config.GetComponents())
@@ -109,7 +109,7 @@ public partial class WorldBase
         };
     }
 
-    private IList<PlayerModel> GetPlayerModels()
+    private List<PlayerModel> GetPlayerModels()
     {
         s_playerModels.EnsureCapacity(EntityManager.Players.Count + EntityManager.VoodooDolls.Count);
         foreach (var player in EntityManager.Players)

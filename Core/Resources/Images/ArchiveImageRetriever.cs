@@ -217,7 +217,7 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
         {
             bool clearBlackPixels = (options & GetImageOptions.ClearBlackPixels) != 0;
             var dataEntries = m_archiveCollection.Data;
-            var storeIndices = m_archiveCollection.StoreImageIndices || m_archiveCollection.Definitions.RetroBrightmapsDefinition != null;
+            var storeIndices = ArchiveCollection.StoreImageIndices || m_archiveCollection.Definitions.RetroBrightmapsDefinition != null;
             var palette = entry.Parent.TranslationPalette ?? dataEntries.Palette;
             
             if (colorTranslation == null && palette.Translation != null)

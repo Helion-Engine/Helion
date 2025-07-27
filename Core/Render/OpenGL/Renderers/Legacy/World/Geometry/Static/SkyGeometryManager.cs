@@ -31,11 +31,11 @@ public class StaticSideSkyData
 
 public sealed class SkyGeometryManager
 {
-    public void Clear()
+    public static void Clear()
     {
     }
 
-    public void AddSide(ISkyComponent sky, Side side, WallLocation wallLocation, SkyGeometryVertex[]? vertices)
+    public static void AddSide(ISkyComponent sky, Side side, WallLocation wallLocation, SkyGeometryVertex[]? vertices)
     {
         if (vertices == null)
             return;
@@ -64,14 +64,14 @@ public sealed class SkyGeometryManager
         }
     }
 
-    public void AddPlane(ISkyComponent sky, SectorPlane plane, SkyGeometryVertex[] vertices)
+    public static void AddPlane(ISkyComponent sky, SectorPlane plane, SkyGeometryVertex[] vertices)
     {
         int index = sky.Vbo.Count;
         sky.Add(vertices, vertices.Length);
         plane.SkyGeometry = new(sky.Vbo, index, vertices.Length);
     }
 
-    public void UpdateSide(Side side, WallLocation wallLocation, SkyGeometryVertex[]? vertices)
+    public static void UpdateSide(Side side, WallLocation wallLocation, SkyGeometryVertex[]? vertices)
     {
         if (vertices == null)
             return;
@@ -94,10 +94,10 @@ public sealed class SkyGeometryManager
             UpdateSkyGeometry(data, vertices);
     }
 
-    public bool HasPlane(SectorPlane plane) => plane.SkyGeometry != null;
-    public bool HasSide(Side side) => side.SkyGeometry != null;
+    public static bool HasPlane(SectorPlane plane) => plane.SkyGeometry != null;
+    public static bool HasSide(Side side) => side.SkyGeometry != null;
 
-    public void UpdatePlane(SectorPlane plane, SkyGeometryVertex[] vertices)
+    public static void UpdatePlane(SectorPlane plane, SkyGeometryVertex[] vertices)
     {
         if (plane.SkyGeometry == null)
             return;
@@ -105,7 +105,7 @@ public sealed class SkyGeometryManager
         UpdateSkyGeometry(plane.SkyGeometry, vertices);
     }
 
-    public void ClearGeometryVertices(Side side, WallLocation wallLocation)
+    public static void ClearGeometryVertices(Side side, WallLocation wallLocation)
     {
         if (side.SkyGeometry == null)
             return;
@@ -124,7 +124,7 @@ public sealed class SkyGeometryManager
         }
     }
 
-    public void ClearGeometryVertices(SectorPlane plane)
+    public static void ClearGeometryVertices(SectorPlane plane)
     {
         if (plane.SkyGeometry == null)
             return;

@@ -14,7 +14,7 @@ using System;
 
 namespace Helion.Layer.Options.Dialogs;
 
-internal class ColorDialog : DialogBase
+internal sealed class ColorDialog : DialogBase
 {
     private readonly IConfigValue m_configValue;
     private readonly OptionMenuAttribute m_attr;

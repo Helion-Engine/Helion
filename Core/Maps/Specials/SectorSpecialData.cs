@@ -24,7 +24,7 @@ interface ISectorBits
     int KillAllPlayserAndSecretExit { get; }
 }
 
-class BoomSectorBits : ISectorBits
+sealed class BoomSectorBits : ISectorBits
 {
     public int SectorTypeMask => 0x1F;
     public int AltSectorTypeFlag => 4096;
@@ -39,7 +39,7 @@ class BoomSectorBits : ISectorBits
     public int KillAllPlayserAndSecretExit => 96;
 }
 
-class ZDoomSectorBits : ISectorBits
+sealed class ZDoomSectorBits : ISectorBits
 {
     public int SectorTypeMask => 0x6F;
     public int AltSectorTypeFlag => 0; // No idea if this will exist in GZDoom in the future

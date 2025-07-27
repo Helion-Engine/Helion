@@ -17,7 +17,7 @@ public class GLElapsedTimeQuery : GLQuery
 
         query.Start();
         func();
-        query.Stop();
+        Stop();
 
         while (query.IsDone())
         {
@@ -32,7 +32,7 @@ public class GLElapsedTimeQuery : GLQuery
         GL.BeginQuery(QueryTarget.TimeElapsed, Name);
     }
 
-    public void Stop()
+    public static void Stop()
     {
         GL.EndQuery(QueryTarget.TimeElapsed);
     }

@@ -28,7 +28,9 @@ public class MusicPlayer : IMusicPlayer
     private readonly Task m_playQueueTask;
     private readonly AudioStreamFactory m_audioStreamFactory = new();
     private ZMusicPlayer m_zMusicPlayer;
+#pragma warning disable CA5351
     private readonly MD5 m_md5 = MD5.Create();
+#pragma warning restore CA5351
     private bool m_genMidiPatchLoaded;
     private PlayParams? m_currentTrack;
     private bool m_isMidi;

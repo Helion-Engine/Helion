@@ -297,7 +297,7 @@ public partial class WorldLayer
         }
     }
 
-    private int GetWeaponScroll(int scrollAmount, Key key, TickCommands tickCommand)
+    private static int GetWeaponScroll(int scrollAmount, Key key, TickCommands tickCommand)
     {
         // Invert scroll amount if keys are opposite to the command
         if ((key == Key.MouseWheelUp && tickCommand != TickCommands.NextWeapon) ||

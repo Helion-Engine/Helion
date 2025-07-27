@@ -24,7 +24,7 @@ public partial class Client
     private readonly List<IWadPath> m_installedIwads = [];
     private string? m_iwad;
     private List<string> m_pwads = [];
-    private bool m_wadListTransformed = false;
+    private bool m_wadListTransformed;
 
     private async Task Initialize()
     {

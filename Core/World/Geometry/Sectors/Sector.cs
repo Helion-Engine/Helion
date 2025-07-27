@@ -507,8 +507,8 @@ public sealed class Sector
     public double ToCeilingZ(in Vec3D position) => Ceiling.Plane.ToZ(position);
 
     // TODO implement when slopes exist
-    public double LowestPoint(SectorPlane plane, Line line) => plane.Z;
-    public double HighestPoint(SectorPlane plane, Line line) => plane.Z;
+    public static double LowestPoint(SectorPlane plane, Line line) => plane.Z;
+    public static double HighestPoint(SectorPlane plane, Line line) => plane.Z;
     public int GetTexture(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor.TextureHandle : Ceiling.TextureHandle;
     public double GetZ(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor.Z : Ceiling.Z;
     public SectorPlane GetSectorPlane(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor : Ceiling;

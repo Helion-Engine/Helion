@@ -26,7 +26,7 @@ public class GLBufferTextureStorage
                 m_mapped = true;
                 m_bufferTexture.BindBuffer();
                 m_mappedBuffer = m_bufferTexture.MapWithDisposable();
-                m_bufferTexture.UnbindBuffer();
+                GLBufferTexture.UnbindBuffer();
             }
 
             return m_mappedBuffer;
@@ -48,7 +48,7 @@ public class GLBufferTextureStorage
         if (!m_bufferTexture.PersistentBufferStorage)
             m_mappedBuffer.Dispose();
 
-        m_bufferTexture.UnbindBuffer();
+        GLBufferTexture.UnbindBuffer();
     }
 
     public void Map(Action<IntPtr> action)

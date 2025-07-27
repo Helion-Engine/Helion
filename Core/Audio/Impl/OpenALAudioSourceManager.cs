@@ -72,7 +72,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         OpenALDebug.End("Setting source manager position and orientation");
     }
 
-    public void SetListenerVelocity(Vector3 velocity)
+    public static void SetListenerVelocity(Vector3 velocity)
     {
         OpenALDebug.Start("Setting listener velocity");
         AL.Listener(ALListener3f.Velocity, velocity.X, velocity.Y, velocity.Z);

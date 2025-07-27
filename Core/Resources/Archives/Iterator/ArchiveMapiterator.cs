@@ -128,8 +128,10 @@ public class ArchiveMapIterator : IEnumerable<MapEntryCollection>
             return;
         }
 
-        if (MapEntryLookup.ContainsKey(entryName))
-            MapEntryLookup[entryName].SetValue(m_currentMap, entry);
+        if (MapEntryLookup.TryGetValue(entryName, out PropertyInfo? value))
+        {
+            value.SetValue(m_currentMap, entry);
+        }
         else
             Fail("Unexpected map entry name (not a map entry)");
     }

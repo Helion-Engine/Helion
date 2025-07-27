@@ -4,7 +4,7 @@ using System;
 
 namespace Helion.Audio.Impl;
 
-internal class MockAudioSource : IAudioSource
+internal sealed class MockAudioSource : IAudioSource
 {
     public AudioData AudioData { get; set; }
     public IAudioSource? Previous { get; set; }

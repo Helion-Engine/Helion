@@ -14,7 +14,7 @@ namespace Helion.Tests.Unit.GameAction
         private const string File = "animations.WAD";
         private const string Map = "MAP01";
 
-        private class AnimationValues
+        private sealed class AnimationValues
         {
             public AnimationValues(int id, int ticks, string[] names)
             {

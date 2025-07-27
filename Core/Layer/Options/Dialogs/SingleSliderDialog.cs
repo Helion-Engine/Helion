@@ -12,7 +12,7 @@ using System;
 
 namespace Helion.Layer.Options.Dialogs;
 
-internal class SingleSliderDialog : DialogBase
+internal sealed class SingleSliderDialog : DialogBase
 {
     private readonly IConfigValue m_configValue;
     private readonly OptionMenuAttribute m_attr;

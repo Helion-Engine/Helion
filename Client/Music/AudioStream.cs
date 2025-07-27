@@ -20,7 +20,7 @@ public class AudioStreamFactory : IOutputStreamFactory
 /// </summary>
 public sealed class AudioStream : IOutputStream
 {
-    private bool disposed = false;
+    private bool disposed;
 
     /// <summary>
     /// Gets the sample rate of the audio stream.

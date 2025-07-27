@@ -32,7 +32,7 @@ public class EntityRenderer : IDisposable
     private readonly EntityCompositeProgram m_programComposite = new();
     private readonly EntityFuzzRefractionProgram m_programFuzzRefraction = new();
     private readonly RenderDataManager<EntityVertex> m_dataManager;
-    private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
+    private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DComparer());
     private readonly HashSet<SpritePosKey> m_spriteRenderPositions = new(1024);
     private readonly DynamicArray<SpriteDefinition?> m_spriteDefs = new(1024);
     private readonly SpriteRotation m_nullSpriteRotation;
@@ -476,7 +476,7 @@ public class EntityRenderer : IDisposable
         GC.SuppressFinalize(this);
     }
     
-    private class Vec2DCompararer : IEqualityComparer<Vec2D>
+    private sealed class Vec2DComparer : IEqualityComparer<Vec2D>
     {
         public bool Equals(Vec2D x, Vec2D y) => x.X == y.X && x.Y == y.Y;
         public int GetHashCode(Vec2D obj) => HashCode.Combine(obj.X, obj.Y);

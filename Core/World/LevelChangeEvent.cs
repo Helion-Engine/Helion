@@ -13,7 +13,7 @@ public class LevelChangeEvent
     public readonly int LevelNumber = 1;
     public readonly WorldModel? WorldModel;
     public readonly bool IsCheat;
-    public bool Cancel { get; set; } = false;
+    public bool Cancel { get; set; }
 
     public LevelChangeEvent(LevelChangeType levelChangeType, LevelChangeFlags flags)
     {

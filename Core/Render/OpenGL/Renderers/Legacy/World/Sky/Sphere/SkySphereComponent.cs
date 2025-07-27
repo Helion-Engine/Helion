@@ -63,7 +63,7 @@ public class SkySphereComponent : ISkyComponent
 
         m_geometryVao.Bind();
         m_geometryVbo.DrawArrays();
-        m_geometryVao.Unbind();
+        m_geometryVbo.Unbind();
 
         m_geometryProgram.Unbind();
     }

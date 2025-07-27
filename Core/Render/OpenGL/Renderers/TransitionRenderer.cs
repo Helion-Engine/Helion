@@ -14,7 +14,7 @@ public class TransitionRenderer : IDisposable
     private readonly IWindow m_window;
     private readonly StaticVertexBuffer<FramebufferVertex> m_vbo = new("Transition");
     private readonly VertexArrayObject m_vao = new("Transition");
-    private bool m_inited = false;
+    private bool m_inited;
     private TransitionProgram? m_program;
     /// <summary>
     /// The screen buffer to transition from.

@@ -80,7 +80,7 @@ public class OitFrameBuffer
         SetBlendEquations();
     }
 
-    public void SetBlendEquations()
+    public static void SetBlendEquations()
     {
         GL.BlendEquation(BlendEquationMode.FuncAdd);
         GL.BlendFunc(BlendingFactor.One, BlendingFactor.One);
@@ -91,7 +91,7 @@ public class OitFrameBuffer
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_oitFramebuffer);
     }
 
-    public void UnbindFrameBuffer()
+    public static void UnbindFrameBuffer()
     {
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     }

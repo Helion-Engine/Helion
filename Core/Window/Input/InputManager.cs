@@ -194,7 +194,7 @@ public class InputManager : IInputManager
         m_upKeys.Clear();
     }
 
-    private bool GetLastKeyState(DynamicArray<InputKey> events, Key key)
+    private static bool GetLastKeyState(DynamicArray<InputKey> events, Key key)
     {
         bool pressed = false;
         for (int i = 0; i < events.Length; i++)
@@ -280,7 +280,7 @@ public class InputManager : IInputManager
         }
     }
 
-    private bool IsKeyDown(DynamicArray<InputKey> events, Key key)
+    private static bool IsKeyDown(DynamicArray<InputKey> events, Key key)
     {
         bool pressed = false;
         for (int i = 0; i < events.Length; i++)

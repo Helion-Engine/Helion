@@ -54,7 +54,7 @@ public partial class WorldLayer
     private const string FixedNumberFont = Constants.Fonts.SmallGrayFixedWidthNumbers;
     private int m_fontHeight = 16;
     private int m_padding = 4;
-    private int m_hudPaddingX = 0;
+    private int m_hudPaddingX;
     private float m_scale = 1.0f;
     private float m_hudAlpha = 0.5f;
     private int m_infoFontSize = DebugFontSize;
@@ -471,14 +471,14 @@ public partial class WorldLayer
         return new HudBox(interpolatedMin + centeredOffset, interpolatedMax + centeredOffset);
     }
 
-    private HudBox TranslateDoomImageDimensions(double x, double y, int width, int height, Vec2D scale)
+    private static HudBox TranslateDoomImageDimensions(double x, double y, int width, int height, Vec2D scale)
     {
         var start = (new Vec2D(x, y) * scale).Int;
         var end = (new Vec2D(x + width, y + height) * scale).Int;
         return new HudBox((start.X, start.Y), (end.X, end.Y));
     }
 
-    private Vec2D GetDoomScale(IHudRenderContext ctx, out int centeredOffsetX)
+    private static Vec2D GetDoomScale(IHudRenderContext ctx, out int centeredOffsetX)
     {
         var dimension = ctx.Dimension;
         var virtualDimensions = new Dimension(320, 200);
@@ -1023,7 +1023,7 @@ public partial class WorldLayer
         hud.Text(m_maxAmmoString.AsSpan(), YellowFontName, FontSize, (313, y), anchor: Align.TopRight, alpha: m_hudAlpha);
     }
 
-    private int m_lastMessageCount = 0;
+    private int m_lastMessageCount;
 
     private void DrawRecentConsoleMessages(IHudRenderContext hud)
     {

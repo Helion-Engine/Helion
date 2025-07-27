@@ -7,7 +7,7 @@ namespace Helion.Render.OpenGL;
 
 public class GLSurface : IRenderableSurface
 {
-    public string Name => IRenderableSurface.DefaultName;
+    public static string Name => IRenderableSurface.DefaultName;
     public Dimension Dimension => m_overrideDimension.Height > 0 ? m_overrideDimension : m_renderer.RenderDimension;
     private readonly IWindow m_window;
     private readonly Renderer m_renderer;

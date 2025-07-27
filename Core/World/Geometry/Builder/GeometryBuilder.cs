@@ -73,7 +73,7 @@ public class GeometryBuilder
         }
     }
 
-    private static IBspBuilder? CreateBspBuilder(IMap map, IConfig config)
+    private static GLBspBuilder? CreateBspBuilder(IMap map, IConfig config)
     {
         if (map.GL != null)
             return new GLBspBuilder(map);

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Helion.Util.Loggers;
 using Helion.World;
+using Helion.World.Impl.SinglePlayer;
 
 namespace Helion.Client;
 
@@ -69,7 +70,7 @@ public partial class Client
         }
     }
 
-    static int CountEntities(IWorld world, Island island)
+    static int CountEntities(SinglePlayerWorld world, Island island)
     {
         int count = 0;
         for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)

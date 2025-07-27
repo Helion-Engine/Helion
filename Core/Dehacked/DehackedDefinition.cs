@@ -799,7 +799,7 @@ public partial class DehackedDefinition
         }
     }
 
-    private bool ConsumeBexStringMnemonic(SimpleParser parser, [NotNullWhen(true)] out string? mnemonic)
+    private static bool ConsumeBexStringMnemonic(SimpleParser parser, [NotNullWhen(true)] out string? mnemonic)
     {
         var startLine = parser.GetCurrentLine();
         var line = parser.PeekLine();

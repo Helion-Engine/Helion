@@ -29,6 +29,10 @@ public static class Files
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Security", 
+        "CA5351:Do Not Use Broken Cryptographic Algorithms", 
+        Justification = "This should only be used to create thumbprint hashes for files")]
     public static string CalculateMD5(Stream stream)
     {
         using var md5 = System.Security.Cryptography.MD5.Create();

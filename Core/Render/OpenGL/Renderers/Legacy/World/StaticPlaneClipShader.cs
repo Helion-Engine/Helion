@@ -1,6 +1,6 @@
 ﻿namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
-internal class StaticPlaneClipShader : StaticShader
+internal sealed class StaticPlaneClipShader : StaticShader
 {
     public StaticPlaneClipShader() : base("PlaneClip")
     {

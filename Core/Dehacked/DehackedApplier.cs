@@ -320,7 +320,7 @@ public class DehackedApplier
         }
     }
 
-    private void SetWeaponSlot(GameInfoDef gameDef, EntityDefinition weaponDef, int slot)
+    private static void SetWeaponSlot(GameInfoDef gameDef, EntityDefinition weaponDef, int slot)
     {
         foreach (var weaponSlot in gameDef.WeaponSlots)
         {

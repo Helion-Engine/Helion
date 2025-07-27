@@ -3,7 +3,7 @@ using Helion.Resources.Definitions.MapInfo;
 
 namespace Helion.Tests.Unit.ParseMapInfo;
 
-internal class MockPathResolver : IPathResolver
+internal sealed class MockPathResolver : IPathResolver
 {
     public Entry? FindEntryByPath(string path)
     {

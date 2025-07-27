@@ -442,16 +442,16 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (update)
         {
-            if (side != null && m_skyGeometry.HasSide(side))
+            if (side != null && SkyGeometryManager.HasSide(side))
             {
                 sideUpdated = true;
-                m_skyGeometry.UpdateSide(side, wallLocation, vertices);
+                SkyGeometryManager.UpdateSide(side, wallLocation, vertices);
             }
 
-            if (plane != null && m_skyGeometry.HasPlane(plane))
+            if (plane != null && SkyGeometryManager.HasPlane(plane))
             {
                 planeUpdated = true;
-                m_skyGeometry.UpdatePlane(plane, vertices);
+                SkyGeometryManager.UpdatePlane(plane, vertices);
             }
 
             if (sideUpdated && planeUpdated)
@@ -469,14 +469,14 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (plane != null && !planeUpdated)
         {
-            m_skyGeometry.AddPlane(sky, plane, vertices);
+            SkyGeometryManager.AddPlane(sky, plane, vertices);
             return;
         }
 
         if (side == null || sideUpdated)
             return;
 
-        m_skyGeometry.AddSide(sky, side, wallLocation, vertices);
+        SkyGeometryManager.AddSide(sky, side, wallLocation, vertices);
     }
 
     private static unsafe void AddVertices(DynamicArray<StaticVertex> staticVertices, DynamicVertex[] vertices)
@@ -611,7 +611,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         m_freeManager.Clear();
         m_skyRenderer.Clear();
-        m_skyGeometry.Clear();
+        SkyGeometryManager.Clear();
 
         m_transferHeightsLookup.SetAll(null);
     }
@@ -789,7 +789,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (m_vanillaRender && m_coverFlatLookup.TryGetValue(CoverKey.MakeFlatKey(plane.Sector.Id, plane.Facing), out var coverGeometry))
             ClearGeometryVertices(coverGeometry);
 
-        m_skyGeometry.ClearGeometryVertices(plane);
+        SkyGeometryManager.ClearGeometryVertices(plane);
 
         for (int i = 0; i < plane.Sector.Lines.Length; i++)
         {
@@ -799,15 +799,15 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (line.Front.IsDynamic || line.Front.Flags.UpperSky)
             {
                 ClearSideGeometryVertices(line.Front, line.Front.Upper);
-                m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Upper);
+                SkyGeometryManager.ClearGeometryVertices(line.Front, WallLocation.Upper);
             }
             if (line.Front.IsDynamic)
             {
                 ClearSideGeometryVertices(line.Front, line.Front.Lower);
-                m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Lower);
+                SkyGeometryManager.ClearGeometryVertices(line.Front, WallLocation.Lower);
 
                 ClearSideGeometryVertices(line.Front, line.Front.Middle);
-                m_skyGeometry.ClearGeometryVertices(line.Front, WallLocation.Middle);
+                SkyGeometryManager.ClearGeometryVertices(line.Front, WallLocation.Middle);
             }
 
             if (line.Back == null)
@@ -816,15 +816,15 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (line.Back.IsDynamic || line.Back.Flags.UpperSky)
             {
                 ClearSideGeometryVertices(line.Back, line.Back.Upper);
-                m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Upper);
+                SkyGeometryManager.ClearGeometryVertices(line.Back, WallLocation.Upper);
             }
             if (line.Back.IsDynamic)
             {
                 ClearSideGeometryVertices(line.Back, line.Back.Lower);
-                m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Lower);
+                SkyGeometryManager.ClearGeometryVertices(line.Back, WallLocation.Lower);
 
                 ClearSideGeometryVertices(line.Back, line.Back.Middle);
-                m_skyGeometry.ClearGeometryVertices(line.Back, WallLocation.Middle);
+                SkyGeometryManager.ClearGeometryVertices(line.Back, WallLocation.Middle);
             }
         }
     }
@@ -901,7 +901,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void World_PlaneTextureChanged(object? sender, PlaneTextureEvent e)
     {
-        m_skyGeometry.ClearGeometryVertices(e.Plane);
+        SkyGeometryManager.ClearGeometryVertices(e.Plane);
         if (ClearGeometryVertices(e.Plane.Static))
             m_freeManager.Add(e.PreviousTextureHandle, e.Plane.Static);
 

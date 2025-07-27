@@ -200,7 +200,7 @@ public class ScrollSpecial : ISpecial
         throw new HelionException("Scroll special has neither line or sector plane set.");
     }
 
-    private ScrollSideOffsets SetScrollSideOffsets(SideScrollData sideScroll)
+    private static ScrollSideOffsets SetScrollSideOffsets(SideScrollData sideScroll)
     {
         return new()
         {

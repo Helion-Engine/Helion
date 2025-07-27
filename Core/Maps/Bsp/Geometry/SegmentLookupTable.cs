@@ -95,7 +95,7 @@ public class SegmentLookupTable
         return false;
     }
 
-    private class VertexSegmentPairList
+    private sealed class VertexSegmentPairList
     {
         private readonly List<(int vertexIndex, BspSegment segment)> m_pairs = new List<(int, BspSegment)>();
 

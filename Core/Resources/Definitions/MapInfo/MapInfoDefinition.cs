@@ -191,7 +191,7 @@ public partial class MapInfoDefinition
         return mapDef;
     }
 
-    private void ParseSpecialAction(SimpleParser parser, MapInfoDef mapDef)
+    private static void ParseSpecialAction(SimpleParser parser, MapInfoDef mapDef)
     {
         int line = parser.GetCurrentLine();
         parser.ConsumeString("=");
@@ -612,8 +612,8 @@ public partial class MapInfoDefinition
     private static void ParseWeaponSlot(GameInfoDef gameDef, SimpleParser parser)
     {
         int slot = parser.ConsumeInteger();
-        if (gameDef.WeaponSlots.ContainsKey(slot))
-            gameDef.WeaponSlots[slot].Clear();
+        if (gameDef.WeaponSlots.TryGetValue(slot, out List<string>? value))
+            value.Clear();
         else
             gameDef.WeaponSlots.Add(slot, new List<string>());
 
@@ -836,7 +836,7 @@ public partial class MapInfoDefinition
         parser.ConsumeString("=");
     }
 
-    private static IList<string> GetStringList(SimpleParser parser)
+    private static List<string> GetStringList(SimpleParser parser)
     {
         List<string> items = new List<string>();
 

@@ -262,7 +262,7 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         return new Color((byte)(rgba.W * 255), (byte)(rgba.X * 255), (byte)(rgba.Y * 255), (byte)(rgba.Z * 255));
     }
 
-    private void GetAverageColors(Image skyImage, out Vec4F topColor, out Vec4F bottomColor)
+    private static void GetAverageColors(Image skyImage, out Vec4F topColor, out Vec4F bottomColor)
     {
         // Most (all?) skies are tall enough that we don't have to worry
         // about this, but if we run into a sky that is small then we

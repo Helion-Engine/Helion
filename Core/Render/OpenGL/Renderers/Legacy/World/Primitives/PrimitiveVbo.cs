@@ -3,7 +3,7 @@ using Helion.Render.OpenGL.Vertex;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 
-class PrimitiveVbo
+sealed class PrimitiveVbo
 {
     public PrimitiveVbo(string name, int lineWidth)
     {

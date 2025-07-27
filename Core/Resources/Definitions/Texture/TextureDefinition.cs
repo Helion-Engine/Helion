@@ -9,7 +9,7 @@ namespace Helion.Resources.Definitions.Texture;
 /// </summary>
 public class TextureDefinition
 {
-    private static int StaticIndex = 0;
+    private static int StaticIndex;
 
     /// <summary>
     /// The name of this image.

@@ -22,7 +22,7 @@ namespace Helion.Tests.Unit.GameAction
         private readonly SinglePlayerWorld World;
         private Player Player => World.Player;
 
-        private class MonsterData
+        private sealed class MonsterData
         {
             public readonly string Name;
             public readonly bool HasMissile;

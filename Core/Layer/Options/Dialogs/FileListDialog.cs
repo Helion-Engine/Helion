@@ -15,7 +15,7 @@ namespace Helion.Layer.Options.Dialogs;
 /// <summary>
 /// File picker that returns relative paths when in the config directory, or absolute if not.
 /// </summary>
-internal class FileListDialog : ListDialog
+internal sealed class FileListDialog : ListDialog
 {
     private const int BlinkIntervalMilliseconds = 500;
     private readonly HashSet<string> m_supportedFileExtensions;

@@ -9,9 +9,9 @@ namespace Helion.Maps.Bsp.States.Convex;
 /// </summary>
 public class VertexCountTracker
 {
-    private int withOneLine = 0;
-    private int withTwoLines = 0;
-    private int withThreeOrMoreLines = 0;
+    private int withOneLine;
+    private int withTwoLines;
+    private int withThreeOrMoreLines;
 
     /// <summary>
     /// True if each vertex has two segments coming in/out of it, false

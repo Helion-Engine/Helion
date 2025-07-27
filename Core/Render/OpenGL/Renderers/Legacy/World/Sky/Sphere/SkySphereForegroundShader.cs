@@ -2,7 +2,7 @@
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
-internal class SkySphereForegroundShader : SkySphereShader
+internal sealed class SkySphereForegroundShader : SkySphereShader
 {
     public SkySphereForegroundShader() : base("Sky foreground texture")
     {

@@ -127,7 +127,7 @@ public class BspNode
             ClearChildren();
     }
 
-    private static bool EdgesAreHeadToTail(IList<SubsectorEdge> edges)
+    private static bool EdgesAreHeadToTail(List<SubsectorEdge> edges)
     {
         for (int i = 1; i < edges.Count; i++)
             if (edges[i - 1].End != edges[i].Start)

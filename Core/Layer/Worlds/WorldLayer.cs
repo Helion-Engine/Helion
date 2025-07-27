@@ -43,7 +43,7 @@ public partial class WorldLayer : IGameLayerParent
     private static MapGeometry? LastMapGeometry;
     private static IslandGeometry LastIslandGeometry = new();
 
-    record class MapCompatibility(string Name, string MapName, string MD5, IList<(FieldInfo, bool)> Values);
+    sealed record class MapCompatibility(string Name, string MapName, string MD5, IList<(FieldInfo, bool)> Values);
 
     private static readonly MapCompatibility[] MapCompat = new MapCompatibility[]
     {
@@ -310,7 +310,7 @@ public partial class WorldLayer : IGameLayerParent
         return mapGeometry;
     }
 
-    private static IList<(FieldInfo, bool)> GetConfigCompatProperties(params (string, bool)[] items)
+    private static List<(FieldInfo, bool)> GetConfigCompatProperties(params (string, bool)[] items)
     {
         List<(FieldInfo, bool)> props = new();
         var type = typeof(ConfigCompat);
