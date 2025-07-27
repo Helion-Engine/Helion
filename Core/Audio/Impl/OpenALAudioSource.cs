@@ -193,7 +193,7 @@ public class OpenALAudioSource : IAudioSource
             // Doom's original linear scaling
             var linearGain = (MaxAudibleDistance - dist) / (MaxAudibleDistance - DefaultReference);
             // Push curve to dropoff faster to sound more appropriate
-            var gain = Math.Max(linearGain * Math.Min(linearGain * 2f, linearGain), 0.005f);
+            var gain = Math.Clamp(linearGain * Math.Min(linearGain * 2f, linearGain), 0.005f, 1f);
             AL.Source(m_sourceId, ALSourcef.Gain, Math.Max(gain * m_gain * m_audioData.Volume, NoGain));
         }
     }
