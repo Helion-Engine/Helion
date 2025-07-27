@@ -12,6 +12,7 @@ using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
 
@@ -221,7 +222,7 @@ public class EntityRenderer : IDisposable
         }
 
         var colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
-        if (WorldStatic.BloodColor && entity.Definition.IsBlood)
+        if (WorldStatic.BloodColor && entity.Definition.Type == EntityType.Blood)
         {
             var owner = entity.Owner();
             if (owner != null && owner.Properties.BloodPaletteColor.HasValue)

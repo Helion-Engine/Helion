@@ -1,103 +1,108 @@
 ﻿using Helion.Geometry.Vectors;
+using Helion.World.Entities;
 using System;
 
-namespace Helion.Audio.Impl
+namespace Helion.Audio.Impl;
+
+internal sealed class MockAudioSource : IAudioSource
 {
-    internal sealed class MockAudioSource : IAudioSource
+    public AudioData AudioData { get; set; }
+    public IAudioSource? Previous { get; set; }
+    public IAudioSource? Next { get; set; }
+
+    public event EventHandler? Completed;
+
+    private bool m_playing;
+    private bool m_finished;
+    private float m_pitch;
+    private Vec3F m_position;
+    private int m_playTicks;
+
+    public MockAudioSource(in AudioData audioData, int ticksToPlay)
     {
-        public AudioData AudioData { get; set; }
-        public IAudioSource? Previous { get; set; }
-        public IAudioSource? Next { get; set; }
+        AudioData = audioData;
+        m_playTicks = ticksToPlay;
+    }
 
-        public event EventHandler? Completed;
+    public void Dispose()
+    {
 
-        private bool m_playing;
-        private bool m_finished;
-        private float m_pitch;
-        private Vec3F m_position;
-        private int m_playTicks;
+    }
 
-        public MockAudioSource(in AudioData audioData, int ticksToPlay)
-        {
-            AudioData = audioData;
-            m_playTicks = ticksToPlay;
-        }
+    public void CacheFree()
+    {
 
-        public void Dispose()
-        {
+    }
 
-        }
+    public void Tick()
+    {
+        if (AudioData.Loop)
+            return;
 
-        public void CacheFree()
-        {
+        if (m_playing)
+            m_playTicks--;
 
-        }
+        if (m_playTicks <= 0)
+            Complete();
+    }
 
-        public void Tick()
-        {
-            if (AudioData.Loop)
-                return;
+    public float GetPitch() => m_pitch;
 
-            if (m_playing)
-                m_playTicks--;
+    public Vec3F GetPosition() => m_position;
+    public Vec3F GetVelocity() => Vec3F.Zero;
 
-            if (m_playTicks <= 0)
-                Complete();
-        }
+    public bool IsFinished() => m_finished;
 
-        public float GetPitch() => m_pitch;
+    public bool IsPlaying() => m_playing;
 
-        public Vec3F GetPosition() => m_position;
-        public Vec3F GetVelocity() => Vec3F.Zero;
+    public void Pause()
+    {
+        m_playing = false;
+    }
 
-        public bool IsFinished() => m_finished;
+    public void Play()
+    {
+        m_playing = true;
+    }
 
-        public bool IsPlaying() => m_playing;
+    private void Complete()
+    {
+        if (!m_playing)
+            return;
 
-        public void Pause()
-        {
-            m_playing = false;
-        }
+        m_playing = false;
+        m_finished = true;
+        Completed?.Invoke(this, EventArgs.Empty);
+    }
 
-        public void Play()
-        {
-            m_playing = true;
-        }
+    public void SetPitch(float pitch)
+    {
+        m_pitch = pitch;
+    }
 
-        private void Complete()
-        {
-            if (!m_playing)
-                return;
+    public void SetPosition(float x, float y, float z)
+    {
+        m_position = new(x, y, z);
+    }
 
-            m_playing = false;
-            m_finished = true;
-            Completed?.Invoke(this, EventArgs.Empty);
-        }
+    public void SetVelocity(float x, float y, float z)
+    {
 
-        public void SetPitch(float pitch)
-        {
-            m_pitch = pitch;
-        }
+    }
 
-        public void SetPosition(float x, float y, float z)
-        {
-            m_position = new(x, y, z);
-        }
+    public void SetRelative(bool set)
+    {
 
-        public void SetVelocity(float x, float y, float z)
-        {
+    }
 
-        }
+    public void Stop()
+    {
+        if (m_playing)
+            Complete();
+    }
 
-        public void SetRelative(bool set)
-        {
+    public void Update(Entity listenerEntity)
+    {
 
-        }
-
-        public void Stop()
-        {
-            if (m_playing)
-                Complete();
-        }
     }
 }

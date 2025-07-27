@@ -183,7 +183,7 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
         if (PlayingSounds.Count == 0)
             return;
 
-        IAudioSource? node = PlayingSounds.Head;
+        var node = PlayingSounds.Head;
         IAudioSource? nextNode;
         while (node != null)
         {
@@ -195,12 +195,13 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
                 continue;
             }
 
-            double distance = node.AudioData.SoundSource.GetDistanceFrom(listener.Entity);
+            node.Update(listener.Entity);
+            var distance = node.AudioData.SoundSource.GetDistanceFrom(listener.Entity);
             if (!CheckDistance(distance, node.AudioData.Attenuation))
             {
                 node.Stop();
-                PlayingSounds.RemoveAndFree(node, m_world.DataCache);
                 AddWaitingSoundFromBumpedSound(node);
+                PlayingSounds.RemoveAndFree(node, m_world.DataCache);
             }
             else
             {

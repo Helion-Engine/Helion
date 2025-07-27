@@ -22,7 +22,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
     private const int MaxSounds = 256;
 
     private readonly ArchiveCollection m_archiveCollection;
-    private readonly HashSet<OpenALAudioSource> m_sources = new();
+    private readonly List<OpenALAudioSource> m_sources = [];
     private readonly Dictionary<string, OpenALBuffer> m_nameToBuffer = new(StringComparer.OrdinalIgnoreCase);
     private readonly DynamicArray<int> m_playGroup = new();
     private readonly IConfig m_config;
@@ -168,7 +168,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         // We create a copy list because disposing will mutate the list
         // that it belongs to, since it has no idea if we're disposing it
         // manually or by disposal of its manager.
-        m_sources.ToList().ForEach(src => src.Dispose());
+        m_sources.ForEach(src => src.Dispose());
         Invariant(m_sources.Empty(), "Disposal of AL audio source children should empty out of the context container");
 
         foreach (var item in m_nameToBuffer)

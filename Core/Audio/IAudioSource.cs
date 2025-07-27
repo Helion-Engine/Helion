@@ -1,5 +1,6 @@
 using System;
 using Helion.Geometry.Vectors;
+using Helion.World.Entities;
 
 namespace Helion.Audio;
 
@@ -45,6 +46,8 @@ public interface IAudioSource : IDisposable
     /// not actually dispose the object so it can be used again from the cache.
     /// </summary>
     void CacheFree();
+
+    void Update(Entity listenerEntity);
 
     IAudioSource? Previous { get; set; }
     IAudioSource? Next { get; set; }

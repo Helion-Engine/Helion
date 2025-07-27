@@ -62,6 +62,7 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Maps.Components;
 using System.Runtime.CompilerServices;
+using Helion.Resources.Definitions.SoundInfo;
 
 namespace Helion.World;
 
@@ -913,6 +914,13 @@ public abstract partial class WorldBase : IWorld
         GameTicker++;
 
         Profiler.World.Total.Stop();
+    }
+
+    private void CreateAmbientSound(Entity entity, AmbientSoundInfo info)
+    {
+        var attenution = info.Type == AmbientSoundType.Point ? Attenuation.Default : Attenuation.None;
+        SoundManager.CreateSoundOn(entity, info.LogicalSound, new(entity, info.Mode == AmbientSoundMode.Continuous, attenution, info.Volume, 
+            attenuationFactor: info.Attenuation));
     }
 
     public virtual bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop)

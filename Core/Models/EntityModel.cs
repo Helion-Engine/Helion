@@ -50,6 +50,7 @@ public class EntityModel
     public int? MaxTargetRange { get; set; }
     public int? MinMissileChance { get; set; }
     public int? MeleeThreshold { get; set; }
+    public int? EditorId { get; set; }
 
     public Vec3D GetVelocity() => (VelocityX, VelocityY, VelocityZ);
 

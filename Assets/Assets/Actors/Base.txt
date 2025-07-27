@@ -245,3 +245,10 @@ actor MusicChanger 14100
     +NOSECTOR
     +NOGRAVITY
 }
+
+actor AmbientSound
+{
+  +NOBLOCKMAP
+  +NOSECTOR
+  +DONTSPLASH
+}

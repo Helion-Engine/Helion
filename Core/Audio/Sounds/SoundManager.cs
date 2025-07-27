@@ -380,8 +380,8 @@ public class SoundManager : IDisposable
         if (HitSoundLimit(soundInfo) && !StopSoundsBySource(source, soundInfo, soundParams))
             return null;
 
-        AudioData audioData = new(source, soundInfo, soundParams.Channel, soundParams.Attenuation, priority, soundParams.Loop, soundParams.Relative);
-        IAudioSource? audioSource = AudioManager.Create(soundInfo.EntryName, audioData);
+        var audioData = new AudioData(source, soundInfo, soundParams.Channel, soundParams.Attenuation, priority, soundParams.Loop, soundParams.Relative, soundParams.Volume, soundParams.AttenuationFactor);
+        var audioSource = AudioManager.Create(soundInfo.EntryName, audioData);
         if (audioSource == null)
             return null;
 
