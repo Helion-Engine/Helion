@@ -27,6 +27,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.World.Geometry.Islands;
 using Helion.World.Entities.Players;
+using Helion.Maps.Specials;
 
 namespace Helion.Util;
 
@@ -110,14 +111,14 @@ public class DataCache
     }
 
     public Entity GetEntity(int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
-        Sector sector, IWorld world)
+        Sector sector, IWorld world, in SpecialArgs args)
     {
         int id = EntityId++;
         if (m_entities.Length > 0)
         {
             int entityIndex = m_entities.RemoveLast();
             var entity = Entities[entityIndex];
-            entity.Set(entity.Index, id, thingId, definition, position, angleRadians, sector, world);
+            entity.Set(entity.Index, id, thingId, definition, position, angleRadians, sector, world, args);
             return entity;
         }
 
@@ -128,13 +129,13 @@ public class DataCache
         if (Entities[index] != null)
         {
             var entity = Entities[index];
-            entity.Set(index, id, thingId, definition, position, angleRadians, sector, world);
+            entity.Set(index, id, thingId, definition, position, angleRadians, sector, world, args);
             return entity;
         }
 
         var newEntity = new Entity();
         Entities[index] = newEntity;
-        newEntity.Set(index, id, thingId, definition, position, angleRadians, sector, world);
+        newEntity.Set(index, id, thingId, definition, position, angleRadians, sector, world, args);
         return newEntity;
     }
 

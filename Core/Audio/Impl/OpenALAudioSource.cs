@@ -75,6 +75,18 @@ public class OpenALAudioSource : IAudioSource
         AL.Source(m_sourceId, ALSourceb.Looping, audioData.Loop);
         AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
 
+        if (audioData.OffsetSeconds > 0)
+        {
+            var channels = AL.GetBuffer(m_sourceId, ALGetBufferi.Channels);
+            var bitsPerSample = AL.GetBuffer(m_sourceId, ALGetBufferi.Bits);
+
+            var offset = audioData.OffsetSeconds;
+            var totalDuration = buffer.Bytes / Math.Max(buffer.SampleRate * channels * (bitsPerSample / 8f), 1);
+            offset %= totalDuration;
+
+            AL.Source(m_sourceId, ALSourcef.SecOffset, Math.Max(offset, 0));
+        }
+
         if (audioData.Relative || audioData.Attenuation == Attenuation.None)
             SetRelative(true);
 
@@ -152,6 +164,16 @@ public class OpenALAudioSource : IAudioSource
         return new Vec3F(vel.X, vel.Y, vel.Z);
     }
 
+    public void SetOffsetSeconds(float offset)
+    {
+        AL.Source(m_sourceId, ALSourcef.SecOffset, offset);
+    }
+
+    public float GetOffsetSeconds()
+    {
+        return AL.GetSource(m_sourceId, ALSourcef.SecOffset);
+    }
+
     public void Update(Entity listenerEntity)
     {
         if (m_audioData.Attenuation == Attenuation.None)
@@ -171,7 +193,7 @@ public class OpenALAudioSource : IAudioSource
             // Doom's original linear scaling
             var linearGain = (MaxAudibleDistance - dist) / (MaxAudibleDistance - DefaultReference);
             // Push curve to dropoff faster to sound more appropriate
-            var gain = Math.Max(linearGain * Math.Min(linearGain * 2f, linearGain), 0.005f);
+            var gain = Math.Clamp(linearGain * Math.Min(linearGain * 2f, linearGain), 0.005f, 1f);
             AL.Source(m_sourceId, ALSourcef.Gain, Math.Max(gain * m_gain * m_audioData.Volume, NoGain));
         }
     }

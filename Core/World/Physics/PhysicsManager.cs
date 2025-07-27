@@ -547,7 +547,7 @@ public sealed class PhysicsManager
             {
                 Vec3D pos = crushEntity.Position;
                 pos.Z += crushEntity.Height / 2;
-                Entity? blood = m_entityManager.Create(crushEntity.GetBloodDefinition(), pos, 0, 0, 0);
+                Entity? blood = m_entityManager.Create(crushEntity.GetBloodDefinition(), pos, 0, 0, 0, default);
                 if (blood != null)
                 {
                     blood.Velocity.X += m_random.NextDiff() / 16.0;

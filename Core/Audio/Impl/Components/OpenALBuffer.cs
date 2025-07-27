@@ -9,11 +9,15 @@ namespace Helion.Audio.Impl.Components;
 public class OpenALBuffer : IDisposable
 {
     public int BufferId;
+    public int Bytes;
+    public int SampleRate;
 
     private OpenALBuffer(int sampleRate, Span<byte> sampleData, ALFormat format)
     {
         OpenALDebug.Start("Creating buffer");
         BufferId = AL.GenBuffer();
+        SampleRate = sampleRate;
+        Bytes = sampleData.Length;
         OpenALDebug.End("Creating buffer");
         // Note: We only support DMX sounds currently!
         OpenALDebug.Start("Setting buffer data");

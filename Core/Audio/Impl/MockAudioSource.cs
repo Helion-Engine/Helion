@@ -1,5 +1,6 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.World.Entities;
+using OpenTK.Audio.OpenAL;
 using System;
 
 namespace Helion.Audio.Impl;
@@ -50,6 +51,13 @@ internal sealed class MockAudioSource : IAudioSource
 
     public Vec3F GetPosition() => m_position;
     public Vec3F GetVelocity() => Vec3F.Zero;
+
+    public void SetOffsetSeconds(float offset)
+    {
+       
+    }
+
+    public float GetOffsetSeconds() => 0;
 
     public bool IsFinished() => m_finished;
 

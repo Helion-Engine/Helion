@@ -263,7 +263,7 @@ public abstract partial class WorldBase : IWorld
         RegisterConfigChanges();
 
         m_checkRadiusEntity = new Entity();
-        m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this);
+        m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this, default);
 
         if (worldModel != null)
         {
@@ -1521,7 +1521,7 @@ public abstract partial class WorldBase : IWorld
         pitch += addPitch;
         angle += addAngle;
 
-        Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0);
+        Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0, default);
         // Doom set the owner as the target
         projectile.SetOwner(shooter);
         projectile.SetTarget(shooter);
@@ -2460,7 +2460,7 @@ public abstract partial class WorldBase : IWorld
         if (entity.Definition.Flags.Solid && IsPositionBlockedByEntity(entity, spawnPoint))
             return;
 
-        var newEntity = EntityManager.Create(entity.Definition, spawnPoint, 0, entity.AngleRadians, entity.ThingId, true);
+        var newEntity = EntityManager.Create(entity.Definition, spawnPoint, 0, entity.AngleRadians, entity.ThingId, entity.Args, true);
         CreateTeleportFog(entity.Position);
         CreateTeleportFog(spawnPoint);
 
@@ -2673,7 +2673,7 @@ public abstract partial class WorldBase : IWorld
         if (def == null)
             return;
 
-        var create = EntityManager.Create(def, intersect, 0, angle, 0);
+        var create = EntityManager.Create(def, intersect, 0, angle, 0, default);
         if (bulletPuff)
         {
             create.Velocity.Z = 1;
@@ -2929,7 +2929,7 @@ public abstract partial class WorldBase : IWorld
         if (m_teleportFogDef == null)
             return;
 
-        var teleport = EntityManager.Create(m_teleportFogDef, pos, 0.0, 0.0, 0);
+        var teleport = EntityManager.Create(m_teleportFogDef, pos, 0.0, 0.0, 0, default);
         SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
     }
 
@@ -2944,7 +2944,7 @@ public abstract partial class WorldBase : IWorld
         teleportFogPos.Y += fogDist.Y;
         CreateTeleportFog(teleportFogPos);
 
-        var teleport = EntityManager.Create(m_teleportFogDef, teleportFogPos, 0.0, 0.0, 0);
+        var teleport = EntityManager.Create(m_teleportFogDef, teleportFogPos, 0.0, 0.0, 0, default);
         SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
     }
 

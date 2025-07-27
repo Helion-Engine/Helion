@@ -2,6 +2,7 @@ using Helion.Audio;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Render.Common.World;
@@ -156,7 +157,7 @@ public class Player : Entity
         Sector sector, IWorld world, int playerNumber)
     {
         Precondition(playerNumber >= 0, "Player number should not be negative");
-        Set(index, id, thingId, definition, position, angleRadians, sector, world);
+        base.Set(index, id, thingId, definition, position, angleRadians, sector, world, default);
 
         PlayerNumber = playerNumber;
         // Going to default to true for players, otherwise jumping without moving X/Y can allow for clipping through ceilings

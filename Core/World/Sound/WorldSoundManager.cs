@@ -24,6 +24,8 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
 
     protected override IRandom GetRandom() => m_world.Random;
 
+    protected override int GetGameTick() => m_world.Gametick;
+
     protected override double GetDistance(ISoundSource soundSource)
     {
         return soundSource.GetDistanceFrom(m_world.GetListener().Entity);
@@ -41,7 +43,7 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
         if (!soundSource.CanMakeSound())
             return null;
 
-        IAudioSource? source = CreateSound(soundSource, soundSource.GetSoundPosition(m_world.GetListener().Entity), soundSource.GetSoundVelocity(),
+        IAudioSource? source = CreateSound(soundSource, soundSource.GetSoundPosition(m_world.GetListener().Entity), soundSource.GetSoundVelocity(), 0,
             sound, soundParams, out SoundInfo? soundInfo);
         if (source == null)
             return source;
@@ -172,7 +174,7 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
     {
         if (m_world.IsDisposed)
             return;
-
+        
         m_setVelocity = ArchiveCollection.Config.Audio.Velocity;
         var listener = m_world.GetListener();
         AudioManager.SetListener(listener.Position, listener.Angle, listener.Pitch);
@@ -199,8 +201,8 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
             var distance = node.AudioData.SoundSource.GetDistanceFrom(listener.Entity);
             if (!CheckDistance(distance, node.AudioData.Attenuation))
             {
-                node.Stop();
                 AddWaitingSoundFromBumpedSound(node);
+                node.Stop();
                 PlayingSounds.RemoveAndFree(node, m_world.DataCache);
             }
             else

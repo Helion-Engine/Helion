@@ -56,7 +56,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Vec3D Position;
     public Vec3D Velocity;
     public IAudioSource? AudioSource;
-    public int Ticks;
 
     public int Health;
     public int MoveCount;
@@ -126,7 +125,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public int MaxTargetRange;
     public int MinMissileChance;
     public int MeleeThreshold;
-    public int EditorId;
 
     public bool IsFrozen => FrozenTics > 0;
     public bool IsDead => Health <= 0;
@@ -166,7 +164,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     }
 
     public void Set(int index, int id, int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
-        Sector sector, IWorld world)
+        Sector sector, IWorld world, in SpecialArgs args)
     {
         IsDisposed = false;
         Health = definition.Properties.Health;
@@ -204,8 +202,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         MeleeThreshold = Properties.MeleeThreshold;
 
         FrameState = new(FrameStateOptions.DestroyOnStop);
-        Ticks = 0;
-        EditorId = 0;
+        Args = args;
     }
 
     public void Set(int index, EntityModel entityModel, EntityDefinition definition, IWorld world)
@@ -258,12 +255,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         MaxTargetRange = entityModel.MaxTargetRange ?? Properties.MaxTargetRange;
         MinMissileChance = entityModel.MinMissileChance ?? Properties.MinMissileChance;
         MeleeThreshold = entityModel.MeleeThreshold ?? Properties.MeleeThreshold;
-        EditorId = entityModel.EditorId ?? 0;
+        Args = entityModel.Args;
 
         if (entityModel.IsBlood.HasValue && entityModel.IsBlood.Value)
             Definition.Type = EntityType.Blood;
-
-        Ticks = 0;
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -306,7 +301,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.MinMissileChance = MinMissileChance;
         entityModel.MeleeThreshold = MeleeThreshold;
         entityModel.IsBlood = Definition.Type == EntityType.Blood;
-        entityModel.EditorId = EditorId == 0 ? null : EditorId;
+        entityModel.Args = Args;
         return entityModel;
     }
 
