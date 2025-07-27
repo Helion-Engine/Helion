@@ -75,6 +75,18 @@ public class OpenALAudioSource : IAudioSource
         AL.Source(m_sourceId, ALSourceb.Looping, audioData.Loop);
         AL.Source(m_sourceId, ALSourcei.Buffer, buffer.BufferId);
 
+        if (audioData.OffsetSeconds > 0)
+        {
+            var channels = AL.GetBuffer(m_sourceId, ALGetBufferi.Channels);
+            var bitsPerSample = AL.GetBuffer(m_sourceId, ALGetBufferi.Bits);
+
+            var offset = audioData.OffsetSeconds;
+            var totalDuration = buffer.Bytes / (buffer.SampleRate * channels * (bitsPerSample / 8f));
+            offset %= totalDuration;
+
+            AL.Source(m_sourceId, ALSourcef.SecOffset, Math.Max(offset, 0));
+        }
+
         if (audioData.Relative || audioData.Attenuation == Attenuation.None)
             SetRelative(true);
 
@@ -150,6 +162,16 @@ public class OpenALAudioSource : IAudioSource
         OpenALDebug.End("Getting sound velocity");
 
         return new Vec3F(vel.X, vel.Y, vel.Z);
+    }
+
+    public void SetOffsetSeconds(float offset)
+    {
+        AL.Source(m_sourceId, ALSourcef.SecOffset, offset);
+    }
+
+    public float GetOffsetSeconds()
+    {
+        return AL.GetSource(m_sourceId, ALSourcef.SecOffset);
     }
 
     public void Update(Entity listenerEntity)

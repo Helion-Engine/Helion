@@ -2835,7 +2835,7 @@ public static class EntityActionFunctions
 
         Vec3D pos = entity.Position;
         pos.Z += entity.FrameState.Frame.DehackedMisc2;
-        var spawnEntity = WorldStatic.EntityManager.Create(def, pos, 0, 0, 0);
+        var spawnEntity = WorldStatic.EntityManager.Create(def, pos, 0, 0, 0, default);
         if (spawnEntity == null)
             return;
 
@@ -3113,7 +3113,7 @@ public static class EntityActionFunctions
         var velocity = Vec2D.Rotate(xVelocity, yVelocity, angle);
         var spawnPos = new Vec3D(entity.Position.X + offset.X, entity.Position.Y + offset.Y, entity.Position.Z + zOffset);
 
-        var createdEntity = WorldStatic.EntityManager.Create(def, spawnPos, 0, angle, 0);
+        var createdEntity = WorldStatic.EntityManager.Create(def, spawnPos, 0, angle, 0, default);
         if (createdEntity == null)
             return;
         

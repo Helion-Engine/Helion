@@ -56,7 +56,7 @@ public class AutomapMarker(ArchiveCollection archiveCollection)
         m_world = world;
         m_hitLines = new(world.Lines.Count);
 
-        m_dummyEntity.Set(0, 0, 0, EntityDefinition.Default, default, 0, m_world.Sectors[0], m_world);
+        m_dummyEntity.Set(0, 0, 0, EntityDefinition.Default, default, 0, m_world.Sectors[0], m_world, default);
 
         m_task = Task.Factory.StartNew(() => AutomapTask(m_cancelTasks.Token), m_cancelTasks.Token,
             TaskCreationOptions.LongRunning, TaskScheduler.Default);

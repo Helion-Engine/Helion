@@ -215,7 +215,7 @@ public sealed class Line
         if (MidTexEntity == null)
         {
             MidTexEntity = new();
-            MidTexEntity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world);
+            MidTexEntity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world, default);
             MidTexEntity.MidTexLine = this;
             MidTexEntity.Flags.Solid = true;
             MidTexEntity.Flags.ActLikeBridge = true;

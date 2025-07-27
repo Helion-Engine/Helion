@@ -2,6 +2,7 @@ using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
+using Helion.Maps.Specials;
 using Helion.Models;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
@@ -81,10 +82,10 @@ public class EntityManager : IDisposable
     public Entity? Create(string className, in Vec3D pos, bool initSpawn = false)
     {
         var def = DefinitionComposer.GetByName(className);
-        return def != null ? Create(def, pos, 0.0, 0.0, 0, initSpawn: initSpawn) : null;
+        return def != null ? Create(def, pos, 0.0, 0.0, 0, default, initSpawn: initSpawn) : null;
     }
 
-    public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool initSpawn = false, int editorId = -1)
+    public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, in SpecialArgs args, bool initSpawn = false, int editorId = -1)
     {
         EntityCount++;
         var sector = World.ToSubsector(position.X, position.Y).Sector;
@@ -92,8 +93,8 @@ public class EntityManager : IDisposable
         position.Z = GetPositionZ(sector, in position, zHeight);
         var entity = 
             definition.Type == EntityType.AmbientSound ? 
-            CreateAmbientSound(World.DataCache.EntityId++, tid, definition, position, angle, sector, World, editorId) :
-            World.DataCache.GetEntity(tid, definition, position, angle, sector, World);
+            CreateAmbientSound(World.DataCache.EntityId++, tid, definition, position, angle, sector, World, editorId, args) :
+            World.DataCache.GetEntity(tid, definition, position, angle, sector, World, args);
 
         if (entity.Definition.Properties.FastSpeed > 0 && World.IsFastMonsters)
             entity.Properties.MonsterMovementSpeed = entity.Definition.Properties.FastSpeed;
@@ -109,12 +110,15 @@ public class EntityManager : IDisposable
         return entity;
     }
 
-    private AmbientSound CreateAmbientSound(int id, int thingId, EntityDefinition definition, Vec3D position, double angle, Sector sector, IWorld world, int editorId)
+    private AmbientSound CreateAmbientSound(int id, int thingId, EntityDefinition definition, Vec3D position, double angle, Sector sector, IWorld world, int editorId, in SpecialArgs args)
     {
         var entity = new AmbientSound();
-        entity.Set(-1, id, thingId, definition, position, angle, sector, world);
-        entity.EditorId = editorId;
-        World.ArchiveCollection.SoundInfo.TryGetAmbientSound(editorId - (int)EditorId.AmbientSoundStart + 1, out entity.AmbientSoundInfo);
+        entity.Set(-1, id, thingId, definition, position, angle, sector, world, args);
+        var index = args.Arg0;
+        if (editorId < (int)EditorId.AmbientSoundEnd)
+            index = editorId - (int)EditorId.AmbientSoundStart + 1;
+
+        World.ArchiveCollection.SoundInfo.TryGetAmbientSound(index, out entity.AmbientSoundInfo);
         return entity;
     }
 
@@ -244,7 +248,7 @@ public class EntityManager : IDisposable
             var angleRadians = MathHelper.ToRadians(mapThing.Angle);
             var position = mapThing.Position;
             // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
-            var entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, initSpawn: true, editorId: mapThing.EditorNumber);
+            var entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, mapThing.Args, initSpawn: true, editorId: mapThing.EditorNumber);
             entity.Special = mapThing.Special;
             entity.Args = mapThing.Args;
             entity.Gravity = mapThing.Gravity;
@@ -315,7 +319,7 @@ public class EntityManager : IDisposable
             Entity entity;
             if (definition.Type == EntityType.AmbientSound)
             {
-                entity = CreateAmbientSound(entityModel.Id, entityModel.ThingId, definition, default, 0, Sector.Default, World, entityModel.EditorId ?? 0);
+                entity = CreateAmbientSound(entityModel.Id, entityModel.ThingId, definition, default, 0, Sector.Default, World, (int)EditorId.AmbientSoundEnd, entityModel.Args);
                 entity.Set(-1, entityModel, definition, World);
 
             }

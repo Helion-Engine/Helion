@@ -24,6 +24,9 @@ public interface IAudioSource : IDisposable
     void SetVelocity(float x, float y, float z);
     Vec3F GetVelocity();
 
+    void SetOffsetSeconds(float offset);
+    float GetOffsetSeconds();
+
     float GetPitch();
     void SetPitch(float pitch);
 

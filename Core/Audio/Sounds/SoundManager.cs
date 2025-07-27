@@ -186,6 +186,8 @@ public class SoundManager : IDisposable
 
     protected virtual IRandom GetRandom() => m_random;
 
+    protected virtual int GetGameTick() => 0;
+
     protected void UpdateWaitingLoopSounds()
     {
         LinkedListNode<WaitingSound>? node = m_waitingLoopSounds.First;
@@ -205,7 +207,8 @@ public class SoundManager : IDisposable
                 return;
 
             var value = node.Value;
-            var audio = CreateSound(value.SoundSource, value.Position, value.Velocity, value.SoundInfo.Name, value.SoundParams, out _);
+            var elaspedSeconds = (GetGameTick() - value.GameTick) / 35f;
+            var audio = CreateSound(value.SoundSource, value.Position, value.Velocity, value.OffsetSeconds + elaspedSeconds, value.SoundInfo.Name, value.SoundParams, out _);
             // If the sound was successfully created then remove from waiting loop sound list. Also check it wasn't already removed.
             if (audio != null && node.List == m_waitingLoopSounds)
                 m_waitingLoopSounds.Free(node, ArchiveCollection.DataCache);
@@ -359,11 +362,11 @@ public class SoundManager : IDisposable
     public virtual IAudioSource? PlayStaticSound(string sound)
     {
         ISoundSource soundSource = DefaultSoundSource.Default;
-        return CreateSound(soundSource, Vec3D.Zero, Vec3D.Zero, sound,
+        return CreateSound(soundSource, Vec3D.Zero, Vec3D.Zero, 0, sound,
             new SoundParams(soundSource, attenuation: Attenuation.None), out _);
     }
 
-    protected IAudioSource? CreateSound(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, string sound,
+    protected IAudioSource? CreateSound(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, float offset, string sound,
         SoundParams soundParams, out SoundInfo? soundInfo)
     {
         Precondition((int)soundParams.Channel < Constants.MaxSoundChannels, "ZDoom extra channel flags unsupported currently");
@@ -374,13 +377,13 @@ public class SoundManager : IDisposable
         SetSoundParams(source, soundInfo, ref soundParams);
 
         int priority = GetPriority(source, soundInfo, soundParams);
-        if (!CheckDistanceAndPriority(source, pos, velocity, soundInfo, soundParams, priority))
+        if (!CheckDistanceAndPriority(source, pos, velocity, soundInfo, soundParams, priority, 0))
             return null;
 
         if (HitSoundLimit(soundInfo) && !StopSoundsBySource(source, soundInfo, soundParams))
             return null;
 
-        var audioData = new AudioData(source, soundInfo, soundParams.Channel, soundParams.Attenuation, priority, soundParams.Loop, soundParams.Relative, soundParams.Volume, soundParams.AttenuationFactor);
+        var audioData = new AudioData(source, soundInfo, soundParams.Channel, soundParams.Attenuation, priority, soundParams.Loop, soundParams.Relative, soundParams.Volume, soundParams.AttenuationFactor, offset);
         var audioSource = AudioManager.Create(soundInfo.EntryName, audioData);
         if (audioSource == null)
             return null;
@@ -402,7 +405,7 @@ public class SoundManager : IDisposable
     }
 
     private bool CheckDistanceAndPriority(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, SoundInfo soundInfo, 
-        in SoundParams soundParams, int priority)
+        in SoundParams soundParams, int priority, float offset)
     {
         double distance = GetDistance(source);
         bool soundTooFar = !CheckDistance(distance, soundParams.Attenuation);
@@ -412,7 +415,7 @@ public class SoundManager : IDisposable
                 StopSoundsBySource(source, soundInfo, soundParams);
 
             if (soundParams.Loop)
-                CreateWaitingLoopSound(source, pos, velocity, soundInfo, priority, soundParams);
+                CreateWaitingLoopSound(source, pos, velocity, soundInfo, priority, offset, 0, soundParams);
 
             return false;
         }
@@ -421,9 +424,9 @@ public class SoundManager : IDisposable
     }
 
     private void CreateWaitingLoopSound(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, SoundInfo soundInfo,
-        int priority, in SoundParams soundParams)
+        int priority, float offset, int gameTick, in SoundParams soundParams)
     {
-        var loopSound = new WaitingSound(source, pos, velocity, soundInfo, priority, soundParams);
+        var loopSound = new WaitingSound(source, pos, velocity, soundInfo, priority, offset, gameTick, soundParams);
         m_waitingLoopSounds.AddLast(ArchiveCollection.DataCache.GetWaitingSoundNode(loopSound));
         source.SoundCreated(soundInfo, null, soundParams.Channel);
     }
@@ -502,7 +505,7 @@ public class SoundManager : IDisposable
 
         var soundParams = new SoundParams(audioSource.AudioData.SoundSource, true, audioSource.AudioData.Attenuation);
         CreateWaitingLoopSound(audioSource.AudioData.SoundSource, audioSource.GetPosition().Double, audioSource.GetVelocity().Double, audioSource.AudioData.SoundInfo,
-            audioSource.AudioData.Priority, soundParams);
+            audioSource.AudioData.Priority, audioSource.GetOffsetSeconds(), GetGameTick(), soundParams);
     }
 
     protected virtual int GetPriority(ISoundSource soundSource, SoundInfo soundInfo, SoundParams soundParams)
