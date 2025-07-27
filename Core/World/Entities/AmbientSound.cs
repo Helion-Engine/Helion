@@ -7,6 +7,7 @@ namespace Helion.World.Entities;
 public class AmbientSound : Entity
 {
     public AmbientSoundInfo? AmbientSoundInfo;
+    public int Ticks;
 
     public override void Tick()
     {

@@ -56,7 +56,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Vec3D Position;
     public Vec3D Velocity;
     public IAudioSource? AudioSource;
-    public int Ticks;
 
     public int Health;
     public int MoveCount;
@@ -203,7 +202,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         MeleeThreshold = Properties.MeleeThreshold;
 
         FrameState = new(FrameStateOptions.DestroyOnStop);
-        Ticks = 0;
         Args = args;
     }
 
@@ -261,8 +259,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         if (entityModel.IsBlood.HasValue && entityModel.IsBlood.Value)
             Definition.Type = EntityType.Blood;
-
-        Ticks = 0;
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)

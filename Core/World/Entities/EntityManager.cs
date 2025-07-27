@@ -110,13 +110,15 @@ public class EntityManager : IDisposable
         return entity;
     }
 
-    private AmbientSound CreateAmbientSound(int id, int thingId, EntityDefinition definition, Vec3D position, double angle, Sector sector, IWorld world, int editorId, in SpecialArgs args)
+    private AmbientSound CreateAmbientSound(int id, int thingId, EntityDefinition definition, Vec3D position, double angle, Sector sector, IWorld world, int editorId, SpecialArgs args)
     {
-        var entity = new AmbientSound();
-        entity.Set(-1, id, thingId, definition, position, angle, sector, world, args);
         var index = args.Arg0;
         if (editorId < (int)EditorId.AmbientSoundEnd)
             index = editorId - (int)EditorId.AmbientSoundStart + 1;
+        
+        args.Arg0 = index;
+        var entity = new AmbientSound();
+        entity.Set(-1, id, thingId, definition, position, angle, sector, world, args);
 
         World.ArchiveCollection.SoundInfo.TryGetAmbientSound(index, out entity.AmbientSoundInfo);
         return entity;
@@ -250,7 +252,6 @@ public class EntityManager : IDisposable
             // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
             var entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, mapThing.Args, initSpawn: true, editorId: mapThing.EditorNumber);
             entity.Special = mapThing.Special;
-            entity.Args = mapThing.Args;
             entity.Gravity = mapThing.Gravity;
 
             if (mapThing.Alpha.HasValue)
