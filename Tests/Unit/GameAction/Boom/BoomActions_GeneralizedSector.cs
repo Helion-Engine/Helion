@@ -50,7 +50,7 @@ public partial class BoomActions
         GameActions.SetEntityPosition(World, Player, new Vec3D(584, 1920, 0));
         Player.Sector.Floor.Z.Should().Be(-8);
         Player.Sector.SectorDamageSpecial.Should().NotBeNull();
-        Player.Sector.SectorDamageSpecial!.InstantKillEffect.Should().Be(InstantKillEffect.KillUnprotectedPlayer);
+        Player.Sector.SectorDamageSpecial!.InstantKillEffect.Should().Be(InstantKillEffect.KillMonsters | InstantKillEffect.KillUnprotectedPlayer);
         GameActions.TickWorld(World, 1);
         Player.IsDead.Should().BeFalse();
 
@@ -153,7 +153,7 @@ public partial class BoomActions
         imp.Sector.Floor.Z.Should().Be(-8);
         imp.HighestFloorSector.Floor.Z.Should().Be(imp.Position.Z);
         imp.Sector.SectorDamageSpecial.Should().NotBeNull();
-        imp.Sector.SectorDamageSpecial!.InstantKillEffect.Should().Be(InstantKillEffect.KillMonsters);
+        imp.Sector.SectorDamageSpecial!.InstantKillEffect.Should().Be(InstantKillEffect.KillMonsters | InstantKillEffect.KillUnprotectedPlayer);
         GameActions.TickWorld(World, 1);
         imp.IsDead.Should().BeTrue();
     }
