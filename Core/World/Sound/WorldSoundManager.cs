@@ -174,7 +174,10 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
     {
         if (m_world.IsDisposed)
             return;
-        
+
+        m_maxConcurrentSounds = m_world.Config.Audio.MaxSounds;
+        m_sameSoundLimit = m_world.Config.Audio.SameSoundLimit;
+        m_sameSoundWindow = m_world.Config.Audio.SameSoundWindow;
         m_setVelocity = ArchiveCollection.Config.Audio.Velocity;
         var listener = m_world.GetListener();
         AudioManager.SetListener(listener.Position, listener.Angle, listener.Pitch);
@@ -196,8 +199,6 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
                 node = nextNode;
                 continue;
             }
-
-            node.Update(listener.Entity);
             var distance = node.AudioData.SoundSource.GetDistanceFrom(listener.Entity);
             if (!CheckDistance(distance, node.AudioData.Attenuation))
             {
@@ -207,6 +208,7 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
             }
             else
             {
+                node.Update(new((float)distance));
                 var position = node.AudioData.SoundSource.GetSoundPosition(listener.Entity);
                 if (position != null)
                     node.SetPosition((float)position.Value.X, (float)position.Value.Y, (float)position.Value.Z);

@@ -1,8 +1,14 @@
 using System;
 using Helion.Geometry.Vectors;
-using Helion.World.Entities;
 
 namespace Helion.Audio;
+
+public readonly struct UpdateParams(float distance, float roloffFactor = 1f)
+{
+    public readonly float DistanceFromListener = distance;
+    public readonly float RoloffFactor = roloffFactor;
+}
+
 
 /// <summary>
 /// A source of audio that can be played.
@@ -30,6 +36,8 @@ public interface IAudioSource : IDisposable
     float GetPitch();
     void SetPitch(float pitch);
 
+    void SetGain(float gain);
+
     void SetRelative(bool set);
 
     AudioData AudioData { get; set; }
@@ -50,7 +58,7 @@ public interface IAudioSource : IDisposable
     /// </summary>
     void CacheFree();
 
-    void Update(Entity listenerEntity);
+    void Update(in UpdateParams updateParams);
 
     IAudioSource? Previous { get; set; }
     IAudioSource? Next { get; set; }

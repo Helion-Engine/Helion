@@ -98,6 +98,11 @@ internal sealed class MockAudioSource : IAudioSource
 
     }
 
+    public void SetGain(float gain)
+    {
+
+    }
+
     public void SetRelative(bool set)
     {
 
@@ -109,7 +114,7 @@ internal sealed class MockAudioSource : IAudioSource
             Complete();
     }
 
-    public void Update(Entity listenerEntity)
+    public void Update(in UpdateParams updateParams)
     {
 
     }

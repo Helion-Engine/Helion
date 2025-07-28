@@ -17,7 +17,9 @@ public class SoundManager : IDisposable
     public readonly IAudioSourceManager AudioManager;
     private readonly IRandom m_random = new TrueRandom();
     private readonly IAudioSystem m_audioSystem;
-    private int m_maxConcurrentSounds = 32;
+    protected int m_maxConcurrentSounds = 32;
+    protected int m_sameSoundLimit;
+    protected int m_sameSoundWindow;
 
     protected ArchiveCollection ArchiveCollection;
 
@@ -190,6 +192,7 @@ public class SoundManager : IDisposable
 
     protected void UpdateWaitingLoopSounds()
     {
+        var gametick = GetGameTick();
         LinkedListNode<WaitingSound>? node = m_waitingLoopSounds.First;
         LinkedListNode<WaitingSound>? nextNode;
         while (node != null)
@@ -203,7 +206,7 @@ public class SoundManager : IDisposable
                 continue;
             }
 
-            if (IsMaxSoundCount && (HitSoundLimit(node.Value.SoundInfo) || !BumpSoundByPriority(node.Value.Priority, distance, node.Value.SoundParams.Attenuation)))
+            if (IsMaxSoundCount && (HitSoundLimit(node.Value.SoundInfo, gametick) || !BumpSoundByPriority(node.Value.Priority, distance, node.Value.SoundParams.Attenuation)))
                 return;
 
             var value = node.Value;
@@ -376,14 +379,15 @@ public class SoundManager : IDisposable
 
         SetSoundParams(source, soundInfo, ref soundParams);
 
-        int priority = GetPriority(source, soundInfo, soundParams);
-        if (!CheckDistanceAndPriority(source, pos, velocity, soundInfo, soundParams, priority, 0))
+        var gametick = GetGameTick();
+        var priority = GetPriority(source, soundInfo, soundParams);
+        if (!CheckDistanceAndPriority(source, pos, velocity, soundInfo, soundParams, priority, 0, gametick))
             return null;
 
-        if (HitSoundLimit(soundInfo) && !StopSoundsBySource(source, soundInfo, soundParams))
+        if (HitSoundLimit(soundInfo, gametick) && !StopSoundsBySource(source, soundInfo, soundParams))
             return null;
 
-        var audioData = new AudioData(source, soundInfo, soundParams.Channel, soundParams.Attenuation, priority, soundParams.Loop, soundParams.Relative, soundParams.Volume, soundParams.AttenuationFactor, offset);
+        var audioData = new AudioData(source, soundInfo, soundParams.Channel, soundParams.Attenuation, priority, soundParams.Loop, soundParams.Relative, soundParams.Volume, soundParams.AttenuationFactor, offset, gametick);
         var audioSource = AudioManager.Create(soundInfo.EntryName, audioData);
         if (audioSource == null)
             return null;
@@ -405,11 +409,11 @@ public class SoundManager : IDisposable
     }
 
     private bool CheckDistanceAndPriority(ISoundSource source, in Vec3D? pos, in Vec3D? velocity, SoundInfo soundInfo, 
-        in SoundParams soundParams, int priority, float offset)
+        in SoundParams soundParams, int priority, float offset, int gametick)
     {
         double distance = GetDistance(source);
         bool soundTooFar = !CheckDistance(distance, soundParams.Attenuation);
-        if (soundTooFar || SoundPriorityTooLow(source, soundInfo, soundParams, distance, priority))
+        if (soundTooFar || SoundPriorityTooLow(source, soundInfo, soundParams, distance, priority, gametick))
         {
             if (soundTooFar)
                 StopSoundsBySource(source, soundInfo, soundParams);
@@ -436,19 +440,29 @@ public class SoundManager : IDisposable
         // To be overridden if needed.
     }
 
-    private bool SoundPriorityTooLow(ISoundSource source, SoundInfo soundInfo, in SoundParams soundParams, double distance, int priority)
+    private bool SoundPriorityTooLow(ISoundSource source, SoundInfo soundInfo, in SoundParams soundParams, double distance, int priority, int gametick)
     {
         if (!IsMaxSoundCount)
             return false;
 
         // Check if this sound will remove a sound by it's source first, then check bumping by priority
-        return (HitSoundLimit(soundInfo) || (!StopSoundsBySource(source, soundInfo, soundParams) && 
+        return (HitSoundLimit(soundInfo, gametick) || (!StopSoundsBySource(source, soundInfo, soundParams) && 
             !BumpSoundByPriority(priority, distance, soundParams.Attenuation)));
     }
 
-    private bool HitSoundLimit(SoundInfo soundInfo)
+    private bool HitSoundLimit(SoundInfo soundInfo, int gametick)
     {
-        return soundInfo.Limit > 0 && GetSoundCount(soundInfo) >= soundInfo.Limit;
+        if (soundInfo.Limit <= 0 && m_sameSoundLimit <= 0)
+            return false;
+
+        var soundCount = GetSoundCount(soundInfo, gametick);
+        if (soundInfo.Limit > 0 && soundCount >= soundInfo.Limit)
+            return true;
+
+        if (m_sameSoundLimit > 0 && soundCount >= m_sameSoundLimit)
+            return true;
+
+        return false;
     }
 
     private bool IsMaxSoundCount => m_soundsToPlay.Count + PlayingSounds.Count >= m_maxConcurrentSounds;
@@ -523,7 +537,7 @@ public class SoundManager : IDisposable
         return ArchiveCollection.Definitions.SoundInfo.Lookup(sound, GetRandom());
     }
 
-    public int GetSoundCount(SoundInfo? soundInfo)
+    public int GetSoundCount(SoundInfo? soundInfo, int gametick)
     {
         if (soundInfo == null)
             return 0;
@@ -533,13 +547,33 @@ public class SoundManager : IDisposable
 
         while (node != null)
         {
-            if (soundInfo.Equals(node.AudioData.SoundInfo))
+            if (soundInfo == node.AudioData.SoundInfo && CheckSoundWindow(node, gametick))
+                count++;
+
+            node = node.Next;
+        }
+
+        node = m_soundsToPlay.Head;
+        while (node != null)
+        {
+            if (soundInfo == node.AudioData.SoundInfo && CheckSoundWindow(node, gametick))
                 count++;
 
             node = node.Next;
         }
 
         return count;
+    }
+
+    private bool CheckSoundWindow(IAudioSource audio, int gametick)
+    {
+        if (m_sameSoundWindow == 0)
+            return true;
+
+        if (gametick - audio.AudioData.GameTick <= m_sameSoundWindow)
+            return true;
+
+        return false;
     }
 
     public virtual void Update()
