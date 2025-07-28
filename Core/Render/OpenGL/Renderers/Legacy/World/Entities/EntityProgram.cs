@@ -46,6 +46,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_wallClipTextureLocation;
     private readonly int m_lineHeightsTextureLocation;
     private readonly int m_useBrightmapsLocation;
+    private readonly int m_downScaleAmountLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -86,6 +87,7 @@ public class EntityProgram : RenderProgram
         m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
         m_lineHeightsTextureLocation = Uniforms.GetLocation("lineHeightsTexture");
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
+        m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
     }
     
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -126,6 +128,7 @@ public class EntityProgram : RenderProgram
     public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
     public void HealthBarMode(bool value) => ProgramUniforms.Set(value, m_healthBarModeLocation);
     public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
+    public void SetDownScaleAmount(int value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
 
     private const string BoxDefines = @"
         const float BoxWidth = 20;
@@ -353,6 +356,7 @@ public class EntityProgram : RenderProgram
         uniform int useBrightmaps;
         uniform vec3 viewPos;
         uniform float timeFrac;
+        uniform int downScaleAmount;
 
         uniform sampler2D planeClipTexture;
         uniform sampler2D wallClipTexture;
@@ -381,7 +385,7 @@ public class EntityProgram : RenderProgram
         }
 
         bool discardPlaneClip() {
-            ivec2 getCoords = ivec2(gl_FragCoord.xy);
+            ivec2 getCoords = ivec2(gl_FragCoord.xy) / downScaleAmount;
             vec3 wallClip = texelFetch(wallClipTexture, getCoords, 0).rgb;
             vec3 planeClip = texelFetch(planeClipTexture, getCoords, 0).rgb;
 

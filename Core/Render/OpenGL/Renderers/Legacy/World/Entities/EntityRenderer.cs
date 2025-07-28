@@ -361,6 +361,7 @@ public class EntityRenderer : IDisposable
         program.ScreenBounds((renderInfo.Viewport.Width, renderInfo.Viewport.Height));
         program.CheckPlaneClip(m_vanillaRender);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
+        program.SetDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
 
         // The fade distance calculations work using squared distances
         float maxDistanceSquared = renderInfo.Uniforms.MaxDistance * renderInfo.Uniforms.MaxDistance;
