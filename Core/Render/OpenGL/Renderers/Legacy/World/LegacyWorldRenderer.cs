@@ -353,34 +353,37 @@ public class LegacyWorldRenderer : WorldRenderer
         GL.ColorMask(true, true, true, true);
 
         if (m_wallClipFrameBuffer != null || m_planeClipFrameBuffer != null)
-        {
-            var useRenderInfo = renderInfo;
-            if (renderInfo.Uniforms.DownScaleAmount != 1)
-            {
-                var downScaleAmount = renderInfo.Uniforms.DownScaleAmount;
-                useRenderInfo = m_downSizedRenderInfo;
-                var viewport = renderInfo.Viewport;
-                viewport = new Rectangle(viewport.X / downScaleAmount, viewport.Y / downScaleAmount, viewport.Width / downScaleAmount, viewport.Height / downScaleAmount);
-                m_downSizedRenderInfo.Set(renderInfo.Camera, renderInfo.TickFraction, viewport, renderInfo.ViewerEntity,
-                    renderInfo.DrawAutomap, renderInfo.AutomapOffset, renderInfo.AutomapScale,
-                    renderInfo.Config, renderInfo.ViewSector, renderInfo.TransferHeightView);
-                m_downSizedRenderInfo.Uniforms = Renderer.GetShaderUniforms(m_config, world, m_downSizedRenderInfo);
-
-                GL.Viewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
-            }
-
-            if (m_wallClipFrameBuffer != null)
-                WritePlaneClipData(m_wallClipFrameBuffer, useRenderInfo, framebuffer, true);
-
-            if (m_planeClipFrameBuffer != null)
-                WritePlaneClipData(m_planeClipFrameBuffer, useRenderInfo, framebuffer, false);
-
-            if (renderInfo.Uniforms.DownScaleAmount != 1)
-                GL.Viewport(renderInfo.Viewport.X, renderInfo.Viewport.Y, renderInfo.Viewport.Width, renderInfo.Viewport.Height);
-        }
+            WriteSpriteClipBuffers(world, renderInfo, framebuffer);
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer);
+    }
+
+    private void WriteSpriteClipBuffers(IWorld world, RenderInfo renderInfo, GLFramebuffer framebuffer)
+    {
+        var useRenderInfo = renderInfo;
+        if (renderInfo.Uniforms.DownScaleAmount > 1)
+        {
+            var downScaleAmount = renderInfo.Uniforms.DownScaleAmount;
+            useRenderInfo = m_downSizedRenderInfo;
+            var viewport = renderInfo.Viewport;
+            viewport = new Rectangle(viewport.X / downScaleAmount, viewport.Y / downScaleAmount, viewport.Width / downScaleAmount, viewport.Height / downScaleAmount);
+            m_downSizedRenderInfo.Set(renderInfo.Camera, renderInfo.TickFraction, viewport, renderInfo.ViewerEntity,
+                renderInfo.DrawAutomap, renderInfo.AutomapOffset, renderInfo.AutomapScale,
+                renderInfo.Config, renderInfo.ViewSector, renderInfo.TransferHeightView);
+            m_downSizedRenderInfo.Uniforms = Renderer.GetShaderUniforms(m_config, world, m_downSizedRenderInfo);
+
+            GL.Viewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
+        }
+
+        if (m_wallClipFrameBuffer != null)
+            WritePlaneClipData(m_wallClipFrameBuffer, useRenderInfo, framebuffer, true);
+
+        if (m_planeClipFrameBuffer != null)
+            WritePlaneClipData(m_planeClipFrameBuffer, useRenderInfo, framebuffer, false);
+
+        if (renderInfo.Uniforms.DownScaleAmount > 1)
+            GL.Viewport(renderInfo.Viewport.X, renderInfo.Viewport.Y, renderInfo.Viewport.Width, renderInfo.Viewport.Height);
     }
 
     private void SetupClipBuffers(GLFramebuffer framebuffer, Dimension dimension)
