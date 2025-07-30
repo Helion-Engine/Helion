@@ -241,10 +241,10 @@ public partial class Renderer : IDisposable
 
     private static int GetDownScaleAmount(IConfig config, RenderInfo renderInfo)
     {
-        if (renderInfo.Viewport.Height <= 480)
+        if (renderInfo.Viewport.Height <= 480 || !config.Render.DownScaleVanillaRenderSampleBuffer)
             return 1;
 
-        return config.Render.DownScaleVanillaRenderSampleBuffer.Value;
+        return 2;
     }
 
     private static ColorMapUniforms GetColorMapUniforms(Entity viewer, OldCamera camera)

@@ -361,7 +361,22 @@ public class EntityRenderer : IDisposable
         program.ScreenBounds((renderInfo.Viewport.Width, renderInfo.Viewport.Height));
         program.CheckPlaneClip(m_vanillaRender);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
-        program.SetDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
+
+        if (renderInfo.Uniforms.DownScaleAmount > 1)
+        {
+            // Decrease the scale factor slightly so the sampling overdraws pixels at the edges to fix underdraw gaps against walls.
+            const float ScaleFactor = 0.997f;
+            var downScale = renderInfo.Uniforms.DownScaleAmount;
+            var scaleX = ScaleFactor - ((downScale - 2) * 0.002f);
+            var scaleY = ScaleFactor - ((downScale - 2) * 0.002f);
+            program.SetSpriteClipDownScaleAmount(downScale);
+            program.SetSpriteClipDownScaleSampleFactor(new(downScale * scaleX, downScale * scaleY));
+        }
+        else
+        {
+            program.SetSpriteClipDownScaleAmount(1);
+            program.SetSpriteClipDownScaleSampleFactor(Vec2F.One);
+        }
 
         // The fade distance calculations work using squared distances
         float maxDistanceSquared = renderInfo.Uniforms.MaxDistance * renderInfo.Uniforms.MaxDistance;

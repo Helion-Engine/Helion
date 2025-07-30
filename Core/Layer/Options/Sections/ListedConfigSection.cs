@@ -85,6 +85,7 @@ public class ListedConfigSection : IOptionSection
         m_config.Render.LightMode.OptionDisabled = paletteMode;
         m_config.Render.Brightmaps.OptionDisabled = paletteMode;
         m_config.Render.EmulateInvulnerabilityColorMap.OptionDisabled = paletteMode;
+        m_config.Render.DownScaleVanillaRenderSampleBuffer.OptionDisabled = m_config.Render.VanillaRender.Value == false;
 
         m_config.Mouse.ForwardBackwardSpeed.OptionDisabled = m_config.Mouse.Look.Value == true;
 
