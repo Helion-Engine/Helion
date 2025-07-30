@@ -57,7 +57,7 @@ public partial class Renderer : IDisposable
     /// Framebuffer used to draw the world.
     /// </summary>
     private GLFramebuffer m_virtualFramebuffer;
-    private GLFramebuffer m_screenshotFramebuffer;
+    private readonly GLFramebuffer m_screenshotFramebuffer;
     public readonly LegacyGLTextureManager Textures;
     internal readonly IConfig m_config;
     internal readonly FpsTracker m_fpsTracker;
@@ -232,10 +232,19 @@ public partial class Renderer : IDisposable
             GetFuzzDiv(renderInfo.Config, renderInfo.Viewport),
             colorMapUniforms,
             paletteIndex,
-            config.Render.LightMode, 
+            config.Render.LightMode,
             (float)config.Render.GammaCorrection,
             maxDistance,
-            config.Render.Brightmaps);
+            config.Render.Brightmaps,
+            GetDownScaleAmount(config, renderInfo));
+    }
+
+    private static int GetDownScaleAmount(IConfig config, RenderInfo renderInfo)
+    {
+        if (renderInfo.Viewport.Height <= 480 || !config.Render.DownScaleVanillaRenderSampleBuffer)
+            return 1;
+
+        return 2;
     }
 
     private static ColorMapUniforms GetColorMapUniforms(Entity viewer, OldCamera camera)

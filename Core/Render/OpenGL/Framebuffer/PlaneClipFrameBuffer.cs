@@ -27,12 +27,12 @@ public class PlaneClipFrameBuffer : IDisposable
         m_texture = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, m_texture);
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, m_texture, $"{name} Texture");
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb32f, width, height, 0, PixelFormat.Rgb, PixelType.Float, IntPtr.Zero);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, width, height, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
         GL.BindTexture(TextureTarget.Texture2D, 0);
 
-        m_depthTexture = new GLTexture2D($"{name} Depth Stencil Attachment", dimension);
+        m_depthTexture = new GLTexture2D($"{name} Depth Stencil Attachment", m_dimension);
         m_depthTexture.Bind();
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Depth32fStencil8, width, height, 0, PixelFormat.DepthStencil, PixelType.Float32UnsignedInt248Rev, IntPtr.Zero);
         m_depthTexture.Unbind();
