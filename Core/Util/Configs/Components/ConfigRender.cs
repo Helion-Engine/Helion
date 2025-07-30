@@ -151,10 +151,14 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [ConfigInfo("Enable sprite transparency.")]
     [OptionMenu(OptionSectionType.Render, "Sprite Transparency")]
     public readonly ConfigValue<bool> SpriteTransparency = new(true);
-
-    [ConfigInfo("Render sprites over floors/ceilings. Sprites always clipped to walls. May slow down rendering.", mapRestartRequired: true)]
+     
+    [ConfigInfo("Render sprites emulating software sprite clipping. May slow down rendering.", mapRestartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Rendering", spacer: true)]
     public readonly ConfigValue<bool> VanillaRender = new(false);
+
+    [ConfigInfo("Downscales the sprite clipping buffer with emulate vanilla rendering. Increases performance at the expense of pixel accuracy.")]
+    [OptionMenu(OptionSectionType.Render, "Downscale Vanilla Buffer")]
+    public readonly ConfigValue<bool> DownScaleVanillaRenderSampleBuffer = new(true);
 
     [ConfigInfo("Emulates custom invulnerability palettes in true color mode. May not work well with all WADs. Application restart required.", restartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Emulate Invulnerability Colormap")]

@@ -17,6 +17,7 @@
 - AppImage build support for Linux AOT
 - Ambient sound support from SNDINFO
 - Sound more accurately matches Doom's sound curve and cutoff
+- Option to downscale the emulate vanilla sprite render buffer. Increases performance at the expense of pixel accuracy. Allows more GPUs to use emulate vanilla rendering.
 
 ## Bug Fixes:
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.

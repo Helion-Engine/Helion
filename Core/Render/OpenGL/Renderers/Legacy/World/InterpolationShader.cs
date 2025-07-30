@@ -33,6 +33,7 @@ public class InterpolationShader : RenderProgram
     private readonly int m_wallClipTextureLocation;
     private readonly int m_useBrightmapsLocation;
     private readonly int m_brightmapTextureLocation;
+    private readonly int m_downScaleAmountLocation;
 
     public InterpolationShader(string name) : base($"World Interpolation - {name}")
     {
@@ -60,6 +61,7 @@ public class InterpolationShader : RenderProgram
         m_checkPlaneClipLocation = Uniforms.GetLocation("checkPlaneClip");
         m_wallClipTextureLocation = Uniforms.GetLocation("wallClipTexture");
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
+        m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
     }
 
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -87,6 +89,7 @@ public class InterpolationShader : RenderProgram
     public void VertexGapClampUV(bool value) => ProgramUniforms.Set(value, m_vertexGapClampUV);
     public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
     public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
+    public void SetDownScaleAmount(int value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -189,6 +192,7 @@ public class InterpolationShader : RenderProgram
             uniform sampler2D wallClipTexture;
             uniform int checkPlaneClip;
             uniform int useBrightmaps;
+            uniform int downScaleAmount;
 
             ${LightLevelFragVariables}
             ${SectorColorMapFragVariables}
@@ -196,7 +200,7 @@ public class InterpolationShader : RenderProgram
 
             void main() {
                 if (checkPlaneClip == 1) {
-                    ivec2 getCoords = ivec2(gl_FragCoord.xy);
+                    ivec2 getCoords = ivec2(gl_FragCoord.xy) / downScaleAmount;
                     float wallClipDepth = texelFetch(wallClipTexture, getCoords, 0).g;
                     float planeClipDepth = texelFetch(planeClipTexture, getCoords, 0).g;
                     // This is for alpha walls and vanilla rendering
