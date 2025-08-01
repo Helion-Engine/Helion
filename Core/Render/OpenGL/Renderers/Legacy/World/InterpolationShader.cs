@@ -89,7 +89,7 @@ public class InterpolationShader : RenderProgram
     public void VertexGapClampUV(bool value) => ProgramUniforms.Set(value, m_vertexGapClampUV);
     public void CheckPlaneClip(bool value) => ProgramUniforms.Set(value, m_checkPlaneClipLocation);
     public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
-    public void SetDownScaleAmount(int value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
+    public void SetDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
 
     protected override string VertexShader() => @"
         #version 330

@@ -10,8 +10,6 @@ public class CoverWallUtil
     readonly record struct Heights(float AddTop, float SubBottom);
     const int ProjectHeight = 8192;
 
-    public static float VertexGap;
-
     public static unsafe void SetCoverWallVertices(Side side, DynamicVertex[] vertices, int index, WallLocation location)
     {
         var heights = GetProjectHeights(side, location);
@@ -79,8 +77,8 @@ public class CoverWallUtil
         // Adjust cover wall offsets to not block extra pixels from the the backside
         return new Heights
         (
-            location == WallLocation.Lower ? WorldStatic.CoverWallOffset : ProjectHeight,
-            location == WallLocation.Upper ? WorldStatic.CoverWallOffset : ProjectHeight
+            location == WallLocation.Lower ? (float)WorldStatic.LineVertexGap : ProjectHeight,
+            location == WallLocation.Upper ? (float)WorldStatic.LineVertexGap : ProjectHeight
         );
     }
 }

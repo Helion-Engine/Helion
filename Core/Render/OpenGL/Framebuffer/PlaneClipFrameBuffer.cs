@@ -28,8 +28,8 @@ public class PlaneClipFrameBuffer : IDisposable
         GL.BindTexture(TextureTarget.Texture2D, m_texture);
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, m_texture, $"{name} Texture");
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, width, height, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
         GL.BindTexture(TextureTarget.Texture2D, 0);
 
         m_depthTexture = new GLTexture2D($"{name} Depth Stencil Attachment", m_dimension);
