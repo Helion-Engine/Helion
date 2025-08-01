@@ -24,7 +24,7 @@ public struct ShaderUniforms(
     float gammaCorrection,
     int maxDistance,
     bool useBrightmaps,
-    int downScaleAmount)
+    float downScaleAmount)
 {
     public mat4 Mvp = mvp;
     public mat4 MvpNoPitch = mvpNoPitch;
@@ -41,5 +41,5 @@ public struct ShaderUniforms(
     public float GammaCorrection = gammaCorrection;
     public int MaxDistance = maxDistance;
     public bool UseBrightmaps = useBrightmaps;
-    public int DownScaleAmount = downScaleAmount;
+    public float DownScaleAmount = downScaleAmount;
 }

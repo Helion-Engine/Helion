@@ -156,9 +156,9 @@ public class ConfigRender: ConfigElement<ConfigRender>
     [OptionMenu(OptionSectionType.Render, "Emulate Vanilla Rendering", spacer: true)]
     public readonly ConfigValue<bool> VanillaRender = new(false);
 
-    [ConfigInfo("Downscales the sprite clipping buffer with emulate vanilla rendering. Increases performance at the expense of pixel accuracy.")]
+    [ConfigInfo("Downscales the sprite clipping buffer with emulate vanilla rendering. Increases performance at the expense of pixel accuracy. (1 = default. Higher = less accuracy.)")]
     [OptionMenu(OptionSectionType.Render, "Downscale Vanilla Buffer")]
-    public readonly ConfigValue<bool> DownScaleVanillaRenderSampleBuffer = new(true);
+    public readonly ConfigValue<double> DownScaleVanillaRenderSampleBuffer = new(1, Clamp(1.0, 8.0));
 
     [ConfigInfo("Emulates custom invulnerability palettes in true color mode. May not work well with all WADs. Application restart required.", restartRequired: true)]
     [OptionMenu(OptionSectionType.Render, "Emulate Invulnerability Colormap")]

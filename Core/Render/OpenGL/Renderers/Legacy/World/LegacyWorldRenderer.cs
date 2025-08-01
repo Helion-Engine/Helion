@@ -367,7 +367,7 @@ public class LegacyWorldRenderer : WorldRenderer
             var downScaleAmount = renderInfo.Uniforms.DownScaleAmount;
             useRenderInfo = m_downSizedRenderInfo;
             var viewport = renderInfo.Viewport;
-            viewport = new Rectangle(viewport.X / downScaleAmount, viewport.Y / downScaleAmount, viewport.Width / downScaleAmount, viewport.Height / downScaleAmount);
+            viewport = new Rectangle((int)(viewport.X / downScaleAmount), (int)(viewport.Y / downScaleAmount), (int)(viewport.Width / downScaleAmount), (int)(viewport.Height / downScaleAmount));
             m_downSizedRenderInfo.Set(renderInfo.Camera, renderInfo.TickFraction, viewport, renderInfo.ViewerEntity,
                 renderInfo.DrawAutomap, renderInfo.AutomapOffset, renderInfo.AutomapScale,
                 renderInfo.Config, renderInfo.ViewSector, renderInfo.TransferHeightView);

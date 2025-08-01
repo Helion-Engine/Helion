@@ -358,25 +358,10 @@ public class EntityRenderer : IDisposable
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.ViewPos(renderInfo.Camera.Position);
-        program.ScreenBounds((renderInfo.Viewport.Width, renderInfo.Viewport.Height));
+        program.ScreenBounds(((int)(renderInfo.Viewport.Width / renderInfo.Uniforms.DownScaleAmount - 1), (int)(renderInfo.Viewport.Height / renderInfo.Uniforms.DownScaleAmount - 1)));
         program.CheckPlaneClip(m_vanillaRender);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
-
-        if (renderInfo.Uniforms.DownScaleAmount > 1)
-        {
-            // Decrease the scale factor slightly so the sampling overdraws pixels at the edges to fix underdraw gaps against walls.
-            const float ScaleFactor = 0.997f;
-            var downScale = renderInfo.Uniforms.DownScaleAmount;
-            var scaleX = ScaleFactor - ((downScale - 2) * 0.002f);
-            var scaleY = ScaleFactor - ((downScale - 2) * 0.002f);
-            program.SetSpriteClipDownScaleAmount(downScale);
-            program.SetSpriteClipDownScaleSampleFactor(new(downScale * scaleX, downScale * scaleY));
-        }
-        else
-        {
-            program.SetSpriteClipDownScaleAmount(1);
-            program.SetSpriteClipDownScaleSampleFactor(Vec2F.One);
-        }
+        program.SetSpriteClipDownScaleAmount(Math.Max(renderInfo.Uniforms.DownScaleAmount, 1));
 
         // The fade distance calculations work using squared distances
         float maxDistanceSquared = renderInfo.Uniforms.MaxDistance * renderInfo.Uniforms.MaxDistance;
