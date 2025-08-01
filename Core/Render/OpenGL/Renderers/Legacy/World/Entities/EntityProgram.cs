@@ -391,7 +391,7 @@ public class EntityProgram : RenderProgram
         }
 
         bool discardPlaneClip() {
-            ivec2 sampleCoords = ivec2(clamp(gl_FragCoord.xy / downScaleAmount, vec2(0.0), screenBounds));
+            ivec2 sampleCoords = ivec2(clamp(gl_FragCoord.xy / downScaleAmount, vec2(0.0), screenBounds / downScaleAmount));
             vec3 wallClip = texelFetch(wallClipTexture, sampleCoords, 0).rgb;
             vec3 planeClip = texelFetch(planeClipTexture, sampleCoords, 0).rgb;
 
