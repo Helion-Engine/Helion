@@ -344,23 +344,26 @@ public sealed class Sector
                 if (Ceiling.LightLevel != LightLevel)
                     sectorModel.CeilingLightLevel = Ceiling.LightLevel;
             }
-
             if ((DataChanges & SectorDataTypes.ColorMap) != 0)
                 sectorModel.ColorMap = Colormap?.Entry?.Path.Name;
+            if ((DataChanges & SectorDataTypes.Offset) != 0)
+            {
+                if (Floor.RenderOffsets.Offset.X != 0 || Floor.RenderOffsets.Offset.Y != 0)
+                    sectorModel.FloorOffset = new Vector2D(Floor.RenderOffsets.Offset);
+                if (Ceiling.RenderOffsets.Offset.X != 0 || Ceiling.RenderOffsets.Offset.Y != 0)
+                    sectorModel.CeilingOffset = new Vector2D(Ceiling.RenderOffsets.Offset);
+            }
+            if ((DataChanges & SectorDataTypes.Rotate) != 0)
+            {
+                if (Floor.RenderOffsets.Rotate != 0)
+                    sectorModel.FloorRotate = Floor.RenderOffsets.Rotate;
+                if (Ceiling.RenderOffsets.Rotate != 0)
+                    sectorModel.CeilingRotate = Floor.RenderOffsets.Rotate;
+            }
 
             sectorModel.Secret = Secret;
             sectorModel.DamageAmount = DamageAmount;
         }
-
-        if (Floor.RenderOffsets.Offset.X != 0 || Floor.RenderOffsets.Offset.Y != 0)
-            sectorModel.FloorOffset = new Vector2D(Floor.RenderOffsets.Offset);
-        if (Ceiling.RenderOffsets.Offset.X != 0 || Ceiling.RenderOffsets.Offset.Y != 0)
-            sectorModel.CeilingOffset = new Vector2D(Ceiling.RenderOffsets.Offset);
-
-        if (Floor.RenderOffsets.Rotate != 0)
-            sectorModel.FloorRotate = Floor.RenderOffsets.Rotate;
-        if (Ceiling.RenderOffsets.Rotate != 0)
-            sectorModel.CeilingRotate = Floor.RenderOffsets.Rotate;
 
         return sectorModel;
     }
