@@ -358,7 +358,7 @@ public class EntityRenderer : IDisposable
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.ViewPos(renderInfo.Camera.Position);
-        program.ScreenBounds(((int)(renderInfo.Viewport.Width / renderInfo.Uniforms.DownScaleAmount - 1), (int)(renderInfo.Viewport.Height / renderInfo.Uniforms.DownScaleAmount - 1)));
+        program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
         program.CheckPlaneClip(m_vanillaRender);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
         program.SetSpriteClipDownScaleAmount(Math.Max(renderInfo.Uniforms.DownScaleAmount, 1));
