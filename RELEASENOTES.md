@@ -47,5 +47,6 @@
 - Fix UDMF decimal parsing when on machines don't use dot as a separator.
 - Fix UDMF parser to ignore unknown properties / sections (e.g. ee_compat = true;).
 - Fix UDMF to rotate flats before applying offsets.
+- Fix UDMF/id24 serialization and map restarts for flat offset and rotation.
 - Fix null debug texture being applied to sprite brightmaps when render.nulltexture is on.
 - Fix issue with looping sounds being removed entirely when out of range that prevented them from being added when back in range.

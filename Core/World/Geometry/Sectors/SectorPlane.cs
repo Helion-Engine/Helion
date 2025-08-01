@@ -38,8 +38,9 @@ public sealed class SectorPlane : ISoundSource
 
     private readonly double m_initialZ;
     private readonly int m_initialTextureHandle;
+    private readonly RenderOffsets m_initialRenderOffsets;
 
-    public SectorPlane(SectorPlaneFace facing, double z, int textureHandle, short lightLevel)
+    public SectorPlane(SectorPlaneFace facing, double z, int textureHandle, short lightLevel, in RenderOffsets renderOffsets = default)
     {
         Facing = facing;
         Z = z;
@@ -50,6 +51,8 @@ public sealed class SectorPlane : ISoundSource
         m_initialZ = z;
         m_initialTextureHandle = textureHandle;
         Sector = null!;
+        RenderOffsets = renderOffsets;
+        m_initialRenderOffsets = renderOffsets;
     }
 
     public void Reset(short lightLevel)
@@ -68,8 +71,7 @@ public sealed class SectorPlane : ISoundSource
         NoRender = default;
         SkyGeometry = default;
 
-        RenderOffsets.Offset = default;
-        RenderOffsets.LastOffset = default;
+        RenderOffsets = m_initialRenderOffsets;
     }
 
     public void SetZ(double z)

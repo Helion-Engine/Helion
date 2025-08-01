@@ -13,6 +13,7 @@ using Helion.World.Special;
 using Helion.World.Geometry.Walls;
 using Helion.Util;
 using Helion.Maps.Specials.Compatibility;
+using Helion.Geometry.Vectors;
 
 namespace Helion.World.Geometry.Builder;
 
@@ -36,8 +37,32 @@ public class UdmfGeometryBuilder
         SectorData sectorData = new();
         foreach (var mapSector in map.Sectors)
         {
-            var floorPlane = CreateSectorPlane(mapSector, SectorPlaneFace.Floor, textureManager);
-            var ceilingPlane = CreateSectorPlane(mapSector, SectorPlaneFace.Ceiling, textureManager);
+            RenderOffsets offsets = default;
+            offsets.Offset.X = mapSector.PanningFloorX;
+            offsets.LastOffset.X = mapSector.PanningFloorX;
+            offsets.Offset.Y = mapSector.PanningFloorY;
+            offsets.LastOffset.Y = mapSector.PanningFloorY;
+            offsets.Rotate = MathHelper.ToRadians(mapSector.RotationFloor);
+            offsets.Scale.X = mapSector.ScaleFloorX;
+            offsets.Scale.Y = mapSector.ScaleFloorY;
+
+            var floorPlane = CreateSectorPlane(mapSector, SectorPlaneFace.Floor, textureManager, offsets);
+            floorPlane.LightLevel = mapSector.LightFloor;
+            floorPlane.LightLevelAbsolute = mapSector.LightFloorAbsolute;
+
+            offsets = default;
+            offsets.Offset.X = mapSector.PanningCeilingX;
+            offsets.LastOffset.X = mapSector.PanningCeilingX;
+            offsets.Offset.Y = mapSector.PanningCeilingY;
+            offsets.LastOffset.Y = mapSector.PanningCeilingY;
+            offsets.Rotate = MathHelper.ToRadians(mapSector.RotationCeiling);
+            offsets.Scale.X = mapSector.ScaleCeilingX;
+            offsets.Scale.Y = mapSector.ScaleCeilingY;
+
+            var ceilingPlane = CreateSectorPlane(mapSector, SectorPlaneFace.Ceiling, textureManager, offsets);
+            ceilingPlane.LightLevel = mapSector.LightCeiling;
+            ceilingPlane.LightLevelAbsolute = mapSector.LightCeilingAbsolute;
+
             var sector = new Sector(builder.Sectors.Count, mapSector.Tag, mapSector.LightLevel,
                 floorPlane, ceilingPlane, mapSector.Special, sectorData)
             {
@@ -50,26 +75,6 @@ public class UdmfGeometryBuilder
                 SkyFloor = mapSector.SkyFloor,
                 SkyCeiling = mapSector.SkyCeiling,
             };
-            
-            floorPlane.LightLevel = mapSector.LightFloor;
-            floorPlane.LightLevelAbsolute = mapSector.LightFloorAbsolute;
-            floorPlane.RenderOffsets.Offset.X = mapSector.PanningFloorX;
-            floorPlane.RenderOffsets.LastOffset.X = mapSector.PanningFloorX;
-            floorPlane.RenderOffsets.Offset.Y = mapSector.PanningFloorY;
-            floorPlane.RenderOffsets.LastOffset.Y = mapSector.PanningFloorY;
-            floorPlane.RenderOffsets.Rotate = MathHelper.ToRadians(mapSector.RotationFloor);
-            floorPlane.RenderOffsets.Scale.X = mapSector.ScaleFloorX;
-            floorPlane.RenderOffsets.Scale.Y = mapSector.ScaleFloorY;
-
-            ceilingPlane.LightLevel = mapSector.LightCeiling;
-            ceilingPlane.LightLevelAbsolute = mapSector.LightCeilingAbsolute;
-            ceilingPlane.RenderOffsets.Offset.X = mapSector.PanningCeilingX;
-            ceilingPlane.RenderOffsets.LastOffset.X = mapSector.PanningCeilingX;
-            ceilingPlane.RenderOffsets.Offset.Y = mapSector.PanningCeilingY;
-            ceilingPlane.RenderOffsets.LastOffset.Y = mapSector.PanningCeilingY;
-            ceilingPlane.RenderOffsets.Rotate = MathHelper.ToRadians(mapSector.RotationCeiling);
-            ceilingPlane.RenderOffsets.Scale.X = mapSector.ScaleCeilingX;
-            ceilingPlane.RenderOffsets.Scale.Y = mapSector.ScaleCeilingY;
 
             builder.Sectors.Add(sector);
             sectorData.Clear();
@@ -77,12 +82,12 @@ public class UdmfGeometryBuilder
     }
 
     private static SectorPlane CreateSectorPlane(UdmfSector sector, SectorPlaneFace face,
-        TextureManager textureManager)
+        TextureManager textureManager, in RenderOffsets offsets)
     {
         double z = (face == SectorPlaneFace.Floor ? sector.FloorZ : sector.CeilingZ);
         string texture = (face == SectorPlaneFace.Floor ? sector.FloorTexture : sector.CeilingTexture);
         int handle = textureManager.GetTexture(texture, ResourceNamespace.Global, ResourceNamespace.Flats).Index;
-        return new SectorPlane(face, z, handle, sector.LightLevel);
+        return new SectorPlane(face, z, handle, sector.LightLevel, offsets);
     }
 
     private static void PopulateLineData(UdmfMap map, GeometryBuilder builder, TextureManager textureManager)

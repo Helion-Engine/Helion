@@ -344,26 +344,23 @@ public sealed class Sector
                 if (Ceiling.LightLevel != LightLevel)
                     sectorModel.CeilingLightLevel = Ceiling.LightLevel;
             }
+
             if ((DataChanges & SectorDataTypes.ColorMap) != 0)
                 sectorModel.ColorMap = Colormap?.Entry?.Path.Name;
-            if ((DataChanges & SectorDataTypes.Offset) != 0)
-            {
-                if (Floor.RenderOffsets.Offset.X != 0 || Floor.RenderOffsets.Offset.Y != 0)
-                    sectorModel.FloorOffset = new Vector2D(Floor.RenderOffsets.Offset);
-                if (Ceiling.RenderOffsets.Offset.X != 0 || Ceiling.RenderOffsets.Offset.Y != 0)
-                    sectorModel.CeilingOffset = new Vector2D(Ceiling.RenderOffsets.Offset);
-            }
-            if ((DataChanges & SectorDataTypes.Rotate) != 0)
-            {
-                if (Floor.RenderOffsets.Rotate != 0)
-                    sectorModel.FloorRotate = Floor.RenderOffsets.Rotate;
-                if (Ceiling.RenderOffsets.Rotate != 0)
-                    sectorModel.CeilingRotate = Floor.RenderOffsets.Rotate;
-            }
 
             sectorModel.Secret = Secret;
             sectorModel.DamageAmount = DamageAmount;
         }
+
+        if (Floor.RenderOffsets.Offset.X != 0 || Floor.RenderOffsets.Offset.Y != 0)
+            sectorModel.FloorOffset = new Vector2D(Floor.RenderOffsets.Offset);
+        if (Ceiling.RenderOffsets.Offset.X != 0 || Ceiling.RenderOffsets.Offset.Y != 0)
+            sectorModel.CeilingOffset = new Vector2D(Ceiling.RenderOffsets.Offset);
+
+        if (Floor.RenderOffsets.Rotate != 0)
+            sectorModel.FloorRotate = Floor.RenderOffsets.Rotate;
+        if (Ceiling.RenderOffsets.Rotate != 0)
+            sectorModel.CeilingRotate = Floor.RenderOffsets.Rotate;
 
         return sectorModel;
     }
@@ -451,29 +448,23 @@ public sealed class Sector
 
             if ((DataChanges & SectorDataTypes.ColorMap) != 0 && sectorModel.ColorMap != null && textureManager.TryGetColormap(sectorModel.ColorMap, out var sectorColorMap))
                 Colormap = sectorColorMap;
-
-            if ((DataChanges & SectorDataTypes.Offset) != 0)
-            {
-                if (sectorModel.FloorOffset.HasValue)
-                {
-                    Floor.RenderOffsets.Offset = new Vec2D(sectorModel.FloorOffset.Value.X, sectorModel.FloorOffset.Value.Y);
-                    Floor.RenderOffsets.LastOffset = Floor.RenderOffsets.Offset;
-                }
-                if (sectorModel.CeilingOffset.HasValue)
-                {
-                    Ceiling.RenderOffsets.Offset = new Vec2D(sectorModel.CeilingOffset.Value.X, sectorModel.CeilingOffset.Value.Y);
-                    Ceiling.RenderOffsets.LastOffset = Ceiling.RenderOffsets.Offset;
-                }
-            }
-
-            if ((DataChanges & SectorDataTypes.Rotate) != 0)
-            {
-                if (sectorModel.FloorRotate.HasValue)
-                    Floor.RenderOffsets.Rotate = sectorModel.FloorRotate.Value;
-                if (sectorModel.CeilingRotate.HasValue)
-                    Ceiling.RenderOffsets.Rotate = sectorModel.CeilingRotate.Value;
-            }
         }
+
+        if (sectorModel.FloorOffset.HasValue)
+        {
+            Floor.RenderOffsets.Offset = new Vec2D(sectorModel.FloorOffset.Value.X, sectorModel.FloorOffset.Value.Y);
+            Floor.RenderOffsets.LastOffset = Floor.RenderOffsets.Offset;
+        }
+        if (sectorModel.CeilingOffset.HasValue)
+        {
+            Ceiling.RenderOffsets.Offset = new Vec2D(sectorModel.CeilingOffset.Value.X, sectorModel.CeilingOffset.Value.Y);
+            Ceiling.RenderOffsets.LastOffset = Ceiling.RenderOffsets.Offset;
+        }
+
+        if (sectorModel.FloorRotate.HasValue)
+            Floor.RenderOffsets.Rotate = sectorModel.FloorRotate.Value;
+        if (sectorModel.CeilingRotate.HasValue)
+            Ceiling.RenderOffsets.Rotate = sectorModel.CeilingRotate.Value;
 
         if (sectorModel.TransferFloorLight.HasValue && IsSectorIdValid(sectors, sectorModel.TransferFloorLight.Value))
             TransferFloorLightSector = sectors[sectorModel.TransferFloorLight.Value];
