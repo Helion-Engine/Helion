@@ -10,17 +10,52 @@ using Helion.World.Entities.Players;
 
 namespace Helion.World.Sound;
 
-public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundManager(audioSystem, world.ArchiveCollection), ITickable
+public class WorldSoundManager : SoundManager, ITickable
 {
-    private IWorld m_world = world;
+    private IWorld m_world;
+
+    public WorldSoundManager(IWorld world, IAudioSystem audioSystem) : base(audioSystem, world.ArchiveCollection)
+    {
+        m_world = world;
+        InitSoundConfig(world);
+        RegisterEvents(world);
+    }
+
+    private void InitSoundConfig(IWorld world)
+    {
+        m_maxConcurrentSounds = world.Config.Audio.MaxSounds;
+        m_sameSoundLimit = world.Config.Audio.SameSoundLimit;
+        m_sameSoundWindow = world.Config.Audio.SameSoundWindow;
+    }
 
     public void UpdateTo(IWorld world)
     {
         m_world = world;
+        InitSoundConfig(world);
+        UnregisterEvents(m_world);
+        RegisterEvents(world);
         ArchiveCollection = world.ArchiveCollection;
         ClearSounds();
         AudioManager.Clear();
     }
+
+    private void RegisterEvents(IWorld world)
+    {
+        world.Config.Audio.MaxSounds.OnChanged += MaxSounds_OnChanged;
+        world.Config.Audio.SameSoundLimit.OnChanged += SameSoundLimit_OnChanged;
+        world.Config.Audio.SameSoundWindow.OnChanged += SameSoundWindow_OnChanged;
+    }
+
+    private void UnregisterEvents(IWorld world)
+    {
+        world.Config.Audio.MaxSounds.OnChanged -= MaxSounds_OnChanged;
+        world.Config.Audio.SameSoundLimit.OnChanged -= SameSoundLimit_OnChanged;
+        world.Config.Audio.SameSoundWindow.OnChanged -= SameSoundWindow_OnChanged;
+    }
+
+    private void MaxSounds_OnChanged(object? sender, int max) =>  m_maxConcurrentSounds = max;
+    private void SameSoundLimit_OnChanged(object? sender, int limit) => m_sameSoundLimit = limit;
+    private void SameSoundWindow_OnChanged(object? sender, int window) => m_sameSoundWindow = window;
 
     protected override IRandom GetRandom() => m_world.Random;
 
@@ -175,9 +210,6 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
         if (m_world.IsDisposed)
             return;
 
-        m_maxConcurrentSounds = m_world.Config.Audio.MaxSounds;
-        m_sameSoundLimit = m_world.Config.Audio.SameSoundLimit;
-        m_sameSoundWindow = m_world.Config.Audio.SameSoundWindow;
         m_setVelocity = ArchiveCollection.Config.Audio.Velocity;
         var listener = m_world.GetListener();
         AudioManager.SetListener(listener.Position, listener.Angle, listener.Pitch);

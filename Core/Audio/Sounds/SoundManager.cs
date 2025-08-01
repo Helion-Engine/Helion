@@ -36,8 +36,6 @@ public class SoundManager : IDisposable
     // These sounds are continually checked if they can be added in to play.
     private readonly WaitingSoundList m_waitingLoopSounds = new();
 
-    // Intended for unit tests only
-    public void SetMaxConcurrentSounds(int count) => m_maxConcurrentSounds = count;
     public LinkedList<IAudioSource> GetPlayingSounds() => PlayingSounds.ToLinkedList();
     public LinkedList<IAudioSource> GetSoundsToPlay() => m_soundsToPlay.ToLinkedList();
     public LinkedList<WaitingSound> GetWaitingSounds() => m_waitingLoopSounds;
@@ -385,7 +383,7 @@ public class SoundManager : IDisposable
         if (!CheckDistanceAndPriority(source, pos, velocity, soundInfo, soundParams, priority, 0, gametick))
             return null;
 
-        var hitSoundLimit = HitSoundLimit(soundInfo, gametick);
+        var hitSoundLimit =  IsMaxSoundCount || HitSoundLimit(soundInfo, gametick);
         if (hitSoundLimit && !StopSounds(source, soundInfo, soundParams, StopSoundOption.BySource))
         {
             if (!StopSounds(source, soundInfo, soundParams, StopSoundOption.BySound))
