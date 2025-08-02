@@ -4,6 +4,7 @@ using Helion.Audio.Sounds;
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
 using Helion.Util;
+using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
 using Helion.World.Sound;
@@ -26,6 +27,8 @@ public class SoundManager
     private void WorldInit(SinglePlayerWorld world)
     {
         world.Config.Audio.MaxSounds.Set(32);
+        world.Config.Audio.SameSoundLimit.Set(0);
+        world.Config.Audio.SameSoundWindow.Set(1);
     }
 
     [Fact(DisplayName = "Static sound")]
@@ -436,6 +439,35 @@ public class SoundManager
         waitingSounds.Count.Should().Be(0);
     }
 
+    [Fact(DisplayName = "Same sound limit")]
+    public void SameSoundLimit()
+    {
+        World.Config.Audio.SameSoundLimit.Set(2);
+        World.Config.Audio.SameSoundWindow.Set(1);
+        GameActions.SetEntityPosition(World, World.Player, (-288, 416));
+        ActivateSpecialLine(40);
+
+        // Four lift sectors were activated but only the closest two should be playing
+        var sounds = World.SoundManager.GetPlayingSounds();
+        sounds.Count.Should().Be(2);
+
+        var closestSector1 = GameActions.GetSector(World, 5);
+        var closestSector2 = GameActions.GetSector(World, 6);
+        AssertSound(sounds, closestSector1.Floor);
+        AssertSound(sounds, closestSector2.Floor);
+
+        World.SoundManager.CreateSoundOn(World.Player, "weapons/pistol", new SoundParams(World.Player));
+        ActivateSpecialLine(45);
+        sounds = World.SoundManager.GetPlayingSounds();
+        sounds.Count.Should().Be(3);
+
+        // Sector 6 should be bumped since it's now the furthest away
+        closestSector2 = GameActions.GetSector(World, 9);
+        AssertSound(sounds, closestSector1.Floor);
+        AssertSound(sounds, closestSector2.Floor);
+        AssertSound(sounds, "dspistol");
+    }
+
     private static void AssertSoundsPlaying(LinkedList<IAudioSource> list, bool playing)
     {
         var node = list.First;
@@ -444,6 +476,24 @@ public class SoundManager
             node.Value.IsPlaying().Should().Be(playing);
             node = node.Next;
         }
+    }
+
+    private static void AssertSound(LinkedList<IAudioSource> list, SectorPlane sectorPlane)
+    {
+        bool found = false;
+        var node = list.First;
+        while (node != null)
+        {
+            if (node.Value.AudioData.SoundSource == sectorPlane)
+            {
+                found = true;
+                break;
+            }
+
+            node = node.Next;
+        }
+
+        found.Should().BeTrue();
     }
 
     private static void AssertSound(LinkedList<IAudioSource> list, string soundName)
@@ -478,7 +528,8 @@ public class SoundManager
 
     private void ActivateSpecialLine(int lineId)
     {
-        GameActions.ActivateLine(World, World.Player, lineId, ActivationContext.UseLine).Should().BeTrue();
+        if (!GameActions.ActivateLine(World, World.Player, lineId, ActivationContext.UseLine))
+            GameActions.ActivateLine(World, World.Player, lineId, ActivationContext.CrossLine).Should().BeTrue();
         // Advance so the movement sound is actively playing
         World.Tick();
     }
