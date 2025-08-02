@@ -45,6 +45,8 @@ public class TextureDefinition
 
     public int Index;
 
+    public bool IsAutoImageTexture;
+
     /// <summary>
     /// Creates a new texture definition.
     /// </summary>
@@ -55,8 +57,9 @@ public class TextureDefinition
     /// <param name="components">A list of all the sub-images that make up
     /// this definition.</param>
     /// <param name="options">The options for this texture.</param>
+    /// <param name="isAutoImageTexture">If this texture has a single component that defines this texture.</param>
     public TextureDefinition(string name, Dimension dimension, ResourceNamespace resourceNamespace,
-        IList<TextureDefinitionComponent> components, TextureOptions? options = null)
+        IList<TextureDefinitionComponent> components, TextureOptions? options = null, bool isAutoImageTexture = false)
     {
         Name = name;
         Dimension = dimension;
@@ -64,6 +67,7 @@ public class TextureDefinition
         Namespace = resourceNamespace;
         Options = options ?? TextureOptions.Default;
         Index = StaticIndex++;
+        IsAutoImageTexture = isAutoImageTexture;
     }
 
     /// <inheritdoc/>

@@ -566,17 +566,35 @@ public class DefinitionEntries
         {
             var textureDefinitions = textureX.ToTextureDefinitions(pnames);
             foreach (var def in textureDefinitions)
-            {
-                // Ignore duplicated textures from same archive
-                // E.g. Ancient Aliens has KS_FLSG6 duplicated and using the second texture breaks animated range values.
-                if (processed.Contains(def.Name))
-                    continue;
+                ProcessTextureDefinition(archiveCollection, processed, def);
+        }
 
-                ClearNegativePatchOffsets(archiveCollection, def);
-                processed.Add(def.Name);
-                Textures.Insert(def.Name, def.Namespace, def);
+        foreach (var archive in archiveCollection.Archives)
+        {
+            if (archive is not Wad wadArchive)
+                continue;
+
+            var ns = ResourceNamespace.Textures;
+            foreach (var textureEntry in wadArchive.TxEntries)
+            {
+                var name = textureEntry.Path.Name;
+                var component = new TextureDefinitionComponent(name, default);
+                var def = new TextureDefinition(name, default, ns, [component], isAutoImageTexture: true);
+                ProcessTextureDefinition(archiveCollection, processed, def);
             }
         }
+    }
+
+    private void ProcessTextureDefinition(ArchiveCollection archiveCollection, HashSet<string> processed, TextureDefinition def)
+    {
+        // Ignore duplicated textures from same archive
+        // E.g. Ancient Aliens has KS_FLSG6 duplicated and using the second texture breaks animated range values.
+        if (processed.Contains(def.Name))
+            return;
+
+        ClearNegativePatchOffsets(archiveCollection, def);
+        processed.Add(def.Name);
+        Textures.Insert(def.Name, def.Namespace, def);
     }
 
     private static void ClearNegativePatchOffsets(ArchiveCollection archiveCollection, TextureDefinition texture)

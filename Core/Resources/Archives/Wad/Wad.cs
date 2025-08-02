@@ -5,6 +5,7 @@ using System.Text;
 using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Bytes;
+using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Archives;
@@ -19,6 +20,8 @@ public class Wad : Archive
     public WadHeader Header;
     private readonly ByteReader m_byteReader;
     private readonly IIndexGenerator m_indexGenerator;
+
+    public readonly List<Entry> TxEntries = [];
 
     private readonly Dictionary<string, ResourceNamespace> m_entryToNamespace = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -95,12 +98,13 @@ public class Wad : Archive
         if (Header.DirectoryTableOffset + (Header.EntryCount * LumpTableEntryBytes) > m_byteReader.Length)
             throw new HelionException("Lump entry table runs out of data");
 
-        ResourceNamespace currentNamespace = ResourceNamespace.Global;
-
+        var currentNamespace = ResourceNamespace.Global;
+        var isTxNamespace = false;
         m_byteReader.Offset(Header.DirectoryTableOffset);
+        Entries.EnsureCapacity(Header.EntryCount);
         for (int i = 0; i < Header.EntryCount; i++)
         {
-            (int offset, int size, string upperName) = ReadDirectoryEntry();
+            (int offset, int size, string name) = ReadDirectoryEntry();
 
             // It appears that some markers have an offset of zero, so
             // it is an acceptable offset (we can't check < 12).
@@ -109,16 +113,20 @@ public class Wad : Archive
             if (offset + size > m_byteReader.Length)
                 throw new HelionException("Lump entry data location overflows");
 
-            bool isMarker = false;
-            if (m_entryToNamespace.TryGetValue(upperName, out ResourceNamespace resourceNamespace))
+            var isMarker = false;
+            if (m_entryToNamespace.TryGetValue(name, out ResourceNamespace resourceNamespace))
             {
                 isMarker = true;
                 currentNamespace = resourceNamespace;
+                isTxNamespace = name.EqualsIgnoreCase("TX_START");
             }
 
-            int index = m_indexGenerator.GetIndex(this);
-            WadEntryPath entryPath = new(upperName);
-            Entries.Add(new WadEntry(this, offset, size, entryPath, isMarker ? ResourceNamespace.Global : currentNamespace, index));
+            var index = m_indexGenerator.GetIndex(this);
+            var entryPath = new WadEntryPath(name);
+            var entry = new WadEntry(this, offset, size, entryPath, isMarker ? ResourceNamespace.Global : currentNamespace, index);
+            if (!isMarker && isTxNamespace)
+                TxEntries.Add(entry);
+            Entries.Add(entry);
         }
     }
 }
