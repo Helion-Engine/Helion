@@ -8,6 +8,7 @@ using NLog;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Image = Helion.Graphics.Image;
@@ -89,24 +90,40 @@ public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool fin
 
     private Image ImageFromDefinition(TextureDefinition definition, GetImageOptions options = default, byte[]? colorTranslation = null)
     {
-        (int w, int h) = definition.Dimension;
-        Image image = new(w, h, ImageType.PaletteWithArgb, (0, 0), definition.Namespace);
-
-        foreach (TextureDefinitionComponent component in definition.Components)
+        Image image;
+        if (definition.IsAutoImageTexture)
         {
-            Image? subImage = null;
-            Entry? entry = m_archiveCollection.Entries.FindByNamespace(component.Name, definition.Namespace);
-
-            if (entry != null)
-                subImage = ImageFromEntry(entry, cacheEntry: false, options, colorTranslation: colorTranslation);
-
-            if (subImage == null)
+            Image? findImage = null;
+            if (definition.Components.Count > 0)
             {
-                Log.Warn("Cannot find sub-image {0} when making image {1}, resulting will be corrupt", component.Name, definition.Name);
-                continue;
+                var entry = m_archiveCollection.Entries.FindByNamespace(definition.Components[0].Name, definition.Namespace);
+                if (entry != null)
+                    findImage = ImageFromEntry(entry, cacheEntry: false, options, colorTranslation: colorTranslation);
             }
 
-            subImage.DrawOnTopOf(image, component.Offset);
+            image = findImage ?? new Image(0, 0, ImageType.PaletteWithArgb, (0, 0), definition.Namespace);
+        }
+        else
+        {
+            (int w, int h) = definition.Dimension;
+            image = new(w, h, ImageType.PaletteWithArgb, (0, 0), definition.Namespace);
+
+            foreach (TextureDefinitionComponent component in definition.Components)
+            {
+                Image? subImage = null;
+                Entry? entry = m_archiveCollection.Entries.FindByNamespace(component.Name, definition.Namespace);
+
+                if (entry != null)
+                    subImage = ImageFromEntry(entry, cacheEntry: false, options, colorTranslation: colorTranslation);
+
+                if (subImage == null)
+                {
+                    Log.Warn("Cannot find sub-image {0} when making image {1}, resulting will be corrupt", component.Name, definition.Name);
+                    continue;
+                }
+
+                subImage.DrawOnTopOf(image, component.Offset);
+            }
         }
 
         if (definition.Namespace == ResourceNamespace.Sprites)
