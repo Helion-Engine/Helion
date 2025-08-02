@@ -1108,9 +1108,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         return $"Id:{Id} [{Definition}] [{Position}]";
     }
 
-    public double GetDistanceFrom(Entity listenerEntity)
+    public double GetDistanceSquaredFrom(Entity listenerEntity)
     {
-        return Position.Distance(listenerEntity.Position);
+        return Position.DistanceSquared(listenerEntity.Position);
     }
 
     public virtual void SoundCreated(SoundInfo soundInfo, IAudioSource? audioSource, SoundChannel channel)

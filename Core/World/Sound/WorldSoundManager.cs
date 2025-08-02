@@ -26,6 +26,7 @@ public class WorldSoundManager : SoundManager, ITickable
         m_maxConcurrentSounds = world.Config.Audio.MaxSounds;
         m_sameSoundLimit = world.Config.Audio.SameSoundLimit;
         m_sameSoundWindow = world.Config.Audio.SameSoundWindow;
+        m_setVelocity = world.Config.Audio.Velocity;
     }
 
     public void UpdateTo(IWorld world)
@@ -39,11 +40,14 @@ public class WorldSoundManager : SoundManager, ITickable
         AudioManager.Clear();
     }
 
+    public void UnregisterEvents() => UnregisterEvents(m_world);
+
     private void RegisterEvents(IWorld world)
     {
         world.Config.Audio.MaxSounds.OnChanged += MaxSounds_OnChanged;
         world.Config.Audio.SameSoundLimit.OnChanged += SameSoundLimit_OnChanged;
         world.Config.Audio.SameSoundWindow.OnChanged += SameSoundWindow_OnChanged;
+        world.Config.Audio.Velocity.OnChanged += Velocity_OnChanged;
     }
 
     private void UnregisterEvents(IWorld world)
@@ -51,19 +55,26 @@ public class WorldSoundManager : SoundManager, ITickable
         world.Config.Audio.MaxSounds.OnChanged -= MaxSounds_OnChanged;
         world.Config.Audio.SameSoundLimit.OnChanged -= SameSoundLimit_OnChanged;
         world.Config.Audio.SameSoundWindow.OnChanged -= SameSoundWindow_OnChanged;
+        world.Config.Audio.Velocity.OnChanged -= Velocity_OnChanged;
     }
 
     private void MaxSounds_OnChanged(object? sender, int max) =>  m_maxConcurrentSounds = max;
     private void SameSoundLimit_OnChanged(object? sender, int limit) => m_sameSoundLimit = limit;
     private void SameSoundWindow_OnChanged(object? sender, int window) => m_sameSoundWindow = window;
+    private void Velocity_OnChanged(object? sender, bool set) => m_setVelocity = set;
 
     protected override IRandom GetRandom() => m_world.Random;
 
     protected override int GetGameTick() => m_world.Gametick;
 
-    protected override double GetDistance(ISoundSource soundSource)
+    protected override double GetDistanceSquared(ISoundSource soundSource)
     {
-        return soundSource.GetDistanceFrom(m_world.GetListener().Entity);
+        return soundSource.GetDistanceSquaredFrom(m_world.GetListener().Entity);
+    }
+
+    protected override void HandleDispose()
+    {
+        UnregisterEvents(m_world);
     }
 
     public override IAudioSource? PlayStaticSound(string sound)
@@ -210,7 +221,6 @@ public class WorldSoundManager : SoundManager, ITickable
         if (m_world.IsDisposed)
             return;
 
-        m_setVelocity = ArchiveCollection.Config.Audio.Velocity;
         var listener = m_world.GetListener();
         AudioManager.SetListener(listener.Position, listener.Angle, listener.Pitch);
         UpdateWaitingLoopSounds();
@@ -231,8 +241,8 @@ public class WorldSoundManager : SoundManager, ITickable
                 node = nextNode;
                 continue;
             }
-            var distance = node.AudioData.SoundSource.GetDistanceFrom(listener.Entity);
-            if (!CheckDistance(distance, node.AudioData.Attenuation))
+            var distanceSquared = node.AudioData.SoundSource.GetDistanceSquaredFrom(listener.Entity);
+            if (!CheckDistance(distanceSquared, node.AudioData.Attenuation))
             {
                 AddWaitingSoundFromBumpedSound(node);
                 node.Stop();
@@ -240,7 +250,7 @@ public class WorldSoundManager : SoundManager, ITickable
             }
             else
             {
-                node.Update(new((float)distance));
+                node.Update(new((float)Math.Sqrt(distanceSquared)));
                 var position = node.AudioData.SoundSource.GetSoundPosition(listener.Entity);
                 if (position != null)
                     node.SetPosition((float)position.Value.X, (float)position.Value.Y, (float)position.Value.Z);
