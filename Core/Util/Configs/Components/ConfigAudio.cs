@@ -35,7 +35,7 @@ public class ConfigAudio: ConfigElement<ConfigAudio>
 
     [ConfigInfo("Limit same sounds window in ticks. 0 = off.")]
     [OptionMenu(OptionSectionType.Audio, "Same Sound Window")]
-    public readonly ConfigValue<int> SameSoundWindow = new(0, GreaterOrEqual(0));
+    public readonly ConfigValue<int> SameSoundWindow = new(1, GreaterOrEqual(0));
 
     [ConfigInfo("Randomize sound pitch.")]
     [OptionMenu(OptionSectionType.Audio, "Randomize Pitch", spacer: true)]
