@@ -1,23 +1,23 @@
-using System.Collections.Generic;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.Palettes;
+using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources;
 using Helion.Models;
+using Helion.Resources;
+using Helion.Resources.Definitions;
 using Helion.Util;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.World.Entities;
+using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special;
 using Helion.World.Special.Specials;
-using Helion.Maps.Specials;
-using Helion.Util.Configs.Components;
 using Helion.World.Static;
-using Helion.Geometry.Boxes;
-using Helion.World.Geometry.Islands;
+using System.Collections.Generic;
 using static Helion.World.Entities.EntityManager;
-using Helion.Graphics.Palettes;
-using Helion.Resources.Definitions;
 using Vector2D = Helion.Models.Vector2D;
 
 namespace Helion.World.Geometry.Sectors;
@@ -97,13 +97,13 @@ public sealed class Sector
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)
+        ZDoomSectorSpecialType sectorSpecial, in SectorData sectorData)
     {
         Set(id, tag, lightLevel, floor, ceiling, sectorSpecial, sectorData);
     }
 
     public void Set(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
-        ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)
+        ZDoomSectorSpecialType sectorSpecial, in SectorData sectorData)
     {
         Id = id;
         Tag = tag;
@@ -111,9 +111,14 @@ public sealed class Sector
         Floor = floor;
         Ceiling = ceiling;
         SectorSpecialType = sectorSpecial;
-        DamageAmount = sectorData.DamageAmount;
         KillEffect = sectorData.InstantKillEffect;
         SectorEffect = sectorData.SectorEffect;
+
+        if (sectorData.BasicDamageAmount != 0)
+        {
+            DamageAmount = sectorData.BasicDamageAmount;
+            DamageLeakiness = sectorData.BasicDamageAmount == 20 ? 5 : 0;
+        }
 
         floor.Sector = this;
         ceiling.Sector = this;
@@ -153,7 +158,7 @@ public sealed class Sector
         new (0, 0, 0,
             new SectorPlane(SectorPlaneFace.Floor, 0, 0, 0),
             new SectorPlane(SectorPlaneFace.Ceiling, 0, 0, 0),
-            ZDoomSectorSpecialType.None, SectorData.Default);
+            ZDoomSectorSpecialType.None, new());
 
     public Sector GetRenderSector(Sector sector, double viewZ)
     {

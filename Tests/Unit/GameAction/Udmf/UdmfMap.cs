@@ -260,6 +260,41 @@ public class UdmfMap
         sector.DamageLeakiness.Should().Be(64);
     }
 
+    [Fact(DisplayName = "UDMF sector flags")]
+    public void SectorFlags()
+    {
+        var sector = GameActions.GetSector(World, 4);
+        sector.DamageAmount.Should().Be(5);
+        sector.DamageInterval.Should().Be(SectorDamageSpecial.DefaultDamageInterval);
+        sector.DamageLeakiness.Should().Be(0);
+        sector.SectorEffect.Should().Be(SectorEffect.Secret | SectorEffect.Friction | SectorEffect.WindOrPush);
+        var specials = World.SpecialManager.GetSpecials();
+        specials.Count.Should().Be(1);
+        var special = specials.First!;
+        special.Value.As<LightFlickerDoomSpecial>().Should().NotBeNull(); 
+    }
+
+    [Fact(DisplayName = "UDMF sector damage 20")]
+    public void SectorDamage20()
+    {
+        var sector = GameActions.GetSector(World, 5);
+        sector.DamageAmount.Should().Be(20);
+        sector.DamageInterval.Should().Be(SectorDamageSpecial.DefaultDamageInterval);
+        sector.DamageLeakiness.Should().Be(5);
+        sector.SectorEffect.Should().Be(SectorEffect.None);
+    }
+
+
+    [Fact(DisplayName = "UDMF sector damage properties override flags")]
+    public void SectorDamageOverridesFlags()
+    {
+        var sector = GameActions.GetSector(World, 6);
+        sector.DamageAmount.Should().Be(69);
+        sector.DamageInterval.Should().Be(30);
+        sector.DamageLeakiness.Should().Be(100);
+        sector.SectorEffect.Should().Be(SectorEffect.None);
+    }
+
     [Fact(DisplayName = "UDMF thing properties")]
     public void ThingProperties()
     {

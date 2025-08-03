@@ -4,13 +4,14 @@ namespace Helion.Maps.Specials.Vanilla;
 
 public static class VanillaSectorSpecTranslator
 {
-    public static ZDoomSectorSpecialType Translate(int sectorType, SectorData sectorData)
+    public static ZDoomSectorSpecialType Translate(int sectorType, out SectorData sectorData)
     {
+        sectorData = new();
         if (sectorType == 0)
             return ZDoomSectorSpecialType.None;
 
         VanillaSectorSpecialType type = (VanillaSectorSpecialType)SectorSpecialData.GetType(sectorType, SectorDataType.Boom);
-        SectorSpecialData.SetSectorData(sectorType, sectorData, SectorDataType.Boom);
+        sectorData = SectorSpecialData.GetSectorData(sectorType, SectorDataType.Boom);
 
         switch (type)
         {

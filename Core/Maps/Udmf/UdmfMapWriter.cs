@@ -14,7 +14,6 @@ namespace Helion.Maps.Udmf;
 public static class UdmfMapWriter
 {
     private static readonly MapLineFlags DefaultMapLineFlags = MapLineFlags.Doom(0);
-    private static readonly SectorData SectorData = new();
 
     public static void WriteMap(IMap map, TextWriter writer)
     {
@@ -59,7 +58,7 @@ public static class UdmfMapWriter
 
             if (doomSector.SectorType != 0)
             {
-                var zdoomType = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, SectorData);
+                var zdoomType = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, out _);
                 writer.WriteLine($"special = {(int)zdoomType};");
             }
         }
