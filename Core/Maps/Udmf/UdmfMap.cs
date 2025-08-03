@@ -353,7 +353,7 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("id"))
                 sector.Tag = (ushort)parser.ParseFloat(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("special"))
-                sector.Special = (ZDoomSectorSpecialType)parser.ParseFloat(prop.Value);
+                sector.Special = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("rotationfloor"))
                 sector.RotationFloor = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("rotationceiling"))

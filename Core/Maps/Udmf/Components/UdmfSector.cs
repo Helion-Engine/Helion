@@ -14,7 +14,7 @@ public class UdmfSector : ISector
     public string CeilingTexture { get; set; } = Constants.NoTexture;
     public short LightLevel { get; set; } = 160;
     public ushort Tag { get; set; }
-    public ZDoomSectorSpecialType Special;
+    public int Special;
     public double RotationFloor;
     public double RotationCeiling;
     public double PanningFloorX;
@@ -33,7 +33,7 @@ public class UdmfSector : ISector
     public short LightCeiling;
     public short LightFloor;
     public int DamageAmount;
-    public int DamageInterval = SectorDamageSpecial.DefaultDamageInterval;
+    public int DamageInterval;
     public int Leakiness;
     public string SkyFloor = string.Empty;
     public string SkyCeiling = string.Empty;

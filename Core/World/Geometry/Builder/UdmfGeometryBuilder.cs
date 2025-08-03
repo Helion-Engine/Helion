@@ -1,19 +1,19 @@
-﻿using Helion.Maps.Specials.ZDoom;
+﻿using Helion.Geometry.Segments;
 using Helion.Maps.Specials;
-using Helion.Maps.Udmf;
-using Helion.Resources;
-using Helion.World.Bsp;
-using Helion.World.Geometry.Sectors;
-using System;
-using Helion.Maps.Udmf.Components;
-using Helion.Geometry.Segments;
-using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sides;
-using Helion.World.Special;
-using Helion.World.Geometry.Walls;
-using Helion.Util;
 using Helion.Maps.Specials.Compatibility;
-using Helion.Geometry.Vectors;
+using Helion.Maps.Specials.ZDoom;
+using Helion.Maps.Udmf;
+using Helion.Maps.Udmf.Components;
+using Helion.Resources;
+using Helion.Util;
+using Helion.World.Bsp;
+using Helion.World.Geometry.Lines;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Walls;
+using Helion.World.Special;
+using Helion.World.Special.Specials;
+using System;
 
 namespace Helion.World.Geometry.Builder;
 
@@ -34,7 +34,6 @@ public class UdmfGeometryBuilder
 
     private static void PopulateSectorData(UdmfMap map, GeometryBuilder builder, TextureManager textureManager)
     {
-        SectorData sectorData = new();
         foreach (var mapSector in map.Sectors)
         {
             RenderOffsets offsets = default;
@@ -63,21 +62,26 @@ public class UdmfGeometryBuilder
             ceilingPlane.LightLevel = mapSector.LightCeiling;
             ceilingPlane.LightLevelAbsolute = mapSector.LightCeilingAbsolute;
 
+            var sectorSpecial = (ZDoomSectorSpecialType)SectorSpecialData.GetType(mapSector.Special, SectorDataType.ZDoom);
+            var sectorData = SectorSpecialData.GetSectorData(mapSector.Special, SectorDataType.ZDoom);
             var sector = new Sector(builder.Sectors.Count, mapSector.Tag, mapSector.LightLevel,
-                floorPlane, ceilingPlane, mapSector.Special, sectorData)
+                floorPlane, ceilingPlane, sectorSpecial, sectorData)
             {
                 Silent = mapSector.Silent,
                 NoAttack = mapSector.NoAttack,
                 Gravity = mapSector.Gravity,
-                DamageAmount = mapSector.DamageAmount,
-                DamageInterval = mapSector.DamageInterval,
-                DamageLeakiness = mapSector.Leakiness,
                 SkyFloor = mapSector.SkyFloor,
                 SkyCeiling = mapSector.SkyCeiling,
+                DamageInterval = mapSector.DamageInterval == 0 ? SectorDamageSpecial.DefaultDamageInterval : mapSector.DamageInterval,
             };
 
+            if (mapSector.DamageAmount != 0)
+            {
+                sector.DamageAmount = mapSector.DamageAmount;
+                sector.DamageLeakiness = mapSector.Leakiness;
+            }
+
             builder.Sectors.Add(sector);
-            sectorData.Clear();
         }
     }
 

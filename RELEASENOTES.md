@@ -5,6 +5,7 @@
 - Dehacked blood color support for both palette and true color images.
 - Blood color is passed to children through A_SpawnObject so Smooth Doom MBF21 blood spawners with blood color match parent blood.
 - UDMF midtex3d and midtex3dimpassible line flags support. Includes physics for monsters to walk on without dropping off.
+- Support sector flags for secret, damage, friction, and pusher.
 - Solo-net command that allows for cooperative gameplay rules in a single player game.
 - HUD message text will wrap to HUD width.
 - IWAD detection will fallback to reading lumps when MD5/filename checks fail for freedoom.
