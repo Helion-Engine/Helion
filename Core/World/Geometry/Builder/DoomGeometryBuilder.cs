@@ -44,17 +44,15 @@ public static class DoomGeometryBuilder
 
     private static void PopulateSectorData(DoomMap map, GeometryBuilder builder, TextureManager textureManager)
     {
-        SectorData sectorData = new();
         foreach (DoomSector doomSector in map.Sectors)
         {
             SectorPlane floorPlane = CreateSectorPlane(doomSector, SectorPlaneFace.Floor, textureManager);
             SectorPlane ceilingPlane = CreateSectorPlane(doomSector, SectorPlaneFace.Ceiling, textureManager);
-            ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, sectorData);
+            ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, out var sectorData);
 
             Sector sector = new(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
                 floorPlane, ceilingPlane, sectorSpecial, sectorData);
             builder.Sectors.Add(sector);
-            sectorData.Clear();
         }
     }
 
