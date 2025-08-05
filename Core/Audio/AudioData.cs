@@ -4,7 +4,7 @@ using Helion.World.Sound;
 namespace Helion.Audio;
 
 public struct AudioData(ISoundSource soundSource, SoundInfo soundInfo, SoundChannel channel, Attenuation attenuation,
-    int priority, bool loop, bool relative, float volume, float attenuationFactor, float offsetSeconds)
+    int priority, bool loop, bool relative, float volume, float attenuationFactor, float offsetSeconds, int gametick)
 {
 
     /// <summary>
@@ -44,4 +44,6 @@ public struct AudioData(ISoundSource soundSource, SoundInfo soundInfo, SoundChan
     public float AttenuationFactor = attenuationFactor;
 
     public float OffsetSeconds = offsetSeconds;
+
+    public int GameTick = gametick;
 }

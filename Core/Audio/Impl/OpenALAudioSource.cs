@@ -125,6 +125,13 @@ public class OpenALAudioSource : IAudioSource
         OpenALDebug.End("Setting sound pitch");
     }
 
+    public void SetGain(float gain)
+    {
+        OpenALDebug.Start("Setting sound gain");
+        AL.Source(m_sourceId, ALSourcef.Gain, gain);
+        OpenALDebug.End("Setting sound gain");
+    }
+
     public void SetRelative(bool set)
     {
         m_audioData.Relative = set;
@@ -174,7 +181,7 @@ public class OpenALAudioSource : IAudioSource
         return AL.GetSource(m_sourceId, ALSourcef.SecOffset);
     }
 
-    public void Update(Entity listenerEntity)
+    public void Update(in UpdateParams updateParams)
     {
         if (m_audioData.Attenuation == Attenuation.None)
         {
@@ -183,7 +190,7 @@ public class OpenALAudioSource : IAudioSource
         }
 
         const float NoGain = 0.0001f;
-        var dist = (float)m_audioData.SoundSource.GetDistanceFrom(listenerEntity) * m_audioData.AttenuationFactor;
+        var dist = updateParams.DistanceFromListener * m_audioData.AttenuationFactor;
         if (dist > MaxAudibleDistance)
         {
             AL.Source(m_sourceId, ALSourcef.Gain, NoGain);

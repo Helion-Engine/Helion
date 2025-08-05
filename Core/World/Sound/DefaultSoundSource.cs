@@ -30,10 +30,10 @@ public class DefaultSoundSource : ISoundSource
         m_audioSource = null;
     }
 
-    public double GetDistanceFrom(Entity listenerEntity)
+    public double GetDistanceSquaredFrom(Entity listenerEntity)
     {
         if (m_attenuate)
-            return m_position.Distance(listenerEntity.Position);
+            return m_position.DistanceSquared(listenerEntity.Position);
 
         return 0.0;
     }
