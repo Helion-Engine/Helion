@@ -3,12 +3,10 @@ using Helion.Geometry.Vectors;
 
 namespace Helion.Audio;
 
-public readonly struct UpdateParams(float distance, float roloffFactor = 1f)
+public readonly struct UpdateParams(float distance)
 {
     public readonly float DistanceFromListener = distance;
-    public readonly float RoloffFactor = roloffFactor;
 }
-
 
 /// <summary>
 /// A source of audio that can be played.

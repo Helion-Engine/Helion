@@ -20,6 +20,7 @@
 - Sound more accurately matches Doom's sound curve and cutoff
 - Option to downscale the emulate vanilla sprite render buffer. Increases performance at the expense of pixel accuracy. Allows more GPUs to use emulate vanilla rendering.
 - Support textures in WAD files between TX_START and TX_END markers.
+- Add same sound limit and same sound window similar to parallel same sound limit in dsda-doom, prioritized by distance.
 
 ## Bug Fixes:
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.

@@ -185,7 +185,7 @@ public class OpenALAudioSource : IAudioSource
     {
         if (m_audioData.Attenuation == Attenuation.None)
         {
-            AL.Source(m_sourceId, ALSourcef.Gain, m_gain * m_audioData.Volume * updateParams.RoloffFactor);
+            AL.Source(m_sourceId, ALSourcef.Gain, m_gain * m_audioData.Volume);
             return;
         }
 
@@ -198,7 +198,7 @@ public class OpenALAudioSource : IAudioSource
         else
         { 
             // Doom's original linear scaling
-            var linearGain = (MaxAudibleDistance - dist) / (MaxAudibleDistance - DefaultReference) * updateParams.RoloffFactor;
+            var linearGain = (MaxAudibleDistance - dist) / (MaxAudibleDistance - DefaultReference);
             // Push curve to dropoff faster to sound more appropriate
             var gain = Math.Clamp(linearGain * Math.Min(linearGain * 2f, linearGain), 0.005f, 1f);
             AL.Source(m_sourceId, ALSourcef.Gain, Math.Max(gain * m_gain * m_audioData.Volume, NoGain));
