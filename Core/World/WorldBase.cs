@@ -1253,7 +1253,7 @@ public abstract partial class WorldBase : IWorld
     public IList<Sector> FindBySectorTag(int tag) =>
         Geometry.FindBySectorTag(tag);
 
-    public IEnumerable<Entity> FindByTid(int tid) =>
+    public LinkedList<Entity> FindByTid(int tid) =>
         EntityManager.FindByTid(tid);
 
     public IEnumerable<Line> FindByLineId(int lineId) =>
@@ -2933,19 +2933,35 @@ public abstract partial class WorldBase : IWorld
         SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
     }
 
-    public void CreateTeleportFog(Entity entity)
+    public void CreateTeleportFog(Entity entity, bool offset = true)
     {
         if (m_teleportFogDef == null)
             return;
 
-        var fogDist = Vec2D.UnitCircle(entity.AngleRadians) * Constants.TeleportOffsetDist;
-        var teleportFogPos = entity.Position;
-        teleportFogPos.X += fogDist.X;
-        teleportFogPos.Y += fogDist.Y;
-        CreateTeleportFog(teleportFogPos);
+        Vec3D teleportFogPos = entity.Position;
+        if (offset)
+        {
+            var fogDist = Vec2D.UnitCircle(entity.AngleRadians) * Constants.TeleportOffsetDist;
+            teleportFogPos = entity.Position;
+            teleportFogPos.X += fogDist.X;
+            teleportFogPos.Y += fogDist.Y;
+        }
 
+        CreateTeleportFog(teleportFogPos);
         var teleport = EntityManager.Create(m_teleportFogDef, teleportFogPos, 0.0, 0.0, 0, default);
         SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
+    }
+
+    public Entity? SpawnEntity(EntityDefinition definition, in Vec3D pos, int tid, double angle, in SpecialArgs args, bool teleportFog)
+    {
+        if (!BlockmapTraverser.SolidBlockTraverse(definition, pos, !WorldStatic.InfinitelyTallThings))
+            return null;
+
+        var entity = EntityManager.Create(definition, pos, 0, angle, tid, args);
+        if (teleportFog && entity != null)
+            CreateTeleportFog(entity, offset: false);
+
+        return entity;
     }
 
     public void ActivateCheat(Player player, ICheat cheat)
