@@ -192,8 +192,8 @@ public sealed class SectorPlane : ISoundSource
 
     // Use the sector's LastActivePlaneMove. The move special itself may have been destroyed,
     // but the distance needs to be calculated for stop sounds long after the movement has completed.
-    public double GetDistanceFrom(Entity listenerEntity) =>
-        GetSoundSource(listenerEntity, Sector.LastActivePlaneMove).Distance(listenerEntity.Position);
+    public double GetDistanceSquaredFrom(Entity listenerEntity) =>
+        GetSoundSource(listenerEntity, Sector.LastActivePlaneMove).DistanceSquared(listenerEntity.Position);
 
     public Vec3D? GetSoundPosition(Entity listenerEntity) =>
         GetSoundSource(listenerEntity, Sector.LastActivePlaneMove);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Helion.Dehacked;
+using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Collection;
@@ -285,8 +286,7 @@ public class DefinitionEntries
         AddFinalizeEntry(archiveCollection, "TEXTURE2", m_pnamesTextureXCollection.AddTextureX);
         AddFinalizeEntry(archiveCollection, "TEXTURE3", m_pnamesTextureXCollection.AddTextureX);
 
-        if (m_pnamesTextureXCollection.Valid)
-            CreateImageDefinitionsFrom(archiveCollection, m_pnamesTextureXCollection);
+        CreateImageDefinitionsFrom(archiveCollection, m_pnamesTextureXCollection);
 
         RetroBrightmapsDefinition?.CreateTextureBrightMaps(m_archiveCollection);
     }
@@ -554,21 +554,7 @@ public class DefinitionEntries
 
     private void CreateImageDefinitionsFrom(ArchiveCollection archiveCollection, PnamesTextureXCollection collection)
     {
-        Precondition(!collection.Pnames.Empty(), "Expecting pnames to exist when reading TextureX definitions");
-
-        // Note: We don't handle multiple pnames. I am not sure how they're
-        // handled, it might be 'one pnames to textureX' when more than one
-        // pnames exist. If so, the logic will need to change here a bit.
-        Pnames pnames = collection.Pnames.First();
         var processed = new HashSet<string>();
-
-        foreach (var textureX in collection.TextureX)
-        {
-            var textureDefinitions = textureX.ToTextureDefinitions(pnames);
-            foreach (var def in textureDefinitions)
-                ProcessTextureDefinition(archiveCollection, processed, def);
-        }
-
         foreach (var archive in archiveCollection.Archives)
         {
             if (archive is not Wad wadArchive)
@@ -578,9 +564,24 @@ public class DefinitionEntries
             foreach (var textureEntry in wadArchive.TxEntries)
             {
                 var name = textureEntry.Path.Name;
-                var component = new TextureDefinitionComponent(name, default);
-                var def = new TextureDefinition(name, default, ns, [component], isAutoImageTexture: true);
+                var component = new TextureDefinitionComponent(name, Vec2I.Zero);
+                var def = new TextureDefinition(name, (0, 0), ns, [component], isAutoImageTexture: true);
                 ProcessTextureDefinition(archiveCollection, processed, def);
+            }
+        }
+
+        if (collection.Valid)
+        {
+            // Note: We don't handle multiple pnames. I am not sure how they're
+            // handled, it might be 'one pnames to textureX' when more than one
+            // pnames exist. If so, the logic will need to change here a bit.
+            var pnames = collection.Pnames.First();
+            Precondition(!collection.Pnames.Empty(), "Expecting pnames to exist when reading TextureX definitions");
+            foreach (var textureX in collection.TextureX)
+            {
+                var textureDefinitions = textureX.ToTextureDefinitions(pnames);
+                foreach (var def in textureDefinitions)
+                    ProcessTextureDefinition(archiveCollection, processed, def);
             }
         }
     }
@@ -589,11 +590,10 @@ public class DefinitionEntries
     {
         // Ignore duplicated textures from same archive
         // E.g. Ancient Aliens has KS_FLSG6 duplicated and using the second texture breaks animated range values.
-        if (processed.Contains(def.Name))
+        if (!processed.Add(def.Name))
             return;
 
         ClearNegativePatchOffsets(archiveCollection, def);
-        processed.Add(def.Name);
         Textures.Insert(def.Name, def.Namespace, def);
     }
 

@@ -1266,6 +1266,7 @@ public abstract partial class WorldBase : IWorld
     {
         OnDestroying?.Invoke(this, EventArgs.Empty);
         SpecialManager.SectorSpecialDestroyed -= SpecialManager_SectorSpecialDestroyed;
+        SoundManager.UnregisterEvents();
         PerformDispose();
         GC.SuppressFinalize(this);
     }
