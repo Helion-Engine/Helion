@@ -2934,19 +2934,15 @@ public abstract partial class WorldBase : IWorld
         SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
     }
 
-    public void CreateTeleportFog(Entity entity, bool offset = true)
+    public void CreateTeleportFog(Entity entity)
     {
         if (m_teleportFogDef == null)
             return;
 
-        Vec3D teleportFogPos = entity.Position;
-        if (offset)
-        {
-            var fogDist = Vec2D.UnitCircle(entity.AngleRadians) * Constants.TeleportOffsetDist;
-            teleportFogPos = entity.Position;
-            teleportFogPos.X += fogDist.X;
-            teleportFogPos.Y += fogDist.Y;
-        }
+        var fogDist = Vec2D.UnitCircle(entity.AngleRadians) * Constants.TeleportOffsetDist;
+        var teleportFogPos = entity.Position;
+        teleportFogPos.X += fogDist.X;
+        teleportFogPos.Y += fogDist.Y;
 
         CreateTeleportFog(teleportFogPos);
         var teleport = EntityManager.Create(m_teleportFogDef, teleportFogPos, 0.0, 0.0, 0, default);
@@ -2960,7 +2956,7 @@ public abstract partial class WorldBase : IWorld
 
         var entity = EntityManager.Create(definition, pos, 0, angle, tid, args);
         if (teleportFog && entity != null)
-            CreateTeleportFog(entity, offset: false);
+            CreateTeleportFog(entity.Position);
 
         return entity;
     }

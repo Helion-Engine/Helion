@@ -153,7 +153,7 @@ public interface IWorld : IDisposable
     bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
     bool IsPositionBlocked(Entity entity);
     void CreateTeleportFog(in Vec3D pos);
-    void CreateTeleportFog(Entity entity, bool offset = false);
+    void CreateTeleportFog(Entity entity);
     Entity? SpawnEntity(EntityDefinition definition, in Vec3D pos, int tid, double angle, in SpecialArgs args, bool teleportFog);
     void ActivateCheat(Player player, ICheat cheat);
     bool IsSectorIdValid(int sectorId) => sectorId >= 0 && sectorId < Sectors.Count;
