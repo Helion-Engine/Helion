@@ -1175,6 +1175,9 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.ThingSpawnNoFog:
                 return ActionSpecials.ThingSpawn(m_world, line.Args, teleportFog: false);
 
+            case ZDoomLineSpecialType.ThingSpawnFacing:
+                return ActionSpecials.ThingSpawnFacing(m_world, line.Args);
+
             case ZDoomLineSpecialType.ThingProjectile:
                 return ActionSpecials.ThingProjectile(m_world, line.Args, gravity: false);
 

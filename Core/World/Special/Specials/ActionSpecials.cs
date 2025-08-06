@@ -25,6 +25,24 @@ public static class ActionSpecials
         return success;
     }
 
+    public static bool ThingSpawnFacing(IWorld world, in SpecialArgs args)
+    {
+        if (!ThingSpawnTypes.Lookup.TryGetValue(args.Arg1, out var definitionName))
+            return false;
+
+        var entityDef = world.EntityManager.DefinitionComposer.GetByName(definitionName);
+        if (entityDef == null)
+            return false;
+
+        var teleportFog = args.Arg2 != 0;
+        var newTid = args.Arg3;
+        var success = false;
+        var spots = world.FindByTid(args.Arg0);
+        foreach (var spot in spots)
+            success = world.SpawnEntity(entityDef, spot.Position, newTid, spot.AngleRadians, default, teleportFog) != null || success;
+        return success;
+    }
+
     public static bool ThingProjectile(IWorld world, in SpecialArgs args, bool gravity)
     {
         if (!ThingSpawnTypes.Lookup.TryGetValue(args.Arg1, out var definitionName))
