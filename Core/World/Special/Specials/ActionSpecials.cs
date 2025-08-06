@@ -1,12 +1,16 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Util;
+using Helion.World.Entities;
 using System.Runtime.CompilerServices;
 
 namespace Helion.World.Special.Specials;
 
 public static class ActionSpecials
 {
+    const double SpeedFactor = 1 / 8.0;
+    const int ProjectileOffsetZ = -31;
+
     public static bool ThingSpawn(IWorld world, in SpecialArgs args, bool teleportFog)
     {
         if (!ThingSpawnTypes.Lookup.TryGetValue(args.Arg1, out var definitionName))
@@ -56,31 +60,74 @@ public static class ActionSpecials
 
         var success = false;
         var spots = world.FindByTid(args.Arg0);
+        var horizontalSpeed = args.Arg3 * SpeedFactor;
+        var verticalSpeed = args.Arg4 * SpeedFactor;
+
         foreach (var spot in spots)
         {
-            var entity = world.SpawnEntity(entityDef, spot.Position, newTid, angle, default, false);
+            var entity = world.FireProjectile(spot, angle, 0, 0, false, entityDef, out _, zOffset: ProjectileOffsetZ);
             if (entity == null)
                 continue;
 
-            success = true;
-            const double SpeedFactor = 1 / 8.0;
-            var horizontalSpeed = args.Arg3 * SpeedFactor;
-            var verticalSpeed = args.Arg3 * SpeedFactor;
-
+            entity.ThingId = newTid;
             var xy = Vec2D.UnitCircle(angle) * new Vec2D(horizontalSpeed, horizontalSpeed);
             entity.Velocity.X = xy.X;
             entity.Velocity.Y = xy.Y;
             entity.Velocity.Z = verticalSpeed;
 
-            if (!gravity)
+            if (gravity)
             {
                 entity.Flags.NoGravity = false;
                 entity.Gravity = SpeedFactor;
             }
+
+            success = true;
         }
 
         return success;
     }
+
+    public static bool ThingProjectileAimed(IWorld world, in SpecialArgs args)
+    {
+        if (!ThingSpawnTypes.Lookup.TryGetValue(args.Arg1, out var definitionName))
+            return false;
+
+        var newTid = args.Arg4;
+        var entityDef = world.EntityManager.DefinitionComposer.GetByName(definitionName);
+        if (entityDef == null)
+            return false;
+
+        var success = false;
+        var spots = world.FindByTid(args.Arg0);
+        var target = GetFirstTargetOrPlayer(world, args.Arg3);
+        if (target == null)
+            return false;
+
+        var speed = args.Arg2 * SpeedFactor;
+        foreach (var spot in spots)
+        {
+            var angle = spot.Position.Angle(target.Position);
+            var pitch = spot.Position.Pitch(target.Position.Z + target.Height / 2, spot.Position.XY.Distance(target.Position.XY));
+            var entity = world.FireProjectile(spot, angle, pitch, 0, false, entityDef, out _, zOffset: ProjectileOffsetZ);
+            if (entity == null)
+                continue;
+
+            entity.Velocity = Vec3D.UnitSphere(angle, pitch) * speed;
+            entity.ThingId = newTid;
+            success = true;
+        }
+
+        return success;
+    }
+
+    private static Entity? GetFirstTargetOrPlayer(IWorld world, int tid)
+    {
+        if (tid == 0)
+            return world.Player;
+
+        return world.FindByTid(tid).First?.Value;
+    }
+
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static double FromByteAngle(int angle)

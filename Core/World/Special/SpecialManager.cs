@@ -1182,7 +1182,10 @@ public sealed class SpecialManager : ITickable, IDisposable
                 return ActionSpecials.ThingProjectile(m_world, line.Args, gravity: false);
 
             case ZDoomLineSpecialType.ThingProjectileGravity:
-                return ActionSpecials.ThingProjectile(m_world, line.Args, gravity: false);
+                return ActionSpecials.ThingProjectile(m_world, line.Args, gravity: true);
+
+            case ZDoomLineSpecialType.ThingProjectileAim:
+                return ActionSpecials.ThingProjectileAimed(m_world, line.Args);
         }
 
         return false;
