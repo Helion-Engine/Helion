@@ -502,7 +502,7 @@ public class ArchiveCollection : IResources, IPathResolver
         if (path.StartsWithIgnoreCase(folderPath))
             return true;
 
-        if (!path.GetLastFolder(out var lastFolder))
+        if (!path.AsSpan().GetLastFolder(out var lastFolder))
             return false;
 
         return lastFolder.Equals(folder, StringComparison.OrdinalIgnoreCase);
