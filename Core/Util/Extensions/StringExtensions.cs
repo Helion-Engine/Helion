@@ -61,7 +61,7 @@ public static class StringExtensions
         return text.EndsWith(other, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static bool GetFirstFolder(this string path, out ReadOnlySpan<char> folder)
+    public static bool GetFirstFolder(this ReadOnlySpan<char> path, out ReadOnlySpan<char> folder)
     {
         int endIndex = FirstIndexOf(path, 0, '/', '\\');
         if (endIndex == -1)
@@ -70,11 +70,11 @@ public static class StringExtensions
             return false;
         }
 
-        folder = path.AsSpan(0, endIndex);
+        folder = path[..endIndex];
         return true;
     }
 
-    public static bool GetLastFolder(this string path, out ReadOnlySpan<char> folder)
+    public static bool GetLastFolder(this ReadOnlySpan<char> path, out ReadOnlySpan<char> folder)
     {
         int endIndex = LastIndexOf(path, path.Length - 1, '/', '\\');
         if (endIndex == -1)
@@ -90,14 +90,14 @@ public static class StringExtensions
             return false;
         }
 
-        folder = path.AsSpan(startIndex + 1, endIndex - startIndex - 1);
+        folder = path.Slice(startIndex + 1, endIndex - startIndex - 1);
         return true;
     }
 
     public static string StripNonUtf8Chars(this string str) =>
         NonUtf8Regex.Replace(str, string.Empty);
 
-    private static int LastIndexOf(string text, int start, char value, char alt)
+    private static int LastIndexOf(ReadOnlySpan<char> text, int start, char value, char alt)
     {
         int startIndex = -1;
         for (int i = start; i >= 0; i--)
@@ -111,7 +111,7 @@ public static class StringExtensions
         return startIndex;
     }
 
-    private static int FirstIndexOf(string text, int start, char value, char alt)
+    private static int FirstIndexOf(ReadOnlySpan<char> text, int start, char value, char alt)
     {
         int startIndex = -1;
         for (int i = start; i < text.Length; i++)

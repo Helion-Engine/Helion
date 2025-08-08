@@ -21,6 +21,7 @@
 - Option to downscale the emulate vanilla sprite render buffer. Increases performance at the expense of pixel accuracy. Allows more GPUs to use emulate vanilla rendering.
 - Support textures in WAD files between TX_START and TX_END markers.
 - Add same sound limit and same sound window similar to parallel same sound limit in dsda-doom, prioritized by distance.
+- Replace ^ with / in sprites for pk3 and directories.
 
 ## Bug Fixes:
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.
@@ -53,3 +54,4 @@
 - Fix UDMF/id24 serialization and map restarts for flat offset and rotation.
 - Fix null debug texture being applied to sprite brightmaps when render.nulltexture is on.
 - Fix issue with looping sounds being removed entirely when out of range that prevented them from being added when back in range.
+- Fix reading directory as file support with -file parameter.
