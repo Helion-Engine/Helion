@@ -8,11 +8,20 @@ namespace Helion.Resources.Archives.Entries;
 public class EntryPath : IEntryPath
 {
     public string FullPath { get; }
-    public string Name { get; }
+    public string Name { get; private set; }
     public string Extension { get; }
     public string NameWithExtension => HasExtension ? $"{Name}.{Extension}" : Name;
     public bool HasExtension => !string.IsNullOrEmpty(Extension);
     public bool IsDirectory => string.IsNullOrEmpty(Name) && string.IsNullOrEmpty(Extension);
+
+    public static EntryPath CreatePathedEntry(string path, ResourceNamespace ns)
+    {
+        var entry = new EntryPath(path);
+        if (ns == ResourceNamespace.Sprites)
+            entry.SetName(entry.Name.Replace('^', '\\'));
+
+        return entry;
+    }
 
     public EntryPath(string path = "")
     {
@@ -22,6 +31,21 @@ public class EntryPath : IEntryPath
 
         if (Extension.Length > 1)
             Extension = Extension.Substring(1);
+    }
+
+    public EntryPath(string fullPath, string name)
+    {
+        FullPath = CleanPath(fullPath);
+        Name = Path.GetFileNameWithoutExtension(name);
+        Extension = Path.GetExtension(name);
+
+        if (Extension.Length > 1)
+            Extension = Extension.Substring(1);
+    }
+
+    public void SetName(string name)
+    {
+        Name = name;
     }
 
     public override string ToString() => FullPath;

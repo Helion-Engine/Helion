@@ -52,8 +52,8 @@ public class PK3 : Archive, IDisposable
         if (ZipEntryDirectory(zipEntry))
             return;
 
-        EntryPath entryPath = new(zipEntry.FullName);
-        var resourceNamespace = NamespaceFromEntryPath(entryPath.FullPath);
+        var resourceNamespace = NamespaceFromEntryPath(zipEntry.FullName);
+        var entryPath = EntryPath.CreatePathedEntry(zipEntry.FullName, resourceNamespace);
         Entries.Add(new PK3Entry(this, zipEntry, entryPath, resourceNamespace, m_indexGenerator.GetIndex(this)));
     }
 
