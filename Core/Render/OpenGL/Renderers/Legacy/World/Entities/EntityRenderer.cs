@@ -425,7 +425,6 @@ public class EntityRenderer : IDisposable
         m_programComposite.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programComposite, renderInfo);
-        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         m_dataManager.RenderByRenderStyle(RenderStyle.Translucent, PrimitiveType.Points);
 
         if (m_dataManager.HasDataToRenderByStyle(RenderStyle.Add))

@@ -501,6 +501,7 @@ public class LegacyWorldRenderer : WorldRenderer
         GL.ActiveTexture(BindTextures.BoundTexture);
         m_worldDataManager.RenderAlphaWalls();
 
+        ResetBlendEquations();
         framebuffer.Bind();
 
         m_entityRenderer.RenderOitCompositePass(renderInfo);
@@ -513,8 +514,6 @@ public class LegacyWorldRenderer : WorldRenderer
             GL.ActiveTexture(BindTextures.BoundTexture);
             m_worldDataManager.RenderAlphaWalls();
         }
-
-        ResetBlendEquations();
 
         if (fuzzData)
             m_entityRenderer.RenderOitFuzzRefractionPass(renderInfo, true);
