@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.World.Entities.Definition.Properties.Components;
 
 namespace Helion.World.Entities.Definition.Properties;
@@ -67,6 +68,7 @@ public class EntityProperties
     public PaletteColor? BloodPaletteColor;
     public int HealthBarOffset;
     public int HealthBarWidth;
+    public RenderStyle RenderStyle = RenderStyle.Normal;
 
     public double MonsterMovementSpeed;
     public double MissileMovementSpeed;

@@ -1,5 +1,6 @@
 ﻿using Helion.Render.OpenGL.Shader;
 using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -8,17 +9,17 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 
 public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TVertex> : IDisposable where TVertex : struct
 {
-    private readonly RenderDataCollection<TVertex> m_nonAlphaData;
-    private readonly RenderDataCollection<TVertex> m_alphaData;
-    private readonly RenderDataCollection<TVertex> m_fuzzData;
+    private readonly RenderDataCollection<TVertex>[] m_renderDataStyles;
+
     private readonly RenderData<TVertex> m_healthBarData;
     private bool m_disposed;
 
     public RenderDataManager(RenderProgram program, GLLegacyTexture healthBarTexture)
     {
-        m_nonAlphaData = new(program);
-        m_alphaData = new(program);
-        m_fuzzData = new(program);
+        m_renderDataStyles = new RenderDataCollection<TVertex>[(int)RenderStyle.Count];
+        for (int i = 0; i < m_renderDataStyles.Length; i++)
+            m_renderDataStyles[i] = new(program);
+
         m_healthBarData = new(healthBarTexture, program);
     }
 
@@ -27,62 +28,34 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
         Dispose(false);
     }
 
-    public bool HasFuzz() => m_fuzzData.HasDataToRender();
-    public bool HasAlpha() => m_alphaData.HasDataToRender();
+    public bool HasDataToRenderByStyle(RenderStyle style) =>
+        m_renderDataStyles[(int)style].HasDataToRender();
 
     public void Clear()
     {
-        m_nonAlphaData.Clear();
-        m_alphaData.Clear();
-        m_fuzzData.Clear();
+        for (int i = 0; i < m_renderDataStyles.Length; i++)
+            m_renderDataStyles[i].Clear();
         m_healthBarData.Clear();
     }
 
     public RenderData<TVertex> GetHealthBarData() => m_healthBarData;
 
-    public void RenderHealthBars()
-    {
+    public void RenderHealthBars() =>
         m_healthBarData.Draw(PrimitiveType.Points);
-    }
 
-    public RenderData<TVertex> GetNonAlpha(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
-    {
-        return m_nonAlphaData.Get(texture, brightmapTexture);
-    }
-    
-    public RenderData<TVertex> GetAlpha(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
-    {
-        return m_alphaData.Get(texture, brightmapTexture);
-    }
+    public RenderData<TVertex> GetByRenderStyle(RenderStyle style, GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null) =>
+         m_renderDataStyles[(int)style].Get(texture, brightmapTexture);
 
-    public RenderData<TVertex> GetFuzz(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
-    {
-        return m_fuzzData.Get(texture, brightmapTexture);
-    }
-
-    public void RenderNonAlpha(PrimitiveType primitive)
-    {
-        m_nonAlphaData.Render(primitive);
-    }
-    
-    public void RenderAlpha(PrimitiveType primitive)
-    {
-        m_alphaData.Render(primitive);
-    }
-
-    public void RenderFuzz(PrimitiveType primitive)
-    {
-        m_fuzzData.Render(primitive);
-    }
+    public void RenderByRenderStyle(RenderStyle style, PrimitiveType primitive) =>
+        m_renderDataStyles[(int)style].Render(primitive);
 
     protected virtual void Dispose(bool disposing)
     {
         if (m_disposed)
             return;
-        
-        m_nonAlphaData.Dispose();
-        m_alphaData.Dispose();
-        m_fuzzData.Dispose();
+
+        for (int i = 0; i < m_renderDataStyles.Length; i++)
+            m_renderDataStyles[i].Dispose();
 
         m_disposed = true;
     }

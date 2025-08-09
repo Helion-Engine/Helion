@@ -516,7 +516,7 @@ actor BFG9000 : DoomWeapon 2006
 
 actor BFGBall
 {
-    Alpha 0.75
+    Alpha 0.9
     Damage 100
     DeathSound "weapons/bfgx"
     Height 8

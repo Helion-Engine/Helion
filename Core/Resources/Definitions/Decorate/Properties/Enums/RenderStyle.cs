@@ -6,7 +6,6 @@ public enum RenderStyle
     Normal,
     Fuzzy,
     SoulTrans,
-    OptFuzzy,
     Stencil,
     AddStencil,
     Translucent,
@@ -15,4 +14,5 @@ public enum RenderStyle
     Shaded,
     AddShaded,
     Shadow,
+    Count
 }
