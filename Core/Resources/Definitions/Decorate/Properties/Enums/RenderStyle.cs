@@ -7,5 +7,6 @@ public enum RenderStyle
     Fuzzy,
     Translucent,
     Add,
+    ColorAdd,
     Count
 }

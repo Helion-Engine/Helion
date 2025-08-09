@@ -62,7 +62,7 @@ actor DoomImpBall
     FastSpeed 20
     Height 8
     Radius 6
-    RenderStyle Add
+    RenderStyle ColorAdd
     SeeSound "imp/attack"
     SpawnID 10
     Speed 10

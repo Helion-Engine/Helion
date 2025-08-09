@@ -60,7 +60,7 @@ actor BaronBall
     FastSpeed 20
     Height 16
     Radius 6
-    RenderStyle Add
+    RenderStyle ColorAdd
     SeeSound "baron/attack"
     SpawnID 154
     Speed 15

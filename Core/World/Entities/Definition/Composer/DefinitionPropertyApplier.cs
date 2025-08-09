@@ -204,12 +204,6 @@ public static class DefinitionPropertyApplier
                 definition.Properties.Player.StartItem.Add(new Properties.Components.PlayerStartItem(startItem.Name, startItem.Amount ?? 0));
         }
 
-        if (properties.RenderStyle != null)
-        {
-            var style = properties.RenderStyle.Value;
-            // Only set supported render styles
-            if (style == RenderStyle.Normal || style == RenderStyle.Fuzzy || style == RenderStyle.Translucent || style == RenderStyle.Add || style == RenderStyle.None)
-                definition.Properties.RenderStyle = style;
-        }
+        definition.Properties.RenderStyle = properties.RenderStyle;
     }
 }

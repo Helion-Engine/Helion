@@ -405,6 +405,7 @@ public class EntityRenderer : IDisposable
         SetUniforms(m_programTransparent, renderInfo);
         m_dataManager.RenderByRenderStyle(RenderStyle.Translucent, PrimitiveType.Points);
         m_dataManager.RenderByRenderStyle(RenderStyle.Add, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderStyle.ColorAdd, PrimitiveType.Points);
         m_dataManager.RenderByRenderStyle(RenderStyle.Fuzzy, PrimitiveType.Points);
         m_programTransparent.Unbind();
     }
@@ -428,10 +429,18 @@ public class EntityRenderer : IDisposable
 
         if (m_dataManager.HasDataToRenderByStyle(RenderStyle.Add))
         {
-            GL.BlendFunc(BlendingFactor.SrcColor, BlendingFactor.One);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
             m_dataManager.RenderByRenderStyle(RenderStyle.Add, PrimitiveType.Points);
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }
+
+        if (m_dataManager.HasDataToRenderByStyle(RenderStyle.ColorAdd))
+        {
+            GL.BlendFunc(BlendingFactor.SrcColor, BlendingFactor.One);
+            m_dataManager.RenderByRenderStyle(RenderStyle.ColorAdd, PrimitiveType.Points);
+        }
+
+        GL.BlendEquation(BlendEquationMode.FuncAdd);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         m_programComposite.Unbind();
     }

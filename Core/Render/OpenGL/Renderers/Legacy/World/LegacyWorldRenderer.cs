@@ -466,9 +466,10 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private unsafe void RenderTransparent(RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
-        bool fuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderStyle.Fuzzy); 
-        bool alphaData = m_entityRenderer.HasDataToRenderByStyle(RenderStyle.Translucent) || m_entityRenderer.HasDataToRenderByStyle(RenderStyle.Add);
-        bool alphaWalls = m_worldDataManager.HasAlphaWalls();
+        var fuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderStyle.Fuzzy); 
+        var alphaData = m_entityRenderer.HasDataToRenderByStyle(RenderStyle.Translucent) || m_entityRenderer.HasDataToRenderByStyle(RenderStyle.Add) || 
+            m_entityRenderer.HasDataToRenderByStyle(RenderStyle.ColorAdd);
+        var alphaWalls = m_worldDataManager.HasAlphaWalls();
         if (!fuzzData && !alphaData && !alphaWalls)
             return;
 

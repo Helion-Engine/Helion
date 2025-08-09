@@ -384,6 +384,8 @@ public partial class DecorateParser
             return RenderStyle.Translucent;
         else if (style.EqualsIgnoreCase("ADD"))
             return RenderStyle.Add;
+        else if (style.EqualsIgnoreCase("COLORADD"))
+            return RenderStyle.ColorAdd;
 
         return RenderStyle.Normal;
     }
