@@ -1,6 +1,6 @@
 actor TeleportFog
 {
-    RenderStyle Add
+    RenderStyle ColorAdd
     
     +NOBLOCKMAP
     +NOGRAVITY
