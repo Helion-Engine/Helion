@@ -7,6 +7,7 @@ using Helion.Maps.Specials;
 using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
+using Helion.Util.Extensions;
 
 namespace Helion.Resources.Definitions.Decorate.Parser;
 
@@ -370,26 +371,21 @@ public partial class DecorateParser
         };
     }
 
-    private RenderStyle? ConsumeRenderStyle()
+    private RenderStyle ConsumeRenderStyle()
     {
-        string style = ConsumeString();
-        return style.ToUpperInvariant() switch
-        {
-            "NONE" => (RenderStyle?)RenderStyle.None,
-            "NORMAL" => (RenderStyle?)RenderStyle.Normal,
-            "FUZZY" => (RenderStyle?)RenderStyle.Fuzzy,
-            "SOULTRANS" => (RenderStyle?)RenderStyle.SoulTrans,
-            "OPTFUZZY" => (RenderStyle?)RenderStyle.Fuzzy,
-            "STENCIL" => (RenderStyle?)RenderStyle.Stencil,
-            "ADDSTENCIL" => (RenderStyle?)RenderStyle.AddStencil,
-            "TRANSLUCENT" => (RenderStyle?)RenderStyle.Translucent,
-            "ADD" => (RenderStyle?)RenderStyle.Add,
-            "SUBTRACT" => (RenderStyle?)RenderStyle.Subtract,
-            "SHADED" => (RenderStyle?)RenderStyle.Shaded,
-            "ADDSHADED" => (RenderStyle?)RenderStyle.AddShaded,
-            "SHADOW" => (RenderStyle?)RenderStyle.Shadow,
-            _ => throw MakeException($"Unknown heal radius type '{style}' on actor '{m_currentDefinition.Name}'"),
-        };
+        var style = ConsumeString();
+        if (style.EqualsIgnoreCase("NONE"))
+            return RenderStyle.None;
+        else if (style.EqualsIgnoreCase("NORMAL"))
+            return RenderStyle.Normal;
+        else if (style.EqualsIgnoreCase("OPTFUZZY"))
+            return RenderStyle.Fuzzy;
+        else if (style.EqualsIgnoreCase("TRANSLUCENT"))
+            return RenderStyle.Translucent;
+        else if (style.EqualsIgnoreCase("ADD"))
+            return RenderStyle.Add;
+
+        return RenderStyle.Normal;
     }
 
     private Range ConsumeVisibleAngles()

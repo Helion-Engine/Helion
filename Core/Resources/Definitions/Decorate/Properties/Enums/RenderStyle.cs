@@ -2,17 +2,10 @@ namespace Helion.Resources.Definitions.Decorate.Properties.Enums;
 
 public enum RenderStyle
 {
-    None,
+    None = 0,
     Normal,
     Fuzzy,
-    SoulTrans,
-    Stencil,
-    AddStencil,
     Translucent,
     Add,
-    Subtract,
-    Shaded,
-    AddShaded,
-    Shadow,
     Count
 }

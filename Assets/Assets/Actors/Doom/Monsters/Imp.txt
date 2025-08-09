@@ -57,7 +57,6 @@ actor DoomImp 3001
 
 actor DoomImpBall
 {
-    Alpha 1
     Damage 3
     DeathSound "imp/shotx"
     FastSpeed 20
@@ -67,7 +66,7 @@ actor DoomImpBall
     SeeSound "imp/attack"
     SpawnID 10
     Speed 10
-    Alpha 1
+    Alpha 0.6
     
     PROJECTILE
     +RANDOMIZE

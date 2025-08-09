@@ -264,7 +264,6 @@ public class EntityRenderer : IDisposable
         vertex.LightLevel = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright
             ? 255
             : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
-        //vertex.LightLevel = 80;
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
 
@@ -429,7 +428,7 @@ public class EntityRenderer : IDisposable
 
         if (m_dataManager.HasDataToRenderByStyle(RenderStyle.Add))
         {
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
+            GL.BlendFunc(BlendingFactor.SrcColor, BlendingFactor.One);
             m_dataManager.RenderByRenderStyle(RenderStyle.Add, PrimitiveType.Points);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }

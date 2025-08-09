@@ -63,6 +63,7 @@ actor FatShot
     SeeSound "fatso/attack"
     SpawnID 153
     Speed 20
+    RenderStyle Add
     
     PROJECTILE
     +RANDOMIZE
