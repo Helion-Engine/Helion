@@ -635,7 +635,8 @@ public class LegacyWorldRenderer : WorldRenderer
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.CheckPlaneClip(checkPlaneClip);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
-        program.SetDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
+        program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
+        program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
 
         if (program is InterpolationCompositeShader)
         {
