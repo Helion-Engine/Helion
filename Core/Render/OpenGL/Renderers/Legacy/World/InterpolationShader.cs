@@ -203,6 +203,7 @@ public class InterpolationShader : RenderProgram
             ${OitVariables}
 
             void main() {
+                float colorClamp = 1;
                 if (checkPlaneClip == 1) {
                     ivec2 sampleCoords = ivec2(clamp(gl_FragCoord.xy / downScaleAmount, vec2(0.0), screenBounds / downScaleAmount));
                     float wallClipDepth = texelFetch(wallClipTexture, sampleCoords, 0).g;

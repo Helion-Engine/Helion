@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Dehacked;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
@@ -234,12 +235,20 @@ public class EntityRenderer : IDisposable
         var brightmapTexture = spriteRotation.BrightmapRenderStore as GLLegacyTexture;
         var sector = entity.Sector.GetRenderSector(m_transferHeightView);
 
+        var disableFullbright = m_brightMaps && spriteRotation.BrightmapNoFullbright;
+        var isFullBright = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
         var offsetZ = GetOffsetZ(entity, texture);
-        var shadow = entity.Flags.Shadow || entity.Properties.RenderStyle == RenderStyle.Fuzzy;
-        var renderStyle = shadow ? RenderStyle.Fuzzy : m_spriteAlpha ? entity.Properties.RenderStyle : RenderStyle.Normal;
+        var shadow = entity.Flags.Shadow || entity.RenderStyle == RenderStyle.Fuzzy;
+        var renderStyle = shadow ? RenderStyle.Fuzzy : m_spriteAlpha ? entity.RenderStyle : RenderStyle.Normal;
+
+        // If fullbright and modified through dehacked then change render style to ColorAdd for better color rendering.
+        var entityAlpha = entity.Alpha;
+        if (m_spriteAlpha && entity.Alpha == DehackedApplier.TranslucentValue)
+            renderStyle = isFullBright ? RenderStyle.ColorAdd : RenderStyle.Translucent;
+
         var renderData = m_dataManager.GetByRenderStyle(renderStyle, texture, brightmapTexture);
 
-        var alpha = m_spriteAlpha ? entity.Alpha : 1.0f;
+        var alpha = m_spriteAlpha && renderStyle != RenderStyle.Normal ? entityAlpha : 1.0f;
         var fuzz = shadow ? 1.0f : 0.0f;
 
         var arrayData = renderData.ArrayData;
@@ -260,8 +269,7 @@ public class EntityRenderer : IDisposable
             (float)entity.PrevPosition.Z);
         vertex.OffsetZ = offsetZ;
         vertex.OffsetXY = texture.Offset.X;
-        bool disableFullbright = m_brightMaps && spriteRotation.BrightmapNoFullbright;
-        vertex.LightLevel = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright
+        vertex.LightLevel = isFullBright
             ? 255
             : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
@@ -354,6 +362,7 @@ public class EntityRenderer : IDisposable
         program.CheckPlaneClip(m_vanillaRender);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
         program.SetSpriteClipDownScaleAmount(Math.Max(renderInfo.Uniforms.DownScaleAmount, 1));
+        program.ColorClamp(1f);
 
         // The fade distance calculations work using squared distances
         float maxDistanceSquared = renderInfo.Uniforms.MaxDistance * renderInfo.Uniforms.MaxDistance;
@@ -405,8 +414,9 @@ public class EntityRenderer : IDisposable
         SetUniforms(m_programTransparent, renderInfo);
         m_dataManager.RenderByRenderStyle(RenderStyle.Translucent, PrimitiveType.Points);
         m_dataManager.RenderByRenderStyle(RenderStyle.Add, PrimitiveType.Points);
-        m_dataManager.RenderByRenderStyle(RenderStyle.ColorAdd, PrimitiveType.Points);
         m_dataManager.RenderByRenderStyle(RenderStyle.Fuzzy, PrimitiveType.Points);
+        m_programTransparent.ColorClamp(0.9f);
+        m_dataManager.RenderByRenderStyle(RenderStyle.ColorAdd, PrimitiveType.Points);
         m_programTransparent.Unbind();
     }
 
