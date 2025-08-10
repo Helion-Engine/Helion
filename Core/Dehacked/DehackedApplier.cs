@@ -1368,13 +1368,13 @@ public class DehackedApplier
         {
             var newValue = GetNewFlagValue(entity.Alpha == TranslucentValue, (thingProperties & ThingProperties.TRANSLUCENT) != 0, opAnd);
             entity.Alpha = newValue ? TranslucentValue : 1;
-            entity.RenderStyle = newValue ? RenderStyle.Translucent : RenderStyle.Normal;
+            entity.RenderStyle = newValue ? RenderStyle.ColorAddFullBright : RenderStyle.Normal;
         }
         else if (properties != null)
         {
             var newValue = GetNewFlagValue(properties.Alpha == TranslucentValue, (thingProperties & ThingProperties.TRANSLUCENT) != 0, opAnd);
             properties.Alpha = newValue ? TranslucentValue: 1;
-            properties.RenderStyle = newValue ? RenderStyle.Translucent : RenderStyle.Normal;
+            properties.RenderStyle = newValue ? RenderStyle.ColorAddFullBright : RenderStyle.Normal;
         }
     }
 

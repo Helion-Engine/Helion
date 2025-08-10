@@ -8,5 +8,7 @@ public enum RenderStyle
     Translucent,
     Add,
     ColorAdd,
+    // Use ColorAdd when FullBright, otherwise Translucent
+    ColorAddFullBright,
     Count
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Helion.Dehacked;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
@@ -243,7 +242,7 @@ public class EntityRenderer : IDisposable
 
         // If fullbright and modified through dehacked then change render style to ColorAdd for better color rendering.
         var entityAlpha = entity.Alpha;
-        if (m_spriteAlpha && entity.Alpha == DehackedApplier.TranslucentValue)
+        if (m_spriteAlpha && entity.RenderStyle == RenderStyle.ColorAddFullBright)
             renderStyle = isFullBright ? RenderStyle.ColorAdd : RenderStyle.Translucent;
 
         if (renderStyle == RenderStyle.ColorAdd)
