@@ -21,7 +21,8 @@
 - Option to downscale the emulate vanilla sprite render buffer. Increases performance at the expense of pixel accuracy. Allows more GPUs to use emulate vanilla rendering.
 - Support textures in WAD files between TX_START and TX_END markers.
 - Add same sound limit and same sound window similar to parallel same sound limit in dsda-doom, prioritized by distance.
-- Replace ^ with / in sprites for pk3 and directories.
+- Replace ^ with \ in sprite namespace for pk3 and directories.
+- Support Add and Color add render styles from GZDoom with update assets.pk3 to use the supported render styles. Implements custom ColorAddFullbright style that will use ColorAdd when fullbright and translucent otherwise.
 
 ## Bug Fixes:
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.

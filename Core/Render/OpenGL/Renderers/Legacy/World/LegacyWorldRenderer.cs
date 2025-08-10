@@ -13,6 +13,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
 using Helion.Util.Configs;
 using Helion.World;
@@ -245,7 +246,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
     void RenderEntity(IWorld world, Entity entity)
     {
-        if (entity.FrameState.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity == m_viewerEntity)
+        if (entity.FrameState.Frame.IsInvisible || entity.Flags.Invisible || entity.Flags.NoSector || entity == m_viewerEntity || entity.Properties.RenderStyle == RenderStyle.None)
             return;
 
         // Not in front 180 FOV
@@ -465,9 +466,10 @@ public class LegacyWorldRenderer : WorldRenderer
 
     private unsafe void RenderTransparent(RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
-        bool fuzzData = m_entityRenderer.HasFuzz(); 
-        bool alphaData = m_entityRenderer.HasAlpha();
-        bool alphaWalls = m_worldDataManager.HasAlphaWalls();
+        var fuzzData = m_entityRenderer.HasDataToRenderByStyle(RenderStyle.Fuzzy); 
+        var alphaData = m_entityRenderer.HasDataToRenderByStyle(RenderStyle.Translucent) || m_entityRenderer.HasDataToRenderByStyle(RenderStyle.Add) || 
+            m_entityRenderer.HasDataToRenderByStyle(RenderStyle.ColorAdd);
+        var alphaWalls = m_worldDataManager.HasAlphaWalls();
         if (!fuzzData && !alphaData && !alphaWalls)
             return;
 
@@ -634,7 +636,8 @@ public class LegacyWorldRenderer : WorldRenderer
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.CheckPlaneClip(checkPlaneClip);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
-        program.SetDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
+        program.SetSpriteClipDownScaleAmount(renderInfo.Uniforms.DownScaleAmount);
+        program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
 
         if (program is InterpolationCompositeShader)
         {

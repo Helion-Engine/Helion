@@ -6,6 +6,7 @@ actor InvulnerabilitySphere : PowerupGiver 2022
     Inventory.PickupMessage "$GOTINVUL"
     Powerup.Color InverseMap
     Powerup.Type Invulnerable
+    RenderStyle Translucent
     
     +COUNTITEM
     +INVENTORY.ALWAYSPICKUP
@@ -28,6 +29,7 @@ actor Soulsphere : Health 2013
     Inventory.MaxAmount 200
     Inventory.PickupMessage "$GOTSUPER"
     Inventory.PickupSound "misc/p_pkup"
+    RenderStyle Translucent
     
     +COUNTITEM
     +INVENTORY.ALWAYSPICKUP
@@ -62,6 +64,7 @@ actor Megasphere : CustomInventory 83
     SpawnID 132
     Inventory.PickupMessage "$GOTMSPHERE"
     Inventory.PickupSound "misc/p_pkup"
+    RenderStyle Translucent
     
     +COUNTITEM
     +INVENTORY.ALWAYSPICKUP
@@ -86,6 +89,7 @@ actor BlurSphere : PowerupGiver 2024
     Inventory.MaxAmount 0
     Inventory.PickupMessage "$GOTINVIS"
     Powerup.Type Invisibility
+    RenderStyle Translucent
     
     +COUNTITEM
     +INVENTORY.ALWAYSPICKUP

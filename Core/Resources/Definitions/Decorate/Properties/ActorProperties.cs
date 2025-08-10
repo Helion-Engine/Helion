@@ -85,7 +85,7 @@ public class ActorProperties
     public double? RadiusDamageFactor;
     public int? ReactionTime;
     public double? RenderRadius;
-    public RenderStyle? RenderStyle;
+    public RenderStyle RenderStyle = RenderStyle.Normal;
     public int? RipLevelMax;
     public int? RipLevelMin;
     public int? RipperLevel;

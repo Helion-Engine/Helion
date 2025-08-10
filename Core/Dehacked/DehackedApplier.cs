@@ -22,6 +22,7 @@ using Helion.Maps.Shared;
 using Helion.Graphics.Palettes;
 using System.Runtime.CompilerServices;
 using System.Globalization;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 
 namespace Helion.Dehacked;
 
@@ -111,7 +112,7 @@ public class DehackedApplier
 
     private const int DehExtraSpriteStart = 145;
     private const int DehExtraSoundStart = 500;
-    private const float TranslucentValue = 0.38069f;
+    public const float TranslucentValue = 0.38069f;
 
     public DehackedApplier(DefinitionEntries definitionEntries, DehackedDefinition dehacked)
     {
@@ -1364,9 +1365,17 @@ public class DehackedApplier
         flags.InFloat = GetNewFlagValue(flags.InFloat, (thingProperties & ThingProperties.INFLOAT) != 0, opAnd);
 
         if (entity != null)
-            entity.Alpha = GetNewFlagValue(entity.Alpha == TranslucentValue, (thingProperties & ThingProperties.TRANSLUCENT) != 0, opAnd) ? TranslucentValue : 1;
+        {
+            var newValue = GetNewFlagValue(entity.Alpha == TranslucentValue, (thingProperties & ThingProperties.TRANSLUCENT) != 0, opAnd);
+            entity.Alpha = newValue ? TranslucentValue : 1;
+            entity.RenderStyle = newValue ? RenderStyle.ColorAddFullBright : RenderStyle.Normal;
+        }
         else if (properties != null)
-            properties.Alpha = GetNewFlagValue(properties.Alpha == TranslucentValue, (thingProperties & ThingProperties.TRANSLUCENT) != 0, opAnd) ? TranslucentValue : 1;
+        {
+            var newValue = GetNewFlagValue(properties.Alpha == TranslucentValue, (thingProperties & ThingProperties.TRANSLUCENT) != 0, opAnd);
+            properties.Alpha = newValue ? TranslucentValue: 1;
+            properties.RenderStyle = newValue ? RenderStyle.ColorAddFullBright : RenderStyle.Normal;
+        }
     }
 
     public static bool CheckEntityFlags(Entity entity, uint flags)

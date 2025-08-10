@@ -2,7 +2,7 @@ actor BulletPuff
 {
     Alpha 0.5
     Mass 5
-    RenderStyle Translucent
+    RenderStyle ColorAddFullBright
     SpawnID 131
     VSpeed 1
     

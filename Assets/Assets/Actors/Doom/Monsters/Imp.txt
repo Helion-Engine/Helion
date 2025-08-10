@@ -57,13 +57,12 @@ actor DoomImp 3001
 
 actor DoomImpBall
 {
-    Alpha 1
     Damage 3
     DeathSound "imp/shotx"
     FastSpeed 20
     Height 8
     Radius 6
-    RenderStyle Add
+    RenderStyle ColorAdd
     SeeSound "imp/attack"
     SpawnID 10
     Speed 10

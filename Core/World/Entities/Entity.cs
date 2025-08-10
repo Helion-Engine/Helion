@@ -4,6 +4,7 @@ using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
@@ -100,6 +101,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public bool Respawn;
     public bool HadOnEntity;
     public float Alpha;
+    public RenderStyle RenderStyle;
 
     public ZDoomLineSpecialType Special;
     public SpecialArgs Args;
@@ -196,6 +198,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         Gravity = 1;
 
         Alpha = (float)Properties.Alpha;
+        RenderStyle = Properties.RenderStyle;
         MonsterMovementSpeed = Properties.MonsterMovementSpeed;
         MaxTargetRange = Properties.MaxTargetRange;
         MinMissileChance = Properties.MinMissileChance;
@@ -252,6 +255,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             OnGround = entityModel.OnGround.Value;
 
         Alpha = entityModel.Alpha ?? (float)Properties.Alpha;
+        RenderStyle = (RenderStyle?)entityModel.RenderStyle ?? Properties.RenderStyle;
         MaxTargetRange = entityModel.MaxTargetRange ?? Properties.MaxTargetRange;
         MinMissileChance = entityModel.MinMissileChance ?? Properties.MinMissileChance;
         MeleeThreshold = entityModel.MeleeThreshold ?? Properties.MeleeThreshold;
@@ -297,6 +301,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.OnGround = OnGround;
         entityModel.Gravity = Gravity;
         entityModel.Alpha = Alpha;
+        entityModel.RenderStyle = (int)RenderStyle;
         entityModel.MaxTargetRange = MaxTargetRange;
         entityModel.MinMissileChance = MinMissileChance;
         entityModel.MeleeThreshold = MeleeThreshold;
