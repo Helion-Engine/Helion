@@ -2944,9 +2944,6 @@ public abstract partial class WorldBase : IWorld
         teleportFogPos.X += fogDist.X;
         teleportFogPos.Y += fogDist.Y;
         CreateTeleportFog(teleportFogPos);
-
-        var teleport = EntityManager.Create(m_teleportFogDef, teleportFogPos, 0.0, 0.0, 0, default);
-        SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
     }
 
     public void ActivateCheat(Player player, ICheat cheat)
