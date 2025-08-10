@@ -246,6 +246,9 @@ public class EntityRenderer : IDisposable
         if (m_spriteAlpha && entity.Alpha == DehackedApplier.TranslucentValue)
             renderStyle = isFullBright ? RenderStyle.ColorAdd : RenderStyle.Translucent;
 
+        if (renderStyle == RenderStyle.ColorAdd)
+            entityAlpha = 1.0f;
+
         var renderData = m_dataManager.GetByRenderStyle(renderStyle, texture, brightmapTexture);
 
         var alpha = m_spriteAlpha && renderStyle != RenderStyle.Normal ? entityAlpha : 1.0f;
