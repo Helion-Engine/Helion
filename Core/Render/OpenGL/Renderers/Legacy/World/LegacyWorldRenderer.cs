@@ -354,13 +354,13 @@ public class LegacyWorldRenderer : WorldRenderer
         GL.ColorMask(true, true, true, true);
 
         if (m_wallClipFrameBuffer != null || m_planeClipFrameBuffer != null)
-            WriteSpriteClipBuffers(world, renderInfo, framebuffer);
+            WriteSpriteClipBuffers(renderInfo, framebuffer);
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer);
     }
 
-    private void WriteSpriteClipBuffers(IWorld world, RenderInfo renderInfo, GLFramebuffer framebuffer)
+    private void WriteSpriteClipBuffers(RenderInfo renderInfo, GLFramebuffer framebuffer)
     {
         var useRenderInfo = renderInfo;
         if (renderInfo.Uniforms.DownScaleAmount > 1)
@@ -372,7 +372,7 @@ public class LegacyWorldRenderer : WorldRenderer
             m_downSizedRenderInfo.Set(renderInfo.Camera, renderInfo.TickFraction, viewport, renderInfo.ViewerEntity,
                 renderInfo.DrawAutomap, renderInfo.AutomapOffset, renderInfo.AutomapScale,
                 renderInfo.Config, renderInfo.ViewSector, renderInfo.TransferHeightView);
-            m_downSizedRenderInfo.Uniforms = Renderer.GetShaderUniforms(m_config, world, m_downSizedRenderInfo);
+            m_downSizedRenderInfo.Uniforms = Renderer.GetShaderUniforms(m_config, m_downSizedRenderInfo);
 
             GL.Viewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
         }
