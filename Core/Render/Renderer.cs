@@ -26,6 +26,7 @@ using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World;
 using Helion.World.Entities;
+using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
@@ -187,7 +188,7 @@ public partial class Renderer : IDisposable
         return viewport.Height / 480f / 2 * (float)config.FuzzAmount;
     }
 
-    public static ShaderUniforms GetShaderUniforms(IConfig config, IWorld world, RenderInfo renderInfo)
+    public static ShaderUniforms GetShaderUniforms(IConfig config, RenderInfo renderInfo)
     {
         bool drawInvulnerability = false;
         int extraLight = 0;
@@ -250,7 +251,7 @@ public partial class Renderer : IDisposable
     private static ColorMapUniforms GetColorMapUniforms(Entity viewer, OldCamera camera)
     {
         ColorMapUniforms uniforms = default;
-        if (ShaderVars.PaletteColorMode)
+        if (ShaderVars.PaletteColorMode && (viewer is not Player player || !player.DrawInvulnerableColorMap()))
         {
             GetViewerColorMap(viewer, camera, out var globalColormap, out var sectorColormap, out var skyColormap);
             if (globalColormap != null)
@@ -266,7 +267,7 @@ public partial class Renderer : IDisposable
     public static ColorMixUniforms GetColorMix(Entity viewer, OldCamera camera)
     {
         ColorMixUniforms uniforms = new(Vec3F.One, Vec3F.One, Vec3F.One);
-        if (!ShaderVars.PaletteColorMode)
+        if (!ShaderVars.PaletteColorMode && (viewer is not Player player || !player.DrawInvulnerableColorMap()))
         {
             GetViewerColorMap(viewer, camera, out var globalColormap, out var sectorColormap, out var skyColormap);
             if (globalColormap != null)
@@ -666,7 +667,7 @@ public partial class Renderer : IDisposable
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
             cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
-        m_renderInfo.Uniforms = GetShaderUniforms(m_config, cmd.World, m_renderInfo);
+        m_renderInfo.Uniforms = GetShaderUniforms(m_config, m_renderInfo);
 
         DrawHudImagesIfAnyQueued(viewport, m_renderInfo.Uniforms);
 

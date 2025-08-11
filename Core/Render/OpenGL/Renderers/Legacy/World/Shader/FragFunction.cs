@@ -113,7 +113,7 @@ public class FragFunction
             @"
             ${BrigthmapFetch}
 
-            int useColormap = int(mix(colormapIndex, sectorColorMapIndexFrag, float(sectorColorMapIndexFrag > 0)));
+            int useColormap = int(mix(colormapIndex, sectorColorMapIndexFrag, float(sectorColorMapIndexFrag > 0 && hasInvulnerability == 0)));
             ${EntityColorMapFrag}
             int usePalette = paletteIndex;
             int lightLevelOffset = (lightColorIndex * 256);
@@ -144,7 +144,7 @@ public class FragFunction
                 ${BrigthmapFetch}
                 int lightLevelOffset = lightColorIndex * 256;"
                 .Replace("${BrigthmapFetch}", BrightMapLightColorIndexFetch("uvFrag.st"))
-                : 
+                :
                 "int lightLevelOffset = 0;");
 
         // Use the alpha flag to indicate we need to fetch from the colormap buffer since we don't need it for fullbright.
@@ -207,7 +207,7 @@ public class FragFunction
 
             fragColor.xyz *= min(colorMix, 1);
 "
-            + (ShaderVars.PaletteColorMode ? "" : "fragColor.xyz *= min(sectorColorMapIndexFrag, 1);")
+            + (ShaderVars.PaletteColorMode ? "" : "fragColor.xyz *= mix(min(sectorColorMapIndexFrag, 1), vec3(1.0), hasInvulnerability != 0);")
             + InvulnerabilityFragColor
             + GammaCorrection()
             + postProcess

@@ -56,3 +56,4 @@
 - Fix null debug texture being applied to sprite brightmaps when render.nulltexture is on.
 - Fix issue with looping sounds being removed entirely when out of range that prevented them from being added when back in range.
 - Fix reading directory as file support with -file parameter.
+- Fix invulnerability not overriding sector colormaps.
