@@ -18,6 +18,7 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
         RenderDataStyle.Translucent,
         RenderDataStyle.Add,
         RenderDataStyle.ColorAdd,
+        RenderDataStyle.ColorAdd,
         RenderDataStyle.ColorAdd
     ];
 
@@ -40,8 +41,8 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
         Dispose(false);
     }
 
-    public bool HasDataToRenderByStyle(RenderStyle style) =>
-        m_renderDataStyles[(int)RenderStyleLookup[(int)style]].HasDataToRender();
+    public bool HasDataToRenderByStyle(RenderDataStyle style) =>
+        m_renderDataStyles[(int)style].HasDataToRender();
 
     public void Clear()
     {
@@ -58,8 +59,8 @@ public class RenderDataManager<[DynamicallyAccessedMembers(DynamicallyAccessedMe
     public RenderData<TVertex> GetByRenderStyle(RenderStyle style, GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null) =>
          m_renderDataStyles[(int)RenderStyleLookup[(int)style]].Get(texture, brightmapTexture);
 
-    public void RenderByRenderStyle(RenderStyle style, PrimitiveType primitive) =>
-        m_renderDataStyles[(int)RenderStyleLookup[(int)style]].Render(primitive);
+    public void RenderByRenderStyle(RenderDataStyle style, PrimitiveType primitive) =>
+        m_renderDataStyles[(int)style].Render(primitive);
 
     protected virtual void Dispose(bool disposing)
     {

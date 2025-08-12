@@ -75,7 +75,7 @@ public class EntityRenderer : IDisposable
         PerformDispose();
     }
 
-    public bool HasDataToRenderByStyle(RenderStyle style) => m_dataManager.HasDataToRenderByStyle(style);
+    public bool HasDataToRenderByStyle(RenderDataStyle style) => m_dataManager.HasDataToRenderByStyle(style);
 
     public void HealthBarMode(bool set) => m_program.HealthBarMode(set);
 
@@ -242,8 +242,13 @@ public class EntityRenderer : IDisposable
 
         // If fullbright and modified through dehacked then change render style to ColorAdd for better color rendering.
         var entityAlpha = entity.Alpha;
-        if (m_spriteAlpha && entity.RenderStyle == RenderStyle.ColorAddFullBright)
-            renderStyle = isFullBright ? RenderStyle.ColorAdd : RenderStyle.Translucent;
+        if (m_spriteAlpha)
+        {
+            if (entity.RenderStyle == RenderStyle.ColorAddFullBright)
+                renderStyle = isFullBright ? RenderStyle.ColorAdd : RenderStyle.Translucent;
+            else if (entity.RenderStyle == RenderStyle.ColorAddExplosion)
+                renderStyle = entity.Flags.Missile ? RenderStyle.Normal : RenderStyle.ColorAdd;
+        }
 
         if (renderStyle == RenderStyle.ColorAdd)
             entityAlpha = 1.0f;
@@ -397,7 +402,7 @@ public class EntityRenderer : IDisposable
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_program, renderInfo);
         m_program.HealthBarMode(false);
-        m_dataManager.RenderByRenderStyle(RenderStyle.Normal, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Normal, PrimitiveType.Points);
 
         if (m_healthBars)
         {
@@ -414,11 +419,11 @@ public class EntityRenderer : IDisposable
         m_programTransparent.RenderFuzz(false);
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
-        m_dataManager.RenderByRenderStyle(RenderStyle.Translucent, PrimitiveType.Points);
-        m_dataManager.RenderByRenderStyle(RenderStyle.Add, PrimitiveType.Points);
-        m_dataManager.RenderByRenderStyle(RenderStyle.Fuzzy, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Translucent, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Add, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy, PrimitiveType.Points);
         m_programTransparent.ColorClamp(0.9f);
-        m_dataManager.RenderByRenderStyle(RenderStyle.ColorAdd, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd, PrimitiveType.Points);
         m_programTransparent.Unbind();
     }
 
@@ -428,7 +433,7 @@ public class EntityRenderer : IDisposable
         m_programTransparent.RenderFuzz(true);
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
-        m_dataManager.RenderByRenderStyle(RenderStyle.Fuzzy, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy, PrimitiveType.Points);
         m_programTransparent.Unbind();
     }
 
@@ -437,18 +442,18 @@ public class EntityRenderer : IDisposable
         m_programComposite.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programComposite, renderInfo);
-        m_dataManager.RenderByRenderStyle(RenderStyle.Translucent, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Translucent, PrimitiveType.Points);
 
-        if (m_dataManager.HasDataToRenderByStyle(RenderStyle.Add))
+        if (m_dataManager.HasDataToRenderByStyle(RenderDataStyle.Add))
         {
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
-            m_dataManager.RenderByRenderStyle(RenderStyle.Add, PrimitiveType.Points);
+            m_dataManager.RenderByRenderStyle(RenderDataStyle.Add, PrimitiveType.Points);
         }
 
-        if (m_dataManager.HasDataToRenderByStyle(RenderStyle.ColorAdd))
+        if (m_dataManager.HasDataToRenderByStyle(RenderDataStyle.ColorAdd))
         {
             GL.BlendFunc(BlendingFactor.SrcColor, BlendingFactor.One);
-            m_dataManager.RenderByRenderStyle(RenderStyle.ColorAdd, PrimitiveType.Points);
+            m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd, PrimitiveType.Points);
         }
 
         GL.BlendEquation(BlendEquationMode.FuncAdd);
@@ -463,7 +468,7 @@ public class EntityRenderer : IDisposable
         GL.ActiveTexture(BindTextures.BoundTexture);
         m_programFuzzRefraction.RenderFuzzRefractionColor(renderColor);
         SetUniforms(m_programFuzzRefraction, renderInfo);
-        m_dataManager.RenderByRenderStyle(RenderStyle.Fuzzy, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy, PrimitiveType.Points);
         m_programFuzzRefraction.Unbind();
     }
 
