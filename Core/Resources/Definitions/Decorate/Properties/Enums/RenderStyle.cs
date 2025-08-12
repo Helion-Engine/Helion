@@ -10,5 +10,7 @@ public enum RenderStyle
     ColorAdd,
     // Use ColorAdd when FullBright, otherwise Translucent
     ColorAddFullBright,
+    // Use ColorAdd after death, otherwise Normal (Currently set from +DEHEXPLOSION)
+    ColorAddExplosion,
     Count
 }
