@@ -16,7 +16,6 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -26,7 +25,6 @@ using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World;
 using Helion.World.Entities;
-using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 using NLog;
 using OpenTK.Graphics.OpenGL;
@@ -251,7 +249,7 @@ public partial class Renderer : IDisposable
     private static ColorMapUniforms GetColorMapUniforms(Entity viewer, OldCamera camera)
     {
         ColorMapUniforms uniforms = default;
-        if (ShaderVars.PaletteColorMode && (viewer is not Player player || !player.DrawInvulnerableColorMap()))
+        if (ShaderVars.PaletteColorMode)
         {
             GetViewerColorMap(viewer, camera, out var globalColormap, out var sectorColormap, out var skyColormap);
             if (globalColormap != null)
@@ -267,7 +265,7 @@ public partial class Renderer : IDisposable
     public static ColorMixUniforms GetColorMix(Entity viewer, OldCamera camera)
     {
         ColorMixUniforms uniforms = new(Vec3F.One, Vec3F.One, Vec3F.One);
-        if (!ShaderVars.PaletteColorMode && (viewer is not Player player || !player.DrawInvulnerableColorMap()))
+        if (!ShaderVars.PaletteColorMode)
         {
             GetViewerColorMap(viewer, camera, out var globalColormap, out var sectorColormap, out var skyColormap);
             if (globalColormap != null)
