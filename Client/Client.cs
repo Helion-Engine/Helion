@@ -86,8 +86,6 @@ public partial class Client : IDisposable, IInputManagement
     private Client(CommandLineArgs commandLineArgs, PathsManager pathsManager, IConfig config, HelionConsole console, IAudioSystem audioSystem,
         ArchiveCollection archiveCollection)
     {
-        GLFWProvider.SetErrorCallback(GLFWErrorCallback);
-
         m_commandLineArgs = commandLineArgs;
         m_pathsManager = pathsManager;
         m_config = config;
@@ -111,6 +109,7 @@ public partial class Client : IDisposable, IInputManagement
         }
 
         GLFWProvider.EnsureInitialized();
+        GLFWProvider.SetErrorCallback(GLFWErrorCallback);
         GLFW.WindowHint(WindowHintString.WaylandAppID, "Helion");
         m_window = new Window(AppInfo.ApplicationName, config, archiveCollection, m_fpsTracker, this, GlVersion.Major, GlVersion.Minor, GlVersion.Flags, CheckOpenGLSupport);
         m_screenshotGenerator = new(m_window.Renderer);
