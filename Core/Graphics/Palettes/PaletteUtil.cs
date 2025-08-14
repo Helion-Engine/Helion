@@ -36,12 +36,18 @@ public static class PaletteUtil
 
         if (damageCount > 0)
         {
+            float damageIntensity;
             if (damageCount == player.DamageCount)
-                damageCount = (int)(player.DamageCount * config.Game.PainIntensity);
+            {
+                damageIntensity = (float)config.Game.PainIntensity;
+                damageCount = player.DamageCount;
+            }
             else
-                damageCount = (int)(damageCount * config.Game.BerserkIntensity);
+            {
+                damageIntensity = (float)config.Game.BerserkIntensity;
+            }
 
-            palette = GetDamagePalette(damageCount);
+            palette = GetDamagePalette(damageCount, damageIntensity);
         }
         else if (player.BonusCount > 0)
         {
@@ -68,11 +74,12 @@ public static class PaletteUtil
         return (PaletteIndex)palette;
     }
 
-    private static PaletteIndex GetDamagePalette(int damageCount)
+    private static PaletteIndex GetDamagePalette(int damageCount, float damgeIntensity)
     {
         const int RedPals = 8;
         const int StartRedPals = 1;
         int palette = (damageCount + 7) >> 3;
+        palette = (int)(palette * damgeIntensity);
         if (palette >= RedPals)
             palette = RedPals - 1;
         palette += StartRedPals;
