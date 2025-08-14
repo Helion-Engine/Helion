@@ -200,9 +200,14 @@ public class SoundManager : IDisposable
         var gametick = GetGameTick();
         LinkedListNode<WaitingSound>? node = m_waitingLoopSounds.First;
         LinkedListNode<WaitingSound>? nextNode;
+        LinkedListNode<WaitingSound>? nextNextNode;
         while (node != null)
         {
+            if (node.List == null)
+                break;
+
             nextNode = node.Next;
+            nextNextNode = nextNode?.Next;
             var distanceSquared = GetDistanceSquared(node.Value.SoundSource);
 
             if (!CheckDistance(distanceSquared, node.Value.SoundParams.Attenuation))
@@ -221,7 +226,11 @@ public class SoundManager : IDisposable
             if (audio != null && node.List == m_waitingLoopSounds)
                 m_waitingLoopSounds.Free(node, ArchiveCollection.DataCache);
 
+
+            // CreateSound can remove the nextNode in the chain. Need to check if it was removed and use the next one ahead.
             node = nextNode;
+            if (node?.List == null)
+                node = nextNextNode;
         }
     }
 
