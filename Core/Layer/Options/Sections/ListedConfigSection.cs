@@ -78,6 +78,7 @@ public class ListedConfigSection : IOptionSection
         m_config.Game.QuickSaveConfirm.OptionDisabled = m_config.Game.RotatingQuickSaves > 0;
 
         m_config.Window.Dimension.OptionDisabled = m_config.Window.State != RenderWindowState.Normal;
+        m_config.Window.PaletteTrueColorOverlay.OptionDisabled = m_config.Window.ColorMode.Value != RenderColorMode.Palette;
 
         bool paletteMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
         m_config.Render.Filter.Texture.OptionDisabled = paletteMode;

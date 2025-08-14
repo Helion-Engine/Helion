@@ -207,9 +207,14 @@ public partial class Renderer : IDisposable
 
             if (ShaderVars.PaletteColorMode)
             {
-                mix = 0.0f;
                 colorMapUniforms = GetColorMapUniforms(renderInfo.ViewerEntity, renderInfo.Camera);
-                paletteIndex = PaletteUtil.GetPalette(config, player);
+
+                if (!config.Window.PaletteTrueColorOverlay)
+                {
+                    mix = 0.0f;
+                    paletteIndex = PaletteUtil.GetPalette(config, player);
+                }
+
                 if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
                     mix = 1.0f;
             }
