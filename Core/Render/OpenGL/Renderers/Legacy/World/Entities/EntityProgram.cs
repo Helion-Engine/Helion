@@ -217,9 +217,9 @@ public class EntityProgram : RenderProgram
         flat out float zPosFrag;
         flat out float zPosDepthFrag;
         flat out float textureWidthFrag;
-        out vec3 centerPosFrag;
-        out vec3 minPosFrag;
-        out vec3 maxPosFrag;
+        flat out vec3 centerPosFrag;
+        flat out vec3 minPosFrag;
+        flat out vec3 maxPosFrag;
         out float depthFrag;
         ${SectorColorMapFrag}
 
@@ -326,9 +326,9 @@ public class EntityProgram : RenderProgram
         flat in float zPosFrag;
         flat in float zPosDepthFrag;
         flat in float textureWidthFrag;
-        in vec3 centerPosFrag;
-        in vec3 minPosFrag;
-        in vec3 maxPosFrag;
+        flat in vec3 centerPosFrag;
+        flat in vec3 minPosFrag;
+        flat in vec3 maxPosFrag;
         in float depthFrag;
 
         ${SectorColorMapFragVariables}
