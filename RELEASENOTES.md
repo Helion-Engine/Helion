@@ -60,3 +60,4 @@
 - Fix reading directory as file support with -file parameter.
 - Fix invulnerability and sector colormaps to match Doom I + II behavior.
 - Fix crash in sound management when adding in waiting looping sounds.
+- Fix issue with vanilla render sprite clipping where sprites exactly on lines would look like they are z-fighting.
