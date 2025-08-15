@@ -307,7 +307,6 @@ public partial class Renderer
         var index = lineId * 3;
         buffer[index] = prevFloorZ;
         buffer[index + 1] = floorZ;
-        buffer[index + 2] = 0;
 
         // CoverWallUtil.GetProjectHeights forces top and bottom projection to cover. Ensure it's set to blocked for the shader.
         if (RenderBlock.IsBlocked(line))
