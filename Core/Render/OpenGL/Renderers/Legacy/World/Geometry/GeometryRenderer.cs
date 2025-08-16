@@ -1232,11 +1232,15 @@ public class GeometryRenderer : IDisposable
 
             var opening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector, false);
             var prevOpening = GetMidTexOpening(TextureManager, facingSide, facingSector, otherSector, true);
-            double offset = GetTransferHeightHackOffset(TextureManager, facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: false);
-            double prevOffset = 0;
+            var offset = GetTransferHeightHackOffset(TextureManager, facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: false);
+            var prevOffset = offset;
 
             if (offset != 0)
-                prevOffset = GetTransferHeightHackOffset(TextureManager,facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: true);
+            {
+                var check = facingSide.Line.Flags.Unpegged.Lower ? opening.BottomZ == prevOpening.BottomZ : opening.TopZ == prevOpening.TopZ;
+                if (check)
+                    prevOffset = GetTransferHeightHackOffset(TextureManager, facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: true);
+            }
 
             int colorMapIndex = Renderer.GetColorMapBufferIndex(facingSector, LightBufferType.Wall);
             int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Middle, facingSector);
