@@ -198,7 +198,7 @@ public partial class Renderer : IDisposable
         if (renderInfo.ViewerEntity.PlayerObj != null)
         {
             var player = renderInfo.ViewerEntity.PlayerObj;
-            if (player.DrawFullBright())
+            if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
                 mix = 1.0f;
             if (player.DrawInvulnerableColorMap())
                 drawInvulnerability = true;
@@ -214,9 +214,6 @@ public partial class Renderer : IDisposable
                     mix = 0.0f;
                     paletteIndex = PaletteUtil.GetPalette(config, player);
                 }
-
-                if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
-                    mix = 1.0f;
             }
         }
 
