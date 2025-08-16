@@ -2479,6 +2479,7 @@ public static class EntityActionFunctions
     private static void A_SpawnSound(Entity entity)
     {
         WorldStatic.SoundManager.CreateSoundOn(entity, "brain/cube", new SoundParams(entity, false, Attenuation.Default));
+        A_SpawnFly(entity);
     }
 
     private static void A_SpidRefire(Entity entity)
