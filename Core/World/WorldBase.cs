@@ -2945,8 +2945,6 @@ public abstract partial class WorldBase : IWorld
         teleportFogPos.Y += fogDist.Y;
 
         CreateTeleportFog(teleportFogPos);
-        var teleport = EntityManager.Create(m_teleportFogDef, teleportFogPos, 0.0, 0.0, 0, default);
-        SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
     }
 
     public Entity? SpawnEntity(EntityDefinition definition, in Vec3D pos, int tid, double angle, in SpecialArgs args, bool teleportFog)

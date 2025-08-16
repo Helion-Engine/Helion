@@ -3,6 +3,7 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
+using Helion.Graphics.Palettes;
 using Helion.Render;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
@@ -268,7 +269,7 @@ public partial class WorldLayer
 
     private void DrawHudEffects(IHudRenderContext hud)
     {
-        if (!WorldStatic.World.DrawHud || ShaderVars.PaletteColorMode)
+        if (!WorldStatic.World.DrawHud || (ShaderVars.PaletteColorMode && !m_config.Window.PaletteTrueColorOverlay))
             return;
 
         IPowerup? powerup = Player.Inventory.PowerupEffectColor;
@@ -282,10 +283,20 @@ public partial class WorldLayer
         }
 
         if (Player.BonusCount > 0)
-            hud.Clear(PickupColor, 0.2f);
+        {
+            const float PickupScaleAmount = 3f;
+            var pickupScale = (Player.BonusCount + 7) / PickupScaleAmount;
+            pickupScale *= 1 / PickupScaleAmount;
+            hud.Clear(PickupColor, Math.Min(pickupScale, 0.2f));
+        }
 
         if (Player.DamageCount > 0)
-            hud.Clear(DamageColor, Player.DamageCount * 0.01f * (float)m_config.Game.PainIntensity);
+        {
+            const float DamageScaleAmount = 8f;
+            var damageScale = Math.Min(Player.DamageCount + 7, 100) / DamageScaleAmount;
+            damageScale *= 1 / DamageScaleAmount;
+            hud.Clear(DamageColor, Math.Min(damageScale, 0.89f) * (float)m_config.Game.PainIntensity);
+        }
     }
 
     private void DrawFPS(IHudRenderContext hud, ref int topRightY)

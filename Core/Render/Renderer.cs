@@ -16,7 +16,6 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -187,7 +186,7 @@ public partial class Renderer : IDisposable
         return viewport.Height / 480f / 2 * (float)config.FuzzAmount;
     }
 
-    public static ShaderUniforms GetShaderUniforms(IConfig config, IWorld world, RenderInfo renderInfo)
+    public static ShaderUniforms GetShaderUniforms(IConfig config, RenderInfo renderInfo)
     {
         bool drawInvulnerability = false;
         int extraLight = 0;
@@ -199,7 +198,7 @@ public partial class Renderer : IDisposable
         if (renderInfo.ViewerEntity.PlayerObj != null)
         {
             var player = renderInfo.ViewerEntity.PlayerObj;
-            if (player.DrawFullBright())
+            if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
                 mix = 1.0f;
             if (player.DrawInvulnerableColorMap())
                 drawInvulnerability = true;
@@ -208,11 +207,13 @@ public partial class Renderer : IDisposable
 
             if (ShaderVars.PaletteColorMode)
             {
-                mix = 0.0f;
                 colorMapUniforms = GetColorMapUniforms(renderInfo.ViewerEntity, renderInfo.Camera);
-                paletteIndex = PaletteUtil.GetPalette(config, player);
-                if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
-                    mix = 1.0f;
+
+                if (!config.Window.PaletteTrueColorOverlay)
+                {
+                    mix = 0.0f;
+                    paletteIndex = PaletteUtil.GetPalette(config, player);
+                }
             }
         }
 
@@ -666,7 +667,7 @@ public partial class Renderer : IDisposable
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
             cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
-        m_renderInfo.Uniforms = GetShaderUniforms(m_config, cmd.World, m_renderInfo);
+        m_renderInfo.Uniforms = GetShaderUniforms(m_config, m_renderInfo);
 
         DrawHudImagesIfAnyQueued(viewport, m_renderInfo.Uniforms);
 

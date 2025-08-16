@@ -64,7 +64,6 @@ actor RevenantTracer
     DeathSound "skeleton/tracex"
     Height 8
     Radius 11
-    RenderStyle Add
     SeeSound "skeleton/attack"
     SpawnID 53
     Speed 10

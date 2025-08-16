@@ -47,6 +47,7 @@ public class EntityProgram : RenderProgram
     private readonly int m_lineHeightsTextureLocation;
     private readonly int m_useBrightmapsLocation;
     private readonly int m_downScaleAmountLocation;
+    private readonly int m_colorClampLocation;
 
     public EntityProgram(string name) : base($"Entity - {name}")
     {
@@ -88,6 +89,7 @@ public class EntityProgram : RenderProgram
         m_lineHeightsTextureLocation = Uniforms.GetLocation("lineHeightsTexture");
         m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
         m_downScaleAmountLocation = Uniforms.GetLocation("downScaleAmount");
+        m_colorClampLocation = Uniforms.GetLocation("colorClamp");
     }
     
     public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
@@ -129,6 +131,7 @@ public class EntityProgram : RenderProgram
     public void HealthBarMode(bool value) => ProgramUniforms.Set(value, m_healthBarModeLocation);
     public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
     public void SetSpriteClipDownScaleAmount(float value) => ProgramUniforms.Set(value, m_downScaleAmountLocation);
+    public void ColorClamp(float value) => ProgramUniforms.Set(value, m_colorClampLocation);
 
     private const string BoxDefines = @"
         const float BoxWidth = 20;
@@ -214,9 +217,9 @@ public class EntityProgram : RenderProgram
         flat out float zPosFrag;
         flat out float zPosDepthFrag;
         flat out float textureWidthFrag;
-        out vec3 centerPosFrag;
-        out vec3 minPosFrag;
-        out vec3 maxPosFrag;
+        flat out vec3 centerPosFrag;
+        flat out vec3 minPosFrag;
+        flat out vec3 maxPosFrag;
         out float depthFrag;
         ${SectorColorMapFrag}
 
@@ -323,9 +326,9 @@ public class EntityProgram : RenderProgram
         flat in float zPosFrag;
         flat in float zPosDepthFrag;
         flat in float textureWidthFrag;
-        in vec3 centerPosFrag;
-        in vec3 minPosFrag;
-        in vec3 maxPosFrag;
+        flat in vec3 centerPosFrag;
+        flat in vec3 minPosFrag;
+        flat in vec3 maxPosFrag;
         in float depthFrag;
 
         ${SectorColorMapFragVariables}
@@ -358,6 +361,7 @@ public class EntityProgram : RenderProgram
         uniform float timeFrac;
         uniform float downScaleAmount;
         uniform vec2 downScaleSampleFactor;
+        uniform float colorClamp;
 
         uniform sampler2D planeClipTexture;
         uniform sampler2D wallClipTexture;

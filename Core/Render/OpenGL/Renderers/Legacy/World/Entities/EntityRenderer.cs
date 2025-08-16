@@ -8,6 +8,7 @@ using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.World;
@@ -74,8 +75,7 @@ public class EntityRenderer : IDisposable
         PerformDispose();
     }
 
-    public bool HasFuzz() => m_dataManager.HasFuzz();
-    public bool HasAlpha() => m_dataManager.HasAlpha();
+    public bool HasDataToRenderByStyle(RenderDataStyle style) => m_dataManager.HasDataToRenderByStyle(style);
 
     public void HealthBarMode(bool set) => m_program.HealthBarMode(set);
 
@@ -234,20 +234,29 @@ public class EntityRenderer : IDisposable
         var brightmapTexture = spriteRotation.BrightmapRenderStore as GLLegacyTexture;
         var sector = entity.Sector.GetRenderSector(m_transferHeightView);
 
-        float offsetZ = GetOffsetZ(entity, texture);
+        var disableFullbright = m_brightMaps && spriteRotation.BrightmapNoFullbright;
+        var isFullBright = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
+        var offsetZ = GetOffsetZ(entity, texture);
+        var shadow = entity.Flags.Shadow || entity.RenderStyle == RenderStyle.Fuzzy;
+        var renderStyle = shadow ? RenderStyle.Fuzzy : m_spriteAlpha ? entity.RenderStyle : RenderStyle.Normal;
 
-        bool shadow = entity.Flags.Shadow;
-        bool useAlpha = m_spriteAlpha && entity.Alpha < 1.0f;
-        RenderData<EntityVertex> renderData;
-        if (shadow)
-            renderData = m_dataManager.GetFuzz(texture, brightmapTexture);
-        else if (useAlpha)
-            renderData = m_dataManager.GetAlpha(texture, brightmapTexture);
-        else
-            renderData = m_dataManager.GetNonAlpha(texture, brightmapTexture);
+        // If fullbright and modified through dehacked then change render style to ColorAdd for better color rendering.
+        var entityAlpha = entity.Alpha;
+        if (m_spriteAlpha)
+        {
+            if (entity.RenderStyle == RenderStyle.ColorAddFullBright)
+                renderStyle = isFullBright ? RenderStyle.ColorAdd : RenderStyle.Translucent;
+            else if (entity.RenderStyle == RenderStyle.ColorAddExplosion)
+                renderStyle = entity.Flags.Missile ? RenderStyle.Normal : RenderStyle.ColorAdd;
+        }
 
-        float alpha = useAlpha ? entity.Alpha : 1.0f;
-        float fuzz = shadow ? 1.0f : 0.0f;
+        if (renderStyle == RenderStyle.ColorAdd)
+            entityAlpha = 1.0f;
+
+        var renderData = m_dataManager.GetByRenderStyle(renderStyle, texture, brightmapTexture);
+
+        var alpha = m_spriteAlpha && renderStyle != RenderStyle.Normal ? entityAlpha : 1.0f;
+        var fuzz = shadow ? 1.0f : 0.0f;
 
         var arrayData = renderData.ArrayData;
         int length = arrayData.Length;
@@ -267,11 +276,9 @@ public class EntityRenderer : IDisposable
             (float)entity.PrevPosition.Z);
         vertex.OffsetZ = offsetZ;
         vertex.OffsetXY = texture.Offset.X;
-        bool disableFullbright = m_brightMaps && spriteRotation.BrightmapNoFullbright;
-        vertex.LightLevel = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright
+        vertex.LightLevel = isFullBright
             ? 255
             : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
-        //vertex.LightLevel = 80;
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
 
@@ -362,6 +369,7 @@ public class EntityRenderer : IDisposable
         program.CheckPlaneClip(m_vanillaRender);
         program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
         program.SetSpriteClipDownScaleAmount(Math.Max(renderInfo.Uniforms.DownScaleAmount, 1));
+        program.ColorClamp(1f);
 
         // The fade distance calculations work using squared distances
         float maxDistanceSquared = renderInfo.Uniforms.MaxDistance * renderInfo.Uniforms.MaxDistance;
@@ -394,7 +402,7 @@ public class EntityRenderer : IDisposable
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_program, renderInfo);
         m_program.HealthBarMode(false);
-        m_dataManager.RenderNonAlpha(PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Normal, PrimitiveType.Points);
 
         if (m_healthBars)
         {
@@ -411,8 +419,11 @@ public class EntityRenderer : IDisposable
         m_programTransparent.RenderFuzz(false);
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
-        m_dataManager.RenderAlpha(PrimitiveType.Points);
-        m_dataManager.RenderFuzz(PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Translucent, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Add, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy, PrimitiveType.Points);
+        m_programTransparent.ColorClamp(0.9f);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd, PrimitiveType.Points);
         m_programTransparent.Unbind();
     }
 
@@ -422,7 +433,7 @@ public class EntityRenderer : IDisposable
         m_programTransparent.RenderFuzz(true);
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
-        m_dataManager.RenderFuzz(PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy, PrimitiveType.Points);
         m_programTransparent.Unbind();
     }
 
@@ -431,7 +442,23 @@ public class EntityRenderer : IDisposable
         m_programComposite.Bind();
         GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programComposite, renderInfo);
-        m_dataManager.RenderAlpha(PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Translucent, PrimitiveType.Points);
+
+        if (m_dataManager.HasDataToRenderByStyle(RenderDataStyle.Add))
+        {
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
+            m_dataManager.RenderByRenderStyle(RenderDataStyle.Add, PrimitiveType.Points);
+        }
+
+        if (m_dataManager.HasDataToRenderByStyle(RenderDataStyle.ColorAdd))
+        {
+            GL.BlendFunc(BlendingFactor.SrcColor, BlendingFactor.One);
+            m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd, PrimitiveType.Points);
+        }
+
+        GL.BlendEquation(BlendEquationMode.FuncAdd);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
         m_programComposite.Unbind();
     }
 
@@ -441,18 +468,8 @@ public class EntityRenderer : IDisposable
         GL.ActiveTexture(BindTextures.BoundTexture);
         m_programFuzzRefraction.RenderFuzzRefractionColor(renderColor);
         SetUniforms(m_programFuzzRefraction, renderInfo);
-        m_dataManager.RenderFuzz(PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy, PrimitiveType.Points);
         m_programFuzzRefraction.Unbind();
-    }
-
-    public void RenderTransparent(RenderInfo renderInfo)
-    {
-        m_program.Bind();
-        GL.ActiveTexture(BindTextures.BoundTexture);
-        SetUniforms(m_program, renderInfo);
-        m_dataManager.RenderAlpha(PrimitiveType.Points);
-        m_dataManager.RenderFuzz(PrimitiveType.Points);
-        m_program.Unbind();
     }
 
     public void ResetInterpolation(IWorld world)

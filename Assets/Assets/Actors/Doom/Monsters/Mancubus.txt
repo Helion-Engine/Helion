@@ -60,10 +60,10 @@ actor FatShot
     DeathSound "fatso/shotx"
     Height 8
     Radius 6
-    RenderStyle Add
     SeeSound "fatso/attack"
     SpawnID 153
     Speed 20
+    RenderStyle ColorAdd
     
     PROJECTILE
     +RANDOMIZE

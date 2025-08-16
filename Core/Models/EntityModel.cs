@@ -1,5 +1,6 @@
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 
 namespace Helion.Models;
 
@@ -48,6 +49,7 @@ public class EntityModel
     public bool? OnGround { get; set; }
     public double Gravity { get; set; } = 1;
     public float? Alpha { get; set; }
+    public int? RenderStyle { get; set; }
     public int? MaxTargetRange { get; set; }
     public int? MinMissileChance { get; set; }
     public int? MeleeThreshold { get; set; }

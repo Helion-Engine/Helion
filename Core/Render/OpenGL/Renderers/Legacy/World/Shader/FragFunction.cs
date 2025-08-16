@@ -144,7 +144,7 @@ public class FragFunction
                 ${BrigthmapFetch}
                 int lightLevelOffset = lightColorIndex * 256;"
                 .Replace("${BrigthmapFetch}", BrightMapLightColorIndexFetch("uvFrag.st"))
-                : 
+                :
                 "int lightLevelOffset = 0;");
 
         // Use the alpha flag to indicate we need to fetch from the colormap buffer since we don't need it for fullbright.
@@ -323,7 +323,7 @@ public class FragFunction
                 float weightClear = mix(1, 0, fuzzFrag - renderFuzz);
                 " : "const float weightClear = 1;")
                 + @"
-                accum = vec4(fragColor.rgb * fragColor.a, fragColor.a) * weight * weightClear;
+                accum = vec4(min(fragColor.rgb, vec3(colorClamp)) * fragColor.a, fragColor.a) * weight * weightClear;
                 accumCount = vec2(fragColor.a * weightClear, 1 * weightClear);";
 
         if (options == OitOptions.OitFuzzRefractionPass)

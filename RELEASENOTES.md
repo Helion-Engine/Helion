@@ -11,17 +11,19 @@
 - IWAD detection will fallback to reading lumps when MD5/filename checks fail for freedoom.
 - Show IWAD selection screen IWAD fails to load with the -iwad parameter.
 - Support BRGHTMPS from Doom Retro.
-- Use sound decoder from ZMusic to support more sound formats including Ogg and MP3: https://zdoom.org/wiki/Sound_format
-- Separate dependency on Fluidsynth removed, now using built-in version of Fluidsynth in ZMusic
-- Windows AOT builds are statically linked to all dependencies above the Windows API itself
-- Linux AOT builds are statically linked to all dependencies above libsndfile/libmpg123
-- AppImage build support for Linux AOT
-- Ambient sound support from SNDINFO
+- Use sound decoder from ZMusic to support more sound formats including Ogg and MP3: https://zdoom.org/wiki/Sound_format.
+- Separate dependency on Fluidsynth removed, now using built-in version of Fluidsynth in ZMusic.
+- Windows AOT builds are statically linked to all dependencies above the Windows API itself.
+- Linux AOT builds are statically linked to all dependencies above libsndfile/libmpg123.
+- AppImage build support for Linux AOT.
+- Ambient sound support from SNDINFO.
 - Sound more accurately matches Doom's sound curve and cutoff
 - Option to downscale the emulate vanilla sprite render buffer. Increases performance at the expense of pixel accuracy. Allows more GPUs to use emulate vanilla rendering.
 - Support textures in WAD files between TX_START and TX_END markers.
 - Add same sound limit and same sound window similar to parallel same sound limit in dsda-doom, prioritized by distance.
-- Replace ^ with / in sprites for pk3 and directories.
+- Replace ^ with \ in sprite namespace for pk3 and directories.
+- Support Add and Color add render styles from GZDoom with update assets.pk3 to use the supported render styles. Implements custom ColorAddFullbright style that will use ColorAdd when fullbright and translucent otherwise.
+- True color overlay option for palette color mode. Uses true color overlays instead of Doom's PLAYPAL palettes for damage, item pickups, berserk and radsuit.
 
 ## Bug Fixes:
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.
@@ -52,6 +54,12 @@
 - Fix UDMF parser to ignore unknown properties / sections (e.g. ee_compat = true;).
 - Fix UDMF to rotate flats before applying offsets.
 - Fix UDMF/id24 serialization and map restarts for flat offset and rotation.
+- FIx UDMF serilization for line alpha.
 - Fix null debug texture being applied to sprite brightmaps when render.nulltexture is on.
 - Fix issue with looping sounds being removed entirely when out of range that prevented them from being added when back in range.
 - Fix reading directory as file support with -file parameter.
+- Fix invulnerability and sector colormaps to match Doom I + II behavior.
+- Fix crash in sound management when adding in waiting looping sounds.
+- Fix issue with vanilla render sprite clipping where sprites exactly on lines would look like they are z-fighting.
+- Fix issue with vanilla midtextures not clipping sprites when reloading map.
+- Fix middle textures not rendering correctly when part of a transfer heights sector that is moving.
