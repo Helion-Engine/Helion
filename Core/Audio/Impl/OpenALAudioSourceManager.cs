@@ -52,7 +52,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         m_nameToBuffer.Clear();
     }
 
-    public void SetGain(double gain)
+    public void SetGain(float gain)
     {
         foreach(var source in m_sources)
         {
