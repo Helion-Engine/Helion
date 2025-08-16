@@ -1,6 +1,5 @@
 using Helion.Audio.Impl.Components;
 using Helion.Geometry.Vectors;
-using Helion.World.Entities;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Mathematics;
 using System;
@@ -10,6 +9,8 @@ namespace Helion.Audio.Impl;
 
 public class OpenALAudioSource : IAudioSource
 {
+    const float NoGain = 0.00001f;
+
     private const float DefaultReference = 200f;
     private const float MaxAudibleDistance = 1200f;
     private const ALSourcef SourceRadius = (ALSourcef)0x1031;
@@ -60,7 +61,7 @@ public class OpenALAudioSource : IAudioSource
         {
             // If sound effects gain is set to zero, we attenuate at the source to avoid muting the music.
             // Else, all volume attenuation is done at the listener.
-            AL.Source(m_sourceId, ALSourcef.Gain, 0.0f);
+            AL.Source(m_sourceId, ALSourcef.Gain, NoGain);
         }
         else
         {
@@ -93,14 +94,6 @@ public class OpenALAudioSource : IAudioSource
         OpenALDebug.End("Creating new source");
     }
 
-    public void SetGain(double gain)
-    {
-        m_gain = (float)gain;
-        OpenALDebug.Start("Setting sound gain");
-        AL.Source(m_sourceId, ALSourcef.Gain, m_gain * m_audioData.Volume);
-        OpenALDebug.End("Setting sound gain");
-    }
-
     public void SetPosition(float x, float y, float z)
     {
         OpenALDebug.Start("Setting sound position");
@@ -127,6 +120,11 @@ public class OpenALAudioSource : IAudioSource
 
     public void SetGain(float gain)
     {
+        if (Owner.AudioSystem.Gain == 0)
+            m_gain = NoGain;
+        else
+            m_gain = gain * m_audioData.Volume;
+
         OpenALDebug.Start("Setting sound gain");
         AL.Source(m_sourceId, ALSourcef.Gain, gain);
         OpenALDebug.End("Setting sound gain");
@@ -189,9 +187,8 @@ public class OpenALAudioSource : IAudioSource
             return;
         }
 
-        const float NoGain = 0.0001f;
         var dist = updateParams.DistanceFromListener * m_audioData.AttenuationFactor;
-        if (dist > MaxAudibleDistance)
+        if (dist > MaxAudibleDistance || Owner.AudioSystem.Gain == 0)
         {
             AL.Source(m_sourceId, ALSourcef.Gain, NoGain);
         }
