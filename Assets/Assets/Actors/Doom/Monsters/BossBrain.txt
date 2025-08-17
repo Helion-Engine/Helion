@@ -76,7 +76,7 @@ actor SpawnShot
     {
     Spawn:
         BOSF A 3 Bright A_SpawnSound
-        BOSF ABCD 3 Bright A_SpawnFly
+        BOSF BCD 3 Bright A_SpawnFly
         Loop
     }
 }
