@@ -184,5 +184,7 @@ public static class DefinitionFlagApplier
             definition.Flags.Shadow = flags.Shadow.Value;
         if (flags.DehExplosion != null)
             definition.Properties.RenderStyle = RenderStyle.ColorAddExplosion;
+        if (flags.Stealth != null)
+            definition.Flags.Stealth = flags.Stealth.Value;
     }
 }

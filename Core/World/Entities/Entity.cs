@@ -10,6 +10,7 @@ using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
+using Helion.Util.Timing;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
@@ -100,6 +101,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public bool MoveLinked;
     public bool Respawn;
     public bool HadOnEntity;
+    public bool StealthVisible;
     public float Alpha;
     public RenderStyle RenderStyle;
 
@@ -263,6 +265,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         if (entityModel.IsBlood.HasValue && entityModel.IsBlood.Value)
             Definition.Type = EntityType.Blood;
+
+        if (Flags.Stealth)
+            Alpha = 0;
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -485,6 +490,25 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (IsDisposed)
             return;
 
+        if (Flags.Stealth)
+        {
+            if (StealthVisible || Flags.Attacking)
+            {
+                Alpha += 2 / (float)Constants.TicksPerSecond;
+                if (Alpha >= 1)
+                {
+                    Alpha = 1;
+                    StealthVisible = false;
+                }
+            }
+            else
+            {
+                Alpha -= 1.5f / (float)Constants.TicksPerSecond;
+                if (Alpha < 0)
+                    Alpha = 0;
+            }
+        }
+
         if (Flags.CountKill && IsDeathStateFinished)
         {
             int checkCount = Properties.RespawnTicks ?? WorldStatic.RespawnTicks;
@@ -518,6 +542,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     {
         if (Health > 0)
             Health = 0;
+
+        Flags.Stealth = false;
 
         bool gib = Health < -Properties.Health;
         Height = Definition.Properties.Height / 4.0;
@@ -748,6 +774,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         {
             Health -= damage;
         }
+
+        if (Flags.Stealth)
+            StealthVisible = true;
 
         ReactionTime = 0;
 

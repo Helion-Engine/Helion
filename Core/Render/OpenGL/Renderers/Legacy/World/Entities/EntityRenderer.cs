@@ -248,6 +248,9 @@ public class EntityRenderer : IDisposable
                 renderStyle = isFullBright ? RenderStyle.ColorAdd : RenderStyle.Translucent;
             else if (entity.RenderStyle == RenderStyle.ColorAddExplosion)
                 renderStyle = entity.Flags.Missile ? RenderStyle.Normal : RenderStyle.ColorAdd;
+
+            if (renderStyle == RenderStyle.Translucent && entityAlpha >= 1)
+                renderStyle = RenderStyle.Normal;
         }
 
         if (renderStyle == RenderStyle.ColorAdd)
