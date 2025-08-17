@@ -1186,6 +1186,12 @@ public sealed class SpecialManager : ITickable, IDisposable
 
             case ZDoomLineSpecialType.ThingProjectileAim:
                 return ActionSpecials.ThingProjectileAimed(m_world, line.Args);
+
+            case ZDoomLineSpecialType.ThingIdRemove:
+                return ActionSpecials.ThingRemove(m_world, line.Args);
+
+            case ZDoomLineSpecialType.ThingDestroy:
+                return ActionSpecials.ThingDestroy(m_world, line.Args);
         }
 
         return false;

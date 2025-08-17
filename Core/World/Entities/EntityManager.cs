@@ -125,14 +125,14 @@ public class EntityManager : IDisposable
         return entity;
     }
 
-    public void Destroy(Entity entity)
+    public void Destroy(Entity entity, bool removeFromIdList = true)
     {
         if (entity.IsDisposed)
             return;
 
         EntityCount--;
 
-        if (TidToEntity.TryGetValue(entity.ThingId, out var entities))
+        if (removeFromIdList && TidToEntity.TryGetValue(entity.ThingId, out var entities))
         {
             var node = entities.Find(entity);
             if (node != null)
@@ -149,6 +149,17 @@ public class EntityManager : IDisposable
             Players.Remove(entity.PlayerObj);
 
         entity.Dispose();
+    }
+
+    public void Destroy(LinkedList<Entity> entities)
+    {
+        for (var node = entities.First; node != null; node = node.Next)
+        {
+            Destroy(node.Value, false);
+            World.DataCache.FreeLinkedListNodeEntity(node);
+        }
+
+        entities.Clear();
     }
 
     public Player RespawnPlayer(int playerIndex, Entity spawnSpot) =>

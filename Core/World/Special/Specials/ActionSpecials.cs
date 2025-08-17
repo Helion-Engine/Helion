@@ -120,6 +120,41 @@ public static class ActionSpecials
         return success;
     }
 
+    public static bool ThingDestroy(IWorld world, in SpecialArgs args)
+    {
+        var destroyEntities = world.FindByTid(args.Arg0);
+        var gib = args.Arg1 != 0;
+        var tag = args.Arg2;
+        var success = false;
+
+        foreach (var entity in destroyEntities)
+        {
+            if (tag != 0 && entity.Sector.Tag != tag)
+                continue;
+
+            if (gib)
+                entity.ForceGib();
+            else
+                entity.Kill(null);
+
+            success = true;
+        }
+
+        return success;
+    }
+
+    public static bool ThingRemove(IWorld world, in SpecialArgs args)
+    {
+        var removeEntities = world.FindByTid(args.Arg0);
+        if (removeEntities.First != null)
+        {
+            world.EntityManager.Destroy(removeEntities);
+            return true;
+        }
+
+        return false;
+    }
+
     private static Entity? GetFirstTargetOrPlayer(IWorld world, int tid)
     {
         if (tid == 0)
