@@ -118,6 +118,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public readonly DynamicArray<LinkableNode<Entity>> SectorNodes = new();
     public readonly DynamicArray<int> IntersectMidTexLines = new(); 
     public bool IsDisposed;
+    public bool WaitSoundDispose;
 
     public ClosetFlags ClosetFlags;
 
@@ -1006,6 +1007,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (IsDisposed)
             return;
 
+        // The sound has a reference back to this entity to update base on position it can't be reused until the sound is complete.
+        WaitSoundDispose = AudioSource != null;
+
         Id = int.MinValue;
         IsDisposed = true;
         UnlinkFromWorld();
@@ -1032,8 +1036,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         m_overEntity = null;
         m_overEntityId = 0;
 
-        if (Index > 0 && World.DataCache.FreeEntity(this))
-            Definition = null!;
+        if (!WaitSoundDispose)
+            FreeToDataCache();
 
         Velocity = Vec3D.Zero;
 
@@ -1057,6 +1061,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         ChaseFailureSkipCount = 0;
         ClosetChaseSpeed = DefaultClosetChaseSpeed;
         Special = ZDoomLineSpecialType.None;
+    }
+
+    private void FreeToDataCache()
+    {
+        if (Index > 0 && World.DataCache.FreeEntity(this))
+            Definition = null!;
     }
 
     private void Unlink()
@@ -1127,6 +1137,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     {
         AudioSource = null;
         clearedSound = null;
+
+        if (IsDisposed && WaitSoundDispose)
+        {
+            WaitSoundDispose = false;
+            FreeToDataCache();
+        }
+
         return false;
     }
 
