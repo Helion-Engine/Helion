@@ -3,7 +3,6 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.RandomGenerators;
-using Helion.World;
 using Helion.World.Sound;
 using System;
 using System.Collections.Generic;
