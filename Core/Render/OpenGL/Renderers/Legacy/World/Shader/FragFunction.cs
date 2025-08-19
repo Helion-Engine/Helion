@@ -288,9 +288,11 @@ public class FragFunction
                     
                     vec4 accumulation = texelFetch(accum, refractCoords, 0);
                     
-                    float weight = clamp(10 / (1e-5 + pow(dist/1000, 2)) + pow(dist/8192, 6), 100.0, 1000.0);
-                    
-                    accumulation += vec4(fuzzColor.rgb * fuzzAlpha, fuzzAlpha) * weight;
+                    // down-weighted from normal OIT so black pixels don't oversaturate the mix
+                    float weight = clamp(10 / (1e-5 + pow(dist/500, 2)) + pow(dist/4096, 6), 100.0, 1000.0);
+                    vec4 weightColor = vec4(fuzzColor.rgb * fuzzAlpha, fuzzAlpha) * weight;                
+
+                    accumulation += weightColor;
                     alphaComponent += fuzzAlpha;
                     countComponent += 1;
                     
