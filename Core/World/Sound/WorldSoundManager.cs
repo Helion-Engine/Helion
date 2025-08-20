@@ -237,10 +237,12 @@ public class WorldSoundManager : SoundManager, ITickable
             nextNode = node.Next;
             if (node.IsFinished())
             {
+                node.AudioData.SoundSource.TryClearSound(node.AudioData.SoundInfo.Name, SoundChannel.Default, out _);
                 PlayingSounds.RemoveAndFree(node, m_world.DataCache);
                 node = nextNode;
                 continue;
             }
+
             var distanceSquared = node.AudioData.SoundSource.GetDistanceSquaredFrom(listener.Entity);
             if (!CheckDistance(distanceSquared, node.AudioData.Attenuation))
             {

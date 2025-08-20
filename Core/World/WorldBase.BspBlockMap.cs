@@ -3,7 +3,6 @@ using Helion.Geometry.Vectors;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Subsectors;
-using System.Runtime.CompilerServices;
 
 namespace Helion.World;
 
@@ -17,6 +16,7 @@ public partial class WorldBase
 
     private unsafe void CreateBspBlockMap(BlockMap blockmap)
     {
+        var bspTree = BspTree;
         m_bspBlockmapDimensions = BlockMap.CalculateBlockMapDimensions(blockmap.Bounds, BspBlockDimension);
         m_bspBlockmapNodeIndices = new uint[m_bspBlockmapDimensions.Width * m_bspBlockmapDimensions.Height];
         var origin = m_bspBlockmapDimensions.Bounds.Min;
@@ -24,29 +24,36 @@ public partial class WorldBase
         {
             for (int x = 0; x < m_bspBlockmapDimensions.Width; x++)
             {
-                Vec2D min = new(x * BspBlockDimension + origin.X, y * BspBlockDimension + origin.Y);
-                Vec2D max = new(min.X + BspBlockDimension, min.Y + BspBlockDimension);
+                var minX = x * BspBlockDimension + origin.X;
+                var minY = y * BspBlockDimension + origin.Y;
+                var maxX = minX + BspBlockDimension;
+                var maxY = minY + BspBlockDimension;
 
-                uint bspNodeIndex = (uint)BspTree.Nodes.Length - 1;
-                uint blockNodeIndex = bspNodeIndex;
+                var bspNodeIndex = (uint)bspTree.Nodes.Length - 1;
+                var blockNodeIndex = bspNodeIndex;
 
                 while (true)
                 {
-                    ref var node = ref BspTree.Nodes[bspNodeIndex];
-                    bool onRightMin = CompactBspTree.OnRightNode(min.X, min.Y, node);
-                    bool onRightMax = CompactBspTree.OnRightNode(max.X, max.Y, node);
+                    ref var node = ref bspTree.Nodes[bspNodeIndex];
+                    var onRightBottomLeft = CompactBspTree.OnRightNode(minX, minY, node);
+                    var onRightTopRight = CompactBspTree.OnRightNode(maxX, maxY, node);
 
-                    if (onRightMin != onRightMax)
+                    if (onRightBottomLeft != onRightTopRight)
+                        break;
+
+                    var onRightTopLeft = CompactBspTree.OnRightNode(minX, maxY, node);
+                    var onRightBottomRight = CompactBspTree.OnRightNode(maxX, minY, node);
+                    if (onRightBottomLeft != onRightTopLeft || onRightBottomLeft != onRightBottomRight)
                         break;
 
                     blockNodeIndex = bspNodeIndex;
 
-                    int next = *(byte*)&onRightMin;
+                    int next = *(byte*)&onRightBottomLeft;
                     bspNodeIndex = node.Children[next];
 
                     if ((bspNodeIndex & BspNodeCompact.IsSubsectorBit) != 0)
                     {
-                        bool containsSubsector = SubsectorContainsBox(min, max, bspNodeIndex);
+                        bool containsSubsector = SubsectorContainsBox(bspTree, minX, minY, maxX, maxY, bspNodeIndex);
                         if (containsSubsector)
                             blockNodeIndex = bspNodeIndex;
                         break;
@@ -61,18 +68,21 @@ public partial class WorldBase
         LastBspBlockmapNodeIndices = m_bspBlockmapNodeIndices;
     }
 
-    private unsafe bool SubsectorContainsBox(in Vec2D min, in Vec2D max, uint bspNodeIndex)
+    private unsafe bool SubsectorContainsBox(CompactBspTree bspTree, double minX, double minY, double maxX, double maxY, uint bspNodeIndex)
     {
-        var subsector = BspTree.Subsectors[bspNodeIndex & BspNodeCompact.SubsectorMask];
-        bool containsSubsector = true;
-
-        if (!subsector.BoundingBox.ContainsInclusive(min) || !subsector.BoundingBox.ContainsInclusive(min))
+        var subsector = bspTree.Subsectors[bspNodeIndex & BspNodeCompact.SubsectorMask];
+        var isContained = minX >= subsector.BoundingBox.Min.X &&
+            minY >= subsector.BoundingBox.Min.Y &&
+            maxX <= subsector.BoundingBox.Max.X &&
+            maxY <= subsector.BoundingBox.Max.Y;
+        if (!isContained)
             return false;
 
+        var containsSubsector = true;
         for (int i = subsector.SegIndex; i < subsector.SegIndex + subsector.SegCount; i++)
         {
             ref var seg = ref BspTree.Segments.Data[i];
-            if (seg.Start.X >= min.X && seg.Start.Y >= min.Y && seg.End.X <= max.X && seg.End.Y <= max.Y)
+            if (seg.Start.X >= minX && seg.Start.Y >= minY && seg.End.X <= maxX && seg.End.Y <= maxY)
                 continue;
 
             containsSubsector = false;
