@@ -3006,7 +3006,7 @@ public abstract partial class WorldBase : IWorld
                 break;
             case CheatType.KillAllMonsters:
                 ClearConsole?.Invoke(this, EventArgs.Empty);
-                DisplayMessage(player, null, $"{KillAllMonsters()} {ArchiveCollection.Language.GetMessage(cheat.CheatOn)}");
+                DisplayMessage(player, null, $"{KillAllMonsters(0)} {ArchiveCollection.Language.GetMessage(cheat.CheatOn)}");
                 break;
             case CheatType.God:
                 if (!player.IsDead)
@@ -3042,11 +3042,14 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    private int KillAllMonsters()
+    public int KillAllMonsters(int sectorTag)
     {
         int killCount = 0;
         for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
+            if (sectorTag != 0 && entity.Sector.Tag != sectorTag)
+                continue;
+
             if (!entity.IsDead && (entity.Flags.CountKill || entity.Flags.IsMonster))
             {
                 entity.ForceGib();

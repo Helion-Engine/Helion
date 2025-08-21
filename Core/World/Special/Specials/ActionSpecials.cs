@@ -87,7 +87,7 @@ public static class ActionSpecials
         return success;
     }
 
-    public static bool ThingProjectileAimed(IWorld world, in SpecialArgs args)
+    public static bool ThingProjectileAimed(Entity activator, IWorld world, in SpecialArgs args)
     {
         if (!ThingSpawnTypes.Lookup.TryGetValue(args.Arg1, out var definitionName))
             return false;
@@ -99,7 +99,7 @@ public static class ActionSpecials
 
         var success = false;
         var spots = world.FindByTid(args.Arg0);
-        var target = GetFirstTargetOrPlayer(world, args.Arg3);
+        var target = GetActivator(activator, world, args.Arg3);
         if (target == null)
             return false;
 
@@ -122,9 +122,15 @@ public static class ActionSpecials
 
     public static bool ThingDestroy(IWorld world, in SpecialArgs args)
     {
-        var destroyEntities = world.FindByTid(args.Arg0);
         var gib = args.Arg1 != 0;
         var tag = args.Arg2;
+        if (args.Arg0 == 0)
+        {
+            world.KillAllMonsters(tag);
+            return true;
+        }
+
+        var destroyEntities = world.FindByTid(args.Arg0);
         var success = false;
 
         foreach (var entity in destroyEntities)
@@ -155,10 +161,10 @@ public static class ActionSpecials
         return false;
     }
 
-    private static Entity? GetFirstTargetOrPlayer(IWorld world, int tid)
+    private static Entity? GetActivator(Entity activator, IWorld world, int tid)
     {
         if (tid == 0)
-            return world.Player;
+            return activator;
 
         return world.FindByTid(tid).First?.Value;
     }

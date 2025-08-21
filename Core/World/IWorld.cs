@@ -190,6 +190,7 @@ public interface IWorld : IDisposable
     bool ShouldSpawn(IThing thing);
     bool ShouldItemStay(Entity entity);
     Player? RespawnPlayer(Player player);
+    int KillAllMonsters(int sectorTag);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();
