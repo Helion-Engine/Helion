@@ -18,13 +18,12 @@ on:
 
 jobs:
   buildReleaseLinux:
-
     runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v4
     - name: Install Linux prereqs
-      run: sudo apt -y install clang zlib1g libsndfile1-dev libmpg123-dev libglib2.0-dev libasound2-dev
+      run: sudo apt -y install clang zlib1g libsndfile1-dev libmpg123-dev libglib2.0-dev libasound2-dev patchelf
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -46,10 +45,13 @@ jobs:
       run: zip -r ../../Helion-${{ github.ref_name }}-linux-x64_AOT.zip *
       working-directory: Publish/linux-x64_AOT
       
+    - name: Make Linux AppImage
+      run: Scripts/buildAndPackageAppImage.sh
+      
     - name: Make Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "*.zip"
+        artifacts: "*.zip,Helion.AppImage"
         bodyFile: "RELEASENOTES.md"
   
   buildReleaseWindows:
