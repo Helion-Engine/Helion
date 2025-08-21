@@ -18,7 +18,6 @@ on:
 
 jobs:
   buildReleaseLinux:
-
     runs-on: ubuntu-22.04
 
     steps:
@@ -52,7 +51,7 @@ jobs:
     - name: Make Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "*.zip,*.AppImage"
+        artifacts: "*.zip,Helion.AppImage"
         bodyFile: "RELEASENOTES.md"
   
   buildReleaseWindows:
