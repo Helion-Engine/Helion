@@ -268,7 +268,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             Definition.Type = EntityType.Blood;
 
         if (Flags.Stealth)
-            Alpha = 0;
+            StealthVisible = IsDead;
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -502,7 +502,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
                     StealthVisible = false;
                 }
             }
-            else
+            else if (!IsDead)
             {
                 Alpha -= 1.5f / (float)Constants.TicksPerSecond;
                 if (Alpha < 0)
@@ -544,12 +544,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (Health > 0)
             Health = 0;
 
-        Flags.Stealth = false;
-
         bool gib = Health < -Properties.Health;
         Height = Definition.Properties.Height / 4.0;
         ClosetFlags = ClosetFlags.None;
         Flags.Attacking = false;
+        StealthVisible = true;
 
         if (gib && Definition.XDeathState != null)
             SetXDeathState(source);
