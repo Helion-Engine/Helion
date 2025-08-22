@@ -66,3 +66,4 @@
 - Fix middle textures not rendering correctly when part of a transfer heights sector that is moving.
 - Fix issue where incorrect subsector could be returned when player/object moves.
 - Update spectre fuzz mixing to not oversature with order independent rendering.
+- Fix A_PosAttack, A_SPosAttack, and A_CPosAttack to use hardcoded sounds for dehacked.
