@@ -62,6 +62,7 @@
 - Fix crash in sound management when adding in waiting looping sounds.
 - Fix issue with vanilla render sprite clipping where sprites exactly on lines would look like they are z-fighting.
 - Fix issue with vanilla midtextures not clipping sprites when reloading map.
+- Fix issue with vanilla render sprite clipping and spawn ceiling objects not being clipped to the backside of lower walls.
 - Fix middle textures not rendering correctly when part of a transfer heights sector that is moving.
 - Fix issue where incorrect subsector could be returned when player/object moves.
 - Update spectre fuzz mixing to not oversature with order independent rendering.
