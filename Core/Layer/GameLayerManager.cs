@@ -640,7 +640,7 @@ public class GameLayerManager : IGameLayerManager
         if (!CanSave)
             return;
 
-        if (WorldLayer?.World.Player.Health <= 0)
+        if (WorldLayer?.World.Player.IsDead == true)
         {
             HelionLog.Info("Can't quicksave while dead!");
             return;
