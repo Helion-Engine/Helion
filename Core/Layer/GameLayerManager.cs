@@ -642,7 +642,8 @@ public class GameLayerManager : IGameLayerManager
 
         if (WorldLayer?.World.Player.IsDead == true)
         {
-            HelionLog.Info("Can't quicksave while dead!");
+            string[] text = m_archiveCollection.Definitions.Language.GetMessages("$SAVEDEAD");
+            HelionLog.Info(text[0]);
             return;
         }
 
