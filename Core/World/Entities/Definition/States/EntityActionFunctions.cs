@@ -691,7 +691,7 @@ public static class EntityActionFunctions
         if (target == null)
             return;
 
-        entity.PlayAttackSound();
+        WorldStatic.SoundManager.CreateSoundOn(entity, "chainguy/attack", new(entity));
         A_FaceTarget(entity);
 
         WorldStatic.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
@@ -1773,7 +1773,7 @@ public static class EntityActionFunctions
         if (entity.Target() == null)
             return;
 
-        entity.PlayAttackSound();
+        WorldStatic.SoundManager.CreateSoundOn(entity, "grunt/attack", new(entity));
         A_FaceTarget(entity);
 
         // could remove GetAutoAimEntity if FireHitscanBullets took optional auto aim angle
@@ -2015,7 +2015,7 @@ public static class EntityActionFunctions
         if (entity.Target() == null)
             return;
 
-        WorldStatic.SoundManager.CreateSoundOn(entity, "shotguy/attack", new SoundParams(entity));
+        WorldStatic.SoundManager.CreateSoundOn(entity, "shotguy/attack", new(entity));
         A_FaceTarget(entity);
 
         // could remove GetAutoAimEntity if FireHitscanBullets took optional auto aim angle

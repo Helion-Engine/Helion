@@ -178,7 +178,7 @@ public partial class Renderer
                 for (int i = 0; i < world.StructLines.Length; i++)
                 {
                     ref var line = ref world.StructLines.Data[i];
-                    SetLineHeightBuffer(buffer, i, ref line, true);
+                    SetLineHeightBuffer(buffer, i, ref line);
                 }
             });
         }
@@ -190,7 +190,7 @@ public partial class Renderer
             for (int i = 0; i < world.StructLines.Length; i++)
             {
                 ref var line = ref world.StructLines.Data[i];
-                SetLineHeightBuffer(buffer, i, ref line, false);
+                SetLineHeightBuffer(buffer, i, ref line);
             }
             m_lineHeightsBuffer.Unbind();
         }
@@ -294,7 +294,7 @@ public partial class Renderer
         });
     }
 
-    private static unsafe void SetLineHeightBuffer(float* buffer, int lineId, ref StructLine line, bool init)
+    private static unsafe void SetLineHeightBuffer(float* buffer, int lineId, ref StructLine line)
     {
         var prevFloorZ = (float)line.FrontFloorPlane.PrevZ;
         var floorZ = (float)line.FrontFloorPlane.Z;
@@ -315,15 +315,21 @@ public partial class Renderer
             return;
         }
 
-        if (init)
+        int blockSide = 0;
+        if (line.Line.Front.Middle.TextureHandle != NoTextureIndex)
+            blockSide |= (int)BlockSide.Front;
+        if (line.Line.Back != null && line.Line.Back.Middle.TextureHandle != NoTextureIndex)
+            blockSide |= (int)BlockSide.Back;
+
+        if (line.BackFloorPlane != null)
         {
-            int blockSide = 0;
-            if (line.Line.Front.Middle.TextureHandle != NoTextureIndex)
+            if (line.BackFloorPlane.Z < line.FrontFloorPlane.Z)
                 blockSide |= (int)BlockSide.Front;
-            if (line.Line.Back != null && line.Line.Back.Middle.TextureHandle != NoTextureIndex)
+            else if (line.FrontFloorPlane.Z < line.BackFloorPlane.Z)
                 blockSide |= (int)BlockSide.Back;
-            buffer[index + 2] = blockSide;
         }
+
+        buffer[index + 2] = blockSide;
     }
 
     private void World_SectorLightChanged(object? sender, Sector sector)
@@ -415,7 +421,7 @@ public partial class Renderer
 
                 ref var line = ref lineArray[lineId];
                 WorldStatic.CheckedLines[lineId] = checkCounter;
-                SetLineHeightBuffer(buffer, lineId, ref line, false);
+                SetLineHeightBuffer(buffer, lineId, ref line);
             }
         }
 
