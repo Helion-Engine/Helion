@@ -119,7 +119,7 @@ public interface IWorld : IDisposable
     void Pause(PauseOptions options = PauseOptions.None);
     void Resume();
     IList<Sector> FindBySectorTag(int tag);
-    IEnumerable<Entity> FindByTid(int tid);
+    LinkedList<Entity> FindByTid(int tid);
     IEnumerable<Line> FindByLineId(int lineId);
     void SetLineId(Line line, int lineId);
     void ExitLevel(LevelChangeType type, LevelChangeFlags flags = LevelChangeFlags.None);
@@ -154,6 +154,7 @@ public interface IWorld : IDisposable
     bool IsPositionBlocked(Entity entity);
     void CreateTeleportFog(in Vec3D pos);
     void CreateTeleportFog(Entity entity);
+    Entity? SpawnEntity(EntityDefinition definition, in Vec3D pos, int tid, double angle, in SpecialArgs args, bool teleportFog);
     void ActivateCheat(Player player, ICheat cheat);
     bool IsSectorIdValid(int sectorId) => sectorId >= 0 && sectorId < Sectors.Count;
     bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
@@ -189,6 +190,8 @@ public interface IWorld : IDisposable
     bool ShouldSpawn(IThing thing);
     bool ShouldItemStay(Entity entity);
     Player? RespawnPlayer(Player player);
+    int KillAllMonsters(int sectorTag);
+    Entity? Summon(Entity source, EntityDefinition definition, SummonOptions options);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

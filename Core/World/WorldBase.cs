@@ -63,6 +63,7 @@ using Helion.Resources.Definitions.Compatibility;
 using Helion.Maps.Components;
 using System.Runtime.CompilerServices;
 using Helion.Resources.Definitions.SoundInfo;
+using NAudio.SoundFont;
 
 namespace Helion.World;
 
@@ -1253,7 +1254,7 @@ public abstract partial class WorldBase : IWorld
     public IList<Sector> FindBySectorTag(int tag) =>
         Geometry.FindBySectorTag(tag);
 
-    public IEnumerable<Entity> FindByTid(int tid) =>
+    public LinkedList<Entity> FindByTid(int tid) =>
         EntityManager.FindByTid(tid);
 
     public IEnumerable<Line> FindByLineId(int lineId) =>
@@ -2943,7 +2944,20 @@ public abstract partial class WorldBase : IWorld
         var teleportFogPos = entity.Position;
         teleportFogPos.X += fogDist.X;
         teleportFogPos.Y += fogDist.Y;
+
         CreateTeleportFog(teleportFogPos);
+    }
+
+    public Entity? SpawnEntity(EntityDefinition definition, in Vec3D pos, int tid, double angle, in SpecialArgs args, bool teleportFog)
+    {
+        if (!BlockmapTraverser.SolidBlockTraverse(definition, pos, !WorldStatic.InfinitelyTallThings))
+            return null;
+
+        var entity = EntityManager.Create(definition, pos, 0, angle, tid, args);
+        if (teleportFog && entity != null)
+            CreateTeleportFog(entity.Position);
+
+        return entity;
     }
 
     public void ActivateCheat(Player player, ICheat cheat)
@@ -2993,7 +3007,7 @@ public abstract partial class WorldBase : IWorld
                 break;
             case CheatType.KillAllMonsters:
                 ClearConsole?.Invoke(this, EventArgs.Empty);
-                DisplayMessage(player, null, $"{KillAllMonsters()} {ArchiveCollection.Language.GetMessage(cheat.CheatOn)}");
+                DisplayMessage(player, null, $"{KillAllMonsters(0)} {ArchiveCollection.Language.GetMessage(cheat.CheatOn)}");
                 break;
             case CheatType.God:
                 if (!player.IsDead)
@@ -3029,11 +3043,14 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    private int KillAllMonsters()
+    public int KillAllMonsters(int sectorTag)
     {
         int killCount = 0;
         for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
+            if (sectorTag != 0 && entity.Sector.Tag != sectorTag)
+                continue;
+
             if (!entity.IsDead && (entity.Flags.CountKill || entity.Flags.IsMonster))
             {
                 entity.ForceGib();
@@ -3585,5 +3602,46 @@ public abstract partial class WorldBase : IWorld
 
         CreateTeleportFog(player);
         return player;
+    }
+
+    public Entity? Summon(Entity source, EntityDefinition definition, SummonOptions options)
+    {
+        if (definition.Flags.Missile && options != SummonOptions.Static)
+        {
+            var pitch = 0.0;
+            if (source.PlayerObj != null)
+                pitch = source.PlayerObj.PitchRadians;
+
+            return FireProjectile(Player, source.AngleRadians, pitch, Constants.EntityShootDistance,
+                Config.Game.AutoAim, definition, out _);
+        }
+
+        var unit = Vec2D.UnitCircle(source.AngleRadians);
+        var pos2D = source.Position.XY + unit * (source.Radius + definition.Properties.Radius + 40);
+        var pos = pos2D.To3D(ToSubsector(pos2D.X, pos2D.Y).Sector.Floor.Z);
+
+        if (definition.Flags.Solid && !BlockmapTraverser.SolidBlockTraverse(definition, pos, !WorldStatic.InfinitelyTallThings))
+            return null;
+
+        var entity = EntityManager.Create(definition.Name, pos);
+        if (entity != null)
+        {
+            entity.AngleRadians = source.AngleRadians;
+            switch (options)
+            {
+                case SummonOptions.Friend:
+                    entity.Flags.Friendly = true;
+                    break;
+                case SummonOptions.Foe:
+                    entity.Flags.Friendly = false;
+                    break;
+                case SummonOptions.Static:
+                    entity.Position.Z = source.ProjectileAttackPos.Z;
+                    entity.PrevPosition.Z = source.ProjectileAttackPos.Z;
+                    break;
+            }
+        }
+
+        return entity;
     }
 }

@@ -13,8 +13,6 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Sides;
-using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Sound;
 using Helion.World.Special;

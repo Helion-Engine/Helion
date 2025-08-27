@@ -5,6 +5,8 @@ using Helion.Util;
 using Helion.Util.Container;
 using Helion.World.Blockmap;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition;
+using Helion.World.Geometry.Sectors;
 using System;
 
 namespace Helion.World.Physics.Blockmap;
@@ -15,9 +17,11 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
 
     private IWorld m_world = world;
     private DataCache m_dataCache = world.DataCache;
+    private readonly Entity m_traverseEntity = new();
 
     public void UpdateTo(IWorld world, BlockMap blockmap)
     {
+        m_traverseEntity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world, default);
         m_world = world;
         m_dataCache = world.DataCache;
         Blockmap = blockmap;
@@ -292,6 +296,15 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                 }
             }
         }
+    }
+
+
+    public bool SolidBlockTraverse(EntityDefinition definition, Vec3D position, bool checkZ)
+    {
+        m_traverseEntity.Definition = definition;
+        m_traverseEntity.Radius = definition.Properties.Radius;
+        m_traverseEntity.Height = definition.Properties.Height;
+        return SolidBlockTraverse(m_traverseEntity, position, checkZ);
     }
 
     public bool SolidBlockTraverse(Entity sourceEntity, Vec3D position, bool checkZ)

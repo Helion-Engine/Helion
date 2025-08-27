@@ -24,6 +24,9 @@
 - Replace ^ with \ in sprite namespace for pk3 and directories.
 - Support Add and Color add render styles from GZDoom with update assets.pk3 to use the supported render styles. Implements custom ColorAddFullbright style that will use ColorAdd when fullbright and translucent otherwise.
 - True color overlay option for palette color mode. Uses true color overlays instead of Doom's PLAYPAL palettes for damage, item pickups, berserk and radsuit.
+-  Add Thing_Spawn, Thing_SpawnFacing, Thing_Projectile, Thing_ProjectileAimed, Thing_Destroy, Thing_Remove.
+- Add stealth monsters from ZDoom.
+- Add summon, summonmbf, sommonfriendly, summonfoe, and summonstatic console commands.
 
 ## Bug Fixes:
 - Fix spawn ceiling sprite offsets for vanilla sprite rendering.

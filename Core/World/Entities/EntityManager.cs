@@ -4,7 +4,6 @@ using Helion.Maps.Components;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Models;
-using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -47,7 +46,7 @@ public class EntityManager : IDisposable
     public List<Player> VoodooDolls = [];
     public List<Entity> MusicChangers = [];
     private readonly LookupArray<Player?> RealPlayersByNumber = new();
-    private readonly Dictionary<int, ISet<Entity>> TidToEntity = [];
+    private readonly Dictionary<int, LinkedList<Entity>> TidToEntity = [];
     private readonly Dictionary<int, Vec3D> m_spawnPoints = [];
 
     public EntityManager(IWorld world)
@@ -62,9 +61,11 @@ public class EntityManager : IDisposable
         return z != double.MinValue && z != 0.0;
     }
 
-    public IEnumerable<Entity> FindByTid(int tid)
+    private static readonly LinkedList<Entity> EmptyLinkedList = new();
+
+    public LinkedList<Entity> FindByTid(int tid)
     {
-        return TidToEntity.TryGetValue(tid, out ISet<Entity>? entities) ? entities : [];
+        return TidToEntity.TryGetValue(tid, out var entities) ? entities : EmptyLinkedList;
     }
 
     public Entity? FindById(int id)
@@ -124,15 +125,22 @@ public class EntityManager : IDisposable
         return entity;
     }
 
-    public void Destroy(Entity entity)
+    public void Destroy(Entity entity, bool removeFromIdList = true)
     {
         if (entity.IsDisposed)
             return;
 
         EntityCount--;
 
-        if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity>? entities))
-            entities.Remove(entity);
+        if (removeFromIdList && TidToEntity.TryGetValue(entity.ThingId, out var entities))
+        {
+            var node = entities.Find(entity);
+            if (node != null)
+            {
+                World.DataCache.FreeLinkedListNodeEntity(node);
+                entities.Remove(node);
+            }
+        }
 
         if (entity.Flags.IsTeleportSpot)
             TeleportSpots.Remove(entity);
@@ -141,6 +149,17 @@ public class EntityManager : IDisposable
             Players.Remove(entity.PlayerObj);
 
         entity.Dispose();
+    }
+
+    public void Destroy(LinkedList<Entity> entities)
+    {
+        for (var node = entities.First; node != null; node = node.Next)
+        {
+            Destroy(node.Value, false);
+            World.DataCache.FreeLinkedListNodeEntity(node);
+        }
+
+        entities.Clear();
     }
 
     public Player RespawnPlayer(int playerIndex, Entity spawnSpot) =>
@@ -232,7 +251,7 @@ public class EntityManager : IDisposable
 
             if (definition == null)
             {
-                Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.XY);
+                 Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.XY);
                 continue;
             }
 
@@ -574,10 +593,16 @@ public class EntityManager : IDisposable
 
         if (entity.ThingId != NoTid)
         {
-            if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity>? entities))
-                entities.Add(entity);
+            if (TidToEntity.TryGetValue(entity.ThingId, out var entities))
+            {
+                entities.AddLast(entity);
+            }
             else
-                TidToEntity.Add(entity.ThingId, new HashSet<Entity> { entity });
+            {
+                var list = new LinkedList<Entity>();
+                list.AddLast(World.DataCache.GetLinkedListNodeEntity(entity));
+                TidToEntity.Add(entity.ThingId, list);
+            }
         }
 
         if (entity.Flags.IsTeleportSpot)

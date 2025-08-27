@@ -50,18 +50,18 @@ public class DataCache
     private readonly DynamicArray<DynamicArray<RenderableSentence>> m_sentences = new();
     private readonly DynamicArray<RenderableString> m_strings = new();
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
-    private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new();
-    private readonly DynamicArray<LinkedListNode<IAudioSource>> m_audioNodes = new();
+    private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new(DefaultLength);
     private readonly DynamicArray<LinkedListNode<WaitingSound>> m_waitingSoundNodes = new();
     private readonly DynamicArray<LinkedListNode<ISpecial>> m_specialNodes = new();
-    private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new();
+    private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new(256);
     private readonly DynamicArray<LightChangeSpecial> m_lightChanges = new();
     private readonly DynamicArray<SectorMoveSpecial> m_sectorMoveSpecials = new();
     private readonly DynamicArray<SwitchChangeSpecial> m_switchSpecials = new();
     private readonly DynamicArray<StairSpecial> m_stairSpecials = new();
-    private readonly DynamicArray<ConsoleMessage> m_consoleMessages = new();
+    private readonly DynamicArray<ConsoleMessage> m_consoleMessages = new(256);
     private readonly DynamicArray<DynamicVertex[]> m_wallVertices = new(DefaultLength);
     private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new(DefaultLength);
+    private readonly DynamicArray<LinkedListNode<Entity>> m_entityLinkedListNodes = new(32);
 
     private readonly DynamicArray<EntityModel> m_entityModels = new(DefaultLength);
     private readonly DynamicArray<PlayerModel> m_playerModels = new(32);
@@ -78,7 +78,7 @@ public class DataCache
             m_consoleMessageNodes.Add(new LinkedListNode<ConsoleMessage>(null!));
         }
 
-        for (int i = 0; i < 1024; i++)
+        for (int i = 0; i < DefaultLength; i++)
             m_clipSpans.Add(new LinkedListNode<ClipSpan>(default));
 
         // Index zero is reserved for null
@@ -405,6 +405,24 @@ public class DataCache
     {
         audio.Value = default;
         m_waitingSoundNodes.Add(audio);
+    }
+
+    public LinkedListNode<Entity> GetLinkedListNodeEntity(Entity entity)
+    {
+        if (m_entityLinkedListNodes.Length > 0)
+        {
+            var node = m_entityLinkedListNodes.RemoveLast();
+            node.Value = entity;
+            return node;
+        }
+
+        return new LinkedListNode<Entity>(entity);
+    }
+
+    public void FreeLinkedListNodeEntity(LinkedListNode<Entity> entity)
+    {
+        entity.Value = null!;
+        m_entityLinkedListNodes.Add(entity);
     }
 
     public LightChangeSpecial GetLightChangeSpecial(IWorld world, Sector sector, short lightLevel, int fadeTics)

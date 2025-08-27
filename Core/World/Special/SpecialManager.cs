@@ -1168,6 +1168,30 @@ public sealed class SpecialManager : ITickable, IDisposable
             case ZDoomLineSpecialType.ChangeMusic:
                 ChangeMusic(args);
                 return true;
+
+            case ZDoomLineSpecialType.ThingSpawn:
+                return ActionSpecials.ThingSpawn(m_world, line.Args, teleportFog: true);
+
+            case ZDoomLineSpecialType.ThingSpawnNoFog:
+                return ActionSpecials.ThingSpawn(m_world, line.Args, teleportFog: false);
+
+            case ZDoomLineSpecialType.ThingSpawnFacing:
+                return ActionSpecials.ThingSpawnFacing(m_world, line.Args);
+
+            case ZDoomLineSpecialType.ThingProjectile:
+                return ActionSpecials.ThingProjectile(m_world, line.Args, gravity: false);
+
+            case ZDoomLineSpecialType.ThingProjectileGravity:
+                return ActionSpecials.ThingProjectile(m_world, line.Args, gravity: true);
+
+            case ZDoomLineSpecialType.ThingProjectileAim:
+                return ActionSpecials.ThingProjectileAimed(args.Entity, m_world, line.Args);
+
+            case ZDoomLineSpecialType.ThingIdRemove:
+                return ActionSpecials.ThingRemove(m_world, line.Args);
+
+            case ZDoomLineSpecialType.ThingDestroy:
+                return ActionSpecials.ThingDestroy(m_world, line.Args);
         }
 
         return false;
