@@ -191,6 +191,7 @@ public interface IWorld : IDisposable
     bool ShouldItemStay(Entity entity);
     Player? RespawnPlayer(Player player);
     int KillAllMonsters(int sectorTag);
+    Entity? Summon(Entity source, EntityDefinition definition, SummonOptions options);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

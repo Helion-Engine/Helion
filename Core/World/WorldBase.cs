@@ -63,6 +63,7 @@ using Helion.Resources.Definitions.Compatibility;
 using Helion.Maps.Components;
 using System.Runtime.CompilerServices;
 using Helion.Resources.Definitions.SoundInfo;
+using NAudio.SoundFont;
 
 namespace Helion.World;
 
@@ -3601,5 +3602,46 @@ public abstract partial class WorldBase : IWorld
 
         CreateTeleportFog(player);
         return player;
+    }
+
+    public Entity? Summon(Entity source, EntityDefinition definition, SummonOptions options)
+    {
+        if (definition.Flags.Missile && options != SummonOptions.Static)
+        {
+            var pitch = 0.0;
+            if (source.PlayerObj != null)
+                pitch = source.PlayerObj.PitchRadians;
+
+            return FireProjectile(Player, source.AngleRadians, pitch, Constants.EntityShootDistance,
+                Config.Game.AutoAim, definition, out _);
+        }
+
+        var unit = Vec2D.UnitCircle(source.AngleRadians);
+        var pos2D = source.Position.XY + unit * (source.Radius + definition.Properties.Radius + 40);
+        var pos = pos2D.To3D(ToSubsector(pos2D.X, pos2D.Y).Sector.Floor.Z);
+
+        if (definition.Flags.Solid && !BlockmapTraverser.SolidBlockTraverse(definition, pos, !WorldStatic.InfinitelyTallThings))
+            return null;
+
+        var entity = EntityManager.Create(definition.Name, pos);
+        if (entity != null)
+        {
+            entity.AngleRadians = source.AngleRadians;
+            switch (options)
+            {
+                case SummonOptions.Friend:
+                    entity.Flags.Friendly = true;
+                    break;
+                case SummonOptions.Foe:
+                    entity.Flags.Friendly = false;
+                    break;
+                case SummonOptions.Static:
+                    entity.Position.Z = source.ProjectileAttackPos.Z;
+                    entity.PrevPosition.Z = source.ProjectileAttackPos.Z;
+                    break;
+            }
+        }
+
+        return entity;
     }
 }

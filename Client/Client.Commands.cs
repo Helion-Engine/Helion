@@ -49,6 +49,58 @@ public partial class Client
     private string m_lastMapName = string.Empty;
     private IMap? m_lastLoadedMap;
 
+    [ConsoleCommand("summon", "Summon entity by name")]
+    private void Summon(ConsoleCommandEventArgs args)
+    {
+        if (args.Args.Count < 1)
+            return;
+
+        Summon(args.Args[0], SummonOptions.Default);
+    }
+
+    [ConsoleCommand("summonfriend", "Summon friendly entity by name")]
+    private void SummonFriend(ConsoleCommandEventArgs args)
+    {
+        if (args.Args.Count < 1)
+            return;
+
+        Summon(args.Args[0], SummonOptions.Friend);
+    }
+
+    [ConsoleCommand("summonfoe", "Summon enemy entity by name")]
+    private void SummonFoe(ConsoleCommandEventArgs args)
+    {
+        if (args.Args.Count < 1)
+            return;
+
+        Summon(args.Args[0], SummonOptions.Foe);
+    }
+
+    [ConsoleCommand("summonstatic", "Summon entity by name. Projectiles float.")]
+    private void SummonStatic(ConsoleCommandEventArgs args)
+    {
+        if (args.Args.Count < 1)
+            return;
+
+        Summon(args.Args[0], SummonOptions.Static);
+    }
+
+    private void Summon(string name, SummonOptions options)
+    {
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        var world = m_layerManager.WorldLayer.World;
+        var def = world.EntityManager.DefinitionComposer.GetByName(name);
+        if (def == null)
+        {
+            Log.Info($"No entity named '{name}'");
+            return;
+        }
+
+        world.Summon(world.Player, def, options);
+    }
+
     [ConsoleCommand("setpos", "Sets the player's position (x y z). Ex setpos 100 100 0")]
     private void SetPosition(ConsoleCommandEventArgs args)
     {
