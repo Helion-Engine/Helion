@@ -146,7 +146,12 @@ public class GameLayerManager : IGameLayerManager
 
     public bool OptionsLock => OptionsLayer != null && OptionsLayer.Animation.State != InterpolationAnimationState.Out;
 
-    public bool CanSave => EndGameLayer == null && IntermissionLayer == null;
+    public bool CanSave => (
+        EndGameLayer == null
+        && IntermissionLayer == null
+        && WorldLayer != null
+        && !WorldLayer.World.Player.IsDead
+    );
 
     public bool ShouldFocus()
     {
@@ -638,9 +643,6 @@ public class GameLayerManager : IGameLayerManager
     public async Task QuickSave()
     {
         if (!CanSave)
-            return;
-
-        if (WorldLayer?.World.Player.IsDead == true)
         {
             string[] text = m_archiveCollection.Definitions.Language.GetMessages("$SAVEDEAD");
             HelionLog.Info(text[0]);

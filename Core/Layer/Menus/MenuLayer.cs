@@ -62,9 +62,8 @@ public partial class MenuLayer : IGameLayer, IAnimationLayer
             if (menu.GetType() == typeof(SaveMenu))
                 return;
 
-        bool hasWorld = Manager.WorldLayer != null;
         SaveMenu saveMenu = new(this, m_config, m_console, m_soundManager, m_archiveCollection,
-            m_saveGameManager, m_screenshotGenerator, hasWorld, isSave, clearOnExit);
+            m_saveGameManager, m_screenshotGenerator, Manager.CanSave, isSave, clearOnExit);
 
         m_menus.Push(saveMenu);
     }
