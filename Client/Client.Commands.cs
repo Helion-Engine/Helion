@@ -67,6 +67,12 @@ public partial class Client
         Summon(args.Args[0], SummonOptions.Friend);
     }
 
+    [ConsoleCommand("summonmbf", "Summon friendly entity by name")]
+    private void SummonMbf(ConsoleCommandEventArgs args)
+    {
+        SummonFriend(args);
+    }
+
     [ConsoleCommand("summonfoe", "Summon enemy entity by name")]
     private void SummonFoe(ConsoleCommandEventArgs args)
     {
