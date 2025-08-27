@@ -77,9 +77,8 @@ public class MainMenu : Menu
     {
         return () =>
         {
-            bool hasWorld = m_parent.Manager.WorldLayer != null && m_parent.Manager.EndGameLayer == null;
             return new SaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager, screenshotGenerator,
-                hasWorld, true, false);
+                m_parent.Manager.CanSave, true, false);
         };
     }
 

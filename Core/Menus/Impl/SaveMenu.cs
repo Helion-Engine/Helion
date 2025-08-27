@@ -55,12 +55,12 @@ public class SaveMenu : Menu
     private SaveGame? m_deleteSave;
 
     public SaveMenu(MenuLayer parent, IConfig config, HelionConsole console, SoundManager soundManager,
-        ArchiveCollection archiveCollection, SaveGameManager saveManager, IScreenshotGenerator screenshotGenerator, bool hasWorld, bool isSave, bool clearOnClose)
+        ArchiveCollection archiveCollection, SaveGameManager saveManager, IScreenshotGenerator screenshotGenerator, bool canSave, bool isSave, bool clearOnClose)
         : base(config, console, soundManager, archiveCollection, 8, true, clearOnClose: clearOnClose)
     {
         m_parent = parent;
         m_saveGameManager = saveManager;
-        m_canSave = hasWorld;
+        m_canSave = canSave;
         IsSaveMenu = isSave;
         m_screenshotGenerator = screenshotGenerator;
         SaveHeader = new(isSave ? "SAVE GAME" : "LOAD GAME");
