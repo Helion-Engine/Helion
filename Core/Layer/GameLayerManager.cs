@@ -25,6 +25,7 @@ using Helion.Util.Configs.Components;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
@@ -638,6 +639,12 @@ public class GameLayerManager : IGameLayerManager
     {
         if (!CanSave)
             return;
+
+        if (WorldLayer?.World?.Player.Health <= 0)
+        {
+            HelionLog.Info("Can't quicksave while dead!");
+            return;
+        }
 
         // if we're using rotating quicksaves, then we aren't concerned with saving to a particular slot
         if (m_config.Game.RotatingQuickSaves > 0)
