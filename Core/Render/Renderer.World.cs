@@ -12,7 +12,6 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using System;
 using Helion.World.Geometry.Lines;
-using Helion.World.Physics;
 
 namespace Helion.Render;
 
@@ -29,13 +28,13 @@ public partial class Renderer
     private readonly SectorUpdates m_updateColorMapSectors = new();
     private readonly SectorUpdates m_updateLineHeights = new();
 
-    private GLBufferTextureStorage? m_lightBufferStorage;
-    private GLBufferTextureStorage? m_sectorColorMapsBuffer;
-    private GLBufferTextureStorage? m_colorMapBuffer;
-    private GLBufferTextureStorage? m_mapDataBuffer;
-    private GLBufferTextureStorage? m_lineHeightsBuffer;
+    private GLBufferTextureStorage<byte>? m_lightBufferStorage;
+    private GLBufferTextureStorage<float>? m_sectorColorMapsBuffer;
+    private GLBufferTextureStorage<float>? m_colorMapBuffer;
+    private GLBufferTextureStorage<float>? m_mapDataBuffer;
+    private GLBufferTextureStorage<float>? m_lineHeightsBuffer;
 
-    private float[] m_lightBufferData = [];
+    private byte[] m_lightBufferData = [];
     private float[] m_mapBufferData = [];
     private float[] m_lineHeightsBufferData = [];
 
@@ -120,12 +119,12 @@ public partial class Renderer
         if (alloc || m_lightBufferStorage == null)
         {
             m_lightBufferStorage?.Dispose();
-            m_lightBufferData = new float[world.Sectors.Count * LightBuffer.BufferSize + LightBuffer.SectorIndexStart];
-            m_lightBufferStorage = new("Sector lights texture buffer", m_lightBufferData, SizedInternalFormat.R32f, GLInfo.MapPersistentBitSupported);
+            m_lightBufferData = new byte[world.Sectors.Count * LightBuffer.BufferSize + LightBuffer.SectorIndexStart];
+            m_lightBufferStorage = new("Sector lights texture buffer", m_lightBufferData, SizedInternalFormat.R8ui, GLInfo.MapPersistentBitSupported);
 
             m_lightBufferStorage.Map(data =>
             {
-                float* lightBuffer = (float*)data.ToPointer();
+                var lightBuffer = (byte*)data.ToPointer();
                 SetLightBuffer(world, lightBuffer);
             });
         }
@@ -137,22 +136,22 @@ public partial class Renderer
         }
     }
 
-    private unsafe void SetLightBuffer(IWorld world, float* lightBuffer)
+    private unsafe void SetLightBuffer(IWorld world, byte* lightBuffer)
     {        
         lightBuffer[LightBuffer.DarkIndex] = 0;
         lightBuffer[LightBuffer.FullBrightIndex] = 255;
 
         for (int i = 0; i < LightBuffer.ColorMapCount; i++)
             lightBuffer[LightBuffer.ColorMapStartIndex + i] =
-                256 - ((LightBuffer.ColorMapCount - i) * 256 / LightBuffer.ColorMapCount);
+                (byte)(256 - ((LightBuffer.ColorMapCount - i) * 256 / LightBuffer.ColorMapCount));
 
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             Sector sector = world.Sectors[i];
             int index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
-            lightBuffer[index + LightBuffer.FloorOffset] = sector.LightLevel;
-            lightBuffer[index + LightBuffer.CeilingOffset] = sector.LightLevel;
-            lightBuffer[index + LightBuffer.WallOffset] = sector.LightLevel;
+            lightBuffer[index + LightBuffer.FloorOffset] = (byte)sector.LightLevel;
+            lightBuffer[index + LightBuffer.CeilingOffset] = (byte)sector.LightLevel;
+            lightBuffer[index + LightBuffer.WallOffset] = (byte)sector.LightLevel;
         }
     }
 
@@ -368,16 +367,16 @@ public partial class Renderer
             return;
 
         var lightBuffer = m_lightBufferStorage.GetMappedBufferAndBind();
-        float* lightData = lightBuffer.MappedMemoryPtr;
+        var lightData = lightBuffer.MappedMemoryPtr;
 
         for (int i = 0; i < m_updateLightSectors.UpdateSectors.Length; i++)
         {
             var sector = m_updateLightSectors.UpdateSectors[i];
             float level = sector.LightLevel;
             int index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
-            lightData[index + LightBuffer.FloorOffset] = level;
-            lightData[index + LightBuffer.CeilingOffset] = level;
-            lightData[index + LightBuffer.WallOffset] = level;
+            lightData[index + LightBuffer.FloorOffset] = (byte)level;
+            lightData[index + LightBuffer.CeilingOffset] = (byte)level;
+            lightData[index + LightBuffer.WallOffset] = (byte)level;
         }
 
         m_lightBufferStorage.Unbind();
