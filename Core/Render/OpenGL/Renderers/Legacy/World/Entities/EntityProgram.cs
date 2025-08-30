@@ -164,19 +164,12 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
-            float splitOptions = options;
-            float colorMapTranslation = trunc(splitOptions / 8);
-            splitOptions -= (colorMapTranslation * 8);
-            float flipU = trunc(splitOptions / 4);
-            splitOptions -= (flipU * 4);
-            float fuzz = trunc(splitOptions / 2);
-            float alpha = splitOptions - (fuzz * 2);
-
+            int intOptions = floatBitsToInt(options);
             lightLevelOut = lightLevel;
-            alphaOut = alpha;
-            fuzzOut = fuzz;
-            flipUOut = flipU;
-            colorMapTranslationOut = colorMapTranslation;
+            alphaOut = (intOptions & 0xFF) / 255.0;
+            fuzzOut = (intOptions >> 8) & 1;
+            flipUOut = (intOptions >> 9) & 1;
+            colorMapTranslationOut = (intOptions >> 10) & 1;
             offsetZOut = offsetZ;
             offsetXYOut = offsetXY;
             ${SectorColorMap}

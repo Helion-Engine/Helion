@@ -259,7 +259,7 @@ public class EntityRenderer : IDisposable
         var renderData = m_dataManager.GetByRenderStyle(renderStyle, texture, brightmapTexture);
 
         var alpha = m_spriteAlpha && renderStyle != RenderStyle.Normal ? entityAlpha : 1.0f;
-        var fuzz = shadow ? 1.0f : 0.0f;
+        var fuzz = shadow ? 1 : 0;
 
         var arrayData = renderData.ArrayData;
         int length = arrayData.Length;
