@@ -50,3 +50,21 @@ cd Client
 dotnet publish -c Release -r win-x64 -p:SelfContainedRelease=true
 ```
 In this example, the "published" output would end up in `(repo root)\Publish\win-x64_SelfContained`.
+
+Example (building AOT on Linux):
+```
+cd Client
+dotnet publish -c Release -r linux-x64 -p:AOT=true
+```
+Similarly, the output would be published to `(repo root)\Publish\linux-x64_AOT`.
+
+
+## AOT and "Normal" builds
+
+The .NET SDK normally builds assemblies (libraries or programs) that require Just-In-Time compilation when run.  The JIT compiler in modern .NET will first do a "fast" pass just to get the program running, and will later do an "optimized" pass to generate faster code, swapping the relevant code segments out at runtime.
+
+We also maintain compatibility with .NET Native AOT, which produces full native code **Ahead-Of-Time.**.  We do have to pick a lowest-common-denominator instruction set for these, which means that the generated binaries _may_ be slightly slower than the native tuning possible in a JIT environment, but the performance and memory behaviors are more stable and consistent, and the startup is instantaneous.
+
+Another advantage of Native AOT, and one that is _very_ relevant for Linux users, is that we can remove code that dynamically loads dependent libraries (.NET P/Invoke) and instead _link_ to those libraries.  This means that our Native AOT builds will fully honor normal Linux loader semantics-editing RPATH with tools, changing LD_LIBRARY_PATH, etc.-making it more feasible to package Helion in an AppImage, run it in a "jail", run it in a container, etc.
+
+Note that cross-compilation (building for Windows on Linux or vice-versa) is possible for normal builds but not for AOT builds, as these require the native toolchains for the respective platforms.
