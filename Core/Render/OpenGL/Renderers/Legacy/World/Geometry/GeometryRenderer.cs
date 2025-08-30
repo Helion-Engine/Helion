@@ -1679,7 +1679,7 @@ public class GeometryRenderer : IDisposable
     }
 
     private static unsafe void SetWallVertices(DynamicVertex[] data, in WallVertices wv, int lightLevelAdd, int lightBufferIndex, int colorMapIndex, byte wallLightLevel,
-        int mapId, WallLocation location, float alpha = 1.0f, float addAlpha = 1.0f)
+        int mapId, WallLocation location, float alpha = 1.0f, int addAlpha = 1)
     {
         float colorMapAndLightLevel = VertexOptions.ColorMapIndex(colorMapIndex, wallLightLevel);
         float lightLevelAddAndMapId = VertexOptions.LightLevelAdd(mapId, lightLevelAdd);
@@ -1780,7 +1780,7 @@ public class GeometryRenderer : IDisposable
     }
 
     private static unsafe DynamicVertex[] GetWallVertices(in WallVertices wv, int lightLevelAdd, int lightBufferIndex, int colorMapIndex, byte wallLightLevel,
-        int mapId, WallLocation location, float alpha = 1.0f, float addAlpha = 1.0f)
+        int mapId, WallLocation location, float alpha = 1.0f, int addAlpha = 1)
     {
         float colorMapAndLightLevel = VertexOptions.ColorMapIndex(colorMapIndex, wallLightLevel);
         float lightLevelAddAndMapId = VertexOptions.LightLevelAdd(mapId, lightLevelAdd);

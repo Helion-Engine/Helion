@@ -32,15 +32,11 @@ public static class VertexFunction
 
     public static string VertexOptionsSet =>
         @"  
-            float splitOptions = options;
-            float lightLevelBufferIndex = trunc(splitOptions / 32);
-            splitOptions -= (lightLevelBufferIndex * 32);
-            upperFrag = trunc(splitOptions / 16);
-            splitOptions -= (upperFrag * 16);
-            lowerFrag = trunc(splitOptions / 8);
-            splitOptions -= (lowerFrag * 8);
-            addAlphaFrag = trunc(splitOptions / 4);
-            splitOptions -= (addAlphaFrag * 4);
-            float topLeft = trunc(splitOptions / 2);
-            alphaFrag = splitOptions - (topLeft * 2);";
+            int intOptions = floatBitsToInt(options);
+            alphaFrag = (intOptions & 0xFF) / 255;
+            float topLeft = float((intOptions >> 8) & 1);
+            addAlphaFrag = float((intOptions >> 9) & 1);
+            upperFrag = float((intOptions >> 10) & 1);
+            lowerFrag =  float((intOptions >> 11) & 1);
+            float lightLevelBufferIndex = float(intOptions >> 12);";
 }
