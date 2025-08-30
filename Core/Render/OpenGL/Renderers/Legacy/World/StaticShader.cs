@@ -106,12 +106,14 @@ public class StaticShader : RenderProgram
 
             ${VertexOptionsSet}
 
-            colorMapIndexFrag = trunc(colorMapIndex / 256);
-            vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
+            int colorMapAndLightLevel = floatBitsToInt(colorMapIndex);
+            vertexLightLevelFrag = float(colorMapAndLightLevel & 0xFF);
+            colorMapIndexFrag = float((colorMapAndLightLevel >> 8) & 0xFFFFFF);
 
-            mapIdFrag = trunc(lightLevelAdd / 256);
-            float lightLevelAddValue = lightLevelAdd - (mapIdFrag * 256);
-            mapIdFrag = abs(mapIdFrag);
+            int lightLevelAndMapId = floatBitsToInt(lightLevelAdd);
+            float lightLevelAddValue = float((lightLevelAndMapId >> 1) & 0xFF);
+            mapIdFrag = float((lightLevelAndMapId >> 9) & 0xFFFFFF);
+            lightLevelAddValue = mix(lightLevelAddValue, -lightLevelAddValue, float(lightLevelAndMapId & 1));
             
             vec4 mixPos = vec4(pos, 1.0);
             ${VertexGapSet}

@@ -12,22 +12,30 @@ public static class VertexOptions
         return alpha + (topLeft * 2) + (addAlpha * 4) + (lower * 8) + (upper * 16) + (lightLevelBufferIndex * 32);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int ColorMapIndex(int colorMapIndex, int vertexLightLevel)
+    public static float ColorMapIndex(int colorMapIndex, int vertexLightLevel)
     {
-        // Packs the vertexLightLevel used for UDMF with the colormap index.
-        // The static vertex is on the edge of the optimal size for performance so this prevents adding another float prop.
-        return vertexLightLevel + 256 * colorMapIndex;
+        // First 8 bits are lightLevel, next 24 are colorMapIndex
+        int packed = ((colorMapIndex & 0xFFFFFF) << 8) | ((vertexLightLevel) & 0xFF);
+        return BitConverter.Int32BitsToSingle(packed);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float LightLevelAdd(int mapId, float lightLevelAdd)
+    public static float LightLevelAdd(int mapId, int lightLevelAdd)
     {
         // Packs LightLevelAdd with MapId
+        // First bit is sign, next 8 are lightLevelAdd, last 23 are mapId
         if (lightLevelAdd < 0)
-            return -(Math.Abs(lightLevelAdd) + 256 * mapId);
+            return PackLightLevelAddAndMapId(mapId, Math.Abs(lightLevelAdd), 1);
 
-        return lightLevelAdd + 256 * mapId;
+        return PackLightLevelAddAndMapId(mapId, lightLevelAdd, 0);
+    }
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static float PackLightLevelAddAndMapId(int mapId, int lightLevelAdd, int signFlag)
+    {
+        int packed = ((mapId & 0xFFFFFF) << 9) | ((lightLevelAdd & 0xFF) << 1) | signFlag;
+        return BitConverter.Int32BitsToSingle(packed);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
