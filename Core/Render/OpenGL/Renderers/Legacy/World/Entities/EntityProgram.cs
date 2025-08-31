@@ -167,7 +167,7 @@ public class EntityProgram : RenderProgram
             fuzzOut = (intOptions >> 8) & 1;
             flipUOut = (intOptions >> 9) & 1;
             lightLevelOut = (intOptions >> 10) & 0xFF;
-            colorMapTranslationOut = (intOptions >> 14) & 1;
+            colorMapTranslationOut = (intOptions >> 18);
 
             intOptions = floatBitsToInt(offsetXYZ);
             offsetXYOut = (intOptions >> 16) & 0x3FFF;

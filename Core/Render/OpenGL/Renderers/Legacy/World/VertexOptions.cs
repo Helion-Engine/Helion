@@ -43,7 +43,7 @@ public static class VertexOptions
     public static float Entity(float alpha, int fuzz, int flipU, int colormap, int lightLevel)
     {
         int alphaByte = (int)(alpha * 255.0f);
-        int packed = (alphaByte & 0xFF) | (fuzz << 8) | (flipU << 9) | ((lightLevel & 0xFF) << 10) | (colormap << 14);
+        int packed = (alphaByte & 0xFF) | (fuzz << 8) | (flipU << 9) | ((lightLevel & 0xFF) << 10) | (colormap << 18);
         return BitConverter.Int32BitsToSingle(packed);
     }
 
