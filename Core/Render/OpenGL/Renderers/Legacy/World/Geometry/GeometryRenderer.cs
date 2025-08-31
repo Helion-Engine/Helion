@@ -186,9 +186,7 @@ public class GeometryRenderer : IDisposable
                 m_drawnSides = new int[world.Sides.Count];
         }
 
-        for (int i = 0; i < world.Sides.Count; i++)
-            m_drawnSides[i] = -1;
-
+        m_drawnSides.ZeroArray();
         m_contrastMode = world.Config.Render.ContrastMode;
 
         Clear(m_tickFraction, true);
@@ -198,12 +196,6 @@ public class GeometryRenderer : IDisposable
         Portals.UpdateTo(world);
         m_staticCacheGeometryRenderer.UpdateTo(world);
         m_worldDataManager.InitCoverWallRenderData(m_glTextureManager.WhiteTexture, m_program);
-    }
-
-    private static void ZeroArray<T>(T[] array) where T : struct
-    {
-        ref var reference = ref MemoryMarshal.GetArrayDataReference(array);
-        Unsafe.InitBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), 0, (uint)(Marshal.SizeOf<T>() * array.Length));
     }
 
     private DynamicVertex[]?[] UpdateVertexWallLookup(DynamicVertex[]?[] vertices, int sideCount, bool free)
@@ -221,7 +213,7 @@ public class GeometryRenderer : IDisposable
                 continue;
             }
 
-            ZeroArray(data);
+            data.ZeroArray();
         }
 
         if (vertices.Length < sideCount)
@@ -244,7 +236,7 @@ public class GeometryRenderer : IDisposable
                 continue;
             }
 
-            ZeroArray(data);
+            data.ZeroArray();
         }
 
         if (vertices.Length < sideCount)
@@ -267,7 +259,7 @@ public class GeometryRenderer : IDisposable
                 continue;
             }
 
-            ZeroArray(data);
+            data.ZeroArray();
         }
 
         if (vertices.Length < sectorCount)
@@ -290,7 +282,7 @@ public class GeometryRenderer : IDisposable
                 continue;
             }
 
-            ZeroArray(data);
+            data.ZeroArray();
         }
 
         if (vertices.Length < sectorCount)
