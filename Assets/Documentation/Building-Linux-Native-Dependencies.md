@@ -1,70 +1,38 @@
 # Building Linux Native Dependencies
-We've made an effort to include appropriate versions of our native dependencies along with Helion.  However, since there are many different Linux-based operating systems, it is not possible for us to provide prebuilt binaries for all of them.  The following steps detail how we built our dependencies on Ubuntu in the Windows Subsystem for Linux, which is a fairly minimal Linux install.  You may find that some of these dependencies are already installed on your system, in which case you may be able to delete the `.so` files we provide.
+We've made an effort to include appropriate versions of our native dependencies along with Helion.  However, since there are many different Linux-based operating systems, it is not possible for us to provide prebuilt binaries for all of them.
 
 # Native Dependencies
-We directly depend upon, and provide our own copies of:
-1. ZMusic: https://github.com/ZDoom/ZMusic
-2. SDL2: https://github.com/libsdl-org/SDL
-3. FluidSynth: https://github.com/FluidSynth/fluidsynth
+We depend on the following native libraries:
+1. [ZMusic (Helion fork)](https://github.com/Helion-Engine/ZMusic)
+2. [SDL2](https://github.com/libsdl-org/SDL)
+3. [GLFW](https://github.com/glfw/glfw)
+4. [OpenAL-Soft](https://github.com/kcat/openal-soft)
 
-Note that the dependencies on ZMusic and FluidSynth imply a fairly extensive set of transitive dependencies, starting with libsndfile and libmpg123.  These are installed by default on most mainstream desktop Linux distributions.
+Note that some of these have their own transitive dependencies.  For example, ZMusic requires libsndfile and libmpg123 for certain audio types such as FLAC, MP3, and so on.  However, these are installed by default on most "desktop" Linux distributions.
 
-We also depend upon, but do not provide our own copies of:
-1. libGLFW -- we distribute a version provided by OpenTK, which we use for windowing, input (except for gamepads--we use SDL2 for that), and OpenGL.
-2. OpenAL -- This seems to be installed by default on most desktop Linux distributions.  If not present, the package is named `libopenal1` on Ubuntu and similar Linuxes.
+We provide our own `.so` files for use with "normal" .NET builds.  They are in `Client/Unmanaged/binary/linux-x64/`, except for GLFW, which is provided by the OpenTK package.  These `.so` files are used in "normal" .NET builds.  In Native AOT builds, which are fully precompiled, we statically link to all four of these libraries, to ensure that we run in a "known" configuration.  These files are in `Client/Unmanaged/lib/linux-x64`.  If you would like to build your own libraries from source, either because they do not work for you, or because you would prefer not to use binaries downloaded from the Internet, the following are the versions we're distributing:
 
-# Prereqs (WSL Ubuntu 22.04 and 24.04)
-```
-sudo apt-get install clang
-sudo apt-get install cmake
-sudo apt-get install pkg-config
-sudo apt-get install glib-2.0
-sudo apt-get install libsndfile-dev
-sudo apt-get install libSDL2-2.0
-```
+1.  ZMusic (Helion fork): Use latest from GitHub
+2.  SDL2:  Use `release-2.32.8` tag 
+3.  GLFW:  Use `3.4` tag
+4.  OpenAL-Soft:  Use `1.24.3` tag
 
-# Make output dir
-```
-mkdir ~/Helion-libs
-```
+If you are doing Native AOT builds, you may want to use Clang as your compiler, because the AOT build will use the Clang linker when available.
 
-# Build ZMusic
+When building ZMusic, we suggest setting the `DYN_MPG123` and `DYN_SNDFILE` parameters to `OFF`.  This will cause the native loader to just fail and refuse to launch Helion if the libraries are unavailable, spewing an error to your terminal.  We believe this is preferable to silent failure when running the game.
+
+All of these projects use CMake and may have other package dependencies, although these are generally pretty straightforward (for example, ZMusic requires libmpg123-dev and libsndfile-dev).
+
+When building the `.a` files for use with Native AOT linking, we generally use the following CMake parameters as a baseline:
+`-DCMAKE_CXX_COMPILER=clang -DCMAKE_C_COMPILER=clang -DBUILD_SHARED_LIBS=OFF -DLIBTYPE=STATIC`
+
+Note that building GLFW for AOT use may require you to add the following function:
+
 ```
-cd ~
-git clone https://github.com/ZDoom/ZMusic
-cd ZMusic
-git checkout 1.1.14
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DDYN_MPG123=OFF -DDYN_SNDFILE=OFF ..
-make -j
-cp source/libzmusic.so ~/Helion-libs/
+GLFWAPI void* glfwGetWin32Window(GLFWwindow* handle)
+{
+    return NULL;
+}
 ```
 
-# Obtain libSDL2
-```
-cd ~
-sudo apt-get install libSDL2-2.0
-cp /usr/lib/x86_64-linux-gnu/libSDL2-2.0.so ~/Helion-libs/libSDL2.so
-```
-
-# Build libfluidsynth
-```
-cd ~
-git clone https://github.com/FluidSynth/fluidsynth
-cd fluidsynth
-git checkout v2.4.0
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make -j
-cp src/libfluidsynth.so.3 ~/Helion-libs/
-```
-
-# Strip symbols (optional)
-```
-cd ~/Helion-libs
-strip *
-```
-
-These steps should produce a directory with three .so files you can copy over those distributed with Helion.
+This is, unfortunately, necessitated by library code (OpenTK) we do not control.

@@ -11,10 +11,6 @@ public struct EntityVertex
     public Vec3F Pos;
 
     [VertexAttribute]
-    // Health Percent Normalized when in health bar mode
-    public float LightLevel;
-
-    [VertexAttribute]
     // X offset written to colormap option portion when in health bar mode
     public float Options;
 
@@ -22,10 +18,7 @@ public struct EntityVertex
     public Vec3F PrevPos;
 
     [VertexAttribute]
-    public float OffsetXY;
-
-    [VertexAttribute]
-    public float OffsetZ;
+    public float OffsetXYZ;
 
     [VertexAttribute(required: false)]
     public float ColorMapIndex;

@@ -1,73 +1,7 @@
 # 0.9.8.0 (Pre-release)
 
 ## Features:
-- Update OpenTK to 4.9.4
-- Dehacked blood color support for both palette and true color images.
-- Blood color is passed to children through A_SpawnObject so Smooth Doom MBF21 blood spawners with blood color match parent blood.
-- UDMF midtex3d and midtex3dimpassible line flags support. Includes physics for monsters to walk on without dropping off.
-- Support sector flags for secret, damage, friction, and pusher.
-- Solo-net command that allows for cooperative gameplay rules in a single player game.
-- HUD message text will wrap to HUD width.
-- IWAD detection will fallback to reading lumps when MD5/filename checks fail for freedoom.
-- Show IWAD selection screen IWAD fails to load with the -iwad parameter.
-- Support BRGHTMPS from Doom Retro.
-- Use sound decoder from ZMusic to support more sound formats including Ogg and MP3: https://zdoom.org/wiki/Sound_format.
-- Separate dependency on Fluidsynth removed, now using built-in version of Fluidsynth in ZMusic.
-- Windows AOT builds are statically linked to all dependencies above the Windows API itself.
-- Linux AOT builds are statically linked to all dependencies above libsndfile/libmpg123.
-- AppImage build support for Linux AOT.
-- Ambient sound support from SNDINFO.
-- Sound more accurately matches Doom's sound curve and cutoff
-- Option to downscale the emulate vanilla sprite render buffer. Increases performance at the expense of pixel accuracy. Allows more GPUs to use emulate vanilla rendering.
-- Support textures in WAD files between TX_START and TX_END markers.
-- Add same sound limit and same sound window similar to parallel same sound limit in dsda-doom, prioritized by distance.
-- Replace ^ with \ in sprite namespace for pk3 and directories.
-- Support Add and Color add render styles from GZDoom with update assets.pk3 to use the supported render styles. Implements custom ColorAddFullbright style that will use ColorAdd when fullbright and translucent otherwise.
-- True color overlay option for palette color mode. Uses true color overlays instead of Doom's PLAYPAL palettes for damage, item pickups, berserk and radsuit.
--  Add Thing_Spawn, Thing_SpawnFacing, Thing_Projectile, Thing_ProjectileAimed, Thing_Destroy, Thing_Remove.
-- Add stealth monsters from ZDoom.
-- Add summon, summonmbf, sommonfriendly, summonfoe, and summonstatic console commands.
+- Simplify bit packing strategy on vertex data using floatBitsToInt. Decreases entity sprite vertex size and increase range on line ids for vanilla sprite clipping emulation from 65k to over 8 million and sector light index from ~500k to over 1 million.
 
 ## Bug Fixes:
-- Fix spawn ceiling sprite offsets for vanilla sprite rendering.
-- Ignore GL nodes in archive and always build nodes internally to fix maps with bad GL nodes.
-- Fix id24 pickups to skip using the sprite name for lookup.
-- Fix id24 skies to have defaults set for when not defined outside of flatmapping and correct lookup for animations.
-- Fix id24 sector offset/rotations not restoring after loading a save.
-- Fix incorrect warnings for sounds and invalid bex string memonic with custom sounds prefixed with USER_.
-- Fix UMAPINFO/MAPINFO EnterText/ExitText/SecretExitText/ExitText with escaped double quotes.
-- Fix setting vanilla sky render mode with skydefs when only flatmapping is defined with no skies.
-- Fix alignment with id24 skies.
-- Fix sky fire foregrounds not rendering when used on two different sky backings.
-- Fix A_AddFlags/A_RemoveFlags not updating sprite transparency when changing TRANSLUCENT flag.
-- Fix A_AddFlags/A_RemoveFlags MaxTargetRange, MinMissileChance, and MeleeThreshold, Translucent editing globabl properties.
-- Fix reading $ifgame in language file.
-- Fix intermission patch graphics not using offset. Fixes Hell To Pay intermission screen.
-- Fix middle textures not correctly blocking sprites from bleeding over lower textures with emulate vanilla rendering.
-- Fix middle textures not rendering when moving sector is paused with emulate vanilla rendering.
-- Fix brightmaps not working with moving sectors.
-- Fix PNG brightmaps not working in palette color mode.
-- Fix crusher damage from 8 to 10 for doom specials 25,49,73, and 184.
-- Fix crash when cycling weapons while in chasecam mode.
-- Fix crash when parsing files with a multiline comment that starts and terminates on same line.
-- Fix save/load menu max rows not filling the box.
-- Fix dehacked parsing issue with [STRINGS] block that would stop parsing when it encountered bad data (fixes Sunder 2407 dehacked).
-- Fix 'kill grounded monsters' to match behavior from dsda where it needs to be on it's highest floor (fixes Sunless MAP01 sphere exit).
-- Fix UDMF decimal parsing when on machines don't use dot as a separator.
-- Fix UDMF parser to ignore unknown properties / sections (e.g. ee_compat = true;).
-- Fix UDMF to rotate flats before applying offsets.
-- Fix UDMF/id24 serialization and map restarts for flat offset and rotation.
-- FIx UDMF serilization for line alpha.
-- Fix null debug texture being applied to sprite brightmaps when render.nulltexture is on.
-- Fix issue with looping sounds being removed entirely when out of range that prevented them from being added when back in range.
-- Fix reading directory as file support with -file parameter.
-- Fix invulnerability and sector colormaps to match Doom I + II behavior.
-- Fix crash in sound management when adding in waiting looping sounds.
-- Fix issue with vanilla render sprite clipping where sprites exactly on lines would look like they are z-fighting.
-- Fix issue with vanilla midtextures not clipping sprites when reloading map.
-- Fix issue with vanilla render sprite clipping and spawn ceiling objects not being clipped to the backside of lower walls.
-- Fix middle textures not rendering correctly when part of a transfer heights sector that is moving.
-- Fix issue where incorrect subsector could be returned when player/object moves.
-- Update spectre fuzz mixing to not oversature with order independent rendering.
-- Fix A_PosAttack, A_SPosAttack, and A_CPosAttack to use hardcoded sounds for dehacked.
-- Prevent saving while dead.
+- Fix sprite frames to correctly calculate when lowercase

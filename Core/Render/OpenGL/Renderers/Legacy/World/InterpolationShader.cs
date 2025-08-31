@@ -132,12 +132,8 @@ public class InterpolationShader : RenderProgram
 
             uvFrag = mix(prevUV, uv, timeFrac);
 
-            colorMapIndexFrag = trunc(colorMapIndex / 256);
-            vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
-
-            mapIdFrag = trunc(lightLevelAdd / 256);
-            float lightLevelAddValue = lightLevelAdd - (mapIdFrag * 256);
-            mapIdFrag = abs(mapIdFrag);
+            ${ColorMapAndLightLevelSet}
+            ${LightLevelAddAndMapIdSet}
 
             vec4 mixPos = vec4(mix(prevPos, pos, timeFrac), 1.0);
 
@@ -161,6 +157,8 @@ public class InterpolationShader : RenderProgram
     .Replace("${VertexGapVariables}", VertexFunction.VertexGapVariables)
     .Replace("${VertexGapSet}", VertexFunction.VertexGapSet)
     .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
+    .Replace("${ColorMapAndLightLevelSet}", VertexFunction.ColorMapAndLightLevelSet)
+    .Replace("${LightLevelAddAndMapIdSet}", VertexFunction.LightLevelAddAndMapIdSet)
     .Replace("${Depth}", ShaderVars.Depth);
 
     protected override string FragmentShader()

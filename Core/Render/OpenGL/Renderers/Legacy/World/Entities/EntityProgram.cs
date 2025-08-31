@@ -142,12 +142,10 @@ public class EntityProgram : RenderProgram
         #version 330
 
         layout(location = 0) in vec3 pos;
-        layout(location = 1) in float lightLevel;
-        layout(location = 2) in float options;
-        layout(location = 3) in vec3 prevPos;
-        layout(location = 4) in float offsetXY;
-        layout(location = 5) in float offsetZ;
-        layout(location = 6) in float sectorIndex;
+        layout(location = 1) in float options;
+        layout(location = 2) in vec3 prevPos;
+        layout(location = 3) in float offsetXYZ;
+        layout(location = 4) in float sectorIndex;
 
         out float lightLevelOut;
         out float alphaOut;
@@ -164,21 +162,21 @@ public class EntityProgram : RenderProgram
 
         void main()
         {
-            float splitOptions = options;
-            float colorMapTranslation = trunc(splitOptions / 8);
-            splitOptions -= (colorMapTranslation * 8);
-            float flipU = trunc(splitOptions / 4);
-            splitOptions -= (flipU * 4);
-            float fuzz = trunc(splitOptions / 2);
-            float alpha = splitOptions - (fuzz * 2);
+            int intOptions = floatBitsToInt(options);
+            alphaOut = (intOptions & 0xFF) / 255.0;
+            fuzzOut = (intOptions >> 8) & 1;
+            flipUOut = (intOptions >> 9) & 1;
+            lightLevelOut = (intOptions >> 10) & 0xFF;
+            colorMapTranslationOut = (intOptions >> 18);
 
-            lightLevelOut = lightLevel;
-            alphaOut = alpha;
-            fuzzOut = fuzz;
-            flipUOut = flipU;
-            colorMapTranslationOut = colorMapTranslation;
-            offsetZOut = offsetZ;
-            offsetXYOut = offsetXY;
+            intOptions = floatBitsToInt(offsetXYZ);
+            offsetXYOut = (intOptions >> 16) & 0x3FFF;
+            offsetZOut = intOptions & 0x3FFF;
+            float offsetXYSign = float(((intOptions >> 31) & 1) > 0);
+            float offsetZSign = float(((intOptions >> 30) & 1) > 0);
+            offsetXYOut = mix(offsetXYOut, -offsetXYOut, offsetXYSign);
+            offsetZOut = mix(offsetZOut, -offsetZOut, offsetZSign);
+
             ${SectorColorMap}
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;
@@ -487,20 +485,21 @@ public class EntityProgram : RenderProgram
     private static string GetHealthBar() => @"
         }
         if (healthBarMode == 1) {
+            float healthNormalized = lightLevelFrag / 255.0;
             fragColor = vec4(0, 0, 0, 1);
             const float RedAmount = 0.33;
             const float YellowAmount = 0.66;
             const float BorderThickness = 1.5;
             const float BorderHeightUV = 1 / BoxHeight;
             float BorderWidthUV = 1 / (BoxWidth + colorMapTranslationFrag * 2);
-            float nearestAmount = mix(mix(RedAmount, YellowAmount, step(RedAmount, lightLevelFrag)), 1, step(YellowAmount, lightLevelFrag));
+            float nearestAmount = mix(mix(RedAmount, YellowAmount, step(RedAmount, healthNormalized)), 1, step(YellowAmount, healthNormalized));
             fragColor.r = mix(0, 0.3, float(nearestAmount == YellowAmount || nearestAmount == RedAmount));
             fragColor.g = mix(0, 0.3, float(nearestAmount == YellowAmount || nearestAmount == 1));
 
             // Health bar gradient
-            fragColor.rgb += mix(fragColor.rgb, vec3(1, 1, 1), min(0.5, 1 - (float(uvFrag.x < lightLevelFrag) - (uvFrag.x / nearestAmount / 2))));
+            fragColor.rgb += mix(fragColor.rgb, vec3(1, 1, 1), min(0.5, 1 - (float(uvFrag.x < healthNormalized) - (uvFrag.x / nearestAmount / 2))));
             // Gray background as health bar depletes
-            fragColor.rgb = mix(fragColor.rgb, vec3(0.4, 0.4, 0.4), float(uvFrag.x > lightLevelFrag));
+            fragColor.rgb = mix(fragColor.rgb, vec3(0.4, 0.4, 0.4), float(uvFrag.x > healthNormalized));
             // Black box border
             fragColor.rgb = mix(fragColor.rgb, mix(vec3(0, 0, 0), vec3(0.7, 0, 0), fuzzFrag), 
                 float(uvFrag.x < BorderWidthUV || uvFrag.y < BorderHeightUV || uvFrag.x > 1 - BorderWidthUV || uvFrag.y > 1 - BorderHeightUV));
