@@ -125,9 +125,9 @@ public class EntityRenderer : IDisposable
         return unchecked((viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29);
     }
 
-    private float GetOffsetZ(Entity entity, GLLegacyTexture texture)
+    private int GetOffsetZ(Entity entity, GLLegacyTexture texture)
     {
-        float offsetAmount = texture.Offset.Y - texture.Height;
+        int offsetAmount = texture.Offset.Y - texture.Height;
         if (m_vanillaRender)
             return offsetAmount;
 
@@ -145,7 +145,7 @@ public class EntityRenderer : IDisposable
 
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
-            float maxHeight = (texture.Height - texture.BlankRowsFromBottom) * m_spriteClipFactorMax;
+            int maxHeight = (int)((texture.Height - texture.BlankRowsFromBottom) * m_spriteClipFactorMax);
             if (-offsetAmount > maxHeight)
                 offsetAmount = -maxHeight - texture.BlankRowsFromBottom;
             // Truncate to integer pixel amount. This helps the jumpiness for the stock large torches.
@@ -279,19 +279,18 @@ public class EntityRenderer : IDisposable
             (float)(entity.PrevPosition.X - nudgeAmount.X),
             (float)(entity.PrevPosition.Y - nudgeAmount.Y),
             (float)entity.PrevPosition.Z);
-        vertex.OffsetZ = offsetZ;
-        vertex.OffsetXY = texture.Offset.X;
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex, lightLevel);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
 
         if (entity.Definition.Flags.SpawnCeiling && m_vanillaRender)
         {
             // Set position and offset from ceiling to not clip to floors
-            vertex.OffsetZ = vertex.Pos.Z + offsetZ - (float)entity.Sector.Ceiling.Z;
+            offsetZ = (int)(vertex.Pos.Z + offsetZ - (float)entity.Sector.Ceiling.Z);
             vertex.Pos.Z = (float)entity.Sector.Ceiling.Z;
             vertex.PrevPos.Z = (float)entity.Sector.Ceiling.PrevZ;
         }
 
+        vertex.OffsetXYZ = VertexOptions.EntityXYZ(texture.Offset.X, offsetZ);
         arrayData.Length = length + 1;
 
         if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
@@ -322,8 +321,7 @@ public class EntityRenderer : IDisposable
         vertex.Options = VertexOptions.Entity(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth, health);
         vertex.Pos = entityVertex.Pos;
         vertex.PrevPos = entityVertex.PrevPos;
-        vertex.OffsetZ = offset;
-        vertex.OffsetXY = 0;
+        vertex.OffsetXYZ = VertexOptions.EntityXYZ(0, offset);
 
         array.SetLength(array.Length + 1);
     }

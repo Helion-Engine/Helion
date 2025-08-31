@@ -144,9 +144,8 @@ public class EntityProgram : RenderProgram
         layout(location = 0) in vec3 pos;
         layout(location = 1) in float options;
         layout(location = 2) in vec3 prevPos;
-        layout(location = 3) in float offsetXY;
-        layout(location = 4) in float offsetZ;
-        layout(location = 5) in float sectorIndex;
+        layout(location = 3) in float offsetXYZ;
+        layout(location = 4) in float sectorIndex;
 
         out float lightLevelOut;
         out float alphaOut;
@@ -169,8 +168,15 @@ public class EntityProgram : RenderProgram
             flipUOut = (intOptions >> 9) & 1;
             lightLevelOut = (intOptions >> 10) & 0xFF;
             colorMapTranslationOut = (intOptions >> 14) & 1;
-            offsetZOut = offsetZ;
-            offsetXYOut = offsetXY;
+
+            intOptions = floatBitsToInt(offsetXYZ);
+            offsetXYOut = (intOptions >> 16) & 0x3FFF;
+            offsetZOut = intOptions & 0x3FFF;
+            float offsetXYSign = float(((intOptions >> 31) & 1) > 0);
+            float offsetZSign = float(((intOptions >> 30) & 1) > 0);
+            offsetXYOut = mix(offsetXYOut, -offsetXYOut, offsetXYSign);
+            offsetZOut = mix(offsetZOut, -offsetZOut, offsetZSign);
+
             ${SectorColorMap}
             gl_Position = vec4(mix(prevPos, pos, timeFrac), 1.0);
             positionZOut = gl_Position.z;

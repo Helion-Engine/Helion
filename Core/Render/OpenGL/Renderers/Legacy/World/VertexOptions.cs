@@ -46,4 +46,25 @@ public static class VertexOptions
         int packed = (alphaByte & 0xFF) | (fuzz << 8) | (flipU << 9) | ((lightLevel & 0xFF) << 10) | (colormap << 14);
         return BitConverter.Int32BitsToSingle(packed);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float EntityXYZ(int offsetXY, int offsetZ)
+    {
+        int offsetXYSign = 0;
+        int offsetZSign = 0;
+        if (offsetXY < 0)
+        {
+            offsetXY = Math.Abs(offsetXY);
+            offsetXYSign = 1;
+        }
+
+        if (offsetZ < 0)
+        {
+            offsetZ = Math.Abs(offsetZ);
+            offsetZSign = 1;
+        }
+
+        int packed = (offsetXYSign << 31) | (offsetZSign << 30) | (offsetXY << 16) | offsetZ;
+        return BitConverter.Int32BitsToSingle(packed);
+    }
 }
