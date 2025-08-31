@@ -20,14 +20,18 @@ rm -rf Helion.AppImage;
 cd ..
 echo 'Copying files for AppImage';
 mkdir -p AppImage/usr/bin;
-cp -r Publish/linux-x64_AOT/* AppImage/usr/bin;
+cp Publish/linux-x64_AOT/Helion AppImage/usr/bin;
+
+mkdir -p AppImage/opt/Helion;
+cp -r Publish/linux-x64_AOT/* AppImage/opt/Helion;
+rm AppImage/opt/Helion/Helion;
 
 # Copy all transitive dependencies; patch Helion ELF to use copied lib dir
-mkdir -p AppImage/lib;
-ldd Publish/linux-x64_AOT/Helion | awk 'NF == 4 { system("cp " $3 " AppImage/lib") }';
+mkdir -p AppImage/usr/lib;
+ldd Publish/linux-x64_AOT/Helion | awk 'NF == 4 { system("cp " $3 " AppImage/usr/lib") }';
 rm AppImage/lib/libm.so.*;
 rm AppImage/lib/libc.so.*;
-patchelf --force-rpath --set-rpath '$ORIGIN'/../../lib AppImage/usr/bin/Helion
+patchelf --force-rpath --set-rpath '$ORIGIN'/../usr/lib AppImage/usr/bin/Helion
 
 # Copy icon and .desktop file
 cp -r Scripts/appImageResources/* AppImage;
