@@ -92,7 +92,10 @@ public class PathsManager
         m_userDataFolder = StandardizePath(GetConfigFolder(forcePortableMode || File.Exists(portableConfigFile)));
         m_applicationFolders = [StandardizePath(AppContext.BaseDirectory)];
         if (OperatingSystem.IsLinux())
+        {
             m_applicationFolders.Add(StandardizePath("/usr/share/helion"));
+            m_applicationFolders.Add("../../opt/Helion");  // Relative path is intentional--handles installation to /usr/bin and "appdir" layout.
+        }
         m_wadEnvFolders = [.. GetWadFoldersFromEnvVars().Select(StandardizePath)];
         m_wadCommonFolders = [.. GetWadFoldersFromSteamAndLinuxDirs().Select(StandardizePath)];
     }
