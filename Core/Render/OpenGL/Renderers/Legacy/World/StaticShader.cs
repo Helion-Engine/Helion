@@ -105,15 +105,8 @@ public class StaticShader : RenderProgram
             uvFrag = uv;
 
             ${VertexOptionsSet}
-
-            int colorMapAndLightLevel = floatBitsToInt(colorMapIndex);
-            vertexLightLevelFrag = float(colorMapAndLightLevel & 0xFF);
-            colorMapIndexFrag = float((colorMapAndLightLevel >> 8) & 0xFFFFFF);
-
-            int lightLevelAndMapId = floatBitsToInt(lightLevelAdd);
-            float lightLevelAddValue = float((lightLevelAndMapId >> 1) & 0xFF);
-            mapIdFrag = float((lightLevelAndMapId >> 9) & 0xFFFFFF);
-            lightLevelAddValue = mix(lightLevelAddValue, -lightLevelAddValue, float(lightLevelAndMapId & 1));
+            ${ColorMapAndLightLevelSet}
+            ${LightLevelAddAndMapIdSet}
             
             vec4 mixPos = vec4(pos, 1.0);
             ${VertexGapSet}
@@ -136,6 +129,8 @@ public class StaticShader : RenderProgram
     .Replace("${VertexGapVariables}", VertexFunction.VertexGapVariables)
     .Replace("${VertexGapSet}", VertexFunction.VertexGapSet)
     .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
+    .Replace("${ColorMapAndLightLevelSet}", VertexFunction.ColorMapAndLightLevelSet)
+    .Replace("${LightLevelAddAndMapIdSet}", VertexFunction.LightLevelAddAndMapIdSet)
     .Replace("${Depth}", ShaderVars.Depth);
 
     protected override string FragmentShader()
