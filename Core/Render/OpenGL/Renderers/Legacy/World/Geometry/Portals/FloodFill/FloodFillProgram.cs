@@ -109,8 +109,9 @@ public class FloodFillProgram : RenderProgram
             vertexPosFrag = mix(prevPos, pos, timeFrac);
             mapIdFrag = mapId;
 
-            colorMapIndexFrag = trunc(colorMapIndex / 256);
-            vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
+            int colorMapAndLightLevel = floatBitsToInt(colorMapIndex);
+            vertexLightLevelFrag = float(colorMapAndLightLevel & 0xFF);
+            colorMapIndexFrag = float((colorMapAndLightLevel >> 8) & 0xFFFFFF);
 
             float alphaFrag;
             float addAlphaFrag;
