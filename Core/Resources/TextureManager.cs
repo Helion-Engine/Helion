@@ -92,7 +92,7 @@ public partial class TextureManager : ITickable
         MapSpriteIndexToEntries(spriteEntries, spriteNames);
 
         if (m_cacheAllSprites)
-            InitSprites(spriteNames, spriteEntries);
+            InitSprites(spriteNames);
     }
 
     public void MapInit(MapInfoDef mapInfo)
@@ -138,12 +138,11 @@ public partial class TextureManager : ITickable
         m_processedEntityDefinitions.Clear();
     }
 
-    private void InitSprites(List<string> spriteNames, List<Entry> spriteEntries)
+    private void InitSprites(List<string> spriteNames)
     {
         SpriteDefinitions.Resize(m_archiveCollection.EntityFrameTable.SpriteIndexCount + 32);
         foreach (var spriteName in spriteNames)
         {
-            var spriteDefEntries = spriteEntries.Where(entry => entry.Path.Name.StartsWithIgnoreCase(spriteName)).ToList();
             int spriteIndex = m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName);
             if (spriteIndex >= SpriteDefinitions.Capacity)
                 SpriteDefinitions.Resize(spriteIndex + 32);

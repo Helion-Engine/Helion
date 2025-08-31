@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Images;
@@ -25,14 +26,14 @@ public class SpriteDefinition
             if (entry.Path.Name.Length < 6)
                 continue;
 
-            frame = entry.Path.Name[4] - 'A';
+            frame = char.ToUpper(entry.Path.Name[4], CultureInfo.InvariantCulture) - 'A';
             rotation = entry.Path.Name[5] - '0';
 
             CreateRotations(entry, imageRetriever, archiveCollection, frame, rotation, false);
 
             if (entry.Path.Name.Length > 7)
             {
-                frame = entry.Path.Name[6] - 'A';
+                frame = char.ToUpper(entry.Path.Name[6], CultureInfo.InvariantCulture) - 'A';
                 rotation = entry.Path.Name[7] - '0';
                 CreateRotations(entry, imageRetriever, archiveCollection, frame, rotation, true);
             }
