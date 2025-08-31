@@ -266,6 +266,8 @@ public class EntityRenderer : IDisposable
         if (arrayData.Capacity < length + 1)
             arrayData.EnsureCapacity(length + 1);
 
+        int lightLevel = isFullBright ? 255 : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
+
         ref var vertex = ref arrayData.Data[length];
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
         // Doom graphics are drawn left to right and not centered
@@ -279,10 +281,7 @@ public class EntityRenderer : IDisposable
             (float)entity.PrevPosition.Z);
         vertex.OffsetZ = offsetZ;
         vertex.OffsetXY = texture.Offset.X;
-        vertex.LightLevel = isFullBright
-            ? 255
-            : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
-        vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
+        vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex, lightLevel);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
 
         if (entity.Definition.Flags.SpawnCeiling && m_vanillaRender)
@@ -318,9 +317,9 @@ public class EntityRenderer : IDisposable
         ref var vertex = ref array.Data[array.Length];
         // Prevent small health values from rendering zero pixels
         float min = 1f / (entity.Properties.HealthBarWidth + MinBarWidth - 5);
-        // Normalized health percent
-        vertex.LightLevel = Math.Max(min, entity.Health / (float)entity.Properties.Health);
-        vertex.Options = VertexOptions.Entity(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth);
+        // Normalized health percent (0-255)
+        int health = (int)(Math.Max(min, entity.Health / (float)entity.Properties.Health) * 255f);
+        vertex.Options = VertexOptions.Entity(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth, health);
         vertex.Pos = entityVertex.Pos;
         vertex.PrevPos = entityVertex.PrevPos;
         vertex.OffsetZ = offset;

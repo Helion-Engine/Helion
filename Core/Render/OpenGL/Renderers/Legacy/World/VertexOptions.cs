@@ -40,10 +40,10 @@ public static class VertexOptions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float Entity(float alpha, int fuzz, int flipU, int colormap)
+    public static float Entity(float alpha, int fuzz, int flipU, int colormap, int lightLevel)
     {
         int alphaByte = (int)(alpha * 255.0f);
-        int packed = (alphaByte & 0xFF) | (fuzz << 8) | (flipU << 9) | (colormap << 10);
+        int packed = (alphaByte & 0xFF) | (fuzz << 8) | (flipU << 9) | ((lightLevel & 0xFF) << 10) | (colormap << 14);
         return BitConverter.Int32BitsToSingle(packed);
     }
 }
