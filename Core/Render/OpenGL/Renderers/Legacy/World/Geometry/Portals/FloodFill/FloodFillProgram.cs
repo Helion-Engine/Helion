@@ -109,8 +109,7 @@ public class FloodFillProgram : RenderProgram
             vertexPosFrag = mix(prevPos, pos, timeFrac);
             mapIdFrag = mapId;
 
-            colorMapIndexFrag = trunc(colorMapIndex / 256);
-            vertexLightLevelFrag = colorMapIndex - (colorMapIndexFrag * 256);
+            ${ColorMapAndLightLevelSet}
 
             float alphaFrag;
             float addAlphaFrag;
@@ -134,6 +133,7 @@ public class FloodFillProgram : RenderProgram
     .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
     .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
     .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
+    .Replace("${ColorMapAndLightLevelSet}", VertexFunction.ColorMapAndLightLevelSet)
     .Replace("${Depth}", ShaderVars.Depth);
 
     protected override string FragmentShader()

@@ -7,7 +7,7 @@ public class SpriteRotation(Texture texture, bool mirror, bool brightmapNoFullbr
 {
     public Texture Texture = texture;
     public bool Mirror = mirror;
-    public float FlipU = mirror ? 1 : 0;
+    public int FlipU = mirror ? 1 : 0;
     public object? RenderStore;
     public object? BrightmapRenderStore;
     public bool BrightmapNoFullbright = brightmapNoFullbright;

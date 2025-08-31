@@ -32,15 +32,24 @@ public static class VertexFunction
 
     public static string VertexOptionsSet =>
         @"  
-            float splitOptions = options;
-            float lightLevelBufferIndex = trunc(splitOptions / 32);
-            splitOptions -= (lightLevelBufferIndex * 32);
-            upperFrag = trunc(splitOptions / 16);
-            splitOptions -= (upperFrag * 16);
-            lowerFrag = trunc(splitOptions / 8);
-            splitOptions -= (lowerFrag * 8);
-            addAlphaFrag = trunc(splitOptions / 4);
-            splitOptions -= (addAlphaFrag * 4);
-            float topLeft = trunc(splitOptions / 2);
-            alphaFrag = splitOptions - (topLeft * 2);";
+            int intOptions = floatBitsToInt(options);
+            alphaFrag = (intOptions & 0xFF) / 255.0;
+            float topLeft = float((intOptions >> 8) & 1);
+            addAlphaFrag = float((intOptions >> 9) & 1);
+            upperFrag = float((intOptions >> 10) & 1);
+            lowerFrag =  float((intOptions >> 11) & 1);
+            float lightLevelBufferIndex = float(intOptions >> 12);";
+
+    public static string ColorMapAndLightLevelSet =>
+        @"            
+            int colorMapAndLightLevel = floatBitsToInt(colorMapIndex);
+            vertexLightLevelFrag = float(colorMapAndLightLevel & 0xFF);
+            colorMapIndexFrag = float((colorMapAndLightLevel >> 8) & 0xFFFFFF);";
+
+    public static string LightLevelAddAndMapIdSet =>
+        @"
+            int lightLevelAndMapId = floatBitsToInt(lightLevelAdd);
+            float lightLevelAddValue = float((lightLevelAndMapId >> 1) & 0xFF);
+            mapIdFrag = float((lightLevelAndMapId >> 9) & 0xFFFFFF);
+            lightLevelAddValue = mix(lightLevelAddValue, -lightLevelAddValue, float(lightLevelAndMapId & 1));";
 }

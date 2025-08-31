@@ -116,13 +116,13 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         var options = VertexOptions.World(0, 0, 0, upper, lower, data.LightIndex);
 
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, topZ),
-            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, options, data.ColorMapIndex, mapId);
+            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, options, data.ColorMapAndLightLevel, mapId);
         FloodFillVertex topRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, topZ),
-            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, options, data.ColorMapIndex, mapId);
+            prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, options, data.ColorMapAndLightLevel, mapId);
         FloodFillVertex bottomLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, bottomZ),
-            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, options, data.ColorMapIndex, mapId);
+            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, options, data.ColorMapAndLightLevel, mapId);
         FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, bottomZ),
-            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, options, data.ColorMapIndex, mapId);
+            prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, options, data.ColorMapAndLightLevel, mapId);
 
         var vbo = floodInfo.Vertices.Vbo;
         vbo.Data[data.VboOffset] = topLeft;
@@ -134,7 +134,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
 
         if (isFloodFillPlane)
             ProjectFloodPlane(vbo, data.VboOffset + VerticesPerWall, vertices, minZ, maxZ, planeZ, prevPlaneZ, data.LightIndex,
-                maxPlaneZ > Constants.MaxTextureHeight ? -Constants.MaxTextureHeight : Constants.MaxTextureHeight, false, data.ColorMapIndex, mapId);
+                maxPlaneZ > Constants.MaxTextureHeight ? -Constants.MaxTextureHeight : Constants.MaxTextureHeight, false, data.ColorMapAndLightLevel, mapId);
 
         vbo.Bind();
         vbo.UploadSubData(data.VboOffset, data.Vertices);
@@ -166,7 +166,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         }
 
         var flatLightLevel = (byte)Math.Clamp(sectorPlane.LightLevelAbsolute ? sectorPlane.LightLevel : (short)0, (short)0, (short)255);
-        colorMapIndex = VertexOptions.ColorMapIndex(colorMapIndex, flatLightLevel);
+        var colorMapAndLightLevel = VertexOptions.ColorMapIndex(colorMapIndex, flatLightLevel);
 
         for (var node = m_freeData.First; node != null; node = node.Next)
         {
@@ -177,7 +177,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
             m_freeData.Remove(node);
             m_freeNodes.Add(node);
 
-            m_floodGeometry[data.Key - 1] = new(data.Key, data.TextureHandle, lightIndex, colorMapIndex, data.VboOffset, data.Vertices);
+            m_floodGeometry[data.Key - 1] = new(data.Key, data.TextureHandle, lightIndex, colorMapAndLightLevel, data.VboOffset, data.Vertices);
             UpdateStaticWall(data.Key, sectorPlane, vertices, minPlaneZ, maxPlaneZ, sideTexture, mapId);
             return data.Key;
         }
@@ -186,20 +186,20 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         int newKey = m_floodGeometry.Length + 1;
         var vbo = floodFillInfo.Vertices.Vbo;
 
-        m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, lightIndex, colorMapIndex, vbo.Count, vertexCount));
+        m_floodGeometry.Add(new FloodGeometry(newKey, floodFillInfo.TextureHandle, lightIndex, colorMapAndLightLevel, vbo.Count, vertexCount));
 
         var upper = sideTexture == SideTexture.Upper ? 1 : 0;
         var lower = sideTexture == SideTexture.Lower ? 1 : 0;
         var options = VertexOptions.World(0, 0, 0, upper, lower, lightIndex);
 
         FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.TopLeft.Z),
-            vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapIndex, mapId);
+            vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapAndLightLevel, mapId);
         FloodFillVertex topRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, vertices.TopLeft.Z),
-            vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapIndex, mapId);
+            vertices.TopLeft.Z, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapAndLightLevel, mapId);
         FloodFillVertex bottomLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, vertices.BottomRight.Z),
-            vertices.BottomRight.Z, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapIndex, mapId);
+            vertices.BottomRight.Z, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapAndLightLevel, mapId);
         FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, vertices.BottomRight.Z),
-            vertices.BottomRight.Z, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapIndex, mapId);
+            vertices.BottomRight.Z, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapAndLightLevel, mapId);
 
         int offset = vbo.Data.Length;
         int newLength = vbo.Data.Length + VerticesPerWall;
@@ -224,7 +224,7 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
     }
 
     private static unsafe void ProjectFloodPlane(VertexBufferObject<FloodFillVertex> vbo, int startIndex,
-       WallVertices vertices, float minZ, float maxZ, float planeZ, float prevPlaneZ, int lightIndex, int addHeight, bool add, int colorMapIndex, int mapId)
+       WallVertices vertices, float minZ, float maxZ, float planeZ, float prevPlaneZ, int lightIndex, int addHeight, bool add, float colorMapAndLightLevel, int mapId)
     {
         int newLength = startIndex + FloodPlaneAddCount * VerticesPerWall;
         vbo.Data.EnsureCapacity(newLength);
@@ -240,13 +240,13 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
 
             var options = VertexOptions.World(0, 0, 0, 0, 0, lightIndex);
             FloodFillVertex topLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, topLeftZ),
-                prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapIndex, mapId);
+                prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapAndLightLevel, mapId);
             FloodFillVertex topRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, topLeftZ),
-                prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapIndex, mapId);
+                prevTopZ, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapAndLightLevel, mapId);
             FloodFillVertex bottomLeft = new((vertices.TopLeft.X, vertices.TopLeft.Y, bottomRightZ),
-                prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex, colorMapIndex, mapId);
+                prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, lightIndex, colorMapAndLightLevel, mapId);
             FloodFillVertex bottomRight = new((vertices.BottomRight.X, vertices.BottomRight.Y, bottomRightZ),
-                prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapIndex, mapId);
+                prevBottomZ, planeZ, prevPlaneZ, minZ, maxZ, options, colorMapAndLightLevel, mapId);
 
             buffer[startIndex++] = topLeft;
             buffer[startIndex++] = bottomLeft;

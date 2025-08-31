@@ -125,9 +125,9 @@ public class EntityRenderer : IDisposable
         return unchecked((viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29);
     }
 
-    private float GetOffsetZ(Entity entity, GLLegacyTexture texture)
+    private int GetOffsetZ(Entity entity, GLLegacyTexture texture)
     {
-        float offsetAmount = texture.Offset.Y - texture.Height;
+        int offsetAmount = texture.Offset.Y - texture.Height;
         if (m_vanillaRender)
             return offsetAmount;
 
@@ -145,11 +145,11 @@ public class EntityRenderer : IDisposable
 
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
-            float maxHeight = (texture.Height - texture.BlankRowsFromBottom) * m_spriteClipFactorMax;
+            // Truncate to integer pixel amount. This helps the jumpiness for the stock large torches.
+            int maxHeight = (int)((texture.Height - texture.BlankRowsFromBottom) * m_spriteClipFactorMax);
             if (-offsetAmount > maxHeight)
                 offsetAmount = -maxHeight - texture.BlankRowsFromBottom;
-            // Truncate to integer pixel amount. This helps the jumpiness for the stock large torches.
-            return (int)offsetAmount;
+            return offsetAmount;
         }
 
         return offsetAmount;
@@ -238,7 +238,19 @@ public class EntityRenderer : IDisposable
         var isFullBright = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
         var offsetZ = GetOffsetZ(entity, texture);
         var shadow = entity.Flags.Shadow || entity.RenderStyle == RenderStyle.Fuzzy;
-        var renderStyle = shadow ? RenderStyle.Fuzzy : m_spriteAlpha ? entity.RenderStyle : RenderStyle.Normal;
+
+        int fuzz;
+        RenderStyle renderStyle;
+        if (shadow)
+        {
+            renderStyle = RenderStyle.Fuzzy;
+            fuzz = 1;
+        }
+        else
+        {
+            renderStyle = m_spriteAlpha ? entity.RenderStyle: RenderStyle.Normal;
+            fuzz = 0;
+        }
 
         // If fullbright and modified through dehacked then change render style to ColorAdd for better color rendering.
         var entityAlpha = entity.Alpha;
@@ -257,14 +269,14 @@ public class EntityRenderer : IDisposable
             entityAlpha = 1.0f;
 
         var renderData = m_dataManager.GetByRenderStyle(renderStyle, texture, brightmapTexture);
-
         var alpha = m_spriteAlpha && renderStyle != RenderStyle.Normal ? entityAlpha : 1.0f;
-        var fuzz = shadow ? 1.0f : 0.0f;
 
         var arrayData = renderData.ArrayData;
         int length = arrayData.Length;
         if (arrayData.Capacity < length + 1)
             arrayData.EnsureCapacity(length + 1);
+
+        int lightLevel = isFullBright ? 255 : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
 
         ref var vertex = ref arrayData.Data[length];
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
@@ -277,22 +289,20 @@ public class EntityRenderer : IDisposable
             (float)(entity.PrevPosition.X - nudgeAmount.X),
             (float)(entity.PrevPosition.Y - nudgeAmount.Y),
             (float)entity.PrevPosition.Z);
-        vertex.OffsetZ = offsetZ;
-        vertex.OffsetXY = texture.Offset.X;
-        vertex.LightLevel = isFullBright
-            ? 255
-            : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
-        vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
+        vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex, lightLevel);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
 
         if (entity.Definition.Flags.SpawnCeiling && m_vanillaRender)
         {
             // Set position and offset from ceiling to not clip to floors
-            vertex.OffsetZ = vertex.Pos.Z + offsetZ - (float)entity.Sector.Ceiling.Z;
-            vertex.Pos.Z = (float)entity.Sector.Ceiling.Z;
-            vertex.PrevPos.Z = (float)entity.Sector.Ceiling.PrevZ;
+            var ceilingZ = (float)entity.Sector.Ceiling.Z;
+            float diff = 0;
+            offsetZ = (int)(vertex.Pos.Z + offsetZ - ceilingZ);
+            vertex.Pos.Z = ceilingZ + diff;
+            vertex.PrevPos.Z = entity.PrevPosition.Z != entity.Position.Z ? (float)entity.Sector.Ceiling.PrevZ : ceilingZ;
         }
 
+        vertex.OffsetXYZ = VertexOptions.EntityXYZ(texture.Offset.X, offsetZ);
         arrayData.Length = length + 1;
 
         if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
@@ -318,13 +328,12 @@ public class EntityRenderer : IDisposable
         ref var vertex = ref array.Data[array.Length];
         // Prevent small health values from rendering zero pixels
         float min = 1f / (entity.Properties.HealthBarWidth + MinBarWidth - 5);
-        // Normalized health percent
-        vertex.LightLevel = Math.Max(min, entity.Health / (float)entity.Properties.Health);
-        vertex.Options = VertexOptions.Entity(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth);
+        // Normalized health percent (0-255)
+        int health = (int)(Math.Max(min, entity.Health / (float)entity.Properties.Health) * 255f);
+        vertex.Options = VertexOptions.Entity(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth, health);
         vertex.Pos = entityVertex.Pos;
         vertex.PrevPos = entityVertex.PrevPos;
-        vertex.OffsetZ = offset;
-        vertex.OffsetXY = 0;
+        vertex.OffsetXYZ = VertexOptions.EntityXYZ(0, offset);
 
         array.SetLength(array.Length + 1);
     }
