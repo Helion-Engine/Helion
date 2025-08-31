@@ -21,8 +21,7 @@ internal sealed class SectorUpdates
         UpdateSectors.Clear();
         UpdateSectors.FlushReferences();
 
-        for (int i = 0; i < m_updateLookup.Capacity; i++)
-            m_updateLookup.Data[i] = 0;
+        m_updateLookup.Data.ZeroArray();
     }
 
     public void Add(Sector sector)

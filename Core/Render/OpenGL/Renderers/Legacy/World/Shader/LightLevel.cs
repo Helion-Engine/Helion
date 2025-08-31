@@ -17,11 +17,11 @@ public static class LightLevel
     public static string VertexVariables(LightLevelOptions options) =>
         $"flat out float lightLevelFrag;{((options & LightLevelOptions.NoDist) != 0 ? "" : "out float dist;")}uniform mat4 mvpNoPitch;uniform float distanceOffset;";
 
-    public static string VertexLightBufferVariables => "uniform samplerBuffer sectorLightTexture;";
+    public static string VertexLightBufferVariables => "uniform usamplerBuffer sectorLightTexture;";
 
     public static string VertexLightBuffer(VertexLightBufferOptions options) =>
 @"int texBufferIndex = int(lightLevelBufferIndex);
-float lightLevelBufferValue = texelFetch(sectorLightTexture, texBufferIndex).r;
+float lightLevelBufferValue = float(texelFetch(sectorLightTexture, texBufferIndex).r);
 lightLevelFrag = clamp(lightLevelBufferValue" + ((options & VertexLightBufferOptions.LightLevelAdd) != 0 ? " + lightLevelAddValue + vertexLightLevelFrag" : " + vertexLightLevelFrag") + ", 0.0, 256.0);";
 
     public static string VertexDist(string posVariable) => $"dist = (mvpNoPitch * {posVariable}).{ShaderVars.Depth};";

@@ -18,7 +18,7 @@ public static class WorldStatic
     public static IWorld World = null!;
     public static IRandom Random = null!;
     public static DataCache DataCache = null!;
-    public static int CheckCounter;
+    public static int CheckCounter = 1;
     public static int SlowTickDistance;
     public static int RespawnTicks;
     public static int ClosetLookFrameIndex;

@@ -4,18 +4,18 @@ using System;
 
 namespace Helion.Render.OpenGL.Textures;
 
-public class GLBufferTextureStorage
+public class GLBufferTextureStorage<T> where T : struct
 {
-    private readonly GLBufferTexture m_bufferTexture;
-    private GLMappedBuffer<float> m_mappedBuffer;
+    private readonly GLBufferTexture<T> m_bufferTexture;
+    private GLMappedBuffer<T> m_mappedBuffer;
     private bool m_mapped;
 
-    public GLBufferTextureStorage(string label, float[] data, SizedInternalFormat format, bool persistentBufferStorage)
+    public GLBufferTextureStorage(string label, T[] data, SizedInternalFormat format, bool persistentBufferStorage)
     {
         m_bufferTexture = new(label, data, format, persistentBufferStorage);
     }
 
-    public GLMappedBuffer<float> GetMappedBufferAndBind()
+    public GLMappedBuffer<T> GetMappedBufferAndBind()
     {
         m_bufferTexture.BindBuffer();
         if (m_bufferTexture.PersistentBufferStorage)
@@ -26,7 +26,7 @@ public class GLBufferTextureStorage
                 m_mapped = true;
                 m_bufferTexture.BindBuffer();
                 m_mappedBuffer = m_bufferTexture.MapWithDisposable();
-                GLBufferTexture.UnbindBuffer();
+                GLBufferTexture<T>.UnbindBuffer();
             }
 
             return m_mappedBuffer;
@@ -48,7 +48,7 @@ public class GLBufferTextureStorage
         if (!m_bufferTexture.PersistentBufferStorage)
             m_mappedBuffer.Dispose();
 
-        GLBufferTexture.UnbindBuffer();
+        GLBufferTexture<T>.UnbindBuffer();
     }
 
     public void Map(Action<IntPtr> action)
