@@ -372,11 +372,11 @@ public partial class Renderer
         for (int i = 0; i < m_updateLightSectors.UpdateSectors.Length; i++)
         {
             var sector = m_updateLightSectors.UpdateSectors[i];
-            float level = sector.LightLevel;
-            int index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
-            lightData[index + LightBuffer.FloorOffset] = (byte)level;
-            lightData[index + LightBuffer.CeilingOffset] = (byte)level;
-            lightData[index + LightBuffer.WallOffset] = (byte)level;
+            var level = Math.Min((byte)sector.LightLevel, (byte)255);
+            var index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
+            lightData[index + LightBuffer.FloorOffset] = level;
+            lightData[index + LightBuffer.CeilingOffset] = level;
+            lightData[index + LightBuffer.WallOffset] = level;
         }
 
         m_lightBufferStorage.Unbind();
