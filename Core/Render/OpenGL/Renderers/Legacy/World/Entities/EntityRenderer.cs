@@ -145,11 +145,11 @@ public class EntityRenderer : IDisposable
 
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
+            // Truncate to integer pixel amount. This helps the jumpiness for the stock large torches.
             int maxHeight = (int)((texture.Height - texture.BlankRowsFromBottom) * m_spriteClipFactorMax);
             if (-offsetAmount > maxHeight)
                 offsetAmount = -maxHeight - texture.BlankRowsFromBottom;
-            // Truncate to integer pixel amount. This helps the jumpiness for the stock large torches.
-            return (int)offsetAmount;
+            return offsetAmount;
         }
 
         return offsetAmount;
@@ -238,7 +238,19 @@ public class EntityRenderer : IDisposable
         var isFullBright = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
         var offsetZ = GetOffsetZ(entity, texture);
         var shadow = entity.Flags.Shadow || entity.RenderStyle == RenderStyle.Fuzzy;
-        var renderStyle = shadow ? RenderStyle.Fuzzy : m_spriteAlpha ? entity.RenderStyle : RenderStyle.Normal;
+
+        int fuzz;
+        RenderStyle renderStyle;
+        if (shadow)
+        {
+            renderStyle = RenderStyle.Fuzzy;
+            fuzz = 1;
+        }
+        else
+        {
+            renderStyle = m_spriteAlpha ? entity.RenderStyle: RenderStyle.Normal;
+            fuzz = 0;
+        }
 
         // If fullbright and modified through dehacked then change render style to ColorAdd for better color rendering.
         var entityAlpha = entity.Alpha;
@@ -257,9 +269,7 @@ public class EntityRenderer : IDisposable
             entityAlpha = 1.0f;
 
         var renderData = m_dataManager.GetByRenderStyle(renderStyle, texture, brightmapTexture);
-
         var alpha = m_spriteAlpha && renderStyle != RenderStyle.Normal ? entityAlpha : 1.0f;
-        var fuzz = shadow ? 1 : 0;
 
         var arrayData = renderData.ArrayData;
         int length = arrayData.Length;
@@ -285,9 +295,11 @@ public class EntityRenderer : IDisposable
         if (entity.Definition.Flags.SpawnCeiling && m_vanillaRender)
         {
             // Set position and offset from ceiling to not clip to floors
-            offsetZ = (int)(vertex.Pos.Z + offsetZ - (float)entity.Sector.Ceiling.Z);
-            vertex.Pos.Z = (float)entity.Sector.Ceiling.Z;
-            vertex.PrevPos.Z = (float)entity.Sector.Ceiling.PrevZ;
+            var ceilingZ = (float)entity.Sector.Ceiling.Z;
+            float diff = 0;
+            offsetZ = (int)(vertex.Pos.Z + offsetZ - ceilingZ);
+            vertex.Pos.Z = ceilingZ + diff;
+            vertex.PrevPos.Z = entity.PrevPosition.Z != entity.Position.Z ? (float)entity.Sector.Ceiling.PrevZ : ceilingZ;
         }
 
         vertex.OffsetXYZ = VertexOptions.EntityXYZ(texture.Offset.X, offsetZ);
