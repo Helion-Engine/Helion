@@ -343,6 +343,6 @@ ASALocalRun/
 Publish/
 
 # Ignore AppDir/AppImage related artifacts
-AppImage/
+AppDir/
 Helion.AppImage
 appimagetool-x86_64.AppImage

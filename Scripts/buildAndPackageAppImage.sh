@@ -2,41 +2,20 @@
 startdir=$PWD;
 scriptdir=$(dirname $0);
 cd $scriptdir;
+cd ../;
 
 # TODO:  Install any other required tools and deps needed for the build
 
-# Do build
-cd ../Client
-if ! (dotnet publish -c Release -r linux-x64 -p:AOT=true); then
-    echo 'Build failed!';
-    exit 1;
-fi
-
 # Remove any existing AppImage
-rm -rf AppImage;
+
 rm -rf Helion.AppImage;
 
-# Copy executable and support files
-cd ..
-echo 'Copying files for AppImage';
-mkdir -p AppImage/usr/bin;
-cp Publish/linux-x64_AOT/Helion AppImage/usr/bin;
-
-mkdir -p AppImage/opt/Helion;
-cp -r Publish/linux-x64_AOT/* AppImage/opt/Helion;
-rm AppImage/opt/Helion/Helion;
-
-# Copy all transitive dependencies; patch Helion ELF to use copied lib dir
-mkdir -p AppImage/usr/lib;
-ldd Publish/linux-x64_AOT/Helion | awk 'NF == 4 { system("cp " $3 " AppImage/usr/lib") }';
-rm AppImage/lib/libm.so.*;
-rm AppImage/lib/libc.so.*;
-patchelf --force-rpath --set-rpath '$ORIGIN'/../usr/lib AppImage/usr/bin/Helion
+./Scripts/buildAndPrepareAppDir.sh
 
 # Copy icon and .desktop file
-cp -r Scripts/appImageResources/* AppImage;
-chmod +x AppImage/AppRun;
-cp Assets/Misc/Helion.desktop AppImage;
+cp -r Scripts/appImageResources/* AppDir;
+chmod +x AppDir/AppRun;
+cp Assets/Misc/Helion.desktop AppDir;
 
 # Download AppImage tool
 if [ ! -f appimagetool-x86_64.AppImage ]; then
@@ -46,7 +25,7 @@ if [ ! -f appimagetool-x86_64.AppImage ]; then
 fi
 
 ARCH=x86_64;
-if ! (./appimagetool-x86_64.AppImage AppImage Helion.AppImage); then
+if ! (./appimagetool-x86_64.AppImage AppDir Helion.AppImage); then
     echo 'AppImage pack failed!';
     exit 1;
 else
@@ -54,6 +33,6 @@ else
 fi
 
 # Clean up
-rm -rf AppImage;
+rm -rf AppDir;
 
 cd $startdir;
