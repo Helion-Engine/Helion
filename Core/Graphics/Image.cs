@@ -111,7 +111,7 @@ public class Image
     }
 
     public static Image? FromImageSharp<TPixel>(SixLabors.ImageSharp.Image<TPixel> data, Vec2I imageOffset = default, ResourceNamespace ns = ResourceNamespace.Global,
-        Palette? paletteTranslation = null, byte[]? colorTranslation = null)
+        Palette? paletteTranslation = null, PaletteColorLookup? paletteTranslationColorLookup = null, byte[]? colorTranslation = null)
         where TPixel : unmanaged, IPixel<TPixel>
     {
         var indices = paletteTranslation == null ? null : new ushort[data.Height * data.Width];
@@ -131,9 +131,9 @@ public class Image
                 argbData[offset + 2] = tempPixel.G;
                 argbData[offset + 3] = tempPixel.B;
 
-                if (indices != null && paletteTranslation != null && tempPixel.A != 0)
+                if (indices != null && paletteTranslation != null && paletteTranslationColorLookup != null && tempPixel.A != 0)
                 {
-                    var nearestIndex = paletteTranslation.GetNearestColorIndex(new(tempPixel.R, tempPixel.G, tempPixel.B));
+                    var nearestIndex = paletteTranslationColorLookup.GetIndex(tempPixel.R, tempPixel.G, tempPixel.B);
                     indices[index] = nearestIndex;
 
                     if (colorTranslation != null)

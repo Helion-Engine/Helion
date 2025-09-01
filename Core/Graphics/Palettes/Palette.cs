@@ -21,7 +21,6 @@ public class Palette
 
     private readonly List<Color[]> layers;
     private readonly Vector3[] m_paletteNormalized = new Vector3[256];
-    private readonly Dictionary<Color, byte> m_colorToIndex = [];
 
     public int Count => layers.Count;
     public Color[] DefaultLayer => layers[0];
@@ -37,7 +36,6 @@ public class Palette
         {
             var c = colors[i];
             m_paletteNormalized[i] = new Vector3(c.R / 255f, c.G / 255f, c.B / 255f);
-            m_colorToIndex[c] = (byte)i;
         }
     }
 
@@ -127,22 +125,18 @@ public class Palette
             data[i + 2] = (byte)i;
         }
 
-        Palette? palette = From(data);
-        if (palette == null)
-            throw new NullReferenceException("Failed to create the default palette, shouldn't be possible");
-
+        var palette = From(data) ?? throw new NullReferenceException("Failed to create the default palette, shouldn't be possible");
         DefaultPalette = palette;
         return palette;
     }
 
-    public byte GetNearestColorIndex(Color color)
-    {
-        if (m_colorToIndex.TryGetValue(color, out var index))
-            return index;
+    public byte GetNearestColorIndex(Color color) => GetNearestColorIndex(color.R, color.G, color.B);
 
+    public byte GetNearestColorIndex(byte r, byte g, byte b)
+    {
         byte bestIndex = 0;
         var nearest = float.MaxValue;
-        var colorNormalized = new Vector3(color.R / 255f, color.G / 255f, color.B / 255f);
+        var colorNormalized = new Vector3(r / 255f, g / 255f, b / 255f);
         for (int i = 0; i < m_paletteNormalized.Length; i++)
         {
             var paletteColor = m_paletteNormalized[i];
@@ -154,7 +148,6 @@ public class Palette
             }
         }
 
-        m_colorToIndex[color] = bestIndex;
         return bestIndex;
     }
 }

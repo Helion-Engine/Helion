@@ -250,10 +250,10 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         }
 
         GetAverageColors(skyImage, out var topColor, out var bottomColor);
-        var palette = m_archiveCollection.Palette;
+        var paletteColorLookup = m_archiveCollection.PaletteColorLookup;
         var glTexture = CreateTexture(skyImage, $"[SKY][{textureIndex}]");
         texture = new(glTexture, textureIndex, topColor, bottomColor,
-            palette.GetNearestColorIndex(FromRgba(topColor)), palette.GetNearestColorIndex(FromRgba(bottomColor)), false);
+            paletteColorLookup.GetIndex(FromRgba(topColor)), paletteColorLookup.GetIndex(FromRgba(bottomColor)), false);
         return true;
     }
 
