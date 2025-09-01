@@ -8,6 +8,7 @@ using Helion.Graphics.Palettes;
 using Helion.Resources.Archives;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
+using Helion.Resources.Data;
 using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Boom;
 using Helion.Resources.Definitions.Compatibility;
@@ -298,8 +299,9 @@ public class DefinitionEntries
             action(entry);
     }
 
-    public void BuildTranslationColorMaps(Palette palette, Colormap baseColorMap)
+    public void BuildTranslationColorMaps(DataEntries dataEntries)
     {
+        var baseColorMap = dataEntries.Colormap;
         if (GetGameConfPlayerTranslations(out var playerColormaps))
         {
             var translatedColorMaps = new List<Colormap>(Colormaps.Count + playerColormaps.Length);
@@ -318,7 +320,7 @@ public class DefinitionEntries
         }
         else
         {
-            SetPlayerColorMaps(palette, baseColorMap);
+            SetPlayerColorMaps(dataEntries, baseColorMap);
         }
 
         for (int i = 0; i < Colormaps.Count; i++)
@@ -352,11 +354,12 @@ public class DefinitionEntries
         return true;
     }
 
-    private void SetPlayerColorMaps(Palette palette, Colormap baseColorMap)
+    private void SetPlayerColorMaps(DataEntries dataEntries, Colormap baseColorMap)
     {
         if (m_archiveCollection.Data.ColormapData.Length == 0)
             return;
 
+        var palette = dataEntries.Palette;
         var colormapBytes = m_archiveCollection.Data.ColormapData;
         int colorCount = (int)TranslateColor.Count;
         // First player colormap is default
@@ -382,14 +385,14 @@ public class DefinitionEntries
         Colormaps.AddRange(translatedColormaps);
 
         if (DehackedDefinition != null && DehackedDefinition.HasBloodColor)
-            CreateBloodColorMaps(palette, colormapBytes, DehackedDefinition.BloodColors);
+            CreateBloodColorMaps(palette, dataEntries.PaletteColorLookup, colormapBytes, DehackedDefinition.BloodColors);
     }
 
-    private void CreateBloodColorMaps(Palette palette, byte[] colormapBytes, IEnumerable<PaletteColor> paletteColors)
+    private void CreateBloodColorMaps(Palette palette, PaletteColorLookup paletteColorLookup, byte[] colormapBytes, IEnumerable<PaletteColor> paletteColors)
     {
         foreach (var paletteColor in paletteColors)
         {
-            var colormap = Colormap.TranslateToNearestMatch(palette, colormapBytes, paletteColor);
+            var colormap = Colormap.TranslateToNearestMatch(palette, paletteColorLookup, colormapBytes, paletteColor);
             if (colormap == null)
                 continue;
 

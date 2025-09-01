@@ -59,6 +59,7 @@ public class ArchiveCollection : IResources, IPathResolver
 
     public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
     public Palette Palette => Data.Palette;
+    public PaletteColorLookup PaletteColorLookup => Data.PaletteColorLookup;
     public Colormap Colormap => Data.Colormap;
     public IWadInfo IWadInfo => GetIWadInfo();
     public Archive? Assets => m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.Assets);
@@ -316,8 +317,7 @@ public class ArchiveCollection : IResources, IPathResolver
         // if we have already loaded it.
         if (loadDefaultAssets && m_archives.Empty())
         {
-            Archive? assetsArchive = null;
-
+            Archive? assetsArchive;
             if (OperatingSystem.IsLinux())
             {
                 // On Linux, if we're installed according to the standard pattern, our assets should be in /opt/Helion/assets.pk3 or similar
@@ -328,8 +328,9 @@ public class ArchiveCollection : IResources, IPathResolver
             {
                 assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, LoadArchiveOptions.CalculateMd5 | LoadArchiveOptions.IsBundled);
             }
+
             if (assetsArchive == null)
-                    return false;
+                return false;
 
             m_archives.Add(assetsArchive);
         }
@@ -376,7 +377,7 @@ public class ArchiveCollection : IResources, IPathResolver
             SetCustomKeyColors();
 
             if (iwad != null || files.Any())
-                Definitions.BuildTranslationColorMaps(Data.Palette, Data.Colormap);
+                Definitions.BuildTranslationColorMaps(Data);
 
             if (dehackedPatch != null)
             {

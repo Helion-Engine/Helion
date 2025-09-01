@@ -132,13 +132,13 @@ public class Colormap
         return From(palette, translated, null);
     }
 
-    public static Colormap? TranslateToNearestMatch(Palette palette, byte[] colorMap, PaletteColor translateColor)
+    public static Colormap? TranslateToNearestMatch(Palette palette, PaletteColorLookup paletteColorLookup, byte[] colorMap, PaletteColor translateColor)
     {
-        var translated = TranslateIndicesNearest(palette, colorMap, translateColor);
+        var translated = TranslateIndicesNearest(palette, paletteColorLookup, colorMap, translateColor);
         return From(palette, translated, null);
     }
 
-    private static byte[] TranslateIndicesNearest(Palette palette, byte[] colorMap, PaletteColor translateColor)
+    private static byte[] TranslateIndicesNearest(Palette palette, PaletteColorLookup paletteColorLookup, byte[] colorMap, PaletteColor translateColor)
     {
         var hsl = ToHsl(translateColor);
         var translate = new byte[colorMap.Length];
@@ -160,7 +160,7 @@ public class Colormap
                     continue;
                 }
 
-                var newIndex = ShiftToHsl(palette, color, hsl);
+                var newIndex = ShiftToHsl(paletteColorLookup, color, hsl);
                 translate[dataIndex] = newIndex;
                 lookup[color] = newIndex;
             }
@@ -184,7 +184,7 @@ public class Colormap
         };
     }
 
-    private static byte ShiftToHsl(Palette palette, Color color, HslShift toHsl)
+    private static byte ShiftToHsl(PaletteColorLookup paletteColorLookup, Color color, HslShift toHsl)
     {
         var hsl = HslConverter.ToHsl(color);
 
@@ -198,7 +198,7 @@ public class Colormap
         hsl.Z = Math.Clamp(hsl.Z + toHsl.AddL, 0, 1);
 
         var newColor = HslConverter.ToColor(hsl);
-        return palette.GetNearestColorIndex(newColor);
+        return paletteColorLookup.GetIndex(newColor);
     }
 
     public static Colormap? CreateTranslatedColormap(Palette palette, byte[] colorMap, byte[] translateTable)

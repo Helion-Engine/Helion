@@ -22,8 +22,17 @@ public class DataEntries
 
     private Palette? m_latestPalette;
     private Colormap? m_latestColormap;
+    private PaletteColorLookup? m_paletteColorLookup;
 
     public Palette Palette => m_latestPalette ?? Palette.GetDefaultPalette();
+    public PaletteColorLookup PaletteColorLookup => GetOrCreateLookup();
+
+    private PaletteColorLookup GetOrCreateLookup()
+    {
+        m_paletteColorLookup ??= new(Palette);
+        return m_paletteColorLookup;
+    }
+
     public Colormap Colormap => m_latestColormap ?? Colormap.GetDefaultColormap();
     public byte[] ColormapData { get; private set; } = [];
 
