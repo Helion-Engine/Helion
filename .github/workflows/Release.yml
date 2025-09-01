@@ -23,7 +23,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Install Linux prereqs
-      run: sudo apt -y install clang zlib1g libsndfile1-dev libmpg123-dev libglib2.0-dev libasound2-dev patchelf
+      run: sudo apt -y install clang zlib1g libsndfile1-dev libmpg123-dev libglib2.0-dev libasound2-dev patchelf fuse file
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -47,11 +47,14 @@ jobs:
       
     - name: Make Linux AppImage
       run: Scripts/buildAndPackageAppImage.sh
+    
+    - name: Make Linux DEB
+      run: Scripts/buildAndPackageDeb.sh ${{ github.ref_name }}
       
     - name: Make Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "*.zip,Helion.AppImage"
+        artifacts: "*.zip,Helion.AppImage,Helion*.deb"
         bodyFile: "RELEASENOTES.md"
   
   buildReleaseWindows:
