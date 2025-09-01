@@ -10,7 +10,11 @@ cd ../;
 
 rm -rf Helion.AppImage;
 
-./Scripts/buildAndPrepareAppDir.sh
+if ! (./Scripts/buildAndPrepareAppDir.sh);
+then
+    echo "Failed to build and create app dir";
+    exit 1;
+fi
 
 # Copy icon and .desktop file
 cp -r Scripts/appImageResources/* AppDir;
@@ -27,7 +31,7 @@ fi
 ARCH=x86_64;
 if ! (./appimagetool-x86_64.AppImage AppDir Helion.AppImage); then
     echo 'AppImage pack failed!';
-    exit 1;
+    exit 2;
 else
     echo 'AppImage created: Helion.AppImage';
 fi
