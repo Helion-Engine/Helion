@@ -371,30 +371,32 @@ public class ArchiveCollection : IResources, IPathResolver
         if (loadDefaultAssets)
         {
             // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
-            EntityDefinitionComposer.LoadAllDefinitions();
+            EntityDefinitionComposer.LoadAllDefinitions();       
+            if (dehackedPatch != null && !LoadDehackedPatch(dehackedPatch))
+                return false;            
             ApplyDehackedPatch();
             EntityFrameTable.AddCustomFrames();
             SetCustomKeyColors();
 
             if (iwad != null || files.Any())
                 Definitions.BuildTranslationColorMaps(Data);
-
-            if (dehackedPatch != null)
-            {
-                try
-                {
-                    Definitions.ParseDehackedPatch(File.ReadAllText(dehackedPatch));
-                    ApplyDehackedPatch();
-                }
-                catch (IOException)
-                {
-                    HelionLog.Error($"Unable to open dehacked patch {dehackedPatch}");
-                    return false;
-                }
-            }
         }
 
         return true;
+    }
+
+    private bool LoadDehackedPatch(string dehackedPatch)
+    {
+        try
+        {
+            Definitions.ParseDehackedPatch(File.ReadAllText(dehackedPatch));
+            return true;
+        }
+        catch (IOException)
+        {
+            HelionLog.Error($"Unable to open dehacked patch {dehackedPatch}");
+            return false;
+        }
     }
 
     private void SetCustomKeyColors()
