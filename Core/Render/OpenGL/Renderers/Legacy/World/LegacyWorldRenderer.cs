@@ -170,6 +170,7 @@ public class LegacyWorldRenderer : WorldRenderer
                 if (m_renderStatic)
                     RenderSides(world, index);
 
+                m_entityRenderer.ClearRenderPositions();
                 for (var entity = world.RenderBlockmap.HeadRenderEntities[index]; entity != null; entity = entity.RenderBlockNext)
                     RenderEntity(world, entity);
             }

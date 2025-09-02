@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
@@ -16,6 +14,9 @@ using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
@@ -99,6 +100,12 @@ public class EntityRenderer : IDisposable
         m_attackIndicator = m_config.Render.HealthBar.AttackIndicator;
         m_healthBarLimit = m_config.Render.HealthBar.HealthLimit;
         m_brightMaps = m_config.Render.Brightmaps;
+    }
+
+    public void ClearRenderPositions()
+    {
+        m_renderPositions.Clear();
+        m_spriteRenderPositions.Clear();
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -206,17 +213,18 @@ public class EntityRenderer : IDisposable
             var spritePosKey = new SpritePosKey(entityPos, spriteIndex);
             if (m_spriteRenderPositions.Add(spritePosKey))
             {
-                if (m_renderPositions.TryGetValue(entityPos, out int count))
+                ref int count = ref CollectionsMarshal.GetValueRefOrAddDefault(m_renderPositions, entityPos, out bool exists);
+                if (exists)
                 {
-                    double nudge = NudgeFactor * count * Math.Sqrt(entity.RenderDistanceSquared);
-                    double angle = Math.Atan2(centerBottom.Y - position.Y, centerBottom.X - position.X);
+                    var nudge = NudgeFactor * count * Math.Sqrt(entity.RenderDistanceSquared);
+                    var angle = Math.Atan2(centerBottom.Y - position.Y, centerBottom.X - position.X);
                     nudgeAmount.X = Math.Cos(angle) * nudge;
                     nudgeAmount.Y = Math.Sin(angle) * nudge;
-                    m_renderPositions[entityPos] = count + 1;
+                    count++;
                 }
                 else
                 {
-                    m_renderPositions[entityPos] = 1;
+                    count = 1;
                 }
             }
         }
