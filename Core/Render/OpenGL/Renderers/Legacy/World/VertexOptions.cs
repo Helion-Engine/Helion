@@ -25,17 +25,9 @@ public static class VertexOptions
     {
         // Packs LightLevelAdd with MapId
         // First bit is sign, next 8 are lightLevelAdd, last 23 are mapId
-        if (lightLevelAdd < 0)
-            return PackLightLevelAddAndMapId(mapId, Math.Abs(lightLevelAdd), 1);
-
-        return PackLightLevelAddAndMapId(mapId, lightLevelAdd, 0);
-    }
-
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static float PackLightLevelAddAndMapId(int mapId, int lightLevelAdd, int signFlag)
-    {
-        int packed = ((mapId & 0xFFFFFF) << 9) | ((lightLevelAdd & 0xFF) << 1) | signFlag;
+        int signMask = lightLevelAdd >> 31;
+        lightLevelAdd = (lightLevelAdd ^ signMask) - signMask;
+        int packed = ((mapId & 0xFFFFFF) << 9) | ((lightLevelAdd & 0xFF) << 1) | (signMask & 1);
         return BitConverter.Int32BitsToSingle(packed);
     }
 
@@ -50,19 +42,13 @@ public static class VertexOptions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float EntityXYZ(int offsetXY, int offsetZ)
     {
-        int offsetXYSign = 0;
-        int offsetZSign = 0;
-        if (offsetXY < 0)
-        {
-            offsetXY = Math.Abs(offsetXY);
-            offsetXYSign = 1;
-        }
-
-        if (offsetZ < 0)
-        {
-            offsetZ = Math.Abs(offsetZ);
-            offsetZSign = 1;
-        }
+        // Shift negative bit for mask to get absolute value and sign bit to remove branches
+        int maskXY = offsetXY >> 31;
+        int maskZ = offsetZ >> 31;
+        offsetXY = (offsetXY ^ maskXY) - maskXY;
+        offsetZ = (offsetZ ^ maskZ) - maskZ;
+        int offsetXYSign = maskXY & 1;
+        int offsetZSign = maskZ & 1;
 
         int packed = (offsetXYSign << 31) | (offsetZSign << 30) | (offsetXY << 16) | offsetZ;
         return BitConverter.Int32BitsToSingle(packed);

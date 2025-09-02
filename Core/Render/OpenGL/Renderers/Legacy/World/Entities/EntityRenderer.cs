@@ -213,7 +213,7 @@ public class EntityRenderer : IDisposable
             var spritePosKey = new SpritePosKey(entityPos, spriteIndex);
             if (m_spriteRenderPositions.Add(spritePosKey))
             {
-                ref int count = ref CollectionsMarshal.GetValueRefOrAddDefault(m_renderPositions, entityPos, out bool exists);
+                ref int count = ref CollectionsMarshal.GetValueRefOrAddDefault(m_renderPositions, entityPos, out var exists);
                 if (exists)
                 {
                     var nudge = NudgeFactor * count * Math.Sqrt(entity.RenderDistanceSquared);
