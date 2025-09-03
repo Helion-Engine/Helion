@@ -26,6 +26,8 @@ All of these projects use CMake and may have other package dependencies, althoug
 When building the `.a` files for use with Native AOT linking, we generally use the following CMake parameters as a baseline:
 `-DCMAKE_CXX_COMPILER=clang -DCMAKE_C_COMPILER=clang -DBUILD_SHARED_LIBS=OFF -DLIBTYPE=STATIC`
 
+# Library-specific notes
+## GLFW
 Note that building GLFW for AOT use may require you to add the following function:
 
 ```
@@ -36,3 +38,10 @@ GLFWAPI void* glfwGetWin32Window(GLFWwindow* handle)
 ```
 
 This is, unfortunately, necessitated by library code (OpenTK) we do not control.
+
+## OpenAL-Soft
+Building OpenAL-Soft might require a newer version of CMake than some older Linux distributions provide.  On our Ubuntu 22.04-based build environment, we needed to follow the workaround described here, which involved adding Kitware's APT repository:
+
+https://askubuntu.com/questions/355565/how-do-i-install-the-latest-version-of-cmake-from-the-command-line
+
+Note also that OpenAL-Soft bundles some utilities and example programs that we do not need.  If you encounter a build error when building the static library, you can ignore this, so long as the `libopenal.a` file is created in your target directory.
