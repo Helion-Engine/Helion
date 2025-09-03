@@ -289,16 +289,15 @@ public class EntityRenderer : IDisposable
         ref var vertex = ref arrayData.Data[length];
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
         // Doom graphics are drawn left to right and not centered
-        vertex.Pos = new Vec3F(
-            (float)(entity.Position.X - nudgeAmount.X),
-            (float)(entity.Position.Y - nudgeAmount.Y),
-            (float)entity.Position.Z);
-        vertex.PrevPos = new Vec3F(
-            (float)(entity.PrevPosition.X - nudgeAmount.X),
-            (float)(entity.PrevPosition.Y - nudgeAmount.Y),
-            (float)entity.PrevPosition.Z);
+        vertex.Pos.X = (float)(entity.Position.X - nudgeAmount.X);
+        vertex.Pos.Y = (float)(entity.Position.Y - nudgeAmount.Y);
+        vertex.Pos.Z = (float)entity.Position.Z;
+        vertex.PrevPos.X = (float)(entity.PrevPosition.X - nudgeAmount.X);
+        vertex.PrevPos.Y = (float)(entity.PrevPosition.Y - nudgeAmount.Y);
+        vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex, lightLevel);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
+        vertex.OffsetXYZ = VertexOptions.EntityXYZ(texture.Offset.X, offsetZ);
 
         if (entity.Definition.Flags.SpawnCeiling && m_vanillaRender)
         {
@@ -310,7 +309,6 @@ public class EntityRenderer : IDisposable
             vertex.PrevPos.Z = entity.PrevPosition.Z != entity.Position.Z ? (float)entity.Sector.Ceiling.PrevZ : ceilingZ;
         }
 
-        vertex.OffsetXYZ = VertexOptions.EntityXYZ(texture.Offset.X, offsetZ);
         arrayData.Length = length + 1;
 
         if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
