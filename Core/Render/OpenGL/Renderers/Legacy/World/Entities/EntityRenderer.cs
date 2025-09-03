@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
@@ -16,6 +14,9 @@ using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
@@ -99,6 +100,12 @@ public class EntityRenderer : IDisposable
         m_attackIndicator = m_config.Render.HealthBar.AttackIndicator;
         m_healthBarLimit = m_config.Render.HealthBar.HealthLimit;
         m_brightMaps = m_config.Render.Brightmaps;
+    }
+
+    public void ClearRenderPositions()
+    {
+        m_renderPositions.Clear();
+        m_spriteRenderPositions.Clear();
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -206,17 +213,18 @@ public class EntityRenderer : IDisposable
             var spritePosKey = new SpritePosKey(entityPos, spriteIndex);
             if (m_spriteRenderPositions.Add(spritePosKey))
             {
-                if (m_renderPositions.TryGetValue(entityPos, out int count))
+                ref int count = ref CollectionsMarshal.GetValueRefOrAddDefault(m_renderPositions, entityPos, out var exists);
+                if (exists)
                 {
-                    double nudge = NudgeFactor * count * Math.Sqrt(entity.RenderDistanceSquared);
-                    double angle = Math.Atan2(centerBottom.Y - position.Y, centerBottom.X - position.X);
+                    var nudge = NudgeFactor * count * Math.Sqrt(entity.RenderDistanceSquared);
+                    var angle = Math.Atan2(centerBottom.Y - position.Y, centerBottom.X - position.X);
                     nudgeAmount.X = Math.Cos(angle) * nudge;
                     nudgeAmount.Y = Math.Sin(angle) * nudge;
-                    m_renderPositions[entityPos] = count + 1;
+                    count++;
                 }
                 else
                 {
-                    m_renderPositions[entityPos] = 1;
+                    count = 1;
                 }
             }
         }
@@ -281,16 +289,15 @@ public class EntityRenderer : IDisposable
         ref var vertex = ref arrayData.Data[length];
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
         // Doom graphics are drawn left to right and not centered
-        vertex.Pos = new Vec3F(
-            (float)(entity.Position.X - nudgeAmount.X),
-            (float)(entity.Position.Y - nudgeAmount.Y),
-            (float)entity.Position.Z);
-        vertex.PrevPos = new Vec3F(
-            (float)(entity.PrevPosition.X - nudgeAmount.X),
-            (float)(entity.PrevPosition.Y - nudgeAmount.Y),
-            (float)entity.PrevPosition.Z);
+        vertex.Pos.X = (float)(entity.Position.X - nudgeAmount.X);
+        vertex.Pos.Y = (float)(entity.Position.Y - nudgeAmount.Y);
+        vertex.Pos.Z = (float)entity.Position.Z;
+        vertex.PrevPos.X = (float)(entity.PrevPosition.X - nudgeAmount.X);
+        vertex.PrevPos.Y = (float)(entity.PrevPosition.Y - nudgeAmount.Y);
+        vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex, lightLevel);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
+        vertex.OffsetXYZ = VertexOptions.EntityXYZ(texture.Offset.X, offsetZ);
 
         if (entity.Definition.Flags.SpawnCeiling && m_vanillaRender)
         {
@@ -302,7 +309,6 @@ public class EntityRenderer : IDisposable
             vertex.PrevPos.Z = entity.PrevPosition.Z != entity.Position.Z ? (float)entity.Sector.Ceiling.PrevZ : ceilingZ;
         }
 
-        vertex.OffsetXYZ = VertexOptions.EntityXYZ(texture.Offset.X, offsetZ);
         arrayData.Length = length + 1;
 
         if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
