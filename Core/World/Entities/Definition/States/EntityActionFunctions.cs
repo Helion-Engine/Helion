@@ -3029,7 +3029,7 @@ public static class EntityActionFunctions
         int state = frame.DehackedArgs1;
         int amount = frame.DehackedArgs2 == 0 ? weapon.Definition.Properties.Weapons.AmmoUse : frame.DehackedArgs2;
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
-        if (entity.PlayerObj!.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType) < amount &&
+        if (entity.PlayerObj!.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType) <= amount &&
             entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
         {
             var player = entity.PlayerObj!;
