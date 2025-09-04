@@ -3070,7 +3070,12 @@ public static class EntityActionFunctions
         Weapon weapon = entity.PlayerObj!.Weapon!;
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
         if (entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
-            weapon.FrameState.SetState(entity, newFrame);
+        {
+            if (entity.PlayerObj!.WeaponFlashState)
+                weapon.FlashState.SetState(entity, newFrame);
+            else
+                weapon.FrameState.SetState(entity, newFrame);
+        }
     }
 
     private static void A_GunFlashTo(Entity entity)
