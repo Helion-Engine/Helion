@@ -291,22 +291,19 @@ public class ScrollSpecial : ISpecial
         }
         else if (m_type == ScrollType.Carry && sectorPlane == sectorPlane.Sector.Floor)
         {
-            var node = sectorPlane.Sector.Entities.Head;
-            while (node != null)
+            // Boom would carry anything that was considered 'underwater'
+            var waterHeight = double.MinValue;
+            var transfer = sectorPlane.Sector.TransferHeights;
+            if (transfer != null)
+                waterHeight = transfer.ControlSector.Floor.Z > sectorPlane.Sector.Floor.Z ?
+                    transfer.ControlSector.Floor.Z : double.MinValue;
+
+            for (var node = sectorPlane.Sector.Entities.Head; node != null; node = node.Next)
             {
                 var entity = node.Value;
-                node = node.Next;
-
-                if (entity.Flags.NoClip || entity.Flags.NoBlockmap)
+                if (entity.Flags.NoClip || entity.Flags.NoSector)
                     continue;
 
-                // Boom would carry anything that was considered 'underwater'
-                var waterHeight = double.MinValue;
-                var transfer = sectorPlane.Sector.TransferHeights;
-                if (transfer != null)
-                    waterHeight = transfer.ControlSector.Floor.Z > sectorPlane.Sector.Floor.Z ?
-                        transfer.ControlSector.Floor.Z : double.MinValue;
-                
                 if (entity.Position.Z >= waterHeight && (entity.Flags.NoGravity || !entity.OnGround || !entity.OnSectorFloorZ(sectorPlane.Sector)))
                     continue;
 
