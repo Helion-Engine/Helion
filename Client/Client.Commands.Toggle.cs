@@ -86,7 +86,9 @@ public partial class Client
     [ConsoleCommand("markspecials", "Toggles mark specials")]
     private void ToggleMarkSpecials(ConsoleCommandEventArgs args)
     {
-        m_config.Game.MarkSpecials.Set(!m_config.Game.MarkSpecials.Value);
+        bool newValue = !m_config.Game.MarkSpecials.Value;
+        m_config.Game.MarkSpecials.Set(newValue);
+        HelionLog.Info($"Special marking {(newValue ? "on" : "off")}");
     }
 
     [ConsoleCommand("marksecrets", "Toggles mark secrets")]
