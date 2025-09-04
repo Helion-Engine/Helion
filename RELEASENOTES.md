@@ -6,3 +6,4 @@
 ## Bug Fixes:
 - Fix sprite frames to correctly calculate when lowercase.
 - Fix dehacked frames loading incorrectly when a wad contains a dehacked patch and a dehacked patch is applied with the -deh parameter.
+- Fix NoBlockmap not working with scrolling floors and correctly ignore things with NoSector.
