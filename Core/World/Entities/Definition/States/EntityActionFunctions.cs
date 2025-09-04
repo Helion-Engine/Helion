@@ -3029,7 +3029,7 @@ public static class EntityActionFunctions
         int state = frame.DehackedArgs1;
         int amount = frame.DehackedArgs2 == 0 ? weapon.Definition.Properties.Weapons.AmmoUse : frame.DehackedArgs2;
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
-        if (entity.PlayerObj!.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType) < amount &&
+        if (entity.PlayerObj!.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType) <= amount &&
             entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
         {
             var player = entity.PlayerObj!;
@@ -3070,7 +3070,12 @@ public static class EntityActionFunctions
         Weapon weapon = entity.PlayerObj!.Weapon!;
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
         if (entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
-            weapon.FrameState.SetState(entity, newFrame);
+        {
+            if (entity.PlayerObj!.WeaponFlashState)
+                weapon.FlashState.SetState(entity, newFrame);
+            else
+                weapon.FrameState.SetState(entity, newFrame);
+        }
     }
 
     private static void A_GunFlashTo(Entity entity)

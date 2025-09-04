@@ -8,3 +8,5 @@
 - Fix dehacked frames loading incorrectly when a wad contains a dehacked patch and a dehacked patch is applied with the -deh parameter.
 - Fix NoBlockmap not working with scrolling floors and correctly ignore things with NoSector.
 - Fix MBF21 monster kill sector to kill monsters that are below the highest floor.
+- Fix A_CheckAmmo to be inclusive to fix check failing when player has exactly the correct amount of ammo.
+- Fix A_RefireTo to correctly check and set the flash frame state.
