@@ -104,7 +104,7 @@ public class SectorDamageSpecial
         else
         {
             // The entity doesn't need to be on the kill sector floor z, but the highest floor z.
-            if (entity.HighestFloorSector.Floor.Z != entity.Position.Z)
+            if (entity.HighestFloorSector.Floor.Z > entity.Position.Z)
                 return;
         }
 
