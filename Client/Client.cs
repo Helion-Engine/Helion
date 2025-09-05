@@ -240,7 +240,9 @@ public partial class Client : IDisposable, IInputManagement
             return;
 
         string filename = $"helion_{DateTime.Now:yyyyMMdd_HH.mm.ss.FFFF}.png";
-        string path = Path.Combine(m_pathsManager.UserDataFolder, filename);
+        string dir = Path.Combine(m_pathsManager.UserDataFolder, "Screenshots");
+        Directory.CreateDirectory(dir);
+        string path = Path.Combine(dir, filename);
         HelionLog.Info($"Saving screenshot to {filename}");
 
         m_takeScreenshot = false;
