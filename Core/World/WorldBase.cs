@@ -2130,7 +2130,7 @@ public abstract partial class WorldBase : IWorld
         // LostSouls will not kill PainElementals
         const string painElemental = "PainElemental";
         const string lostSoul = "LostSoul";
-        if (!blockingEntity.Flags.Touchy || !blockingEntity.CanDamage(entity, DamageType.Normal))
+        if (!blockingEntity.Flags.Touchy || !entity.Flags.Solid || !blockingEntity.CanDamage(entity, DamageType.Normal))
             return false;
 
         if (entity.Definition.IsType(painElemental) && blockingEntity.Definition.IsType(lostSoul))

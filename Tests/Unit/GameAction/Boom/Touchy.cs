@@ -14,10 +14,12 @@ namespace Helion.Tests.Unit.GameAction.Boom;
 [Collection("GameActions")]
 public class Touchy : IDisposable
 {
+    const int ZombieStartHealth = 1000;
     const string ZombieMan = "ZombieMan";
     const string Imp = "DoomImp";
     const string PainElemental = "PainElemental";
     const string LostSoul = "LostSoul";
+    const string ShotgunGuy = "ShotgunGuy";
 
     private readonly SinglePlayerWorld World;
     private Player Player => World.Player;
@@ -31,6 +33,7 @@ public class Touchy : IDisposable
     {
         var def = GameActions.GetEntityDefinition(world, ZombieMan);
         def.Flags.Touchy = true;
+        def.Properties.Health = ZombieStartHealth;
         def = GameActions.GetEntityDefinition(world, Imp);
         def.Flags.Touchy = true;
         def.Flags.Solid = false;
@@ -38,6 +41,8 @@ public class Touchy : IDisposable
         def.Flags.Touchy = true;
         def = GameActions.GetEntityDefinition(world, LostSoul);
         def.Flags.Touchy = true;
+        def = GameActions.GetEntityDefinition(world, ShotgunGuy);
+        def.Flags.Solid = false;
     }
 
     public void Dispose()
@@ -85,13 +90,26 @@ public class Touchy : IDisposable
         zombieman.IsDead.Should().BeTrue();
     }
 
-    [Fact(DisplayName = "Touchy dies when overlapped by thing non-solid")]
+    [Fact(DisplayName = "Not solid touchy dies when overlapped by thing")]
     public void TouchyNonSolidHit()
     {
         GameActions.SetEntityPosition(World, Player, (-320, -320, 0));
         var imp = GameActions.CreateEntity(World, Imp, (-384, -320, 0));
         World.TryMoveXY(Player, (-384, -320));
         imp.IsDead.Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "Not solid touchy doesn't die when overlapped by not solid missile thing")]
+    public void TouchyDoesntDieFromNonSolidMissile()
+    {
+        GameActions.SetEntityOutOfBounds(World, Player);
+        var plasmaShot = GameActions.CreateEntity(World, "PlasmaBall", (-320, -320, 0));
+        plasmaShot.Flags.Ripper = true;
+        var touchyThing = GameActions.CreateEntity(World, ZombieMan, (-384, -320, 0));
+        World.TryMoveXY(plasmaShot, (-384, -320));
+        // Should rip through but not trigger touchy death
+        touchyThing.IsDead.Should().BeFalse();
+        touchyThing.Health.Should().NotBe(ZombieStartHealth);
     }
 
     [Fact(DisplayName = "Lost soul not killed by pain elemental with touchy")]
