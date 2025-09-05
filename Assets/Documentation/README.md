@@ -13,7 +13,7 @@
 
 # User Data Folder / Portable Mode
 
-By default, user data is stored in `<user folder>\Saved Games\Helion` on Windows and (most commonly) `~/.config/helion` on Linux.
+By default, user data is stored in `<user folder>\Saved Games\Helion` on Windows and (most commonly) `~/.config/Helion` on Linux.
 
 Helion will run in portable mode (user data is stored in the application folder) if it finds a `config.ini` file in its folder, or if `-portable` is passed as a launch parameter.
 

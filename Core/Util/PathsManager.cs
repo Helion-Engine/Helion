@@ -97,14 +97,14 @@ public class PathsManager
             // There are three folder structures we'll consider on Linux:
             //
             // 1. Everything in one folder, just like on Windows.
-            //    On Linux this would be e.g. `/opt/helion` or some random folder created by the user.
+            //    On Linux this would be e.g. `/opt/Helion` or some random folder created by the user.
             //    No special behavior is needed here, we added that path above.
             //
             // 2. Installed according to the Filesystem Hierarchy Standard.
-            //    The executable goes in `/usr/bin` and assets go in `/usr/share/helion`.
+            //    The executable goes in `/usr/bin` and assets go in `/usr/share/Helion`.
             //
             // 3. In an AppImage/FlatPak. The FHS is still followed here except relative to the package's mount point.
-            const string LinuxFhsResourcesPath = "/usr/share/helion";
+            const string LinuxFhsResourcesPath = "/usr/share/Helion";
 
             // For AppImage, the package's filesystem will be mounted in `/tmp/.mount_<app>-<random>`,
             // and for FlatPak in `/app` (from Helion's perspective).
@@ -180,18 +180,25 @@ public class PathsManager
             }
         }
 
-        // On Linux, default to "$XDG_CONFIG_HOME/helion"
+        // On Linux, default to "$XDG_CONFIG_HOME/Helion"
         else if (OperatingSystem.IsLinux())
         {
             var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
             if (!string.IsNullOrWhiteSpace(xdgConfigHome))
-                folder = $"{xdgConfigHome}/helion";
-            // Fallback to "$HOME/.config/helion"
+            {
+                // previous versions used a lowercase folder, continue using them if they exist
+                string legacyFolder = $"{xdgConfigHome}/helion";
+                if (Path.Exists(legacyFolder))
+                    folder = legacyFolder;
+                else
+                    folder = $"{xdgConfigHome}/Helion";
+            }
+            // Fallback to "$HOME/.config/Helion"
             else
             {
                 var home = Environment.GetEnvironmentVariable("HOME");
                 if (!string.IsNullOrWhiteSpace(home))
-                    folder = $"{home}/.config/helion";
+                    folder = $"{home}/.config/Helion";
             }
         }
 
@@ -243,7 +250,7 @@ public class PathsManager
         if (OperatingSystem.IsLinux())
         {
             paths.AddRange(LinuxDoomDirs);
-            paths.AddRange(GetLinuxUserPaths());
+            paths.AddRange(GetLinuxUserDoomDirs());
         }
 
         return paths;
@@ -306,17 +313,11 @@ public class PathsManager
         return foundPaths;
     }
 
-    private static List<string> GetLinuxUserPaths()
+    private static List<string> GetLinuxUserDoomDirs()
     {
-        var paths = new List<string>();
-
-        var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-
-        if (!string.IsNullOrWhiteSpace(xdgConfigHome))
-            paths.Add($"{xdgConfigHome}/helion");
+        List<string> paths = [];
 
         var xdgDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-
         if (!string.IsNullOrWhiteSpace(xdgDataHome))
         {
             paths.Add($"{xdgDataHome}/doom");
@@ -324,10 +325,8 @@ public class PathsManager
         }
 
         var home = Environment.GetEnvironmentVariable("HOME");
-
         if (!string.IsNullOrWhiteSpace(home))
         {
-            paths.Add($"{home}/.config/helion");
             paths.Add($"{home}/.local/share/doom");
             paths.Add($"{home}/.local/share/games/doom");
         }
