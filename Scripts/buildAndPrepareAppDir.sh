@@ -23,9 +23,9 @@ echo 'Copying files to AppDir/';
 mkdir -p AppDir/usr/bin;
 cp Publish/linux-x64_AOT/Helion AppDir/usr/bin;
 
-mkdir -p AppDir/opt/Helion;
-cp -r Publish/linux-x64_AOT/* AppDir/opt/Helion;
-rm AppDir/opt/Helion/Helion;
+mkdir -p AppDir/usr/share/helion;
+cp -r Publish/linux-x64_AOT/* AppDir/usr/share/helion;
+rm AppDir/usr/share/helion/Helion;
 
 # Copy all transitive dependencies; patch Helion ELF to use copied lib dir
 mkdir -p AppDir/usr/lib;

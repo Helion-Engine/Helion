@@ -317,18 +317,7 @@ public class ArchiveCollection : IResources, IPathResolver
         // if we have already loaded it.
         if (loadDefaultAssets && m_archives.Empty())
         {
-            Archive? assetsArchive;
-            if (OperatingSystem.IsLinux())
-            {
-                // On Linux, if we're installed according to the standard pattern, our assets should be in /opt/Helion/assets.pk3 or similar
-                assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, LoadArchiveOptions.CalculateMd5 | LoadArchiveOptions.IsBundled)
-                    ?? LoadSpecial($"../..{Constants.LinuxAssetsFilePath}{Constants.AssetsFileName}", ArchiveType.Assets, LoadArchiveOptions.CalculateMd5 | LoadArchiveOptions.IsBundled);
-            }
-            else
-            {
-                assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, LoadArchiveOptions.CalculateMd5 | LoadArchiveOptions.IsBundled);
-            }
-
+            Archive? assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, LoadArchiveOptions.CalculateMd5 | LoadArchiveOptions.IsBundled);
             if (assetsArchive == null)
                 return false;
 
