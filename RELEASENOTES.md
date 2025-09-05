@@ -11,3 +11,4 @@
 - Fix A_CheckAmmo to be inclusive to fix check failing when player has exactly the correct amount of ammo.
 - Fix A_RefireTo to correctly check and set the flash frame state.
 - Fix touchy to not work with ripper projectiles.
+- Fix A_SpawnObject to clear velocity if object is spawned below floor or above ceiling.

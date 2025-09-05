@@ -3120,9 +3120,13 @@ public static class EntityActionFunctions
         var createdEntity = WorldStatic.EntityManager.Create(def, spawnPos, 0, angle, 0, default);
         if (createdEntity == null)
             return;
-        
-        createdEntity.Velocity.X = velocity.X;
-        createdEntity.Velocity.Y = velocity.Y;
+
+        // Doom didn't clamp between floor/ceiling in P_SpawnMobj. P_TryMove would next clear the velocity so only set if valid.
+        if (createdEntity.Position.Z == spawnPos.Z)
+        {
+            createdEntity.Velocity.X = velocity.X;
+            createdEntity.Velocity.Y = velocity.Y;
+        }
         createdEntity.Velocity.Z = zVelocity;
 
         if (entity.Definition.Type == EntityType.Blood)
