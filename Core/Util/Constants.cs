@@ -20,11 +20,6 @@ public static class Constants
     public const string AssetsFileName = "assets.pk3";
 
     /// <summary>
-    /// The shared location for assets files on Linux operating systems
-    /// </summary>
-    public const string LinuxAssetsFilePath = "/opt/Helion/";
-
-    /// <summary>
     /// How many gameticks occur per second.
     /// </summary>
     public const double TicksPerSecond = 35.0;

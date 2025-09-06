@@ -27,7 +27,8 @@ public class PathsManager
     public string LaunchFolder => m_workingDirectory;
 
     /// <summary>
-    /// Where the config, save games, screenshots etc. are stored
+    /// Where the config, save games, screenshots etc. are stored.
+    /// The save dir can still be overridden by the -savedir arg.
     /// </summary>
     public string UserDataFolder => m_userDataFolder;
 
@@ -93,8 +94,33 @@ public class PathsManager
         m_applicationFolders = [StandardizePath(AppContext.BaseDirectory)];
         if (OperatingSystem.IsLinux())
         {
-            m_applicationFolders.Add(StandardizePath("/usr/share/helion"));
-            m_applicationFolders.Add("../../opt/Helion");  // Relative path is intentional--handles installation to /usr/bin and "appdir" layout.
+            // There are three folder structures we'll consider on Linux:
+            //
+            // 1. Everything in one folder, just like on Windows.
+            //    On Linux this would be e.g. `/opt/Helion` or some random folder created by the user.
+            //    No special behavior is needed here, we added that path above.
+            //
+            // 2. Installed according to the Filesystem Hierarchy Standard.
+            //    The executable goes in `/usr/bin` and assets go in `/usr/share/Helion`.
+            //
+            // 3. In an AppImage/FlatPak. The FHS is still followed here except relative to the package's mount point.
+            const string LinuxFhsResourcesPath = "/usr/share/Helion";
+
+            // For AppImage, the package's filesystem will be mounted in `/tmp/.mount_<app>-<random>`,
+            // and for FlatPak in `/app` (from Helion's perspective).
+            // Relative paths are used here (the executable's directory would be `<mount>/usr/bin`).
+            if (Environment.GetEnvironmentVariable("APPIMAGE") != null
+                || Environment.GetEnvironmentVariable("FLATPAK_ID") != null)
+            {
+                // don't use Path.Combine() here due to absolute path behavior
+                m_applicationFolders.Add(StandardizePath(Path.Join(AppContext.BaseDirectory, "../..", LinuxFhsResourcesPath)));
+            }
+            // Otherwise, add the FHS resources path. The executable's directory still comes first,
+            // in the case that there's both a user and system Helion installation.
+            else
+            {
+                m_applicationFolders.Add(StandardizePath(LinuxFhsResourcesPath));
+            }
         }
         m_wadEnvFolders = [.. GetWadFoldersFromEnvVars().Select(StandardizePath)];
         m_wadCommonFolders = [.. GetWadFoldersFromSteamAndLinuxDirs().Select(StandardizePath)];
@@ -154,18 +180,25 @@ public class PathsManager
             }
         }
 
-        // On Linux, default to "$XDG_CONFIG_HOME/helion"
+        // On Linux, default to "$XDG_CONFIG_HOME/Helion"
         else if (OperatingSystem.IsLinux())
         {
             var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
             if (!string.IsNullOrWhiteSpace(xdgConfigHome))
-                folder = $"{xdgConfigHome}/helion";
-            // Fallback to "$HOME/.config/helion"
+            {
+                // previous versions used a lowercase folder, continue using them if they exist
+                string legacyFolder = $"{xdgConfigHome}/helion";
+                if (Path.Exists(legacyFolder))
+                    folder = legacyFolder;
+                else
+                    folder = $"{xdgConfigHome}/Helion";
+            }
+            // Fallback to "$HOME/.config/Helion"
             else
             {
                 var home = Environment.GetEnvironmentVariable("HOME");
                 if (!string.IsNullOrWhiteSpace(home))
-                    folder = $"{home}/.config/helion";
+                    folder = $"{home}/.config/Helion";
             }
         }
 
@@ -217,7 +250,7 @@ public class PathsManager
         if (OperatingSystem.IsLinux())
         {
             paths.AddRange(LinuxDoomDirs);
-            paths.AddRange(GetLinuxUserPaths());
+            paths.AddRange(GetLinuxUserDoomDirs());
         }
 
         return paths;
@@ -280,17 +313,11 @@ public class PathsManager
         return foundPaths;
     }
 
-    private static List<string> GetLinuxUserPaths()
+    private static List<string> GetLinuxUserDoomDirs()
     {
-        var paths = new List<string>();
-
-        var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-
-        if (!string.IsNullOrWhiteSpace(xdgConfigHome))
-            paths.Add($"{xdgConfigHome}/helion");
+        List<string> paths = [];
 
         var xdgDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-
         if (!string.IsNullOrWhiteSpace(xdgDataHome))
         {
             paths.Add($"{xdgDataHome}/doom");
@@ -298,10 +325,8 @@ public class PathsManager
         }
 
         var home = Environment.GetEnvironmentVariable("HOME");
-
         if (!string.IsNullOrWhiteSpace(home))
         {
-            paths.Add($"{home}/.config/helion");
             paths.Add($"{home}/.local/share/doom");
             paths.Add($"{home}/.local/share/games/doom");
         }
