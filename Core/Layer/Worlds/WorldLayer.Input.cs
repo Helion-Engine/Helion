@@ -259,7 +259,10 @@ public partial class WorldLayer
             cmd.SideMoveSpeed = Math.Clamp(analogInput.Y * m_config.Controller.GameControllerStrafeScale, -1, 1) * Player.GetSideMovementSpeed();
             cmd.AngleTurn = analogInput.Z * Player.FastTurnSpeed * m_config.Controller.GameControllerTurnScale;
             cmd.PitchTurn = m_config.Mouse.Look
-                ? analogInput.W * Player.FastTurnSpeed * m_config.Controller.GameControllerPitchScale
+                ? analogInput.W
+                    * Player.FastTurnSpeed
+                    * m_config.Controller.GameControllerPitchScale
+                    * (m_config.Controller.GameControllerVerticalAimInvert ? -1 : 1)
                 : 0;
         }
 
