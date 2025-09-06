@@ -183,22 +183,22 @@ public class PathsManager
         // On Linux, default to "$XDG_CONFIG_HOME/Helion"
         else if (OperatingSystem.IsLinux())
         {
-            var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-            if (!string.IsNullOrWhiteSpace(xdgConfigHome))
+            var configHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
+            if (string.IsNullOrWhiteSpace(configHome))
+            {
+                // Fallback to "$HOME/.config"
+                var home = Environment.GetEnvironmentVariable("HOME");
+                if (!string.IsNullOrWhiteSpace(home))
+                    configHome = Path.Combine(home, ".config");
+            }
+            if (!string.IsNullOrWhiteSpace(configHome))
             {
                 // previous versions used a lowercase folder, continue using them if they exist
-                string legacyFolder = $"{xdgConfigHome}/helion";
+                string legacyFolder = Path.Combine(configHome, "helion");
                 if (Path.Exists(legacyFolder))
                     folder = legacyFolder;
                 else
-                    folder = $"{xdgConfigHome}/Helion";
-            }
-            // Fallback to "$HOME/.config/Helion"
-            else
-            {
-                var home = Environment.GetEnvironmentVariable("HOME");
-                if (!string.IsNullOrWhiteSpace(home))
-                    folder = $"{home}/.config/Helion";
+                    folder = Path.Combine(configHome, "Helion");
             }
         }
 
