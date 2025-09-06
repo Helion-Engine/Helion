@@ -203,6 +203,7 @@ public sealed class PhysicsManager
             var sectorMoveEntityData = new SectorMoveEntityData(entity, entity.Position.Z, entity.PrevPosition.Z, entity.IsCrushing());
             m_sectorMoveEntitiesData.Add(sectorMoveEntityData);
 
+            var prevVelocityZ = entity.Velocity.Z;
             var entityShouldStick = startZ > destZ && entity.OnGround &&
                 (m_alwaysStickEntitiesToFloor || SpeedShouldStickToFloor(speed));
 
@@ -231,6 +232,10 @@ public sealed class PhysicsManager
                 SetClampIgnoreEntities(entity);
 
             ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
+
+            // Check for missile hitting floor/ceiling. Doom would only explode on z movement so check for z velocity.
+            if (entity.Flags.Missile && prevVelocityZ != 0)
+                m_world.HandleEntityHit(entity, entity.Velocity, null);
 
             var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
             if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)

@@ -12,3 +12,4 @@
 - Fix A_RefireTo to correctly check and set the flash frame state.
 - Fix touchy to not work with ripper projectiles.
 - Fix A_SpawnObject to clear velocity if object is spawned below floor or above ceiling.
+- Fix missiles not exploding on floors when floor hits the missile.
