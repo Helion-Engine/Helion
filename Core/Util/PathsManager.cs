@@ -102,9 +102,12 @@ public class PathsManager
             //
             // 2. Installed according to the Filesystem Hierarchy Standard.
             //    The executable goes in `/usr/bin` and assets go in `/usr/share/Helion`.
+            //    We'll add a fallback path `/opt/Helion` to handle legacy package recipes
+            //    where the assets were there but the executable was in `/usr/bin`.
             //
             // 3. In an AppImage/FlatPak. The FHS is still followed here except relative to the package's mount point.
             const string LinuxFhsResourcesPath = "/usr/share/Helion";
+            const string LinuxLegacyResourcesPath = "/opt/Helion";
 
             // For AppImage, the package's filesystem will be mounted in `/tmp/.mount_<app>-<random>`,
             // and for FlatPak in `/app` (from Helion's perspective).
@@ -120,6 +123,7 @@ public class PathsManager
             else
             {
                 m_applicationFolders.Add(StandardizePath(LinuxFhsResourcesPath));
+                m_applicationFolders.Add(StandardizePath(LinuxLegacyResourcesPath));
             }
         }
         m_wadEnvFolders = [.. GetWadFoldersFromEnvVars().Select(StandardizePath)];
