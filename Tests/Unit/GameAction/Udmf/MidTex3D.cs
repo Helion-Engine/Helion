@@ -131,7 +131,7 @@ public class MidTex3D
         Player.OnGround.Should().BeTrue();
         Player.Jump();
 
-        int[] positions = [8, 8, 8, 6, 3, 0];
+        int[] positions = [8, 8, 7, 5, 2, 0];
         for (int i = 0; i < positions.Length; i++)
         {
             World.Tick();

@@ -991,25 +991,44 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         }
         else if (Flags.MbfBouncer)
         {
-            //MbfBouncer + Missile - bounce off plane only
-            //MbfBouncer + NoGravity - bounce of all surfaces
-            bool bouncePlane = BlockingSectorPlane != null;
-            bool bounceWall = Flags.NoGravity;
-            double zFactor = Flags.NoGravity ? 1.0 : 0.5;
-
-            if (bouncePlane || bounceWall)
-                Velocity = velocity;
-
-            if (bouncePlane)
+            if (BlockingSectorPlane != null)
+            {
+                var zFactor = GetBounceDecay();
                 Velocity.Z = -velocity.Z * zFactor;
 
-            if (bounceWall && BlockingBlockLineIndex != -1)
+                if (Math.Abs(Velocity.Z) <= GetMbfBouncerGravity(4))
+                    Velocity.Z = 0;
+            }
+
+            if (!Flags.Missile && BlockingBlockLineIndex != -1)
             {
                 var bounceVelocity = MathHelper.BounceVelocity(velocity.XY, World.Blockmap.BlockLines[BlockingBlockLineIndex].Segment);
                 Velocity.X = bounceVelocity.X;
                 Velocity.Y = bounceVelocity.Y;
             }
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public double GetMbfBouncerGravity(int factor)
+    {
+        return Properties.Mass * (World.Gravity * Properties.Gravity * Sector.Gravity * Gravity * factor / 256);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private double GetBounceDecay()
+    {
+        if (Flags.NoGravity)
+            return 1.0;
+
+        if (Flags.Float)
+        {
+            if (Flags.Dropoff)
+                return 0.85;
+            return 0.7;
+        }
+
+        return 0.45;
     }
 
     public bool ShouldDieOnCollision()

@@ -67,10 +67,11 @@ namespace Helion.Tests.Unit.GameAction
             Player.OnGround.Should().BeFalse();
 
             GameActions.TickWorld(World, () => { return Player.Position.Z < 16; }, () => { });
+            GameActions.TickWorld(World, 1);
             Player.BlockingSectorPlane.Should().Be(sector.Ceiling);
             Player.BlockingSectorPlane!.Sector.Id.Should().Be(16);
             World.Tick();
-            Player.Velocity.Z.Should().Be(-1);
+            Player.Velocity.Z.Should().Be(-2);
         }
 
         [Fact(DisplayName = "Player jump from entity")]

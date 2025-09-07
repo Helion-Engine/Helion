@@ -1080,12 +1080,6 @@ doneLinkToSectors:
         entity.SectorNodes.Add(centerSector.Link(entity));
     }
 
-    private static void ClearVelocityXY(Entity entity)
-    {
-        entity.Velocity.X = 0;
-        entity.Velocity.Y = 0;
-    }
-
     public TryMoveData TryMoveXY(Entity entity, double x, double y)
     {
         TryMoveData.Clear();
@@ -1177,8 +1171,13 @@ doneLinkToSectors:
             }
 
             success = false;
+
             if (ShouldClearSlide(TryMoveData))
-                ClearVelocityXY(entity);
+            {
+                entity.Velocity.X = 0;
+                entity.Velocity.Y = 0;
+            }
+
             break;
         }
 
@@ -1464,7 +1463,11 @@ doneLinkToSectors:
         // If we cannot find the line or thing that is blocking us, then we
         // are fully done moving horizontally.
         if (ShouldClearSlide(tryMove))
-            ClearVelocityXY(entity);
+        {
+            entity.Velocity.X = 0;
+            entity.Velocity.Y = 0;
+        }
+
         stepDelta.X = 0;
         stepDelta.Y = 0;
         movesLeft = 0;
@@ -1720,6 +1723,9 @@ doneLinkToSectors:
 
         TryMoveXY(entity, entity.Position.X + entity.Velocity.X, entity.Position.Y + entity.Velocity.Y);
 
+        if (entity.Flags.MbfBouncer && ShouldIgnoreMbfBouncerVelocityZ(entity))
+            return;
+
         bool shouldClear = false;
         if (entity.Velocity.X > -MinMovement && entity.Velocity.X < MinMovement &&
             entity.Velocity.Y > -MinMovement && entity.Velocity.Y < MinMovement)
@@ -1751,6 +1757,14 @@ doneLinkToSectors:
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool ShouldIgnoreMbfBouncerVelocityZ(Entity entity)
+    {
+        const double MinVelocity = 0.25;
+        return entity.Position.Z > TryMoveData.DropOffZ && entity.HighestFloorZ != entity.Sector.Floor.Z &&
+            (Math.Abs(entity.Velocity.X) > MinVelocity || Math.Abs(entity.Velocity.Y) > MinVelocity);
+    }
+
     private static double GetFrictionFromSectors(Entity entity)
     {
         if (entity.Flags.NoClip || !WorldStatic.SectorFriction)
@@ -1778,39 +1792,45 @@ doneLinkToSectors:
         if (entity.IsDisposed || m_world.WorldState == WorldState.Exit)
             return;
 
-        // Have to check this first. Doom modifies the position first and then velocity.
-        // This means z velocity isn't applied until the next tick after moving off a ledge.
-        // Adds z velocity on the first tick, then adds -2 on the second instead of -1 on the first and -1 on the second.
-        bool noVelocity = entity.Velocity.Z == 0;
-        bool shouldApplyGravity = entity.ShouldApplyGravity();
+        var noVelocity = entity.Velocity.Z == 0;
+        var shouldApplyGravity = entity.ShouldApplyGravity();
         if (noVelocity && !shouldApplyGravity && (entity.Flags.Flags1 & EntityFlags.FloatFlag) == 0 && entity.OnEntity() == null)
             return;
 
-        if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
-            entity.Velocity.Z *= Constants.DefaultFriction;
-
-        if (shouldApplyGravity)
-        {
-            if (entity.Gravity < 0)
-                entity.Velocity.Z -= entity.Gravity * -1;
-            else
-                entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity * entity.Sector.Gravity * entity.Gravity;
-        }
-
-        double floatZ = entity.GetEnemyFloatMove();
-        // Only return if OnEntity is null. Need to apply clamping to prevent issues with this entity floating when the entity beneath is no longer blocking.
-        if (noVelocity && floatZ == 0 && entity.OnEntity() == null)
-            return;
-
-        Vec3D previousVelocity = entity.Velocity;
-        double oldZ = entity.Position.Z;
-        double newZ = oldZ + entity.Velocity.Z + floatZ;
-        entity.Position.Z = newZ;
+        var floatZ = entity.GetEnemyFloatMove();
+        var previousVelocity = entity.Velocity;
+        entity.Position.Z = entity.Position.Z + entity.Velocity.Z + floatZ;
 
         // Passing MoveLinked emulates some vanilla functionality where things are not checked against linked sectors when they haven't moved
         ClampBetweenFloorAndCeiling(entity, null, smoothZ: true, entity.MoveLinked);
 
         if (entity.IsBlocked())
             m_world.HandleEntityHit(entity, previousVelocity, null);
+
+        if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
+            entity.Velocity.Z *= Constants.DefaultFriction;
+
+        if (!shouldApplyGravity)
+            return;
+
+        if (entity.Flags.MbfBouncer)
+        {
+            if (!entity.Flags.NoGravity)
+                entity.Velocity.Z -= entity.GetMbfBouncerGravity(1);
+            return;
+        }
+
+        double applyGravity;
+        if (entity.Gravity < 0)
+            applyGravity = entity.Gravity * -1;
+        else
+            applyGravity = m_world.Gravity * entity.Properties.Gravity * entity.Sector.Gravity * entity.Gravity;
+
+        // Doom applied the gravity amount twice if the entity originally had no velocity.
+        if (noVelocity)
+            entity.Velocity.Z -= applyGravity;
+        entity.Velocity.Z -= applyGravity;
     }
 }
+
+
