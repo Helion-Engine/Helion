@@ -452,5 +452,25 @@ namespace Helion.Tests.Unit.GameAction
             bonus.IsDisposed.Should().BeTrue();
             Player.Health.Should().Be(101);
         }
+
+        [Fact(DisplayName = "Player max jump gap distance plus one")]
+        public void PlayerMaxJumpGapDistancePlusOne()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec2D(812, 1760));
+            Player.AngleRadians = GameActions.GetAngle(Bearing.North);
+            GameActions.PlayerRunForward(World, GameActions.GetAngle(Bearing.North), 
+                () => { return Player.BlockingBlockLineIndex == -1; });
+            World.Blockmap.BlockLines[Player.BlockingBlockLineIndex].LineId.Should().Be(440);
+        }
+
+        [Fact(DisplayName = "Player max jump gap distance")]
+        public void PlayerMaxJumpGapDistance()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec2D(956, 1760));
+            Player.AngleRadians = GameActions.GetAngle(Bearing.North);
+            GameActions.PlayerRunForward(World, GameActions.GetAngle(Bearing.North),
+                () => { return Player.BlockingBlockLineIndex == -1; });
+            World.Blockmap.BlockLines[Player.BlockingBlockLineIndex].LineId.Should().Be(438);
+        }
     }
 }
