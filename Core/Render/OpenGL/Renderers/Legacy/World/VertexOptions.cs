@@ -35,7 +35,7 @@ public static class VertexOptions
     public static unsafe float Entity(float alpha, int fuzz, int flipU, int colormap, int lightLevel)
     {
         int alphaByte = (int)(alpha * 255.0f);
-        int packed = (alphaByte & 0xFF) | (fuzz << 8) | (flipU << 9) | ((lightLevel & 0xFF) << 10) | (colormap << 18);
+        int packed = (alphaByte & 0xFF) | (fuzz << 8) | (flipU << 9) | (Math.Clamp(lightLevel, 0, 255) << 10) | (colormap << 18);
         return *(float*)&packed;
     }
 
