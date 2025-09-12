@@ -4,6 +4,7 @@ using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
+using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
@@ -25,6 +26,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using static Helion.Util.Assertion.Assert;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace Helion.World.Entities;
 
@@ -887,6 +889,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     const int DropOffFlags = EntityFlags.FloatFlag | EntityFlags.DropOffFlag;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ShouldCheckDropOff()
     {
         if ((Flags.Flags1 & DropOffFlags) != 0)
@@ -928,14 +931,15 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (tryMove.IntersectEntities2D.Length == 0 && tryMove.DropOffEntity != null)
             return false;
 
-        if (tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight)
-        {
-            // When crossing off thing to a ledge it's possible for the check to skip lines since it's allow to move beyond the ledge.
-            // If on ground check it's current z position instead of highest floor
-            return Position.Z - tryMove.DropOffZ <= maxStepHeight;
-        }
+        //const double MinBounceVelocity = 0.25;
+        //if (Flags.MbfBouncer && (Position.Z > tryMove.DropOffZ &&
+        //    //entity.HighestFloorZ != entity.Sector.Floor.Z &&
+        //    (Math.Abs(Velocity.X) > MinBounceVelocity || Math.Abs(Velocity.Y) > MinBounceVelocity)))
+        //{
+        //    return true;
+        //}
 
-        return false;
+        return tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight;
     }
 
     private Entity? GetHighestWalkEntity(TryMoveData tryMove, Entity? highestWalk, Entity entity, double maxStepHeight)

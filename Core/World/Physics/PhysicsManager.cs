@@ -20,6 +20,7 @@ using Helion.World.Special.Specials;
 using System;
 using System.Runtime.CompilerServices;
 using static Helion.Util.Assertion.Assert;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace Helion.World.Physics;
 
@@ -848,12 +849,13 @@ public sealed class PhysicsManager
         entity.HighestFloorSector = highestFloor;
         entity.LowestCeilingSector = lowestCeiling;
 
-        if (highestFloorEntity != null && highestFloorEntity.Position.Z + highestFloorEntity.Height > highestFloor.ToFloorZ(entity.Position))
+        // Make checks inclusive to prioritize entity over sector. Otherwise this can cause issues with monsters on 3d bridges/midtex lines dropping of when they shouldn't.
+        if (highestFloorEntity != null && highestFloorEntity.Position.Z + highestFloorEntity.Height >= highestFloor.Floor.Z)
             entity.HighestFloorObject = highestFloorEntity;
         else
             entity.HighestFloorObject = highestFloor;
 
-        if (lowestCeilingEntity != null && lowestCeilingEntity.Position.Z + lowestCeilingEntity.Height < lowestCeiling.ToCeilingZ(entity.Position))
+        if (lowestCeilingEntity != null && lowestCeilingEntity.Position.Z + lowestCeilingEntity.Height < lowestCeiling.Ceiling.Z)
             entity.LowestCeilingObject = lowestCeilingEntity;
         else
             entity.LowestCeilingObject = lowestCeiling;
@@ -895,13 +897,16 @@ public sealed class PhysicsManager
                 if (m_canPassData.HighestFloorEntity != null && m_canPassData.HighestFloorEntity.Position.Z + m_canPassData.HighestFloorEntity.Height < m_canPassData.HighestFloorZ)
                     m_onEntities.Clear();
 
-                m_canPassData.HighestFloorEntity = intersectEntity;
-                m_canPassData.HighestFloorZ = intersectTopZ;
+                if (CanPassEntityFloorPriorityCheck(intersectEntity, intersectTopZ))
+                {
+                    m_canPassData.HighestFloorEntity = intersectEntity;
+                    m_canPassData.HighestFloorZ = intersectTopZ;
+                }
 
                 if (intersectTopZ == entity.Position.Z)
                 {
                     addedOnEntity = true;
-                    m_onEntities.Add(m_canPassData.HighestFloorEntity);
+                    m_onEntities.Add(intersectEntity);
                 }
             }
         }
@@ -921,14 +926,26 @@ public sealed class PhysicsManager
             if (m_canPassData.HighestFloorEntity != null && m_canPassData.HighestFloorEntity.Position.Z + m_canPassData.HighestFloorEntity.Height < m_canPassData.HighestFloorZ)
                 m_onEntities.Clear();
 
-            m_canPassData.HighestFloorEntity = intersectEntity;
-            m_canPassData.HighestFloorZ = intersectTopZ;
+            if (CanPassEntityFloorPriorityCheck(intersectEntity, intersectTopZ))
+            {
+                m_canPassData.HighestFloorEntity = intersectEntity;
+                m_canPassData.HighestFloorZ = intersectTopZ;
+            }
 
             if (intersectTopZ == entity.Position.Z)
-                m_onEntities.Add(m_canPassData.HighestFloorEntity);
+                m_onEntities.Add(intersectEntity);
         }
 
         return GridIterationStatus.Continue;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool CanPassEntityFloorPriorityCheck(Entity entity, double intersectTopZ)
+    {
+        if (m_canPassData.HighestFloorEntity == null || m_canPassData.HighestFloorEntity.Position.Z + m_canPassData.HighestFloorEntity.Height != intersectTopZ)
+            return true;
+        // Need to prioritize bridge things over everything else when the z heights are equal.
+        return !m_canPassData.Entity.Flags.ActLikeBridge && entity.Flags.ActLikeBridge;
     }
 
     private static void GetEntityClampValues(Entity entity, DynamicArray<Sector>? intersectSectors,
@@ -1133,13 +1150,25 @@ doneLinkToSectors:
             double nextY = entity.Position.Y + stepDelta.Y;
             if (IsPositionValid(entity, nextX, nextY, TryMoveData))
             {
-                entity.MoveLinked = true;
-                MoveTo(entity, nextX, nextY, TryMoveData);
-                if (entity.Flags.Teleported)
-                    return TryMoveData;
+                if (!entity.CheckDropOff(TryMoveData))
+                {
+                    var ignore = entity.Flags.MbfBouncer && ShouldIgnoreMbfBouncerDropoff(entity, TryMoveData);
+                    if (!ignore)
+                    {
+                        TryMoveData.Subsector = null;
+                        TryMoveData.Success = false;
+                    }
+                }
+                else
+                {
+                    entity.MoveLinked = true;
+                    MoveTo(entity, nextX, nextY, TryMoveData);
+                    if (entity.Flags.Teleported)
+                        return TryMoveData;
 
-                m_world.HandleEntityIntersections(entity, saveVelocity, TryMoveData);
-                continue;
+                    m_world.HandleEntityIntersections(entity, saveVelocity, TryMoveData);
+                    continue;
+                }
             }
 
             if (entity.BlockingBlockLineIndex != -1 && entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll)
@@ -1172,7 +1201,7 @@ doneLinkToSectors:
 
             success = false;
 
-            if (ShouldClearSlide(TryMoveData))
+            if (ShouldClearSlide(entity, TryMoveData))
             {
                 entity.Velocity.X = 0;
                 entity.Velocity.Y = 0;
@@ -1378,13 +1407,6 @@ doneLinkToSectors:
         }
 
         tryMove.CanFloat = true;
-
-        if (!entity.CheckDropOff(tryMove))
-        {
-            tryMove.Subsector = null;
-            tryMove.Success = false;
-        }
-
         return tryMove.Success;
     }
 
@@ -1462,7 +1484,7 @@ doneLinkToSectors:
 
         // If we cannot find the line or thing that is blocking us, then we
         // are fully done moving horizontally.
-        if (ShouldClearSlide(tryMove))
+        if (ShouldClearSlide(entity, tryMove))
         {
             entity.Velocity.X = 0;
             entity.Velocity.Y = 0;
@@ -1667,7 +1689,7 @@ doneLinkToSectors:
             if (IsPositionValid(entity, nextX, entity.Position.Y, tryMove))
             {
                 MoveTo(entity, nextX, entity.Position.Y, tryMove);
-                if (ShouldClearSlide(tryMove))
+                if (ShouldClearSlide(entity, tryMove))
                     entity.Velocity.Y = 0;
                 stepDelta.Y = 0;
                 return true;
@@ -1679,7 +1701,7 @@ doneLinkToSectors:
             if (IsPositionValid(entity, entity.Position.X, nextY, tryMove))
             {
                 MoveTo(entity, entity.Position.X, nextY, tryMove);
-                if (ShouldClearSlide(tryMove))
+                if (ShouldClearSlide(entity, tryMove))
                     entity.Velocity.X = 0;
                 stepDelta.X = 0;
                 return true;
@@ -1689,7 +1711,7 @@ doneLinkToSectors:
         return false;
     }
 
-    private static bool ShouldClearSlide(TryMoveData tryMove)
+    private static bool ShouldClearSlide(Entity entity, TryMoveData tryMove)
     {
         if (!tryMove.BlockedLineClearsVelocity)
             return false;
@@ -1723,9 +1745,6 @@ doneLinkToSectors:
 
         TryMoveXY(entity, entity.Position.X + entity.Velocity.X, entity.Position.Y + entity.Velocity.Y);
 
-        if (entity.Flags.MbfBouncer && ShouldIgnoreMbfBouncerVelocityZ(entity))
-            return;
-
         bool shouldClear = false;
         if (entity.Velocity.X > -MinMovement && entity.Velocity.X < MinMovement &&
             entity.Velocity.Y > -MinMovement && entity.Velocity.Y < MinMovement)
@@ -1758,10 +1777,11 @@ doneLinkToSectors:
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool ShouldIgnoreMbfBouncerVelocityZ(Entity entity)
+    private static bool ShouldIgnoreMbfBouncerDropoff(Entity entity, TryMoveData tryMove)
     {
         const double MinVelocity = 0.25;
-        return entity.Position.Z > TryMoveData.DropOffZ && entity.HighestFloorZ != entity.Sector.Floor.Z &&
+        return entity.Position.Z > tryMove.DropOffZ && 
+            //entity.HighestFloorZ != entity.Sector.Floor.Z &&
             (Math.Abs(entity.Velocity.X) > MinVelocity || Math.Abs(entity.Velocity.Y) > MinVelocity);
     }
 
