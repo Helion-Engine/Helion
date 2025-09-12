@@ -931,14 +931,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (tryMove.IntersectEntities2D.Length == 0 && tryMove.DropOffEntity != null)
             return false;
 
-        //const double MinBounceVelocity = 0.25;
-        //if (Flags.MbfBouncer && (Position.Z > tryMove.DropOffZ &&
-        //    //entity.HighestFloorZ != entity.Sector.Floor.Z &&
-        //    (Math.Abs(Velocity.X) > MinBounceVelocity || Math.Abs(Velocity.Y) > MinBounceVelocity)))
-        //{
-        //    return true;
-        //}
-
         return tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight;
     }
 

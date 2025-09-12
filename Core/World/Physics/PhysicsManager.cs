@@ -20,7 +20,6 @@ using Helion.World.Special.Specials;
 using System;
 using System.Runtime.CompilerServices;
 using static Helion.Util.Assertion.Assert;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace Helion.World.Physics;
 
@@ -1148,27 +1147,15 @@ doneLinkToSectors:
 
             double nextX = entity.Position.X + stepDelta.X;
             double nextY = entity.Position.Y + stepDelta.Y;
-            if (IsPositionValid(entity, nextX, nextY, TryMoveData))
+            if (IsPositionValid(entity, nextX, nextY, TryMoveData) && entity.CheckDropOff(TryMoveData))
             {
-                if (!entity.CheckDropOff(TryMoveData))
-                {
-                    var ignore = entity.Flags.MbfBouncer && ShouldIgnoreMbfBouncerDropoff(entity, TryMoveData);
-                    if (!ignore)
-                    {
-                        TryMoveData.Subsector = null;
-                        TryMoveData.Success = false;
-                    }
-                }
-                else
-                {
-                    entity.MoveLinked = true;
-                    MoveTo(entity, nextX, nextY, TryMoveData);
-                    if (entity.Flags.Teleported)
-                        return TryMoveData;
+                entity.MoveLinked = true;
+                MoveTo(entity, nextX, nextY, TryMoveData);
+                if (entity.Flags.Teleported)
+                    return TryMoveData;
 
-                    m_world.HandleEntityIntersections(entity, saveVelocity, TryMoveData);
-                    continue;
-                }
+                m_world.HandleEntityIntersections(entity, saveVelocity, TryMoveData);
+                continue;
             }
 
             if (entity.BlockingBlockLineIndex != -1 && entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll)
@@ -1774,15 +1761,6 @@ doneLinkToSectors:
             entity.Velocity.X *= sectorFriction;
             entity.Velocity.Y *= sectorFriction;
         }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool ShouldIgnoreMbfBouncerDropoff(Entity entity, TryMoveData tryMove)
-    {
-        const double MinVelocity = 0.25;
-        return entity.Position.Z > tryMove.DropOffZ && 
-            //entity.HighestFloorZ != entity.Sector.Floor.Z &&
-            (Math.Abs(entity.Velocity.X) > MinVelocity || Math.Abs(entity.Velocity.Y) > MinVelocity);
     }
 
     private static double GetFrictionFromSectors(Entity entity)
