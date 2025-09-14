@@ -613,14 +613,15 @@ public class SinglePlayerWorld : WorldBase
             if (hasYaw)
             {
                 gyroSpeed = hasPitch
-                    ? Math.Sqrt(yaw * yaw + pitch * pitch) * 365 / Math.Tau 
-                    : yaw * 365 / Math.Tau;
+                    ? Math.Sqrt(yaw * yaw + pitch * pitch) * 360 / Math.Tau
+                    : yaw * 360 / Math.Tau;
                 slowFastFactor = (gyroSpeed - Config.Controller.LowerGyroThreshold) / (Config.Controller.UpperGyroThreshold - Config.Controller.LowerGyroThreshold);
                 player.AddToYaw((float)(yaw * (Config.Controller.GyroAimHorizontalSensitivity + (Config.Controller.GyroAcceleration * slowFastFactor))), true);
             }
 
             if (hasPitch)
             {
+                pitch *= Config.Controller.GyroVerticalAimInvert ? -1 : 1;
                 player.AddToPitch((float)(pitch * (Config.Controller.GyroAimVerticalSensitivity + (Config.Controller.GyroAcceleration * slowFastFactor))), true);
             }
 
