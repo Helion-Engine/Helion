@@ -359,5 +359,6 @@ public class MidTex3D
         GameActions.MoveEntity(World, monster, 64);
         monster.Sector.Id.Should().Be(58);
         monster.OnGround.Should().BeTrue();
+        monster.Position.XY.IsApprox(new Vec2D(2509.254, 274.745));
     }
 }
