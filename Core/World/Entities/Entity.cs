@@ -989,9 +989,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         {
             if (BlockingSectorPlane != null)
             {
-                var zFactor = GetBounceDecay();
-                Velocity.Z = -velocity.Z * zFactor;
-
+                Velocity.Z = -velocity.Z * GetBounceDecay();
                 if (Math.Abs(Velocity.Z) <= GetMbfBouncerGravity(4))
                     Velocity.Z = 0;
             }

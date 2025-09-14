@@ -1698,6 +1698,7 @@ doneLinkToSectors:
         return false;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool ShouldClearSlide(Entity entity, TryMoveData tryMove)
     {
         if (!tryMove.BlockedLineClearsVelocity)
@@ -1750,6 +1751,9 @@ doneLinkToSectors:
             }
         }
 
+        if (entity.Flags.MbfBouncer && ShouldIgnoreMbfBouncerFriction(entity, TryMoveData))
+            return;
+
         if (shouldClear)
         {
             entity.Velocity.X = 0;
@@ -1761,6 +1765,15 @@ doneLinkToSectors:
             entity.Velocity.X *= sectorFriction;
             entity.Velocity.Y *= sectorFriction;
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ShouldIgnoreMbfBouncerFriction(Entity entity, TryMoveData tryMove)
+    {
+        const double MinVelocity = 0.25;
+        return entity.Position.Z > tryMove.DropOffZ &&
+            entity.HighestFloorZ != entity.Sector.Floor.Z &&
+            (Math.Abs(entity.Velocity.X) > MinVelocity || Math.Abs(entity.Velocity.Y) > MinVelocity);
     }
 
     private static double GetFrictionFromSectors(Entity entity)
@@ -1811,7 +1824,7 @@ doneLinkToSectors:
         if (!shouldApplyGravity)
             return;
 
-        if (entity.Flags.MbfBouncer)
+        if (entity.Flags.MbfBouncer && entity.Velocity.Z != 0)
         {
             if (!entity.Flags.NoGravity)
                 entity.Velocity.Z -= entity.GetMbfBouncerGravity(1);
