@@ -4,6 +4,7 @@ using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
+using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
@@ -25,6 +26,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using static Helion.Util.Assertion.Assert;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace Helion.World.Entities;
 
@@ -887,6 +889,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     const int DropOffFlags = EntityFlags.FloatFlag | EntityFlags.DropOffFlag;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ShouldCheckDropOff()
     {
         if ((Flags.Flags1 & DropOffFlags) != 0)
@@ -928,14 +931,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (tryMove.IntersectEntities2D.Length == 0 && tryMove.DropOffEntity != null)
             return false;
 
-        if (tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight)
-        {
-            // When crossing off thing to a ledge it's possible for the check to skip lines since it's allow to move beyond the ledge.
-            // If on ground check it's current z position instead of highest floor
-            return Position.Z - tryMove.DropOffZ <= maxStepHeight;
-        }
-
-        return false;
+        return tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight;
     }
 
     private Entity? GetHighestWalkEntity(TryMoveData tryMove, Entity? highestWalk, Entity entity, double maxStepHeight)
@@ -991,25 +987,42 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         }
         else if (Flags.MbfBouncer)
         {
-            //MbfBouncer + Missile - bounce off plane only
-            //MbfBouncer + NoGravity - bounce of all surfaces
-            bool bouncePlane = BlockingSectorPlane != null;
-            bool bounceWall = Flags.NoGravity;
-            double zFactor = Flags.NoGravity ? 1.0 : 0.5;
+            if (BlockingSectorPlane != null)
+            {
+                Velocity.Z = -velocity.Z * GetBounceDecay();
+                if (Math.Abs(Velocity.Z) <= GetMbfBouncerGravity(4))
+                    Velocity.Z = 0;
+            }
 
-            if (bouncePlane || bounceWall)
-                Velocity = velocity;
-
-            if (bouncePlane)
-                Velocity.Z = -velocity.Z * zFactor;
-
-            if (bounceWall && BlockingBlockLineIndex != -1)
+            if (!Flags.Missile && BlockingBlockLineIndex != -1)
             {
                 var bounceVelocity = MathHelper.BounceVelocity(velocity.XY, World.Blockmap.BlockLines[BlockingBlockLineIndex].Segment);
                 Velocity.X = bounceVelocity.X;
                 Velocity.Y = bounceVelocity.Y;
             }
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public double GetMbfBouncerGravity(int factor)
+    {
+        return Properties.Mass * (World.Gravity * Properties.Gravity * Sector.Gravity * Gravity * factor / 256);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private double GetBounceDecay()
+    {
+        if (Flags.NoGravity)
+            return 1.0;
+
+        if (Flags.Float)
+        {
+            if (Flags.Dropoff)
+                return 0.85;
+            return 0.7;
+        }
+
+        return 0.45;
     }
 
     public bool ShouldDieOnCollision()

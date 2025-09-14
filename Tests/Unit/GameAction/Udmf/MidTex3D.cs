@@ -131,7 +131,7 @@ public class MidTex3D
         Player.OnGround.Should().BeTrue();
         Player.Jump();
 
-        int[] positions = [8, 8, 8, 6, 3, 0];
+        int[] positions = [8, 8, 7, 5, 2, 0];
         for (int i = 0; i < positions.Length; i++)
         {
             World.Tick();
@@ -347,5 +347,18 @@ public class MidTex3D
         plasma.Should().NotBeNull();
         GameActions.TickWorld(World, () => { return plasma!.BlockingBlockLineIndex == -1; }, () => { });
         World.Blockmap.BlockLines[plasma!.BlockingBlockLineIndex].LineId.Should().Be(160);
+    }
+
+    [Fact(DisplayName = "Monster doesn't dropoff crossing sector lines and midtex3d line")]
+    public void MonsterCrossMidTexAndSectorDropoff()
+    {
+        var monster = GameActions.GetEntity(World, 10);
+        monster.Sector.Id.Should().Be(58);
+        monster.Position.XY.Should().Be(new Vec2D(2464, 320));
+        monster.AngleRadians = GameActions.GetAngle(Bearing.SouthEast);
+        GameActions.MoveEntity(World, monster, 64);
+        monster.Sector.Id.Should().Be(58);
+        monster.OnGround.Should().BeTrue();
+        monster.Position.XY.IsApprox(new Vec2D(2509.254, 274.745));
     }
 }

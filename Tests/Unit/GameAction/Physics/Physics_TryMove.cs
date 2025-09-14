@@ -1,7 +1,9 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.World.Entities;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction;
@@ -47,7 +49,10 @@ public partial class Physics
         Player.LowestCeilingZ.Should().Be(128);
 
         Player.Velocity.Z = 16;
-        var values = new double[] { 40, 55, 69, 72, 72, 70, 67, 63, 58, 52, 45, 37, 28, 24, 24 };
+        var values = new double[] { 40, 56, 71, 72, 71, 69, 66, 62, 57, 51, 44, 36, 27, 24, 24 };
+
+        var test = values.Select(x => x - 24).ToArray();
+
         for (int i = 0; i < values.Length; i++)
         {
             GameActions.TickWorld(World, 1);
