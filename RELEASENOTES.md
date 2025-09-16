@@ -15,3 +15,4 @@
 - Fix missiles not exploding on floors when floor hits the missile.
 - Fix MF_BOUNCES flag to account for mass and implement velocity modifications from Boom.
 - Fix dropoff check to work correctly MF_BOUNCES things and things on midtex3d lines crossing sectors.
+- Fix line of sight checks to ignore lines where floor and ceiling heights are equal (fixes Eviternity MAP26 chain breaking sound).
