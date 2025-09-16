@@ -2822,6 +2822,9 @@ public abstract partial class WorldBase : IWorld
                 if (line.FrontSector == line.BackSector)
                     continue;
 
+                if (line.FrontSector.Floor.Z == line.BackSector.Floor.Z && line.FrontSector.Ceiling.Z == line.BackSector.Ceiling.Z)
+                    continue;
+
                 var opening = PhysicsManager.GetLineOpening(line.FrontSector, line.BackSector!);
                 if (opening.FloorZ < opening.CeilingZ)
                 {
