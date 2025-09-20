@@ -297,31 +297,32 @@ public class ArchiveCollection : IResources, IPathResolver
 
     public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null, Archive? iwadOverride = null, bool checkGameConfArchives = false)
     {
+        var skipAssetsEntryLoad = false;
         if (Loaded)
         {
-            foreach (var archive in m_archives)
-                archive.Dispose();
-            m_archives.Clear();
+            if (!files.Any() && iwad == null)
+                return true;
 
-            Entries = new();
-            Data = new();
-            Definitions = new(this, m_config.Compatibility);
+            if (IsAssetsOnly())
+                skipAssetsEntryLoad = true;
+            else
+                ClearArchivesAndData();
         }
 
         Loaded = true;
-        List<string> filePaths = [];
+        var filePaths = new List<string>(files.Count());
         Archive? iwadArchive = null;
 
         // If we have nothing loaded, we want to make sure assets.pk3 is
         // loaded before anything else. We also do not want it to be loaded
         // if we have already loaded it.
-        if (loadDefaultAssets && m_archives.Empty())
+        if (loadDefaultAssets && m_archives.Count == 0)
         {
-            Archive? assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, LoadArchiveOptions.CalculateMd5 | LoadArchiveOptions.IsBundled);
-            if (assetsArchive == null)
+            var loadAssets = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, LoadArchiveOptions.CalculateMd5 | LoadArchiveOptions.IsBundled);
+            if (loadAssets == null)
                 return false;
 
-            m_archives.Add(assetsArchive);
+            m_archives.Add(loadAssets);
         }
 
         if (checkGameConfArchives)
@@ -345,7 +346,7 @@ public class ArchiveCollection : IResources, IPathResolver
 
         foreach (string filePath in filePaths)
         {
-            Archive? archive = LoadArchive(filePath, LoadArchiveOptions.CalculateMd5);
+            var archive = LoadArchive(filePath, LoadArchiveOptions.CalculateMd5);
             if (archive == null)
                 continue;
 
@@ -354,10 +355,17 @@ public class ArchiveCollection : IResources, IPathResolver
 
         m_archives.AddRange(LoadEmbeddedArchives(m_archives));
 
-        ProcessAndIndexEntries(iwadArchive, m_archives);
+        var assetsArchive = m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.Assets);
+        if (!skipAssetsEntryLoad && assetsArchive != null)
+            ProcessAndIndexEntries([assetsArchive]);
+
+        LoadAssetsForIwad(iwadArchive, m_archives);
+        ProcessAndIndexEntries(m_archives.Where(x => x.ArchiveType != ArchiveType.Assets));
         IWadType = GetIWadInfo().IWadBaseType;
 
-        if (loadDefaultAssets)
+        // Only apply assets when loading with IWAD/files.
+        // This step needs to be skipped on the initial load since we are keeping the assets archive/entries.
+        if (loadDefaultAssets && !IsAssetsOnly())
         {
             // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
             EntityDefinitionComposer.LoadAllDefinitions();       
@@ -373,6 +381,19 @@ public class ArchiveCollection : IResources, IPathResolver
 
         return true;
     }
+
+    private void ClearArchivesAndData()
+    {
+        foreach (var archive in m_archives)
+            archive.Dispose();
+        m_archives.Clear();
+
+        Entries = new();
+        Data = new();
+        Definitions = new(this, m_config.Compatibility);
+    }
+
+    private bool IsAssetsOnly() => m_archives.Count == 1 && m_archives[0].ArchiveType == ArchiveType.Assets;
 
     private bool LoadDehackedPatch(string dehackedPatch)
     {
@@ -577,26 +598,36 @@ public class ArchiveCollection : IResources, IPathResolver
         return archive;
     }
 
-    private void ProcessAndIndexEntries(Archive? iwadArchive, List<Archive> archives)
+    private void ProcessAndIndexEntries(IEnumerable<Archive> archives)
     {
-        foreach (Archive archive in archives)
+        foreach (var archive in archives)
         {
-            foreach (Entry entry in archive.Entries)
+            foreach (var entry in archive.Entries)
             {
                 Entries.Track(entry);
                 Data.Read(entry);
             }
 
             Definitions.Track(archive);
-
-            if (archive.ArchiveType == ArchiveType.Assets && GetIWadInfo(iwadArchive, archives, out var iwadInfo))
-            {
-                Definitions.LoadMapInfo(archive, iwadInfo.MapInfoResource);
-                Definitions.LoadDecorate(archive, iwadInfo.DecorateResource);
-            }
         }
 
         Definitions.Finalize(this);
+    }
+
+    private void LoadAssetsForIwad(Archive? iwadArchive, List<Archive> archives)
+    {
+        if (iwadArchive == null)
+            return;
+
+        var assetsArchive = archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.Assets);
+        if (assetsArchive == null)
+            return;
+
+        if (assetsArchive.ArchiveType == ArchiveType.Assets && GetIWadInfo(iwadArchive, archives, out var iwadInfo))
+        {
+            Definitions.LoadMapInfo(assetsArchive, iwadInfo.MapInfoResource);
+            Definitions.LoadDecorate(assetsArchive, iwadInfo.DecorateResource);
+        }
     }
 
     private static bool GetIWadInfo(Archive? iwadArchive, List<Archive> archives, [NotNullWhen(true)] out IWadInfo? info)
