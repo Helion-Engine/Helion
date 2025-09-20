@@ -297,7 +297,6 @@ public class EntityRenderer : IDisposable
         vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
         vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex, lightLevel);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
-        vertex.OffsetXYZ = VertexOptions.EntityXYZ(texture.Offset.X, offsetZ);
 
         if (entity.Definition.Flags.SpawnCeiling && m_vanillaRender)
         {
@@ -308,7 +307,8 @@ public class EntityRenderer : IDisposable
             vertex.Pos.Z = ceilingZ + diff;
             vertex.PrevPos.Z = entity.PrevPosition.Z != entity.Position.Z ? (float)entity.Sector.Ceiling.PrevZ : ceilingZ;
         }
-
+        
+        vertex.OffsetXYZ = VertexOptions.EntityXYZ(texture.Offset.X, offsetZ);
         arrayData.Length = length + 1;
 
         if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
