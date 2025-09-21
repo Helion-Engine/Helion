@@ -1,13 +1,12 @@
 using Helion.Util.Container;
-using System.Collections.Generic;
 
 namespace Helion.World.Entities.Players;
 
 public class TickCommand
 {
     // These commands are only processed once even if held down.
-    private static readonly TickCommands[] SinglePressCommands = new[]
-    {
+    private static readonly TickCommands[] SinglePressCommands =
+    [
         TickCommands.Use,
         TickCommands.NextWeapon,
         TickCommands.PreviousWeapon,
@@ -23,11 +22,10 @@ public class TickCommand
         TickCommands.WeaponGroup3,
         TickCommands.WeaponGroup4,
         TickCommands.CenterView
-    };
+    ];
 
     private readonly DynamicArray<TickCommands> m_commands = new();
     private readonly DynamicArray<TickCommands> m_previousCommands = new();
-    private readonly List<TickCommands> m_returnCommands = new();
 
     public double AngleTurn { get; set; }
     public double PitchTurn { get; set; }

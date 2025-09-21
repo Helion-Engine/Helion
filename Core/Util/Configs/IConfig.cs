@@ -26,6 +26,7 @@ public interface IConfig
     ConfigWindow Window { get; }
     ConfigDemo Demo { get; }
     ConfigSlowTick SlowTick { get; }
+    ConfigWeaponPreference WeaponPreference { get; }
     IConfigKeyMapping Keys { get; }
     IConfigAliasMapping Aliases { get; }
 

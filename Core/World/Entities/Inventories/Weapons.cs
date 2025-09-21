@@ -164,6 +164,9 @@ public sealed class Weapons
 
     public bool CanSelectWeapon(Weapon weapon)
     {
+        if (!CheckSelection(weapon))
+            return false;
+
         bool allowSwitch = true;
         bool disallowSwitch = false;
         ref var weaponDef = ref weapon.Definition.Properties.Weapons;
@@ -192,6 +195,14 @@ public sealed class Weapons
         }
 
         return allowSwitch;
+    }
+
+    public bool CheckSelection(Weapon weapon)
+    {
+        if (WorldStatic.World.Config.WeaponPreference.NoAmmoSelect)
+            return true;
+
+        return m_inventory.CheckAmmo(weapon);
     }
 
     public Weapon? Add(EntityDefinition definition, Player owner, EntityManager entityManager,
@@ -239,7 +250,7 @@ public sealed class Weapons
             if (!m_weaponSlotLookup.TryGetValue(weapon.Definition.Id, out var weaponSlot))
                 continue;
 
-            if (weaponSlot.Slot < min)
+            if (weaponSlot.Slot < min && CheckSelection(weapon))
                 min = weaponSlot.Slot;
         }
 
@@ -257,7 +268,7 @@ public sealed class Weapons
             if (!m_weaponSlotLookup.TryGetValue(weapon.Definition.Id, out var weaponSlot))
                 continue;
 
-            if (weaponSlot.Slot > max)
+            if (weaponSlot.Slot > max && CheckSelection(weapon))
                 max = weaponSlot.Slot;
         }
 

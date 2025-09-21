@@ -2,7 +2,6 @@ using Helion.Audio;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
-using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Render.Common.World;
@@ -12,6 +11,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Config.Components;
+using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
 using Helion.World.Cheats;
 using Helion.World.Entities.Definition;
@@ -957,8 +957,8 @@ public class Player : Entity
         return TickCommands.None;
     }
 
-    private ConfigWeaponSlots[,] m_WeaponGroups = new ConfigWeaponSlots[4,3];
-    private ConfigWeaponSlots[,] GetWeaponGroups()
+    private WeaponSlots[,] m_WeaponGroups = new WeaponSlots[4,3];
+    private WeaponSlots[,] GetWeaponGroups()
     {
         m_WeaponGroups[0,0] = WorldStatic.World.Config.Player.Group1Weapon1;
         m_WeaponGroups[0,1] = WorldStatic.World.Config.Player.Group1Weapon2;
@@ -991,7 +991,7 @@ public class Player : Entity
         for (int slotIndex = 0; slotIndex < weaponGroups.GetLength(1); slotIndex++) 
         {
             var slot = weaponGroups[groupNumber,slotIndex];
-            if (slot != ConfigWeaponSlots.None) 
+            if (slot != WeaponSlots.None) 
             {
                 Weapon? weapon = null;
                 if (WeaponSlot == (int)slot)
@@ -1175,7 +1175,7 @@ public class Player : Entity
 
         int oldCount = Inventory.Amount(baseAmmoDef);
         bool success = Inventory.Add(baseAmmoDef, giveAmount, flags);
-        if (success && autoSwitchWeapon)
+        if (success && autoSwitchWeapon && ShouldSwitch(weaponDef))
             CheckAutoSwitchAmmo(baseAmmoDef, oldCount);
         return success;
     }
@@ -1309,14 +1309,38 @@ public class Player : Entity
         if (ownedWeapon)
             return;
 
-        Weapon? newWeapon = Inventory.Weapons.GetWeapon(definition.Name);
+        var newWeapon = Inventory.Weapons.GetWeapon(definition.Name);
         if (newWeapon == null)
             return;
 
         if (!Inventory.Weapons.CanSelectWeapon(newWeapon))
             return;
 
+        if (!ShouldSwitch(definition))
+            return;
+
         ChangeWeapon(newWeapon);
+    }
+
+    private bool ShouldSwitch(EntityDefinition? definition)
+    {
+        return World.Config.WeaponPreference.Preference.Value switch
+        {
+            WeaponSwitch.Never => false,
+            WeaponSwitch.Preference => definition != null && ShouldSwitchPreference(definition),
+            WeaponSwitch.PreferenceNoAttack => !TickCommand.Has(TickCommands.Attack) && definition != null && ShouldSwitchPreference(definition),
+            _ => true,
+        };
+    }
+
+    private bool ShouldSwitchPreference(EntityDefinition definition)
+    {
+        if (Weapon == null)
+            return true;
+
+        var currentPriority = World.Config.WeaponPreference.GetWeaponPriority(Weapon.Definition);
+        var pickupPriority = World.Config.WeaponPreference.GetWeaponPriority(definition);
+        return pickupPriority > currentPriority;
     }
 
     /// <summary>
@@ -1458,15 +1482,7 @@ public class Player : Entity
     /// </summary>
     public bool CheckAmmo(Weapon weapon, int ammoCount = -1)
     {
-        // Inifinite if no ammo type (fist, chainsaw)
-        string ammoType = weapon.Definition.Properties.Weapons.AmmoType;
-        if (ammoType.Length == 0)
-            return true;
-
-        if (ammoCount == -1)
-            ammoCount = Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType);
-
-        return ammoCount >= weapon.Definition.Properties.Weapons.AmmoUse;
+        return Inventory.CheckAmmo(weapon, ammoCount);
     }
 
     public bool CanFireWeapon()

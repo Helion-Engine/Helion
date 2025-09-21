@@ -34,6 +34,7 @@ public class Config : ConfigElement<Config>, IConfig
     public ConfigWindow Window { get; } = new();
     public ConfigDemo Demo { get; } = new();
     public ConfigSlowTick SlowTick { get; } = new();
+    public ConfigWeaponPreference WeaponPreference { get; } = new();
     public IConfigKeyMapping Keys => KeyMapping;
     public IConfigAliasMapping Aliases { get; }
     protected readonly ConfigKeyMapping KeyMapping = new();
