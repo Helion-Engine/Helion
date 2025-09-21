@@ -32,10 +32,25 @@ public partial class Inventory
         }
     }
 
-    [Fact(DisplayName = "Weapon preference priority ignore attack")]
+    [Fact(DisplayName = "Weapon pick doesn't switch while attacking")]
+    public void AlwaysNoAttack()
+    {
+        World.Config.WeaponPreference.Preference.Set(WeaponSwitch.AlwaysExceptAttack);
+        SetWeaponPreferencePriority();
+
+        Player.GiveItem(GameActions.GetEntityDefinition(World, "RocketLauncher"), null);
+        InventoryUtil.AssertWeapon(Player.PendingWeapon, "RocketLauncher");
+        InventoryUtil.RunWeaponSwitch(World, Player, "RocketLauncher");
+        Player.TickCommand.Add(TickCommands.Attack);
+
+        Player.GiveItem(GameActions.GetEntityDefinition(World, "SuperShotgun"), null);
+        Player.PendingWeapon.Should().BeNull();
+    }
+
+    [Fact(DisplayName = "Weapon preference priority doesn't switch while attack")]
     public void WeaponPreference()
     {
-        World.Config.WeaponPreference.Preference.Set(WeaponSwitch.PreferenceNoAttack);
+        World.Config.WeaponPreference.Preference.Set(WeaponSwitch.PreferenceExceptAttack);
         SetWeaponPreferencePriority();
 
         Player.GiveItem(GameActions.GetEntityDefinition(World, "RocketLauncher"), null);
@@ -78,6 +93,22 @@ public partial class Inventory
         Player.GiveItem(GameActions.GetEntityDefinition(World, "RocketLauncher"), null);
         InventoryUtil.AssertHasWeapon(Player, "RocketLauncher");
         Player.PendingWeapon.Should().BeNull();
+    }
+
+    [Fact(DisplayName = "Pending weapon preference priority")]
+    public void PendingWeaponPreferencePriority()
+    {
+        World.Config.WeaponPreference.Preference.Set(WeaponSwitch.Preference);
+        SetWeaponPreferencePriority();
+
+        Player.GiveItem(GameActions.GetEntityDefinition(World, "SuperShotgun"), null);
+        InventoryUtil.AssertHasWeapon(Player, "SuperShotgun");
+        Player.ChangeWeapon(InventoryUtil.GetWeapon(Player, "SuperShotgun"));
+        InventoryUtil.AssertWeapon(Player.PendingWeapon, "SuperShotgun");
+        InventoryUtil.AssertWeapon(Player.Weapon, "Pistol");
+
+        Player.GiveItem(GameActions.GetEntityDefinition(World, "PlasmaRifle"), null);
+        InventoryUtil.AssertWeapon(Player.PendingWeapon, "SuperShotgun");
     }
 
     [Fact(DisplayName = "Player doesn't switch to weapon with no ammo by slot command")]

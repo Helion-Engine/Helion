@@ -1327,18 +1327,20 @@ public class Player : Entity
         return World.Config.WeaponPreference.Preference.Value switch
         {
             WeaponSwitch.Never => false,
+            WeaponSwitch.AlwaysExceptAttack => !TickCommand.Has(TickCommands.Attack),
             WeaponSwitch.Preference => definition != null && ShouldSwitchPreference(definition),
-            WeaponSwitch.PreferenceNoAttack => !TickCommand.Has(TickCommands.Attack) && definition != null && ShouldSwitchPreference(definition),
+            WeaponSwitch.PreferenceExceptAttack => !TickCommand.Has(TickCommands.Attack) && definition != null && ShouldSwitchPreference(definition),
             _ => true,
         };
     }
 
     private bool ShouldSwitchPreference(EntityDefinition definition)
     {
-        if (Weapon == null)
+        var currentWeapon = PendingWeapon ?? Weapon;
+        if (currentWeapon == null)
             return true;
 
-        var currentPriority = World.Config.WeaponPreference.GetWeaponPriority(Weapon.Definition);
+        var currentPriority = World.Config.WeaponPreference.GetWeaponPriority(currentWeapon.Definition);
         var pickupPriority = World.Config.WeaponPreference.GetWeaponPriority(definition);
         return pickupPriority > currentPriority;
     }

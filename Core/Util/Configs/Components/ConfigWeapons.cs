@@ -11,10 +11,12 @@ namespace Helion.Util.Configs.Components;
 public enum WeaponSwitch
 {
     Always,
+    [Description("Always Except Attacking")]
+    AlwaysExceptAttack,
     Never,
     Preference,
     [Description("Preference Except Attacking")]
-    PreferenceNoAttack
+    PreferenceExceptAttack
 }
 
 public class ConfigWeaponPreference : ConfigElement<ConfigWeaponPreference>
@@ -39,42 +41,42 @@ public class ConfigWeaponPreference : ConfigElement<ConfigWeaponPreference>
         };
     }
 
-    [ConfigInfo("Weapon pickup selection preference.")]
+    [ConfigInfo("Weapon pickup selection preference.", demo: true)]
     [OptionMenu(OptionSectionType.Weapons, "Pickup Preference")]
     public ConfigValue<WeaponSwitch> Preference = new(WeaponSwitch.Always);
 
-    [ConfigInfo("Disable selecting weapon with no ammo.")]
+    [ConfigInfo("Disable selecting weapon with no ammo.", demo: true)]
     [OptionMenu(OptionSectionType.Weapons, "No Ammo Select")]
     public ConfigValue<bool> NoAmmoSelect = new(true);
 
     [ConfigInfo("", save: false, legacy: true)]
     [OptionMenu(OptionSectionType.Weapons, "", disabled: true, spacer: true)]
     public readonly ConfigValueHeader Header = new("Weapon Priority");
-    [ConfigInfo("Fist")]
+    [ConfigInfo("Fist", demo: true)]
     [OptionMenu(OptionSectionType.Weapons, "Fist", sliderMin: PriorityMin, sliderMax: PriorityMax, sliderStep: 1, spacer: true)]
     public ConfigValue<int> Fist = new(0, ConfigFilters.Clamp(PriorityMin, PriorityMax));
-    [ConfigInfo("Chainsaw")]
+    [ConfigInfo("Chainsaw", demo: true)]
     [OptionMenu(OptionSectionType.Weapons, "Chainsaw", sliderMin: PriorityMin, sliderMax: PriorityMax, sliderStep: 1)]
     public ConfigValue<int> Chainsaw = new(1, ConfigFilters.Clamp(PriorityMin, PriorityMax));
-    [ConfigInfo("Pistol")]
+    [ConfigInfo("Pistol", demo: true)]
     [OptionMenu(OptionSectionType.Weapons, "Pistol", sliderMin: PriorityMin, sliderMax: PriorityMax, sliderStep: 1)]
     public ConfigValue<int> Pistol = new(1, ConfigFilters.Clamp(PriorityMin, PriorityMax));
-    [ConfigInfo("Shotgun")]
+    [ConfigInfo("Shotgun", demo: true)]
     [OptionMenu(OptionSectionType.Weapons, "Shotgun", sliderMin: PriorityMin, sliderMax: PriorityMax, sliderStep: 1)]
     public ConfigValue<int> Shotgun = new(2, ConfigFilters.Clamp(PriorityMin, PriorityMax));
-    [ConfigInfo("SuperShotgun")]
+    [ConfigInfo("SuperShotgun", demo: true)]
     [OptionMenu(OptionSectionType.Weapons, "Super Shotgun", sliderMin: PriorityMin, sliderMax: PriorityMax, sliderStep: 1)]
     public ConfigValue<int> SuperShotgun = new(4, ConfigFilters.Clamp(PriorityMin, PriorityMax));
-    [ConfigInfo("Chaingun")]
+    [ConfigInfo("Chaingun", demo: true)]
     [OptionMenu(OptionSectionType.Weapons, "Chaingun", sliderMin: PriorityMin, sliderMax: PriorityMax, sliderStep: 1)]
     public ConfigValue<int> Chaingun = new(3, ConfigFilters.Clamp(PriorityMin, PriorityMax));
-    [ConfigInfo("RocketLauncher")]
+    [ConfigInfo("RocketLauncher", demo: true)]
     [OptionMenu(OptionSectionType.Weapons, "Rocket Launcher", sliderMin: PriorityMin, sliderMax: PriorityMax, sliderStep: 1)]
     public ConfigValue<int> RocketLauncher = new(1, ConfigFilters.Clamp(PriorityMin, PriorityMax));
-    [ConfigInfo("PlasmaRifle")]
+    [ConfigInfo("PlasmaRifle", demo: true)]
     [OptionMenu(OptionSectionType.Weapons, "Plasma Rifle", sliderMin: PriorityMin, sliderMax: PriorityMax, sliderStep: 1)]
     public ConfigValue<int> PlasmaRifle = new(5, ConfigFilters.Clamp(PriorityMin, PriorityMax));
-    [ConfigInfo("BFG9000")]
+    [ConfigInfo("BFG9000", demo: true)]
     [OptionMenu(OptionSectionType.Weapons, "BFG9000", sliderMin: PriorityMin, sliderMax: PriorityMax, sliderStep: 1)]
     public ConfigValue<int> BFG9000 = new(2, ConfigFilters.Clamp(PriorityMin, PriorityMax));
 
