@@ -52,7 +52,7 @@ public class Player : Entity
     private const int JumpDelayTicks = 7;
     private const int SlowTurnTicks = 6;
     private const double MaxPitch = Camera.MaxPitch;
-    private static readonly PowerupType[] PowerupsWithBrightness = { PowerupType.LightAmp, PowerupType.Invulnerable };
+    private static readonly PowerupType[] PowerupsWithBrightness = [PowerupType.LightAmp, PowerupType.Invulnerable];
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     // These are set instantly from mouse movement.
@@ -105,8 +105,8 @@ public class Player : Entity
     public WeakEntity Attacker = WeakEntity.Default;
     public WeakEntity CrosshairTarget = WeakEntity.Default;
     public PlayerStatusBar StatusBar;
-    public PlayerCheats Cheats = new PlayerCheats();
-    public PlayerInfo Info = new PlayerInfo();
+    public PlayerCheats Cheats = new();
+    public PlayerInfo Info = new();
     public PlayerTracers Tracers = new();
     public bool IsVooDooDoll;
     public bool IsSyncVooDoo;
@@ -234,8 +234,8 @@ public class Player : Entity
 
         StatusBar = new PlayerStatusBar(this);
 
-        foreach (CheatType cheat in playerModel.Cheats)
-            Cheats.SetCheatActive(cheat);
+        for (int i = 0; i < playerModel.Cheats.Count; i++)
+            Cheats.SetCheatActive((CheatType)playerModel.Cheats[i]);
 
         SetPlayerInfo();
         SetupEvents();
@@ -906,8 +906,8 @@ public class Player : Entity
     private static int GetWeaponSlot(TickCommands tickCommand) =>
         (int)tickCommand - (int)TickCommands.WeaponSlot1 + 1;
 
-    private static readonly TickCommands[] WeaponSlotCommands = new TickCommands[]
-    {
+    private static readonly TickCommands[] WeaponSlotCommands =
+    [
         TickCommands.WeaponSlot1,
         TickCommands.WeaponSlot2,
         TickCommands.WeaponSlot3,
@@ -915,7 +915,7 @@ public class Player : Entity
         TickCommands.WeaponSlot5,
         TickCommands.WeaponSlot6,
         TickCommands.WeaponSlot7,
-    };
+    ];
 
     private static TickCommands GetWeaponSlotCommand(TickCommand tickCommand)
     {
@@ -940,13 +940,13 @@ public class Player : Entity
     private static int GetWeaponGroupIndex(TickCommands tickCommand) =>
         (int)tickCommand - (int)TickCommands.WeaponGroup1;
     
-    private static readonly TickCommands[] WeaponGroupCommands = new TickCommands[]
-    {
+    private static readonly TickCommands[] WeaponGroupCommands =
+    [
         TickCommands.WeaponGroup1,
         TickCommands.WeaponGroup2,
         TickCommands.WeaponGroup3,
         TickCommands.WeaponGroup4
-    };
+    ];
 
     private static TickCommands GetWeaponGroupCommand(TickCommand tickCommand)
     {
@@ -957,7 +957,7 @@ public class Player : Entity
         return TickCommands.None;
     }
 
-    private WeaponSlots[,] m_WeaponGroups = new WeaponSlots[4,3];
+    private readonly WeaponSlots[,] m_WeaponGroups = new WeaponSlots[4,3];
     private WeaponSlots[,] GetWeaponGroups()
     {
         m_WeaponGroups[0,0] = WorldStatic.World.Config.Player.Group1Weapon1;
@@ -1324,7 +1324,7 @@ public class Player : Entity
 
     private bool ShouldSwitch(EntityDefinition? definition)
     {
-        return World.Config.WeaponPreference.Preference.Value switch
+        return World.Config.Weapons.SwitchPreference.Value switch
         {
             WeaponSwitch.Never => false,
             WeaponSwitch.AlwaysExceptAttack => !TickCommand.Has(TickCommands.Attack),
@@ -1340,8 +1340,8 @@ public class Player : Entity
         if (currentWeapon == null)
             return true;
 
-        var currentPriority = World.Config.WeaponPreference.GetWeaponPriority(currentWeapon.Definition);
-        var pickupPriority = World.Config.WeaponPreference.GetWeaponPriority(definition);
+        var currentPriority = World.Config.Weapons.GetWeaponPriority(currentWeapon.Definition);
+        var pickupPriority = World.Config.Weapons.GetWeaponPriority(definition);
         return pickupPriority > currentPriority;
     }
 
@@ -1589,8 +1589,7 @@ public class Player : Entity
         if (Weapon == null)
             return;
         var weapon = Weapon.Definition.Properties.Weapons;
-        if (weapon.AmmoTypeDef == null)
-            weapon.AmmoTypeDef = WorldStatic.World.EntityManager.DefinitionComposer.GetByName(weapon.AmmoType);
+        weapon.AmmoTypeDef ??= WorldStatic.World.EntityManager.DefinitionComposer.GetByName(weapon.AmmoType);
         if (weapon.AmmoTypeDef != null)
             Inventory.Add(weapon.AmmoTypeDef, amount);
     }

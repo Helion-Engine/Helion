@@ -19,13 +19,13 @@ public enum WeaponSwitch
     PreferenceExceptAttack
 }
 
-public class ConfigWeaponPreference : ConfigElement<ConfigWeaponPreference>
+public class ConfigWeapons : ConfigElement<ConfigWeapons>
 {
     const int PriorityMin = 0;
     const int PriorityMax = 10;
     private readonly Dictionary<string, ConfigValue<int>> m_weaponLookup;
 
-    public ConfigWeaponPreference()
+    public ConfigWeapons()
     {
         m_weaponLookup = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -42,8 +42,8 @@ public class ConfigWeaponPreference : ConfigElement<ConfigWeaponPreference>
     }
 
     [ConfigInfo("Weapon pickup selection preference.", demo: true)]
-    [OptionMenu(OptionSectionType.Weapons, "Pickup Preference")]
-    public ConfigValue<WeaponSwitch> Preference = new(WeaponSwitch.Always);
+    [OptionMenu(OptionSectionType.Weapons, "Pickup Switch Preference")]
+    public ConfigValue<WeaponSwitch> SwitchPreference = new(WeaponSwitch.Always);
 
     [ConfigInfo("Disable selecting weapon with no ammo.", demo: true)]
     [OptionMenu(OptionSectionType.Weapons, "No Ammo Select")]

@@ -22,7 +22,7 @@ public partial class Inventory
     [Fact(DisplayName = "Never switch weapon pickup")]
     public void NeverSwitch()
     {
-        World.Config.WeaponPreference.Preference.Set(WeaponSwitch.Never);
+        World.Config.Weapons.SwitchPreference.Set(WeaponSwitch.Never);
 
         foreach (var weapon in WeaponNames)
         {
@@ -35,7 +35,7 @@ public partial class Inventory
     [Fact(DisplayName = "Weapon pick doesn't switch while attacking")]
     public void AlwaysNoAttack()
     {
-        World.Config.WeaponPreference.Preference.Set(WeaponSwitch.AlwaysExceptAttack);
+        World.Config.Weapons.SwitchPreference.Set(WeaponSwitch.AlwaysExceptAttack);
         SetWeaponPreferencePriority();
 
         Player.GiveItem(GameActions.GetEntityDefinition(World, "RocketLauncher"), null);
@@ -50,7 +50,7 @@ public partial class Inventory
     [Fact(DisplayName = "Weapon preference priority doesn't switch while attack")]
     public void WeaponPreference()
     {
-        World.Config.WeaponPreference.Preference.Set(WeaponSwitch.PreferenceExceptAttack);
+        World.Config.Weapons.SwitchPreference.Set(WeaponSwitch.PreferenceExceptAttack);
         SetWeaponPreferencePriority();
 
         Player.GiveItem(GameActions.GetEntityDefinition(World, "RocketLauncher"), null);
@@ -65,7 +65,7 @@ public partial class Inventory
     [Fact(DisplayName = "Weapon preference priority")]
     public void WeaponPreferencePriority()
     {
-        World.Config.WeaponPreference.Preference.Set(WeaponSwitch.Preference);
+        World.Config.Weapons.SwitchPreference.Set(WeaponSwitch.Preference);
         SetWeaponPreferencePriority();
 
         Player.GiveItem(GameActions.GetEntityDefinition(World, "Chainsaw"), null);
@@ -98,7 +98,7 @@ public partial class Inventory
     [Fact(DisplayName = "Pending weapon preference priority")]
     public void PendingWeaponPreferencePriority()
     {
-        World.Config.WeaponPreference.Preference.Set(WeaponSwitch.Preference);
+        World.Config.Weapons.SwitchPreference.Set(WeaponSwitch.Preference);
         SetWeaponPreferencePriority();
 
         Player.GiveItem(GameActions.GetEntityDefinition(World, "SuperShotgun"), null);
@@ -114,7 +114,7 @@ public partial class Inventory
     [Fact(DisplayName = "Player doesn't switch to weapon with no ammo by slot command")]
     public void NoAmmoSelectBySlotCommand()
     {
-        World.Config.WeaponPreference.NoAmmoSelect.Set(false);
+        World.Config.Weapons.NoAmmoSelect.Set(false);
         Player.GiveItem(GameActions.GetEntityDefinition(World, "Shotgun"), null);
         InventoryUtil.AssertHasWeapon(Player, "Shotgun");
         InventoryUtil.RunWeaponSwitch(World, Player, "Shotgun");
@@ -140,7 +140,7 @@ public partial class Inventory
     [Fact(DisplayName = "Player doesn't switch to weapon with no ammo by cycle command")]
     public void NoAmmoSelectByCycleCommand()
     {
-        World.Config.WeaponPreference.NoAmmoSelect.Set(false);
+        World.Config.Weapons.NoAmmoSelect.Set(false);
         Player.GiveItem(GameActions.GetEntityDefinition(World, "Shotgun"), null);
         InventoryUtil.AssertHasWeapon(Player, "Shotgun");
         InventoryUtil.RunWeaponSwitch(World, Player, "Shotgun");
@@ -193,12 +193,12 @@ public partial class Inventory
 
     private void SetWeaponPreferencePriority()
     {
-        World.Config.WeaponPreference.SuperShotgun.Set(10);
-        World.Config.WeaponPreference.PlasmaRifle.Set(9);
-        World.Config.WeaponPreference.Shotgun.Set(8);
-        World.Config.WeaponPreference.Chaingun.Set(8);
-        World.Config.WeaponPreference.RocketLauncher.Set(2);
-        World.Config.WeaponPreference.Chainsaw.Set(1);
-        World.Config.WeaponPreference.Pistol.Set(0);
+        World.Config.Weapons.SuperShotgun.Set(10);
+        World.Config.Weapons.PlasmaRifle.Set(9);
+        World.Config.Weapons.Shotgun.Set(8);
+        World.Config.Weapons.Chaingun.Set(8);
+        World.Config.Weapons.RocketLauncher.Set(2);
+        World.Config.Weapons.Chainsaw.Set(1);
+        World.Config.Weapons.Pistol.Set(0);
     }
 }

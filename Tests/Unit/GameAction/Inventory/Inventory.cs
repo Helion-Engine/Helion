@@ -27,8 +27,8 @@ namespace Helion.Tests.Unit.GameAction
         public void Dispose()
         {
             InventoryUtil.Reset(World, Player);
-            World.Config.WeaponPreference.Preference.Set(WeaponSwitch.Always);
-            World.Config.WeaponPreference.NoAmmoSelect.Set(true);
+            World.Config.Weapons.SwitchPreference.Set(WeaponSwitch.Always);
+            World.Config.Weapons.NoAmmoSelect.Set(true);
         }
 
         private void WorldInit(SinglePlayerWorld world)
