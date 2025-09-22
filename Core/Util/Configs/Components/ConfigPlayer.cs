@@ -19,41 +19,41 @@ public class ConfigPlayer: ConfigElement<ConfigPlayer>
 
     [ConfigInfo("")]
     [OptionMenu(OptionSectionType.Player, "Group 1 1st", spacer: true)]
-    public readonly ConfigValue<ConfigWeaponSlots> Group1Weapon1 = new(ConfigWeaponSlots.ShotgunOrSuperShotgun, OnlyValidEnums<ConfigWeaponSlots>());
+    public readonly ConfigValue<WeaponSlots> Group1Weapon1 = new(WeaponSlots.ShotgunOrSuperShotgun, OnlyValidEnums<WeaponSlots>());
     [ConfigInfo("")]
     [OptionMenu(OptionSectionType.Player, "        2nd")]
-    public readonly ConfigValue<ConfigWeaponSlots> Group1Weapon2 = new(ConfigWeaponSlots.ShotgunOrSuperShotgun, OnlyValidEnums<ConfigWeaponSlots>());
+    public readonly ConfigValue<WeaponSlots> Group1Weapon2 = new(WeaponSlots.ShotgunOrSuperShotgun, OnlyValidEnums<WeaponSlots>());
     [ConfigInfo("")]
     [OptionMenu(OptionSectionType.Player, "        3rd")]
-    public readonly ConfigValue<ConfigWeaponSlots> Group1Weapon3 = new(ConfigWeaponSlots.None, OnlyValidEnums<ConfigWeaponSlots>());
+    public readonly ConfigValue<WeaponSlots> Group1Weapon3 = new(WeaponSlots.None, OnlyValidEnums<WeaponSlots>());
 
     [ConfigInfo("")]
     [OptionMenu(OptionSectionType.Player, "Group 2 1st", spacer: true)]
-    public readonly ConfigValue<ConfigWeaponSlots> Group2Weapon1 = new(ConfigWeaponSlots.RocketLauncher, OnlyValidEnums<ConfigWeaponSlots>());
+    public readonly ConfigValue<WeaponSlots> Group2Weapon1 = new(WeaponSlots.RocketLauncher, OnlyValidEnums<WeaponSlots>());
     [ConfigInfo("")]
     [OptionMenu(OptionSectionType.Player, "        2nd")]
-    public readonly ConfigValue<ConfigWeaponSlots> Group2Weapon2 = new(ConfigWeaponSlots.Melee, OnlyValidEnums<ConfigWeaponSlots>());
+    public readonly ConfigValue<WeaponSlots> Group2Weapon2 = new(WeaponSlots.Melee, OnlyValidEnums<WeaponSlots>());
     [ConfigInfo("")]
     [OptionMenu(OptionSectionType.Player, "        3rd")]
-    public readonly ConfigValue<ConfigWeaponSlots> Group2Weapon3 = new(ConfigWeaponSlots.Melee, OnlyValidEnums<ConfigWeaponSlots>());
+    public readonly ConfigValue<WeaponSlots> Group2Weapon3 = new(WeaponSlots.Melee, OnlyValidEnums<WeaponSlots>());
 
     [ConfigInfo("")]
     [OptionMenu(OptionSectionType.Player, "Group 3 1st", spacer: true)]
-    public readonly ConfigValue<ConfigWeaponSlots> Group3Weapon1 = new(ConfigWeaponSlots.PlasmaRifle, OnlyValidEnums<ConfigWeaponSlots>());
+    public readonly ConfigValue<WeaponSlots> Group3Weapon1 = new(WeaponSlots.PlasmaRifle, OnlyValidEnums<WeaponSlots>());
     [ConfigInfo("")]
     [OptionMenu(OptionSectionType.Player, "        2nd")]
-    public readonly ConfigValue<ConfigWeaponSlots> Group3Weapon2 = new(ConfigWeaponSlots.BFG9000, OnlyValidEnums<ConfigWeaponSlots>());
+    public readonly ConfigValue<WeaponSlots> Group3Weapon2 = new(WeaponSlots.BFG9000, OnlyValidEnums<WeaponSlots>());
     [ConfigInfo("")]
     [OptionMenu(OptionSectionType.Player, "        3rd")]
-    public readonly ConfigValue<ConfigWeaponSlots> Group3Weapon3 = new(ConfigWeaponSlots.None, OnlyValidEnums<ConfigWeaponSlots>());
+    public readonly ConfigValue<WeaponSlots> Group3Weapon3 = new(WeaponSlots.None, OnlyValidEnums<WeaponSlots>());
 
     [ConfigInfo("")]
     [OptionMenu(OptionSectionType.Player, "Group 4 1st", spacer: true)]
-    public readonly ConfigValue<ConfigWeaponSlots> Group4Weapon1 = new(ConfigWeaponSlots.Chaingun, OnlyValidEnums<ConfigWeaponSlots>());
+    public readonly ConfigValue<WeaponSlots> Group4Weapon1 = new(WeaponSlots.Chaingun, OnlyValidEnums<WeaponSlots>());
     [ConfigInfo("")]
     [OptionMenu(OptionSectionType.Player, "        2nd")]
-    public readonly ConfigValue<ConfigWeaponSlots> Group4Weapon2 = new(ConfigWeaponSlots.Pistol, OnlyValidEnums<ConfigWeaponSlots>());
+    public readonly ConfigValue<WeaponSlots> Group4Weapon2 = new(WeaponSlots.Pistol, OnlyValidEnums<WeaponSlots>());
     [ConfigInfo("")]
     [OptionMenu(OptionSectionType.Player, "        3rd")]
-    public readonly ConfigValue<ConfigWeaponSlots> Group4Weapon3 = new(ConfigWeaponSlots.None, OnlyValidEnums<ConfigWeaponSlots>());
+    public readonly ConfigValue<WeaponSlots> Group4Weapon3 = new(WeaponSlots.None, OnlyValidEnums<WeaponSlots>());
 }

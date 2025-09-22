@@ -63,7 +63,6 @@ using Helion.Resources.Definitions.Compatibility;
 using Helion.Maps.Components;
 using System.Runtime.CompilerServices;
 using Helion.Resources.Definitions.SoundInfo;
-using NAudio.SoundFont;
 
 namespace Helion.World;
 

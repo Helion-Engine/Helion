@@ -2,7 +2,8 @@ using System.ComponentModel;
 
 namespace Helion.Util.Config.Components;
 
-public enum ConfigWeaponSlots {
+public enum WeaponSlots
+{
     [Description("--")]
     None = -1,
     [Description("Chainsaw/Fist")]

@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Resources.IWad;
 using Helion.Tests.Unit.GameAction.Util;
+using Helion.Util.Configs.Components;
 using Helion.Util.Extensions;
 using Helion.World.Cheats;
 using Helion.World.Entities.Players;
@@ -26,6 +27,8 @@ namespace Helion.Tests.Unit.GameAction
         public void Dispose()
         {
             InventoryUtil.Reset(World, Player);
+            World.Config.Weapons.SwitchPreference.Set(WeaponSwitch.Always);
+            World.Config.Weapons.NoAmmoSelect.Set(true);
         }
 
         private void WorldInit(SinglePlayerWorld world)

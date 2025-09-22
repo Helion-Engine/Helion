@@ -529,6 +529,19 @@ public sealed class Inventory
         Weapons.Remove(name);
     }
 
+    public bool CheckAmmo(Weapon weapon, int ammoCount = -1)
+    {
+        // Inifinite if no ammo type (fist, chainsaw)
+        string ammoType = weapon.Definition.Properties.Weapons.AmmoType;
+        if (ammoType.Length == 0)
+            return true;
+
+        if (ammoCount == -1)
+            ammoCount = Amount(weapon.Definition.Properties.Weapons.AmmoType);
+
+        return ammoCount >= weapon.Definition.Properties.Weapons.AmmoUse;
+    }
+
     public List<InventoryItem> GetInventoryItems() => ItemList;
     public List<InventoryItem> GetKeys() => Keys;
 
