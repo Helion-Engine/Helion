@@ -3,6 +3,7 @@
 ## Features:
 - Simplify bit packing strategy on vertex data using floatBitsToInt. Decreases entity sprite vertex size and increase range on line ids for vanilla sprite clipping emulation from 65k to over 8 million and sector light index from ~500k to over 1 million.
 - Add support to initial loading to only load assets.pk3 once.
+- Weapon switch pickup preferences and priority configuration. Includes options for always, always except when attacking, never, priority, and priority except when attacking.
 
 ## Bug Fixes:
 - Fix sprite frames to correctly calculate when lowercase.
