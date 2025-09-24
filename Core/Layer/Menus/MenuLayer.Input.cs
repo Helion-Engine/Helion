@@ -52,9 +52,7 @@ public partial class MenuLayer
         if (subMenu != null)
         {
             m_resetMouse = true;
-            if (m_mouseMenu.CursorPos != m_lastCursorPos)
-                m_forceCheckMouse = true;
-            m_lastCursorPos = m_mouseMenu.CursorPos;
+            UpdateMouseMenu();
             m_menus.Push(subMenu);
         }
     }
@@ -86,9 +84,7 @@ public partial class MenuLayer
             var clear = false;
             if (m_menus.Count >= 1)
             {
-                if (m_mouseMenu.CursorPos != m_lastCursorPos)
-                    m_forceCheckMouse = true;
-                m_lastCursorPos = m_mouseMenu.CursorPos;
+                UpdateMouseMenu();
                 poppedMenu = m_menus.Pop();
                 clear = poppedMenu.ClearOnClose;
             }
@@ -103,5 +99,12 @@ public partial class MenuLayer
 
             m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
         }
+    }
+
+    private void UpdateMouseMenu()
+    {
+        if (m_mouseMenu.CursorPos != m_lastCursorPos)
+            m_forceCheckMouse = true;
+        m_lastCursorPos = m_mouseMenu.CursorPos;
     }
 }
