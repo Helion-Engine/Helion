@@ -36,7 +36,6 @@ public abstract class Menu
     protected readonly SoundManager SoundManager;
     protected readonly HelionConsole Console;
     protected int? ComponentIndex { get; set; }
-    public int? DefaultIndex { get; protected set; }
 
     public IMenuComponent? CurrentComponent => ComponentIndex != null ? Components[ComponentIndex.Value] : null;
 

@@ -55,7 +55,6 @@ public class MainMenu : Menu
 
         Components = Components.AddRange(components);
 
-        DefaultIndex = 0;
         SetToFirstActiveComponent();
 
         static IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?> action)

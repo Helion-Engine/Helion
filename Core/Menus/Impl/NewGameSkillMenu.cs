@@ -70,7 +70,6 @@ public class NewGameSkillMenu : Menu
         // Menu title etc are menu components so offset by the index of the default difficulty
         SetToFirstActiveComponent();
         ComponentIndex += indexOffset;
-        DefaultIndex = indexOffset;
 
         IMenuComponent CreateMenuOption(string image, int offsetX, int paddingY, Func<Menu?>? action = null, int paddingBottomY = 0, 
             int? overrideY = null, bool addToOffsetY = true, string title = "")

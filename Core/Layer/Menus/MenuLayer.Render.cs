@@ -16,13 +16,13 @@ using Helion.Util.Extensions;
 using System;
 using System.Collections.Generic;
 using static Helion.Render.Common.RenderDimensions;
-using static Helion.Util.Constants;
 
 namespace Helion.Layer.Menus;
 
 public partial class MenuLayer
 {
     private bool m_resetMouse = true;
+    private bool m_initMouse = true;
     private bool m_forceCheckMouse;
     private const int ActiveMillis = 500;
     private const int SelectedOffsetX = -32;
@@ -57,6 +57,9 @@ public partial class MenuLayer
         var offsetY = menu.TopPixelPadding;
         var detailsEnabled = m_config.Game.ExtendedSaveGameInfo;
         var firstRow = true;
+
+        var scaleWidth = m_window.ClientDimension.Width / (float)hud.Dimension.Width;
+        var scaleHeight = m_window.ClientDimension.Height / (float)hud.Dimension.Height;
 
         if (saveMenu)
             DrawSaveMenuBox(hud, detailsEnabled);
@@ -95,10 +98,9 @@ public partial class MenuLayer
                     throw new Exception($"Unexpected menu component type for drawing: {component.GetType().FullName}");
             }
 
+
             if (component.HasAction && drawArea.Max.X != 0)
             {
-                var scaleWidth = m_window.ClientDimension.Width / (float)hud.Dimension.Width;
-                var scaleHeight = m_window.ClientDimension.Height / (float)hud.Dimension.Height;
                 var scaleDrawArea = new Box2I(((int)(drawArea.Min.X * scaleWidth), (int)(drawArea.Min.Y * scaleHeight)), 
                     ((int)(drawArea.Max.X * scaleWidth), (int)(drawArea.Max.Y * scaleHeight)));
                 m_mouseMenu.Add(scaleDrawArea, i);
@@ -115,8 +117,12 @@ public partial class MenuLayer
         {
             m_window.SetGrabCursor(false);
             m_resetMouse = false;
-            if (menu.DefaultIndex.HasValue)
-                m_mouseMenu.SetMouseToIndex(menu.DefaultIndex.Value);
+        }
+
+        if (m_initMouse)
+        {
+            m_initMouse = false;
+            m_mouseMenu.SetMousePosition((m_window.ClientDimension.Width / 2, (int)(16 * scaleHeight)));
         }
 
         if ((m_forceCheckMouse || m_mouseMenu.MousePositionChanged()) && m_mouseMenu.GetSelectedIndex(out var selectedIndex))

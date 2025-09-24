@@ -1,6 +1,6 @@
 using System;
+using Helion.Geometry.Vectors;
 using Helion.Menus;
-using Helion.Menus.Base;
 using Helion.Menus.Impl;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -44,13 +44,17 @@ public partial class MenuLayer
         input.ConsumeAll();
     }
 
+    private Vec2I m_lastCursorPos;
+
     private void InvokeAndPushMenu(Func<Menu?> action)
     {
         var subMenu = action();
         if (subMenu != null)
         {
             m_resetMouse = true;
-            m_forceCheckMouse = true;
+            if (m_mouseMenu.CursorPos != m_lastCursorPos)
+                m_forceCheckMouse = true;
+            m_lastCursorPos = m_mouseMenu.CursorPos;
             m_menus.Push(subMenu);
         }
     }
@@ -79,10 +83,12 @@ public partial class MenuLayer
         if (input.ConsumeKeyPressed(Key.Escape) || input.ConsumeKeyPressed(Key.ButtonB))
         {
             Menu? poppedMenu = null;
-            bool clear = false;
+            var clear = false;
             if (m_menus.Count >= 1)
             {
-                m_forceCheckMouse = true;
+                if (m_mouseMenu.CursorPos != m_lastCursorPos)
+                    m_forceCheckMouse = true;
+                m_lastCursorPos = m_mouseMenu.CursorPos;
                 poppedMenu = m_menus.Pop();
                 clear = poppedMenu.ClearOnClose;
             }

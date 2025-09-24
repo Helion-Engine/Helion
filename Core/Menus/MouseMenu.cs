@@ -23,6 +23,8 @@ public class MouseMenu
 
     private readonly BoxList m_boxList = new();
 
+    public Vec2I CursorPos => m_cursorPos;
+
     public MouseMenu(IWindow window, IConfig config)
     {
         m_window = window;
