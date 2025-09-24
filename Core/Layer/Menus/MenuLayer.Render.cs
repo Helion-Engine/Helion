@@ -21,6 +21,7 @@ namespace Helion.Layer.Menus;
 
 public partial class MenuLayer
 {
+    private bool m_resetMouse = true;
     private const int ActiveMillis = 500;
     private const int SelectedOffsetX = -32;
     private const int SelectedOffsetY = 5;
@@ -38,12 +39,22 @@ public partial class MenuLayer
         Animation.Tick();
         hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
         hud.DoomVirtualResolution(m_renderVirtualHudAction, hud);
+        m_mouseMenu.Render(hud);
     }
 
     private void RenderVirtualHud(IHudRenderContext hud)
     {
         if (!m_menus.TryPeek(out Menu? menu))
             return;
+
+        m_mouseMenu.Clear();
+        m_mouseMenu.SetLocked(menu.RowLocked);
+
+        if (m_resetMouse)
+        {
+            m_mouseMenu.ResetMousePosition();
+            m_resetMouse = false;
+        }
 
         var saveMenu = menu.CurrentComponent is MenuSaveRowComponent;
         var offsetY = menu.TopPixelPadding;
@@ -59,10 +70,11 @@ public partial class MenuLayer
             bool isSelected = ReferenceEquals(menu.CurrentComponent, component);
             bool wasSelected = ReferenceEquals(menu.CurrentComponent, m_previousSelectedComponent);
 
+            Box2I drawArea = default;
             switch (component)
             {
                 case MenuImageComponent imageComponent:
-                    DrawImage(hud, imageComponent, isSelected, ref offsetY, imageComponent.UpscaleWithText ? m_config.Hud.FontUpscalingFactor : 1);
+                    DrawImage(hud, imageComponent, isSelected, ref offsetY, imageComponent.UpscaleWithText ? m_config.Hud.FontUpscalingFactor : 1, out drawArea);
                     break;
                 case MenuPaddingComponent paddingComponent:
                     offsetY += paddingComponent.PixelAmount;
@@ -80,10 +92,19 @@ public partial class MenuLayer
                         firstRow = false;
                     }
                     hud.PushOffset(GetSaveMenuOffset(hud));
-                    DrawSaveRow(hud, (SaveMenu)menu, saveRowComponent, isSelected, wasSelected, ref offsetY, detailsEnabled);
+                    DrawSaveRow(hud, (SaveMenu)menu, saveRowComponent, isSelected, wasSelected, ref offsetY, detailsEnabled, out drawArea);
                     break;
                 default:
                     throw new Exception($"Unexpected menu component type for drawing: {component.GetType().FullName}");
+            }
+
+            if (component.HasAction && drawArea.Max.X != 0)
+            {
+                var scaleWidth = m_window.ClientDimension.Width / (float)hud.Dimension.Width;
+                var scaleHeight = m_window.ClientDimension.Height / (float)hud.Dimension.Height;
+                var scaleDrawArea = new Box2I(((int)(drawArea.Min.X * scaleWidth), (int)(drawArea.Min.Y * scaleHeight)), 
+                    ((int)(drawArea.Max.X * scaleWidth), (int)(drawArea.Max.Y * scaleHeight)));
+                m_mouseMenu.Add(scaleDrawArea, i);
             }
 
             if (isSelected)
@@ -92,6 +113,9 @@ public partial class MenuLayer
 
         if (saveMenu && m_saveGameSummary != null)
             RenderSaveGameDetails(hud);
+
+        if (m_mouseMenu.MousePositionChanged() && m_mouseMenu.GetSelectedIndex(out var selectedIndex))
+            menu.SetComponentIndex(selectedIndex);
     }
 
     private static void DrawText(IHudRenderContext hud, MenuTextComponent text, ref int offsetY)
@@ -123,8 +147,9 @@ public partial class MenuLayer
             offsetY += addHeight;
     }
 
-    private void DrawImage(IHudRenderContext hud, MenuImageComponent image, bool isSelected, ref int offsetY, int upscalingFactor)
+    private void DrawImage(IHudRenderContext hud, MenuImageComponent image, bool isSelected, ref int offsetY, int upscalingFactor, out Box2I drawArea)
     {
+        drawArea = default;
         int drawY = image.PaddingTopY + offsetY;
         if (image.AddToOffsetY)
             offsetY += image.PaddingTopY;
@@ -135,6 +160,7 @@ public partial class MenuLayer
             int offsetX = offset.X + image.OffsetX;
 
             hud.Image(image.ImageName, (offsetX, drawY + offset.Y), out HudBox area, both: image.ImageAlign, upscalingFactor: upscalingFactor);
+            drawArea = new(area.Min, area.Max);
 
             if (isSelected)
                 DrawSelectedImage(hud, image, drawY, offsetX);
@@ -175,7 +201,7 @@ public partial class MenuLayer
     private static int GetSaveRowWidth(bool detailsEnabled) => detailsEnabled ? 218 : 301;
 
     private void DrawSaveRow(IHudRenderContext hud, SaveMenu saveMenu, MenuSaveRowComponent saveRowComponent, bool isSelected,
-        bool wasPreviouslySelected, ref int offsetY, bool detailsEnabled)
+        bool wasPreviouslySelected, ref int offsetY, bool detailsEnabled, out Box2I drawArea)
     {
         const string FontName = Constants.Fonts.Small;
         int fontSize = hud.GetFontMaxHeight(FontName) - 2;
@@ -202,10 +228,12 @@ public partial class MenuLayer
         var rowHeight = textHeight + 3;
         hud.AddOffset((17, 0));
 
+        HudBox box = new((0, offsetY), (textRowWidth, offsetY + rowHeight));
+        drawArea = new(box.Min, box.Max);
+
         if (isSelected)
         {
             hud.PushAlpha(0.5f);
-            HudBox box = new((0, offsetY), (textRowWidth, offsetY + rowHeight));
             hud.FillBox(box, Color.Blue);
             hud.PopAlpha();
         }

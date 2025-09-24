@@ -605,7 +605,7 @@ public class GameLayerManager : IGameLayerManager
 
         if (MenuLayer == null)
         {
-            MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager, m_optionsLayer, m_screenshotGenerator);
+            MenuLayer menuLayer = new(this, m_window, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager, m_optionsLayer, m_screenshotGenerator);
             menuLayer.Animation.AnimateIn();
             Add(menuLayer);
         }
@@ -664,7 +664,7 @@ public class GameLayerManager : IGameLayerManager
 
         if (m_config.Game.QuickSaveConfirm)
         {
-            MessageMenu confirm = new(m_config, m_console, m_soundManager, m_archiveCollection,
+            MessageMenu confirm = new(m_window, m_config, m_console, m_soundManager, m_archiveCollection,
                 ["Are you sure you want to overwrite:", LastSave?.SaveGame.Model != null ? LastSave.Value.SaveGame.Model.Text : "Save", "Press Y to confirm."],
                 isYesNoConfirm: true, clearMenus: true);
             confirm.Cleared += Confirm_Cleared;

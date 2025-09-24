@@ -6,7 +6,7 @@ namespace Helion.Layer.Options;
 
 internal sealed class BoxList
 {
-    private readonly List<(Box2I, int)> m_posToRowIndex = new();
+    private readonly List<(Box2I, int)> m_posToRowIndex = [];
 
     public void Clear() =>
         m_posToRowIndex.Clear();

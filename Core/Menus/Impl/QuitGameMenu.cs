@@ -15,8 +15,8 @@ public class QuitGameMenu : Menu
 {
     private readonly Func<Menu?> m_quitAction;
 
-    public QuitGameMenu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) :
-        base(config, console, soundManager, archiveCollection, 90)
+    public QuitGameMenu(IWindow window, IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) :
+        base(window, config, console, soundManager, archiveCollection, 90)
     {
         m_quitAction = () =>
         {

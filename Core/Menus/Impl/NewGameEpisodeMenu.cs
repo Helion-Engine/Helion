@@ -6,6 +6,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
+using Helion.Window;
 using NLog;
 using System;
 using System.Linq;
@@ -29,8 +30,8 @@ public class NewGameEpisodeMenu : Menu
         return Math.Max(topPixelPadding - count * EpisodeHeight / 4, 0);
     }
 
-    public NewGameEpisodeMenu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) :
-        base(config, console, soundManager, archiveCollection, GetTopPixelPadding(archiveCollection), true)
+    public NewGameEpisodeMenu(IWindow window, IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) :
+        base(window, config, console, soundManager, archiveCollection, GetTopPixelPadding(archiveCollection), true)
     {
         var episodes = archiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes;
         if (episodes.Count == 0)
@@ -59,12 +60,12 @@ public class NewGameEpisodeMenu : Menu
             {
                 string[] lines = archiveCollection.Definitions.Language.GetMessages("$SWSTRING");
                 return new MenuImageComponent(episode.PicName, OffsetX, 0, "M_SKULL1", "M_SKULL2",
-                    () => new MessageMenu(config, Console, soundManager, ArchiveCollection, lines),
+                    () => new MessageMenu(window, config, Console, soundManager, ArchiveCollection, lines),
                     imageAlign: Align.TopLeft, upscaleWithText: true);
             }
 
             return new MenuImageComponent(episode.PicName, OffsetX, 0, "M_SKULL1", "M_SKULL2",
-                    () => new NewGameSkillMenu(config, console, soundManager, archiveCollection, episode.StartMap),
+                    () => new NewGameSkillMenu(window, config, console, soundManager, archiveCollection, episode.StartMap),
                     imageAlign: Align.TopLeft, title: ArchiveCollection.Language.GetMessage(episode.Name), overrideY: EpisodeHeight, upscaleWithText: true);
         }
     }
