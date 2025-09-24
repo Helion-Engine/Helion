@@ -13,6 +13,7 @@ using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
+using Helion.Window;
 using Helion.World.Save;
 
 namespace Helion.Menus.Impl;
@@ -27,9 +28,9 @@ public class MainMenu : Menu
 
     private readonly OptionsLayer m_optionsLayer;
 
-    public MainMenu(MenuLayer parent, IConfig config, HelionConsole console, SoundManager soundManager,
+    public MainMenu(MenuLayer parent, IWindow window, IConfig config, HelionConsole console, SoundManager soundManager,
         ArchiveCollection archiveCollection, SaveGameManager saveManager, OptionsLayer optionsLayer, IScreenshotGenerator screenshotGenerator)
-        : base(config, console, soundManager, archiveCollection)
+        : base(window, config, console, soundManager, archiveCollection)
     {
         m_parent = parent;
         m_soundManager = soundManager;
@@ -44,13 +45,13 @@ public class MainMenu : Menu
             new MenuImageComponent("M_DOOM", offsetX: 94, paddingTopY: 2, imageAlign: Align.TopLeft, addToOffsetY: false),
             CreateMenuOption("M_NGAME", OffsetX, offsetY, CreateNewGameMenu()),
             CreateMenuOption("M_OPTION", OffsetX, PaddingY, CreateOptionsLayer()),
-            CreateMenuOption("M_LOADG", OffsetX, PaddingY, () => new SaveMenu(m_parent, config, Console, soundManager, ArchiveCollection, saveManager, screenshotGenerator, false, false, false)),
+            CreateMenuOption("M_LOADG", OffsetX, PaddingY, () => new SaveMenu(m_parent, window, config, Console, soundManager, ArchiveCollection, saveManager, screenshotGenerator, false, false, false)),
             CreateMenuOption("M_SAVEG", OffsetX, PaddingY, CreateSaveMenu(saveManager, screenshotGenerator))
         };
 
         if (archiveCollection.Definitions.MapInfoDefinition.GameDefinition.DrawReadThis)
             components.Add(CreateMenuOption("M_RDTHIS", OffsetX, PaddingY, ShowReadThis()));
-        components.Add(CreateMenuOption("M_QUITG", OffsetX, PaddingY, () => new QuitGameMenu(config, Console, soundManager, ArchiveCollection)));
+        components.Add(CreateMenuOption("M_QUITG", OffsetX, PaddingY, () => new QuitGameMenu(window, config, Console, soundManager, ArchiveCollection)));
 
         Components = Components.AddRange(components);
 
@@ -77,7 +78,7 @@ public class MainMenu : Menu
     {
         return () =>
         {
-            return new SaveMenu(m_parent, Config, Console, SoundManager, ArchiveCollection, saveManager, screenshotGenerator,
+            return new SaveMenu(m_parent, Window, Config, Console, SoundManager, ArchiveCollection, saveManager, screenshotGenerator,
                 m_parent.Manager.CanSave, true, false);
         };
     }
@@ -87,8 +88,8 @@ public class MainMenu : Menu
         var episodes = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.Episodes;
         bool hasEpisodes = episodes.Any(e => !e.PicName.Empty());
         return hasEpisodes ?
-            () => new NewGameEpisodeMenu(Config, Console, SoundManager, ArchiveCollection) :
-            () => new NewGameSkillMenu(Config, Console, SoundManager, ArchiveCollection, GetDefaultEpisode());
+            () => new NewGameEpisodeMenu(Window, Config, Console, SoundManager, ArchiveCollection) :
+            () => new NewGameSkillMenu(Window,Config, Console, SoundManager, ArchiveCollection, GetDefaultEpisode());
     }
 
     private string? GetDefaultEpisode()

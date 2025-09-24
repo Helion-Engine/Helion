@@ -544,9 +544,9 @@ public partial class Client : IDisposable, IInputManagement
         LogAnyCommandLineErrors(commandLineArgs);
 
 #if DEBUG
-        Run(commandLineArgs, workingDirectory, pathsManager);
+        Run(commandLineArgs, pathsManager);
 #else
-        RunRelease(commandLineArgs, workingDirectory, pathsManager);
+        RunRelease(commandLineArgs, pathsManager);
 #endif
 
         ForceFinalizersIfDebugMode();
@@ -566,11 +566,11 @@ public partial class Client : IDisposable, IInputManagement
         Directory.SetCurrentDirectory(dir);
     }
 
-    private static void RunRelease(CommandLineArgs commandLineArgs, string workingDirectory, PathsManager pathsManager)
+    private static void RunRelease(CommandLineArgs commandLineArgs, PathsManager pathsManager)
     {
         try
         {
-            Run(commandLineArgs, workingDirectory, pathsManager);
+            Run(commandLineArgs, pathsManager);
         }
         catch (Exception e)
         {
@@ -613,7 +613,7 @@ public partial class Client : IDisposable, IInputManagement
         }
     }
 
-    private static void Run(CommandLineArgs commandLineArgs, string workingDirectory, PathsManager pathsManager)
+    private static void Run(CommandLineArgs commandLineArgs, PathsManager pathsManager)
     {
         var configPath = !string.IsNullOrWhiteSpace(commandLineArgs.ConfigFileName)
             ? commandLineArgs.ConfigFileName.Trim()

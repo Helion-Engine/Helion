@@ -179,7 +179,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private List<IOptionSection> GenerateSections()
     {
-        Dictionary<OptionSectionType, IOptionSection> sectionMap = new();
+        Dictionary<OptionSectionType, IOptionSection> sectionMap = [];
 
         // This takes all the common section types and turns them into the
         // generic list of values that users can tweak. It does not handle
@@ -197,7 +197,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         // value, the closer to the front of the list it is. This is because
         // the enumeration values tell us in which order the sections should
         // be seen.
-        List<IOptionSection> sections = new();
+        List<IOptionSection> sections = [];
         foreach (OptionSectionType section in Enum.GetValues<OptionSectionType>())
         {
             if (!sectionMap.TryGetValue(section, out IOptionSection? optionSection))
@@ -548,5 +548,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     public void Dispose()
     {
         // Nothing to dispose.
+        GC.SuppressFinalize(this);
     }
 }

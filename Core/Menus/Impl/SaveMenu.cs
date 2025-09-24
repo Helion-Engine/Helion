@@ -32,7 +32,7 @@ public class SaveMenu : Menu
     private const string NoSavedGamesText = "There are no saved games.";
     private static readonly string[] DeleteConfirmationText = ["Are you sure you want to delete this save?", "Press Y to confirm."];
 
-    public bool IsTypingName => m_hasRowLock;
+    public bool IsTypingName => RowLocked;
 
     private readonly MenuLayer m_parent;
     private readonly SaveGameManager m_saveGameManager;
@@ -42,7 +42,6 @@ public class SaveMenu : Menu
     public readonly bool IsSaveMenu; // is this the "save" or "load" menu?
     private readonly bool m_canSave;
 
-    private bool m_hasRowLock;
     private string m_previousDisplayName = string.Empty;
     private string m_defaultSavedGameName = string.Empty;
     private readonly StringBuilder m_customNameBuilder = new();
@@ -54,16 +53,16 @@ public class SaveMenu : Menu
 
     private SaveGame? m_deleteSave;
 
-    public SaveMenu(MenuLayer parent, IConfig config, HelionConsole console, SoundManager soundManager,
+    public SaveMenu(MenuLayer parent, IWindow window, IConfig config, HelionConsole console, SoundManager soundManager,
         ArchiveCollection archiveCollection, SaveGameManager saveManager, IScreenshotGenerator screenshotGenerator, bool canSave, bool isSave, bool clearOnClose)
-        : base(config, console, soundManager, archiveCollection, 8, true, clearOnClose: clearOnClose)
+        : base(window, config, console, soundManager, archiveCollection, 8, true, clearOnClose: clearOnClose)
     {
         m_parent = parent;
         m_saveGameManager = saveManager;
         m_canSave = canSave;
         IsSaveMenu = isSave;
         m_screenshotGenerator = screenshotGenerator;
-        SaveHeader = new(isSave ? "SAVE GAME" : "LOAD GAME");
+        SaveHeader = new(isSave ? "SAVE GAME" : "LOAD GAME");        
 
         m_saveGames = saveManager.GetSaveGames();
         UpdateMenuComponents(setTop: true);
@@ -211,12 +210,12 @@ public class SaveMenu : Menu
         {
             if (IsSaveMenu)
             {
-                if (m_hasRowLock)
+                if (RowLocked)
                 {
                     // We're already in "name edit mode"
                     EditRow(savedGameRow, input);
                 }
-                else if (input.ConsumeKeyPressed(Key.Enter))
+                else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
                 {
                     if (savedGameRow.IsAutoOrQuickSave)
                     {
@@ -243,7 +242,7 @@ public class SaveMenu : Menu
                             m_customNameBuilder.Append(savedGameRow.Text);
                         }
 
-                        m_hasRowLock = true;
+                        RowLocked = true;
                         m_tickStopwatch.Restart();
                         SoundManager.PlayStaticSound(Constants.MenuSounds.Choose);
                     }
@@ -256,7 +255,7 @@ public class SaveMenu : Menu
             // load screen
             else
             {
-                if (input.ConsumeKeyPressed(Key.Enter)) // Load
+                if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft)) // Load
                     savedGameRow.Action?.Invoke();
                 else
                     ConsumeAndHandlePageChange(input);
@@ -289,24 +288,25 @@ public class SaveMenu : Menu
 
     public void EditRow(MenuSaveRowComponent savedGameRow, IConsumableInput input)
     {
-        if (input.ConsumeKeyPressed(Key.Escape))
+        if (input.ConsumeKeyPressed(Key.Escape) || input.ConsumeKeyPressed(Key.MouseRight))
         {
             // The user has decided not to save.
             // Undo any customizations they've made to the display name of the saved game, and leave edit mode.
             savedGameRow.Text = m_previousDisplayName;
-            m_hasRowLock = false;
+            RowLocked = false;
             m_tickStopwatch.Stop();
             SoundManager.PlayStaticSound(Constants.MenuSounds.Backup);
         }
-        else if (input.ConsumeKeyPressed(Key.Enter))
+        else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
         {
             // If there's any text in the field, use that as the name, else force the defualt.
             savedGameRow.Text = m_customNameBuilder.Length > 0
                 ? m_customNameBuilder.ToString()
                 : m_defaultSavedGameName;
 
+            input.Manager.Clear();
             savedGameRow.Action?.Invoke();
-            m_hasRowLock = false;
+            RowLocked = false;
             m_tickStopwatch.Stop();
         }
         else
@@ -436,7 +436,7 @@ public class SaveMenu : Menu
         return () =>
         {
             m_deleteSave = saveGame;
-            MessageMenu confirm = new(Config, Console, SoundManager, ArchiveCollection,
+            MessageMenu confirm = new(Window, Config, Console, SoundManager, ArchiveCollection,
                 DeleteConfirmationText, isYesNoConfirm: true, clearMenus: false);
             confirm.Cleared += Confirm_Cleared;
             return confirm;

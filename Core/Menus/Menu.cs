@@ -26,10 +26,12 @@ public abstract class Menu
     /// </summary>
     public readonly bool LeftAlign;
     public readonly bool ClearOnClose;
+    public bool RowLocked { get; protected set; }
 
-    public ImmutableList<IMenuComponent> Components = ImmutableList<IMenuComponent>.Empty;
+    public ImmutableList<IMenuComponent> Components = [];
 
     protected readonly ArchiveCollection ArchiveCollection;
+    protected readonly IWindow Window;
     protected readonly IConfig Config;
     protected readonly SoundManager SoundManager;
     protected readonly HelionConsole Console;
@@ -37,11 +39,12 @@ public abstract class Menu
 
     public IMenuComponent? CurrentComponent => ComponentIndex != null ? Components[ComponentIndex.Value] : null;
 
-    protected Menu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
+    protected Menu(IWindow window, IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
         int topPixelPadding = 0, bool leftAlign = false, bool clearOnClose = false)
     {
         Precondition(topPixelPadding >= 0, "Should not have a menu with negative top pixel padding");
 
+        Window = window;
         Config = config;
         Console = console;
         SoundManager = soundManager;
@@ -49,6 +52,11 @@ public abstract class Menu
         TopPixelPadding = topPixelPadding;
         LeftAlign = leftAlign;
         ClearOnClose = clearOnClose;
+    }
+
+    public void SetComponentIndex(int index)
+    {
+        ComponentIndex = MathHelper.Clamp(index, 0, Components.Count - 1);
     }
 
     public void RemoveComponent(IMenuComponent component)

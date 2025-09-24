@@ -19,9 +19,9 @@ public class MessageMenu : Menu
     // True if IsYesNoConfirm and Y was pressed
     public event EventHandler<bool>? Cleared;
 
-    public MessageMenu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
+    public MessageMenu(IWindow window, IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection,
         IList<string> text, bool isYesNoConfirm = false, bool clearMenus = true)
-        : base(config, console, soundManager, archiveCollection, 90, clearOnClose: clearMenus)
+        : base(window, config, console, soundManager, archiveCollection, 90, clearOnClose: clearMenus)
     {
         IsYesNoConfirm = isYesNoConfirm;
         ClearMenus = clearMenus;
