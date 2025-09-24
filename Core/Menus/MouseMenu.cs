@@ -20,7 +20,6 @@ public class MouseMenu
     private bool m_resetMouse;
     private bool m_setMouse;
     private bool m_locked;
-    private int m_scrollOffset;
 
     private readonly BoxList m_boxList = new();
 
@@ -89,18 +88,18 @@ public class MouseMenu
         var cursor = hover ? "helion-pointer" : "helion-cursor";
         if (hud.Textures.TryGet(cursor, out var cursorHandle, ResourceNamespace.Graphics))
         {
-            int size = hover ? 32 : 24;
-            float scale = size / (float)cursorHandle.Dimension.Height;
+            var size = hover ? 32 : 24;
+            var scale = size / (float)cursorHandle.Dimension.Height;
             hud.Image(cursor, m_cursorPos, resourceNamespace: ResourceNamespace.Graphics, scale: scale);
         }
     }
 
-    public void SetMouseToFirstIndex()
+    public void SetMouseToIndex(int index)
     {
-        if (m_boxList.Count == 0)
+        if (index >= m_boxList.Count)
             return;
 
-        var box = m_boxList.Get(0);
+        var box = m_boxList.Get(index);
         SetMousePosition((box.Left + box.Width / 2, box.Top - box.Height / 2));
     }
 
@@ -120,6 +119,5 @@ public class MouseMenu
     private void HandleResize()
     {
         m_resetMouse = true;
-        m_scrollOffset = 0;
     }
 }

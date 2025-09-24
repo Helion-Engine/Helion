@@ -114,8 +114,9 @@ public partial class MenuLayer
         if (m_resetMouse)
         {
             m_window.SetGrabCursor(false);
-            m_mouseMenu.SetMouseToFirstIndex();
             m_resetMouse = false;
+            if (menu.DefaultIndex.HasValue)
+                m_mouseMenu.SetMouseToIndex(menu.DefaultIndex.Value);
         }
 
         if ((m_forceCheckMouse || m_mouseMenu.MousePositionChanged()) && m_mouseMenu.GetSelectedIndex(out var selectedIndex))

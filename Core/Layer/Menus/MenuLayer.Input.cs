@@ -49,6 +49,7 @@ public partial class MenuLayer
         var subMenu = action();
         if (subMenu != null)
         {
+            m_resetMouse = true;
             m_forceCheckMouse = true;
             m_menus.Push(subMenu);
         }
@@ -81,6 +82,7 @@ public partial class MenuLayer
             bool clear = false;
             if (m_menus.Count >= 1)
             {
+                m_forceCheckMouse = true;
                 poppedMenu = m_menus.Pop();
                 clear = poppedMenu.ClearOnClose;
             }
