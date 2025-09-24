@@ -64,7 +64,7 @@ public class MouseMenu
         var set = false;
         if (m_resetMouse)
         {
-            ResetMousePosition();
+            SetMousePosition((m_window.ClientDimension.Width / 2, m_config.Window.GetMenuScaled(45)));
             m_resetMouse = false;
             set = true;
         }
@@ -85,7 +85,7 @@ public class MouseMenu
             m_cursorPos = m_window.InputManager.MousePosition;
         }
 
-        var hover = m_boxList.GetIndex(m_cursorPos, out var index);
+        var hover = m_boxList.GetIndex(m_cursorPos, out _);
         var cursor = hover ? "helion-pointer" : "helion-cursor";
         if (hud.Textures.TryGet(cursor, out var cursorHandle, ResourceNamespace.Graphics))
         {
@@ -95,11 +95,20 @@ public class MouseMenu
         }
     }
 
-    public void ResetMousePosition()
+    public void SetMouseToFirstIndex()
+    {
+        if (m_boxList.Count == 0)
+            return;
+
+        var box = m_boxList.Get(0);
+        SetMousePosition((box.Left + box.Width / 2, box.Top - box.Height / 2));
+    }
+
+    public void SetMousePosition(Vec2I pos)
     {
         m_prevCursorPos = default;
-        m_cursorPos = (m_window.ClientDimension.Width / 2, m_config.Window.GetMenuScaled(45));
-        m_window.SetMousePosition(m_cursorPos);
+        m_cursorPos = pos;
+        m_window.SetMousePosition(pos);
     }
 
     private void WindowVirtualDimension_OnChanged(object? sender, Dimension e) => HandleResize();

@@ -16,12 +16,14 @@ using Helion.Util.Extensions;
 using System;
 using System.Collections.Generic;
 using static Helion.Render.Common.RenderDimensions;
+using static Helion.Util.Constants;
 
 namespace Helion.Layer.Menus;
 
 public partial class MenuLayer
 {
     private bool m_resetMouse = true;
+    private bool m_forceCheckMouse;
     private const int ActiveMillis = 500;
     private const int SelectedOffsetX = -32;
     private const int SelectedOffsetY = 5;
@@ -39,7 +41,8 @@ public partial class MenuLayer
         Animation.Tick();
         hud.FillBox((0, 0, hud.Width, hud.Height), Color.Black, alpha: 0.5f);
         hud.DoomVirtualResolution(m_renderVirtualHudAction, hud);
-        m_mouseMenu.Render(hud);
+        if (!m_window.GrabCursor)
+            m_mouseMenu.Render(hud);
     }
 
     private void RenderVirtualHud(IHudRenderContext hud)
@@ -49,12 +52,6 @@ public partial class MenuLayer
 
         m_mouseMenu.Clear();
         m_mouseMenu.SetLocked(menu.RowLocked);
-
-        if (m_resetMouse)
-        {
-            m_mouseMenu.ResetMousePosition();
-            m_resetMouse = false;
-        }
 
         var saveMenu = menu.CurrentComponent is MenuSaveRowComponent;
         var offsetY = menu.TopPixelPadding;
@@ -114,8 +111,18 @@ public partial class MenuLayer
         if (saveMenu && m_saveGameSummary != null)
             RenderSaveGameDetails(hud);
 
-        if (m_mouseMenu.MousePositionChanged() && m_mouseMenu.GetSelectedIndex(out var selectedIndex))
+        if (m_resetMouse)
+        {
+            m_window.SetGrabCursor(false);
+            m_mouseMenu.SetMouseToFirstIndex();
+            m_resetMouse = false;
+        }
+
+        if ((m_forceCheckMouse || m_mouseMenu.MousePositionChanged()) && m_mouseMenu.GetSelectedIndex(out var selectedIndex))
+        {
             menu.SetComponentIndex(selectedIndex);
+            m_forceCheckMouse = false;
+        }        
     }
 
     private static void DrawText(IHudRenderContext hud, MenuTextComponent text, ref int offsetY)

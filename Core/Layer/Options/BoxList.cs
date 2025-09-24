@@ -8,6 +8,10 @@ internal sealed class BoxList
 {
     private readonly List<(Box2I, int)> m_posToRowIndex = [];
 
+    public int Count => m_posToRowIndex.Count;
+
+    public Box2I Get(int index) => m_posToRowIndex[index].Item1;
+
     public void Clear() =>
         m_posToRowIndex.Clear();
 

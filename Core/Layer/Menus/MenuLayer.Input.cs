@@ -46,9 +46,12 @@ public partial class MenuLayer
 
     private void InvokeAndPushMenu(Func<Menu?> action)
     {
-        Menu? subMenu = action();
+        var subMenu = action();
         if (subMenu != null)
+        {
+            m_forceCheckMouse = true;
             m_menus.Push(subMenu);
+        }
     }
 
     private void HandleInputForMenu(Menu menu, IConsumableInput input)

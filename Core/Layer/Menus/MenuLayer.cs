@@ -10,7 +10,6 @@ using Helion.Util.Consoles;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.World.Save;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -85,12 +84,6 @@ public partial class MenuLayer : IGameLayer, IAnimationLayer
     public void ShowMessage(MessageMenu message)
     {
         m_menus.Push(message);
-    }
-
-    public void SetToMainMenu()
-    {
-        m_menus.Clear();
-        m_menus.Push(new MainMenu(this, m_window, m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager, m_optionsLayer, m_screenshotGenerator));
     }
 
     public void Close()

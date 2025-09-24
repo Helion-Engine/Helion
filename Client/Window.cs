@@ -330,6 +330,8 @@ public class Window : GameWindow, IWindow
 
     public void SetGrabCursor(bool set) => CursorState = set ? CursorState.Grabbed : CursorState.Hidden;
 
+    public bool GrabCursor => CursorState == CursorState.Grabbed;
+
     private void Window_KeyUp(KeyboardKeyEventArgs args)
     {
         Key key = OpenTKInputAdapter.ToKey(args.Key);

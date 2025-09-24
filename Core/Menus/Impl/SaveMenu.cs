@@ -62,7 +62,7 @@ public class SaveMenu : Menu
         m_canSave = canSave;
         IsSaveMenu = isSave;
         m_screenshotGenerator = screenshotGenerator;
-        SaveHeader = new(isSave ? "SAVE GAME" : "LOAD GAME");
+        SaveHeader = new(isSave ? "SAVE GAME" : "LOAD GAME");        
 
         m_saveGames = saveManager.GetSaveGames();
         UpdateMenuComponents(setTop: true);
@@ -255,7 +255,7 @@ public class SaveMenu : Menu
             // load screen
             else
             {
-                if (input.ConsumeKeyPressed(Key.Enter)) // Load
+                if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft)) // Load
                     savedGameRow.Action?.Invoke();
                 else
                     ConsumeAndHandlePageChange(input);
@@ -288,7 +288,7 @@ public class SaveMenu : Menu
 
     public void EditRow(MenuSaveRowComponent savedGameRow, IConsumableInput input)
     {
-        if (input.ConsumeKeyPressed(Key.Escape))
+        if (input.ConsumeKeyPressed(Key.Escape) || input.ConsumeKeyPressed(Key.MouseRight))
         {
             // The user has decided not to save.
             // Undo any customizations they've made to the display name of the saved game, and leave edit mode.
@@ -297,13 +297,14 @@ public class SaveMenu : Menu
             m_tickStopwatch.Stop();
             SoundManager.PlayStaticSound(Constants.MenuSounds.Backup);
         }
-        else if (input.ConsumeKeyPressed(Key.Enter))
+        else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
         {
             // If there's any text in the field, use that as the name, else force the defualt.
             savedGameRow.Text = m_customNameBuilder.Length > 0
                 ? m_customNameBuilder.ToString()
                 : m_defaultSavedGameName;
 
+            input.Manager.Clear();
             savedGameRow.Action?.Invoke();
             RowLocked = false;
             m_tickStopwatch.Stop();

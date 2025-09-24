@@ -266,7 +266,7 @@ public class GameLayerManager : IGameLayerManager
     private void Animation_OnStart(object? sender, IAnimationLayer layer)
     {
         bool animateOut = layer.Animation.State == InterpolationAnimationState.Out;
-        if (animateOut && layer == ConsoleLayer || layer == MenuLayer || layer == OptionsLayer)
+        if (animateOut && layer == ConsoleLayer || layer == MenuLayer)
             ResetAndGrabMouse();
 
         if (animateOut && layer == ConsoleLayer)

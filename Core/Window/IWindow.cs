@@ -26,4 +26,6 @@ public interface IWindow : IDisposable
     Dimension ClientDimension { get; }
 
     void SetMousePosition(Vec2I pos);
+    void SetGrabCursor(bool set);
+    bool GrabCursor { get; }
 }
