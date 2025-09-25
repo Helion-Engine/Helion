@@ -130,27 +130,6 @@ public class SaveGameManager
     private SaveGameEvent WriteSaveGameForTask() =>
         SaveGame.WriteSaveGame(m_saveArgs.World, m_saveArgs.WorldModel, m_saveArgs.Title, m_saveArgs.SaveDir, m_saveArgs.FileName, m_saveArgs.ScreenshotGenerator, m_saveArgs.Image);
 
-    public SaveGameEvent WriteNewSaveGame(IWorld world, string title, IScreenshotGenerator screenshotGenerator, SaveGameType type = SaveGameType.Default) =>
-        WriteSaveGame(world, title, screenshotGenerator, null, type);
-
-    public SaveGameEvent WriteSaveGame(IWorld world, string title, IScreenshotGenerator screenshotGenerator, SaveGame? existingSave, SaveGameType type = SaveGameType.Default)
-    {
-        if (m_saving)
-            return ActiveSaveError;
-
-        m_saving = true;
-        existingSave = GetExistingSave(existingSave, type);
-        var filename = existingSave?.FileName ?? GetNewSaveName(type);
-        var worldModel = world.ToWorldModel();
-        var image = screenshotGenerator.GetImage();
-        var saveEvent = SaveGame.WriteSaveGame(world, worldModel, title, GetSaveDir(), filename, screenshotGenerator, image);
-
-        AddOrUpdateSaveGame(saveEvent.SaveGame);
-        GameSaved?.Invoke(this, saveEvent);
-        m_saving = false;
-        return saveEvent;
-    }
-
     private void AddOrUpdateSaveGame(SaveGame newSaveGame)
     {
         AddOrUpdateSaveGame(newSaveGame, m_currentSaves);
