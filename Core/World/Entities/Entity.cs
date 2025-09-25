@@ -4,14 +4,12 @@ using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
-using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using Helion.Util.Timing;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
@@ -26,7 +24,6 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using static Helion.Util.Assertion.Assert;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace Helion.World.Entities;
 
@@ -74,6 +71,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public EntityProperties Properties;
 
     public Vec3D PrevPosition;
+    public Vec3D SpawnPoint;
 
     public Vec3D CenterPoint => new(Position.X, Position.Y, Position.Z + (Height / 2));
     public Vec3D ProjectileAttackPos => new(Position.X, Position.Y, Position.Z + 32);
@@ -235,7 +233,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         Radius = entityModel.Box.Radius;
 
         PrevPosition = entityModel.Box.GetCenter();
-        Velocity = entityModel.GetVelocity();
+        Velocity.X = entityModel.VelocityX;
+        Velocity.Y = entityModel.VelocityY;
+        Velocity.Z = entityModel.VelocityZ;
         Sector = world.Sectors[entityModel.Sector];
                 
         MoveLinked = entityModel.MoveLinked;
@@ -275,15 +275,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public EntityModel ToEntityModel(EntityModel entityModel)
     {
-        var spawnPoint = World.EntityManager.GetSpawnPoint(this);
         entityModel.Name = Definition.Name;
         entityModel.Id = Id;
         entityModel.ThingId = ThingId;
         entityModel.AngleRadians = AngleRadians;
-        entityModel.SpawnPointX = spawnPoint.X;
-        entityModel.SpawnPointY = spawnPoint.Y;
-        entityModel.SpawnPointZ = spawnPoint.Z;
-        entityModel.Box = ToEntityBoxModel();
+        entityModel.SpawnPointX = SpawnPoint.X;
+        entityModel.SpawnPointY = SpawnPoint.Y;
+        entityModel.SpawnPointZ = SpawnPoint.Z;
+
+        entityModel.Box.CenterX = Position.X;
+        entityModel.Box.CenterY = Position.Y;
+        entityModel.Box.CenterZ = Position.Z;
+        entityModel.Box.Radius = Radius;
+        entityModel.Box.Height = Height;
+
         entityModel.VelocityX = Velocity.X;
         entityModel.VelocityY = Velocity.Y;
         entityModel.VelocityZ = Velocity.Z;
@@ -298,12 +303,22 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.Sector = Sector.Id;
         entityModel.MoveDir = (int)m_direction;
         entityModel.BlockFloat = Flags.InFloat;
-        entityModel.Frame = FrameState.ToFrameStateModel();
-        entityModel.Flags = Flags.ToEntityFlagsModel();
+
+        entityModel.Frame.FrameIndex = FrameState.FrameIndex;
+        entityModel.Frame.Tics = FrameState.CurrentTick;
+        entityModel.Frame.Destroy = (FrameState.Options & FrameStateOptions.DestroyOnStop) != 0;
+        entityModel.Frame.PlayerSprite = (FrameState.Options & FrameStateOptions.PlayerSprite) != 0;
+
+        entityModel.Flags.Flags1 = Flags.Flags1;
+        entityModel.Flags.Flags2 = Flags.Flags2;
+        entityModel.Flags.Flags3 = Flags.Flags3;
+
         entityModel.Threshold = Threshold;
         entityModel.ReactionTime = ReactionTime;
+
         entityModel.HighSec = HighestFloorSector.Id;
         entityModel.LowSec = LowestCeilingSector.Id;
+
         entityModel.HighEntity = GetBoundingEntityForModel(HighestFloorObject);
         entityModel.LowEntity = GetBoundingEntityForModel(LowestCeilingObject);
         entityModel.OnGround = OnGround;
@@ -836,8 +851,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
         return other.Flags.Solid;
     }
-
-    public Vec3D GetSpawnPoint() => World.EntityManager.GetSpawnPoint(this);
 
     public double GetMaxStepHeight()
     {

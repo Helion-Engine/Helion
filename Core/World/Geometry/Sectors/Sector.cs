@@ -460,12 +460,15 @@ public sealed class Sector
 
         if (sectorModel.FloorOffset.HasValue)
         {
-            Floor.RenderOffsets.Offset = new Vec2D(sectorModel.FloorOffset.Value.X, sectorModel.FloorOffset.Value.Y);
+            Floor.RenderOffsets.Offset.X = sectorModel.FloorOffset.Value.X;
+            Floor.RenderOffsets.Offset.Y = sectorModel.FloorOffset.Value.Y;
+
             Floor.RenderOffsets.LastOffset = Floor.RenderOffsets.Offset;
         }
         if (sectorModel.CeilingOffset.HasValue)
         {
-            Ceiling.RenderOffsets.Offset = new Vec2D(sectorModel.CeilingOffset.Value.X, sectorModel.CeilingOffset.Value.Y);
+            Ceiling.RenderOffsets.Offset.X = sectorModel.CeilingOffset.Value.X;
+            Ceiling.RenderOffsets.Offset.Y = sectorModel.CeilingOffset.Value.Y;
             Ceiling.RenderOffsets.LastOffset = Ceiling.RenderOffsets.Offset;
         }
 
