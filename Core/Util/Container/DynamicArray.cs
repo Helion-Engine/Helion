@@ -1,5 +1,8 @@
 using System;
 using System.Buffers;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Container;
@@ -13,7 +16,7 @@ namespace Helion.Util.Container;
 /// low level array pinning (or use reflection but that's not worth it).
 /// </remarks>
 /// <typeparam name="T">The type to contain.</typeparam>
-public class DynamicArray<T>
+public class DynamicArray<T> : IList<T>
 {
     private static DynamicArray<T>? s_emptyArray;
 
@@ -43,6 +46,10 @@ public class DynamicArray<T>
     public int Version;
 
     private readonly bool m_arrayPool;
+
+    public int Count => Length;
+
+    public bool IsReadOnly => true;
 
     public DynamicArray() : this(8, false)
     {
@@ -259,5 +266,58 @@ public class DynamicArray<T>
         }
         Capacity = newCapacity;
         Version++;
+    }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        return Data.Take(Length).GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return Data.Take(Length).GetEnumerator();
+    }
+
+    public int IndexOf(T item)
+    {
+        return Array.IndexOf(Data, item, 0, Length);
+    }
+
+    public void Insert(int index, T item)
+    {
+        EnsureCapacity(Capacity + 1);
+
+        if (index < Length)
+            Array.Copy(Data, index, Data, index + 1, Length - index);
+        
+        Data[index] = item;
+        Length++;
+    }
+
+    public void RemoveAt(int index)
+    {
+        Length--;
+        if (index < Length)
+            Array.Copy(Data, index + 1, Data, index, Length - index);
+    }
+
+    public void CopyTo(T[] array, int arrayIndex)
+    {
+        Array.Copy(Data, 0, array, arrayIndex, Length);
+    }
+
+    public bool Remove(T item)
+    {
+        var index = IndexOf(item);
+        if (index < 0)
+            return false;
+
+        RemoveAt(index);
+        return true;
+    }
+
+    public bool Contains(T item)
+    {
+        return Array.IndexOf(Data, item, 0, Length) != -1;
     }
 }

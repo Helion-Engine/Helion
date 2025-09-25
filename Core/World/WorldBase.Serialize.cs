@@ -1,6 +1,5 @@
 ﻿using Helion.Models;
 using Helion.Resources.Archives;
-using Helion.Resources.Archives.Entries;
 using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
@@ -23,11 +22,10 @@ public partial class WorldBase
     private static readonly List<string> s_visitedMaps = [];
     private static readonly SpecialModelData s_specialModelData = new();
     private static readonly WorldModel s_worldModel = new();
+    private static int s_entityModelAlloc;
 
     public WorldModel ToWorldModel()
     {
-        DataCache.FreeEntityModels(s_entityModels);
-        DataCache.FreePlayerModels(s_playerModels);
         s_entityModels.Clear();
         s_playerModels.Clear();
         s_sectorModels.Clear();
@@ -80,6 +78,21 @@ public partial class WorldBase
         return s_worldModel;
     }
 
+    protected static void EnsureEntityModelSize(int size)
+    {
+        if (s_entityModelAlloc >= size)
+            return;
+
+        s_entityModels.EnsureCapacity(size);
+        for (int i = s_entityModelAlloc; i < size; i++)
+        {
+            if (s_entityModels[i] == null)
+                s_entityModels.Data[i] = new();
+        }
+
+        s_entityModelAlloc = size;
+    }
+
     private List<string> GetVisitedMaps()
     {
         for (int i = 0; i < GlobalData.VisitedMaps.Count; i++)
@@ -115,10 +128,21 @@ public partial class WorldBase
     {
         s_playerModels.EnsureCapacity(EntityManager.Players.Count + EntityManager.VoodooDolls.Count);
         var length = 0;
+
         foreach (var player in EntityManager.Players)
-            s_playerModels.Data[length++] = player.ToPlayerModel(DataCache.GetPlayerModel());
+        {
+            var model = s_playerModels[length];
+            model ??= PlayerModel.Create();
+            s_playerModels.Data[length++] = player.ToPlayerModel(model);
+        }
+
         foreach (var player in EntityManager.VoodooDolls)
-            s_playerModels.Data[length++] = player.ToPlayerModel(DataCache.GetPlayerModel());
+        {
+            var model = s_playerModels[length];
+            model ??= PlayerModel.Create();
+            s_playerModels.Data[length++] = player.ToPlayerModel(model);
+        }
+
         s_playerModels.Length = length;
         return s_playerModels;
     }
@@ -153,11 +177,21 @@ public partial class WorldBase
         for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
             if (!entity.IsPlayer)
-                s_entityModels.Data[length++] = entity.ToEntityModel(DataCache.GetEntityModel());
+            {
+                var model = s_entityModels[length];
+                model ??= new();
+                s_entityModels.Data[length++] = entity.ToEntityModel(model);
+            }
         }
 
         for (int i = 0; i < EntityManager.RemovedPlayers.Count; i++)
-            s_entityModels.Data[length++] = EntityManager.RemovedPlayers[i].ToEntityModel(DataCache.GetEntityModel());
+        {
+            var model = s_entityModels[length];
+            model ??= PlayerModel.Create();
+            s_entityModels.Data[length++] = EntityManager.RemovedPlayers[i].ToEntityModel(model);
+        }
+
+        s_entityModelAlloc = Math.Max(s_entityModelAlloc, length);
         s_entityModels.Length = length;
         return s_entityModels;
     }

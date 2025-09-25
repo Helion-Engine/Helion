@@ -202,42 +202,42 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     public void AddSpecialModels(WorldModel worldModel)
     {
-        for (int i = 0; i < worldModel.MoveSpecials.Length; i++)
-            AddSpecialNodeNotNull(worldModel.MoveSpecials.Data[i].ToWorldSpecial(m_world));
+        for (int i = 0; i < worldModel.MoveSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.MoveSpecials[i].ToWorldSpecial(m_world));
 
-        for (int i = 0; i < worldModel.ScrollSpecials.Length; i++)
-            AddSpecialNodeNotNull(worldModel.ScrollSpecials.Data[i].ToWorldSpecial(m_world));
+        for (int i = 0; i < worldModel.ScrollSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.ScrollSpecials[i].ToWorldSpecial(m_world));
 
-        for (int i = 0; i < worldModel.LightChangeSpecials.Length; i++)
-            AddSpecialNodeNotNull(worldModel.LightChangeSpecials.Data[i].ToWorldSpecial(m_world));
+        for (int i = 0; i < worldModel.LightChangeSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.LightChangeSpecials[i].ToWorldSpecial(m_world));
 
-        for (int i = 0; i < worldModel.LightFireFlickerDoomSpecials.Length; i++)
-            AddSpecialNodeNotNull(worldModel.LightFireFlickerDoomSpecials.Data[i].ToWorldSpecial(m_world));
+        for (int i = 0; i < worldModel.LightFireFlickerDoomSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.LightFireFlickerDoomSpecials[i].ToWorldSpecial(m_world));
 
-        for (int i = 0; i < worldModel.LightFlickerDoomSpecials.Length; i++)
-            AddSpecialNodeNotNull(worldModel.LightFlickerDoomSpecials.Data[i].ToWorldSpecial(m_world));
+        for (int i = 0; i < worldModel.LightFlickerDoomSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.LightFlickerDoomSpecials[i].ToWorldSpecial(m_world));
 
-        for (int i = 0; i < worldModel.LightPulsateSpecials.Length; i++)
-            AddSpecialNodeNotNull(worldModel.LightPulsateSpecials.Data[i].ToWorldSpecial(m_world));
+        for (int i = 0; i < worldModel.LightPulsateSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.LightPulsateSpecials[i].ToWorldSpecial(m_world));
 
-        for (int i = 0; i < worldModel.LightStrobeSpecials.Length; i++)
-            AddSpecialNodeNotNull(worldModel.LightStrobeSpecials.Data[i].ToWorldSpecial(m_world));
+        for (int i = 0; i < worldModel.LightStrobeSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.LightStrobeSpecials[i].ToWorldSpecial(m_world));
 
-        for (int i = 0; i < worldModel.PushSpecials.Length; i++)
-            AddSpecialNodeNotNull(worldModel.PushSpecials.Data[i].ToWorldSpecial(m_world));
+        for (int i = 0; i < worldModel.PushSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.PushSpecials[i].ToWorldSpecial(m_world));
 
-        for (int i = 0; i < worldModel.StairSpecials.Length; i++)
-            AddSpecialNodeNotNull(worldModel.StairSpecials.Data[i].ToWorldSpecial(m_world));
+        for (int i = 0; i < worldModel.StairSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.StairSpecials[i].ToWorldSpecial(m_world));
 
-        for (int i = 0; i < worldModel.ElevatorSpecials.Length; i++)
-            AddSpecialNodeNotNull(worldModel.ElevatorSpecials.Data[i].ToWorldSpecial(m_world));
+        for (int i = 0; i < worldModel.ElevatorSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.ElevatorSpecials[i].ToWorldSpecial(m_world));
 
-        for (int i = 0; i < worldModel.SwitchSpecials.Length; i++)
-            AddSpecialNodeNotNull(worldModel.SwitchSpecials.Data[i].ToWorldSpecial(m_world));
+        for (int i = 0; i < worldModel.SwitchSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.SwitchSpecials[i].ToWorldSpecial(m_world));
 
         // Kept for legacy purposes. Old versions used generic list.
-        for (int i = 0; i < worldModel.Specials.Length; i++)
-            AddSpecialNodeNotNull(worldModel.Specials.Data[i].ToWorldSpecial(m_world));
+        for (int i = 0; i < worldModel.Specials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.Specials[i].ToWorldSpecial(m_world));
     }
 
     private void AddSpecialNodeNotNull(ISpecial? special)

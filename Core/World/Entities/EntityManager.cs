@@ -319,12 +319,12 @@ public class EntityManager : IDisposable
     public WorldModelPopulateResult PopulateFrom(WorldModel worldModel)
     {
         var maxEntityId = 0;
-        World.DataCache.SetEntitiesForMapLoad(worldModel.Entities.Length + worldModel.Players.Length);
-        List<Player> players = new(worldModel.Players.Length);
-        Dictionary<int, EntityModelPair> entities = new(worldModel.Entities.Length + worldModel.Players.Length);
+        World.DataCache.SetEntitiesForMapLoad(worldModel.Entities.Count + worldModel.Players.Count);
+        List<Player> players = new(worldModel.Players.Count);
+        Dictionary<int, EntityModelPair> entities = new(worldModel.Entities.Count + worldModel.Players.Count);
 
         // Entities are serialized backwards because of the linked list implementation
-        for (int i = worldModel.Entities.Length - 1; i >= 0; i--)
+        for (int i = worldModel.Entities.Count - 1; i >= 0; i--)
         {
             var entityModel = worldModel.Entities[i];
             if (entityModel.Id > maxEntityId)
@@ -354,7 +354,7 @@ public class EntityManager : IDisposable
             entities.Add(entityModel.Id, new(entityModel, entity));
         }
 
-        for (int i = 0; i < worldModel.Players.Length; i++)
+        for (int i = 0; i < worldModel.Players.Count; i++)
         {
             var playerModel = worldModel.Players[i];
             if (playerModel.Id > maxEntityId)
@@ -372,7 +372,7 @@ public class EntityManager : IDisposable
             player.SpawnPoint.Z = playerModel.SpawnPointZ;
         }
 
-        for (int i = 0; i < worldModel.Entities.Length; i++)
+        for (int i = 0; i < worldModel.Entities.Count; i++)
         {
             var entityModel = worldModel.Entities[i];
             if (!entities.TryGetValue(entityModel.Id, out var entity))
@@ -401,7 +401,7 @@ public class EntityManager : IDisposable
             entity.Entity.SpawnPoint.Z = entity.Model.SpawnPointZ;
         }
 
-        EntityCount = worldModel.Entities.Length;
+        EntityCount = worldModel.Entities.Count;
         World.DataCache.EntityId = maxEntityId + 1;
         return new WorldModelPopulateResult(players, entities);
     }

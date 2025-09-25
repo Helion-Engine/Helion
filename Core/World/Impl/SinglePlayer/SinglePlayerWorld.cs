@@ -117,6 +117,9 @@ public class SinglePlayerWorld : WorldBase
             SpecialManager.AddSpecialModels(worldModel);
         }
 
+        // Allocating on the save can take a significant amount of time on the first save. Ensure it has most of the required size plus buffer.
+        EnsureEntityModelSize(EntityManager.EntityCount + (int)(EntityManager.EntityCount * 0.25));
+
         var bspTree = Geometry.GetBspTree();
         if (config.Game.MonsterCloset.Value && bspTree != null)
             ClosetClassifier.Classify(this, bspTree, worldModel != null);
@@ -288,7 +291,7 @@ public class SinglePlayerWorld : WorldBase
 
     private void ApplyCheats(WorldModel worldModel)
     {
-        for (int i = 0; i < worldModel.Players.Length; i++)
+        for (int i = 0; i < worldModel.Players.Count; i++)
         {
             var playerModel = worldModel.Players[i];
             Player? player = EntityManager.Players.FirstOrDefault(x => x.Id == playerModel.Id);
@@ -302,9 +305,9 @@ public class SinglePlayerWorld : WorldBase
 
     private void CreateDamageSpecials(WorldModel worldModel)
     {
-        for (int i = 0; i < worldModel.DamageSpecials.Length; i++)
+        for (int i = 0; i < worldModel.DamageSpecials.Count; i++)
         {
-            ref var model = ref worldModel.DamageSpecials.Data[i];
+            var model = worldModel.DamageSpecials[i];
             if (!((IWorld)this).IsSectorIdValid(model.SectorId))
                 continue;
 
@@ -315,9 +318,9 @@ public class SinglePlayerWorld : WorldBase
     private void ApplyLineModels(WorldModel worldModel)
     {
         var lines = worldModel.Lines;
-        for (int i = 0; i < worldModel.Lines.Length; i++)
+        for (int i = 0; i < worldModel.Lines.Count; i++)
         {
-            var id = lines.Data[i].Id;
+            var id = lines[i].Id;
             if (id < 0 || id >= Lines.Count)
                 continue;
 
@@ -331,7 +334,7 @@ public class SinglePlayerWorld : WorldBase
     private void ApplySectorModels(WorldModel worldModel, WorldModelPopulateResult result)
     {
         var sectors = worldModel.Sectors;
-        for (int i = 0; i < worldModel.Sectors.Length; i++)
+        for (int i = 0; i < worldModel.Sectors.Count; i++)
         {
             var id = sectors[i].Id;
             if (id < 0 || id >= Sectors.Count)

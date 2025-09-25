@@ -20,24 +20,23 @@ public class WorldModel
     public double Gravity { get; set; }
     public SkillLevel Skill { get; set; }
     public int CurrentBossTarget { get; set; }
-
-    public DynamicArray<PlayerModel> Players = DynamicArray<PlayerModel>.Empty();
-    public DynamicArray<EntityModel> Entities = DynamicArray<EntityModel>.Empty();
-    public DynamicArray<SectorModel> Sectors = DynamicArray<SectorModel>.Empty();
-    public DynamicArray<LineModel> Lines = DynamicArray<LineModel>.Empty();
-    public DynamicArray<ISpecialModel> Specials = DynamicArray<ISpecialModel>.Empty();
-    public DynamicArray<SectorMoveSpecialModel> MoveSpecials = DynamicArray<SectorMoveSpecialModel>.Empty();
-    public DynamicArray<ScrollSpecialModel> ScrollSpecials = DynamicArray<ScrollSpecialModel>.Empty();
-    public DynamicArray<LightChangeSpecialModel> LightChangeSpecials = DynamicArray<LightChangeSpecialModel>.Empty();
-    public DynamicArray<LightFireFlickerDoomModel> LightFireFlickerDoomSpecials = DynamicArray<LightFireFlickerDoomModel>.Empty();
-    public DynamicArray<LightFlickerDoomSpecialModel> LightFlickerDoomSpecials = DynamicArray<LightFlickerDoomSpecialModel>.Empty();
-    public DynamicArray<LightPulsateSpecialModel> LightPulsateSpecials = DynamicArray<LightPulsateSpecialModel>.Empty();
-    public DynamicArray<LightStrobeSpecialModel> LightStrobeSpecials = DynamicArray<LightStrobeSpecialModel>.Empty();
-    public DynamicArray<PushSpecialModel> PushSpecials = DynamicArray<PushSpecialModel>.Empty();
-    public DynamicArray<StairSpecialModel> StairSpecials = DynamicArray<StairSpecialModel>.Empty();
-    public DynamicArray<ElevatorSpecialModel> ElevatorSpecials = DynamicArray<ElevatorSpecialModel>.Empty();
-    public DynamicArray<SwitchChangeSpecialModel> SwitchSpecials = DynamicArray<SwitchChangeSpecialModel>.Empty();
-    public DynamicArray<SectorDamageSpecialModel> DamageSpecials = DynamicArray<SectorDamageSpecialModel>.Empty();
+    public IList<PlayerModel> Players { get; set; } = Array.Empty<PlayerModel>();
+    public IList<EntityModel> Entities { get; set; } = Array.Empty<EntityModel>();
+    public IList<SectorModel> Sectors { get; set; } = Array.Empty<SectorModel>();
+    public IList<LineModel> Lines { get; set; } = Array.Empty<LineModel>();
+    public IList<ISpecialModel> Specials { get; set; } = Array.Empty<ISpecialModel>();
+    public IList<SectorMoveSpecialModel> MoveSpecials { get; set; } = Array.Empty<SectorMoveSpecialModel>();
+    public IList<ScrollSpecialModel> ScrollSpecials { get; set; } = Array.Empty<ScrollSpecialModel>();
+    public IList<LightChangeSpecialModel> LightChangeSpecials { get; set; } = Array.Empty<LightChangeSpecialModel>();
+    public IList<LightFireFlickerDoomModel> LightFireFlickerDoomSpecials { get; set; } = Array.Empty<LightFireFlickerDoomModel>();
+    public IList<LightFlickerDoomSpecialModel> LightFlickerDoomSpecials { get; set; } = Array.Empty<LightFlickerDoomSpecialModel>();
+    public IList<LightPulsateSpecialModel> LightPulsateSpecials { get; set; } = Array.Empty<LightPulsateSpecialModel>();
+    public IList<LightStrobeSpecialModel> LightStrobeSpecials { get; set; } = Array.Empty<LightStrobeSpecialModel>();
+    public IList<PushSpecialModel> PushSpecials { get; set; } = Array.Empty<PushSpecialModel>();
+    public IList<StairSpecialModel> StairSpecials { get; set; } = Array.Empty<StairSpecialModel>();
+    public IList<ElevatorSpecialModel> ElevatorSpecials { get; set; } = Array.Empty<ElevatorSpecialModel>();
+    public IList<SwitchChangeSpecialModel> SwitchSpecials { get; set; } = Array.Empty<SwitchChangeSpecialModel>();
+    public IList<SectorDamageSpecialModel> DamageSpecials { get; set; } = Array.Empty<SectorDamageSpecialModel>();
     public IList<string> VisitedMaps { get; set; } = Array.Empty<string>();
     public int TotalTime { get; set; }
 

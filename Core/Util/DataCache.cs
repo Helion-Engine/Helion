@@ -63,9 +63,6 @@ public class DataCache
     private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new(DefaultLength);
     private readonly DynamicArray<LinkedListNode<Entity>> m_entityLinkedListNodes = new(32);
 
-    private readonly DynamicArray<EntityModel> m_entityModels = new(DefaultLength);
-    private readonly DynamicArray<PlayerModel> m_playerModels = new(32);
-
     public bool CacheEntities = true;
 
     public DataCache()
@@ -586,29 +583,5 @@ public class DataCache
     public void FreeSkyWallVertices(SkyGeometryVertex[] vertices)
     {
         m_skyWallVertices.Add(vertices);
-    }
-
-    public EntityModel GetEntityModel()
-    {
-        if (m_entityModels.Length > 0)
-            return m_entityModels.RemoveLast();
-        return new EntityModel();
-    }
-
-    public void FreeEntityModels(DynamicArray<EntityModel> models)
-    {
-        m_entityModels.AddRange(models);
-    }
-
-    public PlayerModel GetPlayerModel()
-    {
-        if (m_playerModels.Length > 0)
-            return m_playerModels.RemoveLast();        
-        return PlayerModel.Create();
-    }
-
-    public void FreePlayerModels(DynamicArray<PlayerModel> models)
-    {
-        m_playerModels.AddRange(models);
     }
 }

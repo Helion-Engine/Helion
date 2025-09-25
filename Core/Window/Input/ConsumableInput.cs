@@ -39,7 +39,7 @@ public class ConsumableInput : IConsumableInput
 
     public bool ConsumeKeyDown(Key key)
     {
-        if (m_allConsumed || m_inputDownConsumed.Contains(key))
+        if (m_allConsumed || m_inputDownConsumed.ContainsKey(key))
             return false;
 
         if (Manager.IsKeyDown(key))
@@ -53,7 +53,7 @@ public class ConsumableInput : IConsumableInput
 
     public bool ConsumeKeyPressed(Key key)
     {
-        if (m_allConsumed || m_inputDownConsumed.Contains(key))
+        if (m_allConsumed || m_inputDownConsumed.ContainsKey(key))
             return false;
 
         if (Manager.IsKeyPressed(key))
