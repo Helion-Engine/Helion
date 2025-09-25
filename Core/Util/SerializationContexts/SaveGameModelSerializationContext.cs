@@ -1,4 +1,9 @@
-﻿namespace Helion.Util.SerializationContexts
+﻿using Helion.Util.Container;
+using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace Helion.Util.SerializationContexts
 {
     using Helion.Models;
     using System.Text.Json.Serialization;
@@ -6,7 +11,8 @@
     [JsonSourceGenerationOptions(
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull | JsonIgnoreCondition.WhenWritingDefault,
         PropertyNameCaseInsensitive = true,
-        IncludeFields = true)]
+        IncludeFields = true
+    )]
     [JsonSerializable(typeof(SaveGameModel), TypeInfoPropertyName = "SaveGameModel")]
     public partial class SaveGameModelSerializationContext : JsonSerializerContext
     { }

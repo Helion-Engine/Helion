@@ -1,8 +1,5 @@
 using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Container;
@@ -18,6 +15,14 @@ namespace Helion.Util.Container;
 /// <typeparam name="T">The type to contain.</typeparam>
 public class DynamicArray<T>
 {
+    private static DynamicArray<T>? s_emptyArray;
+
+    public static DynamicArray<T> Empty()
+    {
+        s_emptyArray ??= new([]);
+        return s_emptyArray;
+    }
+
     /// <summary>
     /// How many elements are in the array.
     /// </summary>
@@ -37,9 +42,12 @@ public class DynamicArray<T>
 
     public int Version;
 
-    public bool Empty() => Length == 0;
+    private readonly bool m_arrayPool;
 
-    private bool m_arrayPool;
+    public DynamicArray() : this(8, false)
+    {
+
+    }
 
     /// <summary>
     /// Creates a new dynamic array.
@@ -58,6 +66,12 @@ public class DynamicArray<T>
             Data = ArrayPool<T>.Shared.Rent(capacity);
         else
             Data = new T[capacity];
+    }
+
+    public DynamicArray(T[] data)
+    {
+        Capacity = data.Length;
+        Data = data;
     }
 
     public T this[int index]
@@ -140,22 +154,20 @@ public class DynamicArray<T>
         Length += length;
     }
 
-    public void AddRange(IList<T> elements)
-    {
-        EnsureCapacity(Length + elements.Count);
-
-        for (int i = 0; i < elements.Count; i++)
-            Data[Length + i] = elements[i];
-
-        Length += elements.Count;
-    }
-
     public void AddRange(DynamicArray<T> elements)
     {
         EnsureCapacity(Length + elements.Length);
 
-        for (int i = 0; i < elements.Length; i++)
-            Data[Length + i] = elements[i];
+        if (elements.Length < 10)
+        {
+            for (int i = 0; i < elements.Length; i++)
+                Data[Length + i] = elements[i];
+        }
+        else
+        {
+            Array.Copy(elements.Data, 0, Data, Length, elements.Length);
+        }
+
         Length += elements.Length;
     }
 

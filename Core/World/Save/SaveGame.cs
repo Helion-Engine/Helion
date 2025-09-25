@@ -2,6 +2,7 @@ using Helion.Graphics;
 using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.Util.SerializationContexts;
 using SixLabors.ImageSharp.PixelFormats;
 using System;

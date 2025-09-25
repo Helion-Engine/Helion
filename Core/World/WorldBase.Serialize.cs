@@ -1,5 +1,7 @@
 ﻿using Helion.Models;
 using Helion.Resources.Archives;
+using Helion.Resources.Archives.Entries;
+using Helion.Util.Container;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
@@ -12,10 +14,10 @@ namespace Helion.World;
 
 public partial class WorldBase
 {
-    private static readonly List<EntityModel> s_entityModels = new(1024);
-    private static readonly List<PlayerModel> s_playerModels = [];
-    private static readonly List<SectorModel> s_sectorModels = new(256);
-    private static readonly List<LineModel> s_lineModels = new(256);
+    private static readonly DynamicArray<EntityModel> s_entityModels = new(1024);
+    private static readonly DynamicArray<PlayerModel> s_playerModels = new();
+    private static readonly DynamicArray<SectorModel> s_sectorModels = new(256);
+    private static readonly DynamicArray<LineModel> s_lineModels = new(256);
     private static readonly List<ConfigValueModel> s_configValueModels = [];
     private static readonly List<FileModel> s_fileModels = [];
     private static readonly List<string> s_visitedMaps = [];
@@ -109,13 +111,15 @@ public partial class WorldBase
         };
     }
 
-    private List<PlayerModel> GetPlayerModels()
+    private DynamicArray<PlayerModel> GetPlayerModels()
     {
         s_playerModels.EnsureCapacity(EntityManager.Players.Count + EntityManager.VoodooDolls.Count);
+        var length = 0;
         foreach (var player in EntityManager.Players)
-            s_playerModels.Add(player.ToPlayerModel(DataCache.GetPlayerModel()));
+            s_playerModels.Data[length++] = player.ToPlayerModel(DataCache.GetPlayerModel());
         foreach (var player in EntityManager.VoodooDolls)
-            s_playerModels.Add(player.ToPlayerModel(DataCache.GetPlayerModel()));
+            s_playerModels.Data[length++] = player.ToPlayerModel(DataCache.GetPlayerModel());
+        s_playerModels.Length = length;
         return s_playerModels;
     }
 
@@ -142,20 +146,23 @@ public partial class WorldBase
         return s_fileModels;
     }
 
-    private List<EntityModel> GetEntityModels()
+    private DynamicArray<EntityModel> GetEntityModels()
     {
         s_entityModels.EnsureCapacity(EntityManager.EntityCount);
+        var length = 0;
         for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
             if (!entity.IsPlayer)
-                s_entityModels.Add(entity.ToEntityModel(DataCache.GetEntityModel()));
+                s_entityModels.Data[length++] = entity.ToEntityModel(DataCache.GetEntityModel());
         }
+
         for (int i = 0; i < EntityManager.RemovedPlayers.Count; i++)
-            s_entityModels.Add(EntityManager.RemovedPlayers[i].ToEntityModel(DataCache.GetEntityModel()));
+            s_entityModels.Data[length++] = EntityManager.RemovedPlayers[i].ToEntityModel(DataCache.GetEntityModel());
+        s_entityModels.Length = length;
         return s_entityModels;
     }
 
-    private void SetSectorModels(List<SectorModel> sectorModels, List<SectorDamageSpecialModel> sectorDamageSpecialModels)
+    private void SetSectorModels(DynamicArray<SectorModel> sectorModels, DynamicArray<SectorDamageSpecialModel> sectorDamageSpecialModels)
     {
         for (int i = 0; i < Sectors.Count; i++)
         {
@@ -167,7 +174,7 @@ public partial class WorldBase
         }
     }
 
-    private List<LineModel> GetLineModels()
+    private DynamicArray<LineModel> GetLineModels()
     {
         for (int i = 0; i < Lines.Count; i++)
         {

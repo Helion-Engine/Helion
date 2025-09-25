@@ -288,8 +288,9 @@ public class SinglePlayerWorld : WorldBase
 
     private void ApplyCheats(WorldModel worldModel)
     {
-        foreach (PlayerModel playerModel in worldModel.Players)
+        for (int i = 0; i < worldModel.Players.Length; i++)
         {
+            var playerModel = worldModel.Players[i];
             Player? player = EntityManager.Players.FirstOrDefault(x => x.Id == playerModel.Id);
             if (player == null)
                 continue;
@@ -301,9 +302,9 @@ public class SinglePlayerWorld : WorldBase
 
     private void CreateDamageSpecials(WorldModel worldModel)
     {
-        for (int i = 0; i < worldModel.DamageSpecials.Count; i++)
+        for (int i = 0; i < worldModel.DamageSpecials.Length; i++)
         {
-            SectorDamageSpecialModel model = worldModel.DamageSpecials[i];
+            ref var model = ref worldModel.DamageSpecials.Data[i];
             if (!((IWorld)this).IsSectorIdValid(model.SectorId))
                 continue;
 
@@ -314,9 +315,9 @@ public class SinglePlayerWorld : WorldBase
     private void ApplyLineModels(WorldModel worldModel)
     {
         var lines = worldModel.Lines;
-        for (int i = 0; i < worldModel.Lines.Count; i++)
+        for (int i = 0; i < worldModel.Lines.Length; i++)
         {
-            var id = lines[i].Id;
+            var id = lines.Data[i].Id;
             if (id < 0 || id >= Lines.Count)
                 continue;
 
@@ -330,7 +331,7 @@ public class SinglePlayerWorld : WorldBase
     private void ApplySectorModels(WorldModel worldModel, WorldModelPopulateResult result)
     {
         var sectors = worldModel.Sectors;
-        for (int i = 0; i < worldModel.Sectors.Count; i++)
+        for (int i = 0; i < worldModel.Sectors.Length; i++)
         {
             var id = sectors[i].Id;
             if (id < 0 || id >= Sectors.Count)

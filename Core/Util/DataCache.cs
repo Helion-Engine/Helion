@@ -595,7 +595,7 @@ public class DataCache
         return new EntityModel();
     }
 
-    public void FreeEntityModels(List<EntityModel> models)
+    public void FreeEntityModels(DynamicArray<EntityModel> models)
     {
         m_entityModels.AddRange(models);
     }
@@ -607,7 +607,7 @@ public class DataCache
         return PlayerModel.Create();
     }
 
-    public void FreePlayerModels(List<PlayerModel> models)
+    public void FreePlayerModels(DynamicArray<PlayerModel> models)
     {
         m_playerModels.AddRange(models);
     }
