@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -117,10 +116,7 @@ public class SaveGameManager
         m_saving = true;
         existingSave = GetExistingSave(existingSave, type);
         var filename = existingSave?.FileName ?? GetNewSaveName(type);
-        var sw = Stopwatch.StartNew();
         var worldModel = world.ToWorldModel();
-        sw.Stop();
-        Log.Info(sw.Elapsed.TotalMilliseconds);
         var image = screenshotGenerator.GetImage();
         m_saveArgs = new(world, worldModel, title, GetSaveDir(), filename, screenshotGenerator, image);
         var saveEvent = await Task.Run(m_saveFunc);

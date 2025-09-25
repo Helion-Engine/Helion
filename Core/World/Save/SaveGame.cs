@@ -2,13 +2,14 @@ using Helion.Graphics;
 using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
-using Helion.Util.Container;
+using Helion.Util.Extensions;
 using Helion.Util.SerializationContexts;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
@@ -109,11 +110,52 @@ public class SaveGame
             if (entry == null)
                 return null;
 
-            return (WorldModel?)JsonSerializer.Deserialize(entry.ReadDataAsString(), typeof(WorldModel), WorldModelSerializationContext.Default);
+            var model = (WorldModel?)JsonSerializer.Deserialize(entry.ReadDataAsString(), typeof(WorldModel), WorldModelSerializationContext.Default);
+            if (model != null)
+                ApplyVersionFix(model);
+            return model;
         }
         catch
         {
             return null;
+        }
+    }
+
+    private void ApplyVersionFix(WorldModel worldModel)
+    {
+        // Checks for versions < 0.9.8.0 as it was the first version to serialize solonet
+        // This change removed a frame from the table and requires shifting the index down after that point:
+        // https://github.com/Helion-Engine/Helion/commit/5217c33c74690fde574be70da6953c0db57c5ad2
+        if (Model != null && Model.AppVersion.Length == 0 && !worldModel.ConfigValues.Any(x => x.Key.EqualsIgnoreCase("game.solonet")))
+        {
+            const int StartIndex = 731;
+            for (int i = 0; i < worldModel.Entities.Count; i++)
+            {
+                var entity = worldModel.Entities[i];
+                if (entity.Frame.FrameIndex > StartIndex)
+                    entity.Frame.FrameIndex--;
+            }
+
+            for (int i = 0; i < worldModel.Players.Count; i++)
+            {
+                var player = worldModel.Players[i];
+                if (player.Frame.FrameIndex > StartIndex)
+                    player.Frame.FrameIndex--;
+
+                if (player.AnimationWeaponFrame.HasValue && player.AnimationWeaponFrame.Value.FrameIndex > StartIndex)
+                {
+                    var frame = player.AnimationWeaponFrame.Value;
+                    frame.FrameIndex--;
+                    player.AnimationWeaponFrame = frame;
+                }
+
+                if (player.WeaponFlashFrame.HasValue && player.WeaponFlashFrame.Value.FrameIndex > StartIndex)
+                {
+                    var frame = player.WeaponFlashFrame.Value;
+                    frame.FrameIndex--;
+                    player.WeaponFlashFrame = frame;
+                }
+            }
         }
     }
 
@@ -128,6 +170,7 @@ public class SaveGame
             WorldFile = WorldDataFile,
             ImageFile = image == null ? "" : ImageFile,
             Files = worldModel.Files,
+            AppVersion = GetAppVersionString(),
 
             SaveGameStats = new SaveGameStats()
             {
@@ -175,7 +218,14 @@ public class SaveGame
         {
             return new SaveGameEvent(new SaveGame(saveDir, filename, saveGameModel), worldModel, filename, false, ex);
         }
+    }
 
+    private static string GetAppVersionString()
+    {
+        var assemblyName = Assembly.GetExecutingAssembly().GetName();
+        if (assemblyName.Version == null)
+            return string.Empty;
 
+        return assemblyName.Version.ToString();
     }
 }
