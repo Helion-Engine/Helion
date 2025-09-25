@@ -436,6 +436,11 @@ public partial class Client
                 return;
             }
 
+            if (mapName.All(char.IsDigit))
+            {
+                mapName = "MAP" + int.Parse(mapName, CultureInfo.InvariantCulture).ToString("D2", CultureInfo.InvariantCulture);
+            }
+
             MapInfoDef mapInfo = GetMapInfo(mapName);
             NewGame(mapInfo);
         }
