@@ -435,6 +435,12 @@ public partial class Client
                 NewGame(m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetStartMapOrDefault(m_archiveCollection, mapName));
                 return;
             }
+            
+            if (MapWarp.GetMap(mapName, m_archiveCollection, out var selectedMapInfo))
+            {
+                NewGame(selectedMapInfo);
+                return;
+            }
 
             MapInfoDef mapInfo = GetMapInfo(mapName);
             NewGame(mapInfo);
