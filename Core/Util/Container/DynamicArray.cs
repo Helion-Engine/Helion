@@ -18,14 +18,6 @@ namespace Helion.Util.Container;
 /// <typeparam name="T">The type to contain.</typeparam>
 public class DynamicArray<T> : IList<T>
 {
-    private static DynamicArray<T>? s_emptyArray;
-
-    public static DynamicArray<T> Empty()
-    {
-        s_emptyArray ??= new([]);
-        return s_emptyArray;
-    }
-
     /// <summary>
     /// How many elements are in the array.
     /// </summary>
