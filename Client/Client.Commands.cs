@@ -435,10 +435,11 @@ public partial class Client
                 NewGame(m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetStartMapOrDefault(m_archiveCollection, mapName));
                 return;
             }
-
-            if (mapName.All(char.IsDigit))
+            
+            if (MapWarp.GetMap(mapName, m_archiveCollection, out var selectedMapInfo))
             {
-                mapName = "MAP" + int.Parse(mapName, CultureInfo.InvariantCulture).ToString("D2", CultureInfo.InvariantCulture);
+                NewGame(selectedMapInfo);
+                return;
             }
 
             MapInfoDef mapInfo = GetMapInfo(mapName);
