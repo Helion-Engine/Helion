@@ -59,6 +59,7 @@ public class SaveGameManager
         m_archiveCollection = archiveCollection;
         m_saveDirCommandLineArg = saveDirCommandLineArg;
         m_saveFunc = new Func<SaveGameEvent>(WriteSaveGameForTask);
+        SaveGame.AllocateJsonMapping();
     }
 
     private string GetSaveDir()

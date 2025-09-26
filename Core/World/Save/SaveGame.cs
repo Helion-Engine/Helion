@@ -4,13 +4,14 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.Util.SerializationContexts;
+using Helion.Util.Streams;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Helion.World.Save;
 
@@ -55,7 +56,8 @@ public class SaveGame
             if (saveDataEntry == null)
                 return;
 
-            Model = (SaveGameModel?)JsonSerializer.Deserialize(saveDataEntry.ReadDataAsString(), typeof(SaveGameModel), SaveGameModelSerializationContext.Default);
+            using var stream = saveDataEntry.Open();
+            Model = (SaveGameModel?)JsonSerializer.Deserialize(stream, typeof(SaveGameModel), SaveGameModelSerializationContext.Default);
         }
         catch
         {
@@ -109,7 +111,8 @@ public class SaveGame
             if (entry == null)
                 return null;
 
-            var model = (WorldModel?)JsonSerializer.Deserialize(entry.ReadDataAsString(), typeof(WorldModel), WorldModelSerializationContext.Default);
+            using var stream = entry.Open();
+            var model = (WorldModel?)JsonSerializer.Deserialize(stream, typeof(WorldModel), WorldModelSerializationContext.Default);
             if (model != null)
                 ApplyVersionFix(model);
             return model;
@@ -158,6 +161,12 @@ public class SaveGame
         }
     }
 
+    public static void AllocateJsonMapping()
+    {
+        JsonSerializer.Serialize(new SaveGameModel(), SaveGameModelSerializationContext.Default.SaveGameModel);
+        JsonSerializer.Serialize(new WorldModel(), WorldModelSerializationContext.Default.WorldModel);
+    }
+
     public static SaveGameEvent WriteSaveGame(IWorld world, WorldModel worldModel,
         string title, string saveDir, string filename, IScreenshotGenerator screenshotGenerator, Image? image)
     {
@@ -186,19 +195,14 @@ public class SaveGame
         try
         {
             File.Delete(saveTempFile);
-            using (ZipArchive zipArchive = ZipFile.Open(saveTempFile, ZipArchiveMode.Create))
+            using (var zipArchive = ZipFile.Open(saveTempFile, ZipArchiveMode.Create))
             {
-                ZipArchiveEntry entry = zipArchive.CreateEntry(SaveDataFile);
-                using (Stream stream = entry.Open())
-                    stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(saveGameModel, typeof(SaveGameModel), SaveGameModelSerializationContext.Default)));
-
-                entry = zipArchive.CreateEntry(WorldDataFile);
-                using (Stream stream = entry.Open())
-                    stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(worldModel, typeof(WorldModel), WorldModelSerializationContext.Default)));
+                WriteZipEntry(zipArchive, SaveDataFile, saveGameModel, SaveGameModelSerializationContext.Default.SaveGameModel);
+                WriteZipEntry(zipArchive, WorldDataFile, worldModel, WorldModelSerializationContext.Default.WorldModel);
 
                 if (image != null)
                 {
-                    entry = zipArchive.CreateEntry(ImageFile);
+                    var entry = zipArchive.CreateEntry(ImageFile);
                     using var stream = entry.Open();
                     screenshotGenerator.GeneratePngImage(image, stream);
                 }
@@ -217,5 +221,13 @@ public class SaveGame
         {
             return new SaveGameEvent(new SaveGame(saveDir, filename, saveGameModel), worldModel, filename, false, ex);
         }
+    }
+
+    private static void WriteZipEntry<T>(ZipArchive zipArchive, string entryName, T value, JsonTypeInfo<T> typeInfo)
+    {
+        var entry = zipArchive.CreateEntry(entryName);
+        using var zipStream = entry.Open();
+        using var bufferStream = new PoolBufferedStream(zipStream);
+        JsonSerializer.Serialize(bufferStream, value, typeInfo);
     }
 }
