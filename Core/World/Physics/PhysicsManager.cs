@@ -1009,7 +1009,7 @@ public sealed class PhysicsManager
 
     private void LinkToSectors(Entity entity, TryMoveData? tryMove)
     {
-        Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
+        Precondition(entity.SectorNodes.Length == 0, "Forgot to unlink entity from blockmap");
         int checkCounter = ++WorldStatic.CheckCounter;
         Subsector centerSubsector;
         if (tryMove != null && tryMove.Subsector != null && tryMove.Success)

@@ -47,7 +47,6 @@ public class EntityManager : IDisposable
     public List<Entity> MusicChangers = [];
     private readonly LookupArray<Player?> RealPlayersByNumber = new();
     private readonly Dictionary<int, LinkedList<Entity>> TidToEntity = [];
-    private readonly Dictionary<int, Vec3D> m_spawnPoints = [];
 
     public EntityManager(IWorld world)
     {
@@ -319,8 +318,7 @@ public class EntityManager : IDisposable
 
     public WorldModelPopulateResult PopulateFrom(WorldModel worldModel)
     {
-        var maxEntityId = worldModel.Entities.Max(x => x.Id);
-        var maxPlayerId = worldModel.Players.Max(x => x.Id);
+        var maxEntityId = 0;
         World.DataCache.SetEntitiesForMapLoad(worldModel.Entities.Count + worldModel.Players.Count);
         List<Player> players = new(worldModel.Players.Count);
         Dictionary<int, EntityModelPair> entities = new(worldModel.Entities.Count + worldModel.Players.Count);
@@ -329,6 +327,8 @@ public class EntityManager : IDisposable
         for (int i = worldModel.Entities.Count - 1; i >= 0; i--)
         {
             var entityModel = worldModel.Entities[i];
+            if (entityModel.Id > maxEntityId)
+                maxEntityId = entityModel.Id;
             var definition = DefinitionComposer.GetByName(entityModel.Name);
             if (definition == null)
             {
@@ -357,6 +357,8 @@ public class EntityManager : IDisposable
         for (int i = 0; i < worldModel.Players.Count; i++)
         {
             var playerModel = worldModel.Players[i];
+            if (playerModel.Id > maxEntityId)
+                maxEntityId = playerModel.Id;
             bool isVoodooDoll = players.Any(x => x.PlayerNumber == playerModel.Number);
             Player? player = CreatePlayerFromModel(playerModel, entities, isVoodooDoll);
             if (player == null)
@@ -365,7 +367,9 @@ public class EntityManager : IDisposable
                 continue;
             }
             players.Add(player);
-            m_spawnPoints[player.Index] = new Vec3D(playerModel.SpawnPointX, playerModel.SpawnPointY, playerModel.SpawnPointZ);
+            player.SpawnPoint.X = playerModel.SpawnPointX;
+            player.SpawnPoint.Y = playerModel.SpawnPointY;
+            player.SpawnPoint.Z = playerModel.SpawnPointZ;
         }
 
         for (int i = 0; i < worldModel.Entities.Count; i++)
@@ -392,11 +396,13 @@ public class EntityManager : IDisposable
                     entity.Entity.SetTracer(tracerTarget.Entity);
             }
 
-            m_spawnPoints[entity.Entity.Index] = new Vec3D(entity.Model.SpawnPointX, entity.Model.SpawnPointY, entity.Model.SpawnPointZ);
+            entity.Entity.SpawnPoint.X = entity.Model.SpawnPointX;
+            entity.Entity.SpawnPoint.Y = entity.Model.SpawnPointY;
+            entity.Entity.SpawnPoint.Z = entity.Model.SpawnPointZ;
         }
 
         EntityCount = worldModel.Entities.Count;
-        World.DataCache.EntityId = Math.Max(maxEntityId, maxPlayerId) + 1;
+        World.DataCache.EntityId = maxEntityId + 1;
         return new WorldModelPopulateResult(players, entities);
     }
 
@@ -450,13 +456,6 @@ public class EntityManager : IDisposable
     {
         RealPlayersByNumber.TryGetValue(playerNumber, out var player);
         return player;
-    }
-
-    public Vec3D GetSpawnPoint(Entity entity)
-    {
-        if (m_spawnPoints.TryGetValue(entity.Index, out var spawnPoint))
-            return spawnPoint;
-        return default;
     }
 
     private object GetBoundingObject(WorldModelPopulateResult result, Sector sector, int? entityId)
@@ -572,7 +571,7 @@ public class EntityManager : IDisposable
 
         FinalizeEntity(entity, checkOnGround, zHeight, initSpawn);
                 
-        m_spawnPoints[entity.Index] = entity.Position;
+       entity.SpawnPoint = entity.Position;
         // Vanilla did not execute action functions on creation, it just set the state
         // Action functions will not execute until Tick() is called
         if (entity.Definition.SpawnState != null)
@@ -641,7 +640,6 @@ public class EntityManager : IDisposable
         MusicChangers.Clear();
         RealPlayersByNumber.SetAll(null);
         TeleportSpots.Clear();
-        m_spawnPoints.Clear();
     }
 
     private void ClearEntities()

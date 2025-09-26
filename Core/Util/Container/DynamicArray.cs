@@ -1,8 +1,8 @@
 using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using System.Linq;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Util.Container;
@@ -16,7 +16,7 @@ namespace Helion.Util.Container;
 /// low level array pinning (or use reflection but that's not worth it).
 /// </remarks>
 /// <typeparam name="T">The type to contain.</typeparam>
-public class DynamicArray<T>
+public class DynamicArray<T> : IList<T>
 {
     /// <summary>
     /// How many elements are in the array.
@@ -37,9 +37,16 @@ public class DynamicArray<T>
 
     public int Version;
 
-    public bool Empty() => Length == 0;
+    private readonly bool m_arrayPool;
 
-    private bool m_arrayPool;
+    public int Count => Length;
+
+    public bool IsReadOnly => true;
+
+    public DynamicArray() : this(8, false)
+    {
+
+    }
 
     /// <summary>
     /// Creates a new dynamic array.
@@ -58,6 +65,12 @@ public class DynamicArray<T>
             Data = ArrayPool<T>.Shared.Rent(capacity);
         else
             Data = new T[capacity];
+    }
+
+    public DynamicArray(T[] data)
+    {
+        Capacity = data.Length;
+        Data = data;
     }
 
     public T this[int index]
@@ -140,22 +153,20 @@ public class DynamicArray<T>
         Length += length;
     }
 
-    public void AddRange(IList<T> elements)
-    {
-        EnsureCapacity(Length + elements.Count);
-
-        for (int i = 0; i < elements.Count; i++)
-            Data[Length + i] = elements[i];
-
-        Length += elements.Count;
-    }
-
     public void AddRange(DynamicArray<T> elements)
     {
         EnsureCapacity(Length + elements.Length);
 
-        for (int i = 0; i < elements.Length; i++)
-            Data[Length + i] = elements[i];
+        if (elements.Length < 10)
+        {
+            for (int i = 0; i < elements.Length; i++)
+                Data[Length + i] = elements[i];
+        }
+        else
+        {
+            Array.Copy(elements.Data, 0, Data, Length, elements.Length);
+        }
+
         Length += elements.Length;
     }
 
@@ -247,5 +258,58 @@ public class DynamicArray<T>
         }
         Capacity = newCapacity;
         Version++;
+    }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        return Data.Take(Length).GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return Data.Take(Length).GetEnumerator();
+    }
+
+    public int IndexOf(T item)
+    {
+        return Array.IndexOf(Data, item, 0, Length);
+    }
+
+    public void Insert(int index, T item)
+    {
+        EnsureCapacity(Capacity + 1);
+
+        if (index < Length)
+            Array.Copy(Data, index, Data, index + 1, Length - index);
+        
+        Data[index] = item;
+        Length++;
+    }
+
+    public void RemoveAt(int index)
+    {
+        Length--;
+        if (index < Length)
+            Array.Copy(Data, index + 1, Data, index, Length - index);
+    }
+
+    public void CopyTo(T[] array, int arrayIndex)
+    {
+        Array.Copy(Data, 0, array, arrayIndex, Length);
+    }
+
+    public bool Remove(T item)
+    {
+        var index = IndexOf(item);
+        if (index < 0)
+            return false;
+
+        RemoveAt(index);
+        return true;
+    }
+
+    public bool Contains(T item)
+    {
+        return Array.IndexOf(Data, item, 0, Length) != -1;
     }
 }

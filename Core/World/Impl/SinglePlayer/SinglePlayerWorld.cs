@@ -117,6 +117,9 @@ public class SinglePlayerWorld : WorldBase
             SpecialManager.AddSpecialModels(worldModel);
         }
 
+        // Allocating on the save can take a significant amount of time on the first save. Ensure it has most of the required size plus buffer.
+        EnsureEntityModelSize(EntityManager.EntityCount + (int)(EntityManager.EntityCount * 0.25));
+
         var bspTree = Geometry.GetBspTree();
         if (config.Game.MonsterCloset.Value && bspTree != null)
             ClosetClassifier.Classify(this, bspTree, worldModel != null);
@@ -288,8 +291,9 @@ public class SinglePlayerWorld : WorldBase
 
     private void ApplyCheats(WorldModel worldModel)
     {
-        foreach (PlayerModel playerModel in worldModel.Players)
+        for (int i = 0; i < worldModel.Players.Count; i++)
         {
+            var playerModel = worldModel.Players[i];
             Player? player = EntityManager.Players.FirstOrDefault(x => x.Id == playerModel.Id);
             if (player == null)
                 continue;
@@ -303,7 +307,7 @@ public class SinglePlayerWorld : WorldBase
     {
         for (int i = 0; i < worldModel.DamageSpecials.Count; i++)
         {
-            SectorDamageSpecialModel model = worldModel.DamageSpecials[i];
+            var model = worldModel.DamageSpecials[i];
             if (!((IWorld)this).IsSectorIdValid(model.SectorId))
                 continue;
 

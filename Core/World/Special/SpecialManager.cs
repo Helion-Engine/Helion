@@ -28,40 +28,6 @@ using Helion.World.Stats;
 
 namespace Helion.World.Special;
 
-public class SpecialModelData
-{
-    public readonly List<ISpecialModel> Specials = [];
-    public readonly List<SectorMoveSpecialModel> MoveSpecials = [];
-    public readonly List<ScrollSpecialModel> ScrollSpecials = [];
-    public readonly List<LightChangeSpecialModel> LightChangeSpecials = [];
-    public readonly List<LightFireFlickerDoomModel> LightFireFlickerDoomSpecials = [];
-    public readonly List<LightFlickerDoomSpecialModel> LightFlickerDoomSpecials = [];
-    public readonly List<LightPulsateSpecialModel> LightPulsateSpecials = [];
-    public readonly List<LightStrobeSpecialModel> LightStrobeSpecials = [];
-    public readonly List<PushSpecialModel> PushSpecials = [];
-    public readonly List<StairSpecialModel> StairSpecials = [];
-    public readonly List<ElevatorSpecialModel> ElevatorSpecials = [];
-    public readonly List<SwitchChangeSpecialModel> SwitchSpecials = [];
-    public readonly List<SectorDamageSpecialModel> SectorDamageSpecials = [];
-
-    public void Clear()
-    {
-        Specials.Clear();
-        MoveSpecials.Clear();
-        ScrollSpecials.Clear();
-        LightChangeSpecials.Clear();
-        LightFireFlickerDoomSpecials.Clear();
-        LightFlickerDoomSpecials.Clear();
-        LightPulsateSpecials.Clear();
-        LightStrobeSpecials.Clear();
-        PushSpecials.Clear();
-        StairSpecials.Clear();
-        ElevatorSpecials.Clear();
-        SwitchSpecials.Clear();
-        SectorDamageSpecials.Clear();
-    }
-}
-
 public sealed class SpecialManager : ITickable, IDisposable
 { 
     // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8

@@ -847,13 +847,13 @@ public abstract partial class WorldBase : IWorld
 
     public void Link(Entity entity)
     {
-        Precondition(entity.SectorNodes.Empty() && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
+        Precondition(entity.SectorNodes.Length == 0 && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
         PhysicsManager.LinkToWorld(entity, null, false);
     }
 
     public void LinkClamped(Entity entity)
     {
-        Precondition(entity.SectorNodes.Empty() && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
+        Precondition(entity.SectorNodes.Length == 0 && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
         PhysicsManager.LinkToWorld(entity, null, true);
     }
 
@@ -2457,13 +2457,12 @@ public abstract partial class WorldBase : IWorld
     private void HandleRespawn(Entity entity)
     {
         entity.Respawn = false;
-        var spawnPoint = EntityManager.GetSpawnPoint(entity);
-        if (entity.Definition.Flags.Solid && IsPositionBlockedByEntity(entity, spawnPoint))
+        if (entity.Definition.Flags.Solid && IsPositionBlockedByEntity(entity, entity.SpawnPoint))
             return;
 
-        var newEntity = EntityManager.Create(entity.Definition, spawnPoint, 0, entity.AngleRadians, entity.ThingId, entity.Args, true);
+        var newEntity = EntityManager.Create(entity.Definition, entity.SpawnPoint, 0, entity.AngleRadians, entity.ThingId, entity.Args, true);
         CreateTeleportFog(entity.Position);
-        CreateTeleportFog(spawnPoint);
+        CreateTeleportFog(entity.SpawnPoint);
 
         newEntity.Flags.Friendly = entity.Flags.Friendly;
         newEntity.AngleRadians = entity.AngleRadians;

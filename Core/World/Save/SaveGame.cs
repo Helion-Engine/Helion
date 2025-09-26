@@ -2,14 +2,16 @@ using Helion.Graphics;
 using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
+using Helion.Util.Extensions;
 using Helion.Util.SerializationContexts;
+using Helion.Util.Streams;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Helion.World.Save;
 
@@ -54,7 +56,8 @@ public class SaveGame
             if (saveDataEntry == null)
                 return;
 
-            Model = (SaveGameModel?)JsonSerializer.Deserialize(saveDataEntry.ReadDataAsString(), typeof(SaveGameModel), SaveGameModelSerializationContext.Default);
+            using var stream = saveDataEntry.Open();
+            Model = (SaveGameModel?)JsonSerializer.Deserialize(stream, typeof(SaveGameModel), SaveGameModelSerializationContext.Default);
         }
         catch
         {
@@ -108,12 +111,60 @@ public class SaveGame
             if (entry == null)
                 return null;
 
-            return (WorldModel?)JsonSerializer.Deserialize(entry.ReadDataAsString(), typeof(WorldModel), WorldModelSerializationContext.Default);
+            using var stream = entry.Open();
+            var model = (WorldModel?)JsonSerializer.Deserialize(stream, typeof(WorldModel), WorldModelSerializationContext.Default);
+            if (model != null)
+                ApplyVersionFix(model);
+            return model;
         }
         catch
         {
             return null;
         }
+    }
+
+    private void ApplyVersionFix(WorldModel worldModel)
+    {
+        // Checks for versions < 0.9.8.0 as it was the first version to serialize solonet
+        // This change removed a frame from the table and requires shifting the index down after that point:
+        // https://github.com/Helion-Engine/Helion/commit/5217c33c74690fde574be70da6953c0db57c5ad2
+        if (Model != null && Model.AppVersion.Length == 0 && !worldModel.ConfigValues.Any(x => x.Key.EqualsIgnoreCase("game.solonet")))
+        {
+            const int StartIndex = 731;
+            for (int i = 0; i < worldModel.Entities.Count; i++)
+            {
+                var entity = worldModel.Entities[i];
+                if (entity.Frame.FrameIndex > StartIndex)
+                    entity.Frame.FrameIndex--;
+            }
+
+            for (int i = 0; i < worldModel.Players.Count; i++)
+            {
+                var player = worldModel.Players[i];
+                if (player.Frame.FrameIndex > StartIndex)
+                    player.Frame.FrameIndex--;
+
+                if (player.AnimationWeaponFrame.HasValue && player.AnimationWeaponFrame.Value.FrameIndex > StartIndex)
+                {
+                    var frame = player.AnimationWeaponFrame.Value;
+                    frame.FrameIndex--;
+                    player.AnimationWeaponFrame = frame;
+                }
+
+                if (player.WeaponFlashFrame.HasValue && player.WeaponFlashFrame.Value.FrameIndex > StartIndex)
+                {
+                    var frame = player.WeaponFlashFrame.Value;
+                    frame.FrameIndex--;
+                    player.WeaponFlashFrame = frame;
+                }
+            }
+        }
+    }
+
+    public static void AllocateJsonMapping()
+    {
+        JsonSerializer.Serialize(new SaveGameModel(), SaveGameModelSerializationContext.Default.SaveGameModel);
+        JsonSerializer.Serialize(new WorldModel(), WorldModelSerializationContext.Default.WorldModel);
     }
 
     public static SaveGameEvent WriteSaveGame(IWorld world, WorldModel worldModel,
@@ -127,6 +178,7 @@ public class SaveGame
             WorldFile = WorldDataFile,
             ImageFile = image == null ? "" : ImageFile,
             Files = worldModel.Files,
+            AppVersion = AppVersion.Current.VersionString,
 
             SaveGameStats = new SaveGameStats()
             {
@@ -143,19 +195,14 @@ public class SaveGame
         try
         {
             File.Delete(saveTempFile);
-            using (ZipArchive zipArchive = ZipFile.Open(saveTempFile, ZipArchiveMode.Create))
+            using (var zipArchive = ZipFile.Open(saveTempFile, ZipArchiveMode.Create))
             {
-                ZipArchiveEntry entry = zipArchive.CreateEntry(SaveDataFile);
-                using (Stream stream = entry.Open())
-                    stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(saveGameModel, typeof(SaveGameModel), SaveGameModelSerializationContext.Default)));
-
-                entry = zipArchive.CreateEntry(WorldDataFile);
-                using (Stream stream = entry.Open())
-                    stream.Write(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(worldModel, typeof(WorldModel), WorldModelSerializationContext.Default)));
+                WriteZipEntry(zipArchive, SaveDataFile, saveGameModel, SaveGameModelSerializationContext.Default.SaveGameModel);
+                WriteZipEntry(zipArchive, WorldDataFile, worldModel, WorldModelSerializationContext.Default.WorldModel);
 
                 if (image != null)
                 {
-                    entry = zipArchive.CreateEntry(ImageFile);
+                    var entry = zipArchive.CreateEntry(ImageFile);
                     using var stream = entry.Open();
                     screenshotGenerator.GeneratePngImage(image, stream);
                 }
@@ -174,7 +221,13 @@ public class SaveGame
         {
             return new SaveGameEvent(new SaveGame(saveDir, filename, saveGameModel), worldModel, filename, false, ex);
         }
+    }
 
-
+    private static void WriteZipEntry<T>(ZipArchive zipArchive, string entryName, T value, JsonTypeInfo<T> typeInfo)
+    {
+        var entry = zipArchive.CreateEntry(entryName);
+        using var zipStream = entry.Open();
+        using var bufferStream = new PoolBufferedStream(zipStream);
+        JsonSerializer.Serialize(bufferStream, value, typeInfo);
     }
 }

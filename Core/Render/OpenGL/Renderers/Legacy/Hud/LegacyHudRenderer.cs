@@ -191,7 +191,7 @@ public class LegacyHudRenderer : HudRenderer
 
     private unsafe void UploadVerticesToVbo(HudDrawBufferData data)
     {
-        Precondition(!data.Vertices.Empty(), "Should have at least some vertices to draw for some hud texture");
+        Precondition(data.Vertices.Length != 0, "Should have at least some vertices to draw for some hud texture");
 
         m_vbo.Clear();
         m_vbo.Bind();

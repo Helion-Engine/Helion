@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Helion.Menus.Impl;
 
@@ -363,10 +364,8 @@ public class SaveMenu : Menu
 
             if (GetWorld(out IWorld? world) && world != null)
             {
-                var saveGameEvent = m_saveGameManager.WriteSaveGame(world, getName(), m_screenshotGenerator, save);
                 m_parent.Close();
-
-                HandleSaveEvent(world, saveGameEvent);
+                _ = WriteSaveAsync(save, getName, world);
             }
             else
             {
@@ -383,10 +382,8 @@ public class SaveMenu : Menu
         {
             if (GetWorld(out IWorld? world) && world != null)
             {
-                SaveGameEvent saveGameEvent = m_saveGameManager.WriteNewSaveGame(world, getName(), m_screenshotGenerator);
                 m_parent.Manager.Remove(m_parent);
-
-                HandleSaveEvent(world, saveGameEvent);
+                _ = WriteNewSaveAsync(world, getName);
             }
             else
             {
@@ -394,8 +391,19 @@ public class SaveMenu : Menu
             }
 
             return null;
-
         };
+    }
+
+    private async Task WriteSaveAsync(SaveGame save, Func<string> getName, IWorld world)
+    {
+        var saveGameEvent = await m_saveGameManager.WriteSaveGameAsync(world, getName(), m_screenshotGenerator, save);
+        HandleSaveEvent(world, saveGameEvent);
+    }
+
+    private async Task WriteNewSaveAsync(IWorld world, Func<string> getName)
+    {
+        var saveGameEvent = await m_saveGameManager.WriteNewSaveGameAsync(world, getName(), m_screenshotGenerator);
+        HandleSaveEvent(world, saveGameEvent);
     }
 
     private static void HandleSaveEvent(IWorld world, SaveGameEvent saveGameEvent)
