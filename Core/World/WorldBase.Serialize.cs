@@ -6,7 +6,6 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Helion.World;
@@ -17,9 +16,9 @@ public partial class WorldBase
     private static readonly DynamicArray<PlayerModel> s_playerModels = new();
     private static readonly DynamicArray<SectorModel> s_sectorModels = new(256);
     private static readonly DynamicArray<LineModel> s_lineModels = new(256);
-    private static readonly List<ConfigValueModel> s_configValueModels = [];
-    private static readonly List<FileModel> s_fileModels = [];
-    private static readonly List<string> s_visitedMaps = [];
+    private static readonly DynamicArray<ConfigValueModel> s_configValueModels = [];
+    private static readonly DynamicArray<FileModel> s_fileModels = [];
+    private static readonly DynamicArray<string> s_visitedMaps = [];
     private static readonly SpecialModelData s_specialModelData = new();
     private static readonly WorldModel s_worldModel = new();
     private static int s_entityModelAlloc;
@@ -93,14 +92,14 @@ public partial class WorldBase
         s_entityModelAlloc = size;
     }
 
-    private List<string> GetVisitedMaps()
+    private DynamicArray<string> GetVisitedMaps()
     {
         for (int i = 0; i < GlobalData.VisitedMaps.Count; i++)
             s_visitedMaps.Add(GlobalData.VisitedMaps[i].MapName);
         return s_visitedMaps;
     }
 
-    private List<ConfigValueModel> GetConfigValuesModel()
+    private DynamicArray<ConfigValueModel> GetConfigValuesModel()
     {
         s_configValueModels.Clear();
         foreach (var (path, component) in Config.GetComponents())
@@ -115,12 +114,12 @@ public partial class WorldBase
 
     public GameFilesModel GetGameFilesModel() => GetGameFilesModel([]);
 
-    public GameFilesModel GetGameFilesModel(List<FileModel> files)
+    public GameFilesModel GetGameFilesModel(DynamicArray<FileModel> files)
     {
         return new GameFilesModel()
         {
             IWad = GetIWadFileModel(),
-            Files = GetFileModels(),
+            Files = GetFileModels(files),
         };
     }
 
@@ -156,18 +155,18 @@ public partial class WorldBase
         return new FileModel();
     }
 
-    private List<FileModel> GetFileModels()
+    private DynamicArray<FileModel> GetFileModels(DynamicArray<FileModel> files)
     {
         var archives = ArchiveCollection.Archives;
-        s_fileModels.EnsureCapacity(archives.Count());
+        files.EnsureCapacity(archives.Count());
         foreach (var archive in archives)
         {
             if (archive.ExtractedFrom != null || archive.MD5 == Archive.DefaultMD5)
                 continue;
-            s_fileModels.Add(archive.ToFileModel());
+            files.Add(archive.ToFileModel());
         }
 
-        return s_fileModels;
+        return files;
     }
 
     private DynamicArray<EntityModel> GetEntityModels()

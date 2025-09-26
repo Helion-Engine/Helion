@@ -28,40 +28,6 @@ using Helion.World.Stats;
 
 namespace Helion.World.Special;
 
-public class SpecialModelData
-{
-    public readonly DynamicArray<ISpecialModel> Specials = new();
-    public readonly DynamicArray<SectorMoveSpecialModel> MoveSpecials = new();
-    public readonly DynamicArray<ScrollSpecialModel> ScrollSpecials = new();
-    public readonly DynamicArray<LightChangeSpecialModel> LightChangeSpecials = new();
-    public readonly DynamicArray<LightFireFlickerDoomModel> LightFireFlickerDoomSpecials = new();
-    public readonly DynamicArray<LightFlickerDoomSpecialModel> LightFlickerDoomSpecials =  new();
-    public readonly DynamicArray<LightPulsateSpecialModel> LightPulsateSpecials = new();
-    public readonly DynamicArray<LightStrobeSpecialModel> LightStrobeSpecials = new();
-    public readonly DynamicArray<PushSpecialModel> PushSpecials = new();
-    public readonly DynamicArray<StairSpecialModel> StairSpecials = new();
-    public readonly DynamicArray<ElevatorSpecialModel> ElevatorSpecials = new();
-    public readonly DynamicArray<SwitchChangeSpecialModel> SwitchSpecials = new();
-    public readonly DynamicArray<SectorDamageSpecialModel> SectorDamageSpecials = new();
-
-    public void Clear()
-    {
-        Specials.Clear();
-        MoveSpecials.Clear();
-        ScrollSpecials.Clear();
-        LightChangeSpecials.Clear();
-        LightFireFlickerDoomSpecials.Clear();
-        LightFlickerDoomSpecials.Clear();
-        LightPulsateSpecials.Clear();
-        LightStrobeSpecials.Clear();
-        PushSpecials.Clear();
-        StairSpecials.Clear();
-        ElevatorSpecials.Clear();
-        SwitchSpecials.Clear();
-        SectorDamageSpecials.Clear();
-    }
-}
-
 public sealed class SpecialManager : ITickable, IDisposable
 { 
     // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
