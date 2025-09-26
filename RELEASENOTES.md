@@ -5,6 +5,8 @@
 - Add support to initial loading to only load assets.pk3 once.
 - Weapon switch pickup preferences and priority configuration. Includes options for always, always except when attacking, never, priority, and priority except when attacking.
 - Add mouse support in main menu.
+- Support numbers for map command line (e.g. map 1 for MAP01 or map 12 for E1M2).
+- Small improvement on save performance in maps with a significant number of things.
 
 ## Bug Fixes:
 - Fix sprite frames to correctly calculate when lowercase.
@@ -19,3 +21,4 @@
 - Fix MF_BOUNCES flag to account for mass and implement velocity modifications from Boom.
 - Fix dropoff check to work correctly MF_BOUNCES things and things on midtex3d lines crossing sectors.
 - Fix line of sight checks to ignore lines where floor and ceiling heights are equal (fixes Eviternity MAP26 chain breaking sound).
+- Fix reading pre-0.9.8.0 saves.
