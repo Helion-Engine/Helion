@@ -9,7 +9,6 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
@@ -170,7 +169,7 @@ public class SaveGame
             WorldFile = WorldDataFile,
             ImageFile = image == null ? "" : ImageFile,
             Files = worldModel.Files,
-            AppVersion = GetAppVersionString(),
+            AppVersion = AppVersion.Current.VersionString,
 
             SaveGameStats = new SaveGameStats()
             {
@@ -218,14 +217,5 @@ public class SaveGame
         {
             return new SaveGameEvent(new SaveGame(saveDir, filename, saveGameModel), worldModel, filename, false, ex);
         }
-    }
-
-    private static string GetAppVersionString()
-    {
-        var assemblyName = Assembly.GetExecutingAssembly().GetName();
-        if (assemblyName.Version == null)
-            return string.Empty;
-
-        return assemblyName.Version.ToString();
     }
 }
