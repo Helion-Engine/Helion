@@ -14,10 +14,12 @@ public class UdmfLine : ILine
     public Vec2D StartPosition { get; set; }
     public Vec2D EndPosition { get; set; }
     public bool OneSided { get; set; }
+    public int Special => (int)LineType;
+    public int SectorTag => 0;
 
     public UdmfSide Front { get; set; } = null!;
     public UdmfSide? Back { get; set; }
-    public ZDoomLineSpecialType Special;
+    public ZDoomLineSpecialType LineType;
     public LineActivationType ActivationType = LineActivationType.Any;
     public SpecialArgs Args;
     public float Alpha = 1f;

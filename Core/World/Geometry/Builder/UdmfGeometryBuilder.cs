@@ -1,6 +1,8 @@
 ﻿using Helion.Geometry.Segments;
+using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
+using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Maps.Udmf;
 using Helion.Maps.Udmf.Components;
@@ -34,6 +36,7 @@ public class UdmfGeometryBuilder
 
     private static void PopulateSectorData(UdmfMap map, GeometryBuilder builder, TextureManager textureManager)
     {
+        var needsTranslation = map.UdmfNamespace == UdmfNamespace.Doom;
         foreach (var mapSector in map.Sectors)
         {
             RenderOffsets offsets = default;
@@ -62,8 +65,7 @@ public class UdmfGeometryBuilder
             ceilingPlane.LightLevel = mapSector.LightCeiling;
             ceilingPlane.LightLevelAbsolute = mapSector.LightCeilingAbsolute;
 
-            var sectorSpecial = (ZDoomSectorSpecialType)SectorSpecialData.GetType(mapSector.Special, SectorDataType.ZDoom);
-            var sectorData = SectorSpecialData.GetSectorData(mapSector.Special, SectorDataType.ZDoom);
+            GetSectorSpecial(mapSector, needsTranslation, out var sectorSpecial, out var sectorData);
             var sector = new Sector(builder.Sectors.Count, mapSector.Tag, mapSector.LightLevel,
                 floorPlane, ceilingPlane, sectorSpecial, sectorData)
             {
@@ -85,6 +87,18 @@ public class UdmfGeometryBuilder
         }
     }
 
+    private static void GetSectorSpecial(UdmfSector mapSector, bool needsTranslation, out ZDoomSectorSpecialType sectorSpecial, out SectorData sectorData)
+    {
+        if (needsTranslation)
+        {
+            sectorSpecial = VanillaSectorSpecTranslator.Translate(mapSector.Special, out sectorData);
+            return;
+        }
+
+        sectorSpecial = (ZDoomSectorSpecialType)SectorSpecialData.GetType(mapSector.Special, SectorDataType.ZDoom);
+        sectorData = SectorSpecialData.GetSectorData(mapSector.Special, SectorDataType.ZDoom);
+    }
+
     private static SectorPlane CreateSectorPlane(UdmfSector sector, SectorPlaneFace face,
         TextureManager textureManager, in RenderOffsets offsets)
     {
@@ -97,6 +111,7 @@ public class UdmfGeometryBuilder
     private static void PopulateLineData(UdmfMap map, GeometryBuilder builder, TextureManager textureManager)
     {
         int nextSideId = 0;
+        var needsTranslation = map.UdmfNamespace == UdmfNamespace.Doom;
 
         foreach (var mapLine in map.Lines)
         {
@@ -104,11 +119,7 @@ public class UdmfGeometryBuilder
             Seg2D seg = new(mapLine.StartPosition, mapLine.EndPosition);
             LineFlags flags = new(mapLine.Flags);
 
-            LineSpecial special;
-            if (mapLine.Special == ZDoomLineSpecialType.None)
-                special = LineSpecial.Default;
-            else
-                special = new LineSpecial(mapLine.Special, mapLine.ActivationType, LineSpecialCompatibility.Default);
+            var special = GetLineSpecial(needsTranslation, mapLine, ref flags);
 
             LineSpecial.ValidateActivationFlags(special.LineSpecialType, ref flags, map.MapType);
             var line = new Line(mapLine.Id, seg, front, back, flags, special, mapLine.Args)
@@ -116,6 +127,12 @@ public class UdmfGeometryBuilder
                 LockNumber = mapLine.LockNumber,
                 MapLineId = mapLine.LineId
             };
+
+            if (needsTranslation)
+            {
+                VanillaLineSpecTranslator.FinalizeLine(mapLine, line);
+                line.MapLineId = mapLine.LineId;
+            }
 
             if (mapLine.Alpha != 1)
                 line.SetAlpha(mapLine.Alpha);
@@ -134,6 +151,20 @@ public class UdmfGeometryBuilder
 
             builder.Lines.Add(line);
         }
+    }
+
+    private static LineSpecial GetLineSpecial(bool needsTranslation, UdmfLine mapLine, ref LineFlags flags)
+    {
+        if (mapLine.LineType == ZDoomLineSpecialType.None)
+            return LineSpecial.Default;
+
+        if (needsTranslation)
+        {
+            var spec = VanillaLineSpecTranslator.Translate(ref flags, (VanillaLineSpecialType)mapLine.Special, mapLine.Args.Arg0, ref mapLine.Args, out var lineActivationType, out var compat);
+            return new(spec, lineActivationType, compat);
+        }
+
+        return new(mapLine.LineType, mapLine.ActivationType, LineSpecialCompatibility.Default);
     }
 
     private static (Side front, Side? back) CreateSides(UdmfLine line, GeometryBuilder builder,

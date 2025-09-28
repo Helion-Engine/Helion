@@ -8,6 +8,7 @@
 - Support numbers for map command line (e.g. map 1 for MAP01 or map 12 for E1M2).
 - Small improvement on save performance in maps with a significant number of things.
 - Save game serilization improvements on memory usage.
+- Support doom UDMF namespace.
 
 ## Bug Fixes:
 - Fix sprite frames to correctly calculate when lowercase.

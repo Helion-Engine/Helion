@@ -1,12 +1,16 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
 using Helion.Maps.Doom.Components;
+using Helion.Maps.Hexen.Components;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Vanilla;
+using Helion.Maps.Specials.ZDoom;
+using Helion.Maps.Udmf.Components;
 using Helion.Util;
 using Helion.World.Geometry.Lines;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 
 namespace Helion.Maps.Udmf;
@@ -15,33 +19,34 @@ public static class UdmfMapWriter
 {
     private static readonly MapLineFlags DefaultMapLineFlags = MapLineFlags.Doom(0);
 
-    public static void WriteMap(IMap map, TextWriter writer)
+    public static void WriteMap(IMap map, TextWriter writer, UdmfNamespace ns)
     {
-        writer.WriteLine("namespace = \"dsda\";");
+        writer.WriteLine($"namespace = \"{ns.ToString().ToLower(CultureInfo.InvariantCulture)}\";");
         writer.WriteLine();
 
-        Dictionary<Vec2D, int> vertexLookup = [];
+        var vertices = map.GetVertices();
+        Dictionary<Vec2D, int> vertexLookup = new(vertices.Count);
         foreach (var thing in map.GetThings())
             WriteThing(thing, writer);
 
         int vertexIndex = 0;
-        foreach (var vertex in map.GetVertices())
+        foreach (var vertex in vertices)
         {
             WriteVertex(vertex, writer);
             vertexLookup[vertex.Position] = vertexIndex++;
         }
 
         foreach (var line in map.GetLines())
-            WriteLine(line, vertexLookup, writer);
+            WriteLine(line, vertexLookup, writer, ns);
 
         foreach (var side in map.GetSides())
             WriteSide(side, writer);
 
         foreach (var sector in map.GetSectors())
-            WriteSector(sector, writer);
+            WriteSector(sector, writer, ns);
     }
 
-    private static void WriteSector(ISector sector, TextWriter writer)
+    private static void WriteSector(ISector sector, TextWriter writer, UdmfNamespace ns)
     {
         writer.WriteLine("sector");
         writer.WriteLine("{");
@@ -58,8 +63,15 @@ public static class UdmfMapWriter
 
             if (doomSector.SectorType != 0)
             {
-                var zdoomType = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, out _);
-                writer.WriteLine($"special = {(int)zdoomType};");
+                if (ns != UdmfNamespace.Doom)
+                {
+                    var zdoomType = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, out _);
+                    writer.WriteLine($"special = {(int)zdoomType};");
+                }
+                else
+                {
+                    writer.WriteLine($"special = {doomSector.SectorType};");
+                }
             }
         }
 
@@ -86,7 +98,7 @@ public static class UdmfMapWriter
         writer.WriteLine();
     }
 
-    private static void WriteLine(ILine line, Dictionary<Vec2D, int> vertexLookup, TextWriter writer)
+    private static void WriteLine(ILine line, Dictionary<Vec2D, int> vertexLookup, TextWriter writer, UdmfNamespace ns)
     {
         writer.WriteLine("linedef");
         writer.WriteLine("{");
@@ -115,12 +127,9 @@ public static class UdmfMapWriter
         if (line.Flags.BlockMonsters)
             writer.WriteLine("blockmonsters = true;");
 
-        if (line is DoomLine doomLine && doomLine.LineType != VanillaLineSpecialType.None)
+        if (GetTranslatedLineSpecialData(line, ns, out var zdoomType, out var specialArgs, out var lineFlags))
         {
-            LineFlags lineFlags = new(DefaultMapLineFlags);
-            SpecialArgs specialArgs = default;
-            var zdoomType = VanillaLineSpecTranslator.Translate(ref lineFlags, doomLine.LineType, doomLine.SectorTag, ref specialArgs, out var activationType, out var compat);
-            writer.WriteLine($"special = {(int)zdoomType};");
+            writer.WriteLine($"special = {zdoomType};");
             if (specialArgs.Arg0 != 0)
                 writer.WriteLine($"arg0 = {specialArgs.Arg0};");
             if (specialArgs.Arg1 != 0)
@@ -148,9 +157,53 @@ public static class UdmfMapWriter
             if (lineFlags.Repeat)
                 writer.WriteLine("repeatspecial = true;");
         }
+        else
+        {
+            if (line.Special != 0)
+                writer.WriteLine($"special = {line.Special};");
+
+            if (line.SectorTag != 0)
+            {
+                writer.WriteLine($"id = {line.SectorTag};");
+                writer.WriteLine($"arg0 = {line.SectorTag};");
+            }
+        }
 
         writer.WriteLine("}");
         writer.WriteLine();
+    }
+
+    private static bool GetTranslatedLineSpecialData(ILine line, UdmfNamespace ns, out int zdoomType, out SpecialArgs specialArgs, out LineFlags lineFlags)
+    {
+        specialArgs = default;
+        lineFlags = new(DefaultMapLineFlags);
+        if (ns != UdmfNamespace.Doom)
+        {
+            if (line is DoomLine doomLine && doomLine.LineType != VanillaLineSpecialType.None)
+            {
+                zdoomType = (int)VanillaLineSpecTranslator.Translate(ref lineFlags, doomLine.LineType, doomLine.SectorTag, ref specialArgs, out _, out _);
+                return true;
+            }
+
+            if (line is HexenLine hexenLine && hexenLine.LineType != ZDoomLineSpecialType.None)
+            {
+                zdoomType = (int)hexenLine.LineType;
+                lineFlags = new(hexenLine.Flags);
+                specialArgs = hexenLine.Args;
+                return true;
+            }
+
+            if (line is UdmfLine udmfLine && udmfLine.LineType != ZDoomLineSpecialType.None)
+            {
+                zdoomType = (int)udmfLine.LineType;
+                lineFlags = new(udmfLine.Flags);
+                specialArgs = udmfLine.Args;
+                return true;
+            }
+        }
+
+        zdoomType = 0;
+        return false;
     }
 
     private static void WriteVertex(IVertex vertex, TextWriter writer)

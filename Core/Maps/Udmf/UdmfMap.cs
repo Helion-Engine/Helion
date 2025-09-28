@@ -23,7 +23,7 @@ public class UdmfMap : IMap
     public string ArchivePath { get; set; }
     public string MD5 { get; set; }
     public string Name { get; }
-
+    public readonly UdmfNamespace UdmfNamespace;
 
     public MapType MapType => MapType.UDMF;
     public List<UdmfLine> Lines;
@@ -67,13 +67,13 @@ public class UdmfMap : IMap
         List<UdmfThing> things = new(1024);
         List<UdmfSector> sectors = new(1024);
 
-        Parse(map.Textmap.ReadDataAsString(), vertices, sectors, sides, lines, things);
+        var ns = Parse(map.Textmap.ReadDataAsString(), vertices, sectors, sides, lines, things);
 
         GLComponents? gl = GLComponents.Read(map);
-        return new(archive, map.Name, vertices, sectors, sides, lines, things, gl, map.Reject?.ReadData(), compatibility);
+        return new(archive, map.Name, ns, vertices, sectors, sides, lines, things, gl, map.Reject?.ReadData(), compatibility);
     }
 
-    public UdmfMap(Archive archive, string name, List<UdmfVertex> vertices, List<UdmfSector> sectors, List<UdmfSide> sides,
+    public UdmfMap(Archive archive, string name, UdmfNamespace ns, List<UdmfVertex> vertices, List<UdmfSector> sectors, List<UdmfSide> sides,
         List<UdmfLine> lines, List<UdmfThing> things, GLComponents? gl, byte[]? reject,
         CompatibilityMapDefinition? compatibility)
     {
@@ -88,11 +88,12 @@ public class UdmfMap : IMap
         Reject = reject;
         CompatibilityDefinition = compatibility;
         MD5 = string.Empty;
+        UdmfNamespace = ns;
     }
 
     private static bool CheckSpecial(char c) => c == '=' || c == '{' || c == '}' || c == ';';
 
-    private static void Parse(string textmap, List<UdmfVertex> vertices, List<UdmfSector> sectors, List<UdmfSide> sides,
+    private static UdmfNamespace Parse(string textmap, List<UdmfVertex> vertices, List<UdmfSector> sectors, List<UdmfSide> sides,
         List<UdmfLine> lines, List<UdmfThing> things)
     {
         var parser = new SimpleParser();
@@ -104,8 +105,7 @@ public class UdmfMap : IMap
         var ns = parser.ConsumeStringSpan();
         parser.Consume(';');
 
-        if (!ns.EqualsIgnoreCase("zdoom") && !ns.EqualsIgnoreCase("dsda"))
-            throw new Exception($"Unsupported udmf namespace: {ns}");
+        var udmfNamespace = ParseNamespaceOrThrow(ns);
 
         while (!parser.IsDone())
         {
@@ -151,6 +151,28 @@ public class UdmfMap : IMap
         }
 
         MapLines(lines, vertices, sides);
+
+        return udmfNamespace;
+    }
+
+    public static UdmfNamespace ParseNamespace(ReadOnlySpan<char> ns)
+    {
+        if (ns.EqualsIgnoreCase("doom"))
+            return UdmfNamespace.Doom;
+        else if (ns.EqualsIgnoreCase("dsda"))
+            return UdmfNamespace.Dsda;
+        else if (ns.EqualsIgnoreCase("zdoom"))
+            return UdmfNamespace.ZDoom;
+        return UdmfNamespace.Unknown;
+    }
+
+    private static UdmfNamespace ParseNamespaceOrThrow(ReadOnlySpan<char> ns)
+    {
+        var udmfNamespace = ParseNamespace(ns);
+        if (udmfNamespace != UdmfNamespace.Unknown)
+            return udmfNamespace;
+
+        throw new Exception($"Unsupported udmf namespace: {ns}");
     }
 
     private static void ConsumeUnknownBlockOrProperty(SimpleParser parser)
@@ -261,7 +283,7 @@ public class UdmfMap : IMap
             line.StartPosition = vertices[line.StartVertex].Position;
             line.EndPosition = vertices[line.EndVertex].Position;
             line.Front = sides[line.SideFront];
-            line.Back = line.SideBack.HasValue ? sides[line.SideBack.Value] : null;
+            line.Back = line.SideBack.HasValue && line.SideBack.Value > 0 && line.SideBack.Value < sides.Count ? sides[line.SideBack.Value] : null;
         }
     }
 
@@ -418,7 +440,7 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("sideback"))
                 line.SideBack = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("special"))
-                line.Special = (ZDoomLineSpecialType)parser.ParseInt(prop.Value);
+                line.LineType = (ZDoomLineSpecialType)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg0"))
                 line.Args.Arg0 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg1"))
