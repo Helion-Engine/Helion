@@ -14,7 +14,7 @@ public partial class Client
         if (args.Args.Count < 2)
         {
             Log.Error("Map and output file argument required");
-            Log.Error("writetextmap [MapName] [OutputFile]");
+            Log.Error("writetextmap MapName OutputFile [NameSpace]");
             return;
         }
 
@@ -29,8 +29,19 @@ public partial class Client
                 return;
             }
 
+            var ns = "dsda";
+            if (args.Args.Count > 2)
+                ns = args.Args[2];
+
+            var udmfNamespace = UdmfMap.ParseNamespace(ns);
+            if (udmfNamespace == UdmfNamespace.Unknown)
+            {
+                Log.Error($"Invalid namespace {udmfNamespace}");
+                return;
+            }
+
             using var textWriter = new StreamWriter(outputFile);
-            UdmfMapWriter.WriteMap(map, textWriter);
+            UdmfMapWriter.WriteMap(map, textWriter, udmfNamespace);
             Log.Info($"Successfully wrote {outputFile}");
         }
         catch (Exception ex)
