@@ -394,7 +394,7 @@ public class EntityProgram : RenderProgram
 
         bool discardPlaneClip() {
             ivec2 sampleCoords = ivec2(clamp(gl_FragCoord.xy / downScaleAmount, vec2(0.0), screenBounds / downScaleAmount));
-            vec3 wallClip = texelFetch(wallClipTexture, sampleCoords, 0).rgb;
+            vec4 wallClip = texelFetch(wallClipTexture, sampleCoords, 0).rgba;
             vec3 planeClip = texelFetch(planeClipTexture, sampleCoords, 0).rgb;
 
             // Floor
@@ -405,9 +405,17 @@ public class EntityProgram : RenderProgram
             if (planeClip.b == 2 && planeClip.g < depthFrag && zPosFrag >= planeClip.r)
                 return true;
             
-            if (wallClip.r >= 0) {
-                vec4 linePoints = texelFetch(mapDataTexture, int(wallClip.r));
-                vec3 floorHeights = texelFetch(lineHeightsTexture, int(wallClip.r)).rgb;
+            if (wallClip.r >= 0 || wallClip.a >= 0) {
+                int byte0 = int(wallClip.r);
+                int byte1 = int(wallClip.a);
+                int packedByte = int(wallClip.b);
+                int byte2 = packedByte >> 2;
+                int upperLowerFlag = packedByte & 0x3;
+
+                int lineId = byte0 | (byte1 << 8) | (byte2 << 16);
+
+                vec4 linePoints = texelFetch(mapDataTexture, lineId);
+                vec3 floorHeights = texelFetch(lineHeightsTexture, lineId).rgb;
                 float renderBlock = floorHeights.b;
                 float floorHeight = mix(floorHeights.r, floorHeights.g, timeFrac);
                 vec2 lineStart = linePoints.rg;
@@ -424,7 +432,7 @@ public class EntityProgram : RenderProgram
                 // lower wall
                 // renderBlock: 1 = front side, 2 = back side, 3 = both. Doom will clip if there is midtex.
                 float blockSide = mix(2, 1, float(viewFront));
-                if (wallClip.b == 1 && renderBlock != 3 && renderBlock != blockSide &&
+                if (upperLowerFlag == 1 && renderBlock != 3 && renderBlock != blockSide &&
                     distanceToWallSquared <= max(40*40, textureWidthFrag*textureWidthFrag) && 
                     viewPos.z > floorHeight && floorHeight <= zPosFrag) {
                         return false;
