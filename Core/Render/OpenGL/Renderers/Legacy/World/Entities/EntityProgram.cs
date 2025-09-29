@@ -405,7 +405,7 @@ public class EntityProgram : RenderProgram
             if (planeClip.b == 2 && planeClip.g < depthFrag && zPosFrag >= planeClip.r)
                 return true;
             
-            if (wallClip.r >= 0 || wallClip.a >= 0) {
+            if (wallClip.r >= 0) {
                 int byte0 = int(wallClip.r);
                 int byte1 = int(wallClip.a);
                 int packedByte = int(wallClip.b);
