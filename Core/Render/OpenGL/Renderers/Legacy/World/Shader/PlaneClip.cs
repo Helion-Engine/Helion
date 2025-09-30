@@ -26,13 +26,20 @@ public static class PlaneClip
             flat in float lowerFrag;
             in float depthFrag;
 
-            layout (location = 0) out vec3 outPlane;
+            layout (location = 0) out vec4 outPlane;
 
             void main() {
                 // This is required for flood fill rendering that doesn't separate planes(floor/ceiling) from walls
                 // Planes are written with -1 and need to be discarded
                 if (mapIdFrag < 0)
                     discard;
-                outPlane = vec3(mapIdFrag, depthFrag, lowerFrag + (upperFrag * 2));
+                
+                int lineId = int(mapIdFrag);
+                int byte0 = lineId & 0xFF;
+                int byte1 = (lineId >> 8) & 0xFF;
+                // Pack lower and upper flags and overflow bytes after 65536 for line id.
+                // This should allow for 256x256x64 = 4,194,304 line ids.
+                int byte2 = ((lineId >> 16) & 0x3F) << 2 | int(lowerFrag + (upperFrag * 2));
+                outPlane = vec4(byte0, byte1, byte2, depthFrag);
             }";
 }

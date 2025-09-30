@@ -9,6 +9,7 @@
 - Small improvement on save performance in maps with a significant number of things.
 - Save game serilization improvements on memory usage.
 - Support doom UDMF namespace.
+- Improved performance with emulate vanilla rendering.
 
 ## Bug Fixes:
 - Fix sprite frames to correctly calculate when lowercase.
