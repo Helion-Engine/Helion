@@ -407,7 +407,7 @@ public class EntityProgram : RenderProgram
             
             if (wallClip.r >= 0) {
                 int byte0 = int(wallClip.r);
-                int byte1 = int(wallClip.a);
+                int byte1 = int(wallClip.g);
                 int packedByte = int(wallClip.b);
                 int byte2 = packedByte >> 2;
                 int upperLowerFlag = packedByte & 0x3;
@@ -438,7 +438,7 @@ public class EntityProgram : RenderProgram
                         return false;
                 }
 
-                if (wallClip.g < depthFrag) {
+                if (wallClip.a < depthFrag) {
                     // Discard if the sprite isn't on the same side of the line as the camera or when the sprite line doesn't intersect the line
                     return viewFront != entityFront || !lineIntersection(lineStart, lineEnd, minPosFrag.xy, maxPosFrag.xy);
                 }

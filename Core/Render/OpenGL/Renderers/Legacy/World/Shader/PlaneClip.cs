@@ -37,7 +37,9 @@ public static class PlaneClip
                 int lineId = int(mapIdFrag);
                 int byte0 = lineId & 0xFF;
                 int byte1 = (lineId >> 8) & 0xFF;
+                // Pack lower and upper flags and overflow bytes after 65536 for line id.
+                // This should allow for 256x256x64 = 4,194,304 line ids.
                 int byte2 = ((lineId >> 16) & 0x3F) << 2 | int(lowerFrag + (upperFrag * 2));
-                outPlane = vec4(byte0, depthFrag, byte2, byte1);
+                outPlane = vec4(byte0, byte1, byte2, depthFrag);
             }";
 }
