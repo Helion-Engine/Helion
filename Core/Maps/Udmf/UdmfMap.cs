@@ -440,7 +440,7 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("sideback"))
                 line.SideBack = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("special"))
-                line.LineType = (ZDoomLineSpecialType)parser.ParseInt(prop.Value);
+                line.LineType = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg0"))
                 line.Args.Arg0 = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("arg1"))

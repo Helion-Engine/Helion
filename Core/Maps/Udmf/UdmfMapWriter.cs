@@ -5,7 +5,6 @@ using Helion.Maps.Hexen.Components;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Vanilla;
-using Helion.Maps.Specials.ZDoom;
 using Helion.Maps.Udmf.Components;
 using Helion.Util;
 using Helion.World.Geometry.Lines;
@@ -126,6 +125,8 @@ public static class UdmfMapWriter
             writer.WriteLine("mapped = true;");
         if (line.Flags.BlockMonsters)
             writer.WriteLine("blockmonsters = true;");
+        if (line.Flags.PassThrough)
+            writer.WriteLine("passuse = true;");
 
         if (GetTranslatedLineSpecialData(line, ns, out var zdoomType, out var specialArgs, out var lineFlags))
         {
@@ -185,7 +186,7 @@ public static class UdmfMapWriter
                 return true;
             }
 
-            if (line is HexenLine hexenLine && hexenLine.LineType != ZDoomLineSpecialType.None)
+            if (line is HexenLine hexenLine && hexenLine.LineType > 0)
             {
                 zdoomType = (int)hexenLine.LineType;
                 lineFlags = new(hexenLine.Flags);
@@ -193,7 +194,7 @@ public static class UdmfMapWriter
                 return true;
             }
 
-            if (line is UdmfLine udmfLine && udmfLine.LineType != ZDoomLineSpecialType.None)
+            if (line is UdmfLine udmfLine && udmfLine.LineType > 0)
             {
                 zdoomType = (int)udmfLine.LineType;
                 lineFlags = new(udmfLine.Flags);

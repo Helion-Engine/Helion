@@ -115,9 +115,9 @@ public class UdmfGeometryBuilder
 
         foreach (var mapLine in map.Lines)
         {
-            (Side front, Side? back) = CreateSides(mapLine, builder, ref nextSideId, textureManager);
-            Seg2D seg = new(mapLine.StartPosition, mapLine.EndPosition);
-            LineFlags flags = new(mapLine.Flags);
+            (Side front, Side? back) = CreateSides(mapLine, builder, ref nextSideId, textureManager, needsTranslation);
+            var seg = new Seg2D(mapLine.StartPosition, mapLine.EndPosition);
+            var flags = new LineFlags(mapLine.Flags);
 
             var special = GetLineSpecial(needsTranslation, mapLine, ref flags);
 
@@ -155,31 +155,33 @@ public class UdmfGeometryBuilder
 
     private static LineSpecial GetLineSpecial(bool needsTranslation, UdmfLine mapLine, ref LineFlags flags)
     {
-        if (mapLine.LineType == ZDoomLineSpecialType.None)
+        if (mapLine.LineType <= 0)
             return LineSpecial.Default;
 
         if (needsTranslation)
         {
-            var spec = VanillaLineSpecTranslator.Translate(ref flags, (VanillaLineSpecialType)mapLine.Special, mapLine.Args.Arg0, ref mapLine.Args, out var lineActivationType, out var compat);
+            var args = new SpecialArgs();
+            var spec = VanillaLineSpecTranslator.Translate(ref flags, (VanillaLineSpecialType)mapLine.Special, mapLine.Args.Arg0, ref args, out var lineActivationType, out var compat);
+            mapLine.Args = args;
             return new(spec, lineActivationType, compat);
         }
 
-        return new(mapLine.LineType, mapLine.ActivationType, LineSpecialCompatibility.Default);
+        return new((ZDoomLineSpecialType)mapLine.LineType, mapLine.ActivationType, LineSpecialCompatibility.Default);
     }
 
     private static (Side front, Side? back) CreateSides(UdmfLine line, GeometryBuilder builder,
-        ref int nextSideId, TextureManager textureManager)
+        ref int nextSideId, TextureManager textureManager, bool isTranslated)
     {
         if (line.Back == null)
-            return CreateSingleSide(line, builder, ref nextSideId, textureManager);
+            return CreateSingleSide(line, builder, ref nextSideId, textureManager, isTranslated);
 
-        Side front = CreateTwoSided(line, line.Front, builder, ref nextSideId, textureManager);
-        Side back = CreateTwoSided(line, line.Back, builder, ref nextSideId, textureManager);
+        Side front = CreateTwoSided(line, line.Front, builder, ref nextSideId, textureManager, isTranslated);
+        Side back = CreateTwoSided(line, line.Back, builder, ref nextSideId, textureManager, isTranslated);
         return (front, back);
     }
 
     private static (Side front, Side? back) CreateSingleSide(UdmfLine line, GeometryBuilder builder,
-        ref int nextSideId, TextureManager textureManager)
+        ref int nextSideId, TextureManager textureManager, bool isTranslated)
     {
         var side = line.Front;
         Sector sector = builder.Sectors[side.Sector.Id];
@@ -195,12 +197,15 @@ public class UdmfGeometryBuilder
             line.WrapMidTex || side.WrapMidTex);
         builder.Sides.Add(front);
 
+        if (isTranslated)
+            DoomGeometryBuilder.SetColorMaps(line, textureManager, side, front);
+
         nextSideId++;
 
         return (front, null);
     }
 
-    private static Side CreateTwoSided(UdmfLine line, UdmfSide side, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager)
+    private static Side CreateTwoSided(UdmfLine line, UdmfSide side, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager, bool isTranslated)
     {
         Sector facingSector = builder.Sectors[side.Sector.Id];
 
@@ -215,6 +220,10 @@ public class UdmfGeometryBuilder
         Side addSide = new(nextSideId, side.Offset, upper, middle, lower, facingSector, side.LightLevel, side.LightLevelAbsolute, side.NoFakeConstrast, side.SmoothLighting, 
             line.WrapMidTex || side.WrapMidTex);
         builder.Sides.Add(addSide);
+
+
+        if (isTranslated)
+            DoomGeometryBuilder.SetColorMaps(line, textureManager, side, addSide);
 
         nextSideId++;
         return addSide;
