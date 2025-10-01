@@ -156,6 +156,8 @@ public static class UdmfMapWriter
                 writer.WriteLine("impact = true;");
             if (lineFlags.Repeat)
                 writer.WriteLine("repeatspecial = true;");
+            if (lineFlags.PassThrough)
+                writer.WriteLine("passuse = true;");
         }
         else
         {
@@ -185,7 +187,7 @@ public static class UdmfMapWriter
                 return true;
             }
 
-            if (line is HexenLine hexenLine && hexenLine.LineType != ZDoomLineSpecialType.None)
+            if (line is HexenLine hexenLine && hexenLine.LineType > 0)
             {
                 zdoomType = (int)hexenLine.LineType;
                 lineFlags = new(hexenLine.Flags);
@@ -193,7 +195,7 @@ public static class UdmfMapWriter
                 return true;
             }
 
-            if (line is UdmfLine udmfLine && udmfLine.LineType != ZDoomLineSpecialType.None)
+            if (line is UdmfLine udmfLine && udmfLine.LineType > 0)
             {
                 zdoomType = (int)udmfLine.LineType;
                 lineFlags = new(udmfLine.Flags);

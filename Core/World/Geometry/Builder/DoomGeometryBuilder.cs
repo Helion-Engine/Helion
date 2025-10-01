@@ -1,5 +1,6 @@
 using System;
 using Helion.Geometry.Segments;
+using Helion.Maps.Components;
 using Helion.Maps.Doom;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
@@ -89,9 +90,9 @@ public static class DoomGeometryBuilder
         return (front, null);
     }
 
-    private static void SetColorMaps(DoomLine doomLine, TextureManager textureManager, DoomSide doomSide, Side front)
+    public static void SetColorMaps(ILine doomLine, TextureManager textureManager, ISide doomSide, Side front)
     {
-        if (doomLine.LineType == VanillaLineSpecialType.TransferHeights)
+        if (doomLine.Special == (int)VanillaLineSpecialType.TransferHeights)
         {
             textureManager.TryGetColormap(doomSide.UpperTexture, out var upperColormap);
             textureManager.TryGetColormap(doomSide.MiddleTexture, out var middleColormap);
@@ -110,9 +111,9 @@ public static class DoomGeometryBuilder
         }
     }
 
-    private static bool IsSetColorMap(DoomLine line)
+    private static bool IsSetColorMap(ILine line)
     {
-        switch (line.LineType)
+        switch ((VanillaLineSpecialType)line.Special)
         {
             case VanillaLineSpecialType.SetSectorColorMap:
             case VanillaLineSpecialType.W1_SetSectorColorMap:
