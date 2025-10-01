@@ -116,8 +116,8 @@ public class UdmfGeometryBuilder
         foreach (var mapLine in map.Lines)
         {
             (Side front, Side? back) = CreateSides(mapLine, builder, ref nextSideId, textureManager, needsTranslation);
-            Seg2D seg = new(mapLine.StartPosition, mapLine.EndPosition);
-            LineFlags flags = new(mapLine.Flags);
+            var seg = new Seg2D(mapLine.StartPosition, mapLine.EndPosition);
+            var flags = new LineFlags(mapLine.Flags);
 
             var special = GetLineSpecial(needsTranslation, mapLine, ref flags);
 
@@ -160,7 +160,9 @@ public class UdmfGeometryBuilder
 
         if (needsTranslation)
         {
-            var spec = VanillaLineSpecTranslator.Translate(ref flags, (VanillaLineSpecialType)mapLine.Special, mapLine.Args.Arg0, ref mapLine.Args, out var lineActivationType, out var compat);
+            var args = new SpecialArgs();
+            var spec = VanillaLineSpecTranslator.Translate(ref flags, (VanillaLineSpecialType)mapLine.Special, mapLine.Args.Arg0, ref args, out var lineActivationType, out var compat);
+            mapLine.Args = args;
             return new(spec, lineActivationType, compat);
         }
 
