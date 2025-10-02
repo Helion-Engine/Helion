@@ -3,7 +3,7 @@
 public static class PlaneClip
 {
     public static string WritePlaneFragFunction() =>
-         @"
+         $@"
             #version 330
 
             flat in float zPos;
@@ -13,9 +13,9 @@ public static class PlaneClip
 
             layout (location = 0) out vec3 outPlane;
 
-            void main() {
-                outPlane = vec3(zPos, depthFrag, lowerFrag + (upperFrag * 2));
-            }";
+            void main() {{
+                {GetOutPlane(true)}
+            }}";
 
     public static string WriteWallFragFunction() =>
          @"
@@ -48,10 +48,7 @@ public static class PlaneClip
         if (!planeClip)
             return string.Empty;
 
-        return @"
-            fragColor = vec4(fragColor.r, fragColor.g, fragColor.b, 1);
-            outPlane = vec3(zPos, depthFrag, lowerFrag + (upperFrag * 2));
-";
+        return "outPlane = vec3(zPos, depthFrag, lowerFrag + (upperFrag * 2));";
     }
 
     public static string GetOutTargets(bool planeClip)
