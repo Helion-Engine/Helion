@@ -13,6 +13,7 @@ public class PlaneClipFrameBuffer : IDisposable
     private int m_clearBufferIndex;
     private Dimension m_dimension;
     private GLTexture2D? m_depthTexture;
+    private bool m_ownsDepthTexture;
 
     public void CreateOrUpdate(string name, Dimension dimension, GLFramebuffer? colorFramebuffer, bool forceCreate)
     {
@@ -36,6 +37,7 @@ public class PlaneClipFrameBuffer : IDisposable
         int depthTextureTarget;
         if (colorFramebuffer == null)
         {
+            m_ownsDepthTexture = true;
             m_clearBufferIndex = 0;
             m_depthTexture = new GLTexture2D($"{name} Depth Stencil Attachment", m_dimension);
             m_depthTexture.Bind();
@@ -90,10 +92,14 @@ public class PlaneClipFrameBuffer : IDisposable
 
     public unsafe void Clear()
     {
-        GL.Clear(ClearBufferMask.DepthBufferBit);
+        if (m_ownsDepthTexture)
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+
         var clear = stackalloc float[3] { -1e30f, 1e30f, -1 };
         GL.ClearBuffer(ClearBuffer.Color, m_clearBufferIndex, clear);
-        GL.Clear(ClearBufferMask.DepthBufferBit);
+
+        if (m_ownsDepthTexture)
+            GL.Clear(ClearBufferMask.DepthBufferBit);
     }
 
     public static unsafe void StartRender()
