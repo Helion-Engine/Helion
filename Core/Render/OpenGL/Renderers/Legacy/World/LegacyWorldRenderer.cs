@@ -34,10 +34,12 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly InterpolationShader m_interpolationProgram = new("Main");
     private readonly InterpolationTransparentShader m_interpolationTransparentProgram = new();
     private readonly InterpolationCompositeShader m_interpolationCompositeProgram = new();
-    private readonly InterpolationPlaneClipShader m_interpolationPlaneClipShader = new();
+    private readonly InterpolationPlaneClipShader m_interpolationPlaneClipProgram = new();
+    private readonly InterpolationPlaneClipShaderMrt m_interpolationPlaneClipMrtProgram = new();
     private readonly InterpolationWallClipShader m_interpolationWallClipShader = new();
     private readonly StaticShader m_staticProgram = new("Main");
     private readonly StaticPlaneClipShader m_staticPlaneClipProgram = new();
+    private readonly StaticPlaneClipShaderMrt m_staticPlaneClipMrtProgram = new();
     private readonly StaticWallClipShader m_staticWallClipProgram = new();
     private readonly RenderWorldDataManager m_worldDataManager = new();
     private readonly ArchiveCollection m_archiveCollection;
@@ -51,6 +53,7 @@ public class LegacyWorldRenderer : WorldRenderer
     private bool m_renderStatic;
     private bool m_lastRenderStatic;
     private bool m_pixelGapCorrection;
+    private bool m_downscaleVanillaBuffer;
     private int m_lastTicker = -1;
     private Entity? m_viewerEntity;
     private IWorld? m_previousWorld;
@@ -282,7 +285,9 @@ public class LegacyWorldRenderer : WorldRenderer
         var dimension = new Dimension(renderInfo.Viewport.Width, renderInfo.Viewport.Height);
         m_oitFrameBuffer.CreateOrUpdate(dimension, framebuffer.DepthTexture);
 
-        SetupClipBuffers(framebuffer, dimension);
+        var prevDownscale = m_downscaleVanillaBuffer;
+        m_downscaleVanillaBuffer = m_config.Render.DownScaleVanillaRenderSampleBuffer.Value > 1;
+        SetupClipBuffers(framebuffer, dimension, prevDownscale != m_downscaleVanillaBuffer);
 
         if (m_lastTicker != world.GameTicker)
             m_entityRenderer.Start(renderInfo);
@@ -332,8 +337,12 @@ public class LegacyWorldRenderer : WorldRenderer
         SetInterpolationUniforms(m_interpolationProgram, renderInfo, false);
         m_interpolationProgram.VertexGapClampUV(m_pixelGapCorrection);
         m_worldDataManager.RenderWalls();
-        m_interpolationProgram.VertexGapClampUV(false);
-        m_worldDataManager.RenderFlats();
+
+        if (m_downscaleVanillaBuffer)
+        {
+            m_interpolationProgram.VertexGapClampUV(false);
+            m_worldDataManager.RenderFlats();
+        }
 
         if (m_renderStatic)
         {
@@ -342,17 +351,18 @@ public class LegacyWorldRenderer : WorldRenderer
             SetStaticUniforms(m_staticProgram, renderInfo);
             m_staticProgram.VertexGapClampUV(m_pixelGapCorrection);
             m_geometryRenderer.RenderStaticGeometryWalls();
-            m_staticProgram.VertexGapClampUV(false);
-            m_geometryRenderer.RenderStaticGeometryFlats();
+
+            if (m_downscaleVanillaBuffer)
+            {
+                m_staticProgram.VertexGapClampUV(false);
+                m_geometryRenderer.RenderStaticGeometryFlats();
+            }
         }
 
         RenderTwoSidedMiddleWalls(renderInfo);
 
-        GL.Clear(ClearBufferMask.DepthBufferBit);
-        GL.ColorMask(false, false, false, false);
-        // Write two-sided middle walls to depth as these generally look better with normal discard handling
-        RenderTwoSidedMiddleWalls(renderInfo);
-        GL.ColorMask(true, true, true, true);
+        if (m_downscaleVanillaBuffer)
+            RenderTwoSidedMiddleWallsToDepth(renderInfo);
 
         if (m_wallClipFrameBuffer != null || m_planeClipFrameBuffer != null)
             WriteSpriteClipBuffers(renderInfo, framebuffer);
@@ -378,22 +388,36 @@ public class LegacyWorldRenderer : WorldRenderer
             GL.Viewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
         }
 
-        if (m_wallClipFrameBuffer != null)
-            WritePlaneClipData(m_wallClipFrameBuffer, useRenderInfo, framebuffer, true);
-
         if (m_planeClipFrameBuffer != null)
             WritePlaneClipData(m_planeClipFrameBuffer, useRenderInfo, framebuffer, false);
+
+        if (!m_downscaleVanillaBuffer)
+            RenderTwoSidedMiddleWallsToDepth(renderInfo);
+
+        if (m_wallClipFrameBuffer != null)
+            WritePlaneClipData(m_wallClipFrameBuffer, useRenderInfo, framebuffer, true);
 
         if (renderInfo.Uniforms.DownScaleAmount > 1)
             GL.Viewport(renderInfo.Viewport.X, renderInfo.Viewport.Y, renderInfo.Viewport.Width, renderInfo.Viewport.Height);
     }
 
-    private void SetupClipBuffers(GLFramebuffer framebuffer, Dimension dimension)
+    private void RenderTwoSidedMiddleWallsToDepth(RenderInfo renderInfo)
+    {
+        // TODO - this could be done with mrt shaders as an optimization instead of drawing twice
+        GL.Clear(ClearBufferMask.DepthBufferBit);
+        GL.ColorMask(false, false, false, false);
+        // Write two-sided middle walls to depth as these generally look better with normal discard handling
+        RenderTwoSidedMiddleWalls(renderInfo);
+        GL.ColorMask(true, true, true, true);
+    }
+
+    private void SetupClipBuffers(GLFramebuffer framebuffer, Dimension dimension, bool downscaleChanged)
     {
         bool bind = false;
         if (m_planeClipFrameBuffer != null)
         {
-            m_planeClipFrameBuffer.CreateOrUpdate("PlaneClip", dimension);
+            var colorBuffer = m_downscaleVanillaBuffer ? null : framebuffer;
+            m_planeClipFrameBuffer.CreateOrUpdate("PlaneClip", dimension, colorBuffer, downscaleChanged);
             m_planeClipFrameBuffer.BindFrameBuffer();
             m_planeClipFrameBuffer.Clear();
             bind = true;
@@ -401,7 +425,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         if (m_wallClipFrameBuffer != null)
         {
-            m_wallClipFrameBuffer.CreateOrUpdate("WallClip", dimension);
+            m_wallClipFrameBuffer.CreateOrUpdate("WallClip", dimension, null, false);
             m_wallClipFrameBuffer.BindFrameBuffer();
             m_wallClipFrameBuffer.Clear();
             bind = true;
@@ -432,11 +456,13 @@ public class LegacyWorldRenderer : WorldRenderer
             }
             else
             {
-                m_staticPlaneClipProgram.Bind();
+                StaticShader program = m_downscaleVanillaBuffer ? m_staticPlaneClipProgram : m_staticPlaneClipMrtProgram;
+                program.Bind();
                 GL.ActiveTexture(BindTextures.BoundTexture);
-                SetStaticUniforms(m_staticPlaneClipProgram, renderInfo);
+                program.VertexGapClampUV(false);
+                SetStaticUniforms(program, renderInfo);
                 m_geometryRenderer.RenderStaticGeometryFlats();
-                m_staticPlaneClipProgram.Unbind();
+                program.Unbind();
             }
         }
 
@@ -453,11 +479,12 @@ public class LegacyWorldRenderer : WorldRenderer
         }
         else
         {
-            m_interpolationPlaneClipShader.Bind();
+            InterpolationShader program = m_downscaleVanillaBuffer ? m_interpolationPlaneClipProgram : m_interpolationPlaneClipMrtProgram;
+            program.Bind();
             GL.ActiveTexture(BindTextures.BoundTexture);
-            SetInterpolationUniforms(m_interpolationPlaneClipShader, renderInfo, false);
+            SetInterpolationUniforms(program, renderInfo, false);
             m_worldDataManager.RenderFlats();
-            m_interpolationPlaneClipShader.Unbind();
+            program.Unbind();
         }
 
         PlaneClipFrameBuffer.UnbindFrameBuffer();

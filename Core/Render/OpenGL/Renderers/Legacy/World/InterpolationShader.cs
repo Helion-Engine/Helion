@@ -169,6 +169,8 @@ public class InterpolationShader : RenderProgram
         if (this is InterpolationWallClipShader)
             return PlaneClip.WriteWallFragFunction();
 
+        var planeClip = this is InterpolationPlaneClipShaderMrt;
+
         return
             @"
             #version 330
@@ -178,10 +180,12 @@ public class InterpolationShader : RenderProgram
             flat in float addAlphaFrag;
             flat in float zPos;
             flat in float distFrag;
+            flat in float upperFrag;
+            flat in float lowerFrag;
             in float depthFrag;
             ${VertexGapVariables}
 
-            ${OutFragColor}
+            ${OutTargets}
 
             uniform int hasInvulnerability;
             uniform sampler2D boundTexture;
@@ -215,6 +219,7 @@ public class InterpolationShader : RenderProgram
                 ${LightLevelFragFunction}
                 ${SectorColorMapFragFunction}
                 ${FragColorFunction}
+                ${OutPlane}
             }
         "
         .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
@@ -223,8 +228,9 @@ public class InterpolationShader : RenderProgram
         .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
         .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
         .Replace("${OitVariables}", FragFunction.OitFragVariables(GetOitOptions()))
-        .Replace("${OutFragColor}", GetOutFragColor())
-        .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);
+        .Replace("${OutTargets}", GetOutTargets(planeClip))
+        .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables)
+        .Replace("${OutPlane}", PlaneClip.GetOutPlane(planeClip));
     }
 
     private OitOptions GetOitOptions()
@@ -236,11 +242,12 @@ public class InterpolationShader : RenderProgram
         return OitOptions.None;
     }
 
-    private string GetOutFragColor()
+    private string GetOutTargets(bool planeClip)
     {
         var options = GetOitOptions();
         if (options == OitOptions.OitTransparentPass)
             return "";
-        return "out vec4 fragColor;";
+
+        return PlaneClip.GetOutTargets(planeClip);
     }
 }

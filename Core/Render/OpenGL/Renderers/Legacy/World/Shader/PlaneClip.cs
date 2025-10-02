@@ -42,4 +42,26 @@ public static class PlaneClip
                 int byte2 = ((lineId >> 16) & 0x3F) << 2 | int(lowerFrag + (upperFrag * 2));
                 outPlane = vec4(byte0, byte1, byte2, depthFrag);
             }";
+
+    public static string GetOutPlane(bool planeClip)
+    {
+        if (!planeClip)
+            return string.Empty;
+
+        return @"
+            fragColor = vec4(fragColor.r, fragColor.g, fragColor.b, 1);
+            outPlane = vec3(zPos, depthFrag, lowerFrag + (upperFrag * 2));
+";
+    }
+
+    public static string GetOutTargets(bool planeClip)
+    {
+        if (!planeClip)
+            return "out vec4 fragColor;";
+
+        return @"
+            layout (location = 0) out vec4 fragColor;
+            layout (location = 1) out vec3 outPlane;
+";
+    }
 }

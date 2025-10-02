@@ -10,12 +10,13 @@ public class PlaneClipFrameBuffer : IDisposable
 {
     private int m_framebuffer;
     private int m_texture;
+    private int m_clearBuffer;
     private Dimension m_dimension;
     private GLTexture2D? m_depthTexture;
 
-    public void CreateOrUpdate(string name, Dimension dimension)
+    public void CreateOrUpdate(string name, Dimension dimension, GLFramebuffer? colorFramebuffer, bool forceCreate)
     {
-        if (m_framebuffer != 0 && dimension.Width == m_dimension.Width && dimension.Height == m_dimension.Height)
+        if (!ShouldRecreate(dimension, forceCreate))
             return;
 
         DeleteData();
@@ -32,28 +33,66 @@ public class PlaneClipFrameBuffer : IDisposable
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
         GL.BindTexture(TextureTarget.Texture2D, 0);
 
-        m_depthTexture = new GLTexture2D($"{name} Depth Stencil Attachment", m_dimension);
-        m_depthTexture.Bind();
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Depth32fStencil8, width, height, 0, PixelFormat.DepthStencil, PixelType.Float32UnsignedInt248Rev, IntPtr.Zero);
-        m_depthTexture.Unbind();
+        int depthTextureTarget;
+        if (colorFramebuffer == null)
+        {
+            m_clearBuffer = 0;
+            m_depthTexture = new GLTexture2D($"{name} Depth Stencil Attachment", m_dimension);
+            m_depthTexture.Bind();
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Depth32fStencil8, width, height, 0, PixelFormat.DepthStencil, PixelType.Float32UnsignedInt248Rev, IntPtr.Zero);
+            m_depthTexture.Unbind();
+            depthTextureTarget = m_depthTexture.Name;
+        }
+        else
+        {
+            if (colorFramebuffer.DepthTexture == null)
+                throw new Exception("Framebuffer must have a depth texture");
+            m_clearBuffer = 1;
+            depthTextureTarget = colorFramebuffer.DepthTexture.Name;
+        }
 
         m_framebuffer = GL.GenFramebuffer();
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Framebuffer, m_framebuffer, $"{name} Framebuffer");
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, m_framebuffer);
-        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, m_texture, 0);
-        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, m_depthTexture.Name, 0);
-        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
+
+        if (colorFramebuffer == null)
+        {
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, m_texture, 0);
+        }
+        else
+        {
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, colorFramebuffer.ColorAttachment0.Name, 0);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, TextureTarget.Texture2D, m_texture, 0);
+        }
+
+        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, depthTextureTarget, 0);
+
+        if (colorFramebuffer == null)
+            GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
+        else
+            GL.DrawBuffers(2, [DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1]);
 
         var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
         if (status != FramebufferErrorCode.FramebufferComplete)
             throw new Exception("Failed to complete PlaneClip framebuffer");
     }
 
+    private bool ShouldRecreate(Dimension dimension, bool force)
+    {
+        if (force)
+            return true;
+
+        if (m_framebuffer != 0 && dimension.Width == m_dimension.Width && dimension.Height == m_dimension.Height)
+            return false;
+
+        return true;
+    }
+
     public unsafe void Clear()
     {
         GL.Clear(ClearBufferMask.DepthBufferBit);
         var clear = stackalloc float[3] { -1e30f, 1e30f, -1 };
-        GL.ClearBuffer(ClearBuffer.Color, 0, clear);
+        GL.ClearBuffer(ClearBuffer.Color, m_clearBuffer, clear);
         GL.Clear(ClearBufferMask.DepthBufferBit);
     }
 
