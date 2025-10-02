@@ -6,6 +6,12 @@ using System;
 
 namespace Helion.Render.OpenGL.Framebuffer;
 
+/// <summary>
+/// Writes clip info for vanilla sprite clipping emulation.
+/// Supports multiple render targets if colorFramebuffer is not null and will use the depth texture from that framebuffer.
+/// ColorAttachment0 will be fragColor, and ColorAttachment1 will be outPlane.
+/// If no colorFramebuffer is specified then this framebuffer will allocate and use it's own depth texture with ColorAttachment0 for outPlane.
+/// </summary>
 public class PlaneClipFrameBuffer : IDisposable
 {
     private int m_framebuffer;
@@ -15,6 +21,12 @@ public class PlaneClipFrameBuffer : IDisposable
     private GLTexture2D? m_depthTexture;
     private bool m_ownsDepthTexture;
 
+    /// <summary>
+    /// Creates or updates internal buffers and textures.
+    /// </summary>
+    /// <param name="name">The debug label name for buffers and textures</param>
+    /// <param name="dimension">The dimension to use for allocated buffers and textures</param>
+    /// <param name="forceCreate">If the underlying buffers and textures should be forced to be recreated</param>
     public void CreateOrUpdate(string name, Dimension dimension, GLFramebuffer? colorFramebuffer, bool forceCreate)
     {
         if (!ShouldRecreate(dimension, forceCreate))
@@ -49,6 +61,7 @@ public class PlaneClipFrameBuffer : IDisposable
         {
             if (colorFramebuffer.DepthTexture == null)
                 throw new Exception("Framebuffer must have a depth texture");
+            // Support using the depth buffer from another framebuffer
             m_clearBufferIndex = 1;
             depthTextureTarget = colorFramebuffer.DepthTexture.Name;
         }
