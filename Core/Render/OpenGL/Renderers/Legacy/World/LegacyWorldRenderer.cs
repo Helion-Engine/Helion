@@ -424,9 +424,10 @@ public class LegacyWorldRenderer : WorldRenderer
                 GL.ActiveTexture(BindTextures.BoundTexture);
                 SetStaticUniforms(m_staticWallClipProgram, renderInfo);
                 m_geometryRenderer.RenderStaticOneSidedCoverWalls();
-                GL.Disable(EnableCap.CullFace);
                 m_geometryRenderer.RenderStaticCoverWalls();
-                GL.Enable(EnableCap.CullFace);
+                GL.CullFace(TriangleFace.Front);
+                m_geometryRenderer.RenderStaticCoverWalls();
+                GL.CullFace(TriangleFace.Back);
                 m_staticWallClipProgram.Unbind();
             }
             else
