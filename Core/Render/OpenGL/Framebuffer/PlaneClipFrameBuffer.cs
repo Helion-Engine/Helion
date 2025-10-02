@@ -10,7 +10,7 @@ public class PlaneClipFrameBuffer : IDisposable
 {
     private int m_framebuffer;
     private int m_texture;
-    private int m_clearBuffer;
+    private int m_clearBufferIndex;
     private Dimension m_dimension;
     private GLTexture2D? m_depthTexture;
 
@@ -36,7 +36,7 @@ public class PlaneClipFrameBuffer : IDisposable
         int depthTextureTarget;
         if (colorFramebuffer == null)
         {
-            m_clearBuffer = 0;
+            m_clearBufferIndex = 0;
             m_depthTexture = new GLTexture2D($"{name} Depth Stencil Attachment", m_dimension);
             m_depthTexture.Bind();
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Depth32fStencil8, width, height, 0, PixelFormat.DepthStencil, PixelType.Float32UnsignedInt248Rev, IntPtr.Zero);
@@ -47,7 +47,7 @@ public class PlaneClipFrameBuffer : IDisposable
         {
             if (colorFramebuffer.DepthTexture == null)
                 throw new Exception("Framebuffer must have a depth texture");
-            m_clearBuffer = 1;
+            m_clearBufferIndex = 1;
             depthTextureTarget = colorFramebuffer.DepthTexture.Name;
         }
 
@@ -92,7 +92,7 @@ public class PlaneClipFrameBuffer : IDisposable
     {
         GL.Clear(ClearBufferMask.DepthBufferBit);
         var clear = stackalloc float[3] { -1e30f, 1e30f, -1 };
-        GL.ClearBuffer(ClearBuffer.Color, m_clearBuffer, clear);
+        GL.ClearBuffer(ClearBuffer.Color, m_clearBufferIndex, clear);
         GL.Clear(ClearBufferMask.DepthBufferBit);
     }
 
