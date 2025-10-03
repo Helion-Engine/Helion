@@ -141,6 +141,8 @@ public class StaticShader : RenderProgram
         if (this is StaticWallClipShader)
             return PlaneClip.WriteWallFragFunction();
 
+        bool planeClip = this is StaticPlaneClipShaderMrt;
+
         return @"
             #version 330
 
@@ -152,9 +154,10 @@ public class StaticShader : RenderProgram
             flat in float mapIdFrag;
             flat in float upperFrag;
             flat in float lowerFrag;
+            in float depthFrag;
             ${VertexGapVariables}
 
-            out vec4 fragColor;
+            ${OutTargets}
 
             uniform int hasInvulnerability;
             uniform sampler2D boundTexture;
@@ -171,6 +174,7 @@ public class StaticShader : RenderProgram
                 ${LightLevelFragFunction}
                 ${SectorColorMapFragFunction}
                 ${FragColorFunction}
+                ${OutPlane}
             }
         "
         .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
@@ -178,6 +182,8 @@ public class StaticShader : RenderProgram
         .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.AddAlpha | FragColorFunctionOptions.Colormap | FragColorFunctionOptions.VertexGapClampUV | FragColorFunctionOptions.Brightmaps))
         .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
         .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction)
-        .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables);
-    }  
+        .Replace("${VertexGapVariables}", FragFunction.VertexGapVariables)
+        .Replace("${OutTargets}", PlaneClip.GetOutTargets(planeClip))
+        .Replace("${OutPlane}", PlaneClip.GetOutPlane(planeClip));
+    }
 }
