@@ -444,6 +444,27 @@ public class LegacyWorldRenderer : WorldRenderer
         {
             if (walls)
             {
+                m_interpolationWallClipShader.Bind();
+                GL.ActiveTexture(BindTextures.BoundTexture);
+                SetInterpolationUniforms(m_interpolationWallClipShader, renderInfo, false);
+                GL.Disable(EnableCap.CullFace);
+                m_worldDataManager.RenderCoverWalls();
+                m_geometryRenderer.RenderWallClipPortals(renderInfo);
+                GL.Enable(EnableCap.CullFace);
+                m_interpolationWallClipShader.Unbind();
+            }
+            else
+            {
+                InterpolationShader program = m_downscaleVanillaBuffer ? m_interpolationPlaneClipProgram : m_interpolationPlaneClipMrtProgram;
+                program.Bind();
+                GL.ActiveTexture(BindTextures.BoundTexture);
+                SetInterpolationUniforms(program, renderInfo, false);
+                m_worldDataManager.RenderFlats();
+                program.Unbind();
+            }
+
+            if (walls)
+            {
                 m_staticWallClipProgram.Bind();
                 GL.ActiveTexture(BindTextures.BoundTexture);
                 SetStaticUniforms(m_staticWallClipProgram, renderInfo);
@@ -464,27 +485,6 @@ public class LegacyWorldRenderer : WorldRenderer
                 m_geometryRenderer.RenderStaticGeometryFlats();
                 program.Unbind();
             }
-        }
-
-        if (walls)
-        {
-            m_interpolationWallClipShader.Bind();
-            GL.ActiveTexture(BindTextures.BoundTexture);
-            SetInterpolationUniforms(m_interpolationWallClipShader, renderInfo, false);
-            GL.Disable(EnableCap.CullFace);
-            m_worldDataManager.RenderCoverWalls();
-            m_geometryRenderer.RenderWallClipPortals(renderInfo);
-            GL.Enable(EnableCap.CullFace);
-            m_interpolationWallClipShader.Unbind();
-        }
-        else
-        {
-            InterpolationShader program = m_downscaleVanillaBuffer ? m_interpolationPlaneClipProgram : m_interpolationPlaneClipMrtProgram;
-            program.Bind();
-            GL.ActiveTexture(BindTextures.BoundTexture);
-            SetInterpolationUniforms(program, renderInfo, false);
-            m_worldDataManager.RenderFlats();
-            program.Unbind();
         }
 
         PlaneClipFrameBuffer.UnbindFrameBuffer();
