@@ -1,5 +1,6 @@
-using System.IO.Compression;
 using Helion.Resources.Archives.Entries;
+using System.IO;
+using System.IO.Compression;
 
 namespace Helion.Resources.Archives;
 
@@ -17,7 +18,18 @@ public class PK3Entry : Entry
 
     public override byte[] ReadData()
     {
-        return Parent.ReadData(this);
+        using var stream = ZipEntry.Open();
+        var entryLength = ZipEntry.Length;
+        byte[] data = new byte[entryLength];
+        int writeLength = 0;
+        while (writeLength < entryLength)
+            writeLength += stream.Read(data, writeLength, data.Length - writeLength);
+        return data;
+    }
+
+    public override Stream GetStream()
+    {
+        return ZipEntry.Open();
     }
 
     public override void ExtractToFile(string path)

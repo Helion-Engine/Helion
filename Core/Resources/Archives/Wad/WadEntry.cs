@@ -22,6 +22,11 @@ public class WadEntry : Entry
         return Parent.ReadData(this);
     }
 
+    public override Stream GetStream()
+    {
+        return Parent.GetStream(this);
+    }
+
     public override void ExtractToFile(string path)
     {
         File.WriteAllBytes(path, ReadData());

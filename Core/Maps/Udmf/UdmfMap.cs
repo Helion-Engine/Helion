@@ -5,10 +5,12 @@ using Helion.Maps.Specials.ZDoom;
 using Helion.Maps.Udmf.Components;
 using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
+using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Helion.Maps.Udmf;
 
@@ -23,7 +25,7 @@ public class UdmfMap : IMap
     public string ArchivePath { get; set; }
     public string MD5 { get; set; }
     public string Name { get; }
-    public readonly UdmfNamespace UdmfNamespace;
+    public UdmfNamespace UdmfNamespace { get; private set; }
 
     public MapType MapType => MapType.UDMF;
     public List<UdmfLine> Lines;
@@ -41,6 +43,9 @@ public class UdmfMap : IMap
     public IReadOnlyList<IThing> GetThings() => Things;
     public IReadOnlyList<IVertex> GetVertices() => Vertices;
 
+    private MapEntryCollection? m_map;
+    private bool m_loaded;
+
     public void ClearAllExceptThings()
     {
         Lines = [];
@@ -56,28 +61,51 @@ public class UdmfMap : IMap
         Things = [];
     }
 
-    public static UdmfMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility)
+    public void LoadData()
+    {
+        if (m_loaded || m_map == null)
+            return;
+
+        var map = m_map;
+        m_loaded = true;
+        m_map = null;
+
+        if (map.Textmap == null)
+            return;
+
+        GL = GLComponents.Read(map);
+        Reject = map.Reject?.ReadData();
+
+        using var textmapStream = map.Textmap.GetStream();
+        UdmfNamespace = Parse(textmapStream, Vertices, Sectors, Sides, Lines, Things);
+    }
+
+    public static UdmfMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility, bool loadData)
     {
         if (map.Textmap == null)
             return null;
 
-        List<UdmfVertex> vertices = new(4096);
-        List<UdmfSide> sides = new(2048);
-        List<UdmfLine> lines = new(2048);
-        List<UdmfThing> things = new(1024);
-        List<UdmfSector> sectors = new(1024);
+        if (loadData)
+        {
+            List<UdmfVertex> vertices = new(4096);
+            List<UdmfSide> sides = new(4096);
+            List<UdmfLine> lines = new(4096);
+            List<UdmfThing> things = new(2048);
+            List<UdmfSector> sectors = new(2048);
+            var udmfMap = new UdmfMap(map, archive.FullPath, map.Name, UdmfNamespace.Unknown, vertices, sectors, sides, lines, things, null, null, compatibility);
+            udmfMap.LoadData();
+            return udmfMap;
+        }
 
-        var ns = Parse(map.Textmap.ReadDataAsString(), vertices, sectors, sides, lines, things);
-
-        GLComponents? gl = GLComponents.Read(map);
-        return new(archive, map.Name, ns, vertices, sectors, sides, lines, things, gl, map.Reject?.ReadData(), compatibility);
+        return new UdmfMap(map, archive.FullPath, map.Name, UdmfNamespace.Unknown, [], [], [], [], [], null, null, compatibility);
     }
 
-    public UdmfMap(Archive archive, string name, UdmfNamespace ns, List<UdmfVertex> vertices, List<UdmfSector> sectors, List<UdmfSide> sides,
+    public UdmfMap(MapEntryCollection map, string archiveFullPath, string name, UdmfNamespace ns, List<UdmfVertex> vertices, List<UdmfSector> sectors, List<UdmfSide> sides,
         List<UdmfLine> lines, List<UdmfThing> things, GLComponents? gl, byte[]? reject,
         CompatibilityMapDefinition? compatibility)
     {
-        ArchivePath = archive.FullPath;
+        m_map = map;
+        ArchivePath = archiveFullPath;
         Name = name;
         Vertices = vertices;
         Sectors = sectors;
@@ -91,53 +119,51 @@ public class UdmfMap : IMap
         UdmfNamespace = ns;
     }
 
-    private static bool CheckSpecial(char c) => c == '=' || c == '{' || c == '}' || c == ';';
-
-    private static UdmfNamespace Parse(string textmap, List<UdmfVertex> vertices, List<UdmfSector> sectors, List<UdmfSide> sides,
+    private static UdmfNamespace Parse(Stream textmap, List<UdmfVertex> vertices, List<UdmfSector> sectors, List<UdmfSide> sides,
         List<UdmfLine> lines, List<UdmfThing> things)
     {
-        var parser = new SimpleParser();
-        parser.SetSpecialCallback(CheckSpecial);
-        parser.Parse(textmap);
+        DynamicArray<char> typeArray = new(256);
+        DynamicArray<char> valueArray = new(256);
+        var parser = new StreamParser(textmap);
 
         parser.ConsumeString("namespace");
         parser.Consume('=');
-        var ns = parser.ConsumeStringSpan();
+        var ns = parser.ConsumeString();
         parser.Consume(';');
 
         var udmfNamespace = ParseNamespaceOrThrow(ns);
 
         while (!parser.IsDone())
         {
-            var type = parser.ConsumeStringSpan();
+            var type = parser.ConsumeStringSpan(typeArray);
             if (type.EqualsIgnoreCase("vertex"))
             {
                 parser.Consume('{');
-                ParseVertex(parser, vertices);
+                ParseVertex(parser, vertices, typeArray, valueArray);
                 parser.Consume('}');
             }
             else if (type.EqualsIgnoreCase("linedef"))
             {
                 parser.Consume('{');
-                ParseLine(parser, lines);
+                ParseLine(parser, lines, typeArray, valueArray);
                 parser.Consume('}');
             }
             else if (type.EqualsIgnoreCase("sidedef"))
             {
                 parser.Consume('{');
-                ParseSide(parser, sides);
+                ParseSide(parser, sides, typeArray, valueArray);
                 parser.Consume('}');
             }
             else if (type.EqualsIgnoreCase("sector"))
             {
                 parser.Consume('{');
-                ParseSector(parser, sectors);
+                ParseSector(parser, sectors, typeArray, valueArray);
                 parser.Consume('}');
             }
             else if (type.EqualsIgnoreCase("thing"))
             {
                 parser.Consume('{');
-                ParseThing(parser, things);
+                ParseThing(parser, things, typeArray, valueArray);
                 parser.Consume('}');
             }
             else
@@ -175,39 +201,40 @@ public class UdmfMap : IMap
         throw new Exception($"Unsupported udmf namespace: {ns}");
     }
 
-    private static void ConsumeUnknownBlockOrProperty(SimpleParser parser)
+    private static void ConsumeUnknownBlockOrProperty(StreamParser parser)
     {
-        if (parser.Peek("="))
+        var next = parser.ConsumeString();
+        if (next.EqualsIgnoreCase("="))
             ConsumeUnknownProperty(parser);
-        else if (parser.Peek("{"))
+        else if (next.EqualsIgnoreCase("{"))
             ConsumeUnknownBlock(parser);
         else
-            throw new Exception("Malformed UDMF TEXTMAP. Expected '=' or '{' but found: " + parser.PeekString());
+            throw new Exception("Malformed UDMF TEXTMAP. Expected '=' or '{' but found: " + parser.ConsumeString());
     }
 
-    private static void ConsumeUnknownProperty(SimpleParser parser)
+    private static void ConsumeUnknownProperty(StreamParser parser)
     {
         parser.Consume('=');
-        parser.ConsumeStringSpan();
+        parser.ConsumeString();
         parser.Consume(';');
     }
 
-    private static void ConsumeUnknownBlock(SimpleParser parser)
+    private static void ConsumeUnknownBlock(StreamParser parser)
     {
         parser.Consume('{');
         while (!parser.Peek('}'))
-            parser.ConsumeStringSpan();
+            parser.ConsumeString();
 
         parser.Consume('}');
     }
 
-    private static void ParseThing(SimpleParser parser, List<UdmfThing> things)
+    private static void ParseThing(StreamParser parser, List<UdmfThing> things, DynamicArray<char> typeArray, DynamicArray<char> valueArray)
     {
         var thing = new UdmfThing();
         double x = 0, y = 0, z = double.MinValue;
         while (!IsBlockComplete(parser))
         {
-            var prop = ParseProperty(parser);
+            var prop = ParseProperty(parser, typeArray, valueArray);
             if (prop.Name.EqualsIgnoreCase("x"))
                 x = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("y"))
@@ -287,12 +314,12 @@ public class UdmfMap : IMap
         }
     }
 
-    private static void ParseSide(SimpleParser parser, List<UdmfSide> sides)
+    private static void ParseSide(StreamParser parser, List<UdmfSide> sides, DynamicArray<char> typeArray, DynamicArray<char> valueArray)
     {
         UdmfSide side = new();
         while (!IsBlockComplete(parser))
         {
-            var prop = ParseProperty(parser);
+            var prop = ParseProperty(parser, typeArray, valueArray);
             if (prop.Name.EqualsIgnoreCase("sector"))
                 side.SectorId = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturetop"))
@@ -356,12 +383,12 @@ public class UdmfMap : IMap
         sides.Add(side);
     }
 
-    private static void ParseSector(SimpleParser parser, List<UdmfSector> sectors)
+    private static void ParseSector(StreamParser parser, List<UdmfSector> sectors, DynamicArray<char> typeArray, DynamicArray<char> valueArray)
     {
         UdmfSector sector = new() { Id = sectors.Count };
         while (!IsBlockComplete(parser))
         {
-            var prop = ParseProperty(parser);
+            var prop = ParseProperty(parser, typeArray, valueArray);
             if (prop.Name.EqualsIgnoreCase("heightfloor"))
                 sector.FloorZ = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("heightceiling"))
@@ -425,12 +452,12 @@ public class UdmfMap : IMap
         sectors.Add(sector);
     }
 
-    private static void ParseLine(SimpleParser parser, List<UdmfLine> lines)
+    private static void ParseLine(StreamParser parser, List<UdmfLine> lines, DynamicArray<char> typeArray, DynamicArray<char> valueArray)
     {
         UdmfLine line = new();
         while (!IsBlockComplete(parser))
         {
-            var prop = ParseProperty(parser);
+            var prop = ParseProperty(parser, typeArray, valueArray);
             if (prop.Name.EqualsIgnoreCase("v1"))
                 line.StartVertex = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("v2"))
@@ -544,13 +571,13 @@ public class UdmfMap : IMap
         lines.Add(line);
     }
 
-    private static void ParseVertex(SimpleParser parser, List<UdmfVertex> vertices)
+    private static void ParseVertex(StreamParser parser, List<UdmfVertex> vertices, DynamicArray<char> typeArray, DynamicArray<char> valueArray)
     {
         double x = 0, y = 0;
 
         while (!IsBlockComplete(parser))
         {
-            var prop = ParseProperty(parser);
+            var prop = ParseProperty(parser, typeArray, valueArray);
             if (prop.Name.EqualsIgnoreCase("x"))
                 x = parser.ParseDouble(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("y"))
@@ -560,14 +587,14 @@ public class UdmfMap : IMap
         vertices.Add(new(vertices.Count, new(x, y)));
     }
 
-    private static Property ParseProperty(SimpleParser parser)
+    private static Property ParseProperty(StreamParser parser, DynamicArray<char> typeArray, DynamicArray<char> valueArray)
     {
-        var type = parser.ConsumeStringSpan();
+        var type = parser.ConsumeStringSpan(typeArray);
         parser.Consume('=');
-        var value = parser.ConsumeStringSpan();
+        var value = parser.ConsumeStringSpan(valueArray);
         parser.Consume(';');
         return new(type, value);
     }
 
-    private static bool IsBlockComplete(SimpleParser parser) => parser.Peek('}');
+    private static bool IsBlockComplete(StreamParser parser) => parser.Peek('}');
 }

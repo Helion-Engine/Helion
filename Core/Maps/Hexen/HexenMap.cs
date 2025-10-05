@@ -30,30 +30,61 @@ public class HexenMap : IMap
     public string MD5 { get; set; }
     public string Name { get; }
     public MapType MapType => MapType.Hexen;
-    public List<HexenLine> Lines;
-    public List<DoomSector> Sectors;
-    public List<DoomSide> Sides;
-    public List<HexenThing> Things;
-    public List<DoomVertex> Vertices;
+    public List<HexenLine> Lines = [];
+    public List<DoomSector> Sectors = [];
+    public List<DoomSide> Sides = [];
+    public List<HexenThing> Things = [];
+    public List<DoomVertex> Vertices = [];
     public GLComponents? GL { get; private set; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
 
-    private HexenMap(Archive archive, string name, List<DoomVertex> vertices, List<DoomSector> sectors, List<DoomSide> sides,
-        List<HexenLine> lines, List<HexenThing> things, GLComponents? gl, byte[]? reject,
-        CompatibilityMapDefinition? compatibility)
+    private MapEntryCollection? m_map;
+    private bool m_loaded;
+
+    private HexenMap(MapEntryCollection map, string archiveFullPath, string name, CompatibilityMapDefinition? compatibility)
     {
-        ArchivePath = archive.FullPath;
+        m_map = map;
+        ArchivePath = archiveFullPath;
         Name = name;
-        Vertices = vertices;
-        Sectors = sectors;
-        Sides = sides;
-        Lines = lines;
-        Things = things;
-        GL = gl;
-        Reject = reject;
         CompatibilityDefinition = compatibility;
         MD5 = string.Empty;
+    }
+
+    public void LoadData()
+    {
+        if (m_loaded)
+            return;
+
+        var map = m_map;
+        m_loaded = true;
+        m_map = null;
+
+        if (map == null)
+            return;
+
+        var vertices = DoomMap.CreateVertices(map.Vertices?.ReadData());
+        if (vertices == null)
+            return;
+
+        var sectors = DoomMap.CreateSectors(map.Sectors?.ReadData());
+        if (sectors == null)
+            return;
+
+        var sides = DoomMap.CreateSides(map.Sidedefs?.ReadData(), sectors, CompatibilityDefinition);
+        if (sides == null)
+            return;
+
+        var lines = CreateLines(map.Linedefs?.ReadData(), vertices, sides, CompatibilityDefinition);
+        if (lines == null)
+            return;
+
+        var things = CreateThings(map.Things?.ReadData());
+        if (things == null)
+            return;
+
+        GL = GLComponents.Read(map);
+        Reject = map.Reject?.ReadData();
     }
 
     public void ClearAllExceptThings()
@@ -80,30 +111,12 @@ public class HexenMap : IMap
     /// do mutation to the geometry if not null.</param>
     /// <returns>The compiled map, or null if the map was malformed due to
     /// missing or bad data.</returns>
-    public static HexenMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility)
+    public static HexenMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility, bool loadData)
     {
-        List<DoomVertex>? vertices = DoomMap.CreateVertices(map.Vertices?.ReadData());
-        if (vertices == null)
-            return null;
-
-        List<DoomSector>? sectors = DoomMap.CreateSectors(map.Sectors?.ReadData());
-        if (sectors == null)
-            return null;
-
-        List<DoomSide>? sides = DoomMap.CreateSides(map.Sidedefs?.ReadData(), sectors, compatibility);
-        if (sides == null)
-            return null;
-
-        List<HexenLine>? lines = CreateLines(map.Linedefs?.ReadData(), vertices, sides, compatibility);
-        if (lines == null)
-            return null;
-
-        List<HexenThing>? things = CreateThings(map.Things?.ReadData());
-        if (things == null)
-            return null;
-
-        GLComponents? gl = GLComponents.Read(map);
-        return new HexenMap(archive, map.Name, vertices, sectors, sides, lines, things, gl, map.Reject?.ReadData(), compatibility);
+        var hexenMap = new HexenMap(map, archive.FullPath, map.Name, compatibility);
+        if (loadData)
+            hexenMap.LoadData();
+        return hexenMap;
     }
 
     public IReadOnlyList<ILine> GetLines() => Lines;
@@ -118,7 +131,6 @@ public class HexenMap : IMap
         if (lineData == null || lineData.Length % BytesPerLine != 0)
             return null;
 
-        int zdoomLineSpecialCount = Enum.GetNames(typeof(ZDoomLineSpecialType)).Length;
         int numLines = lineData.Length / BytesPerLine;
         using ByteReader reader = new(lineData);
         List<HexenLine> lines = new(numLines);
@@ -150,12 +162,6 @@ public class HexenMap : IMap
 
             if (leftSidedef != DoomMap.NoSidedef)
                 back = sides[leftSidedef];
-
-            if ((int)specialType >= zdoomLineSpecialCount)
-            {
-                Log.Warn("Line {0} has corrupt line value (type = {1}), setting line type to 'None'", id, specialType);
-                specialType = ZDoomLineSpecialType.None;
-            }
 
             HexenLine line = new(id, startVertex, endVertex, front, back, lineFlags, specialType, args);
             lines.Add(line);

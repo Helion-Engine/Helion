@@ -35,30 +35,66 @@ public class DoomMap : IMap
     public string MD5 { get; set; }
     public string Name { get; }
     public MapType MapType => MapType.Doom;
-    public List<DoomLine> Lines;
-    public List<DoomSector> Sectors;
-    public List<DoomSide> Sides;
-    public List<DoomThing> Things;
-    public List<DoomVertex> Vertices;
+    public List<DoomLine> Lines = [];
+    public List<DoomSector> Sectors = [];
+    public List<DoomSide> Sides= [];
+    public List<DoomThing> Things = [];
+    public List<DoomVertex> Vertices = [];
     public GLComponents? GL { get; private set; }
     public byte[]? Reject { get; set; }
     public CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
 
-    private DoomMap(Archive archive, string name, List<DoomVertex> vertices, List<DoomSector> sectors, List<DoomSide> sides, 
-        List<DoomLine> lines,  List<DoomThing> things, GLComponents? gl, byte[]? reject,
-        CompatibilityMapDefinition? compatibility)
+    private MapEntryCollection? m_map;
+    private bool m_loaded;
+
+    private DoomMap(MapEntryCollection map, string archiveFullPath, string name,  CompatibilityMapDefinition? compatibility)
     {
-        ArchivePath = archive.FullPath;
+        m_map = map;
+        ArchivePath = archiveFullPath;
         Name = name;
+        CompatibilityDefinition = compatibility;
+        MD5 = string.Empty;
+    }
+
+    public void LoadData()
+    {
+        if (m_loaded)
+            return;
+
+        var map = m_map;
+        m_loaded = true;
+        m_map = null;
+
+        if (map == null)
+            return;
+
+        List<DoomVertex>? vertices = CreateVertices(map.Vertices?.ReadData());
+        if (vertices == null)
+            return;
+
+        List<DoomSector>? sectors = CreateSectors(map.Sectors?.ReadData());
+        if (sectors == null)
+            return;
+
+        List<DoomSide>? sides = CreateSides(map.Sidedefs?.ReadData(), sectors, CompatibilityDefinition);
+        if (sides == null)
+            return;
+
+        List<DoomLine>? lines = CreateLines(map.Linedefs?.ReadData(), vertices, sides, CompatibilityDefinition);
+        if (lines == null)
+            return;
+
+        List<DoomThing>? things = CreateThings(map.Things?.ReadData());
+        if (things == null)
+            return;
+
+        GL = GLComponents.Read(map);
+        Reject = map.Reject?.ReadData();
         Vertices = vertices;
         Sectors = sectors;
         Sides = sides;
         Lines = lines;
         Things = things;
-        GL = gl;
-        Reject = reject;
-        CompatibilityDefinition = compatibility;
-        MD5 = string.Empty;
     }
 
     public void ClearAllExceptThings()
@@ -85,30 +121,12 @@ public class DoomMap : IMap
     /// do mutation to the geometry if not null.</param>
     /// <returns>The compiled map, or null if the map was malformed due to
     /// missing or bad data.</returns>
-    public static DoomMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility)
+    public static DoomMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility, bool loadData)
     {
-        List<DoomVertex>? vertices = CreateVertices(map.Vertices?.ReadData());
-        if (vertices == null)
-            return null;
-
-        List<DoomSector>? sectors = CreateSectors(map.Sectors?.ReadData());
-        if (sectors == null)
-            return null;
-
-        List<DoomSide>? sides = CreateSides(map.Sidedefs?.ReadData(), sectors, compatibility);
-        if (sides == null)
-            return null;
-
-        List<DoomLine>? lines = CreateLines(map.Linedefs?.ReadData(), vertices, sides, compatibility);
-        if (lines == null)
-            return null;
-
-        List<DoomThing>? things = CreateThings(map.Things?.ReadData());
-        if (things == null)
-            return null;
-
-        GLComponents? gl = GLComponents.Read(map);
-        return new(archive, map.Name, vertices, sectors, sides, lines, things, gl, map.Reject?.ReadData(), compatibility);
+        var doomMap = new DoomMap(map, archive.FullPath, map.Name, compatibility);
+        if (loadData)
+            doomMap.LoadData();
+        return doomMap;
     }
 
     public IReadOnlyList<ILine> GetLines() => Lines;

@@ -6,6 +6,7 @@ using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Bytes;
 using Helion.Util.Extensions;
+using Helion.Util.Streams;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Resources.Archives;
@@ -62,6 +63,12 @@ public class Wad : Archive
 
         m_byteReader.Offset(entry.Offset);
         return m_byteReader.ReadBytes(entry.Size);
+    }
+
+    public Stream GetStream(WadEntry entry)
+    {
+        Precondition(entry.Parent == this, "Bad entry parent");
+        return new SubStream(m_byteReader.BaseStream, entry.Offset, entry.Size);
     }
 
     public override void Dispose()
