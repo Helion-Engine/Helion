@@ -503,7 +503,7 @@ public partial class Client
     [ConsoleCommandArg("value", "A decimal value between 0.0 and 1.0")]
     private void CommandSetSoundVolume(ConsoleCommandEventArgs args)
     {
-        if (!SimpleParser.TryParseFloat(args.Args[0], out float volume))
+        if (!NumberParser.TryParseFloat(args.Args[0], out float volume))
         {
             Log.Warn($"Unable to parse sound volume for input: {args.Args[0]}");
             return;

@@ -4,16 +4,11 @@ using System.IO;
 
 namespace Helion.Util.Parser
 {
-    public class StreamParser
+    public class StreamParser(Stream utf8Stream)
     {
-        private readonly StreamReader m_stream;
+        private readonly StreamReader m_stream = new(utf8Stream, System.Text.Encoding.UTF8);
         private readonly DynamicArray<char> m_buffer = new(1024);
         private int m_line;
-
-        public StreamParser(Stream stream)
-        {
-            m_stream = new StreamReader(stream);
-        }
 
         public void Consume(char c)
         {
@@ -25,7 +20,7 @@ namespace Helion.Util.Parser
         public double ConsumeDouble()
         {
             var data = ReadNextTokenSpan();
-            if (!SimpleParser.TryParseDouble(data, out var d))
+            if (!NumberParser.TryParseDouble(data, out var d))
                 throw new ParserException(m_line, -1, -1, $"Expected double but got {data}");
             return d;
         }
@@ -63,14 +58,14 @@ namespace Helion.Util.Parser
 
         public double ParseDouble(ReadOnlySpan<char> data)
         {
-            if (!SimpleParser.TryParseDouble(data, out var d))
+            if (!NumberParser.TryParseDouble(data, out var d))
                 throw new ParserException(m_line, -1, -1, $"Could not parse {data} as a double.");
             return d;
         }
 
         public float ParseFloat(ReadOnlySpan<char> data)
         {
-            if (!SimpleParser.TryParseFloat(data, out var d))
+            if (!NumberParser.TryParseFloat(data, out var d))
                 throw new ParserException(m_line, -1, -1, $"Could not parse {data} as a float.");
             return d;
         }
@@ -84,7 +79,6 @@ namespace Helion.Util.Parser
 
         private string GetNextToken()
         {
-            AssertData();
             return ReadNextTokenSpan().ToString();
         }
 
@@ -192,13 +186,10 @@ namespace Helion.Util.Parser
             while (m_stream.Peek() == '\n')
                 m_stream.Read();
 
-            return buffer.Data.AsSpan(0, buffer.Length);
-        }
-
-        private void AssertData()
-        {
-            if (m_stream.EndOfStream)
+            if (buffer.Length == 0)
                 throw new ParserException(m_line, -1, -1, "Hit end of file when expecting data.");
+
+            return buffer.Data.AsSpan(0, buffer.Length);
         }
     }
 }

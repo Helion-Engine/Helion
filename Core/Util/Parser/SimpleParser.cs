@@ -37,18 +37,6 @@ public class SimpleParser
     private bool m_split;
     private string m_data = string.Empty;
 
-    private static readonly NumberFormatInfo DecimalFormat = new() { NumberDecimalSeparator = "." };
-
-    public static bool TryParseDouble(string text, out double d) =>
-        double.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, DecimalFormat, out d);
-    public static bool TryParseDouble(ReadOnlySpan<char> text, out double d) =>
-        double.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, DecimalFormat, out d);
-
-    public static bool TryParseFloat(string text, out float f) =>
-        float.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, DecimalFormat, out f);
-    public static bool TryParseFloat(ReadOnlySpan<char> text, out float f) =>
-        float.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, DecimalFormat, out f);
-
     private static readonly char[] SpecialChars = ['{', '}', '=', ';', ',', '[', ']'];
 
     public SimpleParser(ParseType parseType = ParseType.Normal, bool keepBeginningSpaces = false)
@@ -402,7 +390,7 @@ public class SimpleParser
         }
 
         AssertData();
-        return TryParseDouble(GetDataSpan(m_index), out d);
+        return NumberParser.TryParseDouble(GetDataSpan(m_index), out d);
     }
 
     public string ConsumeString()
@@ -478,7 +466,7 @@ public class SimpleParser
 
         var token = m_tokens[m_index];
         var data = GetDataSpan(m_index);
-        if (TryParseDouble(data, out double d))
+        if (NumberParser.TryParseDouble(data, out double d))
         {
             m_index++;
             return d;
@@ -504,14 +492,14 @@ public class SimpleParser
 
     public double ParseDouble(ReadOnlySpan<char> data)
     {
-        if (!TryParseDouble(data, out var d))
+        if (!NumberParser.TryParseDouble(data, out var d))
             throw new ParserException(GetCurrentLine(), -1, -1, $"Could not parse {data} as a double.");
         return d;
     }
 
     public float ParseFloat(ReadOnlySpan<char> data)
     {
-        if (!TryParseFloat(data, out var d))
+        if (!NumberParser.TryParseFloat(data, out var d))
             throw new ParserException(GetCurrentLine(), -1, -1, $"Could not parse {data} as a float.");
         return d;
     }
