@@ -7,6 +7,7 @@ using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using Helion.Util.Parser;
 using System;
 using System.Collections.Generic;
@@ -125,6 +126,8 @@ public class UdmfMap : IMap
         DynamicArray<char> typeArray = new(256);
         DynamicArray<char> valueArray = new(256);
         var parser = new StreamParser(textmap);
+        var stringLookup = new Dictionary<string, string>(256);
+        var altLookup = stringLookup.GetAlternateLookup<ReadOnlySpan<char>>();
 
         parser.ConsumeString("namespace");
         parser.Consume('=');
@@ -151,13 +154,13 @@ public class UdmfMap : IMap
             else if (type.EqualsIgnoreCase("sidedef"))
             {
                 parser.Consume('{');
-                ParseSide(parser, sides, typeArray, valueArray);
+                ParseSide(parser, sides, typeArray, valueArray, altLookup);
                 parser.Consume('}');
             }
             else if (type.EqualsIgnoreCase("sector"))
             {
                 parser.Consume('{');
-                ParseSector(parser, sectors, typeArray, valueArray);
+                ParseSector(parser, sectors, typeArray, valueArray, altLookup);
                 parser.Consume('}');
             }
             else if (type.EqualsIgnoreCase("thing"))
@@ -314,7 +317,18 @@ public class UdmfMap : IMap
         }
     }
 
-    private static void ParseSide(StreamParser parser, List<UdmfSide> sides, DynamicArray<char> typeArray, DynamicArray<char> valueArray)
+    private static string GetString(Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> lookup, ReadOnlySpan<char> str)
+    {
+        if (lookup.TryGetValue(str, out var value))
+            return value;
+
+        var newString = str.ToString();
+        lookup[newString] = newString;
+        return newString;
+    }
+
+    private static void ParseSide(StreamParser parser, List<UdmfSide> sides, DynamicArray<char> typeArray, DynamicArray<char> valueArray, 
+        Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> stringLookup)
     {
         UdmfSide side = new();
         while (!IsBlockComplete(parser))
@@ -323,11 +337,11 @@ public class UdmfMap : IMap
             if (prop.Name.EqualsIgnoreCase("sector"))
                 side.SectorId = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturetop"))
-                side.UpperTexture = string.Intern(prop.Value.ToString());
+                side.UpperTexture = GetString(stringLookup, prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturemiddle"))
-                side.MiddleTexture = string.Intern(prop.Value.ToString());
+                side.MiddleTexture = GetString(stringLookup, prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturebottom"))
-                side.LowerTexture = string.Intern(prop.Value.ToString());
+                side.LowerTexture = GetString(stringLookup, prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsetx"))
                 side.Offset.X = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("offsety"))
@@ -383,7 +397,8 @@ public class UdmfMap : IMap
         sides.Add(side);
     }
 
-    private static void ParseSector(StreamParser parser, List<UdmfSector> sectors, DynamicArray<char> typeArray, DynamicArray<char> valueArray)
+    private static void ParseSector(StreamParser parser, List<UdmfSector> sectors, DynamicArray<char> typeArray, DynamicArray<char> valueArray,
+        Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> stringLookup)
     {
         UdmfSector sector = new() { Id = sectors.Count };
         while (!IsBlockComplete(parser))
@@ -394,9 +409,9 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("heightceiling"))
                 sector.CeilingZ = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("texturefloor"))
-                sector.FloorTexture = string.Intern(prop.Value.ToString());
+                sector.FloorTexture = GetString(stringLookup, prop.Value);
             else if (prop.Name.EqualsIgnoreCase("textureceiling"))
-                sector.CeilingTexture = string.Intern(prop.Value.ToString());
+                sector.CeilingTexture = GetString(stringLookup, prop.Value);
             else if (prop.Name.EqualsIgnoreCase("lightlevel"))
                 sector.LightLevel = (short)parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("id"))
@@ -444,9 +459,9 @@ public class UdmfMap : IMap
             else if (prop.Name.EqualsIgnoreCase("leakiness"))
                 sector.Leakiness = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("skyfloor"))
-                sector.SkyFloor = string.Intern(prop.Value.ToString());
+                sector.SkyFloor = GetString(stringLookup, prop.Value);
             else if (prop.Name.EqualsIgnoreCase("skyceiling"))
-                sector.SkyCeiling = string.Intern(prop.Value.ToString());
+                sector.SkyCeiling = GetString(stringLookup, prop.Value);
         }
 
         sectors.Add(sector);
