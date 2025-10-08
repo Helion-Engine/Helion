@@ -238,6 +238,12 @@ public partial class Client
             };
         }
 
+        if (m_commandLineArgs.CompLevel != null)
+        {
+            m_config.Compatibility.SessionCompatLevel.Set(m_commandLineArgs.CompLevel, false, false);
+            compLevelDef.CompLevel = m_config.Compatibility.SessionCompatLevel.Value;
+        }
+
         // apply complevel
         compLevelDef.Apply(m_config);
 
