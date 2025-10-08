@@ -1,14 +1,24 @@
 ﻿using Helion.Util.Container;
 using System;
+using System.Collections.Frozen;
 using System.IO;
 
 namespace Helion.Util.Parser;
 
-public sealed class StreamParser(Stream utf8Stream)
+public sealed class StreamParser
 {
-    private readonly StreamReader m_stream = new(utf8Stream, System.Text.Encoding.UTF8);
+    public bool LastTokenWasQuoted;
+
+    private readonly StreamReader m_stream;
     private readonly DynamicArray<char> m_buffer = new(1024);
+    private readonly FrozenSet<char> m_specialChars;
     private int m_line;
+
+    public StreamParser(Stream utf8Stream, FrozenSet<char> specialChars)
+    {
+        m_stream = new(utf8Stream, System.Text.Encoding.UTF8);
+        m_specialChars = specialChars;
+    }
 
     public void Consume(char c)
     {
@@ -77,6 +87,22 @@ public sealed class StreamParser(Stream utf8Stream)
         return d;
     }
 
+    public bool ConsumeIf(char c)
+    {
+        if (Peek(c))
+        {
+            ConsumeStringSpan(m_buffer);
+            return true;
+        }
+
+        return false;
+    }
+
+    public ParserException MakeException(string exception)
+    {
+        throw new ParserException(m_line, -1, -1, exception);
+    }
+
     private string GetNextToken()
     {
         return ReadNextTokenSpan().ToString();
@@ -84,14 +110,16 @@ public sealed class StreamParser(Stream utf8Stream)
 
     private ReadOnlySpan<char> ReadNextTokenSpan(DynamicArray<char>? buffer = null)
     {
+        LastTokenWasQuoted = false;
         buffer ??= m_buffer;
         buffer.Clear();
         int nextChar;
 
         while ((nextChar = m_stream.Peek()) != -1)
         {
-            var c = (char)nextChar;  
-            if (c == ' ' || c == ';' || c == '\r' || c == '\n' || c == '(' || c == ')')
+            var c = (char)nextChar;
+            var hasSpecial = m_specialChars.Contains(c);
+            if (hasSpecial || c == ' ' || c == '\r' || c == '\n')
             {
                 if (c == '\n')
                     m_line++;
@@ -106,12 +134,11 @@ public sealed class StreamParser(Stream utf8Stream)
                     peekChar = m_stream.Peek();
                 }
 
-                if (c == ';')
-                    return ";";
-                if (c == ')')
-                    return ")";
-                if (c == '(')
-                    return "(";
+                if (hasSpecial)
+                {
+                    buffer.Data[0] = c;
+                    return buffer.Data.AsSpan(0, 1);
+                }
 
                 continue;
             }
@@ -155,6 +182,7 @@ public sealed class StreamParser(Stream utf8Stream)
 
         if ((char)m_stream.Peek() == '"')
         {
+            LastTokenWasQuoted = true;
             m_stream.Read();
             while ((nextChar = m_stream.Read()) != -1)
             {
@@ -175,7 +203,7 @@ public sealed class StreamParser(Stream utf8Stream)
                 m_line++;
                 break;
             }
-            if (c == ' ' || c == ';' || c == '\r')
+            if (c == ' ' || c == '\r' || m_specialChars.Contains(c))
                 break;
             if (c == '/' && m_stream.Peek() == '/')
                 break;

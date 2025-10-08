@@ -10,6 +10,7 @@ using Helion.Util.Extensions;
 using Helion.Util.Loggers;
 using Helion.Util.Parser;
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.IO;
 
@@ -46,6 +47,9 @@ public sealed class UdmfMap : IMap
 
     private MapEntryCollection? m_map;
     private bool m_loaded;
+
+    private static readonly char[] ParseChars = [';', ')', '(', '{', '}'];
+    private static readonly FrozenSet<char> ParseCharSet = ParseChars.ToFrozenSet();
 
     public void ClearAllExceptThings()
     {
@@ -125,7 +129,7 @@ public sealed class UdmfMap : IMap
     {
         DynamicArray<char> typeArray = new(256);
         DynamicArray<char> valueArray = new(256);
-        var parser = new StreamParser(textmap);
+        var parser = new StreamParser(textmap, ParseCharSet);
         var stringLookup = new Dictionary<string, string>(256);
         var altLookup = stringLookup.GetAlternateLookup<ReadOnlySpan<char>>();
 
