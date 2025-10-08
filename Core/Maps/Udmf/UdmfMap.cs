@@ -15,7 +15,7 @@ using System.IO;
 
 namespace Helion.Maps.Udmf;
 
-public class UdmfMap : IMap
+public sealed class UdmfMap : IMap
 {
     readonly ref struct Property(ReadOnlySpan<char> name, ReadOnlySpan<char> value)
     {
