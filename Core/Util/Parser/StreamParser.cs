@@ -119,7 +119,7 @@ public sealed class StreamParser
         {
             var c = (char)nextChar;
             var hasSpecial = m_specialChars.Contains(c);
-            if (hasSpecial || c == ' ' || c == '\r' || c == '\n')
+            if (hasSpecial || c == ' ' || c == '\r' || c == '\n' || c == '\t')
             {
                 if (c == '\n')
                     m_line++;
@@ -129,7 +129,7 @@ public sealed class StreamParser
                 while (peekChar == '\n' || peekChar == '\r')
                 {
                     if (c == '\n')
-                        m_line++;
+                        m_line++; 
                     m_stream.Read();
                     peekChar = m_stream.Peek();
                 }
@@ -203,7 +203,7 @@ public sealed class StreamParser
                 m_line++;
                 break;
             }
-            if (c == ' ' || c == '\r' || m_specialChars.Contains(c))
+            if (c == ' ' || c == '\r' || c == '\t' || m_specialChars.Contains(c))
                 break;
             if (c == '/' && m_stream.Peek() == '/')
                 break;
