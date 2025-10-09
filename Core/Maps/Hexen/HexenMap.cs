@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Components;
@@ -14,7 +12,10 @@ using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Compatibility.Lines;
 using Helion.Util.Bytes;
+using Helion.World.Geometry.Lines;
 using NLog;
+using System;
+using System.Collections.Generic;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Maps.Hexen;
@@ -82,6 +83,12 @@ public class HexenMap : IMap
         var things = CreateThings(map.Things?.ReadData());
         if (things == null)
             return;
+
+        Lines = lines;
+        Sides = sides;
+        Sectors = sectors;
+        Vertices = vertices;
+        Things = things;
 
         GL = GLComponents.Read(map);
         Reject = map.Reject?.ReadData();
