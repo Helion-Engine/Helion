@@ -69,6 +69,17 @@ public sealed class StreamParser
         return m_buffer.Length == 1 && m_buffer[0] == c;
     }
 
+    public bool Peek(string str)
+    {
+        if (!m_peek)
+        {
+            ReadNextTokenSpan();
+            m_peek = true;
+        }
+        var peekSpan = m_buffer.Data.AsSpan(0, m_buffer.Length);
+        return str.AsSpan(0, str.Length).Equals(peekSpan, StringComparison.OrdinalIgnoreCase);
+    }
+
     public double ParseDouble(ReadOnlySpan<char> data)
     {
         if (!NumberParser.TryParseDouble(data, out var d))

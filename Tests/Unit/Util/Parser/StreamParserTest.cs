@@ -20,6 +20,7 @@ public class StreamParserTest
         parser.Consume(';');
         parser.Peek('{').Should().BeTrue();
         parser.ConsumeString().Should().Be("{");
+        parser.Peek("Test/Test").Should().BeTrue();
         parser.ConsumeString().Should().Be("test/test");
         parser.ConsumeString().Should().Be(";");
         parser.ConsumeString("}");
