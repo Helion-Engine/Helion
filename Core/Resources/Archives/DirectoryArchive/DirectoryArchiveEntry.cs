@@ -20,6 +20,11 @@ public class DirectoryArchiveEntry : Entry
         return Parent.ReadData(this);
     }
 
+    public override Stream GetStream()
+    {
+        return Parent.GetStream(this);
+    }
+
     public override void ExtractToFile(string path)
     {
         File.Copy(FilePath, path, true);

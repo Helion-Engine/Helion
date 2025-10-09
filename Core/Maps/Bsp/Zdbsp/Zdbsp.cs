@@ -43,7 +43,7 @@ public class Zdbsp
                 return false;
             }
 
-            outputMap = archiveCollection.FindMap(mapName);
+            outputMap = archiveCollection.FindMap(mapName, FindMapOptions.LoadMapData);
             m_stopwatch.Stop();
             Log.Info($"Completed map load {m_stopwatch.Elapsed}");
             archiveCollection.Dispose();

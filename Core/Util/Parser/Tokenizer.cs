@@ -190,7 +190,7 @@ public class Tokenizer
         m_textIndex--;
         m_lineCharOffset--;
 
-        Postcondition(SimpleParser.TryParseDouble(text, out double _), "Returning a number token but cannot parse a number out of it");
+        Postcondition(NumberParser.TryParseDouble(text, out double _), "Returning a number token but cannot parse a number out of it");
     }
 
     private void ConsumeSlashTokenOrComments()

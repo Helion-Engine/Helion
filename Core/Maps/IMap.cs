@@ -29,22 +29,23 @@ public interface IMap
     CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
     void ClearAllExceptThings();
     void ClearAll();
+    void LoadData();
 
-    public static IMap? Read(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null)
+    public static IMap? Read(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null, bool loadData = true)
     {
-        var map = Create(archive, mapEntries, compatibility);
+        var map = Create(archive, mapEntries, compatibility, loadData);
         if (map != null)
             map.MD5 = mapEntries.GetMD5();
         return map;
     }
 
-    private static IMap? Create(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null)
+    private static IMap? Create(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null, bool loadData = true)
     {
         return mapEntries.MapType switch
         {
-            MapType.Doom => DoomMap.Create(archive, mapEntries, compatibility),
-            MapType.Hexen => HexenMap.Create(archive, mapEntries, compatibility),
-            MapType.UDMF => UdmfMap.Create(archive, mapEntries, compatibility),
+            MapType.Doom => DoomMap.Create(archive, mapEntries, compatibility, loadData),
+            MapType.Hexen => HexenMap.Create(archive, mapEntries, compatibility, loadData),
+            MapType.UDMF => UdmfMap.Create(archive, mapEntries, compatibility, loadData),
             _ => null
         };
     }

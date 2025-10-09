@@ -6,6 +6,7 @@ using Helion.Maps;
 using Helion.Maps.Bsp.Zdbsp;
 using Helion.Models;
 using Helion.Render.OpenGL.Shared;
+using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
@@ -502,7 +503,7 @@ public partial class Client
     [ConsoleCommandArg("value", "A decimal value between 0.0 and 1.0")]
     private void CommandSetSoundVolume(ConsoleCommandEventArgs args)
     {
-        if (!SimpleParser.TryParseFloat(args.Args[0], out float volume))
+        if (!NumberParser.TryParseFloat(args.Args[0], out float volume))
         {
             Log.Warn($"Unable to parse sound volume for input: {args.Args[0]}");
             return;
@@ -847,7 +848,7 @@ public partial class Client
 
             m_lastWorldModel = worldModel;
             var sameMap = m_lastMapName.EqualsIgnoreCase(mapInfoDef.MapName) && m_lastLoadedMap != null;
-            var map = sameMap ? m_lastLoadedMap : m_archiveCollection.FindMap(mapInfoDef.MapName);
+            var map = sameMap ? m_lastLoadedMap : m_archiveCollection.FindMap(mapInfoDef.MapName, FindMapOptions.Default);
 
             if (map == null)
             {
@@ -858,7 +859,7 @@ public partial class Client
             if (!sameMap)
             {
                 var mapCompat = map.CompatibilityDefinition;
-                if (!m_zdbsp.RunZdbsp(map.ArchivePath, map.Name, out var compiledMap))
+                if (!m_zdbsp.RunZdbsp(map.ArchivePath, mapInfoDef.MapName, out var compiledMap))
                 {
                     Log.Error("Failed to run zdbsp.");
                     return result;

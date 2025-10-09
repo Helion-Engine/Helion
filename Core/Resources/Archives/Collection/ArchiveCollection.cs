@@ -169,7 +169,7 @@ public class ArchiveCollection : IResources, IPathResolver
         return null;
     }
 
-    public IMap? FindMap(string mapName)
+    public IMap? FindMap(string mapName, FindMapOptions options = FindMapOptions.Default)
     {
         ClearLastLoadedTempMap();
 
@@ -201,7 +201,7 @@ public class ArchiveCollection : IResources, IPathResolver
                 // confusing to the user in the case where they ask for the
                 // most recent map which is corrupt, but then get some
                 // earlier map in the pack which is not corrupt.
-                map = IMap.Read(archive, mapEntryCollection, compat);
+                map = IMap.Read(archive, mapEntryCollection, compat, (options & FindMapOptions.LoadMapData) != 0);
                 if (map != null)
                 {
                     m_lastLoadedMapIsTemp = false;

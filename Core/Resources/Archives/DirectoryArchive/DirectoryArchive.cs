@@ -23,6 +23,12 @@ public class DirectoryArchive : Archive
         return File.ReadAllBytes(entry.FilePath);
     }
 
+    public Stream GetStream(DirectoryArchiveEntry entry)
+    {
+        Invariant(entry.Parent == this, "Bad entry parent");
+        return new FileStream(entry.FilePath, FileMode.Open);
+    }
+
     public override void Dispose()
     {
         GC.SuppressFinalize(this);

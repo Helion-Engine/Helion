@@ -446,7 +446,7 @@ public abstract class ParserBase
     /// </exception>
     protected double ConsumeFloat()
     {
-        if (PeekFloat() && SimpleParser.TryParseDouble(Tokens[CurrentTokenIndex++].Text, out double number))
+        if (PeekFloat() && NumberParser.TryParseDouble(Tokens[CurrentTokenIndex++].Text, out double number))
             return number;
 
         Token token = Tokens[CurrentTokenIndex];
