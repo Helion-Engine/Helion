@@ -7,7 +7,6 @@ using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using Helion.Util.Loggers;
 using Helion.Util.Parser;
 using System;
 using System.Collections.Frozen;

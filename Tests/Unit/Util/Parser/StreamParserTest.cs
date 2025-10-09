@@ -12,7 +12,7 @@ public class StreamParserTest
     [Fact]
     public void ParseSingleLine()
     {
-        var str = @"/block1;{test/test;}";
+        var str = @"/block1;    {          test/test;}";
         var parser = CreateParser(str);
         parser.ConsumeString().Should().Be("/block1");
         parser.Peek(';').Should().BeTrue();
