@@ -8,6 +8,7 @@ namespace Helion.Util.Parser;
 public sealed class StreamParser
 {
     public bool LastTokenWasQuoted;
+    private bool m_peek;
 
     private readonly StreamReader m_stream;
     private readonly DynamicArray<char> m_buffer = new(1024);
@@ -44,7 +45,7 @@ public sealed class StreamParser
 
     public string ConsumeString()
     {
-        return GetNextToken();
+        return ReadNextTokenSpan().ToString();
     }
 
     // Uses the passed buffer to read the next token and returns the buffer data as a span.
@@ -60,10 +61,12 @@ public sealed class StreamParser
 
     public bool Peek(char c)
     {
-        if (m_stream.EndOfStream)
-            return false;
-
-        return c == m_stream.Peek();
+        if (!m_peek)
+        {
+            ReadNextTokenSpan();
+            m_peek = true;
+        }
+        return m_buffer.Length == 1 && m_buffer[0] == c;
     }
 
     public double ParseDouble(ReadOnlySpan<char> data)
@@ -87,29 +90,26 @@ public sealed class StreamParser
         return d;
     }
 
-    public bool ConsumeIf(char c)
-    {
-        if (Peek(c))
-        {
-            ConsumeStringSpan(m_buffer);
-            return true;
-        }
-
-        return false;
-    }
-
     public ParserException MakeException(string exception)
     {
         throw new ParserException(m_line, -1, -1, exception);
     }
 
-    private string GetNextToken()
-    {
-        return ReadNextTokenSpan().ToString();
-    }
-
     private ReadOnlySpan<char> ReadNextTokenSpan(DynamicArray<char>? buffer = null)
     {
+        if (m_peek)
+        {
+            m_peek = false;
+            if (buffer != null && buffer != m_buffer)
+            {
+                buffer.EnsureCapacity(m_buffer.Length);
+                Array.Copy(m_buffer.Data, buffer.Data, m_buffer.Length);
+                buffer.Length = m_buffer.Length;
+                return buffer.Data.AsSpan(0, buffer.Length);
+            }
+            return m_buffer.Data.AsSpan(0, m_buffer.Length);
+        }
+
         LastTokenWasQuoted = false;
         buffer ??= m_buffer;
         buffer.Clear();
@@ -123,6 +123,7 @@ public sealed class StreamParser
             {
                 if (c == '\n')
                     m_line++;
+
                 m_stream.Read();
 
                 var peekChar = m_stream.Peek();
@@ -137,6 +138,7 @@ public sealed class StreamParser
                 if (hasSpecial)
                 {
                     buffer.Data[0] = c;
+                    buffer.Length = 1;
                     return buffer.Data.AsSpan(0, 1);
                 }
 
@@ -169,7 +171,6 @@ public sealed class StreamParser
                     }
                     continue;
                 }
-
                 else
                 {
                     buffer.Add('/');
@@ -205,10 +206,12 @@ public sealed class StreamParser
             }
             if (c == ' ' || c == '\r' || c == '\t' || m_specialChars.Contains(c))
                 break;
+
+            m_stream.Read();
             if (c == '/' && m_stream.Peek() == '/')
                 break;
 
-            buffer.Add((char)m_stream.Read());
+            buffer.Add(c);
         }
 
         while (m_stream.Peek() == '\n')
