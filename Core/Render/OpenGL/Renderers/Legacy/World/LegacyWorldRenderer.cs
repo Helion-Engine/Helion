@@ -427,6 +427,7 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         planeClipFrameBuffer.BindFrameBuffer();
         PlaneClipFrameBuffer.StartRender();
+        GL.Disable(EnableCap.Blend);
 
         if (m_renderStatic)
         {
@@ -442,8 +443,8 @@ public class LegacyWorldRenderer : WorldRenderer
                 m_interpolationWallClipShader.Unbind();
 
                 m_interpolationWallClipAlphaProgram.Bind();
-                SetStaticUniforms(m_staticWallClipAlphaProgram, renderInfo);
-                m_geometryRenderer.RenderStaticTwoSidedWalls();
+                SetInterpolationUniforms(m_interpolationWallClipAlphaProgram, renderInfo, false);
+                m_worldDataManager.RenderTwoSidedMiddleWalls();
                 m_interpolationWallClipAlphaProgram.Unbind();
             }
             else

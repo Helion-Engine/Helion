@@ -49,21 +49,13 @@ public static class PlaneClip
                 // Pack lower and upper flags and overflow bytes after 65536 for line id.
                 // This should allow for 256x256x64 = 4,194,304 line ids.
                 int byte2 = ((lineId >> 16) & 0x3F) << 2 | int(lowerFrag + (upperFrag * 2));
-                outPlane = vec4(${LineIdSet}, byte1, byte2, depthFrag);
+                
+                // mapIdFrag check is required for flood fill rendering that doesn't separate planes(floor/ceiling) from walls
+                // Planes are written with -1 and need to be ignored
+                outPlane = vec4(mix(byte0, -255, float(mapIdFrag < 0)), byte1, byte2, depthFrag);
             }"
         .Replace("${InVars}", alphaSample ? "in vec2 uvFrag;" : "")
-        .Replace("${AlphaTexture}", GetAlphaSample(alphaSample))
-        .Replace("${LineIdSet}", GetLineIdSet(alphaSample));
-    }
-
-    private static string GetLineIdSet(bool alphaSample)
-    {                
-        // mapIdFrag check is required for flood fill rendering that doesn't separate planes(floor/ceiling) from walls
-        // Planes are written with -1 and need to be ignored
-        if (alphaSample)
-            return "mix(byte0, -1, float(mapIdFrag < 0 || alpha <= 0))";
-
-        return "byte0";
+        .Replace("${AlphaTexture}", GetAlphaSample(alphaSample));
     }
 
     private static string GetAlphaSample(bool alphaSample)
@@ -71,7 +63,8 @@ public static class PlaneClip
         if (!alphaSample)
             return "";
 
-        return @"float alpha = texture(boundTexture, uvFrag.xy).a;";
+        return @"float alpha = texture(boundTexture, uvFrag.xy).a;
+                if (alpha <= 0) discard;";
     }
 
     public static string GetOutPlane(bool planeClip)
