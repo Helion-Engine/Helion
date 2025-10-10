@@ -25,3 +25,4 @@
 - Fix dropoff check to work correctly MF_BOUNCES things and things on midtex3d lines crossing sectors.
 - Fix line of sight checks to ignore lines where floor and ceiling heights are equal (fixes Eviternity MAP26 chain breaking sound).
 - Fix reading pre-0.9.8.0 saves.
+- Fix one-sided scrolling lines not interpolating.

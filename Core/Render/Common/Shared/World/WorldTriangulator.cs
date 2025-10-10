@@ -371,8 +371,8 @@ public static class WorldTriangulator
             }
             else
             {
-                offsetU += (float)side.ScrollData.LastOffsetMiddle.X * textureUVInverse.U / side.Middle.Scale.X;
-                offsetV += (float)side.ScrollData.LastOffsetMiddle.Y * textureUVInverse.V / side.Middle.Scale.Y;
+                offsetU += (float)side.ScrollData.OffsetMiddle.X * textureUVInverse.U / side.Middle.Scale.X;
+                offsetV += (float)side.ScrollData.OffsetMiddle.Y * textureUVInverse.V / side.Middle.Scale.Y;
             }
         }
 
