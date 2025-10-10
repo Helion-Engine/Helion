@@ -139,7 +139,10 @@ public class StaticShader : RenderProgram
             return PlaneClip.WritePlaneFragFunction();
 
         if (this is StaticWallClipShader)
-            return PlaneClip.WriteWallFragFunction();
+            return PlaneClip.WriteWallFragFunction(WallClipFragOptions.None);
+
+        if (this is StaticWallClipAlphaShader)
+            return PlaneClip.WriteWallFragFunction(WallClipFragOptions.AlphaSample);
 
         bool planeClip = this is StaticPlaneClipShaderMrt;
 

@@ -108,7 +108,7 @@ public class PlaneClipFrameBuffer : IDisposable
         if (m_ownsDepthTexture)
             GL.Clear(ClearBufferMask.DepthBufferBit);
 
-        var clear = stackalloc float[3] { -1e30f, 1e30f, -1 };
+        var clear = stackalloc float[4] { -255, -255, -255, -255 };
         GL.ClearBuffer(ClearBuffer.Color, m_clearBufferIndex, clear);
 
         if (m_ownsDepthTexture)
