@@ -249,18 +249,34 @@ public static class WorldTriangulator
                 else
                 {
                     var uvVertex = vertex;
-                    uvVertex = uvVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
-                    uvVertex.X += offset.X;
-                    uvVertex.Y -= offset.Y;
-                    
+                    if (sectorPlane.FlatTransformMethod == FlatTransformMethod.OffsetThenRotate)
+                    {
+                        uvVertex.X += offset.X;
+                        uvVertex.Y -= offset.Y;
+                        uvVertex = uvVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
+                    }
+                    else
+                    {
+                        uvVertex = uvVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
+                        uvVertex.X += offset.X;
+                        uvVertex.Y -= offset.Y;
+                    }
                     uv.X = uvVertex.X / textureVector.X;
                     uv.Y = -(uvVertex.Y / textureVector.Y);
 
                     var prevUVVertex = vertex;
-                    prevUVVertex = prevUVVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
-                    prevUVVertex.X += lastOffset.X;
-                    prevUVVertex.Y -= lastOffset.Y;
-                    
+                    if (sectorPlane.FlatTransformMethod == FlatTransformMethod.OffsetThenRotate)
+                    {
+                        prevUVVertex.X += lastOffset.X;
+                        prevUVVertex.Y -= lastOffset.Y;
+                        prevUVVertex = prevUVVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
+                    }
+                    else
+                    {
+                        prevUVVertex = prevUVVertex.Rotate(sectorPlane.RenderOffsets.Rotate);
+                        prevUVVertex.X += lastOffset.X;
+                        prevUVVertex.Y -= lastOffset.Y;
+                    }
                     prevUV.X = uvVertex.X / textureVector.X;
                     prevUV.Y = -(uvVertex.Y / textureVector.Y);
                 }

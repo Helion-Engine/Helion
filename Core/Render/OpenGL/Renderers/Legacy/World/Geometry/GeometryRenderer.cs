@@ -1,6 +1,5 @@
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
-using Helion.Maps;
 using Helion.Render.Common.Shared.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals;
@@ -30,7 +29,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using static Helion.World.Geometry.Sectors.Sector;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -1429,7 +1427,8 @@ public class GeometryRenderer : IDisposable
                     if (floor && subsector.Flood && !flat.MidTextureHack)
                         continue;
 
-                    WorldTriangulator.HandleSubsector(m_world.BspTree, subsector, flat, textureVector, m_subsectorVertices, floor ? flat.Z : MaxSky);
+                    WorldTriangulator.HandleSubsector(m_world.BspTree, subsector, flat, textureVector, m_subsectorVertices,
+                        floor ? flat.Z : MaxSky);
                     ref var root = ref m_subsectorVertices.Data[0];
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
                     {
