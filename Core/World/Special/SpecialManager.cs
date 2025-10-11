@@ -756,16 +756,15 @@ public sealed class SpecialManager : ITickable, IDisposable
                 SetTransferHeights(line);
                 break;
             case ZDoomLineSpecialType.OffsetPlaneByLineDirection:
-                SetSectorPlaneOffset(line);
+                SetSectorPlaneOffsetAndRotation(line, offset: true, rotate: false);
                 break;
 
             case ZDoomLineSpecialType.RotatePlaneByLineDirection:
-                SetSectorPlaneRotation(line);
+                SetSectorPlaneOffsetAndRotation(line, offset: false, rotate: true);
                 break;
 
             case ZDoomLineSpecialType.OffsetThenRotateByLineDirection:
-                SetSectorPlaneOffset(line);
-                SetSectorPlaneRotation(line);
+                SetSectorPlaneOffsetAndRotation(line, offset: true, rotate: true);
                 break;
 
             case ZDoomLineSpecialType.SetSectorColorMap:
@@ -795,40 +794,56 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private void SetSectorPlaneRotation(Line line)
+    private void SetSectorPlaneOffsetAndRotation(Line line, bool offset, bool rotate)
     {
         SectorPlanes planes = (SectorPlanes)line.Args.Arg1;
         var sectors = GetSectorsFromSpecialLine(line);
-        var rotate = -line.GetAngle();
+        var rotation = -line.GetAngle();
+        var offsetAmount = line.Segment.Delta;
+
+        // Rendering uses the UDMF method of rotate and then offset while id24 uses rotate then offset.
+        // This converts offset of the id24 method to match the internal UDMF method where the same rotation angle can be used.
+        if (offset && rotate)
+            offsetAmount = TranslateOffset(rotation, offsetAmount);
+
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
             if ((planes & SectorPlanes.Floor) != 0)
             {
-                sector.DataChanges |= SectorDataTypes.Rotate;
-                sector.Floor.RenderOffsets.Rotate += rotate;
+                if (rotate)
+                {
+                    sector.DataChanges |= SectorDataTypes.Rotate;
+                    sector.Floor.RenderOffsets.Rotate += rotation;
+                }
+
+                if (offset)
+                    SetPlaneOffset(sector, sector.Floor, offsetAmount);
             }
+
             if ((planes & SectorPlanes.Ceiling) != 0)
             {
-                sector.DataChanges |= SectorDataTypes.Rotate;
-                sector.Ceiling.RenderOffsets.Rotate += rotate;
+                if (rotate)
+                {
+                    sector.DataChanges |= SectorDataTypes.Rotate;
+                    sector.Ceiling.RenderOffsets.Rotate += rotation;
+                }
+     
+                if (offset)
+                    SetPlaneOffset(sector, sector.Ceiling, offsetAmount);                
             }
         }
     }
 
-    private void SetSectorPlaneOffset(Line line)
+    private static Vec2D TranslateOffset(double rotation, Vec2D offsetAmount)
     {
-        SectorPlanes planes = (SectorPlanes)line.Args.Arg1;
-        var sectors = GetSectorsFromSpecialLine(line);
-        var offset = line.Segment.Delta;
-        for (int i = 0; i < sectors.Count; i++)
-        {
-            var sector = sectors.GetSector(i);
-            if ((planes & SectorPlanes.Floor) != 0)
-                SetPlaneOffset(sector, sector.Floor, offset);
-            if ((planes & SectorPlanes.Ceiling) != 0)
-                SetPlaneOffset(sector, sector.Ceiling, offset);
-        }
+        var cos = Math.Cos(rotation);
+        var sin = Math.Sin(rotation);
+
+        var translatedX = cos * offsetAmount.X - sin * offsetAmount.Y;
+        var translatedY = sin * offsetAmount.X + cos * offsetAmount.Y;
+
+        return (translatedX, translatedY);
     }
 
     private static void SetPlaneOffset(Sector sector, SectorPlane plane, Vec2D offset)
