@@ -10,6 +10,7 @@ using Helion.World.Physics;
 using Helion.World.Sound;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction;
@@ -468,6 +469,65 @@ public class SoundManager
         AssertSound(sounds, "dspistol");
     }
 
+    [Fact(DisplayName = "Same sound limit with waiting loop sounds moving in and out of range")]
+    public void SameSoundLimitLoopingSounds()
+    {
+        World.Config.Audio.SameSoundLimit.Set(1);
+        World.Config.Audio.SameSoundWindow.Set(1);
+        GameActions.SetEntityPosition(World, World.Player, (320, 640));
+        ActivateSpecialLine(66);
+
+        var topLeft = GameActions.GetSector(World, 11);
+        var topRight = GameActions.GetSector(World, 12);
+        var bottomLeft = GameActions.GetSector(World, 13);
+        var bottomRight = GameActions.GetSector(World, 14);
+        topLeft.IsMoving.Should().BeTrue();
+        topRight.IsMoving.Should().BeTrue();
+        bottomLeft.IsMoving.Should().BeTrue();
+        bottomRight.IsMoving.Should().BeTrue();
+
+        var sounds = World.SoundManager.GetPlayingSounds();
+        var waiting = World.SoundManager.GetWaitingSounds().ToList();
+        waiting.Count.Should().Be(3);
+        AssertSound(sounds, topLeft.Ceiling);
+        AssertSound(sounds, topRight.Ceiling, false);
+        AssertSound(sounds, bottomLeft.Ceiling, false);
+        AssertSound(sounds, bottomRight.Ceiling, false);
+
+        GameActions.SetEntityPosition(World, World.Player, (704, 384));
+        GameActions.TickWorld(World, 1);
+
+        sounds = World.SoundManager.GetPlayingSounds();
+        waiting = World.SoundManager.GetWaitingSounds().ToList();
+        waiting.Count.Should().Be(3);
+        AssertSound(sounds, topLeft.Ceiling, false);
+        AssertSound(sounds, topRight.Ceiling, false);
+        AssertSound(sounds, bottomLeft.Ceiling, false);
+        AssertSound(sounds, bottomRight.Ceiling);
+
+        GameActions.SetEntityPosition(World, World.Player, (320, 384));
+        GameActions.TickWorld(World, 1);
+
+        sounds = World.SoundManager.GetPlayingSounds();
+        waiting = World.SoundManager.GetWaitingSounds().ToList();
+        waiting.Count.Should().Be(3);
+        AssertSound(sounds, topLeft.Ceiling, false);
+        AssertSound(sounds, topRight.Ceiling, false);
+        AssertSound(sounds, bottomLeft.Ceiling);
+        AssertSound(sounds, bottomRight.Ceiling, false);
+
+        GameActions.SetEntityPosition(World, World.Player, (640, 704));
+        GameActions.TickWorld(World, 1);
+
+        sounds = World.SoundManager.GetPlayingSounds();
+        waiting = World.SoundManager.GetWaitingSounds().ToList();
+        waiting.Count.Should().Be(3);
+        AssertSound(sounds, topLeft.Ceiling, false);
+        AssertSound(sounds, topRight.Ceiling);
+        AssertSound(sounds, bottomLeft.Ceiling, false);
+        AssertSound(sounds, bottomRight.Ceiling, false);
+    }
+
     private static void AssertSoundsPlaying(LinkedList<IAudioSource> list, bool playing)
     {
         var node = list.First;
@@ -478,7 +538,7 @@ public class SoundManager
         }
     }
 
-    private static void AssertSound(LinkedList<IAudioSource> list, SectorPlane sectorPlane)
+    private static void AssertSound(LinkedList<IAudioSource> list, SectorPlane sectorPlane, bool assert = true)
     {
         bool found = false;
         var node = list.First;
@@ -493,7 +553,7 @@ public class SoundManager
             node = node.Next;
         }
 
-        found.Should().BeTrue();
+        found.Should().Be(assert);
     }
 
     private static void AssertSound(LinkedList<IAudioSource> list, string soundName)
