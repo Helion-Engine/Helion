@@ -807,11 +807,13 @@ public sealed class SpecialManager : ITickable, IDisposable
             {
                 sector.DataChanges |= SectorDataTypes.Rotate;
                 sector.Floor.RenderOffsets.Rotate += rotate;
+                sector.Floor.FlatTransformMethod = FlatTransformMethod.OffsetThenRotate;
             }
             if ((planes & SectorPlanes.Ceiling) != 0)
             {
                 sector.DataChanges |= SectorDataTypes.Rotate;
                 sector.Ceiling.RenderOffsets.Rotate += rotate;
+                sector.Ceiling.FlatTransformMethod = FlatTransformMethod.OffsetThenRotate;
             }
         }
     }
