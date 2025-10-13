@@ -679,8 +679,8 @@ public abstract partial class WorldBase : IWorld
         SetupMusicChangers();
         SetSectorSkies();
 
-        if (worldModel == null)
-            SpecialManager.StartInitSpecials(LevelStats);
+        if (!SameAsPreviousMap || worldModel == null)
+            SpecialManager.StartInitSpecials(LevelStats, worldModel != null);
 
         StaticDataApplier.DetermineStaticData(this);
         SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;
