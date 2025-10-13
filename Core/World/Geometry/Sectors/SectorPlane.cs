@@ -32,6 +32,7 @@ public sealed class SectorPlane : ISoundSource
     public bool NoRender;
     public bool LightLevelAbsolute;
     public StaticSkyGeometryData? SkyGeometry;
+    public FlatTransformMethod FlatTransformMethod;
 
     private IAudioSource? m_audio;
     private SoundInfo? m_soundInfo;

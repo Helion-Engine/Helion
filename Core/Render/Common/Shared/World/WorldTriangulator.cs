@@ -13,12 +13,6 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Shared.World;
 
-public enum FlatTransformMethod
-{
-    RotateThenOffset,
-    OffsetThenRotate
-}
-
 public static class WorldTriangulator
 {
     public const double NoOverride = double.MaxValue;
@@ -198,7 +192,7 @@ public static class WorldTriangulator
     }
 
     public static unsafe void HandleSubsector(CompactBspTree bspTree, Subsector subsector, SectorPlane sectorPlane, in Vec2F textureVector,
-        DynamicArray<TriangulatedWorldVertex> verticesToPopulate, FlatTransformMethod transformMethod, double overrideZ = int.MaxValue)
+        DynamicArray<TriangulatedWorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
     {
         Precondition(subsector.SegCount >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
 
@@ -255,7 +249,7 @@ public static class WorldTriangulator
                 else
                 {
                     var uvVertex = vertex;
-                    if (transformMethod == FlatTransformMethod.OffsetThenRotate)
+                    if (sectorPlane.FlatTransformMethod == FlatTransformMethod.OffsetThenRotate)
                     {
                         uvVertex.X += offset.X;
                         uvVertex.Y -= offset.Y;
@@ -271,7 +265,7 @@ public static class WorldTriangulator
                     uv.Y = -(uvVertex.Y / textureVector.Y);
 
                     var prevUVVertex = vertex;
-                    if (transformMethod == FlatTransformMethod.OffsetThenRotate)
+                    if (sectorPlane.FlatTransformMethod == FlatTransformMethod.OffsetThenRotate)
                     {
                         prevUVVertex.X += lastOffset.X;
                         prevUVVertex.Y -= lastOffset.Y;
