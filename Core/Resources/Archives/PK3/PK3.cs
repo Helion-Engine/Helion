@@ -27,19 +27,6 @@ public class PK3 : Archive, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public byte[] ReadData(PK3Entry entry)
-    {
-        Invariant(entry.Parent == this, "Bad entry parent");
-
-        using var stream = entry.ZipEntry.Open();
-        var entryLength = entry.ZipEntry.Length;
-        byte[] data = new byte[entryLength];
-        int writeLength = 0;
-        while(writeLength < entryLength)
-            writeLength += stream.Read(data, writeLength, data.Length - writeLength);
-        return data;
-    }
-
     private static bool ZipEntryDirectory(ZipArchiveEntry entry)
     {
         bool isSeparator = entry.FullName.EndsWith(DirectorySeparatorChar) ||
@@ -52,8 +39,8 @@ public class PK3 : Archive, IDisposable
         if (ZipEntryDirectory(zipEntry))
             return;
 
-        EntryPath entryPath = new(zipEntry.FullName);
-        ResourceNamespace resourceNamespace = NamespaceFromEntryPath(entryPath.FullPath);
+        var resourceNamespace = NamespaceFromEntryPath(zipEntry.FullName);
+        var entryPath = EntryPath.CreatePathedEntry(zipEntry.FullName, resourceNamespace);
         Entries.Add(new PK3Entry(this, zipEntry, entryPath, resourceNamespace, m_indexGenerator.GetIndex(this)));
     }
 

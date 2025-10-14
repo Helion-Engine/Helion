@@ -3,11 +3,12 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
+using Helion.Util.RandomGenerators;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
 namespace Helion.Util.Configs.Components;
 
-public class ConfigGame: ConfigElement<ConfigGame>
+public class ConfigGame : ConfigElement<ConfigGame>
 {
     // Controls/input
 
@@ -71,6 +72,10 @@ public class ConfigGame: ConfigElement<ConfigGame>
     [OptionMenu(OptionSectionType.General, "Quicksave Seconds")]
     public readonly ConfigValue<int> QuickSaveSeconds = new(0, GreaterOrEqual(0));
 
+    [ConfigInfo("Display screenshot and extended information in Save/Load menu.")]
+    [OptionMenu(OptionSectionType.General, "Display Savegame Details")]
+    public readonly ConfigValue<bool> ExtendedSaveGameInfo = new(true);
+
     // Cheats
 
     [ConfigInfo("Mark lines and sectors that are activated by a special in the automap.")]
@@ -92,16 +97,35 @@ public class ConfigGame: ConfigElement<ConfigGame>
     [OptionMenu(OptionSectionType.General, "Pistol Starts")]
     public readonly ConfigValue<bool> PistolStart = new(false);
 
+    [ConfigInfo("Starts a cooperative game in single player.", save: false, serialize: true)]
+    [OptionMenu(OptionSectionType.General, "Solo-Net")]
+    public readonly ConfigValue<bool> SoloNet = new(false);
+
     [ConfigInfo("Enable fast monsters.", save: false, demo: true, serialize: true)]
     [OptionMenu(OptionSectionType.General, "Fast Monsters")]
     public readonly ConfigValue<bool> FastMonsters = new(false);
 
+    [ConfigInfo("Modifies damage to players.")]
+    [OptionMenu(OptionSectionType.General, "Damage Receive Multiplier", sliderMin: 0, sliderMax: 10.0, sliderStep: .1)]
+    public readonly ConfigValue<double> DamageReceiveMultiplier = new(1.0, GreaterOrEqual(0.0));
+
+    [ConfigInfo("Modifies damage to non-players from players.")]
+    [OptionMenu(OptionSectionType.General, "Damage Multiplier", sliderMin: 0, sliderMax: 10.0, sliderStep: .1)]
+    public readonly ConfigValue<double> DamageApplyMultiplier = new(1.0, GreaterOrEqual(0.0));
+
+    [ConfigInfo("Random number generator method.", save: false, demo: true, serialize: true, mapRestartRequired: true)]
+    [OptionMenu(OptionSectionType.General, "RNG Method", spacer: true)]
+    public readonly ConfigValue<RngMethod> Rng = new(RngMethod.Boom);
+
+    [ConfigInfo("Shows the currently played WAD/map in Discord.")]
+    [OptionMenu(OptionSectionType.General, "Discord Integration", spacer: true)]
+    public readonly ConfigValue<bool> DiscordIntegration = new(true);
 
     // Non-menu items
     [ConfigInfo("Write stats to levelstat.txt.", save: false)]
     public readonly ConfigValue<bool> LevelStat = new(false);
 
-    [ConfigInfo("Skill level to use when starting a map.", save: false, demo: true)]
+    [ConfigInfo("Skill level to use when starting a map.", save: false, demo: true, mapRestartRequired: true)]
     public readonly ConfigValue<SkillLevel> Skill = new(SkillLevel.Medium, ConfigSetFlags.OnNewWorld, OnlyValidEnums<SkillLevel>());
 
     [ConfigInfo("Enable monster closet detection and limited monster AI (Map restart required).", mapRestartRequired: true, demo: true)]

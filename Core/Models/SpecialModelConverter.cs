@@ -6,7 +6,7 @@
     using System.Text.Json;
     using System.Text.Json.Serialization;
 
-    internal class SpecialModelConverter : JsonConverter<ISpecialModel>
+    internal sealed class SpecialModelConverter : JsonConverter<ISpecialModel>
     {
         // We're keeping a dictionary of specific type names, rather than using reflection to discover all types that
         // implement the expected interface, because the reflection might complicate trimmed and/or AOT publish.

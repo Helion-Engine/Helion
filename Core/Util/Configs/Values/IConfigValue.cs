@@ -54,8 +54,15 @@ public interface IConfigValue
     ///     string   -> numeric:  attempts a TryParse
     /// </remarks>
     /// <param name="newValue">The new value.</param>
+    /// <param name="writeToConfig">Whether this change should write to the config file</param>
+    /// <param name="fireChangeEvents">Whether event handlers subscribed to this value should fire on this change</param>
     /// <returns>The set result.</returns>
-    ConfigSetResult Set(object newValue, bool writeToConfig = true);
+    ConfigSetResult Set(object newValue, bool writeToConfig = true, bool fireChangeEvents = true);
+
+    /// <summary>
+    /// Attempts to parse a new value without setting it.
+    /// </summary>
+    bool TryConvert(object value, out object? converted);
 
     /// <summary>
     /// Applies the queued changes, if any.

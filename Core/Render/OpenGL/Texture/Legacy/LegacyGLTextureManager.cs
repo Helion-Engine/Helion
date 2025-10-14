@@ -23,7 +23,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
     private List<GLLegacyTexture> m_registeredTextures = new();
 
-    public LegacyGLTextureManager(IConfig config, ArchiveCollection archiveCollection) : 
+    public LegacyGLTextureManager(IConfig config, ArchiveCollection archiveCollection) :
         base(config, archiveCollection)
     {
         ImageDrawInfoProvider = new GLLegacyImageDrawInfoProvider(this);
@@ -77,7 +77,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
             SetAnisotropicFiltering(texture.Target);
             texture.Unbind();
         }
-        
+
         foreach (GLLegacyTexture texture in TextureTrackerClamp.GetValues())
         {
             texture.Bind();
@@ -124,7 +124,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         texture.Flags = flags;
     }
 
-    public unsafe void ReUpload(GLLegacyTexture texture, Image image, uint[] imagePixels)
+    public unsafe override void ReUpload(GLLegacyTexture texture, Image image, uint[] imagePixels)
     {
         GL.BindTexture(texture.Target, texture.TextureId);
 
@@ -150,7 +150,8 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
         ResourceNamespace resourceNamespace, TextureFlags flags = TextureFlags.Default)
     {
         int textureId = GL.GenTexture();
-        GLLegacyTexture texture = new(textureId, name, image.Dimension, image.Offset, image.Namespace, TextureTarget.Texture2D, image.TransparentPixelCount(), image.BlankRowsFromBottom);
+        GLLegacyTexture texture = new(textureId, name, image.Dimension, image.Offset, image.Namespace, TextureTarget.Texture2D, 
+            image.TransparentPixelCount(), image.BlankRowsFromTop, image.BlankRowsFromBottom);
         UploadAndSetParameters(texture, image, name, resourceNamespace, flags);
 
         return texture;
@@ -172,8 +173,8 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
 
     private void SetTextureParameters(TextureTarget targetType, ResourceNamespace resourceNamespace, TextureFlags flags)
     {
-        TextureWrapMode textureWrapS = flags.HasFlag(TextureFlags.ClampX) ? TextureWrapMode.ClampToEdge : TextureWrapMode.Repeat;
-        TextureWrapMode textureWrapT = flags.HasFlag(TextureFlags.ClampY) ? TextureWrapMode.ClampToEdge : TextureWrapMode.Repeat;
+        TextureWrapMode textureWrapS = (flags & TextureFlags.ClampX) != 0 ? TextureWrapMode.ClampToEdge : TextureWrapMode.Repeat;
+        TextureWrapMode textureWrapT = (flags & TextureFlags.ClampY) != 0 ? TextureWrapMode.ClampToEdge : TextureWrapMode.Repeat;
         GL.TexParameter(targetType, TextureParameterName.TextureWrapS, (int)textureWrapS);
         GL.TexParameter(targetType, TextureParameterName.TextureWrapT, (int)textureWrapT);
 
@@ -224,7 +225,7 @@ public class LegacyGLTextureManager : GLTextureManager<GLLegacyTexture>
     {
         if (m_disposed)
             return;
-        
+
         Config.Render.Filter.Texture.OnChanged -= HandleFilterChange;
         Config.Render.Anisotropy.OnChanged -= HandleAnisotropyChange;
 

@@ -27,6 +27,7 @@ using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.World.Geometry.Islands;
 using Helion.World.Entities.Players;
+using Helion.Maps.Specials;
 
 namespace Helion.Util;
 
@@ -46,22 +47,21 @@ public class DataCache
     private readonly DynamicArray<IAudioSource> m_audioSources = new();
     private readonly DynamicArray<DynamicArray<Entity>> m_entityLists = new();
     private readonly DynamicArray<DynamicArray<RenderableGlyph>> m_glyphs = new();
-    private readonly DynamicArray<List<RenderableSentence>> m_sentences = new();
+    private readonly DynamicArray<DynamicArray<RenderableSentence>> m_sentences = new();
     private readonly DynamicArray<RenderableString> m_strings = new();
     private readonly DynamicArray<HudDrawBufferData> m_hudDrawBufferData = new();
-    private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new();
-    private readonly DynamicArray<LinkedListNode<IAudioSource>> m_audioNodes = new();
+    private readonly DynamicArray<LinkedListNode<ClipSpan>> m_clipSpans = new(DefaultLength);
     private readonly DynamicArray<LinkedListNode<WaitingSound>> m_waitingSoundNodes = new();
     private readonly DynamicArray<LinkedListNode<ISpecial>> m_specialNodes = new();
-    private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new();
+    private readonly DynamicArray<LinkedListNode<ConsoleMessage>> m_consoleMessageNodes = new(256);
     private readonly DynamicArray<LightChangeSpecial> m_lightChanges = new();
     private readonly DynamicArray<SectorMoveSpecial> m_sectorMoveSpecials = new();
     private readonly DynamicArray<SwitchChangeSpecial> m_switchSpecials = new();
     private readonly DynamicArray<StairSpecial> m_stairSpecials = new();
-    private readonly DynamicArray<ConsoleMessage> m_consoleMessages = new();
+    private readonly DynamicArray<ConsoleMessage> m_consoleMessages = new(256);
     private readonly DynamicArray<DynamicVertex[]> m_wallVertices = new(DefaultLength);
     private readonly DynamicArray<SkyGeometryVertex[]> m_skyWallVertices = new(DefaultLength);
-    public WeakEntity?[] WeakEntities = new WeakEntity?[DefaultLength];
+    private readonly DynamicArray<LinkedListNode<Entity>> m_entityLinkedListNodes = new(32);
 
     public bool CacheEntities = true;
 
@@ -74,6 +74,9 @@ public class DataCache
             m_consoleMessages.Add(new ConsoleMessage());
             m_consoleMessageNodes.Add(new LinkedListNode<ConsoleMessage>(null!));
         }
+
+        for (int i = 0; i < DefaultLength; i++)
+            m_clipSpans.Add(new LinkedListNode<ClipSpan>(default));
 
         // Index zero is reserved for null
         for (int i = 1; i < Entities.Length; i++)
@@ -105,14 +108,14 @@ public class DataCache
     }
 
     public Entity GetEntity(int thingId, EntityDefinition definition, in Vec3D position, double angleRadians,
-        Sector sector, IWorld world)
+        Sector sector, IWorld world, in SpecialArgs args)
     {
         int id = EntityId++;
         if (m_entities.Length > 0)
         {
             int entityIndex = m_entities.RemoveLast();
             var entity = Entities[entityIndex];
-            entity.Set(entity.Index, id, thingId, definition, position, angleRadians, sector, world);
+            entity.Set(entity.Index, id, thingId, definition, position, angleRadians, sector, world, args);
             return entity;
         }
 
@@ -123,13 +126,13 @@ public class DataCache
         if (Entities[index] != null)
         {
             var entity = Entities[index];
-            entity.Set(index, id, thingId, definition, position, angleRadians, sector, world);
+            entity.Set(index, id, thingId, definition, position, angleRadians, sector, world, args);
             return entity;
         }
 
         var newEntity = new Entity();
         Entities[index] = newEntity;
-        newEntity.Set(index, id, thingId, definition, position, angleRadians, sector, world);
+        newEntity.Set(index, id, thingId, definition, position, angleRadians, sector, world, args);
         return newEntity;
     }
 
@@ -180,8 +183,8 @@ public class DataCache
     {
         int id = EntityId++;
         int index = EntityLength++;
-        if (index >= EntityLength)
-            Array.Resize(ref Entities, Entities.Length * 2);
+        if (index >= Entities.Length)
+            EnsureEntityCount(Entities.Length * 2);
 
         Player newPlayer = new();
         Entities[index] = newPlayer;
@@ -269,15 +272,15 @@ public class DataCache
         m_entityLists.Add(list);
     }
 
-    public List<RenderableSentence> GetRenderableSentences()
+    public DynamicArray<RenderableSentence> GetRenderableSentences()
     {
         if (m_sentences.Length > 0)
             return m_sentences.RemoveLast();
 
-        return new List<RenderableSentence>();
+        return new DynamicArray<RenderableSentence>();
     }
 
-    private void FreeRenderableSentences(List<RenderableSentence> list)
+    private void FreeRenderableSentences(DynamicArray<RenderableSentence> list)
     {
         list.Clear();
         m_sentences.Add(list);
@@ -321,7 +324,7 @@ public class DataCache
 
     public void FreeRenderableStringData(RenderableString renderableString)
     {
-        for (int i = 0; i < renderableString.Sentences.Count; i++)
+        for (int i = 0; i < renderableString.Sentences.Length; i++)
             FreeRenderableGlyphs(renderableString.Sentences[i].Glyphs);
         FreeRenderableSentences(renderableString.Sentences);
 
@@ -329,16 +332,16 @@ public class DataCache
         renderableString.Font = null!;
     }
 
-    public HudDrawBufferData GetDrawHudBufferData(GLLegacyTexture texture)
+    public HudDrawBufferData GetDrawHudBufferData(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
         if (m_hudDrawBufferData.Length > 0)
         {
             var buffer = m_hudDrawBufferData.RemoveLast();
-            buffer.Set(texture);
+            buffer.Set(texture, brightmapTexture);
             return buffer;
         }
 
-        return new HudDrawBufferData(texture);
+        return new HudDrawBufferData(texture, brightmapTexture);
     }
 
     public void FreeDrawHudBufferData(HudDrawBufferData data)
@@ -401,6 +404,24 @@ public class DataCache
         m_waitingSoundNodes.Add(audio);
     }
 
+    public LinkedListNode<Entity> GetLinkedListNodeEntity(Entity entity)
+    {
+        if (m_entityLinkedListNodes.Length > 0)
+        {
+            var node = m_entityLinkedListNodes.RemoveLast();
+            node.Value = entity;
+            return node;
+        }
+
+        return new LinkedListNode<Entity>(entity);
+    }
+
+    public void FreeLinkedListNodeEntity(LinkedListNode<Entity> entity)
+    {
+        entity.Value = null!;
+        m_entityLinkedListNodes.Add(entity);
+    }
+
     public LightChangeSpecial GetLightChangeSpecial(IWorld world, Sector sector, short lightLevel, int fadeTics)
     {
         if (m_lightChanges.Length > 0)
@@ -440,7 +461,7 @@ public class DataCache
         return new SectorMoveSpecial();
     }
 
-    public SectorMoveSpecial GetSectorMoveSpecial(IWorld world, Sector sector, SectorMoveSpecialModel model)
+    public SectorMoveSpecial GetSectorMoveSpecial(IWorld world, Sector sector, in SectorMoveSpecialModel model)
     {
         if (m_sectorMoveSpecials.Length > 0)
         {
@@ -479,7 +500,7 @@ public class DataCache
         return new SwitchChangeSpecial(world, line, type);
     }
 
-    public SwitchChangeSpecial GetSwitchChangeSpecial(IWorld world, Line line, SwitchChangeSpecialModel model)
+    public SwitchChangeSpecial GetSwitchChangeSpecial(IWorld world, Line line, in SwitchChangeSpecialModel model)
     {
         if (m_switchSpecials.Length > 0)
         {

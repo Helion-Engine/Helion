@@ -1,4 +1,6 @@
-﻿using Helion.Geometry;
+﻿using System;
+using System.Globalization;
+using Helion.Geometry;
 using Helion.Graphics;
 using Helion.Render.Common.Renderers;
 using Helion.Util;
@@ -6,7 +8,6 @@ using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
 using Helion.Window;
 using Helion.Window.Input;
-using System;
 
 namespace Helion.Layer.Options.Dialogs;
 
@@ -68,7 +69,7 @@ public class Slider(decimal value, decimal step, decimal min, decimal max, Rende
         hud.FillBox((0, centerY, width, centerY + barHeight), Color.Gray);
         hud.FillBox((sliderOffsetX - 1, -1, sliderOffsetX - 1 + sliderWidth + 2, sliderHeight + 1), Color.Black);
         hud.FillBox((sliderOffsetX, 0, sliderOffsetX + sliderWidth, sliderHeight), Color.Red);
-        hud.Text(Value.ToString(), Constants.Fonts.SmallGray, config.GetMenuSmallFontSize(), (width + config.GetMenuScaled(8), 0));
+        hud.Text(Value.ToString(CultureInfo.CurrentCulture), Constants.Fonts.SmallGray, config.GetMenuSmallFontSize(), (width + config.GetMenuScaled(8), 0));
         return (0, 0);
     }
 }

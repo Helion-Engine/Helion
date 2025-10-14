@@ -2,67 +2,98 @@
 
 using Helion.Audio;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configs.Components;
-using Helion.Util.Extensions;
-using Helion.Util.Sounds.Mus;
 using NLog;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.IO;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using ZMusicWrapper;
 
 public class MusicPlayer : IMusicPlayer
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    private uint m_lastDataHash;
+    private UInt128 m_lastDataHash;
     private bool m_disposed;
 
+    private readonly PathsManager m_pathsManager;
     private readonly ConfigAudio m_configAudio;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly ConcurrentQueue<PlayParams> m_playQueue = [];
-    private readonly Dictionary<uint, byte[]> m_convertedMus = [];
     private readonly CancellationTokenSource m_cancelPlayQueue = new();
     private readonly Task m_playQueueTask;
-    private Thread? m_playStartThread;
-    private ZMusicWrapper.ZMusicPlayer m_zMusicPlayer;
-    private FluidSynthMusicPlayer m_fluidSynthPlayer;
+    private readonly AudioStreamFactory m_audioStreamFactory = new();
+    private ZMusicPlayer m_zMusicPlayer;
+#pragma warning disable CA5351
+    private readonly MD5 m_md5 = MD5.Create();
+#pragma warning restore CA5351
     private bool m_genMidiPatchLoaded;
     private PlayParams? m_currentTrack;
+    private bool m_isMidi;
+    private bool m_soundFontChanged;
     private bool m_enabled = true;
+    private const string DefaultSoundFont = "SoundFonts/Default.sf2";
 
-    public MusicPlayer(ConfigAudio configAudio, ArchiveCollection archiveCollection)
+    public MusicPlayer(PathsManager pathsManager, ConfigAudio configAudio, ArchiveCollection archiveCollection)
     {
+        m_pathsManager = pathsManager;
         m_configAudio = configAudio;
         m_archiveCollection = archiveCollection;
         m_playQueueTask = Task.Factory.StartNew(PlayQueueTask, m_cancelPlayQueue.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
-
-        AudioStreamFactory streamFactory = new AudioStreamFactory();
 
         // Hook up event handlers
         m_configAudio.SoundFontFile.OnChanged += SoundFontFile_OnChanged;
         m_configAudio.EnableChorus.OnChanged += EnableChorus_OnChanged;
         m_configAudio.EnableReverb.OnChanged += EnableReverb_OnChanged;
         m_configAudio.Synthesizer.OnChanged += Synthesizer_OnChanged;
+        string soundFontPath = GetFullSoundFontPathOrFallback(configAudio.SoundFontFile);
 
-        m_zMusicPlayer = new ZMusicWrapper.ZMusicPlayer(
-            streamFactory,
-            configAudio.Synthesizer == Synth.OPL3 ? ZMusicWrapper.MidiDevice.OPL3 : ZMusicWrapper.MidiDevice.FluidSynth,
-            configAudio.SoundFontFile,
-            null,
-            (float)(configAudio.MusicVolume.Value * .5));
-        m_fluidSynthPlayer = new FluidSynthMusicPlayer(
-            configAudio.SoundFontFile.Value,
-            streamFactory,
-            (float)m_configAudio.MusicVolume,
-            m_configAudio.EnableChorus,
-            m_configAudio.EnableReverb);
-        SetSynthesizer();
+        m_zMusicPlayer = CreateZMusicPlayer(configAudio, m_audioStreamFactory, soundFontPath);
     }
 
-    private void Synthesizer_OnChanged(object? sender, Synth e) => SetSynthesizer();
+    private ZMusicPlayer CreateZMusicPlayer(ConfigAudio configAudio, AudioStreamFactory streamFactory, string soundFontPath)
+    {
+        FluidMidiOptions midiOptions = FluidMidiOptions.None;
+        if (configAudio.EnableChorus)
+            midiOptions |= FluidMidiOptions.Chorus;
+        if (configAudio.EnableReverb)
+            midiOptions |= FluidMidiOptions.Reverb;
+
+        var player = new ZMusicPlayer(
+            streamFactory,
+            configAudio.Synthesizer == Synth.OPL3 ? MidiDevice.OPL3 : MidiDevice.FluidSynth,
+            soundFontPath,
+            null,
+            (float)configAudio.MusicVolume.Value,
+            fluidMidiOptions: midiOptions);
+        SetSynthesizer(player);
+        return player;
+    }
+
+    private string GetFullSoundFontPathOrFallback(string soundFontPath)
+    {
+        foreach (var folder in m_pathsManager.SoundFontsFolders)
+        {
+            string fullPath = Path.Combine(folder, soundFontPath);
+            if (Path.Exists(fullPath))
+                return fullPath;
+        }
+        // if not found, get the fallback in one of the search folders
+        foreach (var folder in m_pathsManager.SoundFontsFolders)
+        {
+            string fullPath = Path.Combine(folder, DefaultSoundFont);
+            if (Path.Exists(fullPath))
+                return fullPath;
+        }
+        return DefaultSoundFont;
+    }
+
+    private void Synthesizer_OnChanged(object? sender, Synth e) => SetSynthesizer(m_zMusicPlayer);
     private void EnableReverb_OnChanged(object? sender, bool e) => SetChorusAndReverb();
     private void EnableChorus_OnChanged(object? sender, bool e) => SetChorusAndReverb();
     private void SoundFontFile_OnChanged(object? sender, string e) => ChangeSoundFont();
@@ -70,13 +101,11 @@ public class MusicPlayer : IMusicPlayer
     public void OutputChanging()
     {
         m_zMusicPlayer.OnDeviceChanging();
-        m_fluidSynthPlayer.OutputChanging();
     }
 
     public void OutputChanged()
     {
         m_zMusicPlayer.OnDeviceChanged();
-        m_fluidSynthPlayer.OutputChanged();
     }
 
     private readonly struct PlayParams(byte[] data, MusicPlayerOptions options)
@@ -98,39 +127,65 @@ public class MusicPlayer : IMusicPlayer
     public void ChangeSoundFont()
     {
         if (m_disposed)
+            return;
+
+        // This requires a reset of ZMusic so only trigger the change when playing a midi through fluidsynth.
+        if (!m_isMidi || m_configAudio.Synthesizer.Value != Synth.FluidSynth)
         {
+            m_soundFontChanged = true;
             return;
         }
 
-        m_fluidSynthPlayer.EnsureSoundFont(m_configAudio.SoundFontFile);
+        var isPlaying = m_zMusicPlayer.IsPlaying;
+        var soundFontPath = GetFullSoundFontPathOrFallback(m_configAudio.SoundFontFile);
+        m_zMusicPlayer.ChangeSoundFont(soundFontPath);
+
+        if (isPlaying && m_currentTrack.HasValue)
+        {
+            var track = m_currentTrack.Value;
+            m_playQueue.Enqueue(new(track.Data, track.Options | MusicPlayerOptions.Reload));
+        }
     }
 
-    public void SetSynthesizer()
+    private void RestartZMusicPlayer()
+    {
+        m_zMusicPlayer.Stop();
+        if (m_currentTrack.HasValue)
+            PlayMusic(m_currentTrack.Value, m_currentTrack.Value.Data);
+    }
+
+    public void SetSynthesizer(ZMusicPlayer player)
     {
         if (m_disposed)
         {
             return;
         }
 
-        ZMusicWrapper.MidiDevice currentDevice = m_zMusicPlayer.PreferredDevice;
-        ZMusicWrapper.MidiDevice newDevice = m_configAudio.Synthesizer == Synth.OPL3
-            ? ZMusicWrapper.MidiDevice.OPL3
-            : ZMusicWrapper.MidiDevice.FluidSynth;
+        MidiDevice currentDevice = player.PreferredDevice;
+        MidiDevice newDevice = m_configAudio.Synthesizer == Synth.OPL3
+            ? MidiDevice.OPL3
+            : MidiDevice.FluidSynth;
 
         if (currentDevice != newDevice)
         {
-            m_zMusicPlayer.PreferredDevice = newDevice;
+            player.PreferredDevice = newDevice;
             if (m_currentTrack?.Data != null)
             {
-                MusicPlayerOptions newOptions = (m_currentTrack?.Options ?? MusicPlayerOptions.None) & ~MusicPlayerOptions.IgnoreAlreadyPlaying;
-                this.Play(m_currentTrack?.Data!, newOptions);
+                var newOptions = (m_currentTrack?.Options ?? MusicPlayerOptions.None) | MusicPlayerOptions.Reload;
+                Play(m_currentTrack?.Data!, newOptions);
             }
         }
     }
 
     public void SetChorusAndReverb()
     {
-        m_fluidSynthPlayer.SetChorusAndReverb(m_configAudio.EnableChorus, m_configAudio.EnableReverb);
+        var options = FluidMidiOptions.None;
+        if (m_configAudio.EnableChorus)
+            options |= FluidMidiOptions.Chorus;
+        if (m_configAudio.EnableReverb)
+            options |= FluidMidiOptions.Reverb;
+
+        m_zMusicPlayer.SetFluidMidiOptions(options);
     }
 
     private void PlayQueueTask()
@@ -138,7 +193,15 @@ public class MusicPlayer : IMusicPlayer
         while (!m_disposed)
         {
             if (m_playQueue.TryDequeue(out var playParams))
-                CreateAndPlayMusic(playParams);
+                try
+                {
+                    CreateAndPlayMusic(playParams);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warn($"Could not start music playback.");
+                    Log.Info(ex);
+                }
 
             if (m_cancelPlayQueue.IsCancellationRequested)
                 break;
@@ -147,16 +210,17 @@ public class MusicPlayer : IMusicPlayer
         }
     }
 
-    private void CreateAndPlayMusic(PlayParams playParams)
+    private void CreateAndPlayMusic(in PlayParams playParams)
     {
         if (!m_enabled)
             return;
 
-        m_currentTrack = playParams;
+        m_currentTrack = new(playParams.Data, playParams.Options & ~MusicPlayerOptions.Reload);
         var data = playParams.Data;
         var options = playParams.Options;
-        uint hash = data.CalculateCrc32();
-        if (options.HasFlag(MusicPlayerOptions.IgnoreAlreadyPlaying))
+        UInt128 hash = BitConverter.ToUInt128(m_md5.ComputeHash(data));
+
+        if ((options & MusicPlayerOptions.IgnoreAlreadyPlaying) != 0 && (options & MusicPlayerOptions.Reload) == 0)
         {
             if (hash == m_lastDataHash)
                 return;
@@ -165,44 +229,24 @@ public class MusicPlayer : IMusicPlayer
         m_lastDataHash = hash;
 
         Stop();
-        SetVolume((float)m_configAudio.MusicVolumeNormalized);
-        bool isMidi = m_zMusicPlayer.IsMIDI(data, out string? error);
 
-        if (!string.IsNullOrEmpty(error))
-        {
-            // ZMusic can't make sense of this, so just log it and give up.
-            Log.Warn("Unknown/unsupported music format.");
+        if (m_configAudio.Synthesizer == Synth.OPL3 && !EnsurePatchSetLoaded())
             return;
+
+        m_isMidi = m_zMusicPlayer.IsMIDI(data, out _);
+        PlayMusic(playParams, data);
+    }
+
+    private void PlayMusic(in PlayParams playParams, byte[] data)
+    {
+        if (m_soundFontChanged)
+        {
+            m_soundFontChanged = false;
+            ChangeSoundFont();
         }
 
-        if (!isMidi || (m_configAudio.Synthesizer == Synth.OPL3 && EnsurePatchSetLoaded()))
-        {
-            // MP3, OGG, MOD, XM, IT, etc. -- use ZMusic.
-            // No need for the "play thread" wrapper here because the player spins up its own thread/task internally
-            m_zMusicPlayer.Play(data, playParams.Options.HasFlag(MusicPlayerOptions.Loop));
-        }
-        else
-        {
-            if (m_convertedMus.TryGetValue(m_lastDataHash, out var converted) || MusToMidi.TryConvert(data, out converted))
-            {
-                m_convertedMus[m_lastDataHash] = converted;
-                data = converted;
-            }
-            else if (MusToMidi.TryConvertNoHeader(data, out converted))
-            {
-                m_convertedMus[m_lastDataHash] = converted;
-                data = converted;
-            }
-            else
-            {
-                // Warn and give up
-                Log.Warn("Unknown/unsupported MIDI-like music format");
-                return;
-            }
-
-            m_playStartThread = new Thread(() => m_fluidSynthPlayer.Play(data, playParams.Options));
-            m_playStartThread.Start();
-        }
+        SetVolume();
+        m_zMusicPlayer.Play(data, (playParams.Options & MusicPlayerOptions.Loop) != 0);
     }
 
     private bool EnsurePatchSetLoaded()
@@ -257,13 +301,20 @@ public class MusicPlayer : IMusicPlayer
         m_playQueueTask.Wait(1000);
 
         m_zMusicPlayer.Dispose();
+        m_md5.Dispose();
         m_disposed = true;
     }
 
-    public void SetVolume(float volume)
+    public void SetVolume()
     {
-        m_zMusicPlayer.Volume = (float)(volume * .5);
-        m_fluidSynthPlayer.SetVolume(volume);
+        m_zMusicPlayer.Volume = CalcVolume();
+    }
+
+    private float CalcVolume()
+    {
+        if (m_isMidi && m_configAudio.Synthesizer.Value == Synth.FluidSynth)
+            return (float)m_configAudio.FluidSynthVolumeNormalized;
+        return (float)m_configAudio.DefaultMusicVolumeNormalized * 0.5f;
     }
 
     public bool Enabled
@@ -272,10 +323,6 @@ public class MusicPlayer : IMusicPlayer
         set
         {
             m_enabled = value;
-            if (m_fluidSynthPlayer != null)
-            {
-                m_fluidSynthPlayer.Enabled = value;
-            }
 
             if (!value)
             {
@@ -290,6 +337,5 @@ public class MusicPlayer : IMusicPlayer
             return;
 
         m_zMusicPlayer.Stop();
-        m_fluidSynthPlayer.Stop();
     }
 }

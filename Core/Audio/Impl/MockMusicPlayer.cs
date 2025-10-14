@@ -14,7 +14,7 @@ namespace Helion.Audio.Impl
             return true;
         }
 
-        public void SetVolume(float volume)
+        public void SetVolume()
         {
 
         }

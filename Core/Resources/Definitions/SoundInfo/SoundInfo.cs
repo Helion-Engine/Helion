@@ -9,17 +9,18 @@ public class SoundInfo
     public readonly string Name;
     public readonly string EntryName;
     public readonly bool PlayerEntry;
-
+    public readonly bool Random;
     public int PitchShift { get; set; }
-    public int Limit { get; set; } = 0;
+    public int Limit { get; set; }
     public float PitchSet { get; set; }
 
-    public SoundInfo(string name, string entry, int pitchShift, bool playerEntry = false)
+    public SoundInfo(string name, string entry, int pitchShift, bool playerEntry = false, bool random = false)
     {
         Name = name;
         EntryName = entry;
         PitchShift = pitchShift;
         PlayerEntry = playerEntry;
+        Random = random;
     }
 
     public override bool Equals(object? obj)

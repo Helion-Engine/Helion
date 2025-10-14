@@ -18,31 +18,30 @@ public abstract class Archive : IDisposable
     protected static readonly char AltDirectorySeparatorChar = System.IO.Path.AltDirectorySeparatorChar;
     protected static readonly char[] DirectorySeparatorChars = [ System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar ];
 
-    protected static readonly (string, ResourceNamespace)[] FolderToNamespace =
-    [
-        ("ACS", ResourceNamespace.ACS),
-        ("FLATS", ResourceNamespace.Flats),
-        ("FONTS", ResourceNamespace.Fonts),
-        ("GRAPHICS", ResourceNamespace.Graphics),
-        ("HIRES", ResourceNamespace.Textures),
-        ("MUSIC", ResourceNamespace.Music),
-        ("SOUNDS", ResourceNamespace.Sounds),
-        ("SPRITES", ResourceNamespace.Sprites),
-        ("TEXTURES", ResourceNamespace.Textures),
-        ("PATCHES", ResourceNamespace.Textures),
-        ("COLORMAPS", ResourceNamespace.Colormaps)
-    ];
-
-    protected static ResourceNamespace NamespaceFromEntryPath(string path)
+    protected static readonly Dictionary<string, ResourceNamespace> FolderToNamspace = new(StringComparer.OrdinalIgnoreCase)
     {
-        if (!path.GetLastFolder(out var folder))
+        { "ACS", ResourceNamespace.ACS },
+        { "FLATS", ResourceNamespace.Flats },
+        { "FONTS", ResourceNamespace.Fonts },
+        { "GRAPHICS", ResourceNamespace.Graphics },
+        { "HIRES", ResourceNamespace.Textures },
+        { "MUSIC", ResourceNamespace.Music },
+        { "SOUNDS", ResourceNamespace.Sounds },
+        { "SPRITES", ResourceNamespace.Sprites },
+        { "TEXTURES", ResourceNamespace.Textures },
+        { "PATCHES", ResourceNamespace.Textures },
+        { "COLORMAPS", ResourceNamespace.Colormaps },
+        { "BRIGHTMAPS", ResourceNamespace.Brightmaps }
+    };
+
+    protected static ResourceNamespace NamespaceFromEntryPath(ReadOnlySpan<char> path)
+    {
+        if (!path.GetFirstFolder(out var folder))
             return ResourceNamespace.Global;
 
-        foreach (var item in FolderToNamespace)
-        {
-            if (folder.Equals(item.Item1, StringComparison.OrdinalIgnoreCase))
-                return item.Item2;
-        }
+        var lookup = FolderToNamspace.GetAlternateLookup<ReadOnlySpan<char>>();
+        if (lookup.TryGetValue(folder, out var ns))
+            return ns;
 
         return ResourceNamespace.Global;
     }
@@ -50,7 +49,7 @@ public abstract class Archive : IDisposable
     /// <summary>
     /// All the entries in this archive.
     /// </summary>
-    public List<Entry> Entries { get; } = new List<Entry>();
+    public List<Entry> Entries { get; } = [];
 
     /// <summary>
     /// The path to this entry. This will be an empty path if it's the root
@@ -65,7 +64,7 @@ public abstract class Archive : IDisposable
     public IWadInfo IWadInfo { get; set; } = IWadInfo.DefaultIWadInfo;
     public Archive? ExtractedFrom { get; set; }
 
-    public string OriginalFilePath { get; set; } = string.Empty;
+    public string FullPath => Path.FullPath;
 
     public Palette? TranslationPalette { get; set; }
 
@@ -83,7 +82,7 @@ public abstract class Archive : IDisposable
     {
         return new FileModel()
         {
-            FileName = System.IO.Path.GetFileName(OriginalFilePath),
+            FileName = System.IO.Path.GetFileName(FullPath),
             MD5 = MD5
         };
     }

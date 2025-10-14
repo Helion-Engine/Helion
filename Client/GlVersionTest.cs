@@ -30,7 +30,7 @@ public class GlVersionTest
                     throw new ArgumentOutOfRangeException();
             }
 
-            bool forwardCompatible = GlVersion.Flags.HasFlag(GLContextFlags.ForwardCompatible);
+            bool forwardCompatible = (GlVersion.Flags & GLContextFlags.ForwardCompatible) != 0;
             GLFW.WindowHint(WindowHintInt.ContextVersionMajor, settings.APIVersion.Major);
             GLFW.WindowHint(WindowHintInt.ContextVersionMinor, settings.APIVersion.Major);
             GLFW.WindowHint(WindowHintBool.OpenGLForwardCompat, value: forwardCompatible);

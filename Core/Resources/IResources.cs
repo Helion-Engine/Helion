@@ -20,6 +20,7 @@ using Helion.Graphics.Fonts;
 using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Textures;
 using Helion.Resources.Images;
+using Helion.Resources.Archives.Collection;
 
 namespace Helion.Resources;
 
@@ -56,7 +57,7 @@ public interface IResources : IDisposable
     Entry? FindEntryByPath(string path);
     IEnumerable<Entry> GetEntriesByNamespace(ResourceNamespace resourceNamespace);
     MapEntryCollection? GetMapEntryCollection(string mapName);
-    IMap? FindMap(string mapName);
+    IMap? FindMap(string mapName, FindMapOptions options = FindMapOptions.LoadMapData);
     Font? GetFont(string name);
     Archive? GetArchiveByFileName(string fileName);
 }

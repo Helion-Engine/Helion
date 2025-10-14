@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Helion.Resources.Archives;
+using Helion.Util;
+using Helion.Util.Configs;
 
 namespace Helion.Resources.IWad;
 
@@ -10,22 +11,21 @@ public class IWadLocator
 {
     private readonly List<string> m_directories;
 
-    public static IWadLocator CreateDefault(IEnumerable<string> configDirectories)
+    public static IWadLocator CreateDefault(PathsManager pathsManager, IConfig config)
     {
-        List<string> paths = [Directory.GetCurrentDirectory(), .. configDirectories,
-            .. WadPaths.GetFromSteamAndLinuxDirs(), .. WadPaths.GetFromEnvVars()];
+        List<string> paths = pathsManager.GetArchiveFolders(config);
         return new IWadLocator(paths);
     }
 
     public IWadLocator(IEnumerable<string> directories)
     {
-        m_directories = directories.ToList();
+        m_directories = [.. directories];
     }
 
     public List<IWadPath> Locate()
     {
-        List<IWadPath> iwads = new();
-        HashSet<IWadType> foundTypes = new();
+        List<IWadPath> iwads = [];
+        HashSet<IWadType> foundTypes = [];
         foreach (var dir in m_directories)
         {
             if (!Directory.Exists(dir))
@@ -50,7 +50,7 @@ public class IWadLocator
                 // and there aren't any IWADS that large
                 if (new FileInfo(file).Length > 25_000_000)
                     continue;
-                IWadInfo iwadInfo = IWadInfo.GetIWadInfo(file);
+                var iwadInfo = IWadInfo.GetIWadInfo(file, IWadInfoOptions.IncludePwadAddOn);
                 if (iwadInfo != IWadInfo.DefaultIWadInfo && !foundTypes.Contains(iwadInfo.IWadType))
                 {
                     foundTypes.Add(iwadInfo.IWadType);

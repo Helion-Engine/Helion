@@ -80,7 +80,8 @@ public class AtlasNode
     {
         Location = location;
         m_parent = parent;
-        m_maxAvailableDimensions = location.Dimension;
+        m_maxAvailableDimensions.Width = location.Width;
+        m_maxAvailableDimensions.Height = location.Height;
     }
 
     /// <summary>

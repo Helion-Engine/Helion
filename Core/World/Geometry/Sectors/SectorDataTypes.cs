@@ -19,5 +19,6 @@ public enum SectorDataTypes
     TransferHeights = 1024,
     Friction = 2048,
     KillEffect = 4096,
-    ColorMap = 8192
+    ColorMap = 8192,
+    Rotate = 16384,
 }

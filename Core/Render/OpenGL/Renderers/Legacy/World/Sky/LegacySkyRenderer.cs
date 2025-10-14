@@ -1,35 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions;
 using OpenTK.Graphics.OpenGL;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 
-public class LegacySkyRenderer : IDisposable
+public class LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager) : IDisposable
 {
     private const int MaxSkyTextures = 255;
 
     public static readonly Dictionary<int, Image> GeneratedImages = [];
 
-    private readonly ArchiveCollection m_archiveCollection;
-    private readonly TextureManager m_textureManager;
-    private readonly LegacyGLTextureManager m_glTextureManager;
-    private readonly Dictionary<int, ISkyComponent> m_skyComponents = [];
+    private readonly ArchiveCollection m_archiveCollection = archiveCollection;
+    private readonly LegacyGLTextureManager m_glTextureManager = glTextureManager;
+    private readonly Dictionary<SkyKey, ISkyComponent> m_skyComponents = [];
     private readonly List<ISkyComponent> m_skyComponentsList = [];
-
-    public LegacySkyRenderer(ArchiveCollection archiveCollection, LegacyGLTextureManager glTextureManager)
-    {
-        m_archiveCollection = archiveCollection;
-        m_glTextureManager = glTextureManager;
-        m_textureManager = archiveCollection.TextureManager;
-    }
 
     ~LegacySkyRenderer()
     {
@@ -56,7 +49,7 @@ public class LegacySkyRenderer : IDisposable
             m_skyComponentsList[i].Clear();
     }
 
-    public bool GetOrCreateSky(int? textureHandle, bool flipSkyTexture, [NotNullWhen(true)] out ISkyComponent? sky)
+    public bool GetOrCreateSky(int? textureHandle, SkyOptions options, Vec2F offset, [NotNullWhen(true)] out ISkyComponent? sky)
     {
         if (m_skyComponents.Count >= MaxSkyTextures)
         {
@@ -66,34 +59,22 @@ public class LegacySkyRenderer : IDisposable
 
         textureHandle ??= m_archiveCollection.TextureManager.GetDefaultSkyTexture().Index;
 
-        // This is a hack that is used to make us never have collisions. We will
-        // eventually do this right in the new renderer.
-        int textureHandleLookup = textureHandle.Value;
-        if (flipSkyTexture)
-            textureHandleLookup += short.MaxValue;
-
-        if (m_skyComponents.TryGetValue(textureHandleLookup, out sky))
+        var key = new SkyKey(textureHandle.Value, options, offset);
+        if (m_skyComponents.TryGetValue(key, out sky))
             return true;
 
-        sky = new SkySphereComponent(m_archiveCollection, m_glTextureManager, textureHandle.Value, flipSkyTexture);
-        m_skyComponents[textureHandleLookup] = sky;
+        sky = new SkySphereComponent(m_archiveCollection, m_glTextureManager, textureHandle.Value, options, offset);
+        m_skyComponents[key] = sky;
         m_skyComponentsList.Add(sky);
         return true;
     }
 
-    public void Add(SkyGeometryVertex[] data, int length, int? textureHandle, bool flipSkyTexture)
+    public void Add(SkyGeometryVertex[] data, int length, int? textureHandle, SkyOptions options, Vec2F offset)
     {
-        if (!GetOrCreateSky(textureHandle, flipSkyTexture, out var sky))
+        if (!GetOrCreateSky(textureHandle, options, offset, out var sky))
             return;
 
         sky.Add(data, length);
-    }
-
-    private SkyTransform GetSkyTransFormOrDefault(int textureHandle)
-    {
-        if (m_textureManager.TryGetSkyTransform(textureHandle, out var skyTransform))
-            return skyTransform;
-        return SkyTransform.Default;
     }
 
     public void Render(RenderInfo renderInfo)

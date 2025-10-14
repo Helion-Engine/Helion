@@ -2,18 +2,21 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Helion.World.Util;
 
 public static class MapWarp
 {
+    private static readonly char[] separator = new char[] { ' ' };
+
     public static bool GetMap(string warpString, ArchiveCollection archiveCollection, [NotNullWhen(true)] out MapInfoDef? mapInfoDef)
     {
         mapInfoDef = null;
         if (warpString.Contains(' '))
         {
-            string[] items = warpString.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] items = warpString.Split(separator, StringSplitOptions.RemoveEmptyEntries);
             if (items.Length >= 2 && int.TryParse(items[0], out int ep) && int.TryParse(items[1], out int level))
                 return GetMap(ep, level, archiveCollection, out mapInfoDef);
 
@@ -79,7 +82,7 @@ public static class MapWarp
         var match = mapRegex.Match(startMap);
         if (match.Success)
         {
-            mapName = match.Groups["map"] + episode.ToString() + level.ToString();
+            mapName = match.Groups["map"] + episode.ToString(CultureInfo.InvariantCulture) + level.ToString(CultureInfo.InvariantCulture);
             return true;
         }
         
@@ -114,8 +117,8 @@ public static class MapWarp
         var match = EpisodeRegex.Match(startMap);
         if (match.Success)
         {
-            mapName = match.Groups["episode"].Value + episode.ToString() +
-                match.Groups["map"].Value + level.ToString();
+            mapName = match.Groups["episode"].Value + episode.ToString(CultureInfo.InvariantCulture) +
+                match.Groups["map"].Value + level.ToString(CultureInfo.InvariantCulture);
             return true;
         }    
 

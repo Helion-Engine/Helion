@@ -1,7 +1,0 @@
-actor MusicChanger 14100
-{
-    +DONTSPLASH
-    +INVISIBLE
-    +NOBLOCKMAP
-    +NOGRAVITY
-}

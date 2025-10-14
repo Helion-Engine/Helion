@@ -22,7 +22,7 @@ public class PartitionStates
     /// The current segment in the list of segments to split that we are
     /// currently at.
     /// </summary>
-    public int CurrentSegToPartitionIndex = 0;
+    public int CurrentSegToPartitionIndex;
 
     /// <summary>
     /// All the segments we are going to consider splitting.

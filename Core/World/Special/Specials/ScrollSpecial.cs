@@ -79,27 +79,34 @@ public class ScrollSpecial : ISpecial
             m_accelScrollSpeed = new AccelScrollSpeed(accelSector, speed, scrollFlags);
     }
 
-    public ScrollSpecial(Line line, Sector? accelSector, ScrollSpecialModel model)
+    public ScrollSpecial(Line line, Sector? accelSector, in ScrollSpecialModel model)
         : this(line, new Vec2D(model.SpeedX, model.SpeedY), (ZDoomLineScroll)model.Type, accelSector, (ZDoomScroll)model.ScrollFlags)
     {
-        if (model.OffsetFrontX != null && model.OffsetFrontY != null)
+        if ((model.OffsetFrontX != null && model.OffsetFrontY != null) || model.FrontOffset != null)
         {
             line.Front.ScrollData ??= new();
             m_frontScroll = line.Front.ScrollData;
             m_scrollSides |= ScrollSides.Front;
+
+            if (model.FrontOffset != null)
+                ApplyScrollOffset(m_frontScroll, model.FrontOffset.Value);
         }
 
-        if (line.Back != null && model.OffsetBackX != null && model.OffsetBackY != null)
+        if (line.Back != null && ((model.OffsetBackX != null && model.OffsetBackY != null) || model.BackOffset != null))
         {
             line.Back.ScrollData ??= new();
             m_backScroll = line.Back.ScrollData;
             m_scrollSides |= ScrollSides.Back;
+
+            if (model.BackOffset != null)
+                ApplyScrollOffset(m_backScroll, model.BackOffset.Value);
         }
 
-        if (line.Front.ScrollData != null)
+        // OffsetFrontX and OffsetFrontY are deprecated. Kept for backwards compatibility.
+        if (line.Front.ScrollData != null && model.OffsetFrontX != null)
             ApplyScrollOffset(line.Front.ScrollData, model.OffsetFrontX, model.OffsetFrontY);
 
-        if (line.Back != null && line.Back.ScrollData != null)
+        if (line.Back != null && line.Back.ScrollData != null && model.OffsetBackX != null)
             ApplyScrollOffset(line.Back.ScrollData, model.OffsetBackX, model.OffsetBackY);
     }
 
@@ -120,7 +127,17 @@ public class ScrollSpecial : ISpecial
         scroll.OffsetLower.Y = scroll.LastOffsetLower.Y = offsetY[2];
     }
 
-    public ScrollSpecial(SectorPlane sectorPlane, Sector? accelSector, ScrollSpecialModel model)
+    private static void ApplyScrollOffset(SideScrollData scroll, in ScrollSideOffsets offsets)
+    {
+        scroll.OffsetUpper.X = offsets.Up.X;
+        scroll.OffsetUpper.Y = offsets.Up.Y;
+        scroll.OffsetMiddle.X = offsets.Mid.X;
+        scroll.OffsetMiddle.Y = offsets.Mid.Y;
+        scroll.OffsetLower.X = offsets.Low.X;
+        scroll.OffsetLower.Y = offsets.Low.Y;
+    }
+
+    public ScrollSpecial(SectorPlane sectorPlane, Sector? accelSector, in ScrollSpecialModel model)
         : this ((ScrollType)model.Type, sectorPlane, new Vec2D(model.SpeedX, model.SpeedY), accelSector, (ZDoomScroll)model.ScrollFlags)
     {
         if (m_accelScrollSpeed != null && model.AccelSpeedX.HasValue && model.AccelSpeedY.HasValue && model.AccelLastZ.HasValue)
@@ -136,11 +153,11 @@ public class ScrollSpecial : ISpecial
             sectorPlane.RenderOffsets.Offset.Y = model.OffsetY.Value;
     }
 
-    public ISpecialModel ToSpecialModel()
+    public ScrollSpecialModel ToSpecialModel()
     {
         if (Line != null)
         {
-            ScrollSpecialModel model = new()
+            var model = new ScrollSpecialModel()
             {
                 LineId = Line.Id,
                 Type = (int)m_lineScroll,
@@ -154,22 +171,16 @@ public class ScrollSpecial : ISpecial
             };
 
             if (Line.Front.ScrollData != null)
-            {
-                model.OffsetFrontX = [Line.Front.ScrollData.OffsetUpper.X, Line.Front.ScrollData.OffsetMiddle.X, Line.Front.ScrollData.OffsetLower.X];
-                model.OffsetFrontY = [Line.Front.ScrollData.OffsetUpper.Y, Line.Front.ScrollData.OffsetMiddle.Y, Line.Front.ScrollData.OffsetLower.Y];
-            }
+                model.FrontOffset = SetScrollSideOffsets(Line.Front.ScrollData);
 
             if (Line.Back?.ScrollData != null)
-            {
-                model.OffsetBackX = [Line.Back.ScrollData.OffsetUpper.X, Line.Back.ScrollData.OffsetMiddle.X, Line.Back.ScrollData.OffsetLower.X];
-                model.OffsetBackY = [Line.Back.ScrollData.OffsetUpper.Y, Line.Back.ScrollData.OffsetMiddle.Y, Line.Back.ScrollData.OffsetLower.Y];
-            }
+                model.BackOffset = SetScrollSideOffsets(Line.Back.ScrollData);
 
             return model;
         }
         else if (SectorPlane != null)
         {
-            return new ScrollSpecialModel()
+            return new()
             {
                 SectorId = SectorPlane.Sector.Id,
                 PlaneType = SectorPlane == SectorPlane.Sector.Floor ? (int)SectorPlaneFace.Floor : (int)SectorPlaneFace.Ceiling,
@@ -187,6 +198,16 @@ public class ScrollSpecial : ISpecial
         }
 
         throw new HelionException("Scroll special has neither line or sector plane set.");
+    }
+
+    private static ScrollSideOffsets SetScrollSideOffsets(SideScrollData sideScroll)
+    {
+        return new()
+        {
+            Up = new(sideScroll.OffsetUpper.X, sideScroll.OffsetUpper.Y),
+            Mid = new(sideScroll.OffsetMiddle.X, sideScroll.OffsetMiddle.Y),
+            Low = new(sideScroll.OffsetLower.X, sideScroll.OffsetLower.Y),
+        };
     }
 
     private int GetModelScrollFlags()
@@ -250,7 +271,7 @@ public class ScrollSpecial : ISpecial
 
     private void ScrollPlane(SectorPlane sectorPlane, double x, double y)
     {
-        ref RenderOffsets scroll = ref sectorPlane.RenderOffsets;
+        ref var scroll = ref sectorPlane.RenderOffsets;
         if (m_type == ScrollType.Scroll)
         {
             if (x == 0 && y == 0)
@@ -270,22 +291,20 @@ public class ScrollSpecial : ISpecial
         }
         else if (m_type == ScrollType.Carry && sectorPlane == sectorPlane.Sector.Floor)
         {
-            LinkableNode<Entity>? node = sectorPlane.Sector.Entities.Head;
-            while (node != null)
-            {
-                Entity entity = node.Value;
-                node = node.Next;
-                
-                // Boom would carry anything that was considered 'underwater'
-                double waterHeight = double.MinValue;
-                if (sectorPlane.Sector.TransferHeights != null)
-                    waterHeight = sectorPlane.Sector.TransferHeights.ControlSector.Floor.Z > sectorPlane.Sector.Floor.Z ?
-                        sectorPlane.Sector.TransferHeights.ControlSector.Floor.Z : double.MinValue;
+            // Boom would carry anything that was considered 'underwater'
+            var waterHeight = double.MinValue;
+            var transfer = sectorPlane.Sector.TransferHeights;
+            if (transfer != null)
+                waterHeight = transfer.ControlSector.Floor.Z > sectorPlane.Sector.Floor.Z ?
+                    transfer.ControlSector.Floor.Z : double.MinValue;
 
-                if (entity.Flags.NoClip)
+            for (var node = sectorPlane.Sector.Entities.Head; node != null; node = node.Next)
+            {
+                var entity = node.Value;
+                if (entity.Flags.NoClip || entity.Flags.NoSector)
                     continue;
-                
-                if (entity.Position.Z >= waterHeight && (entity.Flags.NoBlockmap || entity.Flags.NoGravity || !entity.OnGround || !entity.OnSectorFloorZ(sectorPlane.Sector)))
+
+                if (entity.Position.Z >= waterHeight && (entity.Flags.NoGravity || !entity.OnGround || !entity.OnSectorFloorZ(sectorPlane.Sector)))
                     continue;
 
                 entity.Velocity.X += x;

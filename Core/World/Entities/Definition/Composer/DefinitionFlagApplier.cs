@@ -1,5 +1,6 @@
 using Helion.Resources.Definitions.Decorate.Flags;
 using Helion.Resources.Definitions.Decorate.Properties;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 
 namespace Helion.World.Entities.Definition.Composer;
 
@@ -181,5 +182,9 @@ public static class DefinitionFlagApplier
             definition.Flags.CanPass = flags.CanPass.Value;
         if (flags.Shadow != null)
             definition.Flags.Shadow = flags.Shadow.Value;
+        if (flags.DehExplosion != null)
+            definition.Properties.RenderStyle = RenderStyle.ColorAddExplosion;
+        if (flags.Stealth != null)
+            definition.Flags.Stealth = flags.Stealth.Value;
     }
 }

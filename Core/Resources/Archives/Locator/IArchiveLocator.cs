@@ -14,13 +14,14 @@ public interface IArchiveLocator
     /// Finds the resource at the URI provided.
     /// </summary>
     /// <param name="uri">The resource locator index.</param>
+    /// <param name="options">Options flags.</param>
     /// <returns>The archive, or an error reason on why it cannot be found.
     /// </returns>
-    Archive? Locate(string uri);
+    Archive? Locate(string uri, ArchiveLocatorOptions options);
 
     /// <summary>
     /// Checks the search paths for the archive, without opening it or confirming its type,
     /// returning its path if found.
     /// </summary>
-    string? LocateWithoutLoading(string uri);
+    string? LocateWithoutLoading(string uri, ArchiveLocatorOptions options);
 }

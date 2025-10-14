@@ -78,10 +78,8 @@ public class CheatManager
 
     private void SetCheat(Player player, CheatType cheatType, bool activate)
     {
-        if (!m_cheatLookup.ContainsKey(cheatType) || (!activate && !player.Cheats.IsCheatActive(cheatType)))
+        if (!m_cheatLookup.TryGetValue(cheatType, out ICheat? cheat) || (!activate && !player.Cheats.IsCheatActive(cheatType)))
             return;
-
-        ICheat cheat = m_cheatLookup[cheatType];
         if (cheat.IsToggleCheat)
             cheat.SetActivated(player);
 
@@ -104,7 +102,7 @@ public class CheatManager
     {
         for (int i = 0; i < Cheats.Length; i++)
         {
-            if (!command.Equals(Cheats[i].ConsoleCommand, StringComparison.OrdinalIgnoreCase))
+            if (!command.Equals(Cheats[i].ConsoleCommand, StringComparison.OrdinalIgnoreCase) && !Cheats[i].IsMatch(command))
                 continue;
 
             ActivateCheat(player, Cheats[i].CheatType);
@@ -139,7 +137,7 @@ public class CheatManager
         }
     }
 
-    private bool AnyPartialMatch(SpanString cheatString)
+    private static bool AnyPartialMatch(SpanString cheatString)
     {
         ReadOnlySpan<char> cheatSpan = cheatString.AsSpan();
         for (int i = 0; i < Cheats.Length; i++)
@@ -151,7 +149,7 @@ public class CheatManager
         return false;
     }
 
-    private ICheat? GetCheatMatch(SpanString cheatString)
+    private static ICheat? GetCheatMatch(SpanString cheatString)
     {
         ReadOnlySpan<char> cheatSpan = cheatString.AsSpan();
         for (int i = 0; i < Cheats.Length; i++)

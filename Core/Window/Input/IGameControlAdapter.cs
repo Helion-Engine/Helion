@@ -1,6 +1,8 @@
 ﻿namespace Helion.Window.Input;
 
 using Helion.Audio.Sounds;
+using Helion.Geometry.Vectors;
+using System;
 
 public enum GyroAxis
 {
@@ -84,4 +86,18 @@ public interface IGameControlAdapter
     /// as these have likely become out-of-date.
     /// </summary>
     bool GyroEnabled { get; set; }
+
+    /// <summary>
+    /// Whether the controller has a gyro
+    /// </summary>
+    bool HasGyro { get; }
+
+    /// <summary>
+    /// Calibrate the "drift" and "noise" parameters for the gyro
+    /// </summary>
+    /// <param name="durationMilliseconds">Duration for which to calibrate the gyro</param>
+    /// <param name="callback">Callback function to execute when calibration finishes.  Input parameters will
+    /// include the "noise" and "drift" calibration values</param>
+    /// <returns>True if calibration was started, false otherwise</returns>
+    bool CalibrateGyro(int durationMilliseconds, Action<Vec3F, Vec3F> callback);
 }

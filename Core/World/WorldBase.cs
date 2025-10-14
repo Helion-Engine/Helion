@@ -47,19 +47,22 @@ using Helion.Maps.Specials;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Special.Specials;
 using Helion.World.Static;
-using Helion.Geometry.Grids;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using static Helion.Dehacked.DehackedDefinition;
 using Helion.Resources.Definitions.MusInfo;
 using Helion.Util.Extensions;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics;
 using Helion.Resources.Archives.Entries;
-using Helion.Maps.Doom;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Util.Loggers;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Shared;
+using Helion.World.Geometry.Islands;
+using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Definitions.Compatibility;
+using Helion.Maps.Components;
+using System.Runtime.CompilerServices;
+using Helion.Resources.Definitions.SoundInfo;
 
 namespace Helion.World;
 
@@ -79,16 +82,17 @@ public abstract partial class WorldBase : IWorld
     private static EntityManager? LastEntityManager;
     private static PhysicsManager? LastPhysicManager;
     private static SpecialManager? LastSpecialManager;
-    private static int?[]? LastBspSegLines;
     private static DynamicArray<StructLine> LastStructLines = new();
 
     public event EventHandler<LevelChangeEvent>? LevelExit;
     public event EventHandler? LevelExiting;
+    public event EventHandler? WorldPaused;
     public event EventHandler? WorldResumed;
     public event EventHandler? ClearConsole;
     public event EventHandler? OnResetInterpolation;
     public event EventHandler<SectorPlane>? SectorMoveStart;
     public event EventHandler<SectorPlane>? SectorMoveComplete;
+    public event EventHandler<SectorPlane>? SectorMove;
     public event EventHandler<SideTextureEvent>? SideTextureChanged;
     public event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     public event EventHandler<Sector>? SectorLightChanged;
@@ -97,7 +101,7 @@ public abstract partial class WorldBase : IWorld
     public event EventHandler<MusicChangeEvent>? OnMusicChanged;
     public event EventHandler? OnTick;
     public event EventHandler? OnDestroying;
-        
+
     private static int StaticId;
     public abstract WorldType WorldType { get; }
     public int Id { get; } = StaticId++;
@@ -117,12 +121,11 @@ public abstract partial class WorldBase : IWorld
     public bool SameAsPreviousMap { get; set; }
     public IRandom Random => m_random;
     public IRandom SecondaryRandom { get; private set; }
-    public IList<Line> Lines => Geometry.Lines;
-    public IList<Side> Sides => Geometry.Sides;
-    public IList<Sector> Sectors => Geometry.Sectors;
+    public List<Line> Lines { get; private set; }
+    public List<Side> Sides { get; private set; }
+    public List<Sector> Sectors { get; private set; }
     public DynamicArray<StructLine> StructLines => LastStructLines;
-    public int?[] BspSegLines { get; } = [];
-    public IList<HighlightArea> HighlightAreas { get; } = new List<HighlightArea>();
+    public List<HighlightArea> HighlightAreas { get; } = [];
     public CompactBspTree BspTree { get; private set; }
     public EntityManager EntityManager { get; }
     public WorldSoundManager SoundManager { get; }
@@ -154,7 +157,9 @@ public abstract partial class WorldBase : IWorld
 
     public MapGeometry Geometry { get; }
     public PhysicsManager PhysicsManager { get; private set; }
-    public IMap Map { get; private set; }
+    public CompatibilityMapDefinition? CompatibilityMapDefinition { get; private set; }
+    public MapType MapType { get; private set; }
+
     public bool HasDehacked;
 
     protected readonly IAudioSystem AudioSystem;
@@ -168,19 +173,28 @@ public abstract partial class WorldBase : IWorld
     private int m_lastBumpActivateGametick;
     private LevelChangeType m_levelChangeType = LevelChangeType.Next;
     private LevelChangeFlags m_levelChangeFlags;
-    private Entity[] m_bossBrainTargets = Array.Empty<Entity>();
-    private readonly List<IMonsterCounterSpecial> m_bossDeathSpecials = new();
-    private readonly byte[] m_lineOfSightReject = Array.Empty<byte>();
+    private Entity[] m_bossBrainTargets = [];
+    private readonly List<IMonsterCounterSpecial> m_bossDeathSpecials = [];
+    private readonly byte[] m_lineOfSightReject = [];
     private readonly Func<DamageFuncParams, int> m_defaultDamageAction;
     private readonly EntityDefinition? m_teleportFogDef;
-    private readonly Dictionary<int, MusInfoDef> m_sectorToMusicChange = new();
+    private readonly Dictionary<int, MusInfoDef> m_sectorToMusicChange = [];
     private readonly DynamicArray<Entity> m_fallCheckEntities = new(32);
+    private readonly Dictionary<int, Player> m_itemPickupIndexToPlayers = [];
+    private readonly Entity m_checkRadiusEntity;
+    private readonly Dictionary<int, LineHealthGroup> m_lineHealthGroups = [];
     private MusInfoDef? m_lastMusicChange;
-    private int m_changeMusicTicks = 0;
+    private int m_changeMusicTicks;
     private int m_losDistance = DefaultLineOfSightDistance;
+    private string m_activeMusic = string.Empty;
+    private bool m_explosionTraverseLines;
+
+    const int HighlightSize = 112;
+    private readonly List<object> m_findObjects = [];
 
     private RadiusExplosionData m_radiusExplosion;
-    private readonly Action<Entity> m_radiusExplosionAction;
+    private readonly Action<Entity> m_radiusExplosionEntityAction;
+    private readonly Action<int> m_radiusExplosionLineAction;
 
     private HealChaseData m_healChaseData;
     private readonly Action<Entity> m_healChaseAction;
@@ -191,12 +205,13 @@ public abstract partial class WorldBase : IWorld
     private LineOfSightEnemyData m_lineOfSightEnemyData;
     private readonly Func<Entity, GridIterationStatus> m_lineOfSightEnemyAction;
 
-    private readonly TryMoveData EmptyTryMove = new();
-
     protected WorldBase(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
         SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null, bool sameAsPreviousMap = false, bool reuse = true)
     {
+        Lines = geometry.Lines;
+        Sides = geometry.Sides;
+        Sectors = geometry.Sectors;
         SameAsPreviousMap = sameAsPreviousMap;
         m_random = random ?? new DoomRandom();
         m_saveRandom = m_random;
@@ -213,32 +228,31 @@ public abstract partial class WorldBase : IWorld
         MapName = map.Name;
         Profiler = profiler;
         Geometry = geometry;
-        Map = map;
+        CompatibilityMapDefinition = map.CompatibilityDefinition;
+        MapType = map.MapType;
         BspTree = Geometry.CompactBspTree;
 
-        if (Map.Reject != null && Map.Reject.Length > 0)
+        if (map.Reject != null && map.Reject.Length > 0)
         {
             int rejectSize = (Sectors.Count * Sectors.Count + 7) / 8;
-            if (Map.Reject.Length != rejectSize)
-                HelionLog.Warn($"Expected reject size to be {rejectSize} but read {Map.Reject.Length} bytes");
-            m_lineOfSightReject = Map.Reject;
+            if (map.Reject.Length != rejectSize)
+                HelionLog.Warn($"Expected reject size to be {rejectSize} but read {map.Reject.Length} bytes");
+            m_lineOfSightReject = map.Reject;
         }
 
         Blockmap = CreateBlockMap();
         RenderBlockmap = CreateRenderBlockMap();
-        BuildStructLines();
 
         SoundManager = CreateSoundManager();
         EntityManager = CreateEntityManager(reuse);
         PhysicsManager = CreatePhysicsManager();
         SpecialManager = CreateSpecialManager(reuse);
-        BspSegLines = CreateBspSegLines(reuse && sameAsPreviousMap);
 
-        WorldStatic.FlushIntersectionReferences();
         IsFastMonsters = skillDef.IsFastMonsters(config);
 
         m_defaultDamageAction = DefaultDamage;
-        m_radiusExplosionAction = HandleRadiusExplosion;
+        m_radiusExplosionEntityAction = HandleRadiusExplosionEntity;
+        m_radiusExplosionLineAction = HandleRadiusExplosionLine;
         m_healChaseAction = HandleHealChase;
         m_setNewTracerTargetAction = HandleSetNewTracerTarget;
         m_lineOfSightEnemyAction = HandleLineOfSightEnemy;
@@ -247,8 +261,12 @@ public abstract partial class WorldBase : IWorld
 
         HasDehacked = ArchiveCollection.Definitions.DehackedDefinition != null;
 
-        RegisterConfigChanges();
         SetWorldStatic();
+        BuildLines(); // MidTex3D lines creating entities makes it dependent on WorldStatic
+        RegisterConfigChanges();
+
+        m_checkRadiusEntity = new Entity();
+        m_checkRadiusEntity.Set(0, 0, 0, new EntityDefinition(0, "CHECK_RADIUS", null, []), default, 0, Sector.CreateDefault(), this, default);
 
         if (worldModel != null)
         {
@@ -270,29 +288,6 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    // Used by the automap marker to prevent cache misses by needing to fetch the side first.
-    private int?[] CreateBspSegLines(bool reuse)
-    {
-        if (reuse && LastBspSegLines != null)
-            return LastBspSegLines;
-
-        LastBspSegLines = new int?[BspTree.Segments.Length];
-        for (int i = 0; i < BspTree.Subsectors.Length; i++)
-        {
-            var subsector = BspTree.Subsectors[i];
-            for (int j = 0; j < subsector.SegCount; j++)
-            {
-                var edge = BspTree.Segments[subsector.SegIndex + j];
-                if (!edge.SideId.HasValue)
-                    continue;
-                var side = Sides[edge.SideId.Value];
-                LastBspSegLines[subsector.SegIndex + j] = side.Line.Id;
-            }
-        }
-
-        return LastBspSegLines;
-    }
-
     private SpecialManager CreateSpecialManager(bool reuse)
     {
         if (reuse && LastSpecialManager != null)
@@ -309,11 +304,11 @@ public abstract partial class WorldBase : IWorld
     {
         if (LastPhysicManager != null)
         {
-            LastPhysicManager.UpdateTo(this, BspTree, Blockmap, Random, Map is DoomMap);
+            LastPhysicManager.UpdateTo(this, BspTree, Blockmap, Random, MapType == MapType.Doom);
             return LastPhysicManager;
         }
 
-        LastPhysicManager = new(this, BspTree, Blockmap, Random, Map is DoomMap);
+        LastPhysicManager = new(this, BspTree, Blockmap, Random, MapType == MapType.Doom);
         return LastPhysicManager;
     }
 
@@ -340,12 +335,12 @@ public abstract partial class WorldBase : IWorld
         return LastWorldSoundManager;
     }
 
-    private unsafe BlockMap CreateBlockMap()
+    private BlockMap CreateBlockMap()
     {
         if (SameAsPreviousMap && LastBlockMap != null)
         {
             m_bspBlockmapDimensions = LastBspBlockmapDimensions;
-            m_bspBlockmapNodeIndices = LastBspBlockmapNodeIndices!;            
+            m_bspBlockmapNodeIndices = LastBspBlockmapNodeIndices!;
             LastBlockMap.Clear();
             return LastBlockMap;
         }
@@ -368,29 +363,102 @@ public abstract partial class WorldBase : IWorld
         return LastRenderBlockMap;
     }
 
-    private void BuildStructLines()
+    private void BuildLines()
     {
         if (SameAsPreviousMap)
         {
             for (int i = 0; i < Lines.Count; i++)
             {
+                var line = Lines[i];
                 ref StructLine structLine = ref StructLines.Data[i];
                 structLine.Flags &= ~StructLineFlags.SeenForAutomap;
-                structLine.Update(Lines[i]);
+                structLine.Update(line);
+                m_explosionTraverseLines = m_explosionTraverseLines || line.ObjectHealth != ObjectHealth.Default;
             }
             return;
         }
 
         LastStructLines.Clear();
+        LastStructLines.EnsureCapacityExact(Lines.Count);
+        LastStructLines.SetLength(Lines.Count);
+        var arrayData = LastStructLines.Data;
+        var lineCounts = new LineCounts[Sectors.Count];
+
         for (int i = 0; i < Lines.Count; i++)
-            LastStructLines.Add(new StructLine(Lines[i]));
+        {
+            var line = Lines[i];
+            arrayData[i] = new StructLine(line);
+            var objectHealth = line.ObjectHealth != ObjectHealth.Default;
+            m_explosionTraverseLines = m_explosionTraverseLines || objectHealth;
+
+            if (objectHealth && line.ObjectHealth.HealthGroup != 0)
+            {
+                if (!m_lineHealthGroups.TryGetValue(line.ObjectHealth.HealthGroup, out var group))
+                {
+                    group = new();
+                    m_lineHealthGroups[line.ObjectHealth.HealthGroup] = group;
+                }
+
+                group.Lines.Add(line);
+            }
+
+            var midtex = line.Flags.Blocking.MidTex3D;
+            ref var counts = ref lineCounts[line.Front.Sector.Id];
+            counts.LineCount++;
+            if (midtex)
+                counts.MidTexCount++;
+
+            if (line.Back != null)
+            {
+                counts = ref lineCounts[line.Back.Sector.Id];
+                counts.LineCount++;
+                if (midtex)
+                    counts.MidTexCount++;
+            }
+
+            // Allocate entity ahead of time
+            if (midtex)
+                line.GetMidTexEntity(this);
+        }
 
         for (int i = 0; i < Sectors.Count; i++)
         {
             var sector = Sectors[i];
-            sector.LineIds = new int[sector.Lines.Count];
-            for (int j = 0; j < sector.Lines.Count; j++)
-                sector.LineIds[j] = sector.Lines[j].Id;
+            var counts = lineCounts[i];
+            lineCounts[i] = default;
+
+            if (counts.LineCount == 0)
+                continue;
+
+            sector.Lines = new Line[counts.LineCount];
+            sector.LineIds = new int[counts.LineCount];
+
+            if (counts.MidTexCount > 0)
+                sector.MidTex3DLines = new Line[counts.MidTexCount];
+        }
+
+        for (int i = 0; i < Lines.Count; i++)
+        {
+            var line = Lines[i];
+            var frontSector = line.Front.Sector;
+            var midtex = line.Flags.Blocking.MidTex3D;
+            ref var counts = ref lineCounts[frontSector.Id];
+            frontSector.Lines[counts.LineCount] = line;
+            frontSector.LineIds[counts.LineCount++] = i;
+
+            if (midtex)
+                frontSector.MidTex3DLines[counts.MidTexCount++] = line;
+
+            if (line.Back != null)
+            {
+                var backSector = line.Back.Sector;
+                counts = ref lineCounts[backSector.Id];
+                backSector.Lines[counts.LineCount] = line;
+                backSector.LineIds[counts.LineCount++] = i;
+
+                if (midtex)
+                    backSector.MidTex3DLines[counts.MidTexCount++] = line;
+            }
         }
     }
 
@@ -440,7 +508,7 @@ public abstract partial class WorldBase : IWorld
         Config.SlowTick.ChaseMultiplier.OnChanged += SlowTickChaseMultiplier_OnChanged;
         Config.SlowTick.LookMultiplier.OnChanged += SlowTickLookMultiplier_OnChanged;
         Config.SlowTick.TracerMultiplier.OnChanged += SlowTickTracerMultiplier_OnChanged;
-        
+
         Config.Compatibility.MissileClip.OnChanged += MissileClip_OnChanged;
         Config.Compatibility.AllowItemDropoff.OnChanged += AllowItemDropoff_OnChanged;
         Config.Compatibility.InfinitelyTallThings.OnChanged += InfinitelyTallThings_OnChanged;
@@ -453,6 +521,8 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.VanillaSectorSound.OnChanged += VanillaSectorSound_OnChanged;
 
         Config.Game.FastMonsters.OnChanged += FastMonsters_OnChanged;
+        Config.Game.DamageApplyMultiplier.OnChanged += DamageApplyMultiplier_OnChanged;
+        Config.Game.DamageReceiveMultiplier.OnChanged += DamageReceiveMultiplier_OnChanged;
     }
 
     private void UnRegisterConfigChanges()
@@ -476,6 +546,8 @@ public abstract partial class WorldBase : IWorld
         Config.Compatibility.VanillaSectorSound.OnChanged -= VanillaSectorSound_OnChanged;
 
         Config.Game.FastMonsters.OnChanged -= FastMonsters_OnChanged;
+        Config.Game.DamageApplyMultiplier.OnChanged -= DamageApplyMultiplier_OnChanged;
+        Config.Game.DamageReceiveMultiplier.OnChanged -= DamageReceiveMultiplier_OnChanged;
     }
 
     private void SetWorldStatic()
@@ -493,11 +565,11 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.Frames = ArchiveCollection.Definitions.EntityFrameTable.Frames;
         WorldStatic.Random = Random;
         WorldStatic.SlowTickEnabled = Config.SlowTick.Enabled.Value;
-        WorldStatic.SlowTickChaseFailureSkipCount = Config.SlowTick.ChaseFailureSkipCount;
-        WorldStatic.SlowTickDistance = Config.SlowTick.Distance;
-        WorldStatic.SlowTickChaseMultiplier = Config.SlowTick.ChaseMultiplier;
-        WorldStatic.SlowTickLookMultiplier = Config.SlowTick.LookMultiplier;
-        WorldStatic.SlowTickTracerMultiplier = Config.SlowTick.TracerMultiplier;
+        WorldStatic.SlowTickChaseFailureSkipCount = (short)Config.SlowTick.ChaseFailureSkipCount;
+        WorldStatic.SlowTickDistance = (short)Config.SlowTick.Distance;
+        WorldStatic.SlowTickChaseMultiplier = (short)Config.SlowTick.ChaseMultiplier;
+        WorldStatic.SlowTickLookMultiplier = (short)Config.SlowTick.LookMultiplier;
+        WorldStatic.SlowTickTracerMultiplier = (short)Config.SlowTick.TracerMultiplier;
         WorldStatic.IsFastMonsters = IsFastMonsters;
         WorldStatic.IsSlowMonsters = SkillDefinition.SlowMonsters;
         WorldStatic.InfinitelyTallThings = Config.Compatibility.InfinitelyTallThings;
@@ -514,6 +586,9 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.RespawnTicks = SkillDefinition.RespawnTime.Seconds * (int)Constants.TicksPerSecond;
         WorldStatic.ClosetLookFrameIndex = ArchiveCollection.EntityFrameTable.ClosetLookFrameIndex;
         WorldStatic.ClosetChaseFrameIndex = ArchiveCollection.EntityFrameTable.ClosetChaseFrameIndex;
+        WorldStatic.Udmf = MapType == MapType.UDMF;
+        WorldStatic.DamageApplyMultiplier = (float)Config.Game.DamageApplyMultiplier;
+        WorldStatic.DamageReceiveMultiplier = (float)Config.Game.DamageReceiveMultiplier;
 
         WorldStatic.DoomImpBall = EntityManager.DefinitionComposer.GetByNameOrDefault("DoomImpBall");
         WorldStatic.ArachnotronPlasma = EntityManager.DefinitionComposer.GetByNameOrDefault("ArachnotronPlasma");
@@ -526,6 +601,11 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.BFGBall = EntityManager.DefinitionComposer.GetByNameOrDefault("BFGBall");
         WorldStatic.PlasmaBall = EntityManager.DefinitionComposer.GetByNameOrDefault("PlasmaBall");
         WorldStatic.WeaponBfg = EntityManager.DefinitionComposer.GetByNameOrDefault(BFG900Class);
+        WorldStatic.SectorFriction = false;
+        WorldStatic.BloodColor = ArchiveCollection.Dehacked != null && ArchiveCollection.Dehacked.HasBloodColor;
+
+        if (WorldStatic.CheckedLines.Length < Lines.Count)
+            WorldStatic.CheckedLines = new int[Lines.Count];
     }
 
     private void VanillaSectorSound_OnChanged(object? sender, bool enabled) =>
@@ -553,20 +633,24 @@ public abstract partial class WorldBase : IWorld
     private void SlowTickDistance_OnChanged(object? sender, int distance) =>
         WorldStatic.SlowTickDistance = distance;
     private void SlowTickChaseFailureSkipCount_OnChanged(object? sender, int value) =>
-        WorldStatic.SlowTickChaseFailureSkipCount = value;
+        WorldStatic.SlowTickChaseFailureSkipCount = (short)value;
     private void SlowTickChaseMultiplier_OnChanged(object? sender, int value) =>
-        WorldStatic.SlowTickChaseMultiplier = value;
+        WorldStatic.SlowTickChaseMultiplier = (short)value;
     private void SlowTickLookMultiplier_OnChanged(object? sender, int value) =>
-        WorldStatic.SlowTickLookMultiplier = value;
+        WorldStatic.SlowTickLookMultiplier = (short)value;
     private void SlowTickTracerMultiplier_OnChanged(object? sender, int value) =>
-        WorldStatic.SlowTickTracerMultiplier = value;
+        WorldStatic.SlowTickTracerMultiplier = (short)value;
+    private void DamageReceiveMultiplier_OnChanged(object? sender, double value) =>
+        WorldStatic.DamageReceiveMultiplier = (float)value;
+    private void DamageApplyMultiplier_OnChanged(object? sender, double value) =>
+        WorldStatic.DamageApplyMultiplier = (float)value;
     private void FastMonsters_OnChanged(object? sender, bool enabled)
     {
         IsFastMonsters = SkillDefinition.IsFastMonsters(Config);
         WorldStatic.IsFastMonsters = IsFastMonsters;
     }
 
-    private IList<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
+    private List<MapInfoDef> GetVisitedMaps(IList<string> visitedMaps)
     {
         List<MapInfoDef> maps = [];
         foreach (string mapName in visitedMaps)
@@ -598,11 +682,8 @@ public abstract partial class WorldBase : IWorld
         SetupMusicChangers();
         SetSectorSkies();
 
-        if (worldModel == null)
-            SpecialManager.StartInitSpecials(LevelStats);
-
-        for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
-            entity.SectorDamageSpecial = entity.Sector.SectorDamageSpecial;
+        if (!SameAsPreviousMap || worldModel == null)
+            SpecialManager.StartInitSpecials(LevelStats, worldModel != null);
 
         StaticDataApplier.DetermineStaticData(this);
         SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;
@@ -613,11 +694,25 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < Sectors.Count; i++)
         {
             var sector = Sectors[i];
-            if (GetSectorSkyTextureHandle(sector.Floor.TextureHandle, out int skyTextureHandle))
+            if (!string.IsNullOrEmpty(sector.SkyFloor) &&
+                GetSectorSkyTextureHandle(sector.Floor.TextureHandle, sector.SkyFloor, out var skyTextureHandle))
+            {
                 sector.FloorSkyTextureHandle = skyTextureHandle;
+            }
+            else if (GetSectorSkyTextureHandle(sector.Floor.TextureHandle, out skyTextureHandle))
+            {
+                sector.FloorSkyTextureHandle = skyTextureHandle;
+            }
 
-            if (GetSectorSkyTextureHandle(sector.Ceiling.TextureHandle, out skyTextureHandle))
+            if (!string.IsNullOrEmpty(sector.SkyCeiling) &&
+                GetSectorSkyTextureHandle(sector.Ceiling.TextureHandle, sector.SkyCeiling, out skyTextureHandle))
+            {
                 sector.CeilingSkyTextureHandle = skyTextureHandle;
+            }
+            else if (GetSectorSkyTextureHandle(sector.Ceiling.TextureHandle, out skyTextureHandle))
+            {
+                sector.CeilingSkyTextureHandle = skyTextureHandle;
+            }
         }
     }
 
@@ -626,6 +721,20 @@ public abstract partial class WorldBase : IWorld
         skyTextureHandle = 0;
         return TextureManager.IsSkyTexture(textureHandle) && !TextureManager.IsDefaultSkyTexture(textureHandle) &&
                 TextureManager.GetSkyTextureFromFlat(textureHandle, out skyTextureHandle);
+    }
+
+    private bool GetSectorSkyTextureHandle(int textureHandle, string textureName, out int skyTextureHandle)
+    {
+        skyTextureHandle = 0;
+        if (!TextureManager.IsSkyTexture(textureHandle))
+            return false;
+        
+        var texture = TextureManager.GetTexture(textureName, ResourceNamespace.Textures);
+        if (texture == null)
+            return false;
+
+        skyTextureHandle = texture.Index;
+        return true;
     }
 
     private void SpecialManager_SectorSpecialDestroyed(object? sender, ISectorSpecial special)
@@ -697,7 +806,7 @@ public abstract partial class WorldBase : IWorld
     public void NoiseAlert(Entity target, Entity source)
     {
         m_soundCount++;
-        RecursiveSound(WeakEntity.GetReference(target), source.Sector, 0);
+        RecursiveSound(new(target), source.Sector, 0);
     }
 
     private void RecursiveSound(WeakEntity target, Sector sector, int block)
@@ -737,24 +846,22 @@ public abstract partial class WorldBase : IWorld
                 RecursiveSound(target, other, block);
             }
         }
-    }  
+    }
 
     public void Link(Entity entity)
     {
-        Precondition(entity.SectorNodes.Empty() && entity.BlocksLength == 0, "Forgot to unlink entity before linking");
+        Precondition(entity.SectorNodes.Length == 0 && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
         PhysicsManager.LinkToWorld(entity, null, false);
     }
 
     public void LinkClamped(Entity entity)
     {
-        Precondition(entity.SectorNodes.Empty() && entity.BlocksLength == 0, "Forgot to unlink entity before linking");
+        Precondition(entity.SectorNodes.Length == 0 && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
         PhysicsManager.LinkToWorld(entity, null, true);
     }
 
     public virtual void Tick()
     {
-        DebugCheck();
-
         if (Paused)
         {
             TickPlayerStatusBars();
@@ -812,7 +919,18 @@ public abstract partial class WorldBase : IWorld
         Profiler.World.Total.Stop();
     }
 
-    public virtual bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop) => true;
+    private void CreateAmbientSound(Entity entity, AmbientSoundInfo info)
+    {
+        var attenution = info.Type == AmbientSoundType.Point ? Attenuation.Default : Attenuation.None;
+        SoundManager.CreateSoundOn(entity, info.LogicalSound, new(entity, info.Mode == AmbientSoundMode.Continuous, attenution, info.Volume, 
+            attenuationFactor: info.Attenuation));
+    }
+
+    public virtual bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop)
+    {
+        m_activeMusic = name;
+        return true;
+    }
 
     protected void InvokeMusicChange(Entry entry, MusicFlags flags) => OnMusicChanged?.Invoke(this, new(entry, flags));
 
@@ -834,13 +952,6 @@ public abstract partial class WorldBase : IWorld
     {
         foreach (Player player in EntityManager.Players)
             player.StatusBar.Tick();
-    }
-
-    [Conditional("DEBUG")]
-    private static void DebugCheck()
-    {
-        if (WeakEntity.Default.Entity != null)
-            Fail("Static WeakEntity default reference was changed.");
     }
 
     private void TickEntities()
@@ -870,11 +981,11 @@ public abstract partial class WorldBase : IWorld
                 if (entity.Respawn)
                     HandleRespawn(entity);
 
-                entity.SectorDamageSpecial?.Tick(entity);
-                                
+                entity.Sector.SectorDamageSpecial?.Tick(entity);
+
                 if (!WorldStatic.InfinitelyTallThings &&
-                    (entity.HadOnEntity || entity.OnEntity != WeakEntity.Default) &&
-                    !entity.Flags.NoGravity && !entity.Flags.NoBlockmap &&                    
+                    (entity.HadOnEntity || entity.OnEntity() != null) &&
+                    !entity.Flags.NoGravity && !entity.Flags.NoBlockmap &&
                     entity.Velocity.Z == 0 && entity.Position.Z > entity.HighestFloorSector.Floor.Z)
                 {
                     m_fallCheckEntities.Add(entity);
@@ -883,7 +994,7 @@ public abstract partial class WorldBase : IWorld
 
             entity = nextEntity;
         }
-        
+
         // Check entities that are subject to falling and may have been on top of another entity that is no longer valid.
         // This often happens with cacodemon clusters where a dead one is on top of many and needs to fall.
         PhysicsManager.EntityFallCheck(m_fallCheckEntities);
@@ -910,11 +1021,8 @@ public abstract partial class WorldBase : IWorld
 
             if (player.Sector.Secret && player.OnSectorFloorZ(player.Sector))
             {
-                DisplayMessage(player, null, "$SECRETMESSAGE");
-                SoundManager.PlayStaticSound("misc/secret");
                 player.Sector.SetSecret(false);
-                LevelStats.SecretCount++;
-                player.SecretsFound++;
+                PlayerSecret(player);
             }
 
             if (m_sectorToMusicChange.TryGetValue(player.Sector.Id, out var musInfo) && !ReferenceEquals(musInfo, m_lastMusicChange))
@@ -927,6 +1035,14 @@ public abstract partial class WorldBase : IWorld
         Profiler.World.TickPlayer.Stop();
     }
 
+    private void PlayerSecret(Player player)
+    {
+        DisplayMessage(player, null, "$SECRETMESSAGE");
+        SoundManager.PlayStaticSound("misc/secret");
+        LevelStats.SecretCount++;
+        player.PlayerStats.SecretCount++;
+    }
+
     public void SectorInstantKillEffect(Entity entity, InstantKillEffect effect)
     {
         if (!WorldStatic.Mbf21)
@@ -936,7 +1052,7 @@ public abstract partial class WorldBase : IWorld
         if (entity.IsDead || (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll))
             return;
 
-        if (!entity.IsPlayer && (effect & InstantKillEffect.KillMonsters) != 0)
+        if (entity.Flags.Shootable && !entity.Flags.Float && !entity.IsPlayer && (effect & InstantKillEffect.KillMonsters) != 0)
         {
             entity.ForceGib();
             return;
@@ -976,10 +1092,11 @@ public abstract partial class WorldBase : IWorld
         if (Paused)
             return;
 
-        DrawPause = options.HasFlag(PauseOptions.DrawPause);
+        DrawPause = (options & PauseOptions.DrawPause) != 0;
         SoundManager.Pause();
 
         Paused = true;
+        WorldPaused?.Invoke(this, EventArgs.Empty);
     }
 
     public void ResetInterpolation()
@@ -1115,7 +1232,7 @@ public abstract partial class WorldBase : IWorld
                 yield return def;
     }
 
-    private void AddMonsterCountSpecial(List<IMonsterCounterSpecial> monsterCountSpecials, Func<EntityFlags, bool> isMatch, int sectorTag, 
+    private void AddMonsterCountSpecial(List<IMonsterCounterSpecial> monsterCountSpecials, Func<EntityFlags, bool> isMatch, int sectorTag,
         MapSpecialAction mapSpecialAction)
     {
         foreach (var def in GetEntityDefinitionsByFlag(isMatch))
@@ -1139,7 +1256,7 @@ public abstract partial class WorldBase : IWorld
     public IList<Sector> FindBySectorTag(int tag) =>
         Geometry.FindBySectorTag(tag);
 
-    public IEnumerable<Entity> FindByTid(int tid) =>
+    public LinkedList<Entity> FindByTid(int tid) =>
         EntityManager.FindByTid(tid);
 
     public IEnumerable<Line> FindByLineId(int lineId) =>
@@ -1152,6 +1269,7 @@ public abstract partial class WorldBase : IWorld
     {
         OnDestroying?.Invoke(this, EventArgs.Empty);
         SpecialManager.SectorSpecialDestroyed -= SpecialManager_SectorSpecialDestroyed;
+        SoundManager.UnregisterEvents();
         PerformDispose();
         GC.SuppressFinalize(this);
     }
@@ -1213,40 +1331,53 @@ public abstract partial class WorldBase : IWorld
         Vec2D start = entity.Position.XY;
         Vec2D end = start + (Vec2D.UnitCircle(entity.AngleRadians) * entity.Properties.Player.UseRange);
         var intersections = WorldStatic.Intersections;
+        double openFloorZ = double.MinValue;
+        double openCeilingZ = double.MaxValue;
         intersections.Clear();
         BlockmapTraverser.UseTraverse(new Seg2D(start, end), intersections);
 
         for (int i = 0; i < intersections.Length; i++)
         {
-            BlockmapIntersect bi = intersections[i];
-            if (bi.Line == null)
+            ref var bi = ref intersections.Data[i];
+            if (bi.GetIndex(out var lineIndex) != IntersectType.Line)
                 continue;
 
-            OnTryEntityUseLine(entity, bi.Line);
+            var line = Lines[Blockmap.BlockLines[lineIndex].LineId];
+            OnTryEntityUseLine(entity, line);
 
-            if (bi.Line.Segment.OnRight(start))
+            if ((entity.IsPlayer && (line.Flags.Activations & LineActivations.UseLineBack) != 0) || line.Segment.OnRight(start))
             {
-                if (bi.Line.HasSpecial)
-                    activateSuccess = ActivateSpecialLine(entity, bi.Line, ActivationContext.UseLine, true) || activateSuccess;
-
-                if (activateSuccess && !bi.Line.Flags.PassThrough)
-                    break;
-
-                if (bi.Line.Back == null)
+                if (line.HasSpecial)
                 {
-                    hitBlockLine = true;
-                    break;
+                    if ((line.Flags.Activations & LineActivations.CheckSwitchRange) != 0 && !CheckSwitchRange(entity, openFloorZ, openCeilingZ))                    
+                        continue;                    
+
+                    activateSuccess = ActivateSpecialLine(entity, line, ActivationContext.UseLine, entity.Position.X, entity.Position.Y) || activateSuccess;
+
+                    if (activateSuccess && !line.Flags.PassThrough)
+                        break;
                 }
             }
 
-            if (bi.Line.Back != null)
+            if (line.Back == null || line.Flags.Blocking.Everything || line.Flags.Blocking.Use)
             {
-                LineOpening opening = PhysicsManager.GetLineOpening(bi.Line);
+                hitBlockLine = true;
+                break;
+            }
+
+            if (line.Back != null)
+            {
+                var opening = PhysicsManager.GetLineOpening(line.Front.Sector, line.Back.Sector!);
                 if (opening.OpeningHeight <= 0)
                 {
                     hitBlockLine = true;
                     break;
                 }
+
+                if (opening.FloorZ > openFloorZ)
+                    openFloorZ = opening.FloorZ;
+                if (opening.CeilingZ < openCeilingZ)
+                    openCeilingZ = opening.CeilingZ;
 
                 // Keep checking if hit two-sided blocking line - this way the PlayerUserFail will be raised if no line special is hit
                 if (!opening.CanPassOrStepThrough(entity))
@@ -1258,6 +1389,20 @@ public abstract partial class WorldBase : IWorld
             entity.PlayerObj.PlayUseFailSound();
 
         return activateSuccess;
+    }
+
+    private static bool CheckSwitchRange(Entity entity, double openFloorZ, double openCeilingZ)
+    {
+        var bottomZ = entity.Position.Z;
+        var topZ = entity.Position.Z + entity.Height;
+
+        if (topZ < openFloorZ)
+            return false;
+
+        if (bottomZ > openCeilingZ)
+            return false;
+
+        return true;
     }
 
     public virtual void OnTryEntityUseLine(Entity entity, Line line)
@@ -1279,19 +1424,20 @@ public abstract partial class WorldBase : IWorld
 
         for (int i = 0; i < intersections.Length; i++)
         {
-            BlockmapIntersect bi = intersections[i];
-            if (bi.Line == null)
+            ref var bi = ref intersections.Data[i];
+            if (bi.GetIndex(out var lineIndex) != IntersectType.Line)
                 continue;
 
-            bool specialActivate = bi.Line.HasSpecial && bi.Line.Segment.OnRight(start);
+            var line = Lines[Blockmap.BlockLines[lineIndex].LineId];
+            bool specialActivate = line.HasSpecial && ((line.Flags.Activations & LineActivations.UseLineBack) != 0 || line.Segment.OnRight(start));
             if (specialActivate)
                 shouldUse = true;
 
-            if (bi.Line.Back == null)
+            if (line.Back == null)
                 continue;
 
             // This is mostly for doors. They can be reversed so ignore it if it's in motion.
-            if (specialActivate && SideHasActiveMove(bi.Line.Back.Sector))
+            if (specialActivate && SideHasActiveMove(line.Back.Sector))
             {
                 shouldUse = false;
                 break;
@@ -1307,8 +1453,17 @@ public abstract partial class WorldBase : IWorld
 
     private static bool SideHasActiveMove(Sector sector) => sector.ActiveCeilingMove != null || sector.ActiveFloorMove != null;
 
-    public bool CanActivate(Entity entity, Line line, ActivationContext context)
+    public bool CanActivate(Entity entity, Line line, ActivationContext context, double originX, double originY)
     {
+        bool frontSideOnly;
+        if (context == ActivationContext.UseLine)
+            frontSideOnly = (line.Flags.Activations & LineActivations.UseLineBack) == 0;
+        else
+            frontSideOnly = (line.Flags.Activations & LineActivations.FrontSideOnly) != 0;
+
+        if (context != ActivationContext.Always && frontSideOnly && line.Segment.PerpDot(originX, originY) > 0)
+            return false;
+
         bool success = line.Special.CanActivate(entity, line, context,
             ArchiveCollection.Definitions.LockDefinitions, out LockDef? lockFail);
         if (entity.PlayerObj != null && lockFail != null)
@@ -1338,12 +1493,12 @@ public abstract partial class WorldBase : IWorld
     /// <param name="line">The line containing the special to execute.</param>
     /// <param name="context">The ActivationContext to attempt to execute the special.</param>
     /// <param name="fromFront">If the line was activated from the front side.</param>
-    public virtual bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, bool fromFront)
+    public virtual bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, double originX, double originY)
     {
-        if (!CanActivate(entity, line, context))
+        if (!CanActivate(entity, line, context, originX, originY))
             return false;
 
-        EntityActivateSpecial args = new(context, entity, line, fromFront);
+        EntityActivateSpecial args = new(context, entity, line, line.Segment.PerpDot(originX, originY) <= 0);
         return EntityActivatedSpecial(args);
     }
 
@@ -1370,7 +1525,7 @@ public abstract partial class WorldBase : IWorld
         pitch += addPitch;
         angle += addAngle;
 
-        Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0);
+        Entity projectile = EntityManager.Create(projectileDef, start, 0.0, angle, 0, default);
         // Doom set the owner as the target
         projectile.SetOwner(shooter);
         projectile.SetTarget(shooter);
@@ -1378,7 +1533,7 @@ public abstract partial class WorldBase : IWorld
         if (projectile.Flags.Randomize)
             projectile.SetRandomizeTicks();
 
-        double speed = IsFastMonsters && projectile.Properties.FastSpeed > 0 ? 
+        double speed = IsFastMonsters && projectile.Properties.FastSpeed > 0 ?
             projectile.Properties.FastSpeed : projectile.Properties.MissileMovementSpeed;
 
         Vec3D velocity = Vec3D.UnitSphere(angle, pitch) * speed;
@@ -1390,7 +1545,7 @@ public abstract partial class WorldBase : IWorld
 
         if (projectile.Flags.NoClip)
             return projectile;
-        
+
         Vec3D testPos = projectile.Position;
         if (projectile.Properties.MissileMovementSpeed > 0)
             testPos += Vec3D.UnitSphere(angle, pitch) * (shooter.Radius - 2.0);
@@ -1416,8 +1571,7 @@ public abstract partial class WorldBase : IWorld
     {
         double originalPitch = pitch;
 
-        if (damageFunc == null)
-            damageFunc = m_defaultDamageAction;
+        damageFunc ??= m_defaultDamageAction;
 
         if (autoAim)
         {
@@ -1433,9 +1587,9 @@ public abstract partial class WorldBase : IWorld
         {
             shooter.PlayerObj.Tracers.AddLookPath(shooter.HitscanAttackPos, shooter.AngleRadians, originalPitch, distance, Gametick);
             shooter.PlayerObj.Tracers.AddAutoAimPath(shooter.HitscanAttackPos, shooter.AngleRadians, pitch, distance, Gametick);
-        }        
+        }
 
-        if (!shooter.Refire && bulletCount == 1)
+        if (!damageParams.IgnorePlayerRefire && !shooter.Refire && bulletCount == 1)
         {
             int damage = damageFunc(damageParams);
             FireHitscan(shooter, shooter.AngleRadians, pitch, distance, damage);
@@ -1465,11 +1619,44 @@ public abstract partial class WorldBase : IWorld
 
         if (shooter.PlayerObj != null && (options & HitScanOptions.DrawRail) != 0)
         {
-            Vec3D railEnd = bi != null && bi.Value.Line != null ? intersect : end;
+            Vec3D railEnd = bi != null && bi.Value.GetIndex(out _) == IntersectType.Line ? intersect : end;
             shooter.PlayerObj.Tracers.AddTracer(PrimitiveRenderType.Rail, (start, railEnd), Gametick, (0.2f, 0.2f, 1), 35);
         }
 
-        return bi?.Entity;
+        if (bi == null)
+            return null;
+
+        if (bi.Value.GetIndex(out int index) == IntersectType.Entity)
+            return DataCache.Entities[index];
+
+        return null;
+    }
+
+    private void DamageMapObject(Entity entity, Line line, int damage)
+    {
+        var objectHealth = line.ObjectHealth;
+        LineHealthGroup? group = null;
+        if (line.ObjectHealth.HealthGroup > 0)
+            m_lineHealthGroups.TryGetValue(line.ObjectHealth.HealthGroup, out group);
+
+        if (!objectHealth.Damage(damage))
+            return;
+
+        bool killed = objectHealth.Health <= 0;
+        if (objectHealth.DamageSpecial || killed)
+        {
+            ActivateSpecialLine(entity, line, ActivationContext.Always, 0, 0);
+            if (group == null || !killed)
+                return;
+
+            for (int i = 0; i < group.Lines.Count; i++)
+            {
+                var groupLine = group.Lines[i];
+                groupLine.ObjectHealth.Health = 0;
+                if (line != groupLine)
+                    ActivateSpecialLine(entity, groupLine, ActivationContext.Always, 0, 0);
+            }
+        }
     }
 
     public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double angle, double pitch, double distance, int damage,
@@ -1480,7 +1667,7 @@ public abstract partial class WorldBase : IWorld
         double floorZ, ceilingZ;
         bool passThrough = (options & HitScanOptions.PassThroughEntities) != 0;
         Seg2D seg = new(start.XY, end.XY);
-        double segLength = seg.Length;
+        double segLength = seg.Length();
         var intersections = WorldStatic.Intersections;
         intersections.Clear();
         BlockmapTraverser.ShootTraverse(seg, intersections);
@@ -1490,22 +1677,28 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < length; i++)
         {
             ref BlockmapIntersect bi = ref data[i];
-            if (bi.Line != null)
+            var isLine = bi.GetIndex(out var index) == IntersectType.Line;
+            if (isLine)
             {
-                if (damage != Constants.HitscanTestDamage && bi.Line.HasSpecial && CanActivate(shooter, bi.Line, ActivationContext.HitscanImpactsWall))
+                ref var line = ref Blockmap.BlockLines[index];
+                if (damage != Constants.HitscanTestDamage && line.HasSpecial)
                 {
-                    var args = new EntityActivateSpecial(ActivationContext.HitscanImpactsWall, shooter, bi.Line, true);
-                    EntityActivatedSpecial(args);
+                    var mapLine = Lines[line.LineId];
+                    if (mapLine.ObjectHealth != ObjectHealth.Default)
+                        DamageMapObject(shooter, mapLine, damage);
+
+                    ActivateSpecialLine(shooter, mapLine, ActivationContext.HitscanImpactsWall, shooter.Position.X, shooter.Position.Y);
                 }
 
-                intersect.X = bi.Intersection.X;
-                intersect.Y = bi.Intersection.Y;
+                var point = line.Segment.FromTime(bi.SegTime);
+                intersect.X = point.X;
+                intersect.Y = point.Y;
                 intersect.Z = start.Z + (Math.Tan(pitch) * bi.SegTime * segLength);
 
-                if (bi.Line.Back == null)
+                if (line.BackSector == null || line.BlockFlags.Hitscan || line.BlockFlags.Everything)
                 {
-                    floorZ = bi.Line.Front.Sector.ToFloorZ(intersect);
-                    ceilingZ = bi.Line.Front.Sector.ToCeilingZ(intersect);
+                    floorZ = line.FrontSector.ToFloorZ(intersect);
+                    ceilingZ = line.FrontSector.ToCeilingZ(intersect);
 
                     if (intersect.Z > floorZ && intersect.Z < ceilingZ)
                     {
@@ -1513,19 +1706,18 @@ public abstract partial class WorldBase : IWorld
                         break;
                     }
 
-                    if (IsSkyClipOneSided(bi.Line.Front.Sector, floorZ, ceilingZ, intersect))
+                    if (IsSkyClipOneSided(line.FrontSector, floorZ, ceilingZ, intersect))
                         break;
 
-                    GetSectorPlaneIntersection(start, end, bi.Line.Front.Sector, floorZ, ceilingZ, ref intersect);
-                    hitSector = bi.Line.Front.Sector;
+                    GetSectorPlaneIntersection(start, end, line.FrontSector, floorZ, ceilingZ, ref intersect);
+                    hitSector = line.FrontSector;
                     returnValue = bi;
                     break;
                 }
 
-                GetOrderedSectors(bi.Line, start, out Sector front, out Sector back);
+                GetOrderedSectors(line, start, out Sector front, out Sector back);
 
-
-                if (bi.Line.Front.Sector != bi.Line.Back.Sector)
+                if (line.FrontSector != line.BackSector)
                 {
                     if (IsSkyClipTwoSided(front, back, intersect))
                         break;
@@ -1548,7 +1740,7 @@ public abstract partial class WorldBase : IWorld
                     break;
                 }
 
-                var opening = PhysicsManager.GetLineOpening(bi.Line);
+                var opening = PhysicsManager.GetLineOpening(line.FrontSector, line.BackSector!);
                 if ((floorZ != double.MinValue && opening.FloorZ > intersect.Z && intersect.Z > floorZ) || 
                     (ceilingZ != double.MaxValue && opening.CeilingZ < intersect.Z && intersect.Z < ceilingZ))
                 {
@@ -1558,25 +1750,30 @@ public abstract partial class WorldBase : IWorld
                 continue;
             }
 
-            if (bi.Entity != null && shooter != bi.Entity && bi.Entity.BoxIntersects(start, end, ref intersect))
+            if (!isLine && shooter.Index != index)
             {
-                returnValue = bi;
-                if (damage != Constants.HitscanTestDamage)
+                var entity = DataCache.Entities[index];
+                if (entity.BoxIntersects(start, end, ref intersect))
                 {
-                    DamageEntity(bi.Entity, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
-                    CreateBloodOrPulletPuff(bi.Entity, intersect, angle, distance, damage);
+                    returnValue = bi;
+                    if (damage != Constants.HitscanTestDamage)
+                    {
+                        DamageEntity(entity, shooter, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+                        CreateBloodOrPulletPuff(entity, intersect, angle, distance, damage);
+                    }
+                    if (!passThrough)
+                        break;
                 }
-                if (!passThrough)
-                    break;
             }
         }
 
         if (returnValue != null && damage > 0)
         {
             // Only move closer on a line hit
-            if (returnValue.Value.Entity == null && hitSector == null)
+            bool isLine = returnValue.Value.GetIndex(out var index) == IntersectType.Line;
+            if (isLine && hitSector == null)
                 MoveIntersectCloser(start, ref intersect, angle, returnValue.Value.SegTime * segLength);
-            CreateBloodOrPulletPuff(returnValue.Value.Entity, intersect, angle, distance, damage);
+            CreateBloodOrPulletPuff(isLine ? null : DataCache.Entities[index], intersect, angle, distance, damage);
         }
 
         return returnValue;
@@ -1585,10 +1782,10 @@ public abstract partial class WorldBase : IWorld
     public virtual bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType,
         Thrust thrust = Thrust.HorizontalAndVertical, Sector? sectorSource = null)
     {
-        if (source != null && source.Owner.Entity == target)
+        if (source != null && source.Owner() == target)
             damage = (int)(damage * source.Properties.SelfDamageFactor);
 
-        if (!target.Flags.Shootable || damage == 0 || target.IsDead)
+        if (!target.Flags.Shootable || target.Flags.Dormant || damage == 0 || target.IsDead)
             return false;
 
         Vec3D thrustVelocity = Vec3D.Zero;
@@ -1596,7 +1793,7 @@ public abstract partial class WorldBase : IWorld
         {
             Vec3D savePos = source.Position;
             // Check if the source is owned by this target and the same position and move to get a valid thrust angle. (player shot missile against wall)
-            if (source.Owner.Entity == target && source.Position.XY == target.Position.XY)
+            if (source.Owner() == target && source.Position.XY == target.Position.XY)
             {
                 Vec3D move = (source.Position.XY + Vec2D.UnitCircle(target.AngleRadians) * 2).To3D(source.Position.Z);
                 source.Position = move;
@@ -1622,7 +1819,7 @@ public abstract partial class WorldBase : IWorld
             {
                 // Player rocket jumping check, back up the source Z to get a valid pitch
                 // Only done for players, otherwise blowing up enemies will launch them in the air
-                if (zEqual && target.IsPlayer && source.Owner.Entity == target)
+                if (zEqual && target.IsPlayer && source.Owner() == target)
                 {
                     Vec3D sourcePos = new Vec3D(source.Position.X, source.Position.Y, source.Position.Z - 1.0);
                     pitch = sourcePos.Pitch(target.Position, 0.0);
@@ -1654,12 +1851,17 @@ public abstract partial class WorldBase : IWorld
         bool setPainState = m_random.NextByte() < target.Properties.PainChance;
         if (target.PlayerObj != null)
         {
+            damage = (int)(damage * WorldStatic.DamageReceiveMultiplier);
             // Voodoo dolls did not take sector damage in the original
             if (target.PlayerObj.IsVooDooDoll && sectorSource != null)
                 return false;
             // Sector damage is applied to real players, but not their voodoo dolls
             if (sectorSource == null)
                 ApplyVooDooDamage(target.PlayerObj, damage, setPainState);
+        }
+        else if (source?.PlayerObj != null)
+        {
+            damage = (int)(damage * WorldStatic.DamageApplyMultiplier);
         }
 
         if (target.Damage(source, damage, setPainState, damageType) || target.IsInvulnerable)
@@ -1670,7 +1872,9 @@ public abstract partial class WorldBase : IWorld
 
     public virtual bool GiveItem(Player player, Entity item, EntityFlags? flags, out EntityDefinition definition, bool pickupFlash = true)
     {
-        if (ArchiveCollection.Definitions.DehackedDefinition != null && GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item, out var vanillaDef))
+        if (!item.Definition.IgnoreVanillaSpriteLookup &&
+            ArchiveCollection.Definitions.DehackedDefinition != null &&
+            GetDehackedPickup(ArchiveCollection.Definitions.DehackedDefinition, item, out var vanillaDef))
         {
             definition = vanillaDef;
             flags = GetCombinedPickupFlags(vanillaDef.Flags, flags);
@@ -1720,14 +1924,14 @@ public abstract partial class WorldBase : IWorld
     {
         // Vanilla determined pickups by the sprite name
         // E.g. batman doom has an enemy that drops a shotgun with the blue key sprite
-        if (!dehacked.PickupLookup.TryGetValue(item.Frame.Sprite, out string? def))
+        if (!dehacked.PickupLookup.TryGetValue(item.FrameState.Frame.Sprite, out string? def))
         {
             definition = null;
             return false;
         }
 
         definition = ArchiveCollection.EntityDefinitionComposer.GetByName(def);
-        return definition!= null;
+        return definition != null;
     }
 
     public virtual void PerformItemPickup(Entity entity, Entity item)
@@ -1735,7 +1939,7 @@ public abstract partial class WorldBase : IWorld
         if (entity.PlayerObj == null)
             return;
 
-        bool shouldStay = ShouldItemStay(item);
+        var shouldStay = ShouldItemStay(item);
         if (shouldStay && entity.PlayerObj.HasItemOrWeapon(item.Definition))
             return;
 
@@ -1750,18 +1954,31 @@ public abstract partial class WorldBase : IWorld
             PlayerPickedUpItem(entity.PlayerObj, item, health, definition);
 
         if (!shouldStay)
+        {
+            ActivateEntitySpecial(item);
             EntityManager.Destroy(item);
+        }
     }
 
-    private bool ShouldItemStay(Entity item)
+    private void ActivateEntitySpecial(Entity entity)
+    {
+        if (entity.Special != ZDoomLineSpecialType.None)
+            SpecialManager.AddActivatedLineSpecial(entity.Special, entity.Args);
+    }
+
+    public virtual bool ShouldItemStay(Entity item)
     {
         return WorldType switch
         {
-            WorldType.Cooperative => item.Flags.SpecialStayCooperative,
-            WorldType.Deathmatch => item.Flags.SpecialStayDeathmatch,
+            WorldType.Cooperative => item.Flags.SpecialStayCooperative || ShouldItemStayMultiplayer(item),
+            WorldType.Deathmatch => item.Flags.SpecialStayDeathmatch || ShouldItemStayMultiplayer(item),
             _ => item.Flags.SpecialStaySingle,
         };
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ShouldItemStayMultiplayer(Entity item) =>
+        item.Definition.IsType(Inventory.KeyClassName) || (item.Definition.IsType(Inventory.WeaponClassName) && !item.Flags.Dropped);
 
     private void PlayerPickedUpItem(Player player, Entity item, int previousHealth, EntityDefinition definition)
     {
@@ -1773,13 +1990,15 @@ public abstract partial class WorldBase : IWorld
             player = findPlayer;
         }
 
-        item.PickupPlayer = player;
-        item.FrameState.SetState(Constants.FrameStates.Pickup, warn: false);
+        // TODO
+        m_itemPickupIndexToPlayers[item.Index] = player;
+        item.FrameState.SetState(item, item.Definition, Constants.FrameStates.Pickup, warn: false);
+        m_itemPickupIndexToPlayers.Remove(item.Index);
 
         if (item.Flags.CountItem)
         {
             LevelStats.ItemCount++;
-            player.ItemCount++;
+            player.PlayerStats.ItemCount++;
         }
 
         string message = definition.Properties.Inventory.PickupMessage;
@@ -1794,6 +2013,12 @@ public abstract partial class WorldBase : IWorld
             SoundManager.CreateSoundOn(player, definition.Properties.Inventory.PickupSound,
                 new SoundParams(player, channel: SoundChannel.Item));
         }
+
+        if (item.Flags.CountSecret)
+        {
+            PlayerSecret(Player);
+            item.Flags.CountSecret = false;
+        }
     }
 
     public virtual void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove)
@@ -1803,10 +2028,13 @@ public abstract partial class WorldBase : IWorld
 
         entity.Hit(previousVelocity);
 
-        if (tryMove != null && (entity.Flags.Missile || entity.IsPlayer))
+        if (tryMove != null && (entity.Flags.Missile || entity.Flags.CountKill || entity.IsPlayer))
         {
             for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
-                ActivateSpecialLine(entity, tryMove.ImpactSpecialLines[i], ActivationContext.EntityImpactsWall, true);
+            {
+                var line = Lines[tryMove.ImpactSpecialLines[i]];
+                ActivateSpecialLine(entity, line, ActivationContext.EntityImpactsWall, entity.Position.X, entity.Position.Y);
+            }
 
             if (entity.PlayerObj != null && !entity.PlayerObj.IsVooDooDoll && Config.Game.BumpUse)
                 PlayerBumpUse(entity);
@@ -1814,18 +2042,34 @@ public abstract partial class WorldBase : IWorld
 
         if (entity.ShouldDieOnCollision())
         {
-            if (entity.BlockingEntity != null)
+            if (entity.BlockingEntity != null || (tryMove != null && tryMove.ImpactSpecialLines.Length > 0))
             {
                 int damage = entity.Properties.Damage.Get(m_random);
-                DamageEntity(entity.BlockingEntity, entity, damage, DamageType.Normal);
+                if (entity.BlockingEntity != null)
+                    DamageEntity(entity.BlockingEntity, entity, damage, DamageType.Normal);
+
+                if (tryMove != null)
+                {
+                    for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
+                    {
+                        var line = Lines[tryMove.ImpactSpecialLines[i]];
+                        if (line.ObjectHealth == ObjectHealth.Default)
+                            continue;
+                        DamageMapObject(entity, line, damage);
+                    }
+                }
             }
 
             bool skyClip = false;
-            if (entity.BlockingLine != null && entity.BlockingLine.Back != null)
+            if (entity.BlockingBlockLineIndex != -1)
             {
-                GetOrderedSectors(entity.BlockingLine, entity.Position, out Sector front, out Sector back);
-                if (IsSkyClipTwoSided(front, back, entity.Position))
-                    skyClip = true;
+                ref var line = ref Blockmap.BlockLines[entity.BlockingBlockLineIndex];
+                if (line.BackSector != null)
+                {
+                    GetOrderedSectors(line, entity.Position, out Sector front, out Sector back);
+                    if (IsSkyClipTwoSided(front, back, entity.Position))
+                        skyClip = true;
+                }
             }
 
             if (entity.BlockingSectorPlane != null && ArchiveCollection.TextureManager.IsSkyTexture(entity.BlockingSectorPlane.TextureHandle))
@@ -1860,7 +2104,7 @@ public abstract partial class WorldBase : IWorld
             if (!entity.OverlapsZ(intersectEntity) || entity == intersectEntity)
                 continue;
 
-            if (entity.Flags.Ripper && entity.Owner.Entity != intersectEntity)
+            if (entity.Flags.Ripper && entity.Owner() != intersectEntity)
                 RipDamage(entity, intersectEntity);
             if (intersectEntity.Flags.Touchy && ShouldDieFromTouch(entity, intersectEntity))
                 intersectEntity.Kill(null);
@@ -1888,7 +2132,7 @@ public abstract partial class WorldBase : IWorld
         // LostSouls will not kill PainElementals
         const string painElemental = "PainElemental";
         const string lostSoul = "LostSoul";
-        if (!blockingEntity.Flags.Touchy || !blockingEntity.CanDamage(entity, DamageType.Normal))
+        if (!blockingEntity.Flags.Touchy || !entity.Flags.Solid || !blockingEntity.CanDamage(entity, DamageType.Normal))
             return false;
 
         if (entity.Definition.IsType(painElemental) && blockingEntity.Definition.IsType(lostSoul))
@@ -1920,7 +2164,7 @@ public abstract partial class WorldBase : IWorld
 
         bool hitOneSidedLine;
         var seg = new Seg2D(start, end);
-        var segLength = seg.Length;
+        var segLength = seg.Length();
         var intersections = WorldStatic.Intersections;
 
         Vec3D sightPos = new(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
@@ -1929,7 +2173,7 @@ public abstract partial class WorldBase : IWorld
         double topPitch = sightPos.Pitch(endSightPos.Z + to.Height, segLength);
         double bottomPitch = sightPos.Pitch(endSightPos.Z, segLength);
 
-        if (seg.Length <= m_losDistance)
+        if (segLength <= m_losDistance)
         {
             BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
             if (hitOneSidedLine)
@@ -1967,6 +2211,44 @@ public abstract partial class WorldBase : IWorld
                (from.Position.Z >= sector.Ceiling.Z && to.Position.Z + to.Height <= sector.Ceiling.Z);
     }
 
+    private bool CheckLineOfSight(Entity from, in BlockLine line)
+    {
+        if (line.Segment.OnRight(from.Position))
+            return false;
+
+        var fromPos = from.Position.XY;
+        var closestPoint = line.Segment.ClosestPoint(fromPos);
+        if (fromPos.DistanceSquared(closestPoint) > m_radiusExplosion.MaxDamage * m_radiusExplosion.MaxDamage)
+            return false;
+
+        Sector front;
+        Sector? back = null;
+        if (line.OneSided)
+            front = line.FrontSector;
+        else
+            GetOrderedSectors(line, from.Position, out front, out back);
+
+        double floorZ, ceilingZ;
+        if (back == null)
+        {
+            floorZ = line.FrontSector.Floor.Z;
+            ceilingZ = line.FrontSector.Ceiling.Z;
+        }
+        else
+        {
+            floorZ = front.Floor.Z;
+            ceilingZ = front.Ceiling.Z;
+        }
+
+        m_checkRadiusEntity.Position.X = closestPoint.X;
+        m_checkRadiusEntity.Position.Y = closestPoint.Y;
+        m_checkRadiusEntity.Position.Z = floorZ;
+        m_checkRadiusEntity.Height = ceilingZ - floorZ;
+
+        var success = CheckLineOfSight(from, m_checkRadiusEntity);
+        return success;
+    }
+
     private bool IsLineOfSightRejected(Entity from, Entity to)
     {
         int pnum = from.Sector.Id * Sectors.Count + to.Sector.Id;
@@ -1987,7 +2269,7 @@ public abstract partial class WorldBase : IWorld
         Vec2D entityToTarget = new(to.Position.X - from.Position.X, to.Position.Y - from.Position.Y);
         entityToTarget.Normalize();
         var angle = Math.Acos(entityToTarget.Dot(entityLookingVector));
-        return angle < fieldOfViewRadians/2;
+        return angle < fieldOfViewRadians / 2;
     }
 
     private static bool InFieldOfViewOrInMeleeDistance(Entity from, Entity to)
@@ -2014,10 +2296,13 @@ public abstract partial class WorldBase : IWorld
         Vec2D radius2D = new(radius, radius);
         Box2D explosionBox = new(pos2D - radius2D, pos2D + radius2D);
 
-        BlockmapTraverser.ExplosionTraverse(explosionBox, m_radiusExplosionAction);
+        if (m_explosionTraverseLines)
+            BlockmapTraverser.ExplosionTraverseWithLines(explosionBox, m_radiusExplosionEntityAction, m_radiusExplosionLineAction);
+        else
+            BlockmapTraverser.ExplosionTraverse(explosionBox, m_radiusExplosionEntityAction);
     }
 
-    private void HandleRadiusExplosion(Entity entity)
+    private void HandleRadiusExplosionEntity(Entity entity)
     {
         if (!ShouldApplyExplosionDamage(entity, m_radiusExplosion.DamageSource))
             return;
@@ -2025,6 +2310,22 @@ public abstract partial class WorldBase : IWorld
         ApplyExplosionDamageAndThrust(m_radiusExplosion.DamageSource, m_radiusExplosion.AttackSource, entity,
             m_radiusExplosion.Radius, m_radiusExplosion.MaxDamage, m_radiusExplosion.Thrust,
             WorldStatic.OriginalExplosion || m_radiusExplosion.DamageSource.Flags.OldRadiusDmg || entity.Flags.OldRadiusDmg);
+    }
+
+    private void HandleRadiusExplosionLine(int blockLineIndex)
+    {
+        int lineId = Blockmap.BlockLines[blockLineIndex].LineId;
+        var line = Lines[lineId];
+
+        if (line.ObjectHealth == ObjectHealth.Default || line.ObjectHealth.Health <= 0)
+            return;
+
+        ref var blockLine = ref Blockmap.BlockLines[blockLineIndex];
+        if (!CheckLineOfSight(m_radiusExplosion.DamageSource, blockLine))
+            return;
+
+        var applyDamage = CalcRadiusExplosionDamage(m_radiusExplosion.DamageSource, m_checkRadiusEntity, m_radiusExplosion.Radius, m_radiusExplosion.MaxDamage, Thrust.None, true);
+        DamageMapObject(m_radiusExplosion.AttackSource, line, applyDamage);
     }
 
     private bool ShouldApplyExplosionDamage(Entity entity, Entity damageSource)
@@ -2042,12 +2343,14 @@ public abstract partial class WorldBase : IWorld
         => PhysicsManager.TryMoveXY(entity, position.X, position.Y);
 
     public virtual bool IsPositionValid(Entity entity, Vec2D position) =>
-        PhysicsManager.IsPositionValid(entity, position.X, position.Y, PhysicsManager.TryMoveData);
+        PhysicsManager.IsPositionValid(entity, position.X, position.Y);
 
     public virtual SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
     {
         if (moveSpecial.IsInitialMove)
             SectorMoveStart?.Invoke(this, moveSpecial.SectorPlane);
+
+        SectorMove?.Invoke(this, moveSpecial.SectorPlane);
 
         return PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial);
     }
@@ -2056,8 +2359,22 @@ public abstract partial class WorldBase : IWorld
     {
         CheckDropItem(deathEntity);
 
-        if (deathEntity.Flags.CountKill && !deathEntity.Flags.Friendly)
-            LevelStats.KillCount++;
+        if (deathEntity.Flags.CountKill)
+        {
+            var player = deathSource?.PlayerObj;
+
+            if (!deathEntity.Flags.Friendly)
+            {
+                LevelStats.KillCount++;
+                if (player != null)
+                    player.PlayerStats.MonsterKillCount++;
+            }
+            else
+            {
+                if (player != null)
+                    player.PlayerStats.FriendlyKillCount++;
+            }
+        }
 
         if (deathEntity.PlayerObj != null)
         {
@@ -2066,6 +2383,8 @@ public abstract partial class WorldBase : IWorld
 
             ApplyVooDooKill(deathEntity.PlayerObj, deathSource, gibbed);
         }
+
+        ActivateEntitySpecial(deathEntity);
     }
 
     private void CheckDropItem(Entity deathEntity)
@@ -2087,11 +2406,11 @@ public abstract partial class WorldBase : IWorld
                     pos.Z = deathEntity.Position.Z + deathEntity.Definition.Properties.Height / 2;
                     addVelocity = 4;
                 }
-                
+
                 Entity? dropItem = EntityManager.Create(dropItemDef.Value.ClassName, pos, initSpawn: initSpawn);
                 if (dropItem == null)
                     continue;
-                
+
                 dropItem.Flags.Dropped = true;
                 dropItem.Velocity.Z += addVelocity;
             }
@@ -2105,7 +2424,7 @@ public abstract partial class WorldBase : IWorld
 
         // If the player killed themself then don't display the obituary message
         // There is probably a special string for this in multiplayer for later
-        Entity killer = deathSource.Owner.Entity ?? deathSource;
+        Entity killer = deathSource.Owner() ?? deathSource;
         if (player == killer)
             return;
 
@@ -2144,7 +2463,7 @@ public abstract partial class WorldBase : IWorld
         if (entity.Definition.Flags.Solid && IsPositionBlockedByEntity(entity, entity.SpawnPoint))
             return;
 
-        var newEntity = EntityManager.Create(entity.Definition, entity.SpawnPoint, 0, entity.AngleRadians, entity.ThingId, true);
+        var newEntity = EntityManager.Create(entity.Definition, entity.SpawnPoint, 0, entity.AngleRadians, entity.ThingId, entity.Args, true);
         CreateTeleportFog(entity.Position);
         CreateTeleportFog(entity.SpawnPoint);
 
@@ -2179,16 +2498,13 @@ public abstract partial class WorldBase : IWorld
         if (blocked)
             return true;
 
-        if (!PhysicsManager.IsPositionValid(entity, entity.Position.X, entity.Position.Y, EmptyTryMove))
+        if (!PhysicsManager.IsPositionValid(entity, entity.Position.X, entity.Position.Y))
             return true;
 
         return false;
     }
 
     public void ResetGametick() => Gametick = 0;
-
-    const int HighlightSize = 112;
-    private List<object> m_findObjects = new();
 
     public void FindKeys()
     {
@@ -2239,7 +2555,7 @@ public abstract partial class WorldBase : IWorld
                 HighlightSector(sector);
         }
     }
-        
+
     public bool SetSkillLevel(SkillLevel skill)
     {
         var skillDef = ArchiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skill);
@@ -2252,7 +2568,7 @@ public abstract partial class WorldBase : IWorld
     }
 
     private void HighlightSector(Sector sector)
-    {        
+    {
         var islands = Geometry.IslandGeometry.SectorIslands[sector.Id];
         if (islands.Count == 0)
             return;
@@ -2276,6 +2592,16 @@ public abstract partial class WorldBase : IWorld
 
     private void ApplyExplosionDamageAndThrust(Entity source, Entity attackSource, Entity entity, double radius, int maxDamage, Thrust thrust,
         bool approxDistance2D)
+    {
+        var applyDamage = CalcRadiusExplosionDamage(source, entity, radius, maxDamage, thrust, approxDistance2D);
+
+        Entity? originalOwner = source.Owner();
+        source.SetOwner(attackSource);
+        DamageEntity(entity, source, applyDamage, DamageType.AlwaysApply, thrust);
+        source.SetOwner(originalOwner);
+    }
+
+    private static int CalcRadiusExplosionDamage(Entity source, Entity entity, double radius, int maxDamage, Thrust thrust, bool approxDistance2D)
     {
         double distance;
         if (thrust == Thrust.HorizontalAndVertical && (source.Position.Z < entity.Position.Z || source.Position.Z >= entity.Position.Z + entity.Height))
@@ -2301,12 +2627,8 @@ public abstract partial class WorldBase : IWorld
 
         int applyDamage = Math.Clamp((int)(radius - distance), 0, maxDamage);
         if (applyDamage <= 0)
-            return;
-
-        Entity? originalOwner = source.Owner.Entity;
-        source.SetOwner(attackSource);
-        DamageEntity(entity, source, applyDamage, DamageType.AlwaysApply, thrust);
-        source.SetOwner(originalOwner);
+            return 0;
+        return applyDamage;
     }
 
     protected bool ChangeToMusic(int number)
@@ -2339,7 +2661,7 @@ public abstract partial class WorldBase : IWorld
         if (entity != null && entity.IsDisposed)
             return;
 
-        bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood;
+        bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood || entity.Flags.Dormant;
         EntityDefinition? def;
         if (bulletPuff)
         {
@@ -2354,7 +2676,7 @@ public abstract partial class WorldBase : IWorld
         if (def == null)
             return;
 
-        var create = EntityManager.Create(def, intersect, 0, angle, 0);
+        var create = EntityManager.Create(def, intersect, 0, angle, 0, default);
         if (bulletPuff)
         {
             create.Velocity.Z = 1;
@@ -2374,6 +2696,7 @@ public abstract partial class WorldBase : IWorld
 
     private void SetBloodValues(Entity? entity, Entity blood, int damage, bool ripper)
     {
+        blood.SetOwner(entity);
         if (ripper)
         {
             if (entity != null)
@@ -2392,7 +2715,7 @@ public abstract partial class WorldBase : IWorld
 
         // Doom had the blood states hardcoded. Supercharged bulletride seems to function differing in gz vs dsda.
         // The changed the frame for blood that dsda will ignore because of hardcoded states, but work in gz.
-        if (HasDehacked && entity != null && entity.Frame.VanillaIndex != (int)ThingState.BLOOD1)
+        if (HasDehacked && entity != null && entity.FrameState.Frame.VanillaIndex != (int)ThingState.BLOOD1)
             return;
 
         int offset = 0;
@@ -2404,7 +2727,7 @@ public abstract partial class WorldBase : IWorld
         if (offset == 0)
             blood.SetRandomizeTicks();
         else if (blood.Definition.SpawnState != null)
-            blood.FrameState.SetFrameIndex(blood.Definition.SpawnState.Value + offset);
+            blood.FrameState.SetFrameIndex(blood, blood.Definition.SpawnState.Value + offset);
     }
 
     private static void MoveIntersectCloser(in Vec3D start, ref Vec3D intersect, double angle, double distXY)
@@ -2478,7 +2801,7 @@ public abstract partial class WorldBase : IWorld
         PitchNotSet,
     }
 
-    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity, 
+    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity,
         double segLength, ref double topPitch, ref double bottomPitch,
         out double pitch, out Entity? entity)
     {
@@ -2491,15 +2814,19 @@ public abstract partial class WorldBase : IWorld
         {
             ref BlockmapIntersect bi = ref data[i];
 
-            if (bi.Line != null)
+            if (bi.GetIndex(out int index) == IntersectType.Line)
             {
-                if (bi.Line.Back == null)
+                ref var line = ref Blockmap.BlockLines[index];
+                if (line.BackSector == null || line.BlockFlags.Everything)
                     return TraversalPitchStatus.Blocked;
 
-                if (bi.Line.Front.Sector == bi.Line.Back.Sector)
+                if (line.FrontSector == line.BackSector)
                     continue;
 
-                var opening = PhysicsManager.GetLineOpening(bi.Line);
+                if (line.FrontSector.Floor.Z == line.BackSector.Floor.Z && line.FrontSector.Ceiling.Z == line.BackSector.Ceiling.Z)
+                    continue;
+
+                var opening = PhysicsManager.GetLineOpening(line.FrontSector, line.BackSector!);
                 if (opening.FloorZ < opening.CeilingZ)
                 {
                     double sectorPitch = start.Pitch(opening.FloorZ, bi.SegTime * segLength);
@@ -2518,13 +2845,14 @@ public abstract partial class WorldBase : IWorld
                     return TraversalPitchStatus.Blocked;
                 }
             }
-            else if (bi.Entity != null && startEntity != bi.Entity)
+            else if (startEntity.Index != index)
             {
-                double thingTopPitch = start.Pitch(bi.Entity.Position.Z + bi.Entity.Height, bi.SegTime * segLength);
+                var currentEntity = DataCache.Entities[index];
+                double thingTopPitch = start.Pitch(currentEntity.Position.Z + currentEntity.Height, bi.SegTime * segLength);
                 if (thingTopPitch < bottomPitch)
                     continue;
 
-                double thingBottomPitch = start.Pitch(bi.Entity.Position.Z, bi.SegTime * segLength);
+                double thingBottomPitch = start.Pitch(currentEntity.Position.Z, bi.SegTime * segLength);
                 if (thingBottomPitch > topPitch)
                     continue;
 
@@ -2539,7 +2867,7 @@ public abstract partial class WorldBase : IWorld
                     bottomPitch = thingBottomPitch;
 
                 pitch = (bottomPitch + topPitch) / 2.0;
-                entity = bi.Entity;
+                entity = currentEntity;
                 return TraversalPitchStatus.PitchSet;
             }
         }
@@ -2588,27 +2916,52 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    private static void GetOrderedSectors(Line line, in Vec3D start, out Sector front, out Sector back)
+    private static void GetOrderedSectors(in BlockLine line, in Vec3D start, out Sector front, out Sector back)
     {
         if (line.Segment.OnRight(start))
         {
-            front = line.Front.Sector;
-            back = line.Back!.Sector;
+            front = line.FrontSector;
+            back = line.BackSector!;
         }
         else
         {
-            front = line.Back!.Sector;
-            back = line.Front.Sector;
+            front = line.BackSector!;
+            back = line.FrontSector;
         }
     }
 
-    public void CreateTeleportFog(in Vec3D pos, bool playSound = true)
+    public void CreateTeleportFog(in Vec3D pos)
     {
         if (m_teleportFogDef == null)
             return;
 
-        var teleport = EntityManager.Create(m_teleportFogDef, pos, 0.0, 0.0, 0);
+        var teleport = EntityManager.Create(m_teleportFogDef, pos, 0.0, 0.0, 0, default);
         SoundManager.CreateSoundOn(teleport, Constants.TeleportSound, new SoundParams(teleport));
+    }
+
+    public void CreateTeleportFog(Entity entity)
+    {
+        if (m_teleportFogDef == null)
+            return;
+
+        var fogDist = Vec2D.UnitCircle(entity.AngleRadians) * Constants.TeleportOffsetDist;
+        var teleportFogPos = entity.Position;
+        teleportFogPos.X += fogDist.X;
+        teleportFogPos.Y += fogDist.Y;
+
+        CreateTeleportFog(teleportFogPos);
+    }
+
+    public Entity? SpawnEntity(EntityDefinition definition, in Vec3D pos, int tid, double angle, in SpecialArgs args, bool teleportFog)
+    {
+        if (!BlockmapTraverser.SolidBlockTraverse(definition, pos, !WorldStatic.InfinitelyTallThings))
+            return null;
+
+        var entity = EntityManager.Create(definition, pos, 0, angle, tid, args);
+        if (teleportFog && entity != null)
+            CreateTeleportFog(entity.Position);
+
+        return entity;
     }
 
     public void ActivateCheat(Player player, ICheat cheat)
@@ -2658,7 +3011,7 @@ public abstract partial class WorldBase : IWorld
                 break;
             case CheatType.KillAllMonsters:
                 ClearConsole?.Invoke(this, EventArgs.Empty);
-                DisplayMessage(player, null, $"{KillAllMonsters()} {ArchiveCollection.Language.GetMessage(cheat.CheatOn)}");
+                DisplayMessage(player, null, $"{KillAllMonsters(0)} {ArchiveCollection.Language.GetMessage(cheat.CheatOn)}");
                 break;
             case CheatType.God:
                 if (!player.IsDead)
@@ -2694,11 +3047,14 @@ public abstract partial class WorldBase : IWorld
         }
     }
 
-    private int KillAllMonsters()
+    public int KillAllMonsters(int sectorTag)
     {
         int killCount = 0;
         for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
+            if (sectorTag != 0 && entity.Sector.Tag != sectorTag)
+                continue;
+
             if (!entity.IsDead && (entity.Flags.CountKill || entity.Flags.IsMonster))
             {
                 entity.ForceGib();
@@ -2745,7 +3101,8 @@ public abstract partial class WorldBase : IWorld
         m_healChaseData.HealState = healState;
         m_healChaseData.HealSound = healSound;
         m_healChaseData.Healed = false;
-        entity.GetEnemySpeed(out var speedX, out var speedY);
+        var moveFactor = PhysicsManager.GetMoveFactor(entity);
+        entity.GetEnemySpeed(moveFactor, out var speedX, out var speedY);
         Box2D nextBox = new(entity.Position.X + speedX, entity.Position.Y + speedY, entity.Radius);
         BlockmapTraverser.HealTraverse(nextBox, m_healChaseAction);
 
@@ -2759,11 +3116,11 @@ public abstract partial class WorldBase : IWorld
         entity.Flags.Solid = true;
         entity.Height = entity.Definition.Properties.Height;
 
-        Entity? saveTarget = healChaseEntity.Target?.Entity;
+        var saveTarget = healChaseEntity.Target();
         healChaseEntity.SetTarget(entity);
         EntityActionFunctions.A_FaceTarget(healChaseEntity);
         healChaseEntity.SetTarget(saveTarget);
-        healChaseEntity.FrameState.SetState(m_healChaseData.HealState);
+        healChaseEntity.FrameState.SetState(entity, m_healChaseData.HealState);
 
         if (m_healChaseData.HealSound.Length > 0)
             WorldStatic.SoundManager.CreateSoundOn(entity, m_healChaseData.HealSound, new SoundParams(entity));
@@ -2782,7 +3139,8 @@ public abstract partial class WorldBase : IWorld
 
     public void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ)
     {
-        if (entity.Tracer.Entity == null || entity.Tracer.Entity.IsDead)
+        var tracer = entity.Tracer();
+        if (tracer == null || tracer.IsDead)
             return;
 
         SetTracerAngle(entity, threshold, maxTurnAngle);
@@ -2791,13 +3149,13 @@ public abstract partial class WorldBase : IWorld
         entity.Velocity = Vec3D.UnitSphere(entity.AngleRadians, 0.0) * entity.Definition.Properties.MissileMovementSpeed;
         entity.Velocity.Z = z;
 
-        entity.Velocity.Z = velocityZ(entity, entity.Tracer.Entity);
+        entity.Velocity.Z = velocityZ(entity, tracer);
     }
 
     public void SetNewTracerTarget(Entity entity, double fieldOfViewRadians, double radius)
     {
         m_newTracerTargetData.Entity = entity;
-        m_newTracerTargetData.Owner = entity.Owner.Entity ?? entity;
+        m_newTracerTargetData.Owner = entity.Owner() ?? entity;
         m_newTracerTargetData.FieldOfViewRadians = fieldOfViewRadians;
         BlockmapTraverser.EntityTraverse(new Box2D(entity.Position.X, entity.Position.Y, radius), m_setNewTracerTargetAction);
     }
@@ -2809,12 +3167,25 @@ public abstract partial class WorldBase : IWorld
         if (teleportEntity.PlayerObj == null || teleportEntity.PlayerObj.IsVooDooDoll)
             return;
 
-        var playerSubsector = Geometry.BspTree.Find(teleportEntity.Position);
-        if (playerSubsector.IslandId < 0 || playerSubsector.IslandId >= Geometry.IslandGeometry.Islands.Count)
+        var playerSubsectorId = teleportEntity.SubsectorId;
+        if (playerSubsectorId < 0 || playerSubsectorId >= Geometry.SubsectorToIslandId.Length)
             return;
 
-        var island = WorldStatic.World.Geometry.IslandGeometry.Islands[playerSubsector.IslandId];
-        if (!island.IsMonsterCloset)
+        var playerIslandId = Geometry.SubsectorToIslandId[playerSubsectorId];
+        if (playerIslandId < 0 || playerIslandId >= Geometry.IslandGeometry.Islands.Count)
+            return;
+
+        var island = Geometry.IslandGeometry.Islands[playerIslandId];
+        bool wasMonsterCloset = island.IsMonsterCloset;
+        bool wasVooDooCloset = island.IsVooDooCloset;
+
+        if (wasMonsterCloset || wasVooDooCloset)
+            ClearSectorIslandClosetStatus(island, wasMonsterCloset, wasVooDooCloset);
+
+        island.IsMonsterCloset = false;
+        island.IsVooDooCloset = false;
+
+        if (!wasMonsterCloset)
             return;
 
         // Whoops. Player teleported into a monster closet.       
@@ -2823,17 +3194,36 @@ public abstract partial class WorldBase : IWorld
             if ((entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0)
                 continue;
 
-            if (entity.Subsector.Id < 0 || entity.Subsector.Id >= Geometry.BspTree.Subsectors.Count)
+            if (entity.SubsectorId < 0 || entity.SubsectorId >= Geometry.SubsectorToIslandId.Length)
                 continue;
 
-            var subsector = Geometry.BspTree.Subsectors[entity.Subsector.Id];
-            if (subsector.IslandId < 0 || subsector.IslandId >= Geometry.IslandGeometry.Islands.Count)
+            var islandId = Geometry.SubsectorToIslandId[entity.SubsectorId];
+            if (islandId < 0 || islandId >= Geometry.IslandGeometry.Islands.Count)
                 continue;
 
-            if (subsector.IslandId != island.Id)
+            if (islandId != island.Id)
                 continue;
 
             entity.ClearMonsterCloset();
+        }
+    }
+
+    private static void ClearSectorIslandClosetStatus(Island island, bool wasMonsterCloset, bool wasVooDooCloset)
+    {
+        for (int i = 0; i < WorldStatic.World.Geometry.IslandGeometry.SectorIslands.Length; i++)
+        {
+            var sectorIslands = WorldStatic.World.Geometry.IslandGeometry.SectorIslands[i];
+            for (int j = 0; j < sectorIslands.Count; j++)
+            {
+                var sectorIsland = sectorIslands[j];
+                if (sectorIsland.ParentIsland != island)
+                    continue;
+
+                if (wasVooDooCloset)
+                    sectorIsland.IsVooDooCloset = false;
+                if (wasMonsterCloset)
+                    sectorIsland.IsMonsterCloset = false;
+            }
         }
     }
 
@@ -2845,7 +3235,7 @@ public abstract partial class WorldBase : IWorld
         if (!m_newTracerTargetData.Owner.ValidEnemyTarget(checkEntity))
             return GridIterationStatus.Continue;
 
-        if (m_newTracerTargetData.FieldOfViewRadians > 0 && 
+        if (m_newTracerTargetData.FieldOfViewRadians > 0 &&
             !InFieldOfView(m_newTracerTargetData.Entity, checkEntity, m_newTracerTargetData.FieldOfViewRadians))
             return GridIterationStatus.Continue;
 
@@ -2866,11 +3256,12 @@ public abstract partial class WorldBase : IWorld
 
     private static void SetTracerAngle(Entity entity, double threshold, double maxTurnAngle)
     {
-        if (entity.Tracer.Entity == null)
+        var tracer = entity.Tracer();
+        if (tracer == null)
             return;
         // Doom's angles were always 0-360 and did not allow negatives (thank you arithmetic overflow)
         // To keep this code familiar GetPositiveAngle will keep angle between 0 and 2pi
-        double exact = MathHelper.GetPositiveAngle(entity.Position.Angle(entity.Tracer.Entity.Position));
+        double exact = MathHelper.GetPositiveAngle(entity.Position.Angle(tracer.Position));
         double currentAngle = MathHelper.GetPositiveAngle(entity.AngleRadians);
         double diff = MathHelper.GetPositiveAngle(exact - currentAngle);
 
@@ -2918,7 +3309,7 @@ public abstract partial class WorldBase : IWorld
             var armor = EntityManager.DefinitionComposer.GetEntityDefinitions().Where(x => x.IsType(Inventory.ArmorClassName) && x.EditorId.HasValue)
                 .OrderByDescending(x => x.Properties.Armor.SaveAmount).ToList();
 
-            if (armor.Any())
+            if (armor.Count != 0)
                 player.GiveItem(armor.First(), null, pickupFlash: false);
         }
 
@@ -3139,6 +3530,16 @@ public abstract partial class WorldBase : IWorld
         SectorLightChanged?.Invoke(this, sector);
     }
 
+    public void SetSectorEffect(Sector sector, SectorEffect effect)
+    {
+        sector.SetSectorEffect(effect);
+    }
+
+    public void SetSectorKillEffect(Sector sector, InstantKillEffect effect)
+    {
+        sector.SetKillEffect(effect);
+    }
+
     public void SetSectorColorMap(Sector sector, Colormap? colormap)
     {
         if (sector.Colormap == colormap)
@@ -3155,4 +3556,96 @@ public abstract partial class WorldBase : IWorld
     }
 
     public virtual Player GetCameraPlayer() => Player;
+
+    public bool GetPickupPlayer(Entity entity, [NotNullWhen(true)] out Player? player) => 
+        m_itemPickupIndexToPlayers.TryGetValue(entity.Index, out player);
+
+    public bool ShouldSpawn(IThing mapThing)
+    {
+        var flags = mapThing.Flags;
+        if (WorldType == WorldType.SinglePlayer)
+        {
+            if (MapType != MapType.Doom)
+                return flags.SinglePlayer;
+
+            return !flags.MultiPlayer;
+        }
+
+        if (flags.MultiPlayer)
+        {
+            if (MapType == MapType.Doom)
+            {
+                if (WorldType == WorldType.Cooperative)
+                    return !flags.NotCooperative;
+                if (WorldType == WorldType.Deathmatch)
+                    return !flags.NotDeathmatch;
+            }
+            else
+            {
+                if (WorldType == WorldType.Cooperative)
+                    return flags.Cooperative;
+                if (WorldType == WorldType.Deathmatch)
+                    return flags.Deathmatch;
+            }
+        }
+
+        return true;
+    }
+
+    public virtual Player? RespawnPlayer(Player player)
+    {
+        var spawn = EntityManager.SpawnLocations.GetPlayerSpawn(player.PlayerNumber);
+        if (spawn == null)
+            return null;
+
+        var stats = player.PlayerStats;
+        player.PlayerState = PlayerState.Ignore;
+        player = EntityManager.RespawnPlayer(0, spawn);
+        player.PlayerStats = stats;
+        player.SetDefaultInventory();
+
+        CreateTeleportFog(player);
+        return player;
+    }
+
+    public Entity? Summon(Entity source, EntityDefinition definition, SummonOptions options)
+    {
+        if (definition.Flags.Missile && options != SummonOptions.Static)
+        {
+            var pitch = 0.0;
+            if (source.PlayerObj != null)
+                pitch = source.PlayerObj.PitchRadians;
+
+            return FireProjectile(Player, source.AngleRadians, pitch, Constants.EntityShootDistance,
+                Config.Game.AutoAim, definition, out _);
+        }
+
+        var unit = Vec2D.UnitCircle(source.AngleRadians);
+        var pos2D = source.Position.XY + unit * (source.Radius + definition.Properties.Radius + 40);
+        var pos = pos2D.To3D(ToSubsector(pos2D.X, pos2D.Y).Sector.Floor.Z);
+
+        if (definition.Flags.Solid && !BlockmapTraverser.SolidBlockTraverse(definition, pos, !WorldStatic.InfinitelyTallThings))
+            return null;
+
+        var entity = EntityManager.Create(definition.Name, pos);
+        if (entity != null)
+        {
+            entity.AngleRadians = source.AngleRadians;
+            switch (options)
+            {
+                case SummonOptions.Friend:
+                    entity.Flags.Friendly = true;
+                    break;
+                case SummonOptions.Foe:
+                    entity.Flags.Friendly = false;
+                    break;
+                case SummonOptions.Static:
+                    entity.Position.Z = source.ProjectileAttackPos.Z;
+                    entity.PrevPosition.Z = source.ProjectileAttackPos.Z;
+                    break;
+            }
+        }
+
+        return entity;
+    }
 }

@@ -1,15 +1,14 @@
+using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
-using Helion.Resources.Data;
 using Helion.Resources.Definitions.Texture;
 using NLog;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Image = Helion.Graphics.Image;
@@ -19,22 +18,13 @@ namespace Helion.Resources.Images;
 /// <summary>
 /// Performs image retrieval from an archive collection.
 /// </summary>
-public class ArchiveImageRetriever : IImageRetriever
+public class ArchiveImageRetriever(ArchiveCollection archiveCollection, bool findNearestPaletteIndex) : IImageRetriever
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    private readonly ArchiveCollection m_archiveCollection;
+    private readonly ArchiveCollection m_archiveCollection = archiveCollection;
     private readonly ResourceTracker<Image> m_compiledImages = new();
-
-    /// <summary>
-    /// Creates an image reader that uses the archive collection for its
-    /// image data retrieval.
-    /// </summary>
-    /// <param name="archiveCollection">The collection to utilize.</param>
-    public ArchiveImageRetriever(ArchiveCollection archiveCollection)
-    {
-        m_archiveCollection = archiveCollection;
-    }
+    private readonly bool m_findNearestPaletteIndex = findNearestPaletteIndex;
 
     public static bool IsPng(byte[] data)
     {
@@ -100,23 +90,40 @@ public class ArchiveImageRetriever : IImageRetriever
 
     private Image ImageFromDefinition(TextureDefinition definition, GetImageOptions options = default, byte[]? colorTranslation = null)
     {
-        (int w, int h) = definition.Dimension;
-        Image image = new(w, h, ImageType.PaletteWithArgb, (0, 0), definition.Namespace);
-
-        foreach (TextureDefinitionComponent component in definition.Components)
+        Image image;
+        if (definition.IsAutoImageTexture)
         {
-            Image? subImage = null;
-            Entry? entry = m_archiveCollection.Entries.FindByNamespace(component.Name, definition.Namespace);
-            if (entry != null)
-                subImage = ImageFromEntry(entry, cacheEntry: false, options, colorTranslation: colorTranslation);
-
-            if (subImage == null)
+            Image? findImage = null;
+            if (definition.Components.Count > 0)
             {
-                Log.Warn("Cannot find sub-image {0} when making image {1}, resulting will be corrupt", component.Name, definition.Name);
-                continue;
+                var entry = m_archiveCollection.Entries.FindByNamespace(definition.Components[0].Name, definition.Namespace);
+                if (entry != null)
+                    findImage = ImageFromEntry(entry, cacheEntry: false, options, colorTranslation: colorTranslation);
             }
 
-            subImage.DrawOnTopOf(image, component.Offset);
+            image = findImage ?? new Image(0, 0, ImageType.PaletteWithArgb, (0, 0), definition.Namespace);
+        }
+        else
+        {
+            (int w, int h) = definition.Dimension;
+            image = new(w, h, ImageType.PaletteWithArgb, (0, 0), definition.Namespace);
+
+            foreach (TextureDefinitionComponent component in definition.Components)
+            {
+                Image? subImage = null;
+                Entry? entry = m_archiveCollection.Entries.FindByNamespace(component.Name, definition.Namespace);
+
+                if (entry != null)
+                    subImage = ImageFromEntry(entry, cacheEntry: false, options, colorTranslation: colorTranslation);
+
+                if (subImage == null)
+                {
+                    Log.Warn("Cannot find sub-image {0} when making image {1}, resulting will be corrupt", component.Name, definition.Name);
+                    continue;
+                }
+
+                subImage.DrawOnTopOf(image, component.Offset);
+            }
         }
 
         if (definition.Namespace == ResourceNamespace.Sprites)
@@ -128,16 +135,44 @@ public class ArchiveImageRetriever : IImageRetriever
 
     private static void SetSpriteOffset(Image image)
     {
-        int blankRows = GetBlankRowsFromBottom(image);
-        if (blankRows > image.Dimension.Height || blankRows < 0)
-            return;
+        int blankRowsFromBottom = GetBlankRowsFromBottom(image);
+        if (blankRowsFromBottom <= image.Dimension.Height && blankRowsFromBottom >= 0)
+            image.BlankRowsFromBottom = blankRowsFromBottom;
 
-        image.BlankRowsFromBottom = blankRows;
+        int blankRowsFromTop = GetBlankRowsFromTop(image);
+        if (blankRowsFromTop <= image.Dimension.Height && blankRowsFromTop >= 0)
+            image.BlankRowsFromTop = blankRowsFromTop;
+
+    }
+    private static int GetBlankRowsFromTop(Image image)
+    {
+        if (image.ImageType != ImageType.Argb && image.ImageType != ImageType.PaletteWithArgb)
+            return 0;
+
+        bool done = false;
+        int y = 0;
+        for (; y < image.Height; y++)
+        {
+            for (int x = 0; x < image.Width; x++)
+            {
+                // Did we find a row that has a non-blank pixel?
+                if (image.GetPixel(x, y).A != 0)
+                {
+                    done = true;
+                    break;
+                }
+            }
+
+            if (done)
+                break;
+        }
+
+        return Math.Max(0, y);
     }
 
     private static int GetBlankRowsFromBottom(Image image)
     {
-        if (image.ImageType != ImageType.Argb)
+        if (image.ImageType != ImageType.Argb && image.ImageType != ImageType.PaletteWithArgb)
             return 0;
 
         bool done = false;
@@ -162,34 +197,40 @@ public class ArchiveImageRetriever : IImageRetriever
         return Math.Max(0, image.Height - y - 1);
     }
 
+    // Forces helion graphics like the options background, and brightmaps, to always be true color
+    private static bool AlwaysTrueColor(Entry entry) =>
+        entry.Path.Name.StartsWith("helion", StringComparison.Ordinal) || entry.Namespace == ResourceNamespace.Brightmaps;
+
     private Image? ImageFromEntry(Entry entry, bool cacheEntry = true, GetImageOptions options = GetImageOptions.Default, byte[]? colorTranslation = null)
     {
         Image? image = null;
         byte[] data = entry.ReadData();
-
-        if (IsPng(data) || IsBmp(data) || IsJpg(data))
+        bool isPng = IsPng(data);
+        if (isPng || IsBmp(data) || IsJpg(data))
         {
             try
             {
-                using MemoryStream inputStream = new MemoryStream(data);
-                using Image<Rgba32> img = SixLabors.ImageSharp.Image.Load<Rgba32>(inputStream);
+                using var inputStream = new MemoryStream(data);
+                using var img = SixLabors.ImageSharp.Image.Load<Rgba32>(inputStream);
+                Vec2I offset = default;
+                if (isPng)
+                    offset = PngChunk.GetPngOffset(new BinaryReader(inputStream));
 
-                byte[] argbData = new byte[img.Height * img.Width * 4];
-                int offset = 0;
-                for (int y = 0; y < img.Height; y++)
+                Palette? paletteTransltion = null;
+                PaletteColorLookup? paletteTranslationColorLookup = null;
+                if (m_findNearestPaletteIndex && !AlwaysTrueColor(entry))
                 {
-                    Span<Rgba32> pixelRow = img.DangerousGetPixelRowMemory(y).Span;
-                    foreach (ref Rgba32 pixel in pixelRow)
-                    {
-                        argbData[offset] = pixel.A;
-                        argbData[offset + 1] = pixel.R;
-                        argbData[offset + 2] = pixel.G;
-                        argbData[offset + 3] = pixel.B;                        
-                        offset += 4;
-                    }
+                    paletteTransltion = m_archiveCollection.Palette;
+                    paletteTranslationColorLookup = m_archiveCollection.PaletteColorLookup;
+                }
+                // Only search for nearest palette colors if colorTranslation is set (e.g. for blood colors)
+                else if (!m_findNearestPaletteIndex && !AlwaysTrueColor(entry) && colorTranslation != null)
+                {
+                    paletteTransltion = m_archiveCollection.Palette;
+                    paletteTranslationColorLookup = m_archiveCollection.PaletteColorLookup;
                 }
 
-                image = Image.FromArgbBytes((img.Width, img.Height), argbData, (0, 0), entry.Namespace);
+                image = Image.FromImageSharp(img, offset, entry.Namespace, paletteTransltion, paletteTranslationColorLookup, colorTranslation);
             }
             catch
             {
@@ -200,9 +241,9 @@ public class ArchiveImageRetriever : IImageRetriever
         {
             bool clearBlackPixels = (options & GetImageOptions.ClearBlackPixels) != 0;
             var dataEntries = m_archiveCollection.Data;
-            var storeIndices = m_archiveCollection.StoreImageIndices;
+            var storeIndices = ArchiveCollection.StoreImageIndices || m_archiveCollection.Definitions.RetroBrightmapsDefinition != null;
             var palette = entry.Parent.TranslationPalette ?? dataEntries.Palette;
-
+            
             if (colorTranslation == null && palette.Translation != null)
                 colorTranslation = palette.Translation;
 
@@ -247,4 +288,7 @@ public class ArchiveImageRetriever : IImageRetriever
             indices[i] = translation[value];
         }
     }
+
+    public void Add(string name, ResourceNamespace resourceNamespace, Image image) =>
+        m_compiledImages.Insert(name, resourceNamespace, image);
 }

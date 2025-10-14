@@ -39,8 +39,8 @@ public class FramebufferProgram : RenderProgram
         m_mvpLocation = Uniforms.GetLocation("mvp");
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
-    public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
+    public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
+    public void Mvp(mat4 mvp) => ProgramUniforms.Set(mvp, m_mvpLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -138,8 +138,8 @@ public class FramebufferRenderer : IDisposable
         // How much we stretch depends on the window resolution, and the virtual
         // dimension's resolution. Also don't let it be larger than the NDC box.
         // Since our vertices are in NDC coordinates, 1.0 is the max we can go.
-        Dimension windowDim = m_window.Dimension;
-        Dimension textureDim = Framebuffer.Textures[0].Dimension;
+        Dimension windowDim = m_window.ClientDimension;
+        Dimension textureDim = Framebuffer.ColorAttachment0.Dimension;
         float scaleX = Math.Min(textureDim.AspectRatio / windowDim.AspectRatio, 1.0f);
         
         return mat4.Scale(scaleX, 1.0f, 1.0f);
@@ -150,15 +150,15 @@ public class FramebufferRenderer : IDisposable
         mat4 mvp = CalculateMvp();
         (float a, float r, float g, float b) = Color.Black.Normalized;
 
-        GL.Viewport(0, 0, m_window.Dimension.Width, m_window.Dimension.Height);
+        GL.Viewport(0, 0, m_window.ClientDimension.Width, m_window.ClientDimension.Height);
         GL.ClearColor(r, g, b, a);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
         m_program.Bind();
 
-        GL.ActiveTexture(TextureUnit.Texture0);
-        Framebuffer.Textures[0].Bind();
-        m_program.BoundTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
+        Framebuffer.ColorAttachment0.Bind();
+        m_program.BoundTexture(BindTextures.BoundTexture);
         m_program.Mvp(mvp);
 
         m_vao.Bind();

@@ -22,7 +22,7 @@ public class LightPulsateSpecial : SectorSpecialBase
         m_inc = -DoomPulsateValue;
     }
 
-    public LightPulsateSpecial(IWorld world, Sector sector, LightPulsateSpecialModel model)
+    public LightPulsateSpecial(IWorld world, Sector sector, in LightPulsateSpecialModel model)
          : base(world, sector)
     {
         MaxBright = model.Max;
@@ -30,9 +30,9 @@ public class LightPulsateSpecial : SectorSpecialBase
         m_inc = model.Inc;
     }
 
-    public override ISpecialModel? ToSpecialModel()
+    public LightPulsateSpecialModel ToSpecialModel()
     {
-        return new LightPulsateSpecialModel()
+        return new()
         {
             SectorId = Sector.Id,
             Max = MaxBright,

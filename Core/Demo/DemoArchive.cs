@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
@@ -29,8 +28,8 @@ public static class DemoArchive
 
         DemoModel demoModel = new()
         {
-            AppVersion = GetAppVersionString(),
-            Version = DemoVersion.Alpha,
+            AppVersion = AppVersion.Current.VersionString,
+            Version = DemoVersion.v0960,
             GameFiles = world.GetGameFilesModel(),
             Maps = demoMaps,
             Cheats = cheats,
@@ -58,15 +57,6 @@ public static class DemoArchive
         }
 
         return true;
-    }
-
-    private static string GetAppVersionString()
-    {
-        var assemblyName = Assembly.GetExecutingAssembly().GetName();
-        if (assemblyName.Version == null)
-            return string.Empty;
-
-        return assemblyName.Version.ToString();
     }
 
     public static bool Read(ArchiveCollection archiveCollection, string demoArchiveFile, out DemoModel? demoModel, out string binaryDemoFile)

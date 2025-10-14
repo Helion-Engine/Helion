@@ -1,6 +1,6 @@
 using System;
 using Helion.Geometry.Segments;
-using Helion.Graphics.Palettes;
+using Helion.Maps.Components;
 using Helion.Maps.Doom;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
@@ -8,8 +8,6 @@ using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources;
-using Helion.Util;
-using Helion.Util.Extensions;
 using Helion.Util.Loggers;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Lines;
@@ -33,7 +31,7 @@ public static class DoomGeometryBuilder
         if (!bspTree.HasValue)
             return null;
 
-        return new(map, builder, bspTree.Value.Item1, bspTree.Value.Item2);
+        return new(builder, bspTree.Value.Item1, bspTree.Value.Item2);
     }
 
     private static SectorPlane CreateSectorPlane(DoomSector doomSector, SectorPlaneFace face,
@@ -47,17 +45,15 @@ public static class DoomGeometryBuilder
 
     private static void PopulateSectorData(DoomMap map, GeometryBuilder builder, TextureManager textureManager)
     {
-        SectorData sectorData = new();
         foreach (DoomSector doomSector in map.Sectors)
         {
             SectorPlane floorPlane = CreateSectorPlane(doomSector, SectorPlaneFace.Floor, textureManager);
             SectorPlane ceilingPlane = CreateSectorPlane(doomSector, SectorPlaneFace.Ceiling, textureManager);
-            ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, sectorData);
+            ZDoomSectorSpecialType sectorSpecial = VanillaSectorSpecTranslator.Translate(doomSector.SectorType, out var sectorData);
 
             Sector sector = new(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
                 floorPlane, ceilingPlane, sectorSpecial, sectorData);
             builder.Sectors.Add(sector);
-            sectorData.Clear();
         }
     }
 
@@ -94,9 +90,9 @@ public static class DoomGeometryBuilder
         return (front, null);
     }
 
-    private static void SetColorMaps(DoomLine doomLine, TextureManager textureManager, DoomSide doomSide, Side front)
+    public static void SetColorMaps(ILine doomLine, TextureManager textureManager, ISide doomSide, Side front)
     {
-        if (doomLine.LineType == VanillaLineSpecialType.TransferHeights)
+        if (doomLine.Special == (int)VanillaLineSpecialType.TransferHeights)
         {
             textureManager.TryGetColormap(doomSide.UpperTexture, out var upperColormap);
             textureManager.TryGetColormap(doomSide.MiddleTexture, out var middleColormap);
@@ -106,13 +102,18 @@ public static class DoomGeometryBuilder
                 front.Colormaps = new(upperColormap, middleColormap, lowerColormap);
         }
 
-        if (IsSetColorMap(doomLine) && textureManager.TryGetColormap(doomSide.UpperTexture, out var colormap))
-            front.Colormaps = new(colormap, null, null);
+        if (IsSetColorMap(doomLine))
+        {
+            textureManager.TryGetColormap(doomSide.UpperTexture, out var upperColormap);
+            textureManager.TryGetColormap(doomSide.LowerTexture, out var lowerColormap);
+            if (upperColormap != null || lowerColormap != null)
+                front.Colormaps = new(upperColormap, null, lowerColormap);
+        }
     }
 
-    private static bool IsSetColorMap(DoomLine line)
+    private static bool IsSetColorMap(ILine line)
     {
-        switch (line.LineType)
+        switch ((VanillaLineSpecialType)line.Special)
         {
             case VanillaLineSpecialType.SetSectorColorMap:
             case VanillaLineSpecialType.W1_SetSectorColorMap:
@@ -189,6 +190,7 @@ public static class DoomGeometryBuilder
             else
                 special = new LineSpecial(zdoomType, activationType, compatibility);
 
+            LineSpecial.ValidateActivationFlags(zdoomType, ref flags, map.MapType);
             Line line = new(builder.Lines.Count, seg, front, back, flags, special, specialArgs);
             VanillaLineSpecTranslator.FinalizeLine(doomLine, line);
             builder.Lines.Add(line);

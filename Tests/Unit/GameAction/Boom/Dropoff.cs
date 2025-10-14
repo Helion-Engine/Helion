@@ -45,6 +45,18 @@ public class Dropoff
         var imp = GameActions.GetEntity(World, 4);
         imp.Position.Z.Should().Be(64);
         GameActions.TickWorld(World, 105);
+        imp.Position.Z.Should().Be(64);
+    }
+
+    [Fact(DisplayName = "Pusher doesnt push monster off")]
+    public void PusherMonsterDoesntDropoff()
+    {
+        // The imp moves out of the range of the pusher. Even with velocity the boom behavior is it shouldn't dropoff.
+        // It will only dropoff if the velocity was applied through a pusher in thre previous game tick as per the previous test.
+        // mbf ports will only drop the imp with comp_ledgeblock
+        var imp = GameActions.GetEntity(World, 8);
+        imp.Position.Z.Should().Be(64);
+        GameActions.TickWorld(World, 105);
         imp.Position.Z.Should().Be(0);
     }
 
@@ -52,7 +64,7 @@ public class Dropoff
     public void NormalMonsterDropOff()
     {
         var imp = GameActions.GetEntity(World, 3);
-        imp.Position.Should().Be(new Vec3D(-32, 96, 64));
+        imp.Position.Should().Be(new Vec3D(96, 96, 64));
         var move = World.PhysicsManager.TryMoveXY(imp, -32, 48);
         move.Success.Should().BeFalse();
         move.HighestFloorZ.Should().Be(64);
@@ -64,8 +76,8 @@ public class Dropoff
     public void NormalMonsterDropOffFloat()
     {
         var lost = GameActions.GetEntity(World, 7);
-        lost.Position.Should().Be(new Vec3D(64, 96, 64));
-        var move = World.PhysicsManager.TryMoveXY(lost, 64, 48);
+        lost.Position.Should().Be(new Vec3D(192, 96, 64));
+        var move = World.PhysicsManager.TryMoveXY(lost, 192, 48);
         move.Success.Should().BeTrue();
         move.HighestFloorZ.Should().Be(0);
         move.DropOffZ.Should().Be(0);
@@ -76,7 +88,7 @@ public class Dropoff
     public void DeadMonsterDropoff()
     {
         var imp = GameActions.GetEntity(World, 3);
-        imp.Position.Should().Be(new Vec3D(-32, 96, 64));
+        imp.Position.Should().Be(new Vec3D(96, 96, 64));
         imp.Kill(null);
         imp.IsDead.Should().BeTrue();
         var move = World.PhysicsManager.TryMoveXY(imp, -32, 32);

@@ -25,6 +25,7 @@ public class GLHudRenderContext : IHudRenderContext
     private readonly Stack<ResolutionInfo> m_resolutionInfos = new();
     private readonly ArchiveCollection m_archiveCollection;
     public IRendererTextureManager Textures { get; }
+    public ArchiveCollection ArchiveCollection => m_archiveCollection;
     private HudRenderContext? m_context;
 
     public Dimension Dimension
@@ -36,6 +37,8 @@ public class GLHudRenderContext : IHudRenderContext
             return m_context?.Dimension ?? (800, 600);
         }
     }
+
+    public Dimension WindowDimension => m_context?.Dimension ?? (800, 600);
 
     public GLHudRenderContext(ArchiveCollection archiveCollection, RenderCommands commands,
         IRendererTextureManager textureManager)
@@ -111,22 +114,25 @@ public class GLHudRenderContext : IHudRenderContext
 
     public void Image(string texture, HudBox area, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
-         Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1)
+         Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1,
+         string? brightmapName = null)
     {
-        Image(texture, out drawArea, area, null, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex, upscalingFactor);
+        Image(texture, out drawArea, area, null, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex, upscalingFactor, brightmapName);
     }
 
     public void Image(string texture, Vec2I origin, out HudBox drawArea, Align window = Align.TopLeft,
         Align anchor = Align.TopLeft, Align? both = null, ResourceNamespace resourceNamespace = ResourceNamespace.Global,
-        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1)
+        Color? color = null, float scale = 1.0f, float alpha = 1.0f, int colorMapIndex = 0, int upscalingFactor = 1,
+        string? brightmapName = null)
     {
-        Image(texture, out drawArea, null, origin, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex, upscalingFactor);
+        Image(texture, out drawArea, null, origin, window, anchor, both, resourceNamespace, color, scale, alpha, false, colorMapIndex, upscalingFactor, brightmapName);
     }
 
     private void Image(string texture, out HudBox drawArea, HudBox? area = null, Vec2I? origin = null,
         Align window = Align.TopLeft, Align anchor = Align.TopLeft, Align? both = null,
         ResourceNamespace resourceNamespace = ResourceNamespace.Global, Color? color = null,
-        float scale = 1.0f, float alpha = 1.0f, bool drawFuzz = false, int colorMapIndex = 0, int upscalingFactor = 1)
+        float scale = 1.0f, float alpha = 1.0f, bool drawFuzz = false, int colorMapIndex = 0, int upscalingFactor = 1,
+        string? brightmapName = null)
     {
         drawArea = default;
 
@@ -149,7 +155,7 @@ public class GLHudRenderContext : IHudRenderContext
             window, anchor);
 
         m_commands.DrawImage(texture, resourceNamespace, pos.X, pos.Y, drawDim.Width, drawDim.Height,
-            color ?? Color.White, alpha, m_context.DrawColorMap, m_context.DrawFuzz, m_context.DrawPalette, colorMapIndex);
+            color ?? Color.White, alpha, m_context.DrawColorMap, m_context.DrawFuzz, m_context.DrawPalette, colorMapIndex, brightmapName);
 
         drawArea = (location, location + drawDim.Vector);
     }
@@ -346,5 +352,17 @@ public class GLHudRenderContext : IHudRenderContext
     public void DrawHud()
     {
         m_commands.DrawHud();
+    }
+
+    public void BorderBox(HudBox box, Color color, int size)
+    {
+        HudBox topLine = new((box.TopLeft.X + size, box.TopLeft.Y), (box.TopRight.X - size, box.TopRight.Y + size));
+        HudBox bottomLine = new((box.BottomLeft.X + size, box.BottomLeft.Y - size), (box.BottomRight.X - size, box.BottomRight.Y));
+        HudBox leftLine = new(box.TopLeft, (box.BottomLeft.X + size, box.BottomLeft.Y));
+        HudBox rightLine = new((box.TopRight.X - size, box.TopRight.Y), box.BottomRight);
+        FillBox(topLine, color);
+        FillBox(bottomLine, color);
+        FillBox(leftLine, color);
+        FillBox(rightLine, color);
     }
 }

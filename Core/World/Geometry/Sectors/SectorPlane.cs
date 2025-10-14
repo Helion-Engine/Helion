@@ -30,15 +30,18 @@ public sealed class SectorPlane : ISoundSource
 
     public bool MidTextureHack;
     public bool NoRender;
+    public bool LightLevelAbsolute;
     public StaticSkyGeometryData? SkyGeometry;
+    public FlatTransformMethod FlatTransformMethod;
 
     private IAudioSource? m_audio;
     private SoundInfo? m_soundInfo;
 
     private readonly double m_initialZ;
     private readonly int m_initialTextureHandle;
+    private readonly RenderOffsets m_initialRenderOffsets;
 
-    public SectorPlane(SectorPlaneFace facing, double z, int textureHandle, short lightLevel)
+    public SectorPlane(SectorPlaneFace facing, double z, int textureHandle, short lightLevel, in RenderOffsets renderOffsets = default)
     {
         Facing = facing;
         Z = z;
@@ -49,6 +52,8 @@ public sealed class SectorPlane : ISoundSource
         m_initialZ = z;
         m_initialTextureHandle = textureHandle;
         Sector = null!;
+        RenderOffsets = renderOffsets;
+        m_initialRenderOffsets = renderOffsets;
     }
 
     public void Reset(short lightLevel)
@@ -63,10 +68,11 @@ public sealed class SectorPlane : ISoundSource
         LastRenderGametick = default;
         Dynamic = default;
         Static = default;
-        RenderOffsets = default;
         MidTextureHack = default;
         NoRender = default;
         SkyGeometry = default;
+
+        RenderOffsets = m_initialRenderOffsets;
     }
 
     public void SetZ(double z)
@@ -109,7 +115,7 @@ public sealed class SectorPlane : ISoundSource
         Vec2D pos2D = listener.Position.XY;
         // Do not count being in the sector if this is a bad self-referencing subsector. E.g. hr2final map01 sector 160
         if (ReferenceEquals(listener.Sector, Sector)&&
-            !WorldStatic.World.Geometry.IslandGeometry.BadSubsectors.Contains(listener.Subsector.Id))
+            !WorldStatic.World.Geometry.IslandGeometry.BadSubsectors.Contains(listener.SubsectorId))
         {
             return pos2D.To3D(type == SectorPlaneFace.Floor ? Sector.ToFloorZ(pos2D) : Sector.ToCeilingZ(pos2D));
         }
@@ -140,7 +146,7 @@ public sealed class SectorPlane : ISoundSource
         double minDist = double.MaxValue;
         Line? minLine = null;
 
-        for (int i = 0; i < Sector.Lines.Count; i++)
+        for (int i = 0; i < Sector.Lines.Length; i++)
         {
             var line = Sector.Lines[i];
             if (line.Back != null && line.Front.Sector == line.Back.Sector)
@@ -187,8 +193,8 @@ public sealed class SectorPlane : ISoundSource
 
     // Use the sector's LastActivePlaneMove. The move special itself may have been destroyed,
     // but the distance needs to be calculated for stop sounds long after the movement has completed.
-    public double GetDistanceFrom(Entity listenerEntity) =>
-        GetSoundSource(listenerEntity, Sector.LastActivePlaneMove).Distance(listenerEntity.Position);
+    public double GetDistanceSquaredFrom(Entity listenerEntity) =>
+        GetSoundSource(listenerEntity, Sector.LastActivePlaneMove).DistanceSquared(listenerEntity.Position);
 
     public Vec3D? GetSoundPosition(Entity listenerEntity) =>
         GetSoundSource(listenerEntity, Sector.LastActivePlaneMove);

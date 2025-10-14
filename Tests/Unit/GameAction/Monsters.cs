@@ -1,4 +1,7 @@
-﻿using FluentAssertions;
+﻿using System;
+using System.Globalization;
+using System.Linq;
+using FluentAssertions;
 using Helion.Geometry.Vectors;
 using Helion.Resources.IWad;
 using Helion.Util.Extensions;
@@ -9,8 +12,6 @@ using Helion.World.Entities;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
-using System;
-using System.Linq;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction
@@ -21,7 +22,7 @@ namespace Helion.Tests.Unit.GameAction
         private readonly SinglePlayerWorld World;
         private Player Player => World.Player;
 
-        private class MonsterData
+        private sealed class MonsterData
         {
             public readonly string Name;
             public readonly bool HasMissile;
@@ -226,15 +227,15 @@ namespace Helion.Tests.Unit.GameAction
         {
             var barrel = GameActions.CreateEntity(World, "ExplosiveBarrel", new Vec3D(-32, -480, 0), onCreated: EntityCreated);
             var monster = GameActions.CreateEntity(World, "BaronOfHell", new Vec3D(-32, -416, 0), onCreated: EntityCreated);
-            barrel.Target.Entity.Should().BeNull();
-            monster.Target.Entity.Should().BeNull();
+            barrel.Target().Should().BeNull();
+            monster.Target().Should().BeNull();
             int startHealth = monster.Health;
             barrel.Damage(Player, barrel.Health, false, DamageType.AlwaysApply);
             GameActions.TickWorld(World, () => { return monster.Health == startHealth; }, () => { });
 
             monster.Health.Should().BeLessThan(startHealth);
-            barrel.Target.Entity.Should().Be(Player);
-            monster.Target.Entity.Should().Be(Player);
+            barrel.Target().Should().Be(Player);
+            monster.Target().Should().Be(Player);
         }
 
         [Fact(DisplayName = "Barrel monster damage source")]
@@ -243,20 +244,20 @@ namespace Helion.Tests.Unit.GameAction
             var barrel = GameActions.CreateEntity(World, "ExplosiveBarrel", new Vec3D(-32, -480, 0), onCreated: EntityCreated);
             var monster = GameActions.CreateEntity(World, "BaronOfHell", new Vec3D(-32, -416, 0), onCreated: EntityCreated);
             var monster2 = GameActions.CreateEntity(World, "BaronOfHell", new Vec3D(-96, -480, 0), onCreated: EntityCreated);
-            barrel.Target.Entity.Should().BeNull();
-            monster.Target.Entity.Should().BeNull();
-            monster2.Target.Entity.Should().BeNull();
+            barrel.Target().Should().BeNull();
+            monster.Target().Should().BeNull();
+            monster2.Target().Should().BeNull();
             int startHealth = monster.Health;
             barrel.Damage(monster2, barrel.Health, false, DamageType.AlwaysApply);
             GameActions.TickWorld(World, () => { return monster.Health == startHealth; }, () => { });
 
             monster.Health.Should().BeLessThan(startHealth);
             monster2.Health.Should().BeLessThan(startHealth);
-            barrel.Target.Entity.Should().Be(monster2);
+            barrel.Target().Should().Be(monster2);
             // A baron will target another baron through a barrel explosion and will eventually rip each other apart through melee attacks
-            monster.Target.Entity.Should().Be(monster2);
+            monster.Target().Should().Be(monster2);
             // monster 2 should not target itself from explosion
-            monster2.Target.Entity.Should().BeNull();
+            monster2.Target().Should().BeNull();
         }
 
         [Fact(DisplayName = "Cyberdemon no radius damage")]
@@ -304,8 +305,8 @@ namespace Helion.Tests.Unit.GameAction
             source.SetTarget(dest);
             RunMissileState(source, dest, MonsterNames.First(x => x.Name == "ShotgunGuy"), false);
 
-            dest.Target.Entity.Should().NotBeNull();
-            dest.Target.Entity.Should().Be(source);
+            dest.Target().Should().NotBeNull();
+            dest.Target().Should().Be(source);
             dest.FrameState.FrameIndex.Should().Be(dest.Definition.SeeState);
             dest.Definition.Properties.PainChance = savePainChance;
         }
@@ -323,8 +324,8 @@ namespace Helion.Tests.Unit.GameAction
             source.SetTarget(dest);
             RunMissileState(source, dest, MonsterNames.First(x => x.Name == "ShotgunGuy"), false);
 
-            dest.Target.Entity.Should().NotBeNull();
-            dest.Target.Entity.Should().Be(source);
+            dest.Target().Should().NotBeNull();
+            dest.Target().Should().Be(source);
             dest.FrameState.FrameIndex.Should().Be(dest.Definition.PainState);
             dest.Definition.Properties.PainChance = savePainChance;
         }
@@ -345,8 +346,8 @@ namespace Helion.Tests.Unit.GameAction
             firstEnemy.SetTarget(dest);
             RunMissileState(firstEnemy, dest, MonsterNames.First(x => x.Name == "ShotgunGuy"), false);
 
-            dest.Target.Entity.Should().NotBeNull();
-            dest.Target.Entity.Should().Be(firstEnemy);
+            dest.Target().Should().NotBeNull();
+            dest.Target().Should().Be(firstEnemy);
             dest.Threshold.Should().Be(99);
 
             firstEnemy.Kill(dest);
@@ -365,15 +366,15 @@ namespace Helion.Tests.Unit.GameAction
             RunMissileState(secondEnemy, dest, MonsterNames.First(x => x.Name == "ShotgunGuy"), false);
             
             dest.Threshold.Should().Be(99);
-            dest.Target.Entity.Should().Be(secondEnemy);
+            dest.Target().Should().Be(secondEnemy);
 
             // Threshold prevents from targeting the third enemy
             RunMissileState(thirdEnemy, dest, MonsterNames.First(x => x.Name == "ZombieMan"), false, checkTarget: false);
-            dest.Target.Entity.Should().Be(secondEnemy);
+            dest.Target().Should().Be(secondEnemy);
 
             GameActions.TickWorld(World, () => { return dest.Threshold != 0; }, () => { });
             RunMissileState(thirdEnemy, dest, MonsterNames.First(x => x.Name == "ZombieMan"), false, checkTarget: false);
-            dest.Target.Entity.Should().Be(thirdEnemy);
+            dest.Target().Should().Be(thirdEnemy);
 
             dest.Definition.Properties.PainChance = savePainChance;
         }
@@ -386,14 +387,14 @@ namespace Helion.Tests.Unit.GameAction
             int frameIndex = source.FrameState.Frame.MasterFrameIndex;
             source.AngleRadians = GameActions.GetAngle(Bearing.South);
             source.FrozenTics = 0;
-            GameActions.TickWorld(World, () => { return source.Target.Entity == null; }, () => { });
-            source.Target.Entity.Should().Be(Player);
+            GameActions.TickWorld(World, () => { return source.Target() == null; }, () => { });
+            source.Target().Should().Be(Player);
 
             Player.Health = 0;
-            source.FrameState.SetFrameIndex(frameIndex);
+            source.FrameState.SetFrameIndex(source,frameIndex);
             GameActions.AssertAnySound(World, source);
 
-            source.Target.Entity.Should().Be(Player);
+            source.Target().Should().Be(Player);
             GameActions.TickWorld(World, 10);
             GameActions.AssertNoSound(World, source);
             (source.FrameState.Frame.ActionFunction == EntityActionFunctions.A_Look).Should().BeTrue();
@@ -411,14 +412,14 @@ namespace Helion.Tests.Unit.GameAction
             source.Flags.Friendly = true;
             var dest = GameActions.CreateEntity(World, "Cacodemon", new(-256, -416, 0), onCreated: EntityCreated);
             source.SetTarget(dest);
-            GameActions.TickWorld(World, () => { return source.Target.Entity == null; }, () => { });
-            source.Target.Entity.Should().Be(dest);
+            GameActions.TickWorld(World, () => { return source.Target() == null; }, () => { });
+            source.Target().Should().Be(dest);
 
             GameActions.SetEntityOutOfBounds(World, dest);
             GameActions.SetEntityPosition(World, Player, new Vec2D(-256, -416));
-            source.FrameState.SetFrameIndex(frameIndex);
+            source.FrameState.SetFrameIndex(source, frameIndex);
             World.CheckLineOfSight(source, Player).Should().BeTrue();
-            source.Target.Entity.Should().Be(Player);
+            source.Target().Should().Be(Player);
             GameActions.SetEntityOutOfBounds(World, Player);
         }
 
@@ -433,14 +434,14 @@ namespace Helion.Tests.Unit.GameAction
             source.Flags.Friendly = true;
             var dest = GameActions.CreateEntity(World, "Cacodemon", new(-256, -416, 0), onCreated: EntityCreated);
             source.SetTarget(dest);
-            GameActions.TickWorld(World, () => { return source.Target.Entity == null; }, () => { });
-            source.Target.Entity.Should().Be(dest);
+            GameActions.TickWorld(World, () => { return source.Target() == null; }, () => { });
+            source.Target().Should().Be(dest);
 
             GameActions.SetEntityOutOfBounds(World, dest);
-            source.FrameState.SetFrameIndex(frameIndex);
+            source.FrameState.SetFrameIndex(source, frameIndex);
             GameActions.AssertAnySound(World, source);
             World.CheckLineOfSight(source, Player).Should().BeFalse();
-            source.Target.Entity.Should().Be(Player);
+            source.Target().Should().Be(Player);
         }
 
         [Fact(DisplayName = "Monster infighting tests")]
@@ -543,22 +544,22 @@ namespace Helion.Tests.Unit.GameAction
             {
                 // Monsters will not retaliate from archvile attack
                 if (sourceData.Name.EqualsIgnoreCase("Archvile"))
-                    dest.Target.Entity.Should().BeNull();
+                    dest.Target().Should().BeNull();
                 else
-                    dest.Target.Entity.Should().Be(source);
+                    dest.Target().Should().Be(source);
 
                 DebugLog("Missile - Damaged");
-                DebugLog(string.Format("Missile - {0}", dest.Target.Entity == null ? "No Target" : "Targeted"));
+                DebugLog(string.Format(CultureInfo.InvariantCulture, "Missile - {0}", dest.Target() == null ? "No Target" : "Targeted"));
                 dest.Health.Should().NotBe(int.MaxValue);
                 return;
             }
 
             // Pain elementals shoot lost souls, the dest should be damaged by one
-            if (sourceData.Name.Equals("PainElemental"))
+            if (sourceData.Name.Equals("PainElemental", StringComparison.Ordinal))
             {
                 DebugLog("Missile - Damaged and Targeted (Lost Soul)");
-                dest.Target.Entity.Should().NotBeNull();
-                dest.Target.Entity!.Definition.Name.Should().Be("LostSoul");
+                dest.Target().Should().NotBeNull();
+                dest.Target()!.Definition.Name.Should().Be("LostSoul");
                 dest.Health.Should().NotBe(int.MaxValue);
 
                 // Destroy the lost soul, otherwise they will mess with the rest of the tests
@@ -568,7 +569,7 @@ namespace Helion.Tests.Unit.GameAction
 
             DebugLog("Missile - No Damage");
             dest.Health.Should().Be(int.MaxValue);
-            dest.Target.Entity.Should().BeNull();
+            dest.Target().Should().BeNull();
         }
 
         private void RunMeleeState(Entity source, Entity dest, MonsterData sourceData)
@@ -587,7 +588,7 @@ namespace Helion.Tests.Unit.GameAction
 
             DebugLog("Melee - Damaged and Targeted");
             // Melee attacks always damage, even if same species. Barell explosion bug is usually the only way this can happen.
-            dest.Target.Entity.Should().Be(source);
+            dest.Target().Should().Be(source);
             dest.Health.Should().NotBe(int.MaxValue);   
         }
 

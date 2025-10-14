@@ -1,9 +1,11 @@
 using System;
+using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Buffer.Array.Vertex;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Render.OpenGL.Vertex;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
@@ -13,19 +15,24 @@ public class SkySphereComponent : ISkyComponent
     private readonly VertexArrayObject m_geometryVao;
     private readonly SkySphereGeometryShader m_geometryProgram;
     private readonly SkySphereRenderer m_skySphereRenderer;
-    private readonly bool m_flipSkyTexture;
+    private readonly SkyOptions m_options;
+    private readonly Vec2F m_offset;
 
     public bool HasGeometry => !m_geometryVbo.Empty;
     public VertexBufferObject<SkyGeometryVertex> Vbo => m_geometryVbo;
 
-    public SkySphereComponent(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle, 
-        bool flipSkyTexture)
+    public readonly string Name;
+
+    public SkySphereComponent(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle,
+        SkyOptions options, Vec2F offset)
     {
+        Name = textureManager.GetTexture(textureHandle).Name;
         m_skySphereRenderer = new(archiveCollection, textureManager, textureHandle);
         m_geometryVao = new("Sky geometry");
         m_geometryVbo = new("Sky geometry");
         m_geometryProgram = new();
-        m_flipSkyTexture = flipSkyTexture;
+        m_options = options;
+        m_offset = offset;
 
         Attributes.BindAndApply(m_geometryVbo, m_geometryVao, m_geometryProgram.Attributes);
     }
@@ -56,14 +63,14 @@ public class SkySphereComponent : ISkyComponent
 
         m_geometryVao.Bind();
         m_geometryVbo.DrawArrays();
-        m_geometryVao.Unbind();
+        m_geometryVbo.Unbind();
 
         m_geometryProgram.Unbind();
     }
 
     public void RenderSky(RenderInfo renderInfo)
     {
-        m_skySphereRenderer.Render(renderInfo, m_flipSkyTexture);
+        m_skySphereRenderer.Render(renderInfo, m_options, m_offset);
     }
 
     public void Dispose()
@@ -80,4 +87,6 @@ public class SkySphereComponent : ISkyComponent
 
         m_skySphereRenderer.Dispose();
     }
+
+    public override string ToString() => Name;
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Helion.Util.Configs;
 using NLog;
 
@@ -38,7 +39,7 @@ public class GCTracker
             m_lastGenAmount[gen] = GC.CollectionCount(gen);
 
             if (m_lastGenAmount[gen] > m_collectionGen[gen] && gen != 0)
-                Log.Info("GC ran for generation {0} at {1}", gen, DateTime.Now.ToString("HH:mm:ss.fff"));
+                Log.Info("GC ran for generation {0} at {1}", gen, DateTime.Now.ToString("HH:mm:ss.fff", CultureInfo.CurrentCulture));
         }
     }
 }

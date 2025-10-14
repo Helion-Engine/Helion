@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Helion.Resources.Definitions;
 using Helion.Resources.IWad;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Impl.SinglePlayer;
@@ -22,7 +23,7 @@ public class TransferSky
         var sector = GameActions.GetSector(World, 1);
         sector.CeilingSkyTextureHandle.Should().BeNull();
         sector.FloorSkyTextureHandle.Should().BeNull();
-        sector.FlipSkyTexture.Should().BeTrue();
+        ((sector.SkyOptions & SkyOptions.Flip) != 0).Should().BeTrue();
     }
 
     [Fact(DisplayName = "Action 271 - Transfer sky")]
@@ -30,7 +31,7 @@ public class TransferSky
     {
         var sector = GameActions.GetSectorByTag(World, 1);
         AssertSkySector(sector, "SKY2");
-        sector.FlipSkyTexture.Should().BeFalse();
+        ((sector.SkyOptions & SkyOptions.Flip) != 0).Should().BeFalse();
     }
 
     [Fact(DisplayName = "Action 272 - Transfer sky flipped")]
@@ -38,7 +39,7 @@ public class TransferSky
     {
         var sector = GameActions.GetSectorByTag(World, 2);
         AssertSkySector(sector, "SKY3");
-        sector.FlipSkyTexture.Should().BeTrue();
+        ((sector.SkyOptions & SkyOptions.Flip) != 0).Should().BeTrue();
     }
 
     private void AssertSkySector(Sector sector, string? skyTextureName)

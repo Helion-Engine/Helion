@@ -45,6 +45,10 @@ public class ConfigHudAutoMap: ConfigElement<ConfigHudAutoMap>
     [ConfigInfo("Show map title on the automap.")]
     [OptionMenu(OptionSectionType.Automap, "Show Map Title")]
     public readonly ConfigValue<bool> MapTitle = new(true);
+    
+    [ConfigInfo("Use average color from key icon image.")]
+    [OptionMenu(OptionSectionType.Automap, "Key Image Color")]
+    public readonly ConfigValue<bool> ImageKeyColor = new(true);
 
     // Internal to the client
     [ConfigInfo("Amount to scale automap.", save: false)]
@@ -174,7 +178,7 @@ public class ConfigHud: ConfigElement<ConfigHud>
     [OptionMenu(OptionSectionType.Hud, "Autoscale HUD", spacer: true)]
     public readonly ConfigValue<bool> AutoScale = new(true);
 
-    [ConfigInfo("Amount to scale the HUD.")]
+    [ConfigInfo("Amount to scale the HUD. Autoscale HUD must be disabled to change.")]
     [OptionMenu(OptionSectionType.Hud, "HUD Scale", sliderMin: 0, sliderMax: 5.0, sliderStep: 1)]
     public readonly ConfigValue<double> Scale = new(2.0, Greater(0.0));
 
@@ -186,9 +190,9 @@ public class ConfigHud: ConfigElement<ConfigHud>
     [OptionMenu(OptionSectionType.Hud, "Max HUD Messages", sliderMin: 0, sliderMax: 50, sliderStep: 1)]
     public readonly ConfigValue<int> MaxMessages = new(4, GreaterOrEqual(0));
 
-    [ConfigInfo("Horizontal HUD margin percentage  (0.0 - 1.0).")]
-    [OptionMenu(OptionSectionType.Hud, "Horizontal Margin Percent", sliderMin: 0, sliderMax: 1.0, sliderStep: .05)]
-    public readonly ConfigValue<double> HorizontalMargin = new(0, ClampNormalized);
+    [ConfigInfo("HUD width as a percentage of the original Doom status bar width; 0 = Max screen width.")]
+    [OptionMenu(OptionSectionType.Hud, "Width", sliderMin: 0, sliderMax: 10.0, sliderStep: .05)]
+    public readonly ConfigValue<double> Width = new(1, Clamp(0, double.MaxValue));
 
     [ConfigInfo("Font upscaling ratio (1 - 5); uses xBRZ algorithm to improve text readability", restartRequired: true)]
     [OptionMenu(OptionSectionType.Hud, "Font Upscale Ratio", sliderMin: 1, sliderMax: 5, sliderStep: 1)]

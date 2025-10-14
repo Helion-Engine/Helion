@@ -34,12 +34,12 @@ public partial class Client
 
         if (args.Args.Count < 2)
         {
-            Log.Error("Bind requries two arguments");
+            Log.Error("Bind requires two arguments");
             return;
         }
 
         string key = args.Args[0];
-        string command = args.Args[1];
+        string command = string.Join(" ", args.Args[1..]);
 
         if (!GetInputKey(key, out var inputKey))
             return;
@@ -60,7 +60,7 @@ public partial class Client
 
         if (args.Args.Count < 1)
         {
-            Log.Error("Bind requries one argument");
+            Log.Error("Bind requires one argument");
             return;
         }
 
@@ -81,7 +81,7 @@ public partial class Client
     }
 
     [ConsoleCommand("inputkeys", "List all input keys")]
-    private void InputKeys(ConsoleCommandEventArgs args)
+    private static void InputKeys(ConsoleCommandEventArgs args)
     {
         var values = Enum.GetValues<Key>();
         foreach (var value in values)
@@ -90,7 +90,7 @@ public partial class Client
 
 
     [ConsoleCommand("inputcommands", "List all input commands")]
-    private void InputCommands(ConsoleCommandEventArgs args)
+    private static void InputCommands(ConsoleCommandEventArgs args)
     {
         var inputCommands = GetAvailableInputCommands();
         foreach (var inputCommand in inputCommands)
@@ -111,7 +111,7 @@ public partial class Client
         return true;
     }
 
-    private static IList<string> GetAvailableInputCommands()
+    private static string[] GetAvailableInputCommands()
     {
         var properties = typeof(Constants.Input).GetFields();
         return properties.Select(x => x.Name).OrderBy(x => x).ToArray();

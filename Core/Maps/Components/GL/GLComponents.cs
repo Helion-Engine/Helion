@@ -4,12 +4,16 @@ using Helion.Geometry;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Components.ZNodes;
 using Helion.Util.Bytes;
+using NLog;
 
 namespace Helion.Maps.Components.GL;
 
 public class GLComponents
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
     internal const uint LineIsMinisegV2 = 0xFFFFU;
     internal const uint LineIsMinisegV5 = 0xFFFFFFFFU;
     internal const uint VertexIsGLV2 = 1 << 15;
@@ -26,11 +30,16 @@ public class GLComponents
     private const int BytesPerNodeV2 = 28;
     private const int BytesPerNodeV5 = 32;
 
-    public readonly List<Vec2D> Vertices = new();
-    public readonly List<GLSegment> Segments = new();
-    public readonly List<GLSubsector> Subsectors = new();
-    public readonly List<GLNode> Nodes = new();
+    public readonly List<Vec2D> Vertices = [];
+    public readonly List<GLSegment> Segments = [];
+    public readonly List<GLSubsector> Subsectors = [];
+    public readonly List<GLNode> Nodes = [];
     public int Version { get; private set; }
+
+    public GLComponents()
+    {
+
+    }
 
     private GLComponents(MapEntryCollection entryCollection)
     {
@@ -42,15 +51,26 @@ public class GLComponents
 
     public static GLComponents? Read(MapEntryCollection entryCollection)
     {
-        if (!entryCollection.HasAllGLComponents)
-            return null;
-
+        string type = string.Empty;
         try
         {
-            return new GLComponents(entryCollection);
+            if (entryCollection.HasAllGLComponents)
+            {
+                type = "GLNODES";
+                return new GLComponents(entryCollection);
+            }
+            else if (entryCollection.Znodes != null)
+            {
+                type = "ZNODES";
+                var znodes = new ZNodesDefinition();
+                return znodes.Read(entryCollection.Znodes);
+            }
+
+            return null;
         }
-        catch
+        catch (Exception e)
         {
+            Log.Error($"{type}: {e.Message}");
             return null;
         }
     }

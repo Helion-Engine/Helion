@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Helion.Audio;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Util;
 using Helion.World.Entities;
-using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Sound;
@@ -86,7 +84,7 @@ public class SectorMoveSpecial : ISectorSpecial
         Sector.SetActiveMoveSpecial(MoveData.SectorMoveType, this);
     }
 
-    public void Set(IWorld world, Sector sector, SectorMoveSpecialModel model)
+    public void Set(IWorld world, Sector sector, in SectorMoveSpecialModel model)
     {
         Sector = sector;
         m_world = world;
@@ -153,9 +151,9 @@ public class SectorMoveSpecial : ISectorSpecial
         StartClipped = Sector.Ceiling.Z < Sector.Floor.Z;
     }
 
-    public virtual ISpecialModel ToSpecialModel()
+    public SectorMoveSpecialModel ToSpecialModel()
     {
-        return new SectorMoveSpecialModel()
+        return new()
         {
             SectorId = Sector.Id,
             MoveType = (int)MoveData.SectorMoveType,
@@ -195,7 +193,7 @@ public class SectorMoveSpecial : ISectorSpecial
         if (model == null)
             return null;
 
-        return new CrushData(model);
+        return new CrushData(model.Value);
     }
 
     private CrushDataModel? CreateCrushDataModel()
@@ -267,10 +265,10 @@ public class SectorMoveSpecial : ISectorSpecial
                 Sector.SectorDamageSpecial = null;
 
             if (MoveData.SectorEffect != null)
-                Sector.SetSectorEffect(MoveData.SectorEffect.Value);
+                m_world.SetSectorEffect(Sector, MoveData.SectorEffect.Value);
 
             if (MoveData.KillEffect != null)
-                Sector.SetKillEffect(MoveData.KillEffect.Value);
+                m_world.SetSectorKillEffect(Sector, MoveData.KillEffect.Value);
 
             StopMovementSound();
             Sector.ClearActiveMoveSpecial(MoveData.SectorMoveType);
@@ -339,11 +337,17 @@ public class SectorMoveSpecial : ISectorSpecial
 
     private void CreateSound(string sound, bool loop = false)
     {
+        if (Sector.Silent)
+            return;
+
         m_world.SoundManager.CreateSoundOn(SectorPlane, sound, new SoundParams(SectorPlane, loop));
     }
 
     private void StopSound(string sound)
     {
+        if (Sector.Silent)
+            return;
+
         m_world.SoundManager.StopSoundBySource(SectorPlane, SoundChannel.Default, sound);
     }
 

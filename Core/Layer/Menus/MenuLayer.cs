@@ -1,16 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using Helion.Audio.Sounds;
 using Helion.Layer.Options;
 using Helion.Menus;
 using Helion.Menus.Impl;
 using Helion.Render.Common.Renderers;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Consoles;
 using Helion.Util.Timing;
+using Helion.Window;
 using Helion.World.Save;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Helion.Layer.Menus;
 
@@ -18,6 +20,7 @@ public partial class MenuLayer : IGameLayer, IAnimationLayer
 {
     public InterpolationAnimation<IAnimationLayer> Animation { get; }
     internal readonly GameLayerManager Manager;
+    private readonly IWindow m_window;
     private readonly IConfig m_config;
     private readonly HelionConsole m_console;
     private readonly ArchiveCollection m_archiveCollection;
@@ -26,26 +29,32 @@ public partial class MenuLayer : IGameLayer, IAnimationLayer
     private readonly Stack<Menu> m_menus = new();
     private readonly Stopwatch m_stopwatch = new();
     private readonly OptionsLayer m_optionsLayer;
+    private readonly IScreenshotGenerator m_screenshotGenerator;
     private readonly Action<IHudRenderContext> m_renderVirtualHudAction;
+    private readonly MouseMenu m_mouseMenu;
     private bool m_disposed;
 
-    public MenuLayer(GameLayerManager manager, IConfig config, HelionConsole console,
-        ArchiveCollection archiveCollection, SoundManager soundManager, SaveGameManager saveGameManager, OptionsLayer optionsLayer)
+    public MenuLayer(GameLayerManager manager, IWindow window, IConfig config, HelionConsole console,
+        ArchiveCollection archiveCollection, SoundManager soundManager, SaveGameManager saveGameManager, OptionsLayer optionsLayer, IScreenshotGenerator screenshotGenerator)
     {
         Manager = manager;
+        m_window = window;
         m_config = config;
         m_console = console;
         m_archiveCollection = archiveCollection;
         m_soundManager = soundManager;
         m_saveGameManager = saveGameManager;
         m_optionsLayer = optionsLayer;
+        m_screenshotGenerator = screenshotGenerator;
         m_renderVirtualHudAction = new(RenderVirtualHud);
         m_stopwatch.Start();
 
         Animation = new(TimeSpan.FromMilliseconds(200), this);
 
-        MainMenu mainMenu = new(this, config, console, soundManager, archiveCollection, saveGameManager, optionsLayer);
+        MainMenu mainMenu = new(this, window, config, console, soundManager, archiveCollection, saveGameManager, optionsLayer, m_screenshotGenerator);
         m_menus.Push(mainMenu);
+
+        m_mouseMenu = new(window, config);
     }
 
     public bool ShouldRemove()
@@ -59,9 +68,8 @@ public partial class MenuLayer : IGameLayer, IAnimationLayer
             if (menu.GetType() == typeof(SaveMenu))
                 return;
 
-        bool hasWorld = Manager.WorldLayer != null;
-        SaveMenu saveMenu = new(this, m_config, m_console, m_soundManager, m_archiveCollection,
-            m_saveGameManager, hasWorld, isSave, clearOnExit);
+        SaveMenu saveMenu = new(this, m_window, m_config, m_console, m_soundManager, m_archiveCollection,
+            m_saveGameManager, m_screenshotGenerator, Manager.CanSave, isSave, clearOnExit);
 
         m_menus.Push(saveMenu);
     }
@@ -76,12 +84,6 @@ public partial class MenuLayer : IGameLayer, IAnimationLayer
     public void ShowMessage(MessageMenu message)
     {
         m_menus.Push(message);
-    }
-
-    public void SetToMainMenu()
-    {
-        m_menus.Clear();
-        m_menus.Push(new MainMenu(this, m_config, m_console, m_soundManager, m_archiveCollection, m_saveGameManager, m_optionsLayer));
     }
 
     public void Close()

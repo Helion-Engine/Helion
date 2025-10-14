@@ -1,6 +1,7 @@
-﻿using FluentAssertions;
+﻿using System;
+using System.Globalization;
+using FluentAssertions;
 using Helion.Strings;
-using System;
 using Xunit;
 
 namespace Helion.Tests.Unit.Strings;
@@ -13,11 +14,11 @@ public class SpanStringTests
         SpanString str = new();
         int length = str.Capacity * 2;
         for (int i = 0; i < length; i++)
-            str.Append((i % 10).ToString());
+            str.Append((i % 10).ToString(CultureInfo.InvariantCulture));
 
         var span = str.AsSpan();
         for (int i = 0; i < length; i++)
-            span[i].Should().Be((i % 10).ToString()[0]);
+            span[i].Should().Be((i % 10).ToString(CultureInfo.InvariantCulture)[0]);
     }
 
 

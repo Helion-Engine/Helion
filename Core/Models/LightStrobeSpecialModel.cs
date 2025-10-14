@@ -4,7 +4,7 @@ using Helion.World.Special.Specials;
 
 namespace Helion.Models;
 
-public class LightStrobeSpecialModel : ISpecialModel
+public struct LightStrobeSpecialModel : ISpecialModel
 {
     public int SectorId { get; set; }
     public short Max { get; set; }
@@ -13,7 +13,7 @@ public class LightStrobeSpecialModel : ISpecialModel
     public int DarkTics { get; set; }
     public int Delay { get; set; }
 
-    public ISpecial? ToWorldSpecial(IWorld world)
+    public readonly ISpecial? ToWorldSpecial(IWorld world)
     {
         if (!world.IsSectorIdValid(SectorId))
             return null;

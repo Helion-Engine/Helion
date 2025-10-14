@@ -14,13 +14,15 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
     public DynamicVertexBuffer<TVertex> Vbo;
     public VertexArrayObject Vao;
     public GLLegacyTexture Texture;
+    public GLLegacyTexture? BrightmapTexture;
     public DynamicArray<TVertex> ArrayData;
     public int RenderCount;
     private bool m_disposed;
     
-    public RenderData(GLLegacyTexture texture, RenderProgram program)
+    public RenderData(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
     {
         Texture = texture;
+        BrightmapTexture = brightmapTexture;
         Vao = new($"Attributes for {texture.Name}");
         Vbo = new($"Vertices for {texture.Name}");
         ArrayData = Vbo.Data;
@@ -42,8 +44,14 @@ public class RenderData<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTyp
     {
         if (Vbo.Empty)
             return;
-        
+
+        GL.ActiveTexture(BindTextures.BoundTexture);
         Texture.Bind();
+        GL.ActiveTexture(BindTextures.BrightmapTexture);
+        if (BrightmapTexture != null)
+            BrightmapTexture.Bind();
+        else
+            GL.BindTexture(TextureTarget.Texture2D, 0);
         Vao.Bind();
         Vbo.Bind();
 

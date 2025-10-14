@@ -12,7 +12,9 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.CommandLine;
+using Helion.Util.Configs.Components;
 using Helion.Util.Consoles;
+using Helion.World;
 using Helion.World.Util;
 
 namespace Helion.Client;
@@ -22,7 +24,7 @@ public partial class Client
     private readonly List<IWadPath> m_installedIwads = [];
     private string? m_iwad;
     private List<string> m_pwads = [];
-    private bool m_wadListTransformed = false;
+    private bool m_wadListTransformed;
 
     private async Task Initialize()
     {
@@ -49,16 +51,20 @@ public partial class Client
 
             if (m_iwad == null)
             {
-                IwadSelectionLayer selectionlayer = new(m_archiveCollection, m_config, m_installedIwads);
-                selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
-                m_layerManager.Add(selectionlayer);
-                m_layerManager.Remove(m_layerManager.LoadingLayer);
+                ShowIWadSelection();
                 return;
             }
 
-            bool success = await Task.Run(LoadFiles);
+            var status = await Task.Run(LoadFiles);
+            if (status == LoadFileStatus.IWadFail)
+            {
+                m_archiveCollection.Load(Array.Empty<string>());
+                ShowIWadSelection();
+                return;
+            }
+
             m_layerManager.Remove(m_layerManager.LoadingLayer);
-            if (!success)
+            if (status != LoadFileStatus.Success)
             {
                 ShowConsole();
                 return;
@@ -71,11 +77,15 @@ public partial class Client
             m_config.Game.LevelStat.Set(m_commandLineArgs.LevelStat);
             m_config.Game.FastMonsters.Set(m_commandLineArgs.SV_FastMonsters);
             m_config.Game.PistolStart.Set(m_commandLineArgs.PistolStart);
+            m_config.Game.SoloNet.Set(m_commandLineArgs.SoloNet);
 
             ApplyFeatureSet();
 
             if (m_commandLineArgs.LevelStat)
                 ClearStatsFile();
+
+            HandleDiscord(m_config.Game.DiscordIntegration);
+            m_config.Game.DiscordIntegration.OnChanged += (s, enabled) => HandleDiscord(enabled);
 
             if (m_commandLineArgs.LoadGame != null)
             {
@@ -98,54 +108,64 @@ public partial class Client
         }
     }
 
+    private void ShowIWadSelection()
+    {
+        IwadSelectionLayer selectionlayer = new(m_config, m_installedIwads);
+        selectionlayer.OnIwadSelected += IwadSelection_OnIwadSelected;
+        m_layerManager.Add(selectionlayer);
+        m_layerManager.Remove(m_layerManager.LoadingLayer);
+    }
+
     private void FindInstalledIWads()
     {
-        var iwadLocator = IWadLocator.CreateDefault(m_config.Files.Directories.Value);
+        var iwadLocator = IWadLocator.CreateDefault(m_pathsManager, m_config);
         m_installedIwads.AddRange(iwadLocator.Locate());
     }
 
-    private async void IwadSelection_OnIwadSelected(object? sender, string iwad)
+    private async void IwadSelection_OnIwadSelected(object? sender, IwadSelection selection)
     {
-        m_iwad = iwad;
+        m_iwad = selection.IWad;
+        if (!string.IsNullOrEmpty(selection.PWad))
+            m_pwads.Add(selection.PWad);
         m_layerManager.Remove(m_layerManager.IwadSelectionLayer);
         await Initialize();
     }
 
-    private bool LoadFiles()
+    private LoadFileStatus LoadFiles()
     {
         m_archiveCollection.ArchiveLoaded += ArchiveCollection_ArchiveLoaded;
         m_archiveCollection.ArchiveRead += ArchiveCollection_ArchiveRead;
-        bool success = HandleArchiveLoad();
+        var status = HandleArchiveLoad();
         m_archiveCollection.ArchiveLoaded -= ArchiveCollection_ArchiveLoaded;
         m_archiveCollection.ArchiveRead -= ArchiveCollection_ArchiveRead;
-        m_filesLoaded = true;
-        return success;
+        m_filesLoaded = status == LoadFileStatus.Success;
+        return status;
+    }
 
-        bool HandleArchiveLoad()
+    private LoadFileStatus HandleArchiveLoad()
+    {
+        if (!m_archiveCollection.Load(m_pwads, m_iwad, dehackedPatch: m_commandLineArgs.DehackedPatch, checkGameConfArchives: true))
         {
-            if (!m_archiveCollection.Load(m_pwads, m_iwad, dehackedPatch: m_commandLineArgs.DehackedPatch, checkGameConfArchives: true))
-            {
-                if (m_archiveCollection.Assets == null)
-                    ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
-                else if (m_archiveCollection.IWad == null)
-                    ShowFatalError("Failed to load IWAD.");
-                else
-                    ShowFatalError("Failed to load files.");
-                return false;
-            }
-
-            return true;
+            if (m_archiveCollection.Assets == null)
+                ShowFatalError($"Failed to load {Constants.AssetsFileName}.");
+            else if (m_archiveCollection.IWad == null)
+                return LoadFileStatus.IWadFail;
+            else
+                ShowFatalError("Failed to load files.");
+            return LoadFileStatus.Fail;
         }
+
+        return LoadFileStatus.Success;
     }
 
     private void ArchiveCollection_ArchiveRead(object? sender, Archive archive)
     {
-        Log.Info($"Reading {archive.OriginalFilePath}");
+        Log.Info($"Reading {archive.FullPath}");
     }
 
     private void ArchiveCollection_ArchiveLoaded(object? sender, Archive archive)
     {
-        Log.Info($"Loaded {archive.OriginalFilePath}");
+        Log.Info($"Loaded {archive.FullPath}");
     }
 
     private bool CheckLoadMap()
@@ -218,6 +238,12 @@ public partial class Client
             };
         }
 
+        if (m_commandLineArgs.CompLevel != null)
+        {
+            m_config.Compatibility.SessionCompatLevel.Set(m_commandLineArgs.CompLevel, false, false);
+            compLevelDef.CompLevel = m_config.Compatibility.SessionCompatLevel.Value;
+        }
+
         // apply complevel
         compLevelDef.Apply(m_config);
 
@@ -232,6 +258,14 @@ public partial class Client
             compat.Stairs.Set(true, writeToConfig: false);
         if (options.OptionEnabled(OptionsConstants.Comp.Vile, compLevelDef.CompLevel))
             compat.VileGhosts.Set(true, writeToConfig: false);
+
+        var id24skies = m_archiveCollection.Definitions.Id24SkyDefinition.Data.Skies ?? [];
+        var id24mapping = m_archiveCollection.Definitions.Id24SkyDefinition.Data.FlatMapping ?? [];
+        if ((id24skies.Count > 0 || id24mapping.Count > 0) && m_config.Render.SkyMode != SkyRenderMode.Vanilla)
+        {
+            m_config.Render.SkyMode.Set(SkyRenderMode.Vanilla, writeToConfig: false);
+            Log.Info("SKYDEFS: Sky render mode set to vanilla");
+        }
     }
 
     private MapInfoDef? GetDefaultMap()
@@ -257,7 +291,7 @@ public partial class Client
 
     private void LoadMap(string mapName, CommandLineArgs? args = null)
     {
-        QueueLoadMap(GetMapInfo(mapName), null, null, OnLoadMapCommandComplete, args);
+        QueueLoadMap(GetMapInfo(mapName), null, null, OnLoadMapCommandComplete, args, LevelChangeEvent.Default);
     }
 
     private void OnLoadMapCommandComplete(object? value)
@@ -294,5 +328,12 @@ public partial class Client
             world.Player.PitchRadians = MathHelper.ToRadians(args.SetPitch.Value);
             world.Player.ResetInterpolation();
         }
+    }
+
+    private void HandleDiscord(bool enabled)
+    {
+        m_discord.SetEnabled(enabled);
+        if (enabled)
+            m_discord.UpdateRichPresence(GetCurrentGameName(), GetCurrentMapName());
     }
 }

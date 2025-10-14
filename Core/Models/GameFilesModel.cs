@@ -3,8 +3,12 @@ using System.Collections.Generic;
 
 namespace Helion.Models;
 
-public class GameFilesModel
+public struct GameFilesModel
 {
-    public FileModel IWad { get; set; } = null!;
+    public GameFilesModel()
+    {
+    }
+
+    public FileModel IWad { get; set; }
     public IList<FileModel> Files { get; set; } = Array.Empty<FileModel>();
 }

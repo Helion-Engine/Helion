@@ -10,6 +10,11 @@ using System.Text.Json;
 
 namespace Helion.Resources.Definitions.Id24;
 
+/// <summary>
+/// ID24 GAMECONF lump. Contains descriptive metadata, compatibility/feature info, WAD dependencies, and sprite translations.
+/// </summary>
+/// <seealso href="https://doomwiki.org/wiki/GAMECONF"/>
+/// <seealso href="https://docs.google.com/document/d/1sOI826AlCS9e85mIq4wiVoAdn0t_XV7oVq6IF98ADak"/>
 public class GameConfDefinition
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -19,7 +24,7 @@ public class GameConfDefinition
     private static readonly Dictionary<string, int> ModeValues = GameConfConstants.ValidModes
         .Select((x, i) => (x, i))
         .ToDictionary(pair => pair.x, pair => pair.i);
-    public GameConfData? Data { get; set; } = null;
+    public GameConfData? Data { get; set; }
 
     public void Parse(Entry entry)
     {

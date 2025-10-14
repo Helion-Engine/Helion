@@ -15,19 +15,19 @@ public enum VertexLightBufferOptions
 public static class LightLevel
 {
     public static string VertexVariables(LightLevelOptions options) =>
-        $"flat out float lightLevelFrag;{(options.HasFlag(LightLevelOptions.NoDist) ? "" : "out float dist;")}uniform mat4 mvpNoPitch;uniform float distanceOffset;";
+        $"flat out float lightLevelFrag;{((options & LightLevelOptions.NoDist) != 0 ? "" : "out float dist;")}uniform mat4 mvpNoPitch;uniform float distanceOffset;";
 
-    public static string VertexLightBufferVariables => "uniform samplerBuffer sectorLightTexture;";
+    public static string VertexLightBufferVariables => "uniform usamplerBuffer sectorLightTexture;";
 
     public static string VertexLightBuffer(VertexLightBufferOptions options) =>
 @"int texBufferIndex = int(lightLevelBufferIndex);
-float lightLevelBufferValue = texelFetch(sectorLightTexture, texBufferIndex).r;
-lightLevelFrag = clamp(lightLevelBufferValue" + (options.HasFlag(VertexLightBufferOptions.LightLevelAdd) ? " + lightLevelAdd" : "") + ", 0.0, 256.0);";
+float lightLevelBufferValue = float(texelFetch(sectorLightTexture, texBufferIndex).r);
+lightLevelFrag = clamp(lightLevelBufferValue" + ((options & VertexLightBufferOptions.LightLevelAdd) != 0 ? " + lightLevelAddValue + vertexLightLevelFrag" : " + vertexLightLevelFrag") + ", 0.0, 256.0);";
 
     public static string VertexDist(string posVariable) => $"dist = (mvpNoPitch * {posVariable}).{ShaderVars.Depth};";
 
     public static string FragVariables(LightLevelOptions options) =>
-$"flat in float lightLevelFrag;{(options.HasFlag(LightLevelOptions.NoDist) ? "" : "in float dist;")}uniform float lightLevelMix;uniform int extraLight;uniform float distanceOffset;uniform samplerBuffer colormapTexture;uniform int lightMode;uniform float gammaCorrection;";
+$"flat in float lightLevelFrag;{((options & LightLevelOptions.NoDist) != 0 ? "" : "in float dist;")}uniform float lightLevelMix;uniform int extraLight;uniform float distanceOffset;uniform samplerBuffer colormapTexture;uniform int lightMode;uniform float gammaCorrection;";
 
     // Light projection calculation is: (projection >> LIGHTSCALESHIFT) / distance
     // 160 * 65536 / 4096 / distance

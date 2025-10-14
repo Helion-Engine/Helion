@@ -23,7 +23,7 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
     {
         m_renderer = renderer;
         Surface = surface;
-        Commands = new(renderer.m_config, renderer.RenderDimension, renderer.Window.Dimension, renderer.DrawInfo, renderer.m_fpsTracker);
+        Commands = new(renderer.m_config, renderer.RenderDimension, renderer.Window.ClientDimension, renderer.DrawInfo, renderer.m_fpsTracker);
         m_hudRenderContext = new(renderer.m_archiveCollection, Commands, renderer.Textures);
         m_worldRenderContext = new(Commands);
         m_window = renderer.Window;
@@ -31,7 +31,7 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
 
     internal void Begin()
     {
-        Commands.UpdateRenderDimension(m_renderer.RenderDimension, m_renderer.Window.Dimension);
+        Commands.UpdateRenderDimension(m_renderer.RenderDimension, m_renderer.Window.ClientDimension);
         Commands.Begin();
     }
 
@@ -53,7 +53,7 @@ public class GLRenderableSurfaceContext : IRenderableSurfaceContext
     public void Viewport(Box2I area)
     {
         m_viewport = area;
-        Commands.Viewport(area.Dimension, area.Min);
+        Commands.Viewport((area.Width, area.Height), area.Min);
     }
 
     public void Viewport(Box2I area, Action action)

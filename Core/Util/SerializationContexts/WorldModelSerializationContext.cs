@@ -1,12 +1,19 @@
-﻿namespace Helion.Util.SerializationContexts
+﻿using Helion.Util.Container;
+using System;
+using System.Text.Json;
+
+namespace Helion.Util.SerializationContexts
 {
     using Helion.Models;
+    using Helion.Util.RandomGenerators;
+    using System.Collections.Generic;
     using System.Text.Json.Serialization;
 
     [JsonSourceGenerationOptions(
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull | JsonIgnoreCondition.WhenWritingDefault,
         PropertyNameCaseInsensitive = true,
-        IncludeFields = true)]
+        IncludeFields = true
+    )]
     [JsonSerializable(typeof(WorldModel), TypeInfoPropertyName = "WorldModel")]
     [JsonSerializable(typeof(ISpecialModel), TypeInfoPropertyName = "ISpecialModel")]
     [JsonSerializable(typeof(ElevatorSpecialModel), TypeInfoPropertyName = "ElevatorSpecialModel")]
@@ -20,7 +27,9 @@
     [JsonSerializable(typeof(SectorMoveSpecialModel), TypeInfoPropertyName = "SectorMoveSpecialModel")]
     [JsonSerializable(typeof(StairSpecialModel), TypeInfoPropertyName = "StairSpecialModel")]
     [JsonSerializable(typeof(SwitchChangeSpecialModel), TypeInfoPropertyName = "SwitchChangeSpecialModel")]
+    [JsonSerializable(typeof(RngMethod), TypeInfoPropertyName = "RandomMethod")]
     public partial class WorldModelSerializationContext : JsonSerializerContext
     {
     }
 }
+

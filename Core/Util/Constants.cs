@@ -1,6 +1,10 @@
-using Helion.World.Sound;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using Helion.Util.Extensions;
+using Helion.World.Sound;
 
 namespace Helion.Util;
 
@@ -35,6 +39,10 @@ public static class Constants
     public const int NullCompatibilityTextureIndex = 1;
 
     public const int HitscanTestDamage = int.MinValue;
+
+    public const short ClearBlock = short.MaxValue;
+
+    public const double VertexGapPush = 0.01;
 
     /// <summary>
     /// The name of the decorate player class.
@@ -74,8 +82,11 @@ public static class Constants
     public const string TeleportSound = "misc/teleport";
 
     public const string MusicChanger = "MusicChanger";
+    public const string AmbientSound = "AmbientSound";
 
     public const string DefaultSkyTextureName = "SKY1";
+
+    public const string DefaultBackgroundImage = "helion-background";
 
     public static class MenuSounds
     {
@@ -115,58 +126,179 @@ public static class Constants
         public const string Pickup = "Pickup";
     }
 
+    public enum InputType
+    {
+        Uncategorized = 0,
+        Movement = 1,
+        WeaponsAndInventory = 2,
+        Automap = 3,
+        Files = 4,
+        HudAndUI = 5,
+        System = 6,
+    };
+
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
+    public class InputAttribute(InputType inputGroup, string? uiString = null) : Attribute
+    {
+        public InputType InputGroup = inputGroup;
+        public string? UIString = uiString;
+    }
+
     public static class Input
     {
+        // Movement
+        [Input(InputType.Movement)]
         public const string Forward = "Forward";
+        [Input(InputType.Movement)]
         public const string Backward = "Backward";
+        [Input(InputType.Movement)]
         public const string Left = "Left";
+        [Input(InputType.Movement)]
         public const string Right = "Right";
-        public const string Use = "Use";
+        [Input(InputType.Movement)]
         public const string Run = "Run";
+        [Input(InputType.Movement)]
         public const string Strafe = "Strafe";
+        [Input(InputType.Movement)]
         public const string TurnLeft = "TurnLeft";
+        [Input(InputType.Movement)]
         public const string TurnRight = "TurnRight";
+        [Input(InputType.Movement)]
         public const string LookUp = "LookUp";
+        [Input(InputType.Movement)]
         public const string LookDown = "LookDown";
-        public const string Jump = "Jump";
-        public const string Crouch = "Crouch";
-        public const string Console = "Console";
-        public const string Attack = "Attack";
-        public const string NextWeapon = "NextWeapon";
-        public const string PreviousWeapon = "PreviousWeapon";
-        public const string WeaponSlot1 = "WeaponSlot1";
-        public const string WeaponSlot2 = "WeaponSlot2";
-        public const string WeaponSlot3 = "WeaponSlot3";
-        public const string WeaponSlot4 = "WeaponSlot4";
-        public const string WeaponSlot5 = "WeaponSlot5";
-        public const string WeaponSlot6 = "WeaponSlot6";
-        public const string WeaponSlot7 = "WeaponSlot7";
-        public const string WeaponGroup1 = "WeaponGroup1";
-        public const string WeaponGroup2 = "WeaponGroup2";
-        public const string WeaponGroup3 = "WeaponGroup3";
-        public const string WeaponGroup4 = "WeaponGroup4";
-        public const string Screenshot = "Screenshot";
-        public const string HudIncrease = "HudIncrease";
-        public const string HudDecrease = "HudDecrease";
-        public const string AutoMapIncrease = "AutoMapIncrease";
-        public const string AutoMapDecrease = "AutoMapDecrease";
-        public const string AutoMapUp = "AutoMapUp";
-        public const string AutoMapDown = "AutoMapDown";
-        public const string AutoMapLeft = "AutoMapLeft";
-        public const string AutoMapRight = "AutoMapRight";
-        public const string AutoMapAddMarker = "AutoMapAddMarker";
-        public const string AutoMapRemoveNearbyMarkers = "AutoMapRemoveNearbyMarkers";
-        public const string AutoMapClearAllMarkers = "AutoMapClearAllMarkers";
-        public const string Save = "Save";
-        public const string Load = "Load";
-        public const string Automap = "Automap";
+        [Input(InputType.Movement)]
         public const string CenterView = "CenterView";
-        public const string Pause = "Pause";
-        public const string QuickSave = "QuickSave";
-        public const string OptionsMenu = "OptionsMenu";
-        public const string Menu = "Menu";
-        public const string GammaCorrection = "GammaCorrection";
+        [Input(InputType.Movement)]
+        public const string Jump = "Jump";
+        [Input(InputType.Movement)]
+        public const string Crouch = "Crouch";
+        [Input(InputType.Movement)]
+        public const string Attack = "Attack";
+        [Input(InputType.Movement)]
+        public const string Use = "Use";
+        [Input(InputType.Movement)]
         public const string GyroButton = "GyroButton";
+
+        // Weapons/inventory
+        [Input(InputType.WeaponsAndInventory)]
+        public const string NextWeapon = "NextWeapon";
+        [Input(InputType.WeaponsAndInventory)]
+        public const string PreviousWeapon = "PreviousWeapon";
+        [Input(InputType.WeaponsAndInventory)]
+        public const string WeaponSlot1 = "WeaponSlot1";
+        [Input(InputType.WeaponsAndInventory)]
+        public const string WeaponSlot2 = "WeaponSlot2";
+        [Input(InputType.WeaponsAndInventory)]
+        public const string WeaponSlot3 = "WeaponSlot3";
+        [Input(InputType.WeaponsAndInventory)]
+        public const string WeaponSlot4 = "WeaponSlot4";
+        [Input(InputType.WeaponsAndInventory)]
+        public const string WeaponSlot5 = "WeaponSlot5";
+        [Input(InputType.WeaponsAndInventory)]
+        public const string WeaponSlot6 = "WeaponSlot6";
+        [Input(InputType.WeaponsAndInventory)]
+        public const string WeaponSlot7 = "WeaponSlot7";
+        [Input(InputType.WeaponsAndInventory)]
+        public const string WeaponGroup1 = "WeaponGroup1";
+        [Input(InputType.WeaponsAndInventory)]
+        public const string WeaponGroup2 = "WeaponGroup2";
+        [Input(InputType.WeaponsAndInventory)]
+        public const string WeaponGroup3 = "WeaponGroup3";
+        [Input(InputType.WeaponsAndInventory)]
+        public const string WeaponGroup4 = "WeaponGroup4";
+
+        // Automap
+        [Input(InputType.Automap, "Automap")]
+        public const string Automap = "Automap";
+        [Input(InputType.Automap, "Automap Zoom In")]
+        public const string AutoMapIncrease = "AutoMapIncrease";
+        [Input(InputType.Automap, "Automap Zoom Out")]
+        public const string AutoMapDecrease = "AutoMapDecrease";
+        [Input(InputType.Automap, "Automap Up")]
+        public const string AutoMapUp = "AutoMapUp";
+        [Input(InputType.Automap, "Automap Down")]
+        public const string AutoMapDown = "AutoMapDown";
+        [Input(InputType.Automap, "Automap Left")]
+        public const string AutoMapLeft = "AutoMapLeft";
+        [Input(InputType.Automap, "Automap Right")]
+        public const string AutoMapRight = "AutoMapRight";
+        [Input(InputType.Automap, "Automap Add Marker")]
+        public const string AutoMapAddMarker = "AutoMapAddMarker";
+        [Input(InputType.Automap, "Automap Remove Nearby Markers")]
+        public const string AutoMapRemoveNearbyMarkers = "AutoMapRemoveNearbyMarkers";
+        [Input(InputType.Automap, "Automap Clear All Markers")]
+        public const string AutoMapClearAllMarkers = "AutoMapClearAllMarkers";
+
+        // Files
+        [Input(InputType.Files)]
+        public const string Save = "Save";
+        [Input(InputType.Files)]
+        public const string QuickSave = "QuickSave";
+        [Input(InputType.Files)]
+        public const string Load = "Load";
+
+        // HUD and in-game UI
+        [Input(InputType.HudAndUI)]
+        public const string HudIncrease = "HudIncrease";
+        [Input(InputType.HudAndUI)]
+        public const string HudDecrease = "HudDecrease";
+        [Input(InputType.HudAndUI)]
+        public const string GammaCorrection = "GammaCorrection";
+
+        // System
+        [Input(InputType.System)]
+        public const string Pause = "Pause";
+        [Input(InputType.System)]
+        public const string Screenshot = "Screenshot";
+        [Input(InputType.System)]
+        public const string Console = "Console";
+        [Input(InputType.System)]
+        public const string OptionsMenu = "OptionsMenu";
+        [Input(InputType.System)]
+        public const string Menu = "Menu";
+    }
+
+    private static StringBuilder m_builder = new();
+
+    /// <summary>
+    /// All regular, bindable commands available in the game
+    /// </summary>
+    public static readonly HashSet<string> BaseCommands = new(
+        typeof(Input)
+            .GetFields(BindingFlags.Public | BindingFlags.Static)
+            .Select(f => f.GetValue(null) as string ?? string.Empty),
+        StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Commands, grouped by purpose (e.g. movement)
+    /// </summary>
+    public static readonly Dictionary<string, string[]> CommandsByGroup =
+        typeof(Input)
+            .GetFields(BindingFlags.Public | BindingFlags.Static)
+            .GroupBy(f => f.GetCustomAttribute<InputAttribute>()?.InputGroup ?? InputType.Uncategorized)
+            .ToDictionary(
+                g => StringExtensions.WithWordSpaces(g.Key.ToString(), m_builder),
+                g => g.Select(f => f.GetValue(null) as string ?? string.Empty).ToArray(),
+                StringComparer.OrdinalIgnoreCase);
+
+    public static readonly List<string> CommandGroupLabels = CommandsByGroup.Keys.Append("Custom").ToList();
+
+    /// <summary>
+    /// Commands, with their corresponding UI labels, if specified (else, just spaces added before each upper-case letter)
+    /// </summary>
+    public static readonly Dictionary<string, string> CommandUILabels =
+        typeof(Input)
+            .GetFields(BindingFlags.Public | BindingFlags.Static)
+            .GroupBy(f => f.GetValue(null) as string ?? string.Empty)
+            .ToDictionary(g => g.Key, g => g.First().GetCustomAttribute<InputAttribute>()?.UIString ?? StringExtensions.WithWordSpaces(g.Key, m_builder));
+
+    public static readonly HashSet<string> InGameCommands =
+        new HashSet<string>(CommandsByGroup["Movement"].Concat(CommandsByGroup["Weapons And Inventory"]), StringComparer.OrdinalIgnoreCase);
+
+    public static class ConsoleCommands
+    {
+        public const string Commands = "commands";
     }
 
     public static class Fonts
@@ -189,96 +321,26 @@ public static class Constants
         public const int FloorOffset = 0;
         public const int CeilingOffset = 1;
         public const int WallOffset = 2;
+        public const int UpperWallOffset = 0;
+        public const int MiddleWallOffset = 1;
+        public const int LowerWallOffset = 2;
         public const int ColorMapCount = 32;
     }
 
-    public static readonly HashSet<string> BaseCommands = new(StringComparer.OrdinalIgnoreCase)
+    public static class ColormapBuffer
     {
-        Input.Forward,
-        Input.Backward,
-        Input.Left,
-        Input.Right,
-        Input.Use,
-        Input.Run,
-        Input.Strafe,
-        Input.TurnLeft,
-        Input.TurnRight,
-        Input.LookUp,
-        Input.LookDown,
-        Input.Jump,
-        Input.Crouch,
-        Input.Console,
-        Input.Attack,
-        Input.NextWeapon,
-        Input.PreviousWeapon,
-        Input.WeaponSlot1,
-        Input.WeaponSlot2,
-        Input.WeaponSlot3,
-        Input.WeaponSlot4,
-        Input.WeaponSlot5,
-        Input.WeaponSlot6,
-        Input.WeaponSlot7,
-        Input.WeaponGroup1,
-        Input.WeaponGroup2,
-        Input.WeaponGroup3,
-        Input.WeaponGroup4,
-        Input.Screenshot,
-        Input.HudIncrease,
-        Input.HudDecrease,
-        Input.AutoMapIncrease,
-        Input.AutoMapDecrease,
-        Input.AutoMapUp,
-        Input.AutoMapDown,
-        Input.AutoMapLeft,
-        Input.AutoMapRight,
-        Input.AutoMapAddMarker,
-        Input.AutoMapRemoveNearbyMarkers,
-        Input.AutoMapClearAllMarkers,
-        Input.Save,
-        Input.Load,
-        Input.Automap,
-        Input.Pause,
-        Input.QuickSave,
-        Input.OptionsMenu,
-        Input.Menu,
-        Input.CenterView,
-        Input.GyroButton,
-    };
-
-    public static readonly HashSet<string> InGameCommands = new(StringComparer.OrdinalIgnoreCase)
-    {
-        Input.Forward,
-        Input.Backward,
-        Input.Left,
-        Input.Right,
-        Input.Use,
-        Input.Run,
-        Input.Strafe,
-        Input.TurnLeft,
-        Input.TurnRight,
-        Input.LookUp,
-        Input.LookDown,
-        Input.Jump,
-        Input.Crouch,
-        Input.Attack,
-        Input.NextWeapon,
-        Input.PreviousWeapon,
-        Input.WeaponSlot1,
-        Input.WeaponSlot2,
-        Input.WeaponSlot3,
-        Input.WeaponSlot4,
-        Input.WeaponSlot5,
-        Input.WeaponSlot6,
-        Input.WeaponSlot7,
-        Input.CenterView,
-        Input.GyroButton,
-    };
-
-    public static class ConsoleCommands
-    {
-        public const string Commands = "commands";
+        public const int DarkIndex = 0;
+        public const int FullBrightIndex = 1;
+        public const int ColorMapStartIndex = 2;
+        public const int BufferSize = 3;
+        public const int SectorIndexStart = ColorMapStartIndex + ColorMapCount;
+        public const int FloorOffset = 0;
+        public const int CeilingOffset = 1;
+        public const int WallOffset = 2;
+        public const int ColorMapCount = 32;
     }
 
+    public const double Epsilon = 0.00001;
     public const double EntityShootDistance = 2048.0;
     public const double EntityMeleeDistance = 64.0;
     public const double DefaultSpreadAngle = 5.625 * Math.PI / 180.0;
@@ -294,9 +356,11 @@ public static class Constants
     public const double TracerAngle = 16.0 * Math.PI / 180;
     public const double MeleeAngle = 5 * Math.PI / 180;
     public const double PuffRandZ = (1 << 10) / 65536.0;
-    public const int TeleportOffsetDist = 16;
+    public const int TeleportOffsetDist = 20;
     public const int NullFrameIndex = 0;
     public const double DefaultFriction = 0.90625;
+    public const double DefaultMoveFactor = 1.0;
+    public const double DefaultFrictionFactor = 2048.0 / 65536.0;
     public const int DefaultGroupNumber = 0;
 
     public const int WeaponLowerSpeed = 6;
@@ -314,10 +378,13 @@ public static class Constants
     public const float DoomVirtualAspectRatio = 1.33333337f;
 
     public const int MaxTextureHeight = 16384;
-  
+
     public const double DoomSlowCrushSpeed = 0.125;
 
     public static readonly int MaxSoundChannels = Enum.GetValues<SoundChannel>().Length;
 
     public const int DefaultMaxDistance = 6000;
+
+    public const int ScreenshotSaveWidth = 320;
+    public const int ScreenshotSaveHeight = 240;
 }

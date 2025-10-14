@@ -86,7 +86,7 @@ public class PlayerStatusBar
         if (m_priority < 9 && m_player.BonusCount > 0 && m_player.HasNewWeapon())
             NewWeaponFace();
 
-        if (m_priority < 8 && m_player.DamageCount > 0 && m_player.Attacker.Entity != null && m_player.Attacker.Entity != m_player)
+        if (m_priority < 8 && m_player.DamageCount > 0 && m_player.Attacker.NotNull() && m_player.Attacker.Get() != m_player)
             EnemyDamageFace();
 
         if (m_priority < 7 && m_player.DamageCount > 0)
@@ -158,7 +158,8 @@ public class PlayerStatusBar
 
     private void EnemyDamageFace()
     {
-        if (m_player.Attacker.Entity == null)
+        var attacker = m_player.Attacker.Get();
+        if (attacker == null)
             return;
 
         m_priority = 7;
@@ -171,7 +172,7 @@ public class PlayerStatusBar
         else
         {
             double playerAngle = MathHelper.GetPositiveAngle(m_player.AngleRadians);
-            double angle = MathHelper.GetPositiveAngle(m_player.Position.Angle(m_player.Attacker.Entity.Position));
+            double angle = MathHelper.GetPositiveAngle(m_player.Position.Angle(attacker.Position));
             bool right;
 
             if (angle > playerAngle)

@@ -1,23 +1,24 @@
-using System;
-using System.Collections.Generic;
+using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
+using Helion.Graphics.Palettes;
+using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources;
 using Helion.Models;
+using Helion.Resources;
+using Helion.Resources.Definitions;
 using Helion.Util;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using Helion.World.Entities;
+using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Special;
 using Helion.World.Special.Specials;
-using Helion.Maps.Specials;
-using Helion.Util.Configs.Components;
 using Helion.World.Static;
-using Helion.Geometry.Boxes;
-using Helion.World.Geometry.Islands;
+using System.Collections.Generic;
 using static Helion.World.Entities.EntityManager;
-using Helion.Graphics.Palettes;
+using Vector2D = Helion.Models.Vector2D;
 
 namespace Helion.World.Geometry.Sectors;
 
@@ -31,7 +32,8 @@ public sealed class Sector
     public int Tag;
     public SectorPlane Floor;
     public SectorPlane Ceiling;
-    public List<Line> Lines = new();
+    public Line[] Lines = [];
+    public Line[] MidTex3DLines = [];
     public LinkableList<Entity> Entities = new();
     public DynamicArray<LinkableNode<Island>> BlockmapNodes = new();
     public int[] LineIds = [];
@@ -48,9 +50,14 @@ public sealed class Sector
     public ZDoomSectorSpecialType SectorSpecialType;
     public bool Secret => (SectorEffect & SectorEffect.Secret) != 0;
     public int DamageAmount;
+    public int DamageInterval;
+    public int DamageLeakiness;
+    public string SkyFloor;
+    public string SkyCeiling;
     public int? FloorSkyTextureHandle;
     public int? CeilingSkyTextureHandle;
-    public bool FlipSkyTexture = true;
+    public SkyOptions SkyOptions = SkyOptions.Flip;
+    public Vec2F SkyOffset;
     public bool IsFloorStatic => Floor.Dynamic == SectorDynamic.None;
     public bool IsCeilingStatic => Ceiling.Dynamic == SectorDynamic.None;
     public bool AreFlatsStatic => IsFloorStatic && IsCeilingStatic;
@@ -66,12 +73,15 @@ public sealed class Sector
     public int CheckCount;
     public bool MarkAutomap;
     public bool Flood;
+    public bool Silent;
+    public bool NoAttack;
     public int ActivatedByLineId = -1;
     public WeakEntity SoundTarget = WeakEntity.Default;
     public InstantKillEffect KillEffect;
     public SectorEffect SectorEffect;
 
     public double Friction = Constants.DefaultFriction;
+    public double Gravity = 1;
 
     public Sector TransferFloorLightSector;
     public Sector TransferCeilingLightSector;
@@ -87,13 +97,13 @@ public sealed class Sector
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)
+        ZDoomSectorSpecialType sectorSpecial, in SectorData sectorData)
     {
         Set(id, tag, lightLevel, floor, ceiling, sectorSpecial, sectorData);
     }
 
     public void Set(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
-        ZDoomSectorSpecialType sectorSpecial, SectorData sectorData)
+        ZDoomSectorSpecialType sectorSpecial, in SectorData sectorData)
     {
         Id = id;
         Tag = tag;
@@ -101,9 +111,14 @@ public sealed class Sector
         Floor = floor;
         Ceiling = ceiling;
         SectorSpecialType = sectorSpecial;
-        DamageAmount = sectorData.DamageAmount;
         KillEffect = sectorData.InstantKillEffect;
         SectorEffect = sectorData.SectorEffect;
+
+        if (sectorData.BasicDamageAmount != 0)
+        {
+            DamageAmount = sectorData.BasicDamageAmount;
+            DamageLeakiness = sectorData.BasicDamageAmount == 20 ? 5 : 0;
+        }
 
         floor.Sector = this;
         ceiling.Sector = this;
@@ -136,13 +151,14 @@ public sealed class Sector
         ActivatedByLineId = -1;
         Floor.Reset(m_initialLightLevel);
         Ceiling.Reset(m_initialLightLevel);
+        Gravity = 1;
     }
 
     public static Sector CreateDefault() =>
         new (0, 0, 0,
             new SectorPlane(SectorPlaneFace.Floor, 0, 0, 0),
             new SectorPlane(SectorPlaneFace.Ceiling, 0, 0, 0),
-            ZDoomSectorSpecialType.None, SectorData.Default);
+            ZDoomSectorSpecialType.None, new());
 
     public Sector GetRenderSector(Sector sector, double viewZ)
     {
@@ -179,13 +195,7 @@ public sealed class Sector
         return false;
     }
 
-    public enum RenderChangeOptions
-    {
-        None,
-        TransferHeightsOverride
-    }
-
-    public bool CheckRenderingChanged(int gametick, RenderChangeOptions options = RenderChangeOptions.TransferHeightsOverride)
+    public bool CheckRenderingChanged(int gametick, bool checkTransferHeights = true)
     {
         if (Floor.LastRenderChangeGametick >= gametick - 1 || Floor.PrevZ != Floor.Z)
             return true;
@@ -193,8 +203,8 @@ public sealed class Sector
         if (Ceiling.LastRenderChangeGametick >= gametick - 1 || Ceiling.PrevZ != Ceiling.Z)
             return true;
 
-        if (TransferHeights != null && (options & RenderChangeOptions.TransferHeightsOverride) != 0)
-            return (TransferHeights.ControlSector.DataChanges & SectorDataTypes.FloorZ) != 0 || (TransferHeights.ControlSector.DataChanges & SectorDataTypes.CeilingZ) != 0;
+        if (checkTransferHeights && TransferHeights != null)
+            return TransferHeights.ControlSector.CheckRenderingChanged(gametick, false);
 
         return false;
     }
@@ -280,11 +290,12 @@ public sealed class Sector
             DataChanges |= SectorDataTypes.CeilingTexture;
     }
 
-    public void SetSkyTexture(int texture, bool flipped, int gametick)
+    public void SetSkyTexture(int texture, SkyOptions options, Vec2F offset, int gametick)
     {
         FloorSkyTextureHandle = texture;
         CeilingSkyTextureHandle = texture;
-        FlipSkyTexture = flipped;
+        SkyOptions = options;
+        SkyOffset = offset;
         DataChanges |= SectorDataTypes.SkyTexture;
         ChangeGametick = gametick;
     }
@@ -302,7 +313,7 @@ public sealed class Sector
             Id = Id,
             SoundValidationCount = SoundValidationCount,
             SoundBlock = SoundBlock,
-            SoundTarget = SoundTarget.Entity?.Id,
+            SoundTarget = SoundTarget.Get()?.Id,
             SectorSpecialType = (int)SectorSpecialType,
             SectorDataChanges = (int)DataChanges,
             FloorSkyTexture = FloorSkyTextureHandle,
@@ -313,9 +324,7 @@ public sealed class Sector
             TransferHeightsColormapUpper = TransferHeights?.UpperColormap?.Entry?.Path.Name,
             TransferHeightsColormapMiddle = TransferHeights?.MiddleColormap?.Entry?.Path.Name,
             TransferHeightsColormapLower = TransferHeights?.LowerColormap?.Entry?.Path.Name,
-            SectorEffect = SectorEffect,
-            FloorRotate = Floor.RenderOffsets.Rotate,
-            CeilingRotate = Ceiling.RenderOffsets.Rotate,
+            SectorEffect = SectorEffect
         };
 
         if (DataChanged)
@@ -342,6 +351,20 @@ public sealed class Sector
             }
             if ((DataChanges & SectorDataTypes.ColorMap) != 0)
                 sectorModel.ColorMap = Colormap?.Entry?.Path.Name;
+            if ((DataChanges & SectorDataTypes.Offset) != 0)
+            {
+                if (Floor.RenderOffsets.Offset.X != 0 || Floor.RenderOffsets.Offset.Y != 0)
+                    sectorModel.FloorOffset = new Vector2D(Floor.RenderOffsets.Offset);
+                if (Ceiling.RenderOffsets.Offset.X != 0 || Ceiling.RenderOffsets.Offset.Y != 0)
+                    sectorModel.CeilingOffset = new Vector2D(Ceiling.RenderOffsets.Offset);
+            }
+            if ((DataChanges & SectorDataTypes.Rotate) != 0)
+            {
+                if (Floor.RenderOffsets.Rotate != 0)
+                    sectorModel.FloorRotate = Floor.RenderOffsets.Rotate;
+                if (Ceiling.RenderOffsets.Rotate != 0)
+                    sectorModel.CeilingRotate = Floor.RenderOffsets.Rotate;
+            }
 
             sectorModel.Secret = Secret;
             sectorModel.DamageAmount = DamageAmount;
@@ -350,14 +373,14 @@ public sealed class Sector
         return sectorModel;
     }
 
-    public void ApplySectorModel(IWorld world, SectorModel sectorModel, WorldModelPopulateResult result)
+    public void ApplySectorModel(IWorld world, in SectorModel sectorModel, WorldModelPopulateResult result)
     {
         var textureManager = world.ArchiveCollection.TextureManager;
-        IList<Sector> sectors = world.Sectors;
+        var sectors = world.Sectors;
         SoundValidationCount = sectorModel.SoundValidationCount;
         SoundBlock = sectorModel.SoundBlock;
         if (sectorModel.SoundTarget.HasValue && result.Entities.TryGetValue(sectorModel.SoundTarget.Value, out var soundTarget))
-            SetSoundTarget(soundTarget.Entity);
+            SoundTarget = new(soundTarget.Entity);
 
         if (sectorModel.SectorDataChanges > 0)
         {
@@ -435,6 +458,25 @@ public sealed class Sector
                 Colormap = sectorColorMap;
         }
 
+        if (sectorModel.FloorOffset.HasValue)
+        {
+            Floor.RenderOffsets.Offset.X = sectorModel.FloorOffset.Value.X;
+            Floor.RenderOffsets.Offset.Y = sectorModel.FloorOffset.Value.Y;
+
+            Floor.RenderOffsets.LastOffset = Floor.RenderOffsets.Offset;
+        }
+        if (sectorModel.CeilingOffset.HasValue)
+        {
+            Ceiling.RenderOffsets.Offset.X = sectorModel.CeilingOffset.Value.X;
+            Ceiling.RenderOffsets.Offset.Y = sectorModel.CeilingOffset.Value.Y;
+            Ceiling.RenderOffsets.LastOffset = Ceiling.RenderOffsets.Offset;
+        }
+
+        if (sectorModel.FloorRotate.HasValue)
+            Floor.RenderOffsets.Rotate = sectorModel.FloorRotate.Value;
+        if (sectorModel.CeilingRotate.HasValue)
+            Ceiling.RenderOffsets.Rotate = sectorModel.CeilingRotate.Value;
+
         if (sectorModel.TransferFloorLight.HasValue && IsSectorIdValid(sectors, sectorModel.TransferFloorLight.Value))
             TransferFloorLightSector = sectors[sectorModel.TransferFloorLight.Value];
 
@@ -448,14 +490,9 @@ public sealed class Sector
             textureManager.TryGetColormap(sectorModel.TransferHeightsColormapLower, out var lower);
             TransferHeights = new TransferHeights(this, sectors[sectorModel.TransferHeights.Value], upper, middle, lower);
         }
-
-        if (sectorModel.FloorRotate.HasValue)
-            Floor.RenderOffsets.Rotate = sectorModel.FloorRotate.Value;
-        if (sectorModel.CeilingRotate.HasValue)
-            Ceiling.RenderOffsets.Rotate = sectorModel.CeilingRotate.Value;
     }
 
-    private static bool IsSectorIdValid(IList<Sector> sectors, int id) => id >= 0 && id < sectors.Count;
+    private static bool IsSectorIdValid(List<Sector> sectors, int id) => id >= 0 && id < sectors.Count;
 
     public LinkableNode<Entity> Link(Entity entity)
     {
@@ -466,17 +503,14 @@ public sealed class Sector
         return node;
     }
 
-    public void SetSoundTarget(Entity? entity) =>
-        SoundTarget = WeakEntity.GetReference(entity);
-
     public double ToFloorZ(in Vec2D position) => Floor.Plane.ToZ(position);
     public double ToFloorZ(in Vec3D position) => Floor.Plane.ToZ(position);
     public double ToCeilingZ(in Vec2D position) => Ceiling.Plane.ToZ(position);
     public double ToCeilingZ(in Vec3D position) => Ceiling.Plane.ToZ(position);
 
     // TODO implement when slopes exist
-    public double LowestPoint(SectorPlane plane, Line line) => plane.Z;
-    public double HighestPoint(SectorPlane plane, Line line) => plane.Z;
+    public static double LowestPoint(SectorPlane plane, Line line) => plane.Z;
+    public static double HighestPoint(SectorPlane plane, Line line) => plane.Z;
     public int GetTexture(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor.TextureHandle : Ceiling.TextureHandle;
     public double GetZ(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor.Z : Ceiling.Z;
     public SectorPlane GetSectorPlane(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor : Ceiling;
@@ -519,12 +553,20 @@ public sealed class Sector
             ActiveCeilingMove = special;
     }
 
+    public bool IsPlaneMoving(SectorPlaneFace planeFace)
+    {
+        if (planeFace == SectorPlaneFace.Floor)
+            return ActiveFloorMove != null;
+        else
+            return ActiveCeilingMove != null;
+    }
+
     public Sector? GetLowestAdjacentFloor()
     {
         double lowestZ = Floor.Z;
         Sector? lowestSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Floor.Z < lowestZ)
@@ -548,7 +590,7 @@ public sealed class Sector
         double highestZ = double.MinValue;
         Sector? highestSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Floor.Z > highestZ)
@@ -572,7 +614,7 @@ public sealed class Sector
         double lowestZ = double.MaxValue;
         Sector? lowestSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if ((includeThis || line.Front.Sector != this) && line.Front.Sector.Ceiling.Z < lowestZ)
@@ -596,7 +638,7 @@ public sealed class Sector
         double highestZ = double.MinValue;
         Sector? highestSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z > highestZ)
@@ -621,7 +663,7 @@ public sealed class Sector
         double thisZ = Floor.Z;
         Sector? currentSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Floor.Z < Floor.Z && line.Front.Sector.Floor.Z > currentZ &&
@@ -648,7 +690,7 @@ public sealed class Sector
         double thisZ = Ceiling.Z;
         Sector? currentSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z < Ceiling.Z && line.Front.Sector.Ceiling.Z > currentZ &&
@@ -675,7 +717,7 @@ public sealed class Sector
         double thisZ = Floor.Z;
         Sector? currentSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Floor.Z > Floor.Z && line.Front.Sector.Floor.Z < currentZ &&
@@ -702,7 +744,7 @@ public sealed class Sector
         double thisZ = Ceiling.Z;
         Sector? currentSector = null;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.Ceiling.Z > Ceiling.Z && line.Front.Sector.Ceiling.Z < currentZ &&
@@ -727,7 +769,7 @@ public sealed class Sector
     {
         short min = LightLevel;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.LightLevel < min)
@@ -743,7 +785,7 @@ public sealed class Sector
     {
         short max = LightLevel;
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Front.Sector != this && line.Front.Sector.LightLevel > max)
@@ -758,7 +800,7 @@ public sealed class Sector
     public double GetShortestTexture(TextureManager textureManager, bool byLowerTx, ConfigCompat config)
     {
         double min = double.MaxValue;
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Back != null)
@@ -810,7 +852,7 @@ public sealed class Sector
         Vec2D min = new(double.MaxValue, double.MaxValue);
         Vec2D max = new(double.MinValue, double.MinValue);
 
-        for (int i = 0; i < Lines.Count; i++)
+        for (int i = 0; i < Lines.Length; i++)
         {
             Line line = Lines[i];
             if (line.Segment.Start.X < min.X)
@@ -858,6 +900,7 @@ public sealed class Sector
     {
         if (changes.Texture.HasValue)
             world.SetPlaneTexture(GetSectorPlane(planeType), changes.Texture.Value);
+
         if (transferSpecial)
         {
             SectorDamageSpecial = changes.DamageSpecial?.Copy(this);

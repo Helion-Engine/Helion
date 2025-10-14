@@ -41,10 +41,10 @@ public class ConvexStates
     /// <summary>
     /// How many segments we've visited in our traversal.
     /// </summary>
-    public int SegsVisited = 0;
+    public int SegsVisited;
 
     /// <summary>
     /// The total number of segments we should be visiting.
     /// </summary>
-    public int TotalSegs = 0;
+    public int TotalSegs;
 }

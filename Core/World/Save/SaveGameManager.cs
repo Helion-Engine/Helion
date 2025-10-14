@@ -2,58 +2,72 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using Helion.Graphics;
 using Helion.Models;
 using Helion.Resources.Archives.Collection;
+using Helion.Util;
 using Helion.Util.Configs;
-using Helion.Util.Extensions;
 using Helion.World.Util;
 using NLog;
 
 namespace Helion.World.Save;
 
-public readonly struct SaveGameEvent
+public readonly struct SaveGameEvent(SaveGame saveGame, WorldModel worldModel, string filename, bool success, Exception? ex = null, string errorMessage = "")
 {
-    public readonly SaveGame SaveGame;
-    public readonly WorldModel WorldModel;
-    public readonly string FileName;
-    public readonly bool Success;
-    public readonly Exception? Exception;
-
-    public SaveGameEvent(SaveGame saveGame, WorldModel worldModel, string filename, bool success, Exception? ex = null)
-    {
-        SaveGame = saveGame;
-        FileName = filename;
-        WorldModel = worldModel;
-        Success = success;
-        Exception = ex;
-    }
+    public readonly SaveGame SaveGame = saveGame;
+    public readonly WorldModel WorldModel = worldModel;
+    public readonly string FileName = filename;
+    public readonly bool Success = success;
+    public readonly Exception? Exception = ex;
+    public readonly string ErrorMessage = errorMessage;
 }
 
 public class SaveGameManager
 {
+    struct WriteSaveGameArgs(IWorld world, WorldModel worldModel, string title, string saveDir, string fileName, IScreenshotGenerator screenshotGenerator, Image? image)
+    {
+        public IWorld World = world;
+        public WorldModel WorldModel = worldModel;
+        public string Title = title;
+        public string SaveDir = saveDir;
+        public string FileName = fileName;
+        public IScreenshotGenerator ScreenshotGenerator = screenshotGenerator;
+        public Image? Image = image;
+    }
+
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private static readonly SaveGameEvent ActiveSaveError = new(null!, null!, "file", false, null, "(Save in progress)");
     private readonly IConfig m_config;
+    private readonly PathsManager m_pathsManager;
     private readonly ArchiveCollection m_archiveCollection;
     private readonly string? m_saveDirCommandLineArg;
+    private readonly List<SaveGame> m_currentSaves = [];
+    private readonly List<SaveGame> m_matchingSaves = [];
+    private readonly Comparison<SaveGame> m_saveDateComparison = new(CompareSaveDates);
+    private readonly Func<SaveGameEvent> m_saveFunc;
+    private bool m_currentSavesLoaded;
+    private bool m_saving;
+    private WriteSaveGameArgs m_saveArgs;
 
     public event EventHandler<SaveGameEvent>? GameSaved;
 
-    public SaveGameManager(IConfig config, ArchiveCollection archiveCollection, string? saveDirCommandLineArg)
+    public SaveGameManager(IConfig config, PathsManager pathsManager, ArchiveCollection archiveCollection, string? saveDirCommandLineArg)
     {
         m_config = config;
+        m_pathsManager = pathsManager;
         m_archiveCollection = archiveCollection;
         m_saveDirCommandLineArg = saveDirCommandLineArg;
+        m_saveFunc = new Func<SaveGameEvent>(WriteSaveGameForTask);
+        SaveGame.AllocateJsonMapping();
     }
 
     private string GetSaveDir()
     {
-        if (string.IsNullOrEmpty(m_saveDirCommandLineArg))
-            return Directory.GetCurrentDirectory();
+        if (!string.IsNullOrEmpty(m_saveDirCommandLineArg) && EnsureDirectoryExists(m_saveDirCommandLineArg))
+            return m_saveDirCommandLineArg;
 
-        if (!EnsureDirectoryExists(m_saveDirCommandLineArg))
-            return Directory.GetCurrentDirectory();
-
-        return m_saveDirCommandLineArg;
+        return m_pathsManager.UserDataFolder;
     }
 
     private static bool EnsureDirectoryExists(string path)
@@ -73,60 +87,111 @@ public class SaveGameManager
         }
     }
 
+    public void LoadCurrentSaveFiles()
+    {
+        if (m_currentSavesLoaded)
+            return;
+        
+        m_currentSaves.AddRange(ReadSaveGameFiles());
+        m_matchingSaves.AddRange(GetMatchingSaveGames(m_currentSaves));
+        m_currentSavesLoaded = true;
+    }
+
     public bool SaveFileExists(string filename)
     {
         string filePath = Path.Combine(GetSaveDir(), filename);
         return File.Exists(filePath);
     }
 
-    public SaveGame ReadSaveGame(string filename) => new SaveGame(GetSaveDir(), filename);
+    public SaveGame ReadSaveGame(string filename) => new(GetSaveDir(), filename);
 
-    public SaveGameEvent WriteNewSaveGame(IWorld world, string title, bool autoSave = false, bool quickSave = false) =>
-        WriteSaveGame(world, title, null, autoSave, quickSave);
+    public Task<SaveGameEvent> WriteNewSaveGameAsync(IWorld world, string title, IScreenshotGenerator screenshotGenerator, SaveGameType type = SaveGameType.Default) =>
+        WriteSaveGameAsync(world, title, screenshotGenerator, null, type);
 
-    public SaveGameEvent WriteSaveGame(IWorld world, string title, SaveGame? existingSave, bool autoSave = false, bool quickSave = false)
+    public async Task<SaveGameEvent> WriteSaveGameAsync(IWorld world, string title, IScreenshotGenerator screenshotGenerator, SaveGame? existingSave, SaveGameType type = SaveGameType.Default)
     {
-        if (existingSave == null && autoSave && m_config.Game.RotatingAutoSaves > 0)
-        {
-            var autoSaves = GetSaveGames().Where(x => x.IsAutoSave);
-            var matchingSaves = GetMatchingSaveGames(autoSaves).OrderBy(x => x.Model?.Date);
-            if (matchingSaves.Any() && matchingSaves.Count() >= m_config.Game.RotatingAutoSaves)
-                existingSave = matchingSaves.First();
-        }
-        if (existingSave == null && quickSave && m_config.Game.RotatingQuickSaves > 0)
-        {
-            var quickSaves = GetSaveGames().Where(x => x.IsQuickSave);
-            var matchingSaves = GetMatchingSaveGames(quickSaves).OrderBy(x => x.Model?.Date);
-            if (matchingSaves.Any() && matchingSaves.Count() >= m_config.Game.RotatingQuickSaves)
-                existingSave = matchingSaves.First();
-        }
-        string filename = existingSave?.FileName ?? GetNewSaveName(autoSave, quickSave);
-        var saveEvent = SaveGame.WriteSaveGame(world, title, GetSaveDir(), filename);
+        // Unlikely to happen but check if actively saving. Only one can be processed at a time.
+        if (m_saving)
+            return ActiveSaveError;
 
+        m_saving = true;
+        existingSave = GetExistingSave(existingSave, type);
+        var filename = existingSave?.FileName ?? GetNewSaveName(type);
+        var worldModel = world.ToWorldModel();
+        var image = screenshotGenerator.GetImage();
+        m_saveArgs = new(world, worldModel, title, GetSaveDir(), filename, screenshotGenerator, image);
+        var saveEvent = await Task.Run(m_saveFunc);
+
+        AddOrUpdateSaveGame(saveEvent.SaveGame);
         GameSaved?.Invoke(this, saveEvent);
+        m_saving = false;
         return saveEvent;
     }
 
-    public List<SaveGame> GetSortedSaveGames()
+    private SaveGameEvent WriteSaveGameForTask() =>
+        SaveGame.WriteSaveGame(m_saveArgs.World, m_saveArgs.WorldModel, m_saveArgs.Title, m_saveArgs.SaveDir, m_saveArgs.FileName, m_saveArgs.ScreenshotGenerator, m_saveArgs.Image);
+
+    private void AddOrUpdateSaveGame(SaveGame newSaveGame)
     {
-        var saveGames = GetSaveGames();
-        var matchingGames = GetMatchingSaveGames(saveGames);
-        var nonMatchingGames = saveGames.Except(matchingGames);
-        return matchingGames.Union(nonMatchingGames).ToList();
+        AddOrUpdateSaveGame(newSaveGame, m_currentSaves);
+        AddOrUpdateSaveGame(newSaveGame, m_matchingSaves);
     }
 
-    public IEnumerable<SaveGame> GetMatchingSaveGames(IEnumerable<SaveGame> saveGames)
+    private static void AddOrUpdateSaveGame(SaveGame newSaveGame, List<SaveGame> saveList)
+    {
+        for (int i = 0; i < saveList.Count; i++)
+        {
+            var save = saveList[i];
+            if (save.Type == newSaveGame.Type && save.FileName == newSaveGame.FileName)
+            {
+                saveList[i] = newSaveGame;
+                return;
+            }
+        }
+
+        saveList.Add(newSaveGame);
+    }
+
+    private SaveGame? GetExistingSave(SaveGame? existingSave, SaveGameType type)
+    {
+        var saveGames = GetSaveGames(sortByDate: false);
+
+        if (existingSave == null && type == SaveGameType.Auto && m_config.Game.RotatingAutoSaves > 0)
+        {
+            var autoSaves = saveGames.Where(x => x.Type == SaveGameType.Auto).OrderBy(x => x.Model?.Date);
+            if (autoSaves.Any() && autoSaves.Count() >= m_config.Game.RotatingAutoSaves)
+                existingSave = autoSaves.First();
+        }
+
+        if (existingSave == null && type == SaveGameType.Quick && m_config.Game.RotatingQuickSaves > 0)
+        {
+            var quickSaves = saveGames.Where(x => x.Type == SaveGameType.Quick).OrderBy(x => x.Model?.Date);
+            if (quickSaves.Any() && quickSaves.Count() >= m_config.Game.RotatingQuickSaves)
+                existingSave = quickSaves.First();
+        }
+
+        return existingSave;
+    }
+
+    private IEnumerable<SaveGame> GetMatchingSaveGames(List<SaveGame> saveGames)
     {
         return saveGames.Where(x => x.Model != null &&
             ModelVerification.VerifyModelFiles(x.Model.Files, m_archiveCollection, null));
     }
 
-    public List<SaveGame> GetSaveGames()
+    public List<SaveGame> GetSaveGames(bool sortByDate = true)
     {
-        return Directory.GetFiles(GetSaveDir(), "*.hsg")
+        LoadCurrentSaveFiles();
+        if (sortByDate)
+            m_matchingSaves.Sort(m_saveDateComparison);
+        return m_matchingSaves;
+    }
+
+    private List<SaveGame> ReadSaveGameFiles()
+    {
+        return [.. Directory.GetFiles(GetSaveDir(), "*.hsg")
             .Select(f => new SaveGame(GetSaveDir(), Path.GetFileName(f)))
-            .OrderByDescending(f => f.Model?.Date)
-            .ToList();
+            .OrderByDescending(f => f.Model?.Date)];
     }
 
     public bool DeleteSaveGame(SaveGame saveGame)
@@ -135,6 +200,8 @@ public class SaveGameManager
         {
             if (File.Exists(saveGame.FilePath))
                 File.Delete(saveGame.FilePath);
+
+            m_currentSaves.Remove(saveGame);
         }
         catch
         {
@@ -144,30 +211,38 @@ public class SaveGameManager
         return true;
     }
 
-    private string GetNewSaveName(bool autoSave, bool quickSave)
+    private string GetNewSaveName(SaveGameType type)
     {
-        List<string> files = Directory.GetFiles(GetSaveDir(), "*.hsg")
-            .Select(Path.GetFileName)
-            .WhereNotNull()
-            .ToList();
-
         int number = 0;
+        var searchSaves = m_currentSaves.Where(x => x.Type == type);
         while (true)
         {
-            string name = GetSaveName(number, autoSave, quickSave);
-            if (files.Any(x => x.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            string name = GetSaveName(number, type);
+            if (searchSaves.Any(x => x.FileName.Equals(name, StringComparison.OrdinalIgnoreCase)))
                 number++;
             else
                 return name;
         }
     }
 
-    private static string GetSaveName(int number, bool autoSave, bool quickSave)
+    private static string GetSaveName(int number, SaveGameType type)
     {
-        if (autoSave)
-            return $"autosave{number}.hsg";
-        else if (quickSave)
-            return $"quicksave{number}.hsg";
-        return $"savegame{number}.hsg";
+        return type switch
+        {
+            SaveGameType.Auto => $"{SaveGame.AutoPrefix}{number}.hsg",
+            SaveGameType.Quick => $"{SaveGame.QuickPrefix}{number}.hsg",
+            _ => $"{SaveGame.DefaultPrefix}{number}.hsg",
+        };
+    }
+
+    private static int CompareSaveDates(SaveGame x, SaveGame y)
+    {
+        if (x.Model == null)
+            return 1;
+
+        if (y.Model == null)
+            return -1;
+
+        return y.Model.Date.CompareTo(x.Model.Date);
     }
 }

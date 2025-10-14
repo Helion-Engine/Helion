@@ -14,11 +14,12 @@ public class DoomLine : ILine
     public DoomSide Front;
     public DoomSide? Back;
     public VanillaLineSpecialType LineType;
-    public ushort SectorTag;
+    public int SectorTag { get; set; }
 
     public Vec2D StartPosition => Start.Position;
     public Vec2D EndPosition => End.Position;
     public bool OneSided => Back == null;
+    public int Special => (int)LineType;
 
     internal DoomLine(int id, DoomVertex start, DoomVertex end, DoomSide front, DoomSide? back,
         MapLineFlags flags, VanillaLineSpecialType lineType, ushort sectorTag)
@@ -33,8 +34,6 @@ public class DoomLine : ILine
         SectorTag = sectorTag;
     }
 
-    public IVertex GetStart() => Start;
-    public IVertex GetEnd() => End;
     public ISide GetFront() => Front;
     public ISide? GetBack() => Back;
 }

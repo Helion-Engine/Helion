@@ -5,15 +5,16 @@ using Helion.Graphics;
 using Helion.Render.Common;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
+using Helion.Strings;
 using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
+using Helion.Util.Extensions;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Helion.Layer.Options.Dialogs;
 
@@ -29,16 +30,16 @@ internal abstract class DialogBase(ConfigWindow config, string? acceptButton, st
     protected readonly ConfigWindow m_config = config;
 
     protected Dimension m_selectorSize;
+    protected bool m_dialogIsLocked;
     protected int m_rowHeight;
     protected int m_fontSize;
     protected int m_padding;
     protected Dimension m_box;
     protected Box2I m_dialogBox;
     protected Vec2I m_dialogOffset;
-    private BoxList m_buttonPosList = new();
-    private List<Action> m_buttonActionList = new();
-    private int m_buttonIndex = 0;
-    private StringBuilder m_textWrapBuilder = new();
+    private readonly BoxList m_buttonPosList = new();
+    private readonly List<Action> m_buttonActionList = [];
+    private int m_buttonIndex;
 
     public void Dispose()
     {
@@ -46,6 +47,12 @@ internal abstract class DialogBase(ConfigWindow config, string? acceptButton, st
 
     public virtual void HandleInput(IConsumableInput input)
     {
+        // Prevent user from closing dialog if the dialog has placed itself in a "locked" state
+        if (m_dialogIsLocked)
+        {
+            input.ConsumeAll();
+        }
+
         if (input.ConsumeKeyPressed(Key.MouseLeft))
         {
             var mousePos = input.Manager.MousePosition;
@@ -150,6 +157,24 @@ internal abstract class DialogBase(ConfigWindow config, string? acceptButton, st
         hud.AddOffset((0, m_rowHeight + m_padding));
     }
 
+    protected void RenderDialogText(
+        IHudRenderContext hud,
+        ReadOnlySpan<char> message,
+        Color? color = null,
+        TextAlign textAlign = TextAlign.Left,
+        Align windowAlign = Align.TopLeft,
+        Align anchorAlign = Align.TopLeft)
+    {
+        if (!(message.Length > 0))
+        {
+            hud.AddOffset((0, m_rowHeight));
+            return;
+        }
+
+        hud.Text(message, Font, m_fontSize, (0, 0), color: color, textAlign: textAlign, window: windowAlign, anchor: anchorAlign, maxWidth: m_box.Width);
+        hud.AddOffset((0, m_rowHeight + m_padding));
+    }
+
     protected void RenderDialogImage(
         IHudRenderContext hud,
         string imageName,
@@ -163,12 +188,12 @@ internal abstract class DialogBase(ConfigWindow config, string? acceptButton, st
 
     protected string TruncateTextToDialogWidth(string text, IHudRenderContext hud)
     {
-        return LineWrap.Truncate(text, Font, m_fontSize, m_box.Width, hud).ToString();
+        return hud.TruncateText(text, Font, m_fontSize, m_box.Width).ToString();
     }
 
-    protected void WrapTextToDialogWidth(string text, IHudRenderContext hud, List<string> wrappedLines)
+    protected void WrapTextToDialogWidth(string text, IHudRenderContext hud, List<StringSlice> wrappedLines)
     {
-        LineWrap.Calculate(text, Font, m_fontSize, m_box.Width, hud, wrappedLines, m_textWrapBuilder, out _);
+        hud.LineWrap(text, Font, m_fontSize, m_box.Width, wrappedLines, out _);
     }
 
     public virtual void RunLogic(TickerInfo tickerInfo)
@@ -178,7 +203,7 @@ internal abstract class DialogBase(ConfigWindow config, string? acceptButton, st
     protected void RenderButton(IHudRenderContext hud, string text, Action buttonAction)
     {
         var dim = hud.MeasureText(text, Font, m_fontSize);
-        hud.Text(text, Font, m_fontSize, (-dim.Width, 0));
+        hud.Text(text, Font, m_fontSize, (-dim.Width, 0), color: m_dialogIsLocked ? Color.DarkGray : null);
         hud.AddOffset((-dim.Width, 0));
         m_buttonPosList.Add(new(hud.GetOffset(), hud.GetOffset() + new Vec2I(dim.Width, dim.Height)), m_buttonIndex);
         m_buttonActionList.Add(buttonAction);

@@ -4,10 +4,13 @@ using Helion.Models;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.Configs.Components;
+using Helion.Util.RandomGenerators;
+using Helion.World;
 using Helion.World.Cheats;
 using Helion.World.Entities.Players;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -36,7 +39,6 @@ public partial class Client
         if (!TryCreateDemoRecorder(fileName, out m_demoRecorder))
             return;
 
-        AddDemoMap(m_demoRecorder, worldLayer.CurrentMap.MapName, 0, null);
         m_demoRecorder.Start();
         worldLayer.StartRecording(m_demoRecorder);
         worldLayer.World.CheatManager.CheatActivationChanged += CheatManager_CheatActivationChanged;
@@ -147,6 +149,12 @@ public partial class Client
             m_userConfigValues.Add(new ConfigValueModel(component.Path, component.Value.ObjectValue));
         }
 
+        if (m_demoModel.Version == DemoVersion.Alpha)
+        {
+            m_config.Game.Rng.Set(RngMethod.VanillaDoom);
+            m_userConfigValues.Add(new ConfigValueModel("game.rng", m_config.Game.Rng.Value));
+        }
+
         m_config.ApplyConfiguration(m_demoModel.ConfigValues, writeToConfig: false);
     }
 
@@ -180,7 +188,7 @@ public partial class Client
             Map = mapName,
             CommandIndex = recorder.CommandIndex,
             RandomIndex = randomIndex,
-            PlayerModel = player?.ToPlayerModel()
+            PlayerModel = player?.ToPlayerModel(PlayerModel.Create())
         });
     }
 
@@ -246,7 +254,7 @@ public partial class Client
         return m_demoModel.Maps.FirstOrDefault(x => x.Map == mapName);
     }
 
-    record class AdvanceDemoParams(int CommandIndex, bool IsPaused, bool ConsoleShowing);
+    sealed record class AdvanceDemoParams(int CommandIndex, bool IsPaused, bool ConsoleShowing);
 
     private void AdvanceDemo(int advanceAmount)
     {
@@ -272,7 +280,7 @@ public partial class Client
         if (!loadMap.Map.Equals(m_layerManager.WorldLayer.CurrentMap.MapName, StringComparison.OrdinalIgnoreCase) || advanceAmount < 0)
         {
             var param = new AdvanceDemoParams(commandIndex, isPaused, consoleShowing);
-            QueueLoadMap(GetMapInfo(loadMap.Map), null, null, AdvanceDemoLoadComplete, param, null, transition: false);
+            QueueLoadMap(GetMapInfo(loadMap.Map), null, null, AdvanceDemoLoadComplete, param, LevelChangeEvent.Default, transition: false);
         }
     }
 

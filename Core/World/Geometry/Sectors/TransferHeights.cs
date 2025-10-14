@@ -77,7 +77,8 @@ public class TransferHeights
                 sector.TransferCeilingLightSector = ControlSector.TransferCeilingLightSector;
                 sector.FloorSkyTextureHandle = ControlSector.FloorSkyTextureHandle;
                 sector.CeilingSkyTextureHandle = ControlSector.CeilingSkyTextureHandle;
-                sector.FlipSkyTexture = ControlSector.FlipSkyTexture;
+                sector.SkyOptions = ControlSector.SkyOptions;
+                sector.SkyOffset = ControlSector.SkyOffset;
                 sector.Flood = ParentSector.Flood;
                 break;
 
@@ -104,7 +105,8 @@ public class TransferHeights
                 sector.TransferCeilingLightSector = ParentSector.TransferCeilingLightSector;
                 sector.FloorSkyTextureHandle = ParentSector.FloorSkyTextureHandle;
                 sector.CeilingSkyTextureHandle = ParentSector.CeilingSkyTextureHandle;
-                sector.FlipSkyTexture = ParentSector.FlipSkyTexture;
+                sector.SkyOptions = ParentSector.SkyOptions;
+                sector.SkyOffset = ParentSector.SkyOffset;
                 sector.Flood = ParentSector.Flood;
                 break;
 
@@ -129,7 +131,8 @@ public class TransferHeights
                 sector.TransferCeilingLightSector = ControlSector.TransferCeilingLightSector;
                 sector.FloorSkyTextureHandle = ControlSector.FloorSkyTextureHandle;
                 sector.CeilingSkyTextureHandle = ControlSector.CeilingSkyTextureHandle;
-                sector.FlipSkyTexture = ControlSector.FlipSkyTexture;
+                sector.SkyOptions = ControlSector.SkyOptions;
+                sector.SkyOffset = ControlSector.SkyOffset;
                 sector.Flood = ParentSector.Flood;
                 break;
         }

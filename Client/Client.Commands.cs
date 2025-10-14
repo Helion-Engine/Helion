@@ -1,5 +1,4 @@
 using Helion.Geometry.Boxes;
-using Helion.Layer;
 using Helion.Layer.EndGame;
 using Helion.Layer.Transition;
 using Helion.Layer.Worlds;
@@ -7,6 +6,7 @@ using Helion.Maps;
 using Helion.Maps.Bsp.Zdbsp;
 using Helion.Models;
 using Helion.Render.OpenGL.Shared;
+using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
@@ -29,6 +29,7 @@ using Helion.World.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -44,6 +45,68 @@ public partial class Client
     private readonly Zdbsp m_zdbsp = new();
     private WorldModel? m_lastWorldModel;
     private bool m_isSecretExit;
+    private LevelChangeEvent m_levelChangeEvent = LevelChangeEvent.Default;
+
+    private string m_lastMapName = string.Empty;
+    private IMap? m_lastLoadedMap;
+
+    [ConsoleCommand("summon", "Summon entity by name")]
+    private void Summon(ConsoleCommandEventArgs args)
+    {
+        if (args.Args.Count < 1)
+            return;
+
+        Summon(args.Args[0], SummonOptions.Default);
+    }
+
+    [ConsoleCommand("summonfriend", "Summon friendly entity by name")]
+    private void SummonFriend(ConsoleCommandEventArgs args)
+    {
+        if (args.Args.Count < 1)
+            return;
+
+        Summon(args.Args[0], SummonOptions.Friend);
+    }
+
+    [ConsoleCommand("summonmbf", "Summon friendly entity by name")]
+    private void SummonMbf(ConsoleCommandEventArgs args)
+    {
+        SummonFriend(args);
+    }
+
+    [ConsoleCommand("summonfoe", "Summon enemy entity by name")]
+    private void SummonFoe(ConsoleCommandEventArgs args)
+    {
+        if (args.Args.Count < 1)
+            return;
+
+        Summon(args.Args[0], SummonOptions.Foe);
+    }
+
+    [ConsoleCommand("summonstatic", "Summon entity by name. Projectiles float.")]
+    private void SummonStatic(ConsoleCommandEventArgs args)
+    {
+        if (args.Args.Count < 1)
+            return;
+
+        Summon(args.Args[0], SummonOptions.Static);
+    }
+
+    private void Summon(string name, SummonOptions options)
+    {
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        var world = m_layerManager.WorldLayer.World;
+        var def = world.EntityManager.DefinitionComposer.GetByName(name);
+        if (def == null)
+        {
+            Log.Info($"No entity named '{name}'");
+            return;
+        }
+
+        world.Summon(world.Player, def, options);
+    }
 
     [ConsoleCommand("setpos", "Sets the player's position (x y z). Ex setpos 100 100 0")]
     private void SetPosition(ConsoleCommandEventArgs args)
@@ -352,7 +415,7 @@ public partial class Client
         }
 
         m_layerManager.LastSave = new(saveGame, worldModel, string.Empty, true);
-        QueueLoadMap(GetMapInfo(worldModel.MapName), worldModel, null);
+        QueueLoadMap(GetMapInfo(worldModel.MapName), worldModel, null, LevelChangeEvent.Default);
     }
 
     [ConsoleCommand("map", "Starts a new world with the map provided")]
@@ -373,6 +436,12 @@ public partial class Client
                 NewGame(m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetStartMapOrDefault(m_archiveCollection, mapName));
                 return;
             }
+            
+            if (MapWarp.GetMap(mapName, m_archiveCollection, out var selectedMapInfo))
+            {
+                NewGame(selectedMapInfo);
+                return;
+            }
 
             MapInfoDef mapInfo = GetMapInfo(mapName);
             NewGame(mapInfo);
@@ -387,26 +456,27 @@ public partial class Client
     private void ListMaps(ConsoleCommandEventArgs args)
     {
         foreach (var map in m_archiveCollection.MapInfo.MapInfo.Maps)
-            HelionLog.Info(map.GetDisplayNameWithPrefix(m_archiveCollection.Language));
+        {
+            string mapName = map.GetDisplayNameWithPrefix(m_archiveCollection.Language);
+            // include actual map ID if the display name is different (e.g. KDIKDIZD MAP13 is "Z1M1")
+            string idPrefix = $"{map.MapName}: ";
+            if (!mapName.StartsWithIgnoreCase(idPrefix))
+                mapName = idPrefix + mapName;
+            string? mapWad = GetMapWad(map.MapName);
+            HelionLog.Info((mapWad != null) ? $"{mapName} ({mapWad})" : mapName);
+        }
     }
 
     [ConsoleCommand("printmap", "Prints the current map")]
     private void PrintMap(ConsoleCommandEventArgs args)
     {
-        var map = m_layerManager.WorldLayer?.CurrentMap;
-        if (map != null)
-            HelionLog.Info(map.GetDisplayNameWithPrefix(m_archiveCollection.Language));
-        else
-            HelionLog.Info("No map loaded");
+        HelionLog.Info(GetCurrentMapName() ?? "No map loaded");
     }
 
-    [ConsoleCommand("printgame", "Prints the current game title, when available")]
+    [ConsoleCommand("printgame", "Prints the current game title (or WAD filename)")]
     private void PrintGame(ConsoleCommandEventArgs args)
     {
-        // TODO: some exist in gameinfo.txt `startuptitle` as well
-        string? title = m_archiveCollection.Definitions.GameConfDefinition.Data?.Title;
-        if (title != null)
-            HelionLog.Info(title);
+        HelionLog.Info(GetCurrentGameName() ?? "No map loaded");
     }
 
     [ConsoleCommand("startGame", "Starts a new game")]
@@ -433,7 +503,7 @@ public partial class Client
     [ConsoleCommandArg("value", "A decimal value between 0.0 and 1.0")]
     private void CommandSetSoundVolume(ConsoleCommandEventArgs args)
     {
-        if (!SimpleParser.TryParseFloat(args.Args[0], out float volume))
+        if (!NumberParser.TryParseFloat(args.Args[0], out float volume))
         {
             Log.Warn($"Unable to parse sound volume for input: {args.Args[0]}");
             return;
@@ -518,8 +588,12 @@ public partial class Client
     private void Use(ConsoleCommandEventArgs args) =>
         AddWorldTickCommand(DoUseCommand, args);
 
+    [ConsoleCommand("gc", "Forces Garbage Collection.")]
+    private static void GarbageCollect(ConsoleCommandEventArgs args) =>
+        GCUtil.ForceGarbageCollection();
+
     private void DoUseCommand(ConsoleCommandEventArgs args)
-    {        
+    {
         if (m_layerManager.WorldLayer == null || args.Args.Count == 0)
             return;
 
@@ -677,7 +751,6 @@ public partial class Client
                 HelionLog.Info($"{args.Command} set to the same value as before");
                 break;
             case ConfigSetResult.Queued:
-                HelionLog.Info($"{args.Command} has been queued up for change: {component.Value.SetFlags}");
                 break;
             case ConfigSetResult.NotSetByBadConversion:
                 success = false;
@@ -689,7 +762,7 @@ public partial class Client
                 break;
             default:
                 success = false;
-                HelionLog.Error($"{args.Command} unexpected setting result, report to a developer!");
+                HelionLog.Error($"{args.Command} unexpected setting result");
                 break;
         }
 
@@ -702,7 +775,7 @@ public partial class Client
     private void NewGame(MapInfoDef mapInfo)
     {
         m_globalData = new();
-        QueueLoadMap(mapInfo, null, null);
+        QueueLoadMap(mapInfo, null, null, LevelChangeEvent.Default);
     }
 
     private MapInfoDef GetMapInfo(string mapName) =>
@@ -710,26 +783,45 @@ public partial class Client
 
     private IRandom GetLoadMapRandom(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld)
     {
-        if (previousWorld != null)
+        if (!m_invalidateRng && previousWorld != null)
             return previousWorld.Random;
 
         if (worldModel != null)
-            return new DoomRandom(worldModel.RandomIndex);
+            return CreateRandom(worldModel.RandomIndex);
 
         var demoMap = GetDemoMap(mapInfoDef.MapName);
         if (m_demoPlayer != null && demoMap != null)
-            return new DoomRandom(demoMap.RandomIndex);
+            return CreateRandom(demoMap.RandomIndex);
 
-        return new DoomRandom(Random.Shared.Next(byte.MaxValue));
+        return CreateRandom(null);
     }
 
-    private void QueueLoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, Action<object?> onComplete, object? completeParam, LevelChangeEvent? eventContext = null, bool transition = true)
+    private IRandom CreateRandom(int? randomIndex = null)
+    {
+        var method = m_config.Game.Rng.Value;
+        if (randomIndex == null)
+        {
+            return method switch
+            {
+                RngMethod.VanillaDoom => new DoomRandom(Random.Shared.Next(byte.MaxValue)),
+                _ => new BoomRandom(),
+            };
+        }
+
+        return method switch
+        {
+            RngMethod.VanillaDoom => new DoomRandom(randomIndex.Value),
+            _ => new BoomRandom((uint)randomIndex.Value),
+        };
+    }
+
+    private void QueueLoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, Action<object?> onComplete, object? completeParam, LevelChangeEvent eventContext, bool transition = true)
     {
         m_onLoadMapComplete = new(onComplete, completeParam);
         m_queueMapLoad = new(mapInfoDef, worldModel, previousWorld, eventContext, transition);
     }
 
-    private void QueueLoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent? eventContext = null, bool transition = true)
+    private void QueueLoadMap(MapInfoDef mapInfoDef, WorldModel? worldModel, IWorld? previousWorld, LevelChangeEvent eventContext, bool transition = true)
     {
         m_queueMapLoad = new(mapInfoDef, worldModel, previousWorld, eventContext, transition);
     }
@@ -746,50 +838,82 @@ public partial class Client
     {
         IList<Player> players = Array.Empty<Player>();
         IRandom random = GetLoadMapRandom(mapInfoDef, worldModel, previousWorld);
-        var result = new LoadMapResult(null, worldModel, eventContext, players, random);
+        var startRandomIndex = random.RandomIndex;
 
-        if (previousWorld != null)
-            players = previousWorld.EntityManager.Players;
-
-        m_lastWorldModel = worldModel;
-        IMap? map = m_archiveCollection.FindMap(mapInfoDef.MapName);
-        if (map == null)
+        try
         {
-            LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
-            return result;
-        }
+            var result = new LoadMapResult(null, worldModel, eventContext, players, random, startRandomIndex);
+            if (previousWorld != null)
+                players = previousWorld.EntityManager.Players;
 
-        if (!m_zdbsp.RunZdbsp(map, map.Name, mapInfoDef, out map))
+            m_lastWorldModel = worldModel;
+            var sameMap = m_lastMapName.EqualsIgnoreCase(mapInfoDef.MapName) && m_lastLoadedMap != null;
+            var map = sameMap ? m_lastLoadedMap : m_archiveCollection.FindMap(mapInfoDef.MapName, FindMapOptions.Default);
+
+            if (map == null)
+            {
+                LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
+                return result;
+            }
+
+            if (!sameMap)
+            {
+                var mapCompat = map.CompatibilityDefinition;
+                if (!m_zdbsp.RunZdbsp(map.ArchivePath, mapInfoDef.MapName, out var compiledMap))
+                {
+                    Log.Error("Failed to run zdbsp.");
+                    return result;
+                }
+
+                // Large UDMF maps don't seem to free the memory without this.
+                map.ClearAll();
+                map.Reject = null;
+                map = compiledMap;
+
+                if (map != null)
+                    map.CompatibilityDefinition = mapCompat;
+            }
+
+            m_config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
+            var skillDef = GetSkillDefinition(worldModel);
+            if (skillDef == null)
+            {
+                LogError($"Could not find skill definition for {m_config.Game.Skill}");
+                return result;
+            }
+
+            m_config.Game.Skill.Set(m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(skillDef));
+            m_config.Game.Skill.ApplyQueuedChange(ConfigSetFlags.OnNewWorld);
+            m_config.Game.SelectedSkillDefinition = null;
+            m_window.InputManager.Clear();
+            m_tickCommands.Clear();
+
+            if (map == null)
+            {
+                LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
+                return result;
+            }
+
+            m_lastMapName = mapInfoDef.MapName;
+            m_lastLoadedMap = map;
+
+            // Don't show the spinner here. The final steps requires OpenGL calls that are required to be executed on the main thread for now so the spinner can't update.
+            if (m_layerManager.LoadingLayer != null)
+                m_layerManager.LoadingLayer.ShowSpinner = false;
+
+            var worldLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
+                m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
+                players.FirstOrDefault(), worldModel, random, sameAsPreviousMap: sameMap);
+
+            // This isn't great but the map reference is everywhere and difficult to unwind.
+            // This dumps all the map specific data that isn't needed instead of wasting the memory.
+            map.ClearAllExceptThings();
+            return new(worldLayer, worldModel, eventContext, players, random, startRandomIndex);
+        }
+        catch (Exception ex)
         {
-            Log.Error("Failed to run zdbsp.");
-            return result;
+            return new LoadMapResult(null, worldModel, eventContext, players, random, startRandomIndex, ex);
         }
-
-        m_config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
-        SkillDef? skillDef = GetSkillDefinition(worldModel);
-        if (skillDef == null)
-        {
-            LogError($"Could not find skill definition for {m_config.Game.Skill}");
-            return result;
-        }
-
-        m_window.InputManager.Clear();
-        m_tickCommands.Clear();
-
-        if (map == null)
-        {
-            LogError($"Cannot load map '{mapInfoDef.MapName}', it cannot be found or is corrupt");
-            return result;
-        }
-
-        // Don't show the spinner here. The final steps requires OpenGL calls that are required to be executed on the main thread for now so the spinner can't update.
-        if (m_layerManager.LoadingLayer != null)
-            m_layerManager.LoadingLayer.ShowSpinner = false;
-
-        var worldLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
-            m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
-            players.FirstOrDefault(), worldModel, random);
-        return new(worldLayer, worldModel, eventContext, players, random);
     }
 
     private void FinalizeWorldLayerLoad(LoadMapResult result)
@@ -813,13 +937,12 @@ public partial class Client
 
         if (m_demoRecorder != null)
         {
-            int randomIndex = result.Random.RandomIndex;
             var worldPlayer = worldLayer.World.Player;
             // Cheat events reset the player, do not serialize the player
             if (result.EventContext != null && result.EventContext.ChangeType == LevelChangeType.SpecificLevel)
                 worldPlayer = null;
 
-            AddDemoMap(m_demoRecorder, worldLayer.CurrentMap.MapName, randomIndex, worldPlayer);
+            AddDemoMap(m_demoRecorder, worldLayer.CurrentMap.MapName, result.StartRandomIndex, worldPlayer);
             worldLayer.StartRecording(m_demoRecorder);
         }
     }
@@ -876,6 +999,7 @@ public partial class Client
             if (m_config.Game.LevelStat && ShouldWriteStatsFile(e.ChangeType))
                 WriteStatsFile(world);
 
+            m_levelChangeEvent = e;
             m_isSecretExit = false;
             switch (e.ChangeType)
             {
@@ -893,11 +1017,11 @@ public partial class Client
                     break;
 
                 case LevelChangeType.Reset:
-                    QueueLoadMap(world.MapInfo, null, null, e);
+                    QueueLoadMap(world.MapInfo, null, world, e);
                     break;
 
                 case LevelChangeType.ResetOrLoadLast:
-                    QueueLoadMap(world.MapInfo, m_lastWorldModel, null, e);
+                    QueueLoadMap(world.MapInfo, m_lastWorldModel, world, e);
                     break;
             }
         }
@@ -929,7 +1053,7 @@ public partial class Client
             TimeSpan levelTime = TimeSpan.FromSeconds(world.LevelTime / Constants.TicksPerSecond);
             TimeSpan totalTime = TimeSpan.FromSeconds(world.GlobalData.TotalTime / Constants.TicksPerSecond);
             using StreamWriter sw = File.AppendText(StatFile);
-            sw.WriteLine(string.Format("{0} - {1} ({2})  K: {3}/{4}  I: {5}/{6}  S: {7}/{8}", world.MapInfo.MapName,
+            sw.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0} - {1} ({2})  K: {3}/{4}  I: {5}/{6}  S: {7}/{8}", world.MapInfo.MapName,
                 $"{levelTime.Minutes}:{levelTime.Seconds}.{levelTime.Milliseconds}", $"{totalTime.Minutes}:{totalTime.Seconds}",
                 world.LevelStats.KillCount, world.LevelStats.TotalMonsters,
                 world.LevelStats.ItemCount, world.LevelStats.TotalItems,
@@ -992,7 +1116,7 @@ public partial class Client
             }
             else if (nextMapInfo != null)
             {
-                QueueLoadMap(nextMapInfo, null, world);
+                QueueLoadMap(nextMapInfo, null, world, m_levelChangeEvent);
             }
 
             if (!string.IsNullOrEmpty(nextMapResult.Error))
@@ -1010,8 +1134,7 @@ public partial class Client
 
     private void HandleZDoomTransition(IWorld world, ClusterDef? cluster, ClusterDef? nextCluster, MapInfoDef? nextMapInfo)
     {
-        if (cluster == null)
-            return;
+        cluster ??= new(0);
 
         EndGameLayer endGameLayer = new(world, m_config.Keys, m_soundManager, m_audioSystem.Music, m_archiveCollection, cluster, nextCluster, nextMapInfo, m_isSecretExit);
         endGameLayer.Exited += EndGameLayer_Exited;
@@ -1027,7 +1150,10 @@ public partial class Client
                 return;
 
             if (endGameLayer.NextMapInfo != null)
-                QueueLoadMap(endGameLayer.NextMapInfo, null, endGameLayer.World);
+            {
+                var changeEvent = new LevelChangeEvent(m_isSecretExit ? LevelChangeType.SecretNext : LevelChangeType.Next, LevelChangeFlags.None);
+                QueueLoadMap(endGameLayer.NextMapInfo, null, endGameLayer.World, eventContext: changeEvent);
+            }
         }
         catch (Exception ex)
         {

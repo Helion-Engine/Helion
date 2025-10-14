@@ -40,7 +40,7 @@ public static class DonutSpecial
 
     private static Sector? GetDestSector(Sector startSector, Sector raiseSector)
     {
-        for (int i = 0; i < raiseSector.Lines.Count; i++)
+        for (int i = 0; i < raiseSector.Lines.Length; i++)
         {
             Line line = raiseSector.Lines[i];
             if (line.Back != null && line.Back.Sector != startSector)

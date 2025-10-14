@@ -1,4 +1,5 @@
 using Helion.Geometry;
+using Helion.Geometry.Vectors;
 using Helion.Util.Container;
 
 namespace Helion.Render.OpenGL.Texture.Fonts;
@@ -8,39 +9,19 @@ namespace Helion.Render.OpenGL.Texture.Fonts;
 /// characters, meaning it's not an actual sentence ended by a period, but
 /// rather a single line of characters.
 /// </summary>
-public struct RenderableSentence
+public readonly struct RenderableSentence(DynamicArray<RenderableGlyph> glyphs, Dimension drawArea, Vec2I offset = default)
 {
     /// <summary>
     /// The enclosing box around all the glyphs.
     /// </summary>
-    public readonly Dimension DrawArea;
+    public readonly Dimension DrawArea = drawArea;
 
     /// <summary>
     /// The glyphs and their draw positions.
     /// </summary>
-    public readonly DynamicArray<RenderableGlyph> Glyphs;
+    public readonly DynamicArray<RenderableGlyph> Glyphs = glyphs;
 
-    public RenderableSentence(DynamicArray<RenderableGlyph> glyphs)
-    {
-        Glyphs = glyphs;
-        DrawArea = CalculateDrawArea(glyphs);
-    }
-
-    private static Dimension CalculateDrawArea(DynamicArray<RenderableGlyph> glyphs)
-    {
-        int width = 0;
-        int height = 0;
-        for (int i = 0; i < glyphs.Length; i++)
-        {
-            var glyph = glyphs[i];
-            if (glyph.AreaCoordinates.Right > width)
-                width = glyph.AreaCoordinates.Right;
-            if (glyph.AreaCoordinates.Height > height)
-                height = glyph.AreaCoordinates.Height;
-        }
-
-        return new Dimension(width, height);
-    }
+    public readonly Vec2I Offset = offset;
 
     public override string ToString()
     {

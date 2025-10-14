@@ -43,7 +43,7 @@ public partial class ConsoleLayer
         RenderConsoleDivider(hud, drawArea);
     }
 
-    private HudBox GetDrawArea(IHudRenderContext hud)
+    private static HudBox GetDrawArea(IHudRenderContext hud)
     {
         return (0, 0, hud.Width, hud.Height);
     }
@@ -66,11 +66,11 @@ public partial class ConsoleLayer
         }
         else
         {
-            hud.FillBox((0, 0, hud.Width, hud.Height), Color.Gray);
+            hud.FillBox(drawArea, Color.Black, alpha: 0.85f);
         }
     }
 
-    private void RenderConsoleDivider(IHudRenderContext hud, HudBox drawArea)
+    private static void RenderConsoleDivider(IHudRenderContext hud, HudBox drawArea)
     {
         const int DividerHeight = 3;
 

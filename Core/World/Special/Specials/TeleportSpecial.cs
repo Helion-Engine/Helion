@@ -93,10 +93,7 @@ public struct TeleportSpecial
                 m_world.CreateTeleportFog(oldPosition);
 
             if ((m_fogFlags & TeleportFog.Dest) != 0)
-            {
-                Vec3D offsetUnit = Vec2D.UnitCircle(entity.AngleRadians).To3D(0);
-                m_world.CreateTeleportFog(entity.Position + (offsetUnit * Constants.TeleportOffsetDist));
-            }
+                m_world.CreateTeleportFog(entity);
 
             if (m_keepHeight)
             {
@@ -142,9 +139,9 @@ public struct TeleportSpecial
             if (m_lineId == Line.NoLineId)
             {
                 if (m_type == TeleportType.BoomFixed)
-                    entity.AngleRadians = teleportAngle + entity.AngleRadians - sourceLine.StartPosition.Angle(sourceLine.EndPosition) - MathHelper.HalfPi;
+                    entity.AngleRadians = teleportAngle + entity.AngleRadians - sourceLine.Segment.Start.Angle(sourceLine.Segment.End) - MathHelper.HalfPi;
                 else
-                    entity.AngleRadians += sourceLine.StartPosition.Angle(sourceLine.EndPosition) - teleportAngle + MathHelper.HalfPi;
+                    entity.AngleRadians += sourceLine.Segment.Start.Angle(sourceLine.Segment.End) - teleportAngle + MathHelper.HalfPi;
             }
             else
             {
@@ -217,7 +214,7 @@ public struct TeleportSpecial
                 if (line.Id == sourceLine.Id || line.Back == null)
                     continue;
 
-                double lineAngle = line.StartPosition.Angle(line.EndPosition) - sourceLine.StartPosition.Angle(sourceLine.EndPosition);
+                double lineAngle = line.Segment.Start.Angle(line.Segment.End) - sourceLine.Segment.Start.Angle(sourceLine.Segment.End);
                 if (!m_teleportLineReverse)
                     lineAngle += MathHelper.Pi;
 

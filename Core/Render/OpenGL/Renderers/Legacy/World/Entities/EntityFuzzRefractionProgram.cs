@@ -2,4 +2,8 @@
 
 public class EntityFuzzRefractionProgram : EntityProgram
 {
+    public EntityFuzzRefractionProgram() : base("OIT Fuzz Refraction")
+    {
+
+    }
 }

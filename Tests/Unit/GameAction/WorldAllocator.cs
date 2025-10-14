@@ -29,7 +29,7 @@ namespace Helion.Tests.Unit.GameAction;
 internal static class WorldAllocator
 {
     public static int TotalTicks;
-    private static SinglePlayerWorld? StaticWorld = null;
+    private static SinglePlayerWorld? StaticWorld;
     private static string LastResource = string.Empty;
     private static string LastFileName = string.Empty;
     private static string LastMapName = string.Empty;
@@ -67,7 +67,6 @@ internal static class WorldAllocator
         {
             ArchiveType = ArchiveType.IWAD,
             IWadInfo = IWadInfo.GetIWadInfo(iwadType),
-            OriginalFilePath = iwadFileName
         };
 
         ArchiveCollection archiveCollection = new(new FilesystemArchiveLocator(), config, new DataCache());
@@ -95,7 +94,7 @@ internal static class WorldAllocator
         var skillDef = archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkill(skillLevel) ?? throw new Exception("Failed to load skill definition");
         var map = archiveCollection.FindMap(mapDef.MapName) ?? throw new Exception("Failed to load map");
         Zdbsp zdbsp = new();
-        if (!zdbsp.RunZdbsp(map, mapName, mapDef, out var outputMap) || outputMap == null)
+        if (!zdbsp.RunZdbsp(map.ArchivePath, mapName, out var outputMap) || outputMap == null)
             throw new Exception("Failed to create bsp");
 
         onBeforeInit?.Invoke(archiveCollection);
@@ -131,7 +130,7 @@ internal static class WorldAllocator
         TotalTicks++;
     }
 
-    private static Config CreateConfig()
+    public static Config CreateConfig()
     {
         Config config = new();
         config.Render.AutomapBspThread.Set(false);

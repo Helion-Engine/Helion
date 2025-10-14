@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Grids;
 using Helion.Geometry.Vectors;
+using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Physics;
 using System.Collections.Generic;
@@ -20,8 +21,8 @@ namespace Helion.Tests.Unit.GameAction
             var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(0));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
 
-            top.OnEntity.Entity.Should().Be(bottom);
-            bottom.OverEntity.Entity!.Should().Be(top);
+            top.OnEntity().Should().Be(bottom);
+            bottom.OverEntity()!.Should().Be(top);
         }
 
         [Fact(DisplayName = "OnEntity/OverEntity two on bottom")]
@@ -31,10 +32,10 @@ namespace Helion.Tests.Unit.GameAction
             var bottom2 = GameActions.CreateEntity(World, "BaronOfHell", StackPos3.To3D(0));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos2.To3D(64));
 
-            top.OnEntity.Entity.Should().NotBeNull();
-            (top.OnEntity.Entity!.Equals(bottom1) || top.OnEntity.Entity!.Equals(bottom2)).Should().BeTrue();
-            bottom1.OverEntity.Entity!.Should().Be(top);
-            bottom2.OverEntity.Entity!.Should().Be(top);
+            top.OnEntity().Should().NotBeNull();
+            (top.OnEntity()!.Equals(bottom1) || top.OnEntity()!.Equals(bottom2)).Should().BeTrue();
+            bottom1.OverEntity()!.Should().Be(top);
+            bottom2.OverEntity()!.Should().Be(top);
         }
 
         [Fact(DisplayName = "OnEntity/OverEntity simple stack change when entity dies")]
@@ -43,15 +44,15 @@ namespace Helion.Tests.Unit.GameAction
             var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(0));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
 
-            top.OnEntity.Entity.Should().Be(bottom);
-            bottom.OverEntity.Entity!.Should().Be(top);
+            top.OnEntity().Should().Be(bottom);
+            bottom.OverEntity()!.Should().Be(top);
 
             bottom.Kill(null);
 
             World.Tick();
 
-            top.OnEntity.Entity.Should().BeNull();
-            bottom.OverEntity.Entity!.Should().BeNull();
+            top.OnEntity().Should().BeNull();
+            bottom.OverEntity()!.Should().BeNull();
 
             World.Tick();
 
@@ -65,14 +66,14 @@ namespace Helion.Tests.Unit.GameAction
             var top1 = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
             var top2 = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
 
-            top1.OnEntity.Entity.Should().Be(bottom);
-            bottom.OverEntity.Entity!.Should().Be(top2);
+            top1.OnEntity().Should().Be(bottom);
+            bottom.OverEntity()!.Should().Be(top2);
 
             bottom.Kill(null);
             World.Tick();
 
-            top1.OnEntity.Entity.Should().BeNull();
-            bottom.OverEntity.Entity!.Should().BeNull();
+            top1.OnEntity().Should().BeNull();
+            bottom.OverEntity()!.Should().BeNull();
 
             World.Tick();
 
@@ -87,17 +88,17 @@ namespace Helion.Tests.Unit.GameAction
             var middle = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(128));
 
-            middle.OnEntity.Entity.Should().Be(bottom);
-            bottom.OverEntity.Entity!.Should().Be(middle);
+            middle.OnEntity().Should().Be(bottom);
+            bottom.OverEntity()!.Should().Be(middle);
 
-            top.OnEntity.Entity.Should().Be(middle);
-            middle.OverEntity.Entity!.Should().Be(top);
+            top.OnEntity().Should().Be(middle);
+            middle.OverEntity()!.Should().Be(top);
 
             middle.Kill(null);
             World.Tick();
 
-            top.OnEntity.Entity.Should().BeNull();
-            middle.OverEntity.Entity!.Should().BeNull();
+            top.OnEntity().Should().BeNull();
+            middle.OverEntity()!.Should().BeNull();
 
             World.Tick();
 
@@ -110,13 +111,13 @@ namespace Helion.Tests.Unit.GameAction
             var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(0));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
 
-            top.OnEntity.Entity.Should().Be(bottom);
-            bottom.OverEntity.Entity!.Should().Be(top);
+            top.OnEntity().Should().Be(bottom);
+            bottom.OverEntity()!.Should().Be(top);
 
             GameActions.MoveEntity(World, bottom, new Vec2D(-928, 768));
 
-            top.OnEntity.Entity.Should().BeNull();
-            bottom.OverEntity.Entity!.Should().BeNull();
+            top.OnEntity().Should().BeNull();
+            bottom.OverEntity()!.Should().BeNull();
 
             World.Tick();
 
@@ -130,17 +131,17 @@ namespace Helion.Tests.Unit.GameAction
             var top1 = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
             var top2 = GameActions.CreateEntity(World, "BaronOfHell", StackPos2.To3D(64));
 
-            bottom.OverEntity.Should().NotBeNull();
-            (bottom.OverEntity.Entity!.Equals(top1) || bottom.OverEntity.Entity!.Equals(top2)).Should().BeTrue();
-            top1.OnEntity.Entity.Should().Be(bottom);
-            top2.OnEntity.Entity.Should().Be(bottom);
+            bottom.OverEntity().Should().NotBeNull();
+            (bottom.OverEntity()!.Equals(top1) || bottom.OverEntity()!.Equals(top2)).Should().BeTrue();
+            top1.OnEntity().Should().Be(bottom);
+            top2.OnEntity().Should().Be(bottom);
 
             bottom.Kill(null);
             World.Tick();
 
-            top1.OnEntity.Entity.Should().BeNull();
-            top2.OnEntity.Entity.Should().BeNull();
-            bottom.OverEntity.Entity!.Should().BeNull();
+            top1.OnEntity().Should().BeNull();
+            top2.OnEntity().Should().BeNull();
+            bottom.OverEntity()!.Should().BeNull();
         }
 
         [Fact(DisplayName = "OverEntity corpse falls when OnEntity moves")]
@@ -148,13 +149,13 @@ namespace Helion.Tests.Unit.GameAction
         {
             var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos2.To3D(0));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
-            bottom.OverEntity.Should().NotBeNull();
-            top.OnEntity.Should().NotBeNull();
+            bottom.OverEntity().Should().NotBeNull();
+            top.OnEntity().Should().NotBeNull();
             top.Position.Z.Should().Be(bottom.Position.Z + bottom.Height);
 
             GameActions.MoveEntity(World, bottom, (StackPos1.X, StackPos1.Y - 64));
-            bottom.OverEntity.Entity.Should().BeNull();
-            top.OnEntity.Entity.Should().BeNull();
+            bottom.OverEntity().Should().BeNull();
+            top.OnEntity().Should().BeNull();
 
             GameActions.TickWorld(World, 35);
             top.Position.Z.Should().Be(bottom.Position.Z);
@@ -166,13 +167,13 @@ namespace Helion.Tests.Unit.GameAction
             var bottom = GameActions.CreateEntity(World, "BaronOfHell", StackPos2.To3D(0));
             var top = GameActions.CreateEntity(World, "BaronOfHell", StackPos1.To3D(64));
             top.Kill(null);
-            bottom.OverEntity.Should().NotBeNull();
-            top.OnEntity.Should().NotBeNull();
+            bottom.OverEntity().Should().NotBeNull();
+            top.OnEntity().Should().NotBeNull();
             top.Position.Z.Should().Be(bottom.Position.Z + bottom.Height);
 
             GameActions.MoveEntity(World, bottom, (StackPos1.X, StackPos1.Y - 64));
-            bottom.OverEntity.Entity.Should().BeNull();
-            top.OnEntity.Entity.Should().BeNull();
+            bottom.OverEntity().Should().BeNull();
+            top.OnEntity().Should().BeNull();
 
             GameActions.TickWorld(World, 35);
             top.Position.Z.Should().Be(bottom.Position.Z);
@@ -183,8 +184,8 @@ namespace Helion.Tests.Unit.GameAction
         {
             var bottom = GameActions.CreateEntity(World, "CacoDemon", StackPos2.To3D(64));
             var top = GameActions.CreateEntity(World, "CacoDemon", StackPos1.To3D(120));
-            bottom.OverEntity.Should().NotBeNull();
-            top.OnEntity.Should().NotBeNull();
+            bottom.OverEntity().Should().NotBeNull();
+            top.OnEntity().Should().NotBeNull();
             top.Position.Z.Should().Be(bottom.Position.Z + bottom.Height);
             top.Kill(null);
 
@@ -278,7 +279,7 @@ namespace Helion.Tests.Unit.GameAction
             Vec3D pos1 = new(1168, 1064, 24);
             Vec3D moveTo = pos1 + new Vec3D(16, 0, 0);
             var moveEntity = GameActions.CreateEntity(World, "DoomImp", pos1, frozen: false);
-            moveEntity.OnEntity.Entity.Should().NotBeNull();
+            moveEntity.OnEntity().Should().NotBeNull();
             moveEntity.OnGround.Should().BeTrue();
 
             GameActions.MoveEntity(World, moveEntity, moveTo.XY);
@@ -330,8 +331,8 @@ namespace Helion.Tests.Unit.GameAction
 
             entity.Position.Z.Should().Be(-32);
             Player.Position.Z.Should().Be(16);
-            Player.OnEntity.Entity.Should().Be(entity);
-            entity.OverEntity.Entity.Should().Be(Player);
+            Player.OnEntity().Should().Be(entity);
+            entity.OverEntity().Should().Be(Player);
         }
 
         [Fact(DisplayName = "Not moved linked entity will not pop up if there is a blocking entity")]
@@ -352,8 +353,8 @@ namespace Helion.Tests.Unit.GameAction
 
             entity.Position.Z.Should().Be(0);
             Player.Position.Z.Should().Be(entity.Height);
-            Player.OnEntity.Entity.Should().Be(entity);
-            entity.OverEntity.Entity.Should().Be(Player);
+            Player.OnEntity().Should().Be(entity);
+            entity.OverEntity().Should().Be(Player);
         }
 
         [Fact(DisplayName = "Not moved linked entity will not pop up if there is a blocking entity")]
@@ -386,7 +387,8 @@ namespace Helion.Tests.Unit.GameAction
             def.Flags.NoBlockmap = false;
 
             var monster = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(0));
-            monster.BlocksLength.Should().Be(1);
+            var blocks = (monster.BlockRange.EndX - monster.BlockRange.StartX) + (monster.BlockRange.EndY - monster.BlockRange.StartY);
+            blocks.Should().Be(0);
             monster.SectorNodes.Length.Should().Be(1);
             monster.Sector.Entities.Contains(monster).Should().BeTrue();
 
@@ -444,7 +446,7 @@ namespace Helion.Tests.Unit.GameAction
             Player.AngleRadians = GameActions.GetAngle(Bearing.East);
             GameActions.MoveEntity(World, Player, 64);
             Player.Position.ApproxEquals(new Vec3D(1120, 864, 56)).Should().BeTrue();
-            Player.OnEntity.Entity!.Id.Should().Be(71);
+            Player.OnEntity()!.Id.Should().Be(71);
         }
 
         [Fact(DisplayName = "Player entity can walk on non-bridge with top z = entity z")]
@@ -455,7 +457,7 @@ namespace Helion.Tests.Unit.GameAction
             Player.AngleRadians = GameActions.GetAngle(Bearing.East);
             GameActions.MoveEntity(World, Player, 48);
             Player.Position.ApproxEquals(new Vec3D(1104, 800, 56)).Should().BeTrue();
-            Player.OnEntity.Entity!.Id.Should().Be(72);
+            Player.OnEntity()!.Id.Should().Be(72);
         }
 
         [Fact(DisplayName = "Non-player entity can walk on bridge with top z = entity z")]
@@ -466,7 +468,7 @@ namespace Helion.Tests.Unit.GameAction
             monster.AngleRadians = GameActions.GetAngle(Bearing.East);
             GameActions.MoveEntity(World, monster, 64);
             monster.Position.ApproxEquals(new Vec3D(1120, 864, 56)).Should().BeTrue();
-            monster.OnEntity.Entity!.Id.Should().Be(71);
+            monster.OnEntity()!.Id.Should().Be(71);
         }
 
         [Fact(DisplayName = "Non-player entity can't walk on non-bridge with top z = entity z")]

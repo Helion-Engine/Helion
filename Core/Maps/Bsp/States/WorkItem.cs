@@ -37,7 +37,7 @@ public class WorkItem
     public WorkItem(BspNode node, List<BspSegment> segments, string branchPath = "")
     {
         Precondition(segments.Count > 0, "Should never have zero segments for a work item");
-        Precondition(branchPath == branchPath.ToUpper(), "Should be using upper case BSP branch paths");
+        Precondition(string.Equals(branchPath, branchPath.ToUpperInvariant(), System.StringComparison.Ordinal), "Should be using upper case BSP branch paths");
 
         Node = node;
         Segments = segments;

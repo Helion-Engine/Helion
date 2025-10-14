@@ -4,14 +4,14 @@ using Helion.World.Special.Specials;
 
 namespace Helion.Models;
 
-public class LightFireFlickerDoomModel : ISpecialModel
+public struct LightFireFlickerDoomModel : ISpecialModel
 {
     public int SectorId { get; set; }
     public short Max { get; set; }
     public short Min { get; set; }
     public int Delay { get; set; }
 
-    public ISpecial? ToWorldSpecial(IWorld world)
+    public readonly ISpecial? ToWorldSpecial(IWorld world)
     {
         if (!world.IsSectorIdValid(SectorId))
             return null;

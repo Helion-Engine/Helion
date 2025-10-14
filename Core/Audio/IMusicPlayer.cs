@@ -7,7 +7,8 @@ public enum MusicPlayerOptions
 {
     None,
     Loop = 1,
-    IgnoreAlreadyPlaying = 2
+    IgnoreAlreadyPlaying = 2,
+    Reload = 4
 }
 
 /// <summary>
@@ -16,11 +17,9 @@ public enum MusicPlayerOptions
 public interface IMusicPlayer : IDisposable
 {
     /// <summary>
-    /// Sets the volume to the value provided. 0.0 is off, and 1.0 is fully
-    /// on. Any value outside of this range will be clamped to [0.0, 1.0].
+    /// Notify the music player that the volume settings have changed and it should adjust its volume
     /// </summary>
-    /// <param name="volume">The volume. Should be in [0.0, 1.0].</param>
-    void SetVolume(float volume);
+    void SetVolume();
 
     /// <summary>
     /// The data to play.

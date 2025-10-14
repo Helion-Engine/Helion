@@ -5,7 +5,21 @@ namespace Helion.Models;
 
 public class InventoryModel
 {
-    public IList<InventoryItemModel> Items { get; set; } = Array.Empty<InventoryItemModel>();
-    public IList<string> Weapons { get; set; } = Array.Empty<string>();
-    public IList<PowerupModel> Powerups { get; set; } = Array.Empty<PowerupModel>();
+    public InventoryModel()
+    {
+    }
+
+    public static InventoryModel Create()
+    {
+        return new InventoryModel()
+        {
+            Items = [],
+            Weapons = [],
+            Powerups = []
+        };
+    }
+
+    public List<InventoryItemModel> Items { get; set; } = null!;
+    public List<string> Weapons { get; set; } = null!;
+    public List<PowerupModel> Powerups { get; set; } = null!;
 }

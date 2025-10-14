@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -18,6 +19,7 @@ public static class StringExtensions
     /// <param name="str">The string to check.</param>
     /// <returns>True if it has no characters, false if it has one or more
     /// characters.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool Empty(this string str) => str.Length == 0;
 
     /// <summary>
@@ -35,22 +37,44 @@ public static class StringExtensions
     /// <param name="text">The text to use.</param>
     /// <param name="other">The text to compare against.</param>
     /// <returns>True if so, false if not.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool EqualsIgnoreCase(this string text, string other)
     {
         return text.Equals(other, StringComparison.OrdinalIgnoreCase);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool EqualsIgnoreCase(this ReadOnlySpan<char> text, string other)
+    {
+        return text.Equals(other, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool StartsWithIgnoreCase(this string text, string other)
     {
         return text.StartsWith(other, StringComparison.OrdinalIgnoreCase);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool EndsWithIgnoreCase(this string text, string other)
     {
         return text.EndsWith(other, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static bool GetLastFolder(this string path, out ReadOnlySpan<char> folder)
+    public static bool GetFirstFolder(this ReadOnlySpan<char> path, out ReadOnlySpan<char> folder)
+    {
+        int endIndex = FirstIndexOf(path, 0, '/', '\\');
+        if (endIndex == -1)
+        {
+            folder = new ReadOnlySpan<char>();
+            return false;
+        }
+
+        folder = path[..endIndex];
+        return true;
+    }
+
+    public static bool GetLastFolder(this ReadOnlySpan<char> path, out ReadOnlySpan<char> folder)
     {
         int endIndex = LastIndexOf(path, path.Length - 1, '/', '\\');
         if (endIndex == -1)
@@ -66,17 +90,31 @@ public static class StringExtensions
             return false;
         }
 
-        folder = path.AsSpan(startIndex + 1, endIndex - startIndex - 1);
+        folder = path.Slice(startIndex + 1, endIndex - startIndex - 1);
         return true;
     }
 
     public static string StripNonUtf8Chars(this string str) =>
         NonUtf8Regex.Replace(str, string.Empty);
 
-    private static int LastIndexOf(string text, int start, char value, char alt)
+    private static int LastIndexOf(ReadOnlySpan<char> text, int start, char value, char alt)
     {
         int startIndex = -1;
         for (int i = start; i >= 0; i--)
+        {
+            if (text[i] != value && text[i] != alt)
+                continue;
+            startIndex = i;
+            break;
+        }
+
+        return startIndex;
+    }
+
+    private static int FirstIndexOf(ReadOnlySpan<char> text, int start, char value, char alt)
+    {
+        int startIndex = -1;
+        for (int i = start; i < text.Length; i++)
         {
             if (text[i] != value && text[i] != alt)
                 continue;

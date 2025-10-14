@@ -78,7 +78,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.AssertSound(World, bossEye, "dsbospit");
 
             var cube = FindEntity("SpawnShot", monsters);
-            cube.Target.Entity.Should().Be(target);
+            cube.Target().Should().Be(target);
             TickUntilDisposed(cube);
             var fire = FindEntity("ArchvileFire", Array.Empty<Entity>());
             var monster = FindEntity(monsterName, monsters);
@@ -91,10 +91,10 @@ namespace Helion.Tests.Unit.GameAction
         {
             GameActions.TickWorld(World, () =>
             {
-                if (entity.Frame.ActionFunction == null)
+                if (entity.FrameState.Frame.ActionFunction == null)
                     return true;
 
-                if (entity.Frame.ActionFunction.Method.Name.EqualsIgnoreCase(name) && entity.FrameState.CurrentTick == ticks)
+                if (entity.FrameState.Frame.ActionFunction.Method.Name.EqualsIgnoreCase(name) && entity.FrameState.CurrentTick == ticks)
                     return false;
 
                 return true;

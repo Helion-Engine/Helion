@@ -1,16 +1,15 @@
-﻿using System;
+﻿using Helion.Graphics;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+using Helion.Resources.Definitions.Id24;
+using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.Images;
+using Helion.Util;
+using Helion.Util.Extensions;
+using Helion.Util.RandomGenerators;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Helion.Resources.Archives.Entries;
-using Helion.Resources.Images;
-using Helion.Resources.Definitions.Id24;
 using System.Linq;
-using Helion.Graphics;
-using Helion.Util.RandomGenerators;
-using Helion.Util;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
-using Helion.Util.Extensions;
-using Helion.Geometry.Vectors;
 
 namespace Helion.Resources;
 
@@ -21,13 +20,11 @@ public class SkyFireAnimation(int[] firePalette, Texture texture, Image fireImag
     public Image FireImage = fireImage;
     public int Ticks = ticks;
     public int CurrentTick;
-    public bool RenderUpdate = true;
+    public int RenderUpdate;
 }
 
 public partial class TextureManager
 {
-    public List<SkyFireAnimation> GetSkyFireTextures() => m_skyFireTextures;
-
     private readonly Dictionary<int, int> m_flatIndexToSkyTextureIndex = [];
     private readonly Dictionary<int, SkyTransform> m_textureIndexToSkyTransform = [];
     private readonly List<SkyTransform> m_skyTransforms = [];
@@ -37,6 +34,26 @@ public partial class TextureManager
     public bool TryGetSkyTransform(int textureIndex, [NotNullWhen(true)] out SkyTransform? skyTransform)
     {
         return m_textureIndexToSkyTransform.TryGetValue(textureIndex, out skyTransform);
+    }
+
+    public bool SkyFireNeedsUpdate(int textureIndex, [NotNullWhen(true)] out Texture? skyFireTexture, out bool needsUpdate)
+    {
+        needsUpdate = false;
+        skyFireTexture = null;
+        for (int i = 0; i < m_skyFireTextures.Count; i++)
+        {
+            var skyFire = m_skyFireTextures[i];
+            var texture = skyFire.Texture;
+
+            if (texture.Index == textureIndex)
+            {
+                skyFireTexture = texture;
+                needsUpdate = skyFire.RenderUpdate == m_archiveCollection.TextureManager.Ticks;
+                return true;
+            }
+        }
+
+        return false;
     }
     
     private void TickSkyFire()
@@ -52,7 +69,7 @@ public partial class TextureManager
                 continue;
                         
             skyFire.CurrentTick = 0;
-            skyFire.RenderUpdate = true;
+            skyFire.RenderUpdate = Ticks;
             UpdateSkyFire(skyFire);
             var palette = m_archiveCollection.Data.Palette.DefaultLayer;
             WriteSkyFireToTexture(palette, skyFire.FirePalette, skyFire.FireImage, skyFire.Texture.Image);
@@ -94,7 +111,7 @@ public partial class TextureManager
         var texturePixels = textureImage.m_pixels;
         var transparentColor = Color.Transparent.Uint;
         int skyFirePaletteLength = skyFirePalette.Length;
-        for (int p = 0; p < fireIndices.Length; p++)
+        for (int p = fireIndices.Length - 1; p >= 0; p--)
         {
             if (fireIndices[p] == 0)
             {
@@ -109,7 +126,7 @@ public partial class TextureManager
             // Directly writing the magic values for palette color mode here.
             // This prevents creating a new array and iterating the indices again when uploading to the GPU.
             var paletteIndex = (byte)skyFirePalette[index];
-            texturePixels[p] = ShaderVars.PaletteColorMode ? (uint)(Image.AlphaFlag << 24 | (byte)paletteIndex << 16) : palette[paletteIndex].m_value;
+            texturePixels[p] = ShaderVars.PaletteColorMode ? (uint)(Image.AlphaFlag << 24 | paletteIndex << 16) : palette[paletteIndex].m_value;
         }
     }
 
@@ -146,22 +163,6 @@ public partial class TextureManager
 
             var palette = m_archiveCollection.Data.Palette.DefaultLayer;
             WriteSkyFireToTexture(palette, sky.Fire.Palette, fireImage, texture.Image);
-
-            FlagSkyTrasformForegroundAsFire(sky);
-        }
-    }
-
-    private void FlagSkyTrasformForegroundAsFire(SkyDef sky)
-    {
-        foreach (var skyTransform in m_skyTransforms)
-        {
-            if (skyTransform.Foreground == null || !skyTransform.Foreground.TextureName.EqualsIgnoreCase(sky.Name))
-                continue;
-
-            skyTransform.Foreground.Type = SkyTransformType.Fire;
-            skyTransform.Foreground.Scale.Y = 1;
-            skyTransform.Foreground.Scale.X = 1;
-            skyTransform.Foreground.Offset = Vec2F.Zero;
         }
     }
 
@@ -185,54 +186,74 @@ public partial class TextureManager
         return Math.Max((int)(fire.UpdateTime / seconds), 1);
     }
 
-    private void MapSkyFlat(Entry flat, int textureIndex)
+    private void MapSkyFlat(string flatName, int flatIndex, MapInfoDef mapInfo)
     {
         var skyDefinition = m_archiveCollection.Definitions.Id24SkyDefinition;
-        if (!skyDefinition.FlatMapping.TryGetValue(flat.Path.Name, out var textureName))
+        if (!TryGetSkyTextureName(flatName, skyDefinition, out var textureName))
             return;
 
-        var texture = MapSkyTexture(textureName, skyDefinition);
+        var texture = MapSkyTexture(textureName, skyDefinition, mapInfo);
         if (texture != null)
-            m_flatIndexToSkyTextureIndex[textureIndex] = texture.Index;
+            m_flatIndexToSkyTextureIndex[flatIndex] = texture.Index;
     }
 
-    private Texture? MapSkyTexture(string textureName, Id24SkyDefinition skyDefinition)
+    private bool TryGetSkyTextureName(string flatName, Id24SkyDefinition skyDefinition, [NotNullWhen(true)] out string? textureName)
     {
-        if (!m_textureLookup.TryGetValue(textureName, out var texture))
+        if (flatName.EqualsIgnoreCase(m_archiveCollection.GameInfo.SkyFlatName))
+        {
+            textureName = SkyTextureName;
+            return true;
+        }
+
+        return skyDefinition.FlatMapping.TryGetValue(flatName, out textureName);
+    }
+
+    private Texture? MapSkyTexture(string textureName, Id24SkyDefinition skyDefinition, Definitions.MapInfo.MapInfoDef mapInfo)
+    {
+        var texture = GetTexture(textureName, ResourceNamespace.Textures);
+        if (texture.Index == Constants.NoTextureIndex)
         {
             Log.Error($"Could not find texture {textureName} for sky {textureName}");
             return null;
         }
 
-        if (skyDefinition.Data.Skies == null)
+        SkyTransform? skyTransform = null;
+        if (skyDefinition.Data.Skies != null)
         {
-            return null;
+            for (int i = 0; i < skyDefinition.Data.Skies.Count; i++)
+            {
+                var sky = skyDefinition.Data.Skies[i];
+                if (!sky.Name.Equals(texture.Name, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                int? foregroundSkyHandle = null;
+                if (sky.ForegroundTex != null)
+                    foregroundSkyHandle = CreateForegroundSky(sky, sky.ForegroundTex);
+
+                if (sky.Fire != null)
+                    CreateSkyFireTexture(sky, sky.Fire);
+
+                skyTransform = SkyTransform.FromId24SkyDef(texture.Index, foregroundSkyHandle, sky);
+                break;
+            }
         }
 
-        for (int i = 0; i < skyDefinition.Data.Skies.Count; i++)
+        if (skyTransform == null && mapInfo.Sky1.ScrollSpeed != 0)
+            skyTransform = SkyTransform.FromMapInfoSky(texture.Index, mapInfo);
+
+        skyTransform ??= SkyTransform.Default;
+
+        if (skyTransform != null)
         {
-            var sky = skyDefinition.Data.Skies[i];
-            if (!sky.Name.Equals(texture.Name, StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            int? foregroundSkyHandle = null;
-            if (sky.ForegroundTex != null)
-                foregroundSkyHandle = CreateForegroundSky(sky, sky.ForegroundTex);
-
-            if (sky.Fire != null)
-                CreateSkyFireTexture(sky, sky.Fire);
-
-            var skyTransform = SkyTransform.FromId24SkyDef(texture.Index, foregroundSkyHandle, sky);
             m_skyTransforms.Add(skyTransform);
             m_textureIndexToSkyTransform[texture.Index] = skyTransform;
-            break;
         }
 
         LoadTextureImage(texture.Index);
         return texture;
     }
 
-    private int? CreateForegroundSky(SkyDef sky, SkyForeTex skyForeTex)
+    private int? CreateForegroundSky(Id24SkyDef sky, SkyForeTex skyForeTex)
     {
         if (sky.Type != SkyType.WithForeground)
         {
@@ -258,7 +279,7 @@ public partial class TextureManager
         return null;
     }
 
-    private int? CreateSkyFireTexture(SkyDef sky, SkyFire? fire)
+    private int? CreateSkyFireTexture(Id24SkyDef sky, SkyFire? fire)
     {
         if (sky.Type != SkyType.Fire)
         {

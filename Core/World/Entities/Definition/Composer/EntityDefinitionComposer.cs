@@ -159,8 +159,8 @@ public class EntityDefinitionComposer
 
     private static void ApplyActorFlagsAndProperties(EntityDefinition definition, ActorDefinition actorDefinition)
     {
-        DefinitionFlagApplier.Apply(definition, actorDefinition.Flags, actorDefinition.FlagProperties);
         DefinitionPropertyApplier.Apply(definition, actorDefinition.Properties);
+        DefinitionFlagApplier.Apply(definition, actorDefinition.Flags, actorDefinition.FlagProperties);
     }
 
     private bool CreateInheritanceOrderedList(ActorDefinition actorDef, out IList<ActorDefinition> actorDefinitions)

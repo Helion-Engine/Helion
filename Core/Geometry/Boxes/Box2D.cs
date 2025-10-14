@@ -138,7 +138,7 @@ namespace Helion.Geometry.Boxes
         public bool Contains(Vector3D point) => point.X > Min.X && point.X < Max.X && point.Y > Min.Y && point.Y < Max.Y;
         public bool Overlaps(in Box2D box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
         public bool Overlaps(BoundingBox2D box) => !(Min.X >= box.Max.X || Max.X <= box.Min.X || Min.Y >= box.Max.Y || Max.Y <= box.Min.Y);
-        public bool Intersects(Seg2D seg) => seg.Intersects(this);
+        public bool Intersects(Seg2D seg) => seg.Intersects(Min.X, Min.Y, Max.X, Max.Y);
         public bool Intersects(Segment2D seg) => seg.Intersects(this);
         public bool Intersects<T>(SegmentT2D<T> seg) where T : Vector2D => seg.Intersects(this);
         public void GetSpanningEdge(Vec2D position, out Vec2D first, out Vec2D second)

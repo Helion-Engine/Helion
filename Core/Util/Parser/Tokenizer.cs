@@ -170,7 +170,7 @@ public class Tokenizer
         }
 
         string text = numberBuilder.ToString();
-        if (text.EndsWith("."))
+        if (text.EndsWith('.'))
             throw new ParserException(m_lineNumber, m_lineCharOffset - 1, m_textIndex - 1, "Decimal number cannot end with a period");
 
         if (isFloat)
@@ -190,7 +190,7 @@ public class Tokenizer
         m_textIndex--;
         m_lineCharOffset--;
 
-        Postcondition(SimpleParser.TryParseDouble(text, out double _), "Returning a number token but cannot parse a number out of it");
+        Postcondition(NumberParser.TryParseDouble(text, out double _), "Returning a number token but cannot parse a number out of it");
     }
 
     private void ConsumeSlashTokenOrComments()

@@ -1,18 +1,29 @@
+using Helion.Dehacked;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
-using Helion.Render.OpenGL.Renderers.Legacy.World;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Walls;
 using Helion.World.Static;
+using System;
 
 namespace Helion.World.Geometry.Sides;
 
 public record class SideColormaps(Colormap? Upper, Colormap? Middle, Colormap? Lower);
 
 public record struct FloodKeys(int Key1, int Key2);
+
+public struct SideFlags
+{
+    public bool BlockmapLinked;
+    public bool UpperSky;
+    public bool LightLevelAbsolute;
+    public bool NoFakeContrast;
+    public bool SmoothLighting;
+    public bool WrapMidTex;
+}
 
 public sealed class Side
 {
@@ -32,6 +43,7 @@ public sealed class Side
     public SectorDynamic Dynamic;
     public bool IsDynamic => Dynamic != SectorDynamic.None;
     public SideTexture FloodTextures;
+    public byte LightLevel;
 
     public bool IsFront => this == Line.Front;
     public Side? PartnerSide => IsFront ? Line.Back : Line.Front;
@@ -48,13 +60,17 @@ public sealed class Side
     public FloodKeys LowerFloodKeys;
     public int FloorFloodKey;
     public int CeilingFloodKey;
-    public bool BlockmapLinked;
-    public bool UpperSky;
     public SectorPlanes MidTextureFlood;
-
-    private readonly Vec2I m_initialOffset;
+    public SideFlags Flags;
 
     public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector)
+        : this(id, offset, upper, middle, lower, sector, 0, false, false, false, false)
+    {
+
+    }
+
+    public Side(int id, Vec2I offset, Wall upper, Wall middle, Wall lower, Sector sector, int lightLevel, 
+        bool lightLevelAbsolute, bool noFakeContrast, bool smoothLighting, bool wrapMidTex)
     {
         Id = id;
         Sector = sector;
@@ -63,22 +79,25 @@ public sealed class Side
         Middle = middle;
         Lower = lower;
 
-        m_initialOffset = offset;
-
         // We are okay with things blowing up violently if someone forgets
         // to assign it, because that is such a critical error on the part
         // of the developer if this ever happens that it's deserved. Fixing
         // this would lead to some very messy logic, and when this is added
         // to a parent object, it will add itself for us. If this can be
         // fixed in the future with non-messy code, go for it.
-        Line = null !;
+        Line = null!;
+
+        LightLevel = (byte)Math.Clamp(lightLevel, 0, 255);
+        Flags.LightLevelAbsolute = lightLevelAbsolute;
+        Flags.NoFakeContrast = noFakeContrast;
+        Flags.SmoothLighting = smoothLighting;
+        Flags.WrapMidTex = wrapMidTex;
     }
 
     public void Reset()
     {
         DataChanges = default;
         ScrollData = default;
-        Offset = m_initialOffset;
         LastRenderGametick = default;
         LastRenderGametickAlpha = default;
         BlockmapCount = default;
@@ -86,9 +105,9 @@ public sealed class Side
         LowerFloodKeys = default;
         FloorFloodKey = default;
         CeilingFloodKey = default;
-        BlockmapLinked = default;
         MidTextureFlood = default;
-        UpperSky = default;
+        Flags.BlockmapLinked = default;
+        Flags.UpperSky = default;
 
         Upper.Reset();
         Middle.Reset();

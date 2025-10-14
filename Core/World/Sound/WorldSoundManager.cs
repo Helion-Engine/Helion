@@ -10,23 +10,71 @@ using Helion.World.Entities.Players;
 
 namespace Helion.World.Sound;
 
-public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundManager(audioSystem, world.ArchiveCollection), ITickable
+public class WorldSoundManager : SoundManager, ITickable
 {
-    private IWorld m_world = world;
+    private IWorld m_world;
+
+    public WorldSoundManager(IWorld world, IAudioSystem audioSystem) : base(audioSystem, world.ArchiveCollection)
+    {
+        m_world = world;
+        InitSoundConfig(world);
+        RegisterEvents(world);
+    }
+
+    private void InitSoundConfig(IWorld world)
+    {
+        m_maxConcurrentSounds = world.Config.Audio.MaxSounds;
+        m_sameSoundLimit = world.Config.Audio.SameSoundLimit;
+        m_sameSoundWindow = world.Config.Audio.SameSoundWindow;
+        m_setVelocity = world.Config.Audio.Velocity;
+    }
 
     public void UpdateTo(IWorld world)
     {
         m_world = world;
+        InitSoundConfig(world);
+        UnregisterEvents(m_world);
+        RegisterEvents(world);
         ArchiveCollection = world.ArchiveCollection;
         ClearSounds();
         AudioManager.Clear();
     }
 
+    public void UnregisterEvents() => UnregisterEvents(m_world);
+
+    private void RegisterEvents(IWorld world)
+    {
+        world.Config.Audio.MaxSounds.OnChanged += MaxSounds_OnChanged;
+        world.Config.Audio.SameSoundLimit.OnChanged += SameSoundLimit_OnChanged;
+        world.Config.Audio.SameSoundWindow.OnChanged += SameSoundWindow_OnChanged;
+        world.Config.Audio.Velocity.OnChanged += Velocity_OnChanged;
+    }
+
+    private void UnregisterEvents(IWorld world)
+    {
+        world.Config.Audio.MaxSounds.OnChanged -= MaxSounds_OnChanged;
+        world.Config.Audio.SameSoundLimit.OnChanged -= SameSoundLimit_OnChanged;
+        world.Config.Audio.SameSoundWindow.OnChanged -= SameSoundWindow_OnChanged;
+        world.Config.Audio.Velocity.OnChanged -= Velocity_OnChanged;
+    }
+
+    private void MaxSounds_OnChanged(object? sender, int max) =>  m_maxConcurrentSounds = max;
+    private void SameSoundLimit_OnChanged(object? sender, int limit) => m_sameSoundLimit = limit;
+    private void SameSoundWindow_OnChanged(object? sender, int window) => m_sameSoundWindow = window;
+    private void Velocity_OnChanged(object? sender, bool set) => m_setVelocity = set;
+
     protected override IRandom GetRandom() => m_world.Random;
 
-    protected override double GetDistance(ISoundSource soundSource)
+    protected override int GetGameTick() => m_world.Gametick;
+
+    protected override double GetDistanceSquared(ISoundSource soundSource)
     {
-        return soundSource.GetDistanceFrom(m_world.GetListener().Entity);
+        return soundSource.GetDistanceSquaredFrom(m_world.GetListener().Entity);
+    }
+
+    protected override void HandleDispose()
+    {
+        UnregisterEvents(m_world);
     }
 
     public override IAudioSource? PlayStaticSound(string sound)
@@ -41,7 +89,7 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
         if (!soundSource.CanMakeSound())
             return null;
 
-        IAudioSource? source = CreateSound(soundSource, soundSource.GetSoundPosition(m_world.GetListener().Entity), soundSource.GetSoundVelocity(),
+        IAudioSource? source = CreateSound(soundSource, soundSource.GetSoundPosition(m_world.GetListener().Entity), soundSource.GetSoundVelocity(), 0,
             sound, soundParams, out SoundInfo? soundInfo);
         if (source == null)
             return source;
@@ -107,7 +155,7 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
             return 1;
 
         // Checking there is no owner, otherwise rockets set the see type and get bumped out by moving floors
-        if (soundSource is Entity entity && !entity.IsPlayer && entity.Owner.Entity == null)
+        if (soundSource is Entity entity && !entity.IsPlayer && entity.Owner() == null)
         {
             switch (soundParams.SoundType)
             {
@@ -131,7 +179,7 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
         {
             string playerSound = SoundInfoDefinition.GetPlayerSound(player.Info.GetGender(), sound);
             SoundInfo? soundInfo = ArchiveCollection.Definitions.SoundInfo.Lookup(playerSound, m_world.Random);
-            if (soundInfo != null && ArchiveCollection.Entries.FindByName(playerSound) != null)
+            if (soundInfo != null && ArchiveCollection.Entries.FindByName(soundInfo.EntryName) != null)
                 return soundInfo;
 
             // Sound likely does not exist for user selected gender - fallback to default
@@ -145,11 +193,22 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
         return base.GetSoundInfo(source, sound);
     }
 
-    protected override void AttenuateIfNeeded(ISoundSource source, SoundInfo info, ref SoundParams soundParams)
+    protected override void SetSoundParams(ISoundSource source, SoundInfo info, ref SoundParams soundParams)
     {
-        // Don't attenuate sounds generated by the listener, otherwise movement can cause the sound to be off
+        // If sound is generated by the lisenter then set relative to the listeners position
         if (ReferenceEquals(source, m_world.GetListener().Entity))
-            soundParams.Attenuation = Attenuation.None;
+            soundParams.Relative = true;
+    }
+
+    public void MakeSoundsNotRelativeTo(ISoundSource source)
+    {
+        var playingSound = PlayingSounds.Head;
+        while (playingSound != null)
+        {
+            if (playingSound.AudioData.SoundSource == source)
+                playingSound.SetRelative(false);
+            playingSound = playingSound.Next;
+        }
     }
 
     public override void Update()
@@ -162,7 +221,6 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
         if (m_world.IsDisposed)
             return;
 
-        m_setVelocity = ArchiveCollection.Config.Audio.Velocity;
         var listener = m_world.GetListener();
         AudioManager.SetListener(listener.Position, listener.Angle, listener.Pitch);
         UpdateWaitingLoopSounds();
@@ -172,27 +230,29 @@ public class WorldSoundManager(IWorld world, IAudioSystem audioSystem) : SoundMa
         if (PlayingSounds.Count == 0)
             return;
 
-        IAudioSource? node = PlayingSounds.Head;
+        var node = PlayingSounds.Head;
         IAudioSource? nextNode;
         while (node != null)
         {
             nextNode = node.Next;
             if (node.IsFinished())
             {
+                node.AudioData.SoundSource.TryClearSound(node.AudioData.SoundInfo.Name, SoundChannel.Default, out _);
                 PlayingSounds.RemoveAndFree(node, m_world.DataCache);
                 node = nextNode;
                 continue;
             }
 
-            double distance = node.AudioData.SoundSource.GetDistanceFrom(listener.Entity);
-            if (!CheckDistance(distance, node.AudioData.Attenuation))
+            var distanceSquared = node.AudioData.SoundSource.GetDistanceSquaredFrom(listener.Entity);
+            if (!CheckDistance(distanceSquared, node.AudioData.Attenuation))
             {
+                AddWaitingSoundFromBumpedSound(node);
                 node.Stop();
                 PlayingSounds.RemoveAndFree(node, m_world.DataCache);
-                AddWaitingSoundFromBumpedSound(node);
             }
             else
             {
+                node.Update(new((float)Math.Sqrt(distanceSquared)));
                 var position = node.AudioData.SoundSource.GetSoundPosition(listener.Entity);
                 if (position != null)
                     node.SetPosition((float)position.Value.X, (float)position.Value.Y, (float)position.Value.Z);

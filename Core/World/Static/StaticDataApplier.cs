@@ -125,7 +125,7 @@ public class StaticDataApplier
 
     private static void SetSectorTransferHeights(Sector sector)
     {
-        for (int i = 0; i < sector.Lines.Count; i++)
+        for (int i = 0; i < sector.Lines.Length; i++)
         {
             var line = sector.Lines[i];
             if (line.Front.Sector.Id == sector.Id)
@@ -137,7 +137,7 @@ public class StaticDataApplier
 
     private static void SetSectorDynamicMovement(WorldBase world, Sector sector)
     {
-        for (int i = 0; i < sector.Lines.Count; i++)
+        for (int i = 0; i < sector.Lines.Length; i++)
             SetDynamicMovement(sector.Lines[i]);
     }
 
@@ -148,10 +148,11 @@ public class StaticDataApplier
         // Floor and ceiling can move independently so don't clear it yet.
         if (plane.Sector.IsMoving || (plane.Dynamic & SectorDynamic.TransferHeights) != 0)
             return;
+                
+        if ((plane.Sector.Floor.Dynamic & SectorDynamic.Scroll) == 0 && (plane.Sector.Ceiling.Dynamic & SectorDynamic.Scroll) == 0)
+            plane.Sector.UnlinkFromWorld(world);
 
-        plane.Sector.UnlinkFromWorld(world);
-
-        for (int i = 0; i < plane.Sector.Lines.Count; i++)
+        for (int i = 0; i < plane.Sector.Lines.Length; i++)
             ClearDynamicMovement(plane.Sector.Lines[i]);
     }
 

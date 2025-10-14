@@ -1,9 +1,10 @@
-﻿using Helion.Util;
+﻿using Helion.Geometry.Grids;
+using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
+using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
-using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Definition.States;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
@@ -17,13 +18,16 @@ public static class WorldStatic
     public static IWorld World = null!;
     public static IRandom Random = null!;
     public static DataCache DataCache = null!;
-    public static int CheckCounter;
-    public static bool SlowTickEnabled;
-    public static int SlowTickChaseFailureSkipCount;
+    public static int CheckCounter = 1;
     public static int SlowTickDistance;
-    public static int SlowTickChaseMultiplier;
-    public static int SlowTickLookMultiplier;
-    public static int SlowTickTracerMultiplier;
+    public static int RespawnTicks;
+    public static int ClosetLookFrameIndex;
+    public static int ClosetChaseFrameIndex;
+    public static short SlowTickChaseFailureSkipCount;
+    public static short SlowTickChaseMultiplier;
+    public static short SlowTickLookMultiplier;
+    public static short SlowTickTracerMultiplier;
+    public static bool SlowTickEnabled;
     public static bool IsFastMonsters;
     public static bool IsSlowMonsters;
     public static bool InfinitelyTallThings;
@@ -37,12 +41,18 @@ public static class WorldStatic
     public static bool OriginalExplosion;
     public static bool FinalDoomTeleport;
     public static bool VanillaSectorSound;
-    public static int RespawnTicks;
-    public static int ClosetLookFrameIndex;
-    public static int ClosetChaseFrameIndex;
+    public static bool Udmf;
+    public static bool SectorFriction;
+    public static bool BloodColor;
     public static EntityManager EntityManager = null!;
     public static WorldSoundManager SoundManager = null!;
     public static List<EntityFrame> Frames = null!;
+    public static int[] CheckedLines = [];
+    public static double LineVertexGap;
+    public static float LineVertexOffset;
+    public static float CoverWallOffset;
+    public static float DamageApplyMultiplier = 1;
+    public static float DamageReceiveMultiplier = 1;
 
     public static EntityDefinition DoomImpBall = EntityDefinition.Default;
     public static EntityDefinition ArachnotronPlasma = EntityDefinition.Default;
@@ -56,13 +66,4 @@ public static class WorldStatic
     public static EntityDefinition PlasmaBall = EntityDefinition.Default;
 
     public static EntityDefinition WeaponBfg = EntityDefinition.Default;
-
-    public static void FlushIntersectionReferences()
-    {
-        for (int i = 0; i < Intersections.Capacity; i++)
-        {
-            Intersections.Data[i].Entity = null;
-            Intersections.Data[i].Line = null;
-        }
-    }
 }

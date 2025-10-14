@@ -1,8 +1,9 @@
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 
 namespace Helion.Models;
 
-public class SectorModel
+public struct SectorModel
 {
     public int Id;
     public int SoundValidationCount;
@@ -35,6 +36,8 @@ public class SectorModel
     public string? TransferHeightsColormapLower;
     public double? Friction;
     public SectorEffect? SectorEffect;
+    public Vector2D? FloorOffset;
+    public Vector2D? CeilingOffset;
     public double? FloorRotate;
     public double? CeilingRotate;
 }

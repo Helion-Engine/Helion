@@ -20,5 +20,5 @@ public class PlayerCheats
 
     public void ClearCheats() => m_cheats.Clear();
 
-    public IReadOnlyList<CheatType> GetActiveCheats() => m_cheats.AsReadOnly();
+    public List<CheatType> GetActiveCheats() => m_cheats;
 }

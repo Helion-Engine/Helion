@@ -25,6 +25,7 @@ using Helion.Util.Configs.Components;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
 using Helion.Util.Extensions;
+using Helion.Util.Loggers;
 using Helion.Util.Profiling;
 using Helion.Util.Timing;
 using Helion.Window;
@@ -36,6 +37,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Layer;
@@ -80,6 +82,7 @@ public class GameLayerManager : IGameLayerManager
     private readonly HudRenderContext m_hudContext = new(default);
     private readonly OptionsLayer m_optionsLayer;
     private readonly ConsoleLayer m_consoleLayer;
+    private readonly IScreenshotGenerator m_screenshotGenerator;
     private Renderer m_renderer;
     private IRenderableSurfaceContext m_ctx;
     private IHudRenderContext m_hudRenderCtx;
@@ -92,11 +95,12 @@ public class GameLayerManager : IGameLayerManager
     }.WhereNotNull();
 
     public GameLayerManager(IConfig config, IWindow window, HelionConsole console, ConsoleCommands consoleCommands,
-        ArchiveCollection archiveCollection, SoundManager soundManager, SaveGameManager saveGameManager,
-        Profiler profiler)
+        ArchiveCollection archiveCollection, PathsManager pathsManager, SoundManager soundManager, SaveGameManager saveGameManager,
+        Profiler profiler, IScreenshotGenerator screenshotGenerator)
     {
         m_config = config;
         m_window = window;
+        m_screenshotGenerator = screenshotGenerator;
         m_console = console;
         m_consoleCommands = consoleCommands;
         m_archiveCollection = archiveCollection;
@@ -110,7 +114,7 @@ public class GameLayerManager : IGameLayerManager
         m_ctx = null!;
         m_hudRenderCtx = null!;
 
-        m_optionsLayer = new(this, m_config, m_soundManager, m_window);
+        m_optionsLayer = new(this, m_config, pathsManager, m_soundManager, m_window);
         m_consoleLayer = new(m_archiveCollection.GameInfo.TitlePage, m_config, m_console, m_consoleCommands);
 
         m_saveGameManager.GameSaved += SaveGameManager_GameSaved;
@@ -142,19 +146,23 @@ public class GameLayerManager : IGameLayerManager
 
     public bool OptionsLock => OptionsLayer != null && OptionsLayer.Animation.State != InterpolationAnimationState.Out;
 
-    public bool CanSave => EndGameLayer == null && IntermissionLayer == null;
+    public bool CanSave => (
+        EndGameLayer == null
+        && IntermissionLayer == null
+        && WorldLayer != null
+        && !WorldLayer.World.Player.IsDead
+    );
 
     public bool ShouldFocus()
     {
         if (ConsoleLock || MenuLock)
             return false;
 
+        if (LoadingLayer != null || TransitionLayer != null)
+            return true;
+
         if (WorldLayer != null)
-        {
-            if (LoadingLayer != null)
-                return true;
             return WorldLayer.ShouldFocus;
-        }
 
         return true;
     }
@@ -176,6 +184,7 @@ public class GameLayerManager : IGameLayerManager
             case MenuLayer layer:
                 Remove(MenuLayer);
                 MenuLayer = layer;
+                GCUtil.SetDefaultLatencyMode();
                 break;
             case ReadThisLayer layer:
                 Remove(ReadThisLayer);
@@ -230,6 +239,8 @@ public class GameLayerManager : IGameLayerManager
             gameLayer.OnShow();
             GameLayerAdded?.Invoke(this, gameLayer);
         }
+
+        WorldLayer?.CheckPauseOrResume();
     }
 
     private void World_OnTick(object? sender, EventArgs e)
@@ -248,14 +259,14 @@ public class GameLayerManager : IGameLayerManager
         if (m_quickSaveTicks >= seconds * (int)Constants.TicksPerSecond)
         {
             m_quickSaveTicks = 0;
-            WriteQuickSave();
+            _ = WriteQuickSave();
         }
     }
 
     private void Animation_OnStart(object? sender, IAnimationLayer layer)
     {
         bool animateOut = layer.Animation.State == InterpolationAnimationState.Out;
-        if (animateOut && layer == ConsoleLayer || layer == MenuLayer || layer == OptionsLayer)
+        if (animateOut && layer == ConsoleLayer || layer == MenuLayer)
             ResetAndGrabMouse();
 
         if (animateOut && layer == ConsoleLayer)
@@ -300,6 +311,9 @@ public class GameLayerManager : IGameLayerManager
     {
         if (layer == null)
             return;
+
+        if (layer is MenuLayer && WorldLayer != null)
+            GCUtil.SetGameplayLatencyMode();
 
         if (layer is IAnimationLayer animationLayer)
         {
@@ -350,6 +364,8 @@ public class GameLayerManager : IGameLayerManager
             EndoomLayer?.Dispose();
             EndoomLayer = null;
         }
+
+        WorldLayer?.CheckPauseOrResume();
     }
 
     private void RemoveAnimatedLayer(object layer)
@@ -384,6 +400,8 @@ public class GameLayerManager : IGameLayerManager
             LoadingLayer?.Dispose();
             LoadingLayer = null;
         }
+
+        WorldLayer?.CheckPauseOrResume();
     }
 
     private void ResetAndGrabMouse()
@@ -424,7 +442,7 @@ public class GameLayerManager : IGameLayerManager
 
             CheckToggleFullscreen(input);
 
-            if (IwadSelectionLayer == null && ConsumeCommandPressed(Constants.Input.Console, input))
+            if (ConsumeCommandPressed(Constants.Input.Console, input))
                 ToggleConsoleLayer(input);
 
             if (ConsoleLayer != null && ConsoleLayer.Animation.State != InterpolationAnimationState.Out)
@@ -489,7 +507,7 @@ public class GameLayerManager : IGameLayerManager
         }
 
         if (ConsumeCommandPressed(Constants.Input.QuickSave, input))
-            QuickSave();
+            _ = QuickSave();
 
         if (ConsumeCommandPressed(Constants.Input.Load, input))
             GoToSaveOrLoadMenu(false);
@@ -587,7 +605,7 @@ public class GameLayerManager : IGameLayerManager
 
         if (MenuLayer == null)
         {
-            MenuLayer menuLayer = new(this, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager, m_optionsLayer);
+            MenuLayer menuLayer = new(this, m_window, m_config, m_console, m_archiveCollection, m_soundManager, m_saveGameManager, m_optionsLayer, m_screenshotGenerator);
             menuLayer.Animation.AnimateIn();
             Add(menuLayer);
         }
@@ -619,22 +637,26 @@ public class GameLayerManager : IGameLayerManager
 
     public void ShowEndoom(Action closeAction)
     {
-        Add(new EndoomLayer(closeAction, m_archiveCollection, m_window.Dimension.Height));
+        Add(new EndoomLayer(closeAction, m_archiveCollection, m_window.ClientDimension.Height));
     }
 
-    public void QuickSave()
+    public async Task QuickSave()
     {
         if (!CanSave)
+        {
+            string[] text = m_archiveCollection.Definitions.Language.GetMessages("$SAVEDEAD");
+            HelionLog.Info(text[0]);
             return;
+        }
 
         // if we're using rotating quicksaves, then we aren't concerned with saving to a particular slot
         if (m_config.Game.RotatingQuickSaves > 0)
         {
-            WriteQuickSave();
+            await WriteQuickSave();
             return;
         }
 
-        if (WorldLayer == null || !LastSave.HasValue || LastSave?.SaveGame.IsAutoSave == true)
+        if (WorldLayer == null || !LastSave.HasValue || LastSave?.SaveGame.Type == SaveGameType.Auto)
         {
             GoToSaveOrLoadMenu(true);
             return;
@@ -642,8 +664,8 @@ public class GameLayerManager : IGameLayerManager
 
         if (m_config.Game.QuickSaveConfirm)
         {
-            MessageMenu confirm = new(m_config, m_console, m_soundManager, m_archiveCollection,
-                new[] { "Are you sure you want to overwrite:", LastSave?.SaveGame.Model != null ? LastSave.Value.SaveGame.Model.Text : "Save", "Press Y to confirm." },
+            MessageMenu confirm = new(m_window, m_config, m_console, m_soundManager, m_archiveCollection,
+                ["Are you sure you want to overwrite:", LastSave?.SaveGame.Model != null ? LastSave.Value.SaveGame.Model.Text : "Save", "Press Y to confirm."],
                 isYesNoConfirm: true, clearMenus: true);
             confirm.Cleared += Confirm_Cleared;
 
@@ -652,7 +674,7 @@ public class GameLayerManager : IGameLayerManager
             return;
         }
 
-        WriteQuickSave();
+        await WriteQuickSave();
     }
 
     private void Confirm_Cleared(object? sender, bool e)
@@ -660,10 +682,10 @@ public class GameLayerManager : IGameLayerManager
         if (!e || !LastSave.HasValue)
             return;
 
-        WriteQuickSave();
+        _ = WriteQuickSave();
     }
 
-    private void WriteQuickSave()
+    private async Task WriteQuickSave()
     {
         bool isRotating = m_config.Game.RotatingQuickSaves > 0;
         if (WorldLayer == null || (!isRotating && LastSave == null) || !CanSave)
@@ -673,7 +695,7 @@ public class GameLayerManager : IGameLayerManager
         if (isRotating)
         {
             string name = $"Quick: {world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection.Language)}";
-            var saveEvent = m_saveGameManager.WriteSaveGame(world, name, null, quickSave: true);
+            var saveEvent = await m_saveGameManager.WriteSaveGameAsync(world, name, m_screenshotGenerator, null, SaveGameType.Quick);
             HandleSaveEvent(saveEvent, world);
         }
         else
@@ -684,18 +706,20 @@ public class GameLayerManager : IGameLayerManager
             string name = isCustomizedName
                 ? existingSave.Model?.Text ?? "Unnamed"
                 : world.MapInfo.GetMapNameWithPrefix(world.ArchiveCollection.Language);
-            var saveEvent = m_saveGameManager.WriteSaveGame(world, name, existingSave);
+            var saveEvent = await m_saveGameManager.WriteSaveGameAsync(world, name, m_screenshotGenerator, existingSave);
             HandleSaveEvent(saveEvent, world, SaveMenu.SaveMessage);
         }
     }
 
-    private void HandleSaveEvent(SaveGameEvent saveEvent, SinglePlayerWorld world, string? successMessage = null)
+    private static void HandleSaveEvent(SaveGameEvent saveEvent, SinglePlayerWorld world, string? successMessage = null)
     {
         if (saveEvent.Success)
+        {
             world.DisplayMessage(world.Player, null, successMessage ?? $"Saved {saveEvent.FileName}");
+        }
         else
         {
-            world.DisplayMessage(world.Player, null, $"Failed to save {saveEvent.FileName}");
+            world.DisplayMessage(world.Player, null, $"Failed to save {saveEvent.FileName} {saveEvent.ErrorMessage}");
             if (saveEvent.Exception != null)
                 throw saveEvent.Exception;
         }
@@ -778,11 +802,11 @@ public class GameLayerManager : IGameLayerManager
         m_hudRenderCtx.DrawPalette(true);
         // Only use virtual dimensions when drawing the world.
         // Restore back to window dimensions when drawing anything else so that text etc are not stretched.
-        bool resetViewport = m_ctx.Surface.Dimension != m_renderer.Window.Dimension;
+        bool resetViewport = m_ctx.Surface.Dimension != m_renderer.Window.ClientDimension;
         if (resetViewport)
         {
-            m_hudContext.Dimension = m_renderer.Window.Dimension;
-            m_ctx.Surface.SetOverrideDimension(m_renderer.Window.Dimension);
+            m_hudContext.Dimension = m_renderer.Window.ClientDimension;
+            m_ctx.Surface.SetOverrideDimension(m_renderer.Window.ClientDimension);
             m_ctx.Viewport(m_ctx.Surface.Dimension.Box);
         }
 

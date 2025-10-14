@@ -136,7 +136,7 @@ public class InputManager : IInputManager
         for (int i = 0; i < m_processEvents.Length; i++)
         {
             var ev = m_processEvents[i];
-            if (!pressedKeys.Contains(ev.Key) && IsKeyPressed(ev.Key))
+            if (!pressedKeys.ContainsKey(ev.Key) && IsKeyPressed(ev.Key))
                 pressedKeys.Add(ev.Key);
         }
     }
@@ -194,7 +194,7 @@ public class InputManager : IInputManager
         m_upKeys.Clear();
     }
 
-    private bool GetLastKeyState(DynamicArray<InputKey> events, Key key)
+    private static bool GetLastKeyState(DynamicArray<InputKey> events, Key key)
     {
         bool pressed = false;
         for (int i = 0; i < events.Length; i++)
@@ -257,7 +257,7 @@ public class InputManager : IInputManager
         for (int i = 0; i < m_upKeys.Length; i++)
         {
             Key key = m_upKeys[i];
-            if (!m_addedDownKeys.Contains(key))
+            if (!m_addedDownKeys.ContainsKey(key))
                 m_downKeysToRemove.Add(key);
         }
 
@@ -280,7 +280,7 @@ public class InputManager : IInputManager
         }
     }
 
-    private bool IsKeyDown(DynamicArray<InputKey> events, Key key)
+    private static bool IsKeyDown(DynamicArray<InputKey> events, Key key)
     {
         bool pressed = false;
         for (int i = 0; i < events.Length; i++)
@@ -298,17 +298,17 @@ public class InputManager : IInputManager
     private bool SearchKeyState(Key key, bool pressed)
     {
         if (pressed)
-            return m_downKeys.Contains(key);
+            return m_downKeys.ContainsKey(key);
 
-        return !m_downKeys.Contains(key);
+        return !m_downKeys.ContainsKey(key);
     }
 
     private bool SearchPreviousKeyState(Key key, bool pressed)
     {
         if (pressed)
-            return m_prevDownKeys.Contains(key);
+            return m_prevDownKeys.ContainsKey(key);
 
-        return !m_prevDownKeys.Contains(key);
+        return !m_prevDownKeys.ContainsKey(key);
     }
 
     private void RemoveAll(DynamicArray<Key> search, DynamicArray<Key> keysToRemove)
@@ -319,7 +319,7 @@ public class InputManager : IInputManager
         m_removeAllKeys.Clear();
         for (int i = 0; i < search.Length; i++)
         {
-            if (keysToRemove.Contains(search[i]))
+            if (keysToRemove.ContainsKey(search[i]))
                 continue;
             m_removeAllKeys.Add(search[i]);
         }

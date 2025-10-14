@@ -88,7 +88,7 @@ public partial class EndGameLayer
         if (m_castEntityFrameTicks > 0)
             return;
 
-        if (m_castEntity.Frame.Ticks == -1 || m_castEntity.Frame.IsNullFrame || m_castEntity.Frame.NextFrame.IsNullFrame)
+        if (m_castEntity.FrameState.Frame.Ticks == -1 || m_castEntity.FrameState.Frame.IsNullFrame || m_castEntity.FrameState.Frame.NextFrame.IsNullFrame)
         {
             SetNextCastEntity();
             return;
@@ -117,7 +117,7 @@ public partial class EndGameLayer
                     break;
 
                 case CastEntityState.Attack:
-                    if (m_castFrameCount == 24 || m_castEntity.FrameState.IsState(Constants.FrameStates.See))
+                    if (m_castFrameCount == 24 || m_castEntity.FrameState.IsState(m_castEntity.Definition, Constants.FrameStates.See))
                     {
                         m_castFrameCount = 0;
                         SetCastEntityState(CastEntityState.See, false);
@@ -133,16 +133,16 @@ public partial class EndGameLayer
 
         if (!setNewState)
         {
-            if (m_castEntity.Frame.BranchType == ActorStateBranch.Stop)
+            if (m_castEntity.FrameState.Frame.BranchType == ActorStateBranch.Stop)
             {
                 SetNextCastEntity();
                 return;
             }
 
-            m_castEntity.FrameState.SetFrameIndexNoAction(m_castEntity.Frame.NextFrameIndex);
+            m_castEntity.FrameState.SetFrameIndexNoAction(m_castEntity, m_castEntity.FrameState.Frame.NextFrameIndex);
         }
 
-        m_castEntityFrameTicks = m_castEntity.Frame.Ticks;
+        m_castEntityFrameTicks = m_castEntity.FrameState.Frame.Ticks;
         if (m_castEntityFrameTicks == -1)
             m_castEntityFrameTicks = 15;
     }
@@ -191,18 +191,18 @@ public partial class EndGameLayer
                 SetCastEntityAttackState();
                 break;
             case CastEntityState.Death:
-                m_castEntity.FrameState.SetFrameIndexByLabel(Constants.FrameStates.Death);
+                m_castEntity.FrameState.SetFrameIndexByLabel(m_castEntity, Constants.FrameStates.Death);
                 sound = m_castEntity.Definition.Properties.DeathSound;
                 if (m_castEntity.Definition.Name.EqualsIgnoreCase("DoomPlayer"))
                     sound = "player/male/death1";
                 break;
             default:
-                m_castEntity.FrameState.SetFrameIndexByLabel(Constants.FrameStates.See);
+                m_castEntity.FrameState.SetFrameIndexByLabel(m_castEntity, Constants.FrameStates.See);
                 sound = m_castEntity.Definition.Properties.SeeSound;
                 break;
         }
 
-        m_castEntityFrameTicks = m_castEntity.Frame.Ticks;
+        m_castEntityFrameTicks = m_castEntity.FrameState.Frame.Ticks;
 
         if (!string.IsNullOrEmpty(sound) && playSound)
             m_soundManager.PlayStaticSound(sound);
@@ -218,7 +218,7 @@ public partial class EndGameLayer
             return string.Empty;
 
         string name = m_castEntity.Definition.Name;
-        int frameIndex = m_castEntity.Frame.MasterFrameIndex;
+        int frameIndex = m_castEntity.FrameState.Frame.MasterFrameIndex;
         int frameDiff = frameIndex - frame.MasterFrameIndex;
         if (name.EqualsIgnoreCase("ZombieMan") && frameDiff == 1)
             return "grunt/attack";
@@ -271,9 +271,9 @@ public partial class EndGameLayer
 
         EntityFrame? frame;
         if (ShouldUseMeleeState(m_castEntity, m_castIsMelee))
-            frame = m_castEntity.FrameState.GetStateFrame(Constants.FrameStates.Melee);
+            frame = FrameState.GetStateFrame(m_castEntity.Definition, Constants.FrameStates.Melee);
         else
-            frame = m_castEntity.FrameState.GetStateFrame(Constants.FrameStates.Missile);
+            frame = FrameState.GetStateFrame(m_castEntity.Definition, Constants.FrameStates.Missile);
 
         return frame;
     }
@@ -286,16 +286,16 @@ public partial class EndGameLayer
         m_castIsMelee = m_castMelee;
 
         if (ShouldUseMeleeState(m_castEntity, m_castIsMelee))
-            m_castEntity.FrameState.SetFrameIndexByLabel(Constants.FrameStates.Melee);
+            m_castEntity.FrameState.SetFrameIndexByLabel(m_castEntity, Constants.FrameStates.Melee);
         else
-            m_castEntity.FrameState.SetFrameIndexByLabel(Constants.FrameStates.Missile);
+            m_castEntity.FrameState.SetFrameIndexByLabel(m_castEntity, Constants.FrameStates.Missile);
 
         m_castMelee = !m_castMelee;
     }
 
     private static bool ShouldUseMeleeState(Entity entity, bool melee)
     {
-        if (melee && entity.Definition.Name.Equals("Revenant"))
+        if (melee && entity.Definition.Name.EqualsIgnoreCase("Revenant"))
             return entity.Definition.MeleeState != null;
 
         if (entity.Definition.MissileState == null)

@@ -10,7 +10,7 @@ public class RenderWorldDataList
     public List<RenderWorldData> RenderData = [];
     private RenderWorldData?[] m_allRenderData = new RenderWorldData?[1024];
 
-    public RenderWorldData Add(GLLegacyTexture texture, RenderProgram program)
+    public RenderWorldData Add(GLLegacyTexture texture, RenderProgram program, GLLegacyTexture? brightmapTexture = null)
     {
         if (m_allRenderData.Length <= texture.TextureId)
         {
@@ -23,7 +23,7 @@ public class RenderWorldDataList
         if (data != null)
             return data;
 
-        RenderWorldData newData = new(texture, program);
+        RenderWorldData newData = new(texture, program, brightmapTexture);
         m_allRenderData[texture.TextureId] = newData;
         RenderData.Add(newData);
         return newData;

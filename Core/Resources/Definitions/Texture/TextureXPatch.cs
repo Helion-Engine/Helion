@@ -12,12 +12,12 @@ public class TextureXPatch
     /// <summary>
     /// The index into the Pnames data for this texture.
     /// </summary>
-    public short PnamesIndex { get; }
+    public short PnamesIndex;
 
     /// <summary>
     /// The X/Y offset of this texture.
     /// </summary>
-    public Vec2I Offset { get; }
+    public Vec2I Offset;
 
     public TextureXPatch(short pnamesIndex, Vec2I offset)
     {

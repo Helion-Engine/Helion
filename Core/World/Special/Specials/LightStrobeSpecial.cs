@@ -34,7 +34,7 @@ public class LightStrobeSpecial : SectorSpecialBase
             m_delay = random.NextByte() & 0x07;
     }
 
-    public LightStrobeSpecial(IWorld world, Sector sector, LightStrobeSpecialModel model)
+    public LightStrobeSpecial(IWorld world, Sector sector, in LightStrobeSpecialModel model)
          : base(world, sector)
     {
         m_brightTics = model.BrightTics;
@@ -44,9 +44,9 @@ public class LightStrobeSpecial : SectorSpecialBase
         m_delay = model.Delay;
     }
 
-    public override ISpecialModel? ToSpecialModel()
+    public LightStrobeSpecialModel ToSpecialModel()
     {
-        return new LightStrobeSpecialModel()
+        return new()
         {
             SectorId = Sector.Id,
             Max = m_maxBright,

@@ -7,13 +7,6 @@ episode map01
 	key = "h"
 }
 
-episode level01
-{
-	name = "$TXT_D2E2"
-	key = "n"
-	optional
-}
-
 map MAP01 lookup "HUSTR_1"
 {
 	titlepatch = "CWILV00"

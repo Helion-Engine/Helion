@@ -9,7 +9,7 @@ public static class ActionSpecialHelper
     /// <returns>True if it is, false if not.</returns>
     public static bool Exists(string name)
     {
-        switch (name.ToUpper())
+        switch (name.ToUpperInvariant())
         {
         case "ACS_EXECUTE":
             return true;

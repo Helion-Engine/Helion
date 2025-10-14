@@ -31,7 +31,7 @@ public class Friendly
         imp.Position.XY.Should().Be(start);
         GameActions.MoveEntity(World, imp, 32);
         imp.Position.XY.IsApprox(end).Should().BeTrue();
-        imp.BlockingLine.Should().BeNull();
+        imp.BlockingBlockLineIndex.Should().Be(-1);
 
         imp.Kill(null);
         Player.AngleRadians = GameActions.GetAngle(Bearing.South);
@@ -51,12 +51,12 @@ public class Friendly
         imp.Position.XY.Should().Be(start);
         GameActions.MoveEntity(World, imp, 32);
         imp.Position.XY.Should().Be(end);
-        imp.BlockingLine.Should().BeNull();
+        imp.BlockingBlockLineIndex.Should().Be(-1);
 
         imp.Kill(null);
         Player.AngleRadians = GameActions.GetAngle(Bearing.South);
         GameActions.SetEntityPosition(World, Player, start);
         GameActions.MoveEntity(World, Player, 32);
-        Player.BlockingLine.Should().Be(line);
+        World.Blockmap.BlockLines[Player.BlockingBlockLineIndex].LineId.Should().Be(line.Id);
     }
 }

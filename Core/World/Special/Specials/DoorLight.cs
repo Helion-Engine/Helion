@@ -23,7 +23,7 @@ public static class DoorLight
             var sector = sectors[i];
             short max = 0;
             short min = sector.LightLevel;
-            for (int j = 0; j < sector.Lines.Count; j++)
+            for (int j = 0; j < sector.Lines.Length; j++)
             {
                 var nextSector = GetNextSector(sector.Lines[j], sector);
                 if (nextSector == null)

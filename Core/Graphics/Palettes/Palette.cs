@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Graphics.Palettes;
@@ -19,6 +20,7 @@ public class Palette
     private static Palette? DefaultPalette;
 
     private readonly List<Color[]> layers;
+    private readonly Vector3[] m_paletteNormalized = new Vector3[256];
 
     public int Count => layers.Count;
     public Color[] DefaultLayer => layers[0];
@@ -28,6 +30,13 @@ public class Palette
     {
         layers = paletteLayers;
         Translation = translation;
+
+        var colors = paletteLayers[0];
+        for (int i = 0; i < colors.Length; i++)
+        {
+            var c = colors[i];
+            m_paletteNormalized[i] = new Vector3(c.R / 255f, c.G / 255f, c.B / 255f);
+        }
     }
 
     /// <summary>
@@ -116,11 +125,29 @@ public class Palette
             data[i + 2] = (byte)i;
         }
 
-        Palette? palette = From(data);
-        if (palette == null)
-            throw new NullReferenceException("Failed to create the default palette, shouldn't be possible");
-
+        var palette = From(data) ?? throw new NullReferenceException("Failed to create the default palette, shouldn't be possible");
         DefaultPalette = palette;
         return palette;
+    }
+
+    public byte GetNearestColorIndex(Color color) => GetNearestColorIndex(color.R, color.G, color.B);
+
+    public byte GetNearestColorIndex(byte r, byte g, byte b)
+    {
+        byte bestIndex = 0;
+        var nearest = float.MaxValue;
+        var colorNormalized = new Vector3(r / 255f, g / 255f, b / 255f);
+        for (int i = 0; i < m_paletteNormalized.Length; i++)
+        {
+            var paletteColor = m_paletteNormalized[i];
+            var calc = Vector3.DistanceSquared(colorNormalized, paletteColor);
+            if (calc < nearest)
+            {
+                bestIndex = (byte)i;
+                nearest = calc;
+            }
+        }
+
+        return bestIndex;
     }
 }

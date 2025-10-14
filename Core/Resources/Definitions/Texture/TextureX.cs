@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 using Helion.Util.Bytes;
@@ -30,15 +31,13 @@ public class TextureX
     /// corrupt.</returns>
     public static TextureX? From(byte[] data)
     {
-        List<TextureXImage> definitions = new List<TextureXImage>();
-
         try
         {
-            using ByteReader reader = new ByteReader(data);
-
+            using ByteReader reader = new(data);
             int numTextures = reader.ReadInt32();
 
-            List<int> dataOffsets = new List<int>();
+            List<TextureXImage> definitions = new(Math.Max(numTextures, 0));
+            List<int> dataOffsets = new(numTextures);
             for (int offsetIndex = 0; offsetIndex < numTextures; offsetIndex++)
                 dataOffsets.Add(reader.ReadInt32());
 
@@ -53,7 +52,7 @@ public class TextureX
                 reader.Advance(4); // Skip columndirectory, so no Strife.
                 int numPatches = reader.ReadInt16();
 
-                List<TextureXPatch> patches = new();
+                List<TextureXPatch> patches = new(Math.Max(numPatches, 0));
                 for (int patchIndex = 0; patchIndex < numPatches; patchIndex++)
                 {
                     Vec2I patchOffset = (reader.ReadInt16(), reader.ReadInt16());
@@ -63,8 +62,7 @@ public class TextureX
                     patches.Add(new TextureXPatch(index, patchOffset));
                 }
 
-                TextureXImage textureXImage = new TextureXImage(name, width, height, patches);
-                definitions.Add(textureXImage);
+                definitions.Add(new TextureXImage(name, width, height, patches));
             }
 
             return new TextureX(definitions);
@@ -82,22 +80,21 @@ public class TextureX
     /// <param name="pnames">The pnames to make the texture definitions
     /// with.</param>
     /// <returns>A list of all the texture definitions.</returns>
-    public List<TextureDefinition> ToTextureDefinitions(Pnames pnames, HashSet<string> ignoreOffsetNames)
+    public List<TextureDefinition> ToTextureDefinitions(Pnames pnames)
     {
         List<TextureDefinition> definitions = new(Definitions.Count);
         foreach (TextureXImage image in Definitions)
         {
-            List<TextureDefinitionComponent> components = CreateComponents(image, pnames, ignoreOffsetNames);
+            List<TextureDefinitionComponent> components = CreateComponents(image, pnames);
             definitions.Add(new TextureDefinition(image.Name, image.Dimension, ResourceNamespace.Textures, components));
         }
 
         return definitions;
     }
 
-    private List<TextureDefinitionComponent> CreateComponents(TextureXImage image, Pnames pnames, HashSet<string> ignoreOffsetNames)
+    private static List<TextureDefinitionComponent> CreateComponents(TextureXImage image, Pnames pnames)
     {
-        List<TextureDefinitionComponent> components = new List<TextureDefinitionComponent>();
-
+        List<TextureDefinitionComponent> components = new(image.Patches.Count);
         foreach (TextureXPatch patch in image.Patches)
         {
             if (patch.PnamesIndex < 0 || patch.PnamesIndex >= pnames.Names.Count)
@@ -107,7 +104,7 @@ public class TextureX
             }
 
             string name = pnames.Names[patch.PnamesIndex];
-            TextureDefinitionComponent component = new(name, ignoreOffsetNames.Contains(name) ? Vec2I.Zero : patch.Offset);
+            TextureDefinitionComponent component = new(name, patch.Offset);
             components.Add(component);
         }
 

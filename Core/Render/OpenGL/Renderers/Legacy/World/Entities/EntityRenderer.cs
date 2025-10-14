@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Data;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
@@ -7,28 +5,40 @@ using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Shared.World.ViewClipping;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
+using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util.Configs;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Entities;
 
 public class EntityRenderer : IDisposable
 {
+    const int MinBarWidth = 20;
+    const int MaxBarWidth = 80;
+    const int MinHealth = 20;
+    const int MaxHealth = 4000;
+
     private readonly IConfig m_config;
     private readonly LegacyGLTextureManager m_textureManager;
-    private readonly EntityProgram m_program = new();
+    private readonly EntityProgram m_program = new("Main");
     private readonly EntityTransparentProgram m_programTransparent = new();
     private readonly EntityCompositeProgram m_programComposite = new();
     private readonly EntityFuzzRefractionProgram m_programFuzzRefraction = new();
     private readonly RenderDataManager<EntityVertex> m_dataManager;
-    private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DCompararer());
+    private readonly Dictionary<Vec2D, int> m_renderPositions = new(1024, new Vec2DComparer());
     private readonly HashSet<SpritePosKey> m_spriteRenderPositions = new(1024);
     private readonly DynamicArray<SpriteDefinition?> m_spriteDefs = new(1024);
     private readonly SpriteRotation m_nullSpriteRotation;
+    private readonly ArchiveCollection m_archiveCollection;
     private Vec2F m_viewRightNormal;
     private Vec2F m_prevViewRightNormal;
     private TransferHeightView m_transferHeightView = TransferHeightView.Middle;
@@ -36,23 +46,29 @@ public class EntityRenderer : IDisposable
     private bool m_spriteClip;
     private bool m_spriteZCheck;
     private bool m_vanillaRender;
+    private bool m_healthBars;
+    private bool m_attackIndicator;
+    private bool m_brightMaps;
+    private int m_healthBarLimit;
     private int m_spriteClipMin;
     private float m_spriteClipFactorMax;
     private bool m_disposed;
     private int m_lastViewerEntityId;
 
-    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager)
+    public EntityRenderer(IConfig config, LegacyGLTextureManager textureManager, ArchiveCollection archiveCollection)
     {
         m_config = config;
         m_textureManager = textureManager;
+        m_archiveCollection = archiveCollection;
         m_nullSpriteRotation = m_textureManager.NullSpriteRotation;
-        m_dataManager = new(m_program);
+        m_dataManager = new(m_program, textureManager.BlackTexture);
         m_spriteAlpha = m_config.Render.SpriteTransparency;
         m_spriteClip = m_config.Render.SpriteClip;
         m_spriteZCheck = m_config.Render.SpriteZCheck;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_vanillaRender = m_config.Render.VanillaRender;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
+        m_brightMaps = m_config.Render.Brightmaps;
     }
 
     ~EntityRenderer()
@@ -60,7 +76,9 @@ public class EntityRenderer : IDisposable
         PerformDispose();
     }
 
-    public bool HasFuzz() => m_dataManager.HasFuzz();
+    public bool HasDataToRenderByStyle(RenderDataStyle style) => m_dataManager.HasDataToRenderByStyle(style);
+
+    public void HealthBarMode(bool set) => m_program.HealthBarMode(set);
 
     public void UpdateTo(IWorld world)
     {
@@ -78,6 +96,16 @@ public class EntityRenderer : IDisposable
         m_spriteZCheck = m_config.Render.SpriteZCheck;
         m_spriteClipMin = m_config.Render.SpriteClipMin;
         m_spriteClipFactorMax = (float)m_config.Render.SpriteClipFactorMax;
+        m_healthBars = m_config.Render.HealthBar.Enable;
+        m_attackIndicator = m_config.Render.HealthBar.AttackIndicator;
+        m_healthBarLimit = m_config.Render.HealthBar.HealthLimit;
+        m_brightMaps = m_config.Render.Brightmaps;
+    }
+
+    public void ClearRenderPositions()
+    {
+        m_renderPositions.Clear();
+        m_spriteRenderPositions.Clear();
     }
 
     private static uint CalculateRotation(uint viewAngle, uint entityAngle)
@@ -104,13 +132,13 @@ public class EntityRenderer : IDisposable
         return unchecked((viewAngle - entityAngle + SpriteFrameRotationAngle) >> 29);
     }
 
-    private float GetOffsetZ(Entity entity, GLLegacyTexture texture)
+    private int GetOffsetZ(Entity entity, GLLegacyTexture texture)
     {
-        float offsetAmount = texture.Offset.Y - texture.Height;
+        int offsetAmount = texture.Offset.Y - texture.Height;
         if (m_vanillaRender)
             return offsetAmount;
 
-        if (offsetAmount >= 0 || entity.Definition.Flags.Missile)
+        if (offsetAmount >= 0 || entity.Definition.Flags.Missile || entity.Definition.Flags.NoGravity)
             return offsetAmount;
 
         if (entity.Sector.Flood || entity.Sector.Floor.NoRender)
@@ -124,11 +152,11 @@ public class EntityRenderer : IDisposable
 
         if (entity.Position.Z - entity.HighestFloorSector.Floor.Z < texture.Offset.Y)
         {
-            float maxHeight = (texture.Height - texture.BlankRowsFromBottom) * m_spriteClipFactorMax;
+            // Truncate to integer pixel amount. This helps the jumpiness for the stock large torches.
+            int maxHeight = (int)((texture.Height - texture.BlankRowsFromBottom) * m_spriteClipFactorMax);
             if (-offsetAmount > maxHeight)
                 offsetAmount = -maxHeight - texture.BlankRowsFromBottom;
-            // Truncate to integer pixel amount. This helps the jumpiness for the stock large torches.
-            return (int)offsetAmount;
+            return offsetAmount;
         }
 
         return offsetAmount;
@@ -146,20 +174,20 @@ public class EntityRenderer : IDisposable
         return m_textureManager.GetSpriteRotation(spriteDefinition, frame, rotation, colorMapIndex);
     }
 
+    const double NudgeFactor = 0.0001;
+
     public void RenderEntity(Entity entity, in Vec2D position)
-    {
-        const double NudgeFactor = 0.0001;
-        
+    {        
         Vec3D centerBottom = entity.Position;
         Vec2D entityPos = new(centerBottom.X, centerBottom.Y);
         Vec2D nudgeAmount = default;
 
-        SpriteDefinition? spriteDef = null;
-        int spriteIndex = entity.Frame.SpriteIndex;
+        SpriteDefinition? spriteDef;
+        int spriteIndex = entity.FrameState.Frame.SpriteIndex;
         if (spriteIndex >= m_spriteDefs.Capacity)
         {
             m_spriteDefs.EnsureCapacity(spriteIndex);
-            spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.SpriteIndex);
+            spriteDef = m_textureManager.GetSpriteDefinition(entity.FrameState.Frame.SpriteIndex);
             m_spriteDefs.Data[spriteIndex] = spriteDef;
         }
         else
@@ -167,7 +195,7 @@ public class EntityRenderer : IDisposable
             spriteDef = m_spriteDefs.Data[spriteIndex];
             if (spriteDef == null)
             {
-                spriteDef = m_textureManager.GetSpriteDefinition(entity.Frame.SpriteIndex);
+                spriteDef = m_textureManager.GetSpriteDefinition(entity.FrameState.Frame.SpriteIndex);
                 m_spriteDefs.Data[spriteIndex] = spriteDef;
             }
         }
@@ -185,62 +213,139 @@ public class EntityRenderer : IDisposable
             var spritePosKey = new SpritePosKey(entityPos, spriteIndex);
             if (m_spriteRenderPositions.Add(spritePosKey))
             {
-                if (m_renderPositions.TryGetValue(entityPos, out int count))
+                ref int count = ref CollectionsMarshal.GetValueRefOrAddDefault(m_renderPositions, entityPos, out var exists);
+                if (exists)
                 {
-                    double nudge = NudgeFactor * count * Math.Sqrt(entity.RenderDistanceSquared);
-                    double angle = Math.Atan2(centerBottom.Y - position.Y, centerBottom.X - position.X);
+                    var nudge = NudgeFactor * count * Math.Sqrt(entity.RenderDistanceSquared);
+                    var angle = Math.Atan2(centerBottom.Y - position.Y, centerBottom.X - position.X);
                     nudgeAmount.X = Math.Cos(angle) * nudge;
                     nudgeAmount.Y = Math.Sin(angle) * nudge;
-                    m_renderPositions[entityPos] = count + 1;
+                    count++;
                 }
                 else
                 {
-                    m_renderPositions[entityPos] = 1;
+                    count = 1;
                 }
             }
         }
 
-        int colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
-        SpriteRotation spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.Frame.Frame, rotation, colorMapIndex);
-        GLLegacyTexture texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
-        Sector sector = entity.Sector.GetRenderSector(m_transferHeightView);
+        var colorMapIndex = entity.Properties.ColormapIndex ?? entity.GetTranslationColorMap();
+        if (WorldStatic.BloodColor && entity.Definition.Type == EntityType.Blood)
+        {
+            var owner = entity.Owner();
+            if (owner != null && owner.Properties.BloodPaletteColor.HasValue)
+                colorMapIndex = m_archiveCollection.Definitions.GetBloodColormap(owner.Properties.BloodPaletteColor.Value).Index;
+        }
 
-        float offsetZ = GetOffsetZ(entity, texture);
+        var spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.FrameState.Frame.Frame, rotation, colorMapIndex);
+        var texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
+        var brightmapTexture = spriteRotation.BrightmapRenderStore as GLLegacyTexture;
+        var sector = entity.Sector.GetRenderSector(m_transferHeightView);
 
-        bool shadow = entity.Flags.Shadow;
-        bool useAlpha = m_spriteAlpha && entity.Alpha < 1.0f;
-        RenderData<EntityVertex> renderData;
+        var disableFullbright = m_brightMaps && spriteRotation.BrightmapNoFullbright;
+        var isFullBright = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
+        var offsetZ = GetOffsetZ(entity, texture);
+        var shadow = entity.Flags.Shadow || entity.RenderStyle == RenderStyle.Fuzzy;
+
+        int fuzz;
+        RenderStyle renderStyle;
         if (shadow)
-            renderData = m_dataManager.GetFuzz(texture);
+        {
+            renderStyle = RenderStyle.Fuzzy;
+            fuzz = 1;
+        }
         else
-            renderData = useAlpha ? m_dataManager.GetAlpha(texture) : m_dataManager.GetNonAlpha(texture);
+        {
+            renderStyle = m_spriteAlpha ? entity.RenderStyle: RenderStyle.Normal;
+            fuzz = 0;
+        }
 
-        float alpha = useAlpha ? entity.Alpha : 1.0f;
-        float fuzz = shadow ? 1.0f : 0.0f;
+        // If fullbright and modified through dehacked then change render style to ColorAdd for better color rendering.
+        var entityAlpha = entity.Alpha;
+        if (m_spriteAlpha)
+        {
+            if (entity.RenderStyle == RenderStyle.ColorAddFullBright)
+                renderStyle = isFullBright ? RenderStyle.ColorAdd : RenderStyle.Translucent;
+            else if (entity.RenderStyle == RenderStyle.ColorAddExplosion)
+                renderStyle = entity.Flags.Missile ? RenderStyle.Normal : RenderStyle.ColorAdd;
+
+            if (renderStyle == RenderStyle.Translucent && entityAlpha >= 1)
+                renderStyle = RenderStyle.Normal;
+        }
+
+        if (renderStyle == RenderStyle.ColorAdd)
+            entityAlpha = 1.0f;
+
+        var renderData = m_dataManager.GetByRenderStyle(renderStyle, texture, brightmapTexture);
+        var alpha = m_spriteAlpha && renderStyle != RenderStyle.Normal ? entityAlpha : 1.0f;
 
         var arrayData = renderData.ArrayData;
         int length = arrayData.Length;
         if (arrayData.Capacity < length + 1)
             arrayData.EnsureCapacity(length + 1);
 
+        int lightLevel = isFullBright ? 255 : ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
+
         ref var vertex = ref arrayData.Data[length];
         // Multiply the X offset by the rightNormal X/Y to move the sprite according to the player's view
         // Doom graphics are drawn left to right and not centered
-        vertex.Pos = new Vec3F(
-            (float)(entity.Position.X - nudgeAmount.X) - (m_viewRightNormal.X * texture.Offset.X),
-            (float)(entity.Position.Y - nudgeAmount.Y) - (m_viewRightNormal.Y * texture.Offset.X),
-            (float)entity.Position.Z + offsetZ);
-        vertex.PrevPos = new Vec3F(
-            (float)(entity.PrevPosition.X - nudgeAmount.X) - (m_prevViewRightNormal.X * texture.Offset.X),
-            (float)(entity.PrevPosition.Y - nudgeAmount.Y) - (m_prevViewRightNormal.Y * texture.Offset.X),
-            (float)entity.PrevPosition.Z + offsetZ);
-        vertex.LightLevel = entity.Flags.Bright || entity.Frame.Properties.Bright ? 255 :
-            ((sector.TransferFloorLightSector.LightLevel + sector.TransferCeilingLightSector.LightLevel) / 2);
-        vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex);
-        vertex.SectorIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
+        vertex.Pos.X = (float)(entity.Position.X - nudgeAmount.X);
+        vertex.Pos.Y = (float)(entity.Position.Y - nudgeAmount.Y);
+        vertex.Pos.Z = (float)entity.Position.Z;
+        vertex.PrevPos.X = (float)(entity.PrevPosition.X - nudgeAmount.X);
+        vertex.PrevPos.Y = (float)(entity.PrevPosition.Y - nudgeAmount.Y);
+        vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
+        vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex, lightLevel);
+        vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
+
+        if (entity.Definition.Flags.SpawnCeiling && m_vanillaRender)
+        {
+            // Set position and offset from ceiling to not clip to floors
+            var ceilingZ = (float)entity.Sector.Ceiling.Z;
+            float diff = 0;
+            offsetZ = (int)(vertex.Pos.Z + offsetZ - ceilingZ);
+            vertex.Pos.Z = ceilingZ + diff;
+            vertex.PrevPos.Z = entity.PrevPosition.Z != entity.Position.Z ? (float)entity.Sector.Ceiling.PrevZ : ceilingZ;
+        }
         
+        vertex.OffsetXYZ = VertexOptions.EntityXYZ(texture.Offset.X, offsetZ);
         arrayData.Length = length + 1;
+
+        if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
+            RenderHealthBar(entity, texture, offsetZ, vertex);
     }
+
+    private void RenderHealthBar(Entity entity, GLLegacyTexture texture, float offsetZ, in EntityVertex entityVertex)
+    {
+        // Don't let the bar bounce back and forth in height (eg Lost Soul)
+        var offset = (int)offsetZ + texture.Height - texture.BlankRowsFromTop + 4;
+        if (offset > entity.Properties.HealthBarOffset)
+            entity.Properties.HealthBarOffset = offset;
+        else
+            offset = entity.Properties.HealthBarOffset;
+
+        if (entity.Properties.HealthBarWidth == -1)
+            entity.Properties.HealthBarWidth = ScaleHealthBarWidth(entity.Properties.Health);
+
+        var attackFlash = m_attackIndicator && entity.Flags.Attacking && ((entity.World.GameTicker / 3) & 3) == 0;
+        var healthBarData = m_dataManager.GetHealthBarData();
+        var array = healthBarData.ArrayData;
+        array.EnsureCapacity(array.Length + 1);
+        ref var vertex = ref array.Data[array.Length];
+        // Prevent small health values from rendering zero pixels
+        float min = 1f / (entity.Properties.HealthBarWidth + MinBarWidth - 5);
+        // Normalized health percent (0-255)
+        int health = (int)(Math.Max(min, entity.Health / (float)entity.Properties.Health) * 255f);
+        vertex.Options = VertexOptions.Entity(1, attackFlash ? 1 : 0, 0, entity.Properties.HealthBarWidth, health);
+        vertex.Pos = entityVertex.Pos;
+        vertex.PrevPos = entityVertex.PrevPos;
+        vertex.OffsetXYZ = VertexOptions.EntityXYZ(0, offset);
+
+        array.SetLength(array.Length + 1);
+    }
+
+    private static int ScaleHealthBarWidth(int health) =>
+        (int)((MaxBarWidth - MinBarWidth) * (Math.Sqrt(health - MinHealth) / Math.Sqrt(MaxHealth - MinHealth)));
 
     public void Start(RenderInfo renderInfo)
     {
@@ -257,9 +362,10 @@ public class EntityRenderer : IDisposable
 
     private void SetUniforms(EntityProgram program, RenderInfo renderInfo)
     {
-        program.BoundTexture(TextureUnit.Texture0);
-        program.ColormapTexture(TextureUnit.Texture2);
-        program.SectorColormapTexture(TextureUnit.Texture3);
+        program.BoundTexture(BindTextures.BoundTexture);
+        program.BrightmapTexture(BindTextures.BrightmapTexture);
+        program.ColormapTexture(BindTextures.Colormap);
+        program.SectorColormapTexture(BindTextures.SectorColormap);
         program.ExtraLight(renderInfo.Uniforms.ExtraLight);
         program.HasInvulnerability(renderInfo.Uniforms.DrawInvulnerability);
         program.LightLevelMix(renderInfo.Uniforms.Mix);
@@ -277,7 +383,11 @@ public class EntityRenderer : IDisposable
         program.LightMode(renderInfo.Uniforms.LightMode);
         program.GammaCorrection(renderInfo.Uniforms.GammaCorrection);
         program.ViewPos(renderInfo.Camera.Position);
-        program.ScreenBounds((renderInfo.Viewport.Width, renderInfo.Viewport.Height));
+        program.ScreenBounds((renderInfo.Viewport.Width - 1, renderInfo.Viewport.Height - 1));
+        program.CheckPlaneClip(m_vanillaRender);
+        program.UseBrightmaps(renderInfo.Uniforms.UseBrightmaps);
+        program.SetSpriteClipDownScaleAmount(Math.Max(renderInfo.Uniforms.DownScaleAmount, 1));
+        program.ColorClamp(1f);
 
         // The fade distance calculations work using squared distances
         float maxDistanceSquared = renderInfo.Uniforms.MaxDistance * renderInfo.Uniforms.MaxDistance;
@@ -286,25 +396,38 @@ public class EntityRenderer : IDisposable
 
         if (program is EntityCompositeProgram)
         {
-            program.AccumTexture(TextureUnit.Texture4);
-            program.AccumCountTextre(TextureUnit.Texture5);
+            program.AccumTexture(BindTextures.AccumTexture);
+            program.AccumCountTextre(BindTextures.AccumCountTexture);
         }
 
         if (program is EntityFuzzRefractionProgram)
         {
-            program.AccumTexture(TextureUnit.Texture4);
-            program.AccumCountTextre(TextureUnit.Texture5);
-            program.FuzzTexture(TextureUnit.Texture6);
-            program.OpaqueTexture(TextureUnit.Texture7);
+            program.AccumTexture(BindTextures.AccumTexture);
+            program.AccumCountTextre(BindTextures.AccumCountTexture);
+            program.FuzzTexture(BindTextures.FuzzTexture);
+            program.OpaqueTexture(BindTextures.OpaqueTexture);
         }
+
+        program.WallClipTexture(BindTextures.WallClipTexture);
+        program.PlaneClipTexture(BindTextures.PlaneClipTexture);
+        program.MapDataTexture(BindTextures.MapLineData);
+        program.LineHeightsTexture(BindTextures.LineHeights);
     }
 
     public void RenderOpaque(RenderInfo renderInfo)
     {
         m_program.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_program, renderInfo);
-        m_dataManager.RenderNonAlpha(PrimitiveType.Points);
+        m_program.HealthBarMode(false);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Normal, PrimitiveType.Points);
+
+        if (m_healthBars)
+        {
+            m_program.HealthBarMode(true);
+            m_dataManager.RenderHealthBars();
+        }
+
         m_program.Unbind();
     }
 
@@ -312,10 +435,13 @@ public class EntityRenderer : IDisposable
     {
         m_programTransparent.Bind();
         m_programTransparent.RenderFuzz(false);
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
-        m_dataManager.RenderAlpha(PrimitiveType.Points);
-        m_dataManager.RenderFuzz(PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Translucent, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Add, PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy, PrimitiveType.Points);
+        m_programTransparent.ColorClamp(0.9f);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd, PrimitiveType.Points);
         m_programTransparent.Unbind();
     }
 
@@ -323,40 +449,45 @@ public class EntityRenderer : IDisposable
     {
         m_programTransparent.Bind();
         m_programTransparent.RenderFuzz(true);
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programTransparent, renderInfo);
-        m_dataManager.RenderFuzz(PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy, PrimitiveType.Points);
         m_programTransparent.Unbind();
     }
 
     public void RenderOitCompositePass(RenderInfo renderInfo)
     {
         m_programComposite.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         SetUniforms(m_programComposite, renderInfo);
-        m_dataManager.RenderAlpha(PrimitiveType.Points);
-        //m_dataManager.RenderFuzz(PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Translucent, PrimitiveType.Points);
+
+        if (m_dataManager.HasDataToRenderByStyle(RenderDataStyle.Add))
+        {
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
+            m_dataManager.RenderByRenderStyle(RenderDataStyle.Add, PrimitiveType.Points);
+        }
+
+        if (m_dataManager.HasDataToRenderByStyle(RenderDataStyle.ColorAdd))
+        {
+            GL.BlendFunc(BlendingFactor.SrcColor, BlendingFactor.One);
+            m_dataManager.RenderByRenderStyle(RenderDataStyle.ColorAdd, PrimitiveType.Points);
+        }
+
+        GL.BlendEquation(BlendEquationMode.FuncAdd);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
         m_programComposite.Unbind();
     }
 
     public void RenderOitFuzzRefractionPass(RenderInfo renderInfo, bool renderColor)
     {
         m_programFuzzRefraction.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.ActiveTexture(BindTextures.BoundTexture);
         m_programFuzzRefraction.RenderFuzzRefractionColor(renderColor);
         SetUniforms(m_programFuzzRefraction, renderInfo);
-        m_dataManager.RenderFuzz(PrimitiveType.Points);
+        m_dataManager.RenderByRenderStyle(RenderDataStyle.Fuzzy, PrimitiveType.Points);
         m_programFuzzRefraction.Unbind();
-    }
-
-    public void RenderTransparent(RenderInfo renderInfo)
-    {
-        m_program.Bind();
-        GL.ActiveTexture(TextureUnit.Texture0);
-        SetUniforms(m_program, renderInfo);
-        m_dataManager.RenderAlpha(PrimitiveType.Points);
-        m_dataManager.RenderFuzz(PrimitiveType.Points);
-        m_program.Unbind();
     }
 
     public void ResetInterpolation(IWorld world)
@@ -381,7 +512,7 @@ public class EntityRenderer : IDisposable
         GC.SuppressFinalize(this);
     }
     
-    private class Vec2DCompararer : IEqualityComparer<Vec2D>
+    private sealed class Vec2DComparer : IEqualityComparer<Vec2D>
     {
         public bool Equals(Vec2D x, Vec2D y) => x.X == y.X && x.Y == y.Y;
         public int GetHashCode(Vec2D obj) => HashCode.Combine(obj.X, obj.Y);

@@ -1,13 +1,17 @@
 using Helion.World;
 using Helion.World.Special;
-using Helion.World.Special.Specials;
 using System;
 using System.Collections.Generic;
 
 namespace Helion.Models;
 
-public class StairSpecialModel : ISpecialModel
+public struct StairSpecialModel : ISpecialModel
 {
+    public StairSpecialModel()
+    {
+
+    }
+
     public int Delay { get; set; }
     public double StartZ { get; set; }
     public int Destroy { get; set; }
@@ -16,9 +20,9 @@ public class StairSpecialModel : ISpecialModel
     public bool Crush { get; set; }
     public IList<int> SectorIds { get; set; } = Array.Empty<int>();
     public IList<int> Heights { get; set; } = Array.Empty<int>();
-    public SectorMoveSpecialModel MoveSpecial { get; set; } = null!;
+    public SectorMoveSpecialModel MoveSpecial { get; set; }
 
-    public ISpecial? ToWorldSpecial(IWorld world)
+    public readonly ISpecial? ToWorldSpecial(IWorld world)
     {
         if (!world.IsSectorIdValid(MoveSpecial.SectorId))
             return null;

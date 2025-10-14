@@ -24,7 +24,7 @@ interface ISectorBits
     int KillAllPlayserAndSecretExit { get; }
 }
 
-class BoomSectorBits : ISectorBits
+sealed class BoomSectorBits : ISectorBits
 {
     public int SectorTypeMask => 0x1F;
     public int AltSectorTypeFlag => 4096;
@@ -39,7 +39,7 @@ class BoomSectorBits : ISectorBits
     public int KillAllPlayserAndSecretExit => 96;
 }
 
-class ZDoomSectorBits : ISectorBits
+sealed class ZDoomSectorBits : ISectorBits
 {
     public int SectorTypeMask => 0x6F;
     public int AltSectorTypeFlag => 0; // No idea if this will exist in GZDoom in the future
@@ -56,7 +56,7 @@ class ZDoomSectorBits : ISectorBits
 
 public static class SectorSpecialData
 {
-    private static readonly ISectorBits[] Bits = new ISectorBits[] { new BoomSectorBits(), new ZDoomSectorBits() };
+    private static readonly ISectorBits[] Bits = [new BoomSectorBits(), new ZDoomSectorBits()];
 
     public static int GetType(int sectorType, SectorDataType type)
     {
@@ -68,10 +68,11 @@ public static class SectorSpecialData
         return sectorType & bits.SectorTypeMask;
     }
 
-    public static void SetSectorData(int sectorType, SectorData sectorData, SectorDataType type)
+    public static SectorData GetSectorData(int sectorType, SectorDataType type)
     {
+        var sectorData = new SectorData();
         if (sectorType == 0)
-            return;
+            return sectorData;
 
         ISectorBits bits = Bits[(int)type];
         sectorData.SectorEffect = GetSectorEffect(sectorType, bits);
@@ -79,15 +80,17 @@ public static class SectorSpecialData
             sectorData.SectorEffect |= SectorEffect.Secret;
 
         if ((sectorType & bits.AltSectorTypeFlag) != 0)
-            SetAltSectorTypeData(sectorType & ~bits.AltSectorTypeFlag, sectorData, bits);
+            SetAltSectorTypeData(sectorType & ~bits.AltSectorTypeFlag, ref sectorData, bits);
         else
-            sectorData.DamageAmount = GetDamageAmount(sectorType, bits);
+            sectorData.BasicDamageAmount = GetDamageAmount(sectorType, bits);
 
         if ((sectorType & bits.KillAllMonsters) != 0)
             sectorData.InstantKillEffect |= InstantKillEffect.KillMonsters;
+
+        return sectorData;
     }
 
-    private static void SetAltSectorTypeData(int sectorType, SectorData sectorData, ISectorBits bits)
+    private static void SetAltSectorTypeData(int sectorType, ref SectorData sectorData, ISectorBits bits)
     {
         // Only care about bits 5 and 6
         sectorType &= 96;

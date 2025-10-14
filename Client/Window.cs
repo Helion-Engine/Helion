@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Helion.Client.Input;
 using Helion.Client.Input.Controller;
 using Helion.Geometry;
@@ -15,8 +17,7 @@ using NLog;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
-using System;
-using System.Collections.Generic;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using static Helion.Util.Assertion.Assert;
 
 namespace Helion.Client;
@@ -29,18 +30,40 @@ namespace Helion.Client;
 /// </remarks>
 public class Window : GameWindow, IWindow
 {
+    const int WINDOW_RESIZE_GRACE_MS = 2000;
+
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public IInputManager InputManager => m_inputManager;
     public Renderer Renderer { get; }
-    public Dimension Dimension => new(Bounds.Max.X - Bounds.Min.X, Bounds.Max.Y - Bounds.Min.Y);
-    public Dimension FramebufferDimension => Dimension; // Note: In the future, use `GLFW.GetFramebufferSize` maybe.
     private readonly IConfig m_config;
+
+    public IInputManager InputManager => m_inputManager;
     private readonly IInputManagement m_inputManagement;
     private readonly InputManager m_inputManager = new();
-    private SpanString m_textInput = new();
-    private bool m_disposed;
+    private readonly SpanString m_textInput = new();
     public readonly ControllerAdapter JoystickAdapter;
+
+    public Dimension ClientDimension
+    {
+        get
+        {
+            var size = ClientSize;
+            // See UpdateWindow BorderlessFullscreen case
+            if (IsWindowsBorderlessFullscreen)
+                size.Y--;
+            return new((int)(size.X * m_clientScaling.X), (int)(size.Y * m_clientScaling.Y));
+        }
+    }
+    private bool m_firstResizeEvent = true;
+    private DateTime m_windowStateUpdateTimestamp;
+    private readonly bool m_isLinuxWayland = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.Wayland;
+    private readonly bool m_isLinuxX11 = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.X11;
+    private readonly bool m_isWindows = OperatingSystem.IsWindows();
+    private Vec2F m_clientScaling = new(1, 1);
+    private bool m_disposed;
+    private RenderWindowState m_renderWindowState;
+    private Vector2i? m_knownGoodWindowPos;
+    private bool IsWindowsBorderlessFullscreen => m_isWindows && m_renderWindowState == RenderWindowState.BorderlessFullscreenWindow;
 
     public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement,
         int glMajor, int glMinor, GLContextFlags flags, Action onCreate) :
@@ -49,10 +72,10 @@ public class Window : GameWindow, IWindow
         Log.Debug("Creating client window");
         onCreate();
         m_config = config;
+        m_renderWindowState = config.Window.State;
         m_inputManagement = inputManagement;
         CursorState = config.Mouse.Focus ? CursorState.Grabbed : CursorState.Hidden;
         Renderer = new(this, config, archiveCollection, tracker);
-        SetSyncMode(config.Render.MaxFPS, config.Render.VSync);
 
         KeyDown += Window_KeyDown;
         KeyUp += Window_KeyUp;
@@ -66,39 +89,40 @@ public class Window : GameWindow, IWindow
             (float)m_config.Controller.GameControllerDeadZone.Value,
             m_config.Controller.EnableGameController,
             m_config.Controller.EnableRumble,
+            m_config.Controller.GyroSmoothingEnabled,
+            (float)m_config.Controller.GyroSmoothingThreshold,
+            m_config.Controller.GyroNoise,
+            m_config.Controller.GyroDrift,
             m_inputManager);
+        m_config.Controller.GyroSmoothingEnabled.OnChanged += OnGyroSmoothEnableChanged;
+        m_config.Controller.GyroSmoothingThreshold.OnChanged += OnGyroSmoothFactorChanged;
 
         m_config.Render.MaxFPS.OnChanged += OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
-        m_config.Controller.EnableGameController.OnChanged += EnableGameController_OnChanged;
-        m_config.Controller.GameControllerDeadZone.OnChanged += GameControllerDeadZone_OnChanged;
-        m_config.Controller.EnableRumble.OnChanged += GameControllerRumble_OnChanged;
+        FocusedChanged += Window_FocusedChanged;
+    }
+
+    private void Window_FocusedChanged(FocusedChangedEventArgs e)
+    {
+        if (IsWindowsBorderlessFullscreen)
+            AlwaysOnTop = e.IsFocused;
+    }
+
+    public override void Run()
+    {
+        UpdateWindow();
+        base.Run();
     }
 
     public void SetMousePosition(Vec2I pos)
     {
+        // Wayland does not support setting mouse position
+        if (m_isLinuxWayland)
+            return;
+
         MousePosition = (pos.X, pos.Y);
         InputManager.MousePosition = pos;
     }
-
-    public void SetWindowState(RenderWindowState state)
-    {
-        switch (state)
-        {
-            case RenderWindowState.Fullscreen:
-                WindowState = WindowState.Fullscreen;
-                break;
-            case RenderWindowState.Normal:
-                WindowState = WindowState.Normal;
-                break;
-        }
-    }
-
-    public void SetDimension(Dimension dimension) =>
-        Size = new(dimension.Width, dimension.Height);
-
-    public void SetBorder(WindowBorder border) =>
-        WindowBorder = border;
 
     public void SetDisplay(int display)
     {
@@ -106,8 +130,8 @@ public class Window : GameWindow, IWindow
         if (WindowState != WindowState.Fullscreen)
             return;
 
-        CurrentMonitor = GetMonitorHandle(display);
-        SetSyncMode(m_config.Render.MaxFPS, m_config.Render.VSync);
+        MakeFullscreen(GetMonitorHandle(display));
+        UpdateWindow();
     }
 
     public List<MonitorData> GetMonitors(out MonitorData? currentMonitor)
@@ -141,7 +165,7 @@ public class Window : GameWindow, IWindow
     {
         return new GameWindowSettings
         {
-            RenderFrequency = 500
+            UpdateFrequency = 500
         };
     }
 
@@ -160,8 +184,7 @@ public class Window : GameWindow, IWindow
             Profile = ContextProfile.Core,
             APIVersion = new Version(glMajor, glMinor),
             Flags = settingsFlags,
-            NumberOfSamples = config.Render.Multisample.Value,
-            Size = new Vector2i(windowWidth, windowHeight),
+            ClientSize = new Vector2i(windowWidth, windowHeight),
             Title = title,
             WindowBorder = config.Window.Border,
             WindowState = GetWindowState(config.Window.State.Value),
@@ -178,6 +201,139 @@ public class Window : GameWindow, IWindow
             RenderWindowState.Fullscreen => WindowState.Fullscreen,
             _ => WindowState.Normal,
         };
+    }
+
+
+    private void UpdateScaling()
+    {
+        if (!m_isLinuxWayland)
+        {
+            return;
+        }
+        unsafe
+        {
+            // This mainly applies to Wayland on Linux, which uses some odd "virtual resolution" logic for window size.
+            GLFW.GetWindowContentScale(WindowPtr, out float xScale, out float yScale);
+            m_clientScaling = new(xScale, yScale);
+        }
+    }
+
+
+    protected override void OnResize(ResizeEventArgs e)
+    {
+        if (m_firstResizeEvent)
+        {
+            // OpenTK fires a dummy window-resize event on startup.  Ignore whatever size the window is then.
+            m_firstResizeEvent = false;
+        }
+
+        UpdateScaling();
+
+        if ((DateTime.Now - m_windowStateUpdateTimestamp).TotalMilliseconds > WINDOW_RESIZE_GRACE_MS
+            && m_config.Window.State.Value == RenderWindowState.Normal
+            && WindowBorder == WindowBorder.Resizable)
+        {
+            // If the user resizes the window manually by dragging the handles, update the config file.
+            // This allows the user to persist their window resize.
+            Dimension scaledDimension = ((int)(m_clientScaling.X * e.Width), (int)(m_clientScaling.Y * e.Height));
+
+            string resolutionString = $"{scaledDimension.Width}x{scaledDimension.Height}";
+            m_config.Window.Dimension.Set(resolutionString, fireChangeEvents: false);
+        }
+
+        base.OnResize(e);
+    }
+
+    /// <summary>
+    /// Update the window, ensuring that all of the border/dimension/screen state parameters remain logically consistent
+    /// </summary>
+    public void UpdateWindow()
+    {
+        m_windowStateUpdateTimestamp = DateTime.Now;
+        UpdateScaling();
+
+        RenderWindowState oldWindowState = m_renderWindowState;
+        m_renderWindowState = m_config.Window.State.Value;
+
+        // We're using GLFW directly rather than going through OpenTK because there seem to be some quirks in
+        // the WindowMode abstraction and how it caches the underlying window state.  Also, we can set resolution, 
+        // position, and fullscreen/windowed in a single call, rather than one at a time.
+        unsafe
+        {
+            Monitor* monitor = CurrentMonitor.Handle.ToUnsafePtr<Monitor>();
+            VideoMode* modePtr = GLFW.GetVideoMode(monitor);
+            int windowX = 0, windowY = 0;
+
+            // Wayland does not support querying window position
+            if (!m_isLinuxWayland)
+            {
+                GLFW.GetWindowPos(WindowPtr, out windowX, out windowY);
+            }
+
+            // Keep a "known good" coordinate for transitions into Normal (windowed) mode, based on the last time we were in
+            // Normal mode.
+            if (oldWindowState == RenderWindowState.Normal || m_knownGoodWindowPos == null)
+            {
+                m_knownGoodWindowPos = new(windowX, windowY);
+            }
+
+            switch (m_renderWindowState)
+            {
+                case RenderWindowState.Fullscreen:
+                    GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
+                    break;
+                case RenderWindowState.BorderlessFullscreenWindow:
+                    // Hide border before going fullscreen, otherwise taskbar gets stuck on Windows
+                    WindowBorder = WindowBorder.Hidden;
+                    WindowState = WindowState.Normal;
+
+                    // The position and size can't match the monitor dimensions exactly in Windows so add one to prevent
+                    // Otherwise it gets promoted to exclusive fullscreen anyway
+                    var addHeight = 0;
+                    if (m_isWindows)
+                    {
+                        addHeight = 1;
+                        AlwaysOnTop = true;
+                    }
+
+                    GLFW.GetMonitorPos(monitor, out int monitorX, out int monitorY);
+                    GLFW.SetWindowMonitor(WindowPtr, null, monitorX, monitorY, modePtr->Width, modePtr->Height + addHeight, GLFW.DontCare);
+                    break;
+                case RenderWindowState.Normal:
+                default:
+                    Dimension windowDimension = m_config.Window.Dimension.Value;
+                    if (oldWindowState != RenderWindowState.Normal)
+                    {
+                        windowX = m_knownGoodWindowPos.Value.X;
+                        windowY = m_knownGoodWindowPos.Value.Y;
+
+                        GLFW.RestoreWindow(WindowPtr);
+                    }
+
+                    if (m_isLinuxX11 && oldWindowState == RenderWindowState.BorderlessFullscreenWindow)
+                    {
+                        // Note:  There seems to be a weird bug here where if the application is started in borderless, 
+                        // and then the user goes to Windowed _without ever moving their mouse_, the mouse cursor gets "stuck"
+                        // in a narrow range and cannot be moved.
+
+                        // Need to quickly bounce through full-screen for...reasons?
+                        GLFW.SetWindowMonitor(WindowPtr, monitor, 0, 0, modePtr->Width, modePtr->Height, modePtr->RefreshRate);
+                    }
+
+                    // Note: Wayland (at least on Gnome, Ubuntu 24.04) seems to ignore window decor settings.
+                    WindowBorder = m_config.Window.Border;
+                    GLFW.SetWindowMonitor(WindowPtr, null, windowX, windowY, (int)(windowDimension.Width / m_clientScaling.X), (int)(windowDimension.Height / m_clientScaling.Y), GLFW.DontCare);
+
+                    if (m_isWindows && (oldWindowState != RenderWindowState.Normal))
+                    {
+                        // Titlebar tends to get stuck off-screen; just center the window to ensure that doesn't happen
+                        CenterWindow();
+                    }
+                    break;
+            }
+        }
+
+        SetSyncMode(m_config.Render.MaxFPS.Value, m_config.Render.VSync.Value);
     }
 
     private static void SetDisplay(int display, NativeWindowSettings settings)
@@ -203,6 +359,8 @@ public class Window : GameWindow, IWindow
 
     public void SetGrabCursor(bool set) => CursorState = set ? CursorState.Grabbed : CursorState.Hidden;
 
+    public bool GrabCursor => CursorState == CursorState.Grabbed;
+
     private void Window_KeyUp(KeyboardKeyEventArgs args)
     {
         Key key = OpenTKInputAdapter.ToKey(args.Key);
@@ -226,7 +384,7 @@ public class Window : GameWindow, IWindow
 
     private void Window_MouseMove(MouseMoveEventArgs args)
     {
-        m_inputManager.SetMousePosition(((int)args.Position.X, (int)args.Position.Y));
+        m_inputManager.SetMousePosition(((int)(args.Position.X * m_clientScaling.X), (int)(args.Position.Y * m_clientScaling.Y)));
         if (!m_inputManagement.ShouldHandleMouseMovement())
             return;
 
@@ -267,6 +425,16 @@ public class Window : GameWindow, IWindow
         SetSyncMode(m_config.Render.MaxFPS, mode);
     }
 
+    private void OnGyroSmoothEnableChanged(object? sender, bool e)
+    {
+        JoystickAdapter.SmoothingEnabled = e;
+    }
+
+    private void OnGyroSmoothFactorChanged(object? sender, double e)
+    {
+        JoystickAdapter.SmoothingThreshold = (float)e;
+    }
+
     private void SetSyncMode(int maxFps, RenderVsyncMode vsync)
     {
         switch (vsync)
@@ -287,27 +455,13 @@ public class Window : GameWindow, IWindow
         if (maxFps == 0)
         {
             _ = GetMonitors(out MonitorData? current);
-            RenderFrequency = current?.RefreshRate > 0 && vsync != RenderVsyncMode.Off
+            UpdateFrequency = current?.RefreshRate > 0 && vsync != RenderVsyncMode.Off
                 ? current.RefreshRate
                 : 0;
 
             return;
         }
-        RenderFrequency = maxFps;
-    }
-
-    private void GameControllerDeadZone_OnChanged(object? sender, double e)
-    {
-        JoystickAdapter.AnalogDeadZone = (float)e;
-    }
-
-    private void EnableGameController_OnChanged(object? sender, bool e)
-    {
-        JoystickAdapter.Enabled = e;
-    }
-    private void GameControllerRumble_OnChanged(object? sender, bool e)
-    {
-        JoystickAdapter.RumbleEnabled = e;
+        UpdateFrequency = maxFps;
     }
 
     private void PerformDispose()
@@ -325,9 +479,9 @@ public class Window : GameWindow, IWindow
 
         m_config.Render.MaxFPS.OnChanged -= OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged -= OnVSyncChanged;
-        m_config.Controller.EnableGameController.OnChanged -= EnableGameController_OnChanged;
-        m_config.Controller.GameControllerDeadZone.OnChanged -= GameControllerDeadZone_OnChanged;
-        m_config.Controller.EnableRumble.OnChanged -= GameControllerRumble_OnChanged;
+
+        m_config.Controller.GyroSmoothingEnabled.OnChanged -= OnGyroSmoothEnableChanged;
+        m_config.Controller.GyroSmoothingThreshold.OnChanged -= OnGyroSmoothFactorChanged;
 
         Renderer.Dispose();
         JoystickAdapter.Dispose();

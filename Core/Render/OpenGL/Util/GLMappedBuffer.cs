@@ -10,7 +10,7 @@ public readonly unsafe struct GLMappedBuffer<T> where T : struct
     public readonly T* MappedMemoryPtr;
     private readonly BufferTarget m_target;
     
-    public GLMappedBuffer(T[] data, BufferTarget target, BufferAccessMask access)
+    public GLMappedBuffer(T[] data, BufferTarget target, MapBufferAccessMask access)
     {
         Data = data;
         m_target = target;

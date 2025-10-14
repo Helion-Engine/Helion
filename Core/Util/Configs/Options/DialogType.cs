@@ -16,5 +16,10 @@
         /// Use the texture lump picker
         /// </summary>
         TexturePicker,
+
+        /// <summary>
+        /// Use the con
+        /// </summary>
+        GyroCalibrationDialog,
     }
 }

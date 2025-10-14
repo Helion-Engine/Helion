@@ -7,13 +7,14 @@ using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
+using Helion.Util.Extensions;
 using Helion.Window;
 using Helion.Window.Input;
 using System;
 
 namespace Helion.Layer.Options.Dialogs;
 
-internal class ColorDialog : DialogBase
+internal sealed class ColorDialog : DialogBase
 {
     private readonly IConfigValue m_configValue;
     private readonly OptionMenuAttribute m_attr;
@@ -88,7 +89,7 @@ internal class ColorDialog : DialogBase
 
     private void RenderSlider(IRenderableSurfaceContext ctx, IHudRenderContext hud, string text, Slider slider, int row)
     {
-        text = ListedConfigSection.GetEllipsesText(hud, text, Font, m_fontSize, m_box.Width);
+        text = hud.GetEllipsesText(text, Font, m_fontSize, m_box.Width);
         hud.Text(text, Font, m_fontSize, (m_selectorSize.Width + m_padding, 0), color: Color.Red);
         int numWidth = hud.MeasureText("999", Font, m_fontSize).Width;
         hud.AddOffset((m_valueStartX, 0), () =>

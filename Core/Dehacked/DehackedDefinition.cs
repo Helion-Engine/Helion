@@ -1,3 +1,4 @@
+using Helion.Graphics.Palettes;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
@@ -19,6 +20,8 @@ public partial class DehackedDefinition
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly Regex PointerRegex = new(@"^\(\S+ (\d+)\)");
+
+    public event EventHandler<string>? OnUnknownItem;
 
     public readonly List<DehackedThing> Things = new();
     public readonly List<DehackedFrame> Frames = new();
@@ -45,6 +48,8 @@ public partial class DehackedDefinition
     public DehackedMisc? Misc { get; private set; }
     public int DoomVersion { get; private set; }
     public int PatchFormat { get; set; }
+    public bool HasBloodColor => BloodColors.Count > 0;
+    public readonly HashSet<PaletteColor> BloodColors = [];
 
     public DehackedDefinition()
     {
@@ -117,7 +122,7 @@ public partial class DehackedDefinition
 
     private static SimpleParser CreateDehackedParser(string data)
     {
-        SimpleParser parser = new();
+        SimpleParser parser = new(keepBeginningSpaces: true);
         parser.SetSpecialChars(SpecialChars);
         parser.SetCommentCallback(IsComment);
         parser.Parse(data, keepEmptyLines: true, parseQuotes: false);
@@ -202,16 +207,17 @@ public partial class DehackedDefinition
         return false;
     }
 
-    private static bool IsComment(string line, int i) => i == 0 && line[i] == '#';
+    private static bool IsComment(string data, int lineStartIndex, int index) => lineStartIndex == 0 && data[index] == '#';
 
-    private static void UnknownWarning(SimpleParser parser, string type, string? prefix = null)
+    private void UnknownWarning(SimpleParser parser, string type, string? prefix = null)
     {
-        int lineNumber = parser.GetCurrentLine();
-        string line = parser.ConsumeLine();
+        var lineNumber = parser.GetCurrentLine();
+        var line = parser.ConsumeLine();
+        if (string.IsNullOrWhiteSpace(line) && string.IsNullOrWhiteSpace(prefix))
+            return;
         if (prefix != null)
             line = prefix + " " + line;
-        if (string.IsNullOrWhiteSpace(line))
-            return;
+        OnUnknownItem?.Invoke(this, line);
         Log.Warn($"Dehacked: Skipping unknown {type}: {line} line:{lineNumber}");
     }
 
@@ -344,6 +350,11 @@ public partial class DehackedDefinition
                 thing.TranslationLump = GetStringProperty(parser, TranslationLump);
             else if (line.StartsWithIgnoreCase(SelfDamageFactor))
                 thing.SelfDamageFactor = MathHelper.FromFixed(GetIntProperty(parser, SelfDamageFactor));
+            else if (line.StartsWithIgnoreCase(BloodColor))
+            {
+                thing.BloodColor = GetIntProperty(parser, BloodColor);
+                BloodColors.Add((PaletteColor)thing.BloodColor);
+            }
             else if (!IgnoreLine(line))
                 UnknownWarning(parser, "thing type");
 
@@ -746,6 +757,8 @@ public partial class DehackedDefinition
     {
         DehackedSound sound = new();
         sound.Number = parser.ConsumeInteger();
+        if (parser.Peek('('))
+           parser.ConsumeLine();
 
         while (!IsBlockComplete(parser))
         {
@@ -776,11 +789,40 @@ public partial class DehackedDefinition
         while (!IsBlockComplete(parser, isBex: true))
         {
             BexString bexString = new();
-            bexString.Mnemonic = parser.ConsumeString();
-            parser.ConsumeString("=");
-            bexString.Value = ConsumeBexTextValue(parser);
-            BexStrings.Add(bexString);
+            if (ConsumeBexStringMnemonic(parser, out var mnemonic))
+            {
+                bexString.Mnemonic = mnemonic;
+                parser.ConsumeString("=");
+                bexString.Value = ConsumeBexTextValue(parser);
+                BexStrings.Add(bexString);
+            }
         }
+    }
+
+    private static bool ConsumeBexStringMnemonic(SimpleParser parser, [NotNullWhen(true)] out string? mnemonic)
+    {
+        var startLine = parser.GetCurrentLine();
+        var line = parser.PeekLine();
+        var index = line.IndexOf('=');
+        if (index != -1)
+        {
+            string value = line[..index].Trim();
+            while (parser.PeekString() != "=" && startLine == parser.GetCurrentLine())
+                parser.ConsumeString();
+
+            if (startLine == parser.GetCurrentLine())
+            {
+                mnemonic = value;
+                return true;
+            }
+        }
+        else
+        {
+            parser.ConsumeLineSpan();
+        }
+
+        mnemonic = null;
+        return false;
     }
 
     private string ConsumeBexTextValue(SimpleParser parser)
@@ -868,7 +910,7 @@ public partial class DehackedDefinition
         if (parser.PeekString(0, out string? frame) && parser.PeekString(2, out string? equal)
             && frame != null && equal != null)
         {
-            return !frame.Equals("Frame", StringComparison.OrdinalIgnoreCase) || !equal.Equals("=");
+            return !frame.Equals("Frame", StringComparison.OrdinalIgnoreCase) || !equal.Equals("=", StringComparison.Ordinal);
         }
 
         return true;

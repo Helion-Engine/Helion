@@ -1,5 +1,5 @@
 ﻿using Helion.Geometry.Vectors;
-using Helion.Resources.Archives.Collection;
+using Helion.Graphics.ColorSpaces;
 using Helion.Resources.Archives.Entries;
 using System;
 using System.Collections.Generic;
@@ -18,6 +18,7 @@ public class Colormap
     private readonly List<Color[]> m_layers;
     private readonly List<byte[]> m_indexLayers;
     public readonly bool[] FullBright = new bool[NumColors];
+
 
     public int Index;
     public Vec3F ColorMix;
@@ -38,28 +39,6 @@ public class Colormap
         ColorMix = colorMix;
         Entry = entry;
         FullBright = fullBright;
-    }
-
-    public byte GetNearestColorIndex(Color color)
-    {
-        byte bestIndex = 0;
-        var colors = Layer(0);
-        double nearest = int.MaxValue;
-        var colorNormalized = color.Normalized3;
-        for (int i = 0; i < colors.Length; i++)
-        {
-            var paletteColor = colors[i];
-            var value = paletteColor.Normalized3 - colorNormalized;
-            var calc = Math.Pow(value.X, 2) + Math.Pow(value.Y, 2) + Math.Pow(value.Z, 2);
-
-            if (calc < nearest)
-            {
-                bestIndex = (byte)i;
-                nearest = calc;
-            }
-        }
-
-        return bestIndex;
     }
 
     public static Colormap? From(Palette palette, byte[] data, Entry? entry)
@@ -151,6 +130,75 @@ public class Colormap
     {
         var translated = TranslateIndices(colorMap, color);
         return From(palette, translated, null);
+    }
+
+    public static Colormap? TranslateToNearestMatch(Palette palette, PaletteColorLookup paletteColorLookup, byte[] colorMap, PaletteColor translateColor)
+    {
+        var translated = TranslateIndicesNearest(palette, paletteColorLookup, colorMap, translateColor);
+        return From(palette, translated, null);
+    }
+
+    private static byte[] TranslateIndicesNearest(Palette palette, PaletteColorLookup paletteColorLookup, byte[] colorMap, PaletteColor translateColor)
+    {
+        var hsl = ToHsl(translateColor);
+        var translate = new byte[colorMap.Length];
+        var lookup = new Dictionary<Color, byte>();
+        var colors = palette.Layer(0);
+        int dataIndex = 0;
+
+        for (int layer = 0; layer < NumLayers; layer++)
+        {
+            for (int colorIndex = 0; colorIndex < NumColors; colorIndex++, dataIndex++)
+            {
+                if (dataIndex >= translate.Length)
+                    return translate;
+
+                var color = colors[colorMap[dataIndex]];
+                if (lookup.TryGetValue(color, out var value))
+                {
+                    translate[dataIndex] = value;
+                    continue;
+                }
+
+                var newIndex = ShiftToHsl(paletteColorLookup, color, hsl);
+                translate[dataIndex] = newIndex;
+                lookup[color] = newIndex;
+            }
+        }
+        return translate;
+    }
+
+    private static HslShift ToHsl(PaletteColor paletteColor)
+    {
+        return paletteColor switch
+        {
+            PaletteColor.Blue => new(240, null, null, 0.1),
+            PaletteColor.Yellow => new(60, null, null, 0.1),
+            PaletteColor.Orange => new(30, null, null, 0),
+            PaletteColor.Purple => new(280, null, null, 0),
+            PaletteColor.Green => new(100, null, null, 0),
+            PaletteColor.Gray => new(null, 0, null, 0),
+            PaletteColor.Black => new(null, 0, null, -0.2),
+            PaletteColor.White => new(null, 0, null, 0.5),
+            _ => new(null, null, null, 0),
+        };
+    }
+
+    private static byte ShiftToHsl(PaletteColorLookup paletteColorLookup, Color color, HslShift toHsl)
+    {
+        var hsl = HslConverter.ToHsl(color);
+
+        if (toHsl.H.HasValue)
+            hsl.X = toHsl.H.Value;
+        if (toHsl.S.HasValue)
+            hsl.Y = toHsl.S.Value;
+        if (toHsl.L.HasValue)
+            hsl.Z = toHsl.L.Value;
+
+        hsl.Z = Math.Clamp(hsl.Z + toHsl.AddL, 0, 1);
+
+        var newColor = HslConverter.ToColor(hsl);
+        return paletteColorLookup.GetIndex(newColor);
     }
 
     public static Colormap? CreateTranslatedColormap(Palette palette, byte[] colorMap, byte[] translateTable)

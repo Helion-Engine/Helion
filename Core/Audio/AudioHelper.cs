@@ -1,6 +1,8 @@
+using Helion.Util.Container;
 using NAudio.Wave;
 using System;
 using System.IO;
+using ZMusicWrapper;
 
 namespace Helion.Audio;
 
@@ -11,7 +13,6 @@ public static class AudioHelper
     private const int SampleRateArbitraryCutoff = 5000;
     private const int DataBeforeSamplesSize = 2 + 2 + 4 + DmxPadding;
     private const int MinRequiredDmxLength = DataBeforeSamplesSize + DmxPadding;
-    private const int WavBufferSize = 16384;
 
     public struct WavFormat
     {
@@ -39,7 +40,7 @@ public static class AudioHelper
     {
         error = "Invalid Doom sound.";
         sampleRate = 0;
-        sampleData = Array.Empty<byte>();
+        sampleData = [];
 
         if (data.Length < MinRequiredDmxLength)
             return false;
@@ -66,23 +67,62 @@ public static class AudioHelper
 
         try
         {
-            using MemoryStream ms = new MemoryStream(data);
-            using WaveFileReader reader = new WaveFileReader(ms);
+            using MemoryStream ms = new(data);
+            using WaveFileReader reader = new(ms);
 
             format.Channels = reader.WaveFormat.Channels;
             format.SampleRate = reader.WaveFormat.SampleRate;
             format.BitsPerSample = reader.WaveFormat.BitsPerSample;
 
             var buffer = new byte[reader.Length];
-            reader.Read(buffer);
+            reader.ReadExactly(buffer);
             sampleData = buffer;
             return true;
         }
         catch
         {
-            sampleData = Array.Empty<byte>();
+            sampleData = [];
             return false;
         }
+    }
+
+    private static readonly byte[] m_buffer = new byte[32768];
+
+    public static unsafe bool TryConvertThroughZMusic(byte[] data, out int sampleRate, out bool stereo, out SampleType sampleType, out Span<byte> convertedData)
+    {
+        using var decoder = new ZSoundDecoder(data);
+        if (decoder.SampleRate == 0)
+        {
+            convertedData = default;
+            sampleRate = 0;
+            stereo = false;
+            sampleType = default;
+            return false;
+        }
+
+        var stream = new DynamicArray<byte>(32768 * 16, arrayPool: true);
+        while (true)
+        {
+            int length = decoder.DecodeRead(m_buffer);
+            if (length <= 0)
+                break;
+            stream.Add(m_buffer.AsSpan(0, length));
+        }
+
+        if (stream.Length == 0)
+        {
+            convertedData = default;
+            sampleRate = 0;
+            stereo = false;
+            sampleType = default;
+            return false;
+        }
+
+        sampleRate = decoder.SampleRate;
+        stereo = decoder.Stereo;
+        sampleType = decoder.SampleType;
+        convertedData = stream.Data.AsSpan(0, stream.Length);
+        return true;
     }
 
     private static ushort ReadUInt16(byte[] data, ref int offset)

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Helion.Util.Extensions;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
@@ -10,6 +9,13 @@ namespace Helion.World.Entities.Definition;
 
 public class EntityDefinition
 {
+    private static readonly Dictionary<string, EntityType> ClassToType = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "BulletPuff", EntityType.BulletPuff },
+        { "Blood", EntityType.Blood },
+        { "AmbientSound", EntityType.AmbientSound },
+    };
+
     public static readonly EntityDefinition Default = new(-1, "DEFAULT-NULL", null, []);
 
     public int Id;
@@ -19,8 +25,8 @@ public class EntityDefinition
     public EntityProperties Properties;
     public readonly EntityStates States;
     public readonly IList<string> ParentClassNames;
-    public readonly bool IsBulletPuff;
     public bool IsInventory;
+    public EntityType Type;
     public int? SpawnState;
     public int? MissileState;
     public int? MeleeState;
@@ -33,6 +39,7 @@ public class EntityDefinition
     public string? BaseInventoryName;
     public string DehackedName = string.Empty;
     public bool DefinitionSet;
+    public bool IgnoreVanillaSpriteLookup;
 
     public EntityFrame? HealFrame;
 
@@ -53,8 +60,9 @@ public class EntityDefinition
         ParentClassNames = parentClassNames;
         foreach (var parentClass in ParentClassNames)
             ParentClassLookup.Add(parentClass);
-        IsBulletPuff = Name.EqualsIgnoreCase("BulletPuff");
         IsInventory = IsType(EntityDefinitionType.Inventory);
+        if (ClassToType.TryGetValue(Name, out var type))
+            Type = type;
     }
 
     /// <summary>

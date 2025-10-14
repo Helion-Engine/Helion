@@ -61,7 +61,7 @@
                 if (childObj == null)
                     throw new Exception($"Missing config object instantiation {fieldInfo.Name} at '{path}'");
 
-                string newPath = (path != "" ? $"{path}." : "") + fieldInfo.Name.ToLower();
+                string newPath = (path != "" ? $"{path}." : "") + fieldInfo.Name.ToLowerInvariant();
 
                 if (childObj is IConfigValue configValue)
                 {

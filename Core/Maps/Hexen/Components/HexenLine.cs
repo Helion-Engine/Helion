@@ -21,6 +21,8 @@ public class HexenLine : ILine
     public Vec2D StartPosition => Start.Position;
     public Vec2D EndPosition => End.Position;
     public bool OneSided => Back == null;
+    public int Special => (int)LineType;
+    public int SectorTag => 0;
 
     internal HexenLine(int id, DoomVertex start, DoomVertex end, DoomSide front, DoomSide? back,
         MapLineFlags flags, ZDoomLineSpecialType lineType, SpecialArgs args)
@@ -35,8 +37,6 @@ public class HexenLine : ILine
         Args = args;
     }
 
-    public IVertex GetStart() => Start;
-    public IVertex GetEnd() => End;
     public ISide GetFront() => Front;
     public ISide? GetBack() => Back;
 }

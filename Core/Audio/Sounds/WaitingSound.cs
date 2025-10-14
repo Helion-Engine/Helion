@@ -4,22 +4,14 @@ using Helion.World.Sound;
 
 namespace Helion.Audio.Sounds;
 
-public struct WaitingSound
+public struct WaitingSound(ISoundSource source, Vec3D? position, Vec3D? velocity, SoundInfo soundInfo, int priority, float offsetSeconds, int gameTick, SoundParams soundParams)
 {
-    public WaitingSound(ISoundSource source, Vec3D? position, Vec3D? velocity, SoundInfo soundInfo, int priority, SoundParams soundParams)
-    {
-        SoundSource = source;
-        Position = position;
-        Velocity = velocity;
-        SoundInfo = soundInfo;
-        Priority = priority;
-        SoundParams = soundParams;
-    }
-
-    public ISoundSource SoundSource { get; set; }
-    public Vec3D? Position { get; set; }
-    public Vec3D? Velocity { get; set; }
-    public SoundInfo SoundInfo { get; set; }
-    public int Priority { get; set; }
-    public SoundParams SoundParams { get; set; }
+    public ISoundSource SoundSource = source;
+    public Vec3D? Position = position;
+    public Vec3D? Velocity = velocity;
+    public SoundInfo SoundInfo = soundInfo;
+    public int Priority = priority;
+    public SoundParams SoundParams = soundParams;
+    public float OffsetSeconds = offsetSeconds;
+    public int GameTick = gameTick;
 }

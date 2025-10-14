@@ -17,44 +17,76 @@ on:
     - '*'
 
 jobs:
-  buildRelease:
-
+  buildReleaseLinux:
     runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Linux prereqs
+      run: sudo apt -y install clang zlib1g libsndfile1-dev libmpg123-dev libglib2.0-dev libasound2-dev patchelf fuse file
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+      
+    - name: Dotnet Publish Linux
+      run: dotnet publish -c Release -r linux-x64 Client/Client.csproj -p:SelfContainedRelease=true
+    - name: Dotnet Publish Linux AOT
+      run: dotnet publish -c Release -r linux-x64 Client/Client.csproj -p:AOT=true
+      
+    - name: Zip Linux Self-Contained
+      run: zip -r ../../Helion-${{ github.ref_name }}-linux-x64_SelfContained.zip *
+      working-directory: Publish/linux-x64_SelfContained
+    - name: Zip Linux AOT
+      run: zip -r ../../Helion-${{ github.ref_name }}-linux-x64_AOT.zip *
+      working-directory: Publish/linux-x64_AOT
+      
+    - name: Make Linux AppImage
+      run: Scripts/buildAndPackageAppImage.sh
+    
+    - name: Make Linux DEB
+      run: Scripts/buildAndPackageDeb.sh ${{ github.ref_name }}
+      
+    - name: Make Release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "*.zip,Helion.AppImage,Helion*.deb"
+        bodyFile: "RELEASENOTES.md"
+  
+  buildReleaseWindows:
+    runs-on: windows-2022
+    needs: buildReleaseLinux
 
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 9.0.x
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
-    - name: Dotnet Publish Linux
-      run: dotnet publish -c Release -r linux-x64 Client/Client.csproj
+      
     - name: Dotnet Publish Windows
-      run: dotnet publish -c Release -r win-x64 Client/Client.csproj
-    - name: Dotnet Publish Linux Self-Contained
-      run: dotnet publish -c Release -r linux-x64 -p:SelfContainedRelease=true Client/Client.csproj
-    - name: Dotnet Publish Windows Self-Contained
-      run: dotnet publish -c Release -r win-x64 -p:SelfContainedRelease=true Client/Client.csproj
-    - name: Install zip
-      uses: montudor/action-zip@v1
-    - name: Zip Linux
-      run: zip -r ../../Helion-${{ github.ref_name }}-linux-x64.zip *
-      working-directory: Publish/linux-x64
-    - name: Zip Linux Self-Contained
-      run: zip -r ../../Helion-${{ github.ref_name }}-linux-x64_SelfContained.zip *
-      working-directory: Publish/linux-x64_SelfContained
-    - name: Zip Windows
-      run: zip -r ../../Helion-${{ github.ref_name }}-win-x64.zip *
-      working-directory: Publish/win-x64
+      run: dotnet publish -c Release -r win-x64 Client/Client.csproj -p:SelfContainedRelease=true
+    - name: Dotnet Publish Windows AOT
+      run: dotnet publish -c Release -r win-x64 Client/Client.csproj -p:AOT=true
+      
     - name: Zip Windows Self-Contained
-      run: zip -r ../../Helion-${{ github.ref_name }}-win-x64_SelfContained.zip *
-      working-directory: Publish/win-x64_SelfContained
-    - name: Make Release
-      uses: ncipollo/release-action@v1
+      run: Compress-Archive -Path .\Publish\win-x64_SelfContained\* -DestinationPath .\Helion-${{ github.ref_name }}-win-x64_SelfContained.zip
+    - name: Zip Windows AOT
+      run: Compress-Archive -Path .\Publish\win-x64_AOT\* -DestinationPath .\Helion-${{ github.ref_name }}-win-x64_AOT.zip
+
+    - name: Add binaries to release (Windows)
+      uses: svenstaro/upload-release-action@v2
       with:
-        artifacts: "*.zip"
-        bodyFile: "RELEASENOTES.md"
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: '*.zip'
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true

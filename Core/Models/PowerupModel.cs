@@ -1,7 +1,11 @@
 namespace Helion.Models;
 
-public class PowerupModel
+public struct PowerupModel
 {
+    public PowerupModel()
+    {
+    }
+
     public string Name { get; set; } = string.Empty;
     public int PowerupType { get; set; }
     public ColorModel? PowerupColor { get; set; }

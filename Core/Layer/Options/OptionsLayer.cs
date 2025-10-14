@@ -8,18 +8,20 @@ using Helion.Layer.Options.Sections;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
 using Helion.Resources;
+using Helion.Strings;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Extensions;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
+using Helion.Util.Extensions;
 using Helion.Util.Timing;
 using Helion.Window;
 using Helion.Window.Input;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using static Helion.Util.Constants;
 
 namespace Helion.Layer.Options;
@@ -32,7 +34,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     public long LastClosedNanos;
     public bool CurrentlyBindingKey => m_sections[m_currentSectionIndex] is KeyBindingSection x && x.CurrentlyBinding;
 
-    private const string TiledBackgroundFlat = "FLOOR5_1";
     private const int BackIndex = 0;
     private const int ForwardIndex = 1;
     private const string Font = Fonts.SmallGray;
@@ -41,12 +42,12 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private readonly GameLayerManager m_manager;
     private readonly IConfig m_config;
+    private readonly PathsManager m_pathsManager;
     private readonly SoundManager m_soundManager;
     private readonly IWindow m_window;
     private readonly List<IOptionSection> m_sections;
     private readonly BoxList m_backForwardPos = new();
-    private readonly List<string> m_footerLines = [];
-    private readonly StringBuilder m_footerStringBuilder = new();
+    private readonly List<StringSlice> m_footerLines = [];
     private Dimension m_windowSize;
     private Vec2I m_cursorPos;
     private int m_currentSectionIndex;
@@ -64,12 +65,13 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     private bool m_resetMouse;
     private bool m_setMouse;
     private bool m_didMouseWheelScroll;
-    private IDialog? m_dialog;
+    private MessageDialog? m_dialog;
 
-    public OptionsLayer(GameLayerManager manager, IConfig config, SoundManager soundManager, IWindow window)
+    public OptionsLayer(GameLayerManager manager, IConfig config, PathsManager pathsManager, SoundManager soundManager, IWindow window)
     {
         m_manager = manager;
         m_config = config;
+        m_pathsManager = pathsManager;
         m_soundManager = soundManager;
         m_window = window;
         m_sections = GenerateSections();
@@ -134,8 +136,8 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
             return optionSection as ListedConfigSection ?? throw new($"Expected a listed config for {optionSection.GetType().FullName}");
 
         ListedConfigSection listedConfigSection = (section == OptionSectionType.Compatibility)
-            ? new CompatibilitySection(m_config, section, m_soundManager)
-            : new ListedConfigSection(m_config, section, m_soundManager);
+            ? new CompatibilitySection(m_config, section, m_pathsManager, m_soundManager, m_window.InputManager)
+            : new ListedConfigSection(m_config, section, m_pathsManager, m_soundManager, m_window.InputManager);
 
         listedConfigSection.OnAttributeChanged += ListedConfigSection_OnAttributeChanged;
         sectionMap[section] = listedConfigSection;
@@ -177,7 +179,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
     private List<IOptionSection> GenerateSections()
     {
-        Dictionary<OptionSectionType, IOptionSection> sectionMap = new();
+        Dictionary<OptionSectionType, IOptionSection> sectionMap = [];
 
         // This takes all the common section types and turns them into the
         // generic list of values that users can tweak. It does not handle
@@ -195,7 +197,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         // value, the closer to the front of the list it is. This is because
         // the enumeration values tell us in which order the sections should
         // be seen.
-        List<IOptionSection> sections = new();
+        List<IOptionSection> sections = [];
         foreach (OptionSectionType section in Enum.GetValues<OptionSectionType>())
         {
             if (!sectionMap.TryGetValue(section, out IOptionSection? optionSection))
@@ -311,7 +313,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
                 m_sections[m_currentSectionIndex].OnShow();
             }
 
-            if (input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.MouseCustom5) 
+            if (input.ConsumePressOrContinuousHold(Key.Right) || input.ConsumePressOrContinuousHold(Key.MouseCustom5)
                 || input.ConsumePressOrContinuousHold(Key.DPadRight) || buttonIndex == ForwardIndex)
             {
                 m_soundManager.PlayStaticSound(MenuSounds.Change);
@@ -355,19 +357,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         }
     }
 
-    private static void FillBackgroundRepeatingImages(IRenderableSurfaceContext ctx, IHudRenderContext hud)
-    {
-        if (!hud.Textures.HasImage(TiledBackgroundFlat))
-            return;
-
-        (int w, int h) = ctx.Surface.Dimension;
-        for (int y = 0; y < (h / 64) + 1; y++)
-            for (int x = 0; x < (w / 64) + 1; x++)
-                hud.Image(TiledBackgroundFlat, (x * 64, y * 64));
-
-        hud.FillBox((0, 0, w, h), Color.Black, alpha: 0.8f);
-    }
-
     public void Render(IRenderableSurfaceContext ctx, IHudRenderContext hud)
     {
         Animation.Tick();
@@ -378,7 +367,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         SetMouseFromRender(hud);
 
-        FillBackgroundRepeatingImages(ctx, hud);
+        hud.RenderFullscreenImageStretched(DefaultBackgroundImage);
 
         int fontSize = m_config.Window.GetMenuMediumFontSize();
         int largeFontSize = m_config.Window.GetMenuLargeFontSize();
@@ -416,7 +405,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         m_headerHeight += pageInstrArea.Height + m_config.Window.GetMenuScaled(16);
         if (m_lastSelectedRowDescription != m_selectedRowDescription)
-            GenerateFooterLines(m_selectedRowDescription, FooterFont, fontSize, hud, m_footerLines, m_footerStringBuilder, out m_footerHeight);
+            GenerateFooterLines(m_selectedRowDescription, FooterFont, fontSize, hud, m_footerLines, out m_footerHeight);
         m_lastSelectedRowDescription = m_selectedRowDescription;
 
         y += m_headerHeight;
@@ -443,7 +432,7 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
                 hover = section.OnClickableItem(m_cursorPos) || m_backForwardPos.GetIndex(m_cursorPos, out _);
             }
 
-            string cursor = hover ? "pointer" : "cursor";
+            string cursor = hover ? "helion-pointer" : "helion-cursor";
             if (hud.Textures.TryGet(cursor, out var cursorHandle, ResourceNamespace.Graphics))
             {
                 int size = hover ? 32 : 24;
@@ -467,21 +456,21 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         }
     }
 
-    private void GenerateFooterLines(string inputText, string font, int fontSize, IHudRenderContext hud, List<string> lines, StringBuilder builder,
+    private void GenerateFooterLines(string inputText, string font, int fontSize, IHudRenderContext hud, List<StringSlice> lines,
         out int requiredHeight)
     {
         // Setting descriptions may be verbose, and may need multiple lines to render.  This method precomputes 
         // the dimensions we'll need for a footer, so we can reserve room when doing rendering and scroll offset
         // calculations.  It also returns the split text, since we need to figure that out anyway and are going to
         // need it later when we actually render the footer.
-        LineWrap.Calculate(inputText, font, fontSize, hud.Width, hud, lines, builder, out requiredHeight);
+        hud.LineWrap(inputText, font, fontSize, hud.Width, lines, out requiredHeight);
 
         // Calculate how much room we need for the footer, with padding both above and below the text
         int padding = m_config.Window.GetMenuScaled(8);
         requiredHeight += padding * 2;
     }
 
-    private void RenderFooter(List<string> lines, int startY, string font, int fontSize, IHudRenderContext hud)
+    private void RenderFooter(List<StringSlice> lines, int startY, string font, int fontSize, IHudRenderContext hud)
     {
         int padding = m_config.Window.GetMenuScaled(8);
 
@@ -493,10 +482,11 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
 
         int y = hud.Height - m_footerHeight + padding;
 
-        foreach (string line in lines)
+        foreach (var line in lines)
         {
-            Dimension tokenSize = hud.MeasureText(line, font, fontSize);
-            hud.Text(line, font, fontSize, (0, y), out Dimension drawArea, both: Align.TopMiddle, color: Color.White);
+            var span = line.AsSpan();
+            Dimension tokenSize = hud.MeasureText(span, font, fontSize);
+            hud.Text(span, font, fontSize, (0, y), out Dimension drawArea, both: Align.TopMiddle, color: Color.White);
             y += drawArea.Height;
         }
     }
@@ -558,5 +548,6 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     public void Dispose()
     {
         // Nothing to dispose.
+        GC.SuppressFinalize(this);
     }
 }

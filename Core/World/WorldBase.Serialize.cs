@@ -1,83 +1,149 @@
 ﻿using Helion.Models;
 using Helion.Resources.Archives;
+using Helion.Util.Container;
+using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using System.Collections.Generic;
+using Helion.World.Special;
+using System;
 using System.Linq;
 
 namespace Helion.World;
 
 public partial class WorldBase
 {
+    private static readonly DynamicArray<EntityModel> s_entityModels = new(1024);
+    private static readonly DynamicArray<PlayerModel> s_playerModels = new();
+    private static readonly DynamicArray<SectorModel> s_sectorModels = new(256);
+    private static readonly DynamicArray<LineModel> s_lineModels = new(256);
+    private static readonly DynamicArray<ConfigValueModel> s_configValueModels = [];
+    private static readonly DynamicArray<FileModel> s_fileModels = [];
+    private static readonly DynamicArray<string> s_visitedMaps = [];
+    private static readonly SpecialModelData s_specialModelData = new();
+    private static readonly WorldModel s_worldModel = new();
+    private static int s_entityModelAlloc;
+
     public WorldModel ToWorldModel()
     {
-        List<SectorModel> sectorModels = new(256);
-        List<SectorDamageSpecialModel> sectorDamageSpecialModels = new(256);
-        SetSectorModels(sectorModels, sectorDamageSpecialModels);
+        s_entityModels.Clear();
+        s_playerModels.Clear();
+        s_sectorModels.Clear();
+        s_lineModels.Clear();
+        s_configValueModels.Clear();
+        s_fileModels.Clear();
+        s_visitedMaps.Clear();
+        s_specialModelData.Clear();
 
-        return new WorldModel()
-        {
-            ConfigValues = GetConfigValuesModel(),
-            Files = GetGameFilesModel(),
-            MapName = MapName,
-            WorldState = WorldState,
-            Gametick = Gametick,
-            LevelTime = LevelTime,
-            SoundCount = m_soundCount,
-            Gravity = Gravity,
-            RandomIndex = Random.RandomIndex,
-            Skill = SkillLevel,
-            CurrentBossTarget = CurrentBossTarget,
+        SetSectorModels(s_sectorModels, s_specialModelData.SectorDamageSpecials);
+        SpecialManager.GetSpecialModels(s_specialModelData);
 
-            Players = GetPlayerModels(),
-            Entities = GetEntityModels(),
-            Sectors = sectorModels,
-            DamageSpecials = sectorDamageSpecialModels,
-            Lines = GetLineModels(),
-            Specials = SpecialManager.GetSpecialModels(),
-            VisitedMaps = GlobalData.VisitedMaps.Select(x => x.MapName).ToList(),
-            TotalTime = GlobalData.TotalTime,
-
-            TotalMonsters = LevelStats.TotalMonsters,
-            TotalItems = LevelStats.TotalItems,
-            TotalSecrets = LevelStats.TotalSecrets,
-            KillCount = LevelStats.KillCount,
-            ItemCount = LevelStats.ItemCount,
-            SecretCount = LevelStats.SecretCount,
-            MusicName = m_lastMusicChange == null ? MapInfo.Music : m_lastMusicChange.Name
-        };
+        s_worldModel.ConfigValues = GetConfigValuesModel();
+        s_worldModel.Files = GetGameFilesModel(s_fileModels);
+        s_worldModel.MapName = MapName;
+        s_worldModel.WorldState = WorldState;
+        s_worldModel.Gametick = Gametick;
+        s_worldModel.LevelTime = LevelTime;
+        s_worldModel.SoundCount = m_soundCount;
+        s_worldModel.Gravity = Gravity;
+        s_worldModel.RandomIndex = Random.RandomIndex;
+        s_worldModel.Skill = SkillLevel;
+        s_worldModel.CurrentBossTarget = CurrentBossTarget;
+        s_worldModel.Players = GetPlayerModels();
+        s_worldModel.Entities = GetEntityModels();
+        s_worldModel.Sectors = s_sectorModels;
+        s_worldModel.Lines = GetLineModels();
+        s_worldModel.VisitedMaps = GetVisitedMaps();
+        s_worldModel.TotalTime = GlobalData.TotalTime;
+        s_worldModel.Specials = s_specialModelData.Specials;
+        s_worldModel.MoveSpecials = s_specialModelData.MoveSpecials;
+        s_worldModel.ScrollSpecials = s_specialModelData.ScrollSpecials;
+        s_worldModel.LightChangeSpecials = s_specialModelData.LightChangeSpecials;
+        s_worldModel.LightFireFlickerDoomSpecials = s_specialModelData.LightFireFlickerDoomSpecials;
+        s_worldModel.LightFlickerDoomSpecials = s_specialModelData.LightFlickerDoomSpecials;
+        s_worldModel.LightPulsateSpecials = s_specialModelData.LightPulsateSpecials;
+        s_worldModel.LightStrobeSpecials = s_specialModelData.LightStrobeSpecials;
+        s_worldModel.PushSpecials = s_specialModelData.PushSpecials;
+        s_worldModel.StairSpecials = s_specialModelData.StairSpecials;
+        s_worldModel.ElevatorSpecials = s_specialModelData.ElevatorSpecials;
+        s_worldModel.DamageSpecials = s_specialModelData.SectorDamageSpecials;
+        s_worldModel.SwitchSpecials = s_specialModelData.SwitchSpecials;
+        s_worldModel.TotalMonsters = LevelStats.TotalMonsters;
+        s_worldModel.TotalItems = LevelStats.TotalItems;
+        s_worldModel.TotalSecrets = LevelStats.TotalSecrets;
+        s_worldModel.KillCount = LevelStats.KillCount;
+        s_worldModel.ItemCount = LevelStats.ItemCount;
+        s_worldModel.SecretCount = LevelStats.SecretCount;
+        s_worldModel.MusicName = m_activeMusic;
+        return s_worldModel;
     }
 
-    private IList<ConfigValueModel> GetConfigValuesModel()
+    protected static void EnsureEntityModelSize(int size)
     {
-        List<ConfigValueModel> items = new(32);
+        if (s_entityModelAlloc >= size)
+            return;
+
+        s_entityModels.EnsureCapacity(size);
+        for (int i = s_entityModelAlloc; i < size; i++)
+        {
+            if (s_entityModels[i] == null)
+                s_entityModels.Data[i] = new();
+        }
+
+        s_entityModelAlloc = size;
+    }
+
+    private DynamicArray<string> GetVisitedMaps()
+    {
+        for (int i = 0; i < GlobalData.VisitedMaps.Count; i++)
+            s_visitedMaps.Add(GlobalData.VisitedMaps[i].MapName);
+        return s_visitedMaps;
+    }
+
+    private DynamicArray<ConfigValueModel> GetConfigValuesModel()
+    {
+        s_configValueModels.Clear();
         foreach (var (path, component) in Config.GetComponents())
         {
             if (!component.Attribute.Serialize)
                 continue;
 
-            items.Add(new ConfigValueModel(path, component.Value.ObjectValue));
+            s_configValueModels.Add(new ConfigValueModel(path, component.Value.ObjectValue));
         }
-        return items;
+        return s_configValueModels;
     }
 
-    public GameFilesModel GetGameFilesModel()
+    public GameFilesModel GetGameFilesModel() => GetGameFilesModel([]);
+
+    public GameFilesModel GetGameFilesModel(DynamicArray<FileModel> files)
     {
         return new GameFilesModel()
         {
             IWad = GetIWadFileModel(),
-            Files = GetFileModels(),
+            Files = GetFileModels(files),
         };
     }
 
-    private IList<PlayerModel> GetPlayerModels()
+    private DynamicArray<PlayerModel> GetPlayerModels()
     {
-        List<PlayerModel> playerModels = new(EntityManager.Players.Count + EntityManager.VoodooDolls.Count);
+        s_playerModels.EnsureCapacity(EntityManager.Players.Count + EntityManager.VoodooDolls.Count);
+        var length = 0;
+
         foreach (var player in EntityManager.Players)
-            playerModels.Add(player.ToPlayerModel());
+        {
+            var model = s_playerModels[length];
+            model ??= PlayerModel.Create();
+            s_playerModels.Data[length++] = player.ToPlayerModel(model);
+        }
+
         foreach (var player in EntityManager.VoodooDolls)
-            playerModels.Add(player.ToPlayerModel());
-        return playerModels;
+        {
+            var model = s_playerModels[length];
+            model ??= PlayerModel.Create();
+            s_playerModels.Data[length++] = player.ToPlayerModel(model);
+        }
+
+        s_playerModels.Length = length;
+        return s_playerModels;
     }
 
     private FileModel GetIWadFileModel()
@@ -89,46 +155,60 @@ public partial class WorldBase
         return new FileModel();
     }
 
-    private IList<FileModel> GetFileModels()
+    private DynamicArray<FileModel> GetFileModels(DynamicArray<FileModel> files)
     {
-        List<FileModel> fileModels = new();
         var archives = ArchiveCollection.Archives;
+        files.EnsureCapacity(archives.Count());
         foreach (var archive in archives)
         {
             if (archive.ExtractedFrom != null || archive.MD5 == Archive.DefaultMD5)
                 continue;
-            fileModels.Add(archive.ToFileModel());
+            files.Add(archive.ToFileModel());
         }
 
-        return fileModels;
+        return files;
     }
 
-    private List<EntityModel> GetEntityModels()
+    private DynamicArray<EntityModel> GetEntityModels()
     {
-        List<EntityModel> entityModels = new(2048);
+        s_entityModels.EnsureCapacity(EntityManager.EntityCount);
+        var length = 0;
         for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
             if (!entity.IsPlayer)
-                entityModels.Add(entity.ToEntityModel(new EntityModel()));
+            {
+                var model = s_entityModels[length];
+                model ??= new();
+                s_entityModels.Data[length++] = entity.ToEntityModel(model);
+            }
         }
-        return entityModels;
+
+        for (int i = 0; i < EntityManager.RemovedPlayers.Count; i++)
+        {
+            var model = s_entityModels[length];
+            model ??= PlayerModel.Create();
+            s_entityModels.Data[length++] = EntityManager.RemovedPlayers[i].ToEntityModel(model);
+        }
+
+        s_entityModelAlloc = Math.Max(s_entityModelAlloc, length);
+        s_entityModels.Length = length;
+        return s_entityModels;
     }
 
-    private void SetSectorModels(List<SectorModel> sectorModels, List<SectorDamageSpecialModel> sectorDamageSpecialModels)
+    private void SetSectorModels(DynamicArray<SectorModel> sectorModels, DynamicArray<SectorDamageSpecialModel> sectorDamageSpecialModels)
     {
         for (int i = 0; i < Sectors.Count; i++)
         {
             Sector sector = Sectors[i];
-            if (sector.SoundTarget.Entity != null || sector.DataChanged)
+            if (sector.SoundTarget.NotNull() || sector.DataChanged)
                 sectorModels.Add(sector.ToSectorModel(this));
             if (sector.SectorDamageSpecial != null)
                 sectorDamageSpecialModels.Add(sector.SectorDamageSpecial.ToSectorDamageSpecialModel());
         }
     }
 
-    private List<LineModel> GetLineModels()
+    private DynamicArray<LineModel> GetLineModels()
     {
-        List<LineModel> lineModels = new(256);
         for (int i = 0; i < Lines.Count; i++)
         {
             Line line = Lines[i];
@@ -139,9 +219,9 @@ public partial class WorldBase
             if (!line.DataChanged)
                 continue;
 
-            lineModels.Add(line.ToLineModel(this));
+            s_lineModels.Add(line.ToLineModel(this));
         }
 
-        return lineModels;
+        return s_lineModels;
     }
 }

@@ -26,20 +26,24 @@ public sealed class Inventory
     public const string PowerupClassName = "POWERUP";
     public const string RadSuitClassName = "RADSUIT";
 
-    private static readonly List<string> PowerupEnumStringValues = GetPowerEnumValues();
-    private static readonly Dictionary<string, string> PowerupLookup = new();
+    private static string[]? s_powerEnumValues;
+    private static readonly string[] PowerupEnumStringValues = GetPowerEnumValues();
+    private static readonly Dictionary<string, string> PowerupLookup = [];
     private static readonly string PowerString = "Power";
 
-    private readonly List<string> m_addedBaseNames = new();
+    private readonly List<string> m_addedBaseNames = [];
     private readonly Comparison<InventoryItem> m_sortKeyCompare = new(CompareKeys);
 
-    private static List<string> GetPowerEnumValues()
+    private static string[] GetPowerEnumValues()
     {
-        List<string> values = new();
+        if (s_powerEnumValues != null)
+            return s_powerEnumValues;
+
         var enumValues = Enum.GetValues<PowerupType>();
-        foreach (PowerupType value in enumValues)
-            values.Add(value.ToString());
-        return values;
+        s_powerEnumValues = new string[enumValues.Length];
+        for (int i = 0; i < enumValues.Length; i++)
+            s_powerEnumValues[i] = enumValues[i].ToString();
+        return s_powerEnumValues;
     }
 
     /// <summary>
@@ -58,7 +62,7 @@ public sealed class Inventory
     /// </summary>
     public Weapons Weapons;
 
-    public List<IPowerup> Powerups = new();
+    public List<IPowerup> Powerups = [];
 
     public IPowerup? PowerupEffectColor;
     public IPowerup? PowerupEffectColorMap;
@@ -114,29 +118,30 @@ public sealed class Inventory
         SetPriorityPowerupEffects();
     }
 
-    public InventoryModel ToInventoryModel()
+    public void ToInventoryModel(InventoryModel model)
     {
-        List<InventoryItemModel> inventoryItems = new();
+        model.Items.Clear();
+        model.Weapons.Clear();
+        model.Powerups.Clear();
+
+        model.Items.EnsureCapacity(ItemList.Count);
         for (int i = 0; i < ItemList.Count; i++)
         {
             var item = ItemList[i];
-            inventoryItems.Add(new InventoryItemModel()
+            model.Items.Add(new InventoryItemModel()
             {
-                Name = item.Definition.Name.ToString(),
+                Name = item.Definition.Name,
                 Amount = item.Amount
             });
         }
 
-        List<PowerupModel> powerupModels = new();
-        for (int i = 0; i < Powerups.Count; i++)
-            powerupModels.Add(Powerups[i].ToPowerupModel());
+        var weapons = Weapons.GetOwnedWeapons();
+        model.Weapons.EnsureCapacity(weapons.Count);
+        for (int i = 0; i < weapons.Count; i++)
+            model.Weapons.Add(weapons[i].Definition.Name);
 
-        return new InventoryModel()
-        {
-            Items = inventoryItems,
-            Weapons = Weapons.GetOwnedWeaponNames(),
-            Powerups = powerupModels,
-        };
+        for (int i = 0; i < Powerups.Count; i++)
+            model.Powerups.Add(Powerups[i].ToPowerupModel());
     }
 
     public static string GetBaseInventoryName(EntityDefinition definition)
@@ -195,6 +200,7 @@ public sealed class Inventory
     {
         Powerups.Remove(powerup);
         SetPriorityPowerupEffects();
+        powerup.Destroy();
     }
 
     public void ClearPowerups()
@@ -335,7 +341,7 @@ public sealed class Inventory
 
     private static PowerupType GetPowerupType(ReadOnlySpan<char> type)
     {
-        for (int i = 0; i < PowerupEnumStringValues.Count; i++)
+        for (int i = 0; i < PowerupEnumStringValues.Length; i++)
         {
             if (MemoryExtensions.Equals(type, PowerupEnumStringValues[i], StringComparison.OrdinalIgnoreCase))
                 return (PowerupType)i;
@@ -521,6 +527,19 @@ public sealed class Inventory
         // If we didn't find it, then it's possibly indexed in some other
         // data structure (ex: weapons).
         Weapons.Remove(name);
+    }
+
+    public bool CheckAmmo(Weapon weapon, int ammoCount = -1)
+    {
+        // Inifinite if no ammo type (fist, chainsaw)
+        string ammoType = weapon.Definition.Properties.Weapons.AmmoType;
+        if (ammoType.Length == 0)
+            return true;
+
+        if (ammoCount == -1)
+            ammoCount = Amount(weapon.Definition.Properties.Weapons.AmmoType);
+
+        return ammoCount >= weapon.Definition.Properties.Weapons.AmmoUse;
     }
 
     public List<InventoryItem> GetInventoryItems() => ItemList;

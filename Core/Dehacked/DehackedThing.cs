@@ -48,4 +48,5 @@ public class DehackedThing
     public string? PickupMessage { get; set; }
     public string? TranslationLump { get; set; }
     public double? SelfDamageFactor { get; set; }
+    public int? BloodColor { get; set; }
 }

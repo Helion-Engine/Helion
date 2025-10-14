@@ -1,4 +1,6 @@
 ﻿using FluentAssertions;
+using Helion.Geometry.Vectors;
+using Helion.Maps.Specials;
 using Helion.World;
 using Helion.World.Entities.Players;
 using Xunit;
@@ -40,6 +42,21 @@ public partial class BoomActions
         Player.IsDead.Should().BeTrue();
 
         Player.Inventory.Remove("RadSuit", 1);
+    }
+
+    [Fact(DisplayName = "Sector doesn't kill player when in sector and not on floor")]
+    public void InSectorNotOnFloorKillPlayerCheck()
+    {
+        GameActions.SetEntityPosition(World, Player, new Vec3D(584, 1920, 0));
+        Player.Sector.Floor.Z.Should().Be(-8);
+        Player.Sector.SectorDamageSpecial.Should().NotBeNull();
+        Player.Sector.SectorDamageSpecial!.InstantKillEffect.Should().Be(InstantKillEffect.KillMonsters | InstantKillEffect.KillUnprotectedPlayer);
+        GameActions.TickWorld(World, 1);
+        Player.IsDead.Should().BeFalse();
+
+        GameActions.SetEntityPosition(World, Player, new Vec3D(600, 1920, -8));
+        GameActions.TickWorld(World, 1);
+        Player.IsDead.Should().BeTrue();
     }
 
     [Fact(DisplayName = "Kill player and exit")]
@@ -111,5 +128,33 @@ public partial class BoomActions
         GameActions.SetEntityToLine(World, Player, 424, 64);
         GameActions.TickWorld(World, 1);
         Player.IsDead.Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Kill grounded monsters doesn't kill not shootable")]
+    public void KillGroundedMonstersNotShootable()
+    {
+        var monsters = GameActions.GetSectorEntities(World, 146);
+        var imp = GameActions.CreateEntity(World, "DoomImp", (704, 1472, 0));
+        imp.Flags.Shootable = false;
+        GameActions.TickWorld(World, 1);
+        imp.IsDead.Should().BeFalse();
+
+        imp.Flags.Shootable = true;
+        GameActions.TickWorld(World, 1);
+        imp.IsDead.Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "Kill grounded monsters will kill monster when on highest floor z")]
+    public void KillGroundedMonstersNotOnKillSector()
+    {
+        var imp = GameActions.CreateEntity(World, "DoomImp", (896, 1864, 0));
+        GameActions.SetEntityPosition(World, imp, (896, 1864, 0));
+        imp.Position.Z.Should().Be(0);
+        imp.Sector.Floor.Z.Should().Be(-8);
+        imp.HighestFloorSector.Floor.Z.Should().Be(imp.Position.Z);
+        imp.Sector.SectorDamageSpecial.Should().NotBeNull();
+        imp.Sector.SectorDamageSpecial!.InstantKillEffect.Should().Be(InstantKillEffect.KillMonsters | InstantKillEffect.KillUnprotectedPlayer);
+        GameActions.TickWorld(World, 1);
+        imp.IsDead.Should().BeTrue();
     }
 }

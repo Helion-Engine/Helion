@@ -3,6 +3,11 @@ using Helion.Geometry.Vectors;
 
 namespace Helion.Audio;
 
+public readonly struct UpdateParams(float distance)
+{
+    public readonly float DistanceFromListener = distance;
+}
+
 /// <summary>
 /// A source of audio that can be played.
 /// </summary>
@@ -23,8 +28,15 @@ public interface IAudioSource : IDisposable
     void SetVelocity(float x, float y, float z);
     Vec3F GetVelocity();
 
+    void SetOffsetSeconds(float offset);
+    float GetOffsetSeconds();
+
     float GetPitch();
     void SetPitch(float pitch);
+
+    void SetGain(float gain);
+
+    void SetRelative(bool set);
 
     AudioData AudioData { get; set; }
 
@@ -43,6 +55,8 @@ public interface IAudioSource : IDisposable
     /// not actually dispose the object so it can be used again from the cache.
     /// </summary>
     void CacheFree();
+
+    void Update(in UpdateParams updateParams);
 
     IAudioSource? Previous { get; set; }
     IAudioSource? Next { get; set; }

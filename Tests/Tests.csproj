@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update ="Resources\*" CopyToOutputDirectory="PreserveNewest"/>
+    <None Update="Resources\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <Target Name="GetSupportFiles">

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Helion.Geometry.Segments;
 using Helion.Maps.Doom.Components;
 using Helion.Maps.Hexen;
@@ -33,7 +32,7 @@ public static class HexenGeometryBuilder
         if (!bspTree.HasValue)
             return null;
 
-        return new(map, builder, bspTree.Value.Item1, bspTree.Value.Item2);
+        return new(builder, bspTree.Value.Item1, bspTree.Value.Item2);
     }
 
     private static SectorPlane CreateSectorPlane(DoomSector doomSector,
@@ -47,18 +46,16 @@ public static class HexenGeometryBuilder
 
     private static void PopulateSectorData(HexenMap map, GeometryBuilder builder, TextureManager textureManager)
     {
-        SectorData sectorData = new();
         foreach (DoomSector doomSector in map.Sectors)
         {
             SectorPlane floorPlane = CreateSectorPlane(doomSector, SectorPlaneFace.Floor, textureManager);
             SectorPlane ceilingPlane = CreateSectorPlane(doomSector, SectorPlaneFace.Ceiling, textureManager);
             ZDoomSectorSpecialType sectorSpecial = (ZDoomSectorSpecialType)SectorSpecialData.GetType(doomSector.SectorType, SectorDataType.ZDoom);
-            SectorSpecialData.SetSectorData(doomSector.SectorType, sectorData, SectorDataType.ZDoom);
+            var sectorData = SectorSpecialData.GetSectorData(doomSector.SectorType, SectorDataType.ZDoom);
 
-            Sector sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
+            var sector = new Sector(builder.Sectors.Count, doomSector.Tag, doomSector.LightLevel,
                 floorPlane, ceilingPlane, sectorSpecial, sectorData);
             builder.Sectors.Add(sector);
-            sectorData.Clear();
         }
     }
 
@@ -154,7 +151,7 @@ public static class HexenGeometryBuilder
                 special = new LineSpecial(hexenLine.LineType, LineActivationType.Any, LineSpecial.GetCompatibility(hexenLine));
 
             SpecialArgs specialArgs = new(hexenLine.Args);
-            LineSpecial.ValidateActivationFlags(special.LineSpecialType, ref flags);
+            LineSpecial.ValidateActivationFlags(special.LineSpecialType, ref flags, map.MapType);
 
             Line line = new(builder.Lines.Count, seg, front, back, flags, special, specialArgs);
             builder.Lines.Add(line);

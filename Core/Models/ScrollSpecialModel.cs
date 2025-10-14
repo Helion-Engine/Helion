@@ -7,7 +7,14 @@ using Helion.World.Special.Specials;
 
 namespace Helion.Models;
 
-public class ScrollSpecialModel : ISpecialModel
+public struct ScrollSideOffsets
+{
+    public Vector2D Up { get; set; }   
+    public Vector2D Mid { get; set; }
+    public Vector2D Low { get; set; }
+}
+
+public struct ScrollSpecialModel : ISpecialModel
 {
     public int? SectorId { get; set; }
     public int? LineId { get; set; }
@@ -21,13 +28,17 @@ public class ScrollSpecialModel : ISpecialModel
     public double? AccelSpeedX { get; set; }
     public double? AccelSpeedY { get; set; }
     public double? AccelLastZ { get; set; }
+    public int ScrollFlags { get; set; }
+    public ScrollSideOffsets? FrontOffset { get; set; }
+    public ScrollSideOffsets? BackOffset { get; set; }
+
+    // Deprecated
     public double[]? OffsetFrontX { get; set; }
     public double[]? OffsetFrontY { get; set; }
     public double[]? OffsetBackX { get; set; }
     public double[]? OffsetBackY { get; set; }
-    public int ScrollFlags { get; set; }
 
-    public ISpecial? ToWorldSpecial(IWorld world)
+    public readonly ISpecial? ToWorldSpecial(IWorld world)
     {
         Sector? accelSector = null;
         if (AccelSectorId.HasValue && world.IsSectorIdValid(AccelSectorId.Value))

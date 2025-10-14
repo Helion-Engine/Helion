@@ -17,7 +17,7 @@ public class LightChangeSpecial : SectorSpecialBase
         Set(world, sector, lightLevel, fadeTics);
     }
 
-    public LightChangeSpecial(IWorld world, Sector sector, LightChangeSpecialModel model)
+    public LightChangeSpecial(IWorld world, Sector sector, in LightChangeSpecialModel model)
         : base(world, sector)
     {
         m_lightLevel = model.Light;
@@ -50,9 +50,9 @@ public class LightChangeSpecial : SectorSpecialBase
         }
     }
 
-    public override ISpecialModel? ToSpecialModel()
+    public LightChangeSpecialModel ToSpecialModel()
     {
-        return new LightChangeSpecialModel()
+        return new()
         {
             SectorId = Sector.Id,
             Light = m_lightLevel,

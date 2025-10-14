@@ -18,6 +18,7 @@ public class SkyTransformTexture
     public Vec2F Scroll;
     public Vec2F Scale;
     public Vec2F CurrentScroll;
+    public float? MidTexel;
     public SkyTransformType Type;
 }
 
@@ -34,7 +35,7 @@ public class SkyTransform
     public SkyTransformTexture Sky = null!;
     public SkyTransformTexture? Foreground;
 
-    public static SkyTransform FromId24SkyDef(int textureIndex, int? foregroundTextureIndex, SkyDef skyDef)
+    public static SkyTransform FromId24SkyDef(int textureIndex, int? foregroundTextureIndex, Id24SkyDef skyDef)
     {
         return new()
         {
@@ -42,12 +43,29 @@ public class SkyTransform
             {
                 TextureName = skyDef.Name,
                 TextureIndex = textureIndex,
-                Offset = CalcOffset((float)skyDef.Mid),
+                Offset = default,
                 Scroll = new((float)(skyDef.ScrollX / Constants.TicksPerSecond), (float)(skyDef.ScrollY / Constants.TicksPerSecond)),
                 Scale = new((float)skyDef.ScaleX, (float)skyDef.ScaleY),
-                Type = FromId24SkyType(skyDef.Type)
+                Type = FromId24SkyType(skyDef.Type),
+                MidTexel = (float)skyDef.Mid
             },
             Foreground = CreateSkyTextureFromForegroundTexture(skyDef, foregroundTextureIndex)
+        };
+    }
+
+    public static SkyTransform FromMapInfoSky(int textureIndex, Definitions.MapInfo.MapInfoDef mapInfo)
+    {
+        return new()
+        {
+            Sky = new()
+            {
+                TextureName = mapInfo.Sky1.Name,
+                TextureIndex = textureIndex,
+                Offset = default,
+                Scroll = new ((float)mapInfo.Sky1.ScrollSpeed, 0),
+                Scale = Vec2F.One,
+                Type = SkyTransformType.Normal
+            }
         };
     }
 
@@ -60,7 +78,7 @@ public class SkyTransform
         };
     }
 
-    private static SkyTransformTexture? CreateSkyTextureFromForegroundTexture(SkyDef skyDef, int? foregroundTextureIndex)
+    private static SkyTransformTexture? CreateSkyTextureFromForegroundTexture(Id24SkyDef skyDef, int? foregroundTextureIndex)
     {
         var foreground = skyDef.ForegroundTex;
         if (foregroundTextureIndex == null || foreground == null)
@@ -70,15 +88,11 @@ public class SkyTransform
         {
             TextureName = foreground.Name,
             TextureIndex = foregroundTextureIndex.Value,
-            Offset = CalcOffset((float)foreground.Mid),
+            Offset = default,
             Scroll = new((float)(foreground.ScrollX / Constants.TicksPerSecond), (float)(foreground.ScrollY / Constants.TicksPerSecond)),
             Scale = new((float)foreground.ScaleX, (float)foreground.ScaleY),
-            Type = SkyTransformType.Normal
+            Type = SkyTransformType.Normal,
+            MidTexel = (float)foreground.Mid
         };
-    }
-
-    private static Vec2F CalcOffset(float mid)
-    {
-        return new(0, mid - 100);
     }
 }

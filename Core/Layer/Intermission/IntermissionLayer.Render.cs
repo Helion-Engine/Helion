@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
@@ -139,22 +140,23 @@ public partial class IntermissionLayer
 
         if (IntermissionState >= IntermissionState.NextMap && NextMapInfo != null)
         {
-            hud.Image(NowEnteringImage, (0, offsetY), out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
+            hud.Image(NowEnteringImage, (0, offsetY) + GetPatchOffset(hud, NowEnteringImage, m_textUpscalingFactor), out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
             offsetY += (5 * drawArea.Height) / 4;
             DrawMapTitle(hud, NextMapInfo, ref offsetY, m_textUpscalingFactor);
         }
         else
         {
             DrawMapTitle(hud, CurrentMapInfo, ref offsetY, m_textUpscalingFactor);
-            hud.Image(FinishedImage, (0, offsetY), both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
+            hud.Image(FinishedImage, (0, offsetY) + GetPatchOffset(hud, FinishedImage, m_textUpscalingFactor), both: Align.TopMiddle, upscalingFactor: m_textUpscalingFactor);
         }
     }
 
-    private static void DrawMapTitle(IHudRenderContext hud, MapInfoDef mapInfo, ref int offsetY, int textUpscalingFactor)
+    private void DrawMapTitle(IHudRenderContext hud, MapInfoDef mapInfo, ref int offsetY, int textUpscalingFactor)
     {
         if (!string.IsNullOrEmpty(mapInfo.TitlePatch))
         {
-            hud.Image(mapInfo.TitlePatch, (0, offsetY), out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: textUpscalingFactor);
+            hud.Image(mapInfo.TitlePatch, (0, offsetY) + GetPatchOffset(hud, mapInfo.TitlePatch, m_textUpscalingFactor),
+                out HudBox drawArea, both: Align.TopMiddle, upscalingFactor: textUpscalingFactor);
             offsetY += (5 * drawArea.Height) / 4;
             return;
         }
@@ -162,17 +164,22 @@ public partial class IntermissionLayer
         // TODO would look nicer if there was a large font for the level text
         const int LevelInfoFontSize = 8;
 
-        if (mapInfo.NiceName.Length > 0)
-        {
-            hud.Text(mapInfo.NiceName, LevelInfoFont, LevelInfoFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
-            offsetY += hud.MeasureText(mapInfo.NiceName, LevelInfoFont, LevelInfoFontSize).Height;
-        }
+        string name = mapInfo.GetNiceNameOrLookup(m_archiveCollection.Language);
+        hud.Text(name, LevelInfoFont, LevelInfoFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
+        offsetY += hud.MeasureText(name, LevelInfoFont, LevelInfoFontSize).Height;
 
         if (mapInfo.Author.Length > 0)
         {
             hud.Text(mapInfo.Author, LevelInfoFont, LevelInfoFontSize, (0, offsetY), both: Align.TopMiddle, color: Color.White);
             offsetY += hud.MeasureText(mapInfo.Author, LevelInfoFont, LevelInfoFontSize).Height + 1;
         }
+    }
+
+    private static Vec2I GetPatchOffset(IHudRenderContext hud, string name, int upscalingFactor)
+    {
+        if (hud.Textures.TryGet(name, out var text, upscalingFactor: upscalingFactor))
+            return TranslateDoomOffset(text.Offset);
+        return Vec2I.Zero;
     }
 
     private void DrawStatistics(IHudRenderContext hud)
@@ -240,7 +247,7 @@ public partial class IntermissionLayer
         string GetTimeString(int seconds)
         {
             int minutes = seconds / 60;
-            string secondsStr = (seconds % 60).ToString().PadLeft(2, '0');
+            string secondsStr = (seconds % 60).ToString(CultureInfo.CurrentCulture).PadLeft(2, '0');
             return $"{minutes}:{secondsStr}";
         }
 

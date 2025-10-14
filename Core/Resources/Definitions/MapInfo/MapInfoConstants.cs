@@ -231,7 +231,7 @@ public partial class MapInfoDefinition
         EndGame_CastName
     };
 
-    private class MapOptionSet
+    private sealed class MapOptionSet
     {
         public MapOptions Option { get; set; }
         public bool Value { get; set; }

@@ -11,7 +11,7 @@ public static class ClosetClassifier
 {
     // Assumes entities and geometry have been populated. Should be done as
     // a final post-processing step.
-    public static void Classify(WorldBase world, bool isFromSave)
+    public static void Classify(WorldBase world, BspTreeNew bspTree, bool isFromSave)
     {
         if (world.SameAsPreviousMap)
         {
@@ -20,7 +20,7 @@ public static class ClosetClassifier
                 if (entity.Flags.Friendly)
                     continue;
 
-                var subsector = world.Geometry.BspTree.Subsectors[entity.Subsector.Id];
+                var subsector = bspTree.Subsectors[entity.SubsectorId];
                 if (subsector.IslandId < 0 || subsector.IslandId >= world.Geometry.IslandGeometry.Islands.Count)
                     continue;
                 var island = world.Geometry.IslandGeometry.Islands[subsector.IslandId];
@@ -38,7 +38,7 @@ public static class ClosetClassifier
             return;
         }
 
-        PopulateLookups(world, out var islandToEntities, out var entityToSubsector);
+        PopulateLookups(world, bspTree, out var islandToEntities, out var entityToSubsector);
 
         for (int i = 0; i < world.Geometry.IslandGeometry.Islands.Count; i++)
         {
@@ -72,17 +72,17 @@ public static class ClosetClassifier
         }
     }
 
-    private static void PopulateLookups(WorldBase world, out Dictionary<int, List<Entity>> islandToEntity,
+    private static void PopulateLookups(WorldBase world, BspTreeNew bspTree, out Dictionary<int, List<Entity>> islandToEntity,
         out Dictionary<int, BspSubsector> entityToSubsector)
     {
-        islandToEntity = new();
-        entityToSubsector = new();
+        islandToEntity = [];
+        entityToSubsector = [];
         foreach (Island island in world.Geometry.IslandGeometry.Islands)
-            islandToEntity[island.Id] = new();
+            islandToEntity[island.Id] = [];
 
         for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
-            var subsector = world.Geometry.BspTree.Subsectors[entity.Subsector.Id];
+            var subsector = bspTree.Subsectors[entity.SubsectorId];
             islandToEntity[subsector.IslandId].Add(entity);
             entityToSubsector[entity.Id] = subsector;
         }
@@ -113,7 +113,7 @@ public static class ClosetClassifier
         for (int i = 0; i < entities.Count; i++)
         {
             var entity = entities[i];
-            if (!entityToSubsector.TryGetValue(entity.Id, out var subsector))
+            if (!entityToSubsector.TryGetValue(entity.Id, out _))
                 continue;
 
             // Anything not a monster is not a monster closet.
@@ -148,7 +148,7 @@ public static class ClosetClassifier
 
         foreach (Sector sector in sectors)
         {
-            if (sector.Lines.Count > MaxBridgeLines)
+            if (sector.Lines.Length > MaxBridgeLines)
                 continue;
             if (!sector.AreFlatsStatic)
                 continue;

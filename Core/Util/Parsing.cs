@@ -14,7 +14,7 @@ public static class Parsing
 
     private static string CleanForDouble(string value)
     {
-        if (value.Contains(","))
+        if (value.Contains(','))
             return value.Replace(",", ".");
         return value;
     }

@@ -142,6 +142,50 @@ Line2 Data2";
         parser.ConsumeLine().Should().Be("Data2 Data22");
     }
 
+    [Fact(DisplayName = "Consumes lines with comments")]
+    public void ConsumeLineWithComments()
+    {
+        const string data = @"Line1 Data1 //comment1
+            Line2 Data2 Data22 //comment2
+            {
+                test; //important
+            }";
+        SimpleParser parser = new();
+        parser.Parse(data);
+
+        string[] checkTokens = ["Line1", "Data1", "Line2", "Data2", "Data22", "{", "test", ";", "}"];
+        foreach (var token in checkTokens)
+            parser.ConsumeString().Should().Be(token);
+
+        parser = new();
+        parser.Parse(data);
+
+        parser.GetCurrentLine().Should().Be(0);
+        parser.ConsumeLine().Should().Be("Line1 Data1");
+        parser.GetCurrentLine().Should().Be(1);
+        parser.ConsumeLine().Should().Be("Line2 Data2 Data22");
+        parser.GetCurrentLine().Should().Be(2);
+        parser.ConsumeLine().Should().Be("{");
+        parser.GetCurrentLine().Should().Be(3);
+        parser.ConsumeLine().Should().Be("test;");
+        parser.GetCurrentLine().Should().Be(4);
+        parser.ConsumeLine().Should().Be("}");
+    }
+
+
+    [Fact(DisplayName = "Starts with multiple line returns")]
+    public void MultipleLineReturns()
+    {
+        const string data = @"
+
+Line1 Data1";
+        SimpleParser parser = new();
+        parser.Parse(data);
+
+        parser.ConsumeString().Should().Be("Line1");
+        parser.ConsumeString().Should().Be("Data1");
+    }
+
     [Fact(DisplayName = "Consume single line comment on its own line")]
     public void SingleLineCommentTest()
     {
@@ -327,7 +371,7 @@ http://someurl.com
         parser.Parse(data);
 
         parser.ConsumeString().Should().Be("exittext");
-        parser.ConsumeString().Should().Be("\ntest1\nhttp://someurl.com\n");
+        parser.ConsumeString().Replace("\r\n", "\n").Should().Be("\ntest1\nhttp://someurl.com\n");
         parser.IsDone().Should().Be(true);
     }
 
@@ -348,7 +392,7 @@ test3";
         parser.Parse(data);
 
         parser.ConsumeString().Should().Be("exittext");
-        parser.ConsumeString().Should().Be("\ntest1\nhello/*notacomment*/\ntest2\n");
+        parser.ConsumeString().Replace("\r\n", "\n").Should().Be("\ntest1\nhello/*notacomment*/\ntest2\n");
         parser.ConsumeString().Should().Be("test3");
         parser.IsDone().Should().Be(true);
     }
@@ -367,7 +411,7 @@ I hope this parses"";";
 
         parser.ConsumeString().Should().Be("E1TEXT");
         parser.ConsumeString().Should().Be("=");
-        parser.ConsumeString().Should().Be("Multiline text blocks\n\nshould still work even with blank lines...\n\nI hope this parses");
+        parser.ConsumeString().Replace("\r\n", "\n").Should().Be("Multiline text blocks\n\nshould still work even with blank lines...\n\nI hope this parses");
         parser.ConsumeString().Should().Be(";");
         parser.IsDone().Should().Be(true);
     }
@@ -386,7 +430,23 @@ YEAH, I BROKE THE PARSER...""
         parser.Parse(data);
 
         parser.ConsumeString().Should().Be("exittext");
-        parser.ConsumeString().Should().Be("*RING RING*\n\nHELLO?\nYEAH, I BROKE THE PARSER...");
+        parser.ConsumeString().Replace("\r\n", "\n").Should().Be("*RING RING*\n\nHELLO?\nYEAH, I BROKE THE PARSER...");
         parser.IsDone().Should().Be(true);
+    }
+
+    [Fact(DisplayName = "Multiline comment on single line")]
+    public void MultilineCommentOnSingleLine()
+    {
+        string data = @"
+/* ------------------------- */
+something
+
+/* ------------------------- */";
+
+        SimpleParser parser = new();
+        parser.Parse(data);
+
+        parser.ConsumeString().Should().Be("something");
+        parser.IsDone().Should().BeTrue();
     }
 }

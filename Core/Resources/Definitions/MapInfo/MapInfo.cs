@@ -1,12 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
 using Helion.Maps.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
 using Helion.World;
 using Helion.World.Util;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace Helion.Resources.Definitions.MapInfo;
 
@@ -29,7 +30,7 @@ public class MapInfo
     private readonly List<EpisodeDef> m_episodes = new();
     private readonly List<MapInfoDef> m_maps = new();
     private readonly List<ClusterDef> m_clusters = new();
-    private readonly List<SkillDef> m_skills = new ();
+    private readonly List<SkillDef> m_skills = new();
 
     public void ClearEpisodes() => m_episodes.Clear();
 
@@ -105,7 +106,7 @@ public class MapInfo
         if (DefaultMap == null)
             return new MapInfoDef() { MapName = mapName.ToUpperInvariant() };
 
-        mapInfoDef =  (MapInfoDef)DefaultMap.Clone();
+        mapInfoDef = (MapInfoDef)DefaultMap.Clone();
         mapInfoDef.MapName = mapName.ToUpperInvariant();
         return mapInfoDef;
     }
@@ -114,7 +115,7 @@ public class MapInfo
     public FindMapResult GetNextMap(MapInfoDef map) => GetMap(map.Next);
     public FindMapResult GetNextSecretMap(MapInfoDef map) => GetMap(map.SecretNext);
     public ClusterDef? GetCluster(int clusterNumber) => m_clusters.FirstOrDefault(c => c.ClusterNum == clusterNumber);
-    public static bool IsWarpTrans(string mapName) => mapName.StartsWith(WarpTrans);
+    public static bool IsWarpTrans(string mapName) => mapName.StartsWithIgnoreCase(WarpTrans);
 
     public FindMapResult GetMap(string name)
     {
@@ -132,7 +133,7 @@ public class MapInfo
     }
 
     public MapInfoDef GetStartMapOrDefault(ArchiveCollection archiveCollection, string mapName)
-    {        
+    {
         if (IsWarpTrans(mapName) && MapWarp.GetMap(mapName[WarpTrans.Length..], archiveCollection, out var mapInfoDef))
             return mapInfoDef;
 
@@ -160,7 +161,7 @@ public class MapInfo
                 isChangingClusters = false;
         }
 
-        return isChangingClusters || mapDef.EndGame != null || nextMapResult.Options.HasFlag(FindMapResultOptions.EndGame);
+        return isChangingClusters || mapDef.EndGame != null || (nextMapResult.Options & FindMapResultOptions.EndGame) != 0;
     }
 
     private static void AddOrReplace<T>(List<T> items, T newItem)

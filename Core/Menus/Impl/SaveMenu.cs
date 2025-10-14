@@ -2,6 +2,7 @@ using Helion.Audio.Sounds;
 using Helion.Layer.Menus;
 using Helion.Menus.Base;
 using Helion.Menus.Base.Text;
+using Helion.Render.Common.Enums;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
@@ -15,10 +16,10 @@ using Helion.World.Save;
 using NLog;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Helion.Menus.Impl;
 
@@ -26,48 +27,52 @@ public class SaveMenu : Menu
 {
     public const string SaveMessage = "Game saved.";
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private const int RowsPerPage = 8;
-    private const string SaveHeaderImage = "M_SGTTL";
-    private const string LoadHeaderImage = "M_LGTTL";
+    private const int RowsPerPage = 18;
     private const string UnknownSavedGameName = "Unknown";
     private const string EmptySlotText = "Empty slot";
     private const string NoSavedGamesText = "There are no saved games.";
     private static readonly string[] DeleteConfirmationText = ["Are you sure you want to delete this save?", "Press Y to confirm."];
 
-    public bool IsTypingName { get; private set; }
+    public bool IsTypingName => RowLocked;
 
     private readonly MenuLayer m_parent;
     private readonly SaveGameManager m_saveGameManager;
     private readonly List<SaveGame> m_saveGames;
+    private readonly IScreenshotGenerator m_screenshotGenerator;
     private int m_currentPage = 1;
-    private readonly bool m_isSave;
+    public readonly bool IsSaveMenu; // is this the "save" or "load" menu?
     private readonly bool m_canSave;
 
-    private bool m_hasRowLock;
     private string m_previousDisplayName = string.Empty;
     private string m_defaultSavedGameName = string.Empty;
     private readonly StringBuilder m_customNameBuilder = new();
     private readonly Stopwatch m_tickStopwatch = new();
 
+    private readonly MenuSmallTextComponent SaveHeader;
+    private readonly MenuPaddingComponent SmallPadding = new(4);
+    private readonly MenuSmallTextComponent NoSavedGamesComponent = new(NoSavedGamesText);
+
     private SaveGame? m_deleteSave;
 
-    public SaveMenu(MenuLayer parent, IConfig config, HelionConsole console, SoundManager soundManager,
-        ArchiveCollection archiveCollection, SaveGameManager saveManager, bool hasWorld, bool isSave, bool clearOnClose)
-        : base(config, console, soundManager, archiveCollection, 8, true, clearOnClose: clearOnClose)
+    public SaveMenu(MenuLayer parent, IWindow window, IConfig config, HelionConsole console, SoundManager soundManager,
+        ArchiveCollection archiveCollection, SaveGameManager saveManager, IScreenshotGenerator screenshotGenerator, bool canSave, bool isSave, bool clearOnClose)
+        : base(window, config, console, soundManager, archiveCollection, 8, true, clearOnClose: clearOnClose)
     {
         m_parent = parent;
         m_saveGameManager = saveManager;
-        m_canSave = hasWorld;
-        m_isSave = isSave;
+        m_canSave = canSave;
+        IsSaveMenu = isSave;
+        m_screenshotGenerator = screenshotGenerator;
+        SaveHeader = new(isSave ? "SAVE GAME" : "LOAD GAME");        
 
-        m_saveGames = saveManager.GetMatchingSaveGames(saveManager.GetSaveGames()).ToList();
+        m_saveGames = saveManager.GetSaveGames();
         UpdateMenuComponents(setTop: true);
     }
 
     private int GetPageCount()
     {
         // add a single row to the first page when saving
-        int rowCount = m_isSave
+        int rowCount = IsSaveMenu
             ? m_saveGames.Count + 1
             : m_saveGames.Count;
         return (int)Math.Ceiling(rowCount * 1d / RowsPerPage);
@@ -75,7 +80,7 @@ public class SaveMenu : Menu
 
     private IEnumerable<SaveGame> GetCurrentPageSaveGames()
     {
-        if (m_isSave)
+        if (IsSaveMenu)
         {
             // add a single row to the first page when saving
             return m_saveGames
@@ -90,23 +95,18 @@ public class SaveMenu : Menu
         }
     }
 
-    private readonly MenuImageComponent SaveHeader = new(SaveHeaderImage,  upscaleWithText: true);
-    private readonly MenuImageComponent LoadHeader = new(LoadHeaderImage, upscaleWithText: true);
-    private readonly MenuPaddingComponent BigPadding = new(8);
-    private readonly MenuPaddingComponent SmallPadding = new(4);
-    private readonly MenuSmallTextComponent NoSavedGamesComponent = new(NoSavedGamesText);
-
-    private List<IMenuComponent> GetPaginationFooter() => [
-        SmallPadding,
-        new MenuSmallTextComponent($"<- Page {m_currentPage}/{GetPageCount()} ->")
-    ];
+    private void AddPaginationFooter(List<IMenuComponent> components)
+    {
+        components.Add(SmallPadding);
+        components.Add(new MenuSmallTextComponent($"<- Page {m_currentPage}/{GetPageCount()} ->", align: Align.BottomMiddle));
+    }
 
     /// <summary>
     /// Updates the menu components on init or after a delete or page change.
     /// </summary>
     private void UpdateMenuComponents(bool setTop = false, bool setBottom = false)
     {
-        var newComponents = (m_isSave)
+        var newComponents = (IsSaveMenu)
             ? GenerateSaveMenuComponents()
             : GenerateLoadMenuComponents();
         Components = [.. newComponents];
@@ -127,9 +127,13 @@ public class SaveMenu : Menu
 
     private List<IMenuComponent> GenerateSaveMenuComponents()
     {
-        List<IMenuComponent> newComponents = [SaveHeader, BigPadding];
+        List<IMenuComponent> newComponents = new(32)
+        {
+            SaveHeader,
+            SmallPadding
+        };
 
-        if (m_isSave && !m_canSave)
+        if (IsSaveMenu && !m_canSave)
         {
             string[] text = ArchiveCollection.Definitions.Language.GetMessages("$SAVEDEAD");
             for (int i = 0; i < text.Length; i++)
@@ -152,14 +156,14 @@ public class SaveMenu : Menu
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string mapName = save.Model?.MapName ?? UnknownSavedGameName;
-                MenuSaveRowComponent saveRow = new(displayName, mapName, save.IsAutoSave || save.IsQuickSave,
-                    null, CreateDeleteCommand(save));
+                MenuSaveRowComponent saveRow = new(displayName, mapName, save.Type != SaveGameType.Default,
+                    null, CreateDeleteCommand(save), save);
                 saveRow.Action = new Func<Menu?>(UpdateSaveGame(save, new(() => saveRow.Text)));
                 return saveRow;
             });
             newComponents.AddRange(saveRowComponents);
             if (GetPageCount() > 1)
-                newComponents.AddRange(GetPaginationFooter());
+                AddPaginationFooter(newComponents);
         }
 
         return newComponents;
@@ -167,7 +171,11 @@ public class SaveMenu : Menu
 
     private List<IMenuComponent> GenerateLoadMenuComponents()
     {
-        List<IMenuComponent> newComponents = [LoadHeader, BigPadding];
+        List<IMenuComponent> newComponents = new(32)
+        {
+            SaveHeader,
+            SmallPadding
+        };
 
         if (m_saveGames.Empty())
             newComponents.Add(NoSavedGamesComponent);
@@ -177,12 +185,12 @@ public class SaveMenu : Menu
             {
                 string displayName = save.Model?.Text ?? UnknownSavedGameName;
                 string fileName = System.IO.Path.GetFileName(save.FileName);
-                return new MenuSaveRowComponent(displayName, string.Empty, save.IsAutoSave || save.IsQuickSave,
+                return new MenuSaveRowComponent(displayName, string.Empty, save.Type != SaveGameType.Default,
                     CreateConsoleCommand($"load \"{fileName}\""), CreateDeleteCommand(save), save);
             });
             newComponents.AddRange(saveRowComponents);
             if (GetPageCount() > 1)
-                newComponents.AddRange(GetPaginationFooter());
+                AddPaginationFooter(newComponents);
         }
 
         return newComponents;
@@ -193,7 +201,7 @@ public class SaveMenu : Menu
     {
         base.HandleInput(input);
 
-        if (input.Manager.HasAnyKeyPressed() && m_isSave && !m_canSave)
+        if (input.Manager.HasAnyKeyPressed() && IsSaveMenu && !m_canSave)
         {
             m_parent.Close();
             return;
@@ -201,14 +209,14 @@ public class SaveMenu : Menu
 
         if (ComponentIndex.HasValue && Components[ComponentIndex.Value] is MenuSaveRowComponent savedGameRow)
         {
-            if (m_isSave)
+            if (IsSaveMenu)
             {
-                if (m_hasRowLock)
+                if (RowLocked)
                 {
                     // We're already in "name edit mode"
                     EditRow(savedGameRow, input);
                 }
-                else if (input.ConsumeKeyPressed(Key.Enter))
+                else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
                 {
                     if (savedGameRow.IsAutoOrQuickSave)
                     {
@@ -235,7 +243,7 @@ public class SaveMenu : Menu
                             m_customNameBuilder.Append(savedGameRow.Text);
                         }
 
-                        m_hasRowLock = true;
+                        RowLocked = true;
                         m_tickStopwatch.Restart();
                         SoundManager.PlayStaticSound(Constants.MenuSounds.Choose);
                     }
@@ -248,7 +256,7 @@ public class SaveMenu : Menu
             // load screen
             else
             {
-                if (input.ConsumeKeyPressed(Key.Enter)) // Load
+                if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft)) // Load
                     savedGameRow.Action?.Invoke();
                 else
                     ConsumeAndHandlePageChange(input);
@@ -281,24 +289,25 @@ public class SaveMenu : Menu
 
     public void EditRow(MenuSaveRowComponent savedGameRow, IConsumableInput input)
     {
-        if (input.ConsumeKeyPressed(Key.Escape))
+        if (input.ConsumeKeyPressed(Key.Escape) || input.ConsumeKeyPressed(Key.MouseRight))
         {
             // The user has decided not to save.
             // Undo any customizations they've made to the display name of the saved game, and leave edit mode.
             savedGameRow.Text = m_previousDisplayName;
-            m_hasRowLock = false;
+            RowLocked = false;
             m_tickStopwatch.Stop();
             SoundManager.PlayStaticSound(Constants.MenuSounds.Backup);
         }
-        else if (input.ConsumeKeyPressed(Key.Enter))
+        else if (input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.MouseLeft))
         {
             // If there's any text in the field, use that as the name, else force the defualt.
             savedGameRow.Text = m_customNameBuilder.Length > 0
                 ? m_customNameBuilder.ToString()
                 : m_defaultSavedGameName;
 
+            input.Manager.Clear();
             savedGameRow.Action?.Invoke();
-            m_hasRowLock = false;
+            RowLocked = false;
             m_tickStopwatch.Stop();
         }
         else
@@ -306,19 +315,25 @@ public class SaveMenu : Menu
             // Handle all other typed input.
             if (input.ConsumePressOrContinuousHold(Key.Backspace))
             {
-                if (m_customNameBuilder.ToString() == m_defaultSavedGameName)
+                if (m_customNameBuilder.Length == m_defaultSavedGameName.Length &&
+                    m_customNameBuilder.ToString() == m_defaultSavedGameName)
                 {
                     m_customNameBuilder.Clear();
                 }
 
                 if (m_customNameBuilder.Length > 0)
-                {
                     m_customNameBuilder.Remove(m_customNameBuilder.Length - 1, 1);
-                }
             }
 
             var chars = input.ConsumeTypedCharacters();
-            m_customNameBuilder.Append(chars);
+            if (chars.Length > 0)
+            {
+                m_customNameBuilder.Append(chars);
+                m_defaultSavedGameName = string.Empty;
+            }
+
+            if (m_customNameBuilder.Length > 128)
+                m_customNameBuilder.Length = 128;
 
             savedGameRow.Text = m_customNameBuilder.ToString() + Blink();
         }
@@ -349,10 +364,8 @@ public class SaveMenu : Menu
 
             if (GetWorld(out IWorld? world) && world != null)
             {
-                SaveGameEvent saveGameEvent = m_saveGameManager.WriteSaveGame(world, getName(), save);
                 m_parent.Close();
-
-                HandleSaveEvent(world, saveGameEvent);
+                _ = WriteSaveAsync(save, getName, world);
             }
             else
             {
@@ -369,10 +382,8 @@ public class SaveMenu : Menu
         {
             if (GetWorld(out IWorld? world) && world != null)
             {
-                SaveGameEvent saveGameEvent = m_saveGameManager.WriteNewSaveGame(world, getName());
                 m_parent.Manager.Remove(m_parent);
-
-                HandleSaveEvent(world, saveGameEvent);
+                _ = WriteNewSaveAsync(world, getName);
             }
             else
             {
@@ -380,8 +391,19 @@ public class SaveMenu : Menu
             }
 
             return null;
-
         };
+    }
+
+    private async Task WriteSaveAsync(SaveGame save, Func<string> getName, IWorld world)
+    {
+        var saveGameEvent = await m_saveGameManager.WriteSaveGameAsync(world, getName(), m_screenshotGenerator, save);
+        HandleSaveEvent(world, saveGameEvent);
+    }
+
+    private async Task WriteNewSaveAsync(IWorld world, Func<string> getName)
+    {
+        var saveGameEvent = await m_saveGameManager.WriteNewSaveGameAsync(world, getName(), m_screenshotGenerator);
+        HandleSaveEvent(world, saveGameEvent);
     }
 
     private static void HandleSaveEvent(IWorld world, SaveGameEvent saveGameEvent)
@@ -422,7 +444,7 @@ public class SaveMenu : Menu
         return () =>
         {
             m_deleteSave = saveGame;
-            MessageMenu confirm = new(Config, Console, SoundManager, ArchiveCollection,
+            MessageMenu confirm = new(Window, Config, Console, SoundManager, ArchiveCollection,
                 DeleteConfirmationText, isYesNoConfirm: true, clearMenus: false);
             confirm.Cleared += Confirm_Cleared;
             return confirm;

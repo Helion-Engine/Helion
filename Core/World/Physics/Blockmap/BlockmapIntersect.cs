@@ -1,34 +1,32 @@
 using System;
-using Helion.Geometry.Vectors;
-using Helion.World.Entities;
-using Helion.World.Geometry.Lines;
-
+using System.Runtime.CompilerServices;
 namespace Helion.World.Physics.Blockmap;
+
+public enum IntersectType
+{
+    Line,
+    Entity
+}
 
 public struct BlockmapIntersect : IComparable<BlockmapIntersect>
 {
-    public Entity? Entity;
-    public Line? Line;
-    public Vec2D Intersection;
+    const int EntityFlagShift = 31;
+    public const int EntityFlag = 1 << EntityFlagShift;
+    public const int EntityMask = ~EntityFlag;
+
+    // Packs to 8 bytes
+    // Index maps to DataCache.Entites or Blockmap.BlockLines
+    public int Index;
     public double SegTime;
 
-    public BlockmapIntersect(Entity entity, Vec2D intersection, double segTime)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public readonly IntersectType GetIndex(out int index)
     {
-        Entity = entity;
-        Line = null;
-        Intersection = intersection;
-        SegTime = segTime;
+        index = Index & EntityMask;
+        return (IntersectType)(((uint)Index & EntityFlag) >> EntityFlagShift);
     }
 
-    public BlockmapIntersect(Line line, Vec2D intersection, double segTime)
-    {
-        Entity = null;
-        Line = line;
-        Intersection = intersection;
-        SegTime = segTime;
-    }
-
-    public int CompareTo(BlockmapIntersect other)
+    public readonly int CompareTo(BlockmapIntersect other)
     {
         return SegTime.CompareTo(other.SegTime);
     }

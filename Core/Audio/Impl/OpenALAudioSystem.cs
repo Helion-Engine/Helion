@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using Helion.Util.Loggers;
+using NLog;
 using OpenTK.Audio.OpenAL;
 using static Helion.Util.Assertion.Assert;
 
@@ -18,28 +20,45 @@ public class OpenALAudioSystem : IAudioSystem
 {
     private static bool PrintedALInfo;
 
+    private readonly IConfig m_config;
+    private readonly ArchiveCollection m_archiveCollection;
+    private Logger m_log;
+
     public IMusicPlayer Music { get; }
     public event EventHandler? DeviceChanging;
-    private readonly ArchiveCollection m_archiveCollection;
     private readonly HashSet<OpenALAudioSourceManager> m_sourceManagers = new();
-    private readonly IConfig m_config;
+
     private readonly CancellationTokenSource m_cancelTask = new();
-    private OpenALDevice m_alDevice;
-    private OpenALContext m_alContext;
-    private string m_changeDeviceName = string.Empty;
-    private string m_lastDeviceName;
+    private OpenALDevice? m_alDevice;
+    private OpenALContext? m_alContext;
+    private string m_currentDeviceName;
+    private string m_activeDeviceName;
 
     public double Gain { get; private set; }
 
-    public OpenALAudioSystem(IConfig config, ArchiveCollection archiveCollection, IMusicPlayer musicPlayer)
+    public OpenALAudioSystem(IConfig config, ArchiveCollection archiveCollection, IMusicPlayer musicPlayer, Logger log)
     {
         m_config = config;
         m_archiveCollection = archiveCollection;
-        m_alDevice = new OpenALDevice(config.Audio.Device);
-        m_alContext = new OpenALContext(m_alDevice);
+        m_log = log;
+
+        try
+        {
+            m_alDevice = new OpenALDevice(config.Audio.Device);
+            m_alContext = new OpenALContext(m_alDevice);
+            m_activeDeviceName = m_alDevice.OpenALDeviceName;
+            m_currentDeviceName = m_activeDeviceName;
+        }
+        catch (Exception ex)
+        {
+            m_log.Warn($"Failed to initialize audio output: {ex}");
+            m_alDevice = null;
+            m_alContext = null;
+            m_activeDeviceName = string.Empty;
+            m_currentDeviceName = string.Empty;
+        }
         Music = musicPlayer;
 
-        m_lastDeviceName = m_alDevice.OpenALDeviceName;
         Task.Factory.StartNew(DefaultDeviceChangeTask, m_cancelTask.Token,
             TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
@@ -55,7 +74,7 @@ public class OpenALAudioSystem : IAudioSystem
 
     public string GetDeviceName()
     {
-        return m_alDevice.DeviceName;
+        return m_alDevice?.DeviceName ?? string.Empty;
     }
 
     public unsafe string GetDefaultDeviceName()
@@ -70,16 +89,32 @@ public class OpenALAudioSystem : IAudioSystem
         DeviceChanging?.Invoke(this, EventArgs.Empty);
         Music.OutputChanging();
 
-        m_alContext.Dispose();
-        m_alDevice.Dispose();
+        m_alContext?.Dispose();
+        m_alDevice?.Dispose();
 
-        m_alDevice = new OpenALDevice(deviceName);
-        m_alContext = new OpenALContext(m_alDevice);
-        SetVolume(Gain);
+        bool retVal = false;
 
-        Music.OutputChanged();
-        // TODO: This assumes we always successfully changed. We should probably limit this.
-        return true;
+        try
+        {
+            m_alDevice = new OpenALDevice(deviceName);
+            m_alContext = new OpenALContext(m_alDevice);
+            SetVolume(Gain);
+            Music.OutputChanged();
+
+            retVal = true;
+        }
+        catch (Exception ex)
+        {
+            m_log.Warn($"Failed to initialize audio output: {ex}");
+            m_alContext?.Dispose();
+            m_alDevice?.Dispose();
+
+            m_alContext = null;
+            m_alDevice = null;
+            Music.OutputChanged();
+        }
+
+        return retVal;
     }
 
     public void SetVolume(double volume)
@@ -115,10 +150,10 @@ public class OpenALAudioSystem : IAudioSystem
 
     public void Tick()
     {
-        if (m_changeDeviceName.Length > 0)
+        if (m_currentDeviceName != m_activeDeviceName)
         {
-            SetDevice(m_changeDeviceName);
-            m_changeDeviceName = string.Empty;
+            SetDevice(m_currentDeviceName);
+            m_activeDeviceName = m_currentDeviceName;
         }
     }
 
@@ -128,7 +163,7 @@ public class OpenALAudioSystem : IAudioSystem
         ALError error = AL.GetError();
         if (error != ALError.NoError)
         {
-            string reason = string.Format(debugInfo, objs);
+            string reason = string.Format(CultureInfo.InvariantCulture, debugInfo, objs);
             Fail($"Unexpected OpenAL error: {error} (reason: {AL.GetErrorString(error)}) {reason}");
         }
     }
@@ -165,7 +200,7 @@ public class OpenALAudioSystem : IAudioSystem
 
     public IAudioSourceManager CreateContext()
     {
-        OpenALAudioSourceManager sourceManager = new(this, m_archiveCollection, m_config);
+        OpenALAudioSourceManager sourceManager = new (this, m_archiveCollection, m_config);
         m_sourceManagers.Add(sourceManager);
         SetVolume(m_config.Audio.SoundVolume);
         return sourceManager;
@@ -191,10 +226,9 @@ public class OpenALAudioSystem : IAudioSystem
                 break;
 
             var currentDeviceName = GetDefaultDeviceName();
-            if (m_lastDeviceName != currentDeviceName)
+            if (m_currentDeviceName != currentDeviceName)
             {
-                m_lastDeviceName = currentDeviceName;
-                m_changeDeviceName = currentDeviceName;
+                m_currentDeviceName = currentDeviceName;
             }
             Thread.Sleep(1000);
         }
@@ -208,8 +242,8 @@ public class OpenALAudioSystem : IAudioSystem
         m_sourceManagers.ToList().ForEach(srcManager => srcManager.Dispose());
         Invariant(m_sourceManagers.Empty(), "Disposal of AL audio context children should empty out of the context container");
 
-        m_alContext.Dispose();
-        m_alDevice.Dispose();
-        Music.Dispose();
+        m_alContext?.Dispose();
+        m_alDevice?.Dispose();
+        Music?.Dispose();
     }
 }

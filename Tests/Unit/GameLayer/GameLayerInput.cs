@@ -30,13 +30,14 @@ public class GameLayerInput
     private readonly WorldLayer WorldLayer;
     private readonly InputManager InputManager;
     private readonly FakeAnalogAdapter AnalogAdapter;
+    private readonly PathsManager PathsManager;
 
     private Player Player => World.Player;
 
     private static readonly TickerInfo ZeroTick = new(0, 0);
     private static readonly TickerInfo SingleTick = new(1, 0);
 
-    private class FakeAnalogAdapter : IGameControlAdapter
+    private sealed class FakeAnalogAdapter : IGameControlAdapter
     {
         public List<(Key, float)> AxisValues { get; set; } = new List<(Key, float)>();
 
@@ -44,9 +45,11 @@ public class GameLayerInput
 
         public bool GyroEnabled { get; set; }
 
-        public bool KeyIsAnalogAxis(Key key)
+        public bool HasGyro => true; 
+
+        public static bool KeyIsAnalogAxis(Key key)
         {
-            return key.ToString().StartsWith("Axis");
+            return key.ToString().StartsWith("Axis", StringComparison.Ordinal);
         }
 
         public bool TryGetAnalogValueForAxis(Key key, out float axisAnalogValue)
@@ -78,19 +81,25 @@ public class GameLayerInput
         public void RumbleForSoundCreated(object sender, SoundCreatedEventArgs evt)
         {
         }
+
+        public bool CalibrateGyro(int durationMilliseconds, Action<Vec3F, Vec3F> callback)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public GameLayerInput()
     {
-        HelionLoggers.Initialize(new());
+        HelionLoggers.Initialize(new(), ".");
         World = WorldAllocator.LoadMap("Resources/playermovement.zip", "playermovement.WAD", "MAP01", GetType().Name, WorldInit, IWadType.Doom2);
         InputManager = new InputManager();
         AnalogAdapter = new FakeAnalogAdapter();
         InputManager.AnalogAdapter = AnalogAdapter;
         MockWindow window = new(InputManager);
         HelionConsole console = new(new DataCache(), World.Config);
-        SaveGameManager saveGameManager = new(World.Config, World.ArchiveCollection, null);
-        GameLayerManager = new(World.Config, window, console, new(), World.ArchiveCollection, World.SoundManager, saveGameManager, new());
+        PathsManager = new();
+        SaveGameManager saveGameManager = new(World.Config, PathsManager, World.ArchiveCollection, null);
+        GameLayerManager = new(World.Config, window, console, new(), World.ArchiveCollection, PathsManager, World.SoundManager, saveGameManager, new(), new MockScreenshotGenerator());
 
         WorldLayer = new(GameLayerManager, World.Config, console, new(), World, World.MapInfo, new());
         GameLayerManager.Add(WorldLayer);

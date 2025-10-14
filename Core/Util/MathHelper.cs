@@ -1,5 +1,7 @@
 using System;
+using System.Runtime.CompilerServices;
 using Helion.Geometry;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.World.Geometry.Lines;
 
@@ -323,6 +325,7 @@ public static class MathHelper
     /// </summary>
     /// <param name="value">Fixed point value to convert.</param>
     /// <returns>Converted double.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double FromFixed(int value)
     {
         return value / 65536.0;
@@ -334,9 +337,10 @@ public static class MathHelper
     /// </summary>
     /// <param name="angleRadians">The radian angle.</param>
     /// <returns>Angle between 0 and 2pi.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double GetPositiveAngle(double angleRadians)
     {
-        angleRadians %= TwoPi;
+        angleRadians = Math.IEEERemainder(angleRadians, TwoPi);
         if (angleRadians < 0)
             return TwoPi + angleRadians;
         return angleRadians;
@@ -385,13 +389,16 @@ public static class MathHelper
         return n > 0 && (n & ~(n ^ (n - 1))) == 0;
     }
 
-    public static Vec2D BounceVelocity(Vec2D velocity, Line? line)
+    public static Vec2D BounceVelocity(Vec2D velocity)
     {
         double velocityAngle = Math.Atan2(velocity.X, velocity.Y);
-        if (line == null)
-            return velocity.Rotate(Pi);
+        return velocity.Rotate(Pi);
+    }
 
-        double newAngle = 2 * line.Segment.Start.Angle(line.Segment.End) - velocityAngle;
+    public static Vec2D BounceVelocity(Vec2D velocity, in Seg2D segment)
+    {
+        double velocityAngle = Math.Atan2(velocity.X, velocity.Y);
+        double newAngle = 2 * segment.Start.Angle(segment.End) - velocityAngle;
         if (GetPositiveAngle(newAngle) == GetPositiveAngle(velocityAngle))
             newAngle += Pi;
         return velocity.Rotate(newAngle - velocityAngle);

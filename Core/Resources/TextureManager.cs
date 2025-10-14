@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
@@ -7,6 +8,7 @@ using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.Animdefs;
 using Helion.Resources.Definitions.Animdefs.Textures;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.Texture;
 using Helion.Resources.Images;
 using Helion.Util;
@@ -40,9 +42,12 @@ public partial class TextureManager : ITickable
     private readonly bool m_unitTest;
     private readonly bool m_cacheAllSprites;
 
+    public int Ticks;
     public DynamicArray<SpriteDefinition> SpriteDefinitions = new();
 
     public List<Animation> GetAnimations() => m_animations;
+
+    public IImageRetriever ImageRetriever => m_archiveCollection.ImageRetriever;
 
     public string SkyTextureName;
     public int NullCompatibilityTextureIndex = Constants.NullCompatibilityTextureIndex;
@@ -53,9 +58,9 @@ public partial class TextureManager : ITickable
         SkyTextureName = Constants.DefaultSkyTextureName;
     }
 
-    public TextureManager(ArchiveCollection archiveCollection, bool cacheAllSprites, bool unitTest = false)
+    public TextureManager(ArchiveCollection archiveCollection, bool cacheAllSprites, string skyTexture, MapInfoDef mapInfo, bool unitTest = false)
     {
-        SkyTextureName = Constants.DefaultSkyTextureName;
+        SkyTextureName = skyTexture;
         m_archiveCollection = archiveCollection;
         m_cacheAllSprites = cacheAllSprites;
         m_unitTest = unitTest;
@@ -71,7 +76,7 @@ public partial class TextureManager : ITickable
             .Distinct()
             .ToList();
 
-        InitTextureArrays(m_archiveCollection.Definitions.Textures.GetValues(), flatEntries);
+        InitTextureArrays(m_archiveCollection.Definitions.Textures.GetValues(), flatEntries, out var flatIndexStart);
 
         SetSkyFireTextures();
 
@@ -79,18 +84,23 @@ public partial class TextureManager : ITickable
         for (int i = 0; i < m_textures.Count; i++)
             m_translations.Add(i);
 
+        foreach (var flat in flatEntries)
+            MapSkyFlat(flat.Path.Name, flatIndexStart++, mapInfo);
+
         InitAnimations();
         InitSwitches();
         MapSpriteIndexToEntries(spriteEntries, spriteNames);
 
         if (m_cacheAllSprites)
-            InitSprites(spriteNames, spriteEntries);
+            InitSprites(spriteNames);
     }
 
-    public void MapInit()
+    public void MapInit(MapInfoDef mapInfo)
     {
         foreach (var skyFire in m_skyFireTextures)
-            skyFire.RenderUpdate = true;
+            skyFire.RenderUpdate = Ticks;
+
+        MapSkyFlat(m_archiveCollection.GameInfo.SkyFlatName, m_skyIndex, mapInfo);
     }
 
     private void MapSpriteIndexToEntries(List<Entry> spriteEntries, List<string> spriteNames)
@@ -98,7 +108,7 @@ public partial class TextureManager : ITickable
         foreach (var spriteName in spriteNames)
         {
             int spriteIndex = m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName);
-            m_spriteIndexEntries[spriteIndex] = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName)).ToArray();
+            m_spriteIndexEntries[spriteIndex] = spriteEntries.Where(entry => entry.Path.Name.StartsWithIgnoreCase(spriteName)).ToArray();
         }
     }
 
@@ -128,12 +138,11 @@ public partial class TextureManager : ITickable
         m_processedEntityDefinitions.Clear();
     }
 
-    private void InitSprites(List<string> spriteNames, List<Entry> spriteEntries)
+    private void InitSprites(List<string> spriteNames)
     {
         SpriteDefinitions.Resize(m_archiveCollection.EntityFrameTable.SpriteIndexCount + 32);
         foreach (var spriteName in spriteNames)
         {
-            var spriteDefEntries = spriteEntries.Where(entry => entry.Path.Name.StartsWith(spriteName)).ToList();
             int spriteIndex = m_archiveCollection.EntityFrameTable.GetSpriteIndex(spriteName);
             if (spriteIndex >= SpriteDefinitions.Capacity)
                 SpriteDefinitions.Resize(spriteIndex + 32);
@@ -359,6 +368,11 @@ public partial class TextureManager : ITickable
 
         texture = new(name, ResourceNamespace.Textures, m_textures.Count);
         texture.Image = image;
+
+        var brightmap = m_archiveCollection.GetBrightmapFor(texture.Name, texture.Namespace);
+        if (brightmap?.BrightmapName != null)
+            texture.BrightmapImage = ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
+
         m_textures.Add(texture);
         m_translations.Add(m_translations.Count);
         m_patchLookup[name] = texture;
@@ -406,6 +420,7 @@ public partial class TextureManager : ITickable
 
     public void Tick()
     {
+        Ticks++;
         for (int i = 0; i < m_animations.Count; i++)
         {
             Animation anim = m_animations[i];
@@ -453,7 +468,7 @@ public partial class TextureManager : ITickable
         if (!m_spriteIndexEntries.TryGetValue(spriteIndex, out var entries))
             return null;
 
-        SpriteDefinitions.Data[spriteIndex] = new SpriteDefinition(entries, m_archiveCollection.ImageRetriever);
+        SpriteDefinitions.Data[spriteIndex] = new SpriteDefinition(entries, ImageRetriever, m_archiveCollection);
         return SpriteDefinitions.Data[spriteIndex];
     }
 
@@ -593,7 +608,7 @@ public partial class TextureManager : ITickable
     private bool HasAnimation(int translationIndex) =>
         m_animations.Any(x => x.TranslationIndex == translationIndex);
 
-    private void InitTextureArrays(List<TextureDefinition> textures, List<Entry> flatEntries)
+    private void InitTextureArrays(List<TextureDefinition> textures, List<Entry> flatEntries, out int flatIndexStart)
     {
         m_textures.Add(new Texture(Constants.NoTexture, ResourceNamespace.Textures, Constants.NoTextureIndex));
         m_textureLookup[Constants.NoTexture] = m_textures[Constants.NoTextureIndex];
@@ -617,6 +632,7 @@ public partial class TextureManager : ITickable
         m_textureLookup[blackTexture.Name] = blackTexture;
         index++;
 
+        flatIndexStart = index;
         string skyFlatName = m_archiveCollection.GameInfo.SkyFlatName;
         foreach (Entry flat in flatEntries)
         {
@@ -626,7 +642,6 @@ public partial class TextureManager : ITickable
             if (flat.Path.Name.Equals(skyFlatName, StringComparison.OrdinalIgnoreCase))
                 m_skyIndex = index;
 
-            MapSkyFlat(flat, index);
             index++;
         }
     }
@@ -657,7 +672,13 @@ public partial class TextureManager : ITickable
         if (texture.Name == Constants.NoTexture)
             return;
 
-        texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options);
+        texture.Image ??= m_archiveCollection.ImageRetriever.GetOnly(texture.Name, texture.Namespace, options: options);
+        if (texture.BrightmapImage == null)
+        {
+            var brightmap = m_archiveCollection.GetBrightmapFor(texture.Name, texture.Namespace);
+            if (brightmap?.BrightmapName != null)
+                texture.BrightmapImage = m_archiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps, options: options);
+        }
     }
 
     public void SetSkyTexture()

@@ -1,132 +1,144 @@
 using Helion.Graphics;
+using Helion.Maps.Specials.ZDoom;
 using System.Collections.Generic;
-using System.Linq;
+using Helion.Util.Extensions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.Resources.Definitions.Locks;
 
 public class LockDefinitions
 {
-    public readonly List<LockDef> LockDefs = new List<LockDef>();
+    public readonly List<LockDef> LockDefs = [];
 
     public LockDefinitions()
     {
+        LockDefs.EnsureCapacity(32);
         LockDefs.Add(new LockDef()
         {
             DoorMessage = "$PD_REDC",
             ObjectMessage = "$PD_REDO",
-            KeyNumber = 1,
+            KeyNumber = (ZDoomKeyType)1,
             MapColor = Color.Red,
-            KeyDefinitionNames = new List<string>() { "RedCard" }
+            KeyDefinitionNames = ["RedCard"]
         });
 
         LockDefs.Add(new LockDef()
         {
             DoorMessage = "$PD_BLUEC",
             ObjectMessage = "$PD_BLUEO",
-            KeyNumber = 2,
+            KeyNumber = (ZDoomKeyType)2,
             MapColor = Color.Blue,
-            KeyDefinitionNames = new List<string>() { "BlueCard" }
+            KeyDefinitionNames = ["BlueCard"]
         });
 
         LockDefs.Add(new LockDef()
         {
             DoorMessage = "$PD_YELLOWC",
             ObjectMessage = "$PD_YELLOWO",
-            KeyNumber = 3,
+            KeyNumber = (ZDoomKeyType)3,
             MapColor = Color.Yellow,
-            KeyDefinitionNames = new List<string>() { "YellowCard" }
+            KeyDefinitionNames = ["YellowCard"]
         });
 
         LockDefs.Add(new LockDef()
         {
             DoorMessage = "$PD_REDS",
             ObjectMessage = "$PD_REDO",
-            KeyNumber = 4,
+            KeyNumber = (ZDoomKeyType)4,
             MapColor = Color.Red,
-            KeyDefinitionNames = new List<string>() { "RedSkull" }
+            KeyDefinitionNames = ["RedSkull"]
         });
 
         LockDefs.Add(new LockDef()
         {
             DoorMessage = "$PD_BLUES",
             ObjectMessage = "$PD_BLUEO",
-            KeyNumber = 5,
+            KeyNumber = (ZDoomKeyType)5,
             MapColor = Color.Blue,
-            KeyDefinitionNames = new List<string>() { "BlueSkull" }
+            KeyDefinitionNames = ["BlueSkull"]
         });
 
         LockDefs.Add(new LockDef()
         {
             DoorMessage = "$PD_YELLOWS",
             ObjectMessage = "$PD_REDO",
-            KeyNumber = 6,
+            KeyNumber = (ZDoomKeyType)6,
             MapColor = Color.Yellow,
-            KeyDefinitionNames = new List<string>() { "YellowSkull" }
+            KeyDefinitionNames = ["YellowSkull"]
         });
 
         LockDefs.Add(new LockDef()
         {
             DoorMessage = "$PD_ALL6",
             ObjectMessage = "$PD_ALL6",
-            KeyNumber = 101,
+            KeyNumber = (ZDoomKeyType)101,
             MapColor = Color.Purple,
-            KeyDefinitionNames = new List<string>() { "RedCard", "RedSkull", "BlueCard", "BlueSkull", "YellowCard", "YellowSkull" }
+            KeyDefinitionNames = ["RedCard", "RedSkull", "BlueCard", "BlueSkull", "YellowCard", "YellowSkull"]
         });
 
         var anyRed = new LockDef()
         {
             DoorMessage = "$PD_REDK",
             ObjectMessage = "$PD_REDO",
-            KeyNumber = 129,
+            KeyNumber = (ZDoomKeyType)129,
             MapColor = Color.Red
         };
-        anyRed.AnyKeyDefinitionNames.Add(new List<string>() { "RedCard", "RedSkull" });
+        anyRed.AnyKeyDefinitionNames.Add(["RedCard", "RedSkull"]);
         LockDefs.Add(anyRed);
 
         var anyBlue = new LockDef()
         {
             DoorMessage = "$PD_BLUEK",
             ObjectMessage = "$PD_BLUEO",
-            KeyNumber = 130,
+            KeyNumber = (ZDoomKeyType)130,
             MapColor = Color.Blue
         };
-        anyBlue.AnyKeyDefinitionNames.Add(new List<string>() { "BlueCard", "BlueSkull" });
+        anyBlue.AnyKeyDefinitionNames.Add(["BlueCard", "BlueSkull"]);
         LockDefs.Add(anyBlue);
 
         var anyYellow = new LockDef()
         {
             DoorMessage = "$PD_YELLOWK",
             ObjectMessage = "$PD_YELLOWO",
-            KeyNumber = 131,
+            KeyNumber = (ZDoomKeyType)131,
             MapColor = Color.Yellow,
         };
-        anyYellow.AnyKeyDefinitionNames.Add(new List<string>() { "YellowCard", "YellowSkull" });
+        anyYellow.AnyKeyDefinitionNames.Add(["YellowCard", "YellowSkull"]);
         LockDefs.Add(anyYellow);
 
         var any = new LockDef()
         {
             DoorMessage = "$PD_ANY",
             ObjectMessage = "$PD_ANY",
-            KeyNumber = 100,
+            KeyNumber = (ZDoomKeyType)100,
             MapColor = Color.LightBlue,
         };
-        any.AnyKeyDefinitionNames.Add(new List<string>() { "RedCard", "RedSkull", "BlueCard", "BlueSkull", "YellowCard", "YellowSkull" });
+        any.AnyKeyDefinitionNames.Add(["RedCard", "RedSkull", "BlueCard", "BlueSkull", "YellowCard", "YellowSkull"]);
         LockDefs.Add(any);
 
         var allThreeColors = new LockDef()
         {
             DoorMessage = "$PD_ALL3",
             ObjectMessage = "$PD_ALL3",
-            KeyNumber = 229,
+            KeyNumber = (ZDoomKeyType)229,
             MapColor = Color.Purple,
         };
-        allThreeColors.AnyKeyDefinitionNames.Add(new List<string>() { "RedCard", "RedSkull" });
-        allThreeColors.AnyKeyDefinitionNames.Add(new List<string>() { "BlueCard", "BlueSkull" });
-        allThreeColors.AnyKeyDefinitionNames.Add(new List<string>() { "YellowCard", "YellowSkull" });
+        allThreeColors.AnyKeyDefinitionNames.Add(["RedCard", "RedSkull"]);
+        allThreeColors.AnyKeyDefinitionNames.Add(["BlueCard", "BlueSkull"]);
+        allThreeColors.AnyKeyDefinitionNames.Add(["YellowCard", "YellowSkull"]);
         LockDefs.Add(allThreeColors);
+
+        var impossible = new LockDef()
+        {
+            DoorMessage = "$TXT_DOES_NOT_WORK",
+            ObjectMessage = "$TXT_DOES_NOT_WORK",
+            KeyNumber = (ZDoomKeyType)102,
+            MapColor = Color.Purple,
+        };
+        LockDefs.Add(impossible);
     }
 
-    public LockDef? GetLockDef(int keyNumber)
+    public LockDef? GetLockDef(ZDoomKeyType keyNumber)
     {
         for (int i = 0; i < LockDefs.Count; i++)
         {
@@ -134,5 +146,25 @@ public class LockDefinitions
                 return LockDefs[i];
         }
         return null;
+    }
+
+    public bool TryGetLockDef(string definitionName, [NotNullWhen(true)] out LockDef? lockDef)
+    {
+        for (int i = 0; i <  LockDefs.Count; i++)
+        {
+            var def = LockDefs[i];
+            for (int j = 0; j < def.KeyDefinitionNames.Count; j++)
+            {
+                var name = def.KeyDefinitionNames[j];
+                if (definitionName.EqualsIgnoreCase(name))
+                {
+                    lockDef = def;
+                    return true;
+                }
+            }
+        }
+
+        lockDef = null;
+        return false;
     }
 }

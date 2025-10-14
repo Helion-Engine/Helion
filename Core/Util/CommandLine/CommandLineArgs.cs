@@ -17,6 +17,7 @@ public class CommandLineArgs
     public readonly List<string> Files = [];
     public string? Iwad { get; set; }
     public string? Map { get; set; }
+    public bool ForcePortableMode { get; set; }
     public string? ConfigFileName { get; set; }
     public string? SaveDir { get; set; }
     public string? LogFileName { get; set; }
@@ -38,11 +39,14 @@ public class CommandLineArgs
     public IList<string> Cheats { get; set; } = Array.Empty<string>();
     public int? GlVersion { get; set; }
     public bool NoMusic { get; set; }
+    public bool SoloNet { get; set; }
+    public string? CompLevel { get; set; }
 
     private static readonly string[] Options =
     [
         "-iwad",
         "-file",
+        "-portable",
         "-config",
         "-savedir",
         "-log",
@@ -64,8 +68,13 @@ public class CommandLineArgs
         "+setangle",
         "+setpitch",
         "+glversion",
-        "-pistolstart"
+        "-pistolstart",
+        "-solo-net",
+        "+complevel"
     ];
+    
+    private static readonly char[] spaceSeparator = new char[] { ' ' };
+    private static readonly char[] commaSeparator = new char[] { ',' };
 
     /// <summary>
     /// Parses the command line arguments and returns an object with the
@@ -81,10 +90,11 @@ public class CommandLineArgs
         // Drag and drop files will be specified as the file. Assume anything in front with -/+ is a file.
         foreach (var arg in args)
         {
-            if (argStart.Any(x => arg.StartsWith(x)))
+            if (argStart.Any(x => arg.StartsWith(x, StringComparison.Ordinal)))
                 break;
 
-            if (IWadInfo.GetIWadInfo(arg) == IWadInfo.DefaultIWadInfo)
+            var iwadInfo = IWadInfo.GetIWadInfo(arg);
+            if (iwadInfo == IWadInfo.DefaultIWadInfo || iwadInfo.IsPWadAddOn())
                 commandLineArgs.Files.Add(arg);
             else
                 commandLineArgs.Iwad = arg;
@@ -99,6 +109,8 @@ public class CommandLineArgs
                 commandLineArgs.Iwad = GetString(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "-file"))
                 commandLineArgs.Files.AddRange(parsedArg.Values);
+            else if (IsArgMatch(parsedArg, "-portable"))
+                commandLineArgs.ForcePortableMode = true;
             else if (IsArgMatch(parsedArg, "-config"))
                 commandLineArgs.ConfigFileName = GetString(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "-savedir"))
@@ -143,6 +155,10 @@ public class CommandLineArgs
                 commandLineArgs.SetPitch = ParseDouble(GetString(commandLineArgs, parsedArg));
             else if (IsArgMatch(parsedArg, "+glversion"))
                 commandLineArgs.GlVersion = ParseInt(commandLineArgs, parsedArg);
+            else if (IsArgMatch(parsedArg, "-solo-net"))
+                commandLineArgs.SoloNet = true;
+            else if (IsArgMatch(parsedArg, "+complevel"))
+                commandLineArgs.CompLevel = GetString(commandLineArgs, parsedArg);
             else
                 commandLineArgs.Errors.Add("Unknown command: " + parsedArg.Key);
         }
@@ -158,12 +174,12 @@ public class CommandLineArgs
         return dValue;
     }
 
-    private static IList<string> ParseCheats(string? str)
+    private static string[] ParseCheats(string? str)
     {
         if (str == null)
             return Array.Empty<string>();
 
-        return str.Split(new char[] { ' ' });
+        return str.Split(spaceSeparator);
     }
 
     private static Vec3D? GetPosition(string? value)
@@ -171,7 +187,7 @@ public class CommandLineArgs
         if (value == null)
             return null;
 
-        string[] items = value.Split(new char[] { ',' });
+        string[] items = value.Split(commaSeparator);
         if (items.Length < 3)
             return null;
         if (!Parsing.TryParseDouble(items[0], out var x) || !Parsing.TryParseDouble(items[1], out var y) || !Parsing.TryParseDouble(items[2], out var z))

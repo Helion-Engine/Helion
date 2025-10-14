@@ -1,6 +1,5 @@
 using Helion.Audio;
 using Helion.Dehacked;
-using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Shared;
 using Helion.Maps.Specials;
@@ -14,9 +13,8 @@ using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Sides;
-using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
+using Helion.World.Sound;
 using Helion.World.Special;
 using NLog;
 using System;
@@ -468,13 +466,14 @@ public static class EntityActionFunctions
 
     private static void A_BFGSpray(Entity entity)
     {
-        if (entity.Owner.Entity == null)
+        var owner = entity.Owner();
+        if (owner == null)
             return;
 
         for (int i = 0; i < 40; i++)
         {
             double angle = entity.AngleRadians - MathHelper.QuarterPi + (MathHelper.HalfPi / 40 * i);
-            if (!WorldStatic.World.GetAutoAimEntity(entity.Owner.Entity, entity.Owner.Entity.HitscanAttackPos, angle, Constants.EntityShootDistance, out _,
+            if (!WorldStatic.World.GetAutoAimEntity(owner, owner.HitscanAttackPos, angle, Constants.EntityShootDistance, out _,
                 out Entity? hitEntity) || hitEntity == null)
                 continue;
 
@@ -595,7 +594,8 @@ public static class EntityActionFunctions
 
     private static void A_SpawnFly(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
         {
             WorldStatic.EntityManager.Destroy(entity);
             return;
@@ -604,11 +604,11 @@ public static class EntityActionFunctions
         if (entity.ReactionTime > 0)
             return;
 
-        WorldStatic.EntityManager.Create("ArchvileFire", entity.Target.Entity.Position);
-        WorldStatic.SoundManager.CreateSoundOn(entity.Target.Entity, "misc/teleport",
+        WorldStatic.EntityManager.Create("ArchvileFire", target.Position);
+        WorldStatic.SoundManager.CreateSoundOn(target, "misc/teleport",
             new SoundParams(entity));
 
-        Entity? enemy = WorldStatic.EntityManager.Create(GetRandomBossSpawn(WorldStatic.Random), entity.Target.Entity.Position);
+        Entity? enemy = WorldStatic.EntityManager.Create(GetRandomBossSpawn(WorldStatic.Random), target.Position);
         if (enemy != null)
         {
             enemy.Flags.Friendly = entity.Flags.Friendly;
@@ -648,29 +648,31 @@ public static class EntityActionFunctions
 
     private static void A_BruisAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
-        if (entity.InMeleeRange(entity.Target.Entity))
+        if (entity.InMeleeRange(target))
         {
             int damage = ((WorldStatic.Random.NextByte() % 8) + 1) * 10;
-            WorldStatic.World.DamageEntity(entity.Target.Entity, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+            WorldStatic.World.DamageEntity(target, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             WorldStatic.SoundManager.CreateSoundOn(entity, "baron/melee", new SoundParams(entity));
             return;
         }
 
         if (WorldStatic.BaronBall != null)
-            FireEnemyProjectile(entity, entity.Target.Entity, WorldStatic.BaronBall);
+            FireEnemyProjectile(entity, target, WorldStatic.BaronBall);
     }
 
     private static void A_BspiAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
         A_FaceTarget(entity);
         if (WorldStatic.ArachnotronPlasma != null)
-            FireEnemyProjectile(entity, entity.Target.Entity, WorldStatic.ArachnotronPlasma);
+            FireEnemyProjectile(entity, target, WorldStatic.ArachnotronPlasma);
     }
 
     private static void A_BulletAttack(Entity entity)
@@ -685,10 +687,11 @@ public static class EntityActionFunctions
 
     private static void A_CPosAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
-        entity.PlayAttackSound();
+        WorldStatic.SoundManager.CreateSoundOn(entity, "chainguy/attack", new(entity));
         A_FaceTarget(entity);
 
         WorldStatic.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
@@ -729,12 +732,14 @@ public static class EntityActionFunctions
 
     public static void A_Chase(Entity entity)
     {
+        entity.Flags.Attacking = false;
         if (entity.ReactionTime > 0)
             entity.ReactionTime -= entity.SlowTickMultiplier;
 
+        var target = entity.Target();
         if (entity.Threshold > 0)
         {
-            if (entity.Target.Entity == null || entity.Target.Entity.IsDead)
+            if (target == null || target.IsDead)
                 entity.Threshold = 0;
             else
                 entity.Threshold -= entity.SlowTickMultiplier;
@@ -743,14 +748,14 @@ public static class EntityActionFunctions
         if (entity.SlowTickMultiplier <= 1)
             entity.TurnTowardsMovementDirection();
 
-        if (entity.Target.Entity == null || entity.Target.Entity.IsDead)
+        if (target == null || target.IsDead)
         {
             if (!entity.SetNewTarget(true))
                 entity.SetSpawnState();
             return;
         }
 
-        if (entity.Target.Entity != null && entity.IsFriend(entity.Target.Entity))
+        if (target != null && entity.IsFriend(target))
             entity.SetNewTarget(true);
 
         if (entity.Flags.JustAttacked)
@@ -761,10 +766,11 @@ public static class EntityActionFunctions
             return;
         }
 
-        if (entity.Target.Entity != null && entity.Definition.MeleeState != null && entity.InMeleeRange(entity.Target.Entity))
+        if (target != null && entity.Definition.MeleeState != null && entity.InMeleeRange(target))
         {
+            entity.Flags.Attacking = true;
             entity.PlayAttackSound();
-            entity.FrameState.SetFrameIndex(entity.Definition.MeleeState.Value);
+            entity.FrameState.SetFrameIndex(entity, entity.Definition.MeleeState.Value);
         }
 
         if (entity.IsDisposed)
@@ -777,8 +783,9 @@ public static class EntityActionFunctions
         if ((entity.MoveCount == 0 || WorldStatic.IsFastMonsters) &&
             entity.Definition.MissileState != null && entity.CheckMissileRange())
         {
+            entity.Flags.Attacking = true;
             entity.Flags.JustAttacked = true;
-            entity.FrameState.SetFrameIndex(entity.Definition.MissileState.Value);
+            entity.FrameState.SetFrameIndex(entity, entity.Definition.MissileState.Value);
         }
         else if (WorldStatic.Random.NextByte() < 3)
         {
@@ -972,11 +979,12 @@ public static class EntityActionFunctions
 
     private static void A_CyberAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
         A_FaceTarget(entity);
-        FireEnemyProjectile(entity, entity.Target.Entity, WorldStatic.Rocket);
+        FireEnemyProjectile(entity, target, WorldStatic.Rocket);
     }
 
     private static void A_DamageChildren(Entity entity)
@@ -1033,7 +1041,7 @@ public static class EntityActionFunctions
     {
         // Pass through owner if set (usually a projectile)
         // Barrels pass through who shot them (Target)
-        Entity? attackSource = entity.Owner.Entity ?? entity.Target.Entity;
+        Entity? attackSource = entity.Owner() ?? entity.Target();
         WorldStatic.World.RadiusExplosion(entity, attackSource ?? entity, 128, 128);
     }
 
@@ -1059,11 +1067,12 @@ public static class EntityActionFunctions
 
     public static void A_FaceTarget(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
-        entity.AngleRadians = entity.Position.Angle(entity.Target.Entity.Position);
-        if (entity.Target.Entity.Flags.Shadow)
+        entity.AngleRadians = entity.Position.Angle(target.Position);
+        if (target.Flags.Shadow)
             entity.AngleRadians += WorldStatic.Random.NextDiff() * Constants.ShadowRandomSpread / 255;
     }
 
@@ -1114,24 +1123,26 @@ public static class EntityActionFunctions
 
     private static void FatAttack(Entity entity, double fireSpread1, double fireSpread2)
     {
-        if (entity.Target.Entity == null || WorldStatic.FatShot == null)
+        var target = entity.Target();
+        if (target == null || WorldStatic.FatShot == null)
             return;
 
         A_FaceTarget(entity);
         double baseAngle = entity.AngleRadians;
 
         entity.AngleRadians = baseAngle + fireSpread1;
-        FireEnemyProjectile(entity, entity.Target.Entity, WorldStatic.FatShot);
+        FireEnemyProjectile(entity, target, WorldStatic.FatShot);
 
         entity.AngleRadians = baseAngle + fireSpread2;
-        FireEnemyProjectile(entity, entity.Target.Entity, WorldStatic.FatShot);
+        FireEnemyProjectile(entity, target, WorldStatic.FatShot);
 
         entity.AngleRadians = baseAngle;
     }
 
     private static void A_FatRaise(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
         A_FaceTarget(entity);
@@ -1140,14 +1151,16 @@ public static class EntityActionFunctions
 
     private static void A_Fire(Entity entity)
     {
-        if (entity.Target.Entity == null || entity.Tracer.Entity == null)
+        var target = entity.Target();
+        var tracer = entity.Tracer();
+        if (target == null || tracer == null)
             return;
 
-        if (!WorldStatic.World.CheckLineOfSight(entity.Target.Entity, entity.Tracer.Entity))
+        if (!WorldStatic.World.CheckLineOfSight(target, tracer))
             return;
 
-        var newPos = entity.Tracer.Entity.Position;
-        var unit = Vec2D.UnitCircle(entity.Tracer.Entity.AngleRadians);
+        var newPos = tracer.Position;
+        var unit = Vec2D.UnitCircle(tracer.AngleRadians);
         newPos.X += unit.X * 24;
         newPos.Y += unit.Y * 24;
 
@@ -1189,8 +1202,25 @@ public static class EntityActionFunctions
         WorldStatic.SoundManager.CreateSoundOn(entity, "weapons/pistol",
             new SoundParams(entity, channel: entity.WeaponSoundChannel,
             context: new SoundContext(SoundEventType.WeaponFired, 0, ushort.MaxValue, 100)));
-        int offset = entity.PlayerObj.Weapon == null ? 0 : Math.Clamp(entity.PlayerObj.Weapon.FrameState.Frame.Frame, 0, 1);
-        entity.PlayerObj.Weapon?.SetFlashState(offset);
+
+        if (entity.PlayerObj.Weapon != null)
+        {
+            var frame = entity.PlayerObj.Weapon.FrameState.Frame;
+            int offset = 0;
+            if (WorldStatic.Dehacked)
+            {
+                // Use vanilla frame index calculation for dehacked
+                if (frame.VanillaIndex >= (int)ThingState.CHAIN1 && frame.VanillaIndex <= (int)ThingState.CHAIN3)
+                    offset = frame.VanillaIndex - (int)ThingState.CHAIN1;
+            }
+            else
+            {
+                offset = Math.Clamp(entity.PlayerObj.Weapon.FrameState.Frame.Frame, 0, 1);
+            }
+
+            entity.PlayerObj.Weapon.SetFlashState(offset);
+        }
+
         WorldStatic.World.FirePlayerHitscanBullets(entity.PlayerObj, 1, Constants.DefaultSpreadAngle, 0,
             entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, WorldStatic.World.Config.Game.AutoAim);
     }
@@ -1310,19 +1340,19 @@ public static class EntityActionFunctions
 
     private static void A_GiveInventory(Entity entity)
     {
-        if (entity.PickupPlayer == null || entity.Frame.Args.Values.Count == 0)
+        if (!entity.World.GetPickupPlayer(entity, out var player) || entity.FrameState.Frame.Args.Values.Count == 0)
             return;
 
         int amount = 1;
-        if (entity.Frame.Args.Values.Count > 1)
-            amount = entity.Frame.Args.GetInt(1);
+        if (entity.FrameState.Frame.Args.Values.Count > 1)
+            amount = entity.FrameState.Frame.Args.GetInt(1);
 
-        var def = WorldStatic.EntityManager.DefinitionComposer.GetByName(entity.Frame.Args.GetString(0));
+        var def = WorldStatic.EntityManager.DefinitionComposer.GetByName(entity.FrameState.Frame.Args.GetString(0));
         if (def == null)
             return;
 
         for (int i = 0; i < amount; i++)
-            entity.PickupPlayer.GiveItem(def, null);
+            player.GiveItem(def, null);
     }
 
     private static void A_GiveToChildren(Entity entity)
@@ -1350,28 +1380,29 @@ public static class EntityActionFunctions
         if (entity.PlayerObj != null)
         {
             if (entity.Definition.MissileState != null)
-                entity.FrameState.SetFrameIndex(entity.Definition.MissileState.Value);
+                entity.FrameState.SetFrameIndex(entity, entity.Definition.MissileState.Value);
             entity.PlayerObj.Weapon?.SetFlashState();
         }
     }
 
     private static void A_HeadAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
         A_FaceTarget(entity);
 
-        if (entity.InMeleeRange(entity.Target.Entity))
+        if (entity.InMeleeRange(target))
         {
             int damage = ((WorldStatic.Random.NextByte() % 6) + 1) * 10;
-            WorldStatic.World.DamageEntity(entity.Target.Entity, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+            WorldStatic.World.DamageEntity(target, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             entity.PlayAttackSound();
             return;
         }
 
         if (WorldStatic.CacodemonBall != null)
-            FireEnemyProjectile(entity, entity.Target.Entity, WorldStatic.CacodemonBall);
+            FireEnemyProjectile(entity, target, WorldStatic.CacodemonBall);
     }
 
     private static void A_HideThing(Entity entity)
@@ -1663,7 +1694,7 @@ public static class EntityActionFunctions
 
     private static void A_PainAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        if (entity.Target() == null)
             return;
 
         A_FaceTarget(entity);
@@ -1709,7 +1740,7 @@ public static class EntityActionFunctions
         // Add some better checking from the original
         // Set the skull barely clipped into the parent
         // Then check if it can move to it's final position (TryMoveXY does step checking and won't skip lines/entities)
-        if (!WorldStatic.World.PhysicsManager.IsPositionValid(skull, startPos.X, startPos.Y, WorldStatic.World.PhysicsManager.TryMoveData) ||
+        if (!WorldStatic.World.PhysicsManager.IsPositionValid(skull, startPos.X, startPos.Y) ||
             !WorldStatic.World.PhysicsManager.TryMoveXY(skull, skullPos.X, skullPos.Y).Success)
         {
             skull.Kill(null);
@@ -1718,7 +1749,7 @@ public static class EntityActionFunctions
         }
 
         entity.Flags.NoClip = wasNoClip;
-        skull.SetTarget(entity.Target.Entity);
+        skull.SetTarget(entity.Target());
         A_SkullAttack(skull);
     }
 
@@ -1739,10 +1770,10 @@ public static class EntityActionFunctions
 
     private static void A_PosAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        if (entity.Target() == null)
             return;
 
-        entity.PlayAttackSound();
+        WorldStatic.SoundManager.CreateSoundOn(entity, "grunt/attack", new(entity));
         A_FaceTarget(entity);
 
         // could remove GetAutoAimEntity if FireHitscanBullets took optional auto aim angle
@@ -1815,7 +1846,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj.IsDead)
         {
             entity.PlayerObj.WeaponOffset.Y = Constants.WeaponBottom;
-            entity.PlayerObj.AnimationWeapon.FrameState.SetState("NULL");
+            entity.PlayerObj.AnimationWeapon.FrameState.SetState(entity, entity.Definition, "NULL");
             return;
         }
 
@@ -1844,7 +1875,7 @@ public static class EntityActionFunctions
         var player = entity.PlayerObj;
         player.Weapon.ReadyState = true;
         player.WeaponOffset.Y = Constants.WeaponTop;
-        player.WeaponOffset.X = 0;
+        player.WeaponOffset.X = 1;
 
         if (entity.PlayerObj.PendingWeapon != null || player.IsDead)
         {
@@ -1870,7 +1901,7 @@ public static class EntityActionFunctions
         if (WorldStatic.Dehacked)
             playReadySound = player.Weapon.FrameState.Frame.VanillaIndex == (int)ThingState.SAW;
         else
-            playReadySound = player.Weapon.FrameState.IsState(Constants.FrameStates.Ready);
+            playReadySound = player.Weapon.FrameState.IsState(player.Weapon.Definition, Constants.FrameStates.Ready);
 
         if (!player.IsVooDooDoll && player.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 && playReadySound)
         {
@@ -1981,10 +2012,10 @@ public static class EntityActionFunctions
 
     private static void A_SPosAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        if (entity.Target() == null)
             return;
 
-        WorldStatic.SoundManager.CreateSoundOn(entity, "shotguy/attack", new SoundParams(entity));
+        WorldStatic.SoundManager.CreateSoundOn(entity, "shotguy/attack", new(entity));
         A_FaceTarget(entity);
 
         // could remove GetAutoAimEntity if FireHitscanBullets took optional auto aim angle
@@ -1998,14 +2029,15 @@ public static class EntityActionFunctions
 
     public static void A_SargAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
         A_FaceTarget(entity);
-        if (entity.InMeleeRange(entity.Target.Entity))
+        if (entity.InMeleeRange(target))
         {
             int damage = ((WorldStatic.Random.NextByte() % 10) + 1) * 4;
-            WorldStatic.World.DamageEntity(entity.Target.Entity, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+            WorldStatic.World.DamageEntity(target, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
         }
     }
 
@@ -2111,14 +2143,14 @@ public static class EntityActionFunctions
 
     private static void A_SelectWeapon(Entity entity)
     {
-        if (entity.PickupPlayer == null || entity.Frame.Args.Values.Count == 0)
+        if (!entity.World.GetPickupPlayer(entity, out var player) || entity.FrameState.Frame.Args.Values.Count == 0)
             return;
 
-        Weapon? weapon = entity.PickupPlayer.Inventory.Weapons.GetWeapon(entity.Frame.Args.GetString(0));
+        var weapon = player.Inventory.Weapons.GetWeapon(entity.FrameState.Frame.Args.GetString(0));
         if (weapon == null)
             return;
 
-        entity.PickupPlayer.ChangeWeapon(weapon);
+        player.ChangeWeapon(weapon);
     }
 
     private static void A_SentinelBob(Entity entity)
@@ -2353,32 +2385,34 @@ public static class EntityActionFunctions
 
     private static void A_SkelFist(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
         A_FaceTarget(entity);
 
-        if (entity.InMeleeRange(entity.Target.Entity))
+        if (entity.InMeleeRange(target))
         {
             int damage = ((WorldStatic.Random.NextByte() % 10) + 1) * 6;
-            WorldStatic.World.DamageEntity(entity.Target.Entity, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+            WorldStatic.World.DamageEntity(target, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             WorldStatic.SoundManager.CreateSoundOn(entity, "skeleton/melee", new SoundParams(entity));
         }
     }
 
     public static void A_SkelMissile(Entity entity)
     {
-        if (entity.Target.Entity == null || WorldStatic.RevenantTracer == null)
+        var target = entity.Target();
+        if (target == null || WorldStatic.RevenantTracer == null)
             return;
 
         A_FaceTarget(entity);
-        var fireball = FireEnemyProjectile(entity, entity.Target.Entity, WorldStatic.RevenantTracer, zOffset: 16);
-        fireball?.SetTracer(entity.Target.Entity);
+        var fireball = FireEnemyProjectile(entity, target, WorldStatic.RevenantTracer, zOffset: 16);
+        fireball?.SetTracer(target);
     }
 
     private static void A_SkelWhoosh(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        if (entity.Target() == null)
             return;
 
         A_FaceTarget(entity);
@@ -2387,13 +2421,14 @@ public static class EntityActionFunctions
 
     private static void A_SkullAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
         entity.PlayAttackSound();
         A_FaceTarget(entity);
 
-        var targetCenter = entity.Target.Entity.CenterPoint;
+        var targetCenter = target.CenterPoint;
         entity.Velocity = Vec3D.UnitSphere(entity.AngleRadians,
             entity.Position.Pitch(targetCenter, targetCenter.XY.Distance(entity.Position.XY))) * 20;
         entity.Flags.Skullfly = true;
@@ -2442,6 +2477,7 @@ public static class EntityActionFunctions
     private static void A_SpawnSound(Entity entity)
     {
         WorldStatic.SoundManager.CreateSoundOn(entity, "brain/cube", new SoundParams(entity, false, Attenuation.Default));
+        A_SpawnFly(entity);
     }
 
     private static void A_SpidRefire(Entity entity)
@@ -2451,13 +2487,14 @@ public static class EntityActionFunctions
 
     private static void Refire(Entity entity, int randomChance)
     {
+        var target = entity.Target();
         A_FaceTarget(entity);
 
         if (WorldStatic.Random.NextByte() < randomChance)
             return;
 
-        if (entity.Target.Entity == null || entity.Target.Entity.IsDead ||
-            !WorldStatic.World.CheckLineOfSight(entity, entity.Target.Entity))
+        if (target == null || target.IsDead ||
+            !WorldStatic.World.CheckLineOfSight(entity, target))
         {
             entity.SetSeeState();
         }
@@ -2465,7 +2502,8 @@ public static class EntityActionFunctions
 
     private static void A_SPosAttackUseAtkSound(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
         entity.PlayAttackSound();
@@ -2592,21 +2630,22 @@ public static class EntityActionFunctions
 
     private static void A_TroopAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
         A_FaceTarget(entity);
 
-        if (entity.InMeleeRange(entity.Target.Entity))
+        if (entity.InMeleeRange(target))
         {
             int damage = ((WorldStatic.EntityManager.World.Random.NextByte() % 8) + 1) * 3;
-            WorldStatic.World.DamageEntity(entity.Target.Entity, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+            WorldStatic.World.DamageEntity(target, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             WorldStatic.SoundManager.CreateSoundOn(entity, "imp/melee", new SoundParams(entity));
             return;
         }
 
         if (WorldStatic.DoomImpBall != null)
-            FireEnemyProjectile(entity, entity.Target.Entity, WorldStatic.DoomImpBall);
+            FireEnemyProjectile(entity, target, WorldStatic.DoomImpBall);
     }
 
     private static void A_TurretLook(Entity entity)
@@ -2656,24 +2695,25 @@ public static class EntityActionFunctions
 
     private static void A_VileAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
         A_FaceTarget(entity);
 
-        if (!WorldStatic.World.CheckLineOfSight(entity, entity.Target.Entity))
+        if (!WorldStatic.World.CheckLineOfSight(entity, target))
             return;
 
         WorldStatic.SoundManager.CreateSoundOn(entity, "vile/stop", new SoundParams(entity));
-        WorldStatic.World.DamageEntity(entity.Target.Entity, entity, 20, DamageType.Normal, Thrust.Horizontal);
-        entity.Target.Entity.Velocity.Z = 1000.0 / entity.Target.Entity.Definition.Properties.Mass;
+        WorldStatic.World.DamageEntity(target, entity, 20, DamageType.Normal, Thrust.Horizontal);
+        target.Velocity.Z = 1000.0 / target.Definition.Properties.Mass;
 
-        if (entity.Tracer.Entity == null)
+        var fire = entity.Tracer();
+        if (fire == null)
             return;
 
-        Entity fire = entity.Tracer.Entity;
-        Vec2D newPos = entity.Target.Entity.Position.XY - (Vec2D.UnitCircle(entity.AngleRadians) * 24);
-        fire.Position = newPos.To3D(entity.Target.Entity.Position.Z);
+        Vec2D newPos = target.Position.XY - (Vec2D.UnitCircle(entity.AngleRadians) * 24);
+        fire.Position = newPos.To3D(target.Position.Z);
         WorldStatic.World.RadiusExplosion(fire, entity, 70, 70);
     }
 
@@ -2703,17 +2743,18 @@ public static class EntityActionFunctions
 
     private static void A_VileTarget(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
         A_FaceTarget(entity);
-        Entity? fire = WorldStatic.EntityManager.Create("ArchvileFire", entity.Target.Entity.Position);
+        Entity? fire = WorldStatic.EntityManager.Create("ArchvileFire", target.Position);
         if (fire != null)
         {
             fire.SetOwner(entity);
             entity.SetTracer(fire);
             fire.SetTarget(entity);
-            fire.SetTracer(entity.Target.Entity);
+            fire.SetTracer(target);
             A_Fire(fire);
         }
     }
@@ -2750,12 +2791,12 @@ public static class EntityActionFunctions
 
     private static void HealThing(Entity entity)
     {
-        if (entity.PickupPlayer == null)
+        if (!entity.World.GetPickupPlayer(entity, out var player))
             return;
 
-        int healAmount = entity.Frame.Args.GetInt(0);
-        if (healAmount > 0 && entity.PickupPlayer.Health < healAmount)
-            entity.PickupPlayer.Health = healAmount;
+        int healAmount = entity.FrameState.Frame.Args.GetInt(0);
+        if (healAmount > 0 && player.Health < healAmount)
+            player.Health = healAmount;
     }
 
     private static void A_Die(Entity entity)
@@ -2766,34 +2807,34 @@ public static class EntityActionFunctions
     private static void A_RandomJump(Entity entity)
     {
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
-        if (WorldStatic.World.Random.NextByte() < entity.Frame.DehackedMisc2 &&
-            entityFrameTable.VanillaFrameMap.TryGetValue(entity.Frame.DehackedMisc1, out EntityFrame? newFrame))
+        if (WorldStatic.World.Random.NextByte() < entity.FrameState.Frame.DehackedMisc2 &&
+            entityFrameTable.VanillaFrameMap.TryGetValue(entity.FrameState.Frame.DehackedMisc1, out EntityFrame? newFrame))
         {
-            entity.FrameState.SetState(newFrame);
+            entity.FrameState.SetState(entity, newFrame);
         }
     }
 
     private static void A_PlaySound(Entity entity)
     {
-        int soundIndex = entity.Frame.DehackedMisc1;
+        int soundIndex = entity.FrameState.Frame.DehackedMisc1;
 
-        Attenuation attenuation = entity.Frame.DehackedMisc2 > 0 ? Attenuation.None : Attenuation.Default;
-        PlayDehackedSound(entity, soundIndex, attenuation);
+        Attenuation attenuation = entity.FrameState.Frame.DehackedMisc2 > 0 ? Attenuation.None : Attenuation.Default;
+        PlayDehackedSound(entity, soundIndex, attenuation, SoundChannel.Default);
     }
 
     private static void A_Detonate(Entity entity)
     {
-        WorldStatic.World.RadiusExplosion(entity, entity.Target.Entity ?? entity, entity.Properties.Damage.Value, entity.Properties.Damage.Value);
+        WorldStatic.World.RadiusExplosion(entity, entity.Target() ?? entity, entity.Properties.Damage.Value, entity.Properties.Damage.Value);
     }
 
     private static void A_Spawn(Entity entity)
     {
-        if (!GetDehackedActorDefinition(entity, entity.Frame.DehackedMisc1, out var def))
+        if (!GetDehackedActorDefinition(entity, entity.FrameState.Frame.DehackedMisc1, out var def))
             return;
 
         Vec3D pos = entity.Position;
-        pos.Z += entity.Frame.DehackedMisc2;
-        var spawnEntity = WorldStatic.EntityManager.Create(def, pos, 0, 0, 0);
+        pos.Z += entity.FrameState.Frame.DehackedMisc2;
+        var spawnEntity = WorldStatic.EntityManager.Create(def, pos, 0, 0, 0, default);
         if (spawnEntity == null)
             return;
 
@@ -2802,24 +2843,25 @@ public static class EntityActionFunctions
 
     private static void A_Face(Entity entity)
     {
-        entity.AngleRadians = MathHelper.ToRadians(entity.Frame.DehackedMisc1);
+        entity.AngleRadians = MathHelper.ToRadians(entity.FrameState.Frame.DehackedMisc1);
     }
 
     private static void A_Turn(Entity entity)
     {
-        entity.AngleRadians += MathHelper.ToRadians(entity.Frame.DehackedMisc1);
+        entity.AngleRadians += MathHelper.ToRadians(entity.FrameState.Frame.DehackedMisc1);
     }
 
     private static void A_Scratch(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
         A_FaceTarget(entity);
-        if (entity.InMeleeRange(entity.Target.Entity))
+        if (entity.InMeleeRange(target))
         {
-            PlayDehackedSound(entity, entity.Frame.DehackedMisc2, Attenuation.Default);
-            WorldStatic.World.DamageEntity(entity.Target.Entity, entity, entity.Frame.DehackedMisc1, DamageType.AlwaysApply, Thrust.Horizontal);
+            PlayDehackedSound(entity, entity.FrameState.Frame.DehackedMisc2, Attenuation.Default, SoundChannel.Default);
+            WorldStatic.World.DamageEntity(target, entity, entity.FrameState.Frame.DehackedMisc1, DamageType.AlwaysApply, Thrust.Horizontal);
         }
     }
 
@@ -2828,8 +2870,8 @@ public static class EntityActionFunctions
     private static void A_Mushroom(Entity entity)
     {
         int count = entity.Properties.Damage.Value;
-        double misc1 = entity.Frame.DehackedMisc1 > 0 ? MathHelper.FromFixed(entity.Frame.DehackedMisc1) : 4;
-        double misc2 = entity.Frame.DehackedMisc2 > 0 ? MathHelper.FromFixed(entity.Frame.DehackedMisc2) : 0.5;
+        double misc1 = entity.FrameState.Frame.DehackedMisc1 > 0 ? MathHelper.FromFixed(entity.FrameState.Frame.DehackedMisc1) : 4;
+        double misc2 = entity.FrameState.Frame.DehackedMisc2 > 0 ? MathHelper.FromFixed(entity.FrameState.Frame.DehackedMisc2) : 0.5;
 
         Vec3D velocity = new(misc2, misc2, misc2);
         Vec3D oldPos = entity.Position;
@@ -2875,12 +2917,12 @@ public static class EntityActionFunctions
     public static void A_LineEffect(Entity entity)
     {
         SpecialArgs specialArgs = new();
-        if (!CreateLineEffectSpecial(entity.Frame, DummyLineSpecial, out var flags, ref specialArgs))
+        if (!CreateLineEffectSpecial(entity.FrameState.Frame, DummyLineSpecial, out var flags, ref specialArgs))
             return;
 
         // MBF used the first line in the map - this is a little too janky so instead create a dummy inaccessible one...
         // Because the same line was reused single activations will be broken with further calls of A_LineEffect
-        DummyLine ??= CreateDummyLine(flags, specialArgs, DummySector);
+        DummyLine ??= SpecialManager.CreateDummyLine(flags, DummyLineSpecial, specialArgs, DummySector);
 
         DummyLine.Special = DummyLineSpecial;
         DummyLine.Args = specialArgs;
@@ -2904,14 +2946,6 @@ public static class EntityActionFunctions
         return true;
     }
 
-    public static Line CreateDummyLine(LineFlags flags, SpecialArgs args, Sector sector)
-    {
-        var wall = new Wall(Constants.NoTextureIndex, WallLocation.Middle);
-        var side = new Side(0, Vec2I.Zero, wall, wall, wall, sector);
-        var seg = new Seg2D(Vec2D.Zero, Vec2D.One);
-        return new Line(0, seg, side, null, flags, LineSpecial.Default, args);
-    }
-
     public static void A_WeaponBulletAttack(Entity entity)
     {
         if (entity.PlayerObj == null || !GetPlayerWeaponFrame(entity, out EntityFrame? frame))
@@ -2923,8 +2957,8 @@ public static class EntityActionFunctions
         int damage = frame.DehackedArgs4;
         int mod = Math.Clamp(frame.DehackedArgs5, 0, int.MaxValue);
 
-        WorldStatic.World.FirePlayerHitscanBullets(entity.PlayerObj, bullets, spreadAngle, spreadPitch, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance, true, DamageAttackFunction,
-            new DamageFuncParams(entity, damage, mod));
+        WorldStatic.World.FirePlayerHitscanBullets(entity.PlayerObj, bullets, spreadAngle, spreadPitch, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
+            WorldStatic.World.Config.Game.AutoAim, DamageAttackFunction, new DamageFuncParams(true, entity, damage, mod));
     }
 
     public static void A_WeaponMeleeAttack(Entity entity)
@@ -2949,7 +2983,7 @@ public static class EntityActionFunctions
 
         int sound = frame.DehackedArgs1;
         Attenuation attenuation = frame.DehackedArgs2 == 0 ? Attenuation.Default : Attenuation.None;
-        PlayDehackedSound(entity, sound, attenuation);
+        PlayDehackedSound(entity, sound, attenuation, SoundChannel.Weapon);
     }
 
     private static void A_WeaponJump(Entity entity)
@@ -2962,7 +2996,13 @@ public static class EntityActionFunctions
 
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
         if (WorldStatic.Random.NextByte() < chance && entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
-            entity.PlayerObj!.Weapon!.FrameState.SetState(newFrame);
+        {
+            var player = entity.PlayerObj!;
+            if (player.WeaponFlashState)
+                player.Weapon!.FlashState.SetState(entity, newFrame);
+            else
+                player.Weapon!.FrameState.SetState(entity, newFrame);
+        }
     }
 
     private static void A_ConsumeAmmo(Entity entity)
@@ -2989,9 +3029,15 @@ public static class EntityActionFunctions
         int state = frame.DehackedArgs1;
         int amount = frame.DehackedArgs2 == 0 ? weapon.Definition.Properties.Weapons.AmmoUse : frame.DehackedArgs2;
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
-        if (entity.PlayerObj!.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType) < amount &&
+        if (entity.PlayerObj!.Inventory.Amount(weapon.Definition.Properties.Weapons.AmmoType) <= amount &&
             entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
-            weapon.FrameState.SetState(newFrame);
+        {
+            var player = entity.PlayerObj!;
+            if (player.WeaponFlashState)
+                weapon.FlashState.SetState(entity, newFrame);
+            else
+                weapon.FrameState.SetState(entity, newFrame);
+        }
     }
 
     public static void A_FireRailGun(Entity entity)
@@ -3024,7 +3070,12 @@ public static class EntityActionFunctions
         Weapon weapon = entity.PlayerObj!.Weapon!;
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
         if (entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
-            weapon.FrameState.SetState(newFrame);
+        {
+            if (entity.PlayerObj!.WeaponFlashState)
+                weapon.FlashState.SetState(entity, newFrame);
+            else
+                weapon.FrameState.SetState(entity, newFrame);
+        }
     }
 
     private static void A_GunFlashTo(Entity entity)
@@ -3037,7 +3088,7 @@ public static class EntityActionFunctions
         bool thirdPersonFrame = frame.DehackedArgs2 == 0;
 
         if (thirdPersonFrame)
-            entity.PlayerObj!.FrameState.SetState(Constants.FrameStates.Missile);
+            entity.PlayerObj!.FrameState.SetState(entity, entity.Definition, Constants.FrameStates.Missile);
 
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
         if (entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
@@ -3051,42 +3102,52 @@ public static class EntityActionFunctions
 
     private static void A_SpawnObject(Entity entity)
     {
-        if (!GetDehackedActorDefinition(entity, entity.Frame.DehackedArgs1, out var def))
+        if (!GetDehackedActorDefinition(entity, entity.FrameState.Frame.DehackedArgs1, out var def))
             return;
 
-        double angle = entity.AngleRadians + MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
-        double forwadDist = MathHelper.FromFixed(entity.Frame.DehackedArgs3);
-        double sideDist = MathHelper.FromFixed(entity.Frame.DehackedArgs4);
-        double forwardVel = MathHelper.FromFixed(entity.Frame.DehackedArgs6);
-        double sideVel = MathHelper.FromFixed(entity.Frame.DehackedArgs7);
-        double zOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs5);
-        double zVelocity = MathHelper.FromFixed(entity.Frame.DehackedArgs8);
+        var angle = entity.AngleRadians + MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
+        var xOffset = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs3);
+        var yOffset = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs4);
+        var zOffset = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs5);
+        var xVelocity = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs6);
+        var yVelocity = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs7);
+        var zVelocity = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs8);
 
-        Vec2D forwardUnit = Vec2D.UnitCircle(angle);
-        Vec2D sideUnit = Vec2D.UnitCircle(angle + MathHelper.QuarterPi);
-        Vec3D offset = ((forwardUnit * forwadDist) + (sideUnit * sideDist)).To3D(zOffset);
-        Vec3D velocity = ((forwardUnit * forwardVel) + (sideUnit * sideVel)).To3D(zVelocity);
+        var offset = Vec2D.Rotate(xOffset, yOffset, angle);
+        var velocity = Vec2D.Rotate(xVelocity, yVelocity, angle);
+        var spawnPos = new Vec3D(entity.Position.X + offset.X, entity.Position.Y + offset.Y, entity.Position.Z + zOffset);
 
-        Entity? createdEntity = WorldStatic.EntityManager.Create(def, entity.Position + offset, 0, 0, 0);
+        var createdEntity = WorldStatic.EntityManager.Create(def, spawnPos, 0, angle, 0, default);
         if (createdEntity == null)
             return;
 
-        createdEntity.AngleRadians = angle;
-        createdEntity.Velocity = velocity;
+        // Doom didn't clamp between floor/ceiling in P_SpawnMobj. P_TryMove would next clear the velocity so only set if valid.
+        if (createdEntity.Position.Z == spawnPos.Z)
+        {
+            createdEntity.Velocity.X = velocity.X;
+            createdEntity.Velocity.Y = velocity.Y;
+        }
+        createdEntity.Velocity.Z = zVelocity;
 
-        if (!createdEntity.Flags.Missile && !createdEntity.Flags.MbfBouncer)
+        if (entity.Definition.Type == EntityType.Blood)
+        {
+            createdEntity.Definition.Type = EntityType.Blood;
+            createdEntity.SetOwner(entity.Owner());
+        }
+
+        if (!createdEntity.Definition.Flags.Missile && !createdEntity.Definition.Flags.MbfBouncer)
             return;
 
-        if (entity.Flags.Missile || entity.Flags.MbfBouncer)
+        if (entity.Definition.Flags.Missile || entity.Definition.Flags.MbfBouncer)
         {
-            createdEntity.SetOwner(entity.Owner.Entity);
-            createdEntity.SetTracer(entity.Tracer.Entity);
+            createdEntity.SetOwner(entity.Owner());
+            createdEntity.SetTracer(entity.Tracer());
         }
         else
         {
             createdEntity.SetOwner(entity);
             createdEntity.SetTarget(entity);
-            createdEntity.SetTracer(entity.Tracer.Entity);
+            createdEntity.SetTracer(entity.Tracer());
         }
     }
 
@@ -3106,35 +3167,35 @@ public static class EntityActionFunctions
         double pitch = GetDehackedProjectilePitch(frame.DehackedArgs3);
         double offsetXY = MathHelper.FromFixed(frame.DehackedArgs4);
         double zOffset = MathHelper.FromFixed(frame.DehackedArgs5);
-        FireProjectile(entity, null, projectileDef, angle, pitch, offsetXY, zOffset);
+        FireProjectile(entity, null, projectileDef, angle, pitch, offsetXY, zOffset, WorldStatic.World.Config.Game.AutoAim);
     }
 
     private static void A_MonsterProjectile(Entity entity)
     {
-        if (entity.Target.Entity == null || !GetDehackedActorDefinition(entity, entity.Frame.DehackedArgs1, out var projectileDef))
+        var target = entity.Target();
+        if (target == null || !GetDehackedActorDefinition(entity, entity.FrameState.Frame.DehackedArgs1, out var projectileDef))
             return;
 
-        double angle = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
-        double pitchOffset = GetDehackedProjectilePitch(entity.Frame.DehackedArgs3);
-        double offsetXY = MathHelper.FromFixed(entity.Frame.DehackedArgs4);
-        double zOffset = MathHelper.FromFixed(entity.Frame.DehackedArgs5);
+        double angle = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
+        double pitchOffset = GetDehackedProjectilePitch(entity.FrameState.Frame.DehackedArgs3);
+        double offsetXY = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs4);
+        double zOffset = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs5);
 
         A_FaceTarget(entity);
-        var projectile = FireProjectile(entity, entity.Target.Entity, projectileDef, angle, pitchOffset, offsetXY, zOffset);
-        if (projectile != null)
-            projectile.SetTracer(entity.Target.Entity);
+        var projectile = FireProjectile(entity, target, projectileDef, angle, pitchOffset, offsetXY, zOffset, true);
+        projectile?.SetTracer(target);
     }
 
     private static void A_MonsterBulletAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        if (entity.Target() == null)
             return;
 
-        double spreadAngle = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs1));
-        double spreadPitch = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
-        int bullets = entity.Frame.DehackedArgs3;
-        int damage = entity.Frame.DehackedArgs4;
-        int mod = Math.Clamp(entity.Frame.DehackedArgs5, 0, int.MaxValue);
+        double spreadAngle = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs1));
+        double spreadPitch = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
+        int bullets = entity.FrameState.Frame.DehackedArgs3;
+        int damage = entity.FrameState.Frame.DehackedArgs4;
+        int mod = Math.Clamp(entity.FrameState.Frame.DehackedArgs5, 0, int.MaxValue);
 
         A_FaceTarget(entity);
         entity.PlayAttackSound();
@@ -3151,18 +3212,19 @@ public static class EntityActionFunctions
 
     private static void A_MonsterMeleeAttack(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
-        int damage = entity.Frame.DehackedArgs1;
-        int mod = Math.Clamp(entity.Frame.DehackedArgs2, 1, int.MaxValue);
-        int sound = entity.Frame.DehackedArgs3;
-        double range = entity.Frame.DehackedArgs4 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(entity.Frame.DehackedArgs4);
+        int damage = entity.FrameState.Frame.DehackedArgs1;
+        int mod = Math.Clamp(entity.FrameState.Frame.DehackedArgs2, 1, int.MaxValue);
+        int sound = entity.FrameState.Frame.DehackedArgs3;
+        double range = entity.FrameState.Frame.DehackedArgs4 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs4);
 
-        if (entity.InMeleeRange(entity.Target.Entity, range))
+        if (entity.InMeleeRange(target, range))
         {
             damage = (WorldStatic.Random.NextByte() % mod + 1) * damage;
-            WorldStatic.World.DamageEntity(entity.Target.Entity, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
+            WorldStatic.World.DamageEntity(target, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
             GetDehackedSound(entity, sound, out string? hitSound);
             if (!string.IsNullOrEmpty(hitSound))
                 WorldStatic.SoundManager.CreateSoundOn(entity, hitSound, new SoundParams(entity));
@@ -3171,23 +3233,24 @@ public static class EntityActionFunctions
 
     private static void A_RadiusDamage(Entity entity)
     {
-        int maxDamage = entity.Frame.DehackedArgs1;
-        Entity? attackSource = entity.Owner.Entity ?? entity.Target.Entity;
-        WorldStatic.World.RadiusExplosion(entity, attackSource ?? entity, entity.Frame.DehackedArgs2, maxDamage);
+        int maxDamage = entity.FrameState.Frame.DehackedArgs1;
+        Entity? attackSource = entity.Owner() ?? entity.Target();
+        WorldStatic.World.RadiusExplosion(entity, attackSource ?? entity, entity.FrameState.Frame.DehackedArgs2, maxDamage);
     }
 
     private static void A_NoiseAlert(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
-        WorldStatic.World.NoiseAlert(entity.Target.Entity, entity);
+        WorldStatic.World.NoiseAlert(target, entity);
     }
 
     public static void A_HealChase(Entity entity)
     {
-        int state = entity.Frame.DehackedArgs1;
-        int sound = entity.Frame.DehackedArgs2;
+        int state = entity.FrameState.Frame.DehackedArgs1;
+        int sound = entity.FrameState.Frame.DehackedArgs2;
 
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
         if (!entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
@@ -3203,8 +3266,8 @@ public static class EntityActionFunctions
 
     public static void A_SeekTracer(Entity entity)
     {
-        double threshold = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs1));
-        double maxTurnAngle = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
+        double threshold = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs1));
+        double maxTurnAngle = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
 
         WorldStatic.World.TracerSeek(entity, threshold, maxTurnAngle, SeekTracerVelocityZ);
     }
@@ -3218,11 +3281,11 @@ public static class EntityActionFunctions
 
     private static void A_FindTracer(Entity entity)
     {
-        if (entity.Tracer.Entity != null)
+        if (entity.Tracer() != null)
             return;
 
-        double fov = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs1));
-        int blocks = entity.Frame.DehackedArgs2 == 0 ? 10 : entity.Frame.DehackedArgs2;
+        double fov = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs1));
+        int blocks = entity.FrameState.Frame.DehackedArgs2 == 0 ? 10 : entity.FrameState.Frame.DehackedArgs2;
         WorldStatic.World.SetNewTracerTarget(entity, fov, blocks * 128);
     }
 
@@ -3233,67 +3296,71 @@ public static class EntityActionFunctions
 
     private static void A_JumpIfHealthBelow(Entity entity)
     {
-        int state = entity.Frame.DehackedArgs1;
-        int health = entity.Frame.DehackedArgs2;
+        int state = entity.FrameState.Frame.DehackedArgs1;
+        int health = entity.FrameState.Frame.DehackedArgs2;
 
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
         if (entity.Health < health && entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
-            entity.FrameState.SetState(newFrame);
+            entity.FrameState.SetState(entity, newFrame);
     }
 
     private static void A_JumpIfTargetInSight(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
-        int state = entity.Frame.DehackedArgs1;
-        double fov = MathHelper.ToRadians(MathHelper.FromFixed(entity.Frame.DehackedArgs2));
-        JumpToStateIfInSight(entity, entity.Target.Entity, state, fov);
+        int state = entity.FrameState.Frame.DehackedArgs1;
+        double fov = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
+        JumpToStateIfInSight(entity, target, state, fov);
     }
 
     private static void A_JumpIfTargetCloser(Entity entity)
     {
-        if (entity.Target.Entity == null)
+        var target = entity.Target();
+        if (target == null)
             return;
 
-        int state = entity.Frame.DehackedArgs1;
-        double distance = MathHelper.FromFixed(entity.Frame.DehackedArgs2);
+        int state = entity.FrameState.Frame.DehackedArgs1;
+        double distance = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2);
 
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
-        if (distance > entity.Position.ApproximateDistance2D(entity.Target.Entity.Position) &&
+        if (distance > entity.Position.ApproximateDistance2D(target.Position) &&
             entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
-            entity.FrameState.SetState(newFrame);
+            entity.FrameState.SetState(entity, newFrame);
     }
 
     private static void A_JumpIfTracerInSight(Entity entity)
     {
-        if (entity.Tracer.Entity == null)
+        var tracer = entity.Tracer();
+        if (tracer == null)
             return;
 
-        int state = entity.Frame.DehackedArgs1;
-        double fov = MathHelper.FromFixed(entity.Frame.DehackedArgs2);
-        JumpToStateIfInSight(entity, entity.Tracer.Entity, state, fov);
+        int state = entity.FrameState.Frame.DehackedArgs1;
+        double fov = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2);
+        JumpToStateIfInSight(entity, tracer, state, fov);
     }
 
     private static void A_JumpIfTracerCloser(Entity entity)
     {
-        if (entity.Tracer.Entity == null)
+        var tracer = entity.Tracer();
+        if (tracer == null)
             return;
 
-        int state = entity.Frame.DehackedArgs1;
-        double distance = MathHelper.FromFixed(entity.Frame.DehackedArgs2);
+        int state = entity.FrameState.Frame.DehackedArgs1;
+        double distance = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2);
 
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
-        if (distance > entity.Position.ApproximateDistance2D(entity.Tracer.Entity.Position) &&
+        if (distance > entity.Position.ApproximateDistance2D(tracer.Position) &&
             entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
-            entity.FrameState.SetState(newFrame);
+            entity.FrameState.SetState(entity, newFrame);
     }
 
     private static void A_JumpIfFlagsSet(Entity entity)
     {
-        int state = entity.Frame.DehackedArgs1;
-        uint flags = (uint)entity.Frame.DehackedArgs2;
-        uint flags2 = (uint)entity.Frame.DehackedArgs3;
+        int state = entity.FrameState.Frame.DehackedArgs1;
+        uint flags = (uint)entity.FrameState.Frame.DehackedArgs2;
+        uint flags2 = (uint)entity.FrameState.Frame.DehackedArgs3;
 
         if (flags != 0 && !DehackedApplier.CheckEntityFlags(entity, flags))
             return;
@@ -3302,40 +3369,46 @@ public static class EntityActionFunctions
 
         var entityFrameTable = WorldStatic.World.ArchiveCollection.Definitions.EntityFrameTable;
         if (entityFrameTable.VanillaFrameMap.TryGetValue(state, out EntityFrame? newFrame))
-            entity.FrameState.SetState(newFrame);
+            entity.FrameState.SetState(entity, newFrame);
     }
 
     private static void A_AddFlags(Entity entity)
     {
-        uint flags1 = (uint)entity.Frame.DehackedArgs1;
-        uint flags2 = (uint)entity.Frame.DehackedArgs2;
+        uint flags1 = (uint)entity.FrameState.Frame.DehackedArgs1;
+        uint flags2 = (uint)entity.FrameState.Frame.DehackedArgs2;
 
-        DehackedApplier.SetEntityFlags(entity.Properties, ref entity.Flags, flags1, false);
-        DehackedApplier.SetEntityFlagsMbf21(entity.Properties, ref entity.Flags, flags2, false);
+        DehackedApplier.SetEntityFlags(null, entity, ref entity.Flags, flags1, false);
+        DehackedApplier.SetEntityFlagsMbf21(null, entity, ref entity.Flags, flags2, false);
     }
 
     private static void A_RemoveFlags(Entity entity)
     {
-        uint flags1 = ~(uint)entity.Frame.DehackedArgs1;
-        uint flags2 = ~(uint)entity.Frame.DehackedArgs2;
+        uint flags1 = ~(uint)entity.FrameState.Frame.DehackedArgs1;
+        uint flags2 = ~(uint)entity.FrameState.Frame.DehackedArgs2;
 
-        DehackedApplier.SetEntityFlags(entity.Properties, ref entity.Flags, flags1, true);
-        DehackedApplier.SetEntityFlagsMbf21(entity.Properties, ref entity.Flags, flags2, true);
+        DehackedApplier.SetEntityFlags(null, entity, ref entity.Flags, flags1, true);
+        DehackedApplier.SetEntityFlagsMbf21(null, entity, ref entity.Flags, flags2, true);
     }
 
     public static void A_ClosetLook(Entity entity)
     {
-        if (entity.Sector.SoundTarget.Entity != null && entity.ValidEnemyTarget(entity.Sector.SoundTarget.Entity))
+        var soundTarget = entity.Sector.SoundTarget.Get();
+        if (soundTarget != null && entity.ValidEnemyTarget(soundTarget))
         {
-            entity.SetTarget(entity.Sector.SoundTarget.Entity);
+            entity.SetTarget(soundTarget);
             entity.SetClosetChase();
         }
     }
 
     public static void A_ClosetChase(Entity entity)
     {
-        if (entity.Target.Entity != null && entity.Target.Entity.IsDead)
+        var target = entity.Target();
+        if (target == null || target.IsDead)
+        {
+            if (!entity.SetNewTarget(true))
+                entity.SetClosetLook();
             return;
+        }
 
         entity.SetNewChaseDirection();
     }
@@ -3352,7 +3425,7 @@ public static class EntityActionFunctions
         if (!WorldStatic.World.CheckLineOfSight(from, to))
             return;
 
-        from.FrameState.SetState(newFrame);
+        from.FrameState.SetState(from, newFrame);
     }
 
     private static bool GetDehackedActorDefinition(Entity entity, int index, [NotNullWhen(true)] out EntityDefinition? def)
@@ -3373,7 +3446,7 @@ public static class EntityActionFunctions
             Constants.EntityShootDistance, false, def, out _, zOffset: zOffset);
     }
 
-    private static Entity? FireProjectile(Entity entity, Entity? target, EntityDefinition projectileDef, double addAngle, double addPitch, double offsetXY, double zOffset)
+    private static Entity? FireProjectile(Entity entity, Entity? target, EntityDefinition projectileDef, double addAngle, double addPitch, double offsetXY, double zOffset, bool autoAim)
     {
         double firePitch = 0;
         if (entity.PlayerObj != null)
@@ -3382,7 +3455,7 @@ public static class EntityActionFunctions
         if (target != null)
             firePitch = entity.PitchTo(entity.Position, target);
 
-        Entity? createdEntity = WorldStatic.World.FireProjectile(entity, entity.AngleRadians, firePitch, Constants.EntityShootDistance, true, projectileDef,
+        Entity? createdEntity = WorldStatic.World.FireProjectile(entity, entity.AngleRadians, firePitch, Constants.EntityShootDistance, autoAim, projectileDef,
             out Entity? autoAimEntity, addAngle: addAngle, addPitch: addPitch, zOffset: zOffset);
         if (createdEntity == null)
             return null;
@@ -3435,12 +3508,12 @@ public static class EntityActionFunctions
         return true;
     }
 
-    private static void PlayDehackedSound(Entity entity, int soundIndex, Attenuation attenuation)
+    private static void PlayDehackedSound(Entity entity, int soundIndex, Attenuation attenuation, SoundChannel channel)
     {
         if (!GetDehackedSound(entity, soundIndex, out string? soundName))
             return;
 
-        WorldStatic.SoundManager.CreateSoundOn(entity, soundName, new SoundParams(entity, attenuation: attenuation));
+        WorldStatic.SoundManager.CreateSoundOn(entity, soundName, new SoundParams(entity, attenuation: attenuation, channel: channel));
     }
 
     private static bool GetDehackedSound(Entity entity, int soundIndex, [NotNullWhen(true)] out string? soundName)

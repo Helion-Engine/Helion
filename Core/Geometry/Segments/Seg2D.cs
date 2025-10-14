@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
+using Helion.Util;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Segments
@@ -19,7 +20,7 @@ namespace Helion.Geometry.Segments
 
         public Vec2D Delta;
         public Box2D Box;
-        public double Length => Start.Distance(End);
+        public double Length() => Start.Distance(End);
         public bool IsAxisAligned => Start.X.ApproxEquals(End.X) || Start.Y.ApproxEquals(End.Y);
         public IEnumerable<Vec2D> Vertices => GetVertices();
 
@@ -170,11 +171,40 @@ namespace Helion.Geometry.Segments
             return CollinearHelper(seg.Start.X, seg.Start.Y, Start.X, Start.Y, End.X, End.Y) &&
                    CollinearHelper(seg.End.X, seg.End.Y, Start.X, Start.Y, End.X, End.Y);
         }
-        public bool Intersects(Seg2D other) => Intersection(other, out double t) && (t >= 0 && t <= 1);
+        public bool Intersects(Seg2D other) => IntersectionInclusive(other, out double t) && (t >= 0 && t <= 1);
         public bool Intersects(Segment2D other) => Intersection(other, out double t) && (t >= 0 && t <= 1);
         public bool Intersects<T>(SegmentT2D<T> other) where T : Vector2D => Intersection(other, out double t) && (t >= 0 && t <= 1);
 
-        public readonly bool Intersection(in Seg2D seg, out double t)
+        public readonly bool IntersectionInclusive(in Seg2D seg, out double t)
+        {
+            double startX = Start.X;
+            double startY = Start.Y;
+            double endX = End.X;
+            double endY = End.Y;
+            double segStartX = seg.Start.X;
+            double segStartY = seg.Start.Y;
+            double segEndX = seg.End.X;
+            double segEndY = seg.End.Y;
+            double areaStart = ((startX - segEndX) * (endY - segEndY)) - ((startY - segEndY) * (endX - segEndX));
+            double areaEnd = ((startX - segStartX) * (endY - segStartY)) - ((startY - segStartY) * (endX - segStartX));
+
+            if (areaStart * areaEnd <= 0)
+            {
+                double areaThisStart = ((segStartX - startX) * (segEndY - startY)) - ((segStartY - startY) * (segEndX - startX));
+                double areaThisEnd = ((segStartX - endX) * (segEndY - endY)) - ((segStartY - endY) * (segEndX - endX));
+
+                if (areaThisStart * areaThisEnd <= 0)
+                {
+                    t = areaThisStart / (areaThisStart - areaThisEnd);
+                    return t >= 0 && t <= 1;
+                }
+            }
+
+            t = default;
+            return false;
+        }
+
+        public readonly bool IntersectionExclusive(in Seg2D seg, out double t)
         {
             double startX = Start.X;
             double startY = Start.Y;
@@ -203,7 +233,7 @@ namespace Helion.Geometry.Segments
             return false;
         }
 
-        public readonly bool Intersection(double segStartX, double segStartY, double segEndX, double segEndY, out double t)
+        public readonly bool IntersectionInclusive(double segStartX, double segStartY, double segEndX, double segEndY, out double t)
         {
             double startX = Start.X;
             double startY = Start.Y;
@@ -212,12 +242,12 @@ namespace Helion.Geometry.Segments
             double areaStart = ((startX - segEndX) * (endY - segEndY)) - ((startY - segEndY) * (endX - segEndX));
             double areaEnd = ((startX - segStartX) * (endY - segStartY)) - ((startY - segStartY) * (endX - segStartX));
 
-            if (areaStart * areaEnd < 0)
+            if (areaStart * areaEnd <= 0)
             {
                 double areaThisStart = ((segStartX - startX) * (segEndY - startY)) - ((segStartY - startY) * (segEndX - startX));
                 double areaThisEnd = ((segStartX - endX) * (segEndY - endY)) - ((segStartY - endY) * (segEndX - endX));
 
-                if (areaThisStart * areaThisEnd < 0)
+                if (areaThisStart * areaThisEnd <= 0)
                 {
                     t = areaThisStart / (areaThisStart - areaThisEnd);
                     return t >= 0 && t <= 1;
@@ -377,7 +407,8 @@ namespace Helion.Geometry.Segments
                 return End;
             return FromTime(t);
         }
-        public bool Intersects(double boxMinX, double boxMinY, double boxMaxX, double boxMaxY)
+
+        public readonly bool Intersects(double boxMinX, double boxMinY, double boxMaxX, double boxMaxY)
         {
             if (Box.Min.X >= boxMaxX || Box.Max.X <= boxMinX || Box.Min.Y >= boxMaxY || Box.Max.Y <= boxMinY)
                 return false;
@@ -390,37 +421,30 @@ namespace Helion.Geometry.Segments
             Vec2D delta = Delta;
             if ((startX < endX) ^ (startY < endY))
             {
-                return ((delta.X * (boxMinY - startY)) - (delta.Y * (boxMinX - startX))) < 0 !=
-                    ((delta.X * (boxMaxY - startY)) - (delta.Y * (boxMaxX - startX))) < 0;
+                var left = (delta.X * (boxMinY - startY)) - (delta.Y * (boxMinX - startX));
+                var right = (delta.X * (boxMaxY - startY)) - (delta.Y * (boxMaxX - startX));
+
+                if (Math.Abs(left) < Constants.Epsilon)
+                    left = 0;
+                if (Math.Abs(right) < Constants.Epsilon)
+                    right = 0;
+
+                return left < 0 != right < 0;
             }
             else
             {
-                return ((delta.X * (boxMaxY - startY)) - (delta.Y * (boxMinX - startX))) < 0 !=
-                    ((delta.X * (boxMinY - startY)) - (delta.Y * (boxMaxX - startX))) < 0;
+                var left = (delta.X * (boxMaxY - startY)) - (delta.Y * (boxMinX - startX));
+                var right = (delta.X * (boxMinY - startY)) - (delta.Y * (boxMaxX - startX));
+
+                if (Math.Abs(left) < Constants.Epsilon)
+                    left = 0;
+                if (Math.Abs(right) < Constants.Epsilon)
+                    right = 0;
+
+                return left < 0 != right < 0;
             }
         }
-        public bool Intersects(in Box2D box)
-        {
-            if (Box.Min.X >= box.Max.X || Box.Max.X <= box.Min.X || Box.Min.Y >= box.Max.Y || Box.Max.Y <= box.Min.Y)
-                return false;
 
-            double startX = Start.X;
-            double startY = Start.Y;
-            double endX = End.X;
-            double endY = End.Y;
-
-            Vec2D delta = Delta;
-            if ((startX < endX) ^ (startY < endY))
-            {
-                return ((delta.X * (box.Min.Y - startY)) - (delta.Y * (box.Min.X - startX))) < 0 !=
-                    ((delta.X * (box.Max.Y - startY)) - (delta.Y * (box.Max.X - startX))) < 0;
-            }
-            else
-            {
-                return ((delta.X * (box.Max.Y - startY)) - (delta.Y * (box.Min.X - startX))) < 0 !=
-                    ((delta.X * (box.Min.Y - startY)) - (delta.Y * (box.Max.X - startX))) < 0;
-            }
-        }
         public bool Intersects(BoundingBox2D box)
         {
             if (!box.Overlaps(Box))

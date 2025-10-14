@@ -14,18 +14,6 @@ public interface ILine : IBspUsableLine
     MapLineFlags Flags { get; }
 
     /// <summary>
-    /// Gets the starting vertex.
-    /// </summary>
-    /// <returns>The starting vertex.</returns>
-    IVertex GetStart();
-
-    /// <summary>
-    /// Gets the ending vertex.
-    /// </summary>
-    /// <returns>The ending vertex.</returns>
-    IVertex GetEnd();
-
-    /// <summary>
     /// Gets the front side of the line.
     /// </summary>
     /// <returns>The front side of the line.</returns>
@@ -36,4 +24,7 @@ public interface ILine : IBspUsableLine
     /// </summary>
     /// <returns>The back side of the line.</returns>
     ISide? GetBack();
+
+    int Special { get; }
+    int SectorTag { get; }
 }

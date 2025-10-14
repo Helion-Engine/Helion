@@ -78,6 +78,41 @@ public class PerAmmoMaxAmmo
         InventoryUtil.AssertAmount(Player, "Cell", 44);
     }
 
+    [Fact(DisplayName = "PerAmmo Shotgun")]
+    public void Shotgun()
+    {
+        GameActions.GiveItem(Player, "Shotgun").Should().BeTrue();
+        InventoryUtil.AssertAmount(Player, "Shell", 20);
+    }
+
+    [Fact(DisplayName = "PerAmmo Chaingun")]
+    public void Chaingun()
+    {
+        GameActions.GiveItem(Player, "Chaingun").Should().BeTrue();
+        InventoryUtil.AssertAmount(Player, "Clip", 90);
+    }
+
+    [Fact(DisplayName = "PerAmmo Rocket Launcher")]
+    public void RocketLauncher()
+    {
+        GameActions.GiveItem(Player, "RocketLauncher").Should().BeTrue();
+        InventoryUtil.AssertAmount(Player, "RocketAmmo", 10);
+    }
+
+    [Fact(DisplayName = "PerAmmo Plasma Rifle")]
+    public void PlasmaRifle()
+    {
+        GameActions.GiveItem(Player, "PlasmaRifle").Should().BeTrue();
+        InventoryUtil.AssertAmount(Player, "Cell", 88);
+    }
+
+    [Fact(DisplayName = "PerAmmo BFG 9000")]
+    public void BFG9000()
+    {
+        GameActions.GiveItem(Player, "BFG9000").Should().BeTrue();
+        InventoryUtil.AssertAmount(Player, "Cell", 88);
+    }
+
     private void GiveMax(string item)
     {
         for (int i = 0; i < 200; i++)

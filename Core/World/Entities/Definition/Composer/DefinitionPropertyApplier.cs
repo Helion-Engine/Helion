@@ -1,4 +1,5 @@
 using Helion.Resources.Definitions.Decorate.Properties;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 
 namespace Helion.World.Entities.Definition.Composer;
 
@@ -200,7 +201,9 @@ public static class DefinitionPropertyApplier
         if (properties.Player.StartItem != null)
         {
             foreach (var startItem in properties.Player.StartItem)
-                definition.Properties.Player.StartItem.Add(new Properties.Components.PlayerStartItem(startItem.Name, startItem.Amount.HasValue ? startItem.Amount.Value : 0));
+                definition.Properties.Player.StartItem.Add(new Properties.Components.PlayerStartItem(startItem.Name, startItem.Amount ?? 0));
         }
+
+        definition.Properties.RenderStyle = properties.RenderStyle;
     }
 }

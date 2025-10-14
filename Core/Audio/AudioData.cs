@@ -3,46 +3,47 @@ using Helion.World.Sound;
 
 namespace Helion.Audio;
 
-public struct AudioData
+public struct AudioData(ISoundSource soundSource, SoundInfo soundInfo, SoundChannel channel, Attenuation attenuation,
+    int priority, bool loop, bool relative, float volume, float attenuationFactor, float offsetSeconds, int gametick)
 {
-    public AudioData(ISoundSource soundSource, SoundInfo soundInfo, SoundChannel channel, Attenuation attenuation,
-        int priority, bool loop)
-    {
-        SoundSource = soundSource;
-        SoundInfo = soundInfo;
-        SoundChannelType = channel;
-        Attenuation = attenuation;
-        Priority = priority;
-        Loop = loop;
-    }
 
     /// <summary>
     /// The source object of the sound (e.g. entity, sector).
     /// </summary>
-    public ISoundSource SoundSource { get; set; }
+    public ISoundSource SoundSource = soundSource;
 
     /// <summary>
     /// SoundInfo source for this sound.
     /// </summary>
-    public SoundInfo SoundInfo { get; set; }
+    public SoundInfo SoundInfo = soundInfo;
 
     /// <summary>
     /// The sound channel for this sound.
     /// </summary>
-    public SoundChannel SoundChannelType { get; set; }
+    public SoundChannel SoundChannelType = channel;
 
     /// <summary>
     /// The attenuation for this sound.
     /// </summary>
-    public Attenuation Attenuation { get; set; }
+    public Attenuation Attenuation = attenuation;
 
     /// <summary>
     /// Priority for this sound, lower is higher priority.
     /// </summary>
-    public int Priority { get; set; }
+    public int Priority = priority;
 
     /// <summary>
     /// If this sound should loop after completion.
     /// </summary>
-    public bool Loop { get; set; }
+    public bool Loop = loop;
+
+    public bool Relative = relative;
+
+    public float Volume = volume;
+
+    public float AttenuationFactor = attenuationFactor;
+
+    public float OffsetSeconds = offsetSeconds;
+
+    public int GameTick = gametick;
 }

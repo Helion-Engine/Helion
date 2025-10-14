@@ -8,13 +8,13 @@ namespace Helion.Tests.Unit.GameAction
     {
         public static void AssertFrameStateFunction(Entity entity, string name)
         {
-            entity.Frame.ActionFunction.Should().NotBeNull();
-            entity.Frame.ActionFunction!.Method.Name.EqualsIgnoreCase(name).Should().BeTrue();
+            entity.FrameState.Frame.ActionFunction.Should().NotBeNull();
+            entity.FrameState.Frame.ActionFunction!.Method.Name.EqualsIgnoreCase(name).Should().BeTrue();
         }
 
         public static void AssertNoFrameStateFunction(Entity entity)
         {
-            entity.Frame.ActionFunction.Should().BeNull();
+            entity.FrameState.Frame.ActionFunction.Should().BeNull();
         }
     }
 }

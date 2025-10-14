@@ -8,8 +8,6 @@ using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
-using Helion.World.Geometry.Walls;
-using NLog;
 
 namespace Helion.World.Geometry;
 
@@ -17,10 +15,10 @@ public struct IslandGeometry
 {
     public IslandGeometry()
     {
-        BadSubsectors = new();
-        FloodSectors = new();
-        Islands = new();
-        SectorIslands = Array.Empty<List<Island>>();
+        BadSubsectors = [];
+        FloodSectors = [];
+        Islands = [];
+        SectorIslands = [];
     }
 
     public HashSet<int> BadSubsectors;
@@ -34,21 +32,36 @@ public class MapGeometry
     public readonly List<Line> Lines;
     public readonly List<Side> Sides;
     public readonly List<Sector> Sectors;
-    public readonly BspTreeNew BspTree;
     public readonly CompactBspTree CompactBspTree;
+    public int[] SubsectorToIslandId = [];
 
     public IslandGeometry IslandGeometry = new();
 
-    private readonly Dictionary<int, IList<Sector>> m_tagToSector = new();
-    private readonly Dictionary<int, IList<Line>> m_idToLine = new();
+    private readonly Dictionary<int, IList<Sector>> m_tagToSector = [];
+    private readonly Dictionary<int, IList<Line>> m_idToLine = [];
+    private BspTreeNew? m_bspTree;
 
-    internal MapGeometry(IMap map, GeometryBuilder builder, CompactBspTree bspTree, BspTreeNew bspTreeNew)
+    public BspTreeNew? GetBspTree() => m_bspTree;
+    public void ClearBspTree()
+    {
+        if (m_bspTree == null)
+            return;
+
+        m_bspTree.Nodes = null!;
+        m_bspTree.Segments = null!;
+        foreach (var subsector in m_bspTree.Subsectors)
+            subsector.Segments = null!;
+        m_bspTree.Subsectors = null!;
+        m_bspTree = null;
+    }
+
+    internal MapGeometry(GeometryBuilder builder, CompactBspTree bspTree, BspTreeNew bspTreeNew)
     {
         Lines = builder.Lines;
         Sides = builder.Sides;
         Sectors = builder.Sectors;
         CompactBspTree = bspTree;
-        BspTree = bspTreeNew;
+        m_bspTree = bspTreeNew;
 
         TrackSectorsByTag();
         TrackLinesByLineId();
@@ -56,8 +69,16 @@ public class MapGeometry
 
     public void ClassifyIslands()
     {
-        IslandGeometry.Islands = IslandClassifier.Classify(BspTree.Subsectors, Sectors);
-        IslandGeometry.SectorIslands = IslandClassifier.ClassifySectors(BspTree.Subsectors, Sectors);
+        if (m_bspTree == null)
+            return;
+
+        var islandClassifier = new IslandClassifier();
+        IslandGeometry.Islands = islandClassifier.Classify(m_bspTree.Subsectors, Sectors, Lines.Count);
+        IslandGeometry.SectorIslands = islandClassifier.ClassifySectors(m_bspTree.Subsectors, Sectors, Lines.Count);
+
+        SubsectorToIslandId = new int[m_bspTree.Subsectors.Count];
+        foreach (var subsector in m_bspTree.Subsectors)
+            SubsectorToIslandId[subsector.Id] = subsector.IslandId;
 
         for (int sectorId = 0; sectorId < IslandGeometry.SectorIslands.Length; sectorId++)
         {
@@ -142,7 +163,7 @@ public class MapGeometry
 
     public void SetLineId(Line line, int lineId)
     {
-        line.LineId = lineId;
+        line.MapLineId = lineId;
         TrackLineId(line);
     }
 
@@ -161,7 +182,7 @@ public class MapGeometry
     {
         foreach (Line line in Lines)
         {
-            if (line.LineId == Line.NoLineId)
+            if (line.MapLineId == Line.NoLineId)
                 continue;
 
             TrackLineId(line);
@@ -170,9 +191,9 @@ public class MapGeometry
 
     private void TrackLineId(Line line)
     {
-        if (m_idToLine.TryGetValue(line.LineId, out IList<Line>? lines))
+        if (m_idToLine.TryGetValue(line.MapLineId, out IList<Line>? lines))
             lines.Add(line);
         else
-            m_idToLine[line.LineId] = new List<Line> { line };
+            m_idToLine[line.MapLineId] = [line];
     }
 }

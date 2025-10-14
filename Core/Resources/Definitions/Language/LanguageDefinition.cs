@@ -1,3 +1,5 @@
+using Helion.Resources.IWad;
+using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using Helion.World.Entities.Players;
 using System;
@@ -27,7 +29,7 @@ public class LanguageDefinition
             m_compatLookup.Add(parser.ConsumeString(), parser.ConsumeString());
     }
 
-    public void Parse(string data)
+    public void Parse(string data, IWadInfo iwadInfo)
     {
         data = GetCurrentLanguageSection(data);
 
@@ -37,7 +39,19 @@ public class LanguageDefinition
 
         while (!parser.IsDone())
         {
-            string key = parser.ConsumeString();
+            var key = parser.ConsumeString();
+            if (key.StartsWithIgnoreCase("$ifgame"))
+            {
+                var type = GetGameType(GetGameName(key));
+                if (!CompareIWadTypes(type, iwadInfo.IWadBaseType))
+                {
+                    parser.ConsumeLineSpan();
+                    continue;
+                }
+
+                key = parser.ConsumeString();
+            }
+
             parser.ConsumeString("=");
 
             sb.Clear();
@@ -52,10 +66,50 @@ public class LanguageDefinition
         }
     }
 
+    private static bool CompareIWadTypes(IWadBaseType x, IWadBaseType y)
+    {
+        if (x == IWadBaseType.None || y == IWadBaseType.None)
+            return false;
+
+        if (x == IWadBaseType.Doom1)
+            x = IWadBaseType.Doom2;
+        if (y == IWadBaseType.Doom2)
+            y = IWadBaseType.Doom2;
+
+        return x == y;
+    }
+
+    private static ReadOnlySpan<char> GetGameName(string key)
+    {
+        const string IfGame = "$ifgame(";
+        var start = key.IndexOf(IfGame, StringComparison.OrdinalIgnoreCase);
+        var end = key.IndexOf(")", StringComparison.OrdinalIgnoreCase);
+
+        if (start != -1 && end != -1)
+            return key.AsSpan(start + IfGame.Length, end - start - IfGame.Length);
+
+        return new ReadOnlySpan<char>();
+    }
+
+    private static IWadBaseType GetGameType(ReadOnlySpan<char> name)
+    {
+        Span<char> lower = stackalloc char[name.Length];
+        name.ToLowerInvariant(lower);
+
+        return lower switch
+        {
+            "doom" => IWadBaseType.Doom2,
+            "heretic" => IWadBaseType.Heretic,
+            "hexen" => IWadBaseType.Hexen,
+            "chex" => IWadBaseType.ChexQuest,
+            _ => IWadBaseType.None,
+        };
+    }
+
     public bool SetValue(string key, string value)
     {
-        if (m_compatLookup.ContainsKey(key))
-            key = m_compatLookup[key];
+        if (m_compatLookup.TryGetValue(key, out var compatValue))
+            key = compatValue;
 
         if (!m_lookup.ContainsKey(key))
             return false;
@@ -71,7 +125,7 @@ public class LanguageDefinition
 
     private string GetCurrentLanguageSection(string data)
     {
-        Regex currentLanguage = new(string.Format("\\[{0}\\w?(\\s+default)?]", CultureInfo.TwoLetterISOLanguageName));
+        Regex currentLanguage = new(string.Format(CultureInfo.InvariantCulture, "\\[{0}\\w?(\\s+default)?]", CultureInfo.TwoLetterISOLanguageName));
         Regex defaultLanguage = new("\\[\\w+\\s+default]");
         Regex anyLanguage = new("\\[\\w+(\\s+default)?]");
 

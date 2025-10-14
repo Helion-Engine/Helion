@@ -18,4 +18,5 @@ public enum OptionSectionType
     SlowTick,
     Demo,
     Console,
+    Weapons
 }

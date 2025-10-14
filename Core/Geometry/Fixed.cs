@@ -30,8 +30,8 @@ public readonly struct Fixed
     public static Fixed Zero() => From(0);
     public static Fixed One() => From(1);
     public static Fixed NegativeOne() => From(-1);
-    public static Fixed Lowest() => new Fixed(0x80000000);
-    public static Fixed Max() => new Fixed(0x7FFFFFFF);
+    public static Fixed Lowest() => From(short.MinValue);
+    public static Fixed Max() => From(short.MaxValue);
 
     /// <summary>
     /// The bits that make up the fixed point number.

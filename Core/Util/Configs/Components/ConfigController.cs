@@ -1,5 +1,6 @@
 ﻿namespace Helion.Util.Configs.Components;
 
+using Helion.Geometry.Vectors;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
@@ -18,6 +19,10 @@ public class ConfigController : ConfigElement<ConfigController>
     [ConfigInfo("Enable game controller support.")]
     [OptionMenu(OptionSectionType.Controller, "Enable Game Controller", spacer: true)]
     public readonly ConfigValue<bool> EnableGameController = new(true);
+
+    [ConfigInfo("Whether to invert thumbstick vertical axis for vertical aiming")]
+    [OptionMenu(OptionSectionType.Controller, "Thumbstick Vertical Aim Invert")]
+    public readonly ConfigValue<bool> GameControllerVerticalAimInvert = new(false);
 
     [ConfigInfo("Enable rumble feedback effects.")]
     [OptionMenu(OptionSectionType.Controller, "Enable Rumble")]
@@ -49,6 +54,10 @@ public class ConfigController : ConfigElement<ConfigController>
     [OptionMenu(OptionSectionType.Controller, "Gyro Aim Turn Axis", spacer: true)]
     public readonly ConfigValue<GyroTurnAxis> GyroAimTurnAxis = new(GyroTurnAxis.Yaw);
 
+    [ConfigInfo("Whether to invert gyro vertical axis for vertical aiming")]
+    [OptionMenu(OptionSectionType.Controller, "Gyro Vertical Aim Invert")]
+    public readonly ConfigValue<bool> GyroVerticalAimInvert = new(false);
+
     [ConfigInfo("Vertical aiming sensitivity for gyro input.")]
     [OptionMenu(OptionSectionType.Controller, "Gyro Aim Vertical Sensitivity", sliderMin: 0, sliderMax: 10, sliderStep: .1)]
     public readonly ConfigValue<double> GyroAimVerticalSensitivity = new(3.0, Clamp(0, 10.0));
@@ -60,5 +69,35 @@ public class ConfigController : ConfigElement<ConfigController>
     [ConfigInfo("Whether gyro aiming is on or off by default.  Holding the gyro button on the controller will temporarily switch this.")]
     [OptionMenu(OptionSectionType.Controller, "Gyro On By Default")]
     public readonly ConfigValue<bool> GyroAimOnByDefault = new(true);
+
+    [ConfigInfo("How much to add to sensitivity at the upper gyro threshold. Set to 0 to disable gyro acceleration")]
+    [OptionMenu(OptionSectionType.Controller, "Gyro Acceleration")]
+    public readonly ConfigValue<double> GyroAcceleration = new(2.0);
+
+    [ConfigInfo("Lower threshold for gyro acceleration. If the speed of the controller falls below this, no acceleration will be applied.")]
+    [OptionMenu(OptionSectionType.Controller, "Lower Gyro Threshold")]
+    public readonly ConfigValue<double> LowerGyroThreshold = new(0.0);
+
+    [ConfigInfo("Upper threshold for gyro acceleration. Beyond this point, no more acceleration will be applied.")]
+    [OptionMenu(OptionSectionType.Controller, "Upper Gyro Threshold")]
+    public readonly ConfigValue<double> UpperGyroThreshold = new(75.0);
+
+    [ConfigInfo("Whether gyro smoothing should be enabled to reduce twitchiness.")]
+    [OptionMenu(OptionSectionType.Controller, "Gyro Smoothing")]
+    public readonly ConfigValue<bool> GyroSmoothingEnabled = new(false);
+
+    [ConfigInfo("Gyro smoothing threshold (degrees/s), beyond which smoothing is not applied.")]
+    [OptionMenu(OptionSectionType.Controller, "Gyro Smoothing Threshold", sliderMin: 0, sliderMax: 50, sliderStep: .1)]
+    public readonly ConfigValue<double> GyroSmoothingThreshold = new(5f, Clamp(0f, 50.0f));
+
+    [ConfigInfo("Perform gyro calibration, if controller has a gyro.")]
+    [OptionMenu(OptionSectionType.Controller, "Gyro Calibration", dialogType: DialogType.GyroCalibrationDialog)]
+    public readonly ConfigValue<string> GyroCalibrationDummy = new("Calibrate");
+
+    [ConfigInfo("Learned value for gyro drift per sample")]
+    public readonly ConfigValue<Vec3F> GyroDrift = new((0, 0, 0));
+
+    [ConfigInfo("Learned value for gyro noise threshold")]
+    public readonly ConfigValue<Vec3F> GyroNoise = new((0, 0, 0));
 }
 

@@ -35,7 +35,7 @@ public partial class WorldLayer
             return;
 
         TickWorld(tickerInfo);
-        HandlePauseOrResume();
+        CheckPauseOrResume();
     }
 
     public bool StartRecording(IDemoRecorder recorder)
@@ -118,10 +118,10 @@ public partial class WorldLayer
             return;
 
         // Lets the world interpolate until the next tick.
-        if (World.Paused || m_resetInterpolation)
+        if (m_resetInterpolation)
         {
-            m_resetInterpolation = false;
             World.ResetInterpolation();
+            m_resetInterpolation = false;
         }
 
         if (ticksToRun > TickOverflowThreshold)
@@ -210,7 +210,7 @@ public partial class WorldLayer
         return true;
     }
 
-    private void HandlePauseOrResume()
+    public void CheckPauseOrResume()
     {
         if (m_stopped)
             return;

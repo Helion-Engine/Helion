@@ -7,5 +7,6 @@ public struct RenderOffsets
     public int Gametick;
     public Vec2D Offset;
     public Vec2D LastOffset;
+    public Vec2D Scale;
     public double Rotate;
 }

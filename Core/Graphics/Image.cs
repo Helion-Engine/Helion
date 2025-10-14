@@ -2,7 +2,9 @@ using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics.Palettes;
 using Helion.Resources;
+using Helion.Resources.Archives.Entries;
 using Helion.Util.Extensions;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using static Helion.Util.Assertion.Assert;
 
@@ -24,14 +26,14 @@ public class Image
     public static readonly Image WhiteImage = CreateWhiteImage();
     public static readonly Image TransparentImage = CreateTransparentImage();
 
-    public static Image CreateBlackImage() => new([Color.Black.Value], (1, 1), ImageType.PaletteWithArgb, (0, 0), ResourceNamespace.Global, indices: [0]);
+    public static Image CreateBlackImage() => new([Color.Black.Uint], (1, 1), ImageType.PaletteWithArgb, (0, 0), ResourceNamespace.Global, indices: [0]);
 
     public Dimension Dimension;
     public ImageType ImageType;
     public ImageType UploadType;
     public readonly Vec2I Offset;
     public readonly ResourceNamespace Namespace;
-    public readonly uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
+    public uint[] m_pixels; // Stored as argb with a = high byte, b = low byte
     public readonly byte[] m_indices;
     public readonly int UpscaleFactor;
 
@@ -41,6 +43,7 @@ public class Image
     public Span<byte> Indices => m_indices;
 
     public int BlankRowsFromBottom;
+    public int BlankRowsFromTop;
 
     public Image(Dimension dimension, ImageType imageType, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global) :
         this(new uint[dimension.Area], dimension, imageType, offset, ns)
@@ -56,7 +59,7 @@ public class Image
 
     public Image(uint[] pixels, Dimension dimension, ImageType imageType, Vec2I offset, ResourceNamespace ns, ushort[]? indices = null, int upscaleFactor = 1)
     {
-        Precondition(pixels.Length == dimension.Area, "Image size mismatch");
+        Precondition(pixels.Length >= dimension.Area, "Image size mismatch");
 
         UpscaleFactor = upscaleFactor;
         Dimension = dimension;
@@ -80,6 +83,13 @@ public class Image
         m_indices ??= [];
     }
 
+    public void SetPixels(uint[] pixels, Dimension dimension)
+    {
+        Precondition(pixels.Length >= dimension.Area, "Image size mismatch");
+        Dimension = dimension;
+        m_pixels = pixels;
+    }
+
     public void DisableIndexedUpload()
     {
         if (UploadType == ImageType.PaletteWithArgb)
@@ -100,7 +110,50 @@ public class Image
         return new(indices, dimension, ImageType.Palette, offset, ns);
     }
 
-    public static Image? FromArgbBytes(Dimension dimension, byte[] argbData, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global)
+    public static Image? FromImageSharp<TPixel>(SixLabors.ImageSharp.Image<TPixel> data, Vec2I imageOffset = default, ResourceNamespace ns = ResourceNamespace.Global,
+        Palette? paletteTranslation = null, PaletteColorLookup? paletteTranslationColorLookup = null, byte[]? colorTranslation = null)
+        where TPixel : unmanaged, IPixel<TPixel>
+    {
+        var indices = paletteTranslation == null ? null : new ushort[data.Height * data.Width];
+        var argbData = new byte[data.Height * data.Width * 4];
+        int offset = 0;
+        Rgba32 tempPixel = new();
+        int index = 0;
+        for (int y = 0; y < data.Height; y++)
+        {
+            Span<TPixel> pixelRow = SixLabors.ImageSharp.Advanced.AdvancedImageExtensions.DangerousGetPixelRowMemory(data, y).Span;
+            foreach (ref TPixel pixel in pixelRow)
+            {
+                pixel.ToRgba32(ref tempPixel);
+
+                argbData[offset] = tempPixel.A;
+                argbData[offset + 1] = tempPixel.R;
+                argbData[offset + 2] = tempPixel.G;
+                argbData[offset + 3] = tempPixel.B;
+
+                if (indices != null && paletteTranslation != null && paletteTranslationColorLookup != null && tempPixel.A != 0)
+                {
+                    var nearestIndex = paletteTranslationColorLookup.GetIndex(tempPixel.R, tempPixel.G, tempPixel.B);
+                    indices[index] = nearestIndex;
+
+                    if (colorTranslation != null)
+                    {
+                        var color = paletteTranslation.DefaultLayer[colorTranslation[nearestIndex]];
+                        argbData[offset + 1] = color.R;
+                        argbData[offset + 2] = color.G;
+                        argbData[offset + 3] = color.B;
+                    }
+                }
+
+                index++;
+                offset += 4;
+            }
+        }
+
+        return FromArgbBytes((data.Width, data.Height), argbData, imageOffset, ns, indices);
+    }
+
+    public static Image? FromArgbBytes(Dimension dimension, byte[] argbData, Vec2I offset = default, ResourceNamespace ns = ResourceNamespace.Global, ushort[]? indices = null)
     {
         if (dimension.Area * 4 != argbData.Length)
             return null;
@@ -121,7 +174,8 @@ public class Image
             argbByteOffset += 4;
         }
 
-        return new(pixels, dimension, ImageType.Argb, offset, ns);
+        var imageType = indices == null ? ImageType.Rgba : ImageType.PaletteWithArgb;
+        return new(pixels, dimension, imageType, offset, ns, indices);
     }
 
     public Image GetUpscaled(int upscalingFactor)
@@ -173,7 +227,7 @@ public class Image
             if (argb != TransparentIndex && argb < fullBright.Length && fullBright[argb])
             {
                 var color = layer[argb];
-                if (color.R != 0 && color.G != 0 && color.B != 0)
+                if (color.R != 0 || color.G != 0 || color.B != 0)
                 {
                     uint newPixel = (pixel & 0x00FFFFFF) | ((uint)AlphaFlag << 24);
                     pixel = newPixel;
@@ -321,11 +375,11 @@ public class Image
             m_indices[offset] = index;
     }
 
-    public void SetPixel(int x, int y, Color color, Colormap colormap)
+    public void SetPixel(int x, int y, Color color, Palette palette)
     {
         byte index = 0;
         if (ImageType == ImageType.PaletteWithArgb)
-            index = colormap.GetNearestColorIndex(color);
+            index = palette.GetNearestColorIndex(color);
 
         int offset = (y * Width) + x;
         if (offset >= 0 && offset < m_pixels.Length)
@@ -334,27 +388,6 @@ public class Image
                 m_indices[offset] = index;
             m_pixels[offset] = color.Uint;
         }
-    }
-
-    public Image FlipY()
-    {
-        uint[] flippedPixels = new uint[Dimension.Area];
-
-        for (int srcRow = 0; srcRow < Dimension.Height; srcRow++)
-        {
-            int destRow = Dimension.Height - 1 - srcRow;
-            int srcOffset = srcRow * Width;
-            int destOffset = destRow * Width;
-
-            for (int col = 0; col < Dimension.Width; col++)
-            {
-                flippedPixels[destOffset] = m_pixels[srcOffset];
-                srcOffset++;
-                destOffset++;
-            }
-        }
-
-        return new(flippedPixels, Dimension, ImageType, Offset, Namespace);
     }
 
     public void ConvertToGrayscale(bool normalize)
@@ -437,11 +470,11 @@ public class Image
 
         for (int y = 0; y < HalfDimension; y++)
             for (int x = 0; x < HalfDimension; x++)
-                image.SetPixel(x, y, Color.Red, Colormap.GetDefaultColormap());
+                image.SetPixel(x, y, Color.Red, Palette.GetDefaultPalette());
 
         for (int y = HalfDimension; y < Dimension; y++)
             for (int x = HalfDimension; x < Dimension; x++)
-                image.SetPixel(x, y, Color.Red, Colormap.GetDefaultColormap());
+                image.SetPixel(x, y, Color.Red, Palette.GetDefaultPalette());
 
         return image;
     }

@@ -50,27 +50,31 @@ public class SinglePlayerWorld : WorldBase
     {
         if (m_chaseCamMode)
             return ChaseCamPlayer;
-        return Player;
+        return EntityManager.GetRealPlayer(0) ?? Player;
     }
+
+    private bool IsMultiPlayer => m_worldType != WorldType.SinglePlayer;
 
     public SinglePlayerWorld(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef,
         IMap map, bool sameAsPreviousMap, Player? existingPlayer = null, WorldModel? worldModel = null, IRandom? random = null, bool reuse = true)
         : base(globalData, config, archiveCollection, audioSystem, profiler, geometry, mapDef, skillDef, map, worldModel, random, sameAsPreviousMap, reuse)
     {
+        m_worldType = config.Game.SoloNet ? WorldType.Cooperative : WorldType.SinglePlayer;
+
         if (worldModel == null)
         {
             EntityManager.PopulateFrom(map, LevelStats);
 
-            IList<Entity> spawns = EntityManager.SpawnLocations.GetPlayerSpawns(0);
+            var spawns = EntityManager.SpawnLocations.GetPlayerSpawns(0);
             if (spawns.Count == 0)
                 throw new HelionException("No player 1 starts.");
+            Player = EntityManager.CreatePlayer(0, spawns[^1]);
 
-            Player = EntityManager.CreatePlayer(0, spawns.Last(), false);
             // Make voodoo dolls
             for (int i = spawns.Count - 2; i >= 0; i--)
             {
-                Player player = EntityManager.CreatePlayer(0, spawns[i], true);
+                Player player = EntityManager.CreatePlayer(0, spawns[i], CreatePlayerOptions.VooDooDoll);
                 player.SetDefaultInventory();
             }
 
@@ -108,14 +112,16 @@ public class SinglePlayerWorld : WorldBase
             ApplyLineModels(worldModel);
             CreateDamageSpecials(worldModel);
 
-            for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
-                EntityManager.FinalizeFromWorldLoad(result, entity);
-
-            SpecialManager.AddSpecialModels(worldModel.Specials);
+            EntityManager.FinalizeFromWorldLoad(result);
+            SpecialManager.AddSpecialModels(worldModel);
         }
 
-        if (config.Game.MonsterCloset.Value)
-            ClosetClassifier.Classify(this, worldModel != null);
+        // Allocating on the save can take a significant amount of time on the first save. Ensure it has most of the required size plus buffer.
+        EnsureEntityModelSize(EntityManager.EntityCount + (int)(EntityManager.EntityCount * 0.25));
+
+        var bspTree = Geometry.GetBspTree();
+        if (config.Game.MonsterCloset.Value && bspTree != null)
+            ClosetClassifier.Classify(this, bspTree, worldModel != null);
         else if (worldModel != null)
             ClearMonsterClosets();
 
@@ -139,11 +145,11 @@ public class SinglePlayerWorld : WorldBase
 
     private void CheckDistanceOverride()
     {
-        if (Map.CompatibilityDefinition != null && Map.CompatibilityDefinition.MaxDistanceOverride > 0)
+        if (CompatibilityMapDefinition != null && CompatibilityMapDefinition.MaxDistanceOverride > 0)
         {
-            foreach (var tag in Map.CompatibilityDefinition.MaxDistanceOverrideTags)
+            foreach (var tag in CompatibilityMapDefinition.MaxDistanceOverrideTags)
                 m_renderDistanceOverrideTags.Add(tag);
-            m_renderDistanceOverride = Map.CompatibilityDefinition.MaxDistanceOverride;
+            m_renderDistanceOverride = CompatibilityMapDefinition.MaxDistanceOverride;
         }
     }
 
@@ -284,8 +290,9 @@ public class SinglePlayerWorld : WorldBase
 
     private void ApplyCheats(WorldModel worldModel)
     {
-        foreach (PlayerModel playerModel in worldModel.Players)
+        for (int i = 0; i < worldModel.Players.Count; i++)
         {
+            var playerModel = worldModel.Players[i];
             Player? player = EntityManager.Players.FirstOrDefault(x => x.Id == playerModel.Id);
             if (player == null)
                 continue;
@@ -299,7 +306,7 @@ public class SinglePlayerWorld : WorldBase
     {
         for (int i = 0; i < worldModel.DamageSpecials.Count; i++)
         {
-            SectorDamageSpecialModel model = worldModel.DamageSpecials[i];
+            var model = worldModel.DamageSpecials[i];
             if (!((IWorld)this).IsSectorIdValid(model.SectorId))
                 continue;
 
@@ -309,28 +316,30 @@ public class SinglePlayerWorld : WorldBase
 
     private void ApplyLineModels(WorldModel worldModel)
     {
+        var lines = worldModel.Lines;
         for (int i = 0; i < worldModel.Lines.Count; i++)
         {
-            LineModel lineModel = worldModel.Lines[i];
-            if (lineModel.Id < 0 || lineModel.Id >= Lines.Count)
+            var id = lines[i].Id;
+            if (id < 0 || id >= Lines.Count)
                 continue;
 
-            var line = Lines[lineModel.Id];
-            line.ApplyLineModel(this, lineModel);
-            ref StructLine structLine = ref StructLines.Data[lineModel.Id];
+            var line = Lines[id];
+            line.ApplyLineModel(this, lines[i]);
+            ref StructLine structLine = ref StructLines.Data[id];
             structLine.Update(line);
         }
     }
 
     private void ApplySectorModels(WorldModel worldModel, WorldModelPopulateResult result)
     {
+        var sectors = worldModel.Sectors;
         for (int i = 0; i < worldModel.Sectors.Count; i++)
         {
-            SectorModel sectorModel = worldModel.Sectors[i];
-            if (sectorModel.Id < 0 || sectorModel.Id >= Sectors.Count)
+            var id = sectors[i].Id;
+            if (id < 0 || id >= Sectors.Count)
                 continue;
 
-            Sectors[sectorModel.Id].ApplySectorModel(this, sectorModel, result);
+            Sectors[id].ApplySectorModel(this, sectors[i], result);
         }
     }
 
@@ -353,6 +362,7 @@ public class SinglePlayerWorld : WorldBase
 
     public override bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop)
     {
+        base.PlayLevelMusic(name, data, flags);
         GetMusicEntry(name, out var lookup, out var entry);
 
         if (data == null)
@@ -451,7 +461,23 @@ public class SinglePlayerWorld : WorldBase
     public override bool EntityUse(Entity entity)
     {
         if (entity.IsPlayer && entity.IsDead)
-            ResetLevel(Config.Game.LoadLatestOnDeath);
+        {
+            if (IsMultiPlayer)
+            {
+                var respawnPlayer = RespawnPlayer(Player);
+                if (respawnPlayer != null)
+                {
+                    SoundManager.MakeSoundsNotRelativeTo(Player);
+                    Player = respawnPlayer;
+                }
+            }
+            else
+            {
+                ResetLevel(Config.Game.LoadLatestOnDeath);
+            }
+
+            return false;
+        }
 
         return base.EntityUse(entity);
     }
@@ -462,11 +488,11 @@ public class SinglePlayerWorld : WorldBase
         base.OnTryEntityUseLine(entity, line);
     }
 
-    public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, bool fromFront)
+    public override bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, double originX, double originY)
     {
         MarkSpecials.Mark(this, entity, line, Gametick);
 
-        bool success = base.ActivateSpecialLine(entity, line, context, fromFront);
+        bool success = base.ActivateSpecialLine(entity, line, context, originX, originY);
         if (success && m_renderDistanceOverride > 0 && m_renderDistanceOverrideTags.Contains(line.TagArg))
             ArchiveCollection.Config.Render.MaxDistance.Set(m_renderDistanceOverride, false);
 
@@ -579,15 +605,27 @@ public class SinglePlayerWorld : WorldBase
 
         if (input.Manager.AnalogAdapter != null)
         {
-            if (input.Manager.AnalogAdapter.TryGetGyroAbsolute((GyroAxis)(int)Config.Controller.GyroAimTurnAxis.Value, out double yaw) == true)
+            double pitch = 0.0;
+            double gyroSpeed;
+            double slowFastFactor = 0.0;
+
+            bool hasYaw = input.Manager.AnalogAdapter.TryGetGyroAbsolute((GyroAxis)(int)Config.Controller.GyroAimTurnAxis.Value, out double yaw);
+            bool hasPitch = ((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsChaseCamMode)
+                && input.Manager.AnalogAdapter.TryGetGyroAbsolute(GyroAxis.Pitch, out pitch);
+
+            if (hasYaw)
             {
-                player.AddToYaw((float)(yaw * Config.Controller.GyroAimHorizontalSensitivity), true);
+                gyroSpeed = hasPitch
+                    ? Math.Sqrt(yaw * yaw + pitch * pitch) * 360 / Math.Tau
+                    : yaw * 360 / Math.Tau;
+                slowFastFactor = (gyroSpeed - Config.Controller.LowerGyroThreshold) / (Config.Controller.UpperGyroThreshold - Config.Controller.LowerGyroThreshold);
+                player.AddToYaw((float)(yaw * (Config.Controller.GyroAimHorizontalSensitivity + (Config.Controller.GyroAcceleration * slowFastFactor))), true);
             }
 
-            if (((Config.Mouse.Look && !MapInfo.HasOption(MapOptions.NoFreelook)) || IsChaseCamMode)
-                && (input.Manager.AnalogAdapter.TryGetGyroAbsolute(GyroAxis.Pitch, out double pitch) == true))
+            if (hasPitch)
             {
-                player.AddToPitch((float)(pitch * Config.Controller.GyroAimVerticalSensitivity), true);
+                pitch *= Config.Controller.GyroVerticalAimInvert ? -1 : 1;
+                player.AddToPitch((float)(pitch * (Config.Controller.GyroAimVerticalSensitivity + (Config.Controller.GyroAcceleration * slowFastFactor))), true);
             }
 
             input.Manager.AnalogAdapter.ZeroGyroAbsolute();

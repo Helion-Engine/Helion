@@ -36,18 +36,19 @@ public class Weapon : InventoryItem, ITickable
         Owner = owner;
 
         if (frameStateModel == null)
-            FrameState = new FrameState(owner, definition, FrameStateOptions.PlayerSprite);
+            FrameState = new FrameState(FrameStateOptions.PlayerSprite);
         else
-            FrameState = new FrameState(owner, definition, frameStateModel.Value);
+            FrameState = new FrameState(owner, frameStateModel.Value);
 
         if (flashStateModel == null)
-            FlashState = new FrameState(owner, definition, FrameStateOptions.None);
+            FlashState = new FrameState(FrameStateOptions.None);
         else
-            FlashState = new FrameState(owner, definition, flashStateModel.Value);
+            FlashState = new FrameState(owner, flashStateModel.Value);
 
+        var table = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable;
         AmmoDefinition = WorldStatic.EntityManager.DefinitionComposer.GetByName(definition.Properties.Weapons.AmmoType);
-        if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue(Constants.FrameStates.Spawn, out int frame))
-            AmmoSprite = entityManager.World.ArchiveCollection.Definitions.EntityFrameTable.Frames[frame].Sprite + "A0";
+        if (AmmoDefinition != null && AmmoDefinition.States.Labels.TryGetValue(Constants.FrameStates.Spawn, out int frame) && frame < table.Frames.Count)
+            AmmoSprite = table.Frames[frame].Sprite + "A0";
         else
             AmmoSprite = string.Empty;
     }
@@ -55,7 +56,7 @@ public class Weapon : InventoryItem, ITickable
     public void SetFlashState(EntityFrame frame)
     {
         Owner.WeaponFlashState = true;
-        FlashState.SetState(frame);
+        FlashState.SetState(Owner, frame);
         Owner.WeaponFlashState = false;
     }
 
@@ -66,19 +67,19 @@ public class Weapon : InventoryItem, ITickable
 
     public void SetFireState()
     {
-        FrameState.SetState(Constants.FrameStates.Fire);
+        FrameState.SetState(Owner, Definition, Constants.FrameStates.Fire);
     }
 
     public void SetFlashState(int offset = 0)
     {
         Owner.WeaponFlashState = true;
-        FlashState.SetState(Constants.FrameStates.Flash, offset, false);
+        FlashState.SetState(Owner, Definition, Constants.FrameStates.Flash, offset, false);
         Owner.WeaponFlashState = false;
     }
 
     public void SetReadyState()
     {
-        FrameState.SetState(Constants.FrameStates.Ready);
+        FrameState.SetState(Owner, Definition, Constants.FrameStates.Ready);
     }
 
     public void Tick()
@@ -86,9 +87,9 @@ public class Weapon : InventoryItem, ITickable
         ReadyState = false;
         ReadyToFire = false;
 
-        FrameState.Tick();
+        FrameState.Tick(Owner);
         Owner.WeaponFlashState = true;
-        FlashState.Tick();
+        FlashState.Tick(Owner);
         Owner.WeaponFlashState = false;
 
         if (m_tryingToFire && ReadyToFire)
@@ -103,7 +104,7 @@ public class Weapon : InventoryItem, ITickable
 
     private void SetToFireState()
     {
-        if (!FrameState.SetState(Constants.FrameStates.Fire))
+        if (!FrameState.SetState(Owner, Definition, Constants.FrameStates.Fire))
             Log.Warn("Unable to find Fire state for weapon {0}", Definition.Name);
     }
 

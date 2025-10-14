@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
 using Helion.Dehacked;
+using Helion.Graphics;
 using Helion.Graphics.Fonts;
 using Helion.Graphics.Palettes;
 using Helion.Maps;
@@ -24,18 +20,27 @@ using Helion.Resources.Definitions.Locks;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Resources.Definitions.Texture;
+using Helion.Resources.Definitions.Zdoom;
+using Helion.Resources.Definitions.ZDoom;
 using Helion.Resources.Images;
 using Helion.Resources.IWad;
 using Helion.Resources.Textures;
 using Helion.Util;
 using Helion.Util.Bytes;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
 using Helion.Util.Loggers;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
+using Helion.World.Entities.Definition.States;
 using NLog;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
 
 namespace Helion.Resources.Archives.Collection;
 
@@ -54,6 +59,7 @@ public class ArchiveCollection : IResources, IPathResolver
 
     public IWadBaseType IWadType { get; private set; } = IWadBaseType.None;
     public Palette Palette => Data.Palette;
+    public PaletteColorLookup PaletteColorLookup => Data.PaletteColorLookup;
     public Colormap Colormap => Data.Colormap;
     public IWadInfo IWadInfo => GetIWadInfo();
     public Archive? Assets => m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.Assets);
@@ -79,7 +85,7 @@ public class ArchiveCollection : IResources, IPathResolver
     public DataCache DataCache { get; }
     public IImageRetriever ImageRetriever { get; }
     public bool Loaded { get; private set; }
-    public bool StoreImageIndices => ShaderVars.PaletteColorMode;
+    public static bool StoreImageIndices => ShaderVars.PaletteColorMode;
     public IConfig Config => m_config;
     public DehackedDefinition? Dehacked => Definitions.DehackedDefinition;
     public ArchiveCollectionEntries Entries = new();
@@ -88,11 +94,11 @@ public class ArchiveCollection : IResources, IPathResolver
     private readonly IArchiveLocator m_archiveLocator;
     private readonly List<Archive> m_archives = new();
     private readonly Dictionary<string, Font?> m_fonts = new(StringComparer.OrdinalIgnoreCase);
-    private readonly IConfig m_config;
-    private string m_lastLoadedMapName = string.Empty;
-    private IMap? m_lastLoadedMap;
+    private readonly Config m_config;
+    private string? m_lastLoadedMapPath;
     private bool m_lastLoadedMapIsTemp;
     private bool m_initTextureManager;
+    private readonly Dictionary<BrightmapLookupCacheKey, BrightmapDefinition?> m_brightmapLookupCache = [];
 
     public ArchiveCollection(IArchiveLocator archiveLocator, Config config, DataCache dataCache)
     {
@@ -100,7 +106,7 @@ public class ArchiveCollection : IResources, IPathResolver
         Definitions = new DefinitionEntries(this, config.Compatibility);
         Textures = new ResourceTextureManager(this, config);
         EntityDefinitionComposer = new EntityDefinitionComposer(this);
-        ImageRetriever = new ArchiveImageRetriever(this);
+        ImageRetriever = new ArchiveImageRetriever(this, config.Window.ColorMode.Value == RenderColorMode.Palette);
         TextureManager = new TextureManager(this);
         DataCache = dataCache;
         m_config = config;
@@ -110,29 +116,27 @@ public class ArchiveCollection : IResources, IPathResolver
     {
         if (unitTest)
         {
-            TextureManager = new TextureManager(this, m_config.Render.CacheSprites, unitTest);
-            SetTextureManagerSky(mapInfo);
+            TextureManager = new TextureManager(this, m_config.Render.CacheSprites, GetSkyTexture(mapInfo), mapInfo, unitTest);
             return;
         }
 
         if (m_initTextureManager)
         {
-            SetTextureManagerSky(mapInfo);
-            TextureManager.MapInit();
+            TextureManager.SetSkyTexture(GetSkyTexture(mapInfo));
+            TextureManager.MapInit(mapInfo);
             return;
         }
 
-        TextureManager = new TextureManager(this, m_config.Render.CacheSprites, unitTest);
-        SetTextureManagerSky(mapInfo);
+        TextureManager = new TextureManager(this, m_config.Render.CacheSprites, GetSkyTexture(mapInfo), mapInfo, unitTest);
         m_initTextureManager = true;
     }
 
-    private void SetTextureManagerSky(MapInfoDef mapInfo)
+    private static string GetSkyTexture(MapInfoDef mapInfo)
     {
         if (mapInfo.Sky1.Name != null && mapInfo.Sky1.Name.Length > 0)
-            TextureManager.SetSkyTexture(mapInfo.Sky1.Name ?? Constants.DefaultSkyTextureName);
-        else
-            TextureManager.SetSkyTexture(Constants.DefaultSkyTextureName);
+            return mapInfo.Sky1.Name ?? Constants.DefaultSkyTextureName;
+
+        return Constants.DefaultSkyTextureName;
     }
 
     public Entry? FindEntry(string name, ResourceNamespace? priorityNamespace = null)
@@ -165,11 +169,8 @@ public class ArchiveCollection : IResources, IPathResolver
         return null;
     }
 
-    public IMap? FindMap(string mapName)
+    public IMap? FindMap(string mapName, FindMapOptions options = FindMapOptions.Default)
     {
-        if (m_lastLoadedMapName.EqualsIgnoreCase(mapName) && m_lastLoadedMap != null)
-            return m_lastLoadedMap;
-
         ClearLastLoadedTempMap();
 
         string mapPathEquals = $"maps/{mapName}.wad";
@@ -183,7 +184,7 @@ public class ArchiveCollection : IResources, IPathResolver
             if (mapEntry != null && ExtractAndLoadEmbeddedMapEntry(mapEntry, mapName, out IMap? map))
             {
                 m_lastLoadedMapIsTemp = true;
-                SetMapLoaded(mapName, map);
+                SetMapLoaded(map);
                 return map;
             }
 
@@ -200,11 +201,11 @@ public class ArchiveCollection : IResources, IPathResolver
                 // confusing to the user in the case where they ask for the
                 // most recent map which is corrupt, but then get some
                 // earlier map in the pack which is not corrupt.
-                map = IMap.Read(archive, mapEntryCollection, compat);
+                map = IMap.Read(archive, mapEntryCollection, compat, (options & FindMapOptions.LoadMapData) != 0);
                 if (map != null)
                 {
                     m_lastLoadedMapIsTemp = false;
-                    SetMapLoaded(mapName, map);
+                    SetMapLoaded(map);
                     return map;
                 }
 
@@ -218,26 +219,24 @@ public class ArchiveCollection : IResources, IPathResolver
 
     private void ClearLastLoadedTempMap()
     {
-        if (!m_lastLoadedMapIsTemp || m_lastLoadedMap == null)
+        if (!m_lastLoadedMapIsTemp || string.IsNullOrEmpty(m_lastLoadedMapPath))
             return;
 
-        TempFileManager.DeleteFile(m_lastLoadedMap.Archive.OriginalFilePath);
-        m_lastLoadedMap.Archive.Dispose();
-        m_lastLoadedMap = null;
+        TempFileManager.DeleteFile(m_lastLoadedMapPath);
+        m_lastLoadedMapPath = string.Empty;
         m_lastLoadedMapIsTemp = false;
     }
 
-    private void SetMapLoaded(string mapName, IMap? extractedMap)
+    private void SetMapLoaded(IMap? extractedMap)
     {
-        m_lastLoadedMap = extractedMap;
-        m_lastLoadedMapName = mapName;
+        m_lastLoadedMapPath = extractedMap?.ArchivePath ?? string.Empty;
     }
 
     private bool ExtractAndLoadEmbeddedMapEntry(Entry mapEntry, string mapName, [NotNullWhen(true)] out IMap? map)
     {
         map = null;
         string file = ExtractEmbeddedFile(mapEntry);
-        Archive? mapArchive = LoadArchive(file);
+        Archive? mapArchive = LoadArchive(file, LoadArchiveOptions.Default);
         if (mapArchive == null)
             return false;
 
@@ -280,7 +279,7 @@ public class ArchiveCollection : IResources, IPathResolver
     public Archive? GetArchiveByFileName(string fileName)
     {
         foreach (var archive in m_archives)
-            if (Path.GetFileName(archive.OriginalFilePath).EqualsIgnoreCase(fileName))
+            if (Path.GetFileName(archive.FullPath).EqualsIgnoreCase(fileName))
                 return archive;
         return null;
     }
@@ -298,31 +297,32 @@ public class ArchiveCollection : IResources, IPathResolver
 
     public bool Load(IEnumerable<string> files, string? iwad = null, bool loadDefaultAssets = true, string? dehackedPatch = null, Archive? iwadOverride = null, bool checkGameConfArchives = false)
     {
+        var skipAssetsEntryLoad = false;
         if (Loaded)
         {
-            foreach (var archive in m_archives)
-                archive.Dispose();
-            m_archives.Clear();
+            if (!files.Any() && iwad == null)
+                return true;
 
-            Entries = new();
-            Data = new();
-            Definitions = new(this, m_config.Compatibility);
+            if (IsAssetsOnly())
+                skipAssetsEntryLoad = true;
+            else
+                ClearArchivesAndData();
         }
 
         Loaded = true;
-        List<string> filePaths = [];
+        var filePaths = new List<string>(files.Count());
         Archive? iwadArchive = null;
 
         // If we have nothing loaded, we want to make sure assets.pk3 is
         // loaded before anything else. We also do not want it to be loaded
         // if we have already loaded it.
-        if (loadDefaultAssets && m_archives.Empty())
+        if (loadDefaultAssets && m_archives.Count == 0)
         {
-            Archive? assetsArchive = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, shouldCalculateMd5: true);
-            if (assetsArchive == null)
+            var loadAssets = LoadSpecial(Constants.AssetsFileName, ArchiveType.Assets, LoadArchiveOptions.CalculateMd5 | LoadArchiveOptions.IsBundled);
+            if (loadAssets == null)
                 return false;
 
-            m_archives.Add(assetsArchive);
+            m_archives.Add(loadAssets);
         }
 
         if (checkGameConfArchives)
@@ -335,7 +335,7 @@ public class ArchiveCollection : IResources, IPathResolver
         }
         else if (iwad != null)
         {
-            iwadArchive = LoadSpecial(iwad, ArchiveType.IWAD, shouldCalculateMd5: true);
+            iwadArchive = LoadSpecial(iwad, ArchiveType.IWAD, LoadArchiveOptions.CalculateMd5);
             if (iwadArchive == null)
                 return false;
 
@@ -346,7 +346,7 @@ public class ArchiveCollection : IResources, IPathResolver
 
         foreach (string filePath in filePaths)
         {
-            Archive? archive = LoadArchive(filePath, shouldCalculateMd5: true);
+            var archive = LoadArchive(filePath, LoadArchiveOptions.CalculateMd5);
             if (archive == null)
                 continue;
 
@@ -355,35 +355,75 @@ public class ArchiveCollection : IResources, IPathResolver
 
         m_archives.AddRange(LoadEmbeddedArchives(m_archives));
 
-        ProcessAndIndexEntries(iwadArchive, m_archives);
+        var assetsArchive = m_archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.Assets);
+        if (!skipAssetsEntryLoad && assetsArchive != null)
+            ProcessAndIndexEntries([assetsArchive]);
+
+        LoadAssetsForIwad(iwadArchive, m_archives);
+        ProcessAndIndexEntries(m_archives.Where(x => x.ArchiveType != ArchiveType.Assets));
         IWadType = GetIWadInfo().IWadBaseType;
 
-        if (loadDefaultAssets)
+        // Only apply assets when loading with IWAD/files.
+        // This step needs to be skipped on the initial load since we are keeping the assets archive/entries.
+        if (loadDefaultAssets && !IsAssetsOnly())
         {
             // Load all definitions - Even if a map doesn't load them there are cases where they are needed (backpack ammo etc)
-            EntityDefinitionComposer.LoadAllDefinitions();
+            EntityDefinitionComposer.LoadAllDefinitions();       
+            if (dehackedPatch != null && !LoadDehackedPatch(dehackedPatch))
+                return false;            
             ApplyDehackedPatch();
             EntityFrameTable.AddCustomFrames();
+            SetCustomKeyColors();
 
             if (iwad != null || files.Any())
-                Definitions.BuildTranslationColorMaps(Data.Palette, Data.Colormap);
-
-            if (dehackedPatch != null)
-            {
-                try
-                {
-                    Definitions.ParseDehackedPatch(File.ReadAllText(dehackedPatch));
-                    ApplyDehackedPatch();
-                }
-                catch (IOException)
-                {
-                    HelionLog.Error($"Unable to open dehacked patch {dehackedPatch}");
-                    return false;
-                }
-            }
+                Definitions.BuildTranslationColorMaps(Data);
         }
 
         return true;
+    }
+
+    private void ClearArchivesAndData()
+    {
+        foreach (var archive in m_archives)
+            archive.Dispose();
+        m_archives.Clear();
+
+        Entries = new();
+        Data = new();
+        Definitions = new(this, m_config.Compatibility);
+    }
+
+    private bool IsAssetsOnly() => m_archives.Count == 1 && m_archives[0].ArchiveType == ArchiveType.Assets;
+
+    private bool LoadDehackedPatch(string dehackedPatch)
+    {
+        try
+        {
+            Definitions.ParseDehackedPatch(File.ReadAllText(dehackedPatch));
+            return true;
+        }
+        catch (IOException)
+        {
+            HelionLog.Error($"Unable to open dehacked patch {dehackedPatch}");
+            return false;
+        }
+    }
+
+    private void SetCustomKeyColors()
+    {
+        var keyDefs = EntityDefinitionComposer.GetKeyDefinitions();
+        for (int i = 0; i < keyDefs.Count; i++)
+        {
+            var keyDef = keyDefs[i];
+            if (!Definitions.LockDefinitions.TryGetLockDef(keyDef.Name, out var lockDef))
+                continue;
+
+            var image = ImageRetriever.GetOnly(keyDef.Properties.Inventory.Icon, ResourceNamespace.Undefined);
+            if (image == null)
+                continue;
+
+            lockDef.KeyImageColor = image.GetAverageColor();
+        }
     }
 
     /// <summary>
@@ -401,7 +441,7 @@ public class ArchiveCollection : IResources, IPathResolver
         GameConfDefinition gameConfDef = new();
         foreach (string wad in wads)
         {
-            Archive? archive = LoadArchive(wad, isLoadEvent: false);
+            Archive? archive = LoadArchive(wad, LoadArchiveOptions.IgnoreLoadEvent | LoadArchiveOptions.IgnoreError);
             var entry = archive?.GetEntryByName("GAMECONF");
             if (entry != null)
                 gameConfDef.Parse(entry);
@@ -412,7 +452,7 @@ public class ArchiveCollection : IResources, IPathResolver
         if (gameConfDef.Data?.Executable == GameConfConstants.Executable.Id24)
         {
             const string Id24ResName = "id24res.wad";
-            Archive? id24ResArchive = LoadArchive(Id24ResName, shouldCalculateMd5: true);
+            Archive? id24ResArchive = LoadArchive(Id24ResName, LoadArchiveOptions.CalculateMd5);
             if (id24ResArchive == null)
                 HelionLog.Error($"Unable to open {Id24ResName} for ID24 config");
             else
@@ -448,7 +488,7 @@ public class ArchiveCollection : IResources, IPathResolver
     {
         foreach (string file in files)
         {
-            Archive? newArchive = LoadArchive(file);
+            Archive? newArchive = LoadArchive(file, LoadArchiveOptions.Default);
             if (newArchive == null)
                 continue;
 
@@ -469,7 +509,7 @@ public class ArchiveCollection : IResources, IPathResolver
         {
             foreach (var archive in archives)
             {
-                if (IsEntryInFolder(entry, Path.GetFileName(archive.OriginalFilePath)))
+                if (IsEntryInFolder(entry, Path.GetFileName(archive.FullPath)))
                     return true;
             }
 
@@ -486,7 +526,7 @@ public class ArchiveCollection : IResources, IPathResolver
         if (path.StartsWithIgnoreCase(folderPath))
             return true;
 
-        if (!path.GetLastFolder(out var lastFolder))
+        if (!path.AsSpan().GetLastFolder(out var lastFolder))
             return false;
 
         return lastFolder.Equals(folder, StringComparison.OrdinalIgnoreCase);
@@ -521,11 +561,15 @@ public class ArchiveCollection : IResources, IPathResolver
             DehackedApplier dehackedApplier = new(Definitions, Definitions.DehackedDefinition);
             dehackedApplier.Apply(Definitions.DehackedDefinition, Definitions, EntityDefinitionComposer);
         }
+
+        // Frame states need vanilla index mapped for weapon state mapping from the retro brightmaps definitions
+        if (Definitions.RetroBrightmapsDefinition != null && Dehacked == null)
+            DehackedApplier.ApplyVanillaIndex(new(), Definitions.EntityFrameTable);
     }
 
-    private Archive? LoadSpecial(string file, ArchiveType archiveType, bool shouldCalculateMd5 = false)
+    private Archive? LoadSpecial(string file, ArchiveType archiveType, LoadArchiveOptions options)
     {
-        Archive? archive = LoadArchive(file, shouldCalculateMd5);
+        Archive? archive = LoadArchive(file, options);
         if (archive == null)
             return null;
 
@@ -533,24 +577,20 @@ public class ArchiveCollection : IResources, IPathResolver
         return archive;
     }
 
-    private Archive? LoadArchive(string filePath, bool shouldCalculateMd5 = false, bool isLoadEvent = true)
+    private Archive? LoadArchive(string filePath, LoadArchiveOptions options)
     {
-        Archive? archive = m_archiveLocator.Locate(filePath);
+        var archive = m_archiveLocator.Locate(filePath, options.ToArchiveLocatorOptions());
         if (archive == null)
-        {
-            Log.Error($"Failure when loading {filePath}");
             return null;
-        }
 
-        archive.OriginalFilePath = Path.GetFullPath(filePath);
-        if (shouldCalculateMd5)
+        if ((options & LoadArchiveOptions.CalculateMd5) != 0)
         {
             string? md5 = Files.CalculateMD5(archive.Path.FullPath);
             if (md5 != null)
                 archive.MD5 = md5;
         }
 
-        if (isLoadEvent)
+        if ((options & LoadArchiveOptions.IgnoreLoadEvent) == 0)
             ArchiveLoaded?.Invoke(this, archive);
         else
             ArchiveRead?.Invoke(this, archive);
@@ -558,37 +598,76 @@ public class ArchiveCollection : IResources, IPathResolver
         return archive;
     }
 
-    private void ProcessAndIndexEntries(Archive? iwadArchive, List<Archive> archives)
+    private void ProcessAndIndexEntries(IEnumerable<Archive> archives)
     {
-        foreach (Archive archive in archives)
+        foreach (var archive in archives)
         {
-            foreach (Entry entry in archive.Entries)
+            foreach (var entry in archive.Entries)
             {
                 Entries.Track(entry);
                 Data.Read(entry);
             }
 
             Definitions.Track(archive);
+        }
 
-            if (archive.ArchiveType == ArchiveType.Assets && GetIWadInfo(iwadArchive, out IWadInfo? info))
-            {
-                Definitions.LoadMapInfo(archive, info.MapInfoResource);
-                Definitions.LoadDecorate(archive, info.DecorateResource);
-            }
+        Definitions.Finalize(this);
+    }
+
+    private void LoadAssetsForIwad(Archive? iwadArchive, List<Archive> archives)
+    {
+        if (iwadArchive == null)
+            return;
+
+        var assetsArchive = archives.FirstOrDefault(x => x.ArchiveType == ArchiveType.Assets);
+        if (assetsArchive == null)
+            return;
+
+        if (assetsArchive.ArchiveType == ArchiveType.Assets && GetIWadInfo(iwadArchive, archives, out var iwadInfo))
+        {
+            Definitions.LoadMapInfo(assetsArchive, iwadInfo.MapInfoResource);
+            Definitions.LoadDecorate(assetsArchive, iwadInfo.DecorateResource);
         }
     }
 
-    private static bool GetIWadInfo(Archive? iwadArchive, [NotNullWhen(true)] out IWadInfo? info)
+    private static bool GetIWadInfo(Archive? iwadArchive, List<Archive> archives, [NotNullWhen(true)] out IWadInfo? info)
     {
+        // Check for special cases like NERVE.wad (No Rest for the Living)
+        info = GetSpecialPwadInfo(iwadArchive, archives);
+        if (info != null)
+        {
+            if (iwadArchive != null)
+                iwadArchive.IWadInfo = info;
+            return true;
+        }
+
         if (iwadArchive != null)
         {
-            iwadArchive.IWadInfo = IWadInfo.GetIWadInfo(iwadArchive.OriginalFilePath);
+            iwadArchive.IWadInfo = IWadInfo.GetIWadInfo(iwadArchive.FullPath);
+            // If check failed on file MD5/filename then try to determine by archive contents
+            if (iwadArchive.IWadInfo == IWadInfo.DefaultIWadInfo)
+                iwadArchive.IWadInfo = IWadInfo.GetIWadInfo(iwadArchive);
             info = iwadArchive.IWadInfo;
             return true;
         }
 
         info = null;
         return false;
+    }
+
+    private static IWadInfo? GetSpecialPwadInfo(Archive? iwadArchive, List<Archive> archives)
+    {
+        foreach (var archive in archives)
+        {
+            if (archive == iwadArchive)
+                continue;
+
+            var info = IWadInfo.GetIWadInfo(archive.FullPath, IWadInfoOptions.IncludePwadAddOn);
+            if (info != IWadInfo.DefaultIWadInfo)
+                return info;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -601,26 +680,10 @@ public class ArchiveCollection : IResources, IPathResolver
         string? iwad = originalIwad;
         List<string> pwads = [];
 
-        string? LocateReferencedWad(string wadName, string? referencingWadPath)
-        {
-            // first check in the same folder
-            var siblingPath = Path.Join(referencingWadPath, wadName);
-            if (Path.Exists(siblingPath))
-                return siblingPath;
-            // check in other search paths
-            else
-            {
-                string? otherPath = m_archiveLocator.LocateWithoutLoading(wadName);
-                if (otherPath != null)
-                    return otherPath;
-            }
-            return null;
-        }
-
         GameConfDefinition parser = new();
         void ApplyWadsFromWadGameConf(string wad)
         {
-            using var archive = LoadArchive(wad);
+            using var archive = LoadArchive(wad, LoadArchiveOptions.IgnoreError);
             var entry = archive?.GetEntryByName("GAMECONF");
             if (entry == null)
                 return;
@@ -664,5 +727,86 @@ public class ArchiveCollection : IResources, IPathResolver
         }
 
         return (iwad, pwads);
+    }
+
+    string? LocateReferencedWad(string wadName, string? referencingWadPath)
+    {
+        // first check in the same folder
+        var siblingPath = Path.Join(referencingWadPath, wadName);
+        if (Path.Exists(siblingPath))
+            return siblingPath;
+        // check in other search paths
+        else
+        {
+            string? otherPath = m_archiveLocator.LocateWithoutLoading(wadName, ArchiveLocatorOptions.Default);
+            if (otherPath != null)
+                return otherPath;
+        }
+        return null;
+    }
+
+    public BrightmapDefinition? GetBrightmapFor(string textureName, ResourceNamespace textureNamespace)
+    {
+        if (m_brightmapLookupCache.TryGetValue(new BrightmapLookupCacheKey(textureName, textureNamespace), out BrightmapDefinition? cached))
+            return cached;
+
+        var bmapsDef = Definitions.GldefsDefinition.BrightMaps;
+        var brightmapsOfType = textureNamespace switch
+        {
+            ResourceNamespace.Flats => bmapsDef.Flats,
+            ResourceNamespace.Sprites => bmapsDef.Sprites,
+            ResourceNamespace.Textures => bmapsDef.Textures,
+            _ => null
+        };
+
+        // brightmaps can optionally apply to only an IWAD or specific WAD
+        var sourceWad = Entries.FindByNamespace(textureName, textureNamespace, noFallback: true)?.Parent;
+        bool sourceIsIwad = sourceWad?.ArchiveType == ArchiveType.IWAD;
+        string? sourceWadHash = sourceWad?.MD5;
+
+        BrightmapDefinition? brightmap = brightmapsOfType?.FirstOrDefault(x => (
+            x.TargetTexture.EqualsIgnoreCase(textureName)
+            && (
+                (!x.IwadOnly && x.SpecificWadMd5 == null)
+                || (x.IwadOnly && sourceIsIwad)
+                || (x.SpecificWadMd5 == sourceWadHash)
+            )
+        ));
+        if (brightmap == null && bmapsDef.Auto.TryGetValue(textureName, out BrightmapDefinition? val))
+            brightmap = val;
+
+        m_brightmapLookupCache[new BrightmapLookupCacheKey(textureName, textureNamespace)] = brightmap;
+        return brightmap;
+    }
+
+    public BrightmapDefinition? CreateBrightmap(Image image, string name, ResourceNamespace resourceNamespace, bool[] fullBrightLookup, bool addToDictionary = true)
+    {
+        var key = new BrightmapLookupCacheKey(name, resourceNamespace);
+        if (addToDictionary && m_brightmapLookupCache.TryGetValue(key, out var brightmapDefinition))
+            return brightmapDefinition;
+
+        var brightmapImage = BrightmapCreator.Create(image, fullBrightLookup);
+        ImageRetriever.Add(name, ResourceNamespace.Brightmaps, brightmapImage);
+
+        var brightmap = new BrightmapDefinition()
+        {
+            TargetTexture = name,
+            BrightmapName = name,
+        };
+
+        if (addToDictionary)
+            m_brightmapLookupCache[key] = brightmap;
+        return brightmap;
+    }
+
+    public bool TryGetWeaponFullBrightLookup(EntityFrame frame, string spriteName, [NotNullWhen(true)] out BrightmapDefinition? brightmap)
+    {
+        if (Definitions.RetroBrightmapsDefinition == null)
+        {
+            brightmap = null;
+            return false;
+        }
+
+        return Definitions.RetroBrightmapsDefinition.TryGetWeaponFullBrightDefinition(this, frame.VanillaIndex, spriteName, out brightmap);
     }
 }

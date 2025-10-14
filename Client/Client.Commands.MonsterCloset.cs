@@ -1,15 +1,12 @@
-﻿using Helion.Geometry.Vectors;
-using Helion.Util.Consoles.Commands;
+﻿using Helion.Util.Consoles.Commands;
 using Helion.Util.Consoles;
-using Helion.World.Bsp;
-using Helion.World.Entities;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Sectors;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Geometry.Boxes;
 using Helion.Util.Loggers;
 using Helion.World;
+using Helion.World.Impl.SinglePlayer;
 
 namespace Helion.Client;
 
@@ -40,7 +37,7 @@ public partial class Client
 
         var world = m_layerManager.WorldLayer.World;
         var islands = m_layerManager.WorldLayer.World.Geometry.IslandGeometry.Islands;
-        List<MonsterClosetInfo> infoList = new();
+        List<MonsterClosetInfo> infoList = [];
 
         int count = 0;
         foreach (var island in islands)
@@ -73,14 +70,13 @@ public partial class Client
         }
     }
 
-    static int CountEntities(IWorld world, Island island)
+    static int CountEntities(SinglePlayerWorld world, Island island)
     {
         int count = 0;
         for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
         {
-            var subsector = world.Geometry.BspTree.Subsectors[entity.Subsector.Id];
-            var findIsland = world.Geometry.IslandGeometry.Islands[subsector.IslandId];
-            if (findIsland.Id == island.Id)
+            var islandId = world.Geometry.SubsectorToIslandId[entity.SubsectorId];
+            if (islandId == island.Id)
                 count++;
         }
         return count;

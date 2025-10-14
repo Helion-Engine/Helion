@@ -4,15 +4,16 @@ using Helion.World.Special.Specials;
 
 namespace Helion.Models;
 
-public class SectorDamageSpecialModel
+public struct SectorDamageSpecialModel
 {
     public int SectorId { get; set; }
     public int Damage { get; set; }
+    public int? DamageInterval { get; set; }
     public int RadSuitLeak { get; set; }
     public bool End { get; set; }
     public InstantKillEffect InstantKillEffect { get; set; }
 
-    public SectorDamageSpecial? ToWorldSpecial(IWorld world)
+    public readonly SectorDamageSpecial? ToWorldSpecial(IWorld world)
     {
         if (!world.IsSectorIdValid(SectorId))
             return null;

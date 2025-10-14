@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using Helion.Util.RandomGenerators;
@@ -11,8 +12,9 @@ public class SoundInfoDefinition
     private readonly Dictionary<string, SoundInfo> m_lookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<string>> m_randomLookup = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> m_playerCompatLookup = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<int, AmbientSoundInfo> m_ambientSoundLookup = [];
 
-    private int m_pitchShiftRange = 0;
+    private int m_pitchShiftRange;
 
     public static string GetPlayerSound(string gender, string sound)
     {
@@ -33,21 +35,26 @@ public class SoundInfoDefinition
 
     public SoundInfo? Lookup(string name, IRandom random)
     {
-        if (m_randomLookup.TryGetValue(name, out List<string>? sounds))
+        if (!LookupInternal(name, out var sndInfo))
+            return null;
+
+        if (sndInfo.Random && m_randomLookup.TryGetValue(name, out var sounds) && sounds.Count > 0)
         {
-            if (sounds.Count > 0)
-                name = sounds[random.NextByte() % sounds.Count];
-            else
-                return null;
+            name = sounds[random.NextByte() % sounds.Count];
+            if (LookupInternal(name, out sndInfo))
+                return sndInfo;
         }
 
+        return sndInfo;
+    }
+
+    private bool LookupInternal(string name, [NotNullWhen(true)] out SoundInfo? sndInfo)
+    {
         if (name.StartsWith("player/", StringComparison.OrdinalIgnoreCase) &&
             m_playerCompatLookup.TryGetValue(name, out string? playerCompat) && playerCompat != null)
             name = playerCompat;
 
-        if (m_lookup.TryGetValue(name, out SoundInfo? sndInfo))
-            return sndInfo;
-        return null;
+        return m_lookup.TryGetValue(name, out sndInfo);
     }
 
     public bool GetSound(string name, out SoundInfo? soundInfo) => m_lookup.TryGetValue(name, out soundInfo);
@@ -68,13 +75,16 @@ public class SoundInfoDefinition
 
     private void ParseSound(SimpleParser parser)
     {
-        AddSound(parser.ConsumeString(), parser.ConsumeString());
+        var key = parser.ConsumeString();
+        if (parser.Peek('='))
+            parser.Consume('=');
+        var entryName = parser.ConsumeString();
+        AddSound(key, entryName);
     }
 
     private void ParseCommand(SimpleParser parser)
     {
-        string type = parser.ConsumeString();
-
+        var type = parser.ConsumeStringSpan();
         if (type.EqualsIgnoreCase("$playercompat"))
             ParsePlayerCompat(parser);
         else if (type.EqualsIgnoreCase("$playersound"))
@@ -89,7 +99,7 @@ public class SoundInfoDefinition
             ParsePitchSet(parser);
         else if (type.EqualsIgnoreCase("$alias"))
             ParseAlias(parser);
-        else if (type.Equals("$limit"))
+        else if (type.EqualsIgnoreCase("$limit"))
             ParseLimit(parser);
         else if (type.EqualsIgnoreCase("$random"))
             ParseRandom(parser);
@@ -130,34 +140,89 @@ public class SoundInfoDefinition
         else if (type.EqualsIgnoreCase("$volume"))
             ParseIgnore(parser, 2);
         else
-            throw new ParserException(parser.GetCurrentLine(), 0, 0, $"SoundInfo - Bad command. {type}");
+           ThrowParserException(parser, "Bad command. {type}");
     }
 
-    private void ParseIgnore(SimpleParser parser, int argCount = 0)
+    private static void ThrowParserException(SimpleParser parser, string text)
+    {
+        throw new ParserException(parser.GetCurrentLine(), 0, 0, $"SoundInfo: {text}");
+    }
+
+    private static void ParseIgnore(SimpleParser parser, int argCount = 0)
     {
         for (int i = 0; i < argCount; i++)
             parser.ConsumeString();
     }
 
-    private void ParseAttenuation(SimpleParser parser)
+    private static void ParseAttenuation(SimpleParser parser)
     {
         parser.ConsumeDouble();
     }
 
-    private void ParseArchivePath(SimpleParser parser)
+    private static void ParseArchivePath(SimpleParser parser)
     {
-        parser.ConsumeString();
+        parser.ConsumeStringSpan();
     }
 
     private void ParseAmbient(SimpleParser parser)
     {
-        // Not supported
-        int index = parser.ConsumeInteger();
-        string logicalSound = parser.ConsumeString();
-        string type = parser.ConsumeString();
-        string mode = parser.ConsumeString();
-        double volume = parser.ConsumeDouble();
+        float? minSecs = null;
+        float? maxSecs = null;
+        var attenuation = 1f;
+        var index = parser.ConsumeInteger();
+        var logicalSound = parser.ConsumeString();
+        var type = ParseAmbientType(parser);
+
+        if (parser.PeekDouble(out var peekAttenuation) && type == AmbientSoundType.Point)
+        {
+            parser.ConsumeStringSpan();
+            attenuation = (float)peekAttenuation;
+        }
+
+        var mode = ParseAmbientMode(parser, ref minSecs, ref maxSecs);
+        var volume = (float)parser.ConsumeDouble();
+        m_ambientSoundLookup[index] = new(index, logicalSound, type, mode, volume, attenuation, minSecs, maxSecs);
     }
+
+    private static AmbientSoundMode ParseAmbientMode(SimpleParser parser, ref float? minSecs, ref float? maxSecs)
+    {
+        var mode = parser.ConsumeStringSpan();
+        if (mode.EqualsIgnoreCase("continuous"))
+        {
+            return AmbientSoundMode.Continuous;
+        }
+        else if (mode.EqualsIgnoreCase("random"))
+        {
+            minSecs = (float)parser.ConsumeDouble();
+            maxSecs = (float)parser.ConsumeDouble();
+            return AmbientSoundMode.Random;
+        }
+        else if (mode.EqualsIgnoreCase("periodic"))
+        {
+            minSecs = (float)parser.ConsumeDouble();
+            return AmbientSoundMode.Periodic;
+        }
+
+        ThrowParserException(parser, $"Invalid abmient mode {mode}");
+        return AmbientSoundMode.Continuous;
+    }
+
+    private static AmbientSoundType ParseAmbientType(SimpleParser parser)
+    {
+        var type = parser.ConsumeStringSpan();
+        if (type.EqualsIgnoreCase("point"))
+            return AmbientSoundType.Point;
+        else if (type.EqualsIgnoreCase("surround"))
+            return AmbientSoundType.Surround;
+        else if (type.EqualsIgnoreCase("world"))
+            return AmbientSoundType.World;
+        
+        ThrowParserException(parser, $"Invalid abmient type {type}");
+        return AmbientSoundType.World;
+    }
+
+    public bool TryGetAmbientSound(int index, [NotNullWhen(true)] out AmbientSoundInfo? info) =>
+        m_ambientSoundLookup.TryGetValue(index, out info);
 
     private void ParsePitchSet(SimpleParser parser)
     {
@@ -167,31 +232,30 @@ public class SoundInfoDefinition
             soundInfo.PitchSet = (float)pitch;
     }
 
-    private void ParsePlayerAlias(SimpleParser parser)
+    private static void ParsePlayerAlias(SimpleParser parser)
     {
-        string playerClass = parser.ConsumeString();
-        string gender = parser.ConsumeString();
-        string logicalName = parser.ConsumeString();
-        string otherLogicalSound = parser.ConsumeString();
+        var playerClass = parser.ConsumeStringSpan();
+        var gender = parser.ConsumeStringSpan();
+        var logicalName = parser.ConsumeStringSpan();
+        var otherLogicalSound = parser.ConsumeStringSpan();
     }
 
-    private void ParseRolloff(SimpleParser parser)
+    private static void ParseRolloff(SimpleParser parser)
     {
-        string sound = parser.ConsumeString();
-
+        var sound = parser.ConsumeStringSpan();
         if (parser.PeekInteger(out int i))
         {
             parser.ConsumeInteger();
             return;
         }
 
-        parser.ConsumeString();
+        parser.ConsumeStringSpan();
     }
 
     private void ParsePitchShift(SimpleParser parser)
     {
-        string key = parser.ConsumeString();
-        int pitch = parser.ConsumeInteger();
+        var key = parser.ConsumeString();
+        var pitch = parser.ConsumeInteger();
 
         if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
             soundInfo.PitchShift = pitch;
@@ -199,8 +263,8 @@ public class SoundInfoDefinition
 
     private void ParseLimit(SimpleParser parser)
     {
-        string key = parser.ConsumeString();
-        int limit = parser.ConsumeInteger();
+        var key = parser.ConsumeString();
+        var limit = parser.ConsumeInteger();
 
         if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
             soundInfo.Limit = limit;
@@ -208,8 +272,8 @@ public class SoundInfoDefinition
 
     private void ParseAlias(SimpleParser parser)
     {
-        string alias = parser.ConsumeString();
-        string key = parser.ConsumeString();
+        var alias = parser.ConsumeString();
+        var key = parser.ConsumeString();
 
         if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
             m_lookup[alias] = soundInfo;
@@ -217,21 +281,21 @@ public class SoundInfoDefinition
 
     private void ParsePlayerCompat(SimpleParser parser)
     {
-        string player = parser.ConsumeString();
-        string gender = parser.ConsumeString();
-        string name = parser.ConsumeString();
-        string compat = parser.ConsumeString();
+        var player = parser.ConsumeStringSpan();
+        var gender = parser.ConsumeStringSpan();
+        var name = parser.ConsumeStringSpan();
+        var compat = parser.ConsumeString();
 
         m_playerCompatLookup[compat] = $"{player}/{gender}/{name}";
     }
 
     private void ParsePlayerSoundDup(SimpleParser parser)
     {
-        string player = parser.ConsumeString();
-        string gender = parser.ConsumeString();
-        string name = parser.ConsumeString();
-        string entryName = parser.ConsumeString();
-        string key = $"{player}/{gender}/{entryName}";
+        var player = parser.ConsumeStringSpan();
+        var gender = parser.ConsumeStringSpan();
+        var name = parser.ConsumeStringSpan();
+        var entryName = parser.ConsumeStringSpan();
+        var key = $"{player}/{gender}/{entryName}";
 
         if (m_lookup.TryGetValue(key, out SoundInfo? soundInfo))
         {
@@ -242,20 +306,21 @@ public class SoundInfoDefinition
 
     private void ParsePlayerSound(SimpleParser parser)
     {
-        string key = $"{parser.ConsumeString()}/{parser.ConsumeString()}/{parser.ConsumeString()}";
+        var key = $"{parser.ConsumeStringSpan()}/{parser.ConsumeStringSpan()}/{parser.ConsumeStringSpan()}";
         AddSound(key, parser.ConsumeString(), true);
     }
 
     private void ParseRandom(SimpleParser parser)
     {
-        List<string> sounds = new List<string>();
-        string key = parser.ConsumeString();
+        List<string> sounds = [];
+        var key = parser.ConsumeString();
         parser.Consume('{');
 
         while (!parser.Peek('}'))
             sounds.Add(parser.ConsumeString());
         parser.Consume('}');
 
+        m_lookup[key] = new SoundInfo(key, string.Empty, 0, random: true);        
         m_randomLookup[key] = sounds;
     }
 

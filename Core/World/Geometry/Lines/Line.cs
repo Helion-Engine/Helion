@@ -1,13 +1,17 @@
 using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
-using Helion.World.Entities;
-using Helion.World.Geometry.Sides;
-using Helion.World.Special;
-using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 using Helion.Resources;
+using Helion.Util;
+using Helion.World.Entities;
+using Helion.World.Entities.Definition;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using Helion.World.Special;
 
 namespace Helion.World.Geometry.Lines;
 
@@ -17,24 +21,25 @@ public sealed class Line
 
     public int Id;
     public Seg2D Segment;
+    public Vec2D RenderSegStart;
+    public Vec2D RenderSegEnd;
     public Side Front;
     public Side? Back;
-    public int LineId;
+    public int MapLineId;
     public SpecialArgs Args;
     public LineFlags Flags;
     public LineSpecial Special;
-    public bool Activated;
+    public ObjectHealth ObjectHealth = ObjectHealth.Default;
+    public bool Activated => (DataChanges & LineDataTypes.Activated) != 0;
     public LineDataTypes DataChanges;
     public float Alpha;
+    public ZDoomKeyType LockNumber;
     public bool DataChanged => DataChanges > 0;
     public int BlockmapCount;
     public int PhysicsCount;
     public string? MusicChangeFront;
     public string? MusicChangeBack;
-    private double? m_length;
 
-    public Vec2D StartPosition => Segment.Start;
-    public Vec2D EndPosition => Segment.End;
     public bool HasSpecial => Special.LineSpecialType != ZDoomLineSpecialType.None;
     public bool HasSectorTag => SectorTag > 0;
     public int SectorTag => Args.Arg0;
@@ -44,11 +49,17 @@ public sealed class Line
     public int AmountArg => Args.Arg2;
     public bool SeenForAutomap => (DataChanges & LineDataTypes.Automap) != 0;
 
+    private Entity? MidTexEntity;
+    private double m_length;
+    private double m_angle;
+
     public Line(int id, Seg2D segment, Side front, Side? back, LineFlags flags, LineSpecial lineSpecial,
         SpecialArgs args)
     {
         Id = id;
         Segment = segment;
+        RenderSegStart = segment.Start;
+        RenderSegEnd = segment.End;
         Front = front;
         Back = back;
         Flags = flags;
@@ -57,32 +68,43 @@ public sealed class Line
         Alpha = 1;
 
         front.Line = this;
-        front.Sector.Lines.Add(this);
 
         if (back != null)
-        {
             back.Line = this;
-            back.Sector.Lines.Add(this);
-        }
+
+        m_length = -1;
+        m_angle = double.MinValue;
     }
 
     public void Reset()
     {
         Alpha = 1;
-        Activated = default;
         DataChanges = default;
         BlockmapCount = default;
         PhysicsCount = default;
+
+        if (ObjectHealth != ObjectHealth.Default)
+            ObjectHealth.Health = ObjectHealth.OriginalHealth;
     }
 
     // Same as Segment.Length, but caches the value.
     public double GetLength()
     {
-        if (m_length.HasValue)
-            return m_length.Value;
+        if (m_length != -1)
+            return m_length;
 
-        m_length = Segment.Length;
-        return m_length.Value;
+        m_length = Segment.Length();
+        return m_length;
+    }
+
+    // Same as Segment.Start.Angle(Segment.End), but caches the value.
+    public double GetAngle()
+    {
+        if (m_angle != double.MinValue)
+            return m_angle;
+
+        m_angle = Segment.Start.Angle(Segment.End);
+        return m_angle;
     }
 
     public LineModel ToLineModel(IWorld world)
@@ -92,9 +114,6 @@ public sealed class Line
             Id = Id,
             DataChanges = (int)DataChanges,
         };
-
-        if ((DataChanges & LineDataTypes.Activated) != 0)
-            lineModel.Activated = Activated;
 
         if ((DataChanges & LineDataTypes.Texture) != 0)
         {
@@ -113,18 +132,16 @@ public sealed class Line
         return lineModel;
     }
 
-    public void ApplyLineModel(IWorld world, LineModel lineModel)
+    public void ApplyLineModel(IWorld world, in LineModel lineModel)
     {
         DataChanges = (LineDataTypes)lineModel.DataChanges;
-        if ((DataChanges & LineDataTypes.Activated) != 0 && lineModel.Activated.HasValue)
-            Activated = lineModel.Activated.Value;
 
         if ((DataChanges & LineDataTypes.Texture) != 0)
         {
-            if (lineModel.Front != null && lineModel.Front.DataChanges > 0)
-                ApplySideModel(world, Front, lineModel.Front);
-            if (Back != null && lineModel.Back != null && lineModel.Back.DataChanges > 0)
-                ApplySideModel(world, Back, lineModel.Back);
+            if (lineModel.Front != null && lineModel.Front.Value.DataChanges > 0)
+                ApplySideModel(world, Front, lineModel.Front.Value);
+            if (Back != null && lineModel.Back != null && lineModel.Back.Value.DataChanges > 0)
+                ApplySideModel(world, Back, lineModel.Back.Value);
         }
 
         if ((DataChanges & LineDataTypes.Args) != 0 && lineModel.Args.HasValue)
@@ -165,7 +182,7 @@ public sealed class Line
 
     private static SideModel ToSideModel(IWorld world, Side side)
     {
-        SideModel sideModel = new SideModel() { DataChanges = (int)side.DataChanges };
+        var sideModel = new SideModel() { DataChanges = (int)side.DataChanges };
         if ((side.DataChanges & SideDataTypes.UpperTexture) != 0)
             sideModel.UpperTex = world.TextureManager.GetTexture(side.Upper.TextureHandle).Name;
         if ((side.DataChanges & SideDataTypes.MiddleTexture) != 0)
@@ -178,14 +195,44 @@ public sealed class Line
 
     public void SetActivated(bool set)
     {
-        Activated = set;
-        DataChanges |= LineDataTypes.Activated;
+        if (set)
+            DataChanges |= LineDataTypes.Activated;
+        else
+            DataChanges &= ~LineDataTypes.Activated;
     }
 
     public void SetAlpha(float alpha)
     {
         Alpha = alpha;
         DataChanges |= LineDataTypes.Alpha;
+    }
+
+    // Create an entity to use for 3d physics handling of MidTex3D lines
+    // Position.Z = MidTexSpan.BottomZ
+    // Height = MidTexSpan.TopZ - MidTexSpan.BottomZ
+    public Entity GetMidTexEntity(IWorld world)
+    {
+        if (MidTexEntity == null)
+        {
+            MidTexEntity = new();
+            MidTexEntity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world, default);
+            MidTexEntity.MidTexLine = this;
+            MidTexEntity.Flags.Solid = true;
+            MidTexEntity.Flags.ActLikeBridge = true;
+        }
+
+        MidTexSpan span = default;
+        if (Front.Middle.TextureHandle > Constants.NullCompatibilityTextureIndex)
+        {
+            var texture = world.TextureManager.GetTexture(Front.Middle.TextureHandle);
+            if (texture != null && texture.Image != null && Back != null)
+                span = GeometryRenderer.GetMidTexSpan(world.TextureManager, texture.Image.Dimension, Front, Back, Front.Sector, Back.Sector);
+        }
+
+        MidTexEntity.PrevPosition.Z = span.PrevBottomZ;
+        MidTexEntity.Position.Z = span.BottomZ;
+        MidTexEntity.Height = span.TopZ - span.BottomZ;
+        return MidTexEntity;
     }
 
     public static bool CanMoveOutOf(Entity entity, double x, double y, in Seg2D seg, bool oneSided)
@@ -213,17 +260,20 @@ public sealed class Line
         return linePoint.DistanceSquared(oldPos) <= linePoint.DistanceSquared(newPos);        
     }
 
-    public static bool BlocksEntity(Entity entity, double x, double y, in Seg2D seg, bool oneSided, in LineFlags flags, bool mbf21)
+    public static bool BlocksEntity(Entity entity, double x, double y, in Seg2D seg, bool oneSided, in LineBlockFlags blockFlags, bool mbf21)
     {
-        if (oneSided)
+        if (oneSided || blockFlags.Everything)
             return !CanMoveOutOf(entity, x, y, seg, oneSided);
+
+        if (entity.Flags.Missile && blockFlags.Projectiles)
+            return true;
 
         bool isPlayerOrFriendly = entity.IsPlayer || entity.Flags.Friendly;
         if (!isPlayerOrFriendly && !entity.Flags.Missile &&
-            (flags.Blocking.Monsters || (mbf21 && flags.Blocking.LandMonstersMbf21 && !entity.Flags.Float)))
+            (blockFlags.Monsters || (mbf21 && blockFlags.LandMonstersMbf21 && !entity.Flags.Float) || (blockFlags.LandMonsters && !entity.Flags.Float) || (blockFlags.FloatMonsters && entity.Flags.Float)))
             return true;
 
-        if (entity.IsPlayer && (flags.Blocking.Players || (mbf21 && flags.Blocking.PlayersMbf21)))
+        if (entity.IsPlayer && (blockFlags.Players || (mbf21 && blockFlags.PlayersMbf21)))
             return true;
 
         return false;
@@ -231,6 +281,6 @@ public sealed class Line
 
     public override string ToString()
     {
-        return $"Id={Id} [{StartPosition}] [{EndPosition}]";
+        return $"Id={Id} [{Segment.Start}] [{Segment.End}]";
     }
 }

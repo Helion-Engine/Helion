@@ -14,6 +14,7 @@ using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -231,15 +232,38 @@ namespace Helion.Tests.Unit.GameAction
         {
             var line = world.Lines.First(x => x.SectorTag == tag);
             line.SetActivated(false);
-            return world.ActivateSpecialLine(entity, line, context, fromFront);
+            var frontPos = PointOnLineSide(line, fromFront);
+            return world.ActivateSpecialLine(entity, line, context, frontPos.X, frontPos.Y);
         }
 
-        // Activates the line given the context. Will force even if not repeatable.
-        public static bool ActivateLine(WorldBase world, Entity entity, int lineId, ActivationContext context, bool fromFront = true)
+        public static bool ActivateLine(WorldBase world, Entity entity, int lineId, ActivationContext context, bool fromFront = true, bool force = true)
         {
             Line line = GetLine(world, lineId);
-            line.SetActivated(false);
-            return world.ActivateSpecialLine(entity, line, context, fromFront);
+            if (force)
+                line.SetActivated(false);
+            var frontPos = PointOnLineSide(line, fromFront);
+            return world.ActivateSpecialLine(entity, line, context, frontPos.X, frontPos.Y);
+        }
+
+        public static void BumpLine(WorldBase world, Entity entity, int lineId, bool fromBack = false)
+        {
+            SetEntityToLine(world, entity, lineId, entity.Radius + 1, fromBack);
+            MoveEntity(world, entity, entity.Radius);
+        }
+
+        private static Vec2D PointOnLineSide(Line line, bool fromFront)
+        {
+            var pos = line.Segment.FromTime(0.5);
+            var lineAngle = line.Segment.Start.Angle(line.Segment.End);
+
+            if (fromFront)
+                lineAngle -= MathHelper.HalfPi;
+            else
+                lineAngle += MathHelper.HalfPi;
+
+            var unit = Vec2D.UnitCircle(lineAngle);
+            pos += unit * 8;
+            return pos;
         }
 
         public static bool PlayerFirePistol(WorldBase world, Player player)
@@ -272,6 +296,48 @@ namespace Helion.Tests.Unit.GameAction
             }, () => { });
 
             return true;
+        }
+
+        public static bool PlayerFirePlasma(WorldBase world, Player player, [NotNullWhen(true)] out Entity? plasma)
+        {
+            plasma = null;
+            var rifle = player.Inventory.Weapons.GetWeapon("PlasmaRifle");
+            if (rifle == null)
+            {
+                player.GiveWeapon(world.EntityManager.DefinitionComposer.GetByName("PlasmaRifle")!);
+                rifle = player.Inventory.Weapons.GetWeapon("PlasmaRifle");
+                if (rifle == null)
+                    return false;
+            }
+
+            player.ChangeWeapon(rifle);
+            if (player.Inventory.Amount("Cell") <= 0)
+                player.Inventory.Add(world.EntityManager.DefinitionComposer.GetByName("Cell")!, 100);
+
+            TickWorld(world, () =>
+            {
+                if (player.PendingWeapon != null)
+                    return true;
+                if (player.Weapon == null)
+                    return true;
+                if (!player.Weapon.ReadyToFire)
+                    return true;
+                return false;
+            }, () => { });
+
+            player.FireWeapon();
+            world.Tick();
+
+            Entity? plasmaBall = null;
+
+            TickWorld(world, () =>
+            {
+                plasmaBall = GetEntity(world, "PlasmaBall");
+                return plasmaBall == null;
+            }, () => { });
+
+            plasma = plasmaBall;
+            return plasma != null;
         }
 
         public static BlockmapIntersect? FireHitscanTest(WorldBase world, Entity entity)
@@ -489,6 +555,20 @@ namespace Helion.Tests.Unit.GameAction
             }
 
             trueCount.Should().Be(trueField.Length);
+        }
+
+
+        public static void AssertBlockingLine(Entity entity, int lineId, bool blocks)
+        {
+            if (blocks)
+            {
+                entity.BlockingBlockLineIndex.Should().NotBe(-1);
+                entity.World.Blockmap.BlockLines[entity.BlockingBlockLineIndex].LineId.Should().Be(lineId);
+            }
+            else
+            {
+                entity.BlockingBlockLineIndex.Should().NotBe(lineId);
+            }
         }
     }
 }

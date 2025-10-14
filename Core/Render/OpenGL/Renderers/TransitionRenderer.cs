@@ -14,7 +14,7 @@ public class TransitionRenderer : IDisposable
     private readonly IWindow m_window;
     private readonly StaticVertexBuffer<FramebufferVertex> m_vbo = new("Transition");
     private readonly VertexArrayObject m_vao = new("Transition");
-    private bool m_inited = false;
+    private bool m_inited;
     private TransitionProgram? m_program;
     /// <summary>
     /// The screen buffer to transition from.
@@ -33,11 +33,11 @@ public class TransitionRenderer : IDisposable
         Dispose(false);
     }
 
-    private GLFramebuffer GetNewFramebuffer() => new("Transition", m_window.Dimension, 1);
+    private GLFramebuffer GetNewFramebuffer() => new("Transition", m_window.ClientDimension, 1);
 
     public void UpdateFramebufferDimensionsIfNeeded()
     {
-        if (m_startBuffer.Dimension != m_window.Dimension && m_window.Dimension.HasPositiveArea)
+        if (m_startBuffer.Dimension != m_window.ClientDimension && m_window.ClientDimension.HasPositiveArea)
         {
             m_startBuffer.Dispose();
             m_startBuffer = GetNewFramebuffer();
@@ -96,19 +96,19 @@ public class TransitionRenderer : IDisposable
         GL.Viewport(0, 0, targetBuffer.Dimension.Width, targetBuffer.Dimension.Height);
         m_program.Bind();
 
-        GL.ActiveTexture(TextureUnit.Texture0);
-        m_startBuffer.Textures[0].Bind();
+        GL.ActiveTexture(BindTextures.BoundTexture);
+        m_startBuffer.ColorAttachment0.Bind();
         if (m_program is MeltTransitionProgram meltProgram)
         {
             // the melt shader uses ticks, so convert [0,1] to [0,42] ticks
             float loopElapsedTicks = progress * 42;
             // TODO: would be nice here to align strips with the virtual res
-            meltProgram.SetUniforms(TextureUnit.Texture0, mat4.Identity, loopElapsedTicks, targetBuffer.Dimension.Width / 4);
+            meltProgram.SetUniforms(BindTextures.BoundTexture, mat4.Identity, loopElapsedTicks, targetBuffer.Dimension.Width / 4);
         }
         else if (m_program is FadeTransitionProgram fadeProgram)
-            fadeProgram.SetUniforms(TextureUnit.Texture0, mat4.Identity, progress);
+            fadeProgram.SetUniforms(BindTextures.BoundTexture, mat4.Identity, progress);
         else
-            m_program.SetUniforms(TextureUnit.Texture0, mat4.Identity);
+            m_program.SetUniforms(BindTextures.BoundTexture, mat4.Identity);
 
         m_vao.Bind();
         m_vbo.DrawArrays();

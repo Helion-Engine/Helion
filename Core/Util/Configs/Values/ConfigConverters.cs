@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Globalization;
 using System.Text.Json;
 using Helion.Util.Extensions;
 using Helion.Util.SerializationContexts;
@@ -34,6 +34,8 @@ public static class ConfigConverters
             return MakeThrowableFileInfoConverter<T>();
         if (typeof(T) == typeof(Vec3I))
             return MakeThrowableVec3IConverter<T>();
+        if (typeof(T) == typeof(Vec3F))
+            return MakeThrowableVec3FConverter<T>();
         if (typeof(T) == typeof(Dimension))
             return MakeThrowableDimensionConverter<T>();
 
@@ -66,7 +68,7 @@ public static class ConfigConverters
                 return (T)(object)1;
             if (Parsing.TryParseDouble(text, out double d))
                 return (T)(object)(int)d;
-            return (T)(object)int.Parse(text);
+            return (T)(object)int.Parse(text, CultureInfo.InvariantCulture);
         }
 
         return ThrowableIntConverter;
@@ -165,6 +167,15 @@ public static class ConfigConverters
         return ThrowableVec3IConverter;
     }
 
+    private static Func<object, T> MakeThrowableVec3FConverter<T>() where T : notnull
+    {
+        static T ThrowableVec3FConverter(object obj)
+        {
+            return (T)(object)Vec3F.FromConfigString(obj.ToString() ?? string.Empty);
+        }
+
+        return ThrowableVec3FConverter;
+    }
 
     private static Func<object, T> MakeThrowableDimensionConverter<T>() where T : notnull
     {

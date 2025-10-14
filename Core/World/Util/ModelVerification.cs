@@ -21,6 +21,7 @@ public static class ModelVerification
             if (log == null)
                 return false;
 
+            log.Info($"Save file has {filesModel.Files.Count} but {fileArchives.Count} files are loaded.");
             LogExtraLoadedArchives(filesModel, log, fileArchives);
             LogMissingFiles(filesModel, log, fileArchives);
             return false;
@@ -32,27 +33,27 @@ public static class ModelVerification
         return true;
     }
 
-    private static void LogExtraLoadedArchives(GameFilesModel filesModel, ILogger log, IList<Archive> fileArchives)
+    private static void LogExtraLoadedArchives(GameFilesModel filesModel, Logger log, IList<Archive> fileArchives)
     {
         foreach (var archive in fileArchives)
         {
-            if (filesModel.Files.Any(x => archive.MD5.Equals(x.MD5)))
+            if (filesModel.Files.Any(x => archive.MD5.Equals(x.MD5, System.StringComparison.Ordinal)))
                 continue;
-            log.Error($"Loaded '{Path.GetFileName(archive.OriginalFilePath)}' that is not part of this save.");
+            log.Error($"Loaded '{Path.GetFileName(archive.FullPath)}' that is not part of this save.");
         }
     }
 
-    private static void LogMissingFiles(GameFilesModel filesModel, ILogger log, IList<Archive> fileArchives)
+    private static void LogMissingFiles(GameFilesModel filesModel, Logger log, IList<Archive> fileArchives)
     {
         foreach (var file in filesModel.Files)
         {
-            if (fileArchives.Any(x => x.MD5.Equals(file.MD5)))
+            if (fileArchives.Any(x => x.MD5.Equals(file.MD5, System.StringComparison.Ordinal)))
                 continue;
             log.Error($"Required archive '{file.FileName}' for this save is not loaded.");
         }
     }
 
-    private static bool VerifyFileModel(ArchiveCollection archiveCollection, FileModel fileModel, ILogger? log)
+    private static bool VerifyFileModel(ArchiveCollection archiveCollection, FileModel fileModel, Logger? log)
     {
         if (fileModel.FileName == null)
         {
@@ -73,7 +74,7 @@ public static class ModelVerification
             return true;
         }
 
-        if (!fileModel.MD5.Equals(archive.MD5))
+        if (!fileModel.MD5.Equals(archive.MD5, System.StringComparison.Ordinal))
         {
             log?.Error($"Required archive {fileModel.FileName} did not match MD5 for save game.");
             log?.Error($"Save MD5: {fileModel.MD5} - Loaded MD5: {archive.MD5}");

@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Helion.Util.Extensions;
 using static Helion.Util.Assertion.Assert;
 using static Helion.Util.Configs.Values.ConfigConverters;
@@ -8,6 +10,8 @@ namespace Helion.Util.Configs.Values;
 
 public class ConfigValue<T> : IConfigValue where T : notnull
 {
+
+
     // This value could be passed any type. To avoid many creations, this
     // is cached between different generic types.
     private static readonly Func<object, T> ObjectToTypeConverterOrThrow;
@@ -87,34 +91,17 @@ public class ConfigValue<T> : IConfigValue where T : notnull
 
     public static implicit operator T(ConfigValue<T> val) => val.Value;
 
-    public ConfigSetResult Set(object newValue, bool writeToConfig = true)
+    public ConfigSetResult Set(object newValue, bool writeToConfig = true, bool fireChangeEvents = true)
     {
-        try
-        {
-            if (typeof(T) == newValue.GetType())
-            {
-                return Set((T)newValue, writeToConfig);
-            }
-
-            if (typeof(T) == typeof(bool) && newValue is string str && str.Length == 1 && str[0] == '*')
-            {
-                bool value = Convert.ToBoolean(Value);
-                return Set(!value, writeToConfig);
-            }
-
-            T converted = ObjectToTypeConverterOrThrow(newValue);
-            return Set(converted, writeToConfig);
-        }
-        catch
-        {
-            return ConfigSetResult.NotSetByBadConversion;
-        }
+        return TryConvertInternal(newValue, out var convertedValue)
+            ? Set(convertedValue, writeToConfig, fireChangeEvents)
+            : ConfigSetResult.NotSetByBadConversion;
     }
 
-    public ConfigSetResult Set(T newValue, bool writeToConfig = true)
+    public ConfigSetResult Set(T newValue, bool writeToConfig = true, bool fireChangeEvents = true)
     {
         WriteToConfig = writeToConfig;
-        var result = SetValue(newValue, false);
+        var result = SetValue(newValue, false, fireChangeEvents);
         if (WriteToConfig)
         {
             UserValue = Value;
@@ -127,13 +114,59 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         return result;
     }
 
+    public bool TryConvert(object value, out object? converted)
+    {
+        var success = TryConvertInternal(value, out var convertedValue);
+        converted = convertedValue;
+        return success;
+    }
+
+    private bool TryConvertInternal(object value, [NotNullWhen(true)] out T? converted)
+    {
+        try
+        {
+            if (typeof(T) == value.GetType())
+            {
+                converted = (T)value;
+                return true;
+            }
+
+            if (typeof(T) == typeof(bool) && value is string str)
+            {
+                if (str == "*")
+                {
+                    converted = (T)(object)!Convert.ToBoolean(Value, CultureInfo.InvariantCulture);
+                    return true;
+                }
+                else if (str.Equals(ConfigConstants.Yes, StringComparison.OrdinalIgnoreCase))
+                {
+                    converted = (T)(object)true;
+                    return true;
+                }
+                else if (str.Equals(ConfigConstants.No, StringComparison.OrdinalIgnoreCase))
+                {
+                    converted = (T)(object)false;
+                    return true;
+                }
+            }
+
+            converted = ObjectToTypeConverterOrThrow(value);
+            return true;
+        }
+        catch
+        {
+            converted = default;
+            return false;
+        }
+    }
+
     public void ResetToUserValue()
     {
         Value = UserValue;
         HasTemporaryValue = false;
     }
 
-    private ConfigSetResult SetValue(T newValue, bool ignoreSetFlags)
+    private ConfigSetResult SetValue(T newValue, bool ignoreSetFlags, bool fireChangeEvents = true)
     {
         if (Equals(newValue, Value))
             return ConfigSetResult.Unchanged;
@@ -154,8 +187,11 @@ public class ConfigValue<T> : IConfigValue where T : notnull
         T oldValue = Value;
         Value = newValue;
         Changed = true;
-        OnChanged?.Invoke(this, newValue);
-        OnChangedBeforeAfter?.Invoke(this, (oldValue, newValue));
+        if (fireChangeEvents)
+        {
+            OnChanged?.Invoke(this, newValue);
+            OnChangedBeforeAfter?.Invoke(this, (oldValue, newValue));
+        }
 
         m_queuedChange = default(T);
         m_hasQueuedChange = false;
@@ -184,7 +220,7 @@ public class ConfigValue<T> : IConfigValue where T : notnull
     }
 
     public IConfigValue Clone()
-    {        
+    {
         return new ConfigValue<T>(Value, m_filter!);
     }
 }

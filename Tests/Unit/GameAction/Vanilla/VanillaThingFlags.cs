@@ -73,20 +73,20 @@ public class VanillaThingFlags
         var hellKnight = GameActions.GetEntity(world, HellKnight);
         var baron = GameActions.GetEntity(world, Baron);
 
-        hellKnight.Target.Entity.Should().BeNull();
-        baron.Target.Entity.Should().BeNull();
+        hellKnight.Target().Should().BeNull();
+        baron.Target().Should().BeNull();
 
         GameActions.SetEntityPosition(world, world.Player, (-1376, -256, 0));
         GameActions.PlayerFirePistol(world, world.Player);
 
         // The ambush baron doesn't have line of sight to the player and will not wake up
         // Hellknight without ambush will wake up
-        hellKnight.Target.Entity.Should().Be(world.Player);
-        baron.Target.Entity.Should().BeNull();
+        hellKnight.Target().Should().Be(world.Player);
+        baron.Target().Should().BeNull();
 
         GameActions.SetEntityPosition(world, world.Player, (-832, -320, 0));
         GameActions.TickWorld(world, 12);
         // Line of sight checks are all around and not just in FOV
-        baron.Target.Entity.Should().Be(world.Player);
+        baron.Target().Should().Be(world.Player);
     }
 }

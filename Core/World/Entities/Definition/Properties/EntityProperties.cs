@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Helion.Graphics.Palettes;
 using Helion.Maps.Specials;
+using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.World.Entities.Definition.Properties.Components;
 
 namespace Helion.World.Entities.Definition.Properties;
@@ -10,9 +12,9 @@ public class EntityProperties
     public string ActiveSound = string.Empty;
     public string RipSound = String.Empty;
     public double Alpha = 1.0;
-    public AmmoProperty Ammo = default;
-    public SpecialArgs Args = default;
-    public ArmorProperty Armor = default;
+    public AmmoProperty Ammo;
+    public SpecialArgs Args;
+    public ArmorProperty Armor;
     public string AttackSound = string.Empty;
     public string BloodColor = string.Empty;
     public string BloodType = string.Empty;
@@ -63,12 +65,17 @@ public class EntityProperties
     public EntityDefinition? TranslatedPickupDisplay;
     public string? TranslationEntry;
     public int? ColormapIndex;
+    public PaletteColor? BloodPaletteColor;
+    public int HealthBarOffset;
+    public int HealthBarWidth;
+    public RenderStyle RenderStyle = RenderStyle.Normal;
 
     public double MonsterMovementSpeed;
     public double MissileMovementSpeed;
 
     public EntityProperties()
     {
+        HealthBarWidth = -1;
     }
 
     public void AddTranslatedPickup(EntityDefinition definition)

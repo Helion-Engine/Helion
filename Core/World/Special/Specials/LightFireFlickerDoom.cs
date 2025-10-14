@@ -22,7 +22,7 @@ public class LightFireFlickerDoom : SectorSpecialBase
         MaxBright = Sector.LightLevel;
     }
 
-    public LightFireFlickerDoom(IWorld world, Sector sector, IRandom random, LightFireFlickerDoomModel model)
+    public LightFireFlickerDoom(IWorld world, Sector sector, IRandom random, in LightFireFlickerDoomModel model)
         : base(world, sector)
     {
         m_random = random;
@@ -31,9 +31,9 @@ public class LightFireFlickerDoom : SectorSpecialBase
         m_delay = model.Delay;
     }
 
-    public override ISpecialModel? ToSpecialModel()
+    public LightFireFlickerDoomModel ToSpecialModel()
     {
-        return new LightFireFlickerDoomModel()
+        return new()
         {
             SectorId = Sector.Id,
             Min = MinBright,

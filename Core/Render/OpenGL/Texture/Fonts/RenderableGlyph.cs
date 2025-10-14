@@ -1,3 +1,4 @@
+using Helion.Geometry.Boxes;
 using Helion.Graphics;
 using Helion.Graphics.Geometry;
 
@@ -6,12 +7,12 @@ namespace Helion.Render.OpenGL.Texture.Fonts;
 /// <summary>
 /// A glyph to be rendered.
 /// </summary>
-public readonly struct RenderableGlyph
+public struct RenderableGlyph
 {
     /// <summary>
     /// The character.
     /// </summary>
-    public readonly char Character;
+    public char Character;
 
     /// <summary>
     /// The integer-based original placement in the original draw area.
@@ -20,11 +21,7 @@ public readonly struct RenderableGlyph
     /// Finally, note that this has the origin at the top left, meaning
     /// the Left/Right/Top/Bottom fields will be wrong.
     /// </summary>
-    public readonly ImageBox2I Coordinates;
-
-    // The coordinates used to determine the render area of the box for alignment.
-    // Required to handle weirdness of how Doom rendered the LargeHudFont being a fixed width to the size of the 0 char.
-    public readonly ImageBox2I AreaCoordinates;
+    public ImageBox2I Coordinates;
 
     /// <summary>
     /// The location in the font's atlas as normalized coordinates. This is
@@ -33,33 +30,31 @@ public readonly struct RenderableGlyph
     /// each character and manually set it. This has its origin at the top
     /// left of the character.
     /// </summary>
-    public readonly ImageBox2D Location;
+    public Box2F Location;
 
     /// <summary>
     /// The UV coordinates in the font's atlas.
     /// </summary>
-    public readonly ImageBox2D UV;
+    public Box2F UV;
 
     /// <summary>
     /// The color of the letter.
     /// </summary>
-    public readonly Color Color;
+    public Color Color;
 
-    public RenderableGlyph(char character, ImageBox2I areaCoordinates, ImageBox2I coordinates, ImageBox2D location, ImageBox2D uv, Color color)
+    public RenderableGlyph(char character, ImageBox2I coordinates, Box2F location, Box2F uv, Color color)
     {
         Character = character;
-        AreaCoordinates = areaCoordinates;
         Coordinates = coordinates;
         Location = location;
         UV = uv;
         Color = color;
     }
 
-    public RenderableGlyph(RenderableGlyph parent, ImageBox2D newLocation)
+    public RenderableGlyph(RenderableGlyph parent, Box2F newLocation)
     {
         Character = parent.Character;
         Coordinates = parent.Coordinates;
-        AreaCoordinates = parent.AreaCoordinates;
         Location = newLocation;
         UV = parent.UV;
         Color = parent.Color;

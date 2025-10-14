@@ -21,7 +21,7 @@
 
             foreach (FieldInfo fieldInfo in typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
-                string newPath = path == "" ? fieldInfo.Name.ToLower() : $"{path}.{fieldInfo.Name.ToLower()}";
+                string newPath = path == "" ? fieldInfo.Name.ToLowerInvariant() : $"{path}.{fieldInfo.Name.ToLowerInvariant()}";
 
                 if (fieldInfo.FieldType == typeof(ProfilerStopwatch))
                 {

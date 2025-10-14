@@ -80,6 +80,6 @@ public class SectorIsland
         island.BoxInsideSector(box).Should().BeFalse();
     }
 
-    void AssertIslandBox(IList<Island> islands, Box2D box) =>
+    static void AssertIslandBox(IList<Island> islands, Box2D box) =>
         islands.Any(x => x.Box.Min == box.Min && x.Box.Max == box.Max).Should().BeTrue();
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
@@ -544,5 +545,26 @@ public class ViewClipperTest
         clipper.AddLine(first, sixth);
         clipper.InsideAnyRange(second, fifth).Should().BeTrue();
         clipper.InsideAnyRange(fifth, second).Should().BeTrue();
+    }
+
+    [Fact(DisplayName = "DiamondAngleFromRadians")]
+    public void DiamondAngleFromRadians()
+    {
+        ViewClipper.DiamondAngleFromRadians(76).Should().Be(411353391);
+        ViewClipper.DiamondAngleFromRadians(0).Should().Be(0);
+        ViewClipper.DiamondAngleFromRadians(Math.PI / 2).Should().Be(1073741823);
+        ViewClipper.DiamondAngleFromRadians(Math.PI).Should().Be(2147483647);
+        ViewClipper.DiamondAngleFromRadians(-Math.PI / 2).Should().Be(3221225473);
+        ViewClipper.DiamondAngleFromRadians(-Math.PI).Should().Be(2147483649);
+    }
+
+    [Fact(DisplayName = "ToDiamondAngle")]
+    public void ToDiamondAngle()
+    {
+        ViewClipper.ToDiamondAngle(Vec2D.Zero, Vec2D.One).Should().Be(536870911);
+        ViewClipper.ToDiamondAngle(Vec2D.Zero, (1, 2)).Should().Be(715827882);
+        ViewClipper.ToDiamondAngle(Vec2D.Zero, (4, 2)).Should().Be(357913941);
+        ViewClipper.ToDiamondAngle(Vec2D.Zero, (-1, -2)).Should().Be(2863311528);
+        ViewClipper.ToDiamondAngle(Vec2D.Zero, (-4, -3)).Should().Be(2607658713);
     }
 }

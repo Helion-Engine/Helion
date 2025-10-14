@@ -1,12 +1,13 @@
 ﻿namespace Helion.Tests.Unit.Util.Configs.Impl
 {
+    using System;
+    using System.Globalization;
+    using System.Linq;
+    using System.Reflection;
     using FluentAssertions;
     using Helion.Resources.IWad;
     using Helion.Tests.Unit.GameAction;
     using Helion.Util.Configs.Impl;
-    using System;
-    using System.Linq;
-    using System.Reflection;
     using Xunit;
 
     // This needs to run in the same collection as other things that exercise game code,
@@ -27,7 +28,7 @@
                     .GetFields()
                     .SelectMany(field => field.FieldType
                         .GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
-                        .Where(evt => evt.FieldType.Name.StartsWith("EventHandler"))
+                        .Where(evt => evt.FieldType.Name.StartsWith("EventHandler", StringComparison.Ordinal))
                         .Select(evt => (prop, field, evt))))
                 .ToArray();
 

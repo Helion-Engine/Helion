@@ -12,29 +12,38 @@ namespace Helion.Util
         public static string GetFile()
         {
             string file = Path.GetTempFileName();
-            TempFiles.Add(file);
+            lock (TempFiles)
+            {
+                TempFiles.Add(file);
+            }
             return file;
         }
 
         public static void DeleteFile(string file)
         {
-            for (int i = 0; i < TempFiles.Count; i++)
+            lock (TempFiles)
             {
-                if (!TempFiles[i].Equals(file))
-                    continue;
+                for (int i = 0; i < TempFiles.Count; i++)
+                {
+                    if (!TempFiles[i].Equals(file, System.StringComparison.OrdinalIgnoreCase))
+                        continue;
 
-                TryDelete(file);
-                TempFiles.RemoveAt(i);
-                break;
+                    TryDelete(file);
+                    TempFiles.RemoveAt(i);
+                    break;
+                }
             }
         }
 
         public static void DeleteAllFiles()
         {
-            foreach (var file in TempFiles)
-                TryDelete(file);
+            lock (TempFiles)
+            {
+                foreach (var file in TempFiles)
+                    TryDelete(file);
 
-            TempFiles.Clear();
+                TempFiles.Clear();
+            }
         }
 
         private static void TryDelete(string file)

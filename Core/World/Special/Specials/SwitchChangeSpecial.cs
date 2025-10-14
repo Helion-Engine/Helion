@@ -65,9 +65,9 @@ public class SwitchChangeSpecial : ISpecial
         m_switchDelayTics = 0;
     }
 
-    public ISpecialModel ToSpecialModel()
+    public SwitchChangeSpecialModel ToSpecialModel()
     {
-        return new SwitchChangeSpecialModel()
+        return new()
         {
             LineId = Line.Id,
             Repeat = m_repeat,
@@ -112,7 +112,7 @@ public class SwitchChangeSpecial : ISpecial
         return false;
     }
 
-    private void PlaySwitchSound(WorldSoundManager soundManager, Line line)
+    private static void PlaySwitchSound(WorldSoundManager soundManager, Line line)
     {
         Vec2D pos = line.Segment.FromTime(0.5);
         DefaultSoundSource soundSource = new(pos.To3D(line.Front.Sector.ToFloorZ(pos)));

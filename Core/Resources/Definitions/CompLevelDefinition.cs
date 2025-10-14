@@ -16,6 +16,7 @@ public enum CompLevel
 public class CompLevelDefinition
 {
     public CompLevel CompLevel;
+    private bool m_setting;
 
     public CompLevelDefinition()
     {
@@ -33,6 +34,16 @@ public class CompLevelDefinition
     public void Apply(IConfig config, bool reset = false)
     {
         // Avoid possible recursion if invoked via event handler
+        if (m_setting)
+            return;
+
+        m_setting = true;
+        ApplyInternal(config, reset);
+        m_setting = false;
+    }
+
+    private void ApplyInternal(IConfig config, bool reset)
+    {
         if ((CompLevel)config.Compatibility.SessionCompatLevel.ObjectValue != CompLevel)
             config.Compatibility.SessionCompatLevel.Set(CompLevel, writeToConfig: false);
 
@@ -40,9 +51,7 @@ public class CompLevelDefinition
             config.Compatibility.ResetToUserValues();
 
         if (CompLevel == CompLevel.Undefined)
-        {
             return;
-        }
 
         var compat = config.Compatibility;
         switch (CompLevel)

@@ -144,9 +144,9 @@ public partial class MapInfoDefinition
                 mapDef.MapSpecialAction = MapSpecialAction.OpenDoor;
             else if (item.Equals("specialaction", StringComparison.OrdinalIgnoreCase))
                 ParseSpecialAction(parser, mapDef);
-            else if (item.Equals("ResetHealth"))
+            else if (item.Equals("ResetHealth", StringComparison.OrdinalIgnoreCase))
                 mapDef.SetOption(MapOptions.ResetHealth, true);
-            else if (item.Equals("ResetInventory"))
+            else if (item.Equals("ResetInventory", StringComparison.OrdinalIgnoreCase))
                 mapDef.SetOption(MapOptions.ResetInventory, true);
             else if (item.Equals("normalinfighting", StringComparison.OrdinalIgnoreCase))
             {
@@ -191,7 +191,7 @@ public partial class MapInfoDefinition
         return mapDef;
     }
 
-    private void ParseSpecialAction(SimpleParser parser, MapInfoDef mapDef)
+    private static void ParseSpecialAction(SimpleParser parser, MapInfoDef mapDef)
     {
         int line = parser.GetCurrentLine();
         parser.ConsumeString("=");
@@ -280,7 +280,7 @@ public partial class MapInfoDefinition
                 mapDef.ParTime = existing.ParTime;
             if (mapDef.SuckTime == 0)
                 mapDef.SuckTime = existing.SuckTime;
-            if (mapDef.HasOptions())
+            if (!mapDef.HasOptions())
                 mapDef.SetOptions(existing);
         }
         else
@@ -420,7 +420,7 @@ public partial class MapInfoDefinition
     {
         SkyDef sky = new();
         sky.Name = parser.ConsumeString();
-        if (!MapNames.Contains(parser.PeekString()) && parser.PeekInteger(out _))
+        if (!MapNames.Contains(parser.PeekString()) && parser.PeekDouble(out _))
             sky.ScrollSpeed = parser.ConsumeDouble();
         else if (parser.ConsumeIf(","))
             sky.ScrollSpeed = parser.ConsumeDouble();
@@ -470,7 +470,7 @@ public partial class MapInfoDefinition
         return clusterDef;
     }
 
-    private static readonly string[] TextSplit = ["\\n", "\n"];
+    private static readonly string[] TextSplit = ["\\n", "\n", "\\r\\n", "\r\n"];
 
     private List<string> GetClusterText(SimpleParser parser)
     {
@@ -478,9 +478,9 @@ public partial class MapInfoDefinition
         {
             string text = parser.ConsumeString();
             if (text.Equals("lookup", StringComparison.OrdinalIgnoreCase))
-                return new List<string>(["$" + parser.ConsumeString()]);
+                return ["$" + parser.ConsumeString()];
 
-            return new List<string>(text.Split('\n'));
+            return [.. text.Split(TextSplit, StringSplitOptions.None)];
         }
 
         List<string> textItems = [];
@@ -502,6 +502,9 @@ public partial class MapInfoDefinition
             if (!hasComma)
                 break;
         }
+
+        for (int i = 0; i < textItems.Count; i++)
+            textItems[i] = textItems[i].Replace("\\\"", "\"").Replace("\\", string.Empty);
 
         return textItems;
     }
@@ -609,8 +612,8 @@ public partial class MapInfoDefinition
     private static void ParseWeaponSlot(GameInfoDef gameDef, SimpleParser parser)
     {
         int slot = parser.ConsumeInteger();
-        if (gameDef.WeaponSlots.ContainsKey(slot))
-            gameDef.WeaponSlots[slot].Clear();
+        if (gameDef.WeaponSlots.TryGetValue(slot, out List<string>? value))
+            value.Clear();
         else
             gameDef.WeaponSlots.Add(slot, new List<string>());
 
@@ -833,7 +836,7 @@ public partial class MapInfoDefinition
         parser.ConsumeString("=");
     }
 
-    private static IList<string> GetStringList(SimpleParser parser)
+    private static List<string> GetStringList(SimpleParser parser)
     {
         List<string> items = new List<string>();
 

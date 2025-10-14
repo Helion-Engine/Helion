@@ -27,25 +27,25 @@ public class ProgramUniforms
         }
     }
 
-    public void Set(bool value, int location) => GL.Uniform1(location, value ? 1 : 0);
+    public static void Set(bool value, int location) => GL.Uniform1(location, value ? 1 : 0);
     public void Set(bool value, string name) => Set(value, GetLocation(name));
-    public void Set(int value, int location) => GL.Uniform1(location, value);
+    public static void Set(int value, int location) => GL.Uniform1(location, value);
     public void Set(int value, string name) => Set(value, GetLocation(name));
-    public void Set(float value, int location) => GL.Uniform1(location, value);
+    public static void Set(float value, int location) => GL.Uniform1(location, value);
     public void Set(float value, string name) => Set(value, GetLocation(name));
-    public void Set(float[] value, int location) => GL.Uniform1(location, value.Length, value);
+    public static void Set(float[] value, int location) => GL.Uniform1(location, value.Length, value);
     public void Set(float[] value, string name) => Set(value, GetLocation(name));
-    public void Set(Vec2F value, int location) => GL.Uniform2(location, value.X, value.Y);
+    public static void Set(Vec2F value, int location) => GL.Uniform2(location, value.X, value.Y);
     public void Set(Vec2F value, string name) => Set(value, GetLocation(name));
-    public void Set(Vec3F value, int location) => GL.Uniform3(location, value.X, value.Y, value.Z);
+    public static void Set(Vec3F value, int location) => GL.Uniform3(location, value.X, value.Y, value.Z);
     public void Set(Vec3F value, string name) => Set(value, GetLocation(name));
-    public void Set(Vec4F value, int location) => GL.Uniform4(location, value.X, value.Y, value.Z, value.W);
+    public static void Set(Vec4F value, int location) => GL.Uniform4(location, value.X, value.Y, value.Z, value.W);
     public void Set(Vec4F value, string name) => Set(value, GetLocation(name));
-    public void Set(mat4 value, int location) => GL.UniformMatrix4(location, 1, false, value.ToUniformArray());
+    public static void Set(mat4 value, int location) => GL.UniformMatrix4(location, 1, false, value.ToUniformArray());
     public void Set(mat4 value, string name) => Set(value, GetLocation(name));
-    public void Set(TextureUnit value, int location) => GL.Uniform1(location, (int)value - (int)TextureUnit.Texture0);
+    public static void Set(TextureUnit value, int location) => GL.Uniform1(location, (int)value - (int)TextureUnit.Texture0);
     public void Set(TextureUnit value, string name) => Set(value, GetLocation(name));
-    public void Set(Vec2I value, int location) => GL.Uniform2(location, value.X, value.Y);
+    public static void Set(Vec2I value, int location) => GL.Uniform2(location, value.X, value.Y);
 
 
     public int GetLocation(string name)

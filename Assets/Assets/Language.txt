@@ -289,6 +289,24 @@ buildings, and presumably no Hellspawn.
 
 As you step off the transport, you hear
 the stomp of a cyberdemon's iron shoe.";
+NERVETEXT = "Trouble was brewing again in your favorite
+vacation spot... hell. Some cyberdemon
+punk thought he could turn hell into a 
+personal amusement park, and make earth
+the ticket booth.
+
+Well, that half-robot freak show didn't
+know who was coming to the fair. There's
+nothing like a shooting gallery full of
+hellspawn to get the blood pumping...
+
+Now the walls of the demon's labyrinth
+echo with the sound of his metallic limbs
+hitting the floor. His death moan gurgles
+out through the mess you left of his face.
+
+This ride is closed.";
+
 BGFLATE1 = "FLOOR4_8";
 BGFLATE2 = "SFLR6_1";
 BGFLATE3 = "MFLR8_4";
@@ -451,6 +469,8 @@ PD_YELLOWS = "You need a yellow skull to open this door";
 PD_ANY = "Any key will open this door";
 PD_ALL3 = "You need all three keys to open this door";
 PD_ALL6 = "You need all six keys to open this door";
+
+TXT_DOES_NOT_WORK = "That doesn't seem to work";
 
 // Cast call names
 CC_ZOMBIE = "Zombieman";
@@ -701,3 +721,13 @@ CHUSTR_E1M2 = "Storage Facility";
 CHUSTR_E1M3 = "Laboratory";
 CHUSTR_E1M4 = "Arboretum";
 CHUSTR_E1M5 = "Caverns of Bazoik";
+// No Rest for the Living
+NHUSTR_1 = "The Earth Base";
+NHUSTR_2 = "The Pain Labs";
+NHUSTR_3 = "Canyon of the Dead";
+NHUSTR_4 = "Hell Mountain";
+NHUSTR_5 = "Vivisection";
+NHUSTR_6 = "Inferno of Blood";
+NHUSTR_7 = " Baron's Banquet";
+NHUSTR_8 = "Tomb of Malevolence";
+NHUSTR_9 = "March of the Demons";

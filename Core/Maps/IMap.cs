@@ -3,6 +3,7 @@ using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
 using Helion.Maps.Doom;
 using Helion.Maps.Hexen;
+using Helion.Maps.Udmf;
 using Helion.Resources.Archives;
 using Helion.Resources.Definitions.Compatibility;
 
@@ -16,10 +17,9 @@ public interface IMap
 {
     string Name { get; }
     MapType MapType { get; }
-    public Archive Archive { get; }
     public string MD5 { get; set; }
+    public string ArchivePath { get; set; }
     IReadOnlyList<ILine> GetLines();
-    IReadOnlyList<INode> GetNodes();
     IReadOnlyList<ISector> GetSectors();
     IReadOnlyList<ISide> GetSides();
     IReadOnlyList<IThing> GetThings();
@@ -27,21 +27,25 @@ public interface IMap
     GLComponents? GL { get; }
     byte[]? Reject { get; set; }
     CompatibilityMapDefinition? CompatibilityDefinition { get; set; }
+    void ClearAllExceptThings();
+    void ClearAll();
+    void LoadData();
 
-    public static IMap? Read(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null)
+    public static IMap? Read(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null, bool loadData = true)
     {
-        var map = Create(archive, mapEntries, compatibility);
+        var map = Create(archive, mapEntries, compatibility, loadData);
         if (map != null)
             map.MD5 = mapEntries.GetMD5();
         return map;
     }
 
-    private static IMap? Create(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null)
+    private static IMap? Create(Archive archive, MapEntryCollection mapEntries, CompatibilityMapDefinition? compatibility = null, bool loadData = true)
     {
         return mapEntries.MapType switch
         {
-            MapType.Doom => DoomMap.Create(archive, mapEntries, compatibility),
-            MapType.Hexen => HexenMap.Create(archive, mapEntries, compatibility),
+            MapType.Doom => DoomMap.Create(archive, mapEntries, compatibility, loadData),
+            MapType.Hexen => HexenMap.Create(archive, mapEntries, compatibility, loadData),
+            MapType.UDMF => UdmfMap.Create(archive, mapEntries, compatibility, loadData),
             _ => null
         };
     }

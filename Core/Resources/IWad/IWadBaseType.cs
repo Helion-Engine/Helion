@@ -7,5 +7,7 @@ public enum IWadBaseType
     Plutonia,
     TNT,
     Doom1,
-    ChexQuest
+    ChexQuest,
+    Heretic,
+    Hexen
 }

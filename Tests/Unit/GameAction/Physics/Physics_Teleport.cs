@@ -31,6 +31,13 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.RunTeleport(World, Player, TeleportDestSector, TeleportLandingId);
         }
 
+        [Fact(DisplayName = "Player teleport back side fails")]
+        public void PlayerTeleportBackSide()
+        {
+            GameActions.EntityCrossLine(World, Player, TeleportLine, moveOutofBounds: false, forceFrozen: false, fromBack: true).Should().BeTrue();
+            GameActions.CheckNoTeleport(World, Player, TeleportDestSector, TeleportLandingId);
+        }
+
         [Fact(DisplayName = "Player teleport and telefrag monster")]
         public void PlayerTelefrag()
         {

@@ -123,7 +123,7 @@ namespace Helion.Tests.Unit.GameAction
             RunEntityDisposed(rocket);
         }
 
-        [Fact(DisplayName = "Missile hits non-shootable non-solid special")]
+        [Fact(DisplayName = "Missile doesn't hit non-shootable non-solid special")]
         public void MissileNonShootableNonSolidSpecial()
         {
             var entity = GameActions.CreateEntity(World, "Zombieman", MissileCenterPlayerPos + new Vec3D(0, 96, 0));
@@ -135,9 +135,9 @@ namespace Helion.Tests.Unit.GameAction
             rocket.Velocity = Vec3D.UnitSphere(rocket.AngleRadians, 0) * 16;
 
             RunMissileExplode(rocket);
-            rocket.Position.Should().Be(new Vec3D(1920, 960, 32));
-            rocket.BlockingEntity.Should().Be(entity);
-            entity.Velocity.ApproxEquals(new(0, 4.53125, 0));
+            rocket.Position.Should().Be(new Vec3D(1920, 1008, 32));
+            rocket.BlockingEntity.Should().BeNull();
+            entity.Velocity.Should().Be(Vec3D.Zero);
 
             RunEntityDisposed(rocket);
         }
@@ -195,7 +195,7 @@ namespace Helion.Tests.Unit.GameAction
         {
             GameActions.TickWorld(World, () =>
             {
-                return rocket.Frame.ActionFunction == null || !rocket.Frame.ActionFunction.Method.Name.Equals("A_Explode");
+                return rocket.FrameState.Frame.ActionFunction == null || !rocket.FrameState.Frame.ActionFunction.Method.Name.Equals("A_Explode", System.StringComparison.Ordinal);
             }, () => { });
         }
 
@@ -203,8 +203,8 @@ namespace Helion.Tests.Unit.GameAction
         {
             GameActions.TickWorld(World, () => {  return !rocket.IsDisposed; }, () =>
             {
-                if (rocket.Frame.ActionFunction != null)
-                    rocket.Frame.ActionFunction.Method.Name.Equals("A_Explode").Should().BeFalse();
+                if (rocket.FrameState.Frame.ActionFunction != null)
+                    rocket.FrameState.Frame.ActionFunction.Method.Name.Equals("A_Explode", System.StringComparison.Ordinal).Should().BeFalse();
             });
         }
 

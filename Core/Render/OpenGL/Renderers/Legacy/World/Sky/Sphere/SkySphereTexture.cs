@@ -1,19 +1,19 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
-using Helion.Graphics.Palettes;
 using Helion.Render.OpenGL.Texture;
 using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions;
+using Helion.Util.Configs.Components;
 using Helion.Util.Container;
 using OpenTK.Graphics.OpenGL;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 
-public record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIndex, float ScaleU, Vec4F TopColor, Vec4F BottomColor, int TopColorIndex, int BottomColorIndex);
+public record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIndex, Vec4F TopColor, Vec4F BottomColor, int TopColorIndex, int BottomColorIndex, bool IsFire);
 
 // The sky texture looks like this (p = padding):
 //
@@ -34,6 +34,11 @@ public record struct SkyTexture(GLLegacyTexture GlTexture, int AnimatedTextureIn
 //
 public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextureManager textureManager, int textureHandle) : IDisposable
 {
+    public static readonly Dimension StandardDimension = new((int)StandardWidth, (int)StandardHeight);
+    private const float StaticSkySize = 0.25f;
+    private const float StandardWidth = 256;
+    private const float StandardHeight = 128;
+    private const float StandardAspectRatio = StandardWidth / StandardHeight;
     private const int PixelRowsToEvaluate = 24;
     private readonly ArchiveCollection m_archiveCollection = archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager = textureManager;
@@ -61,52 +66,62 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         }
 
         skyTransform = SkyTransform.Default;
+        skyTransform.Sky.Offset = default;
         // Check if we have generated this sky texture yet. The translation can change if skies are animated.
         int animationIndex = m_archiveCollection.TextureManager.GetTranslationIndex(m_textureHandleIndex);
         if (m_archiveCollection.TextureManager.TryGetSkyTransform(animationIndex, out var findTransform))
             skyTransform = findTransform;
+        else if (m_archiveCollection.TextureManager.TryGetSkyTransform(m_textureHandleIndex, out findTransform))
+            skyTransform = findTransform;
         return GetSkyTextureFromTextureIndex(animationIndex, m_textureHandleIndex);
     }
 
-    private SkyTexture GetSkyTextureFromTextureIndex(int animationIndex, int textureIndex)
+    private unsafe SkyTexture GetSkyTextureFromTextureIndex(int animationIndex, int textureIndex)
     {
-        SkyTexture? findSkyTexture = null;
+        bool foundSkyTexture = false;
+        SkyTexture findSkyTexture = default;
         var skyArray = m_skyTextures.Data;
         for (int i = 0; i < m_skyTextures.Length; i++)
         {
             ref var checkSkyTexture = ref skyArray[i];
             if (checkSkyTexture.AnimatedTextureIndex == animationIndex)
             {
+                foundSkyTexture = true;
                 findSkyTexture = checkSkyTexture;
                 break;
             }
         }
 
-        if (findSkyTexture == null && GenerateSkyTexture(textureIndex, out var skyTexture))
+        if (!foundSkyTexture)
         {
-            m_skyTextures.Add(skyTexture.Value);
-            findSkyTexture = skyTexture;
+            foundSkyTexture = GenerateSkyTexture(textureIndex, out var skyTexture);
+            if (foundSkyTexture)
+            {
+                m_skyTextures.Add(skyTexture);
+                findSkyTexture = skyTexture;
+            }
         }
 
-        if (findSkyTexture != null)
-            CheckSkyFireUpdate(findSkyTexture.Value.GlTexture, textureIndex);
+        var isFire = false;
+        if (foundSkyTexture)
+        {
 
-        return findSkyTexture ?? new SkyTexture(m_textureManager.NullTexture, 0, 1, Vec4F.Zero, Vec4F.Zero, 0, 0);
+            CheckSkyFireUpdate(findSkyTexture.GlTexture, textureIndex, out isFire);
+            findSkyTexture.IsFire = isFire;
+            return findSkyTexture;
+        }
+
+        return new SkyTexture(m_textureManager.NullTexture, 0, Vec4F.Zero, Vec4F.Zero, 0, 0, isFire);
     }
 
-    private void CheckSkyFireUpdate(GLLegacyTexture skyTexture, int textureIndex)
+    private void CheckSkyFireUpdate(GLLegacyTexture skyTexture, int textureIndex, out bool isFire)
     {
-        var skyFireTextures = m_archiveCollection.TextureManager.GetSkyFireTextures();
-        for (int i = 0; i < skyFireTextures.Count; i++)
+        isFire = false;
+        if (m_archiveCollection.TextureManager.SkyFireNeedsUpdate(textureIndex, out var texture, out var needsUpdate))
         {
-            var skyFire = skyFireTextures[i];
-            var texture = skyFire.Texture;
-            if (!skyFire.RenderUpdate || texture.Image == null || texture.Index != textureIndex)
-                continue;
-
-            skyFire.RenderUpdate = false;
-
-            m_textureManager.ReUpload(skyTexture, texture.Image, texture.Image.m_pixels);
+            isFire = true;
+            if (needsUpdate && texture.Image != null)
+                m_textureManager.ReUpload(skyTexture, texture.Image, texture.Image.m_pixels);
         }
     }
 
@@ -122,39 +137,63 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         GC.SuppressFinalize(this);
     }
 
-    private static float CalculateScale(int imageWidth)
+    public static Vec2F CalcOffset(Dimension dimension, SkyTransformTexture transform, SkyRenderMode mode, Vec2F scaleUV, SkyOptions options = SkyOptions.None)
     {
-        // If the texture is huge, we'll just assume the user wants a one-
-        // to-one scaling. See the bottom return comment on why this is
-        // negative.
-        if (imageWidth >= 1024)
-            return 1.0f;
+        var offset = transform.Offset + transform.CurrentScroll;
 
-        // We want to fit either 4 '256 width textures' onto the sphere
-        // or 1 '1024 width texture' onto the same area. While we're at
-        // it, we can just make it so that the texture scales around to
-        // it's nearest power of two.
-        //
-        // To do so, first find out X when we have width = 2^X. We need
-        // to force this to be a whole number so we round. This is likely
-        // not correct due to how a value at 0.5 won't do what we think,
-        // but we'll deal with this later if the need ever arises.
-        double roundedExponent = Math.Round(Math.Log(imageWidth, 2));
+        if (mode == SkyRenderMode.Vanilla || dimension.Height < 128)
+        {
+            offset.X += StandardWidth;
+            offset.Y += dimension.Height - StandardHeight;
 
-        // We want to fit it onto a sky that is 1024 in width. We can now
-        // do `1024 / width` where width is a power of two. We can find out
-        // the scaling factor with the following rearrangement:
-        //      f = 1024 / width
-        //        = 2^10 / 2^x       [because x is a whole number now]
-        //        = 2^(10 - x)
+            // Calculate the offset so that the midtexel is in the center of the sphere projection
+            if (transform.MidTexel.HasValue)
+                offset.Y += transform.MidTexel.Value + 28;
+
+            // TODO something for options & SkyOptions.SkyTransfer ?
+        }
+        else
+        {
+            var adjustY = dimension.Height - StandardHeight;
+            offset.Y += adjustY / 2;
+            offset.X += GetTextureAdjustmentX(dimension.Width, dimension.Height);
+        }
+
+        if (transform.Scale.Y != 1)
+            offset.Y += (StandardHeight * transform.Scale.Y - StandardHeight) * StandardAspectRatio;
+
+        // Offset needs to be in texture coordinates
+        offset.X /= dimension.Width;
+        offset.Y /= dimension.Height;
+        return offset;
+    }
+
+    private static float GetTextureAdjustmentX(int textureWidth, int textureHeight)
+    {
+        // Adjust texture position in the sphere with dynamic as it moves with the height because of the aspect ratio change.
+        float aspectRatio = (float)textureWidth / textureHeight;
+        float offsetX = StandardWidth - (StandardHeight * aspectRatio);
+        if (aspectRatio >= 2)
+            offsetX /= (aspectRatio / StandardAspectRatio);
+        return -offsetX;
+    }
+
+    public static Vec2F CalcScale(Dimension dimension, SkyTransformTexture skyTransform)
+    {
+        double roundedExponent = Math.Round(Math.Log(dimension.Width, 2));
         float scalingFactor = (float)Math.Pow(2, 10 - roundedExponent);
+        float u = 1 / scalingFactor;
+        float v = (dimension.Height / StandardHeight) * StaticSkySize;
+        return (u, v) * skyTransform.Scale;
+    }
 
-        // We make the scale negative so that the U coordinate is reversed.
-        // The sphere is made in a counter-clockwise direction but drawing
-        // the texture in other ports appears visually to be clockwise. By
-        // setting the U scaling to be negative, the shader will reverse
-        // the direction of the texturing (which is what we want).
-        return 1 / scalingFactor;
+    public static float CalcSkyHeight(float textureHeight, SkyRenderMode mode)
+    {
+        if (mode == SkyRenderMode.Vanilla || textureHeight < 128)
+            return StaticSkySize;
+
+        float pad = StandardHeight / textureHeight * StaticSkySize;
+        return (1 - (pad * 2)) / 2;
     }
 
     private static Color CalculateAverageRowColor(int startY, int exclusiveEndY, Image skyImage)
@@ -196,26 +235,25 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
             {
                 int animatedTextureIndex = components[j].TextureIndex;
                 if (GenerateSkyTexture(animatedTextureIndex, out var skyTexture))
-                    m_skyTextures.Add(skyTexture.Value);
+                    m_skyTextures.Add(skyTexture);
             }
         }
     }
 
-    private bool GenerateSkyTexture(int textureIndex, [NotNullWhen(true)] out SkyTexture? texture)
+    private bool GenerateSkyTexture(int textureIndex, out SkyTexture texture)
     {
         Image? skyImage = m_archiveCollection.TextureManager.GetNonAnimatedTexture(textureIndex).Image;
         if (skyImage == null)
         {
-            texture = null;
+            texture = default;
             return false;
         }
 
-        float scaleU = CalculateScale(skyImage.Dimension.Width);
         GetAverageColors(skyImage, out var topColor, out var bottomColor);
-        var colormap = m_archiveCollection.Colormap;
-        var glTexture = CreateTexture(skyImage, $"[SKY][{textureIndex}] {m_archiveCollection.TextureManager.SkyTextureName}");
-        texture = new(glTexture, textureIndex, scaleU, topColor, bottomColor, 
-            colormap.GetNearestColorIndex(FromRgba(topColor)), colormap.GetNearestColorIndex(FromRgba(bottomColor)));
+        var paletteColorLookup = m_archiveCollection.PaletteColorLookup;
+        var glTexture = CreateTexture(skyImage, $"[SKY][{textureIndex}]");
+        texture = new(glTexture, textureIndex, topColor, bottomColor,
+            paletteColorLookup.GetIndex(FromRgba(topColor)), paletteColorLookup.GetIndex(FromRgba(bottomColor)), false);
         return true;
     }
 
@@ -224,7 +262,7 @@ public class SkySphereTexture(ArchiveCollection archiveCollection, LegacyGLTextu
         return new Color((byte)(rgba.W * 255), (byte)(rgba.X * 255), (byte)(rgba.Y * 255), (byte)(rgba.Z * 255));
     }
 
-    private void GetAverageColors(Image skyImage, out Vec4F topColor, out Vec4F bottomColor)
+    private static void GetAverageColors(Image skyImage, out Vec4F topColor, out Vec4F bottomColor)
     {
         // Most (all?) skies are tall enough that we don't have to worry
         // about this, but if we run into a sky that is small then we

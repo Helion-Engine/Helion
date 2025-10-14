@@ -34,17 +34,9 @@ public partial class DehackedDefinition
         "RocketBox"
     ];
 
-    public readonly string[] WeaponNames = 
-    [
-        "Pistol",
-        "Shotgun",
-        "PlasmaRifle",
-        "RocketLauncher"
-    ];
-
     public readonly string[][] AmmoToWeaponNames =
     [
-        ["Pistol"],
+        ["Chaingun", "Pistol"],
         ["Shotgun", "SuperShotgun"],
         ["PlasmaRifle", "BFG9000"],
         ["RocketLauncher"]
@@ -1281,11 +1273,11 @@ public partial class DehackedDefinition
         { ThingState.HEAD_RAISE5,   new("Cacodemon::raise",             4) },
         { ThingState.HEAD_RAISE6,   new("Cacodemon::raise",             5) },
 
-        { ThingState.BRBALL1,       new("CacodemonBall::spawn",         0) },
-        { ThingState.BRBALL2,       new("CacodemonBall::spawn",         1) },
-        { ThingState.BRBALLX1,      new("CacodemonBall::death",         0) },
-        { ThingState.BRBALLX2,      new("CacodemonBall::death",         1) },
-        { ThingState.BRBALLX3,      new("CacodemonBall::death",         2) },
+        { ThingState.BRBALL1,       new("BaronBall::spawn",         0) },
+        { ThingState.BRBALL2,       new("BaronBall::spawn",         1) },
+        { ThingState.BRBALLX1,      new("BaronBall::death",         0) },
+        { ThingState.BRBALLX2,      new("BaronBall::death",         1) },
+        { ThingState.BRBALLX3,      new("BaronBall::death",         2) },
 
         { ThingState.BOSS_STND,     new("BaronOfHell::spawn",           0) },
         { ThingState.BOSS_STND2,    new("BaronOfHell::spawn",           1) },
@@ -2143,7 +2135,7 @@ public partial class DehackedDefinition
         { ThingState.FATT_RUN10, "A_Chase" },
         { ThingState.FATT_RUN11, "A_Chase" },
         { ThingState.FATT_RUN12, "A_Chase" },
-        { ThingState.FATT_ATK1, "A_FatAttack1" },
+        { ThingState.FATT_ATK1, "A_FatRaise" },
         { ThingState.FATT_ATK2, "A_FatAttack1" },
         { ThingState.FATT_ATK3, "A_FaceTarget" },
         { ThingState.FATT_ATK4, "A_FaceTarget" },
@@ -4891,6 +4883,7 @@ public partial class DehackedDefinition
     private static readonly string Plural = "Plural";
     private static readonly string Name1 = "Name1";
     private static readonly string RetroBits = "Retro Bits";
+    private static readonly string BloodColor = "Blood color";
 
     private static readonly string Duration = "Duration";
     private static readonly string SpriteNum = "Sprite number";

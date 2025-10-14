@@ -1,16 +1,21 @@
-﻿using Helion.Render.Common.Renderers;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using Helion.Render.Common.Renderers;
+using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using Helion.Window;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace Helion.Layer.Options.Dialogs;
 
-internal class FileListDialog : ListDialog
+/// <summary>
+/// File picker that returns relative paths when in the config directory, or absolute if not.
+/// </summary>
+internal sealed class FileListDialog : ListDialog
 {
     private const int BlinkIntervalMilliseconds = 500;
     private readonly HashSet<string> m_supportedFileExtensions;
@@ -19,14 +24,14 @@ internal class FileListDialog : ListDialog
     private string m_path;
     private string? m_header;
     private string? m_headerWithUnderscore;
-    private List<string> m_valuesListRaw = new List<string>();
+    private readonly List<string> m_valuesListRaw = [];
     private bool m_listsNeedUpdate = true;
+    private readonly PathsManager m_pathsManager;
 
-    public FileInfo? SelectedFile => new FileInfo(Path.Combine(m_path, m_file));
-
-    public FileListDialog(ConfigWindow config, IConfigValue configValue, OptionMenuAttribute attr, string supportedFileExtensions)
+    public FileListDialog(ConfigWindow config, PathsManager pathsManager, IConfigValue configValue, OptionMenuAttribute attr, string supportedFileExtensions)
         : base(config, configValue, attr)
     {
+        m_pathsManager = pathsManager;
         m_supportedFileExtensions = new HashSet<string>(
             supportedFileExtensions.Split(",", StringSplitOptions.RemoveEmptyEntries),
             StringComparer.OrdinalIgnoreCase);
@@ -34,8 +39,17 @@ internal class FileListDialog : ListDialog
         try
         {
             string path = ConfigValue.ObjectValue.ToString() ?? string.Empty;
-            m_path = Path.GetDirectoryName(path) ?? string.Empty;
-            m_file = Path.GetFileName(path) ?? string.Empty;
+            string fullPath = GetFullPath(path);
+            if (Path.Exists(fullPath))
+            {
+                m_path = Path.GetDirectoryName(path) ?? string.Empty;
+                m_file = Path.GetFileName(path) ?? string.Empty;
+            }
+            else
+            {
+                m_path = string.Empty;
+                m_file = string.Empty;
+            }
         }
         catch
         {
@@ -44,11 +58,23 @@ internal class FileListDialog : ListDialog
         }
     }
 
+    private string GetFullPath(string path) => Path.GetFullPath(Path.Combine(m_pathsManager.UserDataFolder, path));
+
+    public string? GetSelectedFilePath()
+    {
+        string path = Path.Combine(m_path, m_file);
+        string fullPath = GetFullPath(path);
+        if (!Path.Exists(fullPath))
+            return null;
+        System.Diagnostics.Debug.WriteLine($"got {fullPath} ({m_path} + {m_file}) -> {path}");
+        return path;
+    }
+
     public override void HandleInput(IConsumableInput input)
     {
         // Pressing enter will go into directory, IFF the currently selected item is a directory.
         // Else be careful to fall through because OK is also Enter.
-        if (Directory.Exists(Path.Combine(m_path, m_file)) && input.ConsumeKeyPressed(Window.Input.Key.Enter))
+        if (Directory.Exists(GetFullPath(Path.Combine(m_path, m_file))) && input.ConsumeKeyPressed(Window.Input.Key.Enter))
         {
             ChangeDirectory();
         }
@@ -56,7 +82,7 @@ internal class FileListDialog : ListDialog
         // Backspace and typed characters will change the current path directly
         if (input.ConsumePressOrContinuousHold(Window.Input.Key.Backspace))
         {
-            m_path = m_path.Length > 0 ? m_path.Remove(m_path.Length - 1) : m_path;
+            m_path = m_path.Length > 0 ? m_path[..^1] : m_path;
             m_listsNeedUpdate = true;
         }
 
@@ -72,7 +98,9 @@ internal class FileListDialog : ListDialog
 
     private void ChangeDirectory()
     {
-        m_path = Path.GetRelativePath(AppContext.BaseDirectory, Path.Combine(m_path, m_file));
+        m_path = GetFullPath(Path.Combine(m_path, m_file));
+        if (m_path.StartsWith(m_pathsManager.UserDataFolder, StringComparison.Ordinal))
+            m_path = Path.GetRelativePath(m_pathsManager.UserDataFolder, m_path);
         m_file = string.Empty;
         m_listsNeedUpdate = true;
     }
@@ -90,9 +118,9 @@ internal class FileListDialog : ListDialog
             valuesList.Clear();
             didChange = true;
 
-            DirectoryInfo directory = new DirectoryInfo(m_path.Length > 0 ? m_path : AppContext.BaseDirectory);
+            DirectoryInfo directory = new(GetFullPath(m_path));
 
-            if (directory?.Exists == true)
+            if (directory.Exists)
             {
                 DirectoryInfo? parent = directory.Parent;
                 if (parent != null)
@@ -141,7 +169,7 @@ internal class FileListDialog : ListDialog
         try
         {
             m_file = m_valuesListRaw[selectedRowId];
-            if (mouseClick && Directory.Exists(Path.Combine(m_path, m_file)))
+            if (mouseClick && Directory.Exists(GetFullPath(Path.Combine(m_path, m_file))))
             {
                 // If the user clicked on a directory name using the mouse, assume that they want to open that directory.
                 ChangeDirectory();

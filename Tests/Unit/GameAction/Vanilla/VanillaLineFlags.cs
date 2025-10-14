@@ -4,6 +4,7 @@ using Helion.Resources.IWad;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry.Lines;
 using Helion.World.Impl.SinglePlayer;
+using Helion.World.Physics.Blockmap;
 using System.Linq;
 using System.Reflection;
 using Xunit;
@@ -83,8 +84,8 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityToLine(World, Player, 8, Player.Radius);
             var bi = GameActions.FireHitscanTest(World, Player);
             bi.Should().NotBeNull();
-            bi!.Value.Line.Should().NotBeNull();
-            bi!.Value.Line!.Id.Should().Be(2);
+            bi!.Value.GetIndex(out var index).Should().Be(IntersectType.Line);
+            World.Blockmap.BlockLines[index].LineId.Should().Be(2);
         }
 
         [Fact(DisplayName = "Two-sided line block monster")]
@@ -104,8 +105,8 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityToLine(World, Player, 9, Player.Radius);
             var bi = GameActions.FireHitscanTest(World, Player);
             bi.Should().NotBeNull();
-            bi!.Value.Line.Should().NotBeNull();
-            bi!.Value.Line!.Id.Should().Be(6);
+            bi!.Value.GetIndex(out var index).Should().Be(IntersectType.Line);
+            World.Blockmap.BlockLines[index].LineId.Should().Be(6);
         }
     }
 }

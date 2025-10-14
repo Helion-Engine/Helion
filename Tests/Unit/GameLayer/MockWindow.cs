@@ -10,6 +10,7 @@ public class MockWindow : IWindow
 {
     public Vec2I MousePosition { get; private set; }
     private readonly IInputManager m_inputManager;
+    private bool m_grabCursor;
 
     public MockWindow(IInputManager inputManager)
     {
@@ -20,10 +21,10 @@ public class MockWindow : IWindow
 
     public Renderer Renderer => throw new NotImplementedException();
 
-    public Dimension Dimension => new(0, 0);
+    public Dimension ClientDimension => new(0, 0);
 
-    public Dimension FramebufferDimension => new(0, 0);
-    
+    public bool GrabCursor => m_grabCursor;
+
     public void SetMousePosition(Vec2I pos)
     {
         MousePosition = pos;
@@ -32,5 +33,10 @@ public class MockWindow : IWindow
     public void Dispose()
     {
         // Does nothing.
+    }
+
+    public void SetGrabCursor(bool set)
+    {
+        m_grabCursor = set;
     }
 }

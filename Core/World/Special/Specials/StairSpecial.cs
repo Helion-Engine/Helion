@@ -6,7 +6,7 @@ using Helion.Util;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.SectorMovement;
-using SixLabors.ImageSharp.Processing;
+using Helion.World.Static;
 
 namespace Helion.World.Special.Specials;
 
@@ -78,7 +78,7 @@ public class StairSpecial : SectorMoveSpecial
         do
         {
             keepBuilding = false;
-            for (int i = 0; i < sector.Lines.Count; i++)
+            for (int i = 0; i < sector.Lines.Length; i++)
             {
                 Line line = sector.Lines[i];
                 if (line.Back == null)
@@ -110,9 +110,9 @@ public class StairSpecial : SectorMoveSpecial
         } while (keepBuilding);
     }
 
-    public void Set(IWorld world, Sector sector, StairSpecialModel model)
+    public void Set(IWorld world, Sector sector, in StairSpecialModel model)
     {
-        base.Set(world, sector, model.MoveSpecial);
+        Set(world, sector, model.MoveSpecial);
         m_stairDelay = model.Delay;
         m_startZ = model.StartZ;
         m_destroyCount = model.Destroy;
@@ -139,12 +139,13 @@ public class StairSpecial : SectorMoveSpecial
 
             CreateMovementSound(stairSector);
             stairSector.ActiveFloorMove = this;
+            StaticDataApplier.SetSectorDynamic((WorldBase)world, stairSector, SectorPlanes.Floor, SectorDynamic.Movement);
         }
     }
 
-    public override ISpecialModel ToSpecialModel()
+    public StairSpecialModel ToStairSpecialModel()
     {
-        StairSpecialModel model = new StairSpecialModel()
+        var model = new StairSpecialModel()
         {
             Delay = m_stairDelay,
             StartZ = m_startZ,
@@ -152,7 +153,7 @@ public class StairSpecial : SectorMoveSpecial
             DelayTics = m_stairDelayTics,
             ResetTics = m_resetTics,
             Crush = m_crush,
-            MoveSpecial = (SectorMoveSpecialModel)base.ToSpecialModel()
+            MoveSpecial = ToSpecialModel()
         };
 
         List<int> sectors = new(m_stairs.Count);

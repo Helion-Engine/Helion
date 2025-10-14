@@ -1,4 +1,4 @@
-﻿using GlmSharp;
+using GlmSharp;
 using Helion.Geometry.Vectors;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shader;
@@ -26,8 +26,9 @@ public class FloodFillProgram : RenderProgram
     private readonly int m_colorMapIndexLocation;
     private readonly int m_lightModeLocation;
     private readonly int m_gammaCorrectionLocation;
+    private readonly int m_useBrightmapsLocation;
 
-    public FloodFillProgram() : base("Flood fill plane")
+    public FloodFillProgram(string name) : base($"FloodFill - {name}")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_sectorLightTextureLocation = Uniforms.GetLocation("sectorLightTexture");
@@ -46,26 +47,28 @@ public class FloodFillProgram : RenderProgram
         m_colorMapIndexLocation = Uniforms.GetLocation("colormapIndex");
         m_lightModeLocation = Uniforms.GetLocation("lightMode");
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
+        m_useBrightmapsLocation = Uniforms.GetLocation("useBrightmaps");
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
-    public void SectorLightTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorLightTextureLocation);
-    public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
-    public void SectorColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_sectorColormapTextureLocation);
+    public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
+    public void SectorLightTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorLightTextureLocation);
+    public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
+    public void SectorColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_sectorColormapTextureLocation);
 
-    public void Camera(Vec3F camera) => Uniforms.Set(camera, m_cameraLocation);
-    public void Mvp(mat4 mvp) => Uniforms.Set(mvp, m_mvpLocation);
-    public void TimeFrac(float frac) => Uniforms.Set(frac, m_timeFracLocation);
-    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
-    public void MvpNoPitch(mat4 mvpNoPitch) => Uniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
-    public void LightLevelMix(float lightLevelMix) => Uniforms.Set(lightLevelMix, m_lightLevelMixLocation);
-    public void ExtraLight(int extraLight) => Uniforms.Set(extraLight, m_extraLightLocation);
-    public void DistanceOffset(float distance) => Uniforms.Set(distance, m_distanceOffsetLocation);
-    public void ColorMix(Vec3F color) => Uniforms.Set(color, m_colorMixLocation);
-    public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
-    public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
-    public void LightMode(RenderLightMode mode) => Uniforms.Set((int)mode, m_lightModeLocation);
-    public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
+    public void Camera(Vec3F camera) => ProgramUniforms.Set(camera, m_cameraLocation);
+    public void Mvp(mat4 mvp) => ProgramUniforms.Set(mvp, m_mvpLocation);
+    public void TimeFrac(float frac) => ProgramUniforms.Set(frac, m_timeFracLocation);
+    public void HasInvulnerability(bool invul) => ProgramUniforms.Set(invul, m_hasInvulnerabilityLocation);
+    public void MvpNoPitch(mat4 mvpNoPitch) => ProgramUniforms.Set(mvpNoPitch, m_mvpNoPitchLocation);
+    public void LightLevelMix(float lightLevelMix) => ProgramUniforms.Set(lightLevelMix, m_lightLevelMixLocation);
+    public void ExtraLight(int extraLight) => ProgramUniforms.Set(extraLight, m_extraLightLocation);
+    public void DistanceOffset(float distance) => ProgramUniforms.Set(distance, m_distanceOffsetLocation);
+    public void ColorMix(Vec3F color) => ProgramUniforms.Set(color, m_colorMixLocation);
+    public void PaletteIndex(int index) => ProgramUniforms.Set(index, m_paletteIndexLocation);
+    public void ColorMapIndex(int index) => ProgramUniforms.Set(index, m_colorMapIndexLocation);
+    public void LightMode(RenderLightMode mode) => ProgramUniforms.Set((int)mode, m_lightModeLocation);
+    public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
+    public void UseBrightmaps(bool value) => ProgramUniforms.Set(value, m_useBrightmapsLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -76,12 +79,19 @@ public class FloodFillProgram : RenderProgram
         layout(location = 3) in float maxViewZ;
         layout(location = 4) in float prevZ;
         layout(location = 5) in float prevPlaneZ;
-        layout(location = 6) in float lightLevelBufferIndex;
+        layout(location = 6) in float options;
         layout(location = 7) in float colorMapIndex;
+        layout(location = 8) in float mapId;
 
         flat out float planeZFrag;
         out vec3 vertexPosFrag;
         flat out float distanceOffsetFrag;
+        flat out float colorMapIndexFrag;
+        flat out float vertexLightLevelFrag;
+        flat out float mapIdFrag;
+        flat out float upperFrag;
+        flat out float lowerFrag;
+        out float depthFrag;
 
         ${SectorColorMapVertexFragVariables}
         ${LightLevelVertexVariables}
@@ -97,6 +107,13 @@ public class FloodFillProgram : RenderProgram
             vec3 prevPos = vec3(pos.x, pos.y, prevZ);
             planeZFrag = mix(prevPlaneZ, planeZ, timeFrac);
             vertexPosFrag = mix(prevPos, pos, timeFrac);
+            mapIdFrag = mapId;
+
+            ${ColorMapAndLightLevelSet}
+
+            float alphaFrag;
+            float addAlphaFrag;
+            ${VertexOptionsSet}
 
             ${VertexLightBuffer}
             ${SectorColorMapVertexFunction}
@@ -104,7 +121,9 @@ public class FloodFillProgram : RenderProgram
             if (camera.z <= minViewZ || camera.z >= maxViewZ)
                 gl_Position = vec4(0, 0, 0, 1);
             else
-                gl_Position = mvp * vec4(vertexPosFrag, 1.0); 
+                gl_Position = mvp * vec4(vertexPosFrag, 1.0);
+            
+            depthFrag = gl_Position.${Depth};
         }
     "
     .Replace("${LightLevelVertexVariables}", LightLevel.VertexVariables(LightLevelOptions.NoDist))
@@ -112,49 +131,63 @@ public class FloodFillProgram : RenderProgram
     .Replace("${VertexLightBuffer}", LightLevel.VertexLightBuffer(VertexLightBufferOptions.Default))
     .Replace("${SectorColorMapVertexFragVariables}", SectorColorMap.VertexFragVariables)
     .Replace("${SectorColorMapVertexUniformVariables}", SectorColorMap.VertexUniformVariables)
-    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction);
+    .Replace("${SectorColorMapVertexFunction}", SectorColorMap.VertexFunction)
+    .Replace("${VertexOptionsSet}", VertexFunction.VertexOptionsSet)
+    .Replace("${ColorMapAndLightLevelSet}", VertexFunction.ColorMapAndLightLevelSet)
+    .Replace("${Depth}", ShaderVars.Depth);
 
-    protected override string FragmentShader() => @"
-        #version 330
+    protected override string FragmentShader()
+    {
+        if (this is FloodFillWallClipProgram)
+            return PlaneClip.WriteWallFragFunction(WallClipFragOptions.None);
 
-        flat in float planeZFrag;
-        in vec3 vertexPosFrag;
+        return @"
+            #version 330
 
-        out vec4 fragColor;
+            flat in float planeZFrag;
+            flat in float mapIdFrag;
+            flat in float upperFrag;
+            flat in float lowerFrag;
+            in vec3 vertexPosFrag;
 
-        uniform sampler2D boundTexture;
-        uniform vec3 camera;
-        uniform mat4 mvpNoPitch;
-        uniform int hasInvulnerability;
-        uniform vec3 colorMix;
-        uniform int paletteIndex;
-        uniform int colormapIndex;
+            out vec4 fragColor;
 
-        ${LightLevelFragVariables}
-        ${SectorColorMapFragVariables}
+            uniform sampler2D boundTexture;
+            uniform sampler2D brightmapTexture;
+            uniform vec3 camera;
+            uniform mat4 mvpNoPitch;
+            uniform int hasInvulnerability;
+            uniform vec3 colorMix;
+            uniform int paletteIndex;
+            uniform int colormapIndex;
+            uniform int useBrightmaps;
 
-        void main()
-        {
-            vec3 planeNormal = vec3(0, 0, 1);
-            vec3 pointOnPlane = vec3(0, 0, planeZFrag);
-            vec3 lookDir = normalize(vertexPosFrag - camera);
-            float planeDot = dot(pointOnPlane - camera, planeNormal) / dot(lookDir, planeNormal);
-            vec3 planePos = camera + (lookDir * planeDot);
-            vec2 texDim = textureSize(boundTexture, 0);
-            vec2 uvFrag = vec2(planePos.x / texDim.x, planePos.y / texDim.y);
+            ${LightLevelFragVariables}
+            ${SectorColorMapFragVariables}
 
-            uvFrag.y = -uvFrag.y; // Vanilla textures are drawn top-down.
+            void main()
+            {
+                vec3 planeNormal = vec3(0, 0, 1);
+                vec3 pointOnPlane = vec3(0, 0, planeZFrag);
+                vec3 lookDir = normalize(vertexPosFrag - camera);
+                float planeDot = dot(pointOnPlane - camera, planeNormal) / dot(lookDir, planeNormal);
+                vec3 planePos = camera + (lookDir * planeDot);
+                vec2 texDim = textureSize(boundTexture, 0);
+                vec2 uvFrag = vec2(planePos.x / texDim.x, planePos.y / texDim.y);
 
-            float dist = (mvpNoPitch * vec4(planePos, 1.0)).${Depth};
-            ${LightLevelFragFunction}
-            ${SectorColorMapFragFunction}
-            ${FragColorFunction}
-        }
-    "
-    .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
-    .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.NoDist))
-    .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Colormap))
-    .Replace("${Depth}", ShaderVars.Depth)
-    .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
-    .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction);
+                uvFrag.y = -uvFrag.y; // Vanilla textures are drawn top-down.
+
+                float dist = (mvpNoPitch * vec4(planePos, 1.0)).${Depth};
+                ${LightLevelFragFunction}
+                ${SectorColorMapFragFunction}
+                ${FragColorFunction}
+            }
+        "
+        .Replace("${LightLevelFragFunction}", LightLevel.FragFunction)
+        .Replace("${LightLevelFragVariables}", LightLevel.FragVariables(LightLevelOptions.NoDist))
+        .Replace("${FragColorFunction}", FragFunction.FragColorFunction(FragColorFunctionOptions.Colormap | FragColorFunctionOptions.Brightmaps))
+        .Replace("${Depth}", ShaderVars.Depth)
+        .Replace("${SectorColorMapFragVariables}", SectorColorMap.FragVariables)
+        .Replace("${SectorColorMapFragFunction}", SectorColorMap.FragFunction);
+    }
 }

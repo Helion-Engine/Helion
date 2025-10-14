@@ -3,7 +3,6 @@ using Helion.Geometry.Planes;
 using Helion.Geometry.Quads;
 using Helion.Geometry.Rays;
 using Helion.Geometry.Segments;
-using Helion.Geometry.Spheres;
 using Helion.Geometry.Triangles;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
@@ -144,26 +143,6 @@ public class GLWorldRenderContext : IWorldRenderContext
     }
 
     public void FillBoxes(Box3D[] boxes, Color color)
-    {
-        // Not implemented in the legacy renderer.
-    }
-
-    public void DrawSphere(Sphere3D sphere, Color color)
-    {
-        // Not implemented in the legacy renderer.
-    }
-
-    public void DrawSpheres(Sphere3D[] spheres, Color color)
-    {
-        // Not implemented in the legacy renderer.
-    }
-
-    public void FillSphere(Sphere3D sphere, Color color)
-    {
-        // Not implemented in the legacy renderer.
-    }
-
-    public void FillSpheres(Sphere3D[] spheres, Color color)
     {
         // Not implemented in the legacy renderer.
     }

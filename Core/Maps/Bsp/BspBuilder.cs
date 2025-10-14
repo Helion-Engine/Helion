@@ -70,6 +70,12 @@ public class BspBuilder : IBspBuilder
         CreateInitialWorkItem(segments);
     }
 
+    public int GetNodeCount() => 0;
+
+    public int GetSubsectorCount() => 0;
+
+    public int GetSegmentCount() => SegmentAllocator.Count;
+
     /// <summary>
     /// Moves until either the current work item is the branch provided, or
     /// the building is done.
@@ -77,7 +83,7 @@ public class BspBuilder : IBspBuilder
     /// <param name="branch">The branch path to go to.</param>
     public void ExecuteUntilBranch(string branch)
     {
-        string upperBranch = branch.ToUpper();
+        string upperBranch = branch.ToUpperInvariant();
         while (!Done)
         {
             WorkItem? item = CurrentWorkItem;

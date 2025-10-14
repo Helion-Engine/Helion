@@ -29,7 +29,7 @@ public class IEnumerableExtensions
         strings.WhereNotNull().Should().Equal("", "hi");
     }
 
-    private class SomeEnumerable : IEnumerable<int>
+    private sealed class SomeEnumerable : IEnumerable<int>
     {
         private readonly int? m_value;
 

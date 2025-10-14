@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using Helion.Audio;
 using Helion.Geometry;
@@ -9,7 +10,6 @@ using Helion.Maps;
 using Helion.Models;
 using Helion.Render.Common.Enums;
 using Helion.Render.Common.Renderers;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Texture.Fonts;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions;
@@ -21,7 +21,6 @@ using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
 using Helion.Util.Extensions;
-using Helion.Util.Loggers;
 using Helion.Util.Profiling;
 using Helion.Util.RandomGenerators;
 using Helion.Util.Timing;
@@ -41,11 +40,10 @@ public partial class WorldLayer : IGameLayerParent
 {
     private const int TickOverflowThreshold = (int)(10 * Constants.TicksPerSecond);
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private static string LastMapName = string.Empty;
     private static MapGeometry? LastMapGeometry;
     private static IslandGeometry LastIslandGeometry = new();
 
-    record class MapCompatibility(string Name, string MapName, string MD5, IList<(FieldInfo, bool)> Values);
+    sealed record class MapCompatibility(string Name, string MapName, string MD5, IList<(FieldInfo, bool)> Values);
 
     private static readonly MapCompatibility[] MapCompat = new MapCompatibility[]
     {
@@ -56,6 +54,7 @@ public partial class WorldLayer : IGameLayerParent
     public IntermissionLayer? Intermission { get; private set; }
     public MapInfoDef CurrentMap { get; }
     public SinglePlayerWorld World { get; }
+    public bool SameAsPreviousMap { get; private set; }
 
     public bool DrawAutomap { get; private set; }
 
@@ -109,6 +108,14 @@ public partial class WorldLayer : IGameLayerParent
         font ??= new Font("Empty", [], new((0, 0), Graphics.ImageType.Argb));
         DefaultFont = font;
 
+        World.ArchiveCollection.GetFont(SmallHudFont);
+        World.ArchiveCollection.GetFont(Constants.Fonts.SmallGrayFixedWidthNumbers);
+
+        StatType[] stats = [StatType.Kills, StatType.Items, StatType.Secrets, StatType.Deaths];
+        m_renderStats = new RenderStat[stats.Length];
+        for (int i = 0; i < stats.Length; i++)
+            m_renderStats[i] = new(stats[i], InitRenderableString(), InitRenderableString(TextAlign.Right));
+
         m_renderHealthString = InitRenderableString();
         m_renderArmorString = InitRenderableString();
         m_renderAmmoString = InitRenderableString();
@@ -116,19 +123,16 @@ public partial class WorldLayer : IGameLayerParent
         m_renderFpsMinString = InitRenderableString(TextAlign.Right);
         m_renderFpsMaxString = InitRenderableString(TextAlign.Right);
         m_renderTimeString = InitRenderableString(TextAlign.Right);
-        m_renderKillString = InitRenderableString(TextAlign.Right);
-        m_renderItemString = InitRenderableString(TextAlign.Right);
-        m_renderSecretString = InitRenderableString(TextAlign.Right);
-        m_renderKillLabel = InitRenderableString(TextAlign.Right);
-        m_renderItemLabel = InitRenderableString(TextAlign.Right);
-        m_renderSecretLabel = InitRenderableString(TextAlign.Right);
 
-        StatValues = [m_killString, m_itemString, m_secretString];
-        RenderableStatLabels = [m_renderKillLabel, m_renderItemLabel, m_renderSecretLabel];
-        RenderableStatValues = [m_renderKillString, m_renderItemString, m_renderSecretString];
         m_largeHudFont = GetFontOrDefault(LargeHudFont);
 
         World.LevelExiting += World_LevelExiting;
+        World.WorldPaused += World_WorldPaused;
+    }
+
+    private void World_WorldPaused(object? sender, EventArgs e)
+    {
+        m_resetInterpolation = true;
     }
 
     private void World_LevelExiting(object? sender, EventArgs e)
@@ -156,12 +160,14 @@ public partial class WorldLayer : IGameLayerParent
     public static WorldLayer? Create(GameLayerManager parent, GlobalData globalData, IConfig config,
         HelionConsole console, IAudioSystem audioSystem, ArchiveCollection archiveCollection,
         FpsTracker fpsTracker, Profiler profiler, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map,
-        Player? existingPlayer, WorldModel? worldModel, IRandom? random)
+        Player? existingPlayer, WorldModel? worldModel, IRandom? random, bool sameAsPreviousMap)
     {
-        string displayName = mapInfoDef.GetMapNameWithPrefix(archiveCollection.Language);
+        var stopwatch = Stopwatch.StartNew();
 
-        bool sameAsPreviousMap = mapInfoDef.MapName.EqualsIgnoreCase(LastMapName); if (!sameAsPreviousMap)
-            HelionLog.Info(displayName);
+        ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
+
+        if (!sameAsPreviousMap && archiveCollection.Definitions.CompLevelDefinition.CompLevel == CompLevel.Undefined)
+            SetCompatibilityOptions(config, map, mapInfoDef, archiveCollection);
 
         SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, profiler,
             mapInfoDef, skillDef, map, existingPlayer, worldModel, random, sameAsPreviousMap: sameAsPreviousMap);
@@ -174,14 +180,15 @@ public partial class WorldLayer : IGameLayerParent
             world.SoundManager.SoundCreated += listener;
         }
 
-        if (!sameAsPreviousMap && archiveCollection.Definitions.CompLevelDefinition.CompLevel == CompLevel.Undefined)
-            SetCompatibilityOptions(config, map, mapInfoDef, archiveCollection);
-
         archiveCollection.TextureManager.InitSprites(world);
-        LastMapName = mapInfoDef.MapName;
-        ApplyConfiguration(config, archiveCollection, skillDef, worldModel);
-        config.ApplyQueuedChanges(ConfigSetFlags.OnNewWorld);
-        return new WorldLayer(parent, config, console, fpsTracker, world, mapInfoDef, profiler);
+
+        var worldLayer = new WorldLayer(parent, config, console, fpsTracker, world, mapInfoDef, profiler)
+        {
+            SameAsPreviousMap = sameAsPreviousMap
+        };
+
+        Log.Info($"Completed world load {stopwatch.Elapsed}");
+        return worldLayer;
     }
 
     private static void SetCompatibilityOptions(IConfig config, IMap map, MapInfoDef mapInfoDef, ArchiveCollection archiveCollection)
@@ -214,7 +221,7 @@ public partial class WorldLayer : IGameLayerParent
 
         foreach (var mapCompat in MapCompat)
         {
-            if (map.Name.EqualsIgnoreCase(mapCompat.MapName) && map.MD5.Equals(mapCompat.MD5))
+            if (map.Name.EqualsIgnoreCase(mapCompat.MapName) && map.MD5.Equals(mapCompat.MD5, StringComparison.Ordinal))
             {
                 ApplyCompatOptions(config, mapCompat.Values);
                 break;
@@ -235,7 +242,6 @@ public partial class WorldLayer : IGameLayerParent
     private static void ApplyConfiguration(IConfig config, ArchiveCollection archiveCollection, SkillDef skillDef, WorldModel? worldModel)
     {
         config.Game.Skill.Set(archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetSkillLevel(skillDef));
-        config.Game.SelectedSkillDefinition = skillDef;
 
         if (worldModel == null)
             return;
@@ -273,8 +279,14 @@ public partial class WorldLayer : IGameLayerParent
         try
         {
             bool reuse = !unitTest;
-            return new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, profiler, geometry,
+            var world = new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, profiler, geometry,
                 mapDef, skillDef, map, sameAsPreviousMap, existingPlayer, worldModel, random, reuse);
+
+            // Dump data that is no longer needed
+            if (!sameAsPreviousMap)
+                geometry.ClearBspTree();
+
+            return world;
         }
         catch (HelionException e)
         {
@@ -301,7 +313,7 @@ public partial class WorldLayer : IGameLayerParent
         return mapGeometry;
     }
 
-    private static IList<(FieldInfo, bool)> GetConfigCompatProperties(params (string, bool)[] items)
+    private static List<(FieldInfo, bool)> GetConfigCompatProperties(params (string, bool)[] items)
     {
         List<(FieldInfo, bool)> props = new();
         var type = typeof(ConfigCompat);
@@ -337,6 +349,7 @@ public partial class WorldLayer : IGameLayerParent
             return;
 
         World.LevelExiting -= World_LevelExiting;
+        World.WorldPaused -= World_WorldPaused;
         World.Dispose();
 
         Intermission?.Dispose();

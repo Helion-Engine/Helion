@@ -7,6 +7,7 @@ using Helion.Maps.Specials;
 using Helion.Resources.Definitions.Decorate.Properties;
 using Helion.Resources.Definitions.Decorate.Properties.Enums;
 using Helion.Util;
+using Helion.Util.Extensions;
 
 namespace Helion.Resources.Definitions.Decorate.Parser;
 
@@ -25,7 +26,7 @@ public partial class DecorateParser
 
     private Color ConvertStringToColor(string colorString)
     {
-        switch (colorString.ToUpper())
+        switch (colorString.ToUpperInvariant())
         {
         case "BLACK":
             return Color.Black;
@@ -94,48 +95,33 @@ public partial class DecorateParser
     private WeaponBob ConsumeBobStyleProperty()
     {
         string bobStyleText = ConsumeString();
-        switch (bobStyleText.ToUpper())
+        return bobStyleText.ToUpperInvariant() switch
         {
-        case "ALPHA":
-            return WeaponBob.Alpha;
-        case "INVERSEALPHA":
-            return WeaponBob.InverseAlpha;
-        case "INVERSENORMAL":
-            return WeaponBob.InverseNormal;
-        case "INVERSESMOOTH":
-            return WeaponBob.InverseSmooth;
-        case "NORMAL":
-            return WeaponBob.Normal;
-        case "SMOOTH":
-            return WeaponBob.Smooth;
-        default:
-            throw MakeException($"Unknown weapon bob type '{bobStyleText}' on actor '{m_currentDefinition.Name}'");
-        }
+            "ALPHA" => WeaponBob.Alpha,
+            "INVERSEALPHA" => WeaponBob.InverseAlpha,
+            "INVERSENORMAL" => WeaponBob.InverseNormal,
+            "INVERSESMOOTH" => WeaponBob.InverseSmooth,
+            "NORMAL" => WeaponBob.Normal,
+            "SMOOTH" => WeaponBob.Smooth,
+            _ => throw MakeException($"Unknown weapon bob type '{bobStyleText}' on actor '{m_currentDefinition.Name}'"),
+        };
     }
 
     private PowerupModeType ConsumePowerupMode()
     {
         // TODO: This supports combinations, but gives no example of how...
         string mode = ConsumeString();
-        switch (mode.ToUpper())
+        return mode.ToUpperInvariant() switch
         {
-        case "NONE":
-            return PowerupModeType.None;
-        case "CUMULATIVE":
-            return PowerupModeType.Cumulative;
-        case "FUZZY":
-            return PowerupModeType.Fuzzy;
-        case "OPAQUE":
-            return PowerupModeType.Opaque;
-        case "REFLECTIVE":
-            return PowerupModeType.Reflective;
-        case "STENCIL":
-            return PowerupModeType.Stencil;
-        case "TRANSLUCENT":
-            return PowerupModeType.Translucent;
-        default:
-            throw MakeException($"Unknown powerup mode type '{mode}' on actor '{m_currentDefinition.Name}'");
-        }
+            "NONE" => PowerupModeType.None,
+            "CUMULATIVE" => PowerupModeType.Cumulative,
+            "FUZZY" => PowerupModeType.Fuzzy,
+            "OPAQUE" => PowerupModeType.Opaque,
+            "REFLECTIVE" => PowerupModeType.Reflective,
+            "STENCIL" => PowerupModeType.Stencil,
+            "TRANSLUCENT" => PowerupModeType.Translucent,
+            _ => throw MakeException($"Unknown powerup mode type '{mode}' on actor '{m_currentDefinition.Name}'"),
+        };
     }
 
     private Range ConsumePlayerColorRange()
@@ -246,17 +232,13 @@ public partial class DecorateParser
     private DecorateHealRadius? ConsumePlayerHealRadiusType()
     {
         string mode = ConsumeString();
-        switch (mode.ToUpper())
+        return mode.ToUpperInvariant() switch
         {
-        case "ARMOR":
-            return DecorateHealRadius.Armor;
-        case "HEALTH":
-            return DecorateHealRadius.Health;
-        case "MANA":
-            return DecorateHealRadius.Mana;
-        default:
-            throw MakeException($"Unknown heal radius type '{mode}' on actor '{m_currentDefinition.Name}'");
-        }
+            "ARMOR" => (DecorateHealRadius?)DecorateHealRadius.Armor,
+            "HEALTH" => (DecorateHealRadius?)DecorateHealRadius.Health,
+            "MANA" => (DecorateHealRadius?)DecorateHealRadius.Mana,
+            _ => throw MakeException($"Unknown heal radius type '{mode}' on actor '{m_currentDefinition.Name}'"),
+        };
     }
 
     private void ConsumeAndHandlePlayerStartItem()
@@ -296,35 +278,22 @@ public partial class DecorateParser
     private DecorateSpecialActivationType? ConsumeDecorateSpecialActivationType()
     {
         string value = ConsumeString();
-        switch (value.ToUpper())
+        return value.ToUpperInvariant() switch
         {
-        case "THINGSPEC_DEFAULT":
-            return DecorateSpecialActivationType.Default;
-        case "THINGSPEC_THINGACTS":
-            return DecorateSpecialActivationType.ThingActs;
-        case "THINGSPEC_TRIGGERACTS":
-            return DecorateSpecialActivationType.TriggerActs;
-        case "THINGSPEC_THINGTARGETS":
-            return DecorateSpecialActivationType.ThingTargets;
-        case "THINGSPEC_TRIGGERTARGETS":
-            return DecorateSpecialActivationType.TriggerTargets;
-        case "THINGSPEC_MONSTERTRIGGER":
-            return DecorateSpecialActivationType.MonsterTrigger;
-        case "THINGSPEC_MISSILETRIGGER":
-            return DecorateSpecialActivationType.MissileTrigger;
-        case "THINGSPEC_CLEARSPECIAL":
-            return DecorateSpecialActivationType.ClearSpecial;
-        case "THINGSPEC_NODEATHSPECIAL":
-            return DecorateSpecialActivationType.NoDeathSpecial;
-        case "THINGSPEC_ACTIVATE":
-            return DecorateSpecialActivationType.Activate;
-        case "THINGSPEC_DEACTIVATE":
-            return DecorateSpecialActivationType.Deactivate;
-        case "THINGSPEC_SWITCH":
-            return DecorateSpecialActivationType.Switch;
-        default:
-            throw MakeException($"Unknown special activation type '{value}' on actor '{m_currentDefinition.Name}'");
-        }
+            "THINGSPEC_DEFAULT" => (DecorateSpecialActivationType?)DecorateSpecialActivationType.Default,
+            "THINGSPEC_THINGACTS" => (DecorateSpecialActivationType?)DecorateSpecialActivationType.ThingActs,
+            "THINGSPEC_TRIGGERACTS" => (DecorateSpecialActivationType?)DecorateSpecialActivationType.TriggerActs,
+            "THINGSPEC_THINGTARGETS" => (DecorateSpecialActivationType?)DecorateSpecialActivationType.ThingTargets,
+            "THINGSPEC_TRIGGERTARGETS" => (DecorateSpecialActivationType?)DecorateSpecialActivationType.TriggerTargets,
+            "THINGSPEC_MONSTERTRIGGER" => (DecorateSpecialActivationType?)DecorateSpecialActivationType.MonsterTrigger,
+            "THINGSPEC_MISSILETRIGGER" => (DecorateSpecialActivationType?)DecorateSpecialActivationType.MissileTrigger,
+            "THINGSPEC_CLEARSPECIAL" => (DecorateSpecialActivationType?)DecorateSpecialActivationType.ClearSpecial,
+            "THINGSPEC_NODEATHSPECIAL" => (DecorateSpecialActivationType?)DecorateSpecialActivationType.NoDeathSpecial,
+            "THINGSPEC_ACTIVATE" => (DecorateSpecialActivationType?)DecorateSpecialActivationType.Activate,
+            "THINGSPEC_DEACTIVATE" => (DecorateSpecialActivationType?)DecorateSpecialActivationType.Deactivate,
+            "THINGSPEC_SWITCH" => (DecorateSpecialActivationType?)DecorateSpecialActivationType.Switch,
+            _ => throw MakeException($"Unknown special activation type '{value}' on actor '{m_currentDefinition.Name}'"),
+        };
     }
 
     private DamageRangeProperty ConsumeDamageProperty()
@@ -387,65 +356,40 @@ public partial class DecorateParser
     private DecorateBounceType? ConsumeDecorateBounceType()
     {
         string bounce = ConsumeString();
-        switch (bounce.ToUpper())
+        return bounce.ToUpperInvariant() switch
         {
-        case "NONE":
-            return DecorateBounceType.None;
-        case "DOOM":
-            return DecorateBounceType.Doom;
-        case "HERETIC":
-            return DecorateBounceType.Heretic;
-        case "HEXEN":
-            return DecorateBounceType.Hexen;
-        case "CLASSIC":
-            return DecorateBounceType.Classic;
-        case "GRENADE":
-            return DecorateBounceType.Grenade;
-        case "DOOMCOMPAT":
-            return DecorateBounceType.DoomCompat;
-        case "HERETICCOMPAT":
-            return DecorateBounceType.HereticCompat;
-        case "HEXENCOMPAT":
-            return DecorateBounceType.HexenCompat;
-        default:
-            throw MakeException($"Unknown heal radius type '{bounce}' on actor '{m_currentDefinition.Name}'");
-        }
+            "NONE" => (DecorateBounceType?)DecorateBounceType.None,
+            "DOOM" => (DecorateBounceType?)DecorateBounceType.Doom,
+            "HERETIC" => (DecorateBounceType?)DecorateBounceType.Heretic,
+            "HEXEN" => (DecorateBounceType?)DecorateBounceType.Hexen,
+            "CLASSIC" => (DecorateBounceType?)DecorateBounceType.Classic,
+            "GRENADE" => (DecorateBounceType?)DecorateBounceType.Grenade,
+            "DOOMCOMPAT" => (DecorateBounceType?)DecorateBounceType.DoomCompat,
+            "HERETICCOMPAT" => (DecorateBounceType?)DecorateBounceType.HereticCompat,
+            "HEXENCOMPAT" => (DecorateBounceType?)DecorateBounceType.HexenCompat,
+            _ => throw MakeException($"Unknown heal radius type '{bounce}' on actor '{m_currentDefinition.Name}'"),
+        };
     }
 
-    private RenderStyle? ConsumeRenderStyle()
+    private RenderStyle ConsumeRenderStyle()
     {
-        string style = ConsumeString();
-        switch (style.ToUpper())
-        {
-        case "NONE":
+        var style = ConsumeString();
+        if (style.EqualsIgnoreCase("NONE"))
             return RenderStyle.None;
-        case "NORMAL":
+        else if (style.EqualsIgnoreCase("NORMAL"))
             return RenderStyle.Normal;
-        case "FUZZY":
+        else if (style.EqualsIgnoreCase("OPTFUZZY"))
             return RenderStyle.Fuzzy;
-        case "SOULTRANS":
-            return RenderStyle.SoulTrans;
-        case "OPTFUZZY":
-            return RenderStyle.OptFuzzy;
-        case "STENCIL":
-            return RenderStyle.Stencil;
-        case "ADDSTENCIL":
-            return RenderStyle.AddStencil;
-        case "TRANSLUCENT":
+        else if (style.EqualsIgnoreCase("TRANSLUCENT"))
             return RenderStyle.Translucent;
-        case "ADD":
+        else if (style.EqualsIgnoreCase("ADD"))
             return RenderStyle.Add;
-        case "SUBTRACT":
-            return RenderStyle.Subtract;
-        case "SHADED":
-            return RenderStyle.Shaded;
-        case "ADDSHADED":
-            return RenderStyle.AddShaded;
-        case "SHADOW":
-            return RenderStyle.Shadow;
-        default:
-            throw MakeException($"Unknown heal radius type '{style}' on actor '{m_currentDefinition.Name}'");
-        }
+        else if (style.EqualsIgnoreCase("COLORADD"))
+            return RenderStyle.ColorAdd;
+        else if (style.EqualsIgnoreCase("COLORADDFULLBRIGHT"))
+            return RenderStyle.ColorAddFullBright;
+
+        return RenderStyle.Normal;
     }
 
     private Range ConsumeVisibleAngles()
@@ -477,50 +421,35 @@ public partial class DecorateParser
     private MorphStyle? ConsumeMorphStyleProperty()
     {
         string style = ConsumeString();
-        switch (style.ToUpper())
+        return style.ToUpperInvariant() switch
         {
-        case "MRF_ADDSTAMINA":
-            return MorphStyle.AddStamina;
-        case "MRF_FAILNOLAUGH":
-            return MorphStyle.FailNoLaugh;
-        case "MRF_FAILNOTELEFRAG":
-            return MorphStyle.FailNotTelefrag;
-        case "MRF_FULLHEALTH":
-            return MorphStyle.FullHealth;
-        case "MRF_LOSEACTUALWEAPON":
-            return MorphStyle.LoseActualWeapon;
-        case "MRF_NEWTIDBEHAVIOUR":
-            return MorphStyle.NewTidBehavior;
-        case "MRF_TRANSFERTRANSLATION":
-            return MorphStyle.TransferTranslation;
-        case "MRF_UNDOALWAYS":
-            return MorphStyle.UndoAlways;
-        case "MRF_UNDOBYTOMEOFPOWER":
-            return MorphStyle.UndoByTomeOfPower;
-        case "MRF_UNDOBYCHAOSDEVICE":
-            return MorphStyle.UndoByChaosDevice;
-        case "MRF_UNDOBYDEATH":
-            return MorphStyle.UndoByDeath;
-        case "MRF_UNDOBYDEATHFORCED":
-            return MorphStyle.UndoByDeathForced;
-        case "MRF_UNDOBYDEATHSAVES":
-            return MorphStyle.UndoByDeathSaves;
-        case "MRF_WHENINVULNERABLE":
-            return MorphStyle.WhenInvulnerable;
-        default:
-            throw MakeException($"Unknown morph style type '{style}' on actor '{m_currentDefinition.Name}'");
-        }
+            "MRF_ADDSTAMINA" => (MorphStyle?)MorphStyle.AddStamina,
+            "MRF_FAILNOLAUGH" => (MorphStyle?)MorphStyle.FailNoLaugh,
+            "MRF_FAILNOTELEFRAG" => (MorphStyle?)MorphStyle.FailNotTelefrag,
+            "MRF_FULLHEALTH" => (MorphStyle?)MorphStyle.FullHealth,
+            "MRF_LOSEACTUALWEAPON" => (MorphStyle?)MorphStyle.LoseActualWeapon,
+            "MRF_NEWTIDBEHAVIOUR" => (MorphStyle?)MorphStyle.NewTidBehavior,
+            "MRF_TRANSFERTRANSLATION" => (MorphStyle?)MorphStyle.TransferTranslation,
+            "MRF_UNDOALWAYS" => (MorphStyle?)MorphStyle.UndoAlways,
+            "MRF_UNDOBYTOMEOFPOWER" => (MorphStyle?)MorphStyle.UndoByTomeOfPower,
+            "MRF_UNDOBYCHAOSDEVICE" => (MorphStyle?)MorphStyle.UndoByChaosDevice,
+            "MRF_UNDOBYDEATH" => (MorphStyle?)MorphStyle.UndoByDeath,
+            "MRF_UNDOBYDEATHFORCED" => (MorphStyle?)MorphStyle.UndoByDeathForced,
+            "MRF_UNDOBYDEATHSAVES" => (MorphStyle?)MorphStyle.UndoByDeathSaves,
+            "MRF_WHENINVULNERABLE" => (MorphStyle?)MorphStyle.WhenInvulnerable,
+            _ => throw MakeException($"Unknown morph style type '{style}' on actor '{m_currentDefinition.Name}'"),
+        };
     }
 
     private void ConsumeAndHandlePowerupColor()
     {
         if (PeekInteger())
         {
-            string r = ((byte)ConsumeInteger()).ToString("X2");
+            string r = ((byte)ConsumeInteger()).ToString("X2", CultureInfo.InvariantCulture);
             Consume(',');
-            string g = ((byte)ConsumeInteger()).ToString("X2");
+            string g = ((byte)ConsumeInteger()).ToString("X2", CultureInfo.InvariantCulture);
             Consume(',');
-            string b = ((byte)ConsumeInteger()).ToString("X2");
+            string b = ((byte)ConsumeInteger()).ToString("X2", CultureInfo.InvariantCulture);
             m_currentDefinition.Properties.Powerup.Color = new PowerupColor($"{r} {g} {b}");
         }
         else if (PeekString())
@@ -576,7 +505,7 @@ public partial class DecorateParser
 
         if (ConsumeIf('.'))
         {
-            switch (property.ToUpper())
+            switch (property.ToUpperInvariant())
             {
             case "AMMO":
                 ConsumeAmmoProperty();
@@ -625,7 +554,7 @@ public partial class DecorateParser
     private void ConsumeAmmoProperty()
     {
         string ammoProperty = ConsumeIdentifier();
-        switch (ammoProperty.ToUpper())
+        switch (ammoProperty.ToUpperInvariant())
         {
         case "BACKPACKAMOUNT":
             m_currentDefinition.Properties.Ammo.BackpackAmount = ConsumeInteger();
@@ -644,7 +573,7 @@ public partial class DecorateParser
     private void ConsumeArmorProperty()
     {
         string armorProperty = ConsumeIdentifier();
-        switch (armorProperty.ToUpper())
+        switch (armorProperty.ToUpperInvariant())
         {
         case "MAXABSORB":
             m_currentDefinition.Properties.Armor.MaxAbsorb = ConsumeInteger();
@@ -711,7 +640,7 @@ public partial class DecorateParser
     private void ConsumeInventoryProperty()
     {
         string inventoryProperty = ConsumeIdentifier();
-        switch (inventoryProperty.ToUpper())
+        switch (inventoryProperty.ToUpperInvariant())
         {
         case "ALTHUDICON":
             m_currentDefinition.Properties.Inventory.AltHUDIcon = ConsumeString();
@@ -763,7 +692,7 @@ public partial class DecorateParser
     private void ConsumeMorphProjectileProperty()
     {
         string morphProperty = ConsumeIdentifier();
-        switch (morphProperty.ToUpper())
+        switch (morphProperty.ToUpperInvariant())
         {
         case "DURATION":
             m_currentDefinition.Properties.MorphProjectile.Duration = ConsumeSignedInteger();
@@ -792,7 +721,7 @@ public partial class DecorateParser
     {
         List<string> translations = new List<string> { ConsumeString() };
 
-        if (translations.First().ToUpper() != "ICE")
+        if (!translations.First().Equals("ICE", StringComparison.OrdinalIgnoreCase))
             while (ConsumeIf(','))
                 translations.Add(ConsumeString());
 
@@ -812,7 +741,7 @@ public partial class DecorateParser
     private void ConsumePlayerProperty()
     {
         string property = ConsumeIdentifier();
-        switch (property.ToUpper())
+        switch (property.ToUpperInvariant())
         {
         case "AIRCAPACITY":
             m_currentDefinition.Properties.Player.AirCapacity = ConsumeFloat();
@@ -934,7 +863,7 @@ public partial class DecorateParser
     private void ConsumePowerupProperty()
     {
         string nestedProperty = ConsumeIdentifier();
-        switch (nestedProperty.ToUpper())
+        switch (nestedProperty.ToUpperInvariant())
         {
         case "COLOR":
             ConsumeAndHandlePowerupColor();
@@ -963,7 +892,7 @@ public partial class DecorateParser
     private void ConsumePuzzleItemProperty()
     {
         string nestedProperty = ConsumeIdentifier();
-        switch (nestedProperty.ToUpper())
+        switch (nestedProperty.ToUpperInvariant())
         {
         case "NUMBER":
             m_currentDefinition.Properties.PuzzleItem.Number = ConsumeInteger();
@@ -980,7 +909,7 @@ public partial class DecorateParser
     private void ConsumeWeaponProperty()
     {
         string nestedProperty = ConsumeIdentifier();
-        switch (nestedProperty.ToUpper())
+        switch (nestedProperty.ToUpperInvariant())
         {
         case "AMMOGIVE":
             m_currentDefinition.Properties.Weapons.AmmoGive = ConsumeSignedInteger();
@@ -1066,7 +995,7 @@ public partial class DecorateParser
     private void ConsumeWeaponPieceProperty()
     {
         string nestedProperty = ConsumeIdentifier();
-        switch (nestedProperty.ToUpper())
+        switch (nestedProperty.ToUpperInvariant())
         {
         case "NUMBER":
             m_currentDefinition.Properties.WeaponPieces.Number = ConsumeInteger();
@@ -1082,7 +1011,7 @@ public partial class DecorateParser
 
     private void ConsumeTopLevelPropertyOrCombo(string property)
     {
-        switch (property.ToUpper())
+        switch (property.ToUpperInvariant())
         {
             // To reduce logic and be efficient, we do combos in this switch
             // statement as well since the property reader is the 'catch-all'.

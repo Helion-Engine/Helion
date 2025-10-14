@@ -9,9 +9,13 @@ namespace Helion.Util.Configs.Components;
 
 public class ConfigAudio: ConfigElement<ConfigAudio>
 {
-    [ConfigInfo("Music volume. 0.0 is Off, 2.0 is Maximum.")]
-    [OptionMenu(OptionSectionType.Audio, "Music Volume", sliderMin: 0, sliderMax: 2.0, sliderStep: .05)]
+    [ConfigInfo("Music volume for FluidSynth MIDI. 0.0 is Off, 2.0 is Maximum.")]
+    [OptionMenu(OptionSectionType.Audio, "Music Volume (FluidSynth)", sliderMin: 0, sliderMax: 2.0, sliderStep: .05)]
     public readonly ConfigValue<double> MusicVolume = new(1.0, Clamp(0, 2.0));
+
+    [ConfigInfo("Music volume for OPL, MOD, MP3, etc. 0.0 is Off, 2.0 is Maximum.")]
+    [OptionMenu(OptionSectionType.Audio, "Music Volume (Other)", sliderMin: 0, sliderMax: 2.0, sliderStep: .05)]
+    public readonly ConfigValue<double> ZMusicVolume = new(1.0, Clamp(0, 2.0));
 
     [ConfigInfo("Sound effect volume. 0.0 is Off, 2.0 is Maximum.")]
     [OptionMenu(OptionSectionType.Audio, "Sound Volume", sliderMin: 0, sliderMax: 2.0, sliderStep: .05)]
@@ -20,6 +24,18 @@ public class ConfigAudio: ConfigElement<ConfigAudio>
     [ConfigInfo("Enables sound velocity.")]
     [OptionMenu(OptionSectionType.Audio, "Sound Velocity", spacer: true)]
     public readonly ConfigValue<bool> Velocity = new(false);
+
+    [ConfigInfo("Maximum number of sounds that can be played at once.")]
+    [OptionMenu(OptionSectionType.Audio, "Max Sounds")]
+    public readonly ConfigValue<int> MaxSounds = new(32, GreaterOrEqual(1));
+
+    [ConfigInfo("Limit same sounds. 0 = off.")]
+    [OptionMenu(OptionSectionType.Audio, "Same Sound Limit")]
+    public readonly ConfigValue<int> SameSoundLimit = new(0, GreaterOrEqual(0));
+
+    [ConfigInfo("Limit same sounds window in ticks.")]
+    [OptionMenu(OptionSectionType.Audio, "Same Sound Window")]
+    public readonly ConfigValue<int> SameSoundWindow = new(1, GreaterOrEqual(1));
 
     [ConfigInfo("Randomize sound pitch.")]
     [OptionMenu(OptionSectionType.Audio, "Randomize Pitch", spacer: true)]
@@ -57,5 +73,6 @@ public class ConfigAudio: ConfigElement<ConfigAudio>
     public readonly ConfigValue<bool> EnableReverb = new(true);
 
     // Music volume is treated as a multiple of sound effects volume, because effects volume controls the master gain.
-    public double MusicVolumeNormalized => SoundVolume == 0 ? MusicVolume : (MusicVolume / SoundVolume);
+    public double FluidSynthVolumeNormalized => SoundVolume == 0 ? MusicVolume : (MusicVolume / SoundVolume);
+    public double DefaultMusicVolumeNormalized => SoundVolume == 0 ? ZMusicVolume : (ZMusicVolume / SoundVolume);
 }

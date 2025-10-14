@@ -25,7 +25,7 @@ public class SkySphereShader : RenderProgram
     private readonly int m_colorMixLocation;
     private readonly int m_gammaCorrectionLocation;
 
-    public SkySphereShader() : base("Sky sphere")
+    public SkySphereShader(string? name = null) : base(name ?? "Sky sphere")
     {
         m_boundTextureLocation = Uniforms.GetLocation("boundTexture");
         m_colormapTextureLocation = Uniforms.GetLocation("colormapTexture");
@@ -45,22 +45,22 @@ public class SkySphereShader : RenderProgram
         m_gammaCorrectionLocation = Uniforms.GetLocation("gammaCorrection");
     }
 
-    public void BoundTexture(TextureUnit unit) => Uniforms.Set(unit, m_boundTextureLocation);
-    public void ColormapTexture(TextureUnit unit) => Uniforms.Set(unit, m_colormapTextureLocation);
-    public void HasInvulnerability(bool invul) => Uniforms.Set(invul, m_hasInvulnerabilityLocation);
-    public void Mvp(mat4 mat) => Uniforms.Set(mat, m_mvpLocation);
-    public void Scale(Vec2F v) => Uniforms.Set(v, m_scaleLocation);
-    public void FlipU(bool flip) => Uniforms.Set(flip, m_flipULocation);
-    public void PaletteIndex(int index) => Uniforms.Set(index, m_paletteIndexLocation);
-    public void ColorMapIndex(int index) => Uniforms.Set(index, m_colorMapIndexLocation);
-    public void ScrollOffset(Vec2F offset) => Uniforms.Set(offset, m_scrollOffsetLocation);
-    public void TopColor(Vec4F topColor) => Uniforms.Set(topColor, m_topColorLocation);
-    public void BottomColor(Vec4F bottomColor) => Uniforms.Set(bottomColor, m_bottomColorLocation);
-    public void SkyHeight(float height) => Uniforms.Set(height, m_skyHeightLocation);
-    public void SkyMin(float value) => Uniforms.Set(value, m_skyMin);
-    public void SkyMax(float value) => Uniforms.Set(value, m_skyMax);
-    public void ColorMix(Vec3F value) => Uniforms.Set(value, m_colorMixLocation);
-    public void GammaCorrection(float value) => Uniforms.Set(value, m_gammaCorrectionLocation);
+    public void BoundTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_boundTextureLocation);
+    public void ColormapTexture(TextureUnit unit) => ProgramUniforms.Set(unit, m_colormapTextureLocation);
+    public void HasInvulnerability(bool invul) => ProgramUniforms.Set(invul, m_hasInvulnerabilityLocation);
+    public void Mvp(mat4 mat) => ProgramUniforms.Set(mat, m_mvpLocation);
+    public void Scale(Vec2F v) => ProgramUniforms.Set(v, m_scaleLocation);
+    public void FlipU(bool flip) => ProgramUniforms.Set(flip, m_flipULocation);
+    public void PaletteIndex(int index) => ProgramUniforms.Set(index, m_paletteIndexLocation);
+    public void ColorMapIndex(int index) => ProgramUniforms.Set(index, m_colorMapIndexLocation);
+    public void ScrollOffset(Vec2F offset) => ProgramUniforms.Set(offset, m_scrollOffsetLocation);
+    public void TopColor(Vec4F topColor) => ProgramUniforms.Set(topColor, m_topColorLocation);
+    public void BottomColor(Vec4F bottomColor) => ProgramUniforms.Set(bottomColor, m_bottomColorLocation);
+    public void SkyHeight(float height) => ProgramUniforms.Set(height, m_skyHeightLocation);
+    public void SkyMin(float value) => ProgramUniforms.Set(value, m_skyMin);
+    public void SkyMax(float value) => ProgramUniforms.Set(value, m_skyMax);
+    public void ColorMix(Vec3F value) => ProgramUniforms.Set(value, m_colorMixLocation);
+    public void GammaCorrection(float value) => ProgramUniforms.Set(value, m_gammaCorrectionLocation);
 
     protected override string VertexShader() => @"
         #version 330
@@ -120,21 +120,6 @@ vec4 bottomFetchColor = bottomColor;
         uniform vec4 topColor;
         uniform vec4 bottomColor;
 
-        float paddingHeight = (1 - (skyHeight * 2)) / 2;
-
-        float skyStart1 = 1 - paddingHeight - skyHeight;
-        float skyStart2 = 1 - paddingHeight - (skyHeight * 2);
-        float skyV = 0;
-        vec4 fadeColor = vec4(0, 0, 0, 0);
-
-        float getSkyV(float skyStart) {
-            return (uvFrag.y - skyStart) / skyHeight;
-        }
-
-        vec2 getScaledWithOffset(float u, float skyV) {
-            return vec2(uvFrag.x / scale.x + scrollOffsetFrag.x, skyV + scrollOffsetFrag.y);
-        }
-
         vec4 blendSky(vec4 fragColor, vec4 topBlendColor, vec4 bottomBlendColor) {
             float blendAmount = skyHeight / 4.6;
             if (uvFrag.y < skyMax && uvFrag.y > skyMax - blendAmount)
@@ -145,13 +130,16 @@ vec4 bottomFetchColor = bottomColor;
         }
 
         void main() {
-            vec2 skyUV = vec2(uvFrag.x / scale.x + scrollOffsetFrag.x, (uvFrag.y - 0.5 + scrollOffsetFrag.y) / skyHeight);
-            fragColor = texture(boundTexture, skyUV);
             if (uvFrag.y < skyMin) {
                 fragColor = topColor;
             }
             else if (uvFrag.y > skyMax) {
                 fragColor = bottomColor;
+            }
+            else {
+                vec2 textureUV = uvFrag - skyMin;
+                vec2 offset = scrollOffsetFrag;
+                fragColor = texture(boundTexture, textureUV / scale + offset);
             }
 
             ${ColorMapFetch}

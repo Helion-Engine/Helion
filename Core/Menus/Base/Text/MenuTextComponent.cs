@@ -1,3 +1,4 @@
+using Helion.Render.Common.Enums;
 using System;
 using static Helion.Util.Assertion.Assert;
 
@@ -11,9 +12,12 @@ public abstract class MenuTextComponent : IMenuComponent
     public readonly string Text;
     public readonly int Size;
     public readonly string FontName;
+    public readonly Align? Align;
+    public readonly bool LineWrap;
     public Func<Menu?>? Action { get; }
 
-    public MenuTextComponent(string text, int size, string fontName, Func<Menu?>? action = null)
+    public MenuTextComponent(string text, int size, string fontName, Func<Menu?>? action = null, Align? align = null, 
+        bool lineWrap = false)
     {
         Precondition(size > 0, "Cannot have a zero or negative font size");
 
@@ -21,6 +25,8 @@ public abstract class MenuTextComponent : IMenuComponent
         Size = size;
         FontName = fontName;
         Action = action;
+        Align = align;
+        LineWrap = lineWrap;
     }
 
     public override string ToString() => Text.ToString() ?? string.Empty;

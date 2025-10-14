@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Helion.Resources.Archives.Directories;
 using Helion.Resources.Archives.Entries;
 
 namespace Helion.Resources.Archives.Collection;
@@ -48,10 +47,6 @@ public class ArchiveCollectionEntries
         }
 
         string fullPath = entry.Path.FullPath;
-        // Lookups for directory paths need to be relative to the directory
-        if (entry.Parent is DirectoryArchive)
-            fullPath = entry.Path.FullPath[(entry.Parent.Path.FullPath.Length + 1)..];
-
         m_pathToEntry[fullPath] = entry;
         m_nameToEntries[entry.Path.Name] = entry;
         m_namespaceEntries.Insert(entry.Path.Name, ns, entry);
@@ -88,11 +83,14 @@ public class ArchiveCollectionEntries
     /// <param name="priorityNamespace">The namespace to look in first
     /// before any other namespaces.</param>
     /// <returns>The entry if it exists, null if not.</returns>
-    public Entry? FindByNamespace(string name, ResourceNamespace priorityNamespace)
+    public Entry? FindByNamespace(string name, ResourceNamespace priorityNamespace, bool noFallback = false)
     {
         var entry = m_namespaceEntries.Get(name, priorityNamespace);
         if (entry != null)
             return entry;
+
+        if (noFallback)
+            return null;
 
         m_nameToEntries.TryGetValue(name, out entry);
         return entry;

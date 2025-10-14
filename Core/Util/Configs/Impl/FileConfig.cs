@@ -21,7 +21,7 @@ namespace Helion.Util.Configs.Impl;
 /// </summary>
 public class FileConfig : Config
 {
-    const string IniFile = "config.ini";
+    public const string IniFile = "config.ini";
     public const string EngineSectionName = "engine";
     public const string KeysSectionName = "keys";
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -50,30 +50,15 @@ public class FileConfig : Config
             Hud.WeaponBob.Set(Hud.MoveBob.Value);
             Hud.MoveBob.Set(1.0);
         }
-    }
 
-    public static string GetDefaultConfigPath()
-    {
-        if (File.Exists(IniFile))
-            return IniFile;
-
-        // On Linux, default to "$XDG_CONFIG_HOME/helion/config.ini"
-        if (OperatingSystem.IsLinux())
+        if (Render.FakeContrast == false)
         {
-            var xdgConfigHome = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-
-            if (!string.IsNullOrWhiteSpace(xdgConfigHome))
-                return $"{xdgConfigHome}/helion/{IniFile}";
-
-            // Fallback to "$HOME/.config/helion/config.ini"
-            var home = Environment.GetEnvironmentVariable("HOME");
-
-            if (!string.IsNullOrWhiteSpace(home))
-                return $"{home}/.config/helion/{IniFile}";
+            Render.ContrastMode.Set(RenderContrastMode.Off);
+            Render.FakeContrast.Set(true);
         }
-
-        return IniFile;
     }
+
+    public static string GetDefaultConfigPath(string configFolder) => Path.Combine(configFolder, IniFile);
 
     /// <summary>
     /// Will write the config to the path provided, but will refuse to write
@@ -215,11 +200,15 @@ public class FileConfig : Config
             Log.Error($"Unable to parse config file: {e.Message}");
         }
 
+        // can happen with a blank/truncated config file
+        if (KeyMapping.NoKeysBound)
+            KeyMapping.SetInitialDefaultKeyBindings();
+
         void ReadEngineValues(IniData iniData)
         {
             foreach (KeyData keyData in iniData.Sections[EngineSectionName])
             {
-                string identifier = keyData.KeyName.ToLower();
+                string identifier = keyData.KeyName.ToLowerInvariant();
 
                 if (!Components.TryGetValue(identifier, out ConfigComponent? configComponent))
                 {
@@ -279,10 +268,17 @@ public class FileConfig : Config
 
     private static string[]? GetCommandArray(KeyData keyData)
     {
-        var deserialized = (string[]?)JsonSerializer.Deserialize(keyData.Value, typeof(string[]), StringArraySerializationContext.Default);
-        if (deserialized == null)
-            return null;
+        try
+        {
+            var deserialized = (string[]?)JsonSerializer.Deserialize(keyData.Value, typeof(string[]), StringArraySerializationContext.Default);
+            if (deserialized == null)
+                return null;
 
-        return deserialized.Where(x => x.Trim().Length > 0).ToArray();
+            return deserialized.Where(x => x.Trim().Length > 0).ToArray();
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

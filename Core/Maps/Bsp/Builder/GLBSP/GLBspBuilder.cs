@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Bsp.Geometry;
@@ -18,20 +17,23 @@ namespace Helion.Maps.Bsp.Builder.GLBSP;
 /// An implementation of a BSP builder that takes GL nodes from the GLBSP
 /// application and builds a BSP tree from it that we can use.
 /// </summary>
-public class GLBspBuilder : IBspBuilder
+public class GLBspBuilder(IMap map) : IBspBuilder
 {
     private static readonly Logger log = LogManager.GetCurrentClassLogger();
 
-    private readonly List<GLVertex> m_glVertices = new();
-    private readonly List<SubsectorEdge> m_segments = new();
-    private readonly List<BspNode> m_subsectors = new();
-    private readonly List<BspNode> m_nodes = new();
-    private readonly IMap m_map;
+    private readonly IMap m_map = map;
+    private readonly List<SubsectorEdge> m_segments = [];
+    private readonly List<BspNode> m_subsectors = [];
+    private readonly List<BspNode> m_nodes = [];
+    private List<Vec2D> m_glVertices = [];
+    private int m_nodeId;
+    private int m_segmentCount;
 
-    public GLBspBuilder(IMap map)
-    {
-        m_map = map;
-    }
+    public int GetNodeCount() => m_nodes.Count;
+
+    public int GetSubsectorCount() => m_subsectors.Count;
+
+    public int GetSegmentCount() => m_segmentCount;
 
     public BspNode? Build()
     {
@@ -46,7 +48,7 @@ public class GLBspBuilder : IBspBuilder
 
         try
         {
-            CreateVertices(m_map.GL.Vertices);
+            m_glVertices = m_map.GL.Vertices;
             CreateSegments(m_map.GL.Segments, m_map.GetVertices(), m_map.GetLines());
             CreateSubsectors(m_map.GL.Subsectors);
             CreateNodes(m_map.GL.Nodes);
@@ -71,40 +73,28 @@ public class GLBspBuilder : IBspBuilder
         return root.IsDegenerate ? null : root;
     }
 
-    private void CreateVertices(List<Vec2D> glVertices)
-    {
-        IEnumerable<GLVertex> vertices = glVertices.Select(v => new GLVertex(new Fixed(v.X), new Fixed(v.Y)));
-        m_glVertices.AddRange(vertices);
-    }
-
-    private void CreateSegments(IReadOnlyList<GLSegment> segments, IReadOnlyList<IVertex> vertices,
+    private void CreateSegments(List<GLSegment> segments, IReadOnlyList<IVertex> vertices,
         IReadOnlyList<ILine> lines)
     {
+        m_segments.EnsureCapacity(segments.Count);
         foreach (GLSegment glSegment in segments)
         {
-            Vec2D start = MakeVertex(glSegment.StartVertex, glSegment.IsStartVertexGL);
-            Vec2D end = MakeVertex(glSegment.EndVertex, glSegment.IsEndVertexGL);
-            IBspUsableLine? line = FindLine(glSegment.Linedef);
+            var start = glSegment.IsStartVertexGL ? m_glVertices[(int)glSegment.StartVertex] : vertices[(int)glSegment.StartVertex].Position;
+            var end = glSegment.IsEndVertexGL ? m_glVertices[(int)glSegment.EndVertex] : vertices[(int)glSegment.EndVertex].Position;
+            var line = glSegment.Linedef == null ? null : lines[(int)glSegment.Linedef];
 
             SubsectorEdge edge = new(start, end, line, glSegment.IsRightSide);
             m_segments.Add(edge);
         }
-
-        Vec2D MakeVertex(uint index, bool isGL)
-        {
-            return isGL ? m_glVertices[(int)index].ToDouble() : vertices[(int)index].Position;
-        }
-
-        IBspUsableLine? FindLine(uint? index) => index == null ? null : lines[(int)index.Value];
     }
-
-    private int m_nodeId;
 
     private void CreateSubsectors(List<GLSubsector> subsectors)
     {
+        m_subsectors.EnsureCapacity(subsectors.Count);
+
         foreach (GLSubsector glSubsector in subsectors)
         {
-            List<SubsectorEdge> edges = new();
+            List<SubsectorEdge> edges = new(glSubsector.Count);
             int start = glSubsector.FirstSegmentIndex;
             int end = start + glSubsector.Count;
             for (int i = start; i < end; i++)
@@ -115,6 +105,8 @@ public class GLBspBuilder : IBspBuilder
 
             BspNode subsector = new(m_nodeId++, edges);
             m_subsectors.Add(subsector);
+
+            m_segmentCount += edges.Count;
         }
     }
 
@@ -142,6 +134,7 @@ public class GLBspBuilder : IBspBuilder
 
     private void CreateNodes(List<GLBspNode> glNodes)
     {
+        m_nodes.EnsureCapacity(glNodes.Count);
         // Note: This assumes for node i, that 0..i-1 have been solved.
         // This is supposed to be the case for node building due to the
         // nature of how it is written.

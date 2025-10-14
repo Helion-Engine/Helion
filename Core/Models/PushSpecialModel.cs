@@ -6,7 +6,7 @@ using Helion.World.Special.Specials;
 
 namespace Helion.Models;
 
-public class PushSpecialModel : ISpecialModel
+public struct PushSpecialModel : ISpecialModel
 {
     public int Type { get; set; }
     public int SectorId { get; set; }

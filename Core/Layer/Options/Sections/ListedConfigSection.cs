@@ -19,6 +19,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using static Helion.Util.Constants;
@@ -36,10 +37,12 @@ public class ListedConfigSection : IOptionSection
     public event EventHandler<string>? OnError;
 
     public OptionSectionType OptionType { get; }
-    private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr, ConfigInfoAttribute ConfigAttr)> m_configValues = new();
+    private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr, ConfigInfoAttribute ConfigAttr)> m_configValues = [];
     private readonly BoxList m_menuPositionList = new();
     private readonly IConfig m_config;
+    private readonly PathsManager m_pathsManager;
     private readonly SoundManager m_soundManager;
+    private readonly IInputManager m_inputManager;
     private readonly Stopwatch m_stopwatch = new();
     private readonly StringBuilder m_rowEditText = new();
     private Vec2I m_mousePos;
@@ -54,11 +57,13 @@ public class ListedConfigSection : IOptionSection
     private IConfigValue? m_currentEditValue;
     private IDialog? m_dialog;
 
-    public ListedConfigSection(IConfig config, OptionSectionType optionType, SoundManager soundManager)
+    public ListedConfigSection(IConfig config, OptionSectionType optionType, PathsManager pathsManager, SoundManager soundManager, IInputManager inputManager)
     {
         m_config = config;
         OptionType = optionType;
+        m_pathsManager = pathsManager;
         m_soundManager = soundManager;
+        m_inputManager = inputManager;
 
         SetDisableStates();
         m_config.Window.State.OnChanged += WindowState_OnChanged;
@@ -73,13 +78,19 @@ public class ListedConfigSection : IOptionSection
         m_config.Game.QuickSaveConfirm.OptionDisabled = m_config.Game.RotatingQuickSaves > 0;
 
         m_config.Window.Dimension.OptionDisabled = m_config.Window.State != RenderWindowState.Normal;
+        m_config.Window.PaletteTrueColorOverlay.OptionDisabled = m_config.Window.ColorMode.Value != RenderColorMode.Palette;
 
         bool paletteMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
         m_config.Render.Filter.Texture.OptionDisabled = paletteMode;
         m_config.Render.Anisotropy.OptionDisabled = paletteMode;
         m_config.Render.LightMode.OptionDisabled = paletteMode;
+        m_config.Render.Brightmaps.OptionDisabled = paletteMode;
+        m_config.Render.EmulateInvulnerabilityColorMap.OptionDisabled = paletteMode;
+        m_config.Render.DownScaleVanillaRenderSampleBuffer.OptionDisabled = m_config.Render.VanillaRender.Value == false;
 
         m_config.Mouse.ForwardBackwardSpeed.OptionDisabled = m_config.Mouse.Look.Value == true;
+
+        m_config.Hud.Scale.OptionDisabled = m_config.Hud.AutoScale.Value == true;
     }
 
     public void ResetSelection() => m_currentRowIndex = 0;
@@ -146,7 +157,7 @@ public class ListedConfigSection : IOptionSection
             if (input.ConsumePressOrContinuousHold(Key.Down) || input.ConsumePressOrContinuousHold(Key.DPadDown))
                 AdvanceToValidRow(1);
 
-            if ((input.ConsumeKeyPressed(Key.R) || input.ConsumeKeyPressed(Key.Delete)) && 
+            if ((input.ConsumeKeyPressed(Key.R) || input.ConsumeKeyPressed(Key.Delete)) &&
                 m_currentRowIndex < m_configValues.Count)
             {
                 ResetSelectedRowDefaults();
@@ -196,7 +207,10 @@ public class ListedConfigSection : IOptionSection
                             string fileFilter = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                                 ? ".SF2,.SF3"
                                 : ".SF2";
-                            m_dialog = new FileListDialog(m_config.Window, configData.CfgValue, configData.Attr, fileFilter);
+                            m_dialog = new FileListDialog(m_config.Window, m_pathsManager, configData.CfgValue, configData.Attr, fileFilter);
+                            break;
+                        case DialogType.GyroCalibrationDialog:
+                            m_dialog = new GyroCalibrationDialog(m_config.Window, m_config.Controller, m_inputManager);
                             break;
                         default:
                             throw new NotImplementedException($"Unimplemented dialog type: {configData.Attr.DialogType}");
@@ -228,7 +242,7 @@ public class ListedConfigSection : IOptionSection
                 bool isCycleValue = m_currentEditValue is ConfigValue<bool> || m_currentEditValue.ValueType.BaseType == typeof(Enum);
                 if (isCycleValue)
                 {
-                    m_rowEditText.Append(GetDisplayStringForCurrentValue(m_currentEditValue, configData.Attr));
+                    m_rowEditText.Append(GetDisplayStringForCurrentValue(m_currentEditValue));
                     OnLockChanged?.Invoke(this, new(Lock.Locked, "Press left/right or mouse wheel to change values. Enter to confirm.", lockOptions));
                 }
                 else
@@ -256,10 +270,11 @@ public class ListedConfigSection : IOptionSection
             }
             if (sender is FileListDialog fileDialog)
             {
-                if (fileDialog.SelectedFile?.Exists == true)
+                string? selectedFilePath = fileDialog.GetSelectedFilePath();
+                if (selectedFilePath != null)
                 {
                     m_rowEditText.Clear();
-                    m_rowEditText.Append(fileDialog.SelectedFile.ToString());
+                    m_rowEditText.Append(selectedFilePath);
                 }
             }
             if (sender is TexturePickerDialog textureDialog)
@@ -270,12 +285,17 @@ public class ListedConfigSection : IOptionSection
             if (sender is SingleSliderDialog sliderDialog)
             {
                 m_rowEditText.Clear();
-                m_rowEditText.Append(sliderDialog.SliderValue.ToString());
+                m_rowEditText.Append(sliderDialog.SliderValue.ToString(CultureInfo.InvariantCulture));
             }
             SubmitEditRow();
         }
         else
         {
+            if (sender is GyroCalibrationDialog gyroDialog)
+            {
+                // If the user canceled out of gyro calibration, treat that as "clear all gyro calibration".
+                gyroDialog.ClearCalibration();
+            }
             ReleaseEditRow();
         }
 
@@ -303,7 +323,7 @@ public class ListedConfigSection : IOptionSection
         bool newValue = !cfgValue.Value;
         cfgValue.Set(newValue);
         m_rowEditText.Clear();
-        m_rowEditText.Append(newValue);
+        m_rowEditText.Append(newValue ? ConfigConstants.Yes : ConfigConstants.No);
     }
 
     private void UpdateEnumOption(IConsumableInput input, IConfigValue cfgValue)
@@ -364,42 +384,48 @@ public class ListedConfigSection : IOptionSection
         m_soundManager.PlayStaticSound(MenuSounds.Change);
     }
 
-    private static string GetDisplayStringForCurrentValue(IConfigValue configValue, OptionMenuAttribute attr)
+    private static string GetDisplayStringForCurrentValue(IConfigValue configValue)
     {
+        if (configValue.ValueType == typeof(bool))
+            return ((bool)configValue.ObjectValue) ? ConfigConstants.Yes : ConfigConstants.No;
+
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectValue).ToString() ?? "??";
 
-        var doubleValue = Convert.ToDouble(configValue.ObjectValue);
+        var doubleValue = Convert.ToDouble(configValue.ObjectValue, CultureInfo.CurrentCulture);
         if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
-            return doubleValue.ToString() + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
+            return doubleValue.ToString(CultureInfo.CurrentCulture) + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
 
-        return doubleValue.ToString();
+        return doubleValue.ToString(CultureInfo.CurrentCulture);
     }
 
-    private static string GetDisplayStringForUserValue(IConfigValue configValue, OptionMenuAttribute attr)
+    private static string GetDisplayStringForUserValue(IConfigValue configValue)
     {
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectUserValue).ToString() ?? "??";
 
-        var doubleValue = Convert.ToDouble(configValue.ObjectUserValue);
+        var doubleValue = Convert.ToDouble(configValue.ObjectUserValue, CultureInfo.CurrentCulture);
         if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
-            return doubleValue.ToString() + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
+            return doubleValue.ToString(CultureInfo.CurrentCulture) + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
 
-        return doubleValue.ToString();
+        return doubleValue.ToString(CultureInfo.CurrentCulture);
     }
 
-    private static string GetDisplayStringForDefaultValue(IConfigValue configValue, OptionMenuAttribute attr)
+    private static string GetDisplayStringForDefaultValue(IConfigValue configValue)
     {
+        if (configValue.ValueType == typeof(bool))
+            return ((bool)configValue.ObjectDefaultValue) ? ConfigConstants.Yes : ConfigConstants.No;
+
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectDefaultValue).ToString()
                 ?? configValue.ObjectDefaultValue?.ToString()
                 ?? string.Empty;
 
-        var doubleValue = Convert.ToDouble(configValue.ObjectDefaultValue);
+        var doubleValue = Convert.ToDouble(configValue.ObjectDefaultValue, CultureInfo.CurrentCulture);
         if (configValue.ValueType == typeof(double) && doubleValue - Math.Truncate(doubleValue) == 0)
-            return doubleValue.ToString() + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
+            return doubleValue.ToString(CultureInfo.CurrentCulture) + Parsing.DecimalFormat.NumberDecimalSeparator + "0";
 
-        return doubleValue.ToString();
+        return doubleValue.ToString(CultureInfo.CurrentCulture);
     }
 
     private static object GetEnumDescription(object value)
@@ -639,7 +665,7 @@ public class ListedConfigSection : IOptionSection
                 name = header.HeaderText;
             }
 
-            name = GetEllipsesText(hud, name, Font, fontSize, hud.Dimension.Width / 2 - offsetX);
+            name = hud.GetEllipsesText(name, Font, fontSize, hud.Dimension.Width / 2 - offsetX);
             hud.Text(name, Font, fontSize, (-offsetX, y), out Dimension attrArea, window: Align.TopMiddle,
                 anchor: Align.TopRight, color: attrColor);
 
@@ -651,9 +677,8 @@ public class ListedConfigSection : IOptionSection
             }
 
             Dimension valueArea;
-            string displayValue = GetDisplayStringForCurrentValue(cfgValue, attr);
-            string displayUserValue = GetDisplayStringForUserValue(cfgValue, attr);
-            string displayDefaultValue = GetDisplayStringForDefaultValue(cfgValue, attr);
+            string displayValue = GetDisplayStringForCurrentValue(cfgValue);
+            string displayDefaultValue = GetDisplayStringForDefaultValue(cfgValue);
 
             Color valueColor = displayValue == displayDefaultValue ? valueColorDefault : valueColorCustomized;
             valueColor = cfgValue.HasTemporaryValue ? valueColorOverridden : valueColor;
@@ -721,7 +746,7 @@ public class ListedConfigSection : IOptionSection
         }
         else if (!string.IsNullOrEmpty(m_configValues[m_currentRowIndex].ConfigAttr.Description))
         {
-            message = $"{m_configValues[m_currentRowIndex].ConfigAttr.Description} (Default: {GetDisplayStringForDefaultValue(m_configValues[m_currentRowIndex].CfgValue, m_configValues[m_currentRowIndex].Attr)})";
+            message = $"{m_configValues[m_currentRowIndex].ConfigAttr.Description} (Default: {GetDisplayStringForDefaultValue(m_configValues[m_currentRowIndex].CfgValue)})";
         }
 
         OnRowChanged?.Invoke(this, new(m_currentRowIndex, message));
@@ -746,26 +771,6 @@ public class ListedConfigSection : IOptionSection
             anchor: Align.TopLeft);
         hud.FillBox((x + 1, y + 1, x + boxSize - 1, y + boxSize - 1), boxColor, window: Align.TopMiddle,
             anchor: Align.TopLeft);
-    }
-
-    public static string GetEllipsesText(IHudRenderContext hud, string text, string font, int fontSize, int maxWidth)
-    {
-        int nameWidth = hud.MeasureText(text, Font, fontSize).Width;
-        if (nameWidth <= maxWidth)
-            return text;
-
-        var textSpan = text.AsSpan();
-        int sub = 1;
-        while (sub < textSpan.Length && hud.MeasureText(textSpan, Font, fontSize).Width > maxWidth)
-        {
-            textSpan = text.AsSpan(0, text.Length - sub);
-            sub++;
-        }
-
-        if (textSpan.Length <= 3)
-            return text;
-
-        return string.Concat(text.AsSpan(0, textSpan.Length - 3), "...");
     }
 
     private bool IsConfigDisabled(int rowIndex)

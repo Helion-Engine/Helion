@@ -245,3 +245,18 @@ actor MusicChanger 14100
     +NOSECTOR
     +NOGRAVITY
 }
+
+actor AmbientSound
+{
+  +NOBLOCKMAP
+  +NOSECTOR
+  +DONTSPLASH
+}
+
+actor MapSpot 9001
+{
+  +NOBLOCKMAP
+  +NOSECTOR
+  +NOGRAVITY
+  +DONTSPLASH
+}

@@ -1,14 +1,12 @@
-using Helion.Geometry;
-using Helion.Geometry.Grids;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
 using Helion.Maps.Components;
 using Helion.Maps.Shared;
+using Helion.Maps.Specials;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using Helion.World.Blockmap;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Inventories;
@@ -25,52 +23,48 @@ namespace Helion.World.Entities;
 
 public class EntityManager : IDisposable
 {
-    public record class EntityModelPair(EntityModel Model, Entity Entity);
+    public record struct EntityModelPair(EntityModel Model, Entity Entity);
 
-    public class WorldModelPopulateResult
+    public class WorldModelPopulateResult(List<Player> players, Dictionary<int, EntityModelPair> entities)
     {
-        public WorldModelPopulateResult(IList<Player> players, Dictionary<int, EntityModelPair> entities)
-        {
-            Players = players;
-            Entities = entities;
-        }
-
-        public IList<Player> Players;
-        public Dictionary<int, EntityModelPair> Entities;
+        public List<Player> Players = players;
+        public Dictionary<int, EntityModelPair> Entities = entities;
     }
 
     public const int NoTid = 0;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
+    public int EntityCount;
     public Entity? Head;
     public LinkedList<Entity> TeleportSpots = new();
     public SpawnLocations SpawnLocations;
     public IWorld World;    
 
     public EntityDefinitionComposer DefinitionComposer;
-    public List<Player> Players = new();
-    public List<Player> VoodooDolls = new();
-    public List<Entity> MusicChangers = new();
-    private LookupArray<Player?> RealPlayersByNumber = new();
-    private readonly Dictionary<int, ISet<Entity>> TidToEntity = new();
-    private readonly UniformGrid<Block> m_blocks;
+    public List<Player> Players = [];
+    public List<Player> RemovedPlayers = [];
+    public List<Player> VoodooDolls = [];
+    public List<Entity> MusicChangers = [];
+    private readonly LookupArray<Player?> RealPlayersByNumber = new();
+    private readonly Dictionary<int, LinkedList<Entity>> TidToEntity = [];
 
     public EntityManager(IWorld world)
     {
         World = world;
         SpawnLocations = new SpawnLocations(world);
         DefinitionComposer = world.ArchiveCollection.EntityDefinitionComposer;
-        m_blocks = world.Blockmap.Blocks;
     }
 
     private static bool ZHeightSet(double z)
     {
-        return z != Fixed.Lowest().ToDouble() && z != 0.0;
+        return z != double.MinValue && z != 0.0;
     }
 
-    public IEnumerable<Entity> FindByTid(int tid)
+    private static readonly LinkedList<Entity> EmptyLinkedList = new();
+
+    public LinkedList<Entity> FindByTid(int tid)
     {
-        return TidToEntity.TryGetValue(tid, out ISet<Entity>? entities) ? entities : Enumerable.Empty<Entity>();
+        return TidToEntity.TryGetValue(tid, out var entities) ? entities : EmptyLinkedList;
     }
 
     public Entity? FindById(int id)
@@ -88,15 +82,19 @@ public class EntityManager : IDisposable
     public Entity? Create(string className, in Vec3D pos, bool initSpawn = false)
     {
         var def = DefinitionComposer.GetByName(className);
-        return def != null ? Create(def, pos, 0.0, 0.0, 0, initSpawn: initSpawn) : null;
+        return def != null ? Create(def, pos, 0.0, 0.0, 0, default, initSpawn: initSpawn) : null;
     }
 
-    public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, bool initSpawn = false)
+    public Entity Create(EntityDefinition definition, Vec3D position, double zHeight, double angle, int tid, in SpecialArgs args, bool initSpawn = false, int editorId = -1)
     {
+        EntityCount++;
         var sector = World.ToSubsector(position.X, position.Y).Sector;
 
         position.Z = GetPositionZ(sector, in position, zHeight);
-        Entity entity = World.DataCache.GetEntity(tid, definition, position, angle, sector, World);
+        var entity = 
+            definition.Type == EntityType.AmbientSound ? 
+            CreateAmbientSound(World.DataCache.EntityId++, tid, definition, position, angle, sector, World, editorId, args) :
+            World.DataCache.GetEntity(tid, definition, position, angle, sector, World, args);
 
         if (entity.Definition.Properties.FastSpeed > 0 && World.IsFastMonsters)
             entity.Properties.MonsterMovementSpeed = entity.Definition.Properties.FastSpeed;
@@ -112,20 +110,36 @@ public class EntityManager : IDisposable
         return entity;
     }
 
-    public void Destroy(Entity entity)
+    private AmbientSound CreateAmbientSound(int id, int thingId, EntityDefinition definition, Vec3D position, double angle, Sector sector, IWorld world, int editorId, SpecialArgs args)
+    {
+        var index = args.Arg0;
+        if (editorId < (int)EditorId.AmbientSoundEnd)
+            index = editorId - (int)EditorId.AmbientSoundStart + 1;
+        
+        args.Arg0 = index;
+        var entity = new AmbientSound();
+        entity.Set(-1, id, thingId, definition, position, angle, sector, world, args);
+
+        World.ArchiveCollection.SoundInfo.TryGetAmbientSound(index, out entity.AmbientSoundInfo);
+        return entity;
+    }
+
+    public void Destroy(Entity entity, bool removeFromIdList = true)
     {
         if (entity.IsDisposed)
             return;
 
-        // TODO: Remove from spawns if it is a spawn.
+        EntityCount--;
 
-        // To avoid more object allocation and deallocation, I'm going to
-        // leave empty sets in the map in case they get populated again.
-        // Most maps wouldn't even approach a number that high for us to
-        // worry about. If it ever becomes an issue, then we can add a line
-        // of code that removes empty sets here as well.
-        if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity>? entities))
-            entities.Remove(entity);
+        if (removeFromIdList && TidToEntity.TryGetValue(entity.ThingId, out var entities))
+        {
+            var node = entities.Find(entity);
+            if (node != null)
+            {
+                World.DataCache.FreeLinkedListNodeEntity(node);
+                entities.Remove(node);
+            }
+        }
 
         if (entity.Flags.IsTeleportSpot)
             TeleportSpots.Remove(entity);
@@ -136,7 +150,21 @@ public class EntityManager : IDisposable
         entity.Dispose();
     }
 
-    public Player CreatePlayer(int playerIndex, Entity spawnSpot, bool isVoodooDoll)
+    public void Destroy(LinkedList<Entity> entities)
+    {
+        for (var node = entities.First; node != null; node = node.Next)
+        {
+            Destroy(node.Value, false);
+            World.DataCache.FreeLinkedListNodeEntity(node);
+        }
+
+        entities.Clear();
+    }
+
+    public Player RespawnPlayer(int playerIndex, Entity spawnSpot) =>
+        CreatePlayer(playerIndex, spawnSpot, CreatePlayerOptions.Respawn);
+
+    public Player CreatePlayer(int playerIndex, Entity spawnSpot, CreatePlayerOptions options = CreatePlayerOptions.None)
     {
         Player player;
         EntityDefinition? playerDefinition = DefinitionComposer.GetByName(Constants.PlayerClass);
@@ -145,7 +173,12 @@ public class EntityManager : IDisposable
             Log.Error("Missing player definition class {0}, cannot create player {1}", Constants.PlayerClass, playerIndex);
             throw new HelionException("Missing the default player class, should never happen");
         }
+                
+        var addedPlayer = Players.Count <= playerIndex;
+        if (!addedPlayer && (options & CreatePlayerOptions.Respawn) != 0)
+            RemovedPlayers.Add(Players[playerIndex]);
 
+        var isVoodooDoll = (options & CreatePlayerOptions.VooDooDoll) != 0;
         player = CreatePlayerEntity(playerIndex, playerDefinition, spawnSpot.Position, 0.0, spawnSpot.AngleRadians);
         player.IsVooDooDoll = isVoodooDoll;
 
@@ -155,7 +188,15 @@ public class EntityManager : IDisposable
             return player;
         }
 
-        AddRealPlayer(player);
+        if (addedPlayer)
+        {
+            AddRealPlayer(player);
+        }
+        else
+        {
+            Players[playerIndex] = player;
+            RealPlayersByNumber.Set(player.PlayerNumber, player);
+        }
 
         return player;
     }
@@ -196,12 +237,20 @@ public class EntityManager : IDisposable
             if (mapThing.EditorNumber == (int)EditorId.MusicChangerStart)
                 continue;
 
-            bool isMusicChanger = EditorIds.IsMusicChanger(mapThing.EditorNumber);
-            EntityDefinition? definition = isMusicChanger ? 
-                DefinitionComposer.GetByName(Constants.MusicChanger) : DefinitionComposer.GetByID(mapThing.EditorNumber);
+            var isMusicChanger = EditorIds.IsMusicChanger(mapThing.EditorNumber);
+            var isAmbientSound = EditorIds.IsAmbientSound(mapThing.EditorNumber);
+            EntityDefinition? definition;
+
+            if (isMusicChanger)
+                definition = DefinitionComposer.GetByName(Constants.MusicChanger);
+            else if (isAmbientSound)
+                definition = DefinitionComposer.GetByName(Constants.AmbientSound);
+            else
+                definition = DefinitionComposer.GetByID(mapThing.EditorNumber);
+
             if (definition == null)
             {
-                Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.XY);
+                 Log.Warn("Cannot find entity by editor number {0} at {1}", mapThing.EditorNumber, mapThing.Position.XY);
                 continue;
             }
 
@@ -216,22 +265,42 @@ public class EntityManager : IDisposable
             if (definition.Flags.CountItem)
                 levelStats.TotalItems++;
 
-            double angleRadians = MathHelper.ToRadians(mapThing.Angle);
-            Vec3D position = mapThing.Position.Double;
+            var angleRadians = MathHelper.ToRadians(mapThing.Angle);
+            var position = mapThing.Position;
             // position.Z is the potential zHeight variable, not the actual z position. We need to pass it to Create to ensure the zHeight is set
-            Entity entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, initSpawn: true);
+            var entity = Create(definition, position, position.Z, angleRadians, mapThing.ThingId, mapThing.Args, initSpawn: true, editorId: mapThing.EditorNumber);
+            entity.Special = mapThing.Special;
+            entity.Gravity = mapThing.Gravity;
+
+            if (mapThing.Alpha.HasValue)
+                entity.Alpha = mapThing.Alpha.Value;
+
             if (mapThing.Flags.Ambush)
                 entity.Flags.Ambush = mapThing.Flags.Ambush;
             if (mapThing.Flags.Friendly)
                 entity.Flags.Friendly = mapThing.Flags.Friendly;
+            if (mapThing.Flags.Invisible)
+                entity.Flags.Invisible = mapThing.Flags.Invisible;
+            if (mapThing.Flags.CountKill)
+                entity.Flags.CountKill = mapThing.Flags.CountKill;
+            if (mapThing.Flags.CountItem)
+                entity.Flags.CountItem = mapThing.Flags.CountItem;
+            if (mapThing.Flags.Dormant)
+                entity.Flags.Dormant = mapThing.Flags.Dormant;
+            if (mapThing.Health.HasValue)
+                entity.Health = mapThing.Health.Value;
+
+            if (mapThing.Flags.CountSecret)
+            {
+                entity.Flags.CountSecret = mapThing.Flags.CountSecret;
+                levelStats.TotalSecrets++;
+            }
 
             if (entity.FrameState.Frame.Ticks > 0)
                 entity.FrameState.SetTics((World.Random.NextByte() % entity.FrameState.Frame.Ticks) + 1);
 
             if (!entity.Flags.ActLikeBridge && ZHeightSet(position.Z))
                 relinkEntities.Add(entity);
-
-            PostProcessEntity(entity);
 
             if (isMusicChanger)
                 entity.ThingId = mapThing.EditorNumber - (int)EditorId.MusicChangerStart;
@@ -240,25 +309,26 @@ public class EntityManager : IDisposable
         //Relink entities with a z-height only, this way they can properly stack with other things in the map now that everything exists
         for (int i = 0; i < relinkEntities.Count; i++)
         {
-            relinkEntities[i].UnlinkFromWorld();
-            World.Link(relinkEntities[i]);
-            relinkEntities[i].PrevPosition = relinkEntities[i].Position;
+            var relink = relinkEntities[i];
+            relink.UnlinkFromWorld();
+            World.Link(relink);
+            relink.PrevPosition = relinkEntities[i].Position;
         }
     }
 
     public WorldModelPopulateResult PopulateFrom(WorldModel worldModel)
     {
-        List<Player> players = [];
-        Dictionary<int, EntityModelPair> entities = [];
-
-        var maxEntityId = worldModel.Entities.Max(x => x.Id);
-        var maxPlayerId = worldModel.Players.Max(x => x.Id);
+        var maxEntityId = 0;
         World.DataCache.SetEntitiesForMapLoad(worldModel.Entities.Count + worldModel.Players.Count);
+        List<Player> players = new(worldModel.Players.Count);
+        Dictionary<int, EntityModelPair> entities = new(worldModel.Entities.Count + worldModel.Players.Count);
 
         // Entities are serialized backwards because of the linked list implementation
         for (int i = worldModel.Entities.Count - 1; i >= 0; i--)
         {
             var entityModel = worldModel.Entities[i];
+            if (entityModel.Id > maxEntityId)
+                maxEntityId = entityModel.Id;
             var definition = DefinitionComposer.GetByName(entityModel.Name);
             if (definition == null)
             {
@@ -266,56 +336,73 @@ public class EntityManager : IDisposable
                 continue;
             }
 
-            int index = World.DataCache.EntityLength++;
-            var entity = World.DataCache.Entities[index];
-            entity.Set(index, entityModel, definition, World);
-            AddEntityToList(entity);
+            Entity entity;
+            if (definition.Type == EntityType.AmbientSound)
+            {
+                entity = CreateAmbientSound(entityModel.Id, entityModel.ThingId, definition, default, 0, Sector.Default, World, (int)EditorId.AmbientSoundEnd, entityModel.Args);
+                entity.Set(-1, entityModel, definition, World);
 
+            }
+            else
+            {
+                int index = World.DataCache.EntityLength++;
+                entity = World.DataCache.Entities[index];
+                entity.Set(index, entityModel, definition, World);
+            }
+
+            AddEntityToList(entity);
             entities.Add(entityModel.Id, new(entityModel, entity));
         }
 
         for (int i = 0; i < worldModel.Players.Count; i++)
         {
-            bool isVoodooDoll = players.Any(x => x.PlayerNumber == worldModel.Players[i].Number);
-            Player? player = CreatePlayerFromModel(worldModel.Players[i], entities, isVoodooDoll);
+            var playerModel = worldModel.Players[i];
+            if (playerModel.Id > maxEntityId)
+                maxEntityId = playerModel.Id;
+            bool isVoodooDoll = players.Any(x => x.PlayerNumber == playerModel.Number);
+            Player? player = CreatePlayerFromModel(playerModel, entities, isVoodooDoll);
             if (player == null)
             {
-                Log.Error($"Failed to create player {worldModel.Players[i].Name}.");
+                Log.Error($"Failed to create player {playerModel.Name}.");
                 continue;
             }
-
             players.Add(player);
+            player.SpawnPoint.X = playerModel.SpawnPointX;
+            player.SpawnPoint.Y = playerModel.SpawnPointY;
+            player.SpawnPoint.Z = playerModel.SpawnPointZ;
         }
 
         for (int i = 0; i < worldModel.Entities.Count; i++)
         {
             var entityModel = worldModel.Entities[i];
-            if (!entities.TryGetValue(entityModel.Id, out EntityModelPair? entity))
+            if (!entities.TryGetValue(entityModel.Id, out var entity))
                 continue;
 
             if (entityModel.Owner.HasValue)
             {
-                entities.TryGetValue(entityModel.Owner.Value, out var entityOwner);
-                if (entityOwner != null)
+                if (entities.TryGetValue(entityModel.Owner.Value, out var entityOwner))
                     entity.Entity.SetOwner(entityOwner.Entity);
             }
 
             if (entityModel.Target.HasValue)
             {
-                entities.TryGetValue(entityModel.Target.Value, out var entityTarget);
-                if (entityTarget != null)
+                if (entities.TryGetValue(entityModel.Target.Value, out var entityTarget))
                     entity.Entity.SetTarget(entityTarget.Entity);
             }
 
             if (entityModel.Tracer.HasValue)
             {
-                entities.TryGetValue(entityModel.Tracer.Value, out var tracerTarget);
-                if (tracerTarget != null)
+                if (entities.TryGetValue(entityModel.Tracer.Value, out var tracerTarget))
                     entity.Entity.SetTracer(tracerTarget.Entity);
             }
+
+            entity.Entity.SpawnPoint.X = entity.Model.SpawnPointX;
+            entity.Entity.SpawnPoint.Y = entity.Model.SpawnPointY;
+            entity.Entity.SpawnPoint.Z = entity.Model.SpawnPointZ;
         }
 
-        World.DataCache.EntityId = Math.Max(maxEntityId, maxPlayerId) + 1;
+        EntityCount = worldModel.Entities.Count;
+        World.DataCache.EntityId = maxEntityId + 1;
         return new WorldModelPopulateResult(players, entities);
     }
 
@@ -332,31 +419,37 @@ public class EntityManager : IDisposable
         Head = entity;
     }
 
-    public void FinalizeFromWorldLoad(WorldModelPopulateResult result, Entity entity)
+    public void FinalizeFromWorldLoad(WorldModelPopulateResult result)
     {
-        World.Link(entity);
-        bool? setOnGround = null;
-
-        if (result.Entities.TryGetValue(entity.Id, out var pair))
+        for (var entity = Head; entity != null; entity = entity.Next)
         {
-            entity.HighestFloorSector = GetValidSector(World, entity.Sector, pair.Model.HighSec);
-            entity.LowestCeilingSector = GetValidSector(World, entity.Sector, pair.Model.LowSec);
-            entity.HighestFloorZ = entity.HighestFloorSector.ToFloorZ(entity.Position);
-            entity.LowestCeilingZ = entity.LowestCeilingSector.ToCeilingZ(entity.Position);
+            World.Link(entity);
+            bool? setOnGround = null;
 
-            entity.HighestFloorObject = GetBoundingObject(result, entity.HighestFloorSector, pair.Model.HighEntity);
-            entity.LowestCeilingObject = GetBoundingObject(result, entity.LowestCeilingSector, pair.Model.LowEntity);
-            entity.Position = new Vec3D(pair.Model.Box.CenterX, pair.Model.Box.CenterY, pair.Model.Box.CenterZ);
-            setOnGround = pair.Model.OnGround;
+            if (result.Entities.TryGetValue(entity.Id, out var pair))
+            {
+                entity.HighestFloorSector = GetValidSector(World, entity.Sector, pair.Model.HighSec);
+                entity.LowestCeilingSector = GetValidSector(World, entity.Sector, pair.Model.LowSec);
+                entity.HighestFloorZ = entity.HighestFloorSector.ToFloorZ(entity.Position);
+                entity.LowestCeilingZ = entity.LowestCeilingSector.ToCeilingZ(entity.Position);
+
+                entity.HighestFloorObject = GetBoundingObject(result, entity.HighestFloorSector, pair.Model.HighEntity);
+                entity.LowestCeilingObject = GetBoundingObject(result, entity.LowestCeilingSector, pair.Model.LowEntity);
+                entity.Position = new Vec3D(pair.Model.Box.CenterX, pair.Model.Box.CenterY, pair.Model.Box.CenterZ);
+                setOnGround = pair.Model.OnGround;
+            }
+
+            PostProcessEntity(entity);
+            FinalizeEntity(entity, false, initSpawn: false);
+            if (setOnGround != null)
+                entity.OnGround = setOnGround.Value;
+
+            if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
+                MusicChangers.Add(entity);
         }
 
-        PostProcessEntity(entity);
-        FinalizeEntity(entity, false, initSpawn: false);
-        if (setOnGround != null)
-            entity.OnGround = setOnGround.Value;
-
-        if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
-            MusicChangers.Add(entity);
+        // The linked list is backwards so the starts have to be reversed
+        SpawnLocations.ReversePlayerStarts();
     }
 
     public Player? GetRealPlayer(int playerNumber)
@@ -365,10 +458,23 @@ public class EntityManager : IDisposable
         return player;
     }
 
-    private static object GetBoundingObject(WorldModelPopulateResult result, Sector sector, int? entityId)
+    private object GetBoundingObject(WorldModelPopulateResult result, Sector sector, int? entityId)
     {
         if (!entityId.HasValue)
             return sector;
+
+        if ((entityId & EntityModel.MidTexEntityFlag) != 0)
+        {
+            int lineId = entityId.Value & ~EntityModel.MidTexEntityFlag;
+            if (!World.IsLineIdValid(lineId))
+                return sector;
+
+            var line = World.Lines[lineId];
+            if (!line.Flags.Blocking.MidTex3D)
+                return sector;
+
+            return World.Lines[lineId].GetMidTexEntity(World);
+        }
 
         if (!result.Entities.TryGetValue(entityId.Value, out var pair))
             return false;
@@ -417,15 +523,16 @@ public class EntityManager : IDisposable
         if ((mapThing.EditorNumber > 0 && mapThing.EditorNumber < 5) || mapThing.EditorNumber == 1)
             return true;
 
-        // TODO: These should be offloaded into SinglePlayerWorld...
-        if (mapThing.Flags.MultiPlayer)
+        if (!World.ShouldSpawn(mapThing))
             return false;
 
         return (SkillLevel)World.SkillDefinition.SpawnFilter switch
         {
-            SkillLevel.VeryEasy or SkillLevel.Easy => mapThing.Flags.Easy,
-            SkillLevel.Medium => mapThing.Flags.Medium,
-            SkillLevel.Hard or SkillLevel.Nightmare => mapThing.Flags.Hard,
+            SkillLevel.VeryEasy => mapThing.Flags.Skill1,
+            SkillLevel.Easy => mapThing.Flags.Skill2,
+            SkillLevel.Medium => mapThing.Flags.Skill3,
+            SkillLevel.Hard => mapThing.Flags.Skill4,
+            SkillLevel.Nightmare => mapThing.Flags.Skill5,
             _ => false,
         };
     }
@@ -463,18 +570,20 @@ public class EntityManager : IDisposable
             World.Link(entity);
 
         FinalizeEntity(entity, checkOnGround, zHeight, initSpawn);
-
-        entity.SpawnPoint = entity.Position;
+                
+       entity.SpawnPoint = entity.Position;
         // Vanilla did not execute action functions on creation, it just set the state
         // Action functions will not execute until Tick() is called
         if (entity.Definition.SpawnState != null)
-            entity.FrameState.SetFrameIndexNoAction(entity.Definition.SpawnState.Value);
+            entity.FrameState.SetFrameIndexNoAction(entity, entity.Definition.SpawnState.Value);
 
         if (entity.Definition.Flags.CountKill || entity.Definition.Flags.IsMonster)
             entity.Health = Math.Max((int)(entity.Health * World.SkillDefinition.MonsterHealthFactor), 1);
 
         if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
             MusicChangers.Add(entity);
+
+        PostProcessEntity(entity);
     }
 
     private void PostProcessEntity(Entity entity)
@@ -483,10 +592,16 @@ public class EntityManager : IDisposable
 
         if (entity.ThingId != NoTid)
         {
-            if (TidToEntity.TryGetValue(entity.ThingId, out ISet<Entity>? entities))
-                entities.Add(entity);
+            if (TidToEntity.TryGetValue(entity.ThingId, out var entities))
+            {
+                entities.AddLast(entity);
+            }
             else
-                TidToEntity.Add(entity.ThingId, new HashSet<Entity> { entity });
+            {
+                var list = new LinkedList<Entity>();
+                list.AddLast(World.DataCache.GetLinkedListNodeEntity(entity));
+                TidToEntity.Add(entity.ThingId, list);
+            }
         }
 
         if (entity.Flags.IsTeleportSpot)
@@ -520,6 +635,7 @@ public class EntityManager : IDisposable
         SpawnLocations.Clear();
         TidToEntity.Clear();
         Players.Clear();
+        RemovedPlayers.Clear();
         VoodooDolls.Clear();
         MusicChangers.Clear();
         RealPlayersByNumber.SetAll(null);

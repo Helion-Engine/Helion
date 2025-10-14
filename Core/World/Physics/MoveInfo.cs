@@ -1,21 +1,12 @@
-using Helion.World.Geometry.Lines;
-
 namespace Helion.World.Physics;
 
-public readonly ref struct MoveInfo
+public readonly ref struct MoveInfo(int blockLineIndex, double lineIntersectionTime, bool foundHit)
 {
-    public readonly Line BlockingLine;
-    public readonly double LineIntersectionTime;
-    public readonly bool IntersectionFound;
+    public readonly int BlockLineIndex = blockLineIndex;
+    public readonly double LineIntersectionTime = lineIntersectionTime;
+    public readonly bool IntersectionFound = foundHit;
 
-    public MoveInfo(Line blockingLine, double lineIntersectionTime, bool foundHit)
-    {
-        BlockingLine = blockingLine;
-        LineIntersectionTime = lineIntersectionTime;
-        IntersectionFound = foundHit;
-    }
+    public static MoveInfo Empty() => new(-1, double.MaxValue, false);
 
-    public static MoveInfo Empty() => new MoveInfo(null!, double.MaxValue, false);
-
-    public static MoveInfo From(Line line, double t) => new MoveInfo(line, t, true);
+    public static MoveInfo From(int lineId, double t) => new(lineId, t, true);
 }

@@ -30,13 +30,13 @@ public class PlayerSpriteOffset
     public void NonWeaponStateOffset()
     {
         GameActions.TickWorld(World, 35);
-        Player.WeaponOffset.X.Should().Be(0);
+        Player.WeaponOffset.X.Should().Be(1);
         Player.WeaponOffset.Y.Should().Be(32);
 
         Player.Damage(null, 5, true, DamageType.AlwaysApply);
 
         GameActions.TickWorld(World, 35);
-        Player.WeaponOffset.X.Should().Be(0);
+        Player.WeaponOffset.X.Should().Be(1);
         Player.WeaponOffset.Y.Should().Be(32);
     }
 
@@ -44,7 +44,7 @@ public class PlayerSpriteOffset
     public void WeaponStateOffset()
     {
         GameActions.TickWorld(World, 35);
-        Player.WeaponOffset.X.Should().Be(0);
+        Player.WeaponOffset.X.Should().Be(1);
         Player.WeaponOffset.Y.Should().Be(32);
 
         Player.FireWeapon();
@@ -55,7 +55,7 @@ public class PlayerSpriteOffset
 
         // A_WeaponReady should reset back to normal
         GameActions.TickWorld(World, 35);
-        Player.WeaponOffset.X.Should().Be(0);
+        Player.WeaponOffset.X.Should().Be(1);
         Player.WeaponOffset.Y.Should().Be(32);
     }
 }

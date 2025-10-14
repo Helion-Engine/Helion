@@ -11,4 +11,22 @@
     <DefineConstants Condition="'$(RuntimeIdentifier)' == 'linux-x64'">LINUX</DefineConstants>
     <DefineConstants Condition="'$(RuntimeIdentifier)' == 'win-x64'">WINDOWS</DefineConstants>
   </PropertyGroup>
+
+  <!-- Configure code analysis (debug builds only) -->
+
+  <ItemGroup Condition="'$(Configuration)'=='DEBUG'">
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="5.0.0-1.25277.114">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!--See https://learn.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#analysismodecategory -->
+  <PropertyGroup>
+    <AnalysisModeGlobalization>Recommended</AnalysisModeGlobalization>
+    <AnalysisModeSingleFile>Recommended</AnalysisModeSingleFile>
+    <AnalysisModeSecurity>Recommended</AnalysisModeSecurity>
+    <AnalysisModeInteroperability>Recommended</AnalysisModeInteroperability>
+    <AnalysisModePerformance>Recommended</AnalysisModePerformance>
+  </PropertyGroup>
 </Project>

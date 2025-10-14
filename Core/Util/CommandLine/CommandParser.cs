@@ -34,7 +34,7 @@ public class CommandParser
         return args;
     }
 
-    private CommandArg FindOrCreate(string argKey, List<CommandArg> args)
+    private static CommandArg FindOrCreate(string argKey, List<CommandArg> args)
     {
         CommandArg? arg = args.FirstOrDefault(x => x.Key.Equals(argKey, StringComparison.OrdinalIgnoreCase));
         if (arg != null)
@@ -45,7 +45,7 @@ public class CommandParser
         return arg;
     }
 
-    private bool ArgEquals(string arg, string cmp)
+    private static bool ArgEquals(string arg, string cmp)
     {
         if (cmp.Length < arg.Length)
             return false;

@@ -1,4 +1,4 @@
-﻿using Helion.Util.Container;
+﻿using Helion.World;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
@@ -7,7 +7,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
 public class CoverWallUtil
 {
-    readonly record struct Heights(int Add, int Sub);
+    readonly record struct Heights(float AddTop, float SubBottom);
     const int ProjectHeight = 8192;
 
     public static unsafe void SetCoverWallVertices(Side side, DynamicVertex[] vertices, int index, WallLocation location)
@@ -16,58 +16,28 @@ public class CoverWallUtil
         fixed (DynamicVertex* startVertex = &vertices[index])
         {
             DynamicVertex* v = startVertex;
-            v->Z += heights.Add;
-            v->PrevZ += heights.Add;
+            v->Z += heights.AddTop;
+            v->PrevZ += heights.AddTop;
             v++;
 
-            v->Z -= heights.Sub;
-            v->PrevZ -= heights.Sub;
+            v->Z -= heights.SubBottom;
+            v->PrevZ -= heights.SubBottom;
             v++;
 
-            v->Z += heights.Add;
-            v->PrevZ += heights.Add;
+            v->Z += heights.AddTop;
+            v->PrevZ += heights.AddTop;
             v++;
 
-            v->Z += heights.Add;
-            v->PrevZ += heights.Add;
+            v->Z -= heights.SubBottom;
+            v->PrevZ -= heights.SubBottom;
             v++;
 
-            v->Z -= heights.Sub;
-            v->PrevZ -= heights.Sub;
+            v->Z += heights.AddTop;
+            v->PrevZ += heights.AddTop;
             v++;
 
-            v->Z -= heights.Sub;
-            v->PrevZ -= heights.Sub;
-        }
-    }
-
-    public static unsafe void AddCoverWallVertices(Side side, DynamicArray<StaticVertex> staticVertices, DynamicVertex[] vertices, WallLocation location)
-    {
-        var heights = GetProjectHeights(side, location);
-        staticVertices.EnsureCapacity(staticVertices.Length + 6);
-        int staticStartIndex = staticVertices.Length;
-        fixed (DynamicVertex* startVertex = &vertices[0])
-        {
-            DynamicVertex* v = startVertex;
-            staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
-                v->Options, v->LightLevelAdd, 0);
-            v++;
-            staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
-                v->Options, v->LightLevelAdd, 0);
-            v++;
-            staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
-                v->Options, v->LightLevelAdd, 0);
-            v++;
-            staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
-                v->Options, v->LightLevelAdd, 0);
-            v++;
-            staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
-                v->Options, v->LightLevelAdd, 0);
-            v++;
-            staticVertices.Data[staticStartIndex++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
-                v->Options, v->LightLevelAdd, 0);
-
-            staticVertices.SetLength(staticVertices.Length + 6);
+            v->Z -= heights.SubBottom;
+            v->PrevZ -= heights.SubBottom;
         }
     }
 
@@ -77,22 +47,22 @@ public class CoverWallUtil
         fixed (DynamicVertex* startVertex = &vertices[0])
         {
             DynamicVertex* v = startVertex;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
+            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.AddTop, v->U, v->V,
                 v->Options, v->LightLevelAdd, 0);
             v++;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
+            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.SubBottom, v->U, v->V,
                 v->Options, v->LightLevelAdd, 0);
             v++;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
+            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.AddTop, v->U, v->V,
                 v->Options, v->LightLevelAdd, 0);
             v++;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.Add, v->U, v->V,
+            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.SubBottom, v->U, v->V,
                 v->Options, v->LightLevelAdd, 0);
             v++;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
+            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z + heights.AddTop, v->U, v->V,
                 v->Options, v->LightLevelAdd, 0);
             v++;
-            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.Sub, v->U, v->V,
+            staticVertices[index++] = new StaticVertex(v->X, v->Y, v->Z - heights.SubBottom, v->U, v->V,
                 v->Options, v->LightLevelAdd, 0);
         }
     }
@@ -100,14 +70,15 @@ public class CoverWallUtil
     private static Heights GetProjectHeights(Side side, WallLocation location)
     {
         // Treat two-sided lines that block rendering as one-sided cover to prevent sprites from bleeding through.
-        if (side.PartnerSide == null || LineOpening.IsRenderingBlocked(side.Line))
+        if (side.PartnerSide == null || RenderBlock.IsBlocked(side.Line))
             return new Heights(ProjectHeight, ProjectHeight);
 
         // Do not add to upper portion of lower textures, or upper portion of lower textures
+        // Adjust cover wall offsets to not block extra pixels from the the backside
         return new Heights
         (
-            location == WallLocation.Lower ? 0 : ProjectHeight,
-            location == WallLocation.Upper ? 0 : ProjectHeight
+            location == WallLocation.Lower ? (float)WorldStatic.LineVertexGap : ProjectHeight,
+            location == WallLocation.Upper ? (float)WorldStatic.LineVertexGap : ProjectHeight
         );
     }
 }

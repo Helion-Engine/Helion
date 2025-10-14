@@ -77,6 +77,7 @@ public class HelionConsole : Target
     private readonly DataCache m_dataCache;
     private int m_capacity;
     private bool m_disposed;
+    private bool m_forceExpireMessages;
 
     public HelionConsole(DataCache dataCache, IConfig? cfg = null, CommandLineArgs? args = null)
     {
@@ -166,7 +167,7 @@ public class HelionConsole : Target
 
         lock (Messages)
         {
-            var node = m_dataCache.GetConsoleMessageNode(m_dataCache.GetConsoleMessage(message, Ticker.NanoTime(), color));
+            var node = m_dataCache.GetConsoleMessageNode(m_dataCache.GetConsoleMessage(message, m_forceExpireMessages ? 0 : Ticker.NanoTime(), color));
             Messages.AddFirst(node);
             RemoveExcessMessagesIfAny();
         }
@@ -202,6 +203,8 @@ public class HelionConsole : Target
         foreach (var c in text.ToCharArray())
             AddInput(c);
     }
+
+    public void ForceExpireMessages(bool set) => m_forceExpireMessages = set;
 
     protected override void Write(LogEventInfo logEvent) =>
         HelionMessageLogger_Message(null, new(logEvent.FormattedMessage, ToMessageLevel(logEvent.Level.Ordinal)));
@@ -270,14 +273,14 @@ public class HelionConsole : Target
                 rule = new LoggingRule("*", LogLevel.Debug, this);
         }
 
-        LogManager.Configuration.LoggingRules.Add(rule);
-        LogManager.Configuration.AddTarget(TargetName, this);
+        LogManager.Configuration?.LoggingRules.Add(rule);
+        LogManager.Configuration?.AddTarget(TargetName, this);
         LogManager.ReconfigExistingLoggers();
     }
 
-    private void RemoveLogger()
+    private static void RemoveLogger()
     {
-        LogManager.Configuration.RemoveTarget(TargetName);
+        LogManager.Configuration?.RemoveTarget(TargetName);
     }
 
     private void RemoveExcessMessagesIfAny()

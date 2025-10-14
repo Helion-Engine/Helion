@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
+using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Models;
 using Helion.Resources;
+using Helion.Resources.Definitions;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
@@ -14,6 +18,8 @@ using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
 using Helion.World.Special.SectorMovement;
 using Helion.World.Special.Specials;
@@ -32,9 +38,10 @@ public sealed class SpecialManager : ITickable, IDisposable
     public const int MinDest = -32000;
 
     private readonly LinkedList<ISpecial> m_specials = new();
-    private readonly List<ISectorSpecial> m_destroyedMoveSpecials = new();
-    private readonly List<Sector> m_sectorList = new();
-    private readonly List<(Sector, SectorPlane)> m_sectorPlanes = new();
+    private readonly List<ISectorSpecial> m_destroyedMoveSpecials = [];
+    private readonly List<Sector> m_sectorList = [];
+    private readonly List<(Sector, SectorPlane)> m_sectorPlanes = [];
+    private readonly Line m_dummyLine;
     private IRandom m_random;
     private WorldBase m_world;
     private DataCache m_dataCache;
@@ -73,6 +80,17 @@ public sealed class SpecialManager : ITickable, IDisposable
         m_world = world;
         m_random = random;
         m_dataCache = m_world.DataCache;
+
+        m_dummyLine = CreateDummyLine(new LineFlags(MapLineFlags.Doom(0)),
+            new(ZDoomLineSpecialType.None, LineActivationType.Tag, LineSpecialCompatibility.Default), default, Sector.CreateDefault());
+    }
+
+    public static Line CreateDummyLine(LineFlags flags, LineSpecial special, SpecialArgs args, Sector sector)
+    {
+        var wall = new Wall(Constants.NoTextureIndex, WallLocation.Middle);
+        var side = new Side(0, default, wall, wall, wall, sector);
+        var seg = new Seg2D(Vec2D.Zero, Vec2D.One);
+        return new Line(0, seg, side, null, flags, special, args);
     }
 
     public void UpdateTo(WorldBase world, IRandom random)
@@ -110,17 +128,88 @@ public sealed class SpecialManager : ITickable, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public List<ISpecialModel> GetSpecialModels()
+    public void GetSpecialModels(SpecialModelData data)
     {
-        List<ISpecialModel> specials = new(256);
-        foreach (var special in m_specials)
+        for (var node = m_specials.First; node != null; node = node.Next)
         {
-            ISpecialModel? specialModel = special.ToSpecialModel();
-            if (specialModel != null)
-                specials.Add(specialModel);
+            var special = node.Value;
+            if (special is ScrollSpecial scroll)
+                data.ScrollSpecials.Add(scroll.ToSpecialModel());
+            else if (special is LightChangeSpecial lightChange)
+                data.LightChangeSpecials.Add(lightChange.ToSpecialModel());
+            else if (special is LightFireFlickerDoom fireFlickerDoom)
+                data.LightFireFlickerDoomSpecials.Add(fireFlickerDoom.ToSpecialModel());
+            else if (special is LightFlickerDoomSpecial lightFlickerDoom)
+                data.LightFlickerDoomSpecials.Add(lightFlickerDoom.ToSpecialModel());
+            else if (special is LightPulsateSpecial pulsate)
+                data.LightPulsateSpecials.Add(pulsate.ToSpecialModel());
+            else if (special is LightStrobeSpecial strobe)
+                data.LightStrobeSpecials.Add(strobe.ToSpecialModel());
+            else if (special is PushSpecial push)
+                data.PushSpecials.Add(push.ToSpecialModel());
+            else if (special is StairSpecial stair)
+                data.StairSpecials.Add(stair.ToStairSpecialModel());
+            else if (special is ElevatorSpecial elevator)
+                data.ElevatorSpecials.Add(elevator.ToSpecialModel());
+            else if (special is SwitchChangeSpecial switchChange)
+                data.SwitchSpecials.Add(switchChange.ToSpecialModel());
+            else if (special is SectorMoveSpecial move)
+                data.MoveSpecials.Add(move.ToSpecialModel());
+            else
+                SpecialModelNotImplemented(special);
         }
+    }
 
-        return specials;
+    [Conditional("DEBUG")]
+    private static void SpecialModelNotImplemented(ISpecial special)
+    {
+        throw new Exception($"{special} doesn't implement model generation.");
+    }
+
+    public void AddSpecialModels(WorldModel worldModel)
+    {
+        for (int i = 0; i < worldModel.MoveSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.MoveSpecials[i].ToWorldSpecial(m_world));
+
+        for (int i = 0; i < worldModel.ScrollSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.ScrollSpecials[i].ToWorldSpecial(m_world));
+
+        for (int i = 0; i < worldModel.LightChangeSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.LightChangeSpecials[i].ToWorldSpecial(m_world));
+
+        for (int i = 0; i < worldModel.LightFireFlickerDoomSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.LightFireFlickerDoomSpecials[i].ToWorldSpecial(m_world));
+
+        for (int i = 0; i < worldModel.LightFlickerDoomSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.LightFlickerDoomSpecials[i].ToWorldSpecial(m_world));
+
+        for (int i = 0; i < worldModel.LightPulsateSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.LightPulsateSpecials[i].ToWorldSpecial(m_world));
+
+        for (int i = 0; i < worldModel.LightStrobeSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.LightStrobeSpecials[i].ToWorldSpecial(m_world));
+
+        for (int i = 0; i < worldModel.PushSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.PushSpecials[i].ToWorldSpecial(m_world));
+
+        for (int i = 0; i < worldModel.StairSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.StairSpecials[i].ToWorldSpecial(m_world));
+
+        for (int i = 0; i < worldModel.ElevatorSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.ElevatorSpecials[i].ToWorldSpecial(m_world));
+
+        for (int i = 0; i < worldModel.SwitchSpecials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.SwitchSpecials[i].ToWorldSpecial(m_world));
+
+        // Kept for legacy purposes. Old versions used generic list.
+        for (int i = 0; i < worldModel.Specials.Count; i++)
+            AddSpecialNodeNotNull(worldModel.Specials[i].ToWorldSpecial(m_world));
+    }
+
+    private void AddSpecialNodeNotNull(ISpecial? special)
+    {
+        if (special != null)
+            AddSpecialNode(special);
     }
 
     public void ResetInterpolation()
@@ -134,6 +223,15 @@ public sealed class SpecialManager : ITickable, IDisposable
             sectorSpecial.ResetInterpolation();
             SectorSpecialDestroyed?.Invoke(this, sectorSpecial);
         }
+    }
+
+    public bool AddActivatedLineSpecial(ZDoomLineSpecialType specialType, in SpecialArgs specialArgs, LineSpecialCompatibility? compat = null, bool resetActivation = true)
+    {
+        if (resetActivation)
+            m_dummyLine.SetActivated(false);
+        m_dummyLine.Args = specialArgs;
+        m_dummyLine.Special.Set(specialType, LineActivationType.Tag, compat ?? LineSpecialCompatibility.Default);
+        return TryAddActivatedLineSpecial(new(ActivationContext.CrossLine, m_world.Player, m_dummyLine, true));
     }
 
     public bool TryAddActivatedLineSpecial(in EntityActivateSpecial args)
@@ -365,16 +463,6 @@ public sealed class SpecialManager : ITickable, IDisposable
         return true;
     }
 
-    public void AddSpecialModels(IList<ISpecialModel> specialModels)
-    {
-        for (int i = 0; i < specialModels.Count; i++)
-        {
-            ISpecial? special = specialModels[i].ToWorldSpecial(m_world);
-            if (special != null)
-                AddSpecialNode(special);
-        }
-    }
-
     public SectorMoveSpecial CreateLiftSpecial(Sector sector, double speed, int delay, SectorDest dest = SectorDest.LowestAdjacentFloor, int lip = 0,
         bool liftSound = true)
     {
@@ -586,20 +674,43 @@ public sealed class SpecialManager : ITickable, IDisposable
         return spec;
     }
 
-    public void StartInitSpecials(LevelStats levelStats)
+    public void StartInitSpecials(LevelStats levelStats, bool flagsOnly)
     {
-        foreach (var line in m_world.Lines)
+        if (flagsOnly)
         {
-            if (line.Special != null && (line.Flags.Activations & LineActivations.LevelStart) != 0)
-                HandleLineInitSpecial(line);
+            foreach (var line in m_world.Lines)
+            {
+                if (line.Special != null && (line.Flags.Activations & LineActivations.LevelStart) != 0)
+                    HandleLineInitSpecialFlag(line);
+            }
         }
-
-        for (int i = 0; i < m_world.Sectors.Count; i++)
+        else
         {
-            Sector sector = m_world.Sectors[i];
-            if (sector.Secret)
-                levelStats.TotalSecrets++;
-            HandleSectorSpecial(sector);
+            foreach (var line in m_world.Lines)
+            {
+                if (line.Special != null && (line.Flags.Activations & LineActivations.LevelStart) != 0)
+                    HandleLineInitSpecial(line);
+            }
+
+            for (int i = 0; i < m_world.Sectors.Count; i++)
+            {
+                Sector sector = m_world.Sectors[i];
+                if (sector.Secret)
+                    levelStats.TotalSecrets++;
+                HandleSectorSpecial(sector);
+            }
+        }
+    }
+
+    // This is currently just for the id24 offset and rotate since it needs to set the FlatTransformMethod.
+    // Prevents the method from needing to be serialized and keeps saves backwards compatibile.
+    private void HandleLineInitSpecialFlag(Line line)
+    {
+        switch (line.Special.LineSpecialType)
+        {
+            case ZDoomLineSpecialType.OffsetThenRotateByLineDirection:
+                FlagTransform(line);
+                break;
         }
     }
 
@@ -668,20 +779,16 @@ public sealed class SpecialManager : ITickable, IDisposable
                 SetTransferHeights(line);
                 break;
             case ZDoomLineSpecialType.OffsetPlaneByLineDirection:
-                SetSectorPlaneOffset(line);
+                SetSectorPlaneOffsetAndRotation(line, true, false);
                 break;
-
             case ZDoomLineSpecialType.RotatePlaneByLineDirection:
-                SetSectorPlaneRotation(line);
+                SetSectorPlaneOffsetAndRotation(line, false, true);
                 break;
-
             case ZDoomLineSpecialType.OffsetThenRotateByLineDirection:
-                SetSectorPlaneOffset(line);
-                SetSectorPlaneRotation(line);
+                SetSectorPlaneOffsetAndRotation(line, true, true);
                 break;
-
             case ZDoomLineSpecialType.SetSectorColorMap:
-                SetSectorColorMap(line);
+                SetSectorColorMap(line, true);
                 break;
         }
     }
@@ -696,9 +803,9 @@ public sealed class SpecialManager : ITickable, IDisposable
         AddSpecial(new ScrollSpecial(line, speed, lineScroll));
     }
 
-    private void SetSectorColorMap(Line line)
+    private void SetSectorColorMap(Line line, bool fromFront)
     {
-        var colormap = line.Front.Colormaps?.Upper;
+        var colormap = fromFront ? line.Front.Colormaps?.Upper : line.Front.Colormaps?.Lower;
         var sectors = GetSectorsFromSpecialLine(line);
         for (int i = 0; i < sectors.Count; i++)
         {
@@ -707,38 +814,60 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private void SetSectorPlaneRotation(Line line)
+    private void SetSectorPlaneOffsetAndRotation(Line line, bool offset, bool rotate)
     {
         SectorPlanes planes = (SectorPlanes)line.Args.Arg1;
         var sectors = GetSectorsFromSpecialLine(line);
-        var rotate = -line.StartPosition.Angle(line.EndPosition);
+        var rotation = rotate ? -line.GetAngle() : 0;
+        var offsetAmount = line.Segment.Delta;
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
             if ((planes & SectorPlanes.Floor) != 0)
-                sector.Floor.RenderOffsets.Rotate += rotate;
+            {
+                if (rotate)
+                {
+                    sector.DataChanges |= SectorDataTypes.Rotate;
+                    sector.Floor.RenderOffsets.Rotate += rotation;
+                    sector.Floor.FlatTransformMethod = FlatTransformMethod.OffsetThenRotate;
+                }
+
+                if (offset)
+                    SetPlaneOffset(sector, sector.Floor, offsetAmount);
+            }
             if ((planes & SectorPlanes.Ceiling) != 0)
-                sector.Ceiling.RenderOffsets.Rotate += rotate;
+            {
+                if (rotate)
+                {
+                    sector.DataChanges |= SectorDataTypes.Rotate;
+                    sector.Ceiling.RenderOffsets.Rotate += rotation;
+                    sector.Ceiling.FlatTransformMethod = FlatTransformMethod.OffsetThenRotate;
+                }
+
+                if (offset)
+                    SetPlaneOffset(sector, sector.Ceiling, offsetAmount);
+            }
         }
     }
 
-    private void SetSectorPlaneOffset(Line line)
+    private void FlagTransform(Line line)
     {
         SectorPlanes planes = (SectorPlanes)line.Args.Arg1;
         var sectors = GetSectorsFromSpecialLine(line);
-        var offset = line.EndPosition - line.StartPosition;
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
             if ((planes & SectorPlanes.Floor) != 0)
-                SetPlaneOffset(sector.Floor, offset);
+                sector.Floor.FlatTransformMethod = FlatTransformMethod.OffsetThenRotate;
             if ((planes & SectorPlanes.Ceiling) != 0)
-                SetPlaneOffset(sector.Ceiling, offset);
+                sector.Ceiling.FlatTransformMethod = FlatTransformMethod.OffsetThenRotate;
         }
     }
 
-    private static void SetPlaneOffset(SectorPlane plane, Vec2D offset)
+
+    private static void SetPlaneOffset(Sector sector, SectorPlane plane, Vec2D offset)
     {
+        sector.DataChanges |= SectorDataTypes.Offset;
         offset = new(-offset.X, offset.Y);
         plane.RenderOffsets.Offset += offset;
         plane.RenderOffsets.LastOffset += offset;
@@ -763,8 +892,9 @@ public sealed class SpecialManager : ITickable, IDisposable
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
-            double length = line.GetLength();
+            var length = line.GetLength();
             sector.SetFriction(Math.Clamp((0x1EB8 * length / 0x80 + 0xD000) / 65536.0, 0.0, 1.0));
+            WorldStatic.SectorFriction = true;
         }
     }
 
@@ -807,7 +937,7 @@ public sealed class SpecialManager : ITickable, IDisposable
     private static Vec2D GetPushFactor(Line line)
     {
         if (line.Args.Arg3 != 0)
-            return line.EndPosition - line.StartPosition;
+            return line.Segment.Delta;
         
         // Arg2 = angle, Arg1 = amount
         return Vec2D.UnitCircle(line.Args.Arg2) * line.Args.Arg1;
@@ -821,7 +951,11 @@ public sealed class SpecialManager : ITickable, IDisposable
         if (line.Args.Arg1 == (int)ZDoomStaticInit.Sky)
         {
             foreach (Sector sector in m_world.FindBySectorTag(line.Args.Arg0))
-                sector.SetSkyTexture(line.Front.Upper.TextureHandle, line.Args.Arg2 != 0, m_world.Gametick);
+            {
+                var options = line.Args.Arg2 != 0 ? SkyOptions.Flip : SkyOptions.None;
+                options |= SkyOptions.SkyTransfer;
+                sector.SetSkyTexture(line.Front.Upper.TextureHandle, options, (0, line.Front.Offset.Y), m_world.Gametick);
+            }
         }
     }
 
@@ -972,7 +1106,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
 
         if (sector.DamageAmount > 0)
-            sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.DamageAmount);
+            sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.DamageAmount, sector.DamageLeakiness, sector.DamageInterval);
 
         if (sector.KillEffect != InstantKillEffect.None)
             sector.SectorDamageSpecial = new SectorDamageSpecial(m_world, sector, sector.KillEffect);
@@ -1028,12 +1162,36 @@ public sealed class SpecialManager : ITickable, IDisposable
                 return true;
 
             case ZDoomLineSpecialType.SetSectorColorMap:
-                SetSectorColorMap(args.ActivateLineSpecial);
+                SetSectorColorMap(args.ActivateLineSpecial, args.FromFront);
                 return true;
 
             case ZDoomLineSpecialType.ChangeMusic:
                 ChangeMusic(args);
                 return true;
+
+            case ZDoomLineSpecialType.ThingSpawn:
+                return ActionSpecials.ThingSpawn(m_world, line.Args, teleportFog: true);
+
+            case ZDoomLineSpecialType.ThingSpawnNoFog:
+                return ActionSpecials.ThingSpawn(m_world, line.Args, teleportFog: false);
+
+            case ZDoomLineSpecialType.ThingSpawnFacing:
+                return ActionSpecials.ThingSpawnFacing(m_world, line.Args);
+
+            case ZDoomLineSpecialType.ThingProjectile:
+                return ActionSpecials.ThingProjectile(m_world, line.Args, gravity: false);
+
+            case ZDoomLineSpecialType.ThingProjectileGravity:
+                return ActionSpecials.ThingProjectile(m_world, line.Args, gravity: true);
+
+            case ZDoomLineSpecialType.ThingProjectileAim:
+                return ActionSpecials.ThingProjectileAimed(args.Entity, m_world, line.Args);
+
+            case ZDoomLineSpecialType.ThingIdRemove:
+                return ActionSpecials.ThingRemove(m_world, line.Args);
+
+            case ZDoomLineSpecialType.ThingDestroy:
+                return ActionSpecials.ThingDestroy(m_world, line.Args);
         }
 
         return false;
@@ -1565,7 +1723,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private ISpecial? CreatePlatToggleCeiling(Sector sector)
+    private SectorMoveSpecial? CreatePlatToggleCeiling(Sector sector)
     {
         double destZ = GetDestZ(sector, SectorPlaneFace.Ceiling, SectorDest.Ceiling);
         return m_dataCache.GetSectorMoveSpecial(m_world, sector, sector.Floor.Z, destZ, new(SectorPlaneFace.Floor, MoveDirection.Up,

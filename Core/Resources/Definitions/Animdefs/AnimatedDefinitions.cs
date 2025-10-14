@@ -23,7 +23,7 @@ public class AnimatedDefinitions
             ConsumeDefinition(parser);
     }
 
-    private void ConsumeAnimatedDoor(SimpleParser parser)
+    private static void ConsumeAnimatedDoor(SimpleParser parser)
     {
         throw parser.MakeException("TODO: Animated doors are not supported in animdefs currently");
     }

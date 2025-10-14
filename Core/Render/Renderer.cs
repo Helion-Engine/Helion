@@ -16,7 +16,6 @@ using Helion.Render.OpenGL.Renderers.Legacy.World.Automap;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
 using Helion.Render.OpenGL.Texture.Legacy;
-using Helion.Render.OpenGL.Textures;
 using Helion.Render.OpenGL.Util;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -57,6 +56,7 @@ public partial class Renderer : IDisposable
     /// Framebuffer used to draw the world.
     /// </summary>
     private GLFramebuffer m_virtualFramebuffer;
+    private readonly GLFramebuffer m_screenshotFramebuffer;
     public readonly LegacyGLTextureManager Textures;
     internal readonly IConfig m_config;
     internal readonly FpsTracker m_fpsTracker;
@@ -69,11 +69,11 @@ public partial class Renderer : IDisposable
     private readonly TransitionRenderer m_transitionRenderer;
 
     private IWorld? m_world;
-    private GLBufferTextureStorage? m_colorMapBuffer;
     private Rectangle m_viewport = new(0, 0, 800, 600);
+    private uint[] m_frameBufferPixelData = [];
     private bool m_disposed;
 
-    public Dimension RenderDimension => UseVirtualResolution ? m_config.Window.Virtual.Dimension : Window.Dimension;
+    public Dimension RenderDimension => UseVirtualResolution ? m_config.Window.Virtual.Dimension : Window.ClientDimension;
     public IImageDrawInfoProvider DrawInfo => Textures.ImageDrawInfoProvider;
     private bool UseVirtualResolution => (m_config.Window.Virtual.Enable && m_config.Window.Virtual.Dimension.Value.HasPositiveArea);
 
@@ -96,17 +96,40 @@ public partial class Renderer : IDisposable
         Default = new(window, this);
         m_mainFramebuffer = GenerateMainFramebuffer();
         m_virtualFramebuffer = GenerateVirtualFramebuffer();
+        // Temporary frame buffer for smaller save game screenshots. Significantly faster than pulling the full sized pixel buffer and downsizing using image sharp.
+        m_screenshotFramebuffer = new("Screenshot", (Constants.ScreenshotSaveWidth, Constants.ScreenshotSaveHeight), 1);
+
+        m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
+
+        SetPixelGapCorrection(m_config.Render.PixelGapCorrection.Value);
 
         PrintGLInfo();
         SetGLStates();
     }
 
-    private GLFramebuffer GenerateMainFramebuffer() => new("Main", Window.Dimension, 1);
+    private void PixelGapCorrection_OnChanged(object? sender, bool e) => SetPixelGapCorrection(e);
+    private static void SetPixelGapCorrection(bool set)
+    {
+        if (set)
+        {
+            WorldStatic.LineVertexGap = Constants.VertexGapPush;
+            WorldStatic.LineVertexOffset = -(float)Constants.VertexGapPush;
+            WorldStatic.CoverWallOffset = -(float)Constants.VertexGapPush * 2;
+        }
+        else
+        {
+            WorldStatic.LineVertexGap = 0;
+            WorldStatic.LineVertexOffset = 0;
+            WorldStatic.CoverWallOffset = 0;
+        }
+    }
+
+    private GLFramebuffer GenerateMainFramebuffer() => new("Main", Window.ClientDimension, 1);
     private GLFramebuffer GenerateVirtualFramebuffer() => new("Virtual", RenderDimension, 1, GLFrameBufferOptions.DepthStencilAttachment);
 
     public unsafe void UploadColorMap()
     {
-        if (!ShaderVars.PaletteColorMode)
+        if (!(ShaderVars.PaletteColorMode || ShaderVars.EmulateInvulnerabilityColorMap))
             return;
 
         var colorMapData = ColorMapBuffer.Create(m_archiveCollection.Palette, m_archiveCollection.Definitions.Colormaps);
@@ -128,6 +151,7 @@ public partial class Renderer : IDisposable
         SetReverseZ();
         ShaderVars.Depth = ShaderVars.ReversedZ ? "w" : "z";
         ShaderVars.PaletteColorMode = m_config.Window.ColorMode.Value == RenderColorMode.Palette;
+        ShaderVars.EmulateInvulnerabilityColorMap = m_config.Render.EmulateInvulnerabilityColorMap;
     }
 
     private void SetReverseZ()
@@ -162,7 +186,7 @@ public partial class Renderer : IDisposable
         return viewport.Height / 480f / 2 * (float)config.FuzzAmount;
     }
 
-    public static ShaderUniforms GetShaderUniforms(IConfig config, IWorld world, RenderInfo renderInfo)
+    public static ShaderUniforms GetShaderUniforms(IConfig config, RenderInfo renderInfo)
     {
         bool drawInvulnerability = false;
         int extraLight = 0;
@@ -174,7 +198,7 @@ public partial class Renderer : IDisposable
         if (renderInfo.ViewerEntity.PlayerObj != null)
         {
             var player = renderInfo.ViewerEntity.PlayerObj;
-            if (player.DrawFullBright())
+            if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
                 mix = 1.0f;
             if (player.DrawInvulnerableColorMap())
                 drawInvulnerability = true;
@@ -183,11 +207,13 @@ public partial class Renderer : IDisposable
 
             if (ShaderVars.PaletteColorMode)
             {
-                mix = 0.0f;
                 colorMapUniforms = GetColorMapUniforms(renderInfo.ViewerEntity, renderInfo.Camera);
-                paletteIndex = PaletteUtil.GetPalette(config, player);
-                if (!player.DrawInvulnerableColorMap() && player.DrawFullBright())
-                    mix = 1.0f;
+
+                if (!config.Window.PaletteTrueColorOverlay)
+                {
+                    mix = 0.0f;
+                    paletteIndex = PaletteUtil.GetPalette(config, player);
+                }
             }
         }
 
@@ -195,11 +221,31 @@ public partial class Renderer : IDisposable
         if (maxDistance <= 0)
             maxDistance = Constants.DefaultMaxDistance;
 
-        return new ShaderUniforms(CalculateMvpMatrix(renderInfo),
+        return new ShaderUniforms(
+            CalculateMvpMatrix(renderInfo),
             CalculateMvpMatrix(renderInfo, true),
-            GetTimeFrac(), drawInvulnerability, mix, extraLight, GetDistanceOffset(renderInfo),
-            colorMix, GetFuzzDiv(renderInfo.Config, renderInfo.Viewport), colorMapUniforms, paletteIndex, config.Render.LightMode, 
-            (float)config.Render.GammaCorrection, maxDistance);
+            GetTimeFrac(),
+            drawInvulnerability,
+            mix,
+            extraLight,
+            GetDistanceOffset(renderInfo),
+            colorMix,
+            GetFuzzDiv(renderInfo.Config, renderInfo.Viewport),
+            colorMapUniforms,
+            paletteIndex,
+            config.Render.LightMode,
+            (float)config.Render.GammaCorrection,
+            maxDistance,
+            config.Render.Brightmaps,
+            GetDownScaleAmount(config, renderInfo));
+    }
+
+    private static float GetDownScaleAmount(IConfig config, RenderInfo renderInfo)
+    {
+        if (renderInfo.Viewport.Height <= 480)
+            return 1;
+
+        return (float)config.Render.DownScaleVanillaRenderSampleBuffer;
     }
 
     private static ColorMapUniforms GetColorMapUniforms(Entity viewer, OldCamera camera)
@@ -310,7 +356,7 @@ public partial class Renderer : IDisposable
 
     private void UpdateFramebufferDimensionsIfNeeded()
     {
-        if (m_mainFramebuffer.Dimension != Window.Dimension && Window.Dimension.HasPositiveArea)
+        if (m_mainFramebuffer.Dimension != Window.ClientDimension && Window.ClientDimension.HasPositiveArea)
         {
             m_mainFramebuffer.Dispose();
             m_mainFramebuffer = GenerateMainFramebuffer();
@@ -331,6 +377,8 @@ public partial class Renderer : IDisposable
         BindColorMapBuffer();
         BindSectorColorMapBuffer();
         BindLightBuffer();
+        BindMapDataBuffer();
+        BindLineHeightsBuffer();
 
         // This has to be tracked beyond just the rendering command, and it
         // also prevents something from going terribly wrong if there is no
@@ -395,17 +443,27 @@ public partial class Renderer : IDisposable
 
     private void BindColorMapBuffer()
     {
-        m_colorMapBuffer?.BindTexture(TextureUnit.Texture2);
+        m_colorMapBuffer?.BindTexture(BindTextures.Colormap);
     }
 
     private void BindSectorColorMapBuffer()
     {
-        m_sectorColorMapsBuffer?.BindTexture(TextureUnit.Texture3);
+        m_sectorColorMapsBuffer?.BindTexture(BindTextures.SectorColormap);
     }
 
     private void BindLightBuffer()
     {
-        m_lightBufferStorage?.BindTexture(TextureUnit.Texture1);
+        m_lightBufferStorage?.BindTexture(BindTextures.SectorLight);
+    }
+
+    private void BindMapDataBuffer()
+    {
+        m_mapDataBuffer?.BindTexture(BindTextures.MapLineData);
+    }
+
+    private void BindLineHeightsBuffer()
+    {
+        m_lineHeightsBuffer?.BindTexture(BindTextures.LineHeights);
     }
 
     public void PerformThrowableErrorChecks()
@@ -414,7 +472,7 @@ public partial class Renderer : IDisposable
             GLHelper.AssertNoGLError();
     }
 
-    public void FlushPipeline()
+    public static void FlushPipeline()
     {
         GL.Finish();
     }
@@ -436,12 +494,9 @@ public partial class Renderer : IDisposable
         InfoPrinted = true;
     }
 
-    private void SetGLStates()
+    private static void SetGLStates()
     {
         GL.Enable(EnableCap.DepthTest);
-
-        if (m_config.Render.Multisample > 1)
-            GL.Enable(EnableCap.Multisample);
 
         GL.Enable(EnableCap.TextureCubeMapSeamless);
 
@@ -450,8 +505,11 @@ public partial class Renderer : IDisposable
 
         GL.Enable(EnableCap.CullFace);
         GL.FrontFace(FrontFaceDirection.Ccw);
-        GL.CullFace(CullFaceMode.Back);
-        GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+        GL.CullFace(TriangleFace.Back);
+        GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
+
+        // Required for uv clamping in the vertex shader for pixel gap correction
+        GL.ProvokingVertex(ProvokingVertexMode.FirstVertexConvention);
     }
 
     private void SetGLDebugger()
@@ -489,43 +547,64 @@ public partial class Renderer : IDisposable
         });
     }
 
-    public Image GetMainFramebufferData()
-    {
-        var (w, h, rgba) = GetMainFramebufferDataRaw();
-        int pixelCount = w * h;
-        uint[] argb = new uint[pixelCount];
-        int offset = 0;
-        for (int i = 0; i < pixelCount; i++)
-        {
-            uint r = rgba[offset];
-            uint g = rgba[offset + 1];
-            uint b = rgba[offset + 2];
-            // ignore the original alpha channel
-            argb[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
-            offset += 4;
-        }
+    public Image GetMainFramebufferData() => GenerateFrameBufferImage(m_mainFramebuffer);
 
-        var image = new Image(argb, (w, h), ImageType.Argb, (0, 0), Resources.ResourceNamespace.Global).FlipY();
-        return image;
+    public Image GetVirtualFrameBufferData() => GenerateFrameBufferImage(m_virtualFramebuffer);
+
+    public Image GetScreenshotFrameBufferData()
+    {
+        BlitToScreenshotBuffer();
+        return GenerateFrameBufferImage(m_screenshotFramebuffer);
     }
 
-    private unsafe (int width, int height, byte[] rgba) GetMainFramebufferDataRaw()
+    private readonly Image m_framebufferImage = new([], (0, 0), ImageType.Rgba, (0, 0), Resources.ResourceNamespace.Global);
+    private uint[] m_imageRowFlip = [];
+
+    private Image GenerateFrameBufferImage(GLFramebuffer framebuffer)
+    {
+        var (w, h, rgba) = GetFramebufferDataRaw(framebuffer);
+        if (w > m_imageRowFlip.Length)
+            m_imageRowFlip = new uint[Math.Max(w, m_mainFramebuffer.Dimension.Width)];
+
+        // OpenGL returns the Y pixel rows flipped
+        var rowSize = w;
+        for (int y = 0; y < h / 2; y++)
+        {
+            var topRowIndex = y * rowSize;
+            var bottomRowIndex = (h - y - 1) * rowSize;
+
+            Array.Copy(rgba, topRowIndex, m_imageRowFlip, 0, rowSize);
+            Array.Copy(rgba, bottomRowIndex, rgba, topRowIndex, rowSize);
+            Array.Copy(m_imageRowFlip, 0, rgba, bottomRowIndex, rowSize);
+        }
+
+        m_framebufferImage.SetPixels(rgba, (w, h));
+        return m_framebufferImage;
+    }
+
+    private unsafe (int width, int height, uint[] rgba) GetFramebufferDataRaw(GLFramebuffer framebuffer)
     {
         GL.Finish();
-        (int w, int h) = m_mainFramebuffer.Dimension;
-        byte[] rgba = new byte[w * h * 4];
+        (int w, int h) = framebuffer.Dimension;
+        if (m_frameBufferPixelData.Length < w * h)
+        {
+            // Keep array for framebuffer pixel data. Used for savegame and main buffer screenshots. Take the maximum to not realloc later.
+            var allocWidth = Math.Max(w, m_mainFramebuffer.Dimension.Width);
+            var allocHeight = Math.Max(h, m_mainFramebuffer.Dimension.Height);
+            m_frameBufferPixelData = new uint[allocWidth * allocHeight];
+        }
 
-        m_mainFramebuffer.BindRead();
-        fixed (byte* rgbPtr = rgba)
+        framebuffer.BindRead();
+        fixed (uint* rgbPtr = m_frameBufferPixelData)
         {
             IntPtr ptr = new(rgbPtr);
             GL.ReadPixels(0, 0, w, h, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
         }
 
-        return (w, h, rgba);
+        return (w, h, m_frameBufferPixelData);
     }
 
-    private void HandleClearCommand(ClearRenderCommand clearRenderCommand)
+    private static void HandleClearCommand(ClearRenderCommand clearRenderCommand)
     {
         Color color = clearRenderCommand.ClearColor;
         GL.ClearColor(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
@@ -546,10 +625,10 @@ public partial class Renderer : IDisposable
         if (cmd.AreaIsTextureDimension)
         {
             Vec2I topLeft = (cmd.DrawArea.Top, cmd.DrawArea.Left);
-            m_hudRenderer.DrawImage(cmd.TextureName, cmd.ResourceNamespace, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex);
+            m_hudRenderer.DrawImage(cmd.TextureName, cmd.ResourceNamespace, topLeft, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex, cmd.BrightmapName);
         }
         else
-            m_hudRenderer.DrawImage(cmd.TextureName, cmd.ResourceNamespace, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex);
+            m_hudRenderer.DrawImage(cmd.TextureName, cmd.ResourceNamespace, cmd.DrawArea, cmd.MultiplyColor, cmd.Alpha, cmd.DrawColorMap, cmd.DrawFuzz, cmd.DrawPalette, cmd.ColorMapIndex, cmd.BrightmapName);
     }
 
     private void HandleDrawShape(DrawShapeCommand cmd)
@@ -588,7 +667,7 @@ public partial class Renderer : IDisposable
 
         m_renderInfo.Set(cmd.Camera, cmd.GametickFraction, viewport, cmd.ViewerEntity, cmd.DrawAutomap,
             cmd.AutomapOffset, cmd.AutomapScale, m_config.Render, viewSector, transferHeightsView);
-        m_renderInfo.Uniforms = GetShaderUniforms(m_config, cmd.World, m_renderInfo);
+        m_renderInfo.Uniforms = GetShaderUniforms(m_config, m_renderInfo);
 
         DrawHudImagesIfAnyQueued(viewport, m_renderInfo.Uniforms);
 
@@ -625,16 +704,34 @@ public partial class Renderer : IDisposable
     private void DrawHudImagesIfAnyQueued(Rectangle viewport, ShaderUniforms uniforms)
     {
         // Bind main buffer for fuzz refraction sampling when player has partial invisibility
-        GL.ActiveTexture(TextureUnit.Texture7);
-        GL.BindTexture(TextureTarget.Texture2D, m_mainFramebuffer.Textures[0].Name);
+        GL.ActiveTexture(BindTextures.OpaqueTexture);
+        GL.BindTexture(TextureTarget.Texture2D, m_mainFramebuffer.ColorAttachment0.Name);
         m_hudRenderer.Render(viewport, m_mainFramebuffer.Dimension, uniforms);
         m_hudRenderer.Clear();
+    }
+
+    private void BlitToScreenshotBuffer()
+    {
+        var screenshotDimension = m_screenshotFramebuffer.Dimension;
+        var virtualDimension = m_virtualFramebuffer.Dimension;
+        float scaleX = Math.Min(screenshotDimension.AspectRatio / virtualDimension.AspectRatio, 1.0f);
+        int sourceWidth = (int)(virtualDimension.Width * scaleX);
+        int offsetX = (virtualDimension.Width - sourceWidth) / 2;
+
+        m_screenshotFramebuffer.BindDraw();
+        m_virtualFramebuffer.BindRead();
+        GL.ClearColor(0, 0, 0, 1);
+        GL.Clear(ClearBufferMask.ColorBufferBit);
+        GL.BlitFramebuffer(
+            offsetX, 0, offsetX + sourceWidth, virtualDimension.Height,
+            0, 0, screenshotDimension.Width, screenshotDimension.Height,
+            ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Linear);
     }
 
     private void BlitVirtualFramebufferToMain()
     {
         var mainDimension = m_mainFramebuffer.Dimension;
-        var virtualDimension = m_virtualFramebuffer.Textures[0].Dimension;
+        var virtualDimension = m_virtualFramebuffer.ColorAttachment0.Dimension;
         float scaleX = (m_config.Window.Virtual.Stretch)
             ? 1f
             : Math.Min(virtualDimension.AspectRatio / mainDimension.AspectRatio, 1.0f);
@@ -671,6 +768,8 @@ public partial class Renderer : IDisposable
         if (m_disposed)
             return;
 
+        m_config.Render.PixelGapCorrection.OnChanged -= PixelGapCorrection_OnChanged;
+
         m_mainFramebuffer.Dispose();
         m_virtualFramebuffer.Dispose();
         Textures.Dispose();
@@ -681,6 +780,8 @@ public partial class Renderer : IDisposable
         m_lightBufferStorage?.Dispose();
         m_sectorColorMapsBuffer?.Dispose();
         m_transitionRenderer?.Dispose();
+        m_mapDataBuffer?.Dispose();
+        m_lineHeightsBuffer?.Dispose();
 
         m_disposed = true;
     }

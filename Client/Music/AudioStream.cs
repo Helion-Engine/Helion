@@ -20,7 +20,7 @@ public class AudioStreamFactory : IOutputStreamFactory
 /// </summary>
 public sealed class AudioStream : IOutputStream
 {
-    private bool disposed = false;
+    private bool disposed;
 
     /// <summary>
     /// Gets the sample rate of the audio stream.
@@ -134,14 +134,8 @@ public sealed class AudioStream : IOutputStream
         ObjectDisposedException.ThrowIf(disposed, this);
         ArgumentNullException.ThrowIfNull(fillBlock);
 
-        // If the previous playback is still ongoing, we have to stop it.
-        if (m_pollingTask != null)
-        {
-            m_pollingCts!.Cancel();
-            m_pollingTask.Wait();
-            m_pollingTask.Dispose();
-            m_pollingCts.Dispose();
-        }
+        // End any previous playback
+        Stop();
 
         // If the source is mono, then just do channel doubling.
         m_fillBlock = ChannelCount == 1
@@ -183,17 +177,16 @@ public sealed class AudioStream : IOutputStream
     {
         ObjectDisposedException.ThrowIf(disposed, this);
 
-        if (m_pollingTask != null)
+        if (m_pollingCts != null)
         {
-            m_pollingCts!.Cancel();
-            m_pollingTask.Wait();
-
+            m_pollingCts.Cancel();
+            m_pollingTask?.Wait();
             m_pollingCts.Dispose();
             m_pollingCts = null;
-
-            m_pollingTask.Dispose();
-            m_pollingTask = null;
         }
+
+        m_pollingTask?.Dispose();
+        m_pollingTask = null;
     }
 
     private void PollingLoop(CancellationToken ct)
@@ -271,15 +264,7 @@ public sealed class AudioStream : IOutputStream
             return;
         }
 
-        if (m_pollingTask != null)
-        {
-            m_pollingCts!.Cancel();
-            m_pollingTask.Wait();
-            m_pollingTask.Dispose();
-            m_pollingTask = null;
-            m_pollingCts.Dispose();
-            m_pollingCts = null;
-        }
+        Stop();
 
         if (m_alSource != 0)
         {

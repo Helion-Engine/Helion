@@ -8,6 +8,7 @@ using Helion.Graphics.Fonts;
 using Helion.Render.Common.Textures;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 using Helion.Render.OpenGL.Shared;
+using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
 using Helion.Util;
@@ -44,6 +45,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     /// cannot be found.
     /// </summary>
     public GLTextureType NullTexture { get; }
+    public GLTextureType TransparentNullTexture { get; }
 
     /// <summary>
     /// A fully white texture that can be used for drawing shapes of a
@@ -68,6 +70,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         Config = config;
         ArchiveCollection = archiveCollection;
         NullTexture = config.Render.NullTexture ? CreateNullTexture() : CreateTransparentNullTexture();
+        TransparentNullTexture = config.Render.NullTexture ? CreateTransparentNullTexture() : NullTexture;
         WhiteTexture = CreateWhiteTexture();
         BlackTexture = GenerateTexture(Image.CreateBlackImage(), "NULLBLACK", ResourceNamespace.Global);
         NullSpriteRotation = CreateNullSpriteRotation();
@@ -191,19 +194,29 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         var texture = TextureManager.GetTexture(index);
         var renderTexture = repeatY ? texture.RenderStore : texture.RenderStoreClamp;
 
-        if (renderTexture != null)
-            return (GLTextureType)renderTexture;
-
-        if (texture.Image == null)
+        if (renderTexture == null)
         {
-            renderTexture = CreateTexture(texture.Image, repeatY);
+            renderTexture = (texture.Image != null)
+                ? CreateTexture(texture.Image, texture.Name, texture.Image.Namespace, repeatY)
+                : CreateTexture(texture.Image, repeatY);
             texture.SetGLTexture(renderTexture, repeatY);
-            return (GLTextureType)renderTexture;
         }
 
-        renderTexture = CreateTexture(texture.Image, texture.Name, texture.Image.Namespace, repeatY);
-        texture.SetGLTexture(renderTexture, repeatY);
         return (GLTextureType)renderTexture;
+    }
+
+    public GLTextureType? GetBrightmapTexture(int index, bool repeatY = true)
+    {
+        var texture = TextureManager.GetTexture(index);
+        var renderTexture = repeatY ? texture.BrightmapRenderStore : texture.BrightmapRenderStoreClamp;
+
+        if (renderTexture == null && texture.BrightmapImage != null)
+        {
+            renderTexture = CreateTexture(texture.BrightmapImage, $"[BRIGHTMAP] {texture.Name}", ResourceNamespace.Brightmaps, repeatY);
+            texture.SetBrightmapGLTexture(renderTexture, repeatY);
+        }
+
+        return (GLTextureType?)renderTexture;
     }
 
     /// <summary>
@@ -232,12 +245,23 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
             var texture = new Resources.Texture(translatedName, ResourceNamespace.Sprites, 0)
             {
                 Image = ArchiveCollection.ImageRetriever.GetOnlyMapped(translatedName, spriteRotation.Texture.Name, ResourceNamespace.Sprites,
-                    colorTranslation: ArchiveCollection.Definitions.Colormaps[colorMapIndex].IndexLayer(0))
+                    colorTranslation: ArchiveCollection.Definitions.Colormaps[colorMapIndex].IndexLayer(0)),
             };
 
-            translationRotation = new SpriteRotation(texture, spriteRotation.Mirror)
+            var brightmap = ArchiveCollection.GetBrightmapFor(spriteRotation.Texture.Name, ResourceNamespace.Sprites);
+            if (brightmap?.BrightmapName != null)
+                texture.BrightmapImage = ArchiveCollection.ImageRetriever.GetOnly(brightmap.BrightmapName, ResourceNamespace.Brightmaps);
+            bool brightmapNoFullbright = brightmap?.DisableFullbright ?? false;
+
+            // Ensure that the brightmap texture is the null transparent texture. The debug option creates red/black checker texture for NullTexture.
+            var brightmapTexture = CreateTexture(texture.BrightmapImage, spriteRotation.Texture.Name, ResourceNamespace.Brightmaps);
+            if (brightmapTexture == NullTexture)
+                brightmapTexture = TransparentNullTexture;
+
+            translationRotation = new SpriteRotation(texture, spriteRotation.Mirror, brightmapNoFullbright)
             {
-                RenderStore = CreateTexture(texture.Image, translatedName, ResourceNamespace.Sprites)
+                RenderStore = CreateTexture(texture.Image, translatedName, ResourceNamespace.Sprites),
+                BrightmapRenderStore = brightmapTexture
             };
 
             spriteRotation.SetTranslationRotation(colorMapIndex, translationRotation);
@@ -246,6 +270,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         else
         {
             spriteRotation.RenderStore ??= CreateTexture(spriteRotation.Texture.Image, spriteRotation.Texture.Name, ResourceNamespace.Sprites);
+            spriteRotation.BrightmapRenderStore ??= CreateTexture(spriteRotation.Texture.BrightmapImage, spriteRotation.Texture.Name, ResourceNamespace.Brightmaps);
         }
 
         return spriteRotation;
@@ -265,6 +290,7 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
                     continue;
 
                 rotation.Texture.RenderStore = CreateTexture(rotation.Texture.Image, rotation.Texture.Name, ResourceNamespace.Sprites);
+                rotation.Texture.BrightmapRenderStore = CreateTexture(rotation.Texture.BrightmapImage, rotation.Texture.Name, ResourceNamespace.Brightmaps);
             }
         }
     }
@@ -309,12 +335,20 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
         return NullFont;
     }
 
-    public IRenderableTextureHandle CreateAndTrackTexture(string name, ResourceNamespace resourceNamespace, Image image, out Action removeAction, bool repeatY = true)
+    public IRenderableTextureHandle CreateOrReplaceTexture(string name, ResourceNamespace resourceNamespace, Image image, bool repeatY = true)
     {
-        GLTextureType texture = CreateTexture(image, repeatY);
-        TextureTracker.Insert(name, resourceNamespace, texture);
-        removeAction = () => RemoveTexture(name, resourceNamespace);
-        return texture;
+        GLTextureType? existingTexture = TextureTracker.GetOnly(name, resourceNamespace);
+        if (existingTexture == null)
+        {
+            GLTextureType newTexture = CreateTexture(image, repeatY);
+            TextureTracker.Insert(name, resourceNamespace, newTexture);
+            return newTexture;
+        }
+        else
+        {
+            ReUpload(existingTexture, image, image.m_pixels);
+            return existingTexture;
+        }
     }
 
     public void RemoveTexture(string name, ResourceNamespace resourceNamespace)
@@ -390,6 +424,8 @@ public abstract class GLTextureManager<GLTextureType> : IRendererTextureManager
     }
 
     protected abstract GLTextureType GenerateTexture(Image image, string name, ResourceNamespace resourceNamespace, TextureFlags flags = TextureFlags.Default);
+
+    public abstract void ReUpload(GLTextureType texture, Image image, uint[] imagePixels);
 
     protected abstract GLFontTexture<GLTextureType> GenerateFont(Font font, string name);
 

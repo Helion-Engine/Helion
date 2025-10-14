@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Helion.Models;
 
-public class SectorMoveSpecialModel : ISpecialModel
+public struct SectorMoveSpecialModel : ISpecialModel
 {
     public int SectorId { get; set; }
     public int MoveType { get; set; }
@@ -42,7 +42,7 @@ public class SectorMoveSpecialModel : ISpecialModel
     public int? LightTag { get; set; }
     public bool Door { get; set; }
 
-    public virtual ISpecial? ToWorldSpecial(IWorld world)
+    public readonly ISpecial? ToWorldSpecial(IWorld world)
     {
         if (SectorId < 0 || SectorId >= world.Sectors.Count)
             return null;

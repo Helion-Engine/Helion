@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -28,6 +29,10 @@ public static class Files
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Security", 
+        "CA5351:Do Not Use Broken Cryptographic Algorithms", 
+        Justification = "This should only be used to create thumbprint hashes for files")]
     public static string CalculateMD5(Stream stream)
     {
         using var md5 = System.Security.Cryptography.MD5.Create();
@@ -35,7 +40,7 @@ public static class Files
 
         StringBuilder hex = new(data.Length * 2);
         foreach (byte b in data)
-            hex.AppendFormat("{0:x2}", b);
+            hex.AppendFormat(CultureInfo.InvariantCulture, "{0:x2}", b);
         return hex.ToString();
     }
 }

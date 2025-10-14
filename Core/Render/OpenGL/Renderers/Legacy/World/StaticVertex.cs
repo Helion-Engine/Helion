@@ -22,5 +22,5 @@ public struct StaticVertex(float x, float y, float z, float u, float v, float op
     public float Options = options;
 
     [VertexAttribute(required: false)]
-    public float ColoMapIndex = colorMapIndex;
+    public float ColorMapIndex = colorMapIndex;
 }

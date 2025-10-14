@@ -61,7 +61,7 @@ public class GLTexture2D : GLTexture
     }
 
     // Assumes the user binds first.
-    public void SetParameters(TextureWrapMode wrapMode)
+    public static void SetParameters(TextureWrapMode wrapMode)
     {
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
@@ -70,7 +70,7 @@ public class GLTexture2D : GLTexture
     }
 
     // Assumes the user binds first.
-    public void SetAnisotropy(float? anisotropy)
+    public static void SetAnisotropy(float? anisotropy)
     {
         if (!GLExtensions.TextureFilterAnisotropic || anisotropy == null)
             return;
@@ -80,7 +80,7 @@ public class GLTexture2D : GLTexture
     }
 
     // Assumes the user binds first.
-    public void GenerateMipmaps()
+    public static void GenerateMipmaps()
     {
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
     }

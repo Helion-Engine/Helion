@@ -4,6 +4,7 @@ using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Models;
 using Helion.Util.Container;
+using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Sectors;
@@ -44,9 +45,9 @@ public class PushSpecial : ISpecial
         m_pushEntityAction = new(PushEntity);
     }
 
-    public ISpecialModel ToSpecialModel()
+    public PushSpecialModel ToSpecialModel()
     {
-        return new PushSpecialModel()
+        return new()
         {
             Type = (int)m_type,
             SectorId = m_sector.Id,
@@ -148,14 +149,16 @@ public class PushSpecial : ISpecial
         if (!m_world.CheckLineOfSight(entity, m_pusher!))
             return GridIterationStatus.Continue;
 
-        double distance = entity.Position.ApproximateDistance2D(m_pusher!.Position);
-        Vec2D diff = entity.Position.XY - m_pusher.Position.XY;
-        double speed = (m_magnitude * 128) / (diff.X * diff.X + diff.Y * diff.Y + 1);
-
+        var dist = m_pusher!.Position.ApproximateDistance2D(entity.Position);
+        var speed = (m_magnitude - (dist / 2)) / 256.0;
         if (speed <= 0)
             return GridIterationStatus.Continue;
 
-        double angle = entity.Position.Angle(m_pusher!.Position);
+        var diffX = entity.Position.X - m_pusher!.Position.X;
+        var diffY = entity.Position.Y - m_pusher!.Position.Y;
+        speed = (m_magnitude * 128) / (diffX * diffX + diffY * diffY + 1);
+
+        var angle = entity.Position.Angle(m_pusher!.Position);
         if (m_pusher.Definition.EditorId == (int)EditorId.PointPusher)
             angle += Math.PI;
 

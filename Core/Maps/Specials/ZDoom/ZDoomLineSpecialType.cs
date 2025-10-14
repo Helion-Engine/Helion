@@ -134,7 +134,7 @@ public enum ZDoomLineSpecialType
     ScriptWithPuzzle,
     ThingActivate,
     ThingDeActivate,
-    ThingIidRemove,
+    ThingIdRemove,
     ThingDestroy,
     ThingProjectile,
     ThingSpawn,

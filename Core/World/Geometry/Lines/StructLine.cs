@@ -11,7 +11,8 @@ public enum StructLineFlags
     BlockSound = 1,
     Secret = 2,
     SeenForAutomap = 4,
-    MarkAutomap = 8
+    MarkAutomap = 8,
+    HasSpecial = 16
 }
 
 public record struct StructLine
@@ -56,6 +57,9 @@ public record struct StructLine
             LockKey = key;
         else
             LockKey = -1;
+
+        if (line.HasSpecial)
+            Flags |= StructLineFlags.HasSpecial;
 
         AutomapFlags = line.Flags.Automap;
     }

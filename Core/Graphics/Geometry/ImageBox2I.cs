@@ -55,9 +55,12 @@ public readonly struct ImageBox2I
         Max = max;
     }
 
-    public ImageBox2I(int startX, int startY, int endX, int endY) :
-        this(new Vec2I(startX, startY), new Vec2I(endX, endY))
+    public ImageBox2I(int startX, int startY, int endX, int endY)
     {
+        Min.X = startX;
+        Min.Y = startY;
+        Max.X = endX;
+        Max.Y = endY;
     }
 
     public Dimension ToDimension() => new(Width, Height);

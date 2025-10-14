@@ -3,9 +3,11 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using GlmSharp;
 using Helion.Geometry.Boxes;
+using Helion.Util.Configs.Impl;
 using Helion.Util.Extensions;
 
 namespace Helion.Geometry.Vectors
@@ -112,5 +114,21 @@ namespace Helion.Geometry.Vectors
         public override readonly string ToString() => $"{X}, {Y}, {Z}";
         public override readonly bool Equals(object? obj) => obj is Vec3F v && X == v.X && Y == v.Y && Z == v.Z;
         public override readonly int GetHashCode() => HashCode.Combine(X, Y, Z);
+
+        public static Vec3F FromConfigString(string s)
+        {
+            try
+            {
+                var tokens = s.Split(Config.FindSplitValue(s));
+                var x = float.Parse(tokens[0].Trim(), CultureInfo.InvariantCulture);
+                var y = float.Parse(tokens[1].Trim(), CultureInfo.InvariantCulture);
+                var z = float.Parse(tokens[2].Trim(), CultureInfo.InvariantCulture);
+                return (x, y, z);
+            }
+            catch
+            {
+                return (1, 1, 1);
+            }
+        }
     }
 }

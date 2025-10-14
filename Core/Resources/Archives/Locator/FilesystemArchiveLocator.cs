@@ -1,5 +1,6 @@
 using Helion.Resources.Archives.Directories;
 using Helion.Resources.Archives.Entries;
+using Helion.Util;
 using Helion.Util.Configs;
 using Helion.Util.Extensions;
 using NLog;
@@ -19,16 +20,14 @@ public class FilesystemArchiveLocator : IArchiveLocator
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     /// <summary>
-    /// The search paths for files.
+    /// The search paths for files, in descending priority order.
     /// </summary>
-    /// <remarks>
-    /// This contains an empty string because we want to search the current
-    /// directory first, or if the user provides a full path then we want
-    /// searching to be done at the path first. This is also a list because
-    /// we assume priority is meant to be given to the beginning of what is
-    /// provided.
-    /// </remarks>
-    private readonly List<string> m_paths = new List<string> { "" };
+    private readonly List<string> m_paths;
+
+    /// <summary>
+    /// The search paths for files bundled with Helion, in descending priority order.
+    /// </summary>
+    private readonly List<string> m_bundledPaths;
     private readonly IndexGenerator m_indexGenerator = new();
 
     /// <summary>
@@ -37,28 +36,32 @@ public class FilesystemArchiveLocator : IArchiveLocator
     /// </summary>
     public FilesystemArchiveLocator()
     {
+        m_paths = [""];
+        m_bundledPaths = [""];
     }
 
     /// <summary>
-    /// Creates a file system locator that looks in the working directory
-    /// and any additional directories that are in the config or commonly used envvars.
+    /// Creates a file system locator that looks in the launch directory
+    /// and any additional directories that are in the config,
+    /// commonly used envvars, Steam installs, etc.
     /// </summary>
     /// <param name="config">The config to get the additional directories
+    /// <param name="paths">Additional paths to add before the main dir priority
     /// from.</param>
-    public FilesystemArchiveLocator(IConfig config)
+    public FilesystemArchiveLocator(PathsManager pathsManager, IConfig config, IList<string> paths)
     {
-        List<string> paths = [
-            .. config.Files.Directories.Value,
-            .. WadPaths.GetFromSteamAndLinuxDirs(),
-            .. WadPaths.GetFromEnvVars()
-        ];
-        m_paths.AddRange(paths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct());
+        List<string> allPaths = [
+            .. paths,
+            .. pathsManager.GetArchiveFolders(config)];
+
+        m_paths = [.. allPaths.Where(p => !p.Empty()).Select(EnsureEndsWithDirectorySeparator).Distinct()];
+        m_bundledPaths = [.. pathsManager.ApplicationFolders];
     }
 
-    public Archive? Locate(string uri)
+    public Archive? Locate(string uri, ArchiveLocatorOptions options)
     {
         bool exists = false;
-        foreach (string basePath in m_paths)
+        foreach (string basePath in (options & ArchiveLocatorOptions.IsBundled) != 0 ? m_bundledPaths : m_paths)
         {
             string path = Path.Combine(basePath, uri);
             if (!CheckPathExists(path))
@@ -82,17 +85,18 @@ public class FilesystemArchiveLocator : IArchiveLocator
             }
         }
 
-        Log.Error("Could not load {0}. The file {1}.", uri, exists ? "type is not supported" : "does not exist");
+        if ((options & ArchiveLocatorOptions.IgnoreError) == 0)
+            Log.Error("Could not load {0}. The file {1}.", uri, exists ? "type is not supported" : "does not exist");
         return null;
     }
 
     /// <summary>
     /// Checks the search paths for the archive, without opening it or confirming its type.
     /// </summary>
-    public string? LocateWithoutLoading(string uri)
+    public string? LocateWithoutLoading(string uri, ArchiveLocatorOptions options)
     {
         string? foundPath = null;
-        foreach (string basePath in m_paths)
+        foreach (string basePath in (options & ArchiveLocatorOptions.IsBundled) != 0 ? m_bundledPaths : m_paths)
         {
             string path = Path.Combine(basePath, uri);
             if (!CheckPathExists(path))
@@ -123,11 +127,11 @@ public class FilesystemArchiveLocator : IArchiveLocator
     {
         using BinaryReader reader = GetBinaryReader(path);
         const int iwadValue = 1145132873;
-        const int pwadVallue = 1145132880;
+        const int pwadValue = 1145132880;
         if (reader.BaseStream.Length < 4)
             return false;
         uint headerValue = reader.ReadUInt32();
-        return headerValue == iwadValue || headerValue == pwadVallue;
+        return headerValue == iwadValue || headerValue == pwadValue;
     }
 
     private static bool IsPk3(string path)

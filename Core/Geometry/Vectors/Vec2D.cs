@@ -80,6 +80,12 @@ namespace Helion.Geometry.Vectors
             double cos = Math.Cos(radians);
             return new((X * cos) - (Y * sin), (X * sin) + (Y * cos));
         }
+        public static Vec2D Rotate(double x, double y, double radians)
+        {
+            double sin = Math.Sin(radians);
+            double cos = Math.Cos(radians);
+            return new((x * cos) - (y * sin), (x * sin) + (y * cos));
+        }
         public static Vec2D UnitCircle(double radians) => new(Math.Cos(radians), Math.Sin(radians));
         public readonly double Angle(in Vec2D other) => Math.Atan2(other.Y - Y, other.X - X);
         public readonly double Angle(Vector2D other) => Math.Atan2(other.Y - Y, other.X - X);

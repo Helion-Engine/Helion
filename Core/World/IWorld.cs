@@ -30,10 +30,12 @@ using Helion.Maps.Specials;
 using Helion.World.Impl.SinglePlayer;
 using Helion.World.Geometry;
 using Helion.Maps;
-using Helion.Resources.Archives.Entries;
 using Helion.Util.Container;
 using Helion.Maps.Shared;
 using Helion.World.Geometry.Subsectors;
+using System.Diagnostics.CodeAnalysis;
+using Helion.Resources.Definitions.Compatibility;
+using Helion.Maps.Components;
 
 namespace Helion.World;
 
@@ -43,11 +45,13 @@ public interface IWorld : IDisposable
 {
     event EventHandler<LevelChangeEvent>? LevelExit;
     event EventHandler? LevelExiting;
+    event EventHandler? WorldPaused;
     event EventHandler? WorldResumed;
     event EventHandler? ClearConsole;
     event EventHandler? OnResetInterpolation;
     event EventHandler<SectorPlane>? SectorMoveStart;
     event EventHandler<SectorPlane>? SectorMoveComplete;
+    event EventHandler<SectorPlane>? SectorMove;
     event EventHandler<SideTextureEvent>? SideTextureChanged;
     event EventHandler<PlaneTextureEvent>? PlaneTextureChanged;
     event EventHandler<Sector>? SectorLightChanged;
@@ -67,12 +71,11 @@ public interface IWorld : IDisposable
     int LevelTime { get; }
     double Gravity { get; }
     WorldState WorldState { get; }
-    IList<Line> Lines { get; }
-    IList<Side> Sides { get; }
-    IList<Sector> Sectors { get; }
+    List<Line> Lines { get; }
+    List<Side> Sides { get; }
+    List<Sector> Sectors { get; }
     DynamicArray<StructLine> StructLines { get; }
-    int?[] BspSegLines { get; }
-    IList<HighlightArea> HighlightAreas { get; }
+    List<HighlightArea> HighlightAreas { get; }
     CompactBspTree BspTree { get; }
     IRandom Random { get; }
     // Used for randomization that should not affect demos
@@ -107,7 +110,8 @@ public interface IWorld : IDisposable
     bool SameAsPreviousMap { get; set; }
     MarkSpecials MarkSpecials { get; }
     MapGeometry Geometry { get; }
-    IMap Map { get; }
+    CompatibilityMapDefinition? CompatibilityMapDefinition { get; }
+    MapType MapType { get; }
 
     void Link(Entity entity);
     void LinkClamped(Entity entity);
@@ -115,7 +119,7 @@ public interface IWorld : IDisposable
     void Pause(PauseOptions options = PauseOptions.None);
     void Resume();
     IList<Sector> FindBySectorTag(int tag);
-    IEnumerable<Entity> FindByTid(int tid);
+    LinkedList<Entity> FindByTid(int tid);
     IEnumerable<Line> FindByLineId(int lineId);
     void SetLineId(Line line, int lineId);
     void ExitLevel(LevelChangeType type, LevelChangeFlags flags = LevelChangeFlags.None);
@@ -124,8 +128,8 @@ public interface IWorld : IDisposable
     void TelefragBlockingEntities(Entity entity);
     bool EntityUse(Entity entity);
     void OnTryEntityUseLine(Entity entity, Line line);
-    bool CanActivate(Entity entity, Line line, ActivationContext context);
-    bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, bool fromFrom);
+    bool CanActivate(Entity entity, Line line, ActivationContext context, double originX, double originY);
+    bool ActivateSpecialLine(Entity entity, Line line, ActivationContext context, double originX, double originY);
     bool GetAutoAimEntity(Entity startEntity, in Vec3D start, double angle, double distance, out double pitch, out Entity? entity);
     Entity? FireProjectile(Entity shooter, double angle, double pitch, double autoAimDistance, bool autoAim, EntityDefinition projectileDef, out Entity? autoAimEntity,
         double addAngle = 0, double addPitch = 0, double zOffset = 0);
@@ -148,7 +152,9 @@ public interface IWorld : IDisposable
     // Checks if the entity will be blocked by another entity at the given position. Will use the entity definition's height and solid values.
     bool IsPositionBlockedByEntity(Entity entity, in Vec3D position);
     bool IsPositionBlocked(Entity entity);
-    void CreateTeleportFog(in Vec3D pos, bool playSound = true);
+    void CreateTeleportFog(in Vec3D pos);
+    void CreateTeleportFog(Entity entity);
+    Entity? SpawnEntity(EntityDefinition definition, in Vec3D pos, int tid, double angle, in SpecialArgs args, bool teleportFog);
     void ActivateCheat(Player player, ICheat cheat);
     bool IsSectorIdValid(int sectorId) => sectorId >= 0 && sectorId < Sectors.Count;
     bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
@@ -167,6 +173,8 @@ public interface IWorld : IDisposable
     void SetSectorLightLevel(Sector sector, short lightLevel);
     void SetSectorFloorLightLevel(Sector sector, short lightLevel);
     void SetSectorCeilingLightLevel(Sector sector, short lightLevel);
+    void SetSectorEffect(Sector sector, SectorEffect effect);
+    void SetSectorKillEffect(Sector sector, InstantKillEffect effect);
     void SetEntityPosition(Entity entity, Vec3D pos);
     void ToggleChaseCameraMode();
     void SectorInstantKillEffect(Entity entity, InstantKillEffect effect);
@@ -178,6 +186,12 @@ public interface IWorld : IDisposable
     void FindExits();
     bool SetSkillLevel(SkillLevel skill);
     Subsector ToSubsector(double x, double y);
+    bool GetPickupPlayer(Entity entity, [NotNullWhen(true)] out Player? player);
+    bool ShouldSpawn(IThing thing);
+    bool ShouldItemStay(Entity entity);
+    Player? RespawnPlayer(Player player);
+    int KillAllMonsters(int sectorTag);
+    Entity? Summon(Entity source, EntityDefinition definition, SummonOptions options);
 
     WorldModel ToWorldModel();
     GameFilesModel GetGameFilesModel();

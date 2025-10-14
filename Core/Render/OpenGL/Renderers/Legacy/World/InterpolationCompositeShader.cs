@@ -1,5 +1,9 @@
 ﻿namespace Helion.Render.OpenGL.Renderers.Legacy.World;
 
-internal class InterpolationCompositeShader : InterpolationShader
+internal sealed class InterpolationCompositeShader : InterpolationShader
 {
+    public InterpolationCompositeShader() : base("OIT Composite")
+    {
+
+    }
 }

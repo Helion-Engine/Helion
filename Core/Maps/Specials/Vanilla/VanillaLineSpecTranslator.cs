@@ -1,4 +1,4 @@
-using Helion.Maps.Doom.Components;
+using Helion.Maps.Components;
 using Helion.Maps.Specials.Boom;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.ZDoom;
@@ -263,7 +263,7 @@ public static class VanillaLineSpecTranslator
                 argsToMutate.Arg0 = tag;
                 argsToMutate.Arg1 = 8; // Distance above floor
                 argsToMutate.Arg2 = GetSectorMoveSpeed(type);
-                argsToMutate.Arg3 = 8; // Damage
+                argsToMutate.Arg3 = 10; // Damage
                 argsToMutate.Arg4 = (byte)ZDoomCrushMode.DoomWithSlowDown;
                 return ZDoomLineSpecialType.CeilingCrushAndRaiseDist;
 
@@ -823,24 +823,25 @@ public static class VanillaLineSpecTranslator
         return ZDoomLineSpecialType.None;
     }
 
-    public static void FinalizeLine(DoomLine doomLine, Line line)
+    public static void FinalizeLine(ILine mapLine, Line line)
     {
         // Based on testing boom seems to do this for every line...
-        line.LineId = doomLine.SectorTag;
+        line.MapLineId = mapLine.SectorTag;
 
-        if (IsMusicChange(doomLine))
+        if (IsMusicChange(mapLine))
         {
-            if (doomLine.Front.UpperTexture != Constants.NoTexture)
-                line.MusicChangeFront = doomLine.Front.UpperTexture;
-            if (doomLine.Front.LowerTexture != Constants.NoTexture)
-                line.MusicChangeBack = doomLine.Front.LowerTexture;
+            var side = mapLine.GetFront();
+            if (side.UpperTexture != Constants.NoTexture)
+                line.MusicChangeFront = side.UpperTexture;
+            if (side.LowerTexture != Constants.NoTexture)
+                line.MusicChangeBack = side.LowerTexture;
         }
     }
 
 
-    private static bool IsMusicChange(DoomLine line)
+    private static bool IsMusicChange(ILine line)
     {
-        switch (line.LineType)
+        switch ((VanillaLineSpecialType)line.Special)
         {
             case VanillaLineSpecialType.W1_ChangeMusicAndLoop:
             case VanillaLineSpecialType.WR_ChangeMusicAndLoop:

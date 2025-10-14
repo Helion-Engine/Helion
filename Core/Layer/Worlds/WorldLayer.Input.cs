@@ -20,7 +20,7 @@ public partial class WorldLayer
     public bool ShouldRender { get; set; }
 
     private static readonly (string, TickCommands)[] KeyPressCommandMapping =
-    {
+    [
         (Input.Forward,       TickCommands.Forward),
         (Input.Backward,      TickCommands.Backward),
         (Input.Left,          TickCommands.Left),
@@ -49,7 +49,7 @@ public partial class WorldLayer
         (Input.WeaponGroup2,   TickCommands.WeaponGroup2),
         (Input.WeaponGroup3,   TickCommands.WeaponGroup3),
         (Input.WeaponGroup4,   TickCommands.WeaponGroup4),
-    };
+    ];
 
     // Convert analog inputs into movements, assumes analog values are in range [0..1]
     private static readonly Dictionary<TickCommands, Func<float, Vec4F>> MovementCommmands = new()
@@ -166,8 +166,7 @@ public partial class WorldLayer
 
     private void HandleAutoMapInput(IConsumableInput input)
     {
-        int scrollAmount = 0;
-        if (IsCommandContinuousHold(Input.AutoMapDecrease, input, out scrollAmount))
+        if (IsCommandContinuousHold(Input.AutoMapDecrease, input, out int scrollAmount))
             ChangeAutoMapSize(GetChangeAmount(input, -1, scrollAmount));
         else if (IsCommandContinuousHold(Input.AutoMapIncrease, input, out scrollAmount))
             ChangeAutoMapSize(GetChangeAmount(input, 1, scrollAmount));
@@ -259,7 +258,10 @@ public partial class WorldLayer
             cmd.SideMoveSpeed = Math.Clamp(analogInput.Y * m_config.Controller.GameControllerStrafeScale, -1, 1) * Player.GetSideMovementSpeed();
             cmd.AngleTurn = analogInput.Z * Player.FastTurnSpeed * m_config.Controller.GameControllerTurnScale;
             cmd.PitchTurn = m_config.Mouse.Look
-                ? analogInput.W * Player.FastTurnSpeed * m_config.Controller.GameControllerPitchScale
+                ? analogInput.W
+                    * Player.FastTurnSpeed
+                    * m_config.Controller.GameControllerPitchScale
+                    * (m_config.Controller.GameControllerVerticalAimInvert ? -1 : 1)
                 : 0;
         }
 
@@ -297,7 +299,7 @@ public partial class WorldLayer
         }
     }
 
-    private int GetWeaponScroll(int scrollAmount, Key key, TickCommands tickCommand)
+    private static int GetWeaponScroll(int scrollAmount, Key key, TickCommands tickCommand)
     {
         // Invert scroll amount if keys are opposite to the command
         if ((key == Key.MouseWheelUp && tickCommand != TickCommands.NextWeapon) ||

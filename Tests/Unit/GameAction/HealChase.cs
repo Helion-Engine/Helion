@@ -49,7 +49,7 @@ public class HealChase : IDisposable
         imp.IsDead.Should().BeFalse();
         imp.Flags.Solid.Should().BeTrue();
         imp.Height.Should().Be(56);
-        archvile.Target.Entity.Should().Be(World.Player);
+        archvile.Target().Should().Be(World.Player);
     }
 
     [Fact(DisplayName = "Heal chase raises monster")]
@@ -75,7 +75,7 @@ public class HealChase : IDisposable
         imp.IsDead.Should().BeFalse();
         imp.Flags.Solid.Should().BeTrue();
         imp.Height.Should().Be(56);
-        archvile.Target.Entity.Should().Be(World.Player);
+        archvile.Target().Should().Be(World.Player);
     }
 
     [Fact(DisplayName = "Vile chase does not raise monster because it overlaps with another monster")]

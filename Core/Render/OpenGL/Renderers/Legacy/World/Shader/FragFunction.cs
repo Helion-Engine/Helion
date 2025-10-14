@@ -10,7 +10,9 @@ public enum FragColorFunctionOptions
     AddAlpha = 1,
     Alpha = 2,
     Fuzz = 4,
-    Colormap = 8
+    Colormap = 8,
+    VertexGapClampUV = 16,
+    Brightmaps = 32
 }
 
 public enum ColorMapFetchContext { Default, Hud, Entity }
@@ -107,7 +109,10 @@ public class FragFunction
 
         string indexAdd = lightLevel ?
             // sectorColorMapIndexFrag is overriding the colormapIndex uniform
+            // Only use brightmap if grayscale to increase the light level
             @"
+            ${BrigthmapFetch}
+
             int useColormap = int(mix(colormapIndex, sectorColorMapIndexFrag, float(sectorColorMapIndexFrag > 0)));
             ${EntityColorMapFrag}
             int usePalette = paletteIndex;
@@ -118,11 +123,14 @@ public class FragFunction
                 // if useColormap is not default(0) then override with the uniform colormap. This overrides translations with boom colormaps etc.
                 @"useColormap = int(mix(useColormap, colorMapTranslationFrag, float(useColormap == 0)));"
                 : "")
+            .Replace("${BrigthmapFetch}", BrightMapLightColorIndexFetch("texUV"))
+
             :
+
             @"
             int useColormap = colormapIndex${HudClearColorMap};
             int usePalette = paletteIndex;
-            int lightLevelOffset = ${LightOffset};
+            ${LightOffset}
             lightLevelOffset = int(mix(lightLevelOffset, 32 * 256, float(hasInvulnerability${HudDrawColorMapFrag})));
             ${HudClearPalette}"
             .Replace("${HudClearColorMap}", ctx == ColorMapFetchContext.Hud && ShaderVars.PaletteColorMode ? "* int(drawColorMapFrag)" : "")
@@ -130,8 +138,15 @@ public class FragFunction
             .Replace("${HudClearPalette}", ctx == ColorMapFetchContext.Hud && ShaderVars.PaletteColorMode ?
                 @"usePalette = int(mix(0, usePalette, float(drawPaletteFrag)));"
                 : "")
-            .Replace("${LightOffset}", ctx == ColorMapFetchContext.Hud ? "int(hudColorMapIndexFrag) * 256" : "0");
-            
+            .Replace("${LightOffset}", ctx == ColorMapFetchContext.Hud ?
+                @"
+                int lightColorIndex = int(hudColorMapIndexFrag);
+                ${BrigthmapFetch}
+                int lightLevelOffset = lightColorIndex * 256;"
+                .Replace("${BrigthmapFetch}", BrightMapLightColorIndexFetch("uvFrag.st"))
+                :
+                "int lightLevelOffset = 0;");
+
         // Use the alpha flag to indicate we need to fetch from the colormap buffer since we don't need it for fullbright.
         return @"
                 const int paletteSize = 256 * 34;
@@ -146,25 +161,44 @@ public class FragFunction
                 .Replace("${IndexAdd}", indexAdd);
     }
 
-    public static string FragColorFunction(FragColorFunctionOptions options, ColorMapFetchContext ctx = ColorMapFetchContext.Default, 
+    static string BrightMapLightColorIndexFetch(string uvVar) =>
+        @$"
+        if (useBrightmaps == 1) {{
+            vec3 brightColor = texture(brightmapTexture, {uvVar}).rgb;
+            float hasBrightColor = float(brightColor.r != 0 && brightColor.r == brightColor.g && brightColor.g == brightColor.b);
+            lightColorIndex = int(mix(lightColorIndex, min(int((1 - brightColor.r) * 31), lightColorIndex), hasBrightColor));
+        }}";
+
+    private static string GetTextureMappingClamp(FragColorFunctionOptions options)
+    {
+        if ((options & FragColorFunctionOptions.VertexGapClampUV) == 0)
+            return "vec2 texUV = uvFrag;";
+
+        return @"vec2 texUV = clamp(uvFrag, uvClampMinFrag, uvClampMaxFrag);";
+    }
+
+    public static string FragColorFunction(FragColorFunctionOptions options, ColorMapFetchContext ctx = ColorMapFetchContext.Default,
         OitOptions oitOptions = OitOptions.None, string postProcess = "")
     {
-        var fragColor = @"fragColor = texture(boundTexture, uvFrag.st);";
-        if (oitOptions == OitOptions.OitTransparentPass)
-            fragColor = "vec4 fragColor = texture(boundTexture, uvFrag.st);";
+        var declareFragColor = oitOptions == OitOptions.OitTransparentPass ? "vec4 fragColor" : "fragColor";
+        var textureMappingClamp = GetTextureMappingClamp(options);
+
+        var fragColor = @$"
+        {textureMappingClamp}
+        {declareFragColor} = texture(boundTexture, texUV);";
 
         return
             fragColor +
-            (options.HasFlag(FragColorFunctionOptions.Colormap) ? ColorMapFetch(true, ctx) : "")
+            ((options & FragColorFunctionOptions.Colormap) != 0 ? ColorMapFetch(true, ctx) : "")
             + AlphaFlag(true) +
-            (ShaderVars.PaletteColorMode ? "\n" : "fragColor.xyz *= lightLevel;\n") +
-            (options.HasFlag(FragColorFunctionOptions.AddAlpha) ?
+            GetBrightMapBlend(options) +
+            ((options & FragColorFunctionOptions.AddAlpha) != 0 ?
                 @"fragColor.w = fragColor.w * alphaFrag + addAlphaFrag;"
                 +
                 GetClearAlpha(oitOptions)
                 :
                 "") +
-            (options.HasFlag(FragColorFunctionOptions.Alpha) ?
+            ((options & FragColorFunctionOptions.Alpha) != 0 ?
                 "fragColor.w *= alphaFrag;" :
                 "") +
             @"
@@ -180,13 +214,28 @@ public class FragFunction
             + Oit(oitOptions, options);
     }
 
+    private static string GetBrightMapBlend(FragColorFunctionOptions options)
+    {
+        if (ShaderVars.PaletteColorMode)
+            return "\n";
+
+        if ((options & FragColorFunctionOptions.Brightmaps) == 0)
+            return "fragColor.rgb *= lightLevel;";
+
+        return @"
+            if (useBrightmaps == 1)
+                fragColor.rgb *= min(vec3(1.0), texture(brightmapTexture, texUV).rgb + vec3(lightLevel));
+            else
+                fragColor.rgb *= lightLevel;";
+    }
+
     private static string GetClearAlpha(OitOptions oitOptions)
     {
         if (oitOptions != OitOptions.None)
             return "";
 
         return @"// Don't write partially transparent pixels for two-sided middle to fix issues with texture filtering.
-                fragColor.w = mix(fragColor.a > 0.5 ? 1.0 : 0.0, fragColor.w, addAlphaFrag);";
+                fragColor.w = mix(mix(0.0, 1.0, float(fragColor.a > 0.5)), fragColor.w, addAlphaFrag);";
     }
 
     private static string FuzzDist(FuzzRefractionOptions options) =>
@@ -199,7 +248,7 @@ public class FragFunction
 
                 float fuzzDistStep = ceil((fuzzDiv/(max(1, " + FuzzDist(options) + @" / 96))));
                 vec2 blockCoordinate = floor(coords / fuzzDistStep);
-                float fuzzAlpha = clamp(noise(blockCoordinate * fuzzFrac), 0.2, 0.65);
+                float fuzzAlpha = clamp(noise(blockCoordinate * fuzzFrac), 0.2, 0.8);
                 float offsetX = mix(-1, 1, float(fuzzAlpha > 0.3)) * int(fuzzDistStep * 4);
                 float offsetY = mix(1, -1, float(fuzzAlpha < 0.4)) * int(fuzzDistStep * 4);
                 float flipX = mix(1, -1, float(fuzzAlpha > 0.5));
@@ -239,9 +288,11 @@ public class FragFunction
                     
                     vec4 accumulation = texelFetch(accum, refractCoords, 0);
                     
-                    float weight = clamp(10 / (1e-5 + pow(dist/1000, 2)) + pow(dist/8192, 6), 100.0, 1000.0);
-                    
-                    accumulation += vec4(fuzzColor.rgb * fuzzAlpha, fuzzAlpha) * weight;
+                    // down-weighted from normal OIT so black pixels don't oversaturate the mix
+                    float weight = clamp(10 / (1e-5 + pow(dist/500, 2)) + pow(dist/4096, 6), 100.0, 1000.0);
+                    vec4 weightColor = vec4(fuzzColor.rgb * fuzzAlpha, fuzzAlpha) * weight;                
+
+                    accumulation += weightColor;
                     alphaComponent += fuzzAlpha;
                     countComponent += 1;
                     
@@ -268,13 +319,13 @@ public class FragFunction
         if (options == OitOptions.OitTransparentPass)
             return
                 "float weight = clamp(10 / (1e-5 + pow(dist/1000, 2)) + pow(dist/8192, 6), 100.0, 1000.0);" +
-                (fragColorOptions.HasFlag(FragColorFunctionOptions.Fuzz) ?
+                ((fragColorOptions & FragColorFunctionOptions.Fuzz) != 0 ?
                 @"
                 outFuzz = fuzzFrag;
                 float weightClear = mix(1, 0, fuzzFrag - renderFuzz);
                 " : "const float weightClear = 1;")
                 + @"
-                accum = vec4(fragColor.rgb * fragColor.a, fragColor.a) * weight * weightClear;
+                accum = vec4(min(fragColor.rgb, vec3(colorClamp)) * fragColor.a, fragColor.a) * weight * weightClear;
                 accumCount = vec2(fragColor.a * weightClear, 1 * weightClear);";
 
         if (options == OitOptions.OitFuzzRefractionPass)
@@ -303,14 +354,53 @@ public class FragFunction
 
     public static string GammaCorrection() => "fragColor.rgb = pow(fragColor.rgb, vec3(1.0/gammaCorrection));";
 
-    public static string InvulnerabilityFragColor =>
-        ShaderVars.PaletteColorMode ? "" :
-    @"
-    if (hasInvulnerability != 0)
-    {
+    public static string InvulnerabilityFragColor => ShaderVars.PaletteColorMode ? "" :
+        """
+        if (hasInvulnerability != 0)
+        {
+            {InvulnerabilityFragColorInner}
+        }
+        """.Replace("{InvulnerabilityFragColorInner}", InvulnerabilityFragColorInner);
+
+    public static string InvulnerabilityFragColorInner => ShaderVars.PaletteColorMode ? "" :
+        """
         float gray = fragColor.x * 0.299 + fragColor.y * 0.587 + fragColor.z * 0.144;
         gray = 1 - gray;
+        """
+        + (!ShaderVars.EmulateInvulnerabilityColorMap
+        ? """
         fragColor.xyz = vec3(gray, gray, gray);
-    }
-";
+        """ : """
+        // Map brightness to white + white + gray ramp (32x) + low grays (3x) + black
+        // in invuln color map, to emulate palette mode's invuln effect.
+        // These grays are not completely evenly spaced (most are 8 apart,
+        // some are 4), but it's even enough to work.
+        // Since some colormaps customize non-gray colors instead of just
+        // mapping to brightness, the degree to which the original effect
+        // is matched can vary by WAD.
+        const float maxIndex = 38 - 1;
+        int indexA = int(gray * maxIndex);
+        int indexB = indexA + 1;
+        float localPos = (gray - float(indexA) / maxIndex) * maxIndex;
+
+        // [ 0,  1] => [ 4,   4]
+        // [ 2, 33] => [80, 111]
+        // [34, 36] => [ 5,   7]
+        // [37, 37] => [ 0,   0]
+        if (indexA <= 1) { indexA = 4; }
+        else if (indexA <= 33) { indexA += 78; }
+        else if (indexA <= 36) { indexA -= 29; }
+        else { indexA = 0; }
+        if (indexB <= 1) { indexB = 4; }
+        else if (indexB <= 33) { indexB += 78; }
+        else if (indexB <= 36) { indexB -= 29; }
+        else { indexB = 0; }
+
+        const int colorMapOffset = 256 * 32; // invuln colormap start
+        vec3 blendA = texelFetch(colormapTexture, colorMapOffset + indexA).rgb;
+        vec3 blendB = texelFetch(colormapTexture, colorMapOffset + indexB).rgb;
+        fragColor.rgb = mix(blendA, blendB, localPos);
+        """);
+
+    public static string VertexGapVariables => "flat in vec2 uvClampMinFrag; flat in vec2 uvClampMaxFrag;";
 }

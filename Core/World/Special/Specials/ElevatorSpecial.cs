@@ -97,12 +97,12 @@ public class ElevatorSpecial : ISectorSpecial
         return false;
     }
 
-    public ISpecialModel? ToSpecialModel()
+    public ElevatorSpecialModel ToSpecialModel()
     {
-        return new ElevatorSpecialModel()
+        return new()
         {
-            FirstMove = (SectorMoveSpecialModel)m_firstMove.ToSpecialModel(),
-            SecondMove = (SectorMoveSpecialModel)m_secondMove.ToSpecialModel()
+            FirstMove = m_firstMove.ToSpecialModel(),
+            SecondMove = m_secondMove.ToSpecialModel()
         };
     }
 

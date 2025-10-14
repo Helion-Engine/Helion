@@ -1,6 +1,6 @@
 using System;
+using Helion.Geometry.Vectors;
 using Helion.Menus;
-using Helion.Menus.Base;
 using Helion.Menus.Impl;
 using Helion.Util;
 using Helion.Util.Extensions;
@@ -44,11 +44,17 @@ public partial class MenuLayer
         input.ConsumeAll();
     }
 
+    private Vec2I m_lastCursorPos;
+
     private void InvokeAndPushMenu(Func<Menu?> action)
     {
-        Menu? subMenu = action();
+        var subMenu = action();
         if (subMenu != null)
+        {
+            m_resetMouse = true;
+            UpdateMouseMenu();
             m_menus.Push(subMenu);
+        }
     }
 
     private void HandleInputForMenu(Menu menu, IConsumableInput input)
@@ -58,15 +64,7 @@ public partial class MenuLayer
         if (input.ConsumeKeyPressed(Key.Down) || input.ConsumeKeyPressed(Key.DPadDown))
             menu.MoveToNextComponent();
 
-        if (menu.CurrentComponent is MenuOptionListComponent options)
-        {
-            if (input.ConsumeKeyPressed(Key.Left) || input.ConsumeKeyPressed(Key.DPadLeft))
-                options.MoveToPrevious();
-            else if (input.ConsumeKeyPressed(Key.Right) || input.ConsumeKeyPressed(Key.DPadRight))
-                options.MoveToNext();
-        }
-
-        if ((input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.ButtonA)) && menu.CurrentComponent?.Action != null)
+        if ((input.ConsumeKeyPressed(Key.Enter) || input.ConsumeKeyPressed(Key.ButtonA) || input.ConsumeKeyPressed(Key.MouseLeft)) && menu.CurrentComponent?.Action != null)
         {
             if (menu.CurrentComponent.PlaySelectedSound)
             {
@@ -83,9 +81,10 @@ public partial class MenuLayer
         if (input.ConsumeKeyPressed(Key.Escape) || input.ConsumeKeyPressed(Key.ButtonB))
         {
             Menu? poppedMenu = null;
-            bool clear = false;
+            var clear = false;
             if (m_menus.Count >= 1)
             {
+                UpdateMouseMenu();
                 poppedMenu = m_menus.Pop();
                 clear = poppedMenu.ClearOnClose;
             }
@@ -100,5 +99,12 @@ public partial class MenuLayer
 
             m_soundManager.PlayStaticSound(Constants.MenuSounds.Backup);
         }
+    }
+
+    private void UpdateMouseMenu()
+    {
+        if (m_mouseMenu.CursorPos != m_lastCursorPos)
+            m_forceCheckMouse = true;
+        m_lastCursorPos = m_mouseMenu.CursorPos;
     }
 }

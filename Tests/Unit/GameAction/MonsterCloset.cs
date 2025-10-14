@@ -31,22 +31,22 @@ public class MonsterCloset
         GameActions.TickWorld(World, 35);
         imp1.ClosetFlags.Should().Be(ClosetFlags.MonsterCloset | ClosetFlags.ClosetLook);
         imp2.ClosetFlags.Should().Be(ClosetFlags.None);
-        imp1.Frame.ActionFunction!.Method.Name.Should().Be("A_ClosetLook");
-        imp2.Frame.ActionFunction!.Method.Name.Should().Be("A_Look");
+        imp1.FrameState.Frame.ActionFunction!.Method.Name.Should().Be("A_ClosetLook");
+        imp2.FrameState.Frame.ActionFunction!.Method.Name.Should().Be("A_Look");
 
-        imp1.Frame.Sprite.Should().Be("TNT1");
-        imp2.Frame.Sprite.Should().NotBe("TNT1");
+        imp1.FrameState.Frame.Sprite.Should().Be("TNT1");
+        imp2.FrameState.Frame.Sprite.Should().NotBe("TNT1");
 
         GameActions.PlayerFirePistol(World, Player).Should().BeTrue();
         imp1.ClosetFlags.Should().Be(ClosetFlags.MonsterCloset | ClosetFlags.ClosetChase);
         imp2.ClosetFlags.Should().Be(ClosetFlags.None);
-        imp1.Frame.ActionFunction!.Method.Name.Should().Be("A_ClosetChase");
-        imp2.Frame.ActionFunction!.Method.Name.Should().Be("A_Chase");
+        imp1.FrameState.Frame.ActionFunction!.Method.Name.Should().Be("A_ClosetChase");
+        imp2.FrameState.Frame.ActionFunction!.Method.Name.Should().Be("A_Chase");
 
         GameActions.TickWorld(World, () => imp1.Position.X != -256 && imp1.Position.Y != -64, () => { });
         imp1.ClosetFlags.Should().Be(ClosetFlags.None);
-        imp1.Frame.Sprite.Should().NotBe("TNT1");
-        imp1.Frame.ActionFunction!.Method.Name.Should().Be("A_Chase");
+        imp1.FrameState.Frame.Sprite.Should().NotBe("TNT1");
+        imp1.FrameState.Frame.ActionFunction!.Method.Name.Should().Be("A_Chase");
         // Should not play sight sound
         GameActions.AssertNoSound(World, imp1);
     }

@@ -40,8 +40,10 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
         
         m_renderCount++;
     }
+
+    public DynamicArray<RenderData<TVertex>> GetDataToRender() => m_dataToRender;
     
-    public RenderData<TVertex> Get(GLLegacyTexture texture)
+    public RenderData<TVertex> Get(GLLegacyTexture texture, GLLegacyTexture? brightmapTexture = null)
     {
         if (texture.TextureId >= m_allRenderData.Length)
             ResizeToSupportIndex(texture.TextureId);
@@ -50,7 +52,7 @@ public class RenderDataCollection<[DynamicallyAccessedMembers(DynamicallyAccesse
         
         if (data == null)
         {
-            data = new(texture, m_program) { RenderCount = m_renderCount - 1 };
+            data = new(texture, m_program, brightmapTexture) { RenderCount = m_renderCount - 1 };
             m_allRenderData[texture.TextureId] = data;
         }
 

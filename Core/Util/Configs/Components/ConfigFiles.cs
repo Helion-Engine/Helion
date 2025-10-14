@@ -26,4 +26,7 @@ public class ConfigFiles: ConfigElement<ConfigFiles>
 
             return copy;
         });
+
+    [ConfigInfo("Search common directories, such as Steam install directory, for IWAD files.")]
+    public readonly ConfigValue<bool> SearchCommonDirectories = new(true);
 }

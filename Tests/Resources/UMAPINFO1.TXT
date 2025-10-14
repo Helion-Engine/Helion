@@ -6,6 +6,7 @@ map e1m1
 	music = "D_E1M0"
 	next = "E1M2"
 	levelpic = "WILV00"
+	episode = clear
 	episode = "M_EPI1", "1"
 	author = "the author"
 	partime = 420
@@ -77,13 +78,13 @@ map e1m8
 	EndPic = "CREDIT"
 	levelpic = "WILV07"
 	InterText = "Despite your victory, you rot along with the",
-	"core and everything goes black.",
+	"core and everything goes black.\,",
 	"",
 	"You awaken on what appears to be Deimos,",
 	"but something has changed. Time to get",
 	"to the bottom of this.",
 	"",
-	"Join us for Episode 2: Deimos Corrupted!"
+	"Join us for Episode 2: \"Deimos Corrupted\"!"
 	bossaction = "cyberdemon", 69, 42069
 	bossactionednum = 65, 77, 999
 }
@@ -101,7 +102,6 @@ map e3m1
 {
 	levelname = "The lone map"
 	unknownitem = "test"
-	episode = clear
 }
 
 map e3m2
@@ -123,6 +123,11 @@ map e2m1
 map e4m1
 {
 	endgame = true
+}
+
+map e4m8
+{
+	levelname = "e4m8"
 }
 
 // ANOMALY ASYLUM
@@ -235,4 +240,34 @@ map map02
 map map03
 {
 	intertextsecret = "secret exit"
+}
+
+map map06
+{
+	levelname = "The MAP06"
+}
+
+map map11
+{
+	levelname = "The MAP11"
+}
+
+map map20
+{
+	levelname = "The MAP20"
+}
+
+map map30
+{
+	levelname = "The MAP30"
+}
+
+map map31
+{
+	levelname = "The MAP31"
+}
+
+map map32
+{
+	levelname = "The MAP32"
 }

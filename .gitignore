@@ -341,3 +341,9 @@ ASALocalRun/
 
 # Ignore Publish directory
 Publish/
+
+# Ignore AppDir/AppImage related artifacts
+AppDir/
+Helion.AppImage
+Helion*.deb
+appimagetool-x86_64.AppImage
