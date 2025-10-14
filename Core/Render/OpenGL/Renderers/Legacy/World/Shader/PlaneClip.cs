@@ -1,9 +1,12 @@
-﻿namespace Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+﻿using System;
+
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
 
 public enum WallClipFragOptions
 {
     None,
-    AlphaSample
+    AlphaSample,
+    DiscardNegativeMapId
 }
 
 public static class PlaneClip
@@ -26,6 +29,7 @@ public static class PlaneClip
     public static string WriteWallFragFunction(WallClipFragOptions options)
     {
         var alphaSample = (options & WallClipFragOptions.AlphaSample) != 0;
+        var discardNegativeMapId = (options & WallClipFragOptions.DiscardNegativeMapId) != 0;
         return
          @"
             #version 330
@@ -42,6 +46,7 @@ public static class PlaneClip
 
             void main() {
                 ${AlphaTexture}
+                ${DiscardNegativeMapId}
                 
                 int lineId = int(mapIdFrag);
                 int byte0 = lineId & 0xFF;
@@ -50,12 +55,20 @@ public static class PlaneClip
                 // This should allow for 256x256x64 = 4,194,304 line ids.
                 int byte2 = ((lineId >> 16) & 0x3F) << 2 | int(lowerFrag + (upperFrag * 2));
                 
-                // mapIdFrag check is required for flood fill rendering that doesn't separate planes(floor/ceiling) from walls
-                // Planes are written with -1 and need to be ignored
-                outPlane = vec4(mix(byte0, -255, float(mapIdFrag < 0)), byte1, byte2, depthFrag);
+                outPlane = vec4(byte0, byte1, byte2, depthFrag);
             }"
         .Replace("${InVars}", alphaSample ? "in vec2 uvFrag;" : "")
-        .Replace("${AlphaTexture}", GetAlphaSample(alphaSample));
+        .Replace("${AlphaTexture}", GetAlphaSample(alphaSample))
+        .Replace("${DiscardNegativeMapId}", GetDiscardNegativeMapId(discardNegativeMapId));
+    }
+
+    private static string GetDiscardNegativeMapId(bool discard)
+    {
+        if (!discard)
+            return "";
+        // mapIdFrag check is required for flood fill rendering that doesn't separate planes(floor/ceiling) from walls
+        // Planes are written with -1 and need to be ignored
+        return "if (mapIdFrag < 0) discard;";
     }
 
     private static string GetAlphaSample(bool alphaSample)
