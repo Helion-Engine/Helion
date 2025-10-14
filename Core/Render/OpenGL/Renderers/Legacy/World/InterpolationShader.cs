@@ -167,7 +167,10 @@ public class InterpolationShader : RenderProgram
             return PlaneClip.WritePlaneFragFunction();
 
         if (this is InterpolationWallClipShader)
-            return PlaneClip.WriteWallFragFunction();
+            return PlaneClip.WriteWallFragFunction(WallClipFragOptions.None);
+
+        if (this is InterpolationWallClipAlphaShader)
+            return PlaneClip.WriteWallFragFunction(WallClipFragOptions.AlphaSample);
 
         var planeClip = this is InterpolationPlaneClipShaderMrt;
 

@@ -37,10 +37,12 @@ public class LegacyWorldRenderer : WorldRenderer
     private readonly InterpolationPlaneClipShader m_interpolationPlaneClipProgram = new();
     private readonly InterpolationPlaneClipShaderMrt m_interpolationPlaneClipMrtProgram = new();
     private readonly InterpolationWallClipShader m_interpolationWallClipShader = new();
+    private readonly InterpolationWallClipAlphaShader m_interpolationWallClipAlphaProgram = new();
     private readonly StaticShader m_staticProgram = new("Main");
     private readonly StaticPlaneClipShader m_staticPlaneClipProgram = new();
     private readonly StaticPlaneClipShaderMrt m_staticPlaneClipMrtProgram = new();
     private readonly StaticWallClipShader m_staticWallClipProgram = new();
+    private readonly StaticWallClipAlphaShader m_staticWallClipAlphaProgram = new();
     private readonly RenderWorldDataManager m_worldDataManager = new();
     private readonly ArchiveCollection m_archiveCollection;
     private readonly LegacyGLTextureManager m_textureManager;
@@ -361,11 +363,10 @@ public class LegacyWorldRenderer : WorldRenderer
 
         RenderTwoSidedMiddleWalls(renderInfo);
 
-        if (m_downscaleVanillaBuffer)
-            RenderTwoSidedMiddleWallsToDepth(renderInfo);
-
         if (m_wallClipFrameBuffer != null || m_planeClipFrameBuffer != null)
             WriteSpriteClipBuffers(renderInfo, framebuffer);
+
+        GL.Clear(ClearBufferMask.DepthBufferBit);
 
         m_entityRenderer.RenderOpaque(renderInfo);
         RenderTransparent(renderInfo, framebuffer);
@@ -391,24 +392,11 @@ public class LegacyWorldRenderer : WorldRenderer
         if (m_planeClipFrameBuffer != null)
             WritePlaneClipData(m_planeClipFrameBuffer, useRenderInfo, framebuffer, false);
 
-        if (!m_downscaleVanillaBuffer)
-            RenderTwoSidedMiddleWallsToDepth(renderInfo);
-
         if (m_wallClipFrameBuffer != null)
             WritePlaneClipData(m_wallClipFrameBuffer, useRenderInfo, framebuffer, true);
 
         if (renderInfo.Uniforms.DownScaleAmount > 1)
             GL.Viewport(renderInfo.Viewport.X, renderInfo.Viewport.Y, renderInfo.Viewport.Width, renderInfo.Viewport.Height);
-    }
-
-    private void RenderTwoSidedMiddleWallsToDepth(RenderInfo renderInfo)
-    {
-        // TODO - this could be done with mrt shaders as an optimization instead of drawing twice
-        GL.Clear(ClearBufferMask.DepthBufferBit);
-        GL.ColorMask(false, false, false, false);
-        // Write two-sided middle walls to depth as these generally look better with normal discard handling
-        RenderTwoSidedMiddleWalls(renderInfo);
-        GL.ColorMask(true, true, true, true);
     }
 
     private void SetupClipBuffers(GLFramebuffer framebuffer, Dimension dimension, bool downscaleChanged)
@@ -439,6 +427,7 @@ public class LegacyWorldRenderer : WorldRenderer
     {
         planeClipFrameBuffer.BindFrameBuffer();
         PlaneClipFrameBuffer.StartRender();
+        GL.Disable(EnableCap.Blend);
 
         if (m_renderStatic)
         {
@@ -452,6 +441,11 @@ public class LegacyWorldRenderer : WorldRenderer
                 m_geometryRenderer.RenderWallClipPortals(renderInfo);
                 GL.Enable(EnableCap.CullFace);
                 m_interpolationWallClipShader.Unbind();
+
+                m_interpolationWallClipAlphaProgram.Bind();
+                SetInterpolationUniforms(m_interpolationWallClipAlphaProgram, renderInfo, false);
+                m_worldDataManager.RenderTwoSidedMiddleWalls();
+                m_interpolationWallClipAlphaProgram.Unbind();
             }
             else
             {
@@ -474,6 +468,11 @@ public class LegacyWorldRenderer : WorldRenderer
                 m_geometryRenderer.RenderStaticCoverWalls();
                 GL.CullFace(TriangleFace.Back);
                 m_staticWallClipProgram.Unbind();
+
+                m_staticWallClipAlphaProgram.Bind();
+                SetStaticUniforms(m_staticWallClipAlphaProgram, renderInfo);
+                m_geometryRenderer.RenderStaticTwoSidedWalls();
+                m_staticWallClipAlphaProgram.Unbind();
             }
             else
             {
