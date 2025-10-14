@@ -94,6 +94,9 @@ public partial class Client : IDisposable, IInputManagement
         m_console = console;
         m_audioSystem = audioSystem;
         m_archiveCollection = archiveCollection;
+
+        InitGpuPreference();
+
         m_saveGameManager = new SaveGameManager(config, m_pathsManager, m_archiveCollection, commandLineArgs.SaveDir);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
 
@@ -136,6 +139,16 @@ public partial class Client : IDisposable, IInputManagement
         RegisterConfigChanges();
         UpdateVolume();
         m_ticker.Start();
+    }
+
+    private void InitGpuPreference()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        LaptopGpuSettings.InitGpuModeIfNotExists(AppInfo, LaptopGpuMode.HighPerformance, out var exists);
+        if (!exists)
+            Restart(new(""));
     }
 
     private void LaptopGpu_OnChanged(object? sender, LaptopGpuMode mode)

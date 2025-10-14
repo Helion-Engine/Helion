@@ -7,6 +7,36 @@ namespace Helion.Client;
 
 public static class LaptopGpuSettings
 {
+    public static void InitGpuModeIfNotExists(AppInfo appInfo, LaptopGpuMode initMode, out bool exists)
+    {
+        exists = true;
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        try
+        {
+            if (!SubKeyExists(appInfo))
+            {
+                SetGpuMode(appInfo, initMode);
+                exists = false;
+            }
+        }
+        catch { }
+    }
+
+    private static bool SubKeyExists(AppInfo appInfo)
+    {
+        if (!OperatingSystem.IsWindows())
+            return false;
+
+        using var key = GetRegKey(false);
+        if (key == null)
+            return false;
+
+        var lookupValue = key.GetValue(GetSubKeyName(appInfo))?.ToString();
+        return lookupValue != null;
+    }
+
     public static LaptopGpuMode GetGpuMode(AppInfo appInfo)
     {
         try
