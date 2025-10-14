@@ -105,6 +105,9 @@ public class ListedConfigSection : IOptionSection
 
     public void Add(IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr)
     {
+        if (attr.WindowsPlatform && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
+
         m_configValues.Add((value, attr, configAttr));
     }
 

@@ -106,7 +106,6 @@ public partial class Client : IDisposable, IInputManagement
         m_config.Game.Rng.OnChanged += Rng_OnChanged;
         m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
 
-
         if (commandLineArgs.GlVersion.HasValue)
         {
             GlVersion.Major = commandLineArgs.GlVersion.Value / 10;
@@ -146,9 +145,12 @@ public partial class Client : IDisposable, IInputManagement
         if (!OperatingSystem.IsWindows())
             return;
 
-        LaptopGpuSettings.InitGpuModeIfNotExists(AppInfo, LaptopGpuMode.HighPerformance, out var exists);
-        if (!exists)
+        var result = LaptopGpuSettings.InitGpuModeIfNotExists(AppInfo, LaptopGpuMode.HighPerformance, out var error);
+        if (result == InitGpuResult.SuccessDidNotExist)
             Restart(new(""));
+
+        if (result == InitGpuResult.Error)
+            Log.Error("LaptopGpuSettings Init Error: {error}", error);
     }
 
     private void LaptopGpu_OnChanged(object? sender, LaptopGpuMode mode)

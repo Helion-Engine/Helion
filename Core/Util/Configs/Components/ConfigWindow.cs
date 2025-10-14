@@ -72,11 +72,11 @@ public class ConfigWindow: ConfigElement<ConfigWindow>
     [OptionMenu(OptionSectionType.Video, "Color Mode", allowReset: false)]
     public readonly ConfigValue<RenderColorMode> ColorMode = new(RenderColorMode.TrueColor);
 
-    [ConfigInfo("Changes which laptop GPU is used. Computer restart required.", restartRequired: true)]
-    [OptionMenu(OptionSectionType.Video, "Laptop GPU", spacer: true, allowReset: false)]
-    public readonly ConfigValue<LaptopGpuMode> LaptopGpu = new(LaptopGpuMode.HighPerformance);
-
     [ConfigInfo("Use true color overlays instead of Doom's PLAYPAL palettes for damage, item pickups, berserk and radsuit.")]
     [OptionMenu(OptionSectionType.Video, "True Color Overlay")]
     public readonly ConfigValue<bool> PaletteTrueColorOverlay = new(true);
+
+    [ConfigInfo("Changes which laptop GPU is used. Computer restart required.", restartRequired: true)]
+    [OptionMenu(OptionSectionType.Video, "Laptop GPU", spacer: true, allowReset: false, windowsPlatform: true)]
+    public readonly ConfigValue<LaptopGpuMode> LaptopGpu = new(LaptopGpuMode.HighPerformance);
 }

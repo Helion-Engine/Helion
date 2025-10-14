@@ -5,23 +5,35 @@ using System.IO;
 
 namespace Helion.Client;
 
+public enum InitGpuResult
+{
+    SuccessDidNotExist,
+    AlreadyExists,
+    Error,
+    NotSupported
+}
+
 public static class LaptopGpuSettings
 {
-    public static void InitGpuModeIfNotExists(AppInfo appInfo, LaptopGpuMode initMode, out bool exists)
+    public static InitGpuResult InitGpuModeIfNotExists(AppInfo appInfo, LaptopGpuMode initMode, out string error)
     {
-        exists = true;
+        error = "";
         if (!OperatingSystem.IsWindows())
-            return;
+            return InitGpuResult.NotSupported;
 
         try
         {
-            if (!SubKeyExists(appInfo))
-            {
-                SetGpuMode(appInfo, initMode);
-                exists = false;
-            }
+            if (SubKeyExists(appInfo))
+                return InitGpuResult.AlreadyExists;
+
+            SetGpuMode(appInfo, initMode);
+            return InitGpuResult.SuccessDidNotExist;
         }
-        catch { }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            return InitGpuResult.Error;
+        }
     }
 
     private static bool SubKeyExists(AppInfo appInfo)
@@ -33,7 +45,7 @@ public static class LaptopGpuSettings
         if (key == null)
             return false;
 
-        var lookupValue = key.GetValue(GetSubKeyName(appInfo))?.ToString();
+        var lookupValue = key.GetValue(GetSubKeyName(appInfo));
         return lookupValue != null;
     }
 
