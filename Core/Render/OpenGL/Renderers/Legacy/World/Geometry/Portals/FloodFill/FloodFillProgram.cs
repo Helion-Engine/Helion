@@ -139,7 +139,7 @@ public class FloodFillProgram : RenderProgram
     protected override string FragmentShader()
     {
         if (this is FloodFillWallClipProgram)
-            return PlaneClip.WriteWallFragFunction(WallClipFragOptions.None);
+            return PlaneClip.WriteWallFragFunction(WallClipFragOptions.DiscardNegativeMapId);
 
         return @"
             #version 330
