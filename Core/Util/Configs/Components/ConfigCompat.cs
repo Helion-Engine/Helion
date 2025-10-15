@@ -29,7 +29,7 @@ public class ConfigCompat: ConfigElement<ConfigCompat>
 
     [ConfigInfo("Use vanilla movement physics. Velocity is maintained when hitting things.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Vanilla Movement Physics")]
-    public readonly ConfigValue<bool> VanillaMovementPhysics = new(false);
+    public readonly ConfigValue<bool> VanillaMovementPhysics = new(true);
 
     [ConfigInfo("Use vanilla sector sound calculation. Sound is calculated from the center of the sector's bounding box.", serialize: true, demo: true)]
     [OptionMenu(OptionSectionType.Compatibility, "Vanilla Sector Sound")]
