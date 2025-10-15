@@ -429,34 +429,34 @@ public class LegacyWorldRenderer : WorldRenderer
         PlaneClipFrameBuffer.StartRender();
         GL.Disable(EnableCap.Blend);
 
+        if (walls)
+        {
+            m_interpolationWallClipShader.Bind();
+            GL.ActiveTexture(BindTextures.BoundTexture);
+            SetInterpolationUniforms(m_interpolationWallClipShader, renderInfo, false);
+            GL.Disable(EnableCap.CullFace);
+            m_worldDataManager.RenderCoverWalls();
+            m_geometryRenderer.RenderWallClipPortals(renderInfo);
+            GL.Enable(EnableCap.CullFace);
+            m_interpolationWallClipShader.Unbind();
+
+            m_interpolationWallClipAlphaProgram.Bind();
+            SetInterpolationUniforms(m_interpolationWallClipAlphaProgram, renderInfo, false);
+            m_worldDataManager.RenderTwoSidedMiddleWalls();
+            m_interpolationWallClipAlphaProgram.Unbind();
+        }
+        else
+        {
+            InterpolationShader program = m_downscaleVanillaBuffer ? m_interpolationPlaneClipProgram : m_interpolationPlaneClipMrtProgram;
+            program.Bind();
+            GL.ActiveTexture(BindTextures.BoundTexture);
+            SetInterpolationUniforms(program, renderInfo, false);
+            m_worldDataManager.RenderFlats();
+            program.Unbind();
+        }
+
         if (m_renderStatic)
         {
-            if (walls)
-            {
-                m_interpolationWallClipShader.Bind();
-                GL.ActiveTexture(BindTextures.BoundTexture);
-                SetInterpolationUniforms(m_interpolationWallClipShader, renderInfo, false);
-                GL.Disable(EnableCap.CullFace);
-                m_worldDataManager.RenderCoverWalls();
-                m_geometryRenderer.RenderWallClipPortals(renderInfo);
-                GL.Enable(EnableCap.CullFace);
-                m_interpolationWallClipShader.Unbind();
-
-                m_interpolationWallClipAlphaProgram.Bind();
-                SetInterpolationUniforms(m_interpolationWallClipAlphaProgram, renderInfo, false);
-                m_worldDataManager.RenderTwoSidedMiddleWalls();
-                m_interpolationWallClipAlphaProgram.Unbind();
-            }
-            else
-            {
-                InterpolationShader program = m_downscaleVanillaBuffer ? m_interpolationPlaneClipProgram : m_interpolationPlaneClipMrtProgram;
-                program.Bind();
-                GL.ActiveTexture(BindTextures.BoundTexture);
-                SetInterpolationUniforms(program, renderInfo, false);
-                m_worldDataManager.RenderFlats();
-                program.Unbind();
-            }
-
             if (walls)
             {
                 m_staticWallClipProgram.Bind();
