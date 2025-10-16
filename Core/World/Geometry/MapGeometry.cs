@@ -128,27 +128,29 @@ public class MapGeometry
                 if (!island.ContainsInclusive(subsector.Box))
                     continue;
 
+                if (sectorId == subsector.SectorId)
+                    SetIslandFlooded(island);
+
                 // If the subsector has no area then treat as a line with two vertices. Likely a single self referencing sector line.
                 // This deals with cases like BTSX MAP02 exit line 2560.
                 if (noArea)
                 {
                     var v1 = subsector.Box.Min;
                     var v2 = subsector.Box.Max;
-                    if (sectorId != subsector.SectorId)
+                    if (sectorId == subsector.SectorId)
                         continue;
 
-                    if (!island.LineInsideSector(v1, v2, out var hitSubsector))
-                        continue;
-
-                    // If the subsector has no area and it matches exactly with a seg then we can ignore this subsector to not be completely overzealous with flooding.
-                    if (FindSegment(hitSubsector, v1, v2))
+                    if (!island.LineInsideSector(v1, v2))
                         continue;
 
                     IslandGeometry.FloodSectors.Add(sectorId);
                 }
                 else
                 {
-                    if (sectorId != subsector.SectorId && !island.BoxInsideSector(subsector.Box))
+                    if (sectorId == subsector.SectorId)
+                        continue;
+
+                    if (!island.BoxInsideSector(subsector.Box))
                         continue;
 
                     var perimeter = (island.Box.Width + island.Box.Height) * 2;
@@ -158,28 +160,11 @@ public class MapGeometry
                         smallestFloodSector = sectorId;
                     }
                 }
-
-                if (sectorId == subsector.SectorId)
-                    SetIslandFlooded(island);
             }
         }
 
         if (smallestFloodSector != null)
             IslandGeometry.FloodSectors.Add(smallestFloodSector.Value);
-    }
-
-    private static bool FindSegment(BspSubsector subsector, Vec2D v1, Vec2D v2)
-    {
-        for (int i = 0; i < subsector.Segments.Count; i++)
-        {
-            var seg = subsector.Segments[i];
-            if (seg.Start.X == v1.X && seg.Start.Y == v1.Y && seg.End.X == v2.X && seg.End.Y == v2.Y)
-                return true;
-            if (seg.Start.X == v2.X && seg.Start.Y == v2.Y && seg.End.X == v1.X && seg.End.Y == v1.Y)
-                return true;
-        }
-
-        return false;
     }
 
     private void SetIslandFlooded(Island floodedIsland)

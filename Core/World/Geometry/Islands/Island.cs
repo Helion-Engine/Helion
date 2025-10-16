@@ -2,7 +2,6 @@
 using Helion.Geometry.Vectors;
 using Helion.World.Bsp;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.World.Geometry.Islands;
 
@@ -65,9 +64,8 @@ public class Island
         return false;
     }
 
-    public bool LineInsideSector(Vec2D v1, Vec2D v2, [NotNullWhen(true)] out BspSubsector? hitSubsector)
+    public bool LineInsideSector(Vec2D v1, Vec2D v2)
     {
-        hitSubsector = null;
         var hitV1 = false;
         var hitV2 = false;
 
@@ -79,10 +77,7 @@ public class Island
                 hitV2 = true;
 
             if (hitV1 && hitV2)
-            {
-                hitSubsector = subsector;
                 return true;
-            }
         }
 
         return false;
