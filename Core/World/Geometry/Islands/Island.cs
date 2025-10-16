@@ -1,9 +1,8 @@
 ﻿using Helion.Geometry.Boxes;
-using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
 using Helion.World.Bsp;
-using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Subsectors;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Helion.World.Geometry.Islands;
 
@@ -38,9 +37,6 @@ public class Island
 
     public bool BoxInsideSector(in Box2D box)
     {
-        if (box.Min.X == box.Max.X || box.Min.Y == box.Max.Y)
-            return false;
-
         bool hitBottomLeft = false;
         bool hitBottomRight = false;
         bool hitTopLeft = false;
@@ -64,6 +60,29 @@ public class Island
 
             if (hitBottomLeft && hitBottomRight && hitTopLeft && hitTopRight)
                 return true;
+        }
+
+        return false;
+    }
+
+    public bool LineInsideSector(Vec2D v1, Vec2D v2, [NotNullWhen(true)] out BspSubsector? hitSubsector)
+    {
+        hitSubsector = null;
+        var hitV1 = false;
+        var hitV2 = false;
+
+        foreach (var subsector in Subsectors)
+        {
+            if (!hitV1 && subsector.Box.ContainsInclusive(v1))
+                hitV1 = true;
+            if (!hitV2 && subsector.Box.ContainsInclusive(v2))
+                hitV2 = true;
+
+            if (hitV1 && hitV2)
+            {
+                hitSubsector = subsector;
+                return true;
+            }
         }
 
         return false;
