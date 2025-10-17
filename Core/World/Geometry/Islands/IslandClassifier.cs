@@ -1,6 +1,5 @@
 ﻿using Helion.Geometry.Vectors;
 using Helion.World.Bsp;
-using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using System.Collections.Generic;
 using System.Linq;
