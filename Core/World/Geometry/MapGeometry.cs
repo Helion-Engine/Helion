@@ -6,6 +6,7 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Helion.World.Geometry;
@@ -136,10 +137,10 @@ public class MapGeometry
                     continue;
 
                 if (sectorId == subsector.SectorId)
+                {
                     SetIslandFlooded(island);
-
-                if (sectorId == subsector.SectorId)
                     continue;
+                }
 
                 if (noArea)
                 {

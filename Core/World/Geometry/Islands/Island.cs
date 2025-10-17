@@ -2,6 +2,7 @@
 using Helion.Geometry.Vectors;
 using Helion.World.Bsp;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World.Geometry.Islands;
 
@@ -9,11 +10,11 @@ namespace Helion.World.Geometry.Islands;
 /// A collection of lines and sectors that are reachable from each other by
 /// traversing adjacent subsectors.
 /// </summary>
-public class Island
+public class Island(int id)
 {
-    public readonly int Id;
-    public readonly List<BspSubsector> Subsectors = new();
-    public readonly List<int> LineIds = new();
+    public readonly int Id = id;
+    public readonly List<BspSubsector> Subsectors = [];
+    public readonly List<int> LineIds = [];
     public bool IsMonsterCloset;
     public bool IsVooDooCloset;
     public bool Flood;
@@ -23,15 +24,12 @@ public class Island
     public int SectorId;
     public Island? ParentIsland;
 
-    public Island(int id)
-    {
-        Id = id;
-    }
-
     // Box is contained in this island box. Does not include where min or max are equal.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Contains(in Box2D box) => Box.Contains(box.Min) && Box.Contains(box.Max);
 
     // Box is contained in this island box. Allows inclusive checks where min or max are equal.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ContainsInclusive(in Box2D box) => Box.ContainsInclusive(box.Min) && Box.ContainsInclusive(box.Max);
 
     public bool BoxInsideSector(in Box2D box)

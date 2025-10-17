@@ -322,6 +322,29 @@ namespace Helion.Geometry.Boxes
             }
             );
         }
+        public static Box2D? Bound<TSeg>(List<TSeg> items) where TSeg : Segment2D
+        {
+            if (items.Count == 0)
+                return null;
+
+            Box2D result = items[0].Box;
+            for (int i = 1; i < items.Count; i++)
+            {
+                Box2D box = items[i].Box;
+
+                Vec2D min = result.Min;
+                Vec2D max = result.Max;
+
+                min.X = min.X.Min(box.Min.X);
+                min.Y = min.Y.Min(box.Min.Y);
+                max.X = max.X.Max(box.Max.X);
+                max.Y = max.Y.Max(box.Max.Y);
+
+                result = new Box2D(min, max);
+            }
+
+            return result;
+        }
         public static Box2D? Bound<T>(IEnumerable<SegmentT2D<T>> items) where T : Vector2D
         {
             if (items.Empty())
