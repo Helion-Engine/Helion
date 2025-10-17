@@ -28,3 +28,4 @@
 - Fix reading pre-0.9.8.0 saves.
 - Fix one-sided scrolling lines not interpolating.
 - Fix borderless window option in Windows to not be promoted to exclusive fullscreen.
+- Fix holes in floors that can be caused by self-referencing lines. (Fixes BTSX E1 MAP02 exit).
