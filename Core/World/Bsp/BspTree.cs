@@ -13,40 +13,25 @@ using System.Linq;
 
 namespace Helion.World.Bsp;
 
-public class BspSubsectorSeg : Segment2D
+public class BspSubsectorSeg(int id, Vec2D start, Vec2D end, int? lineId, int? sectorId) : Segment2D(start, end)
 {
-    public readonly int Id;
-    public readonly int? LineId;
-    public readonly int? SectorId;
-    public BspSubsectorSeg Partner { get; internal set; } = null!;
-    public BspSubsector Subsector { get; internal set; } = null!;
-
-    public BspSubsectorSeg(int id, Vec2D start, Vec2D end, int? lineId, int? sectorId) : base(start, end)
-    {
-        Id = id;
-        LineId = lineId;
-        SectorId = sectorId;
-    }
+    public readonly int Id = id;
+    public readonly int? LineId = lineId;
+    public readonly int? SectorId = sectorId;
+    public BspSubsectorSeg? Partner;
+    public BspSubsector Subsector = null!;
 
     public override string ToString() => $"{Struct} (line = {LineId ?? -1}, sector = {SectorId ?? -1})";
 }
 
-public class BspSubsector
+public class BspSubsector(int id, int? sectorId, List<BspSubsectorSeg> segs)
 {
-    public readonly int Id;
-    public readonly int? SectorId;
-    public List<BspSubsectorSeg> Segments;
-    public readonly Box2D Box;
+    public readonly int Id = id;
+    public readonly int? SectorId = sectorId;
+    public List<BspSubsectorSeg> Segments = segs;
+    public readonly Box2D Box = Box2D.Bound(segs) ?? default;
     public int IslandId;
     public int SectorIslandId;
-
-    public BspSubsector(int id, int? sectorId, List<BspSubsectorSeg> segs)
-    {
-        Id = id;
-        SectorId = sectorId;
-        Segments = segs;
-        Box = Box2D.Bound(segs) ?? default;
-    }
 
     public override string ToString() => $"{Id}, sector = {SectorId ?? -1}, segs = {Segments.Count}, box = {Box}";
 }
@@ -128,7 +113,6 @@ public class BspTreeNew
 
         // Attaching partner segs must come after we have populated everything so
         // that references are valid.
-        id = 0;
         for (int i = 0; i < map.GL.Segments.Count; i++)
         {
             var seg = map.GL.Segments[i];
@@ -136,8 +120,6 @@ public class BspTreeNew
             if (seg.PartnerSegment.HasValue)
                 segment.Partner = Segments[(int)seg.PartnerSegment.Value];
         }
-
-
     }
 
     private void CreateSubsectors(IMap map)

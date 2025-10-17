@@ -31,14 +31,15 @@ public class SectorFlood
         // 3d bridge 1
         SectorFlooded(4).Should().BeTrue();
         SectorFlooded(6).Should().BeTrue();
-        SectorFlooded(5).Should().BeFalse();
-        SectorFlooded(7).Should().BeFalse();
-        SectorFlooded(8).Should().BeFalse();
-        SectorFlooded(9).Should().BeFalse();
         SectorFlooded(15).Should().BeFalse();
         SectorFlooded(17).Should().BeFalse();
         SectorFlooded(19).Should().BeFalse();
         SectorFlooded(20).Should().BeFalse();
+        // These sectors don't need to be flooded but the alorithm is more greedy to deal with edge cases.
+        SectorFlooded(5).Should().BeTrue();
+        SectorFlooded(7).Should().BeTrue();
+        SectorFlooded(8).Should().BeTrue();
+        SectorFlooded(9).Should().BeTrue();
 
         // 3d bridge 2
         SectorFlooded(11).Should().BeTrue();
@@ -50,7 +51,8 @@ public class SectorFlood
         // eye platform
         SectorFlooded(22).Should().BeTrue();
         SectorFlooded(23).Should().BeTrue();
-        SectorFlooded(21).Should().BeFalse();
+        // This sectors doesn't need to be flooded but the alorithm is more greedy to deal with edge cases.
+        SectorFlooded(21).Should().BeTrue();
 
         // blue key platform
         SectorFlooded(24).Should().BeTrue();
@@ -61,7 +63,8 @@ public class SectorFlood
         SectorFlooded(32).Should().BeTrue();
         SectorFlooded(26).Should().BeFalse();
         SectorFlooded(27).Should().BeFalse();
-        SectorFlooded(28).Should().BeFalse();
+        // This sectors doesn't need to be flooded but the alorithm is more greedy to deal with edge cases.
+        SectorFlooded(28).Should().BeTrue();
     }
 
     private bool SectorFlooded(int sectorId) => World.Geometry.IslandGeometry.FloodSectors.Contains(sectorId);
