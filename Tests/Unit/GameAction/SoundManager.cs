@@ -409,7 +409,7 @@ public class SoundManager
         AssertSoundsPlaying(World.SoundManager.GetPlayingSounds(), true);
     }
 
-    [Fact(DisplayName = "Sounds are paused and resumed")]
+    [Fact(DisplayName = "Sounds are cleared")]
     public void SoundsAreCleared()
     {
         var waitingSounds = World.SoundManager.GetWaitingSounds();
