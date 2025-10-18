@@ -361,7 +361,7 @@ public class MarkSpecials
             MarkSpecialLines(world, lines, frontTag, backTag);
     }
 
-    private void MarkSpecialLines(IWorld world, IList<Line> lines, int frontTag, int backTag)
+    private void MarkSpecialLines(IWorld world, List<Line> lines, int frontTag, int backTag)
     {
         for (int i = 0; i < lines.Count; i++)
         {

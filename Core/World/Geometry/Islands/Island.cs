@@ -1,9 +1,8 @@
 ﻿using Helion.Geometry.Boxes;
-using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
 using Helion.World.Bsp;
-using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Subsectors;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Helion.World.Geometry.Islands;
 
@@ -11,11 +10,11 @@ namespace Helion.World.Geometry.Islands;
 /// A collection of lines and sectors that are reachable from each other by
 /// traversing adjacent subsectors.
 /// </summary>
-public class Island
+public class Island(int id)
 {
-    public readonly int Id;
-    public readonly List<BspSubsector> Subsectors = new();
-    public readonly List<int> LineIds = new();
+    public readonly int Id = id;
+    public readonly List<BspSubsector> Subsectors = [];
+    public readonly List<int> LineIds = [];
     public bool IsMonsterCloset;
     public bool IsVooDooCloset;
     public bool Flood;
@@ -25,22 +24,16 @@ public class Island
     public int SectorId;
     public Island? ParentIsland;
 
-    public Island(int id)
-    {
-        Id = id;
-    }
-
     // Box is contained in this island box. Does not include where min or max are equal.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Contains(in Box2D box) => Box.Contains(box.Min) && Box.Contains(box.Max);
 
     // Box is contained in this island box. Allows inclusive checks where min or max are equal.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ContainsInclusive(in Box2D box) => Box.ContainsInclusive(box.Min) && Box.ContainsInclusive(box.Max);
 
     public bool BoxInsideSector(in Box2D box)
     {
-        if (box.Min.X == box.Max.X || box.Min.Y == box.Max.Y)
-            return false;
-
         bool hitBottomLeft = false;
         bool hitBottomRight = false;
         bool hitTopLeft = false;
@@ -63,6 +56,25 @@ public class Island
                 hitTopRight = true;
 
             if (hitBottomLeft && hitBottomRight && hitTopLeft && hitTopRight)
+                return true;
+        }
+
+        return false;
+    }
+
+    public bool LineInsideSector(Vec2D v1, Vec2D v2)
+    {
+        var hitV1 = false;
+        var hitV2 = false;
+
+        foreach (var subsector in Subsectors)
+        {
+            if (!hitV1 && subsector.Box.ContainsInclusive(v1))
+                hitV1 = true;
+            if (!hitV2 && subsector.Box.ContainsInclusive(v2))
+                hitV2 = true;
+
+            if (hitV1 && hitV2)
                 return true;
         }
 

@@ -376,7 +376,7 @@ public sealed class Sector
     public void ApplySectorModel(IWorld world, in SectorModel sectorModel, WorldModelPopulateResult result)
     {
         var textureManager = world.ArchiveCollection.TextureManager;
-        IList<Sector> sectors = world.Sectors;
+        var sectors = world.Sectors;
         SoundValidationCount = sectorModel.SoundValidationCount;
         SoundBlock = sectorModel.SoundBlock;
         if (sectorModel.SoundTarget.HasValue && result.Entities.TryGetValue(sectorModel.SoundTarget.Value, out var soundTarget))
@@ -492,7 +492,7 @@ public sealed class Sector
         }
     }
 
-    private static bool IsSectorIdValid(IList<Sector> sectors, int id) => id >= 0 && id < sectors.Count;
+    private static bool IsSectorIdValid(List<Sector> sectors, int id) => id >= 0 && id < sectors.Count;
 
     public LinkableNode<Entity> Link(Entity entity)
     {

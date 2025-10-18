@@ -13,7 +13,6 @@ using Helion.Util;
 using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Walls;
 using Helion.World.Static;
 using OpenTK.Graphics.OpenGL;
 
@@ -30,11 +29,13 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
     private readonly FloodFillWallClipProgram m_wallClipProgram = new();
     private readonly List<FloodFillInfo> m_floodFillInfos = [];
     private readonly Dictionary<int, int> m_textureHandleToFloodFillInfoIndex = [];
-    private readonly DynamicArray<FloodGeometry> m_floodGeometry = new();
+    private readonly DynamicArray<FloodGeometry> m_floodGeometry = [];
     private readonly LinkedList<FloodGeometry> m_freeData = [];
-    private readonly DynamicArray<LinkedListNode<FloodGeometry>> m_freeNodes = new();
+    private readonly DynamicArray<LinkedListNode<FloodGeometry>> m_freeNodes = [];
     private TextureManager? m_textureManager;
     private bool m_disposed;
+
+    private FloodGeometry NoGeometry;
 
     ~FloodFillRenderer()
     {
@@ -64,9 +65,6 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         m_floodFillInfos.Add(floodInfo);
         return floodInfo;
     }
-
-
-    private FloodGeometry NoGeometry;
 
     private ref FloodGeometry TryGetFloodGeometry(int floodKey, out bool success)
     {
@@ -302,30 +300,33 @@ public class FloodFillRenderer(LegacyGLTextureManager glTextureManager, FloodFil
         vbo.UploadSubData(bufferOffset, vertices);
     }
 
-    public void Render(RenderInfo renderInfo) => Render(m_program, renderInfo);
+    public void Render(RenderInfo renderInfo) => Render(m_program, renderInfo, false);
 
-    public void RenderWallClip(RenderInfo renderInfo) => Render(m_wallClipProgram, renderInfo);
+    public void RenderWallClip(RenderInfo renderInfo) => Render(m_wallClipProgram, renderInfo, true);
 
-    private void Render(FloodFillProgram program, RenderInfo renderInfo)
+    private void Render(FloodFillProgram program, RenderInfo renderInfo, bool wallClip)
     {
         program.Bind();
         SetUniforms(program, renderInfo);
 
         for (int i = 0; i < m_floodFillInfos.Count; i++)
         {
-            FloodFillInfo info = m_floodFillInfos[i];
+            var info = m_floodFillInfos[i];
             if (info.Vertices.Vbo.Empty)
                 continue;
 
-            GLLegacyTexture texture = m_glTextureManager.GetTexture(info.TextureHandle);
-            GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(info.TextureHandle);
-            GL.ActiveTexture(BindTextures.BoundTexture);
-            texture.Bind();
-            GL.ActiveTexture(BindTextures.BrightmapTexture);
-            if (brightmapTexture != null)
-                brightmapTexture.Bind();
-            else
-                GL.BindTexture(TextureTarget.Texture2D, 0);
+            if (!wallClip)
+            {
+                var texture = m_glTextureManager.GetTexture(info.TextureHandle);
+                var brightmapTexture = m_glTextureManager.GetBrightmapTexture(info.TextureHandle);
+                GL.ActiveTexture(BindTextures.BoundTexture);
+                texture.Bind();
+                GL.ActiveTexture(BindTextures.BrightmapTexture);
+                if (brightmapTexture != null)
+                    brightmapTexture.Bind();
+                else
+                    GL.BindTexture(TextureTarget.Texture2D, 0);
+            }
 
             info.Vertices.Vbo.UploadIfNeeded();
             info.Vertices.Vao.Bind();

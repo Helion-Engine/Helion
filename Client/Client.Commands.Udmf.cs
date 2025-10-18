@@ -40,6 +40,7 @@ public partial class Client
                 return;
             }
 
+            map.LoadData();
             using var textWriter = new StreamWriter(outputFile);
             UdmfMapWriter.WriteMap(map, textWriter, udmfNamespace);
             Log.Info($"Successfully wrote {outputFile}");

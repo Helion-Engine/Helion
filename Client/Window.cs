@@ -43,7 +43,17 @@ public class Window : GameWindow, IWindow
     private readonly SpanString m_textInput = new();
     public readonly ControllerAdapter JoystickAdapter;
 
-    public Dimension ClientDimension => new((int)(ClientSize.X * m_clientScaling.X), (int)(ClientSize.Y * m_clientScaling.Y));
+    public Dimension ClientDimension
+    {
+        get
+        {
+            var size = ClientSize;
+            // See UpdateWindow BorderlessFullscreen case
+            if (IsWindowsBorderlessFullscreen)
+                size.Y--;
+            return new((int)(size.X * m_clientScaling.X), (int)(size.Y * m_clientScaling.Y));
+        }
+    }
     private bool m_firstResizeEvent = true;
     private DateTime m_windowStateUpdateTimestamp;
     private readonly bool m_isLinuxWayland = OperatingSystem.IsLinux() && GLFW.GetPlatform() == Platform.Wayland;
@@ -53,6 +63,7 @@ public class Window : GameWindow, IWindow
     private bool m_disposed;
     private RenderWindowState m_renderWindowState;
     private Vector2i? m_knownGoodWindowPos;
+    private bool IsWindowsBorderlessFullscreen => m_isWindows && m_renderWindowState == RenderWindowState.BorderlessFullscreenWindow;
 
     public Window(string title, IConfig config, ArchiveCollection archiveCollection, FpsTracker tracker, IInputManagement inputManagement,
         int glMajor, int glMinor, GLContextFlags flags, Action onCreate) :
@@ -88,6 +99,13 @@ public class Window : GameWindow, IWindow
 
         m_config.Render.MaxFPS.OnChanged += OnMaxFpsChanged;
         m_config.Render.VSync.OnChanged += OnVSyncChanged;
+        FocusedChanged += Window_FocusedChanged;
+    }
+
+    private void Window_FocusedChanged(FocusedChangedEventArgs e)
+    {
+        if (IsWindowsBorderlessFullscreen)
+            AlwaysOnTop = e.IsFocused;
     }
 
     public override void Run()
@@ -267,8 +285,19 @@ public class Window : GameWindow, IWindow
                 case RenderWindowState.BorderlessFullscreenWindow:
                     // Hide border before going fullscreen, otherwise taskbar gets stuck on Windows
                     WindowBorder = WindowBorder.Hidden;
+                    WindowState = WindowState.Normal;
+
+                    // The position and size can't match the monitor dimensions exactly in Windows so add one to prevent
+                    // Otherwise it gets promoted to exclusive fullscreen anyway
+                    var addHeight = 0;
+                    if (m_isWindows)
+                    {
+                        addHeight = 1;
+                        AlwaysOnTop = true;
+                    }
+
                     GLFW.GetMonitorPos(monitor, out int monitorX, out int monitorY);
-                    GLFW.SetWindowMonitor(WindowPtr, null, monitorX, monitorY, modePtr->Width, modePtr->Height, GLFW.DontCare);
+                    GLFW.SetWindowMonitor(WindowPtr, null, monitorX, monitorY, modePtr->Width, modePtr->Height + addHeight, GLFW.DontCare);
                     break;
                 case RenderWindowState.Normal:
                 default:

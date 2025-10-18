@@ -1,4 +1,13 @@
-﻿namespace Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+﻿using System;
+
+namespace Helion.Render.OpenGL.Renderers.Legacy.World.Shader;
+
+public enum WallClipFragOptions
+{
+    None,
+    AlphaSample,
+    DiscardNegativeMapId
+}
 
 public static class PlaneClip
 {
@@ -17,7 +26,11 @@ public static class PlaneClip
                 {GetOutPlane(true)}
             }}";
 
-    public static string WriteWallFragFunction() =>
+    public static string WriteWallFragFunction(WallClipFragOptions options)
+    {
+        var alphaSample = (options & WallClipFragOptions.AlphaSample) != 0;
+        var discardNegativeMapId = (options & WallClipFragOptions.DiscardNegativeMapId) != 0;
+        return
          @"
             #version 330
 
@@ -25,14 +38,15 @@ public static class PlaneClip
             flat in float upperFrag;
             flat in float lowerFrag;
             in float depthFrag;
+            ${InVars}
+
+            uniform sampler2D boundTexture;
 
             layout (location = 0) out vec4 outPlane;
 
             void main() {
-                // This is required for flood fill rendering that doesn't separate planes(floor/ceiling) from walls
-                // Planes are written with -1 and need to be discarded
-                if (mapIdFrag < 0)
-                    discard;
+                ${AlphaTexture}
+                ${DiscardNegativeMapId}
                 
                 int lineId = int(mapIdFrag);
                 int byte0 = lineId & 0xFF;
@@ -40,8 +54,31 @@ public static class PlaneClip
                 // Pack lower and upper flags and overflow bytes after 65536 for line id.
                 // This should allow for 256x256x64 = 4,194,304 line ids.
                 int byte2 = ((lineId >> 16) & 0x3F) << 2 | int(lowerFrag + (upperFrag * 2));
+                
                 outPlane = vec4(byte0, byte1, byte2, depthFrag);
-            }";
+            }"
+        .Replace("${InVars}", alphaSample ? "in vec2 uvFrag;" : "")
+        .Replace("${AlphaTexture}", GetAlphaSample(alphaSample))
+        .Replace("${DiscardNegativeMapId}", GetDiscardNegativeMapId(discardNegativeMapId));
+    }
+
+    private static string GetDiscardNegativeMapId(bool discard)
+    {
+        if (!discard)
+            return "";
+        // mapIdFrag check is required for flood fill rendering that doesn't separate planes(floor/ceiling) from walls
+        // Planes are written with -1 and need to be ignored
+        return "if (mapIdFrag < 0) discard;";
+    }
+
+    private static string GetAlphaSample(bool alphaSample)
+    {
+        if (!alphaSample)
+            return "";
+
+        return @"float alpha = texture(boundTexture, uvFrag.xy).a;
+                if (alpha <= 0) discard;";
+    }
 
     public static string GetOutPlane(bool planeClip)
     {

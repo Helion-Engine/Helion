@@ -1,7 +1,6 @@
 using Helion.Audio;
 using Helion.Geometry.Vectors;
 using Helion.Maps;
-using Helion.Maps.Components;
 using Helion.Models;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Archives.Entries;

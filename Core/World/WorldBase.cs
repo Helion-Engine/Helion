@@ -121,11 +121,11 @@ public abstract partial class WorldBase : IWorld
     public bool SameAsPreviousMap { get; set; }
     public IRandom Random => m_random;
     public IRandom SecondaryRandom { get; private set; }
-    public IList<Line> Lines => Geometry.Lines;
-    public IList<Side> Sides => Geometry.Sides;
-    public IList<Sector> Sectors => Geometry.Sectors;
+    public List<Line> Lines { get; private set; }
+    public List<Side> Sides { get; private set; }
+    public List<Sector> Sectors { get; private set; }
     public DynamicArray<StructLine> StructLines => LastStructLines;
-    public IList<HighlightArea> HighlightAreas { get; } = new List<HighlightArea>();
+    public List<HighlightArea> HighlightAreas { get; } = [];
     public CompactBspTree BspTree { get; private set; }
     public EntityManager EntityManager { get; }
     public WorldSoundManager SoundManager { get; }
@@ -209,6 +209,9 @@ public abstract partial class WorldBase : IWorld
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
         SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null, bool sameAsPreviousMap = false, bool reuse = true)
     {
+        Lines = geometry.Lines;
+        Sides = geometry.Sides;
+        Sectors = geometry.Sectors;
         SameAsPreviousMap = sameAsPreviousMap;
         m_random = random ?? new DoomRandom();
         m_saveRandom = m_random;
@@ -679,8 +682,8 @@ public abstract partial class WorldBase : IWorld
         SetupMusicChangers();
         SetSectorSkies();
 
-        if (worldModel == null)
-            SpecialManager.StartInitSpecials(LevelStats);
+        if (!SameAsPreviousMap || worldModel == null)
+            SpecialManager.StartInitSpecials(LevelStats, worldModel != null);
 
         StaticDataApplier.DetermineStaticData(this);
         SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;
