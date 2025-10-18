@@ -29,3 +29,4 @@
 - Fix one-sided scrolling lines not interpolating.
 - Fix borderless window option in Windows to not be promoted to exclusive fullscreen.
 - Fix holes in floors that can be caused by self-referencing lines. (Fixes BTSX E1 MAP02 exit).
+- Fix looping sounds with same sound limit feature not playing when coming back into player's sound range.
