@@ -504,6 +504,6 @@ public static class WorldTriangulator
             topV = bottomV - spanV;
         }
 
-        return new WallUV(new(leftU * side.Upper.Scale.X, topV * side.Upper.Scale.Y), new(rightU * side.Upper.Scale.Y, bottomV * side.Upper.Scale.Y));
+        return new WallUV(new(leftU * side.Upper.Scale.X, topV * side.Upper.Scale.Y), new(rightU * side.Upper.Scale.X, bottomV * side.Upper.Scale.Y));
     }
 }
