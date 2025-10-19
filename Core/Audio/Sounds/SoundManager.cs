@@ -4,7 +4,6 @@ using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
-using Helion.World.Entities;
 using Helion.World.Sound;
 using System;
 using System.Collections.Generic;
@@ -198,8 +197,11 @@ public class SoundManager : IDisposable
 
     protected virtual int GetGameTick() => 0;
 
-    protected void UpdateWaitingLoopSounds()
+    protected void UpdateWaitingSounds()
     {
+        if (m_waitingLoopSounds.Count == 0)
+            return;
+
         SortWaitingSoundsByDistance(m_waitingLoopSounds, m_sortSounds);
         var gametick = GetGameTick();
 
@@ -341,17 +343,17 @@ public class SoundManager : IDisposable
                 }
             }
 
-            node.Stop();
-            audioSources.RemoveAndFree(node, ArchiveCollection.DataCache);
-            soundStopped = true;
-
             if (option == StopSoundOption.BySound && node.AudioData.Loop)
             {
                 var stopSoundSource = node.AudioData.SoundSource;
-                var stopSoundParams = new SoundParams(stopSoundSource, loop: true, node.AudioData.Attenuation, node.AudioData.Volume);
+                var stopSoundParams = new SoundParams(stopSoundSource, node.AudioData.Loop, node.AudioData.Attenuation, node.AudioData.Volume);
                 CreateWaitingLoopSound(stopSoundSource, node.GetPosition().Double, node.GetVelocity().Double, 
                     node.AudioData.SoundInfo, node.AudioData.Priority, node.GetOffsetSeconds(), gametick, stopSoundParams);
             }
+
+            node.Stop();
+            audioSources.RemoveAndFree(node, ArchiveCollection.DataCache);
+            soundStopped = true;
 
             break;
         }
@@ -552,9 +554,9 @@ public class SoundManager : IDisposable
 
         if (lowestPriorityNode != null && priority <= lowestPriority && (distanceSquared < farthestDistanceSquared || attenuation == Attenuation.None))
         {
+            AddWaitingSoundFromBumpedSound(lowestPriorityNode);
             lowestPriorityNode.Stop();
             audioSources.RemoveAndFree(lowestPriorityNode, ArchiveCollection.DataCache);
-            AddWaitingSoundFromBumpedSound(lowestPriorityNode);
             return true;
         }
 
@@ -629,9 +631,7 @@ public class SoundManager : IDisposable
     {
         AudioManager.Tick();
 
-        // Note: We do not set the position here since everything should be
-        // attenuated globally.
-        UpdateWaitingLoopSounds();
+        UpdateWaitingSounds();
         PlaySounds();
 
         if (PlayingSounds.Count == 0)
