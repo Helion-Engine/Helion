@@ -2,7 +2,9 @@ using Helion.Geometry.Vectors;
 using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
+using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
+using Helion.World.Entities;
 using Helion.World.Sound;
 using System;
 using System.Collections.Generic;
@@ -17,6 +19,8 @@ public class SoundManager : IDisposable
     public readonly IAudioSourceManager AudioManager;
     private readonly IRandom m_random = new TrueRandom();
     private readonly IAudioSystem m_audioSystem;
+    private readonly DynamicArray<WaitingSound> m_sortSounds = new(128);
+    private readonly Comparison<WaitingSound> m_waitingSoundDistanceSort = new(WaitingSoundDistanceSort);
     protected int m_maxConcurrentSounds = 32;
     protected int m_sameSoundLimit;
     protected int m_sameSoundWindow;
@@ -196,40 +200,46 @@ public class SoundManager : IDisposable
 
     protected void UpdateWaitingLoopSounds()
     {
+        SortWaitingSoundsByDistance(m_waitingLoopSounds, m_sortSounds);
         var gametick = GetGameTick();
-        LinkedListNode<WaitingSound>? node = m_waitingLoopSounds.First;
-        LinkedListNode<WaitingSound>? nextNode;
-        LinkedListNode<WaitingSound>? nextNextNode;
-        while (node != null)
+
+        for (int i = 0; i < m_sortSounds.Count; i++)
         {
-            if (node.List == null)
-                break;
+            ref var sound = ref m_sortSounds.Data[i];
+            var distanceSquared = sound.DistanceSquared; // DistanceSquared is set in SortWaitingSoundsByDistance
 
-            nextNode = node.Next;
-            nextNextNode = nextNode?.Next;
-            var distanceSquared = GetDistanceSquared(node.Value.SoundSource);
-
-            if (!CheckDistance(distanceSquared, node.Value.SoundParams.Attenuation))
-            {
-                node = nextNode;
+            if (!CheckDistance(distanceSquared, sound.SoundParams.Attenuation))
                 continue;
-            }
 
-            if ((IsMaxSoundCount || HitSoundLimit(node.Value.SoundInfo, gametick)) && !BumpSoundByPriority(node.Value.Priority, distanceSquared, node.Value.SoundParams.Attenuation))
-            {
-                node = nextNode;
+            if ((IsMaxSoundCount || HitSoundLimit(sound.SoundInfo, gametick)) && !BumpSoundByPriority(sound.Priority, distanceSquared, sound.SoundParams.Attenuation))
                 continue;
-            }
 
-            var value = node.Value;
-            var elaspedSeconds = (GetGameTick() - value.GameTick) / 35f;
-            CreateSound(value.SoundSource, value.Position, value.Velocity, value.OffsetSeconds + elaspedSeconds, value.SoundInfo.Name, value.SoundParams, out _);
-
-            // CreateSound can remove the nextNode in the chain. Need to check if it was removed and use the next one ahead.
-            node = nextNode;
-            if (node?.List == null)
-                node = nextNextNode;
+            var elaspedSeconds = (GetGameTick() - sound.GameTick) / 35f;
+            CreateSound(sound.SoundSource, sound.Position, sound.Velocity, sound.OffsetSeconds + elaspedSeconds, sound.SoundInfo.Name, sound.SoundParams, out _);
         }
+    }
+
+    private void SortWaitingSoundsByDistance(WaitingSoundList sounds, DynamicArray<WaitingSound> sortSounds)
+    {
+        sortSounds.EnsureCapacity(sounds.Count);
+        int index = 0;
+        foreach (var sound in sounds)
+            sortSounds.Data[index++] = sound;
+
+        sortSounds.Length = index;
+        
+        for (int i = 0; i < sortSounds.Length; i++)
+        {
+            ref var sound = ref sortSounds.Data[i];
+            sound.DistanceSquared = GetDistanceSquared(sound.SoundSource);
+        }
+
+        sortSounds.Sort(m_waitingSoundDistanceSort);
+    }
+
+    private static int WaitingSoundDistanceSort(WaitingSound x, WaitingSound y)
+    {
+        return x.DistanceSquared.CompareTo(y.DistanceSquared);
     }
 
     public void ClearSounds()

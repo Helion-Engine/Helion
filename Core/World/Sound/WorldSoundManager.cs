@@ -7,6 +7,7 @@ using Helion.Util.Configs.Components;
 using Helion.Util.RandomGenerators;
 using Helion.World.Entities;
 using Helion.World.Entities.Players;
+using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Sound;
 
@@ -86,6 +87,11 @@ public class WorldSoundManager : SoundManager, ITickable
 
     public IAudioSource? CreateSoundOn(ISoundSource soundSource, string sound, SoundParams soundParams)
     {
+        if (soundSource is SectorPlane plane && plane.Sector.Id == 434)
+        {
+            int lol = 1;
+        }
+
         if (!soundSource.CanMakeSound())
             return null;
 
