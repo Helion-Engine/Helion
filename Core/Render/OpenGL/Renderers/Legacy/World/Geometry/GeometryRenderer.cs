@@ -1669,10 +1669,15 @@ public class GeometryRenderer : IDisposable
     private static unsafe void SetWallVertices(DynamicVertex[] data, in WallVertices wv, int lightLevelAdd, int lightBufferIndex, int colorMapIndex, byte wallLightLevel,
         int mapId, WallLocation location, float alpha = 1.0f, int addAlpha = 1)
     {
-        float colorMapAndLightLevel = VertexOptions.ColorMapIndex(colorMapIndex, wallLightLevel);
-        float lightLevelAddAndMapId = VertexOptions.LightLevelAdd(mapId, lightLevelAdd);
-        int lower = location == WallLocation.Lower ? 1 : 0;
-        int upper = location == WallLocation.Upper ? 1 : 0;
+        var uvFlags = UvFlags.Normal;
+        if (wv.TopLeft.U > wv.BottomRight.U)
+            uvFlags |= UvFlags.MirrorX;
+        if (wv.TopLeft.V > wv.BottomRight.V)
+            uvFlags |= UvFlags.MirrorY;
+        var colorMapAndLightLevel = VertexOptions.ColorMapIndex(colorMapIndex, wallLightLevel, uvFlags);
+        var lightLevelAddAndMapId = VertexOptions.LightLevelAdd(mapId, lightLevelAdd);
+        var lower = location == WallLocation.Lower ? 1 : 0;
+        var upper = location == WallLocation.Upper ? 1 : 0;
         fixed (DynamicVertex* startVertex = &data[0])
         {
             DynamicVertex* vertex = startVertex;
@@ -1770,10 +1775,16 @@ public class GeometryRenderer : IDisposable
     private static unsafe DynamicVertex[] GetWallVertices(in WallVertices wv, int lightLevelAdd, int lightBufferIndex, int colorMapIndex, byte wallLightLevel,
         int mapId, WallLocation location, float alpha = 1.0f, int addAlpha = 1)
     {
-        float colorMapAndLightLevel = VertexOptions.ColorMapIndex(colorMapIndex, wallLightLevel);
-        float lightLevelAddAndMapId = VertexOptions.LightLevelAdd(mapId, lightLevelAdd);
-        int lower = location == WallLocation.Lower ? 1 : 0;
-        int upper = location == WallLocation.Upper ? 1 : 0;
+        var uvFlags = UvFlags.Normal;
+        if (wv.TopLeft.U > wv.BottomRight.U)
+            uvFlags |= UvFlags.MirrorX;
+        if (wv.TopLeft.V > wv.BottomRight.V)
+            uvFlags |= UvFlags.MirrorY;
+        var colorMapAndLightLevel = VertexOptions.ColorMapIndex(colorMapIndex, wallLightLevel, uvFlags);
+        var lightLevelAddAndMapId = VertexOptions.LightLevelAdd(mapId, lightLevelAdd);
+        var lower = location == WallLocation.Lower ? 1 : 0;
+        var upper = location == WallLocation.Upper ? 1 : 0;
+
         var data = WorldStatic.DataCache.GetWallVertices();
         fixed (DynamicVertex* startVertex = &data[0])
         {
