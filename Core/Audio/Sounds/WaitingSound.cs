@@ -14,4 +14,5 @@ public struct WaitingSound(ISoundSource source, Vec3D? position, Vec3D? velocity
     public SoundParams SoundParams = soundParams;
     public float OffsetSeconds = offsetSeconds;
     public int GameTick = gameTick;
+    public double DistanceSquared;
 }

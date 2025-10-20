@@ -223,7 +223,7 @@ public class WorldSoundManager : SoundManager, ITickable
 
         var listener = m_world.GetListener();
         AudioManager.SetListener(listener.Position, listener.Angle, listener.Pitch);
-        UpdateWaitingLoopSounds();
+        UpdateWaitingSounds();
         PlaySounds();
         AudioManager.Tick();
 

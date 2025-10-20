@@ -354,19 +354,21 @@ public static class WorldTriangulator
     public static WallUV CalculateOneSidedWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double spanZ, bool previous)
     {
-        var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / side.Middle.Scale.X + (WorldStatic.LineVertexOffset * textureUVInverse.X);
-        var offsetV = (side.Offset.Y + side.Middle.Offset.Y) * textureUVInverse.Y / side.Middle.Scale.Y + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
+        var absScaleX = Math.Abs(side.Middle.Scale.X);
+        var absScaleY = Math.Abs(side.Middle.Scale.Y);
+        var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / absScaleX + (WorldStatic.LineVertexOffset * textureUVInverse.X);
+        var offsetV = (side.Offset.Y + side.Middle.Offset.Y) * textureUVInverse.Y / absScaleY + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
             if (previous)
             {
-                offsetU += (float)side.ScrollData.LastOffsetMiddle.X * textureUVInverse.U / side.Middle.Scale.X;
-                offsetV += (float)side.ScrollData.LastOffsetMiddle.Y * textureUVInverse.V / side.Middle.Scale.Y;
+                offsetU += (float)side.ScrollData.LastOffsetMiddle.X * textureUVInverse.U / absScaleX;
+                offsetV += (float)side.ScrollData.LastOffsetMiddle.Y * textureUVInverse.V / absScaleY;
             }
             else
             {
-                offsetU += (float)side.ScrollData.OffsetMiddle.X * textureUVInverse.U / side.Middle.Scale.X;
-                offsetV += (float)side.ScrollData.OffsetMiddle.Y * textureUVInverse.V / side.Middle.Scale.Y;
+                offsetU += (float)side.ScrollData.OffsetMiddle.X * textureUVInverse.U / absScaleX;
+                offsetV += (float)side.ScrollData.OffsetMiddle.Y * textureUVInverse.V / absScaleY;
             }
         }
 
@@ -395,19 +397,21 @@ public static class WorldTriangulator
     public static WallUV CalculateTwoSidedLowerWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double topZ, double bottomZ, bool previous)
     {
-        var offsetU = (side.Offset.X + side.Lower.Offset.X) * textureUVInverse.X / side.Lower.Scale.X + (WorldStatic.LineVertexOffset * textureUVInverse.X);
-        var offsetV = (side.Offset.Y + side.Lower.Offset.Y) * textureUVInverse.Y / side.Lower.Scale.Y + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
+        var absScaleX = Math.Abs(side.Lower.Scale.X);
+        var absScaleY = Math.Abs(side.Lower.Scale.Y);
+        var offsetU = (side.Offset.X + side.Lower.Offset.X) * textureUVInverse.X / absScaleX + (WorldStatic.LineVertexOffset * textureUVInverse.X);
+        var offsetV = (side.Offset.Y + side.Lower.Offset.Y) * textureUVInverse.Y / absScaleY + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
             if (previous)
             {
-                offsetU += (float)side.ScrollData.LastOffsetLower.X * textureUVInverse.X / side.Lower.Scale.X;
-                offsetV += (float)side.ScrollData.LastOffsetLower.Y * textureUVInverse.Y / side.Lower.Scale.Y;
+                offsetU += (float)side.ScrollData.LastOffsetLower.X * textureUVInverse.X / absScaleX;
+                offsetV += (float)side.ScrollData.LastOffsetLower.Y * textureUVInverse.Y / absScaleY;
             }
             else
             {
-                offsetU += (float)side.ScrollData.OffsetLower.X * textureUVInverse.X / side.Lower.Scale.X;
-                offsetV += (float)side.ScrollData.OffsetLower.Y * textureUVInverse.Y / side.Lower.Scale.Y;
+                offsetU += (float)side.ScrollData.OffsetLower.X * textureUVInverse.X / absScaleX;
+                offsetV += (float)side.ScrollData.OffsetLower.Y * textureUVInverse.Y / absScaleY;
             }
         }       
 
@@ -441,13 +445,14 @@ public static class WorldTriangulator
         if (side.Flags.WrapMidTex)
             return CalculateOneSidedWallUV(side.Line, side, length, textureUVInverse, visibleTopZ - visibleBottomZ, previous);
 
-        var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / side.Middle.Scale.X + (WorldStatic.LineVertexOffset * textureUVInverse.X);
+        var absScaleX = Math.Abs(side.Middle.Scale.X);
+        var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / absScaleX + (WorldStatic.LineVertexOffset * textureUVInverse.X);
         if (side.ScrollData != null)
         {
             if (previous)
-                offsetU += (float)side.ScrollData.LastOffsetMiddle.X * textureUVInverse.X / side.Middle.Scale.X;
+                offsetU += (float)side.ScrollData.LastOffsetMiddle.X * textureUVInverse.X / absScaleX;
             else
-                offsetU += (float)side.ScrollData.OffsetMiddle.X * textureUVInverse.X / side.Middle.Scale.X;
+                offsetU += (float)side.ScrollData.OffsetMiddle.X * textureUVInverse.X / absScaleX;
         }
 
         float wallSpanU = (float)length * textureUVInverse.X;
@@ -469,19 +474,21 @@ public static class WorldTriangulator
     public static WallUV CalculateTwoSidedUpperWallUV(Line line, Side side, double length,
         in Vec2F textureUVInverse, double spanZ, bool previous)
     {
-        var offsetU = (side.Offset.X + side.Upper.Offset.X) * textureUVInverse.X / side.Upper.Scale.X + (WorldStatic.LineVertexOffset * textureUVInverse.X);
-        var offsetV = (side.Offset.Y + side.Upper.Offset.Y) * textureUVInverse.Y / side.Upper.Scale.Y + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
+        var absScaleX = Math.Abs(side.Upper.Scale.X);
+        var absScaleY = Math.Abs(side.Upper.Scale.Y);
+        var offsetU = (side.Offset.X + side.Upper.Offset.X) * textureUVInverse.X / absScaleX + (WorldStatic.LineVertexOffset * textureUVInverse.X);
+        var offsetV = (side.Offset.Y + side.Upper.Offset.Y) * textureUVInverse.Y / absScaleY + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
         if (side.ScrollData != null)
         {
             if (previous)
             {
-                offsetU += (float)side.ScrollData.LastOffsetUpper.X * textureUVInverse.U / side.Upper.Scale.X;
-                offsetV += (float)side.ScrollData.LastOffsetUpper.Y * textureUVInverse.V / side.Upper.Scale.Y;
+                offsetU += (float)side.ScrollData.LastOffsetUpper.X * textureUVInverse.U / absScaleX;
+                offsetV += (float)side.ScrollData.LastOffsetUpper.Y * textureUVInverse.V / absScaleY;
             }
             else
             {
-                offsetU += (float)side.ScrollData.OffsetUpper.X * textureUVInverse.U / side.Upper.Scale.X;
-                offsetV += (float)side.ScrollData.OffsetUpper.Y * textureUVInverse.V / side.Upper.Scale.Y;
+                offsetU += (float)side.ScrollData.OffsetUpper.X * textureUVInverse.U / absScaleX;
+                offsetV += (float)side.ScrollData.OffsetUpper.Y * textureUVInverse.V / absScaleY;
             }
         }
 
@@ -504,6 +511,6 @@ public static class WorldTriangulator
             topV = bottomV - spanV;
         }
 
-        return new WallUV(new(leftU * side.Upper.Scale.X, topV * side.Upper.Scale.Y), new(rightU * side.Upper.Scale.Y, bottomV * side.Upper.Scale.Y));
+        return new WallUV(new(leftU * side.Upper.Scale.X, topV * side.Upper.Scale.Y), new(rightU * side.Upper.Scale.X, bottomV * side.Upper.Scale.Y));
     }
 }
