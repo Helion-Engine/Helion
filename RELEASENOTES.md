@@ -32,3 +32,4 @@
 - Fix looping sounds with same sound limit feature not playing when coming back into player's sound range.
 - Fix issue with lower wall gap correction and sprites.
 - Fix UDMF upper scale scale calculation.
+- Fix rendering of walls with negative scale values with pixel gap correction and correct offset handling.

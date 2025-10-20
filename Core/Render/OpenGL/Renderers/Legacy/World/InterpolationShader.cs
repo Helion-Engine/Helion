@@ -109,6 +109,7 @@ public class InterpolationShader : RenderProgram
         flat out float alphaFrag;
         flat out float addAlphaFrag;
         flat out float colorMapIndexFrag;
+        flat out float uvFlags;
         flat out float vertexLightLevelFrag;
         flat out float zPos;
         flat out float mapIdFrag;
