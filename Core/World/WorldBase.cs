@@ -1138,7 +1138,7 @@ public abstract partial class WorldBase : IWorld
         {
             var special = m_bossDeathSpecials[i];
             if (special.EntityDefinitionId == entity.Definition.Id)
-                special.Tick();
+                special.Tick(entity);
         }
     }
 
@@ -3079,16 +3079,19 @@ public abstract partial class WorldBase : IWorld
     }
 
     public int EntityCount(int entityDefinitionId) =>
-        EntityCount(entityDefinitionId, true);
+        EntityCount(entityDefinitionId, false);
 
-    public int EntityAliveCount(int entityDefinitionId) =>
-        EntityCount(entityDefinitionId, true);
+    public int EntityAliveCount(int entityDefinitionId, Entity? ignoreEntity = null) =>
+        EntityCount(entityDefinitionId, true, ignoreEntity);
 
-    private int EntityCount(int entityDefinitionId, bool checkAlive)
+    private int EntityCount(int entityDefinitionId, bool checkAlive, Entity? ignoreEntity = null)
     {
         int count = 0;
         for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
+            if (entity == ignoreEntity)
+                continue;
+
             if (entity.Definition.Id == entityDefinitionId && (!checkAlive || !entity.IsDead))
                 count++;
         }

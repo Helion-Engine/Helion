@@ -1,20 +1,11 @@
-﻿using Helion.Geometry.Segments;
-using Helion.Geometry.Vectors;
-using Helion.Maps.Shared;
+﻿using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
 using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources.Archives.Entries;
 using Helion.Resources.Definitions.MapInfo;
-using Helion.Util;
 using Helion.World.Entities;
 using Helion.World.Geometry.Lines;
-using Helion.World.Geometry.Sectors;
-using Helion.World.Geometry.Sides;
-using Helion.World.Geometry.Walls;
-using Helion.World.Physics;
-using System;
 
 namespace Helion.World.Special;
 
@@ -33,12 +24,12 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
         EntityDefinitionId = entityDefinitionId;
     }
 
-    public SpecialTickStatus Tick()
+    public SpecialTickStatus Tick(Entity? ignoreEntity)
     {
         if (m_destroyed)
             return SpecialTickStatus.Destroy;
 
-        if (m_world.EntityAliveCount(EntityDefinitionId) == 0)
+        if (m_world.EntityAliveCount(EntityDefinitionId, ignoreEntity) == 0)
         {
             m_destroyed = true;
             ExecuteSpecial();
@@ -70,10 +61,5 @@ public class BossActionMonsterCount : IMonsterCounterSpecial
             return;
 
         m_world.SpecialManager.AddActivatedLineSpecial(specialType, specialArgs, compat);
-    }
-
-    public bool Use(Entity entity)
-    {
-        return false;
     }
 }

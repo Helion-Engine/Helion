@@ -33,3 +33,4 @@
 - Fix issue with lower wall gap correction and sprites.
 - Fix UDMF upper scale scale calculation.
 - Fix rendering of walls with negative scale values with pixel gap correction and correct offset handling.
+- Fix A_BossDeath and A_KeenDie to exclude self. Fixes Tele-Direct Atlantic Doom blueprints not opening door.
