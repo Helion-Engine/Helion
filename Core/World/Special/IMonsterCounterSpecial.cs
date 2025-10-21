@@ -1,6 +1,9 @@
-﻿namespace Helion.World.Special;
+﻿using Helion.World.Entities;
 
-public interface IMonsterCounterSpecial : ISpecial
+namespace Helion.World.Special;
+
+public interface IMonsterCounterSpecial
 {
+    SpecialTickStatus Tick(Entity? ignoreEntity);
     int EntityDefinitionId { get; }
 }
