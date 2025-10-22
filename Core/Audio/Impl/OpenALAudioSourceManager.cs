@@ -87,7 +87,7 @@ public class OpenALAudioSourceManager : IAudioSourceManager
 
     public void CacheSound(string sound)
     {
-        GetBuffer(sound, log: false);
+        GetBuffer(sound, logErrors: false);
     }
 
     public IAudioSource? Create(string sound, in AudioData audioData)
@@ -120,23 +120,23 @@ public class OpenALAudioSourceManager : IAudioSourceManager
         m_playGroup.Clear();
     }
 
-    private OpenALBuffer? GetBuffer(string sound, bool log = true)
+    private OpenALBuffer? GetBuffer(string sound, bool logErrors = true)
     {
         if (m_nameToBuffer.TryGetValue(sound, out OpenALBuffer? existingBuffer))
             return existingBuffer;
 
-        Entry? entry = m_archiveCollection.Entries.FindByNamespace(sound, ResourceNamespace.Sounds);
+        var entry = m_archiveCollection.Entries.FindByNamespace(sound, ResourceNamespace.Sounds);
         if (entry == null)
         {
-            if (log)
+            if (logErrors && m_config.Audio.LogErrors)
                 Log.Warn("Cannot find sound: {0}", sound);
             return null;
         }
 
-        OpenALBuffer? buffer = OpenALBuffer.Create(entry.ReadData(), out string? error);
+        var buffer = OpenALBuffer.Create(entry.ReadData(), out string? error);
         if (buffer == null)
         {
-            if (error != null && m_config.Audio.LogErrors && log)
+            if (error != null && logErrors && m_config.Audio.LogErrors)
                 Log.Warn($"Error playing sound {sound}: {error}");
             return null;
         }
