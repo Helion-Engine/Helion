@@ -45,6 +45,7 @@ public partial class Client
     private readonly Zdbsp m_zdbsp = new();
     private WorldModel? m_lastWorldModel;
     private bool m_isSecretExit;
+    private IConfigValue? m_configValueFromConsole;
     private LevelChangeEvent m_levelChangeEvent = LevelChangeEvent.Default;
 
     private string m_lastMapName = string.Empty;
@@ -740,6 +741,7 @@ public partial class Client
             }
         }
 
+        m_configValueFromConsole = component.Value;
         bool success = true;
         ConfigSetResult result = component.Value.Set(args.Args[0]);
         switch (result)
@@ -769,6 +771,7 @@ public partial class Client
         if (success && component.Attribute.GetSetWarningString(out var warning))
             HelionLog.Warn(warning);
 
+        m_configValueFromConsole = null;
         return true;
     }
 
