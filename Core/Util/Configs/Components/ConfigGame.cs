@@ -121,6 +121,10 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [OptionMenu(OptionSectionType.General, "Discord Integration", spacer: true)]
     public readonly ConfigValue<bool> DiscordIntegration = new(true);
 
+    [ConfigInfo("Randomly mirror corpse, blood, and bullet puffs.")]
+    [OptionMenu(OptionSectionType.General, "Randomly Mirror Corpses", spacer: true)]
+    public readonly ConfigValue<bool> MirrorCorpse = new(true);
+
     // Non-menu items
     [ConfigInfo("Write stats to levelstat.txt.", save: false)]
     public readonly ConfigValue<bool> LevelStat = new(false);
