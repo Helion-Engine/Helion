@@ -3,6 +3,7 @@ using Helion.Util.Configs.Impl;
 using Helion.Util.Configs.Options;
 using Helion.Util.Configs.Values;
 using OpenTK.Windowing.Common;
+using System;
 using System.ComponentModel;
 using static Helion.Util.Configs.Values.ConfigFilters;
 
@@ -23,6 +24,33 @@ public enum BlitFilter
     Auto,
     Nearest,
     Linear
+}
+
+[Flags]
+public enum ConfigRenderModeFlags
+{
+    SoftwareClip = 1,
+    FasterClip = 2,
+
+    TrueColor = 4,
+    Palette = 8,
+}
+
+public enum ConfigRenderMode
+{
+    [Description("True color (Fastest)")]
+    TrueColorFast = ConfigRenderModeFlags.TrueColor,
+    [Description("True color software (Accurate)")]
+    TrueColorClipAccurate = ConfigRenderModeFlags.TrueColor | ConfigRenderModeFlags.SoftwareClip,
+    [Description("True color software (Faster)")]
+    TrueColorClipFaster = ConfigRenderModeFlags.TrueColor | ConfigRenderModeFlags.SoftwareClip | ConfigRenderModeFlags.FasterClip,
+
+    [Description("Palette (Fastest)")]
+    PaletteFast = ConfigRenderModeFlags.Palette,
+    [Description("Palette software (Accurate)")]
+    PaletteClipAccurate = ConfigRenderModeFlags.Palette | ConfigRenderModeFlags.SoftwareClip,
+    [Description("Palette software (Faster)")]
+    PaletteClipFaster = ConfigRenderModeFlags.Palette | ConfigRenderModeFlags.SoftwareClip | ConfigRenderModeFlags.FasterClip,
 }
 
 public class ConfigWindowVirtual: ConfigElement<ConfigWindowVirtual>
@@ -46,8 +74,12 @@ public class ConfigWindowVirtual: ConfigElement<ConfigWindowVirtual>
 
 public class ConfigWindow: ConfigElement<ConfigWindow>
 {
+    [ConfigInfo("Render mode. Selections that combine video mode and software sprite clipping emulation", save: false)]
+    [OptionMenu(OptionSectionType.Video, "Render Mode")]
+    public readonly ConfigValue<ConfigRenderMode> RenderMode = new(ConfigRenderMode.TrueColorFast);
+
     [ConfigInfo("Display fullscreen or windowed.")]
-    [OptionMenu(OptionSectionType.Video, "Fullscreen/Window", allowReset: false)]
+    [OptionMenu(OptionSectionType.Video, "Fullscreen/Window", allowReset: false, spacer: true)]
     public readonly ConfigValue<RenderWindowState> State = new(RenderWindowState.Fullscreen, OnlyValidEnums<RenderWindowState>());
 
     [ConfigInfo("Window border.")]

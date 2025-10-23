@@ -80,9 +80,25 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
         m_config.Window.Virtual.Enable.OnChanged += WindowVirtualEnable_OnChanged;
         m_config.Window.Virtual.Dimension.OnChanged += WindowVirtualDimension_OnChanged;
         m_config.Window.MenuScale.OnChanged += Scale_OnChanged;
+        
+        if (m_config is FileConfig fileConfig)
+        {
+            fileConfig.AppRestartRequired += Config_AppRestartRequired;
+            fileConfig.MapRestartRequired += Config_MapRestartRequired;
+        }
 
         Animation = new(TimeSpan.FromMilliseconds(200), this);
         Animation.OnStart += Animation_OnStart;
+    }
+
+    private void Config_MapRestartRequired(object? sender, EventArgs e)
+    {
+        ShowMessage(ConfigInfoAttribute.MapRestartRequiredMessage);
+    }
+
+    private void Config_AppRestartRequired(object? sender, EventArgs e)
+    {
+        ShowRestartRequired();
     }
 
     private void Animation_OnStart(object? sender, IAnimationLayer e)
@@ -148,13 +164,18 @@ public class OptionsLayer : IGameLayer, IAnimationLayer
     {
         if (configAttr.RestartRequired)
         {
-            m_dialog = new MessageDialog(m_config.Window, "Restart required", ["Restart required for this change to take effect.", "", "Restart now?"], "Yes", "No");
-            m_dialog.OnClose += RestartDialog_OnClose;
+            ShowRestartRequired();
             return;
         }
 
         if (configAttr.GetSetWarningString(out var warningString))
             ShowMessage(warningString);
+    }
+
+    private void ShowRestartRequired()
+    {
+        m_dialog = new MessageDialog(m_config.Window, "Restart required", ["Restart required for this change to take effect.", "", "Restart now?"], "Yes", "No");
+        m_dialog.OnClose += RestartDialog_OnClose;
     }
 
     private void RestartDialog_OnClose(object? sender, DialogCloseArgs e)

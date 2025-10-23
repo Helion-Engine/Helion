@@ -29,6 +29,9 @@ public class FileConfig : Config
     private readonly string m_filePath;
     private bool m_noFileExistedWhenRead;
 
+    public event EventHandler? AppRestartRequired;
+    public event EventHandler? MapRestartRequired;
+
     public FileConfig(string filePath, bool addDefaultsIfNew)
     {
         m_filePath = filePath;
@@ -40,6 +43,52 @@ public class FileConfig : Config
         // their default state. This is okay and should not be considered as
         // "changed".
         UnsetChangedFlag();
+        DetermineRenderMode();
+        Window.RenderMode.OnChanged += RenderMode_OnChanged;
+    }
+
+    private void RenderMode_OnChanged(object? sender, ConfigRenderMode e)
+    {
+        var colorMode = Window.ColorMode.Value;
+        var vanillaRender = Render.VanillaRender.Value;
+
+        var mode = (ConfigRenderModeFlags)e;
+        if ((mode & ConfigRenderModeFlags.TrueColor) == 0)
+            Window.ColorMode.Set(RenderColorMode.Palette);
+        else
+            Window.ColorMode.Set(RenderColorMode.TrueColor);
+
+        Render.VanillaRender.Set((mode & ConfigRenderModeFlags.SoftwareClip) != 0);
+
+        if ((mode & ConfigRenderModeFlags.FasterClip) == 0)
+            Render.DownScaleVanillaRenderSampleBuffer.Set(1);
+        else
+            Render.DownScaleVanillaRenderSampleBuffer.Set(2);
+
+        if (colorMode != Window.ColorMode.Value)
+            AppRestartRequired?.Invoke(this, EventArgs.Empty);
+        if (vanillaRender != Render.VanillaRender.Value)
+            MapRestartRequired?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void DetermineRenderMode()
+    {
+        ConfigRenderModeFlags flags = default;
+
+        if (Window.ColorMode.Value == RenderColorMode.TrueColor)
+            flags |= ConfigRenderModeFlags.TrueColor;
+        else
+            flags |= ConfigRenderModeFlags.Palette;
+
+        if (Render.VanillaRender)
+        {
+            flags |= ConfigRenderModeFlags.SoftwareClip;
+
+            if (Render.DownScaleVanillaRenderSampleBuffer > 1)
+                flags |= ConfigRenderModeFlags.FasterClip;
+        }
+
+        Window.RenderMode.Set((ConfigRenderMode)flags);
     }
 
     private void MigrateValues()
