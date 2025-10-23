@@ -238,7 +238,7 @@ public class EntityRenderer : IDisposable
         }
 
         if (entity.Flags.Mirror)
-            rotation = 7 - rotation;
+            rotation = SpriteDefinition.MaxRotationIndex - rotation;
 
         var spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.FrameState.Frame.Frame, rotation, colorMapIndex);
         var texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
