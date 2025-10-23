@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Helion.Util;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
 using Helion.World.Entities.Definition.States;
@@ -13,7 +14,8 @@ public class EntityDefinition
     {
         { "BulletPuff", EntityType.BulletPuff },
         { "Blood", EntityType.Blood },
-        { "AmbientSound", EntityType.AmbientSound },
+        { Constants.AmbientSound, EntityType.AmbientSound },
+        { Constants.MusicChanger, EntityType.MusicChanger }
     };
 
     public static readonly EntityDefinition Default = new(-1, "DEFAULT-NULL", null, []);

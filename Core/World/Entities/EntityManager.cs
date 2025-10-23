@@ -444,7 +444,7 @@ public class EntityManager : IDisposable
             if (setOnGround != null)
                 entity.OnGround = setOnGround.Value;
 
-            if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
+            if (entity.Definition.Type == EntityType.MusicChanger)
                 MusicChangers.Add(entity);
         }
 
@@ -580,8 +580,14 @@ public class EntityManager : IDisposable
         if (entity.Definition.Flags.CountKill || entity.Definition.Flags.IsMonster)
             entity.Health = Math.Max((int)(entity.Health * World.SkillDefinition.MonsterHealthFactor), 1);
 
-        if (entity.Definition.Name.EqualsIgnoreCase(Constants.MusicChanger))
+        if (entity.Definition.Type == EntityType.MusicChanger)
             MusicChangers.Add(entity);
+
+        if (WorldStatic.MirrorCorpse && (entity.Definition.Type == EntityType.BulletPuff || entity.Definition.Type == EntityType.Blood || entity.Flags.Corpse)
+            && (World.Random.NextByte() & 1) != 0)
+        {
+            entity.Flags.Mirror = !entity.Flags.Mirror;
+        }
 
         PostProcessEntity(entity);
     }

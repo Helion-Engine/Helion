@@ -523,6 +523,7 @@ public abstract partial class WorldBase : IWorld
         Config.Game.FastMonsters.OnChanged += FastMonsters_OnChanged;
         Config.Game.DamageApplyMultiplier.OnChanged += DamageApplyMultiplier_OnChanged;
         Config.Game.DamageReceiveMultiplier.OnChanged += DamageReceiveMultiplier_OnChanged;
+        Config.Game.MirrorCorpse.OnChanged += MirrorCorpse_OnChanged;
     }
 
     private void UnRegisterConfigChanges()
@@ -603,6 +604,7 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.WeaponBfg = EntityManager.DefinitionComposer.GetByNameOrDefault(BFG900Class);
         WorldStatic.SectorFriction = false;
         WorldStatic.BloodColor = ArchiveCollection.Dehacked != null && ArchiveCollection.Dehacked.HasBloodColor;
+        WorldStatic.MirrorCorpse = Config.Game.MirrorCorpse;
 
         if (WorldStatic.CheckedLines.Length < Lines.Count)
             WorldStatic.CheckedLines = new int[Lines.Count];
@@ -644,6 +646,8 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.DamageReceiveMultiplier = (float)value;
     private void DamageApplyMultiplier_OnChanged(object? sender, double value) =>
         WorldStatic.DamageApplyMultiplier = (float)value;
+    private void MirrorCorpse_OnChanged(object? sender, bool enabled) => 
+        WorldStatic.MirrorCorpse = enabled;
     private void FastMonsters_OnChanged(object? sender, bool enabled)
     {
         IsFastMonsters = SkillDefinition.IsFastMonsters(Config);
