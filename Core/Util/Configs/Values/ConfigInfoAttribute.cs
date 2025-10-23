@@ -8,6 +8,9 @@ namespace Helion.Util.Configs.Values;
 [AttributeUsage(AttributeTargets.Field)]
 public class ConfigInfoAttribute : Attribute
 {
+    public const string MapRestartRequiredMessage = "Map restart required for this change to take effect.";
+    public const string AppRestartRequiredMessage = "App restart required for this change to take effect.";
+
     /// <summary>
     /// A high level description of the attribute.
     /// </summary>
@@ -55,9 +58,9 @@ public class ConfigInfoAttribute : Attribute
     {
         message = string.Empty;
         if (MapRestartRequired)
-            message = "Map restart required for this change to take effect.";
+            message = MapRestartRequiredMessage;
         if (RestartRequired)
-            message = "App restart required for this change to take effect.";
+            message = AppRestartRequiredMessage;
         return message.Length > 0;
     }
 }
