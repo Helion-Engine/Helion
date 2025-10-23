@@ -17,6 +17,7 @@ actor ChaingunGuy 65
     
     MONSTER
     +FLOORCLIP
+    +DONTMIRROR
     
     States
     {

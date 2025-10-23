@@ -20,7 +20,6 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Physics;
 using Helion.World.Sound;
-using NLog.Targets;
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -568,7 +567,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         Flags.Attacking = false;
         StealthVisible = true;
 
-        if (WorldStatic.MirrorCorpse && IsDead && Flags.IsMonster && !Flags.E2M8Boss && (World.Random.NextByte() & 1) != 0)
+        if (WorldStatic.MirrorCorpse && IsDead && Flags.IsMonster && !Flags.DontMirror && (World.SecondaryRandom.NextByte() & 1) != 0)
             Flags.Mirror = !Flags.Mirror;
 
         if (gib && Definition.XDeathState != null)

@@ -583,8 +583,9 @@ public class EntityManager : IDisposable
         if (entity.Definition.Type == EntityType.MusicChanger)
             MusicChangers.Add(entity);
 
-        if (WorldStatic.MirrorCorpse && (entity.Definition.Type == EntityType.BulletPuff || entity.Definition.Type == EntityType.Blood || entity.Flags.Corpse)
-            && (World.Random.NextByte() & 1) != 0)
+        if (WorldStatic.MirrorCorpse && !entity.Flags.DontMirror && 
+            (entity.Definition.Type == EntityType.BulletPuff || entity.Definition.Type == EntityType.Blood || entity.Flags.Corpse)
+            && (World.SecondaryRandom.NextByte() & 1) != 0)
         {
             entity.Flags.Mirror = !entity.Flags.Mirror;
         }

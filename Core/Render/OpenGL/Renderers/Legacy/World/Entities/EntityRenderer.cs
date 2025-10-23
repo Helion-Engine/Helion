@@ -12,6 +12,7 @@ using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Flags;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -237,7 +238,8 @@ public class EntityRenderer : IDisposable
                 colorMapIndex = m_archiveCollection.Definitions.GetBloodColormap(owner.Properties.BloodPaletteColor.Value).Index;
         }
 
-        if (entity.Flags.Mirror)
+        var shouldMirror = entity.Flags.Mirror;
+        if (shouldMirror)
             rotation = SpriteDefinition.MaxRotationIndex - rotation;
 
         var spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.FrameState.Frame.Frame, rotation, colorMapIndex);
@@ -247,7 +249,7 @@ public class EntityRenderer : IDisposable
 
         int flipU;
         int offsetX = texture.Offset.X;
-        if (entity.Flags.Mirror)
+        if (shouldMirror)
         {
             flipU = spriteRotation.FlipU ^ 1;
             offsetX = texture.Width - offsetX;
