@@ -186,5 +186,7 @@ public static class DefinitionFlagApplier
             definition.Properties.RenderStyle = RenderStyle.ColorAddExplosion;
         if (flags.Stealth != null)
             definition.Flags.Stealth = flags.Stealth.Value;
+        if (flags.DontMirrorCorpse != null)
+            definition.Flags.DontMirrorCorpse = flags.DontMirrorCorpse.Value;
     }
 }
