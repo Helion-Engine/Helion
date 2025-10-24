@@ -11,6 +11,8 @@
 - Support doom UDMF namespace.
 - Improved performance with emulate vanilla rendering.
 - Vanilla movement physics compatibility option is now default.
+- Add video option to simplify setting true color/palette with vanilla rendering options.
+- Add randomly mirror corpses option similar to Retro/Crispy/Woof.
 
 ## Bug Fixes:
 - Fix sprite frames to correctly calculate when lowercase.
@@ -33,3 +35,6 @@
 - Fix issue with lower wall gap correction and sprites.
 - Fix UDMF upper scale scale calculation.
 - Fix rendering of walls with negative scale values with pixel gap correction and correct offset handling.
+- Fix A_BossDeath and A_KeenDie to exclude self. Fixes Tele-Direct Atlantic Doom blueprints not opening door.
+- Fix logging missing sound errors when config option is off.
+- Fix changing hud.scale from console to automatically disable hud.autoscale so it isn't modified on restart.

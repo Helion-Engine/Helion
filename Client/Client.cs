@@ -105,6 +105,7 @@ public partial class Client : IDisposable, IInputManagement
 
         m_config.Game.Rng.OnChanged += Rng_OnChanged;
         m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
+        m_config.Hud.Scale.OnChanged += Scale_OnChanged;
 
         if (commandLineArgs.GlVersion.HasValue)
         {
@@ -156,6 +157,14 @@ public partial class Client : IDisposable, IInputManagement
     private void LaptopGpu_OnChanged(object? sender, LaptopGpuMode mode)
     {
         LaptopGpuSettings.SetGpuMode(AppInfo, mode);
+    }
+
+    private void Scale_OnChanged(object? sender, double e)
+    {
+        // Changing hud.scale isn't prevented in the console. Autoscale needs to be turned off.
+        // Otherwise it will be reset on restart because hud.autoscale is on.
+        if (m_configValueFromConsole == m_config.Hud.Scale && m_config.Hud.AutoScale.Value)
+            m_config.Hud.AutoScale.Set(false);
     }
 
     private static void GLFWErrorCallback(ErrorCode error, string description)
