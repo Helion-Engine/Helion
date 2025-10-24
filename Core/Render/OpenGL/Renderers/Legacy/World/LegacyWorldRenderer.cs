@@ -405,7 +405,7 @@ public class LegacyWorldRenderer : WorldRenderer
         if (m_planeClipFrameBuffer != null)
         {
             var colorBuffer = m_downscaleVanillaBuffer ? null : framebuffer;
-            m_planeClipFrameBuffer.CreateOrUpdate("PlaneClip", dimension, colorBuffer, downscaleChanged);
+            m_planeClipFrameBuffer.CreateOrUpdate("PlaneClip", PlaneClipType.Plane, dimension, colorBuffer, downscaleChanged);
             m_planeClipFrameBuffer.BindFrameBuffer();
             m_planeClipFrameBuffer.Clear();
             bind = true;
@@ -413,7 +413,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         if (m_wallClipFrameBuffer != null)
         {
-            m_wallClipFrameBuffer.CreateOrUpdate("WallClip", dimension, null, false);
+            m_wallClipFrameBuffer.CreateOrUpdate("WallClip", PlaneClipType.Wall, dimension, null, false);
             m_wallClipFrameBuffer.BindFrameBuffer();
             m_wallClipFrameBuffer.Clear();
             bind = true;

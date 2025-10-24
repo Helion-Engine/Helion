@@ -6,6 +6,12 @@ using System;
 
 namespace Helion.Render.OpenGL.Framebuffer;
 
+public enum PlaneClipType
+{
+    Plane,
+    Wall
+}
+
 /// <summary>
 /// Writes clip info for vanilla sprite clipping emulation.
 /// Supports multiple render targets if colorFramebuffer is not null and will use the depth texture from that framebuffer.
@@ -27,7 +33,7 @@ public class PlaneClipFrameBuffer : IDisposable
     /// <param name="name">The debug label name for buffers and textures</param>
     /// <param name="dimension">The dimension to use for allocated buffers and textures</param>
     /// <param name="forceCreate">If the underlying buffers and textures should be forced to be recreated</param>
-    public void CreateOrUpdate(string name, Dimension dimension, GLFramebuffer? colorFramebuffer, bool forceCreate)
+    public void CreateOrUpdate(string name, PlaneClipType type, Dimension dimension, GLFramebuffer? colorFramebuffer, bool forceCreate)
     {
         if (!ShouldRecreate(dimension, forceCreate))
             return;
@@ -37,11 +43,12 @@ public class PlaneClipFrameBuffer : IDisposable
         m_dimension = dimension;
         var width = m_dimension.Width;
         var height = m_dimension.Height;
+        var format = type == PlaneClipType.Wall ? PixelInternalFormat.Rgba16f : PixelInternalFormat.Rgba32f;
 
         m_texture = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, m_texture);
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Texture, m_texture, $"{name} Texture");
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba16f, width, height, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, format, width, height, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
         GL.BindTexture(TextureTarget.Texture2D, 0);
