@@ -549,6 +549,7 @@ public abstract partial class WorldBase : IWorld
         Config.Game.FastMonsters.OnChanged -= FastMonsters_OnChanged;
         Config.Game.DamageApplyMultiplier.OnChanged -= DamageApplyMultiplier_OnChanged;
         Config.Game.DamageReceiveMultiplier.OnChanged -= DamageReceiveMultiplier_OnChanged;
+        Config.Game.MirrorCorpse.OnChanged -= MirrorCorpse_OnChanged;
     }
 
     private void SetWorldStatic()
@@ -677,6 +678,11 @@ public abstract partial class WorldBase : IWorld
     {
         WorldStatic.Random = random;
         m_random = random;
+    }
+
+    public void SetSecondaryRandom(IRandom random)
+    {
+        SecondaryRandom = random;
     }
 
     public virtual void Start(WorldModel? worldModel)

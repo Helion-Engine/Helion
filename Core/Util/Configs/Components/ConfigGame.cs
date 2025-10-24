@@ -46,6 +46,10 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [OptionMenu(OptionSectionType.General, "Display ENDOOM")]
     public readonly ConfigValue<bool> DisplayEndoom = new(true);
 
+    [ConfigInfo("Randomly mirror corpse, blood, and bullet puffs.")]
+    [OptionMenu(OptionSectionType.General, "Randomly Mirror Corpses")]
+    public readonly ConfigValue<bool> MirrorCorpse = new(false);
+
     // Saving and loading
 
     [ConfigInfo("Attempt to load latest saved game on death.")]
@@ -120,10 +124,6 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [ConfigInfo("Shows the currently played WAD/map in Discord.")]
     [OptionMenu(OptionSectionType.General, "Discord Integration", spacer: true)]
     public readonly ConfigValue<bool> DiscordIntegration = new(true);
-
-    [ConfigInfo("Randomly mirror corpse, blood, and bullet puffs.")]
-    [OptionMenu(OptionSectionType.General, "Randomly Mirror Corpses", spacer: true)]
-    public readonly ConfigValue<bool> MirrorCorpse = new(true);
 
     // Non-menu items
     [ConfigInfo("Write stats to levelstat.txt.", save: false)]

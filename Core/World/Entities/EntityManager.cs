@@ -583,7 +583,7 @@ public class EntityManager : IDisposable
         if (entity.Definition.Type == EntityType.MusicChanger)
             MusicChangers.Add(entity);
 
-        if (WorldStatic.MirrorCorpse && !entity.Flags.DontMirror && 
+        if (WorldStatic.MirrorCorpse && !entity.Flags.DontMirrorCorpse && 
             (entity.Definition.Type == EntityType.BulletPuff || entity.Definition.Type == EntityType.Blood || entity.Flags.Corpse)
             && (World.SecondaryRandom.NextByte() & 1) != 0)
         {

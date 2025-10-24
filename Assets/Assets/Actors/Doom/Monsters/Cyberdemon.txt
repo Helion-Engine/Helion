@@ -24,7 +24,7 @@ actor Cyberdemon 16
     +FULLVOLDEATH
     +E2M8BOSS
     +E4M6BOSS
-    +DONTMIRROR
+    +DONTMIRRORCORPSE
     
     States
     {

@@ -567,7 +567,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         Flags.Attacking = false;
         StealthVisible = true;
 
-        if (WorldStatic.MirrorCorpse && IsDead && Flags.IsMonster && !Flags.DontMirror && (World.SecondaryRandom.NextByte() & 1) != 0)
+        if (WorldStatic.MirrorCorpse && IsDead && Flags.IsMonster && !Flags.DontMirrorCorpse && (World.SecondaryRandom.NextByte() & 1) != 0)
             Flags.Mirror = !Flags.Mirror;
 
         if (gib && Definition.XDeathState != null)

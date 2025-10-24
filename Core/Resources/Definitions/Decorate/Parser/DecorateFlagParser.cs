@@ -1001,8 +1001,8 @@ public partial class DecorateParser
             case "FULLVOLSEE":
                 m_currentDefinition.Flags.FullVolSee = flagValue;
                 break;
-            case "DONTMIRROR":
-                m_currentDefinition.Flags.DontMirror = flagValue;
+            case "DONTMIRRORCORPSE":
+                m_currentDefinition.Flags.DontMirrorCorpse = flagValue;
                 break;
             default:
                 Log.Warn("Unknown flag '{0}' for actor {1}", flagName, m_currentDefinition.Name);
