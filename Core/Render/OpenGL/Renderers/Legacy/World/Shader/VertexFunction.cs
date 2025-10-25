@@ -23,8 +23,13 @@ public static class VertexFunction
                 vec2 uvGap = vec2(VertexGapX / texSize.x, VertexGapY / texSize.y);
 
                 // Currently don't clamp when uv coordinates are flipped (eg topLeft.u > bottomRight.u). This happens in UDMF when scale x/y is negative.
-                uvClampMinFrag = mix(uvClampMinFrag, uvFrag + uvGap, float(topLeft == 1 && uvFlags == 0));
-                uvClampMaxFrag = mix(uvClampMaxFrag, uvFrag - uvGap, float(topLeft == 0 && uvFlags == 0));
+                bool topLeftFlag = topLeft == 1 && uvFlags == 0;
+                bool bottomRightFlag = topLeft == 0 && uvFlags == 0;
+                uvClampMinFrag.x = mix(uvClampMinFrag.x, uvFrag.x + uvGap.x, topLeftFlag);
+                uvClampMinFrag.y = mix(uvClampMinFrag.y, uvFrag.y + uvGap.y, topLeftFlag);
+
+                uvClampMaxFrag.x = mix(uvClampMaxFrag.x, uvFrag.x - uvGap.x, bottomRightFlag);
+                uvClampMaxFrag.y = mix(uvClampMaxFrag.y, uvFrag.y - uvGap.y, bottomRightFlag);
             }
     ";
 
