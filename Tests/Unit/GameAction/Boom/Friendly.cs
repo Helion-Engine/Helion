@@ -59,4 +59,25 @@ public class Friendly
         GameActions.MoveEntity(World, Player, 32);
         World.Blockmap.BlockLines[Player.BlockingBlockLineIndex].LineId.Should().Be(line.Id);
     }
+
+    [Fact(DisplayName = "Friendly not blocked by two-sided impassible blocking line")]
+    public void FriendlyImpassibleBlockLine()
+    {
+        var start = new Vec2D(1024, 288);
+        var end = new Vec2D(1024, 256);
+        var line = GameActions.GetLine(World, 16);
+        var imp = GameActions.GetSectorEntity(World, 2, DoomImp);
+        line.Flags.Blocking.Players.Should().BeTrue();
+        line.Flags.Blocking.Monsters.Should().BeTrue();
+        imp.Position.XY.Should().Be(start);
+        GameActions.MoveEntity(World, imp, 32);
+        imp.Position.XY.Should().NotBe(end);
+        World.Blockmap.BlockLines[imp.BlockingBlockLineIndex].LineId.Should().Be(line.Id);
+
+        imp.Kill(null);
+        Player.AngleRadians = GameActions.GetAngle(Bearing.South);
+        GameActions.SetEntityPosition(World, Player, start);
+        GameActions.MoveEntity(World, Player, 32);
+        World.Blockmap.BlockLines[Player.BlockingBlockLineIndex].LineId.Should().Be(line.Id);
+    }
 }
