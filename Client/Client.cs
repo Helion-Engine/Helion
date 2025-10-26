@@ -34,7 +34,6 @@ using Helion.Util.Timing;
 using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Save;
-using Microsoft.Win32;
 using NLog;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -146,9 +145,18 @@ public partial class Client : IDisposable, IInputManagement
         if (!OperatingSystem.IsWindows())
             return;
 
+        if (m_commandLineArgs.Restarted)
+        {
+            Log.Info("Restart flag set");
+            return;
+        }
+
         var result = LaptopGpuSettings.InitGpuModeIfNotExists(AppInfo, LaptopGpuMode.HighPerformance, out var error);
         if (result == InitGpuResult.SuccessDidNotExist)
-            Restart(new(""));
+        {
+            ExecuteRestart();
+            return;
+        }
 
         if (result == InitGpuResult.Error)
             Log.Error("LaptopGpuSettings Init Error: {error}", error);

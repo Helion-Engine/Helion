@@ -24,7 +24,12 @@ public static class LaptopGpuSettings
         try
         {
             if (SubKeyExists(appInfo))
-                return InitGpuResult.AlreadyExists;
+            {
+                var existingMode = GetGpuMode(appInfo);
+                // Auto will not work. If auto set then change to high performance and count as not set.
+                if (existingMode == LaptopGpuMode.HighPerformance || existingMode == LaptopGpuMode.PowerSaving)
+                    return InitGpuResult.AlreadyExists;               
+            }
 
             SetGpuMode(appInfo, initMode);
             return InitGpuResult.SuccessDidNotExist;
@@ -58,7 +63,7 @@ public static class LaptopGpuSettings
                 return GetModeFromKey(appInfo, key);
         }
         catch { }
-        return LaptopGpuMode.Auto;
+        return default;
     }
 
     public static bool SetGpuMode(AppInfo appInfo, LaptopGpuMode mode)
@@ -84,17 +89,17 @@ public static class LaptopGpuSettings
     private static LaptopGpuMode GetModeFromKey(AppInfo appInfo, RegistryKey key)
     {
         if (!OperatingSystem.IsWindows())
-            return LaptopGpuMode.Auto;
+            return default;
 
         var lookupValue = key.GetValue(GetSubKeyName(appInfo))?.ToString();
         if (lookupValue == null)
-            return LaptopGpuMode.Auto;
+            return default;
 
         var regString = lookupValue.Replace("GpuPreference=", "").Replace(";", "");
         if (int.TryParse(regString, out var value))
             return (LaptopGpuMode)value;
 
-        return LaptopGpuMode.Auto;
+        return default;
     }
 
     private static string GetSubKeyName(AppInfo appInfo) => Path.Combine(appInfo.ApplicationDirectory, appInfo.ApplicationExe);

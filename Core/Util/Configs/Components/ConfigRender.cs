@@ -29,11 +29,10 @@ public enum RenderLightMode
 
 public enum LaptopGpuMode
 {
-    Auto,
-    [Description("Power Saving")]
-    PowerSaving,
     [Description("High Performance")]
-    HighPerformance
+    HighPerformance = 1,
+    [Description("Power Saving")]
+    PowerSaving = 2,
 }
 
 public enum SkyRenderMode
