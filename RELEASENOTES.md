@@ -13,6 +13,7 @@
 - Vanilla movement physics compatibility option is now default.
 - Add video option to simplify setting true color/palette with vanilla rendering options.
 - Add randomly mirror corpses option similar to Retro/Crispy/Woof.
+- Add option to select laptop GPU mode (high performance, vs power saving). Helion will automatically set high performance (discrete) GPU to prevent Windows from defaulting to the power saving (integrated) GPU.
 
 ## Bug Fixes:
 - Fix sprite frames to correctly calculate when lowercase.
