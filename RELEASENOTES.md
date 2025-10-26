@@ -38,3 +38,4 @@
 - Fix A_BossDeath and A_KeenDie to exclude self. Fixes Tele-Direct Atlantic Doom blueprints not opening door.
 - Fix logging missing sound errors when config option is off.
 - Fix changing hud.scale from console to automatically disable hud.autoscale so it isn't modified on restart.
+- Fix friendly monsters passing through two-sided impassible lines.

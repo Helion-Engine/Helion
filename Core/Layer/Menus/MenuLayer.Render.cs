@@ -175,7 +175,7 @@ public partial class MenuLayer
         if (image.AddToOffsetY)
             offsetY += image.PaddingTopY;
 
-        bool renderTitleText = !hud.Textures.TryGet(image.ImageName, out var handle) && !string.IsNullOrEmpty(image.Title);
+        bool renderTitleText = !hud.Textures.TryGet(image.ImageName,  out var handle, upscalingFactor: upscalingFactor) && !string.IsNullOrEmpty(image.Title);
         if (renderTitleText)
         {
             const int FontSize = 12;
@@ -207,7 +207,7 @@ public partial class MenuLayer
         // Always use static draw area
         if (isLegacyMenu && useImageName != StaticMenuImageName)
         {
-            hud.Image(StaticMenuImageName, ((320 - StaticMenuWidth) / 2, drawY + offset.Y), out area, both: Align.TopLeft, upscalingFactor: upscalingFactor);
+            hud.Image(StaticMenuImageName, ((320 - StaticMenuWidth) / 2, drawY + offset.Y), out area, both: Align.TopLeft);
             drawArea = new(area.Min, area.Max);
         }
 
