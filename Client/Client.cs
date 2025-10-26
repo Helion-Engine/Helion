@@ -22,6 +22,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.CommandLine;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
@@ -92,8 +93,14 @@ public partial class Client : IDisposable, IInputManagement
         m_console = console;
         m_audioSystem = audioSystem;
         m_archiveCollection = archiveCollection;
+
+        InitGpuPreference();
+
         m_saveGameManager = new SaveGameManager(config, m_pathsManager, m_archiveCollection, commandLineArgs.SaveDir);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
+
+        m_config.Window.LaptopGpu.Set(LaptopGpuSettings.GetGpuMode(AppInfo));
+        m_config.Window.LaptopGpu.OnChanged += LaptopGpu_OnChanged;
 
         m_config.Game.Rng.OnChanged += Rng_OnChanged;
         m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
@@ -131,6 +138,33 @@ public partial class Client : IDisposable, IInputManagement
         RegisterConfigChanges();
         UpdateVolume();
         m_ticker.Start();
+    }
+
+    private void InitGpuPreference()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        if (m_commandLineArgs.Restarted)
+        {
+            Log.Info("Restart flag set");
+            return;
+        }
+
+        var result = LaptopGpuSettings.InitGpuModeIfNotExists(AppInfo, LaptopGpuMode.HighPerformance, out var error);
+        if (result == InitGpuResult.SuccessDidNotExist)
+        {
+            ExecuteRestart();
+            return;
+        }
+
+        if (result == InitGpuResult.Error)
+            Log.Error("LaptopGpuSettings Init Error: {error}", error);
+    }
+
+    private void LaptopGpu_OnChanged(object? sender, LaptopGpuMode mode)
+    {
+        LaptopGpuSettings.SetGpuMode(AppInfo, mode);
     }
 
     private void Scale_OnChanged(object? sender, double e)

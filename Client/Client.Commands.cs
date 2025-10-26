@@ -128,6 +128,11 @@ public partial class Client
     [ConsoleCommand("restart", "Restarts the application.")]
     private void Restart(ConsoleCommandEventArgs args)
     {
+        ExecuteRestart();
+    }
+
+    private void ExecuteRestart()
+    {
         // Note:  We might also want to use the current working directory when restarting, in case it
         // is not the same directory the executable is in.  That seems like a less likely case because
         // the single-file published version of this application doesn't really like being run from
@@ -142,6 +147,8 @@ public partial class Client
 
         if (m_config is FileConfig fileConfig)
             fileConfig.Write();
+
+        m_commandLineArgs.OriginalArgs = [.. m_commandLineArgs.OriginalArgs, "+restarted"];
 
         Process.Start(executablePath, m_commandLineArgs.OriginalArgs);
         Environment.Exit(0);
