@@ -448,34 +448,26 @@ public partial class Client
     [ConsoleCommand("nextmap", "Starts a new game on the next map")]
     private void CommandNextMap(ConsoleCommandEventArgs args)
     {
-        var maps = m_archiveCollection.MapInfo.MapInfo.Maps.OrderBy(x => x.LevelNumber).ToList();
-        int i;
-        for (i = 0; i < maps.Count; i++)
-        {
-            if (maps[i] == m_layerManager.WorldLayer?.CurrentMap)
-            {
-                i++;
-                break;
-            }
-        }
-        MapInfoDef map = maps[i % maps.Count];
+        var maps = m_archiveCollection.MapInfo.MapInfo.GetOrderedMaps();
+        if (maps.Count == 0)
+            return;
+        int nextIndex = (m_layerManager.WorldLayer != null)
+            ? (maps.IndexOf(m_layerManager.WorldLayer.CurrentMap) + 1) % maps.Count
+            : 0;
+        MapInfoDef map = maps[nextIndex];
         NewGame(map);
     }
 
     [ConsoleCommand("previousmap", "Starts a new game on the previous map")]
     private void CommandPreviousMap(ConsoleCommandEventArgs args)
     {
-        var maps = m_archiveCollection.MapInfo.MapInfo.Maps.OrderBy(x => x.LevelNumber).ToList();
-        int i;
-        for (i = maps.Count - 1; i >= 0; i--)
-        {
-            if (maps[i] == m_layerManager.WorldLayer?.CurrentMap)
-            {
-                i--;
-                break;
-            }
-        }
-        MapInfoDef map = maps[(i + maps.Count) % maps.Count];
+        var maps = m_archiveCollection.MapInfo.MapInfo.GetOrderedMaps();
+        if (maps.Count == 0)
+            return;
+        int prevIndex = (m_layerManager.WorldLayer != null)
+            ? (Math.Max(0, maps.IndexOf(m_layerManager.WorldLayer.CurrentMap)) - 1 + maps.Count) % maps.Count
+            : maps.Count - 1;
+        MapInfoDef map = maps[prevIndex];
         NewGame(map);
     }
 

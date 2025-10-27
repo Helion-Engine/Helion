@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using Helion.Maps.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
-using Helion.World;
 using Helion.World.Util;
 
 namespace Helion.Resources.Definitions.MapInfo;
@@ -27,10 +25,10 @@ public class MapInfo
     public IReadOnlyList<SkillDef> Skills => m_skills.AsReadOnly();
     public MapInfoDef? DefaultMap { get; private set; }
 
-    private readonly List<EpisodeDef> m_episodes = new();
-    private readonly List<MapInfoDef> m_maps = new();
-    private readonly List<ClusterDef> m_clusters = new();
-    private readonly List<SkillDef> m_skills = new();
+    private readonly List<EpisodeDef> m_episodes = [];
+    private readonly List<MapInfoDef> m_maps = [];
+    private readonly List<ClusterDef> m_clusters = [];
+    private readonly List<SkillDef> m_skills = [];
 
     public void ClearEpisodes() => m_episodes.Clear();
 
@@ -180,5 +178,31 @@ public class MapInfo
         }
 
         items.Add(newItem);
+    }
+
+    /// <summary>
+    /// The maps in play order, with secrets exits before regular exits.
+    /// </summary>
+    public List<MapInfoDef> GetOrderedMaps()
+    {
+        List<MapInfoDef> orderedMaps = [];
+        foreach (var episode in m_episodes)
+        {
+            Stack<string> mapStack = new();
+            mapStack.Push(episode.StartMap);
+            while (mapStack.Count > 0)
+            {
+                string mapName = mapStack.Pop();
+                var map = m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase(mapName));
+                if (map != null && !orderedMaps.Contains(map))
+                {
+                    orderedMaps.Add(map);
+                    mapStack.Push(map.Next);
+                    if (map.SecretNext != "")
+                        mapStack.Push(map.SecretNext);
+                }
+            }
+        }
+        return orderedMaps;
     }
 }
