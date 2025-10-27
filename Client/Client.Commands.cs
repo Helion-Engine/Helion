@@ -448,7 +448,7 @@ public partial class Client
     [ConsoleCommand("nextmap", "Starts a new game on the next map")]
     private void CommandNextMap(ConsoleCommandEventArgs args)
     {
-        var maps = m_archiveCollection.MapInfo.MapInfo.Maps;
+        var maps = m_archiveCollection.MapInfo.MapInfo.Maps.OrderBy(x => x.LevelNumber).ToList();
         int i;
         for (i = 0; i < maps.Count; i++)
         {
@@ -465,7 +465,7 @@ public partial class Client
     [ConsoleCommand("previousmap", "Starts a new game on the previous map")]
     private void CommandPreviousMap(ConsoleCommandEventArgs args)
     {
-        var maps = m_archiveCollection.MapInfo.MapInfo.Maps;
+        var maps = m_archiveCollection.MapInfo.MapInfo.Maps.OrderBy(x => x.LevelNumber).ToList();
         int i;
         for (i = maps.Count - 1; i >= 0; i--)
         {
