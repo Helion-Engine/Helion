@@ -445,8 +445,42 @@ public partial class Client
         }
     }
 
+    [ConsoleCommand("nextmap", "Starts a new game on the next map")]
+    private void CommandNextMap(ConsoleCommandEventArgs args)
+    {
+        var maps = m_archiveCollection.MapInfo.MapInfo.Maps;
+        int i;
+        for (i = 0; i < maps.Count; i++)
+        {
+            if (maps[i] == m_layerManager.WorldLayer?.CurrentMap)
+            {
+                i++;
+                break;
+            }
+        }
+        MapInfoDef map = maps[i % maps.Count];
+        NewGame(map);
+    }
+
+    [ConsoleCommand("previousmap", "Starts a new game on the previous map")]
+    private void CommandPreviousMap(ConsoleCommandEventArgs args)
+    {
+        var maps = m_archiveCollection.MapInfo.MapInfo.Maps;
+        int i;
+        for (i = maps.Count - 1; i >= 0; i--)
+        {
+            if (maps[i] == m_layerManager.WorldLayer?.CurrentMap)
+            {
+                i--;
+                break;
+            }
+        }
+        MapInfoDef map = maps[(i + maps.Count) % maps.Count];
+        NewGame(map);
+    }
+
     [ConsoleCommand("listmaps", "Lists all maps")]
-    private void ListMaps(ConsoleCommandEventArgs args)
+    private void CommandListMaps(ConsoleCommandEventArgs args)
     {
         foreach (var map in m_archiveCollection.MapInfo.MapInfo.Maps)
         {
@@ -461,13 +495,13 @@ public partial class Client
     }
 
     [ConsoleCommand("printmap", "Prints the current map")]
-    private void PrintMap(ConsoleCommandEventArgs args)
+    private void CommandPrintMap(ConsoleCommandEventArgs args)
     {
         HelionLog.Info(GetCurrentMapName() ?? "No map loaded");
     }
 
     [ConsoleCommand("printgame", "Prints the current game title (or WAD filename)")]
-    private void PrintGame(ConsoleCommandEventArgs args)
+    private void CommandPrintGame(ConsoleCommandEventArgs args)
     {
         HelionLog.Info(GetCurrentGameName() ?? "No map loaded");
     }
