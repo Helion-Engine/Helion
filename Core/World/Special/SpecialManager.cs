@@ -1024,6 +1024,9 @@ public sealed class SpecialManager : ITickable, IDisposable
             scrollType = (ZDoomPlaneScrollType)line.Args.Arg2;
 
         ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(line, flags, scrollType, 1);
+        var scrollSpeed = speeds.ScrollSpeed ?? Vec2D.Zero;
+        scrollSpeed.X = -scrollSpeed.X;
+
         Sector? changeScroll = null;
 
         if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)
@@ -1032,16 +1035,12 @@ public sealed class SpecialManager : ITickable, IDisposable
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
-            SectorPlane sectorPlane = sector.GetSectorPlane(planeType);
+            var sectorPlane = sector.GetSectorPlane(planeType);
             if (speeds.ScrollSpeed.HasValue)
-            {
-                Vec2D scrollSpeed = speeds.ScrollSpeed.Value;
-                scrollSpeed.X = -scrollSpeed.X;
-                AddSpecial(new ScrollSpecial(ScrollType.Scroll, sectorPlane, scrollSpeed, changeScroll, flags));
-            }
+                AddSpecial(new ScrollSpecial(ScrollPlaneOptions.Textures, sectorPlane, scrollSpeed, changeScroll, flags));
 
             if (speeds.CarrySpeed.HasValue)
-                AddSpecial(new ScrollSpecial(ScrollType.Carry, sectorPlane, speeds.CarrySpeed.Value, changeScroll, flags));
+                AddSpecial(new ScrollSpecial(ScrollPlaneOptions.CarryAllObjects, sectorPlane, speeds.CarrySpeed.Value, changeScroll, flags));
         }
     }
 
