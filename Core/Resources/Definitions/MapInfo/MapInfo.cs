@@ -113,7 +113,7 @@ public class MapInfo
 
     public void SetDefaultMap(MapInfoDef? map) => DefaultMap = map;
     public FindMapResult GetNextMap(MapInfoDef map) => GetMap(map.Next);
-    public FindMapResult GetNextSecretMap(MapInfoDef map) => GetMap(map.SecretNext);
+    public FindMapResult GetNextSecretMap(MapInfoDef map) => map.SecretNext != "" ? GetMap(map.SecretNext) : GetMap(map.Next);
     public ClusterDef? GetCluster(int clusterNumber) => m_clusters.FirstOrDefault(c => c.ClusterNum == clusterNumber);
     public static bool IsWarpTrans(string mapName) => mapName.StartsWithIgnoreCase(WarpTrans);
 
