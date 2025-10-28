@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Helion.Audio.Sounds;
 using Helion.Maps.Shared;
 using Helion.Menus.Base;
@@ -10,6 +7,10 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util.Configs;
 using Helion.Util.Configs.Values;
 using Helion.Util.Consoles;
+using Helion.Window;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Helion.Menus.Impl;
 
@@ -24,9 +25,9 @@ public class NewGameSkillMenu : Menu
     private const int OffsetX = 48;
     private const int PaddingY = 0;
 
-    public NewGameSkillMenu(IConfig config, HelionConsole console, SoundManager soundManager,
+    public NewGameSkillMenu(IWindow window, IConfig config, HelionConsole console, SoundManager soundManager,
             ArchiveCollection archiveCollection, string? episode) :
-        base(config, console, soundManager, archiveCollection, 6, true)
+        base(window, config, console, soundManager, archiveCollection, 6, true)
     {
         m_config = config;
         m_console = console;
@@ -87,7 +88,7 @@ public class NewGameSkillMenu : Menu
                 string[] confirm = ArchiveCollection.Definitions.Language.GetMessages(mustConfirmMessage)
                     .Union(ArchiveCollection.Definitions.Language.GetMessages("$CONFIRM_YN")).ToArray();
 
-                var messageMenu = new MessageMenu(config, Console, soundManager, ArchiveCollection, confirm, true);
+                var messageMenu = new MessageMenu(window, config, Console, soundManager, ArchiveCollection, confirm, true);
                 messageMenu.Cleared += MessageMenu_Cleared;
                 return messageMenu;
             };

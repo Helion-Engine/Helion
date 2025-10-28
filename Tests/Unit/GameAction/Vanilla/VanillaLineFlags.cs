@@ -46,7 +46,8 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.AssertFlags(GameActions.GetLine(World, 8).Flags.Blocking,
                 lineBlockFlags.GetField(nameof(LineBlockFlags.Players)),
-                lineBlockFlags.GetField(nameof(LineBlockFlags.Monsters)));
+                lineBlockFlags.GetField(nameof(LineBlockFlags.Monsters)),
+                lineBlockFlags.GetField(nameof(LineBlockFlags.LegacyImpassible)));
 
             GameActions.AssertFlags(GameActions.GetLine(World, 9).Flags,
                 lineFlags.GetField(nameof(LineFlags.TwoSided)));

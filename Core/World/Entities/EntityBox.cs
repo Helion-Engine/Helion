@@ -147,16 +147,4 @@ public partial class Entity
         intersect = p1 + ((p2 - p1) * (-dist1 / (dist2 - dist1)));
         return true;
     }
-
-    public EntityBoxModel ToEntityBoxModel()
-    {
-        return new()
-        {
-            CenterX = Position.X,
-            CenterY = Position.Y,
-            CenterZ = Position.Z,
-            Radius = Radius,
-            Height = Height
-        };
-    }
 }

@@ -28,40 +28,6 @@ using Helion.World.Stats;
 
 namespace Helion.World.Special;
 
-public class SpecialModelData
-{
-    public readonly List<ISpecialModel> Specials = [];
-    public readonly List<SectorMoveSpecialModel> MoveSpecials = [];
-    public readonly List<ScrollSpecialModel> ScrollSpecials = [];
-    public readonly List<LightChangeSpecialModel> LightChangeSpecials = [];
-    public readonly List<LightFireFlickerDoomModel> LightFireFlickerDoomSpecials = [];
-    public readonly List<LightFlickerDoomSpecialModel> LightFlickerDoomSpecials = [];
-    public readonly List<LightPulsateSpecialModel> LightPulsateSpecials = [];
-    public readonly List<LightStrobeSpecialModel> LightStrobeSpecials = [];
-    public readonly List<PushSpecialModel> PushSpecials = [];
-    public readonly List<StairSpecialModel> StairSpecials = [];
-    public readonly List<ElevatorSpecialModel> ElevatorSpecials = [];
-    public readonly List<SwitchChangeSpecialModel> SwitchSpecials = [];
-    public readonly List<SectorDamageSpecialModel> SectorDamageSpecials = [];
-
-    public void Clear()
-    {
-        Specials.Clear();
-        MoveSpecials.Clear();
-        ScrollSpecials.Clear();
-        LightChangeSpecials.Clear();
-        LightFireFlickerDoomSpecials.Clear();
-        LightFlickerDoomSpecials.Clear();
-        LightPulsateSpecials.Clear();
-        LightStrobeSpecials.Clear();
-        PushSpecials.Clear();
-        StairSpecials.Clear();
-        ElevatorSpecials.Clear();
-        SwitchSpecials.Clear();
-        SectorDamageSpecials.Clear();
-    }
-}
-
 public sealed class SpecialManager : ITickable, IDisposable
 { 
     // Doom used speeds 1/8 of map unit, Helion uses map units so doom speeds have to be multiplied by 1/8
@@ -708,20 +674,43 @@ public sealed class SpecialManager : ITickable, IDisposable
         return spec;
     }
 
-    public void StartInitSpecials(LevelStats levelStats)
+    public void StartInitSpecials(LevelStats levelStats, bool flagsOnly)
     {
-        foreach (var line in m_world.Lines)
+        if (flagsOnly)
         {
-            if (line.Special != null && (line.Flags.Activations & LineActivations.LevelStart) != 0)
-                HandleLineInitSpecial(line);
+            foreach (var line in m_world.Lines)
+            {
+                if (line.Special != null && (line.Flags.Activations & LineActivations.LevelStart) != 0)
+                    HandleLineInitSpecialFlag(line);
+            }
         }
-
-        for (int i = 0; i < m_world.Sectors.Count; i++)
+        else
         {
-            Sector sector = m_world.Sectors[i];
-            if (sector.Secret)
-                levelStats.TotalSecrets++;
-            HandleSectorSpecial(sector);
+            foreach (var line in m_world.Lines)
+            {
+                if (line.Special != null && (line.Flags.Activations & LineActivations.LevelStart) != 0)
+                    HandleLineInitSpecial(line);
+            }
+
+            for (int i = 0; i < m_world.Sectors.Count; i++)
+            {
+                Sector sector = m_world.Sectors[i];
+                if (sector.Secret)
+                    levelStats.TotalSecrets++;
+                HandleSectorSpecial(sector);
+            }
+        }
+    }
+
+    // This is currently just for the id24 offset and rotate since it needs to set the FlatTransformMethod.
+    // Prevents the method from needing to be serialized and keeps saves backwards compatibile.
+    private void HandleLineInitSpecialFlag(Line line)
+    {
+        switch (line.Special.LineSpecialType)
+        {
+            case ZDoomLineSpecialType.OffsetThenRotateByLineDirection:
+                FlagTransform(line);
+                break;
         }
     }
 
@@ -790,18 +779,14 @@ public sealed class SpecialManager : ITickable, IDisposable
                 SetTransferHeights(line);
                 break;
             case ZDoomLineSpecialType.OffsetPlaneByLineDirection:
-                SetSectorPlaneOffset(line);
+                SetSectorPlaneOffsetAndRotation(line, true, false);
                 break;
-
             case ZDoomLineSpecialType.RotatePlaneByLineDirection:
-                SetSectorPlaneRotation(line);
+                SetSectorPlaneOffsetAndRotation(line, false, true);
                 break;
-
             case ZDoomLineSpecialType.OffsetThenRotateByLineDirection:
-                SetSectorPlaneOffset(line);
-                SetSectorPlaneRotation(line);
+                SetSectorPlaneOffsetAndRotation(line, true, true);
                 break;
-
             case ZDoomLineSpecialType.SetSectorColorMap:
                 SetSectorColorMap(line, true);
                 break;
@@ -829,41 +814,56 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private void SetSectorPlaneRotation(Line line)
+    private void SetSectorPlaneOffsetAndRotation(Line line, bool offset, bool rotate)
     {
         SectorPlanes planes = (SectorPlanes)line.Args.Arg1;
         var sectors = GetSectorsFromSpecialLine(line);
-        var rotate = -line.GetAngle();
+        var rotation = rotate ? -line.GetAngle() : 0;
+        var offsetAmount = line.Segment.Delta;
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
             if ((planes & SectorPlanes.Floor) != 0)
             {
-                sector.DataChanges |= SectorDataTypes.Rotate;
-                sector.Floor.RenderOffsets.Rotate += rotate;
+                if (rotate)
+                {
+                    sector.DataChanges |= SectorDataTypes.Rotate;
+                    sector.Floor.RenderOffsets.Rotate += rotation;
+                    sector.Floor.FlatTransformMethod = FlatTransformMethod.OffsetThenRotate;
+                }
+
+                if (offset)
+                    SetPlaneOffset(sector, sector.Floor, offsetAmount);
             }
             if ((planes & SectorPlanes.Ceiling) != 0)
             {
-                sector.DataChanges |= SectorDataTypes.Rotate;
-                sector.Ceiling.RenderOffsets.Rotate += rotate;
+                if (rotate)
+                {
+                    sector.DataChanges |= SectorDataTypes.Rotate;
+                    sector.Ceiling.RenderOffsets.Rotate += rotation;
+                    sector.Ceiling.FlatTransformMethod = FlatTransformMethod.OffsetThenRotate;
+                }
+
+                if (offset)
+                    SetPlaneOffset(sector, sector.Ceiling, offsetAmount);
             }
         }
     }
 
-    private void SetSectorPlaneOffset(Line line)
+    private void FlagTransform(Line line)
     {
         SectorPlanes planes = (SectorPlanes)line.Args.Arg1;
         var sectors = GetSectorsFromSpecialLine(line);
-        var offset = line.Segment.Delta;
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
             if ((planes & SectorPlanes.Floor) != 0)
-                SetPlaneOffset(sector, sector.Floor, offset);
+                sector.Floor.FlatTransformMethod = FlatTransformMethod.OffsetThenRotate;
             if ((planes & SectorPlanes.Ceiling) != 0)
-                SetPlaneOffset(sector, sector.Ceiling, offset);
+                sector.Ceiling.FlatTransformMethod = FlatTransformMethod.OffsetThenRotate;
         }
     }
+
 
     private static void SetPlaneOffset(Sector sector, SectorPlane plane, Vec2D offset)
     {

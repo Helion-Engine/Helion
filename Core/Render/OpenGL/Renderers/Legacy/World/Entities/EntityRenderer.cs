@@ -12,6 +12,7 @@ using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Flags;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -237,10 +238,26 @@ public class EntityRenderer : IDisposable
                 colorMapIndex = m_archiveCollection.Definitions.GetBloodColormap(owner.Properties.BloodPaletteColor.Value).Index;
         }
 
+        var shouldMirror = entity.Flags.Mirror;
+        if (shouldMirror)
+            rotation = SpriteDefinition.MaxRotationIndex - rotation;
+
         var spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.FrameState.Frame.Frame, rotation, colorMapIndex);
         var texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
         var brightmapTexture = spriteRotation.BrightmapRenderStore as GLLegacyTexture;
         var sector = entity.Sector.GetRenderSector(m_transferHeightView);
+
+        int flipU;
+        int offsetX = texture.Offset.X;
+        if (shouldMirror)
+        {
+            flipU = spriteRotation.FlipU ^ 1;
+            offsetX = texture.Width - offsetX;
+        }
+        else
+        {
+            flipU = spriteRotation.FlipU;
+        }
 
         var disableFullbright = m_brightMaps && spriteRotation.BrightmapNoFullbright;
         var isFullBright = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
@@ -295,9 +312,8 @@ public class EntityRenderer : IDisposable
         vertex.PrevPos.X = (float)(entity.PrevPosition.X - nudgeAmount.X);
         vertex.PrevPos.Y = (float)(entity.PrevPosition.Y - nudgeAmount.Y);
         vertex.PrevPos.Z = (float)entity.PrevPosition.Z;
-        vertex.Options = VertexOptions.Entity(alpha, fuzz, spriteRotation.FlipU, colorMapIndex, lightLevel);
+        vertex.Options = VertexOptions.Entity(alpha, fuzz, flipU, colorMapIndex, lightLevel);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
-        vertex.OffsetXYZ = VertexOptions.EntityXYZ(texture.Offset.X, offsetZ);
 
         if (entity.Definition.Flags.SpawnCeiling && m_vanillaRender)
         {
@@ -308,7 +324,8 @@ public class EntityRenderer : IDisposable
             vertex.Pos.Z = ceilingZ + diff;
             vertex.PrevPos.Z = entity.PrevPosition.Z != entity.Position.Z ? (float)entity.Sector.Ceiling.PrevZ : ceilingZ;
         }
-
+        
+        vertex.OffsetXYZ = VertexOptions.EntityXYZ(offsetX, offsetZ);
         arrayData.Length = length + 1;
 
         if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))

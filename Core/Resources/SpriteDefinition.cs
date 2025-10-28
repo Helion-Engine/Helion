@@ -10,6 +10,7 @@ public class SpriteDefinition
 {
     public const int MaxFrames = 29;
     public const int MaxRotations = 8;
+    public const int MaxRotationIndex = MaxRotations - 1;
     public SpriteRotation?[,] Rotations = new SpriteRotation[MaxFrames, MaxRotations];
     public bool HasRotations;
 

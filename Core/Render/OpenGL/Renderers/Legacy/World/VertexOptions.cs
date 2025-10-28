@@ -13,10 +13,11 @@ public static class VertexOptions
         return *(float*)&packed;
     }
 
-    public static unsafe float ColorMapIndex(int colorMapIndex, int vertexLightLevel)
+    // UvFlags only required for walls
+    public static unsafe float ColorMapIndex(int colorMapIndex, int vertexLightLevel, UvFlags uvFlags = UvFlags.Normal)
     {
-        // First 8 bits are lightLevel, next 24 are colorMapIndex
-        int packed = ((colorMapIndex & 0xFFFFFF) << 8) | ((vertexLightLevel) & 0xFF);
+        // colorMapIndex 16 bits, uvFlags 2 bits, vertexLightLevel 8 bits (6 bits free)
+        int packed = ((colorMapIndex & 0xFFFF) << 10) | (((int)uvFlags & 0x3) << 8) | ((vertexLightLevel) & 0xFF);
         return *(float*)&packed;
     }
 
@@ -35,7 +36,7 @@ public static class VertexOptions
     public static unsafe float Entity(float alpha, int fuzz, int flipU, int colormap, int lightLevel)
     {
         int alphaByte = (int)(alpha * 255.0f);
-        int packed = (alphaByte & 0xFF) | (fuzz << 8) | (flipU << 9) | ((lightLevel & 0xFF) << 10) | (colormap << 18);
+        int packed = (alphaByte & 0xFF) | (fuzz << 8) | (flipU << 9) | (Math.Clamp(lightLevel, 0, 255) << 10) | (colormap << 18);
         return *(float*)&packed;
     }
 

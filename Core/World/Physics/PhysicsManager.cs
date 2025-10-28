@@ -203,6 +203,7 @@ public sealed class PhysicsManager
             var sectorMoveEntityData = new SectorMoveEntityData(entity, entity.Position.Z, entity.PrevPosition.Z, entity.IsCrushing());
             m_sectorMoveEntitiesData.Add(sectorMoveEntityData);
 
+            var prevVelocityZ = entity.Velocity.Z;
             var entityShouldStick = startZ > destZ && entity.OnGround &&
                 (m_alwaysStickEntitiesToFloor || SpeedShouldStickToFloor(speed));
 
@@ -231,6 +232,10 @@ public sealed class PhysicsManager
                 SetClampIgnoreEntities(entity);
 
             ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
+
+            // Check for missile hitting floor/ceiling. Doom would only explode on z movement so check for z velocity.
+            if (entity.Flags.Missile && prevVelocityZ != 0)
+                m_world.HandleEntityHit(entity, entity.Velocity, null);
 
             var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
             if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
@@ -843,12 +848,13 @@ public sealed class PhysicsManager
         entity.HighestFloorSector = highestFloor;
         entity.LowestCeilingSector = lowestCeiling;
 
-        if (highestFloorEntity != null && highestFloorEntity.Position.Z + highestFloorEntity.Height > highestFloor.ToFloorZ(entity.Position))
+        // Make checks inclusive to prioritize entity over sector. Otherwise this can cause issues with monsters on 3d bridges/midtex lines dropping of when they shouldn't.
+        if (highestFloorEntity != null && highestFloorEntity.Position.Z + highestFloorEntity.Height >= highestFloor.Floor.Z)
             entity.HighestFloorObject = highestFloorEntity;
         else
             entity.HighestFloorObject = highestFloor;
 
-        if (lowestCeilingEntity != null && lowestCeilingEntity.Position.Z + lowestCeilingEntity.Height < lowestCeiling.ToCeilingZ(entity.Position))
+        if (lowestCeilingEntity != null && lowestCeilingEntity.Position.Z + lowestCeilingEntity.Height < lowestCeiling.Ceiling.Z)
             entity.LowestCeilingObject = lowestCeilingEntity;
         else
             entity.LowestCeilingObject = lowestCeiling;
@@ -890,13 +896,16 @@ public sealed class PhysicsManager
                 if (m_canPassData.HighestFloorEntity != null && m_canPassData.HighestFloorEntity.Position.Z + m_canPassData.HighestFloorEntity.Height < m_canPassData.HighestFloorZ)
                     m_onEntities.Clear();
 
-                m_canPassData.HighestFloorEntity = intersectEntity;
-                m_canPassData.HighestFloorZ = intersectTopZ;
+                if (CanPassEntityFloorPriorityCheck(intersectEntity, intersectTopZ))
+                {
+                    m_canPassData.HighestFloorEntity = intersectEntity;
+                    m_canPassData.HighestFloorZ = intersectTopZ;
+                }
 
                 if (intersectTopZ == entity.Position.Z)
                 {
                     addedOnEntity = true;
-                    m_onEntities.Add(m_canPassData.HighestFloorEntity);
+                    m_onEntities.Add(intersectEntity);
                 }
             }
         }
@@ -916,14 +925,26 @@ public sealed class PhysicsManager
             if (m_canPassData.HighestFloorEntity != null && m_canPassData.HighestFloorEntity.Position.Z + m_canPassData.HighestFloorEntity.Height < m_canPassData.HighestFloorZ)
                 m_onEntities.Clear();
 
-            m_canPassData.HighestFloorEntity = intersectEntity;
-            m_canPassData.HighestFloorZ = intersectTopZ;
+            if (CanPassEntityFloorPriorityCheck(intersectEntity, intersectTopZ))
+            {
+                m_canPassData.HighestFloorEntity = intersectEntity;
+                m_canPassData.HighestFloorZ = intersectTopZ;
+            }
 
             if (intersectTopZ == entity.Position.Z)
-                m_onEntities.Add(m_canPassData.HighestFloorEntity);
+                m_onEntities.Add(intersectEntity);
         }
 
         return GridIterationStatus.Continue;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool CanPassEntityFloorPriorityCheck(Entity entity, double intersectTopZ)
+    {
+        if (m_canPassData.HighestFloorEntity == null || m_canPassData.HighestFloorEntity.Position.Z + m_canPassData.HighestFloorEntity.Height != intersectTopZ)
+            return true;
+        // Need to prioritize bridge things over everything else when the z heights are equal.
+        return !m_canPassData.Entity.Flags.ActLikeBridge && entity.Flags.ActLikeBridge;
     }
 
     private static void GetEntityClampValues(Entity entity, DynamicArray<Sector>? intersectSectors,
@@ -988,7 +1009,7 @@ public sealed class PhysicsManager
 
     private void LinkToSectors(Entity entity, TryMoveData? tryMove)
     {
-        Precondition(entity.SectorNodes.Empty(), "Forgot to unlink entity from blockmap");
+        Precondition(entity.SectorNodes.Length == 0, "Forgot to unlink entity from blockmap");
         int checkCounter = ++WorldStatic.CheckCounter;
         Subsector centerSubsector;
         if (tryMove != null && tryMove.Subsector != null && tryMove.Success)
@@ -1075,12 +1096,6 @@ doneLinkToSectors:
         entity.SectorNodes.Add(centerSector.Link(entity));
     }
 
-    private static void ClearVelocityXY(Entity entity)
-    {
-        entity.Velocity.X = 0;
-        entity.Velocity.Y = 0;
-    }
-
     public TryMoveData TryMoveXY(Entity entity, double x, double y)
     {
         TryMoveData.Clear();
@@ -1132,7 +1147,7 @@ doneLinkToSectors:
 
             double nextX = entity.Position.X + stepDelta.X;
             double nextY = entity.Position.Y + stepDelta.Y;
-            if (IsPositionValid(entity, nextX, nextY, TryMoveData))
+            if (IsPositionValid(entity, nextX, nextY, TryMoveData) && entity.CheckDropOff(TryMoveData))
             {
                 entity.MoveLinked = true;
                 MoveTo(entity, nextX, nextY, TryMoveData);
@@ -1172,8 +1187,13 @@ doneLinkToSectors:
             }
 
             success = false;
-            if (ShouldClearSlide(TryMoveData))
-                ClearVelocityXY(entity);
+
+            if (ShouldClearSlide(entity, TryMoveData))
+            {
+                entity.Velocity.X = 0;
+                entity.Velocity.Y = 0;
+            }
+
             break;
         }
 
@@ -1374,13 +1394,6 @@ doneLinkToSectors:
         }
 
         tryMove.CanFloat = true;
-
-        if (!entity.CheckDropOff(tryMove))
-        {
-            tryMove.Subsector = null;
-            tryMove.Success = false;
-        }
-
         return tryMove.Success;
     }
 
@@ -1458,8 +1471,12 @@ doneLinkToSectors:
 
         // If we cannot find the line or thing that is blocking us, then we
         // are fully done moving horizontally.
-        if (ShouldClearSlide(tryMove))
-            ClearVelocityXY(entity);
+        if (ShouldClearSlide(entity, tryMove))
+        {
+            entity.Velocity.X = 0;
+            entity.Velocity.Y = 0;
+        }
+
         stepDelta.X = 0;
         stepDelta.Y = 0;
         movesLeft = 0;
@@ -1659,7 +1676,7 @@ doneLinkToSectors:
             if (IsPositionValid(entity, nextX, entity.Position.Y, tryMove))
             {
                 MoveTo(entity, nextX, entity.Position.Y, tryMove);
-                if (ShouldClearSlide(tryMove))
+                if (ShouldClearSlide(entity, tryMove))
                     entity.Velocity.Y = 0;
                 stepDelta.Y = 0;
                 return true;
@@ -1671,7 +1688,7 @@ doneLinkToSectors:
             if (IsPositionValid(entity, entity.Position.X, nextY, tryMove))
             {
                 MoveTo(entity, entity.Position.X, nextY, tryMove);
-                if (ShouldClearSlide(tryMove))
+                if (ShouldClearSlide(entity, tryMove))
                     entity.Velocity.X = 0;
                 stepDelta.X = 0;
                 return true;
@@ -1681,7 +1698,8 @@ doneLinkToSectors:
         return false;
     }
 
-    private static bool ShouldClearSlide(TryMoveData tryMove)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ShouldClearSlide(Entity entity, TryMoveData tryMove)
     {
         if (!tryMove.BlockedLineClearsVelocity)
             return false;
@@ -1733,6 +1751,9 @@ doneLinkToSectors:
             }
         }
 
+        if (entity.Flags.MbfBouncer && ShouldIgnoreMbfBouncerFriction(entity, TryMoveData))
+            return;
+
         if (shouldClear)
         {
             entity.Velocity.X = 0;
@@ -1744,6 +1765,15 @@ doneLinkToSectors:
             entity.Velocity.X *= sectorFriction;
             entity.Velocity.Y *= sectorFriction;
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool ShouldIgnoreMbfBouncerFriction(Entity entity, TryMoveData tryMove)
+    {
+        const double MinVelocity = 0.25;
+        return entity.Position.Z > tryMove.DropOffZ &&
+            entity.HighestFloorZ != entity.Sector.Floor.Z &&
+            (Math.Abs(entity.Velocity.X) > MinVelocity || Math.Abs(entity.Velocity.Y) > MinVelocity);
     }
 
     private static double GetFrictionFromSectors(Entity entity)
@@ -1773,39 +1803,45 @@ doneLinkToSectors:
         if (entity.IsDisposed || m_world.WorldState == WorldState.Exit)
             return;
 
-        // Have to check this first. Doom modifies the position first and then velocity.
-        // This means z velocity isn't applied until the next tick after moving off a ledge.
-        // Adds z velocity on the first tick, then adds -2 on the second instead of -1 on the first and -1 on the second.
-        bool noVelocity = entity.Velocity.Z == 0;
-        bool shouldApplyGravity = entity.ShouldApplyGravity();
+        var noVelocity = entity.Velocity.Z == 0;
+        var shouldApplyGravity = entity.ShouldApplyGravity();
         if (noVelocity && !shouldApplyGravity && (entity.Flags.Flags1 & EntityFlags.FloatFlag) == 0 && entity.OnEntity() == null)
             return;
 
-        if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
-            entity.Velocity.Z *= Constants.DefaultFriction;
-
-        if (shouldApplyGravity)
-        {
-            if (entity.Gravity < 0)
-                entity.Velocity.Z -= entity.Gravity * -1;
-            else
-                entity.Velocity.Z -= m_world.Gravity * entity.Properties.Gravity * entity.Sector.Gravity * entity.Gravity;
-        }
-
-        double floatZ = entity.GetEnemyFloatMove();
-        // Only return if OnEntity is null. Need to apply clamping to prevent issues with this entity floating when the entity beneath is no longer blocking.
-        if (noVelocity && floatZ == 0 && entity.OnEntity() == null)
-            return;
-
-        Vec3D previousVelocity = entity.Velocity;
-        double oldZ = entity.Position.Z;
-        double newZ = oldZ + entity.Velocity.Z + floatZ;
-        entity.Position.Z = newZ;
+        var floatZ = entity.GetEnemyFloatMove();
+        var previousVelocity = entity.Velocity;
+        entity.Position.Z = entity.Position.Z + entity.Velocity.Z + floatZ;
 
         // Passing MoveLinked emulates some vanilla functionality where things are not checked against linked sectors when they haven't moved
         ClampBetweenFloorAndCeiling(entity, null, smoothZ: true, entity.MoveLinked);
 
         if (entity.IsBlocked())
             m_world.HandleEntityHit(entity, previousVelocity, null);
+
+        if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
+            entity.Velocity.Z *= Constants.DefaultFriction;
+
+        if (!shouldApplyGravity)
+            return;
+
+        if (entity.Flags.MbfBouncer && entity.Velocity.Z != 0)
+        {
+            if (!entity.Flags.NoGravity)
+                entity.Velocity.Z -= entity.GetMbfBouncerGravity(1);
+            return;
+        }
+
+        double applyGravity;
+        if (entity.Gravity < 0)
+            applyGravity = entity.Gravity * -1;
+        else
+            applyGravity = m_world.Gravity * entity.Properties.Gravity * entity.Sector.Gravity * entity.Gravity;
+
+        // Doom applied the gravity amount twice if the entity originally had no velocity.
+        if (noVelocity)
+            entity.Velocity.Z -= applyGravity;
+        entity.Velocity.Z -= applyGravity;
     }
 }
+
+

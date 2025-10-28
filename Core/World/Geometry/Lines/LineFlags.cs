@@ -23,6 +23,7 @@ public struct LineFlags
         Automap.DrawAsOneSided = flags.DrawAsOneSidedAutomap;
 
         Blocking.Hitscan = flags.BlockHitscan;
+        Blocking.LegacyImpassible = flags.BlockPlayersAndMonsters;
         Blocking.Monsters = flags.BlockPlayersAndMonsters || flags.BlockMonsters;
         Blocking.Players = flags.BlockPlayersAndMonsters || flags.BlockPlayers;
         Blocking.PlayersMbf21 = flags.BlockPlayersMbf21;

@@ -17,7 +17,7 @@ namespace Helion.Tests.Unit.GameAction
             player.OnGround.Should().BeTrue();
             world.Tick();
             player.OnGround.Should().BeFalse();
-            int[] jumpOffsets = new[] { 15, 21, 26, 30, 33, 35, 36, 36, 36, 34, 31, 27, 22, 16, 9, 1, 0 };
+            var jumpOffsets = new[] { 16, 23, 29, 34, 38, 41, 43, 44, 44, 42, 39, 35, 30, 24, 17, 9, 0 };
             int index = 0;
 
             TickWorld(world, jumpOffsets.Length, () =>

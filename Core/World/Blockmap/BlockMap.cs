@@ -255,7 +255,7 @@ public class BlockMap
 
     public void LinkDynamic(IWorld world, Sector sector)
     {
-        Assert.Precondition(sector.BlockmapNodes.Empty(), "Forgot to unlink sector from blockmap");
+        Assert.Precondition(sector.BlockmapNodes.Length == 0, "Forgot to unlink sector from blockmap");
 
         var islands = world.Geometry.IslandGeometry.SectorIslands[sector.Id];
         foreach (var sectorIsland in islands)

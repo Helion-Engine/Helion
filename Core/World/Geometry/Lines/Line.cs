@@ -268,7 +268,11 @@ public sealed class Line
         if (entity.Flags.Missile && blockFlags.Projectiles)
             return true;
 
-        bool isPlayerOrFriendly = entity.IsPlayer || entity.Flags.Friendly;
+        var isPlayerOrFriendly = entity.IsPlayer || entity.Flags.Friendly;
+        // Friendly monsters aren't blocked by the player flag, but are blocked by vanilla impassible.
+        if (isPlayerOrFriendly && blockFlags.LegacyImpassible)
+            return true;
+
         if (!isPlayerOrFriendly && !entity.Flags.Missile &&
             (blockFlags.Monsters || (mbf21 && blockFlags.LandMonstersMbf21 && !entity.Flags.Float) || (blockFlags.LandMonsters && !entity.Flags.Float) || (blockFlags.FloatMonsters && entity.Flags.Float)))
             return true;

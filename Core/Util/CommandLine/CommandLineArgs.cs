@@ -40,6 +40,8 @@ public class CommandLineArgs
     public int? GlVersion { get; set; }
     public bool NoMusic { get; set; }
     public bool SoloNet { get; set; }
+    public string? CompLevel { get; set; }
+    public bool Restarted { get; set; }
 
     private static readonly string[] Options =
     [
@@ -69,6 +71,8 @@ public class CommandLineArgs
         "+glversion",
         "-pistolstart",
         "-solo-net",
+        "+complevel",
+        "+restarted"
     ];
     
     private static readonly char[] spaceSeparator = new char[] { ' ' };
@@ -155,6 +159,10 @@ public class CommandLineArgs
                 commandLineArgs.GlVersion = ParseInt(commandLineArgs, parsedArg);
             else if (IsArgMatch(parsedArg, "-solo-net"))
                 commandLineArgs.SoloNet = true;
+            else if (IsArgMatch(parsedArg, "+complevel"))
+                commandLineArgs.CompLevel = GetString(commandLineArgs, parsedArg);
+            else if (IsArgMatch(parsedArg, "+restarted"))
+                commandLineArgs.Restarted = true;
             else
                 commandLineArgs.Errors.Add("Unknown command: " + parsedArg.Key);
         }

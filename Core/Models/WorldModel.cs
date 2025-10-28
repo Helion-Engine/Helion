@@ -19,7 +19,6 @@ public class WorldModel
     public double Gravity { get; set; }
     public SkillLevel Skill { get; set; }
     public int CurrentBossTarget { get; set; }
-
     public IList<PlayerModel> Players { get; set; } = Array.Empty<PlayerModel>();
     public IList<EntityModel> Entities { get; set; } = Array.Empty<EntityModel>();
     public IList<SectorModel> Sectors { get; set; } = Array.Empty<SectorModel>();

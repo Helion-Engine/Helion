@@ -20,6 +20,10 @@ public class ConfigController : ConfigElement<ConfigController>
     [OptionMenu(OptionSectionType.Controller, "Enable Game Controller", spacer: true)]
     public readonly ConfigValue<bool> EnableGameController = new(true);
 
+    [ConfigInfo("Whether to invert thumbstick vertical axis for vertical aiming")]
+    [OptionMenu(OptionSectionType.Controller, "Thumbstick Vertical Aim Invert")]
+    public readonly ConfigValue<bool> GameControllerVerticalAimInvert = new(false);
+
     [ConfigInfo("Enable rumble feedback effects.")]
     [OptionMenu(OptionSectionType.Controller, "Enable Rumble")]
     public readonly ConfigValue<bool> EnableRumble = new(true);
@@ -49,6 +53,10 @@ public class ConfigController : ConfigElement<ConfigController>
     [ConfigInfo("Gyro axis to use for turning left and right.")]
     [OptionMenu(OptionSectionType.Controller, "Gyro Aim Turn Axis", spacer: true)]
     public readonly ConfigValue<GyroTurnAxis> GyroAimTurnAxis = new(GyroTurnAxis.Yaw);
+
+    [ConfigInfo("Whether to invert gyro vertical axis for vertical aiming")]
+    [OptionMenu(OptionSectionType.Controller, "Gyro Vertical Aim Invert")]
+    public readonly ConfigValue<bool> GyroVerticalAimInvert = new(false);
 
     [ConfigInfo("Vertical aiming sensitivity for gyro input.")]
     [OptionMenu(OptionSectionType.Controller, "Gyro Aim Vertical Sensitivity", sliderMin: 0, sliderMax: 10, sliderStep: .1)]

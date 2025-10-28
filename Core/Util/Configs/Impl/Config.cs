@@ -34,6 +34,7 @@ public class Config : ConfigElement<Config>, IConfig
     public ConfigWindow Window { get; } = new();
     public ConfigDemo Demo { get; } = new();
     public ConfigSlowTick SlowTick { get; } = new();
+    public ConfigWeapons Weapons { get; } = new();
     public IConfigKeyMapping Keys => KeyMapping;
     public IConfigAliasMapping Aliases { get; }
     protected readonly ConfigKeyMapping KeyMapping = new();
@@ -135,7 +136,7 @@ public class Config : ConfigElement<Config>, IConfig
     /// </summary>
     public List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> GetAllConfigFields()
     {
-        List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields = new();
+        List<(IConfigValue, OptionMenuAttribute, ConfigInfoAttribute)> fields = [];
 
         foreach (PropertyInfo propertyInfo in typeof(Config).GetProperties())
         {

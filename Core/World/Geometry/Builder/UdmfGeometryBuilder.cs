@@ -1,6 +1,8 @@
 ﻿using Helion.Geometry.Segments;
+using Helion.Maps.Doom.Components;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
+using Helion.Maps.Specials.Vanilla;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Maps.Udmf;
 using Helion.Maps.Udmf.Components;
@@ -34,6 +36,7 @@ public class UdmfGeometryBuilder
 
     private static void PopulateSectorData(UdmfMap map, GeometryBuilder builder, TextureManager textureManager)
     {
+        var needsTranslation = map.UdmfNamespace == UdmfNamespace.Doom;
         foreach (var mapSector in map.Sectors)
         {
             RenderOffsets offsets = default;
@@ -62,8 +65,7 @@ public class UdmfGeometryBuilder
             ceilingPlane.LightLevel = mapSector.LightCeiling;
             ceilingPlane.LightLevelAbsolute = mapSector.LightCeilingAbsolute;
 
-            var sectorSpecial = (ZDoomSectorSpecialType)SectorSpecialData.GetType(mapSector.Special, SectorDataType.ZDoom);
-            var sectorData = SectorSpecialData.GetSectorData(mapSector.Special, SectorDataType.ZDoom);
+            GetSectorSpecial(mapSector, needsTranslation, out var sectorSpecial, out var sectorData);
             var sector = new Sector(builder.Sectors.Count, mapSector.Tag, mapSector.LightLevel,
                 floorPlane, ceilingPlane, sectorSpecial, sectorData)
             {
@@ -85,6 +87,18 @@ public class UdmfGeometryBuilder
         }
     }
 
+    private static void GetSectorSpecial(UdmfSector mapSector, bool needsTranslation, out ZDoomSectorSpecialType sectorSpecial, out SectorData sectorData)
+    {
+        if (needsTranslation)
+        {
+            sectorSpecial = VanillaSectorSpecTranslator.Translate(mapSector.Special, out sectorData);
+            return;
+        }
+
+        sectorSpecial = (ZDoomSectorSpecialType)SectorSpecialData.GetType(mapSector.Special, SectorDataType.ZDoom);
+        sectorData = SectorSpecialData.GetSectorData(mapSector.Special, SectorDataType.ZDoom);
+    }
+
     private static SectorPlane CreateSectorPlane(UdmfSector sector, SectorPlaneFace face,
         TextureManager textureManager, in RenderOffsets offsets)
     {
@@ -97,18 +111,15 @@ public class UdmfGeometryBuilder
     private static void PopulateLineData(UdmfMap map, GeometryBuilder builder, TextureManager textureManager)
     {
         int nextSideId = 0;
+        var needsTranslation = map.UdmfNamespace == UdmfNamespace.Doom;
 
         foreach (var mapLine in map.Lines)
         {
-            (Side front, Side? back) = CreateSides(mapLine, builder, ref nextSideId, textureManager);
-            Seg2D seg = new(mapLine.StartPosition, mapLine.EndPosition);
-            LineFlags flags = new(mapLine.Flags);
+            (Side front, Side? back) = CreateSides(mapLine, builder, ref nextSideId, textureManager, needsTranslation);
+            var seg = new Seg2D(mapLine.StartPosition, mapLine.EndPosition);
+            var flags = new LineFlags(mapLine.Flags);
 
-            LineSpecial special;
-            if (mapLine.Special == ZDoomLineSpecialType.None)
-                special = LineSpecial.Default;
-            else
-                special = new LineSpecial(mapLine.Special, mapLine.ActivationType, LineSpecialCompatibility.Default);
+            var special = GetLineSpecial(needsTranslation, mapLine, ref flags);
 
             LineSpecial.ValidateActivationFlags(special.LineSpecialType, ref flags, map.MapType);
             var line = new Line(mapLine.Id, seg, front, back, flags, special, mapLine.Args)
@@ -116,6 +127,12 @@ public class UdmfGeometryBuilder
                 LockNumber = mapLine.LockNumber,
                 MapLineId = mapLine.LineId
             };
+
+            if (needsTranslation)
+            {
+                VanillaLineSpecTranslator.FinalizeLine(mapLine, line);
+                line.MapLineId = mapLine.LineId;
+            }
 
             if (mapLine.Alpha != 1)
                 line.SetAlpha(mapLine.Alpha);
@@ -136,19 +153,35 @@ public class UdmfGeometryBuilder
         }
     }
 
+    private static LineSpecial GetLineSpecial(bool needsTranslation, UdmfLine mapLine, ref LineFlags flags)
+    {
+        if (mapLine.LineType <= 0)
+            return LineSpecial.Default;
+
+        if (needsTranslation)
+        {
+            var args = new SpecialArgs();
+            var spec = VanillaLineSpecTranslator.Translate(ref flags, (VanillaLineSpecialType)mapLine.Special, mapLine.Args.Arg0, ref args, out var lineActivationType, out var compat);
+            mapLine.Args = args;
+            return new(spec, lineActivationType, compat);
+        }
+
+        return new((ZDoomLineSpecialType)mapLine.LineType, mapLine.ActivationType, LineSpecialCompatibility.Default);
+    }
+
     private static (Side front, Side? back) CreateSides(UdmfLine line, GeometryBuilder builder,
-        ref int nextSideId, TextureManager textureManager)
+        ref int nextSideId, TextureManager textureManager, bool isTranslated)
     {
         if (line.Back == null)
-            return CreateSingleSide(line, builder, ref nextSideId, textureManager);
+            return CreateSingleSide(line, builder, ref nextSideId, textureManager, isTranslated);
 
-        Side front = CreateTwoSided(line, line.Front, builder, ref nextSideId, textureManager);
-        Side back = CreateTwoSided(line, line.Back, builder, ref nextSideId, textureManager);
+        Side front = CreateTwoSided(line, line.Front, builder, ref nextSideId, textureManager, isTranslated);
+        Side back = CreateTwoSided(line, line.Back, builder, ref nextSideId, textureManager, isTranslated);
         return (front, back);
     }
 
     private static (Side front, Side? back) CreateSingleSide(UdmfLine line, GeometryBuilder builder,
-        ref int nextSideId, TextureManager textureManager)
+        ref int nextSideId, TextureManager textureManager, bool isTranslated)
     {
         var side = line.Front;
         Sector sector = builder.Sectors[side.Sector.Id];
@@ -164,12 +197,15 @@ public class UdmfGeometryBuilder
             line.WrapMidTex || side.WrapMidTex);
         builder.Sides.Add(front);
 
+        if (isTranslated)
+            DoomGeometryBuilder.SetColorMaps(line, textureManager, side, front);
+
         nextSideId++;
 
         return (front, null);
     }
 
-    private static Side CreateTwoSided(UdmfLine line, UdmfSide side, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager)
+    private static Side CreateTwoSided(UdmfLine line, UdmfSide side, GeometryBuilder builder, ref int nextSideId, TextureManager textureManager, bool isTranslated)
     {
         Sector facingSector = builder.Sectors[side.Sector.Id];
 
@@ -184,6 +220,10 @@ public class UdmfGeometryBuilder
         Side addSide = new(nextSideId, side.Offset, upper, middle, lower, facingSector, side.LightLevel, side.LightLevelAbsolute, side.NoFakeConstrast, side.SmoothLighting, 
             line.WrapMidTex || side.WrapMidTex);
         builder.Sides.Add(addSide);
+
+
+        if (isTranslated)
+            DoomGeometryBuilder.SetColorMaps(line, textureManager, side, addSide);
 
         nextSideId++;
         return addSide;

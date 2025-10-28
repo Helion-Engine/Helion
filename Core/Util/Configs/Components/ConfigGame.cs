@@ -46,6 +46,10 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [OptionMenu(OptionSectionType.General, "Display ENDOOM")]
     public readonly ConfigValue<bool> DisplayEndoom = new(true);
 
+    [ConfigInfo("Randomly mirror corpse, blood, and bullet puffs.")]
+    [OptionMenu(OptionSectionType.General, "Randomly Mirror Corpses")]
+    public readonly ConfigValue<bool> MirrorCorpse = new(false);
+
     // Saving and loading
 
     [ConfigInfo("Attempt to load latest saved game on death.")]

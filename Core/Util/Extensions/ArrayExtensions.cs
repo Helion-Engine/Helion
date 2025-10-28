@@ -20,7 +20,7 @@ public static class ArrayExtensions
             array[i] = element;
     }
 
-    public static bool Contains(this DynamicArray<Key> keys, Key key)
+    public static bool ContainsKey(this DynamicArray<Key> keys, Key key)
     {
         for (int i = 0; i < keys.Length; i++)
         {
@@ -33,7 +33,7 @@ public static class ArrayExtensions
 
     public static void AddUnique(this DynamicArray<Key> keys, Key key)
     {
-        if (!keys.Contains(key))
+        if (!keys.ContainsKey(key))
             keys.Add(key);
     }
 }

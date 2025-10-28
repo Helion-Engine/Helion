@@ -1495,7 +1495,7 @@ public static class EntityActionFunctions
         A_Fall(entity);
 
         var world = WorldStatic.World;
-        if (world.EntityAliveCount(entity.Definition.Id) == 0)
+        if (world.EntityAliveCount(entity.Definition.Id, entity) == 0)
         {
             var sectors = world.FindBySectorTag(666);
             foreach (var sector in sectors)
@@ -1877,6 +1877,19 @@ public static class EntityActionFunctions
         player.WeaponOffset.Y = Constants.WeaponTop;
         player.WeaponOffset.X = 1;
 
+        bool playReadySound;
+        // If using dehacked then use hard-coded vanilla frame index check
+        if (WorldStatic.Dehacked)
+            playReadySound = player.Weapon.FrameState.Frame.VanillaIndex == (int)ThingState.SAW;
+        else
+            playReadySound = player.Weapon.FrameState.IsState(player.Weapon.Definition, Constants.FrameStates.Ready);
+
+        if (!player.IsVooDooDoll && player.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 && playReadySound)
+        {
+            WorldStatic.SoundManager.CreateSoundOn(entity, player.Weapon.Definition.Properties.Weapons.ReadySound,
+                new SoundParams(entity, channel: entity.WeaponSoundChannel));
+        }
+
         if (entity.PlayerObj.PendingWeapon != null || player.IsDead)
         {
             entity.PlayerObj.LowerWeapon();
@@ -1894,19 +1907,6 @@ public static class EntityActionFunctions
         {
             player.AttackDown = false;
             player.Refire = false;
-        }
-
-        bool playReadySound;
-        // If using dehacked then use hard-coded vanilla frame index check
-        if (WorldStatic.Dehacked)
-            playReadySound = player.Weapon.FrameState.Frame.VanillaIndex == (int)ThingState.SAW;
-        else
-            playReadySound = player.Weapon.FrameState.IsState(player.Weapon.Definition, Constants.FrameStates.Ready);
-
-        if (!player.IsVooDooDoll && player.Weapon.Definition.Properties.Weapons.ReadySound.Length > 0 && playReadySound)
-        {
-            WorldStatic.SoundManager.CreateSoundOn(entity, player.Weapon.Definition.Properties.Weapons.ReadySound,
-                new SoundParams(entity, channel: entity.WeaponSoundChannel));
         }
     }
 

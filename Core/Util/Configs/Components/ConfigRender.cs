@@ -27,6 +27,14 @@ public enum RenderLightMode
     Smooth
 }
 
+public enum LaptopGpuMode
+{
+    [Description("Power Saving")]
+    PowerSaving = 1,
+    [Description("High Performance")]
+    HighPerformance = 2,
+}
+
 public enum SkyRenderMode
 {
     Vanilla,

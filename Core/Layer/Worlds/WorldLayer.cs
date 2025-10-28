@@ -108,6 +108,9 @@ public partial class WorldLayer : IGameLayerParent
         font ??= new Font("Empty", [], new((0, 0), Graphics.ImageType.Argb));
         DefaultFont = font;
 
+        World.ArchiveCollection.GetFont(SmallHudFont);
+        World.ArchiveCollection.GetFont(Constants.Fonts.SmallGrayFixedWidthNumbers);
+
         StatType[] stats = [StatType.Kills, StatType.Items, StatType.Secrets, StatType.Deaths];
         m_renderStats = new RenderStat[stats.Length];
         for (int i = 0; i < stats.Length; i++)

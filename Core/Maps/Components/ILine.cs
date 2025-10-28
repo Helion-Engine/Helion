@@ -24,4 +24,7 @@ public interface ILine : IBspUsableLine
     /// </summary>
     /// <returns>The back side of the line.</returns>
     ISide? GetBack();
+
+    int Special { get; }
+    int SectorTag { get; }
 }

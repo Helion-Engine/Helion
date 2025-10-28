@@ -8,6 +8,9 @@ namespace Helion.Util.Configs.Values;
 [AttributeUsage(AttributeTargets.Field)]
 public class ConfigInfoAttribute : Attribute
 {
+    public const string MapRestartRequiredMessage = "Map restart required for this change to take effect.";
+    public const string AppRestartRequiredMessage = "App restart required for this change to take effect.";
+
     /// <summary>
     /// A high level description of the attribute.
     /// </summary>
@@ -37,10 +40,13 @@ public class ConfigInfoAttribute : Attribute
     // If the application needs to be restarted to take effect.
     public readonly bool RestartRequired;
 
+    // If the computer needs to be restarted to take effect.
+    public readonly bool ComputerRestartRequired;
+
     public readonly bool Legacy;
 
     public ConfigInfoAttribute(string description, bool save = true, bool serialize = false, bool demo = false, bool mapRestartRequired = false, 
-        bool restartRequired = false, bool legacy = false)
+        bool restartRequired = false, bool legacy = false, bool computerRestartRequired = false)
     {
         Description = description;
         Save = save;
@@ -49,15 +55,16 @@ public class ConfigInfoAttribute : Attribute
         MapRestartRequired = mapRestartRequired;
         RestartRequired = restartRequired;
         Legacy = legacy;
+        ComputerRestartRequired = computerRestartRequired;
     }
 
     public bool GetSetWarningString(out string message)
     {
         message = string.Empty;
         if (MapRestartRequired)
-            message = "Map restart required for this change to take effect.";
+            message = MapRestartRequiredMessage;
         if (RestartRequired)
-            message = "App restart required for this change to take effect.";
+            message = AppRestartRequiredMessage;
         return message.Length > 0;
     }
 }

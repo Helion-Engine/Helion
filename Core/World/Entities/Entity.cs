@@ -10,7 +10,6 @@ using Helion.Resources.Definitions.SoundInfo;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
-using Helion.Util.Timing;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties;
@@ -72,6 +71,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public EntityProperties Properties;
 
     public Vec3D PrevPosition;
+    public Vec3D SpawnPoint;
 
     public Vec3D CenterPoint => new(Position.X, Position.Y, Position.Z + (Height / 2));
     public Vec3D ProjectileAttackPos => new(Position.X, Position.Y, Position.Z + 32);
@@ -233,7 +233,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         Radius = entityModel.Box.Radius;
 
         PrevPosition = entityModel.Box.GetCenter();
-        Velocity = entityModel.GetVelocity();
+        Velocity.X = entityModel.VelocityX;
+        Velocity.Y = entityModel.VelocityY;
+        Velocity.Z = entityModel.VelocityZ;
         Sector = world.Sectors[entityModel.Sector];
                 
         MoveLinked = entityModel.MoveLinked;
@@ -273,15 +275,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public EntityModel ToEntityModel(EntityModel entityModel)
     {
-        var spawnPoint = World.EntityManager.GetSpawnPoint(this);
         entityModel.Name = Definition.Name;
         entityModel.Id = Id;
         entityModel.ThingId = ThingId;
         entityModel.AngleRadians = AngleRadians;
-        entityModel.SpawnPointX = spawnPoint.X;
-        entityModel.SpawnPointY = spawnPoint.Y;
-        entityModel.SpawnPointZ = spawnPoint.Z;
-        entityModel.Box = ToEntityBoxModel();
+        entityModel.SpawnPointX = SpawnPoint.X;
+        entityModel.SpawnPointY = SpawnPoint.Y;
+        entityModel.SpawnPointZ = SpawnPoint.Z;
+
+        entityModel.Box.CenterX = Position.X;
+        entityModel.Box.CenterY = Position.Y;
+        entityModel.Box.CenterZ = Position.Z;
+        entityModel.Box.Radius = Radius;
+        entityModel.Box.Height = Height;
+
         entityModel.VelocityX = Velocity.X;
         entityModel.VelocityY = Velocity.Y;
         entityModel.VelocityZ = Velocity.Z;
@@ -296,12 +303,22 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.Sector = Sector.Id;
         entityModel.MoveDir = (int)m_direction;
         entityModel.BlockFloat = Flags.InFloat;
-        entityModel.Frame = FrameState.ToFrameStateModel();
-        entityModel.Flags = Flags.ToEntityFlagsModel();
+
+        entityModel.Frame.FrameIndex = FrameState.FrameIndex;
+        entityModel.Frame.Tics = FrameState.CurrentTick;
+        entityModel.Frame.Destroy = (FrameState.Options & FrameStateOptions.DestroyOnStop) != 0;
+        entityModel.Frame.PlayerSprite = (FrameState.Options & FrameStateOptions.PlayerSprite) != 0;
+
+        entityModel.Flags.Flags1 = Flags.Flags1;
+        entityModel.Flags.Flags2 = Flags.Flags2;
+        entityModel.Flags.Flags3 = Flags.Flags3;
+
         entityModel.Threshold = Threshold;
         entityModel.ReactionTime = ReactionTime;
+
         entityModel.HighSec = HighestFloorSector.Id;
         entityModel.LowSec = LowestCeilingSector.Id;
+
         entityModel.HighEntity = GetBoundingEntityForModel(HighestFloorObject);
         entityModel.LowEntity = GetBoundingEntityForModel(LowestCeilingObject);
         entityModel.OnGround = OnGround;
@@ -549,6 +566,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         ClosetFlags = ClosetFlags.None;
         Flags.Attacking = false;
         StealthVisible = true;
+
+        if (WorldStatic.MirrorCorpse && IsDead && Flags.IsMonster && !Flags.DontMirrorCorpse && (World.SecondaryRandom.NextByte() & 1) != 0)
+            Flags.Mirror = !Flags.Mirror;
 
         if (gib && Definition.XDeathState != null)
             SetXDeathState(source);
@@ -835,8 +855,6 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         return other.Flags.Solid;
     }
 
-    public Vec3D GetSpawnPoint() => World.EntityManager.GetSpawnPoint(this);
-
     public double GetMaxStepHeight()
     {
         if (Flags.Missile)
@@ -887,6 +905,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     const int DropOffFlags = EntityFlags.FloatFlag | EntityFlags.DropOffFlag;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ShouldCheckDropOff()
     {
         if ((Flags.Flags1 & DropOffFlags) != 0)
@@ -928,14 +947,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (tryMove.IntersectEntities2D.Length == 0 && tryMove.DropOffEntity != null)
             return false;
 
-        if (tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight)
-        {
-            // When crossing off thing to a ledge it's possible for the check to skip lines since it's allow to move beyond the ledge.
-            // If on ground check it's current z position instead of highest floor
-            return Position.Z - tryMove.DropOffZ <= maxStepHeight;
-        }
-
-        return false;
+        return tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight;
     }
 
     private Entity? GetHighestWalkEntity(TryMoveData tryMove, Entity? highestWalk, Entity entity, double maxStepHeight)
@@ -991,25 +1003,42 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         }
         else if (Flags.MbfBouncer)
         {
-            //MbfBouncer + Missile - bounce off plane only
-            //MbfBouncer + NoGravity - bounce of all surfaces
-            bool bouncePlane = BlockingSectorPlane != null;
-            bool bounceWall = Flags.NoGravity;
-            double zFactor = Flags.NoGravity ? 1.0 : 0.5;
+            if (BlockingSectorPlane != null)
+            {
+                Velocity.Z = -velocity.Z * GetBounceDecay();
+                if (Math.Abs(Velocity.Z) <= GetMbfBouncerGravity(4))
+                    Velocity.Z = 0;
+            }
 
-            if (bouncePlane || bounceWall)
-                Velocity = velocity;
-
-            if (bouncePlane)
-                Velocity.Z = -velocity.Z * zFactor;
-
-            if (bounceWall && BlockingBlockLineIndex != -1)
+            if (!Flags.Missile && BlockingBlockLineIndex != -1)
             {
                 var bounceVelocity = MathHelper.BounceVelocity(velocity.XY, World.Blockmap.BlockLines[BlockingBlockLineIndex].Segment);
                 Velocity.X = bounceVelocity.X;
                 Velocity.Y = bounceVelocity.Y;
             }
         }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public double GetMbfBouncerGravity(int factor)
+    {
+        return Properties.Mass * (World.Gravity * Properties.Gravity * Sector.Gravity * Gravity * factor / 256);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private double GetBounceDecay()
+    {
+        if (Flags.NoGravity)
+            return 1.0;
+
+        if (Flags.Float)
+        {
+            if (Flags.Dropoff)
+                return 0.85;
+            return 0.7;
+        }
+
+        return 0.45;
     }
 
     public bool ShouldDieOnCollision()

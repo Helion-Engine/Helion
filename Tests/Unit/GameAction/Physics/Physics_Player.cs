@@ -67,10 +67,11 @@ namespace Helion.Tests.Unit.GameAction
             Player.OnGround.Should().BeFalse();
 
             GameActions.TickWorld(World, () => { return Player.Position.Z < 16; }, () => { });
+            GameActions.TickWorld(World, 1);
             Player.BlockingSectorPlane.Should().Be(sector.Ceiling);
             Player.BlockingSectorPlane!.Sector.Id.Should().Be(16);
             World.Tick();
-            Player.Velocity.Z.Should().Be(-1);
+            Player.Velocity.Z.Should().Be(-2);
         }
 
         [Fact(DisplayName = "Player jump from entity")]
@@ -450,6 +451,26 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.RunSectorPlaneSpecial(World, GameActions.GetSectorByTag(World, 2));
             bonus.IsDisposed.Should().BeTrue();
             Player.Health.Should().Be(101);
+        }
+
+        [Fact(DisplayName = "Player max jump gap distance plus one")]
+        public void PlayerMaxJumpGapDistancePlusOne()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec2D(812, 1760));
+            Player.AngleRadians = GameActions.GetAngle(Bearing.North);
+            GameActions.PlayerRunForward(World, GameActions.GetAngle(Bearing.North), 
+                () => { return Player.BlockingBlockLineIndex == -1; });
+            World.Blockmap.BlockLines[Player.BlockingBlockLineIndex].LineId.Should().Be(440);
+        }
+
+        [Fact(DisplayName = "Player max jump gap distance")]
+        public void PlayerMaxJumpGapDistance()
+        {
+            GameActions.SetEntityPosition(World, Player, new Vec2D(956, 1760));
+            Player.AngleRadians = GameActions.GetAngle(Bearing.North);
+            GameActions.PlayerRunForward(World, GameActions.GetAngle(Bearing.North),
+                () => { return Player.BlockingBlockLineIndex == -1; });
+            World.Blockmap.BlockLines[Player.BlockingBlockLineIndex].LineId.Should().Be(438);
         }
     }
 }

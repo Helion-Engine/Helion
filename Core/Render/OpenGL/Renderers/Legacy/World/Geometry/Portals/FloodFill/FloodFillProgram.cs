@@ -87,6 +87,7 @@ public class FloodFillProgram : RenderProgram
         out vec3 vertexPosFrag;
         flat out float distanceOffsetFrag;
         flat out float colorMapIndexFrag;
+        flat out float uvFlags;
         flat out float vertexLightLevelFrag;
         flat out float mapIdFrag;
         flat out float upperFrag;
@@ -139,7 +140,7 @@ public class FloodFillProgram : RenderProgram
     protected override string FragmentShader()
     {
         if (this is FloodFillWallClipProgram)
-            return PlaneClip.WriteWallFragFunction();
+            return PlaneClip.WriteWallFragFunction(WallClipFragOptions.DiscardNegativeMapId);
 
         return @"
             #version 330

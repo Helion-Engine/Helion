@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace Helion.Resources.Archives.Entries;
 
 /// <summary>
@@ -16,6 +18,7 @@ public abstract class Entry
     /// Reads all the raw data for this entry.
     /// </summary>
     public abstract byte[] ReadData();
+    public abstract Stream GetStream();
 
     public string ReadDataAsString() => System.Text.Encoding.UTF8.GetString(ReadData());
 

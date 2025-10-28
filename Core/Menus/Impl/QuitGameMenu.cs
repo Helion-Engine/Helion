@@ -15,8 +15,8 @@ public class QuitGameMenu : Menu
 {
     private readonly Func<Menu?> m_quitAction;
 
-    public QuitGameMenu(IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) :
-        base(config, console, soundManager, archiveCollection, 90)
+    public QuitGameMenu(IWindow window, IConfig config, HelionConsole console, SoundManager soundManager, ArchiveCollection archiveCollection) :
+        base(window, config, console, soundManager, archiveCollection, 90)
     {
         m_quitAction = () =>
         {
@@ -67,7 +67,7 @@ public class QuitGameMenu : Menu
 
     public override void HandleInput(IConsumableInput input)
     {
-        if (input.ConsumeKeyPressed(Key.Y) || input.ConsumeKeyPressed(Key.ButtonA))
+        if (input.ConsumeKeyPressed(Key.Y) || input.ConsumeKeyPressed(Key.ButtonA) || input.ConsumeKeyPressed(Key.MouseLeft))
             m_quitAction();
 
         base.HandleInput(input);

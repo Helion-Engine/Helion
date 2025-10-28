@@ -37,7 +37,7 @@ public class ListedConfigSection : IOptionSection
     public event EventHandler<string>? OnError;
 
     public OptionSectionType OptionType { get; }
-    private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr, ConfigInfoAttribute ConfigAttr)> m_configValues = new();
+    private readonly List<(IConfigValue CfgValue, OptionMenuAttribute Attr, ConfigInfoAttribute ConfigAttr)> m_configValues = [];
     private readonly BoxList m_menuPositionList = new();
     private readonly IConfig m_config;
     private readonly PathsManager m_pathsManager;
@@ -105,6 +105,9 @@ public class ListedConfigSection : IOptionSection
 
     public void Add(IConfigValue value, OptionMenuAttribute attr, ConfigInfoAttribute configAttr)
     {
+        if (attr.WindowsPlatform && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            return;
+
         m_configValues.Add((value, attr, configAttr));
     }
 
@@ -242,7 +245,7 @@ public class ListedConfigSection : IOptionSection
                 bool isCycleValue = m_currentEditValue is ConfigValue<bool> || m_currentEditValue.ValueType.BaseType == typeof(Enum);
                 if (isCycleValue)
                 {
-                    m_rowEditText.Append(GetDisplayStringForCurrentValue(m_currentEditValue, configData.Attr));
+                    m_rowEditText.Append(GetDisplayStringForCurrentValue(m_currentEditValue));
                     OnLockChanged?.Invoke(this, new(Lock.Locked, "Press left/right or mouse wheel to change values. Enter to confirm.", lockOptions));
                 }
                 else
@@ -384,7 +387,7 @@ public class ListedConfigSection : IOptionSection
         m_soundManager.PlayStaticSound(MenuSounds.Change);
     }
 
-    private static string GetDisplayStringForCurrentValue(IConfigValue configValue, OptionMenuAttribute attr)
+    private static string GetDisplayStringForCurrentValue(IConfigValue configValue)
     {
         if (configValue.ValueType == typeof(bool))
             return ((bool)configValue.ObjectValue) ? ConfigConstants.Yes : ConfigConstants.No;
@@ -399,7 +402,7 @@ public class ListedConfigSection : IOptionSection
         return doubleValue.ToString(CultureInfo.CurrentCulture);
     }
 
-    private static string GetDisplayStringForUserValue(IConfigValue configValue, OptionMenuAttribute attr)
+    private static string GetDisplayStringForUserValue(IConfigValue configValue)
     {
         if (!configValue.ValueType.IsAssignableFrom(typeof(double)))
             return GetEnumDescription(configValue.ObjectUserValue).ToString() ?? "??";
@@ -411,7 +414,7 @@ public class ListedConfigSection : IOptionSection
         return doubleValue.ToString(CultureInfo.CurrentCulture);
     }
 
-    private static string GetDisplayStringForDefaultValue(IConfigValue configValue, OptionMenuAttribute attr)
+    private static string GetDisplayStringForDefaultValue(IConfigValue configValue)
     {
         if (configValue.ValueType == typeof(bool))
             return ((bool)configValue.ObjectDefaultValue) ? ConfigConstants.Yes : ConfigConstants.No;
@@ -677,9 +680,8 @@ public class ListedConfigSection : IOptionSection
             }
 
             Dimension valueArea;
-            string displayValue = GetDisplayStringForCurrentValue(cfgValue, attr);
-            string displayUserValue = GetDisplayStringForUserValue(cfgValue, attr);
-            string displayDefaultValue = GetDisplayStringForDefaultValue(cfgValue, attr);
+            string displayValue = GetDisplayStringForCurrentValue(cfgValue);
+            string displayDefaultValue = GetDisplayStringForDefaultValue(cfgValue);
 
             Color valueColor = displayValue == displayDefaultValue ? valueColorDefault : valueColorCustomized;
             valueColor = cfgValue.HasTemporaryValue ? valueColorOverridden : valueColor;
@@ -747,7 +749,7 @@ public class ListedConfigSection : IOptionSection
         }
         else if (!string.IsNullOrEmpty(m_configValues[m_currentRowIndex].ConfigAttr.Description))
         {
-            message = $"{m_configValues[m_currentRowIndex].ConfigAttr.Description} (Default: {GetDisplayStringForDefaultValue(m_configValues[m_currentRowIndex].CfgValue, m_configValues[m_currentRowIndex].Attr)})";
+            message = $"{m_configValues[m_currentRowIndex].ConfigAttr.Description} (Default: {GetDisplayStringForDefaultValue(m_configValues[m_currentRowIndex].CfgValue)})";
         }
 
         OnRowChanged?.Invoke(this, new(m_currentRowIndex, message));

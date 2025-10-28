@@ -1,13 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Helion.Maps;
 using Helion.World.Bsp;
 using Helion.World.Geometry.Builder;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Helion.World.Geometry;
 
@@ -108,14 +108,25 @@ public class MapGeometry
     private void SetContainingSectorsToFlood(BspSubsector subsector)
     {
         // This could work by sector island instead of the entire sector but it's unlikely to matter and the renderer will need to be aware of this.
-        double? smallestFloodPerimeter = null;
-        int? smallestFloodSector = null;
+        var smallestFloodPerimeter = double.MaxValue;
+        var smallestFloodSector = -1;
+        var noArea = subsector.Box.Min.X == subsector.Box.Max.X || subsector.Box.Min.Y == subsector.Box.Max.Y;
 
         for (int sectorId = 0; sectorId < IslandGeometry.SectorIslands.Length; sectorId++)
         {
             var islands = IslandGeometry.SectorIslands[sectorId];
             if (islands.Count == 0)
                 continue;
+                        
+            // Set all adjacent sectors to flood. This deals with cases like BTSX MAP02 exit line 2560.
+            if (noArea)
+            {
+                foreach (var seg in subsector.Segments)
+                {
+                    if (seg.Partner != null && seg.Partner.Subsector.SectorId.HasValue)
+                        IslandGeometry.FloodSectors.Add(seg.Partner.Subsector.SectorId.Value);
+                }
+            }
 
             foreach (var island in islands)
             {
@@ -124,24 +135,43 @@ public class MapGeometry
 
                 if (!island.ContainsInclusive(subsector.Box))
                     continue;
-                
-                if (sectorId != subsector.SectorId && !island.BoxInsideSector(subsector.Box))
-                    continue;
 
                 if (sectorId == subsector.SectorId)
-                    SetIslandFlooded(island);
-
-                double perimeter = (island.Box.Width + island.Box.Height) * 2;
-                if (smallestFloodPerimeter == null || perimeter < smallestFloodPerimeter)
                 {
-                    smallestFloodPerimeter = perimeter;
-                    smallestFloodSector = sectorId;
+                    SetIslandFlooded(island);
+                    continue;
+                }
+
+                if (noArea)
+                {
+                    // If the subsector has no area then treat as a line with two vertices. Likely a single self referencing sector line.
+                    if (!island.LineInsideSector(subsector.Box.Min, subsector.Box.Max))
+                        continue;
+
+                    var perimeter = (island.Box.Width + island.Box.Height) * 2;
+                    if (perimeter < smallestFloodPerimeter)
+                    {
+                        smallestFloodPerimeter = perimeter;
+                        smallestFloodSector = sectorId;
+                    }
+                }
+                else
+                {
+                    var perimeter = (island.Box.Width + island.Box.Height) * 2;
+                    if (perimeter >= smallestFloodPerimeter && !island.BoxInsideSector(subsector.Box))
+                        continue;
+
+                    if (perimeter < smallestFloodPerimeter)
+                    {
+                        smallestFloodPerimeter = perimeter;
+                        smallestFloodSector = sectorId;
+                    }
                 }
             }
         }
 
-        if (smallestFloodSector != null)
-            IslandGeometry.FloodSectors.Add(smallestFloodSector.Value);
+        if (smallestFloodSector != -1)
+            IslandGeometry.FloodSectors.Add(smallestFloodSector);
     }
 
     private void SetIslandFlooded(Island floodedIsland)

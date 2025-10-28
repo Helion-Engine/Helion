@@ -32,7 +32,7 @@ internal sealed class MockAudioSource : IAudioSource
 
     public void CacheFree()
     {
-
+        AudioData = default;
     }
 
     public void Tick()

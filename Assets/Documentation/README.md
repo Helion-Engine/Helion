@@ -49,6 +49,7 @@ Option                        | Description
 +setangle [deg]               | Sets the player's start angle
 +setpitch [deg]               | Sets the player's start pitch
 -solo-net                     | Starts cooperative game in single player.
++complevel [level]            | Sets the compat level. Can be mbf21, boom, mbf, or vanilla.
 
 # Console Commands
 

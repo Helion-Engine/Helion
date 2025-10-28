@@ -6,6 +6,7 @@ using Helion.Maps;
 using Helion.Maps.Bsp.Zdbsp;
 using Helion.Models;
 using Helion.Render.OpenGL.Shared;
+using Helion.Resources.Archives.Collection;
 using Helion.Resources.Definitions;
 using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
@@ -44,6 +45,7 @@ public partial class Client
     private readonly Zdbsp m_zdbsp = new();
     private WorldModel? m_lastWorldModel;
     private bool m_isSecretExit;
+    private IConfigValue? m_configValueFromConsole;
     private LevelChangeEvent m_levelChangeEvent = LevelChangeEvent.Default;
 
     private string m_lastMapName = string.Empty;
@@ -126,6 +128,11 @@ public partial class Client
     [ConsoleCommand("restart", "Restarts the application.")]
     private void Restart(ConsoleCommandEventArgs args)
     {
+        ExecuteRestart();
+    }
+
+    private void ExecuteRestart()
+    {
         // Note:  We might also want to use the current working directory when restarting, in case it
         // is not the same directory the executable is in.  That seems like a less likely case because
         // the single-file published version of this application doesn't really like being run from
@@ -140,6 +147,8 @@ public partial class Client
 
         if (m_config is FileConfig fileConfig)
             fileConfig.Write();
+
+        m_commandLineArgs.OriginalArgs = [.. m_commandLineArgs.OriginalArgs, "+restarted"];
 
         Process.Start(executablePath, m_commandLineArgs.OriginalArgs);
         Environment.Exit(0);
@@ -435,6 +444,12 @@ public partial class Client
                 NewGame(m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetStartMapOrDefault(m_archiveCollection, mapName));
                 return;
             }
+            
+            if (MapWarp.GetMap(mapName, m_archiveCollection, out var selectedMapInfo))
+            {
+                NewGame(selectedMapInfo);
+                return;
+            }
 
             MapInfoDef mapInfo = GetMapInfo(mapName);
             NewGame(mapInfo);
@@ -522,7 +537,7 @@ public partial class Client
     [ConsoleCommandArg("value", "A decimal value between 0.0 and 1.0")]
     private void CommandSetSoundVolume(ConsoleCommandEventArgs args)
     {
-        if (!SimpleParser.TryParseFloat(args.Args[0], out float volume))
+        if (!NumberParser.TryParseFloat(args.Args[0], out float volume))
         {
             Log.Warn($"Unable to parse sound volume for input: {args.Args[0]}");
             return;
@@ -759,6 +774,7 @@ public partial class Client
             }
         }
 
+        m_configValueFromConsole = component.Value;
         bool success = true;
         ConfigSetResult result = component.Value.Set(args.Args[0]);
         switch (result)
@@ -788,6 +804,7 @@ public partial class Client
         if (success && component.Attribute.GetSetWarningString(out var warning))
             HelionLog.Warn(warning);
 
+        m_configValueFromConsole = null;
         return true;
     }
 
@@ -867,7 +884,7 @@ public partial class Client
 
             m_lastWorldModel = worldModel;
             var sameMap = m_lastMapName.EqualsIgnoreCase(mapInfoDef.MapName) && m_lastLoadedMap != null;
-            var map = sameMap ? m_lastLoadedMap : m_archiveCollection.FindMap(mapInfoDef.MapName);
+            var map = sameMap ? m_lastLoadedMap : m_archiveCollection.FindMap(mapInfoDef.MapName, FindMapOptions.Default);
 
             if (map == null)
             {
@@ -878,7 +895,7 @@ public partial class Client
             if (!sameMap)
             {
                 var mapCompat = map.CompatibilityDefinition;
-                if (!m_zdbsp.RunZdbsp(map.ArchivePath, map.Name, out var compiledMap))
+                if (!m_zdbsp.RunZdbsp(map.ArchivePath, mapInfoDef.MapName, out var compiledMap))
                 {
                     Log.Error("Failed to run zdbsp.");
                     return result;

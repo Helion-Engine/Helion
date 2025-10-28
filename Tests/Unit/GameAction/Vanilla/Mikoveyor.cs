@@ -28,11 +28,11 @@ public class MikoVeyor
         Player.Position.Should().Be(new Vec3D(-192, -448, -32767));
         Player.Velocity = (0, 30, 0);
         GameActions.TickWorld(World, 2);
-        Player.Velocity.Should().Be(new Vec3D(0, 30, -2));
+        Player.Velocity.Should().Be(new Vec3D(0, 30, -3));
         Player.Position.Should().Be(new Vec3D(-192, -388, -32767));
 
         // Z velocity accumulates
         GameActions.TickWorld(World, 10);
-        Player.Velocity.Z.Should().Be(-12);
+        Player.Velocity.Z.Should().Be(-13);
     }
 }

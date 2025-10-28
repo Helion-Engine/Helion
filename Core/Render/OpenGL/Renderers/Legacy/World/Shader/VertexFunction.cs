@@ -21,12 +21,15 @@ public static class VertexFunction
                 // But don't push if on a fractional part of a pixel
                 float VertexGapY = mix(0.9, 0, float(1 - abs(fract(pixelSize)) > 0.05));
                 vec2 uvGap = vec2(VertexGapX / texSize.x, VertexGapY / texSize.y);
-                
-                uvClampMinFrag.x = mix(uvClampMinFrag.x, uvFrag.x + uvGap.x, topLeft == 1);
-                uvClampMinFrag.y = mix(uvClampMinFrag.y, uvFrag.y + uvGap.y, topLeft == 1);
 
-                uvClampMaxFrag.x = mix(uvClampMaxFrag.x, uvFrag.x - uvGap.x, topLeft == 0);
-                uvClampMaxFrag.y = mix(uvClampMaxFrag.y, uvFrag.y - uvGap.y, topLeft == 0);
+                // Currently don't clamp when uv coordinates are flipped (eg topLeft.u > bottomRight.u). This happens in UDMF when scale x/y is negative.
+                bool topLeftFlag = topLeft == 1 && uvFlags == 0;
+                bool bottomRightFlag = topLeft == 0 && uvFlags == 0;
+                uvClampMinFrag.x = mix(uvClampMinFrag.x, uvFrag.x + uvGap.x, topLeftFlag);
+                uvClampMinFrag.y = mix(uvClampMinFrag.y, uvFrag.y + uvGap.y, topLeftFlag);
+
+                uvClampMaxFrag.x = mix(uvClampMaxFrag.x, uvFrag.x - uvGap.x, bottomRightFlag);
+                uvClampMaxFrag.y = mix(uvClampMaxFrag.y, uvFrag.y - uvGap.y, bottomRightFlag);
             }
     ";
 
@@ -44,7 +47,8 @@ public static class VertexFunction
         @"            
             int colorMapAndLightLevel = floatBitsToInt(colorMapIndex);
             vertexLightLevelFrag = float(colorMapAndLightLevel & 0xFF);
-            colorMapIndexFrag = float((colorMapAndLightLevel >> 8) & 0xFFFFFF);";
+            colorMapIndexFrag = float((colorMapAndLightLevel >> 10) & 0xFFFF);
+            uvFlags = float((colorMapAndLightLevel >> 8) & 0x3);";
 
     public static string LightLevelAddAndMapIdSet =>
         @"

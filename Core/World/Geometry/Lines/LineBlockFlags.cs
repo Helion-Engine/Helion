@@ -15,4 +15,5 @@ public struct LineBlockFlags
     public bool Sight;
     public bool MidTex3D;
     public bool BlockMissileMidTex3D;
+    public bool LegacyImpassible;
 }

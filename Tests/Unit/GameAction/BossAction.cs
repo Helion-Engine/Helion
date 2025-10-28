@@ -16,7 +16,7 @@ public class BossAction
 
     public BossAction()
     {
-        World = WorldAllocator.LoadMap("Resources/bossaction.zip", "bossaction.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/bossaction.zip", "bossaction.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, cacheWorld: false);
     }
 
     [Fact(DisplayName = "BossAction by actor name")]
@@ -39,6 +39,18 @@ public class BossAction
         sector.Floor.Z.Should().Be(128);
         var monster = GameActions.GetEntity(World, "ChaingunGuy");
         monster.Kill(null);
+        World.BossDeath(monster);
+        GameActions.TickWorld(World, 1);
+        GameActions.RunSectorPlaneSpecial(World, sector);
+        sector.Floor.Z.Should().Be(0);
+    }
+
+    [Fact(DisplayName = "BossAction activates when last entity is still alive")]
+    public void BossActionWhileAlive()
+    {
+        var sector = GameActions.GetSectorByTag(World, 420);
+        sector.Floor.Z.Should().Be(128);
+        var monster = GameActions.GetEntity(World, "ChaingunGuy");
         World.BossDeath(monster);
         GameActions.TickWorld(World, 1);
         GameActions.RunSectorPlaneSpecial(World, sector);

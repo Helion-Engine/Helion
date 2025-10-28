@@ -71,11 +71,11 @@ public interface IWorld : IDisposable
     int LevelTime { get; }
     double Gravity { get; }
     WorldState WorldState { get; }
-    IList<Line> Lines { get; }
-    IList<Side> Sides { get; }
-    IList<Sector> Sectors { get; }
+    List<Line> Lines { get; }
+    List<Side> Sides { get; }
+    List<Sector> Sectors { get; }
     DynamicArray<StructLine> StructLines { get; }
-    IList<HighlightArea> HighlightAreas { get; }
+    List<HighlightArea> HighlightAreas { get; }
     CompactBspTree BspTree { get; }
     IRandom Random { get; }
     // Used for randomization that should not affect demos
@@ -159,7 +159,7 @@ public interface IWorld : IDisposable
     bool IsSectorIdValid(int sectorId) => sectorId >= 0 && sectorId < Sectors.Count;
     bool IsLineIdValid(int lineId) => lineId >= 0 && lineId < Lines.Count;
     int EntityCount(int entityDefinitionId);
-    int EntityAliveCount(int entityDefinitionId);
+    int EntityAliveCount(int entityDefinitionId, Entity? ignoreEntity = null);
     void NoiseAlert(Entity target, Entity source);
     void BossDeath(Entity entity);
     Player? GetLineOfSightPlayer(Entity entity, bool allAround);

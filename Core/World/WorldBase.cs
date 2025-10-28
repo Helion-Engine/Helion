@@ -63,7 +63,6 @@ using Helion.Resources.Definitions.Compatibility;
 using Helion.Maps.Components;
 using System.Runtime.CompilerServices;
 using Helion.Resources.Definitions.SoundInfo;
-using NAudio.SoundFont;
 
 namespace Helion.World;
 
@@ -122,11 +121,11 @@ public abstract partial class WorldBase : IWorld
     public bool SameAsPreviousMap { get; set; }
     public IRandom Random => m_random;
     public IRandom SecondaryRandom { get; private set; }
-    public IList<Line> Lines => Geometry.Lines;
-    public IList<Side> Sides => Geometry.Sides;
-    public IList<Sector> Sectors => Geometry.Sectors;
+    public List<Line> Lines { get; private set; }
+    public List<Side> Sides { get; private set; }
+    public List<Sector> Sectors { get; private set; }
     public DynamicArray<StructLine> StructLines => LastStructLines;
-    public IList<HighlightArea> HighlightAreas { get; } = new List<HighlightArea>();
+    public List<HighlightArea> HighlightAreas { get; } = [];
     public CompactBspTree BspTree { get; private set; }
     public EntityManager EntityManager { get; }
     public WorldSoundManager SoundManager { get; }
@@ -210,6 +209,9 @@ public abstract partial class WorldBase : IWorld
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapInfoDef,
         SkillDef skillDef, IMap map, WorldModel? worldModel = null, IRandom? random = null, bool sameAsPreviousMap = false, bool reuse = true)
     {
+        Lines = geometry.Lines;
+        Sides = geometry.Sides;
+        Sectors = geometry.Sectors;
         SameAsPreviousMap = sameAsPreviousMap;
         m_random = random ?? new DoomRandom();
         m_saveRandom = m_random;
@@ -521,6 +523,7 @@ public abstract partial class WorldBase : IWorld
         Config.Game.FastMonsters.OnChanged += FastMonsters_OnChanged;
         Config.Game.DamageApplyMultiplier.OnChanged += DamageApplyMultiplier_OnChanged;
         Config.Game.DamageReceiveMultiplier.OnChanged += DamageReceiveMultiplier_OnChanged;
+        Config.Game.MirrorCorpse.OnChanged += MirrorCorpse_OnChanged;
     }
 
     private void UnRegisterConfigChanges()
@@ -546,6 +549,7 @@ public abstract partial class WorldBase : IWorld
         Config.Game.FastMonsters.OnChanged -= FastMonsters_OnChanged;
         Config.Game.DamageApplyMultiplier.OnChanged -= DamageApplyMultiplier_OnChanged;
         Config.Game.DamageReceiveMultiplier.OnChanged -= DamageReceiveMultiplier_OnChanged;
+        Config.Game.MirrorCorpse.OnChanged -= MirrorCorpse_OnChanged;
     }
 
     private void SetWorldStatic()
@@ -601,6 +605,7 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.WeaponBfg = EntityManager.DefinitionComposer.GetByNameOrDefault(BFG900Class);
         WorldStatic.SectorFriction = false;
         WorldStatic.BloodColor = ArchiveCollection.Dehacked != null && ArchiveCollection.Dehacked.HasBloodColor;
+        WorldStatic.MirrorCorpse = Config.Game.MirrorCorpse;
 
         if (WorldStatic.CheckedLines.Length < Lines.Count)
             WorldStatic.CheckedLines = new int[Lines.Count];
@@ -642,6 +647,8 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.DamageReceiveMultiplier = (float)value;
     private void DamageApplyMultiplier_OnChanged(object? sender, double value) =>
         WorldStatic.DamageApplyMultiplier = (float)value;
+    private void MirrorCorpse_OnChanged(object? sender, bool enabled) => 
+        WorldStatic.MirrorCorpse = enabled;
     private void FastMonsters_OnChanged(object? sender, bool enabled)
     {
         IsFastMonsters = SkillDefinition.IsFastMonsters(Config);
@@ -673,6 +680,11 @@ public abstract partial class WorldBase : IWorld
         m_random = random;
     }
 
+    public void SetSecondaryRandom(IRandom random)
+    {
+        SecondaryRandom = random;
+    }
+
     public virtual void Start(WorldModel? worldModel)
     {
         AddMapSpecial();
@@ -680,8 +692,8 @@ public abstract partial class WorldBase : IWorld
         SetupMusicChangers();
         SetSectorSkies();
 
-        if (worldModel == null)
-            SpecialManager.StartInitSpecials(LevelStats);
+        if (!SameAsPreviousMap || worldModel == null)
+            SpecialManager.StartInitSpecials(LevelStats, worldModel != null);
 
         StaticDataApplier.DetermineStaticData(this);
         SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;
@@ -848,13 +860,13 @@ public abstract partial class WorldBase : IWorld
 
     public void Link(Entity entity)
     {
-        Precondition(entity.SectorNodes.Empty() && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
+        Precondition(entity.SectorNodes.Length == 0 && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
         PhysicsManager.LinkToWorld(entity, null, false);
     }
 
     public void LinkClamped(Entity entity)
     {
-        Precondition(entity.SectorNodes.Empty() && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
+        Precondition(entity.SectorNodes.Length == 0 && entity.BlockRange.StartX == Constants.ClearBlock, "Forgot to unlink entity before linking");
         PhysicsManager.LinkToWorld(entity, null, true);
     }
 
@@ -1136,7 +1148,7 @@ public abstract partial class WorldBase : IWorld
         {
             var special = m_bossDeathSpecials[i];
             if (special.EntityDefinitionId == entity.Definition.Id)
-                special.Tick();
+                special.Tick(entity);
         }
     }
 
@@ -2458,13 +2470,12 @@ public abstract partial class WorldBase : IWorld
     private void HandleRespawn(Entity entity)
     {
         entity.Respawn = false;
-        var spawnPoint = EntityManager.GetSpawnPoint(entity);
-        if (entity.Definition.Flags.Solid && IsPositionBlockedByEntity(entity, spawnPoint))
+        if (entity.Definition.Flags.Solid && IsPositionBlockedByEntity(entity, entity.SpawnPoint))
             return;
 
-        var newEntity = EntityManager.Create(entity.Definition, spawnPoint, 0, entity.AngleRadians, entity.ThingId, entity.Args, true);
+        var newEntity = EntityManager.Create(entity.Definition, entity.SpawnPoint, 0, entity.AngleRadians, entity.ThingId, entity.Args, true);
         CreateTeleportFog(entity.Position);
-        CreateTeleportFog(spawnPoint);
+        CreateTeleportFog(entity.SpawnPoint);
 
         newEntity.Flags.Friendly = entity.Flags.Friendly;
         newEntity.AngleRadians = entity.AngleRadians;
@@ -2822,6 +2833,9 @@ public abstract partial class WorldBase : IWorld
                 if (line.FrontSector == line.BackSector)
                     continue;
 
+                if (line.FrontSector.Floor.Z == line.BackSector.Floor.Z && line.FrontSector.Ceiling.Z == line.BackSector.Ceiling.Z)
+                    continue;
+
                 var opening = PhysicsManager.GetLineOpening(line.FrontSector, line.BackSector!);
                 if (opening.FloorZ < opening.CeilingZ)
                 {
@@ -3075,16 +3089,19 @@ public abstract partial class WorldBase : IWorld
     }
 
     public int EntityCount(int entityDefinitionId) =>
-        EntityCount(entityDefinitionId, true);
+        EntityCount(entityDefinitionId, false);
 
-    public int EntityAliveCount(int entityDefinitionId) =>
-        EntityCount(entityDefinitionId, true);
+    public int EntityAliveCount(int entityDefinitionId, Entity? ignoreEntity = null) =>
+        EntityCount(entityDefinitionId, true, ignoreEntity);
 
-    private int EntityCount(int entityDefinitionId, bool checkAlive)
+    private int EntityCount(int entityDefinitionId, bool checkAlive, Entity? ignoreEntity = null)
     {
         int count = 0;
         for (var entity = EntityManager.Head; entity != null; entity = entity.Next)
         {
+            if (entity == ignoreEntity)
+                continue;
+
             if (entity.Definition.Id == entityDefinitionId && (!checkAlive || !entity.IsDead))
                 count++;
         }

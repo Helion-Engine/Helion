@@ -22,6 +22,7 @@ using Helion.Resources.Definitions.MapInfo;
 using Helion.Util;
 using Helion.Util.CommandLine;
 using Helion.Util.Configs;
+using Helion.Util.Configs.Components;
 using Helion.Util.Configs.Impl;
 using Helion.Util.Consoles;
 using Helion.Util.Consoles.Commands;
@@ -92,11 +93,18 @@ public partial class Client : IDisposable, IInputManagement
         m_console = console;
         m_audioSystem = audioSystem;
         m_archiveCollection = archiveCollection;
+
+        InitGpuPreference();
+
         m_saveGameManager = new SaveGameManager(config, m_pathsManager, m_archiveCollection, commandLineArgs.SaveDir);
         m_soundManager = new SoundManager(audioSystem, archiveCollection);
 
+        m_config.Window.LaptopGpu.Set(LaptopGpuSettings.GetGpuMode(AppInfo));
+        m_config.Window.LaptopGpu.OnChanged += LaptopGpu_OnChanged;
+
         m_config.Game.Rng.OnChanged += Rng_OnChanged;
         m_config.Render.PixelGapCorrection.OnChanged += PixelGapCorrection_OnChanged;
+        m_config.Hud.Scale.OnChanged += Scale_OnChanged;
 
         if (commandLineArgs.GlVersion.HasValue)
         {
@@ -130,6 +138,41 @@ public partial class Client : IDisposable, IInputManagement
         RegisterConfigChanges();
         UpdateVolume();
         m_ticker.Start();
+    }
+
+    private void InitGpuPreference()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        if (m_commandLineArgs.Restarted)
+        {
+            Log.Info("Restart flag set");
+            return;
+        }
+
+        var result = LaptopGpuSettings.InitGpuModeIfNotExists(AppInfo, LaptopGpuMode.HighPerformance, out var error);
+        if (result == InitGpuResult.SuccessDidNotExist)
+        {
+            ExecuteRestart();
+            return;
+        }
+
+        if (result == InitGpuResult.Error)
+            Log.Error("LaptopGpuSettings Init Error: {error}", error);
+    }
+
+    private void LaptopGpu_OnChanged(object? sender, LaptopGpuMode mode)
+    {
+        LaptopGpuSettings.SetGpuMode(AppInfo, mode);
+    }
+
+    private void Scale_OnChanged(object? sender, double e)
+    {
+        // Changing hud.scale isn't prevented in the console. Autoscale needs to be turned off.
+        // Otherwise it will be reset on restart because hud.autoscale is on.
+        if (m_configValueFromConsole == m_config.Hud.Scale && m_config.Hud.AutoScale.Value)
+            m_config.Hud.AutoScale.Set(false);
     }
 
     private static void GLFWErrorCallback(ErrorCode error, string description)
@@ -544,9 +587,9 @@ public partial class Client : IDisposable, IInputManagement
         LogAnyCommandLineErrors(commandLineArgs);
 
 #if DEBUG
-        Run(commandLineArgs, workingDirectory, pathsManager);
+        Run(commandLineArgs, pathsManager);
 #else
-        RunRelease(commandLineArgs, workingDirectory, pathsManager);
+        RunRelease(commandLineArgs, pathsManager);
 #endif
 
         ForceFinalizersIfDebugMode();
@@ -566,11 +609,11 @@ public partial class Client : IDisposable, IInputManagement
         Directory.SetCurrentDirectory(dir);
     }
 
-    private static void RunRelease(CommandLineArgs commandLineArgs, string workingDirectory, PathsManager pathsManager)
+    private static void RunRelease(CommandLineArgs commandLineArgs, PathsManager pathsManager)
     {
         try
         {
-            Run(commandLineArgs, workingDirectory, pathsManager);
+            Run(commandLineArgs, pathsManager);
         }
         catch (Exception e)
         {
@@ -613,7 +656,7 @@ public partial class Client : IDisposable, IInputManagement
         }
     }
 
-    private static void Run(CommandLineArgs commandLineArgs, string workingDirectory, PathsManager pathsManager)
+    private static void Run(CommandLineArgs commandLineArgs, PathsManager pathsManager)
     {
         var configPath = !string.IsNullOrWhiteSpace(commandLineArgs.ConfigFileName)
             ? commandLineArgs.ConfigFileName.Trim()

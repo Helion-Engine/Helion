@@ -148,10 +148,11 @@ public partial class Renderer
         for (int i = 0; i < world.Sectors.Count; i++)
         {
             Sector sector = world.Sectors[i];
+            var lightLevel = (byte)Math.Clamp(sector.LightLevel, (short)0, (short)255);
             int index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
-            lightBuffer[index + LightBuffer.FloorOffset] = (byte)sector.LightLevel;
-            lightBuffer[index + LightBuffer.CeilingOffset] = (byte)sector.LightLevel;
-            lightBuffer[index + LightBuffer.WallOffset] = (byte)sector.LightLevel;
+            lightBuffer[index + LightBuffer.FloorOffset] = lightLevel;
+            lightBuffer[index + LightBuffer.CeilingOffset] = lightLevel;
+            lightBuffer[index + LightBuffer.WallOffset] = lightLevel;
         }
     }
 
@@ -372,7 +373,7 @@ public partial class Renderer
         for (int i = 0; i < m_updateLightSectors.UpdateSectors.Length; i++)
         {
             var sector = m_updateLightSectors.UpdateSectors[i];
-            var level = Math.Min((byte)sector.LightLevel, (byte)255);
+            var level = (byte)Math.Clamp(sector.LightLevel, (short)0, (short)255);
             var index = sector.Id * LightBuffer.BufferSize + LightBuffer.SectorIndexStart;
             lightData[index + LightBuffer.FloorOffset] = level;
             lightData[index + LightBuffer.CeilingOffset] = level;

@@ -262,4 +262,5 @@ public class ActorFlags
     public bool? E4M6Boss;
     public bool? E4M8Boss;
     public bool? FullVolSee;
+    public bool? DontMirrorCorpse;
 }

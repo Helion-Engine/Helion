@@ -376,7 +376,7 @@ public sealed class Sector
     public void ApplySectorModel(IWorld world, in SectorModel sectorModel, WorldModelPopulateResult result)
     {
         var textureManager = world.ArchiveCollection.TextureManager;
-        IList<Sector> sectors = world.Sectors;
+        var sectors = world.Sectors;
         SoundValidationCount = sectorModel.SoundValidationCount;
         SoundBlock = sectorModel.SoundBlock;
         if (sectorModel.SoundTarget.HasValue && result.Entities.TryGetValue(sectorModel.SoundTarget.Value, out var soundTarget))
@@ -460,12 +460,15 @@ public sealed class Sector
 
         if (sectorModel.FloorOffset.HasValue)
         {
-            Floor.RenderOffsets.Offset = new Vec2D(sectorModel.FloorOffset.Value.X, sectorModel.FloorOffset.Value.Y);
+            Floor.RenderOffsets.Offset.X = sectorModel.FloorOffset.Value.X;
+            Floor.RenderOffsets.Offset.Y = sectorModel.FloorOffset.Value.Y;
+
             Floor.RenderOffsets.LastOffset = Floor.RenderOffsets.Offset;
         }
         if (sectorModel.CeilingOffset.HasValue)
         {
-            Ceiling.RenderOffsets.Offset = new Vec2D(sectorModel.CeilingOffset.Value.X, sectorModel.CeilingOffset.Value.Y);
+            Ceiling.RenderOffsets.Offset.X = sectorModel.CeilingOffset.Value.X;
+            Ceiling.RenderOffsets.Offset.Y = sectorModel.CeilingOffset.Value.Y;
             Ceiling.RenderOffsets.LastOffset = Ceiling.RenderOffsets.Offset;
         }
 
@@ -489,7 +492,7 @@ public sealed class Sector
         }
     }
 
-    private static bool IsSectorIdValid(IList<Sector> sectors, int id) => id >= 0 && id < sectors.Count;
+    private static bool IsSectorIdValid(List<Sector> sectors, int id) => id >= 0 && id < sectors.Count;
 
     public LinkableNode<Entity> Link(Entity entity)
     {

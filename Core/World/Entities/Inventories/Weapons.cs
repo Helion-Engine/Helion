@@ -62,9 +62,9 @@ public sealed class Weapons
 
     public List<Weapon> GetOwnedWeapons() => m_ownedWeapons;
 
-    public WeaponSlot GetNextSlot(Player player) => CycleSlot(player, player.WeaponSlot, player.WeaponSubSlot, true, false);
-    public WeaponSlot GetPreviousSlot(Player player) => CycleSlot(player, player.WeaponSlot, player.WeaponSubSlot, false, false);
-    public WeaponSlot GetNextSubSlot(Player player) => CycleSlot(player, player.WeaponSlot, player.WeaponSubSlot, true, true);
+    public WeaponSlot GetNextSlot(Player player) => CycleSlot(player.WeaponSlot, player.WeaponSubSlot, true, false);
+    public WeaponSlot GetPreviousSlot(Player player) => CycleSlot(player.WeaponSlot, player.WeaponSubSlot, false, false);
+    public WeaponSlot GetNextSubSlot(Player player) => CycleSlot(player.WeaponSlot, player.WeaponSubSlot, true, true);
 
     public WeaponSlot GetNextSlot(Player player, int amount)
     {
@@ -79,14 +79,14 @@ public sealed class Weapons
         amount = Math.Abs(amount % m_ownedWeapons.Count);
         while (amount > 0)
         {
-            slot = CycleSlot(player, slot.Slot, slot.SubSlot, direction, false);
+            slot = CycleSlot(slot.Slot, slot.SubSlot, direction, false);
             amount--;
         }
 
         return slot;
     }
 
-    private WeaponSlot CycleSlot(Player player, int slot, int subSlot, bool next, bool wrapSubSlot)
+    private WeaponSlot CycleSlot(int slot, int subSlot, bool next, bool wrapSubSlot)
     {
         if (m_ownedWeapons.Count == 0)
             return DefaultSlot;
@@ -164,6 +164,9 @@ public sealed class Weapons
 
     public bool CanSelectWeapon(Weapon weapon)
     {
+        if (!CheckSelection(weapon))
+            return false;
+
         bool allowSwitch = true;
         bool disallowSwitch = false;
         ref var weaponDef = ref weapon.Definition.Properties.Weapons;
@@ -192,6 +195,14 @@ public sealed class Weapons
         }
 
         return allowSwitch;
+    }
+
+    public bool CheckSelection(Weapon weapon)
+    {
+        if (WorldStatic.World.Config.Weapons.NoAmmoSelect)
+            return true;
+
+        return m_inventory.CheckAmmo(weapon);
     }
 
     public Weapon? Add(EntityDefinition definition, Player owner, EntityManager entityManager,
@@ -239,7 +250,7 @@ public sealed class Weapons
             if (!m_weaponSlotLookup.TryGetValue(weapon.Definition.Id, out var weaponSlot))
                 continue;
 
-            if (weaponSlot.Slot < min)
+            if (weaponSlot.Slot < min && CheckSelection(weapon))
                 min = weaponSlot.Slot;
         }
 
@@ -257,7 +268,7 @@ public sealed class Weapons
             if (!m_weaponSlotLookup.TryGetValue(weapon.Definition.Id, out var weaponSlot))
                 continue;
 
-            if (weaponSlot.Slot > max)
+            if (weaponSlot.Slot > max && CheckSelection(weapon))
                 max = weaponSlot.Slot;
         }
 
