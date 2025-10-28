@@ -135,6 +135,7 @@ public static class Constants
         Files = 4,
         HudAndUI = 5,
         System = 6,
+        Map = 7,
     };
 
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
@@ -257,6 +258,11 @@ public static class Constants
         public const string OptionsMenu = "OptionsMenu";
         [Input(InputType.System)]
         public const string Menu = "Menu";
+
+        [Input(InputType.Map)]
+        public const string NextMap = "NextMap";
+        [Input(InputType.Map)]
+        public const string PreviousMap = "PreviousMap";
     }
 
     private static StringBuilder m_builder = new();

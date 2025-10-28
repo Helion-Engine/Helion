@@ -10,7 +10,6 @@ episode map01
 map MAP01 lookup "NHUSTR_1"
 {
     next = "MAP02"
-    secretnext = "MAP09"
     sky1 = "SKY1"
     cluster = 11
     par = 75
@@ -20,7 +19,6 @@ map MAP01 lookup "NHUSTR_1"
 map MAP02 lookup "NHUSTR_2"
 {
     next = "MAP03"
-    secretnext = "MAP09"
     sky1 = "SKY1"
     cluster = 11
     par = 105
@@ -30,7 +28,6 @@ map MAP02 lookup "NHUSTR_2"
 map MAP03 lookup "NHUSTR_3"
 {
     next = "MAP04"
-    secretnext = "MAP09"
     sky1 = "SKY1"
     cluster = 11
     par = 120
@@ -40,7 +37,6 @@ map MAP03 lookup "NHUSTR_3"
 map MAP04 lookup "NHUSTR_4"
 {
     next = "MAP04"
-    secretnext = "MAP09"
     sky1 = "SKY1"
     cluster = 11
     par = 105
@@ -50,7 +46,6 @@ map MAP04 lookup "NHUSTR_4"
 map MAP05 lookup "NHUSTR_5"
 {
     next = "MAP06"
-    secretnext = "MAP09"
     sky1 = "SKY1"
     cluster = 11
     par = 210
@@ -60,7 +55,6 @@ map MAP05 lookup "NHUSTR_5"
 map MAP06 lookup "NHUSTR_6"
 {
     next = "MAP07"
-    secretnext = "MAP09"
     sky1 = "SKY1"
     cluster = 11
     par = 105
@@ -82,7 +76,6 @@ map MAP07 lookup "NHUSTR_7"
 map MAP08 lookup "NHUSTR_8"
 {
     next = "EndGameC"
-    secretnext = "EndGameC"
     sky1 = "SKY1"
     cluster = 11
     par = 105
@@ -93,7 +86,6 @@ map MAP08 lookup "NHUSTR_8"
 map MAP09 lookup "NHUSTR_9"
 {
     next = "MAP05"
-    secretnext = "MAP05"
     sky1 = "SKY1"
     cluster = 11
     par = 135
