@@ -207,6 +207,8 @@ public class MapInfo
                 }
             }
         }
+
+        m_builtOrderedMaps = true;
         return m_orderedMaps;
     }
 }
