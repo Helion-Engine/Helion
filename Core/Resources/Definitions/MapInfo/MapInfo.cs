@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using Helion.Maps.Shared;
 using Helion.Resources.Archives.Collection;
 using Helion.Util.Extensions;
-using Helion.World;
 using Helion.World.Util;
 
 namespace Helion.Resources.Definitions.MapInfo;
@@ -27,10 +25,12 @@ public class MapInfo
     public IReadOnlyList<SkillDef> Skills => m_skills.AsReadOnly();
     public MapInfoDef? DefaultMap { get; private set; }
 
-    private readonly List<EpisodeDef> m_episodes = new();
-    private readonly List<MapInfoDef> m_maps = new();
-    private readonly List<ClusterDef> m_clusters = new();
-    private readonly List<SkillDef> m_skills = new();
+    private readonly List<EpisodeDef> m_episodes = [];
+    private readonly List<MapInfoDef> m_maps = [];
+    private readonly List<ClusterDef> m_clusters = [];
+    private readonly List<SkillDef> m_skills = [];
+    private readonly List<MapInfoDef> m_orderedMaps = [];
+    private bool m_builtOrderedMaps;
 
     public void ClearEpisodes() => m_episodes.Clear();
 
@@ -113,7 +113,7 @@ public class MapInfo
 
     public void SetDefaultMap(MapInfoDef? map) => DefaultMap = map;
     public FindMapResult GetNextMap(MapInfoDef map) => GetMap(map.Next);
-    public FindMapResult GetNextSecretMap(MapInfoDef map) => GetMap(map.SecretNext);
+    public FindMapResult GetNextSecretMap(MapInfoDef map) => map.SecretNext != "" ? GetMap(map.SecretNext) : GetMap(map.Next);
     public ClusterDef? GetCluster(int clusterNumber) => m_clusters.FirstOrDefault(c => c.ClusterNum == clusterNumber);
     public static bool IsWarpTrans(string mapName) => mapName.StartsWithIgnoreCase(WarpTrans);
 
@@ -180,5 +180,35 @@ public class MapInfo
         }
 
         items.Add(newItem);
+    }
+
+    /// <summary>
+    /// The maps in play order, with secrets exits before regular exits.
+    /// </summary>
+    public List<MapInfoDef> GetOrderedMaps()
+    {
+        if (m_builtOrderedMaps)
+            return m_orderedMaps;
+
+        foreach (var episode in m_episodes)
+        {
+            Stack<string> mapStack = new();
+            mapStack.Push(episode.StartMap);
+            while (mapStack.Count > 0)
+            {
+                string mapName = mapStack.Pop();
+                var map = m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase(mapName));
+                if (map != null && !m_orderedMaps.Contains(map))
+                {
+                    m_orderedMaps.Add(map);
+                    mapStack.Push(map.Next);
+                    if (map.SecretNext != "")
+                        mapStack.Push(map.SecretNext);
+                }
+            }
+        }
+
+        m_builtOrderedMaps = true;
+        return m_orderedMaps;
     }
 }

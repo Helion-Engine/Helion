@@ -74,6 +74,8 @@ markspecials                    | Toggles ingame and automap highlighting of spe
 map [mapname]                   | Changes the map (health/inventory are reset)
 exitlevel                       | Exits to the next level (health/inventory are preserved)
 exitlevelsecret                 | Exits to the next level, using the secret exit if one exists
+nextmap                         | Starts a new game on the next map 
+previousmap                     | Starts a new game on the previous map
 bind [key] [command]            | Sets a keybind, replacing any existing for the key
 bindadd [key] [command]         | Adds an additional keybind for a key
 unbind [key]                    | Removes keybinds for a key

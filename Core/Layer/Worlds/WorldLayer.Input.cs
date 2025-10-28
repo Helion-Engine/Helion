@@ -125,6 +125,10 @@ public partial class WorldLayer
             m_autoMapOffset = (0, 0);
             m_autoMapScale = m_config.Hud.AutoMap.Scale;
         }
+        else if (IsCommandPressed(Input.NextMap, input))
+            m_console.SubmitInputText(Input.NextMap);
+        else if (IsCommandPressed(Input.PreviousMap, input))
+            m_console.SubmitInputText(Input.PreviousMap);
 
         if (m_parent.LoadingLayer == null && m_parent.TransitionLayer == null)
             input.IterateCommands(World.Config.Keys.GetKeyMapping(), m_checkCommandAction);
