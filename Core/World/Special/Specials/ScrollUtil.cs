@@ -8,8 +8,8 @@ namespace Helion.World.Special.Specials;
 
 public struct ScrollSpeeds
 {
-    public Vec2D? ScrollSpeed { get; set; }
-    public Vec2D? CarrySpeed { get; set; }
+    public Vec2D? ScrollSpeed;
+    public Vec2D? CarrySpeed;
 }
 
 public static class ScrollUtil
@@ -18,7 +18,6 @@ public static class ScrollUtil
     // Credit to Lee Killough et al.
     public static ScrollSpeeds GetScrollLineSpeed(Line line, ZDoomScroll flags, ZDoomPlaneScrollType type, double visualScrollFactor = 1.0)
     {
-        ScrollSpeeds scrollSpeeds = new();
         Vec2D diff;
         if ((flags & ZDoomScroll.Line) != 0)
         {
@@ -32,17 +31,23 @@ public static class ScrollUtil
             diff.Y = (line.Args.Arg4 - 128) / 32.0;
         }
 
+        return GetScrollSpeeds(diff, type, visualScrollFactor);
+    }
+
+    public static ScrollSpeeds GetScrollSpeeds(Vec2D speed, ZDoomPlaneScrollType type, double visualScrollFactor = 1.0)
+    {
+        ScrollSpeeds scrollSpeeds = new();
         if (type == ZDoomPlaneScrollType.Scroll || type == ZDoomPlaneScrollType.ScrollAndCarry)
-            scrollSpeeds.ScrollSpeed = diff * visualScrollFactor;
+            scrollSpeeds.ScrollSpeed = speed * visualScrollFactor;
 
         if (type == ZDoomPlaneScrollType.Carry || type == ZDoomPlaneScrollType.ScrollAndCarry)
         {
-            diff *= 0.09375;
-            scrollSpeeds.CarrySpeed = diff;
+            speed *= 0.09375;
+            scrollSpeeds.CarrySpeed = speed;
         }
 
         if (scrollSpeeds.ScrollSpeed.HasValue)
-            scrollSpeeds.ScrollSpeed = new Vec2D(scrollSpeeds.ScrollSpeed.Value.X, scrollSpeeds.ScrollSpeed.Value.Y);
+            scrollSpeeds.ScrollSpeed = new Vec2D(-scrollSpeeds.ScrollSpeed.Value.X, scrollSpeeds.ScrollSpeed.Value.Y);
 
         return scrollSpeeds;
     }

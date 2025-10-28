@@ -1,7 +1,5 @@
 ﻿using Helion.Maps.Components;
-using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
-using Helion.World.Special.Specials;
 
 namespace Helion.Maps.Udmf.Components;
 

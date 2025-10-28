@@ -1,4 +1,5 @@
-﻿using Helion.Maps.Components;
+﻿using Helion.Geometry.Vectors;
+using Helion.Maps.Components;
 using Helion.Maps.Components.GL;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
@@ -8,6 +9,9 @@ using Helion.Resources.Definitions.Compatibility;
 using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
+using Helion.World;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Special.Specials;
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
@@ -15,7 +19,7 @@ using System.IO;
 
 namespace Helion.Maps.Udmf;
 
-public sealed class UdmfMap : IMap
+public sealed class UdmfMap : IMap, IMapSpecials
 {
     readonly ref struct Property(ReadOnlySpan<char> name, ReadOnlySpan<char> value)
     {
@@ -46,6 +50,8 @@ public sealed class UdmfMap : IMap
 
     private MapEntryCollection? m_map;
     private bool m_loaded;
+
+    private readonly Dictionary<int, UdmfScrollSector> m_scrollSectors = [];
 
     private static readonly char[] ParseChars = [';', ')', '(', '{', '}'];
     private static readonly FrozenSet<char> ParseCharSet = ParseChars.ToFrozenSet();
@@ -81,7 +87,29 @@ public sealed class UdmfMap : IMap
         Reject = map.Reject?.ReadData();
 
         using var textmapStream = map.Textmap.GetStream();
-        UdmfNamespace = Parse(textmapStream, Vertices, Sectors, Sides, Lines, Things);
+        UdmfNamespace = Parse(textmapStream, Vertices, Sectors, Sides, Lines, Things, m_scrollSectors);
+    }
+
+    public void Initialize(IWorld world)
+    {
+        foreach (var item in m_scrollSectors.Values)
+        {
+            if (!world.IsSectorIdValid(item.SectorId))
+                continue;
+
+            var sector = world.Sectors[item.SectorId];
+            var flags = item.Flags;
+
+            var scrollSpeeds = ScrollUtil.GetScrollSpeeds(item.Speed, ZDoomPlaneScrollType.ScrollAndCarry);
+            var plane = sector.GetSectorPlane(item.Face);
+
+            if ((flags & UdmfScrollSectorFlags.Texture) != 0 && scrollSpeeds.ScrollSpeed.HasValue)
+                world.SpecialManager.AddSpecial(new ScrollSpecial(ScrollPlaneOptions.Textures, plane, scrollSpeeds.ScrollSpeed.Value));
+
+            flags &= ~UdmfScrollSectorFlags.Texture;
+            if (flags != 0 && scrollSpeeds.CarrySpeed.HasValue)
+                world.SpecialManager.AddSpecial(new ScrollSpecial((ScrollPlaneOptions)flags, plane, scrollSpeeds.CarrySpeed.Value));
+        }
     }
 
     public static UdmfMap? Create(Archive archive, MapEntryCollection map, CompatibilityMapDefinition? compatibility, bool loadData)
@@ -124,7 +152,7 @@ public sealed class UdmfMap : IMap
     }
 
     private static UdmfNamespace Parse(Stream textmap, List<UdmfVertex> vertices, List<UdmfSector> sectors, List<UdmfSide> sides,
-        List<UdmfLine> lines, List<UdmfThing> things)
+        List<UdmfLine> lines, List<UdmfThing> things, Dictionary<int, UdmfScrollSector> scrollSectors)
     {
         DynamicArray<char> typeArray = new(256);
         DynamicArray<char> valueArray = new(256);
@@ -163,7 +191,7 @@ public sealed class UdmfMap : IMap
             else if (type.EqualsIgnoreCase("sector"))
             {
                 parser.Consume('{');
-                ParseSector(parser, sectors, typeArray, valueArray, altLookup);
+                ParseSector(parser, sectors, typeArray, valueArray, altLookup, scrollSectors);
                 parser.Consume('}');
             }
             else if (type.EqualsIgnoreCase("thing"))
@@ -401,7 +429,7 @@ public sealed class UdmfMap : IMap
     }
 
     private static void ParseSector(StreamParser parser, List<UdmfSector> sectors, DynamicArray<char> typeArray, DynamicArray<char> valueArray,
-        Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> stringLookup)
+        Dictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> stringLookup, Dictionary<int, UdmfScrollSector> scrollSectors)
     {
         UdmfSector sector = new() { Id = sectors.Count };
         while (!IsBlockComplete(parser))
@@ -465,9 +493,36 @@ public sealed class UdmfMap : IMap
                 sector.SkyFloor = GetString(stringLookup, prop.Value);
             else if (prop.Name.EqualsIgnoreCase("skyceiling"))
                 sector.SkyCeiling = GetString(stringLookup, prop.Value);
+
+            else if (prop.Name.EqualsIgnoreCase("scrollfloormode"))
+                GetScrollSector(sector.Id, SectorPlaneFace.Floor, scrollSectors).Flags = (UdmfScrollSectorFlags)parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("xscrollfloor"))
+                GetScrollSector(sector.Id, SectorPlaneFace.Floor, scrollSectors).Speed.X = parser.ParseDouble(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("yscrollfloor"))
+                GetScrollSector(sector.Id, SectorPlaneFace.Floor, scrollSectors).Speed.Y = parser.ParseDouble(prop.Value);
+
+            else if (prop.Name.EqualsIgnoreCase("scrollceilingmode"))
+                GetScrollSector(sector.Id, SectorPlaneFace.Ceiling, scrollSectors).Flags = (UdmfScrollSectorFlags)parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("xscrollceiling"))
+                GetScrollSector(sector.Id, SectorPlaneFace.Ceiling, scrollSectors).Speed.X = parser.ParseDouble(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("yscrollceiling"))
+                GetScrollSector(sector.Id, SectorPlaneFace.Ceiling, scrollSectors).Speed.Y = parser.ParseDouble(prop.Value);
         }
 
         sectors.Add(sector);
+    }
+
+    private static UdmfScrollSector GetScrollSector(int id, SectorPlaneFace face, Dictionary<int, UdmfScrollSector> scrollSectors)
+    {
+        int key = id;
+        if (face == SectorPlaneFace.Ceiling)
+            key |= 1 << 31;
+        if (scrollSectors.TryGetValue(key, out var item))
+            return item;
+
+        item = new(id, face);
+        scrollSectors[key] = item;
+        return item;
     }
 
     private static void ParseLine(StreamParser parser, List<UdmfLine> lines, DynamicArray<char> typeArray, DynamicArray<char> valueArray)

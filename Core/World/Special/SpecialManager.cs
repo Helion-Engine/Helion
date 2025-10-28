@@ -1018,15 +1018,12 @@ public sealed class SpecialManager : ITickable, IDisposable
     private void CreateScrollPlane(Line line, SectorPlaneFace planeType)
     {
         var sectors = GetSectorsFromSpecialLine(line, SectorTagOptions.IncludeZero);
-        ZDoomScroll flags = (ZDoomScroll)line.Args.Arg1;
-        ZDoomPlaneScrollType scrollType = ZDoomPlaneScrollType.Scroll;
+        var flags = (ZDoomScroll)line.Args.Arg1;
+        var scrollType = ZDoomPlaneScrollType.Scroll;
         if (planeType == SectorPlaneFace.Floor)
             scrollType = (ZDoomPlaneScrollType)line.Args.Arg2;
 
-        ScrollSpeeds speeds = ScrollUtil.GetScrollLineSpeed(line, flags, scrollType, 1);
-        var scrollSpeed = speeds.ScrollSpeed ?? Vec2D.Zero;
-        scrollSpeed.X = -scrollSpeed.X;
-
+        var speeds = ScrollUtil.GetScrollLineSpeed(line, flags, scrollType);
         Sector? changeScroll = null;
 
         if ((flags & ZDoomScroll.Accelerative) != 0 || (flags & ZDoomScroll.Displacement) != 0)
@@ -1037,7 +1034,7 @@ public sealed class SpecialManager : ITickable, IDisposable
             var sector = sectors.GetSector(i);
             var sectorPlane = sector.GetSectorPlane(planeType);
             if (speeds.ScrollSpeed.HasValue)
-                AddSpecial(new ScrollSpecial(ScrollPlaneOptions.Textures, sectorPlane, scrollSpeed, changeScroll, flags));
+                AddSpecial(new ScrollSpecial(ScrollPlaneOptions.Textures, sectorPlane, speeds.ScrollSpeed.Value, changeScroll, flags));
 
             if (speeds.CarrySpeed.HasValue)
                 AddSpecial(new ScrollSpecial(ScrollPlaneOptions.CarryAllObjects, sectorPlane, speeds.CarrySpeed.Value, changeScroll, flags));
