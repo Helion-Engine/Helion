@@ -29,6 +29,8 @@ public class MapInfo
     private readonly List<MapInfoDef> m_maps = [];
     private readonly List<ClusterDef> m_clusters = [];
     private readonly List<SkillDef> m_skills = [];
+    private readonly List<MapInfoDef> m_orderedMaps = [];
+    private bool m_builtOrderedMaps;
 
     public void ClearEpisodes() => m_episodes.Clear();
 
@@ -185,7 +187,9 @@ public class MapInfo
     /// </summary>
     public List<MapInfoDef> GetOrderedMaps()
     {
-        List<MapInfoDef> orderedMaps = [];
+        if (m_builtOrderedMaps)
+            return m_orderedMaps;
+
         foreach (var episode in m_episodes)
         {
             Stack<string> mapStack = new();
@@ -194,15 +198,15 @@ public class MapInfo
             {
                 string mapName = mapStack.Pop();
                 var map = m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase(mapName));
-                if (map != null && !orderedMaps.Contains(map))
+                if (map != null && !m_orderedMaps.Contains(map))
                 {
-                    orderedMaps.Add(map);
+                    m_orderedMaps.Add(map);
                     mapStack.Push(map.Next);
                     if (map.SecretNext != "")
                         mapStack.Push(map.SecretNext);
                 }
             }
         }
-        return orderedMaps;
+        return m_orderedMaps;
     }
 }
