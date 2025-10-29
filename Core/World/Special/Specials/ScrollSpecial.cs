@@ -10,12 +10,6 @@ using System;
 
 namespace Helion.World.Special.Specials;
 
-public enum ScrollType
-{
-    Scroll,
-    Carry
-}
-
 [Flags]
 public enum ScrollPlaneOptions
 {
@@ -31,6 +25,12 @@ enum ScrollSides
 {
     Front = 1,
     Back = 2
+}
+
+enum LegacyScrollType
+{
+    Scroll,
+    Carry
 }
 
 public class ScrollSpecial : ISpecial
@@ -156,9 +156,9 @@ public class ScrollSpecial : ISpecial
         ScrollPlaneOptions options = 0;
         if (model.Type.HasValue)
         {
-            // Legacy ScrollType
-            var type = (ScrollType)model.Type;
-            if (type == ScrollType.Scroll)
+            // Need to handle legacy scroll type from old saves.
+            var type = (LegacyScrollType)model.Type;
+            if (type == LegacyScrollType.Scroll)
                 options = ScrollPlaneOptions.Textures;
             else
                 options = ScrollPlaneOptions.CarryAllObjects;

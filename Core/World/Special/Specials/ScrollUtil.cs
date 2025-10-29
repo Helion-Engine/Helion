@@ -16,7 +16,7 @@ public static class ScrollUtil
 {
     // Scrolling speeds from WinMBF.
     // Credit to Lee Killough et al.
-    public static ScrollSpeeds GetScrollLineSpeed(Line line, ZDoomScroll flags, ZDoomPlaneScrollType type, double visualScrollFactor = 1.0)
+    public static ScrollSpeeds GetScrollLineSpeed(Line line, ZDoomScroll flags, ZDoomPlaneScrollType type)
     {
         Vec2D diff;
         if ((flags & ZDoomScroll.Line) != 0)
@@ -31,14 +31,14 @@ public static class ScrollUtil
             diff.Y = (line.Args.Arg4 - 128) / 32.0;
         }
 
-        return GetScrollSpeeds(diff, type, visualScrollFactor);
+        return GetScrollSpeeds(diff, type);
     }
 
-    public static ScrollSpeeds GetScrollSpeeds(Vec2D speed, ZDoomPlaneScrollType type, double visualScrollFactor = 1.0)
+    public static ScrollSpeeds GetScrollSpeeds(Vec2D speed, ZDoomPlaneScrollType type)
     {
         ScrollSpeeds scrollSpeeds = new();
         if (type == ZDoomPlaneScrollType.Scroll || type == ZDoomPlaneScrollType.ScrollAndCarry)
-            scrollSpeeds.ScrollSpeed = speed * visualScrollFactor;
+            scrollSpeeds.ScrollSpeed = speed;
 
         if (type == ZDoomPlaneScrollType.Carry || type == ZDoomPlaneScrollType.ScrollAndCarry)
         {
