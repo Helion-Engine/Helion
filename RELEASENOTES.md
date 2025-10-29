@@ -15,6 +15,7 @@
 - Add randomly mirror corpses option similar to Retro/Crispy/Woof.
 - Add option to select laptop GPU mode (high performance, vs power saving). Helion will automatically set high performance (discrete) GPU to prevent Windows from defaulting to the power saving (integrated) GPU.
 - Add nextmap and previous map commands.
+- Add xscrollfloor, yscrollfloor, scrollfloormode, xscrollceiling, yscrollceiling, and scrollceilingmode for UDMF.
 
 ## Bug Fixes:
 - Fix sprite frames to correctly calculate when lowercase.
