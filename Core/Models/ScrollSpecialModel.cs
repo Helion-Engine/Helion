@@ -19,7 +19,8 @@ public struct ScrollSpecialModel : ISpecialModel
     public int? SectorId { get; set; }
     public int? LineId { get; set; }
     public int PlaneType { get; set; }
-    public int Type { get; set; }
+    public int? Type { get; set; }
+    public int? Options { get; set; }
     public double SpeedX { get; set; }
     public double SpeedY { get; set; }
     public double? OffsetX { get; set; }
@@ -50,7 +51,7 @@ public struct ScrollSpecialModel : ISpecialModel
             if (!world.IsLineIdValid(lineId))
                 return null;
 
-            return new ScrollSpecial(world.Lines[lineId], accelSector, this);
+            return ScrollSpecial.ToWorldSpecial(world.Lines[lineId], accelSector, this);
         }
         else if (SectorId.HasValue)
         {
@@ -58,7 +59,7 @@ public struct ScrollSpecialModel : ISpecialModel
             if (!world.IsSectorIdValid(sectorId))
                 return null;
 
-            return new ScrollSpecial(world.Sectors[sectorId].GetSectorPlane((SectorPlaneFace)PlaneType), accelSector, this);
+            return ScrollSpecial.ToWorldSpecial(world.Sectors[sectorId].GetSectorPlane((SectorPlaneFace)PlaneType), accelSector, this);
         }
 
         return new ScrollSpecial(world.Lines[0], Vec2D.Zero, ZDoomLineScroll.MiddleTexture);

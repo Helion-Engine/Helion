@@ -183,6 +183,7 @@ public abstract partial class WorldBase : IWorld
     private readonly Dictionary<int, Player> m_itemPickupIndexToPlayers = [];
     private readonly Entity m_checkRadiusEntity;
     private readonly Dictionary<int, LineHealthGroup> m_lineHealthGroups = [];
+    private readonly IMap m_map;
     private MusInfoDef? m_lastMusicChange;
     private int m_changeMusicTicks;
     private int m_losDistance = DefaultLineOfSightDistance;
@@ -216,6 +217,7 @@ public abstract partial class WorldBase : IWorld
         m_random = random ?? new DoomRandom();
         m_saveRandom = m_random;
         SecondaryRandom = m_random.Clone();
+        m_map = map;
 
         CreationTimeNanos = Ticker.NanoTime();
         GlobalData = globalData;
@@ -693,7 +695,12 @@ public abstract partial class WorldBase : IWorld
         SetSectorSkies();
 
         if (!SameAsPreviousMap || worldModel == null)
+        {
             SpecialManager.StartInitSpecials(LevelStats, worldModel != null);
+
+            if (m_map is IMapSpecials mapSpecials)
+                mapSpecials.Initialize(this);
+        }
 
         StaticDataApplier.DetermineStaticData(this);
         SpecialManager.SectorSpecialDestroyed += SpecialManager_SectorSpecialDestroyed;
