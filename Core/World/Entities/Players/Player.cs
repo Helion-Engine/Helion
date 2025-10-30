@@ -1529,13 +1529,16 @@ public class Player : Entity
     {
         if (PendingWeapon == null)
         {
+            PendingWeapon = Weapon;
+
             // The Weapon reference exists on clear inventory while lowering the weapon. Need to clear the reference if no longer owned.
-            if (Weapon != null && !Inventory.Weapons.OwnsWeapon(Weapon.Definition))
+            if (PendingWeapon != null && !Inventory.Weapons.OwnsWeapon(PendingWeapon.Definition))
             {
+                PendingWeapon = null;
                 Weapon = null;
                 AnimationWeapon = null;
             }
-            return;
+            return;            
         }
 
         if (PendingWeapon.Definition.Properties.Weapons.UpSound.Length > 0)

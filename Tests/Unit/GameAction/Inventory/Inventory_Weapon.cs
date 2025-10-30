@@ -4,6 +4,7 @@ using Helion.Tests.Unit.GameAction.Util;
 using Helion.Util;
 using Helion.Util.Extensions;
 using Helion.World.Entities;
+using Helion.World.Entities.Inventories;
 using Helion.World.Entities.Players;
 using System;
 using Xunit;
@@ -658,6 +659,23 @@ public partial class Inventory
         Player.Inventory.Weapons.HasWeaponSlot(3).Should().BeTrue();
         Player.Inventory.Remove("Shotgun", 1);
         Player.Inventory.Weapons.HasWeaponSlot(3).Should().BeFalse();
+    }
+
+    [Fact(DisplayName = "Lower weapon will eventually raise even with no pending weapon (can happen through dehacked)")]
+    public void LowerWeaponWithNoPendingWeapon()
+    {
+        Player.Inventory.Weapons.HasWeaponSlot(1).Should().BeTrue();
+        Player.PendingWeapon.Should().BeNull();
+        InventoryUtil.AssertWeapon(Player.Weapon, "Pistol");
+
+        Player.ForceLowerWeapon(false);
+        Player.PendingWeapon.Should().BeNull();
+
+        GameActions.TickWorld(World, () => Player.WeaponOffset.Y < 122, () => { });
+        GameActions.TickWorld(World, () => Player.WeaponOffset.Y > Constants.WeaponTop, () => { });
+
+        Player.Weapon!.FrameState.Frame.ActionFunction.Should().NotBeNull();
+        Player.Weapon!.FrameState.Frame.ActionFunction!.Method.Name.Should().Be("A_WeaponReady");
     }
 
     private Entity CreateEntity(string name, Vec3D pos)
