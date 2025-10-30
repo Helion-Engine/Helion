@@ -771,6 +771,7 @@ public static class EntityActionFunctions
             entity.Flags.Attacking = true;
             entity.PlayAttackSound();
             entity.FrameState.SetFrameIndex(entity, entity.Definition.MeleeState.Value);
+            return;
         }
 
         if (entity.IsDisposed)

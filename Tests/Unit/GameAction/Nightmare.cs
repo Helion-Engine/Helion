@@ -53,6 +53,7 @@ public class Nightmare
         demon.Position.Y.Should().Be(-124);
 
         GameActions.TickWorld(World, () => demon.FrameState.Frame.ActionFunction != EntityActionFunctions.A_SargAttack, () => { });
+        Player.Velocity = Vec3D.Zero;
         // Normal duration for attack is 8. Should be halved.
         GameActions.TickWorld(World, 4);
         (demon.FrameState.Frame.ActionFunction == EntityActionFunctions.A_FaceTarget).Should().BeTrue();
