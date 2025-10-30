@@ -44,3 +44,5 @@
 - Fix friendly monsters passing through two-sided impassible lines.
 - Fix monsters attempting to move immediately after melee attack to match original behavior.
 - Fix issue with midtex clipping when upper/lower texture is missing that blocked sprite rendering with vanilla render option. (Fixes Blues Brothers 2025 MAP01 near megasphere)
+- Fix A_Lower not able to call A_Raise when no pending weapon is set through dehacked. (Fixes Blues Brothers 2025 weapon slot 4)
+- Fix A_FindTracer to ignore things when same owner. (Fixes Blues Brothers 2025 weapon slot 4)
