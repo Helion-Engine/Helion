@@ -43,3 +43,4 @@
 - Fix changing hud.scale from console to automatically disable hud.autoscale so it isn't modified on restart.
 - Fix friendly monsters passing through two-sided impassible lines.
 - Fix monsters attempting to move immediately after melee attack to match original behavior.
+- Fix issue with midtex clipping when upper/lower texture is missing that blocked sprite rendering with vanilla render option. (Fixes Blues Brothers 2025 MAP01 near megasphere)
