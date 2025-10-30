@@ -3252,7 +3252,7 @@ public abstract partial class WorldBase : IWorld
         if (!checkEntity.Flags.Shootable)
             return GridIterationStatus.Continue;
 
-        if (!m_newTracerTargetData.Owner.ValidEnemyTarget(checkEntity))
+        if (m_newTracerTargetData.Owner == checkEntity || !m_newTracerTargetData.Owner.ValidEnemyTarget(checkEntity))
             return GridIterationStatus.Continue;
 
         if (m_newTracerTargetData.FieldOfViewRadians > 0 &&
