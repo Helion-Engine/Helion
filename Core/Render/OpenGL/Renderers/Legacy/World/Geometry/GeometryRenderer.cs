@@ -764,7 +764,10 @@ public class GeometryRenderer : IDisposable
         SideTexture visibleTextures, Action<Side, DynamicVertex[], WallLocation> render)
     {
         var clipPlanes = GetMidTexClipPlanes(side, facingSector, otherSector, out var opening, out var prevOpening);
-        if (((visibleTextures & SideTexture.Lower) == 0 || (side.FloodTextures & SideTexture.Lower) != 0) && (clipPlanes & SectorPlanes.Floor) != 0)
+        if (
+            ((visibleTextures & SideTexture.Lower) == 0 || (side.FloodTextures & SideTexture.Lower) != 0) &&
+            (side.PartnerSide == null || (side.PartnerSide.FloodTextures & SideTexture.Lower) == 0) &&
+            (clipPlanes & SectorPlanes.Floor) != 0)
         {
             var bottomZ = (float)opening.MinBottomZ;
             var prevBottomZ = (float)prevOpening.MinBottomZ;
@@ -779,7 +782,10 @@ public class GeometryRenderer : IDisposable
             render(side, m_wallVertices, WallLocation.Lower);
         }
 
-        if (((visibleTextures & SideTexture.Upper) == 0 || (side.FloodTextures & SideTexture.Upper) != 0) && (clipPlanes & SectorPlanes.Ceiling) != 0)
+        if (
+            ((visibleTextures & SideTexture.Upper) == 0 || (side.FloodTextures & SideTexture.Upper) != 0) &&
+            (side.PartnerSide == null || (side.PartnerSide.FloodTextures & SideTexture.Upper) == 0) &&
+            (clipPlanes & SectorPlanes.Ceiling) != 0)
         {
             var topZ = (float)opening.MaxTopZ;
             var prevTopZ = (float)prevOpening.MaxTopZ;
