@@ -378,7 +378,15 @@ public partial class Client
     [ConsoleCommand("exit", "Exits Helion")]
     private void CommandExit(ConsoleCommandEventArgs args)
     {
-        if (m_config.Game.DisplayEndoom)
+        var showEndoom = m_config.Game.DisplayEndoom.Value;
+        if (showEndoom && m_config.Game.DisplayCustomEndoomOnly)
+        {
+            var endoomLump = m_archiveCollection.FindEntry(Constants.Endoom);
+            if (endoomLump == null || endoomLump.Parent == m_archiveCollection.IWad)
+                showEndoom = false;
+        }
+
+        if (showEndoom)
         {
             m_audioSystem.Music.Stop();
             m_audioSystem.Music.Enabled = false;

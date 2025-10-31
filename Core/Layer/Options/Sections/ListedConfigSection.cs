@@ -76,6 +76,7 @@ public class ListedConfigSection : IOptionSection
     {
         m_config.Game.RotatingAutoSaves.OptionDisabled = !m_config.Game.AutoSave;
         m_config.Game.QuickSaveConfirm.OptionDisabled = m_config.Game.RotatingQuickSaves > 0;
+        m_config.Game.DisplayCustomEndoomOnly.OptionDisabled = !m_config.Game.DisplayEndoom;
 
         m_config.Window.Dimension.OptionDisabled = m_config.Window.State != RenderWindowState.Normal;
         m_config.Window.PaletteTrueColorOverlay.OptionDisabled = m_config.Window.ColorMode.Value != RenderColorMode.Palette;

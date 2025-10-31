@@ -46,6 +46,10 @@ public class ConfigGame : ConfigElement<ConfigGame>
     [OptionMenu(OptionSectionType.General, "Display ENDOOM")]
     public readonly ConfigValue<bool> DisplayEndoom = new(true);
 
+    [ConfigInfo("Display ENDOOM only if it's not from the IWAD.")]
+    [OptionMenu(OptionSectionType.General, "Display Custom ENDOOM only")]
+    public readonly ConfigValue<bool> DisplayCustomEndoomOnly = new(true);
+
     [ConfigInfo("Randomly mirror corpse, blood, and bullet puffs.")]
     [OptionMenu(OptionSectionType.General, "Randomly Mirror Corpses")]
     public readonly ConfigValue<bool> MirrorCorpse = new(false);
