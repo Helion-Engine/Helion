@@ -17,6 +17,7 @@
 - Add nextmap and previous map commands.
 - Add xscrollfloor, yscrollfloor, scrollfloormode, xscrollceiling, yscrollceiling, and scrollceilingmode for UDMF.
 - Add display custom endoom only option that will only show endoom screens from the pwads.
+- Improve hud autoscale.
 
 ## Bug Fixes:
 - Fix sprite frames to correctly calculate when lowercase.
