@@ -87,6 +87,7 @@ public static class Constants
     public const string DefaultSkyTextureName = "SKY1";
 
     public const string DefaultBackgroundImage = "helion-background";
+    public const string Endoom = "ENDOOM";
 
     public static class MenuSounds
     {

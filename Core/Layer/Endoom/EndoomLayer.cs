@@ -2,7 +2,6 @@
 {
     using Helion.Render.Common.Renderers;
     using Helion.Render.Common.Textures;
-    using Helion.Render.OpenGL.Texture;
     using Helion.Resources.Archives.Collection;
     using Helion.Util;
     using Helion.Util.Extensions;
@@ -21,7 +20,6 @@
         const int ENDOOMCOLUMNS = 80;
         const int ENDOOMROWS = ENDOOMBYTES / ENDOOMCOLUMNS / 2;
         const string FONTNAME = Constants.Fonts.VGA;
-        const string LUMPNAME = "ENDOOM";
         private const string IMAGENAME1 = "ENDOOM_RENDERED_1";
         private const string IMAGENAME2 = "ENDOOM_RENDERED_2";
 
@@ -31,10 +29,10 @@
         private IRenderableTextureHandle? m_texture1;
         private IRenderableTextureHandle? m_texture2;
 
-        private int m_pixelHeight;
+        private readonly int m_pixelHeight;
 
-        private TextScreen? m_endoomScreen;
-        private byte[]? m_fontBytes;
+        private readonly TextScreen? m_endoomScreen;
+        private readonly byte[]? m_fontBytes;
         private bool disposedValue;
 
         public EndoomLayer(Action closeAction, ArchiveCollection archiveCollection, int height)
@@ -49,7 +47,7 @@
                 m_pixelHeight = scaled <= 1080 ? scaled : 0;
             }
 
-            byte[]? endoomData = m_archiveCollection.FindEntry(LUMPNAME)?.ReadData();
+            byte[]? endoomData = m_archiveCollection.FindEntry(Constants.Endoom)?.ReadData();
             if (endoomData != null)
             {
                 m_endoomScreen = new TextScreen(endoomData, ENDOOMROWS, ENDOOMCOLUMNS);
