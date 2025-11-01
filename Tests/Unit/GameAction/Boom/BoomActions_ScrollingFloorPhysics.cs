@@ -62,7 +62,7 @@ public partial class BoomActions
     {
         var scrollSector = GameActions.GetSectorByTag(World, 9);
         var entity = GameActions.CreateEntity(World, "ZombieMan", (-192, 928, 0));
-        entity.Flags.NoBlockmap = true;
+        entity.Flags.SetNoBlockmap();
         entity.Sector.Should().Be(scrollSector);
 
         GameActions.TickWorld(World, 1);
@@ -99,8 +99,8 @@ public partial class BoomActions
     {
         var scrollSector = GameActions.GetSectorByTag(World, 10);
         var teleport = GameActions.CreateEntity(World, "Rocket", (-192, 736, 0));
-        teleport.Flags.NoBlockmap.Should().BeTrue();
-        teleport.Flags.NoGravity.Should().BeTrue();
+        teleport.Flags.NoBlockmap().Should().BeTrue();
+        teleport.Flags.NoGravity().Should().BeTrue();
         teleport.Sector.Should().Be(scrollSector);
 
         GameActions.TickWorld(World, 1);

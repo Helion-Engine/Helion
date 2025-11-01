@@ -37,7 +37,7 @@ public class HealChase : IDisposable
     {
         var imp = GameActions.CreateEntity(World, "DoomImp", (-320, -320, 0));
         imp.Kill(null);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
         GameActions.TickWorld(World, 35);
         var archvile = GameActions.CreateEntity(World, "Archvile", (-272, -320, 0));
         archvile.SetTarget(World.Player);
@@ -46,8 +46,8 @@ public class HealChase : IDisposable
         EntityActionFunctions.A_VileChase(archvile);
         GameActions.AssertSound(World, imp, "dsslop");
         GameActions.TickWorld(World, 35);
-        imp.IsDead.Should().BeFalse();
-        imp.Flags.Solid.Should().BeTrue();
+        imp.IsDead().Should().BeFalse();
+        imp.Flags.Solid().Should().BeTrue();
         imp.Height.Should().Be(56);
         archvile.Target().Should().Be(World.Player);
     }
@@ -57,7 +57,7 @@ public class HealChase : IDisposable
     {
         var imp = GameActions.CreateEntity(World, "DoomImp", (-320, -320, 0));
         imp.Kill(null);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
         GameActions.TickWorld(World, 35);
         var archvile = GameActions.CreateEntity(World, "Archvile", (-272, -320, 0));
         archvile.SetTarget(World.Player);
@@ -72,8 +72,8 @@ public class HealChase : IDisposable
         GameActions.AssertSound(World, imp, "dspistol");
         archvile.FrameState.Frame.Sprite.Should().Be("SKEL");
         GameActions.TickWorld(World, 35);
-        imp.IsDead.Should().BeFalse();
-        imp.Flags.Solid.Should().BeTrue();
+        imp.IsDead().Should().BeFalse();
+        imp.Flags.Solid().Should().BeTrue();
         imp.Height.Should().Be(56);
         archvile.Target().Should().Be(World.Player);
     }
@@ -83,7 +83,7 @@ public class HealChase : IDisposable
     {
         var imp = GameActions.CreateEntity(World, "DoomImp", (-320, -320, 0));
         imp.Kill(null);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
         GameActions.TickWorld(World, 35);
         var archvile = GameActions.CreateEntity(World, "Archvile", (-256, -320, 0));
         GameActions.CreateEntity(World, "ZombieMan", (-332, -320, 0));
@@ -92,7 +92,7 @@ public class HealChase : IDisposable
 
         EntityActionFunctions.A_VileChase(archvile);
         GameActions.TickWorld(World, 35);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Vile chase does not raise monster because it overlaps with archvile")]
@@ -100,7 +100,7 @@ public class HealChase : IDisposable
     {
         var imp = GameActions.CreateEntity(World, "DoomImp", (-320, -320, 0));
         imp.Kill(null);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
         GameActions.TickWorld(World, 35);
         var archvile = GameActions.CreateEntity(World, "Archvile", (-256, -320, 0));
         archvile.SetTarget(World.Player);
@@ -108,6 +108,6 @@ public class HealChase : IDisposable
 
         EntityActionFunctions.A_VileChase(archvile);
         GameActions.TickWorld(World, 35);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
     }
 }

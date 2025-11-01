@@ -22,10 +22,10 @@ public class TransferKillEffect
     public void TransferKillEffectMonster()
     {
         var monster = GameActions.GetEntity(World, 1);
-        monster.IsDead.Should().BeFalse();
+        monster.IsDead().Should().BeFalse();
 
         GameActions.ActivateLine(World, Player, 13, ActivationContext.CrossLine).Should().BeTrue();
         GameActions.TickWorld(World, 10);
-        monster.IsDead.Should().BeTrue();
+        monster.IsDead().Should().BeTrue();
     }
 }

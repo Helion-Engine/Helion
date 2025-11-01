@@ -34,14 +34,14 @@ public class PlayerCheats
     [Fact(DisplayName = "Cheat no clip")]
     public void NoClip()
     {
-        Player.Flags.NoClip.Should().BeFalse();
+        Player.Flags.NoClip().Should().BeFalse();
         AssertCheat(CheatType.NoClip, false);
         World.CheatManager.ActivateCheat(Player, CheatType.NoClip);
         AssertCheat(CheatType.NoClip, true);
-        Player.Flags.NoClip.Should().BeTrue();
+        Player.Flags.NoClip().Should().BeTrue();
         World.CheatManager.DeactivateCheat(Player, CheatType.NoClip);
         AssertCheat(CheatType.NoClip, false);
-        Player.Flags.NoClip.Should().BeFalse();
+        Player.Flags.NoClip().Should().BeFalse();
     }
 
     [Fact(DisplayName = "Cheat god")]
@@ -59,31 +59,31 @@ public class PlayerCheats
     [Fact(DisplayName = "Cheat fly")]
     public void Fly()
     {
-        Player.Flags.Fly.Should().BeFalse();
-        Player.Flags.NoGravity.Should().BeFalse();
+        Player.Flags.Fly().Should().BeFalse();
+        Player.Flags.NoGravity().Should().BeFalse();
         AssertCheat(CheatType.Fly, false);
         World.CheatManager.ActivateCheat(Player, CheatType.Fly);
         AssertCheat(CheatType.Fly, true);
-        Player.Flags.Fly.Should().BeTrue();
-        Player.Flags.NoGravity.Should().BeTrue();
+        Player.Flags.Fly().Should().BeTrue();
+        Player.Flags.NoGravity().Should().BeTrue();
         World.CheatManager.DeactivateCheat(Player, CheatType.Fly);
         AssertCheat(CheatType.Fly, false);
-        Player.Flags.Fly.Should().BeFalse();
-        Player.Flags.NoGravity.Should().BeFalse();
+        Player.Flags.Fly().Should().BeFalse();
+        Player.Flags.NoGravity().Should().BeFalse();
     }
 
     [Fact(DisplayName = "Cheat resurrect")]
     public void Resurrect()
     {
         Player.Kill(null);
-        Player.IsDead.Should().BeTrue();
+        Player.IsDead().Should().BeTrue();
         Player.Health.Should().Be(0);
         GameActions.TickWorld(World, 35);
         Player.WeaponOffset.Y.Should().Be(Constants.WeaponBottom);
         World.CheatManager.ActivateCheat(Player, CheatType.Resurrect);
         GameActions.TickWorld(World, 35);
         Player.WeaponOffset.Y.Should().Be(Constants.WeaponTop);
-        Player.IsDead.Should().BeFalse();
+        Player.IsDead().Should().BeFalse();
         Player.Health.Should().Be(100);
     }
 

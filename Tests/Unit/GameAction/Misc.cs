@@ -88,15 +88,15 @@ public class Misc
             monsters.Add(GameActions.CreateEntity(World, "Zombieman", (-320, -576 + (i * 64), 0)));
 
         foreach (var monster in monsters)
-            monster.IsDead.Should().BeFalse();
+            monster.IsDead().Should().BeFalse();
 
         GameActions.SetEntityToLine(World, Player, 2, 64);
         GameActions.SetEntityPosition(World, Player, (-320, -160));
         World.FireHitscan(Player, Player.AngleRadians, 0, 2048, 1000);
 
-        monsters[0].IsDead.Should().BeFalse();
-        monsters[1].IsDead.Should().BeFalse();
-        monsters[2].IsDead.Should().BeTrue();
+        monsters[0].IsDead().Should().BeFalse();
+        monsters[1].IsDead().Should().BeFalse();
+        monsters[2].IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Hitscan pass through option")]
@@ -109,16 +109,16 @@ public class Misc
         var behindLineMonster = GameActions.CreateEntity(World, "Zombieman", (-320, -704, 0));
 
         foreach (var monster in monsters)
-            monster.IsDead.Should().BeFalse();
-        behindLineMonster.IsDead.Should().BeFalse();
+            monster.IsDead().Should().BeFalse();
+        behindLineMonster.IsDead().Should().BeFalse();
 
         GameActions.SetEntityToLine(World, Player, 2, 64);
         GameActions.SetEntityPosition(World, Player, (-320, -160));
         World.FireHitscan(Player, Player.AngleRadians, 0, 2048, 1000, HitScanOptions.PassThroughEntities);
 
         foreach (var monster in monsters)
-            monster.IsDead.Should().BeTrue();
-        behindLineMonster.IsDead.Should().BeFalse();
+            monster.IsDead().Should().BeTrue();
+        behindLineMonster.IsDead().Should().BeFalse();
     }
 }
 

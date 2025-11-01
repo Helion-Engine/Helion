@@ -160,7 +160,7 @@ public class Shoot
         Random.RandomValue = 1;
         zombieman.Health = 5;
         World.FirePlayerHitscanBullets(Player, 1, 0, 0, pitch, 2048, false, (p) => 10);
-        zombieman.IsDead.Should().BeTrue();
+        zombieman.IsDead().Should().BeTrue();
         zombieman.Velocity.ApproxEquals((2.4806946917841666, -4.341215710622298, 0));
     }
 
@@ -172,11 +172,11 @@ public class Shoot
         GameActions.SetEntityPosition(World, Player, (96, -480, 0));
         var projectile = World.FireProjectile(Player, 1.5707963267948966, 0, 2048, true, GetMissileDef(), out _);
         projectile.Should().NotBeNull();
-        projectile!.Flags.Ripper = true;
+        projectile!.Flags.SetRipper();
         projectile!.Definition.Properties.Damage = new DamageRangeProperty { Value = 100, Exact = true };
         GameActions.TickWorld(World, 35 * 10);        
         foreach (var imp in imps)
-            imp.IsDead.Should().BeTrue();
+            imp.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Shoot rail")]
@@ -194,7 +194,7 @@ public class Shoot
         tracer.Segs[0].Start.Should().Be(start);
         tracer.Segs[0].End.ApproxEquals(new Vec3D(96, -2, start.Z)).Should().BeTrue();
         foreach (var imp in imps)
-            imp.IsDead.Should().BeTrue();
+            imp.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Self referencing sector with blocking floor doesn't block hitscan")]

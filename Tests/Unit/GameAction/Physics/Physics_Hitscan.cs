@@ -19,15 +19,15 @@ public partial class Physics
         var hitEntity = World.FireHitscan(Player, Player.AngleRadians, 0, 8192, Constants.HitscanTestDamage);
         hitEntity.Should().Be(entity, "Shootable and solid");
 
-        entity.Flags.Solid = false;
+        entity.Flags.ClearSolid();
         hitEntity = World.FireHitscan(Player, Player.AngleRadians, 0, 8192, Constants.HitscanTestDamage);
         hitEntity.Should().Be(entity, "Shootable and non-solid");
 
-        entity.Flags.Shootable = false;
+        entity.Flags.ClearShootable();
         hitEntity = World.FireHitscan(Player, Player.AngleRadians, 0, 8192, Constants.HitscanTestDamage);
         hitEntity.Should().BeNull("Non-shootable and non-solid");
 
-        entity.Flags.Solid = false;
+        entity.Flags.ClearSolid();
         hitEntity = World.FireHitscan(Player, Player.AngleRadians, 0, 8192, Constants.HitscanTestDamage);
         hitEntity.Should().BeNull("Non-shootable and solid");
     }

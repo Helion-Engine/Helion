@@ -131,11 +131,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public int MinMissileChance;
     public int MeleeThreshold;
 
-    public bool IsFrozen => FrozenTics > 0;
-    public bool IsDead => Health <= 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsFrozen() => FrozenTics > 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsDead() => Health <= 0;
     public virtual double ViewZ => 8.0;
-    public bool IsDeathStateFinished => IsDead && FrameState.Frame.Ticks == -1;
-    public virtual bool IsInvulnerable => Flags.Invulnerable;
+    public bool IsDeathStateFinished => IsDead() && FrameState.Frame.Ticks == -1;
+    public virtual bool IsInvulnerable => Flags.Invulnerable();
     public virtual Player? PlayerObj => null;
     public virtual bool IsPlayer => false;
     public bool OnSectorFloorZ(Sector sector) => sector.ToFloorZ(Position) == Position.Z;
@@ -242,7 +244,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         Respawn = entityModel.Respawn;
 
         m_direction = (MoveDir)entityModel.MoveDir;
-        Flags.InFloat = entityModel.BlockFloat;
+        Flags.SetInFloat(entityModel.BlockFloat);
         MoveCount = entityModel.MoveCount;
         FrozenTics = entityModel.FrozenTics;
         Gravity = entityModel.Gravity;
@@ -269,8 +271,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (entityModel.IsBlood.HasValue && entityModel.IsBlood.Value)
             Definition.Type = EntityType.Blood;
 
-        if (Flags.Stealth)
-            StealthVisible = IsDead;
+        if (Flags.Stealth())
+            StealthVisible = IsDead();
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -302,7 +304,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         entityModel.Respawn = Respawn;
         entityModel.Sector = Sector.Id;
         entityModel.MoveDir = (int)m_direction;
-        entityModel.BlockFloat = Flags.InFloat;
+        entityModel.BlockFloat = Flags.InFloat();
 
         entityModel.Frame.FrameIndex = FrameState.FrameIndex;
         entityModel.Frame.Tics = FrameState.CurrentTick;
@@ -495,12 +497,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     {
         PrevPosition = Position;
 
-        Flags.Teleported = false;
+        Flags.ClearTeleported();
 
         if (FrozenTics > 0)
             FrozenTics--;
 
-        if (Flags.BossSpawnShot && ReactionTime > 0)
+        if (Flags.BossSpawnShot() && ReactionTime > 0)
             ReactionTime--;
 
         FrameState.Tick(this);
@@ -508,9 +510,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (IsDisposed)
             return;
 
-        if (Flags.Stealth)
+        if (Flags.Stealth())
         {
-            if (StealthVisible || Flags.Attacking)
+            if (StealthVisible || Flags.Attacking())
             {
                 Alpha += 2 / (float)Constants.TicksPerSecond;
                 if (Alpha >= 1)
@@ -519,7 +521,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
                     StealthVisible = false;
                 }
             }
-            else if (!IsDead)
+            else if (!IsDead())
             {
                 Alpha -= 1.5f / (float)Constants.TicksPerSecond;
                 if (Alpha < 0)
@@ -527,10 +529,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             }
         }
 
-        if (Flags.CountKill && IsDeathStateFinished)
+        if (Flags.CountKill() && IsDeathStateFinished)
         {
             int checkCount = Properties.RespawnTicks ?? WorldStatic.RespawnTicks;
-            if (checkCount == 0 || Flags.NoRespawn)
+            if (checkCount == 0 || Flags.NoRespawn())
                 return;
 
             MoveCount++;
@@ -564,11 +566,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         bool gib = Health < -Properties.Health;
         Height = Definition.Properties.Height / 4.0;
         ClosetFlags = ClosetFlags.None;
-        Flags.Attacking = false;
+        Flags.ClearAttacking();
         StealthVisible = true;
 
-        if (WorldStatic.MirrorCorpse && IsDead && Flags.IsMonster && !Flags.DontMirrorCorpse && (World.SecondaryRandom.NextByte() & 1) != 0)
-            Flags.Mirror = !Flags.Mirror;
+        if (WorldStatic.MirrorCorpse && IsDead() && Flags.IsMonster() && !Flags.DontMirrorCorpse() && (World.SecondaryRandom.NextByte() & 1) != 0)
+            Flags.FlipMirror();
 
         if (gib && Definition.XDeathState != null)
             SetXDeathState(source);
@@ -627,10 +629,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     private void SetDeathRandomizeTicks()
     {
-        if (Flags.Missile)
+        if (Flags.Missile())
         {
             // Doom will always apply randomization, force this functionality if a dehacked patch is applied
-            if (Flags.Randomize || WorldStatic.Dehacked)
+            if (Flags.Randomize() || WorldStatic.Dehacked)
                 SetRandomizeTicks();
             if (FrameState.CurrentTick < 1)
                 FrameState.SetTics(1);
@@ -648,8 +650,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (FrameState.SetState(this, Definition, Constants.FrameStates.Crush, warn: false) ||
             FrameState.SetState(this, Definition, Constants.FrameStates.GenericCrush, warn: false))
         {
-            Flags.DontGib = true;
-            Flags.Solid = false;
+            Flags.SetDontGib();
+            Flags.ClearSolid();
             Height = 0.0;
             return true;
         }
@@ -664,7 +666,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             FrameState.SetFrameIndex(this, Definition.RaiseState.Value);
             Health = Definition.Properties.Health;
             Height = Definition.Properties.Height;
-            Flags.CrushGiblets = false;
+            Flags.ClearCrushGiblets();
             if (restoreFlags)
                 Flags = Definition.Flags;
         }
@@ -678,7 +680,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (Definition.Properties.SeeSound.Length == 0)
             return;
 
-        Attenuation attenuation = (Flags.FullVolSee || Flags.Boss) ? Attenuation.None : Attenuation.Default;
+        Attenuation attenuation = (Flags.FullVolSee() || Flags.Boss()) ? Attenuation.None : Attenuation.Default;
         WorldStatic.SoundManager.CreateSoundOn(this, Definition.Properties.SeeSound,
             new SoundParams(this, attenuation: attenuation, type: SoundType.See, context: ctx));
     }
@@ -688,7 +690,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (Definition.Properties.DeathSound.Length == 0)
             return;
 
-        Attenuation attenuation = (Flags.FullVolDeath || Flags.Boss) ? Attenuation.None : Attenuation.Default;
+        Attenuation attenuation = (Flags.FullVolDeath() || Flags.Boss()) ? Attenuation.None : Attenuation.Default;
         WorldStatic.SoundManager.CreateSoundOn(this, Definition.Properties.DeathSound,
             new SoundParams(this, attenuation: attenuation));
     }
@@ -716,7 +718,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         for (int i = 0; i < Definition.ParentClassNames.Count; i++)
         {
             var def = WorldStatic.EntityManager.DefinitionComposer.GetByName(Definition.ParentClassNames[i]);
-            if (def == null || !def.Flags.IsMonster)
+            if (def == null || !def.Flags.IsMonster())
                 continue;
 
             speciesDef = def;
@@ -744,7 +746,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (Properties.ProjectileGroup.HasValue)
             return !ProjectileGroupEquals(Properties.ProjectileGroup, damageSource.Properties.ProjectileGroup);
 
-        if (GetSpeciesName().EqualsIgnoreCase(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies)
+        if (GetSpeciesName().EqualsIgnoreCase(damageSource.GetSpeciesName()) && !Flags.DoHarmSpecies())
             return false;
 
         return true;
@@ -763,7 +765,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public virtual bool Damage(Entity? source, int damage, bool setPainState, DamageType damageType)
     {
-        if (damage <= 0 || Flags.Invulnerable)
+        if (damage <= 0 || Flags.Invulnerable())
             return false;
 
         Entity? damageSource = source;
@@ -775,9 +777,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             if (!CanDamage(source, damageType))
                 return false;
 
-            canRetaliate = WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != this;
+            canRetaliate = WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead() && damageSource != this;
             willRetaliate = canRetaliate && damageSource != Target();
-            if (willRetaliate && !damageSource.Flags.NoTarget && !IsFriend(damageSource))
+            if (willRetaliate && !damageSource.Flags.NoTarget() && !IsFriend(damageSource))
                 SetTarget(damageSource);
         }
 
@@ -795,7 +797,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             Health -= damage;
         }
 
-        if (Flags.Stealth)
+        if (Flags.Stealth())
             StealthVisible = true;
 
         ReactionTime = 0;
@@ -805,17 +807,17 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             KillInternal(source);
             return true;
         }
-        else if (setPainState && !Flags.Skullfly && Definition.PainState != null)
+        else if (setPainState && !Flags.Skullfly() && Definition.PainState != null)
         {
-            Flags.JustHit = true;
+            Flags.SetJustHit();
             FrameState.SetFrameIndex(this, Definition.PainState.Value);
         }
 
         // Skullfly is not turned off here as the original game did not do this
-        if (Flags.Skullfly)
+        if (Flags.Skullfly())
             Velocity = Vec3D.Zero;
 
-        if (damageSource != null && canRetaliate && !Flags.QuickToRetaliate)
+        if (damageSource != null && canRetaliate && !Flags.QuickToRetaliate())
             Threshold = Properties.DefThreshold;
         if (damageSource != null && willRetaliate)
         {
@@ -834,30 +836,30 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
     public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
-    public bool IsFriend(Entity entity) => Flags.Friendly && entity.Flags.Friendly;
+    public bool IsFriend(Entity entity) => Flags.Friendly() && entity.Flags.Friendly();
 
     public bool CanBlockEntity(Entity other)
     {
-        if (this == other || Owner() == other || other.Flags.NoClip)
+        if (this == other || Owner() == other || other.Flags.NoClip())
             return false;
 
-        if (Flags.Ripper)
+        if (Flags.Ripper())
             return false;
 
-        if (Flags.Missile)
+        if (Flags.Missile())
         {
-            if (!other.Flags.Shootable && !other.Flags.Solid)
+            if (!other.Flags.Shootable() && !other.Flags.Solid())
                 return false;
 
             return true;
         }
 
-        return other.Flags.Solid;
+        return other.Flags.Solid();
     }
 
     public double GetMaxStepHeight()
     {
-        if (Flags.Missile)
+        if (Flags.Missile())
             return Flags.StepMissile ? Properties.MaxStepHeight : 0.0;
 
         return Properties.MaxStepHeight;
@@ -865,7 +867,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public bool ShouldApplyGravity()
     {
-        if (Flags.NoGravity)
+        if (Flags.NoGravity())
             return false;
 
         return !OnGround;
@@ -873,11 +875,11 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public bool ShouldApplyFriction()
     {
-        if (Flags.NoFriction || Flags.Missile || Flags.Skullfly)
+        if (Flags.NoFriction() || Flags.Missile() || Flags.Skullfly())
             return false;
 
         // Need to apply friction for player fly
-        return OnGround || Flags.Fly;
+        return OnGround || Flags.Fly();
     }
 
     /// <summary>
@@ -885,7 +887,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     /// </summary>
     public bool IsClippedWithEntity()
     {
-        if (!Flags.Solid)
+        if (!Flags.Solid())
             return false;
 
         DynamicArray<Entity> entities = WorldStatic.DataCache.GetEntityList();
@@ -914,10 +916,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (!WorldStatic.AllowItemDropoff)
             return true;
 
-        if (IsBoomSentient && Flags.MonsterMove)
+        if (IsBoomSentient && Flags.MonsterMove())
             return true;
 
-        return !Flags.IgnoreDropOff;
+        return !Flags.IgnoreDropOff();
     }
 
     public bool IsBoomSentient => Definition.Properties.Health > 0 && Definition.SeeState.HasValue;
@@ -927,7 +929,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (!ShouldCheckDropOff())
             return true;
 
-        if (tryMove.DropOffEntity != null && !tryMove.DropOffEntity.Flags.ActLikeBridge)
+        if (tryMove.DropOffEntity != null && !tryMove.DropOffEntity.Flags.ActLikeBridge())
             return false;
 
         var maxStepHeight = GetMaxStepHeight();
@@ -939,7 +941,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
             highestWalk = GetHighestWalkEntity(tryMove, highestWalk, World.Lines[tryMove.IntersectMidTexLines[i]].GetMidTexEntity(World), maxStepHeight);
 
-        if (highestWalk != null && !highestWalk.Flags.ActLikeBridge &&
+        if (highestWalk != null && !highestWalk.Flags.ActLikeBridge() &&
             highestWalk.Position.Z + highestWalk.Height > tryMove.DropOffZ &&
             highestWalk.Position.Z + highestWalk.Height <= Position.Z)
             return false;
@@ -963,7 +965,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             // ActLikeBridge takes precedence when z is equal
             if (topZ == tryMove.DropOffZ)
             {
-                if (highestWalk == null || !highestWalk.Flags.ActLikeBridge)
+                if (highestWalk == null || !highestWalk.Flags.ActLikeBridge())
                     highestWalk = entity;
             }
             else
@@ -971,7 +973,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
                 highestWalk = entity;
             }
 
-            if (entity.Flags.ActLikeBridge)
+            if (entity.Flags.ActLikeBridge())
                 tryMove.DropOffZ = topZ;
         }
 
@@ -980,7 +982,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public virtual void Hit(in Vec3D velocity)
     {
-        if (Flags.Skullfly)
+        if (Flags.Skullfly())
         {
             if (BlockingEntity != null)
             {
@@ -996,12 +998,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             }
             else
             {
-                Flags.Skullfly = false;
+                Flags.ClearSkullfly();
                 Velocity = Vec3D.Zero;
                 SetSpawnState();
             }
         }
-        else if (Flags.MbfBouncer)
+        else if (Flags.MbfBouncer())
         {
             if (BlockingSectorPlane != null)
             {
@@ -1010,7 +1012,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
                     Velocity.Z = 0;
             }
 
-            if (!Flags.Missile && BlockingBlockLineIndex != -1)
+            if (!Flags.Missile() && BlockingBlockLineIndex != -1)
             {
                 var bounceVelocity = MathHelper.BounceVelocity(velocity.XY, World.Blockmap.BlockLines[BlockingBlockLineIndex].Segment);
                 Velocity.X = bounceVelocity.X;
@@ -1028,12 +1030,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private double GetBounceDecay()
     {
-        if (Flags.NoGravity)
+        if (Flags.NoGravity())
             return 1.0;
 
-        if (Flags.Float)
+        if (Flags.Float())
         {
-            if (Flags.Dropoff)
+            if (Flags.Dropoff())
                 return 0.85;
             return 0.7;
         }
@@ -1043,10 +1045,10 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public bool ShouldDieOnCollision()
     {
-        if (Flags.MbfBouncer && Flags.Missile)
+        if (Flags.MbfBouncer() && Flags.Missile())
             return BlockingEntity != null || BlockingBlockLineIndex != -1;
 
-        return Flags.Missile;
+        return Flags.Missile();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1149,20 +1151,20 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     protected virtual void SetDeath(Entity? source, bool gibbed)
     {
-        if (Flags.Missile)
+        if (Flags.Missile())
         {
             PlayDeathSound();
-            Flags.Missile = false;
+            Flags.ClearMissile();
             Velocity = Vec3D.Zero;
         }
         else
         {
-            Flags.Corpse = true;
-            Flags.Dropoff = true;
-            Flags.Skullfly = false;
-            Flags.Shootable = false;
-            if (!Flags.DontFall)
-                Flags.NoGravity = false;
+            Flags.SetCorpse();
+            Flags.SetDropoff();
+            Flags.ClearSkullfly();
+            Flags.ClearShootable();
+            if (!Flags.DontFall())
+                Flags.ClearNoGravity();
         }
 
         WorldStatic.World.HandleEntityDeath(this, source, gibbed);

@@ -112,7 +112,7 @@ public partial class Entity
 
     public double GetClampHeight()
     {
-        if (Flags.SpawnCeiling)
+        if (Flags.SpawnCeiling())
             return GetMissileClipHeight(true);
 
         return Height;

@@ -41,7 +41,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                 for (int i = block.EntityIndicesLength - 1; i >= 0; i--)
                 {
                     var entity = m_dataCache.Entities[block.EntityIndices[i]];
-                    if (entity.BlockmapCount == m_checkCounter || !entity.Flags.Solid)
+                    if (entity.BlockmapCount == m_checkCounter || !entity.Flags.Solid())
                         continue;
 
                     entity.BlockmapCount = m_checkCounter;
@@ -152,7 +152,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                 var entity = m_dataCache.Entities[blockEntities.EntityIndices[i]];
                 if (entity.BlockmapCount == checkCounter)
                     continue;
-                if (!entity.Flags.Shootable)
+                if (!entity.Flags.Shootable())
                     continue;
 
                 entity.BlockmapCount = checkCounter;
@@ -190,7 +190,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                     var entity = m_dataCache.Entities[block.EntityIndices[i]];
                     if (entity.BlockmapCount == checkCounter)
                         continue;
-                    if (!entity.Flags.Shootable)
+                    if (!entity.Flags.Shootable())
                         continue;
 
                     entity.BlockmapCount = checkCounter;
@@ -216,7 +216,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                     var entity = m_dataCache.Entities[block.EntityIndices[i]];
                     if (entity.BlockmapCount == checkCounter)
                         continue;
-                    if (!entity.Flags.Shootable)
+                    if (!entity.Flags.Shootable())
                         continue;
 
                     entity.BlockmapCount = checkCounter;
@@ -280,7 +280,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                     var entity = m_dataCache.Entities[block.EntityIndices[i]];
                     if (entity.BlockmapCount == checkCounter)
                         continue;
-                    if (!entity.Flags.Corpse)
+                    if (!entity.Flags.Corpse())
                         continue;
                     if (entity.Definition.RaiseState == null || entity.FrameState.Frame.Ticks != -1 || entity.IsPlayer)
                         continue;
@@ -323,7 +323,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                     var entity = m_dataCache.Entities[block.EntityIndices[i]];
                     if (entity.BlockmapCount == checkCounter)
                         continue;
-                    if (!entity.Flags.Solid)
+                    if (!entity.Flags.Solid())
                         continue;
 
                     entity.BlockmapCount = checkCounter;
@@ -354,9 +354,9 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                     var entity = m_dataCache.Entities[block.EntityIndices[i]];
                     if (entity.BlockmapCount == checkCounter)
                         continue;
-                    if (!entity.Flags.Solid)
+                    if (!entity.Flags.Solid())
                         continue;
-                    if (shootable && !entity.Flags.Shootable)
+                    if (shootable && !entity.Flags.Shootable())
                         continue;
 
                     entity.BlockmapCount = checkCounter;

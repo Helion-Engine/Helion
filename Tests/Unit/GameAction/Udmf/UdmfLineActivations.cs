@@ -129,9 +129,9 @@ public class UdmfLineActivations
         GameActions.SetEntityOutOfBounds(World, Imp);
 
         sector.ActiveFloorMove.Should().BeNull();
-        Imp.Flags.Missile = true;
+        Imp.Flags.SetMissile();
         GameActions.ActivateLine(World, Imp, 23, ActivationContext.CrossLine, force: false).Should().BeFalse();
-        Imp.Flags.Missile = false;
+        Imp.Flags.ClearMissile();
         sector.ActiveFloorMove.Should().BeNull();
         GameActions.SetEntityOutOfBounds(World, Imp);
     }
@@ -149,9 +149,9 @@ public class UdmfLineActivations
         sector.ActiveFloorMove.Should().BeNull();
 
         sector.ActiveFloorMove.Should().BeNull();
-        Imp.Flags.Missile = true;
+        Imp.Flags.SetMissile();
         GameActions.ActivateLine(World, Imp, 24, ActivationContext.CrossLine, force: false).Should().BeTrue();
-        Imp.Flags.Missile = false;
+        Imp.Flags.ClearMissile();
         sector.ActiveFloorMove.Should().NotBeNull();
         GameActions.RunSectorPlaneSpecial(World, sector);
         GameActions.SetEntityOutOfBounds(World, Imp);

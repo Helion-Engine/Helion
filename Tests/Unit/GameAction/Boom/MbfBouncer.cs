@@ -20,8 +20,8 @@ public class MbfBouncer
     {
         var bouncer = GameActions.CreateEntity(World, "*deh/entity152", new(-384, 64, 64));
         bouncer.Properties.Mass.Should().Be(100);
-        bouncer.Flags.MbfBouncer.Should().BeTrue();
-        bouncer.Flags.Dropoff.Should().BeFalse();
+        bouncer.Flags.MbfBouncer().Should().BeTrue();
+        bouncer.Flags.Dropoff().Should().BeFalse();
 
         GameActions.TickWorld(World, () => { return bouncer.Velocity.Z == 0; }, () => { });
         bouncer.Velocity.Y.Should().BeApproximately(-1.74, 2);
@@ -52,7 +52,7 @@ public class MbfBouncer
     {
         var bouncer = GameActions.CreateEntity(World, "*deh/entity151", new(-384, 64, 64));
         bouncer.Properties.Mass.Should().Be(1000);
-        bouncer.Flags.MbfBouncer.Should().BeTrue();
+        bouncer.Flags.MbfBouncer().Should().BeTrue();
 
         GameActions.TickWorld(World, () => { return bouncer.Velocity.Z == 0; }, () => { });
         bouncer.Velocity.Y.Should().BeApproximately(-1.74, 2);

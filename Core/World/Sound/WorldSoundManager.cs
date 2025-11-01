@@ -141,7 +141,7 @@ public class WorldSoundManager : SoundManager, ITickable
         if (m_world.Config.Audio.RandomizePitch == RandomPitch.All)
             return true;
 
-        return soundSource is Entity entity && (entity.Flags.CountKill || entity.Flags.IsMonster);
+        return soundSource is Entity entity && (entity.Flags.CountKill() || entity.Flags.IsMonster());
     }
 
     protected override int GetPriority(ISoundSource soundSource, SoundInfo soundInfo, SoundParams soundParams)

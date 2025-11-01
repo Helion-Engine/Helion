@@ -31,7 +31,7 @@ public partial class BoomActions
         Player.Inventory.ClearKeys();
         Player.Inventory.Powerups.Clear();
 
-        if (Player.IsDead)
+        if (Player.IsDead())
         {
             GameActions.SetEntityPosition(World, Player, (704, 1088));
             Player.SetRaiseState();

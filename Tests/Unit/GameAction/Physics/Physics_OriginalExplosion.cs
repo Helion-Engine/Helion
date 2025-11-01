@@ -34,7 +34,7 @@ public partial class Physics
         rocket.Velocity = Vec3D.UnitSphere(rocket.AngleRadians, 0) * 16;
 
         RunMissileExplode(rocket);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
 
         World.Config.Compatibility.OriginalExplosion.Set(false);
         RunEntityDisposed(rocket);

@@ -40,21 +40,21 @@ public partial class Entity
         m_direction = direction;
 
     public bool ValidEnemyTarget(Entity? entity) => entity != null &&
-        !entity.IsDead && (!IsFriend(entity) || Target() == null);
+        !entity.IsDead() && (!IsFriend(entity) || Target() == null);
 
     public void SetMoveDirection(MoveDir dir) => m_direction = dir;
 
     public bool SetNewTarget(bool allAround)
     {
-        if (IsFrozen || Flags.Dormant)
+        if (IsFrozen() || Flags.Dormant())
             return false;
 
-        Flags.Attacking = false;
+        Flags.ClearAttacking();
         Entity? newTarget = null;
         var soundTarget = Sector.SoundTarget.Get();
         if (soundTarget != null && ValidEnemyTarget(soundTarget))
         {
-            if (Flags.Ambush)
+            if (Flags.Ambush())
             {
                 // Ambush enemies will set target based on SoundTarget reguardless of FOV.
                 if (WorldStatic.World.CheckLineOfSight(this, soundTarget))
@@ -72,7 +72,7 @@ public partial class Entity
 
         if (newTarget != null)
         {
-            if (Flags.Friendly)
+            if (Flags.Friendly())
             {
                 var previousTarget = Target();
                 SetTarget(newTarget);
@@ -80,7 +80,7 @@ public partial class Entity
                 {
                     SetSeeState();
                     PlaySeeSound();
-                    Flags.JustHit = false;
+                    Flags.ClearJustHit();
                     return true;
                 }
             }
@@ -147,7 +147,7 @@ public partial class Entity
     private Entity? GetNewTarget(bool allAround)
     {
         Entity? newTarget;
-        if (Flags.Friendly)
+        if (Flags.Friendly())
         {
             newTarget = WorldStatic.World.GetLineOfSightEnemy(this, allAround);
             newTarget ??= WorldStatic.World.GetLineOfSightPlayer(this, allAround);
@@ -170,7 +170,7 @@ public partial class Entity
         // All monsters normally have CanPass set.
         // Dehacked can modify things into enemies that can move but this flag doesn't exist in the original game.
         // Set this flag for anything that tries to move, otherwise they can clip ito other things and get stuck, especialliy with float.
-        Flags.CanPass = true;
+        Flags.SetCanPass();
         Assert.Precondition(Target() != null, "Target is null");
 
         MoveDir dir0;
@@ -354,7 +354,7 @@ public partial class Entity
     public bool MoveEnemy(out TryMoveData? tryMove)
     {
         bool floatFlag = (Flags.Flags1 & EntityFlags.FloatFlag) != 0;
-        if (m_direction == MoveDir.None || (!floatFlag && !OnGround) || IsFrozen)
+        if (m_direction == MoveDir.None || (!floatFlag && !OnGround) || IsFrozen())
         { 
             tryMove = null;
             return false;
@@ -366,11 +366,11 @@ public partial class Entity
 
         bool isMoving = speedX != 0 || speedY != 0;
         bool setZ = true;
-        Flags.MonsterMove = true;
+        Flags.SetMonsterMove();
         tryMove = WorldStatic.World.PhysicsManager.TryMoveXY(this, Position.X + speedX, Position.Y + speedY);
-        Flags.MonsterMove = false;
+        Flags.ClearMonsterMove();
 
-        if (Flags.Teleported)
+        if (Flags.Teleported())
             return true;
 
         if (tryMove.Success && moveFactor.Friction > Constants.DefaultFriction)
@@ -385,13 +385,13 @@ public partial class Entity
 
         if (!tryMove.Success && floatFlag && tryMove.CanFloat)
         {
-            Flags.InFloat = true;
+            Flags.SetInFloat();
             Position.Z += Position.Z < tryMove.HighestFloorZ ? FloatSpeed : -FloatSpeed;
             return true;
         }
         else
         {
-            Flags.InFloat = false;
+            Flags.ClearInFloat();
         }
 
         if (setZ && tryMove.Success && !floatFlag && isMoving)
@@ -433,7 +433,7 @@ public partial class Entity
 
     public double GetEnemyFloatMove()
     {
-        if (IsPlayer || IsDead || !Flags.Float || Flags.Skullfly || Flags.InFloat || OnGround)
+        if (IsPlayer || IsDead() || !Flags.Float() || Flags.Skullfly() || Flags.InFloat() || OnGround)
             return 0.0;
 
         var target = Target();
@@ -469,7 +469,7 @@ public partial class Entity
         if (distance >= range + entity.Radius)
             return false;
 
-        if (!Flags.NoVerticalMeleeRange && (entity.Position.Z > Position.Z + Height || entity.Position.Z + entity.Height < Position.Z))
+        if (!Flags.NoVerticalMeleeRange() && (entity.Position.Z > Position.Z + Height || entity.Position.Z + entity.Height < Position.Z))
             return false;
 
         return WorldStatic.World.CheckLineOfSight(this, entity);
@@ -484,9 +484,9 @@ public partial class Entity
         if (target == null || IsFriend(target) || !WorldStatic.World.CheckLineOfSight(this, target))
             return false;
 
-        if (Flags.JustHit)
+        if (Flags.JustHit())
         {
-            Flags.JustHit = false;
+            Flags.ClearJustHit();
             return true;
         }
 
@@ -501,9 +501,9 @@ public partial class Entity
         if (Definition.MeleeState != null && distance < MeleeThreshold)
             return false;
 
-        if (Definition.Flags.MissileMore)
+        if (Definition.Flags.MissileMore())
             distance /= 2;
-        if (Definition.Flags.MissileEvenMore)
+        if (Definition.Flags.MissileEvenMore())
             distance /= 8;
 
         if (MaxTargetRange > 0 && distance > MaxTargetRange)

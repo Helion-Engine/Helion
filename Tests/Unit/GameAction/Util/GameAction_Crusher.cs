@@ -41,7 +41,7 @@ namespace Helion.Tests.Unit.GameAction
                     while (node != null)
                     {
                         var entity = node.Value;
-                        if (entity.Flags.Shootable && entity.IsCrushing())
+                        if (entity.Flags.Shootable() && entity.IsCrushing())
                         {
                             isCrushing = true;
                             break;
@@ -62,7 +62,7 @@ namespace Helion.Tests.Unit.GameAction
                 var node = sector.Entities.Head;
                 while (node != null)
                 {
-                    node.Value.IsDead.Should().BeTrue();
+                    node.Value.IsDead().Should().BeTrue();
                     node = node.Next;
                 }
             }

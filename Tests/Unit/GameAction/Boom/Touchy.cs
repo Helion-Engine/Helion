@@ -32,17 +32,17 @@ public class Touchy : IDisposable
     private void WorldInit(SinglePlayerWorld world)
     {
         var def = GameActions.GetEntityDefinition(world, ZombieMan);
-        def.Flags.Touchy = true;
+        def.Flags.SetTouchy();
         def.Properties.Health = ZombieStartHealth;
         def = GameActions.GetEntityDefinition(world, Imp);
-        def.Flags.Touchy = true;
-        def.Flags.Solid = false;
+        def.Flags.SetTouchy();
+        def.Flags.ClearSolid();
         def = GameActions.GetEntityDefinition(world, PainElemental);
-        def.Flags.Touchy = true;
+        def.Flags.SetTouchy();
         def = GameActions.GetEntityDefinition(world, LostSoul);
-        def.Flags.Touchy = true;
+        def.Flags.SetTouchy();
         def = GameActions.GetEntityDefinition(world, ShotgunGuy);
-        def.Flags.Solid = false;
+        def.Flags.ClearSolid();
     }
 
     public void Dispose()
@@ -58,7 +58,7 @@ public class Touchy : IDisposable
         GameActions.SetEntityPosition(World, Player, (-320, -320, 0));
         var zombieman = GameActions.CreateEntity(World, ZombieMan, (-384, -320, 0));
         World.TryMoveXY(zombieman, (-320, -320));
-        zombieman.IsDead.Should().BeFalse();
+        zombieman.IsDead().Should().BeFalse();
     }
 
     [Fact(DisplayName = "Touchy dies when hit by thing")]
@@ -67,7 +67,7 @@ public class Touchy : IDisposable
         GameActions.SetEntityPosition(World, Player, (-320, -320, 0));
         var zombieman = GameActions.CreateEntity(World, ZombieMan, (-384, -320, 0));
         World.TryMoveXY(Player, (-384, -320));
-        zombieman.IsDead.Should().BeTrue();
+        zombieman.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Touchy thing dies when hit by ceiling that moves")]
@@ -77,7 +77,7 @@ public class Touchy : IDisposable
         var sector = GameActions.GetSector(World, 0);
         var special = new SectorMoveSpecial(World, sector, sector.Ceiling.Z, 0, new SectorMoveData(SectorPlaneFace.Ceiling, MoveDirection.Down, MoveRepetition.None, 8, 0), new SectorSoundData());
         World.MoveSectorZ(8, 0, special);
-        zombieman.IsDead.Should().BeTrue();
+        zombieman.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Touchy thing dies when hit by ceiling from moving floor")]
@@ -87,7 +87,7 @@ public class Touchy : IDisposable
         var sector = GameActions.GetSector(World, 0);
         var special = new SectorMoveSpecial(World, sector, sector.Floor.Z, 0, new SectorMoveData(SectorPlaneFace.Floor, MoveDirection.Up, MoveRepetition.None, 8, 0), new SectorSoundData());
         World.MoveSectorZ(8, 128, special);
-        zombieman.IsDead.Should().BeTrue();
+        zombieman.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Not solid touchy dies when overlapped by thing")]
@@ -96,7 +96,7 @@ public class Touchy : IDisposable
         GameActions.SetEntityPosition(World, Player, (-320, -320, 0));
         var imp = GameActions.CreateEntity(World, Imp, (-384, -320, 0));
         World.TryMoveXY(Player, (-384, -320));
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Not solid touchy doesn't die when overlapped by not solid missile thing")]
@@ -104,11 +104,11 @@ public class Touchy : IDisposable
     {
         GameActions.SetEntityOutOfBounds(World, Player);
         var plasmaShot = GameActions.CreateEntity(World, "PlasmaBall", (-320, -320, 0));
-        plasmaShot.Flags.Ripper = true;
+        plasmaShot.Flags.SetRipper();
         var touchyThing = GameActions.CreateEntity(World, ZombieMan, (-384, -320, 0));
         World.TryMoveXY(plasmaShot, (-384, -320));
         // Should rip through but not trigger touchy death
-        touchyThing.IsDead.Should().BeFalse();
+        touchyThing.IsDead().Should().BeFalse();
         touchyThing.Health.Should().NotBe(ZombieStartHealth);
     }
 
@@ -118,8 +118,8 @@ public class Touchy : IDisposable
         var pain = GameActions.CreateEntity(World, PainElemental, (-320, -320, 0));
         var soul = GameActions.CreateEntity(World, LostSoul, (-384, -320, 0));
         World.TryMoveXY(pain, (-384, -320));
-        pain.IsDead.Should().BeFalse();
-        soul.IsDead.Should().BeFalse();
+        pain.IsDead().Should().BeFalse();
+        soul.IsDead().Should().BeFalse();
         pain.BlockingEntity.Should().Be(soul);
     }
 
@@ -129,8 +129,8 @@ public class Touchy : IDisposable
         var pain = GameActions.CreateEntity(World, PainElemental, (-320, -320, 0));
         var soul = GameActions.CreateEntity(World, LostSoul, (-384, -320, 0));
         World.TryMoveXY(soul, (-320, -320));
-        pain.IsDead.Should().BeFalse();
-        soul.IsDead.Should().BeFalse();
+        pain.IsDead().Should().BeFalse();
+        soul.IsDead().Should().BeFalse();
         soul.BlockingEntity.Should().Be(pain);
     }
 }

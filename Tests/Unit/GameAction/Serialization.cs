@@ -148,7 +148,7 @@ public class Serialization : IDisposable
         GameActions.TickWorld(world, 100);
         world.LevelStats.SecretCount.Should().Be(1);
         world.LevelStats.KillCount.Should().Be(2);
-        Zombieman(world).IsDead.Should().BeTrue();
+        Zombieman(world).IsDead().Should().BeTrue();
     }
 
     private void AssertWorldEqual(SinglePlayerWorld world)

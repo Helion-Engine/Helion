@@ -266,7 +266,7 @@ public class LineOfSight
     {
         // This is the setup for the chain breaking sound in Eviternity MAP26
         GameActions.SetEntityPosition(World, Player, new Vec2D(2304, -96));
-        SightThing4.Flags.NoBlockmap = true;
+        SightThing4.Flags.SetNoBlockmap();
         SightThing4.Position.Z.Should().Be(-512);
         World.GetLineOfSightPlayer(SightThing4, false).Should().BeNull();
 

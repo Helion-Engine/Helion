@@ -27,8 +27,8 @@ public class PhysicsPlaneMissile
     {
         var missile = GameActions.GetEntity(World, 2);
         missile.Position.Z.Should().Be(16);
-        missile.Flags.NoBlockmap.Should().BeTrue();
-        missile.Flags.Missile.Should().BeTrue();
+        missile.Flags.NoBlockmap().Should().BeTrue();
+        missile.Flags.Missile().Should().BeTrue();
         var sector = MoveDown();
         sector.Floor.Z.Should().Be(-16);
         missile.Position.Z.Should().Be(16);
@@ -43,8 +43,8 @@ public class PhysicsPlaneMissile
     {
         var missile = GameActions.GetEntity(World, 1);
         missile.Position.Z.Should().Be(16);
-        missile.Flags.NoBlockmap.Should().BeFalse();
-        missile.Flags.Missile.Should().BeTrue();
+        missile.Flags.NoBlockmap().Should().BeFalse();
+        missile.Flags.Missile().Should().BeTrue();
         var sector = MoveDown();
         sector.Floor.Z.Should().Be(-16);
         missile.Position.Z.Should().Be(sector.Floor.Z);
@@ -58,12 +58,12 @@ public class PhysicsPlaneMissile
     public void FloorImpactsMissle()
     {
         var missile = GameActions.CreateEntity(World, "*deh/entity151", (-288, 192, 32));
-        missile.Flags.NoBlockmap.Should().BeFalse();
-        missile.Flags.Missile.Should().BeTrue();
+        missile.Flags.NoBlockmap().Should().BeFalse();
+        missile.Flags.Missile().Should().BeTrue();
         var sector = MoveUp();
         sector.Floor.Z.Should().Be(48);
         missile.IsDisposed.Should().BeTrue();
-        missile.Flags.Missile.Should().BeFalse();
+        missile.Flags.Missile().Should().BeFalse();
     }
 
     [Fact(DisplayName = "Crusher doesn't affect missile that isn't moving")]
@@ -71,7 +71,7 @@ public class PhysicsPlaneMissile
     {
         var missile = GameActions.GetEntity(World, 1);
         var sector = Crush();
-        missile.Flags.Missile.Should().BeTrue();
+        missile.Flags.Missile().Should().BeTrue();
         sector.Floor.Z.Should().Be(16);
         sector.Ceiling.Z.Should().Be(24);
     }

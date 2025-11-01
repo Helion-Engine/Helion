@@ -217,8 +217,8 @@ public sealed class Line
             MidTexEntity = new();
             MidTexEntity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world, default);
             MidTexEntity.MidTexLine = this;
-            MidTexEntity.Flags.Solid = true;
-            MidTexEntity.Flags.ActLikeBridge = true;
+            MidTexEntity.Flags.SetSolid();
+            MidTexEntity.Flags.SetActLikeBridge();
         }
 
         MidTexSpan span = default;
@@ -265,16 +265,16 @@ public sealed class Line
         if (oneSided || blockFlags.Everything)
             return !CanMoveOutOf(entity, x, y, seg, oneSided);
 
-        if (entity.Flags.Missile && blockFlags.Projectiles)
+        if (entity.Flags.Missile() && blockFlags.Projectiles)
             return true;
 
-        var isPlayerOrFriendly = entity.IsPlayer || entity.Flags.Friendly;
+        var isPlayerOrFriendly = entity.IsPlayer || entity.Flags.Friendly();
         // Friendly monsters aren't blocked by the player flag, but are blocked by vanilla impassible.
         if (isPlayerOrFriendly && blockFlags.LegacyImpassible)
             return true;
 
-        if (!isPlayerOrFriendly && !entity.Flags.Missile &&
-            (blockFlags.Monsters || (mbf21 && blockFlags.LandMonstersMbf21 && !entity.Flags.Float) || (blockFlags.LandMonsters && !entity.Flags.Float) || (blockFlags.FloatMonsters && entity.Flags.Float)))
+        if (!isPlayerOrFriendly && !entity.Flags.Missile() &&
+            (blockFlags.Monsters || (mbf21 && blockFlags.LandMonstersMbf21 && !entity.Flags.Float()) || (blockFlags.LandMonsters && !entity.Flags.Float()) || (blockFlags.FloatMonsters && entity.Flags.Float())))
             return true;
 
         if (entity.IsPlayer && (blockFlags.Players || (mbf21 && blockFlags.PlayersMbf21)))

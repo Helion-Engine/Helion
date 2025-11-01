@@ -767,7 +767,7 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < EntityManager.Players.Count; i++)
         {
             Player player = EntityManager.Players[i];
-            if (player.IsDead)
+            if (player.IsDead())
                 continue;
 
             if (!allAround && !InFieldOfViewOrInMeleeDistance(entity, player))
@@ -785,7 +785,7 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < EntityManager.Players.Count; i++)
         {
             Player player = EntityManager.Players[i];
-            if (!player.IsDead)
+            if (!player.IsDead())
                 return player;
         }
 
@@ -804,7 +804,7 @@ public abstract partial class WorldBase : IWorld
 
     private GridIterationStatus HandleLineOfSightEnemy(Entity checkEntity)
     {
-        if (m_lineOfSightEnemyData.Entity == checkEntity || checkEntity.IsDead || !checkEntity.Flags.CountKill ||
+        if (m_lineOfSightEnemyData.Entity == checkEntity || checkEntity.IsDead() || !checkEntity.Flags.CountKill() ||
             m_lineOfSightEnemyData.Entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
             return GridIterationStatus.Continue;
 
@@ -1002,7 +1002,7 @@ public abstract partial class WorldBase : IWorld
 
                 if (!WorldStatic.InfinitelyTallThings &&
                     (entity.HadOnEntity || entity.OnEntity() != null) &&
-                    !entity.Flags.NoGravity && !entity.Flags.NoBlockmap &&
+                    !entity.Flags.NoGravity() && !entity.Flags.NoBlockmap() &&
                     entity.Velocity.Z == 0 && entity.Position.Z > entity.HighestFloorSector.Floor.Z)
                 {
                     m_fallCheckEntities.Add(entity);
@@ -1066,10 +1066,10 @@ public abstract partial class WorldBase : IWorld
             return;
 
         // Damage rules apply for instant kill sectors. Doom did not apply sector damage to voodoo dolls
-        if (entity.IsDead || (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll))
+        if (entity.IsDead() || (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll))
             return;
 
-        if (entity.Flags.Shootable && !entity.Flags.Float && !entity.IsPlayer && (effect & InstantKillEffect.KillMonsters) != 0)
+        if (entity.Flags.Shootable() && !entity.Flags.Float() && !entity.IsPlayer && (effect & InstantKillEffect.KillMonsters) != 0)
         {
             entity.ForceGib();
             return;
@@ -1085,7 +1085,7 @@ public abstract partial class WorldBase : IWorld
         if ((effect & InstantKillEffect.KillAllPlayersSecretExit) != 0)
             ExitLevel(LevelChangeType.SecretNext, LevelChangeFlags.KillAllPlayers);
 
-        if ((effect & InstantKillEffect.KillUnprotectedPlayer) != 0 && !player.Flags.Invulnerable &&
+        if ((effect & InstantKillEffect.KillUnprotectedPlayer) != 0 && !player.Flags.Invulnerable() &&
             !player.Inventory.IsPowerupActive(PowerupType.IronFeet))
             player.ForceGib();
 
@@ -1141,7 +1141,7 @@ public abstract partial class WorldBase : IWorld
         bool anyPlayerAlive = false;
         for (int i = 0; i < EntityManager.Players.Count; i++)
         {
-            if (!EntityManager.Players[i].IsDead)
+            if (!EntityManager.Players[i].IsDead())
             {
                 anyPlayerAlive = true;
                 break;
@@ -1164,17 +1164,17 @@ public abstract partial class WorldBase : IWorld
         switch (MapInfo.MapSpecial)
         {
             case MapSpecial.BaronSpecial:
-                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.E1M8Boss, 666, MapInfo.MapSpecialAction);
+                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.E1M8Boss(), 666, MapInfo.MapSpecialAction);
                 break;
             case MapSpecial.CyberdemonSpecial:
-                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.E2M8Boss || f.E4M6Boss, 666, MapInfo.MapSpecialAction);
+                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.E2M8Boss() || f.E4M6Boss(), 666, MapInfo.MapSpecialAction);
                 break;
             case MapSpecial.SpiderMastermindSpecial:
-                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.E3M8Boss || f.E4M8Boss, 666, MapInfo.MapSpecialAction);
+                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.E3M8Boss() || f.E4M8Boss(), 666, MapInfo.MapSpecialAction);
                 break;
             case MapSpecial.Map07Special:
-                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.Map07Boss1, 666, MapSpecialAction.LowerFloor);
-                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.Map07Boss2, 667, MapSpecialAction.FloorRaiseByLowestTexture);
+                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.Map07Boss1(), 666, MapSpecialAction.LowerFloor);
+                AddMonsterCountSpecial(m_bossDeathSpecials, (EntityFlags f) => f.Map07Boss2(), 667, MapSpecialAction.FloorRaiseByLowestTexture);
                 break;
         }
 
@@ -1340,7 +1340,7 @@ public abstract partial class WorldBase : IWorld
     /// <param name="entity">The entity to execute use.</param>
     public virtual bool EntityUse(Entity entity)
     {
-        if (entity.IsDead)
+        if (entity.IsDead())
             return false;
 
         bool hitBlockLine = false;
@@ -1547,7 +1547,7 @@ public abstract partial class WorldBase : IWorld
         projectile.SetOwner(shooter);
         projectile.SetTarget(shooter);
 
-        if (projectile.Flags.Randomize)
+        if (projectile.Flags.Randomize())
             projectile.SetRandomizeTicks();
 
         double speed = IsFastMonsters && projectile.Properties.FastSpeed > 0 ?
@@ -1560,7 +1560,7 @@ public abstract partial class WorldBase : IWorld
             ? new SoundContext(SoundEventType.WeaponFired, 0, ushort.MaxValue, 100)
             : default);
 
-        if (projectile.Flags.NoClip)
+        if (projectile.Flags.NoClip())
             return projectile;
 
         Vec3D testPos = projectile.Position;
@@ -1802,7 +1802,7 @@ public abstract partial class WorldBase : IWorld
         if (source != null && source.Owner() == target)
             damage = (int)(damage * source.Properties.SelfDamageFactor);
 
-        if (!target.Flags.Shootable || target.Flags.Dormant || damage == 0 || target.IsDead)
+        if (!target.Flags.Shootable() || target.Flags.Dormant() || damage == 0 || target.IsDead())
             return false;
 
         Vec3D thrustVelocity = Vec3D.Zero;
@@ -1928,10 +1928,10 @@ public abstract partial class WorldBase : IWorld
         // Need to carry over flags that are modified by the world and affect pickups
         if (flags.HasValue)
         {
-            dehackedFlags.Dropped = flags.Value.Dropped;
-            dehackedFlags.SpecialStaySingle = flags.Value.SpecialStaySingle;
-            dehackedFlags.SpecialStayCooperative = flags.Value.SpecialStayCooperative;
-            dehackedFlags.SpecialStayDeathmatch = flags.Value.SpecialStayDeathmatch;
+            dehackedFlags.SetDropped(flags.Value.Dropped());
+            dehackedFlags.SetSpecialStaySingle(flags.Value.SpecialStaySingle());
+            dehackedFlags.SetSpecialStayCooperative(flags.Value.SpecialStayCooperative());
+            dehackedFlags.SetSpecialStayDeathmatch(flags.Value.SpecialStayDeathmatch());
         }
 
         return dehackedFlags;
@@ -1987,15 +1987,15 @@ public abstract partial class WorldBase : IWorld
     {
         return WorldType switch
         {
-            WorldType.Cooperative => item.Flags.SpecialStayCooperative || ShouldItemStayMultiplayer(item),
-            WorldType.Deathmatch => item.Flags.SpecialStayDeathmatch || ShouldItemStayMultiplayer(item),
-            _ => item.Flags.SpecialStaySingle,
+            WorldType.Cooperative => item.Flags.SpecialStayCooperative() || ShouldItemStayMultiplayer(item),
+            WorldType.Deathmatch => item.Flags.SpecialStayDeathmatch() || ShouldItemStayMultiplayer(item),
+            _ => item.Flags.SpecialStaySingle(),
         };
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool ShouldItemStayMultiplayer(Entity item) =>
-        item.Definition.IsType(Inventory.KeyClassName) || (item.Definition.IsType(Inventory.WeaponClassName) && !item.Flags.Dropped);
+        item.Definition.IsType(Inventory.KeyClassName) || (item.Definition.IsType(Inventory.WeaponClassName) && !item.Flags.Dropped());
 
     private void PlayerPickedUpItem(Player player, Entity item, int previousHealth, EntityDefinition definition)
     {
@@ -2012,7 +2012,7 @@ public abstract partial class WorldBase : IWorld
         item.FrameState.SetState(item, item.Definition, Constants.FrameStates.Pickup, warn: false);
         m_itemPickupIndexToPlayers.Remove(item.Index);
 
-        if (item.Flags.CountItem)
+        if (item.Flags.CountItem())
         {
             LevelStats.ItemCount++;
             player.PlayerStats.ItemCount++;
@@ -2031,10 +2031,10 @@ public abstract partial class WorldBase : IWorld
                 new SoundParams(player, channel: SoundChannel.Item));
         }
 
-        if (item.Flags.CountSecret)
+        if (item.Flags.CountSecret())
         {
             PlayerSecret(Player);
-            item.Flags.CountSecret = false;
+            item.Flags.ClearCountSecret();
         }
     }
 
@@ -2045,7 +2045,7 @@ public abstract partial class WorldBase : IWorld
 
         entity.Hit(previousVelocity);
 
-        if (tryMove != null && (entity.Flags.Missile || entity.Flags.CountKill || entity.IsPlayer))
+        if (tryMove != null && (entity.Flags.Missile() || entity.Flags.CountKill() || entity.IsPlayer))
         {
             for (int i = 0; i < tryMove.ImpactSpecialLines.Length; i++)
             {
@@ -2097,7 +2097,7 @@ public abstract partial class WorldBase : IWorld
             else
                 entity.SetDeathState(null);
         }
-        else if (entity.Flags.Touchy || (entity.BlockingEntity != null && entity.BlockingEntity.Flags.Touchy))
+        else if (entity.Flags.Touchy() || (entity.BlockingEntity != null && entity.BlockingEntity.Flags.Touchy()))
         {
             if (entity.BlockingEntity != null && ShouldDieFromTouch(entity, entity.BlockingEntity))
                 entity.BlockingEntity.Kill(null);
@@ -2106,7 +2106,7 @@ public abstract partial class WorldBase : IWorld
 
     public virtual void HandleEntityClipPlane(Entity entity, SectorPlane plane)
     {
-        if (entity.Flags.Touchy)
+        if (entity.Flags.Touchy())
             entity.Kill(null);
     }
 
@@ -2121,9 +2121,9 @@ public abstract partial class WorldBase : IWorld
             if (!entity.OverlapsZ(intersectEntity) || entity == intersectEntity)
                 continue;
 
-            if (entity.Flags.Ripper && entity.Owner() != intersectEntity)
+            if (entity.Flags.Ripper() && entity.Owner() != intersectEntity)
                 RipDamage(entity, intersectEntity);
-            if (intersectEntity.Flags.Touchy && ShouldDieFromTouch(entity, intersectEntity))
+            if (intersectEntity.Flags.Touchy() && ShouldDieFromTouch(entity, intersectEntity))
                 intersectEntity.Kill(null);
         }
     }
@@ -2149,7 +2149,7 @@ public abstract partial class WorldBase : IWorld
         // LostSouls will not kill PainElementals
         const string painElemental = "PainElemental";
         const string lostSoul = "LostSoul";
-        if (!blockingEntity.Flags.Touchy || !entity.Flags.Solid || !blockingEntity.CanDamage(entity, DamageType.Normal))
+        if (!blockingEntity.Flags.Touchy() || !entity.Flags.Solid() || !blockingEntity.CanDamage(entity, DamageType.Normal))
             return false;
 
         if (entity.Definition.IsType(painElemental) && blockingEntity.Definition.IsType(lostSoul))
@@ -2308,7 +2308,7 @@ public abstract partial class WorldBase : IWorld
         m_radiusExplosion.AttackSource = attackSource;
         m_radiusExplosion.Radius = radius;
         m_radiusExplosion.MaxDamage = maxDamage;
-        m_radiusExplosion.Thrust = damageSource.Flags.OldRadiusDmg ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
+        m_radiusExplosion.Thrust = damageSource.Flags.OldRadiusDmg() ? Thrust.Horizontal : Thrust.HorizontalAndVertical;
         Vec2D pos2D = damageSource.Position.XY;
         Vec2D radius2D = new(radius, radius);
         Box2D explosionBox = new(pos2D - radius2D, pos2D + radius2D);
@@ -2326,7 +2326,7 @@ public abstract partial class WorldBase : IWorld
 
         ApplyExplosionDamageAndThrust(m_radiusExplosion.DamageSource, m_radiusExplosion.AttackSource, entity,
             m_radiusExplosion.Radius, m_radiusExplosion.MaxDamage, m_radiusExplosion.Thrust,
-            WorldStatic.OriginalExplosion || m_radiusExplosion.DamageSource.Flags.OldRadiusDmg || entity.Flags.OldRadiusDmg);
+            WorldStatic.OriginalExplosion || m_radiusExplosion.DamageSource.Flags.OldRadiusDmg() || entity.Flags.OldRadiusDmg());
     }
 
     private void HandleRadiusExplosionLine(int blockLineIndex)
@@ -2347,7 +2347,7 @@ public abstract partial class WorldBase : IWorld
 
     private bool ShouldApplyExplosionDamage(Entity entity, Entity damageSource)
     {
-        if ((entity.Flags.Boss || entity.Flags.NoRadiusDmg) && !damageSource.Flags.ForceRadiusDmg)
+        if ((entity.Flags.Boss() || entity.Flags.NoRadiusDmg()) && !damageSource.Flags.ForceRadiusDmg())
             return false;
 
         if (!entity.CanApplyRadiusExplosionDamage(damageSource) || !CheckLineOfSight(entity, damageSource))
@@ -2376,11 +2376,11 @@ public abstract partial class WorldBase : IWorld
     {
         CheckDropItem(deathEntity);
 
-        if (deathEntity.Flags.CountKill)
+        if (deathEntity.Flags.CountKill())
         {
             var player = deathSource?.PlayerObj;
 
-            if (!deathEntity.Flags.Friendly)
+            if (!deathEntity.Flags.Friendly())
             {
                 LevelStats.KillCount++;
                 if (player != null)
@@ -2428,7 +2428,7 @@ public abstract partial class WorldBase : IWorld
                 if (dropItem == null)
                     continue;
 
-                dropItem.Flags.Dropped = true;
+                dropItem.Flags.SetDropped();
                 dropItem.Velocity.Z += addVelocity;
             }
         }
@@ -2477,14 +2477,14 @@ public abstract partial class WorldBase : IWorld
     private void HandleRespawn(Entity entity)
     {
         entity.Respawn = false;
-        if (entity.Definition.Flags.Solid && IsPositionBlockedByEntity(entity, entity.SpawnPoint))
+        if (entity.Definition.Flags.Solid() && IsPositionBlockedByEntity(entity, entity.SpawnPoint))
             return;
 
         var newEntity = EntityManager.Create(entity.Definition, entity.SpawnPoint, 0, entity.AngleRadians, entity.ThingId, entity.Args, true);
         CreateTeleportFog(entity.Position);
         CreateTeleportFog(entity.SpawnPoint);
 
-        newEntity.Flags.Friendly = entity.Flags.Friendly;
+        newEntity.Flags.SetFriendly(entity.Flags.Friendly());
         newEntity.AngleRadians = entity.AngleRadians;
         newEntity.ReactionTime = 18;
 
@@ -2493,18 +2493,18 @@ public abstract partial class WorldBase : IWorld
 
     public bool IsPositionBlockedByEntity(Entity entity, in Vec3D position)
     {
-        if (!entity.Definition.Flags.Solid)
+        if (!entity.Definition.Flags.Solid())
             return true;
 
         double oldHeight = entity.Height;
-        entity.Flags.Solid = true;
+        entity.Flags.SetSolid();
         entity.Height = entity.Definition.Properties.Height;
 
         // This is original functionality, the original game only checked against other things
         // It didn't check if it would clip into map geometry
         bool blocked = !BlockmapTraverser.SolidBlockTraverse(entity, entity.Position, !WorldStatic.InfinitelyTallThings);
 
-        entity.Flags.Solid = false;
+        entity.Flags.ClearSolid();
         entity.Height = oldHeight;
         return blocked;
     }
@@ -2678,7 +2678,7 @@ public abstract partial class WorldBase : IWorld
         if (entity != null && entity.IsDisposed)
             return;
 
-        bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood || entity.Flags.Dormant;
+        bool bulletPuff = entity == null || entity.Definition.Flags.NoBlood() || entity.Flags.Dormant();
         EntityDefinition? def;
         if (bulletPuff)
         {
@@ -2697,7 +2697,7 @@ public abstract partial class WorldBase : IWorld
         if (bulletPuff)
         {
             create.Velocity.Z = 1;
-            if (create.Flags.Randomize)
+            if (create.Flags.Randomize())
                 create.SetRandomizeTicks();
 
             // Doom would skip the initial sparking state of the bullet puff for punches
@@ -3011,11 +3011,11 @@ public abstract partial class WorldBase : IWorld
         switch (cheat.CheatType)
         {
             case CheatType.NoClip:
-                player.Flags.NoClip = isActive;
+                player.Flags.SetNoClip(isActive);
                 break;
             case CheatType.Fly:
-                player.Flags.Fly = isActive;
-                player.Flags.NoGravity = isActive;
+                player.Flags.SetFly(isActive);
+                player.Flags.SetNoGravity(isActive);
                 break;
             case CheatType.Kill:
                 ClearConsole?.Invoke(this, EventArgs.Empty);
@@ -3023,7 +3023,7 @@ public abstract partial class WorldBase : IWorld
                 break;
             case CheatType.Resurrect:
                 ClearConsole?.Invoke(this, EventArgs.Empty);
-                if (player.IsDead)
+                if (player.IsDead())
                     player.SetRaiseState();
                 break;
             case CheatType.KillAllMonsters:
@@ -3031,9 +3031,9 @@ public abstract partial class WorldBase : IWorld
                 DisplayMessage(player, null, $"{KillAllMonsters(0)} {ArchiveCollection.Language.GetMessage(cheat.CheatOn)}");
                 break;
             case CheatType.God:
-                if (!player.IsDead)
+                if (!player.IsDead())
                     SetGodModeHealth(player);
-                player.Flags.Invulnerable = isActive;
+                player.Flags.SetInvulnerable(isActive);
                 break;
             case CheatType.GiveAllNoKeys:
                 player.GiveAllWeapons(EntityManager.DefinitionComposer);
@@ -3072,7 +3072,7 @@ public abstract partial class WorldBase : IWorld
             if (sectorTag != 0 && entity.Sector.Tag != sectorTag)
                 continue;
 
-            if (!entity.IsDead && (entity.Flags.CountKill || entity.Flags.IsMonster))
+            if (!entity.IsDead() && (entity.Flags.CountKill() || entity.Flags.IsMonster()))
             {
                 entity.ForceGib();
                 killCount++;
@@ -3109,7 +3109,7 @@ public abstract partial class WorldBase : IWorld
             if (entity == ignoreEntity)
                 continue;
 
-            if (entity.Definition.Id == entityDefinitionId && (!checkAlive || !entity.IsDead))
+            if (entity.Definition.Id == entityDefinitionId && (!checkAlive || !entity.IsDead()))
                 count++;
         }
         return count;
@@ -3133,7 +3133,7 @@ public abstract partial class WorldBase : IWorld
     {
         var healChaseEntity = m_healChaseData.HealEntity;
         m_healChaseData.Healed = true;
-        entity.Flags.Solid = true;
+        entity.Flags.SetSolid();
         entity.Height = entity.Definition.Properties.Height;
 
         var saveTarget = healChaseEntity.Target();
@@ -3145,22 +3145,22 @@ public abstract partial class WorldBase : IWorld
         if (m_healChaseData.HealSound.Length > 0)
             WorldStatic.SoundManager.CreateSoundOn(entity, m_healChaseData.HealSound, new SoundParams(entity));
 
-        bool setVileGhost = Config.Compatibility.VileGhosts && entity.Flags.CrushGiblets;
+        bool setVileGhost = Config.Compatibility.VileGhosts && entity.Flags.CrushGiblets();
         entity.SetRaiseState(!setVileGhost);
         if (setVileGhost)
         {
-            entity.Flags.Shootable = entity.Definition.Flags.Shootable;
-            entity.Flags.Solid = false;
+            entity.Flags.SetShootable(entity.Definition.Flags.Shootable());
+            entity.Flags.ClearSolid();
             entity.Height = 0;
             entity.Radius = 0;
         }
-        entity.Flags.Friendly = healChaseEntity.Flags.Friendly;
+        entity.Flags.SetFriendly(healChaseEntity.Flags.Friendly());
     }
 
     public void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ)
     {
         var tracer = entity.Tracer();
-        if (tracer == null || tracer.IsDead)
+        if (tracer == null || tracer.IsDead())
             return;
 
         SetTracerAngle(entity, threshold, maxTurnAngle);
@@ -3249,7 +3249,7 @@ public abstract partial class WorldBase : IWorld
 
     private GridIterationStatus HandleSetNewTracerTarget(Entity checkEntity)
     {
-        if (!checkEntity.Flags.Shootable)
+        if (!checkEntity.Flags.Shootable())
             return GridIterationStatus.Continue;
 
         if (m_newTracerTargetData.Owner == checkEntity || !m_newTracerTargetData.Owner.ValidEnemyTarget(checkEntity))
@@ -3630,7 +3630,7 @@ public abstract partial class WorldBase : IWorld
 
     public Entity? Summon(Entity source, EntityDefinition definition, SummonOptions options)
     {
-        if (definition.Flags.Missile && options != SummonOptions.Static)
+        if (definition.Flags.Missile() && options != SummonOptions.Static)
         {
             var pitch = 0.0;
             if (source.PlayerObj != null)
@@ -3644,7 +3644,7 @@ public abstract partial class WorldBase : IWorld
         var pos2D = source.Position.XY + unit * (source.Radius + definition.Properties.Radius + 40);
         var pos = pos2D.To3D(ToSubsector(pos2D.X, pos2D.Y).Sector.Floor.Z);
 
-        if (definition.Flags.Solid && !BlockmapTraverser.SolidBlockTraverse(definition, pos, !WorldStatic.InfinitelyTallThings))
+        if (definition.Flags.Solid() && !BlockmapTraverser.SolidBlockTraverse(definition, pos, !WorldStatic.InfinitelyTallThings))
             return null;
 
         var entity = EntityManager.Create(definition.Name, pos);
@@ -3654,10 +3654,10 @@ public abstract partial class WorldBase : IWorld
             switch (options)
             {
                 case SummonOptions.Friend:
-                    entity.Flags.Friendly = true;
+                    entity.Flags.SetFriendly();
                     break;
                 case SummonOptions.Foe:
-                    entity.Flags.Friendly = false;
+                    entity.Flags.ClearFriendly();
                     break;
                 case SummonOptions.Static:
                     entity.Position.Z = source.ProjectileAttackPos.Z;

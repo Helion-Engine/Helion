@@ -153,7 +153,7 @@ namespace Helion.Tests.Unit.GameAction
         private static void EntityCreated(Entity entity)
         {
             // Force everything to retaliate immediately
-            entity.Flags.QuickToRetaliate = true;
+            entity.Flags.SetQuickToRetaliate();
             entity.Properties.MissileMovementSpeed = 0;
             entity.MonsterMovementSpeed = 0;
             entity.Threshold = 0;
@@ -409,7 +409,7 @@ namespace Helion.Tests.Unit.GameAction
             int frameIndex = source.FrameState.Frame.MasterFrameIndex;
             source.AngleRadians = GameActions.GetAngle(Bearing.South);
             source.FrozenTics = 0;
-            source.Flags.Friendly = true;
+            source.Flags.SetFriendly();
             var dest = GameActions.CreateEntity(World, "Cacodemon", new(-256, -416, 0), onCreated: EntityCreated);
             source.SetTarget(dest);
             GameActions.TickWorld(World, () => { return source.Target() == null; }, () => { });
@@ -431,7 +431,7 @@ namespace Helion.Tests.Unit.GameAction
             int frameIndex = source.FrameState.Frame.MasterFrameIndex;
             source.AngleRadians = GameActions.GetAngle(Bearing.South);
             source.FrozenTics = 0;
-            source.Flags.Friendly = true;
+            source.Flags.SetFriendly();
             var dest = GameActions.CreateEntity(World, "Cacodemon", new(-256, -416, 0), onCreated: EntityCreated);
             source.SetTarget(dest);
             GameActions.TickWorld(World, () => { return source.Target() == null; }, () => { });

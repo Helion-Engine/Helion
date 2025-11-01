@@ -121,7 +121,6 @@ public static class EntityActionFunctions
         ["A_FACEMOVEMENTDIRECTION"] = A_FaceMovementDirection,
         ["A_FACETARGET"] = A_FaceTarget,
         ["A_FACETRACER"] = A_FaceTracer,
-        ["A_FACETRACER"] = A_FaceTracer,
         ["A_FADEIN"] = A_FadeIn,
         ["A_FADEOUT"] = A_FadeOut,
         ["A_FADETO"] = A_FadeTo,
@@ -493,7 +492,7 @@ public static class EntityActionFunctions
 
     private static void A_BarrelDestroy(Entity entity)
     {
-        entity.Flags.Solid = false;
+        entity.Flags.ClearSolid();
     }
 
     private static void A_BasicAttack(Entity entity)
@@ -576,7 +575,7 @@ public static class EntityActionFunctions
 
         if (spawnShot != null)
         {
-            spawnShot.Flags.Friendly = entity.Flags.Friendly;
+            spawnShot.Flags.SetFriendly(entity.Flags.Friendly());
             double distance = entity.Position.Distance(target.Position);
             double speed = spawnShot.Definition.Properties.MissileMovementSpeed;
             double reactionTime = distance / speed;
@@ -585,7 +584,7 @@ public static class EntityActionFunctions
             spawnShot.Velocity = Vec3D.UnitSphere(spawnShot.AngleRadians, pitch) * speed;
             spawnShot.SetTarget(target);
             spawnShot.ReactionTime = (int)reactionTime;
-            spawnShot.Flags.BossSpawnShot = true;
+            spawnShot.Flags.SetBossSpawnShot();
         }
 
         WorldStatic.SoundManager.CreateSoundOn(entity, "brain/spit",
@@ -611,7 +610,7 @@ public static class EntityActionFunctions
         Entity? enemy = WorldStatic.EntityManager.Create(GetRandomBossSpawn(WorldStatic.Random), target.Position);
         if (enemy != null)
         {
-            enemy.Flags.Friendly = entity.Flags.Friendly;
+            enemy.Flags.SetFriendly(entity.Flags.Friendly());
             enemy.SetNewTarget(true);
             WorldStatic.World.TelefragBlockingEntities(enemy);
         }
@@ -732,14 +731,14 @@ public static class EntityActionFunctions
 
     public static void A_Chase(Entity entity)
     {
-        entity.Flags.Attacking = false;
+        entity.Flags.ClearAttacking();
         if (entity.ReactionTime > 0)
             entity.ReactionTime -= entity.SlowTickMultiplier;
 
         var target = entity.Target();
         if (entity.Threshold > 0)
         {
-            if (target == null || target.IsDead)
+            if (target == null || target.IsDead())
                 entity.Threshold = 0;
             else
                 entity.Threshold -= entity.SlowTickMultiplier;
@@ -748,7 +747,7 @@ public static class EntityActionFunctions
         if (entity.SlowTickMultiplier <= 1)
             entity.TurnTowardsMovementDirection();
 
-        if (target == null || target.IsDead)
+        if (target == null || target.IsDead())
         {
             if (!entity.SetNewTarget(true))
                 entity.SetSpawnState();
@@ -758,9 +757,9 @@ public static class EntityActionFunctions
         if (target != null && entity.IsFriend(target))
             entity.SetNewTarget(true);
 
-        if (entity.Flags.JustAttacked)
+        if (entity.Flags.JustAttacked())
         {
-            entity.Flags.JustAttacked = false;
+            entity.Flags.ClearJustAttacked();
             if (!WorldStatic.IsFastMonsters)
                 entity.SetNewChaseDirection();
             return;
@@ -768,7 +767,7 @@ public static class EntityActionFunctions
 
         if (target != null && entity.Definition.MeleeState != null && entity.InMeleeRange(target))
         {
-            entity.Flags.Attacking = true;
+            entity.Flags.SetAttacking();
             entity.PlayAttackSound();
             entity.FrameState.SetFrameIndex(entity, entity.Definition.MeleeState.Value);
             return;
@@ -784,8 +783,8 @@ public static class EntityActionFunctions
         if ((entity.MoveCount == 0 || WorldStatic.IsFastMonsters) &&
             entity.Definition.MissileState != null && entity.CheckMissileRange())
         {
-            entity.Flags.Attacking = true;
-            entity.Flags.JustAttacked = true;
+            entity.Flags.SetAttacking();
+            entity.Flags.SetJustAttacked();
             entity.FrameState.SetFrameIndex(entity, entity.Definition.MissileState.Value);
         }
         else if (WorldStatic.Random.NextByte() < 3)
@@ -1073,7 +1072,7 @@ public static class EntityActionFunctions
             return;
 
         entity.AngleRadians = entity.Position.Angle(target.Position);
-        if (target.Flags.Shadow)
+        if (target.Flags.Shadow())
             entity.AngleRadians += WorldStatic.Random.NextDiff() * Constants.ShadowRandomSpread / 255;
     }
 
@@ -1655,7 +1654,7 @@ public static class EntityActionFunctions
 
     private static void A_NoBlocking(Entity entity)
     {
-        entity.Flags.Solid = false;
+        entity.Flags.ClearSolid();
     }
 
     private static void A_NoGravity(Entity entity)
@@ -1726,17 +1725,17 @@ public static class EntityActionFunctions
         if (skull == null)
             return;
 
-        skull.Flags.Friendly = entity.Flags.Friendly;
+        skull.Flags.SetFriendly(entity.Flags.Friendly());
         double step = 4 + (3 * (entity.Radius + skull.Radius) / 2);
         skullPos += Vec3D.UnitSphere(angle, 0.0) * step;
         startPos += Vec3D.UnitSphere(angle, 0.0) * (entity.Radius + skull.Radius - 2);
         skull.Position = startPos;
-        skull.Flags.CountKill = false;
-        skull.Flags.IsMonster = true;
+        skull.Flags.ClearCountKill();
+        skull.Flags.SetIsMonster();
 
         // Ignore parent for clip checking
-        bool wasNoClip = entity.Flags.NoClip;
-        entity.Flags.NoClip = true;
+        bool wasNoClip = entity.Flags.NoClip();
+        entity.Flags.SetNoClip();
 
         // Add some better checking from the original
         // Set the skull barely clipped into the parent
@@ -1745,11 +1744,11 @@ public static class EntityActionFunctions
             !WorldStatic.World.PhysicsManager.TryMoveXY(skull, skullPos.X, skullPos.Y).Success)
         {
             skull.Kill(null);
-            entity.Flags.NoClip = wasNoClip;
+            entity.Flags.SetNoClip(wasNoClip);
             return;
         }
 
-        entity.Flags.NoClip = wasNoClip;
+        entity.Flags.SetNoClip(wasNoClip);
         skull.SetTarget(entity.Target());
         A_SkullAttack(skull);
     }
@@ -1844,7 +1843,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj.WeaponOffset.Y < Constants.WeaponBottom)
             return;
 
-        if (entity.PlayerObj.IsDead)
+        if (entity.PlayerObj.IsDead())
         {
             entity.PlayerObj.WeaponOffset.Y = Constants.WeaponBottom;
             entity.PlayerObj.AnimationWeapon.FrameState.SetState(entity, entity.Definition, "NULL");
@@ -1891,12 +1890,12 @@ public static class EntityActionFunctions
                 new SoundParams(entity, channel: entity.WeaponSoundChannel));
         }
 
-        if (entity.PlayerObj.PendingWeapon != null || player.IsDead)
+        if (entity.PlayerObj.PendingWeapon != null || player.IsDead())
         {
             entity.PlayerObj.LowerWeapon();
             return;
         }
-        if (!player.Weapon.Definition.Flags.WeaponNoAutofire || !player.AttackDown)
+        if (!player.Weapon.Definition.Flags.WeaponNoAutofire() || !player.AttackDown)
             entity.PlayerObj.Weapon.ReadyToFire = true;
 
         if (player.TickCommand.Has(TickCommands.Attack))
@@ -2087,7 +2086,7 @@ public static class EntityActionFunctions
             }
 
             // Doom used this to move the player forward in the tick function.
-            player.Flags.JustAttacked = true;
+            player.Flags.SetJustAttacked();
             player.AngleRadians = playerAngle;
         }
     }
@@ -2432,7 +2431,7 @@ public static class EntityActionFunctions
         var targetCenter = target.CenterPoint;
         entity.Velocity = Vec3D.UnitSphere(entity.AngleRadians,
             entity.Position.Pitch(targetCenter, targetCenter.XY.Distance(entity.Position.XY))) * 20;
-        entity.Flags.Skullfly = true;
+        entity.Flags.SetSkullfly();
     }
 
     private static void A_SkullPop(Entity entity)
@@ -2494,7 +2493,7 @@ public static class EntityActionFunctions
         if (WorldStatic.Random.NextByte() < randomChance)
             return;
 
-        if (target == null || target.IsDead ||
+        if (target == null || target.IsDead() ||
             !WorldStatic.World.CheckLineOfSight(entity, target))
         {
             entity.SetSeeState();
@@ -2839,7 +2838,7 @@ public static class EntityActionFunctions
         if (spawnEntity == null)
             return;
 
-        spawnEntity.Flags.Friendly = entity.Flags.Friendly;
+        spawnEntity.Flags.SetFriendly(entity.Flags.Friendly());
     }
 
     private static void A_Face(Entity entity)
@@ -2901,7 +2900,7 @@ public static class EntityActionFunctions
                         dist = Math.Clamp(dist, 1, int.MaxValue);
                         projectile.Velocity.Z = MathHelper.FromFixed(MathHelper.ToFixed(firePos.Z - entity.Position.Z) / dist);
                         projectile.Velocity *= velocity;
-                        projectile.Flags.NoGravity = false;
+                        projectile.Flags.ClearNoGravity();
                     }
                 }
             }
@@ -3062,7 +3061,7 @@ public static class EntityActionFunctions
         int state = frame.DehackedArgs1;
         bool checkAmmo = frame.DehackedArgs2 == 0;
 
-        if (entity.PlayerObj!.PendingWeapon != null || entity.IsDead || !entity.PlayerObj!.TickCommand.Has(TickCommands.Attack))
+        if (entity.PlayerObj!.PendingWeapon != null || entity.IsDead() || !entity.PlayerObj!.TickCommand.Has(TickCommands.Attack))
             return;
 
         if (checkAmmo && !entity.PlayerObj!.CheckAmmo())
@@ -3136,10 +3135,10 @@ public static class EntityActionFunctions
             createdEntity.SetOwner(entity.Owner());
         }
 
-        if (!createdEntity.Definition.Flags.Missile && !createdEntity.Definition.Flags.MbfBouncer)
+        if (!createdEntity.Definition.Flags.Missile() && !createdEntity.Definition.Flags.MbfBouncer())
             return;
 
-        if (entity.Definition.Flags.Missile || entity.Definition.Flags.MbfBouncer)
+        if (entity.Definition.Flags.Missile() || entity.Definition.Flags.MbfBouncer())
         {
             createdEntity.SetOwner(entity.Owner());
             createdEntity.SetTracer(entity.Tracer());
@@ -3373,7 +3372,7 @@ public static class EntityActionFunctions
             entity.FrameState.SetState(entity, newFrame);
     }
 
-    private static void A_AddFlags(Entity entity)
+    public static void A_AddFlags(Entity entity)
     {
         uint flags1 = (uint)entity.FrameState.Frame.DehackedArgs1;
         uint flags2 = (uint)entity.FrameState.Frame.DehackedArgs2;
@@ -3382,7 +3381,7 @@ public static class EntityActionFunctions
         DehackedApplier.SetEntityFlagsMbf21(null, entity, ref entity.Flags, flags2, false);
     }
 
-    private static void A_RemoveFlags(Entity entity)
+    public static void A_RemoveFlags(Entity entity)
     {
         uint flags1 = ~(uint)entity.FrameState.Frame.DehackedArgs1;
         uint flags2 = ~(uint)entity.FrameState.Frame.DehackedArgs2;
@@ -3404,7 +3403,7 @@ public static class EntityActionFunctions
     public static void A_ClosetChase(Entity entity)
     {
         var target = entity.Target();
-        if (target == null || target.IsDead)
+        if (target == null || target.IsDead())
         {
             if (!entity.SetNewTarget(true))
                 entity.SetClosetLook();

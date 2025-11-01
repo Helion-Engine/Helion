@@ -113,7 +113,7 @@ public struct TeleportSpecial
         if (!CanTeleport(entity, pos))
             return false;
 
-        entity.Flags.Teleported = true;
+        entity.Flags.SetTeleported();
 
         double oldAngle = entity.AngleRadians;
         Vec3D oldPos = entity.Position;
@@ -184,7 +184,7 @@ public struct TeleportSpecial
 
     private static bool CanTeleport(Entity teleportEntity, in Vec3D pos)
     {
-        if (teleportEntity.Flags.Teleported)
+        if (teleportEntity.Flags.Teleported())
             return false;
 
         if (teleportEntity.IsPlayer)
@@ -255,7 +255,7 @@ public struct TeleportSpecial
         else if (m_tag == -1)
         {
             foreach (Entity entity in m_world.FindByTid(m_tid))
-                if (entity.Flags.IsTeleportSpot)
+                if (entity.Flags.IsTeleportSpot())
                 {
                     pos = GetTeleportPosition(entity);
                     angle = entity.AngleRadians;

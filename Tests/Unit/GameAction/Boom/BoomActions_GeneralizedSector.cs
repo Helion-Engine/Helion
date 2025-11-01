@@ -14,18 +14,18 @@ public partial class BoomActions
     {
         var monster = GameActions.GetEntity(World, 15);
         GameActions.TickWorld(World, 1);
-        monster.IsDead.Should().BeFalse();
+        monster.IsDead().Should().BeFalse();
 
         Player.GiveItem(GameActions.GetEntityDefinition(World, "Radsuit"), null);
 
         GameActions.SetEntityToLine(World, Player, 413, 64);
         GameActions.TickWorld(World, 1);
-        Player.IsDead.Should().BeFalse();
+        Player.IsDead().Should().BeFalse();
 
         Player.Inventory.Remove("RadSuit", 1);
         Player.Inventory.Powerups.Clear();
         GameActions.TickWorld(World, 1);
-        Player.IsDead.Should().BeTrue();
+        Player.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Kill player")]
@@ -33,13 +33,13 @@ public partial class BoomActions
     {
         var monster = GameActions.GetEntity(World, 20);
         GameActions.TickWorld(World, 1);
-        monster.IsDead.Should().BeFalse();
+        monster.IsDead().Should().BeFalse();
 
         Player.GiveItem(GameActions.GetEntityDefinition(World, "Radsuit"), null);
 
         GameActions.SetEntityToLine(World, Player, 429, 64);
         GameActions.TickWorld(World, 1);
-        Player.IsDead.Should().BeTrue();
+        Player.IsDead().Should().BeTrue();
 
         Player.Inventory.Remove("RadSuit", 1);
     }
@@ -52,11 +52,11 @@ public partial class BoomActions
         Player.Sector.SectorDamageSpecial.Should().NotBeNull();
         Player.Sector.SectorDamageSpecial!.InstantKillEffect.Should().Be(InstantKillEffect.KillMonsters | InstantKillEffect.KillUnprotectedPlayer);
         GameActions.TickWorld(World, 1);
-        Player.IsDead.Should().BeFalse();
+        Player.IsDead().Should().BeFalse();
 
         GameActions.SetEntityPosition(World, Player, new Vec3D(600, 1920, -8));
         GameActions.TickWorld(World, 1);
-        Player.IsDead.Should().BeTrue();
+        Player.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Kill player and exit")]
@@ -66,13 +66,13 @@ public partial class BoomActions
         World.LevelExit += World_LevelExit;
         var monster = GameActions.GetEntity(World, 16);
         GameActions.TickWorld(World, 1);
-        monster.IsDead.Should().BeFalse();
+        monster.IsDead().Should().BeFalse();
 
         Player.GiveItem(GameActions.GetEntityDefinition(World, "Radsuit"), null);
 
         GameActions.SetEntityToLine(World, Player, 417, 64);
         GameActions.TickWorld(World, () => { return !exited; }, () => { });
-        Player.IsDead.Should().BeTrue();
+        Player.IsDead().Should().BeTrue();
         exited.Should().BeTrue();
 
         Player.Inventory.Remove("RadSuit", 1);
@@ -93,13 +93,13 @@ public partial class BoomActions
         World.LevelExit += World_LevelExit;
         var monster = GameActions.GetEntity(World, 17);
         GameActions.TickWorld(World, 1);
-        monster.IsDead.Should().BeFalse();
+        monster.IsDead().Should().BeFalse();
 
         Player.GiveItem(GameActions.GetEntityDefinition(World, "Radsuit"), null);
 
         GameActions.SetEntityToLine(World, Player, 420, 64);
         GameActions.TickWorld(World, () => { return !exited; }, () => { });
-        Player.IsDead.Should().BeTrue();
+        Player.IsDead().Should().BeTrue();
         exited.Should().BeTrue();
 
         Player.Inventory.Remove("RadSuit", 1);
@@ -119,15 +119,15 @@ public partial class BoomActions
         var monsters = GameActions.GetSectorEntities(World, 81);
         GameActions.TickWorld(World, 1);
         foreach (var monster in monsters)
-            monster.IsDead.Should().BeTrue();
+            monster.IsDead().Should().BeTrue();
 
         var lostSoul = GameActions.CreateEntity(World, "LostSoul", (704, 1472, 128));
         GameActions.TickWorld(World, 1);
-        lostSoul.IsDead.Should().BeFalse();
+        lostSoul.IsDead().Should().BeFalse();
 
         GameActions.SetEntityToLine(World, Player, 424, 64);
         GameActions.TickWorld(World, 1);
-        Player.IsDead.Should().BeFalse();
+        Player.IsDead().Should().BeFalse();
     }
 
     [Fact(DisplayName = "Kill grounded monsters doesn't kill not shootable")]
@@ -135,13 +135,13 @@ public partial class BoomActions
     {
         var monsters = GameActions.GetSectorEntities(World, 146);
         var imp = GameActions.CreateEntity(World, "DoomImp", (704, 1472, 0));
-        imp.Flags.Shootable = false;
+        imp.Flags.ClearShootable();
         GameActions.TickWorld(World, 1);
-        imp.IsDead.Should().BeFalse();
+        imp.IsDead().Should().BeFalse();
 
-        imp.Flags.Shootable = true;
+        imp.Flags.SetShootable();
         GameActions.TickWorld(World, 1);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Kill grounded monsters will kill monster when on highest floor z")]
@@ -155,6 +155,6 @@ public partial class BoomActions
         imp.Sector.SectorDamageSpecial.Should().NotBeNull();
         imp.Sector.SectorDamageSpecial!.InstantKillEffect.Should().Be(InstantKillEffect.KillMonsters | InstantKillEffect.KillUnprotectedPlayer);
         GameActions.TickWorld(World, 1);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
     }
 }

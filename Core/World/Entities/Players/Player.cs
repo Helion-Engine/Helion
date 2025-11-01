@@ -144,7 +144,7 @@ public class Player : Entity
 
     public override double ViewZ => m_viewZ;
     public override SoundChannel WeaponSoundChannel => SoundChannel.Weapon;
-    public override bool IsInvulnerable => Flags.Invulnerable || Inventory.IsPowerupActive(PowerupType.Invulnerable);
+    public override bool IsInvulnerable => Flags.Invulnerable() || Inventory.IsPowerupActive(PowerupType.Invulnerable);
     public override bool CanMakeSound() => !IsVooDooDoll;
 
     public Player()
@@ -331,7 +331,7 @@ public class Player : Entity
         ArmorDefinition = player.ArmorDefinition;
         base.CopyProperties(player);
         // NoClip did not apply to the player
-        Flags.NoClip = false;
+        Flags.ClearNoClip();
 
         var items = player.Inventory.GetInventoryItems();
         for (int i = 0; i < items.Count; i++)
@@ -448,7 +448,7 @@ public class Player : Entity
 
             // Check if the player is landing where they started. Otherwise a normal jump would play the oof sound.
             bool hardHit = (WorldStatic.World.Gravity > 1 || Position.Z != m_jumpStartZ) && velocity.Z < -(WorldStatic.World.Gravity * 8);
-            if (hardHit && !Flags.NoGravity && !IsDead)
+            if (hardHit && !Flags.NoGravity() && !IsDead())
             {
                 PlayLandSound();
                 DeltaViewHeight = velocity.Z / PlayerViewDivider;
@@ -458,7 +458,7 @@ public class Player : Entity
             m_jumpStartZ = double.MaxValue;
         }
 
-        if (!Flags.NoGravity && !Flags.NoClip && !IsDead && BlockingBlockLineIndex != -1 &&
+        if (!Flags.NoGravity() && !Flags.NoClip() && !IsDead() && BlockingBlockLineIndex != -1 &&
             Sector.Friction > Constants.DefaultFriction &&
             Position.Z <= Sector.Floor.Z &&
             Math.Abs(velocity.X) + Math.Abs(velocity.Y) > 8 &&
@@ -550,7 +550,7 @@ public class Player : Entity
         Vec3D position = prevPos.Interpolate(currentPos, t);
         CheckLineClip(currentPos);
         position = CheckPlaneClip(currentPos, prevPos, position);
-        if (!Flags.NoClip && position.Z <= HighestFloorZ)
+        if (!Flags.NoClip() && position.Z <= HighestFloorZ)
             position.Z = HighestFloorZ + 1;
 
         double playerAngle = AngleRadians;
@@ -634,12 +634,12 @@ public class Player : Entity
         base.Tick();
 
         // Matching Doom behavior for A_Saw
-        if (Flags.JustAttacked)
+        if (Flags.JustAttacked())
         {
             TickCommand.AngleTurn = 0;
             TickCommand.SideMoveSpeed = 0;
             TickCommand.ForwardMoveSpeed = 3.125;
-            Flags.JustAttacked = false;
+            Flags.ClearJustAttacked();
         }
 
         PrevWeaponOffset = WeaponOffset;
@@ -683,7 +683,7 @@ public class Player : Entity
         SetViewHeight();
         SetRunningFrameState();
 
-        if (IsDead)
+        if (IsDead())
             DeathTick();
 
         m_hasNewWeapon = false;
@@ -748,7 +748,7 @@ public class Player : Entity
 
     private void SetRunningFrameState()
     {
-        if (!Definition.SeeState.HasValue || IsDead)
+        if (!Definition.SeeState.HasValue || IsDead())
             return;
 
         bool hasMoveSpeed = TickCommand.ForwardMoveSpeed > 0 || TickCommand.SideMoveSpeed > 0;
@@ -780,7 +780,7 @@ public class Player : Entity
         if (WorldStatic.World.Config.Mouse.Interpolate)
             return true;
 
-        return TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead || WorldStatic.World.PlayingDemo;
+        return TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead() || WorldStatic.World.PlayingDemo;
     }
 
     public void HandleTickCommand()
@@ -789,7 +789,7 @@ public class Player : Entity
         if (TickCommand.Has(TickCommands.Use))
             WorldStatic.World.EntityUse(this);
 
-        if (IsDead || IsFrozen)
+        if (IsDead() || IsFrozen())
             return;
 
         if (TickCommand.AngleTurn != 0 && !m_strafeCommand)
@@ -811,7 +811,7 @@ public class Player : Entity
 
         if (TickCommand.Has(TickCommands.Jump))
         {
-            if (Flags.NoGravity)
+            if (Flags.NoGravity())
             {
                 // This z velocity overrides z movement velocity
                 movement.Z = 0;
@@ -825,7 +825,7 @@ public class Player : Entity
 
         if (movement != Vec3D.Zero)
         {
-            if (!OnGround && !Flags.NoGravity)
+            if (!OnGround && !Flags.NoGravity())
                 movement *= AirControl;
 
             Velocity.X += MathHelper.Clamp(movement.X, -MaxMovement, MaxMovement);
@@ -888,7 +888,7 @@ public class Player : Entity
         double y = Math.Sin(AngleRadians) * speed;
         double z = 0;
 
-        if (Flags.NoGravity)
+        if (Flags.NoGravity())
             z = speed * PitchRadians;
 
         return new Vec3D(x, y, z);
@@ -1096,7 +1096,7 @@ public class Player : Entity
 
     public bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
     {
-        if (IsDead)
+        if (IsDead())
             return false;
 
         bool success = definition.Properties.Inventory.NoItem || definition.Properties.Inventory.MessageOnly;
@@ -1139,7 +1139,7 @@ public class Player : Entity
                 return false;
 
             int ammoGive = definition.Properties.Weapons.AmmoGive;
-            if (flags.HasValue && (flags.Value.Dropped || definition.Properties.Inventory.AmountModifier == AmountModifier.Dropped) && definition.Properties.Weapons.DroppedAmmoGive.HasValue)
+            if (flags.HasValue && (flags.Value.Dropped() || definition.Properties.Inventory.AmountModifier == AmountModifier.Dropped) && definition.Properties.Weapons.DroppedAmmoGive.HasValue)
             {
                 ammoGive = definition.Properties.Weapons.DroppedAmmoGive.Value;
                 flags = null;
@@ -1157,7 +1157,7 @@ public class Player : Entity
 
         if (definition.IsType(Inventory.BackPackBaseClassName))
         {
-            Inventory.AddBackPackAmmo(WorldStatic.EntityManager.DefinitionComposer, flags.HasValue && flags.Value.Dropped);
+            Inventory.AddBackPackAmmo(WorldStatic.EntityManager.DefinitionComposer, flags.HasValue && flags.Value.Dropped());
             Inventory.Add(definition, invData.Amount, flags);
             return true;
         }
@@ -1243,7 +1243,7 @@ public class Player : Entity
     private bool AddHealthOrArmor(EntityDefinition definition, EntityFlags? flags, ref int value, int amount, bool isArmor)
     {
         int max = GetMaxAmount(definition, isArmor);
-        if (flags != null && !flags.Value.InventoryAlwaysPickup && value >= max)
+        if (flags != null && !flags.Value.InventoryAlwaysPickup() && value >= max)
             return false;
 
         value = MathHelper.Clamp(value + amount, 0, max);
@@ -1269,7 +1269,7 @@ public class Player : Entity
 
     private void CheckAutoSwitchAmmo(EntityDefinition ammoDef, int oldCount)
     {
-        if (Weapon != null && !Weapon.Definition.Flags.WeaponWimpyWeapon)
+        if (Weapon != null && !Weapon.Definition.Flags.WeaponWimpyWeapon())
             return;
 
         string name = Inventory.GetBaseInventoryName(ammoDef);
@@ -1293,7 +1293,7 @@ public class Player : Entity
                 ammoWeapon.Definition.Properties.Weapons.SelectionOrder < Weapon.Definition.Properties.Weapons.SelectionOrder)
             {
                 // Only switch to rocket launcher on fist.
-                if (Weapon != null && !Weapon.Definition.Flags.WeaponWimpyWeapon && ammoWeapon.Definition.Flags.WeaponNoAutoSwitch)
+                if (Weapon != null && !Weapon.Definition.Flags.WeaponWimpyWeapon() && ammoWeapon.Definition.Flags.WeaponNoAutoSwitch())
                     return;
 
                 if (!Inventory.Weapons.CanSelectWeapon(ammoWeapon))
@@ -1354,7 +1354,7 @@ public class Player : Entity
         foreach (Weapon weapon in weapons)
         {
             if (weapon != Weapon && CheckAmmo(weapon) &&
-                !weapon.Definition.Flags.WeaponNoAutoSwitch && Inventory.Weapons.CanSelectWeapon(weapon))
+                !weapon.Definition.Flags.WeaponNoAutoSwitch() && Inventory.Weapons.CanSelectWeapon(weapon))
             {
                 ChangeWeapon(weapon);
                 break;
@@ -1446,7 +1446,7 @@ public class Player : Entity
         Weapon.RequestFire();
         SetFireState();
 
-        if (!Weapon.Definition.Flags.WeaponNoAlert)
+        if (!Weapon.Definition.Flags.WeaponNoAlert())
             WorldStatic.World.NoiseAlert(this, this);
 
         return true;
@@ -1457,7 +1457,7 @@ public class Player : Entity
         if (Weapon == null)
             return;
 
-        if (Weapon.Definition.Flags.WeaponMeleeWeapon)
+        if (Weapon.Definition.Flags.WeaponMeleeWeapon())
         {
             if (Definition.MissileState.HasValue)
                 FrameState.SetFrameIndex(this, Definition.MissileState.Value);
@@ -1489,7 +1489,7 @@ public class Player : Entity
 
     public bool CanFireWeapon()
     {
-        return !IsDead && Weapon != null && TickCommand.Has(TickCommands.Attack) && CheckAmmo();
+        return !IsDead() && Weapon != null && TickCommand.Has(TickCommands.Attack) && CheckAmmo();
     }
 
     public void LowerWeapon(bool setTop = true)
@@ -1700,7 +1700,7 @@ public class Player : Entity
 
     private void SetViewHeight()
     {
-        double playerViewHeight = IsDead && m_deathTics == 0 ? DeathHeight : Definition.Properties.Player.ViewHeight;
+        double playerViewHeight = IsDead() && m_deathTics == 0 ? DeathHeight : Definition.Properties.Player.ViewHeight;
         double halfPlayerViewHeight = playerViewHeight / 2;
 
         if (ViewHeight > playerViewHeight)

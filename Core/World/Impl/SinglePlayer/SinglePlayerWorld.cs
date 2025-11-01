@@ -78,11 +78,11 @@ public class SinglePlayerWorld : WorldBase
                 player.SetDefaultInventory();
             }
 
-            if (existingPlayer != null && !existingPlayer.IsDead && !mapDef.HasOption(MapOptions.ResetInventory) && !config.Game.PistolStart)
+            if (existingPlayer != null && !existingPlayer.IsDead() && !mapDef.HasOption(MapOptions.ResetInventory) && !config.Game.PistolStart)
             {
                 Player.CopyProperties(existingPlayer);
                 Player.Inventory.ClearKeys();
-                Player.Flags.Shadow = false;
+                Player.Flags.ClearShadow();
             }
             else
             {
@@ -156,12 +156,12 @@ public class SinglePlayerWorld : WorldBase
     private CameraPlayer CreateChaseCamPlayer()
     {
         var player = EntityManager.CreateCameraPlayer(Player);
-        player.Flags.Invisible = true;
-        player.Flags.NoClip = true;
-        player.Flags.NoGravity = true;
-        player.Flags.Fly = true;
-        player.Flags.NoBlockmap = true;
-        player.Flags.NoSector = true;
+        player.Flags.SetInvisible();
+        player.Flags.SetNoClip();
+        player.Flags.SetNoGravity();
+        player.Flags.SetFly();
+        player.Flags.SetNoBlockmap();
+        player.Flags.SetNoSector();
         return player;
     }
 
@@ -282,7 +282,7 @@ public class SinglePlayerWorld : WorldBase
         else
             entity = FireHitscan(Player, Player.AngleRadians, Player.PitchRadians, Constants.EntityShootDistance, Constants.HitscanTestDamage);
 
-        return entity != null && !entity.Flags.Friendly && entity.Health > 0;
+        return entity != null && !entity.Flags.Friendly() && entity.Health > 0;
     }
 
     private void PlayerName_OnChanged(object? sender, string name) => Player.Info.Name = name;
@@ -460,7 +460,7 @@ public class SinglePlayerWorld : WorldBase
 
     public override bool EntityUse(Entity entity)
     {
-        if (entity.IsPlayer && entity.IsDead)
+        if (entity.IsPlayer && entity.IsDead())
         {
             if (IsMultiPlayer)
             {
@@ -576,7 +576,7 @@ public class SinglePlayerWorld : WorldBase
     {
         Player player = GetCameraPlayer();
 
-        if (player.IsFrozen || player.IsDead || WorldState == WorldState.Exit || (WorldStatic.World.PlayingDemo && !player.IsCamera))
+        if (player.IsFrozen() || player.IsDead() || WorldState == WorldState.Exit || (WorldStatic.World.PlayingDemo && !player.IsCamera))
             return;
 
         Vec2I pixelsMoved = input.ConsumeMouseMove();

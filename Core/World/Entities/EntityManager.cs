@@ -141,7 +141,7 @@ public class EntityManager : IDisposable
             }
         }
 
-        if (entity.Flags.IsTeleportSpot)
+        if (entity.Flags.IsTeleportSpot())
             TeleportSpots.Remove(entity);
 
         if (entity.PlayerObj != null)
@@ -257,12 +257,12 @@ public class EntityManager : IDisposable
             if (!definition.SpawnState.HasValue)
                 continue;
 
-            if (World.Config.Game.NoMonsters && definition.Flags.CountKill)
+            if (World.Config.Game.NoMonsters && definition.Flags.CountKill())
                 continue;
 
-            if (definition.Flags.CountKill && !definition.Flags.Friendly)
+            if (definition.Flags.CountKill() && !definition.Flags.Friendly())
                 levelStats.TotalMonsters++;
-            if (definition.Flags.CountItem)
+            if (definition.Flags.CountItem())
                 levelStats.TotalItems++;
 
             var angleRadians = MathHelper.ToRadians(mapThing.Angle);
@@ -276,30 +276,30 @@ public class EntityManager : IDisposable
                 entity.Alpha = mapThing.Alpha.Value;
 
             if (mapThing.Flags.Ambush)
-                entity.Flags.Ambush = mapThing.Flags.Ambush;
+                entity.Flags.SetAmbush(mapThing.Flags.Ambush);
             if (mapThing.Flags.Friendly)
-                entity.Flags.Friendly = mapThing.Flags.Friendly;
+                entity.Flags.SetFriendly(mapThing.Flags.Friendly);
             if (mapThing.Flags.Invisible)
-                entity.Flags.Invisible = mapThing.Flags.Invisible;
+                entity.Flags.SetInvisible(mapThing.Flags.Invisible);
             if (mapThing.Flags.CountKill)
-                entity.Flags.CountKill = mapThing.Flags.CountKill;
+                entity.Flags.SetCountKill(mapThing.Flags.CountKill);
             if (mapThing.Flags.CountItem)
-                entity.Flags.CountItem = mapThing.Flags.CountItem;
+                entity.Flags.SetCountItem(mapThing.Flags.CountItem);
             if (mapThing.Flags.Dormant)
-                entity.Flags.Dormant = mapThing.Flags.Dormant;
+                entity.Flags.SetDormant(mapThing.Flags.Dormant);
             if (mapThing.Health.HasValue)
                 entity.Health = mapThing.Health.Value;
 
             if (mapThing.Flags.CountSecret)
             {
-                entity.Flags.CountSecret = mapThing.Flags.CountSecret;
+                entity.Flags.SetCountSecret(mapThing.Flags.CountSecret);
                 levelStats.TotalSecrets++;
             }
 
             if (entity.FrameState.Frame.Ticks > 0)
                 entity.FrameState.SetTics((World.Random.NextByte() % entity.FrameState.Frame.Ticks) + 1);
 
-            if (!entity.Flags.ActLikeBridge && ZHeightSet(position.Z))
+            if (!entity.Flags.ActLikeBridge() && ZHeightSet(position.Z))
                 relinkEntities.Add(entity);
 
             if (isMusicChanger)
@@ -547,7 +547,7 @@ public class EntityManager : IDisposable
 
     private static void FinalizeEntity(Entity entity, bool checkOnGround, double zHeight = 0, bool initSpawn = true)
     {
-        if (initSpawn && entity.Flags.SpawnCeiling)
+        if (initSpawn && entity.Flags.SpawnCeiling())
         {
             // Need to always use Doom's old height here.
             double height = entity.GetClampHeight();
@@ -577,17 +577,17 @@ public class EntityManager : IDisposable
         if (entity.Definition.SpawnState != null)
             entity.FrameState.SetFrameIndexNoAction(entity, entity.Definition.SpawnState.Value);
 
-        if (entity.Definition.Flags.CountKill || entity.Definition.Flags.IsMonster)
+        if (entity.Definition.Flags.CountKill() || entity.Definition.Flags.IsMonster())
             entity.Health = Math.Max((int)(entity.Health * World.SkillDefinition.MonsterHealthFactor), 1);
 
         if (entity.Definition.Type == EntityType.MusicChanger)
             MusicChangers.Add(entity);
 
-        if (WorldStatic.MirrorCorpse && !entity.Flags.DontMirrorCorpse && 
-            (entity.Definition.Type == EntityType.BulletPuff || entity.Definition.Type == EntityType.Blood || entity.Flags.Corpse)
+        if (WorldStatic.MirrorCorpse && !entity.Flags.DontMirrorCorpse() && 
+            (entity.Definition.Type == EntityType.BulletPuff || entity.Definition.Type == EntityType.Blood || entity.Flags.Corpse())
             && (World.SecondaryRandom.NextByte() & 1) != 0)
         {
-            entity.Flags.Mirror = !entity.Flags.Mirror;
+            entity.Flags.FlipMirror();
         }
 
         PostProcessEntity(entity);
@@ -611,7 +611,7 @@ public class EntityManager : IDisposable
             }
         }
 
-        if (entity.Flags.IsTeleportSpot)
+        if (entity.Flags.IsTeleportSpot())
             TeleportSpots.AddLast(entity);
     }
 

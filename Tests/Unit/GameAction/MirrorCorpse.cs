@@ -25,11 +25,11 @@ public class MirrorCorpse
     {
         Random.RandomValue = 1;
         var entity = GameActions.CreateEntity(World, "Zombieman", default);
-        entity.Flags.DontMirrorCorpse.Should().BeFalse();
-        entity.Flags.Mirror.Should().BeFalse();
+        entity.Flags.DontMirrorCorpse().Should().BeFalse();
+        entity.Flags.Mirror().Should().BeFalse();
 
         entity.Kill(null);
-        entity.Flags.Mirror.Should().BeTrue();
+        entity.Flags.Mirror().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Mirror corspe not set on death when random is 0")]
@@ -37,11 +37,11 @@ public class MirrorCorpse
     {
         Random.RandomValue = 0;
         var entity = GameActions.CreateEntity(World, "Zombieman", default);
-        entity.Flags.DontMirrorCorpse.Should().BeFalse();
-        entity.Flags.Mirror.Should().BeFalse();
+        entity.Flags.DontMirrorCorpse().Should().BeFalse();
+        entity.Flags.Mirror().Should().BeFalse();
 
         entity.Kill(null);
-        entity.Flags.Mirror.Should().BeFalse();
+        entity.Flags.Mirror().Should().BeFalse();
     }
 
     [Fact(DisplayName = "Mirror corspe set on spawn with +CORPSE flag")]
@@ -49,8 +49,8 @@ public class MirrorCorpse
     {
         Random.RandomValue = 1;
         var entity = GameActions.CreateEntity(World, "DeadMarine", default);
-        entity.Flags.DontMirrorCorpse.Should().BeFalse();
-        entity.Flags.Mirror.Should().BeTrue();
+        entity.Flags.DontMirrorCorpse().Should().BeFalse();
+        entity.Flags.Mirror().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Mirror corspe set on spawn with bullet puff")]
@@ -58,8 +58,8 @@ public class MirrorCorpse
     {
         Random.RandomValue = 1;
         var entity = GameActions.CreateEntity(World, "BulletPuff", default);
-        entity.Flags.DontMirrorCorpse.Should().BeFalse();
-        entity.Flags.Mirror.Should().BeTrue();
+        entity.Flags.DontMirrorCorpse().Should().BeFalse();
+        entity.Flags.Mirror().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Mirror corspe not set on spawn with bullet puff when random is 0")]
@@ -67,8 +67,8 @@ public class MirrorCorpse
     {
         Random.RandomValue = 0;
         var entity = GameActions.CreateEntity(World, "BulletPuff", default);
-        entity.Flags.DontMirrorCorpse.Should().BeFalse();
-        entity.Flags.Mirror.Should().BeFalse();
+        entity.Flags.DontMirrorCorpse().Should().BeFalse();
+        entity.Flags.Mirror().Should().BeFalse();
     }
 
     [Fact(DisplayName = "Mirror corspe set on spawn with blood")]
@@ -76,17 +76,17 @@ public class MirrorCorpse
     {
         Random.RandomValue = 1;
         var entity = GameActions.CreateEntity(World, "Blood", default);
-        entity.Flags.DontMirrorCorpse.Should().BeFalse();
-        entity.Flags.Mirror.Should().BeTrue();
+        entity.Flags.DontMirrorCorpse().Should().BeFalse();
+        entity.Flags.Mirror().Should().BeTrue();
     }
 
     [Fact(DisplayName = "DontMirrorCorpse set")]
     public void DontMirrorCorpseSet()
     {
         var entity = GameActions.CreateEntity(World, "Cyberdemon", default);
-        entity.Flags.DontMirrorCorpse.Should().BeTrue();
+        entity.Flags.DontMirrorCorpse().Should().BeTrue();
 
         entity = GameActions.CreateEntity(World, "ChaingunGuy", default);
-        entity.Flags.DontMirrorCorpse.Should().BeTrue();
+        entity.Flags.DontMirrorCorpse().Should().BeTrue();
     }
 }
