@@ -49,13 +49,13 @@ namespace Helion.Tests.Unit.GameAction
         [Fact(DisplayName = "BlurSphere")]
         public void BlurSphere()
         {
-            Player.Flags.Shadow.Should().BeFalse();
+            Player.Flags.Shadow().Should().BeFalse();
             AssertNoPowerups(Player);
             AssertPowerUp(World, Player, PowerupType.Invisibility, "BlurSphere", () =>
             {
-                Player.Flags.Shadow.Should().BeTrue();
+                Player.Flags.Shadow().Should().BeTrue();
             });
-            Player.Flags.Shadow.Should().BeFalse();
+            Player.Flags.Shadow().Should().BeFalse();
         }
 
         [Fact(DisplayName = "Infrared")]

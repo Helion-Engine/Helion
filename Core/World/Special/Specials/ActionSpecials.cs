@@ -77,7 +77,7 @@ public static class ActionSpecials
 
             if (gravity)
             {
-                entity.Flags.NoGravity = false;
+                entity.Flags.ClearNoGravity();
                 entity.Gravity = SpeedFactor;
             }
 

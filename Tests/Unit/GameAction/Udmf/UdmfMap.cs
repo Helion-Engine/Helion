@@ -302,10 +302,10 @@ public class UdmfMap
         thing.Definition.Name.EqualsIgnoreCase("Column");
         thing.Position.X.Should().Be(-224);
         thing.Position.Y.Should().Be(-352);
-        thing.Flags.Dormant.Should().BeTrue();
-        thing.Flags.Friendly.Should().BeTrue();
-        thing.Flags.Invisible.Should().BeTrue();
-        thing.Flags.CountSecret.Should().BeTrue();
+        thing.Flags.Dormant().Should().BeTrue();
+        thing.Flags.Friendly().Should().BeTrue();
+        thing.Flags.Invisible().Should().BeTrue();
+        thing.Flags.CountSecret().Should().BeTrue();
         thing.Alpha.Should().Be(0.69f);
         thing.Gravity.Should().Be(0.5f);
         thing.Health.Should().Be(1234);

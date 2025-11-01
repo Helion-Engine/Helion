@@ -31,8 +31,8 @@ public class VileGhostCompat
         World.Config.Compatibility.VileGhosts.Set(true);
         var imp = CrushAndRaiseImp();
 
-        imp.Flags.Solid.Should().BeFalse();
-        imp.Flags.Shootable.Should().BeTrue();
+        imp.Flags.Solid().Should().BeFalse();
+        imp.Flags.Shootable().Should().BeTrue();
         imp.Radius.Should().Be(0);
         imp.Height.Should().Be(0);
 
@@ -59,8 +59,8 @@ public class VileGhostCompat
         World.Config.Compatibility.VileGhosts.Value.Should().BeFalse();
         var imp = CrushAndRaiseImp();
 
-        imp.Flags.Solid.Should().BeTrue();
-        imp.Flags.Shootable.Should().BeTrue();
+        imp.Flags.Solid().Should().BeTrue();
+        imp.Flags.Shootable().Should().BeTrue();
         imp.Radius.Should().Be(20);
         imp.Height.Should().Be(56);
 
@@ -75,8 +75,8 @@ public class VileGhostCompat
         World.Config.Compatibility.VileGhosts.Set(true);
         var imp = KillAndRaiseImp();
 
-        imp.Flags.Solid.Should().BeTrue();
-        imp.Flags.Shootable.Should().BeTrue();
+        imp.Flags.Solid().Should().BeTrue();
+        imp.Flags.Shootable().Should().BeTrue();
         imp.Radius.Should().Be(20);
         imp.Height.Should().Be(56);
 
@@ -95,12 +95,12 @@ public class VileGhostCompat
         GameActions.TickWorld(World, () => { return crushSector.Ceiling.Z < 100; }, () => { });
         GameActions.ActivateLine(World, Player, 5, ActivationContext.UseLine).Should().BeTrue();
         imp.IsDead.Should().BeTrue();
-        imp.Flags.CrushGiblets.Should().BeTrue();
+        imp.Flags.CrushGiblets().Should().BeTrue();
 
         GameActions.SetEntityPosition(World, Player, (-192, -448));
         World.NoiseAlert(Player, Player);
         GameActions.TickWorld(World, () => { return imp.IsDead; }, () => { });
-        imp.Flags.CrushGiblets.Should().BeFalse();
+        imp.Flags.CrushGiblets().Should().BeFalse();
         return imp;
     }
 

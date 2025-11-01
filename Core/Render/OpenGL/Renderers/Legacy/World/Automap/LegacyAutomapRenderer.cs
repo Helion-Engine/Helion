@@ -493,7 +493,7 @@ public class LegacyAutomapRenderer : IDisposable
             flash = true;
             color = m_keyImageColor ? keyColors.ImageColor : keyColors.Color;
         }
-        else if (entity.Flags.CountKill)
+        else if (entity.Flags.CountKill())
         {
             color = entity.IsDead ? m_deadMonsterColor : m_monsterColor;
         }

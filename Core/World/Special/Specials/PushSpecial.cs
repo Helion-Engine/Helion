@@ -82,7 +82,7 @@ public class PushSpecial : ISpecial
                 Vec2D pushFactor = m_pushFactor;
                 if (m_type == PushType.Wind)
                 {
-                    if (!entity.Flags.WindThrust)
+                    if (!entity.Flags.WindThrust())
                         continue;
 
                     pushFactor = GetWindPushFactor(entity, pushFactor);
@@ -140,10 +140,10 @@ public class PushSpecial : ISpecial
 
     private GridIterationStatus PushEntity(Entity entity)
     {
-        if (entity.Flags.NoClip)
+        if (entity.Flags.NoClip())
             return GridIterationStatus.Continue;
 
-        if (!entity.IsBoomSentient && !entity.Flags.Shootable)
+        if (!entity.IsBoomSentient && !entity.Flags.Shootable())
             return GridIterationStatus.Continue;
 
         if (!m_world.CheckLineOfSight(entity, m_pusher!))
@@ -163,11 +163,11 @@ public class PushSpecial : ISpecial
             angle += Math.PI;
 
         entity.Velocity += Vec3D.UnitSphere(angle, 0) * speed;
-        entity.Flags.IgnoreDropOff = true;
+        entity.Flags.SetIgnoreDropOff();
         return GridIterationStatus.Continue;
     }
 
-    private static bool ShouldNotPush(Entity entity) => !entity.IsPlayer || entity.Flags.NoClip || entity.Flags.NoGravity;
+    private static bool ShouldNotPush(Entity entity) => !entity.IsPlayer || entity.Flags.NoClip() || entity.Flags.NoGravity();
 
     public bool Use(Entity entity) => false;
 

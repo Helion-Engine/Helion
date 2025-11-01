@@ -172,7 +172,7 @@ public class Shoot
         GameActions.SetEntityPosition(World, Player, (96, -480, 0));
         var projectile = World.FireProjectile(Player, 1.5707963267948966, 0, 2048, true, GetMissileDef(), out _);
         projectile.Should().NotBeNull();
-        projectile!.Flags.Ripper = true;
+        projectile!.Flags.SetRipper();
         projectile!.Definition.Properties.Damage = new DamageRangeProperty { Value = 100, Exact = true };
         GameActions.TickWorld(World, 35 * 10);        
         foreach (var imp in imps)

@@ -41,7 +41,7 @@ namespace Helion.Tests.Unit.GameAction
                     while (node != null)
                     {
                         var entity = node.Value;
-                        if (entity.Flags.Shootable && entity.IsCrushing())
+                        if (entity.Flags.Shootable() && entity.IsCrushing())
                         {
                             isCrushing = true;
                             break;

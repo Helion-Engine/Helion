@@ -122,7 +122,7 @@ public sealed class PhysicsManager
         if (entity.Id < 0)
             return;
 
-        if (!entity.Flags.NoBlockmap)
+        if (!entity.Flags.NoBlockmap())
             m_blockmap.Link(entity, checkLastBlock);
 
         m_world.RenderBlockmap.RenderLink(entity);
@@ -144,7 +144,7 @@ public sealed class PhysicsManager
         entity.BlockingSectorPlane = null;
         MoveXY(entity);
         MoveZ(entity);
-        entity.Flags.IgnoreDropOff = false;
+        entity.Flags.ClearIgnoreDropOff();
     }
 
     public void EntityFallCheck(DynamicArray<Entity> entities)
@@ -234,7 +234,7 @@ public sealed class PhysicsManager
             ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
 
             // Check for missile hitting floor/ceiling. Doom would only explode on z movement so check for z velocity.
-            if (entity.Flags.Missile && prevVelocityZ != 0)
+            if (entity.Flags.Missile() && prevVelocityZ != 0)
                 m_world.HandleEntityHit(entity, entity.Velocity, null);
 
             var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
@@ -261,7 +261,7 @@ public sealed class PhysicsManager
             var entityMoveData = m_sectorMoveEntitiesData[i];
             entity.PrevPosition.Z = entityMoveData.PrevSaveZ;
             // This allows the player to pickup items like the original
-            if (entity.IsPlayer && !entity.Flags.NoClip)
+            if (entity.IsPlayer && !entity.Flags.NoClip())
                 IsPositionValid(entity, entity.Position.X, entity.Position.Y, TryMoveData);
 
             if ((moveType == SectorPlaneFace.Ceiling && startZ < destZ) ||
@@ -271,21 +271,21 @@ public sealed class PhysicsManager
             var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
             if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
             {
-                if (entity.Flags.Dropped)
+                if (entity.Flags.Dropped())
                 {
                     m_entityManager.Destroy(entity);
                     continue;
                 }
 
                 // Need to gib things even when not crushing and do not count as blocking
-                if (entity.Flags.Corpse && !entity.Flags.DontGib && entity.Health <= 0)
+                if (entity.Flags.Corpse() && !entity.Flags.DontGib() && entity.Health <= 0)
                 {
                     SetToGiblets(entity);
                     continue;
                 }
 
                 // Doom checked against shootable instead of solid...
-                if (!entity.Flags.Shootable)
+                if (!entity.Flags.Shootable())
                     continue;
 
                 if (moveData.Crush != null)
@@ -370,7 +370,7 @@ public sealed class PhysicsManager
 
     private GridIterationStatus IgnoreClampEntityTraverse(Entity checkEntity)
     {
-        if (!checkEntity.Flags.Solid)
+        if (!checkEntity.Flags.Solid())
             return GridIterationStatus.Continue;
 
         double currentZ = checkEntity.Position.Z;
@@ -395,7 +395,7 @@ public sealed class PhysicsManager
     {
         // If not move linked check if this thing would pop up and would clip into another entity.
         // Otherwise allow it to pop up and match vanilla doom behavior.
-        if (entity.MoveLinked || entity.Flags.NoClip)
+        if (entity.MoveLinked || entity.Flags.NoClip())
             return true;
 
         GetEntityClampValues(entity, entity.IntersectSectors, true, null, out Sector highestFloor, out _, out _, out _);
@@ -413,7 +413,7 @@ public sealed class PhysicsManager
 
     private GridIterationStatus HandleSectorMoveLinkClamp(Entity checkEntity)
     {
-        if (!checkEntity.Flags.Solid || checkEntity.Flags.Corpse || checkEntity.Flags.NoClip || m_moveLinkData.Entity.Id == checkEntity.Id)
+        if (!checkEntity.Flags.Solid() || checkEntity.Flags.Corpse() || checkEntity.Flags.NoClip() || m_moveLinkData.Entity.Id == checkEntity.Id)
             return GridIterationStatus.Continue;
 
         if (m_moveLinkData.Height > checkEntity.Position.Z)
@@ -431,7 +431,7 @@ public sealed class PhysicsManager
         {
             var entity = node.Value;
             // Doom did this by blockmap so do not add things with NoBlockmap
-            if (!entity.Flags.NoBlockmap && EntityHasMovementSector(entity, sector))
+            if (!entity.Flags.NoBlockmap() && EntityHasMovementSector(entity, sector))
                 m_sectorMoveEntities.Add(entity);
             node = node.Next;
         }
@@ -548,7 +548,7 @@ public sealed class PhysicsManager
             m_world.HandleEntityHit(crushEntity, crushEntity.Velocity, null);
 
             if (!crushEntity.IsDead && m_world.DamageEntity(crushEntity, null, crush.Damage, DamageType.Normal) &&
-                !crushEntity.Flags.NoBlood && !crushEntity.IsDisposed)
+                !crushEntity.Flags.NoBlood() && !crushEntity.IsDisposed)
             {
                 Vec3D pos = crushEntity.Position;
                 pos.Z += crushEntity.Height / 2;
@@ -579,7 +579,7 @@ public sealed class PhysicsManager
     {
         if (entity.SetCrushState())
         {
-            entity.Flags.CrushGiblets = true;
+            entity.Flags.SetCrushGiblets();
             return;
         }
 
@@ -639,7 +639,7 @@ public sealed class PhysicsManager
             opening = GetLineOpening(line.FrontSector, line.BackSector!);
         }
 
-        if (line.BlockFlags.MidTex3D && !line.OneSided && (!entity.Flags.Missile || !line.BlockFlags.BlockMissileMidTex3D))
+        if (line.BlockFlags.MidTex3D && !line.OneSided && (!entity.Flags.Missile() || !line.BlockFlags.BlockMissileMidTex3D))
         {
             var midTexEntity = GetMidTexEntity(line.LineId);
             if (BlocksEntityZ(entity, midTexEntity, tryMove, entity.OverlapsZ(midTexEntity)))
@@ -721,7 +721,7 @@ public sealed class PhysicsManager
 
         if (entity.IsDisposed || entity.Definition.Type == EntityType.BulletPuff)
             return;
-        if (entity.Flags.NoClip && entity.Flags.NoGravity)
+        if (entity.Flags.NoClip() && entity.Flags.NoGravity())
             return;
 
         double prevHighestFloorZ = entity.HighestFloorZ;
@@ -810,7 +810,7 @@ public sealed class PhysicsManager
         }
 
         // Only check against other entities if CanPass is set (height sensitive clip detection)
-        if (entity.Flags.CanPass && !entity.Flags.NoClip)
+        if (entity.Flags.CanPass() && !entity.Flags.NoClip())
         {
             m_canPassData.Entity = entity;
             m_canPassData.HighestFloorEntity = highestFloorEntity;
@@ -863,7 +863,7 @@ public sealed class PhysicsManager
     private GridIterationStatus CanPassTraverse(Entity intersectEntity)
     {
         var entity = m_canPassData.Entity;
-        if (!intersectEntity.Flags.Solid || intersectEntity.Flags.Corpse || intersectEntity.Flags.NoClip || entity == intersectEntity)
+        if (!intersectEntity.Flags.Solid() || intersectEntity.Flags.Corpse() || intersectEntity.Flags.NoClip() || entity == intersectEntity)
             return GridIterationStatus.Continue;
 
         for (int i = m_clampIgnoreEntities.Length - 1; i >= 0; i--)
@@ -873,7 +873,7 @@ public sealed class PhysicsManager
         }
 
         double intersectTopZ = intersectEntity.Position.Z + intersectEntity.Height;
-        if (entity.Flags.Missile && WorldStatic.MissileClip)
+        if (entity.Flags.Missile() && WorldStatic.MissileClip)
             intersectTopZ = intersectEntity.GetMissileClipHeight(true);
         bool above = entity.PrevPosition.Z >= intersectTopZ;
         bool below = entity.PrevPosition.Z + entity.Height <= intersectEntity.PrevPosition.Z;
@@ -884,7 +884,7 @@ public sealed class PhysicsManager
         else if (below && m_canPassData.EntityTopZ > intersectEntity.Position.Z)
             clipped = true;
 
-        if (!above && !below && !m_canPassData.ClampToLinkedSectors && !intersectEntity.Flags.ActLikeBridge)
+        if (!above && !below && !m_canPassData.ClampToLinkedSectors && !intersectEntity.Flags.ActLikeBridge())
             return GridIterationStatus.Continue;
 
         if (above)
@@ -944,7 +944,7 @@ public sealed class PhysicsManager
         if (m_canPassData.HighestFloorEntity == null || m_canPassData.HighestFloorEntity.Position.Z + m_canPassData.HighestFloorEntity.Height != intersectTopZ)
             return true;
         // Need to prioritize bridge things over everything else when the z heights are equal.
-        return !m_canPassData.Entity.Flags.ActLikeBridge && entity.Flags.ActLikeBridge;
+        return !m_canPassData.Entity.Flags.ActLikeBridge() && entity.Flags.ActLikeBridge();
     }
 
     private static void GetEntityClampValues(Entity entity, DynamicArray<Sector>? intersectSectors,
@@ -1099,7 +1099,7 @@ doneLinkToSectors:
     public TryMoveData TryMoveXY(Entity entity, double x, double y)
     {
         TryMoveData.Clear();
-        if (entity.Flags.NoClip)
+        if (entity.Flags.NoClip())
         {
             entity.UnlinkFromWorld();
             entity.Position.X = x;
@@ -1151,7 +1151,7 @@ doneLinkToSectors:
             {
                 entity.MoveLinked = true;
                 MoveTo(entity, nextX, nextY, TryMoveData);
-                if (entity.Flags.Teleported)
+                if (entity.Flags.Teleported())
                     return TryMoveData;
 
                 m_world.HandleEntityIntersections(entity, saveVelocity, TryMoveData);
@@ -1168,7 +1168,7 @@ doneLinkToSectors:
                 }
             }
 
-            if (entity.Flags.SlidesOnWalls && slidesLeft > 0)
+            if (entity.Flags.SlidesOnWalls() && slidesLeft > 0)
             {
                 // BlockingLine and BlockingEntity will get cleared on HandleSlide(IsPositionValid) calls.
                 // Carry them over so other functions after TryMoveXY can use them for verification.
@@ -1263,9 +1263,9 @@ doneLinkToSectors:
         entity.BlockingEntity = null;
         
         int checkCounter = ++WorldStatic.CheckCounter;
-        bool isMissile = entity.Flags.Missile;
-        bool checkEntities = entity.Flags.Solid || entity.Flags.Missile;
-        bool canPickup = entity.Flags.Pickup;
+        bool isMissile = entity.Flags.Missile();
+        bool checkEntities = isMissile || entity.Flags.Solid();
+        bool canPickup = entity.Flags.Pickup();
         Entity? nextEntity;
                 
         var boxMinX = x - entity.Radius;
@@ -1311,7 +1311,7 @@ doneLinkToSectors:
 
                         // Note: Flags.Special is set when the definition is applied using Definition.IsType(EntityDefinitionType.Inventory)
                         // This flag can be modified by dehacked
-                        if (overlapsZ && canPickup && nextEntity.Flags.Special)
+                        if (overlapsZ && canPickup && nextEntity.Flags.Special())
                         {
                             if (entity.PlayerObj != null)
                                 m_world.PerformItemPickup(entity, nextEntity);
@@ -1347,13 +1347,13 @@ doneLinkToSectors:
                             entity.BlockingBlockLineIndex = i;
                             blockLineIndex = i;
                             tryMove.Success = false;
-                            if (!entity.Flags.NoClip && blockLine.HasSpecial)
+                            if (!entity.Flags.NoClip() && blockLine.HasSpecial)
                                 tryMove.ImpactSpecialLines.Add(blockLine.LineId);
                             if (blockType == LineBlock.BlockStopChecking)
                                 goto doneIsPositionValid;
                         }
 
-                        if (blockType == LineBlock.NoBlock && !entity.Flags.NoClip)
+                        if (blockType == LineBlock.NoBlock && !entity.Flags.NoClip())
                         {
                             if (blockLine.BlockFlags.MidTex3D)
                                 tryMove.IntersectMidTexLines.Add(blockLine.LineId);
@@ -1399,7 +1399,7 @@ doneLinkToSectors:
 
     private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ)
     {
-        if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile && !other.Flags.Missile && other.MidTexLine == null)
+        if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile() && !other.Flags.Missile() && other.MidTexLine == null)
             return true;
 
         if (entity.Position.Z + entity.Height > other.Position.Z)
@@ -1438,12 +1438,12 @@ doneLinkToSectors:
 
         LinkToWorld(entity, tryMove, checkLastBlock: true);
 
-        if (entity.Flags.Teleport || entity.Flags.NoClip)
+        if (entity.Flags.Teleport() || entity.Flags.NoClip())
             return;
 
         for (int i = tryMove.IntersectSpecialLines.Length - 1; i >= 0 && i < tryMove.IntersectSpecialLines.Length; i--)
         {
-            if (entity.Flags.Teleported)
+            if (entity.Flags.Teleported())
                 break;
 
             var lineId = tryMove.IntersectSpecialLines[i];
@@ -1458,7 +1458,7 @@ doneLinkToSectors:
     {
         if (FindClosestBlockingLine(entity, stepDelta, tryMove, out MoveInfo moveInfo) &&
             MoveCloseToBlockingLine(entity, stepDelta, moveInfo, out Vec2D residualStep, tryMove) &&
-            !entity.Flags.Teleported)
+            !entity.Flags.Teleported())
         {
             ReorientToSlideAlong(entity, m_world.Blockmap.BlockLines[moveInfo.BlockLineIndex].Segment, residualStep, ref stepDelta, ref movesLeft);
             return;
@@ -1718,7 +1718,7 @@ doneLinkToSectors:
         // Doom checked skull fly here. This is required to match dehacked functionality if the velocity is cleared but didn't actually hit anything.
         if (entity.Velocity.X == 0 && entity.Velocity.Y == 0)
         {
-            if (entity.Flags.Skullfly)
+            if (entity.Flags.Skullfly())
                 m_world.HandleEntityHit(entity, entity.Velocity, TryMoveData);
             return;
         }
@@ -1751,7 +1751,7 @@ doneLinkToSectors:
             }
         }
 
-        if (entity.Flags.MbfBouncer && ShouldIgnoreMbfBouncerFriction(entity, TryMoveData))
+        if (entity.Flags.MbfBouncer() && ShouldIgnoreMbfBouncerFriction(entity, TryMoveData))
             return;
 
         if (shouldClear)
@@ -1778,7 +1778,7 @@ doneLinkToSectors:
 
     private static double GetFrictionFromSectors(Entity entity)
     {
-        if (entity.Flags.NoClip || !WorldStatic.SectorFriction)
+        if (entity.Flags.NoClip() || !WorldStatic.SectorFriction)
             return Constants.DefaultFriction;
 
         double lowestFriction = double.MaxValue;
@@ -1818,15 +1818,15 @@ doneLinkToSectors:
         if (entity.IsBlocked())
             m_world.HandleEntityHit(entity, previousVelocity, null);
 
-        if (entity.Flags.NoGravity && entity.ShouldApplyFriction())
+        if (entity.Flags.NoGravity() && entity.ShouldApplyFriction())
             entity.Velocity.Z *= Constants.DefaultFriction;
 
         if (!shouldApplyGravity)
             return;
 
-        if (entity.Flags.MbfBouncer && entity.Velocity.Z != 0)
+        if (entity.Flags.MbfBouncer() && entity.Velocity.Z != 0)
         {
-            if (!entity.Flags.NoGravity)
+            if (!entity.Flags.NoGravity())
                 entity.Velocity.Z -= entity.GetMbfBouncerGravity(1);
             return;
         }

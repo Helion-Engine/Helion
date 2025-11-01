@@ -114,7 +114,7 @@ public class SoloNet
         shotgunGuy.Kill(null);
         GameActions.TickWorld(World, 35);
         var shotgun = GameActions.GetEntity(World, "Shotgun");
-        shotgun.Flags.Dropped.Should().BeTrue();
+        shotgun.Flags.Dropped().Should().BeTrue();
         World.PerformItemPickup(Player, shotgun);
         InventoryUtil.AssertHasWeapon(Player, "Shotgun");
         GameActions.FindEntity(World, "Shotgun").Should().BeNull();

@@ -32,17 +32,17 @@ public class Touchy : IDisposable
     private void WorldInit(SinglePlayerWorld world)
     {
         var def = GameActions.GetEntityDefinition(world, ZombieMan);
-        def.Flags.Touchy = true;
+        def.Flags.SetTouchy();
         def.Properties.Health = ZombieStartHealth;
         def = GameActions.GetEntityDefinition(world, Imp);
-        def.Flags.Touchy = true;
-        def.Flags.Solid = false;
+        def.Flags.SetTouchy();
+        def.Flags.ClearSolid();
         def = GameActions.GetEntityDefinition(world, PainElemental);
-        def.Flags.Touchy = true;
+        def.Flags.SetTouchy();
         def = GameActions.GetEntityDefinition(world, LostSoul);
-        def.Flags.Touchy = true;
+        def.Flags.SetTouchy();
         def = GameActions.GetEntityDefinition(world, ShotgunGuy);
-        def.Flags.Solid = false;
+        def.Flags.ClearSolid();
     }
 
     public void Dispose()
@@ -104,7 +104,7 @@ public class Touchy : IDisposable
     {
         GameActions.SetEntityOutOfBounds(World, Player);
         var plasmaShot = GameActions.CreateEntity(World, "PlasmaBall", (-320, -320, 0));
-        plasmaShot.Flags.Ripper = true;
+        plasmaShot.Flags.SetRipper();
         var touchyThing = GameActions.CreateEntity(World, ZombieMan, (-384, -320, 0));
         World.TryMoveXY(plasmaShot, (-384, -320));
         // Should rip through but not trigger touchy death

@@ -63,7 +63,7 @@ public class Ammo
     public void DroppedAmmo()
     {
         var item = GameActions.CreateEntity(World, "Shell", ItemPos);
-        item.Flags.Dropped = true;
+        item.Flags.SetDropped();
         World.PerformItemPickup(Player, item);
         InventoryUtil.AssertAmount(Player, "Shell", 5);
     }
@@ -72,7 +72,7 @@ public class Ammo
     public void DroppedBoxAmmo()
     {
         var item = GameActions.CreateEntity(World, "ShellBox", ItemPos);
-        item.Flags.Dropped = true;
+        item.Flags.SetDropped();
         World.PerformItemPickup(Player, item);
         InventoryUtil.AssertAmount(Player, "Shell", 7);
     }
@@ -81,7 +81,7 @@ public class Ammo
     public void DroppedBackpackAmmo()
     {
         var item = GameActions.CreateEntity(World, "Backpack", ItemPos);
-        item.Flags.Dropped = true;
+        item.Flags.SetDropped();
         World.PerformItemPickup(Player, item);
         InventoryUtil.AssertAmount(Player, "Shell", 10);
     }
@@ -90,7 +90,7 @@ public class Ammo
     public void DroppedWeaponAmmo()
     {
         var item = GameActions.CreateEntity(World, "Shotgun", ItemPos);
-        item.Flags.Dropped = true;
+        item.Flags.SetDropped();
         World.PerformItemPickup(Player, item);
         InventoryUtil.AssertAmount(Player, "Shell", 12);
     }

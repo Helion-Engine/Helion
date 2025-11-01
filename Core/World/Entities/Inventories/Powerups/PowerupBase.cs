@@ -165,7 +165,7 @@ public class PowerupBase : IPowerup
     {
         if (PowerupType == PowerupType.Invisibility)
         {
-            m_player.Flags.Shadow = true;
+            m_player.Flags.SetShadow();
         }
         else if (PowerupType == PowerupType.Invulnerable)
         {
@@ -177,7 +177,7 @@ public class PowerupBase : IPowerup
     public void Destroy()
     {
         if (PowerupType == PowerupType.Invisibility)
-            m_player.Flags.Shadow = false;
+            m_player.Flags.ClearShadow();
     }
 
     public void Reset()

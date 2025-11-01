@@ -44,7 +44,7 @@ public class SkillDef
 
     public int GetAmmoAmount(int amount, double multiplier, EntityFlags? flags)
     {
-        if (flags != null && flags.Value.Dropped)
+        if (flags != null && flags.Value.Dropped())
         {
             double dropAmmoFactor = DropAmmoFactor;
             if (dropAmmoFactor == -1)

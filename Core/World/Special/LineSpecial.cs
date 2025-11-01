@@ -116,7 +116,7 @@ public class LineSpecial
         if (context == ActivationContext.Always)
             return true;
 
-        if (entity.Flags.NoTeleport && IsTeleport())
+        if (entity.Flags.NoTeleport() && IsTeleport())
             return false;
 
         int defId = entity.Definition.Id;
@@ -135,7 +135,7 @@ public class LineSpecial
             else
                 contextSuccess = (flags.Activations & LineActivations.ImpactLine) != 0;
         }
-        else if (entity.Flags.Missile)
+        else if (entity.Flags.Missile())
         {
             if (!projectileTrigger && (flags.Activations & LineActivations.Projectile) == 0)
                 return false;

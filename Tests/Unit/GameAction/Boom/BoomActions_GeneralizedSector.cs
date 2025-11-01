@@ -135,11 +135,11 @@ public partial class BoomActions
     {
         var monsters = GameActions.GetSectorEntities(World, 146);
         var imp = GameActions.CreateEntity(World, "DoomImp", (704, 1472, 0));
-        imp.Flags.Shootable = false;
+        imp.Flags.ClearShootable();
         GameActions.TickWorld(World, 1);
         imp.IsDead.Should().BeFalse();
 
-        imp.Flags.Shootable = true;
+        imp.Flags.SetShootable();
         GameActions.TickWorld(World, 1);
         imp.IsDead.Should().BeTrue();
     }

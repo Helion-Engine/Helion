@@ -30,7 +30,7 @@ public class Pickups
     public void SpecialStaySinglePlayerShotgun()
     {
         var shotgun = GameActions.CreateEntity(World, "Shotgun", ItemPos);
-        shotgun.Flags.SpecialStaySingle = true;
+        shotgun.Flags.SetSpecialStaySingle();
 
         InventoryUtil.AssertInventoryDoesNotContain(Player, "Shotgun");
         World.PerformItemPickup(Player, shotgun);
@@ -50,7 +50,7 @@ public class Pickups
     public void SpecialStaySinglePlayerArmor()
     {
         var armor = GameActions.CreateEntity(World, "GreenArmor", ItemPos);
-        armor.Flags.SpecialStaySingle = true;
+        armor.Flags.SetSpecialStaySingle();
 
         Player.Armor.Should().Be(0);
         World.PerformItemPickup(Player, armor);
@@ -72,7 +72,7 @@ public class Pickups
     public void SpecialStaySinglePlayerMedikit()
     {
         var medikit = GameActions.CreateEntity(World, "Medikit", ItemPos);
-        medikit.Flags.SpecialStaySingle = true;
+        medikit.Flags.SetSpecialStaySingle();
 
         Player.Health = 99;
         World.PerformItemPickup(Player, medikit);

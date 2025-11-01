@@ -47,7 +47,7 @@ public class HealChase : IDisposable
         GameActions.AssertSound(World, imp, "dsslop");
         GameActions.TickWorld(World, 35);
         imp.IsDead.Should().BeFalse();
-        imp.Flags.Solid.Should().BeTrue();
+        imp.Flags.Solid().Should().BeTrue();
         imp.Height.Should().Be(56);
         archvile.Target().Should().Be(World.Player);
     }
@@ -73,7 +73,7 @@ public class HealChase : IDisposable
         archvile.FrameState.Frame.Sprite.Should().Be("SKEL");
         GameActions.TickWorld(World, 35);
         imp.IsDead.Should().BeFalse();
-        imp.Flags.Solid.Should().BeTrue();
+        imp.Flags.Solid().Should().BeTrue();
         imp.Height.Should().Be(56);
         archvile.Target().Should().Be(World.Player);
     }

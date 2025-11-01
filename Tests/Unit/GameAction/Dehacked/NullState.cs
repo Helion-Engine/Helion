@@ -24,8 +24,8 @@ public class NullState
     {
         var def = World.EntityManager.DefinitionComposer.GetByName("DoomImp")!;
         def.DeathState = null;
-        def.Flags.SpawnCeiling = true;
-        def.Flags.Missile = true;
+        def.Flags.SetSpawnCeiling();
+        def.Flags.SetMissile();
         
         var entity = GameActions.CreateEntity(World, "DoomImp", Vec3D.Zero, initSpawn: true);
         entity.IsDisposed.Should().BeFalse();

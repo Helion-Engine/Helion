@@ -223,7 +223,7 @@ namespace Helion.Tests.Unit.GameAction
             var sector = GameActions.GetSectorByTag(World, 1);
             var regularClip = GameActions.CreateEntity(World, "CLIP", LiftBlock1.To3D(sector.Floor.Z));
             var droppedClip = GameActions.CreateEntity(World, "CLIP", LiftBlock1.To3D(sector.Floor.Z));
-            droppedClip.Flags.Dropped = true;
+            droppedClip.Flags.SetDropped();
 
             GameActions.ActivateLine(World, Player, LiftLine1, ActivationContext.UseLine).Should().BeTrue();
             sector.ActiveFloorMove.Should().NotBeNull();
@@ -266,8 +266,8 @@ namespace Helion.Tests.Unit.GameAction
                 if (floorMove.MoveDirection == MoveDirection.Up && sector.Floor.Z > -14)
                 {
                     monster.Height.Should().Be(0);
-                    monster.Flags.DontGib.Should().BeTrue();
-                    monster.Flags.Solid.Should().BeFalse();
+                    monster.Flags.DontGib().Should().BeTrue();
+                    monster.Flags.Solid().Should().BeFalse();
                     monster.FrameState.Frame.Sprite.Should().Be("POL5");
                 }
 

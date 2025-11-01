@@ -17,7 +17,7 @@ public static class ClosetClassifier
         {
             for (var entity = world.EntityManager.Head; entity != null; entity = entity.Next)
             {
-                if (entity.Flags.Friendly)
+                if (entity.Flags.Friendly())
                     continue;
 
                 var subsector = bspTree.Subsectors[entity.SubsectorId];
@@ -52,7 +52,7 @@ public static class ClosetClassifier
             {
                 foreach (Entity entity in islandToEntities[island.Id])
                 {
-                    if (entity.Flags.Friendly)
+                    if (entity.Flags.Friendly())
                         continue;
                     entity.ClosetFlags |= ClosetFlags.MonsterCloset;
                 }
@@ -117,7 +117,7 @@ public static class ClosetClassifier
                 continue;
 
             // Anything not a monster is not a monster closet.
-            if (entity.Flags.CountKill)
+            if (entity.Flags.CountKill())
                 monsterCount++;
             else
                 monsterCloset = false;

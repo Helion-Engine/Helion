@@ -257,7 +257,7 @@ public sealed class Inventory
         if (Items.TryGetValue(name, out InventoryItem? item))
         {
             // If the player is maxed on this item, return true if AlwaysPickup is set to remove from the world
-            bool alwaysPickup = flags != null && flags.Value.InventoryAlwaysPickup;
+            bool alwaysPickup = flags != null && flags.Value.InventoryAlwaysPickup();
             if (isKey || item.Amount >= maxAmount)
                 return alwaysPickup;
 
@@ -385,7 +385,7 @@ public sealed class Inventory
         double? multiplier = baseAmmoDef.Properties.Ammo.GetSkillMultiplier(WorldStatic.World.SkillLevel);
 
         int giveAmount = amount;
-        bool isDropped = flags.HasValue && flags.Value.Dropped || ammoDef.Properties.Inventory.AmountModifier == AmountModifier.Dropped;
+        bool isDropped = flags.HasValue && flags.Value.Dropped() || ammoDef.Properties.Inventory.AmountModifier == AmountModifier.Dropped;
         if (isDropped && ammoDef.Properties.Ammo.DropAmount.HasValue)
         {
             // Null flags for SkillDefinition to not apply 0.5 dropped multiplier

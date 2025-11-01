@@ -93,7 +93,7 @@ namespace Helion.Tests.Unit.GameAction
         public void MissileNonSolidShootable()
         {
             var entity = GameActions.CreateEntity(World, "Zombieman", MissileCenterPlayerPos + new Vec3D(0, 96, 0));
-            entity.Flags.Solid = false;
+            entity.Flags.ClearSolid();
             var rocket = GameActions.CreateEntity(World, "Rocket", MissileCenterPos);
             rocket.AngleRadians = GameActions.GetAngle(Bearing.North);
             rocket.Velocity = Vec3D.UnitSphere(rocket.AngleRadians, 0) * 16;
@@ -110,7 +110,7 @@ namespace Helion.Tests.Unit.GameAction
         public void MissileNonShootableSolid()
         {
             var entity = GameActions.CreateEntity(World, "Zombieman", MissileCenterPlayerPos + new Vec3D(0, 96, 0));
-            entity.Flags.Shootable = false;
+            entity.Flags.ClearSolid();
             var rocket = GameActions.CreateEntity(World, "Rocket", MissileCenterPos);
             rocket.AngleRadians = GameActions.GetAngle(Bearing.North);
             rocket.Velocity = Vec3D.UnitSphere(rocket.AngleRadians, 0) * 16;
@@ -127,9 +127,9 @@ namespace Helion.Tests.Unit.GameAction
         public void MissileNonShootableNonSolidSpecial()
         {
             var entity = GameActions.CreateEntity(World, "Zombieman", MissileCenterPlayerPos + new Vec3D(0, 96, 0));
-            entity.Flags.Solid = false;
-            entity.Flags.Shootable = false;
-            entity.Flags.Special = true;
+            entity.Flags.ClearSolid();
+            entity.Flags.ClearShootable();
+            entity.Flags.SetSpecial();
             var rocket = GameActions.CreateEntity(World, "Rocket", MissileCenterPos);
             rocket.AngleRadians = GameActions.GetAngle(Bearing.North);
             rocket.Velocity = Vec3D.UnitSphere(rocket.AngleRadians, 0) * 16;

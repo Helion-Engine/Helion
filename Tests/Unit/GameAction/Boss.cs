@@ -171,12 +171,12 @@ public class Boss
 
         keen1.Kill(null);
         GameActions.TickWorld(world, 100);
-        keen1.Flags.Solid.Should().BeFalse();
+        keen1.Flags.Solid().Should().BeFalse();
         sector.Ceiling.Z.Should().Be(0);
 
         keen2.Kill(null);
         GameActions.TickWorld(world, 100);
-        keen2.Flags.Solid.Should().BeFalse();
+        keen2.Flags.Solid().Should().BeFalse();
         sector.ActiveCeilingMove.Should().NotBeNull();
         GameActions.RunSectorPlaneSpecial(world, sector);
         sector.Ceiling.Z.Should().Be(124);

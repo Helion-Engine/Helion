@@ -336,24 +336,24 @@ public class ScrollSpecial : ISpecial
             for (var node = sectorPlane.Sector.Entities.Head; node != null; node = node.Next)
             {
                 var entity = node.Value;
-                if (entity.Flags.NoClip || entity.Flags.NoSector)
+                if (entity.Flags.NoClip() || entity.Flags.NoSector())
                     continue;
 
-                if ((m_options & ScrollPlaneOptions.CarryMonsters) == 0 && entity.Flags.CountKill)
+                if ((m_options & ScrollPlaneOptions.CarryMonsters) == 0 && entity.Flags.CountKill())
                     continue;
 
                 if ((m_options & ScrollPlaneOptions.CarryPlayers) == 0 && entity.IsPlayer)
                     continue;
 
-                if ((m_options & ScrollPlaneOptions.CarryStaticObjects) == 0 && !entity.Flags.CountKill && !entity.IsPlayer)
+                if ((m_options & ScrollPlaneOptions.CarryStaticObjects) == 0 && !entity.Flags.CountKill() && !entity.IsPlayer)
                     continue;
 
-                if (entity.Position.Z >= waterHeight && (entity.Flags.NoGravity || !entity.OnGround || !entity.OnSectorFloorZ(sectorPlane.Sector)))
+                if (entity.Position.Z >= waterHeight && (entity.Flags.NoGravity() || !entity.OnGround || !entity.OnSectorFloorZ(sectorPlane.Sector)))
                     continue;
 
                 entity.Velocity.X += x;
                 entity.Velocity.Y += y;
-                entity.Flags.IgnoreDropOff = true;
+                entity.Flags.SetIgnoreDropOff();
             }
         }
     }

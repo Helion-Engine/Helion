@@ -383,8 +383,8 @@ namespace Helion.Tests.Unit.GameAction
             // Physics still needs to link it to the sector but then check if NoBlockmap = false for movement.
             var sector = GameActions.GetSectorByTag(World, 1);
             var def = World.EntityManager.DefinitionComposer.GetByName(Zombieman)!;
-            def.Flags.NoSector = true;
-            def.Flags.NoBlockmap = false;
+            def.Flags.SetNoSector();
+            def.Flags.ClearNoBlockmap();
 
             var monster = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(0));
             var blocks = (monster.BlockRange.EndX - monster.BlockRange.StartX) + (monster.BlockRange.EndY - monster.BlockRange.StartY);
@@ -400,8 +400,8 @@ namespace Helion.Tests.Unit.GameAction
                 monster.Position.Z.Should().Be(sector.Floor.Z);
             });
 
-            def.Flags.NoSector = false;
-            def.Flags.NoBlockmap = false;
+            def.Flags.ClearNoSector();
+            def.Flags.ClearNoBlockmap();
         }
 
         [Fact(DisplayName = "Entity with NoSector = true and NoBlockmap = true should NOT move with the floor")]
@@ -409,8 +409,8 @@ namespace Helion.Tests.Unit.GameAction
         {
             var sector = GameActions.GetSectorByTag(World, 1);
             var def = World.EntityManager.DefinitionComposer.GetByName(Zombieman)!;
-            def.Flags.NoSector = true;
-            def.Flags.NoBlockmap = true;
+            def.Flags.SetNoSector();
+            def.Flags.SetNoBlockmap();
 
             var monster = GameActions.CreateEntity(World, Zombieman, LiftCenter1.To3D(0));
 
@@ -433,8 +433,8 @@ namespace Helion.Tests.Unit.GameAction
                 monster.Position.Z.Should().Be(0);
             });
 
-            def.Flags.NoSector = false;
-            def.Flags.NoBlockmap = false;
+            def.Flags.ClearNoSector();
+            def.Flags.ClearNoBlockmap();
         }
 
 

@@ -62,8 +62,8 @@ public class VanillaThingFlags
         var hellKnight = GameActions.GetEntity(world, HellKnight);
         var baron = GameActions.GetEntity(world, Baron);
 
-        hellKnight.Flags.Ambush.Should().BeFalse();
-        baron.Flags.Ambush.Should().BeTrue();
+        hellKnight.Flags.Ambush().Should().BeFalse();
+        baron.Flags.Ambush().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Ambush noise alert and line of sight")]

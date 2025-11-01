@@ -85,7 +85,7 @@ public class PickupAmmo
         InventoryUtil.AssertAmount(Player, "Shell", 20);
 
         item = GameActions.CreateEntity(World, "*deh/entity42075", ItemPos);
-        item.Flags.Dropped = true;
+        item.Flags.SetDropped();
         World.PerformItemPickup(Player, item);
         InventoryUtil.AssertAmount(Player, "Shell", 30);
     }

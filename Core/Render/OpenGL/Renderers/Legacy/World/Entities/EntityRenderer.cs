@@ -139,7 +139,7 @@ public class EntityRenderer : IDisposable
         if (m_vanillaRender)
             return offsetAmount;
 
-        if (offsetAmount >= 0 || entity.Definition.Flags.Missile || entity.Definition.Flags.NoGravity)
+        if (offsetAmount >= 0 || entity.Definition.Flags.Missile() || entity.Definition.Flags.NoGravity())
             return offsetAmount;
 
         if (entity.Sector.Flood || entity.Sector.Floor.NoRender)
@@ -238,7 +238,7 @@ public class EntityRenderer : IDisposable
                 colorMapIndex = m_archiveCollection.Definitions.GetBloodColormap(owner.Properties.BloodPaletteColor.Value).Index;
         }
 
-        var shouldMirror = entity.Flags.Mirror;
+        var shouldMirror = entity.Flags.Mirror();
         if (shouldMirror)
             rotation = SpriteDefinition.MaxRotationIndex - rotation;
 
@@ -260,9 +260,9 @@ public class EntityRenderer : IDisposable
         }
 
         var disableFullbright = m_brightMaps && spriteRotation.BrightmapNoFullbright;
-        var isFullBright = (entity.Flags.Bright || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
+        var isFullBright = (entity.Flags.Bright() || entity.FrameState.Frame.Properties.Bright) && !disableFullbright;
         var offsetZ = GetOffsetZ(entity, texture);
-        var shadow = entity.Flags.Shadow || entity.RenderStyle == RenderStyle.Fuzzy;
+        var shadow = entity.Flags.Shadow() || entity.RenderStyle == RenderStyle.Fuzzy;
 
         int fuzz;
         RenderStyle renderStyle;
@@ -284,7 +284,7 @@ public class EntityRenderer : IDisposable
             if (entity.RenderStyle == RenderStyle.ColorAddFullBright)
                 renderStyle = isFullBright ? RenderStyle.ColorAdd : RenderStyle.Translucent;
             else if (entity.RenderStyle == RenderStyle.ColorAddExplosion)
-                renderStyle = entity.Flags.Missile ? RenderStyle.Normal : RenderStyle.ColorAdd;
+                renderStyle = entity.Flags.Missile() ? RenderStyle.Normal : RenderStyle.ColorAdd;
 
             if (renderStyle == RenderStyle.Translucent && entityAlpha >= 1)
                 renderStyle = RenderStyle.Normal;
@@ -315,7 +315,7 @@ public class EntityRenderer : IDisposable
         vertex.Options = VertexOptions.Entity(alpha, fuzz, flipU, colorMapIndex, lightLevel);
         vertex.ColorMapIndex = Renderer.GetColorMapBufferIndex(sector, LightBufferType.Floor);
 
-        if (entity.Definition.Flags.SpawnCeiling && m_vanillaRender)
+        if (entity.Definition.Flags.SpawnCeiling() && m_vanillaRender)
         {
             // Set position and offset from ceiling to not clip to floors
             var ceilingZ = (float)entity.Sector.Ceiling.Z;
@@ -328,7 +328,7 @@ public class EntityRenderer : IDisposable
         vertex.OffsetXYZ = VertexOptions.EntityXYZ(offsetX, offsetZ);
         arrayData.Length = length + 1;
 
-        if (m_healthBars && entity.Flags.Shootable && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
+        if (m_healthBars && entity.Flags.Shootable() && (m_healthBarLimit <= 0 || m_healthBarLimit <= entity.Properties.Health))
             RenderHealthBar(entity, texture, offsetZ, vertex);
     }
 
@@ -344,7 +344,7 @@ public class EntityRenderer : IDisposable
         if (entity.Properties.HealthBarWidth == -1)
             entity.Properties.HealthBarWidth = ScaleHealthBarWidth(entity.Properties.Health);
 
-        var attackFlash = m_attackIndicator && entity.Flags.Attacking && ((entity.World.GameTicker / 3) & 3) == 0;
+        var attackFlash = m_attackIndicator && entity.Flags.Attacking() && ((entity.World.GameTicker / 3) & 3) == 0;
         var healthBarData = m_dataManager.GetHealthBarData();
         var array = healthBarData.ArrayData;
         array.EnsureCapacity(array.Length + 1);

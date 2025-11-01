@@ -58,7 +58,7 @@ public class DehackedPickup : IDisposable
 
         shotgun = GameActions.CreateEntity(World, "Shotgun", Vec3D.Zero);
         // Dropped shotguns add 4 instead of 8
-        shotgun.Flags.Dropped = true;
+        shotgun.Flags.SetDropped();
         World.PerformItemPickup(Player, shotgun);
         InventoryUtil.AssertAmount(Player, "Shell", 12);
     }

@@ -8,7 +8,7 @@ public static class DefinitionPropertyApplier
     public static void Apply(EntityDefinition definition, ActorProperties properties)
     {
         if (definition.IsType(EntityDefinitionType.Inventory))
-            definition.Flags.Special = true;
+            definition.Flags.SetSpecial();
 
         if (properties.ProjectilePassHeight != null)
             definition.Properties.ProjectilePassHeight = properties.ProjectilePassHeight.Value;

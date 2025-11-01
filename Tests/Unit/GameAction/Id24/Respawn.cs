@@ -68,7 +68,7 @@ public class Respawn
     public void NoRespawn()
     {
         var monster = GameActions.CreateEntity(World, "ShotgunGuy", Vec3D.Zero, frozen: false);
-        monster.Flags.NoRespawn.Should().BeTrue();
+        monster.Flags.NoRespawn().Should().BeTrue();
 
         monster.Kill(null);
 

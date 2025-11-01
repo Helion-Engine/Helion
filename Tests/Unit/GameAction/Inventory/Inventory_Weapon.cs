@@ -480,7 +480,7 @@ public partial class Inventory
 
         Player.Inventory.SetAmount(World.EntityManager.DefinitionComposer.GetByName("Shell")!, 0);
         shotgun = CreateEntity("Shotgun", Vec3D.Zero);
-        shotgun.Flags.Dropped = true;
+        shotgun.Flags.SetDropped();
         World.PerformItemPickup(Player, shotgun);
         Player.Inventory.Weapons.OwnsWeapon("Shotgun").Should().BeTrue();
         Player.Inventory.Amount("Shell").Should().Be(4);
@@ -495,7 +495,7 @@ public partial class Inventory
         Player.Inventory.Amount("Clip").Should().Be(60);
 
         clip = CreateEntity("Clip", Vec3D.Zero);
-        clip.Flags.Dropped = true;
+        clip.Flags.SetDropped();
         World.PerformItemPickup(Player, clip);
         Player.Inventory.Amount("Clip").Should().Be(65);
     }
