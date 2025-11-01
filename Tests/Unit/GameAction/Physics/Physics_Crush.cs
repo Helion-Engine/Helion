@@ -41,7 +41,7 @@ namespace Helion.Tests.Unit.GameAction
 
             //bool pushed = false;
             //// Doom crusher should eventually push the top entity down below the ceiling
-            //GameActions.TickWorld(World, () => { return !top.IsDead; }, () =>
+            //GameActions.TickWorld(World, () => { return !top.IsDead(); }, () =>
             //{
             //    double z = sector.Ceiling.Z;
             //    bottom1.Health.Should().Be(top.Health);
@@ -59,9 +59,9 @@ namespace Helion.Tests.Unit.GameAction
             //});
 
             //pushed.Should().BeTrue();
-            //top.IsDead.Should().BeTrue();
-            //bottom1.IsDead.Should().BeTrue();
-            //bottom1.IsDead.Should().BeTrue();
+            //top.IsDead().Should().BeTrue();
+            //bottom1.IsDead().Should().BeTrue();
+            //bottom1.IsDead().Should().BeTrue();
 
             //World.SpecialManager.RemoveSpecial(sector.ActiveCeilingMove!);
             //sector.Ceiling.SetZ(256);
@@ -80,7 +80,7 @@ namespace Helion.Tests.Unit.GameAction
 
             // Hexen mode crusher that does damage but stops when it hits something
             // All entities through the stack should take crush damage
-            GameActions.TickWorld(World, () => { return !top.IsDead; }, () =>
+            GameActions.TickWorld(World, () => { return !top.IsDead(); }, () =>
             { 
                 bottom1.Health.Should().Be(top.Health);
                 bottom2.Health.Should().Be(top.Health);
@@ -94,9 +94,9 @@ namespace Helion.Tests.Unit.GameAction
                 bottom2.OverEntity()!.Should().Be(top);
             });
 
-            top.IsDead.Should().BeTrue();
-            bottom1.IsDead.Should().BeTrue();
-            bottom1.IsDead.Should().BeTrue();
+            top.IsDead().Should().BeTrue();
+            bottom1.IsDead().Should().BeTrue();
+            bottom1.IsDead().Should().BeTrue();
 
             World.SpecialManager.RemoveSpecial(sector.ActiveCeilingMove!);
             sector.Ceiling.SetZ(256);

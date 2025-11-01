@@ -90,7 +90,7 @@ public class Dropoff
         var imp = GameActions.GetEntity(World, 3);
         imp.Position.Should().Be(new Vec3D(96, 96, 64));
         imp.Kill(null);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
         var move = World.PhysicsManager.TryMoveXY(imp, -32, 32);
         move.Success.Should().BeTrue();
         move.HighestFloorZ.Should().Be(0);

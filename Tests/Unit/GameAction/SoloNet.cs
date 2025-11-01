@@ -38,7 +38,7 @@ public class SoloNet
         Player.PlayerStats.DeathCount.Should().Be(0);
         var imp = GameActions.GetEntity(World, "DoomImp");
         imp.Kill(null);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
         GameActions.TickWorld(World, 35);
 
         World.EntityManager.Players.Count.Should().Be(1);
@@ -46,7 +46,7 @@ public class SoloNet
         World.PerformItemPickup(originalPlayer, GameActions.FindEntity(World, "RedCard")!);
         originalPlayer.Inventory.HasItem("RedCard").Should().BeTrue();
         originalPlayer.Kill(null);
-        originalPlayer.IsDead.Should().BeTrue();
+        originalPlayer.IsDead().Should().BeTrue();
         originalPlayer.TickCommand.Add(TickCommands.Use);
 
         GameActions.TickWorld(World, 1);
@@ -57,7 +57,7 @@ public class SoloNet
         GameActions.FindEntity(World, "TeleportFog").Should().NotBeNull();
         Player.Health.Should().Be(100);
         Player.Inventory.HasItem("RedCard").Should().BeFalse();
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
 
         World.EntityManager.Players.Count.Should().Be(1);
         Player.PlayerStats.DeathCount.Should().Be(1);

@@ -131,10 +131,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public int MinMissileChance;
     public int MeleeThreshold;
 
-    public bool IsFrozen => FrozenTics > 0;
-    public bool IsDead => Health <= 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsFrozen() => FrozenTics > 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsDead() => Health <= 0;
     public virtual double ViewZ => 8.0;
-    public bool IsDeathStateFinished => IsDead && FrameState.Frame.Ticks == -1;
+    public bool IsDeathStateFinished => IsDead() && FrameState.Frame.Ticks == -1;
     public virtual bool IsInvulnerable => Flags.Invulnerable();
     public virtual Player? PlayerObj => null;
     public virtual bool IsPlayer => false;
@@ -270,7 +272,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             Definition.Type = EntityType.Blood;
 
         if (Flags.Stealth())
-            StealthVisible = IsDead;
+            StealthVisible = IsDead();
     }
 
     public EntityModel ToEntityModel(EntityModel entityModel)
@@ -519,7 +521,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
                     StealthVisible = false;
                 }
             }
-            else if (!IsDead)
+            else if (!IsDead())
             {
                 Alpha -= 1.5f / (float)Constants.TicksPerSecond;
                 if (Alpha < 0)
@@ -567,7 +569,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         Flags.ClearAttacking();
         StealthVisible = true;
 
-        if (WorldStatic.MirrorCorpse && IsDead && Flags.IsMonster() && !Flags.DontMirrorCorpse() && (World.SecondaryRandom.NextByte() & 1) != 0)
+        if (WorldStatic.MirrorCorpse && IsDead() && Flags.IsMonster() && !Flags.DontMirrorCorpse() && (World.SecondaryRandom.NextByte() & 1) != 0)
             Flags.FlipMirror();
 
         if (gib && Definition.XDeathState != null)
@@ -775,7 +777,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             if (!CanDamage(source, damageType))
                 return false;
 
-            canRetaliate = WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead && damageSource != this;
+            canRetaliate = WillRetaliateFrom(damageSource) && Threshold <= 0 && !damageSource.IsDead() && damageSource != this;
             willRetaliate = canRetaliate && damageSource != Target();
             if (willRetaliate && !damageSource.Flags.NoTarget() && !IsFriend(damageSource))
                 SetTarget(damageSource);

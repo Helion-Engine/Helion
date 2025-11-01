@@ -448,7 +448,7 @@ public class Player : Entity
 
             // Check if the player is landing where they started. Otherwise a normal jump would play the oof sound.
             bool hardHit = (WorldStatic.World.Gravity > 1 || Position.Z != m_jumpStartZ) && velocity.Z < -(WorldStatic.World.Gravity * 8);
-            if (hardHit && !Flags.NoGravity() && !IsDead)
+            if (hardHit && !Flags.NoGravity() && !IsDead())
             {
                 PlayLandSound();
                 DeltaViewHeight = velocity.Z / PlayerViewDivider;
@@ -458,7 +458,7 @@ public class Player : Entity
             m_jumpStartZ = double.MaxValue;
         }
 
-        if (!Flags.NoGravity() && !Flags.NoClip() && !IsDead && BlockingBlockLineIndex != -1 &&
+        if (!Flags.NoGravity() && !Flags.NoClip() && !IsDead() && BlockingBlockLineIndex != -1 &&
             Sector.Friction > Constants.DefaultFriction &&
             Position.Z <= Sector.Floor.Z &&
             Math.Abs(velocity.X) + Math.Abs(velocity.Y) > 8 &&
@@ -683,7 +683,7 @@ public class Player : Entity
         SetViewHeight();
         SetRunningFrameState();
 
-        if (IsDead)
+        if (IsDead())
             DeathTick();
 
         m_hasNewWeapon = false;
@@ -748,7 +748,7 @@ public class Player : Entity
 
     private void SetRunningFrameState()
     {
-        if (!Definition.SeeState.HasValue || IsDead)
+        if (!Definition.SeeState.HasValue || IsDead())
             return;
 
         bool hasMoveSpeed = TickCommand.ForwardMoveSpeed > 0 || TickCommand.SideMoveSpeed > 0;
@@ -780,7 +780,7 @@ public class Player : Entity
         if (WorldStatic.World.Config.Mouse.Interpolate)
             return true;
 
-        return TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead || WorldStatic.World.PlayingDemo;
+        return TickCommand.AngleTurn != 0 || TickCommand.PitchTurn != 0 || IsDead() || WorldStatic.World.PlayingDemo;
     }
 
     public void HandleTickCommand()
@@ -789,7 +789,7 @@ public class Player : Entity
         if (TickCommand.Has(TickCommands.Use))
             WorldStatic.World.EntityUse(this);
 
-        if (IsDead || IsFrozen)
+        if (IsDead() || IsFrozen())
             return;
 
         if (TickCommand.AngleTurn != 0 && !m_strafeCommand)
@@ -1096,7 +1096,7 @@ public class Player : Entity
 
     public bool GiveItem(EntityDefinition definition, EntityFlags? flags, bool pickupFlash = true)
     {
-        if (IsDead)
+        if (IsDead())
             return false;
 
         bool success = definition.Properties.Inventory.NoItem || definition.Properties.Inventory.MessageOnly;
@@ -1489,7 +1489,7 @@ public class Player : Entity
 
     public bool CanFireWeapon()
     {
-        return !IsDead && Weapon != null && TickCommand.Has(TickCommands.Attack) && CheckAmmo();
+        return !IsDead() && Weapon != null && TickCommand.Has(TickCommands.Attack) && CheckAmmo();
     }
 
     public void LowerWeapon(bool setTop = true)
@@ -1700,7 +1700,7 @@ public class Player : Entity
 
     private void SetViewHeight()
     {
-        double playerViewHeight = IsDead && m_deathTics == 0 ? DeathHeight : Definition.Properties.Player.ViewHeight;
+        double playerViewHeight = IsDead() && m_deathTics == 0 ? DeathHeight : Definition.Properties.Player.ViewHeight;
         double halfPlayerViewHeight = playerViewHeight / 2;
 
         if (ViewHeight > playerViewHeight)

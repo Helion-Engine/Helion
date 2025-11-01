@@ -738,7 +738,7 @@ public static class EntityActionFunctions
         var target = entity.Target();
         if (entity.Threshold > 0)
         {
-            if (target == null || target.IsDead)
+            if (target == null || target.IsDead())
                 entity.Threshold = 0;
             else
                 entity.Threshold -= entity.SlowTickMultiplier;
@@ -747,7 +747,7 @@ public static class EntityActionFunctions
         if (entity.SlowTickMultiplier <= 1)
             entity.TurnTowardsMovementDirection();
 
-        if (target == null || target.IsDead)
+        if (target == null || target.IsDead())
         {
             if (!entity.SetNewTarget(true))
                 entity.SetSpawnState();
@@ -1843,7 +1843,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj.WeaponOffset.Y < Constants.WeaponBottom)
             return;
 
-        if (entity.PlayerObj.IsDead)
+        if (entity.PlayerObj.IsDead())
         {
             entity.PlayerObj.WeaponOffset.Y = Constants.WeaponBottom;
             entity.PlayerObj.AnimationWeapon.FrameState.SetState(entity, entity.Definition, "NULL");
@@ -1890,7 +1890,7 @@ public static class EntityActionFunctions
                 new SoundParams(entity, channel: entity.WeaponSoundChannel));
         }
 
-        if (entity.PlayerObj.PendingWeapon != null || player.IsDead)
+        if (entity.PlayerObj.PendingWeapon != null || player.IsDead())
         {
             entity.PlayerObj.LowerWeapon();
             return;
@@ -2493,7 +2493,7 @@ public static class EntityActionFunctions
         if (WorldStatic.Random.NextByte() < randomChance)
             return;
 
-        if (target == null || target.IsDead ||
+        if (target == null || target.IsDead() ||
             !WorldStatic.World.CheckLineOfSight(entity, target))
         {
             entity.SetSeeState();
@@ -3061,7 +3061,7 @@ public static class EntityActionFunctions
         int state = frame.DehackedArgs1;
         bool checkAmmo = frame.DehackedArgs2 == 0;
 
-        if (entity.PlayerObj!.PendingWeapon != null || entity.IsDead || !entity.PlayerObj!.TickCommand.Has(TickCommands.Attack))
+        if (entity.PlayerObj!.PendingWeapon != null || entity.IsDead() || !entity.PlayerObj!.TickCommand.Has(TickCommands.Attack))
             return;
 
         if (checkAmmo && !entity.PlayerObj!.CheckAmmo())
@@ -3403,7 +3403,7 @@ public static class EntityActionFunctions
     public static void A_ClosetChase(Entity entity)
     {
         var target = entity.Target();
-        if (target == null || target.IsDead)
+        if (target == null || target.IsDead())
         {
             if (!entity.SetNewTarget(true))
                 entity.SetClosetLook();

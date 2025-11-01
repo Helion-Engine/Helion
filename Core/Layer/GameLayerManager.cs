@@ -150,7 +150,7 @@ public class GameLayerManager : IGameLayerManager
         EndGameLayer == null
         && IntermissionLayer == null
         && WorldLayer != null
-        && !WorldLayer.World.Player.IsDead
+        && !WorldLayer.World.Player.IsDead()
     );
 
     public bool ShouldFocus()

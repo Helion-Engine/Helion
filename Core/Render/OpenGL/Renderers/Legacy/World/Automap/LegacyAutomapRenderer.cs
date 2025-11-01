@@ -495,7 +495,7 @@ public class LegacyAutomapRenderer : IDisposable
         }
         else if (entity.Flags.CountKill())
         {
-            color = entity.IsDead ? m_deadMonsterColor : m_monsterColor;
+            color = entity.IsDead() ? m_deadMonsterColor : m_monsterColor;
         }
         else if (entity.Definition.IsType(EntityDefinitionType.Inventory))
         {

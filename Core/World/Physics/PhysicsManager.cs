@@ -310,7 +310,7 @@ public sealed class PhysicsManager
             }
         }
 
-        if (highestBlockEntity != null && highestBlockHeight.HasValue && !highestBlockEntity.IsDead)
+        if (highestBlockEntity != null && highestBlockHeight.HasValue && !highestBlockEntity.IsDead())
         {
             double diff = 0;
             // Set the sector Z to the difference of the blocked height (only works if not being crushed)
@@ -547,7 +547,7 @@ public sealed class PhysicsManager
             Entity crushEntity = m_stackCrush[i];
             m_world.HandleEntityHit(crushEntity, crushEntity.Velocity, null);
 
-            if (!crushEntity.IsDead && m_world.DamageEntity(crushEntity, null, crush.Damage, DamageType.Normal) &&
+            if (!crushEntity.IsDead() && m_world.DamageEntity(crushEntity, null, crush.Damage, DamageType.Normal) &&
                 !crushEntity.Flags.NoBlood() && !crushEntity.IsDisposed)
             {
                 Vec3D pos = crushEntity.Position;

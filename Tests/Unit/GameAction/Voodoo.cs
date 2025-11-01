@@ -211,8 +211,8 @@ public partial class Voodoo : IDisposable
         Player.Armor.Should().Be(81);
 
         World.DamageEntity(VoodooDoll2, null, 90, DamageType.Normal);
-        VoodooDoll2.IsDead.Should().BeTrue();
-        Player.IsDead.Should().BeTrue();
+        VoodooDoll2.IsDead().Should().BeTrue();
+        Player.IsDead().Should().BeTrue();
         VoodooDoll2.Armor.Should().Be(51);
         Player.Armor.Should().Be(51);
     }
@@ -220,32 +220,32 @@ public partial class Voodoo : IDisposable
     [Fact(DisplayName = "Voodoo doll kill kills the player")]
     public void Kill()
     {
-        Player.IsDead.Should().BeFalse();
-        VoodooDoll1.IsDead.Should().BeFalse();
+        Player.IsDead().Should().BeFalse();
+        VoodooDoll1.IsDead().Should().BeFalse();
         VoodooDoll1.Kill(null);
-        Player.IsDead.Should().BeTrue();
-        VoodooDoll1.IsDead.Should().BeTrue();
+        Player.IsDead().Should().BeTrue();
+        VoodooDoll1.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Voodoo doll force gib kills the player")]
     public void ForceGib()
     {
-        Player.IsDead.Should().BeFalse();
-        VoodooDoll1.IsDead.Should().BeFalse();
+        Player.IsDead().Should().BeFalse();
+        VoodooDoll1.IsDead().Should().BeFalse();
         VoodooDoll1.ForceGib();
-        Player.IsDead.Should().BeTrue();
-        VoodooDoll1.IsDead.Should().BeTrue();
+        Player.IsDead().Should().BeTrue();
+        VoodooDoll1.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Player telefrags themself")]
     public void Telefrag()
     {
-        Player.IsDead.Should().BeFalse();
-        VoodooDoll1.IsDead.Should().BeFalse();
+        Player.IsDead().Should().BeFalse();
+        VoodooDoll1.IsDead().Should().BeFalse();
         GameActions.EntityCrossLine(World, Player, 4).Should().BeTrue();
         World.Tick();
-        Player.IsDead.Should().BeTrue();
-        VoodooDoll1.IsDead.Should().BeTrue();
+        Player.IsDead().Should().BeTrue();
+        VoodooDoll1.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Voodoo doll gives player items on sector movement")]

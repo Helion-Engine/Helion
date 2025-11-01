@@ -17,7 +17,7 @@ namespace Helion.Tests.Unit.GameAction
             var startBarrel = GameActions.GetEntity(World, 40);
             startBarrel.Damage(Player, startBarrel.Health, false, DamageType.AlwaysApply);
 
-            GameActions.TickWorld(World, () => { return barrels.Any(x => !x.IsDead); }, () => { });
+            GameActions.TickWorld(World, () => { return barrels.Any(x => !x.IsDead()); }, () => { });
         }
 
         [Fact(DisplayName = "Barrel explosion from crush")]
@@ -27,17 +27,17 @@ namespace Helion.Tests.Unit.GameAction
             barrels.Count.Should().Be(3);
 
             var zombieMan = GameActions.GetEntity(World, 49);
-            zombieMan.IsDead.Should().BeFalse();
+            zombieMan.IsDead().Should().BeFalse();
             zombieMan.Position.Z.Should().Be(192);
 
             var sector = GameActions.GetSectorByTag(World, 9);
             GameActions.ActivateLine(World, Player, 178, ActivationContext.UseLine).Should().BeTrue();
             sector.ActiveCeilingMove.Should().NotBeNull();
-            GameActions.TickWorld(World, () => { return !zombieMan.IsDead; }, () => { });
+            GameActions.TickWorld(World, () => { return !zombieMan.IsDead(); }, () => { });
 
             // Explosion didn't do z-checking, so the barrel from below should kill this monster
-            zombieMan.IsDead.Should().BeTrue();
-            barrels.All(x => x.IsDead).Should().BeTrue();
+            zombieMan.IsDead().Should().BeTrue();
+            barrels.All(x => x.IsDead()).Should().BeTrue();
 
             World.SpecialManager.RemoveSpecial(sector.ActiveCeilingMove!).Should().BeTrue();
         }

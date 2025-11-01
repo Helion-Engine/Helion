@@ -42,10 +42,10 @@ namespace Helion.Tests.Unit.GameAction
         public void PlayerTelefrag()
         {
             var monster = GameActions.CreateEntity(World, "Zombieman", TeleportDestination);
-            monster.IsDead.Should().BeFalse();
+            monster.IsDead().Should().BeFalse();
             GameActions.EntityCrossLine(World, Player, TeleportLine, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
             GameActions.RunTeleport(World, Player, TeleportDestSector, TeleportLandingId);
-            monster.IsDead.Should().BeTrue();
+            monster.IsDead().Should().BeTrue();
         }
 
         [Fact(DisplayName = "Player teleport and telefrag multiple monsters")]
@@ -60,13 +60,13 @@ namespace Helion.Tests.Unit.GameAction
             };
 
             foreach (Entity monster in monsters)
-                monster.IsDead.Should().BeFalse();
+                monster.IsDead().Should().BeFalse();
                     
             GameActions.EntityCrossLine(World, Player, TeleportLine, moveOutofBounds: false, forceFrozen: false).Should().BeTrue();
             GameActions.RunTeleport(World, Player, TeleportDestSector, TeleportLandingId);
             
             foreach (Entity monster in monsters)
-                monster.IsDead.Should().BeTrue();
+                monster.IsDead().Should().BeTrue();
         }
 
         [Fact(DisplayName = "Monster teleport fail")]
@@ -74,11 +74,11 @@ namespace Helion.Tests.Unit.GameAction
         {
             World.MapInfo.HasOption(MapOptions.AllowMonsterTelefrags).Should().BeFalse();
             var monster = GameActions.CreateEntity(World, "Zombieman", TeleportDestination);
-            monster.IsDead.Should().BeFalse();
+            monster.IsDead().Should().BeFalse();
             var teleportMonster = GameActions.CreateEntity(World, "Zombieman", Vec3D.Zero);
             GameActions.EntityCrossLine(World, teleportMonster, TeleportLine, moveOutofBounds: false).Should().BeTrue();
             GameActions.CheckNoTeleport(World, teleportMonster, TeleportDestSector, TeleportLandingId);
-            monster.IsDead.Should().BeFalse();
+            monster.IsDead().Should().BeFalse();
         }
 
         [Fact(DisplayName = "Teleport failure doesn't activate single activation line")]
@@ -87,11 +87,11 @@ namespace Helion.Tests.Unit.GameAction
             const int SingleTeleportLine = 341;
             World.MapInfo.HasOption(MapOptions.AllowMonsterTelefrags).Should().BeFalse();
             var monster = GameActions.CreateEntity(World, "Zombieman", TeleportDestination);
-            monster.IsDead.Should().BeFalse();
+            monster.IsDead().Should().BeFalse();
             var teleportMonster = GameActions.CreateEntity(World, "Zombieman", Vec3D.Zero);
             GameActions.EntityCrossLine(World, teleportMonster, SingleTeleportLine, moveOutofBounds: false).Should().BeTrue();
             GameActions.CheckNoTeleport(World, teleportMonster, TeleportDestSector, TeleportLandingId);
-            monster.IsDead.Should().BeFalse();
+            monster.IsDead().Should().BeFalse();
 
             var teleportLine = GameActions.GetLine(World, SingleTeleportLine);
             teleportLine.Activated.Should().BeFalse();
@@ -120,11 +120,11 @@ namespace Helion.Tests.Unit.GameAction
         {
             World.MapInfo.SetOption(MapOptions.AllowMonsterTelefrags, true);
             var monster = GameActions.CreateEntity(World, "Zombieman", TeleportDestination);
-            monster.IsDead.Should().BeFalse();
+            monster.IsDead().Should().BeFalse();
             var teleportMonster = GameActions.CreateEntity(World, "Zombieman", Vec3D.Zero);
             GameActions.EntityCrossLine(World, teleportMonster, TeleportLine, moveOutofBounds: false).Should().BeTrue();
             GameActions.RunTeleport(World, teleportMonster, TeleportDestSector, TeleportLandingId);
-            monster.IsDead.Should().BeTrue();
+            monster.IsDead().Should().BeTrue();
             World.MapInfo.SetOption(MapOptions.AllowMonsterTelefrags, false);
         }
 
@@ -132,16 +132,16 @@ namespace Helion.Tests.Unit.GameAction
         public void TelefragZ()
         {
             var monster = GameActions.CreateEntity(World, "Cacodemon", TeleportDestination.XY.To3D(128));
-            monster.IsDead.Should().BeFalse();
+            monster.IsDead().Should().BeFalse();
             GameActions.EntityCrossLine(World, Player, TeleportLine, moveOutofBounds: false).Should().BeTrue();
             GameActions.RunTeleport(World, Player, TeleportDestSector, TeleportLandingId);
-            monster.IsDead.Should().Be(false);
+            monster.IsDead().Should().Be(false);
 
             GameActions.SetEntityPosition(World, Player, Vec3D.Zero);
             GameActions.SetEntityPosition(World, monster, TeleportDestination.XY.To3D(64));
             GameActions.EntityCrossLine(World, Player, TeleportLine, moveOutofBounds: false).Should().BeTrue();
             GameActions.RunTeleport(World, Player, TeleportDestSector, TeleportLandingId);
-            monster.IsDead.Should().Be(true);
+            monster.IsDead().Should().Be(true);
         }
 
         [Fact(DisplayName = "Teleport player to lower z")]

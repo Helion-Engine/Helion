@@ -80,7 +80,7 @@ public class PlayerStatusBar
 
     private void UpdateFace()
     {
-        if (m_priority < 10 && m_player.IsDead)
+        if (m_priority < 10 && m_player.IsDead())
             DeathFace();
 
         if (m_priority < 9 && m_player.BonusCount > 0 && m_player.HasNewWeapon())

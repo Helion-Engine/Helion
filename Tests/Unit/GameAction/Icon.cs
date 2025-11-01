@@ -53,9 +53,9 @@ namespace Helion.Tests.Unit.GameAction
             RunBrainSpit(bossEye, target3, "DoomImp", monsters);
 
             // Resets back to first target. Telefrag existing monster.
-            monsters[0].IsDead.Should().BeFalse();
+            monsters[0].IsDead().Should().BeFalse();
             RunBrainSpit(bossEye, target1, "DoomImp", monsters);
-            monsters[0].IsDead.Should().BeTrue();
+            monsters[0].IsDead().Should().BeTrue();
 
             bool exited = false;
             World.LevelExit += World_LevelExit;

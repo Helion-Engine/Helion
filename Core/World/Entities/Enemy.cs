@@ -40,13 +40,13 @@ public partial class Entity
         m_direction = direction;
 
     public bool ValidEnemyTarget(Entity? entity) => entity != null &&
-        !entity.IsDead && (!IsFriend(entity) || Target() == null);
+        !entity.IsDead() && (!IsFriend(entity) || Target() == null);
 
     public void SetMoveDirection(MoveDir dir) => m_direction = dir;
 
     public bool SetNewTarget(bool allAround)
     {
-        if (IsFrozen || Flags.Dormant())
+        if (IsFrozen() || Flags.Dormant())
             return false;
 
         Flags.ClearAttacking();
@@ -354,7 +354,7 @@ public partial class Entity
     public bool MoveEnemy(out TryMoveData? tryMove)
     {
         bool floatFlag = (Flags.Flags1 & EntityFlags.FloatFlag) != 0;
-        if (m_direction == MoveDir.None || (!floatFlag && !OnGround) || IsFrozen)
+        if (m_direction == MoveDir.None || (!floatFlag && !OnGround) || IsFrozen())
         { 
             tryMove = null;
             return false;
@@ -433,7 +433,7 @@ public partial class Entity
 
     public double GetEnemyFloatMove()
     {
-        if (IsPlayer || IsDead || !Flags.Float() || Flags.Skullfly() || Flags.InFloat() || OnGround)
+        if (IsPlayer || IsDead() || !Flags.Float() || Flags.Skullfly() || Flags.InFloat() || OnGround)
             return 0.0;
 
         var target = Target();

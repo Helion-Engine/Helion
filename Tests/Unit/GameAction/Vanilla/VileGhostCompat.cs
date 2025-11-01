@@ -46,11 +46,11 @@ public class VileGhostCompat
     {
         World.Config.Compatibility.VileGhosts.Set(true);
         var imp = CrushAndRaiseImp();
-        imp.IsDead.Should().BeFalse();
+        imp.IsDead().Should().BeFalse();
         imp.Radius.Should().Be(0);
         var rocket = GameActions.CreateEntity(World, "Rocket", imp.Position);
         World.RadiusExplosion(rocket, rocket, 128, 128);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
     }
 
     [Fact(DisplayName = "Monster is resurrected normally")]
@@ -94,12 +94,12 @@ public class VileGhostCompat
         GameActions.TickWorld(World, () => { return crushSector.Ceiling.Z > 8; }, () => { });
         GameActions.TickWorld(World, () => { return crushSector.Ceiling.Z < 100; }, () => { });
         GameActions.ActivateLine(World, Player, 5, ActivationContext.UseLine).Should().BeTrue();
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
         imp.Flags.CrushGiblets().Should().BeTrue();
 
         GameActions.SetEntityPosition(World, Player, (-192, -448));
         World.NoiseAlert(Player, Player);
-        GameActions.TickWorld(World, () => { return imp.IsDead; }, () => { });
+        GameActions.TickWorld(World, () => { return imp.IsDead(); }, () => { });
         imp.Flags.CrushGiblets().Should().BeFalse();
         return imp;
     }
@@ -108,11 +108,11 @@ public class VileGhostCompat
     {
         var imp = GameActions.GetEntity(World, "DoomImp");
         imp.Kill(null);
-        imp.IsDead.Should().BeTrue();
+        imp.IsDead().Should().BeTrue();
 
         GameActions.SetEntityPosition(World, Player, (-192, -448));
         World.NoiseAlert(Player, Player);
-        GameActions.TickWorld(World, () => { return imp.IsDead; }, () => { });
+        GameActions.TickWorld(World, () => { return imp.IsDead(); }, () => { });
         return imp;
     }
 }

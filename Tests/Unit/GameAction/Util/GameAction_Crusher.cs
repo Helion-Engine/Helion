@@ -62,7 +62,7 @@ namespace Helion.Tests.Unit.GameAction
                 var node = sector.Entities.Head;
                 while (node != null)
                 {
-                    node.Value.IsDead.Should().BeTrue();
+                    node.Value.IsDead().Should().BeTrue();
                     node = node.Next;
                 }
             }

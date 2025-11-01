@@ -767,7 +767,7 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < EntityManager.Players.Count; i++)
         {
             Player player = EntityManager.Players[i];
-            if (player.IsDead)
+            if (player.IsDead())
                 continue;
 
             if (!allAround && !InFieldOfViewOrInMeleeDistance(entity, player))
@@ -785,7 +785,7 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < EntityManager.Players.Count; i++)
         {
             Player player = EntityManager.Players[i];
-            if (!player.IsDead)
+            if (!player.IsDead())
                 return player;
         }
 
@@ -804,7 +804,7 @@ public abstract partial class WorldBase : IWorld
 
     private GridIterationStatus HandleLineOfSightEnemy(Entity checkEntity)
     {
-        if (m_lineOfSightEnemyData.Entity == checkEntity || checkEntity.IsDead || !checkEntity.Flags.CountKill() ||
+        if (m_lineOfSightEnemyData.Entity == checkEntity || checkEntity.IsDead() || !checkEntity.Flags.CountKill() ||
             m_lineOfSightEnemyData.Entity.Flags.Friendly == checkEntity.Flags.Friendly || checkEntity.IsPlayer)
             return GridIterationStatus.Continue;
 
@@ -1066,7 +1066,7 @@ public abstract partial class WorldBase : IWorld
             return;
 
         // Damage rules apply for instant kill sectors. Doom did not apply sector damage to voodoo dolls
-        if (entity.IsDead || (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll))
+        if (entity.IsDead() || (entity.PlayerObj != null && entity.PlayerObj.IsVooDooDoll))
             return;
 
         if (entity.Flags.Shootable() && !entity.Flags.Float() && !entity.IsPlayer && (effect & InstantKillEffect.KillMonsters) != 0)
@@ -1141,7 +1141,7 @@ public abstract partial class WorldBase : IWorld
         bool anyPlayerAlive = false;
         for (int i = 0; i < EntityManager.Players.Count; i++)
         {
-            if (!EntityManager.Players[i].IsDead)
+            if (!EntityManager.Players[i].IsDead())
             {
                 anyPlayerAlive = true;
                 break;
@@ -1340,7 +1340,7 @@ public abstract partial class WorldBase : IWorld
     /// <param name="entity">The entity to execute use.</param>
     public virtual bool EntityUse(Entity entity)
     {
-        if (entity.IsDead)
+        if (entity.IsDead())
             return false;
 
         bool hitBlockLine = false;
@@ -1802,7 +1802,7 @@ public abstract partial class WorldBase : IWorld
         if (source != null && source.Owner() == target)
             damage = (int)(damage * source.Properties.SelfDamageFactor);
 
-        if (!target.Flags.Shootable() || target.Flags.Dormant() || damage == 0 || target.IsDead)
+        if (!target.Flags.Shootable() || target.Flags.Dormant() || damage == 0 || target.IsDead())
             return false;
 
         Vec3D thrustVelocity = Vec3D.Zero;
@@ -3023,7 +3023,7 @@ public abstract partial class WorldBase : IWorld
                 break;
             case CheatType.Resurrect:
                 ClearConsole?.Invoke(this, EventArgs.Empty);
-                if (player.IsDead)
+                if (player.IsDead())
                     player.SetRaiseState();
                 break;
             case CheatType.KillAllMonsters:
@@ -3031,7 +3031,7 @@ public abstract partial class WorldBase : IWorld
                 DisplayMessage(player, null, $"{KillAllMonsters(0)} {ArchiveCollection.Language.GetMessage(cheat.CheatOn)}");
                 break;
             case CheatType.God:
-                if (!player.IsDead)
+                if (!player.IsDead())
                     SetGodModeHealth(player);
                 player.Flags.SetInvulnerable(isActive);
                 break;
@@ -3072,7 +3072,7 @@ public abstract partial class WorldBase : IWorld
             if (sectorTag != 0 && entity.Sector.Tag != sectorTag)
                 continue;
 
-            if (!entity.IsDead && (entity.Flags.CountKill() || entity.Flags.IsMonster()))
+            if (!entity.IsDead() && (entity.Flags.CountKill() || entity.Flags.IsMonster()))
             {
                 entity.ForceGib();
                 killCount++;
@@ -3109,7 +3109,7 @@ public abstract partial class WorldBase : IWorld
             if (entity == ignoreEntity)
                 continue;
 
-            if (entity.Definition.Id == entityDefinitionId && (!checkAlive || !entity.IsDead))
+            if (entity.Definition.Id == entityDefinitionId && (!checkAlive || !entity.IsDead()))
                 count++;
         }
         return count;
@@ -3160,7 +3160,7 @@ public abstract partial class WorldBase : IWorld
     public void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ)
     {
         var tracer = entity.Tracer();
-        if (tracer == null || tracer.IsDead)
+        if (tracer == null || tracer.IsDead())
             return;
 
         SetTracerAngle(entity, threshold, maxTurnAngle);

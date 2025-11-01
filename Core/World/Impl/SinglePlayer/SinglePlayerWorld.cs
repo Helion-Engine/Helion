@@ -78,7 +78,7 @@ public class SinglePlayerWorld : WorldBase
                 player.SetDefaultInventory();
             }
 
-            if (existingPlayer != null && !existingPlayer.IsDead && !mapDef.HasOption(MapOptions.ResetInventory) && !config.Game.PistolStart)
+            if (existingPlayer != null && !existingPlayer.IsDead() && !mapDef.HasOption(MapOptions.ResetInventory) && !config.Game.PistolStart)
             {
                 Player.CopyProperties(existingPlayer);
                 Player.Inventory.ClearKeys();
@@ -460,7 +460,7 @@ public class SinglePlayerWorld : WorldBase
 
     public override bool EntityUse(Entity entity)
     {
-        if (entity.IsPlayer && entity.IsDead)
+        if (entity.IsPlayer && entity.IsDead())
         {
             if (IsMultiPlayer)
             {
@@ -576,7 +576,7 @@ public class SinglePlayerWorld : WorldBase
     {
         Player player = GetCameraPlayer();
 
-        if (player.IsFrozen || player.IsDead || WorldState == WorldState.Exit || (WorldStatic.World.PlayingDemo && !player.IsCamera))
+        if (player.IsFrozen() || player.IsDead() || WorldState == WorldState.Exit || (WorldStatic.World.PlayingDemo && !player.IsCamera))
             return;
 
         Vec2I pixelsMoved = input.ConsumeMouseMove();

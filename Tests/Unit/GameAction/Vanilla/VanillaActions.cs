@@ -2539,7 +2539,7 @@ namespace Helion.Tests.Unit.GameAction
 
             GameActions.SetEntityToLine(World, Player, 3866, 64);
             Player.Sector.Id.Should().Be(794);
-            Player.IsDead.Should().BeFalse();
+            Player.IsDead().Should().BeFalse();
 
             // Player in god mode should still take damage in this special.
             GameActions.TickWorld(World, () => { return !exited; }, () => { });

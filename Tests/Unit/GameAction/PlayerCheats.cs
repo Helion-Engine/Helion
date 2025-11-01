@@ -76,14 +76,14 @@ public class PlayerCheats
     public void Resurrect()
     {
         Player.Kill(null);
-        Player.IsDead.Should().BeTrue();
+        Player.IsDead().Should().BeTrue();
         Player.Health.Should().Be(0);
         GameActions.TickWorld(World, 35);
         Player.WeaponOffset.Y.Should().Be(Constants.WeaponBottom);
         World.CheatManager.ActivateCheat(Player, CheatType.Resurrect);
         GameActions.TickWorld(World, 35);
         Player.WeaponOffset.Y.Should().Be(Constants.WeaponTop);
-        Player.IsDead.Should().BeFalse();
+        Player.IsDead().Should().BeFalse();
         Player.Health.Should().Be(100);
     }
 
