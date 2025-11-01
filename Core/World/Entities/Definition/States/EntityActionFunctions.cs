@@ -3372,7 +3372,7 @@ public static class EntityActionFunctions
             entity.FrameState.SetState(entity, newFrame);
     }
 
-    private static void A_AddFlags(Entity entity)
+    public static void A_AddFlags(Entity entity)
     {
         uint flags1 = (uint)entity.FrameState.Frame.DehackedArgs1;
         uint flags2 = (uint)entity.FrameState.Frame.DehackedArgs2;
@@ -3381,7 +3381,7 @@ public static class EntityActionFunctions
         DehackedApplier.SetEntityFlagsMbf21(null, entity, ref entity.Flags, flags2, false);
     }
 
-    private static void A_RemoveFlags(Entity entity)
+    public static void A_RemoveFlags(Entity entity)
     {
         uint flags1 = ~(uint)entity.FrameState.Frame.DehackedArgs1;
         uint flags2 = ~(uint)entity.FrameState.Frame.DehackedArgs2;

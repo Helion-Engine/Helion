@@ -1233,13 +1233,14 @@ public class DehackedApplier
         flags.ClearFullVolDeath();
     }
 
+    public const double LowGravity = 1 / 8.0;
+    public const int ShortMissileRange = 896;
+    public const int HigherMissileProb = 160;
+    public const int DefaultMissileProb = 200;
+    public const int LongMeleeRange = 196;
+
     public static void SetEntityFlagsMbf21(EntityProperties? properties, Entity? entity, ref EntityFlags flags, uint value, bool opAnd)
     {
-        const double LowGravity = 1 / 8.0;
-        const int ShortMissileRange = 896;
-        const int HigherMissileProb = 160;
-        const int DefaultMissileProb = 200;
-        const int LongMeleeRange = 196;
         var thingProperties = (Mbf21ThingFlags)value;
         
         if (entity != null)
@@ -1251,10 +1252,10 @@ public class DehackedApplier
         }
         else if (properties != null)
         {
-            properties.Gravity = GetNewFlagValue(entity.Gravity == LowGravity, (thingProperties & Mbf21ThingFlags.LOGRAV) != 0, opAnd) ? LowGravity : 1.0; // Lower gravity (1/8)
-            properties.MaxTargetRange = GetNewFlagValue(entity.MaxTargetRange == ShortMissileRange, (thingProperties & Mbf21ThingFlags.SHORTMRANGE) != 0, opAnd) ? ShortMissileRange : 0; // Short missile range (archvile)
-            properties.MinMissileChance = GetNewFlagValue(entity.MinMissileChance == HigherMissileProb, (thingProperties & Mbf21ThingFlags.HIGHERMPROB) != 0, opAnd) ? HigherMissileProb : DefaultMissileProb; // Higher missile attack probability (cyberdemon)
-            properties.MeleeThreshold = GetNewFlagValue(entity.MeleeThreshold == LongMeleeRange, (thingProperties & Mbf21ThingFlags.LONGMELEE) != 0, opAnd) ? LongMeleeRange : 0; // Has long melee range (revenant)
+            properties.Gravity = GetNewFlagValue(properties.Gravity == LowGravity, (thingProperties & Mbf21ThingFlags.LOGRAV) != 0, opAnd) ? LowGravity : 1.0; // Lower gravity (1/8)
+            properties.MaxTargetRange = GetNewFlagValue(properties.MaxTargetRange == ShortMissileRange, (thingProperties & Mbf21ThingFlags.SHORTMRANGE) != 0, opAnd) ? ShortMissileRange : 0; // Short missile range (archvile)
+            properties.MinMissileChance = GetNewFlagValue(properties.MinMissileChance == HigherMissileProb, (thingProperties & Mbf21ThingFlags.HIGHERMPROB) != 0, opAnd) ? HigherMissileProb : DefaultMissileProb; // Higher missile attack probability (cyberdemon)
+            properties.MeleeThreshold = GetNewFlagValue(properties.MeleeThreshold == LongMeleeRange, (thingProperties & Mbf21ThingFlags.LONGMELEE) != 0, opAnd) ? LongMeleeRange : 0; // Has long melee range (revenant)
         }
 
         flags.SetNoTarget(GetNewFlagValue(flags.NoTarget(), (thingProperties & Mbf21ThingFlags.DMGIGNORED) != 0, opAnd));
