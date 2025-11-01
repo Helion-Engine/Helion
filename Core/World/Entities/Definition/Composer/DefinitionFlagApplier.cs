@@ -169,7 +169,7 @@ public static class DefinitionFlagApplier
         if (flags.E3M8Boss != null)
             definition.Flags.SetE3M8Boss(flags.E3M8Boss.Value);
         if (flags.E4M6Boss != null)
-            definition.Flags.SetE3M8Boss(flags.E4M6Boss.Value);
+            definition.Flags.SetE4M6Boss(flags.E4M6Boss.Value);
         if (flags.E4M8Boss != null)
             definition.Flags.SetE4M8Boss(flags.E4M8Boss.Value);
         if (flags.FullVolSee != null)

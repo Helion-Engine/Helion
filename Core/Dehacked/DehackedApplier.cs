@@ -1252,7 +1252,7 @@ public class DehackedApplier
         else if (properties != null)
         {
             properties.Gravity = GetNewFlagValue(entity.Gravity == LowGravity, (thingProperties & Mbf21ThingFlags.LOGRAV) != 0, opAnd) ? LowGravity : 1.0; // Lower gravity (1/8)
-            properties.MaxTargetRange = GetNewFlagValue(entity.MaxTargetRange == ShortMissileRange, (thingProperties & Mbf21ThingFlags.SHORTMRANGE) != 0, opAnd) ? HigherMissileProb : 0; // Short missile range (archvile)
+            properties.MaxTargetRange = GetNewFlagValue(entity.MaxTargetRange == ShortMissileRange, (thingProperties & Mbf21ThingFlags.SHORTMRANGE) != 0, opAnd) ? ShortMissileRange : 0; // Short missile range (archvile)
             properties.MinMissileChance = GetNewFlagValue(entity.MinMissileChance == HigherMissileProb, (thingProperties & Mbf21ThingFlags.HIGHERMPROB) != 0, opAnd) ? HigherMissileProb : DefaultMissileProb; // Higher missile attack probability (cyberdemon)
             properties.MeleeThreshold = GetNewFlagValue(entity.MeleeThreshold == LongMeleeRange, (thingProperties & Mbf21ThingFlags.LONGMELEE) != 0, opAnd) ? LongMeleeRange : 0; // Has long melee range (revenant)
         }
@@ -1267,7 +1267,7 @@ public class DehackedApplier
         flags.SetMap07Boss2(GetNewFlagValue(flags.Map07Boss2(), (thingProperties & Mbf21ThingFlags.MAP07BOSS2) != 0, opAnd));
         flags.SetE1M8Boss(GetNewFlagValue(flags.E1M8Boss(), (thingProperties & Mbf21ThingFlags.E1M8BOSS) != 0, opAnd));
         flags.SetE2M8Boss(GetNewFlagValue(flags.E2M8Boss(), (thingProperties & Mbf21ThingFlags.E2M8BOSS) != 0, opAnd));
-        flags.SetE3M8Boss(GetNewFlagValue(flags.E2M8Boss(), (thingProperties & Mbf21ThingFlags.E2M8BOSS) != 0, opAnd));
+        flags.SetE3M8Boss(GetNewFlagValue(flags.E3M8Boss(), (thingProperties & Mbf21ThingFlags.E3M8BOSS) != 0, opAnd));
         flags.SetE4M6Boss(GetNewFlagValue(flags.E4M6Boss(), (thingProperties & Mbf21ThingFlags.E4M6BOSS) != 0, opAnd));
         flags.SetE4M8Boss(GetNewFlagValue(flags.E4M8Boss(), (thingProperties & Mbf21ThingFlags.E4M8BOSS) != 0, opAnd));
         flags.SetRipper(GetNewFlagValue(flags.Ripper(), (thingProperties & Mbf21ThingFlags.RIP) != 0, opAnd));
