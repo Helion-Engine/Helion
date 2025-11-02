@@ -18,6 +18,8 @@
 - Add xscrollfloor, yscrollfloor, scrollfloormode, xscrollceiling, yscrollceiling, and scrollceilingmode for UDMF.
 - Add display custom endoom only option that will only show endoom screens from the pwads.
 - Improve hud autoscale.
+- Support mark.add and mark.remove commands for chasecam.
+- Update automap markers to be more visible and use the same render method as findkeylines/findkeys/findexits commands.
 
 ## Bug Fixes:
 - Fix sprite frames to correctly calculate when lowercase.

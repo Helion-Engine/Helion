@@ -238,7 +238,7 @@ public partial class Client
             return;
 
         var world = m_layerManager.WorldLayer.World;
-        world.EntityManager.Create("MapMarker", m_layerManager.WorldLayer.World.Player.Position + RenderInfo.LastAutomapOffset.Double.To3D(0));
+        world.EntityManager.Create("MapMarker", m_layerManager.WorldLayer.World.GetCameraPlayer().Position + RenderInfo.LastAutomapOffset.Double.To3D(0));
         HelionLog.Info($"Added a map marker.");
     }
 
@@ -250,7 +250,7 @@ public partial class Client
 
         int removedCount = 0;
         var world = m_layerManager.WorldLayer.World;
-        var box = new Box2D(world.Player.Position.XY + RenderInfo.LastAutomapOffset.Double, 128);
+        var box = new Box2D(world.GetCameraPlayer().Position.XY + RenderInfo.LastAutomapOffset.Double, 128);
         var entity = world.EntityManager.Head;
         while (entity != null)
         {
