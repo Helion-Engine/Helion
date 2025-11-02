@@ -540,9 +540,7 @@ public class LegacyAutomapRenderer : IDisposable
             AddLine(-halfWidth, -quarterHeight, -halfWidth, quarterHeight, transform);
         }
 
-        DynamicArray<vec2> array = m_colorPoints.GetPoints(color);
-        for (int i = 0; i < m_points.Length; i++)
-            array.Add(m_points[i]);
+        AddColorPoints(color);
     }
 
     private void DrawHighlightAreas(IWorld world, RenderInfo renderInfo)
@@ -551,9 +549,7 @@ public class LegacyAutomapRenderer : IDisposable
         foreach (var highlightArea in world.HighlightAreas)
             DrawHighlightArea(world, renderInfo, highlightArea.Position.X, highlightArea.Position.Y, highlightArea.Area);
 
-        var array = m_colorPoints.GetPoints(m_markerColor);
-        for (int i = 0; i < m_points.Length; i++)
-            array.Add(m_points[i]);
+        AddColorPoints(m_markerColor);
 
         m_points.Clear();
         for (int i = 0; i < m_mapMarkers.Length; i++)
@@ -562,9 +558,15 @@ public class LegacyAutomapRenderer : IDisposable
             DrawHighlightArea(world, renderInfo, entity.Position.X, entity.Position.Y, 64);
         }
 
-        array = m_colorPoints.GetPoints(m_thingColor);
+        AddColorPoints(m_thingColor);
+    }
+
+    private DynamicArray<vec2> AddColorPoints(Color color)
+    {
+        var array = m_colorPoints.GetPoints(color);
         for (int i = 0; i < m_points.Length; i++)
             array.Add(m_points[i]);
+        return array;
     }
 
     private void DrawHighlightArea(IWorld world, RenderInfo renderInfo, double x, double y, int area)
