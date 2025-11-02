@@ -34,12 +34,13 @@ public class LegacyAutomapRenderer : IDisposable
     private readonly AutomapShader m_shader;
     private readonly List<ColorRange> m_vboRanges = [];
     private readonly List<ColorRange> m_highlightVboRanges = [];
-    private readonly DynamicArray<vec2> m_points = new();
+    private readonly DynamicArray<vec2> m_points = [];
     private readonly AutomapColorPoints m_colorPoints = new();
     private readonly AutomapColorPoints m_highlightColorPoints = new();
     private readonly HashSet<int> m_teleportLines = [];
     private readonly HashSet<int> m_exitLines = [];
     private readonly List<Color> m_transferColors = [];
+    private readonly DynamicArray<Entity> m_mapMarkers = [];
 
     private float m_offsetX;
     private float m_offsetY;
@@ -239,7 +240,7 @@ public class LegacyAutomapRenderer : IDisposable
     private void PopulateData(IWorld world, RenderInfo renderInfo, out Box2F box2F)
     {
         Player? player = renderInfo.ViewerEntity.PlayerObj;
-
+        m_mapMarkers.Clear();
         m_vbo.Clear();
         PopulateColoredLines(world, player);
         PopulateThings(world, player, renderInfo);
@@ -308,7 +309,10 @@ public class LegacyAutomapRenderer : IDisposable
                 continue;
 
             if (entity.Definition.EditorId == (int)EditorId.MapMarker)
-                DrawEntity(entity, renderInfo.TickFraction);
+            {
+                m_mapMarkers.Add(entity);
+                continue;
+            }
 
             if (!player.Cheats.IsCheatActive(CheatType.AutoMapModeShowAllLinesAndThings))
                 continue;
@@ -544,19 +548,31 @@ public class LegacyAutomapRenderer : IDisposable
     private void DrawHighlightAreas(IWorld world, RenderInfo renderInfo)
     {
         m_points.Clear();
-
         foreach (var highlightArea in world.HighlightAreas)
-        {
-            var pos = highlightArea.Position.Float;
-            float area = (float)highlightArea.Area * 1 / (float)renderInfo.AutomapScale;
-            float angle = (float)((world.GameTicker / 4) % MathHelper.HalfPi);
-            var halfWidth = area / 2;
-            AddSquare(-halfWidth, -halfWidth, area, area, CreateTransform(angle, pos.X, pos.Y));
-        }
+            DrawHighlightArea(world, renderInfo, highlightArea.Position.X, highlightArea.Position.Y, highlightArea.Area);
 
-        DynamicArray<vec2> array = m_colorPoints.GetPoints(m_markerColor);
+        var array = m_colorPoints.GetPoints(m_markerColor);
         for (int i = 0; i < m_points.Length; i++)
             array.Add(m_points[i]);
+
+        m_points.Clear();
+        for (int i = 0; i < m_mapMarkers.Length; i++)
+        {
+            var entity = m_mapMarkers.Data[i];
+            DrawHighlightArea(world, renderInfo, entity.Position.X, entity.Position.Y, 64);
+        }
+
+        array = m_colorPoints.GetPoints(m_thingColor);
+        for (int i = 0; i < m_points.Length; i++)
+            array.Add(m_points[i]);
+    }
+
+    private void DrawHighlightArea(IWorld world, RenderInfo renderInfo, double x, double y, int area)
+    {
+        var scaleArea = (float)area * 1 / (float)renderInfo.AutomapScale;
+        var angle = (float)((world.GameTicker / 4) % MathHelper.HalfPi);
+        var halfWidth = scaleArea / 2;
+        AddSquare(-halfWidth, -halfWidth, scaleArea, scaleArea, CreateTransform(angle, (float)x, (float)y));
     }
 
     private static mat4 CreateTransform(float angleRadians, float centerX, float centerY)
