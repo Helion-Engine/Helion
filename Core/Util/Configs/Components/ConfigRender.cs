@@ -117,7 +117,7 @@ public class ConfigRender: ConfigElement<ConfigRender>
 
     [ConfigInfo("Max render distance.")]
     [OptionMenu(OptionSectionType.Render, "Max Rendering Distance", sliderMin: 0.0, sliderMax: int.MaxValue, sliderStep: 100)]
-    public readonly ConfigValue<int> MaxDistance = new(0);
+    public readonly ConfigValue<int> MaxDistance = new(0, Clamp(0, 46000));
 
 
     // Lighting effects
