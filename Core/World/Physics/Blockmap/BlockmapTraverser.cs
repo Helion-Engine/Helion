@@ -266,6 +266,55 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
         }
     }
 
+    // Searches for entities starting with the block at (x,y) and searches in a spiral pattern within the radius
+    public void EntityTraverseSpiralBlocks(double x, double y, double radius, Func<Entity, GridIterationStatus> action)
+    {
+        var startBlockIndex = Blockmap.GetBlockIndex(x, y);
+        int checkCounter = ++WorldStatic.CheckCounter;
+
+        int startX = startBlockIndex % Blockmap.Width;
+        int startY = startBlockIndex / Blockmap.Width;
+
+        var it = Blockmap.CreateBoxIteration(x, y, radius);
+        int minX = it.BlockStartX;
+        int maxX = it.BlockEndX;
+        int minY = it.BlockStartY;
+        int maxY = it.BlockEndY;
+
+        int maxRadius = Math.Max(maxX - startX, maxY - startY);
+
+        for (int blockRadius = 0; blockRadius <= maxRadius; blockRadius++)
+        {
+            for (int dy = -blockRadius; dy <= blockRadius; dy++)
+            {
+                for (int dx = -blockRadius; dx <= blockRadius; dx++)
+                {
+                    if (Math.Abs(dx) != blockRadius && Math.Abs(dy) != blockRadius)
+                        continue;
+
+                    var bx = startX + dx;
+                    var by = startY + dy;
+
+                    if (bx < minX || bx > maxX || by < minY || by > maxY)
+                        continue;
+
+                    ref var block = ref Blockmap.Entities[by * Blockmap.Width + bx];
+                    for (int i = block.EntityIndicesLength - 1; i >= 0; i--)
+                    {
+                        var entity = m_dataCache.Entities[block.EntityIndices[i]];
+                        if (entity.BlockmapCount == checkCounter)
+                            continue;
+
+                        entity.BlockmapCount = checkCounter;
+
+                        if (action(entity) == GridIterationStatus.Stop)
+                            return;
+                    }
+                }
+            }
+        }
+    }
+
     public void HealTraverse(Box2D box, Action<Entity> action)
     {
         int checkCounter = ++WorldStatic.CheckCounter;
@@ -297,7 +346,6 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
             }
         }
     }
-
 
     public bool SolidBlockTraverse(EntityDefinition definition, Vec3D position, bool checkZ)
     {

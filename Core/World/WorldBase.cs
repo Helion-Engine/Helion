@@ -3160,8 +3160,14 @@ public abstract partial class WorldBase : IWorld
     public void TracerSeek(Entity entity, double threshold, double maxTurnAngle, GetTracerVelocityZ velocityZ)
     {
         var tracer = entity.Tracer();
-        if (tracer == null || tracer.IsDead())
+        if (tracer == null)
             return;
+
+        if (tracer.IsDead() || !tracer.Flags.Shootable())
+        {
+            entity.SetTracer(null);
+            return;
+        }
 
         SetTracerAngle(entity, threshold, maxTurnAngle);
 
@@ -3177,7 +3183,30 @@ public abstract partial class WorldBase : IWorld
         m_newTracerTargetData.Entity = entity;
         m_newTracerTargetData.Owner = entity.Owner() ?? entity;
         m_newTracerTargetData.FieldOfViewRadians = fieldOfViewRadians;
-        BlockmapTraverser.EntityTraverse(new Box2D(entity.Position.X, entity.Position.Y, radius), m_setNewTracerTargetAction);
+        m_newTracerTargetData.TargetEntity = null;
+        BlockmapTraverser.EntityTraverseSpiralBlocks(entity.Position.X, entity.Position.Y, radius, m_setNewTracerTargetAction);
+
+        if (m_newTracerTargetData.TargetEntity != null)
+            entity.SetTracer(m_newTracerTargetData.TargetEntity);
+    }
+
+    private GridIterationStatus HandleSetNewTracerTarget(Entity checkEntity)
+    {
+        if (!checkEntity.Flags.Shootable())
+            return GridIterationStatus.Continue;
+
+        if (m_newTracerTargetData.Owner == checkEntity || !m_newTracerTargetData.Owner.ValidEnemyTarget(checkEntity))
+            return GridIterationStatus.Continue;
+
+        if (m_newTracerTargetData.FieldOfViewRadians > 0 &&
+            !InFieldOfView(m_newTracerTargetData.Entity, checkEntity, m_newTracerTargetData.FieldOfViewRadians))
+            return GridIterationStatus.Continue;
+
+        if (!CheckLineOfSight(m_newTracerTargetData.Entity, checkEntity))
+            return GridIterationStatus.Continue;
+
+        m_newTracerTargetData.TargetEntity = checkEntity;
+        return GridIterationStatus.Stop;
     }
 
     public void EntityTeleported(Entity teleportEntity)
@@ -3245,25 +3274,6 @@ public abstract partial class WorldBase : IWorld
                     sectorIsland.IsMonsterCloset = false;
             }
         }
-    }
-
-    private GridIterationStatus HandleSetNewTracerTarget(Entity checkEntity)
-    {
-        if (!checkEntity.Flags.Shootable())
-            return GridIterationStatus.Continue;
-
-        if (m_newTracerTargetData.Owner == checkEntity || !m_newTracerTargetData.Owner.ValidEnemyTarget(checkEntity))
-            return GridIterationStatus.Continue;
-
-        if (m_newTracerTargetData.FieldOfViewRadians > 0 &&
-            !InFieldOfView(m_newTracerTargetData.Entity, checkEntity, m_newTracerTargetData.FieldOfViewRadians))
-            return GridIterationStatus.Continue;
-
-        if (!CheckLineOfSight(m_newTracerTargetData.Entity, checkEntity))
-            return GridIterationStatus.Continue;
-
-        m_newTracerTargetData.Entity.SetTracer(checkEntity);
-        return GridIterationStatus.Stop;
     }
 
     public void SetEntityPosition(Entity entity, Vec3D pos)

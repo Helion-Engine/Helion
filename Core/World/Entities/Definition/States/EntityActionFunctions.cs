@@ -3284,8 +3284,8 @@ public static class EntityActionFunctions
         if (entity.Tracer() != null)
             return;
 
-        double fov = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs1));
-        int blocks = entity.FrameState.Frame.DehackedArgs2 == 0 ? 10 : entity.FrameState.Frame.DehackedArgs2;
+        var fov = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs1));
+        var blocks = entity.FrameState.Frame.DehackedArgs2 == 0 ? 10 : entity.FrameState.Frame.DehackedArgs2;
         WorldStatic.World.SetNewTracerTarget(entity, fov, blocks * 128);
     }
 
