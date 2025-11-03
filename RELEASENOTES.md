@@ -49,7 +49,7 @@
 - Fix monsters attempting to move immediately after melee attack to match original behavior.
 - Fix issue with midtex clipping when upper/lower texture is missing that blocked sprite rendering with vanilla render option. (Fixes Blues Brothers 2025 MAP01 near megasphere)
 - Fix A_Lower not able to call A_Raise when no pending weapon is set through dehacked. (Fixes Blues Brothers 2025 weapon slot 4)
-- Fix A_FindTracer to ignore things when same owner. (Fixes Blues Brothers 2025 weapon slot 4)
+- Fix A_FindTracer to ignore things when same owner and fix setting new tracer targets when killed. Better matches dsda behavior. (Fixes Blues Brothers 2025 weapon slot 4)
 - Fix A_AddFlags and A_RemoveFlag calls to correctly set based on properties for LOGRAV, SHORTMRANGE, HIGHERMPROB, and LONGMELEE.
 - Fix E3M8BOSS being incorrectly set from the E2M8BOSS flag.
 - Fix E4M6BOSS not being set.
