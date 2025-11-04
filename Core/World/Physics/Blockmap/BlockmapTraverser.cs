@@ -274,14 +274,8 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
 
         int startX = startBlockIndex % Blockmap.Width;
         int startY = startBlockIndex / Blockmap.Width;
-
         var it = Blockmap.CreateBoxIteration(x, y, radius);
-        int minX = it.BlockStartX;
-        int maxX = it.BlockEndX;
-        int minY = it.BlockStartY;
-        int maxY = it.BlockEndY;
-
-        int maxRadius = Math.Max(maxX - startX, maxY - startY);
+        int maxRadius = Math.Max(it.BlockEndX - startX, it.BlockEndY - startY);
 
         for (int blockRadius = 0; blockRadius <= maxRadius; blockRadius++)
         {
@@ -295,7 +289,7 @@ public class BlockmapTraverser(IWorld world, BlockMap blockmap)
                     var bx = startX + dx;
                     var by = startY + dy;
 
-                    if (bx < minX || bx > maxX || by < minY || by > maxY)
+                    if (bx < it.BlockStartX || bx > it.BlockEndX || by < it.BlockStartY || by > it.BlockEndY)
                         continue;
 
                     ref var block = ref Blockmap.Entities[by * Blockmap.Width + bx];
