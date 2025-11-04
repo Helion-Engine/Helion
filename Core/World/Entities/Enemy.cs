@@ -34,11 +34,9 @@ public partial class Entity
 
     public double MonsterMovementSpeed;
 
-    public void SetEnemyDirection(MoveDir direction) =>
-        m_direction = direction;
+    public void SetEnemyDirection(MoveDir direction) => m_direction = direction;
 
-    public bool ValidEnemyTarget(Entity? entity) => entity != null &&
-        !entity.IsDead() && !IsFriend(entity) && Target() == null;
+    public bool ValidEnemyTarget(Entity? entity) => entity != null && !entity.IsDead() && !IsFriend(entity);
 
     public void SetMoveDirection(MoveDir dir) => m_direction = dir;
 
@@ -50,7 +48,7 @@ public partial class Entity
         Flags.ClearAttacking();
         Entity? newTarget = null;
         var soundTarget = Sector.SoundTarget.Get();
-        if (soundTarget != null && ValidEnemyTarget(soundTarget))
+        if ((soundTarget != null && ValidEnemyTarget(soundTarget)) || (soundTarget != null && IsFriend(soundTarget)))
         {
             if (Flags.Ambush())
             {

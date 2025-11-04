@@ -53,3 +53,4 @@
 - Fix A_AddFlags and A_RemoveFlag calls to correctly set based on properties for LOGRAV, SHORTMRANGE, HIGHERMPROB, and LONGMELEE.
 - Fix E3M8BOSS being incorrectly set from the E2M8BOSS flag.
 - Fix E4M6BOSS not being set.
+- Fix monsters not targeting player from sound target after killing another monster.
