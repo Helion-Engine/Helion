@@ -1,6 +1,4 @@
 using System;
-using Helion.Geometry.Vectors;
-using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.World.Entities.Definition.Flags;
@@ -40,7 +38,7 @@ public partial class Entity
         m_direction = direction;
 
     public bool ValidEnemyTarget(Entity? entity) => entity != null &&
-        !entity.IsDead() && (!IsFriend(entity) || Target() == null);
+        !entity.IsDead() && !IsFriend(entity) && Target() == null;
 
     public void SetMoveDirection(MoveDir dir) => m_direction = dir;
 

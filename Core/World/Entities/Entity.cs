@@ -61,10 +61,15 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public int Health;
     public int MoveCount;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Entity? Target() => m_target != null && m_target.Id == m_targetId ? m_target : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Entity? Tracer() => m_tracer != null && m_tracer.Id == m_tracerId ? m_tracer : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Entity? Owner() => m_owner != null && m_owner.Id == m_ownerId ? m_owner : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Entity? OnEntity() => m_onEntity != null && m_onEntity.Id == m_onEntityId ? m_onEntity : null;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Entity? OverEntity() => m_overEntity != null && m_overEntity.Id == m_overEntityId ? m_overEntity : null;
 
     public EntityDefinition Definition;
@@ -834,8 +839,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     protected static bool IsWeapon(EntityDefinition definition) => definition.IsType(Inventory.WeaponClassName);
     protected static bool IsAmmo(EntityDefinition definition) => definition.IsType(Inventory.AmmoClassName);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsCrushing() => LowestCeilingZ - HighestFloorZ < Height;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void CheckOnGround() => OnGround = HighestFloorZ >= Position.Z;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsFriend(Entity entity) => Flags.Friendly() && entity.Flags.Friendly();
 
     public bool CanBlockEntity(Entity other)

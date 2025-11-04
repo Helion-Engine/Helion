@@ -174,6 +174,18 @@ public class BlockMap
         return index;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int GetBlockIndex(double xPos, double yPos)
+    {
+        int x = (int)((xPos - Origin.X) / Dimension);
+        int y = (int)((yPos - Origin.Y) / Dimension);
+        int index = y * Width + x;
+        if (index < 0 || index >= TotalBlocks)
+            return -1;
+
+        return index;
+    }
+
     public void Link(Entity entity, bool checkLastBlock)
     {
         Assert.Precondition((entity.BlockRange.StartX == Constants.ClearBlock) || checkLastBlock, "Forgot to unlink entity from blockmap");
