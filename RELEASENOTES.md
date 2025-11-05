@@ -54,3 +54,5 @@
 - Fix E3M8BOSS being incorrectly set from the E2M8BOSS flag.
 - Fix E4M6BOSS not being set.
 - Fix monsters not targeting player from sound target after killing another monster.
+- Fix A_Stop.
+- Fix RIP flag doing more damage when speed forces object into multiple smaller moves in one tick.
