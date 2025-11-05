@@ -1135,6 +1135,7 @@ doneLinkToSectors:
         }
 
         bool success = true;
+        bool successfulSubmove = false;
         Vec3D saveVelocity = entity.Velocity;
         int slideBlockLineId = -1;
         Entity? slideBlockEntity = null;
@@ -1149,12 +1150,14 @@ doneLinkToSectors:
             double nextY = entity.Position.Y + stepDelta.Y;
             if (IsPositionValid(entity, nextX, nextY, TryMoveData) && entity.CheckDropOff(TryMoveData))
             {
+                successfulSubmove = true;
                 entity.MoveLinked = true;
                 MoveTo(entity, nextX, nextY, TryMoveData);
                 if (entity.Flags.Teleported())
                     return TryMoveData;
 
-                m_world.HandleEntityIntersections(entity, saveVelocity, TryMoveData);
+                if (TryMoveData.HasTouchy)
+                    m_world.HandleEntityIntersections(entity, saveVelocity, TryMoveData);
                 continue;
             }
 
@@ -1196,6 +1199,10 @@ doneLinkToSectors:
 
             break;
         }
+
+        // Only required for ripper entities
+        if (successfulSubmove && entity.Flags.Ripper())
+            m_world.HandleFinalizeEntityIntersections(entity, TryMoveData);
 
         if (!success)
         {
@@ -1305,6 +1312,7 @@ doneLinkToSectors:
                         if (entity == nextEntity)
                             continue;
 
+                        tryMove.HasTouchy = tryMove.HasTouchy || nextEntity.Flags.Touchy();
                         tryMove.IntersectEntities2D.Add(nextEntity);
                         bool overlapsZ = isMissile ?
                             entity.OverlapsMissileClipZ(nextEntity, WorldStatic.MissileClip) : entity.OverlapsZ(nextEntity);

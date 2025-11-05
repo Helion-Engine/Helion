@@ -1816,13 +1816,8 @@ public abstract partial class WorldBase : IWorld
                 source.Position = move;
             }
 
-            Vec2D xyDiff = source.Position.XY - target.Position.XY;
-            bool zEqual = Math.Abs(target.Position.Z - source.Position.Z) <= double.Epsilon;
-            bool xyEqual = Math.Abs(xyDiff.X) <= 1.0 && Math.Abs(xyDiff.Y) <= 1.0;
-            double pitch = 0.0;
-
-            double angle = source.Position.Angle(target.Position);
-            double thrustAmount = damage * source.ProjectileKickBack * 0.125 / target.Properties.Mass;
+            var angle = source.Position.Angle(target.Position);
+            var thrustAmount = damage * source.ProjectileKickBack * 0.125 / target.Properties.Mass;
 
             // Silly vanilla doom feature that allows target to be thrown forward sometimes
             if (damage < 40 && damage > target.Health &&
@@ -1834,17 +1829,20 @@ public abstract partial class WorldBase : IWorld
 
             if (thrust == Thrust.HorizontalAndVertical)
             {
+                var pitch = 0.0;
+                var zEqual = Math.Abs(target.Position.Z - source.Position.Z) <= double.Epsilon;
+                var xyEqual = Math.Abs(source.Position.X - target.Position.X) <= 1.0 && Math.Abs(source.Position.Y - target.Position.Y) <= 1.0;
                 // Player rocket jumping check, back up the source Z to get a valid pitch
                 // Only done for players, otherwise blowing up enemies will launch them in the air
                 if (zEqual && target.IsPlayer && source.Owner() == target)
                 {
-                    Vec3D sourcePos = new Vec3D(source.Position.X, source.Position.Y, source.Position.Z - 1.0);
+                    var sourcePos = new Vec3D(source.Position.X, source.Position.Y, source.Position.Z - 1.0);
                     pitch = sourcePos.Pitch(target.Position, 0.0);
                 }
                 else if (source.Position.Z < target.Position.Z || source.Position.Z > target.Position.Z + target.Height)
                 {
-                    Vec3D sourcePos = source.CenterPoint;
-                    Vec3D targetPos = target.Position;
+                    var sourcePos = source.CenterPoint;
+                    var targetPos = target.Position;
                     if (source.Position.Z > target.Position.Z + target.Height)
                         targetPos.Z += target.Height;
                     pitch = sourcePos.Pitch(targetPos, sourcePos.XY.Distance(targetPos.XY));
@@ -1865,7 +1863,7 @@ public abstract partial class WorldBase : IWorld
                 source.Position = savePos;
         }
 
-        bool setPainState = m_random.NextByte() < target.Properties.PainChance;
+        var setPainState = m_random.NextByte() < target.Properties.PainChance;
         if (target.PlayerObj != null)
         {
             damage = (int)(damage * WorldStatic.DamageReceiveMultiplier);
@@ -2117,14 +2115,28 @@ public abstract partial class WorldBase : IWorld
 
         for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
         {
-            Entity intersectEntity = tryMove.IntersectEntities2D[i];
+            var intersectEntity = tryMove.IntersectEntities2D[i];
             if (!entity.OverlapsZ(intersectEntity) || entity == intersectEntity)
                 continue;
 
-            if (entity.Flags.Ripper() && entity.Owner() != intersectEntity)
-                RipDamage(entity, intersectEntity);
             if (intersectEntity.Flags.Touchy() && ShouldDieFromTouch(entity, intersectEntity))
                 intersectEntity.Kill(null);
+        }
+    }
+
+    public virtual void HandleFinalizeEntityIntersections(Entity entity, TryMoveData? tryMove)
+    {
+        if (tryMove == null || tryMove.IntersectEntities2D.Length == 0 || !entity.Flags.Ripper())
+            return;
+
+        for (int i = 0; i < tryMove.IntersectEntities2D.Length; i++)
+        {
+            var intersectEntity = tryMove.IntersectEntities2D[i];
+            if (!entity.OverlapsZ(intersectEntity) || entity == intersectEntity)
+                continue;
+
+            if (entity.Owner() != intersectEntity)
+                RipDamage(entity, intersectEntity);
         }
     }
 

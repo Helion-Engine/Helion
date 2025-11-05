@@ -142,6 +142,7 @@ public interface IWorld : IDisposable
     void HandleEntityHit(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
     void HandleEntityClipPlane(Entity entity, SectorPlane plane);
     void HandleEntityIntersections(Entity entity, in Vec3D previousVelocity, TryMoveData? tryMove);
+    void HandleFinalizeEntityIntersections(Entity entity, TryMoveData? tryMove);
     bool CheckLineOfSight(Entity from, Entity to);
     bool InFieldOfView(Entity from, Entity to, double fieldOfViewRadians);
     void RadiusExplosion(Entity damageSource, Entity attackSource, int radius, int maxDamage);
