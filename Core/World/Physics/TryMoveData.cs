@@ -11,6 +11,7 @@ public class TryMoveData
     public bool Success;
     public bool CanFloat;
     public bool BlockedLineClearsVelocity;
+    public bool HasTouchy;
     public double LowestCeilingZ;
     public double HighestFloorZ;
     public double DropOffZ;
@@ -33,6 +34,7 @@ public class TryMoveData
     {
         CanFloat = false;
         BlockedLineClearsVelocity = true;
+        HasTouchy = false;
         IntersectEntities2D.Clear();
         IntersectSpecialLines.Clear();
         ImpactSpecialLines.Clear();
