@@ -2531,7 +2531,9 @@ public static class EntityActionFunctions
 
     private static void A_Stop(Entity entity)
     {
-        // TODO
+        entity.Velocity.X = 0;
+        entity.Velocity.Y = 0;
+        entity.Velocity.Z = 0;
     }
 
     private static void A_StopSound(Entity entity)
