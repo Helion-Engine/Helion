@@ -39,7 +39,7 @@ public class SectorDamageEndSpecial : SectorDamageSpecial
 
         m_world.DamageEntity(player, null, m_damage, DamageType.Normal, sectorSource: m_sector);
         if (player.Health <= 10)
-            m_world.ExitLevel(LevelChangeType.Next);
+            m_world.ExitLevel(ExitLevelArgs.NextMap());
     }
 
     public override SectorDamageSpecial Copy(Sector sector) =>

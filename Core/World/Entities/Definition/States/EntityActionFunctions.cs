@@ -523,7 +523,7 @@ public static class EntityActionFunctions
 
     private static void A_BrainDie(Entity entity)
     {
-        WorldStatic.World.ExitLevel(LevelChangeType.Next);
+        WorldStatic.World.ExitLevel(ExitLevelArgs.NextMap());
     }
 
     private static void A_BrainExplode(Entity entity)

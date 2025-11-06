@@ -139,6 +139,22 @@ public class SpawnLocations
         return Array.Empty<Entity>();
     }
 
+    public Entity? GetPlayerSpawnByArg0(int arg)
+    {
+        foreach (var starts in m_playerStarts.Values)
+        {
+            foreach (var start in starts)
+            {
+                var value = start.Get();
+                if (value == null || value.Args.Arg0 != arg)
+                    continue;
+                return value;
+            }
+        }
+
+        return null;
+    }
+
     private static bool PlayerBlock(Entity spawn)
     {
         DynamicArray<Entity> entities = WorldStatic.DataCache.GetEntityList();

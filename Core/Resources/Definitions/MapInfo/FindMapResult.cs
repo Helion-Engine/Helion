@@ -16,19 +16,34 @@ public struct FindMapResult
     public string Error;
     public FindMapResultOptions Options;
 
-    public static FindMapResult CreateEmptyResult(string mapName, FindMapResultOptions options) => new(mapName, options);
+    public static FindMapResult CreateEndGame(string mapName) => new(mapName, FindMapResultOptions.EndGame);
 
-    public static FindMapResult Create(MapInfoDef? mapInfo, string mapName)
+    public static FindMapResult Create(MapInfoDef mapInfo, string mapName)
     {
-        var result = new FindMapResult();
-        result.MapInfo = mapInfo;
-        result.MapName = mapName;
+        return new()
+        {
+            MapInfo = mapInfo,
+            MapName = mapName,
+            Error = string.Empty
+        };
+    }
 
-        if (mapInfo == null)
-            result.Error = $"Failed to find map {mapName}";
-        else
-            result.Error = string.Empty;
-        return result;
+    public static FindMapResult CreateMapNameError(string mapName)
+    {
+        return new()
+        {
+            MapInfo = null,
+            Error = $"Failed to find map {mapName}"
+        };
+    }
+
+    public static FindMapResult CreateError(string error)
+    {
+        return new()
+        {
+            MapInfo = null,
+            Error = error
+        };
     }
 
     public FindMapResult(string mapName, FindMapResultOptions options)

@@ -160,7 +160,7 @@ public partial class WorldLayer : IGameLayerParent
     public static WorldLayer? Create(GameLayerManager parent, GlobalData globalData, IConfig config,
         HelionConsole console, IAudioSystem audioSystem, ArchiveCollection archiveCollection,
         FpsTracker fpsTracker, Profiler profiler, MapInfoDef mapInfoDef, SkillDef skillDef, IMap map,
-        Player? existingPlayer, WorldModel? worldModel, IRandom? random, bool sameAsPreviousMap)
+        Player? existingPlayer, WorldModel? worldModel, IRandom? random, bool sameAsPreviousMap, int playerSpawnArg0)
     {
         var stopwatch = Stopwatch.StartNew();
 
@@ -169,8 +169,8 @@ public partial class WorldLayer : IGameLayerParent
         if (!sameAsPreviousMap && archiveCollection.Definitions.CompLevelDefinition.CompLevel == CompLevel.Undefined)
             SetCompatibilityOptions(config, map, mapInfoDef, archiveCollection);
 
-        SinglePlayerWorld? world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, profiler,
-            mapInfoDef, skillDef, map, existingPlayer, worldModel, random, sameAsPreviousMap: sameAsPreviousMap);
+        var world = CreateWorldGeometry(globalData, config, audioSystem, archiveCollection, profiler,
+            mapInfoDef, skillDef, map, existingPlayer, worldModel, random, sameAsPreviousMap: sameAsPreviousMap, playerSpawnArg0: playerSpawnArg0);
         if (world == null)
             return null;
 
@@ -251,7 +251,7 @@ public partial class WorldLayer : IGameLayerParent
 
     public static SinglePlayerWorld? CreateWorldGeometry(GlobalData globalData, IConfig config, IAudioSystem audioSystem,
         ArchiveCollection archiveCollection, Profiler profiler, MapInfoDef mapDef, SkillDef skillDef, IMap map,
-        Player? existingPlayer, WorldModel? worldModel, IRandom? random, bool unitTest = false, bool sameAsPreviousMap = false)
+        Player? existingPlayer, WorldModel? worldModel, IRandom? random, bool unitTest = false, bool sameAsPreviousMap = false, int playerSpawnArg0 = 0)
     {
         archiveCollection.InitTextureManager(mapDef, unitTest);
 
@@ -280,7 +280,7 @@ public partial class WorldLayer : IGameLayerParent
         {
             bool reuse = !unitTest;
             var world = new SinglePlayerWorld(globalData, config, archiveCollection, audioSystem, profiler, geometry,
-                mapDef, skillDef, map, sameAsPreviousMap, existingPlayer, worldModel, random, reuse);
+                mapDef, skillDef, map, sameAsPreviousMap, existingPlayer, worldModel, random, reuse, playerSpawnArg0);
 
             // Dump data that is no longer needed
             if (!sameAsPreviousMap)

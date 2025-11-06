@@ -120,16 +120,21 @@ public class MapInfo
     public FindMapResult GetMap(string name)
     {
         if (EndGameMaps.Contains(name))
-            return FindMapResult.CreateEmptyResult(name, FindMapResultOptions.EndGame);
+            return FindMapResult.CreateEndGame(name);
 
         var map = m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase(name));
         if (map != null)
             return FindMapResult.Create(map, name);
 
         if (int.TryParse(name, out int mapNum))
-            return FindMapResult.Create(m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase("MAP" + mapNum)), name);
+        {
+            var findMapName = "MAP" + mapNum;
+            map = m_maps.FirstOrDefault(x => x.MapName.EqualsIgnoreCase(findMapName));
+            if (map != null)
+                return FindMapResult.Create(map, name);
+        }
 
-        return FindMapResult.Create(null, name);
+        return FindMapResult.CreateMapNameError(name);
     }
 
     public MapInfoDef GetStartMapOrDefault(ArchiveCollection archiveCollection, string mapName)
@@ -138,6 +143,21 @@ public class MapInfo
             return mapInfoDef;
 
         return GetMapInfoOrDefault(mapName);
+    }
+
+    public bool TryGetMapByLevelNumber(int number, [NotNullWhen(true)] out MapInfoDef? mapInfo)
+    {
+        foreach (var map in Maps)
+        {
+            if (map.LevelNumber == number)
+            {
+                mapInfo = map;
+                return true;
+            }
+        }
+
+        mapInfo = null;
+        return false;
     }
 
     public bool IsChangingClusters(MapInfoDef mapDef, FindMapResult nextMapResult, bool secret, out ClusterDef? cluster, out ClusterDef? nextCluster)

@@ -92,7 +92,7 @@ public interface IWorld : IDisposable
     SkillDef SkillDefinition { get; }
     SkillLevel SkillLevel { get; }
     ArchiveCollection ArchiveCollection { get; }
-    MapInfoDef MapInfo { get; }
+    MapInfoDef MapInfo { get; set; }
     GameInfoDef GameInfo { get; }
     LevelStats LevelStats { get; }
     bool Paused { get; }
@@ -122,7 +122,7 @@ public interface IWorld : IDisposable
     LinkedList<Entity> FindByTid(int tid);
     IEnumerable<Line> FindByLineId(int lineId);
     void SetLineId(Line line, int lineId);
-    void ExitLevel(LevelChangeType type, LevelChangeFlags flags = LevelChangeFlags.None);
+    void ExitLevel(ExitLevelArgs args);
     Entity[] GetBossTargets();
     int CurrentBossTarget { get; set; }
     void TelefragBlockingEntities(Entity entity);

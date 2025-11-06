@@ -945,9 +945,21 @@ public partial class Client
             if (m_layerManager.LoadingLayer != null)
                 m_layerManager.LoadingLayer.ShowSpinner = false;
 
+            double? angle = null;
+            int playerSpawnArg0 = 0;
+            if (eventContext != null)
+            {
+                playerSpawnArg0 = eventContext.PlayerSpawnArg0;
+                if (eventContext.RetainFace && previousWorld != null)
+                    angle = previousWorld.Player.AngleRadians;
+            }
+
             var worldLayer = WorldLayer.Create(m_layerManager, m_globalData, m_config, m_console,
                 m_audioSystem, m_archiveCollection, m_fpsTracker, m_profiler, mapInfoDef, skillDef, map,
-                players.FirstOrDefault(), worldModel, random, sameAsPreviousMap: sameMap);
+                players.FirstOrDefault(), worldModel, random, sameAsPreviousMap: sameMap, playerSpawnArg0);
+
+            if (worldLayer != null && angle != null)
+                worldLayer.World.Player.AngleRadians = angle.Value;
 
             // This isn't great but the map reference is everywhere and difficult to unwind.
             // This dumps all the map specific data that isn't needed instead of wasting the memory.
@@ -1067,12 +1079,65 @@ public partial class Client
                 case LevelChangeType.ResetOrLoadLast:
                     QueueLoadMap(world.MapInfo, m_lastWorldModel, world, e);
                     break;
+
+                case LevelChangeType.SpecificMap:
+                    Intermission(world, () => GetSpecificMap(world, e));
+                    break;
+
+                case LevelChangeType.EndGame:
+                    Intermission(world, () => GetLastEndGame(world));
+                    break;
             }
         }
         catch (Exception ex)
         {
             HandleFatalException(ex);
         }
+    }
+
+    private static FindMapResult GetLastEndGame(IWorld world)
+    {
+        var mapInfo = world.ArchiveCollection.MapInfo.MapInfo;
+        var maps = mapInfo.Maps.OrderByDescending(x => x.Cluster);
+        foreach (var map in maps)
+        {
+            if (map.EndGame != null)
+            {
+                SetEndGame(world, map.Next, map);
+                return FindMapResult.CreateEndGame(map.MapName);
+            }
+
+            if (MapInfo.EndGameMaps.Contains(map.Next))
+            {
+                SetEndGame(world, map.Next, map);
+                return FindMapResult.CreateEndGame(map.Next);
+            }
+        }
+
+        return FindMapResult.CreateError("No EndGame");
+    }
+
+    private static void SetEndGame(IWorld world, string nextMapName, MapInfoDef mapInfoDef)
+    {
+        var mapInfo = (MapInfoDef)world.MapInfo.Clone();
+        mapInfo.Next = nextMapName;
+        mapInfo.Cluster = mapInfoDef.Cluster;
+        mapInfo.ClusterDef = mapInfoDef.ClusterDef;
+        world.MapInfo = mapInfo;
+    }
+
+    private FindMapResult GetSpecificMap(IWorld world, LevelChangeEvent e)
+    {
+        if (e.LevelNumber == 0)
+            return GetNextLevel(world.MapInfo);
+
+        if (world.ArchiveCollection.MapInfo.MapInfo.TryGetMapByLevelNumber(e.LevelNumber, out var map))
+            return FindMapResult.Create(map, map.MapName);
+        
+        if (MapWarp.GetMap(e.LevelNumber, world.ArchiveCollection, out map))
+            return FindMapResult.Create(map, map.MapName);
+
+        return FindMapResult.CreateError($"No map found for level number {e.LevelNumber}");  
     }
 
     private static bool ShouldWriteStatsFile(LevelChangeType type) =>
@@ -1113,7 +1178,7 @@ public partial class Client
     {
         if (world.MapInfo.HasOption(MapOptions.NoIntermission))
         {
-            EndGame(world, getNextMapInfo);
+            EndGame(world, world.MapInfo, getNextMapInfo);
         }
         else
         {
@@ -1131,7 +1196,7 @@ public partial class Client
         if (sender is not IntermissionLayer intermissionLayer)
             return;
 
-        EndGame(intermissionLayer.World, intermissionLayer.GetNextMapInfo);
+        EndGame(intermissionLayer.World, intermissionLayer.World.MapInfo, intermissionLayer.GetNextMapInfo);
     }
 
     private void PrepareTransition()
@@ -1145,14 +1210,14 @@ public partial class Client
         m_layerManager.TransitionLayer?.Start();
     }
 
-    private void EndGame(IWorld world, Func<FindMapResult> getNextMapInfo)
+    private void EndGame(IWorld world, MapInfoDef currentMap, Func<FindMapResult> getNextMapInfo)
     {
         try
         {
             var nextMapResult = getNextMapInfo();
             var nextMapInfo = nextMapResult.MapInfo;
 
-            if (m_archiveCollection.MapInfo.MapInfo.IsChangingClusters(world.MapInfo, nextMapResult, m_isSecretExit, out var cluster, out var nextCluster))
+            if (m_archiveCollection.MapInfo.MapInfo.IsChangingClusters(currentMap, nextMapResult, m_isSecretExit, out var cluster, out var nextCluster))
             {
                 HandleZDoomTransition(world, cluster, nextCluster, nextMapInfo);
                 PrepareTransition();
@@ -1219,10 +1284,10 @@ public partial class Client
         QueueLoadMap(mapInfoDef, null, null, e);
     }
 
-    private FindMapResult GetNextLevel(MapInfoDef mapDef) =>
+    private FindMapResult GetNextLevel(MapInfoDef mapDef) => 
         m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextMap(mapDef);
 
-    private FindMapResult GetNextSecretLevel(MapInfoDef mapDef) =>
+    private FindMapResult GetNextSecretLevel(MapInfoDef mapDef) => 
         m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextSecretMap(mapDef);
 
     private void ShowConsole()
