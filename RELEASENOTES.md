@@ -16,6 +16,7 @@
 - Add option to select laptop GPU mode (high performance, vs power saving). Helion will automatically set high performance (discrete) GPU to prevent Windows from defaulting to the power saving (integrated) GPU.
 - Add nextmap and previous map commands.
 - Add xscrollfloor, yscrollfloor, scrollfloormode, xscrollceiling, yscrollceiling, and scrollceilingmode for UDMF.
+- Add Teleport_NewMap and Teleport_EndGame for UDMF.
 - Add display custom endoom only option that will only show endoom screens from the pwads.
 - Improve hud autoscale.
 - Support mark.add and mark.remove commands for chasecam.

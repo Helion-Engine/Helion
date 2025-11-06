@@ -2,7 +2,6 @@
 using Helion.Maps.Specials;
 using Helion.Util;
 using Helion.World.Entities;
-using NLog;
 using System.Runtime.CompilerServices;
 
 namespace Helion.World.Special.Specials;
@@ -11,8 +10,6 @@ public static class ActionSpecials
 {
     const double SpeedFactor = 1 / 8.0;
     const int ProjectileOffsetZ = -31;
-
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public static bool ThingSpawn(IWorld world, in SpecialArgs args, bool teleportFog)
     {
