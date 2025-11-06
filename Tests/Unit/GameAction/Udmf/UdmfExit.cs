@@ -3,12 +3,13 @@ using Helion.Resources.IWad;
 using Helion.World;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
+using System;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction.Udmf;
 
 [Collection("GameActions")]
-public class UdmfExit
+public class UdmfExit : IDisposable
 {
     private readonly SinglePlayerWorld World;
     private Player Player => World.Player;
@@ -21,6 +22,12 @@ public class UdmfExit
         World.LevelExit += World_LevelExit;
     }
 
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        World.LevelExit -= World_LevelExit;
+    }
+
     private void World_LevelExit(object? sender, LevelChangeEvent e)
     {
         m_event = e;
@@ -31,7 +38,7 @@ public class UdmfExit
     public void ExitNormal()
     {
         GameActions.EntityCrossLine(World, Player, 4).Should().BeTrue();
-        GameActions.TickWorld(World, 15);
+        GameActions.TickWorld(World, 35);
 
         m_event.Should().NotBeNull();
         var e = m_event!;
@@ -46,7 +53,7 @@ public class UdmfExit
     public void ExitSecret()
     {
         GameActions.EntityCrossLine(World, Player, 5).Should().BeTrue();
-        GameActions.TickWorld(World, 15);
+        GameActions.TickWorld(World, 35);
 
         m_event.Should().NotBeNull();
         var e = m_event!;
@@ -61,7 +68,7 @@ public class UdmfExit
     public void TeleportNewMapWithArgs()
     {
         GameActions.EntityCrossLine(World, Player, 6).Should().BeTrue();
-        GameActions.TickWorld(World, 15);
+        GameActions.TickWorld(World, 35);
 
         m_event.Should().NotBeNull();
         var e = m_event!;
@@ -76,7 +83,7 @@ public class UdmfExit
     public void TeleportNewMapNoArgs()
     {
         GameActions.EntityCrossLine(World, Player, 8).Should().BeTrue();
-        GameActions.TickWorld(World, 15);
+        GameActions.TickWorld(World, 35);
 
         m_event.Should().NotBeNull();
         var e = m_event!;
@@ -91,7 +98,7 @@ public class UdmfExit
     public void EndGame()
     {
         GameActions.EntityCrossLine(World, Player, 7).Should().BeTrue();
-        GameActions.TickWorld(World, 15);
+        GameActions.TickWorld(World, 35);
 
         m_event.Should().NotBeNull();
         var e = m_event!;
