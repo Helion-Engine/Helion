@@ -1142,20 +1142,28 @@ public sealed class SpecialManager : ITickable, IDisposable
                 return new TeleportSpecial(args, world, line.Args.Arg1, TeleportFog.None, TeleportType.BoomFixed, line.Args.Arg2 != 0).Teleport();
 
             case ZDoomLineSpecialType.ExitNormal:
-                m_world.ExitLevel(LevelChangeType.Next);
+                ActionSpecials.ExitNormal(m_world, args.ActivateLineSpecial.Args);
                 return true;
 
             case ZDoomLineSpecialType.ExitSecret:
-                m_world.ExitLevel(LevelChangeType.SecretNext);
+                ActionSpecials.ExitSecret(m_world, args.ActivateLineSpecial.Args);
                 return true;
 
             case ZDoomLineSpecialType.ExitResetInventory:
-                m_world.ExitLevel(LevelChangeType.Next, LevelChangeFlags.ResetInventory);
+                m_world.ExitLevel(ExitLevelArgs.NextMap(LevelChangeFlags.ResetInventory));
                 return true;
 
             case ZDoomLineSpecialType.ExitSecretResetInventory:
-                m_world.ExitLevel(LevelChangeType.SecretNext, LevelChangeFlags.ResetInventory);
+                m_world.ExitLevel(ExitLevelArgs.NextSecretMap(LevelChangeFlags.ResetInventory));
                 return true;
+
+            case ZDoomLineSpecialType.TeleportNewMap:
+                ActionSpecials.TeleportNewMap(m_world, args.ActivateLineSpecial.Args);
+                break;
+
+            case ZDoomLineSpecialType.TeleportEndGame:
+                ActionSpecials.TeleportEndGame(m_world);
+                break;
 
             case ZDoomLineSpecialType.SetSectorColorMap:
                 SetSectorColorMap(args.ActivateLineSpecial, args.FromFront);

@@ -4,7 +4,7 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World;
 
-public class LevelChangeEvent
+public sealed class LevelChangeEvent
 {
     public static readonly LevelChangeEvent Default = new(LevelChangeType.Default, LevelChangeFlags.None);
 
@@ -13,6 +13,9 @@ public class LevelChangeEvent
     public readonly int LevelNumber = 1;
     public readonly WorldModel? WorldModel;
     public readonly bool IsCheat;
+    public readonly int PlayerSpawnArg0;
+    public readonly bool RetainFace;
+
     public bool Cancel { get; set; }
 
     public LevelChangeEvent(LevelChangeType levelChangeType, LevelChangeFlags flags)
@@ -31,6 +34,15 @@ public class LevelChangeEvent
         LevelNumber = levelNumber;
         IsCheat = isCheat;
     }
+
+    public LevelChangeEvent(ExitLevelArgs args)
+    {
+        ChangeType = args.Type;
+        Flags = args.Flags;
+        LevelNumber = args.LevelNumber;
+        PlayerSpawnArg0 = args.PlayerSpawnArg0;
+        RetainFace = args.RetainFace;
+    }
 }
 
 public enum LevelChangeType
@@ -40,7 +52,9 @@ public enum LevelChangeType
     SecretNext,
     SpecificLevel,
     Reset,
-    ResetOrLoadLast
+    ResetOrLoadLast,
+    SpecificMap,
+    EndGame
 }
 
 [Flags]

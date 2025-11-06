@@ -2,6 +2,7 @@
 using Helion.Maps.Specials;
 using Helion.Util;
 using Helion.World.Entities;
+using NLog;
 using System.Runtime.CompilerServices;
 
 namespace Helion.World.Special.Specials;
@@ -10,6 +11,8 @@ public static class ActionSpecials
 {
     const double SpeedFactor = 1 / 8.0;
     const int ProjectileOffsetZ = -31;
+
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     public static bool ThingSpawn(IWorld world, in SpecialArgs args, bool teleportFog)
     {
@@ -159,6 +162,26 @@ public static class ActionSpecials
         }
 
         return false;
+    }
+
+    public static void ExitNormal(IWorld world, in SpecialArgs args)
+    {
+        world.ExitLevel(ExitLevelArgs.NextMap(flags: LevelChangeFlags.None, playerSpawnArg0: args.Arg0));
+    }
+
+    public static void ExitSecret(IWorld world, in SpecialArgs args)
+    {
+        world.ExitLevel(ExitLevelArgs.NextSecretMap(flags: LevelChangeFlags.None, playerSpawnArg0: args.Arg0));
+    }
+
+    public static void TeleportNewMap(IWorld world, in SpecialArgs args)
+    {
+        world.ExitLevel(ExitLevelArgs.SpecificMap(LevelChangeFlags.None, args.Arg0, args.Arg1, args.Arg2 > 0));
+    }
+
+    public static void TeleportEndGame(IWorld world)
+    {
+        world.ExitLevel(ExitLevelArgs.EndGame());
     }
 
     private static Entity? GetActivator(Entity activator, IWorld world, int tid)

@@ -57,7 +57,7 @@ public class SinglePlayerWorld : WorldBase
 
     public SinglePlayerWorld(GlobalData globalData, IConfig config, ArchiveCollection archiveCollection,
         IAudioSystem audioSystem, Profiler profiler, MapGeometry geometry, MapInfoDef mapDef, SkillDef skillDef,
-        IMap map, bool sameAsPreviousMap, Player? existingPlayer = null, WorldModel? worldModel = null, IRandom? random = null, bool reuse = true)
+        IMap map, bool sameAsPreviousMap, Player? existingPlayer = null, WorldModel? worldModel = null, IRandom? random = null, bool reuse = true, int playerSpawnArg0 = 0)
         : base(globalData, config, archiveCollection, audioSystem, profiler, geometry, mapDef, skillDef, map, worldModel, random, sameAsPreviousMap, reuse)
     {
         m_worldType = config.Game.SoloNet ? WorldType.Cooperative : WorldType.SinglePlayer;
@@ -67,14 +67,24 @@ public class SinglePlayerWorld : WorldBase
             EntityManager.PopulateFrom(map, LevelStats);
 
             var spawns = EntityManager.SpawnLocations.GetPlayerSpawns(0);
-            if (spawns.Count == 0)
-                throw new HelionException("No player 1 starts.");
-            Player = EntityManager.CreatePlayer(0, spawns[^1]);
+
+            if (playerSpawnArg0 == 0)
+            {
+                if (spawns.Count == 0)
+                    throw new HelionException("No player 1 starts");
+                Player = EntityManager.CreatePlayer(0, spawns[^1]);
+            }
+            else
+            {
+                var spawnLoaction = EntityManager.SpawnLocations.GetPlayerSpawnByArg0(playerSpawnArg0) ?? throw new HelionException($"No player starts with arg0 {playerSpawnArg0}");
+                Player = EntityManager.CreatePlayer(0, spawnLoaction);
+            }
 
             // Make voodoo dolls
+            var voodooSpawns = EntityManager.SpawnLocations.GetPlayerSpawns(0);
             for (int i = spawns.Count - 2; i >= 0; i--)
             {
-                Player player = EntityManager.CreatePlayer(0, spawns[i], CreatePlayerOptions.VooDooDoll);
+                var player = EntityManager.CreatePlayer(0, spawns[i], CreatePlayerOptions.VooDooDoll);
                 player.SetDefaultInventory();
             }
 
@@ -94,7 +104,7 @@ public class SinglePlayerWorld : WorldBase
         }
         else
         {
-            WorldModelPopulateResult result = EntityManager.PopulateFrom(worldModel);
+            var result = EntityManager.PopulateFrom(worldModel);
             if (result.Players.Count == 0)
             {
                 throw new HelionException("No players found in world.");
