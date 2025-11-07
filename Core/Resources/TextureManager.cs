@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Helion.Graphics;
 using Helion.Graphics.Palettes;
@@ -24,7 +23,6 @@ public partial class TextureManager : ITickable
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     public const int NoTextureIndex = 0;
-    const string ShittyTextureName = "AASHITTY";
 
     private readonly ArchiveCollection m_archiveCollection;
     private readonly List<Texture> m_textures = [];
@@ -610,17 +608,20 @@ public partial class TextureManager : ITickable
 
     private void InitTextureArrays(List<TextureDefinition> textures, List<Entry> flatEntries, out int flatIndexStart)
     {
-        m_textures.Add(new Texture(Constants.NoTexture, ResourceNamespace.Textures, Constants.NoTextureIndex));
-        m_textureLookup[Constants.NoTexture] = m_textures[Constants.NoTextureIndex];
+        var noTexture = new Texture(Constants.NoTexture, ResourceNamespace.Textures, Constants.NoTextureIndex);
+        m_textures.Add(noTexture);
+        m_textureLookup[Constants.NoTexture] = noTexture;
 
-        // Need to force AASHITTY at NullCompatibilityTextureIndex (1)
-        m_textures.Add(GetShittyTexture(textures));
-        m_textureLookup[ShittyTextureName] = m_textures[Constants.NoTextureIndex];
+        // Need to force AASHITTY at NullCompatibilityTextureIndex (1). Mostly a unit test thing.
+        var sortedTextures = textures.OrderBy(x => x.Index);
+        var stinky = GetShittyTexture(sortedTextures);
+        m_textures.Add(stinky);
+        m_textureLookup[stinky.Name] = noTexture;
 
-        int index = Constants.NullCompatibilityTextureIndex + 1;
-        foreach (TextureDefinition texture in textures.OrderBy(x => x.Index))
+        var index = Constants.NullCompatibilityTextureIndex + 1;
+        foreach (var texture in sortedTextures)
         {
-            if (texture.Name.EqualsIgnoreCase(ShittyTextureName))
+            if (texture.Name.EqualsIgnoreCase(stinky.Name))
                 continue;
             m_textures.Add(new Texture(texture.Name, texture.Namespace, index));
             m_textureLookup[texture.Name] = m_textures[index];
@@ -633,8 +634,8 @@ public partial class TextureManager : ITickable
         index++;
 
         flatIndexStart = index;
-        string skyFlatName = m_archiveCollection.GameInfo.SkyFlatName;
-        foreach (Entry flat in flatEntries)
+        var skyFlatName = m_archiveCollection.GameInfo.SkyFlatName;
+        foreach (var flat in flatEntries)
         {
             m_textures.Add(new Texture(flat.Path.Name, ResourceNamespace.Flats, index));
             m_flatLookup[flat.Path.Name] = m_textures[index];
@@ -655,14 +656,15 @@ public partial class TextureManager : ITickable
         };
     }
 
-    private Texture GetShittyTexture(List<TextureDefinition> textures)
+    private Texture GetShittyTexture(IEnumerable<TextureDefinition> textures)
     {
         // Load AASHITTY for information purposes - FloorRaiseByTexture needs it to emulate vanilla bug
-        var texture = textures.FirstOrDefault(x => x.Name.EqualsIgnoreCase(ShittyTextureName));
         var ns = ResourceNamespace.Textures;
-        return new Texture(ShittyTextureName, ns, Constants.NullCompatibilityTextureIndex)
+        var texture = textures.FirstOrDefault();
+        var textureName = texture?.Name ?? "AASHITTY";
+        return new Texture(textureName, ns, Constants.NullCompatibilityTextureIndex)
         {
-            Image = texture == null ? Image.NullImage : m_archiveCollection.ImageRetriever.GetOnly(ShittyTextureName, ns)
+            Image = texture == null ? Image.NullImage : m_archiveCollection.ImageRetriever.GetOnly(textureName, ns)
         };
     }
 
