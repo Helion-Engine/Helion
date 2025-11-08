@@ -139,7 +139,7 @@ public static class DefinitionFlagApplier
         if (flags.Special != null)
             definition.Flags.SetSpecial(flags.Special.Value);
         if (flags.StepMissile != null)
-            definition.Flags.StepMissile = flags.StepMissile.Value;
+            definition.Flags.SetStepMissile(flags.StepMissile.Value);
         if (flags.Teleport != null)
             definition.Flags.SetTeleport(flags.Teleport.Value);
         if (flags.Touchy != null)

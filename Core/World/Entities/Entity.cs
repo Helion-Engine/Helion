@@ -867,14 +867,16 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         return other.Flags.Solid();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double GetMaxStepHeight()
     {
         if (Flags.Missile())
-            return Flags.StepMissile ? Properties.MaxStepHeight : 0.0;
+            return Flags.StepMissile() ? Properties.MaxStepHeight : 0.0;
 
         return Properties.MaxStepHeight;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ShouldApplyGravity()
     {
         if (Flags.NoGravity())
@@ -883,6 +885,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         return !OnGround;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ShouldApplyFriction()
     {
         if (Flags.NoFriction() || Flags.Missile() || Flags.Skullfly())
