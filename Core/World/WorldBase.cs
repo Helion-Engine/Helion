@@ -2548,11 +2548,11 @@ public abstract partial class WorldBase : IWorld
             HighlightAreas.Add(new HighlightArea(((Entity)m_findObjects[i]).Position, HighlightSize));
     }
 
-    public void FindKeyLines()
+    public void FindKeyLines(FindKeyLineOptions options)
     {
         m_findObjects.Clear();
         HighlightAreas.Clear();
-        MarkSpecials.FindKeyLines(this, m_findObjects);
+        MarkSpecials.FindKeyLines(this, m_findObjects, options);
         if (m_findObjects.Count == 0)
         {
             DisplayMessage("No keys found");

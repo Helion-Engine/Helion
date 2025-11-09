@@ -499,7 +499,7 @@ public struct EntityFlags
         Flags3 = 0;
     }
 
-    internal class EntityFlagsDebugView(EntityFlags flags)
+    internal sealed class EntityFlagsDebugView(EntityFlags flags)
     {
         private readonly EntityFlags m_flags = flags;
 

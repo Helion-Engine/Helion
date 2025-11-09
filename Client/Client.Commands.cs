@@ -294,7 +294,7 @@ public partial class Client
             HelionLog.Info($"No map markers to remove.");
     }
 
-    [ConsoleCommand("findkeys", "Finds the next key in the map.")]
+    [ConsoleCommand("findkeys", "Finds all keys in the automap.")]
     private void CommandFindKey(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer == null)
@@ -303,16 +303,25 @@ public partial class Client
         m_layerManager.WorldLayer.World.FindKeys();
     }
 
-    [ConsoleCommand("findkeylines", "Finds the next locked key line in the map.")]
+    [ConsoleCommand("findkeylines", "Marks all key lines the automap.")]
     private void CommandFindKeyLine(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer == null)
             return;
 
-        m_layerManager.WorldLayer.World.FindKeyLines();
+        m_layerManager.WorldLayer.World.FindKeyLines(FindKeyLineOptions.None);
     }
 
-    [ConsoleCommand("findexits", "Finds the next exit line/sector in the map.")]
+    [ConsoleCommand("findinactivekeylines", "Marks all the key lines in the automap that haven't been activated.")]
+    private void CommandFindInactiveKeyLine(ConsoleCommandEventArgs args)
+    {
+        if (m_layerManager.WorldLayer == null)
+            return;
+
+        m_layerManager.WorldLayer.World.FindKeyLines(FindKeyLineOptions.Inactive);
+    }
+
+    [ConsoleCommand("findexits", "Marks all exit lines/sectors in the automap.")]
     private void CommandFindExit(ConsoleCommandEventArgs args)
     {
         if (m_layerManager.WorldLayer == null)
