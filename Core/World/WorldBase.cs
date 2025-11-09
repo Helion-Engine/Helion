@@ -3071,6 +3071,10 @@ public abstract partial class WorldBase : IWorld
                 ClearConsole?.Invoke(this, EventArgs.Empty);
                 ExitLevel(cheat.CheatType == CheatType.ExitSecret ? ExitLevelArgs.NextSecretMap() : ExitLevelArgs.NextMap());
                 break;
+            case CheatType.EndGame:
+                ClearConsole?.Invoke(this, EventArgs.Empty);
+                ExitLevel(ExitLevelArgs.EndGame());
+                break;
         }
     }
 

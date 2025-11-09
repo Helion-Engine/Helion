@@ -76,12 +76,11 @@ public class SinglePlayerWorld : WorldBase
             }
             else
             {
-                var spawnLoaction = EntityManager.SpawnLocations.GetPlayerSpawnByArg0(playerSpawnArg0) ?? throw new HelionException($"No player starts with arg0 {playerSpawnArg0}");
-                Player = EntityManager.CreatePlayer(0, spawnLoaction);
+                var spawnLocation = EntityManager.SpawnLocations.GetPlayerSpawnByArg0(playerSpawnArg0) ?? throw new HelionException($"No player starts with arg0 {playerSpawnArg0}");
+                Player = EntityManager.CreatePlayer(0, spawnLocation);
             }
 
             // Make voodoo dolls
-            var voodooSpawns = EntityManager.SpawnLocations.GetPlayerSpawns(0);
             for (int i = spawns.Count - 2; i >= 0; i--)
             {
                 var player = EntityManager.CreatePlayer(0, spawns[i], CreatePlayerOptions.VooDooDoll);

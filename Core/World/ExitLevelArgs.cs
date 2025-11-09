@@ -1,6 +1,4 @@
-﻿using Helion.Resources.Definitions.MapInfo;
-
-namespace Helion.World;
+﻿namespace Helion.World;
 
 public struct ExitLevelArgs
 {

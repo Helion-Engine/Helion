@@ -53,6 +53,7 @@ public enum LevelChangeType
     SpecificLevel,
     Reset,
     ResetOrLoadLast,
+    // If LevelNumber == 0 then default to Next
     SpecificMap,
     EndGame
 }

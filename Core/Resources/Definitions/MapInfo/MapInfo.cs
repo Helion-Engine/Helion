@@ -181,7 +181,7 @@ public class MapInfo
                 isChangingClusters = false;
         }
 
-        return isChangingClusters || mapDef.EndGame != null || (nextMapResult.Options & FindMapResultOptions.EndGame) != 0;
+        return isChangingClusters || mapDef.IsEndGame || (nextMapResult.Options & FindMapResultOptions.EndGame) != 0;
     }
 
     private static void AddOrReplace<T>(List<T> items, T newItem)
@@ -230,5 +230,31 @@ public class MapInfo
 
         m_builtOrderedMaps = true;
         return m_orderedMaps;
+    }
+
+    public MapInfoDef? GetEpisodeEndGame(MapInfoDef currentMap)
+    {
+        var maps = GetOrderedMaps();
+        var episode = Episodes.Count > 0 ? Episodes[0] : null;
+
+        for (int i = 0; i < maps.Count; i++)
+        {
+            var map = maps[i];
+            var findEpisode = Episodes.FirstOrDefault(x => x.StartMap.EqualsIgnoreCase(map.MapName));
+            if (findEpisode != null)
+                episode = findEpisode;
+
+            if (currentMap == map)
+            {
+                for (int j = i; j < maps.Count; j++)
+                {
+                    map = maps[j];
+                    if (map.IsEndGame)
+                        return map;
+                }
+            }
+        }
+
+        return null;
     }
 }
