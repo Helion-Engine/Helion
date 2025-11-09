@@ -75,7 +75,7 @@ public class MapInfoTests
 
     private static MapInfoDefinition GetMapInfo(string mapInfoPath)
     {
-        var archive = new PK3(new EntryPath("Assets.pk3"), new IndexGenerator());
+        var archive = new PK3(new EntryPath("assets.pk3"), new IndexGenerator());
         var def = new MapInfoDefinition();
         var entry = archive.Entries.FirstOrDefault(x => x.Path.FullPath.EqualsIgnoreCase(mapInfoPath));
         entry.Should().NotBeNull();
