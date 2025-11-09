@@ -584,7 +584,7 @@ public sealed class PhysicsManager
         }
 
         m_entityManager.Destroy(entity);
-        m_entityManager.Create("REALGIBS", entity.Position);
+        m_entityManager.Create(WorldStatic.RealGibs, entity.Position, 0, 0, 0, default);
     }
 
     private static void PushUpBlockingEntity(Entity pusher)

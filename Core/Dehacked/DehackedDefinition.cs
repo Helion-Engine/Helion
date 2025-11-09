@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -23,24 +24,23 @@ public partial class DehackedDefinition
 
     public event EventHandler<string>? OnUnknownItem;
 
-    public readonly List<DehackedThing> Things = new();
-    public readonly List<DehackedFrame> Frames = new();
-    public readonly List<DehackedAmmo> Ammo = new();
-    public readonly List<DehackedWeapon> Weapons = new();
-    public readonly List<DehackedString> Strings = new();
-    public readonly List<DehackedPointer> Pointers = new();
-    public readonly List<DehackedSound> Sounds = new();
+    public readonly List<DehackedThing> Things = [];
+    public readonly List<DehackedFrame> Frames = [];
+    public readonly List<DehackedAmmo> Ammo = [];
+    public readonly List<DehackedWeapon> Weapons = [];
+    public readonly List<DehackedString> Strings = [];
+    public readonly List<DehackedPointer> Pointers = [];
+    public readonly List<DehackedSound> Sounds = [];
 
-    public readonly List<BexString> BexStrings = new();
-    public readonly List<BexPar> BexPars = new();
-    public readonly List<BexItem> BexSounds = new();
-    public readonly List<BexItem> BexSprites = new();
+    public readonly List<BexString> BexStrings = [];
+    public readonly List<BexPar> BexPars = [];
+    public readonly List<BexItem> BexSounds = [];
+    public readonly List<BexItem> BexSprites = [];
 
-    public readonly Dictionary<int, string> NewSoundLookup = new();
-    public readonly Dictionary<int, string> NewSpriteLookup = new();
-    public readonly LookupArray<EntityDefinition> NewThingLookup = new();
-    public readonly Dictionary<int, EntityFrame> NewEntityFrameLookup = new();
-    public readonly EntityDefinition?[] ActorDefinitions;
+    public readonly Dictionary<int, string> NewSoundLookup = [];
+    public readonly Dictionary<int, string> NewSpriteLookup = [];
+    public readonly LookupArray<EntityDefinition> DefinitionLookup = new();
+    public readonly Dictionary<int, EntityFrame> NewEntityFrameLookup = [];
 
     private readonly StringBuilder m_sb = new();
 
@@ -53,13 +53,17 @@ public partial class DehackedDefinition
 
     public DehackedDefinition()
     {
-        ActorDefinitions = new EntityDefinition[ActorNames.Length];
+        
     }
 
     public void LoadActorDefinitions(EntityDefinitionComposer composer)
     {
         for (int i = 0; i < ActorNames.Length; i++)
-            ActorDefinitions[i] = composer.GetByName(ActorNames[i]);
+        {
+            var def = composer.GetByName(ActorNames[i]);
+            if (def != null)
+                DefinitionLookup.Set(i, def);
+        }
     }
 
     public void Parse(string data)
@@ -139,46 +143,9 @@ public partial class DehackedDefinition
         return false;
     }
 
-    public bool GetEntityDefinitionName(int thingNumber, [NotNullWhen(true)] out string? name)
-    {
-        name = null;
-        int index = thingNumber - 1;
-        if (index < 0)
-            return false;
-
-        if (index < ActorNames.Length)
-        {
-            name = ActorNames[index];
-            return true;
-        }
-
-        if (NewThingLookup.TryGetValue(index, out EntityDefinition? def))
-        {
-            name = def.Name;
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool GetEntityDefinition(int thingNumber, [NotNullWhen(true)] out EntityDefinition? def)
-    {
-        def = null;
-        int index = thingNumber - 1;
-        if (index < 0)
-            return false;
-
-        if (index < ActorDefinitions.Length)
-        {
-            def = ActorDefinitions[index];
-            return def != null;
-        }
-
-        if (NewThingLookup.TryGetValue(index, out def))
-            return true;
-
-        return false;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool GetEntityDefinition(int thingNumber, [NotNullWhen(true)] out EntityDefinition? def) =>
+        DefinitionLookup.TryGetValue(thingNumber - 1, out def);    
 
     public bool TryGetId24PickupType(EntityDefinitionComposer composer, int pickupItemType, [NotNullWhen(true)] out EntityDefinition? definition)
     {

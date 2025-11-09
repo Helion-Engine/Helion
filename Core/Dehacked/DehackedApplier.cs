@@ -870,8 +870,8 @@ public class DehackedApplier
 
     private static void SetDroppedItem(int thingNumber, DehackedDefinition dehacked, EntityDefinition definition)
     {
-        if (dehacked.GetEntityDefinitionName(thingNumber, out var droppedName))
-            definition.Properties.DropItem = new(droppedName);
+        if (dehacked.GetEntityDefinition(thingNumber, out var def))
+            definition.Properties.DropItem = new(def.Name);
     }
 
     // DSDA Doom doesn't count zero
@@ -951,14 +951,16 @@ public class DehackedApplier
 
     private string GetNewActorName(int index, EntityDefinitionComposer composer, DehackedThing thing)
     {
-        if (m_dehacked.NewThingLookup.TryGetValue(index, out EntityDefinition? def))
+        if (m_dehacked.DefinitionLookup.TryGetValue(index, out EntityDefinition? def))
             return def.Name;
 
-        string newName = GetDehackedActorName(index);
-        EntityDefinition definition = new(composer.GetNextId(), newName, 0, []);
-        definition.DehackedName = thing.Name;
+        var newName = GetDehackedActorName(index);
+        var definition = new EntityDefinition(composer.GetNextId(), newName, 0, [])
+        {
+            DehackedName = thing.Name
+        };
         composer.Add(definition);
-        m_dehacked.NewThingLookup.Set(index, definition);
+        m_dehacked.DefinitionLookup.Set(index, definition);
         return newName;
     }
 

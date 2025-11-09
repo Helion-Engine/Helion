@@ -61,10 +61,17 @@ public static class WorldStatic
     public static EntityDefinition FatShot = EntityDefinition.Default;
     public static EntityDefinition CacodemonBall = EntityDefinition.Default;
     public static EntityDefinition RevenantTracer = EntityDefinition.Default;
+    public static EntityDefinition RevenantTracerSmoke = EntityDefinition.Default;
     public static EntityDefinition BaronBall = EntityDefinition.Default;
     public static EntityDefinition SpawnShot = EntityDefinition.Default;
     public static EntityDefinition BFGBall = EntityDefinition.Default;
+    public static EntityDefinition BFGExtra = EntityDefinition.Default;
     public static EntityDefinition PlasmaBall = EntityDefinition.Default;
+    public static EntityDefinition BulletPuff = EntityDefinition.Default;
+    public static EntityDefinition ArchvileFire = EntityDefinition.Default;
+    public static EntityDefinition LostSoul = EntityDefinition.Default;
+    public static EntityDefinition BossRocket = EntityDefinition.Default;
+    public static EntityDefinition RealGibs = EntityDefinition.Default;
 
     public static EntityDefinition WeaponBfg = EntityDefinition.Default;
 }
