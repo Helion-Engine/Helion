@@ -10,4 +10,5 @@ public enum LineDataTypes
     Automap = 4,
     Args = 8,
     Alpha = 16,
+    EverActivated = 32
 }

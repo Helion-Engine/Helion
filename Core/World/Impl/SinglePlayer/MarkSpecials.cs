@@ -25,9 +25,11 @@ public class MarkSpecials
     private static readonly Vec3F[] TracerColors =  [new(1f, 0.2f, 0.2f), new(0.2f, 1f, 0.2f), new(0.2f, 0.2f, 1f), new(0.8f, 0.2f, 0.8f), new(0.8f, 0.8f, 0.8f)];
     private static readonly Color[] AutomapColors = [Color.Red, Color.Green, Color.Blue, Color.Purple, Color.Yellow];
 
-    public readonly DynamicArray<Sector> MarkedSectors = new();
-    public readonly DynamicArray<Line> MarkedLines = new();
-    private readonly DynamicArray<int> m_playerTracers = new();
+    private static readonly List<Line> ActivatedLines = [];
+
+    public readonly DynamicArray<Sector> MarkedSectors = [];
+    public readonly DynamicArray<Line> MarkedLines = [];
+    private readonly DynamicArray<int> m_playerTracers = [];
     private readonly Dictionary<int, List<Line>> m_tagToLines = [];
     private readonly HashSet<int> m_searchedSectors = [];
     private bool m_mappedLineTags;
@@ -153,7 +155,7 @@ public class MarkSpecials
         }
     }
 
-    public static void FindKeyLines(IWorld world, List<object> lines)
+    public static void FindKeyLines(IWorld world, List<object> lines, FindKeyLineOptions options)
     {
         for (int i = 0; i < world.Lines.Count; i++)
         {
@@ -161,9 +163,37 @@ public class MarkSpecials
             if (line.Special == null)
                 continue;
 
-            if (LockSpecialUtil.IsLockSpecial(line, out _))
-                lines.Add(line);
+            if (!LockSpecialUtil.IsLockSpecial(line, out _))
+                continue;
+
+            if ((options & FindKeyLineOptions.Inactive) != 0)
+            {
+                if ((line.DataChanges & (LineDataTypes.Activated | LineDataTypes.EverActivated)) != 0)
+                {
+                    ActivatedLines.Add(line);
+                    continue;
+                }
+
+                // Ignore lines that are part of the same activated sector but were never activated
+                if (line.Back != null && FindSectorLineBackSide(ActivatedLines, line.Back.Sector.Id))
+                    continue;
+            }
+
+            lines.Add(line);
         }
+
+        ActivatedLines.Clear();
+    }
+
+    private static bool FindSectorLineBackSide(List<Line> lines, int sectorId)
+    {
+        foreach (Line addedLine in lines)
+        {
+            if (addedLine.Back != null && addedLine.Back.Sector.Id == sectorId)
+                return true;
+        }
+
+        return false;
     }
 
     public static void FindExits(IWorld world, List<object> items)
