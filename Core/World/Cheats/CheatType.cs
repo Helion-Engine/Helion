@@ -31,5 +31,6 @@ public enum CheatType
     Kill,
     KillAllMonsters,
     Exit,
-    ExitSecret
+    ExitSecret,
+    EndGame
 }

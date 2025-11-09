@@ -15,7 +15,7 @@ public class CheatManager
     {
         new LevelCheat(string.Empty, "idclev", CheatType.ChangeLevel),
         new LevelCheat("$STSTR_MUS", "idmus", CheatType.ChangeMusic),
-        new MultiCodeCheat("$STSTR_NCON", "$STSTR_NCOFF", new string[] { "idclip", "idspispopd" }, "noclip", CheatType.NoClip),
+        new MultiCodeCheat("$STSTR_NCON", "$STSTR_NCOFF", ["idclip", "idspispopd"], "noclip", CheatType.NoClip),
         new ExactMatchCheat(string.Empty, string.Empty, "idmypos", "showposition", CheatType.ShowPosition),
         new AutoMapCheat(string.Empty, "iddt", CheatType.AutomapMode),
         new ExactMatchCheat("$STSTR_DQDON", "$STSTR_DQDOFF", "iddqd", "god", CheatType.God),
@@ -38,10 +38,11 @@ public class CheatManager
 
         new ExactMatchCheat("Exit", string.Empty, "exitlevel", "exitlevel", CheatType.Exit, canToggle: false),
         new ExactMatchCheat("Exit Secret", string.Empty, "exitlevelsecret", "exitlevelsecret", CheatType.ExitSecret, canToggle: false),
+        new ExactMatchCheat("End Game", string.Empty, "endgame", "endgame", CheatType.EndGame, canToggle: false),
     };
 
     private readonly Dictionary<CheatType, ICheat> m_cheatLookup;
-    private SpanString m_currentCheat = new(128);
+    private readonly SpanString m_currentCheat = new(128);
 
     public event EventHandler<CheatEventArgs>? CheatActivationChanged;
 

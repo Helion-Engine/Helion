@@ -199,6 +199,8 @@ public sealed class Line
             DataChanges |= LineDataTypes.Activated;
         else
             DataChanges &= ~LineDataTypes.Activated;
+
+        DataChanges |= LineDataTypes.EverActivated;
     }
 
     public void SetAlpha(float alpha)

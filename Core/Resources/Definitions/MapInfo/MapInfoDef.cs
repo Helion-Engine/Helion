@@ -37,6 +37,7 @@ public class MapInfoDef : ICloneable
     public string Author { get; set; } = string.Empty;
     public List<BossAction> BossActions { get; set; } = [];
     public ClusterDef? ClusterDef { get; set; }
+    public bool IsEndGame => EndGame != null || MapInfo.EndGameMaps.Contains(Next);
 
     public bool HasOption(MapOptions option) => m_levelOptions[(int)option];
     public void SetOption(MapOptions option, bool set)

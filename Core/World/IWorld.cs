@@ -183,7 +183,7 @@ public interface IWorld : IDisposable
     void EntityTeleported(Entity entity);
     bool PlayLevelMusic(string name, byte[]? data, MusicFlags flags = MusicFlags.Loop);
     void FindKeys();
-    void FindKeyLines();
+    void FindKeyLines(FindKeyLineOptions options);
     void FindExits();
     bool SetSkillLevel(SkillLevel skill);
     Subsector ToSubsector(double x, double y);

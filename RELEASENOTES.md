@@ -21,6 +21,8 @@
 - Improve hud autoscale.
 - Support mark.add and mark.remove commands for chasecam.
 - Update automap markers to be more visible and use the same render method as findkeylines/findkeys/findexits commands.
+- Add findinactivekeylines command.
+- Add endgame command.
 
 ## Bug Fixes:
 - Fix sprite frames to correctly calculate when lowercase.
@@ -57,3 +59,4 @@
 - Fix monsters not targeting player from sound target after killing another monster.
 - Fix A_Stop.
 - Fix RIP flag doing more damage when speed forces object into multiple smaller moves in one tick.
+- Fix A_CheckAmmo to not be inclusive.
