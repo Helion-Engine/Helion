@@ -1094,7 +1094,7 @@ public partial class Client
                     break;
 
                 case LevelChangeType.EndGame:
-                    Intermission(world, () => GetLastEndGame(world));
+                    Intermission(world, () => GetEndGame(world));
                     break;
             }
         }
@@ -1104,23 +1104,14 @@ public partial class Client
         }
     }
 
-    private static FindMapResult GetLastEndGame(IWorld world)
+    private static FindMapResult GetEndGame(IWorld world)
     {
         var mapInfo = world.ArchiveCollection.MapInfo.MapInfo;
-        var maps = mapInfo.Maps.OrderByDescending(x => x.Cluster);
-        foreach (var map in maps)
+        var map = mapInfo.GetEpisodeEndGame(world.MapInfo);
+        if (map != null)
         {
-            if (map.EndGame != null)
-            {
-                SetEndGame(world, map.Next, map);
-                return FindMapResult.CreateEndGame(map.MapName);
-            }
-
-            if (MapInfo.EndGameMaps.Contains(map.Next))
-            {
-                SetEndGame(world, map.Next, map);
-                return FindMapResult.CreateEndGame(map.Next);
-            }
+            SetEndGame(world, map.Next, map);
+            return FindMapResult.CreateEndGame(map.MapName);
         }
 
         return FindMapResult.CreateError("No EndGame");
@@ -1293,10 +1284,10 @@ public partial class Client
         QueueLoadMap(mapInfoDef, null, null, e);
     }
 
-    private FindMapResult GetNextLevel(MapInfoDef mapDef) => 
+    private FindMapResult GetNextLevel(MapInfoDef mapDef) =>
         m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextMap(mapDef);
 
-    private FindMapResult GetNextSecretLevel(MapInfoDef mapDef) => 
+    private FindMapResult GetNextSecretLevel(MapInfoDef mapDef) =>
         m_archiveCollection.Definitions.MapInfoDefinition.MapInfo.GetNextSecretMap(mapDef);
 
     private void ShowConsole()
