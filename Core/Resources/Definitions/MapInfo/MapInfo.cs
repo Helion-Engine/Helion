@@ -235,15 +235,9 @@ public class MapInfo
     public MapInfoDef? GetEpisodeEndGame(MapInfoDef currentMap)
     {
         var maps = GetOrderedMaps();
-        var episode = Episodes.Count > 0 ? Episodes[0] : null;
-
         for (int i = 0; i < maps.Count; i++)
         {
             var map = maps[i];
-            var findEpisode = Episodes.FirstOrDefault(x => x.StartMap.EqualsIgnoreCase(map.MapName));
-            if (findEpisode != null)
-                episode = findEpisode;
-
             if (currentMap == map)
             {
                 for (int j = i; j < maps.Count; j++)
