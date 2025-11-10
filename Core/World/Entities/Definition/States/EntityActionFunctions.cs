@@ -3465,10 +3465,8 @@ public static class EntityActionFunctions
         if (offsetXY != 0)
         {
             var offset = Vec2D.UnitCircle(entity.AngleRadians - MathHelper.HalfPi);
-            offset.X *= offsetXY;
-            offset.Y *= offsetXY;
-            createdEntity.Position.X = offset.X * offsetXY;
-            createdEntity.Position.Y = offset.Y * offsetXY;
+            createdEntity.Position.X += offset.X * offsetXY;
+            createdEntity.Position.Y += offset.Y * offsetXY;
         }
 
         createdEntity.SetTracer(autoAimEntity);
