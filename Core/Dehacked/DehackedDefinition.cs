@@ -18,6 +18,12 @@ namespace Helion.Dehacked;
 
 public partial class DehackedDefinition
 {
+    struct DehackedProp
+    {
+        public string Prop;
+        public string Value;
+    }
+
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private static readonly Regex PointerRegex = new(@"^\(\S+ (\d+)\)");
 
@@ -227,19 +233,22 @@ public partial class DehackedDefinition
         PatchFormat = 0;
         while (!parser.IsDone() && (DoomVersion == 0 || PatchFormat == 0))
         {
-            string item = parser.PeekLine();
-            if (item.StartsWith('#'))
+            var line = parser.PeekLine();
+            if (line.StartsWith('#'))
             {
                 parser.ConsumeLine();
                 continue;
             }
 
-            if (item.StartsWith(DoomVersionName, StringComparison.OrdinalIgnoreCase))
-                DoomVersion = GetIntProperty(parser, DoomVersionName);
-            else if (item.StartsWith(PatchFormatName, StringComparison.OrdinalIgnoreCase))
-                PatchFormat = GetIntProperty(parser, PatchFormatName);
-            else
-                parser.ConsumeLine();
+            if (GetProperty(line, out var dehackedProp))
+            {
+                if (dehackedProp.Prop.EqualsIgnoreCase(DoomVersionName))
+                    DoomVersion = GetIntProperty(dehackedProp);
+                else if (dehackedProp.Prop.EqualsIgnoreCase(PatchFormatName))
+                    PatchFormat = GetIntProperty(dehackedProp);
+            }
+            
+            parser.ConsumeLine();
         }
 
         // No header, reset to normal
@@ -247,12 +256,6 @@ public partial class DehackedDefinition
             return CreateDehackedParser(data);
 
         return parser;
-    }
-
-    struct DehackedProp
-    {
-        public string Prop;
-        public string Value;
     }
 
     private void ParseThing(SimpleParser parser)
@@ -272,100 +275,102 @@ public partial class DehackedDefinition
             {
                 var prop = dehackedProp.Prop;
                 if (prop.EqualsIgnoreCase(IDNumber))
-                    thing.ID = GetIntProperty(parser, IDNumber);
+                    thing.ID = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(InitFrame))
-                    thing.InitFrame = GetIntProperty(parser, InitFrame);
+                    thing.InitFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Hitpoints))
-                    thing.Hitpoints = GetIntProperty(parser, Hitpoints);
+                    thing.Hitpoints = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(FirstMovingFrame))
-                    thing.FirstMovingFrame = GetIntProperty(parser, FirstMovingFrame);
+                    thing.FirstMovingFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(AlertSound))
-                    thing.AlertSound = GetIntProperty(parser, AlertSound);
+                    thing.AlertSound = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(ReactionTime))
-                    thing.ReactionTime = GetIntProperty(parser, ReactionTime);
+                    thing.ReactionTime = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(AttackSound))
-                    thing.AttackSound = GetIntProperty(parser, AttackSound);
+                    thing.AttackSound = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(InjuryFrame))
-                    thing.InjuryFrame = GetIntProperty(parser, InjuryFrame);
+                    thing.InjuryFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(PainChance))
-                    thing.PainChance = GetIntProperty(parser, PainChance);
+                    thing.PainChance = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(PainSound))
-                    thing.PainSound = GetIntProperty(parser, PainSound);
+                    thing.PainSound = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(CloseAttackFrame))
-                    thing.CloseAttackFrame = GetIntProperty(parser, CloseAttackFrame);
+                    thing.CloseAttackFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(FarAttackFrame))
-                    thing.FarAttackFrame = GetIntProperty(parser, FarAttackFrame);
+                    thing.FarAttackFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(DeathFrame))
-                    thing.DeathFrame = GetIntProperty(parser, DeathFrame);
+                    thing.DeathFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(ExplodingFrame))
-                    thing.ExplodingFrame = GetIntProperty(parser, ExplodingFrame);
+                    thing.ExplodingFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(DeathSound))
-                    thing.DeathSound = GetIntProperty(parser, DeathSound);
+                    thing.DeathSound = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Speed))
-                    thing.Speed = GetIntProperty(parser, Speed);
+                    thing.Speed = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Width))
-                    thing.Width = GetIntProperty(parser, Width);
+                    thing.Width = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Height))
-                    thing.Height = GetIntProperty(parser, Height);
+                    thing.Height = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Mass))
-                    thing.Mass = GetIntProperty(parser, Mass);
+                    thing.Mass = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(MisileDamage))
-                    thing.MisileDamage = GetIntProperty(parser, MisileDamage);
+                    thing.MisileDamage = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(ActionSound))
-                    thing.ActionSound = GetIntProperty(parser, ActionSound);
+                    thing.ActionSound = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(RespawnFrame))
-                    thing.RespawnFrame = GetIntProperty(parser, RespawnFrame);
+                    thing.RespawnFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(DroppedItem))
-                    thing.DroppedItem = GetIntProperty(parser, DroppedItem);
+                    thing.DroppedItem = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(GibHealth))
-                    thing.GibHealth = GetIntProperty(parser, GibHealth);
+                    thing.GibHealth = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Bits))
                     thing.Bits = GetBits(dehackedProp, ThingPropertyStrings);
                 else if (prop.EqualsIgnoreCase(Mbf21Bits))
                     thing.Mbf21Bits = GetBits(dehackedProp,ThingPropertyStringsMbf21);
                 else if (prop.EqualsIgnoreCase(InfightingGroup))
-                    thing.InfightingGroup = GetIntProperty(parser, InfightingGroup);
+                    thing.InfightingGroup = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(ProjectileGroup))
-                    thing.ProjectileGroup = GetIntProperty(parser, ProjectileGroup);
+                    thing.ProjectileGroup = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(SplashGroup))
-                    thing.SplashGroup = GetIntProperty(parser, SplashGroup);
+                    thing.SplashGroup = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(RipSound))
-                    thing.RipSound = GetIntProperty(parser, RipSound);
+                    thing.RipSound = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(FastSpeed))
-                    thing.FastSpeed = GetIntProperty(parser, FastSpeed);
+                    thing.FastSpeed = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(MeleeRange))
-                    thing.MeleeRange = GetIntProperty(parser, MeleeRange);
+                    thing.MeleeRange = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Id24Bits))
                     thing.Id24Bits = GetBits(dehackedProp,ThingPropertyStringsId24);
                 else if (prop.EqualsIgnoreCase(MinRespawnTicks))
-                    thing.MinRespawnTicks = GetIntProperty(parser, MinRespawnTicks);
+                    thing.MinRespawnTicks = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(RespawnDice))
-                    thing.RespawnDice = GetIntProperty(parser, RespawnDice);
+                    thing.RespawnDice = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(PickupAmmoType))
-                    thing.PickupAmmoType = GetIntProperty(parser, PickupAmmoType);
+                    thing.PickupAmmoType = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(PickupAmmoCategory))
-                    thing.PickupAmmoCategory = (Id24AmmoCategory)GetIntProperty(parser, PickupAmmoCategory);
+                    thing.PickupAmmoCategory = (Id24AmmoCategory)GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(PickupWeaponType))
-                    thing.PickupWeaponType = GetIntProperty(parser, PickupWeaponType);
+                    thing.PickupWeaponType = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(PickupItemType))
-                    thing.PickupItemType = (Id24PickupType?)GetIntProperty(parser, PickupItemType);
+                    thing.PickupItemType = (Id24PickupType?)GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(PickupBonusCount))
-                    thing.PickupBonusCount = GetIntProperty(parser, PickupBonusCount);
+                    thing.PickupBonusCount = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(PickupSound))
-                    thing.PickupSound = GetIntProperty(parser, PickupSound);
+                    thing.PickupSound = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(PickupMessage))
-                    thing.PickupMessage = GetStringProperty(parser, PickupMessage);
+                    thing.PickupMessage = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(TranslationLump))
-                    thing.TranslationLump = GetStringProperty(parser, TranslationLump);
+                    thing.TranslationLump = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(SelfDamageFactor))
-                    thing.SelfDamageFactor = MathHelper.FromFixed(GetIntProperty(parser, SelfDamageFactor));
+                    thing.SelfDamageFactor = MathHelper.FromFixed(GetIntProperty(dehackedProp));
                 else if (prop.EqualsIgnoreCase(BloodColor))
                 {
-                    thing.BloodColor = GetIntProperty(parser, BloodColor);
+                    thing.BloodColor = GetIntProperty(dehackedProp);
                     BloodColors.Add((PaletteColor)thing.BloodColor);
                 }
+                else if (!IgnoreLine(dehackedProp))
+                    UnknownWarning(parser, "thing type");
             }
-            else if (!IgnoreLine(line))
+            else
                 UnknownWarning(parser, "thing type");
 
             ConsumeLine(parser, lineNumber);
@@ -374,7 +379,7 @@ public partial class DehackedDefinition
         Things.Add(thing);
     }
 
-    private bool GetProperty(string line, out DehackedProp prop)
+    private static bool GetProperty(string line, out DehackedProp prop)
     {
         var index = line.IndexOf('=');
         if (index == -1)
@@ -391,8 +396,8 @@ public partial class DehackedDefinition
         return true;
     }
 
-    private static bool IgnoreLine(string line) =>
-        line.StartsWithIgnoreCase(Plural) || line.StartsWithIgnoreCase(Name1) || line.StartsWithIgnoreCase(RetroBits);
+    private static bool IgnoreLine(DehackedProp prop) =>
+        prop.Prop.EqualsIgnoreCase(Plural) || prop.Prop.EqualsIgnoreCase(Name1) || prop.Prop.EqualsIgnoreCase(RetroBits) || prop.Prop.EqualsIgnoreCase(Bits2) || prop.Prop.EqualsIgnoreCase(Bits3);
 
     private void ParseFrame(SimpleParser parser)
     {
@@ -411,21 +416,23 @@ public partial class DehackedDefinition
             {
                 var prop = dehackedProp.Prop;
                 if (prop.EqualsIgnoreCase(SpriteNum))
-                    frame.SpriteNumber = GetIntProperty(parser, SpriteNum);
+                    frame.SpriteNumber = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(SpriteSubNum))
-                    frame.SpriteSubNumber = GetIntProperty(parser, SpriteSubNum);
+                    frame.SpriteSubNumber = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Duration))
-                    frame.Duration = GetIntProperty(parser, Duration);
+                    frame.Duration = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(NextFrame))
-                    frame.NextFrame = GetIntProperty(parser, NextFrame);
+                    frame.NextFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Unknown1))
-                    frame.Unknown1 = GetIntProperty(parser, Unknown1);
+                    frame.Unknown1 = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Unknown2))
-                    frame.Unknown2 = GetIntProperty(parser, Unknown2);
+                    frame.Unknown2 = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Mbf21Bits))
                     frame.Mbf21Bits = GetBits(dehackedProp, FramePropertyStringsMbf21);
                 else if (IsArgs(dehackedProp))
                     SetFrameArgs(parser, line, frame);
+                else
+                    UnknownWarning(parser, "frame type");
             }
             else
                 UnknownWarning(parser, "frame type");
@@ -456,7 +463,7 @@ public partial class DehackedDefinition
 
         parser.ConsumeString();
         parser.Consume('=');
-        int value = ConsumeDehackedInteger(parser);
+        int value = ConsumeDehackedInteger(parser.ConsumeString());
 
         switch (index)
         {
@@ -513,41 +520,41 @@ public partial class DehackedDefinition
             {
                 var prop = dehackedProp.Prop;
                 if (prop.EqualsIgnoreCase(MaxAmmo))
-                    ammo.MaxAmmo = GetIntProperty(parser, MaxAmmo);
+                    ammo.MaxAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(PerAmmo))
-                    ammo.PerAmmo = GetIntProperty(parser, PerAmmo);
+                    ammo.PerAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(InitialAmmo))
-                    ammo.InitialAmmo = GetIntProperty(parser, InitialAmmo);
+                    ammo.InitialAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(MaxUpgradedAmmo))
-                    ammo.MaxUpgradedAmmo = GetIntProperty(parser, MaxUpgradedAmmo);
+                    ammo.MaxUpgradedAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(BoxAmmo))
-                    ammo.BoxAmmo = GetIntProperty(parser, BoxAmmo);
+                    ammo.BoxAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(BackpackAmmo))
-                    ammo.BackpackAmmo = GetIntProperty(parser, BackpackAmmo);
+                    ammo.BackpackAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(WeaponAmmo))
-                    ammo.WeaponAmmo = GetIntProperty(parser, WeaponAmmo);
+                    ammo.WeaponAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(DroppedAmmo))
-                    ammo.DroppedAmmo = GetIntProperty(parser, DroppedAmmo);
+                    ammo.DroppedAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(DroppedBoxAmmo))
-                    ammo.DroppedBoxAmmo = GetIntProperty(parser, DroppedBoxAmmo);
-                else if (prop.EqualsIgnoreCase(DroppedBoxAmmo))
-                    ammo.DroppedBoxAmmo = GetIntProperty(parser, DroppedBoxAmmo);
+                    ammo.DroppedBoxAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(DroppedBackpackAmmo))
-                    ammo.DroppedBackpackAmmo = GetIntProperty(parser, DroppedBackpackAmmo);
+                    ammo.DroppedBackpackAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(DroppedWeaponAmmo))
-                    ammo.DroppedWeaponAmmo = GetIntProperty(parser, DroppedWeaponAmmo);
+                    ammo.DroppedWeaponAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(DeathmatchWeaponAmmo))
-                    ammo.DeathmatchWeaponAmmo = GetIntProperty(parser, DeathmatchWeaponAmmo);
+                    ammo.DeathmatchWeaponAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Skill1Multiplier))
-                    ammo.Skill1Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill1Multiplier));
+                    ammo.Skill1Multiplier = MathHelper.FromFixed(GetIntProperty(dehackedProp));
                 else if (prop.EqualsIgnoreCase(Skill2Multiplier))
-                    ammo.Skill2Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill2Multiplier));
+                    ammo.Skill2Multiplier = MathHelper.FromFixed(GetIntProperty(dehackedProp));
                 else if (prop.EqualsIgnoreCase(Skill3Multiplier))
-                    ammo.Skill3Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill3Multiplier));
+                    ammo.Skill3Multiplier = MathHelper.FromFixed(GetIntProperty(dehackedProp));
                 else if (prop.EqualsIgnoreCase(Skill4Multiplier))
-                    ammo.Skill4Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill4Multiplier));
+                    ammo.Skill4Multiplier = MathHelper.FromFixed(GetIntProperty(dehackedProp));
                 else if (prop.EqualsIgnoreCase(Skill5Multiplier))
-                    ammo.Skill5Multiplier = MathHelper.FromFixed(GetIntProperty(parser, Skill5Multiplier));
+                    ammo.Skill5Multiplier = MathHelper.FromFixed(GetIntProperty(dehackedProp));
+                else
+                    UnknownWarning(parser, "ammo type");
             }
             else
                 UnknownWarning(parser, "ammo type");
@@ -572,45 +579,47 @@ public partial class DehackedDefinition
             {
                 var prop = dehackedProp.Prop;
                 if (prop.EqualsIgnoreCase(DeselectFrame))
-                    weapon.DeselectFrame = GetIntProperty(parser, DeselectFrame);
+                    weapon.DeselectFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(SelectFrame))
-                    weapon.SelectFrame = GetIntProperty(parser, SelectFrame);
+                    weapon.SelectFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(AmmoType))
-                    weapon.AmmoType = GetIntProperty(parser, AmmoType);
+                    weapon.AmmoType = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(BobbingFrame))
-                    weapon.BobbingFrame = GetIntProperty(parser, BobbingFrame);
+                    weapon.BobbingFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(ShootingFrame))
-                    weapon.ShootingFrame = GetIntProperty(parser, ShootingFrame);
+                    weapon.ShootingFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(FiringFrame))
-                    weapon.FiringFrame = GetIntProperty(parser, FiringFrame);
+                    weapon.FiringFrame = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(AmmoPerShot))
-                    weapon.AmmoPerShot = GetIntProperty(parser, AmmoPerShot);
+                    weapon.AmmoPerShot = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(AmmoUse))
-                    weapon.AmmoPerShot = GetIntProperty(parser, AmmoUse);
+                    weapon.AmmoPerShot = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(MinAmmo))
-                    weapon.MinAmmo = GetIntProperty(parser, MinAmmo);
+                    weapon.MinAmmo = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(Mbf21Bits))
                     weapon.Mbf21Bits = GetBits(dehackedProp, WeaponPropertyStringsMbf21);
                 else if (prop.EqualsIgnoreCase(WeaponSlotPriority))
-                    weapon.SlotPriority = GetIntProperty(parser, WeaponSlotPriority);
+                    weapon.SlotPriority = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(WeaponSlot))
-                    weapon.Slot = GetIntProperty(parser, WeaponSlot);
+                    weapon.Slot = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(WeaponSwitchPriority))
-                    weapon.SwitchPriority = GetIntProperty(parser, WeaponSwitchPriority);
+                    weapon.SwitchPriority = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(InitialOwned))
-                    weapon.InitialOwned = GetIntProperty(parser, InitialOwned) != 0;
+                    weapon.InitialOwned = GetIntProperty(dehackedProp) != 0;
                 else if (prop.EqualsIgnoreCase(InitialRaised))
-                    weapon.InitialRaised = GetIntProperty(parser, InitialRaised) != 0;
+                    weapon.InitialRaised = GetIntProperty(dehackedProp) != 0;
                 else if (prop.EqualsIgnoreCase(CarouselIcon))
-                    weapon.CarouselIcon = GetStringProperty(parser, CarouselIcon);
+                    weapon.CarouselIcon = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(AllowSwitchWithOwnedWeapon))
-                    weapon.AllowSwitchWithOwnedWeapon = GetIntProperty(parser, AllowSwitchWithOwnedWeapon);
+                    weapon.AllowSwitchWithOwnedWeapon = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(NoSwitchWithOwnedWeapon))
-                    weapon.NoSwitchWithOwnedWeapon = GetIntProperty(parser, NoSwitchWithOwnedWeapon);
+                    weapon.NoSwitchWithOwnedWeapon = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(AllowSwitchWithOwnedItem))
-                    weapon.AllowSwitchWithOwnedItem = GetIntProperty(parser, AllowSwitchWithOwnedItem);
+                    weapon.AllowSwitchWithOwnedItem = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(NoSwitchWithOwnedItem))
-                    weapon.NoSwitchWithOwnedItem = GetIntProperty(parser, NoSwitchWithOwnedItem);
+                    weapon.NoSwitchWithOwnedItem = GetIntProperty(dehackedProp);
+                else
+                    UnknownWarning(parser, "weapon type");
             }
             else
                 UnknownWarning(parser, "weapon type");
@@ -635,39 +644,41 @@ public partial class DehackedDefinition
             {
                 var prop = dehackedProp.Prop;
                 if (prop.EqualsIgnoreCase(ChangeMusic))
-                    Cheat.ChangeMusic = GetStringProperty(parser, ChangeMusic);
+                    Cheat.ChangeMusic = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(Chainsaw))
-                    Cheat.Chainsaw = GetStringProperty(parser, Chainsaw);
+                    Cheat.Chainsaw = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(God))
-                    Cheat.God = GetStringProperty(parser, God);
+                    Cheat.God = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(AmmoAndKeys))
-                    Cheat.AmmoAndKeys = GetStringProperty(parser, AmmoAndKeys);
+                    Cheat.AmmoAndKeys = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(AmmoCheat))
-                    Cheat.Ammo = GetStringProperty(parser, AmmoCheat);
+                    Cheat.Ammo = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(NoClip1))
-                    Cheat.NoClip1 = GetStringProperty(parser, NoClip1);
+                    Cheat.NoClip1 = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(NoClip2))
-                    Cheat.NoClip2 = GetStringProperty(parser, NoClip2);
+                    Cheat.NoClip2 = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(Invincibility))
-                    Cheat.Invincibility = GetStringProperty(parser, Invincibility);
+                    Cheat.Invincibility = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(Invisibility))
-                    Cheat.Invisibility = GetStringProperty(parser, Invisibility);
+                    Cheat.Invisibility = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(RadSuit))
-                    Cheat.RadSuit = GetStringProperty(parser, RadSuit);
+                    Cheat.RadSuit = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(AutoMap))
-                    Cheat.AutoMap = GetStringProperty(parser, AutoMap);
+                    Cheat.AutoMap = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(LiteAmp))
-                    Cheat.LiteAmp = GetStringProperty(parser, LiteAmp);
+                    Cheat.LiteAmp = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(Behold))
-                    Cheat.Behold = GetStringProperty(parser, Behold);
+                    Cheat.Behold = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(LevelWarp))
-                    Cheat.LevelWarp = GetStringProperty(parser, LevelWarp);
+                    Cheat.LevelWarp = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(MapCheat))
-                    Cheat.LevelWarp = GetStringProperty(parser, MapCheat);
+                    Cheat.LevelWarp = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(PlayerPos))
-                    Cheat.PlayerPos = GetStringProperty(parser, PlayerPos);
+                    Cheat.PlayerPos = dehackedProp.Value;
                 else if (prop.EqualsIgnoreCase(Berserk))
-                    Cheat.Berserk = GetStringProperty(parser, Berserk);
+                    Cheat.Berserk = dehackedProp.Value;
+                else
+                    UnknownWarning(parser, "cheat type");
             }
             else
                 UnknownWarning(parser, "cheat type");
@@ -730,11 +741,14 @@ public partial class DehackedDefinition
 
         while (!IsBlockComplete(parser))
         {
-            string line = parser.PeekLine();
-            if (line.StartsWith("Codep Frame", StringComparison.OrdinalIgnoreCase))
-                pointer.CodePointerFrame = GetIntProperty(parser, DeselectFrame);
-            else
-                UnknownWarning(parser, "pointer type");
+            var line = parser.PeekLine();
+            if (GetProperty(line, out var dehackedProp))
+            {
+                if (dehackedProp.Prop.EqualsIgnoreCase("Codep Frame"))
+                    pointer.CodePointerFrame = GetIntProperty(dehackedProp);
+                else
+                    UnknownWarning(parser, "pointer type");
+            }
 
             if (!parser.IsDone())
                 parser.ConsumeLine();
@@ -759,39 +773,41 @@ public partial class DehackedDefinition
             {
                 var prop = dehackedProp.Prop;
                 if (prop.EqualsIgnoreCase(InitialHealth))
-                    Misc.InitialHealth = GetIntProperty(parser, InitialHealth);
+                    Misc.InitialHealth = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(InitialBullets))
-                    Misc.InitialBullets = GetIntProperty(parser, InitialBullets);
+                    Misc.InitialBullets = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(MaxHealth))
-                    Misc.MaxHealth = GetIntProperty(parser, MaxHealth);
+                    Misc.MaxHealth = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(MaxArmor))
-                    Misc.MaxArmor = GetIntProperty(parser, MaxArmor);
+                    Misc.MaxArmor = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(GreenArmorClass))
-                    Misc.GreenArmorClass = GetIntProperty(parser, GreenArmorClass);
+                    Misc.GreenArmorClass = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(BlueArmorClass))
-                    Misc.BlueArmorClass = GetIntProperty(parser, BlueArmorClass);
+                    Misc.BlueArmorClass = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(MaxSoulsphere))
-                    Misc.MaxSoulsphere = GetIntProperty(parser, MaxSoulsphere);
+                    Misc.MaxSoulsphere = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(SoulsphereHealth))
-                    Misc.SoulsphereHealth = GetIntProperty(parser, SoulsphereHealth);
+                    Misc.SoulsphereHealth = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(MegasphereHealth))
-                    Misc.MegasphereHealth = GetIntProperty(parser, MegasphereHealth);
+                    Misc.MegasphereHealth = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(GodModeHealth))
-                    Misc.GodModeHealth = GetIntProperty(parser, GodModeHealth);
+                    Misc.GodModeHealth = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(IDFAArmorClass))
-                    Misc.IdfaArmorClass = GetIntProperty(parser, IDFAArmorClass);
+                    Misc.IdfaArmorClass = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(IDFAArmor))
-                    Misc.IdfaArmor = GetIntProperty(parser, IDFAArmor);
+                    Misc.IdfaArmor = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(IDKFAArmorClass))
-                    Misc.IdkfaArmorClass = GetIntProperty(parser, IDKFAArmorClass);
+                    Misc.IdkfaArmorClass = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(IDKFAArmor))
-                    Misc.IdkfaArmor = GetIntProperty(parser, IDKFAArmor);
+                    Misc.IdkfaArmor = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(BFGCellsPerShot))
-                    Misc.BfgCellsPerShot = GetIntProperty(parser, BFGCellsPerShot);
+                    Misc.BfgCellsPerShot = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(MonstersInfight))
-                    Misc.MonstersInfight = (MonsterInfightType)GetIntProperty(parser, MonstersInfight);
+                    Misc.MonstersInfight = (MonsterInfightType)GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(MonstersIgnore))
-                    Misc.MonstersIgnoreEachOther = GetIntProperty(parser, MonstersIgnore) != 0;
+                    Misc.MonstersIgnoreEachOther = GetIntProperty(dehackedProp) != 0;
+                else
+                    UnknownWarning(parser, "misc");
             }
             else
                 UnknownWarning(parser, "misc");
@@ -821,9 +837,11 @@ public partial class DehackedDefinition
             {
                 var prop = dehackedProp.Prop;
                 if (prop.EqualsIgnoreCase(SoundZeroOne))
-                    sound.ZeroOne = GetIntProperty(parser, SoundZeroOne);
+                    sound.ZeroOne = GetIntProperty(dehackedProp);
                 else if (prop.EqualsIgnoreCase(SoundValue))
-                    sound.Priority = GetIntProperty(parser, SoundValue);
+                    sound.Priority = GetIntProperty(dehackedProp);
+                else
+                    UnknownWarning(parser, "sound");
             }
             else
                 UnknownWarning(parser, "sound");
@@ -1020,29 +1038,18 @@ public partial class DehackedDefinition
         return bits;
     }
 
-    private static string GetStringProperty(SimpleParser parser, string property)
+    private static int GetIntProperty(DehackedProp prop)
     {
-        ConsumeProperty(parser, property);
-        parser.ConsumeString("=");
-        return parser.ConsumeString();
-    }
-
-    private static int GetIntProperty(SimpleParser parser, string property)
-    {
-        ConsumeProperty(parser, property);
-        parser.ConsumeString("=");
-        int? value = parser.ConsumeIfInt();
-        if (value != null)
-            return value.Value;
+        if (int.TryParse(prop.Value, out var value))
+            return value;
 
         // Dehacked parsers used sscanf which would read until a non digit was hit.
         // Consume int expects the entire token to be an integer.
-        return ConsumeDehackedInteger(parser);
+        return ConsumeDehackedInteger(prop.Value);
     }
 
-    private static int ConsumeDehackedInteger(SimpleParser parser)
+    private static int ConsumeDehackedInteger(string data)
     {
-        string data = parser.ConsumeString();
         int end = 0;
         if (data[0] == '-')
             end++;
