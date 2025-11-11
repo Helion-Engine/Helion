@@ -20,6 +20,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using static Helion.Dehacked.DehackedDefinition;
 
 namespace Helion.World.Entities.Definition.States;
@@ -2953,11 +2954,11 @@ public static class EntityActionFunctions
         if (entity.PlayerObj == null || !GetPlayerWeaponFrame(entity, out EntityFrame? frame))
             return;
 
-        double spreadAngle = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs1));
-        double spreadPitch = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs2));
-        int bullets = frame.DehackedArgs3;
-        int damage = frame.DehackedArgs4;
-        int mod = Math.Clamp(frame.DehackedArgs5, 0, int.MaxValue);
+        var spreadAngle = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs1));
+        var spreadPitch = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs2));
+        var bullets = GetArgOrDefault(frame.DehackedArgs3, 1);
+        var damage = GetArgOrDefault(frame.DehackedArgs4, 5);
+        var mod = Math.Max(GetArgOrDefault(frame.DehackedArgs5, 3), 0);
 
         WorldStatic.World.FirePlayerHitscanBullets(entity.PlayerObj, bullets, spreadAngle, spreadPitch, entity.PlayerObj.PitchRadians, Constants.EntityShootDistance,
             WorldStatic.World.Config.Game.AutoAim, DamageAttackFunction, new DamageFuncParams(true, entity, damage, mod));
@@ -2968,13 +2969,13 @@ public static class EntityActionFunctions
         if (entity.PlayerObj == null || !GetPlayerWeaponFrame(entity, out EntityFrame? frame))
             return;
 
-        int damage = frame.DehackedArgs1;
-        int mod = Math.Clamp(frame.DehackedArgs2, 1, int.MaxValue);
-        double berserkFactor = MathHelper.FromFixed(frame.DehackedArgs3);
-        int sound = frame.DehackedArgs4;
-        double range = frame.DehackedArgs5 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(frame.DehackedArgs5);
+        var damage = GetArgOrDefault(frame.DehackedArgs1, 2);
+        var mod = Math.Max(GetArgOrDefault(frame.DehackedArgs2, 10), 1);
+        var berserkFactor = MathHelper.FromFixed(GetArgOrDefault(frame.DehackedArgs3, 1));
+        var sound = frame.DehackedArgs4;
+        var range = frame.DehackedArgs5 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(frame.DehackedArgs5);
 
-        GetDehackedSound(entity, sound, out string? hitSound);
+        GetDehackedSound(entity, sound, out var hitSound);
         PlayerMelee(entity.PlayerObj, damage, mod, berserkFactor, range, hitSound);
     }
 
@@ -3178,10 +3179,10 @@ public static class EntityActionFunctions
         if (target == null || !GetDehackedActorDefinition(entity, entity.FrameState.Frame.DehackedArgs1, out var projectileDef))
             return;
 
-        double angle = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
-        double pitchOffset = GetDehackedProjectilePitch(entity.FrameState.Frame.DehackedArgs3);
-        double offsetXY = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs4);
-        double zOffset = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs5);
+        var angle = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
+        var pitchOffset = GetDehackedProjectilePitch(entity.FrameState.Frame.DehackedArgs3);
+        var offsetXY = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs4);
+        var zOffset = MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs5);
 
         A_FaceTarget(entity);
         var projectile = FireProjectile(entity, target, projectileDef, angle, pitchOffset, offsetXY, zOffset, true);
@@ -3193,20 +3194,20 @@ public static class EntityActionFunctions
         if (entity.Target() == null)
             return;
 
-        double spreadAngle = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs1));
-        double spreadPitch = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
-        int bullets = entity.FrameState.Frame.DehackedArgs3;
-        int damage = entity.FrameState.Frame.DehackedArgs4;
-        int mod = Math.Clamp(entity.FrameState.Frame.DehackedArgs5, 0, int.MaxValue);
+        var spreadAngle = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs1));
+        var spreadPitch = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
+        var bullets = GetArgOrDefault(entity.FrameState.Frame.DehackedArgs3, 1);
+        var damage = GetArgOrDefault(entity.FrameState.Frame.DehackedArgs4, 3);
+        var mod = Math.Max(GetArgOrDefault(entity.FrameState.Frame.DehackedArgs5, 5), 0);
 
         A_FaceTarget(entity);
         entity.PlayAttackSound();
-        WorldStatic.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out double pitch, out _);
+        WorldStatic.World.GetAutoAimEntity(entity, entity.HitscanAttackPos, entity.AngleRadians, Constants.EntityShootDistance, out var pitch, out _);
 
         for (int i = 0; i < bullets; i++)
         {
-            double angle = entity.AngleRadians + (WorldStatic.Random.NextDiff() * spreadAngle / 255);
-            double newPitch = pitch + (WorldStatic.Random.NextDiff() * spreadPitch / 255);
+            var angle = entity.AngleRadians + (WorldStatic.Random.NextDiff() * spreadAngle / 255);
+            var newPitch = pitch + (WorldStatic.Random.NextDiff() * spreadPitch / 255);
             WorldStatic.World.FireHitscan(entity, angle, newPitch, Constants.EntityShootDistance,
                damage * ((WorldStatic.Random.NextByte() % mod) + 1));
         }
@@ -3218,10 +3219,10 @@ public static class EntityActionFunctions
         if (target == null)
             return;
 
-        int damage = entity.FrameState.Frame.DehackedArgs1;
-        int mod = Math.Clamp(entity.FrameState.Frame.DehackedArgs2, 1, int.MaxValue);
-        int sound = entity.FrameState.Frame.DehackedArgs3;
-        double range = entity.FrameState.Frame.DehackedArgs4 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs4);
+        var damage = GetArgOrDefault(entity.FrameState.Frame.DehackedArgs1, 3);
+        var mod = Math.Max(GetArgOrDefault(entity.FrameState.Frame.DehackedArgs2, 8), 1);
+        var sound = entity.FrameState.Frame.DehackedArgs3;
+        var range = entity.FrameState.Frame.DehackedArgs4 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs4);
 
         if (entity.InMeleeRange(target, range))
         {
@@ -3540,7 +3541,10 @@ public static class EntityActionFunctions
 
     private static int DamageAttackFunction(DamageFuncParams damageParams)
     {
-        Entity entity = (Entity)damageParams.Object!;
         return damageParams.Arg0 * ((WorldStatic.World.Random.NextByte() % damageParams.Arg1) + 1);
     }
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetArgOrDefault(int value, int def) => value == 0 ? def : value;
 }
