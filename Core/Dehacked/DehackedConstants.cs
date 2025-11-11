@@ -4858,6 +4858,8 @@ public partial class DehackedDefinition
     private static readonly string MisileDamage = "Missile damage";
     private static readonly string ActionSound = "Action sound";
     private static readonly string Bits = "Bits";
+    private static readonly string Bits2 = "Bits2";
+    private static readonly string Bits3 = "Bits3";
     private static readonly string RespawnFrame = "Respawn frame";
     private static readonly string DroppedItem = "Dropped item";
     private static readonly string InfightingGroup = "Infighting group";

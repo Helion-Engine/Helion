@@ -23,7 +23,7 @@ Action sound = 102
 Width = 3932160
 Death frame = 757
 Far attack frame = 730
-Bits = SOLID+SHOOTABLE+COUNTKILL
+Bits = SOLID+SHOOTABLE+COUNTKILL # not actually a comment
 Height = 7208960
 Initial frame = 45
 Hit points = 2000
@@ -48,5 +48,6 @@ Initial frame = 144
         def.BexStrings.Count.Should().Be(1);
         def.BexStrings[0].Value.Should().Be("MAP01: The First Map // Hello");
         def.Things.Count.Should().Be(2);
+        def.Things[0].Bits.Should().Be(4194310);
     }
 }

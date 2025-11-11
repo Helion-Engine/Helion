@@ -83,7 +83,7 @@ public class MapInfoTests
         return def;
     }
 
-    internal class ArchivePathResolver(Archive archive) : IPathResolver
+    internal sealed class ArchivePathResolver(Archive archive) : IPathResolver
     {
         private readonly Archive m_archive = archive;
 
