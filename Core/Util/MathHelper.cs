@@ -176,6 +176,7 @@ public static class MathHelper
     /// </summary>
     /// <param name="degree">The degree.</param>
     /// <returns>The radian value.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double ToRadians(double degree) => degree * DegreesToRadiansFactor;
 
     /// <summary>

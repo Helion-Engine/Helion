@@ -9,8 +9,6 @@ namespace Helion.World.Entities.Definition;
 public class EntityFrameTable
 {
     private readonly Dictionary<string, FrameSet> m_frameSets = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<EntityFrame> m_frames = new();
-    private readonly Dictionary<int, EntityFrame> m_vanillaFrameMap = new();
     private readonly Dictionary<string, int> m_spriteNameToIndex = new(StringComparer.OrdinalIgnoreCase);
     private int m_spriteIndex;
     private bool m_vileHealFrameSet;
@@ -21,12 +19,12 @@ public class EntityFrameTable
     // e.g. key = "zombieman::spawn", "shotgunguy:missile"
     public Dictionary<string, FrameSet> FrameSets => m_frameSets;
     // Master frame table
-    public List<EntityFrame> Frames => m_frames;
+    public List<EntityFrame> Frames = [];
     // Lookup by vanilla frame index
-    public IDictionary<int, EntityFrame> VanillaFrameMap => m_vanillaFrameMap;
+    public Dictionary<int, EntityFrame> VanillaFrameMap = [];
 
-    public int ClosetLookFrameIndex { get; set; }
-    public int ClosetChaseFrameIndex { get; set; }
+    public int ClosetLookFrameIndex;
+    public int ClosetChaseFrameIndex;
 
     public EntityFrame? GetVileHealFrame()
     {
@@ -68,7 +66,7 @@ public class EntityFrameTable
         entityFrame.MasterFrameIndex = Frames.Count;
         Frames.Add(entityFrame);
         if (mapVanillaFrame)
-            m_vanillaFrameMap[entityFrame.VanillaIndex] = entityFrame;
+            VanillaFrameMap[entityFrame.VanillaIndex] = entityFrame;
         entityFrame.SpriteIndex = GetSpriteIndex(entityFrame.Sprite);
     }
 
