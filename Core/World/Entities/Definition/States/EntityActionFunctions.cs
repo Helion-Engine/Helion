@@ -2970,7 +2970,7 @@ public static class EntityActionFunctions
             return;
 
         var damage = GetArgOrDefault(frame.DehackedArgs1, 2);
-        var mod = Math.Min(GetArgOrDefault(frame.DehackedArgs2, 10), 1);
+        var mod = Math.Max(GetArgOrDefault(frame.DehackedArgs2, 10), 1);
         var berserkFactor = MathHelper.FromFixed(GetArgOrDefault(frame.DehackedArgs3, 1));
         var sound = frame.DehackedArgs4;
         var range = frame.DehackedArgs5 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(frame.DehackedArgs5);
@@ -3198,7 +3198,7 @@ public static class EntityActionFunctions
         var spreadPitch = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
         var bullets = GetArgOrDefault(entity.FrameState.Frame.DehackedArgs3, 1);
         var damage = GetArgOrDefault(entity.FrameState.Frame.DehackedArgs4, 3);
-        var mod = Math.Clamp(GetArgOrDefault(entity.FrameState.Frame.DehackedArgs5, 5), 0, int.MaxValue);
+        var mod = Math.Max(GetArgOrDefault(entity.FrameState.Frame.DehackedArgs5, 5), 0);
 
         A_FaceTarget(entity);
         entity.PlayAttackSound();
@@ -3220,7 +3220,7 @@ public static class EntityActionFunctions
             return;
 
         var damage = GetArgOrDefault(entity.FrameState.Frame.DehackedArgs1, 3);
-        var mod = Math.Clamp(GetArgOrDefault(entity.FrameState.Frame.DehackedArgs2, 8), 1, int.MaxValue);
+        var mod = Math.Max(GetArgOrDefault(entity.FrameState.Frame.DehackedArgs2, 8), 1);
         var sound = entity.FrameState.Frame.DehackedArgs3;
         var range = entity.FrameState.Frame.DehackedArgs4 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs4);
 

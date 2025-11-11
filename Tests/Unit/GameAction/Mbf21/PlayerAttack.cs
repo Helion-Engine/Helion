@@ -66,7 +66,7 @@ public class PlayerAttack
         monster.Health.Should().Be(1000);
 
         SetState(180);
-        monster.Health.Should().Be(998);
+        monster.Health.Should().Be(994);
     }
 
     [Fact(DisplayName = "WeaponMeleeAttack")]
@@ -74,7 +74,7 @@ public class PlayerAttack
     {
         var monster = CreateMonster();
         SetState(181);
-        monster.Health.Should().Be(996);
+        monster.Health.Should().Be(988);
     }
 
     private void SetState(int frame)
