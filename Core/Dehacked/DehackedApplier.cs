@@ -107,6 +107,8 @@ public class DehackedApplier
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly List<string> RemoveLabels = [];
     private readonly DehackedDefinition m_dehacked;
+    private readonly Dictionary<int, EntityFrame> m_newEntityFrameLookup = [];
+    private readonly Dictionary<int, string> m_newSpriteLookup = [];
     private EntityDefinition? m_playerDefinition;
     private int m_ammoDefIndex;
 
@@ -119,12 +121,12 @@ public class DehackedApplier
         m_dehacked = dehacked;
 
         for (int i = 0; i < 100; i++)
-            dehacked.NewSpriteLookup[DehExtraSpriteStart + i] = $"SP{i.ToString(CultureInfo.InvariantCulture).PadLeft(2, '0')}";
+            m_newSpriteLookup[DehExtraSpriteStart + i] = $"SP{i.ToString(CultureInfo.InvariantCulture).PadLeft(2, '0')}";
 
         for (int i = 0; i < 200; i++)
         {
             string name = $"*deh/{i}";
-            dehacked.NewSoundLookup[DehExtraSoundStart + i] = name;
+            dehacked.SoundLookup[DehExtraSoundStart + i] = name;
             definitionEntries.SoundInfo.Add(name, new SoundInfo(name, $"dsfre{i.ToString(CultureInfo.InvariantCulture).PadLeft(3, '0')}", 0));
         }
     }
@@ -154,14 +156,13 @@ public class DehackedApplier
             DefinitionStateApplier.SetDefinitionStateIndices(definitionEntries.EntityFrameTable, definition);
 
         RemoveLabels.Clear();
-        m_dehacked.NewSpriteLookup.Clear();
     }
 
     private void ApplySounds(DehackedDefinition dehacked, SoundInfoDefinition soundInfoDef)
     {
         foreach (DehackedSound dehSound in dehacked.Sounds)
         {
-            string sound = GetSound(dehacked, dehSound.Number);
+            string sound = GetSound(dehSound.Number);
             if (string.IsNullOrEmpty(sound))
                 continue;
 
@@ -568,7 +569,7 @@ public class DehackedApplier
     {
         if (spriteNumber < dehacked.Sprites.Length)
             entityFrame.SetSprite(dehacked.Sprites[spriteNumber]);
-        else if (m_dehacked.NewSpriteLookup.TryGetValue(spriteNumber, out string? sprite))
+        else if (m_newSpriteLookup.TryGetValue(spriteNumber, out string? sprite))
             entityFrame.SetSprite(sprite);
         else
             Warning($"Invalid sprite number {spriteNumber}");
@@ -582,7 +583,7 @@ public class DehackedApplier
             return true;
         }
 
-        if (m_dehacked.NewEntityFrameLookup.TryGetValue(frame, out entityFrame))
+        if (m_newEntityFrameLookup.TryGetValue(frame, out entityFrame))
         {
             frameIndex = entityFrame.MasterFrameIndex;
             return true;
@@ -593,7 +594,7 @@ public class DehackedApplier
 
         EntityFrame newFrame = new(entityFrameTable, Constants.InvisibleSprite, 0, -1,
             EntityFrameProperties.Default, null, Constants.NullFrameIndex, string.Empty);
-        m_dehacked.NewEntityFrameLookup[frame] = newFrame;
+        m_newEntityFrameLookup[frame] = newFrame;
         newFrame.VanillaIndex = frame;
         newFrame.NextFrameIndex = frameIndex;
 
@@ -697,17 +698,17 @@ public class DehackedApplier
                 properties.GibHealth = thing.GibHealth.Value;
 
             if (thing.AlertSound.HasValue)
-                properties.SeeSound = GetSound(dehacked, thing.AlertSound.Value);
+                properties.SeeSound = GetSound(thing.AlertSound.Value);
             if (thing.AttackSound.HasValue)
-                properties.AttackSound = GetSound(dehacked, thing.AttackSound.Value);
+                properties.AttackSound = GetSound(thing.AttackSound.Value);
             if (thing.PainSound.HasValue)
-                properties.PainSound = GetSound(dehacked, thing.PainSound.Value);
+                properties.PainSound = GetSound(thing.PainSound.Value);
             if (thing.DeathSound.HasValue)
-                properties.DeathSound = GetSound(dehacked, thing.DeathSound.Value);
+                properties.DeathSound = GetSound(thing.DeathSound.Value);
             if (thing.ActionSound.HasValue)
-                properties.ActiveSound = GetSound(dehacked, thing.ActionSound.Value);
+                properties.ActiveSound = GetSound(thing.ActionSound.Value);
             if (thing.RipSound.HasValue)
-                properties.RipSound = GetSound(dehacked, thing.RipSound.Value);
+                properties.RipSound = GetSound(thing.RipSound.Value);
 
             if (thing.CloseAttackFrame.HasValue)
                 ApplyThingFrame(dehacked, entityFrameTable, definition, thing.CloseAttackFrame.Value, Constants.FrameStates.Melee);
@@ -745,7 +746,7 @@ public class DehackedApplier
             if (thing.PickupWeaponType.HasValue)
                 SetWeaponType(thing, dehacked, composer, definition, thing.PickupWeaponType.Value);
             if (thing.PickupSound.HasValue)
-                properties.Inventory.PickupSound = GetSound(dehacked, thing.PickupSound.Value);
+                properties.Inventory.PickupSound = GetSound(thing.PickupSound.Value);
             if (!string.IsNullOrEmpty(thing.PickupMessage))
                 properties.Inventory.PickupMessage = GetDehackedMessageLookup(thing.PickupMessage, true);
             if (thing.PickupAmmoType.HasValue && thing.PickupAmmoCategory.HasValue)
@@ -870,7 +871,7 @@ public class DehackedApplier
 
     private static void SetDroppedItem(int thingNumber, DehackedDefinition dehacked, EntityDefinition definition)
     {
-        if (dehacked.GetEntityDefinition(thingNumber, out var def))
+        if (dehacked.DefinitionLookup.TryGetValue(thingNumber - 1, out var def))
             definition.Properties.DropItem = new(def.Name);
     }
 
@@ -951,7 +952,7 @@ public class DehackedApplier
 
     private string GetNewActorName(int index, EntityDefinitionComposer composer, DehackedThing thing)
     {
-        if (m_dehacked.DefinitionLookup.TryGetValue(index, out EntityDefinition? def))
+        if (m_dehacked.DefinitionLookup.TryGetValue(index, out var def))
             return def.Name;
 
         var newName = GetDehackedActorName(index);
@@ -960,7 +961,7 @@ public class DehackedApplier
             DehackedName = thing.Name
         };
         composer.Add(definition);
-        m_dehacked.DefinitionLookup.Set(index, definition);
+        m_dehacked.DefinitionLookup[index] = definition;
         return newName;
     }
 
@@ -1672,7 +1673,7 @@ public class DehackedApplier
                 entryName = "DS" + entryName;
 
             soundInfoDef.Add(id, new SoundInfo(id, entryName, 0));
-            m_dehacked.NewSoundLookup[sound.Index.Value] = id;
+            m_dehacked.SoundLookup[sound.Index.Value] = id;
         }
     }
 
@@ -1683,24 +1684,15 @@ public class DehackedApplier
             if (sprite.Index == null)
                 continue;
 
-            m_dehacked.NewSpriteLookup[sprite.Index.Value] = sprite.EntryName;
+            m_newSpriteLookup[sprite.Index.Value] = sprite.EntryName;
         }
     }
 
     private static double GetDouble(int value) => value / 65536.0;
 
-    private string GetSound(DehackedDefinition dehacked, int sound)
+    private string GetSound(int sound)
     {
-        if (sound < 0)
-        {
-            Warning($"Invalid sound {sound}");
-            return string.Empty;
-        }
-
-        if (sound < dehacked.SoundStrings.Length)
-            return dehacked.SoundStrings[sound];
-
-        if (!m_dehacked.NewSoundLookup.TryGetValue(sound, out string? value))
+        if (!m_dehacked.SoundLookup.TryGetValue(sound, out string? value))
         {
             Warning($"Invalid sound {sound}");
             return string.Empty;

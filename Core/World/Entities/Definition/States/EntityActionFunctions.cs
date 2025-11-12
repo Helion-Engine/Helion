@@ -2975,7 +2975,7 @@ public static class EntityActionFunctions
         var sound = frame.DehackedArgs4;
         var range = frame.DehackedArgs5 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(frame.DehackedArgs5);
 
-        GetDehackedSound(entity, sound, out var hitSound);
+        GetDehackedSound(sound, out var hitSound);
         PlayerMelee(entity.PlayerObj, damage, mod, berserkFactor, range, hitSound);
     }
 
@@ -3228,7 +3228,7 @@ public static class EntityActionFunctions
         {
             damage = (WorldStatic.Random.NextByte() % mod + 1) * damage;
             WorldStatic.World.DamageEntity(target, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
-            GetDehackedSound(entity, sound, out string? hitSound);
+            GetDehackedSound(sound, out string? hitSound);
             if (!string.IsNullOrEmpty(hitSound))
                 WorldStatic.SoundManager.CreateSoundOn(entity, hitSound, new SoundParams(entity));
         }
@@ -3262,7 +3262,7 @@ public static class EntityActionFunctions
             return;
         }
 
-        GetDehackedSound(entity, sound, out string? healSound);
+        GetDehackedSound(sound, out string? healSound);
         if (!WorldStatic.World.HealChase(entity, newFrame, healSound ?? string.Empty))
             A_Chase(entity);
     }
@@ -3514,13 +3514,13 @@ public static class EntityActionFunctions
 
     private static void PlayDehackedSound(Entity entity, int soundIndex, Attenuation attenuation, SoundChannel channel)
     {
-        if (!GetDehackedSound(entity, soundIndex, out string? soundName))
+        if (!GetDehackedSound(soundIndex, out string? soundName))
             return;
 
         WorldStatic.SoundManager.CreateSoundOn(entity, soundName, new SoundParams(entity, attenuation: attenuation, channel: channel));
     }
 
-    private static bool GetDehackedSound(Entity entity, int soundIndex, [NotNullWhen(true)] out string? soundName)
+    private static bool GetDehackedSound(int soundIndex, [NotNullWhen(true)] out string? soundName)
     {
         var dehacked = WorldStatic.World.ArchiveCollection.Definitions.DehackedDefinition;
         if (dehacked == null || !dehacked.GetSoundName(soundIndex, out soundName))
