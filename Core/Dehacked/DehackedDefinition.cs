@@ -74,8 +74,6 @@ public partial class DehackedDefinition
         BexPars = [];
         BexSounds = [];
         BexSprites = [];
-        SoundLookup = [];
-        DefinitionLookup = [];
         Cheat = null;
         Misc = null;
         m_sb.Clear();

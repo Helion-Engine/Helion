@@ -871,7 +871,7 @@ public class DehackedApplier
 
     private static void SetDroppedItem(int thingNumber, DehackedDefinition dehacked, EntityDefinition definition)
     {
-        if (dehacked.DefinitionLookup.TryGetValue(thingNumber - 1, out var def))
+        if (dehacked.GetEntityDefinition(thingNumber, out var def))
             definition.Properties.DropItem = new(def.Name);
     }
 
