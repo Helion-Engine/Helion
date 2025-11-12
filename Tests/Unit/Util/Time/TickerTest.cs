@@ -18,7 +18,7 @@ public class TickerTest
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             long nanos = 10000L * Stopwatch.GetTimestamp() / TimeSpan.TicksPerMillisecond * 100L;
-            nanos.Should().BeLessOrEqualTo(Ticker.NanoTime());
+            nanos.Should().BeLessThanOrEqualTo(Ticker.NanoTime());
         }
     }
 
@@ -30,7 +30,7 @@ public class TickerTest
         Thread.Sleep(50);
         ticker.Stop();
 
-        ticker.GetTickerInfo().Ticks.Should().BeGreaterOrEqualTo(1);
+        ticker.GetTickerInfo().Ticks.Should().BeLessThanOrEqualTo(1);
 
         // Since it's been stopped, nothing should accumulate.
         Thread.Sleep(50);

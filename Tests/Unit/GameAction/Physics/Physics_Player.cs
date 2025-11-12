@@ -193,7 +193,7 @@ namespace Helion.Tests.Unit.GameAction
             GameActions.SetEntityPosition(World, Player, new Vec3D(1104, 1312, 0));
             GameActions.PlayerRunForward(World, GameActions.GetAngle(Bearing.East), () => { return Player.Position.X < 1760; });
 
-            Player.Position.X.Should().BeGreaterOrEqualTo(1760);
+            Player.Position.X.Should().BeGreaterThanOrEqualTo(1760);
         }
 
         [Fact(DisplayName = "Player fall doesn't hard hit")]
@@ -360,7 +360,7 @@ namespace Helion.Tests.Unit.GameAction
             });
 
             index.Should().Be(delta.Length);
-            Player.Position.Y.Should().BeGreaterOrEqualTo(-448);
+            Player.Position.Y.Should().BeGreaterThanOrEqualTo(-448);
         }
 
         [Fact(DisplayName = "Player uses one sided line with no activation")]
