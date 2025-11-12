@@ -558,8 +558,9 @@ public class ArchiveCollection : IResources, IPathResolver
         if (Definitions.DehackedDefinition != null)
         {
             Definitions.DehackedDefinition.LoadActorDefinitions(EntityDefinitionComposer);
-            DehackedApplier dehackedApplier = new(Definitions, Definitions.DehackedDefinition);
+            var dehackedApplier = new DehackedApplier(Definitions, Definitions.DehackedDefinition);
             dehackedApplier.Apply(Definitions.DehackedDefinition, Definitions, EntityDefinitionComposer);
+            Definitions.DehackedDefinition.FinalizeData();
         }
 
         // Frame states need vanilla index mapped for weapon state mapping from the retro brightmaps definitions

@@ -1,16 +1,15 @@
 using Helion.Graphics.Palettes;
 using Helion.Util;
-using Helion.Util.Container;
 using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
-using Helion.World.Entities.Definition.States;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -29,24 +28,21 @@ public partial class DehackedDefinition
 
     public event EventHandler<string>? OnUnknownItem;
 
-    public readonly List<DehackedThing> Things = [];
-    public readonly List<DehackedFrame> Frames = [];
-    public readonly List<DehackedAmmo> Ammo = [];
-    public readonly List<DehackedWeapon> Weapons = [];
-    public readonly List<DehackedString> Strings = [];
-    public readonly List<DehackedPointer> Pointers = [];
-    public readonly List<DehackedSound> Sounds = [];
+    public List<DehackedThing> Things = [];
+    public List<DehackedFrame> Frames = [];
+    public List<DehackedAmmo> Ammo = [];
+    public List<DehackedWeapon> Weapons = [];
+    public List<DehackedString> Strings = [];
+    public List<DehackedPointer> Pointers = [];
+    public List<DehackedSound> Sounds = [];
 
-    public readonly List<BexString> BexStrings = [];
-    public readonly List<BexPar> BexPars = [];
-    public readonly List<BexItem> BexSounds = [];
-    public readonly List<BexItem> BexSprites = [];
+    public List<BexString> BexStrings = [];
+    public List<BexPar> BexPars = [];
+    public List<BexItem> BexSounds = [];
+    public List<BexItem> BexSprites = [];
 
-    public readonly Dictionary<int, string> NewSoundLookup = [];
-    public readonly Dictionary<int, string> NewSpriteLookup = [];
-    public readonly LookupArray<EntityDefinition> NewThingLookup = new();
-    public readonly Dictionary<int, EntityFrame> NewEntityFrameLookup = [];
-    public readonly EntityDefinition?[] ActorDefinitions;
+    public Dictionary<int, string> SoundLookup = [];
+    public Dictionary<int, EntityDefinition> DefinitionLookup = [];
 
     private readonly StringBuilder m_sb = new();
 
@@ -59,13 +55,37 @@ public partial class DehackedDefinition
 
     public DehackedDefinition()
     {
-        ActorDefinitions = new EntityDefinition[ActorNames.Length];
+        for (int i = 0; i < SoundStrings.Length; i++)
+            SoundLookup[i] = SoundStrings[i];
+    }
+
+    public void FinalizeData()
+    {
+        // Clear out data not required at runtime
+        Things = [];
+        Frames = [];
+        Ammo = [];
+        Weapons = [];
+        Strings = [];
+        Pointers = [];
+        Sounds = [];
+        BexStrings = [];
+        BexPars = [];
+        BexSounds = [];
+        BexSprites = [];
+        Cheat = null;
+        Misc = null;
+        m_sb.Clear();
     }
 
     public void LoadActorDefinitions(EntityDefinitionComposer composer)
     {
         for (int i = 0; i < ActorNames.Length; i++)
-            ActorDefinitions[i] = composer.GetByName(ActorNames[i]);
+        {
+            var def = composer.GetByName(ActorNames[i]);
+            if (def != null)
+                DefinitionLookup[i] = def;
+        }
     }
 
     public void Parse(string data)
@@ -145,51 +165,14 @@ public partial class DehackedDefinition
         return false;
     }
 
-    public bool GetEntityDefinitionName(int thingNumber, [NotNullWhen(true)] out string? name)
-    {
-        name = null;
-        int index = thingNumber - 1;
-        if (index < 0)
-            return false;
-
-        if (index < ActorNames.Length)
-        {
-            name = ActorNames[index];
-            return true;
-        }
-
-        if (NewThingLookup.TryGetValue(index, out EntityDefinition? def))
-        {
-            name = def.Name;
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool GetEntityDefinition(int thingNumber, [NotNullWhen(true)] out EntityDefinition? def)
-    {
-        def = null;
-        int index = thingNumber - 1;
-        if (index < 0)
-            return false;
-
-        if (index < ActorDefinitions.Length)
-        {
-            def = ActorDefinitions[index];
-            return def != null;
-        }
-
-        if (NewThingLookup.TryGetValue(index, out def))
-            return true;
-
-        return false;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool GetEntityDefinition(int thingNumber, [NotNullWhen(true)] out EntityDefinition? def) =>
+        DefinitionLookup.TryGetValue(thingNumber - 1, out def);
 
     public bool TryGetId24PickupType(EntityDefinitionComposer composer, int pickupItemType, [NotNullWhen(true)] out EntityDefinition? definition)
     {
         definition = null;
-        if (pickupItemType < 0 || pickupItemType >= Id24PickupLookup.Length)
+        if (pickupItemType < 0 || pickupItemType >= Id24PickupLookup.Length) 
             return false;
 
         definition = composer.GetByName(Id24PickupLookup[pickupItemType]);
@@ -199,19 +182,9 @@ public partial class DehackedDefinition
         return true;
     }
 
-    public bool GetSoundName(int soundIndex, [NotNullWhen(true)] out string? soundName)
-    {
-        if (soundIndex >= 0 && soundIndex < SoundStrings.Length)
-        {
-            soundName = SoundStrings[soundIndex];
-            return true;
-        }
-
-        if (NewSoundLookup.TryGetValue(soundIndex, out soundName))
-            return true;
-        
-        return false;
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool GetSoundName(int soundIndex, [NotNullWhen(true)] out string? soundName) =>
+        SoundLookup.TryGetValue(soundIndex, out soundName);
 
     private static bool IsComment(string data, int lineStartIndex, int index) => lineStartIndex == 0 && data[index] == '#';
 

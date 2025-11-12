@@ -599,10 +599,18 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.FatShot = EntityManager.DefinitionComposer.GetByNameOrDefault("FatShot");
         WorldStatic.CacodemonBall = EntityManager.DefinitionComposer.GetByNameOrDefault("CacodemonBall");
         WorldStatic.RevenantTracer = EntityManager.DefinitionComposer.GetByNameOrDefault("RevenantTracer");
+        WorldStatic.RevenantTracerSmoke = EntityManager.DefinitionComposer.GetByNameOrDefault("RevenantTracerSmoke");
         WorldStatic.BaronBall = EntityManager.DefinitionComposer.GetByNameOrDefault("BaronBall");
         WorldStatic.SpawnShot = EntityManager.DefinitionComposer.GetByNameOrDefault("SpawnShot");
         WorldStatic.BFGBall = EntityManager.DefinitionComposer.GetByNameOrDefault("BFGBall");
+        WorldStatic.BFGExtra = EntityManager.DefinitionComposer.GetByNameOrDefault("BFGExtra");
         WorldStatic.PlasmaBall = EntityManager.DefinitionComposer.GetByNameOrDefault("PlasmaBall");
+        WorldStatic.BulletPuff = EntityManager.DefinitionComposer.GetByNameOrDefault("BulletPuff");
+        WorldStatic.ArchvileFire = EntityManager.DefinitionComposer.GetByNameOrDefault("ArchvileFire");
+        WorldStatic.LostSoul = EntityManager.DefinitionComposer.GetByNameOrDefault("LostSoul");
+        WorldStatic.BossRocket = EntityManager.DefinitionComposer.GetByNameOrDefault("BossRocket");
+        WorldStatic.RealGibs = EntityManager.DefinitionComposer.GetByNameOrDefault("RealGibs");
+
         WorldStatic.WeaponBfg = EntityManager.DefinitionComposer.GetByNameOrDefault(BFG900Class);
         WorldStatic.SectorFriction = false;
         WorldStatic.BloodColor = ArchiveCollection.Dehacked != null && ArchiveCollection.Dehacked.HasBloodColor;

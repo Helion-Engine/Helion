@@ -482,7 +482,7 @@ public static class EntityActionFunctions
                 damage += (WorldStatic.Random.NextByte() & 7) + 1;
 
             WorldStatic.World.DamageEntity(hitEntity, entity, damage, DamageType.Normal, Thrust.Horizontal);
-            WorldStatic.EntityManager.Create("BFGExtra", hitEntity.CenterPoint);
+            WorldStatic.EntityManager.Create(WorldStatic.BFGExtra, hitEntity.CenterPoint, 0, 0, 0, default);
         }
     }
 
@@ -554,7 +554,7 @@ public static class EntityActionFunctions
 
     private static void BrainExplodeRocket(Entity entity, in Vec3D pos)
     {
-        Entity? rocket = WorldStatic.EntityManager.Create("BossRocket", pos);
+        Entity? rocket = WorldStatic.EntityManager.Create(WorldStatic.BossRocket, pos, 0, 0, 0, default);
         if (rocket != null)
         {
             rocket.SetRandomizeTicks(7);
@@ -604,7 +604,7 @@ public static class EntityActionFunctions
         if (entity.ReactionTime > 0)
             return;
 
-        WorldStatic.EntityManager.Create("ArchvileFire", target.Position);
+        WorldStatic.EntityManager.Create(WorldStatic.ArchvileFire, target.Position, 0, 0, 0, default);
         WorldStatic.SoundManager.CreateSoundOn(target, "misc/teleport",
             new SoundParams(entity));
 
@@ -1718,11 +1718,11 @@ public static class EntityActionFunctions
                 return;
         }
 
-        Vec3D skullPos = entity.Position;
+        var skullPos = entity.Position;
         skullPos.Z += 8;
-        Vec3D startPos = skullPos;
+        var startPos = skullPos;
 
-        Entity? skull = WorldStatic.EntityManager.Create("LostSoul", startPos);
+        var skull = WorldStatic.EntityManager.Create(WorldStatic.LostSoul, startPos, 0, 0, 0, default);
         if (skull == null)
             return;
 
@@ -2598,9 +2598,9 @@ public static class EntityActionFunctions
 
     private static void SpawnTracerPuff(Entity entity)
     {
-        WorldStatic.EntityManager.Create("RevenantTracerSmoke", entity.Position);
+        WorldStatic.EntityManager.Create(WorldStatic.RevenantTracerSmoke, entity.Position, 0, 0, 0, default);
 
-        Entity? puff = WorldStatic.EntityManager.Create("BulletPuff", entity.Position);
+        var puff = WorldStatic.EntityManager.Create(WorldStatic.BulletPuff, entity.Position, 0, 0, 0, default);
         if (puff != null)
         {
             puff.Position.Z = entity.Position.Z + (WorldStatic.Random.NextDiff() * Constants.PuffRandZ);
@@ -2751,7 +2751,7 @@ public static class EntityActionFunctions
             return;
 
         A_FaceTarget(entity);
-        Entity? fire = WorldStatic.EntityManager.Create("ArchvileFire", target.Position);
+        var fire = WorldStatic.EntityManager.Create(WorldStatic.ArchvileFire, target.Position, 0, 0, 0, default);
         if (fire != null)
         {
             fire.SetOwner(entity);
@@ -2832,7 +2832,7 @@ public static class EntityActionFunctions
 
     private static void A_Spawn(Entity entity)
     {
-        if (!GetDehackedActorDefinition(entity, entity.FrameState.Frame.DehackedMisc1, out var def))
+        if (!GetDehackedActorDefinition(entity.FrameState.Frame.DehackedMisc1, out var def))
             return;
 
         Vec3D pos = entity.Position;
@@ -2975,7 +2975,7 @@ public static class EntityActionFunctions
         var sound = frame.DehackedArgs4;
         var range = frame.DehackedArgs5 == 0 ? entity.Properties.MeleeRange : MathHelper.FromFixed(frame.DehackedArgs5);
 
-        GetDehackedSound(entity, sound, out var hitSound);
+        GetDehackedSound(sound, out var hitSound);
         PlayerMelee(entity.PlayerObj, damage, mod, berserkFactor, range, hitSound);
     }
 
@@ -3105,7 +3105,7 @@ public static class EntityActionFunctions
 
     private static void A_SpawnObject(Entity entity)
     {
-        if (!GetDehackedActorDefinition(entity, entity.FrameState.Frame.DehackedArgs1, out var def))
+        if (!GetDehackedActorDefinition(entity.FrameState.Frame.DehackedArgs1, out var def))
             return;
 
         var angle = entity.AngleRadians + MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
@@ -3163,7 +3163,7 @@ public static class EntityActionFunctions
         if (entity.PlayerObj == null || !GetPlayerWeaponFrame(entity, out EntityFrame? frame))
             return;
 
-        if (!GetDehackedActorDefinition(entity, frame.DehackedArgs1, out var projectileDef))
+        if (!GetDehackedActorDefinition(frame.DehackedArgs1, out var projectileDef))
             return;
 
         double angle = MathHelper.ToRadians(MathHelper.FromFixed(frame.DehackedArgs2));
@@ -3176,7 +3176,7 @@ public static class EntityActionFunctions
     private static void A_MonsterProjectile(Entity entity)
     {
         var target = entity.Target();
-        if (target == null || !GetDehackedActorDefinition(entity, entity.FrameState.Frame.DehackedArgs1, out var projectileDef))
+        if (target == null || !GetDehackedActorDefinition(entity.FrameState.Frame.DehackedArgs1, out var projectileDef))
             return;
 
         var angle = MathHelper.ToRadians(MathHelper.FromFixed(entity.FrameState.Frame.DehackedArgs2));
@@ -3228,7 +3228,7 @@ public static class EntityActionFunctions
         {
             damage = (WorldStatic.Random.NextByte() % mod + 1) * damage;
             WorldStatic.World.DamageEntity(target, entity, damage, DamageType.AlwaysApply, Thrust.Horizontal);
-            GetDehackedSound(entity, sound, out string? hitSound);
+            GetDehackedSound(sound, out string? hitSound);
             if (!string.IsNullOrEmpty(hitSound))
                 WorldStatic.SoundManager.CreateSoundOn(entity, hitSound, new SoundParams(entity));
         }
@@ -3262,7 +3262,7 @@ public static class EntityActionFunctions
             return;
         }
 
-        GetDehackedSound(entity, sound, out string? healSound);
+        GetDehackedSound(sound, out string? healSound);
         if (!WorldStatic.World.HealChase(entity, newFrame, healSound ?? string.Empty))
             A_Chase(entity);
     }
@@ -3431,7 +3431,7 @@ public static class EntityActionFunctions
         from.FrameState.SetState(from, newFrame);
     }
 
-    private static bool GetDehackedActorDefinition(Entity entity, int index, [NotNullWhen(true)] out EntityDefinition? def)
+    private static bool GetDehackedActorDefinition(int index, [NotNullWhen(true)] out EntityDefinition? def)
     {
         var dehacked = WorldStatic.World.ArchiveCollection.Definitions.DehackedDefinition;
         if (dehacked == null)
@@ -3458,15 +3458,16 @@ public static class EntityActionFunctions
         if (target != null)
             firePitch = entity.PitchTo(entity.Position, target);
 
-        Entity? createdEntity = WorldStatic.World.FireProjectile(entity, entity.AngleRadians, firePitch, Constants.EntityShootDistance, autoAim, projectileDef,
-            out Entity? autoAimEntity, addAngle: addAngle, addPitch: addPitch, zOffset: zOffset);
+        var createdEntity = WorldStatic.World.FireProjectile(entity, entity.AngleRadians, firePitch, Constants.EntityShootDistance, autoAim, projectileDef,
+            out var autoAimEntity, addAngle: addAngle, addPitch: addPitch, zOffset: zOffset);
         if (createdEntity == null)
             return null;
 
         if (offsetXY != 0)
         {
-            Vec2D offset = Vec2D.UnitCircle(entity.AngleRadians - MathHelper.HalfPi) * offsetXY;
-            createdEntity.Position = createdEntity.Position + offset.To3D(0);
+            var offset = Vec2D.UnitCircle(entity.AngleRadians - MathHelper.HalfPi);
+            createdEntity.Position.X += offset.X * offsetXY;
+            createdEntity.Position.Y += offset.Y * offsetXY;
         }
 
         createdEntity.SetTracer(autoAimEntity);
@@ -3513,13 +3514,13 @@ public static class EntityActionFunctions
 
     private static void PlayDehackedSound(Entity entity, int soundIndex, Attenuation attenuation, SoundChannel channel)
     {
-        if (!GetDehackedSound(entity, soundIndex, out string? soundName))
+        if (!GetDehackedSound(soundIndex, out string? soundName))
             return;
 
         WorldStatic.SoundManager.CreateSoundOn(entity, soundName, new SoundParams(entity, attenuation: attenuation, channel: channel));
     }
 
-    private static bool GetDehackedSound(Entity entity, int soundIndex, [NotNullWhen(true)] out string? soundName)
+    private static bool GetDehackedSound(int soundIndex, [NotNullWhen(true)] out string? soundName)
     {
         var dehacked = WorldStatic.World.ArchiveCollection.Definitions.DehackedDefinition;
         if (dehacked == null || !dehacked.GetSoundName(soundIndex, out soundName))
