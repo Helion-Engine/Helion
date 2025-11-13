@@ -59,6 +59,9 @@ internal static class WorldAllocator
         var profiler = new Profiler();
         var audioSystem = new MockAudioSystem();
 
+        if (!File.Exists(fileName))
+            throw new Exception($"The file {fileName} does not exist");
+
         string iwadFileName = IWadInfo.GetDefaultFileName(iwadType);
         if (!File.Exists(iwadFileName))
             File.Copy("Resources/dummy.wad", iwadFileName, true);

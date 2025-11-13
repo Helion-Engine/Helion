@@ -62,6 +62,7 @@
 - Fix A_CheckAmmo to not be inclusive.
 - Fix default args for A_MonsterBulletAttack, A_MonsterMeleeAttack, A_WeaponBulletAttack, and A_WeaponMeleeAttack.
 - Fix dehacked parser incorrectly clearing bits when encountering Bits2 and Bits3.
+- Fix teleport specials allowing player to be stuck above ceiling that keep height relative to floor (207-210, 268, and 269).
 
 ## Misc.
 - Updated .NET SDK to 10.0
