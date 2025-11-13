@@ -76,17 +76,18 @@ public struct TeleportSpecial
 
     public readonly bool Teleport()
     {
-        Entity entity = m_args.Entity;
-        if (!FindTeleportSpot(entity, out Vec3D pos, out double angle, out double offsetZ))
+        var entity = m_args.Entity;
+        if (!FindTeleportSpot(entity, out var pos, out double angle, out double offsetZ))
             return false;
 
         if (WorldStatic.FinalDoomTeleport)
             pos.Z = entity.Position.Z;
 
-        double zFromFloor = entity.Position.Z - entity.Sector.Floor.Z;
+        if (m_keepHeight)
+            offsetZ = entity.Position.Z - entity.Sector.Floor.Z;
 
-        bool isMonsterCloset = (entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0;
-        Vec3D oldPosition = entity.Position;
+        var isMonsterCloset = (entity.ClosetFlags & ClosetFlags.MonsterCloset) != 0;
+        var oldPosition = entity.Position;
         if (Teleport(entity, pos, angle, offsetZ))
         {
             if (!isMonsterCloset && (m_fogFlags & TeleportFog.Source) != 0)
@@ -94,12 +95,6 @@ public struct TeleportSpecial
 
             if ((m_fogFlags & TeleportFog.Dest) != 0)
                 m_world.CreateTeleportFog(entity);
-
-            if (m_keepHeight)
-            {
-                entity.Position.Z += zFromFloor;
-                entity.PrevPosition.Z = entity.Position.Z;
-            }
 
             return true;
         }
@@ -115,11 +110,11 @@ public struct TeleportSpecial
 
         entity.Flags.SetTeleported();
 
-        double oldAngle = entity.AngleRadians;
-        Vec3D oldPos = entity.Position;
+        var oldAngle = entity.AngleRadians;
+        var oldPos = entity.Position;
+        var player = entity.PlayerObj;
         entity.UnlinkFromWorld();
         entity.Position = pos;
-        Player? player = entity.PlayerObj;
 
         if (m_type == TeleportType.Doom)
         {
@@ -128,12 +123,11 @@ public struct TeleportSpecial
             entity.Velocity = Vec3D.Zero;
             entity.AngleRadians = teleportAngle;
 
-            if (player != null)
-                player.PitchRadians = 0;
+            player?.PitchRadians = 0;
         }
         else if (m_type == TeleportType.BoomCompat || m_type == TeleportType.BoomFixed)
         {
-            Line sourceLine = m_args.ActivateLineSpecial;
+            var sourceLine = m_args.ActivateLineSpecial;
 
             // Only use these calculations for Teleporting to a sector with teleport thing. For line teleport using the angle given.
             if (m_lineId == Line.NoLineId)
@@ -148,7 +142,7 @@ public struct TeleportSpecial
                 entity.AngleRadians = teleportAngle;
             }
 
-            Vec2D velocity = entity.Velocity.XY.Rotate(entity.AngleRadians - oldAngle);
+            var velocity = entity.Velocity.XY.Rotate(entity.AngleRadians - oldAngle);
             entity.Velocity.X = velocity.X;
             entity.Velocity.Y = velocity.Y;
         }
