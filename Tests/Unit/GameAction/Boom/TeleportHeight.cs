@@ -3,7 +3,6 @@ using Helion.Resources.IWad;
 using Helion.World.Entities.Players;
 using Helion.World.Impl.SinglePlayer;
 using System;
-using System.Security.Cryptography;
 using Xunit;
 
 namespace Helion.Tests.Unit.GameAction.Boom;
@@ -16,9 +15,7 @@ public class TeleportHeight
 
     public TeleportHeight()
     {
-        World = WorldAllocator.LoadMap("Resources/teleportheight.zip", "teleportheight.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2, cacheWorld: false);
-        var md5 = BitConverter.ToUInt128(MD5.Create().ComputeHash(System.IO.File.ReadAllBytes("Resources/teleportheight.zip")));
-        DebugLog($"md5 {md5}");
+        World = WorldAllocator.LoadMap("Resources/teleportheight.zip", "teleportheight.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
     }
 
     [Fact(DisplayName = "Action 208 - Teleport keeps height")]
@@ -38,28 +35,28 @@ public class TeleportHeight
         Player.Position.Z.Should().Be(126);
     }
 
-    //[Fact(DisplayName = "Action 208 - Teleport keeps height and correctly clamps below ceiling")]
-    //public void Action208_TeleportHeightCeiling()
-    //{
-    //    GameActions.SetEntityPosition(World, Player, (64, -256));
-    //    GameActions.PlayerRunForward(World, Player.AngleRadians, () => { return Player.Sector.Tag != 4; });
-    //    Player.Sector.Tag.Should().Be(4);
-    //    Player.Sector.Floor.Z.Should().Be(72);
-    //    Player.Velocity.Y.Should().BeApproximately(12.03, 2);
-    //    Player.Position.Z.Should().Be(72);
-    //}
+    [Fact(DisplayName = "Action 208 - Teleport keeps height and correctly clamps below ceiling")]
+    public void Action208_TeleportHeightCeiling()
+    {
+        GameActions.SetEntityPosition(World, Player, (64, -256));
+        GameActions.PlayerRunForward(World, Player.AngleRadians, () => { return Player.Sector.Tag != 4; });
+        Player.Sector.Tag.Should().Be(4);
+        Player.Sector.Floor.Z.Should().Be(72);
+        Player.Velocity.Y.Should().BeApproximately(12.03, 2);
+        Player.Position.Z.Should().Be(72);
+    }
 
-    //[Fact(DisplayName = "Action 269 - Monster keeps height")]
-    //public void Action269_TeleportHeightMonster()
-    //{
-    //    GameActions.SetEntityOutOfBounds(World, Player);
-    //    var caco = GameActions.CreateEntity(World, "Cacodemon", (-64, -176, 64));
-    //    caco.AngleRadians = GameActions.GetAngle(Bearing.North);
-    //    GameActions.MoveEntity(World, caco, 32);
-    //    caco.Sector.Tag.Should().Be(3);
-    //    caco.Sector.Floor.Z.Should().Be(0);
-    //    caco.Position.Z.Should().Be(128);
-    //}
+    [Fact(DisplayName = "Action 269 - Monster keeps height")]
+    public void Action269_TeleportHeightMonster()
+    {
+        GameActions.SetEntityOutOfBounds(World, Player);
+        var caco = GameActions.CreateEntity(World, "Cacodemon", (-64, -176, 64));
+        caco.AngleRadians = GameActions.GetAngle(Bearing.North);
+        GameActions.MoveEntity(World, caco, 32);
+        caco.Sector.Tag.Should().Be(3);
+        caco.Sector.Floor.Z.Should().Be(0);
+        caco.Position.Z.Should().Be(128);
+    }
 
     private static void DebugLog(string str)
     {
