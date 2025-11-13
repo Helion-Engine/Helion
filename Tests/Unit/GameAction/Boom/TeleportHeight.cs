@@ -24,6 +24,8 @@ public class TeleportHeight
     [Fact(DisplayName = "Action 208 - Teleport keeps height")]
     public void Action208_TeleportHeight()
     {
+        foreach (var archive in World.ArchiveCollection.AllArchives)
+            DebugLog($"Archive {archive.FullPath}");
         DebugLog($"Lines {World.Lines.Count}");
         DebugLog($"Sectors {World.Sectors.Count}");
         DebugLog($"Teleport line spec {World.Lines[8].Special.LineSpecialType}");
