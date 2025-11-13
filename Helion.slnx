@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Client/Client.csproj">
+    <BuildDependency Project="Core/Core.csproj" />
+  </Project>
+  <Project Path="Core/Core.csproj" />
+  <Project Path="Tests/Tests.csproj" />
+</Solution>
