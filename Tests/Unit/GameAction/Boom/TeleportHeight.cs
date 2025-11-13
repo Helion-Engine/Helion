@@ -15,7 +15,7 @@ public class TeleportHeight
 
     public TeleportHeight()
     {
-        World = WorldAllocator.LoadMap("Resources/teleportheight.zip", "teleportheight.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
+        World = WorldAllocator.LoadMap("Resources/silentteleport.zip", "silentteleport.WAD", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2);
     }
 
     [Fact(DisplayName = "Action 208 - Teleport keeps height")]
