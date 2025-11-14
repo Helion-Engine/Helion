@@ -20,9 +20,6 @@ public abstract class BufferObject<T> : IDisposable where T : struct
     public DynamicArray<T> Data;
     protected readonly int BufferId;
     protected bool Uploaded;
-    protected int m_dataVersion;
-    private IntPtr m_vboArrayPtr;
-    private GCHandle m_pinnedArray;
     private bool m_disposed;
 
     protected abstract BufferTarget Target { get; }
@@ -40,9 +37,6 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         Data = new DynamicArray<T>(capacity);
         Label = label;
         BufferId = GL.GenBuffer();
-        m_pinnedArray = GCHandle.Alloc(Data.Data, GCHandleType.Pinned);
-        m_vboArrayPtr = m_pinnedArray.AddrOfPinnedObject();
-        m_dataVersion = Data.Version;
 
         Bind();
         GLHelper.ObjectLabel(ObjectLabelIdentifier.Buffer, BufferId, $"{LabelPrefix}: {label}");
@@ -56,19 +50,6 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 
     protected abstract void PerformUpload();
     protected abstract void PerformUploadCapacity();
-
-    public IntPtr GetVboArray()
-    {
-        if (m_dataVersion != Data.Version)
-        {
-            m_pinnedArray.Free();
-            m_pinnedArray = GCHandle.Alloc(Data.Data, GCHandleType.Pinned);
-            m_vboArrayPtr = m_pinnedArray.AddrOfPinnedObject();
-            m_dataVersion = Data.Version;
-        }
-
-        return m_vboArrayPtr;
-    }
 
     public void Add(T element)
     {
@@ -151,7 +132,6 @@ public abstract class BufferObject<T> : IDisposable where T : struct
 
         GL.DeleteBuffer(BufferId);
         Data = null!; // Encourage the GC to collect things.
-        m_pinnedArray.Free();
 
         m_disposed = true;
     }
