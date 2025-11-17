@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using static Helion.Util.Assertion.Assert;
 
@@ -106,6 +107,18 @@ public class Palette
     /// range of [0, Count).</param>
     /// <returns>The palette layer.</returns>
     public Color[] Layer(int index) => layers[index];
+
+    public bool TryGetLayer(int index, [NotNullWhen(true)] out Color[]? colors)
+    {
+        if (index < 0 || index >= layers.Count)
+        {
+            colors = null;
+            return false;
+        }
+
+        colors = layers[index];
+        return true;
+    }
 
     /// <summary>
     /// Gets a default palette if one doesn't exist.
