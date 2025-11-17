@@ -11,14 +11,13 @@ public static class PaletteUtil
     // Loads the correct palette for the player and returns the black color from that palette.
     public static Color GetBlackColor(ArchiveCollection archiveCollection, IConfig config, Player player)
     {
-        var paletteIndex = GetPalette(config, player);
+        var paletteIndex = (int)GetPalette(config, player);
         var colormap = archiveCollection.Definitions.Colormaps[0].IndexLayer(0);
 
-        if (colormap.Length == 0)
+        if (!archiveCollection.Data.Palette.TryGetLayer(paletteIndex, out var palette) || colormap.Length == 0)
             return Color.Black;
 
         int index = colormap[0];
-        var palette = archiveCollection.Data.Palette.Layer((int)paletteIndex);
         if (index >= palette.Length)
             return Color.Black;
 
