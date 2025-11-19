@@ -48,6 +48,14 @@ public class FastSwitch : IDisposable
         InventoryUtil.AssertWeapon(Player.Weapon, "Fist");
         int ticks = World.Gametick - startTick;
         ticks.Should().Be(SwitchTicks);
+
+        Player.PendingWeapon.Should().BeNull();
+
+        for (int i = 0; i < 10; i++)
+        {
+            GameActions.TickWorld(World, 1);
+            Player.WeaponOffset.Y.Should().Be(Constants.WeaponTop);
+        }
     }
 
     [Fact(DisplayName = "Fast switch weapon and fire")]

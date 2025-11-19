@@ -1527,19 +1527,18 @@ public class Player : Entity
 
     public void BringupWeapon()
     {
-        if (PendingWeapon == null)
+        // The Weapon reference exists on clear inventory while lowering the weapon. Need to clear the reference if no longer owned.
+        if (PendingWeapon == null && Weapon != null && !Inventory.Weapons.OwnsWeapon(Weapon.Definition))
         {
-            PendingWeapon = Weapon;
-
-            // The Weapon reference exists on clear inventory while lowering the weapon. Need to clear the reference if no longer owned.
-            if (PendingWeapon != null && !Inventory.Weapons.OwnsWeapon(PendingWeapon.Definition))
-            {
-                PendingWeapon = null;
-                Weapon = null;
-                AnimationWeapon = null;
-            }
-            return;            
+            Weapon = null;
+            AnimationWeapon = null;
+            return;
         }
+
+        PendingWeapon ??= Weapon;
+
+        if (PendingWeapon == null)
+            return;
 
         if (PendingWeapon.Definition.Properties.Weapons.UpSound.Length > 0)
             WorldStatic.SoundManager.CreateSoundOn(this, PendingWeapon.Definition.Properties.Weapons.UpSound, new SoundParams(this, channel: SoundChannel.Weapon));
