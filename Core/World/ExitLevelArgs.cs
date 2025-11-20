@@ -36,6 +36,14 @@ public struct ExitLevelArgs
         };
     }
 
+    public static ExitLevelArgs LoadNewest()
+    {
+        return new ExitLevelArgs()
+        {
+            Type = LevelChangeType.LoadNewest
+        };
+    }
+
     public static ExitLevelArgs EndGame()
     {
         return new ExitLevelArgs()

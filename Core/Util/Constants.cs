@@ -239,6 +239,8 @@ public static class Constants
         public const string QuickSave = "QuickSave";
         [Input(InputType.Files)]
         public const string Load = "Load";
+        [Input(InputType.Files)]
+        public const string QuickLoad = "QuickLoad";
 
         // HUD and in-game UI
         [Input(InputType.HudAndUI)]
