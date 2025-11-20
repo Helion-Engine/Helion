@@ -1089,6 +1089,15 @@ public partial class Client
                     QueueLoadMap(world.MapInfo, m_lastWorldModel, world, e);
                     break;
 
+                case LevelChangeType.LoadNewest:
+                    m_lastWorldModel ??= LoadNewestSave();
+                    var mapInfo = GetMapInfo(m_lastWorldModel, world.MapInfo, out var error);
+                    if (mapInfo == null)
+                        Log.Error(error);
+                    else
+                        QueueLoadMap(mapInfo, m_lastWorldModel, world, e);
+                    break;
+
                 case LevelChangeType.SpecificMap:
                     Intermission(world, () => GetSpecificMap(world, e));
                     break;
@@ -1102,6 +1111,25 @@ public partial class Client
         {
             HandleFatalException(ex);
         }
+    }
+
+    private MapInfoDef? GetMapInfo(WorldModel? m_lastWorldModel, MapInfoDef mapInfo, out string error)
+    {
+        error = string.Empty;
+        if (m_lastWorldModel == null || m_lastWorldModel.MapName.EqualsIgnoreCase(mapInfo.MapName))
+            return mapInfo;
+
+        var result = m_archiveCollection.MapInfo.MapInfo.GetMap(m_lastWorldModel.MapName);
+        error = result.Error;
+        return result.MapInfo;
+    }
+
+    private WorldModel? LoadNewestSave()
+    {
+        var save = m_saveGameManager.GetSaveGames().FirstOrDefault();
+        if (save != null)
+            return save.ReadWorldModel();
+        return null;
     }
 
     private static FindMapResult GetEndGame(IWorld world)

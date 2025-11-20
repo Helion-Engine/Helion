@@ -1307,8 +1307,22 @@ public abstract partial class WorldBase : IWorld
         WorldState = WorldState.Exit;
         // The exit ticks thing is fudge. Change random to secondary to not break demos later.
         m_random = SecondaryRandom;
-        m_exitTicks = ExitTicks;
+        m_exitTicks = GetExitTicks(args);
         LevelExiting?.Invoke(this, EventArgs.Empty);
+    }
+
+    private static int GetExitTicks(ExitLevelArgs args)
+    {
+        switch(args.Type)
+        {
+            case LevelChangeType.LoadNewest:
+            case LevelChangeType.ResetOrLoadLast:
+            case LevelChangeType.Reset:
+            case LevelChangeType.SpecificLevel:
+                return 0;
+            default:
+                return ExitTicks;
+        }
     }
 
     public Entity[] GetBossTargets()

@@ -509,6 +509,9 @@ public class GameLayerManager : IGameLayerManager
         if (ConsumeCommandPressed(Constants.Input.QuickSave, input))
             _ = QuickSave();
 
+        if (ConsumeCommandPressed(Constants.Input.QuickLoad, input) && WorldLayer != null)
+            WorldLayer.World.ExitLevel(ExitLevelArgs.LoadNewest());
+
         if (ConsumeCommandPressed(Constants.Input.Load, input))
             GoToSaveOrLoadMenu(false);
 
