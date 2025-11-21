@@ -16,6 +16,7 @@ using Helion.World.Geometry.Sides;
 using Helion.World.Special;
 using Helion.World.Special.Specials;
 using Helion.World.Static;
+using System;
 using System.Collections.Generic;
 using static Helion.World.Entities.EntityManager;
 using Vector2D = Helion.Models.Vector2D;
@@ -34,6 +35,7 @@ public sealed class Sector
     public SectorPlane Ceiling;
     public Line[] Lines = [];
     public Line[] MidTex3DLines = [];
+    public DynamicArray<Sector3D> Sectors3D = new();
     public LinkableList<Entity> Entities = new();
     public DynamicArray<LinkableNode<Island>> BlockmapNodes = new();
     public int[] LineIds = [];
@@ -211,6 +213,20 @@ public sealed class Sector
 
     public short FloorRenderLightLevel => TransferFloorLightSector.Floor.LightLevel;
     public short CeilingRenderLightLevel => TransferCeilingLightSector.Ceiling.LightLevel;
+
+    public void SetLightLevels3D()
+    {
+        if (Sectors3D.Length == 0)
+            return;
+
+        Sectors3D.Sort(HeightCompare);
+        TransferFloorLightSector = Sectors3D[^1].Sector;
+    }
+
+    private int HeightCompare(Sector3D x, Sector3D y)
+    {
+        return y.Floor.Z.CompareTo(x.Floor.Z);
+    }
 
     public void SetFriction(double friction)
     {

@@ -43,6 +43,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Entity? Next;
     public Entity? Previous;
     public Line? MidTexLine;
+    public Sector3D? Sector3D;
 
     public Entity? RenderBlockNext;
     public Entity? RenderBlockPrevious;
@@ -85,6 +86,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Sector Sector;
     public Sector HighestFloorSector;
     public Sector LowestCeilingSector;
+    public Sector? CeilingSector3D;
     // Can be Sector or Entity
     public object HighestFloorObject;
     public object LowestCeilingObject;
@@ -954,6 +956,15 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
             highestWalk = GetHighestWalkEntity(tryMove, highestWalk, World.Lines[tryMove.IntersectMidTexLines[i]].GetMidTexEntity(World), maxStepHeight);
 
+        if (WorldStatic.Sector3D)
+        {
+            for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
+                highestWalk = GetHighestWalkEntitySector3D(tryMove, maxStepHeight, highestWalk, tryMove.IntersectSectors.Data[i]);
+
+            if (tryMove.Subsector != null)
+                highestWalk = GetHighestWalkEntitySector3D(tryMove, maxStepHeight, highestWalk, tryMove.Subsector.Sector);
+        }
+
         if (highestWalk != null && !highestWalk.Flags.ActLikeBridge() &&
             highestWalk.Position.Z + highestWalk.Height > tryMove.DropOffZ &&
             highestWalk.Position.Z + highestWalk.Height <= Position.Z)
@@ -963,6 +974,13 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             return false;
 
         return tryMove.HighestFloorZ - tryMove.DropOffZ <= maxStepHeight;
+    }
+
+    private Entity? GetHighestWalkEntitySector3D(TryMoveData tryMove, double maxStepHeight, Entity? highestWalk, Sector sector)
+    {
+        for (int j = 0; j < sector.Sectors3D.Length; j++)
+            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, sector.Sectors3D.Data[j].Entity, maxStepHeight);
+        return highestWalk;
     }
 
     private Entity? GetHighestWalkEntity(TryMoveData tryMove, Entity? highestWalk, Entity entity, double maxStepHeight)

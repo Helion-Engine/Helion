@@ -674,6 +674,22 @@ public sealed class SpecialManager : ITickable, IDisposable
         return spec;
     }
 
+    public void SetSectors3D()
+    {
+        var sectors3d = new HashSet<Sector>();
+        foreach (var line in m_world.Lines)
+        {
+            if (line.Special.LineSpecialType != ZDoomLineSpecialType.SectorSet3DFloor)
+                continue;
+
+            SetSector3DFloor(line, sectors3d);
+        }
+
+        WorldStatic.Sector3D = sectors3d.Count > 0;
+        foreach (var sector in sectors3d)
+            sector.SetLightLevels3D();
+    }
+
     public void StartInitSpecials(LevelStats levelStats, bool flagsOnly)
     {
         if (flagsOnly)
@@ -791,6 +807,35 @@ public sealed class SpecialManager : ITickable, IDisposable
                 SetSectorColorMap(line, true);
                 break;
         }
+    }
+
+    private void SetSector3DFloor(Line specialLine, HashSet<Sector> sectors3d)
+    {
+        var sectors = GetSectorsFromSpecialLine(specialLine);
+        for (int i = 0; i < sectors.Count; i++)
+        {
+            var sector = sectors.GetSector(i);
+            var lines = CreateSector3DLines(specialLine, sector);
+            sector.Sectors3D.Add(new Sector3D(m_world, specialLine.Front.Sector, lines));
+            sectors3d.Add(sector);
+        }
+    }
+
+    private static Line[] CreateSector3DLines(Line specialLine, Sector sector)
+    {
+        var lines = new Line[sector.Lines.Length];
+        for (int i = 0; i < sector.Lines.Length; i++)
+        {
+            var line = sector.Lines[i];
+            var middle = new Wall(specialLine.Front.Middle.TextureHandle, WallLocation.Middle);
+            var side = new Side(line.Front.Id, line.Front.Offset, line.Front.Upper, middle, line.Front.Lower, sector);
+            // Normalize so front is always the rendered side
+            var lineSeg = line.Segment;
+            if (line.Front.Sector == sector)
+                lineSeg = new(lineSeg.End, lineSeg.Start);
+            lines[i] = new Line(line.Id, lineSeg, side, null, default, LineSpecial.Default, default);
+        }
+        return lines;
     }
 
     private void CreateLineScroll(Line line, in Vec2D speed, ZDoomLineScroll lineScroll, bool bothSides)

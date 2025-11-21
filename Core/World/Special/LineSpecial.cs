@@ -77,6 +77,7 @@ public class LineSpecial
             case ZDoomLineSpecialType.ScrollTextureModel:
             case ZDoomLineSpecialType.ScrollUsingTextureOffsets:
             case ZDoomLineSpecialType.ScrollTextureModelBothSides:
+            case ZDoomLineSpecialType.SectorSet3DFloor:
                 flags.Activations = LineActivations.LevelStart;
                 break;
 

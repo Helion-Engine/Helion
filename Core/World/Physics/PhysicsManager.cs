@@ -3,6 +3,7 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
@@ -646,10 +647,35 @@ public sealed class PhysicsManager
                 return LineBlock.BlockContinue;    
         }
 
+        if (WorldStatic.Sector3D)
+        {
+            if (LineBlockSector3D(entity, tryMove, line.FrontSector))
+                return LineBlock.BlockContinue;
+
+            if (line.BackSector != null)
+            {
+                if (LineBlockSector3D(entity, tryMove, line.BackSector))
+                    return LineBlock.BlockContinue;
+            }
+        }
+
         if (opening.CanPassOrStepThrough(entity))
             return LineBlock.NoBlock;
 
         return LineBlock.BlockContinue;
+    }
+
+    private bool LineBlockSector3D(Entity entity, TryMoveData tryMove, Sector sector)
+    {
+        for (int i = 0; i < sector.Sectors3D.Count; i++)
+        {
+            var sector3d = sector.Sectors3D[i];
+            var sectorEntity = sector3d.GetSectorEntity3D();
+            if (BlocksEntityZ(entity, sectorEntity, tryMove, entity.OverlapsZ(sectorEntity)))
+                return true;
+        }
+
+        return false;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -809,8 +835,9 @@ public sealed class PhysicsManager
             }
         }
 
+        var canPass = entity.Flags.CanPass();
         // Only check against other entities if CanPass is set (height sensitive clip detection)
-        if (entity.Flags.CanPass() && !entity.Flags.NoClip())
+        if (!entity.Flags.NoClip())
         {
             m_canPassData.Entity = entity;
             m_canPassData.HighestFloorEntity = highestFloorEntity;
@@ -818,35 +845,57 @@ public sealed class PhysicsManager
             m_canPassData.EntityTopZ = entity.Position.Z + entity.Height;
             m_canPassData.HighestFloorZ = highestFloorZ;
             m_canPassData.LowestCeilZ = lowestCeilZ;
+            m_canPassData.CeilingSector3D = null;
             m_canPassData.ClampToLinkedSectors = clampToLinkedSectors;
 
             if (tryMove == null)
             {
                 // Get intersecting entities here - They are not stored in the entity because other entities can move around after this entity has linked
-                m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_canPassTraverseFunc);
+                if (canPass)
+                    m_world.BlockmapTraverser.EntityTraverse(entity.GetBox2D(), m_canPassTraverseFunc);
 
                 for (int i = entity.IntersectMidTexLines.Length - 1; i >= 0; i--)
                     CanPassTraverse(GetMidTexEntity(entity.IntersectMidTexLines[i]));
+
+                if (WorldStatic.Sector3D)
+                {
+                    for (int i = entity.IntersectSectors.Length - 1; i >= 0; i--)
+                        CanPassTraverseSector3D(entity.IntersectSectors.Data[i]);
+                }
             }
             else
             {
-                for (int i = tryMove.IntersectEntities2D.Length - 1; i >= 0; i--)
-                    CanPassTraverse(tryMove.IntersectEntities2D[i]);
+                if (canPass)
+                {
+                    for (int i = tryMove.IntersectEntities2D.Length - 1; i >= 0; i--)
+                        CanPassTraverse(tryMove.IntersectEntities2D[i]);
+                }
 
                 for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
                     CanPassTraverse(GetMidTexEntity(tryMove.IntersectMidTexLines[i]));
+
+                if (WorldStatic.Sector3D)
+                {
+                    for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
+                        CanPassTraverseSector3D(tryMove.IntersectSectors.Data[i]);
+                }
             }
+
+            if (WorldStatic.Sector3D)
+                CanPassTraverseSector3D(entity.Sector);
 
             highestFloorEntity = m_canPassData.HighestFloorEntity;
             lowestCeilingEntity = m_canPassData.LowestCeilingEntity;
             highestFloorZ = m_canPassData.HighestFloorZ;
             lowestCeilZ = m_canPassData.LowestCeilZ;
+            entity.CeilingSector3D = m_canPassData.CeilingSector3D;
         }
 
         entity.HighestFloorZ = highestFloorZ;
         entity.LowestCeilingZ = lowestCeilZ;
         entity.HighestFloorSector = highestFloor;
         entity.LowestCeilingSector = lowestCeiling;
+
 
         // Make checks inclusive to prioritize entity over sector. Otherwise this can cause issues with monsters on 3d bridges/midtex lines dropping of when they shouldn't.
         if (highestFloorEntity != null && highestFloorEntity.Position.Z + highestFloorEntity.Height >= highestFloor.Floor.Z)
@@ -858,6 +907,18 @@ public sealed class PhysicsManager
             entity.LowestCeilingObject = lowestCeilingEntity;
         else
             entity.LowestCeilingObject = lowestCeiling;
+    }
+
+    private void CanPassTraverseSector3D(Sector sector)
+    {
+        for (int i = 0; i < sector.Sectors3D.Count; i++)
+        {
+            var sector3d = sector.Sectors3D.Data[i];
+            var z = m_canPassData.LowestCeilZ;
+            CanPassTraverse(sector3d.GetSectorEntity3D());
+            if (m_canPassData.LowestCeilZ != z)
+                m_canPassData.CeilingSector3D = sector3d.Sector;
+        }
     }
 
     private GridIterationStatus CanPassTraverse(Entity intersectEntity)
@@ -912,7 +973,7 @@ public sealed class PhysicsManager
         else if (below)
         {
             // Same check as above but checking clipping the ceiling.
-            if ((clipped || m_canPassData.EntityTopZ <= intersectEntity.Position.Z) && intersectEntity.Position.Z < m_canPassData.LowestCeilZ)
+            if ((clipped || m_canPassData.EntityTopZ <= intersectEntity.Position.Z) && intersectEntity.Position.Z <= m_canPassData.LowestCeilZ)
             {
                 m_canPassData.LowestCeilingEntity = intersectEntity;
                 m_canPassData.LowestCeilZ = intersectEntity.Position.Z;
@@ -1256,6 +1317,8 @@ doneLinkToSectors:
             if (highFloorEntity.MidTexLine != null)
                 highFloorEntity = GetMidTexEntity(highFloorEntity.MidTexLine.Id);
 
+            if (WorldStatic.Sector3D)
+                tryMove.Subsector = m_world.ToSubsector(x, y);
             tryMove.HighestFloorZ = highFloorEntity.Position.Z + highFloorEntity.Height;
             tryMove.DropOffZ = entity.Sector.Floor.Z;
         }

@@ -607,7 +607,8 @@ public class GeometryRenderer : IDisposable
             RenderOneSided(side, isFrontSide, out _, out _, out _);
     }
 
-    public void RenderOneSided(Side side, bool isFront, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out GLLegacyTexture texture)
+    public void RenderOneSided(Side side, bool isFront, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out GLLegacyTexture texture,
+        Sector? renderSector = null, Sector? lightLevelSector = null)
     {
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
         side.LastRenderGametick = m_world.Gametick;
@@ -624,7 +625,8 @@ public class GeometryRenderer : IDisposable
         GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(side.Middle.TextureHandle);
         DynamicVertex[]? data = m_vertexLookup[side.Id];
 
-        var renderSector = side.Sector.GetRenderSector(m_transferHeightsView);
+        renderSector ??= side.Sector.GetRenderSector(m_transferHeightsView);
+        lightLevelSector ??= renderSector;
 
         SectorPlane floor = renderSector.Floor;
         SectorPlane ceiling = renderSector.Ceiling;
@@ -643,8 +645,8 @@ public class GeometryRenderer : IDisposable
 
         if (side.OffsetChanged || m_sectorChangedLine || data == null)
         {
-            int colorMapIndex = Renderer.GetColorMapBufferIndex(renderSector, LightBufferType.Wall);
-            int lightIndex = Renderer.GetLightBufferIndex(side, side.Middle, renderSector);
+            int colorMapIndex = Renderer.GetColorMapBufferIndex(lightLevelSector, LightBufferType.Wall);
+            int lightIndex = Renderer.GetLightBufferIndex(side, side.Middle, lightLevelSector);
             WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, ref wall, isFront: isFront);
             if (data == null)
                 data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle);
@@ -1387,7 +1389,7 @@ public class GeometryRenderer : IDisposable
     }
 
     public void RenderSectorFlats(Sector sector, SectorPlane flat, bool floor, bool renderFlood,
-        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
+        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, Sector? lightLevelSector = null)
     {
         if (sector.Id >= m_subsectors.Length)
         {
@@ -1398,11 +1400,12 @@ public class GeometryRenderer : IDisposable
 
         var subsectors = m_subsectors[sector.Id];
         var invalidatedLookup = floor ? m_floorVertexLookupInvalidated : m_ceilingVertexLookupInvalidated;
-        RenderFlat(subsectors, flat, floor, renderFlood, invalidatedLookup, out vertices, out skyVertices);
+        RenderFlat(subsectors, flat, floor, renderFlood, invalidatedLookup, out vertices, out skyVertices, lightLevelSector);
     }
 
     private void RenderFlat(DynamicArray<Subsector> subsectors, SectorPlane flat, bool floor, bool renderFlood,
-        BitArray flatInvalidatedVertexLookup, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
+        BitArray flatInvalidatedVertexLookup, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices,
+        Sector? lightLevelSector = null)
     {
         bool isSky = TextureManager.IsSkyTexture(flat.TextureHandle);
         GLLegacyTexture texture = m_glTextureManager.GetTexture(flat.TextureHandle);
@@ -1411,7 +1414,8 @@ public class GeometryRenderer : IDisposable
         bool flatChanged = FlatChanged(flat);
         var sector = subsectors[0].Sector;
         int id = sector.Id;
-        Sector renderSector = sector.GetRenderSector(m_transferHeightsView);
+        var renderSector = sector.GetRenderSector(m_transferHeightsView);
+        lightLevelSector ??= renderSector;
         var textureVector = new Vec2F(texture.Dimension.Vector.X, texture.Dimension.Vector.Y);
 
         bool invalidated = flatInvalidatedVertexLookup[id];
@@ -1433,7 +1437,7 @@ public class GeometryRenderer : IDisposable
                     if (floor && subsector.Flood && !flat.MidTextureHack)
                         continue;
 
-                    WorldTriangulator.HandleSubsector(m_world.BspTree, subsector, flat, textureVector, m_subsectorVertices,
+                    WorldTriangulator.HandleSubsector(m_world.BspTree, subsector, flat, floor, textureVector, m_subsectorVertices,
                         floor ? flat.Z : MaxSky);
                     ref var root = ref m_subsectorVertices.Data[0];
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
@@ -1461,14 +1465,14 @@ public class GeometryRenderer : IDisposable
 
                 if (floor)
                 {
-                    lightIndex = Renderer.GetLightBufferIndex(renderSector, SectorPlaneFace.Floor, LightBufferType.Floor);
-                    colorMapIndex = Renderer.GetColorMapBufferIndex(renderSector, LightBufferType.Floor);
+                    lightIndex = Renderer.GetLightBufferIndex(lightLevelSector, SectorPlaneFace.Floor, LightBufferType.Floor);
+                    colorMapIndex = Renderer.GetColorMapBufferIndex(lightLevelSector, LightBufferType.Floor);
                     lightPlane = sector.TransferFloorLightSector.Floor;
                 }
                 else
                 {
-                    lightIndex = Renderer.GetLightBufferIndex(renderSector, SectorPlaneFace.Floor, LightBufferType.Ceiling);
-                    colorMapIndex = Renderer.GetColorMapBufferIndex(renderSector, LightBufferType.Ceiling);
+                    lightIndex = Renderer.GetLightBufferIndex(lightLevelSector, SectorPlaneFace.Floor, LightBufferType.Ceiling);
+                    colorMapIndex = Renderer.GetColorMapBufferIndex(lightLevelSector, LightBufferType.Ceiling);
                     lightPlane = sector.TransferCeilingLightSector.Ceiling;
                 }
 
@@ -1482,7 +1486,7 @@ public class GeometryRenderer : IDisposable
                     if (!renderFlood && subsector.Flood && !flat.MidTextureHack)
                         continue;
 
-                    WorldTriangulator.HandleSubsector(m_world.BspTree, subsector, flat, textureVector, m_subsectorVertices);
+                    WorldTriangulator.HandleSubsector(m_world.BspTree, subsector, flat, floor, textureVector, m_subsectorVertices);
 
                     ref var root = ref m_subsectorVertices.Data[0];
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)

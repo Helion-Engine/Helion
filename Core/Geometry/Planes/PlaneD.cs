@@ -38,7 +38,7 @@ public struct PlaneD
         return -(D + (A * point.X) + (B * point.Y)) * m_inverseC;
     }
 
-    public bool Intersects(in Vec3D p, in Vec3D q, ref Vec3D intersect)
+    public readonly bool Intersects(in Vec3D p, in Vec3D q, ref Vec3D intersect)
     {
         Vec3D normal = (A, B, C);
         Vec3D delta = q - p;
@@ -48,6 +48,9 @@ public struct PlaneD
             return false;
 
         double t = -(normal.Dot(p) + D) / denominator;
+        if (t < 0.0 || t > 1.0)
+            return false;
+
         intersect = p + (t * delta);
         return true;
     }

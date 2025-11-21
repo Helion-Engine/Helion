@@ -45,6 +45,7 @@ public static class WorldStatic
     public static bool SectorFriction;
     public static bool BloodColor;
     public static bool MirrorCorpse;
+    public static bool Sector3D;
     public static EntityManager EntityManager = null!;
     public static WorldSoundManager SoundManager = null!;
     public static List<EntityFrame> Frames = null!;

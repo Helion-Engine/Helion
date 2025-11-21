@@ -12,7 +12,6 @@ using Helion.Util.Container;
 using Helion.World;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
-using Helion.World.Entities.Definition.Flags;
 using Helion.World.Geometry.Sectors;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -245,7 +244,7 @@ public class EntityRenderer : IDisposable
         var spriteRotation = spriteDef == null ? m_nullSpriteRotation : GetSpriteRotation(spriteDef, entity.FrameState.Frame.Frame, rotation, colorMapIndex);
         var texture = (spriteRotation.RenderStore as GLLegacyTexture) ?? m_textureManager.NullTexture;
         var brightmapTexture = spriteRotation.BrightmapRenderStore as GLLegacyTexture;
-        var sector = entity.Sector.GetRenderSector(m_transferHeightView);
+        var sector = entity.CeilingSector3D ?? entity.Sector.GetRenderSector(m_transferHeightView);
 
         int flipU;
         int offsetX = texture.Offset.X;

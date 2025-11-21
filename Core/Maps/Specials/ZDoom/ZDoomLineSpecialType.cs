@@ -162,7 +162,7 @@ public enum ZDoomLineSpecialType
     Unused53,
     Unused54,
     Unused55,
-    Unused56,
+    SectorSet3DFloor,
     Unused57,
     Unused58,
     Unused59,

@@ -191,7 +191,7 @@ public static class WorldTriangulator
         wall.PrevBottomZ = (float)prevBottomZ;
     }
 
-    public static unsafe void HandleSubsector(CompactBspTree bspTree, Subsector subsector, SectorPlane sectorPlane, in Vec2F textureVector,
+    public static unsafe void HandleSubsector(CompactBspTree bspTree, Subsector subsector, SectorPlane sectorPlane, bool floor, in Vec2F textureVector,
         DynamicArray<TriangulatedWorldVertex> verticesToPopulate, double overrideZ = int.MaxValue)
     {
         Precondition(subsector.SegCount >= 3, "Cannot render subsector when it's degenerate (should have 3+ edges)");
@@ -223,7 +223,7 @@ public static class WorldTriangulator
         int count = length - index;
         int add = 1;
 
-        if (sectorPlane.Facing == SectorPlaneFace.Floor)
+        if (floor)
         {
             edgeIndex = length - 1;
             add = -1;

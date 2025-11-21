@@ -1,68 +1,68 @@
-using System;
-using System.Collections.Generic;
 using Helion.Audio;
+using Helion.Dehacked;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
+using Helion.Graphics.Palettes;
 using Helion.Maps;
+using Helion.Maps.Components;
+using Helion.Maps.Shared;
+using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
+using Helion.Maps.Specials.Vanilla;
+using Helion.Maps.Specials.ZDoom;
+using Helion.Models;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Locks;
+using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.Definitions.MusInfo;
+using Helion.Resources.Definitions.SoundInfo;
+using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Container;
+using Helion.Util.Extensions;
+using Helion.Util.Loggers;
+using Helion.Util.Profiling;
 using Helion.Util.RandomGenerators;
+using Helion.Util.Timing;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
+using Helion.World.Cheats;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties.Components;
+using Helion.World.Entities.Definition.States;
+using Helion.World.Entities.Inventories;
+using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
+using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special;
-using static Helion.Util.Assertion.Assert;
-using Helion.Resources.Definitions.MapInfo;
-using Helion.Util.Container;
-using Helion.World.Entities.Definition;
-using Helion.Models;
-using Helion.Util.Timing;
-using Helion.World.Entities.Definition.Flags;
-using System.Linq;
-using Helion.Geometry.Boxes;
-using Helion.Geometry.Segments;
-using Helion.Geometry.Vectors;
-using Helion.World.Cheats;
-using Helion.World.Stats;
-using Helion.World.Entities.Inventories.Powerups;
-using Helion.World.Impl.SinglePlayer;
-using Helion.World.Util;
-using Helion.Resources.IWad;
-using Helion.Dehacked;
-using Helion.Util.Profiling;
-using Helion.World.Entities.Inventories;
-using Helion.Maps.Specials;
-using Helion.World.Entities.Definition.States;
 using Helion.World.Special.Specials;
 using Helion.World.Static;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
-using static Helion.Dehacked.DehackedDefinition;
-using Helion.Resources.Definitions.MusInfo;
-using Helion.Util.Extensions;
+using Helion.World.Stats;
+using Helion.World.Util;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Helion.Resources.Archives.Entries;
-using Helion.Maps.Specials.Vanilla;
-using Helion.Util.Loggers;
-using Helion.Graphics.Palettes;
-using Helion.Maps.Shared;
-using Helion.World.Geometry.Islands;
-using Helion.Maps.Specials.ZDoom;
-using Helion.Resources.Definitions.Compatibility;
-using Helion.Maps.Components;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using Helion.Resources.Definitions.SoundInfo;
+using static Helion.Dehacked.DehackedDefinition;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World;
 
@@ -287,6 +287,9 @@ public abstract partial class WorldBase : IWorld
             LevelStats.ItemCount = worldModel.ItemCount;
             LevelStats.SecretCount = worldModel.SecretCount;
         }
+
+        if (!SameAsPreviousMap)
+            SpecialManager.SetSectors3D();
     }
 
     private SpecialManager CreateSpecialManager(bool reuse)
@@ -615,6 +618,7 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.SectorFriction = false;
         WorldStatic.BloodColor = ArchiveCollection.Dehacked != null && ArchiveCollection.Dehacked.HasBloodColor;
         WorldStatic.MirrorCorpse = Config.Game.MirrorCorpse;
+        WorldStatic.Sector3D = false;
 
         if (WorldStatic.CheckedLines.Length < Lines.Count)
             WorldStatic.CheckedLines = new int[Lines.Count];
@@ -1647,16 +1651,16 @@ public abstract partial class WorldBase : IWorld
     public virtual Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage,
         HitScanOptions options = HitScanOptions.Default)
     {
-        Vec3D start = shooter.HitscanAttackPos;
-        Vec3D end = start + Vec3D.UnitSphere(angle, pitch) * distance;
-        Vec3D intersect = Vec3D.Zero;
+        var start = shooter.HitscanAttackPos;
+        var end = start + Vec3D.UnitSphere(angle, pitch) * distance;
+        var intersect = Vec3D.Zero;
 
-        BlockmapIntersect? bi = FireHitScan(shooter, start, end, angle, pitch, distance, damage, options,
+        var bi = FireHitScan(shooter, start, end, angle, pitch, distance, damage, options,
             ref intersect, out _);
 
         if (shooter.PlayerObj != null && (options & HitScanOptions.DrawRail) != 0)
         {
-            Vec3D railEnd = bi != null && bi.Value.GetIndex(out _) == IntersectType.Line ? intersect : end;
+            var railEnd = bi != null && bi.Value.GetIndex(out _) == IntersectType.Line ? intersect : end;
             shooter.PlayerObj.Tracers.AddTracer(PrimitiveRenderType.Rail, (start, railEnd), Gametick, (0.2f, 0.2f, 1), 35);
         }
 
@@ -1713,7 +1717,7 @@ public abstract partial class WorldBase : IWorld
         int length = intersections.Length;
         for (int i = 0; i < length; i++)
         {
-            ref BlockmapIntersect bi = ref data[i];
+            ref var bi = ref data[i];
             var isLine = bi.GetIndex(out var index) == IntersectType.Line;
             if (isLine)
             {
@@ -1784,6 +1788,26 @@ public abstract partial class WorldBase : IWorld
                     returnValue = bi;
                     break;
                 }
+
+                if (WorldStatic.Sector3D)
+                {
+                    if (SegBlockedBySector3D(line.FrontSector, start, end, ref intersect, out var plane))
+                    {
+                        returnValue = bi;
+                        if (plane != null)
+                            hitSector = front;
+                        break;
+                    }
+
+                    if (line.BackSector != null && SegBlockedBySector3D(line.BackSector, start, end, ref intersect, out plane))
+                    {
+                        returnValue = bi;
+                        if (plane != null)
+                            hitSector = front;
+                        break;
+                    }
+                }
+
                 continue;
             }
 
@@ -1814,6 +1838,66 @@ public abstract partial class WorldBase : IWorld
         }
 
         return returnValue;
+    }
+
+    private bool SegBlockedBySector3D(Sector sector, in Vec3D start, in Vec3D end, ref Vec3D intersect, out SectorPlane? plane)
+    {
+        Vec3D test = default;
+        Vec3D minHit = default;
+        plane = null;
+        SectorPlane? hitPlane = null;
+        var minDist = double.MaxValue;
+
+        for (int i = 0; i < sector.Sectors3D.Count; i++)
+        {
+            var sector3d = sector.Sectors3D[i];
+            if (sector3d.Floor.Z < intersect.Z && sector3d.Ceiling.Z > intersect.Z)
+                return true;
+
+            if (IntersectPlane3D(sector3d, sector, start, end, ref test, out var testPlane))
+            {
+                var distance = start.Distance(test);
+                if (distance < minDist)
+                {
+                    hitPlane = testPlane;
+                    minHit = test;
+                    minDist = distance;
+                }
+            }
+        }
+
+        if (minDist != double.MaxValue)
+        {
+            intersect = minHit;
+            plane = hitPlane;
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IntersectPlane3D(Sector3D sector3d, Sector sector, in Vec3D start, in Vec3D end, ref Vec3D interset, out SectorPlane? plane)
+    {
+        plane = null;
+        if (start.Z < sector3d.Floor.Z && sector3d.Floor.Plane.Intersects(start, end, ref interset) && PointInSector(sector, interset))
+        {
+            plane = sector3d.Floor;
+            return true;
+        }
+
+        if (start.Z > sector3d.Ceiling.Z && sector3d.Ceiling.Plane.Intersects(start, end, ref interset) && PointInSector(sector, interset))
+        {
+            plane = sector3d.Ceiling;
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool PointInSector(Sector sector, in Vec3D point)
+    {
+        var subsector = ToSubsector(point.X, point.Y);
+        return subsector.Sector == sector;
     }
 
     public virtual bool DamageEntity(Entity target, Entity? source, int damage, DamageType damageType,
@@ -2228,7 +2312,7 @@ public abstract partial class WorldBase : IWorld
             if (hitOneSidedLine)
                 return false;
 
-            return GetBlockmapTraversalPitch(intersections, sightPos, from, segLength, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
+            return GetBlockmapTraversalPitch(intersections, sightPos, endSightPos, from, segLength, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
         }
 
         // A lot of LOS checks on large maps will short early. Check the first sorted set, and then rest if it passes.
@@ -2239,7 +2323,7 @@ public abstract partial class WorldBase : IWorld
         if (hitOneSidedLine)
             return false;
 
-        if (GetBlockmapTraversalPitch(intersections, sightPos, from, sliceSegLength, ref topPitch, ref bottomPitch, out _, out _) == TraversalPitchStatus.Blocked)
+        if (GetBlockmapTraversalPitch(intersections, sightPos, endSightPos, from, sliceSegLength, ref topPitch, ref bottomPitch, out _, out _) == TraversalPitchStatus.Blocked)
             return false;
 
         seg = new Seg2D(seg.End, end);
@@ -2250,7 +2334,7 @@ public abstract partial class WorldBase : IWorld
 
         var slice = new Vec3D(sightPos.X + ((endSightPos.X - sightPos.X) * segTime), sightPos.Y + ((endSightPos.Y - sightPos.Y) * segTime),
             sightPos.Z + ((endSightPos.Z - sightPos.Z) * segTime));
-        return GetBlockmapTraversalPitch(intersections, slice, from, sliceSegLength, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
+        return GetBlockmapTraversalPitch(intersections, slice, endSightPos, from, sliceSegLength, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
     }
 
     private static bool TransferHeightsLineOfSightBlocked(Entity from, Entity to, TransferHeights heights)
@@ -2824,14 +2908,15 @@ public abstract partial class WorldBase : IWorld
 
         for (int i = 0; i < iterateTracers; i++)
         {
-            Seg2D seg = new(start.XY, (start + Vec3D.UnitSphere(setAngle, 0) * distance).XY);
+            var end = (start + Vec3D.UnitSphere(setAngle, 0) * distance);
+            Seg2D seg = new(start.XY, end.XY);
             var intersections = WorldStatic.Intersections;
             intersections.Clear();
             BlockmapTraverser.ShootTraverse(seg, intersections);
 
             double max = MaxPitch;
             double min = MinPitch;
-            var status = GetBlockmapTraversalPitch(intersections, start, shooter, distance, ref max, ref min, out pitch, out entity);
+            var status = GetBlockmapTraversalPitch(intersections, start, end, shooter, distance, ref max, ref min, out pitch, out entity);
             if (status == TraversalPitchStatus.PitchSet)
                 return true;
 
@@ -2850,7 +2935,7 @@ public abstract partial class WorldBase : IWorld
         PitchNotSet,
     }
 
-    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, Entity startEntity,
+    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, in Vec3D end, Entity startEntity,
         double segLength, ref double topPitch, ref double bottomPitch,
         out double pitch, out Entity? entity)
     {
@@ -2861,7 +2946,7 @@ public abstract partial class WorldBase : IWorld
         int length = intersections.Length;
         for (int i = 0; i < length; i++)
         {
-            ref BlockmapIntersect bi = ref data[i];
+            ref var bi = ref data[i];
 
             if (bi.GetIndex(out int index) == IntersectType.Line)
             {
@@ -2872,17 +2957,28 @@ public abstract partial class WorldBase : IWorld
                 if (line.FrontSector == line.BackSector)
                     continue;
 
-                if (line.FrontSector.Floor.Z == line.BackSector.Floor.Z && line.FrontSector.Ceiling.Z == line.BackSector.Ceiling.Z)
+                var segTimeLength = bi.SegTime * segLength;
+                if (WorldStatic.Sector3D)
+                {
+                    GetLineOfSightPitchBySectorLine3D(line.FrontSector, start, segTimeLength, ref topPitch, ref bottomPitch);
+                    if (line.BackSector != null)
+                        GetLineOfSightPitchBySectorLine3D(line.BackSector, start, segTimeLength, ref topPitch, ref bottomPitch);
+
+                    if (topPitch <= bottomPitch)
+                        return TraversalPitchStatus.Blocked;
+                }
+
+                if (line.BackSector != null && line.FrontSector.Floor.Z == line.BackSector.Floor.Z && line.FrontSector.Ceiling.Z == line.BackSector.Ceiling.Z)
                     continue;
 
                 var opening = PhysicsManager.GetLineOpening(line.FrontSector, line.BackSector!);
                 if (opening.FloorZ < opening.CeilingZ)
                 {
-                    double sectorPitch = start.Pitch(opening.FloorZ, bi.SegTime * segLength);
+                    var sectorPitch = start.Pitch(opening.FloorZ, segTimeLength);
                     if (sectorPitch > bottomPitch)
                         bottomPitch = sectorPitch;
 
-                    sectorPitch = start.Pitch(opening.CeilingZ, bi.SegTime * segLength);
+                    sectorPitch = start.Pitch(opening.CeilingZ, segTimeLength);
                     if (sectorPitch < topPitch)
                         topPitch = sectorPitch;
 
@@ -2896,12 +2992,14 @@ public abstract partial class WorldBase : IWorld
             }
             else if (startEntity.Index != index)
             {
+
+                var segTimeLength = bi.SegTime * segLength;
                 var currentEntity = DataCache.Entities[index];
-                double thingTopPitch = start.Pitch(currentEntity.Position.Z + currentEntity.Height, bi.SegTime * segLength);
+                var thingTopPitch = start.Pitch(currentEntity.Position.Z + currentEntity.Height, segTimeLength);
                 if (thingTopPitch < bottomPitch)
                     continue;
 
-                double thingBottomPitch = start.Pitch(currentEntity.Position.Z, bi.SegTime * segLength);
+                var thingBottomPitch = start.Pitch(currentEntity.Position.Z, segTimeLength);
                 if (thingBottomPitch > topPitch)
                     continue;
 
@@ -2921,7 +3019,52 @@ public abstract partial class WorldBase : IWorld
             }
         }
 
+        if (WorldStatic.Sector3D)
+        {
+            GetLineOfSightPitchByPlane3D(startEntity.Sector, start, end, default, ref topPitch, ref bottomPitch);
+            if (topPitch <= bottomPitch)
+                return TraversalPitchStatus.Blocked;
+        }
+
         return TraversalPitchStatus.PitchNotSet;
+    }
+
+    private static void GetLineOfSightPitchBySectorLine3D(Sector sector, in Vec3D start, double segLength, ref double topPitch, ref double bottomPitch)
+    {
+        for (int i = 0; i < sector.Sectors3D.Count; i++)
+        {
+            var sector3d = sector.Sectors3D[i];
+            if (start.Z > sector3d.Ceiling.Z)
+            {
+                var sectorPitch = start.Pitch(sector3d.Ceiling.Z, segLength);
+                if (sectorPitch > bottomPitch)
+                    bottomPitch = sectorPitch;
+            }
+
+            if (start.Z < sector3d.Floor.Z)
+            {
+                var sectorPitch = start.Pitch(sector3d.Floor.Z, segLength);
+                if (sectorPitch < topPitch)
+                    topPitch = sectorPitch;
+            }
+        }
+    }
+
+    private void GetLineOfSightPitchByPlane3D(Sector sector, in Vec3D start, in Vec3D end, Vec3D intersect, ref double topPitch, ref double bottomPitch)
+    {
+        if (SegBlockedBySector3D(sector, start, end, ref intersect, out var hitPlane))
+        {
+            if (hitPlane != null)
+            {
+                var sectorPitch = start.Pitch(hitPlane.Z, start.Distance(intersect));
+
+                if (hitPlane.Facing == SectorPlaneFace.Ceiling && sectorPitch > bottomPitch)
+                    bottomPitch = sectorPitch;
+
+                if (hitPlane.Facing == SectorPlaneFace.Floor && sectorPitch < topPitch)
+                    topPitch = sectorPitch;
+            }
+        }        
     }
 
     private bool IsSkyClipOneSided(Sector sector, double floorZ, double ceilingZ, in Vec3D intersect)
