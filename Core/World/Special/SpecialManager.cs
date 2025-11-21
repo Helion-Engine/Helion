@@ -812,11 +812,33 @@ public sealed class SpecialManager : ITickable, IDisposable
     private void SetSector3DFloor(Line specialLine, HashSet<Sector> sectors3d)
     {
         var sectors = GetSectorsFromSpecialLine(specialLine);
+        var sectorFlags = SectorFlags3D.None;
+        var type = (ZDoom3DFloorType)(specialLine.Args.Arg0 & 0x3);
+
+        switch(type)
+        {
+            case ZDoom3DFloorType.Solid:
+                sectorFlags |= SectorFlags3D.Solid;
+                break;
+            case ZDoom3DFloorType.Swimmable:
+                sectorFlags |= SectorFlags3D.Swim;
+                break;
+            case ZDoom3DFloorType.NonSolid:
+                break;
+        }
+
+        if ((specialLine.Args.Arg0 & (int)ZDoom3DFloorFlags.RenderInside) != 0)
+            sectorFlags |= SectorFlags3D.RenderInside;
+        if ((specialLine.Args.Arg0 & (int)ZDoom3DFloorFlags.VisibilityInvert) != 0)
+            sectorFlags |= SectorFlags3D.VisibilityInvert;
+        if ((specialLine.Args.Arg0 & (int)ZDoom3DFloorFlags.ShootabilityInvert) != 0)
+            sectorFlags |= SectorFlags3D.ShootabilityInvert;
+
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
             var lines = CreateSector3DLines(specialLine, sector);
-            sector.Sectors3D.Add(new Sector3D(m_world, specialLine.Front.Sector, lines));
+            sector.Sectors3D.Add(new Sector3D(m_world, specialLine.Front.Sector, lines, sectorFlags));
             sectors3d.Add(sector);
         }
     }
