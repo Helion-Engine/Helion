@@ -297,7 +297,10 @@ public partial class MapInfoDefinition
         if (item.Equals(MapLevelNumName, StringComparison.OrdinalIgnoreCase))
             mapDef.LevelNumber = parser.ConsumeInteger();
         else if (item.Equals(MapTitlePatchName, StringComparison.OrdinalIgnoreCase))
+        {
             mapDef.TitlePatch = parser.ConsumeString();
+            specifiedTitlePatch = true;
+        }
         else if (item.Equals(MapNextName, StringComparison.OrdinalIgnoreCase))
         {
             mapDef.Next = parser.ConsumeString();
