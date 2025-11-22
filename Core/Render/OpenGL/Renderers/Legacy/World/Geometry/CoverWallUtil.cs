@@ -69,6 +69,9 @@ public class CoverWallUtil
 
     private static Heights GetProjectHeights(Side side, WallLocation location)
     {
+        if (location == WallLocation.Middle3D)
+            return new Heights(0, 0);
+
         // Treat two-sided lines that block rendering as one-sided cover to prevent sprites from bleeding through.
         if (side.PartnerSide == null || RenderBlock.IsBlocked(side.Line))
             return new Heights(ProjectHeight, ProjectHeight);

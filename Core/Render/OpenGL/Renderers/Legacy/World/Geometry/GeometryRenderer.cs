@@ -661,7 +661,7 @@ public class GeometryRenderer : IDisposable
             RenderWorldData renderData = m_worldDataManager.GetRenderData(texture, m_program, GeometryType.Wall, brightmapTexture);
             renderData.Vbo.Add(data);
             if (m_vanillaRender)
-                m_worldDataManager.AddCoverWallVertices(side, data, WallLocation.Middle);
+                m_worldDataManager.AddCoverWallVertices(side, data, side.Middle.Location);
         }
         vertices = data;
     }

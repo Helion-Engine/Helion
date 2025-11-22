@@ -1,4 +1,6 @@
-﻿using Helion.Render.OpenGL.Buffer.Array.Vertex;
+﻿using Helion.Geometry.Vectors;
+using Helion.Render.OpenGL.Buffer.Array.Vertex;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky;
 using Helion.Render.OpenGL.Renderers.Legacy.World.Sky.Sphere;
 using Helion.Render.OpenGL.Shader;
@@ -15,14 +17,12 @@ using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Static;
+using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Portals.FloodFill;
-using System.Linq;
-using Helion.Geometry.Vectors;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
 
@@ -112,15 +112,15 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddTransferSector(sector);
 
             if ((sector.Floor.Dynamic & IgnoreFlags) == 0)
-                AddSectorPlane(sector, true);
+                AddSectorPlane(sector, SectorPlaneFace.Floor, true);
             if ((sector.Ceiling.Dynamic & IgnoreFlags) == 0)
-                AddSectorPlane(sector, false);
+                AddSectorPlane(sector, SectorPlaneFace.Ceiling, false);
 
             if (sector.IsMoving)
                 m_initMoveSectors.Add(sector);
 
-            if (sector.Sectors3D.Count > 0)
-                AddPlanes3D(sector);
+            if (sector.Sectors3D.Length > 0)
+                AddSectors3D(sector);
         }
 
         for (int i = 0; i < world.Lines.Count; i++)
@@ -160,18 +160,15 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void AddPlanes3D(Sector sector)
+    private void AddSectors3D(Sector sector)
     {
         var lastSector = sector;
         var saveTransfer = sector.TransferFloorLightSector;
-        for (int i = 0; i < sector.Sectors3D.Count; i++)
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-
-            // Ceiling
-            AddSectorPlane(sector, floor: false, flip: true, renderSector: sector3d.Sector, lightLevelSector: lastSector);
-            // Floor
-            AddSectorPlane(sector, floor: true, flip: true, renderSector: sector3d.Sector, lightLevelSector: sector3d.Sector);
+            AddSectorPlane(sector, SectorPlaneFace.Ceiling, floor: true, renderSector: sector3d.Sector, lightLevelSector: lastSector);
+            AddSectorPlane(sector, SectorPlaneFace.Floor, floor: false, renderSector: sector3d.Sector, lightLevelSector: sector3d.Sector);
 
             lastSector = sector3d.Sector;
             sector.TransferFloorLightSector = saveTransfer;
@@ -657,7 +654,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             bufferData.Data[i]?.FlushStruct();
     }
 
-    private void AddSectorPlane(Sector sector, bool floor, bool update = false, bool flip = false, 
+    private void AddSectorPlane(Sector sector, SectorPlaneFace face, bool floor, bool update = false, bool flip = false, 
         Sector? renderSector = null, Sector? lightLevelSector = null)
     {
         if ((floor && sector.Floor.NoRender) || (!floor && sector.Ceiling.NoRender))
@@ -665,11 +662,10 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         renderSector ??= sector.GetRenderSector(TransferHeightView.Middle);
         lightLevelSector ??= renderSector;
-        var renderPlane = floor ? renderSector.Floor : renderSector.Ceiling;
+        var renderPlane = face == SectorPlaneFace.Floor ? renderSector.Floor : renderSector.Ceiling;
         // Need to set to actual plane, not potential transfer heights plane.
-        var plane = floor ? sector.Floor : sector.Ceiling;
-        var planeDirection = flip ? !floor : floor;
-        m_geometryRenderer.RenderSectorFlats(sector, renderPlane, planeDirection, renderFlood: false, out var renderedVertices, out var renderedSkyVertices,
+        var plane = face == SectorPlaneFace.Floor ? sector.Floor : sector.Ceiling;
+        m_geometryRenderer.RenderSectorFlats(sector, renderPlane, floor, renderFlood: false, out var renderedVertices, out var renderedSkyVertices,
             lightLevelSector: lightLevelSector);
 
         AddSkyGeometry(null, WallLocation.None, plane, renderedSkyVertices, sector, update);
@@ -679,7 +675,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (sector.TransferHeights != null && m_coverFlatGeometry != null && (m_vanillaRender || (!m_vanillaRender && sector.Flood)))
         {
-            m_geometryRenderer.RenderSectorFlats(sector, renderPlane, planeDirection, renderFlood: true, out var coverFlatVertices, out _);
+            m_geometryRenderer.RenderSectorFlats(sector, renderPlane, floor, renderFlood: true, out var coverFlatVertices, out _);
             if (coverFlatVertices != null)
                 AddOrUpdateCoverFlatGeometry(sector, plane, coverFlatVertices);
         }
@@ -911,7 +907,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         else
             m_geometryRenderer.SetRenderCeiling(plane);
 
-        AddSectorPlane(sector, floor, true);
+        AddSectorPlane(sector, plane.Facing, floor, true);
         int lineCount = sector.Lines.Length;
         for (int i = 0; i < lineCount; i++)
         {
@@ -946,7 +942,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         e.Plane.Static.GeometryData = null;
         m_geometryRenderer.SetRenderMode(GeometryRenderMode.Dynamic, TransferHeightView.Middle);
-        AddSectorPlane(e.Plane.Sector, e.Plane.Facing == SectorPlaneFace.Floor, update: true);
+        AddSectorPlane(e.Plane.Sector, e.Plane.Facing, e.Plane.Facing == SectorPlaneFace.Floor, update: true);
     }
 
     private static bool ClearGeometryVertices(in StaticGeometryData data)

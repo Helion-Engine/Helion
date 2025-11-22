@@ -667,7 +667,7 @@ public sealed class PhysicsManager
 
     private bool LineBlockSector3D(Entity entity, TryMoveData tryMove, Sector sector)
     {
-        for (int i = 0; i < sector.Sectors3D.Count; i++)
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
             var sectorEntity = sector3d.GetSectorEntity3D();
@@ -911,9 +911,9 @@ public sealed class PhysicsManager
 
     private void CanPassTraverseSector3D(Sector sector)
     {
-        for (int i = 0; i < sector.Sectors3D.Count; i++)
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
-            var sector3d = sector.Sectors3D.Data[i];
+            var sector3d = sector.Sectors3D[i];
             var z = m_canPassData.LowestCeilZ;
             CanPassTraverse(sector3d.GetSectorEntity3D());
             if (m_canPassData.LowestCeilZ != z)

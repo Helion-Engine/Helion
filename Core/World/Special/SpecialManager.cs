@@ -676,18 +676,55 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     public void SetSectors3D()
     {
-        var sectors3d = new HashSet<Sector>();
+        var sectors3d = new List<Sector3D>();
+        var counts = new Dictionary<int, int>();
         foreach (var line in m_world.Lines)
         {
             if (line.Special.LineSpecialType != ZDoomLineSpecialType.SectorSet3DFloor)
                 continue;
 
-            SetSector3DFloor(line, sectors3d);
+            SetSector3DFloor(line, sectors3d, counts);
         }
 
         WorldStatic.Sector3D = sectors3d.Count > 0;
-        foreach (var sector in sectors3d)
+        if (sectors3d.Count == 0)
+            return;
+
+        foreach ((var sectorId, var count) in counts)
+        {
+            var sector = m_world.Sectors[sectorId];
+            sector.Sectors3D = new Sector3D[count];
+        }
+
+        sectors3d.Sort(SortBySectorId);
+        int lastSectorId = -1;
+        int index = 0;
+        for (int i= 0; i < sectors3d.Count; i++)
+        {
+            var sector3d = sectors3d[i];
+            var sector = m_world.Sectors[sector3d.TagSectorId];
+
+            if (sector.Id != lastSectorId)
+            {
+                lastSectorId = sector.Id;
+                index = 0;
+            }
+
+            if (sector.Sectors3D.Length > index)
+                sector.Sectors3D[index] = sector3d;
+            index++;
+        }
+        
+        foreach ((var sectorId, _) in counts)
+        {
+            var sector = m_world.Sectors[sectorId];
             sector.SetLightLevels3D();
+        }
+    }
+
+    private int SortBySectorId(Sector3D x, Sector3D y)
+    {
+        return x.Sector.Id.CompareTo(y.Sector.Id);
     }
 
     public void StartInitSpecials(LevelStats levelStats, bool flagsOnly)
@@ -809,7 +846,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         }
     }
 
-    private void SetSector3DFloor(Line specialLine, HashSet<Sector> sectors3d)
+    private void SetSector3DFloor(Line specialLine, List<Sector3D> sectors3d, Dictionary<int, int> counts)
     {
         var sectors = GetSectorsFromSpecialLine(specialLine);
         var sectorFlags = SectorFlags3D.None;
@@ -837,27 +874,12 @@ public sealed class SpecialManager : ITickable, IDisposable
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
-            var lines = CreateSector3DLines(specialLine, sector);
-            sector.Sectors3D.Add(new Sector3D(m_world, specialLine.Front.Sector, lines, sectorFlags));
-            sectors3d.Add(sector);
+            sectors3d.Add(new Sector3D(m_world, sector.Id, specialLine.Front.Sector, specialLine.Front.Middle.TextureHandle, sectorFlags));
+            if (counts.TryGetValue(sector.Id, out var count))
+                counts[sector.Id] = ++count;
+            else
+                counts[sector.Id] = 1;
         }
-    }
-
-    private static Line[] CreateSector3DLines(Line specialLine, Sector sector)
-    {
-        var lines = new Line[sector.Lines.Length];
-        for (int i = 0; i < sector.Lines.Length; i++)
-        {
-            var line = sector.Lines[i];
-            var middle = new Wall(specialLine.Front.Middle.TextureHandle, WallLocation.Middle);
-            var side = new Side(line.Front.Id, line.Front.Offset, line.Front.Upper, middle, line.Front.Lower, sector);
-            // Normalize so front is always the rendered side
-            var lineSeg = line.Segment;
-            if (line.Front.Sector == sector)
-                lineSeg = new(lineSeg.End, lineSeg.Start);
-            lines[i] = new Line(line.Id, lineSeg, side, null, default, LineSpecial.Default, default);
-        }
-        return lines;
     }
 
     private void CreateLineScroll(Line line, in Vec2D speed, ZDoomLineScroll lineScroll, bool bothSides)

@@ -6,4 +6,5 @@ public enum WallLocation
     Upper,
     Middle,
     Lower,
+    Middle3D
 }

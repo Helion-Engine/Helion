@@ -1848,7 +1848,7 @@ public abstract partial class WorldBase : IWorld
         SectorPlane? hitPlane = null;
         var minDist = double.MaxValue;
 
-        for (int i = 0; i < sector.Sectors3D.Count; i++)
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
             if (sector3d.Floor.Z < intersect.Z && sector3d.Ceiling.Z > intersect.Z)
@@ -3031,7 +3031,7 @@ public abstract partial class WorldBase : IWorld
 
     private static void GetLineOfSightPitchBySectorLine3D(Sector sector, in Vec3D start, double segLength, ref double topPitch, ref double bottomPitch)
     {
-        for (int i = 0; i < sector.Sectors3D.Count; i++)
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
             if (start.Z > sector3d.Ceiling.Z)
