@@ -9,6 +9,7 @@ using Helion.Resources.Definitions;
 using Helion.Util;
 using Helion.Util.Configs.Components;
 using Helion.Util.Container;
+using Helion.World.Blockmap;
 using Helion.World.Entities;
 using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
@@ -38,7 +39,7 @@ public sealed class Sector
     public Sector3D[] Sectors3D = [];
     public Sector3D[] TaggedSectors3D = [];
     public LinkableList<Entity> Entities = new();
-    public DynamicArray<LinkableNode<Island>> BlockmapNodes = new();
+    public DynamicArray<LinkableNode<DynamicIsland>> BlockmapNodes = new();
     public int[] LineIds = [];
     public Island Island = null!;
 

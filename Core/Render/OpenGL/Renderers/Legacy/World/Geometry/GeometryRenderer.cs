@@ -178,8 +178,8 @@ public class GeometryRenderer : IDisposable
                 subsectors.Add(subsector);
             }
 
-            if (m_drawnSides.Length < world.Sides.Count)
-                m_drawnSides = new int[world.Sides.Count];
+            if (m_drawnSides.Length < sideCount)
+                m_drawnSides = new int[sideCount];
         }
 
         m_drawnSides.ZeroArray();
@@ -408,29 +408,55 @@ public class GeometryRenderer : IDisposable
 
     // The set sector is optional for the transfer heights control sector.
     // This is so the LastRenderGametick can be set for both the sector and transfer heights sector.
-    private void RenderSectorFlats(Sector sector, Sector renderSector, Sector set)
+    private void RenderSectorFlats(Sector sectorForSubectors, Sector renderSector, Sector set)
     {
-        DynamicArray<Subsector> subsectors = m_subsectors[sector.Id];
-        sector.LastRenderGametick = m_world.Gametick;
-
-        double floorZ = renderSector.Floor.Z;
-        double prevFloorZ = renderSector.Floor.PrevZ;
-        double ceilingZ = renderSector.Ceiling.Z;
-        double prevCeilingZ = renderSector.Ceiling.PrevZ;
-
-        bool floorVisible = m_viewPosition.Z >= floorZ || m_prevViewPosition.Z >= prevFloorZ;
-        bool ceilingVisible = m_viewPosition.Z <= ceilingZ || m_prevViewPosition.Z <= prevCeilingZ;
-        if (floorVisible && (m_renderMode == GeometryRenderMode.All || !sector.IsFloorStatic))
+        var geometrySector = sectorForSubectors;
+        var sector3d = sectorForSubectors.Sector3D;
+        if (sector3d != null)
         {
-            sector.Floor.LastRenderGametick = m_world.Gametick;
-            set.Floor.LastRenderGametick = m_world.Gametick;
-            RenderFlat(subsectors, renderSector.Floor, renderSector.Floor, true, false, m_floorVertexLookupInvalidated, out _, out _);
+            geometrySector = sector3d.Sector;
+            sectorForSubectors = sector3d.ParentSector;
+            renderSector = sector3d.ControlSector;
         }
-        if (ceilingVisible && (m_renderMode == GeometryRenderMode.All || !sector.IsCeilingStatic))
+
+        var subsectors = m_subsectors[sectorForSubectors.Id];
+        set.LastRenderGametick = m_world.Gametick;
+
+        var floorZ = renderSector.Floor.Z;
+        var prevFloorZ = renderSector.Floor.PrevZ;
+        var ceilingZ = renderSector.Ceiling.Z;
+        var prevCeilingZ = renderSector.Ceiling.PrevZ;
+
+        var floorVisible = m_viewPosition.Z >= floorZ || m_prevViewPosition.Z >= prevFloorZ;
+        var ceilingVisible = m_viewPosition.Z <= ceilingZ || m_prevViewPosition.Z <= prevCeilingZ;
+        if (floorVisible && (m_renderMode == GeometryRenderMode.All || !geometrySector.IsFloorStatic))
         {
-            sector.Ceiling.LastRenderGametick = m_world.Gametick;
+            geometrySector.Floor.LastRenderGametick = m_world.Gametick;
+            set.Floor.LastRenderGametick = m_world.Gametick;
+            if (sector3d != null)
+            {
+                RenderFlat(subsectors, renderSector.Ceiling, sector3d.Floor, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    lightLevelSector: sector3d.ParentSector.GetLightSector3D(sector3d));
+            }
+            else
+            {
+                RenderFlat(subsectors, renderSector.Floor, renderSector.Floor, true, false, m_floorVertexLookupInvalidated, out _, out _);
+            }
+        }
+
+        if (ceilingVisible && (m_renderMode == GeometryRenderMode.All || !geometrySector.IsCeilingStatic))
+        {
+            geometrySector.Ceiling.LastRenderGametick = m_world.Gametick;
             set.Ceiling.LastRenderGametick = m_world.Gametick;
-            RenderFlat(subsectors, renderSector.Ceiling, renderSector.Ceiling, false, false, m_ceilingVertexLookupInvalidated, out _, out _);
+            if (sector3d != null)
+            {
+                RenderFlat(subsectors, renderSector.Floor, sector3d.Ceiling, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    lightLevelSector: sector3d.ControlSector);
+            }
+            else
+            {
+                RenderFlat(subsectors, renderSector.Ceiling, renderSector.Ceiling, floor: false, false, m_ceilingVertexLookupInvalidated, out _, out _);
+            }
         }
     }
 
@@ -485,6 +511,14 @@ public class GeometryRenderer : IDisposable
             Line line = sector.Lines[i];
             bool onFront = line.Segment.OnRight(pos2D);
             bool onBothSides = onFront != line.Segment.OnRight(prevPos2D);
+            bool sector3D = WorldStatic.Sector3D && sector.Sector3D != null;
+
+            if (sector3D)
+            {
+                if (onFront)
+                    RenderSectorSideWall(sector, line.Front, onFront);
+                continue;
+            }
 
             if (line.Back != null)
                 CheckFloodFillLine(line.Front, line.Back);
@@ -551,7 +585,12 @@ public class GeometryRenderer : IDisposable
         }
 
         if (m_renderMode == GeometryRenderMode.All || side.IsDynamic)
-            RenderSide(side, onFrontSide);
+        {
+            if (sector.Sector3D != null)
+                RenderOneSided(side, onFrontSide, out _, out _, out _, renderSector: sector.Sector3D.ControlSector, lightLevelSector: sector.Sector3D.ParentSector);
+            else
+                RenderSide(side, onFrontSide);
+        }
 
         // Restore to original sector
         if (transferHeights)
@@ -611,6 +650,9 @@ public class GeometryRenderer : IDisposable
         Sector? renderSector = null, Sector? lightLevelSector = null)
     {
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
+        if (renderSector != null)
+            m_sectorChangedLine = renderSector.CheckRenderingChanged(side.LastRenderGametick);
+
         side.LastRenderGametick = m_world.Gametick;
 
         bool invalidated = m_vertexLookupInvalidated[side.Id];

@@ -53,9 +53,8 @@ public class BlockMap
     public BlockLineIndices[] Lines = [];
 
     public Entity?[] HeadRenderEntities = [];
-    public LinkableList<Island>[] Sectors = [];
-    public LinkableList<Island>[] DynamicSectors = [];
-    public LinkableList<Island>[] DynamicSectors3D = [];
+    public LinkableList<DynamicIsland>[] Sectors = [];
+    public LinkableList<DynamicIsland>[] DynamicSectors = [];
     public DynamicArray<Side>[] DynamicSides = [];
 
     public BlockMap(IList<Line> lines, int blockDimension)
@@ -96,9 +95,8 @@ public class BlockMap
         TotalBlocks = Width * Height;
 
         HeadRenderEntities = new Entity[TotalBlocks];
-        Sectors = new LinkableList<Island>[TotalBlocks];
-        DynamicSectors = new LinkableList<Island>[TotalBlocks];
-        DynamicSectors3D = new LinkableList<Island>[TotalBlocks];
+        Sectors = new LinkableList<DynamicIsland>[TotalBlocks];
+        DynamicSectors = new LinkableList<DynamicIsland>[TotalBlocks];
         DynamicSides = new DynamicArray<Side>[TotalBlocks];
     }
 
@@ -274,7 +272,7 @@ public class BlockMap
         if (sector.Id >= world.Geometry.IslandGeometry.SectorIslands.Length)
             return;
 
-        LinkInternal(world, sector, sector.Id, DynamicSectors);
+        LinkInternal(world, sector, sector.Id);
     }
 
     public void LinkDynamic(IWorld world, Sector3D sector3d)
@@ -284,10 +282,10 @@ public class BlockMap
         if (sector3d.ParentSectorId >= world.Geometry.IslandGeometry.SectorIslands.Length)
             return;
 
-        LinkInternal(world, sector3d.Sector, sector3d.ParentSectorId, DynamicSectors);
+        LinkInternal(world, sector3d.Sector, sector3d.ParentSectorId);
     }
 
-    private void LinkInternal(IWorld world, Sector sector, int sectorId, LinkableList<Island>[] list)
+    private void LinkInternal(IWorld world, Sector sector, int sectorId)
     {
         var islands = world.Geometry.IslandGeometry.SectorIslands[sectorId];
         foreach (var sectorIsland in islands)
@@ -300,10 +298,10 @@ public class BlockMap
                 for (int bx = it.BlockStartX; bx <= it.BlockEndX; bx++)
                 {
                     int index = by * it.Width + bx;
-                    var node = world.DataCache.GetLinkableNodeIsland(sectorIsland);
+                    var node = world.DataCache.GetLinkableNodeIsland(new (sector, sectorIsland));
 
-                    list[index] ??= new();
-                    list[index].Add(node);
+                    DynamicSectors[index] ??= new();
+                    DynamicSectors[index].Add(node);
 
                     sector.BlockmapNodes.Add(node);
                 }
@@ -329,7 +327,7 @@ public class BlockMap
                     var index = by * it.Width + bx;
 
                     Sectors[index] ??= new();
-                    Sectors[index].Add(new() { Value = sectorIsland });
+                    Sectors[index].Add(new() { Value = new(sector, sectorIsland) });
                 }
             }
         }

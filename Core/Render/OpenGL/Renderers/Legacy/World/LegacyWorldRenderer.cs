@@ -206,7 +206,7 @@ public class LegacyWorldRenderer : WorldRenderer
 
         for (var islandNode = sectorList.Head; islandNode != null; islandNode = islandNode.Next)
         {
-            var sectorIsland = islandNode.Value;
+            var sectorIsland = islandNode.Value.Island;
             if (sectorIsland.BlockmapCount == m_renderData.CheckCount)
                 continue;
 
@@ -214,7 +214,7 @@ public class LegacyWorldRenderer : WorldRenderer
             if (sectorIsland.ParentIsland != null && sectorIsland.ParentIsland != m_renderData.ViewIsland)
                 continue;
 
-            var sector = world.Sectors[sectorIsland.SectorId];
+            var sector = islandNode.Value.Sector;
             if (sector.CheckCount == m_renderData.CheckCount)
                 continue;
 

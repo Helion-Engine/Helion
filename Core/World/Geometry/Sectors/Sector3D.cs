@@ -79,7 +79,7 @@ public class Sector3D
             var lineSeg = line.Segment;
             if (line.Front.Sector == sector)
                 lineSeg = new(lineSeg.End, lineSeg.Start);
-            lines[i] = new Line(world.Geometry.CreateNewLineId(), lineSeg, side, null, default, LineSpecial.Default, default);
+            lines[i] = new Line(line.Id, lineSeg, side, null, default, LineSpecial.Default, default);
         }
         return lines;
     }
