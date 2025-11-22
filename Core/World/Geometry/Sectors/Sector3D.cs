@@ -23,7 +23,7 @@ public enum SectorFlags3D
 
 public class Sector3D
 {
-    public int TagSectorId;
+    public int ParentSectorId;
     public int SectorId;
     public Sector ParentSector;
     public Sector ControlSector;
@@ -35,14 +35,17 @@ public class Sector3D
     public Entity Entity;
     public SectorFlags3D Flags;
 
-    public Sector3D(IWorld world, int tagSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags)
+    public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags)
     {
         SectorId = world.Geometry.CreateNewSectorId();
-        TagSectorId = tagSectorId;
+        ParentSectorId = parentSectorId;
         Floor = new(SectorPlaneFace.Floor, 0, 0, 0);
         Ceiling = new(SectorPlaneFace.Ceiling, 0, 0, 0);
-        Sector = new(SectorId, 0, 0, Floor, Ceiling, default, default);
-        Sector.Lines = CreateSector3DLines(world, world.Sectors[tagSectorId], textureHandle);
+        Sector = new(SectorId, 0, 0, Floor, Ceiling, default, default)
+        {
+            Sector3D = this,
+            Lines = CreateSector3DLines(world, world.Sectors[parentSectorId], textureHandle)
+        };
         ParentSector = parentSector;
         ControlSector = controlSector;
         ControlCeiling = controlSector.Ceiling;

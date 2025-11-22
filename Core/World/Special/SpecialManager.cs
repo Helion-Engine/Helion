@@ -702,7 +702,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         for (int i= 0; i < sectors3d.Count; i++)
         {
             var sector3d = sectors3d[i];
-            var sector = m_world.Sectors[sector3d.TagSectorId];
+            var sector = m_world.Sectors[sector3d.ParentSectorId];
 
             if (sector.Id != lastSectorId)
             {
@@ -724,7 +724,7 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     private int SortBySectorId(Sector3D x, Sector3D y)
     {
-        return x.TagSectorId.CompareTo(y.TagSectorId);
+        return x.ParentSectorId.CompareTo(y.ParentSectorId);
     }
 
     public void StartInitSpecials(LevelStats levelStats, bool flagsOnly)

@@ -114,11 +114,18 @@ public class StaticDataApplier
         if ((face & SectorPlanes.Ceiling) != 0)
             sector.Ceiling.Dynamic |= sectorDynamic;
 
-        if (sector.BlockmapNodes.Length == 0 && (sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
-            world.RenderBlockmap.LinkDynamic(world, sector);
+        if (sector.Sector3D == null)
+        {
+            if (sector.BlockmapNodes.Length == 0 && (sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
+                world.RenderBlockmap.LinkDynamic(world, sector);
+        }
+        else if (sector.Sector3D.Sector.BlockmapNodes.Length == 0 && (sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
+        {
+            world.RenderBlockmap.LinkDynamic(world, sector.Sector3D);
+        }
 
         if (sectorDynamic == SectorDynamic.Movement)
-            SetSectorDynamicMovement(world, sector);
+            SetSectorDynamicMovement(sector);
         else if (sectorDynamic == SectorDynamic.TransferHeights)
             SetSectorTransferHeights(sector);
     }
@@ -135,7 +142,7 @@ public class StaticDataApplier
         }
     }
 
-    private static void SetSectorDynamicMovement(WorldBase world, Sector sector)
+    private static void SetSectorDynamicMovement(Sector sector)
     {
         for (int i = 0; i < sector.Lines.Length; i++)
             SetDynamicMovement(sector.Lines[i]);

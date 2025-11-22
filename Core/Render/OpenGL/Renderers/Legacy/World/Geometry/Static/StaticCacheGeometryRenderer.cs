@@ -175,7 +175,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddSectorPlane(sector3d.ParentSector, SectorPlaneFace.Ceiling, floor: true, update: update, renderSector: sector3d.ControlSector, 
                 lightLevelSector: sector3d.ParentSector.GetLightSector3D(sector3d), geometryPlane: sector3d.Floor);
 
-        if ((planes & SectorPlanes.Floor) != 0)
+        if ((planes & SectorPlanes.Ceiling) != 0)
             AddSectorPlane(sector3d.ParentSector, SectorPlaneFace.Floor, floor: false, update: update, renderSector: sector3d.ControlSector,
                 lightLevelSector: sector3d.ControlSector, geometryPlane: sector3d.Ceiling);
 
@@ -184,6 +184,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         foreach (var sectorLine in sector3d.Sector.Lines)
         {
             var useSide = sectorLine.Front;
+            var dynamic = useSide.IsDynamic || sector3d.ControlSector.IsMoving;
+            if (dynamic && (sector3d.ControlSector.Floor.Dynamic == SectorDynamic.Movement || sector3d.ControlSector.Ceiling.Dynamic == SectorDynamic.Movement))
+                return;
+
             m_geometryRenderer.SetRenderOneSided(useSide);
             m_geometryRenderer.RenderOneSided(useSide, true, out var sideVertices, out _, out var texture,
                 renderSector: sector3d.ControlSector, lightLevelSector: sector3d.ParentSector);
@@ -690,7 +694,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (update)
         {
-            UpdateVertices(geometryPlane.Static.GeometryData, renderPlane.TextureHandle, plane.Static.Index,
+            UpdateVertices(geometryPlane.Static.GeometryData, renderPlane.TextureHandle, geometryPlane.Static.Index,
                 renderedVertices, plane, null, null, true);
             return;
         }
@@ -939,8 +943,13 @@ public class StaticCacheGeometryRenderer : IDisposable
                 line.Front.Sector.GetRenderSector(TransferHeightView.Middle), true);
         }
 
+        var face = plane.Facing == SectorPlaneFace.Floor ? SectorPlaneFace.Ceiling : SectorPlaneFace.Floor;
         for (int i = 0; i < plane.Sector.TaggedSectors3D.Length; i++)
-            AddSector3D(plane.Sector.TaggedSectors3D[i], plane.Facing.ToSectorPlanes(), true);
+        {
+            var sector3d = plane.Sector.TaggedSectors3D[i];
+            HandleSectorMoveComplete(world, plane.Sector, sector3d.Sector.GetSectorPlane(face));
+            AddSector3D(sector3d, face.ToSectorPlanes(), true);
+        }
     }
 
     private void World_SideTextureChanged(object? sender, SideTextureEvent e)

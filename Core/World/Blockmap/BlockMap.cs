@@ -55,6 +55,7 @@ public class BlockMap
     public Entity?[] HeadRenderEntities = [];
     public LinkableList<Island>[] Sectors = [];
     public LinkableList<Island>[] DynamicSectors = [];
+    public LinkableList<Island>[] DynamicSectors3D = [];
     public DynamicArray<Side>[] DynamicSides = [];
 
     public BlockMap(IList<Line> lines, int blockDimension)
@@ -97,6 +98,7 @@ public class BlockMap
         HeadRenderEntities = new Entity[TotalBlocks];
         Sectors = new LinkableList<Island>[TotalBlocks];
         DynamicSectors = new LinkableList<Island>[TotalBlocks];
+        DynamicSectors3D = new LinkableList<Island>[TotalBlocks];
         DynamicSides = new DynamicArray<Side>[TotalBlocks];
     }
 
@@ -272,7 +274,22 @@ public class BlockMap
         if (sector.Id >= world.Geometry.IslandGeometry.SectorIslands.Length)
             return;
 
-        var islands = world.Geometry.IslandGeometry.SectorIslands[sector.Id];
+        LinkInternal(world, sector, sector.Id, DynamicSectors);
+    }
+
+    public void LinkDynamic(IWorld world, Sector3D sector3d)
+    {
+        Assert.Precondition(sector3d.Sector.BlockmapNodes.Length == 0, "Forgot to unlink sector from blockmap");
+
+        if (sector3d.ParentSectorId >= world.Geometry.IslandGeometry.SectorIslands.Length)
+            return;
+
+        LinkInternal(world, sector3d.Sector, sector3d.ParentSectorId, DynamicSectors);
+    }
+
+    private void LinkInternal(IWorld world, Sector sector, int sectorId, LinkableList<Island>[] list)
+    {
+        var islands = world.Geometry.IslandGeometry.SectorIslands[sectorId];
         foreach (var sectorIsland in islands)
         {
             if (sectorIsland.IsVooDooCloset || sectorIsland.IsMonsterCloset)
@@ -285,9 +302,9 @@ public class BlockMap
                     int index = by * it.Width + bx;
                     var node = world.DataCache.GetLinkableNodeIsland(sectorIsland);
 
-                    DynamicSectors[index] ??= new();
-                    DynamicSectors[index].Add(node);
-                    
+                    list[index] ??= new();
+                    list[index].Add(node);
+
                     sector.BlockmapNodes.Add(node);
                 }
             }
@@ -296,6 +313,9 @@ public class BlockMap
 
     public void Link(IWorld world, Sector sector)
     {
+        if (sector.Id >= world.Geometry.IslandGeometry.SectorIslands.Length)
+            return;
+
         var islands = world.Geometry.IslandGeometry.SectorIslands[sector.Id];
         foreach (var sectorIsland in islands)
         {

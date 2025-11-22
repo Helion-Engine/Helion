@@ -78,6 +78,7 @@ public sealed class Sector
     public bool Flood;
     public bool Silent;
     public bool NoAttack;
+    public Sector3D? Sector3D;
     public int ActivatedByLineId = -1;
     public WeakEntity SoundTarget = WeakEntity.Default;
     public InstantKillEffect KillEffect;
