@@ -119,7 +119,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (sector.IsMoving)
                 m_initMoveSectors.Add(sector);
 
-            AddPlanes3D(sector);
+            if (sector.Sectors3D.Count > 0)
+                AddPlanes3D(sector);
         }
 
         for (int i = 0; i < world.Lines.Count; i++)
