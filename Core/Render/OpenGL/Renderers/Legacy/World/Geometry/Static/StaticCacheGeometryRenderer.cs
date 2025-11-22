@@ -167,10 +167,10 @@ public class StaticCacheGeometryRenderer : IDisposable
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            AddSectorPlane(sector, SectorPlaneFace.Ceiling, floor: true, renderSector: sector3d.Sector, lightLevelSector: lastSector);
-            AddSectorPlane(sector, SectorPlaneFace.Floor, floor: false, renderSector: sector3d.Sector, lightLevelSector: sector3d.Sector);
+            AddSectorPlane(sector, SectorPlaneFace.Ceiling, floor: true, renderSector: sector3d.ControlSector, lightLevelSector: lastSector, geometryPlane: sector3d.Floor);
+            AddSectorPlane(sector, SectorPlaneFace.Floor, floor: false, renderSector: sector3d.ControlSector, lightLevelSector: sector3d.ControlSector, geometryPlane: sector3d.Ceiling);
 
-            lastSector = sector3d.Sector;
+            lastSector = sector3d.ControlSector;
             sector.TransferFloorLightSector = saveTransfer;
 
             foreach (var sectorLine in sector3d.Lines)
@@ -178,7 +178,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 var useSide = sectorLine.Front;
                 m_geometryRenderer.SetRenderOneSided(useSide);
                 m_geometryRenderer.RenderOneSided(useSide, true, out var sideVertices, out var skyVertices, out var texture, 
-                    renderSector: sector3d.Sector, lightLevelSector: sector);
+                    renderSector: sector3d.ControlSector, lightLevelSector: sector);
 
                 if (sideVertices != null)
                 {
@@ -654,8 +654,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             bufferData.Data[i]?.FlushStruct();
     }
 
-    private void AddSectorPlane(Sector sector, SectorPlaneFace face, bool floor, bool update = false, bool flip = false, 
-        Sector? renderSector = null, Sector? lightLevelSector = null)
+    private void AddSectorPlane(Sector sector, SectorPlaneFace face, bool floor, bool update = false, 
+        Sector? renderSector = null, Sector? lightLevelSector = null, SectorPlane? geometryPlane = null)
     {
         if ((floor && sector.Floor.NoRender) || (!floor && sector.Ceiling.NoRender))
             return;
@@ -665,6 +665,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         var renderPlane = face == SectorPlaneFace.Floor ? renderSector.Floor : renderSector.Ceiling;
         // Need to set to actual plane, not potential transfer heights plane.
         var plane = face == SectorPlaneFace.Floor ? sector.Floor : sector.Ceiling;
+        geometryPlane ??= plane;
         m_geometryRenderer.RenderSectorFlats(sector, renderPlane, floor, renderFlood: false, out var renderedVertices, out var renderedSkyVertices,
             lightLevelSector: lightLevelSector);
 
@@ -690,9 +691,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         var vertices = GetTextureVertices(GeometryType.Flat, renderPlane.TextureHandle, true);
         if (m_textureToGeometryLookup.TryGetValue(GeometryType.Flat, renderPlane.TextureHandle, true, out var geometryData))
         {
-            plane.Static.GeometryData = geometryData;
-            plane.Static.Index = vertices.Length;
-            plane.Static.Length = renderedVertices.Length;
+            geometryPlane.Static.GeometryData = geometryData;
+            geometryPlane.Static.Index = vertices.Length;
+            geometryPlane.Static.Length = renderedVertices.Length;
         }
 
         AddVertices(vertices, renderedVertices);

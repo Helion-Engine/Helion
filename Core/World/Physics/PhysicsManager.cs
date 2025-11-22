@@ -917,7 +917,7 @@ public sealed class PhysicsManager
             var z = m_canPassData.LowestCeilZ;
             CanPassTraverse(sector3d.GetSectorEntity3D());
             if (m_canPassData.LowestCeilZ != z)
-                m_canPassData.CeilingSector3D = sector3d.Sector;
+                m_canPassData.CeilingSector3D = sector3d.ControlSector;
         }
     }
 

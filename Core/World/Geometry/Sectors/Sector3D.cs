@@ -4,6 +4,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Special;
+using Helion.World.Static;
 using System;
 
 namespace Helion.World.Geometry.Sectors;
@@ -23,20 +24,29 @@ public enum SectorFlags3D
 public class Sector3D
 {
     public int TagSectorId;
+    public int SectorId;
+    public Sector ControlSector;
+    public SectorPlane ControlCeiling;
+    public SectorPlane ControlFloor;
     public Sector Sector;
-    public SectorPlane Ceiling;
     public SectorPlane Floor;
+    public SectorPlane Ceiling;
     public Line[] Lines;
     public Entity Entity;
     public SectorFlags3D Flags;
+    public StaticGeometryData Static;
 
-    public Sector3D(IWorld world, int tagSectorId, Sector sector, int textureHandle, SectorFlags3D flags)
+    public Sector3D(IWorld world, int tagSectorId, Sector controlSector, int textureHandle, SectorFlags3D flags)
     {
+        SectorId = world.CreateNewSectorId();
         TagSectorId = tagSectorId;
-        Sector = sector;
-        Ceiling = sector.Ceiling;
-        Floor = sector.Floor;
-        Lines = CreateSector3DLines(world.Sectors[tagSectorId], textureHandle);
+        Floor = new(SectorPlaneFace.Floor, 0, 0, 0);
+        Ceiling = new(SectorPlaneFace.Ceiling, 0, 0, 0);
+        Sector = new(SectorId, 0, 0, Floor, Ceiling, default, default);
+        ControlSector = controlSector;
+        ControlCeiling = controlSector.Ceiling;
+        ControlFloor = controlSector.Floor;
+        Lines = CreateSector3DLines(world, world.Sectors[tagSectorId], textureHandle);
         Flags = flags;
         Entity = new();
         Entity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world, default);
@@ -45,30 +55,39 @@ public class Sector3D
         Entity.Flags.SetActLikeBridge();
     }
 
-    private static Line[] CreateSector3DLines(Sector sector, int textureHandle)
+    public void Reset()
+    {
+        for (int i = 0; i < Lines.Length; i++)
+            Lines[i].Front.Reset();
+
+        Floor.Reset(0);
+        Ceiling.Reset(0);
+    }
+
+    private static Line[] CreateSector3DLines(IWorld world, Sector sector, int textureHandle)
     {
         var lines = new Line[sector.Lines.Length];
         for (int i = 0; i < sector.Lines.Length; i++)
         {
             var line = sector.Lines[i];
             var middle = new Wall(textureHandle, WallLocation.Middle3D);
-            var side = new Side(line.Front.Id, line.Front.Offset, line.Front.Upper, middle, line.Front.Lower, sector);
+            var side = new Side(world.CreateNewSideId(), line.Front.Offset, line.Front.Upper, middle, line.Front.Lower, sector);
             // Normalize so front is always the rendered side
             var lineSeg = line.Segment;
             if (line.Front.Sector == sector)
                 lineSeg = new(lineSeg.End, lineSeg.Start);
-            lines[i] = new Line(line.Id, lineSeg, side, null, default, LineSpecial.Default, default);
+            lines[i] = new Line(world.CreateNewLineId(), lineSeg, side, null, default, LineSpecial.Default, default);
         }
         return lines;
     }
 
     public Entity GetSectorEntity3D()
     {
-        Entity.PrevPosition.Z = Floor.PrevZ;
-        Entity.Position.Z = Floor.Z;
-        Entity.Height = Math.Max(Ceiling.Z - Floor.Z, 0);
+        Entity.PrevPosition.Z = ControlFloor.PrevZ;
+        Entity.Position.Z = ControlFloor.Z;
+        Entity.Height = Math.Max(ControlCeiling.Z - ControlFloor.Z, 0);
         return Entity;
     }
 
-    public override string ToString() => $"{Sector.Id}";
+    public override string ToString() => $"{ControlSector.Id}";
 }

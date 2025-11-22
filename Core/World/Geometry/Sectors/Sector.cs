@@ -154,6 +154,9 @@ public sealed class Sector
         Floor.Reset(m_initialLightLevel);
         Ceiling.Reset(m_initialLightLevel);
         Gravity = 1;
+
+        for (int i = 0; i < Sectors3D.Length; i++)
+            Sectors3D[i].Reset();
     }
 
     public static Sector CreateDefault() =>
@@ -220,12 +223,12 @@ public sealed class Sector
             return;
 
         Sectors3D.Sort(HeightCompare);
-        TransferFloorLightSector = Sectors3D[^1].Sector;
+        TransferFloorLightSector = Sectors3D[^1].ControlSector;
     }
 
     private int HeightCompare(Sector3D x, Sector3D y)
     {
-        return y.Floor.Z.CompareTo(x.Floor.Z);
+        return y.ControlFloor.Z.CompareTo(x.ControlFloor.Z);
     }
 
     public void SetFriction(double friction)

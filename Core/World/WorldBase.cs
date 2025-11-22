@@ -188,6 +188,9 @@ public abstract partial class WorldBase : IWorld
     private int m_losDistance = DefaultLineOfSightDistance;
     private string m_activeMusic = string.Empty;
     private bool m_explosionTraverseLines;
+    private int m_nextLineId;
+    private int m_nextSideId;
+    private int m_nextSectorId;
 
     const int HighlightSize = 112;
     private readonly List<object> m_findObjects = [];
@@ -618,7 +621,9 @@ public abstract partial class WorldBase : IWorld
         WorldStatic.SectorFriction = false;
         WorldStatic.BloodColor = ArchiveCollection.Dehacked != null && ArchiveCollection.Dehacked.HasBloodColor;
         WorldStatic.MirrorCorpse = Config.Game.MirrorCorpse;
-        WorldStatic.Sector3D = false;
+
+        if (!SameAsPreviousMap)
+            WorldStatic.Sector3D = false;
 
         if (WorldStatic.CheckedLines.Length < Lines.Count)
             WorldStatic.CheckedLines = new int[Lines.Count];
@@ -1851,7 +1856,7 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            if (sector3d.Floor.Z < intersect.Z && sector3d.Ceiling.Z > intersect.Z)
+            if (sector3d.ControlFloor.Z < intersect.Z && sector3d.ControlCeiling.Z > intersect.Z)
                 return true;
 
             if (IntersectPlane3D(sector3d, sector, start, end, ref test, out var testPlane))
@@ -1879,15 +1884,15 @@ public abstract partial class WorldBase : IWorld
     private bool IntersectPlane3D(Sector3D sector3d, Sector sector, in Vec3D start, in Vec3D end, ref Vec3D interset, out SectorPlane? plane)
     {
         plane = null;
-        if (start.Z < sector3d.Floor.Z && sector3d.Floor.Plane.Intersects(start, end, ref interset) && PointInSector(sector, interset))
+        if (start.Z < sector3d.ControlFloor.Z && sector3d.ControlFloor.Plane.Intersects(start, end, ref interset) && PointInSector(sector, interset))
         {
-            plane = sector3d.Floor;
+            plane = sector3d.ControlFloor;
             return true;
         }
 
-        if (start.Z > sector3d.Ceiling.Z && sector3d.Ceiling.Plane.Intersects(start, end, ref interset) && PointInSector(sector, interset))
+        if (start.Z > sector3d.ControlCeiling.Z && sector3d.ControlCeiling.Plane.Intersects(start, end, ref interset) && PointInSector(sector, interset))
         {
-            plane = sector3d.Ceiling;
+            plane = sector3d.ControlCeiling;
             return true;
         }
 
@@ -3034,16 +3039,16 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            if (start.Z > sector3d.Ceiling.Z)
+            if (start.Z > sector3d.ControlCeiling.Z)
             {
-                var sectorPitch = start.Pitch(sector3d.Ceiling.Z, segLength);
+                var sectorPitch = start.Pitch(sector3d.ControlCeiling.Z, segLength);
                 if (sectorPitch > bottomPitch)
                     bottomPitch = sectorPitch;
             }
 
-            if (start.Z < sector3d.Floor.Z)
+            if (start.Z < sector3d.ControlFloor.Z)
             {
-                var sectorPitch = start.Pitch(sector3d.Floor.Z, segLength);
+                var sectorPitch = start.Pitch(sector3d.ControlFloor.Z, segLength);
                 if (sectorPitch < topPitch)
                     topPitch = sectorPitch;
             }
@@ -3857,4 +3862,12 @@ public abstract partial class WorldBase : IWorld
 
         return entity;
     }
+
+    public int CreateNewLineId() => m_nextLineId++;
+    public int CreateNewSideId() => m_nextSideId++;
+    public int CreateNewSectorId() => m_nextSectorId++;
+
+    public int GetLineCount() => m_nextLineId;
+    public int GetSideCount() => m_nextSideId;
+    public int GetSectorCount() => m_nextSectorId;
 }

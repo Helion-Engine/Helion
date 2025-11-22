@@ -724,7 +724,7 @@ public sealed class SpecialManager : ITickable, IDisposable
 
     private int SortBySectorId(Sector3D x, Sector3D y)
     {
-        return x.Sector.Id.CompareTo(y.Sector.Id);
+        return x.TagSectorId.CompareTo(y.TagSectorId);
     }
 
     public void StartInitSpecials(LevelStats levelStats, bool flagsOnly)
