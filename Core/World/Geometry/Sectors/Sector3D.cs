@@ -25,28 +25,28 @@ public class Sector3D
 {
     public int TagSectorId;
     public int SectorId;
+    public Sector ParentSector;
     public Sector ControlSector;
     public SectorPlane ControlCeiling;
     public SectorPlane ControlFloor;
     public Sector Sector;
     public SectorPlane Floor;
     public SectorPlane Ceiling;
-    public Line[] Lines;
     public Entity Entity;
     public SectorFlags3D Flags;
-    public StaticGeometryData Static;
 
-    public Sector3D(IWorld world, int tagSectorId, Sector controlSector, int textureHandle, SectorFlags3D flags)
+    public Sector3D(IWorld world, int tagSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags)
     {
-        SectorId = world.CreateNewSectorId();
+        SectorId = world.Geometry.CreateNewSectorId();
         TagSectorId = tagSectorId;
         Floor = new(SectorPlaneFace.Floor, 0, 0, 0);
         Ceiling = new(SectorPlaneFace.Ceiling, 0, 0, 0);
         Sector = new(SectorId, 0, 0, Floor, Ceiling, default, default);
+        Sector.Lines = CreateSector3DLines(world, world.Sectors[tagSectorId], textureHandle);
+        ParentSector = parentSector;
         ControlSector = controlSector;
         ControlCeiling = controlSector.Ceiling;
         ControlFloor = controlSector.Floor;
-        Lines = CreateSector3DLines(world, world.Sectors[tagSectorId], textureHandle);
         Flags = flags;
         Entity = new();
         Entity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world, default);
@@ -57,8 +57,8 @@ public class Sector3D
 
     public void Reset()
     {
-        for (int i = 0; i < Lines.Length; i++)
-            Lines[i].Front.Reset();
+        for (int i = 0; i < Sector.Lines.Length; i++)
+            Sector.Lines[i].Front.Reset();
 
         Floor.Reset(0);
         Ceiling.Reset(0);
@@ -71,12 +71,12 @@ public class Sector3D
         {
             var line = sector.Lines[i];
             var middle = new Wall(textureHandle, WallLocation.Middle3D);
-            var side = new Side(world.CreateNewSideId(), line.Front.Offset, line.Front.Upper, middle, line.Front.Lower, sector);
+            var side = new Side(world.Geometry.CreateNewSideId(), line.Front.Offset, line.Front.Upper, middle, line.Front.Lower, sector);
             // Normalize so front is always the rendered side
             var lineSeg = line.Segment;
             if (line.Front.Sector == sector)
                 lineSeg = new(lineSeg.End, lineSeg.Start);
-            lines[i] = new Line(world.CreateNewLineId(), lineSeg, side, null, default, LineSpecial.Default, default);
+            lines[i] = new Line(world.Geometry.CreateNewLineId(), lineSeg, side, null, default, LineSpecial.Default, default);
         }
         return lines;
     }
@@ -89,5 +89,5 @@ public class Sector3D
         return Entity;
     }
 
-    public override string ToString() => $"{ControlSector.Id}";
+    public override string ToString() => $"{SectorId}";
 }

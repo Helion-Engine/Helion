@@ -188,9 +188,6 @@ public abstract partial class WorldBase : IWorld
     private int m_losDistance = DefaultLineOfSightDistance;
     private string m_activeMusic = string.Empty;
     private bool m_explosionTraverseLines;
-    private int m_nextLineId;
-    private int m_nextSideId;
-    private int m_nextSectorId;
 
     const int HighlightSize = 112;
     private readonly List<object> m_findObjects = [];
@@ -3862,12 +3859,4 @@ public abstract partial class WorldBase : IWorld
 
         return entity;
     }
-
-    public int CreateNewLineId() => m_nextLineId++;
-    public int CreateNewSideId() => m_nextSideId++;
-    public int CreateNewSectorId() => m_nextSectorId++;
-
-    public int GetLineCount() => m_nextLineId;
-    public int GetSideCount() => m_nextSideId;
-    public int GetSectorCount() => m_nextSectorId;
 }

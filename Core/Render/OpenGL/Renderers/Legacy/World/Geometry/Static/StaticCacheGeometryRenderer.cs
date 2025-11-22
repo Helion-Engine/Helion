@@ -16,6 +16,7 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using Helion.World.Physics;
 using Helion.World.Static;
 using OpenTK.Graphics.OpenGL;
 using System;
@@ -120,7 +121,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 m_initMoveSectors.Add(sector);
 
             if (sector.Sectors3D.Length > 0)
-                AddSectors3D(sector);
+                AddSectors3D(sector, false);
         }
 
         for (int i = 0; i < world.Lines.Count; i++)
@@ -160,31 +161,37 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void AddSectors3D(Sector sector)
+    private void AddSectors3D(Sector sector, bool update)
     {
-        var lastSector = sector;
-        var saveTransfer = sector.TransferFloorLightSector;
         for (int i = 0; i < sector.Sectors3D.Length; i++)
+            AddSector3D(sector.Sectors3D[i], SectorPlanes.Floor | SectorPlanes.Ceiling, update);
+    }
+
+    private void AddSector3D(Sector3D sector3d, SectorPlanes planes, bool update)
+    {
+        var saveTransfer = sector3d.ParentSector.TransferFloorLightSector;
+
+        if ((planes & SectorPlanes.Floor) != 0)
+            AddSectorPlane(sector3d.ParentSector, SectorPlaneFace.Ceiling, floor: true, update: update, renderSector: sector3d.ControlSector, 
+                lightLevelSector: sector3d.ParentSector.GetLightSector3D(sector3d), geometryPlane: sector3d.Floor);
+
+        if ((planes & SectorPlanes.Floor) != 0)
+            AddSectorPlane(sector3d.ParentSector, SectorPlaneFace.Floor, floor: false, update: update, renderSector: sector3d.ControlSector,
+                lightLevelSector: sector3d.ControlSector, geometryPlane: sector3d.Ceiling);
+
+        sector3d.ParentSector.TransferFloorLightSector = saveTransfer;
+
+        foreach (var sectorLine in sector3d.Sector.Lines)
         {
-            var sector3d = sector.Sectors3D[i];
-            AddSectorPlane(sector, SectorPlaneFace.Ceiling, floor: true, renderSector: sector3d.ControlSector, lightLevelSector: lastSector, geometryPlane: sector3d.Floor);
-            AddSectorPlane(sector, SectorPlaneFace.Floor, floor: false, renderSector: sector3d.ControlSector, lightLevelSector: sector3d.ControlSector, geometryPlane: sector3d.Ceiling);
+            var useSide = sectorLine.Front;
+            m_geometryRenderer.SetRenderOneSided(useSide);
+            m_geometryRenderer.RenderOneSided(useSide, true, out var sideVertices, out _, out var texture,
+                renderSector: sector3d.ControlSector, lightLevelSector: sector3d.ParentSector);
 
-            lastSector = sector3d.ControlSector;
-            sector.TransferFloorLightSector = saveTransfer;
-
-            foreach (var sectorLine in sector3d.Lines)
+            if (sideVertices != null)
             {
-                var useSide = sectorLine.Front;
-                m_geometryRenderer.SetRenderOneSided(useSide);
-                m_geometryRenderer.RenderOneSided(useSide, true, out var sideVertices, out var skyVertices, out var texture, 
-                    renderSector: sector3d.ControlSector, lightLevelSector: sector);
-
-                if (sideVertices != null)
-                {
-                    var wall = useSide.Middle;
-                    UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices, null, useSide, wall, true, sector, texture);
-                }
+                var wall = useSide.Middle;
+                UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices, null, useSide, wall, true, texture);
             }
         }
     }
@@ -321,7 +328,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             AddFloodFillPlane(side, sector, true);
             var wall = side.Middle;
-            UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices, null, side, wall, true, sector, texture);
+            UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices, null, side, wall, true, texture);
         }
     }
 
@@ -549,7 +556,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (update)
         {
             UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices,
-                null, side, wall, repeatY, side.Sector);
+                null, side, wall, repeatY);
             return;
         }
 
@@ -654,37 +661,37 @@ public class StaticCacheGeometryRenderer : IDisposable
             bufferData.Data[i]?.FlushStruct();
     }
 
-    private void AddSectorPlane(Sector sector, SectorPlaneFace face, bool floor, bool update = false, 
+    private void AddSectorPlane(Sector sectorForSubsectors, SectorPlaneFace face, bool floor, bool update = false, 
         Sector? renderSector = null, Sector? lightLevelSector = null, SectorPlane? geometryPlane = null)
     {
-        if ((floor && sector.Floor.NoRender) || (!floor && sector.Ceiling.NoRender))
+        if ((floor && sectorForSubsectors.Floor.NoRender) || (!floor && sectorForSubsectors.Ceiling.NoRender))
             return;
 
-        renderSector ??= sector.GetRenderSector(TransferHeightView.Middle);
+        renderSector ??= sectorForSubsectors.GetRenderSector(TransferHeightView.Middle);
         lightLevelSector ??= renderSector;
-        var renderPlane = face == SectorPlaneFace.Floor ? renderSector.Floor : renderSector.Ceiling;
+        var renderPlane = renderSector.GetSectorPlane(face);
         // Need to set to actual plane, not potential transfer heights plane.
-        var plane = face == SectorPlaneFace.Floor ? sector.Floor : sector.Ceiling;
+        var plane = face == SectorPlaneFace.Floor ? sectorForSubsectors.Floor : sectorForSubsectors.Ceiling;
         geometryPlane ??= plane;
-        m_geometryRenderer.RenderSectorFlats(sector, renderPlane, floor, renderFlood: false, out var renderedVertices, out var renderedSkyVertices,
+        m_geometryRenderer.RenderSectorFlats(sectorForSubsectors, renderPlane, geometryPlane, floor, renderFlood: false, out var renderedVertices, out var renderedSkyVertices,
             lightLevelSector: lightLevelSector);
 
-        AddSkyGeometry(null, WallLocation.None, plane, renderedSkyVertices, sector, update);
+        AddSkyGeometry(null, WallLocation.None, plane, renderedSkyVertices, sectorForSubsectors, update);
 
         if (renderedVertices == null)
             return;
 
-        if (sector.TransferHeights != null && m_coverFlatGeometry != null && (m_vanillaRender || (!m_vanillaRender && sector.Flood)))
+        if (sectorForSubsectors.TransferHeights != null && m_coverFlatGeometry != null && (m_vanillaRender || (!m_vanillaRender && sectorForSubsectors.Flood)))
         {
-            m_geometryRenderer.RenderSectorFlats(sector, renderPlane, floor, renderFlood: true, out var coverFlatVertices, out _);
+            m_geometryRenderer.RenderSectorFlats(sectorForSubsectors, renderPlane, geometryPlane, floor, renderFlood: true, out var coverFlatVertices, out _);
             if (coverFlatVertices != null)
-                AddOrUpdateCoverFlatGeometry(sector, plane, coverFlatVertices);
+                AddOrUpdateCoverFlatGeometry(sectorForSubsectors, plane, coverFlatVertices);
         }
 
         if (update)
         {
-            UpdateVertices(plane.Static.GeometryData, plane.TextureHandle, plane.Static.Index,
-                renderedVertices, plane, null, null, true, sector);
+            UpdateVertices(geometryPlane.Static.GeometryData, renderPlane.TextureHandle, plane.Static.Index,
+                renderedVertices, plane, null, null, true);
             return;
         }
 
@@ -863,6 +870,13 @@ public class StaticCacheGeometryRenderer : IDisposable
                 SkyGeometryManager.ClearGeometryVertices(line.Back, WallLocation.Middle);
             }
         }
+
+        var face = plane.Facing == SectorPlaneFace.Floor ? SectorPlaneFace.Ceiling : SectorPlaneFace.Floor;
+        for (int i = 0; i < plane.Sector.TaggedSectors3D.Length; i++)
+        {
+            var sector3d = plane.Sector.TaggedSectors3D[i];
+            HandleSectorMoveStart(world, sector3d.Sector.GetSectorPlane(face));
+        }
     }
 
     private void ClearSideGeometryVertices(Side side, Wall wall)
@@ -924,6 +938,9 @@ public class StaticCacheGeometryRenderer : IDisposable
             CheckForFloodFill(line.Back, line.Front, line.Back.Sector.GetRenderSector(TransferHeightView.Middle),
                 line.Front.Sector.GetRenderSector(TransferHeightView.Middle), true);
         }
+
+        for (int i = 0; i < plane.Sector.TaggedSectors3D.Length; i++)
+            AddSector3D(plane.Sector.TaggedSectors3D[i], plane.Facing.ToSectorPlanes(), true);
     }
 
     private void World_SideTextureChanged(object? sender, SideTextureEvent e)
@@ -956,7 +973,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     }
 
     private void UpdateVertices(GeometryData? geometryData, int textureHandle, int startIndex, DynamicVertex[] vertices,
-        SectorPlane? plane, Side? side, Wall? wall, bool repeat, Sector sector, GLLegacyTexture? texture = null)
+        SectorPlane? plane, Side? side, Wall? wall, bool repeat, GLLegacyTexture? texture = null)
     {
         var geometryType = side != null && wall != null ? GetWallType(side, wall) : GeometryType.Flat;
         if (side != null && wall != null && geometryType != GeometryType.TwoSidedMiddleWall)
@@ -967,7 +984,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if (geometryData == null)
         {
-            AddNewGeometry(textureHandle, vertices, geometryType, plane, side, wall, repeat, sector, texture);
+            AddNewGeometry(textureHandle, vertices, geometryType, plane, side, wall, repeat, texture);
             return;
         }
 
@@ -1041,7 +1058,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         }
     }
 
-    private void AddNewGeometry(int textureHandle, DynamicVertex[] vertices, GeometryType geometryType, SectorPlane? plane, Side? side, Wall? wall, bool repeat, Sector sector, GLLegacyTexture? texture = null)
+    private void AddNewGeometry(int textureHandle, DynamicVertex[] vertices, GeometryType geometryType, SectorPlane? plane, Side? side, Wall? wall, bool repeat, GLLegacyTexture? texture = null)
     {
         if (m_freeManager.GetAndRemove(textureHandle, vertices.Length, out StaticGeometryData? existing))
         {
@@ -1051,7 +1068,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 wall.Static = existing.Value;
 
             UpdateVertices(existing.Value.GeometryData, textureHandle, existing.Value.Index,
-                vertices, plane, side, wall, repeat, sector);
+                vertices, plane, side, wall, repeat);
             return;
         }
 

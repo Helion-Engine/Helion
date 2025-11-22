@@ -871,10 +871,25 @@ public sealed class SpecialManager : ITickable, IDisposable
         if ((specialLine.Args.Arg0 & (int)ZDoom3DFloorFlags.ShootabilityInvert) != 0)
             sectorFlags |= SectorFlags3D.ShootabilityInvert;
 
+        var frontSector = specialLine.Front.Sector;
+        int taggedSectorIndex = 0;
+        if (frontSector.TaggedSectors3D.Length == 0)
+        {
+            frontSector.TaggedSectors3D = new Sector3D[sectors.Count];
+        }
+        else
+        {
+            taggedSectorIndex = frontSector.TaggedSectors3D.Length;
+            var newSectors = new Sector3D[taggedSectorIndex + sectors.Count];
+            Array.Copy(frontSector.TaggedSectors3D, newSectors, taggedSectorIndex);
+        }
+
         for (int i = 0; i < sectors.Count; i++)
         {
             var sector = sectors.GetSector(i);
-            sectors3d.Add(new Sector3D(m_world, sector.Id, specialLine.Front.Sector, specialLine.Front.Middle.TextureHandle, sectorFlags));
+            var sector3d = new Sector3D(m_world, sector.Id, sector, frontSector, specialLine.Front.Middle.TextureHandle, sectorFlags);
+            sectors3d.Add(sector3d);
+            frontSector.TaggedSectors3D[taggedSectorIndex++] = sector3d;
             if (counts.TryGetValue(sector.Id, out var count))
                 counts[sector.Id] = ++count;
             else

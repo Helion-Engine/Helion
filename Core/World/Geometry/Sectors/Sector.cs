@@ -36,6 +36,7 @@ public sealed class Sector
     public Line[] Lines = [];
     public Line[] MidTex3DLines = [];
     public Sector3D[] Sectors3D = [];
+    public Sector3D[] TaggedSectors3D = [];
     public LinkableList<Entity> Entities = new();
     public DynamicArray<LinkableNode<Island>> BlockmapNodes = new();
     public int[] LineIds = [];
@@ -928,5 +929,24 @@ public sealed class Sector
             if (changes.KillEffect.HasValue)
                 SetKillEffect(changes.KillEffect.Value);
         }
+    }
+
+    public Sector GetLightSector3D(Sector3D sector3d)
+    {
+        var minFloorAbove = double.MaxValue;
+        var height = sector3d.ControlCeiling.Z;
+        Sector3D? minSector = null;
+        for (int i = 0; i < Sectors3D.Length; i++)
+        {
+            var sector = Sectors3D[i];
+
+            if (sector.ControlFloor.Z < minFloorAbove && sector.ControlFloor.Z > height)
+            {
+                minFloorAbove = sector.Floor.Z;
+                minSector = sector;
+            }
+        }
+
+        return minSector?.ControlSector ?? this;
     }
 }

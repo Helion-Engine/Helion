@@ -269,6 +269,9 @@ public class BlockMap
     {
         Assert.Precondition(sector.BlockmapNodes.Length == 0, "Forgot to unlink sector from blockmap");
 
+        if (sector.Id >= world.Geometry.IslandGeometry.SectorIslands.Length)
+            return;
+
         var islands = world.Geometry.IslandGeometry.SectorIslands[sector.Id];
         foreach (var sectorIsland in islands)
         {

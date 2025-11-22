@@ -198,12 +198,4 @@ public interface IWorld : IDisposable
     GameFilesModel GetGameFilesModel();
     Player GetCameraPlayer();
     ListenerParams GetListener();
-
-    int CreateNewLineId();
-    int CreateNewSideId();
-    int CreateNewSectorId();
-
-    int GetLineCount();
-    int GetSideCount();
-    int GetSectorCount();
 }
