@@ -23,6 +23,7 @@
 - Update automap markers to be more visible and use the same render method as findkeylines/findkeys/findexits commands.
 - Add findinactivekeylines command.
 - Add endgame command.
+- Add quickload command.
 
 ## Bug Fixes:
 - Fix sprite frames to correctly calculate when lowercase.
@@ -63,6 +64,7 @@
 - Fix default args for A_MonsterBulletAttack, A_MonsterMeleeAttack, A_WeaponBulletAttack, and A_WeaponMeleeAttack.
 - Fix dehacked parser incorrectly clearing bits when encountering Bits2 and Bits3.
 - Fix teleport specials allowing player to be stuck above ceiling that keep height relative to floor (207-210, 268, and 269).
+- Fix titlepatch not being set in MAPINFO/ZMAPINFO.
 
 ## Misc.
 - Updated .NET SDK to 10.0
