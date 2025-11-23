@@ -3,7 +3,6 @@ using Helion.Geometry.Segments;
 using Helion.Geometry.Vectors;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
-using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Container;
 using Helion.Util.RandomGenerators;
@@ -166,7 +165,8 @@ public sealed class PhysicsManager
         }
     }
 
-    public SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial)
+    public SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial, Sector sectorEntities, 
+        bool checkSector3D = true, SectorPlane? resetPlane = null)
     {
         var sector = moveSpecial.Sector;
         var sectorPlane = moveSpecial.SectorPlane;
@@ -178,7 +178,7 @@ public sealed class PhysicsManager
 
         // Move lower entities first to handle stacked entities
         // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
-        GetSectorMoveOrderedEntities(m_sectorMoveEntities, sector);
+        GetSectorMoveOrderedEntities(m_sectorMoveEntities, sectorEntities);
         m_sectorMoveEntitiesData.Clear();
 
         // Save the Z value because we are only checking if the dest is valid
@@ -319,6 +319,7 @@ public sealed class PhysicsManager
             if ((moveData.Flags & SectorMoveFlags.EntityBlockMovement) != 0 || highestBlockEntityWasCrushing || isCompleted)
             {
                 sectorPlane.SetZ(startZ);
+                resetPlane?.SetZ(startZ);
             }
             else
             {
@@ -332,7 +333,9 @@ public sealed class PhysicsManager
                 diff = Math.Abs(startZ - destZ) - (thingZ + highestBlockHeight.Value - highestBlockEntity.LowestCeilingZ);
                 if (destZ < startZ)
                     diff = -diff;
-                sectorPlane.SetZ(startZ + diff);
+                var set = startZ + diff;
+                sectorPlane.SetZ(set);
+                resetPlane?.SetZ(set);
             }
 
             // Entity blocked movement, reset all entities in moving sector after resetting sector Z
@@ -359,7 +362,38 @@ public sealed class PhysicsManager
         if (isCompleted && status == SectorMoveStatus.Blocked)
             return SectorMoveStatus.BlockedAndStop;
 
+        if (WorldStatic.Sector3D && checkSector3D && sector.TaggedSectors3D.Length > 0)
+            status = TestMoveSector3D(speed, destZ, startZ, moveSpecial, sector, sectorPlane, moveType);
+
         return status;
+    }
+
+    private SectorMoveStatus TestMoveSector3D(double speed, double destZ, double startZ, SectorMoveSpecial moveSpecial, Sector sector, SectorPlane sectorPlane, SectorPlaneFace face)
+    {
+        for (int i = 0; i < sector.TaggedSectors3D.Length; i++)
+        {
+            var testFace = face.Flip();
+            var sector3d = sector.TaggedSectors3D[i];
+            var testMovePlane = sector3d.FakeSector.GetSectorPlane(testFace);
+            var testOpposingMovePlane = sector3d.FakeSector.GetSectorPlane(face);
+
+            testMovePlane.Z = startZ;
+            testOpposingMovePlane.Z = sector3d.GetOpposingPlane3D(testFace, startZ).Z;
+            moveSpecial.Sector = sector3d.FakeSector;
+            moveSpecial.SectorPlane = testMovePlane;
+            moveSpecial.MoveData.SectorMoveType = testFace;
+
+            var status = MoveSectorZ(speed, destZ, moveSpecial, sector3d.ParentSector, checkSector3D: false, resetPlane: sectorPlane);
+
+            moveSpecial.Sector = sector;
+            moveSpecial.SectorPlane = sectorPlane;
+            moveSpecial.MoveData.SectorMoveType = face;
+
+            if (status != SectorMoveStatus.Success)
+                return status;
+        }        
+
+        return SectorMoveStatus.Success;
     }
 
     private void SetClampIgnoreEntities(Entity entity)
@@ -425,14 +459,14 @@ public sealed class PhysicsManager
         return GridIterationStatus.Continue;
     }
 
-    private void GetSectorMoveOrderedEntities(DynamicArray<Entity> entities, Sector sector)
+    private void GetSectorMoveOrderedEntities(DynamicArray<Entity> entities, Sector sectorEntities)
     {
-        LinkableNode<Entity>? node = sector.Entities.Head;
+        var node = sectorEntities.Entities.Head;
         while (node != null)
         {
             var entity = node.Value;
             // Doom did this by blockmap so do not add things with NoBlockmap
-            if (!entity.Flags.NoBlockmap() && EntityHasMovementSector(entity, sector))
+            if (!entity.Flags.NoBlockmap() && EntityHasMovementSector(entity, sectorEntities))
                 m_sectorMoveEntities.Add(entity);
             node = node.Next;
         }
@@ -593,7 +627,10 @@ public sealed class PhysicsManager
         if (pusher.LowestCeilingObject is not Entity)
             return;
 
-        Entity entity = (Entity)pusher.LowestCeilingObject;
+        var entity = (Entity)pusher.LowestCeilingObject;
+        if (entity.Flags.ActLikeBridge())
+            return;
+
         entity.Position.Z = pusher.Position.Z + pusher.Height;
     }
 

@@ -119,7 +119,7 @@ public class StaticDataApplier
             if (sector.BlockmapNodes.Length == 0 && (sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
                 world.RenderBlockmap.LinkDynamic(world, sector);
         }
-        else if (sector.Sector3D.Sector.BlockmapNodes.Length == 0 && (sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
+        else if (sector.Sector3D.FakeSector.BlockmapNodes.Length == 0 && (sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
         {
             world.RenderBlockmap.LinkDynamic(world, sector.Sector3D);
         }
@@ -153,7 +153,7 @@ public class StaticDataApplier
         plane.Dynamic &= ~SectorDynamic.Movement;
 
         // Floor and ceiling can move independently so don't clear it yet.
-        if (plane.Sector.IsMoving || (plane.Dynamic & SectorDynamic.TransferHeights) != 0)
+        if (plane.Sector.IsMoving || (plane.Dynamic & SectorDynamic.TransferHeights) != 0 || (WorldStatic.Sector3D && plane.Sector.Sector3D != null && plane.Sector.Sector3D.ControlSector.IsMoving))
             return;
                 
         if ((plane.Sector.Floor.Dynamic & SectorDynamic.Scroll) == 0 && (plane.Sector.Ceiling.Dynamic & SectorDynamic.Scroll) == 0)

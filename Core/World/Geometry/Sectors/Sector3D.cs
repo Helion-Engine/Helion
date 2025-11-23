@@ -29,9 +29,9 @@ public class Sector3D
     public Sector ControlSector;
     public SectorPlane ControlCeiling;
     public SectorPlane ControlFloor;
-    public Sector Sector;
-    public SectorPlane Floor;
-    public SectorPlane Ceiling;
+    public Sector FakeSector;
+    public SectorPlane FakeFloor;
+    public SectorPlane FakeCeiling;
     public Entity Entity;
     public SectorFlags3D Flags;
 
@@ -39,9 +39,9 @@ public class Sector3D
     {
         SectorId = world.Geometry.CreateNewSectorId();
         ParentSectorId = parentSectorId;
-        Floor = new(SectorPlaneFace.Floor, 0, 0, 0);
-        Ceiling = new(SectorPlaneFace.Ceiling, 0, 0, 0);
-        Sector = new(SectorId, 0, 0, Floor, Ceiling, default, default)
+        FakeFloor = new(SectorPlaneFace.Floor, 0, 0, 0);
+        FakeCeiling = new(SectorPlaneFace.Ceiling, 0, 0, 0);
+        FakeSector = new(SectorId, 0, 0, FakeFloor, FakeCeiling, default, default)
         {
             Sector3D = this,
             Lines = CreateSector3DLines(world, world.Sectors[parentSectorId], textureHandle)
@@ -60,11 +60,11 @@ public class Sector3D
 
     public void Reset()
     {
-        for (int i = 0; i < Sector.Lines.Length; i++)
-            Sector.Lines[i].Front.Reset();
+        for (int i = 0; i < FakeSector.Lines.Length; i++)
+            FakeSector.Lines[i].Front.Reset();
 
-        Floor.Reset(0);
-        Ceiling.Reset(0);
+        FakeFloor.Reset(0);
+        FakeCeiling.Reset(0);
     }
 
     private static Line[] CreateSector3DLines(IWorld world, Sector sector, int textureHandle)
@@ -92,5 +92,61 @@ public class Sector3D
         return Entity;
     }
 
-    public override string ToString() => $"{SectorId}";
+    public SectorPlane GetOpposingPlane3D(SectorPlaneFace face, double height = double.MinValue)
+    {
+        if (face == SectorPlaneFace.Floor)
+        {
+            var sector = GetNextHighestCeiling3D(height);
+            if (sector == ParentSector)
+                return sector.Ceiling;
+            return sector.Floor;
+        }
+        else
+        {
+            var sector = GetNextLowestFloor3D(height);
+            if (sector == ParentSector)
+                return sector.Floor;
+            return sector.Ceiling;
+        }
+    }
+
+    public Sector GetNextHighestCeiling3D(double height = double.MinValue)
+    {
+        var minFloorAbove = double.MaxValue;
+        if (height == double.MinValue)
+            height = ControlCeiling.Z;
+        Sector3D? minSector = null;
+        for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
+        {
+            var sector = ParentSector.Sectors3D[i];
+            if (sector.ControlFloor.Z <= minFloorAbove && sector.ControlFloor.Z >= height)
+            {
+                minFloorAbove = sector.ControlFloor.Z;
+                minSector = sector;
+            }
+        }
+
+        return minSector?.ControlSector ?? ParentSector;
+    }
+
+    public Sector GetNextLowestFloor3D(double height = double.MinValue)
+    {
+        var maxCeilingBelow = double.MinValue;
+        if (height == double.MinValue)
+            height = ControlFloor.Z;
+        Sector3D? maxSector = null;
+        for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
+        {
+            var sector = ParentSector.Sectors3D[i];
+            if (sector.ControlCeiling.Z >= maxCeilingBelow && sector.ControlCeiling.Z <= height)
+            {
+                maxCeilingBelow = sector.ControlCeiling.Z;
+                maxSector = sector;
+            }
+        }
+
+        return maxSector?.ControlSector ?? ParentSector;
+    }
+
+    public override string ToString() => $"3D Sector: {SectorId} ControlId: [{ControlSector.Id}] [{ControlSector.Ceiling.Z} {ControlSector.Floor.Z}]";
 }

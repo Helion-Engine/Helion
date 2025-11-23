@@ -2487,7 +2487,7 @@ public abstract partial class WorldBase : IWorld
 
         SectorMove?.Invoke(this, moveSpecial.SectorPlane);
 
-        return PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial);
+        return PhysicsManager.MoveSectorZ(speed, destZ, moveSpecial, moveSpecial.Sector);
     }
 
     public virtual void HandleEntityDeath(Entity deathEntity, Entity? deathSource, bool gibbed)

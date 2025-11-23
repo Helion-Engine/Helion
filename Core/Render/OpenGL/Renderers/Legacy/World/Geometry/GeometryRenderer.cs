@@ -414,7 +414,7 @@ public class GeometryRenderer : IDisposable
         var sector3d = sectorForSubectors.Sector3D;
         if (sector3d != null)
         {
-            geometrySector = sector3d.Sector;
+            geometrySector = sector3d.FakeSector;
             sectorForSubectors = sector3d.ParentSector;
             renderSector = sector3d.ControlSector;
         }
@@ -435,8 +435,8 @@ public class GeometryRenderer : IDisposable
             set.Floor.LastRenderGametick = m_world.Gametick;
             if (sector3d != null)
             {
-                RenderFlat(subsectors, renderSector.Ceiling, sector3d.Floor, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                    lightLevelSector: sector3d.ParentSector.GetLightSector3D(sector3d));
+                RenderFlat(subsectors, renderSector.Ceiling, sector3d.FakeFloor, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    lightLevelSector: sector3d.GetNextHighestCeiling3D());
             }
             else
             {
@@ -450,7 +450,7 @@ public class GeometryRenderer : IDisposable
             set.Ceiling.LastRenderGametick = m_world.Gametick;
             if (sector3d != null)
             {
-                RenderFlat(subsectors, renderSector.Floor, sector3d.Ceiling, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                RenderFlat(subsectors, renderSector.Floor, sector3d.FakeCeiling, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
                     lightLevelSector: sector3d.ControlSector);
             }
             else

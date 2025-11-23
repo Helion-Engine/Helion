@@ -277,12 +277,12 @@ public class BlockMap
 
     public void LinkDynamic(IWorld world, Sector3D sector3d)
     {
-        Assert.Precondition(sector3d.Sector.BlockmapNodes.Length == 0, "Forgot to unlink sector from blockmap");
+        Assert.Precondition(sector3d.FakeSector.BlockmapNodes.Length == 0, "Forgot to unlink sector from blockmap");
 
         if (sector3d.ParentSectorId >= world.Geometry.IslandGeometry.SectorIslands.Length)
             return;
 
-        LinkInternal(world, sector3d.Sector, sector3d.ParentSectorId);
+        LinkInternal(world, sector3d.FakeSector, sector3d.ParentSectorId);
     }
 
     private void LinkInternal(IWorld world, Sector sector, int sectorId)

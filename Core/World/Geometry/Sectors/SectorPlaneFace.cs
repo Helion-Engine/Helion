@@ -20,5 +20,9 @@ public enum SectorPlanes
 public static class SectorPlaneExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static SectorPlanes ToSectorPlanes(this SectorPlaneFace face) => (SectorPlanes)(face + 1); 
+    public static SectorPlanes ToSectorPlanes(this SectorPlaneFace face) => (SectorPlanes)(face + 1);
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static SectorPlaneFace Flip(this SectorPlaneFace face) => face == SectorPlaneFace.Floor ? SectorPlaneFace.Ceiling : SectorPlaneFace.Floor;
 }

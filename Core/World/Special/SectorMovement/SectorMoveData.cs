@@ -1,26 +1,25 @@
 using Helion.Maps.Specials;
-using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Special.Specials;
 
 namespace Helion.World.Special.SectorMovement;
 
-public readonly struct SectorMoveData
+public struct SectorMoveData
 {
-    public readonly SectorPlaneFace SectorMoveType;
-    public readonly MoveRepetition MoveRepetition;
-    public readonly double Speed;
-    public readonly double ReturnSpeed;
-    public readonly int Delay;
-    public readonly CrushData? Crush;
-    public readonly int? FloorChangeTextureHandle;
-    public readonly int? CeilingChangeTextureHandle;
-    public readonly SectorDamageSpecial? DamageSpecial;
-    public readonly MoveDirection StartDirection;
-    public readonly SectorMoveFlags Flags;
-    public readonly SectorEffect? SectorEffect;
-    public readonly InstantKillEffect? KillEffect;
-    public readonly int LightTag;
+    public SectorPlaneFace SectorMoveType;
+    public MoveRepetition MoveRepetition;
+    public double Speed;
+    public double ReturnSpeed;
+    public int Delay;
+    public CrushData? Crush;
+    public int? FloorChangeTextureHandle;
+    public int? CeilingChangeTextureHandle;
+    public SectorDamageSpecial? DamageSpecial;
+    public MoveDirection StartDirection;
+    public SectorMoveFlags Flags;
+    public SectorEffect? SectorEffect;
+    public InstantKillEffect? KillEffect;
+    public int LightTag;
 
     public const int InstantToggleSpeed = int.MaxValue;
 

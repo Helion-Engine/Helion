@@ -173,15 +173,15 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         if ((planes & SectorPlanes.Floor) != 0)
             AddSectorPlane(sector3d.ParentSector, SectorPlaneFace.Ceiling, floor: true, update: update, renderSector: sector3d.ControlSector, 
-                lightLevelSector: sector3d.ParentSector.GetLightSector3D(sector3d), geometryPlane: sector3d.Floor);
+                lightLevelSector: sector3d.GetNextHighestCeiling3D(), geometryPlane: sector3d.FakeFloor);
 
         if ((planes & SectorPlanes.Ceiling) != 0)
             AddSectorPlane(sector3d.ParentSector, SectorPlaneFace.Floor, floor: false, update: update, renderSector: sector3d.ControlSector,
-                lightLevelSector: sector3d.ControlSector, geometryPlane: sector3d.Ceiling);
+                lightLevelSector: sector3d.ControlSector, geometryPlane: sector3d.FakeCeiling);
 
         sector3d.ParentSector.TransferFloorLightSector = saveTransfer;
 
-        foreach (var sectorLine in sector3d.Sector.Lines)
+        foreach (var sectorLine in sector3d.FakeSector.Lines)
         {
             var useSide = sectorLine.Front;
             var dynamic = useSide.IsDynamic || sector3d.ControlSector.IsMoving;
@@ -879,7 +879,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         for (int i = 0; i < plane.Sector.TaggedSectors3D.Length; i++)
         {
             var sector3d = plane.Sector.TaggedSectors3D[i];
-            HandleSectorMoveStart(world, sector3d.Sector.GetSectorPlane(face));
+            HandleSectorMoveStart(world, sector3d.FakeSector.GetSectorPlane(face));
         }
     }
 
@@ -943,12 +943,15 @@ public class StaticCacheGeometryRenderer : IDisposable
                 line.Front.Sector.GetRenderSector(TransferHeightView.Middle), true);
         }
 
-        var face = plane.Facing == SectorPlaneFace.Floor ? SectorPlaneFace.Ceiling : SectorPlaneFace.Floor;
-        for (int i = 0; i < plane.Sector.TaggedSectors3D.Length; i++)
+        if (WorldStatic.Sector3D)
         {
-            var sector3d = plane.Sector.TaggedSectors3D[i];
-            HandleSectorMoveComplete(world, plane.Sector, sector3d.Sector.GetSectorPlane(face));
-            AddSector3D(sector3d, face.ToSectorPlanes(), true);
+            var face = plane.Facing.Flip();
+            for (int i = 0; i < plane.Sector.TaggedSectors3D.Length; i++)
+            {
+                var sector3d = plane.Sector.TaggedSectors3D[i];
+                HandleSectorMoveComplete(world, plane.Sector, sector3d.FakeSector.GetSectorPlane(face));
+                AddSector3D(sector3d, face.ToSectorPlanes(), true);
+            }
         }
     }
 

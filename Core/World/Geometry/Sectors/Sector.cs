@@ -906,6 +906,8 @@ public sealed class Sector
 
     public override int GetHashCode() => Id.GetHashCode();
 
+    public override string ToString() => Sector3D?.ToString() ?? $"Id: {Id} [{Floor.Z} {Ceiling.Z}]";
+
     public void UnlinkFromWorld(IWorld world)
     {
         for (int i = 0; i < BlockmapNodes.Length; i++)
@@ -931,24 +933,5 @@ public sealed class Sector
             if (changes.KillEffect.HasValue)
                 SetKillEffect(changes.KillEffect.Value);
         }
-    }
-
-    public Sector GetLightSector3D(Sector3D sector3d)
-    {
-        var minFloorAbove = double.MaxValue;
-        var height = sector3d.ControlCeiling.Z;
-        Sector3D? minSector = null;
-        for (int i = 0; i < Sectors3D.Length; i++)
-        {
-            var sector = Sectors3D[i];
-
-            if (sector.ControlFloor.Z < minFloorAbove && sector.ControlFloor.Z > height)
-            {
-                minFloorAbove = sector.Floor.Z;
-                minSector = sector;
-            }
-        }
-
-        return minSector?.ControlSector ?? this;
     }
 }
