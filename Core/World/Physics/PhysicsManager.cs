@@ -669,8 +669,16 @@ public sealed class PhysicsManager
         LineOpening opening;
         if (dropoff)
         {
-            opening = GetLineOpeningWithDropoff(x, y, ref line);
-            tryMove.SetIntersectionData(opening);
+            if (WorldStatic.Sector3D)
+            {
+                opening = GetLineOpeningWithDropoff3D(x, y, entity.Position.Z, ref line);
+                tryMove.SetIntersectionData(opening);
+            }
+            else
+            {
+                opening = GetLineOpeningWithDropoff(x, y, ref line);
+                tryMove.SetIntersectionData(opening);
+            }
         }
         else
         {
@@ -708,6 +716,7 @@ public sealed class PhysicsManager
         {
             var sector3d = sector.Sectors3D[i];
             var sectorEntity = sector3d.GetSectorEntity3D();
+
             if (BlocksEntityZ(entity, sectorEntity, tryMove, entity.OverlapsZ(sectorEntity)))
                 return true;
         }
@@ -719,6 +728,8 @@ public sealed class PhysicsManager
     private Entity GetMidTexEntity(int lineId) =>
         m_world.Lines[lineId].GetMidTexEntity(m_world);
 
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public LineOpening GetLineOpening(Sector front, Sector back)
     {
         m_lineOpening.Set(front, back);
@@ -753,11 +764,64 @@ public sealed class PhysicsManager
 
         m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
 
-        double dot = (line.Segment.Delta.X * (y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (x - line.Segment.Start.X));
+        var dot = (line.Segment.Delta.X * (y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (x - line.Segment.Start.X));
         if (dot <= 0)
             m_lineOpening.DropOffZ = back.Floor.Z;
         else
             m_lineOpening.DropOffZ = front.Floor.Z;
+
+        return m_lineOpening;
+    }
+
+    public LineOpening GetLineOpeningWithDropoff3D(double x, double y, double z, ref BlockLine line)
+    {
+        var front = line.FrontSector;
+        var back = line.BackSector!;
+
+        if (front.Sectors3D.Length == 0 && back.Sectors3D.Length == 0)
+            return GetLineOpeningWithDropoff(x, y, ref line);
+
+        // TODO this part is duplicated
+        if (front.Ceiling.Z < back.Ceiling.Z)
+        {
+            m_lineOpening.CeilingZ = front.Ceiling.Z;
+            m_lineOpening.CeilingSector = front;
+        }
+        else
+        {
+            m_lineOpening.CeilingZ = back.Ceiling.Z;
+            m_lineOpening.CeilingSector = back;
+        }
+
+        if (front.Floor.Z > back.Floor.Z)
+        {
+            m_lineOpening.FloorZ = front.Floor.Z;
+            m_lineOpening.FloorSector = front;
+        }
+        else
+        {
+            m_lineOpening.FloorZ = back.Floor.Z;
+            m_lineOpening.FloorSector = back;
+        }
+
+        m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
+
+        Sector useSector;
+        var dot = (line.Segment.Delta.X * (y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (x - line.Segment.Start.X));
+        if (dot <= 0)
+            useSector = back;
+        else
+            useSector = front;
+
+        if (useSector.Sectors3D.Length > 0)
+        {
+            TryMoveData.HasDropOff3D = true;
+            m_lineOpening.DropOffZ = useSector.Sectors3D[0].GetNextLowestFloor3D(z).Floor.Z;
+        }
+        else
+        {
+            m_lineOpening.DropOffZ = useSector.Floor.Z;
+        }
 
         return m_lineOpening;
     }
@@ -1347,7 +1411,8 @@ doneLinkToSectors:
         if (!m_stepMoving)
             tryMove.ImpactSpecialLines.Length = 0;
 
-        int blockLineIndex = -1;
+        var blockLineIndex = -1;
+        tryMove.DropOffZ_3D = double.MaxValue;
 
         if (entity.HighestFloorObject is Entity highFloorEntity)
         {

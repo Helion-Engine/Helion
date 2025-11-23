@@ -148,5 +148,5 @@ public class Sector3D
         return maxSector?.ControlSector ?? ParentSector;
     }
 
-    public override string ToString() => $"3D Sector: {SectorId} ControlId: [{ControlSector.Id}] [{ControlSector.Ceiling.Z} {ControlSector.Floor.Z}]";
+    public override string ToString() => $"3D Sector: {SectorId} ControlId: {ControlSector.Id} ParentId: {ParentSectorId} [{ControlSector.Ceiling.Z} {ControlSector.Floor.Z}]";
 }

@@ -12,9 +12,11 @@ public class TryMoveData
     public bool CanFloat;
     public bool BlockedLineClearsVelocity;
     public bool HasTouchy;
+    public bool HasDropOff3D;
     public double LowestCeilingZ;
     public double HighestFloorZ;
     public double DropOffZ;
+    public double DropOffZ_3D;
 
     public Sector? HighestFloor;
     public Sector? LowestCeiling;
@@ -35,6 +37,7 @@ public class TryMoveData
         CanFloat = false;
         BlockedLineClearsVelocity = true;
         HasTouchy = false;
+        HasDropOff3D = false;
         IntersectEntities2D.Clear();
         IntersectSpecialLines.Clear();
         ImpactSpecialLines.Clear();
@@ -55,11 +58,18 @@ public class TryMoveData
             DropOffEntity = null;
         }
 
+        if (opening.DropOffZ < DropOffZ_3D)
+        {
+            DropOffZ_3D = opening.DropOffZ;
+            DropOffEntity = null;
+        }
+
         if (opening.FloorZ > HighestFloorZ)
         {
             HighestFloorZ = opening.FloorZ;
             HighestFloor = opening.FloorSector;
         }
+
         if (opening.CeilingZ < LowestCeilingZ)
         {
             LowestCeilingZ = opening.CeilingZ;

@@ -956,7 +956,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         for (int i = tryMove.IntersectMidTexLines.Length - 1; i >= 0; i--)
             highestWalk = GetHighestWalkEntity(tryMove, highestWalk, World.Lines[tryMove.IntersectMidTexLines[i]].GetMidTexEntity(World), maxStepHeight);
 
-        if (WorldStatic.Sector3D)
+        if (WorldStatic.Sector3D && !tryMove.HasDropOff3D || (tryMove.HighestFloorZ - tryMove.DropOffZ_3D <= maxStepHeight))
         {
             for (int i = tryMove.IntersectSectors.Length - 1; i >= 0; i--)
                 highestWalk = GetHighestWalkEntitySector3D(tryMove, maxStepHeight, highestWalk, tryMove.IntersectSectors.Data[i]);
@@ -978,8 +978,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     private Entity? GetHighestWalkEntitySector3D(TryMoveData tryMove, double maxStepHeight, Entity? highestWalk, Sector sector)
     {
-        for (int j = 0; j < sector.Sectors3D.Length; j++)
-            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, sector.Sectors3D[j].Entity, maxStepHeight);
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
+            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, sector.Sectors3D[i].Entity, maxStepHeight);
         return highestWalk;
     }
 
