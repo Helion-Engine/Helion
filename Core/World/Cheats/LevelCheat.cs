@@ -43,8 +43,8 @@ public class LevelCheat : ICheat
 
     public bool PartialMatch(ReadOnlySpan<char> str)
     {
-        if (m_code.AsSpan().StartsWith(str))
+        if (m_code.AsSpan().StartsWith(str, StringComparison.InvariantCultureIgnoreCase))
             return true;
-        return str.Length <= m_code.Length + 2 && str.StartsWith(m_code);
+        return str.Length <= m_code.Length + 2 && str.StartsWith(m_code, StringComparison.InvariantCultureIgnoreCase);
     }
 }
