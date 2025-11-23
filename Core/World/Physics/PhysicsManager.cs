@@ -363,7 +363,12 @@ public sealed class PhysicsManager
             return SectorMoveStatus.BlockedAndStop;
 
         if (WorldStatic.Sector3D && checkSector3D && sector.TaggedSectors3D.Length > 0)
+        {
             status = TestMoveSector3D(speed, destZ, startZ, moveSpecial, sector, sectorPlane, moveType);
+
+            if (status == SectorMoveStatus.Blocked || status == SectorMoveStatus.BlockedAndStop)
+                sectorPlane.SetZ(startZ);
+        }
 
         return status;
     }
@@ -377,8 +382,8 @@ public sealed class PhysicsManager
             var testMovePlane = sector3d.FakeSector.GetSectorPlane(testFace);
             var testOpposingMovePlane = sector3d.FakeSector.GetSectorPlane(face);
 
-            testMovePlane.Z = startZ;
-            testOpposingMovePlane.Z = sector3d.GetOpposingPlane3D(testFace, startZ).Z;
+            testMovePlane.SetZ(startZ);
+            testOpposingMovePlane.SetZ(sector3d.GetOpposingPlane3D(testFace, startZ).Z);
             moveSpecial.Sector = sector3d.FakeSector;
             moveSpecial.SectorPlane = testMovePlane;
             moveSpecial.MoveData.SectorMoveType = testFace;
