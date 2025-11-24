@@ -787,6 +787,8 @@ public sealed class PhysicsManager
         if (front.Sectors3D.Length == 0 && back.Sectors3D.Length == 0)
             return GetLineOpeningWithDropoff(x, y, ref line);
 
+        GetLineOpening(line.FrontSector, line.BackSector!);
+
         GetOpeningPlanes3D(entity, front, ref line, out var frontDropOffZ, out var hasDropOffFront3D);
         GetOpeningPlanes3D(entity, back, ref line, out var backDropOffZ, out var hasDropOffBack3D);
 
@@ -1420,23 +1422,32 @@ doneLinkToSectors:
 
         var blockLineIndex = -1;
         tryMove.DropOffZ_3D = double.MaxValue;
+        tryMove.Subsector = m_world.ToSubsector(x, y);
 
         if (entity.HighestFloorObject is Entity highFloorEntity)
         {
             if (highFloorEntity.MidTexLine != null)
                 highFloorEntity = GetMidTexEntity(highFloorEntity.MidTexLine.Id);
 
-            if (WorldStatic.Sector3D)
-                tryMove.Subsector = m_world.ToSubsector(x, y);
             tryMove.HighestFloorZ = highFloorEntity.Position.Z + highFloorEntity.Height;
             tryMove.DropOffZ = entity.Sector.Floor.Z;
         }
         else
         {
-            tryMove.Subsector = m_world.ToSubsector(x, y);
             tryMove.HighestFloorZ = tryMove.DropOffZ = tryMove.Subsector.Sector.Floor.Z;
-            tryMove.LowestCeilingZ = tryMove.Subsector.Sector.Ceiling.Z;
         }
+
+        if (entity.LowestCeilingObject is Entity lowCeilEntity)
+        {
+            if (lowCeilEntity.MidTexLine != null)
+                lowCeilEntity = GetMidTexEntity(lowCeilEntity.MidTexLine.Id);
+
+            tryMove.LowestCeilingZ = lowCeilEntity.Position.Z;
+        }
+        else
+        {
+            tryMove.LowestCeilingZ = tryMove.Subsector.Sector.Ceiling.Z;
+        }        
 
         entity.BlockingBlockLineIndex = -1;
         entity.BlockingEntity = null;

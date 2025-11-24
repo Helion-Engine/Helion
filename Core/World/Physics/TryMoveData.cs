@@ -43,8 +43,8 @@ public class TryMoveData
         ImpactSpecialLines.Clear();
         IntersectSectors.Clear();
         IntersectMidTexLines.Clear();
-        HighestFloorZ = int.MinValue;
-        LowestCeilingZ = int.MaxValue;
+        HighestFloorZ = double.MinValue;
+        LowestCeilingZ = double.MaxValue;
         DropOffEntity = null;
         Subsector = null;
         BlockingEntity = null;
