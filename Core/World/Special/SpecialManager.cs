@@ -882,6 +882,7 @@ public sealed class SpecialManager : ITickable, IDisposable
             taggedSectorIndex = frontSector.TaggedSectors3D.Length;
             var newSectors = new Sector3D[taggedSectorIndex + sectors.Count];
             Array.Copy(frontSector.TaggedSectors3D, newSectors, taggedSectorIndex);
+            frontSector.TaggedSectors3D = newSectors;
         }
 
         for (int i = 0; i < sectors.Count; i++)
