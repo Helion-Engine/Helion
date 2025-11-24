@@ -676,7 +676,7 @@ public sealed class PhysicsManager
         {
             if (WorldStatic.Sector3D)
             {
-                opening = GetLineOpeningWithDropoff3D(x, y, entity.Position.Z, entity.GetMaxStepHeight(), ref line);
+                opening = GetLineOpeningWithDropoff3D(entity, x, y, ref line);
                 tryMove.SetIntersectionData(opening);
             }
             else
@@ -779,7 +779,7 @@ public sealed class PhysicsManager
         return m_lineOpening;
     }
 
-    public LineOpening GetLineOpeningWithDropoff3D(double x, double y, double z, double maxStepHeight, ref BlockLine line)
+    public LineOpening GetLineOpeningWithDropoff3D(Entity entity, double x, double y, ref BlockLine line)
     {
         var front = line.FrontSector;
         var back = line.BackSector!;
@@ -787,53 +787,49 @@ public sealed class PhysicsManager
         if (front.Sectors3D.Length == 0 && back.Sectors3D.Length == 0)
             return GetLineOpeningWithDropoff(x, y, ref line);
 
-        GetOpeningPlanes3D(front, z, maxStepHeight, out var frontFloor, out var frontCeiling, out var hasDropOffFront3D);
-        GetOpeningPlanes3D(back, z, maxStepHeight, out var backFloor, out var backCeiling, out var hasDropOffBack3D);
+        GetOpeningPlanes3D(entity, front, ref line, out var frontDropOffZ, out var hasDropOffFront3D);
+        GetOpeningPlanes3D(entity, back, ref line, out var backDropOffZ, out var hasDropOffBack3D);
 
-        if (frontCeiling.Z < backCeiling.Z)
+        if (hasDropOffBack3D || hasDropOffFront3D)
         {
-            m_lineOpening.CeilingZ = frontCeiling.Z;
-            m_lineOpening.CeilingSector = front;
-        }
-        else
-        {
-            m_lineOpening.CeilingZ = backCeiling.Z;
-            m_lineOpening.CeilingSector = back;
-        }
-
-        if (frontFloor.Z > backFloor.Z)
-        {
-            m_lineOpening.FloorZ = frontFloor.Z;
-            m_lineOpening.FloorSector = front;
-   
-            m_lineOpening.HasDropOff3D = hasDropOffFront3D;
-            m_lineOpening.DropOffZ = backFloor.Z;
-        }
-        else
-        {
-            m_lineOpening.FloorZ = backFloor.Z;
-            m_lineOpening.FloorSector = back;
-
-            m_lineOpening.HasDropOff3D = hasDropOffBack3D;
-            m_lineOpening.DropOffZ = frontFloor.Z;
+            var dot = (line.Segment.Delta.X * (y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (x - line.Segment.Start.X));
+            if (dot <= 0)
+            {
+                m_lineOpening.HasDropOff3D = hasDropOffFront3D;
+                m_lineOpening.DropOffZ = backDropOffZ;
+            }
+            else
+            {
+                m_lineOpening.HasDropOff3D = hasDropOffBack3D;
+                m_lineOpening.DropOffZ = frontDropOffZ;
+            }
         }
 
         m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
         return m_lineOpening;
     }
 
-    private static void GetOpeningPlanes3D(Sector useSector, double z, double maxStepHeight, out SectorPlane floor, out SectorPlane ceiling, out bool hasDropOff3D)
+    private void GetOpeningPlanes3D(Entity entity, Sector useSector, ref BlockLine line, out double dropoffZ, out bool hasDropOff3D)
     {
         if (useSector.Sectors3D.Length > 0)
         {
             hasDropOff3D = true;
-            useSector.Sectors3D[0].GetOpeningPlanes3D(z, maxStepHeight, out floor, out ceiling);
+            for (int i= 0; i < useSector.Sectors3D.Length; i++)
+            {
+                var sector3d = useSector.Sectors3D[i];
+                var overlapsZ = entity.Flags.Missile() ?
+                    entity.OverlapsMissileClipZ(sector3d.Entity, WorldStatic.MissileClip) : entity.OverlapsZ(sector3d.Entity);
+                BlocksEntityZ(entity, sector3d.Entity, TryMoveData, overlapsZ);
+            }
+
+            useSector.Sectors3D[0].GetOpeningPlanes3D(entity.Position.Z, entity.GetMaxStepHeight(), out var floor, out _);
+            dropoffZ = floor.Z;
         }
         else
         {
             hasDropOff3D = false;
-            floor = useSector.Floor;
-            ceiling = useSector.Ceiling;
+            m_lineOpening.Set(line.FrontSector, line.BackSector!);
+            dropoffZ = line.FrontSector.Floor.Z;
         }
     }
 
