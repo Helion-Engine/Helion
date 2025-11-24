@@ -52,13 +52,15 @@ public class TryMoveData
 
     public void SetIntersectionData(LineOpening opening)
     {
+        HasDropOff3D = HasDropOff3D || opening.HasDropOff3D;
+
         if (opening.DropOffZ < DropOffZ)
         {
             DropOffZ = opening.DropOffZ;
             DropOffEntity = null;
         }
 
-        if (opening.DropOffZ < DropOffZ_3D)
+        if (opening.HasDropOff3D && opening.DropOffZ < DropOffZ_3D)
         {
             DropOffZ_3D = opening.DropOffZ;
             DropOffEntity = null;

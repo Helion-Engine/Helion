@@ -676,7 +676,7 @@ public sealed class PhysicsManager
         {
             if (WorldStatic.Sector3D)
             {
-                opening = GetLineOpeningWithDropoff3D(x, y, entity.Position.Z, ref line);
+                opening = GetLineOpeningWithDropoff3D(x, y, entity.Position.Z, entity.GetMaxStepHeight(), ref line);
                 tryMove.SetIntersectionData(opening);
             }
             else
@@ -775,10 +775,11 @@ public sealed class PhysicsManager
         else
             m_lineOpening.DropOffZ = front.Floor.Z;
 
+        m_lineOpening.HasDropOff3D = false;
         return m_lineOpening;
     }
 
-    public LineOpening GetLineOpeningWithDropoff3D(double x, double y, double z, ref BlockLine line)
+    public LineOpening GetLineOpeningWithDropoff3D(double x, double y, double z, double maxStepHeight, ref BlockLine line)
     {
         var front = line.FrontSector;
         var back = line.BackSector!;
@@ -786,49 +787,54 @@ public sealed class PhysicsManager
         if (front.Sectors3D.Length == 0 && back.Sectors3D.Length == 0)
             return GetLineOpeningWithDropoff(x, y, ref line);
 
-        // TODO this part is duplicated
-        if (front.Ceiling.Z < back.Ceiling.Z)
+        GetOpeningPlanes3D(front, z, maxStepHeight, out var frontFloor, out var frontCeiling, out var hasDropOffFront3D);
+        GetOpeningPlanes3D(back, z, maxStepHeight, out var backFloor, out var backCeiling, out var hasDropOffBack3D);
+
+        if (frontCeiling.Z < backCeiling.Z)
         {
-            m_lineOpening.CeilingZ = front.Ceiling.Z;
+            m_lineOpening.CeilingZ = frontCeiling.Z;
             m_lineOpening.CeilingSector = front;
         }
         else
         {
-            m_lineOpening.CeilingZ = back.Ceiling.Z;
+            m_lineOpening.CeilingZ = backCeiling.Z;
             m_lineOpening.CeilingSector = back;
         }
 
-        if (front.Floor.Z > back.Floor.Z)
+        if (frontFloor.Z > backFloor.Z)
         {
-            m_lineOpening.FloorZ = front.Floor.Z;
+            m_lineOpening.FloorZ = frontFloor.Z;
             m_lineOpening.FloorSector = front;
+   
+            m_lineOpening.HasDropOff3D = hasDropOffFront3D;
+            m_lineOpening.DropOffZ = backFloor.Z;
         }
         else
         {
-            m_lineOpening.FloorZ = back.Floor.Z;
+            m_lineOpening.FloorZ = backFloor.Z;
             m_lineOpening.FloorSector = back;
+
+            m_lineOpening.HasDropOff3D = hasDropOffBack3D;
+            m_lineOpening.DropOffZ = frontFloor.Z;
         }
 
         m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
+        return m_lineOpening;
+    }
 
-        Sector useSector;
-        var dot = (line.Segment.Delta.X * (y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (x - line.Segment.Start.X));
-        if (dot <= 0)
-            useSector = back;
-        else
-            useSector = front;
-
+    private static void GetOpeningPlanes3D(Sector useSector, double z, double maxStepHeight, out SectorPlane floor, out SectorPlane ceiling, out bool hasDropOff3D)
+    {
         if (useSector.Sectors3D.Length > 0)
         {
-            TryMoveData.HasDropOff3D = true;
-            m_lineOpening.DropOffZ = useSector.Sectors3D[0].GetNextLowestFloor3D(z).Floor.Z;
+            hasDropOff3D = true;
+            useSector.Sectors3D[0].GetOpeningPlanes3D(z, maxStepHeight, out floor, out ceiling);
         }
         else
         {
-            m_lineOpening.DropOffZ = useSector.Floor.Z;
+            hasDropOff3D = false;
+            floor = useSector.Floor;
+            ceiling = useSector.Ceiling;
         }
-
-        return m_lineOpening;
     }
 
     private static void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
@@ -1596,7 +1602,7 @@ doneLinkToSectors:
 
         bool isPlayer = entity.IsPlayer;
         // If blocking and not a player, do not check step passing below. Non-players can't step onto other things. (Exclude MidTex lines)
-        if (overlapsZ && !isPlayer && other.MidTexLine == null)
+        if (overlapsZ && !isPlayer && other.MidTexLine == null && other.Sector3D == null)
             return true;
 
         if (!overlapsZ)
