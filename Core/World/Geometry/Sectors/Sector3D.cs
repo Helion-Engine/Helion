@@ -31,8 +31,9 @@ public class Sector3D
     public Sector FakeSector;
     public SectorPlane FakeFloor;
     public SectorPlane FakeCeiling;
-    public Entity Entity;
     public SectorFlags3D Flags;
+
+    private readonly Entity Entity;
 
     public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags)
     {
@@ -126,47 +127,6 @@ public class Sector3D
         }
 
         return minSector?.ControlSector ?? ParentSector;
-    }
-
-    public void GetOpeningPlanes3D(double z, double maxStepHeight, out SectorPlane floor, out SectorPlane ceiling)
-    {
-        var maxCeilingBelow = double.MinValue;
-        var minFloorAbove = double.MaxValue;
-        Sector3D? maxSector = null;
-        Sector3D? minSector = null;
-        for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
-        {
-            var sector = ParentSector.Sectors3D[i];
-            if (sector.ControlCeiling.Z >= maxCeilingBelow && sector.ControlCeiling.Z - maxStepHeight <= z)
-            {
-                maxCeilingBelow = sector.ControlCeiling.Z;
-                maxSector = sector;
-            }
-
-            if (sector.ControlFloor.Z <= minFloorAbove && sector.ControlFloor.Z >= z)
-            {
-                minFloorAbove = sector.ControlFloor.Z;
-                minSector = sector;
-            }
-        }
-
-        if (maxSector != null)
-            floor = maxSector.ControlSector.Ceiling;
-        else
-            floor = ParentSector.Floor;
-
-        if (minSector != null)
-            ceiling = minSector.ControlSector.Floor;
-        else
-            ceiling = ParentSector.Ceiling;
-    }
-
-    public SectorPlane GetNextLowestFloorPlane3D(double height = double.MinValue)
-    {
-        var sector = GetNextLowestFloor3D(height);
-        if (sector == ParentSector)
-            return sector.Floor;
-        return sector.Ceiling;
     }
 
     public Sector GetNextLowestFloor3D(double height = double.MinValue)

@@ -67,7 +67,6 @@ public class LineOpening
         HasDropOff3D = false;
     }
 
-
     public void SetTop(TryMoveData tryMove, double topZ)
     {
         CeilingZ = tryMove.LowestCeilingZ;

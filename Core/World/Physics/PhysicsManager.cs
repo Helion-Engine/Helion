@@ -60,6 +60,8 @@ public sealed class PhysicsManager
     private IRandom m_random;
     private bool m_alwaysStickEntitiesToFloor;
     private readonly LineOpening m_lineOpening = new();
+    private readonly LineOpening m_testOpening1 = new();
+    private readonly LineOpening m_testOpening2 = new();
     private readonly DynamicArray<Entity> m_crushEntities = new();
     private readonly DynamicArray<Entity> m_sectorMoveEntities = new();
     private readonly DynamicArray<SectorMoveEntityData> m_sectorMoveEntitiesData = new();
@@ -130,7 +132,7 @@ public sealed class PhysicsManager
         // Needs to be added to the sector list even with NoSector flag.
         // Doom used blockmap to manage things for sector movement.
         LinkToSectors(entity, tryMove);
-        ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: true, clampToLinkedSectors, tryMove);
+        ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: true, clampToLinkedSectors, tryMove: tryMove);
     }
 
     /// <summary>
@@ -687,7 +689,15 @@ public sealed class PhysicsManager
         }
         else
         {
-            opening = GetLineOpening(line.FrontSector, line.BackSector!);
+            if (WorldStatic.Sector3D)
+            {
+                opening = GetLineOpeningWithDropoff3D(entity, x, y, ref line);
+                tryMove.SetIntersectionData(opening);
+            }
+            else
+            {
+                opening = GetLineOpening(line.FrontSector, line.BackSector!);
+            }
         }
 
         if (line.BlockFlags.MidTex3D && !line.OneSided && (!entity.Flags.Missile() || !line.BlockFlags.BlockMissileMidTex3D))
@@ -787,52 +797,62 @@ public sealed class PhysicsManager
         if (front.Sectors3D.Length == 0 && back.Sectors3D.Length == 0)
             return GetLineOpeningWithDropoff(x, y, ref line);
 
-        GetLineOpening(line.FrontSector, line.BackSector!);
-
-        GetOpeningPlanes3D(entity, front, ref line, out var frontDropOffZ, out var hasDropOffFront3D);
-        GetOpeningPlanes3D(entity, back, ref line, out var backDropOffZ, out var hasDropOffBack3D);
-
-        if (hasDropOffBack3D || hasDropOffFront3D)
-        {
-            var dot = (line.Segment.Delta.X * (y - line.Segment.Start.Y)) - (line.Segment.Delta.Y * (x - line.Segment.Start.X));
-            if (dot <= 0)
-            {
-                m_lineOpening.HasDropOff3D = hasDropOffFront3D;
-                m_lineOpening.DropOffZ = backDropOffZ;
-            }
-            else
-            {
-                m_lineOpening.HasDropOff3D = hasDropOffBack3D;
-                m_lineOpening.DropOffZ = frontDropOffZ;
-            }
-        }
+        GetLineOpening(front, back);
+        SetOpeningPlanes3D(entity, front, back);
 
         m_lineOpening.OpeningHeight = m_lineOpening.CeilingZ - m_lineOpening.FloorZ;
         return m_lineOpening;
     }
 
-    private void GetOpeningPlanes3D(Entity entity, Sector useSector, ref BlockLine line, out double dropoffZ, out bool hasDropOff3D)
+    private void SetOpeningPlanes3D(Entity entity, Sector front, Sector back)
     {
-        if (useSector.Sectors3D.Length > 0)
+        if (front.Sectors3D.Length > 0)
         {
-            hasDropOff3D = true;
-            for (int i= 0; i < useSector.Sectors3D.Length; i++)
-            {
-                var sector3d = useSector.Sectors3D[i];
-                var overlapsZ = entity.Flags.Missile() ?
-                    entity.OverlapsMissileClipZ(sector3d.Entity, WorldStatic.MissileClip) : entity.OverlapsZ(sector3d.Entity);
-                BlocksEntityZ(entity, sector3d.Entity, TryMoveData, overlapsZ);
-            }
-
-            useSector.Sectors3D[0].GetOpeningPlanes3D(entity.Position.Z, entity.GetMaxStepHeight(), out var floor, out _);
-            dropoffZ = floor.Z;
+            m_lineOpening.HasDropOff3D = true;
+            for (int i = 0; i < front.Sectors3D.Length; i++)
+                SetEntityLineOpening(entity, front.Sectors3D[i].GetSectorEntity3D(), TryMoveData, m_testOpening1);
         }
         else
         {
-            hasDropOff3D = false;
-            m_lineOpening.Set(line.FrontSector, line.BackSector!);
-            dropoffZ = line.FrontSector.Floor.Z;
+            m_testOpening1.Set(front, back);
+            m_testOpening1.DropOffZ = m_testOpening1.FloorZ;
         }
+
+        if (back.Sectors3D.Length > 0)
+        {
+            m_lineOpening.HasDropOff3D = true;
+            for (int i = 0; i < back.Sectors3D.Length; i++)
+                SetEntityLineOpening(entity, back.Sectors3D[i].GetSectorEntity3D(), TryMoveData, m_testOpening2);
+        }
+        else
+        {
+            m_testOpening2.Set(front, back);
+            m_testOpening2.DropOffZ = m_testOpening2.FloorZ;
+        }
+
+        if (m_testOpening2.FloorZ > m_testOpening1.FloorZ)
+        {
+            m_lineOpening.FloorZ = m_testOpening2.FloorZ;
+            m_lineOpening.FloorSector = m_testOpening2.FloorSector;
+        }
+        else
+        {
+            m_lineOpening.FloorZ = m_testOpening1.FloorZ;
+            m_lineOpening.FloorSector = m_testOpening1.FloorSector;
+        }
+
+        if (m_testOpening2.CeilingZ < m_testOpening1.CeilingZ)
+        {
+            m_lineOpening.CeilingZ = m_testOpening2.CeilingZ;
+            m_lineOpening.CeilingSector = m_testOpening2.CeilingSector;
+        }
+        else
+        {
+            m_lineOpening.CeilingZ = m_testOpening1.CeilingZ;
+            m_lineOpening.CeilingSector = m_testOpening1.CeilingSector;
+        }
+
+        m_lineOpening.DropOffZ = Math.Min(m_testOpening1.DropOffZ, m_testOpening2.DropOffZ);
     }
 
     private static void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)
@@ -851,7 +871,7 @@ public sealed class PhysicsManager
     }
 
     private void ClampBetweenFloorAndCeiling(Entity entity, DynamicArray<Sector>? intersectSectors, bool smoothZ, bool clampToLinkedSectors = true,
-        TryMoveData? tryMove = null)
+        TryMoveData ? tryMove = null)
     {
         Invariant(intersectSectors == null || ReferenceEquals(entity.IntersectSectors, intersectSectors), $"Intersect sectors not owned by entity.");
 
@@ -1267,7 +1287,7 @@ doneLinkToSectors:
         entity.SectorNodes.Add(centerSector.Link(entity));
     }
 
-    public TryMoveData TryMoveXY(Entity entity, double x, double y)
+    public TryMoveData TryMoveXY(Entity entity, double x, double y, Action<Entity, TryMoveData>? onMoveTo = null)
     {
         TryMoveData.Clear();
         if (entity.Flags.NoClip())
@@ -1323,7 +1343,7 @@ doneLinkToSectors:
             {
                 successfulSubmove = true;
                 entity.MoveLinked = true;
-                MoveTo(entity, nextX, nextY, TryMoveData);
+                MoveTo(entity, nextX, nextY, TryMoveData, onMoveTo);
                 if (entity.Flags.Teleported())
                     return TryMoveData;
 
@@ -1590,24 +1610,12 @@ doneLinkToSectors:
 
     private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ)
     {
-        if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile() && !other.Flags.Missile() && other.MidTexLine == null)
+        if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile() && !other.Flags.Missile() && other.MidTexLine == null && other.Sector3D == null)
             return true;
 
-        if (entity.Position.Z + entity.Height > other.Position.Z)
-        {
-            // This entity is higher than the other entity and requires step up checking
-            var otherHeight = WorldStatic.MissileClip ? other.GetMissileClipHeight(WorldStatic.MissileClip) : other.Height;
-            m_lineOpening.SetTop(tryMove, other.Position.Z + otherHeight);
-        }
-        else
-        {
-            // This entity is within the other entity's Z or below
-            m_lineOpening.SetBottom(tryMove, other.Position.Z);
-        }
+        SetEntityLineOpening(entity, other, tryMove, m_lineOpening);
 
-        tryMove.SetIntersectionData(m_lineOpening);
-
-        bool isPlayer = entity.IsPlayer;
+        var isPlayer = entity.IsPlayer;
         // If blocking and not a player, do not check step passing below. Non-players can't step onto other things. (Exclude MidTex lines)
         if (overlapsZ && !isPlayer && other.MidTexLine == null && other.Sector3D == null)
             return true;
@@ -1618,7 +1626,24 @@ doneLinkToSectors:
         return !m_lineOpening.CanPassOrStepThrough(entity);
     }
 
-    public void MoveTo(Entity entity, double x, double y, TryMoveData tryMove)
+    private void SetEntityLineOpening(Entity entity, Entity other, TryMoveData tryMove, LineOpening opening)
+    {
+        if (entity.Position.Z + entity.Height > other.Position.Z)
+        {
+            // This entity is higher than the other entity and requires step up checking
+            var otherHeight = WorldStatic.MissileClip ? other.GetMissileClipHeight(WorldStatic.MissileClip) : other.Height;
+            opening.SetTop(tryMove, other.Position.Z + otherHeight);
+        }
+        else
+        {
+            // This entity is within the other entity's Z or below
+            opening.SetBottom(tryMove, other.Position.Z);
+        }
+
+        tryMove.SetIntersectionData(m_lineOpening);
+    }
+
+    public void MoveTo(Entity entity, double x, double y, TryMoveData tryMove, Action<Entity, TryMoveData>? onMoveTo = null)
     {
         entity.UnlinkFromWorld(unlinkBlockmapBlocks: false);
 
@@ -1626,6 +1651,7 @@ doneLinkToSectors:
         double prevY = entity.Position.Y;
         entity.Position.X = x;
         entity.Position.Y = y;
+        onMoveTo?.Invoke(entity, tryMove);            
 
         LinkToWorld(entity, tryMove, checkLastBlock: true);
 
@@ -1989,7 +2015,7 @@ doneLinkToSectors:
         return lowestFriction;
     }
 
-    private void MoveZ(Entity entity)
+    public void MoveZ(Entity entity)
     {
         if (entity.IsDisposed || m_world.WorldState == WorldState.Exit)
             return;

@@ -1,8 +1,9 @@
-using System;
+using Helion.Resources.Archives.Entries;
 using Helion.Util;
 using Helion.Util.Assertion;
 using Helion.World.Entities.Definition.Flags;
 using Helion.World.Physics;
+using System;
 
 namespace Helion.World.Entities;
 
@@ -24,6 +25,8 @@ public partial class Entity
 
     private static readonly double[] Speeds = { 1.0, Speed, 0, -Speed, -1.0, -Speed, 0, Speed, 
         0, Speed, 1.0, Speed, 0, -Speed, -1.0, -Speed };
+
+    private static Action<Entity, TryMoveData> OnMoveToAction = OnMoveTo;
 
     public static ushort ClosetChaseCount;
     public static ushort ClosetLookCount;
@@ -349,7 +352,7 @@ public partial class Entity
 
     public bool MoveEnemy(out TryMoveData? tryMove)
     {
-        bool floatFlag = (Flags.Flags1 & EntityFlags.FloatFlag) != 0;
+        var floatFlag = (Flags.Flags1 & EntityFlags.FloatFlag) != 0;
         if (m_direction == MoveDir.None || (!floatFlag && !OnGround) || IsFrozen())
         { 
             tryMove = null;
@@ -360,10 +363,10 @@ public partial class Entity
             new MoveFactor(Constants.DefaultMoveFactor, Constants.DefaultFriction);
         GetEnemySpeed(moveFactor, out double speedX, out double speedY);
 
-        bool isMoving = speedX != 0 || speedY != 0;
-        bool setZ = true;
+        var onSet = !floatFlag && (speedX != 0 || speedY != 0) && moveFactor.Friction <= Constants.DefaultFriction ? OnMoveToAction : null;
+
         Flags.SetMonsterMove();
-        tryMove = WorldStatic.World.PhysicsManager.TryMoveXY(this, Position.X + speedX, Position.Y + speedY);
+        tryMove = WorldStatic.World.PhysicsManager.TryMoveXY(this, Position.X + speedX, Position.Y + speedY, onSet);
         Flags.ClearMonsterMove();
 
         if (Flags.Teleported())
@@ -376,13 +379,16 @@ public partial class Entity
             Position.Y = PrevPosition.Y;
             Velocity.X += speedX * moveFactor.Factor;
             Velocity.Y += speedY * moveFactor.Factor;
-            setZ = false;
         }
 
         if (!tryMove.Success && floatFlag && tryMove.CanFloat)
         {
+            var saveVelocity = Velocity.Z;
+            Velocity.Z = Position.Z < tryMove.HighestFloorZ ? FloatSpeed : -FloatSpeed;
+            WorldStatic.World.PhysicsManager.MoveZ(this);
+            Velocity.Z = saveVelocity;
+
             Flags.SetInFloat();
-            Position.Z += Position.Z < tryMove.HighestFloorZ ? FloatSpeed : -FloatSpeed;
             return true;
         }
         else
@@ -390,15 +396,14 @@ public partial class Entity
             Flags.ClearInFloat();
         }
 
-        if (setZ && tryMove.Success && !floatFlag && isMoving)
-        {
-            Position.Z = tryMove.HighestFloorZ;
-            OnGround = true;
-        }
-
         // With increased speeds using the TickMultiplier TryMove will iterate and can have partial successes.
         // A partial success needs be considered true in this case.
         return Position.X != PrevPosition.X || Position.Y != PrevPosition.Y || tryMove.Success;
+    }
+
+    private static void OnMoveTo(Entity entity, TryMoveData tryMove)
+    {
+        entity.Position.Z = tryMove.HighestFloorZ;
     }
 
     public void TurnTowardsMovementDirection()

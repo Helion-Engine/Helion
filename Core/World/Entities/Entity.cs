@@ -979,7 +979,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     private Entity? GetHighestWalkEntitySector3D(TryMoveData tryMove, double maxStepHeight, Entity? highestWalk, Sector sector)
     {
         for (int i = 0; i < sector.Sectors3D.Length; i++)
-            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, sector.Sectors3D[i].Entity, maxStepHeight);
+            highestWalk = GetHighestWalkEntity(tryMove, highestWalk, sector.Sectors3D[i].GetSectorEntity3D(), maxStepHeight);
         return highestWalk;
     }
 
