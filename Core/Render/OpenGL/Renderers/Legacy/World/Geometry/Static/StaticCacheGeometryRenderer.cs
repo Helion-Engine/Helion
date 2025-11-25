@@ -170,6 +170,7 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddSector3D(Sector3D sector3d, SectorPlanes planes, bool update)
     {
         var saveTransfer = sector3d.ParentSector.TransferFloorLightSector;
+        sector3d.ParentSector.TransferFloorLightSector = sector3d.ParentSector;
 
         if ((planes & SectorPlanes.Floor) != 0)
             AddSectorPlane(sector3d.ParentSector, SectorPlaneFace.Ceiling, floor: true, update: update, renderSector: sector3d.ControlSector, 
