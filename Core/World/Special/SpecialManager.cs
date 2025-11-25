@@ -851,6 +851,7 @@ public sealed class SpecialManager : ITickable, IDisposable
         var sectors = GetSectorsFromSpecialLine(specialLine);
         var sectorFlags = SectorFlags3D.None;
         var type = (ZDoom3DFloorType)(specialLine.Args.Arg0 & 0x3);
+        var flags = (ZDoom3DFloorFlags)specialLine.Args.Arg2;
 
         switch(type)
         {
@@ -864,12 +865,14 @@ public sealed class SpecialManager : ITickable, IDisposable
                 break;
         }
 
-        if ((specialLine.Args.Arg0 & (int)ZDoom3DFloorFlags.RenderInside) != 0)
+        if ((specialLine.Args.Arg0 & (int)ZDoom3DFloorFlagsForType.RenderInside) != 0)
             sectorFlags |= SectorFlags3D.RenderInside;
-        if ((specialLine.Args.Arg0 & (int)ZDoom3DFloorFlags.VisibilityInvert) != 0)
+        if ((specialLine.Args.Arg0 & (int)ZDoom3DFloorFlagsForType.VisibilityInvert) != 0)
             sectorFlags |= SectorFlags3D.VisibilityInvert;
-        if ((specialLine.Args.Arg0 & (int)ZDoom3DFloorFlags.ShootabilityInvert) != 0)
+        if ((specialLine.Args.Arg0 & (int)ZDoom3DFloorFlagsForType.ShootabilityInvert) != 0)
             sectorFlags |= SectorFlags3D.ShootabilityInvert;
+
+        sectorFlags |= (SectorFlags3D)((int)flags * 128);
 
         var frontSector = specialLine.Front.Sector;
         int taggedSectorIndex = 0;

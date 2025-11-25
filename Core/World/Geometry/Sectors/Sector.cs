@@ -226,7 +226,23 @@ public sealed class Sector
             return;
 
         Sectors3D.Sort(HeightCompare);
-        TransferFloorLightSector = Sectors3D[^1].ControlSector;
+
+        var currentLightSector = this;
+        for (int i = 0; i < Sectors3D.Length; i++)
+        {
+            var sector3d = Sectors3D[i];
+            sector3d.LightCeiling = currentLightSector;
+            if ((sector3d.Flags & (SectorFlags3D.DisableLighting | SectorFlags3D.RestrictLighting)) != 0)
+            {
+                sector3d.LightFloor = currentLightSector;
+                continue;
+            }
+
+            currentLightSector = sector3d.ControlSector;
+            sector3d.LightFloor = currentLightSector;
+        }
+
+        TransferFloorLightSector = currentLightSector;
     }
 
     private int HeightCompare(Sector3D x, Sector3D y)
