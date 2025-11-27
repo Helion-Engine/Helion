@@ -231,15 +231,15 @@ public sealed class Sector
         for (int i = 0; i < Sectors3D.Length; i++)
         {
             var sector3d = Sectors3D[i];
-            sector3d.LightCeiling = currentLightSector;
+            sector3d.LightTop = currentLightSector;
             if ((sector3d.Flags & (SectorFlags3D.DisableLighting | SectorFlags3D.RestrictLighting)) != 0)
             {
-                sector3d.LightFloor = currentLightSector;
+                sector3d.LightBottom = currentLightSector;
                 continue;
             }
 
             currentLightSector = sector3d.ControlSector;
-            sector3d.LightFloor = currentLightSector;
+            sector3d.LightBottom = currentLightSector;
         }
 
         TransferFloorLightSector = currentLightSector;
@@ -247,7 +247,7 @@ public sealed class Sector
 
     private int HeightCompare(Sector3D x, Sector3D y)
     {
-        return y.ControlFloor.Z.CompareTo(x.ControlFloor.Z);
+        return y.ControlBottom.Z.CompareTo(x.ControlBottom.Z);
     }
 
     public void SetFriction(double friction)

@@ -170,12 +170,12 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddSector3D(Sector3D sector3d, SectorPlanes planes, bool update)
     {
         if ((planes & SectorPlanes.Floor) != 0)
-            AddSectorPlane(sector3d.ParentSector, SectorPlaneFace.Ceiling, floor: true, update: update, renderSector: sector3d.ControlSector, 
-                lightLevelSector: sector3d.LightCeiling, geometryPlane: sector3d.FakeFloor);
+            AddSectorPlane(sector3d.ParentSector, sector3d.ControlTop.Facing, floor: true, update: update, renderSector: sector3d.ControlSector, 
+                lightLevelSector: sector3d.LightTop, geometryPlane: sector3d.FakeBottom);
 
         if ((planes & SectorPlanes.Ceiling) != 0)
-            AddSectorPlane(sector3d.ParentSector, SectorPlaneFace.Floor, floor: false, update: update, renderSector: sector3d.ControlSector,
-                lightLevelSector: sector3d.LightFloor, geometryPlane: sector3d.FakeCeiling);
+            AddSectorPlane(sector3d.ParentSector, sector3d.ControlBottom.Facing, floor: false, update: update, renderSector: sector3d.ControlSector,
+                lightLevelSector: sector3d.LightBottom, geometryPlane: sector3d.FakeTop);
 
         foreach (var sectorLine in sector3d.FakeSector.Lines)
         {
@@ -676,7 +676,7 @@ public class StaticCacheGeometryRenderer : IDisposable
         m_geometryRenderer.RenderSectorFlats(sectorForSubsectors, renderPlane, geometryPlane, floor, renderFlood: false, out var renderedVertices, out var renderedSkyVertices,
             lightLevelSector: lightLevelSector);
 
-        AddSkyGeometry(null, WallLocation.None, plane, renderedSkyVertices, sectorForSubsectors, update);
+        AddSkyGeometry(null, WallLocation.None, geometryPlane, renderedSkyVertices, sectorForSubsectors, update);
 
         if (renderedVertices == null)
             return;

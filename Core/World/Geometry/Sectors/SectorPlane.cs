@@ -204,4 +204,6 @@ public sealed class SectorPlane : ISoundSource
     public bool CanMakeSound() => true;
 
     public float GetSoundRadius() => 32;
+
+    public override string ToString() => $"Z: {Z} Face: {Facing} Texture: {TextureHandle}";
 }

@@ -36,13 +36,13 @@ public class Sector3D
     public int SectorId;
     public Sector ParentSector;
     public Sector ControlSector;
-    public SectorPlane ControlCeiling;
-    public SectorPlane ControlFloor;
+    public SectorPlane ControlTop;
+    public SectorPlane ControlBottom;
     public Sector FakeSector;
-    public SectorPlane FakeFloor;
-    public SectorPlane FakeCeiling;
-    public Sector LightCeiling;
-    public Sector LightFloor;
+    public SectorPlane FakeTop;
+    public SectorPlane FakeBottom;
+    public Sector LightTop;
+    public Sector LightBottom;
     public SectorFlags3D Flags;
 
     private readonly Entity Entity;
@@ -51,19 +51,19 @@ public class Sector3D
     {
         SectorId = world.Geometry.CreateNewSectorId();
         ParentSectorId = parentSectorId;
-        FakeFloor = new(SectorPlaneFace.Floor, 0, 0, 0);
-        FakeCeiling = new(SectorPlaneFace.Ceiling, 0, 0, 0);
-        FakeSector = new(SectorId, 0, 0, FakeFloor, FakeCeiling, default, default)
+        FakeBottom = new(SectorPlaneFace.Floor, 0, 0, 0);
+        FakeTop = new(SectorPlaneFace.Ceiling, 0, 0, 0);
+        FakeSector = new(SectorId, 0, 0, FakeBottom, FakeTop, default, default)
         {
             Sector3D = this,
             Lines = CreateSector3DLines(world, world.Sectors[parentSectorId], textureHandle)
         };
         ParentSector = parentSector;
         ControlSector = controlSector;
-        ControlCeiling = controlSector.Ceiling;
-        ControlFloor = controlSector.Floor;
-        LightCeiling = ParentSector;
-        LightFloor = ParentSector;
+        ControlTop = controlSector.Ceiling;
+        ControlBottom = controlSector.Floor;
+        LightTop = ParentSector;
+        LightBottom = ParentSector;
         Flags = flags;
         Entity = new();
         Entity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world, default);
@@ -77,8 +77,8 @@ public class Sector3D
         for (int i = 0; i < FakeSector.Lines.Length; i++)
             FakeSector.Lines[i].Front.Reset();
 
-        FakeFloor.Reset(0);
-        FakeCeiling.Reset(0);
+        FakeBottom.Reset(0);
+        FakeTop.Reset(0);
     }
 
     private static Line[] CreateSector3DLines(IWorld world, Sector sector, int textureHandle)
@@ -100,9 +100,9 @@ public class Sector3D
 
     public Entity GetSectorEntity3D()
     {
-        Entity.PrevPosition.Z = ControlFloor.PrevZ;
-        Entity.Position.Z = ControlFloor.Z;
-        Entity.Height = Math.Max(ControlCeiling.Z - ControlFloor.Z, 0);
+        Entity.PrevPosition.Z = ControlBottom.PrevZ;
+        Entity.Position.Z = ControlBottom.Z;
+        Entity.Height = Math.Max(ControlTop.Z - ControlBottom.Z, 0);
         return Entity;
     }
 
@@ -128,7 +128,7 @@ public class Sector3D
     {
         var minFloorAbove = double.MaxValue;
         if (height == double.MinValue)
-            height = ControlCeiling.Z;
+            height = ControlTop.Z;
         Sector3D? minSector = null;
         for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
         {
@@ -136,9 +136,9 @@ public class Sector3D
             if ((sector.Flags & skipFlags) != 0)
                 continue;
 
-            if (sector.ControlFloor.Z <= minFloorAbove && sector.ControlFloor.Z >= height)
+            if (sector.ControlBottom.Z <= minFloorAbove && sector.ControlBottom.Z >= height)
             {
-                minFloorAbove = sector.ControlFloor.Z;
+                minFloorAbove = sector.ControlBottom.Z;
                 minSector = sector;
             }
         }
@@ -150,14 +150,14 @@ public class Sector3D
     {
         var maxCeilingBelow = double.MinValue;
         if (height == double.MinValue)
-            height = ControlFloor.Z;
+            height = ControlBottom.Z;
         Sector3D? maxSector = null;
         for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
         {
             var sector = ParentSector.Sectors3D[i];
-            if (sector.ControlCeiling.Z >= maxCeilingBelow && sector.ControlCeiling.Z <= height)
+            if (sector.ControlTop.Z >= maxCeilingBelow && sector.ControlTop.Z <= height)
             {
-                maxCeilingBelow = sector.ControlCeiling.Z;
+                maxCeilingBelow = sector.ControlTop.Z;
                 maxSector = sector;
             }
         }

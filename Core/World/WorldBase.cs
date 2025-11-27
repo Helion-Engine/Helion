@@ -1853,7 +1853,7 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            if (sector3d.ControlFloor.Z < intersect.Z && sector3d.ControlCeiling.Z > intersect.Z)
+            if (sector3d.ControlBottom.Z < intersect.Z && sector3d.ControlTop.Z > intersect.Z)
                 return true;
 
             if (IntersectPlane3D(sector3d, sector, start, end, ref test, out var testPlane))
@@ -1881,15 +1881,15 @@ public abstract partial class WorldBase : IWorld
     private bool IntersectPlane3D(Sector3D sector3d, Sector sector, in Vec3D start, in Vec3D end, ref Vec3D interset, out SectorPlane? plane)
     {
         plane = null;
-        if (start.Z < sector3d.ControlFloor.Z && sector3d.ControlFloor.Plane.Intersects(start, end, ref interset) && PointInSector(sector, interset))
+        if (start.Z < sector3d.ControlBottom.Z && sector3d.ControlBottom.Plane.Intersects(start, end, ref interset) && PointInSector(sector, interset))
         {
-            plane = sector3d.ControlFloor;
+            plane = sector3d.ControlBottom;
             return true;
         }
 
-        if (start.Z > sector3d.ControlCeiling.Z && sector3d.ControlCeiling.Plane.Intersects(start, end, ref interset) && PointInSector(sector, interset))
+        if (start.Z > sector3d.ControlTop.Z && sector3d.ControlTop.Plane.Intersects(start, end, ref interset) && PointInSector(sector, interset))
         {
-            plane = sector3d.ControlCeiling;
+            plane = sector3d.ControlTop;
             return true;
         }
 
@@ -3036,16 +3036,16 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            if (start.Z > sector3d.ControlCeiling.Z)
+            if (start.Z > sector3d.ControlTop.Z)
             {
-                var sectorPitch = start.Pitch(sector3d.ControlCeiling.Z, segLength);
+                var sectorPitch = start.Pitch(sector3d.ControlTop.Z, segLength);
                 if (sectorPitch > bottomPitch)
                     bottomPitch = sectorPitch;
             }
 
-            if (start.Z < sector3d.ControlFloor.Z)
+            if (start.Z < sector3d.ControlBottom.Z)
             {
-                var sectorPitch = start.Pitch(sector3d.ControlFloor.Z, segLength);
+                var sectorPitch = start.Pitch(sector3d.ControlBottom.Z, segLength);
                 if (sectorPitch < topPitch)
                     topPitch = sectorPitch;
             }

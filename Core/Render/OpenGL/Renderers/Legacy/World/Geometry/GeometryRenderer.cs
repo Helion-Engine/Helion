@@ -435,8 +435,8 @@ public class GeometryRenderer : IDisposable
             set.Floor.LastRenderGametick = m_world.Gametick;
             if (sector3d != null)
             {
-                RenderFlat(subsectors, renderSector.Ceiling, sector3d.FakeFloor, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                    lightLevelSector: sector3d.GetNextHighestCeiling3D());
+                RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottom, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    lightLevelSector: sector3d.LightTop);
             }
             else
             {
@@ -450,8 +450,8 @@ public class GeometryRenderer : IDisposable
             set.Ceiling.LastRenderGametick = m_world.Gametick;
             if (sector3d != null)
             {
-                RenderFlat(subsectors, renderSector.Floor, sector3d.FakeCeiling, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                    lightLevelSector: sector3d.ControlSector);
+                RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTop, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                    lightLevelSector: sector3d.LightBottom);
             }
             else
             {
@@ -587,7 +587,7 @@ public class GeometryRenderer : IDisposable
         if (m_renderMode == GeometryRenderMode.All || side.IsDynamic)
         {
             if (sector.Sector3D != null)
-                RenderOneSided(side, onFrontSide, out _, out _, out _, renderSector: sector.Sector3D.ControlSector, lightLevelSector: sector.Sector3D.ParentSector);
+                RenderOneSided(side, onFrontSide, out _, out _, out _, renderSector: sector.Sector3D.ControlSector, lightLevelSector: sector.Sector3D.ParentSector, renderSkySide: false);
             else
                 RenderSide(side, onFrontSide);
         }
@@ -647,8 +647,9 @@ public class GeometryRenderer : IDisposable
     }
 
     public void RenderOneSided(Side side, bool isFront, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out GLLegacyTexture texture,
-        Sector? renderSector = null, Sector? lightLevelSector = null)
+        Sector? renderSector = null, Sector? lightLevelSector = null, bool renderSkySide = true)
     {
+        skyVertices = null;
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
         if (renderSector != null)
             m_sectorChangedLine = renderSector.CheckRenderingChanged(side.LastRenderGametick);
@@ -664,25 +665,28 @@ public class GeometryRenderer : IDisposable
 
         WallVertices wall = default;
         texture = m_glTextureManager.GetTexture(side.Middle.TextureHandle);
-        GLLegacyTexture? brightmapTexture = m_glTextureManager.GetBrightmapTexture(side.Middle.TextureHandle);
-        DynamicVertex[]? data = m_vertexLookup[side.Id];
+        var brightmapTexture = m_glTextureManager.GetBrightmapTexture(side.Middle.TextureHandle);
+        var data = m_vertexLookup[side.Id];
 
         renderSector ??= side.Sector.GetRenderSector(m_transferHeightsView);
         lightLevelSector ??= renderSector;
 
-        SectorPlane floor = renderSector.Floor;
-        SectorPlane ceiling = renderSector.Ceiling;
-        RenderSkySide(side, renderSector, null, texture, out skyVertices);
-
-        // One-sided walls without a texture would HOM and stop BSP traversal. Draw a black texture to block rendering.
-        if (skyVertices == null && side.Middle.TextureHandle <= Constants.NullCompatibilityTextureIndex)
+        var floor = renderSector.Floor;
+        var ceiling = renderSector.Ceiling;
+        if (renderSkySide)
         {
-            m_fakeFloor.Z = floor.Z - Constants.MaxTextureHeight;
-            m_fakeCeiling.Z = ceiling.Z + Constants.MaxTextureHeight;
-            floor = m_fakeFloor;
-            ceiling = m_fakeCeiling;
-            texture = m_glTextureManager.BlackTexture;
-            brightmapTexture = null;
+            RenderSkySide(side, renderSector, null, texture, out skyVertices);
+
+            // One-sided walls without a texture would HOM and stop BSP traversal. Draw a black texture to block rendering.
+            if (skyVertices == null && side.Middle.TextureHandle <= Constants.NullCompatibilityTextureIndex)
+            {
+                m_fakeFloor.Z = floor.Z - Constants.MaxTextureHeight;
+                m_fakeCeiling.Z = ceiling.Z + Constants.MaxTextureHeight;
+                floor = m_fakeFloor;
+                ceiling = m_fakeCeiling;
+                texture = m_glTextureManager.BlackTexture;
+                brightmapTexture = null;
+            }
         }
 
         if (side.OffsetChanged || m_sectorChangedLine || data == null)
@@ -1480,7 +1484,7 @@ public class GeometryRenderer : IDisposable
                         continue;
 
                     WorldTriangulator.HandleSubsector(m_world.BspTree, subsector, renderPlane, floor, textureVector, m_subsectorVertices,
-                        floor ? renderPlane.Z : MaxSky);
+                        floor || (WorldStatic.Sector3D && geometryPlane.Sector.Sector3D != null) ? renderPlane.Z : MaxSky);
                     ref var root = ref m_subsectorVertices.Data[0];
                     for (int i = 1; i < m_subsectorVertices.Length - 1; i++)
                     {
