@@ -1,68 +1,69 @@
-using System;
-using System.Collections.Generic;
 using Helion.Audio;
+using Helion.Dehacked;
+using Helion.Geometry.Boxes;
+using Helion.Geometry.Segments;
+using Helion.Geometry.Vectors;
+using Helion.Graphics.Palettes;
 using Helion.Maps;
+using Helion.Maps.Components;
+using Helion.Maps.Shared;
+using Helion.Maps.Specials;
 using Helion.Maps.Specials.Compatibility;
+using Helion.Maps.Specials.Vanilla;
+using Helion.Maps.Specials.ZDoom;
+using Helion.Models;
+using Helion.Render.OpenGL.Renderers.Legacy.World;
+using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
 using Helion.Resources;
 using Helion.Resources.Archives.Collection;
+using Helion.Resources.Archives.Entries;
+using Helion.Resources.Definitions.Compatibility;
 using Helion.Resources.Definitions.Locks;
+using Helion.Resources.Definitions.MapInfo;
+using Helion.Resources.Definitions.MusInfo;
+using Helion.Resources.Definitions.SoundInfo;
+using Helion.Resources.IWad;
 using Helion.Util;
 using Helion.Util.Configs;
+using Helion.Util.Container;
+using Helion.Util.Extensions;
+using Helion.Util.Loggers;
+using Helion.Util.Profiling;
 using Helion.Util.RandomGenerators;
+using Helion.Util.Timing;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
+using Helion.World.Cheats;
 using Helion.World.Entities;
+using Helion.World.Entities.Definition;
+using Helion.World.Entities.Definition.Flags;
 using Helion.World.Entities.Definition.Properties.Components;
+using Helion.World.Entities.Definition.States;
+using Helion.World.Entities.Inventories;
+using Helion.World.Entities.Inventories.Powerups;
 using Helion.World.Entities.Players;
 using Helion.World.Geometry;
+using Helion.World.Geometry.Islands;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using Helion.World.Impl.SinglePlayer;
 using Helion.World.Physics;
 using Helion.World.Physics.Blockmap;
 using Helion.World.Sound;
 using Helion.World.Special;
-using static Helion.Util.Assertion.Assert;
-using Helion.Resources.Definitions.MapInfo;
-using Helion.Util.Container;
-using Helion.World.Entities.Definition;
-using Helion.Models;
-using Helion.Util.Timing;
-using Helion.World.Entities.Definition.Flags;
-using System.Linq;
-using Helion.Geometry.Boxes;
-using Helion.Geometry.Segments;
-using Helion.Geometry.Vectors;
-using Helion.World.Cheats;
-using Helion.World.Stats;
-using Helion.World.Entities.Inventories.Powerups;
-using Helion.World.Impl.SinglePlayer;
-using Helion.World.Util;
-using Helion.Resources.IWad;
-using Helion.Dehacked;
-using Helion.Util.Profiling;
-using Helion.World.Entities.Inventories;
-using Helion.Maps.Specials;
-using Helion.World.Entities.Definition.States;
 using Helion.World.Special.Specials;
 using Helion.World.Static;
-using Helion.Render.OpenGL.Renderers.Legacy.World.Primitives;
-using static Helion.Dehacked.DehackedDefinition;
-using Helion.Resources.Definitions.MusInfo;
-using Helion.Util.Extensions;
+using Helion.World.Stats;
+using Helion.World.Util;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Helion.Resources.Archives.Entries;
-using Helion.Maps.Specials.Vanilla;
-using Helion.Util.Loggers;
-using Helion.Graphics.Palettes;
-using Helion.Maps.Shared;
-using Helion.World.Geometry.Islands;
-using Helion.Maps.Specials.ZDoom;
-using Helion.Resources.Definitions.Compatibility;
-using Helion.Maps.Components;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using Helion.Resources.Definitions.SoundInfo;
+using static Helion.Dehacked.DehackedDefinition;
+using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World;
 
@@ -183,6 +184,7 @@ public abstract partial class WorldBase : IWorld
     private readonly Entity m_checkRadiusEntity;
     private readonly Dictionary<int, LineHealthGroup> m_lineHealthGroups = [];
     private readonly IMap m_map;
+    private readonly SpawnMulti m_spawnMulti;
     private MusInfoDef? m_lastMusicChange;
     private int m_changeMusicTicks;
     private int m_losDistance = DefaultLineOfSightDistance;
@@ -250,6 +252,9 @@ public abstract partial class WorldBase : IWorld
         SpecialManager = CreateSpecialManager(reuse);
 
         IsFastMonsters = skillDef.IsFastMonsters(config);
+        m_spawnMulti = skillDef.SpawnMulti;
+        if (m_spawnMulti == SpawnMulti.SinglePlayerAndCoop && CompatibilityMapDefinition != null && CompatibilityMapDefinition.Parent.SetSpawnMultiToCoopOnly)
+            m_spawnMulti = SpawnMulti.CoopOnly;
 
         m_defaultDamageAction = DefaultDamage;
         m_radiusExplosionEntityAction = HandleRadiusExplosionEntity;
@@ -3631,29 +3636,45 @@ public abstract partial class WorldBase : IWorld
         var flags = mapThing.Flags;
         if (WorldType == WorldType.SinglePlayer)
         {
-            if (MapType != MapType.Doom)
+            return m_spawnMulti switch
+            {
+                SpawnMulti.SinglePlayerAndCoop => ShouldSpawn(flags, MapType, SpawnFilter.SinglePlayer) || ShouldSpawn(flags, MapType, SpawnFilter.Cooperative),
+                SpawnMulti.CoopOnly => ShouldSpawn(flags, MapType, SpawnFilter.Cooperative),
+                _ => ShouldSpawn(flags, MapType, SpawnFilter.SinglePlayer),
+            };
+        }
+
+        var filter = SpawnFilter.None;
+        if (WorldType == WorldType.Deathmatch)
+            filter = SpawnFilter.Deathmatch;
+        else if (WorldType == WorldType.Cooperative)
+            filter = SpawnFilter.Cooperative;
+
+        return ShouldSpawn(flags, MapType, filter);
+    }
+
+    private static bool ShouldSpawn(ThingFlags flags, MapType mapType, SpawnFilter filter)
+    {
+        if (filter == SpawnFilter.SinglePlayer)
+        {
+            if (mapType != MapType.Doom)
                 return flags.SinglePlayer;
 
             return !flags.MultiPlayer;
         }
 
-        if (flags.MultiPlayer)
+        if (mapType == MapType.Doom)
         {
-            if (MapType == MapType.Doom)
-            {
-                if (WorldType == WorldType.Cooperative)
-                    return !flags.NotCooperative;
-                if (WorldType == WorldType.Deathmatch)
-                    return !flags.NotDeathmatch;
-            }
-            else
-            {
-                if (WorldType == WorldType.Cooperative)
-                    return flags.Cooperative;
-                if (WorldType == WorldType.Deathmatch)
-                    return flags.Deathmatch;
-            }
+            if (filter == SpawnFilter.Cooperative)
+                return !flags.NotCooperative;
+            if (filter == SpawnFilter.Deathmatch)
+                return !flags.NotDeathmatch;
         }
+
+        if (filter == SpawnFilter.Cooperative)
+            return flags.Cooperative;
+        if (filter == SpawnFilter.Deathmatch)
+            return flags.Deathmatch;
 
         return true;
     }
