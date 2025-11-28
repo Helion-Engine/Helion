@@ -121,7 +121,7 @@ public class SoloNet
     }
 
     [Fact(DisplayName = "Solo-net object spawn")]
-    public void SpawnObjects()
+    public void SpawnObjectsSoloNet()
     {
         GameActions.FindEntity(World, "Chaingun").Should().NotBeNull();
         GameActions.FindEntity(World, "SuperShotgun").Should().NotBeNull();
@@ -132,5 +132,6 @@ public class SoloNet
         GameActions.FindEntity(World, "ShotgunGuy").Should().NotBeNull();
         GameActions.FindEntity(World, "RedCard").Should().NotBeNull();
         GameActions.FindEntity(World, "BlueSkull").Should().NotBeNull();
+        GameActions.FindEntity(World, "HellKnight").Should().BeNull();
     }
 }

@@ -3637,22 +3637,19 @@ public abstract partial class WorldBase : IWorld
             return !flags.MultiPlayer;
         }
 
-        if (flags.MultiPlayer)
+        if (MapType == MapType.Doom)
         {
-            if (MapType == MapType.Doom)
-            {
-                if (WorldType == WorldType.Cooperative)
-                    return !flags.NotCooperative;
-                if (WorldType == WorldType.Deathmatch)
-                    return !flags.NotDeathmatch;
-            }
-            else
-            {
-                if (WorldType == WorldType.Cooperative)
-                    return flags.Cooperative;
-                if (WorldType == WorldType.Deathmatch)
-                    return flags.Deathmatch;
-            }
+            if (WorldType == WorldType.Cooperative)
+                return !flags.NotCooperative;
+            if (WorldType == WorldType.Deathmatch)
+                return !flags.NotDeathmatch;
+        }
+        else if (flags.MultiPlayer)
+        {
+            if (WorldType == WorldType.Cooperative)
+                return flags.Cooperative;
+            if (WorldType == WorldType.Deathmatch)
+                return flags.Deathmatch;
         }
 
         return true;
