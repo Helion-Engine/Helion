@@ -14,8 +14,8 @@ public class CompatibilityParser : ParserBase
 
     public readonly Dictionary<string, CompatibilityDefinition> Files = new(StringComparer.OrdinalIgnoreCase);
     public readonly Dictionary<string, CompatibilityDefinition> Hashes = new(StringComparer.OrdinalIgnoreCase);
-    private CompatibilityDefinition m_definition = new CompatibilityDefinition();
-    private CompatibilityMapDefinition m_mapDefinition = new CompatibilityMapDefinition();
+    private CompatibilityDefinition m_definition = new();
+    private CompatibilityMapDefinition m_mapDefinition = null!;
     private string m_mapName = string.Empty;
 
     protected override void PerformParsing()
@@ -174,22 +174,29 @@ public class CompatibilityParser : ParserBase
 
         InvokeUntilAndConsume('}', () =>
         {
-            m_mapDefinition = new CompatibilityMapDefinition();
+            m_mapDefinition = new(m_definition);
 
-            Consume("MAP");
-            m_mapName = ConsumeString();
-            Consume('{');
-            InvokeUntilAndConsume('}', ConsumeMapElementDefinition);
+            if (ConsumeIf("MAP"))
+            {
+                m_mapName = ConsumeString();
+                Consume('{');
+                InvokeUntilAndConsume('}', ConsumeMapElementDefinition);
 
-            if (m_definition.MapDefinitions.ContainsKey(m_mapName))
-                Log.Warn("Multiple compatibility map definitions for {0}", m_mapName);
-            m_definition.MapDefinitions[m_mapName] = m_mapDefinition;
+                if (m_definition.MapDefinitions.ContainsKey(m_mapName))
+                    Log.Warn("Multiple compatibility map definitions for {0}", m_mapName);
+                m_definition.MapDefinitions[m_mapName] = m_mapDefinition;
+            }
+            else if (ConsumeIf("SetSpawnMultiToCoopOnly"))
+            {
+                m_definition.SetSpawnMultiToCoopOnly = true;
+                Consume(';');
+            }
         });
     }
 
     private void ConsumeDefinitions()
     {
-        HashSet<string> identifiers = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ConsumeString() };
+        var identifiers = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ConsumeString() };
 
         InvokeUntilAndConsume('{', () => identifiers.Add(ConsumeString()));
         ConsumeDefinition();

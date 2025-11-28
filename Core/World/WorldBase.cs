@@ -253,6 +253,8 @@ public abstract partial class WorldBase : IWorld
 
         IsFastMonsters = skillDef.IsFastMonsters(config);
         m_spawnMulti = skillDef.SpawnMulti;
+        if (m_spawnMulti == SpawnMulti.SinglePlayerAndCoop && CompatibilityMapDefinition != null && CompatibilityMapDefinition.Parent.SetSpawnMultiToCoopOnly)
+            m_spawnMulti = SpawnMulti.CoopOnly;
 
         m_defaultDamageAction = DefaultDamage;
         m_radiusExplosionEntityAction = HandleRadiusExplosionEntity;
@@ -3650,7 +3652,6 @@ public abstract partial class WorldBase : IWorld
 
         return ShouldSpawn(flags, MapType, filter);
     }
-
 
     private static bool ShouldSpawn(ThingFlags flags, MapType mapType, SpawnFilter filter)
     {

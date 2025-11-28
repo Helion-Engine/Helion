@@ -6,4 +6,5 @@ namespace Helion.Resources.Definitions.Compatibility;
 public class CompatibilityDefinition
 {
     public readonly Dictionary<string, CompatibilityMapDefinition> MapDefinitions = new(StringComparer.OrdinalIgnoreCase);
+    public bool SetSpawnMultiToCoopOnly;
 }

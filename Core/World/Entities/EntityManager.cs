@@ -6,7 +6,6 @@ using Helion.Maps.Specials;
 using Helion.Models;
 using Helion.Util;
 using Helion.Util.Container;
-using Helion.Util.Extensions;
 using Helion.World.Entities.Definition;
 using Helion.World.Entities.Definition.Composer;
 using Helion.World.Entities.Inventories;
