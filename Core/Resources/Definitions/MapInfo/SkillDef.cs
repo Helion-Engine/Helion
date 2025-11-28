@@ -5,6 +5,13 @@ using System;
 
 namespace Helion.Resources.Definitions.MapInfo;
 
+public enum SpawnMulti
+{
+    None,
+    SinglePlayerAndCoop,
+    CoopOnly
+}
+
 public class SkillDef
 {
     public double AmmoFactor { get; set; } = 1.0;
@@ -41,6 +48,7 @@ public class SkillDef
     public bool MustConfirm { get; set; }
     public string? MustConfirmMessage { get; set; }
     public bool Default { get; set; }
+    public SpawnMulti SpawnMulti { get; set; }
 
     public int GetAmmoAmount(int amount, double multiplier, EntityFlags? flags)
     {

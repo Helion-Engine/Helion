@@ -3,6 +3,7 @@ using Helion.Maps.Shared;
 using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Resources.Archives.Entries;
+using Helion.Util.Extensions;
 using Helion.Util.Parser;
 using NLog;
 using System;
@@ -746,6 +747,10 @@ public partial class MapInfoDefinition
                     skillDef.NoMenu = true;
                 else if (item.Equals(Skill_PlayerRespawnName, StringComparison.OrdinalIgnoreCase))
                     skillDef.PlayerRespawn = true;
+                else if (item.EqualsIgnoreCase(Skill_SpawnMulti))
+                    skillDef.SpawnMulti = SpawnMulti.SinglePlayerAndCoop;
+                else if (item.EqualsIgnoreCase(Skill_SpawnMultiCoopOnly))
+                    skillDef.SpawnMulti = SpawnMulti.CoopOnly;
                 else if (item.Equals(Skill_MustConfirmName, StringComparison.OrdinalIgnoreCase))
                 {
                     skillDef.MustConfirm = true;
