@@ -1,5 +1,7 @@
 ﻿using FluentAssertions;
 using Helion.Geometry.Vectors;
+using Helion.Resources.Archives.Collection;
+using Helion.Resources.Definitions.MapInfo;
 using Helion.Resources.IWad;
 using Helion.Tests.Unit.GameAction.Util;
 using Helion.World.Entities.Players;
@@ -164,3 +166,70 @@ public class SpawnMap
     }
 }
 
+[Collection("GameActions")]
+public class SkillDefSpawnMulti
+{
+    private SinglePlayerWorld World = null!;
+    private SpawnMulti m_set;
+
+    public SkillDefSpawnMulti()
+    {
+        World = LoadWorld();
+    }
+
+    private SinglePlayerWorld LoadWorld()
+    {
+        var config = WorldAllocator.CreateConfig();
+        return WorldAllocator.LoadMap("Resources/solonet.zip", "solonet.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2,
+            cacheWorld: false, config: config, onBeforeInit: OnBeforeInit);
+    }
+
+    private void OnBeforeInit(ArchiveCollection archiveCollection)
+    {
+        foreach (var skill in archiveCollection.MapInfo.MapInfo.Skills)
+            skill.SpawnMulti = m_set;
+    }
+
+    [Fact(DisplayName = "Skill Definition SpawnMulti")]
+    public void SpawnObjects()
+    {
+        m_set = SpawnMulti.None;
+        World = LoadWorld();
+        GameActions.FindEntity(World, "Chaingun").Should().NotBeNull();
+        GameActions.FindEntity(World, "SuperShotgun").Should().NotBeNull();
+        GameActions.FindEntity(World, "GreenArmor").Should().NotBeNull();
+        GameActions.FindEntity(World, "HealthBonus").Should().NotBeNull();
+        GameActions.FindEntity(World, "DoomImp").Should().BeNull();
+        GameActions.FindEntity(World, "ZombieMan").Should().BeNull();
+        GameActions.FindEntity(World, "ShotgunGuy").Should().BeNull();
+        GameActions.FindEntity(World, "RedCard").Should().NotBeNull();
+        GameActions.FindEntity(World, "BlueSkull").Should().NotBeNull();
+        GameActions.FindEntity(World, "HellKnight").Should().NotBeNull();
+
+        m_set = SpawnMulti.SinglePlayerAndCoop;
+        World = LoadWorld();
+        GameActions.FindEntity(World, "Chaingun").Should().NotBeNull();
+        GameActions.FindEntity(World, "SuperShotgun").Should().NotBeNull();
+        GameActions.FindEntity(World, "GreenArmor").Should().NotBeNull();
+        GameActions.FindEntity(World, "HealthBonus").Should().NotBeNull();
+        GameActions.FindEntity(World, "DoomImp").Should().NotBeNull();
+        GameActions.FindEntity(World, "ZombieMan").Should().BeNull();
+        GameActions.FindEntity(World, "ShotgunGuy").Should().NotBeNull();
+        GameActions.FindEntity(World, "RedCard").Should().NotBeNull();
+        GameActions.FindEntity(World, "BlueSkull").Should().NotBeNull();
+        GameActions.FindEntity(World, "HellKnight").Should().NotBeNull();
+
+        m_set = SpawnMulti.CoopOnly;
+        World = LoadWorld();
+        GameActions.FindEntity(World, "Chaingun").Should().NotBeNull();
+        GameActions.FindEntity(World, "SuperShotgun").Should().NotBeNull();
+        GameActions.FindEntity(World, "GreenArmor").Should().NotBeNull();
+        GameActions.FindEntity(World, "HealthBonus").Should().NotBeNull();
+        GameActions.FindEntity(World, "DoomImp").Should().NotBeNull();
+        GameActions.FindEntity(World, "ZombieMan").Should().BeNull();
+        GameActions.FindEntity(World, "ShotgunGuy").Should().NotBeNull();
+        GameActions.FindEntity(World, "RedCard").Should().NotBeNull();
+        GameActions.FindEntity(World, "BlueSkull").Should().NotBeNull();
+        GameActions.FindEntity(World, "HellKnight").Should().BeNull();
+    }
+}
