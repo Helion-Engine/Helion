@@ -135,3 +135,32 @@ public class SoloNet
         GameActions.FindEntity(World, "HellKnight").Should().BeNull();
     }
 }
+
+[Collection("GameActions")]
+public class SpawnMap
+{
+    private readonly SinglePlayerWorld World;
+
+    public SpawnMap()
+    {
+        var config = WorldAllocator.CreateConfig();
+        World = WorldAllocator.LoadMap("Resources/solonet.zip", "solonet.wad", "MAP01", GetType().Name, (world) => { }, IWadType.Doom2,
+            cacheWorld: false, config: config);
+    }
+
+    [Fact(DisplayName = "Map spawn flags")]
+    public void SpawnObjects()
+    {
+        GameActions.FindEntity(World, "Chaingun").Should().NotBeNull();
+        GameActions.FindEntity(World, "SuperShotgun").Should().NotBeNull();
+        GameActions.FindEntity(World, "GreenArmor").Should().NotBeNull();
+        GameActions.FindEntity(World, "HealthBonus").Should().NotBeNull();
+        GameActions.FindEntity(World, "DoomImp").Should().BeNull();
+        GameActions.FindEntity(World, "ZombieMan").Should().BeNull();
+        GameActions.FindEntity(World, "ShotgunGuy").Should().BeNull();
+        GameActions.FindEntity(World, "RedCard").Should().NotBeNull();
+        GameActions.FindEntity(World, "BlueSkull").Should().NotBeNull();
+        GameActions.FindEntity(World, "HellKnight").Should().NotBeNull();
+    }
+}
+

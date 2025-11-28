@@ -3644,13 +3644,11 @@ public abstract partial class WorldBase : IWorld
             if (WorldType == WorldType.Deathmatch)
                 return !flags.NotDeathmatch;
         }
-        else if (flags.MultiPlayer)
-        {
-            if (WorldType == WorldType.Cooperative)
-                return flags.Cooperative;
-            if (WorldType == WorldType.Deathmatch)
-                return flags.Deathmatch;
-        }
+
+        if (WorldType == WorldType.Cooperative)
+            return flags.Cooperative;
+        if (WorldType == WorldType.Deathmatch)
+            return flags.Deathmatch;
 
         return true;
     }
