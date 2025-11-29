@@ -367,6 +367,9 @@ public sealed class PhysicsManager
         if (isCompleted && status == SectorMoveStatus.Blocked)
             return SectorMoveStatus.BlockedAndStop;
 
+        if (status == SectorMoveStatus.BlockedAndStop)
+            return status;
+
         if (WorldStatic.Sector3D && checkSector3D && sector.TaggedSectors3D.Length > 0)
         {
             status = TestMoveSector3D(speed, destZ, startZ, moveSpecial, sector, sectorPlane, moveType);
