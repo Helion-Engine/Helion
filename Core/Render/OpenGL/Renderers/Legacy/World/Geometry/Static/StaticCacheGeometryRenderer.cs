@@ -890,7 +890,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             }
         }
 
-        var face = plane.Facing == SectorPlaneFace.Floor ? SectorPlaneFace.Ceiling : SectorPlaneFace.Floor;
+        var face = plane.Facing.Flip();
         for (int i = 0; i < plane.Sector.TaggedSectors3D.Length; i++)
         {
             var sector3d = plane.Sector.TaggedSectors3D[i];
@@ -968,6 +968,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             {
                 var sector3d = plane.Sector.TaggedSectors3D[i];
                 HandleSectorMoveComplete(world, plane.Sector, sector3d.FakeSector.GetSectorPlane(face));
+                if (sector3d.FakeSectorFlipped != null)
+                    HandleSectorMoveComplete(world, plane.Sector, sector3d.FakeSectorFlipped.GetSectorPlane(face));
                 AddSector3D(sector3d, face.ToSectorPlanes(), true);
             }
         }
