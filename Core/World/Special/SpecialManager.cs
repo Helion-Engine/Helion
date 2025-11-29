@@ -37,6 +37,8 @@ public sealed class SpecialManager : ITickable, IDisposable
     public const int MaxDest = 32000;
     public const int MinDest = -32000;
 
+    public readonly Dictionary<int, Sector3D> Sectors3D = [];
+
     private readonly LinkedList<ISpecial> m_specials = new();
     private readonly List<ISectorSpecial> m_destroyedMoveSpecials = [];
     private readonly List<Sector> m_sectorList = [];
@@ -699,10 +701,12 @@ public sealed class SpecialManager : ITickable, IDisposable
         sectors3d.Sort(SortBySectorId);
         int lastSectorId = -1;
         int index = 0;
-        for (int i= 0; i < sectors3d.Count; i++)
+        for (int i = 0; i < sectors3d.Count; i++)
         {
             var sector3d = sectors3d[i];
             var sector = m_world.Sectors[sector3d.ParentSectorId];
+
+            Sectors3D[sector3d.SectorId] = sector3d;
 
             if (sector.Id != lastSectorId)
             {

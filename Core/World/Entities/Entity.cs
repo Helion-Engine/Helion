@@ -358,6 +358,12 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (entity.MidTexLine != null)
             return entity.MidTexLine.Id | EntityModel.MidTexEntityFlag;
 
+        if (entity.Sector3D != null)
+            return entity.Sector3D.SectorId | EntityModel.Sector3DEntityFlag;
+
+        if (entity.Id < 0)
+            return null;
+
         return entity.Id;
     }
 

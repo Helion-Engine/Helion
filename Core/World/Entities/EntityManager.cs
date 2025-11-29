@@ -462,6 +462,15 @@ public class EntityManager : IDisposable
         if (!entityId.HasValue)
             return sector;
 
+        if ((entityId & EntityModel.Sector3DEntityFlag) != 0)
+        {
+            int sectorId = entityId.Value & ~EntityModel.Sector3DEntityFlag;
+            if (World.SpecialManager.Sectors3D.TryGetValue(sectorId, out var sector3d))
+                return sector3d.GetSectorEntity3D();
+
+            return sector;
+        }
+
         if ((entityId & EntityModel.MidTexEntityFlag) != 0)
         {
             int lineId = entityId.Value & ~EntityModel.MidTexEntityFlag;
