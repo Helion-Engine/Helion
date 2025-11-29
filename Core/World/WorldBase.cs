@@ -183,6 +183,7 @@ public abstract partial class WorldBase : IWorld
     private readonly Entity m_checkRadiusEntity;
     private readonly Dictionary<int, LineHealthGroup> m_lineHealthGroups = [];
     private readonly IMap m_map;
+    private readonly SpawnMulti m_spawnMulti;
     private MusInfoDef? m_lastMusicChange;
     private int m_changeMusicTicks;
     private int m_losDistance = DefaultLineOfSightDistance;
@@ -250,6 +251,9 @@ public abstract partial class WorldBase : IWorld
         SpecialManager = CreateSpecialManager(reuse);
 
         IsFastMonsters = skillDef.IsFastMonsters(config);
+        m_spawnMulti = skillDef.SpawnMulti;
+        if (m_spawnMulti == SpawnMulti.SinglePlayerAndCoop && CompatibilityMapDefinition != null && CompatibilityMapDefinition.Parent.SetSpawnMultiToCoopOnly)
+            m_spawnMulti = SpawnMulti.CoopOnly;
 
         m_defaultDamageAction = DefaultDamage;
         m_radiusExplosionEntityAction = HandleRadiusExplosionEntity;
@@ -3776,29 +3780,45 @@ public abstract partial class WorldBase : IWorld
         var flags = mapThing.Flags;
         if (WorldType == WorldType.SinglePlayer)
         {
-            if (MapType != MapType.Doom)
+            return m_spawnMulti switch
+            {
+                SpawnMulti.SinglePlayerAndCoop => ShouldSpawn(flags, MapType, SpawnFilter.SinglePlayer) || ShouldSpawn(flags, MapType, SpawnFilter.Cooperative),
+                SpawnMulti.CoopOnly => ShouldSpawn(flags, MapType, SpawnFilter.Cooperative),
+                _ => ShouldSpawn(flags, MapType, SpawnFilter.SinglePlayer),
+            };
+        }
+
+        var filter = SpawnFilter.None;
+        if (WorldType == WorldType.Deathmatch)
+            filter = SpawnFilter.Deathmatch;
+        else if (WorldType == WorldType.Cooperative)
+            filter = SpawnFilter.Cooperative;
+
+        return ShouldSpawn(flags, MapType, filter);
+    }
+
+    private static bool ShouldSpawn(ThingFlags flags, MapType mapType, SpawnFilter filter)
+    {
+        if (filter == SpawnFilter.SinglePlayer)
+        {
+            if (mapType != MapType.Doom)
                 return flags.SinglePlayer;
 
             return !flags.MultiPlayer;
         }
 
-        if (flags.MultiPlayer)
+        if (mapType == MapType.Doom)
         {
-            if (MapType == MapType.Doom)
-            {
-                if (WorldType == WorldType.Cooperative)
-                    return !flags.NotCooperative;
-                if (WorldType == WorldType.Deathmatch)
-                    return !flags.NotDeathmatch;
-            }
-            else
-            {
-                if (WorldType == WorldType.Cooperative)
-                    return flags.Cooperative;
-                if (WorldType == WorldType.Deathmatch)
-                    return flags.Deathmatch;
-            }
+            if (filter == SpawnFilter.Cooperative)
+                return !flags.NotCooperative;
+            if (filter == SpawnFilter.Deathmatch)
+                return !flags.NotDeathmatch;
         }
+
+        if (filter == SpawnFilter.Cooperative)
+            return flags.Cooperative;
+        if (filter == SpawnFilter.Deathmatch)
+            return flags.Deathmatch;
 
         return true;
     }

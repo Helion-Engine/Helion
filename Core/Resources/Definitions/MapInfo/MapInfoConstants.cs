@@ -178,6 +178,8 @@ public partial class MapInfoDefinition
     private static readonly string Skill_KickbackFactorName = "KickbackFactor";
     private static readonly string Skill_NoMenuName = "NoMenu";
     private static readonly string Skill_PlayerRespawnName = "PlayerRespawn";
+    private static readonly string Skill_SpawnMulti = "SpawnMulti";
+    private static readonly string Skill_SpawnMultiCoopOnly = "SpawnMultiCoopOnly";
 
     private static readonly HashSet<string> SkillNames = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -213,7 +215,9 @@ public partial class MapInfoDefinition
         Skill_HealthFactorName,
         Skill_KickbackFactorName,
         Skill_NoMenuName,
-        Skill_PlayerRespawnName
+        Skill_PlayerRespawnName,
+        Skill_SpawnMulti,
+        Skill_SpawnMultiCoopOnly
     };
 
     private static readonly string EndGame_PicName = "pic";

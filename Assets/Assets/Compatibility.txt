@@ -129,9 +129,11 @@
 	}
 }
 
-//Eviternity II final
+//Eviternity II final and idgames release
 "3df11d6deb9d5935aba5f9a8a4bb9549"
+"dbb5a0b3cc23b8554ca9ad632d15a1a5"
 {
+	SetSpawnMultiToCoopOnly;
 	map "MAP24"
 	{
 		maxdistanceoverride 7000;

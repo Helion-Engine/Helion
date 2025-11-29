@@ -20,12 +20,16 @@ public class CompatibilityDefinitions
         {
             if (fileCompatDef.MapDefinitions.TryGetValue(mapName, out CompatibilityMapDefinition? mapDef))
                 return mapDef;
+
+            return new(fileCompatDef);
         }
 
         if (HashDefinitions.TryGetValue(archive.MD5, out CompatibilityDefinition? hashCompatDef))
         {
             if (hashCompatDef.MapDefinitions.TryGetValue(mapName, out CompatibilityMapDefinition? mapDef))
                 return mapDef;
+
+            return new(hashCompatDef);
         }
 
         return null;

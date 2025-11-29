@@ -4,8 +4,9 @@ using Helion.Resources.Definitions.Compatibility.Sides;
 
 namespace Helion.Resources.Definitions.Compatibility;
 
-public class CompatibilityMapDefinition
+public class CompatibilityMapDefinition(CompatibilityDefinition parent)
 {
+    public readonly CompatibilityDefinition Parent = parent;
     public readonly List<ILineDefinition> Lines = [];
     public readonly List<ISideDefinition> Sides = [];
     public readonly List<int> MidTextureHackSectors = [];
