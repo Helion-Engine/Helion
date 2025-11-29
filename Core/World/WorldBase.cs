@@ -1857,6 +1857,9 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
+            if (!sector3d.IsSolid)
+                continue;
+
             if (sector3d.ControlBottom.Z < intersect.Z && sector3d.ControlTop.Z > intersect.Z)
                 return true;
 

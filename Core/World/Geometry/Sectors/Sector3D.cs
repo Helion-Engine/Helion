@@ -41,11 +41,17 @@ public class Sector3D
     public Sector FakeSector;
     public SectorPlane FakeTop;
     public SectorPlane FakeBottom;
+    public Sector? FakeSectorFlipped;
+    public SectorPlane? FakeTopFlipped;
+    public SectorPlane? FakeBottomFlipped;
     public Sector LightTop;
     public Sector LightBottom;
     public SectorFlags3D Flags;
 
     private readonly Entity Entity;
+
+    public bool IsSolid => (Flags & SectorFlags3D.Solid) != 0;
+    public bool ShouldRenderWalls => (Flags & SectorFlags3D.Swim) == 0;
 
     public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags)
     {
@@ -53,11 +59,20 @@ public class Sector3D
         ParentSectorId = parentSectorId;
         FakeBottom = new(SectorPlaneFace.Floor, 0, 0, 0);
         FakeTop = new(SectorPlaneFace.Ceiling, 0, 0, 0);
+
+        if ((flags & SectorFlags3D.Swim) != 0)
+        {
+            FakeTopFlipped = new(SectorPlaneFace.Ceiling, 0, 0, 0);
+            FakeBottomFlipped = new(SectorPlaneFace.Floor, 0, 0, 0);
+            FakeSectorFlipped = new(SectorId, 0, 0, FakeBottomFlipped, FakeTopFlipped, default, default);
+        }
+
         FakeSector = new(SectorId, 0, 0, FakeBottom, FakeTop, default, default)
         {
             Sector3D = this,
             Lines = CreateSector3DLines(world, world.Sectors[parentSectorId], textureHandle)
         };
+
         ParentSector = parentSector;
         ControlSector = controlSector;
         ControlTop = controlSector.Ceiling;
@@ -68,8 +83,12 @@ public class Sector3D
         Entity = new();
         Entity.Set(-1, -1, 0, EntityDefinition.Default, default, 0, Sector.Default, world, default);
         Entity.Sector3D = this;
-        Entity.Flags.SetSolid();
-        Entity.Flags.SetActLikeBridge();
+
+        if (IsSolid)
+        {
+            Entity.Flags.SetSolid();
+            Entity.Flags.SetActLikeBridge();
+        }
     }
 
     public void Reset()

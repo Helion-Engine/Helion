@@ -170,12 +170,31 @@ public class StaticCacheGeometryRenderer : IDisposable
     private void AddSector3D(Sector3D sector3d, SectorPlanes planes, bool update)
     {
         if ((planes & SectorPlanes.Floor) != 0)
-            AddSectorPlane(sector3d.ParentSector, sector3d.ControlTop.Facing, floor: true, update: update, renderSector: sector3d.ControlSector, 
+        {
+            AddSectorPlane(sector3d.ParentSector, sector3d.ControlTop.Facing, floor: true, update: update, renderSector: sector3d.ControlSector,
                 lightLevelSector: sector3d.LightTop, geometryPlane: sector3d.FakeBottom);
 
+            if (sector3d.FakeBottomFlipped != null)
+            {
+                AddSectorPlane(sector3d.ParentSector, sector3d.ControlTop.Facing, floor: false, update: update, renderSector: sector3d.ControlSector,
+                    lightLevelSector: sector3d.LightTop, geometryPlane: sector3d.FakeBottomFlipped);
+            }
+        }
+
         if ((planes & SectorPlanes.Ceiling) != 0)
+        {
             AddSectorPlane(sector3d.ParentSector, sector3d.ControlBottom.Facing, floor: false, update: update, renderSector: sector3d.ControlSector,
                 lightLevelSector: sector3d.LightBottom, geometryPlane: sector3d.FakeTop);
+
+            if (sector3d.FakeTopFlipped != null)
+            {
+                AddSectorPlane(sector3d.ParentSector, sector3d.ControlBottom.Facing, floor: true, update: update, renderSector: sector3d.ControlSector,
+                    lightLevelSector: sector3d.LightBottom, geometryPlane: sector3d.FakeTopFlipped);
+            }
+        }
+
+        if (!sector3d.ShouldRenderWalls)
+            return;
 
         foreach (var sectorLine in sector3d.FakeSector.Lines)
         {
@@ -876,6 +895,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         {
             var sector3d = plane.Sector.TaggedSectors3D[i];
             HandleSectorMoveStart(world, sector3d.FakeSector.GetSectorPlane(face));
+
+            if (sector3d.FakeSectorFlipped != null)
+                HandleSectorMoveStart(world, sector3d.FakeSectorFlipped.GetSectorPlane(face));
         }
     }
 

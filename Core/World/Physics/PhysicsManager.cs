@@ -168,7 +168,7 @@ public sealed class PhysicsManager
     }
 
     public SectorMoveStatus MoveSectorZ(double speed, double destZ, SectorMoveSpecial moveSpecial, Sector sectorEntities, 
-        bool checkSector3D = true, SectorPlane? resetPlane = null)
+        bool checkSector3D = true, SectorPlane? resetPlane = null, bool solid = true)
     {
         var sector = moveSpecial.Sector;
         var sectorPlane = moveSpecial.SectorPlane;
@@ -200,165 +200,168 @@ public sealed class PhysicsManager
             status = SectorMoveStatus.BlockedAndStop;
         }
 
-        for (int i = 0; i < m_sectorMoveEntities.Length; i++)
+        if (solid)
         {
-            var entity = m_sectorMoveEntities[i];
-            var sectorMoveEntityData = new SectorMoveEntityData(entity, entity.Position.Z, entity.PrevPosition.Z, entity.IsCrushing());
-            m_sectorMoveEntitiesData.Add(sectorMoveEntityData);
-
-            var prevVelocityZ = entity.Velocity.Z;
-            var entityShouldStick = startZ > destZ && entity.OnGround &&
-                (m_alwaysStickEntitiesToFloor || SpeedShouldStickToFloor(speed));
-
-            // At slower speeds we need to set entities to the floor
-            // Otherwise the entity will fall and hit the floor repeatedly creating a weird bouncing effect
-            if (entityShouldStick && (entity.IntersectMidTexLines.Length > 0 || moveType == SectorPlaneFace.Floor))
+            for (int i = 0; i < m_sectorMoveEntities.Length; i++)
             {
-                var floorZ = moveType == SectorPlaneFace.Floor ? destZ : entity.Position.Z;
-                var onEntity = entity.OnEntity();
-                if (onEntity != null)
+                var entity = m_sectorMoveEntities[i];
+                var sectorMoveEntityData = new SectorMoveEntityData(entity, entity.Position.Z, entity.PrevPosition.Z, entity.IsCrushing());
+                m_sectorMoveEntitiesData.Add(sectorMoveEntityData);
+
+                var prevVelocityZ = entity.Velocity.Z;
+                var entityShouldStick = startZ > destZ && entity.OnGround &&
+                    (m_alwaysStickEntitiesToFloor || SpeedShouldStickToFloor(speed));
+
+                // At slower speeds we need to set entities to the floor
+                // Otherwise the entity will fall and hit the floor repeatedly creating a weird bouncing effect
+                if (entityShouldStick && (entity.IntersectMidTexLines.Length > 0 || moveType == SectorPlaneFace.Floor))
                 {
-                    if (onEntity.MidTexLine != null)
-                        onEntity = onEntity.MidTexLine.GetMidTexEntity(m_world);
-                    floorZ = onEntity.Position.Z + onEntity.Height;
+                    var floorZ = moveType == SectorPlaneFace.Floor ? destZ : entity.Position.Z;
+                    var onEntity = entity.OnEntity();
+                    if (onEntity != null)
+                    {
+                        if (onEntity.MidTexLine != null)
+                            onEntity = onEntity.MidTexLine.GetMidTexEntity(m_world);
+                        floorZ = onEntity.Position.Z + onEntity.Height;
+                    }
+                    entity.Position.Z = floorZ;
+                    // Setting this so SetEntityBoundsZ does not mess with forcing this entity to to the floor
+                    // Otherwise this is a problem with the instant lift hack
+                    entity.PrevPosition.Z = entity.Position.Z;
                 }
-                entity.Position.Z = floorZ;
-                // Setting this so SetEntityBoundsZ does not mess with forcing this entity to to the floor
-                // Otherwise this is a problem with the instant lift hack
-                entity.PrevPosition.Z = entity.Position.Z;
+
+                // If the move distance is higher than entity height (usually instant floors) then check entities this entity is clipped with.
+                // They can't be processed for 3d checks because it will incorrectly block sector movement.
+                // See InstantMoveSectorNotBlockedByClippedEntities
+                if (!sectorMoveEntityData.WasCrushing && Math.Abs(startZ - destZ) >= entity.Height)
+                    SetClampIgnoreEntities(entity);
+
+                ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
+
+                // Check for missile hitting floor/ceiling. Doom would only explode on z movement so check for z velocity.
+                if (entity.Flags.Missile() && prevVelocityZ != 0)
+                    m_world.HandleEntityHit(entity, entity.Velocity, null);
+
+                var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
+                if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
+                {
+                    if (moveType == SectorPlaneFace.Ceiling)
+                        PushDownBlockingEntities(entity);
+                    // Clipped something that wasn't directly on this entity before the move and now it will be
+                    // Push the entity up, and the next loop will verify it is legal
+                    else
+                        PushUpBlockingEntity(entity);
+
+                    m_world.HandleEntityClipPlane(entity, sectorPlane);
+                }
             }
 
-            // If the move distance is higher than entity height (usually instant floors) then check entities this entity is clipped with.
-            // They can't be processed for 3d checks because it will incorrectly block sector movement.
-            // See InstantMoveSectorNotBlockedByClippedEntities
-            if (!sectorMoveEntityData.WasCrushing && Math.Abs(startZ - destZ) >= entity.Height)
-                SetClampIgnoreEntities(entity);
-
-            ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
-
-            // Check for missile hitting floor/ceiling. Doom would only explode on z movement so check for z velocity.
-            if (entity.Flags.Missile() && prevVelocityZ != 0)
-                m_world.HandleEntityHit(entity, entity.Velocity, null);
-
-            var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
-            if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
+            for (int i = 0; i < m_sectorMoveEntities.Length; i++)
             {
-                if (moveType == SectorPlaneFace.Ceiling)
-                    PushDownBlockingEntities(entity);
-                // Clipped something that wasn't directly on this entity before the move and now it will be
-                // Push the entity up, and the next loop will verify it is legal
-                else
-                    PushUpBlockingEntity(entity);
-
-                m_world.HandleEntityClipPlane(entity, sectorPlane);
-            }
-        }
-
-        for (int i = 0; i < m_sectorMoveEntities.Length; i++)
-        {
-            var entity = m_sectorMoveEntities[i];
-            if (entity.IsDisposed)
-                continue;
-
-            ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
-            var entityMoveData = m_sectorMoveEntitiesData[i];
-            entity.PrevPosition.Z = entityMoveData.PrevSaveZ;
-            // This allows the player to pickup items like the original
-            if (entity.IsPlayer && !entity.Flags.NoClip())
-                IsPositionValid(entity, entity.Position.X, entity.Position.Y, TryMoveData);
-
-            if ((moveType == SectorPlaneFace.Ceiling && startZ < destZ) ||
-                (moveType == SectorPlaneFace.Floor && startZ > destZ))
-                continue;
-
-            var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
-            if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
-            {
-                if (entity.Flags.Dropped())
-                {
-                    m_entityManager.Destroy(entity);
-                    continue;
-                }
-
-                // Need to gib things even when not crushing and do not count as blocking
-                if (entity.Flags.Corpse() && !entity.Flags.DontGib() && entity.Health <= 0)
-                {
-                    SetToGiblets(entity);
-                    continue;
-                }
-
-                // Doom checked against shootable instead of solid...
-                if (!entity.Flags.Shootable())
+                var entity = m_sectorMoveEntities[i];
+                if (entity.IsDisposed)
                     continue;
 
-                if (moveData.Crush != null)
+                ClampBetweenFloorAndCeiling(entity, entity.IntersectSectors, smoothZ: false, clampToLinkedSectors: SectorMoveLinkedClampCheck(entity));
+                var entityMoveData = m_sectorMoveEntitiesData[i];
+                entity.PrevPosition.Z = entityMoveData.PrevSaveZ;
+                // This allows the player to pickup items like the original
+                if (entity.IsPlayer && !entity.Flags.NoClip())
+                    IsPositionValid(entity, entity.Position.X, entity.Position.Y, TryMoveData);
+
+                if ((moveType == SectorPlaneFace.Ceiling && startZ < destZ) ||
+                    (moveType == SectorPlaneFace.Floor && startZ > destZ))
+                    continue;
+
+                var thingZ = entity.OnGround ? entity.HighestFloorZ : entity.Position.Z;
+                if (thingZ + entity.GetClampHeight() > entity.LowestCeilingZ)
                 {
-                    if (moveData.Crush.Value.CrushMode == ZDoomCrushMode.Hexen || moveData.Crush.Value.Damage == 0)
+                    if (entity.Flags.Dropped())
+                    {
+                        m_entityManager.Destroy(entity);
+                        continue;
+                    }
+
+                    // Need to gib things even when not crushing and do not count as blocking
+                    if (entity.Flags.Corpse() && !entity.Flags.DontGib() && entity.Health <= 0)
+                    {
+                        SetToGiblets(entity);
+                        continue;
+                    }
+
+                    // Doom checked against shootable instead of solid...
+                    if (!entity.Flags.Shootable())
+                        continue;
+
+                    if (moveData.Crush != null)
+                    {
+                        if (moveData.Crush.Value.CrushMode == ZDoomCrushMode.Hexen || moveData.Crush.Value.Damage == 0)
+                        {
+                            highestBlockEntity = entity;
+                            highestBlockHeight = entity.Height;
+                            highestBlockEntityWasCrushing = entityMoveData.WasCrushing;
+                        }
+
+                        status = SectorMoveStatus.Crush;
+                        m_crushEntities.Add(entity);
+                    }
+                    else if (CheckSectorMoveBlock(entity, moveType, entityMoveData.SaveZ))
                     {
                         highestBlockEntity = entity;
                         highestBlockHeight = entity.Height;
                         highestBlockEntityWasCrushing = entityMoveData.WasCrushing;
+                        status = SectorMoveStatus.Blocked;
                     }
-
-                    status = SectorMoveStatus.Crush;
-                    m_crushEntities.Add(entity);
                 }
-                else if (CheckSectorMoveBlock(entity, moveType, entityMoveData.SaveZ))
+            }
+
+            if (highestBlockEntity != null && highestBlockHeight.HasValue && !highestBlockEntity.IsDead())
+            {
+                double diff = 0;
+                // Set the sector Z to the difference of the blocked height (only works if not being crushed)
+                // Could probably do something fancy to figure this out if the entity is being crushed, but this is quite rare
+                if ((moveData.Flags & SectorMoveFlags.EntityBlockMovement) != 0 || highestBlockEntityWasCrushing || isCompleted)
                 {
-                    highestBlockEntity = entity;
-                    highestBlockHeight = entity.Height;
-                    highestBlockEntityWasCrushing = entityMoveData.WasCrushing;
-                    status = SectorMoveStatus.Blocked;
+                    sectorPlane.SetZ(startZ);
+                    resetPlane?.SetZ(startZ);
+                }
+                else
+                {
+                    double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
+                    // Floor cannot be higher than ceiling for this reset
+                    if (moveType == SectorPlaneFace.Floor)
+                        destZ = Math.Clamp(destZ, double.MinValue, sector.Ceiling.Z);
+                    else
+                        destZ = Math.Clamp(destZ, sector.Floor.Z, double.MaxValue);
+
+                    diff = Math.Abs(startZ - destZ) - (thingZ + highestBlockHeight.Value - highestBlockEntity.LowestCeilingZ);
+                    if (destZ < startZ)
+                        diff = -diff;
+                    var set = startZ + diff;
+                    sectorPlane.SetZ(set);
+                    resetPlane?.SetZ(set);
+                }
+
+                // Entity blocked movement, reset all entities in moving sector after resetting sector Z
+                for (int i = 0; i < m_sectorMoveEntities.Length; i++)
+                {
+                    var relinkEntity = m_sectorMoveEntities[i];
+                    // Check for entities that may be dead from being crushed
+                    if (relinkEntity.IsDisposed)
+                        continue;
+                    relinkEntity.UnlinkFromWorld();
+                    relinkEntity.Position.Z = m_sectorMoveEntitiesData[i].SaveZ + diff;
+                    LinkToWorld(relinkEntity);
                 }
             }
+
+            if (moveData.Crush != null && m_crushEntities.Length > 0)
+                CrushEntities(m_crushEntities, sector, moveData.Crush.Value);
+
+            m_clampIgnoreEntities.Clear();
+            m_crushEntities.Clear();
+            m_sectorMoveEntities.Clear();
         }
-
-        if (highestBlockEntity != null && highestBlockHeight.HasValue && !highestBlockEntity.IsDead())
-        {
-            double diff = 0;
-            // Set the sector Z to the difference of the blocked height (only works if not being crushed)
-            // Could probably do something fancy to figure this out if the entity is being crushed, but this is quite rare
-            if ((moveData.Flags & SectorMoveFlags.EntityBlockMovement) != 0 || highestBlockEntityWasCrushing || isCompleted)
-            {
-                sectorPlane.SetZ(startZ);
-                resetPlane?.SetZ(startZ);
-            }
-            else
-            {
-                double thingZ = highestBlockEntity.OnGround ? highestBlockEntity.HighestFloorZ : highestBlockEntity.Position.Z;
-                // Floor cannot be higher than ceiling for this reset
-                if (moveType == SectorPlaneFace.Floor)
-                    destZ = Math.Clamp(destZ, double.MinValue, sector.Ceiling.Z);
-                else
-                    destZ = Math.Clamp(destZ, sector.Floor.Z, double.MaxValue);
-
-                diff = Math.Abs(startZ - destZ) - (thingZ + highestBlockHeight.Value - highestBlockEntity.LowestCeilingZ);
-                if (destZ < startZ)
-                    diff = -diff;
-                var set = startZ + diff;
-                sectorPlane.SetZ(set);
-                resetPlane?.SetZ(set);
-            }
-
-            // Entity blocked movement, reset all entities in moving sector after resetting sector Z
-            for (int i = 0; i < m_sectorMoveEntities.Length; i++)
-            {
-                var relinkEntity = m_sectorMoveEntities[i];
-                // Check for entities that may be dead from being crushed
-                if (relinkEntity.IsDisposed)
-                    continue;
-                relinkEntity.UnlinkFromWorld();
-                relinkEntity.Position.Z = m_sectorMoveEntitiesData[i].SaveZ + diff;
-                LinkToWorld(relinkEntity);
-            }
-        }
-
-        if (moveData.Crush != null && m_crushEntities.Length > 0)
-            CrushEntities(m_crushEntities, sector, moveData.Crush.Value);
-
-        m_clampIgnoreEntities.Clear();
-        m_crushEntities.Clear();
-        m_sectorMoveEntities.Clear();
 
         // If an entity is blocking this and the destination is blocked then we need to stop to match vanilla behavior.
         if (isCompleted && status == SectorMoveStatus.Blocked)
@@ -390,7 +393,7 @@ public sealed class PhysicsManager
             moveSpecial.SectorPlane = testMovePlane;
             moveSpecial.MoveData.SectorMoveType = testFace;
 
-            var status = MoveSectorZ(speed, destZ, moveSpecial, sector3d.ParentSector, checkSector3D: false, resetPlane: sectorPlane);
+            var status = MoveSectorZ(speed, destZ, moveSpecial, sector3d.ParentSector, checkSector3D: false, resetPlane: sectorPlane, solid: sector3d.IsSolid);
 
             moveSpecial.Sector = sector;
             moveSpecial.SectorPlane = sectorPlane;
@@ -730,8 +733,10 @@ public sealed class PhysicsManager
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            var sectorEntity = sector3d.GetSectorEntity3D();
+            if (!sector3d.IsSolid)
+                continue;
 
+            var sectorEntity = sector3d.GetSectorEntity3D();
             if (BlocksEntityZ(entity, sectorEntity, tryMove, entity.OverlapsZ(sectorEntity)))
                 return true;
         }
@@ -806,29 +811,8 @@ public sealed class PhysicsManager
 
     private void SetOpeningPlanes3D(Entity entity, Sector front, Sector back)
     {
-        if (front.Sectors3D.Length > 0)
-        {
-            m_lineOpening.HasDropOff3D = true;
-            for (int i = 0; i < front.Sectors3D.Length; i++)
-                SetEntityLineOpening(entity, front.Sectors3D[i].GetSectorEntity3D(), TryMoveData, m_testOpening1);
-        }
-        else
-        {
-            m_testOpening1.Set(front, back);
-            m_testOpening1.DropOffZ = m_testOpening1.FloorZ;
-        }
-
-        if (back.Sectors3D.Length > 0)
-        {
-            m_lineOpening.HasDropOff3D = true;
-            for (int i = 0; i < back.Sectors3D.Length; i++)
-                SetEntityLineOpening(entity, back.Sectors3D[i].GetSectorEntity3D(), TryMoveData, m_testOpening2);
-        }
-        else
-        {
-            m_testOpening2.Set(front, back);
-            m_testOpening2.DropOffZ = m_testOpening2.FloorZ;
-        }
+        SetLineOpening3D(m_testOpening1, front, entity, front, back);
+        SetLineOpening3D(m_testOpening2, back, entity, front, back);
 
         if (m_testOpening2.FloorZ > m_testOpening1.FloorZ)
         {
@@ -853,6 +837,33 @@ public sealed class PhysicsManager
         }
 
         m_lineOpening.DropOffZ = Math.Min(m_testOpening1.DropOffZ, m_testOpening2.DropOffZ);
+    }
+
+    private void SetLineOpening3D(LineOpening testOpening, Sector useSector3d, Entity entity, Sector front, Sector back)
+    {
+        if (useSector3d.Sectors3D.Length > 0)
+        {
+            var set = false;
+            for (int i = 0; i < useSector3d.Sectors3D.Length; i++)
+            {
+                var sector3d = useSector3d.Sectors3D[i];
+                if (!sector3d.IsSolid)
+                    continue;
+
+                SetEntityLineOpening(entity, sector3d.GetSectorEntity3D(), TryMoveData, testOpening);
+            }
+
+            if (set)
+                m_lineOpening.HasDropOff3D = true;
+            else
+                goto SetLineOpeningNormal;
+
+            return;
+        }
+
+        SetLineOpeningNormal:
+            testOpening.Set(front, back);
+            testOpening.DropOffZ = testOpening.FloorZ;
     }
 
     private static void SetEntityOnFloorOrEntity(Entity entity, double floorZ, bool smoothZ)

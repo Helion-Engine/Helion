@@ -934,6 +934,12 @@ public sealed class Sector
         }
 
         BlockmapNodes.Clear();
+
+        if (WorldStatic.Sector3D && Sectors3D.Length > 0)
+        {
+            for (int i = 0; i < Sectors3D.Length; i++)
+                Sectors3D[i].FakeSector.UnlinkFromWorld(world);
+        }
     }
 
     public void ApplyTriggerChanges(IWorld world, TriggerChanges changes, SectorPlaneFace planeType, bool transferSpecial)

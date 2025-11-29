@@ -437,6 +437,12 @@ public class GeometryRenderer : IDisposable
             {
                 RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottom, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
                     lightLevelSector: sector3d.LightTop);
+
+                if (sector3d.FakeBottomFlipped != null)
+                {
+                    RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottomFlipped, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        lightLevelSector: sector3d.LightTop);
+                }
             }
             else
             {
@@ -452,6 +458,12 @@ public class GeometryRenderer : IDisposable
             {
                 RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTop, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
                     lightLevelSector: sector3d.LightBottom);
+
+                if (sector3d.FakeTopFlipped != null)
+                {
+                    RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTopFlipped, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        lightLevelSector: sector3d.LightBottom);
+                }
             }
             else
             {
@@ -506,12 +518,15 @@ public class GeometryRenderer : IDisposable
 
     private void RenderSectorWalls(Sector sector, Vec2D pos2D, Vec2D prevPos2D)
     {
+        var sector3D = WorldStatic.Sector3D && sector.Sector3D != null;
+        if (sector3D && sector.Sector3D != null && !sector.Sector3D.ShouldRenderWalls)
+            return;
+
         for (int i = 0; i < sector.Lines.Length; i++)
         {
             Line line = sector.Lines[i];
             bool onFront = line.Segment.OnRight(pos2D);
             bool onBothSides = onFront != line.Segment.OnRight(prevPos2D);
-            bool sector3D = WorldStatic.Sector3D && sector.Sector3D != null;
 
             if (sector3D)
             {

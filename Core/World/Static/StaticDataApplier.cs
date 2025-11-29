@@ -116,10 +116,10 @@ public class StaticDataApplier
 
         if (sector.Sector3D == null)
         {
-            if (sector.BlockmapNodes.Length == 0 && (sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
+            if (ShouldLink(sector, sectorDynamic))
                 world.RenderBlockmap.LinkDynamic(world, sector);
         }
-        else if (sector.Sector3D.FakeSector.BlockmapNodes.Length == 0 && (sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll))
+        else if (ShouldLink(sector.Sector3D.FakeSector, sectorDynamic))
         {
             world.RenderBlockmap.LinkDynamic(world, sector.Sector3D);
         }
@@ -128,6 +128,11 @@ public class StaticDataApplier
             SetSectorDynamicMovement(sector);
         else if (sectorDynamic == SectorDynamic.TransferHeights)
             SetSectorTransferHeights(sector);
+    }
+
+    private static bool ShouldLink(Sector sector, SectorDynamic sectorDynamic)
+    {
+        return sector.BlockmapNodes.Length == 0 && (sectorDynamic == SectorDynamic.Movement || sectorDynamic == SectorDynamic.Scroll);
     }
 
     private static void SetSectorTransferHeights(Sector sector)
