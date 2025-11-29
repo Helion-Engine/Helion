@@ -1,4 +1,5 @@
-﻿using Helion.World.Entities;
+﻿using Helion.Util;
+using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sides;
@@ -52,6 +53,8 @@ public class Sector3D
 
     public bool IsSolid => (Flags & SectorFlags3D.Solid) != 0;
     public bool ShouldRenderWalls => (Flags & SectorFlags3D.Swim) == 0;
+
+    private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
 
     public Sector3D(IWorld world, int parentSectorId, Sector parentSector, Sector controlSector, int textureHandle, SectorFlags3D flags)
     {
@@ -107,7 +110,7 @@ public class Sector3D
         {
             var line = sector.Lines[i];
             var middle = new Wall(textureHandle, WallLocation.Middle3D);
-            var side = new Side(world.Geometry.CreateNewSideId(), line.Front.Offset, line.Front.Upper, middle, line.Front.Lower, sector);
+            var side = new Side(world.Geometry.CreateNewSideId(), line.Front.Offset, EmptyWall, middle, EmptyWall, sector);
             // Normalize so front is always the rendered side
             var lineSeg = line.Segment;
             if (line.Front.Sector == sector)
