@@ -113,12 +113,15 @@ public class StaticCacheGeometryRenderer : IDisposable
             AddTransferSector(sector);
 
             if (sector.Sectors3D.Length > 0)
-                AddSectors3D(sector, false);
+                sector.SetHeights3D();
 
             if ((sector.Floor.Dynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, SectorPlaneFace.Floor, true);
             if ((sector.Ceiling.Dynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, SectorPlaneFace.Ceiling, false);
+
+            if (sector.Sectors3D.Length > 0)
+                AddSectors3D(sector, false);
 
             if (sector.IsMoving)
                 m_initMoveSectors.Add(sector);
@@ -163,7 +166,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddSectors3D(Sector sector, bool update)
     {
-        sector.SetHeights();
         for (int i = 0; i < sector.Sectors3D.Length; i++)
             AddSector3D(sector.Sectors3D[i], SectorPlanes.Floor | SectorPlanes.Ceiling, update);
     }

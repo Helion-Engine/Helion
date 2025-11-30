@@ -222,7 +222,7 @@ public sealed class Sector
     public short FloorRenderLightLevel => TransferFloorLightSector.Floor.LightLevel;
     public short CeilingRenderLightLevel => TransferCeilingLightSector.Ceiling.LightLevel;
 
-    public void SetHeights()
+    public void SetHeights3D()
     {
         if (Sectors3D.Length == 0)
             return;
