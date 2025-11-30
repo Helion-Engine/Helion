@@ -1,4 +1,5 @@
-﻿using Helion.World.Geometry;
+﻿using Helion.Util.Container;
+using Helion.World.Geometry;
 using System.Collections.Generic;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry.Static;
@@ -29,7 +30,10 @@ public class RenderGeometry
         {
             var list = items[i];
             for (int j = 0; j < list.Count; j++)
+            {
+                list[j].Vbo.Data.Data.ZeroArray();
                 list[j].Vbo.Clear();
+            }
         }
     }
 

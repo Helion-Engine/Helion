@@ -688,9 +688,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (world.SameAsPreviousMap)
         {
             m_geometry.ClearVbo();
-            m_coverWallGeometry?.Vbo.Clear();
-            m_coverWallGeometryOneSided?.Vbo.Clear();
-            m_coverFlatGeometry?.Vbo.Clear();
+            ClearVbo(m_coverWallGeometry?.Vbo);
+            ClearVbo(m_coverWallGeometryOneSided?.Vbo);
+            ClearVbo(m_coverFlatGeometry?.Vbo);
         }
         else
         {
@@ -709,6 +709,14 @@ public class StaticCacheGeometryRenderer : IDisposable
         SkyGeometryManager.Clear();
 
         m_transferHeightsLookup.SetAll(null);
+    }
+
+    private static void ClearVbo<T>(StaticVertexBuffer<T>? vbo) where T : struct
+    {
+        if (vbo == null)
+            return;
+        vbo.Data.Data.ZeroArray();
+        vbo.Data.Clear();
     }
 
     private static void ClearBufferData(DynamicArray<DynamicArray<StaticGeometryData>?> bufferData)
@@ -761,7 +769,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
         AddVertices(vertices, renderedVertices);
     }
-
 
     public void RenderWalls()
     {
@@ -1060,6 +1067,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         CopyVertices(geometryData.Vbo.Data.Data, vertices, startIndex);
         geometryData.Vbo.Bind();
         geometryData.Vbo.UploadSubData(startIndex, vertices.Length);
+
+        // On map reloads the Vbo length is cleared. This ensures it's expanded back out correctly.
+        geometryData.Vbo.Data.Length = Math.Max(geometryData.Vbo.Data.Length, startIndex + vertices.Length);
     }
 
     private void AddOrUpdateCoverWall(Side side, DynamicVertex[] sideVertices, WallLocation location)
@@ -1085,9 +1095,11 @@ public class StaticCacheGeometryRenderer : IDisposable
         staticGeometryData = new(useGeometry, vertices.Length, length);
         CoverWallUtil.CopyCoverWallVertices(side, vertices.Data, sideVertices, staticGeometryData.Index, location);
         vertices.Length += length;
-        m_coverWallLookup[CoverKey.MakeCoverWallKey(side.Id, location)] = staticGeometryData;
+        m_coverWallLookup[key] = staticGeometryData;
         vbo.Bind();
         vbo.UploadSubData(staticGeometryData.Index, length);
+
+        vbo.Data.Length = Math.Max(vbo.Data.Length, staticGeometryData.Index + length);
     }
 
     private void AddOrUpdateCoverFlatGeometry(Sector sector, SectorPlane plane, DynamicVertex[] vertices)
