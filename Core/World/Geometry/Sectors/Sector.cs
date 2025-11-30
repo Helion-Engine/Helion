@@ -560,18 +560,16 @@ public sealed class Sector
     {
         if (WorldStatic.Sector3D && Sectors3D.Length > 0)
         {
+            var centerZ = entity.Position.Z + (entity.Height / 2);
             for (int i = 0; i < Sectors3D.Length; i++)
             {
                 var sector3d = Sectors3D[i];
 
-                if (!sector3d.IsSwimmable)
+                if (!sector3d.IsSwimmable || sector3d.ControlBottom.Z > centerZ || sector3d.ControlTop.Z <= entity.Position.Z)
                     continue;
 
-                if (sector3d.GetSectorEntity3D().OverlapsZ(entity))
-                {
-                    height = sector3d.ControlTop.Z;
-                    return true;
-                }
+                height = sector3d.ControlTop.Z;
+                return true; 
             }
         }
 
