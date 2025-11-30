@@ -1,4 +1,6 @@
-﻿using Helion.Util;
+﻿using Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
+using Helion.Render.OpenGL.Shared.World;
+using Helion.Util;
 using Helion.World.Entities;
 using Helion.World.Entities.Definition;
 using Helion.World.Geometry.Lines;
@@ -52,8 +54,9 @@ public class Sector3D
     private readonly Entity Entity;
 
     public bool IsSolid => (Flags & SectorFlags3D.Solid) != 0;
-    public bool ShouldRenderWalls => (Flags & SectorFlags3D.Swim) == 0;
     public bool IsSwimmable => (Flags & SectorFlags3D.Swim) != 0;
+    public bool ShouldRenderWalls => ControlTop.Z - ControlBottom.Z > 0;
+    public bool ShouldRenderInsideWalls => (Flags & SectorFlags3D.RenderInside) != 0;
 
     private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
 
@@ -74,7 +77,7 @@ public class Sector3D
         FakeSector = new(SectorId, 0, 0, FakeBottom, FakeTop, default, default)
         {
             Sector3D = this,
-            Lines = CreateSector3DLines(world, world.Sectors[parentSectorId], textureHandle)
+            Lines = CreateSector3DLines(world, world.Sectors[parentSectorId], textureHandle, (flags & SectorFlags3D.RenderInside) != 0)
         };
 
         ParentSector = parentSector;
@@ -104,7 +107,7 @@ public class Sector3D
         FakeTop.Reset(0);
     }
 
-    private static Line[] CreateSector3DLines(IWorld world, Sector sector, int textureHandle)
+    private static Line[] CreateSector3DLines(IWorld world, Sector sector, int textureHandle, bool createBackSide)
     {
         var lines = new Line[sector.Lines.Length];
         for (int i = 0; i < sector.Lines.Length; i++)
@@ -116,7 +119,9 @@ public class Sector3D
             var lineSeg = line.Segment;
             if (line.Front.Sector == sector)
                 lineSeg = new(lineSeg.End, lineSeg.Start);
-            lines[i] = new Line(line.Id, lineSeg, side, null, default, LineSpecial.Default, default);
+
+            var backSide = createBackSide ? new Side(world.Geometry.CreateNewSideId(), line.Front.Offset, EmptyWall, new(textureHandle, WallLocation.Middle3D), EmptyWall, sector) : null;
+            lines[i] = new Line(line.Id, lineSeg, side, backSide, default, LineSpecial.Default, default);
         }
         return lines;
     }
@@ -186,6 +191,96 @@ public class Sector3D
         }
 
         return maxSector?.ControlSector ?? ParentSector;
+    }
+
+    public void CalculateWallHeights(out double topZ, out double bottomZ, out double prevTopZ, out double prevBottomZ)
+    {
+        topZ = ControlTop.Z;
+        bottomZ = ControlBottom.Z;
+        prevTopZ = ControlTop.PrevZ;
+        prevBottomZ = ControlBottom.PrevZ;
+
+        if (ParentSector.Sectors3D.Length == 0)
+            return;
+
+        var entity = GetSectorEntity3D();
+        for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
+        {
+            var checkSector3d = ParentSector.Sectors3D[i];
+            if (checkSector3d == this)
+                break;
+
+            if (!entity.OverlapsZ(checkSector3d.GetSectorEntity3D()))
+                continue;
+
+            if (!AdjustWallHeights(ref topZ, ref bottomZ, ref prevTopZ, ref prevBottomZ, 
+                checkSector3d.ControlTop.Z, checkSector3d.ControlBottom.Z, checkSector3d.ControlTop.PrevZ, checkSector3d.ControlBottom.PrevZ))
+                break;
+        }
+
+        FakeTop.Z = topZ;
+        FakeBottom.Z = bottomZ;
+    }
+
+    public static bool CalculateWallHeights(Side side, double topZ, double bottomZ, double prevTopZ, double prevBottomZ, 
+        out double newTopZ, out double newBottomZ, out double newPrevTopZ, out double newPrevBottomZ)
+    {
+        newTopZ = topZ;
+        newBottomZ = bottomZ;
+        newPrevTopZ = prevTopZ;
+        newPrevBottomZ = prevBottomZ;
+        WallVertices wall = default;
+
+        if (side.PartnerSide == null)
+        {
+            WorldTriangulator.HandleOneSided(side, side.Sector.Floor, side.Sector.Ceiling, default, ref wall);
+            return AdjustWallHeights(ref newTopZ, ref newBottomZ, ref newPrevTopZ, ref newPrevBottomZ, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ);
+        }
+
+        if (side.PartnerSide != null)
+        {
+            if (GeometryRenderer.LowerIsVisible(side, side.Sector, side.PartnerSide.Sector))
+            {
+                WorldTriangulator.HandleTwoSidedLower(side, side.PartnerSide.Sector.Floor, side.Sector.Floor, default, true, ref wall);
+                if (!AdjustWallHeights(ref newTopZ, ref newBottomZ, ref newPrevTopZ, ref newPrevBottomZ, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
+                    return false;
+            }
+
+            if (GeometryRenderer.UpperIsVisible(side, side.Sector, side.PartnerSide.Sector))
+            {
+                WorldTriangulator.HandleTwoSidedUpper(side, side.PartnerSide.Sector.Floor, side.Sector.Floor, default, true, ref wall);
+                if (!AdjustWallHeights(ref newTopZ, ref newBottomZ, ref newPrevTopZ, ref newPrevBottomZ, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool AdjustWallHeights(ref double topZ, ref double bottomZ, ref double prevTopZ, ref double prevBottomZ, 
+        double checkTopZ, double checkBottomZ, double checkPrevTopZ, double checkPrevBottomZ)
+    {
+        if (checkTopZ < topZ)
+        {
+            bottomZ = checkTopZ;
+            prevBottomZ = checkPrevTopZ;
+        }
+        if (checkBottomZ > bottomZ)
+        {
+            topZ = checkBottomZ;
+            prevTopZ = checkPrevBottomZ;
+        }
+
+        if (checkTopZ >= topZ && checkBottomZ <= bottomZ)
+        {
+            bottomZ = 0;
+            topZ = 0;
+            checkPrevTopZ = 0;
+            checkPrevBottomZ = 0;
+            return false;
+        }
+
+        return true;
     }
 
     public override string ToString() => $"3D Sector: {SectorId} ControlId: {ControlSector.Id} ParentId: {ParentSectorId} [{ControlSector.Ceiling.Z} {ControlSector.Floor.Z}]";

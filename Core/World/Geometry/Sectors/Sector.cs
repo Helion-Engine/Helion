@@ -99,6 +99,8 @@ public sealed class Sector
     private SectorEffect m_initialSectorEffect;
     private InstantKillEffect m_initialKillEffect;
 
+    private static readonly Comparison<Sector3D> HeightComparison = new(HeightCompare);
+
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public Sector(int id, int tag, short lightLevel, SectorPlane floor, SectorPlane ceiling,
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -220,12 +222,12 @@ public sealed class Sector
     public short FloorRenderLightLevel => TransferFloorLightSector.Floor.LightLevel;
     public short CeilingRenderLightLevel => TransferCeilingLightSector.Ceiling.LightLevel;
 
-    public void SetLightLevels3D()
+    public void SetHeights()
     {
         if (Sectors3D.Length == 0)
             return;
 
-        Sectors3D.Sort(HeightCompare);
+        Sectors3D.Sort(HeightComparison);
 
         var currentLightSector = this;
         for (int i = 0; i < Sectors3D.Length; i++)
@@ -245,7 +247,8 @@ public sealed class Sector
         TransferFloorLightSector = currentLightSector;
     }
 
-    private int HeightCompare(Sector3D x, Sector3D y)
+
+    private static int HeightCompare(Sector3D x, Sector3D y)
     {
         return y.ControlBottom.Z.CompareTo(x.ControlBottom.Z);
     }

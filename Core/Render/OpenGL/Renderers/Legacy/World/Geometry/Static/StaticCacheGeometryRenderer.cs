@@ -196,21 +196,58 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!sector3d.ShouldRenderWalls)
             return;
 
-        foreach (var sectorLine in sector3d.FakeSector.Lines)
+        sector3d.CalculateWallHeights(out var topZ, out var bottomZ, out _, out _);
+        var wallSector = sector3d.FakeSector;
+        double newTopZ = topZ, newBottomZ = bottomZ;
+
+        for (int i = 0; i < sector3d.FakeSector.Lines.Length; i++)
         {
+            var sectorLine = sector3d.FakeSector.Lines[i];
+            var parentSectorLine = sector3d.ParentSector.Lines[i];
             var useSide = sectorLine.Front;
             var dynamic = useSide.IsDynamic || sector3d.ControlSector.IsMoving;
             if (dynamic && (sector3d.ControlSector.Floor.Dynamic == SectorDynamic.Movement || sector3d.ControlSector.Ceiling.Dynamic == SectorDynamic.Movement))
                 return;
 
+            wallSector.Ceiling.Z = topZ;
+            wallSector.Floor.Z = bottomZ;
+
+            bool flipped = parentSectorLine.Segment.Delta != sectorLine.Segment.Delta;
+            var checkParentBack = flipped ? parentSectorLine.Back : parentSectorLine.Front;
+            var checkParentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
+
+            if (checkParentBack != null)
+            {
+                Sector3D.CalculateWallHeights(checkParentBack, topZ, bottomZ, 0, 0, out newTopZ, out newBottomZ, out _, out _);
+                wallSector.Ceiling.Z = newTopZ;
+                wallSector.Floor.Z = newBottomZ;
+            }
+
             m_geometryRenderer.SetRenderOneSided(useSide);
             m_geometryRenderer.RenderOneSided(useSide, true, out var sideVertices, out _, out var texture,
-                renderSector: sector3d.ControlSector, lightLevelSector: sector3d.ParentSector);
+                renderSector: wallSector, lightLevelSector: sector3d.ParentSector, renderSkySide: false);
 
             if (sideVertices != null)
             {
                 var wall = useSide.Middle;
                 UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices, null, useSide, wall, true, texture);
+            }
+
+            if (sector3d.ShouldRenderInsideWalls && sectorLine.Back != null &&
+                (checkParentFront == null || Sector3D.CalculateWallHeights(checkParentFront, topZ, bottomZ, 0, 0, out newTopZ, out newBottomZ, out _, out _)))
+            {
+                wallSector.Ceiling.Z = newTopZ;
+                wallSector.Floor.Z = newBottomZ;
+
+                useSide = sectorLine.Back;
+                m_geometryRenderer.RenderOneSided(useSide, false, out sideVertices, out _, out texture,
+                    renderSector: wallSector, lightLevelSector: sector3d.ParentSector, renderSkySide: false);
+
+                if (sideVertices != null)
+                {
+                    var wall = useSide.Middle;
+                    UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices, null, useSide, wall, true, texture);
+                }
             }
         }
     }

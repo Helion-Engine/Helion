@@ -884,11 +884,6 @@ public class Player : Entity
 
         HasMovementXY = Math.Abs(movement.X) > 0 || Math.Abs(movement.Y) > 0;
         HasMovementZ = movement.Z > 0;
-
-        if (HasMovementXY)
-        {
-            int lol = 1;
-        }
     }
 
     private Vec3D CalculateForwardMovement(double speed)
