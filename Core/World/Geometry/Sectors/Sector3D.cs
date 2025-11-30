@@ -17,7 +17,6 @@ public enum SectorFlags3D
     None = 0,
     Solid = 1,
     Swim = 2,
-    LightBetween = 4,
     RenderInside = 8,
     VisibilityInvert = 16,
     ShootabilityInvert = 32,
@@ -49,6 +48,7 @@ public class Sector3D
     public SectorPlane? FakeBottomFlipped;
     public Sector LightTop;
     public Sector LightBottom;
+    public Sector? LightMiddle;
     public SectorFlags3D Flags;
 
     private readonly Entity Entity;

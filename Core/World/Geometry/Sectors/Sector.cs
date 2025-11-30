@@ -234,13 +234,23 @@ public sealed class Sector
         {
             var sector3d = Sectors3D[i];
             sector3d.LightTop = currentLightSector;
+
+            if ((sector3d.Flags & (SectorFlags3D.RestrictLighting)) != 0)
+            {
+                sector3d.LightMiddle = sector3d.ControlSector;
+                sector3d.LightBottom = currentLightSector;
+                continue;
+            }
+
             if ((sector3d.Flags & (SectorFlags3D.DisableLighting | SectorFlags3D.RestrictLighting)) != 0)
             {
+                sector3d.LightMiddle = currentLightSector;
                 sector3d.LightBottom = currentLightSector;
                 continue;
             }
 
             currentLightSector = sector3d.ControlSector;
+            sector3d.LightMiddle = currentLightSector;
             sector3d.LightBottom = currentLightSector;
         }
 

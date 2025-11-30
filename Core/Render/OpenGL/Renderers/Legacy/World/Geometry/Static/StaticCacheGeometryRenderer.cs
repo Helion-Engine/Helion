@@ -245,7 +245,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 useSide = sectorLine.Back;
                 useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentFront);
                 m_geometryRenderer.RenderOneSided(useSide, false, out sideVertices, out _, out texture,
-                    renderSector: wallSector, lightLevelSector: sector3d.LightBottom, renderSkySide: false);
+                    renderSector: wallSector, lightLevelSector: sector3d.LightMiddle, renderSkySide: false);
 
                 if (sideVertices != null)
                 {

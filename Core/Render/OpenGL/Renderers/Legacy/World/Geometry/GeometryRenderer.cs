@@ -612,7 +612,7 @@ public class GeometryRenderer : IDisposable
             wallSector.Ceiling.PrevZ = newPrevTopZ;
             wallSector.Floor.Z = newBottomZ;
             wallSector.Floor.PrevZ = newPrevBottomZ;
-            RenderOneSided(useSide, false, out _, out _, out _, renderSector: wallSector, lightLevelSector: sector3d.LightBottom, renderSkySide: false);
+            RenderOneSided(useSide, false, out _, out _, out _, renderSector: wallSector, lightLevelSector: sector3d.LightMiddle, renderSkySide: false);
         }
 
         return;
