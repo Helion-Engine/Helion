@@ -112,6 +112,9 @@ public class StaticCacheGeometryRenderer : IDisposable
             var sector = world.Sectors[i];
             AddTransferSector(sector);
 
+            if (sector.Sectors3D.Length > 0)
+                AddSectors3D(sector, false);
+
             if ((sector.Floor.Dynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, SectorPlaneFace.Floor, true);
             if ((sector.Ceiling.Dynamic & IgnoreFlags) == 0)
@@ -119,9 +122,6 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             if (sector.IsMoving)
                 m_initMoveSectors.Add(sector);
-
-            if (sector.Sectors3D.Length > 0)
-                AddSectors3D(sector, false);
         }
 
         for (int i = 0; i < world.Lines.Count; i++)
@@ -163,6 +163,7 @@ public class StaticCacheGeometryRenderer : IDisposable
 
     private void AddSectors3D(Sector sector, bool update)
     {
+        sector.SetHeights();
         for (int i = 0; i < sector.Sectors3D.Length; i++)
             AddSector3D(sector.Sectors3D[i], SectorPlanes.Floor | SectorPlanes.Ceiling, update);
     }
@@ -244,7 +245,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 useSide = sectorLine.Back;
                 useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentFront);
                 m_geometryRenderer.RenderOneSided(useSide, false, out sideVertices, out _, out texture,
-                    renderSector: wallSector, lightLevelSector: sector3d.ParentSector, renderSkySide: false);
+                    renderSector: wallSector, lightLevelSector: sector3d.LightBottom, renderSkySide: false);
 
                 if (sideVertices != null)
                 {

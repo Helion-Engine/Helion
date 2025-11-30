@@ -247,7 +247,6 @@ public sealed class Sector
         TransferFloorLightSector = currentLightSector;
     }
 
-
     private static int HeightCompare(Sector3D x, Sector3D y)
     {
         return y.ControlBottom.Z.CompareTo(x.ControlBottom.Z);

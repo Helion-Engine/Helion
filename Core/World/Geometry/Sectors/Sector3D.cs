@@ -275,8 +275,8 @@ public class Sector3D
         {
             bottomZ = 0;
             topZ = 0;
-            checkPrevTopZ = 0;
-            checkPrevBottomZ = 0;
+            prevTopZ = 0;
+            prevBottomZ = 0;
             return false;
         }
 
