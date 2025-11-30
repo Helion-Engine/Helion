@@ -553,6 +553,29 @@ public sealed class Sector
     public double GetZ(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor.Z : Ceiling.Z;
     public SectorPlane GetSectorPlane(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor : Ceiling;
 
+    public bool GetWaterSubmersionHeight(Entity entity, out double height)
+    {
+        if (WorldStatic.Sector3D && Sectors3D.Length > 0)
+        {
+            for (int i = 0; i < Sectors3D.Length; i++)
+            {
+                var sector3d = Sectors3D[i];
+
+                if (!sector3d.IsSwimmable)
+                    continue;
+
+                if (sector3d.GetSectorEntity3D().OverlapsZ(entity))
+                {
+                    height = sector3d.ControlTop.Z;
+                    return true;
+                }
+            }
+        }
+
+        height = 0;
+        return false;
+    }
+
     /// <summary>
     /// The currently active move special, or null if there's no active
     /// movement happening on this sector for the given SectorPlane.

@@ -2213,6 +2213,15 @@ public abstract partial class WorldBase : IWorld
             if (entity.BlockingEntity != null && ShouldDieFromTouch(entity, entity.BlockingEntity))
                 entity.BlockingEntity.Kill(null);
         }
+
+        if (entity.BlockingBlockLineIndex != -1 &&
+            entity.WaterSubmersionLevel != SubmersionLevel.None && entity.WaterSubmersionLevel < SubmersionLevel.Full && 
+            entity.IsPlayer && entity.HasMovementXY)
+        {
+            ref var line = ref Blockmap.BlockLines[entity.BlockingBlockLineIndex];
+            if (line.BackSector != null)
+                entity.Velocity.Z = 3.8;
+        }
     }
 
     public virtual void HandleEntityClipPlane(Entity entity, SectorPlane plane)

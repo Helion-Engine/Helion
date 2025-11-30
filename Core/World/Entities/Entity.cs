@@ -27,11 +27,14 @@ using static Helion.Util.Assertion.Assert;
 
 namespace Helion.World.Entities;
 
+
 /// <summary>
 /// An actor in a world.
 /// </summary>
 public partial class Entity : IDisposable, ITickable, ISoundSource
 {
+    public const double WaterSinkSpeed = 0.5;
+    public const double WaterSinkFactor = 0.125;
     private const double Speed = 47000 / 65536.0;
     protected const int ForceGibDamage = ushort.MaxValue;
     protected const int KillDamage = ushort.MaxValue - 1;
@@ -58,6 +61,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Vec3D Position;
     public Vec3D Velocity;
     public IAudioSource? AudioSource;
+    public SubmersionLevel WaterSubmersionLevel;
 
     public int Health;
     public int MoveCount;
@@ -109,6 +113,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public bool Respawn;
     public bool HadOnEntity;
     public bool StealthVisible;
+    public bool HasMovementZ;
+    public bool HasMovementXY;
     public float Alpha;
     public RenderStyle RenderStyle;
 
@@ -890,6 +896,9 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         if (Flags.NoGravity())
             return false;
 
+        if (WaterSubmersionLevel >= SubmersionLevel.MoreThanHalf && HasMovementZ)
+            return false;
+
         return !OnGround;
     }
 
@@ -900,7 +909,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             return false;
 
         // Need to apply friction for player fly
-        return OnGround || Flags.Fly();
+        return OnGround || Flags.Fly() || WaterSubmersionLevel > SubmersionLevel.None;
     }
 
     /// <summary>
@@ -1096,6 +1105,34 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
             return PlayerObj.PlayerNumber % ((int)TranslateColor.Count + 1);
 
         return (Flags.Flags3 & EntityFlags.TranslationFlag) >> 11;
+    }
+
+    public void SetWaterSubmersionLevel()
+    {
+        if (!Sector.GetWaterSubmersionHeight(this, out var height))
+        {
+            WaterSubmersionLevel = SubmersionLevel.None;
+            return;
+        }
+
+        var depth = height - Position.Z;
+        if (depth <= 0)
+        {
+            WaterSubmersionLevel = SubmersionLevel.None;
+            return;
+        }
+
+        if (depth > Height / 2)
+        {
+            if (depth >= Height || (PlayerObj != null && depth >= PlayerObj.ViewHeight))
+                WaterSubmersionLevel = SubmersionLevel.Full;
+            else
+                WaterSubmersionLevel = SubmersionLevel.MoreThanHalf;
+        }
+        else
+        {
+            WaterSubmersionLevel = SubmersionLevel.LessThanHalf;
+        }
     }
 
     public void Dispose()

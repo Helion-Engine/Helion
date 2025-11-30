@@ -5,6 +5,7 @@ using Helion.Maps.Specials;
 using Helion.Maps.Specials.ZDoom;
 using Helion.Util;
 using Helion.Util.Container;
+using Helion.Util.Loggers;
 using Helion.Util.RandomGenerators;
 using Helion.World.Blockmap;
 using Helion.World.Bsp;
@@ -944,6 +945,9 @@ public sealed class PhysicsManager
 
         if (prevOnEntity != null && prevOnEntity != entity.OnEntity())
             prevOnEntity.SetOverEntity(null);
+
+        if (WorldStatic.Sector3D)
+            entity.SetWaterSubmersionLevel();
 
         entity.CheckOnGround();
         m_onEntities.Clear();
@@ -2049,7 +2053,7 @@ doneLinkToSectors:
         if (entity.IsBlocked())
             m_world.HandleEntityHit(entity, previousVelocity, null);
 
-        if (entity.Flags.NoGravity() && entity.ShouldApplyFriction())
+        if ((entity.Flags.NoGravity() && entity.ShouldApplyFriction()) || entity.WaterSubmersionLevel != SubmersionLevel.None)
             entity.Velocity.Z *= Constants.DefaultFriction;
 
         if (!shouldApplyGravity)
@@ -2062,17 +2066,32 @@ doneLinkToSectors:
             return;
         }
 
-        double applyGravity;
-        if (entity.Gravity < 0)
-            applyGravity = entity.Gravity * -1;
-        else
-            applyGravity = m_world.Gravity * entity.Properties.Gravity * entity.Sector.Gravity * entity.Gravity;
+        if (entity.WaterSubmersionLevel == SubmersionLevel.None || !entity.HasMovementXY)
+        {
+            double applyGravity;
+            if (entity.Gravity < 0)
+                applyGravity = entity.Gravity * -1;
+            else
+                applyGravity = m_world.Gravity * entity.Properties.Gravity * entity.Sector.Gravity * entity.Gravity;
 
-        // Doom applied the gravity amount twice if the entity originally had no velocity.
-        if (noVelocity)
+            // Doom applied the gravity amount twice if the entity originally had no velocity.
+            if (noVelocity)
+                entity.Velocity.Z -= applyGravity;
             entity.Velocity.Z -= applyGravity;
-        entity.Velocity.Z -= applyGravity;
+        }
+
+        if (WorldStatic.Sector3D)
+        {
+            if (entity.WaterSubmersionLevel > SubmersionLevel.LessThanHalf)
+            {
+                previousVelocity.Z *= Constants.DefaultFriction;
+                if (entity.Velocity.Z < -Entity.WaterSinkSpeed)
+                    entity.Velocity.Z = previousVelocity.Z < -Entity.WaterSinkSpeed ? previousVelocity.Z : -Entity.WaterSinkSpeed;
+                else
+                    entity.Velocity.Z = previousVelocity.Z + ((entity.Velocity.Z - previousVelocity.Z) * 0.125);
+            }
+
+             entity.SetWaterSubmersionLevel();
+        }
     }
 }
-
-

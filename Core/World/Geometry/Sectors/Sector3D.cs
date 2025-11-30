@@ -53,6 +53,7 @@ public class Sector3D
 
     public bool IsSolid => (Flags & SectorFlags3D.Solid) != 0;
     public bool ShouldRenderWalls => (Flags & SectorFlags3D.Swim) == 0;
+    public bool IsSwimmable => (Flags & SectorFlags3D.Swim) != 0;
 
     private static readonly Wall EmptyWall = new(Constants.NoTextureIndex, WallLocation.None);
 

@@ -52,6 +52,7 @@ public class Player : Entity
     private const int JumpDelayTicks = 7;
     private const int SlowTurnTicks = 6;
     private const double MaxPitch = Camera.MaxPitch;
+    public const double WaterJumpSpeed = 3.5;
     private static readonly PowerupType[] PowerupsWithBrightness = [PowerupType.LightAmp, PowerupType.Invulnerable];
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -825,7 +826,7 @@ public class Player : Entity
 
         if (movement != Vec3D.Zero)
         {
-            if (!OnGround && !Flags.NoGravity())
+            if (!OnGround && !Flags.NoGravity() && WaterSubmersionLevel == SubmersionLevel.None)
                 movement *= AirControl;
 
             Velocity.X += MathHelper.Clamp(movement.X, -MaxMovement, MaxMovement);
@@ -880,18 +881,22 @@ public class Player : Entity
             AngleRadians += MathHelper.GetPositiveAngle(TickCommand.MouseAngle);
             PitchRadians = AddPitch(PitchRadians, TickCommand.MousePitch);
         }
+
+        HasMovementXY = Math.Abs(movement.X) > 0 || Math.Abs(movement.Y) > 0;
+        HasMovementZ = movement.Z > 0;
+
+        if (HasMovementXY)
+        {
+            int lol = 1;
+        }
     }
 
     private Vec3D CalculateForwardMovement(double speed)
     {
-        double x = Math.Cos(AngleRadians) * speed;
-        double y = Math.Sin(AngleRadians) * speed;
-        double z = 0;
+        if (Flags.NoGravity() || WaterSubmersionLevel > SubmersionLevel.None)
+            return Vec3D.UnitSphere(AngleRadians, PitchRadians) * speed;
 
-        if (Flags.NoGravity())
-            z = speed * PitchRadians;
-
-        return new Vec3D(x, y, z);
+        return new(Math.Cos(AngleRadians) * speed, Math.Sin(AngleRadians) * speed, 0);
     }
 
     private Vec3D CalculateStrafeMovement(double speed)
@@ -1183,17 +1188,25 @@ public class Player : Entity
     public double GetForwardMovementSpeed()
     {
         if (TickCommand.IsFastSpeed(WorldStatic.World.Config.Game.AlwaysRun))
-            return ForwardMovementSpeedRun;
+            return ForwardMovementSpeedRun * GetMoveSpeedFactor();
 
-        return ForwardMovementSpeedWalk;
+        return ForwardMovementSpeedWalk * GetMoveSpeedFactor();
     }
 
     public double GetSideMovementSpeed()
     {
         if (TickCommand.IsFastSpeed(WorldStatic.World.Config.Game.AlwaysRun))
-            return SideMovementSpeedRun;
+            return SideMovementSpeedRun * GetMoveSpeedFactor();
 
-        return SideMovementSpeedWalk;
+        return SideMovementSpeedWalk * GetMoveSpeedFactor();
+    }
+
+    private double GetMoveSpeedFactor()
+    {
+        if (WaterSubmersionLevel == SubmersionLevel.None)
+            return 1;
+
+        return 0.5;
     }
 
     public double GetTurnAngle()
@@ -1693,7 +1706,20 @@ public class Player : Entity
         {
             m_jumpStartZ = Position.Z;
             m_isJumping = true;
-            Velocity.Z += Properties.Player.JumpZ;
+
+            if (WaterSubmersionLevel == SubmersionLevel.None)
+            {
+                Velocity.Z = Properties.Player.JumpZ;
+                return;
+            }
+
+            //if (OnGround && WaterSubmersionLevel <= SubmersionLevel.MoreThanHalf)
+            //{
+            //    Velocity.Z = Properties.Player.JumpZ;
+            //    return;
+            //}    
+
+            Velocity.Z = WaterJumpSpeed;
         }
     }
 
@@ -1724,7 +1750,9 @@ public class Player : Entity
         m_viewZ = MathHelper.Clamp(ViewHeight + m_viewBob, ViewHeightMin, LowestCeilingZ - HighestFloorZ - ViewHeightMin);
     }
 
-    private bool AbleToJump() => OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !WorldStatic.World.MapInfo.HasOption(MapOptions.NoJump) && !IsClippedWithEntity();
+    private bool AbleToJump() => 
+         WaterSubmersionLevel > SubmersionLevel.LessThanHalf ||
+        (OnGround && Velocity.Z == 0 && m_jumpTics == 0 && !WorldStatic.World.MapInfo.HasOption(MapOptions.NoJump) && !IsClippedWithEntity());
 
     public override bool Equals(object? obj)
     {
