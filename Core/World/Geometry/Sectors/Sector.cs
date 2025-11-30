@@ -227,6 +227,7 @@ public sealed class Sector
         if (Sectors3D.Length == 0)
             return;
 
+        TransferHeights = null;
         Sectors3D.Sort(HeightComparison);
 
         var currentLightSector = this;
