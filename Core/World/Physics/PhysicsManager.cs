@@ -181,8 +181,9 @@ public sealed class PhysicsManager
 
         // Move lower entities first to handle stacked entities
         // Ordering by Id is only required for EntityRenderer nudging to prevent z-fighting
-        GetSectorMoveOrderedEntities(m_sectorMoveEntities, sectorEntities);
+        m_sectorMoveEntities.Clear();
         m_sectorMoveEntitiesData.Clear();
+        GetSectorMoveOrderedEntities(m_sectorMoveEntities, sectorEntities);
 
         // Save the Z value because we are only checking if the dest is valid
         // If the move is invalid because of a blocking entity then it will not be set to destZ
@@ -361,7 +362,6 @@ public sealed class PhysicsManager
 
             m_clampIgnoreEntities.Clear();
             m_crushEntities.Clear();
-            m_sectorMoveEntities.Clear();
         }
 
         // If an entity is blocking this and the destination is blocked then we need to stop to match vanilla behavior.
@@ -481,7 +481,7 @@ public sealed class PhysicsManager
             var entity = node.Value;
             // Doom did this by blockmap so do not add things with NoBlockmap
             if (!entity.Flags.NoBlockmap() && EntityHasMovementSector(entity, sectorEntities))
-                m_sectorMoveEntities.Add(entity);
+                entities.Add(entity);
             node = node.Next;
         }
 
