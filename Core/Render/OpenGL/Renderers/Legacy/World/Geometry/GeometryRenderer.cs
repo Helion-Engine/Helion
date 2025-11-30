@@ -584,6 +584,8 @@ public class GeometryRenderer : IDisposable
         var checkParentBack = flipped ? parentSectorLine.Back : parentSectorLine.Front;
         var checkParentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
 
+        useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentBack);
+
         wallSector.Ceiling.Z = topZ;
         wallSector.Ceiling.PrevZ = prevTopZ;
         wallSector.Floor.Z = bottomZ;
@@ -604,6 +606,8 @@ public class GeometryRenderer : IDisposable
         if (sector3d.ShouldRenderInsideWalls && sectorLine.Back != null && renderBack &&
             (checkParentFront == null || Sector3D.CalculateWallHeights(checkParentFront, topZ, bottomZ, prevTopZ, prevBottomZ, out newTopZ, out newBottomZ, out newPrevTopZ, out newPrevBottomZ)))
         {
+            useSide = sectorLine.Back;
+            useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentFront);
             wallSector.Ceiling.Z = newTopZ;
             wallSector.Ceiling.PrevZ = newPrevTopZ;
             wallSector.Floor.Z = newBottomZ;

@@ -283,5 +283,17 @@ public class Sector3D
         return true;
     }
 
+    public int GetTextureHandle(Side controlSectorSide, Side? parentSectorSide)
+    {
+        if (parentSectorSide != null)
+        {
+            if ((Flags & SectorFlags3D.UseUpperTexture) != 0)
+                return parentSectorSide.Upper.TextureHandle;
+            if ((Flags & SectorFlags3D.UserLowerTexture) != 0)
+                return parentSectorSide.Lower.TextureHandle;
+        }
+        return controlSectorSide.Middle.TextureHandle;
+    }
+
     public override string ToString() => $"3D Sector: {SectorId} ControlId: {ControlSector.Id} ParentId: {ParentSectorId} [{ControlSector.Ceiling.Z} {ControlSector.Floor.Z}]";
 }

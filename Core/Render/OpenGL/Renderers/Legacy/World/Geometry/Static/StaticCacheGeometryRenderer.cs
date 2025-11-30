@@ -207,7 +207,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             var useSide = sectorLine.Front;
             var dynamic = useSide.IsDynamic || sector3d.ControlSector.IsMoving;
             if (dynamic && (sector3d.ControlSector.Floor.Dynamic == SectorDynamic.Movement || sector3d.ControlSector.Ceiling.Dynamic == SectorDynamic.Movement))
-                return;
+                continue;
 
             wallSector.Ceiling.Z = topZ;
             wallSector.Floor.Z = bottomZ;
@@ -223,6 +223,8 @@ public class StaticCacheGeometryRenderer : IDisposable
                 wallSector.Floor.Z = newBottomZ;
             }
 
+            useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentBack);
+
             m_geometryRenderer.SetRenderOneSided(useSide);
             m_geometryRenderer.RenderOneSided(useSide, true, out var sideVertices, out _, out var texture,
                 renderSector: wallSector, lightLevelSector: sector3d.ParentSector, renderSkySide: false);
@@ -230,7 +232,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (sideVertices != null)
             {
                 var wall = useSide.Middle;
-                UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices, null, useSide, wall, true, texture);
+                UpdateVertices(wall.Static.GeometryData, useSide.Middle.TextureHandle, wall.Static.Index, sideVertices, null, useSide, wall, true, texture);
             }
 
             if (sector3d.ShouldRenderInsideWalls && sectorLine.Back != null &&
@@ -240,6 +242,7 @@ public class StaticCacheGeometryRenderer : IDisposable
                 wallSector.Floor.Z = newBottomZ;
 
                 useSide = sectorLine.Back;
+                useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentFront);
                 m_geometryRenderer.RenderOneSided(useSide, false, out sideVertices, out _, out texture,
                     renderSector: wallSector, lightLevelSector: sector3d.ParentSector, renderSkySide: false);
 
