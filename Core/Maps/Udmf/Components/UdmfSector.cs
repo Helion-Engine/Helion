@@ -12,6 +12,7 @@ public class UdmfSector : ISector
     public string CeilingTexture { get; set; } = Constants.NoTexture;
     public short LightLevel { get; set; } = 160;
     public ushort Tag { get; set; }
+    public int[] MoreTags { get; set; } = [];
     public int Special;
     public double RotationFloor;
     public double RotationCeiling;

@@ -208,36 +208,47 @@ public class MapGeometry
     public void SetLineId(Line line, int lineId)
     {
         line.MapLineId = lineId;
-        TrackLineId(line);
+        TrackLineId(line, lineId);
     }
 
     private void TrackSectorsByTag()
     {
-        foreach (Sector sector in Sectors)
+        foreach (var sector in Sectors)
         {
-            if (m_tagToSector.TryGetValue(sector.Tag, out IList<Sector>? sectors))
-                sectors.Add(sector);
-            else
-                m_tagToSector[sector.Tag] = new List<Sector> { sector };
+            TrackSectorTag(sector, sector.Tag);
+
+            foreach (var tag in sector.MoreTags)
+                TrackSectorTag(sector, tag);
         }
+    }
+
+    private void TrackSectorTag(Sector sector, int tag)
+    {
+        if (m_tagToSector.TryGetValue(tag, out var sectors))
+            sectors.Add(sector);
+        else
+            m_tagToSector[tag] = [sector];
     }
 
     private void TrackLinesByLineId()
     {
-        foreach (Line line in Lines)
+        foreach (var line in Lines)
         {
-            if (line.MapLineId == Line.NoLineId)
-                continue;
+            TrackLineId(line, line.MapLineId);
 
-            TrackLineId(line);
+            foreach (var id in line.MoreLineIds)
+                TrackLineId(line, id);
         }
     }
 
-    private void TrackLineId(Line line)
+    private void TrackLineId(Line line, int mapLineId)
     {
-        if (m_idToLine.TryGetValue(line.MapLineId, out IList<Line>? lines))
+        if (line.MapLineId == Line.NoLineId)
+            return;
+
+        if (m_idToLine.TryGetValue(mapLineId, out var lines))
             lines.Add(line);
         else
-            m_idToLine[line.MapLineId] = [line];
+            m_idToLine[mapLineId] = [line];
     }
 }

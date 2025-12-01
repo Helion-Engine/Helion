@@ -88,6 +88,7 @@
 
   <ItemGroup>
     <PackageReference Include="Helion.SDLControllerWrapper" Version="2.0.0.0" />
+    <PackageReference Include="zdbspSharp" Version="1.0.8" />
   </ItemGroup>
 
   <ItemGroup>

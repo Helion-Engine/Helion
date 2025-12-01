@@ -20,6 +20,7 @@ public sealed class Line
     public const int NoLineId = 0;
 
     public int Id;
+    public int[] MoreLineIds = [];
     public Seg2D Segment;
     public Vec2D RenderSegStart;
     public Vec2D RenderSegEnd;

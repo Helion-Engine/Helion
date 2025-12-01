@@ -56,6 +56,8 @@ public sealed class UdmfMap : IMap, IMapSpecials
     private static readonly char[] ParseChars = [';', ')', '(', '{', '}'];
     private static readonly FrozenSet<char> ParseCharSet = ParseChars.ToFrozenSet();
 
+    private static readonly DynamicArray<int> ParseIds = [];
+
     public void ClearAllExceptThings()
     {
         Lines = [];
@@ -493,6 +495,8 @@ public sealed class UdmfMap : IMap, IMapSpecials
                 sector.SkyFloor = GetString(stringLookup, prop.Value);
             else if (prop.Name.EqualsIgnoreCase("skyceiling"))
                 sector.SkyCeiling = GetString(stringLookup, prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("moreids"))
+                sector.MoreTags = ParseMoreIds(prop.Value);
 
             else if (prop.Name.EqualsIgnoreCase("scrollfloormode"))
                 GetScrollSector(sector.Id, SectorPlaneFace.Floor, scrollSectors).Flags = (UdmfScrollSectorFlags)parser.ParseInt(prop.Value);
@@ -510,6 +514,17 @@ public sealed class UdmfMap : IMap, IMapSpecials
         }
 
         sectors.Add(sector);
+    }
+
+    private static int[] ParseMoreIds(ReadOnlySpan<char> value)
+    {
+        ParseIds.Clear();
+        foreach (var token in value.Split(' '))
+        {
+            if (int.TryParse(value[token.Start.Value..token.End.Value], out int number))
+                ParseIds.Add(number);
+        }
+        return [.. ParseIds];
     }
 
     private static UdmfScrollSector GetScrollSector(int id, SectorPlaneFace face, Dictionary<int, UdmfScrollSector> scrollSectors)
@@ -639,6 +654,8 @@ public sealed class UdmfMap : IMap, IMapSpecials
                 line.HealthGroup = parser.ParseInt(prop.Value);
             else if (prop.Name.EqualsIgnoreCase("id"))
                 line.LineId = parser.ParseInt(prop.Value);
+            else if (prop.Name.EqualsIgnoreCase("moreids"))
+                line.MoreLineIds = ParseMoreIds(prop.Value);
         }
 
         lines.Add(line);

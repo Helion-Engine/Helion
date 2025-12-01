@@ -33,6 +33,7 @@ public sealed class Sector
 
     public int Id;
     public int Tag;
+    public int[] MoreTags = [];
     public SectorPlane Floor;
     public SectorPlane Ceiling;
     public Line[] Lines = [];
