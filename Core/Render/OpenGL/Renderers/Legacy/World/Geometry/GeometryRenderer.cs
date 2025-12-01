@@ -435,8 +435,11 @@ public class GeometryRenderer : IDisposable
             set.Floor.LastRenderGametick = m_world.Gametick;
             if (sector3d != null)
             {
-                RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottom, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                    lightLevelSector: sector3d.LightTop);
+                if (sector3d.ControlTop.Z != sector3d.ParentSector.Floor.Z)
+                {
+                    RenderFlat(subsectors, sector3d.ControlTop, sector3d.FakeBottom, floor: true, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        lightLevelSector: sector3d.LightTop);
+                }
 
                 if (sector3d.FakeBottomFlipped != null)
                 {
@@ -456,8 +459,11 @@ public class GeometryRenderer : IDisposable
             set.Ceiling.LastRenderGametick = m_world.Gametick;
             if (sector3d != null)
             {
-                RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTop, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
-                    lightLevelSector: sector3d.LightBottom);
+                if (sector3d.ControlBottom.Z != sector3d.ParentSector.Ceiling.Z)
+                {
+                    RenderFlat(subsectors, sector3d.ControlBottom, sector3d.FakeTop, floor: false, renderFlood: false, m_ceilingVertexLookupInvalidated, out _, out _,
+                        lightLevelSector: sector3d.LightBottom);
+                }
 
                 if (sector3d.FakeTopFlipped != null)
                 {
