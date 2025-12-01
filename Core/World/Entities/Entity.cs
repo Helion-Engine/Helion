@@ -91,7 +91,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Sector Sector;
     public Sector HighestFloorSector;
     public Sector LowestCeilingSector;
-    public Sector? CeilingSector3D;
+    public Sector? LightCeilingSector3D;
     // Can be Sector or Entity
     public object HighestFloorObject;
     public object LowestCeilingObject;
@@ -211,6 +211,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         HighestFloorObject = sector;
         LowestCeilingSector = sector;
         LowestCeilingObject = sector;
+        LightCeilingSector3D = null;
         CheckOnGround();
 
         Threshold = 0;
@@ -267,6 +268,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         LowestCeilingSector = Sector;
         HighestFloorObject = Sector;
         LowestCeilingObject = Sector;
+        LightCeilingSector3D = null;
 
         MonsterMovementSpeed = Properties.MonsterMovementSpeed;
 

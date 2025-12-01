@@ -1036,7 +1036,7 @@ public sealed class PhysicsManager
             lowestCeilingEntity = m_canPassData.LowestCeilingEntity;
             highestFloorZ = m_canPassData.HighestFloorZ;
             lowestCeilZ = m_canPassData.LowestCeilZ;
-            entity.CeilingSector3D = m_canPassData.CeilingSector3D;
+            entity.LightCeilingSector3D = m_canPassData.CeilingSector3D;
         }
 
         entity.HighestFloorZ = highestFloorZ;
@@ -1064,8 +1064,8 @@ public sealed class PhysicsManager
             var sector3d = sector.Sectors3D[i];
             var z = m_canPassData.LowestCeilZ;
             CanPassTraverse(sector3d.GetSectorEntity3D());
-            if (m_canPassData.LowestCeilZ != z)
-                m_canPassData.CeilingSector3D = sector3d.ControlSector;
+            if (m_canPassData.LowestCeilZ <= z)
+                m_canPassData.CeilingSector3D = sector3d.LightBottom;
         }
     }
 
