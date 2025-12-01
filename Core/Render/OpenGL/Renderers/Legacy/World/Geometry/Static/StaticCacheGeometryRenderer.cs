@@ -120,11 +120,18 @@ public class StaticCacheGeometryRenderer : IDisposable
             if ((sector.Ceiling.Dynamic & IgnoreFlags) == 0)
                 AddSectorPlane(sector, SectorPlaneFace.Ceiling, false);
 
-            if (sector.Sectors3D.Length > 0)
-                AddSectors3D(sector, false);
-
             if (sector.IsMoving)
                 m_initMoveSectors.Add(sector);
+        }
+
+        if (WorldStatic.Sector3D)
+        {
+            for (int i = 0; i < world.Sectors.Count; i++)
+            {
+                var sector = world.Sectors[i];
+                if (sector.Sectors3D.Length > 0)
+                    AddSectors3D(sector, false);
+            }
         }
 
         for (int i = 0; i < world.Lines.Count; i++)
