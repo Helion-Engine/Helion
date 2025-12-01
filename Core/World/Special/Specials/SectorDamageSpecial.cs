@@ -2,10 +2,15 @@ using Helion.Maps.Specials;
 using Helion.Models;
 using Helion.World.Entities;
 using Helion.World.Entities.Inventories.Powerups;
-using Helion.World.Entities.Players;
 using Helion.World.Geometry.Sectors;
 
 namespace Helion.World.Special.Specials;
+
+public enum DamageTickOptions
+{
+    CheckOnFloor = 1,
+    CheckWaterControlSector = 2
+}
 
 public class SectorDamageSpecial
 {
@@ -66,7 +71,7 @@ public class SectorDamageSpecial
         };
     }
 
-    public virtual void Tick(Entity entity)
+    public virtual void Tick(Entity entity, DamageTickOptions options)
     {
         if (entity.IsDisposed)
             return;
@@ -80,15 +85,29 @@ public class SectorDamageSpecial
         if (entity.PlayerObj == null || entity.PlayerObj.IsVooDooDoll)
             return;
 
-        Player player = entity.PlayerObj;
-        if (!ShouldDamage(player))
+        var player = entity.PlayerObj;
+        if (!ShouldDamage(player, options))
             return;
 
         if (m_alwaysDamage || !player.Inventory.IsPowerupActive(PowerupType.IronFeet) || (m_radSuitLeakChance > 0 && m_world.Random.NextByte() < m_radSuitLeakChance))
             m_world.DamageEntity(player, null, m_damage, DamageType.Normal, sectorSource: m_sector);
     }
 
-    protected bool ShouldDamage(Entity entity) => m_damageInterval > 0 && m_damage > 0 && entity.OnSectorFloorZ(m_sector) && (m_world.LevelTime % m_damageInterval) == 0;
+    protected bool ShouldDamage(Entity entity, DamageTickOptions options)
+    {
+        var shouldDamage = false;
+        switch (options)
+        {
+            case DamageTickOptions.CheckOnFloor:
+                shouldDamage = entity.OnSectorFloorZ(m_sector);
+                break;
+            case DamageTickOptions.CheckWaterControlSector:
+                shouldDamage = entity.WaterControlSector != null && entity.WaterSubmersionLevel > SubmersionLevel.None;
+                break;
+        }
+
+        return m_damageInterval > 0 && m_damage > 0 && shouldDamage && (m_world.LevelTime % m_damageInterval) == 0;
+    }
 
     private void CheckInstantKillEffect(Entity entity)
     {

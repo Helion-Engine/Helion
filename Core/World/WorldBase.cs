@@ -1015,7 +1015,10 @@ public abstract partial class WorldBase : IWorld
                 if (entity.Respawn)
                     HandleRespawn(entity);
 
-                entity.Sector.SectorDamageSpecial?.Tick(entity);
+                entity.Sector.SectorDamageSpecial?.Tick(entity, DamageTickOptions.CheckOnFloor);
+
+                if (WorldStatic.Sector3D && entity.WaterControlSector != null)
+                    entity.WaterControlSector.SectorDamageSpecial?.Tick(entity, DamageTickOptions.CheckWaterControlSector);
 
                 if (!WorldStatic.InfinitelyTallThings &&
                     (entity.HadOnEntity || entity.OnEntity() != null) &&

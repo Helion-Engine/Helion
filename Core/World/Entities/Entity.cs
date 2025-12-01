@@ -62,6 +62,7 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
     public Vec3D Velocity;
     public IAudioSource? AudioSource;
     public SubmersionLevel WaterSubmersionLevel;
+    public Sector? WaterControlSector;
 
     public int Health;
     public int MoveCount;
@@ -1109,12 +1110,14 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
 
     public void SetWaterSubmersionLevel()
     {
-        if (!Sector.GetWaterSubmersionHeight(this, out var height))
+        if (!Sector.GetWaterSubmersionHeight(this, out var height, out var sector3d))
         {
+            WaterControlSector = null;
             WaterSubmersionLevel = SubmersionLevel.None;
             return;
         }
 
+        WaterControlSector = sector3d.ControlSector;
         var depth = height - Position.Z;
         if (depth <= 0)
         {
@@ -1194,6 +1197,8 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         ChaseFailureSkipCount = 0;
         ClosetChaseSpeed = DefaultClosetChaseSpeed;
         Special = ZDoomLineSpecialType.None;
+        WaterSubmersionLevel = SubmersionLevel.None;
+        WaterControlSector = null;
     }
 
     private void FreeToDataCache()

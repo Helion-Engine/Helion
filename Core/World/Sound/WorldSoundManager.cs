@@ -89,38 +89,54 @@ public class WorldSoundManager : SoundManager, ITickable
         if (!soundSource.CanMakeSound())
             return null;
 
-        IAudioSource? source = CreateSound(soundSource, soundSource.GetSoundPosition(m_world.GetListener().Entity), soundSource.GetSoundVelocity(), 0,
+        var listener = m_world.GetListener().Entity;
+        var source = CreateSound(soundSource, soundSource.GetSoundPosition(listener), soundSource.GetSoundVelocity(), 0,
             sound, soundParams, out SoundInfo? soundInfo);
         if (source == null)
             return source;
 
-        if (soundInfo != null)
-            SetPitchModifiers(soundSource, source, soundInfo);
-
-        if (m_world.Config.Audio.Pitch != 1)
-            source.SetPitch(source.GetPitch() * (float)m_world.Config.Audio.Pitch);
-
+        SetPitchModifiers(listener, soundSource, source, soundInfo);
         return source;
     }
 
-    private void SetPitchModifiers(ISoundSource soundSource, IAudioSource source, SoundInfo soundInfo)
+    private void SetPitchModifiers(Entity listener, ISoundSource soundSource, IAudioSource source, SoundInfo? soundInfo)
     {
+        source.Pitch = GetPitchModifiers(soundSource, source, soundInfo);
+        var pitch = source.Pitch * GetWaterLevelPitch(listener);
+        source.SetPitch(pitch);
+    }
+
+    private static float GetWaterLevelPitch(Entity listener)
+    {
+        if (listener.WaterControlSector != null && listener.WaterSubmersionLevel == SubmersionLevel.Full)
+            return 0.85f;
+        return 1f;
+    }
+
+    private float GetPitchModifiers(ISoundSource soundSource, IAudioSource source, SoundInfo? soundInfo)
+    {
+        var pitch = 1f;
+        if (m_world.Config.Audio.Pitch != 1)
+            pitch *= (float)m_world.Config.Audio.Pitch;
+
+        if (soundInfo == null)
+            return pitch;
+
         bool pitchSet = soundInfo.PitchSet > 0;
         if (pitchSet)
-        {
-            source.SetPitch(soundInfo.PitchSet);
-            return;
-        }
+            return pitch * soundInfo.PitchSet;
 
         if (ShouldRandomizePitch(soundSource))
         {
             int pitchShift = 1 << soundInfo.PitchShift;
             if (pitchShift > 1)
-                SetPitchShift(source, pitchShift);
+                pitch *= GetPitchShift(pitchShift);
         }
+
+        return pitch;
     }
 
-    private void SetPitchShift(IAudioSource source, int pitchShift)
+    private float GetPitchShift(int pitchShift)
     {
         // Doom's default pitch shift range is 4.
         // Default add value is 16 and clamp value is 31.
@@ -130,7 +146,7 @@ public class WorldSoundManager : SoundManager, ITickable
         int rand = (int)Math.Clamp((m_world.SecondaryRandom.NextByte() & clamp) * m_world.Config.Audio.RandomPitchScale, 1, 255);
         int add = (int)Math.Clamp(pitchShift * m_world.Config.Audio.RandomPitchScale, 1, 255);
         float pitch = Math.Clamp(NormalPitch + add - rand, 0, 255);
-        source.SetPitch(pitch / NormalPitch);
+        return pitch / NormalPitch;
     }
 
     private bool ShouldRandomizePitch(ISoundSource soundSource)
@@ -253,6 +269,7 @@ public class WorldSoundManager : SoundManager, ITickable
             else
             {
                 node.Update(new((float)Math.Sqrt(distanceSquared)));
+                node.SetPitch(node.Pitch * GetWaterLevelPitch(listener.Entity));
                 var position = node.AudioData.SoundSource.GetSoundPosition(listener.Entity);
                 if (position != null)
                     node.SetPosition((float)position.Value.X, (float)position.Value.Y, (float)position.Value.Z);

@@ -19,6 +19,7 @@ using Helion.World.Special.Specials;
 using Helion.World.Static;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using static Helion.World.Entities.EntityManager;
 using Vector2D = Helion.Models.Vector2D;
 
@@ -566,14 +567,14 @@ public sealed class Sector
     public double GetZ(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor.Z : Ceiling.Z;
     public SectorPlane GetSectorPlane(SectorPlaneFace planeType) => planeType == SectorPlaneFace.Floor ? Floor : Ceiling;
 
-    public bool GetWaterSubmersionHeight(Entity entity, out double height)
+    public bool GetWaterSubmersionHeight(Entity entity, out double height, [NotNullWhen(true)] out Sector3D? sector3d)
     {
         if (WorldStatic.Sector3D && Sectors3D.Length > 0)
         {
             var centerZ = entity.Position.Z + (entity.Height / 2);
             for (int i = 0; i < Sectors3D.Length; i++)
             {
-                var sector3d = Sectors3D[i];
+                sector3d = Sectors3D[i];
 
                 if (!sector3d.IsSwimmable || sector3d.ControlBottom.Z > centerZ || sector3d.ControlTop.Z <= entity.Position.Z)
                     continue;
@@ -583,6 +584,7 @@ public sealed class Sector
             }
         }
 
+        sector3d = null;
         height = 0;
         return false;
     }
