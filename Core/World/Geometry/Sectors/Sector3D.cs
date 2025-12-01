@@ -261,11 +261,12 @@ public class Sector3D
     private static bool AdjustWallHeights(ref WallHeights wallHeights, 
         double checkTopZ, double checkBottomZ, double checkPrevTopZ, double checkPrevBottomZ)
     {
-        if (checkTopZ < wallHeights.TopZ)
+        if (checkTopZ < wallHeights.TopZ && checkTopZ > wallHeights.BottomZ)
         {
             wallHeights.BottomZ = checkTopZ;
             wallHeights.PrevBottomZ = checkPrevTopZ;
         }
+
         if (checkBottomZ > wallHeights.BottomZ)
         {
             wallHeights.TopZ = checkBottomZ;
