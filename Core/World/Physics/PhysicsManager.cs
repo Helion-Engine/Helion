@@ -61,6 +61,7 @@ public sealed class PhysicsManager
     private IRandom m_random;
     private bool m_alwaysStickEntitiesToFloor;
     private readonly LineOpening m_lineOpening = new();
+    private readonly LineOpening m_entityOpening = new();
     private readonly LineOpening m_testOpening1 = new();
     private readonly LineOpening m_testOpening2 = new();
     private readonly DynamicArray<Entity> m_crushEntities = new();
@@ -1631,7 +1632,7 @@ doneLinkToSectors:
         if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile() && !other.Flags.Missile() && other.MidTexLine == null && other.Sector3D == null)
             return true;
 
-        SetEntityLineOpening(entity, other, tryMove, m_lineOpening);
+        SetEntityLineOpening(entity, other, tryMove, m_entityOpening);
 
         var isPlayer = entity.IsPlayer;
         // If blocking and not a player, do not check step passing below. Non-players can't step onto other things. (Exclude MidTex lines)
@@ -1641,7 +1642,7 @@ doneLinkToSectors:
         if (!overlapsZ)
             return false;
 
-        return !m_lineOpening.CanPassOrStepThrough(entity);
+        return !m_entityOpening.CanPassOrStepThrough(entity);
     }
 
     private void SetEntityLineOpening(Entity entity, Entity other, TryMoveData tryMove, LineOpening opening)
