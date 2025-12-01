@@ -577,9 +577,9 @@ public class GeometryRenderer : IDisposable
         if (!shouldRender)
             return;
 
-        sector3d.CalculateWallHeights(out var topZ, out var bottomZ, out var prevTopZ, out var prevBottomZ);
+        var wallHeights = sector3d.CalculateWallHeights();
+        var newWallHeights = wallHeights;
         var wallSector = sector3d.FakeSector;
-        double newTopZ = topZ, newBottomZ = bottomZ, newPrevTopZ = prevTopZ, newPrevBottomZ = prevBottomZ;
 
         if (m_drawnSides[useSide.Id] == WorldStatic.CheckCounter)
             return;
@@ -592,32 +592,32 @@ public class GeometryRenderer : IDisposable
 
         useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentBack);
 
-        wallSector.Ceiling.Z = topZ;
-        wallSector.Ceiling.PrevZ = prevTopZ;
-        wallSector.Floor.Z = bottomZ;
-        wallSector.Floor.PrevZ = prevBottomZ;
+        wallSector.Ceiling.Z = wallHeights.TopZ;
+        wallSector.Ceiling.PrevZ = wallHeights.PrevTopZ;
+        wallSector.Floor.Z = wallHeights.BottomZ;
+        wallSector.Floor.PrevZ = wallHeights.PrevBottomZ;
         wallSector.Floor.LastRenderChangeGametick = sector3d.ControlSector.Floor.LastRenderChangeGametick;
         wallSector.Ceiling.LastRenderChangeGametick = sector3d.ControlSector.Ceiling.LastRenderChangeGametick;
 
         if (checkParentBack != null && renderFront)
         {
-            Sector3D.CalculateWallHeights(checkParentBack, topZ, bottomZ, prevTopZ, prevBottomZ, out newTopZ, out newBottomZ, out newPrevTopZ, out newPrevBottomZ);
-            wallSector.Ceiling.Z = newTopZ;
-            wallSector.Ceiling.PrevZ = newPrevTopZ;
-            wallSector.Floor.Z = newBottomZ;
-            wallSector.Floor.PrevZ = newPrevBottomZ;
+            Sector3D.CalculateWallHeights(checkParentBack, wallHeights, out newWallHeights);
+            wallSector.Ceiling.Z = newWallHeights.TopZ;
+            wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
+            wallSector.Floor.Z = newWallHeights.BottomZ;
+            wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
             RenderOneSided(useSide, true, out _, out _, out _, renderSector: wallSector, lightLevelSector: sector3d.ParentSector, renderSkySide: false);
         }
 
         if (sector3d.ShouldRenderInsideWalls && sectorLine.Back != null && renderBack &&
-            (checkParentFront == null || Sector3D.CalculateWallHeights(checkParentFront, topZ, bottomZ, prevTopZ, prevBottomZ, out newTopZ, out newBottomZ, out newPrevTopZ, out newPrevBottomZ)))
+            (checkParentFront == null || Sector3D.CalculateWallHeights(checkParentFront, wallHeights, out newWallHeights)))
         {
             useSide = sectorLine.Back;
             useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentFront);
-            wallSector.Ceiling.Z = newTopZ;
-            wallSector.Ceiling.PrevZ = newPrevTopZ;
-            wallSector.Floor.Z = newBottomZ;
-            wallSector.Floor.PrevZ = newPrevBottomZ;
+            wallSector.Ceiling.Z = newWallHeights.TopZ;
+            wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
+            wallSector.Floor.Z = newWallHeights.BottomZ;
+            wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
             RenderOneSided(useSide, false, out _, out _, out _, renderSector: wallSector, lightLevelSector: sector3d.LightMiddle, renderSkySide: false);
         }
 

@@ -32,6 +32,14 @@ public enum SectorFlags3D
     ResetAbove = 32768
 }
 
+public struct WallHeights(double topZ, double bottomZ, double prevTopZ, double prevBottomZ)
+{
+    public double TopZ = topZ;
+    public double BottomZ = bottomZ;
+    public double PrevTopZ = prevTopZ;
+    public double PrevBottomZ = prevBottomZ;
+}
+
 public class Sector3D
 {
     public int ParentSectorId;
@@ -193,15 +201,11 @@ public class Sector3D
         return maxSector?.ControlSector ?? ParentSector;
     }
 
-    public void CalculateWallHeights(out double topZ, out double bottomZ, out double prevTopZ, out double prevBottomZ)
+    public WallHeights CalculateWallHeights()
     {
-        topZ = ControlTop.Z;
-        bottomZ = ControlBottom.Z;
-        prevTopZ = ControlTop.PrevZ;
-        prevBottomZ = ControlBottom.PrevZ;
-
+        var wallHeights = new WallHeights(ControlTop.Z, ControlBottom.Z, ControlTop.PrevZ, ControlBottom.PrevZ);
         if (ParentSector.Sectors3D.Length == 0)
-            return;
+            return wallHeights;
 
         var entity = GetSectorEntity3D();
         for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
@@ -213,28 +217,25 @@ public class Sector3D
             if (!entity.OverlapsZ(checkSector3d.GetSectorEntity3D()))
                 continue;
 
-            if (!AdjustWallHeights(ref topZ, ref bottomZ, ref prevTopZ, ref prevBottomZ, 
+            if (!AdjustWallHeights(ref wallHeights, 
                 checkSector3d.ControlTop.Z, checkSector3d.ControlBottom.Z, checkSector3d.ControlTop.PrevZ, checkSector3d.ControlBottom.PrevZ))
                 break;
         }
 
-        FakeTop.Z = topZ;
-        FakeBottom.Z = bottomZ;
+        FakeTop.Z = wallHeights.TopZ;
+        FakeBottom.Z = wallHeights.BottomZ;
+        return wallHeights;
     }
 
-    public static bool CalculateWallHeights(Side side, double topZ, double bottomZ, double prevTopZ, double prevBottomZ, 
-        out double newTopZ, out double newBottomZ, out double newPrevTopZ, out double newPrevBottomZ)
+    public static bool CalculateWallHeights(Side side, in WallHeights wallHeights, out WallHeights newWallHeights)
     {
-        newTopZ = topZ;
-        newBottomZ = bottomZ;
-        newPrevTopZ = prevTopZ;
-        newPrevBottomZ = prevBottomZ;
+        newWallHeights = wallHeights;
         WallVertices wall = default;
 
         if (side.PartnerSide == null)
         {
             WorldTriangulator.HandleOneSided(side, side.Sector.Floor, side.Sector.Ceiling, default, ref wall);
-            return AdjustWallHeights(ref newTopZ, ref newBottomZ, ref newPrevTopZ, ref newPrevBottomZ, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ);
+            return AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ);
         }
 
         if (side.PartnerSide != null)
@@ -242,14 +243,14 @@ public class Sector3D
             if (GeometryRenderer.LowerIsVisible(side, side.Sector, side.PartnerSide.Sector))
             {
                 WorldTriangulator.HandleTwoSidedLower(side, side.PartnerSide.Sector.Floor, side.Sector.Floor, default, true, ref wall);
-                if (!AdjustWallHeights(ref newTopZ, ref newBottomZ, ref newPrevTopZ, ref newPrevBottomZ, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
+                if (!AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
                     return false;
             }
 
             if (GeometryRenderer.UpperIsVisible(side, side.Sector, side.PartnerSide.Sector))
             {
                 WorldTriangulator.HandleTwoSidedUpper(side, side.PartnerSide.Sector.Floor, side.Sector.Floor, default, true, ref wall);
-                if (!AdjustWallHeights(ref newTopZ, ref newBottomZ, ref newPrevTopZ, ref newPrevBottomZ, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
+                if (!AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
                     return false;
             }
         }
@@ -257,26 +258,26 @@ public class Sector3D
         return true;
     }
 
-    private static bool AdjustWallHeights(ref double topZ, ref double bottomZ, ref double prevTopZ, ref double prevBottomZ, 
+    private static bool AdjustWallHeights(ref WallHeights wallHeights, 
         double checkTopZ, double checkBottomZ, double checkPrevTopZ, double checkPrevBottomZ)
     {
-        if (checkTopZ < topZ)
+        if (checkTopZ < wallHeights.TopZ)
         {
-            bottomZ = checkTopZ;
-            prevBottomZ = checkPrevTopZ;
+            wallHeights.BottomZ = checkTopZ;
+            wallHeights.PrevBottomZ = checkPrevTopZ;
         }
-        if (checkBottomZ > bottomZ)
+        if (checkBottomZ > wallHeights.BottomZ)
         {
-            topZ = checkBottomZ;
-            prevTopZ = checkPrevBottomZ;
+            wallHeights.TopZ = checkBottomZ;
+            wallHeights.PrevTopZ = checkPrevBottomZ;
         }
 
-        if (checkTopZ >= topZ && checkBottomZ <= bottomZ)
+        if (checkTopZ >= wallHeights.TopZ && checkBottomZ <= wallHeights.BottomZ)
         {
-            bottomZ = 0;
-            topZ = 0;
-            prevTopZ = 0;
-            prevBottomZ = 0;
+            wallHeights.BottomZ = 0;
+            wallHeights.TopZ = 0;
+            wallHeights.PrevTopZ = 0;
+            wallHeights.PrevBottomZ = 0;
             return false;
         }
 

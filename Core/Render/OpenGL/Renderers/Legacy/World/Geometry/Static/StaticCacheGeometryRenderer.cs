@@ -199,9 +199,9 @@ public class StaticCacheGeometryRenderer : IDisposable
         if (!sector3d.ShouldRenderWalls)
             return;
 
-        sector3d.CalculateWallHeights(out var topZ, out var bottomZ, out _, out _);
+        var wallHeights = sector3d.CalculateWallHeights();
+        var newWallHeights = wallHeights;
         var wallSector = sector3d.FakeSector;
-        double newTopZ = topZ, newBottomZ = bottomZ;
 
         for (int i = 0; i < sector3d.FakeSector.Lines.Length; i++)
         {
@@ -212,8 +212,8 @@ public class StaticCacheGeometryRenderer : IDisposable
             if (dynamic && (sector3d.ControlSector.Floor.Dynamic == SectorDynamic.Movement || sector3d.ControlSector.Ceiling.Dynamic == SectorDynamic.Movement))
                 continue;
 
-            wallSector.Ceiling.Z = topZ;
-            wallSector.Floor.Z = bottomZ;
+            wallSector.Ceiling.Z = wallHeights.TopZ;
+            wallSector.Floor.Z = wallHeights.BottomZ;
 
             bool flipped = parentSectorLine.Segment.Delta != sectorLine.Segment.Delta;
             var checkParentBack = flipped ? parentSectorLine.Back : parentSectorLine.Front;
@@ -221,9 +221,9 @@ public class StaticCacheGeometryRenderer : IDisposable
 
             if (checkParentBack != null)
             {
-                Sector3D.CalculateWallHeights(checkParentBack, topZ, bottomZ, 0, 0, out newTopZ, out newBottomZ, out _, out _);
-                wallSector.Ceiling.Z = newTopZ;
-                wallSector.Floor.Z = newBottomZ;
+                Sector3D.CalculateWallHeights(checkParentBack, wallHeights, out newWallHeights);
+                wallSector.Ceiling.Z = newWallHeights.TopZ;
+                wallSector.Floor.Z = newWallHeights.BottomZ;
             }
 
             useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentBack);
@@ -239,10 +239,10 @@ public class StaticCacheGeometryRenderer : IDisposable
             }
 
             if (sector3d.ShouldRenderInsideWalls && sectorLine.Back != null &&
-                (checkParentFront == null || Sector3D.CalculateWallHeights(checkParentFront, topZ, bottomZ, 0, 0, out newTopZ, out newBottomZ, out _, out _)))
+                (checkParentFront == null || Sector3D.CalculateWallHeights(checkParentFront, wallHeights, out newWallHeights)))
             {
-                wallSector.Ceiling.Z = newTopZ;
-                wallSector.Floor.Z = newBottomZ;
+                wallSector.Ceiling.Z = newWallHeights.TopZ;
+                wallSector.Floor.Z = newWallHeights.BottomZ;
 
                 useSide = sectorLine.Back;
                 useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentFront);
