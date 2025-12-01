@@ -123,6 +123,7 @@ public partial class WorldLayer
             DrawHudEffects(hud);
             hud.DrawPalette(false);
             DrawRecentConsoleMessages(hud);
+            DrawCenterMessages(hud);
             DrawPause(hud);
 
             if (automapVisible && m_config.Hud.AutoMap.MapTitle)
@@ -1059,6 +1060,9 @@ public partial class WorldLayer
             {
                 ConsoleMessage msg = node.Value;
                 node = node.Next;
+                
+                if (msg.IsCentered)
+                    continue;
 
                 if (messagesDrawn >= maxHudMessages || MessageTooOldToDraw(msg, World, m_console, m_parent.OptionsLastClosedNanos))
                     break;
@@ -1067,7 +1071,11 @@ public partial class WorldLayer
                 if (timeSinceMessage > MaxVisibleTimeNanos || m_parent.ConsoleLayer != null)
                     break;
 
-                m_messages.Add((msg.Message, CalculateFade(timeSinceMessage)));
+                string displayMessage = msg.Message;
+                if (msg.Count > 1)
+                    displayMessage += $" (x{msg.Count})";
+                
+                m_messages.Add((displayMessage, CalculateFade(timeSinceMessage)));
                 messagesDrawn++;
                 lastMessageTime = timeSinceMessage;
             }
@@ -1097,6 +1105,42 @@ public partial class WorldLayer
 
             m_messages.Clear();
         }
+    }
+    
+    private void DrawCenterMessages(IHudRenderContext hud)
+    {
+        ConsoleMessage? centerMsg = null;
+        long currentNanos = Ticker.NanoTime();
+        
+        lock (m_console.Messages)
+        {
+            var node = m_console.Messages.First;
+            while (node != null)
+            {
+                var msg = node.Value;
+
+                if (currentNanos - msg.TimeNanos > MaxVisibleTimeNanos)
+                    break;
+
+                if (msg.IsCentered)
+                {
+                    centerMsg = msg;
+                    break;
+                }
+                node = node.Next;
+            }
+        }
+
+        if (centerMsg == null)
+            return;
+
+        long timeSinceMessage = currentNanos - centerMsg.TimeNanos;
+        float alpha = CalculateFade(timeSinceMessage);
+        
+        int yPos = m_viewport.Height / 3;
+        
+        hud.Text(centerMsg.Message, SmallHudFont, m_infoFontSize, (0, yPos), 
+            both: Align.TopMiddle, alpha: alpha * m_hudAlpha);
     }
 
     private static bool MessageTooOldToDraw(ConsoleMessage msg, WorldBase world, HelionConsole console, long optionsLastClosedNanos)
