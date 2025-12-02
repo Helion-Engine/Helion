@@ -718,7 +718,7 @@ public partial class GeometryRenderer : IDisposable
     }
 
     public void RenderOneSided(Side side, bool isFront, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out GLLegacyTexture texture,
-        Sector? renderSector = null, Sector? lightLevelSector = null, bool renderSkySide = true)
+        Sector? renderSector = null, Sector? lightLevelSector = null, bool renderSkySide = true, bool allowAlpha = false)
     {
         skyVertices = null;
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
@@ -764,11 +764,12 @@ public partial class GeometryRenderer : IDisposable
         {
             int colorMapIndex = Renderer.GetColorMapBufferIndex(lightLevelSector, LightBufferType.Wall);
             int lightIndex = Renderer.GetLightBufferIndex(side, side.Middle, lightLevelSector);
+            int addAlpha = allowAlpha ? 0 : 1;
             WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, ref wall, isFront: isFront);
             if (data == null)
-                data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle);
+                data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle, addAlpha: addAlpha);
             else
-                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle);
+                SetWallVertices(data, wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle, addAlpha: addAlpha);
 
             m_vertexLookup[side.Id] = data;
         }

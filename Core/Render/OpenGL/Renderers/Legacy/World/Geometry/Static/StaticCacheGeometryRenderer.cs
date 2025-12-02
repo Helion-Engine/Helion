@@ -597,7 +597,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
     }
 
     private static GeometryType GetWallType(Side side, Wall wall) =>
-        wall.Location == WallLocation.Middle && side.PartnerSide != null ? GeometryType.TwoSidedMiddleWall : GeometryType.Wall;
+        wall.Location == WallLocation.Middle && side.PartnerSide != null || wall.Location == WallLocation.Middle3D ? GeometryType.TwoSidedMiddleWall : GeometryType.Wall;
 
     private void SetSideData(ref StaticGeometryData staticGeometry, GeometryType type, int textureHandle, int vboIndex, int vertexCount, bool repeatY, GeometryData? geometryData)
     {
@@ -694,7 +694,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
     }
 
     private void AddSectorPlane(Sector sectorForSubsectors, SectorPlaneFace face, bool floor, bool update = false, 
-        Sector? renderSector = null, Sector? lightLevelSector = null, SectorPlane? geometryPlane = null)
+        Sector? renderSector = null, Sector? lightLevelSector = null, SectorPlane? geometryPlane = null, bool allowAlpha = false)
     {
         if ((floor && sectorForSubsectors.Floor.NoRender) || (!floor && sectorForSubsectors.Ceiling.NoRender))
             return;
@@ -706,7 +706,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         var plane = face == SectorPlaneFace.Floor ? sectorForSubsectors.Floor : sectorForSubsectors.Ceiling;
         geometryPlane ??= plane;
         m_geometryRenderer.RenderSectorFlats(sectorForSubsectors, renderPlane, geometryPlane, floor, renderFlood: false, out var renderedVertices, out var renderedSkyVertices,
-            lightLevelSector: lightLevelSector);
+            lightLevelSector: lightLevelSector, allowAlpha: allowAlpha);
 
         AddSkyGeometry(null, WallLocation.None, geometryPlane, renderedSkyVertices, sectorForSubsectors, update);
 

@@ -12,7 +12,7 @@ public partial class StaticCacheGeometryRenderer
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedMiddleSliceFunc;
     private readonly Func<Sector3D, bool> m_shouldClipSector3D;
 
-    private Sector3D m_currentSector3D;
+    private Sector3D m_currentSector3D = null!;
 
     private void AddSectors3D(Sector sector, bool update)
     {
@@ -25,24 +25,24 @@ public partial class StaticCacheGeometryRenderer
         if ((planes & SectorPlanes.Floor) != 0)
         {
             AddSectorPlane(sector3d.ParentSector, sector3d.ControlTop.Facing, floor: true, update: update, renderSector: sector3d.ControlSector,
-                lightLevelSector: sector3d.LightTop, geometryPlane: sector3d.FakeBottom);
+                lightLevelSector: sector3d.LightTop, geometryPlane: sector3d.FakeBottom, allowAlpha: true);
 
             if (sector3d.FakeBottomFlipped != null)
             {
                 AddSectorPlane(sector3d.ParentSector, sector3d.ControlTop.Facing, floor: false, update: update, renderSector: sector3d.ControlSector,
-                    lightLevelSector: sector3d.LightTop, geometryPlane: sector3d.FakeBottomFlipped);
+                    lightLevelSector: sector3d.LightTop, geometryPlane: sector3d.FakeBottomFlipped, allowAlpha: true);
             }
         }
 
         if ((planes & SectorPlanes.Ceiling) != 0)
         {
             AddSectorPlane(sector3d.ParentSector, sector3d.ControlBottom.Facing, floor: false, update: update, renderSector: sector3d.ControlSector,
-                lightLevelSector: sector3d.LightBottom, geometryPlane: sector3d.FakeTop);
+                lightLevelSector: sector3d.LightBottom, geometryPlane: sector3d.FakeTop, allowAlpha: true);
 
             if (sector3d.FakeTopFlipped != null)
             {
                 AddSectorPlane(sector3d.ParentSector, sector3d.ControlBottom.Facing, floor: true, update: update, renderSector: sector3d.ControlSector,
-                    lightLevelSector: sector3d.LightBottom, geometryPlane: sector3d.FakeTopFlipped);
+                    lightLevelSector: sector3d.LightBottom, geometryPlane: sector3d.FakeTopFlipped, allowAlpha: true);
             }
         }
 
@@ -85,7 +85,7 @@ public partial class StaticCacheGeometryRenderer
 
             m_geometryRenderer.SetRenderOneSided(useSide);
             m_geometryRenderer.RenderOneSided(useSide, true, out var sideVertices, out _, out var texture,
-                renderSector: wallSector, lightLevelSector: sector3d.ParentSector, renderSkySide: false);
+                renderSector: wallSector, lightLevelSector: sector3d.ParentSector, renderSkySide: false, allowAlpha: true);
 
             if (sideVertices != null)
             {
@@ -102,7 +102,7 @@ public partial class StaticCacheGeometryRenderer
                 useSide = sectorLine.Back;
                 useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentFront);
                 m_geometryRenderer.RenderOneSided(useSide, false, out sideVertices, out _, out texture,
-                    renderSector: wallSector, lightLevelSector: sector3d.LightMiddle, renderSkySide: false);
+                    renderSector: wallSector, lightLevelSector: sector3d.LightMiddle, renderSkySide: false, allowAlpha: true);
 
                 if (sideVertices != null)
                 {
