@@ -112,11 +112,18 @@ public partial class StaticCacheGeometryRenderer
             }
         }
     }
+
     private bool ShouldClipSector3D(Sector3D other)
     {
         if (other == m_currentSector3D)
             return false;
 
-        return (m_currentSector3D.Flags & SectorFlags3D.Solid) == (other.Flags & SectorFlags3D.Solid);
+        var currentSolid = m_currentSector3D.Flags & SectorFlags3D.Solid;
+        var otherSolid = other.Flags & SectorFlags3D.Solid;
+
+        if (currentSolid != 0 && otherSolid != 0)
+            return false;
+
+        return currentSolid == otherSolid;
     }
 }
