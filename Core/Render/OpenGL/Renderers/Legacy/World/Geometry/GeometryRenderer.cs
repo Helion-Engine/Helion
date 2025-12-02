@@ -601,7 +601,7 @@ public partial class GeometryRenderer : IDisposable
 
         if (checkParentBack != null && renderFront)
         {
-            Sector3D.CalculateWallHeights(checkParentBack, wallHeights, out newWallHeights);
+            sector3d.CalculateWallHeights(checkParentBack, wallHeights, out newWallHeights);
             wallSector.Ceiling.Z = newWallHeights.TopZ;
             wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
             wallSector.Floor.Z = newWallHeights.BottomZ;
@@ -610,7 +610,7 @@ public partial class GeometryRenderer : IDisposable
         }
 
         if (sector3d.ShouldRenderInsideWalls && sectorLine.Back != null && renderBack &&
-            (checkParentFront == null || Sector3D.CalculateWallHeights(checkParentFront, wallHeights, out newWallHeights)))
+            (checkParentFront == null || sector3d.CalculateWallHeights(checkParentFront, wallHeights, out newWallHeights)))
         {
             useSide = sectorLine.Back;
             useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentFront);

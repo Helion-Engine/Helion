@@ -10,9 +10,6 @@ public partial class StaticCacheGeometryRenderer
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedLowerSliceFunc;
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedUpperSliceFunc;
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedMiddleSliceFunc;
-    private readonly Func<Sector3D, bool> m_shouldClipSector3D;
-
-    private Sector3D m_currentSector3D = null!;
 
     private void AddSectors3D(Sector sector, bool update)
     {
@@ -56,8 +53,6 @@ public partial class StaticCacheGeometryRenderer
         var newWallHeights = wallHeights;
         var wallSector = sector3d.FakeSector;
 
-        m_currentSector3D = sector3d;
-
         for (int i = 0; i < sector3d.FakeSector.Lines.Length; i++)
         {
             var sectorLine = sector3d.FakeSector.Lines[i];
@@ -76,7 +71,7 @@ public partial class StaticCacheGeometryRenderer
 
             if (checkParentBack != null)
             {
-                Sector3D.CalculateWallHeights(checkParentBack, wallHeights, out newWallHeights, clipToSector3D: m_shouldClipSector3D);
+                sector3d.CalculateWallHeights(checkParentBack, wallHeights, out newWallHeights);
                 wallSector.Ceiling.Z = newWallHeights.TopZ;
                 wallSector.Floor.Z = newWallHeights.BottomZ;
             }
@@ -94,7 +89,7 @@ public partial class StaticCacheGeometryRenderer
             }
 
             if (sector3d.ShouldRenderInsideWalls && sectorLine.Back != null &&
-                (checkParentFront == null || Sector3D.CalculateWallHeights(checkParentFront, wallHeights, out newWallHeights, clipToSector3D: m_shouldClipSector3D)))
+                (checkParentFront == null || sector3d.CalculateWallHeights(checkParentFront, wallHeights, out newWallHeights)))
             {
                 wallSector.Ceiling.Z = newWallHeights.TopZ;
                 wallSector.Floor.Z = newWallHeights.BottomZ;
@@ -111,19 +106,5 @@ public partial class StaticCacheGeometryRenderer
                 }
             }
         }
-    }
-
-    private bool ShouldClipSector3D(Sector3D other)
-    {
-        if (other == m_currentSector3D)
-            return false;
-
-        var currentSolid = m_currentSector3D.Flags & SectorFlags3D.Solid;
-        var otherSolid = other.Flags & SectorFlags3D.Solid;
-
-        if (currentSolid != 0 && otherSolid != 0)
-            return false;
-
-        return currentSolid == otherSolid;
     }
 }

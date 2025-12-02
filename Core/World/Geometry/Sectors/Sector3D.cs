@@ -227,8 +227,8 @@ public class Sector3D
         return wallHeights;
     }
 
-    public static bool CalculateWallHeights(Side side, in WallHeights wallHeights, out WallHeights newWallHeights, 
-        bool check3D = true, Func<Sector3D, bool>? clipToSector3D = null)
+    public bool CalculateWallHeights(Side side, in WallHeights wallHeights, out WallHeights newWallHeights, 
+        bool check3D = true)
     {
         newWallHeights = wallHeights;
         WallVertices wall = default;
@@ -259,24 +259,24 @@ public class Sector3D
         if (!check3D)
             return true;
 
-        if (!AdjustWallHeights3D(side.Sector, ref newWallHeights, clipToSector3D))
+        if (!AdjustWallHeights3D(side.Sector, ref newWallHeights))
             return false;
 
         if (side.PartnerSide != null)
         {
-            if (!AdjustWallHeights3D(side.PartnerSide.Sector, ref newWallHeights, clipToSector3D))
+            if (!AdjustWallHeights3D(side.PartnerSide.Sector, ref newWallHeights))
                 return false;
         }
 
         return true;
     }
 
-    private static bool AdjustWallHeights3D(Sector sector, ref WallHeights newWallHeights, Func<Sector3D, bool>? clipToSector3D)
+    private bool AdjustWallHeights3D(Sector sector, ref WallHeights newWallHeights)
     {
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            if (clipToSector3D != null && !clipToSector3D(sector3d))
+            if (!ShouldClipSector3D(sector3d))
                 continue;
 
             if (!AdjustWallHeights(ref newWallHeights, sector3d.ControlTop.Z, sector3d.ControlBottom.PrevZ, sector3d.ControlTop.Z, sector3d.ControlBottom.PrevZ))
@@ -284,6 +284,20 @@ public class Sector3D
         }
 
         return true;
+    }
+
+    private bool ShouldClipSector3D(Sector3D other)
+    {
+        if (other == this)
+            return false;
+
+        var currentSolid = Flags & SectorFlags3D.Solid;
+        var otherSolid = other.Flags & SectorFlags3D.Solid;
+
+        if (currentSolid != 0 && otherSolid != 0)
+            return false;
+
+        return currentSolid == otherSolid;
     }
 
     private static bool AdjustWallHeights(ref WallHeights wallHeights,

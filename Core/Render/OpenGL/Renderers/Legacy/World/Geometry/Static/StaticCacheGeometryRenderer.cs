@@ -73,7 +73,6 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         m_renderTwoSidedLowerSliceFunc = m_geometryRenderer.RenderTwoSidedLowerSlice3D;
         m_renderTwoSidedUpperSliceFunc = m_geometryRenderer.RenderTwoSidedUpperSlice3D;
         m_renderTwoSidedMiddleSliceFunc = m_geometryRenderer.RenderTwoSidedMiddleSlice3D;
-        m_shouldClipSector3D = ShouldClipSector3D;
     }
 
     private static int GeometryIndexCompare(StaticGeometryData x, StaticGeometryData y)
