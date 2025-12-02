@@ -491,7 +491,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             else
             {
                 m_geometryRenderer.RenderTwoSidedUpper(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices, out var skyVertices2);
-                result = new(sideVertices == null ? [] : sideVertices.AsSpan(), skyVertices, null, skyVertices2);
+                result = new(sideVertices, skyVertices, null, skyVertices2);
             }
 
             // TODO this is dumb
@@ -531,7 +531,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             else
             {
                 m_geometryRenderer.RenderTwoSidedLower(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices, out var skyVertices);
-                result = new(sideVertices == null ? [] : sideVertices.AsSpan(), skyVertices, null);
+                result = new(sideVertices, skyVertices, null);
             }
 
             SetSideVertices(side, side.Lower, update, result.Vertices, lowerVisible, true);
@@ -560,7 +560,7 @@ public class StaticCacheGeometryRenderer : IDisposable
             else
             {
                 m_geometryRenderer.RenderTwoSidedMiddle(side, otherSide, facingSector, otherSector, isFrontSide, out var sideVertices);
-                result = new(sideVertices == null ? [] : sideVertices.AsSpan(), null, null);
+                result = new(sideVertices, null, null);
             }
 
             SetSideVertices(side, side.Middle, update, result.Vertices, true, repeatY: side.Flags.WrapMidTex);

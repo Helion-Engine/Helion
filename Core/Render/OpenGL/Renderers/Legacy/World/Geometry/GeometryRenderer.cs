@@ -1105,7 +1105,7 @@ public partial class GeometryRenderer : IDisposable
     }
 
     public void RenderTwoSidedUpper(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
-        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out SkyGeometryVertex[]? skyVertices2, Sector? lightLevelSector = null)
+        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out SkyGeometryVertex[]? skyVertices2, Sector? lightLevelSector = null, bool renderSkySide = true)
     {
         vertices = null;
         skyVertices = null;
@@ -1137,7 +1137,8 @@ public partial class GeometryRenderer : IDisposable
         SectorPlane top = facingSector.Ceiling;
         SectorPlane bottom = otherSector.Ceiling;
 
-        RenderSkySide(facingSide, facingSector, otherSector, texture, out skyVertices2);
+        if (renderSkySide)
+            RenderSkySide(facingSide, facingSector, otherSector, texture, out skyVertices2);
         if (renderSkySideOnly)
             return;
 
@@ -1147,7 +1148,7 @@ public partial class GeometryRenderer : IDisposable
         {
             SkyGeometryVertex[]? data = m_skyWallVertexUpperLookup[facingSide.Id];
 
-            if (TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle))
+            if (TextureManager.IsSkyTexture(otherSide.Sector.Ceiling.TextureHandle) || !renderSkySide)
             {
                 //m_skyOverride = true;
                 vertices = null;
