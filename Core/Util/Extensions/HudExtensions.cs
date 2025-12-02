@@ -116,7 +116,7 @@ public static class HudExtensions
     }
 
     public static void LineWrap(this IHudRenderContext hud, string inputText, string font, int fontSize, int maxWidth, List<StringSlice> lines,
-        out int requiredHeight)
+        out int requiredHeight, int length = -1)
     {
         lines.Clear();
         if (string.IsNullOrEmpty(inputText))
@@ -134,9 +134,12 @@ public static class HudExtensions
 
         var spaceWidth = hud.MeasureText(" ", font, fontSize).Width;
 
-        for (int i = 0; i < inputText.Length; i++)
+        if (length == -1)
+            length = inputText.Length;
+
+        for (int i = 0; i < length; i++)
         {
-            if (inputText[i] == ' ' || i == inputText.Length - 1)
+            if (inputText[i] == ' ' || i == length - 1)
             {
                 splitStart = splitEnd;
                 splitEnd = i;

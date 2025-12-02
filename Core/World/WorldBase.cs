@@ -1519,7 +1519,7 @@ public abstract partial class WorldBase : IWorld
         if (entity.PlayerObj != null && lockFail != null)
         {
             entity.PlayerObj.PlayUseFailSound();
-            DisplayMessage(entity.PlayerObj, null, GetLockFailMessage(line, lockFail));
+            DisplayMessage(entity.PlayerObj, null, GetLockFailMessage(line, lockFail), true);
         }
         return success;
     }
@@ -2597,17 +2597,17 @@ public abstract partial class WorldBase : IWorld
             DisplayMessage(player, killer.PlayerObj, obituary);
     }
 
-    public virtual void DisplayMessage(string message) => DisplayMessage(null, null, message);
+    public virtual void DisplayMessage(string message, bool isCentered = false) => DisplayMessage(null, null, message, isCentered);
 
-    public virtual void DisplayMessage(Player? player, Player? other, string message)
+    public virtual void DisplayMessage(Player? player, Player? other, string message, bool isCentered = false)
     {
         message = ArchiveCollection.Definitions.Language.GetMessage(player, other, message);
         if (message.Length > 0)
         {
-            if (player == null || player == GetCameraPlayer())
+            if (!isCentered && (player == null || player == GetCameraPlayer()))
                 HelionLog.Info(message);
             if (player != null && player == GetCameraPlayer())
-                PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message));
+                PlayerMessage?.Invoke(this, new PlayerMessageEvent(player, message, isCentered));
         }
     }
 

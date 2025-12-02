@@ -13,6 +13,8 @@ namespace Helion.Resources.Definitions.Language;
 
 public class LanguageDefinition
 {
+    private static readonly string[] NewLineSplit = ["\n", "\r\n"];
+
     public CultureInfo CultureInfo { get; set; } = CultureInfo.CurrentCulture;
 
     private readonly Dictionary<string, string> m_lookup = new(StringComparer.OrdinalIgnoreCase);
@@ -152,8 +154,6 @@ public class LanguageDefinition
         return data;
     }
 
-    private static readonly string[] NewLineSplit = new string[] { "\n", "\r\n" };
-
     public static string[] SplitMessageByNewLines(string text) => text.Split(NewLineSplit, StringSplitOptions.None);
 
     public bool TryGetMessages(string message, [NotNullWhen(true)] out string[]? messages)
@@ -164,7 +164,8 @@ public class LanguageDefinition
             return false;
         }
 
-        if (!m_lookup.TryGetValue(message[1..], out string? translatedMessage))
+        var altLookup = m_lookup.GetAlternateLookup<ReadOnlySpan<char>>();
+        if (!altLookup.TryGetValue(message.AsSpan(1), out var translatedMessage))
         {
             messages = null;
             return false;
@@ -177,7 +178,7 @@ public class LanguageDefinition
     public string[] GetMessages(string message)
     {
         if (message.Length > 0 && message[0] == '$')
-            return SplitMessageByNewLines(LookupMessage(message[1..]));
+            return SplitMessageByNewLines(LookupMessage(message.AsSpan(1)));
 
         return SplitMessageByNewLines(message);
     }
@@ -185,25 +186,16 @@ public class LanguageDefinition
     public string GetMessage(string message)
     {
         if (message.Length > 0 && message[0] == '$')
-            return LookupMessage(message[1..]);
+            return LookupMessage(message.AsSpan(1));
 
         return message;
     }
-
-    private readonly Dictionary<string, string> m_messageTranslation = new(StringComparer.OrdinalIgnoreCase);
 
     public string GetMessage(Player? player, Player? other, string message)
     {
         if (message.Length > 0 && message[0] == '$')
         {
-            // Until dictionary supports ReadOnlySpan<char>...
-            if (!m_messageTranslation.TryGetValue(message, out var withoutMarker))
-            {
-                withoutMarker = message[1..];
-                m_messageTranslation[message] = withoutMarker;
-            }
-
-            message = LookupMessage(withoutMarker);
+            message = LookupMessage(message.AsSpan(1));
             if (player == null)
                 return message;
             return AddMessageParams(player, other, message);
@@ -216,15 +208,14 @@ public class LanguageDefinition
     {
         const int Length = 32;
         key = null;
-        if (text.Length > Length)
-            text = text.Substring(0, Length);
+        var trimmedText = text.Length > Length ? text.AsSpan(0, Length) : text.AsSpan();
 
         foreach (var data in m_lookup)
         {
-            if (data.Value.Length < text.Length)
+            if (data.Value.Length < trimmedText.Length)
                 continue;
 
-            if (data.Value.StartsWith(text, StringComparison.OrdinalIgnoreCase))
+            if (data.Value.StartsWith(trimmedText, StringComparison.OrdinalIgnoreCase))
             {
                 key = data.Key;
                 return true;
@@ -244,9 +235,10 @@ public class LanguageDefinition
         return message;
     }
 
-    private string LookupMessage(string message)
+    private string LookupMessage(ReadOnlySpan<char> message)
     {
-        if (m_lookup.TryGetValue(message, out string? translatedMessage))
+        var altLookup = m_lookup.GetAlternateLookup<ReadOnlySpan<char>>();
+        if (altLookup.TryGetValue(message, out var translatedMessage))
             return translatedMessage;
 
         return string.Empty;

@@ -529,7 +529,7 @@ public class DataCache
         return new StairSpecial();
     }
 
-    public ConsoleMessage GetConsoleMessage(string message, long timeNanos, Color color)
+    public ConsoleMessage GetConsoleMessage(string message, long timeNanos, Color color, bool isCentered = false)
     {
         ConsoleMessage msg;
         if (m_consoleMessages.Length > 0)
@@ -537,7 +537,7 @@ public class DataCache
         else
             msg = new ConsoleMessage();
 
-        msg.Set(message, timeNanos, color);
+        msg.Set(message, timeNanos, color, isCentered);
         return msg;
     }
 

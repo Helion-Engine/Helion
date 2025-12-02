@@ -3,7 +3,6 @@ using Helion.Geometry.Boxes;
 using Helion.Geometry.Vectors;
 using Helion.Graphics;
 using Helion.Graphics.Fonts;
-using Helion.Graphics.Palettes;
 using Helion.Render;
 using Helion.Render.Common;
 using Helion.Render.Common.Context;
@@ -38,6 +37,8 @@ namespace Helion.Layer.Worlds;
 
 public partial class WorldLayer
 {
+    readonly record struct WorldMessage(string Message, float Alpha, int MessageCount);
+
     private const double DoomVerticalScale = (320 / 200.0) / (640 / 480.0);
     private const int MapFontSize = 12;
     private const int DebugFontSize = 8;
@@ -61,11 +62,12 @@ public partial class WorldLayer
     private int m_infoFontSize = DebugFontSize;
     private int m_mapHeaderFontSize = MapFontSize;
     private Dimension m_viewport;
-    private readonly List<(string message, float alpha)> m_messages = [];
+    private readonly List<WorldMessage> m_messages = [];
 
     private int m_healthWidth;
     private string m_weaponSprite = StringBuffer.GetStringExact(6);
     private string m_weaponFlashSprite = StringBuffer.GetStringExact(6);
+    private readonly string m_renderMessageBufferString = StringBuffer.GetString();
     private readonly SpanString m_weaponSpriteSpan = new("123456");
     private readonly SpanString m_weaponFlashSpriteSpan = new("123456");
 
@@ -82,6 +84,7 @@ public partial class WorldLayer
     private readonly SpanString m_fpsMinString = new();
     private readonly SpanString m_fpsMaxString = new();
     private readonly SpanString m_timeString = new();
+    private readonly SpanString m_renderMessageSpan = new(128);
 
     private readonly RenderableString m_renderFpsString;
     private readonly RenderableString m_renderFpsMinString;
@@ -123,6 +126,7 @@ public partial class WorldLayer
             DrawHudEffects(hud);
             hud.DrawPalette(false);
             DrawRecentConsoleMessages(hud);
+            DrawCenterMessages(hud);
             DrawPause(hud);
 
             if (automapVisible && m_config.Hud.AutoMap.MapTitle)
@@ -1034,8 +1038,6 @@ public partial class WorldLayer
         hud.Text(m_maxAmmoString.AsSpan(), YellowFontName, FontSize, (313, y), anchor: Align.TopRight, alpha: m_hudAlpha);
     }
 
-    private int m_lastMessageCount;
-
     private void DrawRecentConsoleMessages(IHudRenderContext hud)
     {
         int maxHudMessages = m_config.Hud.MaxMessages.Value;
@@ -1059,6 +1061,9 @@ public partial class WorldLayer
             {
                 ConsoleMessage msg = node.Value;
                 node = node.Next;
+                
+                if (msg.IsCentered)
+                    continue;
 
                 if (messagesDrawn >= maxHudMessages || MessageTooOldToDraw(msg, World, m_console, m_parent.OptionsLastClosedNanos))
                     break;
@@ -1066,8 +1071,8 @@ public partial class WorldLayer
                 long timeSinceMessage = currentNanos - msg.TimeNanos;
                 if (timeSinceMessage > MaxVisibleTimeNanos || m_parent.ConsoleLayer != null)
                     break;
-
-                m_messages.Add((msg.Message, CalculateFade(timeSinceMessage)));
+                                
+                m_messages.Add(new(msg.Message, CalculateFade(timeSinceMessage), msg.Count));
                 messagesDrawn++;
                 lastMessageTime = timeSinceMessage;
             }
@@ -1082,20 +1087,81 @@ public partial class WorldLayer
 
             for (int i = m_messages.Count - 1; i >= 0; i--)
             {
-                (var message, var alpha) = m_messages[i];
-                hud.LineWrap(message, SmallHudFont, fontSize, (int)width, m_lineWrapStrings, out var drawHeight);
+                var msg = m_messages[i];
+                var renderMessageString = msg.Message;
+                var renderMessageLength = msg.Message.Length;
+                if (msg.MessageCount > 1)
+                {
+                    var renderMessage = GetRenderMessageWithCount(msg);
+                    StringBuffer.Clear(m_renderMessageBufferString);
+                    StringBuffer.Append(m_renderMessageBufferString, renderMessage.AsSpan());
+                    renderMessageString = m_renderMessageBufferString;
+                    renderMessageLength = StringBuffer.StringLength(m_renderMessageBufferString);
+                }
+
+                hud.LineWrap(renderMessageString, SmallHudFont, fontSize, (int)width, m_lineWrapStrings, out var drawHeight, length: renderMessageLength);
 
                 foreach (var line in m_lineWrapStrings)
                 {
                     hud.Text(line.Source.AsSpan(line.Start, line.Length), SmallHudFont, fontSize, (LeftOffset + m_hudPaddingX, offsetY + slideOffsetY),
-                        out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: alpha * m_hudAlpha);
+                        out Dimension drawArea, window: Align.TopLeft, scale: m_scale, alpha: msg.Alpha * m_hudAlpha);
                     offsetY += drawArea.Height + MessageSpacing;
-                }
+                }               
             }
 
-            m_lastMessageCount = m_messages.Count;
-
             m_messages.Clear();
+        }
+    }
+
+    private SpanString GetRenderMessageWithCount(WorldMessage msg)
+    {
+        m_renderMessageSpan.Clear();
+        m_renderMessageSpan.Append(msg.Message);
+        m_renderMessageSpan.Append(" (x");
+        m_renderMessageSpan.Append(msg.MessageCount);
+        m_renderMessageSpan.Append(')');
+        return m_renderMessageSpan;
+    }
+
+    private void DrawCenterMessages(IHudRenderContext hud)
+    {
+        ConsoleMessage? centerMsg = null;
+        long currentNanos = Ticker.NanoTime();
+        
+        lock (m_console.Messages)
+        {
+            var node = m_console.Messages.First;
+            while (node != null)
+            {
+                var msg = node.Value;
+
+                if (currentNanos - msg.TimeNanos > MaxVisibleTimeNanos)
+                    break;
+
+                if (msg.IsCentered)
+                {
+                    centerMsg = msg;
+                    break;
+                }
+                node = node.Next;
+            }
+        }
+
+        if (centerMsg == null)
+            return;
+
+        long timeSinceMessage = currentNanos - centerMsg.TimeNanos;
+        float alpha = CalculateFade(timeSinceMessage);
+        
+        int yPos = m_viewport.Height / 3;
+
+        hud.LineWrap(centerMsg.Message, SmallHudFont, m_infoFontSize, m_viewport.Width, m_lineWrapStrings, out _);
+
+        foreach (var line in m_lineWrapStrings)
+        {
+            hud.Text(line.Source.AsSpan(line.Start, line.Length), SmallHudFont, m_infoFontSize, (0, yPos),
+                out Dimension drawArea, both: Align.TopMiddle, alpha: alpha * m_hudAlpha);
+            yPos += drawArea.Height + MessageSpacing;
         }
     }
 
