@@ -227,7 +227,8 @@ public class Sector3D
         return wallHeights;
     }
 
-    public static bool CalculateWallHeights(Side side, in WallHeights wallHeights, out WallHeights newWallHeights)
+    public static bool CalculateWallHeights(Side side, in WallHeights wallHeights, out WallHeights newWallHeights, 
+        bool check3D = true, Func<Sector3D, bool>? clipToSector3D = null)
     {
         newWallHeights = wallHeights;
         WallVertices wall = default;
@@ -253,6 +254,19 @@ public class Sector3D
                 if (!AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
                     return false;
             }
+        }
+
+        if (!check3D)
+            return true;
+
+        for (int i = 0; i < side.Sector.Sectors3D.Length; i++)
+        {
+            var sector3d = side.Sector.Sectors3D[i];
+            if (clipToSector3D != null && !clipToSector3D(sector3d))
+                continue;
+
+            if (!AdjustWallHeights(ref newWallHeights, sector3d.ControlTop.Z, sector3d.ControlBottom.PrevZ, sector3d.ControlTop.Z, sector3d.ControlBottom.PrevZ))
+                return false;
         }
 
         return true;
