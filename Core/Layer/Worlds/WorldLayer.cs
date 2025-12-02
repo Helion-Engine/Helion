@@ -128,6 +128,15 @@ public partial class WorldLayer : IGameLayerParent
 
         World.LevelExiting += World_LevelExiting;
         World.WorldPaused += World_WorldPaused;
+        World.PlayerMessage += World_PlayerMessage;
+    }
+    
+    private void World_PlayerMessage(object? sender, PlayerMessageEvent e)
+    {
+        if (e.IsCentered)
+        {
+            m_console.AddMessage(e.Message, e.IsCentered);
+        }
     }
 
     private void World_WorldPaused(object? sender, EventArgs e)
@@ -350,6 +359,7 @@ public partial class WorldLayer : IGameLayerParent
 
         World.LevelExiting -= World_LevelExiting;
         World.WorldPaused -= World_WorldPaused;
+        World.PlayerMessage -= World_PlayerMessage;
         World.Dispose();
 
         Intermission?.Dispose();

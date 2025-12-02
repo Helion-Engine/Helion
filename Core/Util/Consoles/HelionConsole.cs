@@ -149,7 +149,7 @@ public class HelionConsole : Target
         OnConsoleCommandEvent?.Invoke(this, new ConsoleCommandEventArgs(command));
     }
 
-    public void AddMessage(string message) => AddMessage(Color.White, message);
+    public void AddMessage(string message, bool isCentered = false) => AddMessage(Color.White, message, isCentered);
 
     /// <summary>
     /// Adds a new message to the console.
@@ -158,16 +158,29 @@ public class HelionConsole : Target
     /// If this message causes the console to exceed the capacity, then it
     /// will remove the older messages to make space for this message.
     /// </remarks>
-    /// <param name="color">The color of the message..</param>
+    /// <param name="color">The color of the message.</param>
     /// <param name="message">The message to add.</param>
-    public void AddMessage(Color color, string message)
+    /// <param name="isCentered">If the message should be centered in the screen.</param>
+    public void AddMessage(Color color, string message, bool isCentered = false)
     {
         if (message.Length == 0)
             return;
+        
+        if (!isCentered && Messages.First != null)
+        {
+            ConsoleMessage lastMsg = Messages.First.Value;
+            if (!lastMsg.IsCentered && lastMsg.Message == message)
+            {
+                lastMsg.Count++;
+                if (!m_forceExpireMessages)
+                    lastMsg.TimeNanos = Ticker.NanoTime();
+                return;
+            }
+        }
 
         lock (Messages)
         {
-            var node = m_dataCache.GetConsoleMessageNode(m_dataCache.GetConsoleMessage(message, m_forceExpireMessages ? 0 : Ticker.NanoTime(), color));
+            var node = m_dataCache.GetConsoleMessageNode(m_dataCache.GetConsoleMessage(message, m_forceExpireMessages ? 0 : Ticker.NanoTime(), color, isCentered));
             Messages.AddFirst(node);
             RemoveExcessMessagesIfAny();
         }
