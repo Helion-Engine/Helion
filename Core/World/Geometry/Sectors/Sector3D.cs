@@ -259,9 +259,23 @@ public class Sector3D
         if (!check3D)
             return true;
 
-        for (int i = 0; i < side.Sector.Sectors3D.Length; i++)
+        if (!AdjustWallHeights3D(side.Sector, ref newWallHeights, clipToSector3D))
+            return false;
+
+        if (side.PartnerSide != null)
         {
-            var sector3d = side.Sector.Sectors3D[i];
+            if (!AdjustWallHeights3D(side.PartnerSide.Sector, ref newWallHeights, clipToSector3D))
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool AdjustWallHeights3D(Sector sector, ref WallHeights newWallHeights, Func<Sector3D, bool>? clipToSector3D)
+    {
+        for (int i = 0; i < sector.Sectors3D.Length; i++)
+        {
+            var sector3d = sector.Sectors3D[i];
             if (clipToSector3D != null && !clipToSector3D(sector3d))
                 continue;
 

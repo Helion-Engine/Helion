@@ -12,7 +12,7 @@ public partial class StaticCacheGeometryRenderer
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedMiddleSliceFunc;
     private readonly Func<Sector3D, bool> m_shouldClipSector3D;
 
-    private SectorFlags3D m_currentSectorFlags3D;
+    private Sector3D m_currentSector3D;
 
     private void AddSectors3D(Sector sector, bool update)
     {
@@ -56,7 +56,7 @@ public partial class StaticCacheGeometryRenderer
         var newWallHeights = wallHeights;
         var wallSector = sector3d.FakeSector;
 
-        m_currentSectorFlags3D = sector3d.Flags;
+        m_currentSector3D = sector3d;
 
         for (int i = 0; i < sector3d.FakeSector.Lines.Length; i++)
         {
@@ -114,6 +114,9 @@ public partial class StaticCacheGeometryRenderer
     }
     private bool ShouldClipSector3D(Sector3D other)
     {
-        return (m_currentSectorFlags3D & SectorFlags3D.Solid) == (other.Flags & SectorFlags3D.Solid);
+        if (other == m_currentSector3D)
+            return false;
+
+        return (m_currentSector3D.Flags & SectorFlags3D.Solid) == (other.Flags & SectorFlags3D.Solid);
     }
 }
