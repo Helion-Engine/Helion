@@ -75,7 +75,7 @@ public class Sector3D
         FakeBottom = new(SectorPlaneFace.Floor, 0, 0, 0);
         FakeTop = new(SectorPlaneFace.Ceiling, 0, 0, 0);
 
-        if ((flags & SectorFlags3D.Swim) != 0)
+        if ((flags & (SectorFlags3D.Swim | SectorFlags3D.RenderInside)) != 0)
         {
             FakeTopFlipped = new(SectorPlaneFace.Ceiling, 0, 0, 0);
             FakeBottomFlipped = new(SectorPlaneFace.Floor, 0, 0, 0);
