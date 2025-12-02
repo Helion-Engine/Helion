@@ -72,6 +72,12 @@ public abstract class BufferObject<T> : IDisposable where T : struct
         Uploaded = false;
     }
 
+    public void Add(Span<T> elements)
+    {
+        Data.Add(elements);
+        Uploaded = false;
+    }
+
     public void Upload()
     {
         if (Uploaded)

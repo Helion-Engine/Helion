@@ -258,7 +258,7 @@ public class Sector3D
         return true;
     }
 
-    private static bool AdjustWallHeights(ref WallHeights wallHeights, 
+    private static bool AdjustWallHeights(ref WallHeights wallHeights,
         double checkTopZ, double checkBottomZ, double checkPrevTopZ, double checkPrevBottomZ)
     {
         if (checkTopZ < wallHeights.TopZ && checkTopZ > wallHeights.BottomZ)
@@ -267,7 +267,7 @@ public class Sector3D
             wallHeights.PrevBottomZ = checkPrevTopZ;
         }
 
-        if (checkBottomZ > wallHeights.BottomZ)
+        if (checkBottomZ > wallHeights.BottomZ && checkBottomZ < wallHeights.TopZ)
         {
             wallHeights.TopZ = checkBottomZ;
             wallHeights.PrevTopZ = checkPrevBottomZ;

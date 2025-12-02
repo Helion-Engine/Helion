@@ -2,6 +2,7 @@
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
 using Helion.World.Physics;
+using System;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
@@ -41,7 +42,7 @@ public class CoverWallUtil
         }
     }
 
-    public static unsafe void CopyCoverWallVertices(Side side, StaticVertex[] staticVertices, DynamicVertex[] vertices, int index, WallLocation location)
+    public static unsafe void CopyCoverWallVertices(Side side, StaticVertex[] staticVertices, Span<DynamicVertex> vertices, int index, WallLocation location)
     {
         var heights = GetProjectHeights(side, location);
         fixed (DynamicVertex* startVertex = &vertices[0])

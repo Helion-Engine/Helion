@@ -35,7 +35,7 @@ namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
 
 public enum PushDir { Back, Forward }
 
-public class GeometryRenderer : IDisposable
+public partial class GeometryRenderer : IDisposable
 {
     private const double MaxSky = 16384;
     private static readonly Sector DefaultSector = CreateDefault();
@@ -55,7 +55,7 @@ public class GeometryRenderer : IDisposable
     private readonly MidTextureHack m_midTextureHack = new();
     private readonly SectorPlane m_fakeFloor = new(SectorPlaneFace.Floor, 0, 0, 0);
     private readonly SectorPlane m_fakeCeiling = new(SectorPlaneFace.Ceiling, 0, 0, 0);
-    private readonly Action<Side, DynamicVertex[], WallLocation> m_renderCoverWallAction;
+    private readonly Action<Side, Span<DynamicVertex>, WallLocation> m_renderCoverWallAction;
     private double m_tickFraction;
     private bool m_floorChanged;
     private bool m_ceilingChanged;
@@ -879,8 +879,8 @@ public class GeometryRenderer : IDisposable
         return visibility;
     }
 
-    public void RenderMidTexCoverWalls(Side side, Sector facingSector, Sector otherSector, DynamicVertex[] midTexVertices,
-        SideTexture visibleTextures, Action<Side, DynamicVertex[], WallLocation> render)
+    public void RenderMidTexCoverWalls(Side side, Sector facingSector, Sector otherSector, Span<DynamicVertex> midTexVertices,
+        SideTexture visibleTextures, Action<Side, Span<DynamicVertex>, WallLocation> render)
     {
         var clipPlanes = GetMidTexClipPlanes(side, facingSector, otherSector, out var opening, out var prevOpening);
         if (
@@ -1009,7 +1009,7 @@ public class GeometryRenderer : IDisposable
     }
 
     public void RenderTwoSidedLower(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
-        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices)
+        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, Sector? lightLevelSector = null)
     {
         vertices = null;
         skyVertices = null;
@@ -1039,6 +1039,7 @@ public class GeometryRenderer : IDisposable
 
         SectorPlane top = otherSector.Floor;
         SectorPlane bottom = facingSector.Floor;
+        lightLevelSector ??= facingSector;
 
         if (isSky)
         {
@@ -1065,8 +1066,8 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
-                int colorMapIndex = Renderer.GetColorMapBufferIndex(facingSector, LightBufferType.Wall);
-                int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Lower, facingSector);
+                int colorMapIndex = Renderer.GetColorMapBufferIndex(lightLevelSector, LightBufferType.Wall);
+                int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Lower, lightLevelSector);
                 // This lower would clip into the upper texture. Pick the upper as the priority and stop at the ceiling.
                 if (top.Z > otherSector.Ceiling.Z && !TextureManager.IsSkyTexture(otherSector.Ceiling.TextureHandle))
                     top = otherSector.Ceiling;
@@ -1104,7 +1105,7 @@ public class GeometryRenderer : IDisposable
     }
 
     public void RenderTwoSidedUpper(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
-        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out SkyGeometryVertex[]? skyVertices2)
+        out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out SkyGeometryVertex[]? skyVertices2, Sector? lightLevelSector = null)
     {
         vertices = null;
         skyVertices = null;
@@ -1139,6 +1140,8 @@ public class GeometryRenderer : IDisposable
         RenderSkySide(facingSide, facingSector, otherSector, texture, out skyVertices2);
         if (renderSkySideOnly)
             return;
+
+        lightLevelSector ??= facingSector;
 
         if (isSky)
         {
@@ -1183,8 +1186,8 @@ public class GeometryRenderer : IDisposable
 
             if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
             {
-                int colorMapIndex = Renderer.GetColorMapBufferIndex(facingSector, LightBufferType.Wall);
-                int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Upper, facingSector);
+                int colorMapIndex = Renderer.GetColorMapBufferIndex(lightLevelSector, LightBufferType.Wall);
+                int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Upper, lightLevelSector);
                 WorldTriangulator.HandleTwoSidedUpper(facingSide, top, bottom, texture.UVInverse, isFrontSide, ref wall);
                 if (data == null)
                     data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Upper), facingSide.Line.Id, WallLocation.Upper);
@@ -1313,7 +1316,7 @@ public class GeometryRenderer : IDisposable
     }
 
     public void RenderTwoSidedMiddle(Side facingSide, Side otherSide, Sector facingSector, Sector otherSector, bool isFrontSide,
-        out DynamicVertex[]? vertices)
+        out DynamicVertex[]? vertices, Sector? lightLevelSector = null, MidTexSpan? restrictSpan = null)
     {
         Wall middleWall = facingSide.Middle;
         GLLegacyTexture texture = m_glTextureManager.GetTexture(middleWall.TextureHandle, repeatY: facingSide.Flags.WrapMidTex);
@@ -1328,6 +1331,8 @@ public class GeometryRenderer : IDisposable
 
         if (facingSide.OffsetChanged || m_sectorChangedLine || data == null)
         {
+            lightLevelSector ??= facingSector;
+
             // Push forward to cover flood fill side and prevent z-fighting (ex Doom2 MAP25 bloodfall)
             var saveStart = line.RenderSegStart;
             var saveEnd = line.RenderSegEnd;
@@ -1355,13 +1360,13 @@ public class GeometryRenderer : IDisposable
                     prevOffset = GetTransferHeightHackOffset(TextureManager, facingSide, otherSide, opening.BottomZ, opening.TopZ, previous: true);
             }
 
-            int colorMapIndex = Renderer.GetColorMapBufferIndex(facingSector, LightBufferType.Wall);
-            int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Middle, facingSector);
+            int colorMapIndex = Renderer.GetColorMapBufferIndex(lightLevelSector, LightBufferType.Wall);
+            int lightIndex = Renderer.GetLightBufferIndex(facingSide, facingSide.Middle, lightLevelSector);
 
             WallVertices wall = default;
             WorldTriangulator.HandleTwoSidedMiddle(facingSide,
                 texture.Dimension, texture.UVInverse, opening, prevOpening, isFrontSide, ref wall, out _, offset, prevOffset, 
-                clipPlanes: GetTwoSidedMiddleClipPlanes(facingSide, otherSide, facingSector, otherSector));
+                clipPlanes: GetTwoSidedMiddleClipPlanes(facingSide, otherSide, facingSector, otherSector), restrictSpan: restrictSpan);
 
             if (data == null)
                 data = GetWallVertices(wall, GetLightLevelAdd(facingSide), lightIndex, colorMapIndex, GetWallLightLevel(facingSide, facingSide.Middle), line.Id, WallLocation.None, alpha, addAlpha: 0);

@@ -98,7 +98,7 @@ public static class WorldTriangulator
     public static void HandleTwoSidedMiddle(Side facingSide,
         in Dimension textureDimension, in Vec2F textureUVInverse, in MidTexOpening opening, in MidTexOpening prevOpening,
         bool isFrontSide, ref WallVertices wall, out bool nothingVisible, double offset = 0, double prevOffset = 0, 
-        SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling, bool vertexGap = true)
+        SectorPlanes clipPlanes = SectorPlanes.Floor | SectorPlanes.Ceiling, bool vertexGap = true, MidTexSpan? restrictSpan = null)
     {
         if (RenderBlock.IsBlocked(facingSide.Line))
         {
@@ -114,7 +114,7 @@ public static class WorldTriangulator
             prevOffset += facingSide.ScrollData.LastOffsetMiddle.Y;
         }
 
-        MiddleDrawSpan drawSpan = CalculateMiddleDrawSpan(line, facingSide, opening, prevOpening, textureDimension, offset, prevOffset, clipPlanes, vertexGap);
+        var drawSpan = CalculateMiddleDrawSpan(line, facingSide, opening, prevOpening, textureDimension, offset, prevOffset, clipPlanes, vertexGap, restrictSpan);
         if (drawSpan.NotVisible())
         {
             nothingVisible = true;
@@ -308,7 +308,7 @@ public static class WorldTriangulator
     }
 
     private static MiddleDrawSpan CalculateMiddleDrawSpan(Line line, Side facingSide, in MidTexOpening opening, in MidTexOpening prevOpening, 
-        in Dimension textureDimension, double offset, double prevOffset, SectorPlanes clipPlanes, bool vertexGap)
+        in Dimension textureDimension, double offset, double prevOffset, SectorPlanes clipPlanes, bool vertexGap, MidTexSpan? restrictSpan)
     {
         if (facingSide.Flags.WrapMidTex)
             return new(opening.BottomZ, opening.TopZ, opening.BottomZ, opening.TopZ, prevOpening.BottomZ, prevOpening.TopZ, prevOpening.BottomZ, prevOpening.TopZ);
@@ -340,6 +340,18 @@ public static class WorldTriangulator
 
         var visibleBottomZ = (clipPlanes & SectorPlanes.Floor) == 0 ? bottomZ : Math.Max(bottomZ, opening.MinBottomZ);
         var visiblePrevBottomZ = (clipPlanes & SectorPlanes.Floor) == 0 ? prevBottomZ : Math.Max(prevBottomZ, prevOpening.MinBottomZ);
+
+        if (restrictSpan.HasValue)
+        {
+            if (visibleTopZ > restrictSpan.Value.TopZ)
+                visibleTopZ = restrictSpan.Value.TopZ;
+            if (visiblePrevTopZ > restrictSpan.Value.PrevTopZ)
+                visiblePrevTopZ = restrictSpan.Value.PrevTopZ;
+            if (visibleBottomZ < restrictSpan.Value.BottomZ)
+                visibleBottomZ = restrictSpan.Value.BottomZ;
+            if (visiblePrevBottomZ < restrictSpan.Value.PrevBottomZ)
+                visiblePrevBottomZ = restrictSpan.Value.PrevBottomZ;
+        }
 
         if (vertexGap)
         {
