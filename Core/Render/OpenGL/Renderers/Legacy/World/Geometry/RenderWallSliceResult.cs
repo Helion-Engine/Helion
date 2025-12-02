@@ -11,4 +11,6 @@ public ref struct RenderWallSliceResult(Span<DynamicVertex> vertices, SkyGeometr
     public SkyGeometryVertex[]? SkyVertices2 = skyVertices2;
     public GLLegacyTexture? Texture = texture;
     public bool AddOffset = addOffset;
+
+    public static RenderWallSliceResult EmptyMiddle => new([], null, null, addOffset: false);
 }

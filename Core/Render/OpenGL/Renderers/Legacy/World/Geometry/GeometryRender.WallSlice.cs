@@ -200,11 +200,11 @@ public partial class GeometryRenderer
     public RenderWallSliceResult RenderTwoSidedMiddleSlice3D(RenderWallSliceArgs args)
     {
         if (args.Side.Middle.TextureHandle <= Constants.NullCompatibilityTextureIndex)
-            return new([], null, null, addOffset: false);
+            return RenderWallSliceResult.EmptyMiddle;
 
         var texture = TextureManager.GetTexture(args.Side.Middle.TextureHandle);
         if (texture == null || texture.Image == null || args.OtherSide == null)
-            return new([], null, null, addOffset: false);
+            return RenderWallSliceResult.EmptyMiddle;
 
         var span = GetMidTexSpan(TextureManager, texture.Image.Dimension, args.Side, args.OtherSide, args.FacingSector, args.OtherSector);
 
@@ -214,9 +214,9 @@ public partial class GeometryRenderer
         var renderBottomPrevZ = args.WallSector.Floor.PrevZ;
 
         if (renderTopZ > span.TopZ && renderBottomZ > span.TopZ)
-            return new([], null, null, addOffset: false);
+            return RenderWallSliceResult.EmptyMiddle;
         if (renderBottomZ < span.TopZ && renderTopZ < span.BottomZ)
-            return new([], null, null, addOffset: false);
+            return RenderWallSliceResult.EmptyMiddle;
 
         if (renderTopZ < span.TopZ)
         {
@@ -249,7 +249,7 @@ public partial class GeometryRenderer
         }
 
         var saveOffset = args.Side.Middle.Offset.Y;
-        args.Side.Middle.Offset.Y = -(float)m_fakeSector1.Floor.Z;
+        args.Side.Middle.Offset.Y = (float)(span.BottomZ - m_fakeSector1.Floor.Z);
 
         RenderTwoSidedMiddle(args.Side, args.OtherSide, m_fakeSector1, m_fakeSector2, args.IsFrontSide, out var sideVertices, 
             lightLevelSector: args.LightSector, restrictSpan: new(m_fakeSector1.Floor.Z, m_fakeSector1.Ceiling.Z, m_fakeSector1.Floor.Z, m_fakeSector1.Ceiling.Z));
