@@ -73,6 +73,18 @@ namespace Helion.Geometry.Vectors
             double cosPitch = Math.Cos(pitch);
             return new(cosAngle * cosPitch, sinAngle * cosPitch, sinPitch);
         }
+        public static void UnitSphereDeconstructed(double angle, double pitch, 
+            out double sinAngle, out double cosAngle, out double sinPitch, out double cosPitch,
+            out double x, out double y, out double z)
+        {
+            sinAngle = Math.Sin(angle);
+            cosAngle = Math.Cos(angle);
+            sinPitch = Math.Sin(pitch);
+            cosPitch = Math.Cos(pitch);
+            x = cosAngle * cosPitch;
+            y = sinAngle * cosPitch;
+            z = sinPitch;
+        }
         public readonly Vec3D Rotate2D(double yawRadians)
         {
             double sin = Math.Sin(yawRadians);
