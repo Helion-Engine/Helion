@@ -17,7 +17,7 @@ public static class WorldTriangulator
 {
     public const double NoOverride = double.MaxValue;
 
-    public static void HandleOneSided(Side side, SectorPlane floor, SectorPlane ceiling, in Vec2F textureUVInverse, ref WallVertices wall,
+    public static void HandleOneSided(Side side, Side offsetSide, SectorPlane floor, SectorPlane ceiling, in Vec2F textureUVInverse, ref WallVertices wall,
         double overrideFloor = NoOverride, double overrideCeiling = NoOverride, bool isFront = true)
     {
         Line line = side.Line;
@@ -32,8 +32,8 @@ public static class WorldTriangulator
         double length = line.GetLength();
         double spanZ = topZ - bottomZ;
         double prevSpanZ = prevTopZ - prevBottomZ;
-        WallUV uv = CalculateOneSidedWallUV(line, side, length, textureUVInverse, spanZ, previous: false);
-        WallUV prevUV = CalculateOneSidedWallUV(line, side, length, textureUVInverse, prevSpanZ, previous: true);
+        WallUV uv = CalculateOneSidedWallUV(line, side, offsetSide, length, textureUVInverse, spanZ, previous: false);
+        WallUV prevUV = CalculateOneSidedWallUV(line, side, offsetSide, length, textureUVInverse, prevSpanZ, previous: true);
 
         wall.TopLeft.X = left.X;
         wall.TopLeft.Y = left.Y;
@@ -363,24 +363,24 @@ public static class WorldTriangulator
             prevBottomZ, prevTopZ, visiblePrevBottomZ, visiblePrevTopZ);
     }
 
-    public static WallUV CalculateOneSidedWallUV(Line line, Side side, double length,
+    public static WallUV CalculateOneSidedWallUV(Line line, Side side, Side offsetSide, double length,
         in Vec2F textureUVInverse, double spanZ, bool previous)
     {
         var absScaleX = Math.Abs(side.Middle.Scale.X);
         var absScaleY = Math.Abs(side.Middle.Scale.Y);
-        var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / absScaleX + (WorldStatic.LineVertexOffset * textureUVInverse.X);
-        var offsetV = (side.Offset.Y + side.Middle.Offset.Y) * textureUVInverse.Y / absScaleY + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
-        if (side.ScrollData != null)
+        var offsetU = (offsetSide.Offset.X + offsetSide.Middle.Offset.X) * textureUVInverse.X / absScaleX + (WorldStatic.LineVertexOffset * textureUVInverse.X);
+        var offsetV = (offsetSide.Offset.Y + offsetSide.Middle.Offset.Y) * textureUVInverse.Y / absScaleY + (WorldStatic.LineVertexOffset * textureUVInverse.Y);
+        if (offsetSide.ScrollData != null)
         {
             if (previous)
             {
-                offsetU += (float)side.ScrollData.LastOffsetMiddle.X * textureUVInverse.U / absScaleX;
-                offsetV += (float)side.ScrollData.LastOffsetMiddle.Y * textureUVInverse.V / absScaleY;
+                offsetU += (float)offsetSide.ScrollData.LastOffsetMiddle.X * textureUVInverse.U / absScaleX;
+                offsetV += (float)offsetSide.ScrollData.LastOffsetMiddle.Y * textureUVInverse.V / absScaleY;
             }
             else
             {
-                offsetU += (float)side.ScrollData.OffsetMiddle.X * textureUVInverse.U / absScaleX;
-                offsetV += (float)side.ScrollData.OffsetMiddle.Y * textureUVInverse.V / absScaleY;
+                offsetU += (float)offsetSide.ScrollData.OffsetMiddle.X * textureUVInverse.U / absScaleX;
+                offsetV += (float)offsetSide.ScrollData.OffsetMiddle.Y * textureUVInverse.V / absScaleY;
             }
         }
 
@@ -455,7 +455,7 @@ public static class WorldTriangulator
         double visibleTopZ, double visibleBottomZ, in Vec2F textureUVInverse, bool previous)
     {
         if (side.Flags.WrapMidTex)
-            return CalculateOneSidedWallUV(side.Line, side, length, textureUVInverse, visibleTopZ - visibleBottomZ, previous);
+            return CalculateOneSidedWallUV(side.Line, side, side, length, textureUVInverse, visibleTopZ - visibleBottomZ, previous);
 
         var absScaleX = Math.Abs(side.Middle.Scale.X);
         var offsetU = (side.Offset.X + side.Middle.Offset.X) * textureUVInverse.X / absScaleX + (WorldStatic.LineVertexOffset * textureUVInverse.X);

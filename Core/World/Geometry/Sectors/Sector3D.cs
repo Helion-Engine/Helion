@@ -235,7 +235,7 @@ public class Sector3D
 
         if (side.PartnerSide == null)
         {
-            WorldTriangulator.HandleOneSided(side, side.Sector.Floor, side.Sector.Ceiling, default, ref wall);
+            WorldTriangulator.HandleOneSided(side, side, side.Sector.Floor, side.Sector.Ceiling, default, ref wall);
             return AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ);
         }
 

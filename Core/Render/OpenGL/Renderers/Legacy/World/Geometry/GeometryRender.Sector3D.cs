@@ -1,8 +1,11 @@
-﻿using Helion.Util;
+﻿using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.Util;
 using Helion.Util.Container;
+using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
+using Helion.World.Static;
 using System;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -12,6 +15,67 @@ public partial class GeometryRenderer
     private readonly DynamicArray<DynamicVertex> m_vertices = new(256);
     private readonly Sector m_fakeFacing = Sector.CreateDefault();
     private readonly Sector m_fakeOther = Sector.CreateDefault();
+
+    public static WallHeights SetSectorForLineRendering3D(Sector3D sector3d)
+    {
+        var wallHeights = sector3d.CalculateWallHeights();
+        var wallSector = sector3d.FakeSector;
+        wallSector.Ceiling.Z = wallHeights.TopZ;
+        wallSector.Floor.Z = wallHeights.BottomZ;
+        wallSector.Floor.LastRenderChangeGametick = sector3d.ControlSector.Floor.LastRenderChangeGametick;
+        wallSector.Ceiling.LastRenderChangeGametick = sector3d.ControlSector.Ceiling.LastRenderGametick;
+        return wallHeights;
+    }
+
+    public void RenderSectorLine3D(Sector3D sector3d, int lineIndex, bool renderFront, bool renderBack, in WallHeights wallHeights,
+        Action<Side, Wall, GLLegacyTexture, DynamicVertex[]>? renderVertices)
+    {
+        var newWallHeights = wallHeights;
+        var wallSector = sector3d.FakeSector;
+        var sectorLine = sector3d.FakeSector.Lines[lineIndex];
+        var parentSectorLine = sector3d.ParentSector.Lines[lineIndex];
+        var useSide = sectorLine.Front;
+
+        var flipped = parentSectorLine.Segment.Delta != sectorLine.Segment.Delta;
+        var parentBack = flipped ? parentSectorLine.Back : parentSectorLine.Front;
+        var parentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
+
+        if (renderFront)
+        {
+            if (parentBack != null)
+            {
+                sector3d.CalculateWallHeights(parentBack, wallHeights, out newWallHeights);
+                wallSector.Ceiling.Z = newWallHeights.TopZ;
+                wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
+                wallSector.Floor.Z = newWallHeights.BottomZ;
+                wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
+            }
+
+            useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, parentBack);
+            RenderOneSided(useSide, true, out var sideVertices, out _, out var texture,
+                renderSector: wallSector, lightLevelSector: sector3d.ParentSector, offsetSide: parentBack, renderSkySide: false, allowAlpha: true);
+
+            if (sideVertices != null && renderVertices != null)
+                renderVertices(useSide, useSide.Middle, texture, sideVertices);
+        }
+
+        if (renderBack && sector3d.ShouldRenderInsideWalls && sectorLine.Back != null &&
+            (parentFront == null || sector3d.CalculateWallHeights(parentFront, wallHeights, out newWallHeights)))
+        {
+            wallSector.Ceiling.Z = newWallHeights.TopZ;
+            wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
+            wallSector.Floor.Z = newWallHeights.BottomZ;
+            wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
+
+            useSide = sectorLine.Back;
+            useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, parentFront);
+            RenderOneSided(useSide, false, out var sideVertices, out _, out var texture,
+                renderSector: wallSector, lightLevelSector: sector3d.LightMiddle, offsetSide: parentFront, renderSkySide: false, allowAlpha: true);
+
+            if (sideVertices != null && renderVertices != null)
+                renderVertices(useSide, useSide.Middle, texture, sideVertices);
+        }
+    }
 
     public RenderWallSliceResult RenderWallSlices3D(Side side, Wall wall, bool isFrontSide,
         Side otherSide, Sector facingSector, Sector otherSector,

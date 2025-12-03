@@ -1,4 +1,7 @@
-﻿using Helion.World.Geometry.Sectors;
+﻿using Helion.Render.OpenGL.Texture.Legacy;
+using Helion.World.Geometry.Sectors;
+using Helion.World.Geometry.Sides;
+using Helion.World.Geometry.Walls;
 using Helion.World.Static;
 using System;
 
@@ -10,6 +13,7 @@ public partial class StaticCacheGeometryRenderer
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedLowerSliceFunc;
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedUpperSliceFunc;
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedMiddleSliceFunc;
+    private readonly Action<Side, Wall, GLLegacyTexture, DynamicVertex[]>? m_renderSectorWallVertices3D;
 
     private void AddSectors3D(Sector sector, bool update)
     {
@@ -43,68 +47,24 @@ public partial class StaticCacheGeometryRenderer
             }
         }
 
-        if (sector3d.ShouldRenderWalls)
-            RenderSectorLines3D(sector3d);
-    }
+        if (!sector3d.ShouldRenderWalls)
+            return;
 
-    private void RenderSectorLines3D(Sector3D sector3d)
-    {
-        var wallHeights = sector3d.CalculateWallHeights();
-        var newWallHeights = wallHeights;
-        var wallSector = sector3d.FakeSector;
-
+        var wallHeights = GeometryRenderer.SetSectorForLineRendering3D(sector3d);
         for (int i = 0; i < sector3d.FakeSector.Lines.Length; i++)
         {
             var sectorLine = sector3d.FakeSector.Lines[i];
-            var parentSectorLine = sector3d.ParentSector.Lines[i];
-            var useSide = sectorLine.Front;
-            var dynamic = useSide.IsDynamic || sector3d.ControlSector.IsMoving;
+            var side = sectorLine.Front;
+            var dynamic = side.IsDynamic || sector3d.ControlSector.IsMoving;
             if (dynamic && (sector3d.ControlSector.Floor.Dynamic == SectorDynamic.Movement || sector3d.ControlSector.Ceiling.Dynamic == SectorDynamic.Movement))
                 continue;
 
-            wallSector.Ceiling.Z = wallHeights.TopZ;
-            wallSector.Floor.Z = wallHeights.BottomZ;
-
-            bool flipped = parentSectorLine.Segment.Delta != sectorLine.Segment.Delta;
-            var checkParentBack = flipped ? parentSectorLine.Back : parentSectorLine.Front;
-            var checkParentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
-
-            if (checkParentBack != null)
-            {
-                sector3d.CalculateWallHeights(checkParentBack, wallHeights, out newWallHeights);
-                wallSector.Ceiling.Z = newWallHeights.TopZ;
-                wallSector.Floor.Z = newWallHeights.BottomZ;
-            }
-
-            useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentBack);
-
-            m_geometryRenderer.SetRenderOneSided(useSide);
-            m_geometryRenderer.RenderOneSided(useSide, true, out var sideVertices, out _, out var texture,
-                renderSector: wallSector, lightLevelSector: sector3d.ParentSector, renderSkySide: false, allowAlpha: true);
-
-            if (sideVertices != null)
-            {
-                var wall = useSide.Middle;
-                UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices, null, useSide, wall, true, texture);
-            }
-
-            if (sector3d.ShouldRenderInsideWalls && sectorLine.Back != null &&
-                (checkParentFront == null || sector3d.CalculateWallHeights(checkParentFront, wallHeights, out newWallHeights)))
-            {
-                wallSector.Ceiling.Z = newWallHeights.TopZ;
-                wallSector.Floor.Z = newWallHeights.BottomZ;
-
-                useSide = sectorLine.Back;
-                useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentFront);
-                m_geometryRenderer.RenderOneSided(useSide, false, out sideVertices, out _, out texture,
-                    renderSector: wallSector, lightLevelSector: sector3d.LightMiddle, renderSkySide: false, allowAlpha: true);
-
-                if (sideVertices != null)
-                {
-                    var wall = useSide.Middle;
-                    UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, sideVertices, null, useSide, wall, true, texture);
-                }
-            }
+            m_geometryRenderer.RenderSectorLine3D(sector3d, i, true, true, wallHeights, m_renderSectorWallVertices3D);
         }
+    }
+
+    private void RenderSectorWallVertices3D(Side side, Wall wall, GLLegacyTexture texture, DynamicVertex[] vertices)
+    {
+        UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, vertices, null, side, wall, true, texture);
     }
 }

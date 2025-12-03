@@ -525,20 +525,28 @@ public partial class GeometryRenderer : IDisposable
     private void RenderSectorWalls(Sector sector, Vec2D pos2D, Vec2D prevPos2D)
     {
         var sector3D = WorldStatic.Sector3D && sector.Sector3D != null;
-        if (sector3D && sector.Sector3D != null && !sector.Sector3D.ShouldRenderWalls)
+        if (sector3D && sector.Sector3D != null)
+        {
+            if (!sector.Sector3D.ShouldRenderWalls)
+                return;
+
+            var wallHeights = SetSectorForLineRendering3D(sector.Sector3D);
+            for (int i = 0; i < sector.Lines.Length; i++)
+            {
+                var line = sector.Lines[i];
+                var onFront = line.Segment.OnRight(pos2D);
+                var onBothSides = onFront != line.Segment.OnRight(prevPos2D);
+                RenderSectorLine3D(sector.Sector3D, i, onFront || onBothSides, !onFront || onBothSides, wallHeights, null);
+            }
+
             return;
+        }
 
         for (int i = 0; i < sector.Lines.Length; i++)
         {
             var line = sector.Lines[i];
             var onFront = line.Segment.OnRight(pos2D);
             var onBothSides = onFront != line.Segment.OnRight(prevPos2D);
-
-            if (sector3D && sector.Sector3D != null)
-            {
-                RenderSectorSideWall3D(sector.Sector3D, i, onFront || onBothSides, !onFront || onBothSides);
-                continue;
-            }
 
             if (line.Back != null)
                 CheckFloodFillLine(line.Front, line.Back);
@@ -587,10 +595,10 @@ public partial class GeometryRenderer : IDisposable
         m_drawnSides[useSide.Id] = WorldStatic.CheckCounter;
 
         bool flipped = parentSectorLine.Segment.Delta != sectorLine.Segment.Delta;
-        var checkParentBack = flipped ? parentSectorLine.Back : parentSectorLine.Front;
+        var parentBack = flipped ? parentSectorLine.Back : parentSectorLine.Front;
         var checkParentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
 
-        useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, checkParentBack);
+        useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, parentBack);
 
         wallSector.Ceiling.Z = wallHeights.TopZ;
         wallSector.Ceiling.PrevZ = wallHeights.PrevTopZ;
@@ -599,9 +607,9 @@ public partial class GeometryRenderer : IDisposable
         wallSector.Floor.LastRenderChangeGametick = sector3d.ControlSector.Floor.LastRenderChangeGametick;
         wallSector.Ceiling.LastRenderChangeGametick = sector3d.ControlSector.Ceiling.LastRenderChangeGametick;
 
-        if (checkParentBack != null && renderFront)
+        if (parentBack != null && renderFront)
         {
-            sector3d.CalculateWallHeights(checkParentBack, wallHeights, out newWallHeights);
+            sector3d.CalculateWallHeights(parentBack, wallHeights, out newWallHeights);
             wallSector.Ceiling.Z = newWallHeights.TopZ;
             wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
             wallSector.Floor.Z = newWallHeights.BottomZ;
@@ -718,7 +726,7 @@ public partial class GeometryRenderer : IDisposable
     }
 
     public void RenderOneSided(Side side, bool isFront, out DynamicVertex[]? vertices, out SkyGeometryVertex[]? skyVertices, out GLLegacyTexture texture,
-        Sector? renderSector = null, Sector? lightLevelSector = null, bool renderSkySide = true, bool allowAlpha = false)
+        Sector? renderSector = null, Sector? lightLevelSector = null, Side? offsetSide = null, bool renderSkySide = true, bool allowAlpha = false)
     {
         skyVertices = null;
         m_sectorChangedLine = side.Sector.CheckRenderingChanged(side.LastRenderGametick);
@@ -765,7 +773,7 @@ public partial class GeometryRenderer : IDisposable
             int colorMapIndex = Renderer.GetColorMapBufferIndex(lightLevelSector, LightBufferType.Wall);
             int lightIndex = Renderer.GetLightBufferIndex(side, side.Middle, lightLevelSector);
             int addAlpha = allowAlpha ? 0 : 1;
-            WorldTriangulator.HandleOneSided(side, floor, ceiling, texture.UVInverse, ref wall, isFront: isFront);
+            WorldTriangulator.HandleOneSided(side, offsetSide ?? side, floor, ceiling, texture.UVInverse, ref wall, isFront: isFront);
             if (data == null)
                 data = GetWallVertices(wall, GetLightLevelAdd(side), lightIndex, colorMapIndex, GetWallLightLevel(side, side.Middle), side.Line.Id, WallLocation.Middle, addAlpha: addAlpha);
             else
@@ -1272,12 +1280,12 @@ public partial class GeometryRenderer : IDisposable
         if (facingSide.Line.Back != null && otherSector != null && RenderBlock.IsSkyBlocked(facingSide.Line) &&
             SkyUpperRenderFromFloorCheck(facingSide, facingSector, otherSector))
         {
-            WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, ref wall,
+            WorldTriangulator.HandleOneSided(facingSide, facingSide, floor, ceiling, texture.UVInverse, ref wall,
                 overrideFloor: facingSide.PartnerSide!.Sector.Floor.Z, overrideCeiling: MaxSky, isFront);
         }
         else
         {
-            WorldTriangulator.HandleOneSided(facingSide, floor, ceiling, texture.UVInverse, ref wall,
+            WorldTriangulator.HandleOneSided(facingSide, facingSide, floor, ceiling, texture.UVInverse, ref wall,
                 overrideFloor: facingSector.Ceiling.Z, overrideCeiling: MaxSky, isFront);
         }
 
@@ -1292,12 +1300,12 @@ public partial class GeometryRenderer : IDisposable
         WallVertices wall = default;
         if (face == SectorPlaneFace.Floor)
         {
-            WorldTriangulator.HandleOneSided(facingSide, facingSector.Floor, facingSector.Ceiling, Vec2F.Zero, ref wall,
+            WorldTriangulator.HandleOneSided(facingSide, facingSide, facingSector.Floor, facingSector.Ceiling, Vec2F.Zero, ref wall,
                 overrideFloor: facingSector.Floor.Z - MaxSky, overrideCeiling: facingSector.Floor.Z, isFront: isFront);
         }
         else
         {
-            WorldTriangulator.HandleOneSided(facingSide, facingSector.Floor, facingSector.Ceiling, Vec2F.Zero, ref wall,
+            WorldTriangulator.HandleOneSided(facingSide, facingSide, facingSector.Floor, facingSector.Ceiling, Vec2F.Zero, ref wall,
                 overrideFloor: facingSector.Ceiling.Z, overrideCeiling: facingSector.Ceiling.Z + MaxSky, isFront: isFront);
         }
 
