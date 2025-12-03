@@ -711,7 +711,7 @@ public sealed class PhysicsManager
         if (line.BlockFlags.MidTex3D && !line.OneSided && (!entity.Flags.Missile() || !line.BlockFlags.BlockMissileMidTex3D))
         {
             var midTexEntity = GetMidTexEntity(line.LineId);
-            if (BlocksEntityZ(entity, midTexEntity, tryMove, entity.OverlapsZ(midTexEntity)))
+            if (BlocksEntityZ(entity, midTexEntity, tryMove, entity.OverlapsZ(midTexEntity), m_entityOpening))
                 return LineBlock.BlockContinue;    
         }
 
@@ -742,7 +742,7 @@ public sealed class PhysicsManager
                 continue;
 
             var sectorEntity = sector3d.GetSectorEntity3D();
-            if (BlocksEntityZ(entity, sectorEntity, tryMove, entity.OverlapsZ(sectorEntity)))
+            if (BlocksEntityZ(entity, sectorEntity, tryMove, entity.OverlapsZ(sectorEntity), m_entityOpening))
                 return true;
         }
 
@@ -1548,7 +1548,7 @@ doneLinkToSectors:
                             continue;
                         }
 
-                        if (entity.CanBlockEntity(nextEntity) && BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ))
+                        if (entity.CanBlockEntity(nextEntity) && BlocksEntityZ(entity, nextEntity, tryMove, overlapsZ, m_lineOpening))
                         {
                             tryMove.Success = false;
                             entity.BlockingEntity = nextEntity;
@@ -1627,12 +1627,12 @@ doneLinkToSectors:
         return tryMove.Success;
     }
 
-    private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ)
+    private bool BlocksEntityZ(Entity entity, Entity other, TryMoveData tryMove, bool overlapsZ, LineOpening lineOpening)
     {
         if (WorldStatic.InfinitelyTallThings && !entity.Flags.Missile() && !other.Flags.Missile() && other.MidTexLine == null && other.Sector3D == null)
             return true;
 
-        SetEntityLineOpening(entity, other, tryMove, m_entityOpening);
+        SetEntityLineOpening(entity, other, tryMove, lineOpening);
 
         var isPlayer = entity.IsPlayer;
         // If blocking and not a player, do not check step passing below. Non-players can't step onto other things. (Exclude MidTex lines)
@@ -1642,7 +1642,7 @@ doneLinkToSectors:
         if (!overlapsZ)
             return false;
 
-        return !m_entityOpening.CanPassOrStepThrough(entity);
+        return !lineOpening.CanPassOrStepThrough(entity);
     }
 
     private void SetEntityLineOpening(Entity entity, Entity other, TryMoveData tryMove, LineOpening opening)
