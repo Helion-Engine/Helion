@@ -1706,13 +1706,7 @@ public class Player : Entity
             {
                 Velocity.Z = Properties.Player.JumpZ;
                 return;
-            }
-
-            //if (OnGround && WaterSubmersionLevel <= SubmersionLevel.MoreThanHalf)
-            //{
-            //    Velocity.Z = Properties.Player.JumpZ;
-            //    return;
-            //}    
+            }    
 
             Velocity.Z = WaterJumpSpeed;
         }

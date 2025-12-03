@@ -5,7 +5,6 @@ using Helion.World.Geometry.Lines;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
-using Helion.World.Static;
 using System;
 
 namespace Helion.Render.OpenGL.Renderers.Legacy.World.Geometry;
@@ -23,7 +22,7 @@ public partial class GeometryRenderer
         wallSector.Ceiling.Z = wallHeights.TopZ;
         wallSector.Floor.Z = wallHeights.BottomZ;
         wallSector.Floor.LastRenderChangeGametick = sector3d.ControlSector.Floor.LastRenderChangeGametick;
-        wallSector.Ceiling.LastRenderChangeGametick = sector3d.ControlSector.Ceiling.LastRenderGametick;
+        wallSector.Ceiling.LastRenderChangeGametick = sector3d.ControlSector.Ceiling.LastRenderChangeGametick;
         return wallHeights;
     }
 

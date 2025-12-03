@@ -412,11 +412,14 @@ public partial class GeometryRenderer : IDisposable
     {
         var geometrySector = sectorForSubectors;
         var sector3d = sectorForSubectors.Sector3D;
+        Sector? saveTransfer = null;
         if (sector3d != null)
         {
             geometrySector = sector3d.FakeSector;
             sectorForSubectors = sector3d.ParentSector;
             renderSector = sector3d.ControlSector;
+            saveTransfer = sector3d.ParentSector.TransferFloorLightSector;
+            sector3d.ParentSector.TransferFloorLightSector = sector3d.ParentSector;
         }
 
         var subsectors = m_subsectors[sectorForSubectors.Id];
@@ -476,6 +479,9 @@ public partial class GeometryRenderer : IDisposable
                 RenderFlat(subsectors, renderSector.Ceiling, renderSector.Ceiling, floor: false, false, m_ceilingVertexLookupInvalidated, out _, out _);
             }
         }
+
+        if (sector3d != null && saveTransfer != null)
+            sector3d.ParentSector.TransferFloorLightSector = saveTransfer;
     }
 
     public void Dispose()
