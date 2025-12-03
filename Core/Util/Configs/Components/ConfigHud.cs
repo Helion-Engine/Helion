@@ -166,6 +166,9 @@ public class ConfigHud: ConfigElement<ConfigHud>
     [ConfigInfo("Size of the status bar.")]
     [OptionMenu(OptionSectionType.Hud, "Status Bar Size", spacer: true)]
     public readonly ConfigValue<StatusBarSizeType> StatusBarSize = new(StatusBarSizeType.Minimal, OnlyValidEnums<StatusBarSizeType>());
+    
+    [ConfigInfo("Selects the active SBARDEF layout index.")]
+    public readonly ConfigValue<int> SbarHudMode = new(0, GreaterOrEqual(0));
 
     [ConfigInfo("Background texture for status bar when it doesn't fill the screen.")]
     [OptionMenu(OptionSectionType.Hud, "Status Bar Texture", dialogType: DialogType.TexturePicker)]

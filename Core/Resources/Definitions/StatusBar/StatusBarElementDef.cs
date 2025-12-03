@@ -1,0 +1,182 @@
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using Helion.Resources.Definitions.StatusBar.Enums;
+
+namespace Helion.Resources.Definitions.StatusBar;
+
+public class StatusBarElementWrapper
+{
+    [JsonPropertyName("canvas")]
+    public StatusBarCanvasDef? Canvas { get; set; }
+
+    [JsonPropertyName("graphic")]
+    public StatusBarGraphicDef? Graphic { get; set; }
+
+    [JsonPropertyName("animation")]
+    public StatusBarAnimationDef? Animation { get; set; }
+
+    [JsonPropertyName("face")]
+    public StatusBarFaceDef? Face { get; set; }
+
+    [JsonPropertyName("facebackground")]
+    public StatusBarFaceDef? FaceBackground { get; set; }
+
+    [JsonPropertyName("number")]
+    public StatusBarNumberDef? Number { get; set; }
+
+    [JsonPropertyName("percent")]
+    public StatusBarNumberDef? Percent { get; set; }
+
+    [JsonPropertyName("component")]
+    public StatusBarComponentDef? Component { get; set; }
+
+    [JsonPropertyName("carousel")]
+    public StatusBarCarouselDef? Carousel { get; set; }
+}
+
+public abstract class StatusBarBaseDef
+{
+    [JsonPropertyName("x")]
+    public int X { get; set; }
+
+    [JsonPropertyName("y")]
+    public int Y { get; set; }
+
+    [JsonPropertyName("alignment")]
+    public StatusBarAlignment Alignment { get; set; }
+
+    [JsonPropertyName("tranmap")]
+    public string? Tranmap { get; set; }
+
+    [JsonPropertyName("translation")]
+    public string? Translation { get; set; }
+
+    [JsonPropertyName("conditions")]
+    public List<StatusBarConditionDef>? Conditions { get; set; }
+
+    [JsonPropertyName("children")]
+    public List<StatusBarElementWrapper>? Children { get; set; }
+}
+
+public class StatusBarCanvasDef : StatusBarBaseDef { }
+public class StatusBarFaceDef : StatusBarBaseDef 
+{
+    // v1.1 Extensions: Image Cropping & Translucency
+    [JsonPropertyName("width")]
+    public int Width { get; set; }
+
+    [JsonPropertyName("height")]
+    public int Height { get; set; }
+
+    [JsonPropertyName("topoffset")]
+    public int TopOffset { get; set; }
+
+    [JsonPropertyName("leftoffset")]
+    public int LeftOffset { get; set; }
+
+    [JsonPropertyName("midoffset")]
+    public int MidOffset { get; set; }
+
+    [JsonPropertyName("translucency")]
+    public bool Translucency { get; set; }
+}
+
+public class StatusBarComponentDef : StatusBarBaseDef 
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = string.Empty;
+
+    [JsonPropertyName("font")]
+    public string Font { get; set; } = string.Empty;
+    
+    // v1.1
+    [JsonPropertyName("vertical")]
+    public bool Vertical { get; set; }
+    
+    [JsonPropertyName("translucency")]
+    public bool Translucency { get; set; }
+    
+    // Additional undocumented property in woof's SBARDEF!
+    [JsonPropertyName("duration")]
+    public double Duration { get; set; }
+}
+
+    
+public class StatusBarCarouselDef : StatusBarBaseDef 
+{
+    // v1.1 Extensions
+    [JsonPropertyName("translucency")]
+    public bool Translucency { get; set; }
+}
+
+
+
+public class StatusBarGraphicDef : StatusBarBaseDef
+{
+    [JsonPropertyName("patch")]
+    public string Patch { get; set; } = string.Empty;
+
+    // v1.1 Extensions: Image Cropping
+    [JsonPropertyName("width")]
+    public int Width { get; set; }
+
+    [JsonPropertyName("height")]
+    public int Height { get; set; }
+
+    [JsonPropertyName("topoffset")]
+    public int TopOffset { get; set; }
+
+    [JsonPropertyName("leftoffset")]
+    public int LeftOffset { get; set; }
+
+    [JsonPropertyName("midoffset")]
+    public int MidOffset { get; set; }
+
+    [JsonPropertyName("translucency")]
+    public bool Translucency { get; set; }
+}
+
+public class StatusBarAnimationDef : StatusBarBaseDef
+{
+    [JsonPropertyName("frames")]
+    public List<StatusBarFrameDef> Frames { get; set; } = new();
+}
+
+public class StatusBarNumberDef : StatusBarBaseDef
+{
+    [JsonPropertyName("font")]
+    public string Font { get; set; } = string.Empty;
+
+    [JsonPropertyName("type")]
+    public StatusBarNumberType Type { get; set; }
+
+    [JsonPropertyName("param")]
+    public int Param { get; set; }
+
+    [JsonPropertyName("maxlength")]
+    public int MaxLength { get; set; }
+    
+    [JsonPropertyName("translucency")]
+    public bool Translucency { get; set; }
+}
+
+public struct StatusBarConditionDef
+{
+    [JsonPropertyName("condition")]
+    public StatusBarConditionType Condition { get; set; }
+
+    [JsonPropertyName("param")]
+    public int Param { get; set; }
+    
+    [JsonPropertyName("param2")]
+    public int Param2 { get; set; }
+}
+
+public struct StatusBarFrameDef
+{
+    [JsonPropertyName("lump")]
+    public string Lump { get; set; }
+
+    [JsonPropertyName("duration")]
+    public double Duration { get; set; }
+}
