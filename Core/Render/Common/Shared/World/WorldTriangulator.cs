@@ -18,7 +18,7 @@ public static class WorldTriangulator
     public const double NoOverride = double.MaxValue;
 
     public static void HandleOneSided(Side side, Side offsetSide, SectorPlane floor, SectorPlane ceiling, in Vec2F textureUVInverse, ref WallVertices wall,
-        double overrideFloor = NoOverride, double overrideCeiling = NoOverride, bool isFront = true)
+        double overrideFloor = NoOverride, double overrideCeiling = NoOverride, bool isFront = true, bool calculateUV = true)
     {
         Line line = side.Line;
 
@@ -32,8 +32,19 @@ public static class WorldTriangulator
         double length = line.GetLength();
         double spanZ = topZ - bottomZ;
         double prevSpanZ = prevTopZ - prevBottomZ;
-        WallUV uv = CalculateOneSidedWallUV(line, side, offsetSide, length, textureUVInverse, spanZ, previous: false);
-        WallUV prevUV = CalculateOneSidedWallUV(line, side, offsetSide, length, textureUVInverse, prevSpanZ, previous: true);
+        WallUV uv;
+        WallUV prevUV;
+
+        if (calculateUV)
+        {
+            uv = CalculateOneSidedWallUV(line, side, offsetSide, length, textureUVInverse, spanZ, previous: false);
+            prevUV = CalculateOneSidedWallUV(line, side, offsetSide, length, textureUVInverse, prevSpanZ, previous: true);
+        }
+        else
+        {
+            uv = default;
+            prevUV = default;
+        }
 
         wall.TopLeft.X = left.X;
         wall.TopLeft.Y = left.Y;
@@ -58,7 +69,7 @@ public static class WorldTriangulator
     }
 
     public static void HandleTwoSidedLower(Side facingSide, SectorPlane topFlat, SectorPlane bottomFlat,
-        in Vec2F textureUVInverse, bool isFrontSide, ref WallVertices wall)
+        in Vec2F textureUVInverse, bool isFrontSide, ref WallVertices wall, bool calculateUV = true)
     {
         Line line = facingSide.Line;
 
@@ -70,8 +81,19 @@ public static class WorldTriangulator
         double prevBottomZ = bottomFlat.PrevZ - WorldStatic.LineVertexGap;
 
         double length = line.GetLength();
-        WallUV uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ, previous: false);
-        WallUV prevUV = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, prevTopZ, prevBottomZ, previous: true);
+        WallUV uv;
+        WallUV prevUV;
+
+        if (calculateUV)
+        {
+            uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ, previous: false);
+            prevUV = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, prevTopZ, prevBottomZ, previous: true);
+        }
+        else
+        {
+            uv = default;
+            prevUV = default;
+        }
 
         wall.TopLeft.X = left.X;
         wall.TopLeft.Y = left.Y;
@@ -153,7 +175,7 @@ public static class WorldTriangulator
     }
 
     public static void HandleTwoSidedUpper(Side facingSide, SectorPlane topPlane, SectorPlane bottomPlane, in Vec2F textureUVInverse,
-        bool isFrontSide, ref WallVertices wall, double overrideTopZ = NoOverride)
+        bool isFrontSide, ref WallVertices wall, double overrideTopZ = NoOverride, bool calculateUV = true)
     {
         Line line = facingSide.Line;
 
@@ -167,8 +189,20 @@ public static class WorldTriangulator
         double length = line.GetLength();
         double spanZ = topZ - bottomZ;
         double prevSpanZ = prevTopZ - prevBottomZ;
-        WallUV uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ, previous: false);
-        WallUV prevUV = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, prevSpanZ, previous: true);
+        WallUV uv;
+        WallUV prevUV;
+
+        if (calculateUV)
+        {
+            uv = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, spanZ, previous: false);
+            prevUV = CalculateTwoSidedUpperWallUV(line, facingSide, length, textureUVInverse, prevSpanZ, previous: true);
+        }
+        else
+        {
+            uv = default;
+            prevUV = default;
+        }
+
         wall.TopLeft.X = left.X;
         wall.TopLeft.Y = left.Y;
         wall.TopLeft.Z = (float)topZ;

@@ -241,7 +241,7 @@ public class Sector3D
 
         if (side.PartnerSide == null)
         {
-            WorldTriangulator.HandleOneSided(side, side, side.Sector.Floor, side.Sector.Ceiling, default, ref wall);
+            WorldTriangulator.HandleOneSided(side, side, side.Sector.Floor, side.Sector.Ceiling, default, ref wall, calculateUV: false);
             return AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ);
         }
 
@@ -249,14 +249,14 @@ public class Sector3D
         {
             if (GeometryRenderer.LowerIsVisible(side, side.Sector, side.PartnerSide.Sector))
             {
-                WorldTriangulator.HandleTwoSidedLower(side, side.PartnerSide.Sector.Floor, side.Sector.Floor, default, true, ref wall);
+                WorldTriangulator.HandleTwoSidedLower(side, side.PartnerSide.Sector.Floor, side.Sector.Floor, default, true, ref wall, calculateUV: false);
                 if (!AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
                     return false;
             }
 
             if (GeometryRenderer.UpperIsVisible(side, side.Sector, side.PartnerSide.Sector))
             {
-                WorldTriangulator.HandleTwoSidedUpper(side, side.PartnerSide.Sector.Floor, side.Sector.Floor, default, true, ref wall);
+                WorldTriangulator.HandleTwoSidedUpper(side, side.PartnerSide.Sector.Floor, side.Sector.Floor, default, true, ref wall, calculateUV: false);
                 if (!AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
                     return false;
             }
