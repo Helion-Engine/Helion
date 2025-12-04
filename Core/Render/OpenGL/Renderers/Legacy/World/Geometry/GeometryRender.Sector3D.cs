@@ -58,7 +58,7 @@ public partial class GeometryRenderer
             if (parentBack != null)
             {
                 var result = RenderWallSlices3D(useSide, useSide.Middle, true, null!, wallSector, null!, m_renderSectorSliceFunc3D,
-                    offsetSide: parentBack, renderSkySide: false, allowAlpha: true, invertOffset: true, traverseSide: parentBack);
+                    offsetSide: parentBack, renderSkySide: false, allowAlpha: true, isOffset3D: true, traverseSide: parentBack);
 
                 if (result.Vertices.Length > 0 && renderVertices != null)
                     renderVertices(useSide, useSide.Middle, result.Texture, result.Vertices);
@@ -99,7 +99,7 @@ public partial class GeometryRenderer
     public RenderWallSliceResult RenderWallSlices3D(Side side, Wall wall, bool isFrontSide,
         Side otherSide, Sector facingSector, Sector otherSector,
         Func<RenderWallSliceArgs, RenderWallSliceResult> renderFunc,
-        Side? offsetSide = null, bool renderSkySide = true, bool allowAlpha = false, bool invertOffset = false, Side? traverseSide = null)
+        Side? offsetSide = null, bool renderSkySide = true, bool allowAlpha = false, bool isOffset3D = false, Side? traverseSide = null)
     {
         RenderWallSliceResult finalResult = default;
         if (side.Sector.Sectors3D.Length == 0)
@@ -108,7 +108,7 @@ public partial class GeometryRenderer
         traverseSide ??= side;
 
         m_vertices.Clear();
-        var saveOffset = wall.Offset;
+        var saveOffsetY = wall.Offset.Y;
         var prevHeights = new WallHeights(side.Sector.Ceiling.Z, side.Sector.Ceiling.Z, side.Sector.Ceiling.PrevZ, side.Sector.Ceiling.PrevZ);
         var wallSector3d = side.Sector.Sectors3D[0].FakeSector;
         var wallSector = m_sliceSector;
@@ -161,7 +161,7 @@ public partial class GeometryRenderer
             }
 
             if (result.AddOffset)
-                SetWallOffset(wall, invertOffset, saveOffset, heights);
+                SetWallOffset(wall, isOffset3D, saveOffsetY, heights);
 
             // Render the inside portion of this 3d sector
             SetSectorToSlice(wallSector, heights);
@@ -171,7 +171,7 @@ public partial class GeometryRenderer
             AddVertices(m_vertices, result.Vertices);
 
             if (result.AddOffset)
-                SetWallOffset(wall, invertOffset, saveOffset, heights);
+                SetWallOffset(wall, isOffset3D, saveOffsetY, heights);
 
             prevHeights = heights;
             lightSector = sector3d.LightBottom;
@@ -184,17 +184,17 @@ public partial class GeometryRenderer
         result = renderFunc(args);
         AddVertices(m_vertices, result.Vertices);
 
-        wall.Offset = saveOffset;
+        wall.Offset.Y = saveOffsetY;
         finalResult.Vertices = m_vertices.Data.AsSpan(0, m_vertices.Length);
         return finalResult;
     }
 
-    private static void SetWallOffset(Wall wall, bool invertOffset, in Vec2F saveOffset, in WallHeights heights)
+    private static void SetWallOffset(Wall wall, bool isOffset3D, float saveOffsetY, in WallHeights heights)
     {
-        if (invertOffset)
-            wall.Offset.Y = saveOffset.Y + -(float)heights.TopZ;
+        if (isOffset3D)
+            wall.Offset.Y += (float)(heights.TopZ - heights.BottomZ);
         else
-            wall.Offset.Y = saveOffset.Y + -(float)heights.BottomZ;
+            wall.Offset.Y = saveOffsetY + -(float)heights.BottomZ;
     }
 
     private static void AddVertices(DynamicArray<DynamicVertex> vertices, Span<DynamicVertex> add)
