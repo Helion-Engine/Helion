@@ -147,6 +147,8 @@ public partial class GeometryRenderer
             // Render the top portion to this 3d sector
             SetSectorToSlice(wallSector, prevHeights, heights);
             args.LightSector = sector3d.LightTop;
+            // This is a hack to force it to ignore the cached vertices
+            args.Side.LastRenderGametick = -1;
             result = renderFunc(args);
             AddVertices(m_vertices, result.Vertices);
 
@@ -164,6 +166,7 @@ public partial class GeometryRenderer
             // Render the inside portion of this 3d sector
             SetSectorToSlice(wallSector, heights);
             args.LightSector = sector3d.LightBottom;
+            args.Side.LastRenderGametick = -1;
             result = renderFunc(args);
             AddVertices(m_vertices, result.Vertices);
 
@@ -177,6 +180,7 @@ public partial class GeometryRenderer
         var floorHeights = new WallHeights(side.Sector.Floor.Z, side.Sector.Floor.Z, side.Sector.Floor.PrevZ, side.Sector.Floor.PrevZ);
         SetSectorToSlice(wallSector, prevHeights, floorHeights);
         args.LightSector = lightSector;
+        args.Side.LastRenderGametick = -1;
         result = renderFunc(args);
         AddVertices(m_vertices, result.Vertices);
 
