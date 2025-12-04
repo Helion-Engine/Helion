@@ -102,6 +102,7 @@ public partial class GeometryRenderer : IDisposable
         m_archiveCollection = archiveCollection;
         m_staticCacheGeometryRenderer = new(archiveCollection, glTextureManager, staticProgram, this);
         m_renderCoverWallAction = m_worldDataManager.AddCoverWallVertices;
+        m_renderSectorSliceFunc3D = RenderSectorSlice3D;
 
         var options = VertexOptions.World(1, 1, 0, 0, 0, 0);
         for (int i = 0; i < m_wallVertices.Length; i++)
@@ -452,7 +453,7 @@ public partial class GeometryRenderer : IDisposable
             }
             else
             {
-                RenderFlat(subsectors, renderSector.Floor, renderSector.Floor, true, false, m_floorVertexLookupInvalidated, out _, out _);
+                RenderFlat(subsectors, renderSector.Floor, subsectors[0].Sector.Floor, true, false, m_floorVertexLookupInvalidated, out _, out _);
             }
         }
 
@@ -476,7 +477,7 @@ public partial class GeometryRenderer : IDisposable
             }
             else
             {
-                RenderFlat(subsectors, renderSector.Ceiling, renderSector.Ceiling, floor: false, false, m_ceilingVertexLookupInvalidated, out _, out _);
+                RenderFlat(subsectors, renderSector.Ceiling, subsectors[0].Sector.Ceiling, floor: false, false, m_ceilingVertexLookupInvalidated, out _, out _);
             }
         }
 
@@ -591,7 +592,7 @@ public partial class GeometryRenderer : IDisposable
         if (!shouldRender)
             return;
 
-        var wallHeights = sector3d.CalculateWallHeights();
+        var wallHeights = sector3d.CalculateWallHeights(m_world.Gametick);
         var newWallHeights = wallHeights;
         var wallSector = sector3d.FakeSector;
 

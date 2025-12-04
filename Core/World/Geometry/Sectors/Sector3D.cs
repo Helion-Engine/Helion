@@ -60,6 +60,8 @@ public class Sector3D
     public SectorFlags3D Flags;
 
     private readonly Entity Entity;
+    private WallHeights m_wallHeights;
+    private int m_lastGameTick = -1;
 
     public bool IsSolid => (Flags & SectorFlags3D.Solid) != 0;
     public bool IsSwimmable => (Flags & SectorFlags3D.Swim) != 0;
@@ -201,11 +203,15 @@ public class Sector3D
         return maxSector?.ControlSector ?? ParentSector;
     }
 
-    public WallHeights CalculateWallHeights()
+    public WallHeights CalculateWallHeights(int gameTick)
     {
-        var wallHeights = new WallHeights(ControlTop.Z, ControlBottom.Z, ControlTop.PrevZ, ControlBottom.PrevZ);
+        if (gameTick == m_lastGameTick)
+            return m_wallHeights;
+
+        m_lastGameTick = gameTick;
+        m_wallHeights = new WallHeights(ControlTop.Z, ControlBottom.Z, ControlTop.PrevZ, ControlBottom.PrevZ);
         if (ParentSector.Sectors3D.Length == 0)
-            return wallHeights;
+            return m_wallHeights;
 
         var entity = GetSectorEntity3D();
         for (int i = 0; i < ParentSector.Sectors3D.Length; i++)
@@ -217,14 +223,14 @@ public class Sector3D
             if (!entity.OverlapsZ(checkSector3d.GetSectorEntity3D()))
                 continue;
 
-            if (!AdjustWallHeights(ref wallHeights, 
+            if (!AdjustWallHeights(ref m_wallHeights, 
                 checkSector3d.ControlTop.Z, checkSector3d.ControlBottom.Z, checkSector3d.ControlTop.PrevZ, checkSector3d.ControlBottom.PrevZ))
                 break;
         }
 
-        FakeTop.Z = wallHeights.TopZ;
-        FakeBottom.Z = wallHeights.BottomZ;
-        return wallHeights;
+        FakeTop.Z = m_wallHeights.TopZ;
+        FakeBottom.Z = m_wallHeights.BottomZ;
+        return m_wallHeights;
     }
 
     public bool CalculateWallHeights(Side side, in WallHeights wallHeights, out WallHeights newWallHeights, 

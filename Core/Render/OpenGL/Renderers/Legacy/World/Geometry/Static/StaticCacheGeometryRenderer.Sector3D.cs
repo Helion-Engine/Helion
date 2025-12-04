@@ -13,7 +13,7 @@ public partial class StaticCacheGeometryRenderer
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedLowerSliceFunc;
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedUpperSliceFunc;
     private readonly Func<RenderWallSliceArgs, RenderWallSliceResult> m_renderTwoSidedMiddleSliceFunc;
-    private readonly Action<Side, Wall, GLLegacyTexture, DynamicVertex[]>? m_renderSectorWallVertices3D;
+    private readonly Action<Side, Wall, GLLegacyTexture?, Span<DynamicVertex>>? m_renderSectorWallVertices3D;
 
     private void AddSectors3D(Sector sector, bool update)
     {
@@ -55,7 +55,7 @@ public partial class StaticCacheGeometryRenderer
         if (!sector3d.ShouldRenderWalls)
             return;
 
-        var wallHeights = GeometryRenderer.SetSectorForLineRendering3D(sector3d);
+        var wallHeights = m_geometryRenderer.SetSectorForLineRendering3D(sector3d);
         for (int i = 0; i < sector3d.FakeSector.Lines.Length; i++)
         {
             var sectorLine = sector3d.FakeSector.Lines[i];
@@ -68,7 +68,7 @@ public partial class StaticCacheGeometryRenderer
         }
     }
 
-    private void RenderSectorWallVertices3D(Side side, Wall wall, GLLegacyTexture texture, DynamicVertex[] vertices)
+    private void RenderSectorWallVertices3D(Side side, Wall wall, GLLegacyTexture? texture, Span<DynamicVertex> vertices)
     {
         UpdateVertices(wall.Static.GeometryData, wall.TextureHandle, wall.Static.Index, vertices, null, side, wall, true, texture);
     }

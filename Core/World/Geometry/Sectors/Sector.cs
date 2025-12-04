@@ -959,7 +959,7 @@ public sealed class Sector
 
     public override int GetHashCode() => Id.GetHashCode();
 
-    public override string ToString() => Sector3D?.ToString() ?? $"Id: {Id} [{Floor.Z} {Ceiling.Z}]";
+    public override string ToString() => Sector3D?.ToString() ?? $"Id: {Id} [{Floor.Z} -> {Ceiling.Z}]";
 
     public void UnlinkFromWorld(IWorld world)
     {

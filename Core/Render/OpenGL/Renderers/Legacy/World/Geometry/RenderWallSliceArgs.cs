@@ -8,8 +8,10 @@ public struct RenderWallSliceArgs
     public Side OtherSide;
     public bool IsFrontSide;
     public bool RenderSkySide;
+    public bool AllowAlpha;
     public Sector WallSector;
     public Sector LightSector;
     public Sector FacingSector;
     public Sector OtherSector;
+    public Side? OffsetSide;
 }

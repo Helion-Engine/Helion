@@ -69,10 +69,10 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         m_skyRenderer = new(archiveCollection, textureManager);
         m_renderCoverWallAction = AddOrUpdateCoverWall;
 
-        m_renderOneSidedSliceFunc = m_geometryRenderer.RenderOneSidedSlice3D;
-        m_renderTwoSidedLowerSliceFunc = m_geometryRenderer.RenderTwoSidedLowerSlice3D;
-        m_renderTwoSidedUpperSliceFunc = m_geometryRenderer.RenderTwoSidedUpperSlice3D;
-        m_renderTwoSidedMiddleSliceFunc = m_geometryRenderer.RenderTwoSidedMiddleSlice3D;
+        m_renderOneSidedSliceFunc = m_geometryRenderer.RenderOneSidedSlice;
+        m_renderTwoSidedLowerSliceFunc = m_geometryRenderer.RenderTwoSidedLowerSlice;
+        m_renderTwoSidedUpperSliceFunc = m_geometryRenderer.RenderTwoSidedUpperSlice;
+        m_renderTwoSidedMiddleSliceFunc = m_geometryRenderer.RenderTwoSidedMiddleSlice;
         m_renderSectorWallVertices3D = RenderSectorWallVertices3D;
     }
 
