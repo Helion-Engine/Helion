@@ -1789,7 +1789,7 @@ public abstract partial class WorldBase : IWorld
 
                 if (WorldStatic.Sector3D)
                 {
-                    if (SegBlockedBySector3D(line.FrontSector, start, end, ref intersect, out var plane))
+                    if (SegBlockedBySector3D(line.FrontSector, start, end, SegCrossContext.HitScan, ref intersect, out var plane))
                     {
                         returnValue = bi;
                         if (plane != null)
@@ -1797,7 +1797,7 @@ public abstract partial class WorldBase : IWorld
                         break;
                     }
 
-                    if (line.BackSector != null && SegBlockedBySector3D(line.BackSector, start, end, ref intersect, out plane))
+                    if (line.BackSector != null && SegBlockedBySector3D(line.BackSector, start, end, SegCrossContext.HitScan, ref intersect, out plane))
                     {
                         returnValue = bi;
                         if (plane != null)
@@ -1857,7 +1857,7 @@ public abstract partial class WorldBase : IWorld
                 hitSector = shooter.Sector;
                 returnValue = new BlockmapIntersect();
 
-                if (!(WorldStatic.Sector3D && SegBlockedBySector3D(shooter.Sector, start, end, ref intersect, out _)))   
+                if (!(WorldStatic.Sector3D && SegBlockedBySector3D(shooter.Sector, start, end, SegCrossContext.HitScan, ref intersect, out _)))   
                     GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, ref intersect);
             }
         }
@@ -1874,7 +1874,9 @@ public abstract partial class WorldBase : IWorld
         return returnValue;
     }
 
-    private bool SegBlockedBySector3D(Sector sector, in Vec3D start, in Vec3D end, ref Vec3D intersect, out SectorPlane? plane)
+    private enum SegCrossContext { LineOfSight, HitScan }
+
+    private bool SegBlockedBySector3D(Sector sector, in Vec3D start, in Vec3D end, SegCrossContext context, ref Vec3D intersect, out SectorPlane? plane)
     {
         Vec3D test = default;
         Vec3D minHit = default;
@@ -1885,8 +1887,15 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            if (!sector3d.IsSolid)
-                continue;
+            var isSolid = sector3d.IsSolid;
+            if ((context == SegCrossContext.LineOfSight && (sector3d.Flags & SectorFlags3D.VisibilityInvert) != 0) ||
+                (context == SegCrossContext.HitScan && (sector3d.Flags & SectorFlags3D.ShootabilityInvert) != 0))
+            {
+                isSolid = !isSolid;
+            }
+
+            if (!isSolid)
+                continue;            
 
             if (sector3d.ControlBottom.Z < intersect.Z && sector3d.ControlTop.Z > intersect.Z)
             {
@@ -3107,18 +3116,15 @@ public abstract partial class WorldBase : IWorld
 
     private void GetLineOfSightPitchByPlane3D(Sector sector, in Vec3D start, in Vec3D end, Vec3D intersect, ref double topPitch, ref double bottomPitch)
     {
-        if (SegBlockedBySector3D(sector, start, end, ref intersect, out var hitPlane))
+        if (SegBlockedBySector3D(sector, start, end, SegCrossContext.LineOfSight, ref intersect, out var hitPlane) && hitPlane != null)
         {
-            if (hitPlane != null)
-            {
-                var sectorPitch = start.Pitch(hitPlane.Z, start.Distance(intersect));
+            var sectorPitch = start.Pitch(hitPlane.Z, start.Distance(intersect));
 
-                if (hitPlane.Facing == SectorPlaneFace.Ceiling && sectorPitch > bottomPitch)
-                    bottomPitch = sectorPitch;
+            if (hitPlane.Facing == SectorPlaneFace.Ceiling && sectorPitch > bottomPitch)
+                bottomPitch = sectorPitch;
 
-                if (hitPlane.Facing == SectorPlaneFace.Floor && sectorPitch < topPitch)
-                    topPitch = sectorPitch;
-            }
+            if (hitPlane.Facing == SectorPlaneFace.Floor && sectorPitch < topPitch)
+                topPitch = sectorPitch;
         }        
     }
 
