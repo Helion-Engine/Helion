@@ -1770,7 +1770,7 @@ public abstract partial class WorldBase : IWorld
                     break;
                 }
 
-                GetOrderedSectors(line, start, out Sector front, out Sector back);
+                GetOrderedSectors(line, start, out var front, out var back);
 
                 if (line.FrontSector != line.BackSector)
                 {
@@ -1789,20 +1789,19 @@ public abstract partial class WorldBase : IWorld
 
                 if (WorldStatic.Sector3D)
                 {
-                    if (SegBlockedBySector3D(line.FrontSector, start, end, SegCrossContext.HitScan, ref intersect, out var plane))
+                    Vec3D test = default;
+                    if (SegBlockedBySector3D(front, back, start, end, SegCrossContext.HitScan, intersect, ref test, front, out var plane))
                     {
-                        returnValue = bi;
-                        if (plane != null)
-                            hitSector = front;
-                        break;
-                    }
-
-                    if (line.BackSector != null && SegBlockedBySector3D(line.BackSector, start, end, SegCrossContext.HitScan, ref intersect, out plane))
-                    {
-                        returnValue = bi;
-                        if (plane != null)
-                            hitSector = front;
-                        break;
+                        if (plane == null || (plane != null && (test.Z >= floorZ && test.Z <= ceilingZ)))
+                        {
+                            returnValue = bi;
+                            if (plane != null)
+                            {
+                                intersect = test;
+                                hitSector = front;
+                            }
+                            break;
+                        }
                     }
                 }
 
@@ -1857,7 +1856,7 @@ public abstract partial class WorldBase : IWorld
                 hitSector = shooter.Sector;
                 returnValue = new BlockmapIntersect();
 
-                if (!(WorldStatic.Sector3D && SegBlockedBySector3D(shooter.Sector, start, end, SegCrossContext.HitScan, ref intersect, out _)))   
+                if (!(WorldStatic.Sector3D && SegBlockedBySector3D(shooter.Sector, null, start, end, SegCrossContext.HitScan, intersect, ref intersect, shooter.Sector, out _)))   
                     GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, ref intersect);
             }
         }
@@ -1876,7 +1875,8 @@ public abstract partial class WorldBase : IWorld
 
     private enum SegCrossContext { LineOfSight, HitScan }
 
-    private bool SegBlockedBySector3D(Sector sector, in Vec3D start, in Vec3D end, SegCrossContext context, ref Vec3D intersect, out SectorPlane? plane)
+    private bool SegBlockedBySector3D(Sector front, Sector? back, in Vec3D start, in Vec3D end, SegCrossContext context, in Vec3D intersect, ref Vec3D outIntersect, Sector frontSector,
+        out SectorPlane? plane)
     {
         Vec3D test = default;
         Vec3D minHit = default;
@@ -1884,6 +1884,22 @@ public abstract partial class WorldBase : IWorld
         SectorPlane? hitPlane = null;
         var minDistanceSquared = double.MaxValue;
 
+        CheckForBlockedSector3D(start, end, context, intersect, frontSector, ref test, ref minHit, ref hitPlane, ref minDistanceSquared, front);
+        if (back != null)
+            CheckForBlockedSector3D(start, end, context, intersect, frontSector, ref test, ref minHit, ref hitPlane, ref minDistanceSquared, back);
+
+        if (minDistanceSquared != double.MaxValue)
+        {
+            outIntersect = minHit;
+            plane = hitPlane;
+            return true;
+        }
+
+        return false;
+    }
+
+    private void CheckForBlockedSector3D(Vec3D start, Vec3D end, SegCrossContext context, Vec3D intersect, Sector frontSector, ref Vec3D test, ref Vec3D minHit, ref SectorPlane? hitPlane, ref double minDistanceSquared, Sector sector)
+    {
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
@@ -1895,18 +1911,16 @@ public abstract partial class WorldBase : IWorld
             }
 
             if (!isSolid)
-                continue;            
+                continue;
 
-            if (sector3d.ControlBottom.Z < intersect.Z && sector3d.ControlTop.Z > intersect.Z)
+            if (frontSector != sector && sector3d.ControlBottom.Z <= intersect.Z && sector3d.ControlTop.Z >= intersect.Z)
             {
-                if (IntersectPlane3D(sector3d, sector, start, end, ref test, out var planeCheck))
+                var distance = start.DistanceSquared(intersect);
+                if (distance < minDistanceSquared)
                 {
-                    intersect = test;
-                    plane = planeCheck;
-                    return true;
+                    minHit = intersect;
+                    minDistanceSquared = distance;
                 }
-
-                return true;
             }
 
             if (IntersectPlane3D(sector3d, sector, start, end, ref test, out var testPlane))
@@ -1920,27 +1934,24 @@ public abstract partial class WorldBase : IWorld
                 }
             }
         }
-
-        if (minDistanceSquared != double.MaxValue)
-        {
-            intersect = minHit;
-            plane = hitPlane;
-            return true;
-        }
-
-        return false;
     }
 
     private bool IntersectPlane3D(Sector3D sector3d, Sector sector, in Vec3D start, in Vec3D end, ref Vec3D intersect, out SectorPlane? plane)
     {
         plane = null;
-        if (start.Z < sector3d.ControlBottom.Z && sector3d.ControlBottom.Plane.Intersects(start, end, ref intersect) && PointInSector(sector, intersect))
+
+        var checkTopZ = sector3d.ControlTop.Z;
+        var checkBottomZ = sector3d.ControlBottom.Z;
+        if (start.Z <= sector3d.ControlTop.Z && start.Z >= sector3d.ControlBottom.Z)
+            (checkTopZ, checkBottomZ) = (checkBottomZ, checkTopZ);
+
+        if (start.Z < checkBottomZ && sector3d.ControlBottom.Plane.Intersects(start, end, ref intersect) && PointInSector(sector, intersect))
         {
             plane = sector3d.ControlBottom;
             return true;
         }
 
-        if (start.Z > sector3d.ControlTop.Z && sector3d.ControlTop.Plane.Intersects(start, end, ref intersect) && PointInSector(sector, intersect))
+        if (start.Z > checkTopZ && sector3d.ControlTop.Plane.Intersects(start, end, ref intersect) && PointInSector(sector, intersect))
         {
             plane = sector3d.ControlTop;
             return true;
@@ -2240,7 +2251,7 @@ public abstract partial class WorldBase : IWorld
                 ref var line = ref Blockmap.BlockLines[entity.BlockingBlockLineIndex];
                 if (line.BackSector != null)
                 {
-                    GetOrderedSectors(line, entity.Position, out Sector front, out Sector back);
+                    GetOrderedSectors(line, entity.Position, out var front, out var back);
                     if (IsSkyClipTwoSided(front, back, entity.Position))
                         skyClip = true;
                 }
@@ -3024,9 +3035,13 @@ public abstract partial class WorldBase : IWorld
                 var segTimeLength = bi.SegTime * segLength;
                 if (WorldStatic.Sector3D)
                 {
-                    GetLineOfSightPitchBySectorLine3D(line.FrontSector, start, segTimeLength, ref topPitch, ref bottomPitch);
-                    if (line.BackSector != null)
-                        GetLineOfSightPitchBySectorLine3D(line.BackSector, start, segTimeLength, ref topPitch, ref bottomPitch);
+                    GetOrderedSectors(line, start, out var front, out _);
+                    GetLineOfSightPitchByPlane3D(line.FrontSector, start, end, default, front, ref topPitch, ref bottomPitch);
+                    GetLineOfSightPitchByPlane3D(line.BackSector, start, end, default, front, ref topPitch, ref bottomPitch);
+
+                    //GetLineOfSightPitchBySectorLine3D(line.FrontSector, start, segTimeLength, ref topPitch, ref bottomPitch);
+                    //if (line.BackSector != null)
+                    //    GetLineOfSightPitchBySectorLine3D(line.BackSector, start, segTimeLength, ref topPitch, ref bottomPitch);
 
                     if (topPitch <= bottomPitch)
                         return TraversalPitchStatus.Blocked;
@@ -3085,7 +3100,7 @@ public abstract partial class WorldBase : IWorld
 
         if (WorldStatic.Sector3D)
         {
-            GetLineOfSightPitchByPlane3D(startEntity.Sector, start, end, default, ref topPitch, ref bottomPitch);
+            GetLineOfSightPitchByPlane3D(startEntity.Sector, start, end, default, startEntity.Sector, ref topPitch, ref bottomPitch);
             if (topPitch <= bottomPitch)
                 return TraversalPitchStatus.Blocked;
         }
@@ -3098,32 +3113,41 @@ public abstract partial class WorldBase : IWorld
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            if (start.Z > sector3d.ControlTop.Z)
+            var topZ = sector3d.ControlTop.Z;
+            var bottomZ = sector3d.ControlBottom.Z;
+
+            if (start.Z >= bottomZ && start.Z <= topZ)
+                (topZ, bottomZ) = (bottomZ, topZ);
+
+            if (start.Z > topZ)
             {
-                var sectorPitch = start.Pitch(sector3d.ControlTop.Z, segLength);
+                var sectorPitch = start.Pitch(topZ, segLength);
                 if (sectorPitch > bottomPitch)
                     bottomPitch = sectorPitch;
             }
 
-            if (start.Z < sector3d.ControlBottom.Z)
+            if (start.Z < bottomZ)
             {
-                var sectorPitch = start.Pitch(sector3d.ControlBottom.Z, segLength);
+                var sectorPitch = start.Pitch(bottomZ, segLength);
                 if (sectorPitch < topPitch)
                     topPitch = sectorPitch;
             }
         }
     }
 
-    private void GetLineOfSightPitchByPlane3D(Sector sector, in Vec3D start, in Vec3D end, Vec3D intersect, ref double topPitch, ref double bottomPitch)
+    private void GetLineOfSightPitchByPlane3D(Sector sector, in Vec3D start, in Vec3D end, Vec3D intersect, Sector front, ref double topPitch, ref double bottomPitch)
     {
-        if (SegBlockedBySector3D(sector, start, end, SegCrossContext.LineOfSight, ref intersect, out var hitPlane) && hitPlane != null)
+        if (SegBlockedBySector3D(sector, null, start, end, SegCrossContext.LineOfSight, intersect, ref intersect, front, out var hitPlane) && hitPlane != null)
         {
             var sectorPitch = start.Pitch(hitPlane.Z, start.Distance(intersect));
 
-            if (hitPlane.Facing == SectorPlaneFace.Ceiling && sectorPitch > bottomPitch)
+            var test = hitPlane.Facing;
+            if (sector == front)
+                test = test.Flip();
+            if (test == SectorPlaneFace.Ceiling && sectorPitch > bottomPitch)
                 bottomPitch = sectorPitch;
 
-            if (hitPlane.Facing == SectorPlaneFace.Floor && sectorPitch < topPitch)
+            if (test == SectorPlaneFace.Floor && sectorPitch < topPitch)
                 topPitch = sectorPitch;
         }        
     }

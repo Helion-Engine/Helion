@@ -286,10 +286,11 @@ public class SinglePlayerWorld : WorldBase
 
     private bool GetCrosshairTarget(out Entity? entity)
     {
+        var cameraPlayer = GetCameraPlayer();
         if (Config.Game.AutoAim)
-            GetAutoAimEntity(Player, Player.HitscanAttackPos, Player.AngleRadians, Constants.EntityShootDistance, out _, out entity);
+            GetAutoAimEntity(cameraPlayer, cameraPlayer.HitscanAttackPos, cameraPlayer.AngleRadians, Constants.EntityShootDistance, out _, out entity);
         else
-            entity = FireHitscan(Player, Player.AngleRadians, Player.PitchRadians, Constants.EntityShootDistance, Constants.HitscanTestDamage);
+            entity = FireHitscan(cameraPlayer, cameraPlayer.AngleRadians, cameraPlayer.PitchRadians, Constants.EntityShootDistance, Constants.HitscanTestDamage);
 
         return entity != null && !entity.Flags.Friendly() && entity.Health > 0;
     }
