@@ -67,7 +67,7 @@ public partial class WorldLayer
     private int m_healthWidth;
     private string m_weaponSprite = StringBuffer.GetStringExact(6);
     private string m_weaponFlashSprite = StringBuffer.GetStringExact(6);
-    private readonly string m_renderMessageBufferString = StringBuffer.GetString();
+    private string m_renderMessageBufferString = StringBuffer.GetString();
     private readonly SpanString m_weaponSpriteSpan = new("123456");
     private readonly SpanString m_weaponFlashSpriteSpan = new("123456");
 
@@ -1094,7 +1094,7 @@ public partial class WorldLayer
                 {
                     var renderMessage = GetRenderMessageWithCount(msg);
                     StringBuffer.Clear(m_renderMessageBufferString);
-                    StringBuffer.Append(m_renderMessageBufferString, renderMessage.AsSpan());
+                    m_renderMessageBufferString = StringBuffer.Append(m_renderMessageBufferString, renderMessage.AsSpan());
                     renderMessageString = m_renderMessageBufferString;
                     renderMessageLength = StringBuffer.StringLength(m_renderMessageBufferString);
                 }
