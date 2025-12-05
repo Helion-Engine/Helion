@@ -300,7 +300,7 @@ public partial class StaticCacheGeometryRenderer : IDisposable
         if (dynamic && (sector.Floor.Dynamic == SectorDynamic.Movement || sector.Ceiling.Dynamic == SectorDynamic.Movement))
             return;
 
-        if (side.Sector.Sectors3D.Length > 0)
+        if (WorldStatic.Sector3D && side.Sector.Sectors3D.Length > 0)
         {
             m_geometryRenderer.SetRenderOneSided(side);
             var result = m_geometryRenderer.RenderWallSlices3D(side, side.Middle, isFrontSide, side, sector, sector, m_renderOneSidedSliceFunc);

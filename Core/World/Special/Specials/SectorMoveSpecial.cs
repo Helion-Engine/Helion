@@ -304,6 +304,7 @@ public class SectorMoveSpecial : ISectorSpecial
     {
         SectorPlane.PrevZ = SectorPlane.Z;
         SectorPlane.LastRenderChangeGametick = m_world.Gametick;
+        SectorPlane.Sector.ResetInterpolationForPlane();
     }
 
     private void CheckPlaySound()

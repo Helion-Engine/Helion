@@ -421,6 +421,9 @@ public partial class GeometryRenderer
         wallSector.Ceiling.PrevZ = heights.PrevTopZ;
         wallSector.Floor.Z = heights.BottomZ;
         wallSector.Floor.PrevZ = heights.PrevBottomZ;
+
+        if (wallSector.Floor.Z > wallSector.Ceiling.Z)
+            wallSector.Floor.Z = wallSector.Ceiling.Z;
     }
 
     private static void SetSectorToSlice(Sector wallSector, WallHeights prevHeights, WallHeights heights)
@@ -429,5 +432,8 @@ public partial class GeometryRenderer
         wallSector.Ceiling.PrevZ = prevHeights.PrevBottomZ;
         wallSector.Floor.Z = heights.TopZ;
         wallSector.Floor.PrevZ = heights.PrevTopZ;
+
+        if (wallSector.Floor.Z > wallSector.Ceiling.Z)
+            wallSector.Floor.Z = wallSector.Ceiling.Z;
     }
 }

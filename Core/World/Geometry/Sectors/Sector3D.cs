@@ -203,6 +203,11 @@ public class Sector3D
         return maxSector?.ControlSector ?? ParentSector;
     }
 
+    public void InvalidateWallHeights()
+    {
+        m_lastGameTick = -1;
+    }
+
     public WallHeights CalculateWallHeights(int gameTick)
     {
         if (gameTick == m_lastGameTick)

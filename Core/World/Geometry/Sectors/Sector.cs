@@ -993,4 +993,13 @@ public sealed class Sector
                 SetKillEffect(changes.KillEffect.Value);
         }
     }
+
+    public void ResetInterpolationForPlane()
+    {
+        if (!WorldStatic.Sector3D)
+            return;
+
+        for (int i = 0; i < TaggedSectors3D.Length; i++)
+            TaggedSectors3D[i].InvalidateWallHeights();
+    }
 }
