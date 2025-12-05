@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Helion.Geometry;
 using Helion.Geometry.Vectors;
 using Helion.Render.Common.Shared.World;
@@ -21,13 +22,30 @@ public static class WorldTriangulator
         double overrideFloor = NoOverride, double overrideCeiling = NoOverride, bool isFront = true, bool calculateUV = true)
     {
         Line line = side.Line;
+        GetLeftRightVertices(isFront, line, out var left, out var right);
 
-        Vec2F left = isFront ? new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y) : new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
-        Vec2F right = isFront ? new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y) : new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
-        double topZ = overrideCeiling == NoOverride ? ceiling.Z + WorldStatic.LineVertexGap : overrideCeiling;
-        double bottomZ = overrideFloor == NoOverride ? floor.Z - WorldStatic.LineVertexGap : overrideFloor;
-        double prevTopZ = overrideCeiling == NoOverride ? ceiling.PrevZ + WorldStatic.LineVertexGap : overrideCeiling;
-        double prevBottomZ = overrideFloor == NoOverride ? floor.PrevZ - WorldStatic.LineVertexGap : overrideFloor;
+        double topZ, bottomZ, prevTopZ, prevBottomZ;
+        if (overrideCeiling == NoOverride)
+        {
+            topZ = ceiling.Z + WorldStatic.LineVertexGapTopZ;
+            prevTopZ = ceiling.PrevZ + WorldStatic.LineVertexGapTopZ;
+        }
+        else
+        {
+            topZ = overrideCeiling;
+            prevTopZ = overrideCeiling;
+        }
+
+        if (overrideFloor == NoOverride)
+        {
+            bottomZ = floor.Z - WorldStatic.LineVertexGapBottomZ;
+            prevBottomZ = floor.PrevZ - WorldStatic.LineVertexGapBottomZ;
+        }
+        else
+        {
+            bottomZ = overrideFloor;
+            prevBottomZ = overrideFloor;
+        }
 
         double length = line.GetLength();
         double spanZ = topZ - bottomZ;
@@ -72,18 +90,15 @@ public static class WorldTriangulator
         in Vec2F textureUVInverse, bool isFrontSide, ref WallVertices wall, bool calculateUV = true)
     {
         Line line = facingSide.Line;
+        GetLeftRightVertices(isFrontSide, line, out var left, out var right);
 
-        Vec2F left = isFrontSide ? new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y) : new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
-        Vec2F right = isFrontSide ? new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y) : new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
-        double topZ = topFlat.Z + WorldStatic.LineVertexGap;
-        double bottomZ = bottomFlat.Z - WorldStatic.LineVertexGap;
-        double prevTopZ = topFlat.PrevZ + WorldStatic.LineVertexGap;
-        double prevBottomZ = bottomFlat.PrevZ - WorldStatic.LineVertexGap;
+        double topZ = topFlat.Z + WorldStatic.LineVertexGapTopZ;
+        double bottomZ = bottomFlat.Z - WorldStatic.LineVertexGapBottomZ;
+        double prevTopZ = topFlat.PrevZ + WorldStatic.LineVertexGapTopZ;
+        double prevBottomZ = bottomFlat.PrevZ - WorldStatic.LineVertexGapBottomZ;
 
         double length = line.GetLength();
-        WallUV uv;
-        WallUV prevUV;
-
+        WallUV uv, prevUV;
         if (calculateUV)
         {
             uv = CalculateTwoSidedLowerWallUV(line, facingSide, length, textureUVInverse, topZ, bottomZ, previous: false);
@@ -143,8 +158,8 @@ public static class WorldTriangulator
             return;
         }
 
-        Vec2F left = isFrontSide ? new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y) : new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
-        Vec2F right = isFrontSide ? new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y) : new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
+        GetLeftRightVertices(isFrontSide, line, out var left, out var right);
+
         double length = line.GetLength();
         WallUV uv = CalculateTwoSidedMiddleWallUV(facingSide, length, drawSpan.TopZ, drawSpan.BottomZ, 
             drawSpan.VisibleTopZ, drawSpan.VisibleBottomZ, textureUVInverse, previous: false);
@@ -178,13 +193,22 @@ public static class WorldTriangulator
         bool isFrontSide, ref WallVertices wall, double overrideTopZ = NoOverride, bool calculateUV = true)
     {
         Line line = facingSide.Line;
+        GetLeftRightVertices(isFrontSide, line, out var left, out var right);
 
-        Vec2F left = isFrontSide ? new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y) : new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
-        Vec2F right = isFrontSide ? new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y) : new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
-        double topZ = overrideTopZ == NoOverride ? topPlane.Z + WorldStatic.LineVertexGap : overrideTopZ;
-        double bottomZ = bottomPlane.Z - WorldStatic.LineVertexGap;
-        double prevTopZ = overrideTopZ == NoOverride ? topPlane.PrevZ + WorldStatic.LineVertexGap : overrideTopZ;
-        double prevBottomZ = bottomPlane.PrevZ - WorldStatic.LineVertexGap;
+        double topZ, prevTopZ;
+        if (overrideTopZ == NoOverride)
+        {
+            topZ = topPlane.Z + WorldStatic.LineVertexGapTopZ;
+            prevTopZ = topPlane.PrevZ + WorldStatic.LineVertexGapTopZ;
+        }
+        else
+        {
+            topZ = overrideTopZ;
+            prevTopZ = overrideTopZ;
+        }
+
+        var bottomZ = bottomPlane.Z - WorldStatic.LineVertexGapBottomZ;
+        var prevBottomZ = bottomPlane.PrevZ - WorldStatic.LineVertexGapBottomZ;
 
         double length = line.GetLength();
         double spanZ = topZ - bottomZ;
@@ -389,8 +413,8 @@ public static class WorldTriangulator
 
         if (vertexGap)
         {
-            return new(bottomZ - WorldStatic.LineVertexGap, topZ + WorldStatic.LineVertexGap, visibleBottomZ - WorldStatic.LineVertexGap, visibleTopZ + WorldStatic.LineVertexGap,
-                prevBottomZ - WorldStatic.LineVertexGap, prevTopZ + WorldStatic.LineVertexGap, visiblePrevBottomZ - WorldStatic.LineVertexGap, visiblePrevTopZ + WorldStatic.LineVertexGap);
+            return new(bottomZ - WorldStatic.LineVertexGapBottomZ, topZ + WorldStatic.LineVertexGapTopZ, visibleBottomZ - WorldStatic.LineVertexGapBottomZ, visibleTopZ + WorldStatic.LineVertexGapTopZ,
+                prevBottomZ - WorldStatic.LineVertexGapBottomZ, prevTopZ + WorldStatic.LineVertexGapTopZ, visiblePrevBottomZ - WorldStatic.LineVertexGapBottomZ, visiblePrevTopZ + WorldStatic.LineVertexGapTopZ);
         }
 
         return new(bottomZ, topZ , visibleBottomZ, visibleTopZ ,
@@ -559,4 +583,20 @@ public static class WorldTriangulator
 
         return new WallUV(new(leftU * side.Upper.Scale.X, topV * side.Upper.Scale.Y), new(rightU * side.Upper.Scale.X, bottomV * side.Upper.Scale.Y));
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void GetLeftRightVertices(bool isFront, Line line, out Vec2F left, out Vec2F right)
+    {
+        if (isFront)
+        {
+            left = new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
+            right = new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
+        }
+        else
+        {
+            left = new((float)line.RenderSegEnd.X, (float)line.RenderSegEnd.Y);
+            right = new((float)line.RenderSegStart.X, (float)line.RenderSegStart.Y);
+        }
+    }
+
 }

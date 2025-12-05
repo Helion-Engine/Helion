@@ -112,12 +112,16 @@ public partial class Renderer : IDisposable
     {
         if (set)
         {
+            WorldStatic.LineVertexGapTopZ = Constants.VertexGapPush;
+            WorldStatic.LineVertexGapBottomZ = Constants.VertexGapPush;
             WorldStatic.LineVertexGap = Constants.VertexGapPush;
             WorldStatic.LineVertexOffset = -(float)Constants.VertexGapPush;
             WorldStatic.CoverWallOffset = -(float)Constants.VertexGapPush * 2;
         }
         else
         {
+            WorldStatic.LineVertexGapTopZ = 0;
+            WorldStatic.LineVertexGapBottomZ = 0;
             WorldStatic.LineVertexGap = 0;
             WorldStatic.LineVertexOffset = 0;
             WorldStatic.CoverWallOffset = 0;

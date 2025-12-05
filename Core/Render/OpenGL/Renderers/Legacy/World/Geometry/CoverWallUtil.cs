@@ -81,8 +81,8 @@ public class CoverWallUtil
         // Adjust cover wall offsets to not block extra pixels from the the backside
         return new Heights
         (
-            location == WallLocation.Lower ? -(float)WorldStatic.LineVertexGap : ProjectHeight,
-            location == WallLocation.Upper ? (float)WorldStatic.LineVertexGap : ProjectHeight
+            location == WallLocation.Lower ? -(float)WorldStatic.LineVertexGapTopZ : ProjectHeight,
+            location == WallLocation.Upper ? (float)WorldStatic.LineVertexGapBottomZ : ProjectHeight
         );
     }
 }

@@ -51,6 +51,8 @@ public static class WorldStatic
     public static List<EntityFrame> Frames = null!;
     public static int[] CheckedLines = [];
     public static double LineVertexGap;
+    public static double LineVertexGapTopZ;
+    public static double LineVertexGapBottomZ;
     public static float LineVertexOffset;
     public static float CoverWallOffset;
     public static float DamageApplyMultiplier = 1;

@@ -3,6 +3,7 @@ using Helion.Render.OpenGL.Texture.Legacy;
 using Helion.Resources;
 using Helion.Util;
 using Helion.Util.Container;
+using Helion.World;
 using Helion.World.Geometry.Sectors;
 using Helion.World.Geometry.Sides;
 using Helion.World.Geometry.Walls;
@@ -42,33 +43,20 @@ public partial class GeometryRenderer
         var parentBack = flipped ? parentSectorLine.Back : parentSectorLine.Front;
         var parentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
 
-        if (renderFront)
+        if (renderFront && parentBack != null)
         {
-            if (parentBack != null)
-            {
-                sector3d.CalculateWallHeights(parentBack, wallHeights, out newWallHeights);
-                wallSector.Ceiling.Z = newWallHeights.TopZ;
-                wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
-                wallSector.Floor.Z = newWallHeights.BottomZ;
-                wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
-            }
+            sector3d.CalculateWallHeights(parentBack, wallHeights, out newWallHeights);
+            wallSector.Ceiling.Z = newWallHeights.TopZ;
+            wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
+            wallSector.Floor.Z = newWallHeights.BottomZ;
+            wallSector.Floor.PrevZ = newWallHeights.PrevBottomZ;
 
             useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, parentBack);
+            var result = RenderWallSlices3D(useSide, useSide.Middle, true, null!, wallSector, null!, m_renderSectorSliceFunc3D,
+                offsetSide: parentBack, renderSkySide: false, allowAlpha: true, isOffset3D: true, traverseSide: parentBack);
 
-            if (parentBack != null)
-            {
-                var result = RenderWallSlices3D(useSide, useSide.Middle, true, null!, wallSector, null!, m_renderSectorSliceFunc3D,
-                    offsetSide: parentBack, renderSkySide: false, allowAlpha: true, isOffset3D: true, traverseSide: parentBack);
-
-                if (result.Vertices.Length > 0 && renderVertices != null)
-                    renderVertices(useSide, useSide.Middle, result.Texture, result.Vertices);
-            }
-
-            //RenderOneSided(useSide, true, out var sideVertices, out _, out var texture,
-            //    renderSector: wallSector, lightLevelSector: sector3d.ParentSector, offsetSide: parentBack, renderSkySide: false, allowAlpha: true);
-
-            //if (sideVertices != null && renderVertices != null)
-            //    renderVertices(useSide, useSide.Middle, texture, sideVertices);
+            if (result.Vertices.Length > 0 && renderVertices != null)
+                renderVertices(useSide, useSide.Middle, result.Texture, result.Vertices);
         }
 
         if (renderBack && sector3d.ShouldRenderInsideWalls && sectorLine.Back != null &&
@@ -81,12 +69,6 @@ public partial class GeometryRenderer
 
             useSide = sectorLine.Back;
             useSide.Middle.TextureHandle = sector3d.GetTextureHandle(useSide, parentFront);
-
-            //var result = RenderWallSlices3D(useSide, useSide.Middle, false, null!, wallSector, null!, m_renderSectorSliceFunc3D,
-            //    offsetSide: parentBack, renderSkySide: false, allowAlpha: true, traverseSide: parentFront);
-
-            //if (result.Vertices.Length > 0 && renderVertices != null)
-            //    renderVertices(useSide, useSide.Middle, result.Texture, result.Vertices);
 
             RenderOneSided(useSide, false, out var sideVertices, out _, out var texture,
                 renderSector: wallSector, lightLevelSector: sector3d.LightMiddle, offsetSide: parentFront, renderSkySide: false, allowAlpha: true);
@@ -109,6 +91,8 @@ public partial class GeometryRenderer
 
         m_vertices.Clear();
         var saveOffsetY = wall.Offset.Y;
+        var saveGapZ = WorldStatic.LineVertexGapBottomZ;
+        WorldStatic.LineVertexGapBottomZ = 0;
         var prevHeights = new WallHeights(side.Sector.Ceiling.Z, side.Sector.Ceiling.Z, side.Sector.Ceiling.PrevZ, side.Sector.Ceiling.PrevZ);
         var wallSector3d = side.Sector.Sectors3D[0].FakeSector;
         var wallSector = m_sliceSector;
@@ -158,10 +142,12 @@ public partial class GeometryRenderer
                 finalResult.SkyVertices = result.SkyVertices;
                 finalResult.SkyVertices2 = result.SkyVertices2;
                 args.RenderSkySide = false;
+                WorldStatic.LineVertexGapTopZ = 0;
+                WorldStatic.LineVertexGapBottomZ = 0;
             }
 
             if (result.AddOffset)
-                SetWallOffset(wall, isOffset3D, saveOffsetY, heights);
+                SetWallOffset(wall, isOffset3D, saveOffsetY, heights);            
 
             // Render the inside portion of this 3d sector
             SetSectorToSlice(wallSector, heights);
@@ -185,6 +171,8 @@ public partial class GeometryRenderer
         AddVertices(m_vertices, result.Vertices);
 
         wall.Offset.Y = saveOffsetY;
+        WorldStatic.LineVertexGapTopZ = saveGapZ;
+        WorldStatic.LineVertexGapBottomZ = saveGapZ;
         finalResult.Vertices = m_vertices.Data.AsSpan(0, m_vertices.Length);
         return finalResult;
     }
