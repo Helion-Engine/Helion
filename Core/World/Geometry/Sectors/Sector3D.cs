@@ -350,5 +350,5 @@ public class Sector3D
         return controlSectorSide.Middle.TextureHandle;
     }
 
-    public override string ToString() => $"3D Sector: {SectorId} ControlId: {ControlSector.Id} ParentId: {ParentSectorId} [{ControlSector.Ceiling.Z} {ControlSector.Floor.Z}]";
+    public override string ToString() => $"3D Sector={SectorId} ControlId={ControlSector.Id} ParentId={ParentSectorId} [{ControlSector.Floor.Z} -> {ControlSector.Ceiling.Z}]";
 }
