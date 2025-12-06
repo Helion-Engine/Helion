@@ -74,12 +74,12 @@ namespace Helion.Geometry.Segments
         public static bool operator ==(Seg2D self, Seg2D other) => self.Start == other.Start && self.End == other.End;
         public static bool operator !=(Seg2D self, Seg2D other) => !(self == other);
 
-        public Vec2D Opposite(Endpoint endpoint) => endpoint == Endpoint.Start ? End : Start;
-        public Seg2D WithStart(Vec2D start) => (start, End);
-        public Seg2D WithStart(Vector2D start) => (start.Struct, End);
-        public Seg2D WithEnd(Vec2D end) => (Start, end);
-        public Seg2D WithEnd(Vector2D end) => (Start, end.Struct);
-        public Vec2D FromTime(double t) => Start + (Delta * t);
+        public readonly Vec2D Opposite(Endpoint endpoint) => endpoint == Endpoint.Start ? End : Start;
+        public readonly Seg2D WithStart(Vec2D start) => (start, End);
+        public readonly Seg2D WithStart(Vector2D start) => (start.Struct, End);
+        public readonly Seg2D WithEnd(Vec2D end) => (Start, end);
+        public readonly Seg2D WithEnd(Vector2D end) => (Start, end.Struct);
+        public readonly Vec2D FromTime(double t) => Start + (Delta * t);
         public bool SameDirection(Seg2D seg) => SameDirection(seg.Delta);
         public bool SameDirection(Segment2D seg) => SameDirection(seg.Delta);
         public bool SameDirection<T>(SegmentT2D<T> seg) where T : Vector2D => SameDirection(seg.Delta);
