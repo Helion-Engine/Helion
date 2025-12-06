@@ -34,15 +34,17 @@ public partial class SpanString
 
         int length = m_chars.Length;
         int copyLength = text.Length * sizeof(char);
-        m_chars.EnsureCapacity(m_chars.Length + text.Length);
+        m_chars.EnsureCapacity(length + text.Length);
+
         fixed (char* to = m_chars.Data)
+        fixed (char* from = text)
         {
-            fixed (char* from = text)
-            {
-                Buffer.MemoryCopy(from, to + length,
-                    (m_chars.Capacity * sizeof(char)) - (text.Length * sizeof(char)),
-                    copyLength);
-            }
+            Buffer.MemoryCopy(
+                from,
+                to + length,
+                (m_chars.Capacity - length) * sizeof(char),
+                copyLength
+            );
         }
 
         m_chars.SetLength(length + text.Length);
