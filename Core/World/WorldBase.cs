@@ -2415,8 +2415,8 @@ public abstract partial class WorldBase : IWorld
         Vec3D sightPos = new(from.Position.X, from.Position.Y, from.Position.Z + (from.Height * 0.75));
         Vec3D endSightPos = to.Position;
 
-        double topPitch = sightPos.Pitch(endSightPos.Z + to.Height, segLength);
-        double bottomPitch = sightPos.Pitch(endSightPos.Z, segLength);
+        var topPitch = (endSightPos.Z + to.Height - sightPos.Z) / segLength;
+        var bottomPitch = (endSightPos.Z - sightPos.Z) / segLength;
 
         if (segLength <= m_losDistance)
         {
@@ -3047,16 +3047,16 @@ public abstract partial class WorldBase : IWorld
         PitchNotSet,
     }
 
-    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, in Vec3D end, Entity startEntity,
-        double segLength, ref double topPitch, ref double bottomPitch,
-        out double pitch, out Entity? entity)
+    private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, in Vec3D end, Entity startEntity, double segLength,
+     ref double topSlope, ref double bottomSlope, out double slope, out Entity? entity)
     {
-        pitch = 0.0;
+        slope = 0.0;
         entity = null;
 
         var noCrossCheck = true;
         var data = intersections.Data;
         int length = intersections.Length;
+
         for (int i = 0; i < length; i++)
         {
             ref var bi = ref data[i];
@@ -3072,30 +3072,35 @@ public abstract partial class WorldBase : IWorld
                     continue;
 
                 var segTimeLength = bi.SegTime * segLength;
+                if (segTimeLength == 0)
+                    continue;
+
                 if (WorldStatic.Sector3D)
                 {
-                    if (!CheckPitch3D(line.FrontSector, line.BackSector, start, segTimeLength, ref topPitch, ref bottomPitch))
+                    if (!CheckSlope3D(line.FrontSector, line.BackSector, start, segTimeLength, ref topSlope, ref bottomSlope))
                         return TraversalPitchStatus.Blocked;
 
-                    if (!CheckPitch3D(line.BackSector, line.FrontSector, start, segTimeLength, ref topPitch, ref bottomPitch))
+                    if (!CheckSlope3D(line.BackSector, line.FrontSector, start, segTimeLength, ref topSlope, ref bottomSlope))
                         return TraversalPitchStatus.Blocked;
                 }
 
-                if (line.BackSector != null && line.FrontSector.Floor.Z == line.BackSector.Floor.Z && line.FrontSector.Ceiling.Z == line.BackSector.Ceiling.Z)
+                if (line.BackSector != null &&
+                    line.FrontSector.Floor.Z == line.BackSector.Floor.Z &&
+                    line.FrontSector.Ceiling.Z == line.BackSector.Ceiling.Z)
                     continue;
 
                 var opening = PhysicsManager.GetLineOpening(line.FrontSector, line.BackSector!);
                 if (opening.FloorZ < opening.CeilingZ)
                 {
-                    var sectorPitch = start.Pitch(opening.FloorZ, segTimeLength);
-                    if (sectorPitch > bottomPitch)
-                        bottomPitch = sectorPitch;
+                    var floorSlope = (opening.FloorZ - start.Z) / segTimeLength;
+                    if (floorSlope > bottomSlope)
+                        bottomSlope = floorSlope;
 
-                    sectorPitch = start.Pitch(opening.CeilingZ, segTimeLength);
-                    if (sectorPitch < topPitch)
-                        topPitch = sectorPitch;
+                    var ceilingSlope = (opening.CeilingZ - start.Z) / segTimeLength;
+                    if (ceilingSlope < topSlope)
+                        topSlope = ceilingSlope;
 
-                    if (topPitch <= bottomPitch)
+                    if (topSlope <= bottomSlope)
                         return TraversalPitchStatus.Blocked;
                 }
                 else
@@ -3106,26 +3111,29 @@ public abstract partial class WorldBase : IWorld
             else if (startEntity.Index != index)
             {
                 var segTimeLength = bi.SegTime * segLength;
+                if (segTimeLength == 0)
+                    continue;
+
                 var currentEntity = DataCache.Entities[index];
-                var thingTopPitch = start.Pitch(currentEntity.Position.Z + currentEntity.Height, segTimeLength);
-                if (thingTopPitch < bottomPitch)
+                var thingTopSlope = (currentEntity.Position.Z + currentEntity.Height - start.Z) / segTimeLength;
+                if (thingTopSlope < bottomSlope)
                     continue;
 
-                var thingBottomPitch = start.Pitch(currentEntity.Position.Z, segTimeLength);
-                if (thingBottomPitch > topPitch)
+                var thingBottomSlope = (currentEntity.Position.Z - start.Z) / segTimeLength;
+                if (thingBottomSlope > topSlope)
                     continue;
 
-                if (thingBottomPitch > topPitch)
+                if (thingBottomSlope > topSlope)
                     return TraversalPitchStatus.Blocked;
-                if (thingTopPitch < bottomPitch)
+                if (thingTopSlope < bottomSlope)
                     return TraversalPitchStatus.Blocked;
 
-                if (thingTopPitch < topPitch)
-                    topPitch = thingTopPitch;
-                if (thingBottomPitch > bottomPitch)
-                    bottomPitch = thingBottomPitch;
+                if (thingTopSlope < topSlope)
+                    topSlope = thingTopSlope;
+                if (thingBottomSlope > bottomSlope)
+                    bottomSlope = thingBottomSlope;
 
-                pitch = (bottomPitch + topPitch) / 2.0;
+                slope = (bottomSlope + topSlope) / 2.0;
                 entity = currentEntity;
                 return TraversalPitchStatus.PitchSet;
             }
@@ -3142,7 +3150,8 @@ public abstract partial class WorldBase : IWorld
         return TraversalPitchStatus.PitchNotSet;
     }
 
-    private static bool CheckPitch3D(Sector sector, Sector otherSector, in Vec3D start, double segTimeLength, ref double topPitch, ref double bottomPitch)
+    private static bool CheckSlope3D(Sector sector, Sector otherSector,in Vec3D start, double segTimeLength,
+        ref double topSlope, ref double bottomSlope)
     {
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
@@ -3152,34 +3161,39 @@ public abstract partial class WorldBase : IWorld
 
             var topZ = sector3d.ControlTop.Z;
             var bottomZ = sector3d.ControlBottom.Z;
-            var topPitch3D = start.Pitch(topZ, segTimeLength);
-            var bottomPitch3D = start.Pitch(bottomZ, segTimeLength);
 
-            if (topPitch3D >= topPitch)
+            var topSlope3D = (topZ - start.Z) / segTimeLength;
+            var bottomSlope3D = (bottomZ - start.Z) / segTimeLength;
+
+            if (topSlope3D >= topSlope)
             {
-                if (bottomPitch3D <= bottomPitch)
+                // blocks completely
+                if (bottomSlope3D <= bottomSlope)
                     return false;
-                if (bottomPitch3D < topPitch)
-                    topPitch = bottomPitch3D;
+
+                // clips upper edge
+                if (bottomSlope3D < topSlope)
+                    topSlope = bottomSlope3D;
             }
-            else if (bottomPitch3D <= bottomPitch)
+            else if (bottomSlope3D <= bottomSlope)
             {
-                if (topPitch3D > topPitch)
-                    bottomPitch = topPitch3D;
+                // clips lower edge
+                if (topSlope3D > topSlope)
+                    bottomSlope = topSlope3D;
             }
-            else if(!CheckOpposingPitchOverlap3D(otherSector, sector3d, topZ, bottomZ))
+            else if (!CheckOpposingSlopeOverlap3D(otherSector, sector3d, topZ, bottomZ))
             {
-                return false;   
+                return false;
             }
 
-            if (topPitch <= bottomPitch)
+            if (topSlope <= bottomSlope)
                 return false;
         }
 
         return true;
     }
 
-    private static bool CheckOpposingPitchOverlap3D(Sector otherSector, Sector3D sector3d, double topZ, double bottomZ)
+    private static bool CheckOpposingSlopeOverlap3D(Sector otherSector, Sector3D sector3d, double topZ, double bottomZ)
     {
         for (int i = 0; i < otherSector.Sectors3D.Length; i++)
         {
