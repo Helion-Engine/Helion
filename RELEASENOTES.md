@@ -5,6 +5,7 @@
 
 ## Bug Fixes:
 - Fix not cooperative flag check for solo-net.
+- Fix crash that can happen with hud string rendering.
 
 ## Misc:
 - Add compatibility for Eviternity II Annihilate Me skill level to swap incorrect usage of SpawnMulti to SpawnMultiCoopOnly.
