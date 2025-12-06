@@ -40,6 +40,12 @@ public struct WallHeights(double topZ, double bottomZ, double prevTopZ, double p
     public double PrevBottomZ = prevBottomZ;
 }
 
+public enum SolidContext
+{
+    LineOfSight,
+    HitScan
+}
+
 public class Sector3D
 {
     public int ParentSectorId;
@@ -115,6 +121,18 @@ public class Sector3D
 
         FakeBottom.Reset(0);
         FakeTop.Reset(0);
+    }
+
+    public bool IsSolidByContext(SolidContext context)
+    {
+        var isSolid = IsSolid;
+        if ((context == SolidContext.LineOfSight && (Flags & SectorFlags3D.VisibilityInvert) != 0) ||
+            (context == SolidContext.HitScan && (Flags & SectorFlags3D.ShootabilityInvert) != 0))
+        {
+            return !isSolid;
+        }
+
+        return isSolid;
     }
 
     private static Line[] CreateSector3DLines(IWorld world, Sector sector, int textureHandle, bool createBackSide)
