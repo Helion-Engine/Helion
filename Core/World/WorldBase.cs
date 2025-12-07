@@ -1660,15 +1660,17 @@ public abstract partial class WorldBase : IWorld
     public virtual Entity? FireHitscan(Entity shooter, double angle, double pitch, double distance, int damage,
         HitScanOptions options = HitScanOptions.Default)
     {
-        Vec3D.UnitSphereDeconstructed(angle, pitch, out _, out _, 
-            out var sinPitch, out var cosPitch, out var unitX, out var unitY, out var unitZ);
-        var start = shooter.HitscanAttackPos;
+        var sinAngle = Math.Sin(angle);
+        var cosAngle = Math.Cos(angle);
+        var tanPitch = Math.Tan(pitch);
+        var zOffset = tanPitch * distance;
 
-        var end = new Vec3D(start.X + unitX * distance, start.Y + unitY * distance, start.Z + unitZ * distance);
         var intersect = Vec3D.Zero;
+        var start = shooter.HitscanAttackPos;
+        var end = new Vec3D(start.X + cosAngle * distance, start.Y + sinAngle * distance, start.Z + zOffset);
 
-        var bi = FireHitScan(shooter, start, end, angle, pitch, distance, damage, options, 
-            sinPitch / cosPitch, ref intersect, out _);
+        var bi = FireHitScan(shooter, start, end, angle, pitch, distance, damage, options,
+            tanPitch, ref intersect, out _);
 
         if (shooter.PlayerObj != null && (options & HitScanOptions.DrawRail) != 0)
         {
@@ -1713,7 +1715,7 @@ public abstract partial class WorldBase : IWorld
     }
 
     public virtual BlockmapIntersect? FireHitScan(Entity shooter, Vec3D start, Vec3D end, double angle, double pitch, double distance, int damage,
-    HitScanOptions options, double tanPitch, ref Vec3D intersect, out Sector? hitSector)
+        HitScanOptions options, double tanPitch, ref Vec3D intersect, out Sector? hitSector)
     {
         hitSector = null;
         BlockmapIntersect? returnValue = null;
@@ -1725,7 +1727,6 @@ public abstract partial class WorldBase : IWorld
         var passThrough = (options & HitScanOptions.PassThroughEntities) != 0;
         var noCrossCheck = true;
         var seg = new Seg2D(start.XY, end.XY);
-        var segLength = seg.Length();
         var intersections = WorldStatic.Intersections;
         intersections.Clear();
         BlockmapTraverser.ShootTraverse(seg, intersections);
@@ -1745,7 +1746,7 @@ public abstract partial class WorldBase : IWorld
 
                 // Calculate 3D intersection point and distance for this line
                 var point = seg.FromTime(bi.SegTime);
-                var segDistance = bi.SegTime * segLength;
+                var segDistance = bi.SegTime * distance;
                 var deltaZ = tanPitch * segDistance;
                 var currentDistanceSquared = segDistance * segDistance + deltaZ * deltaZ;
 
@@ -1912,7 +1913,7 @@ public abstract partial class WorldBase : IWorld
             // Only move closer on a line hit
             bool isLine = returnValue.Value.GetIndex(out var index) == IntersectType.Line;
             if (isLine && hitSector == null)
-                MoveIntersectCloser(start, ref intersect, angle, returnValue.Value.SegTime * segLength);
+                MoveIntersectCloser(start, ref intersect, angle, returnValue.Value.SegTime * distance);
             CreateBloodOrPulletPuff(isLine ? null : DataCache.Entities[index], intersect, angle, distance, damage);
         }
 
