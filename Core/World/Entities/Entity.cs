@@ -1140,6 +1140,35 @@ public partial class Entity : IDisposable, ITickable, ISoundSource
         }
     }
 
+    public bool IsNormalByContext(double heightZ, SolidContext context)
+    {
+        if (!WorldStatic.Sector3D)
+            return true;
+
+        var sector3d = GetSectorByHeight3D(heightZ);
+        if (sector3d == null)
+            return true;
+
+        if (context == SolidContext.LineOfSight)
+            return (sector3d.Flags & SectorFlags3D.VisibilityInvert) == 0;
+
+        return (sector3d.Flags & SectorFlags3D.ShootabilityInvert) == 0;
+    }
+
+    public Sector3D? GetSectorByHeight3D(double heightZ)
+    {
+        for (int i = 0; i < Sector.Sectors3D.Length; i++)
+        {
+            var sector3d = Sector.Sectors3D[i];
+            if (sector3d.ControlTop.Z < heightZ || sector3d.ControlBottom.Z > heightZ)
+                continue;
+
+            return sector3d;
+        }
+
+        return null;
+    }
+
     public void Dispose()
     {
         if (IsDisposed)

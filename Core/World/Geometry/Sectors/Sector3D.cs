@@ -123,6 +123,14 @@ public class Sector3D
         FakeTop.Reset(0);
     }
 
+    public bool IsInvertedByContext(SolidContext context)
+    {
+        if (context == SolidContext.LineOfSight)
+            return (Flags & SectorFlags3D.VisibilityInvert) != 0;
+        else
+            return (Flags & SectorFlags3D.ShootabilityInvert) != 0;
+    }
+
     public bool IsSolidByContext(SolidContext context)
     {
         var isSolid = IsSolid;

@@ -1734,6 +1734,8 @@ public abstract partial class WorldBase : IWorld
         var data = intersections.Data;
         int length = intersections.Length;
 
+        var normalSolid = shooter.IsNormalByContext(start.Z, SolidContext.HitScan);
+
         for (int i = 0; i < length; i++)
         {
             ref var bi = ref data[i];
@@ -1813,7 +1815,7 @@ public abstract partial class WorldBase : IWorld
                 {
                     Vec3D test3D = default;
                     var distance3D = double.MaxValue;
-                    if (SegBlockedByHitScanSector3D(front, back, start, end, intersect, ref test3D, front, ref distance3D, out var plane))
+                    if (SegBlockedByHitScanSector3D(front, back, start, end, intersect, ref test3D, front, ref normalSolid, ref distance3D, out var plane))
                     {
                         // Only update if this is closer than our previous best 3D hit
                         if (distance3D < minDistanceSquared3D)
@@ -1881,23 +1883,34 @@ public abstract partial class WorldBase : IWorld
             }
         }
 
-        // If no line was crossed and no entity hit then check the current sector planes
-        if (noCrossCheck)
+        if (WorldStatic.Sector3D)
         {
-            if (!WorldStatic.Sector3D && returnValue == null)
-            {
-                hitSector = shooter.Sector;
-                returnValue = new BlockmapIntersect();
-                GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, ref intersect);
-            }
-            else
-            {
-                hitSector = shooter.Sector;
-                returnValue = new BlockmapIntersect();
+            // Calculate the plane intersection point of this sector and then all 3d sectors of this sector.
+            // Set whichever is closest.
+            Vec3D currentPlaneIntersect = default;
+            GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, ref currentPlaneIntersect);
+            var currentDistanceSquared = start.DistanceSquared(currentPlaneIntersect);
 
-                if (!(WorldStatic.Sector3D && SegBlockedByHitScanSector3D(shooter.Sector, null, start, end, intersect, ref intersect, shooter.Sector, ref minDistanceSquared3D, out _)))
-                    GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, ref intersect);
+            var distance3D = double.MaxValue;
+            if (SegBlockedByHitScanSector3D(shooter.Sector, null, start, end, intersect, ref minIntersect3D, shooter.Sector, ref normalSolid, ref distance3D, out _) 
+                && distance3D <= minDistanceSquared3D && distance3D <= currentDistanceSquared) 
+            {
+                returnValue = null;
+                minReturnValue3D = new();
+                minHitSector3D = shooter.Sector;
             }
+            else if (noCrossCheck)
+            {
+                returnValue = new();
+                hitSector = shooter.Sector;
+                intersect = currentPlaneIntersect;
+            }
+        }
+        else if (noCrossCheck && returnValue == null)
+        {
+            hitSector = shooter.Sector;
+            returnValue = new();
+            GetSectorPlaneIntersection(start, end, shooter.Sector, shooter.Sector.Floor.Z, shooter.Sector.Ceiling.Z, ref intersect);
         }
 
         // Apply deferred 3D hit if it was the closest and we didn't find a concrete blocker
@@ -1920,16 +1933,19 @@ public abstract partial class WorldBase : IWorld
         return returnValue;
     }
 
-    private bool SegBlockedByHitScanSector3D(Sector front, Sector? back, in Vec3D start, in Vec3D end, in Vec3D intersect, ref Vec3D hitIntersect, Sector frontSector,
-        ref double minDistanceSquared3D, out SectorPlane? plane)
+    private bool SegBlockedByHitScanSector3D(Sector front, Sector? back, in Vec3D start, in Vec3D end, in Vec3D intersect, ref Vec3D hitIntersect, 
+        Sector frontSector, ref bool normalSolid, ref double minDistanceSquared3D, out SectorPlane? plane)
     {
         Vec3D minHit = default;
         plane = null;
         SectorPlane? hitPlane = null;
 
-        CheckForBlockedHitScanSector3D(start, end, intersect, frontSector, ref minHit, ref hitPlane, ref minDistanceSquared3D, front);
+        CheckForBlockedHitScanSector3D(start, end, intersect, frontSector, normalSolid, ref minHit, ref hitPlane, ref minDistanceSquared3D, front, out var hitSector3D);
         if (back != null)
-            CheckForBlockedHitScanSector3D(start, end, intersect, frontSector, ref minHit, ref hitPlane, ref minDistanceSquared3D, back);
+            CheckForBlockedHitScanSector3D(start, end, intersect, frontSector, normalSolid, ref minHit, ref hitPlane, ref minDistanceSquared3D, back, out hitSector3D);
+
+        if (hitSector3D != null)
+            normalSolid = (hitSector3D.Flags & SectorFlags3D.ShootabilityInvert) == 0;
 
         if (minDistanceSquared3D != double.MaxValue)
         {
@@ -1941,21 +1957,32 @@ public abstract partial class WorldBase : IWorld
         return false;
     }
 
-    private void CheckForBlockedHitScanSector3D(in Vec3D start, in Vec3D end, in Vec3D intersect, Sector frontSector, 
-        ref Vec3D minHit, ref SectorPlane? hitPlane, ref double minDistanceSquared3D, Sector sector)
+    private void CheckForBlockedHitScanSector3D(in Vec3D start, in Vec3D end, in Vec3D intersect, Sector frontSector,
+        bool normalSolid, ref Vec3D minHit, ref SectorPlane? hitPlane, ref double minDistanceSquared3D, Sector sector, out Sector3D? hitSector3D)
     {
+        hitSector3D = null;
         Vec3D test = default;
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            if (!sector3d.IsSolidByContext(SolidContext.HitScan))
-                continue;
+
+            if (!normalSolid)
+            {
+                if ((sector3d.Flags & SectorFlags3D.ShootabilityInvert) != 0)
+                    continue;
+            }
+            else
+            {
+                if (!sector3d.IsSolidByContext(SolidContext.HitScan))
+                    continue;
+            }
 
             if (frontSector != sector && sector3d.ControlBottom.Z <= intersect.Z && sector3d.ControlTop.Z >= intersect.Z)
             {
                 var distance = start.DistanceSquared(intersect);
                 if (distance < minDistanceSquared3D)
                 {
+                    hitSector3D = sector3d;
                     minHit = intersect;
                     minDistanceSquared3D = distance;
                 }
@@ -1964,7 +1991,7 @@ public abstract partial class WorldBase : IWorld
             if (IntersectPlane3D(sector3d, sector, start, end, ref test, out var testPlane))
             {
                 var distance = start.DistanceSquared(test);
-                if (distance < minDistanceSquared3D)
+                if (distance <= minDistanceSquared3D)
                 {
                     hitPlane = testPlane;
                     minHit = test;
@@ -2419,13 +2446,15 @@ public abstract partial class WorldBase : IWorld
         var topPitch = (endSightPos.Z + to.Height - sightPos.Z) / segLength;
         var bottomPitch = (endSightPos.Z - sightPos.Z) / segLength;
 
+        var normalSolid = from.IsNormalByContext(sightPos.Z, SolidContext.LineOfSight);
+
         if (segLength <= m_losDistance)
         {
             BlockmapTraverser.SightTraverse(seg, intersections, out hitOneSidedLine);
             if (hitOneSidedLine)
                 return false;
 
-            return GetBlockmapTraversalPitch(intersections, sightPos, endSightPos, from, segLength, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
+            return GetBlockmapTraversalPitch(intersections, sightPos, endSightPos, from, segLength, normalSolid, SolidContext.LineOfSight, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
         }
 
         // A lot of LOS checks on large maps will short early. Check the first sorted set, and then rest if it passes.
@@ -2436,7 +2465,7 @@ public abstract partial class WorldBase : IWorld
         if (hitOneSidedLine)
             return false;
 
-        if (GetBlockmapTraversalPitch(intersections, sightPos, endSightPos, from, sliceSegLength, ref topPitch, ref bottomPitch, out _, out _) == TraversalPitchStatus.Blocked)
+        if (GetBlockmapTraversalPitch(intersections, sightPos, endSightPos, from, sliceSegLength, normalSolid, SolidContext.LineOfSight, ref topPitch, ref bottomPitch, out _, out _) == TraversalPitchStatus.Blocked)
             return false;
 
         seg = new Seg2D(seg.End, end);
@@ -2447,7 +2476,7 @@ public abstract partial class WorldBase : IWorld
 
         var slice = new Vec3D(sightPos.X + ((endSightPos.X - sightPos.X) * segTime), sightPos.Y + ((endSightPos.Y - sightPos.Y) * segTime),
             sightPos.Z + ((endSightPos.Z - sightPos.Z) * segTime));
-        return GetBlockmapTraversalPitch(intersections, slice, endSightPos, from, sliceSegLength, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
+        return GetBlockmapTraversalPitch(intersections, slice, endSightPos, from, sliceSegLength, normalSolid, SolidContext.LineOfSight, ref topPitch, ref bottomPitch, out _, out _) != TraversalPitchStatus.Blocked;
     }
 
     private static bool TransferHeightsLineOfSightBlocked(Entity from, Entity to, TransferHeights heights)
@@ -3019,6 +3048,8 @@ public abstract partial class WorldBase : IWorld
             iterateTracers = tracers + 1;
         }
 
+        var shootNormal = shooter.IsNormalByContext(start.Z, SolidContext.HitScan);
+
         for (int i = 0; i < iterateTracers; i++)
         {
             var end = (start + Vec3D.UnitSphere(setAngle, 0) * distance);
@@ -3029,7 +3060,7 @@ public abstract partial class WorldBase : IWorld
 
             double max = MaxPitch;
             double min = MinPitch;
-            var status = GetBlockmapTraversalPitch(intersections, start, end, shooter, distance, ref max, ref min, out pitch, out entity);
+            var status = GetBlockmapTraversalPitch(intersections, start, end, shooter, distance, shootNormal, SolidContext.HitScan, ref max, ref min, out pitch, out entity);
             if (status == TraversalPitchStatus.PitchSet)
                 return true;
 
@@ -3049,7 +3080,8 @@ public abstract partial class WorldBase : IWorld
     }
 
     private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, in Vec3D end, Entity startEntity, double segLength,
-     ref double topSlope, ref double bottomSlope, out double pitch, out Entity? entity)
+        bool normalSolid, SolidContext context,
+        ref double topSlope, ref double bottomSlope, out double pitch, out Entity? entity)
     {
         pitch = 0.0;
         entity = null;
@@ -3078,10 +3110,10 @@ public abstract partial class WorldBase : IWorld
 
                 if (WorldStatic.Sector3D)
                 {
-                    if (!CheckSlope3D(line.FrontSector, line.BackSector, start, segTimeLength, ref topSlope, ref bottomSlope))
+                    if (!CheckSlope3D(line.FrontSector, line.BackSector, start, segTimeLength, normalSolid, context, ref topSlope, ref bottomSlope))
                         return TraversalPitchStatus.Blocked;
 
-                    if (!CheckSlope3D(line.BackSector, line.FrontSector, start, segTimeLength, ref topSlope, ref bottomSlope))
+                    if (!CheckSlope3D(line.BackSector, line.FrontSector, start, segTimeLength, normalSolid, context, ref topSlope, ref bottomSlope))
                         return TraversalPitchStatus.Blocked;
                 }
 
@@ -3144,21 +3176,30 @@ public abstract partial class WorldBase : IWorld
         {
             Vec3D intersect = default;
             double test = double.MaxValue;
-            if (SegBlockedByHitScanSector3D(startEntity.Sector, null, start, end, intersect, ref intersect, startEntity.Sector, ref test, out _))
+            if (SegBlockedByHitScanSector3D(startEntity.Sector, null, start, end, intersect, ref intersect, startEntity.Sector, ref normalSolid, ref test, out _))
                 return TraversalPitchStatus.Blocked;
         }
 
         return TraversalPitchStatus.PitchNotSet;
     }
 
-    private static bool CheckSlope3D(Sector sector, Sector otherSector,in Vec3D start, double segTimeLength,
+    private static bool CheckSlope3D(Sector sector, Sector otherSector, in Vec3D start, double segTimeLength, bool normalSolid, SolidContext context,
         ref double topSlope, ref double bottomSlope)
     {
         for (int i = 0; i < sector.Sectors3D.Length; i++)
         {
             var sector3d = sector.Sectors3D[i];
-            if (!sector3d.IsSolidByContext(SolidContext.LineOfSight))
-                continue;
+            // Only flip for HitScan. GZDoom forces LOS to block here. Non-solid inverted sectors that touch will block visibility.
+            if (!normalSolid && context == SolidContext.HitScan)
+            {
+                if (!sector3d.IsInvertedByContext(context))
+                    continue;
+            }
+            else
+            {
+                if (!sector3d.IsSolidByContext(context))
+                    continue;
+            }
 
             var topZ = sector3d.ControlTop.Z;
             var bottomZ = sector3d.ControlBottom.Z;
