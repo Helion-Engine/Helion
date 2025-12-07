@@ -3048,9 +3048,9 @@ public abstract partial class WorldBase : IWorld
     }
 
     private TraversalPitchStatus GetBlockmapTraversalPitch(DynamicArray<BlockmapIntersect> intersections, in Vec3D start, in Vec3D end, Entity startEntity, double segLength,
-     ref double topSlope, ref double bottomSlope, out double slope, out Entity? entity)
+     ref double topSlope, ref double bottomSlope, out double pitch, out Entity? entity)
     {
-        slope = 0.0;
+        pitch = 0.0;
         entity = null;
 
         var noCrossCheck = true;
@@ -3133,7 +3133,7 @@ public abstract partial class WorldBase : IWorld
                 if (thingBottomSlope > bottomSlope)
                     bottomSlope = thingBottomSlope;
 
-                slope = (bottomSlope + topSlope) / 2.0;
+                pitch = Math.Atan((bottomSlope + topSlope) / 2.0);
                 entity = currentEntity;
                 return TraversalPitchStatus.PitchSet;
             }
