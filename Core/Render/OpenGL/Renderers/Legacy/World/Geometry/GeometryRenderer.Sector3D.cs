@@ -43,9 +43,8 @@ public partial class GeometryRenderer
         var parentBack = flipped ? parentSectorLine.Back : parentSectorLine.Front;
         var parentFront = flipped ? parentSectorLine.Front : parentSectorLine.Back;
 
-        if (renderFront && parentBack != null)
+        if (renderFront && parentBack != null && sector3d.CalculateWallHeights(parentBack, wallHeights, out newWallHeights))
         {
-            sector3d.CalculateWallHeights(parentBack, wallHeights, out newWallHeights);
             wallSector.Ceiling.Z = newWallHeights.TopZ;
             wallSector.Ceiling.PrevZ = newWallHeights.PrevTopZ;
             wallSector.Floor.Z = newWallHeights.BottomZ;

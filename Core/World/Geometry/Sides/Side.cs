@@ -141,6 +141,6 @@ public sealed class Side
         if (PartnerSide == null)
             return "1s";
 
-        return $"2s-{(IsFront ? "f" : "b")}";
+        return $"2s-{(IsFront ? "front" : "back")}";
     }
 }
