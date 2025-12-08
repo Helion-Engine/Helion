@@ -11,7 +11,7 @@ Install dependencies first:
 ### Debian/Ubuntu
 
 ```sh
-sudo apt install dotnet-sdk-9.0 libopenal-dev
+sudo apt install dotnet-sdk-10.0 libopenal-dev
 ```
 
 Then go to the "Command Line Build" section below.
@@ -19,7 +19,7 @@ Then go to the "Command Line Build" section below.
 ### Fedora
 
 ```sh
-sudo dnf install dotnet-sdk-9.0 openal-devel
+sudo dnf install dotnet-sdk-10.0 openal-soft-devel
 ```
 
 After installing dependencies, if you have an IDE that supports C# (like Rider), you can open Helion and build/run directly.  You can also build from the command line, as described in the section below.
@@ -32,7 +32,7 @@ Macintosh is not supported at this time.
 
 ## Command Line Build
 
-Once any platform-specific prerequisites are installed, you can build or publish using the `dotnet` commands available with the .NET SDK.  By default, `dotnet build` will build an "any" binary that uses the installed version of the .NET runtime.  However, you can also build versions with a prepackaged runtime for easy installation onto machines that do not have the .NET 9 runtime installed.  
+Once any platform-specific prerequisites are installed, you can build or publish using the `dotnet` commands available with the .NET SDK.  By default, `dotnet build` will build an "any" binary that uses the installed version of the .NET runtime.  However, you can also build versions with a prepackaged runtime for easy installation onto machines that do not have the .NET 9 runtime installed.
 
 Note that it only makes sense to run the following from the `Client` subdirectory, as this is the only one that actually builds an executable (and can therefore be published).
 
@@ -40,7 +40,7 @@ Note that it only makes sense to run the following from the `Client` subdirector
 * `-r <runtimeID>`:  Build an executable for the specific runtime.  Tested choices include `win-x64`, `win-x86`, and `linux-x64`.
 * `--self-contained=true`:  Includes support files for the specified runtime, so that you do not need to install the .NET runtime onto the machine where you're going to run this (helps to make installs more portable)
 * `-p:PublishSingleFile=true`:  Bundles all of the .NET dependencies into a single file, resulting in fewer files in the output directory.  Can be combined with `--self-contained=true`.
-* `-p:EnableCompressionInSingleFile=true`:  When combined with single-file publish, this will also compress the resulting executable file.  This can result in a much smaller file size, but may result in the app taking longer to start. 
+* `-p:EnableCompressionInSingleFile=true`:  When combined with single-file publish, this will also compress the resulting executable file.  This can result in a much smaller file size, but may result in the app taking longer to start.
 * `-p:SelfContainedRelease=true`:  This will turn on _all_ of the recommended single-file publish optimizations mentioned above.
 * `-p:AOT=true`:  Builds a fully "native" binary.  Note that this requires the full VS 2022 environment on Windows, or Clang on Linux.  Cross-OS targets are not supported for this.  See https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot
 
