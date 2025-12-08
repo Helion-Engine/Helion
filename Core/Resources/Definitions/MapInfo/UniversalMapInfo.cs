@@ -419,6 +419,6 @@ public partial class MapInfoDefinition
         else if (value.EqualsIgnoreCase("require") || value.EqualsIgnoreCase("allow"))
             mapDef.SetOption(option, false);
         else
-            Log.Warn($"MapInfo: Line {line}: Expected one of 'disallow', 'require', or 'allow' for key '{item}' but found {value}.");
+            throw new ParserException(line, -1, -1, $"MapInfo: Expected one of 'disallow', 'require', or 'allow' for key '{item}' but found {value}.");
     }
 }
