@@ -280,6 +280,9 @@ public class Sector3D
             if (GeometryRenderer.LowerIsVisible(side, side.Sector, side.PartnerSide.Sector))
             {
                 WorldTriangulator.HandleTwoSidedLower(side, side.PartnerSide.Sector.Floor, side.Sector.Floor, default, true, ref wall, calculateUV: false);
+                if (WallVerticesOccluded(newWallHeights, wall))
+                    return false;
+
                 if (!AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, newWallHeights.TopZ, wall.TopLeft.PrevZ, newWallHeights.PrevTopZ))
                     return false;
             }
@@ -287,21 +290,33 @@ public class Sector3D
             if (GeometryRenderer.UpperIsVisible(side, side.Sector, side.PartnerSide.Sector))
             {
                 WorldTriangulator.HandleTwoSidedUpper(side, side.PartnerSide.Sector.Ceiling, side.Sector.Ceiling, default, true, ref wall, calculateUV: false);
+                if (WallVerticesOccluded(newWallHeights, wall))
+                    return false;
+
                 if (!AdjustWallHeights(ref newWallHeights, newWallHeights.BottomZ, wall.TopLeft.Z, newWallHeights.PrevBottomZ, wall.TopLeft.PrevZ))
                     return false;
             }
         }
 
-        if (!AdjustWallHeights3D(side.Sector, ref newWallHeights))
-            return false;
+        // Only clip if this side has 3D sectors. Otherwise overlapping non-solid sectors won't render.
+        if (side.PartnerSide == null || side.PartnerSide.Sector.Sectors3D.Length > 0)
+        {
+            if (!AdjustWallHeights3D(side.Sector, ref newWallHeights))
+                return false;
+        }
 
-        if (side.PartnerSide != null)
+        if (side.PartnerSide != null && side.Sector.Sectors3D.Length > 0)
         {
             if (!AdjustWallHeights3D(side.PartnerSide.Sector, ref newWallHeights))
                 return false;
         }
 
         return true;
+    }
+
+    private static bool WallVerticesOccluded(in WallHeights newWallHeights, in WallVertices wall)
+    {
+        return wall.TopLeft.Z >= newWallHeights.TopZ && wall.BottomRight.Z <= newWallHeights.BottomZ;
     }
 
     private bool AdjustWallHeights3D(Sector sector, ref WallHeights newWallHeights)
