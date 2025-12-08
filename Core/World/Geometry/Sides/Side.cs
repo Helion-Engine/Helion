@@ -133,4 +133,14 @@ public sealed class Side
         }
         Line.DataChanges |= LineDataTypes.Texture;
     }
+
+    public override string ToString() => $"Id={Id} {GetSideToString()} | Line-{Line}";
+
+    private string GetSideToString()
+    {
+        if (PartnerSide == null)
+            return "1s";
+
+        return $"2s-{(IsFront ? "f" : "b")}";
+    }
 }

@@ -26,7 +26,7 @@ public enum SectorFlags3D
     Fog = 512,
     Model = 1024,
     UseUpperTexture = 2048,
-    UserLowerTexture = 4096,
+    UseLowerTexture = 4096,
     AdditiveTransparency = 8192,
     Fade = 16384,
     ResetAbove = 32768
@@ -264,8 +264,7 @@ public class Sector3D
         return m_wallHeights;
     }
 
-    public bool CalculateWallHeights(Side side, in WallHeights wallHeights, out WallHeights newWallHeights, 
-        bool check3D = true)
+    public bool CalculateWallHeights(Side side, in WallHeights wallHeights, out WallHeights newWallHeights)
     {
         newWallHeights = wallHeights;
         WallVertices wall = default;
@@ -281,20 +280,17 @@ public class Sector3D
             if (GeometryRenderer.LowerIsVisible(side, side.Sector, side.PartnerSide.Sector))
             {
                 WorldTriangulator.HandleTwoSidedLower(side, side.PartnerSide.Sector.Floor, side.Sector.Floor, default, true, ref wall, calculateUV: false);
-                if (!AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
+                if (!AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, newWallHeights.TopZ, wall.TopLeft.PrevZ, newWallHeights.PrevTopZ))
                     return false;
             }
 
             if (GeometryRenderer.UpperIsVisible(side, side.Sector, side.PartnerSide.Sector))
             {
-                WorldTriangulator.HandleTwoSidedUpper(side, side.PartnerSide.Sector.Floor, side.Sector.Floor, default, true, ref wall, calculateUV: false);
-                if (!AdjustWallHeights(ref newWallHeights, wall.TopLeft.Z, wall.BottomRight.Z, wall.TopLeft.PrevZ, wall.BottomRight.PrevZ))
+                WorldTriangulator.HandleTwoSidedUpper(side, side.PartnerSide.Sector.Ceiling, side.Sector.Ceiling, default, true, ref wall, calculateUV: false);
+                if (!AdjustWallHeights(ref newWallHeights, newWallHeights.BottomZ, wall.TopLeft.Z, newWallHeights.PrevBottomZ, wall.TopLeft.PrevZ))
                     return false;
             }
         }
-
-        if (!check3D)
-            return true;
 
         if (!AdjustWallHeights3D(side.Sector, ref newWallHeights))
             return false;
@@ -370,7 +366,7 @@ public class Sector3D
         {
             if ((Flags & SectorFlags3D.UseUpperTexture) != 0)
                 return parentSectorSide.Upper.TextureHandle;
-            if ((Flags & SectorFlags3D.UserLowerTexture) != 0)
+            if ((Flags & SectorFlags3D.UseLowerTexture) != 0)
                 return parentSectorSide.Lower.TextureHandle;
         }
         return controlSectorSide.Middle.TextureHandle;

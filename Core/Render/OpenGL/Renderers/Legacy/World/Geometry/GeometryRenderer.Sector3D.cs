@@ -121,6 +121,11 @@ public partial class GeometryRenderer
             AllowAlpha = allowAlpha,
         };
 
+        if (isOffset3D && traverseSide.Sector.Sectors3D.Length == 0)
+            wall.Offset.Y += (float)(side.Sector.Ceiling.Z - prevHeights.TopZ);
+        
+        SetWallOffset(wall, false, saveOffsetY, prevHeights);
+
         for (int i = 0; i < traverseSide.Sector.Sectors3D.Length; i++)
         {
             var sector3d = traverseSide.Sector.Sectors3D[i];
