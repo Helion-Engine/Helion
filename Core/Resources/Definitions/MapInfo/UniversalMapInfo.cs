@@ -92,6 +92,12 @@ public partial class MapInfoDefinition
                     ParseBossActionEditorNumber(parser, mapDef);
                 else if (item.EqualsIgnoreCase("author"))
                     mapDef.Author = parser.ConsumeString();
+                else if (item.EqualsIgnoreCase("jumping"))
+                    ParsePlayerAction(parser, mapDef, MapOptions.NoJump, item, line);
+                else if (item.EqualsIgnoreCase("crouching"))
+                    ParsePlayerAction(parser, mapDef, MapOptions.NoCrouch, item, line);
+                else if (item.EqualsIgnoreCase("freeaim"))
+                    ParsePlayerAction(parser, mapDef, MapOptions.NoFreelook, item, line);
                 else
                 {
                     WarnMissing("map", item, line);
@@ -272,7 +278,7 @@ public partial class MapInfoDefinition
 
     private static ClusterDef GetEndGameClusterDef(MapInfoDef mapDef, IWadBaseType iwadType)
     {
-        // Setting just endgame = true triggers the default endgame for the episode. 
+        // Setting just endgame = true triggers the default endgame for the episode.
         var mapName = mapDef.MapName;
         if (iwadType == IWadBaseType.Doom1 && mapName.Length >= 4 &&
             char.ToUpperInvariant(mapName[0]) == 'E' && char.ToUpperInvariant(mapName[2]) == 'M' &&
@@ -308,8 +314,8 @@ public partial class MapInfoDefinition
             return mapName[3] == '8';
         }
 
-        return mapName.EqualsIgnoreCase("MAP06") || mapName.EqualsIgnoreCase("MAP11") || 
-            mapName.EqualsIgnoreCase("MAP20") || mapName.EqualsIgnoreCase("MAP30") || 
+        return mapName.EqualsIgnoreCase("MAP06") || mapName.EqualsIgnoreCase("MAP11") ||
+            mapName.EqualsIgnoreCase("MAP20") || mapName.EqualsIgnoreCase("MAP30") ||
             mapName.EqualsIgnoreCase("MAP31") || mapName.EqualsIgnoreCase("MAP32");
     }
 
@@ -403,5 +409,16 @@ public partial class MapInfoDefinition
         mapDef.Label = parser.ConsumeString();
         if (mapDef.Label.EqualsIgnoreCase("clear"))
             mapDef.Label = string.Empty;
+    }
+
+    private static void ParsePlayerAction(SimpleParser parser, MapInfoDef mapDef, MapOptions option, string item, int line)
+    {
+        var value = parser.ConsumeString();
+        if (value.EqualsIgnoreCase("disallow"))
+            mapDef.SetOption(option, true);
+        else if (value.EqualsIgnoreCase("require") || value.EqualsIgnoreCase("allow"))
+            mapDef.SetOption(option, false);
+        else
+            Log.Warn($"MapInfo: Line {line}: Expected one of 'disallow', 'require', or 'allow' for key '{item}' but found {value}.");
     }
 }
